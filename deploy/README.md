@@ -113,6 +113,8 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 
 `production-secret-backend-fake-resolver-runtime-implementation-entry-review-v1` 已把 `fake_resolver_runtime_implementation_entry_review_defined` 固定为可检查证据：当前只确认下一步可以单独创建 fake resolver runtime implementation 任务卡。该 review 不改变 compose 或 `.env.example` 的职责，不实现 fake resolver runtime、不创建 no secret leakage smoke runtime、不解析 secret、不创建 credential handle、不连接数据库、不调用云 secret 服务、不启用 repository mode 或 production API，仍不声明 production secret backend ready。
 
+`production-secret-backend-fake-resolver-runtime-implementation-v1` 已把 `fake_resolver_runtime_implementation_task_card_defined` 固定为可检查证据：当前只创建 fake resolver runtime implementation 的静态任务卡、fixture、checker 和 artifact guard。该 task card 不改变 compose 或 `.env.example` 的职责，不实现 fake resolver runtime、不创建 no secret leakage smoke runtime、不解析 secret、不创建 credential handle、不连接数据库、不调用云 secret 服务、不启用 repository mode 或 production API，仍不声明 production secret backend ready。
+
 部署态 compose 通过这些变量区分测试和生产：
 
 - `RADISHMIND_IMAGE_REGISTRY`
@@ -155,6 +157,6 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 - 不把 `mock` provider 写成真实 provider readiness。
 - 不把 `docker compose down` cleanup 写成 process supervisor。
 - 不把 `.env.example` 写成 secret backend。
-- 不把 `fake_resolver_implementation_task_card_defined` 或 `fake_resolver_runtime_implementation_entry_review_defined` 写成 fake resolver runtime ready；它们不调用云 secret 服务、不解析 secret、不连接数据库。
+- 不把 `fake_resolver_implementation_task_card_defined`、`fake_resolver_runtime_implementation_entry_review_defined` 或 `fake_resolver_runtime_implementation_task_card_defined` 写成 fake resolver runtime ready；它们不调用云 secret 服务、不解析 secret、不连接数据库。
 - 不把 deployment readiness 静态展开写成 container smoke。
 - 不把 runbook 或 record template 写成已经完成的运行记录。

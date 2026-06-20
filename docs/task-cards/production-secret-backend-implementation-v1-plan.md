@@ -110,12 +110,15 @@
 11. `fake-resolver-runtime-implementation-entry-review`
    - 评审 fake resolver implementation 静态任务卡是否足以进入下一张 test-only runtime implementation 任务卡。
    - 当前已落地 entry review：`docs/platform/production-secret-backend-fake-resolver-runtime-implementation-entry-review-v1.md`、`docs/task-cards/production-secret-backend-fake-resolver-runtime-implementation-entry-review-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-fake-resolver-runtime-implementation-entry-review-v1.json` 与 `scripts/check-production-ops-secret-backend-fake-resolver-runtime-implementation-entry-review-v1.py` 固定 `fake_resolver_runtime_implementation_entry_review_defined`；当前只允许下一步单独创建 runtime implementation 任务卡，不实现 resolver runtime、不实现 fake resolver runtime、不创建 no secret leakage smoke runtime、不接云、不读 secret、不接数据库。
+12. `fake-resolver-runtime-implementation`
+   - 创建 fake resolver runtime implementation 静态任务卡，固定后续 test-only runtime gate、placeholder secret ref fixture、environment binding、opaque credential handle metadata、sanitized diagnostics、offline no leakage smoke 和 side effect counters。
+   - 当前已落地任务卡：`docs/platform/production-secret-backend-fake-resolver-runtime-implementation-v1.md`、`docs/task-cards/production-secret-backend-fake-resolver-runtime-implementation-v1-plan.md`、`scripts/checks/fixtures/production-secret-backend-fake-resolver-runtime-implementation-v1.json` 与 `scripts/check-production-ops-secret-backend-fake-resolver-runtime-implementation-v1.py` 固定 `fake_resolver_runtime_implementation_task_card_defined`；当前不实现 resolver runtime、不实现 fake resolver runtime、不创建 no secret leakage smoke runtime、不接云、不读 secret、不接数据库。
 
 ## 验收口径
 
 - 有任务卡、readiness fixture 和 checker 固定前置条件。
 - `production_secret_backend` 仍为 `not_satisfied`，直到真实 resolver、test fixture strategy、测试环境 smoke 和生产前复核记录都完成。
-- `test-fixture-strategy` 当前有 blocked entry review、fake resolver contract / no secret leakage smoke strategy 静态证据、fake resolver implementation task card entry readiness、fake resolver implementation 静态任务卡和 fake resolver runtime implementation entry review；这只能解释为后续可以单独创建 fake resolver runtime implementation 任务卡，不能解释为 fake resolver runtime ready。
+- `test-fixture-strategy` 当前有 blocked entry review、fake resolver contract / no secret leakage smoke strategy 静态证据、fake resolver implementation task card entry readiness、fake resolver implementation 静态任务卡、fake resolver runtime implementation entry review 和 fake resolver runtime implementation 静态任务卡；这只能解释为后续可以进入单独 runtime implementation 批次，不能解释为 fake resolver runtime ready。
 - fast baseline 不联网、不要求真实 credential、不写入真实 secret。
 - `pwsh ./scripts/check-repo.ps1 -Fast` 通过。
 
@@ -125,6 +128,6 @@
 - 不写入真实 secret。
 - 不提交任何 API key、token、cookie、authorization header、证书或 provider raw dump。
 - 不把 `.env.example`、developer env override、fake resolver 或 disabled resolver 写成 production secret backend。
-- 不把 fake resolver static contract、no secret leakage smoke strategy、fake resolver implementation task card entry readiness 或 fake resolver runtime implementation entry review 写成 fake resolver runtime ready。
+- 不把 fake resolver static contract、no secret leakage smoke strategy、fake resolver implementation task card entry readiness、fake resolver runtime implementation entry review 或 fake resolver runtime implementation task card 写成 fake resolver runtime ready。
 - 不声明 production ready。
 - 不接 executor、confirmation、writeback、replay 或 materialized result reader。
