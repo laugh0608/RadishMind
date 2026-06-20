@@ -134,7 +134,7 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-后续已单独完成 fake resolver runtime implementation entry review、test-only fake resolver runtime、真实 resolver runtime preconditions、真实 resolver runtime implementation entry review、resolver backend profile selection readiness、真实 resolver no leakage smoke runtime strategy、credential handle runtime boundary readiness、operator approval runtime evidence readiness 和 audit store handoff readiness。下一步若继续 production secret backend，应推进 backend health boundary 单一 blocker。
+后续已单独完成 fake resolver runtime implementation entry review、test-only fake resolver runtime、真实 resolver runtime preconditions、真实 resolver runtime implementation entry review、resolver backend profile selection readiness、真实 resolver no leakage smoke runtime strategy、credential handle runtime boundary readiness、operator approval runtime evidence readiness、audit store handoff readiness、backend health boundary readiness 和 backend health runtime implementation entry review。下一步若继续 production secret backend，应选择 audit store runtime、operator approval runtime、credential handle runtime 或 real resolver runtime implementation entry refresh 单一方向。
 
 `test-fixture-strategy` 后续只由 test-only fake resolver runtime 覆盖离线替身边界；它不代表 production resolver runtime、no secret leakage runtime smoke、audit store 或 production secret backend ready。
 

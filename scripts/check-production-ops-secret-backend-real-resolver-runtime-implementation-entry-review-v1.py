@@ -76,6 +76,7 @@ EXPECTED_GATE_STATUS = {
     "operator_approval_runtime_evidence": "readiness_defined_runtime_not_executed",
     "audit_rotation_runtime_handoff": "readiness_defined_store_not_created",
     "resolver_backend_health_boundary": "readiness_defined_without_backend_health_runtime",
+    "resolver_backend_health_runtime_entry_review": "defined_blocked_before_runtime_task_card",
     "resolver_runtime_gate": "not_created",
     "cloud_secret_service_gate": "forbidden",
     "database_connection_provider_gate": "blocked",
@@ -94,6 +95,7 @@ EXPECTED_FAILURE_CODES = {
     "real_resolver_runtime_entry_operator_approval_runtime_not_executed",
     "real_resolver_runtime_entry_audit_store_not_created",
     "real_resolver_runtime_entry_backend_health_runtime_not_created",
+    "real_resolver_runtime_entry_backend_health_runtime_entry_review_blocked",
     "real_resolver_runtime_entry_secret_value_detected",
     "real_resolver_runtime_created_in_entry_review",
     "real_resolver_runtime_entry_cloud_call_forbidden",
@@ -112,6 +114,7 @@ EXPECTED_DIAGNOSTIC_FIELDS = {
     "audit_policy_status",
     "rotation_policy_status",
     "backend_health_boundary_status",
+    "backend_health_runtime_entry_review_status",
     "failure_code",
     "sanitized_diagnostic",
     "request_id",
@@ -328,6 +331,11 @@ def assert_implementation_readiness_alignment() -> None:
         "implementation readiness must record backend health boundary readiness",
     )
     require(
+        target.get("resolver_backend_health_runtime_implementation_entry_review_status")
+        == "blocked_before_runtime_task_card",
+        "implementation readiness must record backend health runtime entry review blocked status",
+    )
+    require(
         target.get("backend_health_runtime_status") == "not_created",
         "implementation readiness must keep backend health runtime not_created",
     )
@@ -362,6 +370,11 @@ def assert_implementation_readiness_alignment() -> None:
     require(
         health.get("status") == "resolver_backend_health_boundary_readiness_defined",
         "planned backend health boundary readiness status drifted",
+    )
+    health_entry = planned.get("resolver-backend-health-runtime-implementation-entry-review") or {}
+    require(
+        health_entry.get("status") == "resolver_backend_health_runtime_implementation_entry_review_defined",
+        "planned backend health runtime entry review status drifted",
     )
 
 

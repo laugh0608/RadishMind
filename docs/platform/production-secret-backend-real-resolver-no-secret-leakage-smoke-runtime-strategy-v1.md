@@ -178,7 +178,7 @@ side effect counters 必须保持：
 
 本批完成后，真实 resolver runtime implementation task card 仍不能在本切片创建。`no-secret-leakage-smoke-runtime-strategy` 已固定为静态前置证据；后续已由 `production-secret-backend-credential-handle-runtime-boundary-readiness-v1` 固定 credential handle boundary，由 `production-secret-backend-operator-approval-runtime-evidence-readiness-v1` 固定 operator approval runtime evidence boundary，由 `production-secret-backend-audit-store-handoff-readiness-v1` 固定 audit store handoff readiness，并由 `production-secret-backend-resolver-backend-health-boundary-readiness-v1` 固定 backend health boundary readiness，但 executable smoke runtime、production resolver runtime、credential handle runtime、approval runtime execution、audit store、audit writer、audit event、backend health runtime 和 backend health check 均未创建。
 
-下一步若继续 production secret backend，应单独评审 backend health runtime implementation entry 或 real resolver runtime implementation entry refresh。
+后续已由 `production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1` 固定 backend health runtime entry review blocked-before-task-card 结论。下一步若继续 production secret backend，应单独评审 audit store runtime、operator approval runtime、credential handle runtime，或刷新 real resolver runtime implementation entry。
 
 ## 验证
 

@@ -244,12 +244,11 @@ side effect counters 必须保持：
 
 ## 后续 Runtime 拆分
 
-本批完成后，只能说明 backend health boundary 的静态输入、metadata、状态、失败语义、diagnostics 和 artifact guard 已定义。后续仍必须拆成独立目标推进：
+本批完成后，只能说明 backend health boundary 的静态输入、metadata、状态、失败语义、diagnostics 和 artifact guard 已定义。后续 `resolver-backend-health-runtime-implementation-entry-review` 已单独完成并固定为 `resolver_backend_health_runtime_implementation_entry_review_defined`，entry decision 为 blocked before runtime task card。其余 runtime 仍必须拆成独立目标推进：
 
-1. `resolver-backend-health-runtime-implementation-entry-review`
-2. `resolver-backend-health-runtime-implementation`
-3. `production-secret-backend-real-resolver-runtime-implementation-entry-refresh`
-4. `production-secret-backend-real-resolver-runtime-implementation`
+1. `resolver-backend-health-runtime-implementation`
+2. `production-secret-backend-real-resolver-runtime-implementation-entry-refresh`
+3. `production-secret-backend-real-resolver-runtime-implementation`
 
 任何后续 runtime 目标都必须继续满足 no secret leakage、credential handle、operator approval、audit handoff、rotation policy、health boundary、no fallback 和 no side effects 的证据链；不得用 fake resolver、developer env、mock provider、local-smoke profile、DB provider、repository memory store 或 audit memory store 替代。
 

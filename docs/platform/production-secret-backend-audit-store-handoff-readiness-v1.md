@@ -270,7 +270,7 @@ side effect counters 必须保持：
 
 本批只把真实 resolver runtime implementation entry review 中的 audit handoff blocker 固定为静态前置证据。真实 audit store、audit writer、store schema、DB provider、repository mode、production resolver runtime、cloud secret backend 和 production API 仍必须作为独立目标推进。
 
-后续已由 `production-secret-backend-resolver-backend-health-boundary-readiness-v1` 固定 backend health boundary readiness，但 backend health runtime 未创建，health check 未执行。下一步若继续 production secret backend，应单独评审 backend health runtime implementation entry 或 real resolver runtime implementation entry refresh，仍不得直接创建 production resolver runtime implementation task card。
+后续已由 `production-secret-backend-resolver-backend-health-boundary-readiness-v1` 固定 backend health boundary readiness，并由 `production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1` 固定 backend health runtime entry review blocked-before-task-card 结论；backend health runtime 未创建，health check 未执行。下一步若继续 production secret backend，应单独评审 audit store runtime、operator approval runtime、credential handle runtime，或刷新 real resolver runtime implementation entry，仍不得直接创建 production resolver runtime implementation task card。
 
 ## 验证
 

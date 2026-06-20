@@ -20,6 +20,8 @@ REQUIRED_FORBIDDEN_CLAIMS = {
     "fake_resolver_implemented",
     "no_secret_leakage_smoke_runtime_created",
     "backend_health_runtime_created",
+    "backend_health_runtime_task_card_created",
+    "backend_health_client_created",
     "backend_health_check_executed",
     "secret_rotation_ready",
     "production_secret_audit_store_ready",
@@ -59,6 +61,9 @@ REQUIRED_PLANNED_SLICES = {
     "operator-approval-runtime-evidence-readiness": "operator_approval_runtime_evidence_readiness_defined",
     "audit-store-handoff-readiness": "audit_store_handoff_readiness_defined",
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
+    "resolver-backend-health-runtime-implementation-entry-review": (
+        "resolver_backend_health_runtime_implementation_entry_review_defined"
+    ),
 }
 
 REQUIRED_BLOCKED = {
@@ -114,6 +119,8 @@ REQUIRED_DOC_REFERENCES = {
         "audit_store_handoff_readiness_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
         "resolver_backend_health_boundary_readiness_defined",
+        "production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1",
+        "resolver_backend_health_runtime_implementation_entry_review_defined",
         "services/platform/internal/secretbackend/fake_resolver.go",
         "contracts/production-secret-reference.schema.json",
         "production-secret-reference-basic.json",
@@ -174,6 +181,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py",
         "check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py",
+        "check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py",
     ],
     "docs/devlogs/2026-W22.md": [
         "production-secret-backend-implementation-readiness",
@@ -326,6 +334,11 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("resolver_backend_health_boundary_readiness_status")
         == "defined_without_backend_health_runtime",
         "resolver backend health boundary readiness status drifted",
+    )
+    require(
+        target.get("resolver_backend_health_runtime_implementation_entry_review_status")
+        == "blocked_before_runtime_task_card",
+        "resolver backend health runtime implementation entry review status drifted",
     )
     require(target.get("backend_health_runtime_status") == "not_created", "backend health runtime must remain not_created")
     require(
@@ -686,6 +699,16 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "resolver-backend-health-runtime-implementation-entry-review":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.md",
+                "docs/task-cards/production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.json",
+                "scripts/check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
 
     blocked = {str(item.get("id")): item for item in fixture.get("blocked_conditions") or [] if isinstance(item, dict)}
     missing_blocked = sorted(set(REQUIRED_BLOCKED) - set(blocked))
@@ -704,6 +727,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "operator approval runtime evidence readiness defined without runtime execution",
         "audit store handoff readiness defined without store runtime",
         "resolver backend health boundary readiness defined without backend health runtime",
+        "resolver backend health runtime implementation entry review blocked before task card",
     }:
         require(required in validation, f"validation strategy missing: {required}")
 
@@ -731,6 +755,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py",
+        "scripts/check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-secret-reference-contract.py",
         "scripts/check-repo.py",
         "scripts/README.md",
@@ -777,6 +802,9 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/platform/production-secret-backend-resolver-backend-health-boundary-readiness-v1.md",
         "docs/task-cards/production-secret-backend-resolver-backend-health-boundary-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-resolver-backend-health-boundary-readiness-v1.json",
+        "docs/platform/production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.md",
+        "docs/task-cards/production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.json",
         "services/platform/README.md",
         "docs/devlogs/2026-W22.md",
         "docs/devlogs/2026-W25.md",
@@ -877,6 +905,11 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py", [])'
         in check_repo,
         "check-repo.py must run backend health boundary readiness check",
+    )
+    require(
+        'run_python_script("check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py", [])'
+        in check_repo,
+        "check-repo.py must run backend health runtime implementation entry review check",
     )
 
     for relative_path, required_literals in REQUIRED_DOC_REFERENCES.items():

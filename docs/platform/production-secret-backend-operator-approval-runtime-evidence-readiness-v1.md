@@ -255,7 +255,7 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-本批完成后，真实 resolver runtime implementation task card 仍不能在本切片创建。`operator-approval-runtime-evidence-readiness` 只固定 future operator approval runtime evidence 的边界和停止线，不执行 approval runtime。后续已由 `production-secret-backend-audit-store-handoff-readiness-v1` 固定 audit store handoff readiness，并由 `production-secret-backend-resolver-backend-health-boundary-readiness-v1` 固定 backend health boundary readiness；当前仍不创建 audit store、audit writer、audit event、backend health runtime 或 health check。下一步若继续 production secret backend，应单独评审 backend health runtime implementation entry 或 real resolver runtime implementation entry refresh。
+本批完成后，真实 resolver runtime implementation task card 仍不能在本切片创建。`operator-approval-runtime-evidence-readiness` 只固定 future operator approval runtime evidence 的边界和停止线，不执行 approval runtime。后续已由 `production-secret-backend-audit-store-handoff-readiness-v1` 固定 audit store handoff readiness，由 `production-secret-backend-resolver-backend-health-boundary-readiness-v1` 固定 backend health boundary readiness，并由 `production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1` 固定 backend health runtime entry review blocked-before-task-card 结论；当前仍不创建 audit store、audit writer、audit event、backend health runtime implementation task card、backend health runtime 或 health check。下一步若继续 production secret backend，应单独评审 audit store runtime、operator approval runtime、credential handle runtime，或刷新 real resolver runtime implementation entry。
 
 ## 验证
 

@@ -8,7 +8,7 @@
 
 对应切片：`production-secret-backend-real-resolver-runtime-implementation-entry-review-v1`。
 
-结论：状态为 `real_resolver_runtime_implementation_entry_review_defined`，entry decision 仍记录为 `real_resolver_runtime_implementation_blocked_before_task_card`，因为本批不创建 production resolver runtime implementation task card。当前真实 resolver runtime 的静态启用条件和停止线已经可检查；`resolver_backend_profile_selection_readiness_defined`、`real_resolver_no_secret_leakage_smoke_runtime_strategy_defined`、`credential_handle_runtime_boundary_readiness_defined`、`operator_approval_runtime_evidence_readiness_defined`、`audit_store_handoff_readiness_defined` 与 `resolver_backend_health_boundary_readiness_defined` 已补成静态前置证据。下一步只能作为单独 runtime implementation entry refresh 或 runtime task card 继续推进，不能在本批顺手创建 production resolver runtime。
+结论：状态为 `real_resolver_runtime_implementation_entry_review_defined`，entry decision 仍记录为 `real_resolver_runtime_implementation_blocked_before_task_card`，因为本批不创建 production resolver runtime implementation task card。当前真实 resolver runtime 的静态启用条件和停止线已经可检查；`resolver_backend_profile_selection_readiness_defined`、`real_resolver_no_secret_leakage_smoke_runtime_strategy_defined`、`credential_handle_runtime_boundary_readiness_defined`、`operator_approval_runtime_evidence_readiness_defined`、`audit_store_handoff_readiness_defined`、`resolver_backend_health_boundary_readiness_defined` 与 `resolver_backend_health_runtime_implementation_entry_review_defined` 已补成静态前置证据，backend health runtime entry review 已定义但 runtime task card 仍 blocked。下一步只能作为单独 runtime implementation entry refresh 或 runtime task card 继续推进，不能在本批顺手创建 production resolver runtime。
 
 本批不实现 production resolver runtime，不读取真实 secret，不调用云 secret 服务，不连接数据库，不创建 credential payload，不创建 credential handle runtime，不创建 no secret leakage smoke runtime，不启用 workflow saved draft repository mode，也不新增 public production API。
 
@@ -22,6 +22,7 @@
 - `production-secret-backend-operator-approval-runtime-evidence-readiness-v1` 已固定 `operator_approval_runtime_evidence_readiness_defined`，operator approval runtime evidence boundary 已定义但 approval runtime 未创建也未执行。
 - `production-secret-backend-audit-store-handoff-readiness-v1` 已固定 `audit_store_handoff_readiness_defined`，audit handoff boundary 已定义但 audit store / writer 未创建，event 未写入。
 - `production-secret-backend-resolver-backend-health-boundary-readiness-v1` 已固定 `resolver_backend_health_boundary_readiness_defined`，backend health boundary 已定义但 backend health runtime 未创建，health check 未执行。
+- `production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1` 已固定 `resolver_backend_health_runtime_implementation_entry_review_defined`，backend health runtime entry review 已定义但 backend health runtime implementation task card 仍 blocked。
 - `production-secret-backend-operator-runbook-negative-gates-readiness-v1` 和 `production-secret-backend-rotation-audit-policy-readiness-v1` 只固定运行手册与策略，不提供 runtime audit store 或真实 operator approval execution。
 - `production-ops-secret-backend-implementation-readiness` 仍保持 `production_secret_backend=not_satisfied`、`resolver_runtime_status=not_created`。
 
@@ -37,6 +38,7 @@
 | operator approval runtime evidence | `readiness_defined_runtime_not_executed` | approval evidence boundary 已定义，但 runtime 未创建也未执行 |
 | audit / rotation runtime handoff | `readiness_defined_store_not_created` | audit handoff 静态前置已定义，但 production audit store / writer 未创建，event 未写入 |
 | resolver backend health boundary | `readiness_defined_without_backend_health_runtime` | backend health boundary 已定义，但 backend health runtime 未创建，health check 未执行 |
+| resolver backend health runtime entry review | `defined_blocked_before_runtime_task_card` | backend health runtime entry review 已定义但 backend health runtime task card 仍 blocked |
 | production resolver runtime | `not_created` | 本批不创建 runtime |
 | database / repository mode | `blocked` | DB provider、SQL、schema marker、repository mode 和 production API 均不打开 |
 
@@ -56,6 +58,7 @@
 | `real_resolver_runtime_entry_operator_approval_runtime_not_executed` | `operator_gate` | operator approval runtime evidence readiness 已定义但 runtime 未执行 |
 | `real_resolver_runtime_entry_audit_store_not_created` | `audit_policy` | audit handoff readiness 已定义但 production audit store / writer 尚未创建 |
 | `real_resolver_runtime_entry_backend_health_runtime_not_created` | `backend_health` | backend health boundary 已定义但 backend health runtime 尚未创建 |
+| `real_resolver_runtime_entry_backend_health_runtime_entry_review_blocked` | `backend_health` | backend health runtime entry review 已定义但 runtime task card 仍 blocked |
 | `real_resolver_runtime_entry_secret_value_detected` | `artifact_guard` | 文档、fixture 或 checker 出现 secret-looking value |
 | `real_resolver_runtime_created_in_entry_review` | `artifact_guard` | 本批创建 production resolver runtime、cloud client、credential payload 或 credential handle runtime |
 | `real_resolver_runtime_entry_cloud_call_forbidden` | `no_side_effects` | checker、fixture 或任务卡要求联网、provider call 或云 secret call |
@@ -78,6 +81,7 @@
 - `audit_policy_status`
 - `rotation_policy_status`
 - `backend_health_boundary_status`
+- `backend_health_runtime_entry_review_status`
 - `failure_code`
 - `sanitized_diagnostic`
 - `request_id`
@@ -133,6 +137,9 @@ side effect counters 必须保持：
 - `scripts/checks/fixtures/production-secret-backend-audit-store-handoff-readiness-v1.json`
 - `docs/platform/production-secret-backend-resolver-backend-health-boundary-readiness-v1.md`
 - `scripts/checks/fixtures/production-secret-backend-resolver-backend-health-boundary-readiness-v1.json`
+- `docs/platform/production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.md`
+- `scripts/checks/fixtures/production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.json`
+- `scripts/check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py`
 
 不得新增或启用以下 artifact：
 
@@ -162,8 +169,10 @@ side effect counters 必须保持：
 
 下一步若继续 production secret backend，不应直接创建 resolver runtime implementation task card。应在以下方向中选择一个单独开题：
 
-1. `resolver-backend-health-runtime-implementation-entry-review`
-2. `production-secret-backend-real-resolver-runtime-implementation-entry-refresh`
+1. `production-secret-backend-audit-store-runtime-implementation-entry-review`
+2. `production-secret-backend-operator-approval-runtime-implementation-entry-review`
+3. `production-secret-backend-credential-handle-runtime-implementation-entry-review`
+4. `production-secret-backend-real-resolver-runtime-implementation-entry-refresh`
 
 ## 验证
 
@@ -171,6 +180,7 @@ side effect counters 必须保持：
 
 ```bash
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py
