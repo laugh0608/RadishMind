@@ -60,6 +60,9 @@ EXPECTED_DEPENDENCIES = {
         "operator_approval_runtime_evidence_readiness_defined"
     ),
     "production-secret-backend-audit-store-handoff-readiness-v1": "audit_store_handoff_readiness_defined",
+    "production-secret-backend-resolver-backend-health-boundary-readiness-v1": (
+        "resolver_backend_health_boundary_readiness_defined"
+    ),
     "production-secret-backend-implementation-readiness": "implementation_readiness_defined",
     "secret-ref-schema-and-fixtures": "satisfied_reference_only_resolver_disabled",
 }
@@ -72,7 +75,7 @@ EXPECTED_GATE_STATUS = {
     "credential_handle_runtime_boundary": "readiness_defined_runtime_not_created",
     "operator_approval_runtime_evidence": "readiness_defined_runtime_not_executed",
     "audit_rotation_runtime_handoff": "readiness_defined_store_not_created",
-    "resolver_backend_health_boundary": "blocked_missing_backend_health_boundary",
+    "resolver_backend_health_boundary": "readiness_defined_without_backend_health_runtime",
     "resolver_runtime_gate": "not_created",
     "cloud_secret_service_gate": "forbidden",
     "database_connection_provider_gate": "blocked",
@@ -80,9 +83,7 @@ EXPECTED_GATE_STATUS = {
     "production_api_gate": "blocked",
 }
 
-EXPECTED_BLOCKED = {
-    "resolver-backend-health-boundary-readiness",
-}
+EXPECTED_BLOCKED: set[str] = set()
 
 EXPECTED_FAILURE_CODES = {
     "real_resolver_runtime_entry_preconditions_missing",
@@ -92,6 +93,7 @@ EXPECTED_FAILURE_CODES = {
     "real_resolver_runtime_entry_credential_handle_boundary_missing",
     "real_resolver_runtime_entry_operator_approval_runtime_not_executed",
     "real_resolver_runtime_entry_audit_store_not_created",
+    "real_resolver_runtime_entry_backend_health_runtime_not_created",
     "real_resolver_runtime_entry_secret_value_detected",
     "real_resolver_runtime_created_in_entry_review",
     "real_resolver_runtime_entry_cloud_call_forbidden",
@@ -109,6 +111,7 @@ EXPECTED_DIAGNOSTIC_FIELDS = {
     "operator_approval_status",
     "audit_policy_status",
     "rotation_policy_status",
+    "backend_health_boundary_status",
     "failure_code",
     "sanitized_diagnostic",
     "request_id",
@@ -319,6 +322,19 @@ def assert_implementation_readiness_alignment() -> None:
         target.get("audit_event_delivery_status") == "not_executed",
         "implementation readiness must keep audit delivery not_executed",
     )
+    require(
+        target.get("resolver_backend_health_boundary_readiness_status")
+        == "defined_without_backend_health_runtime",
+        "implementation readiness must record backend health boundary readiness",
+    )
+    require(
+        target.get("backend_health_runtime_status") == "not_created",
+        "implementation readiness must keep backend health runtime not_created",
+    )
+    require(
+        target.get("backend_health_check_status") == "not_executed",
+        "implementation readiness must keep backend health check not_executed",
+    )
     require(target.get("resolver_implementation_status") == "not_started", "resolver implementation must remain not_started")
     require(target.get("resolver_runtime_status") == "not_created", "resolver runtime must remain not_created")
     planned = rows_by_id(readiness, "planned_slices", "id")
@@ -341,6 +357,11 @@ def assert_implementation_readiness_alignment() -> None:
     require(
         audit_handoff.get("status") == "audit_store_handoff_readiness_defined",
         "planned audit store handoff readiness status drifted",
+    )
+    health = planned.get("resolver-backend-health-boundary-readiness") or {}
+    require(
+        health.get("status") == "resolver_backend_health_boundary_readiness_defined",
+        "planned backend health boundary readiness status drifted",
     )
 
 

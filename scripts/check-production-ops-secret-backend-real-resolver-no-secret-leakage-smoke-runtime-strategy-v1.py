@@ -471,6 +471,11 @@ def assert_entry_review_alignment() -> None:
         operator.get("status") == "readiness_defined_runtime_not_executed",
         "entry review must record operator approval evidence defined while runtime remains not_executed",
     )
+    health = gates.get("resolver_backend_health_boundary") or {}
+    require(
+        health.get("status") == "readiness_defined_without_backend_health_runtime",
+        "entry review must record backend health boundary defined while runtime remains not_created",
+    )
     blocked = set(entry.get("blocked_conditions") or [])
     require(
         "no-secret-leakage-smoke-runtime-strategy" not in blocked,
@@ -488,7 +493,10 @@ def assert_entry_review_alignment() -> None:
         "production-secret-audit-store-handoff-readiness" not in blocked,
         "entry review must not keep completed audit handoff readiness as a missing blocker",
     )
-    require("resolver-backend-health-boundary-readiness" in blocked, "backend health blocker must remain")
+    require(
+        "resolver-backend-health-boundary-readiness" not in blocked,
+        "entry review must not keep completed backend health boundary as a missing blocker",
+    )
 
 
 def assert_docs_validation_and_check_repo(fixture: dict[str, Any]) -> None:

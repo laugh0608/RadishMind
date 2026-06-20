@@ -197,9 +197,9 @@ side effect counters 必须保持：
 1. `real-resolver-runtime-implementation-entry-review` 已完成，结论仍为 blocked before runtime task card。
 2. `resolver-backend-profile-selection-readiness` 已完成静态前置证据，但 backend runtime 仍未创建。
 3. `real-resolver-no-secret-leakage-smoke-runtime-strategy` 已完成静态前置证据，但 no secret leakage smoke runtime 仍未创建。
-4. `credential-handle-runtime-boundary-readiness`、`operator-approval-runtime-evidence-readiness` 与 `audit-store-handoff-readiness` 已完成静态前置证据，但 credential handle runtime、approval runtime、approval runtime execution、audit store、audit writer 和 audit event 均未创建。
-5. 下一步应选择 `resolver-backend-health-boundary-readiness` 单一方向。
-6. `real-resolver-runtime-implementation`、`database-connection-provider-entry-review` 或 `schema-marker-contract` 只能在上述 blocker 继续收敛后再评审；不得并行打开 DB provider、repository mode 或 public API。
+4. `credential-handle-runtime-boundary-readiness`、`operator-approval-runtime-evidence-readiness`、`audit-store-handoff-readiness` 与 `resolver-backend-health-boundary-readiness` 已完成静态前置证据，但 credential handle runtime、approval runtime、approval runtime execution、audit store、audit writer、audit event、backend health runtime 和 backend health check 均未创建。
+5. 下一步应选择 `resolver-backend-health-runtime-implementation-entry-review` 或 `real-resolver-runtime-implementation-entry-refresh` 单一方向。
+6. `real-resolver-runtime-implementation`、`database-connection-provider-entry-review` 或 `schema-marker-contract` 只能在上述 runtime entry 继续收敛后再评审；不得并行打开 DB provider、repository mode 或 public API。
 
 ## 验证
 

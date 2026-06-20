@@ -9,7 +9,7 @@
 ## 当前结论
 
 - 状态：`real_resolver_runtime_implementation_entry_review_defined`
-- Entry decision：`real_resolver_runtime_implementation_blocked_before_task_card`
+- Entry decision：`real_resolver_runtime_implementation_blocked_before_task_card`，表示本批不创建 runtime task card
 - 本批新增：platform topic、task card、fixture、checker、check-repo 注册和入口文档同步
 - 本批不新增：production resolver runtime、production resolver implementation task card、cloud SDK、credential payload、credential handle runtime、no secret leakage smoke runtime、DB provider、DB driver、connection factory、SQL、schema marker、migration runner、repository mode、audit store 或 production API
 
@@ -25,6 +25,7 @@
 - `docs/platform/production-secret-backend-credential-handle-runtime-boundary-readiness-v1.md`
 - `docs/platform/production-secret-backend-operator-approval-runtime-evidence-readiness-v1.md`
 - `docs/platform/production-secret-backend-audit-store-handoff-readiness-v1.md`
+- `docs/platform/production-secret-backend-resolver-backend-health-boundary-readiness-v1.md`
 - `scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json`
 - `scripts/checks/fixtures/production-secret-reference-basic.json`
 
@@ -39,7 +40,7 @@
 
 1. 创建 real resolver runtime implementation entry review：
    - 判断 preconditions 是否足以创建 production resolver runtime implementation task card。
-   - 固定 blocked decision 与 missing blockers。
+   - 固定当前不在本批创建 runtime task card 的 decision。
    - 明确本批不创建 implementation task card 或 runtime。
 
 2. 更新 implementation readiness 总账：
@@ -54,7 +55,7 @@
    - credential handle boundary 已定义，但 credential handle runtime 未创建
    - operator approval runtime evidence readiness 已定义，但 approval runtime 未创建也未执行
    - audit store handoff readiness 已定义，但 audit store / writer 未创建，event 未写入
-   - backend health boundary 未定义
+   - backend health boundary 已定义，但 backend health runtime 未创建，health check 未执行
 
 4. 固定 failure mapping、sanitized diagnostics、no fallback、no side effects 和 artifact guard。
 
@@ -76,6 +77,7 @@
 
 ```bash
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py

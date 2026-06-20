@@ -170,11 +170,9 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-本批完成后，真实 resolver runtime implementation task card 仍不能创建。后续已由 `production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1` 固定 no leakage smoke runtime strategy 静态证据，由 `production-secret-backend-credential-handle-runtime-boundary-readiness-v1` 固定 credential handle boundary 静态证据，由 `production-secret-backend-operator-approval-runtime-evidence-readiness-v1` 固定 operator approval runtime evidence 静态证据，并由 `production-secret-backend-audit-store-handoff-readiness-v1` 固定 audit store handoff 静态证据。下一步应继续推进剩余 blocker：
+本批完成后，真实 resolver runtime implementation task card 仍不能在本切片创建。后续已由 `production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1` 固定 no leakage smoke runtime strategy 静态证据，由 `production-secret-backend-credential-handle-runtime-boundary-readiness-v1` 固定 credential handle boundary 静态证据，由 `production-secret-backend-operator-approval-runtime-evidence-readiness-v1` 固定 operator approval runtime evidence 静态证据，由 `production-secret-backend-audit-store-handoff-readiness-v1` 固定 audit store handoff 静态证据，并由 `production-secret-backend-resolver-backend-health-boundary-readiness-v1` 固定 backend health boundary 静态证据。下一步若继续 production secret backend，应单独评审 backend health runtime implementation entry 或 real resolver runtime implementation entry refresh。
 
-1. `resolver-backend-health-boundary-readiness`
-
-这些证据不创建 no secret leakage smoke runtime、credential handle runtime、approval runtime、audit store / writer / event、backend runtime，也不代表 production resolver runtime task card ready。
+这些证据不创建 no secret leakage smoke runtime、credential handle runtime、approval runtime、audit store / writer / event、backend health runtime、backend runtime，也不代表 production resolver runtime task card ready。
 
 ## 验证
 
