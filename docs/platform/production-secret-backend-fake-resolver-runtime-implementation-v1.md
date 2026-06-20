@@ -30,6 +30,52 @@
 
 本批不接 `config.LoadFromEnv`、HTTP route、provider runtime、DB provider、repository mode selector、migration runner、audit store 或 public production API。
 
+## 开发者使用说明
+
+`FakeResolver` 位于 `services/platform/internal/secretbackend`，属于 Go `internal` 包，只能被 `services/platform` 模块内代码或测试消费。它不是 public SDK，也不是 production resolver adapter。
+
+默认行为必须 fail closed：
+
+- `FakeResolver{}` 与 `NewDisabledFakeResolver()` 都返回 `fake_resolver_runtime_disabled`。
+- `NewFakeResolver(FakeResolverConfig{Enabled: true, ...})` 只能在测试或离线 smoke 中显式创建。
+- allowlist 为空时不允许任何 environment、provider、provider profile 或 placeholder secret ref。
+- `PolicyVersion` 未配置时使用 `fake-resolver-runtime-v1`，请求侧仍必须显式带同一 policy version。
+
+测试中允许的最小调用形态如下：
+
+```go
+resolver := secretbackend.NewFakeResolver(secretbackend.FakeResolverConfig{
+    Enabled:                 true,
+    AllowedEnvironments:     []string{"test"},
+    AllowedProviders:        []string{"mock"},
+    AllowedProviderProfiles: []string{"local-smoke"},
+    AllowedSecretRefKeys:    []string{"placeholder/provider/mock/local-smoke"},
+    PolicyVersion:           secretbackend.DefaultFakeResolverPolicyVersion,
+})
+
+result := resolver.Resolve(secretbackend.FakeResolverInput{
+    Environment:      "test",
+    Provider:         "mock",
+    ProviderProfile:  "local-smoke",
+    SecretRefKey:     "placeholder/provider/mock/local-smoke",
+    SecretRefVersion: "v1",
+    Purpose:          "workflow-saved-draft-database-smoke",
+    RequestID:        "req-runtime-smoke-001",
+    AuditRef:         "audit-runtime-smoke-001",
+    PolicyVersion:    secretbackend.DefaultFakeResolverPolicyVersion,
+})
+```
+
+调用方只能把成功结果里的 `credential_handle_id` 当作 opaque test metadata，用于证明绑定和脱敏路径可运行；不得把它传给 provider、database driver、repository mode selector、audit writer 或 production API。失败结果不得被重试到真实 resolver，也不得回退到 developer env、fixture secret、mock provider credential 或 sample。
+
+新增消费方必须同步验证：
+
+- disabled / zero value fail closed；
+- unsupported environment、provider、provider profile 和 placeholder secret ref fail closed；
+- secret-looking input 不会被 echo；
+- `SideEffectCounters` 全部为 `0`；
+- JSON 结果不包含 credential payload、raw secret、provider raw URL、DSN、database hostname、token、cookie 或 authorization header。
+
 ## Failure Mapping
 
 | code | failure boundary | 触发条件 |

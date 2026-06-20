@@ -137,9 +137,9 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-`Production Secret Backend Fake Resolver Implementation v1` 任务卡已创建，并把本评审作为输入证据。后续仍需要独立评审 runtime 实现边界与 no secret leakage smoke runtime，不能把 resolver runtime、DB provider、cloud secret service 或 repository mode 合并进同一批次。
+`Production Secret Backend Fake Resolver Implementation v1` 任务卡已创建，并把本评审作为输入证据。后续已单独完成 runtime implementation entry review、test-only fake resolver runtime、真实 resolver runtime preconditions、真实 resolver runtime implementation entry review、backend profile selection、no leakage strategy、credential handle boundary、operator approval evidence、audit store handoff、backend health boundary 和 backend health runtime entry review；这些不把 resolver runtime、DB provider、cloud secret service 或 repository mode 合并进同一批次。
 
-`test-fixture-strategy` 在本批后仍为 `required_before_implementation`；只有 fake resolver implementation task card、runtime smoke、sanitized diagnostics runtime 和 artifact guard 都形成可复验实现后，才能重新评审是否从 blocked 变为 satisfied。
+`test-fixture-strategy` 在本批后的 blocker 已由 test-only fake resolver runtime 证明可作为离线替身处理；它仍不满足 production resolver runtime、no secret leakage smoke runtime、backend health runtime、credential handle runtime、approval runtime、audit store runtime 或 DB provider 的启用条件。
 
 ## 验证
 

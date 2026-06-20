@@ -26,7 +26,7 @@
 - 更新 `production-ops-secret-backend-implementation-readiness`，把 `fake_resolver_implementation_task_card_status` 推进为 `created_static_task_card`。
 - 更新上一张 entry readiness 的 artifact guard，让本任务卡文件成为合法后续产物。
 
-本批不打开任何 runtime success path。fake resolver runtime、no secret leakage smoke runtime、sanitized diagnostics runtime emission、connection factory handoff 和 repository mode integration 仍必须由后续实现批次重新评审。
+本批不打开任何 runtime success path。后续已单独实现 test-only fake resolver runtime，并继续固定真实 resolver runtime preconditions、真实 resolver runtime blocked-before-task-card entry review、backend profile selection、no leakage strategy、credential handle boundary、operator approval evidence、audit store handoff、backend health boundary 和 backend health runtime entry review；这些后续证据仍不打开 production resolver runtime、backend health runtime、no secret leakage smoke runtime、connection factory handoff 或 repository mode integration。
 
 ## Runtime Implementation 准入要求
 

@@ -147,9 +147,9 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-下一步若继续 production secret backend，应创建 `Production Secret Backend Fake Resolver Runtime Implementation v1` 的独立实现任务卡，再判断是否实现 test-only fake resolver runtime 与离线 no secret leakage smoke。任何真实 resolver runtime、DB provider、cloud secret service、repository mode、audit store 或 production API 都仍需独立评审。
+后续已创建并完成 `Production Secret Backend Fake Resolver Runtime Implementation v1` 的独立实现任务卡，test-only fake resolver runtime 已由 Go 包 `services/platform/internal/secretbackend` 和 Go 单测固定。任何真实 resolver runtime、backend health runtime、DB provider、cloud secret service、repository mode、audit store runtime 或 production API 都仍需独立评审。
 
-`test-fixture-strategy` 在本批后仍为 `required_before_implementation`；只有 fake resolver runtime、no secret leakage runtime smoke、sanitized diagnostics runtime、artifact guard 和 side effect counters 都形成可复验实现后，才能重新评审是否满足实现前置。
+`test-fixture-strategy` 在后续 test-only runtime 中只满足离线替身需求；它仍不满足 production resolver runtime、no secret leakage smoke runtime、backend health runtime、credential handle runtime、approval runtime、audit store runtime、DB provider 或 repository mode 的启用条件。
 
 ## 验证
 

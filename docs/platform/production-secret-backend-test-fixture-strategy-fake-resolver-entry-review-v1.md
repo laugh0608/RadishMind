@@ -126,7 +126,7 @@ side effect counters 必须保持：
 
 当前 readiness 只把 `test-fixture-strategy` 的 blocked 状态升级为可复验的 entry review 证据，不解除 fake resolver implementation、resolver runtime、cloud secret backend、database connection provider、repository mode 或 production ready 阻塞。
 
-后续已单独完成 fake resolver implementation task card、test-only fake resolver runtime、真实 resolver runtime preconditions、真实 resolver runtime implementation entry review、resolver backend profile selection readiness、no leakage smoke runtime strategy、credential handle runtime boundary readiness、operator approval runtime evidence readiness 和 audit store handoff readiness。下一批若继续 production secret backend，应选择 backend health boundary 单独开题；不得把 blocker 与 production resolver runtime 实现混成一个批次。任何 DB provider、DB driver、connection factory、SQL、schema marker、migration runner、repository mode、production secret audit store、audit writer 或 public production API 都必须作为独立目标推进。
+后续已单独完成 fake resolver implementation task card、test-only fake resolver runtime、真实 resolver runtime preconditions、真实 resolver runtime implementation entry review、resolver backend profile selection readiness、no leakage smoke runtime strategy、credential handle runtime boundary readiness、operator approval runtime evidence readiness、audit store handoff readiness、backend health boundary readiness 和 backend health runtime implementation entry review。当前这些仍只是静态前置或 test-only runtime 证据，不得把 blocker 与 production resolver runtime 实现混成一个批次。任何 DB provider、DB driver、connection factory、SQL、schema marker、migration runner、repository mode、production secret audit store、audit writer、backend health runtime 或 public production API 都必须作为独立目标推进。
 
 ## 验证
 
