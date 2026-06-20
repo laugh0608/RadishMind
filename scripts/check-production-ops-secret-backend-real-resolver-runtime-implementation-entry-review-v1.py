@@ -53,6 +53,9 @@ EXPECTED_DEPENDENCIES = {
     "production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1": (
         "real_resolver_no_secret_leakage_smoke_runtime_strategy_defined"
     ),
+    "production-secret-backend-credential-handle-runtime-boundary-readiness-v1": (
+        "credential_handle_runtime_boundary_readiness_defined"
+    ),
     "production-secret-backend-implementation-readiness": "implementation_readiness_defined",
     "secret-ref-schema-and-fixtures": "satisfied_reference_only_resolver_disabled",
 }
@@ -62,7 +65,7 @@ EXPECTED_GATE_STATUS = {
     "implementation_task_card_gate": "blocked_before_task_card",
     "resolver_backend_profile_selection": "readiness_defined_without_backend_runtime",
     "no_secret_leakage_smoke_runtime_gate": "strategy_defined_runtime_not_created",
-    "credential_handle_runtime_boundary": "blocked_missing_runtime_boundary",
+    "credential_handle_runtime_boundary": "readiness_defined_runtime_not_created",
     "operator_approval_runtime_evidence": "blocked_missing_runtime_evidence",
     "audit_rotation_runtime_handoff": "blocked_missing_runtime_handoff",
     "resolver_backend_health_boundary": "blocked_missing_backend_health_boundary",
@@ -74,7 +77,6 @@ EXPECTED_GATE_STATUS = {
 }
 
 EXPECTED_BLOCKED = {
-    "credential-handle-runtime-boundary-readiness",
     "operator-approval-runtime-evidence-readiness",
     "production-secret-audit-store-handoff-readiness",
     "resolver-backend-health-boundary-readiness",
@@ -282,6 +284,14 @@ def assert_implementation_readiness_alignment() -> None:
         target.get("real_resolver_no_secret_leakage_smoke_runtime_status") == "not_created",
         "implementation readiness must keep real resolver no leakage runtime not_created",
     )
+    require(
+        target.get("credential_handle_runtime_boundary_readiness_status") == "defined_without_runtime",
+        "implementation readiness must record credential handle boundary readiness",
+    )
+    require(
+        target.get("credential_handle_runtime_status") == "not_created",
+        "implementation readiness must keep credential handle runtime not_created",
+    )
     require(target.get("resolver_implementation_status") == "not_started", "resolver implementation must remain not_started")
     require(target.get("resolver_runtime_status") == "not_created", "resolver runtime must remain not_created")
     planned = rows_by_id(readiness, "planned_slices", "id")
@@ -289,6 +299,11 @@ def assert_implementation_readiness_alignment() -> None:
     require(
         current.get("status") == "real_resolver_runtime_implementation_entry_review_defined",
         "planned entry review status drifted",
+    )
+    credential = planned.get("credential-handle-runtime-boundary-readiness") or {}
+    require(
+        credential.get("status") == "credential_handle_runtime_boundary_readiness_defined",
+        "planned credential handle boundary status drifted",
     )
 
 

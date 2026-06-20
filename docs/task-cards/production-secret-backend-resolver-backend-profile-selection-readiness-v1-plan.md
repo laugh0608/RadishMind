@@ -114,4 +114,4 @@ backend profile selection 必须定义：
 
 ## 后续对齐
 
-后续已由 `production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1` 固定 no leakage smoke runtime strategy 静态证据。下一步若继续 production secret backend，必须在 credential handle runtime boundary、operator approval runtime evidence、audit store handoff 或 backend health boundary 等剩余 blocker 中选择单一方向；不得把 backend profile selection readiness 或 no leakage strategy 写成 backend runtime、smoke runtime 或 production resolver runtime ready。
+后续已由 `production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1` 固定 no leakage smoke runtime strategy 静态证据，并由 `production-secret-backend-credential-handle-runtime-boundary-readiness-v1` 固定 credential handle boundary 静态证据。下一步若继续 production secret backend，必须在 operator approval runtime evidence、audit store handoff 或 backend health boundary 等剩余 blocker 中选择单一方向；不得把 backend profile selection readiness、no leakage strategy 或 credential handle boundary readiness 写成 backend runtime、smoke runtime、handle runtime 或 production resolver runtime ready。

@@ -53,6 +53,7 @@ REQUIRED_PLANNED_SLICES = {
     "real-resolver-no-secret-leakage-smoke-runtime-strategy": (
         "real_resolver_no_secret_leakage_smoke_runtime_strategy_defined"
     ),
+    "credential-handle-runtime-boundary-readiness": "credential_handle_runtime_boundary_readiness_defined",
 }
 
 REQUIRED_BLOCKED = {
@@ -100,6 +101,8 @@ REQUIRED_DOC_REFERENCES = {
         "resolver_backend_profile_selection_readiness_defined",
         "production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1",
         "real_resolver_no_secret_leakage_smoke_runtime_strategy_defined",
+        "production-secret-backend-credential-handle-runtime-boundary-readiness-v1",
+        "credential_handle_runtime_boundary_readiness_defined",
         "services/platform/internal/secretbackend/fake_resolver.go",
         "contracts/production-secret-reference.schema.json",
         "production-secret-reference-basic.json",
@@ -156,6 +159,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py",
         "check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py",
         "check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py",
+        "check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py",
     ],
     "docs/devlogs/2026-W22.md": [
         "production-secret-backend-implementation-readiness",
@@ -272,6 +276,14 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     require(
         target.get("real_resolver_no_secret_leakage_smoke_runtime_status") == "not_created",
         "real resolver no leakage smoke runtime must remain not_created",
+    )
+    require(
+        target.get("credential_handle_runtime_boundary_readiness_status") == "defined_without_runtime",
+        "credential handle runtime boundary readiness status drifted",
+    )
+    require(
+        target.get("credential_handle_runtime_status") == "not_created",
+        "credential handle runtime must remain not_created",
     )
     require(
         target.get("default_runtime_state") == "disabled_until_explicit_secret_backend_task",
@@ -587,6 +599,16 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "credential-handle-runtime-boundary-readiness":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-credential-handle-runtime-boundary-readiness-v1.md",
+                "docs/task-cards/production-secret-backend-credential-handle-runtime-boundary-readiness-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-boundary-readiness-v1.json",
+                "scripts/check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
 
     blocked = {str(item.get("id")): item for item in fixture.get("blocked_conditions") or [] if isinstance(item, dict)}
     missing_blocked = sorted(set(REQUIRED_BLOCKED) - set(blocked))
@@ -625,6 +647,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py",
+        "scripts/check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py",
         "scripts/check-production-secret-reference-contract.py",
         "scripts/check-repo.py",
         "scripts/README.md",
@@ -659,6 +682,9 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/platform/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.md",
         "docs/task-cards/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.json",
+        "docs/platform/production-secret-backend-credential-handle-runtime-boundary-readiness-v1.md",
+        "docs/task-cards/production-secret-backend-credential-handle-runtime-boundary-readiness-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-boundary-readiness-v1.json",
         "services/platform/README.md",
         "docs/devlogs/2026-W22.md",
         "docs/devlogs/2026-W25.md",
@@ -739,6 +765,11 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py", [])'
         in check_repo,
         "check-repo.py must run real resolver no leakage smoke runtime strategy check",
+    )
+    require(
+        'run_python_script("check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py", [])'
+        in check_repo,
+        "check-repo.py must run credential handle runtime boundary readiness check",
     )
 
     for relative_path, required_literals in REQUIRED_DOC_REFERENCES.items():

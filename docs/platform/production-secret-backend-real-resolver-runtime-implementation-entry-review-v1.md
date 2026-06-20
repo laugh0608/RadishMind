@@ -8,7 +8,7 @@
 
 对应切片：`production-secret-backend-real-resolver-runtime-implementation-entry-review-v1`。
 
-结论：状态为 `real_resolver_runtime_implementation_entry_review_defined`，entry decision 为 `real_resolver_runtime_implementation_blocked_before_task_card`。当前只能确认真实 resolver runtime 的启用条件和停止线已经可检查；`resolver_backend_profile_selection_readiness_defined` 与 `real_resolver_no_secret_leakage_smoke_runtime_strategy_defined` 已补成静态前置证据，但仍不能创建 production resolver runtime implementation task card，原因是 credential handle runtime boundary、operator approval runtime evidence、production secret audit store handoff 和 backend health boundary 尚未形成可执行证据。
+结论：状态为 `real_resolver_runtime_implementation_entry_review_defined`，entry decision 为 `real_resolver_runtime_implementation_blocked_before_task_card`。当前只能确认真实 resolver runtime 的启用条件和停止线已经可检查；`resolver_backend_profile_selection_readiness_defined`、`real_resolver_no_secret_leakage_smoke_runtime_strategy_defined` 与 `credential_handle_runtime_boundary_readiness_defined` 已补成静态前置证据，但仍不能创建 production resolver runtime implementation task card，原因是 operator approval runtime evidence、production secret audit store handoff 和 backend health boundary 尚未形成可执行证据。
 
 本批不实现 production resolver runtime，不读取真实 secret，不调用云 secret 服务，不连接数据库，不创建 credential payload，不创建 credential handle runtime，不创建 no secret leakage smoke runtime，不启用 workflow saved draft repository mode，也不新增 public production API。
 
@@ -18,6 +18,7 @@
 - `production-secret-backend-fake-resolver-runtime-implementation-v1` 已固定 `fake_resolver_runtime_test_only_implemented`，但只服务离线测试边界。
 - `production-secret-backend-secret-resolver-interface-disabled-readiness-v1` 仍确认 production resolver interface 默认 disabled。
 - `production-secret-backend-provider-profile-secret-binding-readiness-v1` 只固定 reference-only provider/profile binding，不表示 credential resolved。
+- `production-secret-backend-credential-handle-runtime-boundary-readiness-v1` 已固定 `credential_handle_runtime_boundary_readiness_defined`，credential handle boundary 已定义但 credential handle runtime 未创建。
 - `production-secret-backend-operator-runbook-negative-gates-readiness-v1` 和 `production-secret-backend-rotation-audit-policy-readiness-v1` 只固定运行手册与策略，不提供 runtime audit store 或真实 operator approval execution。
 - `production-ops-secret-backend-implementation-readiness` 仍保持 `production_secret_backend=not_satisfied`、`resolver_runtime_status=not_created`。
 
@@ -29,7 +30,7 @@
 | implementation task card | `blocked_before_task_card` | 不允许创建 production resolver runtime implementation task card |
 | resolver backend profile | `readiness_defined_without_backend_runtime` | backend profile selection 静态前置已定义，但 backend runtime 未创建 |
 | no secret leakage smoke runtime | `strategy_defined_runtime_not_created` | no leakage strategy 已定义，但 smoke runtime 未创建也未执行 |
-| credential handle boundary | `blocked_missing_runtime_boundary` | 只定义 future result 字段，尚无 runtime handle boundary / lifecycle |
+| credential handle boundary | `readiness_defined_runtime_not_created` | 已定义 opaque handle boundary、metadata allowlist 和 lifecycle；未创建 runtime |
 | operator approval runtime evidence | `blocked_missing_runtime_evidence` | 只有 runbook policy，没有真实启用执行证据 |
 | audit / rotation runtime handoff | `blocked_missing_runtime_handoff` | 只有 policy，没有 production audit store、audit writer 或 rotation execution |
 | production resolver runtime | `not_created` | 本批不创建 runtime |
@@ -39,12 +40,11 @@
 
 后续创建真实 resolver runtime implementation task card 前，至少需要单独完成或评审：
 
-- `credential-handle-runtime-boundary-readiness`
 - `operator-approval-runtime-evidence-readiness`
 - `production-secret-audit-store-handoff-readiness`
 - `resolver-backend-health-boundary-readiness`
 
-已完成的 `resolver-backend-profile-selection-readiness` 和 `no-secret-leakage-smoke-runtime-strategy` 只代表静态前置证据，不代表 backend runtime、smoke runtime 或 production resolver runtime created。剩余 blocker 不能用 fake resolver、developer env、fixture credential、mock provider、local-smoke profile、DB provider 或 repository memory store 替代。
+已完成的 `resolver-backend-profile-selection-readiness`、`no-secret-leakage-smoke-runtime-strategy` 和 `credential-handle-runtime-boundary-readiness` 只代表静态前置证据，不代表 backend runtime、smoke runtime、credential handle runtime 或 production resolver runtime created。剩余 blocker 不能用 fake resolver、developer env、fixture credential、mock provider、local-smoke profile、DB provider 或 repository memory store 替代。
 
 ## Failure Mapping
 
@@ -54,7 +54,7 @@
 | `real_resolver_runtime_entry_task_card_blocked` | `implementation_gate` | 当前仍不能创建 production resolver runtime implementation task card |
 | `real_resolver_runtime_entry_backend_profile_missing` | `backend_profile` | resolver backend profile selection 尚未完成 |
 | `real_resolver_runtime_entry_no_leakage_gate_missing` | `no_secret_leakage` | 真实 resolver no leakage runtime gate 尚未定义 |
-| `real_resolver_runtime_entry_credential_handle_boundary_missing` | `credential_boundary` | credential handle runtime boundary 尚未定义 |
+| `real_resolver_runtime_entry_credential_handle_boundary_missing` | `credential_boundary` | credential handle runtime boundary evidence 缺失或未被消费 |
 | `real_resolver_runtime_entry_operator_approval_evidence_missing` | `operator_gate` | operator approval runtime evidence 尚未定义 |
 | `real_resolver_runtime_entry_audit_handoff_missing` | `audit_policy` | production audit store / writer handoff 尚未定义 |
 | `real_resolver_runtime_entry_secret_value_detected` | `artifact_guard` | 文档、fixture 或 checker 出现 secret-looking value |
@@ -124,6 +124,8 @@ side effect counters 必须保持：
 - `docs/task-cards/production-secret-backend-real-resolver-runtime-implementation-entry-review-v1-plan.md`
 - `scripts/checks/fixtures/production-secret-backend-real-resolver-runtime-implementation-entry-review-v1.json`
 - `scripts/check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py`
+- `docs/platform/production-secret-backend-credential-handle-runtime-boundary-readiness-v1.md`
+- `scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-boundary-readiness-v1.json`
 
 不得新增或启用以下 artifact：
 
@@ -151,10 +153,9 @@ side effect counters 必须保持：
 
 下一步若继续 production secret backend，不应直接创建 resolver runtime implementation task card。应在以下方向中选择一个单独开题：
 
-1. `credential-handle-runtime-boundary-readiness`
-2. `operator-approval-runtime-evidence-readiness`
-3. `production-secret-audit-store-handoff-readiness`
-4. `resolver-backend-health-boundary-readiness`
+1. `operator-approval-runtime-evidence-readiness`
+2. `production-secret-audit-store-handoff-readiness`
+3. `resolver-backend-health-boundary-readiness`
 
 ## 验证
 
@@ -162,6 +163,7 @@ side effect counters 必须保持：
 
 ```bash
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-real-resolver-runtime-preconditions-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-fake-resolver-runtime-implementation-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py
