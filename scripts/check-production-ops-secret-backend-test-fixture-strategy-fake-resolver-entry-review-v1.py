@@ -371,8 +371,8 @@ def assert_implementation_readiness_alignment() -> None:
     }
     test_fixture = preconditions.get("test-fixture-strategy") or {}
     require(
-        test_fixture.get("status") == "required_before_implementation",
-        "test-fixture-strategy must remain required_before_implementation",
+        test_fixture.get("status") == "satisfied_for_test_only_fake_resolver",
+        "test-fixture-strategy status drifted",
     )
     evidence = set(test_fixture.get("evidence") or [])
     for path in {
@@ -390,7 +390,7 @@ def assert_implementation_readiness_alignment() -> None:
 
     planned = {str(item.get("id")): item for item in readiness.get("planned_slices") or [] if isinstance(item, dict)}
     review = planned.get("test-fixture-strategy") or {}
-    require(review.get("status") == "blocked_entry_review_defined", "planned test fixture review status drifted")
+    require(review.get("status") == "satisfied_for_test_only_fake_resolver", "planned test fixture review status drifted")
     strategy = planned.get("fake-resolver-contract-no-secret-leakage-smoke-strategy") or {}
     require(strategy.get("status") == "strategy_defined_static_only", "planned strategy status drifted")
 
@@ -398,8 +398,8 @@ def assert_implementation_readiness_alignment() -> None:
     for blocked_id, expected_status in {
         "production_secret_backend": "not_satisfied",
         "cloud_secret_service_integration": "not_satisfied",
-        "test_fixture_strategy": "blocked_entry_review_defined",
-        "fake_resolver_implementation": "not_satisfied",
+        "test_fixture_strategy": "satisfied_for_test_only_fake_resolver",
+        "fake_resolver_implementation": "test_only_runtime_implemented_disabled_by_default",
         "real_secret_values": "forbidden_in_committed_repo",
         "production_ready": "not_satisfied",
     }.items():

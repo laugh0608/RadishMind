@@ -53,18 +53,18 @@ EXPECTED_DEPENDENCIES = {
 }
 
 EXPECTED_GATE_STATUS = {
-    "prior_runtime_entry_review_consumed": "satisfied_ready_for_task_card",
-    "implementation_task_card_created": "created_static_task_card",
-    "disabled_by_default_runtime_gate": "defined_for_future_runtime",
-    "placeholder_secret_ref_fixture": "defined_for_future_runtime",
-    "environment_binding": "defined_for_future_runtime",
-    "opaque_handle_metadata": "defined_for_future_runtime",
-    "sanitized_diagnostics_runtime": "defined_for_future_runtime",
-    "no_secret_leakage_runtime_smoke": "defined_for_future_runtime",
-    "side_effect_counters": "defined_for_future_runtime",
-    "artifact_guard_gate": "satisfied_for_task_card",
-    "fake_resolver_runtime_gate": "not_opened",
-    "no_secret_leakage_smoke_runtime_gate": "not_opened",
+    "prior_runtime_entry_review_consumed": "satisfied_ready_for_runtime",
+    "implementation_task_card_created": "satisfied_consumed_by_runtime",
+    "disabled_by_default_runtime_gate": "implemented_default_disabled",
+    "placeholder_secret_ref_fixture": "implemented_in_go_test",
+    "environment_binding": "implemented_in_runtime",
+    "opaque_handle_metadata": "implemented_in_runtime",
+    "sanitized_diagnostics_runtime": "implemented_fail_closed",
+    "no_secret_leakage_runtime_smoke": "implemented_offline_go_test",
+    "side_effect_counters": "implemented_zero_external_side_effects",
+    "artifact_guard_gate": "satisfied_for_test_only_runtime",
+    "fake_resolver_runtime_gate": "implemented_test_only_disabled_by_default",
+    "no_secret_leakage_smoke_runtime_gate": "implemented_offline_go_test",
     "resolver_runtime_gate": "forbidden",
     "cloud_secret_service_gate": "forbidden",
     "database_connection_provider_gate": "blocked",
@@ -134,18 +134,18 @@ EXPECTED_MUST_NOT_INCLUDE = {
 }
 
 EXPECTED_FAILURE_CODES = {
-    "fake_resolver_runtime_task_card_missing",
-    "fake_resolver_runtime_task_card_entry_review_missing",
-    "fake_resolver_runtime_disabled_gate_missing",
-    "fake_resolver_runtime_placeholder_fixture_missing",
+    "fake_resolver_runtime_disabled",
+    "fake_resolver_runtime_request_audit_missing",
+    "fake_resolver_runtime_policy_missing",
     "fake_resolver_runtime_environment_binding_missing",
-    "fake_resolver_runtime_opaque_handle_metadata_missing",
-    "fake_resolver_runtime_diagnostics_boundary_missing",
-    "fake_resolver_runtime_no_leakage_smoke_missing",
+    "fake_resolver_runtime_environment_denied",
+    "fake_resolver_runtime_provider_binding_missing",
+    "fake_resolver_runtime_provider_denied",
+    "fake_resolver_runtime_provider_profile_denied",
+    "fake_resolver_runtime_placeholder_secret_ref_missing",
     "fake_resolver_runtime_secret_value_detected",
-    "fake_resolver_runtime_created_in_task_card",
-    "fake_resolver_runtime_cloud_call_forbidden",
-    "fake_resolver_runtime_repository_mode_forbidden",
+    "fake_resolver_runtime_purpose_missing",
+    "fake_resolver_runtime_opaque_handle_metadata_missing",
     "fake_resolver_runtime_scope_overreach",
 }
 
@@ -195,17 +195,16 @@ EXPECTED_NO_FALLBACK = {
     "no fallback to committed secret value",
     "no fallback to developer env plaintext",
     "no fallback to fake query executor",
-    "runtime implementation task card does not mean credential resolved",
+    "test-only fake resolver runtime does not mean production credential resolved",
 }
 
 EXPECTED_NO_SIDE_EFFECTS = {
-    "checker reads committed docs and fixtures only",
+    "fake resolver runtime reads request fields only",
     "no environment secret read",
     "no cloud secret service call",
     "no provider call",
-    "no fake resolver call",
     "no secret resolver call",
-    "no credential handle creation",
+    "no credential payload creation",
     "no database connection",
     "no driver open",
     "no SQL execution",
@@ -213,10 +212,11 @@ EXPECTED_NO_SIDE_EFFECTS = {
     "no schema marker write",
     "no repository mode enablement",
     "no production API call",
-    "no file write",
+    "no audit store write",
 }
 
 EXPECTED_VALIDATION = {
+    "run platform fake resolver runtime go tests",
     "run fake resolver runtime implementation checker",
     "run fake resolver runtime implementation entry review checker",
     "run fake resolver implementation checker",
@@ -264,7 +264,7 @@ def assert_slice(fixture: dict[str, Any]) -> None:
     slice_info = fixture.get("slice") or {}
     require(slice_info.get("id") == "production-secret-backend-fake-resolver-runtime-implementation-v1", "unexpected slice id")
     require(slice_info.get("track") == "Production Ops Hardening v1", "unexpected track")
-    require(slice_info.get("status") == "fake_resolver_runtime_implementation_task_card_defined", "unexpected status")
+    require(slice_info.get("status") == "fake_resolver_runtime_test_only_implemented", "unexpected status")
     for key, expected_path in {
         "task_card": "docs/task-cards/production-secret-backend-fake-resolver-runtime-implementation-v1-plan.md",
         "platform_topic": "docs/platform/production-secret-backend-fake-resolver-runtime-implementation-v1.md",
@@ -297,17 +297,17 @@ def assert_dependencies(fixture: dict[str, Any]) -> None:
 def assert_task_card_boundary(fixture: dict[str, Any]) -> None:
     boundary = fixture.get("task_card_boundary") or {}
     for field, expected in {
-        "task_card_status": "created_static_task_card",
-        "implementation_scope_status": "task_card_defined_runtime_not_started",
-        "fake_resolver_runtime_status": "not_created",
-        "no_secret_leakage_smoke_runtime_status": "not_created",
+        "task_card_status": "implemented_test_only_runtime",
+        "implementation_scope_status": "fake_resolver_runtime_test_only_implemented",
+        "fake_resolver_runtime_status": "implemented_test_only_disabled_by_default",
+        "no_secret_leakage_smoke_runtime_status": "implemented_offline_go_test",
         "resolver_runtime_status": "not_created",
-        "test_fixture_strategy_status": "required_before_implementation",
+        "test_fixture_strategy_status": "satisfied_for_test_only_fake_resolver",
         "production_secret_backend_status": "not_satisfied",
     }.items():
         require(boundary.get(field) == expected, f"{field} drifted")
+    require(boundary.get("runtime_created_in_this_slice") is True, "test-only runtime must be created in this slice")
     for field in (
-        "runtime_created_in_this_slice",
         "no_secret_leakage_smoke_runtime_created_in_this_slice",
         "repository_mode_enabled",
         "cloud_secret_service_enabled",
@@ -353,7 +353,7 @@ def assert_failure_mapping_and_diagnostics(fixture: dict[str, Any]) -> None:
     require(not missing_allowed, f"missing diagnostic fields: {missing_allowed}")
     missing_forbidden = sorted(EXPECTED_FORBIDDEN_DIAGNOSTICS - set(diagnostics.get("forbidden_fields") or []))
     require(not missing_forbidden, f"missing forbidden diagnostic fields: {missing_forbidden}")
-    require(diagnostics.get("runtime_emission_allowed_in_this_slice") is False, "runtime emission must stay false")
+    require(diagnostics.get("runtime_emission_allowed_in_this_slice") is True, "runtime emission must be enabled for test-only runtime")
     require(
         diagnostics.get("secret_ref_value_allowed_in_runtime_diagnostics") is False,
         "secret ref value must not appear in runtime diagnostics",
@@ -383,6 +383,33 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
             require(str(literal) not in source, f"{source_path} contains forbidden literal: {literal}")
 
 
+def assert_go_runtime_contract() -> None:
+    source = read("services/platform/internal/secretbackend/fake_resolver.go")
+    tests = read("services/platform/internal/secretbackend/fake_resolver_test.go")
+    for literal in (
+        "type FakeResolver struct",
+        "func NewFakeResolver",
+        "func NewDisabledFakeResolver",
+        "func (resolver FakeResolver) Resolve",
+        "DefaultFakeResolverPolicyVersion",
+        "SideEffectCounters",
+        "FakeResolverFailureDisabled",
+        "FakeResolverFailureSecretLikeInput",
+        "opaque_test_credential_handle",
+    ):
+        require(literal in source, f"fake resolver runtime missing Go contract literal: {literal}")
+    for literal in (
+        "TestFakeResolverZeroValueAndDisabledConstructorAreDisabled",
+        "TestFakeResolverReturnsOpaqueMetadataForAllowedTestFixture",
+        "TestFakeResolverRejectsSecretLookingInputWithoutEchoingIt",
+        "assertNoSideEffects",
+        "assertNoLeakage",
+    ):
+        require(literal in tests, f"fake resolver runtime tests missing: {literal}")
+    for forbidden in ("os.Getenv", "net/http", "database/sql", "CloudSecretClient", "ResolveProductionSecret"):
+        require(forbidden not in source, f"fake resolver runtime must not contain {forbidden}")
+
+
 def assert_prior_alignment() -> None:
     entry = load_json(ENTRY_REVIEW_PATH)
     boundary = entry.get("entry_boundary") or {}
@@ -392,7 +419,7 @@ def assert_prior_alignment() -> None:
     task_card = load_json(IMPLEMENTATION_TASK_CARD_PATH)
     task_boundary = task_card.get("task_card_boundary") or {}
     require(task_boundary.get("implementation_scope_status") == "task_card_defined_runtime_not_started", "implementation task card scope drifted")
-    require(task_boundary.get("fake_resolver_runtime_status") == "not_created", "fake resolver runtime must remain not created")
+    require(task_boundary.get("fake_resolver_runtime_status") == "not_created", "implementation task card must not create runtime")
 
 
 def assert_implementation_readiness_alignment() -> None:
@@ -401,28 +428,31 @@ def assert_implementation_readiness_alignment() -> None:
     for field, expected in {
         "resolver_implementation_status": "not_started",
         "resolver_runtime_status": "not_created",
-        "fake_resolver_status": "not_created",
+        "fake_resolver_status": "test_only_runtime_implemented_disabled_by_default",
         "fake_resolver_contract_status": "static_contract_defined",
         "no_secret_leakage_smoke_strategy_status": "static_strategy_defined",
-        "no_secret_leakage_smoke_runtime_status": "not_created",
-        "test_fixture_strategy_status": "required_before_implementation",
+        "no_secret_leakage_smoke_runtime_status": "implemented_offline_go_test",
+        "test_fixture_strategy_status": "satisfied_for_test_only_fake_resolver",
         "fake_resolver_implementation_task_card_status": "created_static_task_card",
         "fake_resolver_implementation_status": "task_card_defined_runtime_not_started",
         "fake_resolver_runtime_implementation_entry_review_status": "ready_for_next_task",
         "fake_resolver_runtime_implementation_task_card_status": "created_static_task_card",
-        "fake_resolver_runtime_implementation_status": "task_card_defined_runtime_not_started",
+        "fake_resolver_runtime_implementation_status": "fake_resolver_runtime_test_only_implemented",
+        "fake_resolver_runtime_status": "implemented_test_only_disabled_by_default",
         "default_runtime_state": "disabled_until_explicit_secret_backend_task",
     }.items():
         require(target.get(field) == expected, f"implementation target {field} drifted")
 
     planned = rows_by_id(readiness, "planned_slices", "id")
     current = planned.get("fake-resolver-runtime-implementation") or {}
-    require(current.get("status") == "task_card_defined_runtime_not_started", "planned runtime implementation status drifted")
+    require(current.get("status") == "fake_resolver_runtime_test_only_implemented", "planned runtime implementation status drifted")
     required_evidence = {
         "docs/platform/production-secret-backend-fake-resolver-runtime-implementation-v1.md",
         "docs/task-cards/production-secret-backend-fake-resolver-runtime-implementation-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-fake-resolver-runtime-implementation-v1.json",
         "scripts/check-production-ops-secret-backend-fake-resolver-runtime-implementation-v1.py",
+        "services/platform/internal/secretbackend/fake_resolver.go",
+        "services/platform/internal/secretbackend/fake_resolver_test.go",
     }
     missing_evidence = sorted(required_evidence - set(current.get("evidence") or []))
     require(not missing_evidence, f"planned runtime implementation missing evidence: {missing_evidence}")
@@ -456,6 +486,8 @@ def assert_no_secret_literals() -> None:
         "docs/platform/production-secret-backend-fake-resolver-runtime-implementation-v1.md",
         "docs/task-cards/production-secret-backend-fake-resolver-runtime-implementation-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-fake-resolver-runtime-implementation-v1.json",
+        "services/platform/internal/secretbackend/fake_resolver.go",
+        "services/platform/internal/secretbackend/fake_resolver_test.go",
     ]
     text = "\n".join(read(path) for path in paths)
     forbidden_literals = ["Bearer ", "BEGIN PRIVATE KEY", "AKIA", "authorization:", "cookie:"]
@@ -474,6 +506,7 @@ def main() -> None:
     assert_failure_mapping_and_diagnostics(fixture)
     assert_policies(fixture)
     assert_artifact_guard(fixture)
+    assert_go_runtime_contract()
     assert_prior_alignment()
     assert_implementation_readiness_alignment()
     assert_docs_validation_and_check_repo(fixture)

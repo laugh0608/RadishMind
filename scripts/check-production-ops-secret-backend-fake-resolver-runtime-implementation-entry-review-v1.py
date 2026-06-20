@@ -433,15 +433,16 @@ def assert_implementation_readiness_alignment() -> None:
     for field, expected in {
         "resolver_implementation_status": "not_started",
         "resolver_runtime_status": "not_created",
-        "fake_resolver_status": "not_created",
+        "fake_resolver_status": "test_only_runtime_implemented_disabled_by_default",
         "fake_resolver_contract_status": "static_contract_defined",
         "no_secret_leakage_smoke_strategy_status": "static_strategy_defined",
-        "no_secret_leakage_smoke_runtime_status": "not_created",
-        "test_fixture_strategy_status": "required_before_implementation",
+        "no_secret_leakage_smoke_runtime_status": "implemented_offline_go_test",
+        "test_fixture_strategy_status": "satisfied_for_test_only_fake_resolver",
         "fake_resolver_implementation_task_card_status": "created_static_task_card",
         "fake_resolver_implementation_status": "task_card_defined_runtime_not_started",
         "fake_resolver_runtime_implementation_entry_review_status": "ready_for_next_task",
-        "fake_resolver_runtime_implementation_status": "task_card_defined_runtime_not_started",
+        "fake_resolver_runtime_implementation_status": "fake_resolver_runtime_test_only_implemented",
+        "fake_resolver_runtime_status": "implemented_test_only_disabled_by_default",
         "default_runtime_state": "disabled_until_explicit_secret_backend_task",
     }.items():
         require(target.get(field) == expected, f"implementation target {field} drifted")
@@ -462,8 +463,8 @@ def assert_implementation_readiness_alignment() -> None:
     for blocked_id, expected_status in {
         "production_secret_backend": "not_satisfied",
         "cloud_secret_service_integration": "not_satisfied",
-        "test_fixture_strategy": "blocked_entry_review_defined",
-        "fake_resolver_implementation": "not_satisfied",
+        "test_fixture_strategy": "satisfied_for_test_only_fake_resolver",
+        "fake_resolver_implementation": "test_only_runtime_implemented_disabled_by_default",
         "real_secret_values": "forbidden_in_committed_repo",
         "production_ready": "not_satisfied",
     }.items():

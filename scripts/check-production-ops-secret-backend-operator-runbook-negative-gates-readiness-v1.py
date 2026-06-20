@@ -464,8 +464,8 @@ def assert_implementation_readiness_alignment() -> None:
     )
     test_fixture = preconditions.get("test-fixture-strategy") or {}
     require(
-        test_fixture.get("status") == "required_before_implementation",
-        "test-fixture-strategy must stay blocked",
+        test_fixture.get("status") == "satisfied_for_test_only_fake_resolver",
+        "test-fixture-strategy status drifted",
     )
 
     blocked = {

@@ -326,7 +326,10 @@ def assert_readiness_alignment() -> None:
     readiness = load_json(IMPLEMENTATION_READINESS_PATH)
     target = readiness.get("implementation_target") or {}
     require(target.get("resolver_implementation_status") == "not_started", "resolver must remain not_started")
-    require(target.get("fake_resolver_status") == "not_created", "fake resolver must remain not_created")
+    require(
+        target.get("fake_resolver_status") == "test_only_runtime_implemented_disabled_by_default",
+        "fake resolver status drifted",
+    )
     require(
         target.get("fake_resolver_contract_status") == "static_contract_defined",
         "implementation readiness must record fake resolver static contract",
@@ -336,8 +339,8 @@ def assert_readiness_alignment() -> None:
         "implementation readiness must record no leakage strategy",
     )
     require(
-        target.get("no_secret_leakage_smoke_runtime_status") == "not_created",
-        "no leakage smoke runtime must not be created",
+        target.get("no_secret_leakage_smoke_runtime_status") == "implemented_offline_go_test",
+        "no leakage smoke runtime status drifted",
     )
 
     preconditions = {
@@ -347,8 +350,8 @@ def assert_readiness_alignment() -> None:
     }
     test_fixture = preconditions.get("test-fixture-strategy") or {}
     require(
-        test_fixture.get("status") == "required_before_implementation",
-        "test-fixture-strategy must remain required_before_implementation",
+        test_fixture.get("status") == "satisfied_for_test_only_fake_resolver",
+        "test-fixture-strategy status drifted",
     )
     required_evidence = {
         "docs/platform/production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.md",

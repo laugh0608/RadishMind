@@ -40,19 +40,19 @@ REQUIRED_PLANNED_SLICES = {
     "secret-resolver-interface-disabled": "satisfied",
     "operator-runbook-and-negative-gates": "satisfied",
     "rotation-and-audit-policy": "satisfied",
-    "test-fixture-strategy": "blocked_entry_review_defined",
+    "test-fixture-strategy": "satisfied_for_test_only_fake_resolver",
     "fake-resolver-contract-no-secret-leakage-smoke-strategy": "strategy_defined_static_only",
     "fake-resolver-implementation-task-card-entry-readiness-review": "ready_for_next_task",
     "fake-resolver-implementation": "task_card_defined_runtime_not_started",
     "fake-resolver-runtime-implementation-entry-review": "ready_for_runtime_task",
-    "fake-resolver-runtime-implementation": "task_card_defined_runtime_not_started",
+    "fake-resolver-runtime-implementation": "fake_resolver_runtime_test_only_implemented",
 }
 
 REQUIRED_BLOCKED = {
     "production_secret_backend": "not_satisfied",
     "cloud_secret_service_integration": "not_satisfied",
-    "test_fixture_strategy": "blocked_entry_review_defined",
-    "fake_resolver_implementation": "not_satisfied",
+    "test_fixture_strategy": "satisfied_for_test_only_fake_resolver",
+    "fake_resolver_implementation": "test_only_runtime_implemented_disabled_by_default",
     "real_secret_values": "forbidden_in_committed_repo",
     "production_ready": "not_satisfied",
 }
@@ -84,7 +84,8 @@ REQUIRED_DOC_REFERENCES = {
         "production-secret-backend-fake-resolver-runtime-implementation-entry-review-v1",
         "fake_resolver_runtime_implementation_entry_review_defined",
         "production-secret-backend-fake-resolver-runtime-implementation-v1",
-        "fake_resolver_runtime_implementation_task_card_defined",
+        "fake_resolver_runtime_test_only_implemented",
+        "services/platform/internal/secretbackend/fake_resolver.go",
         "contracts/production-secret-reference.schema.json",
         "production-secret-reference-basic.json",
         "check-production-secret-reference-contract.py",
@@ -176,7 +177,10 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     require(target.get("committed_secret_storage") == "forbidden", "committed secret storage must be forbidden")
     require(target.get("resolver_implementation_status") == "not_started", "resolver must not be implemented")
     require(target.get("resolver_runtime_status") == "not_created", "resolver runtime must not be created")
-    require(target.get("fake_resolver_status") == "not_created", "fake resolver must not be created")
+    require(
+        target.get("fake_resolver_status") == "test_only_runtime_implemented_disabled_by_default",
+        "fake resolver status drifted",
+    )
     require(
         target.get("fake_resolver_contract_status") == "static_contract_defined",
         "fake resolver contract strategy must be recorded",
@@ -186,12 +190,12 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "no leakage smoke strategy must be recorded",
     )
     require(
-        target.get("no_secret_leakage_smoke_runtime_status") == "not_created",
-        "no leakage smoke runtime must not be created",
+        target.get("no_secret_leakage_smoke_runtime_status") == "implemented_offline_go_test",
+        "no leakage smoke runtime status drifted",
     )
     require(
-        target.get("test_fixture_strategy_status") == "required_before_implementation",
-        "test fixture strategy must remain required before implementation",
+        target.get("test_fixture_strategy_status") == "satisfied_for_test_only_fake_resolver",
+        "test fixture strategy status drifted",
     )
     require(
         target.get("test_fixture_strategy_review_status") == "blocked_entry_review_defined",
@@ -218,8 +222,12 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "fake resolver runtime implementation task card status drifted",
     )
     require(
-        target.get("fake_resolver_runtime_implementation_status") == "task_card_defined_runtime_not_started",
+        target.get("fake_resolver_runtime_implementation_status") == "fake_resolver_runtime_test_only_implemented",
         "fake resolver runtime implementation status drifted",
+    )
+    require(
+        target.get("fake_resolver_runtime_status") == "implemented_test_only_disabled_by_default",
+        "fake resolver runtime status drifted",
     )
     require(
         target.get("default_runtime_state") == "disabled_until_explicit_secret_backend_task",
@@ -241,7 +249,12 @@ def assert_preconditions(fixture: dict[str, Any]) -> None:
     require(not missing, f"missing required preconditions: {missing}")
     for precondition_id, item in preconditions.items():
         status = str(item.get("status") or "")
-        require(status == "satisfied" or status.startswith("required_before_"), f"{precondition_id} has unexpected status")
+        require(
+            status == "satisfied"
+            or status == "satisfied_for_test_only_fake_resolver"
+            or status.startswith("required_before_"),
+            f"{precondition_id} has unexpected status",
+        )
         must_define = item.get("must_define") or []
         require(len(must_define) >= 3, f"{precondition_id} must define concrete requirements")
         if precondition_id == "secret-ref-schema":
@@ -287,7 +300,10 @@ def assert_preconditions(fixture: dict[str, Any]) -> None:
                 require(path in evidence, f"{precondition_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{precondition_id} evidence missing on disk: {path}")
         if precondition_id == "test-fixture-strategy":
-            require(status == "required_before_implementation", "test-fixture-strategy must remain required")
+            require(
+                status == "satisfied_for_test_only_fake_resolver",
+                "test-fixture-strategy must be satisfied for test-only fake resolver runtime",
+            )
             for required in {
                 "fake resolver",
                 "placeholder secret ref",
@@ -323,6 +339,8 @@ def assert_preconditions(fixture: dict[str, Any]) -> None:
                 "docs/task-cards/production-secret-backend-fake-resolver-runtime-implementation-v1-plan.md",
                 "scripts/checks/fixtures/production-secret-backend-fake-resolver-runtime-implementation-v1.json",
                 "scripts/check-production-ops-secret-backend-fake-resolver-runtime-implementation-v1.py",
+                "services/platform/internal/secretbackend/fake_resolver.go",
+                "services/platform/internal/secretbackend/fake_resolver_test.go",
             }:
                 require(path in evidence, f"test-fixture-strategy missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"test-fixture-strategy evidence missing on disk: {path}")
@@ -539,6 +557,8 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/platform/production-secret-backend-fake-resolver-runtime-implementation-v1.md",
         "docs/task-cards/production-secret-backend-fake-resolver-runtime-implementation-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-fake-resolver-runtime-implementation-v1.json",
+        "services/platform/internal/secretbackend/fake_resolver.go",
+        "services/platform/internal/secretbackend/fake_resolver_test.go",
         "services/platform/README.md",
         "docs/devlogs/2026-W22.md",
         "docs/devlogs/2026-W25.md",

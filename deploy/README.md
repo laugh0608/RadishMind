@@ -107,13 +107,13 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 
 `production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1` 已把 fake resolver static contract 与 no secret leakage smoke strategy 固定为可检查证据：后续 fake resolver 只能消费 allowlist 输入、输出脱敏状态和 credential handle metadata，不得接收或输出 secret value、provider raw URL、DSN、token、cookie 或 cloud credential。该 strategy 不改变 compose 或 `.env.example` 的职责，不创建 resolver runtime、fake resolver runtime、no secret leakage smoke runtime、cloud SDK、DB provider、repository mode 或 production API，仍不声明 production secret backend ready。
 
-`production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1` 已把 `fake_resolver_implementation_task_card_entry_readiness_review_defined` 固定为可检查证据：当前只确认下一步可以创建 fake resolver implementation task card。该 review 不改变 compose 或 `.env.example` 的职责，不实现 resolver runtime、不创建 fake resolver runtime、不创建 no secret leakage smoke runtime、不调用云 secret 服务、不读取 secret value、不接 DB provider、不启用 repository mode 或 production API，仍不声明 production secret backend ready。
+`production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1` 已把 `fake_resolver_implementation_task_card_entry_readiness_review_defined` 固定为可检查证据：当前只确认下一步可以创建 fake resolver implementation task card。该 review 不改变 compose 或 `.env.example` 的职责，不实现 resolver runtime、不把 test-only fake resolver runtime 写成 production resolver、不创建 no secret leakage smoke runtime、不调用云 secret 服务、不读取 secret value、不接 DB provider、不启用 repository mode 或 production API，仍不声明 production secret backend ready。
 
 `production-secret-backend-fake-resolver-implementation-v1` 已把 `fake_resolver_implementation_task_card_defined` 固定为可检查证据：当前只创建 fake resolver implementation 的静态任务卡、fixture、checker 和 artifact guard。该 task card 不改变 compose 或 `.env.example` 的职责，不实现 fake resolver runtime、不创建 no secret leakage smoke runtime、不解析 secret、不创建 credential handle、不连接数据库、不调用云 secret 服务、不启用 repository mode 或 production API，仍不声明 production secret backend ready。
 
-`production-secret-backend-fake-resolver-runtime-implementation-entry-review-v1` 已把 `fake_resolver_runtime_implementation_entry_review_defined` 固定为可检查证据：当前只确认下一步可以单独创建 fake resolver runtime implementation 任务卡。该 review 不改变 compose 或 `.env.example` 的职责，不实现 fake resolver runtime、不创建 no secret leakage smoke runtime、不解析 secret、不创建 credential handle、不连接数据库、不调用云 secret 服务、不启用 repository mode 或 production API，仍不声明 production secret backend ready。
+`production-secret-backend-fake-resolver-runtime-implementation-entry-review-v1` 已把 `fake_resolver_runtime_implementation_entry_review_defined` 固定为可检查证据：当前只确认下一步可以单独创建 test-only fake resolver runtime。该 review 不改变 compose 或 `.env.example` 的职责，不实现 fake resolver runtime、不创建 no secret leakage smoke runtime、不解析 secret、不创建 credential handle、不连接数据库、不调用云 secret 服务、不启用 repository mode 或 production API，仍不声明 production secret backend ready。
 
-`production-secret-backend-fake-resolver-runtime-implementation-v1` 已把 `fake_resolver_runtime_implementation_task_card_defined` 固定为可检查证据：当前只创建 fake resolver runtime implementation 的静态任务卡、fixture、checker 和 artifact guard。该 task card 不改变 compose 或 `.env.example` 的职责，不实现 fake resolver runtime、不创建 no secret leakage smoke runtime、不解析 secret、不创建 credential handle、不连接数据库、不调用云 secret 服务、不启用 repository mode 或 production API，仍不声明 production secret backend ready。
+`production-secret-backend-fake-resolver-runtime-implementation-v1` 已把 `fake_resolver_runtime_test_only_implemented` 固定为可检查证据：当前只实现 test-only、默认 disabled 的 fake resolver runtime，并由 Go 单测覆盖 placeholder secret ref、sanitized diagnostics、offline no leakage smoke 和 zero external side effects。该 runtime 不改变 compose 或 `.env.example` 的职责，不实现 production resolver runtime、不创建 no secret leakage smoke runtime、不解析真实 secret、不创建 credential payload、不连接数据库、不调用云 secret 服务、不启用 repository mode 或 production API，仍不声明 production secret backend ready。
 
 部署态 compose 通过这些变量区分测试和生产：
 
@@ -157,6 +157,6 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 - 不把 `mock` provider 写成真实 provider readiness。
 - 不把 `docker compose down` cleanup 写成 process supervisor。
 - 不把 `.env.example` 写成 secret backend。
-- 不把 `fake_resolver_implementation_task_card_defined`、`fake_resolver_runtime_implementation_entry_review_defined` 或 `fake_resolver_runtime_implementation_task_card_defined` 写成 fake resolver runtime ready；它们不调用云 secret 服务、不解析 secret、不连接数据库。
+- 不把 `fake_resolver_implementation_task_card_defined`、`fake_resolver_runtime_implementation_entry_review_defined` 或 `fake_resolver_runtime_test_only_implemented` 写成 production secret backend ready；它们不调用云 secret 服务、不解析真实 secret、不连接数据库。
 - 不把 deployment readiness 静态展开写成 container smoke。
 - 不把 runbook 或 record template 写成已经完成的运行记录。
