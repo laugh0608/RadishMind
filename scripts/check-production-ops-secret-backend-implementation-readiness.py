@@ -48,6 +48,7 @@ REQUIRED_PLANNED_SLICES = {
     "fake-resolver-runtime-implementation": "fake_resolver_runtime_test_only_implemented",
     "real-resolver-runtime-preconditions": "real_resolver_runtime_preconditions_defined",
     "real-resolver-runtime-implementation-entry-review": "real_resolver_runtime_implementation_entry_review_defined",
+    "resolver-backend-profile-selection-readiness": "resolver_backend_profile_selection_readiness_defined",
 }
 
 REQUIRED_BLOCKED = {
@@ -91,6 +92,8 @@ REQUIRED_DOC_REFERENCES = {
         "real_resolver_runtime_preconditions_defined",
         "production-secret-backend-real-resolver-runtime-implementation-entry-review-v1",
         "real_resolver_runtime_implementation_entry_review_defined",
+        "production-secret-backend-resolver-backend-profile-selection-readiness-v1",
+        "resolver_backend_profile_selection_readiness_defined",
         "services/platform/internal/secretbackend/fake_resolver.go",
         "contracts/production-secret-reference.schema.json",
         "production-secret-reference-basic.json",
@@ -145,6 +148,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-fake-resolver-runtime-implementation-v1.py",
         "check-production-ops-secret-backend-real-resolver-runtime-preconditions-v1.py",
         "check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py",
+        "check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py",
     ],
     "docs/devlogs/2026-W22.md": [
         "production-secret-backend-implementation-readiness",
@@ -183,6 +187,10 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     require(target.get("first_backend") == "external_reference_resolver_adapter", "unexpected first backend")
     require(target.get("cloud_vendor_specific_backend") == "not_selected", "cloud vendor backend must not be selected")
     require(target.get("committed_secret_storage") == "forbidden", "committed secret storage must be forbidden")
+    require(
+        target.get("production_secret_backend_status") == "not_satisfied",
+        "production secret backend must remain not_satisfied",
+    )
     require(target.get("resolver_implementation_status") == "not_started", "resolver must not be implemented")
     require(target.get("resolver_runtime_status") == "not_created", "resolver runtime must not be created")
     require(
@@ -245,6 +253,10 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("real_resolver_runtime_implementation_entry_review_status")
         == "blocked_before_runtime_task_card",
         "real resolver runtime implementation entry review status drifted",
+    )
+    require(
+        target.get("resolver_backend_profile_selection_readiness_status") == "defined_without_backend_runtime",
+        "resolver backend profile selection readiness status drifted",
     )
     require(
         target.get("default_runtime_state") == "disabled_until_explicit_secret_backend_task",
@@ -540,6 +552,16 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "resolver-backend-profile-selection-readiness":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-resolver-backend-profile-selection-readiness-v1.md",
+                "docs/task-cards/production-secret-backend-resolver-backend-profile-selection-readiness-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-resolver-backend-profile-selection-readiness-v1.json",
+                "scripts/check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
 
     blocked = {str(item.get("id")): item for item in fixture.get("blocked_conditions") or [] if isinstance(item, dict)}
     missing_blocked = sorted(set(REQUIRED_BLOCKED) - set(blocked))
@@ -576,6 +598,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-fake-resolver-runtime-implementation-v1.py",
         "scripts/check-production-ops-secret-backend-real-resolver-runtime-preconditions-v1.py",
         "scripts/check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py",
+        "scripts/check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py",
         "scripts/check-production-secret-reference-contract.py",
         "scripts/check-repo.py",
         "scripts/README.md",
@@ -604,6 +627,9 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/platform/production-secret-backend-real-resolver-runtime-implementation-entry-review-v1.md",
         "docs/task-cards/production-secret-backend-real-resolver-runtime-implementation-entry-review-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-real-resolver-runtime-implementation-entry-review-v1.json",
+        "docs/platform/production-secret-backend-resolver-backend-profile-selection-readiness-v1.md",
+        "docs/task-cards/production-secret-backend-resolver-backend-profile-selection-readiness-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-resolver-backend-profile-selection-readiness-v1.json",
         "services/platform/README.md",
         "docs/devlogs/2026-W22.md",
         "docs/devlogs/2026-W25.md",
@@ -674,6 +700,11 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py", [])'
         in check_repo,
         "check-repo.py must run real resolver runtime implementation entry review check",
+    )
+    require(
+        'run_python_script("check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py", [])'
+        in check_repo,
+        "check-repo.py must run resolver backend profile selection readiness check",
     )
 
     for relative_path, required_literals in REQUIRED_DOC_REFERENCES.items():
