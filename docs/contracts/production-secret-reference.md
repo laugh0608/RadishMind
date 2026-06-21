@@ -1,6 +1,6 @@
 # Production Secret Reference 契约
 
-更新时间：2026-06-19
+更新时间：2026-06-21
 
 ## 文档目的
 
@@ -66,7 +66,7 @@
 
 - 不实现真实云 secret 服务。
 - 不实现 secret resolver。
-- 不实现 fake resolver runtime。
+- 不把 test-only fake resolver runtime 写成 production resolver。
 - 不创建 no secret leakage smoke runtime。
 - 不创建 credential handle。
 - 不保存 secret value。
@@ -79,14 +79,16 @@
 - 不把 reference fixture 写成 provider credential readiness。
 - 不把该契约写成 production ready。
 
-## 与 fake resolver 证据链的关系
+## 与 fake resolver / runtime entry 证据链的关系
 
-`production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1`、`production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1`、`production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1` 和 `production-secret-backend-fake-resolver-implementation-v1` 都必须继续消费本契约的 reference-only 语义。fake resolver 的未来输入只能引用 `secret_ref`、environment、provider、provider profile、purpose、request id、audit ref 和 policy version；输出只能是 opaque test credential handle metadata 与脱敏诊断。
+`production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1`、`production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1`、`production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1`、`production-secret-backend-fake-resolver-implementation-v1`、`production-secret-backend-fake-resolver-runtime-implementation-entry-review-v1` 和 `production-secret-backend-fake-resolver-runtime-implementation-v1` 都必须继续消费本契约的 reference-only 语义。fake resolver runtime 当前只允许 test-only、默认 disabled、离线 fixture 驱动；输入只能引用 `secret_ref`、environment、provider、provider profile、purpose、request id、audit ref 和 policy version；输出只能是 opaque test credential handle metadata 与脱敏诊断。
 
-这些证据链不放宽本契约：它们不允许把 `secret_ref_status=present` 解释为 credential resolved，不允许从 fixture 或 developer env 读取 secret value，不允许 fallback 到 production resolver、mock provider、local-smoke profile、fake query executor 或跨环境 secret ref，也不允许把 fake resolver implementation task card 写成 fake resolver runtime ready。
+这些证据链不放宽本契约：它们不允许把 `secret_ref_status=present` 解释为 credential resolved，不允许从 fixture 或 developer env 读取 secret value，不允许 fallback 到 production resolver、mock provider、local-smoke profile、fake query executor 或跨环境 secret ref，也不允许把 test-only fake resolver runtime 写成 production resolver runtime、no secret leakage smoke runtime、credential handle runtime、operator approval runtime、audit store runtime、backend health runtime、database connection provider 或 repository mode ready。
+
+后续的 real resolver runtime entry refresh、no leakage smoke runtime entry review、credential handle runtime entry review、operator approval runtime entry review、audit store contract / ownership / delivery-idempotency / entry refresh 和 backend health runtime entry review 仍只说明 production resolver 前置依赖如何被拆分与阻塞；它们不读取、解析、传递或创建真实 secret。
 
 ## 与部署和服务的关系
 
 部署层可以通过 `RADISHMIND_SECRET_SOURCE` 表达未来 secret 来源类型，但当前只作为治理引用，不代表 backend 已接通。`services/platform/` 的只读 readiness 或 diagnostics 后续只能消费 `sanitized_fields` 中的字段，不能返回 secret value、provider raw URL 或 resolver 结果。
 
-真实 production secret backend 仍需要后续独立任务补齐 adapter、resolver runtime、fake resolver runtime、no secret leakage runtime smoke、rotation runtime、audit store、provider health policy 和生产前复核记录。
+真实 production secret backend 仍需要后续独立任务补齐 adapter、production resolver runtime、no secret leakage smoke runtime、credential handle runtime、operator approval runtime、audit store runtime、backend health runtime、rotation runtime、provider health policy 和生产前复核记录。
