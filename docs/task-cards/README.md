@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-06-20
+更新时间：2026-06-21
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -176,7 +176,8 @@
 21. [`Production Secret Backend Resolver Backend Health Boundary Readiness` v1 计划](production-secret-backend-resolver-backend-health-boundary-readiness-v1-plan.md)（`production-secret-backend-resolver-backend-health-boundary-readiness-v1` / `resolver_backend_health_boundary_readiness_defined`）
 22. [`Production Secret Backend Resolver Backend Health Runtime Implementation Entry Review` v1 计划](production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1` / `resolver_backend_health_runtime_implementation_entry_review_defined`）
 23. [`Production Secret Backend Audit Store Runtime Implementation Entry Review` v1 计划](production-secret-backend-audit-store-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-audit-store-runtime-implementation-entry-review-v1` / `audit_store_runtime_implementation_entry_review_defined`）
-24. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
+24. [`Production Secret Backend Operator Approval Runtime Implementation Entry Review` v1 计划](production-secret-backend-operator-approval-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-operator-approval-runtime-implementation-entry-review-v1` / `operator_approval_runtime_implementation_entry_review_defined`）
+25. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
 
 ## Model Adaptation
 

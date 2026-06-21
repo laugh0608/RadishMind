@@ -65,6 +65,9 @@ REQUIRED_PLANNED_SLICES = {
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
     ),
+    "operator-approval-runtime-implementation-entry-review": (
+        "operator_approval_runtime_implementation_entry_review_defined"
+    ),
 }
 
 REQUIRED_BLOCKED = {
@@ -116,6 +119,8 @@ REQUIRED_DOC_REFERENCES = {
         "credential_handle_runtime_boundary_readiness_defined",
         "production-secret-backend-operator-approval-runtime-evidence-readiness-v1",
         "operator_approval_runtime_evidence_readiness_defined",
+        "production-secret-backend-operator-approval-runtime-implementation-entry-review-v1",
+        "operator_approval_runtime_implementation_entry_review_defined",
         "production-secret-backend-audit-store-handoff-readiness-v1",
         "audit_store_handoff_readiness_defined",
         "production-secret-backend-audit-store-runtime-implementation-entry-review-v1",
@@ -182,6 +187,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py",
         "check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py",
         "check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py",
+        "check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-review-v1.py",
         "check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py",
         "check-production-ops-secret-backend-audit-store-runtime-implementation-entry-review-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py",
@@ -315,6 +321,11 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("operator_approval_runtime_evidence_readiness_status")
         == "defined_without_runtime_execution",
         "operator approval runtime evidence readiness status drifted",
+    )
+    require(
+        target.get("operator_approval_runtime_implementation_entry_review_status")
+        == "blocked_before_runtime_task_card",
+        "operator approval runtime implementation entry review status drifted",
     )
     require(
         target.get("operator_approval_runtime_status") == "not_created",
@@ -689,6 +700,16 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "operator-approval-runtime-implementation-entry-review":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-operator-approval-runtime-implementation-entry-review-v1.md",
+                "docs/task-cards/production-secret-backend-operator-approval-runtime-implementation-entry-review-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-operator-approval-runtime-implementation-entry-review-v1.json",
+                "scripts/check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-review-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
         if slice_id == "audit-store-handoff-readiness":
             evidence = set(planned[slice_id].get("evidence") or [])
             for path in {
@@ -745,6 +766,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "no cloud API call",
         "no raw secret or provider base URL in logs, diagnostics, fixtures or docs",
         "operator approval runtime evidence readiness defined without runtime execution",
+        "operator approval runtime implementation entry review blocked before task card",
         "audit store handoff readiness defined without store runtime",
         "audit store runtime implementation entry review blocked before task card",
         "resolver backend health boundary readiness defined without backend health runtime",
@@ -774,6 +796,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py",
         "scripts/check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py",
+        "scripts/check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-audit-store-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py",
@@ -818,6 +841,9 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/platform/production-secret-backend-operator-approval-runtime-evidence-readiness-v1.md",
         "docs/task-cards/production-secret-backend-operator-approval-runtime-evidence-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-operator-approval-runtime-evidence-readiness-v1.json",
+        "docs/platform/production-secret-backend-operator-approval-runtime-implementation-entry-review-v1.md",
+        "docs/task-cards/production-secret-backend-operator-approval-runtime-implementation-entry-review-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-operator-approval-runtime-implementation-entry-review-v1.json",
         "docs/platform/production-secret-backend-audit-store-handoff-readiness-v1.md",
         "docs/task-cards/production-secret-backend-audit-store-handoff-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-audit-store-handoff-readiness-v1.json",
@@ -920,6 +946,11 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py", [])'
         in check_repo,
         "check-repo.py must run operator approval runtime evidence readiness check",
+    )
+    require(
+        'run_python_script("check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-review-v1.py", [])'
+        in check_repo,
+        "check-repo.py must run operator approval runtime implementation entry review check",
     )
     require(
         'run_python_script("check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py", [])'

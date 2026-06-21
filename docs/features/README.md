@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-06-20
+更新时间：2026-06-21
 
 ## 文档目的
 
@@ -115,6 +115,7 @@
 | [Production Secret Backend Resolver Backend Health Boundary Readiness v1](../platform/production-secret-backend-resolver-backend-health-boundary-readiness-v1.md) | 平台专题 | 固定 production secret backend 的 resolver backend health boundary readiness，状态为 `resolver_backend_health_boundary_readiness_defined`，仍不创建 backend health runtime、不执行 backend health check、不创建 production resolver runtime、cloud secret service、DB provider、repository mode 或 public production API |
 | [Production Secret Backend Resolver Backend Health Runtime Implementation Entry Review v1](../platform/production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.md) | 平台专题 | 固定 production secret backend 的 resolver backend health runtime implementation entry review，状态为 `resolver_backend_health_runtime_implementation_entry_review_defined`，结论为 blocked before runtime task card，仍不创建 backend health runtime implementation task card、不创建 backend health runtime、不执行 backend health check、不创建 production resolver runtime、cloud secret service、DB provider、repository mode 或 public production API |
 | [Production Secret Backend Audit Store Runtime Implementation Entry Review v1](../platform/production-secret-backend-audit-store-runtime-implementation-entry-review-v1.md) | 平台专题 | 固定 production secret backend 的 audit store runtime implementation entry review，状态为 `audit_store_runtime_implementation_entry_review_defined`，结论为 blocked before runtime task card，仍不创建 audit store runtime implementation task card、不创建 audit store runtime、不创建 audit writer、不写 audit event、不创建 production resolver runtime、cloud secret service、DB provider、repository mode 或 public production API |
+| [Production Secret Backend Operator Approval Runtime Implementation Entry Review v1](../platform/production-secret-backend-operator-approval-runtime-implementation-entry-review-v1.md) | 平台专题 | 固定 production secret backend 的 operator approval runtime implementation entry review，状态为 `operator_approval_runtime_implementation_entry_review_defined`，结论为 blocked before runtime task card，仍不创建 operator approval runtime implementation task card、不创建 approval runtime、不创建 approval executor、不连接 operator identity provider、不创建 production resolver runtime、cloud secret service、DB provider、repository mode 或 public production API |
 | [平台专题入口](../platform/README.md) | 平台专题目录 | 承接 auth、store、repository、provider、deployment 等跨产品面能力 |
 | [扩展 / 集成专题入口](../integrations/README.md) | 扩展专题目录 | 承接外部项目、外部 backend 和真实接入前置条件 |
 
