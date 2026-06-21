@@ -183,8 +183,9 @@ side effect counters 必须保持：
 下一步若继续 production secret backend，应在以下方向中选择一个单独开题：
 
 1. 继续拆解 production resolver runtime task card entry readiness review 的剩余 runtime blocker。
-2. 先推进 credential handle runtime、operator approval runtime、audit store runtime、backend health runtime 或 no leakage smoke runtime 的单独 entry refresh。
-3. 等运行时依赖的独立 entry review 不再 blocked 后，再重新评审 production resolver runtime implementation task card。
+2. 已由 `production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1` 固定 no leakage smoke runtime implementation entry review，但 runtime task card 仍 blocked，smoke runtime 未创建也未执行。
+3. 先推进 credential handle runtime、operator approval runtime、audit store runtime、backend health runtime 或 no leakage smoke runtime 的单独 entry refresh。
+4. 等运行时依赖的独立 entry review 不再 blocked 后，再重新评审 production resolver runtime implementation task card。
 
 ## 验证
 
