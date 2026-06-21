@@ -70,6 +70,7 @@ REQUIRED_PLANNED_SLICES = {
     "operator-approval-runtime-evidence-readiness": "operator_approval_runtime_evidence_readiness_defined",
     "audit-store-handoff-readiness": "audit_store_handoff_readiness_defined",
     "audit-store-runtime-implementation-entry-review": "audit_store_runtime_implementation_entry_review_defined",
+    "audit-store-contract-event-schema-readiness": "audit_store_contract_event_schema_readiness_defined",
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -140,6 +141,8 @@ REQUIRED_DOC_REFERENCES = {
         "audit_store_handoff_readiness_defined",
         "production-secret-backend-audit-store-runtime-implementation-entry-review-v1",
         "audit_store_runtime_implementation_entry_review_defined",
+        "production-secret-backend-audit-store-contract-event-schema-readiness-v1",
+        "audit_store_contract_event_schema_readiness_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
         "resolver_backend_health_boundary_readiness_defined",
         "production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1",
@@ -207,6 +210,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-review-v1.py",
         "check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py",
         "check-production-ops-secret-backend-audit-store-runtime-implementation-entry-review-v1.py",
+        "check-production-ops-secret-backend-audit-store-contract-event-schema-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py",
     ],
@@ -381,6 +385,10 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("audit_store_runtime_implementation_entry_review_status")
         == "blocked_before_runtime_task_card",
         "audit store runtime implementation entry review status drifted",
+    )
+    require(
+        target.get("audit_store_contract_event_schema_readiness_status") == "defined_without_store_runtime",
+        "audit store contract event schema readiness status drifted",
     )
     require(target.get("audit_store_runtime_status") == "not_created", "audit store runtime must remain not_created")
     require(target.get("audit_store_status") == "not_created", "audit store must remain not_created")
@@ -794,6 +802,16 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "audit-store-contract-event-schema-readiness":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-audit-store-contract-event-schema-readiness-v1.md",
+                "docs/task-cards/production-secret-backend-audit-store-contract-event-schema-readiness-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-audit-store-contract-event-schema-readiness-v1.json",
+                "scripts/check-production-ops-secret-backend-audit-store-contract-event-schema-readiness-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
         if slice_id == "resolver-backend-health-boundary-readiness":
             evidence = set(planned[slice_id].get("evidence") or [])
             for path in {
@@ -846,6 +864,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "operator approval runtime implementation entry review blocked before task card",
         "audit store handoff readiness defined without store runtime",
         "audit store runtime implementation entry review blocked before task card",
+        "audit store contract event schema readiness defined without store runtime",
         "resolver backend health boundary readiness defined without backend health runtime",
         "resolver backend health runtime implementation entry review blocked before task card",
     }:
@@ -879,6 +898,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-audit-store-runtime-implementation-entry-review-v1.py",
+        "scripts/check-production-ops-secret-backend-audit-store-contract-event-schema-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-secret-reference-contract.py",
@@ -939,6 +959,9 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/platform/production-secret-backend-audit-store-runtime-implementation-entry-review-v1.md",
         "docs/task-cards/production-secret-backend-audit-store-runtime-implementation-entry-review-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-audit-store-runtime-implementation-entry-review-v1.json",
+        "docs/platform/production-secret-backend-audit-store-contract-event-schema-readiness-v1.md",
+        "docs/task-cards/production-secret-backend-audit-store-contract-event-schema-readiness-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-audit-store-contract-event-schema-readiness-v1.json",
         "docs/platform/production-secret-backend-resolver-backend-health-boundary-readiness-v1.md",
         "docs/task-cards/production-secret-backend-resolver-backend-health-boundary-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-resolver-backend-health-boundary-readiness-v1.json",
@@ -1065,6 +1088,11 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-audit-store-runtime-implementation-entry-review-v1.py", [])'
         in check_repo,
         "check-repo.py must run audit store runtime implementation entry review check",
+    )
+    require(
+        'run_python_script("check-production-ops-secret-backend-audit-store-contract-event-schema-readiness-v1.py", [])'
+        in check_repo,
+        "check-repo.py must run audit store contract event schema readiness check",
     )
     require(
         'run_python_script("check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py", [])'
