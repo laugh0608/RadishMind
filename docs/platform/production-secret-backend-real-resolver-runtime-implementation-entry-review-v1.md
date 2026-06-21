@@ -167,12 +167,12 @@ side effect counters 必须保持：
 
 ## 后续推进
 
-下一步若继续 production secret backend，不应直接创建 resolver runtime implementation task card。应在以下方向中选择一个单独开题：
+后续已由 `Production Secret Backend Real Resolver Runtime Implementation Entry Refresh v1` 消费本 entry review 与新增静态前置证据，并确认 production resolver runtime implementation task card 仍 blocked before task card。继续 production secret backend 时，不应直接创建 resolver runtime implementation task card。应在以下方向中选择一个单独开题：
 
 1. `production-secret-backend-audit-store-runtime-implementation-entry-review`
 2. `production-secret-backend-operator-approval-runtime-implementation-entry-review`
 3. `production-secret-backend-credential-handle-runtime-implementation-entry-review`
-4. `production-secret-backend-real-resolver-runtime-implementation-entry-refresh`
+4. `production-secret-backend-production-resolver-runtime-task-card-entry-readiness-review`
 
 ## 验证
 

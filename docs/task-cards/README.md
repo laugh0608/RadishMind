@@ -178,7 +178,8 @@
 23. [`Production Secret Backend Audit Store Runtime Implementation Entry Review` v1 计划](production-secret-backend-audit-store-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-audit-store-runtime-implementation-entry-review-v1` / `audit_store_runtime_implementation_entry_review_defined`）
 24. [`Production Secret Backend Operator Approval Runtime Implementation Entry Review` v1 计划](production-secret-backend-operator-approval-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-operator-approval-runtime-implementation-entry-review-v1` / `operator_approval_runtime_implementation_entry_review_defined`）
 25. [`Production Secret Backend Credential Handle Runtime Implementation Entry Review` v1 计划](production-secret-backend-credential-handle-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-credential-handle-runtime-implementation-entry-review-v1` / `credential_handle_runtime_implementation_entry_review_defined`）
-26. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
+26. [`Production Secret Backend Real Resolver Runtime Implementation Entry Refresh` v1 计划](production-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1-plan.md)（`production-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1` / `real_resolver_runtime_implementation_entry_refresh_defined`）
+27. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
 
 ## Model Adaptation
 

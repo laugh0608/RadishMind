@@ -53,6 +53,9 @@ REQUIRED_PLANNED_SLICES = {
     "fake-resolver-runtime-implementation": "fake_resolver_runtime_test_only_implemented",
     "real-resolver-runtime-preconditions": "real_resolver_runtime_preconditions_defined",
     "real-resolver-runtime-implementation-entry-review": "real_resolver_runtime_implementation_entry_review_defined",
+    "real-resolver-runtime-implementation-entry-refresh": (
+        "real_resolver_runtime_implementation_entry_refresh_defined"
+    ),
     "resolver-backend-profile-selection-readiness": "resolver_backend_profile_selection_readiness_defined",
     "real-resolver-no-secret-leakage-smoke-runtime-strategy": (
         "real_resolver_no_secret_leakage_smoke_runtime_strategy_defined"
@@ -114,6 +117,8 @@ REQUIRED_DOC_REFERENCES = {
         "real_resolver_runtime_preconditions_defined",
         "production-secret-backend-real-resolver-runtime-implementation-entry-review-v1",
         "real_resolver_runtime_implementation_entry_review_defined",
+        "production-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1",
+        "real_resolver_runtime_implementation_entry_refresh_defined",
         "production-secret-backend-resolver-backend-profile-selection-readiness-v1",
         "resolver_backend_profile_selection_readiness_defined",
         "production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1",
@@ -188,6 +193,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-fake-resolver-runtime-implementation-v1.py",
         "check-production-ops-secret-backend-real-resolver-runtime-preconditions-v1.py",
         "check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py",
+        "check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1.py",
         "check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py",
         "check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py",
         "check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py",
@@ -242,6 +248,10 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(target.get("resolver_implementation_status") == "not_started", "resolver must not be implemented")
     require(target.get("resolver_runtime_status") == "not_created", "resolver runtime must not be created")
+    require(
+        target.get("production_resolver_runtime_task_card_status") == "not_created",
+        "production resolver runtime task card must not be created",
+    )
     require(
         target.get("fake_resolver_status") == "test_only_runtime_implemented_disabled_by_default",
         "fake resolver status drifted",
@@ -302,6 +312,11 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("real_resolver_runtime_implementation_entry_review_status")
         == "blocked_before_runtime_task_card",
         "real resolver runtime implementation entry review status drifted",
+    )
+    require(
+        target.get("real_resolver_runtime_implementation_entry_refresh_status")
+        == "blocked_before_runtime_task_card",
+        "real resolver runtime implementation entry refresh status drifted",
     )
     require(
         target.get("resolver_backend_profile_selection_readiness_status") == "defined_without_backend_runtime",
@@ -673,6 +688,16 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "real-resolver-runtime-implementation-entry-refresh":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1.md",
+                "docs/task-cards/production-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1.json",
+                "scripts/check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
         if slice_id == "resolver-backend-profile-selection-readiness":
             evidence = set(planned[slice_id].get("evidence") or [])
             for path in {
@@ -794,6 +819,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "no real credential required",
         "no cloud API call",
         "no raw secret or provider base URL in logs, diagnostics, fixtures or docs",
+        "real resolver runtime implementation entry refresh blocked before task card",
         "credential handle runtime implementation entry review blocked before task card",
         "operator approval runtime evidence readiness defined without runtime execution",
         "operator approval runtime implementation entry review blocked before task card",
@@ -822,6 +848,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-fake-resolver-runtime-implementation-v1.py",
         "scripts/check-production-ops-secret-backend-real-resolver-runtime-preconditions-v1.py",
         "scripts/check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py",
+        "scripts/check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1.py",
         "scripts/check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py",
         "scripts/check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py",
@@ -860,6 +887,9 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/platform/production-secret-backend-real-resolver-runtime-implementation-entry-review-v1.md",
         "docs/task-cards/production-secret-backend-real-resolver-runtime-implementation-entry-review-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-real-resolver-runtime-implementation-entry-review-v1.json",
+        "docs/platform/production-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1.md",
+        "docs/task-cards/production-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1.json",
         "docs/platform/production-secret-backend-resolver-backend-profile-selection-readiness-v1.md",
         "docs/task-cards/production-secret-backend-resolver-backend-profile-selection-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-resolver-backend-profile-selection-readiness-v1.json",
@@ -960,6 +990,11 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py", [])'
         in check_repo,
         "check-repo.py must run real resolver runtime implementation entry review check",
+    )
+    require(
+        'run_python_script("check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1.py", [])'
+        in check_repo,
+        "check-repo.py must run real resolver runtime implementation entry refresh check",
     )
     require(
         'run_python_script("check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py", [])'
