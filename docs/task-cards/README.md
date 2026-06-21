@@ -175,7 +175,8 @@
 20. [`Production Secret Backend Audit Store Handoff Readiness v1` 计划](production-secret-backend-audit-store-handoff-readiness-v1-plan.md)（`production-secret-backend-audit-store-handoff-readiness-v1` / `audit_store_handoff_readiness_defined`）
 21. [`Production Secret Backend Resolver Backend Health Boundary Readiness` v1 计划](production-secret-backend-resolver-backend-health-boundary-readiness-v1-plan.md)（`production-secret-backend-resolver-backend-health-boundary-readiness-v1` / `resolver_backend_health_boundary_readiness_defined`）
 22. [`Production Secret Backend Resolver Backend Health Runtime Implementation Entry Review` v1 计划](production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1` / `resolver_backend_health_runtime_implementation_entry_review_defined`）
-23. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
+23. [`Production Secret Backend Audit Store Runtime Implementation Entry Review` v1 计划](production-secret-backend-audit-store-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-audit-store-runtime-implementation-entry-review-v1` / `audit_store_runtime_implementation_entry_review_defined`）
+24. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
 
 ## Model Adaptation
 
