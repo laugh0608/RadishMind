@@ -31,6 +31,8 @@ Saved workflow draft 的平台服务配置已经新增 `workflow_saved_draft_sto
 
 `services/platform/migrations/workflow_saved_drafts/` 当前只承载 `manifest.json`、`ddl-review.md`、`rollback-evidence.json` 和 `migration-smoke.json` 四个静态 schema artifact 证据文件。它们说明 future durable store 的 logical schema、predicate、review 和 rollback 边界，不是 SQL migration，不会被 platform service 自动执行，也不表示 repository mode、真实数据库或 production auth 已可用。
 
+`workflow-saved-draft-repository-mode-runtime-boundary-review-v1` 已固定 `draft_repository_mode_runtime_boundary_review_defined`。该评审消费 repository adapter、adapter smoke、production auth runtime bridge、runner / connection / resolver entry review、audit store runtime entry refresh v3 和 production secret backend implementation readiness 证据，结论仍是 repository mode runtime task card blocked；不启用 repository store mode，不创建真实 query executor、schema marker runtime、OIDC / membership、production API、audit store runtime、executor、confirmation、writeback 或 replay。
+
 ## Production Secret Backend Config / Secret Ref Readiness
 
 `Production Secret Backend Config / Secret Ref Readiness v1` 已固定 `config_secret_ref_readiness_defined`，对应切片为 `production-secret-backend-config-secret-ref-readiness-v1`。它只把 `production-secret-backend-implementation-readiness` 中的 `config-secret-ref-readiness` 前置条件推进到可检查状态，要求后续配置层只能处理 `secret_ref` 存在性、`secret_backend_configured`、`secret_ref_present`、`missing_secret_refs` 和 `field_sources` 等脱敏状态。
