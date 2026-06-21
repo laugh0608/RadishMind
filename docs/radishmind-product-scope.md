@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-06-20
+更新时间：2026-06-21
 
 ## 核心定义
 
@@ -36,6 +36,8 @@
 2026-06-20 日终补充：同日后续已补 `production-secret-backend-credential-handle-runtime-boundary-readiness-v1`、`production-secret-backend-operator-approval-runtime-evidence-readiness-v1`、`production-secret-backend-audit-store-handoff-readiness-v1`、`production-secret-backend-resolver-backend-health-boundary-readiness-v1` 和 `production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1`，固定 `credential_handle_runtime_boundary_readiness_defined`、`operator_approval_runtime_evidence_readiness_defined`、`audit_store_handoff_readiness_defined`、`resolver_backend_health_boundary_readiness_defined` 和 `resolver_backend_health_runtime_implementation_entry_review_defined`。这些仍只属于 Production Ops 前置证据：不创建 credential handle runtime、operator approval runtime、audit store / writer / event、backend health runtime task card、backend health runtime、backend health check、production resolver runtime、cloud secret service、DB provider、repository mode 或 public production API。
 
 2026-06-21 已补 `workflow-saved-draft-repository-mode-runtime-boundary-review-v1`，固定 `draft_repository_mode_runtime_boundary_review_defined`。该评审消费 repository adapter、adapter smoke、production auth runtime bridge、repository mode enablement、runner / connection / resolver entry review、audit store runtime entry refresh v3 和 production secret backend implementation readiness 证据，结论仍是 repository mode runtime task card blocked；不启用 repository store mode，不创建真实 query executor、schema marker runtime、OIDC / membership、production API、audit store runtime、executor、confirmation、writeback 或 replay。
+
+2026-06-21 继续补 `workflow-saved-draft-schema-marker-migration-runner-readiness-refresh-v1`，固定 `draft_schema_marker_migration_runner_readiness_refresh_defined`。该 refresh 消费 runner readiness / entry review、database connection / schema marker preconditions、connection provider / secret resolver entry review、repository mode runtime boundary review、schema artifact、repository adapter、adapter smoke 和 production auth runtime bridge 证据，只收束 applied marker、manual runner、dry-run、idempotency / lock、duplicate handling 和 rollback observability；不创建 schema marker implementation task card、migration runner implementation task card、SQL、schema version table、marker runtime、runner、DB provider、repository mode runtime、production API、executor、confirmation、writeback 或 replay。
 
 当前产品 UI 的门禁策略已经从普通展示页逐项专项证明，调整为能力边界与聚合门禁优先。`control-plane-read-formal-ui-readiness-close-v1` 已用 surface matrix 聚合固定七个页面的 route binding、状态预览、request / audit ref 和 forbidden output guard；`control-plane-read-auth-store-transition-preconditions-v1` 已固定从 dev fake auth / fixture-backed fake store 迁移到未来 auth middleware / read store repository 前必须满足的 gates。2026-06-14 起，普通展示、文案、布局和 evidence 组织默认复用聚合门禁，不再逐项新增 task card / fixture / checker；新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力时才新增专项 gate。上述内容都不能解释为真实数据库、Radish OIDC、production API consumer、API key / quota、repository adapter 或 workflow executor ready。
 
