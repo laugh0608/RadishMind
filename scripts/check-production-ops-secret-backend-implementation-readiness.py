@@ -75,6 +75,9 @@ REQUIRED_PLANNED_SLICES = {
         "audit_store_runtime_implementation_entry_refresh_v2_defined"
     ),
     "audit-store-ownership-boundary-readiness": "audit_store_ownership_boundary_readiness_defined",
+    "audit-store-delivery-idempotency-runtime-boundary-readiness": (
+        "audit_store_delivery_idempotency_runtime_boundary_readiness_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -151,6 +154,8 @@ REQUIRED_DOC_REFERENCES = {
         "audit_store_runtime_implementation_entry_refresh_v2_defined",
         "production-secret-backend-audit-store-ownership-boundary-readiness-v1",
         "audit_store_ownership_boundary_readiness_defined",
+        "production-secret-backend-audit-store-delivery-idempotency-runtime-boundary-readiness-v1",
+        "audit_store_delivery_idempotency_runtime_boundary_readiness_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
         "resolver_backend_health_boundary_readiness_defined",
         "production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1",
@@ -221,6 +226,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-audit-store-contract-event-schema-readiness-v1.py",
         "check-production-ops-secret-backend-audit-store-runtime-implementation-entry-refresh-v2.py",
         "check-production-ops-secret-backend-audit-store-ownership-boundary-readiness-v1.py",
+        "check-production-ops-secret-backend-audit-store-delivery-idempotency-runtime-boundary-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py",
     ],
@@ -422,8 +428,41 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit writer ownership status drifted",
     )
     require(
-        target.get("audit_delivery_idempotency_owner_status") == "required_next_boundary",
+        target.get("audit_store_delivery_idempotency_runtime_boundary_readiness_status")
+        == "defined_without_delivery_runtime",
+        "audit store delivery idempotency runtime boundary readiness status drifted",
+    )
+    require(
+        target.get("audit_delivery_idempotency_owner_status") == "static_boundary_defined",
         "audit delivery idempotency owner status drifted",
+    )
+    require(
+        target.get("audit_delivery_owner_status") == "static_reference_defined",
+        "audit delivery owner status drifted",
+    )
+    require(
+        target.get("audit_idempotency_key_owner_status") == "static_reference_defined",
+        "audit idempotency key owner status drifted",
+    )
+    require(
+        target.get("audit_duplicate_handling_status") == "static_fail_closed_policy_defined",
+        "audit duplicate handling status drifted",
+    )
+    require(
+        target.get("audit_retry_failure_semantics_status") == "static_fail_closed_policy_defined",
+        "audit retry failure semantics status drifted",
+    )
+    require(
+        target.get("audit_delivery_result_envelope_status") == "metadata_only_static_envelope_defined",
+        "audit delivery result envelope status drifted",
+    )
+    require(
+        target.get("audit_delivery_runtime_status") == "not_created",
+        "audit delivery runtime must remain not_created",
+    )
+    require(
+        target.get("audit_idempotency_runtime_status") == "not_created",
+        "audit idempotency runtime must remain not_created",
     )
     require(
         target.get("audit_store_runtime_task_card_status") == "not_created",
@@ -871,6 +910,25 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "audit-store-delivery-idempotency-runtime-boundary-readiness":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-audit-store-delivery-idempotency-runtime-boundary-readiness-v1.md",
+                (
+                    "docs/task-cards/"
+                    "production-secret-backend-audit-store-delivery-idempotency-runtime-boundary-readiness-v1-plan.md"
+                ),
+                (
+                    "scripts/checks/fixtures/"
+                    "production-secret-backend-audit-store-delivery-idempotency-runtime-boundary-readiness-v1.json"
+                ),
+                (
+                    "scripts/check-production-ops-secret-backend-"
+                    "audit-store-delivery-idempotency-runtime-boundary-readiness-v1.py"
+                ),
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
         if slice_id == "resolver-backend-health-boundary-readiness":
             evidence = set(planned[slice_id].get("evidence") or [])
             for path in {
@@ -926,6 +984,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "audit store contract event schema readiness defined without store runtime",
         "audit store runtime implementation entry refresh v2 blocked before task card",
         "audit store ownership boundary readiness defined without store runtime",
+        "audit store delivery idempotency runtime boundary readiness defined without delivery runtime",
         "resolver backend health boundary readiness defined without backend health runtime",
         "resolver backend health runtime implementation entry review blocked before task card",
     }:
@@ -962,6 +1021,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-audit-store-contract-event-schema-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-audit-store-runtime-implementation-entry-refresh-v2.py",
         "scripts/check-production-ops-secret-backend-audit-store-ownership-boundary-readiness-v1.py",
+        "scripts/check-production-ops-secret-backend-audit-store-delivery-idempotency-runtime-boundary-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-secret-reference-contract.py",
@@ -1031,6 +1091,9 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/platform/production-secret-backend-audit-store-ownership-boundary-readiness-v1.md",
         "docs/task-cards/production-secret-backend-audit-store-ownership-boundary-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-audit-store-ownership-boundary-readiness-v1.json",
+        "docs/platform/production-secret-backend-audit-store-delivery-idempotency-runtime-boundary-readiness-v1.md",
+        "docs/task-cards/production-secret-backend-audit-store-delivery-idempotency-runtime-boundary-readiness-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-audit-store-delivery-idempotency-runtime-boundary-readiness-v1.json",
         "docs/platform/production-secret-backend-resolver-backend-health-boundary-readiness-v1.md",
         "docs/task-cards/production-secret-backend-resolver-backend-health-boundary-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-resolver-backend-health-boundary-readiness-v1.json",
@@ -1172,6 +1235,11 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-audit-store-ownership-boundary-readiness-v1.py", [])'
         in check_repo,
         "check-repo.py must run audit store ownership boundary readiness check",
+    )
+    require(
+        'run_python_script("check-production-ops-secret-backend-audit-store-delivery-idempotency-runtime-boundary-readiness-v1.py", [])'
+        in check_repo,
+        "check-repo.py must run audit store delivery idempotency runtime boundary readiness check",
     )
     require(
         'run_python_script("check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py", [])'
