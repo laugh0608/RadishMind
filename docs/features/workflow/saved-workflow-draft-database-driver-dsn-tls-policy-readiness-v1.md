@@ -72,8 +72,8 @@ future connection provider 必须遵守以下策略：
 
 本批后，connection provider implementation task card 仍不创建。后续若继续 durable store 上游，应从以下方向选择一个独立推进：
 
-1. `database role policy readiness`：定义 runtime DML role、migration DDL / marker role、least privilege review 和 cross-environment denial smoke。
-2. `connection smoke strategy`：定义 explicit test database、placeholder credential handoff、smoke output shape、no leakage scan 和 zero production side effect 记录。
+1. `database role policy readiness` 已由 `workflow-saved-draft-database-role-policy-readiness-v1` 固定，状态为 `draft_database_role_policy_readiness_defined`。
+2. `connection smoke strategy`：定义 explicit test database、placeholder credential handoff、smoke output shape、no leakage scan、role denial cases 和 zero production side effect 记录。
 3. `Radish OIDC upstream evidence refresh`：补 reviewed issuer、JWKS、client registration 和 membership data source ownership。
 4. `connection provider implementation entry refresh v2`：只有 driver / DSN / TLS、role policy、connection smoke、secret resolver、schema marker 和 repository mode runtime 依赖均可复验后再复评。
 
