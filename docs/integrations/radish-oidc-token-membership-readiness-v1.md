@@ -10,6 +10,8 @@
 
 状态：`radish_oidc_token_membership_readiness_defined`
 
+后续 implementation entry review 已由 [Radish OIDC Token / Membership Implementation Entry Review v1](radish-oidc-token-membership-implementation-entry-review-v1.md) 固定为 `radish_oidc_token_membership_implementation_entry_review_defined`；结论仍是 `blocked_before_runtime_task_card`。
+
 ## 当前输入事实
 
 - `radish-oidc-client-preconditions` 已固定 issuer、client、claim mapping、tenant binding、session boundary、logout / revocation、audit events 和 failure taxonomy。
@@ -70,7 +72,7 @@ membership 缺失、tenant mismatch、workspace denied、application denied、ow
 
 - 新增 `radish-oidc-token-membership-readiness-v1` fixture / checker，固定 token validation contract、membership contract、consumer matrix、failure mapping、no fallback、no side effects 和 artifact guard。
 - checker 接入 `./scripts/check-repo.sh --fast`。
-- 本批至少运行专项 checker、upstream auth readiness checker、saved draft production auth runtime checker 和 `./scripts/check-repo.sh --fast`。
+- 本批至少运行专项 checker、implementation entry review checker、upstream auth readiness checker、saved draft production auth runtime checker 和 `./scripts/check-repo.sh --fast`。
 
 ## 停止线
 
