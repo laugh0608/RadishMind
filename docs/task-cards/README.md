@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-06-21
+更新时间：2026-06-22
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -148,8 +148,9 @@
 97. [`Workflow Saved Draft Database Secret Resolver Implementation Entry Review` v1 任务卡](workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1`）
 98. [`Workflow Saved Draft Repository Mode Runtime Boundary Review` v1 任务卡](workflow-saved-draft-repository-mode-runtime-boundary-review-v1-plan.md)（`workflow-saved-draft-repository-mode-runtime-boundary-review-v1`）
 99. [`Workflow Saved Draft Schema Marker / Migration Runner Readiness Refresh` v1 任务卡](workflow-saved-draft-schema-marker-migration-runner-readiness-refresh-v1-plan.md)（`workflow-saved-draft-schema-marker-migration-runner-readiness-refresh-v1`）
-100. [`Radish OIDC Token / Membership Readiness` v1 任务卡](radish-oidc-token-membership-readiness-v1-plan.md)（`radish-oidc-token-membership-readiness-v1`）
-101. [`Radish OIDC Token / Membership Implementation Entry Review` v1 任务卡](radish-oidc-token-membership-implementation-entry-review-v1-plan.md)（`radish-oidc-token-membership-implementation-entry-review-v1`）
+100. [`Workflow Saved Draft Schema Marker Contract Implementation Entry Review` v1 任务卡](workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1`）
+101. [`Radish OIDC Token / Membership Readiness` v1 任务卡](radish-oidc-token-membership-readiness-v1-plan.md)（`radish-oidc-token-membership-readiness-v1`）
+102. [`Radish OIDC Token / Membership Implementation Entry Review` v1 任务卡](radish-oidc-token-membership-implementation-entry-review-v1-plan.md)（`radish-oidc-token-membership-implementation-entry-review-v1`）
 
 ## UI 设计专题
 
