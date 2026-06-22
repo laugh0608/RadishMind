@@ -149,8 +149,9 @@
 98. [`Workflow Saved Draft Repository Mode Runtime Boundary Review` v1 任务卡](workflow-saved-draft-repository-mode-runtime-boundary-review-v1-plan.md)（`workflow-saved-draft-repository-mode-runtime-boundary-review-v1`）
 99. [`Workflow Saved Draft Schema Marker / Migration Runner Readiness Refresh` v1 任务卡](workflow-saved-draft-schema-marker-migration-runner-readiness-refresh-v1-plan.md)（`workflow-saved-draft-schema-marker-migration-runner-readiness-refresh-v1`）
 100. [`Workflow Saved Draft Schema Marker Contract Implementation Entry Review` v1 任务卡](workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1`）
-101. [`Radish OIDC Token / Membership Readiness` v1 任务卡](radish-oidc-token-membership-readiness-v1-plan.md)（`radish-oidc-token-membership-readiness-v1`）
-102. [`Radish OIDC Token / Membership Implementation Entry Review` v1 任务卡](radish-oidc-token-membership-implementation-entry-review-v1-plan.md)（`radish-oidc-token-membership-implementation-entry-review-v1`）
+101. [`Workflow Saved Draft Manual Migration Runner Implementation Entry Refresh` v1 任务卡](workflow-saved-draft-manual-migration-runner-implementation-entry-refresh-v1-plan.md)（`workflow-saved-draft-manual-migration-runner-implementation-entry-refresh-v1`）
+102. [`Radish OIDC Token / Membership Readiness` v1 任务卡](radish-oidc-token-membership-readiness-v1-plan.md)（`radish-oidc-token-membership-readiness-v1`）
+103. [`Radish OIDC Token / Membership Implementation Entry Review` v1 任务卡](radish-oidc-token-membership-implementation-entry-review-v1-plan.md)（`radish-oidc-token-membership-implementation-entry-review-v1`）
 
 ## UI 设计专题
 
