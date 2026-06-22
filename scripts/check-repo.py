@@ -1390,6 +1390,10 @@ def check_fast_baseline() -> None:
         [],
     )
     run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-database-connection-smoke-strategy-v1.py",
+        [],
+    )
+    run_python_script(
         "checks/control_plane/check-product-surface-readiness-implementation-trigger-recheck-v1.py",
         [],
     )

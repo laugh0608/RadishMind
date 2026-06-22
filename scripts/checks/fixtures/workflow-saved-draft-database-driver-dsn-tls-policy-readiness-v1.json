@@ -403,7 +403,6 @@
     ],
     "files_must_not_exist": [
       "docs/task-cards/workflow-saved-draft-database-connection-provider-implementation-v1-plan.md",
-      "docs/task-cards/workflow-saved-draft-database-connection-smoke-strategy-v1-plan.md",
       "services/platform/internal/httpapi/workflow_saved_draft_database_connection.go",
       "services/platform/internal/httpapi/workflow_saved_draft_database_driver.go",
       "services/platform/internal/httpapi/workflow_saved_draft_database_dsn.go",
