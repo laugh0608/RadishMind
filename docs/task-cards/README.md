@@ -148,6 +148,7 @@
 97. [`Workflow Saved Draft Database Secret Resolver Implementation Entry Review` v1 任务卡](workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1`）
 98. [`Workflow Saved Draft Repository Mode Runtime Boundary Review` v1 任务卡](workflow-saved-draft-repository-mode-runtime-boundary-review-v1-plan.md)（`workflow-saved-draft-repository-mode-runtime-boundary-review-v1`）
 99. [`Workflow Saved Draft Schema Marker / Migration Runner Readiness Refresh` v1 任务卡](workflow-saved-draft-schema-marker-migration-runner-readiness-refresh-v1-plan.md)（`workflow-saved-draft-schema-marker-migration-runner-readiness-refresh-v1`）
+100. [`Radish OIDC Token / Membership Readiness` v1 任务卡](radish-oidc-token-membership-readiness-v1-plan.md)（`radish-oidc-token-membership-readiness-v1`）
 
 ## UI 设计专题
 

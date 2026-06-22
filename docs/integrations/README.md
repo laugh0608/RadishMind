@@ -19,7 +19,7 @@
 | 专题 | 当前状态 | 下一步 |
 | --- | --- | --- |
 | RadishFlow Integration | gateway / handoff 门禁冻结，真实挂载点未成熟 | 等上层提供稳定 UI、command 或 API 承接点后再重开 |
-| Radish OIDC | 前置条件已固定，真实 OIDC 未实现 | 等 issuer、client、claim mapping、tenant binding 和 auth middleware 入口明确 |
+| Radish OIDC | 前置条件已固定；[Radish OIDC Token / Membership Readiness v1](radish-oidc-token-membership-readiness-v1.md) 已固定 `radish_oidc_token_membership_readiness_defined` | 后续若推进，应做 token / membership implementation entry review；不直接创建 middleware、validator、membership adapter 或 production API |
 | Image Backend Adapter | metadata-only response builder 已完成，真实 backend 未接 | 后续只能在 store、reader、public URL 或 backend adapter 中选择一个方向独立推进 |
 | Radish Docs / Knowledge Integration | docs QA 资产已有，真实产品接入仍等待 | 不把文档问答资产写成完整上层接入 ready |
 | RadishCatalyst | 文档级预留 | 未明确任务面前不扩 schema、adapter、gateway smoke 或模型接线 |

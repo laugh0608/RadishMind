@@ -1331,6 +1331,7 @@ def check_fast_baseline() -> None:
         "checks/control_plane/check-workflow-saved-draft-production-auth-runtime-v1.py",
         [],
     )
+    run_python_script("checks/control_plane/check-radish-oidc-token-membership-readiness-v1.py", [])
     run_python_script(
         "checks/control_plane/check-workflow-saved-draft-repository-mode-enablement-v1.py",
         [],

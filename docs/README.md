@@ -90,6 +90,7 @@
 - [平台专题入口](platform/README.md)
 - [Production Secret Backend Fake Resolver Implementation v1](platform/production-secret-backend-fake-resolver-implementation-v1.md)
 - [扩展与集成专题入口](integrations/README.md)
+- [Radish OIDC Token / Membership Readiness v1](integrations/radish-oidc-token-membership-readiness-v1.md)
 - [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)
 - [UI 设计规范](radishmind-ui-design-spec.md)
 - [UI 设计参考](radishmind-ui-design-reference.md)
