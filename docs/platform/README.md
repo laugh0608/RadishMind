@@ -35,6 +35,12 @@ Saved workflow draft 的平台服务配置已经新增 `workflow_saved_draft_sto
 
 `workflow-saved-draft-schema-marker-migration-runner-readiness-refresh-v1` 已固定 `draft_schema_marker_migration_runner_readiness_refresh_defined`。该 refresh 只收束 applied marker、manual runner、dry-run、idempotency / lock、duplicate handling 和 rollback observability 的静态前置；不创建 schema marker implementation task card、migration runner implementation task card、SQL、schema version table、marker runtime、runner、DB provider 或 repository mode runtime。
 
+`workflow-saved-draft-database-driver-dsn-tls-policy-readiness-v1` 已固定 `draft_database_driver_dsn_tls_policy_readiness_defined`。该专题只定义 future DB driver selection、DSN construction / redaction boundary、TLS policy、environment binding、forbidden diagnostics scan、role policy dependency 和 connection smoke 前置；不选择或导入 DB driver、不创建 DSN parser、不创建 TLS runtime、不创建 connection factory、不运行 connection smoke。
+
+`workflow-saved-draft-database-role-policy-readiness-v1` 已固定 `draft_database_role_policy_readiness_defined`。该专题只定义 future runtime DML role、migration / marker role、least privilege review、environment binding、role claim metadata boundary 和 cross-environment denial smoke 前置；不创建 role runtime、不创建 grant、不解析 token claim、不连接数据库、不运行 SQL。
+
+`workflow-saved-draft-database-connection-smoke-strategy-v1` 已固定 `draft_database_connection_smoke_strategy_defined`。该专题只定义 future explicit test database、metadata-only credential handoff、smoke input / output shape、role denial cases、no leakage scan 和 manual execution boundary；不创建 smoke runner、不执行 smoke、不提交 smoke 输出、不连接数据库，也不把该策略接入 fast baseline 的运行时数据库检查。
+
 ## Production Secret Backend Config / Secret Ref Readiness
 
 `Production Secret Backend Config / Secret Ref Readiness v1` 已固定 `config_secret_ref_readiness_defined`，对应切片为 `production-secret-backend-config-secret-ref-readiness-v1`。它只把 `production-secret-backend-implementation-readiness` 中的 `config-secret-ref-readiness` 前置条件推进到可检查状态，要求后续配置层只能处理 `secret_ref` 存在性、`secret_backend_configured`、`secret_ref_present`、`missing_secret_refs` 和 `field_sources` 等脱敏状态。
