@@ -160,6 +160,7 @@
 109. [`Radish OIDC Token / Membership Implementation Entry Review` v1 任务卡](radish-oidc-token-membership-implementation-entry-review-v1-plan.md)（`radish-oidc-token-membership-implementation-entry-review-v1`）
 110. [`Radish OIDC Token / Membership Upstream Evidence Refresh` v1 任务卡](radish-oidc-token-membership-upstream-evidence-refresh-v1-plan.md)（`radish-oidc-token-membership-upstream-evidence-refresh-v1`）
 111. [`Workflow Saved Draft Schema Marker Runtime Dependency Refresh` v1 任务卡](workflow-saved-draft-schema-marker-runtime-dependency-refresh-v1-plan.md)（`workflow-saved-draft-schema-marker-runtime-dependency-refresh-v1`）
+112. [`Workflow Saved Draft Database Secret Resolver Runtime Dependency Refresh` v1 任务卡](workflow-saved-draft-database-secret-resolver-runtime-dependency-refresh-v1-plan.md)（`workflow-saved-draft-database-secret-resolver-runtime-dependency-refresh-v1`）
 
 ## UI 设计专题
 
