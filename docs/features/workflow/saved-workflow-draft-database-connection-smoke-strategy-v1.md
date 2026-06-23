@@ -1,6 +1,6 @@
 # Saved Workflow Draft Database Connection Smoke Strategy v1
 
-更新时间：2026-06-22
+更新时间：2026-06-23
 
 ## 专题定位
 
@@ -75,8 +75,8 @@ future connection smoke 必须遵守以下边界：
 本批后，connection provider implementation task card 仍不创建。后续若继续 durable store 上游，应从以下方向选择一个独立推进：
 
 1. `Radish OIDC upstream evidence refresh`：补 reviewed issuer、JWKS、client registration、auth middleware ownership、membership data source ownership 和 negative auth smoke matrix。
-2. `connection provider implementation entry refresh v2`：只有 driver / DSN / TLS、role policy、connection smoke strategy、secret resolver、schema marker、repository mode runtime 和 auth upstream evidence 均可复验后再复评。
-3. `connection lifecycle readiness`：定义 timeout、pool、health check、close responsibility、request id / audit ref propagation 和 sanitized diagnostics runtime 前置，不创建 connection factory。
+2. `connection lifecycle readiness` 已由 `workflow-saved-draft-database-connection-lifecycle-readiness-v1` 固定，状态为 `draft_database_connection_lifecycle_readiness_defined`。
+3. `connection provider implementation entry refresh v2`：只有 driver / DSN / TLS、role policy、connection smoke strategy、connection lifecycle、secret resolver、schema marker、repository mode runtime 和 auth upstream evidence 均可复验后再复评。
 
 ## 验证
 

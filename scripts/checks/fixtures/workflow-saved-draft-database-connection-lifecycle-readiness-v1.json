@@ -1,31 +1,30 @@
 {
   "schema_version": 1,
-  "kind": "workflow_saved_draft_database_connection_smoke_strategy_v1",
+  "kind": "workflow_saved_draft_database_connection_lifecycle_readiness_v1",
   "slice": {
-    "id": "workflow-saved-draft-database-connection-smoke-strategy-v1",
+    "id": "workflow-saved-draft-database-connection-lifecycle-readiness-v1",
     "track": "Workflow / Agent Runtime",
-    "status": "draft_database_connection_smoke_strategy_defined",
-    "task_card": "docs/task-cards/workflow-saved-draft-database-connection-smoke-strategy-v1-plan.md",
+    "status": "draft_database_connection_lifecycle_readiness_defined",
+    "task_card": "docs/task-cards/workflow-saved-draft-database-connection-lifecycle-readiness-v1-plan.md",
     "does_not_claim": [
       "database_connection_provider_implementation_task_card_created",
+      "connection_lifecycle_runtime_ready",
+      "connection_provider_ready",
       "database_connection_provider_ready",
       "database_connection_ready",
-      "connection_smoke_runner_created",
+      "connection_factory_implemented",
+      "connection_pool_ready",
+      "connection_health_check_runtime_ready",
       "connection_smoke_runtime_ready",
       "connection_smoke_executed",
-      "connection_smoke_output_committed",
       "secret_resolver_ready",
       "production_resolver_runtime_ready",
-      "fake_resolver_can_unlock_production_connection",
-      "credential_handle_runtime_ready",
-      "no_secret_leakage_smoke_runtime_ready",
       "database_driver_selected",
       "database_driver_imported",
       "dsn_parser_created",
       "raw_dsn_available",
       "tls_runtime_ready",
       "role_policy_runtime_ready",
-      "connection_factory_implemented",
       "database_query_executor_ready",
       "schema_marker_read_write_ready",
       "sql_migration_created",
@@ -46,6 +45,11 @@
   },
   "depends_on": [
     {
+      "id": "workflow-saved-draft-database-connection-smoke-strategy-v1",
+      "status": "draft_database_connection_smoke_strategy_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-database-connection-smoke-strategy-v1.json"
+    },
+    {
       "id": "workflow-saved-draft-database-driver-dsn-tls-policy-readiness-v1",
       "status": "draft_database_driver_dsn_tls_policy_readiness_defined",
       "evidence": "scripts/checks/fixtures/workflow-saved-draft-database-driver-dsn-tls-policy-readiness-v1.json"
@@ -61,11 +65,6 @@
       "evidence": "scripts/checks/fixtures/workflow-saved-draft-database-connection-provider-implementation-entry-refresh-v1.json"
     },
     {
-      "id": "workflow-saved-draft-database-secret-resolver-readiness-v1",
-      "status": "draft_database_secret_resolver_readiness_defined",
-      "evidence": "scripts/checks/fixtures/workflow-saved-draft-database-secret-resolver-readiness-v1.json"
-    },
-    {
       "id": "workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1",
       "status": "draft_database_secret_resolver_implementation_entry_review_defined",
       "evidence": "scripts/checks/fixtures/workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1.json"
@@ -76,30 +75,27 @@
       "evidence": "scripts/checks/fixtures/workflow-saved-draft-repository-mode-runtime-boundary-review-v1.json"
     },
     {
-      "id": "production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1",
-      "status": "real_resolver_no_secret_leakage_smoke_runtime_implementation_entry_review_defined",
-      "evidence": "scripts/checks/fixtures/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1.json"
+      "id": "radish-oidc-token-membership-implementation-entry-review-v1",
+      "status": "radish_oidc_token_membership_implementation_entry_review_defined",
+      "evidence": "scripts/checks/fixtures/radish-oidc-token-membership-implementation-entry-review-v1.json"
     }
   ],
-  "strategy_boundary": {
-    "status": "database_connection_smoke_strategy_defined_no_runtime_smoke",
-    "decision": "connection_smoke_strategy_defined_for_future_task_only",
-    "current_development_mode": "strategy_only_no_runner_no_database_connection",
+  "readiness_boundary": {
+    "status": "database_connection_lifecycle_readiness_defined_no_runtime_lifecycle",
+    "decision": "connection_lifecycle_defined_for_future_task_only",
+    "current_development_mode": "readiness_only_no_lifecycle_runtime_no_connection",
     "future_implementation_task_card": "docs/task-cards/workflow-saved-draft-database-connection-provider-implementation-v1-plan.md",
-    "future_connection_smoke_runtime_task_card": "docs/task-cards/workflow-saved-draft-database-connection-smoke-runtime-v1-plan.md",
-    "explicit_test_database_boundary_status": "defined_no_database_connection",
-    "placeholder_credential_handoff_status": "defined_metadata_only_no_secret_resolution",
-    "smoke_input_shape_status": "defined_static_contract_only",
-    "smoke_output_shape_status": "defined_static_record_only",
-    "role_denial_cases_status": "defined_no_runtime_denial_execution",
-    "no_leakage_scan_status": "defined_static_scan_requirement",
-    "manual_execution_boundary_status": "defined_no_fast_baseline_runtime",
+    "future_lifecycle_runtime_task_card": "docs/task-cards/workflow-saved-draft-database-connection-lifecycle-runtime-v1-plan.md",
+    "timeout_budget_status": "defined_static_policy_no_runtime_timer",
+    "pool_policy_status": "defined_static_policy_no_pool_runtime",
+    "health_check_boundary_status": "defined_no_health_check_runtime",
+    "close_responsibility_status": "defined_static_ownership_no_connection",
+    "request_audit_propagation_status": "defined_metadata_only_no_runtime_binding",
+    "sanitized_diagnostics_runtime_status": "defined_no_diagnostics_runtime",
     "future_connection_provider_dependency_status": "blocked_before_implementation_task_card",
     "implementation_task_card_created_in_this_slice": false,
-    "connection_smoke_runner_created_in_this_slice": false,
-    "connection_smoke_runtime_allowed_in_this_slice": false,
-    "connection_smoke_execution_allowed_in_this_slice": false,
-    "connection_smoke_output_allowed_in_this_slice": false,
+    "connection_lifecycle_runtime_allowed_in_this_slice": false,
+    "connection_factory_allowed_in_this_slice": false,
     "database_connection_provider_file_created_in_this_slice": false,
     "database_connection_allowed_in_this_slice": false,
     "database_driver_import_allowed_in_this_slice": false,
@@ -107,13 +103,17 @@
     "dsn_parser_allowed_in_this_slice": false,
     "raw_dsn_material_allowed_in_this_slice": false,
     "tls_runtime_allowed_in_this_slice": false,
+    "pool_runtime_allowed_in_this_slice": false,
+    "health_check_runtime_allowed_in_this_slice": false,
+    "close_runtime_allowed_in_this_slice": false,
+    "sanitized_diagnostics_runtime_allowed_in_this_slice": false,
     "role_policy_runtime_allowed_in_this_slice": false,
-    "connection_factory_allowed_in_this_slice": false,
+    "connection_smoke_runtime_allowed_in_this_slice": false,
+    "connection_smoke_execution_allowed_in_this_slice": false,
     "secret_resolver_allowed_in_this_slice": false,
     "fake_resolver_invocation_allowed_in_this_slice": false,
     "production_resolver_invocation_allowed_in_this_slice": false,
     "credential_handle_creation_allowed_in_this_slice": false,
-    "no_leakage_scan_runtime_allowed_in_this_slice": false,
     "database_query_executor_allowed_in_this_slice": false,
     "schema_marker_allowed_in_this_slice": false,
     "sql_files_created_in_this_slice": false,
@@ -125,7 +125,12 @@
     "executor_allowed_in_this_slice": false,
     "writeback_or_replay_allowed_in_this_slice": false
   },
-  "strategy_gate_matrix": [
+  "readiness_gate_matrix": [
+    {
+      "gate_id": "connection_smoke_strategy_consumed",
+      "source": "workflow-saved-draft-database-connection-smoke-strategy-v1",
+      "status": "consumed_static_strategy"
+    },
     {
       "gate_id": "driver_dsn_tls_policy_consumed",
       "source": "workflow-saved-draft-database-driver-dsn-tls-policy-readiness-v1",
@@ -137,32 +142,28 @@
       "status": "consumed_static_policy"
     },
     {
-      "gate_id": "explicit_test_database_boundary",
-      "status": "defined_no_database_connection"
+      "gate_id": "timeout_budget",
+      "status": "defined_static_policy_no_runtime_timer"
     },
     {
-      "gate_id": "placeholder_credential_handoff",
-      "status": "defined_metadata_only_no_secret_resolution"
+      "gate_id": "pool_policy",
+      "status": "defined_static_policy_no_pool_runtime"
     },
     {
-      "gate_id": "smoke_input_shape",
-      "status": "defined_static_contract_only"
+      "gate_id": "health_check_boundary",
+      "status": "defined_no_health_check_runtime"
     },
     {
-      "gate_id": "smoke_output_shape",
-      "status": "defined_static_record_only"
+      "gate_id": "close_responsibility",
+      "status": "defined_static_ownership_no_connection"
     },
     {
-      "gate_id": "role_denial_cases",
-      "status": "defined_no_runtime_denial_execution"
+      "gate_id": "request_audit_propagation",
+      "status": "defined_metadata_only_no_runtime_binding"
     },
     {
-      "gate_id": "no_leakage_scan",
-      "status": "defined_static_scan_requirement"
-    },
-    {
-      "gate_id": "manual_only_execution_boundary",
-      "status": "defined_no_fast_baseline_runtime"
+      "gate_id": "sanitized_diagnostics_runtime_prerequisite",
+      "status": "defined_no_diagnostics_runtime"
     },
     {
       "gate_id": "connection_provider_dependency",
@@ -173,237 +174,152 @@
       "status": "required_now"
     }
   ],
-  "explicit_test_database_boundary": {
-    "status": "future_strategy_only_no_database_connection",
-    "allowed_future_target_classes": [
-      "explicit_local_test_database",
-      "explicit_test_prod_database_with_manual_record"
+  "timeout_budget_policy": {
+    "status": "static_policy_only_no_runtime_timer",
+    "required_future_phases": [
+      "resolve_credential",
+      "build_connection_config",
+      "open_or_acquire_connection",
+      "schema_marker_read",
+      "repository_query",
+      "health_check",
+      "close_or_release"
     ],
-    "forbidden_target_classes": [
-      "production_database",
-      "developer_plaintext_environment",
-      "implicit_service_startup_database",
-      "fast_baseline_database",
-      "unknown_environment_database"
+    "forbidden_now": [
+      "runtime_timer",
+      "driver_call",
+      "database_connection",
+      "shared_unbounded_timeout",
+      "implicit_request_path_timeout"
     ],
-    "required_future_bindings": [
-      "environment_id",
-      "smoke_profile_id",
-      "driver_policy_ref",
-      "tls_policy_ref",
-      "role_policy_ref",
-      "placeholder_credential_ref",
-      "request_id",
-      "audit_ref"
-    ],
-    "database_connection_allowed_now": false,
-    "network_call_allowed_now": false
+    "runtime_timer_created_now": false,
+    "driver_call_allowed_now": false
   },
-  "placeholder_credential_handoff": {
-    "status": "metadata_only_no_secret_resolution",
-    "allowed_future_inputs": [
-      "placeholder_credential_ref",
-      "opaque_test_credential_handle_ref",
+  "pool_policy": {
+    "status": "static_policy_only_no_pool_runtime",
+    "required_future_dimensions": [
       "environment_id",
-      "credential_policy_version",
-      "request_id",
-      "audit_ref"
+      "role_class",
+      "tenant_workspace_scope",
+      "policy_version"
     ],
-    "forbidden_inputs": [
-      "secret_value",
-      "raw_dsn",
-      "database_password",
-      "username",
-      "database_host",
-      "provider_raw_url",
-      "authorization_header",
-      "cookie",
-      "full_credential_handle",
-      "credential_payload"
+    "forbidden_future_sharing": [
+      "runtime_dml_and_migration_role_same_pool",
+      "cross_environment_pool",
+      "unknown_policy_version_pool"
     ],
-    "secret_resolution_allowed_now": false,
-    "fake_resolver_invocation_allowed_now": false,
-    "production_resolver_invocation_allowed_now": false
+    "pool_runtime_created_now": false,
+    "connection_factory_created_now": false
   },
-  "smoke_input_shape": {
-    "status": "static_contract_only_no_runner",
-    "required_fields": [
-      "smoke_record_id",
-      "environment_id",
-      "smoke_profile_id",
-      "driver_policy_ref",
-      "tls_policy_ref",
-      "role_policy_ref",
-      "placeholder_credential_ref",
-      "expected_role_denial_cases",
-      "expected_no_leakage_scan_surfaces",
-      "request_id",
-      "audit_ref"
+  "health_check_boundary": {
+    "status": "boundary_defined_no_health_check_runtime",
+    "forbidden_implicit_paths": [
+      "service_startup",
+      "http_request_path",
+      "store_selector",
+      "fast_baseline"
     ],
-    "forbidden_fields": [
-      "raw_dsn",
-      "database_host",
-      "database_port",
-      "database_name",
-      "username",
-      "password",
-      "secret_value",
-      "credential_payload",
-      "authorization_header",
-      "cookie",
-      "sql_text",
-      "full_user_claim"
+    "allowed_future_paths": [
+      "dedicated_runtime_task_card",
+      "manual_connection_smoke",
+      "explicit_readiness_command"
     ],
-    "runner_created_now": false
+    "health_check_runtime_created_now": false,
+    "health_check_execution_allowed_now": false
   },
-  "smoke_output_shape": {
-    "status": "static_record_only_no_smoke_output",
+  "close_responsibility": {
+    "status": "static_ownership_defined_no_connection",
+    "future_owner": "connection_provider_runtime",
+    "repository_adapter_must_not_hold": [
+      "raw_driver_connection",
+      "raw_pool",
+      "close_function",
+      "driver_specific_object"
+    ],
+    "required_future_handling": [
+      "shutdown",
+      "request_cancellation",
+      "connection_leak_detection",
+      "close_or_release_result"
+    ],
+    "connection_open_allowed_now": false,
+    "connection_close_allowed_now": false
+  },
+  "request_audit_propagation": {
+    "status": "metadata_only_no_runtime_binding",
+    "required_future_fields": [
+      "request_id",
+      "audit_ref",
+      "caller_purpose",
+      "policy_version",
+      "lifecycle_phase"
+    ],
+    "missing_context_failure_code": "draft_audit_context_missing",
+    "runtime_binding_created_now": false
+  },
+  "sanitized_diagnostics_runtime_prerequisite": {
+    "status": "allowlist_defined_no_diagnostics_runtime",
     "allowed_future_fields": [
-      "smoke_record_id",
-      "environment_id",
-      "smoke_profile_id",
-      "sanitized_status",
+      "lifecycle_phase",
       "failure_code",
-      "driver_policy_id",
-      "tls_policy_id",
-      "role_policy_id",
+      "policy_id",
+      "environment_id",
       "redacted_target_fingerprint",
       "redacted_role_fingerprint",
-      "role_denial_results",
-      "no_leakage_scan_summary",
-      "side_effect_summary",
       "request_id",
       "audit_ref"
     ],
     "forbidden_future_fields": [
       "raw_dsn",
       "database_host",
-      "database_error_detail",
+      "username",
+      "password",
       "secret_value",
       "credential_payload",
-      "full_secret_ref",
-      "full_credential_handle",
-      "full_user_claim",
-      "authorization_header",
-      "cookie",
+      "driver_error_detail",
       "sql_detail",
       "schema_marker_payload",
-      "draft_payload"
+      "draft_payload",
+      "pool_state_dump",
+      "driver_connection_object"
     ],
-    "smoke_output_created_now": false
-  },
-  "role_denial_cases": {
-    "status": "static_case_matrix_defined_no_execution",
-    "required_cases": [
-      {
-        "case_id": "runtime_dml_role_ddl_denied",
-        "expected_failure_code": "draft_store_unavailable"
-      },
-      {
-        "case_id": "runtime_dml_role_marker_write_denied",
-        "expected_failure_code": "draft_store_unavailable"
-      },
-      {
-        "case_id": "migration_role_repository_adapter_denied",
-        "expected_failure_code": "draft_store_unavailable"
-      },
-      {
-        "case_id": "cross_environment_role_binding_denied",
-        "expected_failure_code": "draft_store_unavailable"
-      },
-      {
-        "case_id": "unknown_role_class_denied",
-        "expected_failure_code": "draft_store_unavailable"
-      }
-    ],
-    "denial_smoke_execution_allowed_now": false,
-    "role_policy_runtime_allowed_now": false
-  },
-  "no_leakage_scan": {
-    "status": "static_scan_requirement_no_runtime_scanner",
-    "future_scan_surfaces": [
-      "smoke_input",
-      "smoke_output",
-      "logs",
-      "audit_event",
-      "fixtures",
-      "docs",
-      "response_envelope"
-    ],
-    "forbidden_terms": [
-      "raw_dsn",
-      "secret_value",
-      "password",
-      "token",
-      "credential_payload",
-      "provider_raw_url",
-      "database_host",
-      "database_error_detail",
-      "authorization_header",
-      "cookie",
-      "sql_detail",
-      "schema_marker_payload"
-    ],
-    "runtime_scanner_created_now": false,
-    "smoke_runner_created_now": false
-  },
-  "manual_execution_boundary": {
-    "status": "manual_or_dedicated_runtime_task_only_no_fast_baseline_db",
-    "fast_baseline_must_not": [
-      "open network socket",
-      "connect database",
-      "resolve secret",
-      "import database driver",
-      "run SQL",
-      "read schema marker",
-      "write schema marker",
-      "call OIDC",
-      "call membership adapter"
-    ],
-    "future_runtime_requires": [
-      "separate runtime task card",
-      "explicit operator command",
-      "explicit test environment",
-      "sanitized run record",
-      "no leakage scan",
-      "rollback and cleanup notes"
-    ],
-    "fast_baseline_database_connection_allowed_now": false
+    "diagnostics_runtime_created_now": false
   },
   "failure_mapping": {
-    "status": "database_connection_smoke_strategy_fail_closed_required",
+    "status": "database_connection_lifecycle_readiness_fail_closed_required",
     "required_failure_codes": [
       "repository_store_disabled",
       "invalid_draft_store_mode",
       "draft_store_unavailable",
+      "draft_audit_context_missing",
       "draft_schema_migration_not_applied",
       "draft_store_schema_version_mismatch",
       "draft_store_migration_unavailable",
       "draft_store_contract_mismatch",
       "draft_auth_context_contract_mismatch"
     ],
-    "smoke_target_missing_failure_code": "draft_store_unavailable",
-    "placeholder_credential_missing_failure_code": "draft_store_unavailable",
-    "policy_ref_missing_failure_code": "draft_store_unavailable",
-    "no_leakage_scan_missing_failure_code": "draft_store_unavailable",
-    "role_denial_case_missing_failure_code": "draft_store_unavailable",
-    "smoke_record_contract_mismatch_failure_code": "draft_store_unavailable",
+    "timeout_policy_missing_failure_code": "draft_store_unavailable",
+    "pool_policy_missing_failure_code": "draft_store_unavailable",
+    "health_check_boundary_missing_failure_code": "draft_store_unavailable",
+    "close_owner_missing_failure_code": "draft_store_unavailable",
+    "request_or_audit_context_missing_failure_code": "draft_audit_context_missing",
+    "diagnostics_allowlist_missing_failure_code": "draft_store_unavailable",
     "repository_mode_still_disabled_failure_code": "repository_store_disabled",
-    "smoke_gap_must_prevent_provider_task_card": true,
-    "smoke_target_mismatch_must_prevent_secret_resolution": true,
-    "placeholder_credential_gap_must_prevent_connection_open": true,
-    "no_leakage_gap_must_prevent_smoke_runtime": true,
-    "role_denial_gap_must_prevent_repository_mode": true
+    "timeout_gap_must_prevent_connection_open": true,
+    "pool_gap_must_prevent_provider_task_card": true,
+    "health_check_gap_must_prevent_repository_mode": true,
+    "close_owner_gap_must_prevent_query_executor": true,
+    "diagnostics_gap_must_prevent_lifecycle_runtime": true
   },
   "no_fallback_policy": {
     "repository_store_mode_fallback_to_memory_dev_allowed": false,
-    "missing_smoke_strategy_fallback_to_provider_task_card_allowed": false,
-    "missing_test_database_fallback_to_production_database_allowed": false,
-    "missing_placeholder_credential_fallback_to_env_plaintext_allowed": false,
-    "missing_no_leakage_scan_fallback_to_manual_log_review_allowed": false,
-    "missing_role_denial_case_fallback_to_success_allowed": false,
-    "connection_smoke_gap_fallback_to_fake_query_executor_allowed": false,
-    "secret_resolver_fallback_to_test_fake_resolver_allowed": false,
+    "missing_lifecycle_fallback_to_provider_task_card_allowed": false,
+    "missing_timeout_fallback_to_default_driver_timeout_allowed": false,
+    "missing_pool_policy_fallback_to_singleton_pool_allowed": false,
+    "missing_health_check_fallback_to_startup_probe_allowed": false,
+    "missing_close_owner_fallback_to_repository_adapter_allowed": false,
+    "missing_diagnostics_allowlist_fallback_to_driver_error_allowed": false,
+    "connection_lifecycle_gap_fallback_to_fake_query_executor_allowed": false,
     "production_api_failure_fallback_to_dev_route_allowed": false
   },
   "no_side_effect_policy": {
@@ -421,11 +337,12 @@
       "dsn_parse_count=0",
       "dsn_build_count=0",
       "tls_config_create_count=0",
-      "role_policy_evaluation_count=0",
-      "role_claim_parse_count=0",
-      "role_grant_count=0",
+      "pool_create_count=0",
+      "pool_acquire_count=0",
+      "connection_health_check_count=0",
+      "connection_close_count=0",
+      "sanitized_diagnostics_runtime_count=0",
       "connection_smoke_count=0",
-      "no_leakage_scan_count=0",
       "sql_execution_count=0",
       "schema_marker_read_count=0",
       "schema_marker_write_count=0",
@@ -450,10 +367,11 @@
       "import or open database driver",
       "parse or build DSN",
       "create TLS runtime config",
-      "create role policy runtime",
+      "create pool runtime",
+      "create connection factory",
+      "execute health check",
       "connect database",
       "run connection smoke",
-      "run no leakage scan runtime",
       "run SQL",
       "read or write schema marker",
       "write repository",
@@ -464,28 +382,31 @@
   },
   "artifact_guard": {
     "required_static_artifacts_exist": [
+      "docs/features/workflow/saved-workflow-draft-database-connection-lifecycle-readiness-v1.md",
+      "docs/task-cards/workflow-saved-draft-database-connection-lifecycle-readiness-v1-plan.md",
       "docs/features/workflow/saved-workflow-draft-database-connection-smoke-strategy-v1.md",
-      "docs/task-cards/workflow-saved-draft-database-connection-smoke-strategy-v1-plan.md",
       "docs/features/workflow/saved-workflow-draft-database-role-policy-readiness-v1.md",
       "docs/features/workflow/saved-workflow-draft-database-driver-dsn-tls-policy-readiness-v1.md",
       "docs/features/workflow/saved-workflow-draft-database-connection-provider-implementation-entry-refresh-v1.md"
     ],
     "files_must_not_exist": [
       "docs/task-cards/workflow-saved-draft-database-connection-provider-implementation-v1-plan.md",
-      "docs/task-cards/workflow-saved-draft-database-connection-smoke-runtime-v1-plan.md",
+      "docs/task-cards/workflow-saved-draft-database-connection-lifecycle-runtime-v1-plan.md",
       "services/platform/internal/httpapi/workflow_saved_draft_database_connection.go",
       "services/platform/internal/httpapi/workflow_saved_draft_database_driver.go",
       "services/platform/internal/httpapi/workflow_saved_draft_database_dsn.go",
       "services/platform/internal/httpapi/workflow_saved_draft_database_tls.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_database_pool.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_database_health_check.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_database_lifecycle.go",
       "services/platform/internal/httpapi/workflow_saved_draft_database_secret_resolver.go",
       "services/platform/internal/httpapi/workflow_saved_draft_database_role_policy.go",
       "services/platform/internal/httpapi/workflow_saved_draft_database_connection_smoke.go",
       "services/platform/internal/httpapi/workflow_saved_draft_repository_query_executor_sql.go",
       "services/platform/internal/httpapi/workflow_saved_draft_schema_marker.go",
       "services/platform/internal/httpapi/workflow_saved_draft_schema_migration_runner.go",
-      "services/platform/internal/httpapi/workflow_saved_draft_migration_command.go",
-      "tmp/workflow-saved-draft-database-connection-smoke.json",
-      "tmp/workflow-saved-draft-database-connection-smoke-strategy.json"
+      "tmp/workflow-saved-draft-database-connection-lifecycle.json",
+      "tmp/workflow-saved-draft-database-connection-smoke.json"
     ],
     "forbid_sql_files_under": [
       "services/platform/migrations/workflow_saved_drafts"
@@ -505,79 +426,94 @@
       "OpenDB(",
       "RADISHMIND_WORKFLOW_SAVED_DRAFT_REPOSITORY_DSN",
       "RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_SECRET_REF",
-      "RADISHMIND_WORKFLOW_SAVED_DRAFT_CONNECTION_SMOKE",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_CONNECTION_POOL",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_CONNECTION_HEALTH_CHECK",
       "workflow_saved_draft_schema_versions"
     ]
   },
   "required_doc_references": [
     {
-      "path": "docs/features/workflow/saved-workflow-draft-database-connection-smoke-strategy-v1.md",
+      "path": "docs/features/workflow/saved-workflow-draft-database-connection-lifecycle-readiness-v1.md",
       "must_contain": [
-        "draft_database_connection_smoke_strategy_defined",
-        "explicit test database boundary",
-        "safe placeholder credential handoff",
-        "smoke input / output record shape",
-        "role denial cases",
-        "no leakage scan",
+        "draft_database_connection_lifecycle_readiness_defined",
+        "timeout budget",
+        "pool policy",
+        "health check boundary",
+        "close responsibility",
+        "request id / audit ref propagation",
+        "sanitized diagnostics runtime",
         "No Fallback / No Side Effects"
       ]
     },
     {
       "path": "docs/features/workflow/README.md",
       "must_contain": [
-        "Saved Workflow Draft Database Connection Smoke Strategy v1",
-        "draft_database_connection_smoke_strategy_defined"
+        "Saved Workflow Draft Database Connection Lifecycle Readiness v1",
+        "draft_database_connection_lifecycle_readiness_defined"
       ]
     },
     {
       "path": "docs/features/README.md",
       "must_contain": [
-        "Saved Workflow Draft Database Connection Smoke Strategy v1",
-        "draft_database_connection_smoke_strategy_defined"
+        "Saved Workflow Draft Database Connection Lifecycle Readiness v1",
+        "draft_database_connection_lifecycle_readiness_defined"
       ]
     },
     {
       "path": "docs/features/workflow/saved-workflow-draft-v1.md",
       "must_contain": [
-        "workflow-saved-draft-database-connection-smoke-strategy-v1",
-        "draft_database_connection_smoke_strategy_defined"
+        "workflow-saved-draft-database-connection-lifecycle-readiness-v1",
+        "draft_database_connection_lifecycle_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow-agent-runtime.md",
+      "must_contain": [
+        "connection lifecycle readiness",
+        "draft_database_connection_lifecycle_readiness_defined"
       ]
     },
     {
       "path": "docs/radishmind-current-focus.md",
       "must_contain": [
-        "workflow-saved-draft-database-connection-smoke-strategy-v1",
-        "draft_database_connection_smoke_strategy_defined"
-      ]
-    },
-    {
-      "path": "docs/radishmind-product-scope.md",
-      "must_contain": [
-        "workflow-saved-draft-database-connection-smoke-strategy-v1",
-        "draft_database_connection_smoke_strategy_defined"
+        "workflow-saved-draft-database-connection-lifecycle-readiness-v1",
+        "draft_database_connection_lifecycle_readiness_defined"
       ]
     },
     {
       "path": "docs/radishmind-capability-matrix.md",
       "must_contain": [
-        "workflow-saved-draft-database-connection-smoke-strategy-v1",
-        "draft_database_connection_smoke_strategy_defined"
+        "workflow-saved-draft-database-connection-lifecycle-readiness-v1",
+        "draft_database_connection_lifecycle_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/task-cards/README.md",
+      "must_contain": [
+        "Workflow Saved Draft Database Connection Lifecycle Readiness",
+        "workflow-saved-draft-database-connection-lifecycle-readiness-v1"
+      ]
+    },
+    {
+      "path": "scripts/README.md",
+      "must_contain": [
+        "check-workflow-saved-draft-database-connection-lifecycle-readiness-v1.py",
+        "draft_database_connection_lifecycle_readiness_defined"
       ]
     },
     {
       "path": "docs/devlogs/2026-W26.md",
       "must_contain": [
-        "workflow-saved-draft-database-connection-smoke-strategy-v1",
-        "draft_database_connection_smoke_strategy_defined"
+        "workflow-saved-draft-database-connection-lifecycle-readiness-v1",
+        "draft_database_connection_lifecycle_readiness_defined"
       ]
     }
   ],
   "testing_strategy": {
-    "status": "database_connection_smoke_strategy_checker_only_no_runtime",
+    "status": "database_connection_lifecycle_readiness_checker_only_no_runtime",
     "required_checks": [
+      "workflow_saved_draft_database_connection_lifecycle_readiness_checker",
       "workflow_saved_draft_database_connection_smoke_strategy_checker",
-      "workflow_saved_draft_database_role_policy_readiness_checker",
-      "workflow_saved_draft_database_driver_dsn_tls_policy_readiness_checker",
       "workflow_saved_draft_database_connection_provider_implementation_entry_refresh_checker",
       "workflow_saved_draft_repository_mode_runtime_boundary_review_checker",
       "./scripts/check-repo.sh --fast"
@@ -593,10 +529,13 @@
     "does_not_open_database_driver": true,
     "does_not_create_dsn_parser": true,
     "does_not_build_dsn": true,
-    "does_not_create_role_policy_runtime": true,
+    "does_not_create_pool_runtime": true,
+    "does_not_create_connection_factory": true,
+    "does_not_execute_health_check": true,
+    "does_not_create_lifecycle_runtime": true,
+    "does_not_create_sanitized_diagnostics_runtime": true,
     "does_not_connect_database": true,
     "does_not_run_connection_smoke": true,
-    "does_not_run_no_leakage_scan": true,
     "does_not_run_sql": true,
     "does_not_read_schema_marker": true,
     "does_not_write_schema_marker": true,

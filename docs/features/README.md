@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-06-22
+更新时间：2026-06-23
 
 ## 文档目的
 
@@ -110,6 +110,8 @@
 | [Workflow Saved Draft Database Role Policy Readiness v1 任务卡](../task-cards/workflow-saved-draft-database-role-policy-readiness-v1-plan.md) | 实现批次 | 定义 future runtime DML role、migration DDL / schema marker role、least privilege review、cross-environment denial smoke 前置、environment binding 和 role claim / role id metadata-only shape |
 | [Saved Workflow Draft Database Connection Smoke Strategy v1](workflow/saved-workflow-draft-database-connection-smoke-strategy-v1.md) | 前置证据专题 | 固定 `workflow-saved-draft-database-connection-smoke-strategy-v1`，状态为 `draft_database_connection_smoke_strategy_defined` |
 | [Workflow Saved Draft Database Connection Smoke Strategy v1 任务卡](../task-cards/workflow-saved-draft-database-connection-smoke-strategy-v1-plan.md) | 实现批次 | 定义 explicit test database boundary、safe placeholder credential handoff、smoke input / output record shape、role denial cases、no leakage scan、manual-only execution boundary 和 connection provider 依赖 |
+| [Saved Workflow Draft Database Connection Lifecycle Readiness v1](workflow/saved-workflow-draft-database-connection-lifecycle-readiness-v1.md) | 前置证据专题 | 固定 `workflow-saved-draft-database-connection-lifecycle-readiness-v1`，状态为 `draft_database_connection_lifecycle_readiness_defined` |
+| [Workflow Saved Draft Database Connection Lifecycle Readiness v1 任务卡](../task-cards/workflow-saved-draft-database-connection-lifecycle-readiness-v1-plan.md) | 实现批次 | 定义 future timeout budget、pool policy、health check boundary、close responsibility、request / audit propagation 和 sanitized diagnostics runtime 前置 |
 | [Production Secret Backend Config / Secret Ref Readiness v1](../platform/production-secret-backend-config-secret-ref-readiness-v1.md) | 平台专题 | 固定 production secret backend 的 `config-secret-ref-readiness`，状态为 `config_secret_ref_readiness_defined` |
 | [Production Secret Backend Provider Profile Secret Binding Readiness v1](../platform/production-secret-backend-provider-profile-secret-binding-readiness-v1.md) | 平台专题 | 固定 production secret backend 的 `provider-profile-secret-binding`，状态为 `provider_profile_secret_binding_readiness_defined` |
 | [Production Secret Backend Secret Resolver Interface Disabled Readiness v1](../platform/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.md) | 平台专题 | 固定 production secret backend 的 `secret-resolver-interface-disabled`，状态为 `secret_resolver_interface_disabled_readiness_defined` |

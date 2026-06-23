@@ -1,6 +1,6 @@
 # RadishMind 平台专题入口
 
-更新时间：2026-06-22
+更新时间：2026-06-23
 
 ## 文档目的
 
@@ -40,6 +40,8 @@ Saved workflow draft 的平台服务配置已经新增 `workflow_saved_draft_sto
 `workflow-saved-draft-database-role-policy-readiness-v1` 已固定 `draft_database_role_policy_readiness_defined`。该专题只定义 future runtime DML role、migration / marker role、least privilege review、environment binding、role claim metadata boundary 和 cross-environment denial smoke 前置；不创建 role runtime、不创建 grant、不解析 token claim、不连接数据库、不运行 SQL。
 
 `workflow-saved-draft-database-connection-smoke-strategy-v1` 已固定 `draft_database_connection_smoke_strategy_defined`。该专题只定义 future explicit test database、metadata-only credential handoff、smoke input / output shape、role denial cases、no leakage scan 和 manual execution boundary；不创建 smoke runner、不执行 smoke、不提交 smoke 输出、不连接数据库，也不把该策略接入 fast baseline 的运行时数据库检查。
+
+`workflow-saved-draft-database-connection-lifecycle-readiness-v1` 已固定 `draft_database_connection_lifecycle_readiness_defined`。该专题只定义 future timeout、pool、health check、close responsibility、request / audit propagation 和 sanitized diagnostics runtime 前置；不创建 lifecycle runtime、connection factory、DB provider、driver、SQL、schema marker 或 repository mode runtime。
 
 ## Production Secret Backend Config / Secret Ref Readiness
 

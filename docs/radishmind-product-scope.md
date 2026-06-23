@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-06-22
+更新时间：2026-06-23
 
 ## 核心定义
 
@@ -50,6 +50,8 @@
 2026-06-22 继续补 `workflow-saved-draft-database-role-policy-readiness-v1`，固定 `draft_database_role_policy_readiness_defined`。该 readiness 只定义 future runtime DML role、migration DDL / schema marker role、least privilege review、cross-environment denial smoke 前置、environment binding 和 role claim / role id metadata-only shape；不创建 role policy runtime、DB provider、connection smoke、SQL、schema marker、repository mode runtime、production API、executor、confirmation、writeback 或 replay。
 
 2026-06-22 继续补 `workflow-saved-draft-database-connection-smoke-strategy-v1`，固定 `draft_database_connection_smoke_strategy_defined`。该 strategy 只定义 explicit test database boundary、safe placeholder credential handoff、smoke input / output record shape、role denial cases、no leakage scan、manual-only execution boundary 和 connection provider 依赖；不创建 connection smoke runner、smoke output、DB provider、driver、secret resolver、SQL、schema marker、repository mode runtime、production API、executor、confirmation、writeback 或 replay。
+
+2026-06-23 继续补 `workflow-saved-draft-database-connection-lifecycle-readiness-v1`，固定 `draft_database_connection_lifecycle_readiness_defined`。该 readiness 只定义 timeout budget、pool policy、health check boundary、close responsibility、request / audit propagation 和 sanitized diagnostics runtime 前置；不创建 lifecycle runtime、connection factory、DB provider、driver、secret resolver、SQL、schema marker、repository mode runtime、production API、executor、confirmation、writeback 或 replay。
 
 当前产品 UI 的门禁策略已经从普通展示页逐项专项证明，调整为能力边界与聚合门禁优先。`control-plane-read-formal-ui-readiness-close-v1` 已用 surface matrix 聚合固定七个页面的 route binding、状态预览、request / audit ref 和 forbidden output guard；`control-plane-read-auth-store-transition-preconditions-v1` 已固定从 dev fake auth / fixture-backed fake store 迁移到未来 auth middleware / read store repository 前必须满足的 gates。2026-06-14 起，普通展示、文案、布局和 evidence 组织默认复用聚合门禁，不再逐项新增 task card / fixture / checker；新增 API、执行边界、生产声明、数据格式、外部 provider 风险或高风险能力时才新增专项 gate。上述内容都不能解释为真实数据库、Radish OIDC、production API consumer、API key / quota、repository adapter 或 workflow executor ready。
 

@@ -1,6 +1,6 @@
 # scripts/ 目录说明
 
-更新时间：2026-06-22
+更新时间：2026-06-23
 
 ## 目录目标
 
@@ -249,6 +249,8 @@
 
 当前 Saved Workflow Draft database connection smoke strategy 还提供 `check-workflow-saved-draft-database-connection-smoke-strategy-v1.py`，用于校验 `workflow-saved-draft-database-connection-smoke-strategy-v1.json` 中的 `draft_database_connection_smoke_strategy_defined`、explicit test database boundary、metadata-only credential handoff、smoke input / output shape、role denial cases、no leakage scan、manual-only execution boundary、failure mapping、no fallback、no side effects 和 forbidden smoke runner / DB / SQL artifact；该检查不创建 connection smoke runner、不执行 smoke、不提交 smoke 输出、不连接数据库、不解析 secret、不启用 repository mode、production API、executor、confirmation、writeback 或 replay。
 
+当前 Saved Workflow Draft database connection lifecycle readiness 还提供 `check-workflow-saved-draft-database-connection-lifecycle-readiness-v1.py`，用于校验 `workflow-saved-draft-database-connection-lifecycle-readiness-v1.json` 中的 `draft_database_connection_lifecycle_readiness_defined`、timeout budget、pool policy、health check boundary、close responsibility、request / audit propagation、sanitized diagnostics runtime 前置、failure mapping、no fallback、no side effects 和 forbidden lifecycle / factory / DB / SQL artifact；该检查不创建 connection lifecycle runtime、不创建 connection factory、不执行 health check、不连接数据库、不解析 secret、不启用 repository mode、production API、executor、confirmation、writeback 或 replay。
+
 尾部 checker 的失败含义需要区分：
 
 - `check-control-plane-read-production-auth-readiness-v1.py` 失败通常表示 OIDC / auth 证据边界、failure code、claim mapping 或 forbidden auth artifact 漂移。
@@ -286,6 +288,7 @@
 - `check-workflow-saved-draft-database-driver-dsn-tls-policy-readiness-v1.py` 失败通常表示 saved workflow draft database driver / DSN / TLS policy readiness 的 driver selection policy、DSN redaction boundary、TLS policy、environment binding、diagnostics scan、role / smoke dependency、failure mapping、no fallback / no side effects、forbidden driver / DSN / TLS / connection artifact 或 check-repo 注册顺序漂移。
 - `check-workflow-saved-draft-database-role-policy-readiness-v1.py` 失败通常表示 saved workflow draft database role policy readiness 的 runtime DML role、migration / marker role、least privilege boundary、environment binding、role claim metadata、cross-environment denial smoke dependency、failure mapping、no fallback / no side effects、forbidden role / grant / DB / SQL artifact 或 check-repo 注册顺序漂移。
 - `check-workflow-saved-draft-database-connection-smoke-strategy-v1.py` 失败通常表示 saved workflow draft database connection smoke strategy 的 explicit test database boundary、credential handoff、smoke I/O shape、role denial cases、no leakage scan、manual execution boundary、failure mapping、no fallback / no side effects、forbidden smoke runner / DB / SQL artifact 或 check-repo 注册顺序漂移。
+- `check-workflow-saved-draft-database-connection-lifecycle-readiness-v1.py` 失败通常表示 saved workflow draft database connection lifecycle readiness 的 timeout、pool、health check、close responsibility、request / audit propagation、sanitized diagnostics 前置、failure mapping、no fallback / no side effects、forbidden lifecycle / factory / DB / SQL artifact 或 check-repo 注册顺序漂移。
 - `check-production-ops-secret-backend-config-secret-ref-readiness-v1.py` 失败通常表示 production secret backend config / secret ref readiness 的配置注入点、reference-only manifest、`config-secret-ref-readiness` 状态、failure mapping、no fallback / no side effects、forbidden resolver / fake resolver / cloud SDK / DB provider / repository mode artifact 或 check-repo 注册顺序漂移。
 - `check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py` 失败通常表示 production secret backend provider profile secret binding readiness 的 `provider-profile-secret-binding` 状态、credential requirement、secret ref status、环境绑定、sanitized diagnostics、failure mapping、no fallback / no side effects、forbidden resolver / fake resolver / cloud SDK / DB provider / repository mode artifact 或 check-repo 注册顺序漂移。
 - `check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py` 失败通常表示 production secret backend secret resolver interface disabled readiness 的 `secret-resolver-interface-disabled` 状态、disabled result、failure mapping、sanitized diagnostics、no fallback / no side effects、forbidden resolver runtime / fake resolver / cloud SDK / DB provider / repository mode artifact 或 check-repo 注册顺序漂移。
