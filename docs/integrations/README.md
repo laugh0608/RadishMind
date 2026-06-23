@@ -1,6 +1,6 @@
 # RadishMind 扩展与集成专题入口
 
-更新时间：2026-06-22
+更新时间：2026-06-23
 
 ## 文档目的
 
@@ -19,7 +19,7 @@
 | 专题 | 当前状态 | 下一步 |
 | --- | --- | --- |
 | RadishFlow Integration | gateway / handoff 门禁冻结，真实挂载点未成熟 | 等上层提供稳定 UI、command 或 API 承接点后再重开 |
-| Radish OIDC | 前置条件已固定；[Radish OIDC Token / Membership Readiness v1](radish-oidc-token-membership-readiness-v1.md) 已固定 `radish_oidc_token_membership_readiness_defined`；[Radish OIDC Token / Membership Implementation Entry Review v1](radish-oidc-token-membership-implementation-entry-review-v1.md) 已固定 `radish_oidc_token_membership_implementation_entry_review_defined` | 后续应先补 reviewed issuer evidence、JWKS pin、token schema、middleware ownership、membership data source 和 negative auth smoke；不直接创建 middleware、validator、membership adapter 或 production API |
+| Radish OIDC | 前置条件已固定；[Radish OIDC Token / Membership Readiness v1](radish-oidc-token-membership-readiness-v1.md) 已固定 `radish_oidc_token_membership_readiness_defined`；[Radish OIDC Token / Membership Implementation Entry Review v1](radish-oidc-token-membership-implementation-entry-review-v1.md) 已固定 `radish_oidc_token_membership_implementation_entry_review_defined`；[Radish OIDC Token / Membership Upstream Evidence Refresh v1](radish-oidc-token-membership-upstream-evidence-refresh-v1.md) 已固定 `radish_oidc_token_membership_upstream_evidence_refresh_defined` | 后续若继续 auth，应重新评审 token schema、middleware、membership adapter 和 runtime smoke 是否可进入任务卡；不直接创建 middleware、validator、membership adapter 或 production API |
 | Image Backend Adapter | metadata-only response builder 已完成，真实 backend 未接 | 后续只能在 store、reader、public URL 或 backend adapter 中选择一个方向独立推进 |
 | Radish Docs / Knowledge Integration | docs QA 资产已有，真实产品接入仍等待 | 不把文档问答资产写成完整上层接入 ready |
 | RadishCatalyst | 文档级预留 | 未明确任务面前不扩 schema、adapter、gateway smoke 或模型接线 |

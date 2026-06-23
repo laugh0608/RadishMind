@@ -74,7 +74,7 @@ future connection provider 必须遵守以下策略：
 
 1. `database role policy readiness` 已由 `workflow-saved-draft-database-role-policy-readiness-v1` 固定，状态为 `draft_database_role_policy_readiness_defined`。
 2. `connection smoke strategy`：定义 explicit test database、placeholder credential handoff、smoke output shape、no leakage scan、role denial cases 和 zero production side effect 记录。
-3. `Radish OIDC upstream evidence refresh`：补 reviewed issuer、JWKS、client registration 和 membership data source ownership。
+3. `Radish OIDC upstream evidence refresh` 已固定为 `radish_oidc_token_membership_upstream_evidence_refresh_defined`；后续 auth runtime 仍需独立 entry review。
 4. `connection provider implementation entry refresh v2` 已固定为 `draft_database_connection_provider_implementation_entry_refresh_v2_defined`；driver / DSN / TLS 只满足静态 readiness，不打开 provider task card。
 
 ## 验证

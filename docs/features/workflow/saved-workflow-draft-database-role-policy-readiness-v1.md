@@ -75,7 +75,7 @@ future connection provider 必须遵守以下 role policy：
 本批后，connection provider implementation task card 仍不创建。后续若继续 durable store 上游，应从以下方向选择一个独立推进：
 
 1. `connection smoke strategy`：定义 explicit test database、placeholder credential handoff、smoke output shape、role denial cases、no leakage scan 和 zero production side effect 记录。
-2. `Radish OIDC upstream evidence refresh`：补 reviewed issuer、JWKS、client registration、auth middleware ownership 和 membership data source ownership。
+2. `Radish OIDC upstream evidence refresh` 已固定为 `radish_oidc_token_membership_upstream_evidence_refresh_defined`；后续 auth runtime 仍需独立 entry review。
 3. `connection provider implementation entry refresh v2` 已固定为 `draft_database_connection_provider_implementation_entry_refresh_v2_defined`；role policy 只满足静态 readiness，不打开 provider task card。
 
 ## 验证

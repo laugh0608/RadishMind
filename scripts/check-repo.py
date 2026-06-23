@@ -1333,6 +1333,7 @@ def check_fast_baseline() -> None:
     )
     run_python_script("checks/control_plane/check-radish-oidc-token-membership-readiness-v1.py", [])
     run_python_script("checks/control_plane/check-radish-oidc-token-membership-implementation-entry-review-v1.py", [])
+    run_python_script("checks/control_plane/check-radish-oidc-token-membership-upstream-evidence-refresh-v1.py", [])
     run_python_script(
         "checks/control_plane/check-workflow-saved-draft-repository-mode-enablement-v1.py",
         [],

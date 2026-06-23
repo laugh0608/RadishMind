@@ -6,7 +6,7 @@
 
 `Saved Workflow Draft Database Connection Provider Implementation Entry Refresh v2` 承接 [Saved Workflow Draft Database Connection Lifecycle Readiness v1](saved-workflow-draft-database-connection-lifecycle-readiness-v1.md)，用于在 driver / DSN / TLS、role policy、connection smoke strategy 和 connection lifecycle readiness 已补齐后，重新评审 future saved draft database connection provider 是否可以进入实现任务卡。
 
-结论：状态为 `draft_database_connection_provider_implementation_entry_refresh_v2_defined`。entry decision 仍为 `blocked_before_implementation_task_card`。本批只把 driver / DSN / TLS、role policy、connection smoke strategy 和 connection lifecycle 从“缺口”更新为“静态 readiness 已满足但无 runtime”，并继续固定 secret resolver、production resolver、credential handle、operator approval、audit store、backend health、no leakage smoke runtime、schema marker runtime、repository mode runtime 和 Radish OIDC upstream evidence 仍未满足；不创建 connection provider implementation task card、database connection provider、secret resolver、DB driver、DSN parser、connection factory、pool runtime、health check runtime、role policy runtime、connection smoke runner、query executor、schema marker、SQL migration、migration runner、repository mode runtime、OIDC middleware、membership adapter 或 production API。
+结论：状态为 `draft_database_connection_provider_implementation_entry_refresh_v2_defined`。entry decision 仍为 `blocked_before_implementation_task_card`。本批只把 driver / DSN / TLS、role policy、connection smoke strategy 和 connection lifecycle 从“缺口”更新为“静态 readiness 已满足但无 runtime”，并继续固定 secret resolver、production resolver、credential handle、operator approval、audit store、backend health、no leakage smoke runtime、schema marker runtime 和 repository mode runtime 仍未满足；后续 `radish_oidc_token_membership_upstream_evidence_refresh_defined` 只补 OIDC 上游静态证据形状，仍不打开 auth runtime。不创建 connection provider implementation task card、database connection provider、secret resolver、DB driver、DSN parser、connection factory、pool runtime、health check runtime、role policy runtime、connection smoke runner、query executor、schema marker、SQL migration、migration runner、repository mode runtime、OIDC middleware、membership adapter 或 production API。
 
 ## 输入证据
 
@@ -17,7 +17,7 @@
 - `workflow-saved-draft-database-connection-lifecycle-readiness-v1` 已固定 timeout budget、pool policy、health check boundary、close responsibility、request / audit propagation 和 sanitized diagnostics runtime 前置，但不创建 lifecycle runtime。
 - `workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1`、production secret backend real resolver / credential handle / no leakage runtime entry review 仍保持 blocked。
 - `workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1`、`workflow-saved-draft-manual-migration-runner-implementation-entry-refresh-v1` 和 `workflow-saved-draft-repository-mode-runtime-boundary-review-v1` 仍确认 marker runtime、manual runner 和 repository mode runtime 未打开。
-- `radish-oidc-token-membership-implementation-entry-review-v1` 仍确认 OIDC middleware、token validator 和 membership adapter 未打开。
+- `radish-oidc-token-membership-implementation-entry-review-v1` 仍确认 OIDC middleware、token validator 和 membership adapter 未打开；`radish-oidc-token-membership-upstream-evidence-refresh-v1` 已补静态 upstream evidence contract，但不创建 runtime。
 
 ## Entry Refresh Decision
 
@@ -30,7 +30,7 @@
 | secret resolver handoff | `blocked` | production real resolver、credential handle runtime、operator approval、audit store、backend health 和 no leakage smoke runtime 仍未满足 |
 | schema marker runtime dependency | `blocked` | schema marker reader / writer、schema version table、manual runner 和 marker smoke 均未实现 |
 | repository mode runtime dependency | `blocked` | repository mode 仍 fail closed，不能通过 provider refresh 打开成功路径 |
-| auth upstream evidence | `blocked` | reviewed issuer、JWKS、client registration、auth middleware ownership、membership data source ownership 和 negative auth smoke matrix 仍缺失 |
+| auth upstream evidence | `static_contract_defined_no_runtime` | reviewed issuer、JWKS、client registration、auth middleware ownership、membership data source ownership 和 negative auth smoke matrix 已有静态契约；token validation schema、auth middleware、membership adapter 和 runtime smoke 仍未创建 |
 | repository query executor handoff | `blocked` | provider、schema marker、auth / membership 和 repository mode runtime 均未满足 |
 | connection provider implementation task card | `blocked_before_implementation_task_card` | 只完成静态策略补齐，不能创建 provider 实现任务卡 |
 
@@ -78,9 +78,9 @@ entry refresh v2 继续固定 fail-closed 语义：
 
 本次 refresh 后，connection provider implementation task card 仍不创建。后续若继续 durable store 上游，应从以下方向选择一个独立推进：
 
-1. `Radish OIDC upstream evidence refresh`：补 reviewed issuer、JWKS、client registration、auth middleware ownership、membership data source ownership 和 negative auth smoke matrix。
-2. `schema marker runtime dependency refresh`：复评 marker reader / writer、manual runner、connection lifecycle 和 repository mode dependency，但不创建 marker runtime 或 SQL。
-3. `secret resolver runtime dependency refresh`：复评 production resolver、credential handle、approval、audit、backend health 和 no leakage runtime 是否足以打开 resolver task card。
+1. `schema marker runtime dependency refresh`：复评 marker reader / writer、manual runner、connection lifecycle 和 repository mode dependency，但不创建 marker runtime 或 SQL。
+2. `secret resolver runtime dependency refresh`：复评 production resolver、credential handle、approval、audit、backend health 和 no leakage runtime 是否足以打开 resolver task card。
+3. `token validation schema / auth middleware runtime entry review`：若继续 auth 路线，应先复验 upstream evidence contract，再评审 token schema、middleware、membership adapter 和 runtime smoke 是否可以拆任务卡。
 
 如果上述依赖仍 blocked，connection provider implementation task card、manual migration runner implementation task card、schema marker contract implementation task card 和 repository mode runtime implementation task card 继续保持不创建。
 

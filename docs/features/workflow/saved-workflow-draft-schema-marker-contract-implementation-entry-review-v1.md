@@ -71,7 +71,7 @@ implementation entry review 继续固定 fail-closed 语义：
 
 1. `manual migration runner implementation entry refresh`：复评 migration artifact、dry-run、apply result、idempotency、lock 和 rollback evidence 是否足以进入任务卡。
 2. `database connection provider implementation entry refresh`：复评 secret resolver、driver / DSN / TLS policy、role policy 和 connection smoke。
-3. `Radish OIDC token / membership upstream evidence refresh`：等待 reviewed issuer、JWKS、client registration 和 membership data source ownership 后再复评。
+3. `Radish OIDC token / membership upstream evidence refresh` 已固定为 `radish_oidc_token_membership_upstream_evidence_refresh_defined`；后续 auth runtime 仍需独立 entry review。
 
 如果上述依赖仍 blocked，schema marker contract implementation task card 和 repository mode runtime implementation task card 继续保持不创建。
 

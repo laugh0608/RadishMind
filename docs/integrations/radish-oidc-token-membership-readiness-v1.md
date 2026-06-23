@@ -71,6 +71,7 @@ membership 缺失、tenant mismatch、workspace denied、application denied、ow
 ## 验收方式
 
 - 新增 `radish-oidc-token-membership-readiness-v1` fixture / checker，固定 token validation contract、membership contract、consumer matrix、failure mapping、no fallback、no side effects 和 artifact guard。
+- 后续 [Radish OIDC Token / Membership Upstream Evidence Refresh v1](radish-oidc-token-membership-upstream-evidence-refresh-v1.md) 已固定 `radish_oidc_token_membership_upstream_evidence_refresh_defined`，但仍不创建 token validator、auth middleware、membership adapter 或 runtime smoke。
 - checker 接入 `./scripts/check-repo.sh --fast`。
 - 本批至少运行专项 checker、implementation entry review checker、upstream auth readiness checker、saved draft production auth runtime checker 和 `./scripts/check-repo.sh --fast`。
 

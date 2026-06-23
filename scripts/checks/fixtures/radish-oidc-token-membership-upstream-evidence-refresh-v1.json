@@ -1,0 +1,419 @@
+{
+  "schema_version": 1,
+  "kind": "radish_oidc_token_membership_upstream_evidence_refresh_v1",
+  "slice": {
+    "id": "radish-oidc-token-membership-upstream-evidence-refresh-v1",
+    "track": "Integrations / Radish OIDC",
+    "status": "radish_oidc_token_membership_upstream_evidence_refresh_defined",
+    "task_card": "docs/task-cards/radish-oidc-token-membership-upstream-evidence-refresh-v1-plan.md",
+    "integration_topic": "docs/integrations/radish-oidc-token-membership-upstream-evidence-refresh-v1.md",
+    "entry_decision": "blocked_before_runtime_task_card",
+    "does_not_claim": [
+      "radish_oidc_ready",
+      "oidc_client_implemented",
+      "issuer_discovery_fetched",
+      "jwks_fetched",
+      "jwks_cache_created",
+      "client_registration_loaded_into_runtime",
+      "token_validation_schema_created",
+      "token_validator_created",
+      "auth_middleware_ready",
+      "auth_middleware_created",
+      "login_flow_ready",
+      "logout_flow_ready",
+      "session_cookie_ready",
+      "membership_adapter_ready",
+      "membership_adapter_created",
+      "membership_cache_created",
+      "negative_auth_smoke_created",
+      "production_api_consumer_ready",
+      "production_api_consumer_created",
+      "repository_mode_ready",
+      "database_connection_ready",
+      "database_query_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    {
+      "id": "radish-oidc-token-membership-readiness-v1",
+      "status": "radish_oidc_token_membership_readiness_defined",
+      "evidence": "scripts/checks/fixtures/radish-oidc-token-membership-readiness-v1.json"
+    },
+    {
+      "id": "radish-oidc-token-membership-implementation-entry-review-v1",
+      "status": "radish_oidc_token_membership_implementation_entry_review_defined",
+      "evidence": "scripts/checks/fixtures/radish-oidc-token-membership-implementation-entry-review-v1.json"
+    },
+    {
+      "id": "radish-oidc-client-preconditions",
+      "status": "governance_boundary_satisfied",
+      "evidence": "scripts/checks/fixtures/radish-oidc-client-preconditions.json"
+    },
+    {
+      "id": "control-plane-read-production-auth-readiness-v1",
+      "status": "production_auth_readiness_defined",
+      "evidence": "scripts/checks/fixtures/control-plane-read-production-auth-readiness-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-production-auth-readiness-v1",
+      "status": "draft_production_auth_readiness_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-production-auth-readiness-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-production-auth-runtime-v1",
+      "status": "draft_production_auth_runtime_bridge_implemented",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-production-auth-runtime-v1.json"
+    }
+  ],
+  "upstream_evidence_refresh": {
+    "status": "static_upstream_evidence_contract_defined_no_runtime",
+    "entry_decision": "blocked_before_runtime_task_card",
+    "runtime_task_card_created_in_this_slice": false,
+    "issuer_network_call_allowed_in_this_slice": false,
+    "jwks_fetch_allowed_in_this_slice": false,
+    "token_validation_allowed_in_this_slice": false,
+    "auth_middleware_created_in_this_slice": false,
+    "membership_adapter_created_in_this_slice": false,
+    "membership_cache_created_in_this_slice": false,
+    "negative_auth_smoke_created_in_this_slice": false,
+    "production_api_consumer_created_in_this_slice": false,
+    "repository_mode_enabled_in_this_slice": false
+  },
+  "evidence_contract_matrix": [
+    {
+      "evidence_id": "reviewed_issuer_evidence",
+      "status": "static_evidence_contract_defined_no_network",
+      "runtime_artifact_allowed_now": false,
+      "required_fields": [
+        "issuer_url",
+        "discovery_document_url",
+        "jwks_uri",
+        "supported_signing_algorithms",
+        "supported_scopes",
+        "environment",
+        "fetched_at",
+        "expires_at",
+        "operator_review_ref",
+        "sanitized_evidence_ref",
+        "policy_version"
+      ],
+      "must_not_include": [
+        "raw_token",
+        "authorization_header",
+        "cookie",
+        "client_secret",
+        "jwks_raw_dump",
+        "raw_claim_dump"
+      ]
+    },
+    {
+      "evidence_id": "jwks_pin_refresh_policy",
+      "status": "static_policy_defined_no_jwks_fetch",
+      "runtime_artifact_allowed_now": false,
+      "required_fields": [
+        "jwks_uri_ref",
+        "pin_set_ref",
+        "refresh_interval_policy",
+        "cache_expiry_policy",
+        "rotation_failure_policy",
+        "key_id_allowlist_ref",
+        "operator_review_ref"
+      ],
+      "must_not_include": [
+        "jwks_raw_dump",
+        "private_key_material",
+        "provider_secret"
+      ]
+    },
+    {
+      "evidence_id": "client_registration_evidence",
+      "status": "static_contract_defined_no_client_runtime",
+      "runtime_artifact_allowed_now": false,
+      "required_fields": [
+        "client_id_ref",
+        "allowed_audiences",
+        "allowed_scopes",
+        "redirect_policy_ref",
+        "environment",
+        "operator_review_ref",
+        "secret_ref_status"
+      ],
+      "must_not_include": [
+        "client_secret",
+        "client_secret_value",
+        "refresh_token",
+        "authorization_code"
+      ]
+    },
+    {
+      "evidence_id": "auth_middleware_ownership",
+      "status": "static_owner_defined_no_middleware",
+      "runtime_artifact_allowed_now": false,
+      "required_fields": [
+        "route_owner_ref",
+        "dev_fake_auth_isolation_policy",
+        "public_fake_auth_forbidden",
+        "failure_envelope_owner_ref",
+        "audit_ref"
+      ],
+      "must_not_include": [
+        "middleware_source_created",
+        "public_fake_auth_route",
+        "raw_claim_dump"
+      ]
+    },
+    {
+      "evidence_id": "membership_source_ownership",
+      "status": "static_owner_defined_no_adapter",
+      "runtime_artifact_allowed_now": false,
+      "required_fields": [
+        "source_owner_ref",
+        "tenant_binding_owner_ref",
+        "workspace_membership_owner_ref",
+        "application_scope_owner_ref",
+        "owner_scope_owner_ref",
+        "cache_policy_ref",
+        "audit_ref"
+      ],
+      "must_not_include": [
+        "membership_raw_record",
+        "database_detail",
+        "full_user_claim"
+      ]
+    },
+    {
+      "evidence_id": "membership_cache_policy",
+      "status": "static_policy_defined_no_cache_runtime",
+      "runtime_artifact_allowed_now": false,
+      "required_fields": [
+        "cache_scope",
+        "cache_key_inputs",
+        "expiry_policy",
+        "revocation_policy",
+        "stale_result_failure_policy",
+        "audit_ref"
+      ],
+      "must_not_include": [
+        "cache_entry_payload",
+        "membership_raw_record",
+        "full_user_claim"
+      ]
+    },
+    {
+      "evidence_id": "negative_auth_smoke_matrix",
+      "status": "static_matrix_defined_no_runtime_smoke",
+      "runtime_artifact_allowed_now": false,
+      "required_fields": [
+        "case_id",
+        "failure_boundary",
+        "expected_failure_code",
+        "sanitized_diagnostic",
+        "audit_ref"
+      ],
+      "must_not_include": [
+        "raw_token",
+        "authorization_header",
+        "cookie",
+        "client_secret",
+        "raw_claim_dump",
+        "membership_raw_record"
+      ]
+    }
+  ],
+  "negative_auth_smoke_cases": [
+    {
+      "case_id": "missing_authorization_header",
+      "failure_boundary": "request_auth_boundary"
+    },
+    {
+      "case_id": "malformed_bearer_header",
+      "failure_boundary": "request_auth_boundary"
+    },
+    {
+      "case_id": "unknown_issuer",
+      "failure_boundary": "issuer_boundary"
+    },
+    {
+      "case_id": "jwks_unavailable",
+      "failure_boundary": "jwks_boundary"
+    },
+    {
+      "case_id": "invalid_signature",
+      "failure_boundary": "token_signature_boundary"
+    },
+    {
+      "case_id": "expired_token",
+      "failure_boundary": "token_time_boundary"
+    },
+    {
+      "case_id": "missing_required_claim",
+      "failure_boundary": "token_claim_boundary"
+    },
+    {
+      "case_id": "tenant_binding_denied",
+      "failure_boundary": "tenant_binding_boundary"
+    },
+    {
+      "case_id": "workspace_membership_denied",
+      "failure_boundary": "workspace_membership_boundary"
+    },
+    {
+      "case_id": "application_scope_denied",
+      "failure_boundary": "application_scope_boundary"
+    },
+    {
+      "case_id": "owner_scope_denied",
+      "failure_boundary": "owner_scope_boundary"
+    },
+    {
+      "case_id": "scope_grant_missing",
+      "failure_boundary": "scope_grant_boundary"
+    },
+    {
+      "case_id": "membership_source_unavailable",
+      "failure_boundary": "membership_source_boundary"
+    }
+  ],
+  "remaining_runtime_blockers": [
+    "token_validation_schema_missing",
+    "auth_middleware_not_created",
+    "membership_adapter_not_created",
+    "negative_auth_smoke_runtime_missing",
+    "repository_mode_disabled",
+    "production_api_consumer_gate_blocked"
+  ],
+  "failure_mapping": [
+    {
+      "code": "radish_oidc_upstream_evidence_missing",
+      "failure_boundary": "issuer_evidence",
+      "sanitized_diagnostic": "reviewed issuer evidence reference is missing"
+    },
+    {
+      "code": "radish_oidc_jwks_policy_missing",
+      "failure_boundary": "jwks_policy",
+      "sanitized_diagnostic": "JWKS pin and refresh policy reference is missing"
+    },
+    {
+      "code": "radish_oidc_client_registration_missing",
+      "failure_boundary": "client_registration",
+      "sanitized_diagnostic": "client registration evidence reference is missing"
+    },
+    {
+      "code": "radish_oidc_membership_source_missing",
+      "failure_boundary": "membership_source",
+      "sanitized_diagnostic": "membership source ownership reference is missing"
+    },
+    {
+      "code": "radish_oidc_negative_auth_smoke_matrix_missing",
+      "failure_boundary": "negative_auth_smoke",
+      "sanitized_diagnostic": "negative auth smoke matrix reference is missing"
+    },
+    {
+      "code": "radish_oidc_runtime_artifact_forbidden",
+      "failure_boundary": "artifact_guard",
+      "sanitized_diagnostic": "runtime artifact is forbidden in upstream evidence refresh"
+    }
+  ],
+  "diagnostic_policy": {
+    "allowed_fields": [
+      "entry_decision",
+      "evidence_id",
+      "case_id",
+      "failure_code",
+      "failure_boundary",
+      "sanitized_diagnostic",
+      "request_id",
+      "audit_ref",
+      "policy_version"
+    ],
+    "forbidden_fields": [
+      "raw_token",
+      "authorization_header",
+      "cookie",
+      "client_secret",
+      "jwks_raw_dump",
+      "raw_claim_dump",
+      "database_detail",
+      "membership_raw_record",
+      "full_user_claim"
+    ]
+  },
+  "planned_artifacts": [
+    {
+      "path": "contracts/radish-oidc-token-validation.schema.json",
+      "purpose": "Future token validation schema; not created by this evidence refresh.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/radish_oidc_auth_middleware.go",
+      "purpose": "Future platform auth middleware; not created by this evidence refresh.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/radish_oidc_token_validation.go",
+      "purpose": "Future token validator; not created by this evidence refresh.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/radish_membership_adapter.go",
+      "purpose": "Future membership adapter; not created by this evidence refresh.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/checks/fixtures/radish-oidc-token-membership-runtime-v1.json",
+      "purpose": "Future runtime smoke fixture; not created by this evidence refresh.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/checks/control_plane/check-radish-oidc-token-membership-runtime-v1.py",
+      "purpose": "Future runtime smoke checker; not created by this evidence refresh.",
+      "created_in_this_slice": false
+    }
+  ],
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "issuer_network_call_count=0",
+      "jwks_fetch_count=0",
+      "token_validation_call_count=0",
+      "membership_query_count=0",
+      "membership_cache_create_count=0",
+      "database_write_count=0",
+      "repository_write_count=0",
+      "production_api_call_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ]
+  },
+  "testing_strategy": {
+    "status": "upstream_evidence_refresh_checker_only_no_runtime",
+    "required_checks": [
+      "radish_oidc_token_membership_upstream_evidence_refresh_checker",
+      "radish_oidc_token_membership_implementation_entry_review_checker",
+      "radish_oidc_token_membership_readiness_checker",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_call_oidc": true,
+    "does_not_fetch_issuer_discovery": true,
+    "does_not_fetch_jwks": true,
+    "does_not_validate_token": true,
+    "does_not_query_membership": true,
+    "does_not_create_membership_cache": true,
+    "does_not_create_auth_middleware": true,
+    "does_not_create_membership_adapter": true,
+    "does_not_create_production_api": true
+  },
+  "next_candidates": [
+    "token_validation_schema_implementation_entry_review",
+    "auth_middleware_membership_adapter_runtime_entry_review",
+    "schema_marker_runtime_dependency_refresh",
+    "secret_resolver_runtime_dependency_refresh"
+  ]
+}

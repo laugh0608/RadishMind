@@ -147,6 +147,7 @@
 | [平台专题入口](../platform/README.md) | 平台专题目录 | 承接 auth、store、repository、provider、deployment 等跨产品面能力 |
 | [扩展 / 集成专题入口](../integrations/README.md) | 扩展专题目录 | 承接外部项目、外部 backend 和真实接入前置条件 |
 | [Radish OIDC Token / Membership Readiness v1](../integrations/radish-oidc-token-membership-readiness-v1.md) | 扩展 / 平台前置专题 | 固定跨 Control Plane Read、Saved Workflow Draft、Admin 和 Gateway 的 token validation / membership readiness，状态为 `radish_oidc_token_membership_readiness_defined` |
+| [Radish OIDC Token / Membership Upstream Evidence Refresh v1](../integrations/radish-oidc-token-membership-upstream-evidence-refresh-v1.md) | 扩展 / 平台前置专题 | 固定 reviewed issuer evidence、JWKS pin / refresh policy、client registration evidence、auth middleware ownership、membership data source ownership、membership cache policy 和 negative auth smoke matrix，状态为 `radish_oidc_token_membership_upstream_evidence_refresh_defined` |
 
 ## 使用方式
 

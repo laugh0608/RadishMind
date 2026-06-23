@@ -1,6 +1,6 @@
 # Radish OIDC Token / Membership Implementation Entry Review v1
 
-更新时间：2026-06-22
+更新时间：2026-06-23
 
 ## 专题定位
 
@@ -15,7 +15,7 @@
 - `radish_oidc_token_membership_readiness_defined` 已固定 token validation contract、membership contract、consumer matrix、failure mapping、no fallback 和 no side effects。
 - `radish-oidc-client-preconditions` 仍只是 governance boundary，不包含已 review 的 issuer discovery artifact、client registration artifact 或 JWKS pin。
 - control plane read 与 saved draft 的 production auth readiness / runtime bridge 仍只消费已验证上下文，不校验 token、不查询 membership。
-- 当前没有 production API consumer gate、negative auth smoke fixture、auth middleware ownership 或 membership data source ownership。
+- [Radish OIDC Token / Membership Upstream Evidence Refresh v1](radish-oidc-token-membership-upstream-evidence-refresh-v1.md) 已固定 `radish_oidc_token_membership_upstream_evidence_refresh_defined`，把 reviewed issuer evidence、JWKS pin / refresh policy、client registration evidence、auth middleware ownership、membership source ownership、membership cache policy 和 negative auth smoke matrix 拆成静态契约；仍不创建 runtime artifact。
 
 ## Entry Decision
 
@@ -41,9 +41,9 @@
 
 ## 后续要求
 
-future implementation task card 至少要先补齐：
+future implementation task card 至少要先消费并复验：
 
-- reviewed issuer discovery evidence 与 JWKS pin policy。
+- reviewed issuer discovery evidence、JWKS pin / refresh policy 与 client registration evidence。
 - token validation schema 与 failure envelope。
 - auth middleware route ownership、dev fake auth isolation 和 no public fake auth rule。
 - membership adapter ownership、data source、cache / expiry、tenant / workspace / application / owner checks。
