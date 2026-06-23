@@ -76,7 +76,7 @@ future connection smoke 必须遵守以下边界：
 
 1. `Radish OIDC upstream evidence refresh`：补 reviewed issuer、JWKS、client registration、auth middleware ownership、membership data source ownership 和 negative auth smoke matrix。
 2. `connection lifecycle readiness` 已由 `workflow-saved-draft-database-connection-lifecycle-readiness-v1` 固定，状态为 `draft_database_connection_lifecycle_readiness_defined`。
-3. `connection provider implementation entry refresh v2`：只有 driver / DSN / TLS、role policy、connection smoke strategy、connection lifecycle、secret resolver、schema marker、repository mode runtime 和 auth upstream evidence 均可复验后再复评。
+3. `connection provider implementation entry refresh v2` 已固定为 `draft_database_connection_provider_implementation_entry_refresh_v2_defined`；connection smoke 只满足静态 strategy，不打开 provider task card。
 
 ## 验证
 

@@ -76,7 +76,7 @@ entry refresh 继续固定 fail-closed 语义：
 
 1. `Radish OIDC token / membership upstream evidence refresh`：等待 reviewed issuer、JWKS、client registration 和 membership data source ownership 后再复评。
 2. `database driver / DSN / TLS policy readiness` 与 `database role policy readiness` 已分别固定为 `draft_database_driver_dsn_tls_policy_readiness_defined` 和 `draft_database_role_policy_readiness_defined`。
-3. `connection smoke strategy` 与 `connection lifecycle readiness` 已分别固定为 `draft_database_connection_smoke_strategy_defined` 和 `draft_database_connection_lifecycle_readiness_defined`。
+3. `connection smoke strategy`、`connection lifecycle readiness` 与 `connection provider implementation entry refresh v2` 已分别固定为 `draft_database_connection_smoke_strategy_defined`、`draft_database_connection_lifecycle_readiness_defined` 和 `draft_database_connection_provider_implementation_entry_refresh_v2_defined`。
 4. `production API consumer readiness`：只有 repository mode、auth、database、connection lifecycle 和 smoke 都可复验后才重新评审。
 
 如果上述依赖仍 blocked，connection provider implementation task card、manual migration runner implementation task card、schema marker contract implementation task card 和 repository mode runtime implementation task card 继续保持不创建。

@@ -155,8 +155,9 @@
 104. [`Workflow Saved Draft Database Role Policy Readiness` v1 任务卡](workflow-saved-draft-database-role-policy-readiness-v1-plan.md)（`workflow-saved-draft-database-role-policy-readiness-v1`）
 105. [`Workflow Saved Draft Database Connection Smoke Strategy` v1 任务卡](workflow-saved-draft-database-connection-smoke-strategy-v1-plan.md)（`workflow-saved-draft-database-connection-smoke-strategy-v1`）
 106. [`Workflow Saved Draft Database Connection Lifecycle Readiness` v1 任务卡](workflow-saved-draft-database-connection-lifecycle-readiness-v1-plan.md)（`workflow-saved-draft-database-connection-lifecycle-readiness-v1`）
-107. [`Radish OIDC Token / Membership Readiness` v1 任务卡](radish-oidc-token-membership-readiness-v1-plan.md)（`radish-oidc-token-membership-readiness-v1`）
-108. [`Radish OIDC Token / Membership Implementation Entry Review` v1 任务卡](radish-oidc-token-membership-implementation-entry-review-v1-plan.md)（`radish-oidc-token-membership-implementation-entry-review-v1`）
+107. [`Workflow Saved Draft Database Connection Provider Implementation Entry Refresh v2` 任务卡](workflow-saved-draft-database-connection-provider-implementation-entry-refresh-v2-plan.md)（`workflow-saved-draft-database-connection-provider-implementation-entry-refresh-v2`）
+108. [`Radish OIDC Token / Membership Readiness` v1 任务卡](radish-oidc-token-membership-readiness-v1-plan.md)（`radish-oidc-token-membership-readiness-v1`）
+109. [`Radish OIDC Token / Membership Implementation Entry Review` v1 任务卡](radish-oidc-token-membership-implementation-entry-review-v1-plan.md)（`radish-oidc-token-membership-implementation-entry-review-v1`）
 
 ## UI 设计专题
 

@@ -76,7 +76,7 @@ future connection provider 必须遵守以下 role policy：
 
 1. `connection smoke strategy`：定义 explicit test database、placeholder credential handoff、smoke output shape、role denial cases、no leakage scan 和 zero production side effect 记录。
 2. `Radish OIDC upstream evidence refresh`：补 reviewed issuer、JWKS、client registration、auth middleware ownership 和 membership data source ownership。
-3. `connection provider implementation entry refresh v2`：只有 driver / DSN / TLS、role policy、connection smoke、secret resolver、schema marker 和 repository mode runtime 依赖均可复验后再复评。
+3. `connection provider implementation entry refresh v2` 已固定为 `draft_database_connection_provider_implementation_entry_refresh_v2_defined`；role policy 只满足静态 readiness，不打开 provider task card。
 
 ## 验证
 
