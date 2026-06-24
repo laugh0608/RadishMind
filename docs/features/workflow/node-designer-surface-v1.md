@@ -28,7 +28,8 @@
 10. 已实现：[Workflow Node Designer Persisted Layout v1](node-designer-persisted-layout-v1.md)，通过 `additional_fields.designer_layout_v1` 保存受控节点坐标，恢复时兼容旧草案和非法 layout metadata。
 11. 已定义：[Workflow Node Designer Edge Editing Save Preconditions v1](node-designer-edge-editing-save-preconditions-v1.md)，状态为 `workflow_node_designer_edge_editing_save_preconditions_v1_defined`，固定画布连线新增 / 删除进入 `draft.edges` 和 saved draft 保存链路前的字段、保存前置与 validation 消费。
 12. 已实现：[Workflow Node Designer Controlled Edge Mutation Implementation v1 任务卡](../../task-cards/workflow-node-designer-controlled-edge-mutation-implementation-v1-plan.md)，状态为 `workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented`，受控新增 / 删除 edge 只修改 active draft，并继续复用 saved draft edge mapping、validation inspector 和 Review Handoff。
-12. 后续独立目标：publish、run、executor、confirmation、writeback 和 replay。
+13. 已实现：[Workflow Node Designer Layout Review Findings v1 任务卡](../../task-cards/workflow-node-designer-layout-review-findings-v1-plan.md)，状态为 `workflow_node_designer_layout_review_findings_v1_implemented`，修正中宽布局、inspector connected edge 删除条目和 Draft edge 卡片长 id 可读性。
+14. 后续独立目标：publish、run、executor、confirmation、writeback 和 replay。
 
 它不替代 durable store 上游前置，也不解锁 repository mode。若下一批选择继续 durable store，上游 auth、membership、schema marker、secret resolver、connection provider 和 production resolver blocker 仍按既有专题推进。
 
@@ -139,6 +140,7 @@ Node Designer Surface 建议保持四区布局：
 6. [Workflow Node Designer Persisted Layout v1](node-designer-persisted-layout-v1.md)：已实现 `additional_fields.designer_layout_v1` 受控 schema、保存 / 恢复兼容、Go `AdditionalFields` 保留和 saved draft layout metadata checker。
 7. [Workflow Node Designer Edge Editing Save Preconditions v1](node-designer-edge-editing-save-preconditions-v1.md)：已固定后续画布连线新增 / 删除只写入 `draft.edges` 的 `edgeId`、`fromNodeId`、`toNodeId` 和 `conditionSummary`，并要求 validation inspector、local edit 状态和 saved draft mapping 保持一致。
 8. [Workflow Node Designer Controlled Edge Mutation Implementation v1 任务卡](../../task-cards/workflow-node-designer-controlled-edge-mutation-implementation-v1-plan.md)：已完成 `onConnect` 受控新增 edge、edge 删除入口、`local_edit` / `unsaved_local` 状态和专项 checker 更新，不保存 React Flow 原始 edge、handle id、port id、derived edge kind 或 runtime order。
+9. [Workflow Node Designer Layout Review Findings v1 任务卡](../../task-cards/workflow-node-designer-layout-review-findings-v1-plan.md)：已完成中宽响应式、inspector edge 删除条目和 Draft edge 卡片可读性修正，继续复用 active draft mutation、saved draft edge mapping 和 validation inspector。
 
 ## 验收方式
 

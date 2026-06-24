@@ -43,6 +43,13 @@ EXPECTED_PRECONDITIONS = {
     "local_edit_unsaved_state",
     "no_react_flow_raw_edge",
 }
+EXPECTED_LAYOUT_REVIEW_FACTS = {
+    "medium_width_designer_shell_breakpoint",
+    "inspector_connected_edge_structured_action",
+    "draft_edge_heading_structured_metadata",
+    "long_edge_identifier_wrap",
+    "narrow_width_full_row_remove_buttons",
+}
 EXPECTED_FORBIDDEN_PERSISTED_FIELDS = {
     "react_flow_edge",
     "handle_id",
@@ -89,17 +96,17 @@ def assert_forbidden_literals(text: str, literals: list[Any], label: str) -> Non
 def assert_fixture_shape(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
-        fixture.get("kind") == "workflow_node_designer_controlled_edge_mutation_implementation_v1",
+        fixture.get("kind") == "workflow_node_designer_layout_review_findings_v1",
         "unexpected kind",
     )
     slice_info = fixture.get("slice") or {}
     require(
-        slice_info.get("id") == "workflow-node-designer-controlled-edge-mutation-implementation-v1",
+        slice_info.get("id") == "workflow-node-designer-layout-review-findings-v1",
         "unexpected slice id",
     )
     require(slice_info.get("track") == "Workflow / Agent Runtime", "unexpected track")
     require(
-        slice_info.get("status") == "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented",
+        slice_info.get("status") == "workflow_node_designer_layout_review_findings_v1_implemented",
         "unexpected slice status",
     )
     missing_claims = sorted(EXPECTED_FORBIDDEN_CLAIMS - set(slice_info.get("does_not_claim") or []))
@@ -120,6 +127,8 @@ def assert_edge_save_contract(fixture: dict[str, Any]) -> None:
     require(not missing_preconditions, f"missing edge save preconditions: {missing_preconditions}")
     missing_forbidden = sorted(EXPECTED_FORBIDDEN_PERSISTED_FIELDS - set(contract.get("forbidden_persisted_fields") or []))
     require(not missing_forbidden, f"missing forbidden persisted edge fields: {missing_forbidden}")
+    missing_layout_facts = sorted(EXPECTED_LAYOUT_REVIEW_FACTS - set(contract.get("layout_review_facts") or []))
+    require(not missing_layout_facts, f"missing layout review facts: {missing_layout_facts}")
 
 
 def assert_frontend_contract(fixture: dict[str, Any]) -> None:
@@ -128,11 +137,13 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
     consumer_text = read(str(contract.get("consumer_file")))
     app_text = read(str(contract.get("app_file")))
     validation_text = read(str(contract.get("validation_file")))
+    style_text = read(str(contract.get("style_file")))
 
     assert_literals(node_designer_text, contract.get("required_node_designer_literals") or [], "workflowNodeDesigner.tsx")
     assert_literals(consumer_text, contract.get("required_consumer_literals") or [], "savedWorkflowDraftConsumer.ts")
     assert_literals(app_text, contract.get("required_app_literals") or [], "App.tsx")
     assert_literals(validation_text, contract.get("required_validation_literals") or [], "workflowDraftValidationInspector.ts")
+    assert_literals(style_text, contract.get("required_style_literals") or [], "styles.css")
     assert_forbidden_literals(
         node_designer_text,
         contract.get("forbidden_runtime_literals") or [],
@@ -178,6 +189,10 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
         < app_text.index("function workflowDraftEdgeId("),
         "draft edge helper order drifted",
     )
+    require(
+        style_text.index("@media (max-width: 1280px)") < style_text.index("@media (max-width: 820px)"),
+        "node designer medium width breakpoint must precede narrow width overrides",
+    )
 
 
 def assert_docs_and_fast_baseline(fixture: dict[str, Any]) -> None:
@@ -222,7 +237,7 @@ def main() -> None:
     assert_frontend_contract(fixture)
     assert_docs_and_fast_baseline(fixture)
     assert_testing_strategy(fixture)
-    print("workflow node designer controlled edge mutation implementation v1 checks passed.")
+    print("workflow node designer layout review findings v1 checks passed.")
 
 
 if __name__ == "__main__":

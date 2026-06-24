@@ -549,9 +549,14 @@ function WorkflowNodeDesignerInspector({
         ) : (
           edges.map((edge) => (
             <div key={edge.edgeId} className="workflow-node-designer-edge-action">
-              <strong>
-                {edge.fromNodeId} to {edge.toNodeId}
-              </strong>
+              <div className="workflow-node-designer-edge-action-main">
+                <strong>
+                  {edge.fromNodeId} to {edge.toNodeId}
+                </strong>
+                <small>
+                  {edge.edgeKind} / {edge.edgeId}
+                </small>
+              </div>
               <button type="button" disabled={editingDisabled} onClick={() => onRemoveEdge(edge.edgeId)}>
                 Remove edge
               </button>

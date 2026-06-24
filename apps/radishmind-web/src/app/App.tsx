@@ -3959,11 +3959,12 @@ function WorkflowDraftEdgeCard({
   return (
     <article className="workflow-draft-edge">
       <div className="workflow-draft-edge-heading">
-        <div>
+        <div className="workflow-draft-edge-heading-main">
           <span>{edge.edgeKind}</span>
           <strong>
             {edge.fromNodeId} to {edge.toNodeId}
           </strong>
+          <small>{edge.edgeId}</small>
         </div>
         <button type="button" disabled={editingDisabled} onClick={() => onRemoveEdge(edge.edgeId)}>
           Remove

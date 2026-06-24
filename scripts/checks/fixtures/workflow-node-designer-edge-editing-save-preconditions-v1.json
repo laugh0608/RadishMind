@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "kind": "workflow_node_designer_controlled_edge_mutation_implementation_v1",
+  "kind": "workflow_node_designer_layout_review_findings_v1",
   "slice": {
-    "id": "workflow-node-designer-controlled-edge-mutation-implementation-v1",
+    "id": "workflow-node-designer-layout-review-findings-v1",
     "track": "Workflow / Agent Runtime",
-    "status": "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented",
+    "status": "workflow_node_designer_layout_review_findings_v1_implemented",
     "does_not_claim": [
       "edge_mutation_backend_ready",
       "react_flow_raw_edge_persistence",
@@ -25,6 +25,7 @@
     ]
   },
   "depends_on": [
+    "workflow-node-designer-controlled-edge-mutation-implementation-v1",
     "workflow-node-designer-persisted-layout-v1",
     "workflow-node-designer-saved-draft-mapping-v1",
     "workflow-draft-designer-editing-model-v2"
@@ -69,6 +70,13 @@
       "confirmation_decision",
       "writeback_payload",
       "executor_result"
+    ],
+    "layout_review_facts": [
+      "medium_width_designer_shell_breakpoint",
+      "inspector_connected_edge_structured_action",
+      "draft_edge_heading_structured_metadata",
+      "long_edge_identifier_wrap",
+      "narrow_width_full_row_remove_buttons"
     ]
   },
   "frontend_contract": {
@@ -76,6 +84,7 @@
     "consumer_file": "apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts",
     "app_file": "apps/radishmind-web/src/app/App.tsx",
     "validation_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftValidationInspector.ts",
+    "style_file": "apps/radishmind-web/src/styles.css",
     "required_node_designer_literals": [
       "Connect typed ports to add controlled draft edges.",
       "onAddEdge:",
@@ -83,6 +92,8 @@
       "const added = onAddEdge(connection.source, connection.target)",
       "Added draft edge:",
       "Removed draft edge:",
+      "workflow-node-designer-edge-action-main",
+      "{edge.edgeKind} / {edge.edgeId}",
       "validateWorkflowNodeDesignerConnection(",
       "connection.source === connection.target",
       "draft.edges.some((edge) => edge.fromNodeId === source.nodeId && edge.toNodeId === target.nodeId)"
@@ -107,6 +118,8 @@
       "workflowDraftEdgeKindForConnection(",
       "workflowDraftEdgeConditionSummary(",
       "rebuildWorkflowDraftEdges(",
+      "workflow-draft-edge-heading-main",
+      "<small>{edge.edgeId}</small>",
       "status: \"unsaved_local\"",
       "localOnlyInteraction: \"local_edit\""
     ],
@@ -114,6 +127,17 @@
       "output_audit_path",
       "orphan_node_scan",
       "edges.some((edge) => edge.edgeKind === \"audit\")"
+    ],
+    "required_style_literals": [
+      ".workflow-node-designer-edge-action-main",
+      ".workflow-draft-edge-heading-main",
+      "@media (max-width: 1280px)",
+      ".workflow-node-designer-inspector > button",
+      ".workflow-node-designer-edge-action button",
+      ".workflow-draft-edge-heading button",
+      "grid-template-columns: minmax(0, 2fr) minmax(320px, 0.85fr);",
+      "grid-template-columns: repeat(2, minmax(0, 1fr));",
+      "min-height: 420px;"
     ],
     "forbidden_runtime_literals": [
       "ReactFlowEdge",
@@ -148,22 +172,35 @@
       "onRemoveEdge",
       "draft.edges"
     ],
+    "docs/task-cards/workflow-node-designer-layout-review-findings-v1-plan.md": [
+      "workflow_node_designer_layout_review_findings_v1_implemented",
+      "Workflow Node Designer Layout Review Findings v1",
+      "中宽布局",
+      "connected edge 删除入口",
+      "Draft edge 卡片"
+    ],
     "docs/features/workflow/README.md": [
       "Workflow Node Designer Edge Editing Save Preconditions v1",
       "workflow_node_designer_edge_editing_save_preconditions_v1_defined",
       "Workflow Node Designer Controlled Edge Mutation Implementation v1",
-      "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented"
+      "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented",
+      "Workflow Node Designer Layout Review Findings v1",
+      "workflow_node_designer_layout_review_findings_v1_implemented"
     ],
     "docs/features/README.md": [
-      "Workflow Node Designer Edge Editing Save Preconditions v1"
+      "Workflow Node Designer Edge Editing Save Preconditions v1",
+      "Workflow Node Designer Layout Review Findings v1"
     ],
     "docs/features/workflow-agent-runtime.md": [
       "Workflow Node Designer Edge Editing Save Preconditions v1",
-      "conditionSummary"
+      "conditionSummary",
+      "Workflow Node Designer Layout Review Findings v1"
     ],
     "docs/features/workflow/node-designer-surface-v1.md": [
       "Workflow Node Designer Edge Editing Save Preconditions v1",
-      "workflow_node_designer_edge_editing_save_preconditions_v1_defined"
+      "workflow_node_designer_edge_editing_save_preconditions_v1_defined",
+      "Workflow Node Designer Layout Review Findings v1",
+      "workflow_node_designer_layout_review_findings_v1_implemented"
     ],
     "docs/features/workflow/node-designer-persisted-layout-v1.md": [
       "Workflow Node Designer Edge Editing Save Preconditions v1",
@@ -171,17 +208,22 @@
     ],
     "docs/radishmind-current-focus.md": [
       "Workflow Node Designer Edge Editing Save Preconditions v1",
-      "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented"
+      "Workflow Node Designer Layout Review Findings v1",
+      "workflow_node_designer_layout_review_findings_v1_implemented"
     ],
     "docs/devlogs/2026-W26.md": [
       "workflow-node-designer-controlled-edge-mutation-implementation-v1",
-      "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented"
+      "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented",
+      "workflow-node-designer-layout-review-findings-v1",
+      "workflow_node_designer_layout_review_findings_v1_implemented"
     ],
     "docs/task-cards/README.md": [
-      "Workflow Node Designer Edge Editing Save Preconditions"
+      "Workflow Node Designer Edge Editing Save Preconditions",
+      "Workflow Node Designer Layout Review Findings"
     ],
     "scripts/README.md": [
-      "workflow-node-designer-edge-editing-save-preconditions-v1"
+      "workflow-node-designer-edge-editing-save-preconditions-v1",
+      "layout review findings"
     ]
   },
   "testing_strategy": [
