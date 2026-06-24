@@ -230,6 +230,7 @@ export function buildWorkflowWorkspaceContextViewModel(
     workflowScenarioInspector,
   });
   const workflowReviewHandoff = buildWorkflowReviewHandoffViewModel({
+    activeWorkflowDraft,
     workflowUserWorkspaceHome,
     workflowWorkspaceReview,
     workflowSurfaceOverview,

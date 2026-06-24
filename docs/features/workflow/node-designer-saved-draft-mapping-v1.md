@@ -18,6 +18,7 @@
 - saved draft persisted edge 当前不保存 React Flow edge kind；restore 后 local draft edge kind 使用 `context`，画布 edge kind 再由 source / target / policy / audit 关系派生。
 - HTTP payload 已有 `additional_fields` 扩展口，但当前只做 forbidden field scan，没有 layout 专属 contract、fixture 或 checker。
 - `Workflow Node Designer Saved Draft Mapping Implementation v1` 已实现 UI-only layout：拖拽节点会回写 active draft session，Save Draft 前展示 mapping summary，但不写 `additional_fields.designer_layout_v1`。
+- `Workflow Node Designer Review Handoff v1` 已实现 Review Handoff 消费：`nodeDesignerReviewRecord` 汇总 layout、validation overlay、inspector state 和 saved draft mapping，不创建 persisted schema。
 
 ## 映射结论
 
@@ -40,6 +41,7 @@ v1 保持 active draft 为业务真相源，React Flow state 只能作为 UI vie
 - 让保存前的 graph adapter 输出稳定、可审查的 mapping summary，明确哪些字段会进入 saved draft，哪些字段只属于画布视图。
 - 在 saved draft restore 后继续按 lane / node order 生成默认布局。
 - 在 Node Designer mapping summary 中展示 layout metadata 未持久化的说明，避免 reviewer 把视觉位置理解为运行顺序。
+- 在 Review Handoff 中展示 node designer review handoff，避免 reviewer 把 validation overlay、inspector state 或 derived edge kind 理解为 persisted runtime state。
 
 如需跨会话持久化 layout，可另开 task card 并只允许以下 schema 候选：
 
@@ -83,7 +85,7 @@ v1 保持 active draft 为业务真相源，React Flow state 只能作为 UI vie
 本专题定义与 UI-only 实现阶段：
 
 - 文档入口收录本专题。
-- 当前焦点说明 Builder 体验下一步进入 Review Handoff 消费增强或 persisted layout schema 评审，而不是 executor。
+- 当前焦点说明 Builder 体验下一步进入 persisted layout schema 评审或 durable store 上游前置，而不是 executor。
 - UI-only layout implementation 已落地；不新增 schema、route、fixture、checker 或 runtime artifact。
 - `./scripts/check-repo.sh --fast` 通过。
 
