@@ -24,6 +24,11 @@ import type {
   WorkflowDraftDesignerEdge,
   WorkflowDraftDesignerNode,
 } from "./workflowDraftDesigner";
+import type {
+  WorkflowDraftValidationInspectorViewModel,
+  WorkflowDraftValidationSeverity,
+  WorkflowDraftValidationStatus,
+} from "./workflowDraftValidationInspector";
 
 type WorkflowNodeDesignerEdgeKind = "data_edge" | "control_edge" | "guard_edge" | "audit_edge";
 
@@ -42,11 +47,15 @@ type WorkflowNodeDesignerNodeData = {
   requiresConfirmation: boolean;
   previewOnlyReason: string;
   protectedNode: boolean;
+  validationFocus?: "none" | "focused";
+  validationSeverity?: WorkflowDraftValidationSeverity;
 };
 
 type WorkflowNodeDesignerEdgeData = {
   edgeKind: WorkflowNodeDesignerEdgeKind;
   conditionSummary: string;
+  validationFocus?: "none" | "focused";
+  validationSeverity?: WorkflowDraftValidationSeverity;
 };
 
 type WorkflowNodeDesignerFeedback = {
@@ -54,11 +63,31 @@ type WorkflowNodeDesignerFeedback = {
   message: string;
 };
 
+type WorkflowNodeDesignerValidationFocus = {
+  checkId: string;
+  label: string;
+  severity: WorkflowDraftValidationSeverity;
+  nodeIds: string[];
+  edgeIds: string[];
+};
+
+type WorkflowNodeDesignerValidationNavItem = {
+  checkId: string;
+  label: string;
+  status: WorkflowDraftValidationStatus;
+  severity: WorkflowDraftValidationSeverity;
+  summary: string;
+  targetNodeIds: string[];
+  targetEdgeIds: string[];
+  targetSummary: string;
+};
+
 type WorkflowNodeDesignerNode = Node<WorkflowNodeDesignerNodeData, "workflowDraftNode">;
 type WorkflowNodeDesignerEdge = Edge<WorkflowNodeDesignerEdgeData, "workflowDraftEdge">;
 
 type WorkflowNodeDesignerProps = {
   draft: WorkflowDraftDesignerDraft;
+  validationInspector: WorkflowDraftValidationInspectorViewModel;
   editingDisabled: boolean;
   canRemoveNode: (nodeId: string) => boolean;
   onUpdateNodeLabel: (nodeId: string, label: string) => void;
@@ -99,6 +128,7 @@ const edgeTypes = {
 
 export function WorkflowNodeDesigner({
   draft,
+  validationInspector,
   editingDisabled,
   canRemoveNode,
   onUpdateNodeLabel,
@@ -115,8 +145,13 @@ export function WorkflowNodeDesigner({
 }: WorkflowNodeDesignerProps) {
   const initialNodes = useMemo(() => buildWorkflowNodeDesignerNodes(draft, canRemoveNode), [draft, canRemoveNode]);
   const edges = useMemo(() => buildWorkflowNodeDesignerEdges(draft), [draft]);
+  const validationNavigationItems = useMemo(
+    () => buildWorkflowNodeDesignerValidationNavigation(draft, validationInspector),
+    [draft, validationInspector],
+  );
   const [nodes, setNodes] = useState(initialNodes);
   const [selectedNodeId, setSelectedNodeId] = useState(draft.nodes[0]?.nodeId ?? "");
+  const [validationFocus, setValidationFocus] = useState<WorkflowNodeDesignerValidationFocus | null>(null);
   const [interactionFeedback, setInteractionFeedback] = useState<WorkflowNodeDesignerFeedback>({
     tone: "neutral",
     message: "Connect typed ports to add controlled draft edges.",
@@ -128,6 +163,25 @@ export function WorkflowNodeDesigner({
       draft.nodes.some((node) => node.nodeId === current) ? current : draft.nodes[0]?.nodeId ?? "",
     );
   }, [draft, initialNodes]);
+
+  useEffect(() => {
+    setValidationFocus((current) => {
+      if (!current) {
+        return null;
+      }
+      const nextItem = validationNavigationItems.find((item) => item.checkId === current.checkId);
+      if (!nextItem) {
+        return null;
+      }
+      return {
+        checkId: nextItem.checkId,
+        label: nextItem.label,
+        severity: nextItem.severity,
+        nodeIds: nextItem.targetNodeIds,
+        edgeIds: nextItem.targetEdgeIds,
+      };
+    });
+  }, [validationNavigationItems]);
 
   const selectedNode = draft.nodes.find((node) => node.nodeId === selectedNodeId) ?? draft.nodes[0];
   const selectedNodeRemovable = selectedNode ? canRemoveNode(selectedNode.nodeId) : false;
@@ -183,6 +237,7 @@ export function WorkflowNodeDesigner({
       if (!nextNode) {
         return;
       }
+      setValidationFocus(null);
       setSelectedNodeId(nextNode.nodeId);
       setInteractionFeedback({
         tone: "neutral",
@@ -191,6 +246,34 @@ export function WorkflowNodeDesigner({
     },
     [draft.nodes],
   );
+
+  const focusValidationFinding = useCallback((item: WorkflowNodeDesignerValidationNavItem) => {
+    const firstNodeId = item.targetNodeIds[0];
+    setValidationFocus({
+      checkId: item.checkId,
+      label: item.label,
+      severity: item.severity,
+      nodeIds: item.targetNodeIds,
+      edgeIds: item.targetEdgeIds,
+    });
+    if (firstNodeId) {
+      setSelectedNodeId(firstNodeId);
+    }
+    setInteractionFeedback({
+      tone: workflowNodeDesignerFeedbackToneForValidation(item.status, item.severity),
+      message: firstNodeId
+        ? `Focused validation finding: ${item.label} targets ${item.targetSummary}.`
+        : `Focused validation finding: ${item.label}; no graph target is available.`,
+    });
+  }, []);
+
+  const clearValidationFocus = useCallback(() => {
+    setValidationFocus(null);
+    setInteractionFeedback({
+      tone: "neutral",
+      message: "Validation overlay focus cleared; canvas selection remains UI-only.",
+    });
+  }, []);
 
   const onNodeClick = useCallback((_: unknown, node: WorkflowNodeDesignerNode) => {
     selectNode(node.data.draftNodeId);
@@ -231,8 +314,27 @@ export function WorkflowNodeDesigner({
       nodes.map((node) => ({
         ...node,
         selected: node.data.draftNodeId === selectedNodeId,
+        data: {
+          ...node.data,
+          validationFocus: workflowNodeDesignerValidationFocusState(
+            validationFocus?.nodeIds.includes(node.data.draftNodeId) ?? false,
+          ),
+          validationSeverity: validationFocus?.severity,
+        },
       })),
-    [nodes, selectedNodeId],
+    [nodes, selectedNodeId, validationFocus],
+  );
+  const displayedEdges = useMemo(
+    () =>
+      edges.map((edge) => ({
+        ...edge,
+        data: {
+          ...(edge.data ?? { edgeKind: "data_edge", conditionSummary: "" }),
+          validationFocus: workflowNodeDesignerValidationFocusState(validationFocus?.edgeIds.includes(edge.id) ?? false),
+          validationSeverity: validationFocus?.severity,
+        },
+      })),
+    [edges, validationFocus],
   );
   const layoutPersistenceLabel =
     draft.designerLayout.persistence === "saved_draft_metadata" ? "restored saved draft layout" : "active draft layout";
@@ -305,11 +407,45 @@ export function WorkflowNodeDesigner({
         </div>
       </div>
 
+      <div
+        className="workflow-node-designer-validation-navigation"
+        aria-label="Workflow node designer validation overlay navigation"
+      >
+        <div className="workflow-node-designer-validation-navigation-heading">
+          <div>
+            <span>Validation overlay</span>
+            <strong>
+              {validationInspector.validationStatus} / {validationNavigationItems.length} findings
+            </strong>
+          </div>
+          <button type="button" disabled={!validationFocus} onClick={clearValidationFocus}>
+            Clear focus
+          </button>
+        </div>
+        <div className="workflow-node-designer-validation-navigation-list">
+          {validationNavigationItems.map((item) => (
+            <button
+              key={item.checkId}
+              type="button"
+              className={`${item.status} ${item.severity} ${
+                validationFocus?.checkId === item.checkId ? "focused" : ""
+              }`}
+              aria-pressed={validationFocus?.checkId === item.checkId}
+              onClick={() => focusValidationFinding(item)}
+            >
+              <span>{item.status}</span>
+              <strong>{item.label}</strong>
+              <small>{item.targetSummary}</small>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="workflow-node-designer-shell">
         <div className={`workflow-node-designer-canvas ${editingDisabled ? "locked" : "editable"}`}>
           <ReactFlow
             nodes={displayedNodes}
-            edges={edges}
+            edges={displayedEdges}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             nodesDraggable={!editingDisabled}
@@ -423,6 +559,98 @@ function buildWorkflowNodeDesignerEdges(draft: WorkflowDraftDesignerDraft): Work
   });
 }
 
+function buildWorkflowNodeDesignerValidationNavigation(
+  draft: WorkflowDraftDesignerDraft,
+  validationInspector: WorkflowDraftValidationInspectorViewModel,
+): WorkflowNodeDesignerValidationNavItem[] {
+  const nodeIds = new Set(draft.nodes.map((node) => node.nodeId));
+  const structuralItems = validationInspector.structuralChecks.map((check) => {
+    const targetNodeIds = check.evidenceRefs.filter((nodeId) => nodeIds.has(nodeId));
+    const targetEdgeIds = workflowNodeDesignerEdgeIdsForTargets(draft, targetNodeIds);
+    return {
+      checkId: check.checkId,
+      label: check.label,
+      status: check.status,
+      severity: check.severity,
+      summary: check.summary,
+      targetNodeIds,
+      targetEdgeIds,
+      targetSummary: workflowNodeDesignerValidationTargetSummary(targetNodeIds, targetEdgeIds),
+    };
+  });
+  const contractItems = validationInspector.contractChecks.map((check) => {
+    const targetNodeIds = workflowNodeDesignerContractTargetNodeIds(draft, check.checkId);
+    const targetEdgeIds = workflowNodeDesignerEdgeIdsForTargets(draft, targetNodeIds);
+    return {
+      checkId: check.checkId,
+      label: check.label,
+      status: check.status,
+      severity: check.severity,
+      summary: check.summary,
+      targetNodeIds,
+      targetEdgeIds,
+      targetSummary: workflowNodeDesignerValidationTargetSummary(targetNodeIds, targetEdgeIds),
+    };
+  });
+  return [...structuralItems, ...contractItems];
+}
+
+function workflowNodeDesignerContractTargetNodeIds(
+  draft: WorkflowDraftDesignerDraft,
+  checkId: string,
+): string[] {
+  if (checkId === "input_contract_fields") {
+    return draft.nodes
+      .filter((node) => node.lane === "context" || node.inputContractFields.length > 0)
+      .map((node) => node.nodeId);
+  }
+  if (checkId === "output_contract_fields") {
+    return draft.nodes
+      .filter(
+        (node) =>
+          node.lane === "output" ||
+          node.outputContractFields.length > 0 ||
+          node.outputMappingSummary.trim().length > 0,
+      )
+      .map((node) => node.nodeId);
+  }
+  return [];
+}
+
+function workflowNodeDesignerEdgeIdsForTargets(
+  draft: WorkflowDraftDesignerDraft,
+  targetNodeIds: string[],
+): string[] {
+  const targetNodeIdSet = new Set(targetNodeIds);
+  return draft.edges
+    .filter((edge) => targetNodeIdSet.has(edge.fromNodeId) || targetNodeIdSet.has(edge.toNodeId))
+    .map((edge) => edge.edgeId);
+}
+
+function workflowNodeDesignerValidationTargetSummary(nodeIds: string[], edgeIds: string[]): string {
+  if (nodeIds.length === 0 && edgeIds.length === 0) {
+    return "No graph target";
+  }
+  return `${nodeIds.length} nodes / ${edgeIds.length} edges`;
+}
+
+function workflowNodeDesignerFeedbackToneForValidation(
+  status: WorkflowDraftValidationStatus,
+  severity: WorkflowDraftValidationSeverity,
+): WorkflowNodeDesignerFeedback["tone"] {
+  if (severity === "blocking") {
+    return "bad";
+  }
+  if (status === "passed") {
+    return "good";
+  }
+  return "neutral";
+}
+
+function workflowNodeDesignerValidationFocusState(isFocused: boolean): "focused" | "none" {
+  return isFocused ? "focused" : "none";
+}
+
 function deriveWorkflowNodeDesignerEdgeKind(
   source: WorkflowDraftDesignerNode,
   target: WorkflowDraftDesignerNode,
@@ -457,7 +685,11 @@ function validateWorkflowNodeDesignerConnection(
 
 function WorkflowNodeDesignerNodeCard({ data, selected }: NodeProps<WorkflowNodeDesignerNode>) {
   return (
-    <div className={`workflow-node-designer-node ${selected ? "selected" : ""} ${data.readiness}`}>
+    <div
+      className={`workflow-node-designer-node ${selected ? "selected" : ""} ${data.readiness} ${
+        data.validationFocus === "focused" ? `validation-focused ${data.validationSeverity ?? ""}` : ""
+      }`}
+    >
       <Handle id={`${data.draftNodeId}:input`} type="target" position={Position.Left} />
       <div className="workflow-node-designer-node-header">
         <span>{data.lane}</span>
@@ -498,13 +730,15 @@ function WorkflowNodeDesignerEdgePath(props: EdgeProps<WorkflowNodeDesignerEdge>
     borderRadius: 18,
   });
   const edgeKind = props.data?.edgeKind ?? "data_edge";
+  const validationFocusClass =
+    props.data?.validationFocus === "focused" ? `validation-focused ${props.data.validationSeverity ?? ""}` : "";
   return (
     <>
       <BaseEdge
         id={props.id}
         path={edgePath}
         markerEnd={props.markerEnd}
-        className={`workflow-node-designer-edge-path ${EDGE_KIND_CLASS[edgeKind]}`}
+        className={`workflow-node-designer-edge-path ${EDGE_KIND_CLASS[edgeKind]} ${validationFocusClass}`}
       />
       <text className="workflow-node-designer-edge-label" x={labelX} y={labelY} textAnchor="middle">
         {edgeKind}

@@ -57,12 +57,20 @@ EXPECTED_BUILDER_INTERACTION_FACTS = {
     "editing_locked_state_visible",
     "selected_node_canvas_sync",
 }
+EXPECTED_VALIDATION_NAVIGATION_FACTS = {
+    "active_validation_inspector_input",
+    "structural_evidence_refs_navigation",
+    "contract_check_target_navigation",
+    "ui_only_validation_focus_state",
+    "node_and_edge_validation_highlight",
+}
 EXPECTED_FORBIDDEN_PERSISTED_FIELDS = {
     "react_flow_edge",
     "handle_id",
     "port_id",
     "viewport",
     "selection",
+    "validation_focus",
     "connection_preview",
     "visual_edge_style",
     "derived_edge_kind",
@@ -103,17 +111,17 @@ def assert_forbidden_literals(text: str, literals: list[Any], label: str) -> Non
 def assert_fixture_shape(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
-        fixture.get("kind") == "workflow_node_designer_builder_interaction_polish_v1",
+        fixture.get("kind") == "workflow_node_designer_validation_overlay_navigation_v1",
         "unexpected kind",
     )
     slice_info = fixture.get("slice") or {}
     require(
-        slice_info.get("id") == "workflow-node-designer-builder-interaction-polish-v1",
+        slice_info.get("id") == "workflow-node-designer-validation-overlay-navigation-v1",
         "unexpected slice id",
     )
     require(slice_info.get("track") == "Workflow / Agent Runtime", "unexpected track")
     require(
-        slice_info.get("status") == "workflow_node_designer_builder_interaction_polish_v1_implemented",
+        slice_info.get("status") == "workflow_node_designer_validation_overlay_navigation_v1_implemented",
         "unexpected slice status",
     )
     missing_claims = sorted(EXPECTED_FORBIDDEN_CLAIMS - set(slice_info.get("does_not_claim") or []))
@@ -140,6 +148,10 @@ def assert_edge_save_contract(fixture: dict[str, Any]) -> None:
         EXPECTED_BUILDER_INTERACTION_FACTS - set(contract.get("builder_interaction_facts") or [])
     )
     require(not missing_interaction_facts, f"missing builder interaction facts: {missing_interaction_facts}")
+    missing_navigation_facts = sorted(
+        EXPECTED_VALIDATION_NAVIGATION_FACTS - set(contract.get("validation_navigation_facts") or [])
+    )
+    require(not missing_navigation_facts, f"missing validation navigation facts: {missing_navigation_facts}")
 
 
 def assert_frontend_contract(fixture: dict[str, Any]) -> None:
@@ -206,10 +218,27 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
     )
     require(
         node_designer_text.index("const selectNode = useCallback(")
+        < node_designer_text.index("const focusValidationFinding = useCallback(")
         < node_designer_text.index("const displayedNodes = useMemo(")
         < node_designer_text.index("selected: node.data.draftNodeId === selectedNodeId")
         < node_designer_text.index("aria-pressed={node.nodeId === selectedNodeId}"),
         "node quick selection must stay UI-only and drive displayed node selection",
+    )
+    require(
+        node_designer_text.index("buildWorkflowNodeDesignerValidationNavigation(draft, validationInspector)")
+        < node_designer_text.index("const [validationFocus, setValidationFocus]")
+        < node_designer_text.index("setValidationFocus({")
+        < node_designer_text.index("validationFocus?.nodeIds.includes(node.data.draftNodeId)")
+        < node_designer_text.index("validationFocus?.edgeIds.includes(edge.id)"),
+        "validation overlay navigation must consume active validation inspector and stay UI-only",
+    )
+    structural_target_index = node_designer_text.index("check.evidenceRefs.filter((nodeId) => nodeIds.has(nodeId))")
+    contract_target_index = node_designer_text.index("workflowNodeDesignerContractTargetNodeIds(draft, check.checkId)")
+    first_edge_target_index = node_designer_text.index("workflowNodeDesignerEdgeIdsForTargets(draft, targetNodeIds)")
+    last_edge_target_index = node_designer_text.rindex("workflowNodeDesignerEdgeIdsForTargets(draft, targetNodeIds)")
+    require(
+        structural_target_index < first_edge_target_index and contract_target_index < last_edge_target_index,
+        "validation navigation must map structural evidence refs and contract targets to active draft graph",
     )
 
 
@@ -255,7 +284,7 @@ def main() -> None:
     assert_frontend_contract(fixture)
     assert_docs_and_fast_baseline(fixture)
     assert_testing_strategy(fixture)
-    print("workflow node designer builder interaction polish v1 checks passed.")
+    print("workflow node designer validation overlay navigation v1 checks passed.")
 
 
 if __name__ == "__main__":

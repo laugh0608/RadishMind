@@ -1500,6 +1500,7 @@ export function App() {
           <WorkflowDraftDesignerPanel
             designer={workflowDraftDesigner}
             selectedDraft={activeWorkflowDraft}
+            validationInspector={activeWorkflowDraftValidationInspector}
             selectedDraftId={selectedWorkflowDraft.draftId}
             savedDraftConsumerState={savedDraftConsumerState}
             draftEditDirty={workflowDraftEditDirty}
@@ -2930,6 +2931,7 @@ function WorkflowDefinitionBlockedActionPreviewCard({
 function WorkflowDraftDesignerPanel({
   designer,
   selectedDraft,
+  validationInspector,
   selectedDraftId,
   savedDraftConsumerState,
   draftEditDirty,
@@ -2959,6 +2961,7 @@ function WorkflowDraftDesignerPanel({
 }: {
   designer: WorkflowDraftDesignerViewModel;
   selectedDraft: WorkflowDraftDesignerDraft;
+  validationInspector: WorkflowDraftValidationInspectorViewModel;
   selectedDraftId: string;
   savedDraftConsumerState: WorkflowSavedDraftConsumerState;
   draftEditDirty: boolean;
@@ -3134,6 +3137,7 @@ function WorkflowDraftDesignerPanel({
 
       <WorkflowNodeDesigner
         draft={selectedDraft}
+        validationInspector={validationInspector}
         editingDisabled={operationPending}
         canRemoveNode={(nodeId) => canRemoveWorkflowDraftNode(selectedDraft, nodeId)}
         onUpdateNodeLabel={onUpdateNodeLabel}

@@ -1538,6 +1538,115 @@ h4 {
   line-height: 1.25;
 }
 
+.workflow-node-designer-validation-navigation {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.workflow-node-designer-validation-navigation-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.workflow-node-designer-validation-navigation-heading > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.workflow-node-designer-validation-navigation-heading span,
+.workflow-node-designer-validation-navigation-list button span {
+  color: #607086;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.workflow-node-designer-validation-navigation-heading strong {
+  overflow-wrap: anywhere;
+  color: #17202a;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.workflow-node-designer-validation-navigation-heading button {
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #f3f6fa;
+  color: #17202a;
+  font-weight: 700;
+}
+
+.workflow-node-designer-validation-navigation-heading button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.workflow-node-designer-validation-navigation-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.workflow-node-designer-validation-navigation-list button {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  min-height: 76px;
+  padding: 9px;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #17202a;
+  text-align: left;
+}
+
+.workflow-node-designer-validation-navigation-list button.blocked,
+.workflow-node-designer-validation-navigation-list button.blocking {
+  border-color: #efb8b0;
+  background: #fff4f2;
+}
+
+.workflow-node-designer-validation-navigation-list button.needs_review,
+.workflow-node-designer-validation-navigation-list button.warning {
+  border-color: #f0cf8a;
+  background: #fff9ec;
+}
+
+.workflow-node-designer-validation-navigation-list button.passed {
+  border-color: #b9e4ca;
+  background: #f0fbf4;
+}
+
+.workflow-node-designer-validation-navigation-list button.focused {
+  border-color: #2f6fed;
+  box-shadow: 0 0 0 2px rgb(47 111 237 / 14%);
+}
+
+.workflow-node-designer-validation-navigation-list button strong,
+.workflow-node-designer-validation-navigation-list button small {
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.workflow-node-designer-validation-navigation-list button strong {
+  font-size: 0.82rem;
+}
+
+.workflow-node-designer-validation-navigation-list button small {
+  color: #607086;
+  font-size: 0.72rem;
+}
+
 .workflow-node-designer-shell {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(320px, 0.85fr);
@@ -1589,6 +1698,23 @@ h4 {
 
 .workflow-node-designer-node.review_required {
   border-color: #b7791f;
+}
+
+.workflow-node-designer-node.validation-focused {
+  border-width: 2px;
+  box-shadow: 0 14px 34px rgb(47 111 237 / 22%);
+}
+
+.workflow-node-designer-node.validation-focused.blocking {
+  border-color: #b42318;
+}
+
+.workflow-node-designer-node.validation-focused.warning {
+  border-color: #b7791f;
+}
+
+.workflow-node-designer-node.validation-focused.info {
+  border-color: #2f6fed;
 }
 
 .workflow-node-designer-node-header {
@@ -1645,6 +1771,22 @@ h4 {
 
 .workflow-node-designer-edge-path.audit {
   stroke: #138a4b;
+}
+
+.workflow-node-designer-edge-path.validation-focused {
+  stroke-width: 3px;
+}
+
+.workflow-node-designer-edge-path.validation-focused.blocking {
+  stroke: #b42318;
+}
+
+.workflow-node-designer-edge-path.validation-focused.warning {
+  stroke: #b7791f;
+}
+
+.workflow-node-designer-edge-path.validation-focused.info {
+  stroke: #2f6fed;
 }
 
 .workflow-node-designer-edge-label {
@@ -2564,6 +2706,7 @@ dd {
 
   .workflow-node-designer-mapping-summary,
   .workflow-node-designer-interaction-bar,
+  .workflow-node-designer-validation-navigation-list,
   .workflow-draft-edge-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2646,6 +2789,7 @@ dd {
   .workflow-draft-structure-controls,
   .workflow-draft-add-node-grid,
   .workflow-node-designer-mapping-summary,
+  .workflow-node-designer-validation-navigation-list,
   .workflow-node-designer-shell,
   .workflow-draft-node-grid,
   .workflow-draft-node-attribute-grid,
@@ -2716,8 +2860,10 @@ dd {
 
   .workflow-node-designer-inspector,
   .workflow-node-designer-interaction-bar,
+  .workflow-node-designer-validation-navigation-heading,
   .workflow-node-designer-edge-action,
   .workflow-draft-edge-heading {
+    display: grid;
     grid-template-columns: 1fr;
   }
 

@@ -170,6 +170,7 @@
 119. [`Workflow Node Designer Controlled Edge Mutation Implementation` v1 任务卡](workflow-node-designer-controlled-edge-mutation-implementation-v1-plan.md)（`workflow-node-designer-controlled-edge-mutation-implementation-v1`）
 120. [`Workflow Node Designer Layout Review Findings` v1 任务卡](workflow-node-designer-layout-review-findings-v1-plan.md)（`workflow-node-designer-layout-review-findings-v1`）
 121. [`Workflow Node Designer Builder Interaction Polish` v1 任务卡](workflow-node-designer-builder-interaction-polish-v1-plan.md)（`workflow-node-designer-builder-interaction-polish-v1`）
+122. [`Workflow Node Designer Validation Overlay Navigation` v1 任务卡](workflow-node-designer-validation-overlay-navigation-v1-plan.md)（`workflow-node-designer-validation-overlay-navigation-v1`）
 
 ## UI 设计专题
 
@@ -240,7 +241,6 @@
 19. [`Image Artifact Response Builder Runtime Integration Implementation` v1 任务卡](image-artifact-response-builder-runtime-integration-implementation-v1-plan.md)（`image-artifact-response-builder-runtime-integration-implementation-v1`）
 
 使用原则：
-
 - 任务卡定义的是任务边界、最小输入、输出要求和评测口径，不等同于最终实现代码
 - 前置条件型任务卡定义的是当前不能继续前推的阻塞项、已有门禁和后续触发条件，不等同于已经完成上层接线
 - 当前平台主线已完成 `Production Ops Hardening v1` 静态边界收口，并把 `Provider Runtime & Health v1` 推进到 close candidate；没有 Docker 运行窗口时，下一步默认回到 `Workflow / Agent Runtime Function Surface v1` 和离线 workflow 产品功能，且 `workflow-definition-detail-read-v1`、`workflow-run-detail-read-v1`、`workflow-blocked-action-preview-v1`、`workflow-application-detail-read-v1`、`workflow-confirmation-placeholder-read-v1`、`workflow-draft-designer-offline-v1`、`workflow-draft-validation-inspector-offline-v1`、`workflow-execution-plan-preview-offline-v1` 与 `workflow-runtime-readiness-inspector-offline-v1` 已固定 definition / run / blocked action / application detail / confirmation placeholder / offline draft designer / offline validation inspector / offline execution plan preview / runtime readiness inspector surface；`workflow-function-surface-readiness-close-v1` 已把上述离线 workflow surface 收束为 `workflow_function_surface_readiness_closed`；任务卡不替代当前焦点、路线图和能力矩阵
