@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-06-23
+更新时间：2026-06-24
 
 ## 文档目的
 
@@ -51,6 +51,7 @@
 | [Workflow Draft Designer Surface](workflow/draft-designer-surface.md) | 页面 / Surface 专题 | 固定 draft designer 的 sample / unsaved / saved 状态和后续 consumer 接线边界 |
 | [Workflow Node Designer Surface v1](workflow/node-designer-surface-v1.md) | 页面 / Surface 专题 | 固定节点画布 designer 的 builder 阶段位置、typed port / edge 语义、saved draft 映射边界和停止线 |
 | [Workflow Node Designer Library Selection v1](workflow/node-designer-library-selection-v1.md) | 实现准入专题 | 为首批节点画布实现选定 `@xyflow/react`，固定状态模型、依赖引入边界、fallback 和停止线 |
+| [Workflow Node Designer Saved Draft Mapping v1](workflow/node-designer-saved-draft-mapping-v1.md) | 功能专题 | 固定节点画布 layout metadata、edge kind、validation overlay 与 saved draft / Review Handoff 的映射边界 |
 | [Dev-only Saved Draft Consumer](workflow/dev-only-saved-draft-consumer.md) | 实现专题 | 固定下一批 dev-only HTTP route + web consumer 的准入、验收和停止线 |
 | [Workflow Draft Editing Entry v1](workflow/draft-editing-entry-v1.md) | 功能 / 页面专题 | 固定草案名称、说明、节点名称和边条件摘要的受控本地编辑入口 |
 | [User Workspace Draft Creation v1](workflow/user-workspace-draft-creation-v1.md) | 功能 / 页面专题 | 固定从 Workspace Home / workflow definitions 创建本地草案并进入 Draft Designer 的入口 |

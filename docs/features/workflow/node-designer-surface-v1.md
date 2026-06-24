@@ -22,8 +22,9 @@
 4. 当前定义：节点画布 Designer Surface 的信息架构、graph model、typed port、validation overlay 和停止线。
 5. 已完成：[Workflow Node Designer Library Selection v1](node-designer-library-selection-v1.md)，选定 `@xyflow/react` 作为首批画布实现依赖。
 6. 已实现：[Workflow Node Designer Surface Implementation v1 任务卡](../../task-cards/workflow-node-designer-surface-implementation-v1-plan.md)，完成 `@xyflow/react` 前端画布、active draft graph adapter、custom node / edge、inspector bridge 和连线校验反馈。
-7. 后续可选：定义 saved draft mapping 或 Review Handoff 消费增强，前提是先确认是否需要持久化 layout metadata 或 edge kind。
-8. 后续独立目标：publish、run、executor、confirmation、writeback 和 replay。
+7. 已定义：[Workflow Node Designer Saved Draft Mapping v1](node-designer-saved-draft-mapping-v1.md)，确认 layout metadata、edge kind 与 validation overlay 的 saved draft / Review Handoff 映射边界。
+8. 后续可选：进入 mapping implementation 任务卡或 Review Handoff 消费增强，前提是先确认是否需要持久化 layout metadata 或 edge kind。
+9. 后续独立目标：publish、run、executor、confirmation、writeback 和 replay。
 
 它不替代 durable store 上游前置，也不解锁 repository mode。若下一批选择继续 durable store，上游 auth、membership、schema marker、secret resolver、connection provider 和 production resolver blocker 仍按既有专题推进。
 
@@ -128,8 +129,9 @@ Node Designer Surface 建议保持四区布局：
 
 1. [Workflow Node Designer Library Selection v1](node-designer-library-selection-v1.md)：已确定 `@xyflow/react`、状态模型、依赖引入方式、bundle / test 影响和 fallback 策略。
 2. [Workflow Node Designer Surface Implementation v1](../../task-cards/workflow-node-designer-surface-implementation-v1-plan.md)：已接入首批前端画布，只覆盖节点展示、拖拽、连线、选中、inspector、validation overlay 和 active draft 派生。
-3. `Workflow Node Designer Saved Draft Mapping v1`：若需要保存布局 metadata 或 edge kind，先定义 schema / consumer mapping，再补 task card、fixture 和 checker。
-4. `Workflow Node Designer Review Handoff v1`：把画布 validation overlay 和 inspector state 汇总到 existing Review Handoff，不创建 runtime review store。
+3. [Workflow Node Designer Saved Draft Mapping v1](node-designer-saved-draft-mapping-v1.md)：已定义 layout metadata、edge kind、validation overlay 与 saved draft / Review Handoff 的映射边界；不保存 React Flow 原始对象。
+4. `Workflow Node Designer Saved Draft Mapping Implementation v1`：若只做 UI-only session layout，先走前端实现；若需要写入 `additional_fields.designer_layout_v1`，再补 task card、fixture 和 checker。
+5. `Workflow Node Designer Review Handoff v1`：把画布 validation overlay 和 inspector state 汇总到 existing Review Handoff，不创建 runtime review store。
 
 ## 验收方式
 
