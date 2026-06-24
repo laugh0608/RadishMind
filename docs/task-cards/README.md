@@ -162,6 +162,7 @@
 111. [`Workflow Saved Draft Schema Marker Runtime Dependency Refresh` v1 任务卡](workflow-saved-draft-schema-marker-runtime-dependency-refresh-v1-plan.md)（`workflow-saved-draft-schema-marker-runtime-dependency-refresh-v1`）
 112. [`Workflow Saved Draft Database Secret Resolver Runtime Dependency Refresh` v1 任务卡](workflow-saved-draft-database-secret-resolver-runtime-dependency-refresh-v1-plan.md)（`workflow-saved-draft-database-secret-resolver-runtime-dependency-refresh-v1`）
 113. [`Workflow Saved Draft Token Validation Schema / Auth Middleware Runtime Entry Review` v1 任务卡](workflow-saved-draft-token-validation-auth-middleware-runtime-entry-review-v1-plan.md)（`workflow-saved-draft-token-validation-auth-middleware-runtime-entry-review-v1`）
+114. [`Workflow Node Designer Surface Implementation` v1 任务卡](workflow-node-designer-surface-implementation-v1-plan.md)（`workflow-node-designer-surface-implementation-v1`）
 
 ## UI 设计专题
 

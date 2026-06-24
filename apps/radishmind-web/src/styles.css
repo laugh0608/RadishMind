@@ -1356,6 +1356,223 @@ h4 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.workflow-node-designer {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.workflow-node-designer-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.workflow-node-designer-toolbar h5,
+.workflow-node-designer-inspector-heading strong {
+  margin: 0;
+  color: #17202a;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.workflow-node-designer-status {
+  display: grid;
+  gap: 4px;
+  min-width: 220px;
+  padding: 10px 12px;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #f3f6fa;
+}
+
+.workflow-node-designer-status span,
+.workflow-node-designer-inspector-heading span,
+.workflow-node-designer-inspector label span {
+  color: #607086;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.workflow-node-designer-status strong {
+  color: #17202a;
+  font-size: 0.9rem;
+}
+
+.workflow-node-designer-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 2.4fr) minmax(280px, 0.9fr);
+  gap: 16px;
+  min-height: 560px;
+}
+
+.workflow-node-designer-canvas {
+  min-height: 560px;
+  overflow: hidden;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.workflow-node-designer-canvas .react-flow {
+  min-height: 560px;
+}
+
+.workflow-node-designer-node {
+  display: grid;
+  gap: 8px;
+  width: 220px;
+  min-height: 148px;
+  padding: 12px;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgb(15 23 42 / 10%);
+}
+
+.workflow-node-designer-node.selected {
+  border-color: #2f6fed;
+  box-shadow: 0 12px 30px rgb(37 99 235 / 18%);
+}
+
+.workflow-node-designer-node.blocked {
+  border-color: #b42318;
+}
+
+.workflow-node-designer-node.review_required {
+  border-color: #b7791f;
+}
+
+.workflow-node-designer-node-header {
+  display: grid;
+  gap: 4px;
+}
+
+.workflow-node-designer-node-header span,
+.workflow-node-designer-node dt {
+  color: #607086;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.workflow-node-designer-node-header strong {
+  color: #17202a;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.workflow-node-designer-node p {
+  margin: 0;
+  color: #607086;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.workflow-node-designer-node dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.workflow-node-designer-node dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #243244;
+  font-size: 0.74rem;
+}
+
+.workflow-node-designer-edge-path.data {
+  stroke: #2f6fed;
+}
+
+.workflow-node-designer-edge-path.control {
+  stroke: #2563eb;
+}
+
+.workflow-node-designer-edge-path.guard {
+  stroke: #b7791f;
+}
+
+.workflow-node-designer-edge-path.audit {
+  stroke: #138a4b;
+}
+
+.workflow-node-designer-edge-label {
+  fill: #607086;
+  font-size: 10px;
+  font-weight: 700;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+.workflow-node-designer-inspector {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.workflow-node-designer-inspector-heading {
+  display: grid;
+  gap: 6px;
+}
+
+.workflow-node-designer-inspector-heading p,
+.workflow-node-designer-empty p {
+  margin: 0;
+  color: #607086;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.workflow-node-designer-inspector label {
+  display: grid;
+  gap: 6px;
+}
+
+.workflow-node-designer-inspector input,
+.workflow-node-designer-inspector textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #243244;
+  font: inherit;
+}
+
+.workflow-node-designer-inspector input {
+  min-height: 38px;
+  padding: 8px 10px;
+}
+
+.workflow-node-designer-inspector textarea {
+  resize: vertical;
+  padding: 10px;
+}
+
+.workflow-node-designer-inspector button {
+  min-height: 38px;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #f3f6fa;
+  color: #17202a;
+  font-weight: 700;
+}
+
+.workflow-node-designer-inspector button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .workflow-run-timeline {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }

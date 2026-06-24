@@ -95,6 +95,7 @@ import {
   type WorkflowDraftDesignerTemplate,
   type WorkflowDraftDesignerViewModel,
 } from "../features/control-plane-read/workflowDraftDesigner";
+import { WorkflowNodeDesigner } from "../features/control-plane-read/workflowNodeDesigner";
 import {
   type WorkflowDraftBlockedCapabilityCheck,
   type WorkflowDraftContractCheck,
@@ -3057,6 +3058,20 @@ function WorkflowDraftDesignerPanel({
           ))}
         </div>
       </div>
+
+      <WorkflowNodeDesigner
+        draft={selectedDraft}
+        editingDisabled={operationPending}
+        canRemoveNode={(nodeId) => canRemoveWorkflowDraftNode(selectedDraft, nodeId)}
+        onUpdateNodeLabel={onUpdateNodeLabel}
+        onUpdateNodeInputSummary={onUpdateNodeInputSummary}
+        onUpdateNodeOutputSummary={onUpdateNodeOutputSummary}
+        onUpdateNodeProviderRef={onUpdateNodeProviderRef}
+        onUpdateNodeToolRef={onUpdateNodeToolRef}
+        onUpdateNodeRagRef={onUpdateNodeRagRef}
+        onUpdateNodeOutputMapping={onUpdateNodeOutputMapping}
+        onRemoveNode={onRemoveNode}
+      />
 
       <div className="workflow-draft-node-grid" aria-label="Workflow draft nodes">
         {selectedDraft.nodes.map((node, nodeIndex) => (

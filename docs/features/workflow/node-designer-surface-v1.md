@@ -1,6 +1,6 @@
 # Workflow Node Designer Surface v1 专题
 
-更新时间：2026-06-23
+更新时间：2026-06-24
 
 状态：`workflow_node_designer_surface_v1_defined`
 
@@ -8,7 +8,7 @@
 
 `Workflow Node Designer Surface v1` 是 `Workflow / Agent Runtime` 下的节点画布设计专题，承接现有 `Workflow Draft Designer Surface`、`Workflow Draft Designer Editing Model v2`、`Workflow Draft Node Attribute Editing Model v1` 和 `Workflow Review Handoff Active Draft v1`。
 
-本专题只定义节点画布作为 workflow 草案设计、审查和 plan preview 的交互方向。它不实现画布库接入、完整拖拽 builder、workflow publish、run、executor、node executor、tool executor、agent loop、confirmation decision、writeback、replay、resume、repository mode、真实数据库、OIDC middleware、token validation、membership adapter 或 public production API。
+本专题定义节点画布作为 workflow 草案设计、审查和 plan preview 的交互方向；首批前端画布接入已由 [Workflow Node Designer Surface Implementation v1 任务卡](../../task-cards/workflow-node-designer-surface-implementation-v1-plan.md) 承接并实现。它仍不打开完整拖拽 builder、workflow publish、run、executor、node executor、tool executor、agent loop、confirmation decision、writeback、replay、resume、repository mode、真实数据库、OIDC middleware、token validation、membership adapter 或 public production API。
 
 交互参考可以借鉴 ComfyUI 的节点图工作流形态，但 RadishMind 的目标不是复制 image-generation-only 节点图，而是建立面向 AI 工具、模型网关、RAG、审查、候选动作和 artifact handoff 的可审查 workflow 草案设计面。
 
@@ -20,9 +20,10 @@
 2. 已完成：Draft Designer 本地结构编辑与节点属性编辑。
 3. 已完成：active draft validation / plan / readiness 的 Review Handoff。
 4. 当前定义：节点画布 Designer Surface 的信息架构、graph model、typed port、validation overlay 和停止线。
-5. 已完成：[Workflow Node Designer Library Selection v1](node-designer-library-selection-v1.md)，选定 `@xyflow/react` 作为下一批画布实现首选。
-6. 后续可选：节点画布实现任务卡。
-7. 后续独立目标：publish、run、executor、confirmation、writeback 和 replay。
+5. 已完成：[Workflow Node Designer Library Selection v1](node-designer-library-selection-v1.md)，选定 `@xyflow/react` 作为首批画布实现依赖。
+6. 已实现：[Workflow Node Designer Surface Implementation v1 任务卡](../../task-cards/workflow-node-designer-surface-implementation-v1-plan.md)，完成 `@xyflow/react` 前端画布、active draft graph adapter、custom node / edge、inspector bridge 和连线校验反馈。
+7. 后续可选：定义 saved draft mapping 或 Review Handoff 消费增强，前提是先确认是否需要持久化 layout metadata 或 edge kind。
+8. 后续独立目标：publish、run、executor、confirmation、writeback 和 replay。
 
 它不替代 durable store 上游前置，也不解锁 repository mode。若下一批选择继续 durable store，上游 auth、membership、schema marker、secret resolver、connection provider 和 production resolver blocker 仍按既有专题推进。
 
@@ -125,18 +126,18 @@ Node Designer Surface 建议保持四区布局：
 
 后续实现不应直接从运行器开始，应按以下顺序选择：
 
-1. [Workflow Node Designer Library Selection v1](node-designer-library-selection-v1.md)：已确定 `@xyflow/react`、状态模型、依赖引入方式、bundle / test 影响和 fallback 策略；本阶段不安装依赖。
-2. `Workflow Node Designer Surface Implementation v1`：下一批可接入画布，只覆盖节点展示、拖拽、连线、选中、inspector、validation overlay 和 active draft 派生。
+1. [Workflow Node Designer Library Selection v1](node-designer-library-selection-v1.md)：已确定 `@xyflow/react`、状态模型、依赖引入方式、bundle / test 影响和 fallback 策略。
+2. [Workflow Node Designer Surface Implementation v1](../../task-cards/workflow-node-designer-surface-implementation-v1-plan.md)：已接入首批前端画布，只覆盖节点展示、拖拽、连线、选中、inspector、validation overlay 和 active draft 派生。
 3. `Workflow Node Designer Saved Draft Mapping v1`：若需要保存布局 metadata 或 edge kind，先定义 schema / consumer mapping，再补 task card、fixture 和 checker。
 4. `Workflow Node Designer Review Handoff v1`：把画布 validation overlay 和 inspector state 汇总到 existing Review Handoff，不创建 runtime review store。
 
 ## 验收方式
 
-本专题定义阶段：
+本专题定义与首批实现阶段：
 
 - 文档入口已收录本专题。
 - 当前焦点能说明它位于 Workflow Builder 体验方向。
-- 不新增 task card、fixture、checker 或 runtime artifact。
+- 实现任务卡已收录首批前端画布接入；不新增 schema、backend route、fixture、checker 或 runtime artifact。
 - `./scripts/check-repo.sh --fast` 通过。
 
 后续实现阶段：
@@ -148,7 +149,7 @@ Node Designer Surface 建议保持四区布局：
 
 ## 停止线
 
-- 不在本专题中安装画布库或提交 UI 实现。
+- 除已完成的 `Workflow Node Designer Surface Implementation v1` 前端依赖与 UI 接入外，不继续扩大画布库、持久化格式或 runtime 能力。
 - 不实现完整拖拽 builder、publish、run、executor、node executor、tool executor、agent loop、confirmation decision、decision store、writeback、replay、resume 或 materialized result reader。
 - 不接 repository mode、真实数据库、database connection provider、secret resolver、production resolver runtime、schema marker runtime、migration runner、Radish OIDC middleware、token validation、membership adapter、API key lifecycle、quota、billing 或 public production API。
 - 不把画布上的 `valid_for_review`、`Preview Plan`、readiness 或 handoff 摘要写成 publish ready、run ready 或 production ready。

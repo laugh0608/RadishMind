@@ -6,13 +6,13 @@
 
 ## 专题定位
 
-`Workflow Node Designer Library Selection v1` 承接 [Workflow Node Designer Surface v1](node-designer-surface-v1.md)，只固定下一批节点画布实现前的库选型、状态模型、依赖引入方式、验证方式和停止线。
+`Workflow Node Designer Library Selection v1` 承接 [Workflow Node Designer Surface v1](node-designer-surface-v1.md)，固定首批节点画布实现前的库选型、状态模型、依赖引入方式、验证方式和停止线。
 
-本专题不安装依赖、不提交 UI 实现、不新增 task card / fixture / checker、不改变 saved draft schema，也不打开 workflow publish、run、executor、confirmation、writeback、replay、repository mode、真实数据库、OIDC middleware、token validation、membership adapter 或 public production API。
+本专题定义阶段不安装依赖、不提交 UI 实现、不新增 task card / fixture / checker、不改变 saved draft schema，也不打开 workflow publish、run、executor、confirmation、writeback、replay、repository mode、真实数据库、OIDC middleware、token validation、membership adapter 或 public production API。
 
 ## 选型结论
 
-下一批 `Workflow Node Designer Surface Implementation v1` 默认选择 `@xyflow/react` 作为 React 画布库。
+`Workflow Node Designer Surface Implementation v1` 已按本专题选型选择 `@xyflow/react` 作为 React 画布库。
 
 选型依据：
 
@@ -22,7 +22,7 @@
 - 官方文档包含 TypeScript、testing、performance、state management、custom nodes、handles、edges 和 Vite 模板路径，后续实现验证边界清晰。
 - GitHub 仓库声明 React Flow / Svelte Flow 为 MIT license，且 `@xyflow/react` 是 xyflow monorepo 中的 React Flow 12 包。
 
-实现批次引入依赖时，应以当日 `npm install @xyflow/react` 产生的 `package-lock.json` 固定实际版本；本专题不写死 semver，也不把当前文档选型解释为依赖已提交。
+实现批次已通过 `npm install @xyflow/react` 产生的 `package-lock.json` 固定实际版本；本专题仍只作为选型和依赖边界记录，不把画布依赖解释为 saved draft schema、runtime artifact、publish / run 或 executor 已打开。
 
 ## 候选对比
 
@@ -49,14 +49,14 @@
 
 ## 依赖引入边界
 
-下一批实现任务卡允许：
+实现任务卡已按以下边界落地：
 
 - 在 `apps/radishmind-web` 引入 `@xyflow/react` 依赖，并提交 `package-lock.json`。
 - 在全局样式入口引入 React Flow 必需 CSS，并确认父容器有稳定宽高。
 - 新增 Node Designer 专用 graph adapter、node component、edge component、inspector bridge 和 validation overlay 组件。
 - 复用现有 workflow 聚合 gate、web build、saved draft consumer smoke 和 fast baseline。
 
-下一批实现任务卡不允许：
+实现任务卡仍不允许：
 
 - 使用 React Flow Pro 组件或商业模板作为 committed 依赖。
 - 直接复制官方模板成为产品页面结构。
@@ -75,7 +75,7 @@
 
 ## 实现任务边界
 
-下一张实现任务卡建议命名为 `Workflow Node Designer Surface Implementation v1`，范围限于：
+[Workflow Node Designer Surface Implementation v1 任务卡](../../task-cards/workflow-node-designer-surface-implementation-v1-plan.md) 已实现，范围限于：
 
 - 画布区域接入。
 - 节点展示、移动、选中、删除保护。
@@ -91,21 +91,21 @@
 本专题定义阶段：
 
 - 本文档进入 workflow 细专题入口。
-- `Workflow Node Designer Surface v1` 的实现拆分更新为“库选型已完成，下一步进入实现任务卡”。
-- 当前焦点能说明 Builder 体验下一步从画布库选型转为 surface implementation。
+- `Workflow Node Designer Surface v1` 的实现拆分更新为“库选型已完成，surface implementation 任务卡已实现”。
+- 当前焦点能说明 Builder 体验下一步转为 saved draft mapping 或 Review Handoff 消费增强，而不是进入 executor。
 - 不产生依赖、代码、schema、fixture、checker 或 runtime artifact。
 - `./scripts/check-repo.sh --fast` 通过。
 
-后续实现阶段：
+实现阶段：
 
 - `npm run build` 在 `apps/radishmind-web` 通过。
-- 节点新增、移动、选中、连线、删除保护、validation overlay、save / read failure state 和 version conflict 至少有对应前端验证。
+- 节点展示、移动、选中、连线校验反馈、删除保护、validation overlay、save / read failure state 和 version conflict 至少有对应前端验证。
 - Saved draft consumer smoke 继续覆盖 no sample fallback、version conflict 和 failure code。
 - 若新增 schema、route、dependency boundary 或高风险能力，补实现任务卡、专项 fixture / checker 和仓库基线。
 
 ## 停止线
 
-- 不在本专题中安装 `@xyflow/react` 或修改 `package.json`。
+- 本专题定义阶段不安装 `@xyflow/react` 或修改 `package.json`；依赖引入只允许由 implementation 任务卡承接。
 - 不提交画布 UI、node component、edge component、inspector bridge 或 runtime 代码。
 - 不修改 saved draft persisted schema、route contract、repository adapter、database schema、migration artifact 或 auth contract。
 - 不实现 workflow executor、node executor、tool executor、agent loop、publish、run、confirmation decision、decision store、writeback、replay、resume 或 materialized result reader。
