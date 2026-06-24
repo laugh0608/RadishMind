@@ -20,8 +20,9 @@
 2. 已完成：Draft Designer 本地结构编辑与节点属性编辑。
 3. 已完成：active draft validation / plan / readiness 的 Review Handoff。
 4. 当前定义：节点画布 Designer Surface 的信息架构、graph model、typed port、validation overlay 和停止线。
-5. 后续可选：节点画布库选型与实现任务卡。
-6. 后续独立目标：publish、run、executor、confirmation、writeback 和 replay。
+5. 已完成：[Workflow Node Designer Library Selection v1](node-designer-library-selection-v1.md)，选定 `@xyflow/react` 作为下一批画布实现首选。
+6. 后续可选：节点画布实现任务卡。
+7. 后续独立目标：publish、run、executor、confirmation、writeback 和 replay。
 
 它不替代 durable store 上游前置，也不解锁 repository mode。若下一批选择继续 durable store，上游 auth、membership、schema marker、secret resolver、connection provider 和 production resolver blocker 仍按既有专题推进。
 
@@ -124,8 +125,8 @@ Node Designer Surface 建议保持四区布局：
 
 后续实现不应直接从运行器开始，应按以下顺序选择：
 
-1. `Workflow Node Designer Library Selection v1`：确定 React 画布库、状态模型、依赖引入方式、bundle / test 影响和 fallback 策略。
-2. `Workflow Node Designer Surface Implementation v1`：接入画布，只覆盖节点展示、拖拽、连线、选中、inspector、validation overlay 和 active draft 派生。
+1. [Workflow Node Designer Library Selection v1](node-designer-library-selection-v1.md)：已确定 `@xyflow/react`、状态模型、依赖引入方式、bundle / test 影响和 fallback 策略；本阶段不安装依赖。
+2. `Workflow Node Designer Surface Implementation v1`：下一批可接入画布，只覆盖节点展示、拖拽、连线、选中、inspector、validation overlay 和 active draft 派生。
 3. `Workflow Node Designer Saved Draft Mapping v1`：若需要保存布局 metadata 或 edge kind，先定义 schema / consumer mapping，再补 task card、fixture 和 checker。
 4. `Workflow Node Designer Review Handoff v1`：把画布 validation overlay 和 inspector state 汇总到 existing Review Handoff，不创建 runtime review store。
 
