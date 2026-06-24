@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "kind": "workflow_node_designer_layout_review_findings_v1",
+  "kind": "workflow_node_designer_builder_interaction_polish_v1",
   "slice": {
-    "id": "workflow-node-designer-layout-review-findings-v1",
+    "id": "workflow-node-designer-builder-interaction-polish-v1",
     "track": "Workflow / Agent Runtime",
-    "status": "workflow_node_designer_layout_review_findings_v1_implemented",
+    "status": "workflow_node_designer_builder_interaction_polish_v1_implemented",
     "does_not_claim": [
       "edge_mutation_backend_ready",
       "react_flow_raw_edge_persistence",
@@ -25,6 +25,7 @@
     ]
   },
   "depends_on": [
+    "workflow-node-designer-layout-review-findings-v1",
     "workflow-node-designer-controlled-edge-mutation-implementation-v1",
     "workflow-node-designer-persisted-layout-v1",
     "workflow-node-designer-saved-draft-mapping-v1",
@@ -77,6 +78,13 @@
       "draft_edge_heading_structured_metadata",
       "long_edge_identifier_wrap",
       "narrow_width_full_row_remove_buttons"
+    ],
+    "builder_interaction_facts": [
+      "builder_interaction_status_bar",
+      "node_quick_select_ui_only",
+      "feedback_tone_for_connect_drag_delete",
+      "editing_locked_state_visible",
+      "selected_node_canvas_sync"
     ]
   },
   "frontend_contract": {
@@ -94,6 +102,18 @@
       "Removed draft edge:",
       "workflow-node-designer-edge-action-main",
       "{edge.edgeKind} / {edge.edgeId}",
+      "WorkflowNodeDesignerFeedback",
+      "workflow-node-designer-interaction-bar",
+      "workflow-node-designer-feedback ${interactionFeedback.tone}",
+      "workflow-node-designer-node-switcher",
+      "aria-pressed={node.nodeId === selectedNodeId}",
+      "selected: node.data.draftNodeId === selectedNodeId",
+      "Selected node:",
+      "Saved canvas position for",
+      "editingStateLabel",
+      "editingStateSummary",
+      "workflow-node-designer-canvas ${editingDisabled ? \"locked\" : \"editable\"}",
+      "interactionFeedback={interactionFeedback}",
       "validateWorkflowNodeDesignerConnection(",
       "connection.source === connection.target",
       "draft.edges.some((edge) => edge.fromNodeId === source.nodeId && edge.toNodeId === target.nodeId)"
@@ -135,6 +155,12 @@
       ".workflow-node-designer-inspector > button",
       ".workflow-node-designer-edge-action button",
       ".workflow-draft-edge-heading button",
+      ".workflow-node-designer-interaction-bar",
+      ".workflow-node-designer-feedback.good",
+      ".workflow-node-designer-feedback.bad",
+      ".workflow-node-designer-node-switcher button.selected",
+      ".workflow-node-designer-canvas.locked",
+      ".workflow-node-designer-inspector-feedback.good",
       "grid-template-columns: minmax(0, 2fr) minmax(320px, 0.85fr);",
       "grid-template-columns: repeat(2, minmax(0, 1fr));",
       "min-height: 420px;"
@@ -179,28 +205,41 @@
       "connected edge 删除入口",
       "Draft edge 卡片"
     ],
+    "docs/task-cards/workflow-node-designer-builder-interaction-polish-v1-plan.md": [
+      "workflow_node_designer_builder_interaction_polish_v1_implemented",
+      "Workflow Node Designer Builder Interaction Polish v1",
+      "Builder interaction bar",
+      "节点快速选择",
+      "连接、拒绝连接、删除 edge、拖拽位置保存"
+    ],
     "docs/features/workflow/README.md": [
       "Workflow Node Designer Edge Editing Save Preconditions v1",
       "workflow_node_designer_edge_editing_save_preconditions_v1_defined",
       "Workflow Node Designer Controlled Edge Mutation Implementation v1",
       "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented",
       "Workflow Node Designer Layout Review Findings v1",
-      "workflow_node_designer_layout_review_findings_v1_implemented"
+      "workflow_node_designer_layout_review_findings_v1_implemented",
+      "Workflow Node Designer Builder Interaction Polish v1",
+      "workflow_node_designer_builder_interaction_polish_v1_implemented"
     ],
     "docs/features/README.md": [
       "Workflow Node Designer Edge Editing Save Preconditions v1",
-      "Workflow Node Designer Layout Review Findings v1"
+      "Workflow Node Designer Layout Review Findings v1",
+      "Workflow Node Designer Builder Interaction Polish v1"
     ],
     "docs/features/workflow-agent-runtime.md": [
       "Workflow Node Designer Edge Editing Save Preconditions v1",
       "conditionSummary",
-      "Workflow Node Designer Layout Review Findings v1"
+      "Workflow Node Designer Layout Review Findings v1",
+      "Workflow Node Designer Builder Interaction Polish v1"
     ],
     "docs/features/workflow/node-designer-surface-v1.md": [
       "Workflow Node Designer Edge Editing Save Preconditions v1",
       "workflow_node_designer_edge_editing_save_preconditions_v1_defined",
       "Workflow Node Designer Layout Review Findings v1",
-      "workflow_node_designer_layout_review_findings_v1_implemented"
+      "workflow_node_designer_layout_review_findings_v1_implemented",
+      "Workflow Node Designer Builder Interaction Polish v1",
+      "workflow_node_designer_builder_interaction_polish_v1_implemented"
     ],
     "docs/features/workflow/node-designer-persisted-layout-v1.md": [
       "Workflow Node Designer Edge Editing Save Preconditions v1",
@@ -209,21 +248,27 @@
     "docs/radishmind-current-focus.md": [
       "Workflow Node Designer Edge Editing Save Preconditions v1",
       "Workflow Node Designer Layout Review Findings v1",
-      "workflow_node_designer_layout_review_findings_v1_implemented"
+      "workflow_node_designer_layout_review_findings_v1_implemented",
+      "Workflow Node Designer Builder Interaction Polish v1",
+      "workflow_node_designer_builder_interaction_polish_v1_implemented"
     ],
     "docs/devlogs/2026-W26.md": [
       "workflow-node-designer-controlled-edge-mutation-implementation-v1",
       "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented",
       "workflow-node-designer-layout-review-findings-v1",
-      "workflow_node_designer_layout_review_findings_v1_implemented"
+      "workflow_node_designer_layout_review_findings_v1_implemented",
+      "workflow-node-designer-builder-interaction-polish-v1",
+      "workflow_node_designer_builder_interaction_polish_v1_implemented"
     ],
     "docs/task-cards/README.md": [
       "Workflow Node Designer Edge Editing Save Preconditions",
-      "Workflow Node Designer Layout Review Findings"
+      "Workflow Node Designer Layout Review Findings",
+      "Workflow Node Designer Builder Interaction Polish"
     ],
     "scripts/README.md": [
       "workflow-node-designer-edge-editing-save-preconditions-v1",
-      "layout review findings"
+      "layout review findings",
+      "builder interaction polish"
     ]
   },
   "testing_strategy": [
@@ -233,7 +278,7 @@
       "command": "npm run build"
     },
     {
-      "id": "workflow_node_designer_controlled_edge_mutation_implementation_v1_checker",
+      "id": "workflow_node_designer_builder_interaction_polish_v1_checker",
       "status": "required_now",
       "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-node-designer-edge-editing-save-preconditions-v1.py"
     },

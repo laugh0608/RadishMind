@@ -50,6 +50,13 @@ EXPECTED_LAYOUT_REVIEW_FACTS = {
     "long_edge_identifier_wrap",
     "narrow_width_full_row_remove_buttons",
 }
+EXPECTED_BUILDER_INTERACTION_FACTS = {
+    "builder_interaction_status_bar",
+    "node_quick_select_ui_only",
+    "feedback_tone_for_connect_drag_delete",
+    "editing_locked_state_visible",
+    "selected_node_canvas_sync",
+}
 EXPECTED_FORBIDDEN_PERSISTED_FIELDS = {
     "react_flow_edge",
     "handle_id",
@@ -96,17 +103,17 @@ def assert_forbidden_literals(text: str, literals: list[Any], label: str) -> Non
 def assert_fixture_shape(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
-        fixture.get("kind") == "workflow_node_designer_layout_review_findings_v1",
+        fixture.get("kind") == "workflow_node_designer_builder_interaction_polish_v1",
         "unexpected kind",
     )
     slice_info = fixture.get("slice") or {}
     require(
-        slice_info.get("id") == "workflow-node-designer-layout-review-findings-v1",
+        slice_info.get("id") == "workflow-node-designer-builder-interaction-polish-v1",
         "unexpected slice id",
     )
     require(slice_info.get("track") == "Workflow / Agent Runtime", "unexpected track")
     require(
-        slice_info.get("status") == "workflow_node_designer_layout_review_findings_v1_implemented",
+        slice_info.get("status") == "workflow_node_designer_builder_interaction_polish_v1_implemented",
         "unexpected slice status",
     )
     missing_claims = sorted(EXPECTED_FORBIDDEN_CLAIMS - set(slice_info.get("does_not_claim") or []))
@@ -129,6 +136,10 @@ def assert_edge_save_contract(fixture: dict[str, Any]) -> None:
     require(not missing_forbidden, f"missing forbidden persisted edge fields: {missing_forbidden}")
     missing_layout_facts = sorted(EXPECTED_LAYOUT_REVIEW_FACTS - set(contract.get("layout_review_facts") or []))
     require(not missing_layout_facts, f"missing layout review facts: {missing_layout_facts}")
+    missing_interaction_facts = sorted(
+        EXPECTED_BUILDER_INTERACTION_FACTS - set(contract.get("builder_interaction_facts") or [])
+    )
+    require(not missing_interaction_facts, f"missing builder interaction facts: {missing_interaction_facts}")
 
 
 def assert_frontend_contract(fixture: dict[str, Any]) -> None:
@@ -193,6 +204,13 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
         style_text.index("@media (max-width: 1280px)") < style_text.index("@media (max-width: 820px)"),
         "node designer medium width breakpoint must precede narrow width overrides",
     )
+    require(
+        node_designer_text.index("const selectNode = useCallback(")
+        < node_designer_text.index("const displayedNodes = useMemo(")
+        < node_designer_text.index("selected: node.data.draftNodeId === selectedNodeId")
+        < node_designer_text.index("aria-pressed={node.nodeId === selectedNodeId}"),
+        "node quick selection must stay UI-only and drive displayed node selection",
+    )
 
 
 def assert_docs_and_fast_baseline(fixture: dict[str, Any]) -> None:
@@ -237,7 +255,7 @@ def main() -> None:
     assert_frontend_contract(fixture)
     assert_docs_and_fast_baseline(fixture)
     assert_testing_strategy(fixture)
-    print("workflow node designer layout review findings v1 checks passed.")
+    print("workflow node designer builder interaction polish v1 checks passed.")
 
 
 if __name__ == "__main__":

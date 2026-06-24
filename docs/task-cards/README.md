@@ -169,6 +169,7 @@
 118. [`Workflow Node Designer Edge Editing Save Preconditions` v1 任务卡](workflow-node-designer-edge-editing-save-preconditions-v1-plan.md)（`workflow-node-designer-edge-editing-save-preconditions-v1`）
 119. [`Workflow Node Designer Controlled Edge Mutation Implementation` v1 任务卡](workflow-node-designer-controlled-edge-mutation-implementation-v1-plan.md)（`workflow-node-designer-controlled-edge-mutation-implementation-v1`）
 120. [`Workflow Node Designer Layout Review Findings` v1 任务卡](workflow-node-designer-layout-review-findings-v1-plan.md)（`workflow-node-designer-layout-review-findings-v1`）
+121. [`Workflow Node Designer Builder Interaction Polish` v1 任务卡](workflow-node-designer-builder-interaction-polish-v1-plan.md)（`workflow-node-designer-builder-interaction-polish-v1`）
 
 ## UI 设计专题
 

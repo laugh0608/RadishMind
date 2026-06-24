@@ -1446,6 +1446,98 @@ h4 {
   line-height: 1.45;
 }
 
+.workflow-node-designer-interaction-bar {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.6fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.workflow-node-designer-feedback,
+.workflow-node-designer-node-switcher {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.workflow-node-designer-feedback.good {
+  border-color: #b9e4ca;
+  background: #f0fbf4;
+}
+
+.workflow-node-designer-feedback.bad {
+  border-color: #efb8b0;
+  background: #fff4f2;
+}
+
+.workflow-node-designer-feedback span,
+.workflow-node-designer-node-switcher > span {
+  color: #607086;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.workflow-node-designer-feedback strong {
+  overflow-wrap: anywhere;
+  color: #17202a;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.workflow-node-designer-feedback p {
+  margin: 0;
+  color: #607086;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.workflow-node-designer-node-switcher-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workflow-node-designer-node-switcher button {
+  display: grid;
+  gap: 2px;
+  min-width: 120px;
+  max-width: 220px;
+  min-height: 44px;
+  padding: 7px 9px;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #17202a;
+  text-align: left;
+}
+
+.workflow-node-designer-node-switcher button.selected {
+  border-color: #2f6fed;
+  background: #eef4ff;
+}
+
+.workflow-node-designer-node-switcher button strong,
+.workflow-node-designer-node-switcher button small {
+  overflow-wrap: anywhere;
+}
+
+.workflow-node-designer-node-switcher button strong {
+  font-size: 0.8rem;
+  line-height: 1.25;
+}
+
+.workflow-node-designer-node-switcher button small {
+  color: #607086;
+  font-size: 0.7rem;
+  line-height: 1.25;
+}
+
 .workflow-node-designer-shell {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(320px, 0.85fr);
@@ -1459,6 +1551,15 @@ h4 {
   border: 1px solid #d8e0ea;
   border-radius: 8px;
   background: #ffffff;
+}
+
+.workflow-node-designer-canvas.locked {
+  border-color: #e5c2bd;
+  background: #fff8f6;
+}
+
+.workflow-node-designer-canvas.editable {
+  border-color: #c9d8ec;
 }
 
 .workflow-node-designer-canvas .react-flow {
@@ -1576,6 +1677,14 @@ h4 {
   color: #607086;
   font-size: 0.84rem;
   line-height: 1.45;
+}
+
+.workflow-node-designer-inspector-feedback.good {
+  color: #17643a;
+}
+
+.workflow-node-designer-inspector-feedback.bad {
+  color: #9a3026;
 }
 
 .workflow-node-designer-inspector label {
@@ -2454,6 +2563,7 @@ dd {
   }
 
   .workflow-node-designer-mapping-summary,
+  .workflow-node-designer-interaction-bar,
   .workflow-draft-edge-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2605,9 +2715,15 @@ dd {
   }
 
   .workflow-node-designer-inspector,
+  .workflow-node-designer-interaction-bar,
   .workflow-node-designer-edge-action,
   .workflow-draft-edge-heading {
     grid-template-columns: 1fr;
+  }
+
+  .workflow-node-designer-node-switcher button {
+    flex: 1 1 150px;
+    max-width: none;
   }
 
   .workflow-node-designer-edge-action button,
