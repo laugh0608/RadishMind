@@ -17,6 +17,8 @@
 - Review Handoff 面板新增 `Node Designer Review Handoff` 区域，展示每段 source surface、status、primary ref、item count、request / audit metadata、summary 和 reviewer question。
 - `nodeDesignerReviewRecord` 只消费 active draft session 的 `designerLayout`、节点 / 边、validation inspector、execution plan preview 和 runtime readiness inspector；`designerLayout.persistence` 可能是 `ui_only` 或 `saved_draft_metadata`，但 Handoff 不把 layout、derived edge kind、overlay 或 inspector state 写入自己的持久化记录。
 - `Workflow Node Designer Persisted Layout v1` 已把节点坐标保存为 `additional_fields.designer_layout_v1`，Review Handoff 只展示该 saved draft metadata 来源。
+- `Workflow Node Designer Controlled Edge Mutation Implementation v1` 已让 Review Handoff 消费新增 / 删除 edge 后的 active draft，不消费 React Flow raw edge 或 handle id。
+- `Workflow Node Designer Validation Overlay Navigation v1` 已把 finding focus 映射到画布节点 / 连线 / inspector；Review Handoff 只汇总 validation overlay evidence，不保存当前 focus 或 selection。
 - 新增 `workflow-node-designer-review-handoff-v1` fixture / checker，并接入 fast baseline。
 
 ## 数据边界
@@ -44,7 +46,8 @@
 2. validation inspector、execution plan preview 和 runtime readiness inspector 继续从同一 active draft 派生。
 3. Review Handoff 先展示已有 active draft validation / plan / readiness record。
 4. Node Designer Review Handoff 紧随其后展示 canvas layout、validation overlay、inspector state 和 saved draft mapping。
-5. Reviewer 只能把这些内容作为审查上下文，不能据此发布、运行、提交确认或写回上层业务真相源。
+5. 如果 reviewer 在画布中聚焦某个 validation finding，该 focus 只帮助定位节点 / 连线；handoff record 仍按 active draft 和 inspector evidence 重新派生。
+6. Reviewer 只能把这些内容作为审查上下文，不能据此发布、运行、提交确认或写回上层业务真相源。
 
 ## 验收方式
 

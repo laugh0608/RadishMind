@@ -20,6 +20,8 @@
 - `Workflow Node Designer Saved Draft Mapping Implementation v1` 已实现 UI-only layout：拖拽节点会回写 active draft session，Save Draft 前展示 mapping summary。
 - `Workflow Node Designer Review Handoff v1` 已实现 Review Handoff 消费：`nodeDesignerReviewRecord` 汇总 layout、validation overlay、inspector state 和 saved draft mapping，不创建独立 handoff persistence。
 - `Workflow Node Designer Persisted Layout v1` 已实现：Save Draft 写入受控节点坐标，Restore 恢复 `saved_draft_metadata` layout，专项 checker 已接入 fast baseline。
+- `Workflow Node Designer Controlled Edge Mutation Implementation v1` 已实现：合法画布连接会新增 active draft edge，inspector connected edge 条目可删除 active draft edge；两者都会保持 `local_edit` / `unsaved_local` 语义。
+- `Workflow Node Designer Validation Overlay Navigation v1` 已实现：finding focus 和高亮只存在于画布 UI，不进入 saved draft payload、layout metadata 或 Review Handoff persistence。
 
 ## 映射结论
 
@@ -33,6 +35,14 @@ v1 保持 active draft 为业务真相源，React Flow state 只能作为 UI vie
 - saved draft persisted edge 继续以 `from_node_id`、`to_node_id` 和 `condition_summary` 为稳定字段。
 - `data_edge`、`control_edge`、`guard_edge`、`audit_edge` 只能由 node type、lane、requires confirmation、risk 和 condition summary 派生。
 - 如果后续确实需要持久化 edge kind，必须先定义 schema 字段、restore 兼容策略、fixture、checker 和 migration 行为。
+
+## 受控 Edge Mutation 映射
+
+画布新增 / 删除连线的业务真相源仍是 active draft 的 `draft.edges`。新增连线时，前端只在校验通过后生成或复用稳定 `edgeId`、`fromNodeId`、`toNodeId`、transient `edgeKind` 和 reviewable `conditionSummary`；保存时 `savedWorkflowDraftConsumer` 仍只把 edge 映射为 `edge_id`、`from_node_id`、`to_node_id` 和 `condition_summary`。
+
+删除连线时，Node Designer inspector 调用 active draft edge removal；validation inspector、Preview Plan、Runtime Readiness 和 Review Handoff 在下一次 render 中消费 mutation 后的 active draft。删除操作不会写入 deletion log、runtime order、React Flow edge、handle id、port id 或额外 `additional_fields`。
+
+validation overlay focus 不参与保存映射。用户点击 finding 只改变画布高亮和当前 inspector 选择，不改变 `draft.edges`、`designer_layout_v1` 或 saved draft record。
 
 ## 已完成实现
 

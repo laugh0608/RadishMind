@@ -8,7 +8,7 @@
 
 `Workflow Node Designer Edge Editing Save Preconditions v1` 承接 [Workflow Node Designer Persisted Layout v1](node-designer-persisted-layout-v1.md)，定义画布连线从 preview feedback 进入 saved draft 保存链路前必须满足的边界。
 
-本专题只定义 edge mutation 的保存前置、允许字段、验证证据和后续实现拆分。它不直接实现画布新增 / 删除边，不扩展 Go schema，不保存 React Flow 原始 edge 对象，不新增 backend route、repository mode、真实数据库、OIDC middleware、token validation、membership adapter、public production API、publish、run、executor、confirmation decision、writeback、replay 或 materialized result reader。
+本专题定义 edge mutation 的保存前置、允许字段、验证证据和实现拆分；后续已由 `Workflow Node Designer Controlled Edge Mutation Implementation v1` 完成画布新增 / 删除边的 active draft mutation。该链路不扩展 Go schema，不保存 React Flow 原始 edge 对象，不新增 backend route、repository mode、真实数据库、OIDC middleware、token validation、membership adapter、public production API、publish、run、executor、confirmation decision、writeback、replay 或 materialized result reader。
 
 ## 已知事实
 
@@ -55,13 +55,13 @@
 7. derived edge kind 只能继续作为 UI / review state，不进入 persisted saved draft schema。
 8. mutation 后必须标记 `local_edit` / `unsaved_local`，并继续复用 existing saved draft version conflict 与 no sample fallback 语义。
 
-## 后续实现拆分
+## 已完成实现拆分
 
-建议下一张实现任务卡只做以下内容：
+`Workflow Node Designer Controlled Edge Mutation Implementation v1` 已按以下范围完成：
 
 - 在 `WorkflowNodeDesigner` 中把合法 `onConnect` 从 preview feedback 升级为调用 `onAddEdge`。
 - 在 `App.tsx` 中新增 active draft edge add / remove helper，复用现有 `workflowDraftEdgeId`、`workflowDraftEdgeKindForConnection` 和 `workflowDraftEdgeConditionSummary`。
-- 在 Node Designer 或列表式 edge card 中提供删除边入口，并保留删除保护提示。
+- 在 Node Designer inspector connected edge 条目中提供删除边入口，并保留删除保护提示。
 - 保存 / restore 继续走现有 `savedWorkflowDraftConsumer` edge mapping。
 - Review Handoff 和 validation inspector 继续消费 active draft，不新增 handoff persistence。
 
@@ -74,7 +74,7 @@
 - 本专题和任务卡被文档入口收录。
 - 专项 checker 固定当前代码事实、保存前置、文档引用和 fast baseline 顺序。
 - 本批不改运行时代码时，运行专项 checker、`git diff --check` 和 `./scripts/check-repo.sh --fast`。
-- 后续实现任务必须补 Web build，并根据实际改动补前端 checker 或 saved draft consumer smoke。
+- controlled edge mutation 实现已补 Web build、专项 checker 更新和 fast baseline；后续若继续扩 edge persisted schema，再补前端 / Go schema / saved draft consumer smoke。
 
 ## 停止线
 
