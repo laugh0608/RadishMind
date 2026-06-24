@@ -89,6 +89,7 @@ import {
   type WorkflowDraftDesignerBlockedCapability,
   type WorkflowDraftDesignerDraft,
   type WorkflowDraftDesignerEdge,
+  type WorkflowDraftDesignerLayout,
   type WorkflowDraftDesignerNode,
   type WorkflowDraftDesignerReadiness,
   type WorkflowDraftDesignerRisk,
@@ -522,6 +523,21 @@ export function App() {
 
   const handleWorkflowDraftNodeOutputMappingChange = (nodeId: string, outputMappingSummary: string) => {
     handleWorkflowDraftNodePatch(nodeId, { outputMappingSummary });
+  };
+
+  const handleWorkflowDraftNodeDesignerPositionChange = (nodeId: string, x: number, y: number) => {
+    setEditableWorkflowDraft((draft) => {
+      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
+      if (!currentDraft.nodes.some((node) => node.nodeId === nodeId)) {
+        return currentDraft;
+      }
+      return {
+        ...currentDraft,
+        localOnlyInteraction: "local_edit",
+        designerLayout: workflowDraftLayoutWithNodePosition(currentDraft, nodeId, x, y),
+      };
+    });
+    markWorkflowDraftLocallyEdited();
   };
 
   const handleWorkflowDraftNodePatch = (
@@ -1451,6 +1467,7 @@ export function App() {
             onUpdateNodeInputFields={handleWorkflowDraftNodeInputFieldsChange}
             onUpdateNodeOutputFields={handleWorkflowDraftNodeOutputFieldsChange}
             onUpdateNodeOutputMapping={handleWorkflowDraftNodeOutputMappingChange}
+            onUpdateNodeDesignerPosition={handleWorkflowDraftNodeDesignerPositionChange}
             onUpdateEdgeCondition={handleWorkflowDraftEdgeConditionChange}
             onAddNode={handleWorkflowDraftAddNode}
             onMoveNode={handleWorkflowDraftMoveNode}
@@ -2878,6 +2895,7 @@ function WorkflowDraftDesignerPanel({
   onUpdateNodeInputFields,
   onUpdateNodeOutputFields,
   onUpdateNodeOutputMapping,
+  onUpdateNodeDesignerPosition,
   onUpdateEdgeCondition,
   onAddNode,
   onMoveNode,
@@ -2904,6 +2922,7 @@ function WorkflowDraftDesignerPanel({
   onUpdateNodeInputFields: (nodeId: string, inputFieldsText: string) => void;
   onUpdateNodeOutputFields: (nodeId: string, outputFieldsText: string) => void;
   onUpdateNodeOutputMapping: (nodeId: string, outputMappingSummary: string) => void;
+  onUpdateNodeDesignerPosition: (nodeId: string, x: number, y: number) => void;
   onUpdateEdgeCondition: (edgeId: string, conditionSummary: string) => void;
   onAddNode: (nodeType: WorkflowDraftDesignerNode["nodeType"]) => void;
   onMoveNode: (nodeId: string, direction: WorkflowDraftNodeMoveDirection) => void;
@@ -3070,6 +3089,7 @@ function WorkflowDraftDesignerPanel({
         onUpdateNodeToolRef={onUpdateNodeToolRef}
         onUpdateNodeRagRef={onUpdateNodeRagRef}
         onUpdateNodeOutputMapping={onUpdateNodeOutputMapping}
+        onUpdateNodeDesignerPosition={onUpdateNodeDesignerPosition}
         onRemoveNode={onRemoveNode}
       />
 
@@ -3148,10 +3168,21 @@ function cloneWorkflowDraftForEditing(draft: WorkflowDraftDesignerDraft): Workfl
       outputContractFields: [...node.outputContractFields],
     })),
     edges: draft.edges.map((edge) => ({ ...edge })),
+    designerLayout: cloneWorkflowDraftDesignerLayout(draft.designerLayout),
     readiness: draft.readiness.map((readiness) => ({ ...readiness })),
     risks: draft.risks.map((risk) => ({ ...risk })),
     blockedCapabilities: draft.blockedCapabilities.map((capability) => ({ ...capability })),
     routeMetadata: { ...draft.routeMetadata },
+  };
+}
+
+function cloneWorkflowDraftDesignerLayout(
+  layout: WorkflowDraftDesignerLayout,
+): WorkflowDraftDesignerLayout {
+  return {
+    source: "workflow_node_designer",
+    persistence: "ui_only",
+    nodePositions: layout.nodePositions.map((position) => ({ ...position })),
   };
 }
 
@@ -3259,8 +3290,49 @@ function workflowDraftWithStructureEdits(
     ...draft,
     nodes,
     edges: rebuildWorkflowDraftEdges(nodes, draft.edges),
+    designerLayout: workflowDraftLayoutForNodes(draft.designerLayout, nodes),
     localOnlyInteraction: "local_edit",
   };
+}
+
+function workflowDraftLayoutForNodes(
+  layout: WorkflowDraftDesignerLayout,
+  nodes: WorkflowDraftDesignerNode[],
+): WorkflowDraftDesignerLayout {
+  const nodeIds = new Set(nodes.map((node) => node.nodeId));
+  return {
+    source: "workflow_node_designer",
+    persistence: "ui_only",
+    nodePositions: layout.nodePositions.filter((position) => nodeIds.has(position.nodeId)),
+  };
+}
+
+function workflowDraftLayoutWithNodePosition(
+  draft: WorkflowDraftDesignerDraft,
+  nodeId: string,
+  x: number,
+  y: number,
+): WorkflowDraftDesignerLayout {
+  const nodeIds = new Set(draft.nodes.map((node) => node.nodeId));
+  const nextPosition = {
+    nodeId,
+    x: workflowDraftDesignerCoordinate(x),
+    y: workflowDraftDesignerCoordinate(y),
+  };
+  const positions = draft.designerLayout.nodePositions
+    .filter((position) => nodeIds.has(position.nodeId) && position.nodeId !== nodeId);
+  return {
+    source: "workflow_node_designer",
+    persistence: "ui_only",
+    nodePositions: [...positions, nextPosition],
+  };
+}
+
+function workflowDraftDesignerCoordinate(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+  return Math.max(-10000, Math.min(10000, Math.round(value)));
 }
 
 function insertWorkflowDraftNode(

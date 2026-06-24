@@ -59,6 +59,7 @@ type WorkflowNodeDesignerProps = {
   onUpdateNodeToolRef: (nodeId: string, toolRef: string) => void;
   onUpdateNodeRagRef: (nodeId: string, ragRef: string) => void;
   onUpdateNodeOutputMapping: (nodeId: string, outputMappingSummary: string) => void;
+  onUpdateNodeDesignerPosition: (nodeId: string, x: number, y: number) => void;
   onRemoveNode: (nodeId: string) => void;
 };
 
@@ -96,6 +97,7 @@ export function WorkflowNodeDesigner({
   onUpdateNodeToolRef,
   onUpdateNodeRagRef,
   onUpdateNodeOutputMapping,
+  onUpdateNodeDesignerPosition,
   onRemoveNode,
 }: WorkflowNodeDesignerProps) {
   const initialNodes = useMemo(() => buildWorkflowNodeDesignerNodes(draft, canRemoveNode), [draft, canRemoveNode]);
@@ -144,6 +146,17 @@ export function WorkflowNodeDesigner({
     setSelectedNodeId(node.data.draftNodeId);
   }, []);
 
+  const onNodeDragStop = useCallback(
+    (_: unknown, node: WorkflowNodeDesignerNode) => {
+      onUpdateNodeDesignerPosition(node.data.draftNodeId, node.position.x, node.position.y);
+    },
+    [onUpdateNodeDesignerPosition],
+  );
+
+  const mappedLayoutCount = draft.designerLayout.nodePositions.filter((position) =>
+    draft.nodes.some((node) => node.nodeId === position.nodeId),
+  ).length;
+
   return (
     <section className="workflow-node-designer" aria-label="Workflow node designer canvas">
       <div className="workflow-node-designer-toolbar">
@@ -155,6 +168,24 @@ export function WorkflowNodeDesigner({
           <span>{draft.localOnlyInteraction}</span>
           <strong>{draft.nodes.length} nodes / {draft.edges.length} derived edges</strong>
         </div>
+      </div>
+
+      <div className="workflow-node-designer-mapping-summary" aria-label="Workflow node designer saved draft mapping">
+        <article>
+          <span>Saved draft mapping</span>
+          <strong>Attributes and edge endpoints</strong>
+          <p>Save Draft writes node attributes, contract fields, edge endpoints, and condition summaries.</p>
+        </article>
+        <article>
+          <span>UI-only layout</span>
+          <strong>{mappedLayoutCount} positioned nodes</strong>
+          <p>Node positions stay in the active draft session and are not written to persisted saved draft schema.</p>
+        </article>
+        <article>
+          <span>Derived edge kind</span>
+          <strong>Not persisted</strong>
+          <p>Canvas edge colors are derived from node lane, risk, policy, and audit context.</p>
+        </article>
       </div>
 
       <div className="workflow-node-designer-shell">
@@ -172,6 +203,7 @@ export function WorkflowNodeDesigner({
             maxZoom={1.4}
             onNodesChange={onNodesChange}
             onNodeClick={onNodeClick}
+            onNodeDragStop={onNodeDragStop}
             onConnect={onConnect}
             isValidConnection={isValidConnection}
           >
@@ -214,16 +246,22 @@ function buildWorkflowNodeDesignerNodes(
   canRemoveNode: (nodeId: string) => boolean,
 ): WorkflowNodeDesignerNode[] {
   const laneCounts = new Map<WorkflowDraftDesignerNode["lane"], number>();
+  const positionsByNodeId = new Map(
+    draft.designerLayout.nodePositions.map((position) => [position.nodeId, position]),
+  );
   return draft.nodes.map((node, index) => {
     const laneIndex = laneCounts.get(node.lane) ?? 0;
     laneCounts.set(node.lane, laneIndex + 1);
+    const savedPosition = positionsByNodeId.get(node.nodeId);
     return {
       id: node.nodeId,
       type: "workflowDraftNode",
-      position: {
-        x: LANE_X[node.lane],
-        y: laneIndex * 190 + (index % 2) * 18,
-      },
+      position: savedPosition
+        ? { x: savedPosition.x, y: savedPosition.y }
+        : {
+            x: LANE_X[node.lane],
+            y: laneIndex * 190 + (index % 2) * 18,
+          },
       data: {
         draftNodeId: node.nodeId,
         label: node.label,

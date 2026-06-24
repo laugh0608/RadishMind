@@ -651,6 +651,11 @@ function workflowDraftFromSavedWorkflowDraftDocument(
       edgeKind: "context",
       conditionSummary: edge.condition_summary || "Saved draft edge restored from dev record.",
     })),
+    designerLayout: {
+      source: "workflow_node_designer",
+      persistence: "ui_only",
+      nodePositions: [],
+    },
     readiness: [
       {
         checkId: "saved_draft_restore_validation",

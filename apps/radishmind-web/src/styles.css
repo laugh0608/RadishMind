@@ -1401,6 +1401,42 @@ h4 {
   font-size: 0.9rem;
 }
 
+.workflow-node-designer-mapping-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.workflow-node-designer-mapping-summary article {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.workflow-node-designer-mapping-summary span {
+  color: #607086;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.workflow-node-designer-mapping-summary strong {
+  color: #17202a;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.workflow-node-designer-mapping-summary p {
+  margin: 0;
+  color: #607086;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
 .workflow-node-designer-shell {
   display: grid;
   grid-template-columns: minmax(0, 2.4fr) minmax(280px, 0.9fr);
@@ -2372,6 +2408,8 @@ dd {
   .workflow-draft-consumer-grid,
   .workflow-draft-structure-controls,
   .workflow-draft-add-node-grid,
+  .workflow-node-designer-mapping-summary,
+  .workflow-node-designer-shell,
   .workflow-draft-node-grid,
   .workflow-draft-node-attribute-grid,
   .workflow-draft-edge-grid,

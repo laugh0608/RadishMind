@@ -92,7 +92,7 @@
 
 - 本文档进入 workflow 细专题入口。
 - `Workflow Node Designer Surface v1` 的实现拆分更新为“库选型已完成，surface implementation 任务卡已实现”。
-- 当前焦点能说明 Builder 体验下一步转为 mapping implementation 或 Review Handoff 消费增强，而不是进入 executor。
+- 当前焦点能说明 Builder 体验下一步转为 Review Handoff 消费增强或 persisted layout schema 评审，而不是进入 executor。
 - 不产生依赖、代码、schema、fixture、checker 或 runtime artifact。
 - `./scripts/check-repo.sh --fast` 通过。
 
