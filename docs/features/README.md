@@ -54,6 +54,7 @@
 | [Workflow Node Designer Saved Draft Mapping v1](workflow/node-designer-saved-draft-mapping-v1.md) | 功能专题 | 固定节点画布 layout metadata、edge kind、validation overlay 与 saved draft / Review Handoff 的映射边界，并已完成 UI-only layout mapping |
 | [Workflow Node Designer Review Handoff v1](workflow/node-designer-review-handoff-v1.md) | 页面 / Surface 专题 | 固定节点画布 layout、validation overlay、inspector state 和 saved draft mapping 进入现有 Review Handoff 的消费边界 |
 | [Workflow Node Designer Persisted Layout v1](workflow/node-designer-persisted-layout-v1.md) | 功能专题 | 固定 `additional_fields.designer_layout_v1` 的受控 schema、保存 / 恢复兼容、Go `AdditionalFields` 保留和 forbidden field 负向边界 |
+| [Workflow Node Designer Edge Editing Save Preconditions v1](workflow/node-designer-edge-editing-save-preconditions-v1.md) | 前置设计专题 | 固定画布连线新增 / 删除进入 saved draft 保存链路前的允许字段、保存前置、validation 消费和停止线 |
 | [Dev-only Saved Draft Consumer](workflow/dev-only-saved-draft-consumer.md) | 实现专题 | 固定下一批 dev-only HTTP route + web consumer 的准入、验收和停止线 |
 | [Workflow Draft Editing Entry v1](workflow/draft-editing-entry-v1.md) | 功能 / 页面专题 | 固定草案名称、说明、节点名称和边条件摘要的受控本地编辑入口 |
 | [User Workspace Draft Creation v1](workflow/user-workspace-draft-creation-v1.md) | 功能 / 页面专题 | 固定从 Workspace Home / workflow definitions 创建本地草案并进入 Draft Designer 的入口 |

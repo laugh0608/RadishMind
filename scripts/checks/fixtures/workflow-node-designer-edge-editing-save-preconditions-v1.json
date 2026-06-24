@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_node_designer_edge_editing_save_preconditions_v1",
+  "slice": {
+    "id": "workflow-node-designer-edge-editing-save-preconditions-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "workflow_node_designer_edge_editing_save_preconditions_v1_defined",
+    "does_not_claim": [
+      "edge_mutation_runtime_ready",
+      "react_flow_raw_edge_persistence",
+      "handle_id_persistence_ready",
+      "port_id_persistence_ready",
+      "derived_edge_kind_persistence_ready",
+      "runtime_order_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "durable_persistence_ready",
+      "production_api_consumer_ready",
+      "database_ready",
+      "repository_adapter_ready",
+      "radish_oidc_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-node-designer-persisted-layout-v1",
+    "workflow-node-designer-saved-draft-mapping-v1",
+    "workflow-draft-designer-editing-model-v2"
+  ],
+  "edge_save_contract": {
+    "allowed_draft_fields": [
+      "edgeId",
+      "fromNodeId",
+      "toNodeId",
+      "conditionSummary"
+    ],
+    "saved_payload_fields": [
+      "edge_id",
+      "from_node_id",
+      "to_node_id",
+      "condition_summary"
+    ],
+    "required_preconditions": [
+      "known_active_draft_nodes",
+      "no_self_loop",
+      "no_duplicate_from_to_pair",
+      "stable_edge_id",
+      "non_empty_condition_summary",
+      "validation_inspector_consumes_mutated_edges",
+      "local_edit_unsaved_state",
+      "no_react_flow_raw_edge"
+    ],
+    "forbidden_persisted_fields": [
+      "react_flow_edge",
+      "handle_id",
+      "port_id",
+      "viewport",
+      "selection",
+      "connection_preview",
+      "visual_edge_style",
+      "derived_edge_kind",
+      "runtime_order",
+      "run_input",
+      "run_output",
+      "confirmation_decision",
+      "writeback_payload",
+      "executor_result"
+    ]
+  },
+  "frontend_contract": {
+    "node_designer_file": "apps/radishmind-web/src/features/control-plane-read/workflowNodeDesigner.tsx",
+    "consumer_file": "apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts",
+    "app_file": "apps/radishmind-web/src/app/App.tsx",
+    "validation_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftValidationInspector.ts",
+    "required_node_designer_literals": [
+      "Preview only:",
+      "Save mapping is not changed.",
+      "validateWorkflowNodeDesignerConnection(",
+      "connection.source === connection.target",
+      "draft.edges.some((edge) => edge.fromNodeId === source.nodeId && edge.toNodeId === target.nodeId)"
+    ],
+    "required_consumer_literals": [
+      "edge_id: edge.edgeId",
+      "from_node_id: edge.fromNodeId",
+      "to_node_id: edge.toNodeId",
+      "condition_summary: edge.conditionSummary",
+      "edgeKind: \"context\"",
+      "Saved draft edge restored from dev record."
+    ],
+    "required_app_literals": [
+      "handleWorkflowDraftEdgeConditionChange",
+      "WorkflowDraftEdgeCard",
+      "workflowDraftEdgeId(",
+      "workflowDraftEdgeKindForConnection(",
+      "workflowDraftEdgeConditionSummary(",
+      "rebuildWorkflowDraftEdges("
+    ],
+    "required_validation_literals": [
+      "output_audit_path",
+      "orphan_node_scan",
+      "edges.some((edge) => edge.edgeKind === \"audit\")"
+    ],
+    "forbidden_runtime_literals": [
+      "onAddEdge",
+      "onRemoveEdge",
+      "ReactFlowEdge",
+      "handle_id",
+      "port_id"
+    ]
+  },
+  "required_doc_references": {
+    "docs/features/workflow/node-designer-edge-editing-save-preconditions-v1.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions v1",
+      "workflow_node_designer_edge_editing_save_preconditions_v1_defined",
+      "Preview only",
+      "edgeId",
+      "fromNodeId",
+      "toNodeId",
+      "conditionSummary",
+      "不保存 React Flow 原始 edge 对象"
+    ],
+    "docs/task-cards/workflow-node-designer-edge-editing-save-preconditions-v1-plan.md": [
+      "workflow_node_designer_edge_editing_save_preconditions_v1_defined",
+      "WorkflowNodeDesigner.onConnect",
+      "draft.edges",
+      "专项 fixture / checker"
+    ],
+    "docs/features/workflow/README.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions v1",
+      "workflow_node_designer_edge_editing_save_preconditions_v1_defined"
+    ],
+    "docs/features/README.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions v1"
+    ],
+    "docs/features/workflow-agent-runtime.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions v1",
+      "conditionSummary"
+    ],
+    "docs/features/workflow/node-designer-surface-v1.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions v1",
+      "workflow_node_designer_edge_editing_save_preconditions_v1_defined"
+    ],
+    "docs/features/workflow/node-designer-persisted-layout-v1.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions v1",
+      "edgeId"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions v1",
+      "workflow_node_designer_edge_editing_save_preconditions_v1_defined"
+    ],
+    "docs/devlogs/2026-W26.md": [
+      "workflow-node-designer-edge-editing-save-preconditions-v1",
+      "workflow_node_designer_edge_editing_save_preconditions_v1_defined"
+    ],
+    "docs/task-cards/README.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions"
+    ],
+    "scripts/README.md": [
+      "workflow-node-designer-edge-editing-save-preconditions-v1"
+    ]
+  },
+  "testing_strategy": [
+    {
+      "id": "workflow_node_designer_edge_editing_save_preconditions_v1_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-node-designer-edge-editing-save-preconditions-v1.py"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ]
+}

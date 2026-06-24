@@ -26,7 +26,8 @@
 8. 已实现：[Workflow Node Designer Saved Draft Mapping Implementation v1](../../task-cards/workflow-node-designer-saved-draft-mapping-implementation-v1-plan.md)，完成 UI-only layout、拖拽回写和 mapping summary。
 9. 已实现：[Workflow Node Designer Review Handoff v1](node-designer-review-handoff-v1.md)，把 canvas layout、validation overlay、inspector state 和 saved draft mapping 汇总进现有 Review Handoff。
 10. 已实现：[Workflow Node Designer Persisted Layout v1](node-designer-persisted-layout-v1.md)，通过 `additional_fields.designer_layout_v1` 保存受控节点坐标，恢复时兼容旧草案和非法 layout metadata。
-11. 后续独立目标：publish、run、executor、confirmation、writeback 和 replay。
+11. 已定义：[Workflow Node Designer Edge Editing Save Preconditions v1](node-designer-edge-editing-save-preconditions-v1.md)，状态为 `workflow_node_designer_edge_editing_save_preconditions_v1_defined`，固定画布连线新增 / 删除进入 `draft.edges` 和 saved draft 保存链路前的字段、保存前置与 validation 消费。
+12. 后续独立目标：publish、run、executor、confirmation、writeback 和 replay。
 
 它不替代 durable store 上游前置，也不解锁 repository mode。若下一批选择继续 durable store，上游 auth、membership、schema marker、secret resolver、connection provider 和 production resolver blocker 仍按既有专题推进。
 
@@ -135,6 +136,7 @@ Node Designer Surface 建议保持四区布局：
 4. [Workflow Node Designer Saved Draft Mapping Implementation v1](../../task-cards/workflow-node-designer-saved-draft-mapping-implementation-v1-plan.md)：已实现 UI-only session layout、节点拖拽回写和 mapping summary。
 5. [Workflow Node Designer Review Handoff v1](node-designer-review-handoff-v1.md)：已把 node designer review handoff、validation overlay、inspector state 和 saved draft mapping 汇总到 existing Review Handoff，不创建 runtime review store。
 6. [Workflow Node Designer Persisted Layout v1](node-designer-persisted-layout-v1.md)：已实现 `additional_fields.designer_layout_v1` 受控 schema、保存 / 恢复兼容、Go `AdditionalFields` 保留和 saved draft layout metadata checker。
+7. [Workflow Node Designer Edge Editing Save Preconditions v1](node-designer-edge-editing-save-preconditions-v1.md)：已固定后续画布连线新增 / 删除只写入 `draft.edges` 的 `edgeId`、`fromNodeId`、`toNodeId` 和 `conditionSummary`，并要求 validation inspector、local edit 状态和 saved draft mapping 保持一致。
 
 ## 验收方式
 

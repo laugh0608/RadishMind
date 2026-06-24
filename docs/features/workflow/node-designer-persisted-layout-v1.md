@@ -58,6 +58,10 @@
 - 坐标非数字或非法时忽略对应节点坐标；合法坐标会在保存和恢复两侧进行限幅。
 - 旧 saved draft 没有 layout metadata 时仍可读取、校验、保存和审查。
 
+## 后续衔接
+
+`Workflow Node Designer Edge Editing Save Preconditions v1` 已承接下一段 Builder 体验前置，固定后续画布连线新增 / 删除只能写入 `draft.edges` 的 `edgeId`、`fromNodeId`、`toNodeId` 和 `conditionSummary`，不复用 `additional_fields.designer_layout_v1` 保存 edge kind、handle id、port id、runtime order 或 React Flow 原始 edge。
+
 ## 验收方式
 
 - Web build 覆盖前端类型、payload 序列化、restore guard、Node Designer 摘要和 Review Handoff 文案。
