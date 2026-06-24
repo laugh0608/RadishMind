@@ -25,7 +25,7 @@
 7. 已定义：[Workflow Node Designer Saved Draft Mapping v1](node-designer-saved-draft-mapping-v1.md)，确认 layout metadata、edge kind 与 validation overlay 的 saved draft / Review Handoff 映射边界。
 8. 已实现：[Workflow Node Designer Saved Draft Mapping Implementation v1](../../task-cards/workflow-node-designer-saved-draft-mapping-implementation-v1-plan.md)，完成 UI-only layout、拖拽回写和 mapping summary。
 9. 已实现：[Workflow Node Designer Review Handoff v1](node-designer-review-handoff-v1.md)，把 canvas layout、validation overlay、inspector state 和 saved draft mapping 汇总进现有 Review Handoff。
-10. 后续可选：另开 schema 任务卡评审 `additional_fields.designer_layout_v1` 是否跨会话持久化。
+10. 已实现：[Workflow Node Designer Persisted Layout v1](node-designer-persisted-layout-v1.md)，通过 `additional_fields.designer_layout_v1` 保存受控节点坐标，恢复时兼容旧草案和非法 layout metadata。
 11. 后续独立目标：publish、run、executor、confirmation、writeback 和 replay。
 
 它不替代 durable store 上游前置，也不解锁 repository mode。若下一批选择继续 durable store，上游 auth、membership、schema marker、secret resolver、connection provider 和 production resolver blocker 仍按既有专题推进。
@@ -132,9 +132,9 @@ Node Designer Surface 建议保持四区布局：
 1. [Workflow Node Designer Library Selection v1](node-designer-library-selection-v1.md)：已确定 `@xyflow/react`、状态模型、依赖引入方式、bundle / test 影响和 fallback 策略。
 2. [Workflow Node Designer Surface Implementation v1](../../task-cards/workflow-node-designer-surface-implementation-v1-plan.md)：已接入首批前端画布，只覆盖节点展示、拖拽、连线、选中、inspector、validation overlay 和 active draft 派生。
 3. [Workflow Node Designer Saved Draft Mapping v1](node-designer-saved-draft-mapping-v1.md)：已定义 layout metadata、edge kind、validation overlay 与 saved draft / Review Handoff 的映射边界；不保存 React Flow 原始对象。
-4. [Workflow Node Designer Saved Draft Mapping Implementation v1](../../task-cards/workflow-node-designer-saved-draft-mapping-implementation-v1-plan.md)：已实现 UI-only session layout、节点拖拽回写和 mapping summary；不写入 `additional_fields.designer_layout_v1`。
+4. [Workflow Node Designer Saved Draft Mapping Implementation v1](../../task-cards/workflow-node-designer-saved-draft-mapping-implementation-v1-plan.md)：已实现 UI-only session layout、节点拖拽回写和 mapping summary。
 5. [Workflow Node Designer Review Handoff v1](node-designer-review-handoff-v1.md)：已把 node designer review handoff、validation overlay、inspector state 和 saved draft mapping 汇总到 existing Review Handoff，不创建 runtime review store。
-6. `Workflow Node Designer Persisted Layout v1`：若需要跨会话保存 layout，先评审 `additional_fields.designer_layout_v1` schema、fixture、checker 和兼容 restore。
+6. [Workflow Node Designer Persisted Layout v1](node-designer-persisted-layout-v1.md)：已实现 `additional_fields.designer_layout_v1` 受控 schema、保存 / 恢复兼容、Go `AdditionalFields` 保留和 saved draft layout metadata checker。
 
 ## 验收方式
 

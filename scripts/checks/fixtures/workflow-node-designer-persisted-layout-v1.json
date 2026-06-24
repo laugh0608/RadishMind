@@ -1,0 +1,233 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_node_designer_persisted_layout_v1",
+  "slice": {
+    "id": "workflow-node-designer-persisted-layout-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "workflow_node_designer_persisted_layout_v1_implemented",
+    "does_not_claim": [
+      "react_flow_raw_state_persistence",
+      "viewport_persistence_ready",
+      "selection_persistence_ready",
+      "derived_edge_kind_persistence_ready",
+      "handoff_persistence_ready",
+      "durable_persistence_ready",
+      "production_api_consumer_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "database_ready",
+      "repository_adapter_ready",
+      "store_selector_ready",
+      "radish_oidc_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-node-designer-saved-draft-mapping-implementation-v1",
+    "workflow-node-designer-review-handoff-v1",
+    "workflow-saved-draft-v1-implementation"
+  ],
+  "schema_contract": {
+    "additional_field": "designer_layout_v1",
+    "layout_version": "designer_layout_v1",
+    "source": "workflow_node_designer",
+    "persistence": "saved_draft_metadata",
+    "coordinate_min": -10000,
+    "coordinate_max": 10000,
+    "node_fields": [
+      "node_id",
+      "x",
+      "y",
+      "pinned"
+    ],
+    "pinned_value": false,
+    "forbidden_persisted_fields": [
+      "react_flow_nodes",
+      "react_flow_edges",
+      "viewport",
+      "selection",
+      "drag_state",
+      "connection_preview",
+      "visual_edge_style",
+      "derived_edge_kind",
+      "secret_value",
+      "api_key_value",
+      "token",
+      "oauth_token",
+      "oidc_token",
+      "confirmation_decision",
+      "run_input",
+      "run_output",
+      "materialized_result",
+      "writeback_payload",
+      "executor_result"
+    ]
+  },
+  "frontend_contract": {
+    "draft_type_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesigner.ts",
+    "consumer_file": "apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts",
+    "app_file": "apps/radishmind-web/src/app/App.tsx",
+    "node_designer_file": "apps/radishmind-web/src/features/control-plane-read/workflowNodeDesigner.tsx",
+    "handoff_file": "apps/radishmind-web/src/features/control-plane-read/workflowReviewHandoff.ts",
+    "required_type_literals": [
+      "persistence: \"ui_only\" | \"saved_draft_metadata\";",
+      "nodePositions: WorkflowDraftDesignerLayoutPosition[];"
+    ],
+    "required_consumer_literals": [
+      "const DESIGNER_LAYOUT_VERSION = \"designer_layout_v1\";",
+      "const DESIGNER_LAYOUT_SOURCE = \"workflow_node_designer\";",
+      "const DESIGNER_LAYOUT_PERSISTENCE = \"saved_draft_metadata\";",
+      "const MAX_DESIGNER_LAYOUT_COORDINATE = 10000;",
+      "additional_fields?: SavedWorkflowDraftAdditionalFields;",
+      "type SavedWorkflowDraftDesignerLayoutV1",
+      "toSavedWorkflowDraftAdditionalFields(",
+      "savedWorkflowDraftDesignerLayoutNodes(",
+      "workflowDraftDesignerLayoutFromSavedDraftAdditionalFields(",
+      "workflowDraftDesignerLayoutPositionsFromSavedDraft(",
+      "isSavedWorkflowDraftDesignerLayoutV1(",
+      "pinned: false",
+      "workflowDraftDesignerLayoutCoordinate("
+    ],
+    "required_app_literals": [
+      "persistence: layout.persistence",
+      "persistence: \"ui_only\"",
+      "workflowDraftLayoutWithNodePosition("
+    ],
+    "required_node_designer_literals": [
+      "Layout metadata",
+      "saved draft layout metadata",
+      "viewport and selection remain transient"
+    ],
+    "required_handoff_literals": [
+      "saved draft metadata",
+      "controlled layout metadata",
+      "canPersistLayout: false",
+      "canPersistEdgeKind: false"
+    ],
+    "forbidden_consumer_literals": [
+      "localStorage",
+      "indexedDB",
+      "ReactFlow",
+      "viewport:",
+      "selection:",
+      "derived_edge_kind"
+    ]
+  },
+  "backend_contract": {
+    "domain_file": "services/platform/internal/httpapi/workflow_saved_draft.go",
+    "http_file": "services/platform/internal/httpapi/workflow_saved_draft_http.go",
+    "domain_test_file": "services/platform/internal/httpapi/workflow_saved_draft_test.go",
+    "http_test_file": "services/platform/internal/httpapi/workflow_saved_draft_http_test.go",
+    "required_domain_literals": [
+      "savedWorkflowDraftDesignerLayoutAdditionalField",
+      "savedWorkflowDraftDesignerLayoutVersion",
+      "savedWorkflowDraftDesignerLayoutSource",
+      "savedWorkflowDraftDesignerLayoutPersistence",
+      "\"designer_layout_v1\"",
+      "\"workflow_node_designer\"",
+      "\"saved_draft_metadata\"",
+      "maxSavedWorkflowDraftLayoutCoordinate = 10000",
+      "AdditionalFields           map[string]any",
+      "normalizeSavedWorkflowDraftAdditionalFields(",
+      "normalizeSavedWorkflowDraftDesignerLayout(",
+      "firstSavedWorkflowDraftForbiddenFieldAtPath(",
+      "cloneSavedWorkflowDraftAdditionalFields(",
+      "\"pinned\":  false"
+    ],
+    "required_http_literals": [
+      "AdditionalFields      map[string]any",
+      "AdditionalFields:      document.AdditionalFields",
+      "AdditionalFields:      cloneSavedWorkflowDraftAdditionalFields(payload.AdditionalFields)"
+    ],
+    "required_test_literals": [
+      "designer layout metadata is normalized and restored",
+      "validSavedWorkflowDraftDesignerLayoutAdditionalFields(",
+      "nested forbidden sensitive field",
+      "read did not preserve saved designer layout metadata",
+      "save envelope should preserve designer layout metadata",
+      "read envelope should preserve designer layout metadata"
+    ],
+    "forbidden_backend_literals": [
+      "ReactFlow",
+      "workflow executor",
+      "confirmation decision store",
+      "writeback executor"
+    ]
+  },
+  "required_doc_references": {
+    "docs/features/workflow/node-designer-persisted-layout-v1.md": [
+      "Workflow Node Designer Persisted Layout v1",
+      "状态：`workflow_node_designer_persisted_layout_v1_implemented`",
+      "additional_fields.designer_layout_v1",
+      "不保存 React Flow 原始 `nodes` / `edges` JSON"
+    ],
+    "docs/task-cards/workflow-node-designer-persisted-layout-v1-plan.md": [
+      "workflow_node_designer_persisted_layout_v1_implemented",
+      "Go domain 规范化 layout metadata",
+      "Web build、Go tests、专项 checker 和 `./scripts/check-repo.sh --fast`"
+    ],
+    "docs/features/workflow/README.md": [
+      "Workflow Node Designer Persisted Layout v1",
+      "workflow_node_designer_persisted_layout_v1_implemented"
+    ],
+    "docs/features/README.md": [
+      "Workflow Node Designer Persisted Layout v1"
+    ],
+    "docs/features/workflow-agent-runtime.md": [
+      "Workflow Node Designer Persisted Layout v1",
+      "additional_fields.designer_layout_v1"
+    ],
+    "docs/features/workflow/node-designer-surface-v1.md": [
+      "Workflow Node Designer Persisted Layout v1",
+      "saved draft layout metadata"
+    ],
+    "docs/features/workflow/node-designer-saved-draft-mapping-v1.md": [
+      "Workflow Node Designer Persisted Layout v1",
+      "workflow_node_designer_persisted_layout_v1_implemented"
+    ],
+    "docs/features/workflow/node-designer-review-handoff-v1.md": [
+      "Workflow Node Designer Persisted Layout v1",
+      "saved draft metadata"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "Workflow Node Designer Persisted Layout v1",
+      "workflow_node_designer_persisted_layout_v1_implemented"
+    ],
+    "docs/devlogs/2026-W26.md": [
+      "workflow-node-designer-persisted-layout-v1",
+      "workflow_node_designer_persisted_layout_v1_implemented"
+    ],
+    "docs/task-cards/README.md": [
+      "Workflow Node Designer Persisted Layout"
+    ],
+    "scripts/README.md": [
+      "workflow-node-designer-persisted-layout-v1"
+    ]
+  },
+  "testing_strategy": [
+    {
+      "id": "workflow_node_designer_persisted_layout_v1_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-node-designer-persisted-layout-v1.py"
+    },
+    {
+      "id": "platform_go_tests",
+      "status": "required_now",
+      "command": "go test ./...",
+      "working_directory": "services/platform/"
+    },
+    {
+      "id": "web_build",
+      "status": "required_now",
+      "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ]
+}

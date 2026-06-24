@@ -419,10 +419,13 @@ function buildNodeDesignerReviewRecord(
   const positionedNodeIds = new Set(draft.designerLayout.nodePositions.map((position) => position.nodeId));
   const positionedNodeCount = draft.nodes.filter((node) => positionedNodeIds.has(node.nodeId)).length;
   const defaultLayoutNodeCount = Math.max(0, draft.nodes.length - positionedNodeCount);
+  const layoutPersistenceLabel =
+    draft.designerLayout.persistence === "saved_draft_metadata" ? "saved draft metadata" : "active draft session";
   const validationOverlayCount = countNodeDesignerValidationOverlayItems(source);
   const inspectorFieldCount = countNodeDesignerInspectorFields(draft);
   const sections = buildNodeDesignerReviewSections(
     source,
+    layoutPersistenceLabel,
     positionedNodeCount,
     defaultLayoutNodeCount,
     validationOverlayCount,
@@ -463,6 +466,7 @@ function buildNodeDesignerReviewRecord(
 
 function buildNodeDesignerReviewSections(
   source: WorkflowReviewHandoffSource,
+  layoutPersistenceLabel: string,
   positionedNodeCount: number,
   defaultLayoutNodeCount: number,
   validationOverlayCount: number,
@@ -487,7 +491,7 @@ function buildNodeDesignerReviewSections(
       requestId: draft.routeMetadata.requestId,
       auditRef: draft.routeMetadata.auditRef,
       itemCount: draft.nodes.length,
-      summary: `Node Designer presents ${draft.nodes.length} active draft nodes with ${positionedNodeCount} UI-only session positions and ${defaultLayoutNodeCount} default lane-derived positions.`,
+      summary: `Node Designer presents ${draft.nodes.length} active draft nodes with ${positionedNodeCount} ${layoutPersistenceLabel} positions and ${defaultLayoutNodeCount} default lane-derived positions.`,
       reviewerQuestion: "Does the visual layout help review the draft without implying runtime order or persisted schema state?",
       evidenceRefs: [
         ...draft.designerLayout.nodePositions.map((position) => position.nodeId),
@@ -529,8 +533,8 @@ function buildNodeDesignerReviewSections(
       requestId: draft.routeMetadata.requestId,
       auditRef: draft.routeMetadata.auditRef,
       itemCount: draft.edges.length,
-      summary: `Saved draft mapping review keeps node attributes, contract fields, edge endpoints, and condition summaries distinct from UI-only layout and derived edge kind.`,
-      reviewerQuestion: "Does the mapping make clear which canvas details are persisted and which remain active-session UI state?",
+      summary: `Saved draft mapping review keeps node attributes, contract fields, edge endpoints, condition summaries, and controlled layout metadata distinct from derived edge kind.`,
+      reviewerQuestion: "Does the mapping make clear which canvas details are persisted and which remain advisory UI state?",
       evidenceRefs: [
         "node_designer_saved_draft_mapping_v1",
         "node_designer_saved_draft_mapping_implementation_v1",

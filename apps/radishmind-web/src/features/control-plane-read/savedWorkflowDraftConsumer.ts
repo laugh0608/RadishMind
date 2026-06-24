@@ -1,5 +1,10 @@
 import { CONTROL_PLANE_READ_ROUTES } from "../../../../../contracts/typescript/control-plane-read-api";
-import type { WorkflowDraftDesignerDraft, WorkflowDraftDesignerNode } from "./workflowDraftDesigner";
+import type {
+  WorkflowDraftDesignerDraft,
+  WorkflowDraftDesignerLayout,
+  WorkflowDraftDesignerLayoutPosition,
+  WorkflowDraftDesignerNode,
+} from "./workflowDraftDesigner";
 
 const DEV_SAVED_DRAFT_SOURCE = "dev-saved-draft-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
@@ -8,6 +13,10 @@ const DEFAULT_TENANT_REF = "tenant_demo";
 const DEFAULT_SUBJECT_REF = "subject_demo_user";
 const DEFAULT_SCOPES = "workflow_drafts:read,workflow_drafts:write";
 const SAVED_DRAFT_SCHEMA_VERSION = "saved_workflow_draft.v1";
+const DESIGNER_LAYOUT_VERSION = "designer_layout_v1";
+const DESIGNER_LAYOUT_SOURCE = "workflow_node_designer";
+const DESIGNER_LAYOUT_PERSISTENCE = "saved_draft_metadata";
+const MAX_DESIGNER_LAYOUT_COORDINATE = 10000;
 
 export type WorkflowSavedDraftConsumerMode = "sample_only" | "dev_saved_draft_http";
 
@@ -159,6 +168,25 @@ type SavedWorkflowDraftPayload = {
   tool_refs: string[];
   rag_refs: string[];
   requested_capabilities: string[];
+  additional_fields?: SavedWorkflowDraftAdditionalFields;
+};
+
+type SavedWorkflowDraftAdditionalFields = {
+  designer_layout_v1?: SavedWorkflowDraftDesignerLayoutV1;
+} & Record<string, unknown>;
+
+type SavedWorkflowDraftDesignerLayoutV1 = {
+  layout_version: typeof DESIGNER_LAYOUT_VERSION;
+  source: typeof DESIGNER_LAYOUT_SOURCE;
+  persistence: typeof DESIGNER_LAYOUT_PERSISTENCE;
+  nodes: SavedWorkflowDraftDesignerLayoutNode[];
+};
+
+type SavedWorkflowDraftDesignerLayoutNode = {
+  node_id: string;
+  x: number;
+  y: number;
+  pinned: false;
 };
 
 type SavedWorkflowDraftNode = {
@@ -554,6 +582,7 @@ function toSavedWorkflowDraftPayload(
   draft: WorkflowDraftDesignerDraft,
   config: WorkflowSavedDraftConsumerConfig,
 ): SavedWorkflowDraftPayload {
+  const additionalFields = toSavedWorkflowDraftAdditionalFields(draft);
   return {
     draft_id: draft.draftId,
     workspace_id: config.workspaceId,
@@ -606,7 +635,46 @@ function toSavedWorkflowDraftPayload(
     tool_refs: workflowDraftToolRefs(draft),
     rag_refs: workflowDraftRagRefs(draft),
     requested_capabilities: ["publish", "run", "confirmation_decision", "writeback", "replay"],
+    ...(additionalFields ? { additional_fields: additionalFields } : {}),
   };
+}
+
+function toSavedWorkflowDraftAdditionalFields(
+  draft: WorkflowDraftDesignerDraft,
+): SavedWorkflowDraftAdditionalFields | undefined {
+  const layoutNodes = savedWorkflowDraftDesignerLayoutNodes(draft);
+  if (layoutNodes.length === 0) {
+    return undefined;
+  }
+  return {
+    designer_layout_v1: {
+      layout_version: DESIGNER_LAYOUT_VERSION,
+      source: DESIGNER_LAYOUT_SOURCE,
+      persistence: DESIGNER_LAYOUT_PERSISTENCE,
+      nodes: layoutNodes,
+    },
+  };
+}
+
+function savedWorkflowDraftDesignerLayoutNodes(
+  draft: WorkflowDraftDesignerDraft,
+): SavedWorkflowDraftDesignerLayoutNode[] {
+  const nodeIds = new Set(draft.nodes.map((node) => node.nodeId));
+  const positionsByNodeId = new Map<string, SavedWorkflowDraftDesignerLayoutNode>();
+  for (const position of draft.designerLayout.nodePositions) {
+    if (!nodeIds.has(position.nodeId)) {
+      continue;
+    }
+    positionsByNodeId.set(position.nodeId, {
+      node_id: position.nodeId,
+      x: workflowDraftDesignerLayoutCoordinate(position.x),
+      y: workflowDraftDesignerLayoutCoordinate(position.y),
+      pinned: false,
+    });
+  }
+  return draft.nodes
+    .map((node) => positionsByNodeId.get(node.nodeId))
+    .filter((position): position is SavedWorkflowDraftDesignerLayoutNode => Boolean(position));
 }
 
 function toWorkflowSavedDraftSummary(document: SavedWorkflowDraftSummaryDocument): WorkflowSavedDraftSummary {
@@ -635,6 +703,7 @@ function workflowDraftFromSavedWorkflowDraftDocument(
 ): WorkflowDraftDesignerDraft {
   const validationState = document.validation_summary?.validation_state || document.draft_status || "invalid_draft";
   const blockedCapabilities = document.blocked_capability_summary ?? [];
+  const nodes = document.nodes.map(toWorkflowDraftDesignerNode);
   return {
     draftId: document.draft_id,
     templateRef: document.source_definition_id || document.draft_id,
@@ -643,7 +712,7 @@ function workflowDraftFromSavedWorkflowDraftDocument(
     workflowDefinitionId: document.source_definition_id,
     providerProfileRef: document.provider_refs[0] ?? "",
     summary: document.description,
-    nodes: document.nodes.map(toWorkflowDraftDesignerNode),
+    nodes,
     edges: document.edges.map((edge) => ({
       edgeId: edge.edge_id,
       fromNodeId: edge.from_node_id,
@@ -651,11 +720,7 @@ function workflowDraftFromSavedWorkflowDraftDocument(
       edgeKind: "context",
       conditionSummary: edge.condition_summary || "Saved draft edge restored from dev record.",
     })),
-    designerLayout: {
-      source: "workflow_node_designer",
-      persistence: "ui_only",
-      nodePositions: [],
-    },
+    designerLayout: workflowDraftDesignerLayoutFromSavedDraftAdditionalFields(document.additional_fields, nodes),
     readiness: [
       {
         checkId: "saved_draft_restore_validation",
@@ -688,6 +753,78 @@ function workflowDraftFromSavedWorkflowDraftDocument(
     },
     localOnlyInteraction: "inspect_only",
   };
+}
+
+function workflowDraftDesignerLayoutFromSavedDraftAdditionalFields(
+  additionalFields: SavedWorkflowDraftAdditionalFields | undefined,
+  nodes: WorkflowDraftDesignerNode[],
+): WorkflowDraftDesignerLayout {
+  const nodePositions = workflowDraftDesignerLayoutPositionsFromSavedDraft(
+    additionalFields?.designer_layout_v1,
+    nodes,
+  );
+  return {
+    source: DESIGNER_LAYOUT_SOURCE,
+    persistence: nodePositions.length > 0 ? DESIGNER_LAYOUT_PERSISTENCE : "ui_only",
+    nodePositions,
+  };
+}
+
+function workflowDraftDesignerLayoutPositionsFromSavedDraft(
+  value: unknown,
+  nodes: WorkflowDraftDesignerNode[],
+): WorkflowDraftDesignerLayoutPosition[] {
+  if (!isSavedWorkflowDraftDesignerLayoutV1(value)) {
+    return [];
+  }
+  const nodeIds = new Set(nodes.map((node) => node.nodeId));
+  const positionsByNodeId = new Map<string, WorkflowDraftDesignerLayoutPosition>();
+  for (const position of value.nodes) {
+    if (!nodeIds.has(position.node_id)) {
+      continue;
+    }
+    positionsByNodeId.set(position.node_id, {
+      nodeId: position.node_id,
+      x: workflowDraftDesignerLayoutCoordinate(position.x),
+      y: workflowDraftDesignerLayoutCoordinate(position.y),
+    });
+  }
+  return nodes
+    .map((node) => positionsByNodeId.get(node.nodeId))
+    .filter((position): position is WorkflowDraftDesignerLayoutPosition => Boolean(position));
+}
+
+function isSavedWorkflowDraftDesignerLayoutV1(value: unknown): value is SavedWorkflowDraftDesignerLayoutV1 {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const candidate = value as Partial<SavedWorkflowDraftDesignerLayoutV1>;
+  return candidate.layout_version === DESIGNER_LAYOUT_VERSION &&
+    candidate.source === DESIGNER_LAYOUT_SOURCE &&
+    candidate.persistence === DESIGNER_LAYOUT_PERSISTENCE &&
+    Array.isArray(candidate.nodes) &&
+    candidate.nodes.every(isSavedWorkflowDraftDesignerLayoutNode);
+}
+
+function isSavedWorkflowDraftDesignerLayoutNode(value: unknown): value is SavedWorkflowDraftDesignerLayoutNode {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const candidate = value as Partial<SavedWorkflowDraftDesignerLayoutNode>;
+  return typeof candidate.node_id === "string" &&
+    candidate.node_id.trim().length > 0 &&
+    typeof candidate.x === "number" &&
+    typeof candidate.y === "number" &&
+    Number.isFinite(candidate.x) &&
+    Number.isFinite(candidate.y) &&
+    candidate.pinned === false;
+}
+
+function workflowDraftDesignerLayoutCoordinate(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+  return Math.max(-MAX_DESIGNER_LAYOUT_COORDINATE, Math.min(MAX_DESIGNER_LAYOUT_COORDINATE, Math.round(value)));
 }
 
 function toWorkflowDraftDesignerNode(node: SavedWorkflowDraftNode): WorkflowDraftDesignerNode {

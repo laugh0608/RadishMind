@@ -457,6 +457,7 @@ func savedWorkflowDraftPayloadDocumentFromDraftPayload(payload SavedWorkflowDraf
 		ToolRefs:              cloneStringSlice(payload.ToolRefs),
 		RAGRefs:               cloneStringSlice(payload.RAGRefs),
 		RequestedCapabilities: cloneStringSlice(payload.RequestedCapabilities),
+		AdditionalFields:      cloneSavedWorkflowDraftAdditionalFields(payload.AdditionalFields),
 	}
 }
 

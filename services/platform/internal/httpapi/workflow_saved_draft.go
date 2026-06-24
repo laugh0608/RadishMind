@@ -2,18 +2,24 @@ package httpapi
 
 import (
 	"errors"
+	"math"
 	"sort"
 	"strings"
 	"time"
 )
 
 const (
-	savedWorkflowDraftSchemaVersion = "saved_workflow_draft.v1"
+	savedWorkflowDraftSchemaVersion                 = "saved_workflow_draft.v1"
+	savedWorkflowDraftDesignerLayoutAdditionalField = "designer_layout_v1"
+	savedWorkflowDraftDesignerLayoutVersion         = "designer_layout_v1"
+	savedWorkflowDraftDesignerLayoutSource          = "workflow_node_designer"
+	savedWorkflowDraftDesignerLayoutPersistence     = "saved_draft_metadata"
 
-	maxSavedWorkflowDraftNodes       = 50
-	maxSavedWorkflowDraftEdges       = 120
-	maxSavedWorkflowDraftTextLength  = 4000
-	maxSavedWorkflowDraftLabelLength = 160
+	maxSavedWorkflowDraftNodes            = 50
+	maxSavedWorkflowDraftEdges            = 120
+	maxSavedWorkflowDraftTextLength       = 4000
+	maxSavedWorkflowDraftLabelLength      = 160
+	maxSavedWorkflowDraftLayoutCoordinate = 10000
 )
 
 type SavedWorkflowDraftFailureCode string
@@ -162,6 +168,7 @@ type SavedWorkflowDraft struct {
 	ToolRefs                   []string
 	RAGRefs                    []string
 	RequestedCapabilities      []string
+	AdditionalFields           map[string]any
 	ValidationSummary          SavedWorkflowDraftValidationSummary
 	BlockedCapabilitySummary   []SavedWorkflowDraftBlockedCapability
 	RequestAuditMetadata       SavedWorkflowDraftAuditMetadata
@@ -336,6 +343,7 @@ func (service savedWorkflowDraftService) SaveDraft(
 		ToolRefs:                   cloneStringSlice(normalized.ToolRefs),
 		RAGRefs:                    cloneStringSlice(normalized.RAGRefs),
 		RequestedCapabilities:      cloneStringSlice(normalized.RequestedCapabilities),
+		AdditionalFields:           cloneSavedWorkflowDraftAdditionalFields(normalized.AdditionalFields),
 		ValidationSummary:          validationResult.ValidationSummary,
 		BlockedCapabilitySummary:   cloneSavedWorkflowDraftBlockedCapabilities(validationResult.BlockedCapabilities),
 		RequestAuditMetadata:       auditMetadata,
@@ -464,6 +472,23 @@ func (service savedWorkflowDraftService) validatePayload(
 	context SavedWorkflowDraftContext,
 	payload SavedWorkflowDraftPayload,
 ) (SavedWorkflowDraftPayload, SavedWorkflowDraftResult) {
+	if forbiddenField := firstSavedWorkflowDraftForbiddenField(payload.AdditionalFields); forbiddenField != "" {
+		auditMetadata := savedWorkflowDraftAuditMetadata(context)
+		result := savedWorkflowDraftFailure(SavedWorkflowDraftFailurePayloadInvalid, auditMetadata)
+		result.ValidationSummary = SavedWorkflowDraftValidationSummary{
+			ValidationState: SavedWorkflowDraftStatusInvalidDraft,
+			Findings: []SavedWorkflowDraftValidationFinding{
+				{
+					Code:     SavedWorkflowDraftFailurePayloadInvalid,
+					Severity: SavedWorkflowDraftValidationBlocking,
+					Field:    forbiddenField,
+					Summary:  "Saved draft payload contains a forbidden field that cannot be sanitized safely.",
+				},
+			},
+		}
+		return normalizeSavedWorkflowDraftPayload(payload), result
+	}
+
 	normalized := normalizeSavedWorkflowDraftPayload(payload)
 	auditMetadata := savedWorkflowDraftAuditMetadata(context)
 	findings := make([]SavedWorkflowDraftValidationFinding, 0)
@@ -483,21 +508,6 @@ func (service savedWorkflowDraftService) validatePayload(
 	}
 	if savedWorkflowDraftPayloadTooLarge(normalized) {
 		return normalized, savedWorkflowDraftFailure(SavedWorkflowDraftFailurePayloadTooLarge, auditMetadata)
-	}
-	if forbiddenField := firstSavedWorkflowDraftForbiddenField(normalized.AdditionalFields); forbiddenField != "" {
-		result := savedWorkflowDraftFailure(SavedWorkflowDraftFailurePayloadInvalid, auditMetadata)
-		result.ValidationSummary = SavedWorkflowDraftValidationSummary{
-			ValidationState: SavedWorkflowDraftStatusInvalidDraft,
-			Findings: []SavedWorkflowDraftValidationFinding{
-				{
-					Code:     SavedWorkflowDraftFailurePayloadInvalid,
-					Severity: SavedWorkflowDraftValidationBlocking,
-					Field:    forbiddenField,
-					Summary:  "Saved draft payload contains a forbidden field that cannot be sanitized safely.",
-				},
-			},
-		}
-		return normalized, result
 	}
 	if len(normalized.Nodes) == 0 || len(normalized.Edges) == 0 {
 		return normalized, savedWorkflowDraftFailure(SavedWorkflowDraftFailureGraphInvalid, auditMetadata)
@@ -624,8 +634,13 @@ func normalizeSavedWorkflowDraftPayload(payload SavedWorkflowDraftPayload) Saved
 	normalized.ToolRefs = normalizedStringSet(payload.ToolRefs)
 	normalized.RAGRefs = normalizedStringSet(payload.RAGRefs)
 	normalized.RequestedCapabilities = normalizedStringSet(payload.RequestedCapabilities)
+	normalized.AdditionalFields = cloneSavedWorkflowDraftAdditionalFields(payload.AdditionalFields)
 	sort.Slice(normalized.Nodes, func(i, j int) bool { return normalized.Nodes[i].NodeID < normalized.Nodes[j].NodeID })
 	sort.Slice(normalized.Edges, func(i, j int) bool { return normalized.Edges[i].EdgeID < normalized.Edges[j].EdgeID })
+	normalized.AdditionalFields = normalizeSavedWorkflowDraftAdditionalFields(
+		normalized.AdditionalFields,
+		normalized.Nodes,
+	)
 	return normalized
 }
 
@@ -652,6 +667,10 @@ func savedWorkflowDraftPayloadTooLarge(payload SavedWorkflowDraftPayload) bool {
 }
 
 func firstSavedWorkflowDraftForbiddenField(fields map[string]any) string {
+	return firstSavedWorkflowDraftForbiddenFieldAtPath("additional_fields", fields)
+}
+
+func firstSavedWorkflowDraftForbiddenFieldAtPath(path string, fields map[string]any) string {
 	for _, key := range []string{
 		"secret_value",
 		"api_key_value",
@@ -666,10 +685,147 @@ func firstSavedWorkflowDraftForbiddenField(fields map[string]any) string {
 		"executor_result",
 	} {
 		if _, found := fields[key]; found {
-			return key
+			return path + "." + key
+		}
+	}
+	for key, value := range fields {
+		normalizedKey := strings.TrimSpace(key)
+		if normalizedKey == "" {
+			continue
+		}
+		nestedPath := path + "." + normalizedKey
+		switch typed := value.(type) {
+		case map[string]any:
+			if forbiddenField := firstSavedWorkflowDraftForbiddenFieldAtPath(nestedPath, typed); forbiddenField != "" {
+				return forbiddenField
+			}
+		case []any:
+			for _, item := range typed {
+				if itemMap, ok := item.(map[string]any); ok {
+					if forbiddenField := firstSavedWorkflowDraftForbiddenFieldAtPath(nestedPath, itemMap); forbiddenField != "" {
+						return forbiddenField
+					}
+				}
+			}
 		}
 	}
 	return ""
+}
+
+func normalizeSavedWorkflowDraftAdditionalFields(
+	fields map[string]any,
+	nodes []SavedWorkflowDraftNode,
+) map[string]any {
+	normalized := cloneSavedWorkflowDraftAdditionalFields(fields)
+	if len(normalized) == 0 {
+		return nil
+	}
+	if layout, found := normalizeSavedWorkflowDraftDesignerLayout(
+		normalized[savedWorkflowDraftDesignerLayoutAdditionalField],
+		nodes,
+	); found {
+		normalized[savedWorkflowDraftDesignerLayoutAdditionalField] = layout
+	} else {
+		delete(normalized, savedWorkflowDraftDesignerLayoutAdditionalField)
+	}
+	if len(normalized) == 0 {
+		return nil
+	}
+	return normalized
+}
+
+func normalizeSavedWorkflowDraftDesignerLayout(
+	value any,
+	nodes []SavedWorkflowDraftNode,
+) (map[string]any, bool) {
+	layout, ok := value.(map[string]any)
+	if !ok {
+		return nil, false
+	}
+	if savedWorkflowDraftAdditionalString(layout["layout_version"]) != savedWorkflowDraftDesignerLayoutVersion ||
+		savedWorkflowDraftAdditionalString(layout["source"]) != savedWorkflowDraftDesignerLayoutSource ||
+		savedWorkflowDraftAdditionalString(layout["persistence"]) != savedWorkflowDraftDesignerLayoutPersistence {
+		return nil, false
+	}
+	rawNodes, ok := layout["nodes"].([]any)
+	if !ok {
+		return nil, false
+	}
+	knownNodeIDs := make(map[string]bool, len(nodes))
+	for _, node := range nodes {
+		knownNodeIDs[node.NodeID] = true
+	}
+	positionsByNodeID := make(map[string]map[string]any, len(rawNodes))
+	for _, rawNode := range rawNodes {
+		nodeLayout, ok := rawNode.(map[string]any)
+		if !ok {
+			continue
+		}
+		nodeID := savedWorkflowDraftAdditionalString(nodeLayout["node_id"])
+		if nodeID == "" || !knownNodeIDs[nodeID] {
+			continue
+		}
+		x, xOK := savedWorkflowDraftAdditionalNumber(nodeLayout["x"])
+		y, yOK := savedWorkflowDraftAdditionalNumber(nodeLayout["y"])
+		if !xOK || !yOK {
+			continue
+		}
+		positionsByNodeID[nodeID] = map[string]any{
+			"node_id": nodeID,
+			"x":       savedWorkflowDraftLayoutCoordinate(x),
+			"y":       savedWorkflowDraftLayoutCoordinate(y),
+			"pinned":  false,
+		}
+	}
+	if len(positionsByNodeID) == 0 {
+		return nil, false
+	}
+	normalizedNodes := make([]any, 0, len(positionsByNodeID))
+	for _, node := range nodes {
+		if position, found := positionsByNodeID[node.NodeID]; found {
+			normalizedNodes = append(normalizedNodes, position)
+		}
+	}
+	return map[string]any{
+		"layout_version": savedWorkflowDraftDesignerLayoutVersion,
+		"source":         savedWorkflowDraftDesignerLayoutSource,
+		"persistence":    savedWorkflowDraftDesignerLayoutPersistence,
+		"nodes":          normalizedNodes,
+	}, true
+}
+
+func savedWorkflowDraftAdditionalString(value any) string {
+	switch typed := value.(type) {
+	case string:
+		return strings.TrimSpace(typed)
+	default:
+		return ""
+	}
+}
+
+func savedWorkflowDraftAdditionalNumber(value any) (float64, bool) {
+	switch typed := value.(type) {
+	case float64:
+		return typed, !math.IsNaN(typed) && !math.IsInf(typed, 0)
+	case float32:
+		value := float64(typed)
+		return value, !math.IsNaN(value) && !math.IsInf(value, 0)
+	case int:
+		return float64(typed), true
+	case int64:
+		return float64(typed), true
+	case int32:
+		return float64(typed), true
+	default:
+		return 0, false
+	}
+}
+
+func savedWorkflowDraftLayoutCoordinate(value float64) float64 {
+	if math.IsNaN(value) || math.IsInf(value, 0) {
+		return 0
+	}
+	return math.Max(-maxSavedWorkflowDraftLayoutCoordinate, math.Min(maxSavedWorkflowDraftLayoutCoordinate, math.Round(value)))
 }
 
 func validateSavedWorkflowDraftGraph(
@@ -881,6 +1037,7 @@ func savedWorkflowDraftPayloadFromDraft(draft SavedWorkflowDraft) SavedWorkflowD
 		ToolRefs:              cloneStringSlice(draft.ToolRefs),
 		RAGRefs:               cloneStringSlice(draft.RAGRefs),
 		RequestedCapabilities: cloneStringSlice(draft.RequestedCapabilities),
+		AdditionalFields:      cloneSavedWorkflowDraftAdditionalFields(draft.AdditionalFields),
 	}
 }
 
@@ -936,6 +1093,7 @@ func cloneSavedWorkflowDraft(draft SavedWorkflowDraft) SavedWorkflowDraft {
 	clone.ToolRefs = cloneStringSlice(draft.ToolRefs)
 	clone.RAGRefs = cloneStringSlice(draft.RAGRefs)
 	clone.RequestedCapabilities = cloneStringSlice(draft.RequestedCapabilities)
+	clone.AdditionalFields = cloneSavedWorkflowDraftAdditionalFields(draft.AdditionalFields)
 	clone.ValidationSummary = cloneSavedWorkflowDraftValidationSummary(draft.ValidationSummary)
 	clone.BlockedCapabilitySummary = cloneSavedWorkflowDraftBlockedCapabilities(draft.BlockedCapabilitySummary)
 	return clone
@@ -1009,4 +1167,45 @@ func cloneStringSlice(values []string) []string {
 	output := make([]string, len(values))
 	copy(output, values)
 	return output
+}
+
+func cloneSavedWorkflowDraftAdditionalFields(fields map[string]any) map[string]any {
+	if len(fields) == 0 {
+		return nil
+	}
+	output := make(map[string]any, len(fields))
+	for key, value := range fields {
+		normalizedKey := strings.TrimSpace(key)
+		if normalizedKey == "" {
+			continue
+		}
+		output[normalizedKey] = cloneSavedWorkflowDraftAdditionalValue(value)
+	}
+	if len(output) == 0 {
+		return nil
+	}
+	return output
+}
+
+func cloneSavedWorkflowDraftAdditionalValue(value any) any {
+	switch typed := value.(type) {
+	case map[string]any:
+		return cloneSavedWorkflowDraftAdditionalFields(typed)
+	case []any:
+		output := make([]any, len(typed))
+		for index, item := range typed {
+			output[index] = cloneSavedWorkflowDraftAdditionalValue(item)
+		}
+		return output
+	case []map[string]any:
+		output := make([]any, len(typed))
+		for index, item := range typed {
+			output[index] = cloneSavedWorkflowDraftAdditionalFields(item)
+		}
+		return output
+	case []string:
+		return cloneStringSlice(typed)
+	default:
+		return typed
+	}
 }

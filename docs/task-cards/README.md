@@ -165,6 +165,7 @@
 114. [`Workflow Node Designer Surface Implementation` v1 任务卡](workflow-node-designer-surface-implementation-v1-plan.md)（`workflow-node-designer-surface-implementation-v1`）
 115. [`Workflow Node Designer Saved Draft Mapping Implementation` v1 任务卡](workflow-node-designer-saved-draft-mapping-implementation-v1-plan.md)（`workflow-node-designer-saved-draft-mapping-implementation-v1`）
 116. [`Workflow Node Designer Review Handoff` v1 任务卡](workflow-node-designer-review-handoff-v1-plan.md)（`workflow-node-designer-review-handoff-v1`）
+117. [`Workflow Node Designer Persisted Layout` v1 任务卡](workflow-node-designer-persisted-layout-v1-plan.md)（`workflow-node-designer-persisted-layout-v1`）
 
 ## UI 设计专题
 

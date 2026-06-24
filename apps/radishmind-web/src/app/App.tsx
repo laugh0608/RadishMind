@@ -3181,7 +3181,7 @@ function cloneWorkflowDraftDesignerLayout(
 ): WorkflowDraftDesignerLayout {
   return {
     source: "workflow_node_designer",
-    persistence: "ui_only",
+    persistence: layout.persistence,
     nodePositions: layout.nodePositions.map((position) => ({ ...position })),
   };
 }

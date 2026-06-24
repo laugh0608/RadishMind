@@ -2,29 +2,30 @@
 
 更新时间：2026-06-24
 
-状态：`workflow_node_designer_saved_draft_mapping_implementation_v1_implemented`
+状态：`workflow_node_designer_persisted_layout_v1_implemented`
 
 ## 专题定位
 
 `Workflow Node Designer Saved Draft Mapping v1` 承接 [Workflow Node Designer Surface v1](node-designer-surface-v1.md) 与 [Workflow Node Designer Surface Implementation v1](../../task-cards/workflow-node-designer-surface-implementation-v1-plan.md)，固定节点画布状态进入 saved draft 前的映射边界。
 
-本专题只定义画布 layout metadata、typed edge kind、validation overlay 与 saved draft / Review Handoff 的消费关系。它不直接修改 persisted schema、不新增 backend route、不新增 checker、不打开 repository mode、真实数据库、OIDC middleware、token validation、membership adapter、publish、run、executor、confirmation decision、writeback、replay 或 public production API。
+本专题定义画布 layout metadata、typed edge kind、validation overlay 与 saved draft / Review Handoff 的消费关系。当前已通过 [Workflow Node Designer Persisted Layout v1](node-designer-persisted-layout-v1.md) 把节点坐标保存为受控 UI metadata；它仍不保存 React Flow 原始对象、不新增 backend route、不打开 repository mode、真实数据库、OIDC middleware、token validation、membership adapter、publish、run、executor、confirmation decision、writeback、replay 或 public production API。
 
 ## 当前事实
 
 - `WorkflowNodeDesigner` 已把 active draft 派生为 React Flow `nodes` / `edges`，并提供节点拖拽、选中、typed handle、连线校验反馈、custom node / edge 和 inspector bridge。
 - saved draft consumer 当前保存节点属性、contract fields、output mapping、provider / tool / RAG refs、edge endpoints 和 `condition_summary`。
-- saved draft restore 当前不恢复节点坐标；画布坐标由 lane / index 派生。
+- saved draft restore 当前会读取 `additional_fields.designer_layout_v1`，缺失或非法时继续由 lane / index 派生默认布局。
 - saved draft persisted edge 当前不保存 React Flow edge kind；restore 后 local draft edge kind 使用 `context`，画布 edge kind 再由 source / target / policy / audit 关系派生。
-- HTTP payload 已有 `additional_fields` 扩展口，但当前只做 forbidden field scan，没有 layout 专属 contract、fixture 或 checker。
-- `Workflow Node Designer Saved Draft Mapping Implementation v1` 已实现 UI-only layout：拖拽节点会回写 active draft session，Save Draft 前展示 mapping summary，但不写 `additional_fields.designer_layout_v1`。
-- `Workflow Node Designer Review Handoff v1` 已实现 Review Handoff 消费：`nodeDesignerReviewRecord` 汇总 layout、validation overlay、inspector state 和 saved draft mapping，不创建 persisted schema。
+- HTTP payload 已使用 `additional_fields.designer_layout_v1` 保存 layout metadata，并由 Go `SavedWorkflowDraft.AdditionalFields`、HTTP document conversion、layout 规范化和嵌套 forbidden field scan 保留边界。
+- `Workflow Node Designer Saved Draft Mapping Implementation v1` 已实现 UI-only layout：拖拽节点会回写 active draft session，Save Draft 前展示 mapping summary。
+- `Workflow Node Designer Review Handoff v1` 已实现 Review Handoff 消费：`nodeDesignerReviewRecord` 汇总 layout、validation overlay、inspector state 和 saved draft mapping，不创建独立 handoff persistence。
+- `Workflow Node Designer Persisted Layout v1` 已实现：Save Draft 写入受控节点坐标，Restore 恢复 `saved_draft_metadata` layout，专项 checker 已接入 fast baseline。
 
 ## 映射结论
 
 v1 保持 active draft 为业务真相源，React Flow state 只能作为 UI view model。
 
-本阶段不把 React Flow `nodes` / `edges` JSON 直接保存为长期 schema，也不把 viewport、selection、drag state 或 connection preview 写入 saved draft 主体。后续若需要恢复用户手工布局，应新增实现任务卡，在 `additional_fields.designer_layout_v1` 或等价 UI metadata 字段中保存受控 layout，而不是保存 React Flow 原始对象。
+本阶段不把 React Flow `nodes` / `edges` JSON 直接保存为长期 schema，也不把 viewport、selection、drag state 或 connection preview 写入 saved draft 主体。用户手工布局只通过 `additional_fields.designer_layout_v1` 保存受控节点坐标，不保存 React Flow 原始对象。
 
 `edge kind` v1 继续作为 derived UI state：
 
@@ -33,17 +34,18 @@ v1 保持 active draft 为业务真相源，React Flow state 只能作为 UI vie
 - `data_edge`、`control_edge`、`guard_edge`、`audit_edge` 只能由 node type、lane、requires confirmation、risk 和 condition summary 派生。
 - 如果后续确实需要持久化 edge kind，必须先定义 schema 字段、restore 兼容策略、fixture、checker 和 migration 行为。
 
-## 允许的后续实现
+## 已完成实现
 
-`Workflow Node Designer Saved Draft Mapping Implementation v1` 已在不扩 persisted schema 的前提下打开：
+`Workflow Node Designer Saved Draft Mapping Implementation v1` 与 `Workflow Node Designer Persisted Layout v1` 已完成：
 
 - 将画布节点位置保存为本地 UI-only state，并在同一 active draft session 内恢复。
 - 让保存前的 graph adapter 输出稳定、可审查的 mapping summary，明确哪些字段会进入 saved draft，哪些字段只属于画布视图。
-- 在 saved draft restore 后继续按 lane / node order 生成默认布局。
-- 在 Node Designer mapping summary 中展示 layout metadata 未持久化的说明，避免 reviewer 把视觉位置理解为运行顺序。
+- 在 saved draft restore 后优先消费 `additional_fields.designer_layout_v1`，缺失、非法或未知节点时继续按 lane / node order 生成默认布局。
+- 在 Node Designer mapping summary 中展示 layout metadata 来源，避免 reviewer 把视觉位置理解为运行顺序。
 - 在 Review Handoff 中展示 node designer review handoff，避免 reviewer 把 validation overlay、inspector state 或 derived edge kind 理解为 persisted runtime state。
+- 用专项 fixture / checker 固定 schema、前端映射、Go domain / HTTP 保留、嵌套 forbidden field 和 fast baseline 顺序。
 
-如需跨会话持久化 layout，可另开 task card 并只允许以下 schema 候选：
+当前跨会话 layout metadata 固定为：
 
 ```json
 {
@@ -51,6 +53,7 @@ v1 保持 active draft 为业务真相源，React Flow state 只能作为 UI vie
     "designer_layout_v1": {
       "layout_version": "designer_layout_v1",
       "source": "workflow_node_designer",
+      "persistence": "saved_draft_metadata",
       "nodes": [
         {
           "node_id": "draft_node_id",
@@ -58,12 +61,7 @@ v1 保持 active draft 为业务真相源，React Flow state 只能作为 UI vie
           "y": 0,
           "pinned": false
         }
-      ],
-      "viewport": {
-        "x": 0,
-        "y": 0,
-        "zoom": 1
-      }
+      ]
     }
   }
 }
@@ -74,25 +72,23 @@ v1 保持 active draft 为业务真相源，React Flow state 只能作为 UI vie
 ## Restore 兼容策略
 
 - 缺少 `designer_layout_v1` 时，使用 lane / index 派生默认布局。
-- layout 中出现未知 `node_id` 时忽略对应 layout entry，并生成 validation / review finding。
+- layout 中出现未知 `node_id` 时忽略对应 layout entry，不拒绝草案主体。
 - layout 缺少已存在节点时，对缺失节点使用默认位置。
-- layout 坐标必须有数字范围预算；超出预算时忽略 layout，不拒绝草案主体。
-- viewport 只影响 UI 初始视角，不影响 validation、plan preview、runtime readiness 或 Review Handoff 结论。
+- layout 坐标必须有数字范围预算；保存与恢复都限制在 `-10000..10000`，不拒绝草案主体。
 - edge kind 缺失时继续由 active draft 派生；不得因为缺 edge kind 而拒绝读取旧草案。
 
 ## 验收方式
 
-本专题定义与 UI-only 实现阶段：
+本专题定义与 UI-only 实现阶段已完成：
 
 - 文档入口收录本专题。
-- 当前焦点说明 Builder 体验下一步进入 persisted layout schema 评审或 durable store 上游前置，而不是 executor。
-- UI-only layout implementation 已落地；不新增 schema、route、fixture、checker 或 runtime artifact。
+- UI-only layout implementation 已落地；当时不新增 schema、route、fixture、checker 或 runtime artifact。
 - `./scripts/check-repo.sh --fast` 通过。
 
-后续实现阶段：
+persisted layout implementation 阶段已完成：
 
-- 若只做 UI-only session layout，运行 web build、相关前端检查和 fast baseline。
-- 若写入 `additional_fields.designer_layout_v1`，必须新增 task card、保存 / 读取 / 兼容 restore fixture、forbidden field negative case 和 checker。
+- 已新增 task card、保存 / 读取 / 兼容 restore fixture、forbidden field negative case 和 checker。
+- 已运行 web build、Go tests、专项 checker 和 fast baseline。
 - 若扩展 edge kind persisted schema，必须同步 Go document type、web consumer mapping、schema artifact、version conflict 用例和 no sample fallback 验证。
 
 ## 停止线

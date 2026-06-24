@@ -62,7 +62,7 @@ export type WorkflowDraftDesignerLayoutPosition = {
 
 export type WorkflowDraftDesignerLayout = {
   source: "workflow_node_designer";
-  persistence: "ui_only";
+  persistence: "ui_only" | "saved_draft_metadata";
   nodePositions: WorkflowDraftDesignerLayoutPosition[];
 };
 

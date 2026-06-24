@@ -156,6 +156,12 @@ export function WorkflowNodeDesigner({
   const mappedLayoutCount = draft.designerLayout.nodePositions.filter((position) =>
     draft.nodes.some((node) => node.nodeId === position.nodeId),
   ).length;
+  const layoutPersistenceLabel =
+    draft.designerLayout.persistence === "saved_draft_metadata" ? "restored saved draft layout" : "active draft layout";
+  const layoutPersistenceSummary =
+    draft.designerLayout.persistence === "saved_draft_metadata"
+      ? "Node positions were restored from saved draft layout metadata; viewport and selection remain transient."
+      : "Save Draft writes sanitized node positions as saved draft layout metadata; viewport and selection remain transient.";
 
   return (
     <section className="workflow-node-designer" aria-label="Workflow node designer canvas">
@@ -177,9 +183,9 @@ export function WorkflowNodeDesigner({
           <p>Save Draft writes node attributes, contract fields, edge endpoints, and condition summaries.</p>
         </article>
         <article>
-          <span>UI-only layout</span>
+          <span>Layout metadata</span>
           <strong>{mappedLayoutCount} positioned nodes</strong>
-          <p>Node positions stay in the active draft session and are not written to persisted saved draft schema.</p>
+          <p>{layoutPersistenceLabel}: {layoutPersistenceSummary}</p>
         </article>
         <article>
           <span>Derived edge kind</span>
