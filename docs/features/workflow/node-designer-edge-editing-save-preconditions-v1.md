@@ -10,9 +10,10 @@
 
 本专题只定义 edge mutation 的保存前置、允许字段、验证证据和后续实现拆分。它不直接实现画布新增 / 删除边，不扩展 Go schema，不保存 React Flow 原始 edge 对象，不新增 backend route、repository mode、真实数据库、OIDC middleware、token validation、membership adapter、public production API、publish、run、executor、confirmation decision、writeback、replay 或 materialized result reader。
 
-## 当前事实
+## 已知事实
 
-- `WorkflowNodeDesigner.onConnect` 当前只执行 typed connection validation，并显示 `Preview only` 反馈；它不会修改 `draft.edges`，也不会触发 saved draft 保存映射。
+- 本专题定义时，`WorkflowNodeDesigner.onConnect` 只执行 typed connection validation，并显示 `Preview only` 反馈；它不会修改 `draft.edges`，也不会触发 saved draft 保存映射。
+- `Workflow Node Designer Controlled Edge Mutation Implementation v1` 已把合法 `onConnect` 升级为受控 `onAddEdge`，并补受控 `onRemoveEdge` 入口；mutation 仍只作用于 active draft。
 - `validateWorkflowNodeDesignerConnection` 当前只检查 source / target 存在、不同节点、没有重复 from-to pair。
 - 列表式 Draft Designer 已允许编辑 `WorkflowDraftDesignerEdge.conditionSummary`，并通过 `handleWorkflowDraftEdgeConditionChange` 写回 active draft。
 - `savedWorkflowDraftConsumer` 当前保存 edge 的稳定字段为 `edge_id`、`from_node_id`、`to_node_id` 和 `condition_summary`。
@@ -65,6 +66,8 @@
 - Review Handoff 和 validation inspector 继续消费 active draft，不新增 handoff persistence。
 
 如果实现过程中需要保存 edge kind、handle id、port id 或视觉样式，应停止当前任务，先更新本专题与 schema 任务卡。
+
+2026-06-24 已完成 [Workflow Node Designer Controlled Edge Mutation Implementation v1 任务卡](../../task-cards/workflow-node-designer-controlled-edge-mutation-implementation-v1-plan.md)，用于承接 `onConnect` 受控新增 edge、受控删除 edge、active draft `local_edit` / `unsaved_local` 语义和专项 checker 更新。该实现任务未扩 schema、backend route、repository mode 或执行链路。
 
 ## 验收方式
 

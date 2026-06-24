@@ -11,7 +11,7 @@ FIXTURE_PATH = REPO_ROOT / "scripts/checks/fixtures/workflow-node-designer-edge-
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
 
 EXPECTED_FORBIDDEN_CLAIMS = {
-    "edge_mutation_runtime_ready",
+    "edge_mutation_backend_ready",
     "react_flow_raw_edge_persistence",
     "handle_id_persistence_ready",
     "port_id_persistence_ready",
@@ -37,6 +37,8 @@ EXPECTED_PRECONDITIONS = {
     "no_duplicate_from_to_pair",
     "stable_edge_id",
     "non_empty_condition_summary",
+    "controlled_on_connect_add_edge",
+    "controlled_edge_delete",
     "validation_inspector_consumes_mutated_edges",
     "local_edit_unsaved_state",
     "no_react_flow_raw_edge",
@@ -87,14 +89,17 @@ def assert_forbidden_literals(text: str, literals: list[Any], label: str) -> Non
 def assert_fixture_shape(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
-        fixture.get("kind") == "workflow_node_designer_edge_editing_save_preconditions_v1",
+        fixture.get("kind") == "workflow_node_designer_controlled_edge_mutation_implementation_v1",
         "unexpected kind",
     )
     slice_info = fixture.get("slice") or {}
-    require(slice_info.get("id") == "workflow-node-designer-edge-editing-save-preconditions-v1", "unexpected slice id")
+    require(
+        slice_info.get("id") == "workflow-node-designer-controlled-edge-mutation-implementation-v1",
+        "unexpected slice id",
+    )
     require(slice_info.get("track") == "Workflow / Agent Runtime", "unexpected track")
     require(
-        slice_info.get("status") == "workflow_node_designer_edge_editing_save_preconditions_v1_defined",
+        slice_info.get("status") == "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented",
         "unexpected slice status",
     )
     missing_claims = sorted(EXPECTED_FORBIDDEN_CLAIMS - set(slice_info.get("does_not_claim") or []))
@@ -128,13 +133,22 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
     assert_literals(consumer_text, contract.get("required_consumer_literals") or [], "savedWorkflowDraftConsumer.ts")
     assert_literals(app_text, contract.get("required_app_literals") or [], "App.tsx")
     assert_literals(validation_text, contract.get("required_validation_literals") or [], "workflowDraftValidationInspector.ts")
-    assert_forbidden_literals(node_designer_text, contract.get("forbidden_runtime_literals") or [], "workflowNodeDesigner.tsx")
+    assert_forbidden_literals(
+        node_designer_text,
+        contract.get("forbidden_runtime_literals") or [],
+        "workflowNodeDesigner.tsx",
+    )
 
     require(
         node_designer_text.index("validateWorkflowNodeDesignerConnection(connection, draft)")
-        < node_designer_text.index("Preview only:")
+        < node_designer_text.index("const added = onAddEdge(connection.source, connection.target)")
+        < node_designer_text.index("Added draft edge:")
         < node_designer_text.index("function validateWorkflowNodeDesignerConnection("),
-        "node designer onConnect must remain preview-only before edge mutation implementation",
+        "node designer onConnect must validate before controlled active draft mutation",
+    )
+    require(
+        "Preview only:" not in node_designer_text and "Save mapping is not changed." not in node_designer_text,
+        "node designer onConnect must no longer be preview-only after controlled edge mutation implementation",
     )
     require(
         consumer_text.index("edges: draft.edges.map((edge) => ({")
@@ -149,9 +163,18 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
         "saved draft restore must keep edge kind derived locally before layout restore",
     )
     require(
+        app_text.index("const handleWorkflowDraftAddEdge")
+        < app_text.index("const handleWorkflowDraftRemoveEdge")
+        < app_text.index("const handleWorkflowDraftAddNode"),
+        "draft edge mutation handlers must stay with the local active draft edit handlers",
+    )
+    require(
         app_text.index("function rebuildWorkflowDraftEdges(")
+        < app_text.index("function buildWorkflowDraftEdge(")
+        < app_text.index("function buildWorkflowDraftEdgeForConnection(")
         < app_text.index("function workflowDraftEdgeKindForConnection(")
         < app_text.index("function workflowDraftEdgeConditionSummary(")
+        < app_text.index("function workflowDraftReviewableEdgeConditionSummary(")
         < app_text.index("function workflowDraftEdgeId("),
         "draft edge helper order drifted",
     )
@@ -183,7 +206,9 @@ def assert_docs_and_fast_baseline(fixture: dict[str, Any]) -> None:
 def assert_testing_strategy(fixture: dict[str, Any]) -> None:
     commands = {str(item.get("command")) for item in fixture.get("testing_strategy") or [] if isinstance(item, dict)}
     expected_commands = {
+        "npm run build",
         "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-node-designer-edge-editing-save-preconditions-v1.py",
+        "git diff --check",
         "./scripts/check-repo.sh --fast",
     }
     missing_commands = sorted(expected_commands - commands)
@@ -197,7 +222,7 @@ def main() -> None:
     assert_frontend_contract(fixture)
     assert_docs_and_fast_baseline(fixture)
     assert_testing_strategy(fixture)
-    print("workflow node designer edge editing save preconditions v1 checks passed.")
+    print("workflow node designer controlled edge mutation implementation v1 checks passed.")
 
 
 if __name__ == "__main__":

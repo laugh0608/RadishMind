@@ -1574,6 +1574,42 @@ h4 {
   gap: 6px;
 }
 
+.workflow-node-designer-edge-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.workflow-node-designer-edge-actions > span {
+  color: #607086;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.workflow-node-designer-edge-actions p {
+  margin: 0;
+  color: #607086;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.workflow-node-designer-edge-action {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.workflow-node-designer-edge-action strong {
+  overflow-wrap: anywhere;
+  color: #17202a;
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
 .workflow-node-designer-inspector input,
 .workflow-node-designer-inspector textarea {
   width: 100%;
@@ -1926,6 +1962,35 @@ h4 {
   resize: vertical;
   min-height: 76px;
   padding: 10px;
+}
+
+.workflow-draft-edge-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.workflow-draft-edge-heading div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.workflow-draft-edge-heading button {
+  min-height: 34px;
+  flex: 0 0 auto;
+  border: 1px solid #cad3df;
+  border-radius: 8px;
+  background: #f4f6f8;
+  color: #17202a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.workflow-draft-edge-heading button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .workflow-draft-edit-field input:disabled,

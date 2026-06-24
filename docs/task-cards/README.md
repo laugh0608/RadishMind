@@ -167,6 +167,7 @@
 116. [`Workflow Node Designer Review Handoff` v1 任务卡](workflow-node-designer-review-handoff-v1-plan.md)（`workflow-node-designer-review-handoff-v1`）
 117. [`Workflow Node Designer Persisted Layout` v1 任务卡](workflow-node-designer-persisted-layout-v1-plan.md)（`workflow-node-designer-persisted-layout-v1`）
 118. [`Workflow Node Designer Edge Editing Save Preconditions` v1 任务卡](workflow-node-designer-edge-editing-save-preconditions-v1-plan.md)（`workflow-node-designer-edge-editing-save-preconditions-v1`）
+119. [`Workflow Node Designer Controlled Edge Mutation Implementation` v1 任务卡](workflow-node-designer-controlled-edge-mutation-implementation-v1-plan.md)（`workflow-node-designer-controlled-edge-mutation-implementation-v1`）
 
 ## UI 设计专题
 

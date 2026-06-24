@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "kind": "workflow_node_designer_edge_editing_save_preconditions_v1",
+  "kind": "workflow_node_designer_controlled_edge_mutation_implementation_v1",
   "slice": {
-    "id": "workflow-node-designer-edge-editing-save-preconditions-v1",
+    "id": "workflow-node-designer-controlled-edge-mutation-implementation-v1",
     "track": "Workflow / Agent Runtime",
-    "status": "workflow_node_designer_edge_editing_save_preconditions_v1_defined",
+    "status": "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented",
     "does_not_claim": [
-      "edge_mutation_runtime_ready",
+      "edge_mutation_backend_ready",
       "react_flow_raw_edge_persistence",
       "handle_id_persistence_ready",
       "port_id_persistence_ready",
@@ -48,6 +48,8 @@
       "no_duplicate_from_to_pair",
       "stable_edge_id",
       "non_empty_condition_summary",
+      "controlled_on_connect_add_edge",
+      "controlled_edge_delete",
       "validation_inspector_consumes_mutated_edges",
       "local_edit_unsaved_state",
       "no_react_flow_raw_edge"
@@ -75,8 +77,12 @@
     "app_file": "apps/radishmind-web/src/app/App.tsx",
     "validation_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftValidationInspector.ts",
     "required_node_designer_literals": [
-      "Preview only:",
-      "Save mapping is not changed.",
+      "Connect typed ports to add controlled draft edges.",
+      "onAddEdge:",
+      "onRemoveEdge:",
+      "const added = onAddEdge(connection.source, connection.target)",
+      "Added draft edge:",
+      "Removed draft edge:",
       "validateWorkflowNodeDesignerConnection(",
       "connection.source === connection.target",
       "draft.edges.some((edge) => edge.fromNodeId === source.nodeId && edge.toNodeId === target.nodeId)"
@@ -91,11 +97,18 @@
     ],
     "required_app_literals": [
       "handleWorkflowDraftEdgeConditionChange",
+      "handleWorkflowDraftAddEdge",
+      "handleWorkflowDraftRemoveEdge",
+      "buildWorkflowDraftEdgeForConnection(",
+      "workflowDraftReviewableEdgeConditionSummary(",
+      "workflowDraftNonEmptyConditionSummary(",
       "WorkflowDraftEdgeCard",
       "workflowDraftEdgeId(",
       "workflowDraftEdgeKindForConnection(",
       "workflowDraftEdgeConditionSummary(",
-      "rebuildWorkflowDraftEdges("
+      "rebuildWorkflowDraftEdges(",
+      "status: \"unsaved_local\"",
+      "localOnlyInteraction: \"local_edit\""
     ],
     "required_validation_literals": [
       "output_audit_path",
@@ -103,9 +116,9 @@
       "edges.some((edge) => edge.edgeKind === \"audit\")"
     ],
     "forbidden_runtime_literals": [
-      "onAddEdge",
-      "onRemoveEdge",
       "ReactFlowEdge",
+      "sourceHandle",
+      "targetHandle",
       "handle_id",
       "port_id"
     ]
@@ -114,6 +127,7 @@
     "docs/features/workflow/node-designer-edge-editing-save-preconditions-v1.md": [
       "Workflow Node Designer Edge Editing Save Preconditions v1",
       "workflow_node_designer_edge_editing_save_preconditions_v1_defined",
+      "Workflow Node Designer Controlled Edge Mutation Implementation v1",
       "Preview only",
       "edgeId",
       "fromNodeId",
@@ -127,9 +141,18 @@
       "draft.edges",
       "专项 fixture / checker"
     ],
+    "docs/task-cards/workflow-node-designer-controlled-edge-mutation-implementation-v1-plan.md": [
+      "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented",
+      "WorkflowNodeDesigner.onConnect",
+      "onAddEdge",
+      "onRemoveEdge",
+      "draft.edges"
+    ],
     "docs/features/workflow/README.md": [
       "Workflow Node Designer Edge Editing Save Preconditions v1",
-      "workflow_node_designer_edge_editing_save_preconditions_v1_defined"
+      "workflow_node_designer_edge_editing_save_preconditions_v1_defined",
+      "Workflow Node Designer Controlled Edge Mutation Implementation v1",
+      "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented"
     ],
     "docs/features/README.md": [
       "Workflow Node Designer Edge Editing Save Preconditions v1"
@@ -148,11 +171,11 @@
     ],
     "docs/radishmind-current-focus.md": [
       "Workflow Node Designer Edge Editing Save Preconditions v1",
-      "workflow_node_designer_edge_editing_save_preconditions_v1_defined"
+      "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented"
     ],
     "docs/devlogs/2026-W26.md": [
-      "workflow-node-designer-edge-editing-save-preconditions-v1",
-      "workflow_node_designer_edge_editing_save_preconditions_v1_defined"
+      "workflow-node-designer-controlled-edge-mutation-implementation-v1",
+      "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented"
     ],
     "docs/task-cards/README.md": [
       "Workflow Node Designer Edge Editing Save Preconditions"
@@ -163,9 +186,19 @@
   },
   "testing_strategy": [
     {
-      "id": "workflow_node_designer_edge_editing_save_preconditions_v1_checker",
+      "id": "web_build",
+      "status": "required_now",
+      "command": "npm run build"
+    },
+    {
+      "id": "workflow_node_designer_controlled_edge_mutation_implementation_v1_checker",
       "status": "required_now",
       "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-node-designer-edge-editing-save-preconditions-v1.py"
+    },
+    {
+      "id": "diff_whitespace",
+      "status": "required_now",
+      "command": "git diff --check"
     },
     {
       "id": "repo_fast",

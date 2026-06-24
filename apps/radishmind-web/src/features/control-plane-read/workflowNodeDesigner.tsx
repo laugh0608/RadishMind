@@ -19,7 +19,11 @@ import {
   type NodeTypes,
 } from "@xyflow/react";
 
-import type { WorkflowDraftDesignerDraft, WorkflowDraftDesignerNode } from "./workflowDraftDesigner";
+import type {
+  WorkflowDraftDesignerDraft,
+  WorkflowDraftDesignerEdge,
+  WorkflowDraftDesignerNode,
+} from "./workflowDraftDesigner";
 
 type WorkflowNodeDesignerEdgeKind = "data_edge" | "control_edge" | "guard_edge" | "audit_edge";
 
@@ -60,6 +64,8 @@ type WorkflowNodeDesignerProps = {
   onUpdateNodeRagRef: (nodeId: string, ragRef: string) => void;
   onUpdateNodeOutputMapping: (nodeId: string, outputMappingSummary: string) => void;
   onUpdateNodeDesignerPosition: (nodeId: string, x: number, y: number) => void;
+  onAddEdge: (fromNodeId: string, toNodeId: string) => boolean;
+  onRemoveEdge: (edgeId: string) => boolean;
   onRemoveNode: (nodeId: string) => void;
 };
 
@@ -98,13 +104,15 @@ export function WorkflowNodeDesigner({
   onUpdateNodeRagRef,
   onUpdateNodeOutputMapping,
   onUpdateNodeDesignerPosition,
+  onAddEdge,
+  onRemoveEdge,
   onRemoveNode,
 }: WorkflowNodeDesignerProps) {
   const initialNodes = useMemo(() => buildWorkflowNodeDesignerNodes(draft, canRemoveNode), [draft, canRemoveNode]);
   const edges = useMemo(() => buildWorkflowNodeDesignerEdges(draft), [draft]);
   const [nodes, setNodes] = useState(initialNodes);
   const [selectedNodeId, setSelectedNodeId] = useState(draft.nodes[0]?.nodeId ?? "");
-  const [connectionFeedback, setConnectionFeedback] = useState("Connect typed ports to preview validation feedback.");
+  const [connectionFeedback, setConnectionFeedback] = useState("Connect typed ports to add controlled draft edges.");
 
   useEffect(() => {
     setNodes(initialNodes);
@@ -127,6 +135,10 @@ export function WorkflowNodeDesigner({
 
   const onConnect = useCallback(
     (connection: Connection) => {
+      if (editingDisabled) {
+        setConnectionFeedback("Connection rejected: local draft edits are locked while a saved draft operation is pending.");
+        return;
+      }
       const valid = validateWorkflowNodeDesignerConnection(connection, draft);
       if (!valid || !connection.source || !connection.target) {
         setConnectionFeedback("Connection rejected: typed ports require distinct source and target draft nodes.");
@@ -135,11 +147,16 @@ export function WorkflowNodeDesigner({
       const source = draft.nodes.find((node) => node.nodeId === connection.source);
       const target = draft.nodes.find((node) => node.nodeId === connection.target);
       const edgeKind = source && target ? deriveWorkflowNodeDesignerEdgeKind(source, target) : "data_edge";
+      const added = onAddEdge(connection.source, connection.target);
+      if (!added) {
+        setConnectionFeedback("Connection rejected: active draft endpoints are unavailable or already connected.");
+        return;
+      }
       setConnectionFeedback(
-        `Preview only: ${connection.source} to ${connection.target} would be treated as ${edgeKind}. Save mapping is not changed.`,
+        `Added draft edge: ${connection.source} to ${connection.target} is tracked as ${edgeKind}.`,
       );
     },
-    [draft],
+    [draft, editingDisabled, onAddEdge],
   );
 
   const onNodeClick = useCallback((_: unknown, node: WorkflowNodeDesignerNode) => {
@@ -152,10 +169,25 @@ export function WorkflowNodeDesigner({
     },
     [onUpdateNodeDesignerPosition],
   );
+  const onRemoveDraftEdge = useCallback(
+    (edgeId: string) => {
+      const removed = onRemoveEdge(edgeId);
+      setConnectionFeedback(
+        removed
+          ? `Removed draft edge: ${edgeId}. Validation inspector will recompute graph findings from the active draft.`
+          : `Edge removal rejected: ${edgeId} is not in the active draft.`,
+      );
+      return removed;
+    },
+    [onRemoveEdge],
+  );
 
   const mappedLayoutCount = draft.designerLayout.nodePositions.filter((position) =>
     draft.nodes.some((node) => node.nodeId === position.nodeId),
   ).length;
+  const selectedNodeEdges = selectedNode
+    ? draft.edges.filter((edge) => edge.fromNodeId === selectedNode.nodeId || edge.toNodeId === selectedNode.nodeId)
+    : [];
   const layoutPersistenceLabel =
     draft.designerLayout.persistence === "saved_draft_metadata" ? "restored saved draft layout" : "active draft layout";
   const layoutPersistenceSummary =
@@ -226,6 +258,7 @@ export function WorkflowNodeDesigner({
               editingDisabled={editingDisabled}
               canDelete={selectedNodeRemovable}
               connectionFeedback={connectionFeedback}
+              edges={selectedNodeEdges}
               onUpdateNodeLabel={onUpdateNodeLabel}
               onUpdateNodeInputSummary={onUpdateNodeInputSummary}
               onUpdateNodeOutputSummary={onUpdateNodeOutputSummary}
@@ -233,6 +266,7 @@ export function WorkflowNodeDesigner({
               onUpdateNodeToolRef={onUpdateNodeToolRef}
               onUpdateNodeRagRef={onUpdateNodeRagRef}
               onUpdateNodeOutputMapping={onUpdateNodeOutputMapping}
+              onRemoveEdge={onRemoveDraftEdge}
               onRemoveNode={onRemoveNode}
             />
           ) : (
@@ -405,6 +439,7 @@ function WorkflowNodeDesignerInspector({
   editingDisabled,
   canDelete,
   connectionFeedback,
+  edges,
   onUpdateNodeLabel,
   onUpdateNodeInputSummary,
   onUpdateNodeOutputSummary,
@@ -412,12 +447,14 @@ function WorkflowNodeDesignerInspector({
   onUpdateNodeToolRef,
   onUpdateNodeRagRef,
   onUpdateNodeOutputMapping,
+  onRemoveEdge,
   onRemoveNode,
 }: {
   node: WorkflowDraftDesignerNode;
   editingDisabled: boolean;
   canDelete: boolean;
   connectionFeedback: string;
+  edges: WorkflowDraftDesignerEdge[];
   onUpdateNodeLabel: (nodeId: string, label: string) => void;
   onUpdateNodeInputSummary: (nodeId: string, inputSummary: string) => void;
   onUpdateNodeOutputSummary: (nodeId: string, outputSummary: string) => void;
@@ -425,6 +462,7 @@ function WorkflowNodeDesignerInspector({
   onUpdateNodeToolRef: (nodeId: string, toolRef: string) => void;
   onUpdateNodeRagRef: (nodeId: string, ragRef: string) => void;
   onUpdateNodeOutputMapping: (nodeId: string, outputMappingSummary: string) => void;
+  onRemoveEdge: (edgeId: string) => boolean;
   onRemoveNode: (nodeId: string) => void;
 }) {
   return (
@@ -504,6 +542,23 @@ function WorkflowNodeDesignerInspector({
           onChange={(event) => onUpdateNodeOutputMapping(node.nodeId, event.currentTarget.value)}
         />
       </label>
+      <div className="workflow-node-designer-edge-actions" aria-label="Selected node draft edges">
+        <span>Connected edges</span>
+        {edges.length === 0 ? (
+          <p>No draft edge is connected to this node.</p>
+        ) : (
+          edges.map((edge) => (
+            <div key={edge.edgeId} className="workflow-node-designer-edge-action">
+              <strong>
+                {edge.fromNodeId} to {edge.toNodeId}
+              </strong>
+              <button type="button" disabled={editingDisabled} onClick={() => onRemoveEdge(edge.edgeId)}>
+                Remove edge
+              </button>
+            </div>
+          ))
+        )}
+      </div>
       <button type="button" disabled={editingDisabled || !canDelete} onClick={() => onRemoveNode(node.nodeId)}>
         Remove node
       </button>
