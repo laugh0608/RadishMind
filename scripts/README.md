@@ -272,6 +272,8 @@
 
 当前 Saved Workflow Draft token validation schema task card readiness 还提供 `check-workflow-saved-draft-token-validation-schema-task-card-readiness-v1.py`，用于校验 `workflow-saved-draft-token-validation-schema-task-card-readiness-v1.json` 中的 `draft_token_validation_schema_task_card_readiness_defined`、schema task card decision、verified token output field boundary、future schema implementation task card requirements、failure mapping、no fallback、no side effects 和 forbidden schema / middleware / validator / membership adapter / runtime smoke / repository mode / DB / production API artifact；该检查不创建 token validation schema、不创建 schema implementation task card、不校验 token、不查询 membership、不启用 repository mode、不连接数据库、不实现 production API、executor、confirmation、writeback 或 replay。
 
+当前 Saved Workflow Draft token validation schema implementation task card 还提供 `check-workflow-saved-draft-token-validation-schema-implementation-v1.py`，用于校验 `workflow-saved-draft-token-validation-schema-implementation-v1.json` 中的 `draft_token_validation_schema_implementation_task_card_defined`、future schema artifact path、required field allowlist、forbidden raw-material fields、JSON Schema validation plan、positive / negative fixture 要求、failure mapping、no fallback、no side effects 和 forbidden schema / middleware / validator / membership adapter / runtime smoke / repository mode / DB / production API artifact；该检查不创建 `contracts/radish-oidc-token-validation.schema.json`、不运行 schema validation runtime、不校验 token、不查询 membership、不启用 repository mode、不连接数据库、不实现 production API、executor、confirmation、writeback 或 replay。
+
 尾部 checker 的失败含义需要区分：
 
 - `check-control-plane-read-production-auth-readiness-v1.py` 失败通常表示 OIDC / auth 证据边界、failure code、claim mapping 或 forbidden auth artifact 漂移。
