@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-06-23
+更新时间：2026-06-25
 
 ## 这份文档讲什么
 
@@ -64,6 +64,8 @@
 如果你要继续推进开发，当前主线在 `Control Plane / User Workspace / Workflow v1` 与 Production Ops 的交界。Control Plane Read-Side 已把七条 read handler 收束到 `ControlPlaneReadRepository` interface + fake-store bridge；说明入口见 [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)。`Workflow / Agent Runtime Function Surface v1` 已在 `apps/radishmind-web/` 增加 application detail、definition detail、run detail、blocked action preview、confirmation placeholder、Draft Designer、offline validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector、review workspace、User Workspace Home 和 Review Handoff；这些都是 fixture-derived、blocked-capability-first 的产品面，共享 `workflowWorkspaceContext` 负责统一派生当前 application、definition、run、draft 和 scenario 的组合关系。
 
 `Saved Workflow Draft v1` 已实现 platform Go domain service、memory dev store、dev-only HTTP route 和 web consumer，并进一步具备 formal store selector、静态 schema artifact、repository adapter、adapter smoke execution 与 production auth runtime bridge。database connection / schema marker preconditions、connection provider entry review / entry refresh v2、database secret resolver readiness / entry review / runtime dependency refresh、database driver / DSN / TLS policy readiness、database role policy readiness、database connection smoke strategy、connection lifecycle readiness、schema marker runtime dependency refresh、Radish OIDC upstream evidence refresh 和 token validation auth middleware runtime entry review 只说明 future durable store 接入前的阻塞条件；它们不选择或导入 DB driver、不解析 secret、不构造 DSN、不创建 TLS runtime、不创建 connection factory、不创建 role runtime、不执行 connection smoke、不执行 SQL、不启用 repository mode，也不创建 OIDC middleware、token validator、membership adapter 或 production API。
+
+`contracts/radish-oidc-token-validation.schema.json` 现在固定 future Radish OIDC token validation 的 verified token context 脱敏投影。它只允许 `issuer_ref`、`subject_ref`、`tenant_ref`、audience / scope / workspace / application refs、时间戳、policy version、request id 和 audit ref 这类已验证后的 reference 字段，根对象禁止 additional properties，并显式拒绝 `raw_token`、`authorization_header`、`cookie`、`raw_claim_dump`、`jwks_raw_dump`、`membership_raw_record`、`database_detail`、`provider_error_detail` 和 `secret_value`。说明入口见 [Radish OIDC Token Validation 契约](contracts/radish-oidc-token-validation.md)。该 schema 是后续 auth middleware / membership adapter / repository actor context 的输入形状约束，不校验真实 token、不 fetch discovery / JWKS、不查询 membership，也不表示登录态或 repository mode 已可用。
 
 `Workflow Node Designer Surface v1` 现在是 Workflow Builder 体验的 active-draft 画布专题，位置在 Draft Designer / Review Handoff 之后、publish / run / executor 之前。它已在 `apps/radishmind-web/` 接入 `@xyflow/react`，把 active draft 派生为可拖拽节点、typed handle、custom edge、inspector、validation overlay navigation、mapping summary 和 Review Handoff evidence；节点位置通过 `additional_fields.designer_layout_v1` 保存为受控 UI metadata，画布新增 / 删除连线只修改 active draft 的 `draft.edges`。这些能力仍只服务本地草案设计与审查，不把 `Preview Plan`、`valid_for_review`、节点拖拽或 edge mutation 写成可运行、可发布、durable store 或 production API 状态。
 
@@ -255,6 +257,8 @@ Model Gateway 四个页面的读法是先看 Overview 识别 northbound API surf
 Draft Designer 的保存路径需要额外区分：默认 `apps/radishmind-web/` 仍展示 sample / local draft；只有设置 `VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE=dev-saved-draft-http`，并让 platform 同时启用 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1`、`RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1` 和保存所需的 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1`，才会通过 dev-only route 写入 memory dev store。该路径用于本地验证保存、读取、校验和版本冲突，不是 durable persistence、production API、publish 或 run。
 
 节点画布读法：先读 [Workflow Node Designer Surface v1](features/workflow/node-designer-surface-v1.md)，再按需进入 saved draft mapping、persisted layout、edge editing preconditions 和 Review Handoff 专题。当前画布可以选择节点、拖拽布局、受控新增 / 删除 active draft edge、聚焦 validation finding，并让 validation inspector / Preview Plan / Review Handoff 消费 mutation 后的 active draft；不能把这些 UI mutation 写成 executor、publish、run、durable store、repository mode 或 production API 的已实现能力。
+
+Graph review handoff 的读法：在 Workflow Review Handoff 中先看 summary count，确认 node-targeted、edge-targeted 与 graph-level finding 的数量；再按分组查看每条 finding 的 source check、severity、target refs、summary 和 reviewer question。node-targeted finding 用于回到具体节点和 inspector；edge-targeted finding 用于核对 active draft edge 与条件摘要；graph-level finding 用于查看全局 blocked capability、runtime readiness 或停止线。这个面板只帮助 reviewer 建立审查上下文，不保存 handoff、不持久化 validation focus、不生成 publish / run / confirmation / writeback 操作。
 
 ### 3.8 使用 Image Path metadata-only runtime mapper
 
