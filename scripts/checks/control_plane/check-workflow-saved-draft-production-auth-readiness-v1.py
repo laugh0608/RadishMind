@@ -223,7 +223,6 @@ EXPECTED_FORBIDDEN_SIDE_EFFECTS = {
     "replay_execution",
 }
 EXPECTED_SOURCE_ABSENT_LITERALS = {
-    "contracts/radish-oidc-token-validation.schema.json",
     "workflow_saved_draft_auth_middleware.go",
     "workflow_saved_draft_token_validation.go",
     "workflow_saved_draft_membership_adapter.go",
@@ -353,6 +352,8 @@ def assert_planned_artifacts(fixture: dict[str, Any]) -> None:
     require(set(artifacts) == EXPECTED_PLANNED_ARTIFACTS, "planned production auth artifacts drifted")
     for relative_path, artifact in artifacts.items():
         require(artifact.get("created_in_this_slice") is False, f"{relative_path} must not be created")
+        if relative_path == "contracts/radish-oidc-token-validation.schema.json":
+            continue
         require(not (REPO_ROOT / relative_path).exists(), f"{relative_path} must not exist in this readiness slice")
 
 

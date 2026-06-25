@@ -1,0 +1,39 @@
+{
+  "issuer_ref": "issuer:radish-production",
+  "subject_ref": "subject:user-7b7f92",
+  "tenant_ref": "tenant:radish-labs",
+  "audience_refs": [
+    "audience:radishmind-platform"
+  ],
+  "scope_grants": [
+    "workflow_drafts:read",
+    "workflow_drafts:write"
+  ],
+  "workspace_binding_refs": [
+    "workspace:workspace-42"
+  ],
+  "application_scope_refs": [
+    "application:workflow-builder"
+  ],
+  "owner_subject_ref": "subject:user-7b7f92",
+  "key_id_ref": "kid:radish-2026-06",
+  "algorithm": "RS256",
+  "issued_at": "2026-06-25T08:00:00Z",
+  "expires_at": "2026-06-25T09:00:00Z",
+  "auth_time": "2026-06-25T07:58:00Z",
+  "policy_version": "token_validation_policy_v1",
+  "request_id": "request:req-20260625-oidc-001",
+  "audit_ref": "audit:auth-context-001",
+  "raw_token": "redacted-raw-token-not-accepted",
+  "authorization_header": "redacted-header-not-accepted",
+  "cookie": "redacted-cookie-not-accepted",
+  "client_secret": "redacted-client-secret-not-accepted",
+  "refresh_token": "redacted-refresh-token-not-accepted",
+  "authorization_code": "redacted-code-not-accepted",
+  "jwks_raw_dump": "redacted-jwks-dump-not-accepted",
+  "raw_claim_dump": "redacted-claim-dump-not-accepted",
+  "membership_raw_record": "redacted-membership-record-not-accepted",
+  "database_detail": "redacted-database-detail-not-accepted",
+  "provider_error_detail": "redacted-provider-detail-not-accepted",
+  "secret_value": "redacted-secret-value-not-accepted"
+}

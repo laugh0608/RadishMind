@@ -365,11 +365,6 @@
       "docs/features/workflow/saved-workflow-draft-token-validation-auth-middleware-runtime-entry-review-v1.md"
     ],
     "files_must_not_exist": [
-      "contracts/radish-oidc-token-validation.schema.json",
-      "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-positive-v1.json",
-      "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-missing-required-negative-v1.json",
-      "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-forbidden-field-negative-v1.json",
-      "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-additional-properties-negative-v1.json",
       "services/platform/internal/httpapi/radish_oidc_auth_middleware.go",
       "services/platform/internal/httpapi/radish_oidc_token_validator.go",
       "services/platform/internal/httpapi/radish_membership_adapter.go",

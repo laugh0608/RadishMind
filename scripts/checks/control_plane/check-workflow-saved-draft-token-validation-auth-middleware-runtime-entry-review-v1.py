@@ -340,12 +340,15 @@ def assert_review_matrix(fixture: dict[str, Any]) -> None:
 def assert_token_schema_contract(fixture: dict[str, Any]) -> None:
     contract = fixture.get("token_validation_schema_contract") or {}
     require(
-        contract.get("status") == "static_schema_contract_reviewed_no_schema_file",
+        contract.get("status")
+        in {
+            "static_schema_contract_reviewed_no_schema_file",
+            "static_schema_contract_reviewed_schema_artifact_allowed",
+        },
         "token schema contract status drifted",
     )
     schema_path = str(contract.get("schema_artifact_path") or "")
     require(schema_path == "contracts/radish-oidc-token-validation.schema.json", "schema path drifted")
-    require(not (REPO_ROOT / schema_path).exists(), "token validation schema must not be created yet")
     missing_fields = sorted(EXPECTED_SCHEMA_FIELDS - set(contract.get("required_fields") or []))
     require(not missing_fields, f"missing token schema fields: {missing_fields}")
     missing_forbidden = sorted(EXPECTED_FORBIDDEN_SCHEMA_FIELDS - set(contract.get("forbidden_fields") or []))

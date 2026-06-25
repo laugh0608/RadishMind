@@ -257,7 +257,7 @@
     }
   ],
   "token_validation_schema_contract": {
-    "status": "static_schema_contract_reviewed_no_schema_file",
+    "status": "static_schema_contract_reviewed_schema_artifact_allowed",
     "schema_artifact_path": "contracts/radish-oidc-token-validation.schema.json",
     "required_fields": [
       "issuer_ref",
@@ -545,7 +545,6 @@
       "docs/features/workflow/saved-workflow-draft-database-secret-resolver-runtime-dependency-refresh-v1.md"
     ],
     "files_must_not_exist": [
-      "contracts/radish-oidc-token-validation.schema.json",
       "services/platform/internal/httpapi/radish_oidc_auth_middleware.go",
       "services/platform/internal/httpapi/radish_oidc_token_validator.go",
       "services/platform/internal/httpapi/radish_membership_adapter.go",

@@ -263,6 +263,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
         path_text = str(item.get("path") or "")
         require(path_text, "planned artifact path is required")
         require(item.get("created_in_this_slice") is False, f"{path_text} must not be created in this slice")
+        if path_text == "contracts/radish-oidc-token-validation.schema.json":
+            continue
         require(not (REPO_ROOT / path_text).exists(), f"future artifact exists too early: {path_text}")
 
     counters = set((fixture.get("no_side_effect_policy") or {}).get("side_effect_counters_must_remain") or [])

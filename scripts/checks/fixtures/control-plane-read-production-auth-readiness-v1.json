@@ -469,7 +469,6 @@
     ]
   },
   "source_absent_literals": [
-    "contracts/radish-oidc-token-validation.schema.json",
     "control_plane_read_auth_middleware.go",
     "control_plane_read_auth_middleware_test.go",
     "control-plane-read-production-auth-v1.json",

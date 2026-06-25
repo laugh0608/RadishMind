@@ -148,7 +148,6 @@ EXPECTED_FORBIDDEN_ARTIFACTS = {
     "services/platform/migrations/control_plane_read/ddl-review.md",
     "services/platform/migrations/control_plane_read/rollback-fixture.json",
     "services/platform/internal/httpapi/control_plane_read_store_selector.go",
-    "contracts/radish-oidc-token-validation.schema.json",
     "services/platform/internal/httpapi/control_plane_read_auth_middleware.go",
     "scripts/checks/fixtures/control-plane-read-adapter-smoke-v1.json",
     "scripts/checks/control_plane/check-control-plane-read-adapter-smoke-v1.py",

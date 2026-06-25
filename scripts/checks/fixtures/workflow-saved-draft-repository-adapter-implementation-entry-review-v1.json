@@ -449,7 +449,6 @@
       "services/platform/internal/httpapi/workflow_saved_draft_production_http.go",
       "scripts/checks/fixtures/workflow-saved-draft-adapter-smoke-v1.json",
       "scripts/checks/control_plane/check-workflow-saved-draft-adapter-smoke-v1.py",
-      "contracts/radish-oidc-token-validation.schema.json",
       "services/platform/internal/httpapi/workflow_saved_draft_auth_middleware.go",
       "services/platform/internal/httpapi/workflow_saved_draft_token_validation.go",
       "services/platform/internal/httpapi/workflow_saved_draft_membership_adapter.go"
