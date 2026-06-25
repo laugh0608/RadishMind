@@ -1,0 +1,476 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_negative_auth_smoke_runtime_readiness_v1",
+  "slice": {
+    "id": "workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_negative_auth_smoke_runtime_readiness_defined",
+    "task_card": "docs/task-cards/workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1-plan.md",
+    "feature_topic": "docs/features/workflow/saved-workflow-draft-negative-auth-smoke-runtime-readiness-v1.md",
+    "entry_decision": "negative_auth_smoke_runtime_readiness_defined_before_runtime_artifact",
+    "does_not_claim": [
+      "negative_auth_smoke_runtime_fixture_created",
+      "negative_auth_smoke_runtime_checker_created",
+      "negative_auth_smoke_runtime_runner_created",
+      "auth_middleware_implementation_task_card_created",
+      "membership_adapter_implementation_task_card_created",
+      "token_validator_created",
+      "oidc_middleware_ready",
+      "auth_middleware_created",
+      "membership_adapter_created",
+      "membership_cache_created",
+      "repository_store_mode_enabled",
+      "repository_mode_runtime_created",
+      "database_runtime_created",
+      "production_api_consumer_created",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    {
+      "id": "workflow-saved-draft-auth-middleware-membership-adapter-task-card-entry-readiness-v1",
+      "status": "draft_auth_middleware_membership_adapter_task_card_entry_readiness_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-auth-middleware-membership-adapter-task-card-entry-readiness-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-token-validation-schema-artifact-implementation-v1",
+      "status": "draft_token_validation_schema_artifact_implemented",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-artifact-implementation-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-token-validation-auth-middleware-runtime-entry-review-v1",
+      "status": "draft_token_validation_auth_middleware_runtime_entry_review_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-token-validation-auth-middleware-runtime-entry-review-v1.json"
+    },
+    {
+      "id": "radish-oidc-token-membership-upstream-evidence-refresh-v1",
+      "status": "radish_oidc_token_membership_upstream_evidence_refresh_defined",
+      "evidence": "scripts/checks/fixtures/radish-oidc-token-membership-upstream-evidence-refresh-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-production-auth-runtime-v1",
+      "status": "draft_production_auth_runtime_bridge_implemented",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-production-auth-runtime-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-database-secret-resolver-runtime-dependency-refresh-v1",
+      "status": "draft_database_secret_resolver_runtime_dependency_refresh_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-database-secret-resolver-runtime-dependency-refresh-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-schema-marker-runtime-dependency-refresh-v1",
+      "status": "draft_schema_marker_runtime_dependency_refresh_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-schema-marker-runtime-dependency-refresh-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-repository-mode-runtime-boundary-review-v1",
+      "status": "draft_repository_mode_runtime_boundary_review_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-repository-mode-runtime-boundary-review-v1.json"
+    }
+  ],
+  "readiness_boundary": {
+    "status": "negative_auth_smoke_runtime_readiness_defined_no_runtime",
+    "decision": "negative_auth_smoke_runtime_readiness_defined_before_runtime_artifact",
+    "future_runtime_fixture": "scripts/checks/fixtures/workflow-saved-draft-negative-auth-smoke-runtime-v1.json",
+    "future_runtime_checker": "scripts/checks/control_plane/check-workflow-saved-draft-negative-auth-smoke-runtime-v1.py",
+    "runtime_smoke_artifact_allowed_now": false,
+    "runtime_fixture_created_in_this_slice": false,
+    "runtime_checker_created_in_this_slice": false,
+    "runtime_runner_created_in_this_slice": false,
+    "auth_middleware_task_card_allowed_now": false,
+    "auth_middleware_task_card_created_in_this_slice": false,
+    "auth_middleware_created_in_this_slice": false,
+    "token_validator_created_in_this_slice": false,
+    "membership_adapter_created_in_this_slice": false,
+    "repository_mode_enabled_in_this_slice": false,
+    "database_runtime_created_in_this_slice": false,
+    "production_api_consumer_created_in_this_slice": false,
+    "synthetic_sanitized_cases_only": true,
+    "must_fail_before_repository_query": true
+  },
+  "negative_auth_case_matrix": [
+    {
+      "case_id": "missing_authorization_header",
+      "failure_boundary": "request_auth_boundary",
+      "expected_failure_code": "draft_identity_context_missing",
+      "future_input_shape": "synthetic_request_without_authorization_header",
+      "runtime_fixture_created_now": false,
+      "must_fail_before_repository_query": true
+    },
+    {
+      "case_id": "malformed_bearer_header",
+      "failure_boundary": "request_auth_boundary",
+      "expected_failure_code": "draft_auth_context_contract_mismatch",
+      "future_input_shape": "synthetic_request_with_malformed_bearer_header",
+      "runtime_fixture_created_now": false,
+      "must_fail_before_repository_query": true
+    },
+    {
+      "case_id": "unknown_issuer",
+      "failure_boundary": "issuer_boundary",
+      "expected_failure_code": "draft_auth_context_contract_mismatch",
+      "future_input_shape": "synthetic_verified_context_with_unknown_issuer_ref",
+      "runtime_fixture_created_now": false,
+      "must_fail_before_repository_query": true
+    },
+    {
+      "case_id": "jwks_unavailable",
+      "failure_boundary": "jwks_boundary",
+      "expected_failure_code": "draft_auth_context_contract_mismatch",
+      "future_input_shape": "synthetic_jwks_policy_unavailable_result",
+      "runtime_fixture_created_now": false,
+      "must_fail_before_repository_query": true
+    },
+    {
+      "case_id": "invalid_signature",
+      "failure_boundary": "token_signature_boundary",
+      "expected_failure_code": "draft_auth_context_contract_mismatch",
+      "future_input_shape": "synthetic_signature_verification_failure",
+      "runtime_fixture_created_now": false,
+      "must_fail_before_repository_query": true
+    },
+    {
+      "case_id": "expired_token",
+      "failure_boundary": "token_time_boundary",
+      "expected_failure_code": "draft_auth_context_contract_mismatch",
+      "future_input_shape": "synthetic_verified_context_with_expired_time_window",
+      "runtime_fixture_created_now": false,
+      "must_fail_before_repository_query": true
+    },
+    {
+      "case_id": "missing_required_claim",
+      "failure_boundary": "token_claim_boundary",
+      "expected_failure_code": "draft_identity_context_missing",
+      "future_input_shape": "synthetic_verified_context_missing_required_projection",
+      "runtime_fixture_created_now": false,
+      "must_fail_before_repository_query": true
+    },
+    {
+      "case_id": "tenant_binding_denied",
+      "failure_boundary": "tenant_binding_boundary",
+      "expected_failure_code": "draft_tenant_binding_missing",
+      "future_input_shape": "synthetic_membership_projection_without_tenant_binding",
+      "runtime_fixture_created_now": false,
+      "must_fail_before_repository_query": true
+    },
+    {
+      "case_id": "workspace_membership_denied",
+      "failure_boundary": "workspace_membership_boundary",
+      "expected_failure_code": "draft_workspace_membership_denied",
+      "future_input_shape": "synthetic_membership_projection_without_workspace_binding",
+      "runtime_fixture_created_now": false,
+      "must_fail_before_repository_query": true
+    },
+    {
+      "case_id": "application_scope_denied",
+      "failure_boundary": "application_scope_boundary",
+      "expected_failure_code": "draft_application_scope_denied",
+      "future_input_shape": "synthetic_membership_projection_without_application_scope",
+      "runtime_fixture_created_now": false,
+      "must_fail_before_repository_query": true
+    },
+    {
+      "case_id": "owner_scope_denied",
+      "failure_boundary": "owner_scope_boundary",
+      "expected_failure_code": "draft_owner_scope_denied",
+      "future_input_shape": "synthetic_membership_projection_without_owner_scope",
+      "runtime_fixture_created_now": false,
+      "must_fail_before_repository_query": true
+    },
+    {
+      "case_id": "scope_grant_missing",
+      "failure_boundary": "scope_grant_boundary",
+      "expected_failure_code": "draft_scope_grant_missing",
+      "future_input_shape": "synthetic_membership_projection_without_required_scope_grant",
+      "runtime_fixture_created_now": false,
+      "must_fail_before_repository_query": true
+    },
+    {
+      "case_id": "membership_source_unavailable",
+      "failure_boundary": "membership_source_boundary",
+      "expected_failure_code": "draft_auth_context_contract_mismatch",
+      "future_input_shape": "synthetic_membership_source_unavailable_result",
+      "runtime_fixture_created_now": false,
+      "must_fail_before_repository_query": true
+    }
+  ],
+  "future_runtime_smoke_requirements": [
+    "future_fixture_must_use_synthetic_sanitized_cases_only",
+    "future_checker_must_not_use_real_tokens_or_provider_network",
+    "future_checker_must_not_fetch_issuer_discovery_or_jwks",
+    "future_checker_must_not_query_membership_source",
+    "future_checker_must_not_connect_database_or_run_sql",
+    "future_smoke_must_validate_failure_mapping_before_repository_query",
+    "future_smoke_must_reject_raw_token_authorization_header_cookie_and_raw_claim_dump",
+    "future_smoke_must_reject_membership_raw_record_provider_error_database_detail_secret_value_and_dsn",
+    "future_smoke_must_prove_no_dev_auth_memory_sample_fixture_test_resolver_or_fake_query_fallback",
+    "future_smoke_must_keep_repository_mode_disabled_until_separate_enablement"
+  ],
+  "failure_mapping": [
+    {
+      "code": "draft_auth_context_contract_mismatch",
+      "failure_boundary": "auth_context_contract",
+      "sanitized_diagnostic": "auth context failed closed before repository query"
+    },
+    {
+      "code": "draft_identity_context_missing",
+      "failure_boundary": "identity_context",
+      "sanitized_diagnostic": "identity context projection is missing"
+    },
+    {
+      "code": "draft_tenant_binding_missing",
+      "failure_boundary": "tenant_binding",
+      "sanitized_diagnostic": "tenant binding is missing"
+    },
+    {
+      "code": "draft_workspace_membership_denied",
+      "failure_boundary": "workspace_membership",
+      "sanitized_diagnostic": "workspace membership is denied"
+    },
+    {
+      "code": "draft_application_scope_denied",
+      "failure_boundary": "application_scope",
+      "sanitized_diagnostic": "application scope is denied"
+    },
+    {
+      "code": "draft_owner_scope_denied",
+      "failure_boundary": "owner_scope",
+      "sanitized_diagnostic": "owner scope is denied"
+    },
+    {
+      "code": "draft_scope_grant_missing",
+      "failure_boundary": "scope_grant",
+      "sanitized_diagnostic": "required scope grant is missing"
+    }
+  ],
+  "sanitized_diagnostics": {
+    "allowed_fields": [
+      "case_id",
+      "failure_code",
+      "failure_boundary",
+      "sanitized_diagnostic",
+      "request_id",
+      "audit_ref",
+      "policy_version"
+    ],
+    "forbidden_fields": [
+      "raw_token",
+      "authorization_header",
+      "cookie",
+      "client_secret",
+      "refresh_token",
+      "authorization_code",
+      "raw_claim_dump",
+      "jwks_raw_dump",
+      "membership_raw_record",
+      "provider_error_detail",
+      "database_detail",
+      "secret_value",
+      "dsn"
+    ],
+    "runtime_emission_allowed_in_this_slice": false
+  },
+  "no_fallback_policy": [
+    "no fallback to dev fake auth",
+    "no fallback to memory dev store",
+    "no fallback to sample",
+    "no fallback to fixture as auth truth",
+    "no fallback to test-only fake resolver",
+    "no fallback to fake query executor",
+    "no fallback to committed credential",
+    "negative auth smoke readiness does not mean auth middleware ready",
+    "negative auth smoke readiness does not mean membership adapter ready",
+    "negative auth smoke readiness does not mean repository mode ready"
+  ],
+  "no_side_effect_policy": [
+    "checker reads committed docs fixtures schema and source text only",
+    "no issuer discovery fetch",
+    "no JWKS fetch",
+    "no real token validation",
+    "no auth middleware invocation",
+    "no membership query",
+    "no membership cache creation",
+    "no repository mode enablement",
+    "no repository query",
+    "no database connection",
+    "no SQL execution",
+    "no schema marker read",
+    "no schema marker write",
+    "no secret resolver call",
+    "no production API call",
+    "no executor call",
+    "no confirmation call",
+    "no writeback or replay"
+  ],
+  "side_effect_counters": {
+    "issuer_network_call_count": 0,
+    "jwks_fetch_count": 0,
+    "token_validation_call_count": 0,
+    "auth_middleware_invocation_count": 0,
+    "membership_query_count": 0,
+    "membership_cache_create_count": 0,
+    "repository_query_count": 0,
+    "repository_write_count": 0,
+    "repository_mode_enablement_count": 0,
+    "database_connection_count": 0,
+    "sql_execution_count": 0,
+    "schema_marker_read_count": 0,
+    "schema_marker_write_count": 0,
+    "secret_resolver_call_count": 0,
+    "production_api_call_count": 0,
+    "executor_call_count": 0,
+    "confirmation_call_count": 0,
+    "business_writeback_count": 0,
+    "replay_call_count": 0
+  },
+  "artifact_guard": {
+    "required_static_artifacts_exist": [
+      "contracts/radish-oidc-token-validation.schema.json",
+      "scripts/checks/fixtures/workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1.json",
+      "scripts/checks/control_plane/check-workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1.py",
+      "docs/features/workflow/saved-workflow-draft-negative-auth-smoke-runtime-readiness-v1.md",
+      "docs/task-cards/workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1-plan.md",
+      "scripts/checks/fixtures/workflow-saved-draft-auth-middleware-membership-adapter-task-card-entry-readiness-v1.json",
+      "scripts/checks/control_plane/check-workflow-saved-draft-auth-middleware-membership-adapter-task-card-entry-readiness-v1.py",
+      "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-artifact-implementation-v1.json",
+      "scripts/checks/control_plane/check-workflow-saved-draft-token-validation-schema-artifact-implementation-v1.py"
+    ],
+    "files_must_not_exist": [
+      "services/platform/internal/httpapi/radish_oidc_auth_middleware.go",
+      "services/platform/internal/httpapi/radish_oidc_token_validator.go",
+      "services/platform/internal/httpapi/radish_membership_adapter.go",
+      "scripts/checks/fixtures/workflow-saved-draft-negative-auth-smoke-runtime-v1.json",
+      "scripts/checks/control_plane/check-workflow-saved-draft-negative-auth-smoke-runtime-v1.py",
+      "services/platform/migrations/workflow_saved_drafts/001_saved_workflow_drafts.sql"
+    ],
+    "forbid_sql_files_under": [
+      "services/platform/migrations/workflow_saved_drafts"
+    ],
+    "source_files_to_scan": [
+      "services/platform/internal/httpapi/workflow_saved_draft.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_production_auth_runtime.go"
+    ],
+    "forbidden_source_literals": [
+      "RadishOIDCAuthMiddleware",
+      "RadishOIDCTokenValidator",
+      "RadishMembershipAdapter",
+      "ValidateRadishOIDCToken",
+      "LookupRadishMembership",
+      "NegativeAuthSmokeRuntime"
+    ]
+  },
+  "required_doc_references": [
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-negative-auth-smoke-runtime-readiness-v1.md",
+      "must_contain": [
+        "workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1",
+        "draft_negative_auth_smoke_runtime_readiness_defined",
+        "negative_auth_smoke_runtime_readiness_defined_no_runtime",
+        "scripts/checks/fixtures/workflow-saved-draft-negative-auth-smoke-runtime-v1.json"
+      ]
+    },
+    {
+      "path": "docs/task-cards/workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1-plan.md",
+      "must_contain": [
+        "draft_negative_auth_smoke_runtime_readiness_defined",
+        "workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1",
+        "scripts/checks/control_plane/check-workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1.py"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Negative Auth Smoke Runtime Readiness v1",
+        "draft_negative_auth_smoke_runtime_readiness_defined",
+        "workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/README.md",
+      "must_contain": [
+        "Saved Workflow Draft Negative Auth Smoke Runtime Readiness v1",
+        "draft_negative_auth_smoke_runtime_readiness_defined",
+        "workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1"
+      ]
+    },
+    {
+      "path": "docs/features/workflow-agent-runtime.md",
+      "must_contain": [
+        "Saved Workflow Draft Negative Auth Smoke Runtime Readiness v1",
+        "draft_negative_auth_smoke_runtime_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/features/README.md",
+      "must_contain": [
+        "Saved Workflow Draft Negative Auth Smoke Runtime Readiness v1",
+        "draft_negative_auth_smoke_runtime_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "must_contain": [
+        "Saved Workflow Draft Negative Auth Smoke Runtime Readiness v1",
+        "draft_negative_auth_smoke_runtime_readiness_defined",
+        "check-workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1.py"
+      ]
+    },
+    {
+      "path": "docs/radishmind-integration-contracts.md",
+      "must_contain": [
+        "draft_negative_auth_smoke_runtime_readiness_defined",
+        "negative auth smoke runtime readiness"
+      ]
+    },
+    {
+      "path": "docs/task-cards/README.md",
+      "must_contain": [
+        "Workflow Saved Draft Negative Auth Smoke Runtime Readiness",
+        "workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1"
+      ]
+    },
+    {
+      "path": "scripts/README.md",
+      "must_contain": [
+        "check-workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1.py",
+        "draft_negative_auth_smoke_runtime_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/devlogs/2026-W26.md",
+      "must_contain": [
+        "workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1",
+        "draft_negative_auth_smoke_runtime_readiness_defined"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "status": "negative_auth_smoke_runtime_readiness_checker_only_no_runtime",
+    "required_checks": [
+      "workflow_saved_draft_negative_auth_smoke_runtime_readiness_checker",
+      "workflow_saved_draft_auth_middleware_membership_adapter_task_card_entry_readiness_checker",
+      "workflow_saved_draft_token_validation_schema_artifact_implementation_checker",
+      "workflow_saved_draft_token_validation_auth_middleware_runtime_entry_review_checker",
+      "radish_oidc_token_membership_upstream_evidence_refresh_checker",
+      "workflow_saved_draft_production_auth_runtime_checker",
+      "git diff --check",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_fetch_issuer_discovery": true,
+    "does_not_fetch_jwks": true,
+    "does_not_validate_token": true,
+    "does_not_create_auth_middleware": true,
+    "does_not_query_membership": true,
+    "does_not_create_membership_adapter": true,
+    "does_not_enable_repository_store_mode": true,
+    "does_not_connect_database": true,
+    "does_not_run_sql": true,
+    "does_not_create_production_api": true,
+    "does_not_create_executor_confirmation_writeback_or_replay": true
+  }
+}

@@ -278,6 +278,8 @@
 
 当前 Saved Workflow Draft auth middleware / membership adapter task card entry readiness 还提供 `check-workflow-saved-draft-auth-middleware-membership-adapter-task-card-entry-readiness-v1.py`，用于校验 `draft_auth_middleware_membership_adapter_task_card_entry_readiness_defined`、schema artifact 消费、auth middleware owner contract、membership adapter static contract、repository actor context handoff、negative auth smoke runtime readiness blocker、failure mapping、no fallback、no side effects 和 fast baseline 注册；该检查不创建 auth middleware / membership adapter implementation task card，不 fetch issuer discovery、不下载 JWKS、不校验真实 token、不查询 membership、不创建 middleware / validator / membership adapter / negative auth smoke runtime、不启用 repository mode、不连接数据库、不运行 SQL、不实现 production API、executor、confirmation、writeback 或 replay。
 
+当前 Saved Workflow Draft negative auth smoke runtime readiness 还提供 `check-workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1.py`，用于校验 `draft_negative_auth_smoke_runtime_readiness_defined`、13 个负向 auth / membership 场景、failure code、脱敏诊断、future runtime fixture / checker 路径、no fallback、no side effects、artifact guard 和 fast baseline 注册；该检查不创建 negative auth smoke runtime fixture / checker / runner，不 fetch issuer discovery、不下载 JWKS、不校验真实 token、不查询 membership、不创建 middleware / validator / membership adapter、不启用 repository mode、不连接数据库、不运行 SQL、不实现 production API、executor、confirmation、writeback 或 replay。
+
 尾部 checker 的失败含义需要区分：
 
 - `check-control-plane-read-production-auth-readiness-v1.py` 失败通常表示 OIDC / auth 证据边界、failure code、claim mapping 或 forbidden auth artifact 漂移。
