@@ -137,6 +137,20 @@ export type WorkflowReviewHandoffNodeDesignerReviewSection = {
   evidenceRefs: string[];
 };
 
+export type WorkflowReviewHandoffNodeDesignerGraphFinding = {
+  findingId: string;
+  label: string;
+  sourceCheckId: string;
+  targetKind: "node" | "edge" | "graph";
+  status: WorkflowReviewHandoffStatus;
+  severity: "info" | "warning" | "blocking";
+  targetRefs: string[];
+  targetSummary: string;
+  summary: string;
+  reviewerQuestion: string;
+  evidenceRefs: string[];
+};
+
 export type WorkflowReviewHandoffNodeDesignerReviewRecord = {
   recordId: "node_designer_review_record";
   recordMode: "node_designer_advisory_only";
@@ -146,6 +160,10 @@ export type WorkflowReviewHandoffNodeDesignerReviewRecord = {
   derivedEdgeCount: number;
   validationOverlayCount: number;
   inspectorFieldCount: number;
+  graphReviewFindings: WorkflowReviewHandoffNodeDesignerGraphFinding[];
+  nodeTargetedFindingCount: number;
+  edgeTargetedFindingCount: number;
+  graphLevelFindingCount: number;
   sections: WorkflowReviewHandoffNodeDesignerReviewSection[];
   canRenderNodeDesignerReviewRecord: boolean;
   canPersistLayout: false;
@@ -423,6 +441,7 @@ function buildNodeDesignerReviewRecord(
     draft.designerLayout.persistence === "saved_draft_metadata" ? "saved draft metadata" : "active draft session";
   const validationOverlayCount = countNodeDesignerValidationOverlayItems(source);
   const inspectorFieldCount = countNodeDesignerInspectorFields(draft);
+  const graphReviewFindings = buildNodeDesignerGraphReviewFindings(source);
   const sections = buildNodeDesignerReviewSections(
     source,
     layoutPersistenceLabel,
@@ -446,10 +465,15 @@ function buildNodeDesignerReviewRecord(
     derivedEdgeCount: draft.edges.length,
     validationOverlayCount,
     inspectorFieldCount,
+    graphReviewFindings,
+    nodeTargetedFindingCount: countNodeDesignerGraphReviewFindings(graphReviewFindings, "node"),
+    edgeTargetedFindingCount: countNodeDesignerGraphReviewFindings(graphReviewFindings, "edge"),
+    graphLevelFindingCount: countNodeDesignerGraphReviewFindings(graphReviewFindings, "graph"),
     sections,
     canRenderNodeDesignerReviewRecord:
       draftIdsMatch &&
       draft.nodes.length > 0 &&
+      graphReviewFindings.length > 0 &&
       sections.length === 4 &&
       sections.every((section) => section.requestId.length > 0 && section.auditRef.length > 0),
     canPersistLayout: false,
@@ -544,6 +568,75 @@ function buildNodeDesignerReviewSections(
   ];
 }
 
+function buildNodeDesignerGraphReviewFindings(
+  source: WorkflowReviewHandoffSource,
+): WorkflowReviewHandoffNodeDesignerGraphFinding[] {
+  const draft = source.activeWorkflowDraft;
+  const validationInspector = source.workflowDraftValidationInspector;
+  const nodeIds = new Set(draft.nodes.map((node) => node.nodeId));
+  const structuralFindings = validationInspector.structuralChecks
+    .filter((check) => check.status !== "passed")
+    .map((check) => {
+      const targetNodeIds = check.evidenceRefs.filter((nodeId) => nodeIds.has(nodeId));
+      const targetEdgeIds = nodeDesignerEdgeIdsForTargetNodes(draft, targetNodeIds);
+      const targetKind = targetEdgeIds.length > 0 ? "edge" : nodeDesignerTargetKind(targetNodeIds, targetEdgeIds);
+      const targetRefs = nodeDesignerTargetRefs(targetKind, targetNodeIds, targetEdgeIds);
+      return {
+        findingId: `node_designer_graph_review_${check.checkId}`,
+        label: check.label,
+        sourceCheckId: check.checkId,
+        targetKind,
+        status: validationStatusToHandoffStatus(check.status),
+        severity: check.severity,
+        targetRefs,
+        targetSummary: nodeDesignerTargetSummary(targetKind, targetNodeIds, targetEdgeIds),
+        summary: check.summary,
+        reviewerQuestion:
+          "Does this graph finding identify the node or edge context a reviewer should inspect before handoff?",
+        evidenceRefs: [check.checkId, ...targetRefs].slice(0, 8),
+      };
+    });
+  const contractFindings = validationInspector.contractChecks
+    .filter((check) => check.status !== "passed")
+    .map((check) => {
+      const targetNodeIds = nodeDesignerContractTargetNodeIds(draft, check.checkId);
+      const targetEdgeIds = nodeDesignerEdgeIdsForTargetNodes(draft, targetNodeIds);
+      const targetKind = targetNodeIds.length > 0 ? "node" : nodeDesignerTargetKind(targetNodeIds, targetEdgeIds);
+      const targetRefs = nodeDesignerTargetRefs(targetKind, targetNodeIds, targetEdgeIds);
+      return {
+        findingId: `node_designer_graph_review_${check.checkId}`,
+        label: check.label,
+        sourceCheckId: check.checkId,
+        targetKind,
+        status: validationStatusToHandoffStatus(check.status),
+        severity: check.severity,
+        targetRefs,
+        targetSummary: nodeDesignerTargetSummary(targetKind, targetNodeIds, targetEdgeIds),
+        summary: `${check.summary} Missing fields: ${
+          check.missingFields.length > 0 ? check.missingFields.join(", ") : "none"
+        }.`,
+        reviewerQuestion:
+          "Which node contract fields should remain visible before this draft can be reviewed as complete?",
+        evidenceRefs: [check.checkId, ...check.missingFields, ...targetRefs].slice(0, 8),
+      };
+    });
+  const blockedCapabilityFindings = validationInspector.blockedCapabilityChecks.map((check) => ({
+    findingId: `node_designer_graph_review_${check.checkId}`,
+    label: check.label,
+    sourceCheckId: check.checkId,
+    targetKind: "graph" as const,
+    status: "blocked" as const,
+    severity: check.severity,
+    targetRefs: [check.capabilityId],
+    targetSummary: `Graph-level blocked capability: ${check.capabilityId}`,
+    summary: check.summary,
+    reviewerQuestion: "Which missing prerequisite keeps this graph-level capability blocked for the handoff?",
+    evidenceRefs: [check.checkId, check.capabilityId, check.auditRef],
+  }));
+
+  return [...structuralFindings, ...contractFindings, ...blockedCapabilityFindings];
+}
+
 function countNodeDesignerValidationOverlayItems(source: WorkflowReviewHandoffSource): number {
   const validationInspector = source.workflowDraftValidationInspector;
   return (
@@ -576,6 +669,86 @@ function nodeDesignerValidationEvidenceRefs(source: WorkflowReviewHandoffSource)
       .map((check) => check.checkId),
     ...validationInspector.blockedCapabilityChecks.map((check) => check.checkId),
   ];
+}
+
+function countNodeDesignerGraphReviewFindings(
+  findings: WorkflowReviewHandoffNodeDesignerGraphFinding[],
+  targetKind: WorkflowReviewHandoffNodeDesignerGraphFinding["targetKind"],
+): number {
+  return findings.filter((finding) => finding.targetKind === targetKind).length;
+}
+
+function nodeDesignerContractTargetNodeIds(
+  draft: WorkflowDraftDesignerDraft,
+  checkId: string,
+): string[] {
+  if (checkId === "input_contract_fields") {
+    return draft.nodes
+      .filter((node) => node.lane === "context" || node.inputContractFields.length > 0)
+      .map((node) => node.nodeId);
+  }
+  if (checkId === "output_contract_fields") {
+    return draft.nodes
+      .filter(
+        (node) =>
+          node.lane === "output" ||
+          node.outputContractFields.length > 0 ||
+          node.outputMappingSummary.trim().length > 0,
+      )
+      .map((node) => node.nodeId);
+  }
+  return [];
+}
+
+function nodeDesignerEdgeIdsForTargetNodes(
+  draft: WorkflowDraftDesignerDraft,
+  targetNodeIds: string[],
+): string[] {
+  const targetNodeIdSet = new Set(targetNodeIds);
+  return draft.edges
+    .filter((edge) => targetNodeIdSet.has(edge.fromNodeId) || targetNodeIdSet.has(edge.toNodeId))
+    .map((edge) => edge.edgeId);
+}
+
+function nodeDesignerTargetKind(
+  nodeIds: string[],
+  edgeIds: string[],
+): WorkflowReviewHandoffNodeDesignerGraphFinding["targetKind"] {
+  if (edgeIds.length > 0) {
+    return "edge";
+  }
+  if (nodeIds.length > 0) {
+    return "node";
+  }
+  return "graph";
+}
+
+function nodeDesignerTargetRefs(
+  targetKind: WorkflowReviewHandoffNodeDesignerGraphFinding["targetKind"],
+  nodeIds: string[],
+  edgeIds: string[],
+): string[] {
+  if (targetKind === "edge") {
+    return [...edgeIds, ...nodeIds].slice(0, 8);
+  }
+  if (targetKind === "node") {
+    return nodeIds.slice(0, 8);
+  }
+  return ["graph_level_review"];
+}
+
+function nodeDesignerTargetSummary(
+  targetKind: WorkflowReviewHandoffNodeDesignerGraphFinding["targetKind"],
+  nodeIds: string[],
+  edgeIds: string[],
+): string {
+  if (targetKind === "edge") {
+    return `${edgeIds.length} related edges / ${nodeIds.length} related nodes`;
+  }
+  if (targetKind === "node") {
+    return `${nodeIds.length} related nodes`;
+  }
+  return "Graph-level review item";
 }
 
 function buildRecipients(source: WorkflowReviewHandoffSource): WorkflowReviewHandoffRecipient[] {
@@ -674,9 +847,18 @@ function buildKeyFindings(
       label: "Node designer review",
       sourceSurface: "node_designer",
       status: nodeDesignerReviewRecord.canRenderNodeDesignerReviewRecord ? "review_required" : "blocked",
-      summary: `Node Designer handoff carries ${nodeDesignerReviewRecord.sections.length} canvas review sections, ${nodeDesignerReviewRecord.positionedNodeCount} UI-only positions, ${nodeDesignerReviewRecord.defaultLayoutNodeCount} default positions, and ${nodeDesignerReviewRecord.validationOverlayCount} overlay items.`,
+      summary: `Node Designer handoff carries ${nodeDesignerReviewRecord.sections.length} canvas review sections, ${nodeDesignerReviewRecord.positionedNodeCount} UI-only positions, ${nodeDesignerReviewRecord.defaultLayoutNodeCount} default positions, ${nodeDesignerReviewRecord.validationOverlayCount} overlay items, and ${nodeDesignerReviewRecord.graphReviewFindings.length} graph review findings.`,
       evidenceRef: nodeDesignerReviewRecord.recordId,
       humanReviewQuestion: "Does the canvas review record make visual layout, overlay, inspector state, and saved draft mapping boundaries clear?",
+    },
+    {
+      findingId: "node_designer_graph_review",
+      label: "Node designer graph review",
+      sourceSurface: "node_designer",
+      status: nodeDesignerReviewRecord.canRenderNodeDesignerReviewRecord ? "review_required" : "blocked",
+      summary: `Graph review groups ${nodeDesignerReviewRecord.nodeTargetedFindingCount} node-targeted, ${nodeDesignerReviewRecord.edgeTargetedFindingCount} edge-targeted, and ${nodeDesignerReviewRecord.graphLevelFindingCount} graph-level findings from validation overlay detail.`,
+      evidenceRef: "node_designer_graph_review_findings",
+      humanReviewQuestion: "Can the reviewer tell which nodes, edges, or graph-level blockers need attention before handoff?",
     },
     {
       findingId: "runtime_readiness",

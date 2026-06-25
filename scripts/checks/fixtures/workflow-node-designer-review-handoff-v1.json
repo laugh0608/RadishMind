@@ -35,13 +35,20 @@
     "required_handoff_literals": [
       "activeWorkflowDraft: WorkflowDraftDesignerDraft;",
       "WorkflowReviewHandoffNodeDesignerReviewRecord",
+      "WorkflowReviewHandoffNodeDesignerGraphFinding",
       "nodeDesignerReviewRecord",
       "buildNodeDesignerReviewRecord(",
       "buildNodeDesignerReviewSections(",
+      "buildNodeDesignerGraphReviewFindings(",
       "node_designer_canvas_layout",
       "node_designer_validation_overlay",
       "node_designer_inspector_state",
       "node_designer_saved_draft_mapping",
+      "node_designer_graph_review",
+      "graphReviewFindings",
+      "nodeTargetedFindingCount",
+      "edgeTargetedFindingCount",
+      "graphLevelFindingCount",
       "node_designer_review_handoff",
       "node_designer_no_persisted_runtime_state",
       "canPersistLayout: false",
@@ -54,9 +61,12 @@
       "Node Designer Review Handoff",
       "Canvas overlay, inspector, mapping",
       "WorkflowReviewHandoffNodeDesignerSectionCard",
+      "WorkflowReviewHandoffNodeDesignerGraphFindingCard",
       "handoff.nodeDesignerReviewRecord.sections.map",
+      "handoff.nodeDesignerReviewRecord.graphReviewFindings.map",
       "section.itemCount",
-      "Workflow node designer review handoff"
+      "Workflow node designer review handoff",
+      "Workflow node designer graph review findings"
     ],
     "required_context_literals": [
       "const workflowReviewHandoff = buildWorkflowReviewHandoffViewModel({",
@@ -80,26 +90,42 @@
       "Workflow Node Designer Review Handoff v1",
       "状态：`workflow_node_designer_review_handoff_v1_implemented`",
       "validation overlay、inspector state、UI-only layout 和 saved draft mapping",
+      "Workflow Node Designer Graph Review Handoff Refinement v1",
+      "graphReviewFindings",
       "不实现 workflow executor"
     ],
     "docs/task-cards/workflow-node-designer-review-handoff-v1-plan.md": [
       "workflow_node_designer_review_handoff_v1_implemented",
       "Node Designer handoff record 必须消费当前 active draft",
+      "Graph review findings 必须消费当前 active draft 和 validation inspector",
       "Web build、专项 checker 和 `./scripts/check-repo.sh --fast`"
+    ],
+    "docs/task-cards/workflow-node-designer-graph-review-handoff-refinement-v1-plan.md": [
+      "workflow_node_designer_graph_review_handoff_refinement_v1_implemented",
+      "graphReviewFindings",
+      "nodeTargetedFindingCount",
+      "edgeTargetedFindingCount",
+      "graphLevelFindingCount"
     ],
     "docs/features/workflow/README.md": [
       "Workflow Node Designer Review Handoff v1",
-      "workflow_node_designer_review_handoff_v1_implemented"
+      "workflow_node_designer_review_handoff_v1_implemented",
+      "Workflow Node Designer Graph Review Handoff Refinement v1",
+      "workflow_node_designer_graph_review_handoff_refinement_v1_implemented"
     ],
     "docs/features/README.md": [
-      "Workflow Node Designer Review Handoff v1"
+      "Workflow Node Designer Review Handoff v1",
+      "Workflow Node Designer Graph Review Handoff Refinement v1"
     ],
     "docs/features/workflow-agent-runtime.md": [
       "Workflow Node Designer Review Handoff v1",
-      "nodeDesignerReviewRecord"
+      "Workflow Node Designer Graph Review Handoff Refinement v1",
+      "nodeDesignerReviewRecord",
+      "graphReviewFindings"
     ],
     "docs/features/workflow/node-designer-surface-v1.md": [
       "Workflow Node Designer Review Handoff v1",
+      "Workflow Node Designer Graph Review Handoff Refinement v1",
       "node designer review handoff"
     ],
     "docs/features/workflow/node-designer-saved-draft-mapping-v1.md": [
@@ -108,17 +134,23 @@
     ],
     "docs/radishmind-current-focus.md": [
       "Workflow Node Designer Review Handoff v1",
-      "Workflow Node Designer Persisted Layout v1"
+      "Workflow Node Designer Persisted Layout v1",
+      "Workflow Node Designer Graph Review Handoff Refinement v1",
+      "workflow_node_designer_graph_review_handoff_refinement_v1_implemented"
     ],
     "docs/devlogs/2026-W26.md": [
       "workflow-node-designer-review-handoff-v1",
-      "workflow_node_designer_review_handoff_v1_implemented"
+      "workflow_node_designer_review_handoff_v1_implemented",
+      "workflow-node-designer-graph-review-handoff-refinement-v1",
+      "workflow_node_designer_graph_review_handoff_refinement_v1_implemented"
     ],
     "docs/task-cards/README.md": [
-      "Workflow Node Designer Review Handoff"
+      "Workflow Node Designer Review Handoff",
+      "Workflow Node Designer Graph Review Handoff Refinement"
     ],
     "scripts/README.md": [
-      "workflow-node-designer-review-handoff-v1"
+      "workflow-node-designer-review-handoff-v1",
+      "graphReviewFindings"
     ]
   },
   "testing_strategy": [

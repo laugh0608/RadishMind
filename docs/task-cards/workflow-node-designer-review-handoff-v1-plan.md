@@ -1,6 +1,6 @@
 # Workflow Node Designer Review Handoff v1 任务卡
 
-更新时间：2026-06-24
+更新时间：2026-06-25
 
 ## 任务标识
 
@@ -22,6 +22,7 @@
 - evidence checklist 新增 `node_designer_review_handoff`，key findings 新增 `node_designer_review`。
 - boundary locks 明确 layout、derived edge kind、validation overlay 和 inspector state 不创建 persisted runtime state。
 - 新增 `workflow-node-designer-review-handoff-v1` fixture / checker，并接入 fast baseline。
+- 后续 `Workflow Node Designer Graph Review Handoff Refinement v1` 复用本 checker，将 validation overlay detail review 派生为 `graphReviewFindings`，按 node / edge / graph-level finding 展示审查目标。
 
 ## 输入事实源
 
@@ -33,6 +34,7 @@
 ## 验收口径
 
 - Node Designer handoff record 必须消费当前 active draft，不从旧 selected draft 或 sample 手拼。
+- Graph review findings 必须消费当前 active draft 和 validation inspector，不保存 validation focus、selection、viewport 或 React Flow raw object。
 - Review Handoff 必须明确 advisory-only，不提供保存、导出、发送、publish、run、confirmation decision、writeback 或 replay 控件。
 - evidence checklist 必须包含 node designer review handoff 的 request / audit metadata。
 - Web build、专项 checker 和 `./scripts/check-repo.sh --fast` 通过。

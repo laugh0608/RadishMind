@@ -4,6 +4,7 @@ import type {
   WorkflowReviewHandoffDecisionBlocker,
   WorkflowReviewHandoffEvidence,
   WorkflowReviewHandoffFinding,
+  WorkflowReviewHandoffNodeDesignerGraphFinding,
   WorkflowReviewHandoffNodeDesignerReviewSection,
   WorkflowReviewHandoffRecipient,
   WorkflowReviewHandoffStatus,
@@ -90,6 +91,14 @@ export function WorkflowReviewHandoffPanel({
         <div className="workflow-user-workspace-home-route-grid" aria-label="Workflow node designer review handoff">
           {handoff.nodeDesignerReviewRecord.sections.map((section) => (
             <WorkflowReviewHandoffNodeDesignerSectionCard key={section.sectionId} section={section} />
+          ))}
+        </div>
+        <div
+          className="workflow-user-workspace-home-readiness-grid"
+          aria-label="Workflow node designer graph review findings"
+        >
+          {handoff.nodeDesignerReviewRecord.graphReviewFindings.map((finding) => (
+            <WorkflowReviewHandoffNodeDesignerGraphFindingCard key={finding.findingId} finding={finding} />
           ))}
         </div>
       </div>
@@ -239,6 +248,45 @@ function WorkflowReviewHandoffNodeDesignerSectionCard({
       </div>
       <p>{section.summary}</p>
       <p>{section.reviewerQuestion}</p>
+    </article>
+  );
+}
+
+function WorkflowReviewHandoffNodeDesignerGraphFindingCard({
+  finding,
+}: {
+  finding: WorkflowReviewHandoffNodeDesignerGraphFinding;
+}) {
+  return (
+    <article className="workflow-user-workspace-home-card">
+      <div className="workflow-user-workspace-home-row-main">
+        <div>
+          <p className="eyebrow">{finding.targetKind}</p>
+          <h5>{finding.label}</h5>
+        </div>
+        <StatusBadge tone={workflowReviewHandoffTone(finding.status)}>{finding.status}</StatusBadge>
+      </div>
+      <dl className="workflow-user-workspace-home-meta">
+        <div>
+          <dt>Check</dt>
+          <dd>{finding.sourceCheckId}</dd>
+        </div>
+        <div>
+          <dt>Severity</dt>
+          <dd>{finding.severity}</dd>
+        </div>
+        <div>
+          <dt>Target</dt>
+          <dd>{finding.targetSummary}</dd>
+        </div>
+      </dl>
+      <div className="workflow-workspace-review-token-list" aria-label={`${finding.label} target refs`}>
+        {finding.targetRefs.map((targetRef) => (
+          <code key={targetRef}>{targetRef}</code>
+        ))}
+      </div>
+      <p>{finding.summary}</p>
+      <p>{finding.reviewerQuestion}</p>
     </article>
   );
 }

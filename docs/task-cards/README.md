@@ -171,6 +171,7 @@
 120. [`Workflow Node Designer Layout Review Findings` v1 任务卡](workflow-node-designer-layout-review-findings-v1-plan.md)（`workflow-node-designer-layout-review-findings-v1`）
 121. [`Workflow Node Designer Builder Interaction Polish` v1 任务卡](workflow-node-designer-builder-interaction-polish-v1-plan.md)（`workflow-node-designer-builder-interaction-polish-v1`）
 122. [`Workflow Node Designer Validation Overlay Navigation` v1 任务卡](workflow-node-designer-validation-overlay-navigation-v1-plan.md)（`workflow-node-designer-validation-overlay-navigation-v1`）
+123. [`Workflow Node Designer Graph Review Handoff Refinement` v1 任务卡](workflow-node-designer-graph-review-handoff-refinement-v1-plan.md)（`workflow-node-designer-graph-review-handoff-refinement-v1`）
 
 ## UI 设计专题
 

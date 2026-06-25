@@ -1,6 +1,6 @@
 # Workflow Node Designer Surface v1 专题
 
-更新时间：2026-06-24
+更新时间：2026-06-25
 
 状态：`workflow_node_designer_surface_v1_defined`
 
@@ -160,6 +160,7 @@ Node Designer Surface 当前采用以下可操作布局：
 9. [Workflow Node Designer Layout Review Findings v1 任务卡](../../task-cards/workflow-node-designer-layout-review-findings-v1-plan.md)：已完成中宽响应式、inspector edge 删除条目和 Draft edge 卡片可读性修正，继续复用 active draft mutation、saved draft edge mapping 和 validation inspector。
 10. [Workflow Node Designer Builder Interaction Polish v1 任务卡](../../task-cards/workflow-node-designer-builder-interaction-polish-v1-plan.md)：已完成交互状态条、节点快速选择和连接 / 拖拽 / 删除反馈，selection 与 feedback 仍为 UI-only transient state。
 11. [Workflow Node Designer Validation Overlay Navigation v1 任务卡](../../task-cards/workflow-node-designer-validation-overlay-navigation-v1-plan.md)：已完成 validation finding 到节点 / 连线 / inspector 的 UI-only navigation focus，高亮状态不保存进 draft 或 saved draft metadata。
+12. [Workflow Node Designer Graph Review Handoff Refinement v1 任务卡](../../task-cards/workflow-node-designer-graph-review-handoff-refinement-v1-plan.md)：已把 validation overlay detail review 收束到 Review Handoff 的 node / edge / graph-level finding 明细，不保存 validation focus、selection、viewport 或 runtime order。
 
 ## 验收方式
 

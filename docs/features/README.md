@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-06-24
+更新时间：2026-06-25
 
 ## 文档目的
 
@@ -59,6 +59,7 @@
 | [Workflow Node Designer Layout Review Findings v1 任务卡](../task-cards/workflow-node-designer-layout-review-findings-v1-plan.md) | 实现批次 | 固定 Node Designer 中宽布局、inspector edge 删除条目和 Draft edge 卡片可读性修正 |
 | [Workflow Node Designer Builder Interaction Polish v1 任务卡](../task-cards/workflow-node-designer-builder-interaction-polish-v1-plan.md) | 实现批次 | 固定 Node Designer 交互状态条、节点快速选择和连接 / 拖拽 / 删除反馈 |
 | [Workflow Node Designer Validation Overlay Navigation v1 任务卡](../task-cards/workflow-node-designer-validation-overlay-navigation-v1-plan.md) | 实现批次 | 固定 validation finding 到节点 / 连线 / inspector 的 UI-only 导航和高亮 |
+| [Workflow Node Designer Graph Review Handoff Refinement v1 任务卡](../task-cards/workflow-node-designer-graph-review-handoff-refinement-v1-plan.md) | 实现批次 | 固定 Review Handoff 中的 node / edge / graph-level graph review findings |
 | [Dev-only Saved Draft Consumer](workflow/dev-only-saved-draft-consumer.md) | 实现专题 | 固定下一批 dev-only HTTP route + web consumer 的准入、验收和停止线 |
 | [Workflow Draft Editing Entry v1](workflow/draft-editing-entry-v1.md) | 功能 / 页面专题 | 固定草案名称、说明、节点名称和边条件摘要的受控本地编辑入口 |
 | [User Workspace Draft Creation v1](workflow/user-workspace-draft-creation-v1.md) | 功能 / 页面专题 | 固定从 Workspace Home / workflow definitions 创建本地草案并进入 Draft Designer 的入口 |
