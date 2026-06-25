@@ -19,6 +19,7 @@
 - `WorkflowReviewHandoffNodeDesignerReviewRecord` 新增 `graphReviewFindings`、`nodeTargetedFindingCount`、`edgeTargetedFindingCount` 和 `graphLevelFindingCount`。
 - `buildNodeDesignerGraphReviewFindings` 从 active draft、structural checks、contract checks 和 blocked capability checks 派生 graph review finding。
 - Review Handoff 面板在 `Node Designer Review Handoff` 下展示 graph review finding 卡片，包含 source check、severity、target kind、target refs、summary 和 reviewer question。
+- Review Handoff 面板已补 graph review summary，并按 node / edge / graph-level 分组展示 finding，降低 reviewer 从长卡片列表中反推目标类型的成本。
 - key findings 新增 `node_designer_graph_review`，把 validation overlay detail review 作为 graph review handoff 的首要审查项。
 - 复用 `workflow-node-designer-review-handoff-v1` fixture / checker 增加 graph review handoff refinement 检查，不新增独立专项 checker。
 

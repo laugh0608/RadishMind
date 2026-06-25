@@ -1197,6 +1197,60 @@ h4 {
   padding: 7px 12px;
 }
 
+.workflow-review-handoff-graph-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.workflow-review-handoff-graph-summary article {
+  min-width: 0;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 12px;
+}
+
+.workflow-review-handoff-graph-summary span {
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.workflow-review-handoff-graph-summary strong {
+  display: block;
+  margin-top: 4px;
+  color: #17202a;
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.workflow-review-handoff-graph-groups {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.workflow-review-handoff-graph-group {
+  display: grid;
+  gap: 10px;
+}
+
+.workflow-review-handoff-graph-group-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.workflow-review-handoff-graph-group-heading h5 {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+}
+
 .workflow-definition-row-actions button {
   padding: 7px 10px;
 }
@@ -2919,12 +2973,14 @@ dd {
   .workflow-user-workspace-home-run-grid,
   .workflow-user-workspace-home-route-grid,
   .workflow-user-workspace-home-stopline-grid,
+  .workflow-review-handoff-graph-summary,
   .saved-draft-summary-grid,
   .workflow-user-workspace-home-meta {
     grid-template-columns: 1fr;
   }
 
   .workflow-user-workspace-home-row-main,
+  .workflow-review-handoff-graph-group-heading,
   .saved-draft-list-heading {
     flex-wrap: wrap;
   }

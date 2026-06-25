@@ -62,10 +62,17 @@
       "Canvas overlay, inspector, mapping",
       "WorkflowReviewHandoffNodeDesignerSectionCard",
       "WorkflowReviewHandoffNodeDesignerGraphFindingCard",
+      "workflowReviewHandoffGraphFindingGroups(",
+      "workflow-review-handoff-graph-summary",
+      "workflow-review-handoff-graph-group",
       "handoff.nodeDesignerReviewRecord.sections.map",
-      "handoff.nodeDesignerReviewRecord.graphReviewFindings.map",
+      "group.findings.map",
+      "Node graph findings",
+      "Edge graph findings",
+      "Graph-level findings",
       "section.itemCount",
       "Workflow node designer review handoff",
+      "Workflow node designer graph review summary",
       "Workflow node designer graph review findings"
     ],
     "required_context_literals": [
@@ -92,6 +99,7 @@
       "validation overlay、inspector state、UI-only layout 和 saved draft mapping",
       "Workflow Node Designer Graph Review Handoff Refinement v1",
       "graphReviewFindings",
+      "graph review summary / grouping UI",
       "不实现 workflow executor"
     ],
     "docs/task-cards/workflow-node-designer-review-handoff-v1-plan.md": [
@@ -105,7 +113,9 @@
       "graphReviewFindings",
       "nodeTargetedFindingCount",
       "edgeTargetedFindingCount",
-      "graphLevelFindingCount"
+      "graphLevelFindingCount",
+      "graph review summary",
+      "node / edge / graph-level 分组"
     ],
     "docs/features/workflow/README.md": [
       "Workflow Node Designer Review Handoff v1",

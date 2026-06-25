@@ -19,7 +19,7 @@
 - `Workflow Node Designer Persisted Layout v1` 已把节点坐标保存为 `additional_fields.designer_layout_v1`，Review Handoff 只展示该 saved draft metadata 来源。
 - `Workflow Node Designer Controlled Edge Mutation Implementation v1` 已让 Review Handoff 消费新增 / 删除 edge 后的 active draft，不消费 React Flow raw edge 或 handle id。
 - `Workflow Node Designer Validation Overlay Navigation v1` 已把 finding focus 映射到画布节点 / 连线 / inspector；Review Handoff 只汇总 validation overlay evidence，不保存当前 focus 或 selection。
-- `Workflow Node Designer Graph Review Handoff Refinement v1` 已把 validation overlay detail review 收束为 `graphReviewFindings`，按 node-targeted、edge-targeted 和 graph-level finding 展示 source check、severity、target refs、summary 和 reviewer question。
+- `Workflow Node Designer Graph Review Handoff Refinement v1` 已把 validation overlay detail review 收束为 `graphReviewFindings`，按 node-targeted、edge-targeted 和 graph-level finding 展示 source check、severity、target refs、summary 和 reviewer question，并在面板中提供 graph review summary 与分组阅读路径。
 - 新增 `workflow-node-designer-review-handoff-v1` fixture / checker，并接入 fast baseline。
 
 ## 数据边界
@@ -55,7 +55,7 @@
 ## 验收方式
 
 - Web build 通过，覆盖 `nodeDesignerReviewRecord` 类型、派生逻辑和面板渲染。
-- `workflow-node-designer-review-handoff-v1` checker 固定 source、record sections、`graphReviewFindings`、UI 文案、文档引用、fast baseline 顺序和停止线。
+- `workflow-node-designer-review-handoff-v1` checker 固定 source、record sections、`graphReviewFindings`、graph review summary / grouping UI、文档引用、fast baseline 顺序和停止线。
 - `./scripts/check-repo.sh --fast` 通过。
 
 ## 停止线

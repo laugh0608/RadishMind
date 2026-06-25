@@ -13,6 +13,13 @@ import type {
 
 type StatusBadgeTone = "good" | "bad" | "neutral";
 
+type WorkflowReviewHandoffGraphFindingGroup = {
+  targetKind: WorkflowReviewHandoffNodeDesignerGraphFinding["targetKind"];
+  label: string;
+  count: number;
+  findings: WorkflowReviewHandoffNodeDesignerGraphFinding[];
+};
+
 export function WorkflowReviewHandoffPanel({
   handoff,
 }: {
@@ -20,6 +27,7 @@ export function WorkflowReviewHandoffPanel({
 }) {
   const primaryEvidence = handoff.evidenceChecklist.slice(0, 11);
   const primaryBoundaries = handoff.boundaryLocks.slice(0, 8);
+  const graphFindingGroups = workflowReviewHandoffGraphFindingGroups(handoff);
 
   return (
     <section
@@ -93,12 +101,30 @@ export function WorkflowReviewHandoffPanel({
             <WorkflowReviewHandoffNodeDesignerSectionCard key={section.sectionId} section={section} />
           ))}
         </div>
-        <div
-          className="workflow-user-workspace-home-readiness-grid"
-          aria-label="Workflow node designer graph review findings"
-        >
-          {handoff.nodeDesignerReviewRecord.graphReviewFindings.map((finding) => (
-            <WorkflowReviewHandoffNodeDesignerGraphFindingCard key={finding.findingId} finding={finding} />
+        <div className="workflow-review-handoff-graph-summary" aria-label="Workflow node designer graph review summary">
+          {graphFindingGroups.map((group) => (
+            <article key={group.targetKind}>
+              <span>{group.label}</span>
+              <strong>{group.count}</strong>
+            </article>
+          ))}
+        </div>
+        <div className="workflow-review-handoff-graph-groups" aria-label="Workflow node designer graph review findings">
+          {graphFindingGroups.map((group) => (
+            <section key={group.targetKind} className="workflow-review-handoff-graph-group">
+              <div className="workflow-review-handoff-graph-group-heading">
+                <div>
+                  <p className="eyebrow">{group.targetKind}</p>
+                  <h5>{group.label}</h5>
+                </div>
+                <StatusBadge tone={group.count > 0 ? "neutral" : "good"}>{`${group.count} findings`}</StatusBadge>
+              </div>
+              <div className="workflow-user-workspace-home-readiness-grid">
+                {group.findings.map((finding) => (
+                  <WorkflowReviewHandoffNodeDesignerGraphFindingCard key={finding.findingId} finding={finding} />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       </div>
@@ -164,6 +190,32 @@ export function WorkflowReviewHandoffPanel({
       </div>
     </section>
   );
+}
+
+function workflowReviewHandoffGraphFindingGroups(
+  handoff: WorkflowReviewHandoffViewModel,
+): WorkflowReviewHandoffGraphFindingGroup[] {
+  const findings = handoff.nodeDesignerReviewRecord.graphReviewFindings;
+  return [
+    {
+      targetKind: "node",
+      label: "Node graph findings",
+      count: handoff.nodeDesignerReviewRecord.nodeTargetedFindingCount,
+      findings: findings.filter((finding) => finding.targetKind === "node"),
+    },
+    {
+      targetKind: "edge",
+      label: "Edge graph findings",
+      count: handoff.nodeDesignerReviewRecord.edgeTargetedFindingCount,
+      findings: findings.filter((finding) => finding.targetKind === "edge"),
+    },
+    {
+      targetKind: "graph",
+      label: "Graph-level findings",
+      count: handoff.nodeDesignerReviewRecord.graphLevelFindingCount,
+      findings: findings.filter((finding) => finding.targetKind === "graph"),
+    },
+  ];
 }
 
 function WorkflowReviewHandoffActiveDraftSectionCard({
