@@ -119,7 +119,7 @@ future runtime task card 至少覆盖：
 
 ## 后续方向
 
-本次 entry review 后，token validation schema、auth middleware、membership adapter、negative auth smoke runtime、repository mode runtime、database runtime 和 production API 仍不创建。后续若继续 auth 上游，应优先拆分 token validation schema implementation task card readiness 或 auth middleware / membership adapter task card entry readiness，并保持 runtime smoke 独立评审。
+本次 entry review 后，token validation schema、auth middleware、membership adapter、negative auth smoke runtime、repository mode runtime、database runtime 和 production API 仍不创建。后续已完成 [Saved Workflow Draft Token Validation Schema Task Card Readiness v1](saved-workflow-draft-token-validation-schema-task-card-readiness-v1.md)，确认下一批可创建 token validation schema implementation task card；auth middleware / membership adapter task card entry readiness 与 runtime smoke 仍需独立评审。
 
 ## 验证
 

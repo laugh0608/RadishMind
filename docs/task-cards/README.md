@@ -162,16 +162,17 @@
 111. [`Workflow Saved Draft Schema Marker Runtime Dependency Refresh` v1 任务卡](workflow-saved-draft-schema-marker-runtime-dependency-refresh-v1-plan.md)（`workflow-saved-draft-schema-marker-runtime-dependency-refresh-v1`）
 112. [`Workflow Saved Draft Database Secret Resolver Runtime Dependency Refresh` v1 任务卡](workflow-saved-draft-database-secret-resolver-runtime-dependency-refresh-v1-plan.md)（`workflow-saved-draft-database-secret-resolver-runtime-dependency-refresh-v1`）
 113. [`Workflow Saved Draft Token Validation Schema / Auth Middleware Runtime Entry Review` v1 任务卡](workflow-saved-draft-token-validation-auth-middleware-runtime-entry-review-v1-plan.md)（`workflow-saved-draft-token-validation-auth-middleware-runtime-entry-review-v1`）
-114. [`Workflow Node Designer Surface Implementation` v1 任务卡](workflow-node-designer-surface-implementation-v1-plan.md)（`workflow-node-designer-surface-implementation-v1`）
-115. [`Workflow Node Designer Saved Draft Mapping Implementation` v1 任务卡](workflow-node-designer-saved-draft-mapping-implementation-v1-plan.md)（`workflow-node-designer-saved-draft-mapping-implementation-v1`）
-116. [`Workflow Node Designer Review Handoff` v1 任务卡](workflow-node-designer-review-handoff-v1-plan.md)（`workflow-node-designer-review-handoff-v1`）
-117. [`Workflow Node Designer Persisted Layout` v1 任务卡](workflow-node-designer-persisted-layout-v1-plan.md)（`workflow-node-designer-persisted-layout-v1`）
-118. [`Workflow Node Designer Edge Editing Save Preconditions` v1 任务卡](workflow-node-designer-edge-editing-save-preconditions-v1-plan.md)（`workflow-node-designer-edge-editing-save-preconditions-v1`）
-119. [`Workflow Node Designer Controlled Edge Mutation Implementation` v1 任务卡](workflow-node-designer-controlled-edge-mutation-implementation-v1-plan.md)（`workflow-node-designer-controlled-edge-mutation-implementation-v1`）
-120. [`Workflow Node Designer Layout Review Findings` v1 任务卡](workflow-node-designer-layout-review-findings-v1-plan.md)（`workflow-node-designer-layout-review-findings-v1`）
-121. [`Workflow Node Designer Builder Interaction Polish` v1 任务卡](workflow-node-designer-builder-interaction-polish-v1-plan.md)（`workflow-node-designer-builder-interaction-polish-v1`）
-122. [`Workflow Node Designer Validation Overlay Navigation` v1 任务卡](workflow-node-designer-validation-overlay-navigation-v1-plan.md)（`workflow-node-designer-validation-overlay-navigation-v1`）
-123. [`Workflow Node Designer Graph Review Handoff Refinement` v1 任务卡](workflow-node-designer-graph-review-handoff-refinement-v1-plan.md)（`workflow-node-designer-graph-review-handoff-refinement-v1`）
+114. [`Workflow Saved Draft Token Validation Schema Task Card Readiness` v1 任务卡](workflow-saved-draft-token-validation-schema-task-card-readiness-v1-plan.md)（`workflow-saved-draft-token-validation-schema-task-card-readiness-v1`）
+115. [`Workflow Node Designer Surface Implementation` v1 任务卡](workflow-node-designer-surface-implementation-v1-plan.md)（`workflow-node-designer-surface-implementation-v1`）
+116. [`Workflow Node Designer Saved Draft Mapping Implementation` v1 任务卡](workflow-node-designer-saved-draft-mapping-implementation-v1-plan.md)（`workflow-node-designer-saved-draft-mapping-implementation-v1`）
+117. [`Workflow Node Designer Review Handoff` v1 任务卡](workflow-node-designer-review-handoff-v1-plan.md)（`workflow-node-designer-review-handoff-v1`）
+118. [`Workflow Node Designer Persisted Layout` v1 任务卡](workflow-node-designer-persisted-layout-v1-plan.md)（`workflow-node-designer-persisted-layout-v1`）
+119. [`Workflow Node Designer Edge Editing Save Preconditions` v1 任务卡](workflow-node-designer-edge-editing-save-preconditions-v1-plan.md)（`workflow-node-designer-edge-editing-save-preconditions-v1`）
+120. [`Workflow Node Designer Controlled Edge Mutation Implementation` v1 任务卡](workflow-node-designer-controlled-edge-mutation-implementation-v1-plan.md)（`workflow-node-designer-controlled-edge-mutation-implementation-v1`）
+121. [`Workflow Node Designer Layout Review Findings` v1 任务卡](workflow-node-designer-layout-review-findings-v1-plan.md)（`workflow-node-designer-layout-review-findings-v1`）
+122. [`Workflow Node Designer Builder Interaction Polish` v1 任务卡](workflow-node-designer-builder-interaction-polish-v1-plan.md)（`workflow-node-designer-builder-interaction-polish-v1`）
+123. [`Workflow Node Designer Validation Overlay Navigation` v1 任务卡](workflow-node-designer-validation-overlay-navigation-v1-plan.md)（`workflow-node-designer-validation-overlay-navigation-v1`）
+124. [`Workflow Node Designer Graph Review Handoff Refinement` v1 任务卡](workflow-node-designer-graph-review-handoff-refinement-v1-plan.md)（`workflow-node-designer-graph-review-handoff-refinement-v1`）
 
 ## UI 设计专题
 
