@@ -67,6 +67,9 @@ REQUIRED_PLANNED_SLICES = {
     "credential-handle-runtime-implementation-entry-review": (
         "credential_handle_runtime_implementation_entry_review_defined"
     ),
+    "credential-handle-runtime-implementation-entry-refresh": (
+        "credential_handle_runtime_implementation_entry_refresh_defined"
+    ),
     "operator-approval-runtime-evidence-readiness": "operator_approval_runtime_evidence_readiness_defined",
     "audit-store-handoff-readiness": "audit_store_handoff_readiness_defined",
     "audit-store-runtime-implementation-entry-review": "audit_store_runtime_implementation_entry_review_defined",
@@ -143,6 +146,8 @@ REQUIRED_DOC_REFERENCES = {
         "credential_handle_runtime_boundary_readiness_defined",
         "production-secret-backend-credential-handle-runtime-implementation-entry-review-v1",
         "credential_handle_runtime_implementation_entry_review_defined",
+        "production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1",
+        "credential_handle_runtime_implementation_entry_refresh_defined",
         "production-secret-backend-operator-approval-runtime-evidence-readiness-v1",
         "operator_approval_runtime_evidence_readiness_defined",
         "production-secret-backend-operator-approval-runtime-implementation-entry-review-v1",
@@ -224,6 +229,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py",
         "check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py",
         "check-production-ops-secret-backend-credential-handle-runtime-implementation-entry-review-v1.py",
+        "check-production-ops-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.py",
         "check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py",
         "check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-review-v1.py",
         "check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py",
@@ -374,6 +380,11 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("credential_handle_runtime_implementation_entry_review_status")
         == "blocked_before_runtime_task_card",
         "credential handle runtime implementation entry review status drifted",
+    )
+    require(
+        target.get("credential_handle_runtime_implementation_entry_refresh_status")
+        == "blocked_before_runtime_task_card",
+        "credential handle runtime implementation entry refresh status drifted",
     )
     require(
         target.get("credential_handle_runtime_status") == "not_created",
@@ -851,6 +862,22 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "credential-handle-runtime-implementation-entry-refresh":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.md",
+                (
+                    "docs/task-cards/"
+                    "production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1-plan.md"
+                ),
+                (
+                    "scripts/checks/fixtures/"
+                    "production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.json"
+                ),
+                "scripts/check-production-ops-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
         if slice_id == "operator-approval-runtime-evidence-readiness":
             evidence = set(planned[slice_id].get("evidence") or [])
             for path in {
@@ -997,6 +1024,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "no raw secret or provider base URL in logs, diagnostics, fixtures or docs",
         "real resolver runtime implementation entry refresh blocked before task card",
         "credential handle runtime implementation entry review blocked before task card",
+        "credential handle runtime implementation entry refresh blocked before task card",
         "real resolver no leakage smoke runtime implementation entry review blocked before task card",
         "operator approval runtime evidence readiness defined without runtime execution",
         "operator approval runtime implementation entry review blocked before task card",
@@ -1036,6 +1064,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-credential-handle-runtime-implementation-entry-review-v1.py",
+        "scripts/check-production-ops-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.py",
         "scripts/check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py",
@@ -1093,6 +1122,9 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/platform/production-secret-backend-credential-handle-runtime-implementation-entry-review-v1.md",
         "docs/task-cards/production-secret-backend-credential-handle-runtime-implementation-entry-review-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-implementation-entry-review-v1.json",
+        "docs/platform/production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.md",
+        "docs/task-cards/production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.json",
         "docs/platform/production-secret-backend-operator-approval-runtime-evidence-readiness-v1.md",
         "docs/task-cards/production-secret-backend-operator-approval-runtime-evidence-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-operator-approval-runtime-evidence-readiness-v1.json",
@@ -1226,6 +1258,11 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-credential-handle-runtime-implementation-entry-review-v1.py", [])'
         in check_repo,
         "check-repo.py must run credential handle runtime implementation entry review check",
+    )
+    require(
+        'run_python_script("check-production-ops-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.py", [])'
+        in check_repo,
+        "check-repo.py must run credential handle runtime implementation entry refresh check",
     )
     require(
         'run_python_script("check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py", [])'
