@@ -1,12 +1,12 @@
 # RadishMind 代码规范
 
-更新时间：2026-05-06
+更新时间：2026-06-23
 
 ## 文档目的
 
 本文档定义 RadishMind 仓库的长期代码风格与实现约束。它不替代语言官方规范，也不追求覆盖所有细枝末节；它只固定本仓库最容易失控的工程边界：命名、抽象、协议、脚本组织和验证。
 
-当前实现按职责分层：模型训练、评测与脚本优先 `Python`，前端 UI 默认 `React + Vite + TypeScript`，服务 / `gateway` / `API` 可采用 `Go`。后续若引入其它语言，应先遵循对应语言生态的惯用实践，再按本文档保持职责清晰、协议显式和实现可验证。
+当前实现按职责分层：模型训练、评测与脚本优先 `Python`，前端 UI 默认 `React + Vite + TypeScript`，服务 / `gateway` / `API` / control plane 默认采用 `Go`。后续若引入其它语言，应先遵循对应语言生态的惯用实践，再按本文档保持职责清晰、协议显式和实现可验证。
 
 ## 总原则
 
@@ -81,6 +81,8 @@
 
 - `scripts/` 根目录只放稳定入口、跨平台包装脚本和少量高频直达命令。
 - 内部实现、检查逻辑、fixture helper 和较长实现应放入浅层分类目录，例如 `scripts/checks/`、`scripts/eval/`。
+- 高风险边界、协议准入、生产声明、外部 provider 风险或 auth / database / repository 入口评审类专项检查器，优先放入 `scripts/checks/control_plane/`；配套 fixture 放入 `scripts/checks/fixtures/`，并在 `scripts/check-repo.py` 与 `scripts/README.md` 注册为可复验入口。
+- 新增 checker / fixture 应使用稳定短 ID、明确状态锚点和可审计 failure taxonomy；auth、repository、secret、database、artifact 相关 checker 必须显式检查 no fallback、no side effects、artifact guard 和停止线，不用长路径或长自然语言文件名承载语义。
 - 新脚本必须有清晰输入、输出和失败语义；不要依赖调用者猜测副作用。
 - 会写入 committed 资产的脚本，应支持 check / dry-run 或 summary 校验路径。
 - 长时间运行、加载本地模型、下载数据或显著占用资源的脚本，不作为默认自动验证入口。
@@ -103,6 +105,7 @@
 - 修改后优先执行当前环境的仓库级验证入口：macOS / Linux / WSL 用 `./scripts/check-repo.sh`，Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1`。
 - 文档改动至少执行文本卫生、Markdown 篇幅检查和仓库级基线；若没有执行，应在总结中说明原因。
 - 代码改动应按风险补充或更新针对性检查，不只依赖人工阅读。
+- 新增或更新专项 checker / fixture 后，至少运行对应专项检查、`git diff --check` 和当前环境的快速仓库基线；影响治理口径、协议、架构或阶段边界时再补充全量仓库检查。
 - 若新增抽象，验证应覆盖抽象的输入、输出、失败语义和调用侧不变量。
 
 ## 判断标准

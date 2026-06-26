@@ -4,12 +4,21 @@ import type {
   WorkflowReviewHandoffDecisionBlocker,
   WorkflowReviewHandoffEvidence,
   WorkflowReviewHandoffFinding,
+  WorkflowReviewHandoffNodeDesignerGraphFinding,
+  WorkflowReviewHandoffNodeDesignerReviewSection,
   WorkflowReviewHandoffRecipient,
   WorkflowReviewHandoffStatus,
   WorkflowReviewHandoffViewModel,
 } from "./workflowReviewHandoff";
 
 type StatusBadgeTone = "good" | "bad" | "neutral";
+
+type WorkflowReviewHandoffGraphFindingGroup = {
+  targetKind: WorkflowReviewHandoffNodeDesignerGraphFinding["targetKind"];
+  label: string;
+  count: number;
+  findings: WorkflowReviewHandoffNodeDesignerGraphFinding[];
+};
 
 export function WorkflowReviewHandoffPanel({
   handoff,
@@ -18,6 +27,7 @@ export function WorkflowReviewHandoffPanel({
 }) {
   const primaryEvidence = handoff.evidenceChecklist.slice(0, 11);
   const primaryBoundaries = handoff.boundaryLocks.slice(0, 8);
+  const graphFindingGroups = workflowReviewHandoffGraphFindingGroups(handoff);
 
   return (
     <section
@@ -77,6 +87,44 @@ export function WorkflowReviewHandoffPanel({
         <div className="workflow-user-workspace-home-route-grid" aria-label="Workflow review handoff active draft record">
           {handoff.activeDraftReviewRecord.sections.map((section) => (
             <WorkflowReviewHandoffActiveDraftSectionCard key={section.sectionId} section={section} />
+          ))}
+        </div>
+      </div>
+
+      <div className="workflow-user-workspace-home-section">
+        <div className="workflow-user-workspace-home-subheading">
+          <p className="eyebrow">Node Designer Review Handoff</p>
+          <h4>Canvas overlay, inspector, mapping</h4>
+        </div>
+        <div className="workflow-user-workspace-home-route-grid" aria-label="Workflow node designer review handoff">
+          {handoff.nodeDesignerReviewRecord.sections.map((section) => (
+            <WorkflowReviewHandoffNodeDesignerSectionCard key={section.sectionId} section={section} />
+          ))}
+        </div>
+        <div className="workflow-review-handoff-graph-summary" aria-label="Workflow node designer graph review summary">
+          {graphFindingGroups.map((group) => (
+            <article key={group.targetKind}>
+              <span>{group.label}</span>
+              <strong>{group.count}</strong>
+            </article>
+          ))}
+        </div>
+        <div className="workflow-review-handoff-graph-groups" aria-label="Workflow node designer graph review findings">
+          {graphFindingGroups.map((group) => (
+            <section key={group.targetKind} className="workflow-review-handoff-graph-group">
+              <div className="workflow-review-handoff-graph-group-heading">
+                <div>
+                  <p className="eyebrow">{group.targetKind}</p>
+                  <h5>{group.label}</h5>
+                </div>
+                <StatusBadge tone={group.count > 0 ? "neutral" : "good"}>{`${group.count} findings`}</StatusBadge>
+              </div>
+              <div className="workflow-user-workspace-home-readiness-grid">
+                {group.findings.map((finding) => (
+                  <WorkflowReviewHandoffNodeDesignerGraphFindingCard key={finding.findingId} finding={finding} />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       </div>
@@ -144,6 +192,32 @@ export function WorkflowReviewHandoffPanel({
   );
 }
 
+function workflowReviewHandoffGraphFindingGroups(
+  handoff: WorkflowReviewHandoffViewModel,
+): WorkflowReviewHandoffGraphFindingGroup[] {
+  const findings = handoff.nodeDesignerReviewRecord.graphReviewFindings;
+  return [
+    {
+      targetKind: "node",
+      label: "Node graph findings",
+      count: handoff.nodeDesignerReviewRecord.nodeTargetedFindingCount,
+      findings: findings.filter((finding) => finding.targetKind === "node"),
+    },
+    {
+      targetKind: "edge",
+      label: "Edge graph findings",
+      count: handoff.nodeDesignerReviewRecord.edgeTargetedFindingCount,
+      findings: findings.filter((finding) => finding.targetKind === "edge"),
+    },
+    {
+      targetKind: "graph",
+      label: "Graph-level findings",
+      count: handoff.nodeDesignerReviewRecord.graphLevelFindingCount,
+      findings: findings.filter((finding) => finding.targetKind === "graph"),
+    },
+  ];
+}
+
 function WorkflowReviewHandoffActiveDraftSectionCard({
   section,
 }: {
@@ -183,6 +257,88 @@ function WorkflowReviewHandoffActiveDraftSectionCard({
       </div>
       <p>{section.summary}</p>
       <p>{section.reviewerQuestion}</p>
+    </article>
+  );
+}
+
+function WorkflowReviewHandoffNodeDesignerSectionCard({
+  section,
+}: {
+  section: WorkflowReviewHandoffNodeDesignerReviewSection;
+}) {
+  return (
+    <article className="workflow-user-workspace-home-card">
+      <div className="workflow-user-workspace-home-row-main">
+        <div>
+          <p className="eyebrow">{section.sourceSurface}</p>
+          <h5>{section.label}</h5>
+        </div>
+        <StatusBadge tone={workflowReviewHandoffTone(section.status)}>{section.status}</StatusBadge>
+      </div>
+      <dl className="workflow-user-workspace-home-meta">
+        <div>
+          <dt>Primary ref</dt>
+          <dd>{section.primaryRef}</dd>
+        </div>
+        <div>
+          <dt>Items</dt>
+          <dd>{section.itemCount}</dd>
+        </div>
+        <div>
+          <dt>Request</dt>
+          <dd>{section.requestId}</dd>
+        </div>
+        <div>
+          <dt>Audit</dt>
+          <dd>{section.auditRef}</dd>
+        </div>
+      </dl>
+      <div className="workflow-workspace-review-token-list" aria-label={`${section.label} evidence refs`}>
+        {section.evidenceRefs.map((evidenceRef) => (
+          <code key={evidenceRef}>{evidenceRef}</code>
+        ))}
+      </div>
+      <p>{section.summary}</p>
+      <p>{section.reviewerQuestion}</p>
+    </article>
+  );
+}
+
+function WorkflowReviewHandoffNodeDesignerGraphFindingCard({
+  finding,
+}: {
+  finding: WorkflowReviewHandoffNodeDesignerGraphFinding;
+}) {
+  return (
+    <article className="workflow-user-workspace-home-card">
+      <div className="workflow-user-workspace-home-row-main">
+        <div>
+          <p className="eyebrow">{finding.targetKind}</p>
+          <h5>{finding.label}</h5>
+        </div>
+        <StatusBadge tone={workflowReviewHandoffTone(finding.status)}>{finding.status}</StatusBadge>
+      </div>
+      <dl className="workflow-user-workspace-home-meta">
+        <div>
+          <dt>Check</dt>
+          <dd>{finding.sourceCheckId}</dd>
+        </div>
+        <div>
+          <dt>Severity</dt>
+          <dd>{finding.severity}</dd>
+        </div>
+        <div>
+          <dt>Target</dt>
+          <dd>{finding.targetSummary}</dd>
+        </div>
+      </dl>
+      <div className="workflow-workspace-review-token-list" aria-label={`${finding.label} target refs`}>
+        {finding.targetRefs.map((targetRef) => (
+          <code key={targetRef}>{targetRef}</code>
+        ))}
+      </div>
+      <p>{finding.summary}</p>
+      <p>{finding.reviewerQuestion}</p>
     </article>
   );
 }

@@ -1244,6 +1244,18 @@ def check_fast_baseline() -> None:
         [],
     )
     run_python_script(
+        "checks/control_plane/check-workflow-node-designer-review-handoff-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-node-designer-persisted-layout-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-node-designer-edge-editing-save-preconditions-v1.py",
+        [],
+    )
+    run_python_script(
         "checks/control_plane/check-workflow-saved-draft-durable-store-preconditions-v1.py",
         [],
     )
@@ -1331,12 +1343,107 @@ def check_fast_baseline() -> None:
         "checks/control_plane/check-workflow-saved-draft-production-auth-runtime-v1.py",
         [],
     )
+    run_python_script("checks/control_plane/check-radish-oidc-token-membership-readiness-v1.py", [])
+    run_python_script("checks/control_plane/check-radish-oidc-token-membership-implementation-entry-review-v1.py", [])
+    run_python_script("checks/control_plane/check-radish-oidc-token-membership-upstream-evidence-refresh-v1.py", [])
     run_python_script(
         "checks/control_plane/check-workflow-saved-draft-repository-mode-enablement-v1.py",
         [],
     )
     run_python_script(
         "checks/control_plane/check-workflow-saved-draft-schema-migration-runner-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-schema-migration-runner-implementation-entry-review-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-database-connection-schema-marker-preconditions-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-database-connection-provider-implementation-entry-review-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-database-secret-resolver-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-repository-mode-runtime-boundary-review-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-schema-marker-migration-runner-readiness-refresh-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-manual-migration-runner-implementation-entry-refresh-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-database-connection-provider-implementation-entry-refresh-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-database-driver-dsn-tls-policy-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-database-role-policy-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-database-connection-smoke-strategy-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-database-connection-lifecycle-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-database-connection-provider-implementation-entry-refresh-v2.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-schema-marker-runtime-dependency-refresh-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-database-secret-resolver-runtime-dependency-refresh-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-token-validation-auth-middleware-runtime-entry-review-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-token-validation-schema-task-card-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-token-validation-schema-implementation-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-token-validation-schema-artifact-implementation-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-auth-middleware-membership-adapter-task-card-entry-readiness-v1.py",
+        [],
+    )
+    run_python_script(
+        "checks/control_plane/check-workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1.py",
         [],
     )
     run_python_script(
@@ -1367,6 +1474,38 @@ def check_fast_baseline() -> None:
     run_python_script("check-production-ops-secret-backend-contract.py", [])
     run_python_script("check-production-ops-secret-backend-implementation-readiness.py", [])
     run_python_script("check-production-secret-reference-contract.py", [])
+    run_python_script("check-production-ops-secret-backend-config-secret-ref-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-operator-runbook-negative-gates-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-fake-resolver-implementation-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-fake-resolver-runtime-implementation-entry-review-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-fake-resolver-runtime-implementation-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-real-resolver-runtime-preconditions-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-audit-store-runtime-implementation-entry-review-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-audit-store-contract-event-schema-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-audit-store-runtime-implementation-entry-refresh-v2.py", [])
+    run_python_script("check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-review-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-credential-handle-runtime-implementation-entry-review-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-audit-store-ownership-boundary-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-audit-store-delivery-idempotency-runtime-boundary-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-audit-store-runtime-implementation-entry-refresh-v3.py", [])
+    run_python_script("check-production-ops-secret-backend-production-resolver-runtime-blocker-consolidation-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.py", [])
     run_python_script("check-production-ops-startup-supervisor-boundary.py", [])
     run_python_script("check-production-ops-environment-isolation-boundary.py", [])
     run_python_script("check-production-ops-console-package-smoke.py", [])

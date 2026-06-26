@@ -1,0 +1,26 @@
+{
+  "subject_ref": "subject:user-7b7f92",
+  "tenant_ref": "tenant:radish-labs",
+  "audience_refs": [
+    "audience:radishmind-platform"
+  ],
+  "scope_grants": [
+    "workflow_drafts:read",
+    "workflow_drafts:write"
+  ],
+  "workspace_binding_refs": [
+    "workspace:workspace-42"
+  ],
+  "application_scope_refs": [
+    "application:workflow-builder"
+  ],
+  "owner_subject_ref": "subject:user-7b7f92",
+  "key_id_ref": "kid:radish-2026-06",
+  "algorithm": "RS256",
+  "issued_at": "2026-06-25T08:00:00Z",
+  "expires_at": "2026-06-25T09:00:00Z",
+  "auth_time": "2026-06-25T07:58:00Z",
+  "policy_version": "token_validation_policy_v1",
+  "request_id": "request:req-20260625-oidc-001",
+  "audit_ref": "audit:auth-context-001"
+}

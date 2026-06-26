@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/radish-oidc-token-validation.schema.json",
+  "title": "RadishOidcVerifiedTokenContext",
+  "description": "Sanitized projection of an already verified Radish OIDC token context. This schema does not describe raw tokens, raw claims, middleware input, membership source records or database state.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "issuer_ref",
+    "subject_ref",
+    "tenant_ref",
+    "audience_refs",
+    "scope_grants",
+    "workspace_binding_refs",
+    "application_scope_refs",
+    "owner_subject_ref",
+    "key_id_ref",
+    "algorithm",
+    "issued_at",
+    "expires_at",
+    "auth_time",
+    "policy_version",
+    "request_id",
+    "audit_ref"
+  ],
+  "properties": {
+    "issuer_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "subject_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "tenant_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "audience_refs": {
+      "$ref": "#/$defs/reference_array"
+    },
+    "scope_grants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120,
+        "pattern": "^[a-z][a-z0-9_.:-]*$"
+      },
+      "uniqueItems": true
+    },
+    "workspace_binding_refs": {
+      "$ref": "#/$defs/reference_array"
+    },
+    "application_scope_refs": {
+      "$ref": "#/$defs/reference_array"
+    },
+    "owner_subject_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "key_id_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "algorithm": {
+      "type": "string",
+      "pattern": "^(RS|ES|PS)[0-9]{3}$"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "auth_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "policy_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "pattern": "^token_validation_policy_v[0-9]+$"
+    },
+    "request_id": {
+      "$ref": "#/$defs/reference"
+    },
+    "audit_ref": {
+      "$ref": "#/$defs/reference"
+    }
+  },
+  "allOf": [
+    {
+      "not": {
+        "required": [
+          "raw_token"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "authorization_header"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "cookie"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "client_secret"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "refresh_token"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "authorization_code"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "jwks_raw_dump"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "raw_claim_dump"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "membership_raw_record"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "database_detail"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "provider_error_detail"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "secret_value"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "reference": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160,
+      "pattern": "^[a-z][a-z0-9_.-]*:[a-zA-Z0-9][a-zA-Z0-9_.:/-]*$"
+    },
+    "reference_array": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/reference"
+      },
+      "uniqueItems": true
+    }
+  }
+}

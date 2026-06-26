@@ -89,12 +89,14 @@ import {
   type WorkflowDraftDesignerBlockedCapability,
   type WorkflowDraftDesignerDraft,
   type WorkflowDraftDesignerEdge,
+  type WorkflowDraftDesignerLayout,
   type WorkflowDraftDesignerNode,
   type WorkflowDraftDesignerReadiness,
   type WorkflowDraftDesignerRisk,
   type WorkflowDraftDesignerTemplate,
   type WorkflowDraftDesignerViewModel,
 } from "../features/control-plane-read/workflowDraftDesigner";
+import { WorkflowNodeDesigner } from "../features/control-plane-read/workflowNodeDesigner";
 import {
   type WorkflowDraftBlockedCapabilityCheck,
   type WorkflowDraftContractCheck,
@@ -523,6 +525,21 @@ export function App() {
     handleWorkflowDraftNodePatch(nodeId, { outputMappingSummary });
   };
 
+  const handleWorkflowDraftNodeDesignerPositionChange = (nodeId: string, x: number, y: number) => {
+    setEditableWorkflowDraft((draft) => {
+      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
+      if (!currentDraft.nodes.some((node) => node.nodeId === nodeId)) {
+        return currentDraft;
+      }
+      return {
+        ...currentDraft,
+        localOnlyInteraction: "local_edit",
+        designerLayout: workflowDraftLayoutWithNodePosition(currentDraft, nodeId, x, y),
+      };
+    });
+    markWorkflowDraftLocallyEdited();
+  };
+
   const handleWorkflowDraftNodePatch = (
     nodeId: string,
     patch: Partial<WorkflowDraftDesignerNode>,
@@ -545,11 +562,59 @@ export function App() {
         ...currentDraft,
         localOnlyInteraction: "local_edit",
         edges: currentDraft.edges.map((edge) =>
-          edge.edgeId === edgeId ? { ...edge, conditionSummary } : edge,
+          edge.edgeId === edgeId
+            ? {
+                ...edge,
+                conditionSummary: workflowDraftReviewableEdgeConditionSummary(
+                  currentDraft,
+                  edge,
+                  conditionSummary,
+                ),
+              }
+            : edge,
         ),
       };
     });
     markWorkflowDraftLocallyEdited();
+  };
+
+  const handleWorkflowDraftAddEdge = (fromNodeId: string, toNodeId: string): boolean => {
+    if (!buildWorkflowDraftEdgeForConnection(activeWorkflowDraft, fromNodeId, toNodeId)) {
+      return false;
+    }
+    setEditableWorkflowDraft((draft) => {
+      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
+      const nextEdge = buildWorkflowDraftEdgeForConnection(currentDraft, fromNodeId, toNodeId);
+      if (!nextEdge) {
+        return currentDraft;
+      }
+      return {
+        ...currentDraft,
+        localOnlyInteraction: "local_edit",
+        edges: [...currentDraft.edges, nextEdge],
+      };
+    });
+    markWorkflowDraftLocallyEdited();
+    return true;
+  };
+
+  const handleWorkflowDraftRemoveEdge = (edgeId: string): boolean => {
+    if (!activeWorkflowDraft.edges.some((edge) => edge.edgeId === edgeId)) {
+      return false;
+    }
+    setEditableWorkflowDraft((draft) => {
+      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
+      if (!currentDraft.edges.some((edge) => edge.edgeId === edgeId)) {
+        return currentDraft;
+      }
+      return {
+        ...currentDraft,
+        localOnlyInteraction: "local_edit",
+        edges: currentDraft.edges.filter((edge) => edge.edgeId !== edgeId),
+      };
+    });
+    markWorkflowDraftLocallyEdited();
+    return true;
   };
 
   const handleWorkflowDraftAddNode = (nodeType: WorkflowDraftDesignerNode["nodeType"]) => {
@@ -1435,6 +1500,7 @@ export function App() {
           <WorkflowDraftDesignerPanel
             designer={workflowDraftDesigner}
             selectedDraft={activeWorkflowDraft}
+            validationInspector={activeWorkflowDraftValidationInspector}
             selectedDraftId={selectedWorkflowDraft.draftId}
             savedDraftConsumerState={savedDraftConsumerState}
             draftEditDirty={workflowDraftEditDirty}
@@ -1450,7 +1516,10 @@ export function App() {
             onUpdateNodeInputFields={handleWorkflowDraftNodeInputFieldsChange}
             onUpdateNodeOutputFields={handleWorkflowDraftNodeOutputFieldsChange}
             onUpdateNodeOutputMapping={handleWorkflowDraftNodeOutputMappingChange}
+            onUpdateNodeDesignerPosition={handleWorkflowDraftNodeDesignerPositionChange}
             onUpdateEdgeCondition={handleWorkflowDraftEdgeConditionChange}
+            onAddEdge={handleWorkflowDraftAddEdge}
+            onRemoveEdge={handleWorkflowDraftRemoveEdge}
             onAddNode={handleWorkflowDraftAddNode}
             onMoveNode={handleWorkflowDraftMoveNode}
             onRemoveNode={handleWorkflowDraftRemoveNode}
@@ -2862,6 +2931,7 @@ function WorkflowDefinitionBlockedActionPreviewCard({
 function WorkflowDraftDesignerPanel({
   designer,
   selectedDraft,
+  validationInspector,
   selectedDraftId,
   savedDraftConsumerState,
   draftEditDirty,
@@ -2877,7 +2947,10 @@ function WorkflowDraftDesignerPanel({
   onUpdateNodeInputFields,
   onUpdateNodeOutputFields,
   onUpdateNodeOutputMapping,
+  onUpdateNodeDesignerPosition,
   onUpdateEdgeCondition,
+  onAddEdge,
+  onRemoveEdge,
   onAddNode,
   onMoveNode,
   onRemoveNode,
@@ -2888,6 +2961,7 @@ function WorkflowDraftDesignerPanel({
 }: {
   designer: WorkflowDraftDesignerViewModel;
   selectedDraft: WorkflowDraftDesignerDraft;
+  validationInspector: WorkflowDraftValidationInspectorViewModel;
   selectedDraftId: string;
   savedDraftConsumerState: WorkflowSavedDraftConsumerState;
   draftEditDirty: boolean;
@@ -2903,7 +2977,10 @@ function WorkflowDraftDesignerPanel({
   onUpdateNodeInputFields: (nodeId: string, inputFieldsText: string) => void;
   onUpdateNodeOutputFields: (nodeId: string, outputFieldsText: string) => void;
   onUpdateNodeOutputMapping: (nodeId: string, outputMappingSummary: string) => void;
+  onUpdateNodeDesignerPosition: (nodeId: string, x: number, y: number) => void;
   onUpdateEdgeCondition: (edgeId: string, conditionSummary: string) => void;
+  onAddEdge: (fromNodeId: string, toNodeId: string) => boolean;
+  onRemoveEdge: (edgeId: string) => boolean;
   onAddNode: (nodeType: WorkflowDraftDesignerNode["nodeType"]) => void;
   onMoveNode: (nodeId: string, direction: WorkflowDraftNodeMoveDirection) => void;
   onRemoveNode: (nodeId: string) => void;
@@ -3058,6 +3135,24 @@ function WorkflowDraftDesignerPanel({
         </div>
       </div>
 
+      <WorkflowNodeDesigner
+        draft={selectedDraft}
+        validationInspector={validationInspector}
+        editingDisabled={operationPending}
+        canRemoveNode={(nodeId) => canRemoveWorkflowDraftNode(selectedDraft, nodeId)}
+        onUpdateNodeLabel={onUpdateNodeLabel}
+        onUpdateNodeInputSummary={onUpdateNodeInputSummary}
+        onUpdateNodeOutputSummary={onUpdateNodeOutputSummary}
+        onUpdateNodeProviderRef={onUpdateNodeProviderRef}
+        onUpdateNodeToolRef={onUpdateNodeToolRef}
+        onUpdateNodeRagRef={onUpdateNodeRagRef}
+        onUpdateNodeOutputMapping={onUpdateNodeOutputMapping}
+        onUpdateNodeDesignerPosition={onUpdateNodeDesignerPosition}
+        onAddEdge={onAddEdge}
+        onRemoveEdge={onRemoveEdge}
+        onRemoveNode={onRemoveNode}
+      />
+
       <div className="workflow-draft-node-grid" aria-label="Workflow draft nodes">
         {selectedDraft.nodes.map((node, nodeIndex) => (
           <WorkflowDraftNodeCard
@@ -3089,6 +3184,7 @@ function WorkflowDraftDesignerPanel({
             edge={edge}
             editingDisabled={operationPending}
             onUpdateCondition={onUpdateEdgeCondition}
+            onRemoveEdge={onRemoveEdge}
           />
         ))}
       </div>
@@ -3133,10 +3229,21 @@ function cloneWorkflowDraftForEditing(draft: WorkflowDraftDesignerDraft): Workfl
       outputContractFields: [...node.outputContractFields],
     })),
     edges: draft.edges.map((edge) => ({ ...edge })),
+    designerLayout: cloneWorkflowDraftDesignerLayout(draft.designerLayout),
     readiness: draft.readiness.map((readiness) => ({ ...readiness })),
     risks: draft.risks.map((risk) => ({ ...risk })),
     blockedCapabilities: draft.blockedCapabilities.map((capability) => ({ ...capability })),
     routeMetadata: { ...draft.routeMetadata },
+  };
+}
+
+function cloneWorkflowDraftDesignerLayout(
+  layout: WorkflowDraftDesignerLayout,
+): WorkflowDraftDesignerLayout {
+  return {
+    source: "workflow_node_designer",
+    persistence: layout.persistence,
+    nodePositions: layout.nodePositions.map((position) => ({ ...position })),
   };
 }
 
@@ -3244,8 +3351,49 @@ function workflowDraftWithStructureEdits(
     ...draft,
     nodes,
     edges: rebuildWorkflowDraftEdges(nodes, draft.edges),
+    designerLayout: workflowDraftLayoutForNodes(draft.designerLayout, nodes),
     localOnlyInteraction: "local_edit",
   };
+}
+
+function workflowDraftLayoutForNodes(
+  layout: WorkflowDraftDesignerLayout,
+  nodes: WorkflowDraftDesignerNode[],
+): WorkflowDraftDesignerLayout {
+  const nodeIds = new Set(nodes.map((node) => node.nodeId));
+  return {
+    source: "workflow_node_designer",
+    persistence: "ui_only",
+    nodePositions: layout.nodePositions.filter((position) => nodeIds.has(position.nodeId)),
+  };
+}
+
+function workflowDraftLayoutWithNodePosition(
+  draft: WorkflowDraftDesignerDraft,
+  nodeId: string,
+  x: number,
+  y: number,
+): WorkflowDraftDesignerLayout {
+  const nodeIds = new Set(draft.nodes.map((node) => node.nodeId));
+  const nextPosition = {
+    nodeId,
+    x: workflowDraftDesignerCoordinate(x),
+    y: workflowDraftDesignerCoordinate(y),
+  };
+  const positions = draft.designerLayout.nodePositions
+    .filter((position) => nodeIds.has(position.nodeId) && position.nodeId !== nodeId);
+  return {
+    source: "workflow_node_designer",
+    persistence: "ui_only",
+    nodePositions: [...positions, nextPosition],
+  };
+}
+
+function workflowDraftDesignerCoordinate(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+  return Math.max(-10000, Math.min(10000, Math.round(value)));
 }
 
 function insertWorkflowDraftNode(
@@ -3361,8 +3509,30 @@ function buildWorkflowDraftEdge(
     toNodeId: toNode.nodeId,
     edgeKind,
     conditionSummary:
-      previousEdge?.conditionSummary ?? workflowDraftEdgeConditionSummary(fromNode, toNode, edgeKind),
+      workflowDraftNonEmptyConditionSummary(
+        previousEdge?.conditionSummary,
+        workflowDraftEdgeConditionSummary(fromNode, toNode, edgeKind),
+      ),
   };
+}
+
+function buildWorkflowDraftEdgeForConnection(
+  draft: WorkflowDraftDesignerDraft,
+  fromNodeId: string,
+  toNodeId: string,
+): WorkflowDraftDesignerEdge | null {
+  if (fromNodeId === toNodeId) {
+    return null;
+  }
+  const fromNode = draft.nodes.find((node) => node.nodeId === fromNodeId);
+  const toNode = draft.nodes.find((node) => node.nodeId === toNodeId);
+  if (!fromNode || !toNode) {
+    return null;
+  }
+  if (draft.edges.some((edge) => edge.fromNodeId === fromNodeId && edge.toNodeId === toNodeId)) {
+    return null;
+  }
+  return buildWorkflowDraftEdge(fromNode, toNode, draft.edges);
 }
 
 function workflowDraftEdgeKindForConnection(
@@ -3396,6 +3566,25 @@ function workflowDraftEdgeConditionSummary(
     return "Risk-bearing output remains behind policy and confirmation review markers.";
   }
   return `${fromNode.label} passes sanitized context to ${toNode.label}.`;
+}
+
+function workflowDraftReviewableEdgeConditionSummary(
+  draft: WorkflowDraftDesignerDraft,
+  edge: WorkflowDraftDesignerEdge,
+  conditionSummary: string,
+): string {
+  const fromNode = draft.nodes.find((node) => node.nodeId === edge.fromNodeId);
+  const toNode = draft.nodes.find((node) => node.nodeId === edge.toNodeId);
+  const fallback =
+    fromNode && toNode
+      ? workflowDraftEdgeConditionSummary(fromNode, toNode, edge.edgeKind)
+      : "Draft edge keeps a reviewable condition summary after local graph editing.";
+  return workflowDraftNonEmptyConditionSummary(conditionSummary, fallback);
+}
+
+function workflowDraftNonEmptyConditionSummary(value: string | undefined, fallback: string): string {
+  const normalized = value?.trim();
+  return normalized ? normalized : fallback;
 }
 
 function uniqueWorkflowDraftNodeId(
@@ -3764,17 +3953,27 @@ function WorkflowDraftEdgeCard({
   edge,
   editingDisabled,
   onUpdateCondition,
+  onRemoveEdge,
 }: {
   edge: WorkflowDraftDesignerEdge;
   editingDisabled: boolean;
   onUpdateCondition: (edgeId: string, conditionSummary: string) => void;
+  onRemoveEdge: (edgeId: string) => boolean;
 }) {
   return (
     <article className="workflow-draft-edge">
-      <span>{edge.edgeKind}</span>
-      <strong>
-        {edge.fromNodeId} to {edge.toNodeId}
-      </strong>
+      <div className="workflow-draft-edge-heading">
+        <div className="workflow-draft-edge-heading-main">
+          <span>{edge.edgeKind}</span>
+          <strong>
+            {edge.fromNodeId} to {edge.toNodeId}
+          </strong>
+          <small>{edge.edgeId}</small>
+        </div>
+        <button type="button" disabled={editingDisabled} onClick={() => onRemoveEdge(edge.edgeId)}>
+          Remove
+        </button>
+      </div>
       <textarea
         className="workflow-draft-edge-condition-input"
         value={edge.conditionSummary}

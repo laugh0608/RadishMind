@@ -1,0 +1,538 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_database_role_policy_readiness_v1",
+  "slice": {
+    "id": "workflow-saved-draft-database-role-policy-readiness-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_database_role_policy_readiness_defined",
+    "task_card": "docs/task-cards/workflow-saved-draft-database-role-policy-readiness-v1-plan.md",
+    "does_not_claim": [
+      "database_connection_provider_implementation_task_card_created",
+      "database_connection_provider_ready",
+      "database_connection_ready",
+      "database_role_ready",
+      "role_policy_runtime_ready",
+      "role_grant_ready",
+      "secret_resolver_ready",
+      "production_resolver_runtime_ready",
+      "fake_resolver_can_unlock_production_connection",
+      "credential_handle_runtime_ready",
+      "no_secret_leakage_smoke_runtime_ready",
+      "database_driver_selected",
+      "database_driver_imported",
+      "dsn_parser_created",
+      "raw_dsn_available",
+      "tls_runtime_ready",
+      "connection_factory_implemented",
+      "connection_smoke_ready",
+      "database_query_executor_ready",
+      "schema_marker_read_write_ready",
+      "sql_migration_created",
+      "migration_runner_implemented",
+      "repository_store_mode_enabled",
+      "repository_mode_runtime_created",
+      "durable_persistence_ready",
+      "oidc_middleware_ready",
+      "token_validation_ready",
+      "workspace_membership_adapter_ready",
+      "production_api_consumer_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    {
+      "id": "workflow-saved-draft-database-driver-dsn-tls-policy-readiness-v1",
+      "status": "draft_database_driver_dsn_tls_policy_readiness_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-database-driver-dsn-tls-policy-readiness-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-database-connection-provider-implementation-entry-refresh-v1",
+      "status": "draft_database_connection_provider_implementation_entry_refresh_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-database-connection-provider-implementation-entry-refresh-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-database-connection-schema-marker-preconditions-v1",
+      "status": "draft_database_connection_schema_marker_preconditions_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-database-connection-schema-marker-preconditions-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-manual-migration-runner-implementation-entry-refresh-v1",
+      "status": "draft_manual_migration_runner_implementation_entry_refresh_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-manual-migration-runner-implementation-entry-refresh-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1",
+      "status": "draft_schema_marker_contract_implementation_entry_review_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-repository-mode-runtime-boundary-review-v1",
+      "status": "draft_repository_mode_runtime_boundary_review_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-repository-mode-runtime-boundary-review-v1.json"
+    },
+    {
+      "id": "radish-oidc-token-membership-implementation-entry-review-v1",
+      "status": "radish_oidc_token_membership_implementation_entry_review_defined",
+      "evidence": "scripts/checks/fixtures/radish-oidc-token-membership-implementation-entry-review-v1.json"
+    },
+    {
+      "id": "production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1",
+      "status": "real_resolver_no_secret_leakage_smoke_runtime_implementation_entry_review_defined",
+      "evidence": "scripts/checks/fixtures/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1.json"
+    }
+  ],
+  "readiness_boundary": {
+    "status": "database_role_policy_readiness_defined_no_runtime_policy",
+    "decision": "role_policy_defined_for_future_task_only",
+    "current_development_mode": "readiness_only_no_role_runtime_no_connection",
+    "future_implementation_task_card": "docs/task-cards/workflow-saved-draft-database-connection-provider-implementation-v1-plan.md",
+    "future_runtime_dml_role_status": "policy_defined_runtime_not_created",
+    "future_migration_ddl_marker_role_status": "policy_defined_runtime_not_created",
+    "least_privilege_review_status": "static_review_boundary_defined",
+    "future_environment_binding_status": "policy_defined_runtime_not_created",
+    "future_role_claim_metadata_status": "metadata_only_shape_defined_no_auth_runtime",
+    "future_cross_environment_denial_smoke_status": "blocked_until_connection_smoke_strategy",
+    "future_connection_provider_dependency_status": "blocked_before_implementation_task_card",
+    "implementation_task_card_created_in_this_slice": false,
+    "database_connection_provider_file_created_in_this_slice": false,
+    "role_policy_runtime_allowed_in_this_slice": false,
+    "database_role_creation_allowed_in_this_slice": false,
+    "role_grant_allowed_in_this_slice": false,
+    "role_claim_parser_allowed_in_this_slice": false,
+    "database_driver_import_allowed_in_this_slice": false,
+    "go_mod_driver_dependency_allowed_in_this_slice": false,
+    "dsn_parser_allowed_in_this_slice": false,
+    "raw_dsn_material_allowed_in_this_slice": false,
+    "tls_runtime_allowed_in_this_slice": false,
+    "connection_factory_allowed_in_this_slice": false,
+    "connection_smoke_allowed_in_this_slice": false,
+    "secret_resolver_allowed_in_this_slice": false,
+    "fake_resolver_invocation_allowed_in_this_slice": false,
+    "production_resolver_invocation_allowed_in_this_slice": false,
+    "credential_handle_creation_allowed_in_this_slice": false,
+    "database_query_executor_allowed_in_this_slice": false,
+    "schema_marker_allowed_in_this_slice": false,
+    "sql_files_created_in_this_slice": false,
+    "migration_runner_allowed_in_this_slice": false,
+    "repository_mode_success_allowed_in_this_slice": false,
+    "oidc_validation_allowed_in_this_slice": false,
+    "membership_adapter_allowed_in_this_slice": false,
+    "production_api_consumer_allowed_in_this_slice": false,
+    "executor_allowed_in_this_slice": false,
+    "writeback_or_replay_allowed_in_this_slice": false
+  },
+  "readiness_gate_matrix": [
+    {
+      "gate_id": "driver_dsn_tls_policy_consumed",
+      "source": "workflow-saved-draft-database-driver-dsn-tls-policy-readiness-v1",
+      "status": "consumed_role_dependency"
+    },
+    {
+      "gate_id": "runtime_dml_role_policy",
+      "status": "defined_no_runtime_role"
+    },
+    {
+      "gate_id": "migration_ddl_marker_role_policy",
+      "status": "defined_no_runtime_role"
+    },
+    {
+      "gate_id": "least_privilege_review_boundary",
+      "status": "defined_static_review_required"
+    },
+    {
+      "gate_id": "environment_binding",
+      "status": "defined_no_runtime_binding"
+    },
+    {
+      "gate_id": "role_claim_metadata_boundary",
+      "status": "defined_metadata_only_no_token_parser"
+    },
+    {
+      "gate_id": "cross_environment_denial_smoke_precondition",
+      "status": "blocked_before_connection_smoke_strategy"
+    },
+    {
+      "gate_id": "connection_provider_dependency",
+      "status": "blocked_before_implementation_task_card"
+    },
+    {
+      "gate_id": "no_runtime_artifacts_leaked",
+      "status": "required_now"
+    }
+  ],
+  "runtime_dml_role_policy": {
+    "status": "future_policy_only_no_runtime_role",
+    "future_role_class": "saved_draft_runtime_dml",
+    "allowed_future_operations": [
+      "save_workflow_draft_record",
+      "read_workflow_draft_record",
+      "list_workflow_draft_records",
+      "update_workflow_draft_record"
+    ],
+    "forbidden_future_operations": [
+      "create_table",
+      "alter_table",
+      "drop_table",
+      "schema_marker_write",
+      "schema_version_update",
+      "migration_lock_write",
+      "role_grant",
+      "set_admin_role",
+      "cross_environment_connection"
+    ],
+    "role_runtime_allowed_now": false,
+    "database_role_created_now": false,
+    "role_grant_allowed_now": false
+  },
+  "migration_ddl_marker_role_policy": {
+    "status": "future_policy_only_no_runtime_role",
+    "future_role_class": "saved_draft_migration_ddl_marker",
+    "allowed_future_operations": [
+      "migration_dry_run_metadata",
+      "migration_apply",
+      "schema_marker_read",
+      "schema_marker_write",
+      "schema_version_update",
+      "migration_lock_manage"
+    ],
+    "forbidden_future_operations": [
+      "repository_adapter_save",
+      "repository_adapter_read",
+      "repository_adapter_list",
+      "saved_draft_request_path_consumption",
+      "workflow_executor_consumption",
+      "production_api_request_consumption"
+    ],
+    "role_runtime_allowed_now": false,
+    "database_role_created_now": false,
+    "repository_adapter_consumption_allowed_now": false
+  },
+  "least_privilege_review": {
+    "status": "static_review_boundary_defined",
+    "required_future_evidence": [
+      "runtime role cannot execute DDL",
+      "runtime role cannot write schema marker",
+      "runtime role cannot manage migration lock",
+      "migration role cannot be consumed by repository adapter",
+      "migration role cannot be selected by HTTP request path",
+      "role class mismatch fails closed",
+      "role escalation attempt fails closed"
+    ],
+    "static_review_required_now": true,
+    "runtime_review_execution_allowed_now": false
+  },
+  "environment_binding": {
+    "status": "future_policy_only_no_runtime_binding",
+    "required_bindings": [
+      "runtime_environment",
+      "secret_ref_environment",
+      "credential_handle_environment",
+      "driver_policy_environment",
+      "tls_policy_environment",
+      "role_policy_environment",
+      "connection_smoke_environment"
+    ],
+    "mismatch_failure_code": "draft_store_unavailable",
+    "binding_runtime_allowed_now": false
+  },
+  "role_claim_metadata_boundary": {
+    "status": "metadata_only_no_claim_parser_runtime",
+    "input_allowed": [
+      "environment",
+      "required_role",
+      "policy_version",
+      "role_policy_ref",
+      "role_id_ref",
+      "request_id",
+      "audit_ref",
+      "auth_context_ref"
+    ],
+    "output_allowed": [
+      "metadata_only_role_readiness",
+      "metadata_only_role_denial",
+      "role_policy_id",
+      "role_class",
+      "environment_id",
+      "redacted_role_fingerprint",
+      "sanitized_failure_code"
+    ],
+    "forbidden_outputs": [
+      "full_user_claim",
+      "authorization_header",
+      "cookie",
+      "raw_role_grant",
+      "database_role_password",
+      "raw_dsn",
+      "secret_value",
+      "credential_payload",
+      "database_host",
+      "sql_detail"
+    ],
+    "role_claim_parser_allowed_now": false,
+    "token_validation_allowed_now": false
+  },
+  "cross_environment_denial_smoke": {
+    "status": "blocked_before_connection_smoke_strategy",
+    "required_future_inputs": [
+      "explicit_test_database",
+      "safe_placeholder_credential_handoff",
+      "driver_policy",
+      "tls_policy",
+      "runtime_dml_role_policy",
+      "migration_ddl_marker_role_policy",
+      "environment_mismatch_case",
+      "no_secret_leakage_scan",
+      "zero_side_effect_fast_baseline_boundary"
+    ],
+    "denial_smoke_allowed_now": false,
+    "connection_smoke_allowed_now": false,
+    "database_connection_allowed_now": false
+  },
+  "failure_mapping": {
+    "status": "database_role_policy_readiness_fail_closed_required",
+    "required_failure_codes": [
+      "repository_store_disabled",
+      "invalid_draft_store_mode",
+      "draft_store_unavailable",
+      "draft_schema_migration_not_applied",
+      "draft_store_schema_version_mismatch",
+      "draft_store_migration_unavailable",
+      "draft_store_contract_mismatch",
+      "draft_auth_context_contract_mismatch"
+    ],
+    "runtime_role_policy_missing_failure_code": "draft_store_unavailable",
+    "migration_role_policy_missing_failure_code": "draft_store_unavailable",
+    "least_privilege_review_missing_failure_code": "draft_store_unavailable",
+    "role_environment_mismatch_failure_code": "draft_store_unavailable",
+    "role_escalation_attempt_failure_code": "draft_store_unavailable",
+    "cross_environment_denial_smoke_missing_failure_code": "draft_store_unavailable",
+    "repository_mode_still_disabled_failure_code": "repository_store_disabled",
+    "runtime_role_failure_must_prevent_query_execution": true,
+    "migration_role_failure_must_prevent_marker_write": true,
+    "role_policy_failure_must_prevent_connection_open": true,
+    "environment_mismatch_must_prevent_secret_resolution": true,
+    "cross_environment_denial_gap_must_prevent_provider_task_card": true
+  },
+  "no_fallback_policy": {
+    "repository_store_mode_fallback_to_memory_dev_allowed": false,
+    "missing_role_policy_fallback_to_admin_role_allowed": false,
+    "missing_runtime_role_fallback_to_migration_role_allowed": false,
+    "missing_migration_role_fallback_to_runtime_role_allowed": false,
+    "role_claim_failure_fallback_to_test_auth_allowed": false,
+    "role_environment_mismatch_fallback_to_local_dev_allowed": false,
+    "cross_environment_denial_gap_fallback_to_fake_query_executor_allowed": false,
+    "secret_resolver_fallback_to_test_fake_resolver_allowed": false,
+    "production_api_failure_fallback_to_dev_route_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "secret_resolver_call_count=0",
+      "fake_resolver_call_count=0",
+      "production_resolver_call_count=0",
+      "secret_value_read_count=0",
+      "credential_handle_created_count=0",
+      "cloud_secret_call_count=0",
+      "network_call_count=0",
+      "database_connection_count=0",
+      "driver_import_count=0",
+      "driver_open_count=0",
+      "dsn_parse_count=0",
+      "dsn_build_count=0",
+      "tls_config_create_count=0",
+      "role_policy_evaluation_count=0",
+      "role_claim_parse_count=0",
+      "role_grant_count=0",
+      "connection_smoke_count=0",
+      "sql_execution_count=0",
+      "schema_marker_read_count=0",
+      "schema_marker_write_count=0",
+      "repository_mode_enablement_count=0",
+      "repository_read_count=0",
+      "repository_write_count=0",
+      "oidc_call_count=0",
+      "token_validation_count=0",
+      "membership_lookup_count=0",
+      "production_api_call_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "read environment secret",
+      "call fake resolver",
+      "call production resolver",
+      "add database driver dependency",
+      "import or open database driver",
+      "parse or build DSN",
+      "create role policy runtime",
+      "parse role claim",
+      "create database role",
+      "grant database role",
+      "connect database",
+      "run connection smoke",
+      "run SQL",
+      "read or write schema marker",
+      "write repository",
+      "call OIDC",
+      "call membership adapter",
+      "call production API"
+    ]
+  },
+  "artifact_guard": {
+    "required_static_artifacts_exist": [
+      "docs/features/workflow/saved-workflow-draft-database-role-policy-readiness-v1.md",
+      "docs/task-cards/workflow-saved-draft-database-role-policy-readiness-v1-plan.md",
+      "docs/features/workflow/saved-workflow-draft-database-driver-dsn-tls-policy-readiness-v1.md",
+      "docs/features/workflow/saved-workflow-draft-database-connection-provider-implementation-entry-refresh-v1.md"
+    ],
+    "files_must_not_exist": [
+      "docs/task-cards/workflow-saved-draft-database-connection-provider-implementation-v1-plan.md",
+      "docs/task-cards/workflow-saved-draft-database-role-policy-runtime-v1-plan.md",
+      "services/platform/internal/httpapi/workflow_saved_draft_database_connection.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_database_driver.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_database_dsn.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_database_tls.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_database_secret_resolver.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_database_role_policy.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_query_executor_sql.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_schema_marker.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_schema_migration_runner.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_migration_command.go",
+      "tmp/workflow-saved-draft-database-connection-smoke.json",
+      "tmp/workflow-saved-draft-database-role-policy-readiness.json"
+    ],
+    "forbid_sql_files_under": [
+      "services/platform/migrations/workflow_saved_drafts"
+    ],
+    "source_files_to_scan": [
+      "services/platform/go.mod",
+      "services/platform/internal/httpapi/workflow_saved_draft.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go"
+    ],
+    "forbidden_source_literals": [
+      "database/sql",
+      "github.com/jackc/pgx",
+      "github.com/lib/pq",
+      "pgxpool",
+      "sql.Open(",
+      "OpenDB(",
+      "CREATE ROLE",
+      "ALTER ROLE",
+      "SET ROLE",
+      "GRANT ",
+      "RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_ROLE",
+      "workflow_saved_draft_schema_versions"
+    ]
+  },
+  "required_doc_references": [
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-database-role-policy-readiness-v1.md",
+      "must_contain": [
+        "draft_database_role_policy_readiness_defined",
+        "runtime DML role",
+        "migration DDL / schema marker role",
+        "least privilege review",
+        "cross-environment denial smoke",
+        "role claim / role id metadata-only shape",
+        "No Fallback / No Side Effects"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/README.md",
+      "must_contain": [
+        "Saved Workflow Draft Database Role Policy Readiness v1",
+        "draft_database_role_policy_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/features/README.md",
+      "must_contain": [
+        "Saved Workflow Draft Database Role Policy Readiness v1",
+        "draft_database_role_policy_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-v1.md",
+      "must_contain": [
+        "workflow-saved-draft-database-role-policy-readiness-v1",
+        "draft_database_role_policy_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "must_contain": [
+        "workflow-saved-draft-database-role-policy-readiness-v1",
+        "draft_database_role_policy_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/radishmind-product-scope.md",
+      "must_contain": [
+        "workflow-saved-draft-database-role-policy-readiness-v1",
+        "draft_database_role_policy_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/radishmind-capability-matrix.md",
+      "must_contain": [
+        "workflow-saved-draft-database-role-policy-readiness-v1",
+        "draft_database_role_policy_readiness_defined"
+      ]
+    },
+    {
+      "path": "docs/devlogs/2026-W26.md",
+      "must_contain": [
+        "workflow-saved-draft-database-role-policy-readiness-v1",
+        "draft_database_role_policy_readiness_defined"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "status": "database_role_policy_readiness_checker_only_no_runtime",
+    "required_checks": [
+      "workflow_saved_draft_database_role_policy_readiness_checker",
+      "workflow_saved_draft_database_driver_dsn_tls_policy_readiness_checker",
+      "workflow_saved_draft_database_connection_provider_implementation_entry_refresh_checker",
+      "workflow_saved_draft_repository_mode_runtime_boundary_review_checker",
+      "radish_oidc_token_membership_implementation_entry_review_checker",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_enable_repository_store_mode": true,
+    "does_not_call_fake_resolver": true,
+    "does_not_call_production_resolver": true,
+    "does_not_resolve_secret": true,
+    "does_not_store_secret_value": true,
+    "does_not_import_database_driver": true,
+    "does_not_add_database_driver_dependency": true,
+    "does_not_open_database_driver": true,
+    "does_not_create_dsn_parser": true,
+    "does_not_build_dsn": true,
+    "does_not_create_role_policy_runtime": true,
+    "does_not_parse_role_claim": true,
+    "does_not_create_database_role": true,
+    "does_not_grant_database_role": true,
+    "does_not_connect_database": true,
+    "does_not_run_connection_smoke": true,
+    "does_not_run_sql": true,
+    "does_not_read_schema_marker": true,
+    "does_not_write_schema_marker": true,
+    "does_not_create_migration_runner": true,
+    "does_not_create_runner_command": true,
+    "does_not_call_oidc": true,
+    "does_not_validate_token": true,
+    "does_not_create_membership_adapter": true,
+    "does_not_create_production_api": true
+  },
+  "next_candidates": [
+    "connection_smoke_strategy",
+    "radish_oidc_token_membership_upstream_evidence_refresh",
+    "connection_provider_implementation_entry_refresh_v2"
+  ]
+}

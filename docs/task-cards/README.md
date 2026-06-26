@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-06-18
+更新时间：2026-06-23
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -141,6 +141,42 @@
 90. [`Workflow Saved Draft Production Auth Runtime` v1 任务卡](workflow-saved-draft-production-auth-runtime-v1-plan.md)（`workflow-saved-draft-production-auth-runtime-v1`）
 91. [`Workflow Saved Draft Repository Mode Enablement` v1 任务卡](workflow-saved-draft-repository-mode-enablement-v1-plan.md)（`workflow-saved-draft-repository-mode-enablement-v1`）
 92. [`Workflow Saved Draft Schema Migration Runner Readiness` v1 任务卡](workflow-saved-draft-schema-migration-runner-readiness-v1-plan.md)（`workflow-saved-draft-schema-migration-runner-readiness-v1`）
+93. [`Workflow Saved Draft Schema Migration Runner Implementation Entry Review` v1 任务卡](workflow-saved-draft-schema-migration-runner-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-schema-migration-runner-implementation-entry-review-v1`）
+94. [`Workflow Saved Draft Database Connection / Schema Marker Preconditions` v1 任务卡](workflow-saved-draft-database-connection-schema-marker-preconditions-v1-plan.md)（`workflow-saved-draft-database-connection-schema-marker-preconditions-v1`）
+95. [`Workflow Saved Draft Database Connection Provider Implementation Entry Review` v1 任务卡](workflow-saved-draft-database-connection-provider-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-database-connection-provider-implementation-entry-review-v1`）
+96. [`Workflow Saved Draft Database Secret Resolver Readiness` v1 任务卡](workflow-saved-draft-database-secret-resolver-readiness-v1-plan.md)（`workflow-saved-draft-database-secret-resolver-readiness-v1`）
+97. [`Workflow Saved Draft Database Secret Resolver Implementation Entry Review` v1 任务卡](workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1`）
+98. [`Workflow Saved Draft Repository Mode Runtime Boundary Review` v1 任务卡](workflow-saved-draft-repository-mode-runtime-boundary-review-v1-plan.md)（`workflow-saved-draft-repository-mode-runtime-boundary-review-v1`）
+99. [`Workflow Saved Draft Schema Marker / Migration Runner Readiness Refresh` v1 任务卡](workflow-saved-draft-schema-marker-migration-runner-readiness-refresh-v1-plan.md)（`workflow-saved-draft-schema-marker-migration-runner-readiness-refresh-v1`）
+100. [`Workflow Saved Draft Schema Marker Contract Implementation Entry Review` v1 任务卡](workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1-plan.md)（`workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1`）
+101. [`Workflow Saved Draft Manual Migration Runner Implementation Entry Refresh` v1 任务卡](workflow-saved-draft-manual-migration-runner-implementation-entry-refresh-v1-plan.md)（`workflow-saved-draft-manual-migration-runner-implementation-entry-refresh-v1`）
+102. [`Workflow Saved Draft Database Connection Provider Implementation Entry Refresh` v1 任务卡](workflow-saved-draft-database-connection-provider-implementation-entry-refresh-v1-plan.md)（`workflow-saved-draft-database-connection-provider-implementation-entry-refresh-v1`）
+103. [`Workflow Saved Draft Database Driver / DSN / TLS Policy Readiness` v1 任务卡](workflow-saved-draft-database-driver-dsn-tls-policy-readiness-v1-plan.md)（`workflow-saved-draft-database-driver-dsn-tls-policy-readiness-v1`）
+104. [`Workflow Saved Draft Database Role Policy Readiness` v1 任务卡](workflow-saved-draft-database-role-policy-readiness-v1-plan.md)（`workflow-saved-draft-database-role-policy-readiness-v1`）
+105. [`Workflow Saved Draft Database Connection Smoke Strategy` v1 任务卡](workflow-saved-draft-database-connection-smoke-strategy-v1-plan.md)（`workflow-saved-draft-database-connection-smoke-strategy-v1`）
+106. [`Workflow Saved Draft Database Connection Lifecycle Readiness` v1 任务卡](workflow-saved-draft-database-connection-lifecycle-readiness-v1-plan.md)（`workflow-saved-draft-database-connection-lifecycle-readiness-v1`）
+107. [`Workflow Saved Draft Database Connection Provider Implementation Entry Refresh v2` 任务卡](workflow-saved-draft-database-connection-provider-implementation-entry-refresh-v2-plan.md)（`workflow-saved-draft-database-connection-provider-implementation-entry-refresh-v2`）
+108. [`Radish OIDC Token / Membership Readiness` v1 任务卡](radish-oidc-token-membership-readiness-v1-plan.md)（`radish-oidc-token-membership-readiness-v1`）
+109. [`Radish OIDC Token / Membership Implementation Entry Review` v1 任务卡](radish-oidc-token-membership-implementation-entry-review-v1-plan.md)（`radish-oidc-token-membership-implementation-entry-review-v1`）
+110. [`Radish OIDC Token / Membership Upstream Evidence Refresh` v1 任务卡](radish-oidc-token-membership-upstream-evidence-refresh-v1-plan.md)（`radish-oidc-token-membership-upstream-evidence-refresh-v1`）
+111. [`Workflow Saved Draft Schema Marker Runtime Dependency Refresh` v1 任务卡](workflow-saved-draft-schema-marker-runtime-dependency-refresh-v1-plan.md)（`workflow-saved-draft-schema-marker-runtime-dependency-refresh-v1`）
+112. [`Workflow Saved Draft Database Secret Resolver Runtime Dependency Refresh` v1 任务卡](workflow-saved-draft-database-secret-resolver-runtime-dependency-refresh-v1-plan.md)（`workflow-saved-draft-database-secret-resolver-runtime-dependency-refresh-v1`）
+113. [`Workflow Saved Draft Token Validation Schema / Auth Middleware Runtime Entry Review` v1 任务卡](workflow-saved-draft-token-validation-auth-middleware-runtime-entry-review-v1-plan.md)（`workflow-saved-draft-token-validation-auth-middleware-runtime-entry-review-v1`）
+114. [`Workflow Saved Draft Token Validation Schema Task Card Readiness` v1 任务卡](workflow-saved-draft-token-validation-schema-task-card-readiness-v1-plan.md)（`workflow-saved-draft-token-validation-schema-task-card-readiness-v1`）
+115. [`Workflow Saved Draft Token Validation Schema Implementation` v1 任务卡](workflow-saved-draft-token-validation-schema-implementation-v1-plan.md)（`workflow-saved-draft-token-validation-schema-implementation-v1`）
+116. [`Workflow Saved Draft Token Validation Schema Artifact Implementation` v1 任务卡](workflow-saved-draft-token-validation-schema-artifact-implementation-v1-plan.md)（`workflow-saved-draft-token-validation-schema-artifact-implementation-v1`）
+117. [`Workflow Saved Draft Auth Middleware / Membership Adapter Task Card Entry Readiness` v1 任务卡](workflow-saved-draft-auth-middleware-membership-adapter-task-card-entry-readiness-v1-plan.md)（`workflow-saved-draft-auth-middleware-membership-adapter-task-card-entry-readiness-v1`）
+118. [`Workflow Saved Draft Negative Auth Smoke Runtime Readiness` v1 任务卡](workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1-plan.md)（`workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1`）
+119. [`Workflow Node Designer Surface Implementation` v1 任务卡](workflow-node-designer-surface-implementation-v1-plan.md)（`workflow-node-designer-surface-implementation-v1`）
+120. [`Workflow Node Designer Saved Draft Mapping Implementation` v1 任务卡](workflow-node-designer-saved-draft-mapping-implementation-v1-plan.md)（`workflow-node-designer-saved-draft-mapping-implementation-v1`）
+121. [`Workflow Node Designer Review Handoff` v1 任务卡](workflow-node-designer-review-handoff-v1-plan.md)（`workflow-node-designer-review-handoff-v1`）
+122. [`Workflow Node Designer Persisted Layout` v1 任务卡](workflow-node-designer-persisted-layout-v1-plan.md)（`workflow-node-designer-persisted-layout-v1`）
+123. [`Workflow Node Designer Edge Editing Save Preconditions` v1 任务卡](workflow-node-designer-edge-editing-save-preconditions-v1-plan.md)（`workflow-node-designer-edge-editing-save-preconditions-v1`）
+124. [`Workflow Node Designer Controlled Edge Mutation Implementation` v1 任务卡](workflow-node-designer-controlled-edge-mutation-implementation-v1-plan.md)（`workflow-node-designer-controlled-edge-mutation-implementation-v1`）
+125. [`Workflow Node Designer Layout Review Findings` v1 任务卡](workflow-node-designer-layout-review-findings-v1-plan.md)（`workflow-node-designer-layout-review-findings-v1`）
+126. [`Workflow Node Designer Builder Interaction Polish` v1 任务卡](workflow-node-designer-builder-interaction-polish-v1-plan.md)（`workflow-node-designer-builder-interaction-polish-v1`）
+127. [`Workflow Node Designer Validation Overlay Navigation` v1 任务卡](workflow-node-designer-validation-overlay-navigation-v1-plan.md)（`workflow-node-designer-validation-overlay-navigation-v1`）
+128. [`Workflow Node Designer Graph Review Handoff Refinement` v1 任务卡](workflow-node-designer-graph-review-handoff-refinement-v1-plan.md)（`workflow-node-designer-graph-review-handoff-refinement-v1`）
 
 ## UI 设计专题
 
@@ -149,7 +185,40 @@
 ## Production Ops
 
 1. [`Production Ops Hardening` v1 计划](production-ops-hardening-v1-plan.md)
-2. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
+2. [`Production Secret Backend Implementation` v1 计划](production-secret-backend-implementation-v1-plan.md)
+3. [`Production Secret Backend Config / Secret Ref Readiness` v1 计划](production-secret-backend-config-secret-ref-readiness-v1-plan.md)（`production-secret-backend-config-secret-ref-readiness-v1`）
+4. [`Production Secret Backend Provider Profile Secret Binding Readiness` v1 计划](production-secret-backend-provider-profile-secret-binding-readiness-v1-plan.md)（`production-secret-backend-provider-profile-secret-binding-readiness-v1`）
+5. [`Production Secret Backend Secret Resolver Interface Disabled Readiness` v1 计划](production-secret-backend-secret-resolver-interface-disabled-readiness-v1-plan.md)（`production-secret-backend-secret-resolver-interface-disabled-readiness-v1`）
+6. [`Production Secret Backend Operator Runbook / Negative Gates Readiness` v1 计划](production-secret-backend-operator-runbook-negative-gates-readiness-v1-plan.md)（`production-secret-backend-operator-runbook-negative-gates-readiness-v1`）
+7. [`Production Secret Backend Rotation / Audit Policy Readiness` v1 计划](production-secret-backend-rotation-audit-policy-readiness-v1-plan.md)（`production-secret-backend-rotation-audit-policy-readiness-v1`）
+8. [`Production Secret Backend Test Fixture Strategy / Fake Resolver Implementation Entry Review` v1 计划](production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1-plan.md)（`production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1`）
+9. [`Production Secret Backend Fake Resolver Contract / No Secret Leakage Smoke Strategy` v1 计划](production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1-plan.md)（`production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1`）
+10. [`Production Secret Backend Fake Resolver Implementation Task Card Entry Readiness Review` v1 计划](production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1-plan.md)（`production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1` / `fake_resolver_implementation_task_card_entry_readiness_review_defined`）
+11. [`Production Secret Backend Fake Resolver Implementation` v1 计划](production-secret-backend-fake-resolver-implementation-v1-plan.md)（`production-secret-backend-fake-resolver-implementation-v1` / `fake_resolver_implementation_task_card_defined`）
+12. [`Production Secret Backend Fake Resolver Runtime Implementation Entry Review` v1 计划](production-secret-backend-fake-resolver-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-fake-resolver-runtime-implementation-entry-review-v1` / `fake_resolver_runtime_implementation_entry_review_defined`）
+13. [`Production Secret Backend Fake Resolver Runtime Implementation` v1 计划](production-secret-backend-fake-resolver-runtime-implementation-v1-plan.md)（`production-secret-backend-fake-resolver-runtime-implementation-v1` / `fake_resolver_runtime_test_only_implemented`）
+14. [`Production Secret Backend Real Resolver Runtime Preconditions` v1 计划](production-secret-backend-real-resolver-runtime-preconditions-v1-plan.md)（`production-secret-backend-real-resolver-runtime-preconditions-v1` / `real_resolver_runtime_preconditions_defined`）
+15. [`Production Secret Backend Real Resolver Runtime Implementation Entry Review` v1 计划](production-secret-backend-real-resolver-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-real-resolver-runtime-implementation-entry-review-v1` / `real_resolver_runtime_implementation_entry_review_defined`）
+16. [`Production Secret Backend Resolver Backend Profile Selection Readiness` v1 计划](production-secret-backend-resolver-backend-profile-selection-readiness-v1-plan.md)（`production-secret-backend-resolver-backend-profile-selection-readiness-v1` / `resolver_backend_profile_selection_readiness_defined`）
+17. [`Production Secret Backend Real Resolver No Secret Leakage Smoke Runtime Strategy` v1 计划](production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1-plan.md)（`production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1` / `real_resolver_no_secret_leakage_smoke_runtime_strategy_defined`）
+18. [`Production Secret Backend Real Resolver No Secret Leakage Smoke Runtime Implementation Entry Review` v1 计划](production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1` / `real_resolver_no_secret_leakage_smoke_runtime_implementation_entry_review_defined`）
+19. [`Production Secret Backend Credential Handle Runtime Boundary Readiness` v1 计划](production-secret-backend-credential-handle-runtime-boundary-readiness-v1-plan.md)（`production-secret-backend-credential-handle-runtime-boundary-readiness-v1` / `credential_handle_runtime_boundary_readiness_defined`）
+20. [`Production Secret Backend Operator Approval Runtime Evidence Readiness` v1 计划](production-secret-backend-operator-approval-runtime-evidence-readiness-v1-plan.md)（`production-secret-backend-operator-approval-runtime-evidence-readiness-v1` / `operator_approval_runtime_evidence_readiness_defined`）
+21. [`Production Secret Backend Audit Store Handoff Readiness v1` 计划](production-secret-backend-audit-store-handoff-readiness-v1-plan.md)（`production-secret-backend-audit-store-handoff-readiness-v1` / `audit_store_handoff_readiness_defined`）
+22. [`Production Secret Backend Resolver Backend Health Boundary Readiness` v1 计划](production-secret-backend-resolver-backend-health-boundary-readiness-v1-plan.md)（`production-secret-backend-resolver-backend-health-boundary-readiness-v1` / `resolver_backend_health_boundary_readiness_defined`）
+23. [`Production Secret Backend Resolver Backend Health Runtime Implementation Entry Review` v1 计划](production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1` / `resolver_backend_health_runtime_implementation_entry_review_defined`）
+24. [`Production Secret Backend Audit Store Runtime Implementation Entry Review` v1 计划](production-secret-backend-audit-store-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-audit-store-runtime-implementation-entry-review-v1` / `audit_store_runtime_implementation_entry_review_defined`）
+25. [`Production Secret Backend Audit Store Contract / Event Schema Readiness` v1 计划](production-secret-backend-audit-store-contract-event-schema-readiness-v1-plan.md)（`production-secret-backend-audit-store-contract-event-schema-readiness-v1` / `audit_store_contract_event_schema_readiness_defined`）
+26. [`Production Secret Backend Audit Store Runtime Implementation Entry Refresh` v2 计划](production-secret-backend-audit-store-runtime-implementation-entry-refresh-v2-plan.md)（`production-secret-backend-audit-store-runtime-implementation-entry-refresh-v2` / `audit_store_runtime_implementation_entry_refresh_v2_defined`）
+27. [`Production Secret Backend Audit Store Ownership Boundary Readiness` v1 计划](production-secret-backend-audit-store-ownership-boundary-readiness-v1-plan.md)（`production-secret-backend-audit-store-ownership-boundary-readiness-v1` / `audit_store_ownership_boundary_readiness_defined`）
+28. [`Production Secret Backend Audit Store Delivery / Idempotency Runtime Boundary Readiness` v1 计划](production-secret-backend-audit-store-delivery-idempotency-runtime-boundary-readiness-v1-plan.md)（`production-secret-backend-audit-store-delivery-idempotency-runtime-boundary-readiness-v1` / `audit_store_delivery_idempotency_runtime_boundary_readiness_defined`）
+29. [`Production Secret Backend Audit Store Runtime Implementation Entry Refresh` v3 计划](production-secret-backend-audit-store-runtime-implementation-entry-refresh-v3-plan.md)（`production-secret-backend-audit-store-runtime-implementation-entry-refresh-v3` / `audit_store_runtime_implementation_entry_refresh_v3_defined`）
+30. [`Production Secret Backend Operator Approval Runtime Implementation Entry Review` v1 计划](production-secret-backend-operator-approval-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-operator-approval-runtime-implementation-entry-review-v1` / `operator_approval_runtime_implementation_entry_review_defined`）
+31. [`Production Secret Backend Credential Handle Runtime Implementation Entry Review` v1 计划](production-secret-backend-credential-handle-runtime-implementation-entry-review-v1-plan.md)（`production-secret-backend-credential-handle-runtime-implementation-entry-review-v1` / `credential_handle_runtime_implementation_entry_review_defined`）
+32. [`Production Secret Backend Real Resolver Runtime Implementation Entry Refresh` v1 计划](production-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1-plan.md)（`production-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1` / `real_resolver_runtime_implementation_entry_refresh_defined`）
+33. [`Production Secret Backend Production Resolver Runtime Blocker Consolidation` v1 计划](production-secret-backend-production-resolver-runtime-blocker-consolidation-v1-plan.md)（`production-secret-backend-production-resolver-runtime-blocker-consolidation-v1` / `production_resolver_runtime_blocker_consolidation_defined`）
+34. [`Production Secret Backend Credential Handle Runtime Implementation Entry Refresh` v1 计划](production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1-plan.md)（`production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1` / `credential_handle_runtime_implementation_entry_refresh_defined`）
+35. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
 
 ## Model Adaptation
 
@@ -180,7 +249,6 @@
 19. [`Image Artifact Response Builder Runtime Integration Implementation` v1 任务卡](image-artifact-response-builder-runtime-integration-implementation-v1-plan.md)（`image-artifact-response-builder-runtime-integration-implementation-v1`）
 
 使用原则：
-
 - 任务卡定义的是任务边界、最小输入、输出要求和评测口径，不等同于最终实现代码
 - 前置条件型任务卡定义的是当前不能继续前推的阻塞项、已有门禁和后续触发条件，不等同于已经完成上层接线
 - 当前平台主线已完成 `Production Ops Hardening v1` 静态边界收口，并把 `Provider Runtime & Health v1` 推进到 close candidate；没有 Docker 运行窗口时，下一步默认回到 `Workflow / Agent Runtime Function Surface v1` 和离线 workflow 产品功能，且 `workflow-definition-detail-read-v1`、`workflow-run-detail-read-v1`、`workflow-blocked-action-preview-v1`、`workflow-application-detail-read-v1`、`workflow-confirmation-placeholder-read-v1`、`workflow-draft-designer-offline-v1`、`workflow-draft-validation-inspector-offline-v1`、`workflow-execution-plan-preview-offline-v1` 与 `workflow-runtime-readiness-inspector-offline-v1` 已固定 definition / run / blocked action / application detail / confirmation placeholder / offline draft designer / offline validation inspector / offline execution plan preview / runtime readiness inspector surface；`workflow-function-surface-readiness-close-v1` 已把上述离线 workflow surface 收束为 `workflow_function_surface_readiness_closed`；任务卡不替代当前焦点、路线图和能力矩阵

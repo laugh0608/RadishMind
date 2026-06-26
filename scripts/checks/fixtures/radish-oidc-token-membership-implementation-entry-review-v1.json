@@ -1,0 +1,246 @@
+{
+  "schema_version": 1,
+  "kind": "radish_oidc_token_membership_implementation_entry_review_v1",
+  "slice": {
+    "id": "radish-oidc-token-membership-implementation-entry-review-v1",
+    "track": "Integrations / Radish OIDC",
+    "status": "radish_oidc_token_membership_implementation_entry_review_defined",
+    "task_card": "docs/task-cards/radish-oidc-token-membership-implementation-entry-review-v1-plan.md",
+    "integration_topic": "docs/integrations/radish-oidc-token-membership-implementation-entry-review-v1.md",
+    "does_not_claim": [
+      "radish_oidc_ready",
+      "oidc_client_implemented",
+      "token_validation_schema_created",
+      "token_validator_created",
+      "auth_middleware_ready",
+      "auth_middleware_created",
+      "login_flow_ready",
+      "logout_flow_ready",
+      "session_cookie_ready",
+      "membership_adapter_ready",
+      "membership_adapter_created",
+      "negative_auth_smoke_created",
+      "production_api_consumer_ready",
+      "production_api_consumer_created",
+      "repository_mode_ready",
+      "database_connection_ready",
+      "database_query_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    {
+      "id": "radish-oidc-token-membership-readiness-v1",
+      "status": "radish_oidc_token_membership_readiness_defined",
+      "evidence": "scripts/checks/fixtures/radish-oidc-token-membership-readiness-v1.json"
+    },
+    {
+      "id": "radish-oidc-client-preconditions",
+      "status": "governance_boundary_satisfied",
+      "evidence": "scripts/checks/fixtures/radish-oidc-client-preconditions.json"
+    },
+    {
+      "id": "control-plane-read-production-auth-readiness-v1",
+      "status": "production_auth_readiness_defined",
+      "evidence": "scripts/checks/fixtures/control-plane-read-production-auth-readiness-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-production-auth-readiness-v1",
+      "status": "draft_production_auth_readiness_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-production-auth-readiness-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-production-auth-runtime-v1",
+      "status": "draft_production_auth_runtime_bridge_implemented",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-production-auth-runtime-v1.json"
+    }
+  ],
+  "entry_review": {
+    "status": "implementation_entry_review_defined",
+    "entry_decision": "blocked_before_runtime_task_card",
+    "runtime_task_card_created_in_this_slice": false,
+    "token_validation_schema_created_in_this_slice": false,
+    "token_validator_created_in_this_slice": false,
+    "auth_middleware_created_in_this_slice": false,
+    "membership_adapter_created_in_this_slice": false,
+    "negative_auth_smoke_created_in_this_slice": false,
+    "production_api_consumer_created_in_this_slice": false,
+    "repository_mode_enabled_in_this_slice": false,
+    "database_query_created_in_this_slice": false,
+    "executor_created_in_this_slice": false
+  },
+  "candidate_matrix": [
+    {
+      "candidate_id": "token_validation_schema",
+      "entry_decision": "blocked_before_task_card",
+      "runtime_artifact_allowed_now": false,
+      "current_blockers": [
+        "reviewed_issuer_evidence_missing",
+        "jwks_pin_policy_missing",
+        "negative_auth_smoke_missing"
+      ]
+    },
+    {
+      "candidate_id": "auth_middleware",
+      "entry_decision": "blocked_before_task_card",
+      "runtime_artifact_allowed_now": false,
+      "current_blockers": [
+        "token_validation_schema_missing",
+        "route_ownership_not_defined",
+        "dev_fake_auth_isolation_not_reviewed"
+      ]
+    },
+    {
+      "candidate_id": "membership_adapter",
+      "entry_decision": "blocked_before_task_card",
+      "runtime_artifact_allowed_now": false,
+      "current_blockers": [
+        "membership_data_source_not_defined",
+        "tenant_workspace_application_owner_policy_missing",
+        "cache_expiry_policy_missing"
+      ]
+    },
+    {
+      "candidate_id": "negative_auth_smoke",
+      "entry_decision": "blocked_before_task_card",
+      "runtime_artifact_allowed_now": false,
+      "current_blockers": [
+        "token_validation_schema_missing",
+        "auth_middleware_not_created",
+        "membership_adapter_not_created"
+      ]
+    },
+    {
+      "candidate_id": "production_api_consumer_binding",
+      "entry_decision": "blocked_before_task_card",
+      "runtime_artifact_allowed_now": false,
+      "current_blockers": [
+        "auth_middleware_not_created",
+        "membership_adapter_not_created",
+        "repository_mode_disabled",
+        "production_cors_policy_missing"
+      ]
+    }
+  ],
+  "blocked_conditions": [
+    "reviewed_issuer_evidence_missing",
+    "jwks_pin_policy_missing",
+    "token_validation_schema_missing",
+    "auth_middleware_not_created",
+    "membership_adapter_not_created",
+    "negative_auth_smoke_missing",
+    "membership_data_source_not_defined",
+    "production_api_consumer_gate_blocked",
+    "repository_mode_disabled"
+  ],
+  "future_task_card_requirements": [
+    "reviewed issuer discovery evidence",
+    "JWKS pin and refresh policy",
+    "token validation schema and sanitized failure envelope",
+    "auth middleware route ownership and dev fake auth isolation",
+    "membership adapter data source ownership and cache expiry policy",
+    "negative auth smoke matrix",
+    "production API consumer gate"
+  ],
+  "failure_mapping": [
+    {
+      "code": "radish_oidc_token_membership_entry_review_readiness_missing",
+      "failure_boundary": "implementation_entry",
+      "sanitized_diagnostic": "token / membership readiness evidence is missing"
+    },
+    {
+      "code": "radish_oidc_token_membership_entry_review_issuer_evidence_missing",
+      "failure_boundary": "issuer_evidence",
+      "sanitized_diagnostic": "reviewed issuer evidence is missing"
+    },
+    {
+      "code": "radish_oidc_token_membership_entry_review_token_schema_missing",
+      "failure_boundary": "token_contract",
+      "sanitized_diagnostic": "token validation schema is missing"
+    },
+    {
+      "code": "radish_oidc_token_membership_entry_review_membership_source_missing",
+      "failure_boundary": "membership_contract",
+      "sanitized_diagnostic": "membership data source ownership is missing"
+    },
+    {
+      "code": "radish_oidc_token_membership_entry_review_runtime_artifact_forbidden",
+      "failure_boundary": "artifact_guard",
+      "sanitized_diagnostic": "runtime artifact is forbidden in entry review"
+    }
+  ],
+  "diagnostic_policy": {
+    "allowed_fields": [
+      "entry_decision",
+      "candidate_id",
+      "candidate_status",
+      "failure_code",
+      "failure_boundary",
+      "sanitized_diagnostic",
+      "request_id",
+      "audit_ref",
+      "policy_version"
+    ],
+    "forbidden_fields": [
+      "raw_token",
+      "authorization_header",
+      "cookie",
+      "client_secret",
+      "jwks_raw_dump",
+      "raw_claim_dump",
+      "database_detail",
+      "membership_raw_record",
+      "full_user_claim"
+    ]
+  },
+  "planned_artifacts": [
+    {
+      "path": "contracts/radish-oidc-token-validation.schema.json",
+      "purpose": "Future token validation schema; not created by this entry review.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/radish_oidc_auth_middleware.go",
+      "purpose": "Future platform auth middleware; not created by this entry review.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/radish_oidc_token_validation.go",
+      "purpose": "Future token validator; not created by this entry review.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "services/platform/internal/httpapi/radish_membership_adapter.go",
+      "purpose": "Future membership adapter; not created by this entry review.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/checks/fixtures/radish-oidc-token-membership-runtime-v1.json",
+      "purpose": "Future runtime smoke fixture; not created by this entry review.",
+      "created_in_this_slice": false
+    },
+    {
+      "path": "scripts/checks/control_plane/check-radish-oidc-token-membership-runtime-v1.py",
+      "purpose": "Future runtime smoke checker; not created by this entry review.",
+      "created_in_this_slice": false
+    }
+  ],
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "issuer_network_call_count=0",
+      "token_validation_call_count=0",
+      "membership_query_count=0",
+      "database_write_count=0",
+      "repository_write_count=0",
+      "production_api_call_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ]
+  }
+}

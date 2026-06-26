@@ -1,0 +1,364 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_token_validation_schema_artifact_implementation_v1",
+  "slice": {
+    "id": "workflow-saved-draft-token-validation-schema-artifact-implementation-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_token_validation_schema_artifact_implemented",
+    "task_card": "docs/task-cards/workflow-saved-draft-token-validation-schema-artifact-implementation-v1-plan.md",
+    "feature_topic": "docs/features/workflow/saved-workflow-draft-token-validation-schema-artifact-implementation-v1.md",
+    "does_not_claim": [
+      "token_validator_created",
+      "oidc_middleware_ready",
+      "auth_middleware_created",
+      "membership_adapter_created",
+      "membership_cache_created",
+      "negative_auth_smoke_runtime_created",
+      "repository_actor_context_handoff_runtime_created",
+      "repository_store_mode_enabled",
+      "repository_mode_runtime_created",
+      "database_runtime_created",
+      "database_connection_ready",
+      "schema_marker_runtime_created",
+      "database_secret_resolver_runtime_created",
+      "production_api_consumer_created",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    {
+      "id": "workflow-saved-draft-token-validation-schema-implementation-v1",
+      "status": "draft_token_validation_schema_implementation_task_card_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-implementation-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-token-validation-schema-task-card-readiness-v1",
+      "status": "draft_token_validation_schema_task_card_readiness_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-task-card-readiness-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-token-validation-auth-middleware-runtime-entry-review-v1",
+      "status": "draft_token_validation_auth_middleware_runtime_entry_review_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-token-validation-auth-middleware-runtime-entry-review-v1.json"
+    },
+    {
+      "id": "radish-oidc-token-membership-upstream-evidence-refresh-v1",
+      "status": "radish_oidc_token_membership_upstream_evidence_refresh_defined",
+      "evidence": "scripts/checks/fixtures/radish-oidc-token-membership-upstream-evidence-refresh-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-production-auth-runtime-v1",
+      "status": "draft_production_auth_runtime_bridge_implemented",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-production-auth-runtime-v1.json"
+    }
+  ],
+  "artifact_boundary": {
+    "status": "token_validation_schema_artifact_implemented_static",
+    "implementation_track": "schema_artifact_only_verified_context_projection",
+    "schema_artifact_path": "contracts/radish-oidc-token-validation.schema.json",
+    "schema_validation_checker": "scripts/checks/control_plane/check-workflow-saved-draft-token-validation-schema-artifact-implementation-v1.py",
+    "positive_fixture": "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-positive-v1.json",
+    "missing_required_negative_fixture": "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-missing-required-negative-v1.json",
+    "forbidden_raw_material_negative_fixture": "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-forbidden-field-negative-v1.json",
+    "additional_properties_negative_fixture": "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-additional-properties-negative-v1.json",
+    "schema_file_created_in_this_slice": true,
+    "positive_fixture_created_in_this_slice": true,
+    "missing_required_negative_fixture_created_in_this_slice": true,
+    "forbidden_raw_material_negative_fixture_created_in_this_slice": true,
+    "additional_properties_negative_fixture_created_in_this_slice": true,
+    "schema_validation_checker_created_in_this_slice": true,
+    "oidc_middleware_created_in_this_slice": false,
+    "token_validator_created_in_this_slice": false,
+    "auth_middleware_created_in_this_slice": false,
+    "membership_adapter_created_in_this_slice": false,
+    "negative_auth_smoke_runtime_created_in_this_slice": false,
+    "repository_mode_enabled_in_this_slice": false,
+    "database_runtime_created_in_this_slice": false,
+    "production_api_consumer_created_in_this_slice": false,
+    "executor_created_in_this_slice": false,
+    "confirmation_created_in_this_slice": false,
+    "writeback_or_replay_created_in_this_slice": false
+  },
+  "schema_contract": {
+    "root_scope": "verified_token_context_sanitized_projection",
+    "root_type": "object",
+    "additional_properties": false,
+    "explicit_forbidden_strategy": "additionalProperties_false_and_allOf_not_required_guards",
+    "required_fields": [
+      "issuer_ref",
+      "subject_ref",
+      "tenant_ref",
+      "audience_refs",
+      "scope_grants",
+      "workspace_binding_refs",
+      "application_scope_refs",
+      "owner_subject_ref",
+      "key_id_ref",
+      "algorithm",
+      "issued_at",
+      "expires_at",
+      "auth_time",
+      "policy_version",
+      "request_id",
+      "audit_ref"
+    ],
+    "forbidden_fields": [
+      "raw_token",
+      "authorization_header",
+      "cookie",
+      "client_secret",
+      "refresh_token",
+      "authorization_code",
+      "jwks_raw_dump",
+      "raw_claim_dump",
+      "membership_raw_record",
+      "database_detail",
+      "provider_error_detail",
+      "secret_value"
+    ],
+    "sanitized_projection_only": true,
+    "raw_material_allowed": false,
+    "membership_raw_record_allowed": false,
+    "database_detail_allowed": false,
+    "secret_material_allowed": false
+  },
+  "validation_case_matrix": [
+    {
+      "case_id": "positive_verified_token_context",
+      "fixture": "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-positive-v1.json",
+      "expected_valid": true
+    },
+    {
+      "case_id": "missing_required_field_negative",
+      "fixture": "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-missing-required-negative-v1.json",
+      "expected_valid": false
+    },
+    {
+      "case_id": "forbidden_raw_material_field_negative",
+      "fixture": "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-forbidden-field-negative-v1.json",
+      "expected_valid": false
+    },
+    {
+      "case_id": "additional_properties_negative",
+      "fixture": "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-additional-properties-negative-v1.json",
+      "expected_valid": false
+    }
+  ],
+  "failure_mapping": [
+    {
+      "code": "token_validation_schema_artifact_missing",
+      "failure_boundary": "schema_artifact",
+      "sanitized_diagnostic": "token validation schema artifact is missing"
+    },
+    {
+      "code": "token_validation_schema_required_field_missing",
+      "failure_boundary": "schema_validation",
+      "sanitized_diagnostic": "verified token context is missing a required sanitized field"
+    },
+    {
+      "code": "token_validation_schema_forbidden_field_allowed",
+      "failure_boundary": "schema_validation",
+      "sanitized_diagnostic": "verified token context accepts a forbidden raw material field"
+    },
+    {
+      "code": "token_validation_schema_additional_property_allowed",
+      "failure_boundary": "schema_validation",
+      "sanitized_diagnostic": "verified token context accepts an undeclared property"
+    },
+    {
+      "code": "token_validation_schema_fixture_expected_result_drifted",
+      "failure_boundary": "schema_validation",
+      "sanitized_diagnostic": "token validation schema fixture expected result drifted"
+    },
+    {
+      "code": "token_validation_schema_artifact_runtime_scope_overreach",
+      "failure_boundary": "implementation_boundary",
+      "sanitized_diagnostic": "token validation schema artifact implementation includes blocked runtime scope"
+    },
+    {
+      "code": "token_validation_schema_artifact_dev_auth_fallback",
+      "failure_boundary": "no_fallback",
+      "sanitized_diagnostic": "token validation schema artifact implementation allows dev auth fallback"
+    }
+  ],
+  "sanitized_diagnostics": {
+    "allowed_fields": [
+      "failure_code",
+      "sanitized_diagnostic",
+      "request_id",
+      "audit_ref",
+      "policy_version"
+    ],
+    "forbidden_fields": [
+      "raw_token",
+      "authorization_header",
+      "cookie",
+      "client_secret",
+      "refresh_token",
+      "authorization_code",
+      "raw_claim_dump",
+      "jwks_raw_dump",
+      "membership_raw_record",
+      "secret_value",
+      "provider_error_detail",
+      "database_detail",
+      "dsn"
+    ],
+    "runtime_emission_allowed_in_this_slice": false
+  },
+  "no_fallback_policy": [
+    "no fallback to dev fake auth",
+    "no fallback to memory dev store",
+    "no fallback to sample",
+    "no fallback to fixture as auth truth",
+    "no fallback to test-only fake resolver",
+    "no fallback to fake query executor",
+    "schema artifact does not mean token validation runtime ready",
+    "schema artifact does not mean auth middleware ready",
+    "schema artifact does not mean membership adapter ready",
+    "schema artifact does not mean repository mode ready"
+  ],
+  "no_side_effect_policy": [
+    "checker reads committed schema docs and fixtures only",
+    "no issuer discovery fetch",
+    "no JWKS fetch",
+    "no token validation call",
+    "no auth middleware invocation",
+    "no membership query",
+    "no membership cache creation",
+    "no repository mode enablement",
+    "no database connection",
+    "no SQL execution",
+    "no schema marker read",
+    "no schema marker write",
+    "no secret resolver call",
+    "no production API call",
+    "no executor call",
+    "no confirmation call",
+    "no business writeback",
+    "no replay call"
+  ],
+  "side_effect_counters": {
+    "issuer_network_call_count": 0,
+    "jwks_fetch_count": 0,
+    "token_validation_call_count": 0,
+    "auth_middleware_invocation_count": 0,
+    "membership_query_count": 0,
+    "membership_cache_create_count": 0,
+    "repository_mode_enablement_count": 0,
+    "database_connection_count": 0,
+    "sql_execution_count": 0,
+    "secret_resolver_call_count": 0,
+    "production_api_call_count": 0,
+    "executor_call_count": 0,
+    "confirmation_call_count": 0,
+    "business_writeback_count": 0,
+    "replay_call_count": 0
+  },
+  "artifact_guard": {
+    "required_static_artifacts_exist": [
+      "contracts/radish-oidc-token-validation.schema.json",
+      "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-positive-v1.json",
+      "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-missing-required-negative-v1.json",
+      "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-forbidden-field-negative-v1.json",
+      "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-additional-properties-negative-v1.json",
+      "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-artifact-implementation-v1.json",
+      "scripts/checks/control_plane/check-workflow-saved-draft-token-validation-schema-artifact-implementation-v1.py",
+      "docs/features/workflow/saved-workflow-draft-token-validation-schema-artifact-implementation-v1.md",
+      "docs/task-cards/workflow-saved-draft-token-validation-schema-artifact-implementation-v1-plan.md"
+    ],
+    "files_must_not_exist": [
+      "services/platform/internal/httpapi/radish_oidc_auth_middleware.go",
+      "services/platform/internal/httpapi/radish_oidc_token_validator.go",
+      "services/platform/internal/httpapi/radish_membership_adapter.go",
+      "scripts/checks/fixtures/workflow-saved-draft-negative-auth-smoke-runtime-v1.json",
+      "scripts/checks/control_plane/check-workflow-saved-draft-negative-auth-smoke-runtime-v1.py",
+      "services/platform/migrations/workflow_saved_drafts/001_saved_workflow_drafts.sql"
+    ],
+    "forbid_sql_files_under": [
+      "services/platform/internal/httpapi/migrations",
+      "services/platform/migrations/workflow_saved_drafts"
+    ]
+  },
+  "required_doc_references": [
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-token-validation-schema-artifact-implementation-v1.md",
+      "must_contain": [
+        "draft_token_validation_schema_artifact_implemented",
+        "contracts/radish-oidc-token-validation.schema.json",
+        "additionalProperties=false",
+        "不实现 OIDC middleware"
+      ]
+    },
+    {
+      "path": "docs/task-cards/workflow-saved-draft-token-validation-schema-artifact-implementation-v1-plan.md",
+      "must_contain": [
+        "draft_token_validation_schema_artifact_implemented",
+        "positive verified token context fixture",
+        "forbidden raw-material field negative fixture",
+        "schema validation checker"
+      ]
+    },
+    {
+      "path": "contracts/README.md",
+      "must_contain": [
+        "radish-oidc-token-validation.schema.json",
+        "verified token context"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-v1.md",
+      "must_contain": [
+        "draft_token_validation_schema_artifact_implemented",
+        "Saved Workflow Draft Token Validation Schema Artifact Implementation v1"
+      ]
+    },
+    {
+      "path": "docs/features/workflow-agent-runtime.md",
+      "must_contain": [
+        "draft_token_validation_schema_artifact_implemented",
+        "Saved Workflow Draft Token Validation Schema Artifact Implementation v1"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "must_contain": [
+        "draft_token_validation_schema_artifact_implemented",
+        "token validation schema artifact implementation"
+      ]
+    },
+    {
+      "path": "scripts/README.md",
+      "must_contain": [
+        "check-workflow-saved-draft-token-validation-schema-artifact-implementation-v1.py",
+        "draft_token_validation_schema_artifact_implemented"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "status": "token_validation_schema_artifact_implementation_checker_static_schema_validation",
+    "required_checks": [
+      "workflow_saved_draft_token_validation_schema_artifact_implementation_checker",
+      "workflow_saved_draft_token_validation_schema_implementation_checker",
+      "workflow_saved_draft_token_validation_schema_task_card_readiness_checker",
+      "workflow_saved_draft_token_validation_auth_middleware_runtime_entry_review_checker",
+      "radish_oidc_token_membership_upstream_evidence_refresh_checker",
+      "git diff --check",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_fetch_issuer_discovery": true,
+    "does_not_fetch_jwks": true,
+    "does_not_validate_real_token": true,
+    "does_not_create_auth_middleware": true,
+    "does_not_query_membership": true,
+    "does_not_enable_repository_store_mode": true,
+    "does_not_connect_database": true,
+    "does_not_run_sql": true,
+    "does_not_create_production_api": true
+  }
+}

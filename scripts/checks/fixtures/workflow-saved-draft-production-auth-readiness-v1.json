@@ -544,7 +544,6 @@
   "implementation_artifact_guard": {
     "status": "forbid_production_auth_implementation_artifacts",
     "future_files_must_not_exist": [
-      "contracts/radish-oidc-token-validation.schema.json",
       "services/platform/internal/httpapi/workflow_saved_draft_auth_middleware.go",
       "services/platform/internal/httpapi/workflow_saved_draft_token_validation.go",
       "services/platform/internal/httpapi/workflow_saved_draft_membership_adapter.go",
@@ -564,7 +563,6 @@
       "apps/radishmind-web/src/app/App.tsx"
     ],
     "future_literals_must_not_appear_in_source": [
-      "contracts/radish-oidc-token-validation.schema.json",
       "workflow_saved_draft_auth_middleware.go",
       "workflow_saved_draft_token_validation.go",
       "workflow_saved_draft_membership_adapter.go",

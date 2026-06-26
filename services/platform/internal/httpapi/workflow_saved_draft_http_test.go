@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -30,6 +31,7 @@ func TestSavedWorkflowDraftHTTPRoutes(t *testing.T) {
 	t.Run("save read validate over dev-only route", func(t *testing.T) {
 		server := newSavedWorkflowDraftHTTPTestServer(true)
 		payload := validSavedWorkflowDraftPayload()
+		payload.AdditionalFields = validSavedWorkflowDraftDesignerLayoutAdditionalFields()
 		saveBody := mustSavedWorkflowDraftJSON(t, savedWorkflowDraftSaveHTTPBody{
 			ExpectedDraftVersion: 0,
 			Draft:                savedWorkflowDraftPayloadDocumentFromDraftPayload(payload),
@@ -54,6 +56,9 @@ func TestSavedWorkflowDraftHTTPRoutes(t *testing.T) {
 		if saveEnvelope.AuditRef == "" || saveEnvelope.Draft.RequestAuditMetadata.ActorRef == "" {
 			t.Fatalf("save envelope must preserve audit metadata: %#v", saveEnvelope)
 		}
+		if _, found := saveEnvelope.Draft.AdditionalFields["designer_layout_v1"]; !found {
+			t.Fatalf("save envelope should preserve designer layout metadata: %#v", saveEnvelope.Draft.AdditionalFields)
+		}
 
 		readReq := httptest.NewRequest(
 			http.MethodGet,
@@ -69,6 +74,9 @@ func TestSavedWorkflowDraftHTTPRoutes(t *testing.T) {
 		assertSavedWorkflowDraftEnvelopeContract(t, readRec)
 		if readEnvelope.FailureCode != nil || readEnvelope.Draft == nil || readEnvelope.Draft.DraftVersion != 1 {
 			t.Fatalf("read should return saved draft record: %#v", readEnvelope)
+		}
+		if !reflect.DeepEqual(readEnvelope.Draft.AdditionalFields, saveEnvelope.Draft.AdditionalFields) {
+			t.Fatalf("read envelope should preserve designer layout metadata: %#v", readEnvelope.Draft.AdditionalFields)
 		}
 
 		listReq := httptest.NewRequest(

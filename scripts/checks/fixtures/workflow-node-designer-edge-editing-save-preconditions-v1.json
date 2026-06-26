@@ -1,0 +1,344 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_node_designer_validation_overlay_navigation_v1",
+  "slice": {
+    "id": "workflow-node-designer-validation-overlay-navigation-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "workflow_node_designer_validation_overlay_navigation_v1_implemented",
+    "does_not_claim": [
+      "edge_mutation_backend_ready",
+      "react_flow_raw_edge_persistence",
+      "handle_id_persistence_ready",
+      "port_id_persistence_ready",
+      "derived_edge_kind_persistence_ready",
+      "runtime_order_ready",
+      "workflow_publish_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "durable_persistence_ready",
+      "production_api_consumer_ready",
+      "database_ready",
+      "repository_adapter_ready",
+      "radish_oidc_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-node-designer-builder-interaction-polish-v1",
+    "workflow-node-designer-layout-review-findings-v1",
+    "workflow-node-designer-controlled-edge-mutation-implementation-v1",
+    "workflow-node-designer-persisted-layout-v1",
+    "workflow-node-designer-saved-draft-mapping-v1",
+    "workflow-draft-designer-editing-model-v2"
+  ],
+  "edge_save_contract": {
+    "allowed_draft_fields": [
+      "edgeId",
+      "fromNodeId",
+      "toNodeId",
+      "conditionSummary"
+    ],
+    "saved_payload_fields": [
+      "edge_id",
+      "from_node_id",
+      "to_node_id",
+      "condition_summary"
+    ],
+    "required_preconditions": [
+      "known_active_draft_nodes",
+      "no_self_loop",
+      "no_duplicate_from_to_pair",
+      "stable_edge_id",
+      "non_empty_condition_summary",
+      "controlled_on_connect_add_edge",
+      "controlled_edge_delete",
+      "validation_inspector_consumes_mutated_edges",
+      "local_edit_unsaved_state",
+      "no_react_flow_raw_edge"
+    ],
+    "forbidden_persisted_fields": [
+      "react_flow_edge",
+      "handle_id",
+      "port_id",
+      "viewport",
+      "selection",
+      "validation_focus",
+      "connection_preview",
+      "visual_edge_style",
+      "derived_edge_kind",
+      "runtime_order",
+      "run_input",
+      "run_output",
+      "confirmation_decision",
+      "writeback_payload",
+      "executor_result"
+    ],
+    "layout_review_facts": [
+      "medium_width_designer_shell_breakpoint",
+      "inspector_connected_edge_structured_action",
+      "draft_edge_heading_structured_metadata",
+      "long_edge_identifier_wrap",
+      "narrow_width_full_row_remove_buttons"
+    ],
+    "builder_interaction_facts": [
+      "builder_interaction_status_bar",
+      "node_quick_select_ui_only",
+      "feedback_tone_for_connect_drag_delete",
+      "editing_locked_state_visible",
+      "selected_node_canvas_sync"
+    ],
+    "validation_navigation_facts": [
+      "active_validation_inspector_input",
+      "structural_evidence_refs_navigation",
+      "contract_check_target_navigation",
+      "ui_only_validation_focus_state",
+      "node_and_edge_validation_highlight"
+    ]
+  },
+  "frontend_contract": {
+    "node_designer_file": "apps/radishmind-web/src/features/control-plane-read/workflowNodeDesigner.tsx",
+    "consumer_file": "apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts",
+    "app_file": "apps/radishmind-web/src/app/App.tsx",
+    "validation_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftValidationInspector.ts",
+    "style_file": "apps/radishmind-web/src/styles.css",
+    "required_node_designer_literals": [
+      "Connect typed ports to add controlled draft edges.",
+      "onAddEdge:",
+      "onRemoveEdge:",
+      "const added = onAddEdge(connection.source, connection.target)",
+      "Added draft edge:",
+      "Removed draft edge:",
+      "workflow-node-designer-edge-action-main",
+      "{edge.edgeKind} / {edge.edgeId}",
+      "WorkflowNodeDesignerFeedback",
+      "workflow-node-designer-interaction-bar",
+      "workflow-node-designer-feedback ${interactionFeedback.tone}",
+      "workflow-node-designer-node-switcher",
+      "WorkflowDraftValidationInspectorViewModel",
+      "validationInspector:",
+      "buildWorkflowNodeDesignerValidationNavigation(draft, validationInspector)",
+      "WorkflowNodeDesignerValidationFocus",
+      "const [validationFocus, setValidationFocus]",
+      "const focusValidationFinding = useCallback(",
+      "workflow-node-designer-validation-navigation",
+      "workflow-node-designer-validation-navigation-list",
+      "check.evidenceRefs.filter((nodeId) => nodeIds.has(nodeId))",
+      "workflowNodeDesignerContractTargetNodeIds(draft, check.checkId)",
+      "workflowNodeDesignerEdgeIdsForTargets(draft, targetNodeIds)",
+      "validationFocus?.nodeIds.includes(node.data.draftNodeId)",
+      "validationFocus?.edgeIds.includes(edge.id)",
+      "Validation overlay focus cleared; canvas selection remains UI-only.",
+      "aria-pressed={node.nodeId === selectedNodeId}",
+      "selected: node.data.draftNodeId === selectedNodeId",
+      "Selected node:",
+      "Saved canvas position for",
+      "editingStateLabel",
+      "editingStateSummary",
+      "workflow-node-designer-canvas ${editingDisabled ? \"locked\" : \"editable\"}",
+      "interactionFeedback={interactionFeedback}",
+      "validateWorkflowNodeDesignerConnection(",
+      "connection.source === connection.target",
+      "draft.edges.some((edge) => edge.fromNodeId === source.nodeId && edge.toNodeId === target.nodeId)"
+    ],
+    "required_consumer_literals": [
+      "edge_id: edge.edgeId",
+      "from_node_id: edge.fromNodeId",
+      "to_node_id: edge.toNodeId",
+      "condition_summary: edge.conditionSummary",
+      "edgeKind: \"context\"",
+      "Saved draft edge restored from dev record."
+    ],
+    "required_app_literals": [
+      "handleWorkflowDraftEdgeConditionChange",
+      "handleWorkflowDraftAddEdge",
+      "handleWorkflowDraftRemoveEdge",
+      "validationInspector={activeWorkflowDraftValidationInspector}",
+      "validationInspector={validationInspector}",
+      "buildWorkflowDraftEdgeForConnection(",
+      "workflowDraftReviewableEdgeConditionSummary(",
+      "workflowDraftNonEmptyConditionSummary(",
+      "WorkflowDraftEdgeCard",
+      "workflowDraftEdgeId(",
+      "workflowDraftEdgeKindForConnection(",
+      "workflowDraftEdgeConditionSummary(",
+      "rebuildWorkflowDraftEdges(",
+      "workflow-draft-edge-heading-main",
+      "<small>{edge.edgeId}</small>",
+      "status: \"unsaved_local\"",
+      "localOnlyInteraction: \"local_edit\""
+    ],
+    "required_validation_literals": [
+      "output_audit_path",
+      "orphan_node_scan",
+      "edges.some((edge) => edge.edgeKind === \"audit\")"
+    ],
+    "required_style_literals": [
+      ".workflow-node-designer-edge-action-main",
+      ".workflow-draft-edge-heading-main",
+      "@media (max-width: 1280px)",
+      ".workflow-node-designer-inspector > button",
+      ".workflow-node-designer-edge-action button",
+      ".workflow-draft-edge-heading button",
+      ".workflow-node-designer-interaction-bar",
+      ".workflow-node-designer-feedback.good",
+      ".workflow-node-designer-feedback.bad",
+      ".workflow-node-designer-node-switcher button.selected",
+      ".workflow-node-designer-validation-navigation",
+      ".workflow-node-designer-validation-navigation-list button.focused",
+      ".workflow-node-designer-node.validation-focused",
+      ".workflow-node-designer-edge-path.validation-focused",
+      ".workflow-node-designer-canvas.locked",
+      ".workflow-node-designer-inspector-feedback.good",
+      "grid-template-columns: minmax(0, 2fr) minmax(320px, 0.85fr);",
+      "grid-template-columns: repeat(2, minmax(0, 1fr));",
+      "min-height: 420px;"
+    ],
+    "forbidden_runtime_literals": [
+      "ReactFlowEdge",
+      "sourceHandle",
+      "targetHandle",
+      "handle_id",
+      "port_id"
+    ]
+  },
+  "required_doc_references": {
+    "docs/features/workflow/node-designer-edge-editing-save-preconditions-v1.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions v1",
+      "workflow_node_designer_edge_editing_save_preconditions_v1_defined",
+      "Workflow Node Designer Controlled Edge Mutation Implementation v1",
+      "Preview only",
+      "edgeId",
+      "fromNodeId",
+      "toNodeId",
+      "conditionSummary",
+      "不保存 React Flow 原始 edge 对象"
+    ],
+    "docs/task-cards/workflow-node-designer-edge-editing-save-preconditions-v1-plan.md": [
+      "workflow_node_designer_edge_editing_save_preconditions_v1_defined",
+      "WorkflowNodeDesigner.onConnect",
+      "draft.edges",
+      "专项 fixture / checker"
+    ],
+    "docs/task-cards/workflow-node-designer-controlled-edge-mutation-implementation-v1-plan.md": [
+      "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented",
+      "WorkflowNodeDesigner.onConnect",
+      "onAddEdge",
+      "onRemoveEdge",
+      "draft.edges"
+    ],
+    "docs/task-cards/workflow-node-designer-layout-review-findings-v1-plan.md": [
+      "workflow_node_designer_layout_review_findings_v1_implemented",
+      "Workflow Node Designer Layout Review Findings v1",
+      "中宽布局",
+      "connected edge 删除入口",
+      "Draft edge 卡片"
+    ],
+    "docs/task-cards/workflow-node-designer-builder-interaction-polish-v1-plan.md": [
+      "workflow_node_designer_builder_interaction_polish_v1_implemented",
+      "Workflow Node Designer Builder Interaction Polish v1",
+      "Builder interaction bar",
+      "节点快速选择",
+      "连接、拒绝连接、删除 edge、拖拽位置保存"
+    ],
+    "docs/task-cards/workflow-node-designer-validation-overlay-navigation-v1-plan.md": [
+      "workflow_node_designer_validation_overlay_navigation_v1_implemented",
+      "Workflow Node Designer Validation Overlay Navigation v1",
+      "validation inspector finding",
+      "UI-only navigation",
+      "不保存 validation navigation state"
+    ],
+    "docs/features/workflow/README.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions v1",
+      "workflow_node_designer_edge_editing_save_preconditions_v1_defined",
+      "Workflow Node Designer Controlled Edge Mutation Implementation v1",
+      "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented",
+      "Workflow Node Designer Layout Review Findings v1",
+      "workflow_node_designer_layout_review_findings_v1_implemented",
+      "Workflow Node Designer Builder Interaction Polish v1",
+      "workflow_node_designer_builder_interaction_polish_v1_implemented",
+      "Workflow Node Designer Validation Overlay Navigation v1",
+      "workflow_node_designer_validation_overlay_navigation_v1_implemented"
+    ],
+    "docs/features/README.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions v1",
+      "Workflow Node Designer Layout Review Findings v1",
+      "Workflow Node Designer Builder Interaction Polish v1",
+      "Workflow Node Designer Validation Overlay Navigation v1"
+    ],
+    "docs/features/workflow-agent-runtime.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions v1",
+      "conditionSummary",
+      "Workflow Node Designer Layout Review Findings v1",
+      "Workflow Node Designer Builder Interaction Polish v1",
+      "Workflow Node Designer Validation Overlay Navigation v1"
+    ],
+    "docs/features/workflow/node-designer-surface-v1.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions v1",
+      "workflow_node_designer_edge_editing_save_preconditions_v1_defined",
+      "Workflow Node Designer Layout Review Findings v1",
+      "workflow_node_designer_layout_review_findings_v1_implemented",
+      "Workflow Node Designer Builder Interaction Polish v1",
+      "workflow_node_designer_builder_interaction_polish_v1_implemented",
+      "Workflow Node Designer Validation Overlay Navigation v1",
+      "workflow_node_designer_validation_overlay_navigation_v1_implemented"
+    ],
+    "docs/features/workflow/node-designer-persisted-layout-v1.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions v1",
+      "edgeId"
+    ],
+    "docs/radishmind-current-focus.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions v1",
+      "Workflow Node Designer Layout Review Findings v1",
+      "workflow_node_designer_layout_review_findings_v1_implemented",
+      "Workflow Node Designer Builder Interaction Polish v1",
+      "workflow_node_designer_builder_interaction_polish_v1_implemented",
+      "Workflow Node Designer Validation Overlay Navigation v1",
+      "workflow_node_designer_validation_overlay_navigation_v1_implemented"
+    ],
+    "docs/devlogs/2026-W26.md": [
+      "workflow-node-designer-controlled-edge-mutation-implementation-v1",
+      "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented",
+      "workflow-node-designer-layout-review-findings-v1",
+      "workflow_node_designer_layout_review_findings_v1_implemented",
+      "workflow-node-designer-builder-interaction-polish-v1",
+      "workflow_node_designer_builder_interaction_polish_v1_implemented",
+      "workflow-node-designer-validation-overlay-navigation-v1",
+      "workflow_node_designer_validation_overlay_navigation_v1_implemented"
+    ],
+    "docs/task-cards/README.md": [
+      "Workflow Node Designer Edge Editing Save Preconditions",
+      "Workflow Node Designer Layout Review Findings",
+      "Workflow Node Designer Builder Interaction Polish",
+      "Workflow Node Designer Validation Overlay Navigation"
+    ],
+    "scripts/README.md": [
+      "workflow-node-designer-edge-editing-save-preconditions-v1",
+      "layout review findings",
+      "builder interaction polish",
+      "validation overlay navigation"
+    ]
+  },
+  "testing_strategy": [
+    {
+      "id": "web_build",
+      "status": "required_now",
+      "command": "npm run build"
+    },
+    {
+      "id": "workflow_node_designer_validation_overlay_navigation_v1_checker",
+      "status": "required_now",
+      "command": "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-node-designer-edge-editing-save-preconditions-v1.py"
+    },
+    {
+      "id": "diff_whitespace",
+      "status": "required_now",
+      "command": "git diff --check"
+    },
+    {
+      "id": "repo_fast",
+      "status": "required_now",
+      "command": "./scripts/check-repo.sh --fast"
+    }
+  ]
+}

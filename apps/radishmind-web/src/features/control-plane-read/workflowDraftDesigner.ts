@@ -54,6 +54,18 @@ export type WorkflowDraftDesignerEdge = {
   conditionSummary: string;
 };
 
+export type WorkflowDraftDesignerLayoutPosition = {
+  nodeId: string;
+  x: number;
+  y: number;
+};
+
+export type WorkflowDraftDesignerLayout = {
+  source: "workflow_node_designer";
+  persistence: "ui_only" | "saved_draft_metadata";
+  nodePositions: WorkflowDraftDesignerLayoutPosition[];
+};
+
 export type WorkflowDraftDesignerReadiness = {
   checkId: string;
   label: string;
@@ -96,6 +108,7 @@ export type WorkflowDraftDesignerDraft = {
   summary: string;
   nodes: WorkflowDraftDesignerNode[];
   edges: WorkflowDraftDesignerEdge[];
+  designerLayout: WorkflowDraftDesignerLayout;
   readiness: WorkflowDraftDesignerReadiness[];
   risks: WorkflowDraftDesignerRisk[];
   blockedCapabilities: WorkflowDraftDesignerBlockedCapability[];
@@ -342,6 +355,11 @@ function buildDraft(
     summary: template.summary,
     nodes,
     edges,
+    designerLayout: {
+      source: "workflow_node_designer",
+      persistence: "ui_only",
+      nodePositions: [],
+    },
     readiness: buildReadiness(template),
     risks: buildRisks(template, blockedActionPreview, confirmationPlaceholder),
     blockedCapabilities: buildBlockedCapabilities(template, confirmationPlaceholder),

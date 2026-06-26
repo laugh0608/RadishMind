@@ -1,6 +1,6 @@
 # RadishMind UI 设计规范
 
-更新时间：2026-06-16
+更新时间：2026-06-25
 
 ## 文档目的
 
@@ -265,6 +265,9 @@ Control Plane read-side product UI 额外覆盖：
 11. `User Workspace Home / Review Handoff Layout`
    - 左侧导航按 `Workspace`、`Model Gateway`、`Workflow Review`、`Admin` 和 `Contract` 分组；首页优先展示应用组合、当前 review、最近 run、优先 readiness、主要 route evidence 和关键 stop line，而不是堆叠全部详情
    - Review Handoff 只展示 recipients、key findings、read-side evidence checklist、decision blockers 和 boundary locks；长 id、route、handoff ref 与 audit ref 必须换行或截断，不得溢出窄屏容器
+   - Node Designer graph review findings 必须按 node-targeted、edge-targeted 和 graph-level 三组组织；每组先显示 count 与最高 severity，再展示 finding 卡片，卡片固定包含 source check、severity、target refs、summary 和 reviewer question
+   - graph review finding 卡片是审查线索，不是任务执行控件；不得出现 apply、run、confirm、fix automatically、persist focus 或 export handoff 按钮。可点击或可聚焦的入口只能回到本地 UI 上的节点、连线或 inspector 视图，且不得保存 selection / validation focus
+   - 窄屏下 graph finding 先显示分组标题和 target summary，再展开 metadata；长 node id、edge id、source check id、request id 和 audit ref 必须断行，不能挤压 severity / status 标签
    - RadishFlow Copilot 与 Radish Docs Assistant 的默认样例展示必须来自同一 read-side view model，不允许为两个产品分别硬编码不同信息架构或不同 stopping boundary
 
 Control Plane read-side 页面必须继续使用紧凑工作台布局，不做营销首页，不做 hero，不把页面状态写成可执行能力。

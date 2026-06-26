@@ -87,6 +87,50 @@ func TestSavedWorkflowDraftSaveReadValidateContracts(t *testing.T) {
 		}
 	})
 
+	t.Run("designer layout metadata is normalized and restored", func(t *testing.T) {
+		store := newMemorySavedWorkflowDraftStore()
+		service := newSavedWorkflowDraftService(store)
+		context := savedWorkflowDraftTestContext()
+		payload := validSavedWorkflowDraftPayload()
+		payload.AdditionalFields = validSavedWorkflowDraftDesignerLayoutAdditionalFields()
+
+		saveResult := service.SaveDraft(context, SaveWorkflowDraftRequest{Payload: payload})
+
+		if saveResult.FailureCode != "" || saveResult.Draft == nil {
+			t.Fatalf("save should preserve layout metadata: %#v", saveResult)
+		}
+		layout, ok := saveResult.Draft.AdditionalFields["designer_layout_v1"].(map[string]any)
+		if !ok {
+			t.Fatalf("saved draft missing normalized designer layout: %#v", saveResult.Draft.AdditionalFields)
+		}
+		layoutNodes, ok := layout["nodes"].([]any)
+		if !ok || len(layoutNodes) != 1 {
+			t.Fatalf("designer layout should keep only known draft nodes: %#v", layout)
+		}
+		firstNode, ok := layoutNodes[0].(map[string]any)
+		if !ok {
+			t.Fatalf("designer layout node must be an object: %#v", layoutNodes[0])
+		}
+		if firstNode["node_id"] != "node_context" ||
+			firstNode["x"] != float64(124) ||
+			firstNode["y"] != float64(-10000) ||
+			firstNode["pinned"] != false {
+			t.Fatalf("designer layout node was not normalized: %#v", firstNode)
+		}
+
+		readResult := service.ReadDraft(context, ReadWorkflowDraftRequest{DraftID: payload.DraftID})
+
+		if readResult.FailureCode != "" || readResult.Draft == nil {
+			t.Fatalf("read should restore layout metadata: %#v", readResult)
+		}
+		if !reflect.DeepEqual(readResult.Draft.AdditionalFields, saveResult.Draft.AdditionalFields) {
+			t.Fatalf("read did not preserve saved designer layout metadata: %#v", readResult.Draft.AdditionalFields)
+		}
+		if got := store.SideEffects(); got.DraftWriteCount != 1 || hasSavedWorkflowDraftRuntimeSideEffect(got) {
+			t.Fatalf("layout metadata save/read must not unlock runtime side effects: %#v", got)
+		}
+	})
+
 	t.Run("contract invalid draft can be saved as review finding", func(t *testing.T) {
 		store := newMemorySavedWorkflowDraftStore()
 		service := newSavedWorkflowDraftService(store)
@@ -292,6 +336,29 @@ func TestSavedWorkflowDraftFailureSemantics(t *testing.T) {
 				failureCode: SavedWorkflowDraftFailurePayloadInvalid,
 			},
 			{
+				name: "nested forbidden sensitive field",
+				mutate: func(payload SavedWorkflowDraftPayload) SavedWorkflowDraftPayload {
+					payload.AdditionalFields = map[string]any{
+						"designer_layout_v1": map[string]any{
+							"layout_version": "designer_layout_v1",
+							"source":         "workflow_node_designer",
+							"persistence":    "saved_draft_metadata",
+							"nodes": []any{
+								map[string]any{
+									"node_id": "node_context",
+									"x":       0,
+									"y":       0,
+									"token":   "do-not-save",
+								},
+							},
+						},
+					}
+					return payload
+				},
+				context:     savedWorkflowDraftTestContext(),
+				failureCode: SavedWorkflowDraftFailurePayloadInvalid,
+			},
+			{
 				name: "graph endpoint missing",
 				mutate: func(payload SavedWorkflowDraftPayload) SavedWorkflowDraftPayload {
 					payload.Edges[0].ToNodeID = "missing_node"
@@ -422,6 +489,7 @@ func TestSavedWorkflowDraftTypeBoundary(t *testing.T) {
 		"ToolRefs",
 		"RAGRefs",
 		"RequestedCapabilities",
+		"AdditionalFields",
 		"ValidationSummary",
 		"BlockedCapabilitySummary",
 		"RequestAuditMetadata",
@@ -541,6 +609,30 @@ func validSavedWorkflowDraftPayload() SavedWorkflowDraftPayload {
 	}
 }
 
+func validSavedWorkflowDraftDesignerLayoutAdditionalFields() map[string]any {
+	return map[string]any{
+		"designer_layout_v1": map[string]any{
+			"layout_version": "designer_layout_v1",
+			"source":         "workflow_node_designer",
+			"persistence":    "saved_draft_metadata",
+			"nodes": []any{
+				map[string]any{
+					"node_id": "node_context",
+					"x":       123.6,
+					"y":       -12000,
+					"pinned":  true,
+				},
+				map[string]any{
+					"node_id": "unknown_node",
+					"x":       12,
+					"y":       24,
+					"pinned":  false,
+				},
+			},
+		},
+	}
+}
+
 func savedWorkflowDraftFromPayload(payload SavedWorkflowDraftPayload) SavedWorkflowDraft {
 	return SavedWorkflowDraft{
 		DraftID:               payload.DraftID,
@@ -565,6 +657,7 @@ func savedWorkflowDraftFromPayload(payload SavedWorkflowDraftPayload) SavedWorkf
 		ToolRefs:              payload.ToolRefs,
 		RAGRefs:               payload.RAGRefs,
 		RequestedCapabilities: payload.RequestedCapabilities,
+		AdditionalFields:      payload.AdditionalFields,
 	}
 }
 

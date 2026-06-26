@@ -1,6 +1,6 @@
 # RadishMind 部署目录说明
 
-更新时间：2026-05-26
+更新时间：2026-06-19
 
 ## 目录职责
 
@@ -87,11 +87,33 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 
 `production-secret-backend-contract` 已由 `scripts/checks/fixtures/production-ops-secret-backend-contract.json` 与 `scripts/check-production-ops-secret-backend-contract.py` 固定为治理切片。当前只定义未来 external secret backend adapter contract、`RADISHMIND_SECRET_SOURCE` 这类 secret reference、脱敏输出和禁止项；`deploy/.env.example` 不是 secret backend，也不保存真实 credential。
 
-该切片不实现真实云 secret 服务、不写入真实 secret、不调用云 API、不声明 production ready。真实 production secret backend、secret rotation policy、production secret audit store 和 provider health policy 仍必须在后续任务中另行实现和验证。
+该切片不实现真实云 secret 服务、不写入真实 secret、不调用云 API、不声明 production ready。真实 production secret backend、secret rotation runtime、production secret audit store 和 provider health policy 仍必须在后续任务中另行实现和验证。
 
 `contracts/production-secret-reference.schema.json` 进一步固定 provider profile 到 `secret_ref` 的 reference-only manifest。它只允许 `ref:` 引用、`credential_state`、`secret_backend_configured`、`secret_ref_present`、`missing_secret_refs` 和 `field_sources` 这类脱敏字段；`scripts/checks/fixtures/production-secret-reference-basic.json` 只作为 test / production 两类环境的结构样例，不包含真实 key、token、cookie、authorization、provider raw URL 或 secret value。
 
 这层 schema 只说明未来部署配置应该如何引用 secret，不说明 secret backend 已经存在。部署或 readiness 文档不得把 `RADISHMIND_SECRET_SOURCE`、`.env.example`、secret reference fixture 写成 provider credential readiness。
+
+`production-secret-backend-config-secret-ref-readiness-v1` 已把 `config-secret-ref-readiness` 固定为可检查证据：后续配置层只能报告 `secret_backend_configured`、`secret_ref_present`、`missing_secret_refs` 和 `field_sources` 等脱敏状态，不能读取 secret value、调用 resolver 或调用云 secret 服务。该 readiness 不改变 `.env.example` 的职责；`RADISHMIND_SECRET_SOURCE` 仍只是外部 secret 来源要求，不是 secret backend。
+
+`production-secret-backend-provider-profile-secret-binding-readiness-v1` 已把 `provider-profile-secret-binding` 固定为可检查证据：后续 provider/profile 只能声明 `credential_requirement`、`secret_ref_status`、环境绑定和脱敏诊断状态，不能把 `secret_ref_status=present` 写成 credential resolved，不能从 test / production secret ref 之间 fallback，也不能调用 resolver 或云 secret 服务。该 readiness 不改变 compose 或 `.env.example` 的职责，仍不声明 production secret backend ready。
+
+`production-secret-backend-secret-resolver-interface-disabled-readiness-v1` 已把 `secret-resolver-interface-disabled` 固定为可检查证据：后续 resolver interface 在未启用前只能返回 disabled / fail-closed 脱敏状态，不能创建 credential handle，不能 fallback 到 `RADISHMIND_PLATFORM_API_KEY`、mock provider、local-smoke profile、fixture credential、跨环境 `secret_ref`、fake resolver 或 fake query executor。该 readiness 不改变 compose 或 `.env.example` 的职责，仍不声明 production secret backend ready。
+
+`production-secret-backend-operator-runbook-negative-gates-readiness-v1` 已把 `operator-runbook-and-negative-gates` 固定为可检查证据：后续 operator runbook 只能记录人工 approval、test / production secret source、脱敏验证、smoke record reference 和 negative gate results，不能保存 secret value、provider raw URL、DSN、cloud credential 或 credential handle。该 readiness 不改变 compose 或 `.env.example` 的职责，不创建 resolver runtime、fake resolver、cloud SDK、DB provider、repository mode 或 production API，仍不声明 production secret backend ready。
+
+`production-secret-backend-rotation-audit-policy-readiness-v1` 已把 `rotation-and-audit-policy` 固定为可检查证据：后续 rotation / audit policy 只能记录 rotation trigger、approval / change window、secret ref version reference、rollback policy、sanitized verification、audit event fields 和 failure code，不能保存 secret value、provider raw URL、DSN、cloud credential 或 credential handle。该 readiness 不改变 compose 或 `.env.example` 的职责，不创建 rotation runtime、production secret audit store、audit writer、resolver runtime、fake resolver、cloud SDK、DB provider、repository mode 或 production API，仍不声明 production secret backend ready。
+
+`production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1` 已把 `test-fixture-strategy` 与 fake resolver implementation entry review 固定为可检查证据：当前结论是 `test-fixture-strategy` 仍为 `required_before_implementation`，fake resolver implementation entry 不打开。该 readiness 不改变 compose 或 `.env.example` 的职责，不创建 resolver runtime、fake resolver runtime、no secret leakage smoke runtime、cloud SDK、DB provider、repository mode 或 production API，仍不声明 production secret backend ready。
+
+`production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1` 已把 fake resolver static contract 与 no secret leakage smoke strategy 固定为可检查证据：后续 fake resolver 只能消费 allowlist 输入、输出脱敏状态和 credential handle metadata，不得接收或输出 secret value、provider raw URL、DSN、token、cookie 或 cloud credential。该 strategy 不改变 compose 或 `.env.example` 的职责，不创建 resolver runtime、fake resolver runtime、no secret leakage smoke runtime、cloud SDK、DB provider、repository mode 或 production API，仍不声明 production secret backend ready。
+
+`production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1` 已把 `fake_resolver_implementation_task_card_entry_readiness_review_defined` 固定为可检查证据：当前只确认下一步可以创建 fake resolver implementation task card。该 review 不改变 compose 或 `.env.example` 的职责，不实现 resolver runtime、不把 test-only fake resolver runtime 写成 production resolver、不创建 no secret leakage smoke runtime、不调用云 secret 服务、不读取 secret value、不接 DB provider、不启用 repository mode 或 production API，仍不声明 production secret backend ready。
+
+`production-secret-backend-fake-resolver-implementation-v1` 已把 `fake_resolver_implementation_task_card_defined` 固定为可检查证据：当前只创建 fake resolver implementation 的静态任务卡、fixture、checker 和 artifact guard。该 task card 不改变 compose 或 `.env.example` 的职责，不实现 fake resolver runtime、不创建 no secret leakage smoke runtime、不解析 secret、不创建 credential handle、不连接数据库、不调用云 secret 服务、不启用 repository mode 或 production API，仍不声明 production secret backend ready。
+
+`production-secret-backend-fake-resolver-runtime-implementation-entry-review-v1` 已把 `fake_resolver_runtime_implementation_entry_review_defined` 固定为可检查证据：当前只确认下一步可以单独创建 test-only fake resolver runtime。该 review 不改变 compose 或 `.env.example` 的职责，不实现 fake resolver runtime、不创建 no secret leakage smoke runtime、不解析 secret、不创建 credential handle、不连接数据库、不调用云 secret 服务、不启用 repository mode 或 production API，仍不声明 production secret backend ready。
+
+`production-secret-backend-fake-resolver-runtime-implementation-v1` 已把 `fake_resolver_runtime_test_only_implemented` 固定为可检查证据：当前只实现 test-only、默认 disabled 的 fake resolver runtime，并由 Go 单测覆盖 placeholder secret ref、sanitized diagnostics、offline no leakage smoke 和 zero external side effects。该 runtime 不改变 compose 或 `.env.example` 的职责，不实现 production resolver runtime、不创建 no secret leakage smoke runtime、不解析真实 secret、不创建 credential payload、不连接数据库、不调用云 secret 服务、不启用 repository mode 或 production API，仍不声明 production secret backend ready。
 
 部署态 compose 通过这些变量区分测试和生产：
 
@@ -135,5 +157,6 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 - 不把 `mock` provider 写成真实 provider readiness。
 - 不把 `docker compose down` cleanup 写成 process supervisor。
 - 不把 `.env.example` 写成 secret backend。
+- 不把 `fake_resolver_implementation_task_card_defined`、`fake_resolver_runtime_implementation_entry_review_defined` 或 `fake_resolver_runtime_test_only_implemented` 写成 production secret backend ready；它们不调用云 secret 服务、不解析真实 secret、不连接数据库。
 - 不把 deployment readiness 静态展开写成 container smoke。
 - 不把 runbook 或 record template 写成已经完成的运行记录。

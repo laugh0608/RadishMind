@@ -253,7 +253,6 @@ def assert_no_forbidden_sources(fixture: dict[str, Any]) -> None:
         "services/platform/internal/httpapi/control_plane_read_store_selector.go",
         "services/platform/internal/httpapi/control_plane_read_auth_middleware.go",
         "services/platform/migrations/control_plane_read",
-        "contracts/radish-oidc-token-validation.schema.json",
     ):
         require(not (REPO_ROOT / forbidden_path).exists(), f"forbidden artifact exists: {forbidden_path}")
 

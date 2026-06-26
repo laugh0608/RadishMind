@@ -1,0 +1,488 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_schema_marker_contract_implementation_entry_review_v1",
+  "slice": {
+    "id": "workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_schema_marker_contract_implementation_entry_review_defined",
+    "task_card": "docs/task-cards/workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1-plan.md",
+    "does_not_claim": [
+      "schema_marker_contract_implementation_task_card_created",
+      "schema_marker_runtime_created",
+      "schema_marker_read_write_ready",
+      "schema_version_table_created",
+      "schema_marker_reader_created",
+      "schema_marker_writer_created",
+      "migration_runner_implemented",
+      "migration_runner_command_created",
+      "dry_run_plan_output_ready",
+      "migration_apply_smoke_ready",
+      "rollback_observability_runtime_ready",
+      "sql_migration_created",
+      "database_connection_provider_ready",
+      "database_connection_ready",
+      "database_driver_imported",
+      "database_query_executor_ready",
+      "database_secret_resolver_ready",
+      "secret_value_resolved",
+      "repository_store_mode_enabled",
+      "repository_mode_runtime_created",
+      "durable_persistence_ready",
+      "oidc_middleware_ready",
+      "token_validation_ready",
+      "workspace_membership_adapter_ready",
+      "production_api_consumer_ready",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    "workflow-saved-draft-schema-marker-migration-runner-readiness-refresh-v1",
+    "workflow-saved-draft-schema-migration-runner-implementation-entry-review-v1",
+    "workflow-saved-draft-database-connection-schema-marker-preconditions-v1",
+    "workflow-saved-draft-database-connection-provider-implementation-entry-review-v1",
+    "workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1",
+    "workflow-saved-draft-repository-mode-runtime-boundary-review-v1"
+  ],
+  "entry_boundary": {
+    "status": "schema_marker_contract_implementation_entry_review_defined_no_task_card",
+    "decision": "schema_marker_contract_implementation_task_card_blocked",
+    "current_development_mode": "entry_review_only_no_marker_runtime",
+    "selected_implementation_track_now": "none",
+    "future_schema_marker_task_card": "docs/task-cards/workflow-saved-draft-schema-marker-contract-implementation-v1-plan.md",
+    "future_schema_marker_table": "workflow_saved_draft_schema_versions",
+    "future_marker_reader_file": "services/platform/internal/httpapi/workflow_saved_draft_schema_marker.go",
+    "future_marker_writer_file": "services/platform/internal/httpapi/workflow_saved_draft_schema_marker.go",
+    "future_migration_runner_file": "services/platform/internal/httpapi/workflow_saved_draft_schema_migration_runner.go",
+    "future_runner_command_file": "services/platform/internal/httpapi/workflow_saved_draft_migration_command.go",
+    "future_database_query_executor_file": "services/platform/internal/httpapi/workflow_saved_draft_repository_query_executor_sql.go",
+    "future_sql_migration_file": "services/platform/migrations/workflow_saved_drafts/001_saved_workflow_drafts.sql",
+    "schema_marker_task_card_created_in_this_slice": false,
+    "schema_marker_runtime_created_in_this_slice": false,
+    "schema_marker_reader_created_in_this_slice": false,
+    "schema_marker_writer_created_in_this_slice": false,
+    "schema_version_table_created_in_this_slice": false,
+    "migration_runner_created_in_this_slice": false,
+    "runner_command_created_in_this_slice": false,
+    "dry_run_output_created_in_this_slice": false,
+    "sql_created_in_this_slice": false,
+    "database_connection_provider_created_in_this_slice": false,
+    "database_secret_resolver_created_in_this_slice": false,
+    "secret_value_resolved_in_this_slice": false,
+    "database_driver_imported_in_this_slice": false,
+    "database_connection_opened_in_this_slice": false,
+    "database_query_executor_created_in_this_slice": false,
+    "repository_mode_enabled_in_this_slice": false,
+    "repository_mode_runtime_created_in_this_slice": false,
+    "oidc_middleware_created_in_this_slice": false,
+    "token_validation_created_in_this_slice": false,
+    "membership_adapter_created_in_this_slice": false,
+    "production_api_consumer_created_in_this_slice": false,
+    "executor_created_in_this_slice": false,
+    "confirmation_created_in_this_slice": false,
+    "writeback_or_replay_created_in_this_slice": false
+  },
+  "entry_gate_matrix": [
+    {
+      "gate_id": "schema_marker_migration_runner_readiness_refresh_consumed",
+      "source": "workflow-saved-draft-schema-marker-migration-runner-readiness-refresh-v1",
+      "status": "satisfied_static_readiness"
+    },
+    {
+      "gate_id": "schema_migration_runner_implementation_entry_review_consumed",
+      "source": "workflow-saved-draft-schema-migration-runner-implementation-entry-review-v1",
+      "status": "blocked"
+    },
+    {
+      "gate_id": "database_connection_schema_marker_preconditions_consumed",
+      "source": "workflow-saved-draft-database-connection-schema-marker-preconditions-v1",
+      "status": "satisfied_contract_only"
+    },
+    {
+      "gate_id": "database_connection_provider_entry_review_consumed",
+      "source": "workflow-saved-draft-database-connection-provider-implementation-entry-review-v1",
+      "status": "blocked"
+    },
+    {
+      "gate_id": "database_secret_resolver_entry_review_consumed",
+      "source": "workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1",
+      "status": "blocked"
+    },
+    {
+      "gate_id": "repository_mode_runtime_boundary_review_consumed",
+      "source": "workflow-saved-draft-repository-mode-runtime-boundary-review-v1",
+      "status": "blocked_before_task_card"
+    },
+    {
+      "gate_id": "schema_marker_contract_task_card_gate",
+      "status": "blocked_before_implementation_task_card"
+    },
+    {
+      "gate_id": "schema_marker_runtime_artifact_gate",
+      "status": "not_created"
+    }
+  ],
+  "implementation_entry_candidates": [
+    {
+      "candidate_id": "schema_marker_reader_contract_task_card",
+      "entry_decision": "blocked",
+      "implementation_task_card_allowed_now": false,
+      "runtime_artifacts_allowed_now": false,
+      "current_blockers": [
+        "marker_store_ownership_not_defined",
+        "database_connection_provider_not_created",
+        "schema_version_table_not_created",
+        "sanitized_marker_read_failure_envelope_not_defined"
+      ]
+    },
+    {
+      "candidate_id": "schema_marker_writer_contract_task_card",
+      "entry_decision": "blocked",
+      "implementation_task_card_allowed_now": false,
+      "runtime_artifacts_allowed_now": false,
+      "current_blockers": [
+        "manual_runner_writer_ownership_not_implemented",
+        "runner_command_not_created",
+        "lock_and_idempotency_policy_not_implemented",
+        "apply_result_envelope_not_implemented"
+      ]
+    },
+    {
+      "candidate_id": "schema_marker_table_record_shape",
+      "entry_decision": "blocked",
+      "implementation_task_card_allowed_now": false,
+      "runtime_artifacts_allowed_now": false,
+      "current_blockers": [
+        "committed_sql_not_created",
+        "equivalent_apply_plan_not_defined",
+        "schema_version_table_not_created"
+      ]
+    },
+    {
+      "candidate_id": "repository_preflight_consumption_binding",
+      "entry_decision": "blocked",
+      "implementation_task_card_allowed_now": false,
+      "runtime_artifacts_allowed_now": false,
+      "current_blockers": [
+        "repository_mode_runtime_not_opened",
+        "real_query_executor_not_created",
+        "schema_marker_reader_not_created"
+      ]
+    },
+    {
+      "candidate_id": "negative_marker_smoke",
+      "entry_decision": "blocked",
+      "implementation_task_card_allowed_now": false,
+      "runtime_artifacts_allowed_now": false,
+      "current_blockers": [
+        "test_database_not_defined",
+        "marker_runtime_not_created",
+        "connection_smoke_not_defined",
+        "applied_marker_smoke_not_defined"
+      ]
+    },
+    {
+      "candidate_id": "schema_marker_contract_implementation_task_card",
+      "entry_decision": "blocked_before_implementation_task_card",
+      "implementation_task_card_allowed_now": false,
+      "runtime_artifacts_allowed_now": false,
+      "current_blockers": [
+        "reader_contract_task_card_blocked",
+        "writer_contract_task_card_blocked",
+        "negative_marker_smoke_blocked"
+      ]
+    }
+  ],
+  "schema_marker_contract_boundary": {
+    "allowed_marker_states": [
+      "applied",
+      "not_applied",
+      "version_mismatch",
+      "unavailable"
+    ],
+    "reader_role": "read_applied_marker_only",
+    "writer_role": "future_manual_migration_runner_only",
+    "reader_must_not_create_marker": true,
+    "request_path_must_not_write_marker": true,
+    "startup_must_not_run_migration": true,
+    "missing_marker_failure_code": "draft_schema_migration_not_applied",
+    "version_mismatch_failure_code": "draft_store_schema_version_mismatch",
+    "unavailable_failure_code": "draft_store_migration_unavailable",
+    "marker_failure_must_prevent_query_execution": true
+  },
+  "blocked_conditions": [
+    "schema_marker_contract_implementation_task_card_not_created",
+    "schema_marker_runtime_not_created",
+    "schema_marker_reader_not_created",
+    "schema_marker_writer_not_created",
+    "schema_version_table_not_created",
+    "manual_migration_runner_not_created",
+    "dry_run_output_not_created",
+    "sql_migration_not_created",
+    "database_connection_provider_not_created",
+    "database_secret_resolver_not_created",
+    "real_query_executor_not_created",
+    "oidc_middleware_not_created",
+    "token_validation_not_created",
+    "workspace_membership_adapter_not_created",
+    "production_api_consumer_not_created",
+    "repository_mode_runtime_task_card_not_created"
+  ],
+  "next_dependency_candidates": [
+    {
+      "candidate_id": "manual_migration_runner_implementation_entry_refresh",
+      "entry_decision": "eligible_for_independent_review_only",
+      "runtime_artifacts_allowed_now": false,
+      "current_blockers": [
+        "migration_artifact_or_apply_plan_not_defined",
+        "database_connection_provider_not_created",
+        "rollback_observability_runtime_missing"
+      ]
+    },
+    {
+      "candidate_id": "database_connection_provider_implementation_entry_refresh",
+      "entry_decision": "eligible_for_independent_review_only",
+      "runtime_artifacts_allowed_now": false,
+      "current_blockers": [
+        "database_secret_resolver_implementation_not_opened",
+        "driver_policy_not_selected",
+        "connection_smoke_not_defined"
+      ]
+    },
+    {
+      "candidate_id": "radish_oidc_token_membership_upstream_evidence_refresh",
+      "entry_decision": "eligible_for_independent_review_only",
+      "runtime_artifacts_allowed_now": false,
+      "current_blockers": [
+        "reviewed_issuer_evidence_not_landed",
+        "jwks_pin_policy_not_landed",
+        "membership_data_source_ownership_not_defined"
+      ]
+    }
+  ],
+  "failure_mapping": {
+    "status": "schema_marker_contract_implementation_entry_review_fail_closed_required",
+    "required_failure_codes": [
+      "repository_store_disabled",
+      "invalid_draft_store_mode",
+      "draft_schema_migration_not_applied",
+      "draft_store_schema_version_mismatch",
+      "draft_store_migration_unavailable",
+      "draft_store_unavailable",
+      "draft_store_contract_mismatch",
+      "draft_auth_context_contract_mismatch"
+    ],
+    "repository_mode_disabled_failure_code": "repository_store_disabled",
+    "unknown_store_mode_failure_code": "invalid_draft_store_mode",
+    "missing_applied_marker_failure_code": "draft_schema_migration_not_applied",
+    "marker_version_mismatch_failure_code": "draft_store_schema_version_mismatch",
+    "marker_unavailable_failure_code": "draft_store_migration_unavailable",
+    "connection_or_query_executor_unavailable_failure_code": "draft_store_unavailable",
+    "schema_failure_must_prevent_query_execution": true,
+    "marker_failure_must_not_return_draft_payload": true,
+    "connection_failure_must_not_return_database_detail": true,
+    "runtime_boundary_failure_must_not_fallback_to_memory_dev": true
+  },
+  "no_fallback_policy": {
+    "repository_mode_fallback_to_memory_dev_allowed": false,
+    "repository_mode_fallback_to_sample_allowed": false,
+    "repository_mode_fallback_to_fixture_allowed": false,
+    "repository_mode_fallback_to_dev_http_route_allowed": false,
+    "repository_mode_fallback_to_test_auth_allowed": false,
+    "repository_mode_fallback_to_fake_query_executor_allowed": false,
+    "schema_marker_failure_fallback_to_success_allowed": false,
+    "marker_unavailable_fallback_to_applied_allowed": false,
+    "migration_runner_failure_fallback_to_success_allowed": false,
+    "connection_failure_fallback_to_fake_store_allowed": false
+  },
+  "no_side_effect_policy": {
+    "side_effect_counters_must_remain": [
+      "database_connection_count=0",
+      "driver_open_count=0",
+      "sql_execution_count=0",
+      "schema_marker_read_count=0",
+      "schema_marker_write_count=0",
+      "migration_runner_invocation_count=0",
+      "repository_mode_enablement_count=0",
+      "repository_write_count=0",
+      "oidc_call_count=0",
+      "token_validation_count=0",
+      "membership_lookup_count=0",
+      "production_api_call_count=0",
+      "executor_call_count=0",
+      "confirmation_call_count=0",
+      "business_writeback_count=0",
+      "replay_call_count=0"
+    ],
+    "forbidden_side_effects": [
+      "create schema marker implementation task card",
+      "open database driver",
+      "connect database",
+      "run SQL",
+      "read schema marker",
+      "write schema marker",
+      "run migration runner",
+      "enable repository store mode",
+      "write repository through repository mode",
+      "call OIDC",
+      "validate token",
+      "lookup membership",
+      "call production API",
+      "execute workflow",
+      "create confirmation decision",
+      "write business data",
+      "run replay"
+    ]
+  },
+  "artifact_guard": {
+    "required_static_artifacts_exist": [
+      "docs/features/workflow/saved-workflow-draft-schema-marker-contract-implementation-entry-review-v1.md",
+      "docs/task-cards/workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1-plan.md",
+      "scripts/checks/fixtures/workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1.json",
+      "scripts/checks/control_plane/check-workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1.py"
+    ],
+    "files_must_not_exist": [
+      "docs/task-cards/workflow-saved-draft-schema-marker-contract-implementation-v1-plan.md",
+      "docs/task-cards/workflow-saved-draft-schema-migration-runner-implementation-v1-plan.md",
+      "services/platform/internal/httpapi/workflow_saved_draft_schema_marker.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_schema_migration_runner.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_migration_command.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_query_executor_sql.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_database_connection.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_database_secret_resolver.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_auth_middleware.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_token_validation.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_membership_adapter.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_production_api.go",
+      "services/platform/migrations/workflow_saved_drafts/001_saved_workflow_drafts.sql"
+    ],
+    "forbid_sql_files_under": [
+      "services/platform/migrations/workflow_saved_drafts"
+    ],
+    "source_files_to_scan": [
+      "services/platform/internal/httpapi/workflow_saved_draft.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_store_selector.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_repository_adapter.go",
+      "services/platform/internal/httpapi/workflow_saved_draft_production_auth_runtime.go"
+    ],
+    "forbidden_source_literals": [
+      "WorkflowSavedDraftSchemaMarker",
+      "ReadWorkflowSavedDraftSchemaMarker",
+      "WriteWorkflowSavedDraftSchemaMarker",
+      "RunWorkflowSavedDraftMigration",
+      "WorkflowSavedDraftMigrationRunner",
+      "workflow_saved_draft_schema_marker",
+      "workflow_saved_draft_schema_migration_runner",
+      "workflow_saved_draft_migration_command",
+      "database/sql",
+      "sql.Open(",
+      "pgxpool",
+      "pgx.Connect",
+      "CREATE TABLE",
+      "ALTER TABLE",
+      "DROP TABLE",
+      "EnableWorkflowSavedDraftRepositoryMode",
+      "workflow_saved_draft_production_api",
+      "ValidateWorkflowDraftToken",
+      "WorkflowSavedDraftMembershipAdapter"
+    ]
+  },
+  "required_doc_references": [
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-schema-marker-contract-implementation-entry-review-v1.md",
+      "must_contain": [
+        "draft_schema_marker_contract_implementation_entry_review_defined",
+        "workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1",
+        "blocked_before_implementation_task_card"
+      ]
+    },
+    {
+      "path": "docs/task-cards/workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1-plan.md",
+      "must_contain": [
+        "draft_schema_marker_contract_implementation_entry_review_defined",
+        "workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/README.md",
+      "must_contain": [
+        "Saved Workflow Draft Schema Marker Contract Implementation Entry Review v1",
+        "draft_schema_marker_contract_implementation_entry_review_defined"
+      ]
+    },
+    {
+      "path": "docs/features/README.md",
+      "must_contain": [
+        "Saved Workflow Draft Schema Marker Contract Implementation Entry Review v1",
+        "workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-v1.md",
+      "must_contain": [
+        "Saved Workflow Draft Schema Marker Contract Implementation Entry Review v1",
+        "draft_schema_marker_contract_implementation_entry_review_defined"
+      ]
+    },
+    {
+      "path": "docs/features/workflow-agent-runtime.md",
+      "must_contain": [
+        "Saved Workflow Draft Schema Marker Contract Implementation Entry Review v1",
+        "draft_schema_marker_contract_implementation_entry_review_defined"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "must_contain": [
+        "workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1",
+        "draft_schema_marker_contract_implementation_entry_review_defined"
+      ]
+    },
+    {
+      "path": "docs/radishmind-product-scope.md",
+      "must_contain": [
+        "workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1",
+        "draft_schema_marker_contract_implementation_entry_review_defined"
+      ]
+    },
+    {
+      "path": "docs/radishmind-capability-matrix.md",
+      "must_contain": [
+        "workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1",
+        "draft_schema_marker_contract_implementation_entry_review_defined"
+      ]
+    },
+    {
+      "path": "docs/task-cards/README.md",
+      "must_contain": [
+        "Workflow Saved Draft Schema Marker Contract Implementation Entry Review",
+        "workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1"
+      ]
+    },
+    {
+      "path": "docs/devlogs/2026-W26.md",
+      "must_contain": [
+        "workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1",
+        "draft_schema_marker_contract_implementation_entry_review_defined"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "status": "schema_marker_contract_implementation_entry_review_checker_only_no_runtime",
+    "required_checks": [
+      "workflow_saved_draft_schema_marker_contract_implementation_entry_review_checker",
+      "workflow_saved_draft_schema_marker_migration_runner_readiness_refresh_checker",
+      "workflow_saved_draft_repository_mode_runtime_boundary_review_checker",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_connect_database": true,
+    "does_not_run_sql": true,
+    "does_not_read_secret": true,
+    "does_not_call_oidc": true,
+    "does_not_execute_workflow": true
+  }
+}

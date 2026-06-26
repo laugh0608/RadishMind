@@ -1,0 +1,386 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_saved_draft_token_validation_schema_task_card_readiness_v1",
+  "slice": {
+    "id": "workflow-saved-draft-token-validation-schema-task-card-readiness-v1",
+    "track": "Workflow / Agent Runtime",
+    "status": "draft_token_validation_schema_task_card_readiness_defined",
+    "task_card": "docs/task-cards/workflow-saved-draft-token-validation-schema-task-card-readiness-v1-plan.md",
+    "feature_topic": "docs/features/workflow/saved-workflow-draft-token-validation-schema-task-card-readiness-v1.md",
+    "task_card_decision": "token_validation_schema_task_card_ready_for_next_task",
+    "does_not_claim": [
+      "token_validation_schema_created",
+      "token_validation_schema_implemented",
+      "token_validator_created",
+      "oidc_middleware_ready",
+      "auth_middleware_created",
+      "membership_adapter_created",
+      "membership_cache_created",
+      "negative_auth_smoke_runtime_created",
+      "repository_actor_context_handoff_runtime_created",
+      "repository_store_mode_enabled",
+      "repository_mode_runtime_created",
+      "database_runtime_created",
+      "database_connection_ready",
+      "schema_marker_runtime_created",
+      "database_secret_resolver_runtime_created",
+      "production_api_consumer_created",
+      "workflow_executor_ready",
+      "confirmation_decision_ready",
+      "business_writeback_ready",
+      "run_replay_ready",
+      "production_ready"
+    ]
+  },
+  "depends_on": [
+    {
+      "id": "workflow-saved-draft-token-validation-auth-middleware-runtime-entry-review-v1",
+      "status": "draft_token_validation_auth_middleware_runtime_entry_review_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-token-validation-auth-middleware-runtime-entry-review-v1.json"
+    },
+    {
+      "id": "radish-oidc-token-membership-upstream-evidence-refresh-v1",
+      "status": "radish_oidc_token_membership_upstream_evidence_refresh_defined",
+      "evidence": "scripts/checks/fixtures/radish-oidc-token-membership-upstream-evidence-refresh-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-production-auth-readiness-v1",
+      "status": "draft_production_auth_readiness_defined",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-production-auth-readiness-v1.json"
+    },
+    {
+      "id": "workflow-saved-draft-production-auth-runtime-v1",
+      "status": "draft_production_auth_runtime_bridge_implemented",
+      "evidence": "scripts/checks/fixtures/workflow-saved-draft-production-auth-runtime-v1.json"
+    }
+  ],
+  "readiness_boundary": {
+    "status": "token_validation_schema_task_card_readiness_defined_no_schema_file",
+    "task_card_decision": "token_validation_schema_task_card_ready_for_next_task",
+    "current_development_mode": "schema_task_card_readiness_only_no_auth_runtime",
+    "future_schema_artifact_path": "contracts/radish-oidc-token-validation.schema.json",
+    "future_schema_implementation_task_card": "docs/task-cards/workflow-saved-draft-token-validation-schema-implementation-v1-plan.md",
+    "prior_runtime_entry_review_consumed": true,
+    "upstream_oidc_evidence_consumed": true,
+    "production_auth_readiness_consumed": true,
+    "production_auth_runtime_bridge_consumed": true,
+    "schema_implementation_task_card_created_in_this_slice": false,
+    "token_validation_schema_created_in_this_slice": false,
+    "token_validator_created_in_this_slice": false,
+    "auth_middleware_created_in_this_slice": false,
+    "membership_adapter_created_in_this_slice": false,
+    "negative_auth_smoke_runtime_created_in_this_slice": false,
+    "repository_mode_enabled_in_this_slice": false,
+    "database_runtime_created_in_this_slice": false,
+    "production_api_consumer_created_in_this_slice": false,
+    "executor_created_in_this_slice": false,
+    "confirmation_created_in_this_slice": false,
+    "writeback_or_replay_created_in_this_slice": false
+  },
+  "readiness_gate_matrix": [
+    {
+      "gate_id": "prior_runtime_entry_review_gate",
+      "status": "satisfied_static_entry_review"
+    },
+    {
+      "gate_id": "upstream_issuer_evidence_gate",
+      "status": "satisfied_reviewed_evidence"
+    },
+    {
+      "gate_id": "verified_token_output_contract_gate",
+      "status": "satisfied_for_schema_task_card"
+    },
+    {
+      "gate_id": "schema_implementation_task_card_gate",
+      "status": "ready_for_next_task"
+    },
+    {
+      "gate_id": "schema_artifact_gate",
+      "status": "not_created"
+    },
+    {
+      "gate_id": "token_validator_runtime_gate",
+      "status": "not_opened"
+    },
+    {
+      "gate_id": "auth_middleware_runtime_gate",
+      "status": "blocked"
+    },
+    {
+      "gate_id": "membership_adapter_runtime_gate",
+      "status": "blocked"
+    },
+    {
+      "gate_id": "negative_auth_smoke_runtime_gate",
+      "status": "blocked"
+    },
+    {
+      "gate_id": "repository_mode_runtime_gate",
+      "status": "blocked"
+    }
+  ],
+  "future_task_card_requirements": {
+    "required_scope": [
+      "token validation schema artifact scope",
+      "json schema version",
+      "verified token output shape",
+      "required field allowlist",
+      "forbidden raw-material fields",
+      "sanitized failure envelope alignment",
+      "consumer handoff to production auth runtime bridge",
+      "artifact guard",
+      "offline fast baseline"
+    ],
+    "required_validation": [
+      "token validation schema implementation checker",
+      "json schema validation fixture",
+      "forbidden field negative fixture",
+      "token validation auth middleware runtime entry review checker",
+      "radish oidc upstream evidence refresh checker",
+      "production auth runtime bridge checker",
+      "fast repository check"
+    ],
+    "must_not_include": [
+      "OIDC discovery runtime",
+      "JWKS fetch runtime",
+      "token signature validation runtime",
+      "auth middleware route binding",
+      "login logout session cookie",
+      "membership adapter",
+      "membership cache",
+      "negative auth smoke runtime",
+      "repository mode runtime",
+      "database connection",
+      "SQL",
+      "schema marker runtime",
+      "secret resolver runtime",
+      "production API",
+      "executor",
+      "confirmation",
+      "writeback",
+      "replay"
+    ]
+  },
+  "schema_field_boundary": {
+    "status": "schema_task_card_fields_ready_no_schema_file",
+    "required_fields": [
+      "issuer_ref",
+      "subject_ref",
+      "tenant_ref",
+      "audience_refs",
+      "scope_grants",
+      "workspace_binding_refs",
+      "application_scope_refs",
+      "owner_subject_ref",
+      "key_id_ref",
+      "algorithm",
+      "issued_at",
+      "expires_at",
+      "auth_time",
+      "policy_version",
+      "request_id",
+      "audit_ref"
+    ],
+    "forbidden_fields": [
+      "raw_token",
+      "authorization_header",
+      "cookie",
+      "client_secret",
+      "refresh_token",
+      "authorization_code",
+      "jwks_raw_dump",
+      "raw_claim_dump",
+      "membership_raw_record",
+      "database_detail",
+      "provider_error_detail",
+      "secret_value"
+    ]
+  },
+  "failure_mapping": [
+    {
+      "code": "token_validation_schema_task_card_contract_missing",
+      "failure_boundary": "task_card_entry",
+      "sanitized_diagnostic": "token validation schema task card contract is missing"
+    },
+    {
+      "code": "token_validation_schema_task_card_forbidden_field_missing",
+      "failure_boundary": "schema_boundary",
+      "sanitized_diagnostic": "token validation schema task card forbidden field list is incomplete"
+    },
+    {
+      "code": "token_validation_schema_task_card_runtime_scope_overreach",
+      "failure_boundary": "implementation_boundary",
+      "sanitized_diagnostic": "token validation schema task card includes blocked runtime scope"
+    },
+    {
+      "code": "token_validation_schema_file_created_in_readiness",
+      "failure_boundary": "artifact_guard",
+      "sanitized_diagnostic": "token validation schema file was created before schema implementation task"
+    },
+    {
+      "code": "token_validation_runtime_artifact_created_in_readiness",
+      "failure_boundary": "artifact_guard",
+      "sanitized_diagnostic": "token validation runtime artifact was created during readiness review"
+    },
+    {
+      "code": "token_validation_schema_task_card_dev_auth_fallback",
+      "failure_boundary": "no_fallback",
+      "sanitized_diagnostic": "token validation schema task card allows dev auth fallback"
+    }
+  ],
+  "sanitized_diagnostics": {
+    "allowed_fields": [
+      "token_validation_schema_task_card_status",
+      "schema_artifact_status",
+      "verified_token_output_contract_status",
+      "failure_code",
+      "sanitized_diagnostic",
+      "request_id",
+      "audit_ref",
+      "policy_version"
+    ],
+    "forbidden_fields": [
+      "raw_token",
+      "authorization_header",
+      "cookie",
+      "raw_claim_dump",
+      "jwks_raw_dump",
+      "membership_raw_record",
+      "secret_value",
+      "provider_error_detail",
+      "database_detail",
+      "dsn"
+    ],
+    "runtime_emission_allowed_in_this_slice": false
+  },
+  "no_fallback_policy": [
+    "no fallback to dev fake auth",
+    "no fallback to memory dev store",
+    "no fallback to sample",
+    "no fallback to fixture",
+    "no fallback to test-only fake resolver",
+    "no fallback to fake query executor",
+    "no fallback to developer env plaintext",
+    "task card readiness does not mean token validation ready",
+    "task card readiness does not mean auth middleware ready",
+    "task card readiness does not mean repository mode ready"
+  ],
+  "no_side_effect_policy": [
+    "checker reads committed docs and fixtures only",
+    "no issuer discovery fetch",
+    "no JWKS fetch",
+    "no token validation call",
+    "no schema file write",
+    "no auth middleware invocation",
+    "no membership query",
+    "no membership cache creation",
+    "no repository mode enablement",
+    "no database connection",
+    "no SQL execution",
+    "no schema marker read",
+    "no schema marker write",
+    "no secret resolver call",
+    "no production API call",
+    "no executor call",
+    "no confirmation call",
+    "no business writeback",
+    "no replay call"
+  ],
+  "side_effect_counters": {
+    "issuer_network_call_count": 0,
+    "jwks_fetch_count": 0,
+    "token_validation_call_count": 0,
+    "schema_file_write_count": 0,
+    "auth_middleware_invocation_count": 0,
+    "membership_query_count": 0,
+    "membership_cache_create_count": 0,
+    "repository_mode_enablement_count": 0,
+    "database_connection_count": 0,
+    "sql_execution_count": 0,
+    "secret_resolver_call_count": 0,
+    "production_api_call_count": 0,
+    "executor_call_count": 0,
+    "confirmation_call_count": 0,
+    "business_writeback_count": 0,
+    "replay_call_count": 0
+  },
+  "artifact_guard": {
+    "required_static_artifacts_exist": [
+      "docs/features/workflow/saved-workflow-draft-token-validation-schema-task-card-readiness-v1.md",
+      "docs/task-cards/workflow-saved-draft-token-validation-schema-task-card-readiness-v1-plan.md",
+      "scripts/checks/fixtures/workflow-saved-draft-token-validation-schema-task-card-readiness-v1.json",
+      "scripts/checks/control_plane/check-workflow-saved-draft-token-validation-schema-task-card-readiness-v1.py",
+      "docs/features/workflow/saved-workflow-draft-token-validation-auth-middleware-runtime-entry-review-v1.md"
+    ],
+    "files_must_not_exist": [
+      "services/platform/internal/httpapi/radish_oidc_auth_middleware.go",
+      "services/platform/internal/httpapi/radish_oidc_token_validator.go",
+      "services/platform/internal/httpapi/radish_membership_adapter.go",
+      "scripts/checks/fixtures/workflow-saved-draft-negative-auth-smoke-runtime-v1.json"
+    ],
+    "forbid_sql_files_under": [
+      "services/platform/internal/httpapi/migrations",
+      "services/platform/migrations"
+    ]
+  },
+  "required_doc_references": [
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-token-validation-schema-task-card-readiness-v1.md",
+      "must_contain": [
+        "draft_token_validation_schema_task_card_readiness_defined",
+        "token_validation_schema_task_card_ready_for_next_task",
+        "contracts/radish-oidc-token-validation.schema.json",
+        "schema implementation task card",
+        "不创建 OIDC middleware"
+      ]
+    },
+    {
+      "path": "docs/features/workflow/saved-workflow-draft-v1.md",
+      "must_contain": [
+        "draft_token_validation_schema_task_card_readiness_defined",
+        "token validation schema task card readiness"
+      ]
+    },
+    {
+      "path": "docs/features/workflow-agent-runtime.md",
+      "must_contain": [
+        "draft_token_validation_schema_task_card_readiness_defined",
+        "Saved Workflow Draft Token Validation Schema Task Card Readiness v1"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "must_contain": [
+        "draft_token_validation_schema_task_card_readiness_defined",
+        "token validation schema implementation task card"
+      ]
+    },
+    {
+      "path": "scripts/README.md",
+      "must_contain": [
+        "check-workflow-saved-draft-token-validation-schema-task-card-readiness-v1.py",
+        "draft_token_validation_schema_task_card_readiness_defined"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "status": "token_validation_schema_task_card_readiness_checker_only_no_schema_runtime",
+    "required_checks": [
+      "workflow_saved_draft_token_validation_schema_task_card_readiness_checker",
+      "workflow_saved_draft_token_validation_auth_middleware_runtime_entry_review_checker",
+      "radish_oidc_token_membership_upstream_evidence_refresh_checker",
+      "./scripts/check-repo.sh --fast"
+    ],
+    "does_not_start_service": true,
+    "does_not_fetch_issuer_discovery": true,
+    "does_not_fetch_jwks": true,
+    "does_not_validate_token": true,
+    "does_not_create_schema_file": true,
+    "does_not_create_auth_middleware": true,
+    "does_not_query_membership": true,
+    "does_not_enable_repository_store_mode": true,
+    "does_not_connect_database": true,
+    "does_not_run_sql": true,
+    "does_not_create_production_api": true
+  }
+}

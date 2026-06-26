@@ -318,11 +318,6 @@
       "created_in_this_slice": false
     },
     {
-      "path": "contracts/radish-oidc-token-validation.schema.json",
-      "candidate_id": "production_auth_implementation",
-      "created_in_this_slice": false
-    },
-    {
       "path": "services/platform/internal/httpapi/control_plane_read_auth_middleware.go",
       "candidate_id": "production_auth_implementation",
       "created_in_this_slice": false

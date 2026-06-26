@@ -1,5 +1,6 @@
 import type { WorkflowBlockedActionPreviewViewModel } from "./workflowBlockedActionPreview";
 import type { WorkflowConfirmationPlaceholderViewModel } from "./workflowConfirmationPlaceholder";
+import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner";
 import type { WorkflowDraftValidationInspectorViewModel } from "./workflowDraftValidationInspector";
 import type { WorkflowExecutionPlanPreviewViewModel } from "./workflowExecutionPlanPreview";
 import type {
@@ -37,6 +38,7 @@ export type WorkflowReviewHandoffFinding = {
     | "scenario"
     | "review"
     | "validation"
+    | "node_designer"
     | "plan"
     | "readiness"
     | "blocked_action"
@@ -57,6 +59,7 @@ export type WorkflowReviewHandoffEvidence = {
     | "scenario"
     | "overview"
     | "validation"
+    | "node_designer"
     | "plan"
     | "readiness"
     | "blocked_action"
@@ -116,7 +119,66 @@ export type WorkflowReviewHandoffActiveDraftReviewRecord = {
   canWriteBusinessTruth: false;
 };
 
+export type WorkflowReviewHandoffNodeDesignerReviewSection = {
+  sectionId:
+    | "node_designer_canvas_layout"
+    | "node_designer_validation_overlay"
+    | "node_designer_inspector_state"
+    | "node_designer_saved_draft_mapping";
+  label: string;
+  sourceSurface: "node_designer";
+  status: WorkflowReviewHandoffStatus;
+  primaryRef: string;
+  requestId: string;
+  auditRef: string;
+  itemCount: number;
+  summary: string;
+  reviewerQuestion: string;
+  evidenceRefs: string[];
+};
+
+export type WorkflowReviewHandoffNodeDesignerGraphFinding = {
+  findingId: string;
+  label: string;
+  sourceCheckId: string;
+  targetKind: "node" | "edge" | "graph";
+  status: WorkflowReviewHandoffStatus;
+  severity: "info" | "warning" | "blocking";
+  targetRefs: string[];
+  targetSummary: string;
+  summary: string;
+  reviewerQuestion: string;
+  evidenceRefs: string[];
+};
+
+export type WorkflowReviewHandoffNodeDesignerReviewRecord = {
+  recordId: "node_designer_review_record";
+  recordMode: "node_designer_advisory_only";
+  draftId: string;
+  positionedNodeCount: number;
+  defaultLayoutNodeCount: number;
+  derivedEdgeCount: number;
+  validationOverlayCount: number;
+  inspectorFieldCount: number;
+  graphReviewFindings: WorkflowReviewHandoffNodeDesignerGraphFinding[];
+  nodeTargetedFindingCount: number;
+  edgeTargetedFindingCount: number;
+  graphLevelFindingCount: number;
+  sections: WorkflowReviewHandoffNodeDesignerReviewSection[];
+  canRenderNodeDesignerReviewRecord: boolean;
+  canPersistLayout: false;
+  canPersistEdgeKind: false;
+  canPersistOverlay: false;
+  canPersistInspectorState: false;
+  canExportRecord: false;
+  canSendRecord: false;
+  canStartRuntime: false;
+  canSubmitConfirmationDecision: false;
+  canWriteBusinessTruth: false;
+};
+
 export type WorkflowReviewHandoffSource = {
+  activeWorkflowDraft: WorkflowDraftDesignerDraft;
   workflowUserWorkspaceHome: WorkflowUserWorkspaceHomeViewModel;
   workflowWorkspaceReview: WorkflowWorkspaceReviewViewModel;
   workflowSurfaceOverview: WorkflowSurfaceOverviewViewModel;
@@ -143,6 +205,7 @@ export type WorkflowReviewHandoffViewModel = {
   auditRef: string;
   handoffNarrative: string;
   activeDraftReviewRecord: WorkflowReviewHandoffActiveDraftReviewRecord;
+  nodeDesignerReviewRecord: WorkflowReviewHandoffNodeDesignerReviewRecord;
   recipients: WorkflowReviewHandoffRecipient[];
   keyFindings: WorkflowReviewHandoffFinding[];
   evidenceChecklist: WorkflowReviewHandoffEvidence[];
@@ -169,9 +232,10 @@ export function buildWorkflowReviewHandoffViewModel(
   source: WorkflowReviewHandoffSource,
 ): WorkflowReviewHandoffViewModel {
   const activeDraftReviewRecord = buildActiveDraftReviewRecord(source);
+  const nodeDesignerReviewRecord = buildNodeDesignerReviewRecord(source);
   const recipients = buildRecipients(source);
-  const keyFindings = buildKeyFindings(source);
-  const evidenceChecklist = buildEvidenceChecklist(source);
+  const keyFindings = buildKeyFindings(source, nodeDesignerReviewRecord);
+  const evidenceChecklist = buildEvidenceChecklist(source, nodeDesignerReviewRecord);
   const decisionBlockers = buildDecisionBlockers(source);
   const boundaryLocks = buildBoundaryLocks(source);
 
@@ -198,8 +262,15 @@ export function buildWorkflowReviewHandoffViewModel(
     scenarioId: source.workflowWorkspaceReview.scenarioId,
     requestId: source.workflowWorkspaceReview.requestId,
     auditRef: source.workflowWorkspaceReview.auditRef,
-    handoffNarrative: buildHandoffNarrative(source, activeDraftReviewRecord, decisionBlockers, boundaryLocks),
+    handoffNarrative: buildHandoffNarrative(
+      source,
+      activeDraftReviewRecord,
+      nodeDesignerReviewRecord,
+      decisionBlockers,
+      boundaryLocks,
+    ),
     activeDraftReviewRecord,
+    nodeDesignerReviewRecord,
     recipients,
     keyFindings,
     evidenceChecklist,
@@ -216,9 +287,10 @@ export function buildWorkflowReviewHandoffViewModel(
       source.workflowBlockedActionPreview.canRenderBlockedActionPreview &&
       source.workflowConfirmationPlaceholder.canRenderConfirmationPlaceholder &&
       activeDraftReviewRecord.canRenderActiveDraftReviewRecord &&
+      nodeDesignerReviewRecord.canRenderNodeDesignerReviewRecord &&
       recipients.length === 4 &&
-      keyFindings.length >= 7 &&
-      evidenceChecklist.length >= 11 &&
+      keyFindings.length >= 8 &&
+      evidenceChecklist.length >= 12 &&
       decisionBlockers.length >= 6 &&
       boundaryLocks.length >= 8,
     canInspectHandoffLocally: true,
@@ -245,10 +317,11 @@ function buildHandoffPackageId(source: WorkflowReviewHandoffSource): string {
 function buildHandoffNarrative(
   source: WorkflowReviewHandoffSource,
   activeDraftReviewRecord: WorkflowReviewHandoffActiveDraftReviewRecord,
+  nodeDesignerReviewRecord: WorkflowReviewHandoffNodeDesignerReviewRecord,
   decisionBlockers: WorkflowReviewHandoffDecisionBlocker[],
   boundaryLocks: WorkflowReviewHandoffBoundaryLock[],
 ): string {
-  return `${source.workflowScenarioInspector.selectedScenario.label} is packaged for human review with ${activeDraftReviewRecord.sections.length} active draft review sections, ${source.workflowWorkspaceReview.reviewStages.length} review stages, ${decisionBlockers.length} decision blockers, ${source.workflowUserWorkspaceHome.routeEvidence.length} route evidence entries, and ${boundaryLocks.length} locked boundaries.`;
+  return `${source.workflowScenarioInspector.selectedScenario.label} is packaged for human review with ${activeDraftReviewRecord.sections.length} active draft review sections, ${nodeDesignerReviewRecord.sections.length} node designer review sections, ${source.workflowWorkspaceReview.reviewStages.length} review stages, ${decisionBlockers.length} decision blockers, ${source.workflowUserWorkspaceHome.routeEvidence.length} route evidence entries, and ${boundaryLocks.length} locked boundaries.`;
 }
 
 function buildActiveDraftReviewRecord(
@@ -357,6 +430,327 @@ function buildActiveDraftReviewSections(
   ];
 }
 
+function buildNodeDesignerReviewRecord(
+  source: WorkflowReviewHandoffSource,
+): WorkflowReviewHandoffNodeDesignerReviewRecord {
+  const draft = source.activeWorkflowDraft;
+  const positionedNodeIds = new Set(draft.designerLayout.nodePositions.map((position) => position.nodeId));
+  const positionedNodeCount = draft.nodes.filter((node) => positionedNodeIds.has(node.nodeId)).length;
+  const defaultLayoutNodeCount = Math.max(0, draft.nodes.length - positionedNodeCount);
+  const layoutPersistenceLabel =
+    draft.designerLayout.persistence === "saved_draft_metadata" ? "saved draft metadata" : "active draft session";
+  const validationOverlayCount = countNodeDesignerValidationOverlayItems(source);
+  const inspectorFieldCount = countNodeDesignerInspectorFields(draft);
+  const graphReviewFindings = buildNodeDesignerGraphReviewFindings(source);
+  const sections = buildNodeDesignerReviewSections(
+    source,
+    layoutPersistenceLabel,
+    positionedNodeCount,
+    defaultLayoutNodeCount,
+    validationOverlayCount,
+    inspectorFieldCount,
+  );
+  const draftIdsMatch =
+    draft.draftId === source.workflowWorkspaceReview.draftId &&
+    draft.draftId === source.workflowDraftValidationInspector.inspectedDraftId &&
+    draft.draftId === source.workflowExecutionPlanPreview.selectedDraftId &&
+    draft.draftId === source.workflowRuntimeReadinessInspector.selectedDraftId;
+
+  return {
+    recordId: "node_designer_review_record",
+    recordMode: "node_designer_advisory_only",
+    draftId: draft.draftId,
+    positionedNodeCount,
+    defaultLayoutNodeCount,
+    derivedEdgeCount: draft.edges.length,
+    validationOverlayCount,
+    inspectorFieldCount,
+    graphReviewFindings,
+    nodeTargetedFindingCount: countNodeDesignerGraphReviewFindings(graphReviewFindings, "node"),
+    edgeTargetedFindingCount: countNodeDesignerGraphReviewFindings(graphReviewFindings, "edge"),
+    graphLevelFindingCount: countNodeDesignerGraphReviewFindings(graphReviewFindings, "graph"),
+    sections,
+    canRenderNodeDesignerReviewRecord:
+      draftIdsMatch &&
+      draft.nodes.length > 0 &&
+      graphReviewFindings.length > 0 &&
+      sections.length === 4 &&
+      sections.every((section) => section.requestId.length > 0 && section.auditRef.length > 0),
+    canPersistLayout: false,
+    canPersistEdgeKind: false,
+    canPersistOverlay: false,
+    canPersistInspectorState: false,
+    canExportRecord: false,
+    canSendRecord: false,
+    canStartRuntime: false,
+    canSubmitConfirmationDecision: false,
+    canWriteBusinessTruth: false,
+  };
+}
+
+function buildNodeDesignerReviewSections(
+  source: WorkflowReviewHandoffSource,
+  layoutPersistenceLabel: string,
+  positionedNodeCount: number,
+  defaultLayoutNodeCount: number,
+  validationOverlayCount: number,
+  inspectorFieldCount: number,
+): WorkflowReviewHandoffNodeDesignerReviewSection[] {
+  const draft = source.activeWorkflowDraft;
+  const validationEvidenceRefs = nodeDesignerValidationEvidenceRefs(source);
+  const inspectorEvidenceRefs = draft.nodes.flatMap((node) => [
+    node.nodeId,
+    node.providerRef || `provider_ref_empty_${node.nodeId}`,
+    node.toolRef || `tool_ref_empty_${node.nodeId}`,
+    node.ragRef || `rag_ref_empty_${node.nodeId}`,
+  ]);
+
+  return [
+    {
+      sectionId: "node_designer_canvas_layout",
+      label: "Node designer canvas layout",
+      sourceSurface: "node_designer",
+      status: "review_required",
+      primaryRef: draft.draftId,
+      requestId: draft.routeMetadata.requestId,
+      auditRef: draft.routeMetadata.auditRef,
+      itemCount: draft.nodes.length,
+      summary: `Node Designer presents ${draft.nodes.length} active draft nodes with ${positionedNodeCount} ${layoutPersistenceLabel} positions and ${defaultLayoutNodeCount} default lane-derived positions.`,
+      reviewerQuestion: "Does the visual layout help review the draft without implying runtime order or persisted schema state?",
+      evidenceRefs: [
+        ...draft.designerLayout.nodePositions.map((position) => position.nodeId),
+        ...draft.nodes.map((node) => node.nodeId),
+      ].slice(0, 8),
+    },
+    {
+      sectionId: "node_designer_validation_overlay",
+      label: "Node designer validation overlay",
+      sourceSurface: "node_designer",
+      status: validationStatusToHandoffStatus(source.workflowDraftValidationInspector.validationStatus),
+      primaryRef: source.workflowDraftValidationInspector.inspectedDraftId,
+      requestId: source.workflowDraftValidationInspector.requestId,
+      auditRef: source.workflowDraftValidationInspector.auditRef,
+      itemCount: validationOverlayCount,
+      summary: `Canvas overlay review carries ${validationOverlayCount} validation, contract, and blocked capability items from the active draft inspector.`,
+      reviewerQuestion: "Which overlay findings should the reviewer inspect before accepting the draft as reviewable?",
+      evidenceRefs: validationEvidenceRefs.slice(0, 8),
+    },
+    {
+      sectionId: "node_designer_inspector_state",
+      label: "Node designer inspector state",
+      sourceSurface: "node_designer",
+      status: "review_required",
+      primaryRef: draft.draftId,
+      requestId: draft.routeMetadata.requestId,
+      auditRef: draft.routeMetadata.auditRef,
+      itemCount: inspectorFieldCount,
+      summary: `Inspector handoff covers labels, summaries, provider / tool / RAG refs, contract fields, output mappings, risk markers, and confirmation markers for ${draft.nodes.length} nodes.`,
+      reviewerQuestion: "Do node inspector attributes explain provider, tool, RAG, contract, risk, and confirmation intent clearly enough for review?",
+      evidenceRefs: inspectorEvidenceRefs.slice(0, 8),
+    },
+    {
+      sectionId: "node_designer_saved_draft_mapping",
+      label: "Node designer saved draft mapping",
+      sourceSurface: "node_designer",
+      status: "offline_only",
+      primaryRef: draft.draftId,
+      requestId: draft.routeMetadata.requestId,
+      auditRef: draft.routeMetadata.auditRef,
+      itemCount: draft.edges.length,
+      summary: `Saved draft mapping review keeps node attributes, contract fields, edge endpoints, condition summaries, and controlled layout metadata distinct from derived edge kind.`,
+      reviewerQuestion: "Does the mapping make clear which canvas details are persisted and which remain advisory UI state?",
+      evidenceRefs: [
+        "node_designer_saved_draft_mapping_v1",
+        "node_designer_saved_draft_mapping_implementation_v1",
+        ...draft.edges.map((edge) => edge.edgeId),
+      ].slice(0, 8),
+    },
+  ];
+}
+
+function buildNodeDesignerGraphReviewFindings(
+  source: WorkflowReviewHandoffSource,
+): WorkflowReviewHandoffNodeDesignerGraphFinding[] {
+  const draft = source.activeWorkflowDraft;
+  const validationInspector = source.workflowDraftValidationInspector;
+  const nodeIds = new Set(draft.nodes.map((node) => node.nodeId));
+  const structuralFindings = validationInspector.structuralChecks
+    .filter((check) => check.status !== "passed")
+    .map((check) => {
+      const targetNodeIds = check.evidenceRefs.filter((nodeId) => nodeIds.has(nodeId));
+      const targetEdgeIds = nodeDesignerEdgeIdsForTargetNodes(draft, targetNodeIds);
+      const targetKind = targetEdgeIds.length > 0 ? "edge" : nodeDesignerTargetKind(targetNodeIds, targetEdgeIds);
+      const targetRefs = nodeDesignerTargetRefs(targetKind, targetNodeIds, targetEdgeIds);
+      return {
+        findingId: `node_designer_graph_review_${check.checkId}`,
+        label: check.label,
+        sourceCheckId: check.checkId,
+        targetKind,
+        status: validationStatusToHandoffStatus(check.status),
+        severity: check.severity,
+        targetRefs,
+        targetSummary: nodeDesignerTargetSummary(targetKind, targetNodeIds, targetEdgeIds),
+        summary: check.summary,
+        reviewerQuestion:
+          "Does this graph finding identify the node or edge context a reviewer should inspect before handoff?",
+        evidenceRefs: [check.checkId, ...targetRefs].slice(0, 8),
+      };
+    });
+  const contractFindings = validationInspector.contractChecks
+    .filter((check) => check.status !== "passed")
+    .map((check) => {
+      const targetNodeIds = nodeDesignerContractTargetNodeIds(draft, check.checkId);
+      const targetEdgeIds = nodeDesignerEdgeIdsForTargetNodes(draft, targetNodeIds);
+      const targetKind = targetNodeIds.length > 0 ? "node" : nodeDesignerTargetKind(targetNodeIds, targetEdgeIds);
+      const targetRefs = nodeDesignerTargetRefs(targetKind, targetNodeIds, targetEdgeIds);
+      return {
+        findingId: `node_designer_graph_review_${check.checkId}`,
+        label: check.label,
+        sourceCheckId: check.checkId,
+        targetKind,
+        status: validationStatusToHandoffStatus(check.status),
+        severity: check.severity,
+        targetRefs,
+        targetSummary: nodeDesignerTargetSummary(targetKind, targetNodeIds, targetEdgeIds),
+        summary: `${check.summary} Missing fields: ${
+          check.missingFields.length > 0 ? check.missingFields.join(", ") : "none"
+        }.`,
+        reviewerQuestion:
+          "Which node contract fields should remain visible before this draft can be reviewed as complete?",
+        evidenceRefs: [check.checkId, ...check.missingFields, ...targetRefs].slice(0, 8),
+      };
+    });
+  const blockedCapabilityFindings = validationInspector.blockedCapabilityChecks.map((check) => ({
+    findingId: `node_designer_graph_review_${check.checkId}`,
+    label: check.label,
+    sourceCheckId: check.checkId,
+    targetKind: "graph" as const,
+    status: "blocked" as const,
+    severity: check.severity,
+    targetRefs: [check.capabilityId],
+    targetSummary: `Graph-level blocked capability: ${check.capabilityId}`,
+    summary: check.summary,
+    reviewerQuestion: "Which missing prerequisite keeps this graph-level capability blocked for the handoff?",
+    evidenceRefs: [check.checkId, check.capabilityId, check.auditRef],
+  }));
+
+  return [...structuralFindings, ...contractFindings, ...blockedCapabilityFindings];
+}
+
+function countNodeDesignerValidationOverlayItems(source: WorkflowReviewHandoffSource): number {
+  const validationInspector = source.workflowDraftValidationInspector;
+  return (
+    validationInspector.structuralChecks.filter((check) => check.status !== "passed").length +
+    validationInspector.contractChecks.filter((check) => check.status !== "passed").length +
+    validationInspector.blockedCapabilityChecks.length
+  );
+}
+
+function countNodeDesignerInspectorFields(draft: WorkflowDraftDesignerDraft): number {
+  return draft.nodes.reduce(
+    (total, node) =>
+      total +
+      9 +
+      node.inputContractFields.length +
+      node.outputContractFields.length +
+      (node.requiresConfirmation ? 1 : 0),
+    0,
+  );
+}
+
+function nodeDesignerValidationEvidenceRefs(source: WorkflowReviewHandoffSource): string[] {
+  const validationInspector = source.workflowDraftValidationInspector;
+  return [
+    ...validationInspector.structuralChecks
+      .filter((check) => check.status !== "passed")
+      .map((check) => check.checkId),
+    ...validationInspector.contractChecks
+      .filter((check) => check.status !== "passed")
+      .map((check) => check.checkId),
+    ...validationInspector.blockedCapabilityChecks.map((check) => check.checkId),
+  ];
+}
+
+function countNodeDesignerGraphReviewFindings(
+  findings: WorkflowReviewHandoffNodeDesignerGraphFinding[],
+  targetKind: WorkflowReviewHandoffNodeDesignerGraphFinding["targetKind"],
+): number {
+  return findings.filter((finding) => finding.targetKind === targetKind).length;
+}
+
+function nodeDesignerContractTargetNodeIds(
+  draft: WorkflowDraftDesignerDraft,
+  checkId: string,
+): string[] {
+  if (checkId === "input_contract_fields") {
+    return draft.nodes
+      .filter((node) => node.lane === "context" || node.inputContractFields.length > 0)
+      .map((node) => node.nodeId);
+  }
+  if (checkId === "output_contract_fields") {
+    return draft.nodes
+      .filter(
+        (node) =>
+          node.lane === "output" ||
+          node.outputContractFields.length > 0 ||
+          node.outputMappingSummary.trim().length > 0,
+      )
+      .map((node) => node.nodeId);
+  }
+  return [];
+}
+
+function nodeDesignerEdgeIdsForTargetNodes(
+  draft: WorkflowDraftDesignerDraft,
+  targetNodeIds: string[],
+): string[] {
+  const targetNodeIdSet = new Set(targetNodeIds);
+  return draft.edges
+    .filter((edge) => targetNodeIdSet.has(edge.fromNodeId) || targetNodeIdSet.has(edge.toNodeId))
+    .map((edge) => edge.edgeId);
+}
+
+function nodeDesignerTargetKind(
+  nodeIds: string[],
+  edgeIds: string[],
+): WorkflowReviewHandoffNodeDesignerGraphFinding["targetKind"] {
+  if (edgeIds.length > 0) {
+    return "edge";
+  }
+  if (nodeIds.length > 0) {
+    return "node";
+  }
+  return "graph";
+}
+
+function nodeDesignerTargetRefs(
+  targetKind: WorkflowReviewHandoffNodeDesignerGraphFinding["targetKind"],
+  nodeIds: string[],
+  edgeIds: string[],
+): string[] {
+  if (targetKind === "edge") {
+    return [...edgeIds, ...nodeIds].slice(0, 8);
+  }
+  if (targetKind === "node") {
+    return nodeIds.slice(0, 8);
+  }
+  return ["graph_level_review"];
+}
+
+function nodeDesignerTargetSummary(
+  targetKind: WorkflowReviewHandoffNodeDesignerGraphFinding["targetKind"],
+  nodeIds: string[],
+  edgeIds: string[],
+): string {
+  if (targetKind === "edge") {
+    return `${edgeIds.length} related edges / ${nodeIds.length} related nodes`;
+  }
+  if (targetKind === "node") {
+    return `${nodeIds.length} related nodes`;
+  }
+  return "Graph-level review item";
+}
+
 function buildRecipients(source: WorkflowReviewHandoffSource): WorkflowReviewHandoffRecipient[] {
   return [
     {
@@ -401,7 +795,10 @@ function buildRecipients(source: WorkflowReviewHandoffSource): WorkflowReviewHan
   ];
 }
 
-function buildKeyFindings(source: WorkflowReviewHandoffSource): WorkflowReviewHandoffFinding[] {
+function buildKeyFindings(
+  source: WorkflowReviewHandoffSource,
+  nodeDesignerReviewRecord: WorkflowReviewHandoffNodeDesignerReviewRecord,
+): WorkflowReviewHandoffFinding[] {
   const scenarioStage = requireStage(source.workflowWorkspaceReview.reviewStages, "stage_scenario_context");
   const validationStage = requireStage(source.workflowWorkspaceReview.reviewStages, "stage_draft_validation");
   const planStage = requireStage(source.workflowWorkspaceReview.reviewStages, "stage_execution_plan");
@@ -446,6 +843,24 @@ function buildKeyFindings(source: WorkflowReviewHandoffSource): WorkflowReviewHa
       humanReviewQuestion: planStage.reviewQuestion,
     },
     {
+      findingId: "node_designer_review",
+      label: "Node designer review",
+      sourceSurface: "node_designer",
+      status: nodeDesignerReviewRecord.canRenderNodeDesignerReviewRecord ? "review_required" : "blocked",
+      summary: `Node Designer handoff carries ${nodeDesignerReviewRecord.sections.length} canvas review sections, ${nodeDesignerReviewRecord.positionedNodeCount} UI-only positions, ${nodeDesignerReviewRecord.defaultLayoutNodeCount} default positions, ${nodeDesignerReviewRecord.validationOverlayCount} overlay items, and ${nodeDesignerReviewRecord.graphReviewFindings.length} graph review findings.`,
+      evidenceRef: nodeDesignerReviewRecord.recordId,
+      humanReviewQuestion: "Does the canvas review record make visual layout, overlay, inspector state, and saved draft mapping boundaries clear?",
+    },
+    {
+      findingId: "node_designer_graph_review",
+      label: "Node designer graph review",
+      sourceSurface: "node_designer",
+      status: nodeDesignerReviewRecord.canRenderNodeDesignerReviewRecord ? "review_required" : "blocked",
+      summary: `Graph review groups ${nodeDesignerReviewRecord.nodeTargetedFindingCount} node-targeted, ${nodeDesignerReviewRecord.edgeTargetedFindingCount} edge-targeted, and ${nodeDesignerReviewRecord.graphLevelFindingCount} graph-level findings from validation overlay detail.`,
+      evidenceRef: "node_designer_graph_review_findings",
+      humanReviewQuestion: "Can the reviewer tell which nodes, edges, or graph-level blockers need attention before handoff?",
+    },
+    {
       findingId: "runtime_readiness",
       label: "Runtime readiness",
       sourceSurface: "readiness",
@@ -484,7 +899,10 @@ function buildKeyFindings(source: WorkflowReviewHandoffSource): WorkflowReviewHa
   ];
 }
 
-function buildEvidenceChecklist(source: WorkflowReviewHandoffSource): WorkflowReviewHandoffEvidence[] {
+function buildEvidenceChecklist(
+  source: WorkflowReviewHandoffSource,
+  nodeDesignerReviewRecord: WorkflowReviewHandoffNodeDesignerReviewRecord,
+): WorkflowReviewHandoffEvidence[] {
   const routeEvidence = source.workflowUserWorkspaceHome.routeEvidence.map((evidence) =>
     evidenceFromRoute(evidence),
   );
@@ -540,6 +958,17 @@ function buildEvidenceChecklist(source: WorkflowReviewHandoffSource): WorkflowRe
       auditRef: source.workflowRuntimeReadinessInspector.auditRef,
       status: "blocked",
       summary: "Runtime readiness inspector supplies active draft prerequisites, blockers, and implementation gates.",
+    },
+    {
+      evidenceId: "node_designer_review_handoff",
+      label: "Node designer review handoff",
+      sourceSurface: "node_designer",
+      routeOrPageId: "workflow-node-designer",
+      requestId: source.activeWorkflowDraft.routeMetadata.requestId,
+      auditRef: source.activeWorkflowDraft.routeMetadata.auditRef,
+      status: nodeDesignerReviewRecord.canRenderNodeDesignerReviewRecord ? "review_required" : "blocked",
+      summary:
+        "Node Designer supplies canvas layout, validation overlay, inspector state, and saved draft mapping review without persistence or runtime unlock.",
     },
     {
       evidenceId: "blocked_action_preview",
@@ -641,6 +1070,13 @@ function buildBoundaryLocks(source: WorkflowReviewHandoffSource): WorkflowReview
       label: "Runtime unlock",
       status: "locked",
       summary: "The handoff does not unlock workflow execution, tool execution, writeback, replay, or resume.",
+    },
+    {
+      boundaryId: "node_designer_no_persisted_runtime_state",
+      label: "Node Designer state",
+      status: "locked",
+      summary:
+        "Node Designer layout, derived edge kind, validation overlay, and inspector state remain review context only; they do not create persisted runtime state.",
     },
   ];
 
