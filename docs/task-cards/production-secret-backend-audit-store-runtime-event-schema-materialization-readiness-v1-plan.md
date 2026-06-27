@@ -1,0 +1,59 @@
+# Production Secret Backend Audit Store Runtime Event Schema Materialization Readiness v1 计划
+
+更新时间：2026-06-27
+
+## 背景
+
+`Production Secret Backend Audit Store Writer Runtime Boundary Readiness v1` 已固定 future writer runtime 的 metadata-only writer input / result boundary，但 audit store runtime task card 仍被 runtime event schema、delivery runtime、idempotency runtime、approval、credential handle、backend health 和 no leakage runtime 阻塞。
+
+本批只推进 `production-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1`，把 future runtime event schema materialization 的职责边界、schema version pin、event kind allowlist source、required / optional fields source、writer input compatibility、禁止 secret material / payload、failure mapping、sanitized diagnostics、no fallback、no side effects 和 artifact guard 固定为可检查证据。
+
+结论状态为 `audit_store_runtime_event_schema_materialization_readiness_defined`。
+
+## 范围
+
+- 新增平台专题 `docs/platform/production-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1.md`。
+- 新增 fixture `scripts/checks/fixtures/production-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1.json`。
+- 新增 checker `scripts/check-production-ops-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1.py`。
+- 同步 `production-ops-secret-backend-implementation-readiness.json`、implementation readiness checker 和 `scripts/check-repo.py`。
+- 同步 current focus、platform 入口、features 入口、task card 入口、scripts 入口、integration contracts、implementation task card 和本周周志。
+
+## Boundary Requirements
+
+本批必须固定：
+
+- runtime event schema materialization readiness 为 `defined_static_only`。
+- runtime event schema implementation task card 仍为 `not_created`。
+- runtime event schema artifact 仍为 `not_created`。
+- schema materialization owner 只负责 future schema artifact 准入边界，不负责 writer runtime、delivery execution、idempotency runtime、durable backend selection 或 audit event write。
+- schema version 必须固定为 static contract version reference，不能从 raw payload、raw event、writer output 或 request body 派生。
+- event kind allowlist 与 required / optional fields 只能消费 static contract / event schema readiness。
+- writer input compatibility 只允许 reference / status / policy version / sanitized diagnostic。
+- forbidden material 覆盖 raw secret、credential payload、provider raw URL、DSN、cloud credential、raw request / response / audit / writer / event payload、payload hash、schema payload 和 secret-derived hash。
+- failure mapping 必须 fail closed。
+- sanitized diagnostics 只输出 status、failure code、failure boundary、request / audit reference 和 policy version。
+- no fallback 禁止 memory store、fake resolver、developer env、fixture credential、mock provider、sample、历史证据、runtime schema sample 或 payload-derived schema 替代 runtime event schema materialization。
+- no side effects 必须保持所有 secret read、provider call、cloud call、DB call、audit write、runtime schema creation、writer runtime creation、delivery、runtime creation 和 repository enablement 计数为 0。
+- artifact guard 只允许新增本批四个静态证据文件。
+
+## 停止线
+
+- 不创建 audit store runtime implementation task card。
+- 不创建 runtime event schema implementation task card。
+- 不创建 writer runtime implementation task card。
+- 不创建 runtime event schema artifact、runtime schema、writer type、audit store runtime、audit writer runtime、audit event writer、delivery runtime、idempotency runtime、duplicate detector runtime 或 retry executor。
+- 不写 audit event，不创建 writer result fixture，不执行 delivery，不持久化 delivery result。
+- 不选择或启用 durable audit backend。
+- 不调用 provider、云 secret 服务、数据库、production API 或网络服务。
+- 不读取真实 secret、developer env secret、credential payload、DSN、provider raw URL、backend endpoint URL、raw payload hash、raw event payload、schema payload 或 secret-derived hash。
+- 不创建 production resolver runtime、cloud secret client、credential handle runtime、operator approval runtime、backend health runtime、no leakage smoke runtime、DB provider、SQL migration、schema marker、repository mode runtime 或 public production API。
+
+## 验证
+
+```bash
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-writer-runtime-boundary-readiness-v1.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-implementation-readiness.py
+git diff --check
+./scripts/check-repo.sh --fast
+```

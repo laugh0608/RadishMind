@@ -94,6 +94,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-writer-runtime-boundary-readiness": (
         "audit_store_writer_runtime_boundary_readiness_defined"
     ),
+    "audit-store-runtime-event-schema-materialization-readiness": (
+        "audit_store_runtime_event_schema_materialization_readiness_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -189,6 +192,8 @@ REQUIRED_DOC_REFERENCES = {
         "audit_store_delivery_idempotency_runtime_boundary_readiness_defined",
         "production-secret-backend-audit-store-runtime-implementation-entry-refresh-v3",
         "audit_store_runtime_implementation_entry_refresh_v3_defined",
+        "production-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1",
+        "audit_store_runtime_event_schema_materialization_readiness_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
         "resolver_backend_health_boundary_readiness_defined",
         "production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1",
@@ -504,6 +509,36 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     require(
         target.get("audit_writer_ownership_status") == "separated_static_boundary",
         "audit writer ownership status drifted",
+    )
+    require(
+        target.get("audit_store_runtime_event_schema_materialization_readiness_status")
+        == "defined_without_runtime_schema",
+        "audit store runtime event schema materialization readiness status drifted",
+    )
+    require(
+        target.get("audit_runtime_event_schema_materialization_owner_status") == "static_boundary_defined",
+        "audit runtime event schema materialization owner status drifted",
+    )
+    require(
+        target.get("audit_runtime_event_schema_artifact_status") == "not_created",
+        "audit runtime event schema artifact status drifted",
+    )
+    require(
+        target.get("audit_runtime_event_schema_version_pin_status") == "static_contract_version_required",
+        "audit runtime event schema version pin status drifted",
+    )
+    require(
+        target.get("audit_runtime_event_kind_allowlist_source_status") == "static_contract_reference_only",
+        "audit runtime event kind allowlist source status drifted",
+    )
+    require(
+        target.get("audit_runtime_required_optional_fields_source_status") == "static_contract_reference_only",
+        "audit runtime required optional fields source status drifted",
+    )
+    require(
+        target.get("audit_runtime_schema_writer_input_compatibility_status")
+        == "metadata_only_static_boundary_defined",
+        "audit runtime schema writer input compatibility status drifted",
     )
     require(
         target.get("audit_store_delivery_idempotency_runtime_boundary_readiness_status")
@@ -1117,6 +1152,22 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "audit-store-runtime-event-schema-materialization-readiness":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1.md",
+                (
+                    "docs/task-cards/"
+                    "production-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1-plan.md"
+                ),
+                (
+                    "scripts/checks/fixtures/"
+                    "production-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1.json"
+                ),
+                "scripts/check-production-ops-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
         if slice_id == "resolver-backend-health-boundary-readiness":
             evidence = set(planned[slice_id].get("evidence") or [])
             for path in {
@@ -1190,6 +1241,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "audit store runtime implementation entry refresh v3 blocked before task card",
         "audit store durable backend boundary readiness defined without backend selection",
         "audit store writer runtime boundary readiness defined without writer runtime",
+        "audit store runtime event schema materialization readiness defined without runtime schema",
         "resolver backend health boundary readiness defined without backend health runtime",
         "resolver backend health runtime implementation entry review blocked before task card",
         "resolver backend health runtime implementation entry refresh blocked before task card",
@@ -1236,6 +1288,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-audit-store-runtime-implementation-entry-refresh-v3.py",
         "scripts/check-production-ops-secret-backend-audit-store-durable-backend-boundary-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-audit-store-writer-runtime-boundary-readiness-v1.py",
+        "scripts/check-production-ops-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-secret-reference-contract.py",
@@ -1332,6 +1385,9 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/platform/production-secret-backend-audit-store-writer-runtime-boundary-readiness-v1.md",
         "docs/task-cards/production-secret-backend-audit-store-writer-runtime-boundary-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-audit-store-writer-runtime-boundary-readiness-v1.json",
+        "docs/platform/production-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1.md",
+        "docs/task-cards/production-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1.json",
         "docs/platform/production-secret-backend-resolver-backend-health-boundary-readiness-v1.md",
         "docs/task-cards/production-secret-backend-resolver-backend-health-boundary-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-resolver-backend-health-boundary-readiness-v1.json",
@@ -1527,6 +1583,14 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         )
         in check_repo,
         "check-repo.py must run audit store writer runtime boundary readiness check",
+    )
+    require(
+        (
+            'run_python_script("'
+            'check-production-ops-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1.py", [])'
+        )
+        in check_repo,
+        "check-repo.py must run audit store runtime event schema materialization readiness check",
     )
     require(
         'run_python_script("check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py", [])'
