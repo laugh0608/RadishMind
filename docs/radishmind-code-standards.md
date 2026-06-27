@@ -1,6 +1,6 @@
 # RadishMind 代码规范
 
-更新时间：2026-06-23
+更新时间：2026-06-27
 
 ## 文档目的
 
@@ -83,6 +83,7 @@
 - 内部实现、检查逻辑、fixture helper 和较长实现应放入浅层分类目录，例如 `scripts/checks/`、`scripts/eval/`。
 - 高风险边界、协议准入、生产声明、外部 provider 风险或 auth / database / repository 入口评审类专项检查器，优先放入 `scripts/checks/control_plane/`；配套 fixture 放入 `scripts/checks/fixtures/`，并在 `scripts/check-repo.py` 与 `scripts/README.md` 注册为可复验入口。
 - 新增 checker / fixture 应使用稳定短 ID、明确状态锚点和可审计 failure taxonomy；auth、repository、secret、database、artifact 相关 checker 必须显式检查 no fallback、no side effects、artifact guard 和停止线，不用长路径或长自然语言文件名承载语义。
+- 当多个 checker 共同维护同一 runtime 前置链时，应同步更新共享 readiness / implementation readiness fixture 与 checker，让聚合状态消费最新单项 blocker；单项 checker 只能证明对应边界已定义或 entry refresh 已完成，不能暗示 runtime、task card、provider、database、repository mode 或 public API 已解锁。
 - 新脚本必须有清晰输入、输出和失败语义；不要依赖调用者猜测副作用。
 - 会写入 committed 资产的脚本，应支持 check / dry-run 或 summary 校验路径。
 - 长时间运行、加载本地模型、下载数据或显著占用资源的脚本，不作为默认自动验证入口。
