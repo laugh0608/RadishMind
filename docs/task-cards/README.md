@@ -218,7 +218,8 @@
 32. [`Production Secret Backend Real Resolver Runtime Implementation Entry Refresh` v1 计划](production-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1-plan.md)（`production-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1` / `real_resolver_runtime_implementation_entry_refresh_defined`）
 33. [`Production Secret Backend Production Resolver Runtime Blocker Consolidation` v1 计划](production-secret-backend-production-resolver-runtime-blocker-consolidation-v1-plan.md)（`production-secret-backend-production-resolver-runtime-blocker-consolidation-v1` / `production_resolver_runtime_blocker_consolidation_defined`）
 34. [`Production Secret Backend Credential Handle Runtime Implementation Entry Refresh` v1 计划](production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1-plan.md)（`production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1` / `credential_handle_runtime_implementation_entry_refresh_defined`）
-35. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
+35. [`Production Secret Backend Operator Approval Runtime Implementation Entry Refresh` v1 计划](production-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1-plan.md)（`production-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1` / `operator_approval_runtime_implementation_entry_refresh_defined`）
+36. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
 
 ## Model Adaptation
 
