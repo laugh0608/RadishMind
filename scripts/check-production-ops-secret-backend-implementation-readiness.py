@@ -89,6 +89,9 @@ REQUIRED_PLANNED_SLICES = {
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
     ),
+    "resolver-backend-health-runtime-implementation-entry-refresh": (
+        "resolver_backend_health_runtime_implementation_entry_refresh_defined"
+    ),
     "operator-approval-runtime-implementation-entry-review": (
         "operator_approval_runtime_implementation_entry_review_defined"
     ),
@@ -179,6 +182,8 @@ REQUIRED_DOC_REFERENCES = {
         "resolver_backend_health_boundary_readiness_defined",
         "production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1",
         "resolver_backend_health_runtime_implementation_entry_review_defined",
+        "production-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1",
+        "resolver_backend_health_runtime_implementation_entry_refresh_defined",
         "services/platform/internal/secretbackend/fake_resolver.go",
         "contracts/production-secret-reference.schema.json",
         "production-secret-reference-basic.json",
@@ -243,6 +248,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-review-v1.py",
         "check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1.py",
         "check-production-ops-secret-backend-cloud-secret-service-selection-readiness-v1.py",
+        "check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1.py",
         "check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py",
         "check-production-ops-secret-backend-audit-store-runtime-implementation-entry-review-v1.py",
         "check-production-ops-secret-backend-audit-store-contract-event-schema-readiness-v1.py",
@@ -522,6 +528,11 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("resolver_backend_health_runtime_implementation_entry_review_status")
         == "blocked_before_runtime_task_card",
         "resolver backend health runtime implementation entry review status drifted",
+    )
+    require(
+        target.get("resolver_backend_health_runtime_implementation_entry_refresh_status")
+        == "blocked_before_runtime_task_card",
+        "resolver backend health runtime implementation entry refresh status drifted",
     )
     require(target.get("backend_health_runtime_status") == "not_created", "backend health runtime must remain not_created")
     require(
@@ -940,6 +951,22 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "resolver-backend-health-runtime-implementation-entry-refresh":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1.md",
+                (
+                    "docs/task-cards/"
+                    "production-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1-plan.md"
+                ),
+                (
+                    "scripts/checks/fixtures/"
+                    "production-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1.json"
+                ),
+                "scripts/check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
         if slice_id == "audit-store-handoff-readiness":
             evidence = set(planned[slice_id].get("evidence") or [])
             for path in {
@@ -1081,6 +1108,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "audit store runtime implementation entry refresh v3 blocked before task card",
         "resolver backend health boundary readiness defined without backend health runtime",
         "resolver backend health runtime implementation entry review blocked before task card",
+        "resolver backend health runtime implementation entry refresh blocked before task card",
     }:
         require(required in validation, f"validation strategy missing: {required}")
 
@@ -1113,6 +1141,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1.py",
         "scripts/check-production-ops-secret-backend-cloud-secret-service-selection-readiness-v1.py",
+        "scripts/check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1.py",
         "scripts/check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-audit-store-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-ops-secret-backend-audit-store-contract-event-schema-readiness-v1.py",
@@ -1183,6 +1212,9 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/platform/production-secret-backend-cloud-secret-service-selection-readiness-v1.md",
         "docs/task-cards/production-secret-backend-cloud-secret-service-selection-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-cloud-secret-service-selection-readiness-v1.json",
+        "docs/platform/production-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1.md",
+        "docs/task-cards/production-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1.json",
         "docs/platform/production-secret-backend-audit-store-handoff-readiness-v1.md",
         "docs/task-cards/production-secret-backend-audit-store-handoff-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-audit-store-handoff-readiness-v1.json",
@@ -1335,6 +1367,14 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-cloud-secret-service-selection-readiness-v1.py", [])'
         in check_repo,
         "check-repo.py must run cloud secret service selection readiness check",
+    )
+    require(
+        (
+            'run_python_script("'
+            'check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1.py", [])'
+        )
+        in check_repo,
+        "check-repo.py must run resolver backend health runtime implementation entry refresh check",
     )
     require(
         'run_python_script("check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py", [])'

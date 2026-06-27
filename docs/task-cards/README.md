@@ -220,7 +220,8 @@
 34. [`Production Secret Backend Credential Handle Runtime Implementation Entry Refresh` v1 计划](production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1-plan.md)（`production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1` / `credential_handle_runtime_implementation_entry_refresh_defined`）
 35. [`Production Secret Backend Operator Approval Runtime Implementation Entry Refresh` v1 计划](production-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1-plan.md)（`production-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1` / `operator_approval_runtime_implementation_entry_refresh_defined`）
 36. [`Production Secret Backend Cloud Secret Service Selection Readiness` v1 计划](production-secret-backend-cloud-secret-service-selection-readiness-v1-plan.md)（`production-secret-backend-cloud-secret-service-selection-readiness-v1` / `cloud_secret_service_selection_readiness_defined`）
-37. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
+37. [`Production Secret Backend Resolver Backend Health Runtime Implementation Entry Refresh` v1 计划](production-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1-plan.md)（`production-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1` / `resolver_backend_health_runtime_implementation_entry_refresh_defined`）
+38. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
 
 ## Model Adaptation
 
