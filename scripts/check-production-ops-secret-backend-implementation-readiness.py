@@ -15,6 +15,7 @@ REQUIRED_FORBIDDEN_CLAIMS = {
     "production_ready",
     "production_secret_backend_ready",
     "cloud_secret_service_ready",
+    "cloud_secret_service_selected",
     "real_secret_written",
     "resolver_implemented",
     "fake_resolver_implemented",
@@ -94,6 +95,7 @@ REQUIRED_PLANNED_SLICES = {
     "operator-approval-runtime-implementation-entry-refresh": (
         "operator_approval_runtime_implementation_entry_refresh_defined"
     ),
+    "cloud-secret-service-selection-readiness": "cloud_secret_service_selection_readiness_defined",
 }
 
 REQUIRED_BLOCKED = {
@@ -157,6 +159,8 @@ REQUIRED_DOC_REFERENCES = {
         "operator_approval_runtime_implementation_entry_review_defined",
         "production-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1",
         "operator_approval_runtime_implementation_entry_refresh_defined",
+        "production-secret-backend-cloud-secret-service-selection-readiness-v1",
+        "cloud_secret_service_selection_readiness_defined",
         "production-secret-backend-audit-store-handoff-readiness-v1",
         "audit_store_handoff_readiness_defined",
         "production-secret-backend-audit-store-runtime-implementation-entry-review-v1",
@@ -238,6 +242,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py",
         "check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-review-v1.py",
         "check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1.py",
+        "check-production-ops-secret-backend-cloud-secret-service-selection-readiness-v1.py",
         "check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py",
         "check-production-ops-secret-backend-audit-store-runtime-implementation-entry-review-v1.py",
         "check-production-ops-secret-backend-audit-store-contract-event-schema-readiness-v1.py",
@@ -284,6 +289,11 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     target = fixture.get("implementation_target") or {}
     require(target.get("first_backend") == "external_reference_resolver_adapter", "unexpected first backend")
     require(target.get("cloud_vendor_specific_backend") == "not_selected", "cloud vendor backend must not be selected")
+    require(
+        target.get("cloud_secret_service_selection_readiness_status")
+        == "defined_without_cloud_backend_selection",
+        "cloud secret service selection readiness status drifted",
+    )
     require(target.get("committed_secret_storage") == "forbidden", "committed secret storage must be forbidden")
     require(
         target.get("production_secret_backend_status") == "not_satisfied",
@@ -920,6 +930,16 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "cloud-secret-service-selection-readiness":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-cloud-secret-service-selection-readiness-v1.md",
+                "docs/task-cards/production-secret-backend-cloud-secret-service-selection-readiness-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-cloud-secret-service-selection-readiness-v1.json",
+                "scripts/check-production-ops-secret-backend-cloud-secret-service-selection-readiness-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
         if slice_id == "audit-store-handoff-readiness":
             evidence = set(planned[slice_id].get("evidence") or [])
             for path in {
@@ -1051,6 +1071,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "operator approval runtime evidence readiness defined without runtime execution",
         "operator approval runtime implementation entry review blocked before task card",
         "operator approval runtime implementation entry refresh blocked before task card",
+        "cloud secret service selection readiness defined without cloud backend selection",
         "audit store handoff readiness defined without store runtime",
         "audit store runtime implementation entry review blocked before task card",
         "audit store contract event schema readiness defined without store runtime",
@@ -1091,6 +1112,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1.py",
+        "scripts/check-production-ops-secret-backend-cloud-secret-service-selection-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-audit-store-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-ops-secret-backend-audit-store-contract-event-schema-readiness-v1.py",
@@ -1158,6 +1180,9 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/platform/production-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1.md",
         "docs/task-cards/production-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1.json",
+        "docs/platform/production-secret-backend-cloud-secret-service-selection-readiness-v1.md",
+        "docs/task-cards/production-secret-backend-cloud-secret-service-selection-readiness-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-cloud-secret-service-selection-readiness-v1.json",
         "docs/platform/production-secret-backend-audit-store-handoff-readiness-v1.md",
         "docs/task-cards/production-secret-backend-audit-store-handoff-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-audit-store-handoff-readiness-v1.json",
@@ -1305,6 +1330,11 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1.py", [])'
         in check_repo,
         "check-repo.py must run operator approval runtime implementation entry refresh check",
+    )
+    require(
+        'run_python_script("check-production-ops-secret-backend-cloud-secret-service-selection-readiness-v1.py", [])'
+        in check_repo,
+        "check-repo.py must run cloud secret service selection readiness check",
     )
     require(
         'run_python_script("check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py", [])'
