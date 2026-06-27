@@ -64,6 +64,9 @@ REQUIRED_PLANNED_SLICES = {
     "real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review": (
         "real_resolver_no_secret_leakage_smoke_runtime_implementation_entry_review_defined"
     ),
+    "real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh": (
+        "real_resolver_no_secret_leakage_smoke_runtime_implementation_entry_refresh_defined"
+    ),
     "credential-handle-runtime-boundary-readiness": "credential_handle_runtime_boundary_readiness_defined",
     "credential-handle-runtime-implementation-entry-review": (
         "credential_handle_runtime_implementation_entry_review_defined"
@@ -150,6 +153,8 @@ REQUIRED_DOC_REFERENCES = {
         "real_resolver_no_secret_leakage_smoke_runtime_strategy_defined",
         "production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1",
         "real_resolver_no_secret_leakage_smoke_runtime_implementation_entry_review_defined",
+        "production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh-v1",
+        "real_resolver_no_secret_leakage_smoke_runtime_implementation_entry_refresh_defined",
         "production-secret-backend-credential-handle-runtime-boundary-readiness-v1",
         "credential_handle_runtime_boundary_readiness_defined",
         "production-secret-backend-credential-handle-runtime-implementation-entry-review-v1",
@@ -241,6 +246,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1.py",
         "check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py",
         "check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py",
+        "check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh-v1.py",
         "check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py",
         "check-production-ops-secret-backend-credential-handle-runtime-implementation-entry-review-v1.py",
         "check-production-ops-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.py",
@@ -389,6 +395,11 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("real_resolver_no_secret_leakage_smoke_runtime_implementation_entry_review_status")
         == "blocked_before_runtime_task_card",
         "real resolver no leakage smoke runtime implementation entry review status drifted",
+    )
+    require(
+        target.get("real_resolver_no_secret_leakage_smoke_runtime_implementation_entry_refresh_status")
+        == "blocked_before_runtime_task_card",
+        "real resolver no leakage smoke runtime implementation entry refresh status drifted",
     )
     require(
         target.get("real_resolver_no_secret_leakage_smoke_runtime_status") == "not_created",
@@ -1076,6 +1087,16 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh-v1.md",
+                "docs/task-cards/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh-v1.json",
+                "scripts/check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
 
     blocked = {str(item.get("id")): item for item in fixture.get("blocked_conditions") or [] if isinstance(item, dict)}
     missing_blocked = sorted(set(REQUIRED_BLOCKED) - set(blocked))
@@ -1095,6 +1116,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "credential handle runtime implementation entry review blocked before task card",
         "credential handle runtime implementation entry refresh blocked before task card",
         "real resolver no leakage smoke runtime implementation entry review blocked before task card",
+        "real resolver no leakage smoke runtime implementation entry refresh blocked before task card",
         "operator approval runtime evidence readiness defined without runtime execution",
         "operator approval runtime implementation entry review blocked before task card",
         "operator approval runtime implementation entry refresh blocked before task card",
@@ -1134,6 +1156,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py",
         "scripts/check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1.py",
+        "scripts/check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh-v1.py",
         "scripts/check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py",
         "scripts/check-production-ops-secret-backend-credential-handle-runtime-implementation-entry-review-v1.py",
         "scripts/check-production-ops-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.py",
@@ -1191,6 +1214,9 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/platform/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1.md",
         "docs/task-cards/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1.json",
+        "docs/platform/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh-v1.md",
+        "docs/task-cards/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh-v1-plan.md",
+        "scripts/checks/fixtures/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh-v1.json",
         "docs/platform/production-secret-backend-credential-handle-runtime-boundary-readiness-v1.md",
         "docs/task-cards/production-secret-backend-credential-handle-runtime-boundary-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-boundary-readiness-v1.json",
@@ -1332,6 +1358,11 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1.py", [])'
         in check_repo,
         "check-repo.py must run real resolver no leakage smoke runtime implementation entry review check",
+    )
+    require(
+        'run_python_script("check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh-v1.py", [])'
+        in check_repo,
+        "check-repo.py must run real resolver no leakage smoke runtime implementation entry refresh check",
     )
     require(
         'run_python_script("check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py", [])'

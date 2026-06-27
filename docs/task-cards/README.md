@@ -221,7 +221,8 @@
 35. [`Production Secret Backend Operator Approval Runtime Implementation Entry Refresh` v1 计划](production-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1-plan.md)（`production-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1` / `operator_approval_runtime_implementation_entry_refresh_defined`）
 36. [`Production Secret Backend Cloud Secret Service Selection Readiness` v1 计划](production-secret-backend-cloud-secret-service-selection-readiness-v1-plan.md)（`production-secret-backend-cloud-secret-service-selection-readiness-v1` / `cloud_secret_service_selection_readiness_defined`）
 37. [`Production Secret Backend Resolver Backend Health Runtime Implementation Entry Refresh` v1 计划](production-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1-plan.md)（`production-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1` / `resolver_backend_health_runtime_implementation_entry_refresh_defined`）
-38. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
+38. [`Production Secret Backend Real Resolver No Secret Leakage Smoke Runtime Implementation Entry Refresh` v1 计划](production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh-v1-plan.md)（`production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh-v1` / `real_resolver_no_secret_leakage_smoke_runtime_implementation_entry_refresh_defined`）
+39. [`Provider Runtime & Health` v1 计划](provider-runtime-health-v1-plan.md)
 
 ## Model Adaptation
 
