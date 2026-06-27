@@ -1514,6 +1514,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-production-ops-secret-backend-audit-store-writer-runtime-boundary-readiness-v1.py", [])
     run_python_script("check-production-ops-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1.py", [])
     run_python_script("check-production-ops-secret-backend-audit-store-delivery-runtime-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-audit-store-idempotency-runtime-readiness-v1.py", [])
     run_python_script("check-production-ops-startup-supervisor-boundary.py", [])
     run_python_script("check-production-ops-environment-isolation-boundary.py", [])
     run_python_script("check-production-ops-console-package-smoke.py", [])
