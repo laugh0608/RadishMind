@@ -224,7 +224,7 @@
 
 1. 把后续推进从 gate-driven 调整为 feature-driven：先更新 `docs/features/` 中对应功能文档，再决定实现批次、测试和必要门禁。
 2. 已完成的 Workflow review surface、Model Gateway evidence、Admin readiness、Image Path metadata-only runtime integration 和 Control Plane durable read foundation 继续作为证据保留；后续不默认继续扩同层只读面板或 gate-only 任务。
-3. 下一批开发目标默认从 `Workflow / Agent Runtime` / Production Ops 的当前阻塞项中选择一个：若继续 saved draft durable store，上游优先推进 token validation schema / auth middleware runtime entry review 或 production resolver runtime blocker consolidation；若继续 secret backend，再在 audit store runtime、operator approval runtime、credential handle runtime、backend health runtime 或 no leakage smoke runtime 的 implementation entry review / refresh 中择一。不得直接启用 repository mode、production resolver runtime、backend health runtime、production API、connection lifecycle runtime、connection smoke runtime 或执行链路。
+3. 下一批开发目标默认回到 `Workflow / Agent Runtime` 的 `Saved Workflow Draft v1` 功能专题，复评 repository mode runtime 是否仍被 auth middleware / membership adapter、DB provider、schema marker runtime、production resolver runtime、audit store runtime 和 no leakage smoke runtime 阻塞；若继续 secret backend，则优先做 production resolver runtime implementation entry refresh，而不是继续扩 audit store 同层 readiness。不得直接启用 repository mode、production resolver runtime、backend health runtime、production API、connection lifecycle runtime、connection smoke runtime 或执行链路。
 4. 普通展示改动只在真实阅读缺口出现时修正现有 surface / fixture / 文档；只有新增 API、执行边界、生产声明、schema / 数据格式、外部 provider 风险或高风险能力时才新增专项 gate。
 5. 继续把 Production Ops、真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有明确运行或实验窗口前不重开。
 6. 继续维持上层项目接入前置条件总表和产品机会池候选，不提前细化不存在的真实接线；`RadishFlow` / `Radish` 不是 RadishMind 产品主线的阻塞条件。
