@@ -23,6 +23,10 @@ EXPECTED_DEPENDENCIES = {
         "scripts/checks/fixtures/production-secret-backend-audit-store-runtime-implementation-entry-refresh-v4.json",
         "audit_store_runtime_implementation_entry_refresh_v4_defined",
     ),
+    "production-secret-backend-audit-store-runtime-blocker-matrix-v1": (
+        "scripts/checks/fixtures/production-secret-backend-audit-store-runtime-blocker-matrix-v1.json",
+        "audit_store_runtime_blocker_matrix_defined",
+    ),
     "production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1": (
         "scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.json",
         "credential_handle_runtime_implementation_entry_refresh_defined",
@@ -83,7 +87,7 @@ EXPECTED_BOUNDARY = {
     "cloud_secret_client_status": "not_created",
     "durable_audit_backend_status": "not_selected",
     "audit_writer_runtime_status": "not_created",
-    "runtime_event_schema_artifact_status": "not_created",
+    "runtime_event_schema_artifact_status": "implemented_static_schema_artifact",
     "delivery_runtime_status": "not_created",
     "idempotency_runtime_status": "not_created",
     "credential_handle_runtime_status": "not_created",
@@ -126,7 +130,7 @@ EXPECTED_GATES = {
     "audit_store_runtime": "audit_store_runtime_task_card_still_blocked_before_runtime_task_card",
     "durable_audit_backend": "not_selected",
     "audit_writer_runtime": "not_created",
-    "runtime_event_schema_artifact": "not_created",
+    "runtime_event_schema_artifact": "implemented_static_schema_artifact",
     "delivery_runtime": "not_created",
     "idempotency_runtime": "not_created",
     "credential_handle_runtime": "credential_handle_runtime_task_card_still_blocked_after_refresh",
@@ -147,7 +151,7 @@ EXPECTED_REQUIREMENTS = {
     "audit_store_runtime_entry_must_no_longer_be_blocked",
     "durable_audit_backend_must_be_selected_by_separate_task",
     "audit_writer_runtime_must_exist",
-    "runtime_event_schema_artifact_must_exist",
+    "runtime_event_schema_artifact_must_remain_metadata_only_until_writer_delivery_idempotency_exist",
     "delivery_runtime_must_exist",
     "idempotency_runtime_must_exist",
     "credential_handle_runtime_entry_must_no_longer_be_blocked",
@@ -227,6 +231,7 @@ EXPECTED_ZERO_COUNTERS = {
 
 EXPECTED_REQUIRED_CHECKS = {
     "run production resolver runtime implementation entry refresh v2 checker",
+    "run audit store runtime blocker matrix checker",
     "run audit store runtime implementation entry refresh v4 checker",
     "run production resolver runtime blocker consolidation checker",
     "run credential handle runtime implementation entry refresh checker",
@@ -410,6 +415,23 @@ def assert_prior_evidence_alignment() -> None:
         require(audit_boundary.get(field) == expected, f"audit v4 {field} drifted")
     require(audit_boundary.get("runtime_task_card_allowed_now") is False, "audit v4 opened task card")
 
+    matrix = load_json(REPO_ROOT / EXPECTED_DEPENDENCIES[
+        "production-secret-backend-audit-store-runtime-blocker-matrix-v1"
+    ][0])
+    matrix_boundary = matrix.get("matrix_boundary") or {}
+    require(
+        matrix_boundary.get("entry_decision") == "audit_store_runtime_task_card_still_blocked_after_schema_artifact",
+        "audit store blocker matrix decision drifted",
+    )
+    require(
+        matrix_boundary.get("schema_artifact_status") == "implemented_static_schema_artifact",
+        "audit store blocker matrix schema artifact status drifted",
+    )
+    require(
+        matrix_boundary.get("audit_store_runtime_task_card_status") == "not_created",
+        "audit store blocker matrix opened runtime task card",
+    )
+
     refresh_expectations = {
         "production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1": (
             "credential_handle_runtime_task_card_still_blocked_after_refresh"
@@ -474,6 +496,7 @@ def assert_prior_evidence_alignment() -> None:
         "production_resolver_runtime_task_card_status": "not_created",
         "production_resolver_runtime_status": "not_created",
         "audit_store_runtime_implementation_entry_refresh_v4_status": "blocked_before_runtime_task_card",
+        "audit_store_runtime_blocker_matrix_status": "audit_store_runtime_blocker_matrix_defined",
         "audit_store_runtime_task_card_status": "not_created",
         "audit_store_runtime_status": "not_created",
         "credential_handle_runtime_implementation_entry_refresh_status": "blocked_before_runtime_task_card",
@@ -557,7 +580,7 @@ def assert_docs_validation_and_check_repo(fixture: dict[str, Any]) -> None:
 
     require(set(fixture.get("validation_strategy") or []) == EXPECTED_REQUIRED_CHECKS, "validation strategy drifted")
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
-    prior_call = 'run_python_script("check-production-ops-secret-backend-audit-store-runtime-implementation-entry-refresh-v4.py", [])'
+    prior_call = 'run_python_script("check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py", [])'
     current_call = (
         'run_python_script("check-production-ops-secret-backend-'
         'production-resolver-runtime-implementation-entry-refresh-v2.py", [])'

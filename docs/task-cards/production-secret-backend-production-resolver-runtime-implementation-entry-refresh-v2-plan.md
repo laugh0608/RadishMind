@@ -4,7 +4,7 @@
 
 ## 背景
 
-`Production Secret Backend Audit Store Runtime Implementation Entry Refresh v4` 已重新消费 durable backend、writer runtime、runtime event schema materialization、delivery runtime、idempotency runtime、credential handle / operator approval / backend health / no leakage refresh 和 implementation readiness，但 audit store runtime task card 仍 blocked。
+`Production Secret Backend Audit Store Runtime Blocker Matrix v1` 已在 runtime event schema artifact 完成后重新收束 audit store runtime blocker；schema artifact 已是 metadata-only 静态证据，但 durable backend、writer runtime、delivery runtime、idempotency runtime、credential handle / operator approval / backend health / no leakage refresh 和 implementation readiness 仍保持 audit store runtime task card blocked。
 
 本批推进 `production-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2`，把 audit store v4 和最新 runtime refresh 证据回灌到 production resolver runtime implementation task card 入口复评，判断是否可以创建 runtime implementation task card。
 
@@ -25,8 +25,8 @@
 - v2 entry decision 为 `production_resolver_runtime_task_card_still_blocked_after_refresh_v2`。
 - production resolver runtime implementation task card 仍为 `not_created`。
 - production resolver runtime、backend client、cloud secret client 和 credential payload 都不创建。
-- audit store runtime v4 仍为 `audit_store_runtime_task_card_still_blocked_before_runtime_task_card`，不能解锁 production resolver。
-- durable audit backend 仍为 `not_selected`，audit writer runtime、runtime event schema artifact、delivery runtime、idempotency runtime、duplicate detector、retry executor 和 replay executor 均为 `not_created`。
+- audit store runtime blocker matrix 仍为 `audit_store_runtime_task_card_still_blocked_after_schema_artifact`，不能解锁 production resolver。
+- runtime event schema artifact 已为 `implemented_static_schema_artifact`，但 durable audit backend 仍为 `not_selected`，audit writer runtime、delivery runtime、idempotency runtime、duplicate detector、retry executor 和 replay executor 均为 `not_created`。
 - credential handle runtime、operator approval runtime、backend health runtime 和 no leakage smoke runtime 最新 refresh 仍 blocked。
 - cloud secret service 仍只有 selection readiness，不选择具体厂商、不绑定 SDK、不创建 client、不调用云 secret 服务。
 - workflow database secret resolver runtime、negative auth smoke runtime、schema marker runtime、DB provider、repository mode runtime、auth middleware 和 membership adapter 仍不能通过本批解锁。
@@ -46,6 +46,7 @@
 
 ```bash
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-runtime-implementation-entry-refresh-v4.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-production-resolver-runtime-blocker-consolidation-v1.py
 git diff --check

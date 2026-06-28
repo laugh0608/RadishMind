@@ -1,0 +1,69 @@
+# Production Secret Backend Audit Store Runtime Blocker Matrix v1
+
+更新时间：2026-06-28
+
+## 文档目的
+
+本文档在 `Production Secret Backend Audit Store Runtime Event Schema Artifact v1` 完成后，重新收束 audit store runtime implementation task card 的剩余 blocker。它把已完成的 schema artifact 与仍未满足的 durable backend、writer、delivery、idempotency、operator approval、credential handle、backend health、no leakage smoke 和 production resolver runtime 依赖分开，供 Saved Workflow Draft durable store 上游继续引用。
+
+对应切片：`production-secret-backend-audit-store-runtime-blocker-matrix-v1`。
+
+结论：状态为 `audit_store_runtime_blocker_matrix_defined`，entry decision 固定为 `audit_store_runtime_task_card_still_blocked_after_schema_artifact`。本批只新增静态 blocker matrix、fixture 和 checker；不创建 audit store runtime implementation task card，不创建 durable backend selection、audit writer runtime、delivery runtime、idempotency runtime、operator approval runtime、credential handle runtime、backend health runtime、no leakage smoke runtime、production resolver runtime、DB provider、repository mode 或 public production API。
+
+## 输入证据
+
+- `audit_store_runtime_event_schema_artifact_implemented` 已确认 `contracts/production-secret-audit-event.schema.json`、positive / negative fixtures、schema checker 和 writer input compatibility smoke 已离线验证。
+- `audit_store_runtime_implementation_entry_refresh_v4_defined` 仍确认 audit store runtime task card blocked；其中 runtime event schema artifact 的旧缺口已由本批后置 matrix 更新为 resolved static prerequisite。
+- `audit_store_durable_backend_boundary_readiness_defined` 只定义 durable backend owner 和 storage adapter responsibility，durable audit backend 仍为 `not_selected`。
+- `audit_store_writer_runtime_boundary_readiness_defined` 只定义 metadata-only writer input 和 result reference，writer runtime 仍为 `not_created`。
+- `audit_store_delivery_runtime_readiness_defined` 与 `audit_store_idempotency_runtime_readiness_defined` 只固定 delivery / idempotency readiness，runtime、key store、duplicate detector、retry executor 和 replay executor 都未创建。
+- credential handle、operator approval、backend health 和 no leakage smoke runtime 最新 refresh 仍为 blocked before runtime task card。
+- production resolver runtime implementation entry refresh v2 仍为 `production_resolver_runtime_task_card_still_blocked_after_refresh_v2`；audit store runtime 是 production resolver runtime 的上游 blocker。
+
+## Schema Artifact Position
+
+| item | 当前结论 | 影响 |
+| --- | --- | --- |
+| runtime event schema artifact | `implemented_static_schema_artifact` | 已不再是 artifact 缺口，但只代表 metadata-only schema 和离线校验 |
+| writer input compatibility | `implemented_static_schema_compatibility` | 可供 future writer task card 消费，不代表 writer runtime ready |
+| audit store runtime task card | `not_created` | schema artifact 完成后仍不能创建 runtime task card |
+
+## Blocker Matrix
+
+| blocker | 当前结论 | 可解锁条件 |
+| --- | --- | --- |
+| durable backend | `not_selected` | 单独完成 durable backend selection / readiness，证明存储责任、retention / redaction、failure mapping 和 offline validation |
+| audit writer runtime | `not_created` | 单独完成 writer runtime task card，消费 schema artifact、metadata-only input、durable backend 和 no side effects gate |
+| idempotency runtime | `not_created` | 单独完成 idempotency runtime task card，证明 key store、duplicate detector 和 replay decision 的 fail-closed 语义 |
+| delivery runtime | `not_created` | 单独完成 delivery runtime task card，消费 writer result、idempotency decision、retry policy 和 delivery result persistence |
+| operator approval runtime | `not_created` | operator approval runtime implementation entry refresh 不再 blocked，且不泄露 approval payload |
+| credential handle runtime | `not_created` | credential handle runtime implementation entry refresh 不再 blocked，且不创建 credential payload |
+| backend health runtime | `not_created` | backend health runtime implementation entry refresh 不再 blocked，且不执行 provider call 泄露诊断 |
+| no leakage smoke runtime | `not_created` | no leakage smoke runtime implementation entry refresh 不再 blocked，且 runner / scanner / output fixture 独立存在 |
+| production resolver runtime | `not_created` | audit store runtime、credential handle、approval、health、no leakage 和 cloud service selection 全部独立解锁后再复评 |
+
+## 依赖顺序
+
+1. 先独立评审 durable backend selection，不把 v4 或 schema artifact 写成 backend selected。
+2. 再评审 audit writer runtime，writer 必须消费 schema artifact，但不能自行创建 durable backend、delivery 或 idempotency。
+3. 再分别评审 idempotency runtime 与 delivery runtime；delivery 必须消费 idempotency 的 duplicate handling 结论。
+4. 并行等待 operator approval、credential handle、backend health 和 no leakage smoke runtime 的各自 entry refresh 不再 blocked。
+5. 上述 runtime blocker 都清除后，才能重新评审 audit store runtime implementation task card。
+6. audit store runtime 仍 blocked 时，production resolver runtime task card 仍 blocked，不能借 schema artifact 完成绕过。
+
+## 停止线
+
+- 不创建 audit store runtime implementation task card、durable backend selection task card、writer runtime task card、delivery runtime task card、idempotency runtime task card、production resolver runtime task card 或 repository mode task card。
+- 不创建 audit store runtime、audit writer、audit event writer、delivery runtime、idempotency runtime、duplicate detector、retry executor、replay executor、credential handle runtime、operator approval runtime、backend health runtime、no leakage smoke runtime、cloud secret client、DB provider、SQL migration、schema marker runtime、repository mode runtime 或 public production API。
+- 不执行 audit write、delivery、idempotency decision、duplicate detection、approval、backend health check、smoke runner、provider call、cloud secret call、database connection 或 SQL。
+- 不保存、输出或派生 secret value、raw secret、token、authorization header、cookie、credential payload、DSN、provider raw URL、raw event payload、payload hash、secret-derived hash、raw approval payload 或 database detail。
+
+## 验证
+
+```bash
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-v1.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2.py
+git diff --check
+./scripts/check-repo.sh --fast
+```
