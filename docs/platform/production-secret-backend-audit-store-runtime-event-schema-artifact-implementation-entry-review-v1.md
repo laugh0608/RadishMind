@@ -16,7 +16,7 @@
 - `audit_store_runtime_event_schema_materialization_readiness_defined` 已固定 schema materialization owner、schema version pin、event kind allowlist source、required / optional fields source 和 writer input compatibility，且明确 artifact 仍为 `not_created`。
 - `audit_store_runtime_implementation_entry_refresh_v4_defined` 已确认 audit store runtime task card 仍 blocked，blocker 包括 durable backend、writer runtime、runtime event schema artifact、delivery runtime、idempotency runtime、approval、credential handle、backend health 和 no leakage runtime。
 - `audit_store_writer_runtime_boundary_readiness_defined`、`audit_store_delivery_runtime_readiness_defined` 和 `audit_store_idempotency_runtime_readiness_defined` 只提供 metadata-only 消费边界，不创建 writer / delivery / idempotency runtime。
-- `implementation_readiness_defined` 当前仍保持 `production_secret_backend_status=not_satisfied`、`audit_runtime_event_schema_artifact_status=not_created`、`audit_store_runtime_task_card_status=not_created`、`audit_store_runtime_status=not_created`、`audit_writer_status=not_created` 和 `audit_event_delivery_status=not_executed`。
+- 本批评审时的 `implementation_readiness_defined` 仍保持 `production_secret_backend_status=not_satisfied`、`audit_runtime_event_schema_artifact_status=not_created`、`audit_store_runtime_task_card_status=not_created`、`audit_store_runtime_status=not_created`、`audit_writer_status=not_created` 和 `audit_event_delivery_status=not_executed`；后续 schema artifact 实现批次会更新当前总状态。
 
 ## Entry Review Decision
 

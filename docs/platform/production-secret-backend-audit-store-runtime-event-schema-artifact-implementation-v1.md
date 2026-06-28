@@ -17,7 +17,7 @@
 - `audit_store_runtime_event_schema_materialization_readiness_defined` 已固定 schema materialization owner、schema version pin、字段来源、writer input compatibility 和 no side effects 边界。
 - `audit_store_writer_runtime_boundary_readiness_defined` 只提供 writer input / result 的 metadata-only 静态边界，不创建 writer runtime。
 - `audit_store_runtime_implementation_entry_refresh_v4_defined` 仍保持 audit store runtime task card blocked。
-- `implementation_readiness_defined` 当前保持 `production_secret_backend_status=not_satisfied`、`audit_runtime_event_schema_artifact_status=not_created`、`audit_store_runtime_task_card_status=not_created`、`audit_store_runtime_status=not_created`、`audit_writer_status=not_created` 和 `audit_event_delivery_status=not_executed`。
+- 本批任务卡定义时的 `implementation_readiness_defined` 保持 `production_secret_backend_status=not_satisfied`、`audit_runtime_event_schema_artifact_status=not_created`、`audit_store_runtime_task_card_status=not_created`、`audit_store_runtime_status=not_created`、`audit_writer_status=not_created` 和 `audit_event_delivery_status=not_executed`；后续 schema artifact 实现批次会更新当前总状态。
 
 ## Task Card Boundary
 
