@@ -4,13 +4,14 @@
 
 ## 目标
 
-在 audit store runtime event schema artifact 完成后，把 audit store runtime implementation task card 的剩余 blocker 收束成可检查矩阵，明确 schema artifact 已满足的契约证据、仍 blocked 的 runtime 依赖、可解锁条件和 production resolver runtime 依赖关系。
+在 audit store runtime event schema artifact 完成后，把 audit store runtime implementation task card 的剩余 blocker 收束成可检查矩阵，明确 schema artifact 已满足的契约证据、durable backend selection readiness、仍 blocked 的 runtime 依赖、可解锁条件和 production resolver runtime 依赖关系。
 
 本任务卡不创建 audit store runtime implementation task card，不实现 audit store runtime、writer runtime、delivery runtime、idempotency runtime、production resolver runtime、DB provider、repository mode 或 public production API。
 
 ## 输入
 
 - `audit_store_runtime_event_schema_artifact_implemented`
+- `audit_store_durable_backend_selection_readiness_defined`
 - `audit_store_runtime_implementation_entry_refresh_v4_defined`
 - `audit_store_durable_backend_boundary_readiness_defined`
 - `audit_store_writer_runtime_boundary_readiness_defined`
@@ -34,7 +35,7 @@
 ## Blocker Matrix
 
 - schema artifact：`implemented_static_schema_artifact`，只解除 artifact 缺口，不解锁 runtime。
-- durable backend：`not_selected`。
+- durable backend：`selection_readiness_defined_backend_not_selected`，source 为 `production-secret-backend-audit-store-durable-backend-selection-readiness-v1`。
 - audit writer runtime：`not_created`。
 - idempotency runtime：`not_created`。
 - delivery runtime：`not_created`。
@@ -46,13 +47,14 @@
 
 ## 停止线
 
-- 不创建 audit store runtime implementation task card、durable backend selection task card、writer / delivery / idempotency runtime task card、production resolver runtime task card 或 repository mode task card。
+- 不创建 audit store runtime implementation task card、concrete durable backend selection task card、writer / delivery / idempotency runtime task card、production resolver runtime task card 或 repository mode task card。
 - 不创建 audit store runtime、writer runtime、delivery runtime、idempotency runtime、duplicate detector、retry executor、approval runtime、credential handle runtime、backend health runtime、no leakage smoke runtime、cloud secret client、DB provider、repository mode 或 public production API。
 - 不执行 audit write、delivery、idempotency、duplicate detection、approval、health check、smoke、provider call、cloud call、DB connection 或 SQL。
 
 ## 验证
 
 ```bash
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-durable-backend-selection-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2.py

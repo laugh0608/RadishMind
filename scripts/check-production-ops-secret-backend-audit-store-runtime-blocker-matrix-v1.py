@@ -27,6 +27,10 @@ EXPECTED_DEPENDENCIES = {
         "scripts/checks/fixtures/production-secret-backend-audit-store-durable-backend-boundary-readiness-v1.json",
         "audit_store_durable_backend_boundary_readiness_defined",
     ),
+    "production-secret-backend-audit-store-durable-backend-selection-readiness-v1": (
+        "scripts/checks/fixtures/production-secret-backend-audit-store-durable-backend-selection-readiness-v1.json",
+        "audit_store_durable_backend_selection_readiness_defined",
+    ),
     "production-secret-backend-audit-store-writer-runtime-boundary-readiness-v1": (
         "scripts/checks/fixtures/production-secret-backend-audit-store-writer-runtime-boundary-readiness-v1.json",
         "audit_store_writer_runtime_boundary_readiness_defined",
@@ -76,6 +80,8 @@ EXPECTED_BOUNDARY = {
     "writer_input_compatibility_status": "implemented_static_schema_compatibility",
     "audit_store_runtime_task_card_status": "not_created",
     "audit_store_runtime_status": "not_created",
+    "durable_backend_selection_readiness_status": "defined_without_backend_selection",
+    "durable_backend_selection_decision": "durable_backend_selection_deferred_until_backend_evidence_and_runtime_task_card",
     "durable_audit_backend_status": "not_selected",
     "audit_writer_runtime_status": "not_created",
     "delivery_runtime_status": "not_created",
@@ -120,7 +126,7 @@ EXPECTED_FALSE_FLAGS = {
 
 EXPECTED_BLOCKERS = {
     "runtime_event_schema_artifact": "implemented_static_schema_artifact",
-    "durable_audit_backend": "not_selected",
+    "durable_audit_backend": "selection_readiness_defined_backend_not_selected",
     "audit_writer_runtime": "not_created",
     "idempotency_runtime": "not_created",
     "delivery_runtime": "not_created",
@@ -194,6 +200,7 @@ EXPECTED_ZERO_COUNTERS = {
 
 EXPECTED_REQUIRED_CHECKS = {
     "run audit store runtime blocker matrix checker",
+    "run audit store durable backend selection readiness checker",
     "run audit store runtime event schema artifact checker",
     "run audit store runtime implementation entry refresh v4 checker",
     "run production resolver runtime implementation entry refresh v2 checker",
@@ -350,6 +357,23 @@ def assert_prior_evidence_alignment() -> None:
     require(v4_boundary.get("delivery_runtime_status") == "not_created", "delivery runtime created")
     require(v4_boundary.get("idempotency_runtime_status") == "not_created", "idempotency runtime created")
 
+    selection = load_json(REPO_ROOT / EXPECTED_DEPENDENCIES[
+        "production-secret-backend-audit-store-durable-backend-selection-readiness-v1"
+    ][0])
+    selection_boundary = selection.get("selection_boundary") or {}
+    require(
+        selection_boundary.get("status") == "audit_store_durable_backend_selection_readiness_defined",
+        "durable backend selection readiness status drifted",
+    )
+    require(
+        selection_boundary.get("durable_backend_selection_status") == "deferred_without_backend_selection",
+        "durable backend selection must remain deferred",
+    )
+    require(
+        selection_boundary.get("durable_audit_backend_status") == "not_selected",
+        "durable backend selection readiness selected backend",
+    )
+
     resolver = load_json(REPO_ROOT / EXPECTED_DEPENDENCIES[
         "production-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2"
     ][0])
@@ -370,6 +394,7 @@ def assert_prior_evidence_alignment() -> None:
     for field, expected in {
         "audit_runtime_event_schema_artifact_status": "implemented_static_schema_artifact",
         "audit_runtime_event_schema_artifact_validation_status": "implemented_offline_schema_validation",
+        "audit_store_durable_backend_selection_readiness_status": "defined_without_backend_selection",
         "audit_store_runtime_blocker_matrix_status": "audit_store_runtime_blocker_matrix_defined",
         "audit_store_runtime_task_card_status": "not_created",
         "audit_store_runtime_status": "not_created",
@@ -437,14 +462,24 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
     require(set(fixture.get("validation_strategy") or []) == EXPECTED_REQUIRED_CHECKS, "validation strategy drifted")
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     artifact_call = 'run_python_script("check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-v1.py", [])'
+    selection_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'durable-backend-selection-readiness-v1.py", [])'
+    )
     current_call = 'run_python_script("check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py", [])'
     resolver_call = (
         'run_python_script("check-production-ops-secret-backend-'
         'production-resolver-runtime-implementation-entry-refresh-v2.py", [])'
     )
-    for call in (artifact_call, current_call, resolver_call):
+    for call in (artifact_call, selection_call, current_call, resolver_call):
         require(call in check_repo, f"check-repo.py missing call: {call}")
-    require(check_repo.index(artifact_call) < check_repo.index(current_call) < check_repo.index(resolver_call), "check order drifted")
+    require(
+        check_repo.index(artifact_call)
+        < check_repo.index(selection_call)
+        < check_repo.index(current_call)
+        < check_repo.index(resolver_call),
+        "check order drifted",
+    )
 
 
 def assert_no_secret_literals() -> None:
