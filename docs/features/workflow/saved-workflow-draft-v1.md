@@ -1,6 +1,6 @@
 # Saved Workflow Draft v1 功能专题
 
-更新时间：2026-06-23
+更新时间：2026-06-28
 
 ## 专题定位
 
@@ -178,6 +178,21 @@ production auth runtime bridge 的唯一允许 auth source 是 `radish_oidc_veri
 ## 下一批开发
 
 dev-only consumer integration 已按 [Dev-only Saved Draft Consumer](dev-only-saved-draft-consumer.md) 落地，并已补 route contract、consumer smoke 和 version conflict UI 状态；正式草案编辑入口、用户工作区创建、saved dev draft list / restore、本地图结构编辑、节点属性编辑和 active draft review record 均已落地；durable store 迁移前置设计、repository contract、schema / auth / selector evidence、static runner、schema artifact、production auth readiness、repository adapter implementation、adapter smoke execution、production auth runtime bridge、Radish OIDC token / membership readiness、implementation entry review 与 upstream evidence refresh、token validation schema / auth middleware runtime entry review、token validation schema task card readiness、token validation schema implementation task card、token validation schema artifact implementation、auth middleware / membership adapter task card entry readiness、negative auth smoke runtime readiness、repository mode enablement 准入评审、schema migration runner readiness、runner implementation entry review、database connection / schema marker preconditions、connection provider entry review / entry refresh v2、schema marker runtime dependency refresh、database secret resolver runtime dependency refresh、database driver / DSN / TLS policy readiness、database role policy readiness、database connection smoke strategy、database connection lifecycle readiness、secret resolver readiness、secret resolver implementation entry review、repository mode runtime boundary review、schema marker / migration runner readiness refresh、schema marker contract implementation entry review、manual migration runner implementation entry refresh，以及 production secret backend 从 config / secret ref readiness 到 audit store runtime implementation entry refresh v4、operator approval runtime entry review、operator approval runtime implementation entry refresh、cloud secret service selection readiness、backend health runtime implementation entry refresh、no leakage smoke runtime implementation entry refresh、credential handle runtime entry review、credential handle runtime implementation entry refresh、real resolver runtime entry refresh、no leakage smoke runtime entry review、resolver backend health runtime implementation entry review 和 Production Secret Backend Production Resolver Runtime Blocker Consolidation v1 的静态证据均已完成，当前最新状态为 `audit_store_runtime_implementation_entry_refresh_v4_defined`。后续若继续 durable store 上游，应复评 repository mode runtime 与 production resolver runtime 的真实依赖缺口；任何 durable persistence、public production API、OIDC token validation、membership adapter、repository mode enablement runtime、negative auth smoke runtime、production resolver runtime、backend health runtime、no secret leakage smoke runtime、no leakage smoke runtime task card、approval runtime、credential handle runtime、audit store runtime、connection lifecycle runtime、connection smoke runtime 或 executor 仍必须作为独立专题和 task card 推进。
+
+## 2026-06-28 依赖复评
+
+本次复评消费 `audit_store_runtime_implementation_entry_refresh_v4_defined`、`production_resolver_runtime_blocker_consolidation_defined`、token validation schema artifact、auth middleware / membership adapter task card entry readiness、negative auth smoke runtime readiness、connection provider / schema marker / database secret resolver dependency refresh、credential handle / operator approval / backend health / no leakage runtime entry refresh 和 cloud secret service selection readiness。复评结论：repository mode runtime 与 production resolver runtime 仍不能进入 implementation task card；`repository` store mode 继续 fail closed 为 `repository_store_disabled`。
+
+| 依赖 | 当前证据 | 本次结论 |
+| --- | --- | --- |
+| auth middleware / membership adapter | schema artifact 与 owner contract 可消费，negative auth smoke runtime readiness 已定义 | runtime task card 仍 blocked；不创建 OIDC middleware、token validator、membership adapter 或 negative auth smoke runtime |
+| DB provider / query executor | driver / DSN / TLS、role policy、connection smoke strategy 和 lifecycle readiness 已完成静态定义 | connection provider task card 仍 blocked；不创建 DB provider、driver、connection factory、query executor 或 connection smoke runtime |
+| schema marker / migration runner | marker contract、manual runner entry refresh 和 marker runtime dependency refresh 已完成 | schema marker runtime task card 仍 blocked；不创建 schema version table、marker reader / writer、SQL 或 runner |
+| database secret resolver | secret resolver readiness、implementation entry review 和 runtime dependency refresh 已完成 | database secret resolver runtime task card 仍 blocked；test-only fake resolver 不能解锁 production resolver 或 DB provider |
+| production resolver runtime | production resolver blocker consolidation、real resolver entry refresh、cloud selection、credential handle、approval、backend health、no leakage 和 audit store refresh 已消费 | production resolver runtime task card 仍 blocked；不读取 secret、不调用云 secret 服务、不创建 credential handle |
+| audit store runtime | durable backend、writer、runtime schema、delivery、idempotency readiness 与 runtime entry refresh v4 已完成 | audit store runtime task card 仍 blocked；不创建 audit store、writer、event schema artifact、delivery runtime 或 idempotency runtime |
+
+因此下一批不应创建 repository mode runtime task card，也不应把 `audit_store_runtime_implementation_entry_refresh_v4_defined` 解释成 durable persistence ready。若后续继续推进，应在单个 blocker 上独立复评，例如 production resolver runtime entry refresh v2、negative auth smoke runtime implementation entry review、connection provider implementation entry refresh 或 schema marker runtime implementation entry review；每次只打开一个边界，不并行启用 repository mode、production API 或 executor。
 
 ## 验收方式
 
