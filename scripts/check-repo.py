@@ -1520,6 +1520,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-implementation-v1.py", [])
     run_python_script("check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-v1.py", [])
     run_python_script("check-production-ops-secret-backend-audit-store-durable-backend-selection-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-audit-store-concrete-durable-backend-selection-review-v1.py", [])
     run_python_script("check-production-ops-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1.py", [])
     run_python_script("check-production-ops-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1.py", [])
     run_python_script("check-production-ops-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1.py", [])

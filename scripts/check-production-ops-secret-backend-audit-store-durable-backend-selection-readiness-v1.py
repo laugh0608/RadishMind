@@ -512,7 +512,7 @@ def assert_alignment_with_existing_evidence() -> None:
     for field, expected in {
         "production_secret_backend_status": "not_satisfied",
         "audit_store_durable_backend_boundary_readiness_status": "defined_without_backend_selection",
-        "durable_audit_backend_status": "not_selected",
+        "durable_audit_backend_status": "static_backend_family_selected_runtime_blocked",
         "audit_store_runtime_task_card_status": "not_created",
         "audit_store_runtime_status": "not_created",
         "audit_writer_status": "not_created",

@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-2026-06-29 补充：Production Secret Backend audit store runtime blocker matrix 已消费 `audit_store_delivery_runtime_implementation_entry_review_defined`，当前最新锚点为 `production-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1`。该状态只把 delivery blocker 细化为 `entry_review_defined_task_card_blocked`，不创建 delivery runtime task card、retry executor、delivery result persistence、idempotency runtime、audit store runtime、repository mode 或 production API；下一步若继续 durable store 上游，应评审 concrete durable backend selection 或其它仍 blocked runtime 依赖。
+2026-06-29 补充：Production Secret Backend audit store runtime blocker matrix 已消费 `audit_store_concrete_durable_backend_selection_review_defined`，当前最新锚点为 `production-secret-backend-audit-store-concrete-durable-backend-selection-review-v1`。该状态只把 durable backend family 静态选择为 `append_only_metadata_audit_log` / `reserved_append_only_audit_log`，不创建 storage adapter runtime、DB provider、audit store runtime task card、audit store runtime、repository mode 或 production API；下一步若继续 durable store 上游，应评审 writer / idempotency / delivery / approval / credential handle / backend health / no leakage smoke 中一个仍 blocked runtime 依赖。
 
 - `apps/radishmind-web/` 已有 workflow application detail、definition detail、run detail、blocked action preview、confirmation placeholder、draft designer、validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector、Review Workspace、Workspace Home 和 Review Handoff。
 - 当前能力全部是 offline-only / read-only / advisory-only / blocked capability 组织层。

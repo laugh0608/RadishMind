@@ -472,7 +472,7 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
         "audit_store_writer_runtime_boundary_readiness_status": "defined_without_writer_runtime",
         "audit_runtime_event_schema_artifact_status": "implemented_static_schema_artifact",
         "audit_store_durable_backend_selection_readiness_status": "defined_without_backend_selection",
-        "durable_audit_backend_status": "not_selected",
+        "durable_audit_backend_status": "static_backend_family_selected_runtime_blocked",
         "audit_writer_runtime_owner_status": "static_boundary_defined",
         "audit_writer_input_envelope_status": "metadata_only_static_envelope_defined",
         "audit_writer_result_reference_status": "metadata_only_static_reference_defined",

@@ -31,6 +31,13 @@ EXPECTED_DEPENDENCIES = {
         "scripts/checks/fixtures/production-secret-backend-audit-store-durable-backend-selection-readiness-v1.json",
         "audit_store_durable_backend_selection_readiness_defined",
     ),
+    "production-secret-backend-audit-store-concrete-durable-backend-selection-review-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-concrete-durable-backend-selection-review-v1.json"
+        ),
+        "audit_store_concrete_durable_backend_selection_review_defined",
+    ),
     "production-secret-backend-audit-store-writer-runtime-boundary-readiness-v1": (
         "scripts/checks/fixtures/production-secret-backend-audit-store-writer-runtime-boundary-readiness-v1.json",
         "audit_store_writer_runtime_boundary_readiness_defined",
@@ -103,7 +110,15 @@ EXPECTED_BOUNDARY = {
     "audit_store_runtime_status": "not_created",
     "durable_backend_selection_readiness_status": "defined_without_backend_selection",
     "durable_backend_selection_decision": "durable_backend_selection_deferred_until_backend_evidence_and_runtime_task_card",
-    "durable_audit_backend_status": "not_selected",
+    "durable_backend_concrete_selection_review_status": (
+        "audit_store_concrete_durable_backend_selection_review_defined"
+    ),
+    "durable_backend_selection_decision_after_review": (
+        "durable_backend_family_selected_static_append_only_audit_log_runtime_blocked"
+    ),
+    "durable_audit_backend_status": "static_backend_family_selected_runtime_blocked",
+    "selected_durable_backend_family": "append_only_metadata_audit_log",
+    "selected_reserved_candidate": "reserved_append_only_audit_log",
     "writer_runtime_implementation_entry_review_status": (
         "audit_store_writer_runtime_implementation_entry_review_defined"
     ),
@@ -159,7 +174,7 @@ EXPECTED_FALSE_FLAGS = {
 
 EXPECTED_BLOCKERS = {
     "runtime_event_schema_artifact": "implemented_static_schema_artifact",
-    "durable_audit_backend": "selection_readiness_defined_backend_not_selected",
+    "durable_audit_backend": "static_family_selected_runtime_blocked",
     "audit_writer_runtime": "entry_review_defined_task_card_blocked",
     "idempotency_runtime": "entry_review_defined_task_card_blocked",
     "delivery_runtime": "entry_review_defined_task_card_blocked",
@@ -173,6 +188,7 @@ EXPECTED_BLOCKERS = {
 EXPECTED_ORDER = [
     "runtime_event_schema_artifact_implemented",
     "durable_backend_selection_readiness",
+    "concrete_durable_backend_selection_review",
     "audit_writer_runtime_entry_review",
     "idempotency_runtime_entry_review",
     "delivery_runtime_entry_review",
@@ -234,6 +250,7 @@ EXPECTED_ZERO_COUNTERS = {
 EXPECTED_REQUIRED_CHECKS = {
     "run audit store runtime blocker matrix checker",
     "run audit store durable backend selection readiness checker",
+    "run audit store concrete durable backend selection review checker",
     "run audit store writer runtime implementation entry review checker",
     "run audit store idempotency runtime implementation entry review checker",
     "run audit store delivery runtime implementation entry review checker",

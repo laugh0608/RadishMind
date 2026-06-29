@@ -490,7 +490,7 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
         "audit_store_runtime_status": "not_created",
         "audit_writer_status": "not_created",
         "audit_event_delivery_status": "not_executed",
-        "durable_audit_backend_status": "not_selected",
+        "durable_audit_backend_status": "static_backend_family_selected_runtime_blocked",
     }
     for field, expected in expected_fields.items():
         require(alignment.get(field) == expected, f"alignment.{field} drifted")

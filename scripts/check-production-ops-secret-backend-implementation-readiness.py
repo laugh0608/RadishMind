@@ -115,6 +115,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-durable-backend-selection-readiness": (
         "audit_store_durable_backend_selection_readiness_defined"
     ),
+    "audit-store-concrete-durable-backend-selection-review": (
+        "audit_store_concrete_durable_backend_selection_review_defined"
+    ),
     "audit-store-writer-runtime-implementation-entry-review": (
         "audit_store_writer_runtime_implementation_entry_review_defined"
     ),
@@ -555,7 +558,23 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         == "defined_without_backend_selection",
         "audit store durable backend selection readiness status drifted",
     )
-    require(target.get("durable_audit_backend_status") == "not_selected", "durable audit backend status drifted")
+    require(
+        target.get("audit_store_concrete_durable_backend_selection_review_status")
+        == "audit_store_concrete_durable_backend_selection_review_defined",
+        "audit store concrete durable backend selection review status drifted",
+    )
+    require(
+        target.get("durable_audit_backend_status") == "static_backend_family_selected_runtime_blocked",
+        "durable audit backend status drifted",
+    )
+    require(
+        target.get("selected_durable_backend_family") == "append_only_metadata_audit_log",
+        "selected durable backend family drifted",
+    )
+    require(
+        target.get("selected_durable_backend_candidate") == "reserved_append_only_audit_log",
+        "selected durable backend candidate drifted",
+    )
     require(
         target.get("audit_store_writer_runtime_boundary_readiness_status") == "defined_without_writer_runtime",
         "audit store writer runtime boundary readiness status drifted",
