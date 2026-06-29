@@ -118,6 +118,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-writer-runtime-implementation-entry-review": (
         "audit_store_writer_runtime_implementation_entry_review_defined"
     ),
+    "audit-store-idempotency-runtime-implementation-entry-review": (
+        "audit_store_idempotency_runtime_implementation_entry_review_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -650,6 +653,11 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit store idempotency runtime readiness status drifted",
     )
     require(
+        target.get("audit_store_idempotency_runtime_implementation_entry_review_status")
+        == "blocked_before_runtime_task_card",
+        "audit store idempotency runtime implementation entry review status drifted",
+    )
+    require(
         target.get("audit_idempotency_runtime_owner_status") == "static_boundary_defined",
         "audit idempotency runtime owner status drifted",
     )
@@ -672,6 +680,18 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     require(
         target.get("audit_idempotency_replay_decision_status") == "static_fail_closed_policy_defined",
         "audit idempotency replay decision status drifted",
+    )
+    require(
+        target.get("audit_idempotency_key_store_status") == "not_created",
+        "audit idempotency key store status drifted",
+    )
+    require(
+        target.get("audit_duplicate_detector_status") == "not_created",
+        "audit duplicate detector status drifted",
+    )
+    require(
+        target.get("audit_replay_executor_status") == "not_created",
+        "audit replay executor status drifted",
     )
     require(
         target.get("audit_store_delivery_idempotency_runtime_boundary_readiness_status")
@@ -1452,6 +1472,28 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
                 (
                     "scripts/"
                     "check-production-ops-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1.py"
+                ),
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "audit-store-idempotency-runtime-implementation-entry-review":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                (
+                    "docs/platform/"
+                    "production-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1.md"
+                ),
+                (
+                    "docs/task-cards/"
+                    "production-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1-plan.md"
+                ),
+                (
+                    "scripts/checks/fixtures/"
+                    "production-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1.json"
+                ),
+                (
+                    "scripts/"
+                    "check-production-ops-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1.py"
                 ),
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")

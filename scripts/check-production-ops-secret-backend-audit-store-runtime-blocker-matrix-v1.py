@@ -50,6 +50,13 @@ EXPECTED_DEPENDENCIES = {
         "scripts/checks/fixtures/production-secret-backend-audit-store-idempotency-runtime-readiness-v1.json",
         "audit_store_idempotency_runtime_readiness_defined",
     ),
+    "production-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1.json"
+        ),
+        "audit_store_idempotency_runtime_implementation_entry_review_defined",
+    ),
     "production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1": (
         "scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.json",
         "credential_handle_runtime_implementation_entry_refresh_defined",
@@ -96,6 +103,10 @@ EXPECTED_BOUNDARY = {
     "writer_runtime_task_card_status": "not_created",
     "audit_writer_runtime_status": "not_created",
     "delivery_runtime_status": "not_created",
+    "idempotency_runtime_implementation_entry_review_status": (
+        "audit_store_idempotency_runtime_implementation_entry_review_defined"
+    ),
+    "idempotency_runtime_task_card_status": "not_created",
     "idempotency_runtime_status": "not_created",
     "operator_approval_runtime_status": "not_created",
     "credential_handle_runtime_status": "not_created",
@@ -139,7 +150,7 @@ EXPECTED_BLOCKERS = {
     "runtime_event_schema_artifact": "implemented_static_schema_artifact",
     "durable_audit_backend": "selection_readiness_defined_backend_not_selected",
     "audit_writer_runtime": "entry_review_defined_task_card_blocked",
-    "idempotency_runtime": "not_created",
+    "idempotency_runtime": "entry_review_defined_task_card_blocked",
     "delivery_runtime": "not_created",
     "operator_approval_runtime": "not_created",
     "credential_handle_runtime": "not_created",
@@ -213,6 +224,7 @@ EXPECTED_REQUIRED_CHECKS = {
     "run audit store runtime blocker matrix checker",
     "run audit store durable backend selection readiness checker",
     "run audit store writer runtime implementation entry review checker",
+    "run audit store idempotency runtime implementation entry review checker",
     "run audit store runtime event schema artifact checker",
     "run audit store runtime implementation entry refresh v4 checker",
     "run production resolver runtime implementation entry refresh v2 checker",
@@ -482,17 +494,29 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-audit-store-'
         'writer-runtime-implementation-entry-review-v1.py", [])'
     )
+    idempotency_entry_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'idempotency-runtime-implementation-entry-review-v1.py", [])'
+    )
     current_call = 'run_python_script("check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py", [])'
     resolver_call = (
         'run_python_script("check-production-ops-secret-backend-'
         'production-resolver-runtime-implementation-entry-refresh-v2.py", [])'
     )
-    for call in (artifact_call, selection_call, writer_entry_call, current_call, resolver_call):
+    for call in (
+        artifact_call,
+        selection_call,
+        writer_entry_call,
+        idempotency_entry_call,
+        current_call,
+        resolver_call,
+    ):
         require(call in check_repo, f"check-repo.py missing call: {call}")
     require(
         check_repo.index(artifact_call)
         < check_repo.index(selection_call)
         < check_repo.index(writer_entry_call)
+        < check_repo.index(idempotency_entry_call)
         < check_repo.index(current_call)
         < check_repo.index(resolver_call),
         "check order drifted",
