@@ -57,6 +57,13 @@ EXPECTED_DEPENDENCIES = {
         ),
         "audit_store_idempotency_runtime_implementation_entry_review_defined",
     ),
+    "production-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1.json"
+        ),
+        "audit_store_delivery_runtime_implementation_entry_review_defined",
+    ),
     "production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1": (
         "scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.json",
         "credential_handle_runtime_implementation_entry_refresh_defined",
@@ -102,6 +109,10 @@ EXPECTED_BOUNDARY = {
     ),
     "writer_runtime_task_card_status": "not_created",
     "audit_writer_runtime_status": "not_created",
+    "delivery_runtime_implementation_entry_review_status": (
+        "audit_store_delivery_runtime_implementation_entry_review_defined"
+    ),
+    "delivery_runtime_task_card_status": "not_created",
     "delivery_runtime_status": "not_created",
     "idempotency_runtime_implementation_entry_review_status": (
         "audit_store_idempotency_runtime_implementation_entry_review_defined"
@@ -151,7 +162,7 @@ EXPECTED_BLOCKERS = {
     "durable_audit_backend": "selection_readiness_defined_backend_not_selected",
     "audit_writer_runtime": "entry_review_defined_task_card_blocked",
     "idempotency_runtime": "entry_review_defined_task_card_blocked",
-    "delivery_runtime": "not_created",
+    "delivery_runtime": "entry_review_defined_task_card_blocked",
     "operator_approval_runtime": "not_created",
     "credential_handle_runtime": "not_created",
     "backend_health_runtime": "not_created",
@@ -225,6 +236,7 @@ EXPECTED_REQUIRED_CHECKS = {
     "run audit store durable backend selection readiness checker",
     "run audit store writer runtime implementation entry review checker",
     "run audit store idempotency runtime implementation entry review checker",
+    "run audit store delivery runtime implementation entry review checker",
     "run audit store runtime event schema artifact checker",
     "run audit store runtime implementation entry refresh v4 checker",
     "run production resolver runtime implementation entry refresh v2 checker",
@@ -498,6 +510,10 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-audit-store-'
         'idempotency-runtime-implementation-entry-review-v1.py", [])'
     )
+    delivery_entry_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'delivery-runtime-implementation-entry-review-v1.py", [])'
+    )
     current_call = 'run_python_script("check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py", [])'
     resolver_call = (
         'run_python_script("check-production-ops-secret-backend-'
@@ -508,6 +524,7 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         selection_call,
         writer_entry_call,
         idempotency_entry_call,
+        delivery_entry_call,
         current_call,
         resolver_call,
     ):
@@ -517,6 +534,7 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         < check_repo.index(selection_call)
         < check_repo.index(writer_entry_call)
         < check_repo.index(idempotency_entry_call)
+        < check_repo.index(delivery_entry_call)
         < check_repo.index(current_call)
         < check_repo.index(resolver_call),
         "check order drifted",

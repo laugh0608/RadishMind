@@ -121,6 +121,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-idempotency-runtime-implementation-entry-review": (
         "audit_store_idempotency_runtime_implementation_entry_review_defined"
     ),
+    "audit-store-delivery-runtime-implementation-entry-review": (
+        "audit_store_delivery_runtime_implementation_entry_review_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -628,6 +631,11 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit store delivery runtime readiness status drifted",
     )
     require(
+        target.get("audit_store_delivery_runtime_implementation_entry_review_status")
+        == "blocked_before_runtime_task_card",
+        "audit store delivery runtime implementation entry review status drifted",
+    )
+    require(
         target.get("audit_delivery_runtime_owner_status") == "static_boundary_defined",
         "audit delivery runtime owner status drifted",
     )
@@ -642,6 +650,15 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     require(
         target.get("audit_delivery_retry_policy_status") == "static_fail_closed_policy_defined",
         "audit delivery retry policy status drifted",
+    )
+    require(target.get("audit_retry_executor_status") == "not_created", "audit retry executor status drifted")
+    require(
+        target.get("audit_delivery_result_persistence_status") == "not_created",
+        "audit delivery result persistence status drifted",
+    )
+    require(
+        target.get("audit_delivery_execution_status") == "not_executed",
+        "audit delivery execution status drifted",
     )
     require(
         target.get("audit_delivery_duplicate_handling_status") == "static_fail_closed_policy_defined",
@@ -1494,6 +1511,28 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
                 (
                     "scripts/"
                     "check-production-ops-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1.py"
+                ),
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "audit-store-delivery-runtime-implementation-entry-review":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                (
+                    "docs/platform/"
+                    "production-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1.md"
+                ),
+                (
+                    "docs/task-cards/"
+                    "production-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1-plan.md"
+                ),
+                (
+                    "scripts/checks/fixtures/"
+                    "production-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1.json"
+                ),
+                (
+                    "scripts/"
+                    "check-production-ops-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1.py"
                 ),
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
