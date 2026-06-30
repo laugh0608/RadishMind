@@ -31,6 +31,22 @@
 - Review Handoff 已能消费 active draft 的 validation、plan 和 readiness。
 - `memory_dev` 是当前唯一可成功读写的 store mode；`repository` 和 `repository_disabled` 仍 fail closed。
 
+## 用户流程
+
+1. 用户在 Draft Designer 编辑 active draft，并通过 dev-only saved draft consumer 保存。
+2. 如果后端返回 `version_conflict`，页面保留本地 active draft，不自动读取 saved version，也不覆盖本地节点、边、layout 或属性编辑。
+3. 页面刷新当前 application 的 saved draft list，只用 sanitized summary 准备恢复入口；metadata 未就绪时恢复入口应保持不可用。
+4. 用户可以继续本地草案；此时状态进入 `conflict_local_continued`，后续保存使用当前 saved version 作为 expected version。
+5. 用户也可以显式恢复 saved version；恢复动作复用 read route，并把恢复结果带回 Draft Designer。
+6. Reviewer 在 Review Handoff 中查看 conflict review summary，确认冲突来源、saved version metadata、validation 状态、blocked capability 和停止线。
+
+## 界面读法
+
+- 冲突状态首先说明“本地草案仍保留”，再说明 saved version 的版本号、更新时间、更新人、校验状态和 blocked capability 数量。
+- “继续本地草案”代表用户选择先保留当前编辑上下文，不代表系统已经合并远端版本。
+- “恢复 saved version”代表用户主动把 saved draft 读回 Draft Designer；该动作必须可区分于保存失败后的自动 fallback。
+- Review Handoff 的 conflict summary 是审查证据，不是发布、执行、确认或业务写回前置条件。
+
 ## 已实现能力
 
 1. Draft Designer 在 `version_conflict` 后展示冲突审查状态，说明本地草案、远端 saved version 和下一步选择。

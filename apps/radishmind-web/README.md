@@ -67,6 +67,14 @@ User Workspace Home / Workflow Review Workspace 读法：
 - 最后看 Review Handoff，确认给人工审查的 recipients、key findings、evidence checklist、decision blockers 和 boundary locks 已经与当前选中上下文一致。
 - blocked capability rollup 和 stop line rollup 是审查结论入口，只解释为什么当前不能 publish / execute / confirm / writeback / replay，不提供解锁或提交按钮。
 
+Saved draft 冲突读法：
+
+- 只有 dev-only saved draft consumer 启用后，Draft Designer 的保存、读取、校验和列表才会连接 platform memory dev store；离线模式仍只展示 sample / local draft。
+- 保存返回 `version_conflict` 时，页面必须保留当前本地 active draft，并展示 saved version metadata、validation state 和 blocked capability count；它不是保存成功，也不是自动覆盖。
+- 选择继续本地草案后，consumer 状态进入 `conflict_local_continued`，后续保存会使用当前 saved version 作为 expected version；这仍不是 auto merge。
+- 恢复 saved version 必须由用户显式触发，并依赖冲突后刷新的当前 application saved draft list；列表只包含 sanitized summary，不暴露 secret、token、完整 claim 或 runtime material。
+- Review Handoff 会显示同一份 conflict review summary，帮助 reviewer 理解冲突来源、下一步选择和 auto overwrite / auto merge 停止线；它不保存、不导出、不发送 handoff。
+
 本地启动从仓库根目录执行：
 
 ```bash

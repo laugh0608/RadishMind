@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-06-29
+更新时间：2026-06-30
 
 ## 核心定义
 
@@ -97,7 +97,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 - 承载 Prompt、LLM、HTTP tool、RAG retrieval、condition、output、后续受控 code / sandbox 与 agent loop。
 - 每次运行都应有 trace、输入输出摘要、成本、错误分类和风险边界。
 - `workflow-definition-run-record-boundary` 只把 workflow definition、run record、node execution、tool audit、result materialization、confirmation decision、状态流转、失败分类、审计证据和停止线固定为治理证据，不代表 executor、confirmation、writeback 或 replay 已实现。
-- `Workflow / Agent Runtime Function Surface v1` 已把现阶段可推进功能面限定为 application detail、workflow definition detail、run detail、tool action preview、confirmation placeholder、Draft Designer、offline validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector、Workflow Review Workspace、User Workspace Home 和 Workflow Review Handoff 的只读 / blocked / local-only surface，优先走 fixture 或 fake-store dev path。它们只展示 selected context、draft、validation、plan、readiness、scenario、blocked capability、stop line、route / request / audit metadata、review rollup 和 human review handoff；Draft Designer 可做受控本地编辑、本地结构编辑、节点属性编辑，并在显式 dev-only 配置下保存 / 读取 / 校验 / 列出 memory dev draft，User Workspace Home 可恢复 saved dev draft，Review Handoff 可显示 active draft review record，但不提供 durable draft persistence、validation / execution plan / readiness / scenario / review / handoff persistence、publish、executor、confirmation decision、writeback 或 replay。
+- `Workflow / Agent Runtime Function Surface v1` 已把现阶段可推进功能面限定为 application detail、workflow definition detail、run detail、tool action preview、confirmation placeholder、Draft Designer、offline validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector、Workflow Review Workspace、User Workspace Home 和 Workflow Review Handoff 的只读 / blocked / local-only surface，优先走 fixture 或 fake-store dev path。它们只展示 selected context、draft、validation、plan、readiness、scenario、blocked capability、stop line、route / request / audit metadata、review rollup 和 human review handoff；Draft Designer 可做受控本地编辑、本地结构编辑、节点属性编辑，并在显式 dev-only 配置下保存 / 读取 / 校验 / 列出 memory dev draft。保存遇到 `version_conflict` 时，产品语义是保留本地 active draft、刷新当前 application 的 saved draft list、允许继续本地草案或显式恢复 saved version，并在 Review Handoff 展示 advisory-only conflict summary；它不是 auto merge、auto overwrite 或执行解锁。User Workspace Home 可恢复 saved dev draft，Review Handoff 可显示 active draft review record，但不提供 durable draft persistence、validation / execution plan / readiness / scenario / review / handoff persistence、publish、executor、confirmation decision、writeback 或 replay。
 - 上层挂载点未成熟时，workflow 产品面继续先做离线草案设计、结构检查、execution plan preview、readiness 展示、场景解释、review workspace 和 blocked capability 说明；这些产品能力应复用未来真实接入所需的 canonical contract 和停止线，而不是等待 `RadishFlow` 或 `Radish` 提供承接入口后才开始。
 - 高风险 tool/action 默认 `requires_confirmation`，不得直接写上层业务真相源。
 
