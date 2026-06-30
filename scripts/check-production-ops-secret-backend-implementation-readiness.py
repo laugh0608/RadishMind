@@ -142,6 +142,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-retention-redaction-policy-evidence-readiness": (
         "audit_store_storage_adapter_retention_redaction_policy_evidence_readiness_defined"
     ),
+    "audit-store-storage-adapter-offline-validation-evidence-readiness": (
+        "audit_store_storage_adapter_offline_validation_evidence_readiness_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -264,6 +267,8 @@ REQUIRED_DOC_REFERENCES = {
         "audit_store_storage_adapter_append_only_semantics_evidence_readiness_defined",
         "production-secret-backend-audit-store-storage-adapter-retention-redaction-policy-evidence-readiness-v1",
         "audit_store_storage_adapter_retention_redaction_policy_evidence_readiness_defined",
+        "production-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1",
+        "audit_store_storage_adapter_offline_validation_evidence_readiness_defined",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -939,8 +944,42 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit storage adapter forbidden erasure policy status drifted",
     )
     require(
-        target.get("audit_storage_adapter_offline_validation_status") == "not_created",
+        target.get("audit_store_storage_adapter_offline_validation_evidence_readiness_status")
+        == "audit_store_storage_adapter_offline_validation_evidence_readiness_defined",
+        "audit store storage adapter offline validation evidence readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_validation_status")
+        == "offline_validation_evidence_defined_without_runtime",
         "audit storage adapter offline validation status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_validation_manifest_status")
+        == "metadata_only_offline_validation_manifest_reference_defined",
+        "audit storage adapter offline validation manifest status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_validation_positive_case_status")
+        == "metadata_only_positive_case_reference_defined",
+        "audit storage adapter offline validation positive case status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_validation_negative_case_status")
+        == "metadata_only_negative_case_reference_defined",
+        "audit storage adapter offline validation negative case status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_validation_coverage_status")
+        == "metadata_contract_append_only_retention_redaction_coverage_defined",
+        "audit storage adapter offline validation coverage status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_backend_touch_policy_status") == "real_backend_touch_forbidden",
+        "audit storage adapter backend touch policy status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_validation_runner_status") == "not_created",
+        "audit storage adapter validation runner status drifted",
     )
     require(
         target.get("audit_storage_adapter_negative_leakage_scan_status") == "not_created",
@@ -1739,6 +1778,28 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "audit-store-storage-adapter-offline-validation-evidence-readiness":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                (
+                    "docs/platform/"
+                    "production-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1.md"
+                ),
+                (
+                    "docs/task-cards/"
+                    "production-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1-plan.md"
+                ),
+                (
+                    "scripts/checks/fixtures/"
+                    "production-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1.json"
+                ),
+                (
+                    "scripts/"
+                    "check-production-ops-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1.py"
+                ),
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
         if slice_id == "audit-store-durable-backend-selection-readiness":
             evidence = set(planned[slice_id].get("evidence") or [])
             for path in {
@@ -2428,6 +2489,15 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         )
         in check_repo,
         "check-repo.py must run audit store storage adapter retention redaction policy evidence readiness check",
+    )
+    require(
+        (
+            'run_python_script("'
+            "check-production-ops-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1.py"
+            '", [])'
+        )
+        in check_repo,
+        "check-repo.py must run audit store storage adapter offline validation evidence readiness check",
     )
     require(
         (

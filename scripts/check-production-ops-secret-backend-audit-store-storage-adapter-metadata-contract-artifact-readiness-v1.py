@@ -399,12 +399,12 @@ def assert_blocker_matrix_alignment() -> None:
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
     require(
-        durable.get("status") == "retention_redaction_policy_evidence_readiness_defined_task_card_blocked",
+        durable.get("status") == "offline_validation_evidence_readiness_defined_task_card_blocked",
         "durable backend blocker status drifted",
     )
     require(
         durable.get("source")
-        == "production-secret-backend-audit-store-storage-adapter-retention-redaction-policy-evidence-readiness-v1",
+        == "production-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1",
         "durable backend blocker source drifted",
     )
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable backend must block audit runtime")
@@ -449,7 +449,7 @@ def assert_docs_and_registration() -> None:
         ],
         "docs/platform/production-secret-backend-audit-store-runtime-blocker-matrix-v1.md": [
             "audit_store_storage_adapter_metadata_contract_artifact_readiness_defined",
-            "retention_redaction_policy_evidence_readiness_defined_task_card_blocked",
+            "offline_validation_evidence_readiness_defined_task_card_blocked",
         ],
         "docs/platform/README.md": [
             "Production Secret Backend Audit Store Storage Adapter Metadata Contract Artifact Readiness v1",
