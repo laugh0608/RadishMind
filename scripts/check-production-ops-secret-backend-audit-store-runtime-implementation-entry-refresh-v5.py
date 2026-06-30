@@ -331,14 +331,14 @@ def assert_blocker_matrix_alignment() -> None:
     boundary = matrix.get("matrix_boundary") or {}
     require(
         boundary.get("durable_audit_backend_status")
-        == "storage_adapter_entry_review_defined_task_card_blocked",
+        == "backend_product_evidence_readiness_defined_task_card_blocked",
         "blocker matrix durable backend status drifted",
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
     require(
         durable.get("source")
-        == "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1",
+        == "production-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1",
         "durable blocker source drifted",
     )
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable backend must still block audit runtime")
@@ -370,14 +370,18 @@ def assert_docs_and_registration() -> None:
     current = "check-production-ops-secret-backend-audit-store-runtime-implementation-entry-refresh-v5.py"
     before = "check-production-ops-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1.py"
     storage = "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1.py"
+    backend_product_evidence = (
+        "check-production-ops-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1.py"
+    )
     matrix = "check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py"
     after = "check-production-ops-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2.py"
-    for script in {before, current, storage, matrix, after}:
+    for script in {before, current, storage, backend_product_evidence, matrix, after}:
         require(script in check_repo, f"check-repo.py missing {script}")
     require(
         check_repo.index(before)
         < check_repo.index(current)
         < check_repo.index(storage)
+        < check_repo.index(backend_product_evidence)
         < check_repo.index(matrix)
         < check_repo.index(after),
         "check-repo.py order drifted",

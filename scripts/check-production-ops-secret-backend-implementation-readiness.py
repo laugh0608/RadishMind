@@ -130,6 +130,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-runtime-implementation-entry-review": (
         "audit_store_storage_adapter_runtime_implementation_entry_review_defined"
     ),
+    "audit-store-storage-adapter-backend-product-evidence-readiness": (
+        "audit_store_storage_adapter_backend_product_evidence_readiness_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -244,6 +247,8 @@ REQUIRED_DOC_REFERENCES = {
         "audit_store_runtime_blocker_matrix_defined",
         "production-secret-backend-audit-store-durable-backend-selection-readiness-v1",
         "audit_store_durable_backend_selection_readiness_defined",
+        "production-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1",
+        "audit_store_storage_adapter_backend_product_evidence_readiness_defined",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -333,6 +338,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-v1.py",
         "check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py",
         "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1.py",
+        "check-production-ops-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py",
     ],
@@ -795,8 +801,23 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit storage adapter contract status drifted",
     )
     require(
-        target.get("audit_storage_adapter_backend_product_evidence_status") == "not_selected",
+        target.get("audit_store_storage_adapter_backend_product_evidence_readiness_status")
+        == "audit_store_storage_adapter_backend_product_evidence_readiness_defined",
+        "audit store storage adapter backend product evidence readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_backend_product_evidence_status")
+        == "readiness_defined_without_product_selection",
         "audit storage adapter backend product evidence status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_backend_product_selection_status") == "not_selected",
+        "audit storage adapter backend product selection status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_backend_product_candidate_source_status")
+        == "metadata_only_candidate_source_defined",
+        "audit storage adapter backend product candidate source status drifted",
     )
     require(
         target.get("audit_storage_adapter_append_only_semantics_status")
@@ -1521,6 +1542,28 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "audit-store-storage-adapter-backend-product-evidence-readiness":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                (
+                    "docs/platform/"
+                    "production-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1.md"
+                ),
+                (
+                    "docs/task-cards/"
+                    "production-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1-plan.md"
+                ),
+                (
+                    "scripts/checks/fixtures/"
+                    "production-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1.json"
+                ),
+                (
+                    "scripts/"
+                    "check-production-ops-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1.py"
+                ),
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
         if slice_id == "audit-store-durable-backend-selection-readiness":
             evidence = set(planned[slice_id].get("evidence") or [])
             for path in {
@@ -2172,6 +2215,15 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         )
         in check_repo,
         "check-repo.py must run audit store runtime blocker matrix check",
+    )
+    require(
+        (
+            'run_python_script("'
+            "check-production-ops-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1.py"
+            '", [])'
+        )
+        in check_repo,
+        "check-repo.py must run audit store storage adapter backend product evidence readiness check",
     )
     require(
         (

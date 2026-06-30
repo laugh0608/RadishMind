@@ -334,12 +334,12 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
     require(
-        durable.get("status") == "storage_adapter_entry_review_defined_task_card_blocked",
+        durable.get("status") == "backend_product_evidence_readiness_defined_task_card_blocked",
         "durable backend blocker status not updated",
     )
     require(
         durable.get("source")
-        == "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1",
+        == "production-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1",
         "durable backend blocker source not updated",
     )
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable blocker must block audit runtime")
@@ -387,7 +387,7 @@ def assert_docs_and_registration() -> None:
         ],
         "docs/platform/production-secret-backend-audit-store-runtime-blocker-matrix-v1.md": [
             "audit_store_storage_adapter_runtime_implementation_entry_review_defined",
-            "storage_adapter_entry_review_defined_task_card_blocked",
+            "backend_product_evidence_readiness_defined_task_card_blocked",
         ],
         "docs/platform/README.md": [
             "Production Secret Backend Audit Store Storage Adapter Runtime Implementation Entry Review v1",
@@ -425,11 +425,21 @@ def assert_docs_and_registration() -> None:
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     v5 = "check-production-ops-secret-backend-audit-store-runtime-implementation-entry-refresh-v5.py"
     current = "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1.py"
+    backend_product_evidence = (
+        "check-production-ops-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1.py"
+    )
     matrix = "check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py"
     resolver = "check-production-ops-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2.py"
-    for script in {v5, current, matrix, resolver}:
+    for script in {v5, current, backend_product_evidence, matrix, resolver}:
         require(script in check_repo, f"check-repo.py missing {script}")
-    require(check_repo.index(v5) < check_repo.index(current) < check_repo.index(matrix) < check_repo.index(resolver), "check order drifted")
+    require(
+        check_repo.index(v5)
+        < check_repo.index(current)
+        < check_repo.index(backend_product_evidence)
+        < check_repo.index(matrix)
+        < check_repo.index(resolver),
+        "check order drifted",
+    )
 
 
 def assert_no_secret_literals() -> None:
