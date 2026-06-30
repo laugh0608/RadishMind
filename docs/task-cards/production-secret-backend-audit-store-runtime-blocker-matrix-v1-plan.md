@@ -15,6 +15,7 @@
 - `audit_store_writer_runtime_implementation_entry_review_defined`
 - `audit_store_idempotency_runtime_implementation_entry_review_defined`
 - `audit_store_storage_adapter_backend_product_evidence_readiness_defined`
+- `audit_store_storage_adapter_metadata_contract_artifact_readiness_defined`
 - `audit_store_runtime_implementation_entry_refresh_v4_defined`
 - `audit_store_durable_backend_boundary_readiness_defined`
 - `audit_store_writer_runtime_boundary_readiness_defined`
@@ -38,7 +39,7 @@
 ## Blocker Matrix
 
 - schema artifact：`implemented_static_schema_artifact`，只解除 artifact 缺口，不解锁 runtime。
-- durable backend：`backend_product_evidence_readiness_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1`。
+- durable backend：`metadata_contract_artifact_readiness_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-readiness-v1`。
 - audit writer runtime：`entry_review_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1`。
 - idempotency runtime：`entry_review_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1`。
 - delivery runtime：`not_created`。
@@ -62,6 +63,7 @@
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2.py

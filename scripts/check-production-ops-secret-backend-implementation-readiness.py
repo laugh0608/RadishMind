@@ -133,6 +133,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-backend-product-evidence-readiness": (
         "audit_store_storage_adapter_backend_product_evidence_readiness_defined"
     ),
+    "audit-store-storage-adapter-metadata-contract-artifact-readiness": (
+        "audit_store_storage_adapter_metadata_contract_artifact_readiness_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -249,6 +252,8 @@ REQUIRED_DOC_REFERENCES = {
         "audit_store_durable_backend_selection_readiness_defined",
         "production-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1",
         "audit_store_storage_adapter_backend_product_evidence_readiness_defined",
+        "production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-readiness-v1",
+        "audit_store_storage_adapter_metadata_contract_artifact_readiness_defined",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -339,6 +344,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py",
         "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1.py",
         "check-production-ops-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1.py",
+        "check-production-ops-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py",
     ],
@@ -818,6 +824,45 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("audit_storage_adapter_backend_product_candidate_source_status")
         == "metadata_only_candidate_source_defined",
         "audit storage adapter backend product candidate source status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_metadata_contract_artifact_readiness_status")
+        == "audit_store_storage_adapter_metadata_contract_artifact_readiness_defined",
+        "audit store storage adapter metadata contract artifact readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_metadata_contract_artifact_status")
+        == "readiness_defined_without_materialized_artifact",
+        "audit storage adapter metadata contract artifact status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_contract_artifact_path_status") == "reserved_static_path",
+        "audit storage adapter contract artifact path status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_input_envelope_status") == "metadata_only_input_envelope_defined",
+        "audit storage adapter input envelope status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_result_envelope_status") == "metadata_only_result_envelope_defined",
+        "audit storage adapter result envelope status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_record_identity_status") == "metadata_only_record_identity_defined",
+        "audit storage adapter record identity status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_failure_taxonomy_status") == "metadata_only_failure_taxonomy_defined",
+        "audit storage adapter failure taxonomy status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_writer_compatibility_status")
+        == "metadata_only_writer_compatibility_defined",
+        "audit storage adapter writer compatibility status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_contract_artifact_materialization_status") == "not_created",
+        "audit storage adapter contract artifact must remain not_created",
     )
     require(
         target.get("audit_storage_adapter_append_only_semantics_status")
@@ -1564,6 +1609,28 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "audit-store-storage-adapter-metadata-contract-artifact-readiness":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                (
+                    "docs/platform/"
+                    "production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-readiness-v1.md"
+                ),
+                (
+                    "docs/task-cards/"
+                    "production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-readiness-v1-plan.md"
+                ),
+                (
+                    "scripts/checks/fixtures/"
+                    "production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-readiness-v1.json"
+                ),
+                (
+                    "scripts/"
+                    "check-production-ops-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-readiness-v1.py"
+                ),
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
         if slice_id == "audit-store-durable-backend-selection-readiness":
             evidence = set(planned[slice_id].get("evidence") or [])
             for path in {
@@ -1750,6 +1817,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "audit store runtime event schema materialization readiness defined without runtime schema",
         "audit store delivery runtime readiness defined without delivery runtime",
         "audit store idempotency runtime readiness defined without idempotency runtime",
+        "audit store storage adapter metadata contract artifact readiness defined without materialized artifact",
         "resolver backend health boundary readiness defined without backend health runtime",
         "resolver backend health runtime implementation entry review blocked before task card",
         "resolver backend health runtime implementation entry refresh blocked before task card",
@@ -2224,6 +2292,15 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         )
         in check_repo,
         "check-repo.py must run audit store storage adapter backend product evidence readiness check",
+    )
+    require(
+        (
+            'run_python_script("'
+            "check-production-ops-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-readiness-v1.py"
+            '", [])'
+        )
+        in check_repo,
+        "check-repo.py must run audit store storage adapter metadata contract artifact readiness check",
     )
     require(
         (
