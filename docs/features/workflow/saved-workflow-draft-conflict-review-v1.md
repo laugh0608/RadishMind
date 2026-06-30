@@ -16,6 +16,7 @@
 - 保存返回 `version_conflict` 后，Draft Designer 会刷新当前 application 的 sanitized saved draft list，为显式恢复 saved version 准备当前 metadata；该刷新不读取 secret、不恢复草案、不覆盖本地 active draft。
 - Review Handoff 已消费同一份 conflict review summary，并以 advisory-only 形式展示冲突状态、saved version metadata、validation 状态、blocked capability 和 auto overwrite / auto merge 停止线。
 - `workflow-saved-draft-consumer-smoke-v1` 与 `workflow-review-handoff-active-draft-v1` 已同步覆盖该实现；本批不新增 backend route、repository mode、数据库、runtime 或 public production API。
+- 2026-06-30 dev-live 浏览器复核已覆盖正常保存、外部版本推进、UI 冲突保存、冲突后列表刷新、继续本地草案、显式恢复 saved version 和 Review Handoff 摘要展示；复核期间只出现 `favicon.ico` 404，不影响 workflow 功能。
 
 ## 目标用户
 
@@ -40,7 +41,7 @@
 
 ## 后续开发
 
-- 若继续用户工作流路径，应在用户显式启动 dev-only HTTP 服务后复核冲突审查、列表刷新、继续本地编辑、恢复 saved version 和 Review Handoff 展示体验。
+- 若继续用户工作流路径，应基于已完成的 dev-live 复核结果，优先整理冲突审查与 Review Handoff 的可读性、空状态或恢复入口细节；不得重复把普通 UI 体验整理升级为新的生产后端能力。
 - 若要扩大自动化验证，优先复用现有 workflow consumer smoke、Review Handoff checker、web build 和仓库基线；只有新增协议字段、route 行为或高风险边界时再新增专项 task card / fixture / checker。
 - 若转回 durable store 上游，应独立推进 `storage_adapter_negative_leakage_scan_evidence_readiness`，不得把本功能实现解释为 repository mode、数据库、生产 API 或 runtime ready。
 
@@ -66,6 +67,7 @@
 - Review Handoff 能显示 conflict review summary，并保持 advisory-only。
 - 失败状态不得回退到 sample、fixture 或 memory dev 的其它草案。
 - 现有 workflow consumer smoke、Review Handoff 检查和 web build 可复验本批实现；只有新增协议字段、route 行为或高风险边界时再新增专项 task card / fixture / checker。
+- dev-live 浏览器复核记录应能证明本地 active draft 不被自动覆盖、冲突后列表刷新只准备恢复入口、恢复 saved version 必须显式触发，且 Review Handoff 仍只提供 advisory-only 审查语义。
 
 ## 停止线
 

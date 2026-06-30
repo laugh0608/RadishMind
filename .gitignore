@@ -5,6 +5,7 @@
 # Codex
 .codex/
 .codex
+.playwright-cli/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
