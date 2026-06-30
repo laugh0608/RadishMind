@@ -1,0 +1,56 @@
+# Saved Workflow Draft Conflict Review v1
+
+更新时间：2026-06-30
+
+## 文档目的
+
+本文档定义 saved workflow draft 在版本冲突、恢复和审查交接中的下一批真实用户工作流。它承接现有 dev-only saved draft route、consumer `version_conflict` 状态、Draft Designer active draft 和 Review Handoff，不创建新的 runtime 或生产后端。
+
+## 目标用户
+
+- `Workspace Builder`：保存草案时遇到版本冲突，需要知道当前本地草案是否仍可继续编辑。
+- `Workflow Reviewer`：审查恢复后的 active draft 时，需要看到冲突来源和后续处理建议。
+- `Platform Maintainer`：确认冲突处理不绕过 owner / workspace、version conflict、no sample fallback 和 repository mode 停止线。
+
+## 当前输入
+
+- `POST /v1/user-workspace/workflow-drafts` 已能返回 `version_conflict`，前端 consumer 会保留本地草案并展示 saved draft version metadata。
+- `GET /v1/user-workspace/workflow-drafts/{draft_id}` 已能恢复 saved draft 到 Draft Designer。
+- Review Handoff 已能消费 active draft 的 validation、plan 和 readiness。
+- `memory_dev` 是当前唯一可成功读写的 store mode；`repository` 和 `repository_disabled` 仍 fail closed。
+
+## 下一批能力
+
+1. Draft Designer 在 `version_conflict` 后展示冲突审查状态，说明本地草案、远端 saved version 和下一步选择。
+2. 用户可以明确选择继续编辑本地草案，或从 saved draft 重新恢复；系统不得自动覆盖本地 active draft。
+3. Review Handoff 增加 conflict review summary，把冲突状态、saved version metadata、validation 状态和 blocked capability 一起交给 reviewer。
+4. Workspace saved draft list 保持 sanitized summary，只提供恢复入口，不暴露 secret、token、完整 claim 或 runtime material。
+
+## 数据边界
+
+允许使用：
+
+- `draft_id`、`draft_version`、`updated_at`、`updated_by_actor_ref`、`workspace_id`、`application_id`。
+- `version_conflict` failure code、当前 saved draft metadata、active draft validation summary、readiness summary 和 audit metadata reference。
+- 本地 active draft 的草案名称、说明、节点、边和受控 layout metadata。
+
+禁止使用：
+
+- secret value、API key value、OAuth / OIDC token、完整用户 claim。
+- force overwrite、auto merge、runtime execution、publish、confirmation decision、writeback、replay 或 materialized result。
+- repository mode、DB provider、SQL migration、schema marker runtime 或 public production API。
+
+## 验收方式
+
+- `version_conflict` 后本地 active draft 不丢失，用户能看到冲突来源和 saved version metadata。
+- 恢复 saved draft 必须是显式动作，不能由保存失败自动触发。
+- Review Handoff 能显示 conflict review summary，并保持 advisory-only。
+- 失败状态不得回退到 sample、fixture 或 memory dev 的其它草案。
+- 后续实现批次优先复用现有 workflow consumer smoke、Review Handoff 检查和 web build；只有新增协议字段、route 行为或高风险边界时再新增专项 task card / fixture / checker。
+
+## 停止线
+
+- 不新增 backend route，不改 public production API，不启用 repository mode。
+- 不创建 durable store、DB provider、SQL、schema marker runtime、migration runner、auth middleware、token validation 或 membership adapter。
+- 不创建 workflow executor、publish / run、confirmation、writeback、replay 或 materialized result reader。
+- 不把冲突审查状态写成自动合并、自动覆盖或执行解锁条件。

@@ -115,7 +115,7 @@
 
 ## 当前优先做什么
 
-第一顺位不是继续扩同层 gate，而是把已经完成的产品面证据收束到合适粒度的专题文档，并按专题选择下一批真实开发目标。
+第一顺位不是继续扩同层 gate，而是用 [Storage Adapter Evidence Rollup v1](platform/production-secret-backend-audit-store-storage-adapter-evidence-rollup-v1.md) 收束已完成的 Production Secret Backend storage adapter 证据链，并把下一批真实开发目标转向 [Saved Workflow Draft Conflict Review v1](features/workflow/saved-workflow-draft-conflict-review-v1.md)。
 
 当前功能入口：
 
@@ -128,7 +128,7 @@
 当前细专题入口：
 
 1. [Workflow 细专题入口](features/workflow/README.md)
-2. [Saved Workflow Draft v1](features/workflow/saved-workflow-draft-v1.md)
+2. [Saved Workflow Draft v1](features/workflow/saved-workflow-draft-v1.md) / [Saved Workflow Draft Conflict Review v1](features/workflow/saved-workflow-draft-conflict-review-v1.md)
 3. [Workflow Draft Designer Surface](features/workflow/draft-designer-surface.md)
 4. [Workflow Draft Editing Entry v1](features/workflow/draft-editing-entry-v1.md)
 5. [User Workspace Draft Creation v1](features/workflow/user-workspace-draft-creation-v1.md)
