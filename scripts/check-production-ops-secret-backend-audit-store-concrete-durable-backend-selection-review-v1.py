@@ -362,19 +362,19 @@ def assert_blocker_matrix_alignment() -> None:
     )
     require(
         boundary.get("durable_audit_backend_status")
-        == "append_only_semantics_evidence_readiness_defined_task_card_blocked",
+        == "retention_redaction_policy_evidence_readiness_defined_task_card_blocked",
         "blocker matrix durable backend status mismatch",
     )
 
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
     require(
-        durable.get("status") == "append_only_semantics_evidence_readiness_defined_task_card_blocked",
+        durable.get("status") == "retention_redaction_policy_evidence_readiness_defined_task_card_blocked",
         "durable backend blocker status mismatch",
     )
     require(
         durable.get("source")
-        == "production-secret-backend-audit-store-storage-adapter-append-only-semantics-evidence-readiness-v1",
+        == "production-secret-backend-audit-store-storage-adapter-retention-redaction-policy-evidence-readiness-v1",
         "durable backend blocker source mismatch",
     )
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable backend must still block audit runtime")

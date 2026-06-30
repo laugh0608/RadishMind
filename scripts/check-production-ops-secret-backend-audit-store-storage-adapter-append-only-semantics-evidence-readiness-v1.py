@@ -391,18 +391,24 @@ def assert_blocker_matrix_alignment() -> None:
         "matrix boundary append-only semantics status drifted",
     )
     require(
-        boundary.get("storage_adapter_retention_redaction_status") == "required_before_runtime_task_card",
+        boundary.get("storage_adapter_retention_redaction_policy_evidence_readiness_status")
+        == "audit_store_storage_adapter_retention_redaction_policy_evidence_readiness_defined",
+        "matrix boundary missing retention/redaction policy evidence readiness status",
+    )
+    require(
+        boundary.get("storage_adapter_retention_redaction_status")
+        == "retention_redaction_policy_evidence_defined_without_runtime",
         "matrix boundary retention/redaction status drifted",
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
     require(
-        durable.get("status") == "append_only_semantics_evidence_readiness_defined_task_card_blocked",
+        durable.get("status") == "retention_redaction_policy_evidence_readiness_defined_task_card_blocked",
         "durable backend blocker status drifted",
     )
     require(
         durable.get("source")
-        == "production-secret-backend-audit-store-storage-adapter-append-only-semantics-evidence-readiness-v1",
+        == "production-secret-backend-audit-store-storage-adapter-retention-redaction-policy-evidence-readiness-v1",
         "durable backend blocker source drifted",
     )
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable backend must block audit runtime")
@@ -447,7 +453,7 @@ def assert_docs_and_registration() -> None:
         ],
         "docs/platform/production-secret-backend-audit-store-runtime-blocker-matrix-v1.md": [
             "audit_store_storage_adapter_append_only_semantics_evidence_readiness_defined",
-            "append_only_semantics_evidence_readiness_defined_task_card_blocked",
+            "retention_redaction_policy_evidence_readiness_defined_task_card_blocked",
         ],
         "docs/platform/README.md": [
             "Production Secret Backend Audit Store Storage Adapter Append-Only Semantics Evidence Readiness v1",
