@@ -37,7 +37,7 @@
 ## Blocker Matrix
 
 - schema artifact：`implemented_static_schema_artifact`，只解除 artifact 缺口，不解锁 runtime。
-- durable backend：`selection_readiness_defined_backend_not_selected`，source 为 `production-secret-backend-audit-store-durable-backend-selection-readiness-v1`。
+- durable backend：`storage_adapter_entry_review_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1`。
 - audit writer runtime：`entry_review_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1`。
 - idempotency runtime：`entry_review_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1`。
 - delivery runtime：`not_created`。
@@ -59,6 +59,7 @@
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-durable-backend-selection-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2.py

@@ -361,16 +361,19 @@ def assert_blocker_matrix_alignment() -> None:
         "blocker matrix boundary must consume concrete durable backend selection review",
     )
     require(
-        boundary.get("durable_audit_backend_status") == "static_backend_family_selected_runtime_blocked",
+        boundary.get("durable_audit_backend_status") == "storage_adapter_entry_review_defined_task_card_blocked",
         "blocker matrix durable backend status mismatch",
     )
 
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    require(durable.get("status") == "static_family_selected_runtime_blocked", "durable backend blocker status mismatch")
+    require(
+        durable.get("status") == "storage_adapter_entry_review_defined_task_card_blocked",
+        "durable backend blocker status mismatch",
+    )
     require(
         durable.get("source")
-        == "production-secret-backend-audit-store-concrete-durable-backend-selection-review-v1",
+        == "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1",
         "durable backend blocker source mismatch",
     )
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable backend must still block audit runtime")

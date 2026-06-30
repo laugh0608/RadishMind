@@ -8,13 +8,13 @@
 
 对应切片：`production-secret-backend-audit-store-runtime-blocker-matrix-v1`。
 
-结论：状态为 `audit_store_runtime_blocker_matrix_defined`，entry decision 固定为 `audit_store_runtime_task_card_still_blocked_after_schema_artifact`。后续 `production-secret-backend-audit-store-durable-backend-selection-readiness-v1` 已固定 `audit_store_durable_backend_selection_readiness_defined`，`production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1` 已固定 `audit_store_writer_runtime_implementation_entry_review_defined`，`production-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1` 已固定 `audit_store_idempotency_runtime_implementation_entry_review_defined`，`production-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1` 已固定 `audit_store_delivery_runtime_implementation_entry_review_defined`，`production-secret-backend-audit-store-concrete-durable-backend-selection-review-v1` 已固定 `audit_store_concrete_durable_backend_selection_review_defined`。durable backend family 已静态选择为 `append_only_metadata_audit_log` / `reserved_append_only_audit_log`，但 storage adapter runtime、DB provider、writer runtime task card、idempotency runtime task card、delivery runtime task card 和 audit store runtime task card 仍 blocked。本 matrix 只记录静态 blocker 与证据指向；不创建 audit store runtime implementation task card，不创建 storage adapter runtime、audit writer runtime、delivery runtime、idempotency runtime、operator approval runtime、credential handle runtime、backend health runtime、no leakage smoke runtime、production resolver runtime、DB provider、repository mode 或 public production API。
+结论：状态为 `audit_store_runtime_blocker_matrix_defined`，entry decision 固定为 `audit_store_runtime_task_card_still_blocked_after_schema_artifact`。后续 `production-secret-backend-audit-store-durable-backend-selection-readiness-v1` 已固定 `audit_store_durable_backend_selection_readiness_defined`，`production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1` 已固定 `audit_store_writer_runtime_implementation_entry_review_defined`，`production-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1` 已固定 `audit_store_idempotency_runtime_implementation_entry_review_defined`，`production-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1` 已固定 `audit_store_delivery_runtime_implementation_entry_review_defined`，`production-secret-backend-audit-store-concrete-durable-backend-selection-review-v1` 已固定 `audit_store_concrete_durable_backend_selection_review_defined`，`production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1` 已固定 `audit_store_storage_adapter_runtime_implementation_entry_review_defined`。durable backend family 已静态选择为 `append_only_metadata_audit_log` / `reserved_append_only_audit_log`，但 storage adapter runtime task card、DB provider、writer runtime task card、idempotency runtime task card、delivery runtime task card 和 audit store runtime task card 仍 blocked。本 matrix 只记录静态 blocker 与证据指向；不创建 audit store runtime implementation task card，不创建 storage adapter runtime、audit writer runtime、delivery runtime、idempotency runtime、operator approval runtime、credential handle runtime、backend health runtime、no leakage smoke runtime、production resolver runtime、DB provider、repository mode 或 public production API。
 
 ## 输入证据
 
 - `audit_store_runtime_event_schema_artifact_implemented` 已确认 `contracts/production-secret-audit-event.schema.json`、positive / negative fixtures、schema checker 和 writer input compatibility smoke 已离线验证。
 - `audit_store_runtime_implementation_entry_refresh_v4_defined` 仍确认 audit store runtime task card blocked；其中 runtime event schema artifact 的旧缺口已由本批后置 matrix 更新为 resolved static prerequisite。
-- `audit_store_durable_backend_boundary_readiness_defined` 只定义 durable backend owner 和 storage adapter responsibility；后续 concrete selection review 只静态选择 backend family，不创建 runtime。
+- `audit_store_durable_backend_boundary_readiness_defined` 只定义 durable backend owner 和 storage adapter responsibility；后续 concrete selection review 只静态选择 backend family，storage adapter entry review 只固定 runtime task card 准入仍 blocked，不创建 runtime。
 - `audit_store_durable_backend_selection_readiness_defined` 已由 `production-secret-backend-audit-store-durable-backend-selection-readiness-v1` 固定 candidate shape、selection matrix、依赖顺序和停止线；它只定义 selection readiness，不选择 durable audit backend。
 - `audit_store_writer_runtime_boundary_readiness_defined` 只定义 metadata-only writer input 和 result reference，writer runtime 仍为 `not_created`。
 - `audit_store_writer_runtime_implementation_entry_review_defined` 已确认 writer runtime implementation task card 当前仍为 `audit_store_writer_runtime_task_card_blocked_after_selection_readiness`；该证据只细化 writer blocker，不创建 writer runtime task card、writer runtime 或 writer result。
@@ -36,7 +36,7 @@
 
 | blocker | 当前结论 | 可解锁条件 |
 | --- | --- | --- |
-| durable backend | `static_family_selected_runtime_blocked` | 已静态选择 `append_only_metadata_audit_log` / `reserved_append_only_audit_log`，但仍需后续 storage adapter runtime task card、backend product evidence、retention / redaction、failure mapping、offline validation 和 runtime 依赖解除阻塞 |
+| durable backend | `storage_adapter_entry_review_defined_task_card_blocked` | 已静态选择 `append_only_metadata_audit_log` / `reserved_append_only_audit_log`，并已完成 storage adapter entry review，但仍需后续 backend product evidence、retention / redaction、failure mapping、offline validation、negative leakage scan 和 runtime task card 解除阻塞 |
 | audit writer runtime | `entry_review_defined_task_card_blocked` | 后续单独解除 writer runtime entry review 阻塞并创建 writer runtime task card，消费 schema artifact、metadata-only input、concrete durable backend、idempotency / delivery 依赖和 no side effects gate |
 | idempotency runtime | `entry_review_defined_task_card_blocked` | 后续单独解除 idempotency runtime entry review 阻塞并创建 idempotency runtime task card，证明 key store、duplicate detector 和 replay decision 的 fail-closed 语义 |
 | delivery runtime | `entry_review_defined_task_card_blocked` | 后续单独解除 delivery runtime entry review 阻塞并创建 delivery runtime task card，消费 writer result、idempotency decision、retry policy 和 delivery result persistence |
@@ -49,12 +49,13 @@
 ## 依赖顺序
 
 1. 已独立固定 durable backend selection readiness，不把 v4、schema artifact 或 selection readiness 写成 backend selected。
-2. 已独立评审 audit writer runtime entry review；结论为 task card blocked，writer 必须消费 schema artifact，但不能自行创建 durable backend、delivery 或 idempotency。
-3. 已独立评审 idempotency runtime entry review；结论为 task card blocked，idempotency 必须消费 writer result、durable backend、delivery dependency 和 fail-closed duplicate / replay policy，但不能自行创建 writer、delivery 或 audit store runtime。
-4. 已独立评审 delivery runtime entry review；结论为 task card blocked，delivery 必须消费 writer result、idempotency decision、retry policy、delivery result persistence 和 durable backend dependency，但不能自行创建 writer、idempotency 或 audit store runtime。
-5. 并行等待 operator approval、credential handle、backend health 和 no leakage smoke runtime 的各自 entry refresh 不再 blocked。
-6. 上述 runtime blocker 都清除后，才能重新评审 audit store runtime implementation task card。
-7. audit store runtime 仍 blocked 时，production resolver runtime task card 仍 blocked，不能借 schema artifact 完成绕过。
+2. 已独立评审 storage adapter runtime entry review；结论为 task card blocked，storage adapter 必须等待 backend product evidence、retention / redaction、offline validation、negative leakage scan 和 rollback / recovery evidence。
+3. 已独立评审 audit writer runtime entry review；结论为 task card blocked，writer 必须消费 schema artifact，但不能自行创建 durable backend、delivery 或 idempotency。
+4. 已独立评审 idempotency runtime entry review；结论为 task card blocked，idempotency 必须消费 writer result、durable backend、delivery dependency 和 fail-closed duplicate / replay policy，但不能自行创建 writer、delivery 或 audit store runtime。
+5. 已独立评审 delivery runtime entry review；结论为 task card blocked，delivery 必须消费 writer result、idempotency decision、retry policy、delivery result persistence 和 durable backend dependency，但不能自行创建 writer、idempotency 或 audit store runtime。
+6. 并行等待 operator approval、credential handle、backend health 和 no leakage smoke runtime 的各自 entry refresh 不再 blocked。
+7. 上述 runtime blocker 都清除后，才能重新评审 audit store runtime implementation task card。
+8. audit store runtime 仍 blocked 时，production resolver runtime task card 仍 blocked，不能借 schema artifact 完成绕过。
 
 ## 停止线
 
@@ -70,6 +71,7 @@
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2.py

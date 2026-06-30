@@ -127,6 +127,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-delivery-runtime-implementation-entry-review": (
         "audit_store_delivery_runtime_implementation_entry_review_defined"
     ),
+    "audit-store-storage-adapter-runtime-implementation-entry-review": (
+        "audit_store_storage_adapter_runtime_implementation_entry_review_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -329,6 +332,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-implementation-v1.py",
         "check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-v1.py",
         "check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py",
+        "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py",
     ],
@@ -775,6 +779,55 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("audit_store_runtime_implementation_entry_refresh_v4_status")
         == "blocked_before_runtime_task_card",
         "audit store runtime implementation entry refresh v4 status drifted",
+    )
+    require(
+        target.get("audit_store_runtime_implementation_entry_refresh_v5_status")
+        == "blocked_after_concrete_backend_selection_review",
+        "audit store runtime implementation entry refresh v5 status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_runtime_implementation_entry_review_status")
+        == "blocked_before_runtime_task_card",
+        "audit store storage adapter runtime implementation entry review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_contract_status") == "metadata_only_static_contract_reviewed",
+        "audit storage adapter contract status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_backend_product_evidence_status") == "not_selected",
+        "audit storage adapter backend product evidence status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_append_only_semantics_status")
+        == "required_before_runtime_task_card",
+        "audit storage adapter append-only semantics status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_retention_redaction_status")
+        == "required_before_runtime_task_card",
+        "audit storage adapter retention / redaction status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_validation_status") == "not_created",
+        "audit storage adapter offline validation status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_negative_leakage_scan_status") == "not_created",
+        "audit storage adapter negative leakage scan status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_rollback_recovery_status")
+        == "required_before_runtime_task_card",
+        "audit storage adapter rollback / recovery status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_runtime_task_card_status") == "not_created",
+        "audit storage adapter runtime task card must remain not_created",
+    )
+    require(
+        target.get("audit_storage_adapter_runtime_status") == "not_created",
+        "audit storage adapter runtime must remain not_created",
     )
     require(
         target.get("audit_store_runtime_blocker_matrix_status")
@@ -1552,6 +1605,28 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
                 (
                     "scripts/"
                     "check-production-ops-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1.py"
+                ),
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "audit-store-storage-adapter-runtime-implementation-entry-review":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                (
+                    "docs/platform/"
+                    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1.md"
+                ),
+                (
+                    "docs/task-cards/"
+                    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1-plan.md"
+                ),
+                (
+                    "scripts/checks/fixtures/"
+                    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1.json"
+                ),
+                (
+                    "scripts/"
+                    "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1.py"
                 ),
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")

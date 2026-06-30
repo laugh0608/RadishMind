@@ -330,12 +330,17 @@ def assert_blocker_matrix_alignment() -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     boundary = matrix.get("matrix_boundary") or {}
     require(
-        boundary.get("durable_audit_backend_status") == "static_backend_family_selected_runtime_blocked",
+        boundary.get("durable_audit_backend_status")
+        == "storage_adapter_entry_review_defined_task_card_blocked",
         "blocker matrix durable backend status drifted",
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    require(durable.get("source") == "production-secret-backend-audit-store-concrete-durable-backend-selection-review-v1", "durable blocker source drifted")
+    require(
+        durable.get("source")
+        == "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1",
+        "durable blocker source drifted",
+    )
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable backend must still block audit runtime")
     for blocker_id in {"audit_writer_runtime", "idempotency_runtime", "delivery_runtime"}:
         row = blockers.get(blocker_id) or {}
@@ -362,12 +367,21 @@ def assert_docs_and_registration() -> None:
         require(not missing, f"{relative_path} missing literals: {missing}")
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
-    before = "check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py"
     current = "check-production-ops-secret-backend-audit-store-runtime-implementation-entry-refresh-v5.py"
+    before = "check-production-ops-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1.py"
+    storage = "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1.py"
+    matrix = "check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py"
     after = "check-production-ops-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2.py"
-    for script in {before, current, after}:
+    for script in {before, current, storage, matrix, after}:
         require(script in check_repo, f"check-repo.py missing {script}")
-    require(check_repo.index(before) < check_repo.index(current) < check_repo.index(after), "check-repo.py order drifted")
+    require(
+        check_repo.index(before)
+        < check_repo.index(current)
+        < check_repo.index(storage)
+        < check_repo.index(matrix)
+        < check_repo.index(after),
+        "check-repo.py order drifted",
+    )
 
 
 def assert_no_secret_literals() -> None:
