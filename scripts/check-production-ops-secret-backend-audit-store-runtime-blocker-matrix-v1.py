@@ -96,6 +96,13 @@ EXPECTED_DEPENDENCIES = {
         ),
         "audit_store_storage_adapter_metadata_contract_artifact_readiness_defined",
     ),
+    "production-secret-backend-audit-store-storage-adapter-append-only-semantics-evidence-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-append-only-semantics-evidence-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_append_only_semantics_evidence_readiness_defined",
+    ),
     "production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1": (
         "scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.json",
         "credential_handle_runtime_implementation_entry_refresh_defined",
@@ -141,7 +148,7 @@ EXPECTED_BOUNDARY = {
     "durable_backend_selection_decision_after_review": (
         "durable_backend_family_selected_static_append_only_audit_log_runtime_blocked"
     ),
-    "durable_audit_backend_status": "metadata_contract_artifact_readiness_defined_task_card_blocked",
+    "durable_audit_backend_status": "append_only_semantics_evidence_readiness_defined_task_card_blocked",
     "selected_durable_backend_family": "append_only_metadata_audit_log",
     "selected_reserved_candidate": "reserved_append_only_audit_log",
     "storage_adapter_runtime_implementation_entry_review_status": (
@@ -166,6 +173,18 @@ EXPECTED_BOUNDARY = {
     "storage_adapter_failure_taxonomy_status": "metadata_only_failure_taxonomy_defined",
     "storage_adapter_writer_compatibility_status": "metadata_only_writer_compatibility_defined",
     "storage_adapter_contract_artifact_materialization_status": "not_created",
+    "storage_adapter_append_only_semantics_evidence_readiness_status": (
+        "audit_store_storage_adapter_append_only_semantics_evidence_readiness_defined"
+    ),
+    "storage_adapter_append_only_semantics_status": "append_only_semantics_evidence_defined_without_runtime",
+    "storage_adapter_append_only_operation_status": "append_only_insert_only",
+    "storage_adapter_forbidden_mutation_policy_status": (
+        "update_delete_overwrite_truncate_reject_policy_defined"
+    ),
+    "storage_adapter_sequence_reference_status": "metadata_only_monotonic_sequence_reference_defined",
+    "storage_adapter_record_immutability_status": "metadata_only_immutability_policy_defined",
+    "storage_adapter_duplicate_replay_policy_status": "fail_closed_duplicate_replay_reference_defined",
+    "storage_adapter_retention_redaction_status": "required_before_runtime_task_card",
     "storage_adapter_offline_validation_status": "not_created",
     "writer_runtime_implementation_entry_review_status": (
         "audit_store_writer_runtime_implementation_entry_review_defined"
@@ -224,7 +243,7 @@ EXPECTED_FALSE_FLAGS = {
 
 EXPECTED_BLOCKERS = {
     "runtime_event_schema_artifact": "implemented_static_schema_artifact",
-    "durable_audit_backend": "metadata_contract_artifact_readiness_defined_task_card_blocked",
+    "durable_audit_backend": "append_only_semantics_evidence_readiness_defined_task_card_blocked",
     "audit_writer_runtime": "entry_review_defined_task_card_blocked",
     "idempotency_runtime": "entry_review_defined_task_card_blocked",
     "delivery_runtime": "entry_review_defined_task_card_blocked",
@@ -242,6 +261,7 @@ EXPECTED_ORDER = [
     "storage_adapter_runtime_entry_review",
     "storage_adapter_backend_product_evidence_readiness",
     "storage_adapter_metadata_contract_artifact_readiness",
+    "storage_adapter_append_only_semantics_evidence_readiness",
     "audit_writer_runtime_entry_review",
     "idempotency_runtime_entry_review",
     "delivery_runtime_entry_review",
@@ -310,6 +330,7 @@ EXPECTED_REQUIRED_CHECKS = {
     "run audit store storage adapter runtime implementation entry review checker",
     "run audit store storage adapter backend product evidence readiness checker",
     "run audit store storage adapter metadata contract artifact readiness checker",
+    "run audit store storage adapter append-only semantics evidence readiness checker",
     "run audit store runtime event schema artifact checker",
     "run audit store runtime implementation entry refresh v4 checker",
     "run production resolver runtime implementation entry refresh v2 checker",
@@ -528,6 +549,23 @@ def assert_prior_evidence_alignment() -> None:
         "audit_storage_adapter_failure_taxonomy_status": "metadata_only_failure_taxonomy_defined",
         "audit_storage_adapter_writer_compatibility_status": "metadata_only_writer_compatibility_defined",
         "audit_storage_adapter_contract_artifact_materialization_status": "not_created",
+        "audit_store_storage_adapter_append_only_semantics_evidence_readiness_status": (
+            "audit_store_storage_adapter_append_only_semantics_evidence_readiness_defined"
+        ),
+        "audit_storage_adapter_append_only_semantics_status": (
+            "append_only_semantics_evidence_defined_without_runtime"
+        ),
+        "audit_storage_adapter_append_only_operation_status": "append_only_insert_only",
+        "audit_storage_adapter_forbidden_mutation_policy_status": (
+            "update_delete_overwrite_truncate_reject_policy_defined"
+        ),
+        "audit_storage_adapter_sequence_reference_status": (
+            "metadata_only_monotonic_sequence_reference_defined"
+        ),
+        "audit_storage_adapter_record_immutability_status": "metadata_only_immutability_policy_defined",
+        "audit_storage_adapter_duplicate_replay_policy_status": (
+            "fail_closed_duplicate_replay_reference_defined"
+        ),
         "audit_store_runtime_blocker_matrix_status": "audit_store_runtime_blocker_matrix_defined",
         "audit_store_runtime_task_card_status": "not_created",
         "audit_store_runtime_status": "not_created",
@@ -627,6 +665,10 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-audit-store-'
         'storage-adapter-metadata-contract-artifact-readiness-v1.py", [])'
     )
+    append_only_semantics_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'storage-adapter-append-only-semantics-evidence-readiness-v1.py", [])'
+    )
     current_call = 'run_python_script("check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py", [])'
     resolver_call = (
         'run_python_script("check-production-ops-secret-backend-'
@@ -642,6 +684,7 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         storage_entry_call,
         backend_product_evidence_call,
         metadata_contract_artifact_call,
+        append_only_semantics_call,
         current_call,
         resolver_call,
     ):
@@ -656,6 +699,7 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         < check_repo.index(storage_entry_call)
         < check_repo.index(backend_product_evidence_call)
         < check_repo.index(metadata_contract_artifact_call)
+        < check_repo.index(append_only_semantics_call)
         < check_repo.index(current_call)
         < check_repo.index(resolver_call),
         "check order drifted",

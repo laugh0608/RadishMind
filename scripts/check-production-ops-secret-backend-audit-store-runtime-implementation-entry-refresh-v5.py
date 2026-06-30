@@ -331,14 +331,14 @@ def assert_blocker_matrix_alignment() -> None:
     boundary = matrix.get("matrix_boundary") or {}
     require(
         boundary.get("durable_audit_backend_status")
-        == "metadata_contract_artifact_readiness_defined_task_card_blocked",
+        == "append_only_semantics_evidence_readiness_defined_task_card_blocked",
         "blocker matrix durable backend status drifted",
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
     require(
         durable.get("source")
-        == "production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-readiness-v1",
+        == "production-secret-backend-audit-store-storage-adapter-append-only-semantics-evidence-readiness-v1",
         "durable blocker source drifted",
     )
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable backend must still block audit runtime")
