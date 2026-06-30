@@ -1749,6 +1749,7 @@ def main() -> int:
     if not args.skip_text_files:
         run_python_script("check-text-files.py", [])
         run_python_script("check-markdown-size.py", [])
+        run_python_script("check-doc-language-policy-v1.py", [])
 
     if args.fast:
         check_fast_baseline()

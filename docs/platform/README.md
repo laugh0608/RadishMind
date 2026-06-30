@@ -8,6 +8,8 @@
 
 具体实现批次仍进入 `docs/task-cards/`。平台专题只说明为什么要做、允许打开什么、依赖什么证据、哪些能力必须作为独立目标。
 
+平台专题正文默认中文；`auth`、`store`、`repository`、`provider`、`deployment`、`dev-only`、`schema`、`fixture`、`checker`、状态锚点和路径等必要标识符保留原文并优先使用反引号。
+
 ## 何时放在这里
 
 - 能力会影响多个产品面，例如 User Workspace、Admin Control Plane 和 Workflow 同时依赖的 auth / store / repository。

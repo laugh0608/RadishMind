@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "kind": "doc_language_policy_v1",
+  "status": "doc_language_policy_defined",
+  "scope": {
+    "default_prose_language": "zh-CN",
+    "legacy_remediation_policy": "incremental_priority_documents_first",
+    "machine_checked_literals_policy": "preserve_until_checker_fixture_and_docs_are_updated_together"
+  },
+  "preserve_original_categories": [
+    "technical_term_without_stable_chinese_equivalent",
+    "code_identifier",
+    "command",
+    "path",
+    "config_key",
+    "type_name",
+    "interface_name",
+    "api_route",
+    "protocol_field",
+    "schema_field",
+    "status_anchor",
+    "fixture_id",
+    "checker_id",
+    "external_project_name",
+    "quoted_source_text"
+  ],
+  "priority_documents": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/README.md",
+    "docs/radishmind-current-focus.md",
+    "docs/features/README.md",
+    "docs/platform/README.md",
+    "docs/radishmind-code-standards.md",
+    "scripts/README.md"
+  ],
+  "remediation_order": [
+    "entry_documents",
+    "feature_and_platform_topic_entries",
+    "contracts",
+    "task_cards",
+    "devlogs"
+  ],
+  "required_policy_anchors": [
+    {
+      "path": "AGENTS.md",
+      "snippets": [
+        "默认使用中文进行讨论、说明、提交总结和规划记录",
+        "文档正文中的英文只在专业名词、代码标识符、状态锚点、路径、命令、配置键、协议字段、外部产品名或引用原文确有必要时保留"
+      ]
+    },
+    {
+      "path": "CLAUDE.md",
+      "snippets": [
+        "默认使用中文进行讨论、说明、提交总结和规划记录",
+        "文档正文中的英文只在专业名词、代码标识符、状态锚点、路径、命令、配置键、协议字段、外部产品名或引用原文确有必要时保留"
+      ]
+    },
+    {
+      "path": "docs/README.md",
+      "snippets": [
+        "文档正文默认中文",
+        "没有稳定中文对应的专业名词",
+        "历史英文工程短语按入口文档、专题文档、任务卡和周志顺序逐批收口"
+      ]
+    },
+    {
+      "path": "docs/radishmind-current-focus.md",
+      "snippets": [
+        "正文默认中文",
+        "代码标识符、路径、配置键和状态锚点保留原文"
+      ]
+    },
+    {
+      "path": "docs/features/README.md",
+      "snippets": [
+        "功能文档正文默认中文",
+        "schema / fixture / checker ID"
+      ]
+    },
+    {
+      "path": "docs/platform/README.md",
+      "snippets": [
+        "平台专题正文默认中文",
+        "`schema`、`fixture`、`checker`、状态锚点和路径"
+      ]
+    },
+    {
+      "path": "docs/radishmind-code-standards.md",
+      "snippets": [
+        "文档正文默认使用中文",
+        "没有稳定中文对应的专业名词",
+        "不批量翻译机器检查依赖的 literal、状态锚点、fixture key 或路径",
+        "历史英文工程短语按入口文档、功能 / 平台专题、契约、任务卡和周志顺序逐批收口"
+      ]
+    },
+    {
+      "path": "scripts/README.md",
+      "snippets": [
+        "check-doc-language-policy-v1.py",
+        "不做全仓机械翻译"
+      ]
+    }
+  ],
+  "does_not_require": [
+    "mass_translate_legacy_docs",
+    "rename_status_anchors",
+    "rename_fixture_keys",
+    "rewrite_checked_paths",
+    "change_runtime_or_public_api"
+  ]
+}
