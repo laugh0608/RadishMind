@@ -69,6 +69,7 @@
       "saved_dev_record",
       "validation_ready",
       "version_conflict",
+      "conflict_local_continued",
       "save_failed",
       "read_failed",
       "validation_failed"
@@ -83,6 +84,9 @@
     "required_literals": [
       "draft_version_conflict",
       "Local draft was kept unchanged",
+      "buildWorkflowSavedDraftConflictReviewSummary",
+      "continueLocalWorkflowDraftAfterVersionConflict",
+      "canAutoOverwriteLocalDraft: false",
       "nextWorkflowSavedDraftExpectedVersion",
       "VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE",
       "dev-saved-draft-http"
@@ -93,6 +97,10 @@
     "required_literals": [
       "workflow-draft-consumer-grid",
       "version_conflict",
+      "Saved draft conflict review",
+      "Continue local draft",
+      "Restore saved version",
+      "savedDraftConflictReviewSummary",
       "Conflict current version",
       "nextWorkflowSavedDraftExpectedVersion(savedDraftConsumerState)"
     ]

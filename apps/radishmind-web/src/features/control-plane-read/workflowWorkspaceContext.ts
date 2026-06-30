@@ -38,6 +38,12 @@ import {
   type WorkflowRuntimeReadinessInspectorViewModel,
 } from "./workflowRuntimeReadinessInspector";
 import {
+  buildWorkflowSavedDraftConflictReviewSummary,
+  type WorkflowSavedDraftConflictReviewSummary,
+  type WorkflowSavedDraftConsumerState,
+  type WorkflowSavedDraftSummary,
+} from "./savedWorkflowDraftConsumer";
+import {
   buildWorkflowReviewHandoffViewModel,
   type WorkflowReviewHandoffViewModel,
 } from "./workflowReviewHandoff";
@@ -85,6 +91,8 @@ export type WorkflowWorkspaceContextSource = {
   workspaceRunHistory: WorkspaceRunHistoryViewModel;
   localWorkflowDrafts?: WorkflowDraftDesignerDraft[];
   activeWorkflowDraftOverride?: WorkflowDraftDesignerDraft | null;
+  savedDraftConsumerState?: WorkflowSavedDraftConsumerState;
+  savedDraftSummaries?: WorkflowSavedDraftSummary[];
   selection: WorkflowWorkspaceSelectionState;
 };
 
@@ -117,6 +125,7 @@ export type WorkflowWorkspaceContextViewModel = {
   workflowScenarioInspector: WorkflowScenarioInspectorViewModel;
   workflowWorkspaceReview: WorkflowWorkspaceReviewViewModel;
   workflowUserWorkspaceHome: WorkflowUserWorkspaceHomeViewModel;
+  savedDraftConflictReviewSummary: WorkflowSavedDraftConflictReviewSummary | null;
   workflowReviewHandoff: WorkflowReviewHandoffViewModel;
 };
 
@@ -229,8 +238,16 @@ export function buildWorkflowWorkspaceContextViewModel(
     workflowSurfaceOverview,
     workflowScenarioInspector,
   });
+  const savedDraftConflictReviewSummary = source.savedDraftConsumerState
+    ? buildWorkflowSavedDraftConflictReviewSummary(
+        source.savedDraftConsumerState,
+        activeWorkflowDraft,
+        source.savedDraftSummaries ?? [],
+      )
+    : null;
   const workflowReviewHandoff = buildWorkflowReviewHandoffViewModel({
     activeWorkflowDraft,
+    savedDraftConflictReviewSummary,
     workflowUserWorkspaceHome,
     workflowWorkspaceReview,
     workflowSurfaceOverview,
@@ -263,6 +280,7 @@ export function buildWorkflowWorkspaceContextViewModel(
     workflowScenarioInspector,
     workflowWorkspaceReview,
     workflowUserWorkspaceHome,
+    savedDraftConflictReviewSummary,
     workflowReviewHandoff,
   };
 }

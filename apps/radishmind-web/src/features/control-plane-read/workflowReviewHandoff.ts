@@ -3,6 +3,7 @@ import type { WorkflowConfirmationPlaceholderViewModel } from "./workflowConfirm
 import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner";
 import type { WorkflowDraftValidationInspectorViewModel } from "./workflowDraftValidationInspector";
 import type { WorkflowExecutionPlanPreviewViewModel } from "./workflowExecutionPlanPreview";
+import type { WorkflowSavedDraftConflictReviewSummary } from "./savedWorkflowDraftConsumer";
 import type {
   WorkflowRuntimeReadinessBlocker,
   WorkflowRuntimeReadinessInspectorViewModel,
@@ -38,6 +39,7 @@ export type WorkflowReviewHandoffFinding = {
     | "scenario"
     | "review"
     | "validation"
+    | "saved_draft_conflict"
     | "node_designer"
     | "plan"
     | "readiness"
@@ -59,6 +61,7 @@ export type WorkflowReviewHandoffEvidence = {
     | "scenario"
     | "overview"
     | "validation"
+    | "saved_draft_conflict"
     | "node_designer"
     | "plan"
     | "readiness"
@@ -179,6 +182,7 @@ export type WorkflowReviewHandoffNodeDesignerReviewRecord = {
 
 export type WorkflowReviewHandoffSource = {
   activeWorkflowDraft: WorkflowDraftDesignerDraft;
+  savedDraftConflictReviewSummary?: WorkflowSavedDraftConflictReviewSummary | null;
   workflowUserWorkspaceHome: WorkflowUserWorkspaceHomeViewModel;
   workflowWorkspaceReview: WorkflowWorkspaceReviewViewModel;
   workflowSurfaceOverview: WorkflowSurfaceOverviewViewModel;
@@ -205,6 +209,7 @@ export type WorkflowReviewHandoffViewModel = {
   auditRef: string;
   handoffNarrative: string;
   activeDraftReviewRecord: WorkflowReviewHandoffActiveDraftReviewRecord;
+  savedDraftConflictReviewSummary: WorkflowSavedDraftConflictReviewSummary | null;
   nodeDesignerReviewRecord: WorkflowReviewHandoffNodeDesignerReviewRecord;
   recipients: WorkflowReviewHandoffRecipient[];
   keyFindings: WorkflowReviewHandoffFinding[];
@@ -232,6 +237,7 @@ export function buildWorkflowReviewHandoffViewModel(
   source: WorkflowReviewHandoffSource,
 ): WorkflowReviewHandoffViewModel {
   const activeDraftReviewRecord = buildActiveDraftReviewRecord(source);
+  const savedDraftConflictReviewSummary = source.savedDraftConflictReviewSummary ?? null;
   const nodeDesignerReviewRecord = buildNodeDesignerReviewRecord(source);
   const recipients = buildRecipients(source);
   const keyFindings = buildKeyFindings(source, nodeDesignerReviewRecord);
@@ -265,11 +271,13 @@ export function buildWorkflowReviewHandoffViewModel(
     handoffNarrative: buildHandoffNarrative(
       source,
       activeDraftReviewRecord,
+      savedDraftConflictReviewSummary,
       nodeDesignerReviewRecord,
       decisionBlockers,
       boundaryLocks,
     ),
     activeDraftReviewRecord,
+    savedDraftConflictReviewSummary,
     nodeDesignerReviewRecord,
     recipients,
     keyFindings,
@@ -317,11 +325,15 @@ function buildHandoffPackageId(source: WorkflowReviewHandoffSource): string {
 function buildHandoffNarrative(
   source: WorkflowReviewHandoffSource,
   activeDraftReviewRecord: WorkflowReviewHandoffActiveDraftReviewRecord,
+  savedDraftConflictReviewSummary: WorkflowSavedDraftConflictReviewSummary | null,
   nodeDesignerReviewRecord: WorkflowReviewHandoffNodeDesignerReviewRecord,
   decisionBlockers: WorkflowReviewHandoffDecisionBlocker[],
   boundaryLocks: WorkflowReviewHandoffBoundaryLock[],
 ): string {
-  return `${source.workflowScenarioInspector.selectedScenario.label} is packaged for human review with ${activeDraftReviewRecord.sections.length} active draft review sections, ${nodeDesignerReviewRecord.sections.length} node designer review sections, ${source.workflowWorkspaceReview.reviewStages.length} review stages, ${decisionBlockers.length} decision blockers, ${source.workflowUserWorkspaceHome.routeEvidence.length} route evidence entries, and ${boundaryLocks.length} locked boundaries.`;
+  const conflictReviewClause = savedDraftConflictReviewSummary
+    ? `, 1 saved draft conflict review for ${savedDraftConflictReviewSummary.failureCode}`
+    : "";
+  return `${source.workflowScenarioInspector.selectedScenario.label} is packaged for human review with ${activeDraftReviewRecord.sections.length} active draft review sections${conflictReviewClause}, ${nodeDesignerReviewRecord.sections.length} node designer review sections, ${source.workflowWorkspaceReview.reviewStages.length} review stages, ${decisionBlockers.length} decision blockers, ${source.workflowUserWorkspaceHome.routeEvidence.length} route evidence entries, and ${boundaryLocks.length} locked boundaries.`;
 }
 
 function buildActiveDraftReviewRecord(
@@ -804,6 +816,25 @@ function buildKeyFindings(
   const planStage = requireStage(source.workflowWorkspaceReview.reviewStages, "stage_execution_plan");
   const readinessStage = requireStage(source.workflowWorkspaceReview.reviewStages, "stage_runtime_readiness");
   const stopLineStage = requireStage(source.workflowWorkspaceReview.reviewStages, "stage_stop_lines");
+  const savedDraftConflictReviewSummary = source.savedDraftConflictReviewSummary ?? null;
+  const savedDraftConflictFindings: WorkflowReviewHandoffFinding[] = savedDraftConflictReviewSummary
+    ? [
+        {
+          findingId: "saved_draft_conflict_review",
+          label: "Saved draft conflict review",
+          sourceSurface: "saved_draft_conflict",
+          status:
+            savedDraftConflictReviewSummary.status === "local_draft_continued"
+              ? "review_required"
+              : "blocked",
+          summary: `${savedDraftConflictReviewSummary.summary} Saved draft validation is ${savedDraftConflictReviewSummary.savedValidationState}; blocked capability count is ${
+            savedDraftConflictReviewSummary.savedBlockedCapabilityCount ?? "not_loaded"
+          }.`,
+          evidenceRef: savedDraftConflictReviewSummary.reviewId,
+          humanReviewQuestion: savedDraftConflictReviewSummary.reviewerQuestion,
+        },
+      ]
+    : [];
 
   return [
     {
@@ -833,6 +864,7 @@ function buildKeyFindings(
       evidenceRef: source.workflowDraftValidationInspector.inspectedDraftId,
       humanReviewQuestion: validationStage.reviewQuestion,
     },
+    ...savedDraftConflictFindings,
     {
       findingId: "execution_plan_preview",
       label: "Execution plan preview",
@@ -906,6 +938,24 @@ function buildEvidenceChecklist(
   const routeEvidence = source.workflowUserWorkspaceHome.routeEvidence.map((evidence) =>
     evidenceFromRoute(evidence),
   );
+  const savedDraftConflictReviewSummary = source.savedDraftConflictReviewSummary ?? null;
+  const savedDraftConflictEvidence: WorkflowReviewHandoffEvidence[] = savedDraftConflictReviewSummary
+    ? [
+        {
+          evidenceId: "saved_draft_conflict_review",
+          label: "Saved draft conflict review",
+          sourceSurface: "saved_draft_conflict",
+          routeOrPageId: "workflow-draft-designer",
+          requestId: savedDraftConflictReviewSummary.requestId,
+          auditRef: savedDraftConflictReviewSummary.auditRef,
+          status:
+            savedDraftConflictReviewSummary.status === "local_draft_continued"
+              ? "review_required"
+              : "blocked",
+          summary: `${savedDraftConflictReviewSummary.failureCode} keeps local draft ${savedDraftConflictReviewSummary.draftId} separate from saved version ${savedDraftConflictReviewSummary.savedDraftVersion}; auto overwrite and auto merge stay disabled.`,
+        },
+      ]
+    : [];
 
   return [
     ...routeEvidence,
@@ -939,6 +989,7 @@ function buildEvidenceChecklist(
       status: validationStatusToHandoffStatus(source.workflowDraftValidationInspector.validationStatus),
       summary: "Validation inspector supplies active draft structural, contract, and blocked capability findings.",
     },
+    ...savedDraftConflictEvidence,
     {
       evidenceId: "active_draft_execution_plan_preview",
       label: "Active draft execution plan preview",

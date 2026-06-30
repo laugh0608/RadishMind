@@ -100,11 +100,15 @@ def assert_consumer_contract(fixture: dict[str, Any]) -> None:
         require(str(field) in consumer_text, f"saved draft consumer missing state field: {field}")
     for literal in contract.get("required_literals") or []:
         require(str(literal) in consumer_text, f"saved draft consumer missing literal: {literal}")
-    require(
-        'state.status === "saved_dev_record" || state.status === "version_conflict"'
-        in consumer_text,
-        "expected version helper must allow explicit retry after version conflict",
-    )
+    for helper_literal in (
+        'state.status === "saved_dev_record"',
+        'state.status === "version_conflict"',
+        'state.status === "conflict_local_continued"',
+    ):
+        require(
+            helper_literal in consumer_text,
+            f"expected version helper missing retry status: {helper_literal}",
+        )
 
 
 def assert_app_contract(fixture: dict[str, Any]) -> None:
