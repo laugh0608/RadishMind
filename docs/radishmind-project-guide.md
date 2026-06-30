@@ -206,6 +206,18 @@ pwsh ./start.ps1 -Command web-live
 
 `web-live` 会启动或复用 `http://127.0.0.1:7000` platform 后端和 `http://127.0.0.1:4100` 产品 UI，并只启用 dev-only fake read auth。它不是 production supervisor，不接真实数据库、Radish OIDC、repository adapter、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
+如果 macOS `Control Center` / AirPlay 占用了默认 backend 端口 `7000`，改用备用本地端口启动：
+
+```bash
+./start.sh web-live --backend-url http://127.0.0.1:7010
+```
+
+PowerShell 使用：
+
+```powershell
+pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -BackendUrl http://127.0.0.1:7010
+```
+
 ```bash
 cd apps/radishmind-web
 npm run build

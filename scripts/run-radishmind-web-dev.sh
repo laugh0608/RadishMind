@@ -168,6 +168,10 @@ PY
 port_is_open() {
   local host="$1"
   local port="$2"
+  if command -v lsof >/dev/null 2>&1; then
+    lsof -nP -iTCP:"${port}" -sTCP:LISTEN >/dev/null 2>&1
+    return
+  fi
   "${python_bin}" - "$host" "$port" <<'PY'
 import socket
 import sys
@@ -177,6 +181,8 @@ port = int(sys.argv[2])
 try:
     with socket.create_connection((host, port), timeout=0.5):
         raise SystemExit(0)
+except PermissionError:
+    raise SystemExit(0)
 except OSError:
     raise SystemExit(1)
 PY
@@ -310,6 +316,25 @@ wait_until() {
   return 1
 }
 
+verify_existing_backend() {
+  local last_error=""
+  if last_error="$(probe_json "${healthz_url}" "" 2>&1)"; then
+    step "Existing backend healthz probe passed."
+    return 0
+  fi
+  {
+    echo "Backend port ${backend_port} is open, but ${healthz_url} did not answer like RadishMind platform."
+    echo "Last error: ${last_error}"
+    if command -v lsof >/dev/null 2>&1; then
+      echo ""
+      echo "Current listener on backend port ${backend_port}:"
+      lsof -nP -iTCP:"${backend_port}" -sTCP:LISTEN 2>/dev/null || true
+    fi
+  } >&2
+  show_failure_help "backend port ${backend_port} is occupied by a non-RadishMind service. Stop that process or pass --backend-url with a free local port."
+  exit 1
+}
+
 show_failure_help() {
   local message="$1"
   {
@@ -319,6 +344,7 @@ show_failure_help() {
     echo ""
     echo "Common local failures:"
     echo "- Port conflict: backend should answer on http://127.0.0.1:7000 and web on http://127.0.0.1:4100."
+    echo "- macOS port 7000 conflict: AirPlay / Control Center may occupy it; retry with --backend-url http://127.0.0.1:7010."
     echo "- Dev-live auth: backend must be started with RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1 for fake-store-backed read routes."
     echo "- CORS/preflight: platform should allow http://127.0.0.1:4100 and dev read headers in local development."
     echo "- Missing dependencies: run npm install in apps/radishmind-web if npm cannot start Vite."
@@ -337,9 +363,16 @@ cleanup() {
       kill "${pid}" >/dev/null 2>&1 || true
     fi
   done
+  spawned_pids=()
 }
 
-trap cleanup EXIT INT TERM
+handle_interrupt() {
+  cleanup
+  exit 130
+}
+
+trap cleanup EXIT
+trap handle_interrupt INT TERM
 
 backend_host="$(url_part "${backend_url}" host)"
 backend_port="$(url_part "${backend_url}" port)"
@@ -368,6 +401,7 @@ if [[ "${verify_only}" -eq 0 ]]; then
   if [[ "${mode}" == "dev-live" ]]; then
     if port_is_open "${backend_host}" "${backend_port}"; then
       step "Backend port ${backend_port} is already open; reusing it if probes pass."
+      verify_existing_backend
     else
       step "Starting platform with dev-only read auth. Logs: ${log_dir}/platform.out.log ; ${log_dir}/platform.err.log"
       (

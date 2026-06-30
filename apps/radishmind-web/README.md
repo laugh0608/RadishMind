@@ -77,6 +77,18 @@ pwsh ./start.ps1 -Command web-live
 
 `web-live` 会启动或复用 platform 后端和 `apps/radishmind-web/` 前端，并集中设置 dev-only live read 所需的本地环境变量。它只连接 fake-store-backed handler 和测试身份上下文，不代表 production API consumer、真实数据库、Radish auth、repository adapter 或 workflow executor ready。
 
+如果 macOS `Control Center` / AirPlay 占用了默认 backend 端口 `7000`，不要继续用交互菜单重试；改用显式端口：
+
+```bash
+./start.sh web-live --backend-url http://127.0.0.1:7010
+```
+
+PowerShell 使用：
+
+```powershell
+pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -BackendUrl http://127.0.0.1:7010
+```
+
 如需同时验证 saved draft dev-only 保存路径，后端还需要显式启用：
 
 ```bash
