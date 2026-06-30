@@ -293,7 +293,7 @@ function Show-FailureHelp {
     [Console]::Error.WriteLine("")
     [Console]::Error.WriteLine("Common local failures:")
     [Console]::Error.WriteLine("- Port conflict: backend should answer on http://127.0.0.1:7000 and web on http://127.0.0.1:4100.")
-    [Console]::Error.WriteLine("- macOS port 7000 conflict: AirPlay / Control Center may occupy it; retry with -BackendUrl http://127.0.0.1:7010.")
+    [Console]::Error.WriteLine("- macOS port 7000 conflict: AirPlay / Control Center may occupy it; retry with -BackendUrl http://127.0.0.1:7100.")
     [Console]::Error.WriteLine("- Dev-live auth: backend must be started with RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1 for fake-store-backed read routes.")
     [Console]::Error.WriteLine("- CORS/preflight: platform should allow http://127.0.0.1:4100 and dev read headers in local development.")
     [Console]::Error.WriteLine("- Missing dependencies: run npm install in apps/radishmind-web if npm cannot start Vite.")

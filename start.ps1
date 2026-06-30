@@ -68,7 +68,7 @@ function Show-Menu {
     Write-Host "  7. Fast repo check       (pwsh ./scripts/check-repo.ps1 -Fast)"
     Write-Host
     Write-Host "Tip: Product Web dev-live is the default choice for frontend/backend integration."
-    Write-Host "Tip: If macOS Control Center / AirPlay occupies backend 7000, run pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -BackendUrl http://127.0.0.1:7010."
+    Write-Host "Tip: If macOS Control Center / AirPlay occupies backend 7000, run pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -BackendUrl http://127.0.0.1:7100."
     Write-Host
 }
 

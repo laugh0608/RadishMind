@@ -344,7 +344,7 @@ show_failure_help() {
     echo ""
     echo "Common local failures:"
     echo "- Port conflict: backend should answer on http://127.0.0.1:7000 and web on http://127.0.0.1:4100."
-    echo "- macOS port 7000 conflict: AirPlay / Control Center may occupy it; retry with --backend-url http://127.0.0.1:7010."
+    echo "- macOS port 7000 conflict: AirPlay / Control Center may occupy it; retry with --backend-url http://127.0.0.1:7100."
     echo "- Dev-live auth: backend must be started with RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1 for fake-store-backed read routes."
     echo "- CORS/preflight: platform should allow http://127.0.0.1:4100 and dev read headers in local development."
     echo "- Missing dependencies: run npm install in apps/radishmind-web if npm cannot start Vite."

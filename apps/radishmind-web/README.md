@@ -80,13 +80,13 @@ pwsh ./start.ps1 -Command web-live
 如果 macOS `Control Center` / AirPlay 占用了默认 backend 端口 `7000`，不要继续用交互菜单重试；改用显式端口：
 
 ```bash
-./start.sh web-live --backend-url http://127.0.0.1:7010
+./start.sh web-live --backend-url http://127.0.0.1:7100
 ```
 
 PowerShell 使用：
 
 ```powershell
-pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -BackendUrl http://127.0.0.1:7010
+pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -BackendUrl http://127.0.0.1:7100
 ```
 
 如需同时验证 saved draft dev-only 保存路径，后端还需要显式启用：
