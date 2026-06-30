@@ -13,6 +13,7 @@
 - Draft Designer 已在 `version_conflict` 后展示 saved draft conflict review，保留本地 active draft，并展示 saved version、updated metadata、validation state 和 blocked capability count。
 - 前端 consumer 已新增 `conflict_local_continued` 状态；用户显式选择继续编辑本地草案后，后续保存会使用当前 saved version 作为 expected version。
 - Draft Designer 已提供显式恢复 saved version 的入口；恢复动作复用既有 dev-only read route 和 saved draft list summary，不由保存失败自动触发。
+- 保存返回 `version_conflict` 后，Draft Designer 会刷新当前 application 的 sanitized saved draft list，为显式恢复 saved version 准备当前 metadata；该刷新不读取 secret、不恢复草案、不覆盖本地 active draft。
 - Review Handoff 已消费同一份 conflict review summary，并以 advisory-only 形式展示冲突状态、saved version metadata、validation 状态、blocked capability 和 auto overwrite / auto merge 停止线。
 - `workflow-saved-draft-consumer-smoke-v1` 与 `workflow-review-handoff-active-draft-v1` 已同步覆盖该实现；本批不新增 backend route、repository mode、数据库、runtime 或 public production API。
 
@@ -33,12 +34,13 @@
 
 1. Draft Designer 在 `version_conflict` 后展示冲突审查状态，说明本地草案、远端 saved version 和下一步选择。
 2. 用户可以明确选择继续编辑本地草案，或从 saved draft 重新恢复；系统不得自动覆盖本地 active draft。
-3. Review Handoff 增加 conflict review summary，把冲突状态、saved version metadata、validation 状态和 blocked capability 一起交给 reviewer。
-4. Workspace saved draft list 保持 sanitized summary，只提供恢复入口，不暴露 secret、token、完整 claim 或 runtime material。
+3. 冲突发生后会刷新当前 application 的 saved draft list，让恢复按钮基于已保存版本摘要可用；刷新过程仍只消费 sanitized summary。
+4. Review Handoff 增加 conflict review summary，把冲突状态、saved version metadata、validation 状态和 blocked capability 一起交给 reviewer。
+5. Workspace saved draft list 保持 sanitized summary，只提供恢复入口，不暴露 secret、token、完整 claim 或 runtime material。
 
 ## 后续开发
 
-- 若继续用户工作流路径，应复核 dev-only HTTP 条件下的冲突审查、继续本地编辑、恢复 saved version 和 Review Handoff 展示体验。
+- 若继续用户工作流路径，应在用户显式启动 dev-only HTTP 服务后复核冲突审查、列表刷新、继续本地编辑、恢复 saved version 和 Review Handoff 展示体验。
 - 若要扩大自动化验证，优先复用现有 workflow consumer smoke、Review Handoff checker、web build 和仓库基线；只有新增协议字段、route 行为或高风险边界时再新增专项 task card / fixture / checker。
 - 若转回 durable store 上游，应独立推进 `storage_adapter_negative_leakage_scan_evidence_readiness`，不得把本功能实现解释为 repository mode、数据库、生产 API 或 runtime ready。
 
@@ -59,6 +61,7 @@
 ## 验收方式
 
 - `version_conflict` 后本地 active draft 不丢失，用户能看到冲突来源和 saved version metadata。
+- 保存冲突后只刷新当前 application 的 saved draft list，并在 metadata 未就绪时保持恢复入口禁用。
 - 恢复 saved draft 必须是显式动作，不能由保存失败自动触发。
 - Review Handoff 能显示 conflict review summary，并保持 advisory-only。
 - 失败状态不得回退到 sample、fixture 或 memory dev 的其它草案。

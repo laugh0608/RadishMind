@@ -102,7 +102,10 @@
       "Restore saved version",
       "savedDraftConflictReviewSummary",
       "Conflict current version",
-      "nextWorkflowSavedDraftExpectedVersion(savedDraftConsumerState)"
+      "nextWorkflowSavedDraftExpectedVersion(savedDraftConsumerState)",
+      "nextState.status === \"version_conflict\"",
+      "refreshSavedWorkflowDraftList(activeWorkflowDraft.applicationRef)",
+      "Saved version metadata is refreshing"
     ]
   },
   "required_doc_references": {

@@ -902,6 +902,10 @@ export function App() {
     saveWorkflowDraftDevRecord(activeWorkflowDraft, savedDraftConsumerConfig, expectedDraftVersion)
       .then((nextState) => {
         setSavedDraftConsumerState(nextState);
+        if (nextState.status === "version_conflict") {
+          refreshSavedWorkflowDraftList(activeWorkflowDraft.applicationRef);
+          return;
+        }
         if (nextState.status === "saved_dev_record") {
           setWorkspaceCreatedDrafts((drafts) =>
             drafts.map((draft) =>
@@ -3220,6 +3224,11 @@ function WorkflowDraftDesignerPanel({
                 Restore saved version
               </button>
             </div>
+            {savedDraftConflictReviewSummary.status === "needs_review" &&
+            !savedDraftConflictRestoreSummary &&
+            !savedDraftConflictReviewSummary.canRestoreFromSavedDraft ? (
+              <p>Saved version metadata is refreshing from the dev-only saved draft list before restore is enabled.</p>
+            ) : null}
             <p>{savedDraftConflictReviewSummary.reviewerQuestion}</p>
           </article>
         </div>
