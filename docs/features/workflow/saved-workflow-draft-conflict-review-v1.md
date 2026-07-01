@@ -62,7 +62,7 @@
 
 - 若继续用户工作流路径，应基于实际审查反馈继续做小范围阅读路径整理；不得重复把普通 UI 体验整理升级为新的生产后端能力。
 - 若要扩大自动化验证，优先复用现有 workflow consumer smoke、Review Handoff checker、web build 和仓库基线；只有新增协议字段、route 行为或高风险边界时再新增专项 task card / fixture / checker。
-- 若转回 durable store 上游，应独立推进 `storage_adapter_negative_leakage_scan_evidence_readiness`，不得把本功能实现解释为 repository mode、数据库、生产 API 或 runtime ready。
+- 若转回 durable store 上游，应先独立推进 `storage_adapter_metadata_contract_artifact_materialization_entry_review`，不得把本功能实现解释为 repository mode、数据库、生产 API 或 runtime ready。
 
 ## 数据边界
 
