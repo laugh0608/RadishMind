@@ -269,6 +269,8 @@ REQUIRED_DOC_REFERENCES = {
         "audit_store_storage_adapter_retention_redaction_policy_evidence_readiness_defined",
         "production-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1",
         "audit_store_storage_adapter_offline_validation_evidence_readiness_defined",
+        "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1",
+        "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -982,8 +984,46 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit storage adapter validation runner status drifted",
     )
     require(
+        target.get("audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_status")
+        == "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
+        "audit store storage adapter negative leakage scan evidence readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_negative_leakage_scan_evidence_status")
+        == "negative_leakage_scan_evidence_defined_without_runtime",
+        "audit storage adapter negative leakage scan evidence status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_negative_leakage_scan_manifest_status")
+        == "metadata_only_negative_leakage_scan_manifest_reference_defined",
+        "audit storage adapter negative leakage scan manifest status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_negative_leakage_scan_target_status")
+        == "metadata_only_scan_target_reference_defined",
+        "audit storage adapter negative leakage scan target status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_negative_leakage_forbidden_material_coverage_status")
+        == "raw_payload_secret_credential_provider_backend_detail_coverage_defined",
+        "audit storage adapter negative leakage forbidden material coverage status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_negative_leakage_diagnostic_allowlist_status")
+        == "metadata_only_diagnostic_allowlist_defined",
+        "audit storage adapter negative leakage diagnostic allowlist status drifted",
+    )
+    require(
         target.get("audit_storage_adapter_negative_leakage_scan_status") == "not_created",
         "audit storage adapter negative leakage scan status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_negative_leakage_scan_runner_status") == "not_created",
+        "audit storage adapter negative leakage scan runner status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_negative_leakage_scan_output_status") == "not_created",
+        "audit storage adapter negative leakage scan output status drifted",
     )
     require(
         target.get("audit_storage_adapter_rollback_recovery_status")

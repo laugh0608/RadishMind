@@ -1531,6 +1531,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-append-only-semantics-evidence-readiness-v1.py", [])
     run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-retention-redaction-policy-evidence-readiness-v1.py", [])
     run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1.py", [])
+    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.py", [])
     run_python_script("check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py", [])
     run_python_script("check-production-ops-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2.py", [])
     run_python_script("check-production-ops-startup-supervisor-boundary.py", [])

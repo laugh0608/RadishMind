@@ -422,15 +422,20 @@ def assert_blocker_matrix_alignment() -> None:
         boundary.get("storage_adapter_negative_leakage_scan_status") == "not_created",
         "matrix boundary negative leakage scan status drifted",
     )
+    require(
+        boundary.get("storage_adapter_negative_leakage_scan_evidence_readiness_status")
+        == "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
+        "matrix boundary negative leakage evidence readiness status drifted",
+    )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
     require(
-        durable.get("status") == "offline_validation_evidence_readiness_defined_task_card_blocked",
+        durable.get("status") == "negative_leakage_scan_evidence_readiness_defined_task_card_blocked",
         "durable backend blocker status drifted",
     )
     require(
         durable.get("source")
-        == "production-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1",
+        == "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1",
         "durable backend blocker source drifted",
     )
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable backend must block audit runtime")

@@ -19,6 +19,7 @@
 - `audit_store_storage_adapter_append_only_semantics_evidence_readiness_defined`
 - `audit_store_storage_adapter_retention_redaction_policy_evidence_readiness_defined`
 - `audit_store_storage_adapter_offline_validation_evidence_readiness_defined`
+- `audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined`
 - `audit_store_runtime_implementation_entry_refresh_v4_defined`
 - `audit_store_durable_backend_boundary_readiness_defined`
 - `audit_store_writer_runtime_boundary_readiness_defined`
@@ -42,7 +43,7 @@
 ## Blocker Matrix
 
 - schema artifact：`implemented_static_schema_artifact`，只解除 artifact 缺口，不解锁 runtime。
-- durable backend：`offline_validation_evidence_readiness_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1`。
+- durable backend：`negative_leakage_scan_evidence_readiness_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1`；上一状态 `offline_validation_evidence_readiness_defined_task_card_blocked` 已作为历史证据保留。
 - audit writer runtime：`entry_review_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1`。
 - idempotency runtime：`entry_review_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1`。
 - delivery runtime：`entry_review_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1`。
