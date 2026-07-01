@@ -39,6 +39,7 @@ import {
 } from "./workflowRuntimeReadinessInspector";
 import {
   buildWorkflowSavedDraftConflictReviewSummary,
+  type WorkflowSavedDraftListStatus,
   type WorkflowSavedDraftConflictReviewSummary,
   type WorkflowSavedDraftConsumerState,
   type WorkflowSavedDraftSummary,
@@ -92,6 +93,8 @@ export type WorkflowWorkspaceContextSource = {
   localWorkflowDrafts?: WorkflowDraftDesignerDraft[];
   activeWorkflowDraftOverride?: WorkflowDraftDesignerDraft | null;
   savedDraftConsumerState?: WorkflowSavedDraftConsumerState;
+  savedDraftListStatus?: WorkflowSavedDraftListStatus;
+  savedDraftListFailureCode?: string | null;
   savedDraftSummaries?: WorkflowSavedDraftSummary[];
   selection: WorkflowWorkspaceSelectionState;
 };
@@ -243,6 +246,8 @@ export function buildWorkflowWorkspaceContextViewModel(
         source.savedDraftConsumerState,
         activeWorkflowDraft,
         source.savedDraftSummaries ?? [],
+        source.savedDraftListStatus,
+        source.savedDraftListFailureCode,
       )
     : null;
   const workflowReviewHandoff = buildWorkflowReviewHandoffViewModel({

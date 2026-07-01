@@ -827,11 +827,11 @@ function buildKeyFindings(
             savedDraftConflictReviewSummary.status === "local_draft_continued"
               ? "review_required"
               : "blocked",
-          summary: `${savedDraftConflictReviewSummary.summary} Saved draft validation is ${savedDraftConflictReviewSummary.savedValidationState}; blocked capability count is ${
+          summary: `${savedDraftConflictReviewSummary.summary} ${savedDraftConflictReviewSummary.localDraftPreservationSummary} Metadata state is ${savedDraftConflictReviewSummary.savedMetadataState}; restore state is ${savedDraftConflictReviewSummary.restoreActionState}. Saved draft validation is ${savedDraftConflictReviewSummary.savedValidationState}; blocked capability count is ${
             savedDraftConflictReviewSummary.savedBlockedCapabilityCount ?? "not_loaded"
           }.`,
           evidenceRef: savedDraftConflictReviewSummary.reviewId,
-          humanReviewQuestion: savedDraftConflictReviewSummary.reviewerQuestion,
+          humanReviewQuestion: `${savedDraftConflictReviewSummary.reviewerQuestion} ${savedDraftConflictReviewSummary.nextReviewerStep}`,
         },
       ]
     : [];
@@ -952,7 +952,7 @@ function buildEvidenceChecklist(
             savedDraftConflictReviewSummary.status === "local_draft_continued"
               ? "review_required"
               : "blocked",
-          summary: `${savedDraftConflictReviewSummary.failureCode} keeps local draft ${savedDraftConflictReviewSummary.draftId} separate from saved version ${savedDraftConflictReviewSummary.savedDraftVersion}; auto overwrite and auto merge stay disabled.`,
+          summary: `${savedDraftConflictReviewSummary.failureCode} keeps local draft ${savedDraftConflictReviewSummary.draftId} separate from saved version ${savedDraftConflictReviewSummary.savedDraftVersion}; metadata state is ${savedDraftConflictReviewSummary.savedMetadataState}; restore state is ${savedDraftConflictReviewSummary.restoreActionState}; auto overwrite and auto merge stay disabled.`,
         },
       ]
     : [];

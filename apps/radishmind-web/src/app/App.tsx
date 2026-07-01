@@ -391,6 +391,8 @@ export function App() {
         localWorkflowDrafts: workspaceCreatedDrafts,
         activeWorkflowDraftOverride: editableWorkflowDraft,
         savedDraftConsumerState,
+        savedDraftListStatus: savedDraftListState.status,
+        savedDraftListFailureCode: savedDraftListState.failureCode,
         savedDraftSummaries: savedDraftListState.summaries,
         selection: {
           applicationRef: selectedApplicationRef,
@@ -409,6 +411,8 @@ export function App() {
       workspaceCreatedDrafts,
       editableWorkflowDraft,
       savedDraftConsumerState,
+      savedDraftListState.failureCode,
+      savedDraftListState.status,
       savedDraftListState.summaries,
       selectedApplicationRef,
       selectedWorkflowDefinitionId,
@@ -3036,6 +3040,9 @@ function WorkflowDraftDesignerPanel({
   const canCallDevConsumer = savedDraftConsumerState.mode === "dev_saved_draft_http";
   const operationPending = ["saving", "validating", "reading"].includes(savedDraftConsumerState.status);
   const editStateLabel = draftEditDirty ? "unsaved local" : selectedDraft.localOnlyInteraction;
+  const conflictRestoreUnavailableMessage =
+    savedDraftConflictReviewSummary?.restoreUnavailableReason ??
+    "Saved version metadata is refreshing from the dev-only saved draft list before restore is enabled.";
   return (
     <div
       className="workflow-draft-designer"
@@ -3199,8 +3206,22 @@ function WorkflowDraftDesignerPanel({
                 <dt>Blocked</dt>
                 <dd>{savedDraftConflictReviewSummary.savedBlockedCapabilityCount ?? "not loaded"}</dd>
               </div>
+              <div>
+                <dt>Metadata</dt>
+                <dd>{savedDraftConflictReviewSummary.savedMetadataState}</dd>
+              </div>
+              <div>
+                <dt>Restore</dt>
+                <dd>{savedDraftConflictReviewSummary.restoreActionState}</dd>
+              </div>
             </dl>
             <p>{savedDraftConflictReviewSummary.summary}</p>
+            <p>{savedDraftConflictReviewSummary.localDraftPreservationSummary}</p>
+            <div className="workflow-workspace-review-token-list" aria-label="Saved draft conflict review locks">
+              <code>auto_overwrite_locked</code>
+              <code>auto_merge_locked</code>
+              <code>{savedDraftConflictReviewSummary.restoreActionState}</code>
+            </div>
             <div className="workflow-draft-conflict-action-row" aria-label="Saved draft conflict review actions">
               <button
                 type="button"
@@ -3224,11 +3245,15 @@ function WorkflowDraftDesignerPanel({
                 Restore saved version
               </button>
             </div>
-            {savedDraftConflictReviewSummary.status === "needs_review" &&
-            !savedDraftConflictRestoreSummary &&
-            !savedDraftConflictReviewSummary.canRestoreFromSavedDraft ? (
-              <p>Saved version metadata is refreshing from the dev-only saved draft list before restore is enabled.</p>
-            ) : null}
+            {!savedDraftConflictReviewSummary.canRestoreFromSavedDraft ? (
+              <p>{conflictRestoreUnavailableMessage}</p>
+            ) : (
+              <p>
+                Restore saved version is available from sanitized saved draft metadata; it still replaces the
+                active draft only after explicit selection.
+              </p>
+            )}
+            <p>{savedDraftConflictReviewSummary.nextReviewerStep}</p>
             <p>{savedDraftConflictReviewSummary.reviewerQuestion}</p>
           </article>
         </div>
