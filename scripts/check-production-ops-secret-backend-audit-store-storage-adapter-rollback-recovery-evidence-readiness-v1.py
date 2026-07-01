@@ -11,7 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_PATH = (
     REPO_ROOT
     / "scripts/checks/fixtures/"
-    "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.json"
+    "production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1.json"
 )
 IMPLEMENTATION_READINESS_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json"
@@ -22,6 +22,13 @@ BLOCKER_MATRIX_PATH = (
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
 
 EXPECTED_DEPENDENCIES = {
+    "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
+    ),
     "production-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1": (
         (
             "scripts/checks/fixtures/"
@@ -75,8 +82,13 @@ EXPECTED_DEPENDENCIES = {
 }
 
 EXPECTED_BOUNDARY = {
-    "status": "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-    "readiness_decision": "negative_leakage_scan_evidence_defined_without_runtime",
+    "status": "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
+    "readiness_decision": "rollback_recovery_evidence_defined_without_runtime",
+    "negative_leakage_scan_evidence_readiness_status": (
+        "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined"
+    ),
+    "negative_leakage_scan_evidence_status": "negative_leakage_scan_evidence_defined_without_runtime",
+    "negative_leakage_scan_status": "not_created",
     "offline_validation_evidence_readiness_status": (
         "audit_store_storage_adapter_offline_validation_evidence_readiness_defined"
     ),
@@ -99,18 +111,19 @@ EXPECTED_BOUNDARY = {
     "backend_product_selection_status": "not_selected",
     "selected_backend_family": "append_only_metadata_audit_log",
     "selected_reserved_candidate": "reserved_append_only_audit_log",
-    "negative_leakage_scan_evidence_status": "negative_leakage_scan_evidence_defined",
-    "negative_leakage_scan_status": "not_created",
-    "negative_leakage_scan_manifest_status": "metadata_only_negative_leakage_scan_manifest_reference_defined",
-    "scan_target_reference_status": "metadata_only_scan_target_reference_defined",
-    "forbidden_material_coverage_status": "raw_payload_secret_credential_provider_backend_detail_coverage_defined",
-    "diagnostic_allowlist_status": "metadata_only_diagnostic_allowlist_defined",
-    "scan_runner_status": "not_created",
-    "scan_output_status": "not_created",
-    "validation_runner_status": "not_created",
-    "validation_output_status": "not_created",
-    "rollback_recovery_status": "required_before_runtime_task_card",
-    "next_dependency": "storage_adapter_rollback_recovery_evidence_readiness",
+    "rollback_recovery_evidence_status": "rollback_recovery_evidence_defined",
+    "rollback_recovery_status": "metadata_only_rollback_recovery_evidence_defined",
+    "rollback_recovery_manifest_status": "metadata_only_rollback_recovery_manifest_reference_defined",
+    "append_only_boundary_status": "append_only_compensating_event_boundary_defined",
+    "partial_write_recovery_status": "metadata_only_partial_write_recovery_policy_defined",
+    "duplicate_replay_recovery_status": "fail_closed_replay_recovery_reference_defined",
+    "retention_redaction_alignment_status": "append_only_retention_redaction_compatible_recovery_defined",
+    "negative_leakage_alignment_status": "no_raw_material_recovery_diagnostics_defined",
+    "rollback_executor_status": "not_created",
+    "recovery_executor_status": "not_created",
+    "compensating_event_writer_status": "not_created",
+    "recovery_output_status": "not_created",
+    "next_dependency": "storage_adapter_runtime_implementation_entry_refresh",
     "storage_adapter_runtime_task_card_status": "not_created",
     "storage_adapter_runtime_status": "not_created",
     "storage_adapter_client_status": "not_created",
@@ -133,12 +146,13 @@ EXPECTED_BOUNDARY = {
 EXPECTED_FALSE_FLAGS = {
     "backend_product_selected_in_this_slice",
     "contract_artifact_materialized_in_this_slice",
-    "offline_validation_runner_created_in_this_slice",
-    "offline_validation_executed_in_this_slice",
-    "offline_validation_output_committed_in_this_slice",
     "negative_leakage_scanner_created_in_this_slice",
     "negative_leakage_scan_executed_in_this_slice",
     "negative_leakage_scan_output_committed_in_this_slice",
+    "rollback_executor_created_in_this_slice",
+    "recovery_executor_created_in_this_slice",
+    "compensating_event_writer_created_in_this_slice",
+    "recovery_output_committed_in_this_slice",
     "retention_runtime_created_in_this_slice",
     "redaction_runtime_created_in_this_slice",
     "storage_adapter_runtime_task_card_created_in_this_slice",
@@ -159,78 +173,68 @@ EXPECTED_FALSE_FLAGS = {
     "production_api_enabled",
 }
 EXPECTED_REFERENCE_FIELDS = {
-    "negative_leakage_scan_manifest_ref",
-    "scan_target_manifest_ref",
+    "rollback_recovery_manifest_ref",
+    "append_only_semantics_evidence_ref",
+    "retention_redaction_policy_ref",
     "offline_validation_evidence_ref",
-    "forbidden_material_matrix_ref",
-    "diagnostic_allowlist_ref",
-    "coverage_matrix_ref",
+    "negative_leakage_scan_evidence_ref",
     "failure_taxonomy_ref",
+    "compensating_event_policy_ref",
+    "recovery_case_matrix_ref",
+    "diagnostic_allowlist_ref",
     "policy_version",
     "audit_ref",
 }
-EXPECTED_FORBIDDEN_MATERIAL_CLASSES = {
-    "raw_request_payload",
-    "raw_response_payload",
-    "raw_audit_payload",
-    "raw_event_payload",
-    "raw_writer_payload",
-    "raw_storage_payload",
-    "raw_retained_payload",
-    "raw_redacted_payload",
-    "secret_material",
-    "credential_material",
-    "payload_hash",
-    "secret_derived_hash",
-    "provider_detail",
-    "backend_detail",
-    "scanner_raw_finding",
-    "scan_output",
+EXPECTED_RECOVERY_MODES = {
+    "append_only_compensating_event",
+    "metadata_only_recovery_reference",
+    "fail_closed_partial_write",
+    "fail_closed_duplicate_replay",
 }
 EXPECTED_COVERAGE_IDS = {
-    "raw_payload_material",
-    "secret_credential_material",
-    "provider_backend_detail",
-    "offline_validation_evidence_reference",
-    "diagnostic_allowlist",
+    "append_only_rollback_boundary",
+    "partial_write_recovery",
+    "duplicate_replay_recovery",
+    "retention_redaction_compatibility",
+    "negative_leakage_diagnostics",
     "artifact_guard",
 }
-EXPECTED_NEGATIVE_CASES = {
-    "raw_request_payload_forbidden_case",
-    "raw_response_payload_forbidden_case",
-    "raw_audit_payload_forbidden_case",
-    "raw_storage_payload_forbidden_case",
-    "secret_credential_material_forbidden_case",
-    "provider_backend_detail_forbidden_case",
-    "payload_hash_forbidden_case",
-    "scan_output_forbidden_case",
+EXPECTED_RECOVERY_CASES = {
+    "partial_write_interrupted_case",
+    "backend_unavailable_case",
+    "duplicate_write_detected_case",
+    "replay_attempt_case",
+    "retention_window_conflict_case",
+    "redaction_policy_conflict_case",
+    "negative_leakage_recovery_diagnostic_case",
     "fallback_forbidden_case",
 }
 EXPECTED_FAILURE_CODES = {
-    "audit_store_storage_adapter_negative_leakage_scan_dependency_missing",
-    "audit_store_storage_adapter_negative_leakage_scan_manifest_reference_missing",
-    "audit_store_storage_adapter_negative_leakage_scan_target_reference_missing",
-    "audit_store_storage_adapter_negative_leakage_forbidden_material_coverage_missing",
-    "audit_store_storage_adapter_negative_leakage_diagnostic_allowlist_missing",
-    "audit_store_storage_adapter_negative_leakage_raw_material_detected",
-    "audit_store_storage_adapter_negative_leakage_scanner_runtime_scope_overreach",
-    "audit_store_storage_adapter_negative_leakage_fallback_detected",
-    "audit_store_storage_adapter_negative_leakage_next_dependency_missing",
+    "audit_store_storage_adapter_rollback_recovery_dependency_missing",
+    "audit_store_storage_adapter_rollback_recovery_manifest_reference_missing",
+    "audit_store_storage_adapter_rollback_recovery_append_only_boundary_missing",
+    "audit_store_storage_adapter_rollback_recovery_partial_write_policy_missing",
+    "audit_store_storage_adapter_rollback_recovery_replay_policy_missing",
+    "audit_store_storage_adapter_rollback_recovery_retention_redaction_alignment_missing",
+    "audit_store_storage_adapter_rollback_recovery_negative_leakage_alignment_missing",
+    "audit_store_storage_adapter_rollback_recovery_runtime_scope_overreach",
+    "audit_store_storage_adapter_rollback_recovery_fallback_detected",
+    "audit_store_storage_adapter_rollback_recovery_next_dependency_missing",
 }
 EXPECTED_ALLOWED_ARTIFACTS = {
     (
         "docs/platform/"
-        "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.md"
+        "production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1.md"
     ),
     (
         "docs/task-cards/"
-        "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1-plan.md"
+        "production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1-plan.md"
     ),
     (
         "scripts/checks/fixtures/"
-        "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.json"
+        "production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1.json"
     ),
-    "scripts/check-production-ops-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.py",
+    "scripts/check-production-ops-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1.py",
 }
 
 
@@ -266,22 +270,22 @@ def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
         fixture.get("kind")
-        == "production_ops_secret_backend_audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_v1",
+        == "production_ops_secret_backend_audit_store_storage_adapter_rollback_recovery_evidence_readiness_v1",
         "unexpected fixture kind",
     )
     slice_info = fixture.get("slice") or {}
     require(
         slice_info.get("id")
-        == "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1",
+        == "production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1",
         "unexpected slice id",
     )
     require(slice_info.get("track") == "Production Ops Hardening v1", "unexpected track")
     require(
-        slice_info.get("status") == "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
+        slice_info.get("status") == "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
         "unexpected status",
     )
     require(
-        slice_info.get("readiness_decision") == "negative_leakage_scan_evidence_defined_without_runtime",
+        slice_info.get("readiness_decision") == "rollback_recovery_evidence_defined_without_runtime",
         "unexpected readiness decision",
     )
     for field in ("task_card", "platform_topic"):
@@ -290,9 +294,10 @@ def assert_slice(fixture: dict[str, Any]) -> None:
         require((REPO_ROOT / path).exists(), f"{field} missing on disk: {path}")
     claims = set(slice_info.get("does_not_claim") or [])
     for claim in {
-        "negative_leakage_scanner_created",
-        "negative_leakage_scan_executed",
-        "negative_leakage_scan_output_committed",
+        "rollback_executor_created",
+        "recovery_executor_created",
+        "compensating_event_writer_created",
+        "recovery_output_committed",
         "storage_adapter_runtime_task_card_created",
         "storage_adapter_runtime_created",
         "audit_store_runtime_task_card_created",
@@ -323,31 +328,34 @@ def assert_readiness_boundary(fixture: dict[str, Any]) -> None:
         require(boundary.get(field) is False, f"readiness_boundary.{field} must stay false")
 
 
-def assert_negative_leakage_evidence(fixture: dict[str, Any]) -> None:
-    evidence = fixture.get("negative_leakage_scan_evidence") or {}
+def assert_rollback_recovery_evidence(fixture: dict[str, Any]) -> None:
+    evidence = fixture.get("rollback_recovery_evidence") or {}
     require(
-        evidence.get("status") == "metadata_only_negative_leakage_scan_evidence_defined",
-        "negative leakage evidence status drifted",
+        evidence.get("status") == "metadata_only_rollback_recovery_evidence_defined",
+        "rollback recovery evidence status drifted",
     )
     require(
         set(evidence.get("required_reference_fields") or []) == EXPECTED_REFERENCE_FIELDS,
-        "negative leakage reference fields drifted",
+        "rollback recovery reference fields drifted",
     )
     require(
-        set(evidence.get("forbidden_material_classes") or []) == EXPECTED_FORBIDDEN_MATERIAL_CLASSES,
-        "forbidden material classes drifted",
+        set(evidence.get("recovery_operation_modes") or []) == EXPECTED_RECOVERY_MODES,
+        "recovery operation modes drifted",
     )
     for mechanism in {
-        "negative_leakage_scanner",
-        "scan_cli",
-        "runtime_smoke",
+        "rollback_executor",
+        "recovery_executor",
+        "compensating_event_writer",
+        "replay_executor",
         "storage_payload_reader",
         "provider_log_reader",
         "backend_write_probe",
         "provider_probe",
-        "committed_scan_output",
+        "committed_recovery_output",
     }:
         require(mechanism in set(evidence.get("forbidden_runtime_mechanisms") or []), f"missing {mechanism}")
+    for mutation in {"delete", "update", "overwrite", "truncate", "inline_redaction", "payload_mutation"}:
+        require(mutation in set(evidence.get("forbidden_mutation_mechanisms") or []), f"missing {mutation}")
     for touch in {
         "database_connection",
         "object_store_call",
@@ -367,8 +375,8 @@ def assert_negative_leakage_evidence(fixture: dict[str, Any]) -> None:
         require(row.get("requires"), f"{coverage_id} requirements missing")
         require(row.get("does_not_claim"), f"{coverage_id} does_not_claim missing")
     require(
-        set(fixture.get("negative_case_requirements") or []) == EXPECTED_NEGATIVE_CASES,
-        "negative case requirements drifted",
+        set(fixture.get("recovery_case_requirements") or []) == EXPECTED_RECOVERY_CASES,
+        "recovery case requirements drifted",
     )
 
 
@@ -379,11 +387,11 @@ def assert_diagnostics_failures_and_policies(fixture: dict[str, Any]) -> None:
     sample = diagnostics.get("sample") or {}
     require(set(sample) <= allowed, "diagnostic sample contains non-allowlisted fields")
     require(not (allowed & forbidden), "diagnostic allowlist intersects forbidden fields")
-    require(sample.get("scan_runner_status") == "not_created", "diagnostic sample created scan runner")
-    require(sample.get("scan_output_status") == "not_created", "diagnostic sample created scan output")
-    require(sample.get("negative_leakage_scan_status") == "not_created", "diagnostic sample created scan")
+    require(sample.get("rollback_executor_status") == "not_created", "diagnostic sample created rollback executor")
+    require(sample.get("recovery_executor_status") == "not_created", "diagnostic sample created recovery executor")
+    require(sample.get("recovery_output_status") == "not_created", "diagnostic sample created recovery output")
     require(
-        sample.get("next_dependency") == "storage_adapter_rollback_recovery_evidence_readiness",
+        sample.get("next_dependency") == "storage_adapter_runtime_implementation_entry_refresh",
         "diagnostic sample next dependency drifted",
     )
 
@@ -396,6 +404,7 @@ def assert_diagnostics_failures_and_policies(fixture: dict[str, Any]) -> None:
     no_fallback = fixture.get("no_fallback_policy") or {}
     require(no_fallback.get("missing_dependency_result") == "fail_closed", "missing dependency must fail closed")
     for source in {
+        "negative_leakage_scan_evidence",
         "offline_validation_evidence",
         "retention_redaction_policy_evidence",
         "append_only_semantics_evidence",
@@ -420,12 +429,13 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
         require((REPO_ROOT / path).exists(), f"allowed artifact missing: {path}")
     forbidden = set(guard.get("forbidden_artifact_kinds") or [])
     for artifact in {
+        "rollback_executor",
+        "recovery_executor",
+        "compensating_event_writer",
+        "recovery_output_artifact",
         "negative_leakage_scanner",
-        "scan_cli",
         "scan_output_artifact",
         "offline_validation_runner",
-        "validation_cli",
-        "validation_output_artifact",
         "storage_adapter_runtime_implementation_task_card",
         "storage_adapter_runtime",
         "database_connection_provider",
@@ -436,6 +446,7 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
         "delivery_runtime",
         "idempotency_runtime",
         "duplicate_detector",
+        "replay_executor",
         "production_resolver_runtime",
         "repository_mode_runtime",
         "public_production_api",
@@ -449,23 +460,22 @@ def assert_blocker_matrix_alignment() -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     boundary = matrix.get("matrix_boundary") or {}
     require(
-        boundary.get("storage_adapter_negative_leakage_scan_evidence_readiness_status")
-        == "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-        "matrix boundary missing negative leakage readiness status",
-    )
-    require(
-        boundary.get("storage_adapter_negative_leakage_scan_evidence_status")
-        == "negative_leakage_scan_evidence_defined_without_runtime",
-        "matrix boundary negative leakage evidence status drifted",
-    )
-    require(
-        boundary.get("storage_adapter_negative_leakage_scan_status") == "not_created",
-        "matrix boundary must not create negative leakage scan",
+        boundary.get("storage_adapter_rollback_recovery_evidence_readiness_status")
+        == "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
+        "matrix boundary missing rollback recovery readiness status",
     )
     require(
         boundary.get("storage_adapter_rollback_recovery_status")
         == "rollback_recovery_evidence_defined_without_runtime",
         "matrix boundary rollback recovery status drifted",
+    )
+    require(
+        boundary.get("storage_adapter_rollback_executor_status") == "not_created",
+        "matrix boundary must not create rollback executor",
+    )
+    require(
+        boundary.get("storage_adapter_recovery_executor_status") == "not_created",
+        "matrix boundary must not create recovery executor",
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
@@ -492,10 +502,10 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     planned = {str(row.get("id")): row for row in readiness.get("planned_slices") or [] if isinstance(row, dict)}
-    item = planned.get("audit-store-storage-adapter-negative-leakage-scan-evidence-readiness") or {}
+    item = planned.get("audit-store-storage-adapter-rollback-recovery-evidence-readiness") or {}
     require(
-        item.get("status") == "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-        "implementation readiness missing negative leakage planned slice",
+        item.get("status") == "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
+        "implementation readiness missing rollback recovery planned slice",
     )
     require(EXPECTED_ALLOWED_ARTIFACTS <= set(item.get("evidence") or []), "planned slice evidence drifted")
 
@@ -504,61 +514,61 @@ def assert_docs_and_registration() -> None:
     docs = {
         (
             "docs/platform/"
-            "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.md"
+            "production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1.md"
         ): [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-            "negative_leakage_scan_evidence_defined_without_runtime",
-            "storage_adapter_rollback_recovery_evidence_readiness",
+            "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
+            "rollback_recovery_evidence_defined_without_runtime",
+            "storage_adapter_runtime_implementation_entry_refresh",
         ],
         (
             "docs/task-cards/"
-            "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1-plan.md"
+            "production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1-plan.md"
         ): [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-            "metadata_only_negative_leakage_scan_manifest_reference_defined",
+            "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
+            "rollback_recovery_evidence_defined_without_runtime",
             "停止线",
         ],
         "docs/platform/production-secret-backend-audit-store-runtime-blocker-matrix-v1.md": [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-            "negative_leakage_scan_evidence_readiness_defined_task_card_blocked",
+            "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
+            "rollback_recovery_evidence_readiness_defined_task_card_blocked",
         ],
         "docs/platform/production-secret-backend-audit-store-storage-adapter-evidence-rollup-v1.md": [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-            "storage_adapter_rollback_recovery_evidence_readiness",
+            "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
+            "storage_adapter_runtime_implementation_entry_refresh",
         ],
         "docs/platform/README.md": [
-            "Production Secret Backend Audit Store Storage Adapter Negative Leakage Scan Evidence Readiness v1",
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
+            "Production Secret Backend Audit Store Storage Adapter Rollback / Recovery Evidence Readiness v1",
+            "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
         ],
         "docs/features/README.md": [
-            "Production Secret Backend Audit Store Storage Adapter Negative Leakage Scan Evidence Readiness v1",
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
+            "Production Secret Backend Audit Store Storage Adapter Rollback / Recovery Evidence Readiness v1",
+            "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
         ],
         "docs/features/workflow/README.md": [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
+            "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
         ],
         "docs/features/workflow/saved-workflow-draft-v1.md": [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-            "storage_adapter_rollback_recovery_evidence_readiness",
+            "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
+            "storage_adapter_runtime_implementation_entry_refresh",
         ],
         "docs/radishmind-current-focus.md": [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-            "storage_adapter_rollback_recovery_evidence_readiness",
+            "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
+            "storage_adapter_runtime_implementation_entry_refresh",
         ],
         "docs/task-cards/README.md": [
-            "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1",
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
+            "production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1",
+            "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
         ],
         "docs/task-cards/production-secret-backend-implementation-v1-plan.md": [
-            "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1",
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
+            "production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1",
+            "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
         ],
         "scripts/README.md": [
-            "check-production-ops-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.py",
-            "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.json",
+            "check-production-ops-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1.py",
+            "production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1.json",
         ],
         "docs/devlogs/2026-W27.md": [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
+            "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
         ],
     }
     for path, literals in docs.items():
@@ -567,8 +577,8 @@ def assert_docs_and_registration() -> None:
         require(not missing, f"{path} missing literals: {missing}")
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
-    previous = "check-production-ops-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1.py"
-    current = "check-production-ops-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.py"
+    previous = "check-production-ops-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.py"
+    current = "check-production-ops-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1.py"
     matrix = "check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py"
     for script in {previous, current, matrix}:
         require(script in check_repo, f"check-repo.py missing {script}")
@@ -583,7 +593,7 @@ def assert_no_secret_literals() -> None:
     )
     forbidden_literals = ["Bearer ", "BEGIN PRIVATE KEY", "AKIA", "-----BEGIN", "authorization:"]
     found = [literal for literal in forbidden_literals if literal in text]
-    require(not found, f"negative leakage readiness contains forbidden literal: {found}")
+    require(not found, f"rollback recovery readiness contains forbidden literal: {found}")
     require(re.search(r"sk-[A-Za-z0-9]{8,}", text) is None, "secret-looking sk token found")
     require(re.search(r"://[^\s:/]+:[^\s@]+@", text) is None, "dsn-like credential found")
 
@@ -593,14 +603,14 @@ def main() -> None:
     assert_slice(fixture)
     assert_dependencies(fixture)
     assert_readiness_boundary(fixture)
-    assert_negative_leakage_evidence(fixture)
+    assert_rollback_recovery_evidence(fixture)
     assert_diagnostics_failures_and_policies(fixture)
     assert_artifact_guard(fixture)
     assert_blocker_matrix_alignment()
     assert_implementation_readiness_alignment(fixture)
     assert_docs_and_registration()
     assert_no_secret_literals()
-    print("production ops secret backend audit store storage adapter negative leakage scan evidence readiness checks passed.")
+    print("production ops secret backend audit store storage adapter rollback recovery evidence readiness checks passed.")
 
 
 if __name__ == "__main__":

@@ -145,6 +145,12 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-offline-validation-evidence-readiness": (
         "audit_store_storage_adapter_offline_validation_evidence_readiness_defined"
     ),
+    "audit-store-storage-adapter-negative-leakage-scan-evidence-readiness": (
+        "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined"
+    ),
+    "audit-store-storage-adapter-rollback-recovery-evidence-readiness": (
+        "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -271,6 +277,8 @@ REQUIRED_DOC_REFERENCES = {
         "audit_store_storage_adapter_offline_validation_evidence_readiness_defined",
         "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1",
         "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
+        "production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1",
+        "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -1026,9 +1034,60 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit storage adapter negative leakage scan output status drifted",
     )
     require(
+        target.get("audit_store_storage_adapter_rollback_recovery_evidence_readiness_status")
+        == "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
+        "audit store storage adapter rollback recovery evidence readiness status drifted",
+    )
+    require(
         target.get("audit_storage_adapter_rollback_recovery_status")
-        == "required_before_runtime_task_card",
+        == "rollback_recovery_evidence_defined_without_runtime",
         "audit storage adapter rollback / recovery status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_rollback_recovery_manifest_status")
+        == "metadata_only_rollback_recovery_manifest_reference_defined",
+        "audit storage adapter rollback recovery manifest status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_rollback_append_only_boundary_status")
+        == "append_only_compensating_event_boundary_defined",
+        "audit storage adapter rollback append-only boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_partial_write_recovery_status")
+        == "metadata_only_partial_write_recovery_policy_defined",
+        "audit storage adapter partial write recovery status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_duplicate_replay_recovery_status")
+        == "fail_closed_replay_recovery_reference_defined",
+        "audit storage adapter duplicate replay recovery status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_retention_redaction_recovery_alignment_status")
+        == "append_only_retention_redaction_compatible_recovery_defined",
+        "audit storage adapter retention redaction recovery alignment status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_negative_leakage_recovery_alignment_status")
+        == "no_raw_material_recovery_diagnostics_defined",
+        "audit storage adapter negative leakage recovery alignment status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_rollback_executor_status") == "not_created",
+        "audit storage adapter rollback executor status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_recovery_executor_status") == "not_created",
+        "audit storage adapter recovery executor status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_compensating_event_writer_status") == "not_created",
+        "audit storage adapter compensating event writer status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_recovery_output_status") == "not_created",
+        "audit storage adapter recovery output status drifted",
     )
     require(
         target.get("audit_storage_adapter_runtime_task_card_status") == "not_created",
@@ -2538,6 +2597,24 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         )
         in check_repo,
         "check-repo.py must run audit store storage adapter offline validation evidence readiness check",
+    )
+    require(
+        (
+            'run_python_script("'
+            "check-production-ops-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.py"
+            '", [])'
+        )
+        in check_repo,
+        "check-repo.py must run audit store storage adapter negative leakage scan evidence readiness check",
+    )
+    require(
+        (
+            'run_python_script("'
+            "check-production-ops-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1.py"
+            '", [])'
+        )
+        in check_repo,
+        "check-repo.py must run audit store storage adapter rollback recovery evidence readiness check",
     )
     require(
         (
