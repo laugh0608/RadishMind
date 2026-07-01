@@ -11,7 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_PATH = (
     REPO_ROOT
     / "scripts/checks/fixtures/"
-    "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.json"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1.json"
 )
 IMPLEMENTATION_READINESS_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json"
@@ -21,7 +21,27 @@ BLOCKER_MATRIX_PATH = (
 )
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
 
+SLICE_ID = "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1"
+SLICE_STATUS = "audit_store_storage_adapter_runtime_implementation_entry_refresh_defined"
+ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_evidence_readiness"
+NEXT_DEPENDENCY = "storage_adapter_metadata_contract_artifact_materialization_entry_review"
+MATRIX_DURABLE_STATUS = "storage_adapter_runtime_entry_refresh_defined_task_card_blocked"
+
 EXPECTED_DEPENDENCIES = {
+    "production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
+    ),
     "production-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1": (
         (
             "scripts/checks/fixtures/"
@@ -75,76 +95,57 @@ EXPECTED_DEPENDENCIES = {
 }
 
 EXPECTED_BOUNDARY = {
-    "status": "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-    "readiness_decision": "negative_leakage_scan_evidence_defined_without_runtime",
+    "status": SLICE_STATUS,
+    "entry_decision": ENTRY_DECISION,
+    "previous_entry_review_status": "audit_store_storage_adapter_runtime_implementation_entry_review_defined",
+    "previous_entry_decision": "storage_adapter_runtime_task_card_blocked_before_backend_product_evidence",
+    "evidence_chain_status": "static_evidence_chain_ready_for_contract_materialization_review",
+    "rollback_recovery_evidence_readiness_status": (
+        "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined"
+    ),
+    "negative_leakage_scan_evidence_readiness_status": (
+        "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined"
+    ),
     "offline_validation_evidence_readiness_status": (
         "audit_store_storage_adapter_offline_validation_evidence_readiness_defined"
     ),
-    "offline_validation_status": "offline_validation_evidence_defined_without_runtime",
     "retention_redaction_policy_evidence_readiness_status": (
         "audit_store_storage_adapter_retention_redaction_policy_evidence_readiness_defined"
     ),
-    "retention_redaction_status": "retention_redaction_policy_evidence_defined_without_runtime",
     "append_only_semantics_evidence_readiness_status": (
         "audit_store_storage_adapter_append_only_semantics_evidence_readiness_defined"
     ),
-    "append_only_semantics_status": "append_only_semantics_evidence_defined_without_runtime",
     "metadata_contract_artifact_readiness_status": (
         "audit_store_storage_adapter_metadata_contract_artifact_readiness_defined"
     ),
-    "metadata_contract_artifact_status": "readiness_defined_without_materialized_artifact",
-    "backend_product_evidence_readiness_status": (
-        "audit_store_storage_adapter_backend_product_evidence_readiness_defined"
-    ),
+    "backend_product_evidence_readiness_status": "audit_store_storage_adapter_backend_product_evidence_readiness_defined",
     "backend_product_selection_status": "not_selected",
-    "selected_backend_family": "append_only_metadata_audit_log",
-    "selected_reserved_candidate": "reserved_append_only_audit_log",
-    "negative_leakage_scan_evidence_status": "negative_leakage_scan_evidence_defined",
-    "negative_leakage_scan_status": "not_created",
-    "negative_leakage_scan_manifest_status": "metadata_only_negative_leakage_scan_manifest_reference_defined",
-    "scan_target_reference_status": "metadata_only_scan_target_reference_defined",
-    "forbidden_material_coverage_status": "raw_payload_secret_credential_provider_backend_detail_coverage_defined",
-    "diagnostic_allowlist_status": "metadata_only_diagnostic_allowlist_defined",
-    "scan_runner_status": "not_created",
-    "scan_output_status": "not_created",
-    "validation_runner_status": "not_created",
-    "validation_output_status": "not_created",
-    "rollback_recovery_status": "required_before_runtime_task_card",
-    "next_dependency": "storage_adapter_rollback_recovery_evidence_readiness",
+    "contract_artifact_materialization_status": "not_created",
+    "next_dependency": NEXT_DEPENDENCY,
     "storage_adapter_runtime_task_card_status": "not_created",
     "storage_adapter_runtime_status": "not_created",
     "storage_adapter_client_status": "not_created",
-    "retention_executor_status": "not_created",
-    "redaction_executor_status": "not_created",
     "database_connection_provider_status": "blocked",
     "database_driver_status": "not_selected",
+    "database_connection_status": "not_created",
     "sql_migration_status": "not_created",
     "schema_marker_status": "not_created",
     "audit_store_runtime_task_card_status": "not_created",
     "audit_store_runtime_status": "not_created",
-    "audit_writer_runtime_status": "not_created",
-    "idempotency_runtime_status": "not_created",
-    "delivery_runtime_status": "not_created",
     "production_resolver_runtime_status": "not_created",
     "production_secret_backend_status": "not_satisfied",
     "repository_mode_status": "disabled",
     "production_api_status": "not_created",
 }
+
 EXPECTED_FALSE_FLAGS = {
     "backend_product_selected_in_this_slice",
     "contract_artifact_materialized_in_this_slice",
-    "offline_validation_runner_created_in_this_slice",
-    "offline_validation_executed_in_this_slice",
-    "offline_validation_output_committed_in_this_slice",
-    "negative_leakage_scanner_created_in_this_slice",
-    "negative_leakage_scan_executed_in_this_slice",
-    "negative_leakage_scan_output_committed_in_this_slice",
-    "retention_runtime_created_in_this_slice",
-    "redaction_runtime_created_in_this_slice",
     "storage_adapter_runtime_task_card_created_in_this_slice",
     "storage_adapter_runtime_created_in_this_slice",
     "storage_adapter_client_created_in_this_slice",
     "database_connection_provider_enabled",
+    "database_connection_created_in_this_slice",
     "sql_migration_created_in_this_slice",
     "schema_marker_created_in_this_slice",
     "audit_store_runtime_task_card_created_in_this_slice",
@@ -153,84 +154,52 @@ EXPECTED_FALSE_FLAGS = {
     "audit_event_written_in_this_slice",
     "delivery_runtime_created_in_this_slice",
     "idempotency_runtime_created_in_this_slice",
-    "duplicate_detector_created_in_this_slice",
     "production_resolver_runtime_created_in_this_slice",
     "repository_mode_enabled",
     "production_api_enabled",
 }
-EXPECTED_REFERENCE_FIELDS = {
-    "negative_leakage_scan_manifest_ref",
-    "scan_target_manifest_ref",
-    "offline_validation_evidence_ref",
-    "forbidden_material_matrix_ref",
-    "diagnostic_allowlist_ref",
-    "coverage_matrix_ref",
-    "failure_taxonomy_ref",
-    "policy_version",
-    "audit_ref",
+
+EXPECTED_UNBLOCKED_EVIDENCE = {
+    "backend_product_evidence_readiness",
+    "metadata_contract_artifact_readiness",
+    "append_only_semantics_evidence_readiness",
+    "retention_redaction_policy_evidence_readiness",
+    "offline_validation_evidence_readiness",
+    "negative_leakage_scan_evidence_readiness",
+    "rollback_recovery_evidence_readiness",
 }
-EXPECTED_FORBIDDEN_MATERIAL_CLASSES = {
-    "raw_request_payload",
-    "raw_response_payload",
-    "raw_audit_payload",
-    "raw_event_payload",
-    "raw_writer_payload",
-    "raw_storage_payload",
-    "raw_retained_payload",
-    "raw_redacted_payload",
-    "secret_material",
-    "credential_material",
-    "payload_hash",
-    "secret_derived_hash",
-    "provider_detail",
-    "backend_detail",
-    "scanner_raw_finding",
-    "scan_output",
+
+EXPECTED_BLOCKERS = {
+    "metadata_contract_artifact_materialization",
+    "backend_product_selection",
+    "peer_runtime_dependencies",
 }
-EXPECTED_COVERAGE_IDS = {
-    "raw_payload_material",
-    "secret_credential_material",
-    "provider_backend_detail",
-    "offline_validation_evidence_reference",
-    "diagnostic_allowlist",
-    "artifact_guard",
-}
-EXPECTED_NEGATIVE_CASES = {
-    "raw_request_payload_forbidden_case",
-    "raw_response_payload_forbidden_case",
-    "raw_audit_payload_forbidden_case",
-    "raw_storage_payload_forbidden_case",
-    "secret_credential_material_forbidden_case",
-    "provider_backend_detail_forbidden_case",
-    "payload_hash_forbidden_case",
-    "scan_output_forbidden_case",
-    "fallback_forbidden_case",
-}
+
 EXPECTED_FAILURE_CODES = {
-    "audit_store_storage_adapter_negative_leakage_scan_dependency_missing",
-    "audit_store_storage_adapter_negative_leakage_scan_manifest_reference_missing",
-    "audit_store_storage_adapter_negative_leakage_scan_target_reference_missing",
-    "audit_store_storage_adapter_negative_leakage_forbidden_material_coverage_missing",
-    "audit_store_storage_adapter_negative_leakage_diagnostic_allowlist_missing",
-    "audit_store_storage_adapter_negative_leakage_raw_material_detected",
-    "audit_store_storage_adapter_negative_leakage_scanner_runtime_scope_overreach",
-    "audit_store_storage_adapter_negative_leakage_fallback_detected",
-    "audit_store_storage_adapter_negative_leakage_next_dependency_missing",
+    "audit_store_storage_adapter_runtime_refresh_dependency_missing",
+    "audit_store_storage_adapter_runtime_refresh_task_card_still_blocked",
+    "audit_store_storage_adapter_runtime_refresh_contract_artifact_missing",
+    "audit_store_storage_adapter_runtime_refresh_backend_product_missing",
+    "audit_store_storage_adapter_runtime_refresh_peer_runtime_missing",
+    "audit_store_storage_adapter_runtime_refresh_database_provider_forbidden",
+    "audit_store_storage_adapter_runtime_refresh_scope_overreach",
+    "audit_store_storage_adapter_runtime_refresh_fallback_detected",
 }
+
 EXPECTED_ALLOWED_ARTIFACTS = {
     (
         "docs/platform/"
-        "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.md"
+        "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1.md"
     ),
     (
         "docs/task-cards/"
-        "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1-plan.md"
+        "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1-plan.md"
     ),
     (
         "scripts/checks/fixtures/"
-        "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.json"
+        "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1.json"
     ),
-    "scripts/check-production-ops-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.py",
+    "scripts/check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1.py",
 }
 
 
@@ -266,35 +235,25 @@ def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
         fixture.get("kind")
-        == "production_ops_secret_backend_audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_v1",
+        == "production_ops_secret_backend_audit_store_storage_adapter_runtime_implementation_entry_refresh_v1",
         "unexpected fixture kind",
     )
     slice_info = fixture.get("slice") or {}
-    require(
-        slice_info.get("id")
-        == "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1",
-        "unexpected slice id",
-    )
+    require(slice_info.get("id") == SLICE_ID, "unexpected slice id")
     require(slice_info.get("track") == "Production Ops Hardening v1", "unexpected track")
-    require(
-        slice_info.get("status") == "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-        "unexpected status",
-    )
-    require(
-        slice_info.get("readiness_decision") == "negative_leakage_scan_evidence_defined_without_runtime",
-        "unexpected readiness decision",
-    )
+    require(slice_info.get("status") == SLICE_STATUS, "unexpected status")
+    require(slice_info.get("entry_decision") == ENTRY_DECISION, "unexpected entry decision")
     for field in ("task_card", "platform_topic"):
         path = str(slice_info.get(field) or "")
         require(path in EXPECTED_ALLOWED_ARTIFACTS, f"unexpected {field}: {path}")
         require((REPO_ROOT / path).exists(), f"{field} missing on disk: {path}")
     claims = set(slice_info.get("does_not_claim") or [])
     for claim in {
-        "negative_leakage_scanner_created",
-        "negative_leakage_scan_executed",
-        "negative_leakage_scan_output_committed",
         "storage_adapter_runtime_task_card_created",
         "storage_adapter_runtime_created",
+        "backend_product_selected",
+        "contract_artifact_materialized",
+        "database_provider_selected",
         "audit_store_runtime_task_card_created",
         "audit_store_runtime_created",
         "production_resolver_runtime_created",
@@ -315,60 +274,26 @@ def assert_dependencies(fixture: dict[str, Any]) -> None:
         require(source_status(source) == expected_status, f"{dependency_id} source status drifted")
 
 
-def assert_readiness_boundary(fixture: dict[str, Any]) -> None:
-    boundary = fixture.get("readiness_boundary") or {}
+def assert_entry_refresh_boundary(fixture: dict[str, Any]) -> None:
+    boundary = fixture.get("entry_refresh_boundary") or {}
     for field, expected in EXPECTED_BOUNDARY.items():
-        require(boundary.get(field) == expected, f"readiness_boundary.{field} drifted")
+        require(boundary.get(field) == expected, f"entry_refresh_boundary.{field} drifted")
     for field in EXPECTED_FALSE_FLAGS:
-        require(boundary.get(field) is False, f"readiness_boundary.{field} must stay false")
+        require(boundary.get(field) is False, f"entry_refresh_boundary.{field} must stay false")
 
 
-def assert_negative_leakage_evidence(fixture: dict[str, Any]) -> None:
-    evidence = fixture.get("negative_leakage_scan_evidence") or {}
+def assert_remaining_scope(fixture: dict[str, Any]) -> None:
     require(
-        evidence.get("status") == "metadata_only_negative_leakage_scan_evidence_defined",
-        "negative leakage evidence status drifted",
+        set(fixture.get("unblocked_static_evidence") or []) == EXPECTED_UNBLOCKED_EVIDENCE,
+        "unblocked static evidence drifted",
     )
+    blockers = rows_by_id(fixture, "remaining_blockers", "id")
+    require(set(blockers) == EXPECTED_BLOCKERS, "remaining blocker ids drifted")
+    require(blockers["metadata_contract_artifact_materialization"].get("status") == "not_created", "contract created")
+    require(blockers["backend_product_selection"].get("status") == "not_selected", "backend product selected")
     require(
-        set(evidence.get("required_reference_fields") or []) == EXPECTED_REFERENCE_FIELDS,
-        "negative leakage reference fields drifted",
-    )
-    require(
-        set(evidence.get("forbidden_material_classes") or []) == EXPECTED_FORBIDDEN_MATERIAL_CLASSES,
-        "forbidden material classes drifted",
-    )
-    for mechanism in {
-        "negative_leakage_scanner",
-        "scan_cli",
-        "runtime_smoke",
-        "storage_payload_reader",
-        "provider_log_reader",
-        "backend_write_probe",
-        "provider_probe",
-        "committed_scan_output",
-    }:
-        require(mechanism in set(evidence.get("forbidden_runtime_mechanisms") or []), f"missing {mechanism}")
-    for touch in {
-        "database_connection",
-        "object_store_call",
-        "queue_call",
-        "topic_call",
-        "log_sink_call",
-        "vendor_service_call",
-        "provider_call",
-        "cloud_secret_call",
-    }:
-        require(touch in set(evidence.get("forbidden_backend_touches") or []), f"missing backend touch {touch}")
-
-    coverage = rows_by_id(fixture, "coverage_matrix", "id")
-    require(set(coverage) == EXPECTED_COVERAGE_IDS, "coverage matrix ids drifted")
-    for coverage_id, row in coverage.items():
-        require(row.get("status"), f"{coverage_id} status missing")
-        require(row.get("requires"), f"{coverage_id} requirements missing")
-        require(row.get("does_not_claim"), f"{coverage_id} does_not_claim missing")
-    require(
-        set(fixture.get("negative_case_requirements") or []) == EXPECTED_NEGATIVE_CASES,
-        "negative case requirements drifted",
+        blockers["metadata_contract_artifact_materialization"].get("next_dependency") == NEXT_DEPENDENCY,
+        "next dependency drifted",
     )
 
 
@@ -379,13 +304,11 @@ def assert_diagnostics_failures_and_policies(fixture: dict[str, Any]) -> None:
     sample = diagnostics.get("sample") or {}
     require(set(sample) <= allowed, "diagnostic sample contains non-allowlisted fields")
     require(not (allowed & forbidden), "diagnostic allowlist intersects forbidden fields")
-    require(sample.get("scan_runner_status") == "not_created", "diagnostic sample created scan runner")
-    require(sample.get("scan_output_status") == "not_created", "diagnostic sample created scan output")
-    require(sample.get("negative_leakage_scan_status") == "not_created", "diagnostic sample created scan")
-    require(
-        sample.get("next_dependency") == "storage_adapter_rollback_recovery_evidence_readiness",
-        "diagnostic sample next dependency drifted",
-    )
+    require(sample.get("runtime_task_decision") == ENTRY_DECISION, "diagnostic task decision drifted")
+    require(sample.get("next_dependency") == NEXT_DEPENDENCY, "diagnostic next dependency drifted")
+    require(sample.get("backend_product_selection_status") == "not_selected", "diagnostic selected backend")
+    require(sample.get("contract_artifact_materialization_status") == "not_created", "diagnostic created contract")
+    require(sample.get("storage_adapter_runtime_status") == "not_created", "diagnostic created runtime")
 
     failures = rows_by_id(fixture, "failure_mapping", "code")
     require(set(failures) == EXPECTED_FAILURE_CODES, "failure mapping codes drifted")
@@ -396,12 +319,14 @@ def assert_diagnostics_failures_and_policies(fixture: dict[str, Any]) -> None:
     no_fallback = fixture.get("no_fallback_policy") or {}
     require(no_fallback.get("missing_dependency_result") == "fail_closed", "missing dependency must fail closed")
     for source in {
-        "offline_validation_evidence",
-        "retention_redaction_policy_evidence",
-        "append_only_semantics_evidence",
-        "metadata_contract_artifact_readiness",
+        "backend_family_selection",
         "backend_product_evidence_readiness",
-        "storage_adapter_runtime_entry_review",
+        "metadata_contract_artifact_readiness",
+        "append_only_semantics_evidence",
+        "retention_redaction_policy_evidence",
+        "offline_validation_evidence",
+        "negative_leakage_scan_evidence",
+        "rollback_recovery_evidence",
         "historical_smoke",
         "previous_checker_success",
     }:
@@ -420,22 +345,19 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
         require((REPO_ROOT / path).exists(), f"allowed artifact missing: {path}")
     forbidden = set(guard.get("forbidden_artifact_kinds") or [])
     for artifact in {
-        "negative_leakage_scanner",
-        "scan_cli",
-        "scan_output_artifact",
-        "offline_validation_runner",
-        "validation_cli",
-        "validation_output_artifact",
+        "backend_product_selection_artifact",
+        "metadata_contract_artifact",
         "storage_adapter_runtime_implementation_task_card",
         "storage_adapter_runtime",
+        "storage_adapter_client",
         "database_connection_provider",
+        "database_connection",
+        "db_driver",
+        "dsn_parser",
         "sql_migration",
+        "schema_marker",
         "audit_store_runtime_implementation_task_card",
         "audit_store_runtime",
-        "audit_writer_runtime",
-        "delivery_runtime",
-        "idempotency_runtime",
-        "duplicate_detector",
         "production_resolver_runtime",
         "repository_mode_runtime",
         "public_production_api",
@@ -449,35 +371,27 @@ def assert_blocker_matrix_alignment() -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     boundary = matrix.get("matrix_boundary") or {}
     require(
-        boundary.get("storage_adapter_negative_leakage_scan_evidence_readiness_status")
-        == "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-        "matrix boundary missing negative leakage readiness status",
+        boundary.get("storage_adapter_runtime_implementation_entry_refresh_status") == SLICE_STATUS,
+        "matrix boundary missing storage adapter runtime refresh status",
     )
     require(
-        boundary.get("storage_adapter_negative_leakage_scan_evidence_status")
-        == "negative_leakage_scan_evidence_defined_without_runtime",
-        "matrix boundary negative leakage evidence status drifted",
+        boundary.get("storage_adapter_runtime_task_card_decision") == ENTRY_DECISION,
+        "matrix boundary runtime task card decision drifted",
     )
     require(
-        boundary.get("storage_adapter_negative_leakage_scan_status") == "not_created",
-        "matrix boundary must not create negative leakage scan",
+        boundary.get("storage_adapter_next_dependency") == NEXT_DEPENDENCY,
+        "matrix boundary next dependency drifted",
     )
+    require(boundary.get("storage_adapter_runtime_status") == "not_created", "matrix created runtime")
+    require(boundary.get("storage_adapter_backend_product_selection_status") == "not_selected", "matrix selected product")
     require(
-        boundary.get("storage_adapter_rollback_recovery_status")
-        == "rollback_recovery_evidence_defined_without_runtime",
-        "matrix boundary rollback recovery status drifted",
+        boundary.get("storage_adapter_contract_artifact_materialization_status") == "not_created",
+        "matrix materialized contract",
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    require(
-        durable.get("status") == "storage_adapter_runtime_entry_refresh_defined_task_card_blocked",
-        "durable backend blocker status drifted",
-    )
-    require(
-        durable.get("source")
-        == "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1",
-        "durable backend blocker source drifted",
-    )
+    require(durable.get("status") == MATRIX_DURABLE_STATUS, "durable backend blocker status drifted")
+    require(durable.get("source") == SLICE_ID, "durable backend blocker source drifted")
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable backend must block audit runtime")
     require(durable.get("blocks_production_resolver_task_card") is True, "durable backend must block resolver runtime")
 
@@ -485,18 +399,12 @@ def assert_blocker_matrix_alignment() -> None:
 def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
     readiness = load_json(IMPLEMENTATION_READINESS_PATH)
     target = readiness.get("implementation_target") or {}
-    alignment = fixture.get("implementation_readiness_alignment") or {}
-    for field, expected in alignment.items():
-        if field == "status":
-            continue
+    for field, expected in (fixture.get("implementation_readiness_alignment") or {}).items():
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     planned = {str(row.get("id")): row for row in readiness.get("planned_slices") or [] if isinstance(row, dict)}
-    item = planned.get("audit-store-storage-adapter-negative-leakage-scan-evidence-readiness") or {}
-    require(
-        item.get("status") == "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-        "implementation readiness missing negative leakage planned slice",
-    )
+    item = planned.get("audit-store-storage-adapter-runtime-implementation-entry-refresh") or {}
+    require(item.get("status") == SLICE_STATUS, "implementation readiness missing runtime refresh planned slice")
     require(EXPECTED_ALLOWED_ARTIFACTS <= set(item.get("evidence") or []), "planned slice evidence drifted")
 
 
@@ -504,62 +412,51 @@ def assert_docs_and_registration() -> None:
     docs = {
         (
             "docs/platform/"
-            "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.md"
+            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1.md"
         ): [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-            "negative_leakage_scan_evidence_defined_without_runtime",
-            "storage_adapter_rollback_recovery_evidence_readiness",
+            SLICE_STATUS,
+            ENTRY_DECISION,
+            NEXT_DEPENDENCY,
+            "not_selected",
+            "not_created",
         ],
         (
             "docs/task-cards/"
-            "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1-plan.md"
+            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1-plan.md"
         ): [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-            "metadata_only_negative_leakage_scan_manifest_reference_defined",
+            SLICE_STATUS,
+            ENTRY_DECISION,
+            NEXT_DEPENDENCY,
             "停止线",
         ],
         "docs/platform/production-secret-backend-audit-store-runtime-blocker-matrix-v1.md": [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-            "negative_leakage_scan_evidence_readiness_defined_task_card_blocked",
+            SLICE_STATUS,
+            MATRIX_DURABLE_STATUS,
+            NEXT_DEPENDENCY,
         ],
         "docs/platform/production-secret-backend-audit-store-storage-adapter-evidence-rollup-v1.md": [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-            "storage_adapter_rollback_recovery_evidence_readiness",
+            SLICE_STATUS,
+            ENTRY_DECISION,
+            NEXT_DEPENDENCY,
         ],
         "docs/platform/README.md": [
-            "Production Secret Backend Audit Store Storage Adapter Negative Leakage Scan Evidence Readiness v1",
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
+            "Production Secret Backend Audit Store Storage Adapter Runtime Implementation Entry Refresh v1",
+            SLICE_STATUS,
         ],
         "docs/features/README.md": [
-            "Production Secret Backend Audit Store Storage Adapter Negative Leakage Scan Evidence Readiness v1",
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
+            "Production Secret Backend Audit Store Storage Adapter Runtime Implementation Entry Refresh v1",
+            SLICE_STATUS,
         ],
-        "docs/features/workflow/README.md": [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-        ],
-        "docs/features/workflow/saved-workflow-draft-v1.md": [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-            "storage_adapter_rollback_recovery_evidence_readiness",
-        ],
-        "docs/radishmind-current-focus.md": [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-            "storage_adapter_rollback_recovery_evidence_readiness",
-        ],
-        "docs/task-cards/README.md": [
-            "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1",
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-        ],
-        "docs/task-cards/production-secret-backend-implementation-v1-plan.md": [
-            "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1",
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-        ],
+        "docs/features/workflow/README.md": [SLICE_STATUS],
+        "docs/features/workflow/saved-workflow-draft-v1.md": [SLICE_STATUS, NEXT_DEPENDENCY],
+        "docs/radishmind-current-focus.md": [SLICE_STATUS, NEXT_DEPENDENCY],
+        "docs/task-cards/README.md": [SLICE_ID, SLICE_STATUS],
+        "docs/task-cards/production-secret-backend-implementation-v1-plan.md": [SLICE_ID, SLICE_STATUS],
         "scripts/README.md": [
-            "check-production-ops-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.py",
-            "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.json",
+            "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1.py",
+            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1.json",
         ],
-        "docs/devlogs/2026-W27.md": [
-            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
-        ],
+        "docs/devlogs/2026-W27.md": [SLICE_STATUS, NEXT_DEPENDENCY],
     }
     for path, literals in docs.items():
         text = read(path)
@@ -567,8 +464,8 @@ def assert_docs_and_registration() -> None:
         require(not missing, f"{path} missing literals: {missing}")
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
-    previous = "check-production-ops-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1.py"
-    current = "check-production-ops-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.py"
+    previous = "check-production-ops-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1.py"
+    current = "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1.py"
     matrix = "check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py"
     for script in {previous, current, matrix}:
         require(script in check_repo, f"check-repo.py missing {script}")
@@ -583,7 +480,7 @@ def assert_no_secret_literals() -> None:
     )
     forbidden_literals = ["Bearer ", "BEGIN PRIVATE KEY", "AKIA", "-----BEGIN", "authorization:"]
     found = [literal for literal in forbidden_literals if literal in text]
-    require(not found, f"negative leakage readiness contains forbidden literal: {found}")
+    require(not found, f"runtime refresh contains forbidden literal: {found}")
     require(re.search(r"sk-[A-Za-z0-9]{8,}", text) is None, "secret-looking sk token found")
     require(re.search(r"://[^\s:/]+:[^\s@]+@", text) is None, "dsn-like credential found")
 
@@ -592,15 +489,15 @@ def main() -> None:
     fixture = load_json(FIXTURE_PATH)
     assert_slice(fixture)
     assert_dependencies(fixture)
-    assert_readiness_boundary(fixture)
-    assert_negative_leakage_evidence(fixture)
+    assert_entry_refresh_boundary(fixture)
+    assert_remaining_scope(fixture)
     assert_diagnostics_failures_and_policies(fixture)
     assert_artifact_guard(fixture)
     assert_blocker_matrix_alignment()
     assert_implementation_readiness_alignment(fixture)
     assert_docs_and_registration()
     assert_no_secret_literals()
-    print("production ops secret backend audit store storage adapter negative leakage scan evidence readiness checks passed.")
+    print("production ops secret backend audit store storage adapter runtime implementation entry refresh checks passed.")
 
 
 if __name__ == "__main__":

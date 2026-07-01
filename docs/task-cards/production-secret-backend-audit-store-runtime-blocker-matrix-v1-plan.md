@@ -21,6 +21,7 @@
 - `audit_store_storage_adapter_offline_validation_evidence_readiness_defined`
 - `audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined`
 - `audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined`
+- `audit_store_storage_adapter_runtime_implementation_entry_refresh_defined`
 - `audit_store_runtime_implementation_entry_refresh_v4_defined`
 - `audit_store_durable_backend_boundary_readiness_defined`
 - `audit_store_writer_runtime_boundary_readiness_defined`
@@ -44,7 +45,7 @@
 ## Blocker Matrix
 
 - schema artifact：`implemented_static_schema_artifact`，只解除 artifact 缺口，不解锁 runtime。
-- durable backend：`rollback_recovery_evidence_readiness_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1`；上一状态 `negative_leakage_scan_evidence_readiness_defined_task_card_blocked` 已作为历史证据保留。
+- durable backend：`storage_adapter_runtime_entry_refresh_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1`；上一状态 `rollback_recovery_evidence_readiness_defined_task_card_blocked` 与 `negative_leakage_scan_evidence_readiness_defined_task_card_blocked` 已作为历史证据保留，下一依赖为 `storage_adapter_metadata_contract_artifact_materialization_entry_review`。
 - audit writer runtime：`entry_review_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1`。
 - idempotency runtime：`entry_review_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1`。
 - delivery runtime：`entry_review_defined_task_card_blocked`，source 为 `production-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1`。
@@ -74,6 +75,7 @@
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1.py
+./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-v1.py
 ./scripts/run-python.sh scripts/check-production-ops-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2.py

@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-06-30
+更新时间：2026-07-01
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -242,6 +242,7 @@
 56. [`Production Secret Backend Audit Store Storage Adapter Offline Validation Evidence Readiness` v1 计划](production-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1-plan.md)（`production-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1` / `audit_store_storage_adapter_offline_validation_evidence_readiness_defined`）
 57. [`Production Secret Backend Audit Store Storage Adapter Negative Leakage Scan Evidence Readiness` v1 计划](production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1-plan.md)（`production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1` / `audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined`）
 58. [`Production Secret Backend Audit Store Storage Adapter Rollback / Recovery Evidence Readiness` v1 计划](production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1-plan.md)（`production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1` / `audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined`）
+59. [`Production Secret Backend Audit Store Storage Adapter Runtime Implementation Entry Refresh` v1 计划](production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1-plan.md)（`production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1` / `audit_store_storage_adapter_runtime_implementation_entry_refresh_defined`）
 49. [`Production Secret Backend Credential Handle Runtime Implementation Entry Refresh` v1 计划](production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1-plan.md)（`production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1` / `credential_handle_runtime_implementation_entry_refresh_defined`）
 50. [`Production Secret Backend Operator Approval Runtime Implementation Entry Refresh` v1 计划](production-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1-plan.md)（`production-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1` / `operator_approval_runtime_implementation_entry_refresh_defined`）
 51. [`Production Secret Backend Cloud Secret Service Selection Readiness` v1 计划](production-secret-backend-cloud-secret-service-selection-readiness-v1-plan.md)（`production-secret-backend-cloud-secret-service-selection-readiness-v1` / `cloud_secret_service_selection_readiness_defined`）

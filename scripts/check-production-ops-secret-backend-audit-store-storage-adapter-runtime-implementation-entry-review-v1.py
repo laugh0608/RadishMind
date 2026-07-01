@@ -334,12 +334,12 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
     require(
-        durable.get("status") == "rollback_recovery_evidence_readiness_defined_task_card_blocked",
+        durable.get("status") == "storage_adapter_runtime_entry_refresh_defined_task_card_blocked",
         "durable backend blocker status not updated",
     )
     require(
         durable.get("source")
-        == "production-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1",
+        == "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1",
         "durable backend blocker source not updated",
     )
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable blocker must block audit runtime")

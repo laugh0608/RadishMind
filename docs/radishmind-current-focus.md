@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-06-30
+更新时间：2026-07-01
 
 ## 文档目的
 
@@ -116,7 +116,7 @@
 
 ## 当前优先做什么
 
-当前第一顺位已完成从 Production Secret Backend storage adapter 证据链收束到 [Saved Workflow Draft Conflict Review v1](features/workflow/saved-workflow-draft-conflict-review-v1.md) 的产品工作流实现、dev-live 交互复核与 2026-07-01 可读性整理，并已继续把 durable store 上游推进到 `audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined`：该锚点消费 `audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined`，只定义 rollback / recovery 证据，不创建 rollback executor、recovery executor、compensating event writer、storage adapter runtime、DB provider 或 audit store runtime。下一步若继续用户工作流，应只基于实际审查反馈做小范围阅读路径整理；若转回 durable store 上游，才独立推进 `storage_adapter_runtime_implementation_entry_refresh`。
+当前第一顺位已完成从 Production Secret Backend storage adapter 证据链收束到 [Saved Workflow Draft Conflict Review v1](features/workflow/saved-workflow-draft-conflict-review-v1.md) 的产品工作流实现、dev-live 交互复核与 2026-07-01 可读性整理，并已继续把 durable store 上游推进到 `audit_store_storage_adapter_runtime_implementation_entry_refresh_defined`：该锚点消费 `audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined`、`audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined` / `storage_adapter_rollback_recovery_evidence_readiness` 及前序 storage adapter 静态证据链，结论为 `storage_adapter_runtime_task_card_still_blocked_after_evidence_readiness`，仍不创建 contract artifact、backend product selection、storage adapter runtime、DB provider、audit store runtime 或 production resolver runtime。下一步若继续用户工作流，应只基于实际审查反馈做小范围阅读路径整理；若转回 durable store 上游，应独立推进 `storage_adapter_metadata_contract_artifact_materialization_entry_review`。
 
 当前功能入口：
 
@@ -203,7 +203,7 @@
 
 推荐下一批开发目标从以下方向选择一个：
 
-1. `Workflow / Agent Runtime`：Saved Workflow Draft、本地编辑、User Workspace 草案入口、Review Handoff、Workflow Node Designer 画布、persisted layout、controlled edge mutation、validation overlay navigation、`Workflow Node Designer Graph Review Handoff Refinement v1` 和 `Saved Workflow Draft Conflict Review v1` 已完成，锚点包含 `workflow_node_designer_persisted_layout_v1_implemented`、`workflow_node_designer_layout_review_findings_v1_implemented`、`workflow_node_designer_builder_interaction_polish_v1_implemented`、`workflow_node_designer_validation_overlay_navigation_v1_implemented`、`workflow_node_designer_graph_review_handoff_refinement_v1_implemented` 与 `workflow_saved_draft_conflict_review_v1_implemented`；冲突审查已完成 dev-live 浏览器复核和 2026-07-01 可读性整理，durable store 上游已推进到 `audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined`，且 `storage_adapter_rollback_recovery_evidence_readiness` 已作为 evidence readiness 消费完成。若继续用户工作流，应只基于实际审查反馈整理阅读路径；若继续 durable store 上游，下一项应推进 `storage_adapter_runtime_implementation_entry_refresh`，不得绕过 dev auth / write enablement、scope check、no sample fallback、repository mode enablement 评审结论、真实数据库 / SQL migration runner、schema marker runtime、secret resolver runtime、OIDC middleware、token validation、membership adapter、negative auth smoke runtime、production resolver runtime task card、真实 resolver runtime、credential handle runtime、operator approval runtime、backend health runtime、audit store runtime、云 secret 服务、connection lifecycle runtime、connection smoke runtime 和 public production API 停止线。
+1. `Workflow / Agent Runtime`：Saved Workflow Draft、本地编辑、User Workspace 草案入口、Review Handoff、Workflow Node Designer 画布、persisted layout、controlled edge mutation、validation overlay navigation、`Workflow Node Designer Graph Review Handoff Refinement v1` 和 `Saved Workflow Draft Conflict Review v1` 已完成，锚点包含 `workflow_node_designer_persisted_layout_v1_implemented`、`workflow_node_designer_layout_review_findings_v1_implemented`、`workflow_node_designer_builder_interaction_polish_v1_implemented`、`workflow_node_designer_validation_overlay_navigation_v1_implemented`、`workflow_node_designer_graph_review_handoff_refinement_v1_implemented` 与 `workflow_saved_draft_conflict_review_v1_implemented`；冲突审查已完成 dev-live 浏览器复核和 2026-07-01 可读性整理，durable store 上游已推进到 `audit_store_storage_adapter_runtime_implementation_entry_refresh_defined`，且 `storage_adapter_runtime_implementation_entry_refresh` 已确认 runtime task card 仍 blocked。若继续用户工作流，应只基于实际审查反馈整理阅读路径；若继续 durable store 上游，下一项应推进 `storage_adapter_metadata_contract_artifact_materialization_entry_review`，不得绕过 dev auth / write enablement、scope check、no sample fallback、repository mode enablement 评审结论、真实数据库 / SQL migration runner、schema marker runtime、secret resolver runtime、OIDC middleware、token validation、membership adapter、negative auth smoke runtime、production resolver runtime task card、真实 resolver runtime、credential handle runtime、operator approval runtime、backend health runtime、audit store runtime、云 secret 服务、connection lifecycle runtime、connection smoke runtime 和 public production API 停止线。
 2. `User Workspace`：若继续用户端路径，可推进 saved draft 冲突处理后的恢复体验和审查交接可读性整理，但不能绕过 saved draft scope、owner / workspace 和 no sample fallback 约束。
 3. `Model Gateway / API Distribution`：推进真实 API distribution 前的 key / quota / trace 设计，而不是继续新增 evidence 面板。
 4. `Admin Control Plane`：为未来 Radish OIDC 或 read store adapter 选择单一实现方向，不能和管理端写入并行打开。
