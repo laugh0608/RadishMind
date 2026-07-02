@@ -32,6 +32,36 @@ SELECTED_PRODUCT_PROFILE = "reserved_managed_database_append_only_table_profile"
 SELECTION_SCOPE = "static_product_class_only"
 SELECTION_STATUS = "selected_static_product_class_without_backend_provider"
 NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_product_selection"
+FOLLOWUP_AFTER_SELECTION_FIXTURE = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1.json"
+)
+FOLLOWUP_AFTER_SELECTION_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
+)
+FOLLOWUP_AFTER_SELECTION_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_product_selection"
+FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness"
+FOLLOWUP_AFTER_SELECTION_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_product_selection_defined_task_card_blocked"
+)
+FOLLOWUP_AFTER_SELECTION_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1"
+)
+FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_status": (
+        FOLLOWUP_AFTER_SELECTION_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": FOLLOWUP_AFTER_SELECTION_DECISION,
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY,
+    "audit_storage_adapter_database_provider_driver_dsn_tls_role_policy_status": (
+        "required_before_runtime_task_card"
+    ),
+    "audit_storage_adapter_append_only_table_schema_boundary_status": "required_before_runtime_task_card",
+    "audit_storage_adapter_migration_schema_marker_boundary_status": "required_before_runtime_task_card",
+    "audit_storage_adapter_offline_adapter_smoke_strategy_status": "required_before_runtime_task_card",
+    "audit_storage_adapter_negative_leakage_runtime_scan_boundary_status": "required_before_runtime_task_card",
+}
 
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-v1": (
@@ -234,6 +264,13 @@ def source_status(document: dict[str, Any]) -> str:
     return str(slice_info.get("status") or document.get("status") or "")
 
 
+def followup_after_selection_exists() -> bool:
+    if not FOLLOWUP_AFTER_SELECTION_FIXTURE.exists():
+        return False
+    followup = load_json(FOLLOWUP_AFTER_SELECTION_FIXTURE)
+    return source_status(followup) == FOLLOWUP_AFTER_SELECTION_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "schema_version drifted")
     require(
@@ -372,6 +409,8 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
     for field, expected in expected_impl.items():
         if field == "status":
             continue
+        if followup_after_selection_exists() and field in FOLLOWUP_AFTER_SELECTION_ALIGNMENT:
+            expected = FOLLOWUP_AFTER_SELECTION_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     required = rows_by_id(implementation, "planned_slices", "id")
@@ -390,17 +429,31 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
     require(boundary.get("storage_adapter_backend_product_selection_review_status") == SLICE_STATUS, "matrix review status drifted")
     require(boundary.get("storage_adapter_backend_product_selection_status") == SELECTION_STATUS, "matrix selection status drifted")
     require(boundary.get("storage_adapter_selected_backend_product_class") == SELECTED_PRODUCT_CLASS, "matrix product class drifted")
-    require(boundary.get("storage_adapter_current_next_dependency") == NEXT_DEPENDENCY, "matrix next dependency drifted")
+    expected_next_dependency = (
+        FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY if followup_after_selection_exists() else NEXT_DEPENDENCY
+    )
+    require(
+        boundary.get("storage_adapter_current_next_dependency") == expected_next_dependency,
+        "matrix next dependency drifted",
+    )
     blockers = rows_by_id(blocker_matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    require(
-        durable.get("status") == expected_matrix.get("durable_backend_blocker_status_after_review"),
-        "durable backend blocker status drifted",
-    )
-    require(
-        durable.get("source") == expected_matrix.get("durable_backend_blocker_source_after_review"),
-        "durable backend blocker source drifted",
-    )
+    expected_blocker_status = expected_matrix.get("durable_backend_blocker_status_after_review")
+    expected_blocker_source = expected_matrix.get("durable_backend_blocker_source_after_review")
+    if followup_after_selection_exists():
+        expected_blocker_status = FOLLOWUP_AFTER_SELECTION_BLOCKER_STATUS
+        expected_blocker_source = FOLLOWUP_AFTER_SELECTION_SOURCE
+        require(
+            boundary.get("storage_adapter_runtime_implementation_entry_refresh_after_product_selection_status")
+            == FOLLOWUP_AFTER_SELECTION_STATUS,
+            "matrix after-selection refresh status drifted",
+        )
+        require(
+            boundary.get("storage_adapter_runtime_task_card_decision") == FOLLOWUP_AFTER_SELECTION_DECISION,
+            "matrix after-selection runtime decision drifted",
+        )
+    require(durable.get("status") == expected_blocker_status, "durable backend blocker status drifted")
+    require(durable.get("source") == expected_blocker_source, "durable backend blocker source drifted")
 
 
 def assert_docs() -> None:
@@ -428,16 +481,21 @@ def assert_check_repo_registration() -> None:
         'run_python_script("check-production-ops-secret-backend-audit-store-'
         'storage-adapter-backend-product-selection-review-v1.py", [])'
     )
+    after_selection_refresh_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1.py", [])'
+    )
     matrix_call = 'run_python_script("check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py", [])'
     resolver_call = (
         'run_python_script("check-production-ops-secret-backend-'
         'production-resolver-runtime-implementation-entry-refresh-v2.py", [])'
     )
-    for call in (materialization_call, selection_call, matrix_call, resolver_call):
+    for call in (materialization_call, selection_call, after_selection_refresh_call, matrix_call, resolver_call):
         require(call in check_repo, f"check-repo.py missing call: {call}")
     require(
         check_repo.index(materialization_call)
         < check_repo.index(selection_call)
+        < check_repo.index(after_selection_refresh_call)
         < check_repo.index(matrix_call)
         < check_repo.index(resolver_call),
         "check-repo.py registration order drifted",

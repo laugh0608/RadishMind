@@ -43,6 +43,15 @@ FOLLOWUP_SELECTION_FIXTURE_PATH = (
 )
 FOLLOWUP_SELECTION_STATUS = "audit_store_storage_adapter_backend_product_selection_review_defined"
 FOLLOWUP_SELECTION_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_product_selection"
+FOLLOWUP_AFTER_SELECTION_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1.json"
+)
+FOLLOWUP_AFTER_SELECTION_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
+)
+FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness"
 FOLLOWUP_SELECTION_ALIGNMENT = {
     "audit_store_storage_adapter_backend_product_selection_review_status": FOLLOWUP_SELECTION_STATUS,
     "audit_storage_adapter_backend_product_selection_status": "selected_static_product_class_without_backend_provider",
@@ -51,6 +60,22 @@ FOLLOWUP_SELECTION_ALIGNMENT = {
     "audit_storage_adapter_database_product_status": "not_selected",
     "audit_storage_adapter_database_connection_provider_status": "blocked",
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_SELECTION_NEXT_DEPENDENCY,
+}
+FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_status": (
+        FOLLOWUP_AFTER_SELECTION_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_product_selection"
+    ),
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY,
+    "audit_storage_adapter_database_provider_driver_dsn_tls_role_policy_status": (
+        "required_before_runtime_task_card"
+    ),
+    "audit_storage_adapter_append_only_table_schema_boundary_status": "required_before_runtime_task_card",
+    "audit_storage_adapter_migration_schema_marker_boundary_status": "required_before_runtime_task_card",
+    "audit_storage_adapter_offline_adapter_smoke_strategy_status": "required_before_runtime_task_card",
+    "audit_storage_adapter_negative_leakage_runtime_scan_boundary_status": "required_before_runtime_task_card",
 }
 
 POSITIVE_FIXTURE = "scripts/checks/fixtures/production-secret-audit-storage-adapter-metadata-contract-positive-v1.json"
@@ -182,6 +207,13 @@ def followup_selection_exists() -> bool:
         return False
     selection = load_json(FOLLOWUP_SELECTION_FIXTURE_PATH)
     return source_status(selection) == FOLLOWUP_SELECTION_STATUS
+
+
+def followup_after_selection_exists() -> bool:
+    if not FOLLOWUP_AFTER_SELECTION_FIXTURE_PATH.exists():
+        return False
+    followup = load_json(FOLLOWUP_AFTER_SELECTION_FIXTURE_PATH)
+    return source_status(followup) == FOLLOWUP_AFTER_SELECTION_STATUS
 
 
 def recursive_keys(value: Any) -> set[str]:
@@ -434,8 +466,13 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
         "matrix task card status drifted",
     )
     if followup_selection_exists():
+        expected_next_dependency = (
+            FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY
+            if followup_after_selection_exists()
+            else FOLLOWUP_SELECTION_NEXT_DEPENDENCY
+        )
         require(
-            boundary.get("storage_adapter_current_next_dependency") == FOLLOWUP_SELECTION_NEXT_DEPENDENCY,
+            boundary.get("storage_adapter_current_next_dependency") == expected_next_dependency,
             "matrix next dependency drifted after selection follow-up",
         )
         require(
@@ -456,6 +493,12 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
             == "reserved_managed_database_append_only_table_profile",
             "matrix selected product profile drifted after follow-up",
         )
+        if followup_after_selection_exists():
+            require(
+                boundary.get("storage_adapter_runtime_implementation_entry_refresh_after_product_selection_status")
+                == FOLLOWUP_AFTER_SELECTION_STATUS,
+                "matrix after-selection refresh status drifted",
+            )
     else:
         require(boundary.get("storage_adapter_current_next_dependency") == NEXT_DEPENDENCY, "matrix next dependency drifted")
         require(boundary.get("storage_adapter_backend_product_selection_status") == "not_selected", "matrix selected product")
@@ -468,6 +511,8 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
     for field, expected in (fixture.get("implementation_readiness_alignment") or {}).items():
         if followup_selection_exists() and field in FOLLOWUP_SELECTION_ALIGNMENT:
             expected = FOLLOWUP_SELECTION_ALIGNMENT[field]
+        if followup_after_selection_exists() and field in FOLLOWUP_AFTER_SELECTION_ALIGNMENT:
+            expected = FOLLOWUP_AFTER_SELECTION_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
     planned = rows_by_id(readiness, "planned_slices", "id")
     item = planned.get("audit-store-storage-adapter-metadata-contract-artifact-materialization") or {}

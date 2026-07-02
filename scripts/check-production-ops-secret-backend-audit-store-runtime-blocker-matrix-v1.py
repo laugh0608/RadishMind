@@ -159,6 +159,13 @@ EXPECTED_DEPENDENCIES = {
         ),
         "audit_store_storage_adapter_backend_product_selection_review_defined",
     ),
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1.json"
+        ),
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined",
+    ),
     "production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1": (
         "scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.json",
         "credential_handle_runtime_implementation_entry_refresh_defined",
@@ -204,7 +211,7 @@ EXPECTED_BOUNDARY = {
     "durable_backend_selection_decision_after_review": (
         "durable_backend_family_selected_static_append_only_audit_log_runtime_blocked"
     ),
-    "durable_audit_backend_status": "storage_adapter_backend_product_selection_review_defined_task_card_blocked",
+    "durable_audit_backend_status": "storage_adapter_runtime_entry_refresh_after_product_selection_defined_task_card_blocked",
     "selected_durable_backend_family": "append_only_metadata_audit_log",
     "selected_reserved_candidate": "reserved_append_only_audit_log",
     "storage_adapter_runtime_implementation_entry_review_status": (
@@ -227,6 +234,11 @@ EXPECTED_BOUNDARY = {
     "storage_adapter_selected_backend_product_profile": "reserved_managed_database_append_only_table_profile",
     "storage_adapter_database_product_status": "not_selected",
     "storage_adapter_database_connection_provider_status": "blocked",
+    "storage_adapter_database_provider_driver_dsn_tls_role_policy_status": "required_before_runtime_task_card",
+    "storage_adapter_append_only_table_schema_boundary_status": "required_before_runtime_task_card",
+    "storage_adapter_migration_schema_marker_boundary_status": "required_before_runtime_task_card",
+    "storage_adapter_offline_adapter_smoke_strategy_status": "required_before_runtime_task_card",
+    "storage_adapter_negative_leakage_runtime_scan_boundary_status": "required_before_runtime_task_card",
     "storage_adapter_backend_product_candidate_source_status": "metadata_only_candidate_source_defined",
     "storage_adapter_metadata_contract_artifact_status": "materialized_static_metadata_contract",
     "storage_adapter_contract_artifact_path_status": "materialized_static_path",
@@ -318,8 +330,11 @@ EXPECTED_BOUNDARY = {
     "storage_adapter_runtime_implementation_entry_refresh_status": (
         "audit_store_storage_adapter_runtime_implementation_entry_refresh_defined"
     ),
+    "storage_adapter_runtime_implementation_entry_refresh_after_product_selection_status": (
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
+    ),
     "storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_evidence_readiness"
+        "storage_adapter_runtime_task_card_still_blocked_after_product_selection"
     ),
     "storage_adapter_evidence_chain_status": "static_evidence_chain_ready_for_contract_materialization_review",
     "storage_adapter_next_dependency": "storage_adapter_metadata_contract_artifact_materialization_entry_review",
@@ -333,7 +348,7 @@ EXPECTED_BOUNDARY = {
         "metadata_contract_artifact_materialization_task_card_ready_after_entry_review"
     ),
     "storage_adapter_contract_artifact_materialization_task_card_status": "created",
-    "storage_adapter_current_next_dependency": "storage_adapter_runtime_implementation_entry_refresh_after_product_selection",
+    "storage_adapter_current_next_dependency": "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness",
     "writer_runtime_implementation_entry_review_status": (
         "audit_store_writer_runtime_implementation_entry_review_defined"
     ),
@@ -391,7 +406,7 @@ EXPECTED_FALSE_FLAGS = {
 
 EXPECTED_BLOCKERS = {
     "runtime_event_schema_artifact": "implemented_static_schema_artifact",
-    "durable_audit_backend": "storage_adapter_backend_product_selection_review_defined_task_card_blocked",
+    "durable_audit_backend": "storage_adapter_runtime_entry_refresh_after_product_selection_defined_task_card_blocked",
     "audit_writer_runtime": "entry_review_defined_task_card_blocked",
     "idempotency_runtime": "entry_review_defined_task_card_blocked",
     "delivery_runtime": "entry_review_defined_task_card_blocked",
@@ -418,6 +433,7 @@ EXPECTED_ORDER = [
     "storage_adapter_metadata_contract_artifact_materialization_entry_review",
     "storage_adapter_metadata_contract_artifact_materialization",
     "storage_adapter_backend_product_selection_review",
+    "storage_adapter_runtime_entry_refresh_after_product_selection",
     "audit_writer_runtime_entry_review",
     "idempotency_runtime_entry_review",
     "delivery_runtime_entry_review",
@@ -494,6 +510,7 @@ EXPECTED_REQUIRED_CHECKS = {
     "run audit store storage adapter runtime implementation entry refresh checker",
     "run audit store storage adapter metadata contract artifact materialization entry review checker",
     "run audit store storage adapter metadata contract artifact materialization checker",
+    "run audit store storage adapter runtime implementation entry refresh after product selection checker",
     "run audit store runtime event schema artifact checker",
     "run audit store runtime implementation entry refresh v4 checker",
     "run production resolver runtime implementation entry refresh v2 checker",
@@ -738,7 +755,28 @@ def assert_prior_evidence_alignment() -> None:
         ),
         "audit_storage_adapter_contract_materialization_task_card_status": "created",
         "audit_storage_adapter_current_next_dependency": (
-            "storage_adapter_runtime_implementation_entry_refresh_after_product_selection"
+            "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness"
+        ),
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_status": (
+            "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
+        ),
+        "audit_storage_adapter_runtime_task_card_decision": (
+            "storage_adapter_runtime_task_card_still_blocked_after_product_selection"
+        ),
+        "audit_storage_adapter_database_provider_driver_dsn_tls_role_policy_status": (
+            "required_before_runtime_task_card"
+        ),
+        "audit_storage_adapter_append_only_table_schema_boundary_status": (
+            "required_before_runtime_task_card"
+        ),
+        "audit_storage_adapter_migration_schema_marker_boundary_status": (
+            "required_before_runtime_task_card"
+        ),
+        "audit_storage_adapter_offline_adapter_smoke_strategy_status": (
+            "required_before_runtime_task_card"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_boundary_status": (
+            "required_before_runtime_task_card"
         ),
         "audit_store_storage_adapter_append_only_semantics_evidence_readiness_status": (
             "audit_store_storage_adapter_append_only_semantics_evidence_readiness_defined"
@@ -930,6 +968,10 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-audit-store-'
         'storage-adapter-backend-product-selection-review-v1.py", [])'
     )
+    storage_adapter_after_product_selection_refresh_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1.py", [])'
+    )
     current_call = 'run_python_script("check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py", [])'
     resolver_call = (
         'run_python_script("check-production-ops-secret-backend-'
@@ -954,6 +996,7 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         storage_adapter_materialization_entry_call,
         storage_adapter_materialization_call,
         storage_adapter_backend_product_selection_call,
+        storage_adapter_after_product_selection_refresh_call,
         current_call,
         resolver_call,
     ):
@@ -977,6 +1020,7 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         < check_repo.index(storage_adapter_materialization_entry_call)
         < check_repo.index(storage_adapter_materialization_call)
         < check_repo.index(storage_adapter_backend_product_selection_call)
+        < check_repo.index(storage_adapter_after_product_selection_refresh_call)
         < check_repo.index(current_call)
         < check_repo.index(resolver_call),
         "check order drifted",

@@ -36,6 +36,20 @@ FOLLOWUP_SELECTION_FIXTURE = (
 )
 FOLLOWUP_SELECTION_STATUS = "audit_store_storage_adapter_backend_product_selection_review_defined"
 FOLLOWUP_SELECTION_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_product_selection"
+FOLLOWUP_AFTER_SELECTION_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1.json"
+)
+FOLLOWUP_AFTER_SELECTION_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
+)
+FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness"
+FOLLOWUP_AFTER_SELECTION_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_product_selection_defined_task_card_blocked"
+)
+FOLLOWUP_AFTER_SELECTION_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1"
+)
 FOLLOWUP_SELECTION_ALIGNMENT = {
     "audit_store_storage_adapter_backend_product_selection_review_status": FOLLOWUP_SELECTION_STATUS,
     "audit_storage_adapter_backend_product_selection_status": "selected_static_product_class_without_backend_provider",
@@ -44,6 +58,22 @@ FOLLOWUP_SELECTION_ALIGNMENT = {
     "audit_storage_adapter_database_product_status": "not_selected",
     "audit_storage_adapter_database_connection_provider_status": "blocked",
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_SELECTION_NEXT_DEPENDENCY,
+}
+FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_status": (
+        FOLLOWUP_AFTER_SELECTION_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_product_selection"
+    ),
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY,
+    "audit_storage_adapter_database_provider_driver_dsn_tls_role_policy_status": (
+        "required_before_runtime_task_card"
+    ),
+    "audit_storage_adapter_append_only_table_schema_boundary_status": "required_before_runtime_task_card",
+    "audit_storage_adapter_migration_schema_marker_boundary_status": "required_before_runtime_task_card",
+    "audit_storage_adapter_offline_adapter_smoke_strategy_status": "required_before_runtime_task_card",
+    "audit_storage_adapter_negative_leakage_runtime_scan_boundary_status": "required_before_runtime_task_card",
 }
 
 EXPECTED_DEPENDENCIES = {
@@ -212,6 +242,14 @@ def followup_selection_exists() -> bool:
     return source_status(selection) == FOLLOWUP_SELECTION_STATUS
 
 
+def followup_after_selection_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_AFTER_SELECTION_FIXTURE
+    if not path.exists():
+        return False
+    followup = load_json(path)
+    return source_status(followup) == FOLLOWUP_AFTER_SELECTION_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
@@ -336,6 +374,7 @@ def assert_blocker_matrix_alignment() -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     boundary = matrix.get("matrix_boundary") or {}
     selection_exists = followup_selection_exists()
+    after_selection_exists = followup_after_selection_exists()
     require(
         boundary.get("storage_adapter_backend_product_evidence_readiness_status")
         == "audit_store_storage_adapter_backend_product_evidence_readiness_defined",
@@ -355,16 +394,24 @@ def assert_blocker_matrix_alignment() -> None:
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    expected_blocker_status = (
-        "storage_adapter_backend_product_selection_review_defined_task_card_blocked"
-        if selection_exists
-        else "storage_adapter_runtime_entry_refresh_defined_task_card_blocked"
-    )
-    expected_source = (
-        "production-secret-backend-audit-store-storage-adapter-backend-product-selection-review-v1"
-        if selection_exists
-        else "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1"
-    )
+    if after_selection_exists:
+        expected_blocker_status = FOLLOWUP_AFTER_SELECTION_BLOCKER_STATUS
+        expected_source = FOLLOWUP_AFTER_SELECTION_SOURCE
+        require(
+            boundary.get("storage_adapter_current_next_dependency") == FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY,
+            "matrix next dependency drifted after after-selection follow-up",
+        )
+    else:
+        expected_blocker_status = (
+            "storage_adapter_backend_product_selection_review_defined_task_card_blocked"
+            if selection_exists
+            else "storage_adapter_runtime_entry_refresh_defined_task_card_blocked"
+        )
+        expected_source = (
+            "production-secret-backend-audit-store-storage-adapter-backend-product-selection-review-v1"
+            if selection_exists
+            else "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1"
+        )
     require(
         durable.get("status") == expected_blocker_status,
         "durable backend blocker status drifted",
@@ -385,6 +432,8 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
             continue
         if selection_exists and field in FOLLOWUP_SELECTION_ALIGNMENT:
             expected = FOLLOWUP_SELECTION_ALIGNMENT[field]
+        if followup_after_selection_exists() and field in FOLLOWUP_AFTER_SELECTION_ALIGNMENT:
+            expected = FOLLOWUP_AFTER_SELECTION_ALIGNMENT[field]
         if followup_exists and field in FOLLOWUP_ALIGNMENT:
             expected = FOLLOWUP_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")

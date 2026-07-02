@@ -163,6 +163,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-backend-product-selection-review": (
         "audit_store_storage_adapter_backend_product_selection_review_defined"
     ),
+    "audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection": (
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -885,6 +888,31 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit storage adapter database connection provider status drifted",
     )
     require(
+        target.get("audit_storage_adapter_database_provider_driver_dsn_tls_role_policy_status")
+        == "required_before_runtime_task_card",
+        "audit storage adapter database provider driver DSN TLS role policy status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_append_only_table_schema_boundary_status")
+        == "required_before_runtime_task_card",
+        "audit storage adapter append-only table schema boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_migration_schema_marker_boundary_status")
+        == "required_before_runtime_task_card",
+        "audit storage adapter migration schema marker boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_adapter_smoke_strategy_status")
+        == "required_before_runtime_task_card",
+        "audit storage adapter offline adapter smoke strategy status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_negative_leakage_runtime_scan_boundary_status")
+        == "required_before_runtime_task_card",
+        "audit storage adapter negative leakage runtime scan boundary status drifted",
+    )
+    require(
         target.get("audit_storage_adapter_backend_product_candidate_source_status")
         == "metadata_only_candidate_source_defined",
         "audit storage adapter backend product candidate source status drifted",
@@ -1148,8 +1176,13 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit store storage adapter runtime implementation entry refresh status drifted",
     )
     require(
+        target.get("audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_status")
+        == "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined",
+        "audit store storage adapter runtime implementation entry refresh after product selection status drifted",
+    )
+    require(
         target.get("audit_storage_adapter_runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_evidence_readiness",
+        == "storage_adapter_runtime_task_card_still_blocked_after_product_selection",
         "audit storage adapter runtime task card decision drifted",
     )
     require(
@@ -1173,7 +1206,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_runtime_implementation_entry_refresh_after_product_selection",
+        == "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness",
         "audit storage adapter current next dependency drifted",
     )
     require(
@@ -2174,6 +2207,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "audit store idempotency runtime readiness defined without idempotency runtime",
         "audit store storage adapter metadata contract artifact readiness defined without materialized artifact",
         "audit store storage adapter retention redaction policy evidence readiness defined without runtime",
+        "audit store storage adapter runtime implementation entry refresh after product selection blocked before database provider readiness",
         "resolver backend health boundary readiness defined without backend health runtime",
         "resolver backend health runtime implementation entry review blocked before task card",
         "resolver backend health runtime implementation entry refresh blocked before task card",
@@ -2738,6 +2772,15 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         )
         in check_repo,
         "check-repo.py must run audit store storage adapter backend product selection review check",
+    )
+    require(
+        (
+            'run_python_script("'
+            "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1.py"
+            '", [])'
+        )
+        in check_repo,
+        "check-repo.py must run audit store storage adapter runtime implementation entry refresh after product selection check",
     )
     require(
         (
