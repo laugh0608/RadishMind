@@ -51,7 +51,7 @@ FOLLOWUP_AFTER_SELECTION_FIXTURE_PATH = (
 FOLLOWUP_AFTER_SELECTION_STATUS = (
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
 )
-FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_append_only_table_schema_boundary_readiness"
+FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization_entry_review"
 FOLLOWUP_SELECTION_ALIGNMENT = {
     "audit_store_storage_adapter_backend_product_selection_review_status": FOLLOWUP_SELECTION_STATUS,
     "audit_storage_adapter_backend_product_selection_status": "selected_static_product_class_without_backend_provider",
@@ -66,14 +66,14 @@ FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
         FOLLOWUP_AFTER_SELECTION_STATUS
     ),
     "audit_storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_database_provider_policy_readiness"
+        "storage_adapter_runtime_task_card_still_blocked_after_append_only_table_schema_boundary_readiness"
     ),
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY,
     "audit_storage_adapter_database_provider_driver_dsn_tls_role_policy_status": (
         "defined_without_runtime"
     ),
-    "audit_storage_adapter_append_only_table_schema_boundary_status": "required_before_runtime_task_card",
-    "audit_storage_adapter_migration_schema_marker_boundary_status": "required_before_runtime_task_card",
+    "audit_storage_adapter_append_only_table_schema_boundary_status": "defined_without_sql_or_runtime",
+    "audit_storage_adapter_migration_schema_marker_boundary_status": "logical_schema_marker_handoff_boundary_defined",
     "audit_storage_adapter_offline_adapter_smoke_strategy_status": "required_before_runtime_task_card",
     "audit_storage_adapter_negative_leakage_runtime_scan_boundary_status": "required_before_runtime_task_card",
 }

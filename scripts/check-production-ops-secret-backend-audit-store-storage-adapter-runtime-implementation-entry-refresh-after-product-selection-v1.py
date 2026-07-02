@@ -31,6 +31,11 @@ NEXT_DEPENDENCY = "storage_adapter_database_provider_driver_dsn_tls_role_policy_
 SELECTED_PRODUCT_CLASS = "managed_database_append_only_table"
 SELECTED_PRODUCT_PROFILE = "reserved_managed_database_append_only_table_profile"
 MATRIX_BLOCKER_STATUS = "storage_adapter_runtime_entry_refresh_after_product_selection_defined_task_card_blocked"
+CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_append_only_table_schema_boundary_readiness_defined_task_card_blocked"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization_entry_review"
+CURRENT_RUNTIME_TASK_CARD_DECISION = (
+    "storage_adapter_runtime_task_card_still_blocked_after_append_only_table_schema_boundary_readiness"
+)
 
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-backend-product-selection-review-v1": (
@@ -351,13 +356,16 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
         "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_status": (
             "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_defined"
         ),
-        "storage_adapter_runtime_task_card_decision": (
-            "storage_adapter_runtime_task_card_still_blocked_after_database_provider_policy_readiness"
+        "storage_adapter_append_only_table_schema_boundary_readiness_status": (
+            "audit_store_storage_adapter_append_only_table_schema_boundary_readiness_defined"
         ),
-        "storage_adapter_current_next_dependency": expected.get("storage_adapter_current_next_dependency"),
+        "storage_adapter_runtime_task_card_decision": (
+            CURRENT_RUNTIME_TASK_CARD_DECISION
+        ),
+        "storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
         "storage_adapter_database_provider_driver_dsn_tls_role_policy_status": "defined_without_runtime",
-        "storage_adapter_append_only_table_schema_boundary_status": "required_before_runtime_task_card",
-        "storage_adapter_migration_schema_marker_boundary_status": "required_before_runtime_task_card",
+        "storage_adapter_append_only_table_schema_boundary_status": "defined_without_sql_or_runtime",
+        "storage_adapter_migration_schema_marker_boundary_status": "logical_schema_marker_handoff_boundary_defined",
         "storage_adapter_offline_adapter_smoke_strategy_status": "required_before_runtime_task_card",
         "storage_adapter_negative_leakage_runtime_scan_boundary_status": "required_before_runtime_task_card",
         "storage_adapter_runtime_task_card_status": "not_created",
@@ -367,8 +375,12 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
 
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    require(durable.get("status") == expected.get("durable_backend_blocker_status_after_refresh"), "durable status drifted")
-    require(durable.get("source") == expected.get("durable_backend_blocker_source_after_refresh"), "durable source drifted")
+    require(durable.get("status") == CURRENT_MATRIX_BLOCKER_STATUS, "durable status drifted")
+    require(
+        durable.get("source")
+        == "production-secret-backend-audit-store-storage-adapter-append-only-table-schema-boundary-readiness-v1",
+        "durable source drifted",
+    )
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable must block audit runtime")
     require(durable.get("blocks_production_resolver_task_card") is True, "durable must block resolver runtime")
 
@@ -380,7 +392,37 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
     for field, value in expected.items():
         if field == "status":
             continue
+        if field in {
+            "audit_storage_adapter_runtime_task_card_decision",
+            "audit_storage_adapter_current_next_dependency",
+            "audit_storage_adapter_append_only_table_schema_boundary_status",
+            "audit_storage_adapter_migration_schema_marker_boundary_status",
+        }:
+            continue
         require(target.get(field) == value, f"implementation readiness {field} drifted")
+    require(
+        target.get("audit_store_storage_adapter_append_only_table_schema_boundary_readiness_status")
+        == "audit_store_storage_adapter_append_only_table_schema_boundary_readiness_defined",
+        "implementation readiness append-only schema boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_runtime_task_card_decision") == CURRENT_RUNTIME_TASK_CARD_DECISION,
+        "implementation readiness current runtime decision drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_current_next_dependency") == CURRENT_NEXT_DEPENDENCY,
+        "implementation readiness current next dependency drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_append_only_table_schema_boundary_status")
+        == "defined_without_sql_or_runtime",
+        "implementation readiness append-only schema boundary drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_migration_schema_marker_boundary_status")
+        == "logical_schema_marker_handoff_boundary_defined",
+        "implementation readiness marker boundary drifted",
+    )
 
     planned = {str(row.get("id")): row for row in readiness.get("planned_slices") or [] if isinstance(row, dict)}
     item = planned.get("audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection") or {}

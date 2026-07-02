@@ -169,6 +169,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-database-provider-driver-dsn-tls-role-policy-readiness": (
         "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_defined"
     ),
+    "audit-store-storage-adapter-append-only-table-schema-boundary-readiness": (
+        "audit_store_storage_adapter_append_only_table_schema_boundary_readiness_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -305,6 +308,8 @@ REQUIRED_DOC_REFERENCES = {
         "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined",
         "production-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-policy-readiness-v1",
         "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_defined",
+        "production-secret-backend-audit-store-storage-adapter-append-only-table-schema-boundary-readiness-v1",
+        "audit_store_storage_adapter_append_only_table_schema_boundary_readiness_defined",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -397,6 +402,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1.py",
         "check-production-ops-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-readiness-v1.py",
         "check-production-ops-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-policy-readiness-v1.py",
+        "check-production-ops-secret-backend-audit-store-storage-adapter-append-only-table-schema-boundary-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py",
     ],
@@ -901,6 +907,11 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit store storage adapter database provider driver DSN TLS role policy readiness status drifted",
     )
     require(
+        target.get("audit_store_storage_adapter_append_only_table_schema_boundary_readiness_status")
+        == "audit_store_storage_adapter_append_only_table_schema_boundary_readiness_defined",
+        "audit store storage adapter append-only table schema boundary readiness status drifted",
+    )
+    require(
         target.get("audit_storage_adapter_database_provider_boundary_status")
         == "metadata_only_provider_boundary_defined",
         "audit storage adapter database provider boundary status drifted",
@@ -934,13 +945,84 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_append_only_table_schema_boundary_status")
-        == "required_before_runtime_task_card",
+        == "defined_without_sql_or_runtime",
         "audit storage adapter append-only table schema boundary status drifted",
     )
     require(
+        target.get("audit_storage_adapter_logical_table_schema_status")
+        == "logical_append_only_table_schema_boundary_defined",
+        "audit storage adapter logical table schema status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_logical_field_group_status")
+        == "logical_field_groups_defined_without_physical_columns",
+        "audit storage adapter logical field group status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_record_identity_boundary_status")
+        == "logical_record_identity_boundary_defined",
+        "audit storage adapter record identity boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_sequence_reference_boundary_status")
+        == "logical_sequence_reference_boundary_defined",
+        "audit storage adapter sequence reference boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_idempotency_reference_boundary_status")
+        == "logical_idempotency_reference_boundary_defined",
+        "audit storage adapter idempotency reference boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_retention_redaction_reference_boundary_status")
+        == "logical_retention_redaction_reference_boundary_defined",
+        "audit storage adapter retention redaction reference boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_schema_marker_handoff_boundary_status")
+        == "logical_schema_marker_handoff_boundary_defined",
+        "audit storage adapter schema marker handoff boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_table_schema_artifact_status") == "not_created",
+        "audit storage adapter table schema artifact status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_sql_migration_status") == "not_created",
+        "audit storage adapter SQL migration status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_ddl_status") == "not_created",
+        "audit storage adapter DDL status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_table_name_status") == "not_selected",
+        "audit storage adapter table name status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_column_type_status") == "not_selected",
+        "audit storage adapter column type status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_index_status") == "not_created",
+        "audit storage adapter index status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_constraint_status") == "not_created",
+        "audit storage adapter constraint status drifted",
+    )
+    require(
         target.get("audit_storage_adapter_migration_schema_marker_boundary_status")
-        == "required_before_runtime_task_card",
+        == "logical_schema_marker_handoff_boundary_defined",
         "audit storage adapter migration schema marker boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_schema_marker_runtime_status") == "not_created",
+        "audit storage adapter schema marker runtime status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_migration_runner_status") == "not_created",
+        "audit storage adapter migration runner status drifted",
     )
     require(
         target.get("audit_storage_adapter_offline_adapter_smoke_strategy_status")
@@ -1222,7 +1304,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_database_provider_policy_readiness",
+        == "storage_adapter_runtime_task_card_still_blocked_after_append_only_table_schema_boundary_readiness",
         "audit storage adapter runtime task card decision drifted",
     )
     require(
@@ -1246,7 +1328,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_append_only_table_schema_boundary_readiness",
+        == "storage_adapter_table_schema_artifact_materialization_entry_review",
         "audit storage adapter current next dependency drifted",
     )
     require(
@@ -2191,6 +2273,32 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
                     "scripts/"
                     "check-production-ops-secret-backend-audit-store-storage-adapter-"
                     "database-provider-driver-dsn-tls-role-policy-readiness-v1.py"
+                ),
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "audit-store-storage-adapter-append-only-table-schema-boundary-readiness":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                (
+                    "docs/platform/"
+                    "production-secret-backend-audit-store-storage-adapter-"
+                    "append-only-table-schema-boundary-readiness-v1.md"
+                ),
+                (
+                    "docs/task-cards/"
+                    "production-secret-backend-audit-store-storage-adapter-"
+                    "append-only-table-schema-boundary-readiness-v1-plan.md"
+                ),
+                (
+                    "scripts/checks/fixtures/"
+                    "production-secret-backend-audit-store-storage-adapter-"
+                    "append-only-table-schema-boundary-readiness-v1.json"
+                ),
+                (
+                    "scripts/"
+                    "check-production-ops-secret-backend-audit-store-storage-adapter-"
+                    "append-only-table-schema-boundary-readiness-v1.py"
                 ),
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
