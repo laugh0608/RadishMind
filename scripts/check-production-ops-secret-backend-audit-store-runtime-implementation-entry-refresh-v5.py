@@ -19,6 +19,20 @@ BLOCKER_MATRIX_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/production-secret-backend-audit-store-runtime-blocker-matrix-v1.json"
 )
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
+FOLLOWUP_SELECTION_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-backend-product-selection-review-v1.json"
+)
+FOLLOWUP_SELECTION_STATUS = "audit_store_storage_adapter_backend_product_selection_review_defined"
+FOLLOWUP_DURABLE_BLOCKER_STATUS = "storage_adapter_backend_product_selection_review_defined_task_card_blocked"
+FOLLOWUP_DURABLE_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-backend-product-selection-review-v1"
+)
+RUNTIME_REFRESH_DURABLE_BLOCKER_STATUS = "storage_adapter_runtime_entry_refresh_defined_task_card_blocked"
+RUNTIME_REFRESH_DURABLE_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1"
+)
 
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-concrete-durable-backend-selection-review-v1": (
@@ -212,6 +226,13 @@ def source_status(document: dict[str, Any]) -> str:
     return str(slice_info.get("status") or document.get("status") or "")
 
 
+def followup_selection_exists() -> bool:
+    if not FOLLOWUP_SELECTION_FIXTURE_PATH.exists():
+        return False
+    selection = load_json(FOLLOWUP_SELECTION_FIXTURE_PATH)
+    return source_status(selection) == FOLLOWUP_SELECTION_STATUS
+
+
 def rows_by_id(fixture: dict[str, Any], key: str, id_field: str) -> dict[str, dict[str, Any]]:
     rows = {str(row.get(id_field) or ""): row for row in fixture.get(key) or [] if isinstance(row, dict)}
     require(rows, f"{key} must not be empty")
@@ -329,18 +350,20 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
 def assert_blocker_matrix_alignment() -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     boundary = matrix.get("matrix_boundary") or {}
+    if followup_selection_exists():
+        expected_status = FOLLOWUP_DURABLE_BLOCKER_STATUS
+        expected_source = FOLLOWUP_DURABLE_BLOCKER_SOURCE
+    else:
+        expected_status = RUNTIME_REFRESH_DURABLE_BLOCKER_STATUS
+        expected_source = RUNTIME_REFRESH_DURABLE_BLOCKER_SOURCE
     require(
-        boundary.get("durable_audit_backend_status")
-        == "storage_adapter_runtime_entry_refresh_defined_task_card_blocked",
+        boundary.get("durable_audit_backend_status") == expected_status,
         "blocker matrix durable backend status drifted",
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    require(
-        durable.get("source")
-        == "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1",
-        "durable blocker source drifted",
-    )
+    require(durable.get("status") == expected_status, "durable blocker status drifted")
+    require(durable.get("source") == expected_source, "durable blocker source drifted")
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable backend must still block audit runtime")
     for blocker_id in {"audit_writer_runtime", "idempotency_runtime", "delivery_runtime"}:
         row = blockers.get(blocker_id) or {}

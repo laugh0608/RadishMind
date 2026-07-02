@@ -160,6 +160,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-metadata-contract-artifact-materialization": (
         "audit_store_storage_adapter_metadata_contract_artifact_materialized"
     ),
+    "audit-store-storage-adapter-backend-product-selection-review": (
+        "audit_store_storage_adapter_backend_product_selection_review_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -290,6 +293,8 @@ REQUIRED_DOC_REFERENCES = {
         "audit_store_storage_adapter_rollback_recovery_evidence_readiness_defined",
         "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1",
         "audit_store_storage_adapter_runtime_implementation_entry_refresh_defined",
+        "production-secret-backend-audit-store-storage-adapter-backend-product-selection-review-v1",
+        "audit_store_storage_adapter_backend_product_selection_review_defined",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -853,8 +858,31 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit storage adapter backend product evidence status drifted",
     )
     require(
-        target.get("audit_storage_adapter_backend_product_selection_status") == "not_selected",
+        target.get("audit_store_storage_adapter_backend_product_selection_review_status")
+        == "audit_store_storage_adapter_backend_product_selection_review_defined",
+        "audit store storage adapter backend product selection review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_backend_product_selection_status")
+        == "selected_static_product_class_without_backend_provider",
         "audit storage adapter backend product selection status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_selected_backend_product_class") == "managed_database_append_only_table",
+        "audit storage adapter selected backend product class drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_selected_backend_product_profile")
+        == "reserved_managed_database_append_only_table_profile",
+        "audit storage adapter selected backend product profile drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_product_status") == "not_selected",
+        "audit storage adapter database product status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_connection_provider_status") == "blocked",
+        "audit storage adapter database connection provider status drifted",
     )
     require(
         target.get("audit_storage_adapter_backend_product_candidate_source_status")
@@ -1145,7 +1173,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_backend_product_selection_review",
+        == "storage_adapter_runtime_implementation_entry_refresh_after_product_selection",
         "audit storage adapter current next dependency drifted",
     )
     require(
@@ -2701,6 +2729,15 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         )
         in check_repo,
         "check-repo.py must run audit store storage adapter metadata contract artifact materialization check",
+    )
+    require(
+        (
+            'run_python_script("'
+            "check-production-ops-secret-backend-audit-store-storage-adapter-backend-product-selection-review-v1.py"
+            '", [])'
+        )
+        in check_repo,
+        "check-repo.py must run audit store storage adapter backend product selection review check",
     )
     require(
         (

@@ -36,6 +36,22 @@ SLICE_STATUS = "audit_store_storage_adapter_metadata_contract_artifact_materiali
 CONTRACT_VERSION = "audit-storage-adapter-metadata-contract-v1"
 NEXT_DEPENDENCY = "storage_adapter_backend_product_selection_review"
 ENTRY_REVIEW_STATUS = "audit_store_storage_adapter_metadata_contract_artifact_materialization_entry_review_defined"
+FOLLOWUP_SELECTION_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-backend-product-selection-review-v1.json"
+)
+FOLLOWUP_SELECTION_STATUS = "audit_store_storage_adapter_backend_product_selection_review_defined"
+FOLLOWUP_SELECTION_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_product_selection"
+FOLLOWUP_SELECTION_ALIGNMENT = {
+    "audit_store_storage_adapter_backend_product_selection_review_status": FOLLOWUP_SELECTION_STATUS,
+    "audit_storage_adapter_backend_product_selection_status": "selected_static_product_class_without_backend_provider",
+    "audit_storage_adapter_selected_backend_product_class": "managed_database_append_only_table",
+    "audit_storage_adapter_selected_backend_product_profile": "reserved_managed_database_append_only_table_profile",
+    "audit_storage_adapter_database_product_status": "not_selected",
+    "audit_storage_adapter_database_connection_provider_status": "blocked",
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_SELECTION_NEXT_DEPENDENCY,
+}
 
 POSITIVE_FIXTURE = "scripts/checks/fixtures/production-secret-audit-storage-adapter-metadata-contract-positive-v1.json"
 MISSING_REQUIRED_FIXTURE = (
@@ -159,6 +175,13 @@ def rows_by_id(fixture: dict[str, Any], key: str, id_field: str) -> dict[str, di
 def source_status(document: dict[str, Any]) -> str:
     slice_info = document.get("slice") or {}
     return str(slice_info.get("status") or document.get("status") or "")
+
+
+def followup_selection_exists() -> bool:
+    if not FOLLOWUP_SELECTION_FIXTURE_PATH.exists():
+        return False
+    selection = load_json(FOLLOWUP_SELECTION_FIXTURE_PATH)
+    return source_status(selection) == FOLLOWUP_SELECTION_STATUS
 
 
 def recursive_keys(value: Any) -> set[str]:
@@ -410,8 +433,32 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
         boundary.get("storage_adapter_contract_artifact_materialization_task_card_status") == "created",
         "matrix task card status drifted",
     )
-    require(boundary.get("storage_adapter_current_next_dependency") == NEXT_DEPENDENCY, "matrix next dependency drifted")
-    require(boundary.get("storage_adapter_backend_product_selection_status") == "not_selected", "matrix selected product")
+    if followup_selection_exists():
+        require(
+            boundary.get("storage_adapter_current_next_dependency") == FOLLOWUP_SELECTION_NEXT_DEPENDENCY,
+            "matrix next dependency drifted after selection follow-up",
+        )
+        require(
+            boundary.get("storage_adapter_backend_product_selection_review_status") == FOLLOWUP_SELECTION_STATUS,
+            "matrix selection review status drifted after follow-up",
+        )
+        require(
+            boundary.get("storage_adapter_backend_product_selection_status")
+            == "selected_static_product_class_without_backend_provider",
+            "matrix selected product class status drifted after follow-up",
+        )
+        require(
+            boundary.get("storage_adapter_selected_backend_product_class") == "managed_database_append_only_table",
+            "matrix selected product class drifted after follow-up",
+        )
+        require(
+            boundary.get("storage_adapter_selected_backend_product_profile")
+            == "reserved_managed_database_append_only_table_profile",
+            "matrix selected product profile drifted after follow-up",
+        )
+    else:
+        require(boundary.get("storage_adapter_current_next_dependency") == NEXT_DEPENDENCY, "matrix next dependency drifted")
+        require(boundary.get("storage_adapter_backend_product_selection_status") == "not_selected", "matrix selected product")
     require(boundary.get("storage_adapter_runtime_status") == "not_created", "matrix created runtime")
 
 
@@ -419,6 +466,8 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
     readiness = load_json(IMPLEMENTATION_READINESS_PATH)
     target = readiness.get("implementation_target") or {}
     for field, expected in (fixture.get("implementation_readiness_alignment") or {}).items():
+        if followup_selection_exists() and field in FOLLOWUP_SELECTION_ALIGNMENT:
+            expected = FOLLOWUP_SELECTION_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
     planned = rows_by_id(readiness, "planned_slices", "id")
     item = planned.get("audit-store-storage-adapter-metadata-contract-artifact-materialization") or {}

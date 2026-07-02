@@ -26,6 +26,12 @@ FOLLOWUP_MATERIALIZATION_FIXTURE = (
     "production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-v1.json"
 )
 FOLLOWUP_MATERIALIZATION_STATUS = "audit_store_storage_adapter_metadata_contract_artifact_materialized"
+FOLLOWUP_SELECTION_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-backend-product-selection-review-v1.json"
+)
+FOLLOWUP_SELECTION_STATUS = "audit_store_storage_adapter_backend_product_selection_review_defined"
+FOLLOWUP_SELECTION_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_product_selection"
 
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1": (
@@ -207,6 +213,13 @@ FOLLOWUP_IMPLEMENTATION_ALIGNMENT = {
     "audit_storage_adapter_metadata_contract_artifact_status": "materialized_static_metadata_contract",
     "audit_storage_adapter_contract_artifact_path_status": "materialized_static_path",
     "audit_storage_adapter_contract_artifact_materialization_status": FOLLOWUP_MATERIALIZATION_STATUS,
+    "audit_store_storage_adapter_backend_product_selection_review_status": FOLLOWUP_SELECTION_STATUS,
+    "audit_storage_adapter_backend_product_selection_status": "selected_static_product_class_without_backend_provider",
+    "audit_storage_adapter_selected_backend_product_class": "managed_database_append_only_table",
+    "audit_storage_adapter_selected_backend_product_profile": "reserved_managed_database_append_only_table_profile",
+    "audit_storage_adapter_database_product_status": "not_selected",
+    "audit_storage_adapter_database_connection_provider_status": "blocked",
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_SELECTION_NEXT_DEPENDENCY,
 }
 
 
@@ -244,6 +257,14 @@ def followup_materialization_exists() -> bool:
         return False
     materialization = load_json(path)
     return source_status(materialization) == FOLLOWUP_MATERIALIZATION_STATUS
+
+
+def followup_selection_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_SELECTION_FIXTURE
+    if not path.exists():
+        return False
+    selection = load_json(path)
+    return source_status(selection) == FOLLOWUP_SELECTION_STATUS
 
 
 def assert_slice(fixture: dict[str, Any]) -> None:
@@ -425,15 +446,17 @@ def assert_blocker_matrix_alignment() -> None:
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
+    if followup_selection_exists():
+        expected_blocker_status = "storage_adapter_backend_product_selection_review_defined_task_card_blocked"
+        expected_source = "production-secret-backend-audit-store-storage-adapter-backend-product-selection-review-v1"
+    else:
+        expected_blocker_status = "storage_adapter_runtime_entry_refresh_defined_task_card_blocked"
+        expected_source = "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1"
     require(
-        durable.get("status") == "storage_adapter_runtime_entry_refresh_defined_task_card_blocked",
+        durable.get("status") == expected_blocker_status,
         "durable backend blocker status drifted",
     )
-    require(
-        durable.get("source")
-        == "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1",
-        "durable backend blocker source drifted",
-    )
+    require(durable.get("source") == expected_source, "durable backend blocker source drifted")
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable backend must block audit runtime")
     require(durable.get("blocks_production_resolver_task_card") is True, "durable backend must block resolver runtime")
 
@@ -445,7 +468,7 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
     for field, expected in alignment.items():
         if field == "status":
             continue
-        if followup_materialization_exists() and field in FOLLOWUP_IMPLEMENTATION_ALIGNMENT:
+        if (followup_materialization_exists() or followup_selection_exists()) and field in FOLLOWUP_IMPLEMENTATION_ALIGNMENT:
             expected = FOLLOWUP_IMPLEMENTATION_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
