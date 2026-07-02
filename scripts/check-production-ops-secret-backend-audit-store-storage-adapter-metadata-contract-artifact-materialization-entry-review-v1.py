@@ -51,7 +51,7 @@ FOLLOWUP_AFTER_SELECTION_FIXTURE = (
 FOLLOWUP_AFTER_SELECTION_STATUS = (
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
 )
-FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness"
+FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_append_only_table_schema_boundary_readiness"
 FOLLOWUP_ALIGNMENT = {
     "audit_storage_adapter_contract_materialization_task_card_status": "created",
     "audit_storage_adapter_contract_artifact_materialization_status": FOLLOWUP_MATERIALIZATION_STATUS,
@@ -63,7 +63,7 @@ FOLLOWUP_SELECTION_ALIGNMENT = {
     "audit_storage_adapter_selected_backend_product_class": "managed_database_append_only_table",
     "audit_storage_adapter_selected_backend_product_profile": "reserved_managed_database_append_only_table_profile",
     "audit_storage_adapter_database_product_status": "not_selected",
-    "audit_storage_adapter_database_connection_provider_status": "blocked",
+    "audit_storage_adapter_database_connection_provider_status": "not_created",
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_SELECTION_NEXT_DEPENDENCY,
 }
 FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
@@ -71,11 +71,11 @@ FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
         FOLLOWUP_AFTER_SELECTION_STATUS
     ),
     "audit_storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_product_selection"
+        "storage_adapter_runtime_task_card_still_blocked_after_database_provider_policy_readiness"
     ),
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY,
     "audit_storage_adapter_database_provider_driver_dsn_tls_role_policy_status": (
-        "required_before_runtime_task_card"
+        "defined_without_runtime"
     ),
     "audit_storage_adapter_append_only_table_schema_boundary_status": "required_before_runtime_task_card",
     "audit_storage_adapter_migration_schema_marker_boundary_status": "required_before_runtime_task_card",

@@ -10,9 +10,9 @@
 
 ## 当前结论
 
-当前最新锚点为 `audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined`。
+当前最新锚点为 `audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_defined`。
 
-这表示 storage adapter runtime 之前的 backend product evidence、metadata contract artifact readiness、append-only semantics evidence、retention / redaction policy evidence、offline validation evidence、negative leakage scan evidence 和 rollback / recovery evidence 已经具备可追溯的静态说明，并已由 runtime implementation entry refresh 复评为 `storage_adapter_runtime_task_card_still_blocked_after_evidence_readiness`；随后 materialization entry review 已确认后续 `storage_adapter_metadata_contract_artifact_materialization_task_card` 可独立创建，前序依赖已被消费并物化 metadata-only contract artifact、positive / negative fixtures、writer compatibility smoke 与 no secret material scan。backend product selection review 只把 product class 静态选择为 `managed_database_append_only_table`，对应 reserved profile 为 `reserved_managed_database_append_only_table_profile`。本批进一步完成 after-product-selection entry refresh，确认 entry decision 为 `storage_adapter_runtime_task_card_still_blocked_after_product_selection`，下一依赖为 `storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness`。它不表示具体数据库、vendor、scanner runtime、rollback executor、recovery executor、compensating event writer、storage adapter runtime、DB provider、audit store runtime、production resolver runtime、repository mode 或 public production API 已经可创建。
+这表示 storage adapter runtime 之前的 backend product evidence、metadata contract artifact readiness、append-only semantics evidence、retention / redaction policy evidence、offline validation evidence、negative leakage scan evidence 和 rollback / recovery evidence 已经具备可追溯的静态说明，并已由 runtime implementation entry refresh 复评为 `storage_adapter_runtime_task_card_still_blocked_after_evidence_readiness`；随后 materialization entry review 已确认后续 `storage_adapter_metadata_contract_artifact_materialization_task_card` 可独立创建，前序依赖已被消费并物化 metadata-only contract artifact、positive / negative fixtures、writer compatibility smoke 与 no secret material scan。backend product selection review 只把 product class 静态选择为 `managed_database_append_only_table`，对应 reserved profile 为 `reserved_managed_database_append_only_table_profile`。after-product-selection entry refresh 已确认 product class 选择后 runtime task card 仍 blocked。本批进一步固定 database provider / driver / DSN / TLS / role policy 的 metadata-only 准入边界，entry decision 为 `storage_adapter_runtime_task_card_still_blocked_after_database_provider_policy_readiness`，下一依赖推进为 `storage_adapter_append_only_table_schema_boundary_readiness`。它不表示具体数据库、vendor、driver、DSN parser、connection provider、scanner runtime、rollback executor、recovery executor、compensating event writer、storage adapter runtime、DB provider、audit store runtime、production resolver runtime、repository mode 或 public production API 已经可创建。
 
 ## 已收束证据
 
@@ -31,6 +31,7 @@
 | Metadata contract artifact materialization | `audit_store_storage_adapter_metadata_contract_artifact_materialized` | `contracts/production-secret-audit-storage-adapter.metadata-contract.json`、positive / negative fixtures、writer compatibility smoke 和 no secret material scan 已物化为静态证据 | backend product selection、storage adapter runtime、DB provider 或 audit store runtime 已创建 |
 | Backend product selection review | `audit_store_storage_adapter_backend_product_selection_review_defined` | storage adapter product class 已静态选择为 `managed_database_append_only_table`，reserved profile 为 `reserved_managed_database_append_only_table_profile` | 具体数据库 / vendor、DB provider、storage adapter runtime 或 audit store runtime 已创建 |
 | Runtime implementation entry refresh after product selection | `audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined` | product class 选择后已复评，entry decision 为 `storage_adapter_runtime_task_card_still_blocked_after_product_selection`，下一依赖为 `storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness` | 具体数据库 / vendor、DB provider、driver、DSN、storage adapter runtime 或 audit store runtime 已创建 |
+| Database provider / driver / DSN / TLS / role policy readiness | `audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_defined` | provider boundary、static driver policy、secret-ref-only DSN policy、TLS mode policy 和 least privilege role policy 已定义，readiness decision 为 `database_provider_driver_dsn_tls_role_policy_defined_without_runtime`，entry decision 为 `storage_adapter_runtime_task_card_still_blocked_after_database_provider_policy_readiness`，下一依赖为 `storage_adapter_append_only_table_schema_boundary_readiness` | 具体数据库 / vendor、driver、DSN parser、connection provider、SQL、schema marker、storage adapter runtime 或 audit store runtime 已创建 |
 
 ## 统一停止线
 
@@ -45,7 +46,7 @@
 
 该目标复用现有 dev-only saved draft route、`version_conflict` consumer 状态、Draft Designer active draft 和 Review Handoff，不新增 production API、repository mode、数据库连接或执行链路。
 
-如果后续明确继续 secret backend，则下一项是 `storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness`，且只能定义 database provider / driver / DSN / TLS / role policy 静态准入证据；不得直接创建 storage adapter runtime、DB provider、SQL、schema marker 或 audit store runtime。
+如果后续明确继续 secret backend，则下一项是 `storage_adapter_append_only_table_schema_boundary_readiness`，且只能定义 append-only table schema、field boundary、index / uniqueness、payload redaction 和 marker handoff 的静态准入证据；不得直接创建 storage adapter runtime、DB provider、SQL migration、schema marker runtime 或 audit store runtime。
 
 ## 验证方式
 

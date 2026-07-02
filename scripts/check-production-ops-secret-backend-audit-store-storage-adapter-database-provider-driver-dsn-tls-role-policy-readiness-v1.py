@@ -11,7 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_PATH = (
     REPO_ROOT
     / "scripts/checks/fixtures/"
-    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1.json"
+    "production-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-policy-readiness-v1.json"
 )
 IMPLEMENTATION_READINESS_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json"
@@ -22,17 +22,24 @@ BLOCKER_MATRIX_PATH = (
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
 
 SLICE_ID = (
-    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
-    "after-product-selection-v1"
+    "production-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-policy-"
+    "readiness-v1"
 )
-SLICE_STATUS = "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
-ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_product_selection"
-NEXT_DEPENDENCY = "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness"
+SLICE_STATUS = "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_defined"
+READINESS_DECISION = "database_provider_driver_dsn_tls_role_policy_defined_without_runtime"
+NEXT_DEPENDENCY = "storage_adapter_append_only_table_schema_boundary_readiness"
 SELECTED_PRODUCT_CLASS = "managed_database_append_only_table"
 SELECTED_PRODUCT_PROFILE = "reserved_managed_database_append_only_table_profile"
-MATRIX_BLOCKER_STATUS = "storage_adapter_runtime_entry_refresh_after_product_selection_defined_task_card_blocked"
+MATRIX_BLOCKER_STATUS = "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_defined_task_card_blocked"
 
 EXPECTED_DEPENDENCIES = {
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1.json"
+        ),
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined",
+    ),
     "production-secret-backend-audit-store-storage-adapter-backend-product-selection-review-v1": (
         (
             "scripts/checks/fixtures/"
@@ -47,13 +54,6 @@ EXPECTED_DEPENDENCIES = {
         ),
         "audit_store_storage_adapter_metadata_contract_artifact_materialized",
     ),
-    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1": (
-        (
-            "scripts/checks/fixtures/"
-            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1.json"
-        ),
-        "audit_store_storage_adapter_runtime_implementation_entry_refresh_defined",
-    ),
     "production-secret-backend-audit-store-runtime-blocker-matrix-v1": (
         "scripts/checks/fixtures/production-secret-backend-audit-store-runtime-blocker-matrix-v1.json",
         "audit_store_runtime_blocker_matrix_defined",
@@ -66,24 +66,27 @@ EXPECTED_DEPENDENCIES = {
 
 EXPECTED_BOUNDARY = {
     "status": SLICE_STATUS,
-    "entry_decision": ENTRY_DECISION,
-    "previous_runtime_entry_refresh_status": "audit_store_storage_adapter_runtime_implementation_entry_refresh_defined",
-    "previous_runtime_task_decision": "storage_adapter_runtime_task_card_still_blocked_after_evidence_readiness",
+    "readiness_decision": READINESS_DECISION,
+    "previous_entry_refresh_status": "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined",
+    "previous_entry_decision": "storage_adapter_runtime_task_card_still_blocked_after_product_selection",
     "backend_product_selection_review_status": "audit_store_storage_adapter_backend_product_selection_review_defined",
     "backend_product_selection_status": "selected_static_product_class_without_backend_provider",
     "selected_backend_product_class": SELECTED_PRODUCT_CLASS,
     "selected_backend_product_profile": SELECTED_PRODUCT_PROFILE,
     "metadata_contract_artifact_status": "audit_store_storage_adapter_metadata_contract_artifact_materialized",
-    "contract_artifact_validation_status": "implemented_offline_contract_validation",
-    "writer_compatibility_smoke_status": "implemented_static_fixture",
-    "no_secret_material_scan_status": "implemented_static_scan",
     "database_product_status": "not_selected",
     "database_vendor_status": "not_selected",
-    "database_connection_provider_status": "blocked",
+    "database_provider_boundary_status": "metadata_only_provider_boundary_defined",
+    "database_driver_selection_policy_status": "static_driver_policy_defined_without_driver_selection",
+    "database_dsn_secret_ref_policy_status": "secret_ref_only_dsn_policy_defined",
+    "database_tls_policy_status": "tls_mode_policy_defined",
+    "database_role_policy_status": "least_privilege_role_policy_defined",
+    "database_connection_provider_status": "not_created",
     "database_driver_status": "not_selected",
     "database_dsn_status": "not_defined",
-    "database_tls_policy_status": "required_before_runtime_task_card",
-    "database_role_policy_status": "required_before_runtime_task_card",
+    "database_connection_status": "not_created",
+    "sql_migration_status": "not_created",
+    "schema_marker_status": "not_created",
     "append_only_table_schema_boundary_status": "required_before_runtime_task_card",
     "migration_schema_marker_boundary_status": "required_before_runtime_task_card",
     "offline_adapter_smoke_strategy_status": "required_before_runtime_task_card",
@@ -92,9 +95,6 @@ EXPECTED_BOUNDARY = {
     "storage_adapter_runtime_task_card_status": "not_created",
     "storage_adapter_runtime_status": "not_created",
     "storage_adapter_client_status": "not_created",
-    "database_connection_status": "not_created",
-    "sql_migration_status": "not_created",
-    "schema_marker_status": "not_created",
     "audit_store_runtime_task_card_status": "not_created",
     "audit_store_runtime_status": "not_created",
     "audit_writer_runtime_status": "not_created",
@@ -114,10 +114,13 @@ EXPECTED_BOUNDARY = {
 EXPECTED_FALSE_FLAGS = {
     "database_product_selected_in_this_slice",
     "database_vendor_selected_in_this_slice",
-    "database_connection_provider_enabled",
     "database_driver_selected_in_this_slice",
+    "database_provider_created_in_this_slice",
+    "database_connection_provider_enabled",
     "database_connection_created_in_this_slice",
     "dsn_defined_in_this_slice",
+    "tls_config_created_in_this_slice",
+    "database_role_created_in_this_slice",
     "sql_migration_created_in_this_slice",
     "schema_marker_created_in_this_slice",
     "storage_adapter_runtime_task_card_created_in_this_slice",
@@ -135,41 +138,31 @@ EXPECTED_FALSE_FLAGS = {
     "production_api_enabled",
 }
 
-EXPECTED_BLOCKERS = {
-    "database_provider_driver_dsn_tls_role_policy",
-    "append_only_table_schema_boundary",
-    "migration_schema_marker_boundary",
-    "offline_adapter_smoke_strategy",
-    "negative_leakage_runtime_scan_boundary",
-    "peer_runtime_dependencies",
-}
-
 EXPECTED_FAILURE_CODES = {
-    "audit_store_storage_adapter_runtime_refresh_after_product_selection_dependency_missing",
-    "audit_store_storage_adapter_runtime_refresh_after_product_selection_task_card_still_blocked",
-    "audit_store_storage_adapter_runtime_refresh_after_product_selection_database_provider_missing",
-    "audit_store_storage_adapter_runtime_refresh_after_product_selection_database_selection_forbidden",
-    "audit_store_storage_adapter_runtime_refresh_after_product_selection_runtime_forbidden",
-    "audit_store_storage_adapter_runtime_refresh_after_product_selection_secret_material_detected",
-    "audit_store_storage_adapter_runtime_refresh_after_product_selection_scope_overreach",
+    "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_dependency_missing",
+    "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_database_selection_forbidden",
+    "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_provider_runtime_forbidden",
+    "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_secret_material_detected",
+    "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_schema_scope_overreach",
+    "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_runtime_scope_overreach",
 }
 
 EXPECTED_ALLOWED_ARTIFACTS = {
     (
-        "docs/platform/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
-        "after-product-selection-v1.md"
+        "docs/platform/production-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-"
+        "policy-readiness-v1.md"
     ),
     (
-        "docs/task-cards/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
-        "after-product-selection-v1-plan.md"
+        "docs/task-cards/production-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-"
+        "policy-readiness-v1-plan.md"
     ),
     (
-        "scripts/checks/fixtures/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-"
-        "refresh-after-product-selection-v1.json"
+        "scripts/checks/fixtures/production-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-"
+        "tls-role-policy-readiness-v1.json"
     ),
     (
-        "scripts/check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
-        "after-product-selection-v1.py"
+        "scripts/check-production-ops-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-"
+        "role-policy-readiness-v1.py"
     ),
 }
 
@@ -206,14 +199,14 @@ def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
         fixture.get("kind")
-        == "production_ops_secret_backend_audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_v1",
+        == "production_ops_secret_backend_audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_v1",
         "unexpected fixture kind",
     )
     slice_info = fixture.get("slice") or {}
     require(slice_info.get("id") == SLICE_ID, "unexpected slice id")
     require(slice_info.get("track") == "Production Ops Hardening v1", "unexpected track")
     require(slice_info.get("status") == SLICE_STATUS, "unexpected status")
-    require(slice_info.get("entry_decision") == ENTRY_DECISION, "unexpected entry decision")
+    require(slice_info.get("readiness_decision") == READINESS_DECISION, "unexpected readiness decision")
     for field in ("task_card", "platform_topic"):
         path = str(slice_info.get(field) or "")
         require(path in EXPECTED_ALLOWED_ARTIFACTS, f"unexpected {field}: {path}")
@@ -222,9 +215,9 @@ def assert_slice(fixture: dict[str, Any]) -> None:
     for claim in {
         "database_product_selected",
         "database_vendor_selected",
-        "database_provider_selected",
-        "database_connection_created",
         "database_driver_selected",
+        "database_provider_created",
+        "database_connection_created",
         "dsn_defined",
         "storage_adapter_runtime_task_card_created",
         "storage_adapter_runtime_created",
@@ -249,26 +242,50 @@ def assert_dependencies(fixture: dict[str, Any]) -> None:
         require(source_status(source) == expected_status, f"{dependency_id} source status drifted")
 
 
-def assert_entry_refresh_boundary(fixture: dict[str, Any]) -> None:
-    boundary = fixture.get("entry_refresh_boundary") or {}
+def assert_readiness_boundary(fixture: dict[str, Any]) -> None:
+    boundary = fixture.get("readiness_boundary") or {}
     for field, expected in EXPECTED_BOUNDARY.items():
-        require(boundary.get(field) == expected, f"entry_refresh_boundary.{field} drifted")
+        require(boundary.get(field) == expected, f"readiness_boundary.{field} drifted")
     for field in EXPECTED_FALSE_FLAGS:
-        require(boundary.get(field) is False, f"entry_refresh_boundary.{field} must stay false")
+        require(boundary.get(field) is False, f"readiness_boundary.{field} must stay false")
 
 
-def assert_remaining_blockers(fixture: dict[str, Any]) -> None:
-    blockers = rows_by_id(fixture, "remaining_blockers", "id")
-    require(set(blockers) == EXPECTED_BLOCKERS, "remaining blocker ids drifted")
-    for blocker_id in EXPECTED_BLOCKERS - {"peer_runtime_dependencies"}:
-        require(
-            blockers[blocker_id].get("status") == "required_before_runtime_task_card",
-            f"{blocker_id} status drifted",
-        )
-    require(blockers["database_provider_driver_dsn_tls_role_policy"].get("next_dependency") == NEXT_DEPENDENCY, "next dependency drifted")
-    peer = blockers["peer_runtime_dependencies"]
-    require(peer.get("status") == "blocked", "peer runtime dependency status drifted")
-    require(len(peer.get("requires") or []) >= 6, "peer runtime dependency list too small")
+def assert_provider_driver_dsn_tls_role_policy(fixture: dict[str, Any]) -> None:
+    provider = fixture.get("provider_boundary") or {}
+    require(provider.get("status") == "metadata_only_provider_boundary_defined", "provider boundary status drifted")
+    for field in {"database_secret_ref", "tls_policy_ref", "role_policy_ref", "audit_ref", "policy_version"}:
+        require(field in set(provider.get("allowed_input_references") or []), f"provider input missing {field}")
+    for forbidden in {"raw_dsn", "password", "provider_raw_url", "database_hostname", "credential_payload"}:
+        require(forbidden in set(provider.get("forbidden_inputs") or []), f"provider forbidden input missing {forbidden}")
+
+    driver = fixture.get("driver_selection_policy") or {}
+    require(
+        driver.get("status") == "static_driver_policy_defined_without_driver_selection",
+        "driver selection policy status drifted",
+    )
+    for capability in {
+        "append_only_transaction_support",
+        "parameterized_statement_support",
+        "tls_mode_support",
+        "least_privilege_role_support",
+        "sanitized_error_mapping",
+    }:
+        require(capability in set(driver.get("required_capabilities") or []), f"driver capability missing {capability}")
+    for claim in {"specific_driver_selected", "driver_open_path_created", "connection_pool_created"}:
+        require(claim in set(driver.get("forbidden_claims") or []), f"driver forbidden claim missing {claim}")
+
+    dsn = fixture.get("dsn_secret_ref_policy") or {}
+    require(dsn.get("status") == "secret_ref_only_dsn_policy_defined", "DSN secret-ref policy drifted")
+    for material in {"raw_dsn", "hostname", "username", "password", "database_name", "credential_payload"}:
+        require(material in set(dsn.get("forbidden_material") or []), f"DSN forbidden material missing {material}")
+
+    tls_role = fixture.get("tls_and_role_policy") or {}
+    require(tls_role.get("tls_policy_status") == "tls_mode_policy_defined", "TLS policy drifted")
+    require(tls_role.get("role_policy_status") == "least_privilege_role_policy_defined", "role policy drifted")
+    for role in {"append_only_writer_role", "read_only_verifier_role", "migration_marker_role"}:
+        require(role in set(tls_role.get("required_role_boundaries") or []), f"role boundary missing {role}")
+    for privilege in {"update_record", "delete_record", "truncate_table", "drop_schema", "bypass_audit_policy"}:
+        require(privilege in set(tls_role.get("forbidden_privileges") or []), f"forbidden privilege missing {privilege}")
 
 
 def assert_diagnostics_failures_and_policies(fixture: dict[str, Any]) -> None:
@@ -278,12 +295,11 @@ def assert_diagnostics_failures_and_policies(fixture: dict[str, Any]) -> None:
     sample = diagnostics.get("sample") or {}
     require(set(sample) <= allowed, "diagnostic sample contains non-allowlisted fields")
     require(not (allowed & forbidden), "diagnostic allowlist intersects forbidden fields")
-    require(sample.get("runtime_task_decision") == ENTRY_DECISION, "diagnostic decision drifted")
+    require(sample.get("readiness_decision") == READINESS_DECISION, "diagnostic decision drifted")
     require(sample.get("next_dependency") == NEXT_DEPENDENCY, "diagnostic next dependency drifted")
     require(sample.get("selected_backend_product_class") == SELECTED_PRODUCT_CLASS, "diagnostic product class drifted")
-    require(sample.get("database_connection_provider_status") == "blocked", "diagnostic provider status drifted")
-    require(sample.get("database_driver_status") == "not_selected", "diagnostic driver status drifted")
-    require(sample.get("database_dsn_status") == "not_defined", "diagnostic dsn status drifted")
+    require(sample.get("provider_boundary_status") == "metadata_only_provider_boundary_defined", "provider diagnostic drifted")
+    require(sample.get("driver_selection_policy_status") == "static_driver_policy_defined_without_driver_selection", "driver diagnostic drifted")
     require(sample.get("storage_adapter_runtime_status") == "not_created", "diagnostic created runtime")
 
     failures = rows_by_id(fixture, "failure_mapping", "code")
@@ -322,15 +338,15 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     for artifact in {
         "database_product_selection_artifact",
         "backend_vendor_selection_artifact",
+        "database_provider_implementation_task_card",
         "storage_adapter_runtime_implementation_task_card",
-        "storage_adapter_runtime",
-        "storage_adapter_client",
         "database_connection_provider",
-        "database_connection",
         "database_driver",
         "dsn_parser",
+        "connection_factory",
         "sql_migration",
         "schema_marker",
+        "storage_adapter_runtime",
         "audit_store_runtime_implementation_task_card",
         "audit_store_runtime",
         "production_resolver_runtime",
@@ -345,21 +361,17 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
 def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     boundary = matrix.get("matrix_boundary") or {}
-    expected = fixture.get("blocker_matrix_alignment") or {}
     for field, value in {
-        "storage_adapter_runtime_implementation_entry_refresh_after_product_selection_status": SLICE_STATUS,
-        "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_status": (
-            "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_defined"
-        ),
-        "storage_adapter_runtime_task_card_decision": (
-            "storage_adapter_runtime_task_card_still_blocked_after_database_provider_policy_readiness"
-        ),
-        "storage_adapter_current_next_dependency": expected.get("storage_adapter_current_next_dependency"),
+        "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_status": SLICE_STATUS,
+        "storage_adapter_database_provider_boundary_status": "metadata_only_provider_boundary_defined",
+        "storage_adapter_database_driver_selection_policy_status": "static_driver_policy_defined_without_driver_selection",
+        "storage_adapter_database_dsn_secret_ref_policy_status": "secret_ref_only_dsn_policy_defined",
+        "storage_adapter_database_tls_policy_status": "tls_mode_policy_defined",
+        "storage_adapter_database_role_policy_status": "least_privilege_role_policy_defined",
+        "storage_adapter_database_connection_provider_status": "not_created",
         "storage_adapter_database_provider_driver_dsn_tls_role_policy_status": "defined_without_runtime",
+        "storage_adapter_current_next_dependency": NEXT_DEPENDENCY,
         "storage_adapter_append_only_table_schema_boundary_status": "required_before_runtime_task_card",
-        "storage_adapter_migration_schema_marker_boundary_status": "required_before_runtime_task_card",
-        "storage_adapter_offline_adapter_smoke_strategy_status": "required_before_runtime_task_card",
-        "storage_adapter_negative_leakage_runtime_scan_boundary_status": "required_before_runtime_task_card",
         "storage_adapter_runtime_task_card_status": "not_created",
         "storage_adapter_runtime_status": "not_created",
     }.items():
@@ -367,8 +379,9 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
 
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    require(durable.get("status") == expected.get("durable_backend_blocker_status_after_refresh"), "durable status drifted")
-    require(durable.get("source") == expected.get("durable_backend_blocker_source_after_refresh"), "durable source drifted")
+    expected = fixture.get("blocker_matrix_alignment") or {}
+    require(durable.get("status") == expected.get("durable_backend_blocker_status_after_readiness"), "durable status drifted")
+    require(durable.get("source") == expected.get("durable_backend_blocker_source_after_readiness"), "durable source drifted")
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable must block audit runtime")
     require(durable.get("blocks_production_resolver_task_card") is True, "durable must block resolver runtime")
 
@@ -383,7 +396,7 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
         require(target.get(field) == value, f"implementation readiness {field} drifted")
 
     planned = {str(row.get("id")): row for row in readiness.get("planned_slices") or [] if isinstance(row, dict)}
-    item = planned.get("audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection") or {}
+    item = planned.get("audit-store-storage-adapter-database-provider-driver-dsn-tls-role-policy-readiness") or {}
     require(item.get("status") == SLICE_STATUS, "implementation readiness missing planned slice")
     require(EXPECTED_ALLOWED_ARTIFACTS <= set(item.get("evidence") or []), "planned slice evidence drifted")
 
@@ -391,23 +404,23 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
 def assert_docs_and_registration() -> None:
     docs = {
         (
-            "docs/platform/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
-            "after-product-selection-v1.md"
+            "docs/platform/production-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-"
+            "policy-readiness-v1.md"
         ): [
             SLICE_STATUS,
-            ENTRY_DECISION,
+            READINESS_DECISION,
             NEXT_DEPENDENCY,
-            "managed_database_append_only_table",
-            "not_selected",
+            "metadata_only_provider_boundary_defined",
+            "secret_ref_only_dsn_policy_defined",
             "not_created",
         ],
         (
-            "docs/task-cards/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
-            "after-product-selection-v1-plan.md"
+            "docs/task-cards/production-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-"
+            "role-policy-readiness-v1-plan.md"
         ): [
             SLICE_ID,
             SLICE_STATUS,
-            ENTRY_DECISION,
+            READINESS_DECISION,
             NEXT_DEPENDENCY,
             "停止线",
         ],
@@ -418,15 +431,15 @@ def assert_docs_and_registration() -> None:
         ],
         "docs/platform/production-secret-backend-audit-store-storage-adapter-evidence-rollup-v1.md": [
             SLICE_STATUS,
-            ENTRY_DECISION,
+            READINESS_DECISION,
             NEXT_DEPENDENCY,
         ],
         "docs/platform/README.md": [
-            "Production Secret Backend Audit Store Storage Adapter Runtime Implementation Entry Refresh After Product Selection v1",
+            "Production Secret Backend Audit Store Storage Adapter Database Provider / Driver / DSN / TLS / Role Policy Readiness v1",
             SLICE_STATUS,
         ],
         "docs/features/README.md": [
-            "Production Secret Backend Audit Store Storage Adapter Runtime Implementation Entry Refresh After Product Selection v1",
+            "Production Secret Backend Audit Store Storage Adapter Database Provider / Driver / DSN / TLS / Role Policy Readiness v1",
             SLICE_STATUS,
         ],
         "docs/features/workflow/README.md": [SLICE_STATUS],
@@ -436,8 +449,8 @@ def assert_docs_and_registration() -> None:
         "docs/task-cards/README.md": [SLICE_ID, SLICE_STATUS],
         "docs/task-cards/production-secret-backend-implementation-v1-plan.md": [SLICE_ID, SLICE_STATUS],
         "scripts/README.md": [
-            "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1.py",
-            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1.json",
+            "check-production-ops-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-policy-readiness-v1.py",
+            "production-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-policy-readiness-v1.json",
         ],
         "docs/devlogs/2026-W27.md": [SLICE_STATUS, NEXT_DEPENDENCY],
     }
@@ -447,20 +460,20 @@ def assert_docs_and_registration() -> None:
         require(not missing, f"{path} missing literals: {missing}")
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
-    selection = (
-        "check-production-ops-secret-backend-audit-store-storage-adapter-"
-        "backend-product-selection-review-v1.py"
-    )
-    current = (
+    previous = (
         "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
         "after-product-selection-v1.py"
     )
+    current = (
+        "check-production-ops-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-"
+        "policy-readiness-v1.py"
+    )
     matrix = "check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py"
     resolver = "check-production-ops-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2.py"
-    for script in (selection, current, matrix, resolver):
+    for script in (previous, current, matrix, resolver):
         require(script in check_repo, f"check-repo.py missing {script}")
     require(
-        check_repo.index(selection) < check_repo.index(current) < check_repo.index(matrix) < check_repo.index(resolver),
+        check_repo.index(previous) < check_repo.index(current) < check_repo.index(matrix) < check_repo.index(resolver),
         "check-repo.py registration order drifted",
     )
 
@@ -473,7 +486,7 @@ def assert_no_secret_literals() -> None:
     )
     forbidden_literals = ["Bearer ", "BEGIN PRIVATE KEY", "AKIA", "-----BEGIN", "authorization:"]
     found = [literal for literal in forbidden_literals if literal in text]
-    require(not found, f"runtime refresh contains forbidden literal: {found}")
+    require(not found, f"database readiness contains forbidden literal: {found}")
     require(re.search(r"sk-[A-Za-z0-9]{8,}", text) is None, "secret-looking sk token found")
     require(re.search(r"://[^\s:/]+:[^\s@]+@", text) is None, "credential-bearing DSN-like literal found")
 
@@ -482,8 +495,8 @@ def main() -> None:
     fixture = load_json(FIXTURE_PATH)
     assert_slice(fixture)
     assert_dependencies(fixture)
-    assert_entry_refresh_boundary(fixture)
-    assert_remaining_blockers(fixture)
+    assert_readiness_boundary(fixture)
+    assert_provider_driver_dsn_tls_role_policy(fixture)
     assert_diagnostics_failures_and_policies(fixture)
     assert_artifact_guard(fixture)
     assert_blocker_matrix_alignment(fixture)
@@ -491,7 +504,7 @@ def main() -> None:
     assert_docs_and_registration()
     assert_no_secret_literals()
     print(
-        "production ops secret backend audit store storage adapter runtime entry refresh after product selection checks passed."
+        "production ops secret backend audit store storage adapter database provider driver DSN TLS role policy readiness checks passed."
     )
 
 
