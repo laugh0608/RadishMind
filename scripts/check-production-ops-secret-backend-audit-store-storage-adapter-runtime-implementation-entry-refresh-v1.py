@@ -20,6 +20,15 @@ BLOCKER_MATRIX_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/production-secret-backend-audit-store-runtime-blocker-matrix-v1.json"
 )
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
+FOLLOWUP_MATERIALIZATION_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-v1.json"
+)
+FOLLOWUP_MATERIALIZATION_STATUS = "audit_store_storage_adapter_metadata_contract_artifact_materialized"
+FOLLOWUP_NEXT_DEPENDENCY = "storage_adapter_backend_product_selection_review"
+FOLLOWUP_ALIGNMENT = {
+    "audit_storage_adapter_contract_artifact_materialization_status": FOLLOWUP_MATERIALIZATION_STATUS,
+}
 
 SLICE_ID = "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1"
 SLICE_STATUS = "audit_store_storage_adapter_runtime_implementation_entry_refresh_defined"
@@ -231,6 +240,14 @@ def rows_by_id(fixture: dict[str, Any], key: str, id_field: str) -> dict[str, di
     return rows
 
 
+def followup_materialization_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_MATERIALIZATION_FIXTURE
+    if not path.exists():
+        return False
+    materialization = load_json(path)
+    return source_status(materialization) == FOLLOWUP_MATERIALIZATION_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
@@ -364,6 +381,11 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     }:
         require(artifact in forbidden, f"forbidden artifact missing: {artifact}")
     for path in guard.get("files_must_not_exist") or []:
+        if (
+            followup_materialization_exists()
+            and path == "contracts/production-secret-audit-storage-adapter.metadata-contract.json"
+        ):
+            continue
         require(not (REPO_ROOT / str(path)).exists(), f"forbidden artifact exists: {path}")
 
 
@@ -384,10 +406,20 @@ def assert_blocker_matrix_alignment() -> None:
     )
     require(boundary.get("storage_adapter_runtime_status") == "not_created", "matrix created runtime")
     require(boundary.get("storage_adapter_backend_product_selection_status") == "not_selected", "matrix selected product")
-    require(
-        boundary.get("storage_adapter_contract_artifact_materialization_status") == "not_created",
-        "matrix materialized contract",
-    )
+    if followup_materialization_exists():
+        require(
+            boundary.get("storage_adapter_contract_artifact_materialization_status") == FOLLOWUP_MATERIALIZATION_STATUS,
+            "matrix materialization status drifted after follow-up",
+        )
+        require(
+            boundary.get("storage_adapter_current_next_dependency") == FOLLOWUP_NEXT_DEPENDENCY,
+            "matrix next dependency drifted after follow-up",
+        )
+    else:
+        require(
+            boundary.get("storage_adapter_contract_artifact_materialization_status") == "not_created",
+            "matrix materialized contract",
+        )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
     require(durable.get("status") == MATRIX_DURABLE_STATUS, "durable backend blocker status drifted")
@@ -399,7 +431,10 @@ def assert_blocker_matrix_alignment() -> None:
 def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
     readiness = load_json(IMPLEMENTATION_READINESS_PATH)
     target = readiness.get("implementation_target") or {}
+    followup_exists = followup_materialization_exists()
     for field, expected in (fixture.get("implementation_readiness_alignment") or {}).items():
+        if followup_exists and field in FOLLOWUP_ALIGNMENT:
+            expected = FOLLOWUP_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     planned = {str(row.get("id")): row for row in readiness.get("planned_slices") or [] if isinstance(row, dict)}

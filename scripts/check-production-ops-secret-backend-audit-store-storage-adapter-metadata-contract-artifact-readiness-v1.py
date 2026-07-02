@@ -21,6 +21,11 @@ BLOCKER_MATRIX_PATH = (
 )
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
 RESERVED_CONTRACT_ARTIFACT = "contracts/production-secret-audit-storage-adapter.metadata-contract.json"
+FOLLOWUP_MATERIALIZATION_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-v1.json"
+)
+FOLLOWUP_MATERIALIZATION_STATUS = "audit_store_storage_adapter_metadata_contract_artifact_materialized"
 
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1": (
@@ -198,6 +203,12 @@ EXPECTED_ALLOWED_ARTIFACTS = {
     "scripts/check-production-ops-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-readiness-v1.py",
 }
 
+FOLLOWUP_IMPLEMENTATION_ALIGNMENT = {
+    "audit_storage_adapter_metadata_contract_artifact_status": "materialized_static_metadata_contract",
+    "audit_storage_adapter_contract_artifact_path_status": "materialized_static_path",
+    "audit_storage_adapter_contract_artifact_materialization_status": FOLLOWUP_MATERIALIZATION_STATUS,
+}
+
 
 def require(condition: bool, message: str) -> None:
     if not condition:
@@ -225,6 +236,14 @@ def rows_by_id(fixture: dict[str, Any], key: str, id_field: str) -> dict[str, di
     rows = {str(row.get(id_field) or ""): row for row in fixture.get(key) or [] if isinstance(row, dict)}
     require(rows, f"{key} must not be empty")
     return rows
+
+
+def followup_materialization_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_MATERIALIZATION_FIXTURE
+    if not path.exists():
+        return False
+    materialization = load_json(path)
+    return source_status(materialization) == FOLLOWUP_MATERIALIZATION_STATUS
 
 
 def assert_slice(fixture: dict[str, Any]) -> None:
@@ -290,7 +309,8 @@ def assert_readiness_boundary(fixture: dict[str, Any]) -> None:
     require(reserved.get("path") == RESERVED_CONTRACT_ARTIFACT, "reserved contract artifact path drifted")
     require(reserved.get("path_status") == "reserved_static_path", "reserved contract artifact path status drifted")
     require(reserved.get("materialization_status") == "not_created", "reserved contract artifact materialized")
-    require(not (REPO_ROOT / RESERVED_CONTRACT_ARTIFACT).exists(), "reserved contract artifact must not exist")
+    if not followup_materialization_exists():
+        require(not (REPO_ROOT / RESERVED_CONTRACT_ARTIFACT).exists(), "reserved contract artifact must not exist")
 
 
 def assert_contract_shape(fixture: dict[str, Any]) -> None:
@@ -376,6 +396,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     }:
         require(artifact in forbidden, f"forbidden artifact missing: {artifact}")
     for path in guard.get("files_must_not_exist") or []:
+        if followup_materialization_exists() and path == RESERVED_CONTRACT_ARTIFACT:
+            continue
         require(not (REPO_ROOT / str(path)).exists(), f"forbidden artifact exists: {path}")
 
 
@@ -387,13 +409,18 @@ def assert_blocker_matrix_alignment() -> None:
         == "audit_store_storage_adapter_metadata_contract_artifact_readiness_defined",
         "matrix boundary missing metadata contract readiness status",
     )
+    if followup_materialization_exists():
+        expected_contract_status = "materialized_static_metadata_contract"
+        expected_materialization = FOLLOWUP_MATERIALIZATION_STATUS
+    else:
+        expected_contract_status = "readiness_defined_without_materialized_artifact"
+        expected_materialization = "not_created"
     require(
-        boundary.get("storage_adapter_metadata_contract_artifact_status")
-        == "readiness_defined_without_materialized_artifact",
+        boundary.get("storage_adapter_metadata_contract_artifact_status") == expected_contract_status,
         "matrix boundary metadata contract status drifted",
     )
     require(
-        boundary.get("storage_adapter_contract_artifact_materialization_status") == "not_created",
+        boundary.get("storage_adapter_contract_artifact_materialization_status") == expected_materialization,
         "matrix boundary materialized contract artifact",
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
@@ -418,6 +445,8 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
     for field, expected in alignment.items():
         if field == "status":
             continue
+        if followup_materialization_exists() and field in FOLLOWUP_IMPLEMENTATION_ALIGNMENT:
+            expected = FOLLOWUP_IMPLEMENTATION_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     planned = {str(row.get("id")): row for row in readiness.get("planned_slices") or [] if isinstance(row, dict)}

@@ -20,6 +20,16 @@ BLOCKER_MATRIX_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/production-secret-backend-audit-store-runtime-blocker-matrix-v1.json"
 )
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
+FOLLOWUP_MATERIALIZATION_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-v1.json"
+)
+FOLLOWUP_MATERIALIZATION_STATUS = "audit_store_storage_adapter_metadata_contract_artifact_materialized"
+FOLLOWUP_ALIGNMENT = {
+    "audit_storage_adapter_metadata_contract_artifact_status": "materialized_static_metadata_contract",
+    "audit_storage_adapter_contract_artifact_path_status": "materialized_static_path",
+    "audit_storage_adapter_contract_artifact_materialization_status": FOLLOWUP_MATERIALIZATION_STATUS,
+}
 
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1": (
@@ -266,6 +276,14 @@ def rows_by_id(fixture: dict[str, Any], key: str, id_field: str) -> dict[str, di
     return rows
 
 
+def followup_materialization_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_MATERIALIZATION_FIXTURE
+    if not path.exists():
+        return False
+    materialization = load_json(path)
+    return source_status(materialization) == FOLLOWUP_MATERIALIZATION_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
@@ -453,6 +471,11 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     }:
         require(artifact in forbidden, f"forbidden artifact missing: {artifact}")
     for path in guard.get("files_must_not_exist") or []:
+        if (
+            followup_materialization_exists()
+            and path == "contracts/production-secret-audit-storage-adapter.metadata-contract.json"
+        ):
+            continue
         require(not (REPO_ROOT / str(path)).exists(), f"forbidden artifact exists: {path}")
 
 
@@ -496,9 +519,12 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
     readiness = load_json(IMPLEMENTATION_READINESS_PATH)
     target = readiness.get("implementation_target") or {}
     alignment = fixture.get("implementation_readiness_alignment") or {}
+    followup_exists = followup_materialization_exists()
     for field, expected in alignment.items():
         if field == "status":
             continue
+        if followup_exists and field in FOLLOWUP_ALIGNMENT:
+            expected = FOLLOWUP_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     planned = {str(row.get("id")): row for row in readiness.get("planned_slices") or [] if isinstance(row, dict)}

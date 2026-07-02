@@ -29,6 +29,22 @@ SLICE_STATUS = "audit_store_storage_adapter_metadata_contract_artifact_materiali
 ENTRY_DECISION = "metadata_contract_artifact_materialization_task_card_ready_after_entry_review"
 NEXT_DEPENDENCY = "storage_adapter_metadata_contract_artifact_materialization_task_card"
 RESERVED_CONTRACT_ARTIFACT = "contracts/production-secret-audit-storage-adapter.metadata-contract.json"
+FOLLOWUP_MATERIALIZATION_FIXTURE = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-v1.json"
+)
+FOLLOWUP_MATERIALIZATION_STATUS = "audit_store_storage_adapter_metadata_contract_artifact_materialized"
+FOLLOWUP_NEXT_DEPENDENCY = "storage_adapter_backend_product_selection_review"
+FOLLOWUP_ALIGNMENT = {
+    "audit_storage_adapter_contract_materialization_task_card_status": "created",
+    "audit_storage_adapter_contract_artifact_materialization_status": FOLLOWUP_MATERIALIZATION_STATUS,
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_NEXT_DEPENDENCY,
+}
+FOLLOWUP_ALLOWED_ARTIFACTS = {
+    RESERVED_CONTRACT_ARTIFACT,
+    "docs/task-cards/production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-v1-plan.md",
+}
 
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1": (
@@ -236,6 +252,13 @@ def rows_by_id(fixture: dict[str, Any], key: str, id_field: str) -> dict[str, di
     return rows
 
 
+def followup_materialization_exists() -> bool:
+    if not FOLLOWUP_MATERIALIZATION_FIXTURE.exists():
+        return False
+    followup = load_json(FOLLOWUP_MATERIALIZATION_FIXTURE)
+    return source_status(followup) == FOLLOWUP_MATERIALIZATION_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
@@ -285,7 +308,6 @@ def assert_entry_review_boundary(fixture: dict[str, Any]) -> None:
         require(boundary.get(field) == expected, f"entry_review_boundary.{field} drifted")
     for field in EXPECTED_FALSE_FLAGS:
         require(boundary.get(field) is False, f"entry_review_boundary.{field} must stay false")
-    require(not (REPO_ROOT / RESERVED_CONTRACT_ARTIFACT).exists(), "contract artifact must not exist")
 
 
 def assert_future_requirements_and_blockers(fixture: dict[str, Any]) -> None:
@@ -304,8 +326,22 @@ def assert_future_requirements_and_blockers(fixture: dict[str, Any]) -> None:
         },
         "remaining blocker ids drifted",
     )
-    require(blockers["contract_artifact_materialization_task_card"].get("status") == "not_created", "task card created")
-    require(blockers["contract_artifact_materialization"].get("status") == "not_created", "contract materialized")
+    if followup_materialization_exists():
+        require(
+            blockers["contract_artifact_materialization_task_card"].get("status") in {"not_created", "created"},
+            "task card status drifted after follow-up",
+        )
+        require(
+            blockers["contract_artifact_materialization"].get("status")
+            in {"not_created", FOLLOWUP_MATERIALIZATION_STATUS},
+            "contract materialization status drifted after follow-up",
+        )
+    else:
+        require(
+            blockers["contract_artifact_materialization_task_card"].get("status") == "not_created",
+            "task card created",
+        )
+        require(blockers["contract_artifact_materialization"].get("status") == "not_created", "contract materialized")
     require(blockers["backend_product_selection"].get("status") == "not_selected", "backend product selected")
     require(
         blockers["contract_artifact_materialization_task_card"].get("next_dependency") == NEXT_DEPENDENCY,
@@ -381,6 +417,8 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
     }:
         require(artifact in forbidden, f"forbidden artifact missing: {artifact}")
     for path in guard.get("files_must_not_exist") or []:
+        if followup_materialization_exists() and str(path) in FOLLOWUP_ALLOWED_ARTIFACTS:
+            continue
         require(not (REPO_ROOT / str(path)).exists(), f"forbidden artifact exists: {path}")
 
 
@@ -396,15 +434,29 @@ def assert_blocker_matrix_alignment() -> None:
         boundary.get("storage_adapter_contract_artifact_materialization_task_card_decision") == ENTRY_DECISION,
         "matrix boundary materialization task card decision drifted",
     )
-    require(
-        boundary.get("storage_adapter_contract_artifact_materialization_task_card_status") == "not_created",
-        "matrix boundary created materialization task card",
-    )
-    require(
-        boundary.get("storage_adapter_contract_artifact_materialization_status") == "not_created",
-        "matrix boundary materialized contract",
-    )
-    require(boundary.get("storage_adapter_current_next_dependency") == NEXT_DEPENDENCY, "matrix next dependency drifted")
+    if followup_materialization_exists():
+        require(
+            boundary.get("storage_adapter_contract_artifact_materialization_task_card_status") == "created",
+            "matrix boundary materialization task card status drifted after follow-up",
+        )
+        require(
+            boundary.get("storage_adapter_contract_artifact_materialization_status") == FOLLOWUP_MATERIALIZATION_STATUS,
+            "matrix boundary materialization status drifted after follow-up",
+        )
+        require(
+            boundary.get("storage_adapter_current_next_dependency") == FOLLOWUP_NEXT_DEPENDENCY,
+            "matrix next dependency drifted after follow-up",
+        )
+    else:
+        require(
+            boundary.get("storage_adapter_contract_artifact_materialization_task_card_status") == "not_created",
+            "matrix boundary created materialization task card",
+        )
+        require(
+            boundary.get("storage_adapter_contract_artifact_materialization_status") == "not_created",
+            "matrix boundary materialized contract",
+        )
+        require(boundary.get("storage_adapter_current_next_dependency") == NEXT_DEPENDENCY, "matrix next dependency drifted")
     require(boundary.get("storage_adapter_runtime_status") == "not_created", "matrix created runtime")
     require(boundary.get("storage_adapter_backend_product_selection_status") == "not_selected", "matrix selected product")
 
@@ -412,7 +464,10 @@ def assert_blocker_matrix_alignment() -> None:
 def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
     readiness = load_json(IMPLEMENTATION_READINESS_PATH)
     target = readiness.get("implementation_target") or {}
+    followup_exists = followup_materialization_exists()
     for field, expected in (fixture.get("implementation_readiness_alignment") or {}).items():
+        if followup_exists and field in FOLLOWUP_ALIGNMENT:
+            expected = FOLLOWUP_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     planned = {str(row.get("id")): row for row in readiness.get("planned_slices") or [] if isinstance(row, dict)}

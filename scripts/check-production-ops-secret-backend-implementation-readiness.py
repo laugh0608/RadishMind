@@ -157,6 +157,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-metadata-contract-artifact-materialization-entry-review": (
         "audit_store_storage_adapter_metadata_contract_artifact_materialization_entry_review_defined"
     ),
+    "audit-store-storage-adapter-metadata-contract-artifact-materialization": (
+        "audit_store_storage_adapter_metadata_contract_artifact_materialized"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -865,11 +868,11 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_metadata_contract_artifact_status")
-        == "readiness_defined_without_materialized_artifact",
+        == "materialized_static_metadata_contract",
         "audit storage adapter metadata contract artifact status drifted",
     )
     require(
-        target.get("audit_storage_adapter_contract_artifact_path_status") == "reserved_static_path",
+        target.get("audit_storage_adapter_contract_artifact_path_status") == "materialized_static_path",
         "audit storage adapter contract artifact path status drifted",
     )
     require(
@@ -894,8 +897,22 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit storage adapter writer compatibility status drifted",
     )
     require(
-        target.get("audit_storage_adapter_contract_artifact_materialization_status") == "not_created",
-        "audit storage adapter contract artifact must remain not_created",
+        target.get("audit_storage_adapter_contract_artifact_materialization_status")
+        == "audit_store_storage_adapter_metadata_contract_artifact_materialized",
+        "audit storage adapter contract artifact materialization status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_contract_artifact_validation_status")
+        == "implemented_offline_contract_validation",
+        "audit storage adapter contract artifact validation status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_writer_compatibility_smoke_status") == "implemented_static_fixture",
+        "audit storage adapter writer compatibility smoke status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_no_secret_material_scan_status") == "implemented_static_scan",
+        "audit storage adapter no secret material scan status drifted",
     )
     require(
         target.get("audit_store_storage_adapter_append_only_semantics_evidence_readiness_status")
@@ -1123,12 +1140,12 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit storage adapter materialization task card decision drifted",
     )
     require(
-        target.get("audit_storage_adapter_contract_materialization_task_card_status") == "not_created",
-        "audit storage adapter materialization task card must remain not_created",
+        target.get("audit_storage_adapter_contract_materialization_task_card_status") == "created",
+        "audit storage adapter materialization task card status drifted",
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_metadata_contract_artifact_materialization_task_card",
+        == "storage_adapter_backend_product_selection_review",
         "audit storage adapter current next dependency drifted",
     )
     require(
@@ -2675,6 +2692,15 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         )
         in check_repo,
         "check-repo.py must run audit store storage adapter metadata contract artifact materialization entry review check",
+    )
+    require(
+        (
+            'run_python_script("'
+            "check-production-ops-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-v1.py"
+            '", [])'
+        )
+        in check_repo,
+        "check-repo.py must run audit store storage adapter metadata contract artifact materialization check",
     )
     require(
         (

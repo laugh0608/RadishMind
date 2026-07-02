@@ -16,6 +16,7 @@
 - [Production Secret Reference 契约](production-secret-reference.md)
 - [Radish OIDC Token Validation 契约](radish-oidc-token-validation.md)
 - [Production Secret Audit Event 契约](production-secret-audit-event.md)
+- [Production Secret Audit Storage Adapter Metadata Contract 契约](production-secret-audit-storage-adapter-metadata-contract.md)
 - [训练 / 蒸馏样本契约](training-samples.md)
 - [图片生成契约](image-generation.md)
 - [输入与项目上下文契约](input-context.md)
@@ -31,6 +32,7 @@
 - Image Generation / Artifact Return 的 schema、runtime mapper、response consumer 和 `coerce_response_document` metadata-only hook 统一解释在 [图片生成契约](image-generation.md)；该专题只说明 artifact metadata 如何进入现有 `CopilotResponse.citations`，不声明 artifact store、binary reader、public URL 或真实 backend ready。
 - Radish OIDC Token Validation 的 schema、positive / negative fixtures 和 artifact checker 统一解释在 [Radish OIDC Token Validation 契约](radish-oidc-token-validation.md)；该专题只说明 verified token context 的脱敏投影、forbidden raw-material 字段、消费规则和验证方式，不声明 OIDC middleware、token validator、membership adapter、repository mode 或 production API ready。
 - Production Secret Audit Event 的 schema、positive / negative fixtures 和 artifact checker 统一解释在 [Production Secret Audit Event 契约](production-secret-audit-event.md)；该专题只说明 future audit writer 的 metadata-only event 输入，不声明 audit writer runtime、audit store runtime、delivery、idempotency、durable backend、repository mode 或 production API ready。
+- Production Secret Audit Storage Adapter Metadata Contract 的 contract artifact、positive / negative fixtures、writer compatibility smoke 和 artifact checker 统一解释在 [Production Secret Audit Storage Adapter Metadata Contract 契约](production-secret-audit-storage-adapter-metadata-contract.md)；该专题只说明 future storage adapter 的 metadata-only input / result envelope、record identity、failure taxonomy 和 writer output handoff，不声明 backend product selected、storage adapter runtime、DB provider、audit store runtime、repository mode 或 production API ready。
 - `P2 Session & Tooling Foundation` 的晋级口径同时由 `scripts/checks/fixtures/session-tooling-promotion-gates.json` 固定；修改 session/tooling promotion gate 时，应同步更新对应专题页和该 fixture。
 - P2 负向门禁消费关系由 `scripts/checks/fixtures/session-tooling-negative-consumption-summary.json` 固定；新增 denied query、promotion gate 或对应消费者时，应同步更新该 summary。
 - Checkpoint read route smoke 覆盖关系由 `scripts/checks/fixtures/session-recovery-checkpoint-route-smoke-coverage-summary.json` 固定；修改 route 正向/负向 smoke 时，应同步更新该 summary。
