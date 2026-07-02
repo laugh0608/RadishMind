@@ -154,6 +154,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-runtime-implementation-entry-refresh": (
         "audit_store_storage_adapter_runtime_implementation_entry_refresh_defined"
     ),
+    "audit-store-storage-adapter-metadata-contract-artifact-materialization-entry-review": (
+        "audit_store_storage_adapter_metadata_contract_artifact_materialization_entry_review_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -1108,6 +1111,25 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("audit_storage_adapter_next_dependency")
         == "storage_adapter_metadata_contract_artifact_materialization_entry_review",
         "audit storage adapter next dependency drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_metadata_contract_artifact_materialization_entry_review_status")
+        == "audit_store_storage_adapter_metadata_contract_artifact_materialization_entry_review_defined",
+        "audit storage adapter metadata contract materialization entry review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_contract_materialization_task_card_decision")
+        == "metadata_contract_artifact_materialization_task_card_ready_after_entry_review",
+        "audit storage adapter materialization task card decision drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_contract_materialization_task_card_status") == "not_created",
+        "audit storage adapter materialization task card must remain not_created",
+    )
+    require(
+        target.get("audit_storage_adapter_current_next_dependency")
+        == "storage_adapter_metadata_contract_artifact_materialization_task_card",
+        "audit storage adapter current next dependency drifted",
     )
     require(
         target.get("audit_storage_adapter_runtime_task_card_status") == "not_created",
@@ -2644,6 +2666,15 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         )
         in check_repo,
         "check-repo.py must run audit store storage adapter runtime implementation entry refresh check",
+    )
+    require(
+        (
+            'run_python_script("'
+            "check-production-ops-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-entry-review-v1.py"
+            '", [])'
+        )
+        in check_repo,
+        "check-repo.py must run audit store storage adapter metadata contract artifact materialization entry review check",
     )
     require(
         (
