@@ -1,6 +1,6 @@
 # User Workspace Saved Draft List v1 专题
 
-更新时间：2026-06-16
+更新时间：2026-07-01
 
 ## 专题定位
 
@@ -17,6 +17,7 @@
 - memory dev store 新增 `ListDraftsByScope`，只枚举当前 scope 下已保存草案；empty、scope denied 和 store unavailable 都 fail closed，不回退 sample。
 - Web consumer 新增 `listWorkflowDraftDevRecords`、`restoreWorkflowDraftDevRecord` 和 `WorkflowSavedDraftListState`，区分 `sample`、`loading`、`ready`、`empty`、`list_failed` 和 `restore_failed`。
 - Workspace Home 新增 saved draft list 区块，展示 summary、empty / failure state、refresh 和 restore 操作；restore 后把 saved record 投影为本地 Draft Designer 草案并选中。
+- Draft Designer 在保存返回 `version_conflict` 后复用同一 list consumer 刷新当前 application 的 sanitized summary，并据此派生恢复 saved version 是否可用；该刷新不读取完整草案、不覆盖本地 active draft。
 
 ## 数据边界
 
@@ -33,6 +34,8 @@
 
 恢复动作只允许通过单个 `draft_id` 调用既有 read route。前端把 read route 返回的 saved record 转成本地 Draft Designer 草案；后续保存仍复用 `POST /v1/user-workspace/workflow-drafts` 的 version conflict 和 no sample fallback 语义。
 
+冲突审查只把 saved draft list 当作 metadata 来源。列表 summary 可用于显示 saved version、更新时间、validation state 和 blocked capability count，也可让恢复按钮进入 `restore_available`；但只要列表处于 `loading`、`empty`、`list_failed`、`sample` 或缺少匹配 summary，恢复入口就必须保持禁用并说明本地草案仍被保留。
+
 ## 失败语义
 
 - `empty`：当前 application 没有 saved dev draft summary，不展示 sample 作为替代。
@@ -40,6 +43,7 @@
 - `draft_store_unavailable`：dev store 不可用，列表为空且显示失败，不回退 sample。
 - `restore_failed`：summary 存在但 read route 失败，保留当前本地草案，不把失败 summary 当成 saved draft。
 - `version_conflict`：恢复后的再次保存仍走既有 conflict 状态，保留本地草案并展示 current version metadata。
+- `restore_requires_saved_list`：冲突后还没有可用匹配 summary，恢复 saved version 不可触发；用户仍可继续本地草案，或等待 / 手动刷新列表后再恢复。
 
 ## 验收方式
 
@@ -53,3 +57,4 @@
 - 不实现 durable persistence、repository adapter、真实数据库、schema migration、store selector、Radish OIDC middleware、token validation、public production API、API key lifecycle、quota enforcement、billing 或 cost ledger。
 - 本专题不实现完整 builder、节点新增 / 删除 / 拖拽编排、publish、run、executor、agent loop、confirmation decision、decision store、writeback、replay、resume 或 materialized result reader；节点新增 / 删除 / 重排已由 `Workflow Draft Designer Editing Model v2` 独立承接。
 - 不把 saved draft list、restore、`valid_for_review`、validation summary 或 risk summary 解释为 durable persistence ready、publish ready、run ready 或 production ready。
+- 不把冲突后列表刷新解释为自动恢复、自动覆盖、自动合并或 durable repository mode；恢复 saved version 必须由用户显式操作。

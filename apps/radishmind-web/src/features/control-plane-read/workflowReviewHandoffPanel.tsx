@@ -10,6 +10,7 @@ import type {
   WorkflowReviewHandoffStatus,
   WorkflowReviewHandoffViewModel,
 } from "./workflowReviewHandoff";
+import type { WorkflowSavedDraftConflictReviewSummary } from "./savedWorkflowDraftConsumer";
 
 type StatusBadgeTone = "good" | "bad" | "neutral";
 
@@ -90,6 +91,18 @@ export function WorkflowReviewHandoffPanel({
           ))}
         </div>
       </div>
+
+      {handoff.savedDraftConflictReviewSummary ? (
+        <div className="workflow-user-workspace-home-section">
+          <div className="workflow-user-workspace-home-subheading">
+            <p className="eyebrow">Saved Draft Conflict Review</p>
+            <h4>Local draft and saved version metadata</h4>
+          </div>
+          <WorkflowReviewHandoffSavedDraftConflictCard
+            summary={handoff.savedDraftConflictReviewSummary}
+          />
+        </div>
+      ) : null}
 
       <div className="workflow-user-workspace-home-section">
         <div className="workflow-user-workspace-home-subheading">
@@ -216,6 +229,77 @@ function workflowReviewHandoffGraphFindingGroups(
       findings: findings.filter((finding) => finding.targetKind === "graph"),
     },
   ];
+}
+
+function WorkflowReviewHandoffSavedDraftConflictCard({
+  summary,
+}: {
+  summary: WorkflowSavedDraftConflictReviewSummary;
+}) {
+  return (
+    <article className="workflow-user-workspace-home-card">
+      <div className="workflow-user-workspace-home-row-main">
+        <div>
+          <p className="eyebrow">{summary.failureCode}</p>
+          <h5>{summary.draftId}</h5>
+        </div>
+        <StatusBadge tone={summary.status === "local_draft_continued" ? "neutral" : "bad"}>
+          {summary.status}
+        </StatusBadge>
+      </div>
+      <dl className="workflow-user-workspace-home-meta">
+        <div>
+          <dt>Saved version</dt>
+          <dd>{summary.savedDraftVersion}</dd>
+        </div>
+        <div>
+          <dt>Updated</dt>
+          <dd>{summary.savedUpdatedAt}</dd>
+        </div>
+        <div>
+          <dt>Actor</dt>
+          <dd>{summary.savedUpdatedByActorRef}</dd>
+        </div>
+        <div>
+          <dt>Validation</dt>
+          <dd>{summary.savedValidationState}</dd>
+        </div>
+        <div>
+          <dt>Blocked</dt>
+          <dd>{summary.savedBlockedCapabilityCount ?? "not loaded"}</dd>
+        </div>
+        <div>
+          <dt>Metadata</dt>
+          <dd>{summary.savedMetadataState}</dd>
+        </div>
+        <div>
+          <dt>Restore</dt>
+          <dd>{summary.restoreActionState}</dd>
+        </div>
+        <div>
+          <dt>Local graph</dt>
+          <dd>{`${summary.localNodeCount} nodes / ${summary.localEdgeCount} edges`}</dd>
+        </div>
+      </dl>
+      <div className="workflow-workspace-review-token-list" aria-label="Saved draft conflict review locks">
+        <code>auto_overwrite_locked</code>
+        <code>auto_merge_locked</code>
+        <code>{summary.restoreActionState === "restore_available" ? "restore_available" : "restore_requires_saved_list"}</code>
+      </div>
+      <p>{summary.summary}</p>
+      <p>{summary.localDraftPreservationSummary}</p>
+      {summary.restoreUnavailableReason ? (
+        <p>{summary.restoreUnavailableReason}</p>
+      ) : (
+        <p>
+          Restore saved version is available from sanitized saved draft metadata; it remains separate from
+          auto overwrite and auto merge.
+        </p>
+      )}
+      <p>{summary.nextReviewerStep}</p>
+      <p>{summary.reviewerQuestion}</p>
+    </article>
+  );
 }
 
 function WorkflowReviewHandoffActiveDraftSectionCard({

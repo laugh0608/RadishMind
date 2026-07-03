@@ -22,6 +22,7 @@ import {
   type ControlPlaneReadDevLiveLoadState,
 } from "../features/control-plane-read/devLiveReadConsumer";
 import {
+  continueLocalWorkflowDraftAfterVersionConflict,
   initialWorkflowSavedDraftConsumerState,
   initialWorkflowSavedDraftListState,
   listWorkflowDraftDevRecords,
@@ -34,6 +35,7 @@ import {
   type WorkflowSavedDraftListState,
   type WorkflowSavedDraftSummary,
   type WorkflowSavedDraftConsumerState,
+  type WorkflowSavedDraftConflictReviewSummary,
 } from "../features/control-plane-read/savedWorkflowDraftConsumer";
 import { buildModelGatewayOverviewViewModel } from "../features/control-plane-read/modelGatewayOverview";
 import { ModelGatewayOverviewPanel } from "../features/control-plane-read/modelGatewayOverviewPanel";
@@ -388,6 +390,10 @@ export function App() {
         workspaceRunHistory,
         localWorkflowDrafts: workspaceCreatedDrafts,
         activeWorkflowDraftOverride: editableWorkflowDraft,
+        savedDraftConsumerState,
+        savedDraftListStatus: savedDraftListState.status,
+        savedDraftListFailureCode: savedDraftListState.failureCode,
+        savedDraftSummaries: savedDraftListState.summaries,
         selection: {
           applicationRef: selectedApplicationRef,
           workflowDefinitionId: selectedWorkflowDefinitionId,
@@ -404,6 +410,10 @@ export function App() {
       workspaceRunHistory,
       workspaceCreatedDrafts,
       editableWorkflowDraft,
+      savedDraftConsumerState,
+      savedDraftListState.failureCode,
+      savedDraftListState.status,
+      savedDraftListState.summaries,
       selectedApplicationRef,
       selectedWorkflowDefinitionId,
       selectedRunId,
@@ -430,8 +440,18 @@ export function App() {
     workflowScenarioInspector,
     workflowWorkspaceReview,
     workflowUserWorkspaceHome,
+    savedDraftConflictReviewSummary,
     workflowReviewHandoff,
   } = workflowWorkspaceContext;
+  const savedDraftConflictRestoreSummary = useMemo(
+    () =>
+      savedDraftListState.summaries.find(
+        (summary) =>
+          summary.draftId === activeWorkflowDraft.draftId &&
+          summary.applicationRef === activeWorkflowDraft.applicationRef,
+      ) ?? null,
+    [activeWorkflowDraft.applicationRef, activeWorkflowDraft.draftId, savedDraftListState.summaries],
+  );
   const createdWorkspaceDraftCountsByDefinition = useMemo(
     () =>
       workspaceCreatedDrafts.reduce<Record<string, number>>((counts, draft) => {
@@ -835,6 +855,18 @@ export function App() {
         }));
       });
   };
+  const handleContinueLocalWorkflowDraftAfterConflict = () => {
+    setSavedDraftConsumerState((state) =>
+      continueLocalWorkflowDraftAfterVersionConflict(state, activeWorkflowDraft),
+    );
+    setWorkflowDraftEditDirty(true);
+  };
+  const handleRestoreConflictSavedWorkflowDraft = () => {
+    if (!savedDraftConflictRestoreSummary) {
+      return;
+    }
+    handleRestoreSavedWorkflowDraft(savedDraftConflictRestoreSummary);
+  };
   const handleValidateWorkflowDraft = () => {
     if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
       return;
@@ -874,6 +906,10 @@ export function App() {
     saveWorkflowDraftDevRecord(activeWorkflowDraft, savedDraftConsumerConfig, expectedDraftVersion)
       .then((nextState) => {
         setSavedDraftConsumerState(nextState);
+        if (nextState.status === "version_conflict") {
+          refreshSavedWorkflowDraftList(activeWorkflowDraft.applicationRef);
+          return;
+        }
         if (nextState.status === "saved_dev_record") {
           setWorkspaceCreatedDrafts((drafts) =>
             drafts.map((draft) =>
@@ -1503,6 +1539,8 @@ export function App() {
             validationInspector={activeWorkflowDraftValidationInspector}
             selectedDraftId={selectedWorkflowDraft.draftId}
             savedDraftConsumerState={savedDraftConsumerState}
+            savedDraftConflictReviewSummary={savedDraftConflictReviewSummary}
+            savedDraftConflictRestoreSummary={savedDraftConflictRestoreSummary}
             draftEditDirty={workflowDraftEditDirty}
             onSelectDraft={handleSelectWorkflowDraft}
             onUpdateDraftLabel={handleWorkflowDraftLabelChange}
@@ -1524,6 +1562,8 @@ export function App() {
             onMoveNode={handleWorkflowDraftMoveNode}
             onRemoveNode={handleWorkflowDraftRemoveNode}
             onResetDraftEdits={handleWorkflowDraftEditReset}
+            onContinueLocalDraftAfterConflict={handleContinueLocalWorkflowDraftAfterConflict}
+            onRestoreConflictSavedDraft={handleRestoreConflictSavedWorkflowDraft}
             onValidateDraft={handleValidateWorkflowDraft}
             onSaveDraft={handleSaveWorkflowDraft}
             onReadDraft={handleReadWorkflowDraft}
@@ -2934,6 +2974,8 @@ function WorkflowDraftDesignerPanel({
   validationInspector,
   selectedDraftId,
   savedDraftConsumerState,
+  savedDraftConflictReviewSummary,
+  savedDraftConflictRestoreSummary,
   draftEditDirty,
   onSelectDraft,
   onUpdateDraftLabel,
@@ -2955,6 +2997,8 @@ function WorkflowDraftDesignerPanel({
   onMoveNode,
   onRemoveNode,
   onResetDraftEdits,
+  onContinueLocalDraftAfterConflict,
+  onRestoreConflictSavedDraft,
   onValidateDraft,
   onSaveDraft,
   onReadDraft,
@@ -2964,6 +3008,8 @@ function WorkflowDraftDesignerPanel({
   validationInspector: WorkflowDraftValidationInspectorViewModel;
   selectedDraftId: string;
   savedDraftConsumerState: WorkflowSavedDraftConsumerState;
+  savedDraftConflictReviewSummary: WorkflowSavedDraftConflictReviewSummary | null;
+  savedDraftConflictRestoreSummary: WorkflowSavedDraftSummary | null;
   draftEditDirty: boolean;
   onSelectDraft: (draftId: string) => void;
   onUpdateDraftLabel: (label: string) => void;
@@ -2985,6 +3031,8 @@ function WorkflowDraftDesignerPanel({
   onMoveNode: (nodeId: string, direction: WorkflowDraftNodeMoveDirection) => void;
   onRemoveNode: (nodeId: string) => void;
   onResetDraftEdits: () => void;
+  onContinueLocalDraftAfterConflict: () => void;
+  onRestoreConflictSavedDraft: () => void;
   onValidateDraft: () => void;
   onSaveDraft: () => void;
   onReadDraft: () => void;
@@ -2992,6 +3040,9 @@ function WorkflowDraftDesignerPanel({
   const canCallDevConsumer = savedDraftConsumerState.mode === "dev_saved_draft_http";
   const operationPending = ["saving", "validating", "reading"].includes(savedDraftConsumerState.status);
   const editStateLabel = draftEditDirty ? "unsaved local" : selectedDraft.localOnlyInteraction;
+  const conflictRestoreUnavailableMessage =
+    savedDraftConflictReviewSummary?.restoreUnavailableReason ??
+    "Saved version metadata is refreshing from the dev-only saved draft list before restore is enabled.";
   return (
     <div
       className="workflow-draft-designer"
@@ -3111,6 +3162,102 @@ function WorkflowDraftDesignerPanel({
           </div>
         </article>
       </div>
+
+      {savedDraftConflictReviewSummary ? (
+        <div className="workflow-draft-conflict-review" aria-label="Saved draft conflict review">
+          <article className="workflow-draft-card workflow-draft-conflict-review-card">
+            <div className="workflow-draft-row-main">
+              <div>
+                <span>Saved draft conflict review</span>
+                <strong>{savedDraftConflictReviewSummary.failureCode}</strong>
+              </div>
+              <StatusBadge
+                tone={
+                  savedDraftConflictReviewSummary.status === "local_draft_continued"
+                    ? "neutral"
+                    : "bad"
+                }
+              >
+                {savedDraftConflictReviewSummary.status}
+              </StatusBadge>
+            </div>
+            <dl className="workflow-run-guard-meta">
+              <div>
+                <dt>Local draft</dt>
+                <dd>{savedDraftConflictReviewSummary.draftId}</dd>
+              </div>
+              <div>
+                <dt>Saved version</dt>
+                <dd>{savedDraftConflictReviewSummary.savedDraftVersion}</dd>
+              </div>
+              <div>
+                <dt>Updated</dt>
+                <dd>{savedDraftConflictReviewSummary.savedUpdatedAt}</dd>
+              </div>
+              <div>
+                <dt>Actor</dt>
+                <dd>{savedDraftConflictReviewSummary.savedUpdatedByActorRef}</dd>
+              </div>
+              <div>
+                <dt>Validation</dt>
+                <dd>{savedDraftConflictReviewSummary.savedValidationState}</dd>
+              </div>
+              <div>
+                <dt>Blocked</dt>
+                <dd>{savedDraftConflictReviewSummary.savedBlockedCapabilityCount ?? "not loaded"}</dd>
+              </div>
+              <div>
+                <dt>Metadata</dt>
+                <dd>{savedDraftConflictReviewSummary.savedMetadataState}</dd>
+              </div>
+              <div>
+                <dt>Restore</dt>
+                <dd>{savedDraftConflictReviewSummary.restoreActionState}</dd>
+              </div>
+            </dl>
+            <p>{savedDraftConflictReviewSummary.summary}</p>
+            <p>{savedDraftConflictReviewSummary.localDraftPreservationSummary}</p>
+            <div className="workflow-workspace-review-token-list" aria-label="Saved draft conflict review locks">
+              <code>auto_overwrite_locked</code>
+              <code>auto_merge_locked</code>
+              <code>{savedDraftConflictReviewSummary.restoreActionState}</code>
+            </div>
+            <div className="workflow-draft-conflict-action-row" aria-label="Saved draft conflict review actions">
+              <button
+                type="button"
+                disabled={
+                  operationPending ||
+                  savedDraftConflictReviewSummary.status === "local_draft_continued"
+                }
+                onClick={onContinueLocalDraftAfterConflict}
+              >
+                Continue local draft
+              </button>
+              <button
+                type="button"
+                disabled={
+                  operationPending ||
+                  !savedDraftConflictRestoreSummary ||
+                  !savedDraftConflictReviewSummary.canRestoreFromSavedDraft
+                }
+                onClick={onRestoreConflictSavedDraft}
+              >
+                Restore saved version
+              </button>
+            </div>
+            {!savedDraftConflictReviewSummary.canRestoreFromSavedDraft ? (
+              <p>{conflictRestoreUnavailableMessage}</p>
+            ) : (
+              <p>
+                Restore saved version is available from sanitized saved draft metadata; it still replaces the
+                active draft only after explicit selection.
+              </p>
+            )}
+            <p>{savedDraftConflictReviewSummary.nextReviewerStep}</p>
+            <p>{savedDraftConflictReviewSummary.reviewerQuestion}</p>
+          </article>
+        </div>
+      ) : null}
 
       <div className="workflow-draft-structure-controls" aria-label="Workflow draft structure editing">
         <article className="workflow-draft-card">

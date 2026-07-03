@@ -231,6 +231,22 @@ function Wait-Until {
     throw "$Name probe failed after ${TimeoutSeconds}s. Last error: $lastError"
 }
 
+function Assert-ExistingBackend {
+    param(
+        [string]$HealthzUrl,
+        [Uri]$BackendUri
+    )
+    try {
+        Invoke-JsonProbe -Url $HealthzUrl -ExpectedKind "" | Out-Null
+        Write-Step "Existing backend healthz probe passed."
+    }
+    catch {
+        [Console]::Error.WriteLine("Backend port $($BackendUri.Port) is open, but $HealthzUrl did not answer like RadishMind platform.")
+        [Console]::Error.WriteLine("Last error: $($_.Exception.Message)")
+        throw "backend port $($BackendUri.Port) is occupied by a non-RadishMind service. Stop that process or pass -BackendUrl with a free local port."
+    }
+}
+
 function Start-LoggedProcess {
     param(
         [string]$Name,
@@ -277,6 +293,7 @@ function Show-FailureHelp {
     [Console]::Error.WriteLine("")
     [Console]::Error.WriteLine("Common local failures:")
     [Console]::Error.WriteLine("- Port conflict: backend should answer on http://127.0.0.1:7000 and web on http://127.0.0.1:4100.")
+    [Console]::Error.WriteLine("- macOS port 7000 conflict: AirPlay / Control Center may occupy it; retry with -BackendUrl http://127.0.0.1:7100.")
     [Console]::Error.WriteLine("- Dev-live auth: backend must be started with RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1 for fake-store-backed read routes.")
     [Console]::Error.WriteLine("- CORS/preflight: platform should allow http://127.0.0.1:4100 and dev read headers in local development.")
     [Console]::Error.WriteLine("- Missing dependencies: run npm install in apps/radishmind-web if npm cannot start Vite.")
@@ -320,6 +337,7 @@ try {
             $backendPortOpen = Test-TcpPort -HostName $backendUri.Host -Port $backendUri.Port
             if ($backendPortOpen) {
                 Write-Step "Backend port $($backendUri.Port) is already open; reusing it if probes pass."
+                Assert-ExistingBackend -HealthzUrl $healthzUrl -BackendUri $backendUri
             }
             else {
                 Start-LoggedProcess `

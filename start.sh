@@ -70,6 +70,7 @@ print_menu() {
   echo "  7. Fast repo check       (./scripts/check-repo.sh --fast)"
   echo
   echo "Tip: Product Web dev-live is the default choice for frontend/backend integration."
+  echo "Tip: If macOS Control Center / AirPlay occupies backend 7000, run ./start.sh web-live --backend-url http://127.0.0.1:7100."
   echo
 }
 

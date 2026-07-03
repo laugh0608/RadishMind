@@ -37,6 +37,7 @@ export type WorkflowSavedDraftConsumerStatus =
   | "saved_dev_record"
   | "validation_ready"
   | "version_conflict"
+  | "conflict_local_continued"
   | "save_failed"
   | "read_failed"
   | "validation_failed";
@@ -92,9 +93,49 @@ export type WorkflowSavedDraftListState = {
   summaries: WorkflowSavedDraftSummary[];
 };
 
+export type WorkflowSavedDraftConflictMetadataState =
+  | "loaded"
+  | "refreshing"
+  | "empty"
+  | "failed"
+  | "disabled"
+  | "missing";
+
 export type WorkflowSavedDraftRestoreResult = {
   state: WorkflowSavedDraftConsumerState;
   draft: WorkflowDraftDesignerDraft | null;
+};
+
+export type WorkflowSavedDraftConflictReviewSummary = {
+  reviewId: "saved_draft_conflict_review";
+  status: "needs_review" | "local_draft_continued";
+  failureCode: "draft_version_conflict";
+  draftId: string;
+  applicationRef: string;
+  workspaceId: string;
+  localDraftLabel: string;
+  localNodeCount: number;
+  localEdgeCount: number;
+  savedDraftVersion: number;
+  savedUpdatedAt: string;
+  savedUpdatedByActorRef: string;
+  savedValidationState: string;
+  savedValidForReview: boolean | null;
+  savedBlockedCapabilityCount: number | null;
+  savedMetadataLoaded: boolean;
+  savedMetadataState: WorkflowSavedDraftConflictMetadataState;
+  restoreActionState: "restore_available" | "restore_requires_saved_list";
+  restoreUnavailableReason: string | null;
+  localDraftPreservationSummary: string;
+  nextReviewerStep: string;
+  requestId: string;
+  auditRef: string;
+  summary: string;
+  reviewerQuestion: string;
+  canContinueLocalDraft: boolean;
+  canRestoreFromSavedDraft: boolean;
+  canAutoOverwriteLocalDraft: false;
+  canAutoMergeDraft: false;
 };
 
 type SavedWorkflowDraftEnvelope = {
@@ -408,7 +449,155 @@ export async function restoreWorkflowDraftDevRecord(
 }
 
 export function nextWorkflowSavedDraftExpectedVersion(state: WorkflowSavedDraftConsumerState): number {
-  return state.status === "saved_dev_record" || state.status === "version_conflict" ? state.currentDraftVersion : 0;
+  return state.status === "saved_dev_record" ||
+    state.status === "version_conflict" ||
+    state.status === "conflict_local_continued"
+    ? state.currentDraftVersion
+    : 0;
+}
+
+export function continueLocalWorkflowDraftAfterVersionConflict(
+  state: WorkflowSavedDraftConsumerState,
+  draft: WorkflowDraftDesignerDraft,
+): WorkflowSavedDraftConsumerState {
+  if (state.status !== "version_conflict") {
+    return state;
+  }
+  const savedDraftVersion = state.conflictDraftVersion ?? state.currentDraftVersion;
+  return {
+    ...state,
+    status: "conflict_local_continued",
+    sourceLabel: "local draft continued",
+    summary: `Local draft ${draft.draftId} remains active after explicit conflict review; retry save against saved version ${savedDraftVersion} or restore the saved draft explicitly.`,
+    failureCode: "draft_version_conflict",
+    currentDraftVersion: savedDraftVersion,
+    conflictDraftVersion: savedDraftVersion,
+  };
+}
+
+export function buildWorkflowSavedDraftConflictReviewSummary(
+  state: WorkflowSavedDraftConsumerState,
+  draft: WorkflowDraftDesignerDraft,
+  savedDraftSummaries: WorkflowSavedDraftSummary[],
+  savedDraftListStatus?: WorkflowSavedDraftListStatus,
+  savedDraftListFailureCode?: string | null,
+): WorkflowSavedDraftConflictReviewSummary | null {
+  if (state.status !== "version_conflict" && state.status !== "conflict_local_continued") {
+    return null;
+  }
+  const savedSummary = savedDraftSummaries.find(
+    (summary) => summary.draftId === draft.draftId && summary.applicationRef === draft.applicationRef,
+  );
+  const savedDraftVersion = state.conflictDraftVersion ?? state.currentDraftVersion;
+  const status =
+    state.status === "conflict_local_continued" ? "local_draft_continued" : "needs_review";
+  const savedMetadataLoaded = savedSummary !== undefined;
+  const savedMetadataState = savedMetadataLoaded
+    ? "loaded"
+    : conflictMetadataStateFromSavedDraftListStatus(savedDraftListStatus);
+  const restoreActionState = savedMetadataLoaded ? "restore_available" : "restore_requires_saved_list";
+  const restoreUnavailableReason = savedMetadataLoaded
+    ? null
+    : conflictRestoreUnavailableReason(savedMetadataState, savedDraftListFailureCode);
+  const savedMetadataLabel = savedSummary
+    ? `saved version ${savedSummary.draftVersion} updated at ${savedSummary.updatedAt} by ${savedSummary.updatedByActorRef}`
+    : `saved version ${savedDraftVersion} metadata is not loaded in the sanitized saved draft list`;
+  const localDraftPreservationSummary =
+    status === "local_draft_continued"
+      ? `Local draft ${draft.draftId} remains active after explicit continue; the next save retries against saved version ${savedDraftVersion}.`
+      : `Local draft ${draft.draftId} remains active and unchanged; no saved version has been restored or merged.`;
+  const nextReviewerStep =
+    status === "local_draft_continued"
+      ? "Review the local edits before the next save attempt; restoring the saved version remains an explicit separate action."
+      : savedMetadataLoaded
+        ? "Choose continue local draft to keep the current browser edits, or restore saved version to replace the active draft explicitly."
+        : conflictNextReviewerStep(savedMetadataState);
+  return {
+    reviewId: "saved_draft_conflict_review",
+    status,
+    failureCode: "draft_version_conflict",
+    draftId: draft.draftId,
+    applicationRef: draft.applicationRef,
+    workspaceId: savedSummary?.workspaceId ?? "dev_saved_draft_workspace",
+    localDraftLabel: draft.label,
+    localNodeCount: draft.nodes.length,
+    localEdgeCount: draft.edges.length,
+    savedDraftVersion: savedSummary?.draftVersion ?? savedDraftVersion,
+    savedUpdatedAt: savedSummary?.updatedAt ?? "not_loaded",
+    savedUpdatedByActorRef: savedSummary?.updatedByActorRef ?? "not_loaded",
+    savedValidationState: savedSummary?.validationState ?? "not_loaded",
+    savedValidForReview: savedSummary?.validForReview ?? null,
+    savedBlockedCapabilityCount: savedSummary?.blockedCapabilityCount ?? null,
+    savedMetadataLoaded,
+    savedMetadataState,
+    restoreActionState,
+    restoreUnavailableReason,
+    localDraftPreservationSummary,
+    nextReviewerStep,
+    requestId: state.requestId,
+    auditRef: state.auditRef,
+    summary: `Version conflict review keeps local draft ${draft.draftId} active with ${draft.nodes.length} nodes and ${draft.edges.length} edges while ${savedMetadataLabel} remains the remote saved draft source.`,
+    reviewerQuestion:
+      "Should the reviewer keep editing the local draft or explicitly restore the saved draft before another save attempt?",
+    canContinueLocalDraft: true,
+    canRestoreFromSavedDraft: savedMetadataLoaded,
+    canAutoOverwriteLocalDraft: false,
+    canAutoMergeDraft: false,
+  };
+}
+
+function conflictMetadataStateFromSavedDraftListStatus(
+  status: WorkflowSavedDraftListStatus | undefined,
+): WorkflowSavedDraftConflictMetadataState {
+  switch (status) {
+    case "sample":
+      return "disabled";
+    case "loading":
+      return "refreshing";
+    case "empty":
+      return "empty";
+    case "list_failed":
+    case "restore_failed":
+      return "failed";
+    case "ready":
+      return "missing";
+    default:
+      return "refreshing";
+  }
+}
+
+function conflictRestoreUnavailableReason(
+  metadataState: WorkflowSavedDraftConflictMetadataState,
+  failureCode: string | null | undefined,
+): string {
+  switch (metadataState) {
+    case "disabled":
+      return "Saved draft list is disabled outside the dev-only saved draft route; restore stays unavailable.";
+    case "empty":
+      return "Saved draft list returned no sanitized summary for this draft; restore stays disabled and the local draft remains active.";
+    case "failed":
+      return `Saved version metadata refresh failed with ${failureCode ?? "unknown_failure"}; restore stays disabled and no sample fallback was used.`;
+    case "missing":
+      return "Saved draft list is ready but does not include this draft summary; restore stays disabled until matching sanitized metadata is available.";
+    case "refreshing":
+    case "loaded":
+      return "Saved version metadata is refreshing from the dev-only saved draft list before restore is enabled.";
+  }
+}
+
+function conflictNextReviewerStep(metadataState: WorkflowSavedDraftConflictMetadataState): string {
+  switch (metadataState) {
+    case "disabled":
+      return "Enable the dev-only saved draft route before trying to restore; local browser edits stay active.";
+    case "empty":
+    case "missing":
+      return "Refresh saved drafts or keep editing locally; restore remains blocked until a matching sanitized summary is available.";
+    case "failed":
+      return "Resolve the saved draft list failure before restore; keep reviewing the local draft without auto overwrite or auto merge.";
+    case "refreshing":
+    case "loaded":
+      return "Keep reviewing the local draft while the saved draft list refreshes; restore stays disabled until sanitized saved metadata is available.";
+  }
 }
 
 function listStateFromSavedWorkflowDraftEnvelope(

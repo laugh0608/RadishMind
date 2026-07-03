@@ -26,7 +26,7 @@
 - workflow definition detail 由 `workspace-workflow-definitions` summary 派生，展示 definition identity、application ref、version、nodes、edges、input / output summary、risk summary、blocked action preview 和 audit metadata。
 - workflow run detail 由 `workspace-run-history` summary 派生，展示 run identity、state timeline、cost / token snapshot、trace / failure / audit metadata、blocked replay / result preview 和 request / route metadata。
 - workflow blocked action preview 与 confirmation placeholder 只展示未来动作和确认流的形状、风险、human review requirement、missing prerequisites 和 audit trail，不提供 decision submit、approve、reject、defer 或 execution unlock。
-- workflow draft designer、draft validation inspector、execution plan preview 与 runtime readiness inspector 默认是 offline inspection surface；Draft Designer 现在支持草案名称、说明、节点名称、边条件摘要、本地结构和节点属性的受控编辑，并可在显式 dev-only saved draft 配置下 validate / save / read / restore。该保存只写 platform memory dev store，用于 sample / local / saved / failed / version conflict 状态区分，不代表 durable draft persistence、production API、publish、run 或 executor ready。
+- workflow draft designer、draft validation inspector、execution plan preview 与 runtime readiness inspector 默认是 offline inspection surface；Draft Designer 现在支持草案名称、说明、节点名称、边条件摘要、本地结构和节点属性的受控编辑，并可在显式 dev-only saved draft 配置下 validate / save / read / restore。该保存只写 platform memory dev store，用于 sample / local / saved / failed / version conflict / `conflict_local_continued` 状态区分，不代表 durable draft persistence、production API、publish、run 或 executor ready。
 - `workflowWorkspaceContext` 是 workflow 离线组合层的共享入口，统一解析 application、workflow definition、run、draft 和 scenario selection，并统一构建 detail、blocked action、confirmation placeholder、draft validation、execution plan、runtime readiness、surface overview、scenario inspector、review workspace、User Workspace Home 和 Review Handoff；`workflow-workspace-context-consistency-v1` 会校验 App 不重新手拼这些派生链路。
 - Product Surface Usage Gap Triage 已由 `product-surface-usage-gap-triage-v1` 固定：User Workspace、Workflow Review、Model Gateway 和 Admin 的使用走查只允许在发现真实阅读缺口后修正现有 view model、canonical fixture、文案、导航分组或文档读法，不新增同层产品面，不打开实现入口。
 - Workflow Surface Overview 是普通离线只读总览区域，复用 workflow application detail、definition detail、run detail、selected draft、validation inspector、execution plan preview 和 runtime readiness inspector view model，把 application、definition、draft、validation、plan、readiness、latest run 和 blocked capability 的关系集中展示；它不新增专项 gate，不请求 live backend，不新增 Go route，不创建持久化结果。
@@ -51,7 +51,7 @@
 - `modelGatewayEvidenceReview.ts` / `modelGatewayEvidenceReviewPanel.tsx` 只复用前三个 Model Gateway view model，集中生成 readiness rollup、evidence checklist、route / usage / audit risk 和 locked capability。
 - `adminOperationsReview.ts` / `adminOperationsReviewPanel.tsx` 只复用 tenant overview、admin audit log、Model Gateway Evidence Review 和 Production Ops 静态证据，生成管理端 review/readiness 摘要。
 - `adminProviderDeploymentReview.ts` / `adminProviderDeploymentReviewPanel.tsx` 只复用 Model Gateway Route Evidence、Model Gateway Evidence Review、Admin Operations Review、tenant overview 和 audit log，生成 provider/profile、model route、secret ref readiness、deployment status、operator risk 和 locked capability 摘要。
-- `savedWorkflowDraftConsumer.ts` 只在 `VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE=dev-saved-draft-http` 下连接 dev-only saved draft route，负责 sample / unsaved / validating / saving / reading / saved / version conflict / failed，以及 saved draft list `sample` / `loading` / `ready` / `empty` / `list_failed` / `restore_failed` 状态映射；默认 sample-only，不承担 production persistence。
+- `savedWorkflowDraftConsumer.ts` 只在 `VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE=dev-saved-draft-http` 下连接 dev-only saved draft route，负责 sample / unsaved / validating / saving / reading / saved / version conflict / `conflict_local_continued` / failed，以及 saved draft list `sample` / `loading` / `ready` / `empty` / `list_failed` / `restore_failed` 状态映射；冲突审查 summary 只派生 `savedMetadataState`、`restoreActionState`、`restoreUnavailableReason`、本地草案保留说明和 reviewer 下一步，默认 sample-only，不承担 production persistence。
 - `workflowDraftDesigner.ts` 与 `App.tsx` 负责受控本地编辑、本地节点新增 / 移动 / 删除保护、边重建、节点属性编辑、active draft validate / save / read、版本冲突时保留本地草案，以及 saved dev draft restore 后进入 Draft Designer；`workflowUserWorkspaceHome.ts` / `workflowUserWorkspaceHomePanel.tsx` 负责从 Workspace Home 与 workflow definitions 派生本地草案，并展示 saved draft list / restore 入口。
 - `App.tsx` 只负责把这些 view model 接入分组导航和页面渲染；如果新增真实后端 route、持久化状态或执行能力，应先落契约、fixture、checker 和边界文档，而不是直接在 App 或 panel 中接线。
 
@@ -67,6 +67,14 @@ User Workspace Home / Workflow Review Workspace 读法：
 - 最后看 Review Handoff，确认给人工审查的 recipients、key findings、evidence checklist、decision blockers 和 boundary locks 已经与当前选中上下文一致。
 - blocked capability rollup 和 stop line rollup 是审查结论入口，只解释为什么当前不能 publish / execute / confirm / writeback / replay，不提供解锁或提交按钮。
 
+Saved draft 冲突读法：
+
+- 只有 dev-only saved draft consumer 启用后，Draft Designer 的保存、读取、校验和列表才会连接 platform memory dev store；离线模式仍只展示 sample / local draft。
+- 保存返回 `version_conflict` 时，页面必须保留当前本地 active draft，并展示 saved version metadata、validation state 和 blocked capability count；它不是保存成功，也不是自动覆盖。
+- 选择继续本地草案后，consumer 状态进入 `conflict_local_continued`，后续保存会使用当前 saved version 作为 expected version；这仍不是 auto merge。
+- 恢复 saved version 必须由用户显式触发，并依赖冲突后刷新的当前 application saved draft list；列表只包含 sanitized summary，不暴露 secret、token、完整 claim 或 runtime material。metadata 刷新中、列表为空、列表失败或缺少匹配 summary 时，恢复入口保持禁用并显示原因。
+- Review Handoff 会显示同一份 conflict review summary，帮助 reviewer 理解冲突来源、下一步选择和 auto overwrite / auto merge 停止线；它不保存、不导出、不发送 handoff。
+
 本地启动从仓库根目录执行：
 
 ```bash
@@ -76,6 +84,18 @@ pwsh ./start.ps1 -Command web-live
 ```
 
 `web-live` 会启动或复用 platform 后端和 `apps/radishmind-web/` 前端，并集中设置 dev-only live read 所需的本地环境变量。它只连接 fake-store-backed handler 和测试身份上下文，不代表 production API consumer、真实数据库、Radish auth、repository adapter 或 workflow executor ready。
+
+如果 macOS `Control Center` / AirPlay 占用了默认 backend 端口 `7000`，不要继续用交互菜单重试；改用显式端口：
+
+```bash
+./start.sh web-live --backend-url http://127.0.0.1:7100
+```
+
+PowerShell 使用：
+
+```powershell
+pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -BackendUrl http://127.0.0.1:7100
+```
 
 如需同时验证 saved draft dev-only 保存路径，后端还需要显式启用：
 
