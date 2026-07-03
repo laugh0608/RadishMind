@@ -4,7 +4,7 @@
 
 ## 任务目标
 
-固定 audit store storage adapter runtime task card 前的 metadata contract artifact readiness。  
+固定 audit store storage adapter runtime task card 前的 metadata contract artifact readiness。
 本批只定义 reserved contract artifact path（`reserved_static_path`）、metadata-only input / result envelope、record identity、failure taxonomy、writer compatibility、append-only / retention / redaction reference、sanitized diagnostics、no fallback 和 artifact guard，不创建实际 contract schema 文件、runtime、DB provider、SQL、repository mode 或 public production API。
 
 对应平台专题：`docs/platform/production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-readiness-v1.md`。
