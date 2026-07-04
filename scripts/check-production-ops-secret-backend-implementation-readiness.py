@@ -193,6 +193,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-concrete-database-selection-review": (
         "audit_store_storage_adapter_concrete_database_selection_review_defined"
     ),
+    "audit-store-storage-adapter-database-provider-selection-readiness": (
+        "audit_store_storage_adapter_database_provider_selection_readiness_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -339,6 +342,9 @@ REQUIRED_DOC_REFERENCES = {
         "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-review-v1",
         "audit_store_storage_adapter_concrete_database_selection_review_defined",
         "storage_adapter_database_provider_selection_readiness",
+        "production-secret-backend-audit-store-storage-adapter-database-provider-selection-readiness-v1",
+        "audit_store_storage_adapter_database_provider_selection_readiness_defined",
+        "storage_adapter_database_provider_selection_review",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -1419,7 +1425,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_concrete_database_selection_review",
+        == "storage_adapter_runtime_task_card_still_blocked_after_database_provider_selection_readiness",
         "audit storage adapter runtime task card decision drifted",
     )
     require(
@@ -1443,7 +1449,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_database_provider_selection_readiness",
+        == "storage_adapter_database_provider_selection_review",
         "audit storage adapter current next dependency drifted",
     )
     require(
@@ -1478,6 +1484,40 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("audit_storage_adapter_database_selection_review_status")
         == "audit_store_storage_adapter_concrete_database_selection_review_defined",
         "audit storage adapter database selection review status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_database_provider_selection_readiness_status")
+        == "audit_store_storage_adapter_database_provider_selection_readiness_defined",
+        "audit store storage adapter database provider selection readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_provider_selection_readiness_status")
+        == "audit_store_storage_adapter_database_provider_selection_readiness_defined",
+        "audit storage adapter database provider selection readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_provider_selection_status")
+        == "readiness_defined_without_provider_selection",
+        "audit storage adapter database provider selection status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_candidate_source_status")
+        == "metadata_only_provider_candidate_source_defined",
+        "audit storage adapter provider candidate source status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_input_evidence_status")
+        == "metadata_only_provider_input_evidence_defined",
+        "audit storage adapter provider input evidence status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_evaluation_dimension_status")
+        == "metadata_only_provider_evaluation_dimensions_defined",
+        "audit storage adapter provider evaluation dimension status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_selection_review_status") == "not_started",
+        "audit storage adapter provider selection review status drifted",
     )
     require(
         target.get("audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_status")

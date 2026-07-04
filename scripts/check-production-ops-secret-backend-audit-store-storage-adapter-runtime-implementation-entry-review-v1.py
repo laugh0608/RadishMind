@@ -38,12 +38,12 @@ FOLLOWUP_AFTER_SELECTION_FIXTURE = (
 FOLLOWUP_AFTER_SELECTION_STATUS = (
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
 )
-FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_database_provider_selection_readiness"
+FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_database_provider_selection_review"
 FOLLOWUP_AFTER_SELECTION_BLOCKER_STATUS = (
-    "storage_adapter_concrete_database_selection_review_defined_task_card_blocked"
+    "storage_adapter_database_provider_selection_readiness_defined_task_card_blocked"
 )
 FOLLOWUP_AFTER_SELECTION_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-review-v1"
+    "production-secret-backend-audit-store-storage-adapter-database-provider-selection-readiness-v1"
 )
 FOLLOWUP_ALIGNMENT = {
     "audit_storage_adapter_metadata_contract_artifact_status": "materialized_static_metadata_contract",
@@ -64,7 +64,7 @@ FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
         FOLLOWUP_AFTER_SELECTION_STATUS
     ),
     "audit_storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_concrete_database_selection_review"
+        "storage_adapter_runtime_task_card_still_blocked_after_database_provider_selection_readiness"
     ),
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY,
     "audit_storage_adapter_database_provider_driver_dsn_tls_role_policy_status": (

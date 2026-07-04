@@ -39,14 +39,14 @@ RUNTIME_TASK_CARD_DECISION = (
     "storage_adapter_runtime_task_card_still_blocked_after_negative_leakage_runtime_scan_boundary"
 )
 MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_concrete_database_selection_review_defined_task_card_blocked"
+    "storage_adapter_database_provider_selection_readiness_defined_task_card_blocked"
 )
 MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-review-v1"
+    "production-secret-backend-audit-store-storage-adapter-database-provider-selection-readiness-v1"
 )
-MATRIX_NEXT_DEPENDENCY = "storage_adapter_database_provider_selection_readiness"
+MATRIX_NEXT_DEPENDENCY = "storage_adapter_database_provider_selection_review"
 MATRIX_RUNTIME_TASK_CARD_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_concrete_database_selection_review"
+    "storage_adapter_runtime_task_card_still_blocked_after_database_provider_selection_readiness"
 )
 
 POSITIVE_FIXTURE = (
