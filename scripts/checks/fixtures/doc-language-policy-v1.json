@@ -7,6 +7,17 @@
     "legacy_remediation_policy": "incremental_priority_documents_first",
     "machine_checked_literals_policy": "preserve_until_checker_fixture_and_docs_are_updated_together"
   },
+  "topic_document": {
+    "path": "docs/document-language-governance-v1.md",
+    "status_anchor": "doc_language_governance_topic_v1_defined",
+    "required_snippets": [
+      "新增和触碰的文档正文默认使用中文",
+      "优先中文化短语",
+      "第二批治理边界",
+      "不做全仓机械翻译",
+      "不重命名状态锚点"
+    ]
+  },
   "preserve_original_categories": [
     "technical_term_without_stable_chinese_equivalent",
     "code_identifier",
@@ -28,6 +39,7 @@
     "AGENTS.md",
     "CLAUDE.md",
     "docs/README.md",
+    "docs/document-language-governance-v1.md",
     "docs/radishmind-current-focus.md",
     "docs/features/README.md",
     "docs/platform/README.md",
@@ -61,7 +73,19 @@
       "snippets": [
         "文档正文默认中文",
         "没有稳定中文对应的专业名词",
-        "历史英文工程短语按入口文档、专题文档、任务卡和周志顺序逐批收口"
+        "历史英文工程短语按入口文档、专题文档、任务卡和周志顺序逐批收口",
+        "文档语言治理 v1"
+      ]
+    },
+    {
+      "path": "docs/document-language-governance-v1.md",
+      "snippets": [
+        "状态锚点：`doc_language_governance_topic_v1_defined`",
+        "新增和触碰的文档正文默认使用中文",
+        "优先中文化短语",
+        "第二批治理边界",
+        "不做全仓机械翻译",
+        "不重命名状态锚点"
       ]
     },
     {
@@ -75,7 +99,8 @@
       "path": "docs/features/README.md",
       "snippets": [
         "功能文档正文默认中文",
-        "schema / fixture / checker ID"
+        "schema / fixture / checker ID",
+        "文档语言治理 v1"
       ]
     },
     {
@@ -91,16 +116,84 @@
         "文档正文默认使用中文",
         "没有稳定中文对应的专业名词",
         "不批量翻译机器检查依赖的 literal、状态锚点、fixture key 或路径",
-        "历史英文工程短语按入口文档、功能 / 平台专题、契约、任务卡和周志顺序逐批收口"
+        "历史英文工程短语按入口文档、功能 / 平台专题、契约、任务卡和周志顺序逐批收口",
+        "文档语言治理 v1"
       ]
     },
     {
       "path": "scripts/README.md",
       "snippets": [
         "check-doc-language-policy-v1.py",
-        "不做全仓机械翻译"
+        "不做全仓机械翻译",
+        "文档语言治理 v1"
       ]
     }
+  ],
+  "preferred_chinese_terms": [
+    {
+      "term_id": "readiness",
+      "preferred_zh": "准入边界",
+      "usage_boundary": "状态锚点和文件名保留原文，正文说明用中文"
+    },
+    {
+      "term_id": "entry_review",
+      "preferred_zh": "入口评审",
+      "usage_boundary": "评审类专题正文优先写中文"
+    },
+    {
+      "term_id": "runtime",
+      "preferred_zh": "运行时",
+      "usage_boundary": "路径、命令和状态锚点保留原文"
+    },
+    {
+      "term_id": "blocker_matrix",
+      "preferred_zh": "阻塞矩阵",
+      "usage_boundary": "聚合状态说明中写中文"
+    },
+    {
+      "term_id": "evidence_rollup",
+      "preferred_zh": "证据汇总",
+      "usage_boundary": "聚合事实说明中写中文"
+    },
+    {
+      "term_id": "artifact_guard",
+      "preferred_zh": "产物守卫",
+      "usage_boundary": "停止线和检查规则中写中文"
+    },
+    {
+      "term_id": "no_fallback",
+      "preferred_zh": "不回退",
+      "usage_boundary": "禁止隐式兜底时写中文"
+    },
+    {
+      "term_id": "no_side_effects",
+      "preferred_zh": "无副作用",
+      "usage_boundary": "静态检查和只读边界中写中文"
+    },
+    {
+      "term_id": "smoke",
+      "preferred_zh": "冒烟验证",
+      "usage_boundary": "验证策略正文写中文，脚本名和 fixture ID 保留原文"
+    },
+    {
+      "term_id": "public_production_api",
+      "preferred_zh": "公开生产 API",
+      "usage_boundary": "停止线正文写中文"
+    }
+  ],
+  "second_batch_boundaries": [
+    "new_or_touched_docs_use_chinese_prose",
+    "preserve_machine_checked_identifiers",
+    "prioritize_entry_and_topic_documents",
+    "document_term_changes_with_fixture_checker_sync",
+    "avoid_mass_translation"
+  ],
+  "forbidden_document_language_actions": [
+    "mass_translate_repository",
+    "rename_status_anchors_without_checker_update",
+    "translate_code_protocol_or_config_identifiers",
+    "turn_language_cleanup_into_runtime_scope",
+    "add_task_card_for_plain_copyediting"
   ],
   "does_not_require": [
     "mass_translate_legacy_docs",

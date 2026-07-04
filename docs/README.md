@@ -8,7 +8,7 @@
 
 文档默认按“短入口 + 专题页 + 证据附件”维护：入口文档保持可快速阅读，契约细节拆到稳定专题，长命令输出、批次流水和实验观察进入周志、任务卡附件、manifest、summary 或 run record。仓库级检查会对 Markdown 篇幅执行预算：入口文档超过 `250` 行失败，普通 Markdown 超过 `500` 行提示、超过 `800` 行失败，周志和任务卡超过 `350` 行提示、超过 `600` 行失败；临时超限必须在文件头写明 `markdown-size-allow:` 及拆分计划。
 
-文档正文默认中文；没有稳定中文对应的专业名词、代码、命令、路径、配置键、协议字段、状态锚点、fixture / checker ID、外部产品名和必要引用保留原文。历史英文工程短语按入口文档、专题文档、任务卡和周志顺序逐批收口，不做会破坏机器检查 literal 的机械翻译。
+文档正文默认中文；没有稳定中文对应的专业名词、代码、命令、路径、配置键、协议字段、状态锚点、fixture / checker ID、外部产品名和必要引用保留原文。历史英文工程短语按入口文档、专题文档、任务卡和周志顺序逐批收口，不做会破坏机器检查 literal 的机械翻译；具体边界见 [文档语言治理 v1](document-language-governance-v1.md)。
 
 新会话优先按以下顺序读取：
 
@@ -81,6 +81,7 @@
 - [能力矩阵](radishmind-capability-matrix.md)
 - [系统架构](radishmind-architecture.md)
 - [阶段路线图](radishmind-roadmap.md)
+- [文档语言治理 v1](document-language-governance-v1.md)
 - [功能设计文档入口](features/README.md)
 - [Workflow 细专题入口](features/workflow/README.md)
 - [Saved Workflow Draft v1 功能专题](features/workflow/saved-workflow-draft-v1.md)

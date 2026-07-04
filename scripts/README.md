@@ -17,7 +17,7 @@
   - `bootstrap-dev.sh` 与 `bootstrap-dev.ps1` 是首次拉取后的开发环境入口：它们创建仓库根 `.venv`，并用 `.venv` 安装 `requirements-dev.txt` 声明的 Python 检查依赖
   - `run-python.sh` 与 `run-python.ps1` 是 Python 脚本 wrapper，默认只使用仓库根 `.venv`，用于避免独立脚本隐式落到全局 Python
   - `check-repo.py` 支持 `--fast`，用于日常快速验证；`check-repo.sh --fast`、`check-repo-fast.sh`、`pwsh ./scripts/check-repo.ps1 -Fast` 与 `pwsh ./scripts/check-repo-fast.ps1` 默认使用仓库根 `.venv`，没有 `.venv` 时要求先执行 bootstrap；这些入口会跳过慢速回归和批量元数据重跑，但仍保留核心静态门禁
-  - 当前还提供 `check-doc-language-policy-v1.py`，用于固定文档正文中文优先、必要英文标识符保留原文、历史英文工程短语逐批收口和优先入口文档提示；该检查不做全仓机械翻译，也不改写状态锚点、fixture key、路径或机器检查依赖的 literal
+  - 当前还提供 `check-doc-language-policy-v1.py`，用于固定文档正文中文优先、必要英文标识符保留原文、历史英文工程短语逐批收口、[文档语言治理 v1](../docs/document-language-governance-v1.md) 专题引用和优先入口文档提示；该检查不做全仓机械翻译，也不改写状态锚点、fixture key、路径或机器检查依赖的 literal
   - GitHub Actions 当前把 PR / dev 集成检查拆为 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build` 与 `Platform Go Tests`：仓库治理仍走 `check-text-files` 和 `check-repo`，正式 web 产品面显式执行 `apps/radishmind-web/` 下的 `npm ci` / `npm run build`，Go 平台层显式执行 `services/platform/` 下的 `go test ./...`
   - `Release Checks` 只复用同级预发布验证 job，不发布镜像、不部署、不访问 live backend、不写入 secret，也不声明 production ready
   - 当前还提供 `run-platform-service.sh` 与 `run-platform-service.ps1`，作为本地 Go platform service wrapper；支持 `serve`、`config-summary`、`config-check` 与 `diagnostics`，并统一处理 repo root、`services/platform` 工作目录、默认 `GOCACHE` 和默认本地配置文件
