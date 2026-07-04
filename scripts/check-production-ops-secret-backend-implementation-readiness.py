@@ -178,6 +178,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-table-schema-artifact-materialization": (
         "audit_store_storage_adapter_table_schema_artifact_materialized"
     ),
+    "audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness": (
+        "audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -1057,7 +1060,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_offline_adapter_smoke_strategy_status")
-        == "required_before_runtime_task_card",
+        == "offline_adapter_smoke_strategy_defined_without_runtime",
         "audit storage adapter offline adapter smoke strategy status drifted",
     )
     require(
@@ -1355,7 +1358,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization",
+        == "storage_adapter_runtime_task_card_still_blocked_after_offline_adapter_smoke_strategy_readiness",
         "audit storage adapter runtime task card decision drifted",
     )
     require(
@@ -1379,8 +1382,46 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_offline_adapter_smoke_strategy_readiness",
+        == "storage_adapter_negative_leakage_runtime_scan_boundary_readiness",
         "audit storage adapter current next dependency drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_status")
+        == "audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_defined",
+        "audit storage adapter offline adapter smoke strategy readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_adapter_smoke_strategy_status")
+        == "offline_adapter_smoke_strategy_defined_without_runtime",
+        "audit storage adapter offline adapter smoke strategy status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_adapter_smoke_manifest_status")
+        == "metadata_only_smoke_manifest_defined",
+        "audit storage adapter offline adapter smoke manifest status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_adapter_smoke_positive_case_status")
+        == "metadata_only_positive_case_defined",
+        "audit storage adapter offline adapter smoke positive case status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_adapter_smoke_negative_case_status")
+        == "metadata_only_negative_case_defined",
+        "audit storage adapter offline adapter smoke negative case status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_adapter_smoke_backend_touch_policy_status")
+        == "real_backend_touch_forbidden",
+        "audit storage adapter offline adapter smoke backend touch policy status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_adapter_smoke_runner_status") == "not_created",
+        "audit storage adapter offline adapter smoke runner status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_adapter_smoke_output_status") == "not_created",
+        "audit storage adapter offline adapter smoke output status drifted",
     )
     require(
         target.get("audit_storage_adapter_runtime_task_card_status") == "not_created",

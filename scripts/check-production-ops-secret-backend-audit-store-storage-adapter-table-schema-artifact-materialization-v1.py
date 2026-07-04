@@ -50,6 +50,11 @@ RUNTIME_TASK_CARD_DECISION = (
     "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization"
 )
 MATRIX_BLOCKER_STATUS = "storage_adapter_table_schema_artifact_materialized_runtime_blocked"
+CURRENT_RUNTIME_TASK_CARD_DECISION = (
+    "storage_adapter_runtime_task_card_still_blocked_after_offline_adapter_smoke_strategy_readiness"
+)
+CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_offline_adapter_smoke_strategy_readiness_defined_runtime_blocked"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_negative_leakage_runtime_scan_boundary_readiness"
 
 POSITIVE_FIXTURE = "scripts/checks/fixtures/production-secret-audit-storage-adapter-table-schema-positive-v1.json"
 MISSING_REQUIRED_FIXTURE = (
@@ -557,8 +562,8 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     alignment = fixture.get("blocker_matrix_alignment") or {}
     boundary = matrix.get("matrix_boundary") or {}
-    require(boundary.get("durable_audit_backend_status") == MATRIX_BLOCKER_STATUS, "matrix durable blocker drifted")
-    require(boundary.get("storage_adapter_current_next_dependency") == NEXT_DEPENDENCY, "matrix next dependency drifted")
+    require(boundary.get("durable_audit_backend_status") == CURRENT_MATRIX_BLOCKER_STATUS, "matrix durable blocker drifted")
+    require(boundary.get("storage_adapter_current_next_dependency") == CURRENT_NEXT_DEPENDENCY, "matrix next dependency drifted")
     require(
         boundary.get("storage_adapter_table_schema_artifact_materialization_status") == SLICE_STATUS,
         "matrix materialization status drifted",
@@ -570,21 +575,29 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     require(boundary.get("storage_adapter_sql_migration_status") == "not_created", "matrix SQL drifted")
     require(boundary.get("storage_adapter_ddl_status") == "not_created", "matrix DDL drifted")
     require(
-        boundary.get("storage_adapter_runtime_task_card_decision") == RUNTIME_TASK_CARD_DECISION,
+        boundary.get("storage_adapter_runtime_task_card_decision") == CURRENT_RUNTIME_TASK_CARD_DECISION,
         "matrix runtime task decision drifted",
     )
     require(
-        alignment.get("durable_backend_blocker_status_after_table_schema_artifact") == MATRIX_BLOCKER_STATUS,
+        alignment.get("durable_backend_blocker_status_after_table_schema_artifact") == CURRENT_MATRIX_BLOCKER_STATUS,
         "fixture blocker status drifted",
     )
     require(
-        alignment.get("storage_adapter_current_next_dependency") == NEXT_DEPENDENCY,
+        alignment.get("storage_adapter_current_next_dependency") == CURRENT_NEXT_DEPENDENCY,
         "fixture next dependency drifted",
+    )
+    require(
+        alignment.get("runtime_task_card_decision") == CURRENT_RUNTIME_TASK_CARD_DECISION,
+        "fixture runtime task card decision drifted",
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    require(durable.get("status") == MATRIX_BLOCKER_STATUS, "durable blocker row status drifted")
-    require(durable.get("source") == SLICE_ID, "durable blocker row source drifted")
+    require(durable.get("status") == CURRENT_MATRIX_BLOCKER_STATUS, "durable blocker row status drifted")
+    require(
+        durable.get("source")
+        == "production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1",
+        "durable blocker row source drifted",
+    )
 
 
 def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
