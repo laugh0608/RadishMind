@@ -11,8 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_PATH = (
     REPO_ROOT
     / "scripts/checks/fixtures/"
-    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
-    "after-negative-leakage-runtime-scan-boundary-v1.json"
+    "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.json"
 )
 IMPLEMENTATION_READINESS_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json"
@@ -22,48 +21,29 @@ BLOCKER_MATRIX_PATH = (
 )
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
 
-SLICE_ID = (
-    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
-    "after-negative-leakage-runtime-scan-boundary-v1"
-)
-SLICE_STATUS = (
+SLICE_ID = "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1"
+SLICE_STATUS = "audit_store_storage_adapter_concrete_database_selection_readiness_defined"
+READINESS_DECISION = "concrete_database_selection_readiness_defined_without_database_selection"
+ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_concrete_database_selection_readiness"
+PREVIOUS_STATUS = (
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_defined"
 )
-ENTRY_DECISION = (
+PREVIOUS_DECISION = (
     "storage_adapter_runtime_task_card_still_blocked_after_negative_leakage_runtime_scan_boundary_entry_refresh"
 )
-NEXT_DEPENDENCY = "storage_adapter_concrete_database_selection_readiness"
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_concrete_database_selection_review"
+NEXT_DEPENDENCY = "storage_adapter_concrete_database_selection_review"
 SELECTED_PRODUCT_CLASS = "managed_database_append_only_table"
 SELECTED_PRODUCT_PROFILE = "reserved_managed_database_append_only_table_profile"
-MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_concrete_database_selection_readiness_defined_task_card_blocked"
-)
-CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_concrete_database_selection_readiness"
-CURRENT_BLOCKER_SOURCE = "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1"
-CONCRETE_DATABASE_SELECTION_READINESS_STATUS = "audit_store_storage_adapter_concrete_database_selection_readiness_defined"
+MATRIX_BLOCKER_STATUS = "storage_adapter_concrete_database_selection_readiness_defined_task_card_blocked"
 
 EXPECTED_DEPENDENCIES = {
-    "production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1": (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary-v1": (
         (
             "scripts/checks/fixtures/"
-            "production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1.json"
+            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+            "after-negative-leakage-runtime-scan-boundary-v1.json"
         ),
-        "audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined",
-    ),
-    "production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1": (
-        (
-            "scripts/checks/fixtures/"
-            "production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1.json"
-        ),
-        "audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_defined",
-    ),
-    "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1": (
-        (
-            "scripts/checks/fixtures/"
-            "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1.json"
-        ),
-        "audit_store_storage_adapter_table_schema_artifact_materialized",
+        PREVIOUS_STATUS,
     ),
     "production-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-policy-readiness-v1": (
         (
@@ -72,27 +52,26 @@ EXPECTED_DEPENDENCIES = {
         ),
         "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_defined",
     ),
-    "production-secret-backend-audit-store-storage-adapter-append-only-table-schema-boundary-readiness-v1": (
+    "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1": (
         (
             "scripts/checks/fixtures/"
-            "production-secret-backend-audit-store-storage-adapter-append-only-table-schema-boundary-readiness-v1.json"
+            "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1.json"
         ),
-        "audit_store_storage_adapter_append_only_table_schema_boundary_readiness_defined",
+        "audit_store_storage_adapter_table_schema_artifact_materialized",
     ),
-    "production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-v1": (
+    "production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1": (
         (
             "scripts/checks/fixtures/"
-            "production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-v1.json"
+            "production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1.json"
         ),
-        "audit_store_storage_adapter_metadata_contract_artifact_materialized",
+        "audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_defined",
     ),
-    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1": (
+    "production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1": (
         (
             "scripts/checks/fixtures/"
-            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
-            "after-product-selection-v1.json"
+            "production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1.json"
         ),
-        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined",
+        "audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined",
     ),
     "production-secret-backend-audit-store-runtime-blocker-matrix-v1": (
         "scripts/checks/fixtures/production-secret-backend-audit-store-runtime-blocker-matrix-v1.json",
@@ -106,45 +85,34 @@ EXPECTED_DEPENDENCIES = {
 
 EXPECTED_BOUNDARY = {
     "status": SLICE_STATUS,
+    "readiness_decision": READINESS_DECISION,
     "entry_decision": ENTRY_DECISION,
-    "previous_negative_leakage_runtime_scan_boundary_status": (
-        "audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined"
-    ),
-    "previous_runtime_task_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_negative_leakage_runtime_scan_boundary"
-    ),
-    "offline_adapter_smoke_strategy_readiness_status": (
-        "audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_defined"
-    ),
-    "offline_adapter_smoke_strategy_status": "offline_adapter_smoke_strategy_defined_without_runtime",
-    "table_schema_artifact_materialization_status": "audit_store_storage_adapter_table_schema_artifact_materialized",
-    "table_schema_artifact_status": "materialized_static_logical_table_schema",
-    "metadata_contract_artifact_status": "materialized_static_metadata_contract",
-    "database_provider_driver_dsn_tls_role_policy_status": "defined_without_runtime",
-    "append_only_table_schema_boundary_status": "defined_without_sql_or_runtime",
-    "negative_leakage_runtime_scan_boundary_status": "defined_without_runtime",
-    "negative_leakage_runtime_scan_manifest_status": "metadata_only_runtime_scan_manifest_defined",
-    "negative_leakage_runtime_scan_target_allowlist_status": "metadata_only_scan_target_allowlist_defined",
-    "negative_leakage_runtime_scan_runner_status": "not_created",
-    "negative_leakage_runtime_scan_output_status": "not_created",
-    "backend_product_selection_status": "selected_static_product_class_without_backend_provider",
+    "previous_entry_refresh_status": PREVIOUS_STATUS,
+    "previous_runtime_task_decision": PREVIOUS_DECISION,
     "selected_backend_product_class": SELECTED_PRODUCT_CLASS,
     "selected_backend_product_profile": SELECTED_PRODUCT_PROFILE,
-    "concrete_database_selection_status": "not_started",
+    "candidate_source_status": "metadata_only_candidate_source_defined",
+    "candidate_input_evidence_status": "metadata_only_input_evidence_defined",
+    "candidate_fields_status": "metadata_only_candidate_fields_defined",
+    "candidate_evaluation_matrix_status": "metadata_only_evaluation_matrix_defined",
+    "candidate_rejection_gate_status": "fail_closed_rejection_gate_defined",
+    "database_selection_review_status": "not_started",
+    "concrete_database_selection_status": "readiness_defined_without_database_selection",
     "database_product_status": "not_selected",
     "database_vendor_status": "not_selected",
     "database_connection_provider_status": "not_created",
     "database_driver_status": "not_selected",
     "database_dsn_status": "not_defined",
+    "database_connection_status": "not_created",
+    "sql_migration_status": "not_created",
+    "ddl_status": "not_created",
+    "physical_table_schema_status": "not_created",
     "schema_marker_runtime_status": "not_created",
     "migration_runner_status": "not_created",
     "next_dependency": NEXT_DEPENDENCY,
     "storage_adapter_runtime_task_card_status": "not_created",
     "storage_adapter_runtime_status": "not_created",
     "storage_adapter_client_status": "not_created",
-    "database_connection_status": "not_created",
-    "sql_migration_status": "not_created",
-    "ddl_status": "not_created",
     "audit_store_runtime_task_card_status": "not_created",
     "audit_store_runtime_status": "not_created",
     "audit_writer_runtime_status": "not_created",
@@ -162,7 +130,7 @@ EXPECTED_BOUNDARY = {
 }
 
 EXPECTED_FALSE_FLAGS = {
-    "concrete_database_selection_created_in_this_slice",
+    "concrete_database_selected_in_this_slice",
     "database_product_selected_in_this_slice",
     "database_vendor_selected_in_this_slice",
     "database_connection_provider_enabled",
@@ -189,41 +157,60 @@ EXPECTED_FALSE_FLAGS = {
     "production_api_enabled",
 }
 
-EXPECTED_BLOCKERS = {
-    "concrete_database_selection_readiness",
-    "database_provider_connection_runtime_boundary",
-    "migration_schema_marker_runtime_boundary",
-    "peer_runtime_dependencies",
-    "audit_store_runtime_gate",
+EXPECTED_CANDIDATE_FIELDS = {
+    "candidate_key",
+    "candidate_profile_ref",
+    "candidate_product_class",
+    "deployment_model_ref",
+    "append_only_capability_ref",
+    "transaction_boundary_ref",
+    "ordering_guarantee_ref",
+    "idempotency_policy_ref",
+    "retention_redaction_policy_ref",
+    "tls_policy_ref",
+    "role_policy_ref",
+    "secret_ref_dsn_policy_ref",
+    "schema_marker_handoff_ref",
+    "migration_review_ref",
+    "offline_smoke_strategy_ref",
+    "negative_leakage_scan_boundary_ref",
+    "rollback_recovery_ref",
+    "operator_review_ref",
+    "decision_rationale_ref",
+}
+
+EXPECTED_EVALUATION_DIMENSIONS = {
+    "append_only_insert_semantics",
+    "metadata_contract_compatibility",
+    "logical_schema_compatibility",
+    "idempotency_duplicate_handling",
+    "ordering_and_durability",
+    "retention_redaction_compatibility",
+    "secret_ref_only_connection_policy",
+    "tls_and_least_privilege_role_policy",
+    "migration_schema_marker_handoff",
+    "offline_validation_negative_leakage_coverage",
+    "rollback_recovery_semantics",
+    "sanitized_diagnostics",
 }
 
 EXPECTED_FAILURE_CODES = {
-    "audit_store_storage_adapter_runtime_refresh_after_negative_leakage_dependency_missing",
-    "audit_store_storage_adapter_runtime_refresh_after_negative_leakage_task_card_still_blocked",
-    "audit_store_storage_adapter_runtime_refresh_after_negative_leakage_concrete_database_selection_required",
-    "audit_store_storage_adapter_runtime_refresh_after_negative_leakage_database_selection_forbidden",
-    "audit_store_storage_adapter_runtime_refresh_after_negative_leakage_runtime_forbidden",
-    "audit_store_storage_adapter_runtime_refresh_after_negative_leakage_secret_material_detected",
-    "audit_store_storage_adapter_runtime_refresh_after_negative_leakage_scope_overreach",
+    "audit_store_storage_adapter_concrete_database_selection_readiness_dependency_missing",
+    "audit_store_storage_adapter_concrete_database_selection_readiness_missing_evidence",
+    "audit_store_storage_adapter_concrete_database_selection_readiness_database_selection_forbidden",
+    "audit_store_storage_adapter_concrete_database_selection_readiness_runtime_forbidden",
+    "audit_store_storage_adapter_concrete_database_selection_readiness_secret_material_detected",
+    "audit_store_storage_adapter_concrete_database_selection_readiness_scope_overreach",
 }
 
 EXPECTED_ALLOWED_ARTIFACTS = {
+    "docs/platform/production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.md",
+    "docs/task-cards/production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1-plan.md",
     (
-        "docs/platform/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
-        "after-negative-leakage-runtime-scan-boundary-v1.md"
+        "scripts/checks/fixtures/"
+        "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.json"
     ),
-    (
-        "docs/task-cards/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
-        "after-negative-leakage-runtime-scan-boundary-v1-plan.md"
-    ),
-    (
-        "scripts/checks/fixtures/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-"
-        "refresh-after-negative-leakage-runtime-scan-boundary-v1.json"
-    ),
-    (
-        "scripts/check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
-        "after-negative-leakage-runtime-scan-boundary-v1.py"
-    ),
+    "scripts/check-production-ops-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.py",
 }
 
 SECRET_LITERAL_PATTERNS = [
@@ -267,16 +254,14 @@ def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
         fixture.get("kind")
-        == (
-            "production_ops_secret_backend_audit_store_storage_adapter_runtime_implementation_entry_refresh_"
-            "after_negative_leakage_runtime_scan_boundary_v1"
-        ),
+        == "production_ops_secret_backend_audit_store_storage_adapter_concrete_database_selection_readiness_v1",
         "unexpected fixture kind",
     )
     slice_info = fixture.get("slice") or {}
     require(slice_info.get("id") == SLICE_ID, "unexpected slice id")
     require(slice_info.get("track") == "Production Ops Hardening v1", "unexpected track")
     require(slice_info.get("status") == SLICE_STATUS, "unexpected status")
+    require(slice_info.get("readiness_decision") == READINESS_DECISION, "unexpected readiness decision")
     require(slice_info.get("entry_decision") == ENTRY_DECISION, "unexpected entry decision")
     for field in ("task_card", "platform_topic"):
         path = str(slice_info.get(field) or "")
@@ -284,7 +269,7 @@ def assert_slice(fixture: dict[str, Any]) -> None:
         require((REPO_ROOT / path).exists(), f"{field} missing on disk: {path}")
     claims = set(slice_info.get("does_not_claim") or [])
     for claim in {
-        "concrete_database_selection_ready",
+        "concrete_database_selected",
         "database_product_selected",
         "database_vendor_selected",
         "database_provider_selected",
@@ -317,29 +302,31 @@ def assert_dependencies(fixture: dict[str, Any]) -> None:
         require(source_status(source) == expected_status, f"{dependency_id} source status drifted")
 
 
-def assert_entry_refresh_boundary(fixture: dict[str, Any]) -> None:
-    boundary = fixture.get("entry_refresh_boundary") or {}
+def assert_readiness_boundary(fixture: dict[str, Any]) -> None:
+    boundary = fixture.get("readiness_boundary") or {}
     for field, expected in EXPECTED_BOUNDARY.items():
-        require(boundary.get(field) == expected, f"entry_refresh_boundary.{field} drifted")
+        require(boundary.get(field) == expected, f"readiness_boundary.{field} drifted")
     for field in EXPECTED_FALSE_FLAGS:
-        require(boundary.get(field) is False, f"entry_refresh_boundary.{field} must stay false")
+        require(boundary.get(field) is False, f"readiness_boundary.{field} must stay false")
 
 
-def assert_remaining_blockers(fixture: dict[str, Any]) -> None:
-    blockers = rows_by_id(fixture, "remaining_blockers", "id")
-    require(set(blockers) == EXPECTED_BLOCKERS, "remaining blocker ids drifted")
+def assert_candidate_policy(fixture: dict[str, Any]) -> None:
+    require(set(fixture.get("candidate_input_fields") or []) == EXPECTED_CANDIDATE_FIELDS, "candidate fields drifted")
     require(
-        blockers["concrete_database_selection_readiness"].get("status") == "required_before_runtime_task_card",
-        "concrete database selection readiness status drifted",
+        set(fixture.get("candidate_evaluation_dimensions") or []) == EXPECTED_EVALUATION_DIMENSIONS,
+        "candidate evaluation dimensions drifted",
     )
-    require(
-        blockers["concrete_database_selection_readiness"].get("next_dependency") == NEXT_DEPENDENCY,
-        "next dependency drifted",
-    )
-    for blocker_id in EXPECTED_BLOCKERS - {"concrete_database_selection_readiness"}:
-        require(blockers[blocker_id].get("status") == "blocked", f"{blocker_id} status drifted")
-    require(len(blockers["peer_runtime_dependencies"].get("requires") or []) >= 7, "peer list too small")
-    require(len(blockers["audit_store_runtime_gate"].get("requires") or []) >= 4, "audit gate list too small")
+    rejection_conditions = set(fixture.get("rejection_conditions") or [])
+    for condition in {
+        "candidate_contains_database_endpoint",
+        "candidate_selects_vendor_in_readiness_slice",
+        "candidate_selects_driver_in_readiness_slice",
+        "candidate_contains_dsn_or_secret_material",
+        "candidate_contains_physical_table_or_column_detail",
+        "candidate_claims_runtime_ready",
+        "candidate_opens_repository_mode_or_public_api",
+    }:
+        require(condition in rejection_conditions, f"rejection condition missing: {condition}")
 
 
 def assert_diagnostics_failures_and_policies(fixture: dict[str, Any]) -> None:
@@ -349,16 +336,17 @@ def assert_diagnostics_failures_and_policies(fixture: dict[str, Any]) -> None:
     sample = diagnostics.get("sample") or {}
     require(set(sample) <= allowed, "diagnostic sample contains non-allowlisted fields")
     require(not (allowed & forbidden), "diagnostic allowlist intersects forbidden fields")
-    require(sample.get("runtime_task_decision") == ENTRY_DECISION, "diagnostic decision drifted")
+    require(sample.get("readiness_decision") == READINESS_DECISION, "diagnostic readiness decision drifted")
+    require(sample.get("runtime_task_decision") == ENTRY_DECISION, "diagnostic runtime decision drifted")
     require(sample.get("next_dependency") == NEXT_DEPENDENCY, "diagnostic next dependency drifted")
-    require(sample.get("selected_backend_product_class") == SELECTED_PRODUCT_CLASS, "diagnostic product class drifted")
-    require(sample.get("concrete_database_selection_status") == "not_started", "diagnostic selection status drifted")
-    require(sample.get("database_connection_provider_status") == "not_created", "diagnostic provider status drifted")
-    require(sample.get("database_driver_status") == "not_selected", "diagnostic driver status drifted")
-    require(sample.get("database_dsn_status") == "not_defined", "diagnostic dsn status drifted")
-    require(sample.get("schema_marker_runtime_status") == "not_created", "diagnostic schema marker status drifted")
-    require(sample.get("migration_runner_status") == "not_created", "diagnostic migration runner status drifted")
-    require(sample.get("storage_adapter_runtime_status") == "not_created", "diagnostic created runtime")
+    require(sample.get("database_product_status") == "not_selected", "diagnostic database product drifted")
+    require(sample.get("database_vendor_status") == "not_selected", "diagnostic database vendor drifted")
+    require(sample.get("database_connection_provider_status") == "not_created", "diagnostic provider drifted")
+    require(sample.get("database_driver_status") == "not_selected", "diagnostic driver drifted")
+    require(sample.get("database_dsn_status") == "not_defined", "diagnostic dsn drifted")
+    require(sample.get("schema_marker_runtime_status") == "not_created", "diagnostic schema marker drifted")
+    require(sample.get("migration_runner_status") == "not_created", "diagnostic migration runner drifted")
+    require(sample.get("storage_adapter_runtime_status") == "not_created", "diagnostic runtime created")
 
     failures = rows_by_id(fixture, "failure_mapping", "code")
     require(set(failures) == EXPECTED_FAILURE_CODES, "failure mapping codes drifted")
@@ -392,10 +380,8 @@ def assert_diagnostics_failures_and_policies(fixture: dict[str, Any]) -> None:
 def assert_no_secret_material_scan(fixture: dict[str, Any]) -> None:
     scan = fixture.get("no_secret_material_scan") or {}
     require(scan.get("status") == "implemented_static_scan", "no secret material scan status drifted")
-    expected = {
-        "docs/platform/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary-v1.md",
-        "docs/task-cards/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary-v1-plan.md",
-        "scripts/checks/fixtures/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary-v1.json",
+    expected = EXPECTED_ALLOWED_ARTIFACTS - {
+        "scripts/check-production-ops-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.py"
     }
     scanned = set(scan.get("scanned_artifacts") or [])
     require(expected <= scanned, "no secret scan target list missing expected artifacts")
@@ -412,7 +398,7 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
         require((REPO_ROOT / path).exists(), f"allowed artifact missing: {path}")
     forbidden = set(guard.get("forbidden_artifact_kinds") or [])
     for artifact in {
-        "concrete_database_selection_artifact",
+        "concrete_database_selection_review_artifact",
         "database_product_selection_artifact",
         "backend_vendor_selection_artifact",
         "storage_adapter_runtime_implementation_task_card",
@@ -442,15 +428,15 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     boundary = matrix.get("matrix_boundary") or {}
     for field, value in {
-        "storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_status": SLICE_STATUS,
-        "storage_adapter_runtime_task_card_decision": CURRENT_ENTRY_DECISION,
-        "storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
-        "storage_adapter_concrete_database_selection_readiness_status": CONCRETE_DATABASE_SELECTION_READINESS_STATUS,
+        "storage_adapter_concrete_database_selection_readiness_status": SLICE_STATUS,
         "storage_adapter_concrete_database_selection_status": "readiness_defined_without_database_selection",
         "storage_adapter_candidate_input_evidence_status": "metadata_only_input_evidence_defined",
         "storage_adapter_candidate_evaluation_matrix_status": "metadata_only_evaluation_matrix_defined",
         "storage_adapter_database_selection_review_status": "not_started",
+        "storage_adapter_runtime_task_card_decision": ENTRY_DECISION,
+        "storage_adapter_current_next_dependency": NEXT_DEPENDENCY,
         "storage_adapter_database_product_status": "not_selected",
+        "storage_adapter_database_vendor_status": "not_selected",
         "storage_adapter_database_connection_provider_status": "not_created",
         "storage_adapter_schema_marker_runtime_status": "not_created",
         "storage_adapter_migration_runner_status": "not_created",
@@ -463,15 +449,18 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
     require(durable.get("status") == MATRIX_BLOCKER_STATUS, "durable status drifted")
-    require(durable.get("source") == CURRENT_BLOCKER_SOURCE, "durable source drifted")
+    require(durable.get("source") == SLICE_ID, "durable source drifted")
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable must block audit runtime")
     require(durable.get("blocks_production_resolver_task_card") is True, "durable must block resolver runtime")
 
     alignment = fixture.get("blocker_matrix_alignment") or {}
-    require(alignment.get("durable_backend_blocker_status_after_refresh") == MATRIX_BLOCKER_STATUS, "fixture matrix status drifted")
-    require(alignment.get("durable_backend_blocker_source_after_refresh") == CURRENT_BLOCKER_SOURCE, "fixture matrix source drifted")
-    require(alignment.get("storage_adapter_current_next_dependency") == CURRENT_NEXT_DEPENDENCY, "fixture next drifted")
-    require(alignment.get("runtime_task_card_decision") == CURRENT_ENTRY_DECISION, "fixture decision drifted")
+    require(
+        alignment.get("durable_backend_blocker_status_after_readiness") == MATRIX_BLOCKER_STATUS,
+        "fixture matrix status drifted",
+    )
+    require(alignment.get("durable_backend_blocker_source_after_readiness") == SLICE_ID, "fixture matrix source drifted")
+    require(alignment.get("storage_adapter_current_next_dependency") == NEXT_DEPENDENCY, "fixture next drifted")
+    require(alignment.get("runtime_task_card_decision") == ENTRY_DECISION, "fixture decision drifted")
 
 
 def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
@@ -484,29 +473,21 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
         require(target.get(field) == value, f"implementation readiness {field} drifted")
 
     planned = rows_by_id(readiness, "planned_slices", "id")
-    item = planned.get(
-        "audit-store-storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary"
-    ) or {}
+    item = planned.get("audit-store-storage-adapter-concrete-database-selection-readiness") or {}
     require(item.get("status") == SLICE_STATUS, "implementation readiness missing planned slice")
     require(EXPECTED_ALLOWED_ARTIFACTS <= set(item.get("evidence") or []), "planned slice evidence drifted")
 
 
 def assert_docs_and_registration() -> None:
     docs = {
-        (
-            "docs/platform/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
-            "after-negative-leakage-runtime-scan-boundary-v1.md"
-        ): [
+        "docs/platform/production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.md": [
             SLICE_STATUS,
+            READINESS_DECISION,
             ENTRY_DECISION,
             NEXT_DEPENDENCY,
-            "concrete_database_selection_status",
-            "not_created",
+            "metadata-only 候选字段",
         ],
-        (
-            "docs/task-cards/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
-            "after-negative-leakage-runtime-scan-boundary-v1-plan.md"
-        ): [
+        "docs/task-cards/production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1-plan.md": [
             SLICE_ID,
             SLICE_STATUS,
             ENTRY_DECISION,
@@ -525,25 +506,22 @@ def assert_docs_and_registration() -> None:
         ],
         "docs/platform/production-secret-backend-audit-store-storage-adapter-evidence-rollup-v1.md": [
             SLICE_STATUS,
-            ENTRY_DECISION,
+            READINESS_DECISION,
             NEXT_DEPENDENCY,
         ],
         "docs/platform/README.md": [
-            "Production Secret Backend Audit Store Storage Adapter Runtime Implementation Entry Refresh After Negative Leakage Runtime Scan Boundary v1",
+            "Production Secret Backend Audit Store Storage Adapter Concrete Database Selection Readiness v1",
             SLICE_STATUS,
             NEXT_DEPENDENCY,
         ],
         "docs/features/README.md": [
-            "Production Secret Backend Audit Store Storage Adapter Runtime Implementation Entry Refresh After Negative Leakage Runtime Scan Boundary v1",
+            "Production Secret Backend Audit Store Storage Adapter Concrete Database Selection Readiness v1",
             SLICE_STATUS,
             NEXT_DEPENDENCY,
         ],
         "docs/features/workflow/README.md": [SLICE_STATUS, NEXT_DEPENDENCY],
         "docs/features/workflow/saved-workflow-draft-v1.md": [SLICE_STATUS, NEXT_DEPENDENCY],
         "docs/radishmind-current-focus.md": [SLICE_STATUS, NEXT_DEPENDENCY],
-        "docs/radishmind-integration-contracts.md": [SLICE_STATUS, NEXT_DEPENDENCY],
-        "docs/radishmind-architecture.md": [SLICE_STATUS, NEXT_DEPENDENCY],
-        "docs/radishmind-product-scope.md": [SLICE_STATUS, NEXT_DEPENDENCY],
         "docs/task-cards/README.md": [SLICE_ID, SLICE_STATUS],
         "docs/task-cards/production-secret-backend-implementation-v1-plan.md": [
             SLICE_ID,
@@ -551,8 +529,8 @@ def assert_docs_and_registration() -> None:
             NEXT_DEPENDENCY,
         ],
         "scripts/README.md": [
-            "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary-v1.py",
-            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary-v1.json",
+            "check-production-ops-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.py",
+            "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.json",
         ],
         "docs/devlogs/2026-W27.md": [SLICE_STATUS, NEXT_DEPENDENCY],
     }
@@ -563,26 +541,16 @@ def assert_docs_and_registration() -> None:
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     previous = (
-        "check-production-ops-secret-backend-audit-store-storage-adapter-"
-        "negative-leakage-runtime-scan-boundary-readiness-v1.py"
-    )
-    current = (
         "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
         "after-negative-leakage-runtime-scan-boundary-v1.py"
     )
-    concrete_database_readiness = (
-        "check-production-ops-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.py"
-    )
+    current = "check-production-ops-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.py"
     matrix = "check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py"
     resolver = "check-production-ops-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2.py"
-    for script in (previous, current, concrete_database_readiness, matrix, resolver):
+    for script in (previous, current, matrix, resolver):
         require(script in check_repo, f"check-repo.py missing {script}")
     require(
-        check_repo.index(previous)
-        < check_repo.index(current)
-        < check_repo.index(concrete_database_readiness)
-        < check_repo.index(matrix)
-        < check_repo.index(resolver),
+        check_repo.index(previous) < check_repo.index(current) < check_repo.index(matrix) < check_repo.index(resolver),
         "check-repo.py registration order drifted",
     )
 
@@ -594,15 +562,15 @@ def assert_no_secret_literals() -> None:
         if path.endswith(".md") or path.endswith(".json")
     )
     found = [pattern.pattern for pattern in SECRET_LITERAL_PATTERNS if pattern.search(text)]
-    require(not found, f"runtime refresh contains secret-looking literal patterns: {found}")
+    require(not found, f"concrete database selection readiness contains secret-looking literal patterns: {found}")
 
 
 def main() -> None:
     fixture = load_json(FIXTURE_PATH)
     assert_slice(fixture)
     assert_dependencies(fixture)
-    assert_entry_refresh_boundary(fixture)
-    assert_remaining_blockers(fixture)
+    assert_readiness_boundary(fixture)
+    assert_candidate_policy(fixture)
     assert_diagnostics_failures_and_policies(fixture)
     assert_no_secret_material_scan(fixture)
     assert_artifact_guard(fixture)
@@ -610,10 +578,7 @@ def main() -> None:
     assert_implementation_readiness_alignment(fixture)
     assert_docs_and_registration()
     assert_no_secret_literals()
-    print(
-        "production ops secret backend audit store storage adapter runtime entry refresh "
-        "after negative leakage runtime scan boundary checks passed."
-    )
+    print("production ops secret backend audit store storage adapter concrete database selection readiness checks passed.")
 
 
 if __name__ == "__main__":

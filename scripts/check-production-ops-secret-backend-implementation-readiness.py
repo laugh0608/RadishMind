@@ -187,6 +187,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary": (
         "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_defined"
     ),
+    "audit-store-storage-adapter-concrete-database-selection-readiness": (
+        "audit_store_storage_adapter_concrete_database_selection_readiness_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -328,6 +331,9 @@ REQUIRED_DOC_REFERENCES = {
         "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary-v1",
         "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_defined",
         "storage_adapter_concrete_database_selection_readiness",
+        "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1",
+        "audit_store_storage_adapter_concrete_database_selection_readiness_defined",
+        "storage_adapter_concrete_database_selection_review",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -422,6 +428,7 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-policy-readiness-v1.py",
         "check-production-ops-secret-backend-audit-store-storage-adapter-append-only-table-schema-boundary-readiness-v1.py",
         "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary-v1.py",
+        "check-production-ops-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py",
     ],
@@ -1397,7 +1404,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_negative_leakage_runtime_scan_boundary_entry_refresh",
+        == "storage_adapter_runtime_task_card_still_blocked_after_concrete_database_selection_readiness",
         "audit storage adapter runtime task card decision drifted",
     )
     require(
@@ -1421,12 +1428,35 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_concrete_database_selection_readiness",
+        == "storage_adapter_concrete_database_selection_review",
         "audit storage adapter current next dependency drifted",
     )
     require(
-        target.get("audit_storage_adapter_concrete_database_selection_readiness_status") == "not_created",
+        target.get("audit_store_storage_adapter_concrete_database_selection_readiness_status")
+        == "audit_store_storage_adapter_concrete_database_selection_readiness_defined",
+        "audit store storage adapter concrete database selection readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_concrete_database_selection_readiness_status")
+        == "audit_store_storage_adapter_concrete_database_selection_readiness_defined",
         "audit storage adapter concrete database selection readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_concrete_database_selection_status")
+        == "readiness_defined_without_database_selection",
+        "audit storage adapter concrete database selection status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_candidate_input_evidence_status") == "metadata_only_input_evidence_defined",
+        "audit storage adapter candidate input evidence status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_candidate_evaluation_matrix_status") == "metadata_only_evaluation_matrix_defined",
+        "audit storage adapter candidate evaluation matrix status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_selection_review_status") == "not_started",
+        "audit storage adapter database selection review status drifted",
     )
     require(
         target.get("audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_status")
@@ -2545,6 +2575,7 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "audit store storage adapter retention redaction policy evidence readiness defined without runtime",
         "audit store storage adapter runtime implementation entry refresh after product selection blocked before database provider readiness",
         "audit store storage adapter database provider driver DSN TLS role policy readiness defined without runtime",
+        "audit store storage adapter concrete database selection readiness defined without database selection",
         "resolver backend health boundary readiness defined without backend health runtime",
         "resolver backend health runtime implementation entry review blocked before task card",
         "resolver backend health runtime implementation entry refresh blocked before task card",
@@ -2747,6 +2778,16 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/checks/fixtures/production-secret-audit-event-event-kind-invalid-negative-v1.json",
         "scripts/checks/fixtures/production-secret-backend-audit-store-runtime-event-schema-artifact-v1.json",
         "scripts/check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-v1.py",
+        "docs/platform/production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.md",
+        "docs/task-cards/production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1-plan.md",
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.json"
+        ),
+        (
+            "scripts/"
+            "check-production-ops-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.py"
+        ),
         "docs/platform/production-secret-backend-resolver-backend-health-boundary-readiness-v1.md",
         "docs/task-cards/production-secret-backend-resolver-backend-health-boundary-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-resolver-backend-health-boundary-readiness-v1.json",
@@ -3127,6 +3168,15 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         )
         in check_repo,
         "check-repo.py must run audit store storage adapter database provider driver DSN TLS role policy readiness check",
+    )
+    require(
+        (
+            'run_python_script("'
+            "check-production-ops-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.py"
+            '", [])'
+        )
+        in check_repo,
+        "check-repo.py must run audit store storage adapter concrete database selection readiness check",
     )
     require(
         (
