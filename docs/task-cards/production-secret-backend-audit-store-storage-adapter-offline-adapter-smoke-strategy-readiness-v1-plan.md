@@ -29,6 +29,8 @@ readiness decision：`offline_adapter_smoke_strategy_defined_without_runtime`
 - 当前下一依赖推进为 `storage_adapter_negative_leakage_runtime_scan_boundary_readiness`。
 - `audit_storage_adapter_runtime_task_card_status`、`audit_storage_adapter_runtime_status`、`audit_store_runtime_status` 均保持 `not_created`。
 
+后续 `storage_adapter_negative_leakage_runtime_scan_boundary_readiness` 已被独立批次消费，当前下一依赖推进为 `storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary`。
+
 ## 停止线
 
 本批不创建 offline adapter smoke runner、committed smoke output、negative leakage runtime scan、scan output、storage adapter runtime task card、storage adapter runtime、audit store runtime task card、audit store runtime、database provider、database connection、driver、DSN parser、SQL、DDL、physical table schema、schema marker runtime、migration runner、repository mode 或 public production API。

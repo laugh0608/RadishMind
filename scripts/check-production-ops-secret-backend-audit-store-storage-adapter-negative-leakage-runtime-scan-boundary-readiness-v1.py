@@ -11,7 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_PATH = (
     REPO_ROOT
     / "scripts/checks/fixtures/"
-    "production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1.json"
+    "production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1.json"
 )
 BLOCKER_MATRIX_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/production-secret-backend-audit-store-runtime-blocker-matrix-v1.json"
@@ -25,48 +25,65 @@ METADATA_CONTRACT_ARTIFACT_PATH = (
 )
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
 
-SLICE_ID = "production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1"
-SLICE_STATUS = "audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_defined"
-READINESS_DECISION = "offline_adapter_smoke_strategy_defined_without_runtime"
-CURRENT_BLOCKER_STATUS = "storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined_runtime_blocked"
-CURRENT_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1"
+SLICE_ID = (
+    "production-secret-backend-audit-store-storage-adapter-"
+    "negative-leakage-runtime-scan-boundary-readiness-v1"
 )
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary"
+SLICE_STATUS = "audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined"
+READINESS_DECISION = "negative_leakage_runtime_scan_boundary_defined_without_runtime"
+CURRENT_BLOCKER_STATUS = "storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined_runtime_blocked"
+CURRENT_NEXT_DEPENDENCY = (
+    "storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary"
+)
 RUNTIME_TASK_CARD_DECISION = (
     "storage_adapter_runtime_task_card_still_blocked_after_negative_leakage_runtime_scan_boundary"
 )
-TABLE_SCHEMA_STATUS = "audit_store_storage_adapter_table_schema_artifact_materialized"
-METADATA_CONTRACT_STATUS = "audit_store_storage_adapter_metadata_contract_artifact_materialized"
 
-POSITIVE_FIXTURE = "scripts/checks/fixtures/production-secret-audit-storage-adapter-offline-smoke-positive-v1.json"
-MISSING_MANIFEST_FIXTURE = (
+POSITIVE_FIXTURE = (
     "scripts/checks/fixtures/"
-    "production-secret-audit-storage-adapter-offline-smoke-missing-manifest-negative-v1.json"
+    "production-secret-audit-storage-adapter-negative-leakage-runtime-scan-boundary-positive-v1.json"
 )
 RUNTIME_TOUCH_FIXTURE = (
     "scripts/checks/fixtures/"
-    "production-secret-audit-storage-adapter-offline-smoke-runtime-touch-negative-v1.json"
+    "production-secret-audit-storage-adapter-negative-leakage-runtime-scan-boundary-runtime-touch-negative-v1.json"
 )
 SECRET_MATERIAL_FIXTURE = (
     "scripts/checks/fixtures/"
-    "production-secret-audit-storage-adapter-offline-smoke-secret-material-negative-v1.json"
+    "production-secret-audit-storage-adapter-negative-leakage-runtime-scan-boundary-secret-material-negative-v1.json"
+)
+SCAN_OUTPUT_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-audit-storage-adapter-negative-leakage-runtime-scan-boundary-scan-output-negative-v1.json"
 )
 
 EXPECTED_DEPENDENCIES = {
+    "production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined",
+    ),
     "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1": (
         (
             "scripts/checks/fixtures/"
             "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1.json"
         ),
-        TABLE_SCHEMA_STATUS,
+        "audit_store_storage_adapter_table_schema_artifact_materialized",
     ),
     "production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-v1": (
         (
             "scripts/checks/fixtures/"
             "production-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-v1.json"
         ),
-        METADATA_CONTRACT_STATUS,
+        "audit_store_storage_adapter_metadata_contract_artifact_materialized",
     ),
     "production-secret-backend-audit-store-storage-adapter-backend-product-selection-review-v1": (
         (
@@ -74,20 +91,6 @@ EXPECTED_DEPENDENCIES = {
             "production-secret-backend-audit-store-storage-adapter-backend-product-selection-review-v1.json"
         ),
         "audit_store_storage_adapter_backend_product_selection_review_defined",
-    ),
-    "production-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-policy-readiness-v1": (
-        (
-            "scripts/checks/fixtures/"
-            "production-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-policy-readiness-v1.json"
-        ),
-        "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_defined",
-    ),
-    "production-secret-backend-audit-store-storage-adapter-append-only-table-schema-boundary-readiness-v1": (
-        (
-            "scripts/checks/fixtures/"
-            "production-secret-backend-audit-store-storage-adapter-append-only-table-schema-boundary-readiness-v1.json"
-        ),
-        "audit_store_storage_adapter_append_only_table_schema_boundary_readiness_defined",
     ),
     "production-secret-backend-audit-store-runtime-blocker-matrix-v1": (
         "scripts/checks/fixtures/production-secret-backend-audit-store-runtime-blocker-matrix-v1.json",
@@ -99,7 +102,13 @@ EXPECTED_DEPENDENCIES = {
     ),
 }
 
-EXPECTED_RUNTIME_FALSE_FLAGS = {
+EXPECTED_FALSE_FLAGS = {
+    "negative_leakage_scanner_created_in_this_slice",
+    "negative_leakage_scan_runner_created_in_this_slice",
+    "negative_leakage_scan_executed_in_this_slice",
+    "negative_leakage_scan_output_committed_in_this_slice",
+    "storage_adapter_runtime_task_card_created_in_this_slice",
+    "storage_adapter_runtime_created_in_this_slice",
     "database_vendor_selected_in_this_slice",
     "database_driver_selected_in_this_slice",
     "database_provider_created_in_this_slice",
@@ -109,11 +118,6 @@ EXPECTED_RUNTIME_FALSE_FLAGS = {
     "physical_table_schema_created_in_this_slice",
     "schema_marker_runtime_created_in_this_slice",
     "migration_runner_created_in_this_slice",
-    "offline_adapter_smoke_runner_created_in_this_slice",
-    "offline_adapter_smoke_output_created_in_this_slice",
-    "negative_leakage_runtime_scan_created_in_this_slice",
-    "storage_adapter_runtime_task_card_created_in_this_slice",
-    "storage_adapter_runtime_created_in_this_slice",
     "audit_store_runtime_task_card_created_in_this_slice",
     "audit_store_runtime_created_in_this_slice",
     "production_resolver_runtime_created_in_this_slice",
@@ -122,57 +126,55 @@ EXPECTED_RUNTIME_FALSE_FLAGS = {
 }
 
 EXPECTED_REFERENCE_FIELDS = {
-    "smoke_manifest_ref",
+    "runtime_scan_manifest_ref",
+    "offline_smoke_strategy_ref",
+    "negative_leakage_evidence_ref",
     "metadata_contract_ref",
     "table_schema_artifact_ref",
-    "backend_product_evidence_ref",
-    "positive_case_ref",
-    "negative_case_ref",
+    "scan_target_allowlist_ref",
+    "forbidden_material_matrix_ref",
+    "diagnostic_allowlist_ref",
     "failure_taxonomy_ref",
     "policy_version",
     "audit_ref",
 }
 
 EXPECTED_CASES = {
-    "positive_metadata_only_write_candidate": (POSITIVE_FIXTURE, True),
-    "missing_smoke_manifest_ref": (MISSING_MANIFEST_FIXTURE, False),
-    "real_backend_touch_forbidden": (RUNTIME_TOUCH_FIXTURE, False),
-    "secret_material_field_forbidden": (SECRET_MATERIAL_FIXTURE, False),
+    "positive_metadata_only_runtime_scan_boundary": (POSITIVE_FIXTURE, True),
+    "runtime_touch_forbidden": (RUNTIME_TOUCH_FIXTURE, False),
+    "secret_material_forbidden": (SECRET_MATERIAL_FIXTURE, False),
+    "committed_scan_output_forbidden": (SCAN_OUTPUT_FIXTURE, False),
 }
 
 EXPECTED_FAILURE_CODES = {
-    "audit_store_storage_adapter_offline_smoke_strategy_missing",
-    "audit_store_storage_adapter_offline_smoke_manifest_missing",
-    "audit_store_storage_adapter_offline_smoke_table_schema_missing",
-    "audit_store_storage_adapter_offline_smoke_runtime_touch_forbidden",
-    "audit_store_storage_adapter_offline_smoke_secret_material_forbidden",
-    "audit_store_storage_adapter_offline_smoke_physical_detail_forbidden",
-    "audit_store_storage_adapter_offline_smoke_fallback_forbidden",
+    "audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_missing",
+    "audit_store_storage_adapter_negative_leakage_runtime_scan_target_missing",
+    "audit_store_storage_adapter_negative_leakage_runtime_scan_forbidden_material",
+    "audit_store_storage_adapter_negative_leakage_runtime_scan_runtime_touch",
+    "audit_store_storage_adapter_negative_leakage_runtime_scan_output_forbidden",
+    "audit_store_storage_adapter_negative_leakage_runtime_scan_fallback_forbidden",
 }
 
 FORBIDDEN_CASE_FIELDS = {
     "raw_secret",
-    "password",
-    "token",
-    "api_key",
+    "secret_value",
+    "credential_payload",
     "authorization_header",
     "cookie",
+    "token",
     "dsn",
     "provider_raw_url",
-    "database_hostname",
-    "database_name",
-    "table_name",
-    "column_name",
-    "column_type",
     "raw_request_payload",
     "raw_response_payload",
     "raw_audit_payload",
+    "raw_event_payload",
     "raw_storage_payload",
-    "provider_error_detail",
-    "database_error_detail",
+    "payload_hash",
+    "secret_derived_hash",
+    "provider_backend_detail",
+    "database_detail",
     "scanner_raw_finding",
     "scan_output",
-    "migration_output",
 }
 
 REQUIRED_CASE_FIELDS = {
@@ -180,40 +182,44 @@ REQUIRED_CASE_FIELDS = {
     "kind",
     "case_id",
     "expected_valid",
-    "smoke_manifest_ref",
-    "smoke_strategy_ref",
+    "runtime_scan_boundary_ref",
+    "offline_smoke_strategy_ref",
+    "negative_leakage_evidence_ref",
     "metadata_contract_ref",
     "table_schema_artifact_ref",
-    "backend_product_evidence_ref",
-    "backend_product_class",
-    "audit_event_ref",
-    "storage_record_ref",
-    "storage_adapter_result_ref",
-    "write_status",
-    "sanitized_diagnostic",
+    "runtime_scan_manifest_ref",
+    "scan_target_allowlist_ref",
+    "forbidden_material_matrix_ref",
+    "diagnostic_allowlist_ref",
+    "failure_taxonomy_ref",
     "runtime_touch",
     "real_backend_touch",
+    "scanner_created",
+    "scan_runner_created",
+    "scan_output_committed",
     "secret_material_included",
-    "physical_schema_detail_included",
+    "raw_payload_included",
+    "provider_backend_detail_included",
+    "sanitized_diagnostic",
     "policy_version",
     "audit_ref",
 }
 
 EXPECTED_ALLOWED_ARTIFACTS = {
-    "docs/platform/production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1.md",
-    "docs/task-cards/production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1-plan.md",
+    "docs/platform/production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1.md",
+    "docs/task-cards/production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1-plan.md",
     (
         "scripts/checks/fixtures/"
-        "production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1.json"
+        "production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1.json"
     ),
     POSITIVE_FIXTURE,
-    MISSING_MANIFEST_FIXTURE,
     RUNTIME_TOUCH_FIXTURE,
     SECRET_MATERIAL_FIXTURE,
+    SCAN_OUTPUT_FIXTURE,
     (
         "scripts/"
         "check-production-ops-secret-backend-audit-store-storage-adapter-"
-        "offline-adapter-smoke-strategy-readiness-v1.py"
+        "negative-leakage-runtime-scan-boundary-readiness-v1.py"
     ),
 }
 
@@ -261,7 +267,7 @@ def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
         fixture.get("kind")
-        == "production_ops_secret_backend_audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_v1",
+        == "production_ops_secret_backend_audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_v1",
         "unexpected fixture kind",
     )
     slice_info = fixture.get("slice") or {}
@@ -275,18 +281,17 @@ def assert_slice(fixture: dict[str, Any]) -> None:
         require((REPO_ROOT / relative_path).exists(), f"{field} missing on disk: {relative_path}")
     claims = set(slice_info.get("does_not_claim") or [])
     for claim in {
-        "database_provider_created",
-        "database_connection_created",
-        "offline_adapter_smoke_runner_created",
-        "offline_adapter_smoke_output_created",
-        "negative_leakage_runtime_scan_created",
-        "sql_created",
-        "ddl_created",
-        "physical_table_schema_created",
-        "schema_marker_runtime_created",
-        "migration_runner_created",
+        "negative_leakage_scanner_created",
+        "negative_leakage_scan_runner_created",
+        "negative_leakage_scan_output_committed",
         "storage_adapter_runtime_task_card_created",
         "storage_adapter_runtime_created",
+        "database_provider_created",
+        "database_connection_created",
+        "sql_created",
+        "ddl_created",
+        "schema_marker_runtime_created",
+        "migration_runner_created",
         "audit_store_runtime_task_card_created",
         "audit_store_runtime_created",
         "repository_mode_ready",
@@ -311,30 +316,40 @@ def assert_readiness_boundary(fixture: dict[str, Any]) -> None:
     expected = {
         "status": SLICE_STATUS,
         "readiness_decision": READINESS_DECISION,
-        "current_development_mode": "metadata_only_offline_adapter_smoke_strategy_no_runner",
-        "table_schema_artifact_materialization_status": TABLE_SCHEMA_STATUS,
+        "current_development_mode": "metadata_only_negative_leakage_runtime_scan_boundary_no_scanner",
+        "offline_adapter_smoke_strategy_readiness_status": (
+            "audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_defined"
+        ),
+        "offline_adapter_smoke_strategy_status": "offline_adapter_smoke_strategy_defined_without_runtime",
+        "negative_leakage_scan_evidence_readiness_status": (
+            "audit_store_storage_adapter_negative_leakage_scan_evidence_readiness_defined"
+        ),
+        "negative_leakage_scan_evidence_status": "negative_leakage_scan_evidence_defined_without_runtime",
         "table_schema_artifact_status": "materialized_static_logical_table_schema",
         "metadata_contract_artifact_status": "materialized_static_metadata_contract",
         "backend_product_selection_status": "selected_static_product_class_without_backend_provider",
         "selected_backend_product_class": "managed_database_append_only_table",
-        "database_provider_driver_dsn_tls_role_policy_status": "defined_without_runtime",
-        "offline_adapter_smoke_strategy_status": READINESS_DECISION,
-        "offline_adapter_smoke_manifest_status": "metadata_only_smoke_manifest_defined",
-        "offline_adapter_smoke_positive_case_status": "metadata_only_positive_case_defined",
-        "offline_adapter_smoke_negative_case_status": "metadata_only_negative_case_defined",
-        "offline_adapter_smoke_coverage_status": "metadata_contract_table_schema_append_only_coverage_defined",
-        "offline_adapter_smoke_backend_touch_policy_status": "real_backend_touch_forbidden",
-        "offline_adapter_smoke_secret_material_policy_status": "committed_smoke_strategy_secret_material_forbidden",
-        "offline_adapter_smoke_diagnostic_policy_status": "sanitized_diagnostic_allowlist_defined",
-        "offline_adapter_smoke_runner_status": "not_created",
-        "offline_adapter_smoke_output_status": "not_created",
         "negative_leakage_runtime_scan_boundary_status": "defined_without_runtime",
+        "negative_leakage_runtime_scan_manifest_status": "metadata_only_runtime_scan_manifest_defined",
+        "negative_leakage_runtime_scan_target_allowlist_status": (
+            "metadata_only_scan_target_allowlist_defined"
+        ),
+        "negative_leakage_runtime_scan_forbidden_material_coverage_status": (
+            "raw_payload_secret_credential_provider_backend_detail_coverage_defined"
+        ),
+        "negative_leakage_runtime_scan_diagnostic_allowlist_status": (
+            "metadata_only_diagnostic_allowlist_defined"
+        ),
+        "negative_leakage_runtime_scan_failure_taxonomy_status": "sanitized_failure_taxonomy_defined",
+        "negative_leakage_runtime_scan_backend_touch_policy_status": "real_backend_touch_forbidden",
+        "negative_leakage_runtime_scan_runner_status": "not_created",
+        "negative_leakage_runtime_scan_output_status": "not_created",
+        "storage_adapter_runtime_task_card_decision": RUNTIME_TASK_CARD_DECISION,
         "current_next_dependency": CURRENT_NEXT_DEPENDENCY,
-        "runtime_task_card_decision": RUNTIME_TASK_CARD_DECISION,
     }
     for field, expected_value in expected.items():
         require(boundary.get(field) == expected_value, f"readiness_boundary.{field} drifted")
-    for field in EXPECTED_RUNTIME_FALSE_FLAGS:
+    for field in EXPECTED_FALSE_FLAGS:
         require(boundary.get(field) is False, f"{field} must remain false")
 
 
@@ -343,22 +358,26 @@ def case_is_valid(candidate: dict[str, Any]) -> bool:
         return False
     if candidate.get("schema_version") != 1:
         return False
-    if candidate.get("kind") != "production_secret_audit_storage_adapter_offline_smoke_case_v1":
+    if candidate.get("kind") != "production_secret_audit_storage_adapter_negative_leakage_runtime_scan_boundary_case_v1":
         return False
-    if candidate.get("smoke_strategy_ref") != SLICE_ID:
+    if candidate.get("runtime_scan_boundary_ref") != SLICE_ID:
         return False
     if candidate.get("metadata_contract_ref") != relpath(METADATA_CONTRACT_ARTIFACT_PATH):
         return False
     if candidate.get("table_schema_artifact_ref") != relpath(TABLE_SCHEMA_ARTIFACT_PATH):
         return False
-    if candidate.get("backend_product_class") != "managed_database_append_only_table":
-        return False
-    if candidate.get("runtime_touch") is not False or candidate.get("real_backend_touch") is not False:
-        return False
-    if candidate.get("secret_material_included") is not False:
-        return False
-    if candidate.get("physical_schema_detail_included") is not False:
-        return False
+    for flag in (
+        "runtime_touch",
+        "real_backend_touch",
+        "scanner_created",
+        "scan_runner_created",
+        "scan_output_committed",
+        "secret_material_included",
+        "raw_payload_included",
+        "provider_backend_detail_included",
+    ):
+        if candidate.get(flag) is not False:
+            return False
     if FORBIDDEN_CASE_FIELDS & set(candidate):
         return False
     if "forbidden_runtime_mechanism" in candidate:
@@ -367,24 +386,40 @@ def case_is_valid(candidate: dict[str, Any]) -> bool:
     return isinstance(diagnostic, dict) and bool(diagnostic.get("failure_code"))
 
 
-def assert_smoke_strategy(fixture: dict[str, Any]) -> None:
-    strategy = fixture.get("offline_adapter_smoke_strategy") or {}
-    require(strategy.get("status") == "metadata_only_strategy_defined", "strategy status drifted")
-    require(strategy.get("manifest_kind") == "audit_storage_adapter_offline_smoke_manifest_reference", "manifest kind drifted")
-    require(set(strategy.get("required_reference_fields") or []) == EXPECTED_REFERENCE_FIELDS, "reference fields drifted")
-    case_families = set(strategy.get("case_families") or [])
-    for case_id in EXPECTED_CASES:
-        require(case_id in case_families, f"strategy missing case family {case_id}")
-    forbidden_mechanisms = set(strategy.get("forbidden_runtime_mechanisms") or [])
+def assert_runtime_scan_boundary(fixture: dict[str, Any]) -> None:
+    boundary = fixture.get("runtime_scan_boundary") or {}
+    require(boundary.get("status") == "metadata_only_boundary_defined", "boundary status drifted")
+    require(
+        boundary.get("manifest_kind")
+        == "audit_storage_adapter_negative_leakage_runtime_scan_manifest_reference",
+        "manifest kind drifted",
+    )
+    require(
+        set(boundary.get("required_reference_fields") or []) == EXPECTED_REFERENCE_FIELDS,
+        "reference fields drifted",
+    )
+    target_allowlist = set(boundary.get("target_allowlist") or [])
+    for target in {
+        "offline_adapter_smoke_manifest_ref",
+        "metadata_contract_schema_ref",
+        "table_schema_artifact_ref",
+        "sanitized_case_fixture_ref",
+        "failure_taxonomy_ref",
+        "diagnostic_allowlist_ref",
+    }:
+        require(target in target_allowlist, f"target allowlist missing {target}")
+    forbidden_material = set(boundary.get("forbidden_material_classes") or [])
+    require(FORBIDDEN_CASE_FIELDS <= forbidden_material, "forbidden material classes drifted")
+    forbidden_mechanisms = set(boundary.get("forbidden_runtime_mechanisms") or [])
     for mechanism in {
-        "offline_adapter_smoke_runner",
-        "storage_adapter_runtime",
-        "database_connection_provider",
+        "negative_leakage_scanner",
+        "scan_runner",
+        "scan_cli",
+        "storage_payload_reader",
         "database_connection",
-        "database_driver",
-        "migration_runner",
-        "schema_marker_runtime",
-        "committed_smoke_output",
+        "provider_call",
+        "cloud_secret_call",
+        "committed_scan_output",
     }:
         require(mechanism in forbidden_mechanisms, f"forbidden mechanism missing {mechanism}")
 
@@ -399,9 +434,9 @@ def assert_diagnostic_envelope(fixture: dict[str, Any]) -> None:
     require(not (allowed & FORBIDDEN_CASE_FIELDS), "diagnostic allowed fields include forbidden material")
 
 
-def assert_smoke_cases(fixture: dict[str, Any]) -> None:
-    cases = rows_by_id(fixture, "smoke_case_matrix", "case")
-    require(set(cases) == set(EXPECTED_CASES), "smoke case ids drifted")
+def assert_scan_boundary_cases(fixture: dict[str, Any]) -> None:
+    cases = rows_by_id(fixture, "scan_boundary_case_matrix", "case")
+    require(set(cases) == set(EXPECTED_CASES), "scan boundary case ids drifted")
     for case_id, (relative_path, expected_valid) in EXPECTED_CASES.items():
         item = cases[case_id]
         require(item.get("fixture") == relative_path, f"{case_id} fixture path drifted")
@@ -419,14 +454,20 @@ def assert_failure_mapping(fixture: dict[str, Any]) -> None:
         require(item.get("failure_boundary"), f"{code} missing failure boundary")
         diagnostic = str(item.get("sanitized_diagnostic") or "")
         require(diagnostic, f"{code} missing diagnostic")
-        require("secret value" not in diagnostic.lower(), f"{code} diagnostic must remain sanitized")
+        require("raw secret" not in diagnostic.lower(), f"{code} diagnostic must remain sanitized")
 
 
 def assert_no_secret_material_scan(fixture: dict[str, Any]) -> None:
     scan = fixture.get("no_secret_material_scan") or {}
     require(scan.get("status") == "implemented_static_scan", "no secret material scan status drifted")
     scanned = set(scan.get("scanned_artifacts") or [])
-    expected = {relpath(FIXTURE_PATH), POSITIVE_FIXTURE, MISSING_MANIFEST_FIXTURE, RUNTIME_TOUCH_FIXTURE, SECRET_MATERIAL_FIXTURE}
+    expected = {
+        relpath(FIXTURE_PATH),
+        POSITIVE_FIXTURE,
+        RUNTIME_TOUCH_FIXTURE,
+        SECRET_MATERIAL_FIXTURE,
+        SCAN_OUTPUT_FIXTURE,
+    }
     require(expected <= scanned, "no secret scan target list missing expected artifacts")
     for relative_path in scanned:
         text = read(str(relative_path))
@@ -442,14 +483,13 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
         require((REPO_ROOT / relative_path).exists(), f"allowed artifact missing: {relative_path}")
     forbidden = set(guard.get("forbidden_artifact_kinds") or [])
     for artifact in {
-        "database_vendor_selection_artifact",
+        "negative_leakage_scanner",
+        "negative_leakage_scan_runner",
+        "negative_leakage_scan_output",
         "db_driver",
         "dsn_parser",
         "database_connection_provider",
         "database_connection",
-        "offline_adapter_smoke_runner",
-        "committed_offline_adapter_smoke_output",
-        "negative_leakage_runtime_scan",
         "sql_migration",
         "ddl",
         "schema_marker_runtime",
@@ -476,22 +516,24 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
         boundary.get("storage_adapter_runtime_task_card_decision") == RUNTIME_TASK_CARD_DECISION,
         "matrix runtime task card decision drifted",
     )
+    expected_boundary = {
+        "storage_adapter_negative_leakage_runtime_scan_boundary_status": "defined_without_runtime",
+        "storage_adapter_negative_leakage_runtime_scan_manifest_status": (
+            "metadata_only_runtime_scan_manifest_defined"
+        ),
+        "storage_adapter_negative_leakage_runtime_scan_target_allowlist_status": (
+            "metadata_only_scan_target_allowlist_defined"
+        ),
+        "storage_adapter_negative_leakage_runtime_scan_runner_status": "not_created",
+        "storage_adapter_negative_leakage_runtime_scan_output_status": "not_created",
+        "storage_adapter_sql_migration_status": "not_created",
+        "storage_adapter_ddl_status": "not_created",
+    }
+    for field, expected in expected_boundary.items():
+        require(boundary.get(field) == expected, f"matrix {field} drifted")
     require(
-        boundary.get("storage_adapter_offline_adapter_smoke_strategy_status") == READINESS_DECISION,
-        "matrix offline adapter smoke strategy status drifted",
-    )
-    require(boundary.get("storage_adapter_offline_adapter_smoke_runner_status") == "not_created", "matrix runner drifted")
-    require(boundary.get("storage_adapter_offline_adapter_smoke_output_status") == "not_created", "matrix output drifted")
-    require(
-        boundary.get("storage_adapter_negative_leakage_runtime_scan_boundary_status")
-        == "defined_without_runtime",
-        "matrix negative leakage runtime scan boundary drifted",
-    )
-    for field in ("storage_adapter_sql_migration_status", "storage_adapter_ddl_status"):
-        require(boundary.get(field) == "not_created", f"matrix {field} drifted")
-
-    require(
-        alignment.get("durable_backend_blocker_status_after_offline_adapter_smoke_strategy") == CURRENT_BLOCKER_STATUS,
+        alignment.get("durable_backend_blocker_status_after_negative_leakage_runtime_scan_boundary")
+        == CURRENT_BLOCKER_STATUS,
         "fixture blocker status drifted",
     )
     require(alignment.get("storage_adapter_current_next_dependency") == CURRENT_NEXT_DEPENDENCY, "fixture next drifted")
@@ -499,7 +541,7 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
     require(durable.get("status") == CURRENT_BLOCKER_STATUS, "durable blocker row status drifted")
-    require(durable.get("source") == CURRENT_BLOCKER_SOURCE, "durable blocker row source drifted")
+    require(durable.get("source") == SLICE_ID, "durable blocker row source drifted")
 
 
 def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
@@ -508,14 +550,14 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
     for field, expected in (fixture.get("implementation_readiness_alignment") or {}).items():
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
     planned = rows_by_id(readiness, "planned_slices", "id")
-    item = planned.get("audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness") or {}
+    item = planned.get("audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness") or {}
     require(item.get("status") == SLICE_STATUS, "planned slice status drifted")
     require(EXPECTED_ALLOWED_ARTIFACTS <= set(item.get("evidence") or []), "planned slice evidence drifted")
 
 
 def assert_docs_and_registration() -> None:
     docs = {
-        "docs/platform/production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1.md": [
+        "docs/platform/production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1.md": [
             SLICE_STATUS,
             READINESS_DECISION,
             CURRENT_NEXT_DEPENDENCY,
@@ -523,8 +565,9 @@ def assert_docs_and_registration() -> None:
             POSITIVE_FIXTURE,
             RUNTIME_TOUCH_FIXTURE,
             SECRET_MATERIAL_FIXTURE,
+            SCAN_OUTPUT_FIXTURE,
         ],
-        "docs/task-cards/production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1-plan.md": [
+        "docs/task-cards/production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1-plan.md": [
             SLICE_STATUS,
             READINESS_DECISION,
             CURRENT_NEXT_DEPENDENCY,
@@ -558,7 +601,7 @@ def assert_docs_and_registration() -> None:
             CURRENT_NEXT_DEPENDENCY,
         ],
         "scripts/README.md": [
-            "check-production-ops-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1.py",
+            "check-production-ops-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1.py",
             SLICE_STATUS,
         ],
         "docs/devlogs/2026-W27.md": [SLICE_STATUS, CURRENT_NEXT_DEPENDENCY],
@@ -569,18 +612,18 @@ def assert_docs_and_registration() -> None:
         require(not missing, f"{relative_path} missing literals: {missing}")
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
-    table_schema = (
-        "check-production-ops-secret-backend-audit-store-storage-adapter-"
-        "table-schema-artifact-materialization-v1.py"
-    )
-    current = (
+    offline = (
         "check-production-ops-secret-backend-audit-store-storage-adapter-"
         "offline-adapter-smoke-strategy-readiness-v1.py"
     )
+    current = (
+        "check-production-ops-secret-backend-audit-store-storage-adapter-"
+        "negative-leakage-runtime-scan-boundary-readiness-v1.py"
+    )
     matrix = "check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py"
-    for script in (table_schema, current, matrix):
+    for script in (offline, current, matrix):
         require(script in check_repo, f"check-repo.py missing {script}")
-    require(check_repo.index(table_schema) < check_repo.index(current) < check_repo.index(matrix), "check-repo order drifted")
+    require(check_repo.index(offline) < check_repo.index(current) < check_repo.index(matrix), "check-repo order drifted")
 
 
 def main() -> None:
@@ -591,16 +634,19 @@ def main() -> None:
     assert_slice(fixture)
     assert_dependencies(fixture)
     assert_readiness_boundary(fixture)
-    assert_smoke_strategy(fixture)
+    assert_runtime_scan_boundary(fixture)
     assert_diagnostic_envelope(fixture)
-    assert_smoke_cases(fixture)
+    assert_scan_boundary_cases(fixture)
     assert_failure_mapping(fixture)
     assert_no_secret_material_scan(fixture)
     assert_artifact_guard(fixture)
     assert_blocker_matrix_alignment(fixture)
     assert_implementation_readiness_alignment(fixture)
     assert_docs_and_registration()
-    print("production ops secret backend audit store storage adapter offline adapter smoke strategy readiness checks passed.")
+    print(
+        "production ops secret backend audit store storage adapter "
+        "negative leakage runtime scan boundary readiness checks passed."
+    )
 
 
 if __name__ == "__main__":

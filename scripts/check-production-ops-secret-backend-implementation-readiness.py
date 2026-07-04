@@ -181,6 +181,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness": (
         "audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_defined"
     ),
+    "audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness": (
+        "audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -1064,10 +1067,32 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit storage adapter offline adapter smoke strategy status drifted",
     )
     require(
+        target.get("audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_status")
+        == "audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined",
+        "audit storage adapter negative leakage runtime scan boundary readiness status drifted",
+    )
+    require(
         target.get("audit_storage_adapter_negative_leakage_runtime_scan_boundary_status")
-        == "required_before_runtime_task_card",
+        == "defined_without_runtime",
         "audit storage adapter negative leakage runtime scan boundary status drifted",
     )
+    for field, expected in {
+        "audit_storage_adapter_negative_leakage_runtime_scan_manifest_status": (
+            "metadata_only_runtime_scan_manifest_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_target_allowlist_status": (
+            "metadata_only_scan_target_allowlist_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_forbidden_material_coverage_status": (
+            "raw_payload_secret_credential_provider_backend_detail_coverage_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_diagnostic_allowlist_status": (
+            "metadata_only_diagnostic_allowlist_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_runner_status": "not_created",
+        "audit_storage_adapter_negative_leakage_runtime_scan_output_status": "not_created",
+    }.items():
+        require(target.get(field) == expected, f"{field} drifted")
     require(
         target.get("audit_storage_adapter_backend_product_candidate_source_status")
         == "metadata_only_candidate_source_defined",
@@ -1358,7 +1383,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_offline_adapter_smoke_strategy_readiness",
+        == "storage_adapter_runtime_task_card_still_blocked_after_negative_leakage_runtime_scan_boundary",
         "audit storage adapter runtime task card decision drifted",
     )
     require(
@@ -1382,7 +1407,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_negative_leakage_runtime_scan_boundary_readiness",
+        == "storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary",
         "audit storage adapter current next dependency drifted",
     )
     require(
@@ -1423,6 +1448,33 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("audit_storage_adapter_offline_adapter_smoke_output_status") == "not_created",
         "audit storage adapter offline adapter smoke output status drifted",
     )
+    require(
+        target.get("audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_status")
+        == "audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined",
+        "audit storage adapter negative leakage runtime scan boundary readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_negative_leakage_runtime_scan_boundary_status")
+        == "defined_without_runtime",
+        "audit storage adapter negative leakage runtime scan boundary status drifted",
+    )
+    for field, expected in {
+        "audit_storage_adapter_negative_leakage_runtime_scan_manifest_status": (
+            "metadata_only_runtime_scan_manifest_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_target_allowlist_status": (
+            "metadata_only_scan_target_allowlist_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_forbidden_material_coverage_status": (
+            "raw_payload_secret_credential_provider_backend_detail_coverage_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_diagnostic_allowlist_status": (
+            "metadata_only_diagnostic_allowlist_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_runner_status": "not_created",
+        "audit_storage_adapter_negative_leakage_runtime_scan_output_status": "not_created",
+    }.items():
+        require(target.get(field) == expected, f"{field} drifted")
     require(
         target.get("audit_storage_adapter_runtime_task_card_status") == "not_created",
         "audit storage adapter runtime task card must remain not_created",

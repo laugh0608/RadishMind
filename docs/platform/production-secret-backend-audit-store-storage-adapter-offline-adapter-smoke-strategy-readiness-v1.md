@@ -95,3 +95,7 @@ python3 scripts/check-production-ops-secret-backend-implementation-readiness.py
 ```
 
 如果继续 durable store 上游，下一批应独立推进 `storage_adapter_negative_leakage_runtime_scan_boundary_readiness`，先定义 runtime scan boundary、target allowlist、forbidden material coverage、diagnostic policy 和 artifact guard，再考虑 storage adapter runtime task card。
+
+## 后续推进状态
+
+`storage_adapter_negative_leakage_runtime_scan_boundary_readiness` 已由后续批次消费，当前 runtime task card 结论已推进为 `storage_adapter_runtime_task_card_still_blocked_after_negative_leakage_runtime_scan_boundary`，当前下一依赖为 `storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary`。

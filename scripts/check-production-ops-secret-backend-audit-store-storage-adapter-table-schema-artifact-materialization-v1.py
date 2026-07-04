@@ -51,10 +51,10 @@ RUNTIME_TASK_CARD_DECISION = (
 )
 MATRIX_BLOCKER_STATUS = "storage_adapter_table_schema_artifact_materialized_runtime_blocked"
 CURRENT_RUNTIME_TASK_CARD_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_offline_adapter_smoke_strategy_readiness"
+    "storage_adapter_runtime_task_card_still_blocked_after_negative_leakage_runtime_scan_boundary"
 )
-CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_offline_adapter_smoke_strategy_readiness_defined_runtime_blocked"
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_negative_leakage_runtime_scan_boundary_readiness"
+CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined_runtime_blocked"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary"
 
 POSITIVE_FIXTURE = "scripts/checks/fixtures/production-secret-audit-storage-adapter-table-schema-positive-v1.json"
 MISSING_REQUIRED_FIXTURE = (
@@ -595,7 +595,7 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     require(durable.get("status") == CURRENT_MATRIX_BLOCKER_STATUS, "durable blocker row status drifted")
     require(
         durable.get("source")
-        == "production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1",
+        == "production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1",
         "durable blocker row source drifted",
     )
 
