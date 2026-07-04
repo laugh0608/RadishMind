@@ -38,12 +38,12 @@ FOLLOWUP_AFTER_SELECTION_FIXTURE = (
 FOLLOWUP_AFTER_SELECTION_STATUS = (
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
 )
-FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_concrete_database_selection_review"
+FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_database_provider_selection_readiness"
 FOLLOWUP_AFTER_SELECTION_BLOCKER_STATUS = (
-    "storage_adapter_concrete_database_selection_readiness_defined_task_card_blocked"
+    "storage_adapter_concrete_database_selection_review_defined_task_card_blocked"
 )
 FOLLOWUP_AFTER_SELECTION_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-review-v1"
 )
 FOLLOWUP_ALIGNMENT = {
     "audit_storage_adapter_metadata_contract_artifact_status": "materialized_static_metadata_contract",
@@ -55,7 +55,7 @@ FOLLOWUP_SELECTION_ALIGNMENT = {
     "audit_storage_adapter_backend_product_selection_status": "selected_static_product_class_without_backend_provider",
     "audit_storage_adapter_selected_backend_product_class": "managed_database_append_only_table",
     "audit_storage_adapter_selected_backend_product_profile": "reserved_managed_database_append_only_table_profile",
-    "audit_storage_adapter_database_product_status": "not_selected",
+    "audit_storage_adapter_database_product_status": "engine_selected_without_managed_product",
     "audit_storage_adapter_database_connection_provider_status": "not_created",
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_SELECTION_NEXT_DEPENDENCY,
 }
@@ -64,7 +64,7 @@ FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
         FOLLOWUP_AFTER_SELECTION_STATUS
     ),
     "audit_storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_concrete_database_selection_readiness"
+        "storage_adapter_runtime_task_card_still_blocked_after_concrete_database_selection_review"
     ),
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY,
     "audit_storage_adapter_database_provider_driver_dsn_tls_role_policy_status": (

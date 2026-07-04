@@ -33,15 +33,18 @@ ENTRY_DECISION = (
     "storage_adapter_runtime_task_card_still_blocked_after_negative_leakage_runtime_scan_boundary_entry_refresh"
 )
 NEXT_DEPENDENCY = "storage_adapter_concrete_database_selection_readiness"
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_concrete_database_selection_review"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_database_provider_selection_readiness"
 SELECTED_PRODUCT_CLASS = "managed_database_append_only_table"
 SELECTED_PRODUCT_PROFILE = "reserved_managed_database_append_only_table_profile"
 MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_concrete_database_selection_readiness_defined_task_card_blocked"
+    "storage_adapter_concrete_database_selection_review_defined_task_card_blocked"
 )
-CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_concrete_database_selection_readiness"
-CURRENT_BLOCKER_SOURCE = "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1"
+CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_concrete_database_selection_review"
+CURRENT_BLOCKER_SOURCE = "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-review-v1"
 CONCRETE_DATABASE_SELECTION_READINESS_STATUS = "audit_store_storage_adapter_concrete_database_selection_readiness_defined"
+CONCRETE_DATABASE_SELECTION_REVIEW_STATUS = "audit_store_storage_adapter_concrete_database_selection_review_defined"
+CONCRETE_DATABASE_SELECTION_STATUS = "selected_database_engine_without_vendor_or_provider"
+SELECTED_DATABASE_ENGINE = "postgresql_compatible_append_only_relational_database"
 
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1": (
@@ -446,12 +449,17 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
         "storage_adapter_runtime_task_card_decision": CURRENT_ENTRY_DECISION,
         "storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
         "storage_adapter_concrete_database_selection_readiness_status": CONCRETE_DATABASE_SELECTION_READINESS_STATUS,
-        "storage_adapter_concrete_database_selection_status": "readiness_defined_without_database_selection",
+        "storage_adapter_concrete_database_selection_review_status": CONCRETE_DATABASE_SELECTION_REVIEW_STATUS,
+        "storage_adapter_concrete_database_selection_status": CONCRETE_DATABASE_SELECTION_STATUS,
+        "storage_adapter_selected_database_engine": SELECTED_DATABASE_ENGINE,
+        "storage_adapter_selected_database_engine_status": "selected_without_vendor_product_driver_or_provider",
         "storage_adapter_candidate_input_evidence_status": "metadata_only_input_evidence_defined",
         "storage_adapter_candidate_evaluation_matrix_status": "metadata_only_evaluation_matrix_defined",
-        "storage_adapter_database_selection_review_status": "not_started",
-        "storage_adapter_database_product_status": "not_selected",
+        "storage_adapter_database_selection_review_status": CONCRETE_DATABASE_SELECTION_REVIEW_STATUS,
+        "storage_adapter_database_product_status": "engine_selected_without_managed_product",
         "storage_adapter_database_connection_provider_status": "not_created",
+        "storage_adapter_database_driver_status": "not_selected",
+        "storage_adapter_database_dsn_status": "not_defined",
         "storage_adapter_schema_marker_runtime_status": "not_created",
         "storage_adapter_migration_runner_status": "not_created",
         "storage_adapter_runtime_task_card_status": "not_created",

@@ -35,6 +35,15 @@ NEXT_DEPENDENCY = "storage_adapter_concrete_database_selection_review"
 SELECTED_PRODUCT_CLASS = "managed_database_append_only_table"
 SELECTED_PRODUCT_PROFILE = "reserved_managed_database_append_only_table_profile"
 MATRIX_BLOCKER_STATUS = "storage_adapter_concrete_database_selection_readiness_defined_task_card_blocked"
+CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_concrete_database_selection_review_defined_task_card_blocked"
+CURRENT_MATRIX_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-review-v1"
+)
+CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_concrete_database_selection_review"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_database_provider_selection_readiness"
+CURRENT_DATABASE_SELECTION_STATUS = "selected_database_engine_without_vendor_or_provider"
+CURRENT_DATABASE_SELECTION_REVIEW_STATUS = "audit_store_storage_adapter_concrete_database_selection_review_defined"
+CURRENT_SELECTED_DATABASE_ENGINE = "postgresql_compatible_append_only_relational_database"
 
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary-v1": (
@@ -398,7 +407,6 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
         require((REPO_ROOT / path).exists(), f"allowed artifact missing: {path}")
     forbidden = set(guard.get("forbidden_artifact_kinds") or [])
     for artifact in {
-        "concrete_database_selection_review_artifact",
         "database_product_selection_artifact",
         "backend_vendor_selection_artifact",
         "storage_adapter_runtime_implementation_task_card",
@@ -429,38 +437,46 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     boundary = matrix.get("matrix_boundary") or {}
     for field, value in {
         "storage_adapter_concrete_database_selection_readiness_status": SLICE_STATUS,
-        "storage_adapter_concrete_database_selection_status": "readiness_defined_without_database_selection",
+        "storage_adapter_concrete_database_selection_review_status": CURRENT_DATABASE_SELECTION_REVIEW_STATUS,
+        "storage_adapter_concrete_database_selection_status": CURRENT_DATABASE_SELECTION_STATUS,
+        "storage_adapter_selected_database_engine": CURRENT_SELECTED_DATABASE_ENGINE,
+        "storage_adapter_selected_database_engine_status": "selected_without_vendor_product_driver_or_provider",
         "storage_adapter_candidate_input_evidence_status": "metadata_only_input_evidence_defined",
         "storage_adapter_candidate_evaluation_matrix_status": "metadata_only_evaluation_matrix_defined",
-        "storage_adapter_database_selection_review_status": "not_started",
-        "storage_adapter_runtime_task_card_decision": ENTRY_DECISION,
-        "storage_adapter_current_next_dependency": NEXT_DEPENDENCY,
-        "storage_adapter_database_product_status": "not_selected",
+        "storage_adapter_database_selection_review_status": CURRENT_DATABASE_SELECTION_REVIEW_STATUS,
+        "storage_adapter_runtime_task_card_decision": CURRENT_ENTRY_DECISION,
+        "storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
+        "storage_adapter_database_product_status": "engine_selected_without_managed_product",
         "storage_adapter_database_vendor_status": "not_selected",
         "storage_adapter_database_connection_provider_status": "not_created",
+        "storage_adapter_database_driver_status": "not_selected",
+        "storage_adapter_database_dsn_status": "not_defined",
         "storage_adapter_schema_marker_runtime_status": "not_created",
         "storage_adapter_migration_runner_status": "not_created",
         "storage_adapter_runtime_task_card_status": "not_created",
         "storage_adapter_runtime_status": "not_created",
-        "durable_audit_backend_status": MATRIX_BLOCKER_STATUS,
+        "durable_audit_backend_status": CURRENT_MATRIX_BLOCKER_STATUS,
     }.items():
         require(boundary.get(field) == value, f"matrix boundary {field} drifted")
 
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    require(durable.get("status") == MATRIX_BLOCKER_STATUS, "durable status drifted")
-    require(durable.get("source") == SLICE_ID, "durable source drifted")
+    require(durable.get("status") == CURRENT_MATRIX_BLOCKER_STATUS, "durable status drifted")
+    require(durable.get("source") == CURRENT_MATRIX_BLOCKER_SOURCE, "durable source drifted")
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable must block audit runtime")
     require(durable.get("blocks_production_resolver_task_card") is True, "durable must block resolver runtime")
 
     alignment = fixture.get("blocker_matrix_alignment") or {}
     require(
-        alignment.get("durable_backend_blocker_status_after_readiness") == MATRIX_BLOCKER_STATUS,
+        alignment.get("durable_backend_blocker_status_after_readiness") == CURRENT_MATRIX_BLOCKER_STATUS,
         "fixture matrix status drifted",
     )
-    require(alignment.get("durable_backend_blocker_source_after_readiness") == SLICE_ID, "fixture matrix source drifted")
-    require(alignment.get("storage_adapter_current_next_dependency") == NEXT_DEPENDENCY, "fixture next drifted")
-    require(alignment.get("runtime_task_card_decision") == ENTRY_DECISION, "fixture decision drifted")
+    require(
+        alignment.get("durable_backend_blocker_source_after_readiness") == CURRENT_MATRIX_BLOCKER_SOURCE,
+        "fixture matrix source drifted",
+    )
+    require(alignment.get("storage_adapter_current_next_dependency") == CURRENT_NEXT_DEPENDENCY, "fixture next drifted")
+    require(alignment.get("runtime_task_card_decision") == CURRENT_ENTRY_DECISION, "fixture decision drifted")
 
 
 def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
