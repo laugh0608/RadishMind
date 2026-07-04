@@ -38,7 +38,7 @@ FOLLOWUP_AFTER_SELECTION_STATUS = (
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
 )
 FOLLOWUP_AFTER_SELECTION_DURABLE_BLOCKER_STATUS = (
-    "storage_adapter_table_schema_artifact_materialization_task_card_defined_artifact_blocked"
+    "storage_adapter_table_schema_artifact_materialized_runtime_blocked"
 )
 FOLLOWUP_AFTER_SELECTION_DURABLE_BLOCKER_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1"

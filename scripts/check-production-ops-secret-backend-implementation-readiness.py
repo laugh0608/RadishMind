@@ -176,7 +176,7 @@ REQUIRED_PLANNED_SLICES = {
         "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_defined"
     ),
     "audit-store-storage-adapter-table-schema-artifact-materialization": (
-        "audit_store_storage_adapter_table_schema_artifact_materialization_task_card_defined"
+        "audit_store_storage_adapter_table_schema_artifact_materialized"
     ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
@@ -990,8 +990,33 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit storage adapter schema marker handoff boundary status drifted",
     )
     require(
-        target.get("audit_storage_adapter_table_schema_artifact_status") == "not_created",
+        target.get("audit_storage_adapter_table_schema_artifact_materialization_status")
+        == "audit_store_storage_adapter_table_schema_artifact_materialized",
+        "audit storage adapter table schema artifact materialization status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_table_schema_artifact_status")
+        == "materialized_static_logical_table_schema",
         "audit storage adapter table schema artifact status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_table_schema_artifact_path_status") == "materialized_static_path",
+        "audit storage adapter table schema artifact path status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_table_schema_artifact_validation_status")
+        == "implemented_offline_schema_validation",
+        "audit storage adapter table schema artifact validation status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_table_schema_metadata_contract_compatibility_status")
+        == "implemented_static_contract_compatibility",
+        "audit storage adapter table schema metadata contract compatibility status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_table_schema_no_secret_material_scan_status")
+        == "implemented_static_scan",
+        "audit storage adapter table schema no secret material scan status drifted",
     )
     require(
         target.get("audit_storage_adapter_sql_migration_status") == "not_created",
@@ -1325,12 +1350,12 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_table_schema_artifact_materialization_task_card_defined_status")
-        == "audit_store_storage_adapter_table_schema_artifact_materialization_task_card_defined",
+        == "audit_store_storage_adapter_table_schema_artifact_materialized",
         "audit storage adapter table schema materialization task card defined status drifted",
     )
     require(
         target.get("audit_storage_adapter_runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization_task_card",
+        == "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization",
         "audit storage adapter runtime task card decision drifted",
     )
     require(
@@ -1354,7 +1379,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_table_schema_artifact_materialization",
+        == "storage_adapter_offline_adapter_smoke_strategy_readiness",
         "audit storage adapter current next dependency drifted",
     )
     require(

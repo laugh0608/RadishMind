@@ -33,17 +33,20 @@ SLICE_STATUS = "audit_store_storage_adapter_table_schema_artifact_materializatio
 ENTRY_DECISION = "table_schema_artifact_materialization_task_card_ready_after_entry_review"
 NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization_task_card"
 RESERVED_TABLE_SCHEMA_ARTIFACT = "contracts/production-secret-audit-storage-adapter.table-schema.json"
+DOWNSTREAM_MATERIALIZED_ARTIFACTS = {
+    RESERVED_TABLE_SCHEMA_ARTIFACT,
+}
 PREVIOUS_STATUS = "audit_store_storage_adapter_append_only_table_schema_boundary_readiness_defined"
 PREVIOUS_DECISION = "append_only_table_schema_boundary_defined_without_sql_or_runtime"
 RUNTIME_TASK_CARD_DECISION = (
     "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization_entry_review"
 )
 MATRIX_BLOCKER_STATUS = "storage_adapter_table_schema_artifact_materialization_entry_review_defined_task_card_blocked"
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_offline_adapter_smoke_strategy_readiness"
 CURRENT_RUNTIME_TASK_CARD_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization_task_card"
+    "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization"
 )
-CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_table_schema_artifact_materialization_task_card_defined_artifact_blocked"
+CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_table_schema_artifact_materialized_runtime_blocked"
 CURRENT_MATRIX_BLOCKER_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1"
 )
@@ -380,6 +383,8 @@ def assert_diagnostics_and_artifacts(fixture: dict[str, Any]) -> None:
     for artifact in EXPECTED_ALLOWED_ARTIFACTS:
         require((REPO_ROOT / artifact).exists(), f"allowed artifact missing on disk: {artifact}")
     for forbidden_path in artifact_guard.get("files_must_not_exist") or []:
+        if forbidden_path in DOWNSTREAM_MATERIALIZED_ARTIFACTS:
+            continue
         require(not (REPO_ROOT / forbidden_path).exists(), f"forbidden artifact exists: {forbidden_path}")
     for forbidden in {
         "table_schema_artifact",
@@ -420,7 +425,10 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
         boundary.get("storage_adapter_runtime_task_card_decision") == CURRENT_RUNTIME_TASK_CARD_DECISION,
         "matrix runtime task decision drifted",
     )
-    require(boundary.get("storage_adapter_table_schema_artifact_status") == "not_created", "matrix table schema artifact drifted")
+    require(
+        boundary.get("storage_adapter_table_schema_artifact_status") == "materialized_static_logical_table_schema",
+        "matrix table schema artifact drifted",
+    )
     require(boundary.get("storage_adapter_sql_migration_status") == "not_created", "matrix SQL migration drifted")
     require(
         alignment.get("durable_backend_blocker_status_after_table_schema_task_card") == CURRENT_MATRIX_BLOCKER_STATUS,

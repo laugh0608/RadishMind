@@ -2,8 +2,14 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
+
+try:
+    from jsonschema import Draft202012Validator
+except ModuleNotFoundError as exc:  # pragma: no cover - guarded by bootstrap/check-repo.
+    raise SystemExit("jsonschema is required; run ./scripts/bootstrap-dev.sh first") from exc
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -17,6 +23,12 @@ ENTRY_REVIEW_FIXTURE_PATH = (
     / "scripts/checks/fixtures/"
     "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-entry-review-v1.json"
 )
+APPEND_ONLY_BOUNDARY_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-append-only-table-schema-boundary-readiness-v1.json"
+)
+METADATA_CONTRACT_ARTIFACT_PATH = REPO_ROOT / "contracts/production-secret-audit-storage-adapter.metadata-contract.json"
 BLOCKER_MATRIX_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/production-secret-backend-audit-store-runtime-blocker-matrix-v1.json"
 )
@@ -24,32 +36,61 @@ IMPLEMENTATION_READINESS_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json"
 )
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
+TABLE_SCHEMA_PATH = REPO_ROOT / "contracts/production-secret-audit-storage-adapter.table-schema.json"
 
 SLICE_ID = "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1"
-SLICE_STATUS = "audit_store_storage_adapter_table_schema_artifact_materialization_task_card_defined"
+SLICE_STATUS = "audit_store_storage_adapter_table_schema_artifact_materialized"
 TASK_CARD_DECISION = "table_schema_artifact_materialization_task_card_defined_after_entry_review"
-NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization"
-RESERVED_TABLE_SCHEMA_ARTIFACT = "contracts/production-secret-audit-storage-adapter.table-schema.json"
+MATERIALIZATION_DECISION = "table_schema_artifact_materialized_after_task_card"
+NEXT_DEPENDENCY = "storage_adapter_offline_adapter_smoke_strategy_readiness"
 TABLE_SCHEMA_VERSION = "audit-storage-adapter-table-schema-v1"
+METADATA_CONTRACT_VERSION = "audit-storage-adapter-metadata-contract-v1"
 ENTRY_REVIEW_STATUS = "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_defined"
 RUNTIME_TASK_CARD_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization_task_card"
+    "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization"
 )
-MATRIX_BLOCKER_STATUS = "storage_adapter_table_schema_artifact_materialization_task_card_defined_artifact_blocked"
+MATRIX_BLOCKER_STATUS = "storage_adapter_table_schema_artifact_materialized_runtime_blocked"
 
+POSITIVE_FIXTURE = "scripts/checks/fixtures/production-secret-audit-storage-adapter-table-schema-positive-v1.json"
+MISSING_REQUIRED_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-audit-storage-adapter-table-schema-missing-required-negative-v1.json"
+)
+PHYSICAL_DETAIL_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-audit-storage-adapter-table-schema-physical-detail-negative-v1.json"
+)
+SECRET_MATERIAL_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-audit-storage-adapter-table-schema-secret-material-negative-v1.json"
+)
+ADDITIONAL_PROPERTIES_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-audit-storage-adapter-table-schema-additional-properties-negative-v1.json"
+)
+
+EXPECTED_NEGATIVE_FIXTURES = {
+    MISSING_REQUIRED_FIXTURE,
+    PHYSICAL_DETAIL_FIXTURE,
+    SECRET_MATERIAL_FIXTURE,
+    ADDITIONAL_PROPERTIES_FIXTURE,
+}
 EXPECTED_ALLOWED_ARTIFACTS = {
+    TABLE_SCHEMA_PATH.relative_to(REPO_ROOT).as_posix(),
+    "docs/contracts/production-secret-audit-storage-adapter-table-schema.md",
     "docs/platform/production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1.md",
     "docs/task-cards/production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1-plan.md",
     (
         "scripts/checks/fixtures/"
         "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1.json"
     ),
+    POSITIVE_FIXTURE,
+    *EXPECTED_NEGATIVE_FIXTURES,
     (
         "scripts/"
         "check-production-ops-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1.py"
     ),
 }
-
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-entry-review-v1": (
         (
@@ -88,13 +129,7 @@ EXPECTED_DEPENDENCIES = {
         "implementation_readiness_defined",
     ),
 }
-
-EXPECTED_FALSE_FLAGS = {
-    "table_schema_artifact_materialized_in_this_slice",
-    "table_schema_positive_fixture_created_in_this_slice",
-    "table_schema_negative_fixture_created_in_this_slice",
-    "table_schema_checker_created_in_this_slice",
-    "table_schema_no_secret_material_scan_created_in_this_slice",
+EXPECTED_RUNTIME_FALSE_FLAGS = {
     "database_product_selected_in_this_slice",
     "database_vendor_selected_in_this_slice",
     "database_driver_selected_in_this_slice",
@@ -119,21 +154,20 @@ EXPECTED_FALSE_FLAGS = {
     "repository_mode_enabled",
     "production_api_enabled",
 }
-
 EXPECTED_FAILURE_CODES = {
-    "audit_store_storage_adapter_table_schema_materialization_task_card_missing",
-    "audit_store_storage_adapter_table_schema_materialization_scope_missing",
-    "audit_store_storage_adapter_table_schema_materialization_field_group_missing",
-    "audit_store_storage_adapter_table_schema_materialization_contract_compatibility_missing",
-    "audit_store_storage_adapter_table_schema_materialization_validation_plan_missing",
-    "audit_store_storage_adapter_table_schema_artifact_created_in_task_card",
-    "audit_store_storage_adapter_table_schema_physical_detail_created_in_task_card",
-    "audit_store_storage_adapter_table_schema_runtime_created_in_task_card",
+    "audit_store_storage_adapter_table_schema_artifact_missing",
+    "audit_store_storage_adapter_table_schema_version_mismatch",
+    "audit_store_storage_adapter_table_schema_field_group_missing",
+    "audit_store_storage_adapter_table_schema_contract_compatibility_missing",
+    "audit_store_storage_adapter_table_schema_positive_fixture_invalid",
+    "audit_store_storage_adapter_table_schema_negative_fixture_allowed",
+    "audit_store_storage_adapter_table_schema_physical_detail_allowed",
+    "audit_store_storage_adapter_table_schema_secret_material_allowed",
+    "audit_store_storage_adapter_table_schema_runtime_scope_overreach",
     "audit_store_storage_adapter_table_schema_materialization_fallback_forbidden",
     "audit_store_storage_adapter_table_schema_materialization_secret_material_detected",
 }
-
-EXPECTED_LOGICAL_GROUPS = {
+EXPECTED_GROUPS = {
     "identity",
     "ordering",
     "payload_reference",
@@ -141,63 +175,60 @@ EXPECTED_LOGICAL_GROUPS = {
     "delivery_recovery",
     "diagnostics",
 }
-
-EXPECTED_VALIDATION = {
-    "table schema artifact materialization task card checker",
-    "table schema artifact materialization entry review checker",
-    "append-only table schema boundary checker",
-    "metadata contract artifact materialization checker",
-    "positive metadata-only table schema fixture",
-    "physical detail negative fixture",
-    "secret material negative fixture",
-    "additionalProperties negative fixture",
-    "metadata contract compatibility smoke",
-    "no secret material scan",
-    "fast repository check",
+EXPECTED_FORBIDDEN_FIELDS = {
+    "secret_value",
+    "raw_secret",
+    "password",
+    "token",
+    "api_key",
+    "authorization_header",
+    "cookie",
+    "provider_raw_url",
+    "resolver_backend_url",
+    "dsn",
+    "database_hostname",
+    "database_name",
+    "table_name",
+    "column_name",
+    "column_type",
+    "index_name",
+    "constraint_name",
+    "partition_policy",
+    "ddl",
+    "sql",
+    "sql_migration",
+    "database_sequence",
+    "trigger",
+    "database_function",
+    "schema_version_table",
+    "migration_command",
+    "cloud_credential",
+    "credential_payload",
+    "raw_request_payload",
+    "raw_response_payload",
+    "raw_audit_payload",
+    "raw_event_payload",
+    "raw_writer_payload",
+    "raw_storage_payload",
+    "payload_hash",
+    "event_payload_hash",
+    "secret_derived_hash",
+    "provider_error_detail",
+    "database_error_detail",
+    "scanner_raw_finding",
+    "scan_output",
+    "schema_marker_raw_output",
+    "migration_output",
 }
-
-DOC_REQUIREMENTS = {
-    "docs/platform/production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1.md": {
-        SLICE_ID,
-        SLICE_STATUS,
-        TASK_CARD_DECISION,
-        NEXT_DEPENDENCY,
-        RESERVED_TABLE_SCHEMA_ARTIFACT,
-        TABLE_SCHEMA_VERSION,
-    },
-    "docs/task-cards/production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1-plan.md": {
-        SLICE_ID,
-        SLICE_STATUS,
-        NEXT_DEPENDENCY,
-        RESERVED_TABLE_SCHEMA_ARTIFACT,
-    },
-    "docs/platform/production-secret-backend-audit-store-storage-adapter-evidence-rollup-v1.md": {
-        SLICE_STATUS,
-        TASK_CARD_DECISION,
-        NEXT_DEPENDENCY,
-    },
-    "docs/platform/production-secret-backend-audit-store-runtime-blocker-matrix-v1.md": {
-        SLICE_STATUS,
-        MATRIX_BLOCKER_STATUS,
-        NEXT_DEPENDENCY,
-    },
-    "docs/radishmind-current-focus.md": {SLICE_STATUS, NEXT_DEPENDENCY},
-    "docs/radishmind-integration-contracts.md": {SLICE_STATUS, NEXT_DEPENDENCY},
-    "docs/radishmind-architecture.md": {SLICE_STATUS, NEXT_DEPENDENCY},
-    "docs/radishmind-product-scope.md": {SLICE_STATUS, NEXT_DEPENDENCY},
-    "docs/features/README.md": {SLICE_STATUS, NEXT_DEPENDENCY},
-    "docs/features/workflow/README.md": {SLICE_STATUS, NEXT_DEPENDENCY},
-    "docs/features/workflow/saved-workflow-draft-v1.md": {SLICE_STATUS, NEXT_DEPENDENCY},
-    "docs/task-cards/README.md": {SLICE_ID, SLICE_STATUS},
-    "docs/task-cards/production-secret-backend-audit-store-runtime-blocker-matrix-v1-plan.md": {
-        SLICE_STATUS,
-        MATRIX_BLOCKER_STATUS,
-        NEXT_DEPENDENCY,
-    },
-    "docs/task-cards/production-secret-backend-implementation-v1-plan.md": {SLICE_STATUS, NEXT_DEPENDENCY},
-    "scripts/README.md": {SLICE_STATUS},
-    "docs/devlogs/2026-W27.md": {SLICE_STATUS, NEXT_DEPENDENCY},
-}
+SECRET_LITERAL_PATTERNS = [
+    re.compile(r"Bearer\s+[A-Za-z0-9._-]+"),
+    re.compile(r"-----BEGIN [A-Z ]+-----"),
+    re.compile(r"AKIA[0-9A-Z]{16}"),
+    re.compile(r"sk-[A-Za-z0-9]{20,}"),
+    re.compile(r"postgres://[^\s\"]+"),
+    re.compile(r"mysql://[^\s\"]+"),
+    re.compile(r"jdbc:[^\s\"]+"),
+]
 
 
 def require(condition: bool, message: str) -> None:
@@ -209,6 +240,10 @@ def read(relative_path: str) -> str:
     path = REPO_ROOT / relative_path
     require(path.exists(), f"required file missing: {relative_path}")
     return path.read_text(encoding="utf-8")
+
+
+def relpath(path: Path) -> str:
+    return path.relative_to(REPO_ROOT).as_posix()
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -228,6 +263,46 @@ def source_status(document: dict[str, Any]) -> str:
     return str(slice_info.get("status") or document.get("status") or "")
 
 
+def recursive_keys(value: Any) -> set[str]:
+    if isinstance(value, dict):
+        keys = set(value)
+        for child in value.values():
+            keys.update(recursive_keys(child))
+        return keys
+    if isinstance(value, list):
+        keys: set[str] = set()
+        for child in value:
+            keys.update(recursive_keys(child))
+        return keys
+    return set()
+
+
+def forbidden_fields_from_schema(schema: dict[str, Any]) -> set[str]:
+    fields: set[str] = set()
+    for guard in schema.get("allOf") or []:
+        required = ((guard.get("not") or {}).get("required")) or []
+        require(len(required) == 1, f"forbidden guard must contain exactly one field: {guard}")
+        fields.add(required[0])
+    return fields
+
+
+def validator_for(schema: dict[str, Any]) -> Draft202012Validator:
+    Draft202012Validator.check_schema(schema)
+    return Draft202012Validator(schema)
+
+
+def is_valid(validator: Draft202012Validator, candidate: dict[str, Any]) -> bool:
+    return not list(validator.iter_errors(candidate))
+
+
+def contract_required_fields(contract: dict[str, Any]) -> set[str]:
+    fields: set[str] = set()
+    fields.update((contract.get("input_envelope") or {}).get("required_fields") or [])
+    fields.update((contract.get("result_envelope") or {}).get("required_fields") or [])
+    fields.update((contract.get("record_identity") or {}).get("required_fields") or [])
+    return fields
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
@@ -239,22 +314,30 @@ def assert_slice(fixture: dict[str, Any]) -> None:
     require(slice_info.get("id") == SLICE_ID, "unexpected slice id")
     require(slice_info.get("track") == "Production Ops Hardening v1", "unexpected track")
     require(slice_info.get("status") == SLICE_STATUS, "unexpected status")
-    for field in ("task_card", "platform_topic"):
+    require(slice_info.get("table_schema_artifact") == relpath(TABLE_SCHEMA_PATH), "table schema artifact path drifted")
+    for field in ("task_card", "platform_topic", "table_schema_artifact"):
         path = str(slice_info.get(field) or "")
-        require(path in EXPECTED_ALLOWED_ARTIFACTS, f"unexpected {field}: {path}")
         require((REPO_ROOT / path).exists(), f"{field} missing on disk: {path}")
     claims = set(slice_info.get("does_not_claim") or [])
     for claim in {
-        "table_schema_artifact_materialized",
         "sql_created",
         "ddl_created",
+        "database_provider_created",
         "schema_marker_runtime_created",
+        "migration_runner_created",
         "storage_adapter_runtime_created",
         "audit_store_runtime_created",
         "repository_mode_ready",
         "production_api_ready",
     }:
         require(claim in claims, f"does_not_claim missing {claim}")
+    for claim in {
+        "table_schema_artifact_materialized",
+        "table_schema_positive_fixture_created",
+        "table_schema_negative_fixture_created",
+        "table_schema_checker_created",
+    }:
+        require(claim not in claims, f"does_not_claim must not deny delivered artifact: {claim}")
 
 
 def assert_dependencies(fixture: dict[str, Any]) -> None:
@@ -268,62 +351,147 @@ def assert_dependencies(fixture: dict[str, Any]) -> None:
         require(source_status(source) == expected_status, f"{dependency_id} source status drifted")
 
 
-def assert_task_card_boundary(fixture: dict[str, Any]) -> None:
-    boundary = fixture.get("task_card_boundary") or {}
+def assert_materialization_boundary(fixture: dict[str, Any]) -> None:
+    boundary = fixture.get("materialization_boundary") or {}
     expected = {
         "status": SLICE_STATUS,
-        "task_card_status": "created_static_task_card",
+        "materialization_decision": MATERIALIZATION_DECISION,
         "task_card_decision": TASK_CARD_DECISION,
-        "entry_review_consumed": True,
-        "append_only_table_schema_boundary_consumed": True,
-        "metadata_contract_artifact_consumed": True,
-        "backend_product_selection_consumed": True,
-        "current_development_mode": "table_schema_artifact_materialization_task_card_only_no_artifact",
-        "future_table_schema_artifact_path": RESERVED_TABLE_SCHEMA_ARTIFACT,
-        "future_table_schema_artifact_version": TABLE_SCHEMA_VERSION,
+        "table_schema_artifact_path": relpath(TABLE_SCHEMA_PATH),
+        "table_schema_version": TABLE_SCHEMA_VERSION,
+        "metadata_contract_version": METADATA_CONTRACT_VERSION,
         "artifact_source": "append_only_boundary_and_metadata_contract_only",
+        "current_next_dependency": NEXT_DEPENDENCY,
         "runtime_task_card_decision": RUNTIME_TASK_CARD_DECISION,
-        "next_dependency": NEXT_DEPENDENCY,
     }
     for field, value in expected.items():
-        require(boundary.get(field) == value, f"task_card_boundary.{field} drifted")
-    for field in EXPECTED_FALSE_FLAGS:
-        require(boundary.get(field) is False, f"task_card_boundary.{field} must stay false")
+        require(boundary.get(field) == value, f"materialization_boundary.{field} drifted")
+    for field in (
+        "table_schema_artifact_materialized_in_this_slice",
+        "table_schema_positive_fixture_created_in_this_slice",
+        "table_schema_negative_fixtures_created_in_this_slice",
+        "table_schema_checker_created_in_this_slice",
+        "table_schema_no_secret_material_scan_created_in_this_slice",
+        "metadata_contract_compatibility_smoke_created_in_this_slice",
+    ):
+        require(boundary.get(field) is True, f"{field} must be true")
+    for field in EXPECTED_RUNTIME_FALSE_FLAGS:
+        require(boundary.get(field) is False, f"{field} must remain false")
+    for fixture_field in (
+        "positive_fixture",
+        "missing_required_negative_fixture",
+        "physical_detail_negative_fixture",
+        "secret_material_negative_fixture",
+        "additional_properties_negative_fixture",
+    ):
+        relative_path = str(boundary.get(fixture_field) or "")
+        require((REPO_ROOT / relative_path).exists(), f"{fixture_field} missing: {relative_path}")
 
 
-def assert_future_artifact_requirements(fixture: dict[str, Any]) -> None:
-    requirements = fixture.get("future_artifact_requirements") or {}
-    require(requirements.get("artifact_path") == RESERVED_TABLE_SCHEMA_ARTIFACT, "artifact path drifted")
-    require(requirements.get("schema_version_pin") == TABLE_SCHEMA_VERSION, "schema version drifted")
+def assert_schema_contract(schema: dict[str, Any], contract: dict[str, Any], boundary_fixture: dict[str, Any]) -> None:
+    require(schema.get("$schema") == "https://json-schema.org/draft/2020-12/schema", "schema draft drifted")
     require(
-        requirements.get("logical_field_group_source")
-        == "audit_store_storage_adapter_append_only_table_schema_boundary_readiness_defined",
-        "logical group source drifted",
+        schema.get("$id") == "https://radishmind.local/contracts/production-secret-audit-storage-adapter.table-schema.json",
+        "schema id drifted",
+    )
+    require(schema.get("type") == "object", "schema root type drifted")
+    require(schema.get("additionalProperties") is False, "schema must reject additionalProperties")
+    require(
+        schema.get("description", "").find("SQL") >= 0 and schema.get("description", "").find("runtime") >= 0,
+        "schema description must state no SQL/runtime boundary",
+    )
+
+    properties = schema.get("properties") or {}
+    required = set(schema.get("required") or [])
+    expected_contract_fields = contract_required_fields(contract)
+    require(required == expected_contract_fields | {"table_schema_version"}, "schema required fields drifted")
+    require(set(properties) == required, "schema properties must match required fields")
+    require(properties.get("table_schema_version", {}).get("const") == TABLE_SCHEMA_VERSION, "version pin drifted")
+    require(
+        properties.get("storage_adapter_contract_version", {}).get("const") == METADATA_CONTRACT_VERSION,
+        "metadata contract version pin drifted",
     )
     require(
-        requirements.get("metadata_contract_compatibility_source")
-        == "audit_store_storage_adapter_metadata_contract_artifact_materialized",
-        "contract compatibility source drifted",
+        properties.get("backend_product_class", {}).get("enum") == ["managed_database_append_only_table"],
+        "backend product class must remain static and non-vendor",
     )
-    require(set(requirements.get("allowed_logical_field_groups") or []) == EXPECTED_LOGICAL_GROUPS, "groups drifted")
-    require(set(requirements.get("required_validation") or []) == EXPECTED_VALIDATION, "validation plan drifted")
-    forbidden = set(requirements.get("forbidden_physical_details") or [])
-    for detail in {"database_name", "table_name", "column_name", "column_type", "ddl", "sql_migration"}:
-        require(detail in forbidden, f"forbidden physical detail missing {detail}")
-    must_not = set(requirements.get("must_not_include") or [])
-    for item in {"DB provider", "SQL", "DDL", "schema marker runtime", "storage adapter runtime", "audit store runtime"}:
-        require(item in must_not, f"must_not_include missing {item}")
-
-
-def assert_remaining_blockers(fixture: dict[str, Any]) -> None:
-    blockers = rows_by_id(fixture, "remaining_blockers", "id")
-    require(blockers["table_schema_artifact_materialization"].get("status") == "not_created", "artifact blocker drifted")
     require(
-        blockers["table_schema_artifact_materialization"].get("next_dependency") == NEXT_DEPENDENCY,
-        "artifact next dependency drifted",
+        properties.get("write_status", {}).get("enum")
+        == (contract.get("result_envelope") or {}).get("write_status_allowlist"),
+        "write_status allowlist drifted from metadata contract",
     )
-    require(blockers["schema_marker_runtime"].get("status") == "not_created", "schema marker blocker drifted")
-    require(blockers["storage_adapter_runtime"].get("status") == "blocked", "runtime blocker drifted")
+
+    extension = schema.get("x-radishmind-logical-schema") or {}
+    require(extension.get("schema_version") == TABLE_SCHEMA_VERSION, "extension schema version drifted")
+    require(extension.get("metadata_only") is True, "extension metadata-only flag drifted")
+    require(extension.get("physical_table_details_allowed") is False, "physical table details must stay forbidden")
+    require(extension.get("sql_or_ddl_allowed") is False, "SQL/DDL must stay forbidden")
+    require(extension.get("runtime_created") is False, "schema artifact must not create runtime")
+
+    boundary_groups = {
+        str(group.get("id") or "") for group in (boundary_fixture.get("logical_schema_boundary") or {}).get("allowed_field_groups") or []
+    }
+    groups = rows_by_id(extension, "logical_field_groups", "id")
+    require(set(groups) == EXPECTED_GROUPS, "logical group ids drifted")
+    require(set(groups) == boundary_groups, "logical group ids drifted from append-only boundary")
+    grouped_fields: set[str] = set()
+    for group in groups.values():
+        fields = set(group.get("logical_fields") or [])
+        require(fields, f"{group.get('id')} logical fields missing")
+        require(fields <= expected_contract_fields, f"{group.get('id')} contains non-contract fields")
+        grouped_fields.update(fields)
+    require(grouped_fields == expected_contract_fields, "logical groups must cover metadata contract fields exactly")
+
+    forbidden = forbidden_fields_from_schema(schema)
+    require(EXPECTED_FORBIDDEN_FIELDS <= forbidden, "schema forbidden guards missing expected fields")
+    require(not (EXPECTED_FORBIDDEN_FIELDS & set(properties)), "forbidden fields must not appear as allowed properties")
+
+
+def assert_validation_cases(fixture: dict[str, Any], schema: dict[str, Any]) -> None:
+    validator = validator_for(schema)
+    expected_cases = {
+        "positive_metadata_only_table_schema": (POSITIVE_FIXTURE, True),
+        "missing_required_storage_record_ref": (MISSING_REQUIRED_FIXTURE, False),
+        "physical_table_detail_forbidden": (PHYSICAL_DETAIL_FIXTURE, False),
+        "secret_material_forbidden": (SECRET_MATERIAL_FIXTURE, False),
+        "additional_property_forbidden": (ADDITIONAL_PROPERTIES_FIXTURE, False),
+    }
+    cases = rows_by_id(fixture, "validation_case_matrix", "case")
+    require(set(cases) == set(expected_cases), "validation case matrix drifted")
+    for case_id, (relative_path, expected_valid) in expected_cases.items():
+        case = cases[case_id]
+        require(case.get("fixture") == relative_path, f"{case_id} fixture path drifted")
+        require(case.get("expected_valid") is expected_valid, f"{case_id} expected validity drifted")
+        candidate = load_json(REPO_ROOT / relative_path)
+        actual = is_valid(validator, candidate)
+        require(actual is expected_valid, f"{case_id} validation result drifted")
+
+    positive = load_json(REPO_ROOT / POSITIVE_FIXTURE)
+    for field in schema.get("required") or []:
+        candidate = dict(positive)
+        candidate.pop(field, None)
+        require(not is_valid(validator, candidate), f"schema allowed missing required field: {field}")
+    for field in EXPECTED_FORBIDDEN_FIELDS:
+        candidate = dict(positive)
+        candidate[field] = "redacted-not-accepted"
+        require(not is_valid(validator, candidate), f"schema allowed forbidden field: {field}")
+
+
+def assert_metadata_contract_compatibility(fixture: dict[str, Any], contract: dict[str, Any]) -> None:
+    smoke = fixture.get("metadata_contract_compatibility_smoke") or {}
+    require(smoke.get("status") == "implemented_static_contract_compatibility", "compatibility smoke status drifted")
+    require(smoke.get("positive_fixture") == POSITIVE_FIXTURE, "compatibility positive fixture drifted")
+    required = contract_required_fields(contract)
+    require(set(smoke.get("requires_fields") or []) == required, "compatibility required fields drifted")
+    positive = load_json(REPO_ROOT / POSITIVE_FIXTURE)
+    require(set(positive) == required | {"table_schema_version"}, "positive fixture must match table schema required fields")
+    require(positive.get("storage_adapter_contract_version") == METADATA_CONTRACT_VERSION, "contract version drifted")
+    require(
+        positive.get("write_status") in set((contract.get("result_envelope") or {}).get("write_status_allowlist") or []),
+        "positive fixture write_status not allowed by metadata contract",
+    )
+    require(smoke.get("storage_adapter_runtime_created_in_this_slice") is False, "compatibility smoke created runtime")
+    require(smoke.get("audit_store_runtime_created_in_this_slice") is False, "compatibility smoke created audit store runtime")
 
 
 def assert_failure_mapping(fixture: dict[str, Any]) -> None:
@@ -333,36 +501,48 @@ def assert_failure_mapping(fixture: dict[str, Any]) -> None:
         require(item.get("failure_boundary"), f"{code} missing failure boundary")
         diagnostic = str(item.get("sanitized_diagnostic") or "")
         require(diagnostic, f"{code} missing diagnostic")
-        require("value" not in diagnostic.lower(), f"{code} diagnostic must stay sanitized")
+        require("secret value" not in diagnostic.lower(), f"{code} diagnostic must stay sanitized")
 
 
-def assert_diagnostics_and_artifacts(fixture: dict[str, Any]) -> None:
-    envelope = fixture.get("diagnostic_envelope") or {}
-    allowed = set(envelope.get("allowed_fields") or [])
-    for field in {
-        "audit_store_storage_adapter_table_schema_artifact_materialization_task_card_status",
-        "table_schema_artifact_path_status",
-        "metadata_contract_compatibility_status",
-        "table_schema_artifact_status",
-        "storage_adapter_runtime_status",
+def assert_no_secret_material_scan(fixture: dict[str, Any]) -> None:
+    scan = fixture.get("no_secret_material_scan") or {}
+    require(scan.get("status") == "implemented_static_scan", "no secret material scan status drifted")
+    scanned = set(scan.get("scanned_artifacts") or [])
+    expected = {relpath(TABLE_SCHEMA_PATH), POSITIVE_FIXTURE, *EXPECTED_NEGATIVE_FIXTURES}
+    require(expected <= scanned, "no secret scan target list missing expected artifacts")
+    for relative_path in scanned:
+        text = read(str(relative_path))
+        for pattern in SECRET_LITERAL_PATTERNS:
+            require(not pattern.search(text), f"secret-like literal found in {relative_path}")
+
+
+def assert_artifact_guard(fixture: dict[str, Any]) -> None:
+    guard = fixture.get("artifact_guard") or {}
+    allowed = set(guard.get("allowed_added_artifacts") or [])
+    require(EXPECTED_ALLOWED_ARTIFACTS <= allowed, "allowed added artifacts missing expected paths")
+    for path in allowed:
+        require((REPO_ROOT / path).exists(), f"allowed artifact missing: {path}")
+    forbidden = set(guard.get("forbidden_artifact_kinds") or [])
+    for artifact in {
+        "database_product_selection_artifact",
+        "database_vendor_selection_artifact",
+        "db_driver",
+        "dsn_parser",
+        "database_connection_provider",
+        "sql_migration",
+        "ddl",
+        "schema_marker_runtime",
+        "migration_runner",
+        "storage_adapter_runtime_implementation_task_card",
+        "storage_adapter_runtime",
+        "audit_store_runtime_implementation_task_card",
+        "audit_store_runtime",
+        "repository_mode_runtime",
+        "public_production_api",
     }:
-        require(field in allowed, f"diagnostic allowed field missing {field}")
-    forbidden = set(envelope.get("forbidden_fields") or [])
-    for field in {"raw_secret", "dsn", "table_name", "column_name", "column_type", "sql", "ddl", "payload_hash"}:
-        require(field in forbidden, f"diagnostic forbidden field missing {field}")
-
-    artifact_guard = fixture.get("artifact_guard") or {}
-    require(
-        set(artifact_guard.get("allowed_new_artifacts") or []) == EXPECTED_ALLOWED_ARTIFACTS,
-        "allowed new artifacts drifted",
-    )
-    for artifact in EXPECTED_ALLOWED_ARTIFACTS:
-        require((REPO_ROOT / artifact).exists(), f"allowed artifact missing on disk: {artifact}")
-    for forbidden_path in artifact_guard.get("files_must_not_exist") or []:
-        require(not (REPO_ROOT / forbidden_path).exists(), f"forbidden artifact exists: {forbidden_path}")
-    forbidden_artifacts = set(artifact_guard.get("forbidden_artifacts") or [])
-    for artifact in {"table_schema_artifact", "sql_migration", "ddl", "schema_marker_runtime", "storage_adapter_runtime"}:
-        require(artifact in forbidden_artifacts, f"forbidden artifact missing {artifact}")
+        require(artifact in forbidden, f"forbidden artifact kind missing: {artifact}")
+    for relative_path in guard.get("files_must_not_exist") or []:
+        require(not (REPO_ROOT / str(relative_path)).exists(), f"forbidden runtime artifact exists: {relative_path}")
 
 
 def assert_entry_review_still_static() -> None:
@@ -380,26 +560,26 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     require(boundary.get("durable_audit_backend_status") == MATRIX_BLOCKER_STATUS, "matrix durable blocker drifted")
     require(boundary.get("storage_adapter_current_next_dependency") == NEXT_DEPENDENCY, "matrix next dependency drifted")
     require(
-        boundary.get("storage_adapter_table_schema_artifact_materialization_task_card_status") == "created",
-        "matrix task card status drifted",
+        boundary.get("storage_adapter_table_schema_artifact_materialization_status") == SLICE_STATUS,
+        "matrix materialization status drifted",
     )
     require(
-        boundary.get("storage_adapter_table_schema_artifact_materialization_task_card_defined_status") == SLICE_STATUS,
-        "matrix task card defined status drifted",
+        boundary.get("storage_adapter_table_schema_artifact_status") == "materialized_static_logical_table_schema",
+        "matrix table schema artifact status drifted",
     )
+    require(boundary.get("storage_adapter_sql_migration_status") == "not_created", "matrix SQL drifted")
+    require(boundary.get("storage_adapter_ddl_status") == "not_created", "matrix DDL drifted")
     require(
         boundary.get("storage_adapter_runtime_task_card_decision") == RUNTIME_TASK_CARD_DECISION,
         "matrix runtime task decision drifted",
     )
-    require(boundary.get("storage_adapter_table_schema_artifact_status") == "not_created", "matrix artifact drifted")
-    require(boundary.get("storage_adapter_sql_migration_status") == "not_created", "matrix SQL drifted")
     require(
-        alignment.get("durable_backend_blocker_status_after_table_schema_task_card") == MATRIX_BLOCKER_STATUS,
+        alignment.get("durable_backend_blocker_status_after_table_schema_artifact") == MATRIX_BLOCKER_STATUS,
         "fixture blocker status drifted",
     )
     require(
-        alignment.get("durable_backend_source_after_table_schema_task_card") == SLICE_ID,
-        "fixture blocker source drifted",
+        alignment.get("storage_adapter_current_next_dependency") == NEXT_DEPENDENCY,
+        "fixture next dependency drifted",
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
@@ -412,22 +592,73 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
     target = readiness.get("implementation_target") or {}
     for field, expected in (fixture.get("implementation_readiness_alignment") or {}).items():
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
-    require(target.get("audit_storage_adapter_table_schema_artifact_status") == "not_created", "artifact drifted")
-    require(target.get("audit_storage_adapter_sql_migration_status") == "not_created", "SQL drifted")
-    require(target.get("audit_storage_adapter_runtime_status") == "not_created", "runtime drifted")
-    planned = readiness.get("planned_slices") or []
-    statuses = {str(item.get("status") or "") for item in planned if isinstance(item, dict)}
-    require(SLICE_STATUS in statuses, "implementation readiness planned slices missing task card status")
+    planned = rows_by_id(readiness, "planned_slices", "id")
+    item = planned.get("audit-store-storage-adapter-table-schema-artifact-materialization") or {}
+    require(item.get("status") == SLICE_STATUS, "implementation readiness planned slice status drifted")
+    require(EXPECTED_ALLOWED_ARTIFACTS <= set(item.get("evidence") or []), "planned slice evidence drifted")
 
 
-def assert_docs() -> None:
-    for relative_path, literals in DOC_REQUIREMENTS.items():
+def assert_docs_and_registration() -> None:
+    docs = {
+        "contracts/README.md": [
+            relpath(TABLE_SCHEMA_PATH),
+            "Production Secret Audit Storage Adapter Table Schema",
+            SLICE_STATUS,
+        ],
+        "docs/contracts/README.md": [
+            "Production Secret Audit Storage Adapter Table Schema",
+            "production-secret-audit-storage-adapter-table-schema.md",
+        ],
+        "docs/contracts/production-secret-audit-storage-adapter-table-schema.md": [
+            TABLE_SCHEMA_VERSION,
+            POSITIVE_FIXTURE,
+            PHYSICAL_DETAIL_FIXTURE,
+            "不创建 SQL",
+        ],
+        "docs/platform/production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1.md": [
+            SLICE_STATUS,
+            TABLE_SCHEMA_VERSION,
+            NEXT_DEPENDENCY,
+        ],
+        "docs/task-cards/production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1-plan.md": [
+            SLICE_STATUS,
+            relpath(TABLE_SCHEMA_PATH),
+            NEXT_DEPENDENCY,
+        ],
+        "docs/platform/production-secret-backend-audit-store-storage-adapter-evidence-rollup-v1.md": [
+            SLICE_STATUS,
+            NEXT_DEPENDENCY,
+        ],
+        "docs/platform/production-secret-backend-audit-store-runtime-blocker-matrix-v1.md": [
+            SLICE_STATUS,
+            MATRIX_BLOCKER_STATUS,
+            NEXT_DEPENDENCY,
+        ],
+        "docs/radishmind-current-focus.md": [SLICE_STATUS, NEXT_DEPENDENCY],
+        "docs/features/README.md": [SLICE_STATUS, NEXT_DEPENDENCY],
+        "docs/features/workflow/README.md": [SLICE_STATUS, NEXT_DEPENDENCY],
+        "docs/features/workflow/saved-workflow-draft-v1.md": [SLICE_STATUS, NEXT_DEPENDENCY],
+        "docs/radishmind-integration-contracts.md": [SLICE_STATUS, NEXT_DEPENDENCY],
+        "docs/radishmind-architecture.md": [SLICE_STATUS, NEXT_DEPENDENCY],
+        "docs/radishmind-product-scope.md": [SLICE_STATUS, NEXT_DEPENDENCY],
+        "docs/task-cards/README.md": [SLICE_ID, SLICE_STATUS],
+        "docs/task-cards/production-secret-backend-audit-store-runtime-blocker-matrix-v1-plan.md": [
+            SLICE_STATUS,
+            MATRIX_BLOCKER_STATUS,
+            NEXT_DEPENDENCY,
+        ],
+        "docs/task-cards/production-secret-backend-implementation-v1-plan.md": [SLICE_STATUS, NEXT_DEPENDENCY],
+        "scripts/README.md": [
+            "check-production-ops-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1.py",
+            SLICE_STATUS,
+        ],
+        "docs/devlogs/2026-W27.md": [SLICE_STATUS, NEXT_DEPENDENCY],
+    }
+    for relative_path, literals in docs.items():
         text = read(relative_path)
         missing = sorted(literal for literal in literals if literal not in text)
         require(not missing, f"{relative_path} missing literals: {missing}")
 
-
-def assert_check_repo_order() -> None:
     text = CHECK_REPO_PATH.read_text(encoding="utf-8")
     entry = (
         "check-production-ops-secret-backend-audit-store-storage-adapter-"
@@ -445,22 +676,24 @@ def assert_check_repo_order() -> None:
 
 def main() -> None:
     fixture = load_json(FIXTURE_PATH)
+    schema = load_json(TABLE_SCHEMA_PATH)
+    contract = load_json(METADATA_CONTRACT_ARTIFACT_PATH)
+    boundary = load_json(APPEND_ONLY_BOUNDARY_FIXTURE_PATH)
+
     assert_slice(fixture)
     assert_dependencies(fixture)
-    assert_task_card_boundary(fixture)
-    assert_future_artifact_requirements(fixture)
-    assert_remaining_blockers(fixture)
+    assert_materialization_boundary(fixture)
+    assert_schema_contract(schema, contract, boundary)
+    assert_validation_cases(fixture, schema)
+    assert_metadata_contract_compatibility(fixture, contract)
     assert_failure_mapping(fixture)
-    assert_diagnostics_and_artifacts(fixture)
+    assert_no_secret_material_scan(fixture)
+    assert_artifact_guard(fixture)
     assert_entry_review_still_static()
     assert_blocker_matrix_alignment(fixture)
     assert_implementation_readiness_alignment(fixture)
-    assert_docs()
-    assert_check_repo_order()
-    print(
-        "production ops secret backend audit store storage adapter table schema artifact "
-        "materialization task card checks passed."
-    )
+    assert_docs_and_registration()
+    print("production ops secret backend audit store storage adapter table schema artifact checks passed.")
 
 
 if __name__ == "__main__":

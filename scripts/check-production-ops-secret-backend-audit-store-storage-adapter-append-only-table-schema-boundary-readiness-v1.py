@@ -39,14 +39,14 @@ RUNTIME_TASK_CARD_DECISION = (
 NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization_entry_review"
 MATRIX_BLOCKER_STATUS = "storage_adapter_append_only_table_schema_boundary_readiness_defined_task_card_blocked"
 CURRENT_MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_table_schema_artifact_materialization_task_card_defined_artifact_blocked"
+    "storage_adapter_table_schema_artifact_materialized_runtime_blocked"
 )
 CURRENT_MATRIX_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1"
 )
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_offline_adapter_smoke_strategy_readiness"
 CURRENT_RUNTIME_TASK_CARD_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization_task_card"
+    "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization"
 )
 SELECTED_PRODUCT_CLASS = "managed_database_append_only_table"
 SELECTED_PRODUCT_PROFILE = "reserved_managed_database_append_only_table_profile"
@@ -430,7 +430,10 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
         boundary.get("storage_adapter_append_only_table_schema_boundary_status") == "defined_without_sql_or_runtime",
         "matrix append-only schema boundary drifted",
     )
-    require(boundary.get("storage_adapter_table_schema_artifact_status") == "not_created", "matrix table schema artifact drifted")
+    require(
+        boundary.get("storage_adapter_table_schema_artifact_status") == "materialized_static_logical_table_schema",
+        "matrix table schema artifact drifted",
+    )
     require(boundary.get("storage_adapter_sql_migration_status") == "not_created", "matrix SQL migration drifted")
     require(
         alignment.get("durable_backend_blocker_status_after_schema_boundary") == CURRENT_MATRIX_BLOCKER_STATUS,
