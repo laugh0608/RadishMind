@@ -1252,6 +1252,23 @@ h4 {
   font-size: 15px;
 }
 
+.workflow-review-handoff-graph-card-traces {
+  display: grid;
+  gap: 8px;
+}
+
+.workflow-review-handoff-graph-card-traces > div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.workflow-review-handoff-graph-card-traces span {
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .workflow-definition-row-actions button {
   padding: 7px 10px;
 }

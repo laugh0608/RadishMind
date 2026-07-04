@@ -20,6 +20,7 @@
 - `buildNodeDesignerGraphReviewFindings` 从 active draft、structural checks、contract checks 和 blocked capability checks 派生 graph review finding。
 - Review Handoff 面板在 `Node Designer Review Handoff` 下展示 graph review finding 卡片，包含 source check、severity、target kind、target refs、summary 和 reviewer question。
 - Review Handoff 面板已补 graph review summary，并按 node / edge / graph-level 分组展示 finding，降低 reviewer 从长卡片列表中反推目标类型的成本。
+- 2026-07-04 后续阅读路径整理：`graphReviewFindings` 补充 `handoffPath` 与 `handoffPathRefs`，面板按 finding 展示 handoff path、target refs、handoff path refs 和 evidence refs，让 reviewer 能从同一张卡片看到 validation overlay、node inspector / edge review / runtime readiness 与证据引用的阅读路径。
 - key findings 新增 `node_designer_graph_review`，把 validation overlay detail review 作为 graph review handoff 的首要审查项。
 - 复用 `workflow-node-designer-review-handoff-v1` fixture / checker 增加 graph review handoff refinement 检查，不新增独立专项 checker。
 
@@ -34,6 +35,7 @@
 
 - Graph review findings 必须消费当前 active draft 和现有 validation inspector，不另建 validation 真相源。
 - Node-targeted finding 只指向已有 draft node，edge-targeted finding 只指向已有 active draft edge，graph-level finding 只保留 blocked capability / prerequisite 审查语义。
+- Handoff path 只能引用现有 Review Handoff sections、validation overlay、node inspector、edge review、runtime readiness、decision blockers 和 evidence refs；不得创建 handoff persistence、selection persistence 或 runtime navigation state。
 - Handoff 只能展示审查上下文，不保存 validation focus、selection、viewport、React Flow raw object、derived edge kind 或 runtime order。
 - Web build、既有 Node Designer Review Handoff checker、`git diff --check` 和 `./scripts/check-repo.sh --fast` 通过。
 
