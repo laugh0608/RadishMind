@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-07-02
+更新时间：2026-07-04
 
 ## 文档目的
 
@@ -55,7 +55,7 @@
 | [Workflow Node Designer Surface v1](workflow/node-designer-surface-v1.md) | 页面 / Surface 专题 | 固定节点画布 designer 的 builder 阶段位置、typed port / edge 语义、saved draft 映射边界和停止线 |
 | [Workflow Node Designer Library Selection v1](workflow/node-designer-library-selection-v1.md) | 实现准入专题 | 为首批节点画布实现选定 `@xyflow/react`，固定状态模型、依赖引入边界、fallback 和停止线 |
 | [Workflow Node Designer Saved Draft Mapping v1](workflow/node-designer-saved-draft-mapping-v1.md) | 功能专题 | 固定节点画布 layout metadata、edge kind、validation overlay 与 saved draft / Review Handoff 的映射边界，并已完成 UI-only layout mapping |
-| [Workflow Node Designer Review Handoff v1](workflow/node-designer-review-handoff-v1.md) | 页面 / Surface 专题 | 固定节点画布 layout、validation overlay、inspector state 和 saved draft mapping 进入现有 Review Handoff 的消费边界 |
+| [Workflow Node Designer Review Handoff v1](workflow/node-designer-review-handoff-v1.md) | 页面 / Surface 专题 | 固定节点画布 layout、validation overlay、inspector state、saved draft mapping、`graphReviewFindings`、`handoffPath` 和 evidence refs 进入现有 Review Handoff 的只读审查边界 |
 | [Workflow Node Designer Persisted Layout v1](workflow/node-designer-persisted-layout-v1.md) | 功能专题 | 固定 `additional_fields.designer_layout_v1` 的受控 schema、保存 / 恢复兼容、Go `AdditionalFields` 保留和 forbidden field 负向边界 |
 | [Workflow Node Designer Edge Editing Save Preconditions v1](workflow/node-designer-edge-editing-save-preconditions-v1.md) | 前置设计专题 | 固定画布连线新增 / 删除进入 saved draft 保存链路前的允许字段、保存前置、validation 消费和停止线 |
 | [Workflow Node Designer Controlled Edge Mutation Implementation v1 任务卡](../task-cards/workflow-node-designer-controlled-edge-mutation-implementation-v1-plan.md) | 实现批次 | 固定画布受控新增 / 删除 edge、active draft mutation、saved draft mapping 复用和停止线 |

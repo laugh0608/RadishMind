@@ -1,6 +1,6 @@
 # Workflow 细专题入口
 
-更新时间：2026-07-02
+更新时间：2026-07-04
 
 ## 文档目的
 
@@ -26,7 +26,7 @@
 | [Workflow Node Designer Surface Implementation v1 任务卡](../../task-cards/workflow-node-designer-surface-implementation-v1-plan.md) | 实现批次 | `workflow_node_designer_surface_implementation_v1_implemented` | 已完成首批 `@xyflow/react` 前端画布、active draft graph adapter、custom node / edge、inspector bridge、连线校验反馈和 fallback 保留 |
 | [Workflow Node Designer Saved Draft Mapping v1](node-designer-saved-draft-mapping-v1.md) | 功能专题 | `workflow_node_designer_saved_draft_mapping_implementation_v1_implemented` | 固定节点画布 layout metadata、edge kind、validation overlay 与 saved draft / Review Handoff 的映射边界，并已实现 UI-only layout mapping |
 | [Workflow Node Designer Saved Draft Mapping Implementation v1 任务卡](../../task-cards/workflow-node-designer-saved-draft-mapping-implementation-v1-plan.md) | 实现批次 | `workflow_node_designer_saved_draft_mapping_implementation_v1_implemented` | 已完成 active draft UI-only layout、节点拖拽回写、mapping summary 和默认 restore layout 保留 |
-| [Workflow Node Designer Review Handoff v1](node-designer-review-handoff-v1.md) | 页面 / Surface 专题 | `workflow_node_designer_review_handoff_v1_implemented` | 已把节点画布 layout、validation overlay、inspector state 和 saved draft mapping 汇总进现有 Review Handoff |
+| [Workflow Node Designer Review Handoff v1](node-designer-review-handoff-v1.md) | 页面 / Surface 专题 | `workflow_node_designer_review_handoff_v1_implemented` | 固定节点画布 layout、validation overlay、inspector state、saved draft mapping、`graphReviewFindings`、`handoffPath` 和 evidence refs 进入现有 Review Handoff 的只读审查边界 |
 | [Workflow Node Designer Review Handoff v1 任务卡](../../task-cards/workflow-node-designer-review-handoff-v1-plan.md) | 实现批次 | `workflow_node_designer_review_handoff_v1_implemented` | 已完成 `nodeDesignerReviewRecord`、Handoff 面板区块、evidence checklist、boundary lock 和专项 checker |
 | [Workflow Node Designer Persisted Layout v1](node-designer-persisted-layout-v1.md) | 功能专题 | `workflow_node_designer_persisted_layout_v1_implemented` | 已固定并实现 `additional_fields.designer_layout_v1` 受控 schema、前端保存 / 恢复、Go `AdditionalFields` 保留、layout 规范化和 forbidden field 负向边界 |
 | [Workflow Node Designer Persisted Layout v1 任务卡](../../task-cards/workflow-node-designer-persisted-layout-v1-plan.md) | 实现批次 | `workflow_node_designer_persisted_layout_v1_implemented` | 已完成 saved draft layout metadata 写入、restore 兼容、HTTP 返回透传、专项 checker 和 fast baseline 接入 |

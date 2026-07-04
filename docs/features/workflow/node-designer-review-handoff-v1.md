@@ -1,6 +1,6 @@
 # Workflow Node Designer Review Handoff v1 专题
 
-更新时间：2026-06-25
+更新时间：2026-07-04
 
 状态：`workflow_node_designer_review_handoff_v1_implemented`
 
@@ -42,6 +42,30 @@
 - secret value、API key value、OAuth / OIDC token、provider response、tool result、artifact payload。
 - review / handoff persistence、handoff export、handoff send、execution plan persistence、runtime readiness persistence。
 - confirmation decision、run input / output、writeback payload、replay / resume state。
+
+## Graph Review Finding 阅读说明
+
+Review Handoff 中的 `graphReviewFindings` 是给人工审查者使用的只读索引，用于把 validation overlay 中的结构检查、契约检查和 blocked capability 检查映射到更容易定位的节点、连线或全图审查项。它不是执行顺序、保存记录、发布条件或 runtime binding。
+
+每条 finding 的字段含义如下：
+
+- `sourceCheckId` 指向 validation inspector 中的原始检查项。
+- `targetKind` 只表达审查定位层级：`node`、`edge` 或 `graph`。
+- `targetRefs` 是当前 active draft 中可读的节点、连线或全图审查引用，不是持久化主键。
+- `targetSummary` 给出受影响范围摘要，帮助 reviewer 先判断要看节点、连线还是全图能力。
+- `handoffPath` 给出建议阅读路径：节点类问题从 validation overlay 进入 node inspector 和 saved draft mapping；连线类问题从 validation overlay 进入 connected edge review 和 draft edge summary；全图类问题从 validation overlay 进入 runtime readiness 和 decision blockers。
+- `handoffPathRefs` 把上述阅读路径展开为 section ref 与 target ref，方便面板展示可追溯 token。
+- `evidenceRefs` 保留检查项、缺失字段、目标引用或 audit ref 的脱敏证据引用，不包含 payload、secret、provider response 或执行结果。
+- `reviewerQuestion` 是人工审查提示，不是自动修复、保存、运行或确认命令。
+
+建议阅读顺序：
+
+1. 先看 graph review summary，确认当前是 node-targeted、edge-targeted 还是 graph-level finding。
+2. 再看 `targetRefs` 和 `targetSummary`，定位需要审查的节点、连线或全图能力。
+3. 按 `handoffPath` 进入对应只读区块，对照 validation overlay、inspector、saved draft mapping、runtime readiness 或 decision blockers。
+4. 最后用 `evidenceRefs` 核对来源，确认 finding 是否足以支撑人工判断。
+
+这条阅读路径不会被保存到 saved draft，不会被导出为 handoff artifact，也不会转换成 executor、adapter、repository 或 runtime 的输入。
 
 ## 审查流程
 
