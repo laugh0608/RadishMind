@@ -4,9 +4,9 @@
 
 ## 文档目的
 
-本目录用于承载长期可复用的产品能力与功能专题文档。后续推进应先明确“正在做哪个专题”，再判断它属于大方向、具体功能、页面 / surface、平台能力还是外部扩展，最后再拆实现任务、测试和必要门禁。
+本目录用于承载长期可复用的产品能力与功能专题文档。后续推进应先明确“正在做哪个专题”，再判断它属于大方向、具体功能、页面 / 界面、平台能力还是外部扩展，最后再拆实现任务、测试和必要门禁。
 
-`docs/features/*.md` 现在只作为产品面大方向入口，不再承担所有专题粒度。具体功能和复杂页面应进入对应子目录；跨产品面的平台能力进入 `docs/platform/`；外部项目或 backend 接入进入 `docs/integrations/`。
+`docs/features/*.md` 现在只作为产品面大方向入口，不再承担所有专题粒度。具体功能和复杂页面应进入对应子目录；跨产品面的平台能力进入 `docs/platform/`；外部项目或后端接入进入 `docs/integrations/`。
 
 ## 专题分层
 
@@ -14,16 +14,16 @@
 | --- | --- | --- | --- |
 | 产品面大方向专题 | `docs/features/*.md` | 固定 User Workspace、Admin、Gateway、Workflow、Image Path 等长期产品面目标和停止线 | 产品面边界、阶段顺序或长期目标变化 |
 | 功能专题 | `docs/features/<area>/<feature>.md` | 固定某个功能的目标用户、流程、数据边界、失败语义、验收方式 | 功能需要跨多个实现批次推进，或会影响用户真实工作流 |
-| 页面 / Surface 专题 | `docs/features/<area>/<surface>.md` | 固定复杂页面的信息架构、状态、交互和跨功能消费关系 | 页面承担复杂交互、状态组织、保存 / 审查 / handoff 等真实流程 |
-| 平台专题 | `docs/platform/*.md` | 固定跨产品面的 auth、store、repository、provider、deployment、dev-only write path 等平台边界 | 能力不属于单一产品页面，或影响多个产品面和服务边界 |
-| 扩展 / 集成专题 | `docs/integrations/*.md` | 固定 RadishFlow、Radish、Radish OIDC、image backend 等外部接入前置条件和停止线 | 需要依赖外部项目、外部 backend、真实 provider 或上层挂载点 |
-| 实现批次 / 高风险边界 | `docs/task-cards/*.md` | 固定具体实现批次、输入输出、前置条件、专项 gate 和验证记录 | 新增 API、schema、执行边界、生产声明、外部 provider 风险或高风险能力 |
+| 页面 / 界面专题 | `docs/features/<area>/<surface>.md` | 固定复杂页面的信息架构、状态、交互和跨功能消费关系 | 页面承担复杂交互、状态组织、保存 / 审查 / 交接等真实流程 |
+| 平台专题 | `docs/platform/*.md` | 固定跨产品面的 auth、store、repository、provider、deployment、仅开发写入路径等平台边界 | 能力不属于单一产品页面，或影响多个产品面和服务边界 |
+| 扩展 / 集成专题 | `docs/integrations/*.md` | 固定 RadishFlow、Radish、Radish OIDC、image backend 等外部接入前置条件和停止线 | 需要依赖外部项目、外部后端、真实 provider 或上层挂载点 |
+| 实现批次 / 高风险边界 | `docs/task-cards/*.md` | 固定具体实现批次、输入输出、前置条件、专项门禁和验证记录 | 新增 API、schema、执行边界、生产声明、外部 provider 风险或高风险能力 |
 
 ## 当前口径
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
-- 页面 / Surface 专题只在页面承担复杂状态组织或真实用户流程时新增；普通展示、文案和布局不单独建专题。
+- 页面 / 界面专题只在页面承担复杂状态组织或真实用户流程时新增；普通展示、文案和布局不单独建专题。
 - 平台专题和扩展专题不是 task card；它们负责长期边界和准入条件，具体实现仍用 task card 承接。
 - 功能设计文档不是禁止清单；它应明确本功能允许打开的实现范围，以及哪些能力需要作为后续独立目标推进。
 - 总体规划文档只负责方向、阶段、优先级和下一顺位；产品面大专题负责长期边界、停止线和推进顺序；功能 / 页面子专题负责具体流程、数据边界、验收方式和实施拆分；task card 只承接具体批次、前置条件或高风险门禁。
@@ -32,7 +32,7 @@
 - `docs/radishmind-current-focus.md` 只回答当前阶段与下一顺位，不再承载长功能细节。
 - `docs/task-cards/` 只承载具体实现批次、前置条件或高风险边界，不再作为产品功能的默认主文档。
 - `scripts/checks/fixtures/` 与专项 checker 只在协议、schema、执行边界、生产声明、外部 provider 风险或高风险能力变化时新增。
-- 普通 UI、文案、布局、只读 evidence 组织和使用性整理优先复用现有聚合门禁、web build、consumer smoke 和仓库基线。
+- 普通 UI、文案、布局、只读证据组织和使用性整理优先复用现有聚合门禁、web 构建、消费端冒烟验证和仓库基线。
 
 ## 产品面大方向导航
 
@@ -41,15 +41,15 @@
 | [User Workspace](user-workspace.md) | 用户端 AI 应用、API key、用量、运行记录和审查入口 | 从只读工作区转向真实用户工作流前先更新 |
 | [Admin Control Plane](admin-control-plane.md) | 租户、权限、provider/profile、quota、secret、审计和部署证据 | 进入真实管理端、OIDC 或数据库前先更新 |
 | [Model Gateway / API Distribution](model-gateway-api-distribution.md) | northbound API、provider/profile route、key/quota、trace 和审计 | 进入真实 API 分发、quota 或 billing 前先更新 |
-| [Workflow / Agent Runtime](workflow-agent-runtime.md) | workflow draft、validation、execution plan、readiness、review 和 future executor | 进入 builder persistence、executor 或 confirmation 前先更新 |
-| [Image Generation / Artifact Return](image-generation-artifact-return.md) | image intent、artifact metadata、response merge 和 future backend adapter | 进入 store / reader / public URL / backend adapter 前先更新 |
+| [Workflow / Agent Runtime](workflow-agent-runtime.md) | 工作流草案、校验、执行计划、准入边界、审查和后续执行器 | 进入 builder 持久化、executor 或 confirmation 前先更新 |
+| [Image Generation / Artifact Return](image-generation-artifact-return.md) | 生图意图、artifact metadata、response merge 和后续后端适配器 | 进入 store / reader / public URL / backend adapter 前先更新 |
 
 ## 细专题导航
 
 | 专题 | 类型 | 当前用途 |
 | --- | --- | --- |
-| [Workflow 细专题入口](workflow/README.md) | 功能专题目录 | 承接 workflow 具体功能、页面 / surface 和实现专题 |
-| [Saved Workflow Draft v1](workflow/saved-workflow-draft-v1.md) | 功能专题 | 固定草案保存、读取、校验、版本冲突、store mode fail-closed、schema artifact、repository adapter、adapter smoke execution、production auth runtime bridge、Radish OIDC token / membership readiness、repository mode enablement、schema migration runner readiness、database / auth / secret resolver 前置证据，以及 production secret backend audit store 到 storage adapter concrete database selection review 的静态证据链；已完成 `audit_store_storage_adapter_concrete_database_selection_review_defined`，下一项为 `storage_adapter_database_provider_selection_readiness`，对应 [Production Secret Backend Audit Store Storage Adapter Concrete Database Selection Review v1](../platform/production-secret-backend-audit-store-storage-adapter-concrete-database-selection-review-v1.md) |
+| [Workflow 细专题入口](workflow/README.md) | 功能专题目录 | 承接 workflow 具体功能、页面 / 界面和实现专题 |
+| [Saved Workflow Draft v1](workflow/saved-workflow-draft-v1.md) | 功能专题 | 固定草案保存、读取、校验、版本冲突、store mode 失败关闭、schema 产物、repository adapter、adapter 冒烟验证执行、production auth 运行时桥接、Radish OIDC token / membership 准入边界、repository mode 启用、schema migration runner 准入边界、database / auth / secret resolver 前置证据，以及 production secret backend audit store 到 storage adapter concrete database selection review 的静态证据链；已完成 `audit_store_storage_adapter_concrete_database_selection_review_defined`，下一项为 `storage_adapter_database_provider_selection_readiness`，对应 [Production Secret Backend Audit Store Storage Adapter Concrete Database Selection Review v1](../platform/production-secret-backend-audit-store-storage-adapter-concrete-database-selection-review-v1.md) |
 | [Saved Workflow Draft Conflict Review v1](workflow/saved-workflow-draft-conflict-review-v1.md) | 功能专题 | 已实现并完成 dev-live 浏览器复核，覆盖 saved draft 在 `version_conflict`、冲突后 saved draft list 刷新、继续本地草案、显式恢复 saved version 和 Review Handoff conflict review summary 中的用户工作流，复用现有 dev-only route、consumer、saved draft list 和 handoff，不新增 backend route、repository mode、数据库、runtime 或 public production API |
 | [Workflow Draft Designer Surface](workflow/draft-designer-surface.md) | 页面 / Surface 专题 | 固定 draft designer 的 sample / unsaved / saved 状态和后续 consumer 接线边界 |
 | [Workflow Node Designer Surface v1](workflow/node-designer-surface-v1.md) | 页面 / Surface 专题 | 固定节点画布 designer 的 builder 阶段位置、typed port / edge 语义、saved draft 映射边界和停止线 |

@@ -45,6 +45,19 @@ EXPECTED_TERM_IDS = [
     "no_side_effects",
     "smoke",
     "public_production_api",
+    "surface",
+    "backend",
+    "future",
+    "metadata-only",
+    "fail-closed",
+    "dev-only",
+]
+EXPECTED_PRIORITY_REMEDIATION_DOCS = [
+    "docs/radishmind-current-focus.md",
+    "docs/features/README.md",
+    "docs/platform/README.md",
+    "scripts/README.md",
+    "docs/radishmind-code-standards.md",
 ]
 EXPECTED_SECOND_BATCH_BOUNDARIES = [
     "new_or_touched_docs_use_chinese_prose",
@@ -179,6 +192,45 @@ def check_preferred_terms(document: dict[str, Any]) -> None:
     require(actual_ids == EXPECTED_TERM_IDS, f"preferred_chinese_terms ids mismatch: {actual_ids}")
 
 
+def check_priority_remediation_batch(document: dict[str, Any]) -> None:
+    batch = document.get("priority_remediation_batch")
+    require(isinstance(batch, dict), "priority_remediation_batch must be an object")
+    status = batch.get("status")
+    require(
+        status == "doc_language_priority_documents_remediation_v1_defined",
+        "priority_remediation_batch.status mismatch",
+    )
+    target_documents = batch.get("target_documents")
+    require(
+        isinstance(target_documents, list),
+        "priority_remediation_batch.target_documents must be a list",
+    )
+    require(
+        target_documents == EXPECTED_PRIORITY_REMEDIATION_DOCS,
+        f"priority remediation target docs mismatch: {target_documents}",
+    )
+
+    topic_text = read(document["topic_document"]["path"])
+    require(status in topic_text, f"topic document missing priority remediation status: {status}")
+
+    document_snippets = batch.get("document_snippets")
+    require(isinstance(document_snippets, list), "priority remediation document_snippets must be a list")
+    snippet_paths = []
+    for entry in document_snippets:
+        require(isinstance(entry, dict), "priority remediation snippet entry must be an object")
+        path = entry.get("path")
+        snippets = entry.get("snippets")
+        require(isinstance(path, str) and path in target_documents, f"unknown priority remediation path: {path}")
+        require(isinstance(snippets, list) and snippets, f"{path} priority snippets must be non-empty")
+        text = read(path)
+        for snippet in snippets:
+            require(isinstance(snippet, str) and snippet, f"{path} priority snippet must be non-empty")
+            require(snippet in text, f"{path} missing priority remediation snippet: {snippet}")
+        snippet_paths.append(path)
+
+    require(snippet_paths == EXPECTED_PRIORITY_REMEDIATION_DOCS, f"priority snippet paths mismatch: {snippet_paths}")
+
+
 def check_repo_registration() -> None:
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     require(
@@ -193,6 +245,7 @@ def main() -> int:
     check_topic_document(document)
     check_policy_anchors(document)
     check_preferred_terms(document)
+    check_priority_remediation_batch(document)
     check_repo_registration()
     print("doc language policy v1 checks passed.")
     return 0

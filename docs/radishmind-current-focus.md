@@ -203,7 +203,7 @@
 
 推荐下一批开发目标从以下方向选择一个：
 
-1. `Workflow / Agent Runtime`：Saved Workflow Draft、本地编辑、User Workspace 草案入口、Review Handoff、Workflow Node Designer 画布、persisted layout、controlled edge mutation、validation overlay navigation、`Workflow Node Designer Graph Review Handoff Refinement v1` 和 `Saved Workflow Draft Conflict Review v1` 已完成，锚点包含 `workflow_node_designer_persisted_layout_v1_implemented`、`workflow_node_designer_layout_review_findings_v1_implemented`、`workflow_node_designer_builder_interaction_polish_v1_implemented`、`workflow_node_designer_validation_overlay_navigation_v1_implemented`、`workflow_node_designer_graph_review_handoff_refinement_v1_implemented` 与 `workflow_saved_draft_conflict_review_v1_implemented`；冲突审查已完成 dev-live 浏览器复核和 2026-07-01 可读性整理，2026-07-04 已继续补强 Node Designer graph review finding 的 handoff path / evidence refs 阅读路径。durable store 上游已推进到 `audit_store_storage_adapter_concrete_database_selection_review_defined`，且只达到 metadata-only / static product class / logical schema / artifact / smoke strategy / runtime scan boundary / entry refresh / database selection review 决策边界，已选 `postgresql_compatible_append_only_relational_database` 能力族但不选择 vendor、managed product、driver 或 provider。若继续用户工作流，应只基于实际审查反馈整理 Review Handoff、恢复入口和 graph review 阅读路径；若继续 durable store 上游，下一项应推进 `storage_adapter_database_provider_selection_readiness`，不得绕过 dev auth / write enablement、scope check、no sample fallback、repository mode enablement 评审结论、真实数据库 / SQL migration runner、schema marker runtime、secret resolver runtime、OIDC middleware、token validation、membership adapter、negative auth smoke runtime、production resolver runtime task card、真实 resolver runtime、credential handle runtime、operator approval runtime、backend health runtime、audit store runtime、云 secret 服务、connection lifecycle runtime、connection smoke runtime 和 public production API 停止线。
+1. `Workflow / Agent Runtime`：Saved Workflow Draft、本地编辑、User Workspace 草案入口、Review Handoff、Workflow Node Designer 画布、持久化 layout、受控 edge mutation、validation overlay navigation、`Workflow Node Designer Graph Review Handoff Refinement v1` 和 `Saved Workflow Draft Conflict Review v1` 已完成，锚点包含 `workflow_node_designer_persisted_layout_v1_implemented`、`workflow_node_designer_layout_review_findings_v1_implemented`、`workflow_node_designer_builder_interaction_polish_v1_implemented`、`workflow_node_designer_validation_overlay_navigation_v1_implemented`、`workflow_node_designer_graph_review_handoff_refinement_v1_implemented` 与 `workflow_saved_draft_conflict_review_v1_implemented`；冲突审查已完成 dev-live 浏览器复核和 2026-07-01 可读性整理，2026-07-04 已继续补强 Node Designer graph review finding 的 handoff path / evidence refs 阅读路径。durable store 上游已推进到 `audit_store_storage_adapter_concrete_database_selection_review_defined`，且只达到仅元数据 / 静态产品类别 / 逻辑 schema / 产物 / 冒烟验证策略 / 运行时扫描边界 / 入口复评 / 数据库选择评审的决策边界，已选 `postgresql_compatible_append_only_relational_database` 能力族但不选择具体厂商、托管产品、driver 或 provider。若继续用户工作流，应只基于实际审查反馈整理 Review Handoff、恢复入口和 graph review 阅读路径；若继续 durable store 上游，下一项应推进 `storage_adapter_database_provider_selection_readiness`，不得绕过 dev auth / write enablement、scope check、no sample fallback、repository mode enablement 评审结论、真实数据库 / SQL migration runner、schema marker runtime、secret resolver runtime、OIDC middleware、token validation、membership adapter、negative auth smoke runtime、production resolver runtime task card、真实 resolver runtime、credential handle runtime、operator approval runtime、backend health runtime、audit store runtime、云 secret 服务、connection lifecycle runtime、connection smoke runtime 和公开生产 API 停止线。
 2. `User Workspace`：若继续用户端路径，可推进 saved draft 冲突处理后的恢复体验和审查交接可读性整理，但不能绕过 saved draft scope、owner / workspace 和 no sample fallback 约束。
 3. `Model Gateway / API Distribution`：推进真实 API distribution 前的 key / quota / trace 设计，而不是继续新增 evidence 面板。
 4. `Admin Control Plane`：为未来 Radish OIDC 或 read store adapter 选择单一实现方向，不能和管理端写入并行打开。
@@ -214,11 +214,11 @@
 - 不继续为普通只读展示页、evidence review、文案和布局逐项新增 task card / fixture / checker。
 - 不把 task card 当成功能长期设计文档。
 - 不在没有对应专题文档更新的情况下启动新的大功能或高风险实现。
-- 不把 Image Path metadata-only 接线解释为 artifact store、public delivery 或真实 backend ready。
+- 不把 Image Path 仅元数据接线解释为 artifact store、public delivery 或真实后端已就绪。
 - 不把 durable read foundation 解释为 repository adapter、真实数据库、OIDC、production API consumer 或完整 read-side API ready。
-- 不把 Workflow / Gateway / Admin 的普通离线 evidence surface 写成生产能力 ready。
+- 不把 Workflow / Gateway / Admin 的普通离线证据界面写成生产能力已就绪。
 - 不在上层项目没有真实挂载点时继续细化假想接线。
-- 不默认启动 Docker、下载模型、长跑真实模型、生成图片或访问真实 backend。
+- 不默认启动 Docker、下载模型、长跑真实模型、生成图片或访问真实后端。
 
 ## 最小读取路径
 回答“今天做什么”时，默认读取：

@@ -40,6 +40,12 @@
 | `no_side_effects` | 无副作用 | 静态检查和只读边界中写“无副作用” |
 | `smoke` | 冒烟验证 | 验证策略正文写“冒烟验证”；脚本名和 fixture ID 保留原文 |
 | `public_production_api` | 公开生产 API | 停止线正文写“公开生产 API” |
+| `surface` | 界面 | 页面分层正文写“页面 / 界面”；历史专题名保留原文 |
+| `backend` | 后端 | 普通正文写“后端”；`secret backend` 等既有专题名可保留原文 |
+| `future` | 后续 | 自然语言中写“后续”；状态锚点和文件名保留原文 |
+| `metadata-only` | 仅元数据 | 决策边界正文写“仅元数据”；状态锚点和文件名保留原文 |
+| `fail-closed` | 失败关闭 | 失败语义正文写“失败关闭”；fixture ID 保留原文 |
+| `dev-only` | 仅开发 | 环境边界正文写“仅开发”；配置键和专题名保留原文 |
 
 ## 第二批治理边界
 
@@ -48,6 +54,14 @@
 3. 修改状态锚点、fixture key、路径、脚本输出 literal 或 checker 依赖文本前，必须先确认是否会破坏现有检查链路。
 4. 工程短语中文化按入口文档、功能 / 平台专题、契约、任务卡、周志顺序推进；每批只处理与当次任务相关的文本。
 5. checker 只固定治理边界和入口引用，不扫描全仓英文词，也不把历史英文文档写成失败。
+
+## 优先入口治理记录 v1
+
+状态锚点：`doc_language_priority_documents_remediation_v1_defined`
+
+本批优先处理常读入口中的自然语言英文工程短语，处理范围包括 `docs/radishmind-current-focus.md`、`docs/features/README.md`、`docs/platform/README.md`、`scripts/README.md` 和 `docs/radishmind-code-standards.md`。处理原则是替换正文说明中的 `surface`、`backend`、`readiness`、`entry review`、`metadata-only`、`smoke`、`literal`、`future`、`fail-closed`、`dev-only` 等高频短语；状态锚点、文件名、fixture key、checker ID、命令、路径和协议字段继续保留原文。
+
+本批验收只证明优先入口已完成一轮定向中文化，不表示全仓历史文档已完成语言治理，也不要求重写长证据链、任务卡、脚本输出或机器检查依赖字面量。
 
 ## 停止线
 
