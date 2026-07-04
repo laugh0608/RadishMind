@@ -31,13 +31,16 @@ NEXT_DEPENDENCY = "storage_adapter_append_only_table_schema_boundary_readiness"
 SELECTED_PRODUCT_CLASS = "managed_database_append_only_table"
 SELECTED_PRODUCT_PROFILE = "reserved_managed_database_append_only_table_profile"
 MATRIX_BLOCKER_STATUS = "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_defined_task_card_blocked"
-CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined_runtime_blocked"
-CURRENT_MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1"
+CURRENT_MATRIX_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_negative_leakage_runtime_scan_boundary_defined_task_card_blocked"
 )
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary"
+CURRENT_MATRIX_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-negative-leakage-runtime-scan-boundary-v1"
+)
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_concrete_database_selection_readiness"
 CURRENT_RUNTIME_TASK_CARD_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_negative_leakage_runtime_scan_boundary"
+    "storage_adapter_runtime_task_card_still_blocked_after_negative_leakage_runtime_scan_boundary_entry_refresh"
 )
 
 EXPECTED_DEPENDENCIES = {

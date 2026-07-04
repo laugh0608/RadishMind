@@ -51,10 +51,16 @@ RUNTIME_TASK_CARD_DECISION = (
 )
 MATRIX_BLOCKER_STATUS = "storage_adapter_table_schema_artifact_materialized_runtime_blocked"
 CURRENT_RUNTIME_TASK_CARD_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_negative_leakage_runtime_scan_boundary"
+    "storage_adapter_runtime_task_card_still_blocked_after_negative_leakage_runtime_scan_boundary_entry_refresh"
 )
-CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined_runtime_blocked"
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary"
+CURRENT_MATRIX_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_negative_leakage_runtime_scan_boundary_defined_task_card_blocked"
+)
+CURRENT_MATRIX_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-negative-leakage-runtime-scan-boundary-v1"
+)
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_concrete_database_selection_readiness"
 
 POSITIVE_FIXTURE = "scripts/checks/fixtures/production-secret-audit-storage-adapter-table-schema-positive-v1.json"
 MISSING_REQUIRED_FIXTURE = (
@@ -593,11 +599,7 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
     require(durable.get("status") == CURRENT_MATRIX_BLOCKER_STATUS, "durable blocker row status drifted")
-    require(
-        durable.get("source")
-        == "production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1",
-        "durable blocker row source drifted",
-    )
+    require(durable.get("source") == CURRENT_MATRIX_BLOCKER_SOURCE, "durable blocker row source drifted")
 
 
 def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:

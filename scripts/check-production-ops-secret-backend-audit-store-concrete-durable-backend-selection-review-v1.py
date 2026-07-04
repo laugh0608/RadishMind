@@ -36,10 +36,11 @@ FOLLOWUP_AFTER_SELECTION_STATUS = (
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
 )
 FOLLOWUP_AFTER_SELECTION_DURABLE_BLOCKER_STATUS = (
-    "storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined_runtime_blocked"
+    "storage_adapter_runtime_entry_refresh_after_negative_leakage_runtime_scan_boundary_defined_task_card_blocked"
 )
 FOLLOWUP_AFTER_SELECTION_DURABLE_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-negative-leakage-runtime-scan-boundary-v1"
 )
 RUNTIME_REFRESH_DURABLE_BLOCKER_STATUS = "storage_adapter_runtime_entry_refresh_defined_task_card_blocked"
 RUNTIME_REFRESH_DURABLE_BLOCKER_SOURCE = (
