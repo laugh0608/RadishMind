@@ -40,13 +40,13 @@ FOLLOWUP_AFTER_SELECTION_FIXTURE = (
 FOLLOWUP_AFTER_SELECTION_STATUS = (
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
 )
-FOLLOWUP_AFTER_SELECTION_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization_entry_review"
-FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization_task_card"
+FOLLOWUP_AFTER_SELECTION_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization_task_card"
+FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization"
 FOLLOWUP_AFTER_SELECTION_BLOCKER_STATUS = (
-    "storage_adapter_table_schema_artifact_materialization_entry_review_defined_task_card_blocked"
+    "storage_adapter_table_schema_artifact_materialization_task_card_defined_artifact_blocked"
 )
 FOLLOWUP_AFTER_SELECTION_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-entry-review-v1"
+    "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1"
 )
 FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_status": (

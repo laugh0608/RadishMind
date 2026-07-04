@@ -31,13 +31,13 @@ NEXT_DEPENDENCY = "storage_adapter_database_provider_driver_dsn_tls_role_policy_
 SELECTED_PRODUCT_CLASS = "managed_database_append_only_table"
 SELECTED_PRODUCT_PROFILE = "reserved_managed_database_append_only_table_profile"
 MATRIX_BLOCKER_STATUS = "storage_adapter_runtime_entry_refresh_after_product_selection_defined_task_card_blocked"
-CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_table_schema_artifact_materialization_entry_review_defined_task_card_blocked"
+CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_table_schema_artifact_materialization_task_card_defined_artifact_blocked"
 CURRENT_MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-entry-review-v1"
+    "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1"
 )
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization_task_card"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization"
 CURRENT_RUNTIME_TASK_CARD_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization_entry_review"
+    "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization_task_card"
 )
 
 EXPECTED_DEPENDENCIES = {

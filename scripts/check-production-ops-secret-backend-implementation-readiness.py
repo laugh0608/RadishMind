@@ -175,6 +175,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-table-schema-artifact-materialization-entry-review": (
         "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_defined"
     ),
+    "audit-store-storage-adapter-table-schema-artifact-materialization": (
+        "audit_store_storage_adapter_table_schema_artifact_materialization_task_card_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -1312,17 +1315,22 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_table_schema_artifact_materialization_task_card_decision")
-        == "table_schema_artifact_materialization_task_card_ready_after_entry_review",
+        == "table_schema_artifact_materialization_task_card_defined_after_entry_review",
         "audit storage adapter table schema materialization task card decision drifted",
     )
     require(
         target.get("audit_storage_adapter_table_schema_artifact_materialization_task_card_status")
-        == "not_created",
+        == "created",
         "audit storage adapter table schema materialization task card status drifted",
     )
     require(
+        target.get("audit_storage_adapter_table_schema_artifact_materialization_task_card_defined_status")
+        == "audit_store_storage_adapter_table_schema_artifact_materialization_task_card_defined",
+        "audit storage adapter table schema materialization task card defined status drifted",
+    )
+    require(
         target.get("audit_storage_adapter_runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization_entry_review",
+        == "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization_task_card",
         "audit storage adapter runtime task card decision drifted",
     )
     require(
@@ -1346,7 +1354,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_table_schema_artifact_materialization_task_card",
+        == "storage_adapter_table_schema_artifact_materialization",
         "audit storage adapter current next dependency drifted",
     )
     require(

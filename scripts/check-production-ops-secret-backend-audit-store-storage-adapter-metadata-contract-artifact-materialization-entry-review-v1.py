@@ -51,7 +51,7 @@ FOLLOWUP_AFTER_SELECTION_FIXTURE = (
 FOLLOWUP_AFTER_SELECTION_STATUS = (
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
 )
-FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization_task_card"
+FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization"
 FOLLOWUP_ALIGNMENT = {
     "audit_storage_adapter_contract_materialization_task_card_status": "created",
     "audit_storage_adapter_contract_artifact_materialization_status": FOLLOWUP_MATERIALIZATION_STATUS,
@@ -71,7 +71,7 @@ FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
         FOLLOWUP_AFTER_SELECTION_STATUS
     ),
     "audit_storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization_entry_review"
+        "storage_adapter_runtime_task_card_still_blocked_after_table_schema_artifact_materialization_task_card"
     ),
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY,
     "audit_storage_adapter_database_provider_driver_dsn_tls_role_policy_status": (
