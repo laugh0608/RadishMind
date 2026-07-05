@@ -33,14 +33,14 @@ ENTRY_DECISION = (
     "storage_adapter_runtime_task_card_still_blocked_after_negative_leakage_runtime_scan_boundary_entry_refresh"
 )
 NEXT_DEPENDENCY = "storage_adapter_concrete_database_selection_readiness"
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_database_driver_selection_review"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_database_connection_lifecycle_readiness"
 SELECTED_PRODUCT_CLASS = "managed_database_append_only_table"
 SELECTED_PRODUCT_PROFILE = "reserved_managed_database_append_only_table_profile"
 MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_database_driver_selection_readiness_defined_task_card_blocked"
+    "storage_adapter_database_driver_selection_review_defined_task_card_blocked"
 )
-CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_database_driver_selection_readiness"
-CURRENT_BLOCKER_SOURCE = "production-secret-backend-audit-store-storage-adapter-database-driver-selection-readiness-v1"
+CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_database_driver_selection_review"
+CURRENT_BLOCKER_SOURCE = "production-secret-backend-audit-store-storage-adapter-database-driver-selection-review-v1"
 CONCRETE_DATABASE_SELECTION_READINESS_STATUS = "audit_store_storage_adapter_concrete_database_selection_readiness_defined"
 CONCRETE_DATABASE_SELECTION_REVIEW_STATUS = "audit_store_storage_adapter_concrete_database_selection_review_defined"
 CONCRETE_DATABASE_SELECTION_STATUS = "selected_database_engine_without_vendor_or_provider"
@@ -458,7 +458,7 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
         "storage_adapter_database_selection_review_status": CONCRETE_DATABASE_SELECTION_REVIEW_STATUS,
         "storage_adapter_database_product_status": "engine_selected_without_managed_product",
         "storage_adapter_database_connection_provider_status": "not_created",
-        "storage_adapter_database_driver_status": "not_selected",
+        "storage_adapter_database_driver_status": "selected_reference_only",
         "storage_adapter_database_dsn_status": "not_defined",
         "storage_adapter_schema_marker_runtime_status": "not_created",
         "storage_adapter_migration_runner_status": "not_created",

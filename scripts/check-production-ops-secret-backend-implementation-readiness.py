@@ -202,6 +202,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-database-driver-selection-readiness": (
         "audit_store_storage_adapter_database_driver_selection_readiness_defined"
     ),
+    "audit-store-storage-adapter-database-driver-selection-review": (
+        "audit_store_storage_adapter_database_driver_selection_review_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -356,7 +359,10 @@ REQUIRED_DOC_REFERENCES = {
         "managed_postgresql_compatible_service",
         "production-secret-backend-audit-store-storage-adapter-database-driver-selection-readiness-v1",
         "audit_store_storage_adapter_database_driver_selection_readiness_defined",
-        "storage_adapter_database_driver_selection_review",
+        "production-secret-backend-audit-store-storage-adapter-database-driver-selection-review-v1",
+        "audit_store_storage_adapter_database_driver_selection_review_defined",
+        "github.com/jackc/pgx/v5",
+        "storage_adapter_database_connection_lifecycle_readiness",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -1437,7 +1443,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_database_driver_selection_readiness",
+        == "storage_adapter_runtime_task_card_still_blocked_after_database_driver_selection_review",
         "audit storage adapter runtime task card decision drifted",
     )
     require(
@@ -1461,7 +1467,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_database_driver_selection_review",
+        == "storage_adapter_database_connection_lifecycle_readiness",
         "audit storage adapter current next dependency drifted",
     )
     require(
@@ -1559,8 +1565,39 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_database_driver_selection_status")
-        == "readiness_defined_without_driver_selection",
+        == "selected_driver_candidate_without_runtime_import",
         "audit storage adapter database driver selection status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_database_driver_selection_review_status")
+        == "audit_store_storage_adapter_database_driver_selection_review_defined",
+        "audit store storage adapter database driver selection review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_driver_selection_review_status")
+        == "audit_store_storage_adapter_database_driver_selection_review_defined",
+        "audit storage adapter database driver selection review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_selected_database_driver_candidate") == "github.com/jackc/pgx/v5",
+        "audit storage adapter selected database driver candidate drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_driver_status") == "selected_reference_only",
+        "audit storage adapter database driver status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_driver_package_status")
+        == "selected_candidate_reference_only",
+        "audit storage adapter database driver package status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_driver_import_status") == "not_created",
+        "audit storage adapter database driver import status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_driver_dependency_version_status") == "not_pinned",
+        "audit storage adapter driver dependency version status drifted",
     )
     require(
         target.get("audit_storage_adapter_driver_candidate_source_status")

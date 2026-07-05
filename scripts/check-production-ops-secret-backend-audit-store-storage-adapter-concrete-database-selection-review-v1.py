@@ -27,11 +27,11 @@ NEXT_DEPENDENCY = "storage_adapter_database_provider_selection_readiness"
 SELECTED_DATABASE_ENGINE = "postgresql_compatible_append_only_relational_database"
 SELECTION_STATUS = "selected_database_engine_without_vendor_or_provider"
 MATRIX_BLOCKER_STATUS = "storage_adapter_concrete_database_selection_review_defined_task_card_blocked"
-CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_database_driver_selection_readiness"
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_database_driver_selection_review"
-CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_database_driver_selection_readiness_defined_task_card_blocked"
+CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_database_driver_selection_review"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_database_connection_lifecycle_readiness"
+CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_database_driver_selection_review_defined_task_card_blocked"
 CURRENT_MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-database-driver-selection-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-database-driver-selection-review-v1"
 )
 
 EXPECTED_DEPENDENCIES = {
@@ -442,7 +442,7 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
         "storage_adapter_database_product_status": "engine_selected_without_managed_product",
         "storage_adapter_database_vendor_status": "not_selected",
         "storage_adapter_database_connection_provider_status": "not_created",
-        "storage_adapter_database_driver_status": "not_selected",
+        "storage_adapter_database_driver_status": "selected_reference_only",
         "storage_adapter_database_dsn_status": "not_defined",
         "storage_adapter_runtime_task_card_status": "not_created",
         "storage_adapter_runtime_status": "not_created",
