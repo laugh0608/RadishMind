@@ -36,10 +36,10 @@ FOLLOWUP_AFTER_SELECTION_STATUS = (
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
 )
 FOLLOWUP_AFTER_SELECTION_DURABLE_BLOCKER_STATUS = (
-    "storage_adapter_database_provider_selection_review_defined_task_card_blocked"
+    "storage_adapter_database_driver_selection_readiness_defined_task_card_blocked"
 )
 FOLLOWUP_AFTER_SELECTION_DURABLE_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-database-provider-selection-review-v1"
+    "production-secret-backend-audit-store-storage-adapter-database-driver-selection-readiness-v1"
 )
 RUNTIME_REFRESH_DURABLE_BLOCKER_STATUS = "storage_adapter_runtime_entry_refresh_defined_task_card_blocked"
 RUNTIME_REFRESH_DURABLE_BLOCKER_SOURCE = (

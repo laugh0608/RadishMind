@@ -199,6 +199,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-database-provider-selection-review": (
         "audit_store_storage_adapter_database_provider_selection_review_defined"
     ),
+    "audit-store-storage-adapter-database-driver-selection-readiness": (
+        "audit_store_storage_adapter_database_driver_selection_readiness_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -351,7 +354,9 @@ REQUIRED_DOC_REFERENCES = {
         "production-secret-backend-audit-store-storage-adapter-database-provider-selection-review-v1",
         "audit_store_storage_adapter_database_provider_selection_review_defined",
         "managed_postgresql_compatible_service",
-        "storage_adapter_database_driver_selection_readiness",
+        "production-secret-backend-audit-store-storage-adapter-database-driver-selection-readiness-v1",
+        "audit_store_storage_adapter_database_driver_selection_readiness_defined",
+        "storage_adapter_database_driver_selection_review",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -1432,7 +1437,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_database_provider_selection_review",
+        == "storage_adapter_runtime_task_card_still_blocked_after_database_driver_selection_readiness",
         "audit storage adapter runtime task card decision drifted",
     )
     require(
@@ -1456,7 +1461,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_database_driver_selection_readiness",
+        == "storage_adapter_database_driver_selection_review",
         "audit storage adapter current next dependency drifted",
     )
     require(
@@ -1541,6 +1546,76 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("audit_storage_adapter_provider_selection_review_status")
         == "audit_store_storage_adapter_database_provider_selection_review_defined",
         "audit storage adapter provider selection review status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_database_driver_selection_readiness_status")
+        == "audit_store_storage_adapter_database_driver_selection_readiness_defined",
+        "audit store storage adapter database driver selection readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_driver_selection_readiness_status")
+        == "audit_store_storage_adapter_database_driver_selection_readiness_defined",
+        "audit storage adapter database driver selection readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_driver_selection_status")
+        == "readiness_defined_without_driver_selection",
+        "audit storage adapter database driver selection status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_driver_candidate_source_status")
+        == "metadata_only_driver_candidate_source_defined",
+        "audit storage adapter driver candidate source status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_driver_import_boundary_status")
+        == "metadata_only_driver_import_boundary_defined",
+        "audit storage adapter driver import boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_driver_capability_evidence_status")
+        == "metadata_only_driver_capability_evidence_defined",
+        "audit storage adapter driver capability evidence status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_dsn_secret_ref_compatibility_status")
+        == "metadata_only_dsn_secret_ref_compatibility_defined",
+        "audit storage adapter DSN secret ref compatibility status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_tls_mode_compatibility_status")
+        == "metadata_only_tls_mode_compatibility_defined",
+        "audit storage adapter TLS mode compatibility status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_role_policy_compatibility_status")
+        == "metadata_only_role_policy_compatibility_defined",
+        "audit storage adapter role policy compatibility status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_connection_lifecycle_boundary_status")
+        == "metadata_only_connection_lifecycle_boundary_defined",
+        "audit storage adapter connection lifecycle boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_migration_schema_marker_boundary_status")
+        == "logical_schema_marker_handoff_boundary_defined",
+        "audit storage adapter migration schema marker boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_driver_offline_smoke_boundary_status")
+        == "metadata_only_offline_adapter_smoke_boundary_defined",
+        "audit storage adapter driver offline smoke boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_driver_negative_leakage_scan_boundary_status")
+        == "metadata_only_negative_leakage_runtime_scan_boundary_defined",
+        "audit storage adapter driver negative leakage scan boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_rollout_rollback_boundary_status")
+        == "metadata_only_rollout_rollback_boundary_defined",
+        "audit storage adapter rollout rollback boundary status drifted",
     )
     require(
         target.get("audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_status")
