@@ -24,6 +24,8 @@ SLICE_STATUS = "audit_store_storage_adapter_database_driver_selection_review_def
 SELECTION_DECISION = "database_driver_candidate_selected_pgx_v5_runtime_blocked"
 ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_database_driver_selection_review"
 NEXT_DEPENDENCY = "storage_adapter_database_connection_lifecycle_readiness"
+CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_readiness"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness"
 SELECTED_DATABASE_ENGINE = "postgresql_compatible_append_only_relational_database"
 SELECTED_PROVIDER_CLASS = "managed_postgresql_compatible_service"
 SELECTED_DRIVER_CANDIDATE = "github.com/jackc/pgx/v5"
@@ -32,6 +34,10 @@ DRIVER_PACKAGE_STATUS = "selected_candidate_reference_only"
 DRIVER_IMPORT_STATUS = "not_created"
 DATABASE_DRIVER_STATUS = "selected_reference_only"
 MATRIX_BLOCKER_STATUS = "storage_adapter_database_driver_selection_review_defined_task_card_blocked"
+CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_database_connection_lifecycle_readiness_defined_task_card_blocked"
+CURRENT_MATRIX_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1"
+)
 
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-database-driver-selection-readiness-v1": (
@@ -468,7 +474,6 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
         require(not (REPO_ROOT / relative_path).exists(), f"forbidden runtime artifact exists: {relative_path}")
     forbidden = set(guard.get("forbidden_artifact_kinds") or [])
     for artifact in {
-        "database_connection_lifecycle_task_card",
         "storage_adapter_runtime_implementation_task_card",
         "database_connection_provider",
         "driver_import",
@@ -495,40 +500,51 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
         "storage_adapter_database_driver_package_status": DRIVER_PACKAGE_STATUS,
         "storage_adapter_database_driver_import_status": DRIVER_IMPORT_STATUS,
         "storage_adapter_driver_dependency_version_status": "not_pinned",
-        "storage_adapter_runtime_task_card_decision": ENTRY_DECISION,
-        "storage_adapter_current_next_dependency": NEXT_DEPENDENCY,
+        "storage_adapter_runtime_task_card_decision": CURRENT_ENTRY_DECISION,
+        "storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
         "storage_adapter_database_connection_provider_status": "not_created",
         "storage_adapter_database_dsn_status": "not_defined",
         "storage_adapter_runtime_task_card_status": "not_created",
         "storage_adapter_runtime_status": "not_created",
-        "durable_audit_backend_status": MATRIX_BLOCKER_STATUS,
+        "durable_audit_backend_status": CURRENT_MATRIX_BLOCKER_STATUS,
     }.items():
         require(boundary.get(field) == expected, f"matrix boundary {field} drifted")
 
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    require(durable.get("status") == MATRIX_BLOCKER_STATUS, "durable blocker status drifted")
-    require(durable.get("source") == SLICE_ID, "durable blocker source drifted")
-    require(durable.get("unlock_condition") == NEXT_DEPENDENCY, "durable unlock condition drifted")
+    require(durable.get("status") == CURRENT_MATRIX_BLOCKER_STATUS, "durable blocker status drifted")
+    require(durable.get("source") == CURRENT_MATRIX_BLOCKER_SOURCE, "durable blocker source drifted")
+    require(durable.get("unlock_condition") == CURRENT_NEXT_DEPENDENCY, "durable unlock condition drifted")
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable must still block audit runtime")
     require(durable.get("blocks_production_resolver_task_card") is True, "durable must still block resolver runtime")
     order = matrix.get("dependency_order") or []
     require("storage_adapter_database_driver_selection_review" in order, "dependency order missing driver review")
     require(
+        "storage_adapter_database_connection_lifecycle_readiness" in order,
+        "dependency order missing connection lifecycle readiness",
+    )
+    require(
         order.index("storage_adapter_database_driver_selection_readiness")
         < order.index("storage_adapter_database_driver_selection_review")
+        < order.index("storage_adapter_database_connection_lifecycle_readiness")
         < order.index("audit_writer_runtime_entry_review"),
         "database driver selection review order drifted",
     )
 
     alignment = fixture.get("blocker_matrix_alignment") or {}
     require(
-        alignment.get("durable_backend_blocker_status_after_review") == MATRIX_BLOCKER_STATUS,
+        alignment.get("durable_backend_blocker_status_after_review") == CURRENT_MATRIX_BLOCKER_STATUS,
         "matrix status drifted",
     )
-    require(alignment.get("durable_backend_blocker_source_after_review") == SLICE_ID, "matrix source drifted")
-    require(alignment.get("storage_adapter_current_next_dependency") == NEXT_DEPENDENCY, "matrix next drifted")
-    require(alignment.get("runtime_task_card_decision") == ENTRY_DECISION, "matrix decision drifted")
+    require(
+        alignment.get("durable_backend_blocker_source_after_review") == CURRENT_MATRIX_BLOCKER_SOURCE,
+        "matrix source drifted",
+    )
+    require(
+        alignment.get("storage_adapter_current_next_dependency") == CURRENT_NEXT_DEPENDENCY,
+        "matrix next drifted",
+    )
+    require(alignment.get("runtime_task_card_decision") == CURRENT_ENTRY_DECISION, "matrix decision drifted")
 
     readiness = load_json(IMPLEMENTATION_READINESS_PATH)
     target = readiness.get("implementation_target") or {}

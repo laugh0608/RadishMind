@@ -205,6 +205,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-database-driver-selection-review": (
         "audit_store_storage_adapter_database_driver_selection_review_defined"
     ),
+    "audit-store-storage-adapter-database-connection-lifecycle-readiness": (
+        "audit_store_storage_adapter_database_connection_lifecycle_readiness_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -363,6 +366,11 @@ REQUIRED_DOC_REFERENCES = {
         "audit_store_storage_adapter_database_driver_selection_review_defined",
         "github.com/jackc/pgx/v5",
         "storage_adapter_database_connection_lifecycle_readiness",
+        "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1",
+        "audit_store_storage_adapter_database_connection_lifecycle_readiness_defined",
+        "database_connection_lifecycle_readiness_defined_without_connection_runtime",
+        "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_readiness",
+        "storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -1443,7 +1451,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_database_driver_selection_review",
+        == "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_readiness",
         "audit storage adapter runtime task card decision drifted",
     )
     require(
@@ -1467,7 +1475,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_database_connection_lifecycle_readiness",
+        == "storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness",
         "audit storage adapter current next dependency drifted",
     )
     require(
@@ -1634,6 +1642,35 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         == "metadata_only_connection_lifecycle_boundary_defined",
         "audit storage adapter connection lifecycle boundary status drifted",
     )
+    for field, expected in {
+        "audit_store_storage_adapter_database_connection_lifecycle_readiness_status": (
+            "audit_store_storage_adapter_database_connection_lifecycle_readiness_defined"
+        ),
+        "audit_storage_adapter_database_connection_lifecycle_readiness_status": (
+            "audit_store_storage_adapter_database_connection_lifecycle_readiness_defined"
+        ),
+        "audit_storage_adapter_database_connection_lifecycle_readiness_decision": (
+            "database_connection_lifecycle_readiness_defined_without_connection_runtime"
+        ),
+        "audit_storage_adapter_secret_ref_only_dsn_handoff_status": "secret_ref_only_dsn_handoff_defined",
+        "audit_storage_adapter_tls_role_environment_binding_status": (
+            "static_tls_role_environment_binding_defined"
+        ),
+        "audit_storage_adapter_pool_policy_status": "static_pool_policy_defined_without_pool_runtime",
+        "audit_storage_adapter_timeout_budget_status": "static_timeout_budget_defined_without_runtime_timer",
+        "audit_storage_adapter_retry_transaction_recovery_status": "static_recovery_policy_defined_without_runtime",
+        "audit_storage_adapter_duplicate_replay_fail_closed_status": (
+            "duplicate_replay_fail_closed_policy_defined"
+        ),
+        "audit_storage_adapter_sanitized_diagnostics_status": "sanitized_diagnostics_allowlist_defined",
+        "audit_storage_adapter_schema_marker_migration_handoff_status": "schema_marker_migration_handoff_defined",
+        "audit_storage_adapter_offline_verification_status": "metadata_only_offline_verification_defined",
+        "audit_storage_adapter_connection_lifecycle_runtime_status": "not_created",
+        "audit_storage_adapter_connection_factory_status": "not_created",
+        "audit_storage_adapter_pool_runtime_status": "not_created",
+        "audit_storage_adapter_health_check_runtime_status": "not_created",
+    }.items():
+        require(target.get(field) == expected, f"{field} drifted")
     require(
         target.get("audit_storage_adapter_migration_schema_marker_boundary_status")
         == "logical_schema_marker_handoff_boundary_defined",

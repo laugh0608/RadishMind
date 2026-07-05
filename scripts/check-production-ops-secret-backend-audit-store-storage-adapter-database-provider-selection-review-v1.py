@@ -27,11 +27,11 @@ NEXT_DEPENDENCY = "storage_adapter_database_driver_selection_readiness"
 SELECTED_DATABASE_ENGINE = "postgresql_compatible_append_only_relational_database"
 SELECTED_PROVIDER_CLASS = "managed_postgresql_compatible_service"
 PROVIDER_SELECTION_STATUS = "selected_provider_candidate_class_without_vendor_or_product"
-MATRIX_BLOCKER_STATUS = "storage_adapter_database_driver_selection_review_defined_task_card_blocked"
-CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_database_driver_selection_review"
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_database_connection_lifecycle_readiness"
+MATRIX_BLOCKER_STATUS = "storage_adapter_database_connection_lifecycle_readiness_defined_task_card_blocked"
+CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_readiness"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness"
 CURRENT_MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-database-driver-selection-review-v1"
+    "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1"
 )
 
 EXPECTED_DEPENDENCIES = {

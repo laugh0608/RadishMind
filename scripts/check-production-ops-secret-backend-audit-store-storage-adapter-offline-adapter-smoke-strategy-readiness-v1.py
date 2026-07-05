@@ -37,14 +37,14 @@ RUNTIME_TASK_CARD_DECISION = (
     "storage_adapter_runtime_task_card_still_blocked_after_negative_leakage_runtime_scan_boundary"
 )
 MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_database_driver_selection_review_defined_task_card_blocked"
+    "storage_adapter_database_connection_lifecycle_readiness_defined_task_card_blocked"
 )
 MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-database-driver-selection-review-v1"
+    "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1"
 )
-MATRIX_NEXT_DEPENDENCY = "storage_adapter_database_connection_lifecycle_readiness"
+MATRIX_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness"
 MATRIX_RUNTIME_TASK_CARD_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_database_driver_selection_review"
+    "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_readiness"
 )
 TABLE_SCHEMA_STATUS = "audit_store_storage_adapter_table_schema_artifact_materialized"
 METADATA_CONTRACT_STATUS = "audit_store_storage_adapter_metadata_contract_artifact_materialized"

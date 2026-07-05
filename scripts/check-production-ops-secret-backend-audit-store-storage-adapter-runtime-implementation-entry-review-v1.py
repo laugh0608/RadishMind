@@ -38,12 +38,26 @@ FOLLOWUP_AFTER_SELECTION_FIXTURE = (
 FOLLOWUP_AFTER_SELECTION_STATUS = (
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
 )
-FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_database_connection_lifecycle_readiness"
+FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness"
 FOLLOWUP_AFTER_SELECTION_BLOCKER_STATUS = (
-    "storage_adapter_database_driver_selection_review_defined_task_card_blocked"
+    "storage_adapter_database_connection_lifecycle_readiness_defined_task_card_blocked"
 )
 FOLLOWUP_AFTER_SELECTION_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-database-driver-selection-review-v1"
+    "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1"
+)
+FOLLOWUP_CONNECTION_LIFECYCLE_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1.json"
+)
+FOLLOWUP_CONNECTION_LIFECYCLE_STATUS = "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness_defined"
+FOLLOWUP_CONNECTION_LIFECYCLE_NEXT_DEPENDENCY = (
+    "storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness"
+)
+FOLLOWUP_CONNECTION_LIFECYCLE_BLOCKER_STATUS = (
+    "storage_adapter_database_connection_lifecycle_readiness_defined_task_card_blocked"
+)
+FOLLOWUP_CONNECTION_LIFECYCLE_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1"
 )
 FOLLOWUP_ALIGNMENT = {
     "audit_storage_adapter_metadata_contract_artifact_status": "materialized_static_metadata_contract",
@@ -64,7 +78,7 @@ FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
         FOLLOWUP_AFTER_SELECTION_STATUS
     ),
     "audit_storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_database_driver_selection_review"
+        "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_readiness"
     ),
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY,
     "audit_storage_adapter_database_provider_driver_dsn_tls_role_policy_status": (
@@ -74,6 +88,32 @@ FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
     "audit_storage_adapter_migration_schema_marker_boundary_status": "logical_schema_marker_handoff_boundary_defined",
     "audit_storage_adapter_offline_adapter_smoke_strategy_status": "required_before_runtime_task_card",
     "audit_storage_adapter_negative_leakage_runtime_scan_boundary_status": "defined_without_runtime",
+}
+FOLLOWUP_CONNECTION_LIFECYCLE_ALIGNMENT = {
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness_status": (
+        FOLLOWUP_CONNECTION_LIFECYCLE_STATUS
+    ),
+    "audit_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness_status": FOLLOWUP_CONNECTION_LIFECYCLE_STATUS,
+    "audit_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness_decision": (
+        "database_connection_lifecycle_readiness_defined_without_connection_runtime"
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_readiness"
+    ),
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_CONNECTION_LIFECYCLE_NEXT_DEPENDENCY,
+    "audit_storage_adapter_secret_ref_only_dsn_handoff_status": "secret_ref_only_dsn_handoff_defined",
+    "audit_storage_adapter_tls_role_environment_binding_status": "static_tls_role_environment_binding_defined",
+    "audit_storage_adapter_pool_policy_status": "static_pool_policy_defined_without_pool_runtime",
+    "audit_storage_adapter_timeout_budget_status": "static_timeout_budget_defined_without_runtime_timer",
+    "audit_storage_adapter_retry_transaction_recovery_status": "static_recovery_policy_defined_without_runtime",
+    "audit_storage_adapter_duplicate_replay_fail_closed_status": "duplicate_replay_fail_closed_policy_defined",
+    "audit_storage_adapter_sanitized_diagnostics_status": "sanitized_diagnostics_allowlist_defined",
+    "audit_storage_adapter_schema_marker_migration_handoff_status": "schema_marker_migration_handoff_defined",
+    "audit_storage_adapter_offline_verification_status": "metadata_only_offline_verification_defined",
+    "audit_storage_adapter_connection_lifecycle_runtime_status": "not_created",
+    "audit_storage_adapter_connection_factory_status": "not_created",
+    "audit_storage_adapter_pool_runtime_status": "not_created",
+    "audit_storage_adapter_health_check_runtime_status": "not_created",
 }
 
 EXPECTED_DEPENDENCIES = {
@@ -290,6 +330,14 @@ def followup_after_selection_exists() -> bool:
     return source_status(followup) == FOLLOWUP_AFTER_SELECTION_STATUS
 
 
+def followup_connection_lifecycle_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_CONNECTION_LIFECYCLE_FIXTURE
+    if not path.exists():
+        return False
+    followup = load_json(path)
+    return source_status(followup) == FOLLOWUP_CONNECTION_LIFECYCLE_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
@@ -417,7 +465,10 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    if followup_after_selection_exists():
+    if followup_connection_lifecycle_exists():
+        expected_status = FOLLOWUP_CONNECTION_LIFECYCLE_BLOCKER_STATUS
+        expected_source = FOLLOWUP_CONNECTION_LIFECYCLE_SOURCE
+    elif followup_after_selection_exists():
         expected_status = FOLLOWUP_AFTER_SELECTION_BLOCKER_STATUS
         expected_source = FOLLOWUP_AFTER_SELECTION_SOURCE
     elif followup_selection_exists():
@@ -454,6 +505,8 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
             expected = FOLLOWUP_SELECTION_ALIGNMENT[field]
         if followup_after_selection_exists() and field in FOLLOWUP_AFTER_SELECTION_ALIGNMENT:
             expected = FOLLOWUP_AFTER_SELECTION_ALIGNMENT[field]
+        if followup_connection_lifecycle_exists() and field in FOLLOWUP_CONNECTION_LIFECYCLE_ALIGNMENT:
+            expected = FOLLOWUP_CONNECTION_LIFECYCLE_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     planned = {str(item.get("id")): item for item in readiness.get("planned_slices") or [] if isinstance(item, dict)}
