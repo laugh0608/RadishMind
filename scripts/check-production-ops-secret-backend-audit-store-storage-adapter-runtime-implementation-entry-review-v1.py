@@ -38,26 +38,28 @@ FOLLOWUP_AFTER_SELECTION_FIXTURE = (
 FOLLOWUP_AFTER_SELECTION_STATUS = (
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
 )
-FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness"
+FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_database_provider_connection_runtime_boundary_readiness"
 FOLLOWUP_AFTER_SELECTION_BLOCKER_STATUS = (
-    "storage_adapter_database_connection_lifecycle_readiness_defined_task_card_blocked"
+    "storage_adapter_runtime_entry_refresh_after_database_connection_lifecycle_defined_task_card_blocked"
 )
 FOLLOWUP_AFTER_SELECTION_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-connection-lifecycle-v1"
 )
 FOLLOWUP_CONNECTION_LIFECYCLE_FIXTURE = (
     "scripts/checks/fixtures/"
-    "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1.json"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-connection-lifecycle-v1.json"
 )
-FOLLOWUP_CONNECTION_LIFECYCLE_STATUS = "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness_defined"
+FOLLOWUP_CONNECTION_LIFECYCLE_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_defined"
+)
 FOLLOWUP_CONNECTION_LIFECYCLE_NEXT_DEPENDENCY = (
-    "storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness"
+    "storage_adapter_database_provider_connection_runtime_boundary_readiness"
 )
 FOLLOWUP_CONNECTION_LIFECYCLE_BLOCKER_STATUS = (
-    "storage_adapter_database_connection_lifecycle_readiness_defined_task_card_blocked"
+    "storage_adapter_runtime_entry_refresh_after_database_connection_lifecycle_defined_task_card_blocked"
 )
 FOLLOWUP_CONNECTION_LIFECYCLE_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-connection-lifecycle-v1"
 )
 FOLLOWUP_ALIGNMENT = {
     "audit_storage_adapter_metadata_contract_artifact_status": "materialized_static_metadata_contract",
@@ -78,7 +80,7 @@ FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
         FOLLOWUP_AFTER_SELECTION_STATUS
     ),
     "audit_storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_readiness"
+        "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_entry_refresh"
     ),
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY,
     "audit_storage_adapter_database_provider_driver_dsn_tls_role_policy_status": (
@@ -90,17 +92,19 @@ FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
     "audit_storage_adapter_negative_leakage_runtime_scan_boundary_status": "defined_without_runtime",
 }
 FOLLOWUP_CONNECTION_LIFECYCLE_ALIGNMENT = {
-    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness_status": (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_status": (
         FOLLOWUP_CONNECTION_LIFECYCLE_STATUS
     ),
-    "audit_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness_status": FOLLOWUP_CONNECTION_LIFECYCLE_STATUS,
-    "audit_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness_decision": (
-        "database_connection_lifecycle_readiness_defined_without_connection_runtime"
-    ),
     "audit_storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_readiness"
+        "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_entry_refresh"
     ),
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_CONNECTION_LIFECYCLE_NEXT_DEPENDENCY,
+    "audit_storage_adapter_database_provider_connection_runtime_boundary_status": (
+        "required_before_runtime_task_card"
+    ),
+    "audit_storage_adapter_database_connection_lifecycle_readiness_decision": (
+        "database_connection_lifecycle_readiness_defined_without_connection_runtime"
+    ),
     "audit_storage_adapter_secret_ref_only_dsn_handoff_status": "secret_ref_only_dsn_handoff_defined",
     "audit_storage_adapter_tls_role_environment_binding_status": "static_tls_role_environment_binding_defined",
     "audit_storage_adapter_pool_policy_status": "static_pool_policy_defined_without_pool_runtime",

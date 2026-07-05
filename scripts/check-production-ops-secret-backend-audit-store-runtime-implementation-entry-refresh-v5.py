@@ -46,14 +46,18 @@ FOLLOWUP_AFTER_SELECTION_DURABLE_BLOCKER_SOURCE = (
 FOLLOWUP_CONNECTION_LIFECYCLE_FIXTURE_PATH = (
     REPO_ROOT
     / "scripts/checks/fixtures/"
-    "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1.json"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-database-connection-lifecycle-v1.json"
 )
-FOLLOWUP_CONNECTION_LIFECYCLE_STATUS = "audit_store_storage_adapter_database_connection_lifecycle_readiness_defined"
+FOLLOWUP_CONNECTION_LIFECYCLE_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_defined"
+)
 FOLLOWUP_CONNECTION_LIFECYCLE_DURABLE_BLOCKER_STATUS = (
-    "storage_adapter_database_connection_lifecycle_readiness_defined_task_card_blocked"
+    "storage_adapter_runtime_entry_refresh_after_database_connection_lifecycle_defined_task_card_blocked"
 )
 FOLLOWUP_CONNECTION_LIFECYCLE_DURABLE_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-database-connection-lifecycle-v1"
 )
 RUNTIME_REFRESH_DURABLE_BLOCKER_STATUS = "storage_adapter_runtime_entry_refresh_defined_task_card_blocked"
 RUNTIME_REFRESH_DURABLE_BLOCKER_SOURCE = (

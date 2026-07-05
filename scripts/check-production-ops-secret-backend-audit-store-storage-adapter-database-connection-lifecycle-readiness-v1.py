@@ -27,7 +27,13 @@ NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_da
 SELECTED_DRIVER_CANDIDATE = "github.com/jackc/pgx/v5"
 SELECTED_DATABASE_ENGINE = "postgresql_compatible_append_only_relational_database"
 SELECTED_PROVIDER_CLASS = "managed_postgresql_compatible_service"
-MATRIX_BLOCKER_STATUS = "storage_adapter_database_connection_lifecycle_readiness_defined_task_card_blocked"
+MATRIX_BLOCKER_STATUS = "storage_adapter_runtime_entry_refresh_after_database_connection_lifecycle_defined_task_card_blocked"
+CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_entry_refresh"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_database_provider_connection_runtime_boundary_readiness"
+CURRENT_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-database-connection-lifecycle-v1"
+)
 
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-database-driver-selection-review-v1": (
@@ -533,8 +539,8 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
         "storage_adapter_connection_factory_status": "not_created",
         "storage_adapter_pool_runtime_status": "not_created",
         "storage_adapter_health_check_runtime_status": "not_created",
-        "storage_adapter_runtime_task_card_decision": ENTRY_DECISION,
-        "storage_adapter_current_next_dependency": NEXT_DEPENDENCY,
+        "storage_adapter_runtime_task_card_decision": CURRENT_ENTRY_DECISION,
+        "storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
         "durable_audit_backend_status": MATRIX_BLOCKER_STATUS,
     }.items():
         require(boundary.get(field) == expected, f"matrix boundary {field} drifted")
@@ -542,8 +548,8 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
     require(durable.get("status") == MATRIX_BLOCKER_STATUS, "durable blocker status drifted")
-    require(durable.get("source") == SLICE_ID, "durable blocker source drifted")
-    require(durable.get("unlock_condition") == NEXT_DEPENDENCY, "durable unlock condition drifted")
+    require(durable.get("source") == CURRENT_BLOCKER_SOURCE, "durable blocker source drifted")
+    require(durable.get("unlock_condition") == CURRENT_NEXT_DEPENDENCY, "durable unlock condition drifted")
     require(durable.get("blocks_audit_store_runtime_task_card") is True, "durable must still block audit runtime")
     require(durable.get("blocks_production_resolver_task_card") is True, "durable must still block resolver runtime")
     order = matrix.get("dependency_order") or []
@@ -560,9 +566,9 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
         alignment.get("durable_backend_blocker_status_after_readiness") == MATRIX_BLOCKER_STATUS,
         "matrix status drifted",
     )
-    require(alignment.get("durable_backend_blocker_source_after_readiness") == SLICE_ID, "matrix source drifted")
-    require(alignment.get("storage_adapter_current_next_dependency") == NEXT_DEPENDENCY, "matrix next drifted")
-    require(alignment.get("runtime_task_card_decision") == ENTRY_DECISION, "matrix decision drifted")
+    require(alignment.get("durable_backend_blocker_source_after_readiness") == CURRENT_BLOCKER_SOURCE, "matrix source drifted")
+    require(alignment.get("storage_adapter_current_next_dependency") == CURRENT_NEXT_DEPENDENCY, "matrix next drifted")
+    require(alignment.get("runtime_task_card_decision") == CURRENT_ENTRY_DECISION, "matrix decision drifted")
 
     readiness = load_json(IMPLEMENTATION_READINESS_PATH)
     target = readiness.get("implementation_target") or {}

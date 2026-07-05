@@ -39,14 +39,13 @@ FOLLOWUP_AFTER_SELECTION_FIXTURE = (
 FOLLOWUP_AFTER_SELECTION_STATUS = (
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
 )
-FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_readiness"
+FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_database_provider_connection_runtime_boundary_readiness"
 FOLLOWUP_AFTER_SELECTION_BLOCKER_STATUS = (
-    "storage_adapter_database_connection_lifecycle_readiness_defined_task_card_blocked"
+    "storage_adapter_runtime_entry_refresh_after_database_connection_lifecycle_defined_task_card_blocked"
 )
 FOLLOWUP_AFTER_SELECTION_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-connection-lifecycle-v1"
 )
-
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1": (
         (
@@ -240,7 +239,7 @@ FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
         FOLLOWUP_AFTER_SELECTION_STATUS
     ),
     "audit_storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_readiness"
+        "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_entry_refresh"
     ),
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY,
     "audit_storage_adapter_database_provider_driver_dsn_tls_role_policy_status": (
