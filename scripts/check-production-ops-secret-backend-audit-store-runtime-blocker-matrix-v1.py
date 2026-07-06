@@ -273,6 +273,13 @@ EXPECTED_DEPENDENCIES = {
         ),
         "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_defined",
     ),
+    "production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined",
+    ),
     "production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1": (
         "scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.json",
         "credential_handle_runtime_implementation_entry_refresh_defined",
@@ -319,7 +326,7 @@ EXPECTED_BOUNDARY = {
         "durable_backend_family_selected_static_append_only_audit_log_runtime_blocked"
     ),
     "durable_audit_backend_status": (
-        "storage_adapter_runtime_entry_refresh_after_database_connection_lifecycle_defined_task_card_blocked"
+        "storage_adapter_database_provider_connection_runtime_boundary_readiness_defined_task_card_blocked"
     ),
     "selected_durable_backend_family": "append_only_metadata_audit_log",
     "selected_reserved_candidate": "reserved_append_only_audit_log",
@@ -530,7 +537,7 @@ EXPECTED_BOUNDARY = {
         "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_defined"
     ),
     "storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_entry_refresh"
+        "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_readiness"
     ),
     "storage_adapter_evidence_chain_status": "static_evidence_chain_ready_for_contract_materialization_review",
     "storage_adapter_next_dependency": "storage_adapter_metadata_contract_artifact_materialization_entry_review",
@@ -545,7 +552,7 @@ EXPECTED_BOUNDARY = {
     ),
     "storage_adapter_contract_artifact_materialization_task_card_status": "created",
     "storage_adapter_current_next_dependency": (
-        "storage_adapter_database_provider_connection_runtime_boundary_readiness"
+        "storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness"
     ),
     "storage_adapter_concrete_database_selection_readiness_status": (
         "audit_store_storage_adapter_concrete_database_selection_readiness_defined"
@@ -611,7 +618,7 @@ EXPECTED_BOUNDARY = {
         "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_defined"
     ),
     "storage_adapter_database_provider_connection_runtime_boundary_status": (
-        "required_before_runtime_task_card"
+        "metadata_only_boundary_defined_without_runtime"
     ),
     "storage_adapter_secret_ref_only_dsn_handoff_status": "secret_ref_only_dsn_handoff_defined",
     "storage_adapter_tls_role_environment_binding_status": "static_tls_role_environment_binding_defined",
@@ -684,7 +691,7 @@ EXPECTED_FALSE_FLAGS = {
 EXPECTED_BLOCKERS = {
     "runtime_event_schema_artifact": "implemented_static_schema_artifact",
     "durable_audit_backend": (
-        "storage_adapter_runtime_entry_refresh_after_database_connection_lifecycle_defined_task_card_blocked"
+        "storage_adapter_database_provider_connection_runtime_boundary_readiness_defined_task_card_blocked"
     ),
     "audit_writer_runtime": "entry_review_defined_task_card_blocked",
     "idempotency_runtime": "entry_review_defined_task_card_blocked",
@@ -730,6 +737,7 @@ EXPECTED_ORDER = [
     "storage_adapter_database_connection_lifecycle_readiness",
     "storage_adapter_runtime_entry_refresh_after_database_connection_lifecycle",
     "storage_adapter_database_provider_connection_runtime_boundary_readiness",
+    "storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness",
     "audit_writer_runtime_entry_review",
     "idempotency_runtime_entry_review",
     "delivery_runtime_entry_review",
@@ -1082,7 +1090,7 @@ def assert_prior_evidence_alignment() -> None:
         ),
         "audit_storage_adapter_contract_materialization_task_card_status": "created",
         "audit_storage_adapter_current_next_dependency": (
-            "storage_adapter_database_provider_connection_runtime_boundary_readiness"
+            "storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness"
         ),
         "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_status": (
             "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_defined"
@@ -1109,7 +1117,7 @@ def assert_prior_evidence_alignment() -> None:
             "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_defined"
         ),
         "audit_storage_adapter_runtime_task_card_decision": (
-            "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_entry_refresh"
+            "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_readiness"
         ),
         "audit_store_storage_adapter_concrete_database_selection_readiness_status": (
             "audit_store_storage_adapter_concrete_database_selection_readiness_defined"
@@ -1219,7 +1227,7 @@ def assert_prior_evidence_alignment() -> None:
         "audit_storage_adapter_pool_runtime_status": "not_created",
         "audit_storage_adapter_health_check_runtime_status": "not_created",
         "audit_storage_adapter_database_provider_connection_runtime_boundary_status": (
-            "required_before_runtime_task_card"
+            "metadata_only_boundary_defined_without_runtime"
         ),
         "audit_storage_adapter_migration_schema_marker_boundary_status": "logical_schema_marker_handoff_boundary_defined",
         "audit_storage_adapter_driver_offline_smoke_boundary_status": (

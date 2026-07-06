@@ -48,6 +48,26 @@ FOLLOWUP_AFTER_SELECTION_BLOCKER_STATUS = (
 FOLLOWUP_AFTER_SELECTION_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-connection-lifecycle-v1"
 )
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_FIXTURE = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1.json"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS = (
+    "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_DECISION = (
+    "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_readiness"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY = (
+    "storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_BLOCKER_STATUS = (
+    "storage_adapter_database_provider_connection_runtime_boundary_readiness_defined_task_card_blocked"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1"
+)
 FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_status": (
         FOLLOWUP_AFTER_SELECTION_STATUS
@@ -62,6 +82,16 @@ FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
     "audit_storage_adapter_migration_schema_marker_boundary_status": "logical_schema_marker_handoff_boundary_defined",
     "audit_storage_adapter_offline_adapter_smoke_strategy_status": "required_before_runtime_task_card",
     "audit_storage_adapter_negative_leakage_runtime_scan_boundary_status": "defined_without_runtime",
+}
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT = {
+    "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_status": (
+        FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_DECISION,
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY,
+    "audit_storage_adapter_database_provider_connection_runtime_boundary_status": (
+        "metadata_only_boundary_defined_without_runtime"
+    ),
 }
 
 EXPECTED_DEPENDENCIES = {
@@ -272,6 +302,13 @@ def followup_after_selection_exists() -> bool:
     return source_status(followup) == FOLLOWUP_AFTER_SELECTION_STATUS
 
 
+def followup_connection_runtime_boundary_exists() -> bool:
+    if not FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_FIXTURE.exists():
+        return False
+    followup = load_json(FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_FIXTURE)
+    return source_status(followup) == FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "schema_version drifted")
     require(
@@ -412,6 +449,8 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
             continue
         if followup_after_selection_exists() and field in FOLLOWUP_AFTER_SELECTION_ALIGNMENT:
             expected = FOLLOWUP_AFTER_SELECTION_ALIGNMENT[field]
+        if followup_connection_runtime_boundary_exists() and field in FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT:
+            expected = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     required = rows_by_id(implementation, "planned_slices", "id")
@@ -431,7 +470,11 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
     require(boundary.get("storage_adapter_backend_product_selection_status") == SELECTION_STATUS, "matrix selection status drifted")
     require(boundary.get("storage_adapter_selected_backend_product_class") == SELECTED_PRODUCT_CLASS, "matrix product class drifted")
     expected_next_dependency = (
-        FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY if followup_after_selection_exists() else NEXT_DEPENDENCY
+        FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY
+        if followup_connection_runtime_boundary_exists()
+        else FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY
+        if followup_after_selection_exists()
+        else NEXT_DEPENDENCY
     )
     require(
         boundary.get("storage_adapter_current_next_dependency") == expected_next_dependency,
@@ -441,7 +484,10 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
     durable = blockers.get("durable_audit_backend") or {}
     expected_blocker_status = expected_matrix.get("durable_backend_blocker_status_after_review")
     expected_blocker_source = expected_matrix.get("durable_backend_blocker_source_after_review")
-    if followup_after_selection_exists():
+    if followup_connection_runtime_boundary_exists():
+        expected_blocker_status = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_BLOCKER_STATUS
+        expected_blocker_source = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_SOURCE
+    elif followup_after_selection_exists():
         expected_blocker_status = FOLLOWUP_AFTER_SELECTION_BLOCKER_STATUS
         expected_blocker_source = FOLLOWUP_AFTER_SELECTION_SOURCE
         require(

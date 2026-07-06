@@ -6,9 +6,9 @@
 
 当前 storage adapter 仍停在静态准入和入口复评阶段，最新状态锚点为：
 
-- `audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_defined`
-- `storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_entry_refresh`
-- 下一项独立依赖：`storage_adapter_database_provider_connection_runtime_boundary_readiness`
+- `audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined`
+- `storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_readiness`
+- 下一项独立依赖：`storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness`
 
 已经完成的选择只到静态候选层：
 
@@ -31,6 +31,7 @@ storage adapter 的证据链按以下层次推进：
 7. database driver selection readiness / review：只选择 reference-only driver candidate，不导入 driver、不 pin version。
 8. database connection lifecycle readiness：只定义 DSN handoff、pool policy、timeout、retry / transaction / partial write recovery、duplicate / replay fail-closed、sanitized diagnostics 和 migration / schema marker handoff。
 9. after database connection lifecycle entry refresh：确认 runtime task card 仍 blocked，并把下一步固定为 provider connection runtime boundary readiness。
+10. database provider connection runtime boundary readiness：只定义 connection provider、factory、pool、health check、failure ownership 和 schema marker / migration handoff 的 metadata-only boundary，不创建运行时。
 
 ## Checker 与 Fixture 语义
 
@@ -79,4 +80,5 @@ storage adapter 的证据链按以下层次推进：
 - [Audit Store Runtime Blocker Matrix v1](production-secret-backend-audit-store-runtime-blocker-matrix-v1.md)
 - [Database Connection Lifecycle Readiness v1](production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1.md)
 - [After Database Connection Lifecycle Entry Refresh v1](production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-connection-lifecycle-v1.md)
+- [Database Provider Connection Runtime Boundary Readiness v1](production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1.md)
 - [Production Secret Reference 契约](../contracts/production-secret-reference.md)

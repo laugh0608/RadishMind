@@ -61,6 +61,22 @@ FOLLOWUP_CONNECTION_LIFECYCLE_BLOCKER_STATUS = (
 FOLLOWUP_CONNECTION_LIFECYCLE_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-connection-lifecycle-v1"
 )
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1.json"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS = (
+    "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY = (
+    "storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_BLOCKER_STATUS = (
+    "storage_adapter_database_provider_connection_runtime_boundary_readiness_defined_task_card_blocked"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1"
+)
 FOLLOWUP_ALIGNMENT = {
     "audit_storage_adapter_metadata_contract_artifact_status": "materialized_static_metadata_contract",
     "audit_storage_adapter_contract_artifact_path_status": "materialized_static_path",
@@ -118,6 +134,18 @@ FOLLOWUP_CONNECTION_LIFECYCLE_ALIGNMENT = {
     "audit_storage_adapter_connection_factory_status": "not_created",
     "audit_storage_adapter_pool_runtime_status": "not_created",
     "audit_storage_adapter_health_check_runtime_status": "not_created",
+}
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT = {
+    "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_status": (
+        FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_readiness"
+    ),
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY,
+    "audit_storage_adapter_database_provider_connection_runtime_boundary_status": (
+        "metadata_only_boundary_defined_without_runtime"
+    ),
 }
 
 EXPECTED_DEPENDENCIES = {
@@ -342,6 +370,14 @@ def followup_connection_lifecycle_exists() -> bool:
     return source_status(followup) == FOLLOWUP_CONNECTION_LIFECYCLE_STATUS
 
 
+def followup_connection_runtime_boundary_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_FIXTURE
+    if not path.exists():
+        return False
+    followup = load_json(path)
+    return source_status(followup) == FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
@@ -469,7 +505,10 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    if followup_connection_lifecycle_exists():
+    if followup_connection_runtime_boundary_exists():
+        expected_status = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_BLOCKER_STATUS
+        expected_source = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_SOURCE
+    elif followup_connection_lifecycle_exists():
         expected_status = FOLLOWUP_CONNECTION_LIFECYCLE_BLOCKER_STATUS
         expected_source = FOLLOWUP_CONNECTION_LIFECYCLE_SOURCE
     elif followup_after_selection_exists():
@@ -511,6 +550,8 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
             expected = FOLLOWUP_AFTER_SELECTION_ALIGNMENT[field]
         if followup_connection_lifecycle_exists() and field in FOLLOWUP_CONNECTION_LIFECYCLE_ALIGNMENT:
             expected = FOLLOWUP_CONNECTION_LIFECYCLE_ALIGNMENT[field]
+        if followup_connection_runtime_boundary_exists() and field in FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT:
+            expected = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     planned = {str(item.get("id")): item for item in readiness.get("planned_slices") or [] if isinstance(item, dict)}
