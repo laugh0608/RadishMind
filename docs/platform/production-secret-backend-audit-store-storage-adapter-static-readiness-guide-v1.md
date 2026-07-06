@@ -6,17 +6,19 @@
 
 当前 storage adapter 仍停在静态准入和入口复评阶段，最新状态锚点为：
 
-- `audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined`
-- `storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_entry_refresh`
-- 下一项独立依赖：`storage_adapter_managed_database_product_selection_readiness`
+- `audit_store_storage_adapter_managed_database_product_selection_review_defined`
+- `managed_database_product_profile_selected_reference_only_runtime_blocked`
+- `storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review`
+- 下一项独立依赖：`storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review`
 
 已经完成的选择只到静态候选层：
 
 - database capability family：`postgresql_compatible_append_only_relational_database`
 - provider candidate class：`managed_postgresql_compatible_service`
 - reference-only driver candidate：`github.com/jackc/pgx/v5`
+- reference-only managed database product profile：`managed_postgresql_compatible_audit_store_profile`
 
-这些结论不代表具体厂商、托管产品、provider、driver runtime、连接运行时或 storage adapter runtime 已可用。
+这些结论不代表具体厂商、cloud product、provider account resource、database endpoint、region detail、provider、driver runtime、连接运行时或 storage adapter runtime 已可用。
 
 ## 证据链读法
 
@@ -33,6 +35,8 @@ storage adapter 的证据链按以下层次推进：
 9. after database connection lifecycle entry refresh：确认 runtime task card 仍 blocked，并把下一步固定为 provider connection runtime boundary readiness。
 10. database provider connection runtime boundary readiness：只定义 connection provider、factory、pool、health check、failure ownership 和 schema marker / migration handoff 的 metadata-only boundary，不创建运行时。
 11. after database provider connection runtime boundary entry refresh：确认 runtime task card 仍 blocked，并把下一步固定为 managed database product selection readiness。
+12. managed database product selection readiness：定义 managed product 选择前输入证据、candidate fields、evaluation dimensions、rejection conditions 和 artifact guard，不选择 vendor、managed product 或 concrete provider。
+13. managed database product selection review：只选择 reference-only profile `managed_postgresql_compatible_audit_store_profile`，并继续确认 storage adapter runtime task card blocked；不选择具体 vendor、cloud product、provider account resource、database endpoint 或 region detail。
 
 ## Checker 与 Fixture 语义
 
@@ -41,6 +45,7 @@ storage adapter 的证据链按以下层次推进：
 - 状态锚点、decision、next dependency 没有漂移。
 - 上游 dependency 已被正确消费，下游 runtime 仍被阻塞。
 - `production-ops-secret-backend-implementation-readiness.json` 与 runtime blocker matrix 消费最新阻塞项。
+- managed product selection review 只能选择 reference-only profile，不能把 profile 写成具体 vendor、cloud product、provider account resource、database endpoint 或 region detail。
 - `scripts/check-repo.py` 注册顺序正确。
 - forbidden artifact guard 不允许提前出现 runtime、provider、SQL、DDL、schema marker、migration runner 或 public API。
 - no secret material scan 不允许 committed 文档、fixture 或 checker 输出敏感材料。
@@ -82,4 +87,7 @@ storage adapter 的证据链按以下层次推进：
 - [Database Connection Lifecycle Readiness v1](production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1.md)
 - [After Database Connection Lifecycle Entry Refresh v1](production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-connection-lifecycle-v1.md)
 - [Database Provider Connection Runtime Boundary Readiness v1](production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1.md)
+- [After Database Provider Connection Runtime Boundary Entry Refresh v1](production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-provider-connection-runtime-boundary-v1.md)
+- [Managed Database Product Selection Readiness v1](production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1.md)
+- [Managed Database Product Selection Review v1](production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1.md)
 - [Production Secret Reference 契约](../contracts/production-secret-reference.md)
