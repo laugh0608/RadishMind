@@ -27,11 +27,11 @@ NEXT_DEPENDENCY = "storage_adapter_database_driver_selection_readiness"
 SELECTED_DATABASE_ENGINE = "postgresql_compatible_append_only_relational_database"
 SELECTED_PROVIDER_CLASS = "managed_postgresql_compatible_service"
 PROVIDER_SELECTION_STATUS = "selected_provider_candidate_class_without_vendor_or_product"
-MATRIX_BLOCKER_STATUS = "storage_adapter_managed_database_product_selection_readiness_defined_task_card_blocked"
-CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_readiness"
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_managed_database_product_selection_review"
+MATRIX_BLOCKER_STATUS = "storage_adapter_managed_database_product_selection_review_defined_task_card_blocked"
+CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review"
 CURRENT_MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1"
 )
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-database-provider-selection-readiness-v1": (
@@ -429,7 +429,7 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
         "storage_adapter_provider_selection_status": PROVIDER_SELECTION_STATUS,
         "storage_adapter_runtime_task_card_decision": CURRENT_ENTRY_DECISION,
         "storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
-        "storage_adapter_database_provider_status": "provider_class_selected_without_vendor_or_product",
+        "storage_adapter_database_provider_status": "provider_class_selected_without_concrete_provider",
         "storage_adapter_database_connection_provider_status": "not_created",
         "storage_adapter_database_driver_status": "selected_reference_only",
         "storage_adapter_database_dsn_status": "not_defined",

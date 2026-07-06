@@ -220,6 +220,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-managed-database-product-selection-readiness": (
         "audit_store_storage_adapter_managed_database_product_selection_readiness_defined"
     ),
+    "audit-store-storage-adapter-managed-database-product-selection-review": (
+        "audit_store_storage_adapter_managed_database_product_selection_review_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -397,6 +400,12 @@ REQUIRED_DOC_REFERENCES = {
         "managed_database_product_selection_readiness_defined_without_product_selection",
         "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_readiness",
         "storage_adapter_managed_database_product_selection_review",
+        "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1",
+        "audit_store_storage_adapter_managed_database_product_selection_review_defined",
+        "managed_database_product_profile_selected_reference_only_runtime_blocked",
+        "managed_postgresql_compatible_audit_store_profile",
+        "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review",
+        "storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -1480,6 +1489,11 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit store storage adapter managed database product selection readiness status drifted",
     )
     require(
+        target.get("audit_store_storage_adapter_managed_database_product_selection_review_status")
+        == "audit_store_storage_adapter_managed_database_product_selection_review_defined",
+        "audit store storage adapter managed database product selection review status drifted",
+    )
+    require(
         target.get("audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_status")
         == "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_defined",
         "audit store storage adapter table schema artifact materialization entry review status drifted",
@@ -1501,7 +1515,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_readiness",
+        == "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review",
         "audit storage adapter runtime task card decision drifted",
     )
     require(
@@ -1525,17 +1539,28 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_managed_database_product_selection_review",
+        == "storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review",
         "audit storage adapter current next dependency drifted",
     )
     require(
         target.get("audit_storage_adapter_managed_product_selection_status")
-        == "readiness_defined_without_product_selection",
+        == "selected_reference_product_profile_without_vendor",
         "audit storage adapter managed product selection status drifted",
     )
     require(
-        target.get("audit_storage_adapter_managed_product_selection_review_status") == "not_started",
+        target.get("audit_storage_adapter_managed_product_selection_review_status")
+        == "audit_store_storage_adapter_managed_database_product_selection_review_defined",
         "audit storage adapter managed product selection review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_selected_managed_product_profile")
+        == "managed_postgresql_compatible_audit_store_profile",
+        "audit storage adapter selected managed product profile drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_managed_database_product_status")
+        == "selected_reference_profile_not_vendor_product",
+        "audit storage adapter managed database product status drifted",
     )
     require(
         target.get("audit_storage_adapter_managed_product_input_evidence_status")

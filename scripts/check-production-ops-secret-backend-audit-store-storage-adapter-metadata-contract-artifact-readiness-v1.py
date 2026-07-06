@@ -82,19 +82,19 @@ FOLLOWUP_AFTER_PROVIDER_BOUNDARY_SOURCE = (
 )
 FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_FIXTURE = (
     "scripts/checks/fixtures/"
-    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1.json"
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1.json"
 )
 FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS = (
-    "audit_store_storage_adapter_managed_database_product_selection_readiness_defined"
+    "audit_store_storage_adapter_managed_database_product_selection_review_defined"
 )
 FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_NEXT_DEPENDENCY = (
-    "storage_adapter_managed_database_product_selection_review"
+    "storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review"
 )
 FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_BLOCKER_STATUS = (
-    "storage_adapter_managed_database_product_selection_readiness_defined_task_card_blocked"
+    "storage_adapter_managed_database_product_selection_review_defined_task_card_blocked"
 )
 FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1"
 )
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1": (
@@ -138,7 +138,7 @@ EXPECTED_BOUNDARY = {
     "backend_product_evidence_readiness_status": (
         "audit_store_storage_adapter_backend_product_evidence_readiness_defined"
     ),
-    "backend_product_evidence_status": "readiness_defined_without_product_selection",
+    "backend_product_evidence_status": "selected_reference_product_profile_without_vendor",
     "backend_product_selection_status": "not_selected",
     "selected_backend_family": "append_only_metadata_audit_log",
     "selected_reserved_candidate": "reserved_append_only_audit_log",
@@ -326,10 +326,10 @@ FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_ALIGNMENT = {
         FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS
     ),
     "audit_storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_readiness"
+        "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review"
     ),
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_NEXT_DEPENDENCY,
-    "audit_storage_adapter_managed_product_selection_status": "readiness_defined_without_product_selection",
+    "audit_storage_adapter_managed_product_selection_status": "selected_reference_product_profile_without_vendor",
     "audit_storage_adapter_managed_product_selection_review_status": "not_started",
 }
 

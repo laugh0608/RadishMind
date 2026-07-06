@@ -103,6 +103,20 @@ FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_DURABLE_BLOCKER_STATUS = (
 FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_DURABLE_BLOCKER_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1"
 )
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1.json"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS = (
+    "audit_store_storage_adapter_managed_database_product_selection_review_defined"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_DURABLE_BLOCKER_STATUS = (
+    "storage_adapter_managed_database_product_selection_review_defined_task_card_blocked"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_DURABLE_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1"
+)
 RUNTIME_REFRESH_DURABLE_BLOCKER_STATUS = "storage_adapter_runtime_entry_refresh_defined_task_card_blocked"
 RUNTIME_REFRESH_DURABLE_BLOCKER_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1"
@@ -342,6 +356,13 @@ def followup_managed_product_selection_readiness_exists() -> bool:
     return source_status(followup) == FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS
 
 
+def followup_managed_product_selection_review_exists() -> bool:
+    if not FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_FIXTURE_PATH.exists():
+        return False
+    followup = load_json(FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_FIXTURE_PATH)
+    return source_status(followup) == FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS
+
+
 def rows_by_id(fixture: dict[str, Any], key: str, id_field: str) -> dict[str, dict[str, Any]]:
     rows = {str(row.get(id_field) or ""): row for row in fixture.get(key) or [] if isinstance(row, dict)}
     require(rows, f"{key} must not be empty")
@@ -459,7 +480,10 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
 def assert_blocker_matrix_alignment() -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     boundary = matrix.get("matrix_boundary") or {}
-    if followup_managed_product_selection_readiness_exists():
+    if followup_managed_product_selection_review_exists():
+        expected_status = FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_DURABLE_BLOCKER_STATUS
+        expected_source = FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_DURABLE_BLOCKER_SOURCE
+    elif followup_managed_product_selection_readiness_exists():
         expected_status = FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_DURABLE_BLOCKER_STATUS
         expected_source = FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_DURABLE_BLOCKER_SOURCE
     elif followup_after_provider_boundary_exists():

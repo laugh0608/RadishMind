@@ -78,13 +78,13 @@ FOLLOWUP_AFTER_PROVIDER_BOUNDARY_NEXT_DEPENDENCY = (
 FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_FIXTURE_PATH = (
     REPO_ROOT
     / "scripts/checks/fixtures/"
-    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1.json"
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1.json"
 )
 FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS = (
-    "audit_store_storage_adapter_managed_database_product_selection_readiness_defined"
+    "audit_store_storage_adapter_managed_database_product_selection_review_defined"
 )
 FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_NEXT_DEPENDENCY = (
-    "storage_adapter_managed_database_product_selection_review"
+    "storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review"
 )
 FOLLOWUP_SELECTION_ALIGNMENT = {
     "audit_store_storage_adapter_backend_product_selection_review_status": FOLLOWUP_SELECTION_STATUS,
@@ -137,10 +137,10 @@ FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_ALIGNMENT = {
         FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS
     ),
     "audit_storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_readiness"
+        "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review"
     ),
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_NEXT_DEPENDENCY,
-    "audit_storage_adapter_managed_product_selection_status": "readiness_defined_without_product_selection",
+    "audit_storage_adapter_managed_product_selection_status": "selected_reference_product_profile_without_vendor",
     "audit_storage_adapter_managed_product_selection_review_status": "not_started",
 }
 
