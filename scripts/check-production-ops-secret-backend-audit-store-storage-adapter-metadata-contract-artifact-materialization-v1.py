@@ -61,7 +61,7 @@ FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS = (
     "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined"
 )
 FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY = (
-    "storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness"
+    "storage_adapter_managed_database_product_selection_readiness"
 )
 FOLLOWUP_SELECTION_ALIGNMENT = {
     "audit_store_storage_adapter_backend_product_selection_review_status": FOLLOWUP_SELECTION_STATUS,
@@ -93,7 +93,7 @@ FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT = {
         FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS
     ),
     "audit_storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_readiness"
+        "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_entry_refresh"
     ),
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY,
     "audit_storage_adapter_database_provider_connection_runtime_boundary_status": (

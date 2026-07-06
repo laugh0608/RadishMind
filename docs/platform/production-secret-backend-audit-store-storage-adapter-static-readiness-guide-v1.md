@@ -6,9 +6,9 @@
 
 当前 storage adapter 仍停在静态准入和入口复评阶段，最新状态锚点为：
 
-- `audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined`
-- `storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_readiness`
-- 下一项独立依赖：`storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness`
+- `audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined`
+- `storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_entry_refresh`
+- 下一项独立依赖：`storage_adapter_managed_database_product_selection_readiness`
 
 已经完成的选择只到静态候选层：
 
@@ -32,6 +32,7 @@ storage adapter 的证据链按以下层次推进：
 8. database connection lifecycle readiness：只定义 DSN handoff、pool policy、timeout、retry / transaction / partial write recovery、duplicate / replay fail-closed、sanitized diagnostics 和 migration / schema marker handoff。
 9. after database connection lifecycle entry refresh：确认 runtime task card 仍 blocked，并把下一步固定为 provider connection runtime boundary readiness。
 10. database provider connection runtime boundary readiness：只定义 connection provider、factory、pool、health check、failure ownership 和 schema marker / migration handoff 的 metadata-only boundary，不创建运行时。
+11. after database provider connection runtime boundary entry refresh：确认 runtime task card 仍 blocked，并把下一步固定为 managed database product selection readiness。
 
 ## Checker 与 Fixture 语义
 

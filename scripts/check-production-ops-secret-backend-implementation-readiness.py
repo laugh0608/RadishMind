@@ -214,6 +214,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness": (
         "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined"
     ),
+    "audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-provider-connection-runtime-boundary": (
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -382,6 +385,10 @@ REQUIRED_DOC_REFERENCES = {
         "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined",
         "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_readiness",
         "storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness",
+        "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-provider-connection-runtime-boundary-v1",
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined",
+        "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_entry_refresh",
+        "storage_adapter_managed_database_product_selection_readiness",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -1453,6 +1460,13 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit store storage adapter database provider connection runtime boundary readiness status drifted",
     )
     require(
+        target.get(
+            "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_status"
+        )
+        == "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined",
+        "audit store storage adapter runtime implementation entry refresh after database provider connection runtime boundary status drifted",
+    )
+    require(
         target.get("audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_status")
         == "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_defined",
         "audit store storage adapter table schema artifact materialization entry review status drifted",
@@ -1474,7 +1488,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_readiness",
+        == "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_entry_refresh",
         "audit storage adapter runtime task card decision drifted",
     )
     require(
@@ -1498,7 +1512,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness",
+        == "storage_adapter_managed_database_product_selection_readiness",
         "audit storage adapter current next dependency drifted",
     )
     require(

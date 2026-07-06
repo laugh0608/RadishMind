@@ -73,6 +73,22 @@ FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_DURABLE_BLOCKER_STATUS = (
 FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_DURABLE_BLOCKER_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1"
 )
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-database-provider-connection-runtime-boundary-v1.json"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_DURABLE_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_database_provider_connection_runtime_boundary_defined_task_card_blocked"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_DURABLE_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-database-provider-connection-runtime-boundary-v1"
+)
 RUNTIME_REFRESH_DURABLE_BLOCKER_STATUS = "storage_adapter_runtime_entry_refresh_defined_task_card_blocked"
 RUNTIME_REFRESH_DURABLE_BLOCKER_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1"
@@ -298,6 +314,13 @@ def followup_connection_runtime_boundary_exists() -> bool:
     return source_status(followup) == FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS
 
 
+def followup_after_provider_boundary_exists() -> bool:
+    if not FOLLOWUP_AFTER_PROVIDER_BOUNDARY_FIXTURE_PATH.exists():
+        return False
+    followup = load_json(FOLLOWUP_AFTER_PROVIDER_BOUNDARY_FIXTURE_PATH)
+    return source_status(followup) == FOLLOWUP_AFTER_PROVIDER_BOUNDARY_STATUS
+
+
 def rows_by_id(fixture: dict[str, Any], key: str, id_field: str) -> dict[str, dict[str, Any]]:
     rows = {str(row.get(id_field) or ""): row for row in fixture.get(key) or [] if isinstance(row, dict)}
     require(rows, f"{key} must not be empty")
@@ -415,7 +438,10 @@ def assert_artifact_guard(fixture: dict[str, Any]) -> None:
 def assert_blocker_matrix_alignment() -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     boundary = matrix.get("matrix_boundary") or {}
-    if followup_connection_runtime_boundary_exists():
+    if followup_after_provider_boundary_exists():
+        expected_status = FOLLOWUP_AFTER_PROVIDER_BOUNDARY_DURABLE_BLOCKER_STATUS
+        expected_source = FOLLOWUP_AFTER_PROVIDER_BOUNDARY_DURABLE_BLOCKER_SOURCE
+    elif followup_connection_runtime_boundary_exists():
         expected_status = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_DURABLE_BLOCKER_STATUS
         expected_source = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_DURABLE_BLOCKER_SOURCE
     elif followup_connection_lifecycle_exists():
