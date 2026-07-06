@@ -61,7 +61,30 @@ FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS = (
     "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined"
 )
 FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY = (
+    "storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_FIXTURE = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-database-provider-connection-runtime-boundary-v1.json"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_NEXT_DEPENDENCY = (
     "storage_adapter_managed_database_product_selection_readiness"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_FIXTURE = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1.json"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS = (
+    "audit_store_storage_adapter_managed_database_product_selection_readiness_defined"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_NEXT_DEPENDENCY = (
+    "storage_adapter_managed_database_product_selection_review"
 )
 FOLLOWUP_ALIGNMENT = {
     "audit_storage_adapter_contract_materialization_task_card_status": "created",
@@ -98,12 +121,32 @@ FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT = {
         FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS
     ),
     "audit_storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_entry_refresh"
+        "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_readiness"
     ),
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY,
     "audit_storage_adapter_database_provider_connection_runtime_boundary_status": (
         "metadata_only_boundary_defined_without_runtime"
     ),
+}
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_ALIGNMENT = {
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_status": (
+        FOLLOWUP_AFTER_PROVIDER_BOUNDARY_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_entry_refresh"
+    ),
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_PROVIDER_BOUNDARY_NEXT_DEPENDENCY,
+}
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_ALIGNMENT = {
+    "audit_store_storage_adapter_managed_database_product_selection_readiness_status": (
+        FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_readiness"
+    ),
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_NEXT_DEPENDENCY,
+    "audit_storage_adapter_managed_product_selection_status": "readiness_defined_without_product_selection",
+    "audit_storage_adapter_managed_product_selection_review_status": "not_started",
 }
 FOLLOWUP_ALLOWED_ARTIFACTS = {
     RESERVED_CONTRACT_ARTIFACT,
@@ -344,6 +387,20 @@ def followup_connection_runtime_boundary_exists() -> bool:
     return source_status(followup) == FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS
 
 
+def followup_after_provider_boundary_exists() -> bool:
+    if not FOLLOWUP_AFTER_PROVIDER_BOUNDARY_FIXTURE.exists():
+        return False
+    followup = load_json(FOLLOWUP_AFTER_PROVIDER_BOUNDARY_FIXTURE)
+    return source_status(followup) == FOLLOWUP_AFTER_PROVIDER_BOUNDARY_STATUS
+
+
+def followup_managed_product_selection_readiness_exists() -> bool:
+    if not FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_FIXTURE.exists():
+        return False
+    followup = load_json(FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_FIXTURE)
+    return source_status(followup) == FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
@@ -530,7 +587,11 @@ def assert_blocker_matrix_alignment() -> None:
         )
         if followup_selection_exists():
             expected_next_dependency = (
-                FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY
+                FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_NEXT_DEPENDENCY
+                if followup_managed_product_selection_readiness_exists()
+                else FOLLOWUP_AFTER_PROVIDER_BOUNDARY_NEXT_DEPENDENCY
+                if followup_after_provider_boundary_exists()
+                else FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY
                 if followup_connection_runtime_boundary_exists()
                 else FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY
                 if followup_after_selection_exists()
@@ -598,6 +659,13 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
             expected = FOLLOWUP_AFTER_SELECTION_ALIGNMENT[field]
         if followup_connection_runtime_boundary_exists() and field in FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT:
             expected = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT[field]
+        if followup_after_provider_boundary_exists() and field in FOLLOWUP_AFTER_PROVIDER_BOUNDARY_ALIGNMENT:
+            expected = FOLLOWUP_AFTER_PROVIDER_BOUNDARY_ALIGNMENT[field]
+        if (
+            followup_managed_product_selection_readiness_exists()
+            and field in FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_ALIGNMENT
+        ):
+            expected = FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     planned = {str(row.get("id")): row for row in readiness.get("planned_slices") or [] if isinstance(row, dict)}

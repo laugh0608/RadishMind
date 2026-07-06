@@ -57,17 +57,58 @@ FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS = (
     "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined"
 )
 FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_entry_refresh"
+    "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_readiness"
 )
 FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY = (
-    "storage_adapter_managed_database_product_selection_readiness"
+    "storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness"
 )
 FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_BLOCKER_STATUS = (
-    "storage_adapter_runtime_entry_refresh_after_database_provider_connection_runtime_boundary_defined_task_card_blocked"
+    "storage_adapter_database_provider_connection_runtime_boundary_readiness_defined_task_card_blocked"
 )
 FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_FIXTURE = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-database-provider-connection-runtime-boundary-v1.json"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_DECISION = (
+    "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_entry_refresh"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_NEXT_DEPENDENCY = (
+    "storage_adapter_managed_database_product_selection_readiness"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_database_provider_connection_runtime_boundary_defined_task_card_blocked"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
     "after-database-provider-connection-runtime-boundary-v1"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_FIXTURE = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1.json"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS = (
+    "audit_store_storage_adapter_managed_database_product_selection_readiness_defined"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_DECISION = (
+    "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_readiness"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_NEXT_DEPENDENCY = (
+    "storage_adapter_managed_database_product_selection_review"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_BLOCKER_STATUS = (
+    "storage_adapter_managed_database_product_selection_readiness_defined_task_card_blocked"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1"
 )
 FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_status": (
@@ -93,6 +134,22 @@ FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT = {
     "audit_storage_adapter_database_provider_connection_runtime_boundary_status": (
         "metadata_only_boundary_defined_without_runtime"
     ),
+}
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_ALIGNMENT = {
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_status": (
+        FOLLOWUP_AFTER_PROVIDER_BOUNDARY_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": FOLLOWUP_AFTER_PROVIDER_BOUNDARY_DECISION,
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_PROVIDER_BOUNDARY_NEXT_DEPENDENCY,
+}
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_ALIGNMENT = {
+    "audit_store_storage_adapter_managed_database_product_selection_readiness_status": (
+        FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_DECISION,
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_NEXT_DEPENDENCY,
+    "audit_storage_adapter_managed_product_selection_status": "readiness_defined_without_product_selection",
+    "audit_storage_adapter_managed_product_selection_review_status": "not_started",
 }
 
 EXPECTED_DEPENDENCIES = {
@@ -310,6 +367,20 @@ def followup_connection_runtime_boundary_exists() -> bool:
     return source_status(followup) == FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS
 
 
+def followup_after_provider_boundary_exists() -> bool:
+    if not FOLLOWUP_AFTER_PROVIDER_BOUNDARY_FIXTURE.exists():
+        return False
+    followup = load_json(FOLLOWUP_AFTER_PROVIDER_BOUNDARY_FIXTURE)
+    return source_status(followup) == FOLLOWUP_AFTER_PROVIDER_BOUNDARY_STATUS
+
+
+def followup_managed_product_selection_readiness_exists() -> bool:
+    if not FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_FIXTURE.exists():
+        return False
+    followup = load_json(FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_FIXTURE)
+    return source_status(followup) == FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "schema_version drifted")
     require(
@@ -452,6 +523,13 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
             expected = FOLLOWUP_AFTER_SELECTION_ALIGNMENT[field]
         if followup_connection_runtime_boundary_exists() and field in FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT:
             expected = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT[field]
+        if followup_after_provider_boundary_exists() and field in FOLLOWUP_AFTER_PROVIDER_BOUNDARY_ALIGNMENT:
+            expected = FOLLOWUP_AFTER_PROVIDER_BOUNDARY_ALIGNMENT[field]
+        if (
+            followup_managed_product_selection_readiness_exists()
+            and field in FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_ALIGNMENT
+        ):
+            expected = FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     required = rows_by_id(implementation, "planned_slices", "id")
@@ -471,7 +549,11 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
     require(boundary.get("storage_adapter_backend_product_selection_status") == SELECTION_STATUS, "matrix selection status drifted")
     require(boundary.get("storage_adapter_selected_backend_product_class") == SELECTED_PRODUCT_CLASS, "matrix product class drifted")
     expected_next_dependency = (
-        FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY
+        FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_NEXT_DEPENDENCY
+        if followup_managed_product_selection_readiness_exists()
+        else FOLLOWUP_AFTER_PROVIDER_BOUNDARY_NEXT_DEPENDENCY
+        if followup_after_provider_boundary_exists()
+        else FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY
         if followup_connection_runtime_boundary_exists()
         else FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY
         if followup_after_selection_exists()
@@ -485,7 +567,13 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
     durable = blockers.get("durable_audit_backend") or {}
     expected_blocker_status = expected_matrix.get("durable_backend_blocker_status_after_review")
     expected_blocker_source = expected_matrix.get("durable_backend_blocker_source_after_review")
-    if followup_connection_runtime_boundary_exists():
+    if followup_managed_product_selection_readiness_exists():
+        expected_blocker_status = FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_BLOCKER_STATUS
+        expected_blocker_source = FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_SOURCE
+    elif followup_after_provider_boundary_exists():
+        expected_blocker_status = FOLLOWUP_AFTER_PROVIDER_BOUNDARY_BLOCKER_STATUS
+        expected_blocker_source = FOLLOWUP_AFTER_PROVIDER_BOUNDARY_SOURCE
+    elif followup_connection_runtime_boundary_exists():
         expected_blocker_status = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_BLOCKER_STATUS
         expected_blocker_source = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_SOURCE
     elif followup_after_selection_exists():

@@ -177,6 +177,7 @@
 126. [`Workflow Node Designer Builder Interaction Polish` v1 任务卡](workflow-node-designer-builder-interaction-polish-v1-plan.md)（`workflow-node-designer-builder-interaction-polish-v1`）
 127. [`Workflow Node Designer Validation Overlay Navigation` v1 任务卡](workflow-node-designer-validation-overlay-navigation-v1-plan.md)（`workflow-node-designer-validation-overlay-navigation-v1`）
 128. [`Workflow Node Designer Graph Review Handoff Refinement` v1 任务卡](workflow-node-designer-graph-review-handoff-refinement-v1-plan.md)（`workflow-node-designer-graph-review-handoff-refinement-v1`）
+129. [`Production Secret Backend Audit Store Storage Adapter Managed Database Product Selection Readiness` v1 任务卡](production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1-plan.md)（`production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1` / `audit_store_storage_adapter_managed_database_product_selection_readiness_defined`）
 
 ## UI 设计专题
 

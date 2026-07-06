@@ -33,6 +33,12 @@ NEXT_DEPENDENCY = "storage_adapter_managed_database_product_selection_readiness"
 MATRIX_BLOCKER_STATUS = (
     "storage_adapter_runtime_entry_refresh_after_database_provider_connection_runtime_boundary_defined_task_card_blocked"
 )
+CURRENT_SLICE_ID = "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1"
+CURRENT_MATRIX_BLOCKER_STATUS = (
+    "storage_adapter_managed_database_product_selection_readiness_defined_task_card_blocked"
+)
+CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_readiness"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_managed_database_product_selection_review"
 PREVIOUS_BOUNDARY_STATUS = "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined"
 PREVIOUS_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_readiness"
 SELECTED_ENGINE = "postgresql_compatible_append_only_relational_database"
@@ -251,8 +257,11 @@ def check_alignments(fixture: dict[str, Any]) -> None:
 
     readiness = fixture.get("implementation_readiness_alignment") or {}
     require(readiness.get("status") == SLICE_STATUS, "implementation readiness status drifted")
-    require(readiness.get("runtime_task_card_decision") == ENTRY_DECISION, "implementation readiness decision drifted")
-    require(readiness.get("current_next_dependency") == NEXT_DEPENDENCY, "implementation readiness next drifted")
+    require(
+        readiness.get("runtime_task_card_decision") == CURRENT_ENTRY_DECISION,
+        "implementation readiness decision drifted",
+    )
+    require(readiness.get("current_next_dependency") == CURRENT_NEXT_DEPENDENCY, "implementation readiness next drifted")
 
     allowed = set((fixture.get("artifact_guard") or {}).get("allowed_artifacts") or [])
     require(allowed == EXPECTED_ALLOWED_ARTIFACTS, "allowed artifact set drifted")
@@ -267,11 +276,11 @@ def check_aggregates() -> None:
         "implementation readiness after-boundary status drifted",
     )
     require(
-        target.get("audit_storage_adapter_runtime_task_card_decision") == ENTRY_DECISION,
+        target.get("audit_storage_adapter_runtime_task_card_decision") == CURRENT_ENTRY_DECISION,
         "implementation readiness runtime task card decision drifted",
     )
     require(
-        target.get("audit_storage_adapter_current_next_dependency") == NEXT_DEPENDENCY,
+        target.get("audit_storage_adapter_current_next_dependency") == CURRENT_NEXT_DEPENDENCY,
         "implementation readiness current next dependency drifted",
     )
     planned = rows_by_id(implementation, "planned_slices", "id")
@@ -286,9 +295,9 @@ def check_aggregates() -> None:
 
     matrix = load_json(BLOCKER_MATRIX_PATH)
     boundary = matrix.get("matrix_boundary") or {}
-    require(boundary.get("durable_audit_backend_status") == MATRIX_BLOCKER_STATUS, "matrix durable status drifted")
-    require(boundary.get("storage_adapter_runtime_task_card_decision") == ENTRY_DECISION, "matrix decision drifted")
-    require(boundary.get("storage_adapter_current_next_dependency") == NEXT_DEPENDENCY, "matrix next dependency drifted")
+    require(boundary.get("durable_audit_backend_status") == CURRENT_MATRIX_BLOCKER_STATUS, "matrix durable status drifted")
+    require(boundary.get("storage_adapter_runtime_task_card_decision") == CURRENT_ENTRY_DECISION, "matrix decision drifted")
+    require(boundary.get("storage_adapter_current_next_dependency") == CURRENT_NEXT_DEPENDENCY, "matrix next dependency drifted")
     require(
         boundary.get("storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_status")
         == SLICE_STATUS,
@@ -296,9 +305,9 @@ def check_aggregates() -> None:
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    require(durable.get("status") == MATRIX_BLOCKER_STATUS, "durable backend blocker status drifted")
-    require(durable.get("source") == SLICE_ID, "durable backend blocker source drifted")
-    require(durable.get("unlock_condition") == NEXT_DEPENDENCY, "durable backend unlock condition drifted")
+    require(durable.get("status") == CURRENT_MATRIX_BLOCKER_STATUS, "durable backend blocker status drifted")
+    require(durable.get("source") == CURRENT_SLICE_ID, "durable backend blocker source drifted")
+    require(durable.get("unlock_condition") == CURRENT_NEXT_DEPENDENCY, "durable backend unlock condition drifted")
     order = matrix.get("dependency_order") or []
     require(
         "storage_adapter_runtime_entry_refresh_after_database_provider_connection_runtime_boundary" in order,

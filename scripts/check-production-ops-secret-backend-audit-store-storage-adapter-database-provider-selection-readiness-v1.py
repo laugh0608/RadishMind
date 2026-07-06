@@ -28,20 +28,19 @@ SELECTED_DATABASE_ENGINE = "postgresql_compatible_append_only_relational_databas
 PROVIDER_SELECTION_STATUS = "readiness_defined_without_provider_selection"
 MATRIX_BLOCKER_STATUS = "storage_adapter_database_provider_selection_readiness_defined_task_card_blocked"
 CURRENT_ENTRY_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_entry_refresh"
+    "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_readiness"
 )
 CURRENT_NEXT_DEPENDENCY = (
-    "storage_adapter_managed_database_product_selection_readiness"
+    "storage_adapter_managed_database_product_selection_review"
 )
 CURRENT_PROVIDER_SELECTION_STATUS = "selected_provider_candidate_class_without_vendor_or_product"
 CURRENT_PROVIDER_REVIEW_STATUS = "audit_store_storage_adapter_database_provider_selection_review_defined"
 CURRENT_DATABASE_PROVIDER_STATUS = "provider_class_selected_without_vendor_or_product"
 CURRENT_MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_runtime_entry_refresh_after_database_provider_connection_runtime_boundary_defined_task_card_blocked"
+    "storage_adapter_managed_database_product_selection_readiness_defined_task_card_blocked"
 )
 CURRENT_MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
-    "after-database-provider-connection-runtime-boundary-v1"
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1"
 )
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-review-v1": (
