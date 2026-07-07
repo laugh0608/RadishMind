@@ -60,6 +60,14 @@
 - 不创建 production resolver runtime、cloud secret client、credential handle runtime、operator approval runtime、backend health runtime 或 no leakage smoke runtime。
 - 不把 metadata-only evidence、fixture、schema artifact、memory store、test-only fake resolver 或 static readiness 写成 production ready。
 
+## Checker 维护口径
+
+Storage adapter checker 同时承担两类职责：单项 checker 复验各自切片的历史事实，聚合 checker 复验当前 runtime blocker。后续继续追加 provider selection review 或 runtime entry refresh 时，不应把新的 current blocker 回写到旧切片的 `next_dependency`、`entry_decision` 或历史 blocker literal。
+
+- 单项 readiness / review / entry refresh checker 保留本切片完成时的依赖、decision、forbidden artifact 和停止线，用于证明历史证据没有被改写。
+- `runtime blocker matrix`、`production-ops-secret-backend-implementation-readiness.json`、storage adapter rollup 和入口说明文档消费当前最新锚点。当前最新锚点是 `audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined`，当前下一依赖是 `storage_adapter_concrete_managed_database_provider_selection_review`。
+- 新增后续切片时，应先补单项说明文档、fixture、checker 和 `scripts/check-repo.py` 注册，再同步更新本 rollup、`scripts/README.md`、平台入口和跨项目契约入口；不得用聚合状态替代单项证据。
+
 ## 下一批开发目标
 
 默认开发节奏应从静态证据治理转回用户可感知 workflow 能力。下一批真实开发目标选为 [Saved Workflow Draft Conflict Review v1](../features/workflow/saved-workflow-draft-conflict-review-v1.md)。
