@@ -28,17 +28,21 @@ SELECTED_DATABASE_ENGINE = "postgresql_compatible_append_only_relational_databas
 SELECTED_PROVIDER_CLASS = "managed_postgresql_compatible_service"
 DRIVER_SELECTION_STATUS = "readiness_defined_without_driver_selection"
 CURRENT_REVIEW_SLICE_ID = (
-    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-managed-database-product-selection-review-v1"
 )
-CURRENT_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review"
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review"
+CURRENT_ENTRY_DECISION = (
+    "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review_entry_refresh"
+)
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_concrete_managed_database_provider_selection_readiness"
 CURRENT_DRIVER_SELECTION_STATUS = "selected_driver_candidate_without_runtime_import"
 CURRENT_DRIVER_CANDIDATE = "github.com/jackc/pgx/v5"
 CURRENT_DRIVER_STATUS = "selected_reference_only"
 CURRENT_DRIVER_PACKAGE_STATUS = "selected_candidate_reference_only"
 CURRENT_DRIVER_IMPORT_STATUS = "not_created"
 CURRENT_DRIVER_DEPENDENCY_VERSION_STATUS = "not_pinned"
-CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_managed_database_product_selection_review_defined_task_card_blocked"
+CURRENT_MATRIX_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review_defined_task_card_blocked"
+)
 
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-database-provider-selection-review-v1": (

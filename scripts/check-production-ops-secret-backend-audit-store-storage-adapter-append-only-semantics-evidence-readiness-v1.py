@@ -100,6 +100,24 @@ FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_BLOCKER_STATUS = (
 FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1"
 )
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-managed-database-product-selection-review-v1.json"
+)
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_defined"
+)
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_NEXT_DEPENDENCY = (
+    "storage_adapter_concrete_managed_database_provider_selection_readiness"
+)
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review_defined_task_card_blocked"
+)
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-managed-database-product-selection-review-v1"
+)
 FOLLOWUP_SELECTION_ALIGNMENT = {
     "audit_store_storage_adapter_backend_product_selection_review_status": FOLLOWUP_SELECTION_STATUS,
     "audit_storage_adapter_backend_product_selection_status": "selected_static_product_class_without_backend_provider",
@@ -156,6 +174,19 @@ FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_ALIGNMENT = {
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_NEXT_DEPENDENCY,
     "audit_storage_adapter_managed_product_selection_status": "selected_reference_product_profile_without_vendor",
     "audit_storage_adapter_managed_product_selection_review_status": "not_started",
+}
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_ALIGNMENT = {
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_status": (
+        FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review_entry_refresh"
+    ),
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_NEXT_DEPENDENCY,
+    "audit_storage_adapter_managed_product_selection_status": "selected_reference_product_profile_without_vendor",
+    "audit_storage_adapter_managed_product_selection_review_status": FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS,
+    "audit_storage_adapter_selected_managed_product_profile": "managed_postgresql_compatible_audit_store_profile",
+    "audit_storage_adapter_managed_database_product_status": "selected_reference_profile_not_vendor_product",
 }
 
 EXPECTED_DEPENDENCIES = {
@@ -392,6 +423,14 @@ def followup_managed_product_selection_readiness_exists() -> bool:
     return source_status(followup) == FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS
 
 
+def followup_after_managed_product_selection_review_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_FIXTURE
+    if not path.exists():
+        return False
+    followup = load_json(path)
+    return source_status(followup) == FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
@@ -592,7 +631,10 @@ def assert_blocker_matrix_alignment() -> None:
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    if followup_managed_product_selection_readiness_exists():
+    if followup_after_managed_product_selection_review_exists():
+        expected_blocker_status = FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_BLOCKER_STATUS
+        expected_source = FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_SOURCE
+    elif followup_managed_product_selection_readiness_exists():
         expected_blocker_status = FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_BLOCKER_STATUS
         expected_source = FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_SOURCE
     elif followup_after_provider_boundary_exists():
@@ -644,6 +686,11 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
             and field in FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_ALIGNMENT
         ):
             expected = FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_ALIGNMENT[field]
+        if (
+            followup_after_managed_product_selection_review_exists()
+            and field in FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_ALIGNMENT
+        ):
+            expected = FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     planned = {str(row.get("id")): row for row in readiness.get("planned_slices") or [] if isinstance(row, dict)}

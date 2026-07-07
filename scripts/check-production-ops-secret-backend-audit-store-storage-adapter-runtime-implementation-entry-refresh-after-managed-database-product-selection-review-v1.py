@@ -11,7 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_PATH = (
     REPO_ROOT
     / "scripts/checks/fixtures/"
-    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1.json"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-managed-database-product-selection-review-v1.json"
 )
 IMPLEMENTATION_READINESS_PATH = (
     REPO_ROOT / "scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json"
@@ -21,25 +21,25 @@ BLOCKER_MATRIX_PATH = (
 )
 CHECK_REPO_PATH = REPO_ROOT / "scripts/check-repo.py"
 
-SLICE_ID = "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1"
-SLICE_STATUS = "audit_store_storage_adapter_managed_database_product_selection_review_defined"
-SELECTION_DECISION = "managed_database_product_profile_selected_reference_only_runtime_blocked"
-ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review"
-NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review"
-MATRIX_BLOCKER_STATUS = "storage_adapter_managed_database_product_selection_review_defined_task_card_blocked"
-CURRENT_MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review_defined_task_card_blocked"
+SLICE_ID = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-managed-database-product-selection-review-v1"
 )
-CURRENT_MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-managed-database-product-selection-review-v1"
+SLICE_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_defined"
 )
-CURRENT_ENTRY_DECISION = (
+ENTRY_DECISION = (
     "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review_entry_refresh"
 )
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_concrete_managed_database_provider_selection_readiness"
-PREVIOUS_SLICE_ID = "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1"
-PREVIOUS_SLICE_STATUS = "audit_store_storage_adapter_managed_database_product_selection_readiness_defined"
-PREVIOUS_NEXT_DEPENDENCY = "storage_adapter_managed_database_product_selection_review"
+NEXT_DEPENDENCY = "storage_adapter_concrete_managed_database_provider_selection_readiness"
+MATRIX_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review_defined_task_card_blocked"
+)
+PREVIOUS_SLICE_ID = "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1"
+PREVIOUS_SLICE_STATUS = "audit_store_storage_adapter_managed_database_product_selection_review_defined"
+PREVIOUS_SELECTION_DECISION = "managed_database_product_profile_selected_reference_only_runtime_blocked"
+PREVIOUS_ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review"
+PREVIOUS_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review"
 SELECTED_PROFILE = "managed_postgresql_compatible_audit_store_profile"
 SELECTED_PROFILE_KIND = "reference_only_managed_database_product_profile"
 SELECTED_ENGINE = "postgresql_compatible_append_only_relational_database"
@@ -52,9 +52,16 @@ EXPECTED_DEPENDENCIES = {
     PREVIOUS_SLICE_ID: (
         (
             "scripts/checks/fixtures/"
-            "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1.json"
+            "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1.json"
         ),
         PREVIOUS_SLICE_STATUS,
+    ),
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_managed_database_product_selection_readiness_defined",
     ),
     "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-provider-connection-runtime-boundary-v1": (
         (
@@ -115,11 +122,12 @@ EXPECTED_DEPENDENCIES = {
     ),
 }
 
-EXPECTED_SELECTION = {
+EXPECTED_ENTRY_REFRESH = {
     "status": SLICE_STATUS,
-    "selection_decision": SELECTION_DECISION,
     "entry_decision": ENTRY_DECISION,
-    "previous_readiness_status": PREVIOUS_SLICE_STATUS,
+    "previous_selection_review_status": PREVIOUS_SLICE_STATUS,
+    "previous_selection_decision": PREVIOUS_SELECTION_DECISION,
+    "previous_runtime_task_card_decision": PREVIOUS_ENTRY_DECISION,
     "previous_next_dependency": PREVIOUS_NEXT_DEPENDENCY,
     "next_dependency": NEXT_DEPENDENCY,
     "selected_managed_product_profile": SELECTED_PROFILE,
@@ -148,6 +156,16 @@ EXPECTED_SELECTION = {
     "physical_table_schema_status": "not_created",
     "schema_marker_runtime_status": "not_created",
     "migration_runner_status": "not_created",
+    "migration_apply_smoke_status": "not_created",
+    "auth_middleware_status": "not_created",
+    "token_validation_status": "not_created",
+    "membership_adapter_status": "not_created",
+    "negative_auth_smoke_runtime_status": "not_created",
+    "secret_resolver_runtime_status": "not_created",
+    "credential_handle_runtime_status": "not_created",
+    "operator_approval_runtime_status": "not_created",
+    "backend_health_runtime_status": "not_created",
+    "no_leakage_smoke_runtime_status": "not_created",
     "storage_adapter_runtime_task_card_status": "not_created",
     "storage_adapter_runtime_status": "not_created",
     "audit_store_runtime_task_card_status": "not_created",
@@ -173,6 +191,12 @@ EXPECTED_FALSE_FLAGS = {
     "real_dsn_parsed_in_this_slice",
     "database_provider_created_in_this_slice",
     "database_connection_provider_created_in_this_slice",
+    "migration_runner_created_in_this_slice",
+    "migration_apply_smoke_created_in_this_slice",
+    "auth_middleware_created_in_this_slice",
+    "token_validation_created_in_this_slice",
+    "membership_adapter_created_in_this_slice",
+    "secret_resolver_runtime_created_in_this_slice",
     "storage_adapter_runtime_task_card_created_in_this_slice",
     "storage_adapter_runtime_created_in_this_slice",
     "audit_store_runtime_created_in_this_slice",
@@ -181,50 +205,22 @@ EXPECTED_FALSE_FLAGS = {
     "production_api_enabled",
 }
 
-EXPECTED_REQUIREMENTS = {
-    "managed_product_profile_key": SELECTED_PROFILE,
-    "provider_candidate_class": SELECTED_PROVIDER_CLASS,
-    "database_engine": SELECTED_ENGINE,
-    "driver_candidate": SELECTED_DRIVER_CANDIDATE,
-}
-
-EXPECTED_RATIONALE = {
-    "aligns_with_managed_database_append_only_table_product_class",
-    "supports_append_only_metadata_audit_record_boundary",
-    "keeps_vendor_product_endpoint_and_resource_selection_deferred",
-    "requires_secret_ref_only_dsn_compatibility_before_runtime",
-    "requires_tls_role_policy_backup_restore_auditability_and_schema_marker_handoff",
-    "keeps_offline_smoke_negative_leakage_and_rollback_evidence_as_runtime_prerequisites",
-}
-
-EXPECTED_DIMENSIONS = {
-    "managed_postgresql_compatibility",
-    "append_only_audit_table_fit",
-    "reference_only_product_profile_boundary",
-    "secret_ref_only_dsn_fit",
-    "tls_certificate_and_least_privilege_role_policy_fit",
-    "backup_restore_recovery_and_provider_exit_fit",
-    "retention_redaction_and_provider_auditability_fit",
-    "migration_schema_marker_handoff_fit",
-    "offline_adapter_smoke_and_negative_leakage_fit",
-    "operator_review_cost_quota_observability_fit",
-}
-
-EXPECTED_REJECTIONS = {
-    "candidate_contains_vendor_or_endpoint_detail",
-    "candidate_requires_raw_secret_or_dsn",
-    "candidate_lacks_append_only_postgresql_fit",
-    "candidate_lacks_backup_restore_or_exit_boundary",
-    "candidate_requires_runtime_probe_or_cloud_api_call",
+EXPECTED_BLOCKERS = {
+    "concrete_managed_database_provider_not_selected": NEXT_DEPENDENCY,
+    "provider_account_resource_and_endpoint_not_defined": NEXT_DEPENDENCY,
+    "driver_not_imported_or_pinned": "future_driver_runtime_dependency_review",
+    "connection_provider_runtime_not_created": "future_connection_provider_runtime_task_card",
+    "schema_marker_and_migration_runner_runtime_not_created": "future_schema_marker_migration_runner_runtime_task_card",
+    "auth_and_secret_resolver_runtime_dependencies_blocked": "future_auth_secret_runtime_dependency_refresh",
 }
 
 EXPECTED_FAILURE_CODES = {
-    "audit_store_storage_adapter_managed_database_product_selection_review_dependency_missing",
-    "audit_store_storage_adapter_managed_database_product_selection_review_profile_missing",
-    "audit_store_storage_adapter_managed_database_product_selection_review_invalid_profile",
-    "audit_store_storage_adapter_managed_database_product_selection_review_vendor_forbidden",
-    "audit_store_storage_adapter_managed_database_product_selection_review_runtime_forbidden",
-    "audit_store_storage_adapter_managed_database_product_selection_review_secret_material_detected",
+    "audit_store_storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review_dependency_missing",
+    "audit_store_storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review_task_card_still_blocked",
+    "audit_store_storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review_concrete_provider_selection_required",
+    "audit_store_storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review_runtime_dependency_missing",
+    "audit_store_storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review_runtime_forbidden",
+    "audit_store_storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review_secret_material_detected",
 }
 
 EXPECTED_ZERO_COUNTERS = {
@@ -253,61 +249,35 @@ EXPECTED_ZERO_COUNTERS = {
 }
 
 DOC_REFERENCES = {
-    "docs/platform/production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1.md": [
+    "docs/platform/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-managed-database-product-selection-review-v1.md": [
         SLICE_ID,
         SLICE_STATUS,
-        SELECTION_DECISION,
         ENTRY_DECISION,
         NEXT_DEPENDENCY,
+        PREVIOUS_SLICE_STATUS,
         SELECTED_PROFILE,
     ],
-    "docs/task-cards/production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1-plan.md": [
+    "docs/task-cards/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-managed-database-product-selection-review-v1-plan.md": [
         SLICE_ID,
         SLICE_STATUS,
+        ENTRY_DECISION,
         NEXT_DEPENDENCY,
-        SELECTED_PROFILE,
-        "停止线",
-    ],
-    "docs/platform/production-secret-backend-audit-store-runtime-blocker-matrix-v1.md": [
-        SLICE_STATUS,
         MATRIX_BLOCKER_STATUS,
-        NEXT_DEPENDENCY,
     ],
-    "docs/task-cards/production-secret-backend-audit-store-runtime-blocker-matrix-v1-plan.md": [
-        SLICE_STATUS,
-        MATRIX_BLOCKER_STATUS,
-        NEXT_DEPENDENCY,
-    ],
-    "docs/platform/production-secret-backend-audit-store-storage-adapter-evidence-rollup-v1.md": [
-        SLICE_STATUS,
-        SELECTED_PROFILE,
-        NEXT_DEPENDENCY,
-    ],
-    "docs/platform/README.md": [
-        "Production Secret Backend Audit Store Storage Adapter Managed Database Product Selection Review v1",
-        SLICE_STATUS,
-        NEXT_DEPENDENCY,
-    ],
-    "docs/features/README.md": [
-        "Production Secret Backend Audit Store Storage Adapter Managed Database Product Selection Review v1",
-        SLICE_STATUS,
-        NEXT_DEPENDENCY,
-    ],
+    "docs/platform/README.md": [SLICE_STATUS, NEXT_DEPENDENCY],
+    "docs/features/README.md": [SLICE_STATUS, NEXT_DEPENDENCY],
     "docs/features/workflow/README.md": [SLICE_STATUS, NEXT_DEPENDENCY],
     "docs/features/workflow/saved-workflow-draft-v1.md": [SLICE_STATUS, NEXT_DEPENDENCY],
     "docs/radishmind-current-focus.md": [SLICE_STATUS, NEXT_DEPENDENCY],
     "docs/radishmind-integration-contracts.md": [SLICE_STATUS, NEXT_DEPENDENCY],
-    "docs/radishmind-product-scope.md": [SLICE_STATUS, NEXT_DEPENDENCY],
-    "docs/README.md": [SLICE_STATUS, NEXT_DEPENDENCY],
-    "docs/task-cards/README.md": [SLICE_ID, SLICE_STATUS],
-    "docs/task-cards/production-secret-backend-implementation-v1-plan.md": [
-        SLICE_ID,
+    "docs/platform/production-secret-backend-audit-store-storage-adapter-evidence-rollup-v1.md": [
         SLICE_STATUS,
         NEXT_DEPENDENCY,
     ],
+    "docs/task-cards/README.md": [SLICE_ID, SLICE_STATUS],
     "scripts/README.md": [
-        "check-production-ops-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1.py",
-        "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1.json",
+        "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-managed-database-product-selection-review-v1.py",
+        "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-managed-database-product-selection-review-v1.json",
     ],
     "docs/devlogs/2026-W28.md": [SLICE_STATUS, NEXT_DEPENDENCY],
 }
@@ -354,16 +324,15 @@ def check_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema version")
     require(
         fixture.get("kind")
-        == "production_ops_secret_backend_audit_store_storage_adapter_managed_database_product_selection_review_v1",
+        == "production_ops_secret_backend_audit_store_storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_v1",
         "unexpected fixture kind",
     )
     slice_info = fixture.get("slice") or {}
     require(slice_info.get("id") == SLICE_ID, "slice id drifted")
     require(slice_info.get("status") == SLICE_STATUS, "slice status drifted")
-    require(slice_info.get("selection_decision") == SELECTION_DECISION, "selection decision drifted")
     require(slice_info.get("entry_decision") == ENTRY_DECISION, "entry decision drifted")
     require(slice_info.get("next_dependency") == NEXT_DEPENDENCY, "next dependency drifted")
-    does_not_claim = set(slice_info.get("does_not_claim") or [])
+    claims = set(slice_info.get("does_not_claim") or [])
     for claim in {
         "database_vendor_selected",
         "concrete_cloud_product_selected",
@@ -378,7 +347,7 @@ def check_slice(fixture: dict[str, Any]) -> None:
         "repository_mode_ready",
         "production_api_ready",
     }:
-        require(claim in does_not_claim, f"does_not_claim missing {claim}")
+        require(claim in claims, f"does_not_claim missing {claim}")
 
 
 def check_dependencies(fixture: dict[str, Any]) -> None:
@@ -392,41 +361,31 @@ def check_dependencies(fixture: dict[str, Any]) -> None:
         require(source_status(source) == expected_status, f"{dependency_id} source status drifted")
 
 
-def check_selection_review(fixture: dict[str, Any]) -> None:
-    review = fixture.get("selection_review") or {}
-    for field, expected in EXPECTED_SELECTION.items():
-        require(review.get(field) == expected, f"selection_review.{field} drifted")
+def check_entry_refresh(fixture: dict[str, Any]) -> None:
+    entry = fixture.get("entry_refresh") or {}
+    for field, expected in EXPECTED_ENTRY_REFRESH.items():
+        require(entry.get(field) == expected, f"entry_refresh.{field} drifted")
     for field in EXPECTED_FALSE_FLAGS:
-        require(review.get(field) is False, f"selection_review.{field} must remain false")
+        require(entry.get(field) is False, f"entry_refresh.{field} must remain false")
 
-    requirements = rows_by_id(fixture, "selected_profile_requirements", "field")
-    require(set(requirements) == set(EXPECTED_REQUIREMENTS), "selected profile requirement set drifted")
-    for field, expected_value in EXPECTED_REQUIREMENTS.items():
-        require(requirements[field].get("value") == expected_value, f"{field} selected value drifted")
-
-    require(set(fixture.get("selection_rationale") or []) == EXPECTED_RATIONALE, "selection rationale drifted")
-    require(set(fixture.get("review_dimensions") or []) == EXPECTED_DIMENSIONS, "review dimensions drifted")
-
-    rejections = rows_by_id(fixture, "rejection_conditions", "condition")
-    require(set(rejections) == EXPECTED_REJECTIONS, "rejection conditions drifted")
-    for condition, row in rejections.items():
-        require(row.get("result") == "reject_selection_review", f"{condition} result drifted")
-        require(row.get("sanitized_diagnostic"), f"{condition} diagnostic missing")
+    blockers = rows_by_id(fixture, "still_blocked_conditions", "condition")
+    require(set(blockers) == set(EXPECTED_BLOCKERS), "still blocked condition set drifted")
+    for condition, expected_next in EXPECTED_BLOCKERS.items():
+        require(blockers[condition].get("next_dependency") == expected_next, f"{condition} next dependency drifted")
 
 
 def check_diagnostics_and_failures(fixture: dict[str, Any]) -> None:
     diagnostics = fixture.get("diagnostic_envelope") or {}
     allowed = set(diagnostics.get("allowed_fields") or [])
     forbidden = set(diagnostics.get("forbidden_fields") or [])
-    for field in {"selected_managed_product_profile", "managed_database_product_status", "sanitized_diagnostic"}:
+    for field in {"selected_managed_product_profile", "concrete_database_provider_status", "sanitized_diagnostic"}:
         require(field in allowed, f"diagnostic allowed field missing {field}")
     for field in {"dsn", "endpoint", "host", "database_name", "resource_id", "account_id", "credential_payload"}:
         require(field in forbidden, f"diagnostic forbidden field missing {field}")
     sample = diagnostics.get("sample") or {}
     require(set(sample).issubset(allowed), "diagnostic sample contains non-allowed fields")
     require(sample.get("slice_status") == SLICE_STATUS, "diagnostic sample status drifted")
-    require(sample.get("selection_decision") == SELECTION_DECISION, "diagnostic sample selection drifted")
-    require(sample.get("entry_decision") == ENTRY_DECISION, "diagnostic sample entry decision drifted")
+    require(sample.get("entry_decision") == ENTRY_DECISION, "diagnostic sample decision drifted")
     require(sample.get("selected_managed_product_profile") == SELECTED_PROFILE, "diagnostic sample profile drifted")
     require(sample.get("next_dependency") == NEXT_DEPENDENCY, "diagnostic sample next drifted")
 
@@ -442,12 +401,86 @@ def check_diagnostics_and_failures(fixture: dict[str, Any]) -> None:
         require(counters.get(field) == 0, f"side_effect_counters.{field} must remain zero")
 
 
+def check_aggregate_alignment(fixture: dict[str, Any]) -> None:
+    matrix = load_json(BLOCKER_MATRIX_PATH)
+    boundary = matrix.get("matrix_boundary") or {}
+    for field, expected in {
+        "durable_audit_backend_status": MATRIX_BLOCKER_STATUS,
+        "storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_status": SLICE_STATUS,
+        "storage_adapter_runtime_task_card_decision": ENTRY_DECISION,
+        "storage_adapter_current_next_dependency": NEXT_DEPENDENCY,
+        "storage_adapter_selected_managed_product_profile": SELECTED_PROFILE,
+        "storage_adapter_managed_database_product_status": MANAGED_PRODUCT_STATUS,
+        "storage_adapter_database_vendor_status": "not_selected",
+        "storage_adapter_database_provider_status": "provider_class_selected_without_concrete_provider",
+        "storage_adapter_database_connection_provider_status": "not_created",
+        "storage_adapter_runtime_task_card_status": "not_created",
+        "storage_adapter_runtime_status": "not_created",
+    }.items():
+        require(boundary.get(field) == expected, f"matrix boundary {field} drifted")
+
+    blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
+    durable = blockers.get("durable_audit_backend") or {}
+    require(durable.get("status") == MATRIX_BLOCKER_STATUS, "durable blocker status drifted")
+    require(durable.get("source") == SLICE_ID, "durable blocker source drifted")
+    require(durable.get("unlock_condition") == NEXT_DEPENDENCY, "durable unlock condition drifted")
+
+    order = matrix.get("dependency_order") or []
+    for dependency in {
+        "storage_adapter_managed_database_product_selection_review",
+        "storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review",
+    }:
+        require(dependency in order, f"dependency order missing {dependency}")
+    require(
+        order.index("storage_adapter_managed_database_product_selection_review")
+        < order.index("storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review")
+        < order.index("audit_writer_runtime_entry_review"),
+        "after managed product selection review entry refresh order drifted",
+    )
+
+    alignment = fixture.get("blocker_matrix_alignment") or {}
+    require(alignment.get("status") == MATRIX_BLOCKER_STATUS, "fixture matrix status drifted")
+    require(alignment.get("source") == SLICE_ID, "fixture matrix source drifted")
+    require(alignment.get("unlock_condition") == NEXT_DEPENDENCY, "fixture matrix unlock drifted")
+    require(alignment.get("runtime_task_card_decision") == ENTRY_DECISION, "fixture matrix decision drifted")
+
+    readiness = load_json(IMPLEMENTATION_READINESS_PATH)
+    target = readiness.get("implementation_target") or {}
+    for field, expected in {
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_status": SLICE_STATUS,
+        "audit_storage_adapter_runtime_task_card_decision": ENTRY_DECISION,
+        "audit_storage_adapter_current_next_dependency": NEXT_DEPENDENCY,
+        "audit_storage_adapter_managed_product_selection_review_status": PREVIOUS_SLICE_STATUS,
+        "audit_storage_adapter_selected_managed_product_profile": SELECTED_PROFILE,
+        "audit_storage_adapter_managed_database_product_status": MANAGED_PRODUCT_STATUS,
+        "audit_storage_adapter_database_vendor_status": "not_selected",
+        "audit_storage_adapter_database_provider_status": "provider_class_selected_without_concrete_provider",
+        "audit_storage_adapter_database_connection_provider_status": "not_created",
+        "audit_storage_adapter_runtime_task_card_status": "not_created",
+        "audit_storage_adapter_runtime_status": "not_created",
+    }.items():
+        require(target.get(field) == expected, f"implementation readiness {field} drifted")
+
+    planned = rows_by_id(readiness, "planned_slices", "id")
+    item = planned.get("audit-store-storage-adapter-runtime-implementation-entry-refresh-after-managed-database-product-selection-review") or {}
+    require(item.get("status") == SLICE_STATUS, "planned slice status drifted")
+
+    readiness_alignment = fixture.get("implementation_readiness_alignment") or {}
+    for field, expected in {
+        "status": SLICE_STATUS,
+        "audit_storage_adapter_runtime_task_card_decision": ENTRY_DECISION,
+        "audit_storage_adapter_current_next_dependency": NEXT_DEPENDENCY,
+        "audit_storage_adapter_managed_product_selection_review_status": PREVIOUS_SLICE_STATUS,
+        "audit_storage_adapter_selected_managed_product_profile": SELECTED_PROFILE,
+        "audit_storage_adapter_managed_database_product_status": MANAGED_PRODUCT_STATUS,
+    }.items():
+        require(readiness_alignment.get(field) == expected, f"fixture readiness alignment {field} drifted")
+
+
 def check_artifact_guard(fixture: dict[str, Any]) -> None:
     guard = fixture.get("artifact_guard") or {}
     for relative_path in guard.get("allowed_added_artifacts") or []:
         require((REPO_ROOT / relative_path).exists(), f"allowed artifact missing: {relative_path}")
-    for relative_path in guard.get("files_must_not_exist") or []:
-        require(not (REPO_ROOT / relative_path).exists(), f"forbidden runtime artifact exists: {relative_path}")
     forbidden = set(guard.get("forbidden_artifact_kinds") or [])
     for artifact in {
         "concrete_vendor_selection",
@@ -471,87 +504,6 @@ def check_artifact_guard(fixture: dict[str, Any]) -> None:
         require(artifact in forbidden, f"forbidden artifact kind missing: {artifact}")
 
 
-def check_aggregate_alignment(fixture: dict[str, Any]) -> None:
-    matrix = load_json(BLOCKER_MATRIX_PATH)
-    boundary = matrix.get("matrix_boundary") or {}
-    for field, expected in {
-        "durable_audit_backend_status": CURRENT_MATRIX_BLOCKER_STATUS,
-        "storage_adapter_managed_database_product_selection_review_status": SLICE_STATUS,
-        "storage_adapter_managed_product_selection_status": PRODUCT_SELECTION_STATUS,
-        "storage_adapter_managed_product_selection_review_status": SLICE_STATUS,
-        "storage_adapter_selected_managed_product_profile": SELECTED_PROFILE,
-        "storage_adapter_managed_database_product_status": MANAGED_PRODUCT_STATUS,
-        "storage_adapter_database_vendor_status": "not_selected",
-        "storage_adapter_database_provider_status": "provider_class_selected_without_concrete_provider",
-        "storage_adapter_runtime_task_card_decision": CURRENT_ENTRY_DECISION,
-        "storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
-        "storage_adapter_database_connection_provider_status": "not_created",
-        "storage_adapter_runtime_task_card_status": "not_created",
-        "storage_adapter_runtime_status": "not_created",
-    }.items():
-        require(boundary.get(field) == expected, f"matrix boundary {field} drifted")
-
-    blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
-    durable = blockers.get("durable_audit_backend") or {}
-    require(durable.get("status") == CURRENT_MATRIX_BLOCKER_STATUS, "durable blocker status drifted")
-    require(durable.get("source") == CURRENT_MATRIX_BLOCKER_SOURCE, "durable blocker source drifted")
-    require(durable.get("unlock_condition") == CURRENT_NEXT_DEPENDENCY, "durable unlock condition drifted")
-
-    order = matrix.get("dependency_order") or []
-    for dependency in {
-        "storage_adapter_managed_database_product_selection_readiness",
-        "storage_adapter_managed_database_product_selection_review",
-    }:
-        require(dependency in order, f"dependency order missing {dependency}")
-    require(
-        order.index("storage_adapter_managed_database_product_selection_readiness")
-        < order.index("storage_adapter_managed_database_product_selection_review")
-        < order.index("storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review")
-        < order.index("audit_writer_runtime_entry_review"),
-        "managed database product selection review order drifted",
-    )
-
-    alignment = fixture.get("blocker_matrix_alignment") or {}
-    require(alignment.get("status") == CURRENT_MATRIX_BLOCKER_STATUS, "fixture matrix status drifted")
-    require(alignment.get("source") == CURRENT_MATRIX_BLOCKER_SOURCE, "fixture matrix source drifted")
-    require(alignment.get("unlock_condition") == CURRENT_NEXT_DEPENDENCY, "fixture matrix unlock drifted")
-    require(alignment.get("runtime_task_card_decision") == CURRENT_ENTRY_DECISION, "fixture matrix decision drifted")
-
-    readiness = load_json(IMPLEMENTATION_READINESS_PATH)
-    target = readiness.get("implementation_target") or {}
-    for field, expected in {
-        "audit_store_storage_adapter_managed_database_product_selection_review_status": SLICE_STATUS,
-        "audit_storage_adapter_runtime_task_card_decision": CURRENT_ENTRY_DECISION,
-        "audit_storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
-        "audit_storage_adapter_managed_product_selection_status": PRODUCT_SELECTION_STATUS,
-        "audit_storage_adapter_managed_product_selection_review_status": SLICE_STATUS,
-        "audit_storage_adapter_selected_managed_product_profile": SELECTED_PROFILE,
-        "audit_storage_adapter_managed_database_product_status": MANAGED_PRODUCT_STATUS,
-        "audit_storage_adapter_database_vendor_status": "not_selected",
-        "audit_storage_adapter_database_provider_status": "provider_class_selected_without_concrete_provider",
-        "audit_storage_adapter_database_connection_provider_status": "not_created",
-        "audit_storage_adapter_runtime_task_card_status": "not_created",
-        "audit_storage_adapter_runtime_status": "not_created",
-    }.items():
-        require(target.get(field) == expected, f"implementation readiness {field} drifted")
-
-    planned = rows_by_id(readiness, "planned_slices", "id")
-    item = planned.get("audit-store-storage-adapter-managed-database-product-selection-review") or {}
-    require(item.get("status") == SLICE_STATUS, "planned slice status drifted")
-
-    readiness_alignment = fixture.get("implementation_readiness_alignment") or {}
-    for field, expected in {
-        "status": SLICE_STATUS,
-        "audit_storage_adapter_runtime_task_card_decision": CURRENT_ENTRY_DECISION,
-        "audit_storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
-        "audit_storage_adapter_managed_product_selection_status": PRODUCT_SELECTION_STATUS,
-        "audit_storage_adapter_managed_product_selection_review_status": SLICE_STATUS,
-        "audit_storage_adapter_selected_managed_product_profile": SELECTED_PROFILE,
-        "audit_storage_adapter_managed_database_product_status": MANAGED_PRODUCT_STATUS,
-    }.items():
-        require(readiness_alignment.get(field) == expected, f"fixture readiness alignment {field} drifted")
-
-
 def check_docs_and_registration() -> None:
     for relative_path, tokens in DOC_REFERENCES.items():
         text = read(relative_path)
@@ -559,8 +511,11 @@ def check_docs_and_registration() -> None:
             require(token in text, f"{relative_path} missing {token}")
 
     check_repo_text = CHECK_REPO_PATH.read_text(encoding="utf-8")
-    current = "check-production-ops-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1.py"
-    previous = "check-production-ops-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1.py"
+    current = (
+        "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+        "after-managed-database-product-selection-review-v1.py"
+    )
+    previous = "check-production-ops-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1.py"
     matrix = "check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py"
     require(current in check_repo_text, "checker not registered in check-repo.py")
     require(
@@ -582,13 +537,16 @@ def main() -> None:
     fixture = load_json(FIXTURE_PATH)
     check_slice(fixture)
     check_dependencies(fixture)
-    check_selection_review(fixture)
+    check_entry_refresh(fixture)
     check_diagnostics_and_failures(fixture)
-    check_artifact_guard(fixture)
     check_aggregate_alignment(fixture)
+    check_artifact_guard(fixture)
     check_docs_and_registration()
     check_no_secret_material(fixture)
-    print("production ops secret backend audit store storage adapter managed database product selection review checks passed.")
+    print(
+        "production ops secret backend audit store storage adapter runtime implementation "
+        "entry refresh after managed database product selection review checks passed."
+    )
 
 
 if __name__ == "__main__":
