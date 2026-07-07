@@ -127,6 +127,20 @@ FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_DURABLE_BLOCKER_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
     "after-managed-database-product-selection-review-v1"
 )
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1.json"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_STATUS = (
+    "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_DURABLE_BLOCKER_STATUS = (
+    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_DURABLE_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
+)
 RUNTIME_REFRESH_DURABLE_BLOCKER_STATUS = "storage_adapter_runtime_entry_refresh_defined_task_card_blocked"
 RUNTIME_REFRESH_DURABLE_BLOCKER_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1"
@@ -394,6 +408,13 @@ def followup_after_managed_product_selection_review_exists() -> bool:
     return source_status(followup) == FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS
 
 
+def followup_concrete_managed_database_provider_selection_readiness_exists() -> bool:
+    if not FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_FIXTURE_PATH.exists():
+        return False
+    followup = load_json(FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_FIXTURE_PATH)
+    return source_status(followup) == FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_STATUS
+
+
 def rows_by_id(fixture: dict[str, Any], key: str, id_field: str) -> dict[str, dict[str, Any]]:
     rows = {str(row.get(id_field) or ""): row for row in fixture.get(key) or [] if isinstance(row, dict)}
     require(rows, f"{key} must not be empty")
@@ -525,7 +546,10 @@ def assert_doc_references() -> None:
 def assert_blocker_matrix_alignment() -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     boundary = matrix.get("matrix_boundary") or {}
-    if followup_after_managed_product_selection_review_exists():
+    if followup_concrete_managed_database_provider_selection_readiness_exists():
+        expected_status = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_DURABLE_BLOCKER_STATUS
+        expected_source = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_DURABLE_BLOCKER_SOURCE
+    elif followup_after_managed_product_selection_review_exists():
         expected_status = FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_DURABLE_BLOCKER_STATUS
         expected_source = FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_DURABLE_BLOCKER_SOURCE
     elif followup_managed_product_selection_review_exists():

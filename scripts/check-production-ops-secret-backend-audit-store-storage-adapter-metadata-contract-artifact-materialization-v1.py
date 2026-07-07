@@ -98,6 +98,17 @@ FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS = (
 FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_NEXT_DEPENDENCY = (
     "storage_adapter_concrete_managed_database_provider_selection_readiness"
 )
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1.json"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_STATUS = (
+    "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_NEXT_DEPENDENCY = (
+    "storage_adapter_concrete_managed_database_provider_selection_review"
+)
 FOLLOWUP_SELECTION_ALIGNMENT = {
     "audit_store_storage_adapter_backend_product_selection_review_status": FOLLOWUP_SELECTION_STATUS,
     "audit_storage_adapter_backend_product_selection_status": "selected_static_product_class_without_backend_provider",
@@ -167,6 +178,17 @@ FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_ALIGNMENT = {
     "audit_storage_adapter_managed_product_selection_review_status": FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS,
     "audit_storage_adapter_selected_managed_product_profile": "managed_postgresql_compatible_audit_store_profile",
     "audit_storage_adapter_managed_database_product_status": "selected_reference_profile_not_vendor_product",
+}
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_ALIGNMENT = {
+    "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_status": (
+        FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
+    ),
+    "audit_storage_adapter_current_next_dependency": (
+        FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_NEXT_DEPENDENCY
+    ),
 }
 
 POSITIVE_FIXTURE = "scripts/checks/fixtures/production-secret-audit-storage-adapter-metadata-contract-positive-v1.json"
@@ -333,6 +355,13 @@ def followup_after_managed_product_selection_review_exists() -> bool:
         return False
     followup = load_json(FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_FIXTURE_PATH)
     return source_status(followup) == FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS
+
+
+def followup_concrete_managed_database_provider_selection_readiness_exists() -> bool:
+    if not FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_FIXTURE_PATH.exists():
+        return False
+    followup = load_json(FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_FIXTURE_PATH)
+    return source_status(followup) == FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_STATUS
 
 
 def recursive_keys(value: Any) -> set[str]:
@@ -586,7 +615,9 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     )
     if followup_selection_exists():
         expected_next_dependency = (
-            FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_NEXT_DEPENDENCY
+            FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_NEXT_DEPENDENCY
+            if followup_concrete_managed_database_provider_selection_readiness_exists()
+            else FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_NEXT_DEPENDENCY
             if followup_after_managed_product_selection_review_exists()
             else FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_NEXT_DEPENDENCY
             if followup_managed_product_selection_readiness_exists()
@@ -654,6 +685,11 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
             and field in FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_ALIGNMENT
         ):
             expected = FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_ALIGNMENT[field]
+        if (
+            followup_concrete_managed_database_provider_selection_readiness_exists()
+            and field in FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_ALIGNMENT
+        ):
+            expected = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
     planned = rows_by_id(readiness, "planned_slices", "id")
     item = planned.get("audit-store-storage-adapter-metadata-contract-artifact-materialization") or {}

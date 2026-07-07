@@ -132,6 +132,20 @@ FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
     "after-managed-database-product-selection-review-v1"
 )
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_FIXTURE = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1.json"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_STATUS = (
+    "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_BLOCKER_STATUS = (
+    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
+)
 FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_status": (
         FOLLOWUP_AFTER_SELECTION_STATUS
@@ -188,6 +202,15 @@ FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_ALIGNMENT = {
     ),
     "audit_storage_adapter_selected_managed_product_profile": "managed_postgresql_compatible_audit_store_profile",
     "audit_storage_adapter_managed_database_product_status": "selected_reference_profile_not_vendor_product",
+}
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_ALIGNMENT = {
+    "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_status": (
+        FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
+    ),
+    "audit_storage_adapter_current_next_dependency": "storage_adapter_concrete_managed_database_provider_selection_review",
 }
 
 EXPECTED_DEPENDENCIES = {
@@ -426,6 +449,13 @@ def followup_after_managed_product_selection_review_exists() -> bool:
     return source_status(followup) == FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS
 
 
+def followup_concrete_managed_database_provider_selection_readiness_exists() -> bool:
+    if not FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_FIXTURE.exists():
+        return False
+    followup = load_json(FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_FIXTURE)
+    return source_status(followup) == FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "schema_version drifted")
     require(
@@ -580,6 +610,11 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
             and field in FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_ALIGNMENT
         ):
             expected = FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_ALIGNMENT[field]
+        if (
+            followup_concrete_managed_database_provider_selection_readiness_exists()
+            and field in FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_ALIGNMENT
+        ):
+            expected = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     required = rows_by_id(implementation, "planned_slices", "id")
@@ -599,7 +634,9 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
     require(boundary.get("storage_adapter_backend_product_selection_status") == SELECTION_STATUS, "matrix selection status drifted")
     require(boundary.get("storage_adapter_selected_backend_product_class") == SELECTED_PRODUCT_CLASS, "matrix product class drifted")
     expected_next_dependency = (
-        FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_NEXT_DEPENDENCY
+        "storage_adapter_concrete_managed_database_provider_selection_review"
+        if followup_concrete_managed_database_provider_selection_readiness_exists()
+        else FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_NEXT_DEPENDENCY
         if followup_after_managed_product_selection_review_exists()
         else FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_NEXT_DEPENDENCY
         if followup_managed_product_selection_readiness_exists()
@@ -619,7 +656,10 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
     durable = blockers.get("durable_audit_backend") or {}
     expected_blocker_status = expected_matrix.get("durable_backend_blocker_status_after_review")
     expected_blocker_source = expected_matrix.get("durable_backend_blocker_source_after_review")
-    if followup_after_managed_product_selection_review_exists():
+    if followup_concrete_managed_database_provider_selection_readiness_exists():
+        expected_blocker_status = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_BLOCKER_STATUS
+        expected_blocker_source = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_SOURCE
+    elif followup_after_managed_product_selection_review_exists():
         expected_blocker_status = FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_BLOCKER_STATUS
         expected_blocker_source = FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_SOURCE
     elif followup_managed_product_selection_readiness_exists():

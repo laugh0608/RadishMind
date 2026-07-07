@@ -36,16 +36,16 @@ SELECTED_PRODUCT_CLASS = "managed_database_append_only_table"
 SELECTED_PRODUCT_PROFILE = "reserved_managed_database_append_only_table_profile"
 MATRIX_BLOCKER_STATUS = "storage_adapter_concrete_database_selection_readiness_defined_task_card_blocked"
 CURRENT_MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review_defined_task_card_blocked"
+    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
 )
 CURRENT_MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-managed-database-product-selection-review-v1"
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
 )
 CURRENT_ENTRY_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review_entry_refresh"
+    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
 )
 CURRENT_NEXT_DEPENDENCY = (
-    "storage_adapter_concrete_managed_database_provider_selection_readiness"
+    "storage_adapter_concrete_managed_database_provider_selection_review"
 )
 CURRENT_DATABASE_SELECTION_STATUS = "selected_database_engine_without_vendor_or_provider"
 CURRENT_DATABASE_SELECTION_REVIEW_STATUS = "audit_store_storage_adapter_concrete_database_selection_review_defined"
