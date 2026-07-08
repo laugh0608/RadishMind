@@ -28,19 +28,19 @@ SELECTED_DATABASE_ENGINE = "postgresql_compatible_append_only_relational_databas
 PROVIDER_SELECTION_STATUS = "readiness_defined_without_provider_selection"
 MATRIX_BLOCKER_STATUS = "storage_adapter_database_provider_selection_readiness_defined_task_card_blocked"
 CURRENT_ENTRY_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_readiness"
+    "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_review"
 )
 CURRENT_NEXT_DEPENDENCY = (
-    "storage_adapter_provider_account_resource_endpoint_review"
+    "storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review"
 )
 CURRENT_PROVIDER_SELECTION_STATUS = "selected_provider_candidate_class_without_vendor_or_product"
 CURRENT_PROVIDER_REVIEW_STATUS = "audit_store_storage_adapter_database_provider_selection_review_defined"
 CURRENT_DATABASE_PROVIDER_STATUS = "provider_reference_selected_without_runtime_provider"
 CURRENT_MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_provider_account_resource_endpoint_readiness_defined_task_card_blocked"
+    "storage_adapter_provider_account_resource_endpoint_review_defined_task_card_blocked"
 )
 CURRENT_MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1"
 )
 FIXTURE_MATRIX_BLOCKER_STATUS_AFTER_READINESS = (
     "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"

@@ -39,16 +39,16 @@ RUNTIME_TASK_CARD_DECISION = (
 NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization_entry_review"
 MATRIX_BLOCKER_STATUS = "storage_adapter_append_only_table_schema_boundary_readiness_defined_task_card_blocked"
 CURRENT_MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_provider_account_resource_endpoint_readiness_defined_task_card_blocked"
+    "storage_adapter_provider_account_resource_endpoint_review_defined_task_card_blocked"
 )
 CURRENT_MATRIX_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1"
 )
 CURRENT_NEXT_DEPENDENCY = (
-    "storage_adapter_provider_account_resource_endpoint_review"
+    "storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review"
 )
 CURRENT_RUNTIME_TASK_CARD_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_readiness"
+    "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_review"
 )
 FIXTURE_MATRIX_BLOCKER_STATUS_AFTER_SCHEMA_BOUNDARY = (
     "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"

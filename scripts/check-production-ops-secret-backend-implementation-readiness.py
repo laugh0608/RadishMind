@@ -235,6 +235,9 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-provider-account-resource-endpoint-readiness": (
         "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined"
     ),
+    "audit-store-storage-adapter-provider-account-resource-endpoint-review": (
+        "audit_store_storage_adapter_provider_account_resource_endpoint_review_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -441,6 +444,11 @@ REQUIRED_DOC_REFERENCES = {
         "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined",
         "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_readiness",
         "storage_adapter_provider_account_resource_endpoint_review",
+        "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1",
+        "audit_store_storage_adapter_provider_account_resource_endpoint_review_defined",
+        "provider_account_resource_endpoint_review_defined_runtime_blocked",
+        "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_review",
+        "storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -1550,7 +1558,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_readiness",
+        == "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_review",
         "audit storage adapter runtime task card decision drifted",
     )
     require(
@@ -1574,7 +1582,7 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_provider_account_resource_endpoint_review",
+        == "storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review",
         "audit storage adapter current next dependency drifted",
     )
     require(
@@ -1603,6 +1611,11 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("audit_store_storage_adapter_provider_account_resource_endpoint_readiness_status")
         == "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined",
         "audit store storage adapter provider account resource endpoint readiness status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_provider_account_resource_endpoint_review_status")
+        == "audit_store_storage_adapter_provider_account_resource_endpoint_review_defined",
+        "audit store storage adapter provider account resource endpoint review status drifted",
     )
     require(
         target.get("audit_storage_adapter_managed_product_selection_status")
@@ -1701,6 +1714,31 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         target.get("audit_storage_adapter_provider_account_confirmation_status")
         == "operator_confirmation_required_before_runtime",
         "audit storage adapter provider account confirmation status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_account_resource_review_status")
+        == "metadata_only_requirements_reviewed_without_real_resource",
+        "audit storage adapter provider account resource review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_resource_review_status")
+        == "metadata_only_scope_reviewed_without_resource_selection",
+        "audit storage adapter provider resource review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_endpoint_review_status")
+        == "metadata_only_endpoint_requirements_reviewed_without_endpoint",
+        "audit storage adapter database endpoint review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_region_detail_review_status")
+        == "metadata_only_region_requirements_reviewed_without_region_detail",
+        "audit storage adapter region detail review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_account_confirmation_review_status")
+        == "confirmation_requirements_reviewed_still_required_before_runtime",
+        "audit storage adapter provider account confirmation review status drifted",
     )
     require(
         target.get("audit_store_storage_adapter_concrete_database_selection_readiness_status")
@@ -3005,6 +3043,16 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "audit-store-storage-adapter-provider-account-resource-endpoint-review":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.md",
+                "docs/task-cards/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.json",
+                "scripts/check-production-ops-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
 
     blocked = {str(item.get("id")): item for item in fixture.get("blocked_conditions") or [] if isinstance(item, dict)}
     missing_blocked = sorted(set(REQUIRED_BLOCKED) - set(blocked))
@@ -3268,6 +3316,16 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         (
             "scripts/"
             "check-production-ops-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1.py"
+        ),
+        "docs/platform/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.md",
+        "docs/task-cards/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1-plan.md",
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.json"
+        ),
+        (
+            "scripts/"
+            "check-production-ops-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.py"
         ),
         "docs/platform/production-secret-backend-resolver-backend-health-boundary-readiness-v1.md",
         "docs/task-cards/production-secret-backend-resolver-backend-health-boundary-readiness-v1-plan.md",
@@ -3667,6 +3725,15 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         )
         in check_repo,
         "check-repo.py must run audit store storage adapter provider account resource endpoint readiness check",
+    )
+    require(
+        (
+            'run_python_script("'
+            "check-production-ops-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.py"
+            '", [])'
+        )
+        in check_repo,
+        "check-repo.py must run audit store storage adapter provider account resource endpoint review check",
     )
     require(
         (

@@ -162,19 +162,19 @@ FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_SOURCE = (
 )
 FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_FIXTURE = (
     "scripts/checks/fixtures/"
-    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1.json"
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.json"
 )
 FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_STATUS = (
-    "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined"
+    "audit_store_storage_adapter_provider_account_resource_endpoint_review_defined"
 )
 FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_BLOCKER_STATUS = (
-    "storage_adapter_provider_account_resource_endpoint_readiness_defined_task_card_blocked"
+    "storage_adapter_provider_account_resource_endpoint_review_defined_task_card_blocked"
 )
 FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1"
 )
 FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_NEXT_DEPENDENCY = (
-    "storage_adapter_provider_account_resource_endpoint_review"
+    "storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review"
 )
 FOLLOWUP_ALIGNMENT = {
     "audit_storage_adapter_metadata_contract_artifact_status": "materialized_static_metadata_contract",
@@ -252,11 +252,11 @@ FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_ALIGNMENT = {
     "audit_storage_adapter_managed_database_product_status": "selected_reference_profile_not_vendor_product",
 }
 FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_ALIGNMENT = {
-    "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_status": (
+    "audit_store_storage_adapter_provider_account_resource_endpoint_review_status": (
         FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_STATUS
     ),
     "audit_storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_readiness"
+        "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_review"
     ),
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_NEXT_DEPENDENCY,
     "audit_storage_adapter_selected_provider_reference": "managed_postgresql_compatible_provider_reference",

@@ -35,7 +35,15 @@ RUNTIME_TASK_CARD_DECISION = (
     "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_readiness"
 )
 NEXT_DEPENDENCY = "storage_adapter_provider_account_resource_endpoint_review"
-MATRIX_BLOCKER_STATUS = "storage_adapter_provider_account_resource_endpoint_readiness_defined_task_card_blocked"
+CURRENT_MATRIX_BLOCKER_STATUS = "storage_adapter_provider_account_resource_endpoint_review_defined_task_card_blocked"
+CURRENT_MATRIX_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1"
+)
+CURRENT_RUNTIME_TASK_CARD_DECISION = (
+    "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_review"
+)
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review"
+FIXTURE_MATRIX_BLOCKER_STATUS = "storage_adapter_provider_account_resource_endpoint_readiness_defined_task_card_blocked"
 SELECTED_PROVIDER_REFERENCE = "managed_postgresql_compatible_provider_reference"
 SELECTED_PROVIDER_REFERENCE_KIND = "reference_only_concrete_provider_profile"
 SELECTED_PROFILE = "managed_postgresql_compatible_audit_store_profile"
@@ -380,10 +388,10 @@ def check_aggregate_alignment(fixture: dict[str, Any]) -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     boundary = matrix.get("matrix_boundary") or {}
     for field, expected in {
-        "durable_audit_backend_status": MATRIX_BLOCKER_STATUS,
+        "durable_audit_backend_status": CURRENT_MATRIX_BLOCKER_STATUS,
         "storage_adapter_provider_account_resource_endpoint_readiness_status": SLICE_STATUS,
-        "storage_adapter_runtime_task_card_decision": RUNTIME_TASK_CARD_DECISION,
-        "storage_adapter_current_next_dependency": NEXT_DEPENDENCY,
+        "storage_adapter_runtime_task_card_decision": CURRENT_RUNTIME_TASK_CARD_DECISION,
+        "storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
         "storage_adapter_provider_account_resource_status": "metadata_only_readiness_defined_without_real_resource",
         "storage_adapter_provider_resource_status": "not_selected",
         "storage_adapter_database_endpoint_status": "metadata_only_endpoint_requirements_defined_without_endpoint",
@@ -397,15 +405,16 @@ def check_aggregate_alignment(fixture: dict[str, Any]) -> None:
 
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    require(durable.get("status") == MATRIX_BLOCKER_STATUS, "durable blocker status drifted")
-    require(durable.get("source") == SLICE_ID, "durable blocker source drifted")
-    require(durable.get("unlock_condition") == NEXT_DEPENDENCY, "durable unlock condition drifted")
+    require(durable.get("status") == CURRENT_MATRIX_BLOCKER_STATUS, "durable blocker status drifted")
+    require(durable.get("source") == CURRENT_MATRIX_BLOCKER_SOURCE, "durable blocker source drifted")
+    require(durable.get("unlock_condition") == CURRENT_NEXT_DEPENDENCY, "durable unlock condition drifted")
 
     order = matrix.get("dependency_order") or []
     for item in {
         "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review",
         "storage_adapter_provider_account_resource_endpoint_readiness",
         "storage_adapter_provider_account_resource_endpoint_review",
+        "storage_adapter_runtime_entry_refresh_after_provider_account_resource_endpoint_review",
         "audit_writer_runtime_entry_review",
     }:
         require(item in order, f"dependency order missing {item}")
@@ -413,12 +422,13 @@ def check_aggregate_alignment(fixture: dict[str, Any]) -> None:
         order.index("storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review")
         < order.index("storage_adapter_provider_account_resource_endpoint_readiness")
         < order.index("storage_adapter_provider_account_resource_endpoint_review")
+        < order.index("storage_adapter_runtime_entry_refresh_after_provider_account_resource_endpoint_review")
         < order.index("audit_writer_runtime_entry_review"),
         "provider account resource endpoint readiness order drifted",
     )
 
     alignment = fixture.get("blocker_matrix_alignment") or {}
-    require(alignment.get("status") == MATRIX_BLOCKER_STATUS, "fixture matrix status drifted")
+    require(alignment.get("status") == FIXTURE_MATRIX_BLOCKER_STATUS, "fixture matrix status drifted")
     require(alignment.get("source") == SLICE_ID, "fixture matrix source drifted")
     require(alignment.get("unlock_condition") == NEXT_DEPENDENCY, "fixture matrix unlock drifted")
     require(
@@ -433,6 +443,10 @@ def check_aggregate_alignment(fixture: dict[str, Any]) -> None:
     for field, value in expected.items():
         if field in {"status", "status_field"}:
             continue
+        if field == "audit_storage_adapter_runtime_task_card_decision":
+            value = CURRENT_RUNTIME_TASK_CARD_DECISION
+        if field == "audit_storage_adapter_current_next_dependency":
+            value = CURRENT_NEXT_DEPENDENCY
         require(target.get(field) == value, f"implementation readiness {field} drifted")
     planned = rows_by_id(readiness, "planned_slices", "id")
     item = planned.get("audit-store-storage-adapter-provider-account-resource-endpoint-readiness") or {}
@@ -454,10 +468,17 @@ def check_docs_and_registration() -> None:
         "check-production-ops-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-"
         "readiness-v1.py"
     )
+    review = (
+        "check-production-ops-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-"
+        "review-v1.py"
+    )
     matrix = "check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py"
-    for script in (previous, current, matrix):
+    for script in (previous, current, review, matrix):
         require(script in check_repo, f"check-repo.py missing {script}")
-    require(check_repo.index(previous) < check_repo.index(current) < check_repo.index(matrix), "check-repo.py order drifted")
+    require(
+        check_repo.index(previous) < check_repo.index(current) < check_repo.index(review) < check_repo.index(matrix),
+        "check-repo.py order drifted",
+    )
 
 
 def check_no_secret_material(fixture: dict[str, Any]) -> None:

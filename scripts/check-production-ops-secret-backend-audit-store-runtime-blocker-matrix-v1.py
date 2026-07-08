@@ -338,6 +338,13 @@ EXPECTED_DEPENDENCIES = {
         ),
         "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined",
     ),
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.json"
+        ),
+        "audit_store_storage_adapter_provider_account_resource_endpoint_review_defined",
+    ),
     "production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1": (
         "scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.json",
         "credential_handle_runtime_implementation_entry_refresh_defined",
@@ -383,9 +390,7 @@ EXPECTED_BOUNDARY = {
     "durable_backend_selection_decision_after_review": (
         "durable_backend_family_selected_static_append_only_audit_log_runtime_blocked"
     ),
-    "durable_audit_backend_status": (
-        "storage_adapter_provider_account_resource_endpoint_readiness_defined_task_card_blocked"
-    ),
+    "durable_audit_backend_status": "storage_adapter_provider_account_resource_endpoint_review_defined_task_card_blocked",
     "selected_durable_backend_family": "append_only_metadata_audit_log",
     "selected_reserved_candidate": "reserved_append_only_audit_log",
     "storage_adapter_runtime_implementation_entry_review_status": (
@@ -595,7 +600,7 @@ EXPECTED_BOUNDARY = {
         "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_defined"
     ),
     "storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_readiness"
+        "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_review"
     ),
     "storage_adapter_evidence_chain_status": "static_evidence_chain_ready_for_contract_materialization_review",
     "storage_adapter_next_dependency": "storage_adapter_metadata_contract_artifact_materialization_entry_review",
@@ -610,7 +615,7 @@ EXPECTED_BOUNDARY = {
     ),
     "storage_adapter_contract_artifact_materialization_task_card_status": "created",
     "storage_adapter_current_next_dependency": (
-        "storage_adapter_provider_account_resource_endpoint_review"
+        "storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review"
     ),
     "storage_adapter_concrete_database_selection_readiness_status": (
         "audit_store_storage_adapter_concrete_database_selection_readiness_defined"
@@ -708,6 +713,9 @@ EXPECTED_BOUNDARY = {
     "storage_adapter_provider_account_resource_endpoint_readiness_status": (
         "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined"
     ),
+    "storage_adapter_provider_account_resource_endpoint_review_status": (
+        "audit_store_storage_adapter_provider_account_resource_endpoint_review_defined"
+    ),
     "storage_adapter_selected_concrete_provider_reference": "managed_postgresql_compatible_provider_reference",
     "storage_adapter_selected_concrete_provider_reference_kind": "reference_only_concrete_provider_profile",
     "storage_adapter_concrete_provider_input_evidence_status": "metadata_only_provider_input_evidence_defined",
@@ -725,6 +733,21 @@ EXPECTED_BOUNDARY = {
     "storage_adapter_database_endpoint_status": "metadata_only_endpoint_requirements_defined_without_endpoint",
     "storage_adapter_region_detail_status": "metadata_only_region_requirements_defined_without_region_detail",
     "storage_adapter_provider_account_confirmation_status": "operator_confirmation_required_before_runtime",
+    "storage_adapter_provider_account_resource_review_status": (
+        "metadata_only_requirements_reviewed_without_real_resource"
+    ),
+    "storage_adapter_provider_resource_review_status": (
+        "metadata_only_scope_reviewed_without_resource_selection"
+    ),
+    "storage_adapter_database_endpoint_review_status": (
+        "metadata_only_endpoint_requirements_reviewed_without_endpoint"
+    ),
+    "storage_adapter_region_detail_review_status": (
+        "metadata_only_region_requirements_reviewed_without_region_detail"
+    ),
+    "storage_adapter_provider_account_confirmation_review_status": (
+        "confirmation_requirements_reviewed_still_required_before_runtime"
+    ),
     "storage_adapter_secret_ref_only_dsn_handoff_status": "secret_ref_only_dsn_handoff_defined",
     "storage_adapter_tls_role_environment_binding_status": "static_tls_role_environment_binding_defined",
     "storage_adapter_pool_policy_status": "static_pool_policy_defined_without_pool_runtime",
@@ -795,9 +818,7 @@ EXPECTED_FALSE_FLAGS = {
 
 EXPECTED_BLOCKERS = {
     "runtime_event_schema_artifact": "implemented_static_schema_artifact",
-    "durable_audit_backend": (
-        "storage_adapter_provider_account_resource_endpoint_readiness_defined_task_card_blocked"
-    ),
+    "durable_audit_backend": "storage_adapter_provider_account_resource_endpoint_review_defined_task_card_blocked",
     "audit_writer_runtime": "entry_review_defined_task_card_blocked",
     "idempotency_runtime": "entry_review_defined_task_card_blocked",
     "delivery_runtime": "entry_review_defined_task_card_blocked",
@@ -851,6 +872,7 @@ EXPECTED_ORDER = [
     "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review",
     "storage_adapter_provider_account_resource_endpoint_readiness",
     "storage_adapter_provider_account_resource_endpoint_review",
+    "storage_adapter_runtime_entry_refresh_after_provider_account_resource_endpoint_review",
     "audit_writer_runtime_entry_review",
     "idempotency_runtime_entry_review",
     "delivery_runtime_entry_review",
@@ -1204,7 +1226,7 @@ def assert_prior_evidence_alignment() -> None:
         ),
         "audit_storage_adapter_contract_materialization_task_card_status": "created",
         "audit_storage_adapter_current_next_dependency": (
-            "storage_adapter_provider_account_resource_endpoint_review"
+            "storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review"
         ),
         "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_status": (
             "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_defined"
@@ -1254,6 +1276,9 @@ def assert_prior_evidence_alignment() -> None:
         "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_status": (
             "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined"
         ),
+        "audit_store_storage_adapter_provider_account_resource_endpoint_review_status": (
+            "audit_store_storage_adapter_provider_account_resource_endpoint_review_defined"
+        ),
         "audit_storage_adapter_selected_concrete_provider_reference": (
             "managed_postgresql_compatible_provider_reference"
         ),
@@ -1289,6 +1314,21 @@ def assert_prior_evidence_alignment() -> None:
         "audit_storage_adapter_provider_account_confirmation_status": (
             "operator_confirmation_required_before_runtime"
         ),
+        "audit_storage_adapter_provider_account_resource_review_status": (
+            "metadata_only_requirements_reviewed_without_real_resource"
+        ),
+        "audit_storage_adapter_provider_resource_review_status": (
+            "metadata_only_scope_reviewed_without_resource_selection"
+        ),
+        "audit_storage_adapter_database_endpoint_review_status": (
+            "metadata_only_endpoint_requirements_reviewed_without_endpoint"
+        ),
+        "audit_storage_adapter_region_detail_review_status": (
+            "metadata_only_region_requirements_reviewed_without_region_detail"
+        ),
+        "audit_storage_adapter_provider_account_confirmation_review_status": (
+            "confirmation_requirements_reviewed_still_required_before_runtime"
+        ),
         "audit_storage_adapter_managed_product_selection_status": "selected_reference_product_profile_without_vendor",
         "audit_storage_adapter_managed_product_selection_review_status": (
             "audit_store_storage_adapter_managed_database_product_selection_review_defined"
@@ -1305,7 +1345,7 @@ def assert_prior_evidence_alignment() -> None:
             "metadata_only_evaluation_dimensions_defined"
         ),
         "audit_storage_adapter_runtime_task_card_decision": (
-            "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_readiness"
+            "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_review"
         ),
         "audit_store_storage_adapter_concrete_database_selection_readiness_status": (
             "audit_store_storage_adapter_concrete_database_selection_readiness_defined"
@@ -1745,6 +1785,10 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-audit-store-'
         'storage-adapter-provider-account-resource-endpoint-readiness-v1.py", [])'
     )
+    storage_adapter_provider_account_resource_endpoint_review_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'storage-adapter-provider-account-resource-endpoint-review-v1.py", [])'
+    )
     current_call = 'run_python_script("check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py", [])'
     resolver_call = (
         'run_python_script("check-production-ops-secret-backend-'
@@ -1780,6 +1824,7 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         storage_adapter_concrete_database_selection_readiness_call,
         storage_adapter_concrete_database_selection_review_call,
         storage_adapter_provider_account_resource_endpoint_readiness_call,
+        storage_adapter_provider_account_resource_endpoint_review_call,
         current_call,
         resolver_call,
     ):
@@ -1814,6 +1859,7 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         < check_repo.index(storage_adapter_concrete_database_selection_readiness_call)
         < check_repo.index(storage_adapter_concrete_database_selection_review_call)
         < check_repo.index(storage_adapter_provider_account_resource_endpoint_readiness_call)
+        < check_repo.index(storage_adapter_provider_account_resource_endpoint_review_call)
         < check_repo.index(current_call)
         < check_repo.index(resolver_call),
         "check order drifted",
