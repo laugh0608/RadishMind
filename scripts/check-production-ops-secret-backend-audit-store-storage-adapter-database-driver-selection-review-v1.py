@@ -25,9 +25,20 @@ SELECTION_DECISION = "database_driver_candidate_selected_pgx_v5_runtime_blocked"
 ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_database_driver_selection_review"
 NEXT_DEPENDENCY = "storage_adapter_database_connection_lifecycle_readiness"
 CURRENT_ENTRY_DECISION = (
+    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh"
+)
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_provider_account_resource_endpoint_readiness"
+CURRENT_DATABASE_PROVIDER_STATUS = "provider_reference_selected_without_runtime_provider"
+FIXTURE_MATRIX_BLOCKER_STATUS_AFTER_REVIEW = (
+    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+)
+FIXTURE_MATRIX_BLOCKER_SOURCE_AFTER_REVIEW = (
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
+)
+FIXTURE_NEXT_DEPENDENCY = "storage_adapter_concrete_managed_database_provider_selection_review"
+FIXTURE_RUNTIME_TASK_CARD_DECISION = (
     "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
 )
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_concrete_managed_database_provider_selection_review"
 SELECTED_DATABASE_ENGINE = "postgresql_compatible_append_only_relational_database"
 SELECTED_PROVIDER_CLASS = "managed_postgresql_compatible_service"
 SELECTED_DRIVER_CANDIDATE = "github.com/jackc/pgx/v5"
@@ -37,10 +48,10 @@ DRIVER_IMPORT_STATUS = "not_created"
 DATABASE_DRIVER_STATUS = "selected_reference_only"
 MATRIX_BLOCKER_STATUS = "storage_adapter_database_driver_selection_review_defined_task_card_blocked"
 CURRENT_MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+    "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
 )
 CURRENT_MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1"
 )
 EXPECTED_DEPENDENCIES = {
     "production-secret-backend-audit-store-storage-adapter-database-driver-selection-readiness-v1": (
@@ -536,18 +547,18 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
 
     alignment = fixture.get("blocker_matrix_alignment") or {}
     require(
-        alignment.get("durable_backend_blocker_status_after_review") == CURRENT_MATRIX_BLOCKER_STATUS,
+        alignment.get("durable_backend_blocker_status_after_review") == FIXTURE_MATRIX_BLOCKER_STATUS_AFTER_REVIEW,
         "matrix status drifted",
     )
     require(
-        alignment.get("durable_backend_blocker_source_after_review") == CURRENT_MATRIX_BLOCKER_SOURCE,
+        alignment.get("durable_backend_blocker_source_after_review") == FIXTURE_MATRIX_BLOCKER_SOURCE_AFTER_REVIEW,
         "matrix source drifted",
     )
     require(
-        alignment.get("storage_adapter_current_next_dependency") == CURRENT_NEXT_DEPENDENCY,
+        alignment.get("storage_adapter_current_next_dependency") == FIXTURE_NEXT_DEPENDENCY,
         "matrix next drifted",
     )
-    require(alignment.get("runtime_task_card_decision") == CURRENT_ENTRY_DECISION, "matrix decision drifted")
+    require(alignment.get("runtime_task_card_decision") == FIXTURE_RUNTIME_TASK_CARD_DECISION, "matrix decision drifted")
 
     readiness = load_json(IMPLEMENTATION_READINESS_PATH)
     target = readiness.get("implementation_target") or {}
@@ -555,6 +566,12 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
     for field, value in expected.items():
         if field == "status":
             continue
+        if field == "audit_storage_adapter_runtime_task_card_decision":
+            value = CURRENT_ENTRY_DECISION
+        if field == "audit_storage_adapter_current_next_dependency":
+            value = CURRENT_NEXT_DEPENDENCY
+        if field == "audit_storage_adapter_database_provider_status":
+            value = CURRENT_DATABASE_PROVIDER_STATUS
         require(target.get(field) == value, f"implementation readiness {field} drifted")
 
     planned = rows_by_id(readiness, "planned_slices", "id")

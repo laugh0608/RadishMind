@@ -109,6 +109,29 @@ FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_STATUS = (
 FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_NEXT_DEPENDENCY = (
     "storage_adapter_concrete_managed_database_provider_selection_review"
 )
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-review-v1.json"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS = (
+    "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY = (
+    "storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-concrete-managed-database-provider-selection-review-v1.json"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY = (
+    "storage_adapter_provider_account_resource_endpoint_readiness"
+)
 FOLLOWUP_ALIGNMENT = {
     "audit_storage_adapter_contract_materialization_task_card_status": "created",
     "audit_storage_adapter_contract_artifact_materialization_status": FOLLOWUP_MATERIALIZATION_STATUS,
@@ -193,6 +216,28 @@ FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_ALIGNMENT = {
     ),
     "audit_storage_adapter_current_next_dependency": (
         FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_NEXT_DEPENDENCY
+    ),
+}
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT = {
+    "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_status": (
+        FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review"
+    ),
+    "audit_storage_adapter_current_next_dependency": (
+        FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY
+    ),
+}
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT = {
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_status": (
+        FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh"
+    ),
+    "audit_storage_adapter_current_next_dependency": (
+        FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY
     ),
 }
 FOLLOWUP_ALLOWED_ARTIFACTS = {
@@ -462,6 +507,20 @@ def followup_concrete_managed_database_provider_selection_readiness_exists() -> 
     return source_status(followup) == FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_STATUS
 
 
+def followup_concrete_managed_database_provider_selection_review_exists() -> bool:
+    if not FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE.exists():
+        return False
+    followup = load_json(FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE)
+    return source_status(followup) == FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS
+
+
+def followup_after_concrete_managed_database_provider_selection_review_exists() -> bool:
+    if not FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE.exists():
+        return False
+    followup = load_json(FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE)
+    return source_status(followup) == FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
@@ -648,7 +707,11 @@ def assert_blocker_matrix_alignment() -> None:
         )
         if followup_selection_exists():
             expected_next_dependency = (
-                FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_NEXT_DEPENDENCY
+                FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY
+                if followup_after_concrete_managed_database_provider_selection_review_exists()
+                else FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY
+                if followup_concrete_managed_database_provider_selection_review_exists()
+                else FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_NEXT_DEPENDENCY
                 if followup_concrete_managed_database_provider_selection_readiness_exists()
                 else FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_NEXT_DEPENDENCY
                 if followup_after_managed_product_selection_review_exists()
@@ -741,6 +804,16 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
             and field in FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_ALIGNMENT
         ):
             expected = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_ALIGNMENT[field]
+        if (
+            followup_concrete_managed_database_provider_selection_review_exists()
+            and field in FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT
+        ):
+            expected = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT[field]
+        if (
+            followup_after_concrete_managed_database_provider_selection_review_exists()
+            and field in FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT
+        ):
+            expected = FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     planned = {str(row.get("id")): row for row in readiness.get("planned_slices") or [] if isinstance(row, dict)}

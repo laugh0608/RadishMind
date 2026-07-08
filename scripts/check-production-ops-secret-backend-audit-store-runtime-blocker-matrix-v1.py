@@ -316,6 +316,21 @@ EXPECTED_DEPENDENCIES = {
         ),
         "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined",
     ),
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-review-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-review-v1.json"
+        ),
+        "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+            "after-concrete-managed-database-provider-selection-review-v1.json"
+        ),
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined",
+    ),
     "production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1": (
         "scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.json",
         "credential_handle_runtime_implementation_entry_refresh_defined",
@@ -362,7 +377,7 @@ EXPECTED_BOUNDARY = {
         "durable_backend_family_selected_static_append_only_audit_log_runtime_blocked"
     ),
     "durable_audit_backend_status": (
-        "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+        "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
     ),
     "selected_durable_backend_family": "append_only_metadata_audit_log",
     "selected_reserved_candidate": "reserved_append_only_audit_log",
@@ -573,7 +588,7 @@ EXPECTED_BOUNDARY = {
         "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_defined"
     ),
     "storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
+        "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh"
     ),
     "storage_adapter_evidence_chain_status": "static_evidence_chain_ready_for_contract_materialization_review",
     "storage_adapter_next_dependency": "storage_adapter_metadata_contract_artifact_materialization_entry_review",
@@ -588,7 +603,7 @@ EXPECTED_BOUNDARY = {
     ),
     "storage_adapter_contract_artifact_materialization_task_card_status": "created",
     "storage_adapter_current_next_dependency": (
-        "storage_adapter_concrete_managed_database_provider_selection_review"
+        "storage_adapter_provider_account_resource_endpoint_readiness"
     ),
     "storage_adapter_concrete_database_selection_readiness_status": (
         "audit_store_storage_adapter_concrete_database_selection_readiness_defined"
@@ -677,13 +692,23 @@ EXPECTED_BOUNDARY = {
     "storage_adapter_concrete_managed_database_provider_selection_readiness_status": (
         "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined"
     ),
+    "storage_adapter_concrete_managed_database_provider_selection_review_status": (
+        "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined"
+    ),
+    "storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_status": (
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined"
+    ),
+    "storage_adapter_selected_concrete_provider_reference": "managed_postgresql_compatible_provider_reference",
+    "storage_adapter_selected_concrete_provider_reference_kind": "reference_only_concrete_provider_profile",
     "storage_adapter_concrete_provider_input_evidence_status": "metadata_only_provider_input_evidence_defined",
     "storage_adapter_concrete_provider_candidate_field_status": "metadata_only_provider_candidate_fields_defined",
     "storage_adapter_concrete_provider_evaluation_dimension_status": (
         "metadata_only_provider_evaluation_dimensions_defined"
     ),
-    "storage_adapter_concrete_provider_selection_status": "readiness_defined_without_provider_selection",
-    "storage_adapter_concrete_provider_selection_review_status": "not_started",
+    "storage_adapter_concrete_provider_selection_status": "reference_profile_selected_without_provider_resource",
+    "storage_adapter_concrete_provider_selection_review_status": (
+        "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined"
+    ),
     "storage_adapter_concrete_cloud_product_status": "not_selected",
     "storage_adapter_secret_ref_only_dsn_handoff_status": "secret_ref_only_dsn_handoff_defined",
     "storage_adapter_tls_role_environment_binding_status": "static_tls_role_environment_binding_defined",
@@ -756,7 +781,7 @@ EXPECTED_FALSE_FLAGS = {
 EXPECTED_BLOCKERS = {
     "runtime_event_schema_artifact": "implemented_static_schema_artifact",
     "durable_audit_backend": (
-        "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+        "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
     ),
     "audit_writer_runtime": "entry_review_defined_task_card_blocked",
     "idempotency_runtime": "entry_review_defined_task_card_blocked",
@@ -808,6 +833,8 @@ EXPECTED_ORDER = [
     "storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review",
     "storage_adapter_concrete_managed_database_provider_selection_readiness",
     "storage_adapter_concrete_managed_database_provider_selection_review",
+    "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review",
+    "storage_adapter_provider_account_resource_endpoint_readiness",
     "audit_writer_runtime_entry_review",
     "idempotency_runtime_entry_review",
     "delivery_runtime_entry_review",
@@ -1160,7 +1187,7 @@ def assert_prior_evidence_alignment() -> None:
         ),
         "audit_storage_adapter_contract_materialization_task_card_status": "created",
         "audit_storage_adapter_current_next_dependency": (
-            "storage_adapter_concrete_managed_database_provider_selection_review"
+            "storage_adapter_provider_account_resource_endpoint_readiness"
         ),
         "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_status": (
             "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_defined"
@@ -1201,6 +1228,18 @@ def assert_prior_evidence_alignment() -> None:
         "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_status": (
             "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined"
         ),
+        "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_status": (
+            "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined"
+        ),
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_status": (
+            "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined"
+        ),
+        "audit_storage_adapter_selected_concrete_provider_reference": (
+            "managed_postgresql_compatible_provider_reference"
+        ),
+        "audit_storage_adapter_selected_concrete_provider_reference_kind": (
+            "reference_only_concrete_provider_profile"
+        ),
         "audit_storage_adapter_concrete_provider_input_evidence_status": (
             "metadata_only_provider_input_evidence_defined"
         ),
@@ -1211,9 +1250,11 @@ def assert_prior_evidence_alignment() -> None:
             "metadata_only_provider_evaluation_dimensions_defined"
         ),
         "audit_storage_adapter_concrete_provider_selection_status": (
-            "readiness_defined_without_provider_selection"
+            "reference_profile_selected_without_provider_resource"
         ),
-        "audit_storage_adapter_concrete_provider_selection_review_status": "not_started",
+        "audit_storage_adapter_concrete_provider_selection_review_status": (
+            "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined"
+        ),
         "audit_storage_adapter_concrete_cloud_product_status": "not_selected",
         "audit_storage_adapter_managed_product_selection_status": "selected_reference_product_profile_without_vendor",
         "audit_storage_adapter_managed_product_selection_review_status": (
@@ -1231,7 +1272,7 @@ def assert_prior_evidence_alignment() -> None:
             "metadata_only_evaluation_dimensions_defined"
         ),
         "audit_storage_adapter_runtime_task_card_decision": (
-            "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
+            "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh"
         ),
         "audit_store_storage_adapter_concrete_database_selection_readiness_status": (
             "audit_store_storage_adapter_concrete_database_selection_readiness_defined"

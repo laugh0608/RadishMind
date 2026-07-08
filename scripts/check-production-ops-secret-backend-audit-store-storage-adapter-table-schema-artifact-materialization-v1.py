@@ -51,16 +51,26 @@ RUNTIME_TASK_CARD_DECISION = (
 )
 MATRIX_BLOCKER_STATUS = "storage_adapter_table_schema_artifact_materialized_runtime_blocked"
 CURRENT_RUNTIME_TASK_CARD_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
+    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh"
 )
 CURRENT_MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+    "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
 )
 CURRENT_MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1"
 )
 CURRENT_NEXT_DEPENDENCY = (
-    "storage_adapter_concrete_managed_database_provider_selection_review"
+    "storage_adapter_provider_account_resource_endpoint_readiness"
+)
+FIXTURE_MATRIX_BLOCKER_STATUS_AFTER_TABLE_SCHEMA_ARTIFACT = (
+    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+)
+FIXTURE_MATRIX_BLOCKER_SOURCE_AFTER_TABLE_SCHEMA_ARTIFACT = (
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
+)
+FIXTURE_NEXT_DEPENDENCY = "storage_adapter_concrete_managed_database_provider_selection_review"
+FIXTURE_RUNTIME_TASK_CARD_DECISION = (
+    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
 )
 
 POSITIVE_FIXTURE = "scripts/checks/fixtures/production-secret-audit-storage-adapter-table-schema-positive-v1.json"
@@ -586,15 +596,21 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
         "matrix runtime task decision drifted",
     )
     require(
-        alignment.get("durable_backend_blocker_status_after_table_schema_artifact") == CURRENT_MATRIX_BLOCKER_STATUS,
+        alignment.get("durable_backend_blocker_status_after_table_schema_artifact")
+        == FIXTURE_MATRIX_BLOCKER_STATUS_AFTER_TABLE_SCHEMA_ARTIFACT,
         "fixture blocker status drifted",
     )
     require(
-        alignment.get("storage_adapter_current_next_dependency") == CURRENT_NEXT_DEPENDENCY,
+        alignment.get("durable_backend_source_after_table_schema_artifact")
+        == FIXTURE_MATRIX_BLOCKER_SOURCE_AFTER_TABLE_SCHEMA_ARTIFACT,
+        "fixture blocker source drifted",
+    )
+    require(
+        alignment.get("storage_adapter_current_next_dependency") == FIXTURE_NEXT_DEPENDENCY,
         "fixture next dependency drifted",
     )
     require(
-        alignment.get("runtime_task_card_decision") == CURRENT_RUNTIME_TASK_CARD_DECISION,
+        alignment.get("runtime_task_card_decision") == FIXTURE_RUNTIME_TASK_CARD_DECISION,
         "fixture runtime task card decision drifted",
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
@@ -607,6 +623,10 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
     readiness = load_json(IMPLEMENTATION_READINESS_PATH)
     target = readiness.get("implementation_target") or {}
     for field, expected in (fixture.get("implementation_readiness_alignment") or {}).items():
+        if field == "audit_storage_adapter_runtime_task_card_decision":
+            expected = CURRENT_RUNTIME_TASK_CARD_DECISION
+        if field == "audit_storage_adapter_current_next_dependency":
+            expected = CURRENT_NEXT_DEPENDENCY
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
     planned = rows_by_id(readiness, "planned_slices", "id")
     item = planned.get("audit-store-storage-adapter-table-schema-artifact-materialization") or {}

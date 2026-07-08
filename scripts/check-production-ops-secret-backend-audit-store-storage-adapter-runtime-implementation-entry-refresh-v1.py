@@ -143,6 +143,43 @@ FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_BLOCKER_STATUS =
 FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
 )
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-review-v1.json"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS = (
+    "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY = (
+    "storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_BLOCKER_STATUS = (
+    "storage_adapter_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-review-v1"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-concrete-managed-database-provider-selection-review-v1.json"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_DECISION = (
+    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY = (
+    "storage_adapter_provider_account_resource_endpoint_readiness"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-concrete-managed-database-provider-selection-review-v1"
+)
 FOLLOWUP_ALIGNMENT = {
     "audit_storage_adapter_contract_artifact_materialization_status": FOLLOWUP_MATERIALIZATION_STATUS,
 }
@@ -214,6 +251,28 @@ FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_ALIGNMENT = {
         "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
     ),
     "audit_storage_adapter_current_next_dependency": "storage_adapter_concrete_managed_database_provider_selection_review",
+}
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT = {
+    "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_status": (
+        FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review"
+    ),
+    "audit_storage_adapter_current_next_dependency": (
+        FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY
+    ),
+}
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT = {
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_status": (
+        FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_DECISION
+    ),
+    "audit_storage_adapter_current_next_dependency": (
+        FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY
+    ),
 }
 
 SLICE_ID = "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1"
@@ -490,6 +549,22 @@ def followup_concrete_managed_database_provider_selection_readiness_exists() -> 
     return source_status(followup) == FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_STATUS
 
 
+def followup_concrete_managed_database_provider_selection_review_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE
+    if not path.exists():
+        return False
+    followup = load_json(path)
+    return source_status(followup) == FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS
+
+
+def followup_after_concrete_managed_database_provider_selection_review_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE
+    if not path.exists():
+        return False
+    followup = load_json(path)
+    return source_status(followup) == FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
@@ -641,7 +716,11 @@ def assert_blocker_matrix_alignment() -> None:
     require(
         boundary.get("storage_adapter_runtime_task_card_decision")
         == (
-            "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
+            FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_DECISION
+            if followup_after_concrete_managed_database_provider_selection_review_exists()
+            else "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review"
+            if followup_concrete_managed_database_provider_selection_review_exists()
+            else "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
             if followup_concrete_managed_database_provider_selection_readiness_exists()
             else FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_DECISION
             if followup_after_managed_product_selection_review_exists()
@@ -682,7 +761,11 @@ def assert_blocker_matrix_alignment() -> None:
             "matrix selected product profile drifted after follow-up",
         )
         expected_next_dependency = (
-            FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_NEXT_DEPENDENCY
+            FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY
+            if followup_after_concrete_managed_database_provider_selection_review_exists()
+            else FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY
+            if followup_concrete_managed_database_provider_selection_review_exists()
+            else FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_NEXT_DEPENDENCY
             if followup_concrete_managed_database_provider_selection_readiness_exists()
             else FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_NEXT_DEPENDENCY
             if followup_after_managed_product_selection_review_exists()
@@ -726,7 +809,13 @@ def assert_blocker_matrix_alignment() -> None:
         )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    if followup_concrete_managed_database_provider_selection_readiness_exists():
+    if followup_after_concrete_managed_database_provider_selection_review_exists():
+        expected_status = FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_BLOCKER_STATUS
+        expected_source = FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_SOURCE
+    elif followup_concrete_managed_database_provider_selection_review_exists():
+        expected_status = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_BLOCKER_STATUS
+        expected_source = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_SOURCE
+    elif followup_concrete_managed_database_provider_selection_readiness_exists():
         expected_status = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_BLOCKER_STATUS
         expected_source = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_SOURCE
     elif followup_after_managed_product_selection_review_exists():
@@ -786,6 +875,16 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
             and field in FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_ALIGNMENT
         ):
             expected = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_ALIGNMENT[field]
+        if (
+            followup_concrete_managed_database_provider_selection_review_exists()
+            and field in FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT
+        ):
+            expected = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT[field]
+        if (
+            followup_after_concrete_managed_database_provider_selection_review_exists()
+            and field in FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT
+        ):
+            expected = FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     planned = {str(row.get("id")): row for row in readiness.get("planned_slices") or [] if isinstance(row, dict)}

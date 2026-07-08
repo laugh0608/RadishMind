@@ -28,15 +28,25 @@ ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_database
 NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness"
 MATRIX_BLOCKER_STATUS = "storage_adapter_database_provider_connection_runtime_boundary_readiness_defined_task_card_blocked"
 CURRENT_ENTRY_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
+    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh"
 )
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_concrete_managed_database_provider_selection_review"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_provider_account_resource_endpoint_readiness"
 CURRENT_MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+    "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
 )
 CURRENT_MATRIX_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1"
+)
+FIXTURE_MATRIX_BLOCKER_STATUS = (
+    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+)
+FIXTURE_MATRIX_BLOCKER_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
 )
+FIXTURE_RUNTIME_TASK_CARD_DECISION = (
+    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
+)
+FIXTURE_NEXT_DEPENDENCY = "storage_adapter_concrete_managed_database_provider_selection_review"
 SELECTED_DRIVER_CANDIDATE = "github.com/jackc/pgx/v5"
 SELECTED_ENGINE = "postgresql_compatible_append_only_relational_database"
 SELECTED_PROVIDER_CLASS = "managed_postgresql_compatible_service"
@@ -300,18 +310,18 @@ def check_diagnostics(fixture: dict[str, Any]) -> None:
 def check_alignments(fixture: dict[str, Any]) -> None:
     blocker_alignment = fixture.get("blocker_matrix_alignment") or {}
     require(blocker_alignment.get("blocker_id") == "durable_audit_backend", "blocker alignment id drifted")
-    require(blocker_alignment.get("status") == CURRENT_MATRIX_BLOCKER_STATUS, "blocker alignment status drifted")
-    require(blocker_alignment.get("source") == CURRENT_MATRIX_BLOCKER_SOURCE, "blocker alignment source drifted")
-    require(blocker_alignment.get("unlock_condition") == CURRENT_NEXT_DEPENDENCY, "blocker alignment unlock drifted")
+    require(blocker_alignment.get("status") == FIXTURE_MATRIX_BLOCKER_STATUS, "blocker alignment status drifted")
+    require(blocker_alignment.get("source") == FIXTURE_MATRIX_BLOCKER_SOURCE, "blocker alignment source drifted")
+    require(blocker_alignment.get("unlock_condition") == FIXTURE_NEXT_DEPENDENCY, "blocker alignment unlock drifted")
 
     readiness_alignment = fixture.get("implementation_readiness_alignment") or {}
     require(readiness_alignment.get("status") == SLICE_STATUS, "implementation readiness status drifted")
     require(
-        readiness_alignment.get("runtime_task_card_decision") == CURRENT_ENTRY_DECISION,
+        readiness_alignment.get("runtime_task_card_decision") == FIXTURE_RUNTIME_TASK_CARD_DECISION,
         "implementation readiness decision drifted",
     )
     require(
-        readiness_alignment.get("current_next_dependency") == CURRENT_NEXT_DEPENDENCY,
+        readiness_alignment.get("current_next_dependency") == FIXTURE_NEXT_DEPENDENCY,
         "implementation readiness next dependency drifted",
     )
 

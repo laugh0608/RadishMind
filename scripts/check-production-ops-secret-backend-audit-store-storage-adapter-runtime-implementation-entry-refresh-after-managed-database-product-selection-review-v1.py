@@ -32,13 +32,27 @@ ENTRY_DECISION = (
     "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review_entry_refresh"
 )
 NEXT_DEPENDENCY = "storage_adapter_concrete_managed_database_provider_selection_readiness"
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_concrete_managed_database_provider_selection_review"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_provider_account_resource_endpoint_readiness"
+CURRENT_ENTRY_DECISION = (
+    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh"
+)
+CURRENT_MATRIX_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
+)
+CURRENT_MATRIX_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1"
+)
+CURRENT_DATABASE_PROVIDER_STATUS = "provider_reference_selected_without_runtime_provider"
 MATRIX_BLOCKER_STATUS = (
     "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
 )
 MATRIX_BLOCKER_SOURCE = (
     "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
 )
+FIXTURE_RUNTIME_TASK_CARD_DECISION = (
+    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
+)
+FIXTURE_NEXT_DEPENDENCY = "storage_adapter_concrete_managed_database_provider_selection_review"
 PREVIOUS_SLICE_ID = "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1"
 PREVIOUS_SLICE_STATUS = "audit_store_storage_adapter_managed_database_product_selection_review_defined"
 PREVIOUS_SELECTION_DECISION = "managed_database_product_profile_selected_reference_only_runtime_blocked"
@@ -409,16 +423,14 @@ def check_aggregate_alignment(fixture: dict[str, Any]) -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     boundary = matrix.get("matrix_boundary") or {}
     for field, expected in {
-        "durable_audit_backend_status": MATRIX_BLOCKER_STATUS,
+        "durable_audit_backend_status": CURRENT_MATRIX_BLOCKER_STATUS,
         "storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_status": SLICE_STATUS,
-        "storage_adapter_runtime_task_card_decision": (
-            "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
-        ),
+        "storage_adapter_runtime_task_card_decision": CURRENT_ENTRY_DECISION,
         "storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
         "storage_adapter_selected_managed_product_profile": SELECTED_PROFILE,
         "storage_adapter_managed_database_product_status": MANAGED_PRODUCT_STATUS,
         "storage_adapter_database_vendor_status": "not_selected",
-        "storage_adapter_database_provider_status": "provider_class_selected_without_concrete_provider",
+        "storage_adapter_database_provider_status": CURRENT_DATABASE_PROVIDER_STATUS,
         "storage_adapter_database_connection_provider_status": "not_created",
         "storage_adapter_runtime_task_card_status": "not_created",
         "storage_adapter_runtime_status": "not_created",
@@ -427,8 +439,8 @@ def check_aggregate_alignment(fixture: dict[str, Any]) -> None:
 
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    require(durable.get("status") == MATRIX_BLOCKER_STATUS, "durable blocker status drifted")
-    require(durable.get("source") == MATRIX_BLOCKER_SOURCE, "durable blocker source drifted")
+    require(durable.get("status") == CURRENT_MATRIX_BLOCKER_STATUS, "durable blocker status drifted")
+    require(durable.get("source") == CURRENT_MATRIX_BLOCKER_SOURCE, "durable blocker source drifted")
     require(durable.get("unlock_condition") == CURRENT_NEXT_DEPENDENCY, "durable unlock condition drifted")
 
     order = matrix.get("dependency_order") or []
@@ -447,10 +459,9 @@ def check_aggregate_alignment(fixture: dict[str, Any]) -> None:
     alignment = fixture.get("blocker_matrix_alignment") or {}
     require(alignment.get("status") == MATRIX_BLOCKER_STATUS, "fixture matrix status drifted")
     require(alignment.get("source") == MATRIX_BLOCKER_SOURCE, "fixture matrix source drifted")
-    require(alignment.get("unlock_condition") == CURRENT_NEXT_DEPENDENCY, "fixture matrix unlock drifted")
+    require(alignment.get("unlock_condition") == FIXTURE_NEXT_DEPENDENCY, "fixture matrix unlock drifted")
     require(
-        alignment.get("runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness",
+        alignment.get("runtime_task_card_decision") == FIXTURE_RUNTIME_TASK_CARD_DECISION,
         "fixture matrix decision drifted",
     )
 
@@ -458,15 +469,13 @@ def check_aggregate_alignment(fixture: dict[str, Any]) -> None:
     target = readiness.get("implementation_target") or {}
     for field, expected in {
         "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_status": SLICE_STATUS,
-        "audit_storage_adapter_runtime_task_card_decision": (
-            "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
-        ),
+        "audit_storage_adapter_runtime_task_card_decision": CURRENT_ENTRY_DECISION,
         "audit_storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
         "audit_storage_adapter_managed_product_selection_review_status": PREVIOUS_SLICE_STATUS,
         "audit_storage_adapter_selected_managed_product_profile": SELECTED_PROFILE,
         "audit_storage_adapter_managed_database_product_status": MANAGED_PRODUCT_STATUS,
         "audit_storage_adapter_database_vendor_status": "not_selected",
-        "audit_storage_adapter_database_provider_status": "provider_class_selected_without_concrete_provider",
+        "audit_storage_adapter_database_provider_status": CURRENT_DATABASE_PROVIDER_STATUS,
         "audit_storage_adapter_database_connection_provider_status": "not_created",
         "audit_storage_adapter_runtime_task_card_status": "not_created",
         "audit_storage_adapter_runtime_status": "not_created",
@@ -480,10 +489,8 @@ def check_aggregate_alignment(fixture: dict[str, Any]) -> None:
     readiness_alignment = fixture.get("implementation_readiness_alignment") or {}
     for field, expected in {
         "status": SLICE_STATUS,
-        "audit_storage_adapter_runtime_task_card_decision": (
-            "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
-        ),
-        "audit_storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
+        "audit_storage_adapter_runtime_task_card_decision": FIXTURE_RUNTIME_TASK_CARD_DECISION,
+        "audit_storage_adapter_current_next_dependency": FIXTURE_NEXT_DEPENDENCY,
         "audit_storage_adapter_managed_product_selection_review_status": PREVIOUS_SLICE_STATUS,
         "audit_storage_adapter_selected_managed_product_profile": SELECTED_PROFILE,
         "audit_storage_adapter_managed_database_product_status": MANAGED_PRODUCT_STATUS,

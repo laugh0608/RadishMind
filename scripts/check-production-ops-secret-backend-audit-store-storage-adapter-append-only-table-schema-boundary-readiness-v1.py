@@ -39,16 +39,19 @@ RUNTIME_TASK_CARD_DECISION = (
 NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization_entry_review"
 MATRIX_BLOCKER_STATUS = "storage_adapter_append_only_table_schema_boundary_readiness_defined_task_card_blocked"
 CURRENT_MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+    "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
 )
 CURRENT_MATRIX_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1"
 )
 CURRENT_NEXT_DEPENDENCY = (
-    "storage_adapter_concrete_managed_database_provider_selection_review"
+    "storage_adapter_provider_account_resource_endpoint_readiness"
 )
 CURRENT_RUNTIME_TASK_CARD_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
+    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh"
+)
+FIXTURE_MATRIX_BLOCKER_STATUS_AFTER_SCHEMA_BOUNDARY = (
+    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
 )
 SELECTED_PRODUCT_CLASS = "managed_database_append_only_table"
 SELECTED_PRODUCT_PROFILE = "reserved_managed_database_append_only_table_profile"
@@ -438,7 +441,8 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     )
     require(boundary.get("storage_adapter_sql_migration_status") == "not_created", "matrix SQL migration drifted")
     require(
-        alignment.get("durable_backend_blocker_status_after_schema_boundary") == CURRENT_MATRIX_BLOCKER_STATUS,
+        alignment.get("durable_backend_blocker_status_after_schema_boundary")
+        == FIXTURE_MATRIX_BLOCKER_STATUS_AFTER_SCHEMA_BOUNDARY,
         "fixture matrix blocker alignment drifted",
     )
     blocker_rows = rows_by_id(matrix, "blocker_matrix", "blocker_id")
@@ -452,6 +456,10 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
     alignment = fixture.get("implementation_readiness_alignment") or {}
     target = readiness.get("implementation_target") or {}
     for field, expected in alignment.items():
+        if field == "audit_storage_adapter_runtime_task_card_decision":
+            expected = CURRENT_RUNTIME_TASK_CARD_DECISION
+        if field == "audit_storage_adapter_current_next_dependency":
+            expected = CURRENT_NEXT_DEPENDENCY
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
     require(target.get("audit_storage_adapter_runtime_status") == "not_created", "storage adapter runtime drifted")
     require(target.get("audit_store_runtime_status") == "not_created", "audit store runtime drifted")

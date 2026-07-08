@@ -34,18 +34,28 @@ ENTRY_DECISION = (
 )
 NEXT_DEPENDENCY = "storage_adapter_concrete_database_selection_readiness"
 CURRENT_NEXT_DEPENDENCY = (
-    "storage_adapter_concrete_managed_database_provider_selection_review"
+    "storage_adapter_provider_account_resource_endpoint_readiness"
 )
 SELECTED_PRODUCT_CLASS = "managed_database_append_only_table"
 SELECTED_PRODUCT_PROFILE = "reserved_managed_database_append_only_table_profile"
 MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+    "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
 )
 CURRENT_ENTRY_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
+    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh"
 )
 CURRENT_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1"
+)
+FIXTURE_MATRIX_BLOCKER_STATUS_AFTER_REFRESH = (
+    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+)
+FIXTURE_MATRIX_BLOCKER_SOURCE_AFTER_REFRESH = (
     "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
+)
+FIXTURE_NEXT_DEPENDENCY = "storage_adapter_concrete_managed_database_provider_selection_review"
+FIXTURE_RUNTIME_TASK_CARD_DECISION = (
+    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
 )
 CONCRETE_DATABASE_SELECTION_READINESS_STATUS = "audit_store_storage_adapter_concrete_database_selection_readiness_defined"
 CONCRETE_DATABASE_SELECTION_REVIEW_STATUS = "audit_store_storage_adapter_concrete_database_selection_review_defined"
@@ -482,10 +492,16 @@ def assert_blocker_matrix_alignment(fixture: dict[str, Any]) -> None:
     require(durable.get("blocks_production_resolver_task_card") is True, "durable must block resolver runtime")
 
     alignment = fixture.get("blocker_matrix_alignment") or {}
-    require(alignment.get("durable_backend_blocker_status_after_refresh") == MATRIX_BLOCKER_STATUS, "fixture matrix status drifted")
-    require(alignment.get("durable_backend_blocker_source_after_refresh") == CURRENT_BLOCKER_SOURCE, "fixture matrix source drifted")
-    require(alignment.get("storage_adapter_current_next_dependency") == CURRENT_NEXT_DEPENDENCY, "fixture next drifted")
-    require(alignment.get("runtime_task_card_decision") == CURRENT_ENTRY_DECISION, "fixture decision drifted")
+    require(
+        alignment.get("durable_backend_blocker_status_after_refresh") == FIXTURE_MATRIX_BLOCKER_STATUS_AFTER_REFRESH,
+        "fixture matrix status drifted",
+    )
+    require(
+        alignment.get("durable_backend_blocker_source_after_refresh") == FIXTURE_MATRIX_BLOCKER_SOURCE_AFTER_REFRESH,
+        "fixture matrix source drifted",
+    )
+    require(alignment.get("storage_adapter_current_next_dependency") == FIXTURE_NEXT_DEPENDENCY, "fixture next drifted")
+    require(alignment.get("runtime_task_card_decision") == FIXTURE_RUNTIME_TASK_CARD_DECISION, "fixture decision drifted")
 
 
 def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
@@ -495,6 +511,10 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
     for field, value in expected.items():
         if field == "status":
             continue
+        if field == "audit_storage_adapter_runtime_task_card_decision":
+            value = CURRENT_ENTRY_DECISION
+        if field == "audit_storage_adapter_current_next_dependency":
+            value = CURRENT_NEXT_DEPENDENCY
         require(target.get(field) == value, f"implementation readiness {field} drifted")
 
     planned = rows_by_id(readiness, "planned_slices", "id")

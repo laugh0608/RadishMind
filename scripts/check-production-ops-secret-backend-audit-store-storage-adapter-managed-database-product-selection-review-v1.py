@@ -28,15 +28,27 @@ ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_managed_
 NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review"
 MATRIX_BLOCKER_STATUS = "storage_adapter_managed_database_product_selection_review_defined_task_card_blocked"
 CURRENT_MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+    "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
 )
 CURRENT_MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1"
 )
 CURRENT_ENTRY_DECISION = (
+    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh"
+)
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_provider_account_resource_endpoint_readiness"
+CURRENT_DATABASE_PROVIDER_STATUS = "provider_reference_selected_without_runtime_provider"
+FIXTURE_MATRIX_BLOCKER_STATUS = (
+    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+)
+FIXTURE_MATRIX_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
+)
+FIXTURE_MATRIX_UNLOCK_CONDITION = "storage_adapter_concrete_managed_database_provider_selection_review"
+FIXTURE_ENTRY_DECISION = (
     "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness"
 )
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_concrete_managed_database_provider_selection_review"
+FIXTURE_DATABASE_PROVIDER_STATUS = "provider_class_selected_without_concrete_provider"
 PREVIOUS_SLICE_ID = "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1"
 PREVIOUS_SLICE_STATUS = "audit_store_storage_adapter_managed_database_product_selection_readiness_defined"
 PREVIOUS_NEXT_DEPENDENCY = "storage_adapter_managed_database_product_selection_review"
@@ -482,7 +494,7 @@ def check_aggregate_alignment(fixture: dict[str, Any]) -> None:
         "storage_adapter_selected_managed_product_profile": SELECTED_PROFILE,
         "storage_adapter_managed_database_product_status": MANAGED_PRODUCT_STATUS,
         "storage_adapter_database_vendor_status": "not_selected",
-        "storage_adapter_database_provider_status": "provider_class_selected_without_concrete_provider",
+        "storage_adapter_database_provider_status": CURRENT_DATABASE_PROVIDER_STATUS,
         "storage_adapter_runtime_task_card_decision": CURRENT_ENTRY_DECISION,
         "storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
         "storage_adapter_database_connection_provider_status": "not_created",
@@ -501,21 +513,26 @@ def check_aggregate_alignment(fixture: dict[str, Any]) -> None:
     for dependency in {
         "storage_adapter_managed_database_product_selection_readiness",
         "storage_adapter_managed_database_product_selection_review",
+        "storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review",
+        "storage_adapter_concrete_managed_database_provider_selection_readiness",
+        "storage_adapter_concrete_managed_database_provider_selection_review",
     }:
         require(dependency in order, f"dependency order missing {dependency}")
     require(
         order.index("storage_adapter_managed_database_product_selection_readiness")
         < order.index("storage_adapter_managed_database_product_selection_review")
         < order.index("storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review")
+        < order.index("storage_adapter_concrete_managed_database_provider_selection_readiness")
+        < order.index("storage_adapter_concrete_managed_database_provider_selection_review")
         < order.index("audit_writer_runtime_entry_review"),
         "managed database product selection review order drifted",
     )
 
     alignment = fixture.get("blocker_matrix_alignment") or {}
-    require(alignment.get("status") == CURRENT_MATRIX_BLOCKER_STATUS, "fixture matrix status drifted")
-    require(alignment.get("source") == CURRENT_MATRIX_BLOCKER_SOURCE, "fixture matrix source drifted")
-    require(alignment.get("unlock_condition") == CURRENT_NEXT_DEPENDENCY, "fixture matrix unlock drifted")
-    require(alignment.get("runtime_task_card_decision") == CURRENT_ENTRY_DECISION, "fixture matrix decision drifted")
+    require(alignment.get("status") == FIXTURE_MATRIX_BLOCKER_STATUS, "fixture matrix status drifted")
+    require(alignment.get("source") == FIXTURE_MATRIX_BLOCKER_SOURCE, "fixture matrix source drifted")
+    require(alignment.get("unlock_condition") == FIXTURE_MATRIX_UNLOCK_CONDITION, "fixture matrix unlock drifted")
+    require(alignment.get("runtime_task_card_decision") == FIXTURE_ENTRY_DECISION, "fixture matrix decision drifted")
 
     readiness = load_json(IMPLEMENTATION_READINESS_PATH)
     target = readiness.get("implementation_target") or {}
@@ -528,7 +545,7 @@ def check_aggregate_alignment(fixture: dict[str, Any]) -> None:
         "audit_storage_adapter_selected_managed_product_profile": SELECTED_PROFILE,
         "audit_storage_adapter_managed_database_product_status": MANAGED_PRODUCT_STATUS,
         "audit_storage_adapter_database_vendor_status": "not_selected",
-        "audit_storage_adapter_database_provider_status": "provider_class_selected_without_concrete_provider",
+        "audit_storage_adapter_database_provider_status": CURRENT_DATABASE_PROVIDER_STATUS,
         "audit_storage_adapter_database_connection_provider_status": "not_created",
         "audit_storage_adapter_runtime_task_card_status": "not_created",
         "audit_storage_adapter_runtime_status": "not_created",
@@ -542,8 +559,8 @@ def check_aggregate_alignment(fixture: dict[str, Any]) -> None:
     readiness_alignment = fixture.get("implementation_readiness_alignment") or {}
     for field, expected in {
         "status": SLICE_STATUS,
-        "audit_storage_adapter_runtime_task_card_decision": CURRENT_ENTRY_DECISION,
-        "audit_storage_adapter_current_next_dependency": CURRENT_NEXT_DEPENDENCY,
+        "audit_storage_adapter_runtime_task_card_decision": FIXTURE_ENTRY_DECISION,
+        "audit_storage_adapter_current_next_dependency": FIXTURE_MATRIX_UNLOCK_CONDITION,
         "audit_storage_adapter_managed_product_selection_status": PRODUCT_SELECTION_STATUS,
         "audit_storage_adapter_managed_product_selection_review_status": SLICE_STATUS,
         "audit_storage_adapter_selected_managed_product_profile": SELECTED_PROFILE,
