@@ -1,6 +1,6 @@
 # Production Secret Backend Audit Store Storage Adapter 静态准入说明 v1
 
-更新时间：2026-07-07
+更新时间：2026-07-08
 
 本文说明 `Production Secret Backend` 中 audit store storage adapter 相关 checker / fixture 应如何阅读。它是长期说明文档，不记录批次流水，也不替代 task card。
 
@@ -8,10 +8,10 @@
 
 当前 storage adapter 仍停在静态准入和入口复评阶段，最新状态锚点为：
 
-- `audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined`
-- `concrete_managed_database_provider_selection_readiness_defined_without_provider_selection`
-- `storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness`
-- 下一项独立依赖：`storage_adapter_concrete_managed_database_provider_selection_review`
+- `audit_store_storage_adapter_provider_account_resource_endpoint_review_defined`
+- `provider_account_resource_endpoint_review_defined_runtime_blocked`
+- `storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_review`
+- 下一项独立依赖：`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review`
 
 已经完成的选择只到静态候选层：
 
@@ -19,8 +19,9 @@
 - provider candidate class：`managed_postgresql_compatible_service`
 - reference-only driver candidate：`github.com/jackc/pgx/v5`
 - reference-only managed database product profile：`managed_postgresql_compatible_audit_store_profile`
+- reference-only provider profile：`managed_postgresql_compatible_provider_reference`
 
-这些结论不代表具体厂商、cloud product、managed product、provider account resource、database endpoint、region detail、provider、driver runtime、连接运行时或 storage adapter runtime 已可用。
+这些结论不代表具体厂商、cloud product、managed product、provider account、provider resource、database endpoint、region detail、driver runtime、连接运行时或 storage adapter runtime 已可用。
 
 ## 证据链读法
 
@@ -41,6 +42,10 @@ storage adapter 的证据链按以下层次推进：
 13. managed database product selection review：只选择 reference-only profile `managed_postgresql_compatible_audit_store_profile`，并继续确认 storage adapter runtime task card blocked；不选择具体 vendor、cloud product、provider account resource、database endpoint 或 region detail。
 14. after managed database product selection review entry refresh：确认 review 后 runtime task card 仍 blocked，并把下一步固定为 concrete managed database provider selection readiness。
 15. concrete managed database provider selection readiness：定义 concrete provider selection review 前的 metadata-only 候选证据、拒绝条件和 artifact guard；不选择具体 vendor、cloud product、managed product、provider、account resource、endpoint 或 region detail。
+16. concrete managed database provider selection review：只选择 reference-only provider profile `managed_postgresql_compatible_provider_reference`，不选择真实 vendor、cloud product、provider account、provider resource、endpoint 或 region detail。
+17. after concrete managed database provider selection review entry refresh：确认 review 后 runtime task card 仍 blocked，并把下一步固定为 provider account / resource / endpoint readiness。
+18. provider account / resource / endpoint readiness：只定义 metadata-only provider account、provider resource、database endpoint、region detail 输入证据、人工确认点、拒绝条件和脱敏边界。
+19. provider account / resource / endpoint review：审查上述 metadata-only readiness 是否可作为后续 runtime entry refresh 输入，结论仍为 runtime blocked。
 
 ## Checker 与 Fixture 语义
 
@@ -50,7 +55,8 @@ storage adapter 的证据链按以下层次推进：
 - 上游 dependency 已被正确消费，下游 runtime 仍被阻塞。
 - `production-ops-secret-backend-implementation-readiness.json` 与 runtime blocker matrix 消费最新阻塞项。
 - managed product selection review 只能选择 reference-only profile，不能把 profile 写成具体 vendor、cloud product、provider account resource、database endpoint 或 region detail。
-- concrete managed database provider selection readiness 只能定义选择评审前证据，不能写成 provider selection review、runtime readiness、repository mode readiness 或 production API readiness。
+- concrete managed database provider selection review 只能选择 reference-only provider profile，不能写成真实 vendor、cloud product、provider account、provider resource、database endpoint 或 region detail。
+- provider account / resource / endpoint readiness / review 只能处理 metadata-only evidence、operator confirmation gate、拒绝条件和脱敏诊断，不能写成真实 provider resource、真实 endpoint、runtime readiness、repository mode readiness 或 production API readiness。
 - `scripts/check-repo.py` 注册顺序正确。
 - forbidden artifact guard 不允许提前出现 runtime、provider、SQL、DDL、schema marker、migration runner 或 public API。
 - no secret material scan 不允许 committed 文档、fixture 或 checker 输出敏感材料。
@@ -97,4 +103,8 @@ storage adapter 的证据链按以下层次推进：
 - [Managed Database Product Selection Review v1](production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1.md)
 - [After Managed Database Product Selection Review Entry Refresh v1](production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-managed-database-product-selection-review-v1.md)
 - [Concrete Managed Database Provider Selection Readiness v1](production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1.md)
+- [Concrete Managed Database Provider Selection Review v1](production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-review-v1.md)
+- [After Concrete Managed Database Provider Selection Review Entry Refresh v1](production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1.md)
+- [Provider Account / Resource / Endpoint Readiness v1](production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1.md)
+- [Provider Account / Resource / Endpoint Review v1](production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.md)
 - [Production Secret Reference 契约](../contracts/production-secret-reference.md)
