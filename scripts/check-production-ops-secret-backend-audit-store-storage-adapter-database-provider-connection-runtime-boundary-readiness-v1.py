@@ -28,14 +28,14 @@ ENTRY_DECISION = "storage_adapter_runtime_task_card_still_blocked_after_database
 NEXT_DEPENDENCY = "storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness"
 MATRIX_BLOCKER_STATUS = "storage_adapter_database_provider_connection_runtime_boundary_readiness_defined_task_card_blocked"
 CURRENT_ENTRY_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh"
+    "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_readiness"
 )
-CURRENT_NEXT_DEPENDENCY = "storage_adapter_provider_account_resource_endpoint_readiness"
+CURRENT_NEXT_DEPENDENCY = "storage_adapter_provider_account_resource_endpoint_review"
 CURRENT_MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
+    "storage_adapter_provider_account_resource_endpoint_readiness_defined_task_card_blocked"
 )
 CURRENT_MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1"
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1"
 )
 FIXTURE_MATRIX_BLOCKER_STATUS = (
     "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"

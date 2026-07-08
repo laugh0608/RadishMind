@@ -32,16 +32,16 @@ SELECTED_PRODUCT_CLASS = "managed_database_append_only_table"
 SELECTED_PRODUCT_PROFILE = "reserved_managed_database_append_only_table_profile"
 MATRIX_BLOCKER_STATUS = "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_defined_task_card_blocked"
 CURRENT_MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
+    "storage_adapter_provider_account_resource_endpoint_readiness_defined_task_card_blocked"
 )
 CURRENT_MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1"
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1"
 )
 CURRENT_NEXT_DEPENDENCY = (
-    "storage_adapter_provider_account_resource_endpoint_readiness"
+    "storage_adapter_provider_account_resource_endpoint_review"
 )
 CURRENT_RUNTIME_TASK_CARD_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh"
+    "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_readiness"
 )
 
 EXPECTED_DEPENDENCIES = {

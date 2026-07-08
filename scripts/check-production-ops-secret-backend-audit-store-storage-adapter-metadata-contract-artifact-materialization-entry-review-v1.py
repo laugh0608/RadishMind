@@ -132,6 +132,17 @@ FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS = (
 FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY = (
     "storage_adapter_provider_account_resource_endpoint_readiness"
 )
+FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_FIXTURE = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1.json"
+)
+FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_STATUS = (
+    "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined"
+)
+FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_NEXT_DEPENDENCY = (
+    "storage_adapter_provider_account_resource_endpoint_review"
+)
 FOLLOWUP_ALIGNMENT = {
     "audit_storage_adapter_contract_materialization_task_card_status": "created",
     "audit_storage_adapter_contract_artifact_materialization_status": FOLLOWUP_MATERIALIZATION_STATUS,
@@ -239,6 +250,20 @@ FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT = {
     "audit_storage_adapter_current_next_dependency": (
         FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY
     ),
+}
+FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_ALIGNMENT = {
+    "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_status": (
+        FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_readiness"
+    ),
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_NEXT_DEPENDENCY,
+    "audit_storage_adapter_provider_account_resource_status": "metadata_only_readiness_defined_without_real_resource",
+    "audit_storage_adapter_provider_resource_status": "not_selected",
+    "audit_storage_adapter_database_endpoint_status": "metadata_only_endpoint_requirements_defined_without_endpoint",
+    "audit_storage_adapter_region_detail_status": "metadata_only_region_requirements_defined_without_region_detail",
+    "audit_storage_adapter_provider_account_confirmation_status": "operator_confirmation_required_before_runtime",
 }
 FOLLOWUP_ALLOWED_ARTIFACTS = {
     RESERVED_CONTRACT_ARTIFACT,
@@ -521,6 +546,13 @@ def followup_after_concrete_managed_database_provider_selection_review_exists() 
     return source_status(followup) == FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS
 
 
+def followup_provider_account_resource_endpoint_readiness_exists() -> bool:
+    if not FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_FIXTURE.exists():
+        return False
+    followup = load_json(FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_FIXTURE)
+    return source_status(followup) == FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
@@ -707,7 +739,9 @@ def assert_blocker_matrix_alignment() -> None:
         )
         if followup_selection_exists():
             expected_next_dependency = (
-                FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY
+                FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_NEXT_DEPENDENCY
+                if followup_provider_account_resource_endpoint_readiness_exists()
+                else FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY
                 if followup_after_concrete_managed_database_provider_selection_review_exists()
                 else FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY
                 if followup_concrete_managed_database_provider_selection_review_exists()
@@ -814,6 +848,11 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
             and field in FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT
         ):
             expected = FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT[field]
+        if (
+            followup_provider_account_resource_endpoint_readiness_exists()
+            and field in FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_ALIGNMENT
+        ):
+            expected = FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     planned = {str(row.get("id")): row for row in readiness.get("planned_slices") or [] if isinstance(row, dict)}

@@ -34,7 +34,7 @@
 - entry decision：`storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review_entry_refresh`
 - durable backend blocker：`storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review_defined_task_card_blocked`
 - 下一项：`storage_adapter_concrete_managed_database_provider_selection_readiness`
-- 后续 current blocker 已由 concrete managed database provider selection readiness 推进为 `storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked`，当前下一项为 `storage_adapter_concrete_managed_database_provider_selection_review`
+- 后续 blocker 已由 concrete managed database provider selection readiness（`storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked`）、selection review、review 后 entry refresh 和 provider account / resource / endpoint readiness 继续推进；`storage_adapter_concrete_managed_database_provider_selection_review` 已被后续批次消费，当前下一项以 `storage_adapter_provider_account_resource_endpoint_review` 为准
 
 ## 停止线
 

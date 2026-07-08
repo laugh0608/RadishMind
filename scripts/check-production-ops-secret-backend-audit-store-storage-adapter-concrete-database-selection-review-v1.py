@@ -28,16 +28,16 @@ SELECTED_DATABASE_ENGINE = "postgresql_compatible_append_only_relational_databas
 SELECTION_STATUS = "selected_database_engine_without_vendor_or_provider"
 MATRIX_BLOCKER_STATUS = "storage_adapter_concrete_database_selection_review_defined_task_card_blocked"
 CURRENT_ENTRY_DECISION = (
-    "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh"
+    "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_readiness"
 )
 CURRENT_NEXT_DEPENDENCY = (
-    "storage_adapter_provider_account_resource_endpoint_readiness"
+    "storage_adapter_provider_account_resource_endpoint_review"
 )
 CURRENT_MATRIX_BLOCKER_STATUS = (
-    "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
+    "storage_adapter_provider_account_resource_endpoint_readiness_defined_task_card_blocked"
 )
 CURRENT_MATRIX_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1"
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1"
 )
 FIXTURE_MATRIX_BLOCKER_STATUS_AFTER_REVIEW = (
     "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
@@ -516,6 +516,10 @@ def assert_alignment(fixture: dict[str, Any]) -> None:
             value = CURRENT_NEXT_DEPENDENCY
         if field == "audit_storage_adapter_database_provider_status":
             value = "provider_reference_selected_without_runtime_provider"
+        if field == "audit_storage_adapter_provider_account_resource_status":
+            value = "metadata_only_readiness_defined_without_real_resource"
+        if field == "audit_storage_adapter_database_endpoint_status":
+            value = "metadata_only_endpoint_requirements_defined_without_endpoint"
         require(target.get(field) == value, f"implementation readiness {field} drifted")
 
     planned = rows_by_id(readiness, "planned_slices", "id")
