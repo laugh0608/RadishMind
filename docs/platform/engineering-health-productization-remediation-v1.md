@@ -58,7 +58,7 @@
 | --- | --- | --- | --- | --- |
 | R1 | 规划与在制品治理 | P0 | 进行中 | 当前焦点指向本专题；停止新增同层 readiness 链；每批只有一个明确用户目标 |
 | R2 | 正确性与安全清零 | P0 | 已完成 | CAS、竞态、错误脱敏、密钥传递、请求体边界均有行为测试且仓库全量通过 |
-| R3 | Workflow Draft Review Loop 产品闭环 | P1 | 待开始 | 创建、编辑、校验、保存、冲突、恢复、审查交接形成一条可重复端到端路径 |
+| R3 | Workflow Draft Review Loop 产品闭环 | P1 | 进行中 | 创建、编辑、校验、保存、冲突、恢复、审查交接形成一条可重复端到端路径 |
 | R4 | Gateway 运行时产品化 | P1 | 待开始 | 移除每请求进程启动开销，建立可观测、可取消、可回收的持久 bridge |
 | R5 | 测试、CI 与性能预算 | P1 | 待开始 | CI 覆盖 Go race/vet、Web/Console build、关键 Python 行为；前端包体和延迟有预算 |
 | R6 | 文档、checker 与资产收敛 | P2 | 待开始 | 入口文档恢复短入口；活跃 checker 和 task card 显著下降；历史证据可索引但不占当前主线 |
@@ -94,6 +94,8 @@
 本批不打开数据库、OIDC、repository mode、production secret resolver、executor、publish、writeback 或 replay。
 
 ## R3：Workflow Draft Review Loop 产品闭环
+
+2026-07-10 第一批先修复 saved version 生命周期：编辑、validate 和非冲突失败不再丢失 persisted base version，未处理的 `version_conflict` 不能通过重复 Save 绕过显式 Continue / Restore；行为测试已进入 Web PR / release CI。真实浏览器闭环仍待 dev-live 服务启动后复验。
 
 下一条产品主线使用现有能力形成一条可复验路径，不继续扩同层只读面板：
 

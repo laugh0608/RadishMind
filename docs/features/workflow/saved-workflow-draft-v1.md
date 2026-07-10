@@ -127,6 +127,8 @@ Production Secret Backend storage adapter 证据链已收束到 [Storage Adapter
 
 本专题已完成 [Saved Workflow Draft Conflict Review v1](saved-workflow-draft-conflict-review-v1.md)：围绕 `version_conflict`、继续本地草案、恢复 saved draft、冲突后 saved draft list 刷新和 Review Handoff 冲突摘要改善用户工作流，复用现有 dev-only route、consumer、saved draft list 和 active draft，不新增生产后端或执行链路。
 
+2026-07-10 R3 第一批已修复 consumer saved version 生命周期：本地编辑、validate 和非冲突失败均保留 persisted base version，未处理的 `version_conflict` 返回不可保存状态，只有显式 Continue 或 Restore 后才能继续 dev route 动作；对应 Node behavior test 已进入 Web PR / release CI。
+
 ## 目标用户
 
 - `Workspace Builder`：保存未完成的 workflow 设计，后续继续编辑。

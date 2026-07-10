@@ -5,6 +5,13 @@ import type {
   WorkflowDraftDesignerLayoutPosition,
   WorkflowDraftDesignerNode,
 } from "./workflowDraftDesigner";
+import {
+  nextWorkflowSavedDraftExpectedVersion,
+  resolveWorkflowSavedDraftVersion,
+  workflowSavedDraftConflictRequiresResolution,
+} from "./savedWorkflowDraftLifecycle";
+
+export { nextWorkflowSavedDraftExpectedVersion, workflowSavedDraftConflictRequiresResolution };
 
 const DEV_SAVED_DRAFT_SOURCE = "dev-saved-draft-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
@@ -374,12 +381,13 @@ export async function saveWorkflowDraftDevRecord(
       draft: toSavedWorkflowDraftPayload(draft, config),
     }),
   });
-  return stateFromSavedWorkflowDraftEnvelope(envelope, "save");
+  return stateFromSavedWorkflowDraftEnvelope(envelope, "save", expectedDraftVersion);
 }
 
 export async function validateWorkflowDraftDevRecord(
   draft: WorkflowDraftDesignerDraft,
   config: WorkflowSavedDraftConsumerConfig,
+  currentDraftVersion = 0,
 ): Promise<WorkflowSavedDraftConsumerState> {
   const envelope = await requestSavedWorkflowDraftEnvelope(
     "/v1/user-workspace/workflow-drafts/validate",
@@ -390,12 +398,13 @@ export async function validateWorkflowDraftDevRecord(
       body: JSON.stringify({ draft: toSavedWorkflowDraftPayload(draft, config) }),
     },
   );
-  return stateFromSavedWorkflowDraftEnvelope(envelope, "validate");
+  return stateFromSavedWorkflowDraftEnvelope(envelope, "validate", currentDraftVersion);
 }
 
 export async function readWorkflowDraftDevRecord(
   draft: WorkflowDraftDesignerDraft,
   config: WorkflowSavedDraftConsumerConfig,
+  currentDraftVersion = 0,
 ): Promise<WorkflowSavedDraftConsumerState> {
   const query = new URLSearchParams({
     workspace_id: config.workspaceId,
@@ -407,7 +416,7 @@ export async function readWorkflowDraftDevRecord(
     draft,
     { method: "GET" },
   );
-  return stateFromSavedWorkflowDraftEnvelope(envelope, "read");
+  return stateFromSavedWorkflowDraftEnvelope(envelope, "read", currentDraftVersion);
 }
 
 export async function listWorkflowDraftDevRecords(
@@ -441,19 +450,11 @@ export async function restoreWorkflowDraftDevRecord(
     `dev-saved-draft-restore-${summary.draftId}`,
     { method: "GET" },
   );
-  const state = stateFromSavedWorkflowDraftEnvelope(envelope, "read");
+  const state = stateFromSavedWorkflowDraftEnvelope(envelope, "read", summary.draftVersion);
   if (envelope.failure_code || !envelope.draft) {
     return { state, draft: null };
   }
   return { state, draft: workflowDraftFromSavedWorkflowDraftDocument(envelope.draft) };
-}
-
-export function nextWorkflowSavedDraftExpectedVersion(state: WorkflowSavedDraftConsumerState): number {
-  return state.status === "saved_dev_record" ||
-    state.status === "version_conflict" ||
-    state.status === "conflict_local_continued"
-    ? state.currentDraftVersion
-    : 0;
 }
 
 export function continueLocalWorkflowDraftAfterVersionConflict(
@@ -638,11 +639,17 @@ function listStateFromSavedWorkflowDraftEnvelope(
 function stateFromSavedWorkflowDraftEnvelope(
   envelope: SavedWorkflowDraftEnvelope,
   operation: "save" | "read" | "validate",
+  previousDraftVersion: number,
 ): WorkflowSavedDraftConsumerState {
   const base = {
     mode: "dev_saved_draft_http" as const,
     failureCode: envelope.failure_code,
-    currentDraftVersion: envelope.current_draft_version,
+    currentDraftVersion: resolveWorkflowSavedDraftVersion({
+      operation,
+      failureCode: envelope.failure_code,
+      envelopeDraftVersion: envelope.current_draft_version,
+      previousDraftVersion,
+    }),
     conflictDraftVersion: null,
     auditRef: envelope.audit_ref,
     requestId: envelope.request_id,

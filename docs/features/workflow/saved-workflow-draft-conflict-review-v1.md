@@ -1,6 +1,6 @@
 # Saved Workflow Draft Conflict Review v1
 
-更新时间：2026-07-01
+更新时间：2026-07-10
 
 状态：`workflow_saved_draft_conflict_review_v1_implemented`
 
@@ -12,11 +12,12 @@
 
 - Draft Designer 已在 `version_conflict` 后展示 saved draft conflict review，保留本地 active draft，并展示 saved version、updated metadata、validation state 和 blocked capability count。
 - 前端 consumer 已新增 `conflict_local_continued` 状态；用户显式选择继续编辑本地草案后，后续保存会使用当前 saved version 作为 expected version。
+- 2026-07-10 已修正 saved version 生命周期：已保存草案进入 `unsaved_local` 或 `validation_ready` 后继续保留 persisted base version；未处理的 `version_conflict` 会阻止 validate / save / read，只有显式 Continue 或 Restore 后才能继续 dev route 动作。
 - Draft Designer 已提供显式恢复 saved version 的入口；恢复动作复用既有 dev-only read route 和 saved draft list summary，不由保存失败自动触发。
 - 保存返回 `version_conflict` 后，Draft Designer 会刷新当前 application 的 sanitized saved draft list，为显式恢复 saved version 准备当前 metadata；该刷新不读取 secret、不恢复草案、不覆盖本地 active draft。
 - Review Handoff 已消费同一份 conflict review summary，并以 advisory-only 形式展示冲突状态、saved version metadata、validation 状态、blocked capability 和 auto overwrite / auto merge 停止线。
 - 2026-07-01 已整理冲突审查卡片与 Review Handoff 可读性：前端 conflict review summary 现在显式派生 `savedMetadataLoaded`、`savedMetadataState`、`restoreActionState`、`restoreUnavailableReason`、本地草案保留说明和 reviewer 下一步；恢复入口在 metadata 刷新中、列表为空、列表失败或缺少匹配 summary 时保持禁用，并说明本地草案仍未被覆盖或合并。
-- `workflow-saved-draft-consumer-smoke-v1` 与 `workflow-review-handoff-active-draft-v1` 已同步覆盖该实现；本批不新增 backend route、repository mode、数据库、runtime 或 public production API。
+- `workflow-saved-draft-consumer-smoke-v1`、Web lifecycle behavior test 与 `workflow-review-handoff-active-draft-v1` 已同步覆盖该实现；本批不新增 checker、backend route、repository mode、数据库、runtime 或 public production API。
 - 2026-06-30 dev-live 浏览器复核已覆盖正常保存、外部版本推进、UI 冲突保存、冲突后列表刷新、继续本地草案、显式恢复 saved version 和 Review Handoff 摘要展示；复核期间只出现 `favicon.ico` 404，不影响 workflow 功能。
 
 ## 目标用户
@@ -87,6 +88,8 @@
 - Review Handoff 能显示 conflict review summary，并保持 advisory-only。
 - 失败状态不得回退到 sample、fixture 或 memory dev 的其它草案。
 - 现有 workflow consumer smoke、Review Handoff 检查和 web build 可复验本批实现；只有新增协议字段、route 行为或高风险边界时再新增专项 task card / fixture / checker。
+- 已保存草案经过本地编辑或 validate 后再次保存，必须继续使用原 persisted base version；validate 的非持久化 `current_draft_version=0` 不得覆盖本地 saved baseline。
+- `version_conflict` 未显式处理前，Validate / Save / Read 和草案编辑控件保持禁用，不能通过重复 Save 绕过冲突审查。
 - dev-live 浏览器复核记录应能证明本地 active draft 不被自动覆盖、冲突后列表刷新只准备恢复入口、恢复 saved version 必须显式触发，且 Review Handoff 仍只提供 advisory-only 审查语义。
 
 ## 停止线

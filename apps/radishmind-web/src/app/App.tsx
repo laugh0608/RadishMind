@@ -32,6 +32,7 @@ import {
   restoreWorkflowDraftDevRecord,
   saveWorkflowDraftDevRecord,
   validateWorkflowDraftDevRecord,
+  workflowSavedDraftConflictRequiresResolution,
   type WorkflowSavedDraftListState,
   type WorkflowSavedDraftSummary,
   type WorkflowSavedDraftConsumerState,
@@ -474,17 +475,32 @@ export function App() {
 
   const markWorkflowDraftLocallyEdited = () => {
     setWorkflowDraftEditDirty(true);
-    setSavedDraftConsumerState((state) => ({
-      ...state,
-      status: "unsaved_local",
-      sourceLabel: "unsaved local",
-      summary:
-        state.mode === "dev_saved_draft_http"
-          ? "Local draft has unsaved edits; validate or save through the dev-only saved draft route."
-          : "Local draft has unsaved edits and remains in sample-only mode.",
-      failureCode: null,
-      conflictDraftVersion: null,
-    }));
+    setSavedDraftConsumerState((state) => {
+      if (state.status === "version_conflict") {
+        return {
+          ...state,
+          summary:
+            "Local edits remain active, but the version conflict still requires explicit Continue local draft or Restore saved version before another dev route action.",
+        };
+      }
+      if (state.status === "conflict_local_continued") {
+        return {
+          ...state,
+          summary: `Local draft has unsaved edits after explicit conflict review; the next save will use saved version ${state.currentDraftVersion}.`,
+        };
+      }
+      return {
+        ...state,
+        status: "unsaved_local",
+        sourceLabel: "unsaved local",
+        summary:
+          state.mode === "dev_saved_draft_http"
+            ? "Local draft has unsaved edits; validate or save through the dev-only saved draft route."
+            : "Local draft has unsaved edits and remains in sample-only mode.",
+        failureCode: null,
+        conflictDraftVersion: null,
+      };
+    });
   };
 
   const handleWorkflowDraftLabelChange = (label: string) => {
@@ -868,9 +884,13 @@ export function App() {
     handleRestoreSavedWorkflowDraft(savedDraftConflictRestoreSummary);
   };
   const handleValidateWorkflowDraft = () => {
-    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+    if (
+      savedDraftConsumerConfig.mode !== "dev_saved_draft_http" ||
+      workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState)
+    ) {
       return;
     }
+    const currentDraftVersion = savedDraftConsumerState.currentDraftVersion;
     setSavedDraftConsumerState((state) => ({
       ...state,
       status: "validating",
@@ -878,7 +898,7 @@ export function App() {
       failureCode: null,
       conflictDraftVersion: null,
     }));
-    validateWorkflowDraftDevRecord(activeWorkflowDraft, savedDraftConsumerConfig)
+    validateWorkflowDraftDevRecord(activeWorkflowDraft, savedDraftConsumerConfig, currentDraftVersion)
       .then(setSavedDraftConsumerState)
       .catch((error: unknown) => {
         setSavedDraftConsumerState((state) => ({
@@ -896,6 +916,9 @@ export function App() {
       return;
     }
     const expectedDraftVersion = nextWorkflowSavedDraftExpectedVersion(savedDraftConsumerState);
+    if (expectedDraftVersion === null) {
+      return;
+    }
     setSavedDraftConsumerState((state) => ({
       ...state,
       status: "saving",
@@ -937,9 +960,13 @@ export function App() {
       });
   };
   const handleReadWorkflowDraft = () => {
-    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+    if (
+      savedDraftConsumerConfig.mode !== "dev_saved_draft_http" ||
+      workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState)
+    ) {
       return;
     }
+    const currentDraftVersion = savedDraftConsumerState.currentDraftVersion;
     setSavedDraftConsumerState((state) => ({
       ...state,
       status: "reading",
@@ -947,7 +974,7 @@ export function App() {
       failureCode: null,
       conflictDraftVersion: null,
     }));
-    readWorkflowDraftDevRecord(activeWorkflowDraft, savedDraftConsumerConfig)
+    readWorkflowDraftDevRecord(activeWorkflowDraft, savedDraftConsumerConfig, currentDraftVersion)
       .then(setSavedDraftConsumerState)
       .catch((error: unknown) => {
         setSavedDraftConsumerState((state) => ({
@@ -3039,6 +3066,8 @@ function WorkflowDraftDesignerPanel({
 }) {
   const canCallDevConsumer = savedDraftConsumerState.mode === "dev_saved_draft_http";
   const operationPending = ["saving", "validating", "reading"].includes(savedDraftConsumerState.status);
+  const conflictRequiresResolution = workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState);
+  const interactionDisabled = operationPending || conflictRequiresResolution;
   const editStateLabel = draftEditDirty ? "unsaved local" : selectedDraft.localOnlyInteraction;
   const conflictRestoreUnavailableMessage =
     savedDraftConflictReviewSummary?.restoreUnavailableReason ??
@@ -3065,6 +3094,7 @@ function WorkflowDraftDesignerPanel({
             key={template.draftId}
             template={template}
             selected={template.draftId === selectedDraftId}
+            disabled={interactionDisabled}
             onSelectDraft={onSelectDraft}
           />
         ))}
@@ -3100,7 +3130,7 @@ function WorkflowDraftDesignerPanel({
             type="text"
             value={selectedDraft.label}
             maxLength={160}
-            disabled={operationPending}
+            disabled={interactionDisabled}
             onChange={(event) => onUpdateDraftLabel(event.currentTarget.value)}
           />
         </label>
@@ -3110,7 +3140,7 @@ function WorkflowDraftDesignerPanel({
             value={selectedDraft.summary}
             maxLength={4000}
             rows={3}
-            disabled={operationPending}
+            disabled={interactionDisabled}
             onChange={(event) => onUpdateDraftSummary(event.currentTarget.value)}
           />
         </label>
@@ -3118,7 +3148,7 @@ function WorkflowDraftDesignerPanel({
           <span>Local edit</span>
           <strong>{editStateLabel}</strong>
           <p>{draftEditDirty ? "Local draft changes are ready for validation or save." : selectedDraft.templateRef}</p>
-          <button type="button" disabled={!draftEditDirty || operationPending} onClick={onResetDraftEdits}>
+          <button type="button" disabled={!draftEditDirty || interactionDisabled} onClick={onResetDraftEdits}>
             Reset
           </button>
         </article>
@@ -3150,13 +3180,13 @@ function WorkflowDraftDesignerPanel({
             {savedDraftConsumerState.status}
           </StatusBadge>
           <div className="workflow-draft-action-row" aria-label="Saved draft dev consumer actions">
-            <button type="button" disabled={!canCallDevConsumer || operationPending} onClick={onValidateDraft}>
+            <button type="button" disabled={!canCallDevConsumer || interactionDisabled} onClick={onValidateDraft}>
               Validate
             </button>
-            <button type="button" disabled={!canCallDevConsumer || operationPending} onClick={onSaveDraft}>
+            <button type="button" disabled={!canCallDevConsumer || interactionDisabled} onClick={onSaveDraft}>
               Save
             </button>
-            <button type="button" disabled={!canCallDevConsumer || operationPending} onClick={onReadDraft}>
+            <button type="button" disabled={!canCallDevConsumer || interactionDisabled} onClick={onReadDraft}>
               Read
             </button>
           </div>
@@ -3271,7 +3301,7 @@ function WorkflowDraftDesignerPanel({
               key={option.nodeType}
               type="button"
               className="workflow-draft-node-type-button"
-              disabled={operationPending}
+              disabled={interactionDisabled}
               onClick={() => onAddNode(option.nodeType)}
             >
               <span>{option.lane}</span>
@@ -3285,7 +3315,7 @@ function WorkflowDraftDesignerPanel({
       <WorkflowNodeDesigner
         draft={selectedDraft}
         validationInspector={validationInspector}
-        editingDisabled={operationPending}
+        editingDisabled={interactionDisabled}
         canRemoveNode={(nodeId) => canRemoveWorkflowDraftNode(selectedDraft, nodeId)}
         onUpdateNodeLabel={onUpdateNodeLabel}
         onUpdateNodeInputSummary={onUpdateNodeInputSummary}
@@ -3308,7 +3338,7 @@ function WorkflowDraftDesignerPanel({
             nodeIndex={nodeIndex}
             nodeCount={selectedDraft.nodes.length}
             canDelete={canRemoveWorkflowDraftNode(selectedDraft, node.nodeId)}
-            editingDisabled={operationPending}
+            editingDisabled={interactionDisabled}
             onUpdateLabel={onUpdateNodeLabel}
             onUpdateInputSummary={onUpdateNodeInputSummary}
             onUpdateOutputSummary={onUpdateNodeOutputSummary}
@@ -3329,7 +3359,7 @@ function WorkflowDraftDesignerPanel({
           <WorkflowDraftEdgeCard
             key={edge.edgeId}
             edge={edge}
-            editingDisabled={operationPending}
+            editingDisabled={interactionDisabled}
             onUpdateCondition={onUpdateEdgeCondition}
             onRemoveEdge={onRemoveEdge}
           />
@@ -3890,10 +3920,12 @@ function workflowDraftNodeLooksLikeAudit(node: WorkflowDraftDesignerNode): boole
 function WorkflowDraftTemplateButton({
   template,
   selected,
+  disabled,
   onSelectDraft,
 }: {
   template: WorkflowDraftDesignerTemplate;
   selected: boolean;
+  disabled: boolean;
   onSelectDraft: (draftId: string) => void;
 }) {
   return (
@@ -3901,6 +3933,7 @@ function WorkflowDraftTemplateButton({
       type="button"
       className={`workflow-draft-template-button${selected ? " selected" : ""}`}
       aria-pressed={selected}
+      disabled={disabled}
       onClick={() => onSelectDraft(template.draftId)}
     >
       <span>{template.workflowKind}</span>

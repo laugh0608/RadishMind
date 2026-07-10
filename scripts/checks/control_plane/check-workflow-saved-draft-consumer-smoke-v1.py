@@ -100,15 +100,23 @@ def assert_consumer_contract(fixture: dict[str, Any]) -> None:
         require(str(field) in consumer_text, f"saved draft consumer missing state field: {field}")
     for literal in contract.get("required_literals") or []:
         require(str(literal) in consumer_text, f"saved draft consumer missing literal: {literal}")
-    for helper_literal in (
-        'state.status === "saved_dev_record"',
-        'state.status === "version_conflict"',
-        'state.status === "conflict_local_continued"',
-    ):
-        require(
-            helper_literal in consumer_text,
-            f"expected version helper missing retry status: {helper_literal}",
-        )
+
+
+def assert_lifecycle_contract(fixture: dict[str, Any]) -> None:
+    contract = fixture.get("lifecycle_contract") or {}
+    lifecycle_text = read(str(contract.get("file")))
+    test_text = read(str(contract.get("test_file")))
+    for literal in contract.get("required_literals") or []:
+        require(str(literal) in lifecycle_text, f"saved draft lifecycle missing literal: {literal}")
+    for literal in contract.get("required_test_literals") or []:
+        require(str(literal) in test_text, f"saved draft lifecycle test missing literal: {literal}")
+
+    package_document = load_json(REPO_ROOT / "apps/radishmind-web/package.json")
+    test_command = str((package_document.get("scripts") or {}).get("test") or "")
+    require("savedWorkflowDraftLifecycle.test.ts" in test_command, "web package test must run lifecycle behavior test")
+    for workflow_path in (".github/workflows/pr-check.yml", ".github/workflows/release-check.yml"):
+        workflow_text = read(workflow_path)
+        require("npm test" in workflow_text, f"{workflow_path} must run web lifecycle tests")
 
 
 def assert_app_contract(fixture: dict[str, Any]) -> None:
@@ -140,6 +148,7 @@ def assert_testing_strategy(fixture: dict[str, Any]) -> None:
     expected_commands = {
         "./scripts/run-python.sh scripts/checks/control_plane/check-workflow-saved-draft-consumer-smoke-v1.py",
         "go test ./...",
+        "npm test",
         "npm run build",
         "./scripts/check-repo.sh --fast",
     }
@@ -152,6 +161,7 @@ def main() -> None:
     assert_fixture_shape(fixture)
     assert_route_contract(fixture)
     assert_consumer_contract(fixture)
+    assert_lifecycle_contract(fixture)
     assert_app_contract(fixture)
     assert_docs_and_fast_baseline(fixture)
     assert_testing_strategy(fixture)
