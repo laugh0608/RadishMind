@@ -119,6 +119,30 @@ func TestSavedWorkflowDraftHTTPRoutes(t *testing.T) {
 		}
 	})
 
+	t.Run("dev write route rejects unknown request fields", func(t *testing.T) {
+		server := newSavedWorkflowDraftHTTPTestServer(true)
+		req := httptest.NewRequest(
+			http.MethodPost,
+			"/v1/user-workspace/workflow-drafts",
+			strings.NewReader(`{"unexpected":true}`),
+		)
+		setSavedWorkflowDraftDevHeaders(req, "workflow_drafts:read,workflow_drafts:write")
+		rec := httptest.NewRecorder()
+
+		server.httpServer.Handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusBadRequest {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		var response errorDocument
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode strict request error: %v", err)
+		}
+		if response.Error.Code != "INVALID_JSON" {
+			t.Fatalf("unknown request field should fail closed: %#v", response.Error)
+		}
+	})
+
 	t.Run("write disabled returns draft_write_disabled without partial write", func(t *testing.T) {
 		server := newSavedWorkflowDraftHTTPTestServer(false)
 		payload := validSavedWorkflowDraftPayload()

@@ -1,6 +1,6 @@
 # Saved Workflow Draft v1 功能专题
 
-更新时间：2026-07-02
+更新时间：2026-07-10
 
 ## 专题定位
 
@@ -11,7 +11,7 @@
 ## 当前状态
 
 - Platform Go domain service 已实现，文件为 `services/platform/internal/httpapi/workflow_saved_draft.go`。
-- 已覆盖 `SavedWorkflowDraft` v1 类型、memory dev store、`SaveDraft` / `ReadDraft` / `ValidateDraft` / `ListDrafts`、版本冲突、失败语义、sanitized response、no sample fallback 和 no side effects tests。
+- 已覆盖 `SavedWorkflowDraft` v1 类型、并发安全的 memory dev store、原子 expected-version compare-and-swap、`SaveDraft` / `ReadDraft` / `ValidateDraft` / `ListDrafts`、blocking / information finding 状态语义、版本冲突、失败语义、sanitized response、no sample fallback 和 no side effects tests。
 - 当前已新增 dev-only HTTP route 和 web consumer 状态区分：`POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}`、`GET /v1/user-workspace/workflow-drafts` 和 `POST /v1/user-workspace/workflow-drafts/validate` 默认关闭，只在显式 dev 配置下工作。
 - 当前已补 route contract 和 consumer smoke：Go route test 固定 envelope、header、CORS、not found / store unavailable no sample fallback；前端 consumer 固定 `version_conflict` 与 `conflict_local_continued` 状态，version conflict 时保留本地草案、展示当前 saved draft version metadata，并刷新当前 application 的 saved draft list 以准备显式恢复。
 - 当前已接入 [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md)：Draft Designer 可编辑草案名称、说明、节点名称和边条件摘要，validate / save / read 使用当前本地草案。

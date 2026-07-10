@@ -1,7 +1,6 @@
 package httpapi
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -167,8 +166,10 @@ func (s *Server) handleSaveWorkflowDraft(writer http.ResponseWriter, request *ht
 		return
 	}
 	var body savedWorkflowDraftSaveHTTPBody
-	if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
-		s.writePlatformError(writer, trace, "INVALID_JSON", err.Error())
+	if !s.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{
+		maxBytes:            maxControlJSONRequestBodyBytes,
+		rejectUnknownFields: true,
+	}) {
 		return
 	}
 	payload := savedWorkflowDraftPayloadFromDocument(body.Draft)
@@ -253,8 +254,10 @@ func (s *Server) handleValidateWorkflowDraft(writer http.ResponseWriter, request
 		return
 	}
 	var body savedWorkflowDraftValidateHTTPBody
-	if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
-		s.writePlatformError(writer, trace, "INVALID_JSON", err.Error())
+	if !s.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{
+		maxBytes:            maxControlJSONRequestBodyBytes,
+		rejectUnknownFields: true,
+	}) {
 		return
 	}
 	payload := savedWorkflowDraftPayloadFromDocument(body.Draft)

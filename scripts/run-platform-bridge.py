@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,9 @@ from services.runtime.inference_support import describe_provider_inventory  # no
 from services.runtime.provider_registry import describe_provider_registry  # noqa: E402
 
 
+BRIDGE_API_KEY_ENV = "RADISHMIND_PLATFORM_BRIDGE_API_KEY"
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Bridge Go platform requests to the canonical Python runtime.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -26,7 +30,6 @@ def parse_args() -> argparse.Namespace:
         target_parser.add_argument("--provider-profile", default="")
         target_parser.add_argument("--model", default="")
         target_parser.add_argument("--base-url", default="")
-        target_parser.add_argument("--api-key", default="")
         target_parser.add_argument("--temperature", type=float, default=0.0)
         target_parser.add_argument("--request-timeout-seconds", type=float, default=120.0)
 
@@ -54,7 +57,7 @@ def run_envelope(args: argparse.Namespace) -> int:
             provider_profile=args.provider_profile,
             model=args.model,
             base_url=args.base_url,
-            api_key=args.api_key,
+            api_key=os.environ.get(BRIDGE_API_KEY_ENV, ""),
             temperature=args.temperature,
             request_timeout_seconds=args.request_timeout_seconds,
         ),
@@ -79,7 +82,7 @@ def run_stream(args: argparse.Namespace) -> int:
             provider_profile=args.provider_profile,
             model=args.model,
             base_url=args.base_url,
-            api_key=args.api_key,
+            api_key=os.environ.get(BRIDGE_API_KEY_ENV, ""),
             temperature=args.temperature,
             request_timeout_seconds=args.request_timeout_seconds,
         ),

@@ -115,6 +115,12 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryNorthboundRequest,
 			defaultMessage:  "request body must be valid JSON",
 		},
+		"REQUEST_BODY_TOO_LARGE": {
+			statusCode:      http.StatusRequestEntityTooLarge,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "request body exceeds the endpoint limit",
+		},
 		"MISSING_MESSAGES": {
 			statusCode:      http.StatusBadRequest,
 			errorType:       "invalid_request_error",

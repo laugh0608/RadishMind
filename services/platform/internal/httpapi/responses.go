@@ -2,7 +2,6 @@ package httpapi
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -64,9 +63,9 @@ type openAIResponsesStreamEvent struct {
 func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, "/v1/responses")
 	var responseRequest openAIResponsesRequest
-	decoder := json.NewDecoder(request.Body)
-	if err := decoder.Decode(&responseRequest); err != nil {
-		s.writePlatformError(writer, trace, "INVALID_JSON", fmt.Sprintf("invalid responses request: %v", err))
+	if !s.decodeJSONRequestBody(writer, request, trace, &responseRequest, jsonRequestBodyOptions{
+		maxBytes: maxNorthboundJSONRequestBodyBytes,
+	}) {
 		return
 	}
 

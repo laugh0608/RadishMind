@@ -77,9 +77,9 @@ type openAIChatMessage struct {
 func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, "/v1/chat/completions")
 	var chatRequest chatCompletionRequest
-	decoder := json.NewDecoder(request.Body)
-	if err := decoder.Decode(&chatRequest); err != nil {
-		s.writePlatformError(writer, trace, "INVALID_JSON", fmt.Sprintf("invalid chat completion request: %v", err))
+	if !s.decodeJSONRequestBody(writer, request, trace, &chatRequest, jsonRequestBodyOptions{
+		maxBytes: maxNorthboundJSONRequestBodyBytes,
+	}) {
 		return
 	}
 

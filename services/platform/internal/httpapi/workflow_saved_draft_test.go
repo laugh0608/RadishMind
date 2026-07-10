@@ -3,6 +3,7 @@ package httpapi
 import (
 	"reflect"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -153,6 +154,26 @@ func TestSavedWorkflowDraftSaveReadValidateContracts(t *testing.T) {
 		}
 	})
 
+	t.Run("information findings remain valid for review", func(t *testing.T) {
+		store := newMemorySavedWorkflowDraftStore()
+		service := newSavedWorkflowDraftService(store)
+		payload := validSavedWorkflowDraftPayload()
+		payload.Nodes[1].RiskLevel = "high"
+		payload.Nodes[1].RequiresConfirmation = true
+
+		result := service.ValidateDraft(savedWorkflowDraftTestContext(), ValidateWorkflowDraftRequest{Payload: payload})
+
+		if result.FailureCode != "" ||
+			result.ValidationSummary.ValidationState != SavedWorkflowDraftStatusValidForReview ||
+			!result.ValidationSummary.ValidForReview {
+			t.Fatalf("information findings should not invalidate the draft: %#v", result)
+		}
+		if len(result.ValidationSummary.Findings) != 1 ||
+			result.ValidationSummary.Findings[0].Severity != SavedWorkflowDraftValidationInfo {
+			t.Fatalf("expected one informational risk finding: %#v", result.ValidationSummary.Findings)
+		}
+	})
+
 	t.Run("blocked capability can be saved but cannot unlock runtime", func(t *testing.T) {
 		store := newMemorySavedWorkflowDraftStore()
 		service := newSavedWorkflowDraftService(store)
@@ -203,7 +224,7 @@ func TestSavedWorkflowDraftSaveReadValidateContracts(t *testing.T) {
 		if second := service.SaveDraft(context, SaveWorkflowDraftRequest{Payload: secondPayload}); second.FailureCode != "" {
 			t.Fatalf("second save should succeed: %#v", second)
 		}
-		if err := store.WriteDraft(outOfScopeDraft); err != nil {
+		if _, err := store.WriteDraft(outOfScopeDraft, 0); err != nil {
 			t.Fatalf("failed to seed out-of-scope draft: %v", err)
 		}
 
@@ -252,6 +273,62 @@ func TestSavedWorkflowDraftFailureSemantics(t *testing.T) {
 		}
 		if got := store.SideEffects(); got.DraftWriteCount != 1 || hasSavedWorkflowDraftRuntimeSideEffect(got) {
 			t.Fatalf("conflict should not write or execute: %#v", got)
+		}
+	})
+
+	t.Run("concurrent compare and swap permits exactly one update", func(t *testing.T) {
+		store := newMemorySavedWorkflowDraftStore()
+		service := newSavedWorkflowDraftService(store)
+		context := savedWorkflowDraftTestContext()
+		initial := service.SaveDraft(context, SaveWorkflowDraftRequest{Payload: validSavedWorkflowDraftPayload()})
+		if initial.FailureCode != "" || initial.Draft == nil {
+			t.Fatalf("initial save failed: %#v", initial)
+		}
+
+		const writers = 24
+		results := make(chan SavedWorkflowDraftResult, writers)
+		start := make(chan struct{})
+		var waitGroup sync.WaitGroup
+		for index := 0; index < writers; index++ {
+			waitGroup.Add(1)
+			go func(writerIndex int) {
+				defer waitGroup.Done()
+				<-start
+				payload := validSavedWorkflowDraftPayload()
+				payload.Description = "concurrent writer " + time.Duration(writerIndex).String()
+				results <- service.SaveDraft(context, SaveWorkflowDraftRequest{
+					ExpectedDraftVersion: initial.Draft.DraftVersion,
+					Payload:              payload,
+				})
+			}(index)
+		}
+		close(start)
+		waitGroup.Wait()
+		close(results)
+
+		successCount := 0
+		conflictCount := 0
+		for result := range results {
+			switch result.FailureCode {
+			case "":
+				successCount++
+				if result.CurrentDraftVersion != initial.Draft.DraftVersion+1 {
+					t.Fatalf("successful update returned unexpected version: %#v", result)
+				}
+			case SavedWorkflowDraftFailureVersionConflict:
+				conflictCount++
+				if result.CurrentDraftVersion != initial.Draft.DraftVersion+1 {
+					t.Fatalf("conflict should expose the current version: %#v", result)
+				}
+			default:
+				t.Fatalf("unexpected concurrent save failure: %#v", result)
+			}
+		}
+		if successCount != 1 || conflictCount != writers-1 {
+			t.Fatalf("expected one success and %d conflicts, got success=%d conflicts=%d", writers-1, successCount, conflictCount)
+		}
+		if got := store.SideEffects(); got.DraftWriteCount != 2 || hasSavedWorkflowDraftRuntimeSideEffect(got) {
+			t.Fatalf("concurrent CAS should commit one update only: %#v", got)
 		}
 	})
 
@@ -307,7 +384,7 @@ func TestSavedWorkflowDraftFailureSemantics(t *testing.T) {
 		legacyDraft := savedWorkflowDraftFromPayload(validSavedWorkflowDraftPayload())
 		legacyDraft.SchemaVersion = "saved_workflow_draft.v0"
 		legacyDraft.DraftVersion = 7
-		if err := store.WriteDraft(legacyDraft); err != nil {
+		if _, err := store.WriteDraft(legacyDraft, 0); err != nil {
 			t.Fatalf("failed to seed legacy draft: %v", err)
 		}
 

@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -14,8 +15,9 @@ import (
 )
 
 const (
-	defaultPythonBinary = "python3"
-	defaultScriptPath   = "scripts/run-platform-bridge.py"
+	defaultPythonBinary             = "python3"
+	defaultScriptPath               = "scripts/run-platform-bridge.py"
+	bridgeAPIKeyEnvironmentVariable = "RADISHMIND_PLATFORM_BRIDGE_API_KEY"
 )
 
 type EnvelopeOptions struct {
@@ -109,7 +111,7 @@ func NewClient(pythonBinary string, scriptPath string) *Client {
 }
 
 func (c *Client) DescribeProviders(ctx context.Context) ([]ProviderDescription, error) {
-	stdout, err := c.run(ctx, []string{"providers"}, nil)
+	stdout, err := c.run(ctx, []string{"providers"}, nil, "")
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +123,7 @@ func (c *Client) DescribeProviders(ctx context.Context) ([]ProviderDescription, 
 }
 
 func (c *Client) DescribeInventory(ctx context.Context) (ProviderInventory, error) {
-	stdout, err := c.run(ctx, []string{"inventory"}, nil)
+	stdout, err := c.run(ctx, []string{"inventory"}, nil, "")
 	if err != nil {
 		return ProviderInventory{}, err
 	}
@@ -138,7 +140,7 @@ func (c *Client) HandleEnvelope(
 	options EnvelopeOptions,
 ) (GatewayEnvelope, error) {
 	args := c.buildEnvelopeArgs("envelope", options)
-	stdout, err := c.run(ctx, args, canonicalRequest)
+	stdout, err := c.run(ctx, args, canonicalRequest, options.APIKey)
 	if err != nil {
 		return GatewayEnvelope{}, err
 	}
@@ -155,7 +157,7 @@ func (c *Client) StreamEnvelope(
 	options EnvelopeOptions,
 	handleEvent func(StreamEvent) error,
 ) error {
-	return c.runStream(ctx, c.buildEnvelopeArgs("stream", options), canonicalRequest, handleEvent)
+	return c.runStream(ctx, c.buildEnvelopeArgs("stream", options), canonicalRequest, options.APIKey, handleEvent)
 }
 
 func (c *Client) buildEnvelopeArgs(command string, options EnvelopeOptions) []string {
@@ -165,7 +167,6 @@ func (c *Client) buildEnvelopeArgs(command string, options EnvelopeOptions) []st
 		"--provider-profile", strings.TrimSpace(options.ProviderProfile),
 		"--model", strings.TrimSpace(options.Model),
 		"--base-url", strings.TrimSpace(options.BaseURL),
-		"--api-key", strings.TrimSpace(options.APIKey),
 		"--temperature", strconv.FormatFloat(options.Temperature, 'f', -1, 64),
 	}
 	if options.RequestTimeout > 0 {
@@ -178,7 +179,7 @@ func (c *Client) buildEnvelopeArgs(command string, options EnvelopeOptions) []st
 	return args
 }
 
-func (c *Client) run(ctx context.Context, args []string, stdin []byte) ([]byte, error) {
+func (c *Client) run(ctx context.Context, args []string, stdin []byte, apiKey string) ([]byte, error) {
 	scriptPath, err := resolveScriptPath(c.scriptPath)
 	if err != nil {
 		return nil, err
@@ -186,6 +187,7 @@ func (c *Client) run(ctx context.Context, args []string, stdin []byte) ([]byte, 
 
 	commandArgs := append([]string{scriptPath}, args...)
 	command := exec.CommandContext(ctx, c.pythonBinary, commandArgs...)
+	command.Env = bridgeCommandEnvironment(apiKey)
 	if len(stdin) > 0 {
 		command.Stdin = bytes.NewReader(stdin)
 	}
@@ -209,6 +211,7 @@ func (c *Client) runStream(
 	ctx context.Context,
 	args []string,
 	stdin []byte,
+	apiKey string,
 	handleEvent func(StreamEvent) error,
 ) error {
 	scriptPath, err := resolveScriptPath(c.scriptPath)
@@ -218,6 +221,7 @@ func (c *Client) runStream(
 
 	commandArgs := append([]string{scriptPath}, args...)
 	command := exec.CommandContext(ctx, c.pythonBinary, commandArgs...)
+	command.Env = bridgeCommandEnvironment(apiKey)
 	if len(stdin) > 0 {
 		command.Stdin = bytes.NewReader(stdin)
 	}
@@ -267,6 +271,22 @@ func (c *Client) runStream(
 		return fmt.Errorf("python bridge stream failed: %w", err)
 	}
 	return nil
+}
+
+func bridgeCommandEnvironment(apiKey string) []string {
+	prefix := bridgeAPIKeyEnvironmentVariable + "="
+	environment := os.Environ()
+	filtered := make([]string, 0, len(environment)+1)
+	for _, entry := range environment {
+		if strings.HasPrefix(entry, prefix) {
+			continue
+		}
+		filtered = append(filtered, entry)
+	}
+	if normalizedAPIKey := strings.TrimSpace(apiKey); normalizedAPIKey != "" {
+		filtered = append(filtered, prefix+normalizedAPIKey)
+	}
+	return filtered
 }
 
 func resolveScriptPath(scriptPath string) (string, error) {

@@ -1,8 +1,6 @@
 package httpapi
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 )
@@ -46,9 +44,10 @@ func (s *Server) handleToolsMetadata(writer http.ResponseWriter, request *http.R
 func (s *Server) handleToolAction(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, toolActionsRoute)
 	var actionRequest toolActionRequest
-	decoder := json.NewDecoder(request.Body)
-	if err := decoder.Decode(&actionRequest); err != nil {
-		s.writePlatformError(writer, trace, "INVALID_JSON", fmt.Sprintf("invalid tool action request: %v", err))
+	if !s.decodeJSONRequestBody(writer, request, trace, &actionRequest, jsonRequestBodyOptions{
+		maxBytes:            maxControlJSONRequestBodyBytes,
+		rejectUnknownFields: true,
+	}) {
 		return
 	}
 

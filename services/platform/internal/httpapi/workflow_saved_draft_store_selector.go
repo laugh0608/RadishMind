@@ -88,8 +88,8 @@ func (store disabledSavedWorkflowDraftStore) ListDraftsByScope(
 	return nil, savedWorkflowDraftStoreSelectionFailure(store.failureCode)
 }
 
-func (store disabledSavedWorkflowDraftStore) WriteDraft(_ SavedWorkflowDraft) error {
-	return savedWorkflowDraftStoreSelectionFailure(store.failureCode)
+func (store disabledSavedWorkflowDraftStore) WriteDraft(_ SavedWorkflowDraft, _ int) (int, error) {
+	return 0, savedWorkflowDraftStoreSelectionFailure(store.failureCode)
 }
 
 func (store disabledSavedWorkflowDraftStore) SideEffects() SavedWorkflowDraftSideEffects {
@@ -97,6 +97,10 @@ func (store disabledSavedWorkflowDraftStore) SideEffects() SavedWorkflowDraftSid
 }
 
 type savedWorkflowDraftStoreSelectionError struct {
+	failureCode SavedWorkflowDraftFailureCode
+}
+
+type savedWorkflowDraftStoreWriteError struct {
 	failureCode SavedWorkflowDraftFailureCode
 }
 
@@ -108,6 +112,14 @@ func savedWorkflowDraftStoreSelectionFailure(failureCode SavedWorkflowDraftFailu
 	return &savedWorkflowDraftStoreSelectionError{failureCode: failureCode}
 }
 
+func (err *savedWorkflowDraftStoreWriteError) Error() string {
+	return string(err.failureCode)
+}
+
+func savedWorkflowDraftStoreWriteFailure(failureCode SavedWorkflowDraftFailureCode) error {
+	return &savedWorkflowDraftStoreWriteError{failureCode: failureCode}
+}
+
 func savedWorkflowDraftStoreFailureCode(err error) SavedWorkflowDraftFailureCode {
 	if err == nil {
 		return ""
@@ -115,6 +127,10 @@ func savedWorkflowDraftStoreFailureCode(err error) SavedWorkflowDraftFailureCode
 	var selectionErr *savedWorkflowDraftStoreSelectionError
 	if errors.As(err, &selectionErr) {
 		return selectionErr.failureCode
+	}
+	var writeErr *savedWorkflowDraftStoreWriteError
+	if errors.As(err, &writeErr) {
+		return writeErr.failureCode
 	}
 	return SavedWorkflowDraftFailureStoreUnavailable
 }

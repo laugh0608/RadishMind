@@ -193,8 +193,8 @@ def handle_copilot_request(
             request_validated=True,
             response_validated=True,
         )
-    except Exception as exc:
-        message = f"gateway inference failed: {exc}"
+    except Exception:
+        message = "gateway inference failed"
         response = failed_copilot_response(copilot_request, code="GATEWAY_INFERENCE_FAILED", message=message)
         return validated_gateway_envelope(
             started_at=started_at,

@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import io
 import json
 import os
 import sys
 from pathlib import Path
-from unittest.mock import patch
 from typing import Any
+from unittest.mock import patch
+from urllib import error as urllib_error
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from services.runtime.inference_provider import run_inference  # noqa: E402
+from services.runtime.inference_provider import post_json_request, run_inference  # noqa: E402
 from services.runtime.inference_support import describe_provider_inventory  # noqa: E402
 from services.runtime.provider_registry import list_provider_ids  # noqa: E402
 
@@ -122,6 +124,33 @@ def assert_inventory_profiles(*, env: dict[str, str], expected_profiles: set[tup
         raise SystemExit(f"inventory missing expected provider profiles: {missing_profiles}")
 
 
+def assert_provider_error_redaction() -> None:
+    secret_body = '{"error":"provider-secret-detail"}'
+    upstream_error = urllib_error.HTTPError(
+        "https://provider.invalid/v1/chat/completions",
+        429,
+        "rate limited",
+        hdrs=None,
+        fp=io.BytesIO(secret_body.encode("utf-8")),
+    )
+    with patch("services.runtime.inference_provider.request.urlopen", side_effect=upstream_error):
+        try:
+            post_json_request(
+                endpoint="https://provider.invalid/v1/chat/completions",
+                payload={"model": "test"},
+                headers={"Authorization": "Bearer request-secret"},
+                request_timeout_seconds=1.0,
+            )
+        except RuntimeError as exc:
+            message = str(exc)
+        else:
+            raise SystemExit("provider HTTP failure should raise RuntimeError")
+    if message != "provider request failed with HTTP 429":
+        raise SystemExit(f"provider failure message is not normalized: {message}")
+    if "provider-secret-detail" in message or "request-secret" in message:
+        raise SystemExit("provider failure message leaked credential or response body")
+
+
 def main() -> int:
     supported_provider_ids = set(list_provider_ids())
     required_provider_ids = {"mock", "openai-compatible", "huggingface", "ollama"}
@@ -172,6 +201,8 @@ def main() -> int:
             ("ollama", "default"),
         },
     )
+
+    assert_provider_error_redaction()
 
     print("runtime provider dispatch checks passed.")
     return 0

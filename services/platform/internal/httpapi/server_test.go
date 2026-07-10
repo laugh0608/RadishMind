@@ -1164,6 +1164,47 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 	})
 
+	t.Run("request body rejects trailing JSON documents", func(t *testing.T) {
+		req := httptest.NewRequest(
+			http.MethodPost,
+			"/v1/responses",
+			strings.NewReader(`{"input":"first"}{"input":"second"}`),
+		)
+		rec := httptest.NewRecorder()
+
+		server.handleResponses(rec, req)
+
+		if rec.Code != http.StatusBadRequest {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		var response errorDocument
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode trailing JSON response: %v", err)
+		}
+		if response.Error.Code != "INVALID_JSON" {
+			t.Fatalf("unexpected trailing JSON error: %#v", response.Error)
+		}
+	})
+
+	t.Run("request body enforces endpoint size limit", func(t *testing.T) {
+		body := `{"input":"` + strings.Repeat("x", int(maxNorthboundJSONRequestBodyBytes)) + `"}`
+		req := httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(body))
+		rec := httptest.NewRecorder()
+
+		server.handleResponses(rec, req)
+
+		if rec.Code != http.StatusRequestEntityTooLarge {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		var response errorDocument
+		if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+			t.Fatalf("decode oversized body response: %v", err)
+		}
+		if response.Error.Code != "REQUEST_BODY_TOO_LARGE" {
+			t.Fatalf("unexpected oversized body error: %#v", response.Error)
+		}
+	})
+
 	t.Run("chat provider profile selection", func(t *testing.T) {
 		body := `{"model":"provider:huggingface:profile:hf-chat","messages":[{"role":"user","content":"hello"}]}`
 		req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(body))

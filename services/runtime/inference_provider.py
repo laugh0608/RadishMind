@@ -44,6 +44,17 @@ GUIDED_DECODING_MODE_JSON_SCHEMA = "json_schema"
 StreamHandler = Callable[[dict[str, Any]], None]
 
 
+def provider_request_failure(exc: BaseException) -> RuntimeError:
+    if isinstance(exc, error.HTTPError):
+        return RuntimeError(f"provider request failed with HTTP {exc.code}")
+    reason = exc.reason if isinstance(exc, error.URLError) else None
+    if isinstance(exc, TimeoutError) or isinstance(reason, TimeoutError):
+        return RuntimeError("provider request timed out")
+    if isinstance(exc, (http.client.RemoteDisconnected, http.client.IncompleteRead)):
+        return RuntimeError("provider connection terminated")
+    return RuntimeError("provider request could not reach upstream")
+
+
 def normalize_openai_content(content: str, copilot_request: dict[str, Any]) -> dict[str, Any]:
     normalized = content.strip()
     if normalized.startswith("```"):
@@ -342,10 +353,9 @@ def post_json_request(
         with request.urlopen(http_request, timeout=request_timeout_seconds) as response_obj:
             raw_body = response_obj.read().decode("utf-8")
     except error.HTTPError as exc:
-        error_body = exc.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"provider request failed with HTTP {exc.code}: {error_body}") from exc
+        raise provider_request_failure(exc) from exc
     except (error.URLError, TimeoutError, http.client.RemoteDisconnected, http.client.IncompleteRead) as exc:
-        raise RuntimeError(f"provider request failed: {exc}") from exc
+        raise provider_request_failure(exc) from exc
     return json.loads(raw_body)
 
 
@@ -433,10 +443,9 @@ def call_chat_completion_stream(
                     if stream_handler is not None:
                         stream_handler({"type": "delta", "delta": delta_text})
     except error.HTTPError as exc:
-        error_body = exc.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"provider request failed with HTTP {exc.code}: {error_body}") from exc
+        raise provider_request_failure(exc) from exc
     except (error.URLError, TimeoutError, http.client.RemoteDisconnected, http.client.IncompleteRead) as exc:
-        raise RuntimeError(f"provider request failed: {exc}") from exc
+        raise provider_request_failure(exc) from exc
 
     content = "".join(content_parts)
     if not content.strip():

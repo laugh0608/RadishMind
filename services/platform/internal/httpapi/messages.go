@@ -2,7 +2,6 @@ package httpapi
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -73,9 +72,9 @@ type anthropicStopDelta struct {
 func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, "/v1/messages")
 	var messageRequest anthropicMessagesRequest
-	decoder := json.NewDecoder(request.Body)
-	if err := decoder.Decode(&messageRequest); err != nil {
-		s.writePlatformError(writer, trace, "INVALID_JSON", fmt.Sprintf("invalid messages request: %v", err))
+	if !s.decodeJSONRequestBody(writer, request, trace, &messageRequest, jsonRequestBodyOptions{
+		maxBytes: maxNorthboundJSONRequestBodyBytes,
+	}) {
 		return
 	}
 	if len(messageRequest.Messages) == 0 {

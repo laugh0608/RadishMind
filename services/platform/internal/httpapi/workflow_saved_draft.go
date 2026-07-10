@@ -5,6 +5,7 @@ import (
 	"math"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -239,7 +240,7 @@ type SavedWorkflowDraftListResult struct {
 type savedWorkflowDraftStore interface {
 	ReadDraftByID(draftID string) (SavedWorkflowDraft, bool, error)
 	ListDraftsByScope(workspaceID string, applicationID string) ([]SavedWorkflowDraft, error)
-	WriteDraft(draft SavedWorkflowDraft) error
+	WriteDraft(draft SavedWorkflowDraft, expectedDraftVersion int) (int, error)
 	SideEffects() SavedWorkflowDraftSideEffects
 }
 
@@ -254,6 +255,7 @@ type SavedWorkflowDraftSideEffects struct {
 }
 
 type memorySavedWorkflowDraftStore struct {
+	mu          sync.RWMutex
 	drafts      map[string]SavedWorkflowDraft
 	sideEffects SavedWorkflowDraftSideEffects
 	unavailable bool
@@ -349,8 +351,11 @@ func (service savedWorkflowDraftService) SaveDraft(
 		RequestAuditMetadata:       auditMetadata,
 		SampleOrUnsavedDraftStatus: "saved_draft_record",
 	}
-	if err := service.store.WriteDraft(draft); err != nil {
-		return savedWorkflowDraftFailure(savedWorkflowDraftStoreFailureCode(err), auditMetadata)
+	currentDraftVersion, err := service.store.WriteDraft(draft, request.ExpectedDraftVersion)
+	if err != nil {
+		result := savedWorkflowDraftFailure(savedWorkflowDraftStoreFailureCode(err), auditMetadata)
+		result.CurrentDraftVersion = currentDraftVersion
+		return result
 	}
 
 	return SavedWorkflowDraftResult{
@@ -544,6 +549,9 @@ func (service savedWorkflowDraftService) validatePayload(
 }
 
 func (store *memorySavedWorkflowDraftStore) ReadDraftByID(draftID string) (SavedWorkflowDraft, bool, error) {
+	store.mu.RLock()
+	defer store.mu.RUnlock()
+
 	if store.unavailable {
 		return SavedWorkflowDraft{}, false, errors.New("saved workflow draft store unavailable")
 	}
@@ -558,6 +566,9 @@ func (store *memorySavedWorkflowDraftStore) ListDraftsByScope(
 	workspaceID string,
 	applicationID string,
 ) ([]SavedWorkflowDraft, error) {
+	store.mu.RLock()
+	defer store.mu.RUnlock()
+
 	if store.unavailable {
 		return nil, errors.New("saved workflow draft store unavailable")
 	}
@@ -576,16 +587,35 @@ func (store *memorySavedWorkflowDraftStore) ListDraftsByScope(
 	return drafts, nil
 }
 
-func (store *memorySavedWorkflowDraftStore) WriteDraft(draft SavedWorkflowDraft) error {
+func (store *memorySavedWorkflowDraftStore) WriteDraft(
+	draft SavedWorkflowDraft,
+	expectedDraftVersion int,
+) (int, error) {
+	store.mu.Lock()
+	defer store.mu.Unlock()
+
 	if store.unavailable {
-		return errors.New("saved workflow draft store unavailable")
+		return 0, errors.New("saved workflow draft store unavailable")
+	}
+	existing, found := store.drafts[draft.DraftID]
+	if found && !savedWorkflowDraftMatchesScope(existing, draft.WorkspaceID, draft.ApplicationID) {
+		return 0, savedWorkflowDraftStoreWriteFailure(SavedWorkflowDraftFailureScopeDenied)
+	}
+	if found && existing.DraftVersion != expectedDraftVersion {
+		return existing.DraftVersion, savedWorkflowDraftStoreWriteFailure(SavedWorkflowDraftFailureVersionConflict)
+	}
+	if !found && expectedDraftVersion != 0 {
+		return 0, savedWorkflowDraftStoreWriteFailure(SavedWorkflowDraftFailureNotFound)
 	}
 	store.drafts[draft.DraftID] = cloneSavedWorkflowDraft(draft)
 	store.sideEffects.DraftWriteCount++
-	return nil
+	return draft.DraftVersion, nil
 }
 
 func (store *memorySavedWorkflowDraftStore) SideEffects() SavedWorkflowDraftSideEffects {
+	store.mu.RLock()
+	defer store.mu.RUnlock()
+
 	return store.sideEffects
 }
 
@@ -977,9 +1007,6 @@ func deriveSavedWorkflowDraftValidationState(
 		if finding.Severity == SavedWorkflowDraftValidationBlocking {
 			return SavedWorkflowDraftStatusInvalidDraft
 		}
-	}
-	if len(findings) > 0 {
-		return SavedWorkflowDraftStatusInvalidDraft
 	}
 	return SavedWorkflowDraftStatusValidForReview
 }

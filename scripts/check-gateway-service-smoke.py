@@ -7,6 +7,7 @@ import json
 import sys
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
@@ -117,6 +118,20 @@ def check_invalid_request() -> dict[str, Any]:
     return envelope
 
 
+def check_inference_error_redaction() -> None:
+    secret_detail = "provider-secret-detail"
+    with patch(
+        "services.gateway.copilot_gateway.run_inference",
+        side_effect=RuntimeError(secret_detail),
+    ):
+        envelope = handle_copilot_request(load_sample_request(), options=GatewayOptions(provider="mock"))
+    validate_gateway_envelope(envelope)
+    error = envelope.get("error") or {}
+    assert_condition(error.get("code") == "GATEWAY_INFERENCE_FAILED", "gateway inference failure code mismatch")
+    assert_condition(error.get("message") == "gateway inference failed", "gateway inference failure must be normalized")
+    assert_condition(secret_detail not in json.dumps(envelope, ensure_ascii=False), "gateway envelope leaked exception detail")
+
+
 def summarize_gateway_envelope(case_id: str, envelope: dict[str, Any]) -> dict[str, Any]:
     metadata = envelope.get("metadata") or {}
     provider = metadata.get("provider") or {}
@@ -176,6 +191,7 @@ def build_gateway_smoke_summary() -> dict[str, Any]:
 
 def main() -> int:
     args = parse_args()
+    check_inference_error_redaction()
     summary = build_gateway_smoke_summary()
 
     if args.summary_output.strip():

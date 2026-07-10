@@ -1,9 +1,9 @@
 # RadishMind 平台专题入口
-更新时间：2026-07-08
+更新时间：2026-07-10
 
 ## 文档目的
 
-本目录用于承接跨产品面的平台专题。平台专题不属于某一个页面，也不应塞进单个产品面大方向文档；它们负责固定 auth、store、repository、provider、deployment、仅开发写入路径等长期边界和准入条件。
+本目录用于承接跨产品面的平台专题。平台专题不属于某一个页面，也不应塞进单个产品面大方向文档；它们负责固定 auth、store、repository、provider、deployment、仅开发写入路径等长期边界和准入条件。当前跨领域整改统一进入 [工程健康与产品化整改专题 v1](engineering-health-productization-remediation-v1.md)，不再为每一步派生同层 readiness 链。
 
 具体实现批次仍进入 `docs/task-cards/`。平台专题只说明为什么要做、允许打开什么、依赖什么证据、哪些能力必须作为独立目标；平台专题正文默认中文，`schema`、`fixture`、`checker`、状态锚点和路径等必要标识符保留原文并优先使用反引号。
 
