@@ -36,6 +36,7 @@ type Server struct {
 	savedWorkflowDraftStore      savedWorkflowDraftStore
 	workflowRunStore             workflowRunStore
 	workflowEvaluationStore      workflowEvaluationStore
+	workflowEvaluationSuiteStore workflowEvaluationSuiteStore
 	closeSavedWorkflowDraftStore func()
 	closeWorkflowRunStore        func()
 	closeOnce                    sync.Once
@@ -89,6 +90,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		savedWorkflowDraftStore:      savedWorkflowDraftStore,
 		workflowRunStore:             workflowRunStore,
 		workflowEvaluationStore:      newWorkflowEvaluationStoreForRunStore(workflowRunStore),
+		workflowEvaluationSuiteStore: newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
 		closeSavedWorkflowDraftStore: closeSavedWorkflowDraftStore,
 		closeWorkflowRunStore:        closeWorkflowRunStore,
 	}
@@ -127,6 +129,12 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(workflowEvaluationRevisionCreateRoute, server.handleCreateWorkflowEvaluationRevision)
 	mux.HandleFunc(workflowEvaluationRevisionListRoute, server.handleListWorkflowEvaluationRevisions)
 	mux.HandleFunc(workflowEvaluationRevisionReadRoute, server.handleReadWorkflowEvaluationRevision)
+	mux.HandleFunc(workflowEvaluationSuiteCreateRoute, server.handleCreateWorkflowEvaluationSuite)
+	mux.HandleFunc(workflowEvaluationSuiteListRoute, server.handleListWorkflowEvaluationSuites)
+	mux.HandleFunc(workflowEvaluationSuiteReadRoute, server.handleReadWorkflowEvaluationSuite)
+	mux.HandleFunc(workflowEvaluationSuiteReviewRoute, server.handleReviewWorkflowEvaluationSuite)
+	mux.HandleFunc(workflowEvaluationDecisionCreateRoute, server.handleCreateWorkflowEvaluationDecision)
+	mux.HandleFunc(workflowEvaluationDecisionListRoute, server.handleListWorkflowEvaluationDecisions)
 
 	server.httpServer = &http.Server{
 		Addr:              cfg.ListenAddr,

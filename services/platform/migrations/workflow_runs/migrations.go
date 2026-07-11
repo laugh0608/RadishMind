@@ -15,20 +15,22 @@ import (
 )
 
 const (
-	Component                           = "workflow_runs"
-	MigrationID                         = "0004_workflow_evaluation_case_revisions"
-	StoreSchemaVersion                  = "workflow_run_store_v4"
-	legacyMigrationID                   = "0001_workflow_runs"
-	legacyStoreSchemaVersion            = "workflow_run_store_v1"
-	diagnosticsMigrationID              = "0002_workflow_run_diagnostics"
-	diagnosticsStoreSchemaVersion       = "workflow_run_store_v2"
-	evaluationMigrationID               = "0003_workflow_evaluation_cases"
-	evaluationStoreSchemaVersion        = "workflow_run_store_v3"
-	MigrationStateApplied               = "applied"
-	MigrationStatePending               = "pending"
-	MigrationStateNotApplied            = "not_applied"
-	MigrationStateMismatch              = "mismatch"
-	migrationAdvisoryLockKey      int64 = 0x524d52554e533031
+	Component                              = "workflow_runs"
+	MigrationID                            = "0005_workflow_evaluation_suites"
+	StoreSchemaVersion                     = "workflow_run_store_v5"
+	legacyMigrationID                      = "0001_workflow_runs"
+	legacyStoreSchemaVersion               = "workflow_run_store_v1"
+	diagnosticsMigrationID                 = "0002_workflow_run_diagnostics"
+	diagnosticsStoreSchemaVersion          = "workflow_run_store_v2"
+	evaluationMigrationID                  = "0003_workflow_evaluation_cases"
+	evaluationStoreSchemaVersion           = "workflow_run_store_v3"
+	caseVersioningMigrationID              = "0004_workflow_evaluation_case_revisions"
+	caseVersioningStoreSchemaVersion       = "workflow_run_store_v4"
+	MigrationStateApplied                  = "applied"
+	MigrationStatePending                  = "pending"
+	MigrationStateNotApplied               = "not_applied"
+	MigrationStateMismatch                 = "mismatch"
+	migrationAdvisoryLockKey         int64 = 0x524d52554e533031
 )
 
 const markerSQL = `CREATE TABLE IF NOT EXISTS workflow_run_schema_versions (
@@ -59,8 +61,14 @@ var upSQLV4 string
 //go:embed 0004_workflow_evaluation_case_revisions.down.sql
 var downSQLV4 string
 
-var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4
-var downSQL = downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+//go:embed 0005_workflow_evaluation_suites.up.sql
+var upSQLV5 string
+
+//go:embed 0005_workflow_evaluation_suites.down.sql
+var downSQLV5 string
+
+var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5
+var downSQL = downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 
 type State struct {
 	MigrationState, MigrationID, StoreSchemaVersion, MigrationChecksum string
@@ -99,6 +107,9 @@ func diagnosticsChecksum() string {
 }
 func evaluationChecksum() string {
 	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3)))
+}
+func caseVersioningChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4)))
 }
 
 func Inspect(ctx context.Context, pool *pgxpool.Pool) (State, error) {
@@ -147,11 +158,13 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 		return State{}, errors.New("workflow run migration marker mismatch")
 	}
 	if state.MigrationState == MigrationStatePending {
-		pendingSQL := upSQLV4
+		pendingSQL := upSQLV5
 		if state.MigrationID == legacyMigrationID {
-			pendingSQL = upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4
+			pendingSQL = upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5
 		} else if state.MigrationID == diagnosticsMigrationID {
-			pendingSQL = upSQLV3 + "\n" + upSQLV4
+			pendingSQL = upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5
+		} else if state.MigrationID == evaluationMigrationID {
+			pendingSQL = upSQLV4 + "\n" + upSQLV5
 		}
 		if _, err = tx.Exec(ctx, pendingSQL); err != nil {
 			return State{}, safeDatabaseError("apply workflow run pending migrations", err)
@@ -196,11 +209,13 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 	}
 	rollbackSQL := downSQL
 	if state.MigrationState == MigrationStatePending {
-		rollbackSQL = downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+		rollbackSQL = downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 		if state.MigrationID == legacyMigrationID {
 			rollbackSQL = downSQLV1
 		} else if state.MigrationID == diagnosticsMigrationID {
 			rollbackSQL = downSQLV2 + "\n" + downSQLV1
+		} else if state.MigrationID == evaluationMigrationID {
+			rollbackSQL = downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 		}
 	}
 	if _, err = tx.Exec(ctx, rollbackSQL); err != nil {
@@ -238,6 +253,8 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 		state.MigrationState = MigrationStatePending
 	} else if state.MigrationID == evaluationMigrationID && state.StoreSchemaVersion == evaluationStoreSchemaVersion && state.MigrationChecksum == evaluationChecksum() && tableExists {
 		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == caseVersioningMigrationID && state.StoreSchemaVersion == caseVersioningStoreSchemaVersion && state.MigrationChecksum == caseVersioningChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
 	} else {
 		var diagnosticColumnCount int
 		if err = query.QueryRow(ctx, `SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name='workflow_run_records' AND column_name IN ('failure_code','failure_boundary','selected_provider','selected_model')`).Scan(&diagnosticColumnCount); err != nil {
@@ -255,7 +272,14 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 		if err = query.QueryRow(ctx, `SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name='workflow_evaluation_cases' AND column_name='current_version'`).Scan(&currentVersionColumnCount); err != nil {
 			return State{}, safeDatabaseError("inspect workflow evaluation version column", err)
 		}
-		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 || !evaluationTableExists || !revisionTableExists || currentVersionColumnCount != 1 {
+		var suiteTableExists, decisionTableExists bool
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_evaluation_suites') IS NOT NULL").Scan(&suiteTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow evaluation suite table", err)
+		}
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_evaluation_suite_decisions') IS NOT NULL").Scan(&decisionTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow evaluation suite decision table", err)
+		}
+		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 || !evaluationTableExists || !revisionTableExists || currentVersionColumnCount != 1 || !suiteTableExists || !decisionTableExists {
 			state.MigrationState = MigrationStateMismatch
 		} else {
 			state.MigrationState = MigrationStateApplied

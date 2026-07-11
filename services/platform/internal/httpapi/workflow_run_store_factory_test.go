@@ -22,3 +22,20 @@ func TestWorkflowRunStoreFactoryModesFailClosed(t *testing.T) {
 		}
 	}
 }
+
+func TestWorkflowEvaluationStoresFollowExplicitRunStoreSelection(t *testing.T) {
+	memoryRunStore := newMemoryWorkflowRunStore(10)
+	if _, ok := newWorkflowEvaluationStoreForRunStore(memoryRunStore).(*memoryWorkflowEvaluationStore); !ok {
+		t.Fatal("memory_dev case store selection drifted")
+	}
+	if _, ok := newWorkflowEvaluationSuiteStoreForRunStore(memoryRunStore).(*memoryWorkflowEvaluationSuiteStore); !ok {
+		t.Fatal("memory_dev suite store selection drifted")
+	}
+	postgresRunStore := newPostgresWorkflowRunStore(nil)
+	if _, ok := newWorkflowEvaluationStoreForRunStore(postgresRunStore).(*postgresWorkflowEvaluationStore); !ok {
+		t.Fatal("postgres_dev_test case store selection drifted")
+	}
+	if _, ok := newWorkflowEvaluationSuiteStoreForRunStore(postgresRunStore).(*postgresWorkflowEvaluationSuiteStore); !ok {
+		t.Fatal("postgres_dev_test suite store selection drifted")
+	}
+}

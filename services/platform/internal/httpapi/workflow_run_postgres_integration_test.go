@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+
 	workflowrunmigrations "radishmind.local/services/platform/migrations/workflow_runs"
 )
 
@@ -29,13 +31,13 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, _ = workflowrunmigrations.RollbackForDevTest(ctx, pool)
 	assertPostgresIntegrationDatabaseIsDisposable(t, ctx, pool)
+	resetPostgresWorkflowRunSchema(t, ctx, pool)
 	preparePostgresIntegrationRuntimeRole(t, ctx, pool, runtimeUser)
 	t.Cleanup(func() {
 		cleanup, cancelCleanup := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancelCleanup()
-		_, _ = workflowrunmigrations.RollbackForDevTest(cleanup, pool)
+		resetPostgresWorkflowRunSchema(t, cleanup, pool)
 		pool.Close()
 	})
 	state, err := workflowrunmigrations.Apply(ctx, pool)
@@ -138,6 +140,39 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if evaluationWinners != 1 {
 		t.Fatalf("expected one evaluation CAS winner, got %d", evaluationWinners)
 	}
+	suiteStore := newPostgresWorkflowEvaluationSuiteStore(runtimePool)
+	suiteService := newWorkflowEvaluationSuiteService(suiteStore, evaluationService)
+	suiteService.newSuiteID = func() (string, error) { return "suite_pg_restart", nil }
+	suite := suiteService.Create(runContext, WorkflowEvaluationSuiteCreateRequest{Name: "PostgreSQL release review", CaseRefs: []WorkflowEvaluationSuiteCaseRef{{CaseID: evaluation.Case.CaseID, Version: 1}}})
+	if suite.Suite == nil || suite.FailureCode != "" {
+		t.Fatalf("create PostgreSQL evaluation suite: %#v", suite)
+	}
+	suiteReview := suiteService.Review(runContext, suite.Suite.SuiteID)
+	if suiteReview.Review == nil || suiteReview.Review.Outcome != "passed" {
+		t.Fatalf("review PostgreSQL evaluation suite: %#v", suiteReview)
+	}
+	var suiteWG sync.WaitGroup
+	suiteResults := make(chan WorkflowEvaluationSuiteResult, 8)
+	for index := 0; index < 8; index++ {
+		suiteWG.Add(1)
+		go func() {
+			defer suiteWG.Done()
+			suiteResults <- suiteService.Decide(runContext, suite.Suite.SuiteID, WorkflowEvaluationDecisionRequest{ExpectedDecisionVersion: 0, Decision: "approved", ReviewDigest: suiteReview.Review.ReviewDigest})
+		}()
+	}
+	suiteWG.Wait()
+	close(suiteResults)
+	suiteWinners := 0
+	for result := range suiteResults {
+		if result.FailureCode == "" {
+			suiteWinners++
+		} else if result.FailureCode != WorkflowEvaluationSuiteFailureDecisionConflict {
+			t.Fatalf("unexpected suite CAS result: %#v", result)
+		}
+	}
+	if suiteWinners != 1 {
+		t.Fatalf("expected one suite decision CAS winner, got %d", suiteWinners)
+	}
 	other := runContext
 	other.TenantRef = "tenant_other"
 	if scoped, err := store.ListRuns(other, WorkflowRunListFilter{Limit: 10}); err != nil || len(scoped.Records) != 0 {
@@ -174,6 +209,15 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	}
 	if leaked := restartedEvaluationService.Read(other, evaluation.Case.CaseID); leaked.FailureCode != WorkflowEvaluationFailureNotFound {
 		t.Fatalf("evaluation case leaked scope: %#v", leaked)
+	}
+	restartedSuiteService := newWorkflowEvaluationSuiteService(newPostgresWorkflowEvaluationSuiteStore(reopened), restartedEvaluationService)
+	recoveredSuite := restartedSuiteService.Read(runContext, suite.Suite.SuiteID)
+	recoveredDecisions := restartedSuiteService.ListDecisions(runContext, suite.Suite.SuiteID, WorkflowEvaluationDecisionListRequest{})
+	if recoveredSuite.Suite == nil || recoveredSuite.Suite.CurrentDecisionVersion != 1 || recoveredSuite.Suite.CurrentDecision != "approved" || len(recoveredDecisions.Decisions) != 1 {
+		t.Fatalf("restart suite recovery failed: suite=%#v decisions=%#v", recoveredSuite, recoveredDecisions)
+	}
+	if leaked := restartedSuiteService.Read(other, suite.Suite.SuiteID); leaked.FailureCode != WorkflowEvaluationSuiteFailureNotFound {
+		t.Fatalf("evaluation suite leaked scope: %#v", leaked)
 	}
 	running := workflowRunHistoryTestRecord(runContext, "run_pg_concurrent", "draft_pg", time.Now().UTC())
 	if err = store.UpsertRun(runContext, &running); err != nil {
@@ -300,5 +344,42 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	var backfilledVersion, backfilledCount int
 	if err = pool.QueryRow(ctx, `SELECT current_version,(SELECT count(*) FROM workflow_evaluation_case_revisions WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND case_id=$4) FROM workflow_evaluation_cases WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND case_id=$4`, runContext.TenantRef, runContext.WorkspaceID, runContext.ApplicationID, legacyCase.CaseID).Scan(&backfilledVersion, &backfilledCount); err != nil || backfilledVersion != 1 || backfilledCount != 1 {
 		t.Fatalf("legacy evaluation backfill failed: version=%d count=%d err=%v", backfilledVersion, backfilledCount, err)
+	}
+	if _, err = workflowrunmigrations.RollbackForDevTest(ctx, pool); err != nil {
+		t.Fatal(err)
+	}
+	versioningSQL, err := os.ReadFile("../../migrations/workflow_runs/0004_workflow_evaluation_case_revisions.up.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	throughV4 := string(legacySQL) + "\n" + string(diagnosticsSQL) + "\n" + string(evaluationSQL) + "\n" + string(versioningSQL)
+	if _, err = pool.Exec(ctx, throughV4); err != nil {
+		t.Fatalf("apply case versioning migration: %v", err)
+	}
+	versioningChecksum := fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(throughV4)))
+	if _, err = pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS workflow_run_schema_versions (component text PRIMARY KEY, migration_id text NOT NULL, store_schema_version text NOT NULL, migration_checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = pool.Exec(ctx, `INSERT INTO workflow_run_schema_versions(component,migration_id,store_schema_version,migration_checksum) VALUES($1,'0004_workflow_evaluation_case_revisions','workflow_run_store_v4',$2)`, workflowrunmigrations.Component, versioningChecksum); err != nil {
+		t.Fatal(err)
+	}
+	if pending, inspectErr := workflowrunmigrations.Inspect(ctx, pool); inspectErr != nil || pending.MigrationState != workflowrunmigrations.MigrationStatePending {
+		t.Fatalf("case versioning marker was not pending: %#v %v", pending, inspectErr)
+	}
+	if upgraded, upgradeErr := workflowrunmigrations.Apply(ctx, pool); upgradeErr != nil || upgraded.MigrationState != workflowrunmigrations.MigrationStateApplied {
+		t.Fatalf("suite migration upgrade failed: %#v %v", upgraded, upgradeErr)
+	}
+}
+
+func resetPostgresWorkflowRunSchema(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
+	t.Helper()
+	if _, err := pool.Exec(ctx, `DROP TABLE IF EXISTS workflow_evaluation_suite_decisions, workflow_evaluation_suites, workflow_evaluation_case_revisions, workflow_evaluation_cases, workflow_run_records`); err != nil {
+		t.Fatalf("reset workflow run integration tables: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS workflow_run_schema_versions (component text PRIMARY KEY, migration_id text NOT NULL, store_schema_version text NOT NULL, migration_checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
+		t.Fatalf("prepare workflow run integration marker: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `DELETE FROM workflow_run_schema_versions WHERE component=$1`, workflowrunmigrations.Component); err != nil {
+		t.Fatalf("reset workflow run integration marker: %v", err)
 	}
 }

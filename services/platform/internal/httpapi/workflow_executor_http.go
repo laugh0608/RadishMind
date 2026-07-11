@@ -192,6 +192,13 @@ func (s *Server) workflowEvaluationService() workflowEvaluationService {
 	return newWorkflowEvaluationService(s.workflowEvaluationStore, s.workflowRunStore)
 }
 
+func (s *Server) workflowEvaluationSuiteService() workflowEvaluationSuiteService {
+	if s.workflowEvaluationSuiteStore == nil {
+		s.workflowEvaluationSuiteStore = newWorkflowEvaluationSuiteStoreForRunStore(s.workflowRunStore)
+	}
+	return newWorkflowEvaluationSuiteService(s.workflowEvaluationSuiteStore, s.workflowEvaluationService())
+}
+
 func workflowRunContextFromRequest(
 	request *http.Request,
 	trace requestTrace,

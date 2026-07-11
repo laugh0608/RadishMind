@@ -59,3 +59,10 @@ func newWorkflowEvaluationStoreForRunStore(store workflowRunStore) workflowEvalu
 	}
 	return newMemoryWorkflowEvaluationStore(defaultWorkflowEvaluationCapacity)
 }
+
+func newWorkflowEvaluationSuiteStoreForRunStore(store workflowRunStore) workflowEvaluationSuiteStore {
+	if postgres, ok := store.(*postgresWorkflowRunStore); ok {
+		return newPostgresWorkflowEvaluationSuiteStore(postgres.pool)
+	}
+	return newMemoryWorkflowEvaluationSuiteStore(defaultWorkflowEvaluationCapacity)
+}
