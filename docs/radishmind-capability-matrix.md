@@ -1,6 +1,6 @@
 # RadishMind 能力矩阵
 
-更新时间：2026-06-23
+更新时间：2026-07-11
 
 本文档用于回答三件事：
 
@@ -11,6 +11,8 @@
 如果你要先理解“项目为什么这样分层”，先读 [战略定义](radishmind-strategy.md)。
 
 如果你要推进具体产品能力，先读 [功能设计文档入口](features/README.md)。2026-06-14 起，长期功能设计不再默认塞进 task card；task card、fixture 和 checker 只服务具体实现批次、前置条件或高风险边界。
+
+2026-07-11 覆盖：Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool 与 Workflow Executor v0 已完成，受控 `prompt / llm / condition / output`、Gateway advisory 调用和 scoped 进程内 run record 已可复验。下表 `Product Surfaces` 长行中的“无数据库 / 无 executor”仅保留历史阶段语义；当前真实缺口已转为运行历史、durable dev-test run store、执行可观测性以及仍关闭的 production auth / repository、tool、confirmation、writeback 和 replay。
 
 | 主线 | 当前已有 | 当前缺口 | 当前不做 | 下一步 |
 | --- | --- | --- | --- | --- |

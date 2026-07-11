@@ -231,8 +231,9 @@
 1. `R3 Workflow Draft Review Loop` 已于 2026-07-11 完成真实浏览器正常路径、版本冲突路径、Continue / Restore 和 Review Handoff 收口，未新增同层 readiness / checker。
 2. Saved Workflow Draft PostgreSQL dev/test repository 已完成 migration / rollback / reapply、重启恢复、CAS、scope、no fallback、CI 和真实浏览器验收；production repository mode 继续关闭。
 3. `R4 Gateway` 已完成：受控 `stdio` worker pool 成为默认模式，顺序 / 四并发 bridge 自身 p95 相对 back-to-back process 基线下降 `93.5% / 94.4%`，process 模式保留回滚。
-4. durable repository 与稳定 Gateway 均已成立；下一产品主任务先更新 Workflow / Agent Runtime 功能设计并评审无外部副作用 executor v0。真实工具、业务写回、自动确认提交和 replay 继续后置。
-5. OIDC、production secret、真实云资源、quota / billing、真实生图和模型训练只在外部资源、负责人和独立运行窗口明确后重开。
+4. 无外部副作用 [Workflow Executor v0](features/workflow/workflow-executor-v0.md) 已完成 Platform 执行、dev API、受控 Web 入口、tenant / workspace / application scoped run record 与真实浏览器回读验证。
+5. 下一产品主任务先更新 Workflow / Agent Runtime 功能设计，定义 `Workflow Run History / Durable Dev-Test Run Store v1` 的分页、scope、持久化、保留策略和执行可观测性，再拆实现任务。真实工具、业务写回、自动确认提交和 replay 继续后置。
+6. OIDC、production secret、真实云资源、quota / billing、真实生图和模型训练只在外部资源、负责人和独立运行窗口明确后重开。
 
 ## 历史下一步记录（仅供 checker 兼容，不再执行）
 

@@ -65,6 +65,8 @@
 
 `Saved Workflow Draft v1` 已实现 platform Go domain service、memory dev store、dev-only HTTP route 和 web consumer，并进一步具备 formal store selector、静态 schema artifact、repository adapter、adapter smoke execution 与 production auth runtime bridge。Draft Designer 的 `version_conflict` 读法是保留当前本地 active draft、刷新当前 application 的 sanitized saved draft list、允许用户继续本地草案或显式恢复 saved version，并把同一份 conflict review summary 交给 Review Handoff；它不自动覆盖、不自动合并，也不表示 durable persistence、publish、run 或 executor ready。database connection / schema marker preconditions、connection provider entry review / entry refresh v2、database secret resolver readiness / entry review / runtime dependency refresh、database driver / DSN / TLS policy readiness、database role policy readiness、database connection smoke strategy、connection lifecycle readiness、schema marker runtime dependency refresh、Radish OIDC upstream evidence refresh 和 token validation auth middleware runtime entry review 只说明 future durable store 接入前的阻塞条件；它们不选择或导入 DB driver、不解析 secret、不构造 DSN、不创建 TLS runtime、不创建 connection factory、不创建 role runtime、不执行 connection smoke、不执行 SQL、不启用 repository mode，也不创建 OIDC middleware、token validator、membership adapter 或 production API。
 
+2026-07-11 覆盖：Saved Draft 已完成显式 `postgres_dev_test` repository；Workflow Executor v0 已完成 dev-only POST / GET route、服务端图准入、Gateway advisory 调用、tenant / workspace / application scoped 进程内 run record 和 Web 创建 / 保存 / 执行 / 回读。上段“不表示 durable persistence / run / executor ready”只描述早期阶段与 production / unrestricted 边界；当前仍不开放 production repository、OIDC、tool、confirmation commit、writeback、replay / resume 或公开生产 API。
+
 `contracts/radish-oidc-token-validation.schema.json` 现在固定 future Radish OIDC token validation 的 verified token context 脱敏投影。它只允许 `issuer_ref`、`subject_ref`、`tenant_ref`、audience / scope / workspace / application refs、时间戳、policy version、request id 和 audit ref 这类已验证后的 reference 字段，根对象禁止 additional properties，并显式拒绝 `raw_token`、`authorization_header`、`cookie`、`raw_claim_dump`、`jwks_raw_dump`、`membership_raw_record`、`database_detail`、`provider_error_detail` 和 `secret_value`。说明入口见 [Radish OIDC Token Validation 契约](contracts/radish-oidc-token-validation.md)。该 schema 是后续 auth middleware / membership adapter / repository actor context 的输入形状约束，不校验真实 token、不 fetch discovery / JWKS、不查询 membership，也不表示登录态或 repository mode 已可用。
 
 `Workflow Node Designer Surface v1` 现在是 Workflow Builder 体验的 active-draft 画布专题，位置在 Draft Designer / Review Handoff 之后、publish / run / executor 之前。它已在 `apps/radishmind-web/` 接入 `@xyflow/react`，把 active draft 派生为可拖拽节点、typed handle、custom edge、inspector、validation overlay navigation、mapping summary 和 Review Handoff evidence；节点位置通过 `additional_fields.designer_layout_v1` 保存为受控 UI metadata，画布新增 / 删除连线只修改 active draft 的 `draft.edges`。这些能力仍只服务本地草案设计与审查，不把 `Preview Plan`、`valid_for_review`、节点拖拽或 edge mutation 写成可运行、可发布、durable store 或 production API 状态。
@@ -189,7 +191,7 @@ console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local
 
 ### 3.7 运行正式 read-only product UI shell
 
-正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它默认是离线 read-side shell，只消费 `contracts/typescript/control-plane-read-api.ts`；当显式设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http` 且平台服务设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，可用 dev-only live read consumer 通过 HTTP 读取 fake-store-backed handler 和测试身份上下文。RadishFlow Copilot 与 Radish Docs Assistant 的只读产品样例来自同一组 response fixture，并由 `control-plane-read-product-sample-consistency-v1` 防止 Go fake store、前端默认 view model 和 consumer smoke 之间漂移。该 live path 不能解释为真实数据库、Radish OIDC、production API consumer、API key / quota、read store repository 或 workflow executor ready。
+正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它默认是离线 read-side shell，只消费 `contracts/typescript/control-plane-read-api.ts`；显式 dev-only 模式可以分别连接 fake read handlers、Saved Draft 和受控 Workflow Executor v0。RadishFlow Copilot 与 Radish Docs Assistant 的只读产品样例仍由统一 fixture 防止漂移；任何 dev-only live path 都不能解释为 Radish OIDC、production API consumer、API key / quota、production repository 或完整 workflow runtime ready。
 
 日常预览或前后端联调优先使用仓库根目录启动脚本，不再手动拼接环境变量：
 
@@ -204,7 +206,7 @@ Windows / PowerShell 使用：
 pwsh ./start.ps1 -Command web-live
 ```
 
-`web-live` 会启动或复用 `http://127.0.0.1:7000` platform 后端和 `http://127.0.0.1:4100` 产品 UI，并只启用 dev-only fake read auth。它不是 production supervisor，不接真实数据库、Radish OIDC、repository adapter、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
+`web-live` 会启动或复用 `http://127.0.0.1:7000` platform 后端和 `http://127.0.0.1:4100` 产品 UI，默认只启用 dev-only fake read auth；传入 `--saved-draft-dev` 或 `--saved-draft-postgres-dev-test` 时才额外启用 Saved Draft 和受控 executor v0。它不是 production supervisor，不接 Radish OIDC、production repository、API key lifecycle、quota enforcement、tool、confirmation、writeback 或 replay。
 
 如果 macOS `Control Center` / AirPlay 占用了默认 backend 端口 `7000`，改用备用本地端口启动：
 
@@ -266,7 +268,7 @@ npm run dev
 
 Model Gateway 四个页面的读法是先看 Overview 识别 northbound API surface 与 provider/profile inventory，再看 Route Evidence 确认 route binding、selection case 和 streaming / auth / secret ref 证据，再看 Usage/Audit Evidence 核对 key scope、quota snapshot、trace、failure 和 audit decision，最后看 Evidence Review / Readiness 汇总 readiness rollup、evidence checklist、route / usage / audit key risk 和 locked distribution capability。Admin Operations Review / Readiness 放在管理端视角收口，用于把 tenant、audit、gateway 和 Production Ops 证据串成审查摘要；Admin Provider/Profile & Deployment Evidence Review / Readiness 则继续查看 provider/profile、model route、secret ref readiness、deployment status、operator risk 和 locked capability。两者都只是 evidence-only review surface。
 
-Draft Designer 的保存路径需要额外区分：默认 `apps/radishmind-web/` 仍展示 sample / local draft；只有设置 `VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE=dev-saved-draft-http`，并让 platform 同时启用 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1`、`RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1` 和保存所需的 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1`，才会通过 dev-only route 写入 memory dev store。该路径用于本地验证保存、读取、校验和版本冲突，不是 durable persistence、production API、publish 或 run。
+Draft Designer 的保存路径需要额外区分：默认仍展示 sample / local draft；显式 Saved Draft 开关可写入 `memory_dev` 或 `postgres_dev_test`。同一 launcher 还会设置 `RADISHMIND_WORKFLOW_EXECUTOR_DEV=1` 与 `VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http`，允许已保存、未修改且合规的 executor v0 草案运行并回读 record。该路径用于开发 / 测试，不是 production persistence、production API、publish 或 unrestricted runtime。
 
 Saved draft 冲突处理的本地读法：当保存返回 `version_conflict` 时，Draft Designer 保留本地 active draft，刷新当前 application 的 saved draft list，并显示 saved version metadata、validation state、blocked capability count 和下一步选择。继续本地草案会进入 `conflict_local_continued`，下一次保存以当前 saved version 作为 expected version；恢复 saved version 必须由用户从 refreshed list 显式触发。Review Handoff 只把 conflict review summary 作为 advisory-only 审查证据展示，不保存 handoff、不自动合并、不覆盖本地草案、不解锁 publish / run / confirmation / writeback。
 

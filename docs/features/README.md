@@ -43,7 +43,7 @@
 | [User Workspace](user-workspace.md) | 用户端 AI 应用、API key、用量、运行记录和审查入口 | 从只读工作区转向真实用户工作流前先更新 |
 | [Admin Control Plane](admin-control-plane.md) | 租户、权限、provider/profile、quota、secret、审计和部署证据 | 进入真实管理端、OIDC 或数据库前先更新 |
 | [Model Gateway / API Distribution](model-gateway-api-distribution.md) | northbound API、provider/profile route、key/quota、trace 和审计 | 进入真实 API 分发、quota 或 billing 前先更新 |
-| [Workflow / Agent Runtime](workflow-agent-runtime.md) | 工作流草案、校验、执行计划、准入边界、审查和后续执行器 | 进入 builder 持久化、executor 或 confirmation 前先更新 |
+| [Workflow / Agent Runtime](workflow-agent-runtime.md) | 工作流草案、校验、审查、Saved Draft 持久化和受控 executor v0 | 进入运行历史 / durable run store、tool、confirmation 或 writeback 前先更新 |
 | [Image Generation / Artifact Return](image-generation-artifact-return.md) | 生图意图、artifact metadata、response merge 和后续后端适配器 | 进入 store / reader / public URL / backend adapter 前先更新 |
 
 ## 细专题导航

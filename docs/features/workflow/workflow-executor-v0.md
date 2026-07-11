@@ -2,7 +2,7 @@
 
 更新时间：2026-07-11
 
-状态：`workflow_executor_v0_design_defined`
+状态：`workflow_executor_v0_implemented`
 
 ## 功能定位
 
@@ -93,7 +93,7 @@ run 状态为 `running`、`succeeded`、`failed`、`canceled`；节点状态为 
 
 | failure code | 语义 |
 | --- | --- |
-| `workflow_executor_dev_disabled` | executor dev gate 未打开 |
+| `WORKFLOW_EXECUTOR_DEV_DISABLED` | executor dev gate 未打开时由统一 Platform error envelope 返回 |
 | `workflow_run_scope_denied` | 身份、scope、workspace 或 application 不匹配 |
 | `workflow_run_draft_not_found` | 作用域内找不到已保存草案 |
 | `workflow_run_draft_version_unavailable` | 草案没有可执行的持久版本 |
@@ -150,6 +150,12 @@ Web 在 Draft Designer 下方提供单独的 Executor v0 区域：
 - 支持按最新 `run_id` 重新读取记录。
 - sample-only / route disabled / unsaved / dirty / conflict / blocked graph 状态均有明确文案，不伪装成可运行。
 
+## 实现结果
+
+2026-07-11 已完成首批实现：Platform 新增草案重新读取、服务端图准入、稳定拓扑执行、condition 分支、Gateway 调用、终态 run record、tenant / workspace / application 隔离的 100 条进程内 FIFO store，以及默认关闭的 POST / GET dev route；Web 新增受控草案创建、保存资格检查、运行输入、节点时间线、advisory output、副作用计数和 scoped record 回读。
+
+真实浏览器验证已完成 `Create executor v0 draft → Save → Start bounded run → Reload run record`。验证记录显示 3 个节点均成功、provider call 为 1，tool / confirmation / business write / replay 均为 0，原始输入未进入 run record；完整运行时计划与就绪面板继续单独表达 tool、confirmation、writeback 等后续能力的阻塞状态。
+
 ## 验收
 
 - Go 单元测试覆盖线性成功、condition 分支、节点跳过、Gateway 失败、取消 / 超时、预算、循环、工具 / RAG / confirmation / high-risk 拒绝和副作用计数。
@@ -168,4 +174,4 @@ Web 在 Draft Designer 下方提供单独的 Executor v0 区域：
 
 ## 后续顺位
 
-v0 完成并积累真实运行反馈后，优先评审 run history / durable run store 与执行可观测性；tool 与 confirmation 必须作为独立高风险功能设计推进，不能在 v0 上直接放开。
+下一产品专题进入 `Workflow Run History / Durable Dev-Test Run Store v1` 设计：把当前单记录 scoped read 扩展为可分页的开发 / 测试运行历史、稳定查询与执行可观测性，并评审持久化边界。tool 与 confirmation 必须作为独立高风险功能设计推进，不能在 v0 上直接放开。

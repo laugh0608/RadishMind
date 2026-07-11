@@ -2,7 +2,7 @@
 
 更新时间：2026-07-11
 
-状态：`workflow_executor_v0_implementation_in_progress`
+状态：`workflow_executor_v0_implemented`
 
 ## 目标
 
@@ -67,3 +67,9 @@
 - 所有拒绝路径的 Gateway call count 为 0，所有路径的 tool / confirmation / business write / replay count 为 0。
 - Web 能创建合规草案、保存后执行、审查结果和重新读取记录。
 - 相关精准验证、fast 和 full 门禁通过，文档与周志同步完成。
+
+## 完成记录
+
+- Platform domain、tenant / workspace / application scoped memory store、dev HTTP route、config gate、Gateway bridge 和稳定失败语义已落地。
+- Web 已完成受控草案创建、保存版本资格检查、运行、结果审查和 scoped record 回读；旧执行计划与就绪面板已明确标注为完整运行时边界。
+- 单元、HTTP、race、vet、Web test / build、launcher probe 与真实浏览器链路均已验证；最终仓库 fast / full 结果记录在本周周志。

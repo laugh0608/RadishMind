@@ -12,7 +12,7 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
-| [Workflow Executor v0](workflow-executor-v0.md) | 功能专题 | `workflow_executor_v0_design_defined` | 已固定开发 / 测试态 Prompt / LLM / condition / output 执行、Gateway 复用、run record、失败语义、资源预算与停止线；实现任务卡已打开，tool、confirmation commit、writeback、replay / resume 和 production enablement 继续关闭 |
+| [Workflow Executor v0](workflow-executor-v0.md) | 功能专题 | `workflow_executor_v0_implemented` | 已完成开发 / 测试态 Prompt / LLM / condition / output 执行、Gateway 复用、受控 Web 入口和 scoped run record 回读；tool、confirmation commit、writeback、replay / resume 和 production enablement 继续关闭 |
 | [Saved Workflow Draft v1](saved-workflow-draft-v1.md) | 功能专题 | `workflow_saved_draft_postgres_dev_test_repository_v1_completed` | 草案创建、编辑、校验、持久保存、恢复、版本冲突与 Review Handoff 已形成可复验用户路径；开发 / 测试态 PostgreSQL repository 已完成，production repository 继续关闭，旧 storage adapter readiness 链仅作为历史索引 |
 | [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](saved-workflow-draft-postgresql-dev-test-repository-v1.md) | 实现专题 | `workflow_saved_draft_postgres_dev_test_repository_v1_completed` | 已完成 `postgres_dev_test` migration、回滚 / 重建、运行角色隔离、服务重启恢复、原子 CAS、scope / owner 隔离、no fallback、CI 与真实浏览器验收 |
 | [Production Secret Backend Audit Store Storage Adapter Concrete Managed Database Provider Selection Review v1](../../platform/production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-review-v1.md) | 平台专题 | `audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined` | Workflow durable store 上游历史静态锚点；selection decision 为 `concrete_managed_database_provider_reference_selected_runtime_blocked`，历史下一依赖 `storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review` 已被后续 entry refresh 消费，仍不创建真实数据库 provider、connection provider、SQL、storage adapter runtime、audit store runtime、repository mode 或 production API |
@@ -152,7 +152,7 @@
 
 `Saved Workflow Draft v1` 的 dev-only consumer integration、正式草案编辑入口、用户工作区创建、saved dev draft list / restore、本地图结构编辑、节点属性编辑和 active draft review record 均已落地。`Workflow Node Designer` 方向已完成 surface、library selection、首批画布实现、saved draft mapping、Review Handoff、persisted layout、edge editing preconditions、controlled edge mutation、layout review findings、builder interaction polish、validation overlay navigation 和 `Workflow Node Designer Graph Review Handoff Refinement v1`；Review Handoff 现在能展示 node / edge / graph-level `graphReviewFindings`，并已补 graph review summary / grouping UI、handoff path 与 evidence refs 阅读路径。
 
-2026-07-11 执行覆盖：R3 已完成真实浏览器正常保存 / 恢复、版本冲突、Continue / Restore 和 Review Handoff 收口；`Saved Workflow Draft PostgreSQL Dev/Test Repository v1` 与 `R4 Gateway` 也已完成。当前顺位进入 [Workflow Executor v0](workflow-executor-v0.md) 实现：只开放开发 / 测试态 Prompt / LLM / condition / output、Gateway 调用和有界 run record；下方 storage adapter next dependency 继续作为历史索引，不再解释为当前实现顺位。
+2026-07-11 执行覆盖：R3、`Saved Workflow Draft PostgreSQL Dev/Test Repository v1`、`R4 Gateway` 与 [Workflow Executor v0](workflow-executor-v0.md) 均已完成。真实浏览器已验证受控草案创建、保存、执行和 scoped run record 回读；当前下一产品专题转向 `Workflow Run History / Durable Dev-Test Run Store v1` 设计与执行可观测性，下方 storage adapter next dependency 继续作为历史索引，不再解释为当前实现顺位。
 
 已完成专题 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](saved-workflow-draft-postgresql-dev-test-repository-v1.md)：显式 `postgres_dev_test` 模式覆盖真实 migration、回滚 / 重建、重启恢复、原子 CAS、tenant / workspace / application / owner scope、no fallback 和 PostgreSQL 集成测试；production `repository` 继续关闭。
 
@@ -165,6 +165,6 @@ Storage adapter 历史 status 速记：`audit_store_storage_adapter_backend_prod
 
 ## 停止线
 
-- 只实现 [Workflow Executor v0](workflow-executor-v0.md) 定义的开发 / 测试态受控执行与进程内 run record；不实现 tool executor、RAG executor、agent loop、publish、confirmation decision、writeback、replay、resume、durable run repository 或 materialized result reader。
+- [Workflow Executor v0](workflow-executor-v0.md) 只开放开发 / 测试态受控执行与进程内 run record；下一专题可设计开发 / 测试运行历史和 durable run store，但不实现 tool executor、RAG executor、agent loop、publish、confirmation decision、writeback、replay、resume 或 materialized result reader。
 - 不把 saved draft、validation summary、risk summary 或 readiness summary 解释为 publish ready、run ready 或 production ready。
 - 只允许显式 `postgres_dev_test` 接入本地 / CI PostgreSQL、SQL migration、schema marker、一次性 migration runner 和受控连接池；production database resource、secret resolver、production resolver runtime、Radish OIDC、token validation、API key lifecycle、quota、billing 与公开生产 API 继续关闭。`memory_dev` 仍是默认开发模式，production `repository`、reserved / unknown mode 必须 fail closed，不能回退 sample、fixture 或 memory store。
