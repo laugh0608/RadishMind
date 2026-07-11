@@ -131,6 +131,7 @@
       "required": [
         "handled_at",
         "duration_ms",
+        "provider_duration_ms",
         "route",
         "request_validated",
         "response_validated",
@@ -143,6 +144,10 @@
           "minLength": 1
         },
         "duration_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "provider_duration_ms": {
           "type": "integer",
           "minimum": 0
         },

@@ -73,6 +73,15 @@ def run_python_script(script_name: str, args: list[str]) -> None:
         raise SystemExit(result.returncode)
 
 
+def run_python_unittest(test_directory: str) -> None:
+    result = subprocess.run(
+        [sys.executable, "-m", "unittest", "discover", "-s", test_directory, "-p", "test_*.py"],
+        cwd=REPO_ROOT,
+    )
+    if result.returncode != 0:
+        raise SystemExit(result.returncode)
+
+
 def load_json_file(relative_path: str) -> object:
     return json.loads((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
 
@@ -1089,6 +1098,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-radishmind-core-candidate-citation-scaffold.py", [])
     run_python_script("check-radishmind-core-candidate-answer-scaffold.py", [])
     run_python_script("check-radishmind-core-candidate-prompt-budget.py", [])
+    run_python_unittest("services/gateway/tests")
     run_python_script("check-runtime-provider-dispatch.py", [])
     run_python_script("check-provider-capability-matrix.py", [])
     run_python_script("check-provider-health-smoke.py", [])

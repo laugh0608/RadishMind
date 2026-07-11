@@ -46,11 +46,13 @@ def build_gateway_metadata(
     options: GatewayOptions,
     request_validated: bool,
     response_validated: bool,
+    provider_duration_ms: int = 0,
 ) -> dict[str, Any]:
     project, task = route_key(copilot_request or {})
     return {
         "handled_at": utc_now_iso(),
         "duration_ms": max(0, round((time.perf_counter() - started_at) * 1000)),
+        "provider_duration_ms": max(0, provider_duration_ms),
         "route": f"{project}/{task}" if project and task else "",
         "request_validated": request_validated,
         "response_validated": response_validated,
@@ -74,6 +76,7 @@ def build_gateway_envelope(
     error: dict[str, str] | None = None,
     request_validated: bool = False,
     response_validated: bool = False,
+    provider_duration_ms: int = 0,
 ) -> dict[str, Any]:
     request = copilot_request or {}
     project, task = route_key(request)
@@ -91,6 +94,7 @@ def build_gateway_envelope(
             options=options,
             request_validated=request_validated,
             response_validated=response_validated,
+            provider_duration_ms=provider_duration_ms,
         ),
     }
 
@@ -170,6 +174,8 @@ def handle_copilot_request(
             response_validated=True,
         )
 
+    provider_started_at = time.perf_counter()
+    provider_finished_at: float | None = None
     try:
         inference_result = run_inference(
             copilot_request,
@@ -182,8 +188,10 @@ def handle_copilot_request(
             request_timeout_seconds=gateway_options.request_timeout_seconds,
             stream_handler=stream_handler,
         )
+        provider_finished_at = time.perf_counter()
         response = inference_result["response"]
         validate_response_document(response)
+        provider_duration_ms = max(0, round((provider_finished_at - provider_started_at) * 1000))
         return validated_gateway_envelope(
             started_at=started_at,
             copilot_request=copilot_request,
@@ -192,8 +200,11 @@ def handle_copilot_request(
             response=response,
             request_validated=True,
             response_validated=True,
+            provider_duration_ms=provider_duration_ms,
         )
     except Exception:
+        provider_finished_at = provider_finished_at or time.perf_counter()
+        provider_duration_ms = max(0, round((provider_finished_at - provider_started_at) * 1000))
         message = "gateway inference failed"
         response = failed_copilot_response(copilot_request, code="GATEWAY_INFERENCE_FAILED", message=message)
         return validated_gateway_envelope(
@@ -208,4 +219,5 @@ def handle_copilot_request(
             },
             request_validated=True,
             response_validated=True,
+            provider_duration_ms=provider_duration_ms,
         )
