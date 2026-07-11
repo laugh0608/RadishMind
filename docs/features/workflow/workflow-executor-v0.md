@@ -174,4 +174,4 @@ Web 在 Draft Designer 下方提供单独的 Executor v0 区域：
 
 ## 后续顺位
 
-`Workflow Run History / Durable Dev-Test Run Store v1` 与 [Workflow Execution Diagnostics / Failure Review v1](workflow-execution-diagnostics-failure-review-v1.md) 已完成。后续若继续 Workflow 产品线，可先设计只读 run comparison / regression review；tool 与 confirmation 必须作为独立高风险功能设计推进，不能在 v0 上直接放开。
+`Workflow Run History / Durable Dev-Test Run Store v1`、[Workflow Execution Diagnostics / Failure Review v1](workflow-execution-diagnostics-failure-review-v1.md) 与 [Workflow Run Comparison / Regression Review v1](workflow-run-comparison-regression-review-v1.md) 已完成。后续若继续 Workflow 产品线，可先设计 evaluation cases / batch regression review；tool 与 confirmation 必须作为独立高风险功能设计推进，不能在 v0 上直接放开。

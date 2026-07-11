@@ -12,6 +12,7 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
+| [Workflow Run Comparison / Regression Review v1](workflow-run-comparison-regression-review-v1.md) | 功能专题 | `workflow_run_comparison_regression_review_v1_completed` | 已完成同 scope durable run 的只读基线 / 候选比较、确定性回归分类、节点差异、PostgreSQL 重启恢复和 Web 审查路径 |
 | [Workflow Execution Diagnostics / Failure Review v1](workflow-execution-diagnostics-failure-review-v1.md) | 功能专题 | `workflow_execution_diagnostics_failure_review_v1_completed` | 已完成兼容 v0 的 v1 诊断记录、失败过滤、0002 migration、受控 dev-test 故障场景、Web 失败审查、重启恢复和 no-fallback 验证 |
 | [Workflow Run History / Durable Dev-Test Run Store v1](workflow-run-history-durable-dev-test-store-v1.md) | 功能 / 实现专题 | `workflow_run_history_durable_dev_test_store_v1_completed` | 已完成真实 scoped run history、keyset 分页、独立 PostgreSQL 开发 / 测试 repository、脱敏保留、Web 历史 / 详情审查、重启恢复和 no-fallback 验证 |
 | [Workflow Executor v0](workflow-executor-v0.md) | 功能专题 | `workflow_executor_v0_implemented` | 已完成开发 / 测试态 Prompt / LLM / condition / output 执行、Gateway 复用、受控 Web 入口和 scoped run record 回读；tool、confirmation commit、writeback、replay / resume 和 production enablement 继续关闭 |
@@ -154,7 +155,7 @@
 
 `Saved Workflow Draft v1` 的 dev-only consumer integration、正式草案编辑入口、用户工作区创建、saved dev draft list / restore、本地图结构编辑、节点属性编辑和 active draft review record 均已落地。`Workflow Node Designer` 方向已完成 surface、library selection、首批画布实现、saved draft mapping、Review Handoff、persisted layout、edge editing preconditions、controlled edge mutation、layout review findings、builder interaction polish、validation overlay navigation 和 `Workflow Node Designer Graph Review Handoff Refinement v1`；Review Handoff 现在能展示 node / edge / graph-level `graphReviewFindings`，并已补 graph review summary / grouping UI、handoff path 与 evidence refs 阅读路径。
 
-2026-07-11 执行覆盖：R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、[Workflow Executor v0](workflow-executor-v0.md)、[Workflow Run History](workflow-run-history-durable-dev-test-store-v1.md) 与 [Workflow Execution Diagnostics / Failure Review v1](workflow-execution-diagnostics-failure-review-v1.md) 均已完成。下一产品设计可进入 run comparison / regression review，或评审其它一级产品面；下方 storage adapter next dependency 继续作为历史索引。
+2026-07-11 执行覆盖：R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run History、Failure Review 与 Run Comparison 均已完成。下一产品设计可进入 evaluation cases / batch regression review，或评审其它一级产品面；下方 storage adapter next dependency 继续作为历史索引。
 
 已完成专题 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](saved-workflow-draft-postgresql-dev-test-repository-v1.md)：显式 `postgres_dev_test` 模式覆盖真实 migration、回滚 / 重建、重启恢复、原子 CAS、tenant / workspace / application / owner scope、no fallback 和 PostgreSQL 集成测试；production `repository` 继续关闭。
 
@@ -167,6 +168,6 @@ Storage adapter 历史 status 速记：`audit_store_storage_adapter_backend_prod
 
 ## 停止线
 
-- [Workflow Executor v0](workflow-executor-v0.md) 只开放开发 / 测试态受控执行；durable history 与失败诊断已完成。下一专题可设计只读 run comparison / regression review，但不实现 tool executor、RAG executor、agent loop、publish、confirmation decision、writeback、replay、resume 或 materialized result reader。
+- [Workflow Executor v0](workflow-executor-v0.md) 只开放开发 / 测试态受控执行；durable history、失败诊断与二元比较已完成。下一专题可设计 evaluation cases / batch regression review，但不实现 tool executor、RAG executor、agent loop、publish、confirmation decision、writeback、replay、resume 或 materialized result reader。
 - 不把 saved draft、validation summary、risk summary 或 readiness summary 解释为 publish ready、run ready 或 production ready。
 - 只允许显式 `postgres_dev_test` 接入本地 / CI PostgreSQL、SQL migration、schema marker、一次性 migration runner 和受控连接池；production database resource、secret resolver、production resolver runtime、Radish OIDC、token validation、API key lifecycle、quota、billing 与公开生产 API 继续关闭。`memory_dev` 仍是默认开发模式，production `repository`、reserved / unknown mode 必须 fail closed，不能回退 sample、fixture 或 memory store。

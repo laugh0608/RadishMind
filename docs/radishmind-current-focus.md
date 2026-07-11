@@ -13,15 +13,15 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明 production ready。
-- 产品焦点：Workflow Draft Review Loop、Saved Draft durable dev/test repository、R4 Gateway、[Workflow Executor v0](features/workflow/workflow-executor-v0.md)、[Workflow Run History](features/workflow/workflow-run-history-durable-dev-test-store-v1.md) 与 [Workflow Execution Diagnostics / Failure Review v1](features/workflow/workflow-execution-diagnostics-failure-review-v1.md) 均已完成；下一产品专题尚未打开，可先设计只读 run comparison / regression review，或评审其它一级产品面。
+- 产品焦点：Workflow Draft Review Loop、Saved Draft durable dev/test repository、R4 Gateway、executor v0、Run History、Failure Review 与 [Workflow Run Comparison / Regression Review v1](features/workflow/workflow-run-comparison-regression-review-v1.md) 均已完成；下一产品专题先设计 `Workflow Evaluation Cases / Batch Regression Review v1`，或回到其它一级产品面评审。
 - `R2 正确性与安全清零`、`R3 Workflow Draft Review Loop`、`R4 Gateway 运行时产品化` 已完成；`R5 测试、CI 与性能预算` 进入后续工程线，`R6 文档与 checker 收敛` 继续作为治理约束。
 - 四个正式一级产品面保持为 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；Image Path 是横切适配能力，不作为当前第五条一级主线。
 - 旧 Production Secret Backend / Storage Adapter readiness 链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：`Workflow Execution Diagnostics / Failure Review v1` 已完成结构化失败、过滤、受控故障场景、v0 / v1 兼容与 Web 审查。下一批若继续 Workflow，优先设计只读 run comparison / regression review，不直接打开 unrestricted tool、业务写回、自动 confirmation commit 或 replay。
-2. 工程线：R5 已把 Web 主包降到 624.57 KiB，下一批继续收敛到 500 KiB 并形成可发现预算；R6 只随相关文件修改逐批解除历史 checker 文字耦合。
+1. 产品线：Run Comparison 已完成 scoped 二元比较、确定性分类、节点差异、PostgreSQL 重启恢复和 Web 审查。下一批若继续 Workflow，先设计 evaluation case 生命周期、baseline 选择、批量候选审查、聚合证据与保留 / 脱敏，再决定新 API 和 schema；不直接打开 unrestricted tool、业务写回、confirmation commit 或 replay。
+2. 工程线：R5 已把 Web 主入口降到 430.39 KiB，低于 500 KiB 目标；下一批补可发现性能预算并继续按路由拆分，R6 只随相关文件修改逐批解除历史 checker 文字耦合。
 
 R3 与 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖 migration / rollback / reapply、运行角色 DDL 拒绝、服务重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback、CI 与真实浏览器双标签冲突审查。该完成不启用 production repository mode，也不代表 OIDC、production secret、audit store 或公开生产 API ready。
 
@@ -36,7 +36,8 @@ durable draft repository、稳定 Gateway、executor v0 与 durable dev/test run
 5. [Workflow Executor v0](features/workflow/workflow-executor-v0.md)
 6. [Workflow Run History / Durable Dev-Test Run Store v1](features/workflow/workflow-run-history-durable-dev-test-store-v1.md)
 7. [Workflow Execution Diagnostics / Failure Review v1](features/workflow/workflow-execution-diagnostics-failure-review-v1.md)
-8. [本周周志](devlogs/2026-W28.md)
+8. [Workflow Run Comparison / Regression Review v1](features/workflow/workflow-run-comparison-regression-review-v1.md)
+9. [本周周志](devlogs/2026-W28.md)
 
 以下“历史兼容状态与证据索引”暂时保留大量机器检查依赖的状态锚点，人工判断当前方向时默认不再继续读取；后续由 R6 逐批迁出。
 

@@ -14,7 +14,7 @@
 
 1. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R5 / R6 作为随功能批次推进的工程约束，继续推进性能预算并收敛入口文档和历史 checker 耦合。
 
-`R3 Workflow Draft Review Loop`、[Workflow Saved Draft PostgreSQL Dev/Test Repository v1](workflow-saved-draft-postgresql-dev-test-repository-v1-plan.md)、[Gateway Bridge Runtime Baseline v1](gateway-bridge-runtime-baseline-v1-plan.md)、[Gateway Bridge stdio Worker Pool v1](gateway-bridge-stdio-worker-pool-v1-plan.md)、[Workflow Executor v0](workflow-executor-v0-implementation-plan.md) 与 [Workflow Run History / Durable Dev-Test Run Store v1](workflow-run-history-durable-dev-test-store-v1-plan.md) 已于 2026-07-11 完成。当前没有新的产品实现任务卡；下一产品顺位必须先更新对应功能设计，不恢复旧 storage adapter readiness 链，也不派生新的 Gateway / executor / run store gate-only readiness 链。
+R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、[Workflow Executor v0](workflow-executor-v0-implementation-plan.md)、[Workflow Run History](workflow-run-history-durable-dev-test-store-v1-plan.md)、Failure Review 与 [Run Comparison](workflow-run-comparison-regression-review-v1-plan.md) 已于 2026-07-11 完成。下一产品顺位先设计 evaluation cases / batch regression review；不恢复旧 storage adapter readiness 链，也不派生新的 Gateway / executor / run store gate-only readiness 链。
 
 当前没有活跃的 Production Secret Backend / Storage Adapter readiness 任务卡。下方既有任务卡均按历史完成、冻结或外部阻塞证据读取，不表示当前排期；新增实现任务应先回到对应功能专题和整改总入口确认用户目标。
 

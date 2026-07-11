@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-11 当前执行口径：Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、durable run history 与 failure review 均已完成。下一产品设计可进入只读 run comparison / regression review，或评审其它一级产品面；R5 Web 主包继续从 624.57 KiB 收敛到 500 KiB。旧 Production Secret Backend / Storage Adapter readiness 只作为历史索引。
+2026-07-11 当前执行口径：Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、durable run history、failure review 与 run comparison 均已完成。下一产品设计可进入 evaluation cases / batch regression review，或评审其它一级产品面；R5 Web 主入口已降到 430.39 KiB，后续补可发现预算。旧 Production Secret Backend / Storage Adapter readiness 只作为历史索引。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
