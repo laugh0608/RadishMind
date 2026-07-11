@@ -12,9 +12,9 @@
 
 ## 当前活跃任务
 
-1. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R6 作为随功能批次推进的治理约束，继续收敛入口文档和历史 checker 耦合。
+1. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R5 / R6 作为随功能批次推进的工程约束，继续推进性能预算并收敛入口文档和历史 checker 耦合。
 
-`R3 Workflow Draft Review Loop`、[Workflow Saved Draft PostgreSQL Dev/Test Repository v1](workflow-saved-draft-postgresql-dev-test-repository-v1-plan.md) 与 [Gateway Bridge Runtime Baseline v1](gateway-bridge-runtime-baseline-v1-plan.md) 已于 2026-07-11 完成。R4 基线已选定受控 `stdio` worker pool；下一实现批次开始前应创建唯一的高风险执行边界任务卡，不恢复旧 storage adapter readiness 链，也不派生新的基线 / readiness / refresh 链。
+`R3 Workflow Draft Review Loop`、[Workflow Saved Draft PostgreSQL Dev/Test Repository v1](workflow-saved-draft-postgresql-dev-test-repository-v1-plan.md)、[Gateway Bridge Runtime Baseline v1](gateway-bridge-runtime-baseline-v1-plan.md) 与 [Gateway Bridge stdio Worker Pool v1](gateway-bridge-stdio-worker-pool-v1-plan.md) 已于 2026-07-11 完成。下一产品任务应先更新 executor v0 对应功能设计，不恢复旧 storage adapter readiness 链，也不派生新的 Gateway baseline / readiness / refresh 链。
 
 当前没有活跃的 Production Secret Backend / Storage Adapter readiness 任务卡。下方既有任务卡均按历史完成、冻结或外部阻塞证据读取，不表示当前排期；新增实现任务应先回到对应功能专题和整改总入口确认用户目标。
 

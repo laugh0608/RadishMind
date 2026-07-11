@@ -13,26 +13,27 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明 production ready。
-- 产品焦点：`Workflow Draft Review Loop` 与开发 / 测试态 Saved Draft durable repository 均已完成；当前第一工程主线切换到 Gateway 稳定运行时。
-- `R2 正确性与安全清零`、`R3 Workflow Draft Review Loop` 已完成；`R6 文档与 checker 收敛` 继续作为治理约束，不再占用独立产品批次。
+- 产品焦点：`Workflow Draft Review Loop`、开发 / 测试态 Saved Draft durable repository 与 R4 Gateway 稳定运行时均已完成；下一产品顺位进入无外部副作用 executor v0 功能设计。
+- `R2 正确性与安全清零`、`R3 Workflow Draft Review Loop`、`R4 Gateway 运行时产品化` 已完成；`R5 测试、CI 与性能预算` 进入后续工程线，`R6 文档与 checker 收敛` 继续作为治理约束。
 - 四个正式一级产品面保持为 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；Image Path 是横切适配能力，不作为当前第五条一级主线。
 - 旧 Production Secret Backend / Storage Adapter readiness 链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 工程线：R4 Gateway process-per-request 分段基线与持久 bridge 选型已完成；下一批实现受控 `stdio` worker pool，覆盖握手、排队、超时 / 取消、崩溃重建、优雅退出和请求级隔离。
-2. 产品线：以新旧 bridge 同口径 benchmark 和行为测试证明 p95 自身开销至少下降 70%，再切换默认模式；Web 拆包与性能预算按测量结果推进，R6 只随相关文件修改逐批解除历史 checker 文字耦合。
+1. 产品线：先更新 `Workflow / Agent Runtime` 功能设计，评审只允许 Prompt / LLM / condition / output 和 run record 的 executor v0；不直接打开 unrestricted tool、业务写回、自动 confirmation commit 或 replay。
+2. 工程线：推进 R5 Web 拆包与可发现性能预算，R6 只随相关文件修改逐批解除历史 checker 文字耦合；不继续扩同层 Gateway readiness 或 benchmark 链。
 
 R3 与 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖 migration / rollback / reapply、运行角色 DDL 拒绝、服务重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback、CI 与真实浏览器双标签冲突审查。该完成不启用 production repository mode，也不代表 OIDC、production secret、audit store 或公开生产 API ready。
 
-durable repository 已成立；稳定 Gateway 成立后，可评审无外部副作用的 executor v0，只允许 Prompt / LLM / condition / output 和 run record；unrestricted tool、业务写回、自动 confirmation commit、replay / resume 继续关闭。
+durable repository 与稳定 Gateway 均已成立，executor v0 的功能设计评审条件已满足；实现仍需先固定执行状态、run record、失败语义、资源预算和停止线，unrestricted tool、业务写回、自动 confirmation commit、replay / resume 继续关闭。
 
 总入口与证据：
 
 1. [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md)
 2. [Gateway Python Bridge Runtime v1](features/gateway/python-bridge-runtime-v1.md)
-3. [Saved Workflow Draft v1](features/workflow/saved-workflow-draft-v1.md)
-4. [本周周志](devlogs/2026-W28.md)
+3. [stdio worker pool 对照证据](features/gateway/evidence/stdio-worker-pool-comparison-2026-07-11.json)
+4. [Saved Workflow Draft v1](features/workflow/saved-workflow-draft-v1.md)
+5. [本周周志](devlogs/2026-W28.md)
 
 以下“历史兼容状态与证据索引”暂时保留大量机器检查依赖的状态锚点，人工判断当前方向时默认不再继续读取；后续由 R6 逐批迁出。
 

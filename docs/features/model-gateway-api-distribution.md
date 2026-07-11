@@ -11,14 +11,14 @@
 - 平台已有 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 和 `/v1/models/{id}` 的第一版 bridge-backed 兼容面。
 - `apps/radishmind-web/` 已有 Model Gateway Overview、Route Evidence、Usage/Audit Evidence 和 Evidence Review / Readiness。
 - provider capability、health smoke、selection policy、retry/fallback policy 和 runtime docs 已进入仓库快速门禁。
-- Go Gateway 当前每次 bridge 操作都会启动独立 Python 子进程；凭证不进入 argv。2026-07-11 的 mock 基线已确认进程启动 / IPC 约占 bridge 自身 p95 开销的八成。
+- Go Gateway 已默认使用受控 `stdio` worker pool，复用四个 Python worker；`process_per_request` 仅保留为显式回滚模式，凭证不进入 argv 或 worker 环境。
 - 当前不执行真实 API key 生命周期、quota enforcement、rate limit、billing、cost ledger、provider retry/fallback execution、production gateway 或 load balancing。
 
 ## 当前开发目标
 
 R4 第一批 [Gateway Python Bridge Runtime v1](gateway/python-bridge-runtime-v1.md) 已完成 mock provider 的顺序 / 并发基线、四段成本拆分和候选评审，唯一推荐形态为受控 `stdio` worker pool。
 
-下一批应在现有 `bridgeClient` 后实现有界 worker pool、版本化握手、排队、超时 / 取消、崩溃后重建、优雅退出和请求级 credential / stream 隔离。它不改变 northbound request / response 语义，不接真实 provider，不启用生产 secret、自动 retry/fallback 或新的公开 API。
+[Gateway Bridge stdio Worker Pool v1 任务卡](../task-cards/gateway-bridge-stdio-worker-pool-v1-plan.md) 已在现有 `bridgeClient` 后完成有界 worker pool、版本化握手、排队、超时 / 取消、崩溃后重建、优雅退出和请求级 credential / stream 隔离。它没有改变 northbound request / response 语义，没有接真实 provider，也没有启用生产 secret、自动 retry/fallback 或新的公开 API。
 
 ## 设计边界
 
@@ -34,8 +34,8 @@ R4 第一批 [Gateway Python Bridge Runtime v1](gateway/python-bridge-runtime-v1
 1. 已建立 process-per-request 的可复现顺序 / 并发基线，并记录 p50、p95、吞吐和进程启动次数。
 2. 已用同一请求和 mock provider 分离 Go 路由、子进程启动 / IPC、Python Gateway 与 provider 路径耗时。
 3. 已比较受控 stdio worker pool、单 worker 多路复用与内部 HTTP 服务，选定受控 `stdio` worker pool。
-4. 下一批独立实现选定方案，覆盖健康握手、并发上限、排队、超时 / 取消、崩溃恢复、优雅退出和 credential 隔离。
-5. 只有新实现相对基线的 bridge 自身 p95 开销下降至少 70%，才允许切换默认运行模式。
+4. 已实现健康握手、并发上限、排队、超时 / 取消、崩溃恢复、优雅退出和 credential 隔离。
+5. 新实现相对 back-to-back process 基线的顺序 / 并发 bridge 自身 p95 开销下降 `93.5% / 94.4%`，已切换默认模式。
 
 ## 验收方式
 
@@ -46,7 +46,7 @@ R4 第一批 [Gateway Python Bridge Runtime v1](gateway/python-bridge-runtime-v1
 
 ## 停止线
 
-- 不在 worker 正确性、race、崩溃恢复和性能证据形成前切换默认运行模式；process-per-request 继续作为显式回滚模式。
+- process-per-request 继续作为显式回滚模式；不移除该路径，也不把 worker pool 扩为动态集群调度。
 - 不新增第二套 northbound contract、provider registry、selection policy 或 Gateway 业务真相源。
 - 不把 mock provider 性能解释为真实 provider SLA。
 - 不在本批启用 production API key、quota、billing、自动 fallback、load balancing 或 production deployment。

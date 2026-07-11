@@ -146,11 +146,7 @@ Control Plane Read 在 formal UI / dev-live consumer 之后的旧 repository rea
 
 read-side UI 当前已经完成七个页面、formal UI readiness close、dev-only live read consumer 和 auth/store transition preconditions。后续普通只读展示页应继续通过聚合 surface matrix / checker 收口，不再默认逐页新增专项门禁。任何后续 read-side 切片都不能把当前 fake-store-backed handler、测试身份上下文或 auth/store transition gate 写成真实数据库、Radish OIDC、repository、API key lifecycle、quota enforcement、billing、workflow executor、confirmation、writeback 或 replay 能力。
 
-当前第一版 bridge 仍是窄切片：
-
-- 当前仍以文本消息和单轮问答切片为主，但已支持第一版 bridge 增量流式转发
-- 当前只把最后一条文本用户消息映射到 `radish/answer_docs_question`
-- 返回内容当前优先取 canonical `summary`，必要时回退首条 `answer`
+当前 bridge northbound 仍以文本消息和单轮问答为主：只把最后一条文本用户消息映射到 `radish/answer_docs_question`，返回内容优先取 canonical `summary`、必要时回退首条 `answer`，并支持增量流式转发。
 
 `GET /v1/models` 目前通过 Python provider registry 输出带 route metadata 的 model inventory，作为 northbound discoverability 的第一版收口；它当前已支持列表和 `/v1/models/{id}` 精确 lookup，并带出 provider-qualified profile inventory。profile 可选择 ID 固定为 `profile:<profile>` 或 `provider:<provider>:profile:<profile>`，并与请求侧 selection 和 `diagnostics.providers.selectable_model_ids` 共用同一套 metadata。
 
@@ -182,7 +178,7 @@ read-side UI 当前已经完成七个页面、formal UI readiness close、dev-on
 - `scripts/run-platform-bridge.py providers` 能从 Python registry 输出 `mock`、`openai-compatible`、`huggingface` 与 `ollama` provider 能力。
 - `scripts/run-platform-bridge.py inventory` 能在受控环境变量下暴露 openai-compatible fallback chain、HuggingFace profile 和 Ollama local profile，并且只暴露 `has_api_key` / `credential_state`，不泄漏 key 原文。
 
-配置分层门禁由 `scripts/check-platform-config.py` 固定到快速检查中。它通过同一个 `config.LoadFromEnv` 入口验证 `config-summary` 和 `config-check`，只输出脱敏字段：provider、profile、model、base_url 是否存在、`credential_state`、timeout、listen addr、Python bridge 路径与字段来源，不输出 `RADISHMIND_PLATFORM_API_KEY` 或 `base_url` 原文。
+配置分层门禁由 `scripts/check-platform-config.py` 固定到快速检查中。它通过同一个 `config.LoadFromEnv` 入口验证 `config-summary` 和 `config-check`，只输出脱敏字段：provider、profile、model、base_url 是否存在、`credential_state`、timeout、listen addr、Python bridge mode / worker / queue / handshake、路径与字段来源，不输出 `RADISHMIND_PLATFORM_API_KEY` 或 `base_url` 原文。
 
 部署壳 smoke 由 `scripts/check-platform-deployment-smoke.py` 固定到快速检查中。它不启动长驻服务、不访问外部 provider，只验证本地配置文件加载、环境变量覆盖、无效配置失败和 secret 不泄漏。
 
@@ -309,7 +305,7 @@ RADISHMIND_PLATFORM_MODEL=radishmind-local-dev \
 go run ./cmd/radishmind-platform
 ```
 
-启动路径仍由 `config.LoadFromEnv -> httpapi.NewServer -> ListenAndServe` 组成。`Go` 层只负责本地 HTTP 壳、northbound 请求翻译和 Python bridge 调度，不直接承载模型推理逻辑。
+启动路径仍由 `config.LoadFromEnv -> httpapi.NewServer -> ListenAndServe` 组成。默认 `stdio_pool` 在监听端口前完成四个 Python worker 的 protocol v1 handshake，`Go` 层只负责本地 HTTP 壳、northbound 请求翻译和受控 bridge 调度，不直接承载模型推理逻辑。
 
 ## 环境变量
 
@@ -320,6 +316,10 @@ go run ./cmd/radishmind-platform
 | `RADISHMIND_PLATFORM_READ_HEADER_TIMEOUT` | `5s` | HTTP header 读取超时 |
 | `RADISHMIND_PLATFORM_WRITE_TIMEOUT` | `30s` | HTTP 写响应超时 |
 | `RADISHMIND_PLATFORM_BRIDGE_TIMEOUT` | `30s` | Go 调 Python bridge 的超时 |
+| `RADISHMIND_PLATFORM_BRIDGE_MODE` | `stdio_pool` | `stdio_pool` 或显式 `process_per_request` 回滚模式 |
+| `RADISHMIND_PLATFORM_BRIDGE_WORKER_COUNT` | `4` | 持久 worker 数量上限 |
+| `RADISHMIND_PLATFORM_BRIDGE_QUEUE_CAPACITY` | `64` | worker 忙时的有界等待容量 |
+| `RADISHMIND_PLATFORM_BRIDGE_HANDSHAKE_TIMEOUT` | `5s` | worker 启动握手超时 |
 | `RADISHMIND_PLATFORM_PYTHON_BIN` | 仓库 `.venv` Python | Python bridge 解释器 |
 | `RADISHMIND_PLATFORM_BRIDGE_SCRIPT` | `scripts/run-platform-bridge.py` | Python bridge 脚本路径 |
 | `RADISHMIND_PLATFORM_PROVIDER` | `mock` | 默认 southbound provider |
@@ -490,7 +490,7 @@ curl -sS http://127.0.0.1:7000/v1/chat/completions \
 - 若 `failure.code=PROVIDER_REGISTRY_UNAVAILABLE` 或 `PROVIDER_INVENTORY_UNAVAILABLE`，优先检查 `bridge.python_binary`、`bridge.script`、当前工作目录和 Python import 路径。
 - 若启动时报 `load config`，优先检查 duration / float 类环境变量格式，例如 `RADISHMIND_PLATFORM_BRIDGE_TIMEOUT=30s`、`RADISHMIND_PLATFORM_TEMPERATURE=0`。
 - 若 `/v1/models` 返回 `PROVIDER_INVENTORY_UNAVAILABLE`，优先检查 `RADISHMIND_PLATFORM_PYTHON_BIN`、`RADISHMIND_PLATFORM_BRIDGE_SCRIPT` 和当前工作目录是否能访问仓库根下的 Python bridge。
-- 若 northbound 路由返回 `PLATFORM_BRIDGE_FAILED`，先用 `./scripts/run-python.sh scripts/run-platform-bridge.py providers` 与 `./scripts/run-python.sh scripts/run-platform-bridge.py inventory` 验证 Python 侧 provider registry / inventory 是否可用。
+- 若 northbound 路由返回 `BRIDGE_WORKER_*`，先运行 diagnostics 检查 mode、握手和 inventory；必要时可显式设置 `RADISHMIND_PLATFORM_BRIDGE_MODE=process_per_request` 复核回滚路径，但不得恢复 argv 或长期环境变量传递请求 credential。
 - 若返回 `MODEL_NOT_FOUND`，优先用 `/v1/models` 或 `diagnostics.providers.selectable_model_ids` 确认可选择 ID，避免把 provider id、profile id 与真实 upstream model 混用。
 - 若返回 `PLATFORM_RESPONSE_INVALID`，说明 Python bridge 已返回 envelope，但 `Go` northbound 兼容层无法翻译为目标协议响应，应优先检查 envelope 的 `response` 结构。
 - 若 saved workflow draft route 返回 `repository_store_disabled` 或 `invalid_draft_store_mode`，优先检查 `RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE`；只有 `memory_dev` 与完整显式配置的 `postgres_dev_test` 可成功，production `repository` 仍关闭。
