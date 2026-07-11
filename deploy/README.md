@@ -57,6 +57,7 @@ Saved Draft PostgreSQL dev/test 使用独立入口：
 ```bash
 ./scripts/run-workflow-saved-draft-postgres-dev-test.sh check
 ./scripts/run-radishmind-web-dev.sh --mode dev-live --saved-draft-postgres-dev-test
+./scripts/run-radishmind-web-dev.sh --mode dev-live --saved-draft-postgres-dev-test --workflow-diagnostics-dev
 ./scripts/run-workflow-saved-draft-postgres-dev-test.sh down
 ```
 

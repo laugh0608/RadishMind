@@ -146,3 +146,5 @@ services/platform/migrations/workflow_runs/
 - 不启用 production repository、OIDC、membership、production secret、audit store、公开生产 API 或自动保留任务。
 - 不持久化原始输入、condition value、credential、endpoint 或 provider raw envelope。
 - 不把 Saved Draft repository 改造成 run repository，不把旧 fake run API 作为运行真相源。
+
+后续 [Workflow Execution Diagnostics / Failure Review v1](workflow-execution-diagnostics-failure-review-v1.md) 已在本资源族上完成 v1 诊断、失败过滤、受控故障场景和 Web 失败审查；本专题的持久化与 scope 边界保持不变。
