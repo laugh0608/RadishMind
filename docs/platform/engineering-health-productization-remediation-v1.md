@@ -138,7 +138,7 @@
 - 失败时不回退 sample，不执行 workflow，不创建 confirmation decision。
 - 本批完成前不再新增 Workflow readiness / review 小切片。
 
-R3 完成后停止继续扩同层 Builder 小切片。下一产品目标切换为显式开发 / 测试态 PostgreSQL durable repository；进入实现前先更新 Saved Workflow Draft 功能设计，固定 migration、重启恢复、原子 expected-version、workspace / owner scope、no fallback 和集成测试。
+R3 完成后停止继续扩同层 Builder 小切片。显式开发 / 测试态 PostgreSQL durable repository 已完成设计并进入实现，当前单一任务卡固定 migration、重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback 和集成测试。旧 Saved Draft / Secret Backend / Storage Adapter readiness checker 已退出活动仓库基线，历史脚本和证据继续保留。
 
 ## R4：Gateway 运行时产品化
 

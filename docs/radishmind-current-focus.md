@@ -20,10 +20,10 @@
 
 当前最多两条在制主线：
 
-1. 产品线：先更新 Saved Workflow Draft 功能设计，收束开发 / 测试态 PostgreSQL repository 的 schema、migration、重启恢复、CAS、scope、no fallback 与集成测试，再进入实现。
+1. 产品线：Saved Workflow Draft PostgreSQL dev/test repository 设计和单一实现任务卡已完成，当前实现 schema、migration、重启恢复、CAS、scope、no fallback 与真实集成测试。
 2. 工程线：启动 R4 Gateway 实测基线和持久 Python bridge 选型；测试 / 性能预算与 Web 拆包在实测后推进，R6 仅随相关文件修改逐批解除历史 checker 文字耦合。
 
-R3 已于 2026-07-11 完成真实浏览器收口。下一条产品纵向切片是显式开发 / 测试态 durable repository：优先采用本地 PostgreSQL，必须覆盖 migration、重启恢复、原子 expected-version、workspace / owner scope、no fallback 和集成测试。该放宽不启用 production repository mode，也不代表 OIDC、production secret、audit store 或公开生产 API ready。
+R3 已于 2026-07-11 完成真实浏览器收口。当前产品纵向切片是 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md)：使用显式 `postgres_dev_test` 模式覆盖 migration、重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback 和集成测试。该放宽不启用 production repository mode，也不代表 OIDC、production secret、audit store 或公开生产 API ready。
 
 durable repository 与稳定 Gateway 成立后，可评审无外部副作用的 executor v0，只允许 Prompt / LLM / condition / output 和 run record；unrestricted tool、业务写回、自动 confirmation commit、replay / resume 继续关闭。
 

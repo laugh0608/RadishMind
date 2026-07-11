@@ -227,7 +227,7 @@
 ## 2026-07-11 当前执行顺序
 
 1. `R3 Workflow Draft Review Loop` 已于 2026-07-11 完成真实浏览器正常路径、版本冲突路径、Continue / Restore 和 Review Handoff 收口，未新增同层 readiness / checker。
-2. 当前产品线先更新 Saved Workflow Draft 功能设计，再打开显式开发 / 测试态 PostgreSQL durable repository，验证 migration、重启恢复、CAS、scope 和 no fallback；production repository mode 继续关闭。
+2. Saved Workflow Draft PostgreSQL dev/test repository 设计与单一实现任务卡已经完成，当前实现显式 `postgres_dev_test`、migration、重启恢复、CAS、scope、no fallback 和真实集成测试；production repository mode 继续关闭。
 3. 工程线推进持久 Python bridge、Web 路由级拆分、CI 与性能预算，并逐批解除入口文档对历史 checker literal 的依赖。
 4. durable repository 与稳定 Gateway 均成立后，评审无外部副作用 executor v0；真实工具、业务写回、自动确认提交和 replay 继续后置。
 5. OIDC、production secret、真实云资源、quota / billing、真实生图和模型训练只在外部资源、负责人和独立运行窗口明确后重开。
