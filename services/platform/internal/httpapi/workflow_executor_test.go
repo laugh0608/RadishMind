@@ -330,12 +330,21 @@ func TestMemoryWorkflowRunStoreEvictsOldestAndClonesRecords(t *testing.T) {
 	store := newMemoryWorkflowRunStore(2)
 	runContext := workflowExecutorTestContext()
 	for _, runID := range []string{"run_1", "run_2", "run_3"} {
-		if err := store.UpsertRun(runContext, WorkflowRunRecord{
+		record := WorkflowRunRecord{
+			SchemaVersion:    workflowRunRecordSchemaVersion,
 			RunID:            runID,
 			WorkspaceID:      runContext.WorkspaceID,
 			ApplicationID:    runContext.ApplicationID,
+			Status:           WorkflowRunStatusRunning,
+			StartedAt:        workflowRunTimestamp(time.Now()),
+			ActorRef:         runContext.ActorRef,
+			RequestID:        runContext.RequestID,
+			AuditRef:         runContext.AuditRef,
+			DraftID:          "draft_test",
+			DraftVersion:     1,
 			ConditionNodeIDs: []string{"node_condition"},
-		}); err != nil {
+		}
+		if err := store.UpsertRun(runContext, &record); err != nil {
 			t.Fatalf("upsert run record: %v", err)
 		}
 	}

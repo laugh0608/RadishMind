@@ -107,13 +107,20 @@ function Invoke-SavedDraftPostgresMigrationStatus {
     $env:RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH = "1"
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP = "1"
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE = "1"
+    $env:RADISHMIND_WORKFLOW_EXECUTOR_DEV = "1"
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE = "postgres_dev_test"
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
+    $env:RADISHMIND_WORKFLOW_RUN_STORE = "postgres_dev_test"
+    $env:RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
     Push-Location $platformDir
     try {
         & $goPath run ./cmd/radishmind-workflow-draft-migrate status | Out-Null
         if ($LASTEXITCODE -ne 0) {
             throw "Saved Draft PostgreSQL migration preflight failed"
+        }
+        & $goPath run ./cmd/radishmind-workflow-run-migrate status | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Workflow Run PostgreSQL migration preflight failed"
         }
     }
     finally {
@@ -312,6 +319,12 @@ function Invoke-WorkflowExecutorProbe {
     if ($null -ne $json.run) {
         throw "Workflow Executor dev gate probe must not create a run for a missing draft"
     }
+    $listUrl = $BaseUrl.TrimEnd("/") + "/v1/user-workspace/workflow-runs?workspace_id=$WorkspaceId&application_id=$ApplicationId&limit=1"
+    $listResponse = Invoke-WebRequest -Uri $listUrl -Method Get -Headers $headers -TimeoutSec 5
+    $listJson = $listResponse.Content | ConvertFrom-Json
+    if ($null -ne $listJson.failure_code -or $listJson.PSObject.Properties.Name -notcontains "runs") {
+        throw "Workflow run history list probe did not return a successful runs[] envelope"
+    }
 }
 
 function Invoke-CorsProbe {
@@ -487,6 +500,8 @@ try {
                 $env:RADISHMIND_WORKFLOW_EXECUTOR_DEV = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE = "postgres_dev_test"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
+				$env:RADISHMIND_WORKFLOW_RUN_STORE = "postgres_dev_test"
+				$env:RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
             }
 
             $backendPortOpen = Test-TcpPort -HostName $backendUri.Host -Port $backendUri.Port

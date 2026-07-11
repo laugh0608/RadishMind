@@ -101,14 +101,22 @@ function Invoke-Migration {
     $env:RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH = "1"
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP = "1"
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE = "1"
+    $env:RADISHMIND_WORKFLOW_EXECUTOR_DEV = "1"
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE = "postgres_dev_test"
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
+    $env:RADISHMIND_WORKFLOW_RUN_STORE = "postgres_dev_test"
+    $env:RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
+    $env:RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
     Push-Location $platformDir
     try {
         & $go run ./cmd/radishmind-workflow-draft-migrate $MigrationAction
         if ($LASTEXITCODE -ne 0) {
             throw "saved draft migration runner failed with exit code $LASTEXITCODE"
+        }
+        & $go run ./cmd/radishmind-workflow-run-migrate $MigrationAction
+        if ($LASTEXITCODE -ne 0) {
+            throw "workflow run migration runner failed with exit code $LASTEXITCODE"
         }
     }
     finally {
@@ -124,7 +132,7 @@ function Invoke-IntegrationTest {
     $env:RADISHMIND_POSTGRES_INTEGRATION_RUNTIME_PASSWORD = $runtimePassword
     Push-Location $platformDir
     try {
-        & $go test -tags=postgres_integration ./internal/httpapi
+        & $go test -count=1 -tags=postgres_integration ./internal/httpapi
         if ($LASTEXITCODE -ne 0) {
             throw "saved draft PostgreSQL integration test failed with exit code $LASTEXITCODE"
         }

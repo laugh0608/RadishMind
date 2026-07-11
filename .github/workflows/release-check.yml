@@ -139,5 +139,5 @@ jobs:
           PGDATABASE: radishmind_saved_draft_test
           PGSSLMODE: disable
           RADISHMIND_POSTGRES_INTEGRATION_RUNTIME_USER: radishmind_runtime
-        run: go test -tags=postgres_integration ./internal/httpapi
+        run: go test -count=1 -tags=postgres_integration ./internal/httpapi
         working-directory: services/platform

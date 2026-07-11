@@ -433,14 +433,22 @@ export async function readWorkflowRunDevRecord(
   record: WorkflowRunRecord,
   config: WorkflowExecutorConsumerConfig,
 ): Promise<WorkflowExecutorConsumerState> {
+  return readWorkflowRunDevRecordByID(record.runId, record.applicationId, config);
+}
+
+export async function readWorkflowRunDevRecordByID(
+  runId: string,
+  applicationId: string,
+  config: WorkflowExecutorConsumerConfig,
+): Promise<WorkflowExecutorConsumerState> {
   const query = new URLSearchParams({
     workspace_id: config.workspaceId,
-    application_id: record.applicationId,
+    application_id: applicationId,
   });
   const envelope = await requestWorkflowRunEnvelope(
-    `/v1/user-workspace/workflow-runs/${encodeURIComponent(record.runId)}?${query.toString()}`,
-    record.applicationId,
-    `dev-workflow-run-read-${record.runId}`,
+    `/v1/user-workspace/workflow-runs/${encodeURIComponent(runId)}?${query.toString()}`,
+    applicationId,
+    `dev-workflow-run-read-${runId}`,
     config,
     { method: "GET" },
   );

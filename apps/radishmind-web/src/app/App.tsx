@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
 import {
   buildAdminTenantOverviewViewModel,
@@ -195,6 +195,7 @@ const shell = buildControlPlaneReadShellViewModel();
 const devLiveConfig = readControlPlaneReadDevLiveConfig();
 const savedDraftConsumerConfig = readWorkflowSavedDraftConsumerConfig();
 const workflowExecutorConsumerConfig = readWorkflowExecutorConsumerConfig();
+const WorkflowRunHistoryPanel = lazy(() => import("../features/control-plane-read/workflowRunHistoryPanel"));
 const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
 
 type ControlPlaneReadCollectionsByRoute = Partial<
@@ -1781,11 +1782,16 @@ export function App() {
           </div>
         </section>
 
-        <section
+        <Suspense fallback={<section className="surface-band"><p>Loading run history…</p></section>}>
+          <WorkflowRunHistoryPanel applicationId={selectedApplication.applicationRef} />
+        </Suspense>
+
+        <section hidden aria-hidden="true"
           className="surface-band workspace-run-history"
-          id="workspace-run-history"
+          id="workspace-run-history-legacy"
           aria-labelledby="workspace-run-history-title"
         >
+          {false && <>
           <div className="section-heading">
             <div>
               <p className="eyebrow">User Workspace</p>
@@ -1853,6 +1859,7 @@ export function App() {
               <RunHistoryStatePreview key={state.id} state={state} />
             ))}
           </div>
+          </>}
         </section>
 
         <section className="surface-band" id="routes" aria-labelledby="routes-title">

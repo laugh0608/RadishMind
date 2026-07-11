@@ -36,6 +36,7 @@ type Server struct {
 	savedWorkflowDraftStore      savedWorkflowDraftStore
 	workflowRunStore             workflowRunStore
 	closeSavedWorkflowDraftStore func()
+	closeWorkflowRunStore        func()
 	closeOnce                    sync.Once
 }
 
@@ -66,8 +67,14 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	workflowRunStore, closeWorkflowRunStore, err := newWorkflowRunStoreFromConfig(cfg)
+	if err != nil {
+		closeSavedWorkflowDraftStore()
+		return nil, err
+	}
 	platformBridge, err := newPlatformBridgeClient(cfg)
 	if err != nil {
+		closeWorkflowRunStore()
 		if closeSavedWorkflowDraftStore != nil {
 			closeSavedWorkflowDraftStore()
 		}
@@ -79,8 +86,9 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		bridge:                       platformBridge,
 		config:                       cfg,
 		savedWorkflowDraftStore:      savedWorkflowDraftStore,
-		workflowRunStore:             newMemoryWorkflowRunStore(defaultWorkflowRunStoreCapacity),
+		workflowRunStore:             workflowRunStore,
 		closeSavedWorkflowDraftStore: closeSavedWorkflowDraftStore,
+		closeWorkflowRunStore:        closeWorkflowRunStore,
 	}
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
@@ -107,6 +115,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(savedWorkflowDraftReadRoute, server.handleReadWorkflowDraft)
 	mux.HandleFunc(savedWorkflowDraftValidateRoute, server.handleValidateWorkflowDraft)
 	mux.HandleFunc(workflowExecutorStartRoute, server.handleStartWorkflowRun)
+	mux.HandleFunc(workflowRunListRoute, server.handleListWorkflowRuns)
 	mux.HandleFunc(workflowRunReadRoute, server.handleReadWorkflowRun)
 
 	server.httpServer = &http.Server{
@@ -179,6 +188,9 @@ func (s *Server) Close() {
 		}
 		if s.closeSavedWorkflowDraftStore != nil {
 			s.closeSavedWorkflowDraftStore()
+		}
+		if s.closeWorkflowRunStore != nil {
+			s.closeWorkflowRunStore()
 		}
 	})
 }

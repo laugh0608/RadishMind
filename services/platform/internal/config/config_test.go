@@ -67,6 +67,8 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 		"RADISHMIND_PLATFORM_API_KEY",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
 	}) {
 		t.Fatalf("unexpected secret fields: %#v", summary.SecretFields)
 	}
@@ -329,6 +331,26 @@ func TestPostgresDevTestModeRequiresExplicitDevelopmentGates(t *testing.T) {
 	}
 }
 
+func TestPostgresWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.WorkflowRunStoreMode = "postgres_dev_test"
+	summary := cfg.SanitizedSummary()
+	if !reflect.DeepEqual(summary.MissingRequiredFields, []string{
+		"control_plane_read_dev_auth", "workflow_executor_dev", "workflow_run_database",
+	}) {
+		t.Fatalf("unexpected workflow run PostgreSQL requirements: %#v", summary.MissingRequiredFields)
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	cfg.WorkflowExecutorDevEnabled = true
+	cfg.WorkflowSavedDraftDevHTTPEnabled = true
+	cfg.WorkflowRunDatabaseURL = "postgresql://runtime.invalid/secret"
+	summary = cfg.SanitizedSummary()
+	if len(summary.MissingRequiredFields) != 0 || !summary.WorkflowRunDatabaseConfigured ||
+		summary.WorkflowRunStoreMode != "postgres_dev_test" {
+		t.Fatalf("workflow run PostgreSQL config should be ready and sanitized: %#v", summary)
+	}
+}
+
 func TestWorkflowExecutorDevModeRequiresDevelopmentAuthAndSavedDraftHTTP(t *testing.T) {
 	config := Config{
 		ListenAddr:                 ":7000",
@@ -381,6 +403,10 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_TIMEOUT",
+		"RADISHMIND_WORKFLOW_RUN_STORE",
+		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_WORKFLOW_RUN_DATABASE_TIMEOUT",
 	} {
 		t.Setenv(key, "")
 	}

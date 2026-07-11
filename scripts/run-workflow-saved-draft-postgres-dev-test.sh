@@ -101,11 +101,16 @@ run_migration() {
     export RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH="1"
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
+		export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="postgres_dev_test"
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL="${runtime_database_url}"
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL="${migration_database_url}"
+    export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
+		export RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL="${runtime_database_url}"
+		export RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL="${migration_database_url}"
     cd "${platform_dir}"
     go run ./cmd/radishmind-workflow-draft-migrate "${migration_action}"
+		go run ./cmd/radishmind-workflow-run-migrate "${migration_action}"
   )
 }
 
@@ -122,7 +127,7 @@ run_integration_test() {
     export RADISHMIND_POSTGRES_INTEGRATION_RUNTIME_USER="${runtime_user}"
     export RADISHMIND_POSTGRES_INTEGRATION_RUNTIME_PASSWORD="${runtime_password}"
     cd "${platform_dir}"
-    go test -tags=postgres_integration ./internal/httpapi
+    go test -count=1 -tags=postgres_integration ./internal/httpapi
   )
 }
 
@@ -148,7 +153,7 @@ case "${action}" in
     compose up -d --wait
     step "Running the PostgreSQL repository integration suite."
     run_integration_test
-    step "Restoring the reviewed migrated schema for interactive development."
+    step "Restoring the reviewed saved draft and workflow run schemas for interactive development."
     run_migration up
     ;;
   down)

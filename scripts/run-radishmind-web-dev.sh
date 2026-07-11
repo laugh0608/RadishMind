@@ -180,10 +180,14 @@ probe_saved_draft_postgres_migration() {
     export RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH="1"
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
+		export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="postgres_dev_test"
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL="${database_url}"
+		export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
+		export RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL="${database_url}"
     cd "${platform_dir}"
     go run ./cmd/radishmind-workflow-draft-migrate status >/dev/null
+		go run ./cmd/radishmind-workflow-run-migrate status >/dev/null
   )
 }
 
@@ -417,6 +421,14 @@ if document.get("failure_code") != "workflow_run_draft_not_found":
     raise SystemExit(f"Workflow Executor dev gate probe returned unexpected failure_code={document.get('failure_code')}")
 if document.get("run") is not None:
     raise SystemExit("Workflow Executor dev gate probe must not create a run for a missing draft")
+list_url = f"{base_url}/v1/user-workspace/workflow-runs?workspace_id={workspace_id}&application_id={application_id}&limit=1"
+list_request = Request(list_url, headers={key: value for key, value in request.headers.items() if key.lower() != "content-type"}, method="GET")
+with urlopen(list_request, timeout=5) as response:
+    if response.status < 200 or response.status >= 300:
+        raise SystemExit(f"Unexpected HTTP status {response.status} from {list_url}")
+    list_document = json.loads(response.read().decode("utf-8"))
+if list_document.get("failure_code") is not None or not isinstance(list_document.get("runs"), list):
+    raise SystemExit("Workflow run history list probe did not return a successful runs[] envelope")
 PY
 }
 
@@ -598,6 +610,8 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="postgres_dev_test"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+			export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
+			export RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
         fi
         exec "${platform_wrapper}" serve
       ) >"${log_dir}/platform.out.log" 2>"${log_dir}/platform.err.log" &

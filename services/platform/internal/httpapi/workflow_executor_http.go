@@ -8,6 +8,7 @@ import (
 
 const (
 	workflowExecutorStartRoute = "POST /v1/user-workspace/workflow-drafts/{draft_id}/runs"
+	workflowRunListRoute       = "GET /v1/user-workspace/workflow-runs"
 	workflowRunReadRoute       = "GET /v1/user-workspace/workflow-runs/{run_id}"
 )
 
@@ -28,6 +29,18 @@ type workflowRunEnvelope struct {
 	FailureCode    *string            `json:"failure_code"`
 	FailureSummary string             `json:"failure_summary"`
 	AuditRef       string             `json:"audit_ref"`
+}
+
+type workflowRunListEnvelope struct {
+	RequestID      string               `json:"request_id"`
+	WorkspaceID    string               `json:"workspace_id"`
+	ApplicationID  string               `json:"application_id"`
+	Runs           []WorkflowRunSummary `json:"runs"`
+	NextCursor     string               `json:"next_cursor"`
+	HasMore        bool                 `json:"has_more"`
+	FailureCode    *string              `json:"failure_code"`
+	FailureSummary string               `json:"failure_summary"`
+	AuditRef       string               `json:"audit_ref"`
 }
 
 func (s *Server) handleStartWorkflowRun(writer http.ResponseWriter, request *http.Request) {
@@ -86,6 +99,28 @@ func (s *Server) handleReadWorkflowRun(writer http.ResponseWriter, request *http
 	}
 	result := s.workflowExecutorService().ReadRun(runContext, strings.TrimSpace(request.PathValue("run_id")))
 	writeWorkflowRunResult(writer, trace, runContext, result)
+}
+
+func (s *Server) handleListWorkflowRuns(writer http.ResponseWriter, request *http.Request) {
+	trace := newRequestTrace(request, workflowRunListRoute)
+	if !s.allowWorkflowExecutorDev(writer, trace) {
+		return
+	}
+	workspaceID := strings.TrimSpace(request.URL.Query().Get("workspace_id"))
+	applicationID := strings.TrimSpace(request.URL.Query().Get("application_id"))
+	runContext, failureCode := workflowRunContextFromRequest(
+		request, trace, workspaceID, applicationID, "list", "workflow_runs:read",
+	)
+	if failureCode != "" {
+		writeWorkflowRunListResult(writer, trace, runContext, workflowRunListFailure(failureCode))
+		return
+	}
+	listRequest, failureCode := parseWorkflowRunListRequest(request.URL.Query())
+	if failureCode != "" {
+		writeWorkflowRunListResult(writer, trace, runContext, workflowRunListFailure(failureCode))
+		return
+	}
+	writeWorkflowRunListResult(writer, trace, runContext, s.workflowExecutorService().ListRuns(runContext, listRequest))
 }
 
 func (s *Server) allowWorkflowExecutorDev(writer http.ResponseWriter, trace requestTrace) bool {
@@ -173,6 +208,23 @@ func workflowRunFailureCodePointer(failureCode WorkflowRunFailureCode) *string {
 	}
 	value := string(failureCode)
 	return &value
+}
+
+func writeWorkflowRunListResult(
+	writer http.ResponseWriter,
+	trace requestTrace,
+	runContext WorkflowRunContext,
+	result WorkflowRunListResult,
+) {
+	if result.Runs == nil {
+		result.Runs = []WorkflowRunSummary{}
+	}
+	writeObservedJSON(writer, http.StatusOK, trace, workflowRunListEnvelope{
+		RequestID: trace.requestID, WorkspaceID: runContext.WorkspaceID, ApplicationID: runContext.ApplicationID,
+		Runs: result.Runs, NextCursor: result.NextCursor, HasMore: result.HasMore,
+		FailureCode: workflowRunFailureCodePointer(result.FailureCode), FailureSummary: result.FailureSummary,
+		AuditRef: runContext.AuditRef,
+	})
 }
 
 func auditRefForWorkflowRun(trace requestTrace, suffix string) string {

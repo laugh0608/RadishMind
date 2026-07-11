@@ -65,6 +65,11 @@ const (
 	WorkflowRunFailureCanceled                WorkflowRunFailureCode = "workflow_run_canceled"
 	WorkflowRunFailureRecordNotFound          WorkflowRunFailureCode = "workflow_run_record_not_found"
 	WorkflowRunFailureStoreUnavailable        WorkflowRunFailureCode = "workflow_run_store_unavailable"
+	WorkflowRunFailureStoreContractMismatch   WorkflowRunFailureCode = "workflow_run_store_contract_mismatch"
+	WorkflowRunFailureFilterInvalid           WorkflowRunFailureCode = "workflow_run_filter_invalid"
+	WorkflowRunFailureCursorInvalid           WorkflowRunFailureCode = "workflow_run_cursor_invalid"
+	WorkflowRunFailureStoreModeInvalid        WorkflowRunFailureCode = "workflow_run_store_mode_invalid"
+	WorkflowRunFailureStoreModeDisabled       WorkflowRunFailureCode = "workflow_run_store_mode_disabled"
 )
 
 type WorkflowRunContext struct {
@@ -110,6 +115,7 @@ type WorkflowRunNodeRecord struct {
 
 type WorkflowRunRecord struct {
 	SchemaVersion    string                  `json:"schema_version"`
+	RecordVersion    int                     `json:"record_version"`
 	RunID            string                  `json:"run_id"`
 	DraftID          string                  `json:"draft_id"`
 	DraftVersion     int                     `json:"draft_version"`
@@ -132,6 +138,7 @@ type WorkflowRunRecord struct {
 	Output           string                  `json:"output"`
 	RequestID        string                  `json:"request_id"`
 	AuditRef         string                  `json:"audit_ref"`
+	ActorRef         string                  `json:"actor_ref"`
 	SideEffects      WorkflowRunSideEffects  `json:"side_effects"`
 }
 
@@ -228,7 +235,7 @@ func (service workflowExecutorService) StartRun(
 
 	selection := resolveWorkflowRunSelection(service, executionContext, normalizedRequest.Model)
 	record := newWorkflowRunRecord(runContext, normalizedRequest, draft, plan, selection, runID)
-	if err := service.store.UpsertRun(runContext, record); err != nil {
+	if err := service.store.UpsertRun(runContext, &record); err != nil {
 		return workflowRunFailure(WorkflowRunFailureStoreUnavailable, "Workflow run record storage is unavailable.")
 	}
 	return service.executePlan(executionContext, runContext, normalizedRequest, draft, plan, selection, record)
@@ -281,7 +288,7 @@ func (service workflowExecutorService) executePlan(
 			for _, edge := range plan.outgoing[nodeID] {
 				edgeActive[edge.EdgeID] = false
 			}
-			if err := service.store.UpsertRun(runContext, record); err != nil {
+			if err := service.store.UpsertRun(runContext, &record); err != nil {
 				return service.finishFailedRun(runContext, record, WorkflowRunFailureStoreUnavailable, "Workflow run record storage is unavailable.", false)
 			}
 			continue
@@ -290,7 +297,7 @@ func (service workflowExecutorService) executePlan(
 		nodeStartedAt := time.Now().UTC()
 		record.Nodes[recordIndex].Status = WorkflowRunNodeStatusRunning
 		record.Nodes[recordIndex].StartedAt = workflowRunTimestamp(nodeStartedAt)
-		if err := service.store.UpsertRun(runContext, record); err != nil {
+		if err := service.store.UpsertRun(runContext, &record); err != nil {
 			return service.finishFailedRun(runContext, record, WorkflowRunFailureStoreUnavailable, "Workflow run record storage is unavailable.", false)
 		}
 
@@ -325,7 +332,7 @@ func (service workflowExecutorService) executePlan(
 				edgeActive[edge.EdgeID] = true
 			}
 		}
-		if err := service.store.UpsertRun(runContext, record); err != nil {
+		if err := service.store.UpsertRun(runContext, &record); err != nil {
 			return service.finishFailedRun(runContext, record, WorkflowRunFailureStoreUnavailable, "Workflow run record storage is unavailable.", false)
 		}
 	}
@@ -339,7 +346,7 @@ func (service workflowExecutorService) executePlan(
 	record.CompletedAt = workflowRunTimestamp(time.Now())
 	record.FailureCode = ""
 	record.FailureSummary = ""
-	if err := service.store.UpsertRun(runContext, record); err != nil {
+	if err := service.store.UpsertRun(runContext, &record); err != nil {
 		return workflowRunFailure(WorkflowRunFailureStoreUnavailable, "Workflow run completed but its terminal record could not be stored.")
 	}
 	return WorkflowRunResult{Record: workflowRunRecordPointer(record)}
@@ -461,7 +468,7 @@ func (service workflowExecutorService) finishFailedRun(
 	record.FailureCode = failureCode
 	record.FailureSummary = failureSummary
 	record.CompletedAt = workflowRunTimestamp(time.Now())
-	if err := service.store.UpsertRun(runContext, record); err != nil {
+	if err := service.store.UpsertRun(runContext, &record); err != nil {
 		return WorkflowRunResult{
 			Record:         workflowRunRecordPointer(record),
 			FailureCode:    WorkflowRunFailureStoreUnavailable,
@@ -880,6 +887,7 @@ func newWorkflowRunRecord(
 		Nodes:            nodeRecords,
 		RequestID:        runContext.RequestID,
 		AuditRef:         runContext.AuditRef,
+		ActorRef:         runContext.ActorRef,
 	}
 }
 

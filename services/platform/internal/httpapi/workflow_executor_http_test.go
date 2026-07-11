@@ -81,6 +81,22 @@ func TestWorkflowExecutorHTTPRoutes(t *testing.T) {
 			t.Fatalf("workflow run record should be readable from scoped store: %#v", readEnvelope)
 		}
 
+		listRequest := httptest.NewRequest(
+			http.MethodGet,
+			"/v1/user-workspace/workflow-runs?workspace_id="+draft.WorkspaceID+"&application_id="+draft.ApplicationID+"&status=succeeded&limit=1",
+			nil,
+		)
+		setSavedWorkflowDraftDevHeaders(listRequest, "workflow_runs:read")
+		listResponse := httptest.NewRecorder()
+		server.httpServer.Handler.ServeHTTP(listResponse, listRequest)
+		listEnvelope := decodeWorkflowRunListEnvelope(t, listResponse, http.StatusOK)
+		if listEnvelope.FailureCode != nil || len(listEnvelope.Runs) != 1 || listEnvelope.Runs[0].RunID != envelope.Run.RunID {
+			t.Fatalf("workflow run history should use the scoped executor store: %#v", listEnvelope)
+		}
+		if strings.Contains(listResponse.Body.String(), rawInput) {
+			t.Fatalf("workflow run history must not expose raw input: %s", listResponse.Body.String())
+		}
+
 		otherTenantRequest := httptest.NewRequest(
 			http.MethodGet,
 			"/v1/user-workspace/workflow-runs/"+envelope.Run.RunID+
@@ -245,6 +261,22 @@ func decodeWorkflowRunEnvelope(
 	var envelope workflowRunEnvelope
 	if err := json.Unmarshal(response.Body.Bytes(), &envelope); err != nil {
 		t.Fatalf("decode workflow run envelope: %v\n%s", err, response.Body.String())
+	}
+	return envelope
+}
+
+func decodeWorkflowRunListEnvelope(
+	t *testing.T,
+	response *httptest.ResponseRecorder,
+	expectedStatus int,
+) workflowRunListEnvelope {
+	t.Helper()
+	if response.Code != expectedStatus {
+		t.Fatalf("expected status %d, got %d: %s", expectedStatus, response.Code, response.Body.String())
+	}
+	var envelope workflowRunListEnvelope
+	if err := json.Unmarshal(response.Body.Bytes(), &envelope); err != nil {
+		t.Fatalf("decode workflow run list envelope: %v\n%s", err, response.Body.String())
 	}
 	return envelope
 }

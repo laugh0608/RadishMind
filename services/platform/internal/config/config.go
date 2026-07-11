@@ -19,10 +19,12 @@ const (
 	defaultBridgeQueueSize   = 64
 	defaultBridgeHandshake   = 5 * time.Second
 	defaultDraftDBTimeout    = 5 * time.Second
+	defaultRunDBTimeout      = 5 * time.Second
 	defaultPythonBinary      = "python3"
 	defaultBridgeScript      = "scripts/run-platform-bridge.py"
 	defaultProvider          = "mock"
 	defaultDraftStoreMode    = "memory_dev"
+	defaultRunStoreMode      = "memory_dev"
 )
 
 const (
@@ -47,6 +49,9 @@ type Config struct {
 	WorkflowSavedDraftStoreMode       string
 	WorkflowSavedDraftDatabaseURL     string
 	WorkflowSavedDraftDatabaseTimeout time.Duration
+	WorkflowRunStoreMode              string
+	WorkflowRunDatabaseURL            string
+	WorkflowRunDatabaseTimeout        time.Duration
 	PythonBinary                      string
 	BridgeScript                      string
 	Provider                          string
@@ -67,6 +72,8 @@ type ConfigSummary struct {
 	WorkflowExecutorDevEnabled           bool              `json:"workflow_executor_dev_enabled"`
 	WorkflowSavedDraftStoreMode          string            `json:"workflow_saved_draft_store_mode"`
 	WorkflowSavedDraftDatabaseConfigured bool              `json:"workflow_saved_draft_database_configured"`
+	WorkflowRunStoreMode                 string            `json:"workflow_run_store_mode"`
+	WorkflowRunDatabaseConfigured        bool              `json:"workflow_run_database_configured"`
 	Provider                             string            `json:"provider"`
 	Profile                              string            `json:"profile"`
 	Model                                string            `json:"model"`
@@ -162,6 +169,8 @@ func defaultConfig() Config {
 		Temperature:                       0,
 		WorkflowSavedDraftStoreMode:       defaultDraftStoreMode,
 		WorkflowSavedDraftDatabaseTimeout: defaultDraftDBTimeout,
+		WorkflowRunStoreMode:              defaultRunStoreMode,
+		WorkflowRunDatabaseTimeout:        defaultRunDBTimeout,
 		FieldSources: map[string]string{
 			"listen_addr":                           configSourceDefault,
 			"read_header_timeout":                   configSourceDefault,
@@ -178,6 +187,9 @@ func defaultConfig() Config {
 			"workflow_saved_draft_store":            configSourceDefault,
 			"workflow_saved_draft_database":         configSourceDefault,
 			"workflow_saved_draft_database_timeout": configSourceDefault,
+			"workflow_run_store":                    configSourceDefault,
+			"workflow_run_database":                 configSourceDefault,
+			"workflow_run_database_timeout":         configSourceDefault,
 			"python_binary":                         configSourceDefault,
 			"bridge_script":                         configSourceDefault,
 			"provider":                              configSourceDefault,
@@ -446,6 +458,19 @@ func applyEnvOverrides(cfg *Config) error {
 			configSourceEnv,
 		)
 	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_RUN_STORE"); ok {
+		applyStringValue(&cfg.WorkflowRunStoreMode, value, cfg.FieldSources, "workflow_run_store", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL"); ok {
+		applyStringValue(&cfg.WorkflowRunDatabaseURL, value, cfg.FieldSources, "workflow_run_database", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_RUN_DATABASE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_WORKFLOW_RUN_DATABASE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.WorkflowRunDatabaseTimeout, parsed, cfg.FieldSources, "workflow_run_database_timeout", configSourceEnv)
+	}
 	return nil
 }
 
@@ -477,6 +502,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if workflowSavedDraftStoreMode == "" {
 		workflowSavedDraftStoreMode = defaultDraftStoreMode
 	}
+	workflowRunStoreMode := strings.TrimSpace(cfg.WorkflowRunStoreMode)
+	if workflowRunStoreMode == "" {
+		workflowRunStoreMode = defaultRunStoreMode
+	}
 	credentialState := credentialState(provider, strings.TrimSpace(cfg.APIKey) != "")
 	requiredFields := requiredConfigFields(provider)
 	if workflowSavedDraftStoreMode == "postgres_dev_test" {
@@ -492,6 +521,11 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_saved_draft_dev_http")
 	}
+	if workflowRunStoreMode == "postgres_dev_test" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
+		requiredFields = appendRequiredConfigField(requiredFields, "workflow_run_database")
+	}
 	missingRequiredFields := missingRequiredConfigFields(cfg, requiredFields)
 
 	return ConfigSummary{
@@ -502,6 +536,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		WorkflowExecutorDevEnabled:           cfg.WorkflowExecutorDevEnabled,
 		WorkflowSavedDraftStoreMode:          workflowSavedDraftStoreMode,
 		WorkflowSavedDraftDatabaseConfigured: strings.TrimSpace(cfg.WorkflowSavedDraftDatabaseURL) != "",
+		WorkflowRunStoreMode:                 workflowRunStoreMode,
+		WorkflowRunDatabaseConfigured:        strings.TrimSpace(cfg.WorkflowRunDatabaseURL) != "",
 		Provider:                             provider,
 		Profile:                              profile,
 		Model:                                model,
@@ -514,6 +550,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"bridge":                        cfg.BridgeTimeout.String(),
 			"bridge_handshake":              bridgeHandshakeTimeout.String(),
 			"workflow_saved_draft_database": cfg.WorkflowSavedDraftDatabaseTimeout.String(),
+			"workflow_run_database":         cfg.WorkflowRunDatabaseTimeout.String(),
 		},
 		PythonBridge: PythonBridge{
 			PythonBinary:     strings.TrimSpace(cfg.PythonBinary),
@@ -530,6 +567,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"RADISHMIND_PLATFORM_API_KEY",
 			"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
+			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
+			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
 		},
 		ConfigFile: ConfigFileSummary{
 			Path:       strings.TrimSpace(cfg.ConfigFile),
@@ -616,6 +655,14 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			}
 		case "workflow_saved_draft_database":
 			if strings.TrimSpace(cfg.WorkflowSavedDraftDatabaseURL) == "" {
+				missing = append(missing, field)
+			}
+		case "workflow_executor_dev":
+			if !cfg.WorkflowExecutorDevEnabled {
+				missing = append(missing, field)
+			}
+		case "workflow_run_database":
+			if strings.TrimSpace(cfg.WorkflowRunDatabaseURL) == "" {
 				missing = append(missing, field)
 			}
 		}
