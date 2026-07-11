@@ -121,7 +121,7 @@ run record schema 固定为 `workflow_run_record.v0`，至少包含：
 - 最终 advisory output、request id、audit ref。
 - `provider_calls`、`tool_calls`、`confirmation_calls`、`business_writes`、`replay_writes` 副作用计数。
 
-v0 run store 是进程内、最多 100 条、FIFO 淘汰的开发 / 测试存储。它支持 create / update / scoped read，但不承诺重启恢复、列表、分页、导出、replay 或 durable audit。Saved Draft 的 PostgreSQL repository 不被扩张为 run store。
+executor v0 初始 run store 是进程内、最多 100 条、FIFO 淘汰的开发 / 测试存储。[Workflow Run History / Durable Dev-Test Run Store v1](workflow-run-history-durable-dev-test-store-v1.md) 已在不改变执行能力的前提下补齐 scoped list、分页和独立 PostgreSQL 开发 / 测试持久化；Saved Draft repository 没有被改造成 run repository，replay 与 production audit 仍未打开。
 
 ## API 与配置
 
@@ -169,9 +169,9 @@ Web 在 Draft Designer 下方提供单独的 Executor v0 区域：
 - 不实现 publish、schedule、background job、parallel fan-out、automatic retry、fallback provider、checkpoint、replay 或 resume。
 - 不提交 confirmation decision，不因 condition=true 解锁高风险动作。
 - 不写 `RadishFlow`、`Radish`、Saved Draft、workflow definition 或其它业务真相源。
-- 不创建 durable run repository、production audit store、production auth / OIDC、public production route、quota / billing enforcement 或 cost ledger。
+- 不把已完成的开发 / 测试 durable run repository 扩张为 production audit store、production auth / OIDC、public production route、quota / billing enforcement 或 cost ledger。
 - 不把 v0 成功记录解释为 production ready、通用 workflow runtime ready 或 agent runtime ready。
 
 ## 后续顺位
 
-下一产品专题进入 `Workflow Run History / Durable Dev-Test Run Store v1` 设计：把当前单记录 scoped read 扩展为可分页的开发 / 测试运行历史、稳定查询与执行可观测性，并评审持久化边界。tool 与 confirmation 必须作为独立高风险功能设计推进，不能在 v0 上直接放开。
+`Workflow Run History / Durable Dev-Test Run Store v1` 已完成。后续若继续 Workflow 产品线，应先设计执行失败诊断 / 历史审查的真实用户路径；tool 与 confirmation 必须作为独立高风险功能设计推进，不能在 v0 上直接放开。

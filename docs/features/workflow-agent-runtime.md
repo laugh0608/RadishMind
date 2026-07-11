@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-2026-07-11 当前结论：Saved Draft durable dev/test repository、R4 Gateway 稳定运行时与 [Workflow Executor v0](workflow/workflow-executor-v0.md) 已完成。当前已放宽开发 / 测试态 `prompt`、`llm`、`condition`、`output`、Gateway 调用和有界进程内 run record；tool、RAG、confirmation commit、业务写回、publish、replay / resume 与 production enablement 继续关闭。下一产品专题先设计 `Workflow Run History / Durable Dev-Test Run Store v1`，把真实运行记录接入可分页历史与执行可观测性；以下 2026-06-29 production durable-store readiness 内容保留为历史兼容锚点，不再决定当前开发顺位。
+2026-07-11 当前结论：Saved Draft durable dev/test repository、R4 Gateway 稳定运行时、[Workflow Executor v0](workflow/workflow-executor-v0.md) 与 [Workflow Run History / Durable Dev-Test Run Store v1](workflow/workflow-run-history-durable-dev-test-store-v1.md) 已完成。开发 / 测试态已具备受控执行、真实分页历史、独立 PostgreSQL run store、重启恢复、scope 与 no-fallback；tool、RAG、confirmation commit、业务写回、publish、replay / resume 与 production enablement 继续关闭。下一产品顺位应先设计执行失败诊断 / 历史审查的用户路径或回到其它一级产品面评审，不直接打开高风险执行能力；以下 2026-06-29 production durable-store readiness 内容保留为历史兼容锚点，不再决定当前开发顺位。
 
 2026-06-29 补充：Production Secret Backend audit store runtime blocker matrix 已继续消费 `audit_store_concrete_durable_backend_selection_review_defined` 与 `audit_store_runtime_implementation_entry_refresh_v5_defined`，当前最新锚点为 `production-secret-backend-audit-store-runtime-implementation-entry-refresh-v5`。该状态只确认 durable backend family 已静态选择为 `append_only_metadata_audit_log` / `reserved_append_only_audit_log`，并复评 audit store runtime task card 仍 blocked；下一步若继续 durable store 上游，应先独立评审 `storage_adapter_runtime_implementation_entry_review`，不创建 storage adapter runtime、DB provider、audit store runtime task card、audit store runtime、repository mode 或 production API。
 

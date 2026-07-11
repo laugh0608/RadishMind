@@ -12,6 +12,7 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
+| [Workflow Run History / Durable Dev-Test Run Store v1](workflow-run-history-durable-dev-test-store-v1.md) | 功能 / 实现专题 | `workflow_run_history_durable_dev_test_store_v1_completed` | 已完成真实 scoped run history、keyset 分页、独立 PostgreSQL 开发 / 测试 repository、脱敏保留、Web 历史 / 详情审查、重启恢复和 no-fallback 验证 |
 | [Workflow Executor v0](workflow-executor-v0.md) | 功能专题 | `workflow_executor_v0_implemented` | 已完成开发 / 测试态 Prompt / LLM / condition / output 执行、Gateway 复用、受控 Web 入口和 scoped run record 回读；tool、confirmation commit、writeback、replay / resume 和 production enablement 继续关闭 |
 | [Saved Workflow Draft v1](saved-workflow-draft-v1.md) | 功能专题 | `workflow_saved_draft_postgres_dev_test_repository_v1_completed` | 草案创建、编辑、校验、持久保存、恢复、版本冲突与 Review Handoff 已形成可复验用户路径；开发 / 测试态 PostgreSQL repository 已完成，production repository 继续关闭，旧 storage adapter readiness 链仅作为历史索引 |
 | [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](saved-workflow-draft-postgresql-dev-test-repository-v1.md) | 实现专题 | `workflow_saved_draft_postgres_dev_test_repository_v1_completed` | 已完成 `postgres_dev_test` migration、回滚 / 重建、运行角色隔离、服务重启恢复、原子 CAS、scope / owner 隔离、no fallback、CI 与真实浏览器验收 |

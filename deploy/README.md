@@ -60,6 +60,8 @@ Saved Draft PostgreSQL dev/test 使用独立入口：
 ./scripts/run-workflow-saved-draft-postgres-dev-test.sh down
 ```
 
+该 dev/test 入口会同时准备独立的 Saved Draft 与 Workflow Run schema；Platform runtime 只持有 DML 权限，migration runner 仍需显式执行。真实运行历史使用 `/v1/user-workspace/workflow-runs`，不复用旧 `/v1/user-workspace/runs` read fixture。
+
 `check` 会启动数据库、执行真实集成测试，并重新应用 reviewed schema 供浏览器联调；`down` 保留命名卷。默认 `radishmind_migrator` 只用于显式 migration，`radishmind_runtime` 没有 schema `CREATE` 权限。该 Compose 不等于 test deployment 或 production database readiness。
 
 ### `docker_test`
