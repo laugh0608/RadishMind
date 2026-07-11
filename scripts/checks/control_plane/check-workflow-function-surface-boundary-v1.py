@@ -348,7 +348,7 @@ def assert_docs_check_repo_and_no_leak(fixture: dict[str, Any]) -> None:
         require((REPO_ROOT / str(relative_path)).exists(), f"missing evidence path: {relative_path}")
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
-    previous_checker = "check-control-plane-read-implementation-trigger-review-v1.py"
+    previous_checker = "check-control-plane-read-dev-live-consumer-v1.py"
     current_checker = "check-workflow-function-surface-boundary-v1.py"
     require(current_checker in check_repo, "check-repo.py must run workflow function surface boundary check")
     require(

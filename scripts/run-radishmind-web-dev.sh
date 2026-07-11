@@ -10,6 +10,7 @@ timeout_seconds=60
 verify_only=0
 exit_after_probe=0
 saved_draft_dev=0
+saved_draft_postgres_dev_test=0
 saved_draft_workspace_id="workspace_demo"
 saved_draft_application_id="app_flow_copilot"
 
@@ -17,6 +18,7 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "${script_dir}/.." && pwd)"
 web_dir="${repo_root}/apps/radishmind-web"
 platform_wrapper="${repo_root}/scripts/run-platform-service.sh"
+platform_dir="${repo_root}/services/platform"
 log_dir="${repo_root}/tmp/radishmind-web-dev"
 spawned_pids=()
 
@@ -32,6 +34,8 @@ Options:
   --frontend-url URL      Web UI URL. Default: http://127.0.0.1:4100
   --timeout-seconds N     Probe timeout. Default: 60
   --saved-draft-dev       Enable the explicit memory-dev Saved Draft read/write path.
+  --saved-draft-postgres-dev-test
+                           Enable the explicit PostgreSQL dev/test Saved Draft path.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
   -h, --help              Show this help.
@@ -72,6 +76,10 @@ while [[ $# -gt 0 ]]; do
       saved_draft_dev=1
       shift
       ;;
+    --saved-draft-postgres-dev-test)
+      saved_draft_postgres_dev_test=1
+      shift
+      ;;
     --verify-only)
       verify_only=1
       shift
@@ -105,6 +113,19 @@ if [[ "${saved_draft_dev}" -eq 1 && "${mode}" != "dev-live" ]]; then
   echo "--saved-draft-dev requires --mode dev-live" >&2
   exit 2
 fi
+if [[ "${saved_draft_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--saved-draft-postgres-dev-test requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${saved_draft_dev}" -eq 1 && "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
+  echo "Choose either --saved-draft-dev or --saved-draft-postgres-dev-test" >&2
+  exit 2
+fi
+
+saved_draft_enabled=0
+if [[ "${saved_draft_dev}" -eq 1 || "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
+  saved_draft_enabled=1
+fi
 
 step() {
   echo "[radishmind-web-dev] $*"
@@ -130,6 +151,41 @@ find_python() {
 }
 
 python_bin="$(find_python)"
+
+build_saved_draft_database_url() {
+  if [[ -n "${RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL:-}" ]]; then
+    printf '%s\n' "${RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL}"
+    return
+  fi
+  "${python_bin}" - <<'PY'
+import os
+from urllib.parse import quote, urlencode
+
+host = os.environ.get("PGHOST", "127.0.0.1")
+port = os.environ.get("PGPORT", "55432")
+user = quote(os.environ.get("PGUSER", "radishmind_runtime"), safe="")
+password = os.environ.get("PGPASSWORD", "")
+userinfo = user if not password else f"{user}:{quote(password, safe='')}"
+database = quote(os.environ.get("PGDATABASE", "radishmind_saved_draft_test"), safe="")
+query = urlencode({"sslmode": os.environ.get("PGSSLMODE", "disable")})
+if ":" in host and not host.startswith("["):
+    host = f"[{host}]"
+print(f"postgresql://{userinfo}@{host}:{port}/{database}?{query}")
+PY
+}
+
+probe_saved_draft_postgres_migration() {
+  local database_url="$1"
+  (
+    export RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH="1"
+    export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
+    export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
+    export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="postgres_dev_test"
+    export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL="${database_url}"
+    cd "${platform_dir}"
+    go run ./cmd/radishmind-workflow-draft-migrate status >/dev/null
+  )
+}
 
 url_part() {
   local url="$1"
@@ -404,7 +460,8 @@ show_failure_help() {
     echo "- Port conflict: backend should answer on http://127.0.0.1:7000 and web on http://127.0.0.1:4100."
     echo "- macOS port 7000 conflict: AirPlay / Control Center may occupy it; retry with --backend-url http://127.0.0.1:7100."
     echo "- Dev-live auth: backend must be started with RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1 for fake-store-backed read routes."
-    echo "- Saved Draft dev mode: pass --saved-draft-dev so backend and web opt in together; reused processes must already use the same mode."
+    echo "- Saved Draft mode: choose --saved-draft-dev or --saved-draft-postgres-dev-test so backend and web opt in together."
+    echo "- PostgreSQL dev/test mode: start and migrate it with ./scripts/run-workflow-saved-draft-postgres-dev-test.sh check."
     echo "- CORS/preflight: platform should allow http://127.0.0.1:4100 and dev read headers in local development."
     echo "- Missing dependencies: run npm install in apps/radishmind-web if npm cannot start Vite."
     echo "- Backend diagnostics: run ./scripts/run-platform-service.sh diagnostics from the repo root."
@@ -453,6 +510,17 @@ if [[ "${mode}" == "dev-live" && ! -f "${platform_wrapper}" ]]; then
   exit 1
 fi
 
+saved_draft_database_url=""
+if [[ "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
+  require_command go
+  saved_draft_database_url="$(build_saved_draft_database_url)"
+  if ! probe_saved_draft_postgres_migration "${saved_draft_database_url}"; then
+    show_failure_help "Saved Draft PostgreSQL migration preflight failed"
+    exit 1
+  fi
+  step "Saved Draft PostgreSQL migration preflight passed."
+fi
+
 if [[ "${verify_only}" -eq 0 ]]; then
   require_command npm
   mkdir -p "${log_dir}"
@@ -471,6 +539,12 @@ if [[ "${verify_only}" -eq 0 ]]; then
         if [[ "${saved_draft_dev}" -eq 1 ]]; then
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
+          export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="memory_dev"
+        elif [[ "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
+          export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
+          export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
+          export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="postgres_dev_test"
+          export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
         fi
         exec "${platform_wrapper}" serve
       ) >"${log_dir}/platform.out.log" 2>"${log_dir}/platform.err.log" &
@@ -489,7 +563,7 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL="${backend_url%/}"
         export VITE_RADISHMIND_DEV_READ_TENANT_REF="${tenant_ref}"
         export VITE_RADISHMIND_DEV_READ_SUBJECT_REF="${subject_ref}"
-        if [[ "${saved_draft_dev}" -eq 1 ]]; then
+        if [[ "${saved_draft_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE="dev-saved-draft-http"
         fi
       else
@@ -516,7 +590,7 @@ if [[ "${mode}" == "dev-live" ]]; then
     show_failure_help "dev-live read route probe failed"
     exit 1
   fi
-  if [[ "${saved_draft_dev}" -eq 1 ]] && ! wait_until \
+  if [[ "${saved_draft_enabled}" -eq 1 ]] && ! wait_until \
     "Saved Draft dev route" \
     probe_saved_workflow_draft_route \
     "${backend_url}" \
@@ -537,11 +611,13 @@ fi
 step "RadishMind web is ready: ${frontend_url}"
 if [[ "${mode}" == "dev-live" ]]; then
   step "Dev-live read backend passed: ${healthz_url} ; ${tenant_summary_url}"
-  if [[ "${saved_draft_dev}" -eq 1 ]]; then
+  if [[ "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
+    step "Saved Draft PostgreSQL dev/test read/write mode passed for ${saved_draft_workspace_id}/${saved_draft_application_id}."
+  elif [[ "${saved_draft_dev}" -eq 1 ]]; then
     step "Saved Draft memory-dev read/write mode passed for ${saved_draft_workspace_id}/${saved_draft_application_id}."
   fi
 fi
-step "This is a dev-only launcher, not a production supervisor. It does not implement real auth, database, repository adapter, executor, confirmation, writeback, or replay."
+step "This is a dev-only launcher, not a production supervisor. PostgreSQL mode is dev/test-only; production auth, secret resolution, executor, confirmation, writeback and replay remain disabled."
 
 if [[ "${verify_only}" -eq 0 && "${exit_after_probe}" -eq 0 && "${#spawned_pids[@]}" -gt 0 ]]; then
   step "Press Ctrl+C to stop spawned local dev processes."

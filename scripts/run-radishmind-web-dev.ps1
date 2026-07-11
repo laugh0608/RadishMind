@@ -8,6 +8,7 @@ param(
     [string]$SubjectRef = "subject_demo_user",
     [int]$TimeoutSeconds = 60,
     [switch]$SavedDraftDev,
+    [switch]$SavedDraftPostgresDevTest,
     [switch]$VerifyOnly,
     [switch]$ExitAfterProbe,
     [switch]$Help
@@ -25,6 +26,8 @@ Options:
   -FrontendUrl URL      Web UI URL. Default: http://127.0.0.1:4100
   -TimeoutSeconds N     Probe timeout. Default: 60
   -SavedDraftDev        Enable the explicit memory-dev Saved Draft read/write path.
+  -SavedDraftPostgresDevTest
+                        Enable the explicit PostgreSQL dev/test Saved Draft path.
   -VerifyOnly           Probe existing backend/frontend processes only.
   -ExitAfterProbe       Start missing local processes, probe, then stop spawned processes.
 "@
@@ -34,9 +37,18 @@ Options:
 if ($SavedDraftDev -and $Mode -ne "dev-live") {
     throw "-SavedDraftDev requires -Mode dev-live"
 }
+if ($SavedDraftPostgresDevTest -and $Mode -ne "dev-live") {
+    throw "-SavedDraftPostgresDevTest requires -Mode dev-live"
+}
+if ($SavedDraftDev -and $SavedDraftPostgresDevTest) {
+    throw "Choose either -SavedDraftDev or -SavedDraftPostgresDevTest"
+}
+
+$savedDraftEnabled = $SavedDraftDev -or $SavedDraftPostgresDevTest
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $webDir = Join-Path $repoRoot "apps/radishmind-web"
+$platformDir = Join-Path $repoRoot "services/platform"
 $platformWrapper = Join-Path $repoRoot "scripts/run-platform-service.ps1"
 $logDir = Join-Path $repoRoot "tmp/radishmind-web-dev"
 $savedDraftWorkspaceId = "workspace_demo"
@@ -65,6 +77,48 @@ function Get-RequiredCommand {
         }
     }
     throw "Missing required command: $($Names -join ' or ')"
+}
+
+function Get-SavedDraftDatabaseUrl {
+    if ($env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL) {
+        return $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL
+    }
+    $pgHost = if ($env:PGHOST) { $env:PGHOST } else { "127.0.0.1" }
+    $pgPort = if ($env:PGPORT) { $env:PGPORT } else { "55432" }
+    $pgUser = if ($env:PGUSER) { $env:PGUSER } else { "radishmind_runtime" }
+    $pgDatabase = if ($env:PGDATABASE) { $env:PGDATABASE } else { "radishmind_saved_draft_test" }
+    $pgSslMode = if ($env:PGSSLMODE) { $env:PGSSLMODE } else { "disable" }
+    $encodedUser = [Uri]::EscapeDataString($pgUser)
+    $userInfo = $encodedUser
+    if ($env:PGPASSWORD) {
+        $encodedPassword = [Uri]::EscapeDataString($env:PGPASSWORD)
+        $userInfo = "${encodedUser}:${encodedPassword}"
+    }
+    if ($pgHost.Contains(":") -and -not $pgHost.StartsWith("[")) {
+        $pgHost = "[$pgHost]"
+    }
+    $encodedDatabase = [Uri]::EscapeDataString($pgDatabase)
+    $encodedSslMode = [Uri]::EscapeDataString($pgSslMode)
+    return "postgresql://${userInfo}@${pgHost}:${pgPort}/${encodedDatabase}?sslmode=${encodedSslMode}"
+}
+
+function Invoke-SavedDraftPostgresMigrationStatus {
+    $goPath = Get-RequiredCommand -Names @("go")
+    $env:RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH = "1"
+    $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP = "1"
+    $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE = "1"
+    $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE = "postgres_dev_test"
+    $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
+    Push-Location $platformDir
+    try {
+        & $goPath run ./cmd/radishmind-workflow-draft-migrate status | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Saved Draft PostgreSQL migration preflight failed"
+        }
+    }
+    finally {
+        Pop-Location
+    }
 }
 
 function Get-HttpUri {
@@ -337,7 +391,8 @@ function Show-FailureHelp {
     [Console]::Error.WriteLine("- Port conflict: backend should answer on http://127.0.0.1:7000 and web on http://127.0.0.1:4100.")
     [Console]::Error.WriteLine("- macOS port 7000 conflict: AirPlay / Control Center may occupy it; retry with -BackendUrl http://127.0.0.1:7100.")
     [Console]::Error.WriteLine("- Dev-live auth: backend must be started with RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1 for fake-store-backed read routes.")
-    [Console]::Error.WriteLine("- Saved Draft dev mode: pass -SavedDraftDev so backend and web opt in together; reused processes must already use the same mode.")
+    [Console]::Error.WriteLine("- Saved Draft mode: choose -SavedDraftDev or -SavedDraftPostgresDevTest so backend and web opt in together.")
+    [Console]::Error.WriteLine("- PostgreSQL dev/test mode: start and migrate it with the saved draft PostgreSQL dev/test runner.")
     [Console]::Error.WriteLine("- CORS/preflight: platform should allow http://127.0.0.1:4100 and dev read headers in local development.")
     [Console]::Error.WriteLine("- Missing dependencies: run npm install in apps/radishmind-web if npm cannot start Vite.")
     [Console]::Error.WriteLine("- Backend diagnostics: run pwsh ./scripts/run-platform-service.ps1 -Command diagnostics from the repo root.")
@@ -360,6 +415,10 @@ try {
     if ($Mode -eq "dev-live" -and -not (Test-Path -LiteralPath $platformWrapper -PathType Leaf)) {
         throw "Missing platform wrapper: $platformWrapper"
     }
+    if ($SavedDraftPostgresDevTest) {
+        Invoke-SavedDraftPostgresMigrationStatus
+        Write-Step "Saved Draft PostgreSQL migration preflight passed."
+    }
 
     if (-not $VerifyOnly) {
         $npmPath = Get-RequiredCommand -Names @("npm.cmd", "npm")
@@ -379,6 +438,13 @@ try {
             if ($SavedDraftDev) {
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE = "1"
+                $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE = "memory_dev"
+            }
+            elseif ($SavedDraftPostgresDevTest) {
+                $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP = "1"
+                $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE = "1"
+                $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE = "postgres_dev_test"
+                $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
             }
 
             $backendPortOpen = Test-TcpPort -HostName $backendUri.Host -Port $backendUri.Port
@@ -405,7 +471,7 @@ try {
                 $env:VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL = $BackendUrl.TrimEnd("/")
                 $env:VITE_RADISHMIND_DEV_READ_TENANT_REF = $TenantRef
                 $env:VITE_RADISHMIND_DEV_READ_SUBJECT_REF = $SubjectRef
-                if ($SavedDraftDev) {
+                if ($savedDraftEnabled) {
                     $env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE = "dev-saved-draft-http"
                 }
             }
@@ -429,7 +495,7 @@ try {
         Wait-Until -Name "dev-live read routes" -Probe {
             Invoke-ControlPlaneReadRoutesProbe -BaseUrl $BackendUrl -Tenant $TenantRef -Subject $SubjectRef
         }
-        if ($SavedDraftDev) {
+        if ($savedDraftEnabled) {
             Wait-Until -Name "Saved Draft dev route" -Probe {
                 Invoke-SavedWorkflowDraftProbe `
                     -BaseUrl $BackendUrl `
@@ -446,11 +512,14 @@ try {
     Write-Step "RadishMind web is ready: $FrontendUrl"
     if ($Mode -eq "dev-live") {
         Write-Step "Dev-live read backend passed: $healthzUrl ; $tenantSummaryUrl"
-        if ($SavedDraftDev) {
+        if ($SavedDraftPostgresDevTest) {
+            Write-Step "Saved Draft PostgreSQL dev/test read/write mode passed for $savedDraftWorkspaceId/$savedDraftApplicationId."
+        }
+        elseif ($SavedDraftDev) {
             Write-Step "Saved Draft memory-dev read/write mode passed for $savedDraftWorkspaceId/$savedDraftApplicationId."
         }
     }
-    Write-Step "This is a dev-only launcher, not a production supervisor. It does not implement real auth, database, repository adapter, executor, confirmation, writeback, or replay."
+    Write-Step "This is a dev-only launcher, not a production supervisor. PostgreSQL mode is dev/test-only; production auth, secret resolution, executor, confirmation, writeback and replay remain disabled."
 
     if (-not $VerifyOnly -and -not $ExitAfterProbe -and $spawnedProcesses.Count -gt 0) {
         Write-Step "Press Ctrl+C to stop spawned local dev processes."

@@ -104,3 +104,42 @@ jobs:
       - name: Test platform service
         run: go test ./...
         working-directory: services/platform
+
+  platform-postgres-integration:
+    name: Platform PostgreSQL Integration
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: radishmind_saved_draft_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_USER: radishmind_migrator
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U radishmind_migrator -d radishmind_saved_draft_test"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: services/platform/go.mod
+
+      - name: Test saved draft PostgreSQL repository
+        env:
+          RADISHMIND_RUN_POSTGRES_INTEGRATION: "1"
+          PGHOST: 127.0.0.1
+          PGPORT: "5432"
+          PGUSER: radishmind_migrator
+          PGDATABASE: radishmind_saved_draft_test
+          PGSSLMODE: disable
+          RADISHMIND_POSTGRES_INTEGRATION_RUNTIME_USER: radishmind_runtime
+        run: go test -tags=postgres_integration ./internal/httpapi
+        working-directory: services/platform

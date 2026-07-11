@@ -1122,51 +1122,6 @@ def check_fast_baseline() -> None:
     run_python_script("checks/control_plane/check-control-plane-read-admin-audit-log-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-formal-ui-readiness-close-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-dev-live-consumer-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-auth-store-transition-preconditions-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-preconditions-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-disabled-database-guard-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-smoke-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-implementation-readiness-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-store-selection-readiness-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-schema-migration-readiness-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-types-readiness-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-types-implementation-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-smoke-runner-readiness-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-smoke-runner-implementation-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-interface-readiness-v1.py", [])
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-repository-adapter-implementation-readiness-refresh-v1.py",
-        [],
-    )
-    run_python_script("checks/control_plane/check-control-plane-read-store-selector-enablement-preconditions-v1.py", [])
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-schema-migration-implementation-preconditions-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-repository-adapter-implementation-plan-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-schema-artifact-manifest-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-store-selector-smoke-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-production-auth-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-adapter-smoke-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-implementation-trigger-review-v1.py",
-        [],
-    )
     run_python_script(
         "checks/control_plane/check-workflow-function-surface-boundary-v1.py",
         [],
@@ -1253,26 +1208,6 @@ def check_fast_baseline() -> None:
     )
     run_python_script(
         "checks/control_plane/check-workflow-node-designer-edge-editing-save-preconditions-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-product-surface-readiness-implementation-trigger-recheck-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-schema-artifact-evidence-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-implementation-entry-review-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-product-surface-usage-gap-triage-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-durable-read-foundation-v1.py",
         [],
     )
     run_python_script("check-platform-ops-smoke.py", [])

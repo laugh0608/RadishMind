@@ -1,0 +1,26 @@
+name: radishmind-saved-draft-dev-test
+
+services:
+  saved-draft-postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: radishmind_saved_draft_test
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_USER: radishmind_migrator
+    ports:
+      - "127.0.0.1:${PGPORT:-55432}:5432"
+    volumes:
+      - saved-draft-postgres-data:/var/lib/postgresql/data
+      - ./postgres/saved-draft-dev-test-init.sql:/docker-entrypoint-initdb.d/010-saved-draft-runtime-role.sql:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+    restart: "no"
+
+volumes:
+  saved-draft-postgres-data:
