@@ -99,6 +99,11 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if err != nil || len(diagnosticPage.Records) != 1 || diagnosticPage.Records[0].RunID != diagnostic.RunID {
 		t.Fatalf("diagnostic PostgreSQL filter failed: %#v %v", diagnosticPage, err)
 	}
+	evaluationStore := newPostgresWorkflowEvaluationStore(runtimePool)
+	evaluationService := newWorkflowEvaluationService(evaluationStore, store)
+	evaluationService.newCaseID = func() (string, error) { return "eval_pg_restart", nil }
+	evaluation := evaluationService.Create(runContext, WorkflowEvaluationCreateRequest{Name: "PostgreSQL restart review", BaselineRunID: diagnostic.RunID, Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: "run_pg_c", ExpectedClassification: WorkflowRunComparisonImprovement}}})
+	if evaluation.FailureCode != "" || evaluation.Case == nil { t.Fatalf("create PostgreSQL evaluation case: %#v", evaluation) }
 	other := runContext
 	other.TenantRef = "tenant_other"
 	if scoped, err := store.ListRuns(other, WorkflowRunListFilter{Limit: 10}); err != nil || len(scoped.Records) != 0 {
@@ -110,6 +115,7 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 		t.Fatal(err)
 	}
 	store = newPostgresWorkflowRunStore(reopened)
+	evaluationStore = newPostgresWorkflowEvaluationStore(reopened)
 	recovered, found, err := store.ReadRun(runContext, "run_pg_c")
 	if err != nil || !found || recovered.Status != WorkflowRunStatusSucceeded {
 		t.Fatalf("restart recovery failed: %#v %v", recovered, err)
@@ -122,6 +128,10 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if scopedComparison := comparisonService.CompareRuns(other, diagnostic.RunID, "run_pg_c"); scopedComparison.FailureCode != WorkflowRunFailureRecordNotFound {
 		t.Fatalf("restart comparison leaked cross scope: %#v", scopedComparison)
 	}
+	restartedEvaluationService := newWorkflowEvaluationService(evaluationStore, store)
+	restartedReview := restartedEvaluationService.Review(runContext, evaluation.Case.CaseID)
+	if restartedReview.FailureCode != "" || restartedReview.Review == nil || restartedReview.Review.Outcome != "passed" { t.Fatalf("restart batch evaluation failed: %#v", restartedReview) }
+	if leaked := restartedEvaluationService.Read(other, evaluation.Case.CaseID); leaked.FailureCode != WorkflowEvaluationFailureNotFound { t.Fatalf("evaluation case leaked scope: %#v", leaked) }
 	running := workflowRunHistoryTestRecord(runContext, "run_pg_concurrent", "draft_pg", time.Now().UTC())
 	if err = store.UpsertRun(runContext, &running); err != nil {
 		t.Fatal(err)
@@ -193,4 +203,12 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if upgraded, upgradeErr := workflowrunmigrations.Apply(ctx, pool); upgradeErr != nil || upgraded.MigrationState != workflowrunmigrations.MigrationStateApplied {
 		t.Fatalf("legacy migration upgrade failed: %#v %v", upgraded, upgradeErr)
 	}
+	if _, err = workflowrunmigrations.RollbackForDevTest(ctx, pool); err != nil { t.Fatal(err) }
+	diagnosticsSQL, err := os.ReadFile("../../migrations/workflow_runs/0002_workflow_run_diagnostics.up.sql"); if err != nil { t.Fatal(err) }
+	if _, err = pool.Exec(ctx, string(legacySQL)+"\n"+string(diagnosticsSQL)); err != nil { t.Fatalf("apply diagnostics migration: %v", err) }
+	diagnosticsChecksum := fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(string(legacySQL)+"\n"+string(diagnosticsSQL))))
+	if _, err = pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS workflow_run_schema_versions (component text PRIMARY KEY, migration_id text NOT NULL, store_schema_version text NOT NULL, migration_checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil { t.Fatal(err) }
+	if _, err = pool.Exec(ctx, `INSERT INTO workflow_run_schema_versions(component,migration_id,store_schema_version,migration_checksum) VALUES($1,'0002_workflow_run_diagnostics','workflow_run_store_v2',$2)`, workflowrunmigrations.Component, diagnosticsChecksum); err != nil { t.Fatal(err) }
+	if pending, inspectErr := workflowrunmigrations.Inspect(ctx, pool); inspectErr != nil || pending.MigrationState != workflowrunmigrations.MigrationStatePending { t.Fatalf("diagnostics marker was not pending: %#v %v", pending, inspectErr) }
+	if upgraded, upgradeErr := workflowrunmigrations.Apply(ctx, pool); upgradeErr != nil || upgraded.MigrationState != workflowrunmigrations.MigrationStateApplied { t.Fatalf("diagnostics migration upgrade failed: %#v %v", upgraded, upgradeErr) }
 }

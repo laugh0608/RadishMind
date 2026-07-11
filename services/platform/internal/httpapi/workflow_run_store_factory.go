@@ -52,3 +52,10 @@ func newWorkflowRunStoreFromConfig(cfg config.Config) (workflowRunStore, func(),
 	}
 	return newPostgresWorkflowRunStore(pool), closePool, nil
 }
+
+func newWorkflowEvaluationStoreForRunStore(store workflowRunStore) workflowEvaluationStore {
+	if postgres, ok := store.(*postgresWorkflowRunStore); ok {
+		return newPostgresWorkflowEvaluationStore(postgres.pool)
+	}
+	return newMemoryWorkflowEvaluationStore(defaultWorkflowEvaluationCapacity)
+}

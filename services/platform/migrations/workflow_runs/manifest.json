@@ -1,9 +1,9 @@
 {
   "component": "workflow_runs",
-  "migration_id": "0001_workflow_runs",
-  "store_schema_version": "workflow_run_store_v1",
-  "up": "0001_workflow_runs.up.sql",
-  "down": "0001_workflow_runs.down.sql",
+  "migration_id": "0003_workflow_evaluation_cases",
+  "store_schema_version": "workflow_run_store_v3",
+  "up": ["0001_workflow_runs.up.sql", "0002_workflow_run_diagnostics.up.sql", "0003_workflow_evaluation_cases.up.sql"],
+  "down": ["0003_workflow_evaluation_cases.down.sql", "0002_workflow_run_diagnostics.down.sql", "0001_workflow_runs.down.sql"],
   "runtime_auto_migration": false,
   "development_test_only": true
 }

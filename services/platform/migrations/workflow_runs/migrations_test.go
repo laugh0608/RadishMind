@@ -9,7 +9,7 @@ import (
 )
 
 func TestEmbeddedWorkflowRunMigration(t *testing.T) {
-	if !strings.Contains(upSQL, "CREATE TABLE workflow_run_records") || !strings.Contains(upSQL, "workflow_run_records_history_idx") || !strings.Contains(upSQL, "failure_boundary") || !strings.Contains(downSQL, "DROP TABLE IF EXISTS workflow_run_records") {
+	if !strings.Contains(upSQL, "CREATE TABLE workflow_run_records") || !strings.Contains(upSQL, "failure_boundary") || !strings.Contains(upSQL, "CREATE TABLE workflow_evaluation_cases") || !strings.Contains(downSQL, "DROP TABLE IF EXISTS workflow_evaluation_cases") || !strings.Contains(downSQL, "DROP TABLE IF EXISTS workflow_run_records") {
 		t.Fatal("workflow run migration contract is incomplete")
 	}
 	if !strings.HasPrefix(ExpectedChecksum(), "sha256:") {

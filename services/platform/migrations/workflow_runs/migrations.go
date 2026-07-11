@@ -15,16 +15,18 @@ import (
 )
 
 const (
-	Component                      = "workflow_runs"
-	MigrationID                    = "0002_workflow_run_diagnostics"
-	StoreSchemaVersion             = "workflow_run_store_v2"
-	legacyMigrationID              = "0001_workflow_runs"
-	legacyStoreSchemaVersion       = "workflow_run_store_v1"
-	MigrationStateApplied          = "applied"
-	MigrationStatePending          = "pending"
-	MigrationStateNotApplied       = "not_applied"
-	MigrationStateMismatch         = "mismatch"
-	migrationAdvisoryLockKey int64 = 0x524d52554e533031
+	Component                           = "workflow_runs"
+	MigrationID                         = "0003_workflow_evaluation_cases"
+	StoreSchemaVersion                  = "workflow_run_store_v3"
+	legacyMigrationID                   = "0001_workflow_runs"
+	legacyStoreSchemaVersion            = "workflow_run_store_v1"
+	diagnosticsMigrationID              = "0002_workflow_run_diagnostics"
+	diagnosticsStoreSchemaVersion       = "workflow_run_store_v2"
+	MigrationStateApplied               = "applied"
+	MigrationStatePending               = "pending"
+	MigrationStateNotApplied            = "not_applied"
+	MigrationStateMismatch              = "mismatch"
+	migrationAdvisoryLockKey      int64 = 0x524d52554e533031
 )
 
 const markerSQL = `CREATE TABLE IF NOT EXISTS workflow_run_schema_versions (
@@ -43,8 +45,14 @@ var upSQLV2 string
 //go:embed 0002_workflow_run_diagnostics.down.sql
 var downSQLV2 string
 
-var upSQL = upSQLV1 + "\n" + upSQLV2
-var downSQL = downSQLV2 + "\n" + downSQLV1
+//go:embed 0003_workflow_evaluation_cases.up.sql
+var upSQLV3 string
+
+//go:embed 0003_workflow_evaluation_cases.down.sql
+var downSQLV3 string
+
+var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3
+var downSQL = downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 
 type State struct {
 	MigrationState, MigrationID, StoreSchemaVersion, MigrationChecksum string
@@ -78,6 +86,9 @@ func OpenPool(ctx context.Context, databaseURL string) (*pgxpool.Pool, error) {
 func ExpectedChecksum() string { return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQL))) }
 
 func legacyChecksum() string { return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1))) }
+func diagnosticsChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2)))
+}
 
 func Inspect(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 	if pool == nil {
@@ -125,8 +136,12 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 		return State{}, errors.New("workflow run migration marker mismatch")
 	}
 	if state.MigrationState == MigrationStatePending {
-		if _, err = tx.Exec(ctx, upSQLV2); err != nil {
-			return State{}, safeDatabaseError("apply workflow run diagnostics migration", err)
+		pendingSQL := upSQLV3
+		if state.MigrationID == legacyMigrationID {
+			pendingSQL = upSQLV2 + "\n" + upSQLV3
+		}
+		if _, err = tx.Exec(ctx, pendingSQL); err != nil {
+			return State{}, safeDatabaseError("apply workflow run pending migrations", err)
 		}
 		if _, err = tx.Exec(ctx, `UPDATE workflow_run_schema_versions SET migration_id=$2,store_schema_version=$3,migration_checksum=$4,applied_at=now() WHERE component=$1`, Component, MigrationID, StoreSchemaVersion, ExpectedChecksum()); err != nil {
 			return State{}, safeDatabaseError("update workflow run migration marker", err)
@@ -168,7 +183,10 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 	}
 	rollbackSQL := downSQL
 	if state.MigrationState == MigrationStatePending {
-		rollbackSQL = downSQLV1
+		rollbackSQL = downSQLV2 + "\n" + downSQLV1
+		if state.MigrationID == legacyMigrationID {
+			rollbackSQL = downSQLV1
+		}
 	}
 	if _, err = tx.Exec(ctx, rollbackSQL); err != nil {
 		return State{}, safeDatabaseError("rollback workflow run migration", err)
@@ -201,12 +219,18 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 	}
 	if state.MigrationID == legacyMigrationID && state.StoreSchemaVersion == legacyStoreSchemaVersion && state.MigrationChecksum == legacyChecksum() && tableExists {
 		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == diagnosticsMigrationID && state.StoreSchemaVersion == diagnosticsStoreSchemaVersion && state.MigrationChecksum == diagnosticsChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
 	} else {
 		var diagnosticColumnCount int
 		if err = query.QueryRow(ctx, `SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name='workflow_run_records' AND column_name IN ('failure_code','failure_boundary','selected_provider','selected_model')`).Scan(&diagnosticColumnCount); err != nil {
 			return State{}, safeDatabaseError("inspect workflow run diagnostics columns", err)
 		}
-		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 {
+		var evaluationTableExists bool
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_evaluation_cases') IS NOT NULL").Scan(&evaluationTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow evaluation table", err)
+		}
+		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 || !evaluationTableExists {
 			state.MigrationState = MigrationStateMismatch
 		} else {
 			state.MigrationState = MigrationStateApplied
