@@ -232,6 +232,7 @@ __marimo__/
 
 # Local temporary artifacts
 tmp/
+/output/playwright/
 
 # Frontend build output
 apps/radishmind-console/dist/

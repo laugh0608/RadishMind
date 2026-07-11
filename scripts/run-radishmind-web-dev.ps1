@@ -7,6 +7,7 @@ param(
     [string]$TenantRef = "tenant_demo",
     [string]$SubjectRef = "subject_demo_user",
     [int]$TimeoutSeconds = 60,
+    [switch]$SavedDraftDev,
     [switch]$VerifyOnly,
     [switch]$ExitAfterProbe,
     [switch]$Help
@@ -23,16 +24,23 @@ Options:
   -BackendUrl URL       Platform base URL. Default: http://127.0.0.1:7000
   -FrontendUrl URL      Web UI URL. Default: http://127.0.0.1:4100
   -TimeoutSeconds N     Probe timeout. Default: 60
+  -SavedDraftDev        Enable the explicit memory-dev Saved Draft read/write path.
   -VerifyOnly           Probe existing backend/frontend processes only.
   -ExitAfterProbe       Start missing local processes, probe, then stop spawned processes.
 "@
     exit 0
 }
 
+if ($SavedDraftDev -and $Mode -ne "dev-live") {
+    throw "-SavedDraftDev requires -Mode dev-live"
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $webDir = Join-Path $repoRoot "apps/radishmind-web"
 $platformWrapper = Join-Path $repoRoot "scripts/run-platform-service.ps1"
 $logDir = Join-Path $repoRoot "tmp/radishmind-web-dev"
+$savedDraftWorkspaceId = "workspace_demo"
+$savedDraftApplicationId = "app_flow_copilot"
 $spawnedProcesses = @()
 
 function Write-Step {
@@ -178,6 +186,40 @@ function Invoke-ControlPlaneReadRoutesProbe {
     }
 }
 
+function Invoke-SavedWorkflowDraftProbe {
+    param(
+        [string]$BaseUrl,
+        [string]$Tenant,
+        [string]$Subject,
+        [string]$WorkspaceId,
+        [string]$ApplicationId
+    )
+    $query = "workspace_id=$([Uri]::EscapeDataString($WorkspaceId))&application_id=$([Uri]::EscapeDataString($ApplicationId))"
+    $url = $BaseUrl.TrimEnd("/") + "/v1/user-workspace/workflow-drafts?$query"
+    $headers = @{
+        Accept = "application/json"
+        "X-Request-Id" = "dev-live-saved-draft-probe"
+        "X-RadishMind-Dev-Read-Identity" = "dev-live-saved-draft-probe"
+        "X-RadishMind-Dev-Read-Tenant" = $Tenant
+        "X-RadishMind-Dev-Read-Subject" = $Subject
+        "X-RadishMind-Dev-Read-Scopes" = "workflow_drafts:read,workflow_drafts:write"
+        "X-RadishMind-Dev-Read-Audit" = "audit_dev_live_saved_draft_probe"
+        "X-RadishMind-Dev-Workflow-Workspace" = $WorkspaceId
+        "X-RadishMind-Dev-Workflow-Application" = $ApplicationId
+    }
+    $response = Invoke-WebRequest -Uri $url -Method Get -Headers $headers -TimeoutSec 5
+    if ($response.StatusCode -lt 200 -or $response.StatusCode -ge 300) {
+        throw "Unexpected HTTP status $($response.StatusCode) from $url"
+    }
+    $json = $response.Content | ConvertFrom-Json
+    if ($null -ne $json.failure_code) {
+        throw "Saved Draft route returned failure_code=$($json.failure_code) from $url"
+    }
+    if ($json.PSObject.Properties.Name -notcontains "draft_summaries") {
+        throw "Saved Draft route did not return draft_summaries[] from $url"
+    }
+}
+
 function Invoke-CorsProbe {
     param(
         [string]$ReadUrl,
@@ -295,6 +337,7 @@ function Show-FailureHelp {
     [Console]::Error.WriteLine("- Port conflict: backend should answer on http://127.0.0.1:7000 and web on http://127.0.0.1:4100.")
     [Console]::Error.WriteLine("- macOS port 7000 conflict: AirPlay / Control Center may occupy it; retry with -BackendUrl http://127.0.0.1:7100.")
     [Console]::Error.WriteLine("- Dev-live auth: backend must be started with RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1 for fake-store-backed read routes.")
+    [Console]::Error.WriteLine("- Saved Draft dev mode: pass -SavedDraftDev so backend and web opt in together; reused processes must already use the same mode.")
     [Console]::Error.WriteLine("- CORS/preflight: platform should allow http://127.0.0.1:4100 and dev read headers in local development.")
     [Console]::Error.WriteLine("- Missing dependencies: run npm install in apps/radishmind-web if npm cannot start Vite.")
     [Console]::Error.WriteLine("- Backend diagnostics: run pwsh ./scripts/run-platform-service.ps1 -Command diagnostics from the repo root.")
@@ -333,6 +376,10 @@ try {
                 $env:RADISHMIND_PLATFORM_MODEL = "radishmind-local-dev"
             }
             $env:RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH = "1"
+            if ($SavedDraftDev) {
+                $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP = "1"
+                $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE = "1"
+            }
 
             $backendPortOpen = Test-TcpPort -HostName $backendUri.Host -Port $backendUri.Port
             if ($backendPortOpen) {
@@ -358,10 +405,14 @@ try {
                 $env:VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL = $BackendUrl.TrimEnd("/")
                 $env:VITE_RADISHMIND_DEV_READ_TENANT_REF = $TenantRef
                 $env:VITE_RADISHMIND_DEV_READ_SUBJECT_REF = $SubjectRef
+                if ($SavedDraftDev) {
+                    $env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE = "dev-saved-draft-http"
+                }
             }
             else {
                 Remove-Item Env:VITE_RADISHMIND_READ_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE -ErrorAction SilentlyContinue
             }
 
             Start-LoggedProcess `
@@ -378,6 +429,16 @@ try {
         Wait-Until -Name "dev-live read routes" -Probe {
             Invoke-ControlPlaneReadRoutesProbe -BaseUrl $BackendUrl -Tenant $TenantRef -Subject $SubjectRef
         }
+        if ($SavedDraftDev) {
+            Wait-Until -Name "Saved Draft dev route" -Probe {
+                Invoke-SavedWorkflowDraftProbe `
+                    -BaseUrl $BackendUrl `
+                    -Tenant $TenantRef `
+                    -Subject $SubjectRef `
+                    -WorkspaceId $savedDraftWorkspaceId `
+                    -ApplicationId $savedDraftApplicationId
+            }
+        }
     }
 
     Wait-Until -Name "frontend web" -Probe { Invoke-PageProbe -Url $FrontendUrl }
@@ -385,6 +446,9 @@ try {
     Write-Step "RadishMind web is ready: $FrontendUrl"
     if ($Mode -eq "dev-live") {
         Write-Step "Dev-live read backend passed: $healthzUrl ; $tenantSummaryUrl"
+        if ($SavedDraftDev) {
+            Write-Step "Saved Draft memory-dev read/write mode passed for $savedDraftWorkspaceId/$savedDraftApplicationId."
+        }
     }
     Write-Step "This is a dev-only launcher, not a production supervisor. It does not implement real auth, database, repository adapter, executor, confirmation, writeback, or replay."
 

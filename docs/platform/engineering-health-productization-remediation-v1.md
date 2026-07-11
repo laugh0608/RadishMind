@@ -78,7 +78,7 @@
 | --- | --- | --- | --- | --- |
 | R1 | 规划与在制品治理 | P0 | 进行中 | 当前焦点指向本专题；停止新增同层 readiness 链；每批只有一个明确用户目标 |
 | R2 | 正确性与安全清零 | P0 | 已完成 | CAS、竞态、错误脱敏、密钥传递、请求体边界均有行为测试且仓库全量通过 |
-| R3 | Workflow Draft Review Loop 产品闭环 | P1 | 进行中 | 创建、编辑、校验、保存、冲突、恢复、审查交接形成一条可重复端到端路径 |
+| R3 | Workflow Draft Review Loop 产品闭环 | P1 | 已完成 | 创建、编辑、校验、保存、冲突、恢复、审查交接形成一条可重复端到端路径 |
 | R4 | Gateway 运行时产品化 | P1 | 待开始 | 移除每请求进程启动开销，建立可观测、可取消、可回收的持久 bridge |
 | R5 | 测试、CI 与性能预算 | P1 | 待开始 | CI 覆盖 Go race/vet、Web/Console build、关键 Python 行为；前端包体和延迟有预算 |
 | R6 | 文档、checker 与资产收敛 | P2 | 进行中 | 入口文档恢复短入口；活跃 checker 和 task card 显著下降；历史证据可索引但不占当前主线 |
@@ -117,7 +117,9 @@
 
 ## R3：Workflow Draft Review Loop 产品闭环
 
-2026-07-10 第一批先修复 saved version 生命周期：编辑、validate 和非冲突失败不再丢失 persisted base version，未处理的 `version_conflict` 不能通过重复 Save 绕过显式 Continue / Restore；行为测试已进入 Web PR / release CI。真实浏览器闭环仍待 dev-live 服务启动后复验。
+2026-07-10 第一批先修复 saved version 生命周期：编辑、validate 和非冲突失败不再丢失 persisted base version，未处理的 `version_conflict` 不能通过重复 Save 绕过显式 Continue / Restore；行为测试已进入 Web PR / release CI。
+
+2026-07-11 已使用真实 Web consumer 与 Go dev-only route 完成 dev-live 收口：正常路径覆盖创建、节点 / 边 / 属性 / 布局编辑、校验、连续保存、列表刷新与显式恢复；冲突路径通过独立写入推进服务端版本，确认本地草案保持不变、未决冲突锁定编辑与 dev route 动作、Continue 使用当前 saved version 重试、Restore 只在显式选择后替换本地草案，Review Handoff 同步展示 conflict evidence。复验同时修复 Handoff layout evidence 重复 key，并为 launcher 增加显式 `--saved-draft-dev` / `-SavedDraftDev` 与 Saved Draft route probe；最终新浏览器会话为零 error / warning。
 
 下一条产品主线使用现有能力形成一条可复验路径，不继续扩同层只读面板：
 
@@ -135,6 +137,8 @@
 - 页面明确标记 dev-only、saved、unsaved、conflict 和 review-only 状态。
 - 失败时不回退 sample，不执行 workflow，不创建 confirmation decision。
 - 本批完成前不再新增 Workflow readiness / review 小切片。
+
+R3 完成后停止继续扩同层 Builder 小切片。下一产品目标切换为显式开发 / 测试态 PostgreSQL durable repository；进入实现前先更新 Saved Workflow Draft 功能设计，固定 migration、重启恢复、原子 expected-version、workspace / owner scope、no fallback 和集成测试。
 
 ## R4：Gateway 运行时产品化
 

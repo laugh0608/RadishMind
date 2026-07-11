@@ -161,7 +161,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 ## 当前阶段判断
 
 - 当前成熟度统一称为“内部开发者预览”，不再复用历史 `M2` 编号。2026-07-11 起，当前执行以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 为准；旧 storage adapter readiness 的下一依赖只作为历史证据。
-- R3 浏览器闭环完成后，允许显式开发 / 测试态 durable repository 作为下一条产品纵向切片；production repository mode、真实 OIDC、production secret 和公开生产 API 仍保持关闭。
+- R3 浏览器闭环已于 2026-07-11 完成；当前允许显式开发 / 测试态 durable repository 作为下一条产品纵向切片，但必须先完成对应功能设计，且 production repository mode、真实 OIDC、production secret 和公开生产 API 仍保持关闭。
 - 历史上的 `M3` service/API smoke 与 `M4` broader review、`3B/4B` capacity review 已经收口为冻结证据。
 - 当前正式主线切换为“AI 工具 / 工作流 / 模型网关 / Copilot 集成平台重定义 + 平台基础能力建设”，不再把“继续深挖同一批实验”或“提前设计不存在的真实接线”当作默认推进方式。
 - 当前 `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已收口为 `local usable / read-only close`：已用 `/v1/platform/overview`、`/v1/platform/local-smoke`、overview / local-smoke consumer smoke、最小本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist 固定本地 console 可展示能力与未满足的生产前置条件。`Production Ops Hardening v1` 已进一步固定 Docker local/test/prod 部署形态、compose 边界、镜像命名、静态 smoke、runbook 和运行记录模板，并完成一次 `docker_local` container smoke；`Provider Runtime & Health v1` 已固定 capability / health / selection / docs 四个可检查切片并进入 close candidate。2026-06-14 阶段评估后，默认停止继续扩同层只读 UI / gate-only 切片；Image Path 的 metadata-only response builder 接线和 Control Plane Read 的 repository interface + fake store interface 化均已完成，后续产品范围按功能设计文档选择单一实现方向，不在无运行窗口时继续补 console 小切片、provider 同层小切片、Production Ops 静态治理、真实模型长跑或假想上层接线。

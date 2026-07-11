@@ -13,7 +13,8 @@
 ## 当前活跃任务
 
 1. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R1 / R6 规划、入口文档和 checker 收敛。
-2. [Saved Workflow Draft Conflict Review v1](../features/workflow/saved-workflow-draft-conflict-review-v1.md)：R3 真实浏览器正常路径与版本冲突路径复验。
+
+`R3 Workflow Draft Review Loop` 已于 2026-07-11 完成。下一产品目标先更新 [Saved Workflow Draft v1](../features/workflow/saved-workflow-draft-v1.md) 的开发 / 测试态 PostgreSQL repository 设计；在设计收束前不创建实现 task card，也不恢复旧 storage adapter readiness 链。
 
 当前没有活跃的 Production Secret Backend / Storage Adapter readiness 任务卡。下方既有任务卡均按历史完成、冻结或外部阻塞证据读取，不表示当前排期；新增实现任务应先回到对应功能专题和整改总入口确认用户目标。
 

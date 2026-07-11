@@ -531,10 +531,12 @@ function buildNodeDesignerReviewSections(
       itemCount: draft.nodes.length,
       summary: `Node Designer presents ${draft.nodes.length} active draft nodes with ${positionedNodeCount} ${layoutPersistenceLabel} positions and ${defaultLayoutNodeCount} default lane-derived positions.`,
       reviewerQuestion: "Does the visual layout help review the draft without implying runtime order or persisted schema state?",
-      evidenceRefs: [
-        ...draft.designerLayout.nodePositions.map((position) => position.nodeId),
-        ...draft.nodes.map((node) => node.nodeId),
-      ].slice(0, 8),
+      evidenceRefs: Array.from(
+        new Set([
+          ...draft.designerLayout.nodePositions.map((position) => position.nodeId),
+          ...draft.nodes.map((node) => node.nodeId),
+        ]),
+      ).slice(0, 8),
     },
     {
       sectionId: "node_designer_validation_overlay",

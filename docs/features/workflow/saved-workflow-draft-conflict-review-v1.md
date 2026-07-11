@@ -1,6 +1,6 @@
 # Saved Workflow Draft Conflict Review v1
 
-更新时间：2026-07-10
+更新时间：2026-07-11
 
 状态：`workflow_saved_draft_conflict_review_v1_implemented`
 
@@ -16,9 +16,12 @@
 - Draft Designer 已提供显式恢复 saved version 的入口；恢复动作复用既有 dev-only read route 和 saved draft list summary，不由保存失败自动触发。
 - 保存返回 `version_conflict` 后，Draft Designer 会刷新当前 application 的 sanitized saved draft list，为显式恢复 saved version 准备当前 metadata；该刷新不读取 secret、不恢复草案、不覆盖本地 active draft。
 - Review Handoff 已消费同一份 conflict review summary，并以 advisory-only 形式展示冲突状态、saved version metadata、validation 状态、blocked capability 和 auto overwrite / auto merge 停止线。
+- 2026-07-11 已用真实 Web consumer 与 Go dev-only route 完成最新 dev-live 复验：正常路径覆盖创建、节点 / 边 / 属性 / 布局编辑、校验、连续保存、列表刷新与恢复；冲突路径覆盖独立写入推进版本、未决冲突锁定、Continue 后基于当前 saved version 保存、显式 Restore 和 Review Handoff conflict evidence。
+- dev-live launcher 已增加显式 `--saved-draft-dev` / `-SavedDraftDev`，集中启用 memory-dev Saved Draft read/write consumer 并探测 list route；普通 `dev-live` 仍不隐式开放写入。
+- Handoff canvas layout evidence 已在 view model 层去重，避免已定位节点同时来自 layout positions 与 nodes 时产生 React 重复 key；补齐 SVG favicon 后，最终新浏览器会话为零 error / warning。
 - 2026-07-01 已整理冲突审查卡片与 Review Handoff 可读性：前端 conflict review summary 现在显式派生 `savedMetadataLoaded`、`savedMetadataState`、`restoreActionState`、`restoreUnavailableReason`、本地草案保留说明和 reviewer 下一步；恢复入口在 metadata 刷新中、列表为空、列表失败或缺少匹配 summary 时保持禁用，并说明本地草案仍未被覆盖或合并。
 - `workflow-saved-draft-consumer-smoke-v1`、Web lifecycle behavior test 与 `workflow-review-handoff-active-draft-v1` 已同步覆盖该实现；本批不新增 checker、backend route、repository mode、数据库、runtime 或 public production API。
-- 2026-06-30 dev-live 浏览器复核已覆盖正常保存、外部版本推进、UI 冲突保存、冲突后列表刷新、继续本地草案、显式恢复 saved version 和 Review Handoff 摘要展示；复核期间只出现 `favicon.ico` 404，不影响 workflow 功能。
+- 2026-06-30 dev-live 浏览器复核作为历史证据保留；2026-07-11 最新复验已覆盖 saved version 生命周期修复后的完整路径，并替代此前仅剩 `favicon.ico` 404 的浏览器记录。
 
 ## 目标用户
 
@@ -63,7 +66,7 @@
 
 - 若继续用户工作流路径，应基于实际审查反馈继续做小范围阅读路径整理；不得重复把普通 UI 体验整理升级为新的生产后端能力。
 - 若要扩大自动化验证，优先复用现有 workflow consumer smoke、Review Handoff checker、web build 和仓库基线；只有新增协议字段、route 行为或高风险边界时再新增专项 task card / fixture / checker。
-- 若转回 durable store 上游，应先独立推进 `storage_adapter_metadata_contract_artifact_materialization_entry_review`，不得把本功能实现解释为 repository mode、数据库、生产 API 或 runtime ready。
+- 下一产品切片是独立命名的开发 / 测试态 PostgreSQL durable repository；应先在 Saved Workflow Draft 功能设计中固定 migration、重启恢复、原子 expected-version、workspace / owner scope、no fallback 和集成测试，再进入实现。旧 Production Secret Backend / Storage Adapter next dependency 只作为历史证据，不再指导当前开发；production repository mode、生产 API 和 runtime 仍未就绪。
 
 ## 数据边界
 

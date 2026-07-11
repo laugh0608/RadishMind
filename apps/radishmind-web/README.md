@@ -97,7 +97,17 @@ PowerShell 使用：
 pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -BackendUrl http://127.0.0.1:7100
 ```
 
-如需同时验证 saved draft dev-only 保存路径，后端还需要显式启用：
+如需同时验证 Saved Draft dev-only 保存路径，优先通过 launcher 的显式开发态开关启动：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --saved-draft-dev --backend-url http://127.0.0.1:7100
+```
+
+```powershell
+pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -SavedDraftDev -BackendUrl http://127.0.0.1:7100
+```
+
+该开关会集中设置以下四个等价环境变量；默认 `dev-live` 仍只打开 fake read consumer，不隐式开放 Saved Draft 写入：
 
 ```bash
 RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1

@@ -25,7 +25,7 @@
 ## 当前状态
 
 - 当前成熟度是“内部开发者预览”；整改与当前执行顺序以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 和 [当前推进焦点](radishmind-current-focus.md) 为准。
-- 当前第一产品主线是 Workflow Draft Review Loop，第一工程主线是 Gateway 稳定运行时；旧 Production Secret Backend / Storage Adapter next dependency 只保留为历史 checker 锚点，不再作为当前开发任务。
+- Workflow Draft Review Loop 第一用户闭环已于 2026-07-11 完成；当前第一产品主线是开发 / 测试态 Saved Draft PostgreSQL durable repository，第一工程主线是 Gateway 稳定运行时。旧 Production Secret Backend / Storage Adapter next dependency 只保留为历史 checker 锚点，不再作为当前开发任务。
 - `RadishMind` 已正式从“模型实验 / 接入准备仓库”的狭义口径，收口为 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台。
 - 当前仓库主线不再只是等待其他项目真实接入；长期按四个一级产品面和五条工程主线组织。四个产品面是 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；`Image Generation / Artifact Return` 作为横切适配能力保留。五条工程主线是 `Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。
 - 当前项目的更强正式定义已经固定在 [战略定义](radishmind-strategy.md)：`RadishMind` 是 `AI Tools / Workflow / Model Gateway / Copilot Integration Platform`，核心价值是把 AI 应用构建、工作流运行、模型 API 分发、多模型接入和 Copilot 集成收口成可控产品能力。
