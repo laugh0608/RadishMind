@@ -13,15 +13,15 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明 production ready。
-- 产品焦点：Workflow Draft Review Loop、Saved Draft durable dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、Evaluation Cases、[Workflow Evaluation Baseline & Case Versioning v1](features/workflow/workflow-evaluation-baseline-case-versioning-v1.md) 与 [Workflow Evaluation Suite / Release Review v1](features/workflow/workflow-evaluation-suite-release-review-v1.md) 均已完成；下一产品任务尚未创建，先回到四个一级产品面重新排位。
+- 产品焦点：Workflow Draft Review Loop、Saved Draft durable dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、Evaluation Cases、[Workflow Evaluation Baseline & Case Versioning v1](features/workflow/workflow-evaluation-baseline-case-versioning-v1.md) 与 [Workflow Evaluation Suite / Release Review v1](features/workflow/workflow-evaluation-suite-release-review-v1.md) 均已完成；明日建议转向 `Model Gateway Request History / Usage & Failure Review v1` 功能设计，不继续给已完成的 Workflow 审查链追加同层功能。
 - `R2 正确性与安全清零`、`R3 Workflow Draft Review Loop`、`R4 Gateway 运行时产品化` 已完成；`R5 测试、CI 与性能预算` 进入后续工程线，`R6 文档与 checker 收敛` 继续作为治理约束。
 - 四个正式一级产品面保持为 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；Image Path 是横切适配能力，不作为当前第五条一级主线。
 - 旧 Production Secret Backend / Storage Adapter readiness 链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：Evaluation Suite / Release Review 已完成 exact case version、即时聚合审查、SHA-256 digest、append-only decision、expected-version CAS、PostgreSQL 0005、重启恢复和真实 Web 路径。下一产品任务先重新评审四个一级产品面的用户价值与依赖，不自动延伸成部署或 production gate；自动执行、部署、unrestricted tool、业务写回、confirmation commit 和 replay 继续关闭。
-2. 工程线：R5 已把 Web 主入口降到 430.39 KiB，低于 500 KiB 目标；下一批补可发现性能预算并继续按路由拆分，R6 只随相关文件修改逐批解除历史 checker 文字耦合。
+1. 产品线：Evaluation Suite / Release Review 已完成 exact case version、即时聚合审查、SHA-256 digest、append-only decision、expected-version CAS、PostgreSQL 0005、重启恢复和真实 Web 路径。明日先更新 Model Gateway 功能设计，定义 northbound 请求元数据生命周期、scope、分页、过滤、脱敏、用量/失败语义、dev/test 持久化与真实 Web 审查，再判断是否创建 API/schema 实现任务卡；不打开 production API key、quota enforcement、billing、自动 fallback 或 production gateway。
+2. 工程线：R5 已把 Web 主入口降到 430.39 KiB，低于 500 KiB 目标；明日把主入口和关键 lazy chunks 的预算接入现有 Web build / 聚合入口，使超预算可发现，不新增同层 checker。R6 继续收敛入口文档的过期事实和历史 checker 文字耦合。
 
 R3 与 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖 migration / rollback / reapply、运行角色 DDL 拒绝、服务重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback、CI 与真实浏览器双标签冲突审查。该完成不启用 production repository mode，也不代表 OIDC、production secret、audit store 或公开生产 API ready。
 

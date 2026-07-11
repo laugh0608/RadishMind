@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-11 当前执行口径：Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、durable run history、failure review、run comparison、evaluation cases 与 [Workflow Evaluation Baseline & Case Versioning v1](workflow/workflow-evaluation-baseline-case-versioning-v1.md) 均已完成。下一产品设计可进入 evaluation suite / release review，R5 Web 主入口保持 430.39 KiB，旧 Production Secret Backend / Storage Adapter readiness 只作为历史索引。
+2026-07-11 当前执行口径：Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、durable run history、failure review、run comparison、evaluation cases、[Workflow Evaluation Baseline & Case Versioning v1](workflow/workflow-evaluation-baseline-case-versioning-v1.md) 与 [Workflow Evaluation Suite / Release Review v1](workflow/workflow-evaluation-suite-release-review-v1.md) 均已完成。下一产品设计建议转到 Model Gateway 的真实请求历史、用量与失败审查路径，R5 Web 主入口保持 430.39 KiB；旧 Production Secret Backend / Storage Adapter readiness 只作为历史索引。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -43,7 +43,7 @@
 | [User Workspace](user-workspace.md) | 用户端 AI 应用、API key、用量、运行记录和审查入口 | 从只读工作区转向真实用户工作流前先更新 |
 | [Admin Control Plane](admin-control-plane.md) | 租户、权限、provider/profile、quota、secret、审计和部署证据 | 进入真实管理端、OIDC 或数据库前先更新 |
 | [Model Gateway / API Distribution](model-gateway-api-distribution.md) | northbound API、provider/profile route、key/quota、trace 和审计 | 进入真实 API 分发、quota 或 billing 前先更新 |
-| [Workflow / Agent Runtime](workflow-agent-runtime.md) | 工作流草案、校验、审查、Saved Draft 持久化和受控 executor v0 | 进入运行历史 / durable run store、tool、confirmation 或 writeback 前先更新 |
+| [Workflow / Agent Runtime](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败/比较/evaluation 审查 | 进入 tool、confirmation、writeback、replay 或 production enablement 前先更新 |
 | [Image Generation / Artifact Return](image-generation-artifact-return.md) | 生图意图、artifact metadata、response merge 和后续后端适配器 | 进入 store / reader / public URL / backend adapter 前先更新 |
 
 ## 细专题导航
