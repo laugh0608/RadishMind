@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 
 import { readWorkflowExecutorConsumerConfig, startWorkflowDiagnosticDevRecord, type WorkflowRunDevFailureScenario, type WorkflowRunRecord } from "./workflowExecutorConsumer.ts";
 import {
@@ -11,6 +11,7 @@ import {
 } from "./workflowRunHistoryConsumer.ts";
 
 const config = readWorkflowExecutorConsumerConfig();
+const WorkflowRunComparisonPanel = lazy(() => import("./workflowRunComparisonPanel.tsx"));
 
 export default function WorkflowRunHistoryPanel({ applicationId }: { applicationId: string }) {
   const [filter, setFilter] = useState<WorkflowRunHistoryFilter>(EMPTY_WORKFLOW_RUN_HISTORY_FILTER);
@@ -20,6 +21,9 @@ export default function WorkflowRunHistoryPanel({ applicationId }: { application
   const [diagnosticScenario, setDiagnosticScenario] = useState<WorkflowRunDevFailureScenario>("gateway_timeout");
   const [diagnosticGenerationState, setDiagnosticGenerationState] = useState("");
   const [copiedRef, setCopiedRef] = useState("");
+  const [baselineRunId, setBaselineRunId] = useState("");
+  const [candidateRunId, setCandidateRunId] = useState("");
+  const [comparisonSelection, setComparisonSelection] = useState<{ baseline: string; candidate: string } | null>(null);
 
   const load = useCallback(async (cursor = "", append = false) => {
     if (config.mode !== "dev_workflow_executor_http") return;
@@ -106,6 +110,12 @@ export default function WorkflowRunHistoryPanel({ applicationId }: { application
           <div className="workflow-run-history-live-list" aria-label="Real workflow run records">
             {history.runs.map((run) => <button type="button" className={`workflow-run-history-live-row ${selectedRunId === run.runId ? "is-selected" : ""}`} key={run.runId} onClick={() => void selectRun(run)}><span className="workflow-run-history-live-identity"><strong>{run.runId}</strong><small>{run.draftId} · version {run.draftVersion}</small></span><span><small>Status</small><strong>{run.status}{run.staleRunning ? " · stale" : ""}</strong></span><span><small>Failure</small><strong>{run.failureBoundary || "none"}</strong><small>{run.gatewayFailureCategory || run.failureCode || "none"}</small></span><span><small>Provider</small><strong>{run.selectedProvider || "unavailable"}</strong></span></button>)}
           </div>
+          <div className="workflow-run-comparison-selector" aria-label="Workflow run comparison selection">
+            <label>Baseline run<select value={baselineRunId} onChange={(event) => setBaselineRunId(event.target.value)}><option value="">Choose baseline</option>{history.runs.map((run) => <option value={run.runId} key={`baseline-${run.runId}`}>{run.runId} · {run.status}</option>)}</select></label>
+            <label>Candidate run<select value={candidateRunId} onChange={(event) => setCandidateRunId(event.target.value)}><option value="">Choose candidate</option>{history.runs.map((run) => <option value={run.runId} key={`candidate-${run.runId}`}>{run.runId} · {run.status}</option>)}</select></label>
+            <button type="button" disabled={!baselineRunId || !candidateRunId || baselineRunId === candidateRunId} onClick={() => setComparisonSelection({ baseline: baselineRunId, candidate: candidateRunId })}>Compare runs</button>
+          </div>
+          {comparisonSelection ? <Suspense fallback={<p>Loading regression review…</p>}><WorkflowRunComparisonPanel applicationId={applicationId} baselineRunId={comparisonSelection.baseline} candidateRunId={comparisonSelection.candidate} config={config} /></Suspense> : null}
           {history.hasMore ? <button type="button" onClick={() => void load(history.nextCursor, true)} disabled={history.status === "loading"}>Load earlier runs</button> : null}
           {detail ? <article className="workflow-run-detail"><div className="card-title-row"><div><p className="eyebrow">Real run detail</p><h4>{detail.runId}</h4></div><span className="status-badge status-good">{detail.status}</span></div><p>{detail.output || detail.failureSummary || "No advisory output recorded."}</p><dl className="tenant-meta"><div><dt>Input</dt><dd>{detail.inputBytes} bytes; raw text not retained</dd></div><div><dt>Conditions</dt><dd>{detail.conditionNodeIds.join(", ") || "none"}; values not retained</dd></div><div><dt>Provider calls</dt><dd>{detail.sideEffects.providerCalls}</dd></div><div><dt>Forbidden side effects</dt><dd>{forbiddenSideEffects}</dd></div></dl>{detail.diagnostic ? <div className="workflow-run-diagnostic-review"><p className="eyebrow">Structured failure review</p><h5>{detail.diagnostic.failureBoundary || "No failure"} · {detail.diagnostic.gatewayFailureCategory}</h5><p>{detail.diagnostic.summary || "The run completed without a structured failure."}</p><dl className="tenant-meta"><div><dt>Failed node</dt><dd>{detail.diagnostic.failedNodeId || "none"}</dd></div><div><dt>Last completed</dt><dd>{detail.diagnostic.lastCompletedNodeId || "none"}</dd></div><div><dt>Review action</dt><dd>{detail.diagnostic.recommendedReviewAction || "none"}</dd></div><div><dt>Terminal write</dt><dd>{detail.diagnostic.terminalWriteState}</dd></div></dl></div> : <p className="boundary-note">Legacy workflow_run_record.v0: structured diagnostic unavailable.</p>}<div className="workflow-run-reference-actions"><button type="button" onClick={() => void copyReference("request", detail.requestId)}>Copy request id</button><button type="button" onClick={() => void copyReference("audit", detail.auditRef)}>Copy audit ref</button><span>{copiedRef ? `${copiedRef} copied` : "References are metadata only."}</span></div><div className="workflow-run-history-node-list">{detail.nodes.map((node) => <div className={`workflow-run-history-node-row ${detail.diagnostic?.failedNodeId === node.nodeId ? "is-failed" : ""} ${detail.diagnostic?.lastCompletedNodeId === node.nodeId ? "is-last-completed" : ""}`} key={node.nodeId}><span><strong>{node.label}</strong><small>{node.nodeType}</small></span><span><small>Status</small><strong>{node.status}</strong></span><span><small>Duration</small><strong>{node.durationMs} ms</strong></span><p>{node.outputPreview}</p></div>)}</div><p className="boundary-note">tool / confirmation / business write / replay remain locked at 0. Replay and resume are unavailable.</p></article> : null}
         </>

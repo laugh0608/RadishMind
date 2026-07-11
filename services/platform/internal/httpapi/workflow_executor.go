@@ -71,6 +71,7 @@ const (
 	WorkflowRunFailureCursorInvalid           WorkflowRunFailureCode = "workflow_run_cursor_invalid"
 	WorkflowRunFailureStoreModeInvalid        WorkflowRunFailureCode = "workflow_run_store_mode_invalid"
 	WorkflowRunFailureStoreModeDisabled       WorkflowRunFailureCode = "workflow_run_store_mode_disabled"
+	WorkflowRunFailureComparisonInvalid       WorkflowRunFailureCode = "workflow_run_comparison_invalid"
 )
 
 type WorkflowRunContext struct {

@@ -10,6 +10,7 @@ const (
 	workflowExecutorStartRoute = "POST /v1/user-workspace/workflow-drafts/{draft_id}/runs"
 	workflowRunListRoute       = "GET /v1/user-workspace/workflow-runs"
 	workflowRunReadRoute       = "GET /v1/user-workspace/workflow-runs/{run_id}"
+	workflowRunComparisonRoute = "GET /v1/user-workspace/workflow-runs/{candidate_run_id}/comparison"
 )
 
 type workflowRunStartHTTPBody struct {
@@ -42,6 +43,16 @@ type workflowRunListEnvelope struct {
 	FailureCode    *string              `json:"failure_code"`
 	FailureSummary string               `json:"failure_summary"`
 	AuditRef       string               `json:"audit_ref"`
+}
+
+type workflowRunComparisonEnvelope struct {
+	RequestID      string                 `json:"request_id"`
+	WorkspaceID    string                 `json:"workspace_id"`
+	ApplicationID  string                 `json:"application_id"`
+	Comparison     *WorkflowRunComparison `json:"comparison"`
+	FailureCode    *string                `json:"failure_code"`
+	FailureSummary string                 `json:"failure_summary"`
+	AuditRef       string                 `json:"audit_ref"`
 }
 
 func (s *Server) handleStartWorkflowRun(writer http.ResponseWriter, request *http.Request) {
@@ -123,6 +134,29 @@ func (s *Server) handleListWorkflowRuns(writer http.ResponseWriter, request *htt
 		return
 	}
 	writeWorkflowRunListResult(writer, trace, runContext, s.workflowExecutorService().ListRuns(runContext, listRequest))
+}
+
+func (s *Server) handleCompareWorkflowRuns(writer http.ResponseWriter, request *http.Request) {
+	trace := newRequestTrace(request, workflowRunComparisonRoute)
+	if !s.allowWorkflowExecutorDev(writer, trace) {
+		return
+	}
+	values := request.URL.Query()
+	allowed := map[string]bool{"workspace_id": true, "application_id": true, "baseline_run_id": true}
+	for key, entries := range values {
+		if !allowed[key] || len(entries) != 1 {
+			writeWorkflowRunComparisonResult(writer, trace, WorkflowRunContext{}, workflowRunComparisonFailure(WorkflowRunFailureComparisonInvalid))
+			return
+		}
+	}
+	workspaceID, applicationID := strings.TrimSpace(values.Get("workspace_id")), strings.TrimSpace(values.Get("application_id"))
+	runContext, failureCode := workflowRunContextFromRequest(request, trace, workspaceID, applicationID, "compare", "workflow_runs:read")
+	if failureCode != "" {
+		writeWorkflowRunComparisonResult(writer, trace, runContext, workflowRunComparisonFailure(failureCode))
+		return
+	}
+	result := s.workflowExecutorService().CompareRuns(runContext, values.Get("baseline_run_id"), request.PathValue("candidate_run_id"))
+	writeWorkflowRunComparisonResult(writer, trace, runContext, result)
 }
 
 func (s *Server) allowWorkflowExecutorDev(writer http.ResponseWriter, trace requestTrace) bool {
@@ -228,6 +262,10 @@ func writeWorkflowRunListResult(
 		FailureCode: workflowRunFailureCodePointer(result.FailureCode), FailureSummary: result.FailureSummary,
 		AuditRef: runContext.AuditRef,
 	})
+}
+
+func writeWorkflowRunComparisonResult(writer http.ResponseWriter, trace requestTrace, runContext WorkflowRunContext, result WorkflowRunComparisonResult) {
+	writeObservedJSON(writer, http.StatusOK, trace, workflowRunComparisonEnvelope{RequestID: trace.requestID, WorkspaceID: runContext.WorkspaceID, ApplicationID: runContext.ApplicationID, Comparison: result.Comparison, FailureCode: workflowRunFailureCodePointer(result.FailureCode), FailureSummary: result.FailureSummary, AuditRef: runContext.AuditRef})
 }
 
 func auditRefForWorkflowRun(trace requestTrace, suffix string) string {

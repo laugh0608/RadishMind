@@ -202,7 +202,7 @@ func validWorkflowRunFailureCode(value WorkflowRunFailureCode) bool {
 		WorkflowRunFailureRecordNotFound, WorkflowRunFailureStoreUnavailable,
 		WorkflowRunFailureStoreContractMismatch, WorkflowRunFailureFilterInvalid,
 		WorkflowRunFailureCursorInvalid, WorkflowRunFailureStoreModeInvalid,
-		WorkflowRunFailureStoreModeDisabled:
+		WorkflowRunFailureStoreModeDisabled, WorkflowRunFailureComparisonInvalid:
 		return true
 	default:
 		return false

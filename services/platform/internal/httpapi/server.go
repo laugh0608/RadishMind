@@ -117,6 +117,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(workflowExecutorStartRoute, server.handleStartWorkflowRun)
 	mux.HandleFunc(workflowRunListRoute, server.handleListWorkflowRuns)
 	mux.HandleFunc(workflowRunReadRoute, server.handleReadWorkflowRun)
+	mux.HandleFunc(workflowRunComparisonRoute, server.handleCompareWorkflowRuns)
 
 	server.httpServer = &http.Server{
 		Addr:              cfg.ListenAddr,

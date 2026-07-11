@@ -114,6 +114,14 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if err != nil || !found || recovered.Status != WorkflowRunStatusSucceeded {
 		t.Fatalf("restart recovery failed: %#v %v", recovered, err)
 	}
+	comparisonService := newWorkflowExecutorService(nil, nil, store)
+	comparison := comparisonService.CompareRuns(runContext, diagnostic.RunID, "run_pg_c")
+	if comparison.FailureCode != "" || comparison.Comparison == nil || comparison.Comparison.Classification != WorkflowRunComparisonImprovement {
+		t.Fatalf("restart comparison failed: %#v", comparison)
+	}
+	if scopedComparison := comparisonService.CompareRuns(other, diagnostic.RunID, "run_pg_c"); scopedComparison.FailureCode != WorkflowRunFailureRecordNotFound {
+		t.Fatalf("restart comparison leaked cross scope: %#v", scopedComparison)
+	}
 	running := workflowRunHistoryTestRecord(runContext, "run_pg_concurrent", "draft_pg", time.Now().UTC())
 	if err = store.UpsertRun(runContext, &running); err != nil {
 		t.Fatal(err)
