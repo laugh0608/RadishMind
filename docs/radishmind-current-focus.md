@@ -1,6 +1,8 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-07-10
+更新时间：2026-07-11
+
+<!-- markdown-size-allow: 历史 checker 仍直接读取本文件中的状态锚点；人工默认只读“当前结论”，R6 将逐批迁出兼容锚点并删除本标记。 -->
 
 ## 文档目的
 
@@ -8,7 +10,32 @@
 
 功能细节默认先进入 [功能设计文档入口](features/README.md) 所定义的专题层级：产品面大方向进入 `docs/features/*.md`，具体功能和复杂页面进入对应子目录，平台横切能力进入 `docs/platform/`，外部接入进入 `docs/integrations/`。实现批次进入 `docs/task-cards/`，长验证记录进入周志、manifest、summary 或 run record。
 
-## 当前阶段
+## 当前结论（默认读取到本节结束）
+
+- 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明 production ready。
+- 产品焦点：以 `Workflow Draft Review Loop` 作为第一用户闭环，以 Gateway 稳定运行时作为第一工程主线。
+- `R2 正确性与安全清零` 已完成；`R3 Workflow Draft Review Loop` 正在等待真实浏览器 dev-live 复验；`R6 文档与 checker 收敛` 已启动。
+- 四个正式一级产品面保持为 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；Image Path 是横切适配能力，不作为当前第五条一级主线。
+- 旧 Production Secret Backend / Storage Adapter readiness 链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
+
+当前最多两条在制主线：
+
+1. 产品线：完成 Workspace Home 创建、Draft Designer 编辑 / 校验 / 保存、真实版本冲突、继续本地草案、恢复 saved version 和 Review Handoff 的浏览器闭环。
+2. 工程线：解除入口文档与历史 checker 的文字耦合；R3 收口后推进持久 Python bridge、测试 / 性能预算和 Web 拆包。
+
+R3 完成后的下一条产品纵向切片是显式开发 / 测试态 durable repository：优先采用本地 PostgreSQL，必须覆盖 migration、重启恢复、原子 expected-version、workspace / owner scope、no fallback 和集成测试。该放宽不启用 production repository mode，也不代表 OIDC、production secret、audit store 或公开生产 API ready。
+
+durable repository 与稳定 Gateway 成立后，可评审无外部副作用的 executor v0，只允许 Prompt / LLM / condition / output 和 run record；unrestricted tool、业务写回、自动 confirmation commit、replay / resume 继续关闭。
+
+总入口与证据：
+
+1. [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md)
+2. [Saved Workflow Draft v1](features/workflow/saved-workflow-draft-v1.md)
+3. [本周周志](devlogs/2026-W28.md)
+
+以下“历史兼容状态与证据索引”暂时保留大量机器检查依赖的状态锚点，人工判断当前方向时默认不再继续读取；后续由 R6 逐批迁出。
+
+## 历史兼容状态与证据索引（默认不读）
 
 当前处于“平台本体建设期”。`P1 Runtime Foundation` 已达到 short close，`P2 Session & Tooling Foundation` 进入 close candidate / governance-only，`P3 Local Product Shell / Ops Surface` 达到 local usable / read-only close，Production Ops 静态边界和 Provider Runtime & Health v1 已可检查。2026-06-16 已完成 `User Workspace Saved Draft List v1`、`Workflow Draft Designer Editing Model v2`、`Workflow Draft Node Attribute Editing Model v1`、`Workflow Review Handoff Active Draft v1`、`Saved Workflow Draft Repository Contract Smoke v1`、`Saved Workflow Draft Repository Contract Smoke Runner Readiness v1` 和 `Saved Workflow Draft Repository Contract Smoke Runner Implementation v1`，让用户能在 Workspace Home 查看 saved dev draft summary、恢复到 Draft Designer，在本地草案中新增、移动、删除非受保护节点，编辑节点属性，把 active draft validation / plan / readiness 汇总为可交接审查记录，并固定 future saved draft repository contract smoke、runner readiness 和 static runner implementation 的准入证据。2026-06-17 已完成 `Saved Workflow Draft Repository Adapter Implementation Plan v1`、`Saved Workflow Draft Schema Artifact Manifest v1`、`Saved Workflow Draft Adapter Smoke Readiness v1`、`Saved Workflow Draft Store Selector Implementation Entry Review v1`、`Saved Workflow Draft Schema Artifact Materialization Review v1`、`Saved Workflow Draft Store Selector Implementation v1`、`Saved Workflow Draft Schema Artifact Materialization v1`、`Saved Workflow Draft Production Auth Readiness v1` 和 `Saved Workflow Draft Repository Adapter Implementation Entry Review v1`，固定 future repository adapter implementation plan、operation adapter matrix、schema artifact manifest shape、operation predicate coverage、adapter smoke dependency gate、selector implementation entry review、schema artifact materialization review、formal store selector、静态 schema artifact materialization、production auth readiness、repository adapter implementation entry review、failure mapping、no fallback 和 no side effects。2026-06-18 已完成 `Saved Workflow Draft Repository Adapter Implementation v1`、`Saved Workflow Draft Adapter Smoke Execution v1`、`Saved Workflow Draft Production Auth Runtime v1`、`Saved Workflow Draft Repository Mode Enablement v1` 和 `Saved Workflow Draft Schema Migration Runner Readiness v1`，实现 repository interface、注入式 query executor adapter、schema preflight、auth context failure mapping、adapter unit tests、adapter smoke execution、verified auth context + workspace binding 到 repository actor context 的 runtime bridge，并固定 repository mode enablement 与 schema migration runner readiness 准入评审。2026-06-19 已完成 `Saved Workflow Draft Schema Migration Runner Implementation Entry Review v1`、`Saved Workflow Draft Database Connection / Schema Marker Preconditions v1`、`Saved Workflow Draft Database Connection Provider Implementation Entry Review v1`、`Saved Workflow Draft Database Secret Resolver Readiness v1`、`Saved Workflow Draft Database Secret Resolver Implementation Entry Review v1`、`Production Secret Backend Config / Secret Ref Readiness v1`、`Production Secret Backend Provider Profile Secret Binding Readiness v1`、`Production Secret Backend Secret Resolver Interface Disabled Readiness v1`、`Production Secret Backend Operator Runbook / Negative Gates Readiness v1`、`Production Secret Backend Rotation / Audit Policy Readiness v1`、`Production Secret Backend Test Fixture Strategy / Fake Resolver Implementation Entry Review v1`、`Production Secret Backend Fake Resolver Contract / No Secret Leakage Smoke Strategy v1`、`Production Secret Backend Fake Resolver Implementation Task Card Entry Readiness Review v1` 和 `Production Secret Backend Fake Resolver Implementation v1`，固定 runner implementation、connection provider implementation、secret resolver implementation 当前不打开，并固定 fake resolver implementation 静态任务卡与后续 runtime 实现准入证据。2026-06-20 已完成 `Production Secret Backend Fake Resolver Runtime Implementation Entry Review v1`、`Production Secret Backend Fake Resolver Runtime Implementation v1`、`Production Secret Backend Real Resolver Runtime Preconditions v1`、`Production Secret Backend Real Resolver Runtime Implementation Entry Review v1`、`Production Secret Backend Resolver Backend Profile Selection Readiness v1` 和 `Production Secret Backend Real Resolver No Secret Leakage Smoke Runtime Strategy v1`，固定 `fake_resolver_runtime_implementation_entry_review_defined`、`fake_resolver_runtime_test_only_implemented`、`real_resolver_runtime_preconditions_defined`、`real_resolver_runtime_implementation_entry_review_defined`、`resolver_backend_profile_selection_readiness_defined` 与 `real_resolver_no_secret_leakage_smoke_runtime_strategy_defined`，确认 test-only fake resolver runtime 已实现，真实 resolver runtime 前置条件和停止线已固定，真实 resolver runtime implementation entry review 结论为 blocked before runtime task card，resolver backend profile selection 和 no leakage smoke runtime strategy 已形成静态前置证据；当前仍不启用 repository mode，不创建 SQL migration、schema version table、schema marker reader / writer、migration runner、secret resolver、backend runtime、production resolver runtime、no secret leakage smoke runtime、rotation runtime、audit store、database connection provider、数据库连接、OIDC middleware、token validation、membership adapter 或 production API artifact。
 

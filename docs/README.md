@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-07-08
+更新时间：2026-07-11
 
 ## 阅读原则
 
@@ -24,8 +24,10 @@
 
 ## 当前状态
 
+- 当前成熟度是“内部开发者预览”；整改与当前执行顺序以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 和 [当前推进焦点](radishmind-current-focus.md) 为准。
+- 当前第一产品主线是 Workflow Draft Review Loop，第一工程主线是 Gateway 稳定运行时；旧 Production Secret Backend / Storage Adapter next dependency 只保留为历史 checker 锚点，不再作为当前开发任务。
 - `RadishMind` 已正式从“模型实验 / 接入准备仓库”的狭义口径，收口为 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台。
-- 当前仓库主线不再只是等待其他项目真实接入；接下来按五个产品面和五条工程主线推进。五个产品面是 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`、`Image Generation / Artifact Return`；五条工程主线是 `Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。
+- 当前仓库主线不再只是等待其他项目真实接入；长期按四个一级产品面和五条工程主线组织。四个产品面是 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；`Image Generation / Artifact Return` 作为横切适配能力保留。五条工程主线是 `Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。
 - 当前项目的更强正式定义已经固定在 [战略定义](radishmind-strategy.md)：`RadishMind` 是 `AI Tools / Workflow / Model Gateway / Copilot Integration Platform`，核心价值是把 AI 应用构建、工作流运行、模型 API 分发、多模型接入和 Copilot 集成收口成可控产品能力。
 - 部署方式、数据库和登录 / 授权默认参考 `Radish`（https://github.com/laugh0608/Radish）；未来 RadishMind 应作为 OIDC client 接入 `Radish`，不自建第二套身份与权限真相源，也不因参考 Radish 默认引入 `.NET` / ASP.NET Core。
 - 平台后续必须同时具备两类兼容能力：南向接入自研模型与外部模型，北向对外提供常见 AI 协议接口；当前仓库已落地最小 `provider registry` 骨架，并由同一 southbound 入口收口 `openai-compatible / HuggingFace / Ollama / gemini-native / anthropic-messages` 调用基础，同时已落地 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 的第一版 bridge-backed 兼容面，其中 `/v1/models` 已暴露 provider-qualified profile inventory 和 `/v1/models/{id}` lookup，并与请求选择、diagnostics 共享 selectable profile metadata。

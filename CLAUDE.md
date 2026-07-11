@@ -38,6 +38,9 @@
 - 普通 UI、文案、布局、只读 evidence 组织和使用性整理，默认复用现有聚合门禁、web build、consumer smoke 和仓库基线
 - 只有新增 API、执行边界、生产声明、schema / 数据格式、外部 provider 风险或高风险能力时，才新增专项 task card、fixture 或 checker
 - 回答“下一步做什么”时，应先判断要推进哪个功能设计文档，而不是默认继续新增同层 gate-only 切片
+- “不做玩具式最小实现”指交付小而完整、可复验的纵向切片，不表示开发 / 测试态能力必须先满足全部生产依赖
+- dev / test 与 production 分别验收；生产门禁默认约束 capability enablement、运行配置和发布声明，不长期以未来 adapter、migration、repository 文件必须不存在作为完成条件
+- 历史 readiness / review / refresh 证据保留为归档，不再派生同层链；新增 checker 必须证明现有单元测试、集成测试或聚合门禁无法承载
 
 ## 文档真相源
 

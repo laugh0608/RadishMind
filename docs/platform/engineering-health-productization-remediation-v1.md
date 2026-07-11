@@ -1,6 +1,6 @@
 # 工程健康与产品化整改专题 v1
 
-更新时间：2026-07-10
+更新时间：2026-07-11
 
 状态：`remediation_v1_in_progress`
 
@@ -34,7 +34,7 @@
 
 ## 总体结论
 
-当前项目应按 `M2 / 内部开发者预览` 管理：安全边界、协议、评测和失败关闭意识较强，已经具备形成产品闭环的基础；但 durable persistence、正式身份、生产 secret、稳定运行时、端到端用户验收和性能预算仍未完成，因此不得声明 production ready。
+当前项目应按“内部开发者预览”管理：安全边界、协议、评测和失败关闭意识较强，已经具备形成产品闭环的基础；但 durable persistence、正式身份、生产 secret、稳定运行时、端到端用户验收和性能预算仍未完成，因此不得声明 production ready。当前成熟度不再使用 `M2` 编号，避免与历史模型 / 评测阶段的 `M2`、`M3`、`M4` 发生语义复用。
 
 主要矛盾已经从“缺少边界定义”转为以下四项：
 
@@ -42,6 +42,26 @@
 2. 产品纵向闭环少于横向 readiness 和 checker 证据链。
 3. 文档、task card、fixture、checker 的数量增长快于实现收敛。
 4. Gateway 仍依赖每请求启动 Python 子进程，产品化性能与稳定性不足。
+
+## 2026-07-11 产品焦点与门禁调整决议
+
+当前阶段不同时推进所有长期产品面。正式一级产品面继续保持四个：`User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；`Image Generation / Artifact Return` 作为跨产品面的适配能力保留，不作为当前第五条一级产品主线。
+
+当前首要用户是 Radish 体系内部开发者和团队成员，首要任务是创建、编辑、校验、保存、恢复和审查 Workflow 草案。Gateway 是支撑该用户任务的第一工程主线；Admin 只推进支撑 Workflow 与 Gateway 所必需的运维能力；Image Path、模型训练、quota / billing 和完整外部接入继续后置。
+
+门禁从“限制实现文件是否可以存在”调整为“限制能力是否可以启用和声明”：
+
+| 能力 | 开发 / 测试态 | 生产态 |
+| --- | --- | --- |
+| Saved Draft durable repository | R3 浏览器闭环完成后，可独立设计并实现显式开发 / 测试模式；必须有真实 migration、重启恢复、原子版本比较、scope 校验、no fallback 和集成测试 | 继续要求真实 OIDC、membership、生产数据库资源、secret、审计和部署复核，条件未满足时不得启用 |
+| Repository adapter / migration source | 允许代码和测试存在，不再以“文件必须不存在”作为长期门禁 | production selector 必须默认关闭并失败关闭，不得因代码存在而声明 ready |
+| Workflow executor | durable repository 与稳定 Gateway 成立后，可打开无外部副作用的安全执行切片，只允许 Prompt / LLM / condition / output 和 run record | unrestricted tool、业务写回、自动 confirmation commit、replay / resume 继续关闭 |
+| OIDC / production secret / cloud provider | 可实现接口、fake / local adapter 和负向行为测试 | 只有真实 issuer、membership source、provider account / resource / endpoint 与负责人明确后才允许启用 |
+| readiness / review / refresh 证据链 | 历史证据保留，禁止继续派生同层链 | 生产准入只保留聚合清单、行为证据和一次明确复核 |
+
+数据 ownership 同步澄清：`Radish` 继续是用户身份、组织成员关系和上层业务数据的真相源；RadishMind 可以并且需要拥有自身运行数据，包括 Workflow draft、Workflow version、run record、trace、provider usage 和 RadishMind audit。该边界禁止复制上层身份与业务权威，但不再把 RadishMind 自身 operational database 解释为越界。
+
+本决议只调整允许推进的范围和准入方式，不表示数据库、repository mode、executor、OIDC 或 production secret 已经实现或启用。
 
 ## 整改原则
 
@@ -61,7 +81,7 @@
 | R3 | Workflow Draft Review Loop 产品闭环 | P1 | 进行中 | 创建、编辑、校验、保存、冲突、恢复、审查交接形成一条可重复端到端路径 |
 | R4 | Gateway 运行时产品化 | P1 | 待开始 | 移除每请求进程启动开销，建立可观测、可取消、可回收的持久 bridge |
 | R5 | 测试、CI 与性能预算 | P1 | 待开始 | CI 覆盖 Go race/vet、Web/Console build、关键 Python 行为；前端包体和延迟有预算 |
-| R6 | 文档、checker 与资产收敛 | P2 | 待开始 | 入口文档恢复短入口；活跃 checker 和 task card 显著下降；历史证据可索引但不占当前主线 |
+| R6 | 文档、checker 与资产收敛 | P2 | 进行中 | 入口文档恢复短入口；活跃 checker 和 task card 显著下降；历史证据可索引但不占当前主线 |
 
 ## R1：规划与在制品治理
 
@@ -71,6 +91,8 @@
 - `docs/radishmind-current-focus.md` 只保留当前阶段、两个在制目标、下一动作和停止线。
 - 旧 readiness / review 文档保留为历史证据，不再通过 `v2 / v3 / refresh after review` 延长静态链。
 - 只有新增公开 API、schema、生产声明、外部 provider 或执行边界时，才允许独立高风险 task card。
+- 门禁默认约束配置启用、运行行为和发布声明，不再把未来实现文件必须缺席作为长期完成条件。
+- “不做玩具式最小实现”解释为交付小而完整、可复验的纵向切片，不解释为开发态功能必须先满足全部生产依赖。
 
 每次迭代评审只回答四个问题：
 
@@ -146,6 +168,7 @@
 
 - `docs/radishmind-current-focus.md`、`docs/platform/README.md` 等入口回到短入口职责，长历史迁入专题索引或归档摘要。
 - 普通入口避免超长单行；单行目标不超过 2,000 字符。
+- `docs/radishmind-current-focus.md` 的人工默认阅读区先收敛到 10 KiB 以内；历史机器锚点在 checker 解耦前进入明确兼容区，不再混入当前决策。
 - 两个迭代内把活跃 `check-*.py` 数量和 checker 代码量各降低至少 15%，优先合并相同 schema / fixture / readiness 扫描。
 - task card 索引区分“活跃、阻塞、历史完成”，默认读取只展示活跃项。
 - 大 JSON 继续使用主索引 + `.parts/`，不新增长路径语义编码。
@@ -170,7 +193,13 @@
 
 - 基于实测推进 R4，不先写多轮 readiness 文档。
 - 并行启动一批 R6 合并工作，但在制整改批次最多一个。
-- durable store、OIDC 和 production secret 只有在真实上游资源与负责人明确后才能重新进入评审。
+- production durable store、OIDC 和 production secret 只有在真实上游资源与负责人明确后才能进入启用评审；显式开发 / 测试态 durable store 可在 R3 完成后作为下一条产品纵向切片推进。
+
+### 第四阶段：开发态持久化与安全执行
+
+- 产品线先实现显式开发 / 测试态 PostgreSQL durable repository，不依赖 production secret audit store 才能开始写代码。
+- 工程线继续推进 R4 / R5，建立持久 bridge、性能预算和可发现行为测试。
+- durable repository 与稳定 Gateway 都通过后，再打开无外部副作用 executor；本阶段仍不打开 unrestricted tool、业务写回、自动确认提交或 replay。
 
 ## 每批完成定义
 
@@ -194,7 +223,7 @@
 
 - 不继续创建“readiness 之后的 readiness”来替代实现或真实阻塞说明。
 - 不把 memory dev store、fake resolver、静态 schema artifact 或离线 smoke 写成 production ready。
-- 不在缺少真实 issuer、membership source、数据库资源、secret backend 和负责人时启用 repository mode。
+- 不在缺少真实 issuer、membership source、生产数据库资源、secret backend 和负责人时启用 production repository mode；显式开发 / 测试模式必须独立命名、默认关闭生产入口并保持 no fallback。
 - 不在本轮引入新语言栈、重写 Gateway 或跨工作区修改上层项目。
 - 不把模型建议直接写入上层业务真相源。
 - 不让 API key、token、DSN、provider 原始响应或异常正文进入 argv、公开错误、日志和 committed 资产。

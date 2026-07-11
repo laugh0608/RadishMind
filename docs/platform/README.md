@@ -1,9 +1,11 @@
 # RadishMind 平台专题入口
-更新时间：2026-07-10
+更新时间：2026-07-11
 
 ## 文档目的
 
 本目录用于承接跨产品面的平台专题。平台专题不属于某一个页面，也不应塞进单个产品面大方向文档；它们负责固定 auth、store、repository、provider、deployment、仅开发写入路径等长期边界和准入条件。当前跨领域整改统一进入 [工程健康与产品化整改专题 v1](engineering-health-productization-remediation-v1.md)，不再为每一步派生同层 readiness 链。
+
+2026-07-11 起，历史 storage adapter next dependency 不再是当前开发顺位。平台门禁约束 capability 是否可启用和声明，不再长期约束 adapter / migration / repository 实现文件必须不存在。R3 完成后可推进独立命名的开发 / 测试态 PostgreSQL durable repository；production repository mode、OIDC、production secret 和公开生产 API 继续保持失败关闭。
 
 具体实现批次仍进入 `docs/task-cards/`。平台专题只说明为什么要做、允许打开什么、依赖什么证据、哪些能力必须作为独立目标；平台专题正文默认中文，`schema`、`fixture`、`checker`、状态锚点和路径等必要标识符保留原文并优先使用反引号。
 

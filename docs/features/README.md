@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-07-08
+更新时间：2026-07-11
 
 ## 文档目的
 
@@ -20,6 +20,8 @@
 | 实现批次 / 高风险边界 | `docs/task-cards/*.md` | 固定具体实现批次、输入输出、前置条件、专项门禁和验证记录 | 新增 API、schema、执行边界、生产声明、外部 provider 风险或高风险能力 |
 
 ## 当前口径
+
+2026-07-11 当前执行口径：第一产品主线是 `Workflow Draft Review Loop`。R3 浏览器闭环完成后，下一条产品纵向切片是显式开发 / 测试态 durable repository；旧 Production Secret Backend / Storage Adapter readiness 表格继续作为历史专题索引，不再把其中的 next dependency 解释为当前开发任务。四个一级产品面保持为 User Workspace、Admin、Gateway、Workflow；Image Path 是横切适配能力。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。

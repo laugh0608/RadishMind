@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-07-01
+更新时间：2026-07-11
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -9,6 +9,13 @@
 - 当前仓库主线已经切回平台本体建设；因此这里的文档更多承担“应用面任务边界”和“真实接入前置条件”职责。
 - 如果你现在要判断应该优先做什么，先读 `docs/radishmind-current-focus.md`、`docs/radishmind-capability-matrix.md` 和 `docs/radishmind-roadmap.md`，不要把这些任务卡误解成当前唯一主线。
 - 2026-06-14 起，长期功能设计默认写入 `docs/features/`；任务卡只用于具体实现批次、前置条件或高风险边界。普通只读展示、文案、布局和 evidence 组织不再默认逐项新增任务卡。
+
+## 当前活跃任务
+
+1. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R1 / R6 规划、入口文档和 checker 收敛。
+2. [Saved Workflow Draft Conflict Review v1](../features/workflow/saved-workflow-draft-conflict-review-v1.md)：R3 真实浏览器正常路径与版本冲突路径复验。
+
+当前没有活跃的 Production Secret Backend / Storage Adapter readiness 任务卡。下方既有任务卡均按历史完成、冻结或外部阻塞证据读取，不表示当前排期；新增实现任务应先回到对应功能专题和整改总入口确认用户目标。
 
 当前已冻结的应用面任务：
 

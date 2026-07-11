@@ -1,6 +1,8 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-06-28
+更新时间：2026-07-11
+
+<!-- markdown-size-allow: 历史阶段流水与 checker 锚点暂时保留；人工默认只读 2026-07-11 当前执行顺序，R6 解耦后将历史内容迁入归档并删除本标记。 -->
 
 ## 路线图原则
 
@@ -9,6 +11,8 @@
 当前长期目标更新为：`RadishMind` 是 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台，不是单一万能模型，也不是只服务本地 demo 的 runtime 壳。
 
 若要理解“为什么路线这样排”，先读 [战略定义](radishmind-strategy.md)；若要推进具体功能，先读 [功能设计文档](features/README.md)，再拆实现任务。长期产品机会单独维护在 [产品机会池](radishmind-product-ideas.md)，该文件只记录候选方向，不代表路线图承诺。
+
+2026-07-11 起，`P1` 至 `P7` 只作为历史能力阶段与长期专题编号，不再解释为必须严格顺序完成的当前成熟度等级；当前成熟度统一称为“内部开发者预览”。当前执行顺序以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 为准，旧 storage adapter readiness 的 next dependency 只保留为历史 checker 锚点。
 
 ## 当前路线切换
 
@@ -220,7 +224,15 @@
 
 状态：边界任务卡已开始。当前只保留 Radish 对齐方向，不实现账号系统、不接真实 OIDC、不声明 production ready。`apps/radishmind-web/` 已有只读 tenant overview、audit log 和普通离线 Admin Operations Review / Readiness，用 tenant、audit、gateway evidence review 与 Production Ops 静态证据解释管理端 readiness、risk 和 boundary locks。默认技术栈为 Go control plane + Go gateway + Python model/eval/worker + TypeScript/Vite frontend，不新增 `.NET` 作为默认后端语言；任务卡只固定 OIDC client、tenant、quota、API key、secret ref、audit 和 deployment status 的前置边界。
 
-## 下一步
+## 2026-07-11 当前执行顺序
+
+1. 收口 `R3 Workflow Draft Review Loop` 的真实浏览器正常路径和版本冲突路径，不新增同层 readiness / checker。
+2. R3 完成后，产品线打开显式开发 / 测试态 PostgreSQL durable repository，验证 migration、重启恢复、CAS、scope 和 no fallback；production repository mode 继续关闭。
+3. 工程线推进持久 Python bridge、Web 路由级拆分、CI 与性能预算，并逐批解除入口文档对历史 checker literal 的依赖。
+4. durable repository 与稳定 Gateway 均成立后，评审无外部副作用 executor v0；真实工具、业务写回、自动确认提交和 replay 继续后置。
+5. OIDC、production secret、真实云资源、quota / billing、真实生图和模型训练只在外部资源、负责人和独立运行窗口明确后重开。
+
+## 历史下一步记录（仅供 checker 兼容，不再执行）
 
 1. 把后续推进从 gate-driven 调整为 feature-driven：先更新 `docs/features/` 中对应功能文档，再决定实现批次、测试和必要门禁。
 2. 已完成的 Workflow review surface、Model Gateway evidence、Admin readiness、Image Path metadata-only runtime integration 和 Control Plane durable read foundation 继续作为证据保留；后续不默认继续扩同层只读面板或 gate-only 任务。
