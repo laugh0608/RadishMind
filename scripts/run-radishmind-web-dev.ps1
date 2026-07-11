@@ -274,6 +274,46 @@ function Invoke-SavedWorkflowDraftProbe {
     }
 }
 
+function Invoke-WorkflowExecutorProbe {
+    param(
+        [string]$BaseUrl,
+        [string]$Tenant,
+        [string]$Subject,
+        [string]$WorkspaceId,
+        [string]$ApplicationId
+    )
+    $url = $BaseUrl.TrimEnd("/") + "/v1/user-workspace/workflow-drafts/draft_executor_probe_missing/runs"
+    $headers = @{
+        Accept = "application/json"
+        "Content-Type" = "application/json"
+        "X-Request-Id" = "dev-live-workflow-executor-probe"
+        "X-RadishMind-Dev-Read-Identity" = "dev-live-workflow-executor-probe"
+        "X-RadishMind-Dev-Read-Tenant" = $Tenant
+        "X-RadishMind-Dev-Read-Subject" = $Subject
+        "X-RadishMind-Dev-Read-Scopes" = "workflow_drafts:read,workflow_runs:execute,workflow_runs:read"
+        "X-RadishMind-Dev-Read-Audit" = "audit_dev_live_workflow_executor_probe"
+        "X-RadishMind-Dev-Workflow-Workspace" = $WorkspaceId
+        "X-RadishMind-Dev-Workflow-Application" = $ApplicationId
+    }
+    $body = @{
+        workspace_id = $WorkspaceId
+        application_id = $ApplicationId
+        input_text = "executor dev gate probe"
+        condition_values = @{}
+    } | ConvertTo-Json -Depth 4
+    $response = Invoke-WebRequest -Uri $url -Method Post -Headers $headers -Body $body -TimeoutSec 5
+    if ($response.StatusCode -lt 200 -or $response.StatusCode -ge 300) {
+        throw "Unexpected HTTP status $($response.StatusCode) from $url"
+    }
+    $json = $response.Content | ConvertFrom-Json
+    if ($json.failure_code -ne "workflow_run_draft_not_found") {
+        throw "Workflow Executor dev gate probe returned unexpected failure_code=$($json.failure_code)"
+    }
+    if ($null -ne $json.run) {
+        throw "Workflow Executor dev gate probe must not create a run for a missing draft"
+    }
+}
+
 function Invoke-CorsProbe {
     param(
         [string]$ReadUrl,
@@ -438,11 +478,13 @@ try {
             if ($SavedDraftDev) {
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE = "1"
+                $env:RADISHMIND_WORKFLOW_EXECUTOR_DEV = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE = "memory_dev"
             }
             elseif ($SavedDraftPostgresDevTest) {
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE = "1"
+                $env:RADISHMIND_WORKFLOW_EXECUTOR_DEV = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE = "postgres_dev_test"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
             }
@@ -473,12 +515,14 @@ try {
                 $env:VITE_RADISHMIND_DEV_READ_SUBJECT_REF = $SubjectRef
                 if ($savedDraftEnabled) {
                     $env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE = "dev-saved-draft-http"
+                    $env:VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE = "dev-workflow-executor-http"
                 }
             }
             else {
                 Remove-Item Env:VITE_RADISHMIND_READ_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE -ErrorAction SilentlyContinue
             }
 
             Start-LoggedProcess `
@@ -504,6 +548,14 @@ try {
                     -WorkspaceId $savedDraftWorkspaceId `
                     -ApplicationId $savedDraftApplicationId
             }
+            Wait-Until -Name "Workflow Executor dev route" -Probe {
+                Invoke-WorkflowExecutorProbe `
+                    -BaseUrl $BackendUrl `
+                    -Tenant $TenantRef `
+                    -Subject $SubjectRef `
+                    -WorkspaceId $savedDraftWorkspaceId `
+                    -ApplicationId $savedDraftApplicationId
+            }
         }
     }
 
@@ -519,7 +571,7 @@ try {
             Write-Step "Saved Draft memory-dev read/write mode passed for $savedDraftWorkspaceId/$savedDraftApplicationId."
         }
     }
-    Write-Step "This is a dev-only launcher, not a production supervisor. PostgreSQL mode is dev/test-only; production auth, secret resolution, executor, confirmation, writeback and replay remain disabled."
+    Write-Step "This is a dev-only launcher, not a production supervisor. Controlled executor v0 is dev-only; production auth, secret resolution, unrestricted tools, confirmation commit, writeback and replay remain disabled."
 
     if (-not $VerifyOnly -and -not $ExitAfterProbe -and $spawnedProcesses.Count -gt 0) {
         Write-Step "Press Ctrl+C to stop spawned local dev processes."

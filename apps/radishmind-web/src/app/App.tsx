@@ -38,6 +38,16 @@ import {
   type WorkflowSavedDraftConsumerState,
   type WorkflowSavedDraftConflictReviewSummary,
 } from "../features/control-plane-read/savedWorkflowDraftConsumer";
+import {
+  buildWorkflowExecutorV0Draft,
+  evaluateWorkflowExecutorEligibility,
+  initialWorkflowExecutorConsumerState,
+  readWorkflowExecutorConsumerConfig,
+  readWorkflowRunDevRecord,
+  startWorkflowRunDevRecord,
+  type WorkflowExecutorConsumerState,
+} from "../features/control-plane-read/workflowExecutorConsumer";
+import { WorkflowExecutorPanel } from "../features/control-plane-read/workflowExecutorPanel";
 import { buildModelGatewayOverviewViewModel } from "../features/control-plane-read/modelGatewayOverview";
 import { ModelGatewayOverviewPanel } from "../features/control-plane-read/modelGatewayOverviewPanel";
 import { buildModelGatewayRouteEvidenceViewModel } from "../features/control-plane-read/modelGatewayRouteEvidence";
@@ -184,6 +194,8 @@ import type {
 const shell = buildControlPlaneReadShellViewModel();
 const devLiveConfig = readControlPlaneReadDevLiveConfig();
 const savedDraftConsumerConfig = readWorkflowSavedDraftConsumerConfig();
+const workflowExecutorConsumerConfig = readWorkflowExecutorConsumerConfig();
+const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
 
 type ControlPlaneReadCollectionsByRoute = Partial<
   Record<ControlPlaneReadRouteId, ControlPlaneReadCollectionViewModel>
@@ -253,6 +265,14 @@ export function App() {
   const [workspaceCreatedDrafts, setWorkspaceCreatedDrafts] = useState<WorkflowDraftDesignerDraft[]>([]);
   const [editableWorkflowDraft, setEditableWorkflowDraft] = useState<WorkflowDraftDesignerDraft | null>(null);
   const [workflowDraftEditDirty, setWorkflowDraftEditDirty] = useState(false);
+  const [workflowExecutorState, setWorkflowExecutorState] = useState<WorkflowExecutorConsumerState>(() =>
+    initialWorkflowExecutorConsumerState(workflowExecutorConsumerConfig),
+  );
+  const [workflowExecutorInput, setWorkflowExecutorInput] = useState(DEFAULT_WORKFLOW_EXECUTOR_INPUT);
+  const [workflowExecutorModel, setWorkflowExecutorModel] = useState("");
+  const [workflowExecutorConditionValues, setWorkflowExecutorConditionValues] = useState<Record<string, boolean>>({});
+  const workflowExecutorOperationPending =
+    workflowExecutorState.status === "starting" || workflowExecutorState.status === "reading";
 
   useEffect(() => {
     if (devLiveConfig.mode !== "dev_live_http") {
@@ -465,6 +485,19 @@ export function App() {
       }, {}),
     [workspaceCreatedDrafts],
   );
+  const workflowExecutorEligibility = useMemo(
+    () => evaluateWorkflowExecutorEligibility(activeWorkflowDraft, savedDraftConsumerState, workflowDraftEditDirty),
+    [activeWorkflowDraft, savedDraftConsumerState, workflowDraftEditDirty],
+  );
+  const activeWorkflowExecutorConditionValues = useMemo(
+    () => Object.fromEntries(
+      workflowExecutorEligibility.conditionNodeIds.map((nodeId) => [
+        nodeId,
+        workflowExecutorConditionValues[nodeId] ?? false,
+      ]),
+    ),
+    [workflowExecutorConditionValues, workflowExecutorEligibility.conditionNodeIds],
+  );
 
   useEffect(() => {
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(selectedWorkflowDraft));
@@ -484,6 +517,11 @@ export function App() {
     }
     setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig));
     setWorkflowDraftEditDirty(false);
+  }, [selectedWorkflowDraft.draftId]);
+
+  useEffect(() => {
+    setWorkflowExecutorState(initialWorkflowExecutorConsumerState(workflowExecutorConsumerConfig));
+    setWorkflowExecutorConditionValues({});
   }, [selectedWorkflowDraft.draftId]);
 
   const markWorkflowDraftLocallyEdited = () => {
@@ -734,6 +772,9 @@ export function App() {
     setSelectedWorkflowScenarioId(scenarioId);
   };
   const handleSelectApplication = (applicationRef: string) => {
+    if (workflowExecutorOperationPending) {
+      return;
+    }
     applyWorkflowSelectionPatch(
       selectionForApplication(applicationRef, {
         workspaceApplications,
@@ -743,6 +784,9 @@ export function App() {
     );
   };
   const handleSelectWorkflowDefinition = (workflowDefinitionId: string) => {
+    if (workflowExecutorOperationPending) {
+      return;
+    }
     applyWorkflowSelectionPatch(
       selectionForWorkflowDefinition(workflowDefinitionId, {
         workspaceWorkflowDefinitions,
@@ -751,12 +795,21 @@ export function App() {
     );
   };
   const handleSelectRun = (runId: string) => {
+    if (workflowExecutorOperationPending) {
+      return;
+    }
     applyWorkflowSelectionPatch(selectionForRun(runId, { workspaceRunHistory }));
   };
   const handleSelectWorkflowDraft = (draftId: string) => {
+    if (workflowExecutorOperationPending) {
+      return;
+    }
     applyWorkflowSelectionPatch(selectionForDraft(draftId, workflowDraftDesigner, { workspaceRunHistory }));
   };
   const handleCreateWorkspaceDraftFromDefinition = (workflowDefinitionId: string) => {
+    if (workflowExecutorOperationPending) {
+      return;
+    }
     const createdDraft = buildWorkspaceCreatedDraft(
       workflowDefinitionId,
       workflowDraftDesigner,
@@ -781,6 +834,32 @@ export function App() {
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
     setWorkflowDraftEditDirty(true);
     setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
+  };
+  const handleCreateWorkflowExecutorDraft = () => {
+    if (workflowExecutorOperationPending) {
+      return;
+    }
+    const nextDraftNumber = workspaceCreatedDrafts.filter(
+      (draft) =>
+        draft.applicationRef === activeWorkflowDraft.applicationRef &&
+        draft.executionProfile === "executor_v0",
+    ).length + 1;
+    const createdDraft = buildWorkflowExecutorV0Draft(activeWorkflowDraft, nextDraftNumber);
+    setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
+    applyWorkflowSelectionPatch({
+      applicationRef: createdDraft.applicationRef,
+      workflowDefinitionId: createdDraft.workflowDefinitionId,
+      runId: null,
+      draftId: createdDraft.draftId,
+      scenarioId: null,
+    });
+    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
+    setWorkflowDraftEditDirty(true);
+    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
+    setWorkflowExecutorState(initialWorkflowExecutorConsumerState(workflowExecutorConsumerConfig));
+    setWorkflowExecutorInput(DEFAULT_WORKFLOW_EXECUTOR_INPUT);
+    setWorkflowExecutorModel("");
+    setWorkflowExecutorConditionValues({});
   };
   const refreshSavedWorkflowDraftList = (applicationRef: string) => {
     if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
@@ -1004,6 +1083,69 @@ export function App() {
         }));
       });
   };
+  const handleWorkflowExecutorConditionValueChange = (nodeId: string, value: boolean) => {
+    setWorkflowExecutorConditionValues((values) => ({ ...values, [nodeId]: value }));
+  };
+  const handleStartWorkflowRun = () => {
+    if (
+      workflowExecutorConsumerConfig.mode !== "dev_workflow_executor_http" ||
+      !workflowExecutorEligibility.eligible ||
+      workflowExecutorOperationPending ||
+      workflowExecutorInput.trim().length === 0
+    ) {
+      return;
+    }
+    setWorkflowExecutorState((state) => ({
+      ...state,
+      status: "starting",
+      summary: `Starting bounded run for saved draft ${activeWorkflowDraft.draftId} version ${workflowExecutorEligibility.savedDraftVersion}.`,
+      failureCode: null,
+      failureSummary: "",
+      record: null,
+    }));
+    startWorkflowRunDevRecord(
+      activeWorkflowDraft,
+      workflowExecutorInput,
+      activeWorkflowExecutorConditionValues,
+      workflowExecutorConsumerConfig,
+      { model: workflowExecutorModel },
+    )
+      .then(setWorkflowExecutorState)
+      .catch((error: unknown) => {
+        setWorkflowExecutorState((state) => ({
+          ...state,
+          status: "failed",
+          summary: error instanceof Error ? error.message : "Workflow executor request failed.",
+          failureCode: "dev_workflow_executor_consumer_failed",
+          failureSummary: "The development executor route could not return a valid run envelope.",
+          record: null,
+        }));
+      });
+  };
+  const handleReloadWorkflowRun = () => {
+    const record = workflowExecutorState.record;
+    if (!record || workflowExecutorOperationPending) {
+      return;
+    }
+    setWorkflowExecutorState((state) => ({
+      ...state,
+      status: "reading",
+      summary: `Reloading scoped run record ${record.runId}.`,
+      failureCode: null,
+      failureSummary: "",
+    }));
+    readWorkflowRunDevRecord(record, workflowExecutorConsumerConfig)
+      .then(setWorkflowExecutorState)
+      .catch((error: unknown) => {
+        setWorkflowExecutorState((state) => ({
+          ...state,
+          status: "failed",
+          summary: error instanceof Error ? error.message : "Workflow run record reload failed.",
+          failureCode: "dev_workflow_run_read_failed",
+          failureSummary: "The scoped development run record could not be reloaded.",
+        }));
+      });
+  };
 
   return (
     <main className="product-shell">
@@ -1011,7 +1153,7 @@ export function App() {
         <div>
           <p className="eyebrow">RadishMind</p>
           <h1>Control Plane</h1>
-          <p className="nav-summary">Read-only product surface for tenant, workspace, usage, workflow, and audit views.</p>
+          <p className="nav-summary">Developer control plane for review surfaces and the bounded workflow executor v0.</p>
         </div>
         <nav className="nav-links" aria-label="Read shell sections">
           <div className="nav-link-group" aria-label="User workspace sections">
@@ -1034,9 +1176,10 @@ export function App() {
             <p className="nav-link-group-label">Workflow Review</p>
             <a href="#workflow-application-detail">Application Detail</a>
             <a href="#workflow-draft-designer">Draft Designer</a>
+            <a href="#workflow-executor-v0">Executor v0</a>
             <a href="#workflow-draft-validation-inspector">Draft Validation</a>
-            <a href="#workflow-execution-plan-preview">Execution Plan</a>
-            <a href="#workflow-runtime-readiness-inspector">Runtime Readiness</a>
+            <a href="#workflow-execution-plan-preview">Full-runtime Plan</a>
+            <a href="#workflow-runtime-readiness-inspector">Full-runtime Readiness</a>
             <a href="#workflow-scenario-inspector">Scenario Inspector</a>
             <a href="#workflow-workspace-review">Review Workspace</a>
             <a href="#workflow-review-handoff">Review Handoff</a>
@@ -1586,6 +1729,7 @@ export function App() {
             savedDraftConflictReviewSummary={savedDraftConflictReviewSummary}
             savedDraftConflictRestoreSummary={savedDraftConflictRestoreSummary}
             draftEditDirty={workflowDraftEditDirty}
+            executorOperationPending={workflowExecutorOperationPending}
             onSelectDraft={handleSelectWorkflowDraft}
             onUpdateDraftLabel={handleWorkflowDraftLabelChange}
             onUpdateDraftSummary={handleWorkflowDraftSummaryChange}
@@ -1611,6 +1755,20 @@ export function App() {
             onValidateDraft={handleValidateWorkflowDraft}
             onSaveDraft={handleSaveWorkflowDraft}
             onReadDraft={handleReadWorkflowDraft}
+          />
+          <WorkflowExecutorPanel
+            draft={activeWorkflowDraft}
+            consumerState={workflowExecutorState}
+            eligibility={workflowExecutorEligibility}
+            inputText={workflowExecutorInput}
+            model={workflowExecutorModel}
+            conditionValues={activeWorkflowExecutorConditionValues}
+            onCreateExecutorDraft={handleCreateWorkflowExecutorDraft}
+            onInputTextChange={setWorkflowExecutorInput}
+            onModelChange={setWorkflowExecutorModel}
+            onConditionValueChange={handleWorkflowExecutorConditionValueChange}
+            onStartRun={handleStartWorkflowRun}
+            onReloadRun={handleReloadWorkflowRun}
           />
           <WorkflowDraftValidationInspectorPanel inspector={activeWorkflowDraftValidationInspector} />
           <WorkflowExecutionPlanPreviewPanel preview={activeWorkflowExecutionPlanPreview} />
@@ -3021,6 +3179,7 @@ function WorkflowDraftDesignerPanel({
   savedDraftConflictReviewSummary,
   savedDraftConflictRestoreSummary,
   draftEditDirty,
+  executorOperationPending,
   onSelectDraft,
   onUpdateDraftLabel,
   onUpdateDraftSummary,
@@ -3055,6 +3214,7 @@ function WorkflowDraftDesignerPanel({
   savedDraftConflictReviewSummary: WorkflowSavedDraftConflictReviewSummary | null;
   savedDraftConflictRestoreSummary: WorkflowSavedDraftSummary | null;
   draftEditDirty: boolean;
+  executorOperationPending: boolean;
   onSelectDraft: (draftId: string) => void;
   onUpdateDraftLabel: (label: string) => void;
   onUpdateDraftSummary: (summary: string) => void;
@@ -3084,7 +3244,7 @@ function WorkflowDraftDesignerPanel({
   const canCallDevConsumer = savedDraftConsumerState.mode === "dev_saved_draft_http";
   const operationPending = ["saving", "validating", "reading"].includes(savedDraftConsumerState.status);
   const conflictRequiresResolution = workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState);
-  const interactionDisabled = operationPending || conflictRequiresResolution;
+  const interactionDisabled = operationPending || conflictRequiresResolution || executorOperationPending;
   const editStateLabel = draftEditDirty ? "unsaved local" : selectedDraft.localOnlyInteraction;
   const conflictRestoreUnavailableMessage =
     savedDraftConflictReviewSummary?.restoreUnavailableReason ??
@@ -4426,7 +4586,7 @@ function WorkflowExecutionPlanPreviewPanel({
     >
       <div className="section-heading compact-heading">
         <div>
-          <p className="eyebrow">Execution Plan Preview</p>
+          <p className="eyebrow">Full-runtime Execution Plan Preview</p>
           <h4>{preview.selectedDraftId}</h4>
         </div>
         <StatusBadge tone={preview.canRenderExecutionPlanPreview ? "neutral" : "bad"}>
@@ -4679,7 +4839,7 @@ function WorkflowRuntimeReadinessInspectorPanel({
     >
       <div className="section-heading compact-heading">
         <div>
-          <p className="eyebrow">Runtime Readiness Inspector</p>
+          <p className="eyebrow">Full-runtime Readiness Inspector</p>
           <h4>{readiness.selectedDraftId}</h4>
         </div>
         <StatusBadge tone={readiness.canRenderRuntimeReadinessInspector ? "bad" : "neutral"}>

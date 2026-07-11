@@ -369,6 +369,57 @@ if not isinstance(document.get("draft_summaries"), list):
 PY
 }
 
+probe_workflow_executor_route() {
+  local base_url="$1"
+  local tenant="$2"
+  local subject="$3"
+  local workspace_id="$4"
+  local application_id="$5"
+  "${python_bin}" - "$base_url" "$tenant" "$subject" "$workspace_id" "$application_id" <<'PY'
+import json
+import sys
+from urllib.request import Request, urlopen
+
+base_url = sys.argv[1].rstrip("/")
+tenant = sys.argv[2]
+subject = sys.argv[3]
+workspace_id = sys.argv[4]
+application_id = sys.argv[5]
+url = f"{base_url}/v1/user-workspace/workflow-drafts/draft_executor_probe_missing/runs"
+body = json.dumps({
+    "workspace_id": workspace_id,
+    "application_id": application_id,
+    "input_text": "executor dev gate probe",
+    "condition_values": {},
+}).encode("utf-8")
+request = Request(
+    url,
+    data=body,
+    headers={
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "X-Request-Id": "dev-live-workflow-executor-probe",
+        "X-RadishMind-Dev-Read-Identity": "dev-live-workflow-executor-probe",
+        "X-RadishMind-Dev-Read-Tenant": tenant,
+        "X-RadishMind-Dev-Read-Subject": subject,
+        "X-RadishMind-Dev-Read-Scopes": "workflow_drafts:read,workflow_runs:execute,workflow_runs:read",
+        "X-RadishMind-Dev-Read-Audit": "audit_dev_live_workflow_executor_probe",
+        "X-RadishMind-Dev-Workflow-Workspace": workspace_id,
+        "X-RadishMind-Dev-Workflow-Application": application_id,
+    },
+    method="POST",
+)
+with urlopen(request, timeout=5) as response:
+    if response.status < 200 or response.status >= 300:
+        raise SystemExit(f"Unexpected HTTP status {response.status} from {url}")
+    document = json.loads(response.read().decode("utf-8"))
+if document.get("failure_code") != "workflow_run_draft_not_found":
+    raise SystemExit(f"Workflow Executor dev gate probe returned unexpected failure_code={document.get('failure_code')}")
+if document.get("run") is not None:
+    raise SystemExit("Workflow Executor dev gate probe must not create a run for a missing draft")
+PY
+}
+
 probe_cors() {
   local read_url="$1"
   local origin="$2"
@@ -539,10 +590,12 @@ if [[ "${verify_only}" -eq 0 ]]; then
         if [[ "${saved_draft_dev}" -eq 1 ]]; then
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
+          export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="memory_dev"
         elif [[ "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
+          export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="postgres_dev_test"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
         fi
@@ -565,11 +618,13 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export VITE_RADISHMIND_DEV_READ_SUBJECT_REF="${subject_ref}"
         if [[ "${saved_draft_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE="dev-saved-draft-http"
+          export VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE="dev-workflow-executor-http"
         fi
       else
         unset VITE_RADISHMIND_READ_SOURCE
         unset VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL
         unset VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE
       fi
       exec npm run dev
     ) >"${log_dir}/web.out.log" 2>"${log_dir}/web.err.log" &
@@ -601,6 +656,17 @@ if [[ "${mode}" == "dev-live" ]]; then
     show_failure_help "Saved Draft dev route probe failed"
     exit 1
   fi
+  if [[ "${saved_draft_enabled}" -eq 1 ]] && ! wait_until \
+    "Workflow Executor dev route" \
+    probe_workflow_executor_route \
+    "${backend_url}" \
+    "${tenant_ref}" \
+    "${subject_ref}" \
+    "${saved_draft_workspace_id}" \
+    "${saved_draft_application_id}"; then
+    show_failure_help "Workflow Executor dev route probe failed"
+    exit 1
+  fi
 fi
 
 if ! wait_until "frontend web" probe_page "${frontend_url}"; then
@@ -617,7 +683,7 @@ if [[ "${mode}" == "dev-live" ]]; then
     step "Saved Draft memory-dev read/write mode passed for ${saved_draft_workspace_id}/${saved_draft_application_id}."
   fi
 fi
-step "This is a dev-only launcher, not a production supervisor. PostgreSQL mode is dev/test-only; production auth, secret resolution, executor, confirmation, writeback and replay remain disabled."
+step "This is a dev-only launcher, not a production supervisor. Controlled executor v0 is dev-only; production auth, secret resolution, unrestricted tools, confirmation commit, writeback and replay remain disabled."
 
 if [[ "${verify_only}" -eq 0 && "${exit_after_probe}" -eq 0 && "${#spawned_pids[@]}" -gt 0 ]]; then
   step "Press Ctrl+C to stop spawned local dev processes."

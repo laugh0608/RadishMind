@@ -122,7 +122,7 @@
       "detailSourceForWorkflowDefinition",
       "toWorkflowDefinitionSummary",
       "baseDrafts.every(",
-      "localDrafts.every((draft) => draft.nodes.length > 0 && draft.edges.length >= 3)"
+      "localDrafts.every((draft) => draft.nodes.length >= 3 && draft.edges.length >= 2)"
     ],
     "forbidden_literals": [
       "const nodes = buildDesignerNodes(source.detailNodes ?? detail.nodes)",

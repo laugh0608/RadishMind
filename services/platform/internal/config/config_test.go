@@ -108,6 +108,7 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE", "true")
+	t.Setenv("RADISHMIND_WORKFLOW_EXECUTOR_DEV", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE", "repository_disabled")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL", "postgresql://runtime.invalid/secret")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_TIMEOUT", "9s")
@@ -141,6 +142,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if !cfg.WorkflowSavedDraftDevWriteEnabled {
 		t.Fatalf("expected workflow saved draft dev write env override")
+	}
+	if !cfg.WorkflowExecutorDevEnabled {
+		t.Fatalf("expected workflow executor dev env override")
 	}
 	if cfg.WorkflowSavedDraftStoreMode != "repository_disabled" {
 		t.Fatalf("expected workflow saved draft store env override, got %s", cfg.WorkflowSavedDraftStoreMode)
@@ -180,6 +184,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if summary.FieldSources["workflow_saved_draft_dev_write"] != "env" {
 		t.Fatalf("expected workflow_saved_draft_dev_write source=env, got %#v", summary.FieldSources)
+	}
+	if summary.FieldSources["workflow_executor_dev"] != "env" {
+		t.Fatalf("expected workflow_executor_dev source=env, got %#v", summary.FieldSources)
 	}
 	if summary.FieldSources["workflow_saved_draft_store"] != "env" {
 		t.Fatalf("expected workflow_saved_draft_store source=env, got %#v", summary.FieldSources)
@@ -322,6 +329,30 @@ func TestPostgresDevTestModeRequiresExplicitDevelopmentGates(t *testing.T) {
 	}
 }
 
+func TestWorkflowExecutorDevModeRequiresDevelopmentAuthAndSavedDraftHTTP(t *testing.T) {
+	config := Config{
+		ListenAddr:                 ":7000",
+		Provider:                   "mock",
+		WorkflowExecutorDevEnabled: true,
+	}
+
+	if got := config.Check(); !reflect.DeepEqual(got, []string{
+		"control_plane_read_dev_auth",
+		"workflow_saved_draft_dev_http",
+	}) {
+		t.Fatalf("unexpected executor dev missing fields: %#v", got)
+	}
+
+	config.ControlPlaneReadDevAuthEnabled = true
+	config.WorkflowSavedDraftDevHTTPEnabled = true
+	if got := config.Check(); len(got) != 0 {
+		t.Fatalf("complete executor dev config should pass: %#v", got)
+	}
+	if summary := config.SanitizedSummary(); !summary.WorkflowExecutorDevEnabled {
+		t.Fatalf("executor dev gate should be visible in sanitized summary: %#v", summary)
+	}
+}
+
 func clearPlatformEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{
@@ -345,6 +376,7 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE",
+		"RADISHMIND_WORKFLOW_EXECUTOR_DEV",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",

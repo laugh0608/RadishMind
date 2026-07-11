@@ -43,6 +43,7 @@ type Config struct {
 	ControlPlaneReadDevAuthEnabled    bool
 	WorkflowSavedDraftDevHTTPEnabled  bool
 	WorkflowSavedDraftDevWriteEnabled bool
+	WorkflowExecutorDevEnabled        bool
 	WorkflowSavedDraftStoreMode       string
 	WorkflowSavedDraftDatabaseURL     string
 	WorkflowSavedDraftDatabaseTimeout time.Duration
@@ -63,6 +64,7 @@ type ConfigSummary struct {
 	ControlPlaneReadDevAuthEnabled       bool              `json:"control_plane_read_dev_auth_enabled"`
 	WorkflowSavedDraftDevHTTPEnabled     bool              `json:"workflow_saved_draft_dev_http_enabled"`
 	WorkflowSavedDraftDevWriteEnabled    bool              `json:"workflow_saved_draft_dev_write_enabled"`
+	WorkflowExecutorDevEnabled           bool              `json:"workflow_executor_dev_enabled"`
 	WorkflowSavedDraftStoreMode          string            `json:"workflow_saved_draft_store_mode"`
 	WorkflowSavedDraftDatabaseConfigured bool              `json:"workflow_saved_draft_database_configured"`
 	Provider                             string            `json:"provider"`
@@ -172,6 +174,7 @@ func defaultConfig() Config {
 			"control_plane_read_dev_auth":           configSourceDefault,
 			"workflow_saved_draft_dev_http":         configSourceDefault,
 			"workflow_saved_draft_dev_write":        configSourceDefault,
+			"workflow_executor_dev":                 configSourceDefault,
 			"workflow_saved_draft_store":            configSourceDefault,
 			"workflow_saved_draft_database":         configSourceDefault,
 			"workflow_saved_draft_database_timeout": configSourceDefault,
@@ -404,6 +407,14 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.WorkflowSavedDraftDevWriteEnabled = parsed
 		cfg.FieldSources["workflow_saved_draft_dev_write"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_EXECUTOR_DEV"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_EXECUTOR_DEV", value)
+		if err != nil {
+			return err
+		}
+		cfg.WorkflowExecutorDevEnabled = parsed
+		cfg.FieldSources["workflow_executor_dev"] = configSourceEnv
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE"); ok {
 		applyStringValue(
 			&cfg.WorkflowSavedDraftStoreMode,
@@ -477,6 +488,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"workflow_saved_draft_database",
 		)
 	}
+	if cfg.WorkflowExecutorDevEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "workflow_saved_draft_dev_http")
+	}
 	missingRequiredFields := missingRequiredConfigFields(cfg, requiredFields)
 
 	return ConfigSummary{
@@ -484,6 +499,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		ControlPlaneReadDevAuthEnabled:       cfg.ControlPlaneReadDevAuthEnabled,
 		WorkflowSavedDraftDevHTTPEnabled:     cfg.WorkflowSavedDraftDevHTTPEnabled,
 		WorkflowSavedDraftDevWriteEnabled:    cfg.WorkflowSavedDraftDevWriteEnabled,
+		WorkflowExecutorDevEnabled:           cfg.WorkflowExecutorDevEnabled,
 		WorkflowSavedDraftStoreMode:          workflowSavedDraftStoreMode,
 		WorkflowSavedDraftDatabaseConfigured: strings.TrimSpace(cfg.WorkflowSavedDraftDatabaseURL) != "",
 		Provider:                             provider,
@@ -605,6 +621,15 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 		}
 	}
 	return missing
+}
+
+func appendRequiredConfigField(fields []string, field string) []string {
+	for _, existing := range fields {
+		if existing == field {
+			return fields
+		}
+	}
+	return append(fields, field)
 }
 
 func sanitizedFieldSources(fieldSources map[string]string) map[string]string {

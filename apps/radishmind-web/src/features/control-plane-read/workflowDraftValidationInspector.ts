@@ -11,6 +11,7 @@ import {
   type WorkflowDraftDesignerEdge,
   type WorkflowDraftDesignerNode,
 } from "./workflowDraftDesigner";
+import { evaluateWorkflowExecutorGraphEligibility } from "./workflowExecutorConsumer";
 
 export type WorkflowDraftValidationStatus = "passed" | "needs_review" | "blocked";
 export type WorkflowDraftValidationSeverity = "info" | "warning" | "blocking";
@@ -91,15 +92,26 @@ export type WorkflowDraftValidationInspectorViewModel = {
 
 const REQUIRED_INPUT_FIELDS = ["tenant_ref", "application_ref", "selection_summary", "diagnostic_summary"];
 const REQUIRED_OUTPUT_FIELDS = ["answer_summary", "candidate_actions", "risk_summary", "audit_refs"];
+const EXECUTOR_V0_REQUIRED_INPUT_FIELDS = ["input_text"];
+const EXECUTOR_V0_REQUIRED_OUTPUT_FIELDS = ["answer_summary"];
 
 export function buildWorkflowDraftValidationInspectorViewModel(
   draft: WorkflowDraftDesignerDraft = buildWorkflowDraftDesignerViewModel().drafts[0]!,
 ): WorkflowDraftValidationInspectorViewModel {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS["workflow-definition-summary-list-route"];
   const routePath = CONTROL_PLANE_READ_ROUTES.workflowDefinitions;
-  const structuralChecks = buildStructuralChecks(draft.nodes, draft.edges);
-  const contractChecks = buildContractChecks(draft.nodes);
-  const blockedCapabilityChecks = buildBlockedCapabilityChecks(draft.blockedCapabilities);
+  const executorV0 = draft.executionProfile === "executor_v0";
+  const structuralChecks = executorV0
+    ? buildExecutorV0StructuralChecks(draft)
+    : buildStructuralChecks(draft.nodes, draft.edges);
+  const contractChecks = buildContractChecks(
+    draft.nodes,
+    executorV0 ? EXECUTOR_V0_REQUIRED_INPUT_FIELDS : REQUIRED_INPUT_FIELDS,
+    executorV0 ? EXECUTOR_V0_REQUIRED_OUTPUT_FIELDS : REQUIRED_OUTPUT_FIELDS,
+  );
+  const blockedCapabilityChecks = executorV0
+    ? []
+    : buildBlockedCapabilityChecks(draft.blockedCapabilities);
   const validationStatus = deriveValidationStatus(structuralChecks, contractChecks, blockedCapabilityChecks);
   const forbiddenProjectionBlocked = controlPlaneReadResponseHasForbiddenOutput({
     validation: { [CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS[7]]: "blocked" },
@@ -130,9 +142,9 @@ export function buildWorkflowDraftValidationInspectorViewModel(
     canRenderDraftValidationInspector:
       route.path === routePath &&
       route.canMutate === false &&
-      structuralChecks.length >= 5 &&
+      structuralChecks.length >= (executorV0 ? 4 : 5) &&
       contractChecks.length >= 2 &&
-      blockedCapabilityChecks.length >= 4,
+      (executorV0 || blockedCapabilityChecks.length >= 4),
     canInspectDraftLocally: true,
     canRequestLiveBackend: false,
     canPersistDraft: false,
@@ -152,6 +164,34 @@ function buildSummary(
   contractChecks: WorkflowDraftContractCheck[],
   blockedCapabilityChecks: WorkflowDraftBlockedCapabilityCheck[],
 ): WorkflowDraftValidationSummary[] {
+  if (draft.executionProfile === "executor_v0") {
+    return [
+      {
+        label: "Draft",
+        value: draft.draftId,
+        status: validationStatus,
+        summary: draft.summary,
+      },
+      {
+        label: "Executor v0 graph checks",
+        value: `${countStatus(structuralChecks, "passed")}/${structuralChecks.length}`,
+        status: structuralChecks.every((check) => check.status === "passed") ? "passed" : "blocked",
+        summary: "Checks cover the bounded node allowlist, graph topology, low-risk boundary, and external side-effect locks.",
+      },
+      {
+        label: "Executor v0 contracts",
+        value: `${countStatus(contractChecks, "passed")}/${contractChecks.length}`,
+        status: contractChecks.every((check) => check.status === "passed") ? "passed" : "needs_review",
+        summary: "The bounded input_text and answer_summary fields remain explicit before server revalidation.",
+      },
+      {
+        label: "Boundary locks",
+        value: String(draft.blockedCapabilities.length),
+        status: "passed",
+        summary: "Tool, confirmation commit, business writeback, and replay remain explicitly locked outside executor v0.",
+      },
+    ];
+  }
   return [
     {
       label: "Draft",
@@ -177,6 +217,74 @@ function buildSummary(
       status: "blocked",
       summary: "Persistence, publish, runtime, confirmation decision, writeback, and replay remain unavailable.",
     },
+  ];
+}
+
+function buildExecutorV0StructuralChecks(
+  draft: WorkflowDraftDesignerDraft,
+): WorkflowDraftStructuralCheck[] {
+  const eligibility = evaluateWorkflowExecutorGraphEligibility(draft);
+  const reasonCodes = new Set(eligibility.reasons.map((reason) => reason.code));
+  const check = (
+    checkId: string,
+    label: string,
+    blockingCodes: string[],
+    summary: string,
+    evidenceRefs: string[],
+  ): WorkflowDraftStructuralCheck => {
+    const blocked = blockingCodes.some((code) => reasonCodes.has(code));
+    return {
+      checkId,
+      label,
+      status: blocked ? "blocked" : "passed",
+      severity: blocked ? "blocking" : "info",
+      summary,
+      evidenceRefs,
+    };
+  };
+  return [
+    check(
+      "executor_v0_profile",
+      "Executor v0 profile",
+      ["executor_profile_missing"],
+      "The draft is explicitly marked for the no-external-side-effect executor v0 profile.",
+      [draft.draftId],
+    ),
+    check(
+      "executor_v0_node_roles",
+      "Bounded node roles",
+      ["executor_graph_budget", "executor_node_id_invalid", "executor_node_type_blocked", "executor_node_roles_invalid"],
+      "The graph contains one Prompt, one Output, and one to four LLM nodes within the size budget.",
+      draft.nodes.map((node) => node.nodeId),
+    ),
+    check(
+      "executor_v0_low_risk",
+      "Low-risk execution boundary",
+      ["executor_node_risk_blocked"],
+      "Nodes cannot carry tool, RAG, confirmation, or non-low-risk markers.",
+      draft.nodes.map((node) => node.nodeId),
+    ),
+    check(
+      "executor_v0_topology",
+      "Acyclic Prompt-to-Output path",
+      [
+        "executor_edge_invalid",
+        "executor_condition_route_invalid",
+        "executor_condition_source_invalid",
+        "executor_root_terminal_invalid",
+        "executor_cycle",
+        "executor_unreachable_node",
+      ],
+      "Every node stays on an acyclic path from the single Prompt root to the single Output terminal.",
+      draft.edges.map((edge) => edge.edgeId),
+    ),
+    check(
+      "executor_v0_external_side_effects",
+      "External side effects locked",
+      ["executor_node_type_blocked", "executor_node_risk_blocked"],
+      "Tool, RAG, confirmation commit, business writeback, and replay remain unavailable.",
+      draft.blockedCapabilities.map((capability) => capability.auditRef),
+    ),
   ];
 }
 
@@ -238,29 +346,38 @@ function buildStructuralChecks(
   ];
 }
 
-function buildContractChecks(nodes: WorkflowDraftDesignerNode[]): WorkflowDraftContractCheck[] {
-  const inputFields = collectFields(nodes, "inputSummary");
-  const outputFields = collectFields(nodes, "outputSummary");
+function buildContractChecks(
+  nodes: WorkflowDraftDesignerNode[],
+  requiredInputFields: string[],
+  requiredOutputFields: string[],
+): WorkflowDraftContractCheck[] {
+  const executorV0 = requiredInputFields === EXECUTOR_V0_REQUIRED_INPUT_FIELDS;
+  const inputFields = collectFields(nodes, "inputSummary", requiredInputFields);
+  const outputFields = collectFields(nodes, "outputSummary", requiredOutputFields);
   return [
     {
       checkId: "input_contract_fields",
       label: "Input contract fields",
       status: inputFields.missingFields.length === 0 ? "passed" : "needs_review",
       severity: inputFields.missingFields.length === 0 ? "info" : "warning",
-      requiredFields: REQUIRED_INPUT_FIELDS,
+      requiredFields: requiredInputFields,
       presentFields: inputFields.presentFields,
       missingFields: inputFields.missingFields,
-      summary: "The inspector checks that tenant, application, selection, and diagnostic context remain explicit.",
+      summary: executorV0
+        ? "The inspector checks that the bounded user input remains explicit before server revalidation."
+        : "The inspector checks that tenant, application, selection, and diagnostic context remain explicit.",
     },
     {
       checkId: "output_contract_fields",
       label: "Output contract fields",
       status: outputFields.missingFields.length === 0 ? "passed" : "needs_review",
       severity: outputFields.missingFields.length === 0 ? "info" : "warning",
-      requiredFields: REQUIRED_OUTPUT_FIELDS,
+      requiredFields: requiredOutputFields,
       presentFields: outputFields.presentFields,
       missingFields: outputFields.missingFields,
-      summary: "The inspector checks that advisory answers, candidate actions, risk summary, and audit refs remain explicit.",
+      summary: executorV0
+        ? "The inspector checks that the advisory answer mapping remains explicit before server revalidation."
+        : "The inspector checks that advisory answers, candidate actions, risk summary, and audit refs remain explicit.",
     },
   ];
 }
@@ -301,6 +418,7 @@ function hasLane(nodes: WorkflowDraftDesignerNode[], lane: WorkflowDraftDesigner
 function collectFields(
   nodes: WorkflowDraftDesignerNode[],
   key: "inputSummary" | "outputSummary",
+  requiredFields: string[],
 ): { presentFields: string[]; missingFields: string[] } {
   const explicitFields = nodes.flatMap((node) =>
     key === "inputSummary" ? node.inputContractFields : node.outputContractFields,
@@ -312,7 +430,6 @@ function collectFields(
       return `${node[key]} ${contractFields.join(" ")} ${node.outputMappingSummary}`.toLowerCase();
     })
     .join(" ");
-  const requiredFields = key === "inputSummary" ? REQUIRED_INPUT_FIELDS : REQUIRED_OUTPUT_FIELDS;
   const presentFields = requiredFields.filter(
     (field) => explicitFieldSet.has(field) || fieldIsPresent(summaries, field),
   );

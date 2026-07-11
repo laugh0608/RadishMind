@@ -60,7 +60,7 @@
       "const localDrafts = (source.localDrafts ?? []).filter",
       "const drafts = [...baseDrafts, ...localDrafts];",
       "baseDrafts.length === templates.length",
-      "localDrafts.every((draft) => draft.nodes.length > 0 && draft.edges.length >= 3)"
+      "localDrafts.every((draft) => draft.nodes.length >= 3 && draft.edges.length >= 2)"
     ],
     "required_home_literals": [
       "homeMode: \"offline_draft_creation_advisory\";",

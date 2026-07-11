@@ -34,6 +34,7 @@ type Server struct {
 	controlPlaneReadRepo  ControlPlaneReadRepository
 
 	savedWorkflowDraftStore      savedWorkflowDraftStore
+	workflowRunStore             workflowRunStore
 	closeSavedWorkflowDraftStore func()
 	closeOnce                    sync.Once
 }
@@ -78,6 +79,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		bridge:                       platformBridge,
 		config:                       cfg,
 		savedWorkflowDraftStore:      savedWorkflowDraftStore,
+		workflowRunStore:             newMemoryWorkflowRunStore(defaultWorkflowRunStoreCapacity),
 		closeSavedWorkflowDraftStore: closeSavedWorkflowDraftStore,
 	}
 
@@ -104,6 +106,8 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(savedWorkflowDraftListRoute, server.handleListWorkflowDrafts)
 	mux.HandleFunc(savedWorkflowDraftReadRoute, server.handleReadWorkflowDraft)
 	mux.HandleFunc(savedWorkflowDraftValidateRoute, server.handleValidateWorkflowDraft)
+	mux.HandleFunc(workflowExecutorStartRoute, server.handleStartWorkflowRun)
+	mux.HandleFunc(workflowRunReadRoute, server.handleReadWorkflowRun)
 
 	server.httpServer = &http.Server{
 		Addr:              cfg.ListenAddr,

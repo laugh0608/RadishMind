@@ -114,6 +114,7 @@ export type WorkflowDraftDesignerDraft = {
   blockedCapabilities: WorkflowDraftDesignerBlockedCapability[];
   routeMetadata: WorkflowDraftDesignerRouteMetadata;
   localOnlyInteraction: "inspect_only" | "local_edit";
+  executionProfile?: "review_only" | "executor_v0";
 };
 
 export type WorkflowDraftDesignerSource = {
@@ -248,7 +249,7 @@ export function buildWorkflowDraftDesignerViewModel(
       baseDrafts.every(
         (draft, index) => draft.nodes.length === templates[index]?.nodeCount && draft.edges.length >= 3,
       ) &&
-      localDrafts.every((draft) => draft.nodes.length > 0 && draft.edges.length >= 3),
+      localDrafts.every((draft) => draft.nodes.length >= 3 && draft.edges.length >= 2),
     canInspectDraftLocally: true,
     canSwitchDraftLocally: true,
     canRequestLiveBackend: false,

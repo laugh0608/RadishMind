@@ -102,7 +102,7 @@
 
 `control-plane-durable-read-foundation-v1` 当前固定为 `durable_read_foundation_implemented`：`ControlPlaneReadRepository` interface 边界已在 `services/platform/internal/httpapi/control_plane_read_repository.go` 落地，现有七条 fake-store-backed read handlers 已通过 repository interface 消费数据。当前 repository 只包裹 fixture-backed fake store，保持 response envelope、dev-only fake auth、product sample fixture 和 no-side-effects 行为稳定；它不实现 repository adapter、store selector、SQL、migration、真实数据库、Radish OIDC、token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
-`workflow-saved-draft-v1-implementation` 已同时支持默认 `memory_dev` 和显式 `postgres_dev_test`。后者落地真实 PostgreSQL migration、schema marker、连接池、repository query executor、重启恢复和原子 expected-version；`repository_disabled` / production `repository` 仍返回 `repository_store_disabled`。这项开发 / 测试能力与 Production Secret Backend / Audit Store 链解耦，不改变 OIDC、production secret、publish、run、executor、confirmation、writeback 或 replay 停止线。
+`workflow-saved-draft-v1-implementation` 已同时支持默认 `memory_dev` 和显式 `postgres_dev_test`。后者落地真实 PostgreSQL migration、schema marker、连接池、repository query executor、重启恢复和原子 expected-version；`repository_disabled` / production `repository` 仍返回 `repository_store_disabled`。这项开发 / 测试能力与 Production Secret Backend / Audit Store 链解耦；其上只新增了显式 opt-in 的 Workflow Executor v0，OIDC、production secret、publish、tool、confirmation、writeback、replay 和 production executor 停止线不变。
 ## Saved Workflow Draft 运行层说明
 
 维护 saved draft 平台代码时，按以下边界理解当前已落地的 durable store 相关实现：
@@ -335,6 +335,7 @@ go run ./cmd/radishmind-platform
 | `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL` | 空 | `postgres_dev_test` 平台运行连接；secret，不进入摘要或日志 |
 | `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL` | 空 | 仅 migration `up` 使用的一次性 DDL 连接；secret |
 | `RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_TIMEOUT` | `5s` | PostgreSQL connect / preflight timeout |
+| `RADISHMIND_WORKFLOW_EXECUTOR_DEV` | `false` | 显式启用受控 Workflow Executor v0 dev-only POST / GET route；不启用完整生产执行器 |
 
 配置优先级固定为 `default < config file < env`。配置文件当前使用 JSON，字段名与脱敏 summary 保持一致，例如：
 

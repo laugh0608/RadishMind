@@ -113,7 +113,10 @@ def assert_lifecycle_contract(fixture: dict[str, Any]) -> None:
 
     package_document = load_json(REPO_ROOT / "apps/radishmind-web/package.json")
     test_command = str((package_document.get("scripts") or {}).get("test") or "")
-    require("savedWorkflowDraftLifecycle.test.ts" in test_command, "web package test must run lifecycle behavior test")
+    require(
+        "savedWorkflowDraftLifecycle.test.ts" in test_command or "tests/*.test.ts" in test_command,
+        "web package test must include all lifecycle behavior tests",
+    )
     for workflow_path in (".github/workflows/pr-check.yml", ".github/workflows/release-check.yml"):
         workflow_text = read(workflow_path)
         require("npm test" in workflow_text, f"{workflow_path} must run web lifecycle tests")
