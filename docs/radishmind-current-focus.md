@@ -13,19 +13,19 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明 production ready。
-- 产品焦点：`Workflow Draft Review Loop`、开发 / 测试态 Saved Draft durable repository 与 R4 Gateway 稳定运行时均已完成；下一产品顺位进入无外部副作用 executor v0 功能设计。
+- 产品焦点：`Workflow Draft Review Loop`、开发 / 测试态 Saved Draft durable repository 与 R4 Gateway 稳定运行时均已完成；无外部副作用 [Workflow Executor v0](features/workflow/workflow-executor-v0.md) 已完成设计并进入实现。
 - `R2 正确性与安全清零`、`R3 Workflow Draft Review Loop`、`R4 Gateway 运行时产品化` 已完成；`R5 测试、CI 与性能预算` 进入后续工程线，`R6 文档与 checker 收敛` 继续作为治理约束。
 - 四个正式一级产品面保持为 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；Image Path 是横切适配能力，不作为当前第五条一级主线。
 - 旧 Production Secret Backend / Storage Adapter readiness 链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：先更新 `Workflow / Agent Runtime` 功能设计，评审只允许 Prompt / LLM / condition / output 和 run record 的 executor v0；不直接打开 unrestricted tool、业务写回、自动 confirmation commit 或 replay。
+1. 产品线：按 [Workflow Executor v0 实现任务卡](task-cards/workflow-executor-v0-implementation-plan.md) 落地 Prompt / LLM / condition / output、Gateway 调用和有界 run record，并接入 Web 受控草案与结果审查；不直接打开 unrestricted tool、业务写回、自动 confirmation commit 或 replay。
 2. 工程线：推进 R5 Web 拆包与可发现性能预算，R6 只随相关文件修改逐批解除历史 checker 文字耦合；不继续扩同层 Gateway readiness 或 benchmark 链。
 
 R3 与 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖 migration / rollback / reapply、运行角色 DDL 拒绝、服务重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback、CI 与真实浏览器双标签冲突审查。该完成不启用 production repository mode，也不代表 OIDC、production secret、audit store 或公开生产 API ready。
 
-durable repository 与稳定 Gateway 均已成立，executor v0 的功能设计评审条件已满足；实现仍需先固定执行状态、run record、失败语义、资源预算和停止线，unrestricted tool、业务写回、自动 confirmation commit、replay / resume 继续关闭。
+durable repository 与稳定 Gateway 均已成立；executor v0 已固定执行状态、run record、失败语义、资源预算和停止线，当前进入实现。unrestricted tool、业务写回、自动 confirmation commit、replay / resume 继续关闭。
 
 总入口与证据：
 
