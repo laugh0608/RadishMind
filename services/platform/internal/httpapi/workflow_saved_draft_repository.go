@@ -1,17 +1,22 @@
 package httpapi
 
+import "context"
+
 const savedWorkflowDraftRepositoryStoreSchemaVersion = "saved_workflow_drafts_store_v1"
 
 type SavedWorkflowDraftRepository interface {
 	SaveWorkflowDraftRecord(
+		ctx context.Context,
 		actor SavedWorkflowDraftRepositoryActorContext,
 		request SaveWorkflowDraftRecordRequest,
 	) SaveWorkflowDraftRecordResult
 	ReadWorkflowDraftRecord(
+		ctx context.Context,
 		actor SavedWorkflowDraftRepositoryActorContext,
 		request ReadWorkflowDraftRecordRequest,
 	) ReadWorkflowDraftRecordResult
 	ListWorkflowDraftRecords(
+		ctx context.Context,
 		actor SavedWorkflowDraftRepositoryActorContext,
 		request ListWorkflowDraftRecordsRequest,
 	) ListWorkflowDraftRecordsResult
@@ -89,12 +94,15 @@ type savedWorkflowDraftRepositoryQueryListResult struct {
 
 type SavedWorkflowDraftRepositoryQueryExecutor interface {
 	SaveWorkflowDraftRecord(
+		ctx context.Context,
 		query savedWorkflowDraftRepositorySaveQuery,
 	) savedWorkflowDraftRepositoryQuerySaveResult
 	ReadWorkflowDraftRecord(
+		ctx context.Context,
 		query savedWorkflowDraftRepositoryReadQuery,
 	) savedWorkflowDraftRepositoryQueryReadResult
 	ListWorkflowDraftRecords(
+		ctx context.Context,
 		query savedWorkflowDraftRepositoryListQuery,
 	) savedWorkflowDraftRepositoryQueryListResult
 }

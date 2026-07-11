@@ -35,7 +35,7 @@
     "required_domain_literals": [
       "SavedWorkflowDraftSummary",
       "SavedWorkflowDraftListResult",
-      "ListDraftsByScope",
+      "ListDraftSummariesByScope",
       "ListDrafts(",
       "savedWorkflowDraftSummaryFromDraft"
     ],

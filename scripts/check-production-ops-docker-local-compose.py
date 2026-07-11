@@ -96,7 +96,7 @@ def assert_fixture(fixture: dict[str, Any]) -> None:
 def assert_platform_dockerfile() -> None:
     dockerfile = read("services/platform/Dockerfile")
     required_literals = [
-        "FROM golang:1.22-bookworm AS build",
+        "FROM golang:1.25-bookworm AS build",
         "FROM python:3.12-slim AS runtime",
         "go build",
         "pip install --no-cache-dir \"jsonschema>=4.0\"",

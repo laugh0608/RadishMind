@@ -3,47 +3,28 @@
   "artifact_kind": "workflow_saved_draft_schema_rollback_evidence",
   "schema_artifact_id": "workflow_saved_draft_schema_artifact_v1",
   "store_schema_version": "saved_workflow_drafts_store_v1",
-  "status": "static_rollback_evidence_recorded_no_sql",
+  "status": "dev_test_rollback_executed_and_reapply_passed",
   "rollback_scope": {
-    "sql_migration_created": false,
-    "database_mutation_applied": false,
-    "migration_runner_created": false,
-    "rollback_command_available": false,
-    "forward_only_exception": "not_applicable_until_future_sql_migration"
+    "down_migration": "0001_saved_workflow_drafts.down.sql",
+    "disposable_dev_test_only": true,
+    "operator_cli_down_available": false,
+    "runtime_role_can_rollback": false,
+    "migration_role_required": true
   },
-  "future_rollback_requirements": [
-    "operator-reviewed rollback command or forward-only exception",
-    "backup record before apply",
-    "migration lock release plan",
-    "schema version table restoration plan",
-    "failure recovery owner"
+  "verified_sequence": [
+    "apply_matching_migration",
+    "execute_reviewed_down_migration_under_advisory_lock_and_transaction",
+    "inspect_not_applied",
+    "reapply_matching_migration",
+    "inspect_applied"
   ],
-  "failure_mapping": [
-    "draft_schema_migration_not_applied",
-    "draft_store_schema_version_mismatch",
-    "draft_store_migration_unavailable",
-    "draft_store_contract_mismatch"
+  "non_disposable_database_requirements": [
+    "operator approval",
+    "backup record",
+    "change window",
+    "rollback owner",
+    "post-apply smoke"
   ],
-  "preserve_existing_failure_codes": [
-    "draft_version_conflict",
-    "draft_scope_denied",
-    "draft_not_found",
-    "draft_store_unavailable"
-  ],
-  "no_fallback_policy": {
-    "fallback_to_memory_dev_store_allowed": false,
-    "fallback_to_sample_allowed": false,
-    "fallback_to_fixture_allowed": false,
-    "fallback_to_dev_http_route_allowed": false,
-    "fallback_to_test_auth_allowed": false
-  },
-  "no_side_effect_counters": [
-    "repository_write_count=0",
-    "database_write_count=0",
-    "migration_apply_count=0",
-    "executor_call_count=0",
-    "confirmation_call_count=0",
-    "business_writeback_count=0",
-    "replay_call_count=0"
-  ]
+  "fallback_to_memory_dev_store_allowed": false,
+  "sanitized": true
 }

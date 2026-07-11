@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -16,7 +17,7 @@ func TestSavedWorkflowDraftRepositoryAdapterSaveReadList(t *testing.T) {
 	actor := validSavedWorkflowDraftRepositoryActorContext()
 	draft := validSavedWorkflowDraftRepositoryDraft()
 
-	saveResult := adapter.SaveWorkflowDraftRecord(actor, SaveWorkflowDraftRecordRequest{
+	saveResult := adapter.SaveWorkflowDraftRecord(context.Background(), actor, SaveWorkflowDraftRecordRequest{
 		ExpectedDraftVersion: 0,
 		Draft:                draft,
 	})
@@ -30,7 +31,7 @@ func TestSavedWorkflowDraftRepositoryAdapterSaveReadList(t *testing.T) {
 		t.Fatalf("save must return saved draft record status: %#v", saveResult.Draft)
 	}
 
-	readResult := adapter.ReadWorkflowDraftRecord(actor, ReadWorkflowDraftRecordRequest{
+	readResult := adapter.ReadWorkflowDraftRecord(context.Background(), actor, ReadWorkflowDraftRecordRequest{
 		DraftID: draft.DraftID,
 	})
 	if readResult.FailureCode != "" || readResult.Draft == nil {
@@ -42,7 +43,7 @@ func TestSavedWorkflowDraftRepositoryAdapterSaveReadList(t *testing.T) {
 		t.Fatalf("read returned wrong sanitized draft: %#v", readResult.Draft)
 	}
 
-	listResult := adapter.ListWorkflowDraftRecords(actor, ListWorkflowDraftRecordsRequest{})
+	listResult := adapter.ListWorkflowDraftRecords(context.Background(), actor, ListWorkflowDraftRecordsRequest{})
 	if listResult.FailureCode != "" {
 		t.Fatalf("list should succeed: %#v", listResult)
 	}
@@ -64,12 +65,12 @@ func TestSavedWorkflowDraftRepositoryAdapterFailureSemantics(t *testing.T) {
 		})
 		actor := validSavedWorkflowDraftRepositoryActorContext()
 		draft := validSavedWorkflowDraftRepositoryDraft()
-		first := adapter.SaveWorkflowDraftRecord(actor, SaveWorkflowDraftRecordRequest{Draft: draft})
+		first := adapter.SaveWorkflowDraftRecord(context.Background(), actor, SaveWorkflowDraftRecordRequest{Draft: draft})
 		if first.FailureCode != "" || first.Draft == nil {
 			t.Fatalf("first save should succeed: %#v", first)
 		}
 
-		conflict := adapter.SaveWorkflowDraftRecord(actor, SaveWorkflowDraftRecordRequest{
+		conflict := adapter.SaveWorkflowDraftRecord(context.Background(), actor, SaveWorkflowDraftRecordRequest{
 			ExpectedDraftVersion: 0,
 			Draft:                draft,
 		})
@@ -79,7 +80,7 @@ func TestSavedWorkflowDraftRepositoryAdapterFailureSemantics(t *testing.T) {
 			t.Fatalf("stale overwrite should fail closed with current version: %#v", conflict)
 		}
 
-		missing := adapter.ReadWorkflowDraftRecord(actor, ReadWorkflowDraftRecordRequest{DraftID: "missing_draft"})
+		missing := adapter.ReadWorkflowDraftRecord(context.Background(), actor, ReadWorkflowDraftRecordRequest{DraftID: "missing_draft"})
 		if missing.FailureCode != SavedWorkflowDraftFailureNotFound || missing.Draft != nil {
 			t.Fatalf("missing read should not fallback to sample: %#v", missing)
 		}
@@ -129,6 +130,7 @@ func TestSavedWorkflowDraftRepositoryAdapterFailureSemantics(t *testing.T) {
 					QueryExecutor: newFakeSavedWorkflowDraftRepositoryQueryExecutor(),
 				})
 				result := adapter.SaveWorkflowDraftRecord(
+					context.Background(),
 					tc.mutate(validSavedWorkflowDraftRepositoryActorContext()),
 					SaveWorkflowDraftRecordRequest{Draft: validSavedWorkflowDraftRepositoryDraft()},
 				)
@@ -148,6 +150,7 @@ func TestSavedWorkflowDraftRepositoryAdapterFailureSemantics(t *testing.T) {
 			},
 		})
 		result := adapter.SaveWorkflowDraftRecord(
+			context.Background(),
 			validSavedWorkflowDraftRepositoryActorContext(),
 			SaveWorkflowDraftRecordRequest{Draft: validSavedWorkflowDraftRepositoryDraft()},
 		)
@@ -162,6 +165,7 @@ func TestSavedWorkflowDraftRepositoryAdapterFailureSemantics(t *testing.T) {
 			},
 		})
 		result = notApplied.SaveWorkflowDraftRecord(
+			context.Background(),
 			validSavedWorkflowDraftRepositoryActorContext(),
 			SaveWorkflowDraftRecordRequest{Draft: validSavedWorkflowDraftRepositoryDraft()},
 		)
@@ -173,6 +177,7 @@ func TestSavedWorkflowDraftRepositoryAdapterFailureSemantics(t *testing.T) {
 	t.Run("store unavailable and contract mismatch do not expose raw details", func(t *testing.T) {
 		nilAdapter := NewSavedWorkflowDraftRepositoryAdapter(SavedWorkflowDraftRepositoryAdapterConfig{})
 		nilResult := nilAdapter.ReadWorkflowDraftRecord(
+			context.Background(),
 			validSavedWorkflowDraftRepositoryActorContext(),
 			ReadWorkflowDraftRecordRequest{DraftID: "draft_radishflow_copilot_saved_v1"},
 		)
@@ -193,7 +198,7 @@ func TestSavedWorkflowDraftRepositoryAdapterFailureSemantics(t *testing.T) {
 		adapter := NewSavedWorkflowDraftRepositoryAdapter(SavedWorkflowDraftRepositoryAdapterConfig{
 			QueryExecutor: executor,
 		})
-		result := adapter.ReadWorkflowDraftRecord(actor, ReadWorkflowDraftRecordRequest{DraftID: record.DraftID})
+		result := adapter.ReadWorkflowDraftRecord(context.Background(), actor, ReadWorkflowDraftRecordRequest{DraftID: record.DraftID})
 		if result.FailureCode != SavedWorkflowDraftFailureStoreContractMismatch || result.Draft != nil {
 			t.Fatalf("stored record mismatch should fail closed without raw detail: %#v", result)
 		}
@@ -226,6 +231,7 @@ func newFakeSavedWorkflowDraftRepositoryQueryExecutor() *fakeSavedWorkflowDraftR
 }
 
 func (executor *fakeSavedWorkflowDraftRepositoryQueryExecutor) SaveWorkflowDraftRecord(
+	_ context.Context,
 	query savedWorkflowDraftRepositorySaveQuery,
 ) savedWorkflowDraftRepositoryQuerySaveResult {
 	executor.saveCalls++
@@ -254,6 +260,7 @@ func (executor *fakeSavedWorkflowDraftRepositoryQueryExecutor) SaveWorkflowDraft
 }
 
 func (executor *fakeSavedWorkflowDraftRepositoryQueryExecutor) ReadWorkflowDraftRecord(
+	_ context.Context,
 	query savedWorkflowDraftRepositoryReadQuery,
 ) savedWorkflowDraftRepositoryQueryReadResult {
 	executor.readCalls++
@@ -271,6 +278,7 @@ func (executor *fakeSavedWorkflowDraftRepositoryQueryExecutor) ReadWorkflowDraft
 }
 
 func (executor *fakeSavedWorkflowDraftRepositoryQueryExecutor) ListWorkflowDraftRecords(
+	_ context.Context,
 	query savedWorkflowDraftRepositoryListQuery,
 ) savedWorkflowDraftRepositoryQueryListResult {
 	executor.listCalls++

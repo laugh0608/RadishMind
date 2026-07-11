@@ -14,7 +14,7 @@
 
 - 后端新增 `GET /v1/user-workspace/workflow-drafts` dev-only list route，继续要求 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1`、dev auth、workspace / application headers 和 `workflow_drafts:read` scope。
 - `savedWorkflowDraftService.ListDrafts` 只按 workspace + application scope 返回 `SavedWorkflowDraftSummary`，HTTP envelope 字段为 `draft_summaries`；不返回完整 draft payload、secret、token、tool result、confirmation decision、run result 或 writeback payload。
-- memory dev store 新增 `ListDraftsByScope`，只枚举当前 scope 下已保存草案；empty、scope denied 和 store unavailable 都 fail closed，不回退 sample。
+- Saved Draft store 使用 `ListDraftSummariesByScope`，只枚举当前 scope 下已保存草案；empty、scope denied 和 store unavailable 都 fail closed，不回退 sample。
 - Web consumer 新增 `listWorkflowDraftDevRecords`、`restoreWorkflowDraftDevRecord` 和 `WorkflowSavedDraftListState`，区分 `sample`、`loading`、`ready`、`empty`、`list_failed` 和 `restore_failed`。
 - Workspace Home 新增 saved draft list 区块，展示 summary、empty / failure state、refresh 和 restore 操作；restore 后把 saved record 投影为本地 Draft Designer 草案并选中。
 - Draft Designer 在保存返回 `version_conflict` 后复用同一 list consumer 刷新当前 application 的 sanitized summary，并据此派生恢复 saved version 是否可用；该刷新不读取完整草案、不覆盖本地 active draft。

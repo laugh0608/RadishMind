@@ -3,8 +3,6 @@ package httpapi
 import (
 	"net/http"
 	"strings"
-
-	"radishmind.local/services/platform/internal/config"
 )
 
 const (
@@ -288,13 +286,11 @@ func (s *Server) allowSavedWorkflowDraftDevHTTP(writer http.ResponseWriter, requ
 
 func (s *Server) savedWorkflowDraftService() savedWorkflowDraftService {
 	if s.savedWorkflowDraftStore == nil {
-		s.savedWorkflowDraftStore = newSavedWorkflowDraftStoreFromConfig(s.config)
+		s.savedWorkflowDraftStore = disabledSavedWorkflowDraftStore{
+			failureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
 	}
 	return newSavedWorkflowDraftService(s.savedWorkflowDraftStore)
-}
-
-func newSavedWorkflowDraftStoreFromConfig(cfg config.Config) savedWorkflowDraftStore {
-	return SelectWorkflowSavedDraftStore(cfg.WorkflowSavedDraftStoreMode, WorkflowSavedDraftStoreSelector{}).Store
 }
 
 func savedWorkflowDraftContextFromRequest(
@@ -308,16 +304,20 @@ func savedWorkflowDraftContextFromRequest(
 ) (SavedWorkflowDraftContext, SavedWorkflowDraftFailureCode) {
 	auth, ok := request.Context().Value(controlPlaneReadAuthContextKey{}).(controlPlaneReadAuthContext)
 	context := SavedWorkflowDraftContext{
-		RequestID:     trace.requestID,
-		WorkspaceID:   strings.TrimSpace(workspaceID),
-		ApplicationID: strings.TrimSpace(applicationID),
-		AuditRef:      auditRefForSavedWorkflowDraft(trace, auditSuffix),
-		WriteEnabled:  writeEnabled,
+		RequestContext: request.Context(),
+		RequestID:      trace.requestID,
+		WorkspaceID:    strings.TrimSpace(workspaceID),
+		ApplicationID:  strings.TrimSpace(applicationID),
+		AuditRef:       auditRefForSavedWorkflowDraft(trace, auditSuffix),
+		WriteEnabled:   writeEnabled,
 	}
 	if !ok || strings.TrimSpace(auth.IdentityContext) == "" || strings.TrimSpace(auth.SubjectBinding) == "" {
 		return context, SavedWorkflowDraftFailureScopeDenied
 	}
 	context.ActorRef = strings.TrimSpace(auth.SubjectBinding)
+	context.OwnerSubjectRef = context.ActorRef
+	context.TenantRef = strings.TrimSpace(auth.TenantBinding)
+	context.ScopeGrants = append([]string{}, auth.ScopeGrants...)
 	if !controlPlaneReadHasScope(auth.ScopeGrants, requiredScope) {
 		return context, SavedWorkflowDraftFailureScopeDenied
 	}
@@ -410,6 +410,39 @@ func savedWorkflowDraftDocumentPointer(draft *SavedWorkflowDraft) *savedWorkflow
 		BlockedCapabilitySummary:          savedWorkflowDraftBlockedToDocuments(draft.BlockedCapabilitySummary),
 		RequestAuditMetadata:              savedWorkflowDraftAuditToDocument(draft.RequestAuditMetadata),
 		SampleOrUnsavedDraftStatus:        draft.SampleOrUnsavedDraftStatus,
+	}
+}
+
+func savedWorkflowDraftFromDocument(document savedWorkflowDraftDocument) SavedWorkflowDraft {
+	payload := savedWorkflowDraftPayloadFromDocument(document.savedWorkflowDraftPayloadDocument)
+	return SavedWorkflowDraft{
+		DraftID:                    payload.DraftID,
+		WorkspaceID:                payload.WorkspaceID,
+		ApplicationID:              payload.ApplicationID,
+		SourceDefinitionID:         payload.SourceDefinitionID,
+		BaseDefinitionVersion:      payload.BaseDefinitionVersion,
+		DraftVersion:               document.DraftVersion,
+		SchemaVersion:              payload.SchemaVersion,
+		DraftStatus:                payload.DraftStatus,
+		CreatedAt:                  document.CreatedAt,
+		UpdatedAt:                  document.UpdatedAt,
+		CreatedByActorRef:          document.CreatedByActorRef,
+		UpdatedByActorRef:          document.UpdatedByActorRef,
+		Name:                       payload.Name,
+		Description:                payload.Description,
+		Nodes:                      payload.Nodes,
+		Edges:                      payload.Edges,
+		InputContract:              payload.InputContract,
+		OutputContract:             payload.OutputContract,
+		ProviderRefs:               payload.ProviderRefs,
+		ToolRefs:                   payload.ToolRefs,
+		RAGRefs:                    payload.RAGRefs,
+		RequestedCapabilities:      payload.RequestedCapabilities,
+		AdditionalFields:           cloneSavedWorkflowDraftAdditionalFields(payload.AdditionalFields),
+		ValidationSummary:          savedWorkflowDraftValidationFromDocument(document.ValidationSummary),
+		BlockedCapabilitySummary:   savedWorkflowDraftBlockedFromDocuments(document.BlockedCapabilitySummary),
+		RequestAuditMetadata:       savedWorkflowDraftAuditFromDocument(document.RequestAuditMetadata),
+		SampleOrUnsavedDraftStatus: document.SampleOrUnsavedDraftStatus,
 	}
 }
 
@@ -562,6 +595,26 @@ func savedWorkflowDraftValidationToDocument(summary SavedWorkflowDraftValidation
 	}
 }
 
+func savedWorkflowDraftValidationFromDocument(
+	document savedWorkflowDraftValidationDocument,
+) SavedWorkflowDraftValidationSummary {
+	findings := make([]SavedWorkflowDraftValidationFinding, 0, len(document.Findings))
+	for _, finding := range document.Findings {
+		findings = append(findings, SavedWorkflowDraftValidationFinding{
+			Code:       SavedWorkflowDraftFailureCode(finding.Code),
+			Severity:   SavedWorkflowDraftValidationSeverity(finding.Severity),
+			Field:      finding.Field,
+			Summary:    finding.Summary,
+			EvidenceID: finding.EvidenceID,
+		})
+	}
+	return SavedWorkflowDraftValidationSummary{
+		ValidationState: SavedWorkflowDraftStatus(document.ValidationState),
+		ValidForReview:  document.ValidForReview,
+		Findings:        findings,
+	}
+}
+
 func savedWorkflowDraftFindingsToDocuments(findings []SavedWorkflowDraftValidationFinding) []savedWorkflowDraftFindingDocument {
 	documents := make([]savedWorkflowDraftFindingDocument, 0, len(findings))
 	for _, finding := range findings {
@@ -588,11 +641,33 @@ func savedWorkflowDraftBlockedToDocuments(blocked []SavedWorkflowDraftBlockedCap
 	return documents
 }
 
+func savedWorkflowDraftBlockedFromDocuments(
+	documents []savedWorkflowDraftBlockedDocument,
+) []SavedWorkflowDraftBlockedCapability {
+	blocked := make([]SavedWorkflowDraftBlockedCapability, 0, len(documents))
+	for _, document := range documents {
+		blocked = append(blocked, SavedWorkflowDraftBlockedCapability{
+			CapabilityID:        document.CapabilityID,
+			MissingPrerequisite: document.MissingPrerequisite,
+			Summary:             document.Summary,
+		})
+	}
+	return blocked
+}
+
 func savedWorkflowDraftAuditToDocument(audit SavedWorkflowDraftAuditMetadata) savedWorkflowDraftAuditDocument {
 	return savedWorkflowDraftAuditDocument{
 		RequestID: audit.RequestID,
 		AuditRef:  audit.AuditRef,
 		ActorRef:  audit.ActorRef,
+	}
+}
+
+func savedWorkflowDraftAuditFromDocument(document savedWorkflowDraftAuditDocument) SavedWorkflowDraftAuditMetadata {
+	return SavedWorkflowDraftAuditMetadata{
+		RequestID: document.RequestID,
+		AuditRef:  document.AuditRef,
+		ActorRef:  document.ActorRef,
 	}
 }
 

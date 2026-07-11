@@ -224,7 +224,7 @@ func TestSavedWorkflowDraftSaveReadValidateContracts(t *testing.T) {
 		if second := service.SaveDraft(context, SaveWorkflowDraftRequest{Payload: secondPayload}); second.FailureCode != "" {
 			t.Fatalf("second save should succeed: %#v", second)
 		}
-		if _, err := store.WriteDraft(outOfScopeDraft, 0); err != nil {
+		if _, err := store.WriteDraft(context, outOfScopeDraft, 0); err != nil {
 			t.Fatalf("failed to seed out-of-scope draft: %v", err)
 		}
 
@@ -384,7 +384,7 @@ func TestSavedWorkflowDraftFailureSemantics(t *testing.T) {
 		legacyDraft := savedWorkflowDraftFromPayload(validSavedWorkflowDraftPayload())
 		legacyDraft.SchemaVersion = "saved_workflow_draft.v0"
 		legacyDraft.DraftVersion = 7
-		if _, err := store.WriteDraft(legacyDraft, 0); err != nil {
+		if _, err := store.WriteDraft(savedWorkflowDraftTestContext(), legacyDraft, 0); err != nil {
 			t.Fatalf("failed to seed legacy draft: %v", err)
 		}
 

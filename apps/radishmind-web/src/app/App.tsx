@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
 import {
   buildAdminTenantOverviewViewModel,
@@ -246,6 +246,10 @@ export function App() {
   const [savedDraftListState, setSavedDraftListState] = useState<WorkflowSavedDraftListState>(() =>
     initialWorkflowSavedDraftListState(savedDraftConsumerConfig),
   );
+  const pendingSavedDraftRestoreRef = useRef<{
+    draftId: string;
+    state: WorkflowSavedDraftConsumerState;
+  } | null>(null);
   const [workspaceCreatedDrafts, setWorkspaceCreatedDrafts] = useState<WorkflowDraftDesignerDraft[]>([]);
   const [editableWorkflowDraft, setEditableWorkflowDraft] = useState<WorkflowDraftDesignerDraft | null>(null);
   const [workflowDraftEditDirty, setWorkflowDraftEditDirty] = useState(false);
@@ -464,6 +468,15 @@ export function App() {
 
   useEffect(() => {
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(selectedWorkflowDraft));
+    const pendingRestore = pendingSavedDraftRestoreRef.current;
+    if (pendingRestore) {
+      pendingSavedDraftRestoreRef.current = null;
+      if (pendingRestore.draftId === selectedWorkflowDraft.draftId) {
+        setSavedDraftConsumerState(pendingRestore.state);
+        setWorkflowDraftEditDirty(false);
+        return;
+      }
+    }
     if (selectedWorkflowDraft.localOnlyInteraction === "local_edit") {
       setWorkflowDraftEditDirty(true);
       setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, selectedWorkflowDraft));
@@ -833,6 +846,10 @@ export function App() {
           return;
         }
         const restoredDraft = result.draft;
+        pendingSavedDraftRestoreRef.current = {
+          draftId: restoredDraft.draftId,
+          state: result.state,
+        };
         const nextRun = workspaceRunHistory.runs.find(
           (run) =>
             run.applicationRef === restoredDraft.applicationRef &&

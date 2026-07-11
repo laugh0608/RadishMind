@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"sync"
 
 	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
@@ -31,7 +32,9 @@ type Server struct {
 	controlPlaneReadStore controlPlaneReadStore
 	controlPlaneReadRepo  ControlPlaneReadRepository
 
-	savedWorkflowDraftStore savedWorkflowDraftStore
+	savedWorkflowDraftStore      savedWorkflowDraftStore
+	closeSavedWorkflowDraftStore func()
+	closeOnce                    sync.Once
 }
 
 type errorDocument struct {
@@ -49,12 +52,25 @@ type errorBody struct {
 }
 
 func NewServer(cfg config.Config, options Options) *Server {
+	server, err := NewServerWithError(cfg, options)
+	if err != nil {
+		panic(err)
+	}
+	return server
+}
+
+func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
+	savedWorkflowDraftStore, closeSavedWorkflowDraftStore, err := newSavedWorkflowDraftStoreFromConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
 	mux := http.NewServeMux()
 	server := &Server{
-		options:                 options,
-		bridge:                  bridge.NewClient(cfg.PythonBinary, cfg.BridgeScript),
-		config:                  cfg,
-		savedWorkflowDraftStore: newSavedWorkflowDraftStoreFromConfig(cfg),
+		options:                      options,
+		bridge:                       bridge.NewClient(cfg.PythonBinary, cfg.BridgeScript),
+		config:                       cfg,
+		savedWorkflowDraftStore:      savedWorkflowDraftStore,
+		closeSavedWorkflowDraftStore: closeSavedWorkflowDraftStore,
 	}
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
@@ -87,11 +103,31 @@ func NewServer(cfg config.Config, options Options) *Server {
 		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
 		WriteTimeout:      cfg.WriteTimeout,
 	}
-	return server
+	return server, nil
 }
 
 func (s *Server) ListenAndServe() error {
 	return s.httpServer.ListenAndServe()
+}
+
+func (s *Server) Shutdown(ctx context.Context) error {
+	if s == nil {
+		return nil
+	}
+	err := s.httpServer.Shutdown(ctx)
+	s.Close()
+	return err
+}
+
+func (s *Server) Close() {
+	if s == nil {
+		return
+	}
+	s.closeOnce.Do(func() {
+		if s.closeSavedWorkflowDraftStore != nil {
+			s.closeSavedWorkflowDraftStore()
+		}
+	})
 }
 
 func (s *Server) handleHealthz(writer http.ResponseWriter, request *http.Request) {

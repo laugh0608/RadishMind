@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"radishmind.local/services/platform/internal/bridge"
@@ -39,13 +41,37 @@ func main() {
 		}
 	}
 
-	server := httpapi.NewServer(cfg, httpapi.Options{
+	server, err := httpapi.NewServerWithError(cfg, httpapi.Options{
 		BuildVersion: buildVersion,
 	})
+	if err != nil {
+		log.Fatalf("initialize platform api: %v", err)
+	}
+	defer server.Close()
 
 	log.Printf("radishmind platform service listening on %s", cfg.ListenAddr)
-	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Fatalf("serve platform api: %v", err)
+	serveErrors := make(chan error, 1)
+	go func() {
+		serveErrors <- server.ListenAndServe()
+	}()
+	shutdownSignal, stopSignals := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+	defer stopSignals()
+
+	select {
+	case serveErr := <-serveErrors:
+		if serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
+			log.Fatalf("serve platform api: %v", serveErr)
+		}
+	case <-shutdownSignal.Done():
+		shutdownContext, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := server.Shutdown(shutdownContext); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Printf("shutdown platform api: %v", err)
+		}
 	}
 }
 

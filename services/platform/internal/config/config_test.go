@@ -10,18 +10,20 @@ import (
 
 func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 	cfg := Config{
-		ListenAddr:        "127.0.0.1:7000",
-		ReadHeaderTimeout: 5 * time.Second,
-		WriteTimeout:      30 * time.Second,
-		BridgeTimeout:     45 * time.Second,
-		PythonBinary:      "python3",
-		BridgeScript:      "scripts/run-platform-bridge.py",
-		Provider:          "openai-compatible",
-		ProviderProfile:   "anyrouter",
-		Model:             "deepseek-chat",
-		BaseURL:           "https://example.invalid/v1",
-		APIKey:            "secret-token",
-		Temperature:       0.2,
+		ListenAddr:                        "127.0.0.1:7000",
+		ReadHeaderTimeout:                 5 * time.Second,
+		WriteTimeout:                      30 * time.Second,
+		BridgeTimeout:                     45 * time.Second,
+		PythonBinary:                      "python3",
+		BridgeScript:                      "scripts/run-platform-bridge.py",
+		Provider:                          "openai-compatible",
+		ProviderProfile:                   "anyrouter",
+		Model:                             "deepseek-chat",
+		BaseURL:                           "https://example.invalid/v1",
+		APIKey:                            "secret-token",
+		WorkflowSavedDraftDatabaseURL:     "postgresql://database.invalid/secret",
+		WorkflowSavedDraftDatabaseTimeout: 8 * time.Second,
+		Temperature:                       0.2,
 	}
 
 	summary := cfg.SanitizedSummary()
@@ -47,10 +49,17 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 	if summary.WorkflowSavedDraftStoreMode != "memory_dev" {
 		t.Fatalf("unexpected workflow saved draft store mode: %s", summary.WorkflowSavedDraftStoreMode)
 	}
+	if !summary.WorkflowSavedDraftDatabaseConfigured || summary.Timeouts["workflow_saved_draft_database"] != "8s" {
+		t.Fatalf("unexpected workflow saved draft database summary: %#v", summary)
+	}
 	if !reflect.DeepEqual(summary.MissingRequiredFields, []string{}) {
 		t.Fatalf("unexpected missing required fields: %#v", summary.MissingRequiredFields)
 	}
-	if !reflect.DeepEqual(summary.SecretFields, []string{"RADISHMIND_PLATFORM_API_KEY"}) {
+	if !reflect.DeepEqual(summary.SecretFields, []string{
+		"RADISHMIND_PLATFORM_API_KEY",
+		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
+	}) {
 		t.Fatalf("unexpected secret fields: %#v", summary.SecretFields)
 	}
 }
@@ -84,6 +93,8 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE", "true")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE", "repository_disabled")
+	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL", "postgresql://runtime.invalid/secret")
+	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_TIMEOUT", "9s")
 
 	cfg, err := LoadFromEnv()
 	if err != nil {
@@ -114,6 +125,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	if cfg.WorkflowSavedDraftStoreMode != "repository_disabled" {
 		t.Fatalf("expected workflow saved draft store env override, got %s", cfg.WorkflowSavedDraftStoreMode)
 	}
+	if cfg.WorkflowSavedDraftDatabaseURL == "" || cfg.WorkflowSavedDraftDatabaseTimeout != 9*time.Second {
+		t.Fatalf("expected workflow saved draft database env overrides")
+	}
 
 	summary := cfg.SanitizedSummary()
 	if summary.FieldSources["listen_addr"] != "file" {
@@ -139,6 +153,10 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if summary.FieldSources["workflow_saved_draft_store"] != "env" {
 		t.Fatalf("expected workflow_saved_draft_store source=env, got %#v", summary.FieldSources)
+	}
+	if summary.FieldSources["workflow_saved_draft_database"] != "env" ||
+		summary.FieldSources["workflow_saved_draft_database_timeout"] != "env" {
+		t.Fatalf("expected workflow saved draft database sources=env, got %#v", summary.FieldSources)
 	}
 	if summary.WorkflowSavedDraftStoreMode != "repository_disabled" {
 		t.Fatalf("unexpected workflow saved draft store summary: %#v", summary)
@@ -212,6 +230,34 @@ func TestSanitizedSummaryCredentialStates(t *testing.T) {
 	}
 }
 
+func TestPostgresDevTestModeRequiresExplicitDevelopmentGates(t *testing.T) {
+	config := Config{
+		ListenAddr:                  ":7000",
+		Provider:                    "mock",
+		WorkflowSavedDraftStoreMode: "postgres_dev_test",
+	}
+
+	if got := config.Check(); !reflect.DeepEqual(got, []string{
+		"control_plane_read_dev_auth",
+		"workflow_saved_draft_dev_http",
+		"workflow_saved_draft_dev_write",
+		"workflow_saved_draft_database",
+	}) {
+		t.Fatalf("unexpected postgres dev/test missing fields: %#v", got)
+	}
+
+	config.ControlPlaneReadDevAuthEnabled = true
+	config.WorkflowSavedDraftDevHTTPEnabled = true
+	config.WorkflowSavedDraftDevWriteEnabled = true
+	config.WorkflowSavedDraftDatabaseURL = "postgresql://runtime.invalid/secret"
+	if got := config.Check(); len(got) != 0 {
+		t.Fatalf("complete postgres dev/test config should pass: %#v", got)
+	}
+	if summary := config.SanitizedSummary(); !summary.WorkflowSavedDraftDatabaseConfigured {
+		t.Fatalf("database presence must be visible without exposing its value: %#v", summary)
+	}
+}
+
 func clearPlatformEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{
@@ -232,6 +278,9 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
+		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_TIMEOUT",
 	} {
 		t.Setenv(key, "")
 	}

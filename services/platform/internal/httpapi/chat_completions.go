@@ -379,11 +379,11 @@ func (s *Server) streamOpenAIChatCompletionResponse(
 			case "completed":
 				streamCompleted = true
 				if event.Envelope != nil && strings.EqualFold(event.Envelope.Status, "failed") && !emittedContent {
-					return fmt.Errorf(gatewayErrorMessage(event.Envelope.Error))
+					return fmt.Errorf("%s", gatewayErrorMessage(event.Envelope.Error))
 				}
 				return nil
 			case "error":
-				return fmt.Errorf(gatewayErrorMessage(event.Error))
+				return fmt.Errorf("%s", gatewayErrorMessage(event.Error))
 			default:
 				return nil
 			}
