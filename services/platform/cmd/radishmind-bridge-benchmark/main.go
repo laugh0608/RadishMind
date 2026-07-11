@@ -32,6 +32,11 @@ type benchmarkConfig struct {
 	requestFile       string
 	pythonBinary      string
 	scriptPath        string
+	mode              bridge.Mode
+	modeText          string
+	workerCount       int
+	queueCapacity     int
+	handshakeTimeout  time.Duration
 	sequentialCount   int
 	concurrentCount   int
 	concurrency       int
@@ -40,10 +45,10 @@ type benchmarkConfig struct {
 }
 
 type bridgeMeasurement struct {
-	totalMS         float64
-	processAndIPCMS float64
-	pythonGatewayMS float64
-	providerMS      float64
+	totalMS          float64
+	bridgeOverheadMS float64
+	pythonGatewayMS  float64
+	providerMS       float64
 }
 
 type durationStats struct {
@@ -55,14 +60,15 @@ type durationStats struct {
 }
 
 type phaseSummary struct {
-	RequestCount                int           `json:"request_count"`
-	Concurrency                 int           `json:"concurrency"`
-	WallTimeMS                  float64       `json:"wall_time_ms"`
-	ThroughputRequestsPerSecond float64       `json:"throughput_requests_per_second"`
-	Total                       durationStats `json:"total"`
-	ProcessAndIPC               durationStats `json:"process_and_ipc"`
-	PythonGateway               durationStats `json:"python_gateway"`
-	Provider                    durationStats `json:"provider"`
+	RequestCount                int            `json:"request_count"`
+	Concurrency                 int            `json:"concurrency"`
+	WallTimeMS                  float64        `json:"wall_time_ms"`
+	ThroughputRequestsPerSecond float64        `json:"throughput_requests_per_second"`
+	Total                       durationStats  `json:"total"`
+	BridgeOverhead              durationStats  `json:"bridge_overhead"`
+	ProcessAndIPC               *durationStats `json:"process_and_ipc,omitempty"`
+	PythonGateway               durationStats  `json:"python_gateway"`
+	Provider                    durationStats  `json:"provider"`
 }
 
 type benchmarkOutput struct {
@@ -75,6 +81,7 @@ type benchmarkOutput struct {
 	PercentileMethod      string       `json:"percentile_method"`
 	WarmupRequests        int          `json:"warmup_requests"`
 	ExpectedProcessStarts int          `json:"expected_process_starts"`
+	ProcessStarts         int64        `json:"process_starts"`
 	Runtime               runtimeInfo  `json:"runtime"`
 	Sequential            phaseSummary `json:"sequential"`
 	Concurrent            phaseSummary `json:"concurrent"`
@@ -116,7 +123,26 @@ func main() {
 		fail(err)
 	}
 
-	client := bridge.NewClient(config.pythonBinary, config.scriptPath)
+	client, err := bridge.NewClientWithOptions(config.pythonBinary, config.scriptPath, bridge.ClientOptions{
+		Mode:             config.mode,
+		WorkerCount:      config.workerCount,
+		QueueCapacity:    config.queueCapacity,
+		HandshakeTimeout: config.handshakeTimeout,
+	})
+	if err != nil {
+		fail(err)
+	}
+	defer client.Close()
+	startupTimeout := config.handshakeTimeout
+	if config.mode == bridge.ModeStdioPool {
+		startupTimeout *= time.Duration(config.workerCount)
+	}
+	startContext, startCancel := context.WithTimeout(context.Background(), startupTimeout)
+	if err := client.Start(startContext); err != nil {
+		startCancel()
+		fail(err)
+	}
+	startCancel()
 	options := bridge.EnvelopeOptions{
 		Provider:       "mock",
 		RequestTimeout: config.perRequestTimeout,
@@ -142,7 +168,15 @@ func main() {
 	if err != nil {
 		fail(err)
 	}
-	sequential, err := runBenchmarkPhase(client, sequentialPayloads, options, config.perRequestTimeout, 1)
+	includeProcessSegment := config.mode == bridge.ModeProcessPerRequest
+	sequential, err := runBenchmarkPhase(
+		client,
+		sequentialPayloads,
+		options,
+		config.perRequestTimeout,
+		1,
+		includeProcessSegment,
+	)
 	if err != nil {
 		fail(err)
 	}
@@ -152,6 +186,7 @@ func main() {
 		options,
 		config.perRequestTimeout,
 		config.concurrency,
+		includeProcessSegment,
 	)
 	if err != nil {
 		fail(err)
@@ -161,12 +196,13 @@ func main() {
 		SchemaVersion:         1,
 		Status:                "ok",
 		MeasuredAt:            time.Now().UTC().Format(time.RFC3339),
-		Mode:                  "process_per_request",
+		Mode:                  string(config.mode),
 		Provider:              "mock",
 		RequestFixture:        requestLabel,
 		PercentileMethod:      "nearest_rank",
 		WarmupRequests:        config.warmupCount,
-		ExpectedProcessStarts: config.warmupCount + config.sequentialCount + config.concurrentCount,
+		ExpectedProcessStarts: expectedProcessStarts(config),
+		ProcessStarts:         client.ProcessStarts(),
 		Runtime: runtimeInfo{
 			GoVersion:     runtime.Version(),
 			Platform:      runtime.GOOS + "/" + runtime.GOARCH,
@@ -191,6 +227,10 @@ func parseBenchmarkConfig(arguments []string) (benchmarkConfig, error) {
 	flags.StringVar(&config.requestFile, "request-file", defaultRequestFile, "repository-relative canonical request fixture")
 	flags.StringVar(&config.pythonBinary, "python", "", "Python executable; defaults to the repository .venv")
 	flags.StringVar(&config.scriptPath, "script", "", "platform bridge script; defaults to the repository bridge")
+	flags.StringVar(&config.modeText, "mode", string(bridge.ModeProcessPerRequest), "bridge mode: process_per_request or stdio_pool")
+	flags.IntVar(&config.workerCount, "worker-count", bridge.DefaultWorkerCount, "persistent worker count")
+	flags.IntVar(&config.queueCapacity, "queue-capacity", bridge.DefaultQueueCapacity, "persistent worker queue capacity")
+	flags.DurationVar(&config.handshakeTimeout, "handshake-timeout", bridge.DefaultHandshakeTimeout, "persistent worker handshake timeout")
 	flags.IntVar(&config.sequentialCount, "sequential-requests", defaultSequentialCount, "measured sequential request count")
 	flags.IntVar(&config.concurrentCount, "concurrent-requests", defaultConcurrentCount, "measured concurrent request count")
 	flags.IntVar(&config.concurrency, "concurrency", defaultConcurrency, "concurrent worker count")
@@ -202,6 +242,11 @@ func parseBenchmarkConfig(arguments []string) (benchmarkConfig, error) {
 	if flags.NArg() != 0 {
 		return benchmarkConfig{}, errors.New("bridge benchmark does not accept positional arguments")
 	}
+	mode, err := bridge.ParseMode(config.modeText)
+	if err != nil {
+		return benchmarkConfig{}, errors.New("bridge benchmark mode is invalid")
+	}
+	config.mode = mode
 	if config.sequentialCount <= 0 || config.concurrentCount <= 0 {
 		return benchmarkConfig{}, errors.New("sequential and concurrent request counts must be positive")
 	}
@@ -217,7 +262,23 @@ func parseBenchmarkConfig(arguments []string) (benchmarkConfig, error) {
 	if config.perRequestTimeout <= 0 {
 		return benchmarkConfig{}, errors.New("request timeout must be positive")
 	}
+	if config.workerCount <= 0 || config.workerCount > 32 {
+		return benchmarkConfig{}, errors.New("worker count must be between 1 and 32")
+	}
+	if config.queueCapacity <= 0 || config.queueCapacity > 1024 {
+		return benchmarkConfig{}, errors.New("queue capacity must be between 1 and 1024")
+	}
+	if config.handshakeTimeout <= 0 {
+		return benchmarkConfig{}, errors.New("handshake timeout must be positive")
+	}
 	return config, nil
+}
+
+func expectedProcessStarts(config benchmarkConfig) int {
+	if config.mode == bridge.ModeStdioPool {
+		return config.workerCount
+	}
+	return config.warmupCount + config.sequentialCount + config.concurrentCount
 }
 
 func runBenchmarkPhase(
@@ -226,6 +287,7 @@ func runBenchmarkPhase(
 	options bridge.EnvelopeOptions,
 	timeout time.Duration,
 	concurrency int,
+	includeProcessSegment bool,
 ) (phaseSummary, error) {
 	if len(payloads) == 0 {
 		return phaseSummary{}, errors.New("benchmark phase requires at least one request")
@@ -265,7 +327,7 @@ func runBenchmarkPhase(
 		}
 		measurements = append(measurements, result.measurement)
 	}
-	return summarizePhase(measurements, concurrency, wallTime), nil
+	return summarizePhase(measurements, concurrency, wallTime, includeProcessSegment), nil
 }
 
 func measureBridgeRequest(
@@ -292,35 +354,45 @@ func measureBridgeRequest(
 		return bridgeMeasurement{}, errors.New("Gateway envelope is missing provider_duration_ms")
 	}
 	return bridgeMeasurement{
-		totalMS:         totalMS,
-		processAndIPCMS: nonNegative(totalMS - pythonDurationMS),
-		pythonGatewayMS: nonNegative(pythonDurationMS - providerDurationMS),
-		providerMS:      providerDurationMS,
+		totalMS:          totalMS,
+		bridgeOverheadMS: nonNegative(totalMS - pythonDurationMS),
+		pythonGatewayMS:  nonNegative(pythonDurationMS - providerDurationMS),
+		providerMS:       providerDurationMS,
 	}, nil
 }
 
-func summarizePhase(measurements []bridgeMeasurement, concurrency int, wallTime time.Duration) phaseSummary {
+func summarizePhase(
+	measurements []bridgeMeasurement,
+	concurrency int,
+	wallTime time.Duration,
+	includeProcessSegment bool,
+) phaseSummary {
 	totalValues := make([]float64, 0, len(measurements))
 	processValues := make([]float64, 0, len(measurements))
 	pythonValues := make([]float64, 0, len(measurements))
 	providerValues := make([]float64, 0, len(measurements))
 	for _, measurement := range measurements {
 		totalValues = append(totalValues, measurement.totalMS)
-		processValues = append(processValues, measurement.processAndIPCMS)
+		processValues = append(processValues, measurement.bridgeOverheadMS)
 		pythonValues = append(pythonValues, measurement.pythonGatewayMS)
 		providerValues = append(providerValues, measurement.providerMS)
 	}
 	throughput := float64(len(measurements)) / wallTime.Seconds()
-	return phaseSummary{
+	bridgeOverhead := summarizeDurations(processValues)
+	summary := phaseSummary{
 		RequestCount:                len(measurements),
 		Concurrency:                 concurrency,
 		WallTimeMS:                  roundMilliseconds(float64(wallTime.Nanoseconds()) / float64(time.Millisecond)),
 		ThroughputRequestsPerSecond: roundMilliseconds(throughput),
 		Total:                       summarizeDurations(totalValues),
-		ProcessAndIPC:               summarizeDurations(processValues),
+		BridgeOverhead:              bridgeOverhead,
 		PythonGateway:               summarizeDurations(pythonValues),
 		Provider:                    summarizeDurations(providerValues),
 	}
+	if includeProcessSegment {
+		summary.ProcessAndIPC = &bridgeOverhead
+	}
+	return summary
 }
 
 func summarizeDurations(values []float64) durationStats {

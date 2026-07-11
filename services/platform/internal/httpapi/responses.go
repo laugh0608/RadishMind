@@ -95,7 +95,7 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 
 	if responseRequest.Stream {
 		if err := s.streamOpenAIResponsesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(responseRequest.Temperature, s.config.Temperature), trace); err != nil {
-			s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
+			s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 			return
 		}
 		return
@@ -107,7 +107,7 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 		s.buildBridgeEnvelopeOptions(selection, effectiveTemperature(responseRequest.Temperature, s.config.Temperature)),
 	)
 	if err != nil {
-		s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
+		s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 		return
 	}
 	if strings.EqualFold(envelope.Status, "failed") {

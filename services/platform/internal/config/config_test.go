@@ -14,6 +14,10 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 		ReadHeaderTimeout:                 5 * time.Second,
 		WriteTimeout:                      30 * time.Second,
 		BridgeTimeout:                     45 * time.Second,
+		BridgeMode:                        "stdio_pool",
+		BridgeWorkerCount:                 3,
+		BridgeQueueCapacity:               12,
+		BridgeHandshakeTimeout:            4 * time.Second,
 		PythonBinary:                      "python3",
 		BridgeScript:                      "scripts/run-platform-bridge.py",
 		Provider:                          "openai-compatible",
@@ -46,6 +50,10 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 	if summary.Timeouts["bridge"] != "45s" {
 		t.Fatalf("unexpected bridge timeout: %#v", summary.Timeouts)
 	}
+	if summary.PythonBridge.Mode != "stdio_pool" || summary.PythonBridge.WorkerCount != 3 ||
+		summary.PythonBridge.QueueCapacity != 12 || summary.PythonBridge.HandshakeTimeout != "4s" {
+		t.Fatalf("unexpected persistent bridge summary: %#v", summary.PythonBridge)
+	}
 	if summary.WorkflowSavedDraftStoreMode != "memory_dev" {
 		t.Fatalf("unexpected workflow saved draft store mode: %s", summary.WorkflowSavedDraftStoreMode)
 	}
@@ -72,6 +80,10 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
   "read_header_timeout": "7s",
   "write_timeout": "35s",
   "bridge_timeout": "50s",
+  "bridge_mode": "process_per_request",
+  "bridge_worker_count": 2,
+  "bridge_queue_capacity": 8,
+  "bridge_handshake_timeout": "3s",
   "python_binary": "python-from-file",
   "bridge_script": "scripts/from-file.py",
   "provider": "openai-compatible",
@@ -88,6 +100,10 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_PLATFORM_CONFIG", configPath)
 	t.Setenv("RADISHMIND_PLATFORM_MODEL", "env-model")
 	t.Setenv("RADISHMIND_PLATFORM_BRIDGE_TIMEOUT", "12s")
+	t.Setenv("RADISHMIND_PLATFORM_BRIDGE_MODE", "stdio_pool")
+	t.Setenv("RADISHMIND_PLATFORM_BRIDGE_WORKER_COUNT", "3")
+	t.Setenv("RADISHMIND_PLATFORM_BRIDGE_QUEUE_CAPACITY", "9")
+	t.Setenv("RADISHMIND_PLATFORM_BRIDGE_HANDSHAKE_TIMEOUT", "4s")
 	t.Setenv("RADISHMIND_PLATFORM_API_KEY", "env-secret")
 	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP", "1")
@@ -109,6 +125,10 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if cfg.BridgeTimeout != 12*time.Second {
 		t.Fatalf("expected env bridge timeout override, got %s", cfg.BridgeTimeout)
+	}
+	if cfg.BridgeMode != "stdio_pool" || cfg.BridgeWorkerCount != 3 || cfg.BridgeQueueCapacity != 9 ||
+		cfg.BridgeHandshakeTimeout != 4*time.Second {
+		t.Fatalf("expected env bridge runtime overrides, got %#v", cfg)
 	}
 	if cfg.APIKey != "env-secret" {
 		t.Fatalf("expected env credential override")
@@ -138,6 +158,16 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if summary.FieldSources["bridge_timeout"] != "env" {
 		t.Fatalf("expected bridge_timeout source=env, got %#v", summary.FieldSources)
+	}
+	for _, field := range []string{
+		"bridge_mode",
+		"bridge_worker_count",
+		"bridge_queue_capacity",
+		"bridge_handshake_timeout",
+	} {
+		if summary.FieldSources[field] != "env" {
+			t.Fatalf("expected %s source=env, got %#v", field, summary.FieldSources)
+		}
 	}
 	if summary.FieldSources["credential"] != "env" {
 		t.Fatalf("expected credential source=env, got %#v", summary.FieldSources)
@@ -177,6 +207,40 @@ func TestLoadFromEnvRejectsInvalidConfigFileDuration(t *testing.T) {
 	_, err := LoadFromEnv()
 	if err == nil {
 		t.Fatalf("expected invalid duration error")
+	}
+}
+
+func TestLoadFromEnvUsesPersistentBridgeDefaults(t *testing.T) {
+	clearPlatformEnv(t)
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load default config: %v", err)
+	}
+	if cfg.BridgeMode != "stdio_pool" || cfg.BridgeWorkerCount != 4 || cfg.BridgeQueueCapacity != 64 ||
+		cfg.BridgeHandshakeTimeout != 5*time.Second {
+		t.Fatalf("unexpected default bridge runtime: %#v", cfg)
+	}
+}
+
+func TestLoadFromEnvRejectsInvalidBridgeRuntimeConfig(t *testing.T) {
+	testCases := []struct {
+		name  string
+		key   string
+		value string
+	}{
+		{name: "unknown mode", key: "RADISHMIND_PLATFORM_BRIDGE_MODE", value: "unknown"},
+		{name: "zero workers", key: "RADISHMIND_PLATFORM_BRIDGE_WORKER_COUNT", value: "0"},
+		{name: "queue too large", key: "RADISHMIND_PLATFORM_BRIDGE_QUEUE_CAPACITY", value: "1025"},
+		{name: "zero handshake", key: "RADISHMIND_PLATFORM_BRIDGE_HANDSHAKE_TIMEOUT", value: "0s"},
+	}
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			clearPlatformEnv(t)
+			t.Setenv(testCase.key, testCase.value)
+			if _, err := LoadFromEnv(); err == nil {
+				t.Fatalf("expected invalid bridge runtime config to fail: %s=%s", testCase.key, testCase.value)
+			}
+		})
 	}
 }
 
@@ -266,6 +330,10 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_PLATFORM_READ_HEADER_TIMEOUT",
 		"RADISHMIND_PLATFORM_WRITE_TIMEOUT",
 		"RADISHMIND_PLATFORM_BRIDGE_TIMEOUT",
+		"RADISHMIND_PLATFORM_BRIDGE_MODE",
+		"RADISHMIND_PLATFORM_BRIDGE_WORKER_COUNT",
+		"RADISHMIND_PLATFORM_BRIDGE_QUEUE_CAPACITY",
+		"RADISHMIND_PLATFORM_BRIDGE_HANDSHAKE_TIMEOUT",
 		"RADISHMIND_PLATFORM_PYTHON_BIN",
 		"RADISHMIND_PLATFORM_BRIDGE_SCRIPT",
 		"RADISHMIND_PLATFORM_PROVIDER",

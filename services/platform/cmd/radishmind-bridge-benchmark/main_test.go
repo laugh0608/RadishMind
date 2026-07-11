@@ -18,18 +18,31 @@ func TestSummarizeDurationsUsesNearestRank(t *testing.T) {
 
 func TestSummarizePhaseSeparatesTimingSegments(t *testing.T) {
 	measurements := []bridgeMeasurement{
-		{totalMS: 100, processAndIPCMS: 70, pythonGatewayMS: 20, providerMS: 10},
-		{totalMS: 120, processAndIPCMS: 80, pythonGatewayMS: 25, providerMS: 15},
+		{totalMS: 100, bridgeOverheadMS: 70, pythonGatewayMS: 20, providerMS: 10},
+		{totalMS: 120, bridgeOverheadMS: 80, pythonGatewayMS: 25, providerMS: 15},
 	}
-	summary := summarizePhase(measurements, 2, 50*time.Millisecond)
+	summary := summarizePhase(measurements, 2, 50*time.Millisecond, true)
 	if summary.RequestCount != 2 || summary.Concurrency != 2 {
 		t.Fatalf("unexpected phase shape: %#v", summary)
 	}
-	if summary.Total.P50MS != 100 || summary.ProcessAndIPC.P95MS != 80 || summary.Provider.P95MS != 15 {
+	if summary.Total.P50MS != 100 || summary.BridgeOverhead.P95MS != 80 ||
+		summary.ProcessAndIPC == nil || summary.ProcessAndIPC.P95MS != 80 || summary.Provider.P95MS != 15 {
 		t.Fatalf("timing segments drifted: %#v", summary)
 	}
 	if summary.ThroughputRequestsPerSecond != 40 {
 		t.Fatalf("unexpected throughput: %#v", summary)
+	}
+}
+
+func TestSummarizePhaseOmitsProcessSegmentForPersistentPool(t *testing.T) {
+	summary := summarizePhase(
+		[]bridgeMeasurement{{totalMS: 25, bridgeOverheadMS: 1, pythonGatewayMS: 14, providerMS: 10}},
+		1,
+		25*time.Millisecond,
+		false,
+	)
+	if summary.ProcessAndIPC != nil || summary.BridgeOverhead.P95MS != 1 {
+		t.Fatalf("persistent pool summary used process-only segment: %#v", summary)
 	}
 }
 
@@ -49,5 +62,8 @@ func TestParseBenchmarkConfigRejectsUnsafeCounts(t *testing.T) {
 	}
 	if _, err := parseBenchmarkConfig([]string{"--sequential-requests", "1001"}); err == nil {
 		t.Fatal("unbounded request count must be rejected")
+	}
+	if _, err := parseBenchmarkConfig([]string{"--mode", "unknown"}); err == nil {
+		t.Fatal("unknown bridge mode must be rejected")
 	}
 }

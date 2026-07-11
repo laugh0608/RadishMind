@@ -108,7 +108,7 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 
 	if chatRequest.Stream {
 		if err := s.streamOpenAIChatCompletionResponse(ctx, writer, canonicalRequest, selection, temperature, trace); err != nil {
-			s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
+			s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 		}
 		return
 	}
@@ -119,7 +119,7 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 		s.buildBridgeEnvelopeOptions(selection, temperature),
 	)
 	if err != nil {
-		s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
+		s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 		return
 	}
 	if strings.EqualFold(envelope.Status, "failed") {

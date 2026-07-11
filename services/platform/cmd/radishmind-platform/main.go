@@ -112,10 +112,24 @@ func writeConfigCheck(cfg config.Config) {
 func writeDiagnostics(cfg config.Config) {
 	ctx, cancel := context.WithTimeout(context.Background(), cfg.BridgeTimeout)
 	defer cancel()
+	mode, err := bridge.ParseMode(cfg.BridgeMode)
+	if err != nil {
+		log.Fatalf("initialize diagnostics bridge: %v", err)
+	}
+	client, err := bridge.NewClientWithOptions(cfg.PythonBinary, cfg.BridgeScript, bridge.ClientOptions{
+		Mode:             mode,
+		WorkerCount:      cfg.BridgeWorkerCount,
+		QueueCapacity:    cfg.BridgeQueueCapacity,
+		HandshakeTimeout: cfg.BridgeHandshakeTimeout,
+	})
+	if err != nil {
+		log.Fatalf("initialize diagnostics bridge: %v", err)
+	}
+	defer client.Close()
 	report := diagnostics.BuildReport(
 		ctx,
 		cfg,
-		bridge.NewClient(cfg.PythonBinary, cfg.BridgeScript),
+		client,
 		time.Now().UTC(),
 	)
 	encoder := json.NewEncoder(os.Stdout)

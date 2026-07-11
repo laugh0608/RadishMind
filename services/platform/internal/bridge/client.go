@@ -6,11 +6,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -91,8 +93,11 @@ type StreamEvent struct {
 }
 
 type Client struct {
-	pythonBinary string
-	scriptPath   string
+	pythonBinary  string
+	scriptPath    string
+	mode          Mode
+	pool          *workerPool
+	processStarts atomic.Int64
 }
 
 func NewClient(pythonBinary string, scriptPath string) *Client {
@@ -107,11 +112,71 @@ func NewClient(pythonBinary string, scriptPath string) *Client {
 	return &Client{
 		pythonBinary: normalizedPythonBinary,
 		scriptPath:   normalizedScriptPath,
+		mode:         ModeProcessPerRequest,
 	}
 }
 
+func NewClientWithOptions(pythonBinary string, scriptPath string, options ClientOptions) (*Client, error) {
+	normalizedOptions, err := normalizeClientOptions(options)
+	if err != nil {
+		return nil, err
+	}
+	client := NewClient(pythonBinary, scriptPath)
+	client.mode = normalizedOptions.Mode
+	if normalizedOptions.Mode == ModeStdioPool {
+		client.pool = newWorkerPool(workerPoolConfig{
+			workerCount:      normalizedOptions.WorkerCount,
+			queueCapacity:    normalizedOptions.QueueCapacity,
+			handshakeTimeout: normalizedOptions.HandshakeTimeout,
+			shutdownTimeout:  defaultShutdownTimeout,
+			commandFactory: newPythonWorkerCommandFactory(
+				client.pythonBinary,
+				client.scriptPath,
+			),
+		})
+	}
+	return client, nil
+}
+
+func (c *Client) Mode() Mode {
+	if c == nil || c.mode == "" {
+		return ModeProcessPerRequest
+	}
+	return c.mode
+}
+
+func (c *Client) Start(ctx context.Context) error {
+	if c == nil || c.pool == nil {
+		return nil
+	}
+	return c.pool.ensureCapacity(ctx)
+}
+
+func (c *Client) Close() {
+	if c == nil || c.pool == nil {
+		return
+	}
+	c.pool.close()
+}
+
+func (c *Client) ProcessStarts() int64 {
+	if c == nil {
+		return 0
+	}
+	if c.pool != nil {
+		return c.pool.processStarts()
+	}
+	return c.processStarts.Load()
+}
+
 func (c *Client) DescribeProviders(ctx context.Context) ([]ProviderDescription, error) {
-	stdout, err := c.run(ctx, []string{"providers"}, nil, "")
+	var stdout []byte
+	var err error
+	if c.pool != nil {
+		stdout, err = c.pool.execute(ctx, "providers", nil, EnvelopeOptions{}, nil)
+	} else {
+		stdout, err = c.run(ctx, []string{"providers"}, nil, "")
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +188,13 @@ func (c *Client) DescribeProviders(ctx context.Context) ([]ProviderDescription, 
 }
 
 func (c *Client) DescribeInventory(ctx context.Context) (ProviderInventory, error) {
-	stdout, err := c.run(ctx, []string{"inventory"}, nil, "")
+	var stdout []byte
+	var err error
+	if c.pool != nil {
+		stdout, err = c.pool.execute(ctx, "inventory", nil, EnvelopeOptions{}, nil)
+	} else {
+		stdout, err = c.run(ctx, []string{"inventory"}, nil, "")
+	}
 	if err != nil {
 		return ProviderInventory{}, err
 	}
@@ -139,8 +210,14 @@ func (c *Client) HandleEnvelope(
 	canonicalRequest []byte,
 	options EnvelopeOptions,
 ) (GatewayEnvelope, error) {
-	args := c.buildEnvelopeArgs("envelope", options)
-	stdout, err := c.run(ctx, args, canonicalRequest, options.APIKey)
+	var stdout []byte
+	var err error
+	if c.pool != nil {
+		stdout, err = c.pool.execute(ctx, "envelope", canonicalRequest, options, nil)
+	} else {
+		args := c.buildEnvelopeArgs("envelope", options)
+		stdout, err = c.run(ctx, args, canonicalRequest, options.APIKey)
+	}
 	if err != nil {
 		return GatewayEnvelope{}, err
 	}
@@ -157,6 +234,10 @@ func (c *Client) StreamEnvelope(
 	options EnvelopeOptions,
 	handleEvent func(StreamEvent) error,
 ) error {
+	if c.pool != nil {
+		_, err := c.pool.execute(ctx, "stream", canonicalRequest, options, handleEvent)
+		return err
+	}
 	return c.runStream(ctx, c.buildEnvelopeArgs("stream", options), canonicalRequest, options.APIKey, handleEvent)
 }
 
@@ -182,7 +263,7 @@ func (c *Client) buildEnvelopeArgs(command string, options EnvelopeOptions) []st
 func (c *Client) run(ctx context.Context, args []string, stdin []byte, apiKey string) ([]byte, error) {
 	scriptPath, err := resolveScriptPath(c.scriptPath)
 	if err != nil {
-		return nil, err
+		return nil, newBridgeError(ErrorCodeProcessFailed, "platform bridge script is unavailable")
 	}
 
 	commandArgs := append([]string{scriptPath}, args...)
@@ -193,16 +274,15 @@ func (c *Client) run(ctx context.Context, args []string, stdin []byte, apiKey st
 	}
 
 	var stdout bytes.Buffer
-	var stderr bytes.Buffer
 	command.Stdout = &stdout
-	command.Stderr = &stderr
+	command.Stderr = io.Discard
 
+	c.processStarts.Add(1)
 	if err := command.Run(); err != nil {
-		stderrText := strings.TrimSpace(stderr.String())
-		if stderrText != "" {
-			return nil, fmt.Errorf("python bridge failed: %w: %s", err, stderrText)
+		if ctx.Err() != nil {
+			return nil, bridgeContextError(ctx.Err())
 		}
-		return nil, fmt.Errorf("python bridge failed: %w", err)
+		return nil, newBridgeError(ErrorCodeProcessFailed, "platform bridge process failed")
 	}
 	return stdout.Bytes(), nil
 }
@@ -216,7 +296,7 @@ func (c *Client) runStream(
 ) error {
 	scriptPath, err := resolveScriptPath(c.scriptPath)
 	if err != nil {
-		return err
+		return newBridgeError(ErrorCodeProcessFailed, "platform bridge script is unavailable")
 	}
 
 	commandArgs := append([]string{scriptPath}, args...)
@@ -230,11 +310,11 @@ func (c *Client) runStream(
 	if err != nil {
 		return fmt.Errorf("open bridge stdout pipe: %w", err)
 	}
-	var stderr bytes.Buffer
-	command.Stderr = &stderr
+	command.Stderr = io.Discard
 
+	c.processStarts.Add(1)
 	if err := command.Start(); err != nil {
-		return fmt.Errorf("start bridge stream: %w", err)
+		return newBridgeError(ErrorCodeProcessFailed, "platform bridge process could not start")
 	}
 
 	scanner := bufio.NewScanner(stdout)
@@ -254,21 +334,23 @@ func (c *Client) runStream(
 			if err := handleEvent(event); err != nil {
 				_ = command.Process.Kill()
 				_ = command.Wait()
-				return err
+				return newBridgeError(ErrorCodeWorkerCanceled, "bridge stream consumer stopped")
 			}
 		}
 	}
 	if err := scanner.Err(); err != nil {
 		_ = command.Process.Kill()
 		_ = command.Wait()
-		return fmt.Errorf("read bridge stream: %w", err)
+		if ctx.Err() != nil {
+			return bridgeContextError(ctx.Err())
+		}
+		return newBridgeError(ErrorCodeProcessFailed, "platform bridge stream failed")
 	}
 	if err := command.Wait(); err != nil {
-		stderrText := strings.TrimSpace(stderr.String())
-		if stderrText != "" {
-			return fmt.Errorf("python bridge stream failed: %w: %s", err, stderrText)
+		if ctx.Err() != nil {
+			return bridgeContextError(ctx.Err())
 		}
-		return fmt.Errorf("python bridge stream failed: %w", err)
+		return newBridgeError(ErrorCodeProcessFailed, "platform bridge stream failed")
 	}
 	return nil
 }

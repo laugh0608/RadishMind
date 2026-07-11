@@ -1,6 +1,7 @@
 package bridge
 
 import (
+	"context"
 	"strings"
 	"testing"
 	"time"
@@ -28,6 +29,45 @@ func TestBridgeCredentialTransport(t *testing.T) {
 	environment := bridgeCommandEnvironment(apiKey)
 	if value, found := bridgeEnvironmentValue(environment, bridgeAPIKeyEnvironmentVariable); !found || value != apiKey {
 		t.Fatalf("bridge credential was not scoped to the child environment: found=%v value=%q", found, value)
+	}
+}
+
+func TestBridgeErrorCodesAreStable(t *testing.T) {
+	if code := ErrorCode(context.DeadlineExceeded); code != ErrorCodeWorkerTimeout {
+		t.Fatalf("unexpected timeout code: %s", code)
+	}
+	if code := ErrorCode(context.Canceled); code != ErrorCodeWorkerCanceled {
+		t.Fatalf("unexpected cancellation code: %s", code)
+	}
+	err := newBridgeError(ErrorCodeWorkerExited, "bridge worker exited before completing request")
+	if code := ErrorCode(err); code != ErrorCodeWorkerExited {
+		t.Fatalf("unexpected bridge error code: %s", code)
+	}
+}
+
+func TestBridgeModesFailClosed(t *testing.T) {
+	if mode, err := ParseMode("stdio_pool"); err != nil || mode != ModeStdioPool {
+		t.Fatalf("stdio pool mode was rejected: mode=%q err=%v", mode, err)
+	}
+	if _, err := ParseMode("unknown"); err == nil {
+		t.Fatal("unknown bridge mode must fail closed")
+	}
+	if _, err := NewClientWithOptions("python3", defaultScriptPath, ClientOptions{
+		Mode:        ModeStdioPool,
+		WorkerCount: 33,
+	}); err == nil {
+		t.Fatal("unsafe bridge worker count must be rejected")
+	}
+}
+
+func TestProcessBridgeFailureDoesNotExposeLocalPath(t *testing.T) {
+	client := NewClient("python3", "missing/private/bridge-script.py")
+	_, err := client.DescribeProviders(context.Background())
+	if ErrorCode(err) != ErrorCodeProcessFailed {
+		t.Fatalf("unexpected process bridge error: code=%q err=%v", ErrorCode(err), err)
+	}
+	if strings.Contains(err.Error(), "missing/private") {
+		t.Fatalf("process bridge error exposed local path: %v", err)
 	}
 }
 

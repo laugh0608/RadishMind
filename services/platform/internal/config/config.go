@@ -14,6 +14,10 @@ const (
 	defaultReadHeaderTimeout = 5 * time.Second
 	defaultWriteTimeout      = 30 * time.Second
 	defaultBridgeTimeout     = 30 * time.Second
+	defaultBridgeMode        = "stdio_pool"
+	defaultBridgeWorkerCount = 4
+	defaultBridgeQueueSize   = 64
+	defaultBridgeHandshake   = 5 * time.Second
 	defaultDraftDBTimeout    = 5 * time.Second
 	defaultPythonBinary      = "python3"
 	defaultBridgeScript      = "scripts/run-platform-bridge.py"
@@ -32,6 +36,10 @@ type Config struct {
 	ReadHeaderTimeout                 time.Duration
 	WriteTimeout                      time.Duration
 	BridgeTimeout                     time.Duration
+	BridgeMode                        string
+	BridgeWorkerCount                 int
+	BridgeQueueCapacity               int
+	BridgeHandshakeTimeout            time.Duration
 	ControlPlaneReadDevAuthEnabled    bool
 	WorkflowSavedDraftDevHTTPEnabled  bool
 	WorkflowSavedDraftDevWriteEnabled bool
@@ -75,8 +83,12 @@ type ConfigSummary struct {
 }
 
 type PythonBridge struct {
-	PythonBinary string `json:"python_binary"`
-	Script       string `json:"script"`
+	PythonBinary     string `json:"python_binary"`
+	Script           string `json:"script"`
+	Mode             string `json:"mode"`
+	WorkerCount      int    `json:"worker_count"`
+	QueueCapacity    int    `json:"queue_capacity"`
+	HandshakeTimeout string `json:"handshake_timeout"`
 }
 
 type ConfigFileSummary struct {
@@ -91,6 +103,10 @@ type fileConfig struct {
 	ReadHeaderTimeout  *string          `json:"read_header_timeout"`
 	WriteTimeout       *string          `json:"write_timeout"`
 	BridgeTimeout      *string          `json:"bridge_timeout"`
+	BridgeMode         *string          `json:"bridge_mode"`
+	BridgeWorkerCount  *int             `json:"bridge_worker_count"`
+	BridgeQueueSize    *int             `json:"bridge_queue_capacity"`
+	BridgeHandshake    *string          `json:"bridge_handshake_timeout"`
 	PythonBinary       *string          `json:"python_binary"`
 	BridgeScript       *string          `json:"bridge_script"`
 	Provider           *string          `json:"provider"`
@@ -117,6 +133,9 @@ func LoadFromEnv() (Config, error) {
 	if err := applyEnvOverrides(&cfg); err != nil {
 		return Config{}, err
 	}
+	if err := validateBridgeRuntimeConfig(cfg); err != nil {
+		return Config{}, err
+	}
 
 	return cfg, nil
 }
@@ -127,6 +146,10 @@ func defaultConfig() Config {
 		ReadHeaderTimeout:                 defaultReadHeaderTimeout,
 		WriteTimeout:                      defaultWriteTimeout,
 		BridgeTimeout:                     defaultBridgeTimeout,
+		BridgeMode:                        defaultBridgeMode,
+		BridgeWorkerCount:                 defaultBridgeWorkerCount,
+		BridgeQueueCapacity:               defaultBridgeQueueSize,
+		BridgeHandshakeTimeout:            defaultBridgeHandshake,
 		PythonBinary:                      defaultPythonBinary,
 		BridgeScript:                      defaultBridgeScript,
 		Provider:                          defaultProvider,
@@ -142,6 +165,10 @@ func defaultConfig() Config {
 			"read_header_timeout":                   configSourceDefault,
 			"write_timeout":                         configSourceDefault,
 			"bridge_timeout":                        configSourceDefault,
+			"bridge_mode":                           configSourceDefault,
+			"bridge_worker_count":                   configSourceDefault,
+			"bridge_queue_capacity":                 configSourceDefault,
+			"bridge_handshake_timeout":              configSourceDefault,
 			"control_plane_read_dev_auth":           configSourceDefault,
 			"workflow_saved_draft_dev_http":         configSourceDefault,
 			"workflow_saved_draft_dev_write":        configSourceDefault,
@@ -193,6 +220,40 @@ func applyConfigFile(cfg *Config, pathText string) error {
 			return err
 		}
 		applyDurationValue(&cfg.BridgeTimeout, parsed, cfg.FieldSources, "bridge_timeout", configSourceFile)
+	}
+	if document.BridgeMode != nil {
+		applyStringValue(&cfg.BridgeMode, *document.BridgeMode, cfg.FieldSources, "bridge_mode", configSourceFile)
+	}
+	if document.BridgeWorkerCount != nil {
+		applyIntValue(
+			&cfg.BridgeWorkerCount,
+			*document.BridgeWorkerCount,
+			cfg.FieldSources,
+			"bridge_worker_count",
+			configSourceFile,
+		)
+	}
+	if document.BridgeQueueSize != nil {
+		applyIntValue(
+			&cfg.BridgeQueueCapacity,
+			*document.BridgeQueueSize,
+			cfg.FieldSources,
+			"bridge_queue_capacity",
+			configSourceFile,
+		)
+	}
+	if document.BridgeHandshake != nil {
+		parsed, err := parseDurationValue("bridge_handshake_timeout", *document.BridgeHandshake)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(
+			&cfg.BridgeHandshakeTimeout,
+			parsed,
+			cfg.FieldSources,
+			"bridge_handshake_timeout",
+			configSourceFile,
+		)
 	}
 	if document.PythonBinary != nil {
 		applyStringValue(&cfg.PythonBinary, *document.PythonBinary, cfg.FieldSources, "python_binary", configSourceFile)
@@ -259,6 +320,36 @@ func applyEnvOverrides(cfg *Config) error {
 			return err
 		}
 		applyDurationValue(&cfg.BridgeTimeout, parsed, cfg.FieldSources, "bridge_timeout", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_PLATFORM_BRIDGE_MODE"); ok {
+		applyStringValue(&cfg.BridgeMode, value, cfg.FieldSources, "bridge_mode", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_PLATFORM_BRIDGE_WORKER_COUNT"); ok {
+		parsed, err := parseIntValue("RADISHMIND_PLATFORM_BRIDGE_WORKER_COUNT", value)
+		if err != nil {
+			return err
+		}
+		applyIntValue(&cfg.BridgeWorkerCount, parsed, cfg.FieldSources, "bridge_worker_count", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_PLATFORM_BRIDGE_QUEUE_CAPACITY"); ok {
+		parsed, err := parseIntValue("RADISHMIND_PLATFORM_BRIDGE_QUEUE_CAPACITY", value)
+		if err != nil {
+			return err
+		}
+		applyIntValue(&cfg.BridgeQueueCapacity, parsed, cfg.FieldSources, "bridge_queue_capacity", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_PLATFORM_BRIDGE_HANDSHAKE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_PLATFORM_BRIDGE_HANDSHAKE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(
+			&cfg.BridgeHandshakeTimeout,
+			parsed,
+			cfg.FieldSources,
+			"bridge_handshake_timeout",
+			configSourceEnv,
+		)
 	}
 	if value, ok := stringEnv("RADISHMIND_PLATFORM_PYTHON_BIN"); ok {
 		applyStringValue(&cfg.PythonBinary, value, cfg.FieldSources, "python_binary", configSourceEnv)
@@ -355,6 +446,22 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	profile := strings.TrimSpace(cfg.ProviderProfile)
 	model := strings.TrimSpace(cfg.Model)
 	baseURLConfigured := strings.TrimSpace(cfg.BaseURL) != ""
+	bridgeMode := strings.TrimSpace(cfg.BridgeMode)
+	if bridgeMode == "" {
+		bridgeMode = "process_per_request"
+	}
+	bridgeWorkerCount := cfg.BridgeWorkerCount
+	if bridgeWorkerCount <= 0 {
+		bridgeWorkerCount = defaultBridgeWorkerCount
+	}
+	bridgeQueueCapacity := cfg.BridgeQueueCapacity
+	if bridgeQueueCapacity <= 0 {
+		bridgeQueueCapacity = defaultBridgeQueueSize
+	}
+	bridgeHandshakeTimeout := cfg.BridgeHandshakeTimeout
+	if bridgeHandshakeTimeout <= 0 {
+		bridgeHandshakeTimeout = defaultBridgeHandshake
+	}
 	workflowSavedDraftStoreMode := strings.TrimSpace(cfg.WorkflowSavedDraftStoreMode)
 	if workflowSavedDraftStoreMode == "" {
 		workflowSavedDraftStoreMode = defaultDraftStoreMode
@@ -389,11 +496,16 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"read_header":                   cfg.ReadHeaderTimeout.String(),
 			"write":                         cfg.WriteTimeout.String(),
 			"bridge":                        cfg.BridgeTimeout.String(),
+			"bridge_handshake":              bridgeHandshakeTimeout.String(),
 			"workflow_saved_draft_database": cfg.WorkflowSavedDraftDatabaseTimeout.String(),
 		},
 		PythonBridge: PythonBridge{
-			PythonBinary: strings.TrimSpace(cfg.PythonBinary),
-			Script:       strings.TrimSpace(cfg.BridgeScript),
+			PythonBinary:     strings.TrimSpace(cfg.PythonBinary),
+			Script:           strings.TrimSpace(cfg.BridgeScript),
+			Mode:             bridgeMode,
+			WorkerCount:      bridgeWorkerCount,
+			QueueCapacity:    bridgeQueueCapacity,
+			HandshakeTimeout: bridgeHandshakeTimeout.String(),
 		},
 		Temperature:           cfg.Temperature,
 		RequiredFields:        requiredFields,
@@ -536,6 +648,11 @@ func applyDurationValue(target *time.Duration, value time.Duration, fieldSources
 	fieldSources[fieldName] = source
 }
 
+func applyIntValue(target *int, value int, fieldSources map[string]string, fieldName string, source string) {
+	*target = value
+	fieldSources[fieldName] = source
+}
+
 func parseDurationValue(key string, rawValue string) (time.Duration, error) {
 	parsed, err := time.ParseDuration(strings.TrimSpace(rawValue))
 	if err != nil {
@@ -550,6 +667,32 @@ func parseFloatValue(key string, rawValue string) (float64, error) {
 		return 0, fmt.Errorf("%s must be a valid float: %w", key, err)
 	}
 	return parsed, nil
+}
+
+func parseIntValue(key string, rawValue string) (int, error) {
+	parsed, err := strconv.Atoi(strings.TrimSpace(rawValue))
+	if err != nil {
+		return 0, fmt.Errorf("%s must be a valid integer: %w", key, err)
+	}
+	return parsed, nil
+}
+
+func validateBridgeRuntimeConfig(cfg Config) error {
+	switch strings.TrimSpace(cfg.BridgeMode) {
+	case "process_per_request", "stdio_pool":
+	default:
+		return fmt.Errorf("bridge_mode must be process_per_request or stdio_pool")
+	}
+	if cfg.BridgeWorkerCount < 1 || cfg.BridgeWorkerCount > 32 {
+		return fmt.Errorf("bridge_worker_count must be between 1 and 32")
+	}
+	if cfg.BridgeQueueCapacity < 1 || cfg.BridgeQueueCapacity > 1024 {
+		return fmt.Errorf("bridge_queue_capacity must be between 1 and 1024")
+	}
+	if cfg.BridgeHandshakeTimeout <= 0 {
+		return fmt.Errorf("bridge_handshake_timeout must be positive")
+	}
+	return nil
 }
 
 func parseBoolValue(key string, rawValue string) (bool, error) {

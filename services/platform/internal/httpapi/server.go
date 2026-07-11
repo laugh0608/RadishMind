@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
@@ -64,10 +65,17 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	platformBridge, err := newPlatformBridgeClient(cfg)
+	if err != nil {
+		if closeSavedWorkflowDraftStore != nil {
+			closeSavedWorkflowDraftStore()
+		}
+		return nil, err
+	}
 	mux := http.NewServeMux()
 	server := &Server{
 		options:                      options,
-		bridge:                       bridge.NewClient(cfg.PythonBinary, cfg.BridgeScript),
+		bridge:                       platformBridge,
 		config:                       cfg,
 		savedWorkflowDraftStore:      savedWorkflowDraftStore,
 		closeSavedWorkflowDraftStore: closeSavedWorkflowDraftStore,
@@ -106,6 +114,44 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	return server, nil
 }
 
+func newPlatformBridgeClient(cfg config.Config) (*bridge.Client, error) {
+	modeText := strings.TrimSpace(cfg.BridgeMode)
+	if modeText == "" {
+		modeText = string(bridge.ModeProcessPerRequest)
+	}
+	mode, err := bridge.ParseMode(modeText)
+	if err != nil {
+		return nil, err
+	}
+	client, err := bridge.NewClientWithOptions(cfg.PythonBinary, cfg.BridgeScript, bridge.ClientOptions{
+		Mode:             mode,
+		WorkerCount:      cfg.BridgeWorkerCount,
+		QueueCapacity:    cfg.BridgeQueueCapacity,
+		HandshakeTimeout: cfg.BridgeHandshakeTimeout,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if mode == bridge.ModeStdioPool {
+		startupTimeout := cfg.BridgeHandshakeTimeout
+		if startupTimeout <= 0 {
+			startupTimeout = bridge.DefaultHandshakeTimeout
+		}
+		workerCount := cfg.BridgeWorkerCount
+		if workerCount <= 0 {
+			workerCount = bridge.DefaultWorkerCount
+		}
+		startupTimeout *= time.Duration(workerCount)
+		ctx, cancel := context.WithTimeout(context.Background(), startupTimeout)
+		defer cancel()
+		if err := client.Start(ctx); err != nil {
+			client.Close()
+			return nil, err
+		}
+	}
+	return client, nil
+}
+
 func (s *Server) ListenAndServe() error {
 	return s.httpServer.ListenAndServe()
 }
@@ -124,6 +170,9 @@ func (s *Server) Close() {
 		return
 	}
 	s.closeOnce.Do(func() {
+		if closer, ok := s.bridge.(interface{ Close() }); ok {
+			closer.Close()
+		}
 		if s.closeSavedWorkflowDraftStore != nil {
 			s.closeSavedWorkflowDraftStore()
 		}

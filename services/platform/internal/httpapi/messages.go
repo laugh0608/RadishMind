@@ -108,7 +108,7 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 
 	if messageRequest.Stream {
 		if err := s.streamAnthropicMessagesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(messageRequest.Temperature, s.config.Temperature), trace); err != nil {
-			s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
+			s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 			return
 		}
 		return
@@ -120,7 +120,7 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 		s.buildBridgeEnvelopeOptions(selection, effectiveTemperature(messageRequest.Temperature, s.config.Temperature)),
 	)
 	if err != nil {
-		s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
+		s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 		return
 	}
 	if strings.EqualFold(envelope.Status, "failed") {
