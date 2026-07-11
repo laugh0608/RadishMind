@@ -2,13 +2,14 @@ package workflowrunmigrations
 
 import (
 	"errors"
-	"github.com/jackc/pgx/v5/pgconn"
 	"strings"
 	"testing"
+
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func TestEmbeddedWorkflowRunMigration(t *testing.T) {
-	if !strings.Contains(upSQL, "CREATE TABLE workflow_run_records") || !strings.Contains(upSQL, "workflow_run_records_history_idx") || !strings.Contains(downSQL, "DROP TABLE IF EXISTS workflow_run_records") {
+	if !strings.Contains(upSQL, "CREATE TABLE workflow_run_records") || !strings.Contains(upSQL, "workflow_run_records_history_idx") || !strings.Contains(upSQL, "failure_boundary") || !strings.Contains(downSQL, "DROP TABLE IF EXISTS workflow_run_records") {
 		t.Fatal("workflow run migration contract is incomplete")
 	}
 	if !strings.HasPrefix(ExpectedChecksum(), "sha256:") {

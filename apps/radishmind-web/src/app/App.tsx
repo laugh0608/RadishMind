@@ -12,7 +12,6 @@ import {
   type AdminAuditLogStatePreview,
 } from "../features/control-plane-read/adminAuditLog";
 import { buildAdminOperationsReviewViewModel } from "../features/control-plane-read/adminOperationsReview";
-import { AdminOperationsReviewPanel } from "../features/control-plane-read/adminOperationsReviewPanel";
 import { buildAdminProviderDeploymentReviewViewModel } from "../features/control-plane-read/adminProviderDeploymentReview";
 import { AdminProviderDeploymentReviewPanel } from "../features/control-plane-read/adminProviderDeploymentReviewPanel";
 import {
@@ -55,7 +54,6 @@ import { ModelGatewayRouteEvidencePanel } from "../features/control-plane-read/m
 import { buildModelGatewayUsageAuditEvidenceViewModel } from "../features/control-plane-read/modelGatewayUsageAuditEvidence";
 import { ModelGatewayUsageAuditEvidencePanel } from "../features/control-plane-read/modelGatewayUsageAuditEvidencePanel";
 import { buildModelGatewayEvidenceReviewViewModel } from "../features/control-plane-read/modelGatewayEvidenceReview";
-import { ModelGatewayEvidenceReviewPanel } from "../features/control-plane-read/modelGatewayEvidenceReviewPanel";
 import {
   buildControlPlaneReadShellViewModel,
   type ControlPlaneReadRouteCard,
@@ -109,7 +107,6 @@ import {
   type WorkflowDraftDesignerTemplate,
   type WorkflowDraftDesignerViewModel,
 } from "../features/control-plane-read/workflowDraftDesigner";
-import { WorkflowNodeDesigner } from "../features/control-plane-read/workflowNodeDesigner";
 import {
   type WorkflowDraftBlockedCapabilityCheck,
   type WorkflowDraftContractCheck,
@@ -134,7 +131,6 @@ import {
   type WorkflowRuntimeReadinessStatus,
   type WorkflowRuntimeReadinessSummary,
 } from "../features/control-plane-read/workflowRuntimeReadinessInspector";
-import { WorkflowReviewHandoffPanel } from "../features/control-plane-read/workflowReviewHandoffPanel";
 import {
   type WorkflowSurfaceOverviewBlockedCapability,
   type WorkflowSurfaceOverviewMetric,
@@ -196,6 +192,10 @@ const devLiveConfig = readControlPlaneReadDevLiveConfig();
 const savedDraftConsumerConfig = readWorkflowSavedDraftConsumerConfig();
 const workflowExecutorConsumerConfig = readWorkflowExecutorConsumerConfig();
 const WorkflowRunHistoryPanel = lazy(() => import("../features/control-plane-read/workflowRunHistoryPanel"));
+const WorkflowNodeDesigner = lazy(() => import("../features/control-plane-read/workflowNodeDesigner").then((module) => ({ default: module.WorkflowNodeDesigner })));
+const AdminOperationsReviewPanel = lazy(() => import("../features/control-plane-read/adminOperationsReviewPanel").then((module) => ({ default: module.AdminOperationsReviewPanel })));
+const ModelGatewayEvidenceReviewPanel = lazy(() => import("../features/control-plane-read/modelGatewayEvidenceReviewPanel").then((module) => ({ default: module.ModelGatewayEvidenceReviewPanel })));
+const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
 const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
 
 type ControlPlaneReadCollectionsByRoute = Partial<
@@ -1317,11 +1317,15 @@ export function App() {
         <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
         <ModelGatewayRouteEvidencePanel detail={modelGatewayRouteEvidence} />
         <ModelGatewayUsageAuditEvidencePanel evidence={modelGatewayUsageAuditEvidence} />
-        <ModelGatewayEvidenceReviewPanel review={modelGatewayEvidenceReview} />
-        <AdminOperationsReviewPanel review={adminOperationsReview} />
+        <Suspense fallback={<section className="surface-band"><p>Loading review evidence…</p></section>}>
+          <ModelGatewayEvidenceReviewPanel review={modelGatewayEvidenceReview} />
+          <AdminOperationsReviewPanel review={adminOperationsReview} />
+        </Suspense>
         <AdminProviderDeploymentReviewPanel review={adminProviderDeploymentReview} />
         <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />
-        <WorkflowReviewHandoffPanel handoff={workflowReviewHandoff} />
+        <Suspense fallback={<section className="surface-band"><p>Loading workflow review handoff…</p></section>}>
+          <WorkflowReviewHandoffPanel handoff={workflowReviewHandoff} />
+        </Suspense>
         <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />
         <WorkflowScenarioInspectorPanel
           inspector={workflowScenarioInspector}
@@ -3496,7 +3500,7 @@ function WorkflowDraftDesignerPanel({
         </div>
       </div>
 
-      <WorkflowNodeDesigner
+      <Suspense fallback={<section className="workflow-node-designer-shell"><p>Loading node designer…</p></section>}><WorkflowNodeDesigner
         draft={selectedDraft}
         validationInspector={validationInspector}
         editingDisabled={interactionDisabled}
@@ -3512,7 +3516,7 @@ function WorkflowDraftDesignerPanel({
         onAddEdge={onAddEdge}
         onRemoveEdge={onRemoveEdge}
         onRemoveNode={onRemoveNode}
-      />
+      /></Suspense>
 
       <div className="workflow-draft-node-grid" aria-label="Workflow draft nodes">
         {selectedDraft.nodes.map((node, nodeIndex) => (

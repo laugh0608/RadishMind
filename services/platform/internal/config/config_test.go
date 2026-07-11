@@ -375,6 +375,23 @@ func TestWorkflowExecutorDevModeRequiresDevelopmentAuthAndSavedDraftHTTP(t *test
 	}
 }
 
+func TestWorkflowDiagnosticsDevRequiresExecutorAndMockProvider(t *testing.T) {
+	base := defaultConfig()
+	base.WorkflowDiagnosticsDevEnabled = true
+	if err := validateBridgeRuntimeConfig(base); err == nil {
+		t.Fatal("workflow diagnostics dev was accepted without executor dev")
+	}
+	base.WorkflowExecutorDevEnabled = true
+	base.Provider = "openai-compatible"
+	if err := validateBridgeRuntimeConfig(base); err == nil {
+		t.Fatal("workflow diagnostics dev was accepted with a non-mock provider")
+	}
+	base.Provider = "mock"
+	if err := validateBridgeRuntimeConfig(base); err != nil {
+		t.Fatalf("explicit mock diagnostics config was rejected: %v", err)
+	}
+}
+
 func clearPlatformEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{
@@ -399,6 +416,7 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE",
 		"RADISHMIND_WORKFLOW_EXECUTOR_DEV",
+		"RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",

@@ -18,6 +18,7 @@ func TestMemoryWorkflowRunHistoryScopeFilterAndCursor(t *testing.T) {
 		}
 		record.Status = status
 		record.CompletedAt = workflowRunTimestamp(base.Add(time.Duration(index)*time.Minute + time.Second))
+		record.Diagnostic.TerminalWriteState = WorkflowRunTerminalWriteStored
 		if err := store.UpsertRun(runContext, &record); err != nil {
 			t.Fatal(err)
 		}
@@ -61,6 +62,7 @@ func TestMemoryWorkflowRunStoreRejectsConcurrentOldVersionAndTerminalRewrite(t *
 			defer wg.Done()
 			value.Status = WorkflowRunStatusSucceeded
 			value.CompletedAt = workflowRunTimestamp(time.Now())
+			value.Diagnostic.TerminalWriteState = WorkflowRunTerminalWriteStored
 			results <- store.UpsertRun(runContext, value)
 		}(candidate)
 	}
@@ -78,6 +80,7 @@ func TestMemoryWorkflowRunStoreRejectsConcurrentOldVersionAndTerminalRewrite(t *
 	stored, _, _ := store.ReadRun(runContext, record.RunID)
 	stored.Status = WorkflowRunStatusRunning
 	stored.CompletedAt = ""
+	stored.Diagnostic.TerminalWriteState = WorkflowRunTerminalWritePending
 	if err := store.UpsertRun(runContext, &stored); err != errWorkflowRunStoreConflict {
 		t.Fatalf("terminal rewrite must fail: %v", err)
 	}
@@ -99,7 +102,7 @@ func TestWorkflowRunStoreRejectsForbiddenSideEffects(t *testing.T) {
 }
 
 func workflowRunHistoryTestRecord(runContext WorkflowRunContext, runID, draftID string, startedAt time.Time) WorkflowRunRecord {
-	return WorkflowRunRecord{SchemaVersion: workflowRunRecordSchemaVersion, RunID: runID, DraftID: draftID, DraftVersion: 1, WorkspaceID: runContext.WorkspaceID, ApplicationID: runContext.ApplicationID, Status: WorkflowRunStatusRunning, StartedAt: workflowRunTimestamp(startedAt), ActorRef: runContext.ActorRef, RequestID: "request_test", AuditRef: "audit_test"}
+	return WorkflowRunRecord{SchemaVersion: workflowRunRecordSchemaVersion, RunID: runID, DraftID: draftID, DraftVersion: 1, WorkspaceID: runContext.WorkspaceID, ApplicationID: runContext.ApplicationID, Status: WorkflowRunStatusRunning, StartedAt: workflowRunTimestamp(startedAt), ActorRef: runContext.ActorRef, RequestID: "request_test", AuditRef: "audit_test", Diagnostic: newWorkflowRunDiagnostic()}
 }
 
 func TestWorkflowRunListFilterValidation(t *testing.T) {
@@ -108,5 +111,39 @@ func TestWorkflowRunListFilterValidation(t *testing.T) {
 	result := service.ListRuns(WorkflowRunContext{RequestContext: context.Background()}, WorkflowRunListRequest{Limit: 101, StartedTo: &future})
 	if result.FailureCode != WorkflowRunFailureFilterInvalid {
 		t.Fatalf("invalid filter accepted: %#v", result)
+	}
+}
+
+func TestWorkflowRunDiagnosticFiltersAndCursorBinding(t *testing.T) {
+	store := newMemoryWorkflowRunStore(10)
+	runContext := workflowExecutorTestContext()
+	stale := workflowRunHistoryTestRecord(runContext, "run_stale", "draft_a", time.Now().UTC().Add(-time.Minute))
+	stale.SelectedProvider = "mock"
+	stale.SelectedModel = "model-a"
+	stale.FailureCode = WorkflowRunFailureGatewayFailed
+	setWorkflowRunFailureDiagnostic(&stale, stale.FailureCode, "node_model", WorkflowRunGatewayFailureTimeout)
+	if err := store.UpsertRun(runContext, &stale); err != nil {
+		t.Fatal(err)
+	}
+	fresh := workflowRunHistoryTestRecord(runContext, "run_fresh", "draft_b", time.Now().UTC())
+	fresh.SelectedProvider = "mock"
+	fresh.SelectedModel = "model-b"
+	if err := store.UpsertRun(runContext, &fresh); err != nil {
+		t.Fatal(err)
+	}
+	service := newWorkflowExecutorService(nil, nil, store)
+	staleOnly := true
+	result := service.ListRuns(runContext, WorkflowRunListRequest{
+		FailureCode: WorkflowRunFailureGatewayFailed, FailureBoundary: WorkflowRunFailureBoundaryGateway,
+		Provider: "mock", Model: "model-a", StaleRunning: &staleOnly,
+	})
+	if result.FailureCode != "" || len(result.Runs) != 1 || result.Runs[0].RunID != stale.RunID || result.Runs[0].GatewayFailureCategory != WorkflowRunGatewayFailureTimeout {
+		t.Fatalf("unexpected diagnostic filter result: %#v", result)
+	}
+	if invalid := service.ListRuns(runContext, WorkflowRunListRequest{Provider: "https://provider.invalid"}); invalid.FailureCode != WorkflowRunFailureFilterInvalid {
+		t.Fatalf("endpoint-like provider filter accepted: %#v", invalid)
+	}
+	if _, code := parseWorkflowRunListRequest(map[string][]string{"stale_running": {"maybe"}}); code != WorkflowRunFailureFilterInvalid {
+		t.Fatalf("invalid stale_running filter accepted: %s", code)
 	}
 }

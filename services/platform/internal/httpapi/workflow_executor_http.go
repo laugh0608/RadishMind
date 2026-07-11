@@ -13,12 +13,13 @@ const (
 )
 
 type workflowRunStartHTTPBody struct {
-	WorkspaceID     string          `json:"workspace_id"`
-	ApplicationID   string          `json:"application_id"`
-	InputText       string          `json:"input_text"`
-	ConditionValues map[string]bool `json:"condition_values"`
-	Model           string          `json:"model"`
-	Temperature     *float64        `json:"temperature"`
+	WorkspaceID        string                        `json:"workspace_id"`
+	ApplicationID      string                        `json:"application_id"`
+	InputText          string                        `json:"input_text"`
+	ConditionValues    map[string]bool               `json:"condition_values"`
+	Model              string                        `json:"model"`
+	Temperature        *float64                      `json:"temperature"`
+	DevFailureScenario WorkflowRunDevFailureScenario `json:"dev_failure_scenario"`
 }
 
 type workflowRunEnvelope struct {
@@ -69,11 +70,12 @@ func (s *Server) handleStartWorkflowRun(writer http.ResponseWriter, request *htt
 		return
 	}
 	result := s.workflowExecutorService().StartRun(runContext, WorkflowRunRequest{
-		DraftID:         strings.TrimSpace(request.PathValue("draft_id")),
-		InputText:       body.InputText,
-		ConditionValues: body.ConditionValues,
-		Model:           body.Model,
-		Temperature:     body.Temperature,
+		DraftID:            strings.TrimSpace(request.PathValue("draft_id")),
+		InputText:          body.InputText,
+		ConditionValues:    body.ConditionValues,
+		Model:              body.Model,
+		Temperature:        body.Temperature,
+		DevFailureScenario: body.DevFailureScenario,
 	})
 	writeWorkflowRunResult(writer, trace, runContext, result)
 }
@@ -145,6 +147,7 @@ func (s *Server) workflowExecutorService() workflowExecutorService {
 		return s.resolveNorthboundSelection(ctx, requestedModel, nil)
 	}
 	service.envelopeOptions = s.buildBridgeEnvelopeOptions
+	service.diagnosticsDevEnabled = s.config.WorkflowDiagnosticsDevEnabled && strings.EqualFold(strings.TrimSpace(s.config.Provider), "mock")
 	return service
 }
 

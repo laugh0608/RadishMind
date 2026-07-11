@@ -4,6 +4,8 @@ package httpapi
 
 import (
 	"context"
+	"crypto/sha256"
+	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -60,6 +62,7 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 		}
 		record.Status = WorkflowRunStatusSucceeded
 		record.CompletedAt = workflowRunTimestamp(base.Add(time.Duration(index)*time.Second + time.Millisecond))
+		record.Diagnostic.TerminalWriteState = WorkflowRunTerminalWriteStored
 		if err = store.UpsertRun(runContext, &record); err != nil {
 			t.Fatal(err)
 		}
@@ -67,6 +70,34 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	page, err := store.ListRuns(runContext, WorkflowRunListFilter{Limit: 2})
 	if err != nil || len(page.Records) != 2 || !page.HasMore || page.Records[0].RunID != "run_pg_c" {
 		t.Fatalf("unexpected PostgreSQL page: %#v %v", page, err)
+	}
+	legacy := workflowRunHistoryTestRecord(runContext, "run_pg_legacy", "draft_pg", base.Add(-time.Second))
+	legacy.SchemaVersion = workflowRunRecordLegacySchemaVersion
+	legacy.Diagnostic = nil
+	if err = store.UpsertRun(runContext, &legacy); err != nil {
+		t.Fatalf("write legacy run: %v", err)
+	}
+	if decoded, found, readErr := store.ReadRun(runContext, legacy.RunID); readErr != nil || !found || decoded.SchemaVersion != workflowRunRecordLegacySchemaVersion || decoded.Diagnostic != nil {
+		t.Fatalf("legacy v0 read compatibility failed: found=%v record=%#v err=%v", found, decoded, readErr)
+	}
+	diagnostic := workflowRunHistoryTestRecord(runContext, "run_pg_diagnostic", "draft_pg", base.Add(4*time.Second))
+	diagnostic.SelectedProvider = "mock"
+	diagnostic.SelectedModel = "model-diagnostic"
+	if err = store.UpsertRun(runContext, &diagnostic); err != nil {
+		t.Fatal(err)
+	}
+	diagnostic.Status = WorkflowRunStatusFailed
+	diagnostic.FailureCode = WorkflowRunFailureGatewayFailed
+	diagnostic.FailureSummary = "Gateway timed out while executing the workflow model node."
+	diagnostic.CompletedAt = workflowRunTimestamp(base.Add(5 * time.Second))
+	setWorkflowRunFailureDiagnostic(&diagnostic, diagnostic.FailureCode, "node_model", WorkflowRunGatewayFailureTimeout)
+	diagnostic.Diagnostic.TerminalWriteState = WorkflowRunTerminalWriteStored
+	if err = store.UpsertRun(runContext, &diagnostic); err != nil {
+		t.Fatal(err)
+	}
+	diagnosticPage, err := store.ListRuns(runContext, WorkflowRunListFilter{Limit: 10, FailureCode: WorkflowRunFailureGatewayFailed, FailureBoundary: WorkflowRunFailureBoundaryGateway, Provider: "mock", Model: "model-diagnostic"})
+	if err != nil || len(diagnosticPage.Records) != 1 || diagnosticPage.Records[0].RunID != diagnostic.RunID {
+		t.Fatalf("diagnostic PostgreSQL filter failed: %#v %v", diagnosticPage, err)
 	}
 	other := runContext
 	other.TenantRef = "tenant_other"
@@ -98,6 +129,8 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 			value.FailureCode = WorkflowRunFailureGatewayFailed
 			value.FailureSummary = "Gateway failed."
 			value.CompletedAt = workflowRunTimestamp(time.Now())
+			setWorkflowRunFailureDiagnostic(value, value.FailureCode, "node_model", WorkflowRunGatewayFailureUnavailable)
+			value.Diagnostic.TerminalWriteState = WorkflowRunTerminalWriteStored
 			results <- store.UpsertRun(runContext, value)
 		}(candidate)
 	}
@@ -128,5 +161,28 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	}
 	if _, err = workflowrunmigrations.Apply(ctx, pool); err != nil {
 		t.Fatalf("reapply after rollback: %v", err)
+	}
+	if _, err = workflowrunmigrations.RollbackForDevTest(ctx, pool); err != nil {
+		t.Fatal(err)
+	}
+	legacySQL, err := os.ReadFile("../../migrations/workflow_runs/0001_workflow_runs.up.sql")
+	if err != nil {
+		t.Fatalf("read legacy workflow run migration: %v", err)
+	}
+	if _, err = pool.Exec(ctx, string(legacySQL)); err != nil {
+		t.Fatalf("apply legacy workflow run migration: %v", err)
+	}
+	legacyChecksum := fmt.Sprintf("sha256:%x", sha256.Sum256(legacySQL))
+	if _, err = pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS workflow_run_schema_versions (component text PRIMARY KEY, migration_id text NOT NULL, store_schema_version text NOT NULL, migration_checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = pool.Exec(ctx, `INSERT INTO workflow_run_schema_versions(component,migration_id,store_schema_version,migration_checksum) VALUES($1,'0001_workflow_runs','workflow_run_store_v1',$2)`, workflowrunmigrations.Component, legacyChecksum); err != nil {
+		t.Fatal(err)
+	}
+	if pending, inspectErr := workflowrunmigrations.Inspect(ctx, pool); inspectErr != nil || pending.MigrationState != workflowrunmigrations.MigrationStatePending {
+		t.Fatalf("legacy marker was not recognized as pending: %#v %v", pending, inspectErr)
+	}
+	if upgraded, upgradeErr := workflowrunmigrations.Apply(ctx, pool); upgradeErr != nil || upgraded.MigrationState != workflowrunmigrations.MigrationStateApplied {
+		t.Fatalf("legacy migration upgrade failed: %#v %v", upgraded, upgradeErr)
 	}
 }

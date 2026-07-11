@@ -9,6 +9,7 @@ param(
     [int]$TimeoutSeconds = 60,
     [switch]$SavedDraftDev,
     [switch]$SavedDraftPostgresDevTest,
+    [switch]$WorkflowDiagnosticsDev,
     [switch]$VerifyOnly,
     [switch]$ExitAfterProbe,
     [switch]$Help
@@ -28,6 +29,8 @@ Options:
   -SavedDraftDev        Enable the explicit memory-dev Saved Draft read/write path.
   -SavedDraftPostgresDevTest
                         Enable the explicit PostgreSQL dev/test Saved Draft path.
+  -WorkflowDiagnosticsDev
+                        Enable fixed mock Workflow failure scenarios; requires a Saved Draft dev mode.
   -VerifyOnly           Probe existing backend/frontend processes only.
   -ExitAfterProbe       Start missing local processes, probe, then stop spawned processes.
 "@
@@ -42,6 +45,9 @@ if ($SavedDraftPostgresDevTest -and $Mode -ne "dev-live") {
 }
 if ($SavedDraftDev -and $SavedDraftPostgresDevTest) {
     throw "Choose either -SavedDraftDev or -SavedDraftPostgresDevTest"
+}
+if ($WorkflowDiagnosticsDev -and -not ($SavedDraftDev -or $SavedDraftPostgresDevTest)) {
+    throw "-WorkflowDiagnosticsDev requires -SavedDraftDev or -SavedDraftPostgresDevTest"
 }
 
 $savedDraftEnabled = $SavedDraftDev -or $SavedDraftPostgresDevTest
@@ -503,6 +509,9 @@ try {
 				$env:RADISHMIND_WORKFLOW_RUN_STORE = "postgres_dev_test"
 				$env:RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
             }
+            if ($WorkflowDiagnosticsDev) {
+                $env:RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV = "1"
+            }
 
             $backendPortOpen = Test-TcpPort -HostName $backendUri.Host -Port $backendUri.Port
             if ($backendPortOpen) {
@@ -532,12 +541,16 @@ try {
                     $env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE = "dev-saved-draft-http"
                     $env:VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE = "dev-workflow-executor-http"
                 }
+                if ($WorkflowDiagnosticsDev) {
+                    $env:VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV = "true"
+                }
             }
             else {
                 Remove-Item Env:VITE_RADISHMIND_READ_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV -ErrorAction SilentlyContinue
             }
 
             Start-LoggedProcess `

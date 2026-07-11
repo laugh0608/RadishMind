@@ -44,20 +44,23 @@ func (store *postgresWorkflowRunStore) UpsertRun(runContext WorkflowRunContext, 
 	var storedVersion int
 	if record.RecordVersion == 0 {
 		err = store.pool.QueryRow(runContext.RequestContext, `INSERT INTO workflow_run_records
- (tenant_ref,workspace_id,application_id,run_id,draft_id,draft_version,record_version,schema_version,run_status,started_at,completed_at,actor_ref,request_id,audit_ref,sanitized_run_record)
- VALUES ($1,$2,$3,$4,$5,$6,1,$7,$8,$9,$10,$11,$12,$13,$14)
+ (tenant_ref,workspace_id,application_id,run_id,draft_id,draft_version,record_version,schema_version,run_status,started_at,completed_at,actor_ref,request_id,audit_ref,failure_code,failure_boundary,selected_provider,selected_model,sanitized_run_record)
+ VALUES ($1,$2,$3,$4,$5,$6,1,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
  ON CONFLICT DO NOTHING RETURNING record_version`,
 			runContext.TenantRef, runContext.WorkspaceID, runContext.ApplicationID, next.RunID, next.DraftID,
 			next.DraftVersion, next.SchemaVersion, next.Status, startedAt, completedAt, next.ActorRef,
-			next.RequestID, next.AuditRef, payload).Scan(&storedVersion)
+			next.RequestID, next.AuditRef, next.FailureCode, workflowRunRecordFailureBoundary(next), next.SelectedProvider,
+			next.SelectedModel, payload).Scan(&storedVersion)
 	} else {
 		err = store.pool.QueryRow(runContext.RequestContext, `UPDATE workflow_run_records SET
  draft_id=$1,draft_version=$2,record_version=record_version+1,schema_version=$3,run_status=$4,
- completed_at=$5,actor_ref=$6,request_id=$7,audit_ref=$8,sanitized_run_record=$9
- WHERE tenant_ref=$10 AND workspace_id=$11 AND application_id=$12 AND run_id=$13
-   AND record_version=$14 AND run_status='running' RETURNING record_version`,
+	 completed_at=$5,actor_ref=$6,request_id=$7,audit_ref=$8,failure_code=$9,failure_boundary=$10,
+	 selected_provider=$11,selected_model=$12,sanitized_run_record=$13
+ WHERE tenant_ref=$14 AND workspace_id=$15 AND application_id=$16 AND run_id=$17
+	 AND record_version=$18 AND run_status='running' RETURNING record_version`,
 			next.DraftID, next.DraftVersion, next.SchemaVersion, next.Status, completedAt, next.ActorRef,
-			next.RequestID, next.AuditRef, payload, runContext.TenantRef, runContext.WorkspaceID,
+			next.RequestID, next.AuditRef, next.FailureCode, workflowRunRecordFailureBoundary(next), next.SelectedProvider,
+			next.SelectedModel, payload, runContext.TenantRef, runContext.WorkspaceID,
 			runContext.ApplicationID, next.RunID, record.RecordVersion).Scan(&storedVersion)
 	}
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -96,11 +99,16 @@ func (store *postgresWorkflowRunStore) ListRuns(runContext WorkflowRunContext, f
 	rows, err := store.pool.Query(runContext.RequestContext, `SELECT sanitized_run_record FROM workflow_run_records
  WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3
  AND ($4='' OR run_status=$4) AND ($5='' OR draft_id=$5)
- AND ($6::timestamptz IS NULL OR started_at >= $6) AND ($7::timestamptz IS NULL OR started_at <= $7)
- AND ($8::timestamptz IS NULL OR (started_at,run_id) < ($8,$9))
- ORDER BY started_at DESC, run_id DESC LIMIT $10`,
+	AND ($6='' OR failure_code=$6) AND ($7='' OR failure_boundary=$7)
+	AND ($8='' OR selected_provider=$8) AND ($9='' OR selected_model=$9)
+	AND ($10::boolean IS NULL OR (run_status='running' AND started_at < $11)=$10)
+	AND ($12::timestamptz IS NULL OR started_at >= $12) AND ($13::timestamptz IS NULL OR started_at <= $13)
+	AND ($14::timestamptz IS NULL OR (started_at,run_id) < ($14,$15))
+ ORDER BY started_at DESC, run_id DESC LIMIT $16`,
 		runContext.TenantRef, runContext.WorkspaceID, runContext.ApplicationID, string(filter.Status), filter.DraftID,
-		filter.StartedFrom, filter.StartedTo, filter.BeforeTime, filter.BeforeRunID, filter.Limit+1)
+		string(filter.FailureCode), string(filter.FailureBoundary), filter.Provider, filter.Model, filter.StaleRunning,
+		time.Now().UTC().Add(-workflowExecutorDefaultMaxRuntime), filter.StartedFrom, filter.StartedTo,
+		filter.BeforeTime, filter.BeforeRunID, filter.Limit+1)
 	if err != nil {
 		return WorkflowRunListPage{}, err
 	}
@@ -125,6 +133,13 @@ func (store *postgresWorkflowRunStore) ListRuns(runContext WorkflowRunContext, f
 		records = records[:filter.Limit]
 	}
 	return WorkflowRunListPage{Records: records, HasMore: hasMore}, nil
+}
+
+func workflowRunRecordFailureBoundary(record WorkflowRunRecord) WorkflowRunFailureBoundary {
+	if record.Diagnostic == nil {
+		return ""
+	}
+	return record.Diagnostic.FailureBoundary
 }
 
 func decodePostgresWorkflowRunRecord(runContext WorkflowRunContext, payload []byte) (WorkflowRunRecord, error) {

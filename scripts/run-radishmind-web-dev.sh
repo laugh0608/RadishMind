@@ -11,6 +11,7 @@ verify_only=0
 exit_after_probe=0
 saved_draft_dev=0
 saved_draft_postgres_dev_test=0
+workflow_diagnostics_dev=0
 saved_draft_workspace_id="workspace_demo"
 saved_draft_application_id="app_flow_copilot"
 
@@ -36,6 +37,8 @@ Options:
   --saved-draft-dev       Enable the explicit memory-dev Saved Draft read/write path.
   --saved-draft-postgres-dev-test
                            Enable the explicit PostgreSQL dev/test Saved Draft path.
+  --workflow-diagnostics-dev
+                           Enable fixed mock Workflow failure scenarios; requires a Saved Draft dev mode.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
   -h, --help              Show this help.
@@ -80,6 +83,10 @@ while [[ $# -gt 0 ]]; do
       saved_draft_postgres_dev_test=1
       shift
       ;;
+    --workflow-diagnostics-dev)
+      workflow_diagnostics_dev=1
+      shift
+      ;;
     --verify-only)
       verify_only=1
       shift
@@ -119,6 +126,10 @@ if [[ "${saved_draft_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live" ]]; th
 fi
 if [[ "${saved_draft_dev}" -eq 1 && "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
   echo "Choose either --saved-draft-dev or --saved-draft-postgres-dev-test" >&2
+  exit 2
+fi
+if [[ "${workflow_diagnostics_dev}" -eq 1 && "${saved_draft_dev}" -eq 0 && "${saved_draft_postgres_dev_test}" -eq 0 ]]; then
+  echo "--workflow-diagnostics-dev requires --saved-draft-dev or --saved-draft-postgres-dev-test" >&2
   exit 2
 fi
 
@@ -613,6 +624,9 @@ if [[ "${verify_only}" -eq 0 ]]; then
 			export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
 			export RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
         fi
+        if [[ "${workflow_diagnostics_dev}" -eq 1 ]]; then
+          export RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV="1"
+        fi
         exec "${platform_wrapper}" serve
       ) >"${log_dir}/platform.out.log" 2>"${log_dir}/platform.err.log" &
       spawned_pids+=("$!")
@@ -633,6 +647,9 @@ if [[ "${verify_only}" -eq 0 ]]; then
         if [[ "${saved_draft_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE="dev-saved-draft-http"
           export VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE="dev-workflow-executor-http"
+        fi
+        if [[ "${workflow_diagnostics_dev}" -eq 1 ]]; then
+          export VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV="true"
         fi
       else
         unset VITE_RADISHMIND_READ_SOURCE

@@ -6,6 +6,11 @@ export type WorkflowRunHistoryFilter = {
   draftId: string;
   startedFrom: string;
   startedTo: string;
+  failureCode: string;
+  failureBoundary: "" | "draft_read" | "executor" | "gateway" | "provider" | "run_store" | "request";
+  provider: string;
+  model: string;
+  staleRunning: "" | "true" | "false";
 };
 
 export type WorkflowRunHistorySummary = {
@@ -23,6 +28,11 @@ export type WorkflowRunHistorySummary = {
   requestId: string;
   auditRef: string;
   staleRunning: boolean;
+  failureBoundary: string;
+  failedNodeId: string;
+  lastCompletedNodeId: string;
+  gatewayFailureCategory: string;
+  recommendedReviewAction: string;
   sideEffects: { providerCalls: number; toolCalls: 0; confirmationCalls: 0; businessWrites: 0; replayWrites: 0 };
 };
 
@@ -42,15 +52,17 @@ type RunHistoryEnvelope = {
   next_cursor: string; has_more: boolean; failure_code: string | null; failure_summary: string; audit_ref: string;
 };
 type RunSummaryDocument = {
-  schema_version: "workflow_run_record.v0"; record_version: number; run_id: string; draft_id: string;
+  schema_version: "workflow_run_record.v0" | "workflow_run_record.v1"; record_version: number; run_id: string; draft_id: string;
   draft_version: number; workspace_id: string; application_id: string;
   status: "running" | "succeeded" | "failed" | "canceled"; failure_code: string;
   started_at: string; completed_at: string; duration_ms: number; selected_provider: string;
   selected_profile: string; selected_model: string; request_id: string; audit_ref: string; stale_running: boolean;
+  failure_boundary?: string; failed_node_id?: string; last_completed_node_id?: string;
+  gateway_failure_category?: string; recommended_review_action?: string;
   side_effects: { provider_calls: number; tool_calls: number; confirmation_calls: number; business_writes: number; replay_writes: number };
 };
 
-export const EMPTY_WORKFLOW_RUN_HISTORY_FILTER: WorkflowRunHistoryFilter = { status: "", draftId: "", startedFrom: "", startedTo: "" };
+export const EMPTY_WORKFLOW_RUN_HISTORY_FILTER: WorkflowRunHistoryFilter = { status: "", draftId: "", startedFrom: "", startedTo: "", failureCode: "", failureBoundary: "", provider: "", model: "", staleRunning: "" };
 
 export function initialWorkflowRunHistoryState(config: WorkflowExecutorConsumerConfig): WorkflowRunHistoryState {
   return config.mode === "dev_workflow_executor_http"
@@ -69,6 +81,11 @@ export async function listWorkflowRunHistory(
   if (filter.draftId.trim()) query.set("draft_id", filter.draftId.trim());
   if (filter.startedFrom) query.set("started_from", new Date(filter.startedFrom).toISOString());
   if (filter.startedTo) query.set("started_to", new Date(filter.startedTo).toISOString());
+  if (filter.failureCode.trim()) query.set("failure_code", filter.failureCode.trim());
+  if (filter.failureBoundary) query.set("failure_boundary", filter.failureBoundary);
+  if (filter.provider.trim()) query.set("provider", filter.provider.trim());
+  if (filter.model.trim()) query.set("model", filter.model.trim());
+  if (filter.staleRunning) query.set("stale_running", filter.staleRunning);
   const response = await fetch(`${config.baseUrl}/v1/user-workspace/workflow-runs?${query}`, {
     headers: workflowRunHistoryHeaders(config, applicationId),
   });
@@ -90,7 +107,7 @@ function workflowRunHistoryHeaders(config: WorkflowExecutorConsumerConfig, appli
 
 function toSummary(value: RunSummaryDocument): WorkflowRunHistorySummary {
   if (value.side_effects.tool_calls || value.side_effects.confirmation_calls || value.side_effects.business_writes || value.side_effects.replay_writes) throw new Error("workflow run history contains a forbidden side effect count");
-  return { runId: value.run_id, draftId: value.draft_id, draftVersion: value.draft_version, status: value.status, failureCode: value.failure_code, startedAt: value.started_at, completedAt: value.completed_at, durationMs: value.duration_ms, selectedProvider: value.selected_provider, selectedProfile: value.selected_profile, selectedModel: value.selected_model, requestId: value.request_id, auditRef: value.audit_ref, staleRunning: value.stale_running, sideEffects: { providerCalls: value.side_effects.provider_calls, toolCalls: 0, confirmationCalls: 0, businessWrites: 0, replayWrites: 0 } };
+  return { runId: value.run_id, draftId: value.draft_id, draftVersion: value.draft_version, status: value.status, failureCode: value.failure_code, startedAt: value.started_at, completedAt: value.completed_at, durationMs: value.duration_ms, selectedProvider: value.selected_provider, selectedProfile: value.selected_profile, selectedModel: value.selected_model, requestId: value.request_id, auditRef: value.audit_ref, staleRunning: value.stale_running, failureBoundary: value.failure_boundary ?? "", failedNodeId: value.failed_node_id ?? "", lastCompletedNodeId: value.last_completed_node_id ?? "", gatewayFailureCategory: value.gateway_failure_category ?? "", recommendedReviewAction: value.recommended_review_action ?? "", sideEffects: { providerCalls: value.side_effects.provider_calls, toolCalls: 0, confirmationCalls: 0, businessWrites: 0, replayWrites: 0 } };
 }
 
 function isRunHistoryEnvelope(value: unknown): value is RunHistoryEnvelope {
@@ -104,5 +121,5 @@ function isRunSummary(value: unknown): value is RunSummaryDocument {
   const item = value as Partial<RunSummaryDocument>;
   const raw = value as Record<string, unknown>;
   for (const forbidden of ["input_text", "condition_values", "credential", "endpoint", "provider_raw_envelope"]) if (forbidden in raw) return false;
-  return item.schema_version === "workflow_run_record.v0" && typeof item.record_version === "number" && typeof item.run_id === "string" && typeof item.draft_id === "string" && typeof item.draft_version === "number" && ["running", "succeeded", "failed", "canceled"].includes(item.status ?? "") && typeof item.started_at === "string" && typeof item.side_effects === "object";
+  return (item.schema_version === "workflow_run_record.v0" || item.schema_version === "workflow_run_record.v1") && typeof item.record_version === "number" && typeof item.run_id === "string" && typeof item.draft_id === "string" && typeof item.draft_version === "number" && ["running", "succeeded", "failed", "canceled"].includes(item.status ?? "") && typeof item.started_at === "string" && typeof item.side_effects === "object" && [item.failure_boundary, item.failed_node_id, item.last_completed_node_id, item.gateway_failure_category, item.recommended_review_action].every((field) => field === undefined || typeof field === "string");
 }

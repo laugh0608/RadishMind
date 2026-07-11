@@ -117,6 +117,40 @@ func TestWorkflowExecutorHTTPRoutes(t *testing.T) {
 		}
 	})
 
+	t.Run("diagnostics scenario requires explicit gate and supports scoped failure filter", func(t *testing.T) {
+		server, _, draft := newWorkflowExecutorHTTPTestServer(t)
+		requestBody := workflowRunStartHTTPBody{
+			WorkspaceID: draft.WorkspaceID, ApplicationID: draft.ApplicationID, InputText: "private diagnostics input",
+			DevFailureScenario: WorkflowRunDevFailureGatewayTimeout,
+		}
+		start := func() workflowRunEnvelope {
+			request := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/workflow-drafts/"+draft.DraftID+"/runs", bytes.NewReader(mustWorkflowRunJSON(t, requestBody)))
+			setSavedWorkflowDraftDevHeaders(request, "workflow_drafts:read,workflow_runs:execute,workflow_runs:read")
+			response := httptest.NewRecorder()
+			server.httpServer.Handler.ServeHTTP(response, request)
+			return decodeWorkflowRunEnvelope(t, response, http.StatusOK)
+		}
+		if envelope := start(); envelope.FailureCode == nil || *envelope.FailureCode != string(WorkflowRunFailureInputInvalid) || envelope.Run != nil {
+			t.Fatalf("disabled diagnostics scenario was accepted: %#v", envelope)
+		}
+		server.config.WorkflowDiagnosticsDevEnabled = true
+		envelope := start()
+		if envelope.FailureCode == nil || *envelope.FailureCode != string(WorkflowRunFailureGatewayFailed) || envelope.Run == nil || envelope.Run.Diagnostic == nil || envelope.Run.Diagnostic.GatewayFailureCategory != WorkflowRunGatewayFailureTimeout {
+			t.Fatalf("diagnostics scenario did not produce structured failure: %#v", envelope)
+		}
+		listRequest := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/workflow-runs?workspace_id="+draft.WorkspaceID+"&application_id="+draft.ApplicationID+"&failure_code=workflow_run_gateway_failed&failure_boundary=gateway&provider=mock&model=mock", nil)
+		setSavedWorkflowDraftDevHeaders(listRequest, "workflow_runs:read")
+		listResponse := httptest.NewRecorder()
+		server.httpServer.Handler.ServeHTTP(listResponse, listRequest)
+		listEnvelope := decodeWorkflowRunListEnvelope(t, listResponse, http.StatusOK)
+		if listEnvelope.FailureCode != nil || len(listEnvelope.Runs) != 1 || listEnvelope.Runs[0].RunID != envelope.Run.RunID {
+			t.Fatalf("structured failure filter did not return run: %#v", listEnvelope)
+		}
+		if strings.Contains(listResponse.Body.String(), "private diagnostics input") || strings.Contains(listResponse.Body.String(), "provider.invalid") {
+			t.Fatalf("diagnostics response leaked forbidden input: %s", listResponse.Body.String())
+		}
+	})
+
 	t.Run("missing execute scope fails before Gateway", func(t *testing.T) {
 		server, testBridge, draft := newWorkflowExecutorHTTPTestServer(t)
 		body := mustWorkflowRunJSON(t, workflowRunStartHTTPBody{

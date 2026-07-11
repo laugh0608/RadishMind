@@ -20,34 +20,44 @@ const (
 )
 
 type WorkflowRunListRequest struct {
-	Limit       int
-	Cursor      string
-	Status      WorkflowRunStatus
-	DraftID     string
-	StartedFrom *time.Time
-	StartedTo   *time.Time
+	Limit           int
+	Cursor          string
+	Status          WorkflowRunStatus
+	DraftID         string
+	StartedFrom     *time.Time
+	StartedTo       *time.Time
+	FailureCode     WorkflowRunFailureCode
+	FailureBoundary WorkflowRunFailureBoundary
+	Provider        string
+	Model           string
+	StaleRunning    *bool
 }
 
 type WorkflowRunSummary struct {
-	SchemaVersion    string                 `json:"schema_version"`
-	RecordVersion    int                    `json:"record_version"`
-	RunID            string                 `json:"run_id"`
-	DraftID          string                 `json:"draft_id"`
-	DraftVersion     int                    `json:"draft_version"`
-	WorkspaceID      string                 `json:"workspace_id"`
-	ApplicationID    string                 `json:"application_id"`
-	Status           WorkflowRunStatus      `json:"status"`
-	FailureCode      WorkflowRunFailureCode `json:"failure_code"`
-	StartedAt        string                 `json:"started_at"`
-	CompletedAt      string                 `json:"completed_at"`
-	DurationMS       int64                  `json:"duration_ms"`
-	SelectedProvider string                 `json:"selected_provider"`
-	SelectedProfile  string                 `json:"selected_profile"`
-	SelectedModel    string                 `json:"selected_model"`
-	RequestID        string                 `json:"request_id"`
-	AuditRef         string                 `json:"audit_ref"`
-	SideEffects      WorkflowRunSideEffects `json:"side_effects"`
-	StaleRunning     bool                   `json:"stale_running"`
+	SchemaVersion           string                            `json:"schema_version"`
+	RecordVersion           int                               `json:"record_version"`
+	RunID                   string                            `json:"run_id"`
+	DraftID                 string                            `json:"draft_id"`
+	DraftVersion            int                               `json:"draft_version"`
+	WorkspaceID             string                            `json:"workspace_id"`
+	ApplicationID           string                            `json:"application_id"`
+	Status                  WorkflowRunStatus                 `json:"status"`
+	FailureCode             WorkflowRunFailureCode            `json:"failure_code"`
+	StartedAt               string                            `json:"started_at"`
+	CompletedAt             string                            `json:"completed_at"`
+	DurationMS              int64                             `json:"duration_ms"`
+	SelectedProvider        string                            `json:"selected_provider"`
+	SelectedProfile         string                            `json:"selected_profile"`
+	SelectedModel           string                            `json:"selected_model"`
+	RequestID               string                            `json:"request_id"`
+	AuditRef                string                            `json:"audit_ref"`
+	SideEffects             WorkflowRunSideEffects            `json:"side_effects"`
+	StaleRunning            bool                              `json:"stale_running"`
+	FailureBoundary         WorkflowRunFailureBoundary        `json:"failure_boundary"`
+	FailedNodeID            string                            `json:"failed_node_id"`
+	LastCompletedNodeID     string                            `json:"last_completed_node_id"`
+	GatewayFailureCategory  WorkflowRunGatewayFailureCategory `json:"gateway_failure_category"`
+	RecommendedReviewAction WorkflowRunReviewAction           `json:"recommended_review_action"`
 }
 
 type WorkflowRunListResult struct {
@@ -112,6 +122,13 @@ func normalizeWorkflowRunListRequest(request WorkflowRunListRequest) (WorkflowRu
 	if len([]rune(draftID)) > 160 {
 		return WorkflowRunListFilter{}, WorkflowRunFailureFilterInvalid
 	}
+	provider, model := strings.TrimSpace(request.Provider), strings.TrimSpace(request.Model)
+	if (request.FailureCode != "" && !validWorkflowRunFailureCode(request.FailureCode)) ||
+		(request.FailureBoundary != "" && !validWorkflowRunFailureBoundary(request.FailureBoundary)) ||
+		len([]rune(provider)) > workflowExecutorMaxModelChars || len([]rune(model)) > workflowExecutorMaxModelChars ||
+		strings.Contains(provider, "://") || strings.Contains(model, "://") {
+		return WorkflowRunListFilter{}, WorkflowRunFailureFilterInvalid
+	}
 	if request.StartedFrom != nil && request.StartedTo != nil {
 		if request.StartedFrom.After(*request.StartedTo) || request.StartedTo.Sub(*request.StartedFrom) > workflowRunListMaxRange {
 			return WorkflowRunListFilter{}, WorkflowRunFailureFilterInvalid
@@ -124,18 +141,27 @@ func normalizeWorkflowRunListRequest(request WorkflowRunListRequest) (WorkflowRu
 	}
 	return WorkflowRunListFilter{
 		Status: request.Status, DraftID: draftID, StartedFrom: request.StartedFrom,
-		StartedTo: request.StartedTo, Limit: limit,
+		StartedTo: request.StartedTo, Limit: limit, FailureCode: request.FailureCode,
+		FailureBoundary: request.FailureBoundary, Provider: provider,
+		Model: model, StaleRunning: request.StaleRunning,
 	}, ""
 }
 
 func parseWorkflowRunListRequest(values map[string][]string) (WorkflowRunListRequest, WorkflowRunFailureCode) {
-	allowed := map[string]bool{"workspace_id": true, "application_id": true, "limit": true, "cursor": true, "status": true, "draft_id": true, "started_from": true, "started_to": true}
+	allowed := map[string]bool{"workspace_id": true, "application_id": true, "limit": true, "cursor": true, "status": true, "draft_id": true, "started_from": true, "started_to": true, "failure_code": true, "failure_boundary": true, "provider": true, "model": true, "stale_running": true}
 	for key, entries := range values {
 		if !allowed[key] || len(entries) != 1 {
 			return WorkflowRunListRequest{}, WorkflowRunFailureFilterInvalid
 		}
 	}
-	request := WorkflowRunListRequest{Cursor: strings.TrimSpace(firstQueryValue(values, "cursor")), Status: WorkflowRunStatus(strings.TrimSpace(firstQueryValue(values, "status"))), DraftID: strings.TrimSpace(firstQueryValue(values, "draft_id"))}
+	request := WorkflowRunListRequest{Cursor: strings.TrimSpace(firstQueryValue(values, "cursor")), Status: WorkflowRunStatus(strings.TrimSpace(firstQueryValue(values, "status"))), DraftID: strings.TrimSpace(firstQueryValue(values, "draft_id")), FailureCode: WorkflowRunFailureCode(strings.TrimSpace(firstQueryValue(values, "failure_code"))), FailureBoundary: WorkflowRunFailureBoundary(strings.TrimSpace(firstQueryValue(values, "failure_boundary"))), Provider: strings.TrimSpace(firstQueryValue(values, "provider")), Model: strings.TrimSpace(firstQueryValue(values, "model"))}
+	if raw := strings.TrimSpace(firstQueryValue(values, "stale_running")); raw != "" {
+		if raw != "true" && raw != "false" {
+			return WorkflowRunListRequest{}, WorkflowRunFailureFilterInvalid
+		}
+		value := raw == "true"
+		request.StaleRunning = &value
+	}
 	if raw := strings.TrimSpace(firstQueryValue(values, "limit")); raw != "" {
 		limit, err := strconv.Atoi(raw)
 		if err != nil {
@@ -169,7 +195,7 @@ func encodeWorkflowRunCursor(record WorkflowRunRecord, filter WorkflowRunListFil
 	if _, err := time.Parse(time.RFC3339Nano, record.StartedAt); err != nil {
 		return "", err
 	}
-	document, err := json.Marshal(workflowRunCursor{Version: 1, StartedAt: record.StartedAt, RunID: record.RunID, FilterDigest: workflowRunFilterDigest(filter)})
+	document, err := json.Marshal(workflowRunCursor{Version: 2, StartedAt: record.StartedAt, RunID: record.RunID, FilterDigest: workflowRunFilterDigest(filter)})
 	if err != nil {
 		return "", err
 	}
@@ -189,7 +215,7 @@ func decodeWorkflowRunCursor(value string, filter WorkflowRunListFilter) (decode
 	var cursor workflowRunCursor
 	decoder := json.NewDecoder(strings.NewReader(string(decoded)))
 	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(&cursor); err != nil || cursor.Version != 1 || strings.TrimSpace(cursor.RunID) == "" || cursor.FilterDigest != workflowRunFilterDigest(filter) {
+	if err := decoder.Decode(&cursor); err != nil || cursor.Version != 2 || strings.TrimSpace(cursor.RunID) == "" || cursor.FilterDigest != workflowRunFilterDigest(filter) {
 		return decodedWorkflowRunCursor{}, errorsForWorkflowRunCursor()
 	}
 	startedAt, err := time.Parse(time.RFC3339Nano, cursor.StartedAt)
@@ -200,9 +226,16 @@ func decodeWorkflowRunCursor(value string, filter WorkflowRunListFilter) (decode
 }
 
 func workflowRunFilterDigest(filter WorkflowRunListFilter) string {
-	value := fmt.Sprintf("v1\n%s\n%s\n%s\n%s\n%d", filter.Status, filter.DraftID, workflowRunFilterTime(filter.StartedFrom), workflowRunFilterTime(filter.StartedTo), filter.Limit)
+	value := fmt.Sprintf("v2\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%d", filter.Status, filter.DraftID, filter.FailureCode, filter.FailureBoundary, filter.Provider, filter.Model, workflowRunFilterBool(filter.StaleRunning), workflowRunFilterTime(filter.StartedFrom)+"\n"+workflowRunFilterTime(filter.StartedTo), filter.Limit)
 	digest := sha256.Sum256([]byte(value))
 	return hex.EncodeToString(digest[:16])
+}
+
+func workflowRunFilterBool(value *bool) string {
+	if value == nil {
+		return ""
+	}
+	return strconv.FormatBool(*value)
 }
 
 func workflowRunFilterTime(value *time.Time) string {
@@ -221,7 +254,7 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 	if !completedAt.IsZero() {
 		duration = completedAt.Sub(startedAt).Milliseconds()
 	}
-	return WorkflowRunSummary{
+	summary := WorkflowRunSummary{
 		SchemaVersion: record.SchemaVersion, RecordVersion: record.RecordVersion, RunID: record.RunID,
 		DraftID: record.DraftID, DraftVersion: record.DraftVersion, WorkspaceID: record.WorkspaceID,
 		ApplicationID: record.ApplicationID, Status: record.Status, FailureCode: record.FailureCode,
@@ -231,6 +264,14 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 		SideEffects:  record.SideEffects,
 		StaleRunning: record.Status == WorkflowRunStatusRunning && now.Sub(startedAt) > workflowExecutorDefaultMaxRuntime,
 	}
+	if record.Diagnostic != nil {
+		summary.FailureBoundary = record.Diagnostic.FailureBoundary
+		summary.FailedNodeID = record.Diagnostic.FailedNodeID
+		summary.LastCompletedNodeID = record.Diagnostic.LastCompletedNodeID
+		summary.GatewayFailureCategory = record.Diagnostic.GatewayFailureCategory
+		summary.RecommendedReviewAction = record.Diagnostic.RecommendedReviewAction
+	}
+	return summary
 }
 
 func workflowRunListFailure(code WorkflowRunFailureCode) WorkflowRunListResult {

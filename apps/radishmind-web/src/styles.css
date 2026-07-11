@@ -2589,6 +2589,40 @@ h4 {
   gap: 10px;
 }
 
+.workflow-run-diagnostic-generator,
+.workflow-run-reference-actions {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border: 1px solid #d8e0e8;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.workflow-run-diagnostic-generator label {
+  display: grid;
+  gap: 6px;
+}
+
+.workflow-run-diagnostic-generator p,
+.workflow-run-reference-actions span {
+  margin: 0;
+  color: #607080;
+}
+
+.workflow-run-diagnostic-review {
+  margin: 14px 0;
+  padding: 16px;
+  border-left: 4px solid #b66d18;
+  background: #fff8ed;
+}
+
+.workflow-run-diagnostic-review h5 {
+  margin: 4px 0 8px;
+}
+
 .workflow-run-history-live-row {
   display: grid;
   grid-template-columns: minmax(260px, 1.6fr) minmax(100px, 0.55fr) minmax(220px, 1fr) minmax(100px, 0.55fr);
@@ -2645,6 +2679,15 @@ h4 {
   border: 1px solid #d8e0e8;
   border-radius: 10px;
   background: #fff;
+}
+
+.workflow-run-history-node-row.is-failed {
+  border-color: #b64b4b;
+  background: #fff6f6;
+}
+
+.workflow-run-history-node-row.is-last-completed {
+  box-shadow: inset 4px 0 #4f6f95;
 }
 
 .workflow-run-history-node-row span {

@@ -19,6 +19,21 @@ type workflowExecutorTestBridge struct {
 	handle       func(context.Context, []byte, bridge.EnvelopeOptions) (bridge.GatewayEnvelope, error)
 }
 
+type terminalFailWorkflowRunStore struct{ delegate workflowRunStore }
+
+func (store terminalFailWorkflowRunStore) UpsertRun(context WorkflowRunContext, record *WorkflowRunRecord) error {
+	if isTerminalWorkflowRunStatus(record.Status) {
+		return errWorkflowRunStoreConflict
+	}
+	return store.delegate.UpsertRun(context, record)
+}
+func (store terminalFailWorkflowRunStore) ReadRun(context WorkflowRunContext, runID string) (WorkflowRunRecord, bool, error) {
+	return store.delegate.ReadRun(context, runID)
+}
+func (store terminalFailWorkflowRunStore) ListRuns(context WorkflowRunContext, filter WorkflowRunListFilter) (WorkflowRunListPage, error) {
+	return store.delegate.ListRuns(context, filter)
+}
+
 func (testBridge *workflowExecutorTestBridge) DescribeProviders(context.Context) ([]bridge.ProviderDescription, error) {
 	return []bridge.ProviderDescription{{ProviderID: "mock"}}, nil
 }
@@ -343,6 +358,7 @@ func TestMemoryWorkflowRunStoreEvictsOldestAndClonesRecords(t *testing.T) {
 			DraftID:          "draft_test",
 			DraftVersion:     1,
 			ConditionNodeIDs: []string{"node_condition"},
+			Diagnostic:       newWorkflowRunDiagnostic(),
 		}
 		if err := store.UpsertRun(runContext, &record); err != nil {
 			t.Fatalf("upsert run record: %v", err)
@@ -359,6 +375,86 @@ func TestMemoryWorkflowRunStoreEvictsOldestAndClonesRecords(t *testing.T) {
 	reloaded, _, _ := store.ReadRun(runContext, "run_3")
 	if reloaded.ConditionNodeIDs[0] != "node_condition" {
 		t.Fatalf("run store must return cloned records: %#v", reloaded)
+	}
+}
+
+func TestWorkflowExecutionDiagnosticsDevScenariosAreStableAndSanitized(t *testing.T) {
+	draft := executableWorkflowDraftForTest()
+	for _, testCase := range []struct {
+		scenario WorkflowRunDevFailureScenario
+		code     WorkflowRunFailureCode
+		boundary WorkflowRunFailureBoundary
+		category WorkflowRunGatewayFailureCategory
+	}{
+		{WorkflowRunDevFailureGatewayTimeout, WorkflowRunFailureGatewayFailed, WorkflowRunFailureBoundaryGateway, WorkflowRunGatewayFailureTimeout},
+		{WorkflowRunDevFailureProviderFailed, WorkflowRunFailureGatewayFailed, WorkflowRunFailureBoundaryProvider, WorkflowRunGatewayFailureProviderFailed},
+		{WorkflowRunDevFailureRequestCanceled, WorkflowRunFailureCanceled, WorkflowRunFailureBoundaryRequest, WorkflowRunGatewayFailureCanceled},
+		{WorkflowRunDevFailureBudgetExceeded, WorkflowRunFailureBudgetExceeded, WorkflowRunFailureBoundaryExecutor, WorkflowRunGatewayFailureNone},
+	} {
+		t.Run(string(testCase.scenario), func(t *testing.T) {
+			testBridge := &workflowExecutorTestBridge{}
+			service := workflowExecutorTestService(draft, testBridge, newMemoryWorkflowRunStore(10))
+			service.diagnosticsDevEnabled = true
+			result := service.StartRun(workflowExecutorTestContext(), WorkflowRunRequest{
+				DraftID: draft.DraftID, InputText: "sensitive diagnostic input",
+				DevFailureScenario: testCase.scenario,
+			})
+			if result.FailureCode != testCase.code || result.Record == nil || result.Record.Diagnostic == nil {
+				t.Fatalf("unexpected diagnostic failure: %#v", result)
+			}
+			diagnostic := result.Record.Diagnostic
+			if diagnostic.FailureBoundary != testCase.boundary || diagnostic.GatewayFailureCategory != testCase.category ||
+				diagnostic.FailedNodeID == "" || diagnostic.TerminalWriteState != WorkflowRunTerminalWriteStored {
+				t.Fatalf("unexpected diagnostic record: %#v", diagnostic)
+			}
+			serialized, _ := json.Marshal(result.Record)
+			if strings.Contains(string(serialized), "sensitive diagnostic input") || strings.Contains(string(serialized), "://") {
+				t.Fatalf("diagnostic record leaked forbidden material: %s", serialized)
+			}
+			if result.Record.SideEffects.ToolCalls != 0 || result.Record.SideEffects.ConfirmationCalls != 0 || result.Record.SideEffects.BusinessWrites != 0 || result.Record.SideEffects.ReplayWrites != 0 {
+				t.Fatalf("diagnostic scenario enabled forbidden side effects: %#v", result.Record.SideEffects)
+			}
+		})
+	}
+}
+
+func TestWorkflowExecutionDiagnosticsRequireExplicitGateAndPreserveStaleRecord(t *testing.T) {
+	draft := executableWorkflowDraftForTest()
+	store := newMemoryWorkflowRunStore(10)
+	service := workflowExecutorTestService(draft, &workflowExecutorTestBridge{}, store)
+	request := WorkflowRunRequest{DraftID: draft.DraftID, InputText: "safe", DevFailureScenario: WorkflowRunDevFailureGatewayTimeout}
+	if result := service.StartRun(workflowExecutorTestContext(), request); result.FailureCode != WorkflowRunFailureInputInvalid {
+		t.Fatalf("disabled diagnostics scenario was accepted: %#v", result)
+	}
+	service.diagnosticsDevEnabled = true
+	request.DevFailureScenario = WorkflowRunDevFailureTerminalConflict
+	result := service.StartRun(workflowExecutorTestContext(), request)
+	if result.FailureCode != WorkflowRunFailureStoreUnavailable || result.Record == nil {
+		t.Fatalf("terminal conflict did not fail closed: %#v", result)
+	}
+	stored, found, err := store.ReadRun(workflowExecutorTestContext(), result.Record.RunID)
+	if err != nil || !found || stored.Status != WorkflowRunStatusRunning || stored.Diagnostic.TerminalWriteState != WorkflowRunTerminalWritePending {
+		t.Fatalf("terminal conflict did not preserve last running snapshot: found=%v err=%v record=%#v", found, err, stored)
+	}
+	listed := service.ListRuns(workflowExecutorTestContext(), WorkflowRunListRequest{})
+	if len(listed.Runs) != 1 || !listed.Runs[0].StaleRunning {
+		t.Fatalf("stale diagnostic snapshot is not reviewable: %#v", listed)
+	}
+}
+
+func TestWorkflowExecutionTerminalWriteFailureDoesNotFallBackOrClaimStored(t *testing.T) {
+	draft := executableWorkflowDraftForTest()
+	memory := newMemoryWorkflowRunStore(10)
+	service := workflowExecutorTestService(draft, &workflowExecutorTestBridge{}, terminalFailWorkflowRunStore{delegate: memory})
+	result := service.StartRun(workflowExecutorTestContext(), WorkflowRunRequest{DraftID: draft.DraftID, InputText: "safe"})
+	if result.FailureCode != WorkflowRunFailureStoreUnavailable || result.Record == nil || result.Record.Diagnostic == nil ||
+		result.Record.Diagnostic.FailureBoundary != WorkflowRunFailureBoundaryRunStore ||
+		result.Record.Diagnostic.TerminalWriteState != WorkflowRunTerminalWritePending {
+		t.Fatalf("terminal write failure did not fail closed: %#v", result)
+	}
+	stored, found, err := memory.ReadRun(workflowExecutorTestContext(), result.Record.RunID)
+	if err != nil || !found || stored.Status != WorkflowRunStatusRunning || stored.Diagnostic.TerminalWriteState != WorkflowRunTerminalWritePending {
+		t.Fatalf("last durable running snapshot was not preserved: found=%v record=%#v err=%v", found, stored, err)
 	}
 }
 

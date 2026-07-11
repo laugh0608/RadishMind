@@ -23,6 +23,7 @@ export type WorkflowExecutorConsumerConfig = {
   workspaceId: string;
   tenantRef: string;
   subjectRef: string;
+  diagnosticsDevEnabled?: boolean;
 };
 
 export type WorkflowExecutorConsumerStatus =
@@ -32,6 +33,10 @@ export type WorkflowExecutorConsumerStatus =
   | "reading"
   | "succeeded"
   | "failed";
+
+export type WorkflowRunDevFailureScenario = "gateway_timeout" | "gateway_queue_full" | "gateway_worker_crash" |
+  "gateway_protocol_failure" | "provider_failed" | "output_unavailable" | "request_canceled" |
+  "run_store_unavailable" | "terminal_write_conflict" | "budget_exceeded" | "stale_running";
 
 export type WorkflowRunNodeRecord = {
   nodeId: string;
@@ -48,7 +53,7 @@ export type WorkflowRunNodeRecord = {
 };
 
 export type WorkflowRunRecord = {
-  schemaVersion: "workflow_run_record.v0";
+  schemaVersion: "workflow_run_record.v0" | "workflow_run_record.v1";
   runId: string;
   draftId: string;
   draftVersion: number;
@@ -78,6 +83,19 @@ export type WorkflowRunRecord = {
     businessWrites: number;
     replayWrites: number;
   };
+  diagnostic: WorkflowRunDiagnostic | null;
+};
+
+export type WorkflowRunDiagnostic = {
+  failureBoundary: "draft_read" | "executor" | "gateway" | "provider" | "run_store" | "request" | "";
+  failureStage: string;
+  failedNodeId: string;
+  lastCompletedNodeId: string;
+  terminalWriteState: "pending" | "stored";
+  gatewayFailureCategory: "none" | "queue_full" | "timeout" | "canceled" | "worker_crash" | "protocol" | "provider_failed" | "output_unavailable" | "unavailable";
+  summary: string;
+  recommendedReviewAction: "review_draft" | "check_gateway_capacity" | "check_provider_configuration" | "check_run_store" | "start_new_run" | "";
+  observedAt: string;
 };
 
 export type WorkflowExecutorConsumerState = {
@@ -114,7 +132,7 @@ type WorkflowRunEnvelopeDocument = {
 };
 
 type WorkflowRunRecordDocument = {
-  schema_version: "workflow_run_record.v0";
+  schema_version: "workflow_run_record.v0" | "workflow_run_record.v1";
   run_id: string;
   draft_id: string;
   draft_version: number;
@@ -138,6 +156,19 @@ type WorkflowRunRecordDocument = {
   request_id: string;
   audit_ref: string;
   side_effects: WorkflowRunSideEffectsDocument;
+  diagnostic?: WorkflowRunDiagnosticDocument;
+};
+
+type WorkflowRunDiagnosticDocument = {
+  failure_boundary: WorkflowRunDiagnostic["failureBoundary"];
+  failure_stage: string;
+  failed_node_id: string;
+  last_completed_node_id: string;
+  terminal_write_state: WorkflowRunDiagnostic["terminalWriteState"];
+  gateway_failure_category: WorkflowRunDiagnostic["gatewayFailureCategory"];
+  summary: string;
+  recommended_review_action: WorkflowRunDiagnostic["recommendedReviewAction"];
+  observed_at: string;
 };
 
 type WorkflowRunNodeRecordDocument = {
@@ -179,6 +210,7 @@ export function readWorkflowExecutorConsumerConfig(): WorkflowExecutorConsumerCo
       DEFAULT_WORKSPACE_ID,
     tenantRef: env.VITE_RADISHMIND_DEV_READ_TENANT_REF?.trim() || DEFAULT_TENANT_REF,
     subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || DEFAULT_SUBJECT_REF,
+    diagnosticsDevEnabled: env.VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV?.trim() === "true",
   };
 }
 
@@ -434,6 +466,32 @@ export async function readWorkflowRunDevRecord(
   config: WorkflowExecutorConsumerConfig,
 ): Promise<WorkflowExecutorConsumerState> {
   return readWorkflowRunDevRecordByID(record.runId, record.applicationId, config);
+}
+
+export async function startWorkflowDiagnosticDevRecord(
+  draftId: string,
+  applicationId: string,
+  scenario: WorkflowRunDevFailureScenario,
+  config: WorkflowExecutorConsumerConfig,
+): Promise<WorkflowExecutorConsumerState> {
+  const envelope = await requestWorkflowRunEnvelope(
+    `/v1/user-workspace/workflow-drafts/${encodeURIComponent(draftId.trim())}/runs`,
+    applicationId,
+    `dev-workflow-diagnostic-${scenario}`,
+    config,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        workspace_id: config.workspaceId,
+        application_id: applicationId,
+        input_text: "Review the deterministic workflow diagnostics path.",
+        condition_values: {},
+        model: "",
+        dev_failure_scenario: scenario,
+      }),
+    },
+  );
+  return workflowExecutorStateFromEnvelope(envelope, "start");
 }
 
 export async function readWorkflowRunDevRecordByID(
@@ -783,6 +841,17 @@ function workflowRunRecordFromDocument(document: WorkflowRunRecordDocument): Wor
       businessWrites: document.side_effects.business_writes,
       replayWrites: document.side_effects.replay_writes,
     },
+    diagnostic: document.diagnostic ? {
+      failureBoundary: document.diagnostic.failure_boundary,
+      failureStage: document.diagnostic.failure_stage,
+      failedNodeId: document.diagnostic.failed_node_id,
+      lastCompletedNodeId: document.diagnostic.last_completed_node_id,
+      terminalWriteState: document.diagnostic.terminal_write_state,
+      gatewayFailureCategory: document.diagnostic.gateway_failure_category,
+      summary: document.diagnostic.summary,
+      recommendedReviewAction: document.diagnostic.recommended_review_action,
+      observedAt: document.diagnostic.observed_at,
+    } : null,
   };
 }
 
@@ -805,7 +874,11 @@ function isWorkflowRunRecordDocument(value: unknown): value is WorkflowRunRecord
     return false;
   }
   const candidate = value as Partial<WorkflowRunRecordDocument>;
-  return candidate.schema_version === "workflow_run_record.v0" &&
+  const schemaValid = candidate.schema_version === "workflow_run_record.v0" || candidate.schema_version === "workflow_run_record.v1";
+  const diagnosticValid = candidate.schema_version === "workflow_run_record.v0"
+    ? candidate.diagnostic === undefined
+    : isWorkflowRunDiagnosticDocument(candidate.diagnostic);
+  return schemaValid && diagnosticValid && !containsForbiddenWorkflowDiagnosticField(value) &&
     typeof candidate.run_id === "string" &&
     typeof candidate.draft_id === "string" &&
     typeof candidate.draft_version === "number" &&
@@ -829,6 +902,25 @@ function isWorkflowRunRecordDocument(value: unknown): value is WorkflowRunRecord
     typeof candidate.request_id === "string" &&
     typeof candidate.audit_ref === "string" &&
     isWorkflowRunSideEffectsDocument(candidate.side_effects);
+}
+
+function isWorkflowRunDiagnosticDocument(value: unknown): value is WorkflowRunDiagnosticDocument {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<WorkflowRunDiagnosticDocument>;
+  return ["", "draft_read", "executor", "gateway", "provider", "run_store", "request"].includes(candidate.failure_boundary ?? "invalid") &&
+    typeof candidate.failure_stage === "string" && typeof candidate.failed_node_id === "string" &&
+    typeof candidate.last_completed_node_id === "string" && ["pending", "stored"].includes(candidate.terminal_write_state ?? "") &&
+    ["none", "queue_full", "timeout", "canceled", "worker_crash", "protocol", "provider_failed", "output_unavailable", "unavailable"].includes(candidate.gateway_failure_category ?? "") &&
+    typeof candidate.summary === "string" && ["", "review_draft", "check_gateway_capacity", "check_provider_configuration", "check_run_store", "start_new_run"].includes(candidate.recommended_review_action ?? "invalid") &&
+    typeof candidate.observed_at === "string";
+}
+
+function containsForbiddenWorkflowDiagnosticField(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some(containsForbiddenWorkflowDiagnosticField);
+  if (!value || typeof value !== "object") return false;
+  const document = value as Record<string, unknown>;
+  const forbidden = new Set(["input_text", "condition_values", "credential", "endpoint", "provider_raw_envelope", "stderr", "stack_trace", "sql"]);
+  return Object.entries(document).some(([key, nested]) => forbidden.has(key) || containsForbiddenWorkflowDiagnosticField(nested));
 }
 
 function isWorkflowRunNodeRecordDocument(value: unknown): value is WorkflowRunNodeRecordDocument {

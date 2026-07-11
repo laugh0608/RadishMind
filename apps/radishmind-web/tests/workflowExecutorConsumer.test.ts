@@ -5,6 +5,7 @@ import {
   buildWorkflowExecutorV0Draft,
   evaluateWorkflowExecutorEligibility,
   readWorkflowRunDevRecord,
+  startWorkflowDiagnosticDevRecord,
   startWorkflowRunDevRecord,
 } from "../src/features/control-plane-read/workflowExecutorConsumer.ts";
 import { workflowSavedDraftRequestedCapabilities } from "../src/features/control-plane-read/workflowSavedDraftCapabilityPolicy.ts";
@@ -112,6 +113,28 @@ test("executor HTTP consumer maps terminal record without retaining raw input", 
   const reloaded = await readWorkflowRunDevRecord(started.record!, executorConfig);
   assert.equal(reloaded.status, "succeeded");
   assert.equal(requests[1]?.url.includes("/v1/user-workspace/workflow-runs/run_executor_test?"), true);
+});
+
+test("executor consumer maps v1 structured diagnostic and rejects raw provider material", async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const envelope = successEnvelope() as any;
+  envelope.failure_code = "workflow_run_gateway_failed";
+  envelope.failure_summary = "Gateway timed out while executing the workflow model node.";
+  envelope.run.schema_version = "workflow_run_record.v1";
+  envelope.run.status = "failed";
+  envelope.run.failure_code = envelope.failure_code;
+  envelope.run.failure_summary = envelope.failure_summary;
+  envelope.run.diagnostic = { failure_boundary: "gateway", failure_stage: "model_node", failed_node_id: "node_executor_model", last_completed_node_id: "node_executor_prompt", terminal_write_state: "stored", gateway_failure_category: "timeout", summary: envelope.failure_summary, recommended_review_action: "check_gateway_capacity", observed_at: "2026-07-11T00:00:01Z" };
+  globalThis.fetch = async () => new Response(JSON.stringify(envelope), { status: 200 });
+  const state = await startWorkflowDiagnosticDevRecord("draft_executor", "app_flow_copilot", "gateway_timeout", executorConfig);
+  assert.equal(state.status, "failed");
+  assert.equal(state.record?.diagnostic?.failureBoundary, "gateway");
+  assert.equal(state.record?.diagnostic?.failedNodeId, "node_executor_model");
+
+  envelope.run.diagnostic.provider_raw_envelope = { endpoint: "https://provider.invalid" };
+  globalThis.fetch = async () => new Response(JSON.stringify(envelope), { status: 200 });
+  await assert.rejects(() => startWorkflowDiagnosticDevRecord("draft_executor", "app_flow_copilot", "gateway_timeout", executorConfig), /unexpected envelope/);
 });
 
 function sourceDraft() {

@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	workflowRunRecordSchemaVersion = "workflow_run_record.v0"
-	workflowExecutorProtocol       = "workflow-executor-v0"
-	workflowExecutorRoute          = "/v1/user-workspace/workflow-drafts/{draft_id}/runs"
+	workflowRunRecordSchemaVersion       = "workflow_run_record.v1"
+	workflowRunRecordLegacySchemaVersion = "workflow_run_record.v0"
+	workflowExecutorProtocol             = "workflow-executor-v0"
+	workflowExecutorRoute                = "/v1/user-workspace/workflow-drafts/{draft_id}/runs"
 
 	workflowExecutorMaxNodes          = 16
 	workflowExecutorMaxEdges          = 32
@@ -84,11 +85,12 @@ type WorkflowRunContext struct {
 }
 
 type WorkflowRunRequest struct {
-	DraftID         string
-	InputText       string
-	ConditionValues map[string]bool
-	Model           string
-	Temperature     *float64
+	DraftID            string
+	InputText          string
+	ConditionValues    map[string]bool
+	Model              string
+	Temperature        *float64
+	DevFailureScenario WorkflowRunDevFailureScenario
 }
 
 type WorkflowRunSideEffects struct {
@@ -140,6 +142,7 @@ type WorkflowRunRecord struct {
 	AuditRef         string                  `json:"audit_ref"`
 	ActorRef         string                  `json:"actor_ref"`
 	SideEffects      WorkflowRunSideEffects  `json:"side_effects"`
+	Diagnostic       *WorkflowRunDiagnostic  `json:"diagnostic,omitempty"`
 }
 
 type WorkflowRunResult struct {
@@ -154,14 +157,15 @@ type workflowSavedDraftReader func(
 ) SavedWorkflowDraftResult
 
 type workflowExecutorService struct {
-	draftReader        workflowSavedDraftReader
-	bridge             bridgeClient
-	store              workflowRunStore
-	maxRuntime         time.Duration
-	defaultTemperature float64
-	resolveSelection   func(context.Context, string) northboundSelection
-	envelopeOptions    func(northboundSelection, float64) bridge.EnvelopeOptions
-	newRunID           func() (string, error)
+	draftReader           workflowSavedDraftReader
+	bridge                bridgeClient
+	store                 workflowRunStore
+	maxRuntime            time.Duration
+	defaultTemperature    float64
+	resolveSelection      func(context.Context, string) northboundSelection
+	envelopeOptions       func(northboundSelection, float64) bridge.EnvelopeOptions
+	newRunID              func() (string, error)
+	diagnosticsDevEnabled bool
 }
 
 type workflowExecutionPlan struct {
@@ -194,6 +198,9 @@ func (service workflowExecutorService) StartRun(
 	normalizedRequest, failureCode, failureSummary := normalizeWorkflowRunRequest(request)
 	if failureCode != "" {
 		return workflowRunFailure(failureCode, failureSummary)
+	}
+	if normalizedRequest.DevFailureScenario != "" && !service.diagnosticsDevEnabled {
+		return workflowRunFailure(WorkflowRunFailureInputInvalid, "Workflow diagnostics dev failure scenario is disabled.")
 	}
 	draftResult := service.draftReader(
 		SavedWorkflowDraftContext{
@@ -235,8 +242,24 @@ func (service workflowExecutorService) StartRun(
 
 	selection := resolveWorkflowRunSelection(service, executionContext, normalizedRequest.Model)
 	record := newWorkflowRunRecord(runContext, normalizedRequest, draft, plan, selection, runID)
+	if normalizedRequest.DevFailureScenario == WorkflowRunDevFailureStoreUnavailable {
+		return workflowRunFailure(WorkflowRunFailureStoreUnavailable, "Workflow run record storage is unavailable.")
+	}
+	if normalizedRequest.DevFailureScenario == WorkflowRunDevFailureStaleRunning || normalizedRequest.DevFailureScenario == WorkflowRunDevFailureTerminalConflict {
+		record.StartedAt = workflowRunTimestamp(time.Now().Add(-workflowExecutorDefaultMaxRuntime - time.Second))
+	}
 	if err := service.store.UpsertRun(runContext, &record); err != nil {
 		return workflowRunFailure(WorkflowRunFailureStoreUnavailable, "Workflow run record storage is unavailable.")
+	}
+	if normalizedRequest.DevFailureScenario == WorkflowRunDevFailureStaleRunning {
+		return WorkflowRunResult{Record: workflowRunRecordPointer(record)}
+	}
+	if normalizedRequest.DevFailureScenario == WorkflowRunDevFailureTerminalConflict {
+		setWorkflowRunFailureDiagnostic(&record, WorkflowRunFailureStoreUnavailable, "", WorkflowRunGatewayFailureNone)
+		return WorkflowRunResult{
+			Record: workflowRunRecordPointer(record), FailureCode: WorkflowRunFailureStoreUnavailable,
+			FailureSummary: "Workflow run terminal state could not be stored.",
+		}
 	}
 	return service.executePlan(executionContext, runContext, normalizedRequest, draft, plan, selection, record)
 }
@@ -285,6 +308,10 @@ func (service workflowExecutorService) executePlan(
 		if !active {
 			record.Nodes[recordIndex].Status = WorkflowRunNodeStatusSkipped
 			record.Nodes[recordIndex].CompletedAt = workflowRunTimestamp(time.Now())
+			if record.Diagnostic != nil {
+				record.Diagnostic.LastCompletedNodeID = nodeID
+				record.Diagnostic.ObservedAt = workflowRunTimestamp(time.Now())
+			}
 			for _, edge := range plan.outgoing[nodeID] {
 				edgeActive[edge.EdgeID] = false
 			}
@@ -318,6 +345,9 @@ func (service workflowExecutorService) executePlan(
 		if failureCode != "" {
 			record.Nodes[recordIndex].Status = WorkflowRunNodeStatusFailed
 			record.Nodes[recordIndex].FailureCode = failureCode
+			if record.Diagnostic != nil && record.Diagnostic.FailedNodeID == "" {
+				setWorkflowRunFailureDiagnostic(&record, failureCode, nodeID, WorkflowRunGatewayFailureNone)
+			}
 			canceled := failureCode == WorkflowRunFailureCanceled
 			return service.finishFailedRun(runContext, record, failureCode, failureSummary, canceled)
 		}
@@ -325,6 +355,10 @@ func (service workflowExecutorService) executePlan(
 		nodeOutputs[nodeID] = output
 		record.Nodes[recordIndex].Status = WorkflowRunNodeStatusSucceeded
 		record.Nodes[recordIndex].OutputPreview = workflowRunNodeOutputPreview(node.NodeType, output)
+		if record.Diagnostic != nil {
+			record.Diagnostic.LastCompletedNodeID = nodeID
+			record.Diagnostic.ObservedAt = workflowRunTimestamp(time.Now())
+		}
 		if node.NodeType == "condition" {
 			activateWorkflowConditionEdges(request.ConditionValues[nodeID], plan.outgoing[nodeID], edgeActive)
 		} else {
@@ -346,8 +380,16 @@ func (service workflowExecutorService) executePlan(
 	record.CompletedAt = workflowRunTimestamp(time.Now())
 	record.FailureCode = ""
 	record.FailureSummary = ""
+	if record.Diagnostic != nil {
+		record.Diagnostic.TerminalWriteState = WorkflowRunTerminalWriteStored
+		record.Diagnostic.ObservedAt = workflowRunTimestamp(time.Now())
+	}
 	if err := service.store.UpsertRun(runContext, &record); err != nil {
-		return workflowRunFailure(WorkflowRunFailureStoreUnavailable, "Workflow run completed but its terminal record could not be stored.")
+		if record.Diagnostic != nil {
+			record.Diagnostic.TerminalWriteState = WorkflowRunTerminalWritePending
+			setWorkflowRunFailureDiagnostic(&record, WorkflowRunFailureStoreUnavailable, "", WorkflowRunGatewayFailureNone)
+		}
+		return WorkflowRunResult{Record: workflowRunRecordPointer(record), FailureCode: WorkflowRunFailureStoreUnavailable, FailureSummary: "Workflow run completed but its terminal record could not be stored."}
 	}
 	return WorkflowRunResult{Record: workflowRunRecordPointer(record)}
 }
@@ -363,6 +405,13 @@ func (service workflowExecutorService) executeNode(
 	selection northboundSelection,
 	record *WorkflowRunRecord,
 ) (string, WorkflowRunFailureCode, string) {
+	if failureCode, summary, category, matched := workflowRunInjectedNodeFailure(request.DevFailureScenario, node.NodeType); matched {
+		if node.NodeType == "llm" {
+			record.SideEffects.ProviderCalls++
+		}
+		setWorkflowRunFailureDiagnostic(record, failureCode, node.NodeID, category)
+		return "", failureCode, summary
+	}
 	switch node.NodeType {
 	case "prompt":
 		packet := buildWorkflowPromptPacket(node, request.InputText)
@@ -420,13 +469,16 @@ func (service workflowExecutorService) executeNode(
 			if errors.Is(executionContext.Err(), context.Canceled) || errors.Is(executionContext.Err(), context.DeadlineExceeded) {
 				return "", WorkflowRunFailureCanceled, "Workflow run was canceled or exceeded its execution deadline."
 			}
+			setWorkflowRunFailureDiagnostic(record, WorkflowRunFailureGatewayFailed, node.NodeID, workflowRunGatewayCategory(err))
 			return "", WorkflowRunFailureGatewayFailed, "Gateway could not complete the workflow model node."
 		}
 		if !strings.EqualFold(strings.TrimSpace(envelope.Status), "ok") || envelope.Error != nil {
+			setWorkflowRunFailureDiagnostic(record, WorkflowRunFailureGatewayFailed, node.NodeID, WorkflowRunGatewayFailureProviderFailed)
 			return "", WorkflowRunFailureGatewayFailed, "Gateway returned a failed workflow model node envelope."
 		}
 		output := strings.TrimSpace(buildNorthboundResponseContent(envelope))
 		if output == "" {
+			setWorkflowRunFailureDiagnostic(record, WorkflowRunFailureOutputUnavailable, node.NodeID, WorkflowRunGatewayFailureOutputUnavailable)
 			return "", WorkflowRunFailureOutputUnavailable, "Gateway returned no reviewable workflow model output."
 		}
 		if len([]byte(output)) > workflowExecutorMaxOutputBytes {
@@ -468,7 +520,18 @@ func (service workflowExecutorService) finishFailedRun(
 	record.FailureCode = failureCode
 	record.FailureSummary = failureSummary
 	record.CompletedAt = workflowRunTimestamp(time.Now())
+	if record.Diagnostic != nil {
+		if record.Diagnostic.FailureBoundary == "" {
+			setWorkflowRunFailureDiagnostic(&record, failureCode, record.Diagnostic.FailedNodeID, record.Diagnostic.GatewayFailureCategory)
+		}
+		record.Diagnostic.TerminalWriteState = WorkflowRunTerminalWriteStored
+		record.Diagnostic.ObservedAt = workflowRunTimestamp(time.Now())
+	}
 	if err := service.store.UpsertRun(runContext, &record); err != nil {
+		if record.Diagnostic != nil {
+			record.Diagnostic.TerminalWriteState = WorkflowRunTerminalWritePending
+			setWorkflowRunFailureDiagnostic(&record, WorkflowRunFailureStoreUnavailable, record.Diagnostic.FailedNodeID, WorkflowRunGatewayFailureNone)
+		}
 		return WorkflowRunResult{
 			Record:         workflowRunRecordPointer(record),
 			FailureCode:    WorkflowRunFailureStoreUnavailable,
@@ -484,11 +547,12 @@ func (service workflowExecutorService) finishFailedRun(
 
 func normalizeWorkflowRunRequest(request WorkflowRunRequest) (WorkflowRunRequest, WorkflowRunFailureCode, string) {
 	normalized := WorkflowRunRequest{
-		DraftID:         strings.TrimSpace(request.DraftID),
-		InputText:       strings.TrimSpace(request.InputText),
-		ConditionValues: make(map[string]bool, len(request.ConditionValues)),
-		Model:           strings.TrimSpace(request.Model),
-		Temperature:     request.Temperature,
+		DraftID:            strings.TrimSpace(request.DraftID),
+		InputText:          strings.TrimSpace(request.InputText),
+		ConditionValues:    make(map[string]bool, len(request.ConditionValues)),
+		Model:              strings.TrimSpace(request.Model),
+		Temperature:        request.Temperature,
+		DevFailureScenario: WorkflowRunDevFailureScenario(strings.TrimSpace(string(request.DevFailureScenario))),
 	}
 	if normalized.DraftID == "" || normalized.InputText == "" {
 		return WorkflowRunRequest{}, WorkflowRunFailureInputInvalid, "Workflow draft id and input text are required."
@@ -501,6 +565,9 @@ func normalizeWorkflowRunRequest(request WorkflowRunRequest) (WorkflowRunRequest
 	}
 	if len(request.ConditionValues) > workflowExecutorMaxConditions {
 		return WorkflowRunRequest{}, WorkflowRunFailureBudgetExceeded, "Workflow condition input count exceeded the execution budget."
+	}
+	if normalized.DevFailureScenario != "" && !validWorkflowRunDevFailureScenario(normalized.DevFailureScenario) {
+		return WorkflowRunRequest{}, WorkflowRunFailureInputInvalid, "Workflow diagnostics dev failure scenario is invalid."
 	}
 	for nodeID, value := range request.ConditionValues {
 		normalizedNodeID := strings.TrimSpace(nodeID)
@@ -888,6 +955,7 @@ func newWorkflowRunRecord(
 		RequestID:        runContext.RequestID,
 		AuditRef:         runContext.AuditRef,
 		ActorRef:         runContext.ActorRef,
+		Diagnostic:       newWorkflowRunDiagnostic(),
 	}
 }
 

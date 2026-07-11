@@ -16,13 +16,18 @@ var (
 )
 
 type WorkflowRunListFilter struct {
-	Status      WorkflowRunStatus
-	DraftID     string
-	StartedFrom *time.Time
-	StartedTo   *time.Time
-	BeforeTime  *time.Time
-	BeforeRunID string
-	Limit       int
+	Status          WorkflowRunStatus
+	DraftID         string
+	FailureCode     WorkflowRunFailureCode
+	FailureBoundary WorkflowRunFailureBoundary
+	Provider        string
+	Model           string
+	StaleRunning    *bool
+	StartedFrom     *time.Time
+	StartedTo       *time.Time
+	BeforeTime      *time.Time
+	BeforeRunID     string
+	Limit           int
 }
 
 type WorkflowRunListPage struct {
@@ -137,6 +142,18 @@ func workflowRunMatchesFilter(record WorkflowRunRecord, filter WorkflowRunListFi
 	if filter.DraftID != "" && record.DraftID != filter.DraftID {
 		return false
 	}
+	if filter.FailureCode != "" && record.FailureCode != filter.FailureCode {
+		return false
+	}
+	if filter.FailureBoundary != "" && (record.Diagnostic == nil || record.Diagnostic.FailureBoundary != filter.FailureBoundary) {
+		return false
+	}
+	if filter.Provider != "" && record.SelectedProvider != filter.Provider {
+		return false
+	}
+	if filter.Model != "" && record.SelectedModel != filter.Model {
+		return false
+	}
 	startedAt, err := time.Parse(time.RFC3339Nano, record.StartedAt)
 	if err != nil {
 		return false
@@ -152,13 +169,19 @@ func workflowRunMatchesFilter(record WorkflowRunRecord, filter WorkflowRunListFi
 			return false
 		}
 	}
+	if filter.StaleRunning != nil {
+		stale := record.Status == WorkflowRunStatusRunning && time.Since(startedAt) > workflowExecutorDefaultMaxRuntime
+		if stale != *filter.StaleRunning {
+			return false
+		}
+	}
 	return true
 }
 
 func validateWorkflowRunStoreRecord(runContext WorkflowRunContext, record *WorkflowRunRecord) error {
 	if record == nil || strings.TrimSpace(runContext.TenantRef) == "" ||
 		strings.TrimSpace(runContext.WorkspaceID) == "" || strings.TrimSpace(runContext.ApplicationID) == "" ||
-		record.SchemaVersion != workflowRunRecordSchemaVersion || strings.TrimSpace(record.RunID) == "" ||
+		!validWorkflowRunRecordSchema(record.SchemaVersion) || strings.TrimSpace(record.RunID) == "" ||
 		strings.TrimSpace(record.DraftID) == "" || record.DraftVersion <= 0 || record.RecordVersion < 0 ||
 		strings.TrimSpace(record.ActorRef) == "" || strings.TrimSpace(record.RequestID) == "" || strings.TrimSpace(record.AuditRef) == "" ||
 		record.WorkspaceID != runContext.WorkspaceID || record.ApplicationID != runContext.ApplicationID ||
@@ -166,6 +189,12 @@ func validateWorkflowRunStoreRecord(runContext WorkflowRunContext, record *Workf
 		record.SideEffects.ConfirmationCalls != 0 || record.SideEffects.BusinessWrites != 0 ||
 		record.SideEffects.ReplayWrites != 0 || len([]byte(record.Output)) > workflowExecutorMaxOutputBytes ||
 		len([]rune(record.FailureSummary)) > 256 || workflowRunRecordContainsEndpoint(record) {
+		return errWorkflowRunStoreContract
+	}
+	if record.SchemaVersion == workflowRunRecordSchemaVersion && !validWorkflowRunDiagnostic(record.Diagnostic, isTerminalWorkflowRunStatus(record.Status)) {
+		return errWorkflowRunStoreContract
+	}
+	if record.SchemaVersion == workflowRunRecordLegacySchemaVersion && record.Diagnostic != nil {
 		return errWorkflowRunStoreContract
 	}
 	for _, node := range record.Nodes {
@@ -192,6 +221,10 @@ func workflowRunRecordContainsEndpoint(record *WorkflowRunRecord) bool {
 		strings.Contains(record.UpstreamModel, "://")
 }
 
+func validWorkflowRunRecordSchema(schemaVersion string) bool {
+	return schemaVersion == workflowRunRecordSchemaVersion || schemaVersion == workflowRunRecordLegacySchemaVersion
+}
+
 func validWorkflowRunStatus(status WorkflowRunStatus) bool {
 	return status == WorkflowRunStatusRunning || isTerminalWorkflowRunStatus(status)
 }
@@ -206,6 +239,10 @@ func workflowRunStoreKey(tenantRef string, workspaceID string, applicationID str
 
 func cloneWorkflowRunRecord(record WorkflowRunRecord) WorkflowRunRecord {
 	cloned := record
+	if record.Diagnostic != nil {
+		diagnostic := *record.Diagnostic
+		cloned.Diagnostic = &diagnostic
+	}
 	cloned.ConditionNodeIDs = cloneStringSlice(record.ConditionNodeIDs)
 	cloned.Nodes = make([]WorkflowRunNodeRecord, 0, len(record.Nodes))
 	for _, node := range record.Nodes {
