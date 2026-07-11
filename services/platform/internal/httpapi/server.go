@@ -124,6 +124,9 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(workflowEvaluationListRoute, server.handleListWorkflowEvaluations)
 	mux.HandleFunc(workflowEvaluationReadRoute, server.handleReadWorkflowEvaluation)
 	mux.HandleFunc(workflowEvaluationReviewRoute, server.handleReviewWorkflowEvaluation)
+	mux.HandleFunc(workflowEvaluationRevisionCreateRoute, server.handleCreateWorkflowEvaluationRevision)
+	mux.HandleFunc(workflowEvaluationRevisionListRoute, server.handleListWorkflowEvaluationRevisions)
+	mux.HandleFunc(workflowEvaluationRevisionReadRoute, server.handleReadWorkflowEvaluationRevision)
 
 	server.httpServer = &http.Server{
 		Addr:              cfg.ListenAddr,

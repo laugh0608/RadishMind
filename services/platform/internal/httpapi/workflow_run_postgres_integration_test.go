@@ -5,6 +5,7 @@ package httpapi
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -103,7 +104,40 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	evaluationService := newWorkflowEvaluationService(evaluationStore, store)
 	evaluationService.newCaseID = func() (string, error) { return "eval_pg_restart", nil }
 	evaluation := evaluationService.Create(runContext, WorkflowEvaluationCreateRequest{Name: "PostgreSQL restart review", BaselineRunID: diagnostic.RunID, Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: "run_pg_c", ExpectedClassification: WorkflowRunComparisonImprovement}}})
-	if evaluation.FailureCode != "" || evaluation.Case == nil { t.Fatalf("create PostgreSQL evaluation case: %#v", evaluation) }
+	if evaluation.FailureCode != "" || evaluation.Case == nil {
+		t.Fatalf("create PostgreSQL evaluation case: %#v", evaluation)
+	}
+	revisedEvaluation := evaluationService.Revise(runContext, evaluation.Case.CaseID, WorkflowEvaluationRevisionRequest{ExpectedVersion: 1, RevisionKind: WorkflowEvaluationRevisionCase, Name: "PostgreSQL revised review", BaselineRunID: diagnostic.RunID, Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: "run_pg_c", ExpectedClassification: WorkflowRunComparisonChanged}}})
+	if revisedEvaluation.FailureCode != "" || revisedEvaluation.Case == nil || revisedEvaluation.Case.Version != 2 {
+		t.Fatalf("revise PostgreSQL evaluation case: %#v", revisedEvaluation)
+	}
+	evaluationService.newCaseID = func() (string, error) { return "eval_pg_cas", nil }
+	casCase := evaluationService.Create(runContext, WorkflowEvaluationCreateRequest{Name: "PostgreSQL evaluation CAS", BaselineRunID: diagnostic.RunID, Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: "run_pg_c", ExpectedClassification: WorkflowRunComparisonImprovement}}})
+	if casCase.Case == nil {
+		t.Fatalf("create evaluation CAS case: %#v", casCase)
+	}
+	var evaluationWG sync.WaitGroup
+	evaluationResults := make(chan WorkflowEvaluationResult, 8)
+	for index := 0; index < 8; index++ {
+		evaluationWG.Add(1)
+		go func(index int) {
+			defer evaluationWG.Done()
+			evaluationResults <- evaluationService.Revise(runContext, casCase.Case.CaseID, WorkflowEvaluationRevisionRequest{ExpectedVersion: 1, RevisionKind: WorkflowEvaluationRevisionCase, Name: fmt.Sprintf("PostgreSQL evaluation CAS %d", index), BaselineRunID: diagnostic.RunID, Expectations: casCase.Case.Expectations})
+		}(index)
+	}
+	evaluationWG.Wait()
+	close(evaluationResults)
+	evaluationWinners := 0
+	for result := range evaluationResults {
+		if result.FailureCode == "" {
+			evaluationWinners++
+		} else if result.FailureCode != WorkflowEvaluationFailureVersionConflict {
+			t.Fatalf("unexpected evaluation CAS result: %#v", result)
+		}
+	}
+	if evaluationWinners != 1 {
+		t.Fatalf("expected one evaluation CAS winner, got %d", evaluationWinners)
+	}
 	other := runContext
 	other.TenantRef = "tenant_other"
 	if scoped, err := store.ListRuns(other, WorkflowRunListFilter{Limit: 10}); err != nil || len(scoped.Records) != 0 {
@@ -129,9 +163,18 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 		t.Fatalf("restart comparison leaked cross scope: %#v", scopedComparison)
 	}
 	restartedEvaluationService := newWorkflowEvaluationService(evaluationStore, store)
-	restartedReview := restartedEvaluationService.Review(runContext, evaluation.Case.CaseID)
-	if restartedReview.FailureCode != "" || restartedReview.Review == nil || restartedReview.Review.Outcome != "passed" { t.Fatalf("restart batch evaluation failed: %#v", restartedReview) }
-	if leaked := restartedEvaluationService.Read(other, evaluation.Case.CaseID); leaked.FailureCode != WorkflowEvaluationFailureNotFound { t.Fatalf("evaluation case leaked scope: %#v", leaked) }
+	restartedReview := restartedEvaluationService.ReviewVersion(runContext, evaluation.Case.CaseID, 1)
+	currentReview := restartedEvaluationService.Review(runContext, evaluation.Case.CaseID)
+	if restartedReview.FailureCode != "" || restartedReview.Review == nil || restartedReview.Review.Outcome != "passed" || restartedReview.Review.Version != 1 || currentReview.Review == nil || currentReview.Review.Outcome != "mismatch" || currentReview.Review.Version != 2 {
+		t.Fatalf("restart versioned evaluation failed: old=%#v current=%#v", restartedReview, currentReview)
+	}
+	revisionHistory := restartedEvaluationService.ListRevisions(runContext, evaluation.Case.CaseID, WorkflowEvaluationRevisionListRequest{Limit: 10})
+	if revisionHistory.FailureCode != "" || len(revisionHistory.Revisions) != 2 || revisionHistory.Revisions[0].Version != 2 {
+		t.Fatalf("restart revision history failed: %#v", revisionHistory)
+	}
+	if leaked := restartedEvaluationService.Read(other, evaluation.Case.CaseID); leaked.FailureCode != WorkflowEvaluationFailureNotFound {
+		t.Fatalf("evaluation case leaked scope: %#v", leaked)
+	}
 	running := workflowRunHistoryTestRecord(runContext, "run_pg_concurrent", "draft_pg", time.Now().UTC())
 	if err = store.UpsertRun(runContext, &running); err != nil {
 		t.Fatal(err)
@@ -203,12 +246,59 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if upgraded, upgradeErr := workflowrunmigrations.Apply(ctx, pool); upgradeErr != nil || upgraded.MigrationState != workflowrunmigrations.MigrationStateApplied {
 		t.Fatalf("legacy migration upgrade failed: %#v %v", upgraded, upgradeErr)
 	}
-	if _, err = workflowrunmigrations.RollbackForDevTest(ctx, pool); err != nil { t.Fatal(err) }
-	diagnosticsSQL, err := os.ReadFile("../../migrations/workflow_runs/0002_workflow_run_diagnostics.up.sql"); if err != nil { t.Fatal(err) }
-	if _, err = pool.Exec(ctx, string(legacySQL)+"\n"+string(diagnosticsSQL)); err != nil { t.Fatalf("apply diagnostics migration: %v", err) }
+	if _, err = workflowrunmigrations.RollbackForDevTest(ctx, pool); err != nil {
+		t.Fatal(err)
+	}
+	diagnosticsSQL, err := os.ReadFile("../../migrations/workflow_runs/0002_workflow_run_diagnostics.up.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = pool.Exec(ctx, string(legacySQL)+"\n"+string(diagnosticsSQL)); err != nil {
+		t.Fatalf("apply diagnostics migration: %v", err)
+	}
 	diagnosticsChecksum := fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(string(legacySQL)+"\n"+string(diagnosticsSQL))))
-	if _, err = pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS workflow_run_schema_versions (component text PRIMARY KEY, migration_id text NOT NULL, store_schema_version text NOT NULL, migration_checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil { t.Fatal(err) }
-	if _, err = pool.Exec(ctx, `INSERT INTO workflow_run_schema_versions(component,migration_id,store_schema_version,migration_checksum) VALUES($1,'0002_workflow_run_diagnostics','workflow_run_store_v2',$2)`, workflowrunmigrations.Component, diagnosticsChecksum); err != nil { t.Fatal(err) }
-	if pending, inspectErr := workflowrunmigrations.Inspect(ctx, pool); inspectErr != nil || pending.MigrationState != workflowrunmigrations.MigrationStatePending { t.Fatalf("diagnostics marker was not pending: %#v %v", pending, inspectErr) }
-	if upgraded, upgradeErr := workflowrunmigrations.Apply(ctx, pool); upgradeErr != nil || upgraded.MigrationState != workflowrunmigrations.MigrationStateApplied { t.Fatalf("diagnostics migration upgrade failed: %#v %v", upgraded, upgradeErr) }
+	if _, err = pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS workflow_run_schema_versions (component text PRIMARY KEY, migration_id text NOT NULL, store_schema_version text NOT NULL, migration_checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = pool.Exec(ctx, `INSERT INTO workflow_run_schema_versions(component,migration_id,store_schema_version,migration_checksum) VALUES($1,'0002_workflow_run_diagnostics','workflow_run_store_v2',$2)`, workflowrunmigrations.Component, diagnosticsChecksum); err != nil {
+		t.Fatal(err)
+	}
+	if pending, inspectErr := workflowrunmigrations.Inspect(ctx, pool); inspectErr != nil || pending.MigrationState != workflowrunmigrations.MigrationStatePending {
+		t.Fatalf("diagnostics marker was not pending: %#v %v", pending, inspectErr)
+	}
+	if upgraded, upgradeErr := workflowrunmigrations.Apply(ctx, pool); upgradeErr != nil || upgraded.MigrationState != workflowrunmigrations.MigrationStateApplied {
+		t.Fatalf("diagnostics migration upgrade failed: %#v %v", upgraded, upgradeErr)
+	}
+	if _, err = workflowrunmigrations.RollbackForDevTest(ctx, pool); err != nil {
+		t.Fatal(err)
+	}
+	evaluationSQL, err := os.ReadFile("../../migrations/workflow_runs/0003_workflow_evaluation_cases.up.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = pool.Exec(ctx, string(legacySQL)+"\n"+string(diagnosticsSQL)+"\n"+string(evaluationSQL)); err != nil {
+		t.Fatalf("apply evaluation migration: %v", err)
+	}
+	legacyCase := WorkflowEvaluationCase{SchemaVersion: workflowEvaluationLegacySchema, CaseID: "eval_pg_legacy_backfill", Name: "legacy backfill", WorkspaceID: runContext.WorkspaceID, ApplicationID: runContext.ApplicationID, BaselineRunID: diagnostic.RunID, Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: "run_pg_c", ExpectedClassification: WorkflowRunComparisonImprovement}}, CreatedAt: workflowRunTimestamp(time.Now().UTC()), ActorRef: runContext.ActorRef, RequestID: runContext.RequestID, AuditRef: runContext.AuditRef}
+	legacyCasePayload, _ := json.Marshal(legacyCase)
+	if _, err = pool.Exec(ctx, `INSERT INTO workflow_evaluation_cases(tenant_ref,workspace_id,application_id,case_id,baseline_run_id,created_at,sanitized_case_record) VALUES($1,$2,$3,$4,$5,$6,$7)`, runContext.TenantRef, runContext.WorkspaceID, runContext.ApplicationID, legacyCase.CaseID, legacyCase.BaselineRunID, legacyCase.CreatedAt, legacyCasePayload); err != nil {
+		t.Fatalf("seed legacy evaluation case: %v", err)
+	}
+	evaluationChecksum := fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(string(legacySQL)+"\n"+string(diagnosticsSQL)+"\n"+string(evaluationSQL))))
+	if _, err = pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS workflow_run_schema_versions (component text PRIMARY KEY, migration_id text NOT NULL, store_schema_version text NOT NULL, migration_checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = pool.Exec(ctx, `INSERT INTO workflow_run_schema_versions(component,migration_id,store_schema_version,migration_checksum) VALUES($1,'0003_workflow_evaluation_cases','workflow_run_store_v3',$2)`, workflowrunmigrations.Component, evaluationChecksum); err != nil {
+		t.Fatal(err)
+	}
+	if pending, inspectErr := workflowrunmigrations.Inspect(ctx, pool); inspectErr != nil || pending.MigrationState != workflowrunmigrations.MigrationStatePending {
+		t.Fatalf("evaluation marker was not pending: %#v %v", pending, inspectErr)
+	}
+	if upgraded, upgradeErr := workflowrunmigrations.Apply(ctx, pool); upgradeErr != nil || upgraded.MigrationState != workflowrunmigrations.MigrationStateApplied {
+		t.Fatalf("evaluation migration upgrade failed: %#v %v", upgraded, upgradeErr)
+	}
+	var backfilledVersion, backfilledCount int
+	if err = pool.QueryRow(ctx, `SELECT current_version,(SELECT count(*) FROM workflow_evaluation_case_revisions WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND case_id=$4) FROM workflow_evaluation_cases WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND case_id=$4`, runContext.TenantRef, runContext.WorkspaceID, runContext.ApplicationID, legacyCase.CaseID).Scan(&backfilledVersion, &backfilledCount); err != nil || backfilledVersion != 1 || backfilledCount != 1 {
+		t.Fatalf("legacy evaluation backfill failed: version=%d count=%d err=%v", backfilledVersion, backfilledCount, err)
+	}
 }

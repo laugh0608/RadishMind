@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -54,6 +55,118 @@ func TestWorkflowEvaluationCaseLifecyclePaginationAndBatchReview(t *testing.T) {
 	if leaked := service.Read(other, first.Case.CaseID); leaked.FailureCode != WorkflowEvaluationFailureNotFound {
 		t.Fatalf("cross-scope case leaked: %#v", leaked)
 	}
+}
+
+func TestWorkflowEvaluationRevisionHistoryPromotionConflictAndHistoricalReview(t *testing.T) {
+	ctx := workflowExecutorTestContext()
+	runs := newMemoryWorkflowRunStore(20)
+	store := newMemoryWorkflowEvaluationStore(20)
+	base := time.Now().UTC().Add(-time.Minute)
+	seedEvaluationRun(t, runs, ctx, "run_revision_base", WorkflowRunStatusSucceeded, base)
+	seedEvaluationRun(t, runs, ctx, "run_revision_failed", WorkflowRunStatusFailed, base.Add(time.Second))
+	seedEvaluationRun(t, runs, ctx, "run_revision_next_base", WorkflowRunStatusSucceeded, base.Add(2*time.Second))
+	service := newWorkflowEvaluationService(store, runs)
+	service.newCaseID = func() (string, error) { return "eval_revision", nil }
+	now := base.Add(time.Minute)
+	service.now = func() time.Time { now = now.Add(time.Millisecond); return now }
+	created := service.Create(ctx, WorkflowEvaluationCreateRequest{Name: "release regression", BaselineRunID: "run_revision_base", Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: "run_revision_failed", ExpectedClassification: WorkflowRunComparisonRegression}}})
+	if created.Case == nil || created.Case.Version != 1 || created.Case.RevisionKind != WorkflowEvaluationRevisionCreated {
+		t.Fatalf("unexpected created case: %#v", created)
+	}
+	service.newCaseID = func() (string, error) { return "eval_newer_family", nil }
+	newerFamily := service.Create(ctx, WorkflowEvaluationCreateRequest{Name: "newer family", BaselineRunID: "run_revision_base", Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: "run_revision_failed", ExpectedClassification: WorkflowRunComparisonRegression}}})
+	if newerFamily.Case == nil {
+		t.Fatalf("create newer family: %#v", newerFamily)
+	}
+	revised := service.Revise(ctx, created.Case.CaseID, WorkflowEvaluationRevisionRequest{ExpectedVersion: 1, RevisionKind: WorkflowEvaluationRevisionCase, Name: "release expectation revised", BaselineRunID: "run_revision_base", Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: "run_revision_failed", ExpectedClassification: WorkflowRunComparisonChanged}}})
+	if revised.Case == nil || revised.Case.Version != 2 || revised.Case.PreviousVersion != 1 || strings.Join(revised.Case.ChangeCodes, ",") != "expectation_changed,name_changed" {
+		t.Fatalf("unexpected revision: %#v", revised)
+	}
+	conflict := service.Revise(ctx, created.Case.CaseID, WorkflowEvaluationRevisionRequest{ExpectedVersion: 1, RevisionKind: WorkflowEvaluationRevisionCase, Name: "stale write", BaselineRunID: "run_revision_base", Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: "run_revision_failed", ExpectedClassification: WorkflowRunComparisonRegression}}})
+	if conflict.FailureCode != WorkflowEvaluationFailureVersionConflict || conflict.Case == nil || conflict.Case.Version != 2 {
+		t.Fatalf("stale revision did not expose current version: %#v", conflict)
+	}
+	promoted := service.Revise(ctx, created.Case.CaseID, WorkflowEvaluationRevisionRequest{ExpectedVersion: 2, RevisionKind: WorkflowEvaluationRevisionBaselinePromotion, Name: "promoted baseline", BaselineRunID: "run_revision_next_base", Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: "run_revision_failed", ExpectedClassification: WorkflowRunComparisonRegression}}})
+	if promoted.Case == nil || promoted.Case.Version != 3 || promoted.Case.RevisionKind != WorkflowEvaluationRevisionBaselinePromotion || !containsString(promoted.Case.ChangeCodes, "baseline_changed") {
+		t.Fatalf("promotion failed: %#v", promoted)
+	}
+	families := service.List(ctx, WorkflowEvaluationListRequest{Limit: 10})
+	if len(families.Cases) != 2 || families.Cases[0].CaseID != newerFamily.Case.CaseID || families.Cases[1].CreatedAt != created.Case.CreatedAt {
+		t.Fatalf("revision reordered family list: %#v", families)
+	}
+	page := service.ListRevisions(ctx, created.Case.CaseID, WorkflowEvaluationRevisionListRequest{Limit: 2})
+	if len(page.Revisions) != 2 || !page.HasMore || page.Revisions[0].Version != 3 || page.NextCursor == "" {
+		t.Fatalf("revision page failed: %#v", page)
+	}
+	next := service.ListRevisions(ctx, created.Case.CaseID, WorkflowEvaluationRevisionListRequest{Limit: 2, Cursor: page.NextCursor})
+	if len(next.Revisions) != 1 || next.Revisions[0].Version != 1 {
+		t.Fatalf("revision cursor failed: %#v", next)
+	}
+	if changed := service.ListRevisions(ctx, created.Case.CaseID, WorkflowEvaluationRevisionListRequest{Limit: 3, Cursor: page.NextCursor}); changed.FailureCode != WorkflowEvaluationFailureRevisionCursor {
+		t.Fatalf("revision cursor was not bound: %#v", changed)
+	}
+	oldReview := service.ReviewVersion(ctx, created.Case.CaseID, 1)
+	newReview := service.ReviewVersion(ctx, created.Case.CaseID, 2)
+	if oldReview.Review == nil || oldReview.Review.Outcome != "passed" || oldReview.Review.Version != 1 || newReview.Review == nil || newReview.Review.Outcome != "mismatch" || newReview.Review.Version != 2 {
+		t.Fatalf("historical review changed: old=%#v new=%#v", oldReview, newReview)
+	}
+}
+
+func TestWorkflowEvaluationRevisionCASAllowsOneConcurrentWriter(t *testing.T) {
+	ctx := workflowExecutorTestContext()
+	runs := newMemoryWorkflowRunStore(10)
+	store := newMemoryWorkflowEvaluationStore(10)
+	seedEvaluationRun(t, runs, ctx, "run_cas_base", WorkflowRunStatusSucceeded, time.Now().UTC().Add(-time.Minute))
+	seedEvaluationRun(t, runs, ctx, "run_cas_candidate", WorkflowRunStatusFailed, time.Now().UTC().Add(-time.Minute+time.Second))
+	service := newWorkflowEvaluationService(store, runs)
+	service.newCaseID = func() (string, error) { return "eval_cas", nil }
+	created := service.Create(ctx, WorkflowEvaluationCreateRequest{Name: "CAS case", BaselineRunID: "run_cas_base", Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: "run_cas_candidate", ExpectedClassification: WorkflowRunComparisonRegression}}})
+	var wait sync.WaitGroup
+	var mu sync.Mutex
+	successes, conflicts := 0, 0
+	for index := 0; index < 16; index++ {
+		wait.Add(1)
+		go func(index int) {
+			defer wait.Done()
+			result := service.Revise(ctx, created.Case.CaseID, WorkflowEvaluationRevisionRequest{ExpectedVersion: 1, RevisionKind: WorkflowEvaluationRevisionCase, Name: "CAS case " + string(rune('a'+index)), BaselineRunID: "run_cas_base", Expectations: created.Case.Expectations})
+			mu.Lock()
+			defer mu.Unlock()
+			if result.FailureCode == "" {
+				successes++
+			} else if result.FailureCode == WorkflowEvaluationFailureVersionConflict {
+				conflicts++
+			}
+		}(index)
+	}
+	wait.Wait()
+	if successes != 1 || conflicts != 15 {
+		t.Fatalf("CAS results successes=%d conflicts=%d", successes, conflicts)
+	}
+}
+
+func TestWorkflowEvaluationLegacyRecordUpgradesToVersionOne(t *testing.T) {
+	ctx := workflowExecutorTestContext()
+	legacy := WorkflowEvaluationCase{SchemaVersion: workflowEvaluationLegacySchema, CaseID: "eval_legacy", Name: "legacy case", WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, BaselineRunID: "run_base", Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: "run_candidate", ExpectedClassification: WorkflowRunComparisonChanged}}, CreatedAt: workflowRunTimestamp(time.Now().UTC()), ActorRef: ctx.ActorRef, RequestID: ctx.RequestID, AuditRef: ctx.AuditRef}
+	payload, _ := json.Marshal(legacy)
+	var decoded WorkflowEvaluationCase
+	decoder := json.NewDecoder(bytes.NewReader(payload))
+	decoder.DisallowUnknownFields()
+	if decoder.Decode(&decoded) != nil {
+		t.Fatal("legacy decode failed")
+	}
+	decoded = upgradeWorkflowEvaluationCase(decoded)
+	if decoded.Version != 1 || decoded.RevisionKind != WorkflowEvaluationRevisionCreated || validateWorkflowEvaluationCase(ctx, decoded) != nil {
+		t.Fatalf("legacy upgrade failed: %#v", decoded)
+	}
+}
+
+func containsString(values []string, expected string) bool {
+	for _, value := range values {
+		if value == expected {
+			return true
+		}
+	}
+	return false
 }
 
 func TestWorkflowEvaluationRejectsUnsafeOrIneligibleDefinitions(t *testing.T) {
@@ -126,6 +239,73 @@ func TestWorkflowEvaluationHTTPCreateListDetailAndReview(t *testing.T) {
 	_ = json.Unmarshal(strictResponse.Body.Bytes(), &invalid)
 	if invalid.FailureCode == nil || *invalid.FailureCode != string(WorkflowEvaluationFailureInvalid) {
 		t.Fatalf("unknown review query accepted: %s", strictResponse.Body.String())
+	}
+}
+
+func TestWorkflowEvaluationHTTPRevisionHistoryAndConflict(t *testing.T) {
+	server, _, draft := newWorkflowExecutorHTTPTestServer(t)
+	ctx := workflowExecutorTestContext()
+	seedEvaluationRun(t, server.workflowRunStore, ctx, "run_http_revision_base", WorkflowRunStatusSucceeded, time.Now().UTC().Add(-time.Minute))
+	seedEvaluationRun(t, server.workflowRunStore, ctx, "run_http_revision_candidate", WorkflowRunStatusFailed, time.Now().UTC().Add(-time.Minute+time.Second))
+	createBody := workflowEvaluationCreateHTTPBody{WorkspaceID: draft.WorkspaceID, ApplicationID: draft.ApplicationID, Name: "HTTP revision", BaselineRunID: "run_http_revision_base", Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: "run_http_revision_candidate", ExpectedClassification: WorkflowRunComparisonRegression}}}
+	raw, _ := json.Marshal(createBody)
+	request := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/workflow-evaluation-cases", bytes.NewReader(raw))
+	setSavedWorkflowDraftDevHeaders(request, "workflow_evaluations:write,workflow_evaluations:read,workflow_runs:read")
+	response := httptest.NewRecorder()
+	server.httpServer.Handler.ServeHTTP(response, request)
+	var created workflowEvaluationEnvelope
+	_ = json.Unmarshal(response.Body.Bytes(), &created)
+	if created.Case == nil {
+		t.Fatalf("create failed: %s", response.Body.String())
+	}
+	revisionBody := workflowEvaluationRevisionHTTPBody{WorkspaceID: draft.WorkspaceID, ApplicationID: draft.ApplicationID, ExpectedVersion: 1, RevisionKind: WorkflowEvaluationRevisionCase, Name: "HTTP revision changed", BaselineRunID: "run_http_revision_base", Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: "run_http_revision_candidate", ExpectedClassification: WorkflowRunComparisonChanged}}}
+	raw, _ = json.Marshal(revisionBody)
+	revise := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/workflow-evaluation-cases/"+created.Case.CaseID+"/revisions", bytes.NewReader(raw))
+	setSavedWorkflowDraftDevHeaders(revise, "workflow_evaluations:write,workflow_runs:read")
+	revisedResponse := httptest.NewRecorder()
+	server.httpServer.Handler.ServeHTTP(revisedResponse, revise)
+	var revised workflowEvaluationEnvelope
+	_ = json.Unmarshal(revisedResponse.Body.Bytes(), &revised)
+	if revised.Case == nil || revised.Case.Version != 2 {
+		t.Fatalf("revise failed: %s", revisedResponse.Body.String())
+	}
+	raw, _ = json.Marshal(revisionBody)
+	stale := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/workflow-evaluation-cases/"+created.Case.CaseID+"/revisions", bytes.NewReader(raw))
+	setSavedWorkflowDraftDevHeaders(stale, "workflow_evaluations:write,workflow_runs:read")
+	staleResponse := httptest.NewRecorder()
+	server.httpServer.Handler.ServeHTTP(staleResponse, stale)
+	var conflict workflowEvaluationEnvelope
+	_ = json.Unmarshal(staleResponse.Body.Bytes(), &conflict)
+	if conflict.FailureCode == nil || *conflict.FailureCode != string(WorkflowEvaluationFailureVersionConflict) || conflict.Case == nil || conflict.Case.Version != 2 {
+		t.Fatalf("conflict failed: %s", staleResponse.Body.String())
+	}
+	query := "?workspace_id=" + draft.WorkspaceID + "&application_id=" + draft.ApplicationID
+	list := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/workflow-evaluation-cases/"+created.Case.CaseID+"/revisions"+query+"&limit=1", nil)
+	setSavedWorkflowDraftDevHeaders(list, "workflow_evaluations:read,workflow_runs:read")
+	listResponse := httptest.NewRecorder()
+	server.httpServer.Handler.ServeHTTP(listResponse, list)
+	var history workflowEvaluationRevisionListEnvelope
+	_ = json.Unmarshal(listResponse.Body.Bytes(), &history)
+	if len(history.Revisions) != 1 || history.Revisions[0].Version != 2 || !history.HasMore {
+		t.Fatalf("history failed: %s", listResponse.Body.String())
+	}
+	read := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/workflow-evaluation-cases/"+created.Case.CaseID+"/revisions/1"+query, nil)
+	setSavedWorkflowDraftDevHeaders(read, "workflow_evaluations:read,workflow_runs:read")
+	readResponse := httptest.NewRecorder()
+	server.httpServer.Handler.ServeHTTP(readResponse, read)
+	var old workflowEvaluationEnvelope
+	_ = json.Unmarshal(readResponse.Body.Bytes(), &old)
+	if old.Case == nil || old.Case.Version != 1 {
+		t.Fatalf("old revision failed: %s", readResponse.Body.String())
+	}
+	review := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/workflow-evaluation-cases/"+created.Case.CaseID+"/review"+query+"&version=1", nil)
+	setSavedWorkflowDraftDevHeaders(review, "workflow_evaluations:read,workflow_runs:read")
+	reviewResponse := httptest.NewRecorder()
+	server.httpServer.Handler.ServeHTTP(reviewResponse, review)
+	var historical workflowEvaluationEnvelope
+	_ = json.Unmarshal(reviewResponse.Body.Bytes(), &historical)
+	if historical.Review == nil || historical.Review.Version != 1 || historical.Review.Outcome != "passed" {
+		t.Fatalf("historical review failed: %s", reviewResponse.Body.String())
 	}
 }
 
