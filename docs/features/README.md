@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-11 当前执行口径：`Workflow Draft Review Loop` 与显式开发 / 测试态 Saved Draft PostgreSQL repository 均已完成；当前下一顺位切换到 `R4 Gateway` 实测基线与持久 Python bridge 选型，先更新 Model Gateway / API Distribution 功能设计，再进入实现。旧 Production Secret Backend / Storage Adapter readiness 表格继续作为历史专题索引，不再把其中的 next dependency 解释为当前开发任务。四个一级产品面保持为 User Workspace、Admin、Gateway、Workflow；Image Path 是横切适配能力。
+2026-07-11 当前执行口径：`Workflow Draft Review Loop`、显式开发 / 测试态 Saved Draft PostgreSQL repository 与 `R4 Gateway` process-per-request 实测基线均已完成；持久 Python bridge 已选定受控 `stdio` worker pool，下一批进入生命周期、排队、取消、崩溃重建和隔离实现。旧 Production Secret Backend / Storage Adapter readiness 表格继续作为历史专题索引，不再把其中的 next dependency 解释为当前开发任务。四个一级产品面保持为 User Workspace、Admin、Gateway、Workflow；Image Path 是横切适配能力。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -50,6 +50,8 @@
 
 | 专题 | 类型 | 当前用途 |
 | --- | --- | --- |
+| [Gateway 细专题入口](gateway/README.md) | 功能专题目录 | 承接 Gateway 运行时、协议兼容和真实使用路径专题 |
+| [Gateway Python Bridge Runtime v1](gateway/python-bridge-runtime-v1.md) | 运行时专题 | 已完成 process-per-request 顺序 / 并发分段基线，选定受控 `stdio` worker pool；下一批实现并验证生命周期、取消、崩溃恢复和请求隔离 |
 | [Workflow 细专题入口](workflow/README.md) | 功能专题目录 | 承接 workflow 具体功能、页面 / 界面和实现专题 |
 | [Saved Workflow Draft v1](workflow/saved-workflow-draft-v1.md) | 功能专题 | 固定草案创建、编辑、校验、持久保存、恢复、版本冲突和 Review Handoff；开发 / 测试态 PostgreSQL repository 已完成，production repository 继续关闭，旧 Production Secret Backend / Storage Adapter readiness 链仅作为历史证据索引 |
 | [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) | 实现专题 | 已完成 `postgres_dev_test` migration、回滚 / 重建、运行角色隔离、服务重启恢复、原子 CAS、scope / owner 隔离、no fallback、CI 与真实浏览器验收 |

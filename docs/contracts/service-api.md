@@ -1,6 +1,6 @@
 # RadishMind 服务/API 接入契约
 
-更新时间：2026-05-28
+更新时间：2026-07-11
 
 ## 协议兼容边界
 
@@ -108,6 +108,7 @@ HTTP JSON 现在由 `Go` 平台服务层承接，但它仍然只是这条 canoni
 
 - 上层提交 schema-valid `CopilotRequest`，不直接调用任务 runtime 或 provider
 - Gateway 返回 `schema_version / status / request_id / project / task / response / error / metadata`
+- `metadata.duration_ms` 表示 Python Gateway 总耗时，`metadata.provider_duration_ms` 表示其中的 `run_inference` 调用段；两者都是必填的非负毫秒观测值，不包含 secret 或 provider 原始响应，也不能解释为真实 provider SLA
 - 当 `status=ok` 或 `status=partial` 时，`response` 必须存在，并继续按 `contracts/copilot-response.schema.json` 校验和消费
 - 当 `status=failed` 时，调用侧必须优先读取 `error.code` 与 `error.message`；若同时存在 `response`，它也只能作为 failed advisory response 展示或记录，不能转成可执行动作
 - `metadata.route` 固定表达 `project/task`，用于调用侧日志、审计和路由观测
