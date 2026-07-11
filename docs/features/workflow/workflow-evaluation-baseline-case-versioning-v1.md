@@ -83,4 +83,4 @@ revision 请求必须携带正整数 `expected_version`。memory 与 PostgreSQL 
 - 真实 PostgreSQL 浏览器路径完成 v1 创建、v2 expected 修订、v3 baseline promotion、外部并发 v4 / v5、旧版本冲突拒绝和 Platform/Web 重启恢复；新会话除 React DevTools 提示外无 console error / warning。
 - Go test / race / vet、Web 19 项测试 / build、PostgreSQL integration 和仓库 fast / full 门禁通过；浏览器、Platform/Web 与 PostgreSQL 容器 / 网络均已关闭。
 
-下一产品设计优先进入 `Workflow Evaluation Suite / Release Review v1`：把明确 case version 组成不可变 suite，提供聚合只读审查和人工 release decision evidence；不自动执行、部署、promote 或写回业务系统。
+后续 [Workflow Evaluation Suite / Release Review v1](workflow-evaluation-suite-release-review-v1.md) 已完成：明确 case version 可组成不可变 suite，并提供聚合只读审查和人工 release decision evidence；仍不自动执行、部署、promote 或写回业务系统。
