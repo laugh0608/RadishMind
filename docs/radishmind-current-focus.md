@@ -13,19 +13,19 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明 production ready。
-- 产品焦点：`Workflow Draft Review Loop` 第一用户闭环已经完成；下一产品切片是开发 / 测试态 Saved Draft durable repository，第一工程主线切换到 Gateway 稳定运行时。
+- 产品焦点：`Workflow Draft Review Loop` 与开发 / 测试态 Saved Draft durable repository 均已完成；当前第一工程主线切换到 Gateway 稳定运行时。
 - `R2 正确性与安全清零`、`R3 Workflow Draft Review Loop` 已完成；`R6 文档与 checker 收敛` 继续作为治理约束，不再占用独立产品批次。
 - 四个正式一级产品面保持为 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；Image Path 是横切适配能力，不作为当前第五条一级主线。
 - 旧 Production Secret Backend / Storage Adapter readiness 链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：Saved Workflow Draft PostgreSQL dev/test repository 设计和单一实现任务卡已完成，当前实现 schema、migration、重启恢复、CAS、scope、no fallback 与真实集成测试。
-2. 工程线：启动 R4 Gateway 实测基线和持久 Python bridge 选型；测试 / 性能预算与 Web 拆包在实测后推进，R6 仅随相关文件修改逐批解除历史 checker 文字耦合。
+1. 工程线：启动 R4 Gateway 实测基线和持久 Python bridge 选型，记录吞吐、延迟、超时、进程成本与失败恢复证据。
+2. 产品线：根据 Gateway 实测结论完善 Model Gateway / API Distribution 的真实使用路径；Web 拆包与性能预算按测量结果推进，R6 只随相关文件修改逐批解除历史 checker 文字耦合。
 
-R3 已于 2026-07-11 完成真实浏览器收口。当前产品纵向切片是 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md)：使用显式 `postgres_dev_test` 模式覆盖 migration、重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback 和集成测试。该放宽不启用 production repository mode，也不代表 OIDC、production secret、audit store 或公开生产 API ready。
+R3 与 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖 migration / rollback / reapply、运行角色 DDL 拒绝、服务重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback、CI 与真实浏览器双标签冲突审查。该完成不启用 production repository mode，也不代表 OIDC、production secret、audit store 或公开生产 API ready。
 
-durable repository 与稳定 Gateway 成立后，可评审无外部副作用的 executor v0，只允许 Prompt / LLM / condition / output 和 run record；unrestricted tool、业务写回、自动 confirmation commit、replay / resume 继续关闭。
+durable repository 已成立；稳定 Gateway 成立后，可评审无外部副作用的 executor v0，只允许 Prompt / LLM / condition / output 和 run record；unrestricted tool、业务写回、自动 confirmation commit、replay / resume 继续关闭。
 
 总入口与证据：
 

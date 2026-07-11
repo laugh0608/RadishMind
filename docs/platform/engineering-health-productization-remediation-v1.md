@@ -138,7 +138,7 @@
 - 失败时不回退 sample，不执行 workflow，不创建 confirmation decision。
 - 本批完成前不再新增 Workflow readiness / review 小切片。
 
-R3 完成后停止继续扩同层 Builder 小切片。显式开发 / 测试态 PostgreSQL durable repository 已完成设计并进入实现，当前单一任务卡固定 migration、重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback 和集成测试。旧 Saved Draft / Secret Backend / Storage Adapter readiness checker 已退出活动仓库基线，历史脚本和证据继续保留。
+R3 完成后已停止继续扩同层 Builder 小切片。显式开发 / 测试态 PostgreSQL durable repository 已完成 migration / rollback / reapply、运行账号权限隔离、重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback、CI 和双标签浏览器冲突验收。旧 Saved Draft / Secret Backend / Storage Adapter readiness checker，以及 Control Plane Read formal UI 之后的 repository readiness 尾链，均已退出活动仓库基线；历史脚本和证据继续保留。
 
 ## R4：Gateway 运行时产品化
 
@@ -197,13 +197,13 @@ R3 完成后停止继续扩同层 Builder 小切片。显式开发 / 测试态 P
 
 - 基于实测推进 R4，不先写多轮 readiness 文档。
 - 并行启动一批 R6 合并工作，但在制整改批次最多一个。
-- production durable store、OIDC 和 production secret 只有在真实上游资源与负责人明确后才能进入启用评审；显式开发 / 测试态 durable store 可在 R3 完成后作为下一条产品纵向切片推进。
+- production durable store、OIDC 和 production secret 只有在真实上游资源与负责人明确后才能进入启用评审；显式开发 / 测试态 durable store 已在 R3 后作为独立产品纵向切片完成。
 
 ### 第四阶段：开发态持久化与安全执行
 
-- 产品线先实现显式开发 / 测试态 PostgreSQL durable repository，不依赖 production secret audit store 才能开始写代码。
-- 工程线继续推进 R4 / R5，建立持久 bridge、性能预算和可发现行为测试。
-- durable repository 与稳定 Gateway 都通过后，再打开无外部副作用 executor；本阶段仍不打开 unrestricted tool、业务写回、自动确认提交或 replay。
+- 产品线的显式开发 / 测试态 PostgreSQL durable repository 已完成，不依赖 production secret audit store；production repository 继续关闭。
+- 当前工程线进入 R4 / R5，先建立 Gateway bridge 实测基线，再选择持久 bridge 形态、性能预算和可发现行为测试。
+- durable repository 已通过；稳定 Gateway 通过后，再打开无外部副作用 executor 评审。本阶段仍不打开 unrestricted tool、业务写回、自动确认提交或 replay。
 
 ## 每批完成定义
 

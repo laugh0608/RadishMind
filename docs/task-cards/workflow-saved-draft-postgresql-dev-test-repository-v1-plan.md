@@ -5,7 +5,7 @@
 ## 任务标识
 
 - 任务 ID：`workflow-saved-draft-postgresql-dev-test-repository-v1`
-- 状态：`in_progress`
+- 状态：`completed`
 - 对应功能专题：`docs/features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md`
 
 ## 用户目标
@@ -69,6 +69,14 @@ Radish 体系内部开发者保存 Workflow 草案后，即使平台服务重启
 - `./scripts/check-repo.sh --fast`
 - `./scripts/check-repo.sh`
 - PostgreSQL dev-live 浏览器复验
+
+## 完成记录
+
+- `pgx/v5` PostgreSQL repository、manual migration runner、schema marker、role separation、连接池生命周期和 `postgres_dev_test` selector 已实现。
+- 真实 PostgreSQL 集成测试覆盖 migration / rollback / reapply、服务重建恢复、16 路 CAS、scope / owner 隔离、运行角色 DDL 拒绝、连接中断、marker mismatch 和 no fallback。
+- Web Restore 状态跨 draft selection 的版本丢失已在浏览器验收中发现并修复；恢复后能从 version 1 正确续存到 version 2。
+- 双标签冲突验收确认旧 version 保存返回 `draft_version_conflict`，本地内容不被覆盖，显式继续后以最新 version 3 保存到 version 4；Review Handoff 同步展示冲突审查证据。
+- `npm test`、`npm run build`、Go 单元测试、`go test -race ./...`、`go vet ./...`、PostgreSQL 真实集成入口以及仓库 fast / full 门禁均已通过。
 
 ## 停止线
 
