@@ -12,7 +12,7 @@
 
 如果你要推进具体产品能力，先读 [功能设计文档入口](features/README.md)。2026-06-14 起，长期功能设计不再默认塞进 task card；task card、fixture 和 checker 只服务具体实现批次、前置条件或高风险边界。
 
-2026-07-12 覆盖：Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation Suite / Release Review、Gateway Request History / Playground、Application API Integration、Configuration Draft 与 Publish Governance 已完成。Admin shared verified identity / negative auth 与 Tenant / Audit PostgreSQL dev/test runtime 已完成真实 PostgreSQL / browser validation，Radish OIDC Integration Test v1 已完成 issuer / JWKS / token / mapping / operation gate 设计。当前仍缺 reviewed Radish upstream evidence 和 integration runtime、workspace membership contract、正式 application repository / promotion owner、production API key、可信 reported usage、quota enforcement 和 billing。
+2026-07-12 覆盖：Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation Suite / Release Review、Gateway Request History / Playground、Application API Integration、Configuration Draft 与 Publish Governance 已完成。Admin shared verified identity / negative auth、Tenant / Audit PostgreSQL dev/test runtime，以及 Radish OIDC deterministic verifier / auth boundary / operation gate 已完成。当前仍缺 reviewed Radish upstream evidence 和真实 integration evidence、workspace membership contract、正式 application repository / promotion owner、production API key、可信 reported usage、quota enforcement 和 billing。
 
 | 主线 | 当前已有 | 当前缺口 | 当前不做 | 下一步 |
 | --- | --- | --- | --- | --- |

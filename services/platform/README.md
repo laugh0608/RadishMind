@@ -57,7 +57,7 @@
 
 `control-plane-read-fake-store-handler-plan-v1` 仍作为 fake-store-backed read handler plan 保留；`control-plane-read-fake-store-handler-implementation-v1` 当前实现七条 fake-store-backed read route：`GET /v1/control-plane/tenants/{tenant_ref}/summary`、`GET /v1/user-workspace/applications`、`GET /v1/user-workspace/api-keys`、`GET /v1/user-workspace/usage/quota-summary`、`GET /v1/user-workspace/workflow-definitions`、`GET /v1/user-workspace/runs` 与 `GET /v1/control-plane/audit`。它们现在通过 `ControlPlaneReadRepository` interface 消费 `services/platform/internal/httpapi` 内的 in-memory fake store 和 test-only fake auth context，Go route smoke 覆盖成功、missing identity、tenant binding mismatch、cross-tenant query denied、scope denied、invalid filter、forbidden sensitive projection、forbidden method、forbidden query 和 no-side-effects。长驻 HTTP 服务默认没有可公开使用的 fake-auth header 或真实 auth middleware；只有显式设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，dev-only live consumer 才能通过 `X-RadishMind-Dev-Read-*` 测试身份 header 注入 test-only fake auth context。未启用 dev auth 或未注入身份上下文的外部请求应返回 fail-closed envelope，而不是成功读取 fixture 数据。该实现仍不接数据库 query、repository adapter、OIDC、API key lifecycle、quota enforcement、executor、confirmation、writeback 或 replay，也不声明正式 user workspace / admin control plane UI ready。
 
-`control-plane-verified-identity-negative-auth-runtime-v1` 已在同一七条 route 上新增 `disabled / dev_headers / signed_test_token` auth mode、shared verified identity / resource binding、`RS256` test-token verifier、显式 permission projection 和 sanitized `401 / 403` envelope。13 类负向认证均在 repository query 前 fail closed；signed test verifier 只读取显式 issuer、audience 与 RSA public key PEM，不连接 discovery / JWKS，也不代表真实 Radish OIDC 或 production auth。repository 继续使用 fake store，下一批只设计 Admin tenant / audit PostgreSQL dev/test read repository。
+`control-plane-verified-identity-negative-auth-runtime-v1` 已在同一七条 route 上新增 `disabled / dev_headers / signed_test_token` auth mode、shared verified identity / resource binding、`RS256` test-token verifier、显式 permission projection 和 sanitized `401 / 403` envelope。后续 `radish_oidc_integration_test` 已完成 deterministic discovery / JWKS / JWT verifier、两条 Admin route 和五条 workspace membership fail-closed；signed test verifier 仍不连接 discovery / JWKS，OIDC integration 也不代表真实 Radish 联调或 production auth。
 
 `control-plane-read-auth-db-preconditions-v1` 当前只固定未来替换 fake auth / fake store 前必须满足的前置条件：read route 必须等 `future Radish OIDC / auth middleware` 注入 identity、tenant、subject、scope、audit 和 request context，真实 read store 必须先定义 `future control plane read store repository` 的窄接口、tenant predicate、sanitized projection、failure taxonomy 和 smoke transition plan。它不实现 OIDC validation、数据库 schema / migration / query、repository、API key lifecycle、quota enforcement、executor、confirmation、writeback 或 replay。
 
@@ -143,7 +143,7 @@
 
 ## Control Plane Read-Side readiness 运行层说明
 
-平台服务层当前支持 `fake_store_dev` 与受限的 `signed_test_token + postgres_dev_test` Control Plane read 组合。数据库模式只把 Admin tenant summary 与 audit summary 路由到 `control_plane_admin_read` PostgreSQL projection，其余五条 workspace route 继续显式使用 fake repository；startup 校验 migration marker、checksum 与 runtime SELECT 权限，任何 Admin query 失败均不回退 fake 数据。该路径仍是 dev/test runtime，不启用真实 Radish OIDC、production repository、运行时 writer 或 production API consumer。
+平台服务层当前支持 `fake_store_dev`、受限的 `signed_test_token + postgres_dev_test`，以及 `radish_oidc_integration_test + postgres_dev_test` Control Plane read 组合。数据库模式只把 Admin tenant summary 与 audit summary 路由到 `control_plane_admin_read` PostgreSQL projection；signed test 模式下其余五条 workspace route 保持显式 fake binding，OIDC integration 模式下则在 handler 授权边界统一返回 `workspace_membership_unavailable`，不会触达 fake repository。startup 校验 OIDC policy / discovery / JWKS、migration marker、checksum 与 runtime SELECT 权限，任何失败均不回退。真实 Radish 联调保持 `blocked_by_upstream_evidence`；该路径不启用 production repository、运行时 writer 或 production API consumer。
 
 Control Plane Read 在 formal UI / dev-live consumer 之后的旧 repository readiness 尾链已退出活动仓库基线，历史文件继续保留。当前 read route contract、negative contract、正式 UI 聚合检查和 Go 测试仍是活动门禁；这次放宽只服务 Saved Draft `postgres_dev_test`，不代表 Control Plane Read database store 已实现。
 
@@ -352,6 +352,30 @@ go run ./cmd/radishmind-platform
 | `RADISHMIND_PLATFORM_API_KEY` | 空 | 显式 provider API key 覆盖；不得写入文档或提交 |
 | `RADISHMIND_PLATFORM_TEMPERATURE` | `0` | provider 调用温度 |
 | `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH` | `false` | 显式启用 read-side、workflow saved draft、application draft 与 publish candidate 的 dev-only 测试身份 header |
+| `RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE` | `disabled` | `disabled`、`dev_headers`、`signed_test_token` 或受控 `radish_oidc_integration_test` |
+| `RADISHMIND_CONTROL_PLANE_READ_STORE` | `fake_store_dev` | `fake_store_dev` 或 `postgres_dev_test`；OIDC integration 只允许后者 |
+| `RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_DATABASE_URL` | 空 | Control Plane read PostgreSQL dev/test runtime SELECT 连接；secret |
+| `RADISHMIND_CONTROL_PLANE_READ_DATABASE_TIMEOUT` | `5s` | Control Plane read connect / preflight / query timeout |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_ISSUER` | 空 | reviewed exact issuer；仅 HTTPS 或 deterministic loopback HTTP |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_DISCOVERY_URL` | 空 | reviewed exact discovery URL，必须与 issuer 同 origin |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_AUDIENCE` | 空 | reviewed exact RadishMind integration audience |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_MAPPING_VERSION` | 空 | reviewed claim / permission mapping version |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_EVIDENCE_REF` | 空 | sanitized reviewed evidence reference，不是 issuer URL dump |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_SUBJECT_CLAIM` | 空 | reviewed subject claim name |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_TENANT_CLAIM` | 空 | reviewed tenant claim name |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_PERMISSION_CLAIM` | 空 | reviewed permission array claim name |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_TENANT_PERMISSION` | 空 | reviewed tenant-read upstream permission identifier |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_AUDIT_PERMISSION` | 空 | reviewed audit-read upstream permission identifier |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_ALGORITHMS` | 空 | reviewed comma-separated `RS*` / `ES*` allowlist；不允许 HMAC / `none` |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_JWKS_ORIGIN` | 空 | reviewed exact JWKS origin |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_DISCOVERY_TIMEOUT` | `3s` | discovery / JWKS HTTP timeout |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_JWKS_MAX_AGE` | `5m` | cache refresh 上限 |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_JWKS_HARD_EXPIRY` | `15m` | key cache hard expiry，超过后不使用 stale key |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_ROTATION_OVERLAP` | `5m` | retired key 受控 overlap window |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_CLOCK_SKEW` | `30s` | token NumericDate 固定 skew |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_MAX_TOKEN_LIFETIME` | `10m` | access token 最大允许 lifetime |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_MAX_RESPONSE_BYTES` | `262144` | discovery / JWKS 最大响应字节数 |
+| `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_MAX_KEYS` | `32` | bounded JWKS cache 最大 key 数 |
 | `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP` | `false` | 显式启用 saved workflow draft dev-only HTTP route |
 | `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE` | `false` | 显式允许 saved workflow draft dev-only save 操作；read / validate 不用该开关 |
 | `RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE` | `memory_dev` | `memory_dev` 或显式 `postgres_dev_test`；production `repository`、`repository_disabled` 和 unknown mode 均 fail closed |

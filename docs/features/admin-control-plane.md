@@ -10,12 +10,12 @@
 
 - `apps/radishmind-web/` 已有 tenant overview、audit log、Admin Operations Review / Readiness 和 Admin Provider/Profile & Deployment Evidence Review / Readiness。
 - 现有页面只整理 readiness、evidence checklist、operator risk、provider/profile readiness、secret ref readiness 和 deployment status。
-- Go read handlers 仍走 fake-store-backed repository bridge，但 shared verified identity、signed test verifier 和 route authorization 已落地。
-- 当前没有真实 Radish OIDC / JWKS、production token / session、Control Plane PostgreSQL adapter、secret resolver、deployment preflight 或 production admin 操作。
+- Go read handlers 已由 selector 显式路由：Tenant Summary / Audit 使用 PostgreSQL dev/test，五条 workspace operation 在 signed test 模式保留 fake binding、在 OIDC integration 模式 fail closed；shared verified identity、signed test verifier 和 route authorization 已落地。
+- 当前已有 deterministic Radish OIDC discovery / JWKS / JWT verifier，但没有 reviewed Radish upstream evidence、真实 integration token / evidence、production token / session、secret resolver、deployment preflight 或 production admin 操作。
 - User Workspace 的 Application Publish Governance 已把正式 application repository、production auth / membership 和发布 owner 明确暴露为 promotion blocker；dev/test candidate approved 不会绕过这些 blocker。
-- [Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) 第一批 runtime 已完成：shared verified identity、RS256 signed test token、permission projection、13 类负向认证、七条 route authorization 和 Web sanitized denial state 均可复验；repository 仍为 fake store。
+- [Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) 第一批 runtime 已完成 shared verified identity / negative auth，第二批已完成 Tenant / Audit PostgreSQL dev/test repository，第三批已完成 OIDC deterministic verifier / auth boundary / operation gate。
 - [Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 已完成两条 Admin operation 的 schema、manual migration、read-only role、routed selector、分页、no-fallback、真实 PostgreSQL、HTTP/Web 与浏览器验收。
-- [Radish OIDC Integration Test v1](admin-control-plane/radish-oidc-integration-test-v1.md) 已完成产品设计，固定真实 issuer / discovery / JWKS、token / claim mapping、只开放 tenant / audit、五条 workspace route membership fail-closed、隐私和验收边界；尚未创建 runtime task card。
+- [Radish OIDC Integration Test v1](admin-control-plane/radish-oidc-integration-test-v1.md) 已完成 deterministic discovery / JWKS / JWT runtime、只开放 tenant / audit、五条 workspace route membership fail-closed、隐私和 Web 内存 token 边界；真实 Radish 联调为 `blocked_by_upstream_evidence`。
 
 ## 设计边界
 
@@ -26,9 +26,9 @@
 
 ## 下一批开发方向
 
-1. 下一实现入口创建一张 `Radish OIDC Integration Test Runtime v1` 高风险任务卡；reviewed upstream evidence 不完整时只实现 deterministic verifier core，不声明真实 Radish integration complete。
-2. 实现只迁移 tenant summary 与 audit summary，继续使用 signed test token；不把五条 workspace route 一并接入数据库，也不派生同层 readiness 文档链。
-3. Radish issuer / client registration / permission mapping evidence 未审查前，不接真实 OIDC；workspace membership contract 未成立前，不迁移五条 User Workspace read route。
+1. `Radish OIDC Integration Test Runtime v1` deterministic 批次已完成；下一步只接受 Radish owner 提供的 reviewed issuer、audience、JWKS policy、claim / permission mapping 和短期 token 流程。
+2. 真实联调只覆盖 tenant summary 与 audit summary；五条 workspace route 继续返回 `workspace_membership_unavailable`，不读取 fake repository，也不派生同层 readiness 文档链。
+3. upstream evidence 未审查前不执行真实 Radish 联调；workspace membership contract 未成立前，不迁移五条 User Workspace read route。
 4. 普通 evidence review 展示不再新增逐项 task card；只有真实 auth、数据库、secret、deployment 或管理动作才新增专项 gate。
 
 ## 验收方式

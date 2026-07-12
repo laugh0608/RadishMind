@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-07-11
+更新时间：2026-07-12
 
 ## 架构目标
 
@@ -19,6 +19,8 @@
 Saved Draft persistence 与 Production Secret Audit Store 已从推进顺序上解耦。R3 和显式 `postgres_dev_test` repository 均于 2026-07-11 完成：平台以 `pgx/v5`、独立 migration/runtime role、manual migration、schema marker、连接池和真实集成测试承载开发 / 测试草案持久化；production `repository` 仍依赖 Radish OIDC、membership、生产 secret、数据库资源、审计和部署复核。`Radish` 继续拥有身份、成员关系和上层业务真相，RadishMind 拥有自身 draft、version、run record、trace、usage 和 audit 运行数据。
 
 Saved Draft 数据路径固定为 `HTTP auth/scope context -> domain service -> repository store -> contract adapter -> PostgreSQL query executor`。create 由唯一键约束，update 在 SQL predicate 内做 owner-scoped version CAS，read/list 使用 tenant / workspace / application / owner predicate；数据库或 marker 不可用时失败关闭。服务只 preflight schema，migration CLI 才持有 DDL 连接，runtime role 只有表级 DML。旧段落中“SQL / migration / database 仍不存在”的表述只作为历史阶段记录，不再描述当前 `postgres_dev_test`。
+
+Admin OIDC integration 的数据路径固定为 `explicit reviewed policy -> startup discovery / JWKS preflight -> bounded verifier cache -> Bearer JWT validation -> sanitized verified identity -> tenant / permission authorization -> PostgreSQL read repository`。middleware 在进入 handler 前移除 Authorization 与 dev headers；repository 不接收 token、raw claims、JWK 或 provider client。该模式只开放 Tenant Summary / Audit，五条 workspace operation 在 membership owner 缺失时于 handler authorization 边界返回 `workspace_membership_unavailable`，不触达 fake repository。当前 deterministic runtime 已完成，真实 Radish 联调仍由 reviewed upstream evidence 阻塞，不构成 production auth。
 
 Workflow Executor v0 数据路径固定为 `dev HTTP gate + auth/scope context -> scoped Saved Draft read -> server-side eligibility / DAG plan -> existing Gateway bridge -> tenant / workspace / application scoped memory run store -> Web result review`。它只执行 `prompt`、`llm`、`condition`、`output`，同步推进到终态记录；运行输入与 condition 布尔值不写入 record。该路径是开发 / 测试能力，不改变 `real_executor_enabled=false` 所表达的完整生产执行器停止线，也不开放 tool、RAG、confirmation commit、业务写回、replay / resume 或 production route。
 

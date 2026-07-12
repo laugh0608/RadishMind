@@ -2,7 +2,7 @@
 
 更新时间：2026-07-12
 
-状态：`radish_oidc_integration_test_v1_design_defined`
+状态：`radish_oidc_integration_test_runtime_v1_deterministic_complete_blocked_by_upstream_evidence`
 
 ## 功能定位
 
@@ -16,7 +16,10 @@
 - `signed_test_token` 使用显式 test public key，不进行 discovery / JWKS 网络读取，也不代表真实 Radish token shape。
 - Admin tenant / audit PostgreSQL dev/test runtime、read-only role、no-fallback 和真实浏览器路径已完成。
 - `contracts/radish-oidc-token-validation.schema.json` 只描述 verified sanitized context，不描述 raw token、raw claim 或 membership record。
-- 当前没有 reviewed Radish issuer、discovery document、JWKS URI、signing algorithm、resource audience 或 claim mapping evidence。
+- deterministic runtime 已实现 exact issuer / audience、显式 claim mapping、受限 discovery / JWKS、algorithm / `kid`、single-flight、rotation overlap / hard expiry、required claim / time window和权限投影。
+- 两条 Admin operation 已接入现有 auth boundary；五条 workspace operation 统一返回 `workspace_membership_unavailable`，鉴权和 membership denial 均为 repository zero-query。
+- Web consumer 支持独立 OIDC integration token provider，token 只存在页面内存，不回退 signed test token 或 dev headers。
+- 当前仍没有 reviewed Radish issuer、discovery document、JWKS URI、signing algorithm、resource audience 或 claim mapping evidence。
 - 当前没有 workspace / application membership data source、cache policy 或 owner；真实 OIDC token 不能替代该缺口。
 - 历史 upstream evidence / readiness 文档保留为归档输入，不再派生同层 checker 链；本设计以一个后续高风险任务卡承接实现和联调。
 
@@ -221,4 +224,4 @@ Radish owner 拥有 upstream claim semantics；RadishMind owner 拥有 mapping v
 
 ## 下一实现入口
 
-下一步创建一张 `Radish OIDC Integration Test Runtime v1` 高风险任务卡；只有 reviewed upstream evidence gate 完整时才进入真实 Radish integration 批次。没有证据时仍可实现 deterministic verifier core，但任务不得标记 complete，也不得派生同层 readiness 文档链。
+[Radish OIDC Integration Test Runtime v1 任务卡](../../task-cards/radish-oidc-integration-test-runtime-v1.md) 已完成 deterministic verifier、auth boundary、operation gate、zero-query 与 Web 内存 token 批次。真实 Radish integration 保持 `blocked_by_upstream_evidence`；下一步由 Radish owner 提供 reviewed metadata-only evidence 与短期 token 流程，证据未到位前不派生同层 readiness 文档链，也不把 loopback 测试解释为真实联调。
