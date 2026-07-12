@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-12 当前执行口径：Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、durable run history、failure review、run comparison、evaluation cases、Gateway Request History / Playground、Application API Integration、Configuration Draft 与 Publish Governance 均已完成。Admin verified identity / negative auth runtime 与 [Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) dev/test runtime 均已完成。下一产品设计评审 Radish OIDC Integration Test v1；正式 application mutation、production auth、workspace membership 与 production repository 仍关闭。
+2026-07-12 当前执行口径：Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、durable run history、failure review、run comparison、evaluation cases、Gateway Request History / Playground、Application API Integration、Configuration Draft 与 Publish Governance 均已完成。Admin verified identity / negative auth 与 [Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) dev/test runtime 均已完成，[Radish OIDC Integration Test v1](admin-control-plane/radish-oidc-integration-test-v1.md) 已完成产品设计。下一入口是统一高风险 runtime task card；production auth、workspace membership 与 production repository 仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -57,6 +57,7 @@
 | [Admin Control Plane 细专题入口](admin-control-plane/README.md) | 功能专题目录 | 承接 authenticated read、permission binding、repository transition 与后续管理端真实使用路径 |
 | [Admin Control Plane Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) | 功能 / 平台协同专题 | 第一批 verified identity runtime 已完成，第二批 tenant / audit PostgreSQL read repository 已完成产品设计 |
 | [Admin Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) | 功能 / 平台协同专题 | schema / migration、manual CLI、read-only role、selector、cursor、真实 PostgreSQL、HTTP/Web 与 browser validation 已完成 |
+| [Radish OIDC Integration Test v1](admin-control-plane/radish-oidc-integration-test-v1.md) | 功能 / 集成专题 | 已定义 issuer / discovery / JWKS evidence、token / mapping、Admin operation gate、membership 停止线、隐私和验收；runtime 尚未开始 |
 | [Control Plane Verified Identity Context & Negative Auth Runtime v1](../task-cards/control-plane-verified-identity-negative-auth-runtime-v1-plan.md) | 高风险实现批次 | 已完成 RS256 signed test token、permission projection、13 类负向认证、七条 route authorization 与 Web sanitized denial state；fake store 保持不变 |
 | [Gateway 细专题入口](gateway/README.md) | 功能专题目录 | 承接 Gateway 运行时、协议兼容和真实使用路径专题 |
 | [Gateway Python Bridge Runtime v1](gateway/python-bridge-runtime-v1.md) | 运行时专题 | 受控 `stdio` worker pool 已成为默认模式，完成生命周期、取消、崩溃恢复、请求隔离和性能验收；process 模式保留回滚 |

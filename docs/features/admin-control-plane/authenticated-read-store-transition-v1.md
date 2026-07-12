@@ -247,4 +247,4 @@ token signature、issuer、audience、algorithm、time 或 required claim 失败
 
 ## 下一实现入口
 
-`Admin Tenant / Audit PostgreSQL Read Repository Runtime v1` 已完成真实 PostgreSQL、signed-token HTTP/Web 和浏览器验收。下一产品设计可进入 Radish OIDC Integration Test v1；当前继续使用 signed test token，不接真实 Radish OIDC，也不迁移五条 workspace-scoped route。
+`Admin Tenant / Audit PostgreSQL Read Repository Runtime v1` 已完成真实 PostgreSQL、signed-token HTTP/Web 和浏览器验收。[Radish OIDC Integration Test v1](radish-oidc-integration-test-v1.md) 已完成产品设计；下一步创建统一高风险 runtime task card，当前继续使用 signed test token，不迁移五条 workspace-scoped route。
