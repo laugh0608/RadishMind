@@ -4012,3 +4012,174 @@ dd {
     flex-wrap: wrap;
   }
 }
+
+.application-publish-workspace {
+  margin-top: 24px;
+  padding: 24px;
+  border: 1px solid rgba(143, 176, 154, 0.24);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(20, 36, 30, 0.94), rgba(12, 22, 20, 0.96));
+}
+
+.application-publish-scope,
+.application-publish-layout,
+.application-publish-detail {
+  display: grid;
+  gap: 16px;
+}
+
+.application-publish-scope {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 18px 0;
+}
+
+.application-publish-scope article,
+.application-publish-create,
+.application-publish-review,
+.application-publish-snapshot,
+.application-publish-eligibility,
+.application-publish-evidence,
+.application-publish-review-log,
+.application-publish-saved {
+  padding: 18px;
+  border: 1px solid rgba(160, 190, 169, 0.18);
+  border-radius: 18px;
+  background: rgba(7, 17, 14, 0.54);
+}
+
+.application-publish-scope article,
+.application-publish-create,
+.application-publish-review,
+.application-publish-evidence,
+.application-publish-review-log {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.application-publish-scope span,
+.application-publish-scope p,
+.application-publish-review-log span {
+  color: var(--muted);
+}
+
+.application-publish-layout {
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+}
+
+.application-publish-create label,
+.application-publish-review label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.application-publish-create input,
+.application-publish-create select,
+.application-publish-create textarea,
+.application-publish-review select,
+.application-publish-review textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(160, 190, 169, 0.26);
+  border-radius: 11px;
+  color: var(--text);
+  background: rgba(2, 10, 8, 0.72);
+  font: inherit;
+}
+
+.application-publish-detail {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.application-publish-digest {
+  display: block;
+  overflow-wrap: anywhere;
+  margin: 12px 0;
+  color: #b9e4c8;
+}
+
+.application-publish-comparison {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.application-publish-comparison > div {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.8fr) minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 9px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.application-publish-comparison .changed {
+  border-left: 3px solid var(--accent);
+}
+
+.application-publish-comparison .unchanged {
+  opacity: 0.7;
+}
+
+.application-publish-eligibility ul {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.application-publish-eligibility li {
+  padding: 10px;
+  border-left: 3px solid #d88966;
+  border-radius: 9px;
+  background: rgba(128, 52, 32, 0.14);
+}
+
+.application-publish-eligibility li p {
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+.application-publish-evidence > button,
+.application-publish-review-log > div,
+.application-publish-candidate-list > button {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-start;
+  padding: 11px;
+  border: 1px solid rgba(160, 190, 169, 0.16);
+  border-radius: 11px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.application-publish-saved {
+  margin-top: 16px;
+}
+
+.application-publish-candidate-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 10px;
+}
+
+.application-publish-candidate-list button small {
+  color: var(--muted);
+}
+
+@media (max-width: 900px) {
+  .application-publish-scope,
+  .application-publish-layout,
+  .application-publish-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .application-publish-comparison > div {
+    grid-template-columns: 1fr;
+  }
+}

@@ -198,6 +198,7 @@ const ModelGatewayEvidenceReviewPanel = lazy(() => import("../features/control-p
 const ModelGatewayPlaygroundPanel = lazy(() => import("../features/control-plane-read/modelGatewayPlaygroundPanel"));
 const ApplicationApiIntegrationPanel = lazy(() => import("../features/control-plane-read/applicationApiIntegrationPanel"));
 const ApplicationConfigurationDraftPanel = lazy(() => import("../features/control-plane-read/applicationConfigurationDraftPanel"));
+const ApplicationPublishCandidatePanel = lazy(() => import("../features/control-plane-read/applicationPublishCandidatePanel"));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
 const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
 
@@ -1165,6 +1166,7 @@ export function App() {
             <a href="#workflow-user-workspace-home">Workspace Home</a>
             <a href="#workspace-applications">Applications</a>
             <a href="#application-api-integration">API Integration</a>
+            <a href="#application-publish-review">Publish Review</a>
             <a href="#workspace-workflow-definitions">Workflows</a>
             <a href="#workspace-run-history">Run History</a>
             <a href="#workspace-api-keys">API Keys</a>
@@ -1527,6 +1529,17 @@ export function App() {
           <WorkflowApplicationDetailPanel detail={workflowApplicationDetail} />
           <Suspense fallback={<div className="application-configuration-draft"><p>Loading Application Configuration Draft…</p></div>}>
             <ApplicationConfigurationDraftPanel
+              key={selectedApplication.applicationRef}
+              baseline={{
+                applicationId: selectedApplication.applicationRef,
+                displayName: selectedApplication.displayName,
+                applicationKind: selectedApplication.applicationKind,
+                updatedAt: selectedApplication.updatedAt,
+              }}
+            />
+          </Suspense>
+          <Suspense fallback={<div className="application-publish-workspace"><p>Loading Application Publish Review…</p></div>}>
+            <ApplicationPublishCandidatePanel
               key={selectedApplication.applicationRef}
               baseline={{
                 applicationId: selectedApplication.applicationRef,

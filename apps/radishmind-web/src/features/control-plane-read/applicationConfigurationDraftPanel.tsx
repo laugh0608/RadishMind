@@ -124,6 +124,11 @@ export default function ApplicationConfigurationDraftPanel({ baseline }: { basel
     window.location.hash = "model-gateway-playground";
   }
 
+  function openPublishReview() {
+    if (operation.status !== "saved" && operation.status !== "restored") return;
+    window.location.hash = "application-publish-review";
+  }
+
   return (
     <section className="application-configuration-draft" id="application-configuration-draft" aria-labelledby="application-configuration-draft-title">
       <div className="section-heading compact-heading">
@@ -155,7 +160,7 @@ export default function ApplicationConfigurationDraftPanel({ baseline }: { basel
           {operation.failureCode ? <p className="failure-summary">{operation.failureCode}</p> : null}
           {operation.validation.findings.length ? <ul className="application-draft-findings">{operation.validation.findings.map((finding) => <li key={`${finding.code}-${finding.field}`}><strong>{finding.field}</strong><span>{finding.code}</span><p>{finding.summary}</p></li>)}</ul> : <p className="boundary-note">No validation findings are currently available.</p>}
           {operation.status === "version_conflict" ? <div className="application-draft-conflict"><strong>Saved version {operation.currentDraftVersion} is newer.</strong><p>Your in-memory edits were not overwritten.</p><button type="button" onClick={continueAfterConflict}>Continue local edits against saved version</button>{list.summaries[0] ? <button type="button" onClick={() => void restoreDraft(list.summaries[0].draftId)}>Restore saved version</button> : null}</div> : null}
-          <div className="application-draft-handoff"><button type="button" disabled={!handoffReady} onClick={openIntegration}>Open API Integration</button><button type="button" disabled={!handoffReady} onClick={openPlayground}>Test in Playground</button></div>
+          <div className="application-draft-handoff"><button type="button" disabled={!handoffReady} onClick={openIntegration}>Open API Integration</button><button type="button" disabled={!handoffReady} onClick={openPlayground}>Test in Playground</button><button type="button" disabled={operation.status !== "saved" && operation.status !== "restored"} onClick={openPublishReview}>Open Publish Review</button></div>
           <p className="boundary-note">Handoff contains only application, protocol, and validated model. It never contains form text, credentials, or request input.</p>
         </article>
       </div>
