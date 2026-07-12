@@ -13,6 +13,7 @@
 - 当显式设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http` 时，可通过 dev-only HTTP consumer 消费 fake-store-backed read handlers；后端必须同时设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 才会接受测试身份 header。
 - Workflow saved draft consumer 独立使用 `VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE=dev-saved-draft-http` 开关；默认仍是 sample-only，显式启用后通过 `POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}` 和 `POST /v1/user-workspace/workflow-drafts/validate` 连接 platform memory dev store。后端仍必须设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 与 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1`，保存还需要 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1`。
 - Workflow Executor v0 独立使用 `VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http`；只有 active draft 是已保存、未修改且通过 bounded graph eligibility 的 executor v0 草案时，才能调用 Platform POST run，随后可用 GET scoped read 回读 record。服务端仍会重新读取并校验草案；Web 预检不构成执行授权。
+- Gateway Request History 独立使用 `VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE=dev-gateway-request-history-http`；默认 offline evidence 零请求。显式启用后，现有 Model Gateway Evidence Review 内的独立 lazy panel 读取 `/v1/model-gateway/requests` list / detail，展示 sanitized caller refs、route / protocol、selection、timing、usage availability 和稳定 failure，不回退旧 quota / cost 或 Workflow run fixture。后端必须同时启用 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 与 `RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV=1`。
 - 只渲染 read route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、只读 `admin-audit-log`、普通离线 Admin Operations Review / Readiness、普通离线 Admin Provider/Profile & Deployment Evidence Review / Readiness、只读 `workspace-applications`、只读 `workspace-api-keys`、只读 `workspace-usage-quota`、只读 `workspace-workflow-definitions`、只读 `workspace-run-history`、User Workspace Home、Model Gateway Overview、Model Gateway Route Evidence、Model Gateway Usage/Audit Evidence、Model Gateway Evidence Review / Readiness 和 workflow function surface 面板。
 - `admin-tenant-overview` 只消费 `tenant-summary-route` 的离线 view model，展示租户摘要、route metadata、request / audit ref 和状态预览。
 - `admin-audit-log` 只消费 `audit-summary-list-route` 的离线 view model，展示 audit ref、actor、event kind、resource、decision、failure code、trace id、recorded timestamp、route metadata、request / audit ref、cursor 和状态预览。
@@ -50,6 +51,7 @@
 - `modelGatewayRouteEvidence.ts` / `modelGatewayRouteEvidencePanel.tsx` 只从 Overview 与 read shell 派生 route binding、selection case、streaming、auth mode、secret ref 和 route risk，不创建新的产品真相源。
 - `modelGatewayUsageAuditEvidence.ts` / `modelGatewayUsageAuditEvidencePanel.tsx` 只从 Overview、Route Evidence、API key、quota、run history 和 audit log 派生 usage / audit 证据，不执行 quota、rate limit、billing 或 cost write。
 - `modelGatewayEvidenceReview.ts` / `modelGatewayEvidenceReviewPanel.tsx` 只复用前三个 Model Gateway view model，集中生成 readiness rollup、evidence checklist、route / usage / audit risk 和 locked capability。
+- `modelGatewayRequestHistoryConsumer.ts` / `modelGatewayRequestHistoryPanel.tsx` 是与离线 evidence 分离的显式 dev/test consumer 和 lazy review panel；consumer 负责 scope query、专用 Gateway headers、strict mapping、forbidden-field scan、过滤、分页和详情，panel 不持有 production auth、quota、billing、retry / fallback 或写入能力。
 - `adminOperationsReview.ts` / `adminOperationsReviewPanel.tsx` 只复用 tenant overview、admin audit log、Model Gateway Evidence Review 和 Production Ops 静态证据，生成管理端 review/readiness 摘要。
 - `adminProviderDeploymentReview.ts` / `adminProviderDeploymentReviewPanel.tsx` 只复用 Model Gateway Route Evidence、Model Gateway Evidence Review、Admin Operations Review、tenant overview 和 audit log，生成 provider/profile、model route、secret ref readiness、deployment status、operator risk 和 locked capability 摘要。
 - `savedWorkflowDraftConsumer.ts` 只在 `VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE=dev-saved-draft-http` 下连接 dev-only saved draft route，负责 sample / unsaved / validating / saving / reading / saved / version conflict / `conflict_local_continued` / failed，以及 saved draft list `sample` / `loading` / `ready` / `empty` / `list_failed` / `restore_failed` 状态映射；`savedWorkflowDraftLifecycle.ts` 负责 persisted base version、validate / failure version preservation 和 unresolved conflict blocking，冲突审查 summary 只派生 `savedMetadataState`、`restoreActionState`、`restoreUnavailableReason`、本地草案保留说明和 reviewer 下一步，默认 sample-only，不承担 production persistence。
@@ -121,6 +123,21 @@ VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http
 ```
 
 这些开关只服务本地开发态 Saved Draft 与受控 executor v0；`--saved-draft-postgres-dev-test` 可显式使用 PostgreSQL dev/test repository。两者都不代表 production persistence、production auth 或 production API。
+
+Gateway Request History 当前尚未接入 launcher flag；需要联调 `memory_dev` 纵向切片时，应分别为 Platform 和 Web 显式提供以下最小开关与同一 caller scope。真实 northbound 请求也必须携带同组 `X-RadishMind-Dev-Gateway-*` header 才会形成记录：
+
+```bash
+RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1
+RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV=1
+VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE=dev-gateway-request-history-http
+VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_BASE_URL=http://127.0.0.1:7100
+VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_TENANT_REF=tenant_demo
+VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_WORKSPACE_ID=workspace_demo
+VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_CONSUMER_REF=consumer_web_dev
+VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SUBJECT_REF=subject_web_dev
+```
+
+该路径当前随 Platform 重启清空；只有后续 `postgres_dev_test` repository 与重启恢复验收完成后，才可声明开发 / 测试态 durable history。
 
 底层 wrapper 也可单独执行：
 
