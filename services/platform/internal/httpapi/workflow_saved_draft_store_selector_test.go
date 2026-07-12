@@ -51,6 +51,29 @@ func TestSelectWorkflowSavedDraftStore(t *testing.T) {
 		}
 	})
 
+	t.Run("postgres dev test mode requires an explicitly constructed store", func(t *testing.T) {
+		disabled := SelectWorkflowSavedDraftStore("postgres_dev_test", WorkflowSavedDraftStoreSelector{})
+		if disabled.Mode != WorkflowSavedDraftStoreModePostgresDevTest ||
+			disabled.FailureCode != SavedWorkflowDraftFailureStoreUnavailable {
+			t.Fatalf("missing postgres dev/test store must fail closed: %#v", disabled)
+		}
+		assertSavedWorkflowDraftStoreSelectionFailure(
+			t,
+			disabled.Store,
+			SavedWorkflowDraftFailureStoreUnavailable,
+		)
+
+		injectedStore := newMemorySavedWorkflowDraftStore()
+		selected := SelectWorkflowSavedDraftStore(" postgres_dev_test ", WorkflowSavedDraftStoreSelector{
+			PostgresDevTestStore: injectedStore,
+		})
+		if selected.Mode != WorkflowSavedDraftStoreModePostgresDevTest ||
+			selected.Store != injectedStore ||
+			selected.FailureCode != "" {
+			t.Fatalf("explicit postgres dev/test store should be selected: %#v", selected)
+		}
+	})
+
 	t.Run("unknown mode fails closed without memory fallback", func(t *testing.T) {
 		selection := SelectWorkflowSavedDraftStore("future_backend", WorkflowSavedDraftStoreSelector{})
 		if selection.Store == nil ||

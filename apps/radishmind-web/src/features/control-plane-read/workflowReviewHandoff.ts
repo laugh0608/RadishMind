@@ -149,6 +149,8 @@ export type WorkflowReviewHandoffNodeDesignerGraphFinding = {
   severity: "info" | "warning" | "blocking";
   targetRefs: string[];
   targetSummary: string;
+  handoffPath: string;
+  handoffPathRefs: string[];
   summary: string;
   reviewerQuestion: string;
   evidenceRefs: string[];
@@ -529,10 +531,12 @@ function buildNodeDesignerReviewSections(
       itemCount: draft.nodes.length,
       summary: `Node Designer presents ${draft.nodes.length} active draft nodes with ${positionedNodeCount} ${layoutPersistenceLabel} positions and ${defaultLayoutNodeCount} default lane-derived positions.`,
       reviewerQuestion: "Does the visual layout help review the draft without implying runtime order or persisted schema state?",
-      evidenceRefs: [
-        ...draft.designerLayout.nodePositions.map((position) => position.nodeId),
-        ...draft.nodes.map((node) => node.nodeId),
-      ].slice(0, 8),
+      evidenceRefs: Array.from(
+        new Set([
+          ...draft.designerLayout.nodePositions.map((position) => position.nodeId),
+          ...draft.nodes.map((node) => node.nodeId),
+        ]),
+      ).slice(0, 8),
     },
     {
       sectionId: "node_designer_validation_overlay",
@@ -602,6 +606,8 @@ function buildNodeDesignerGraphReviewFindings(
         severity: check.severity,
         targetRefs,
         targetSummary: nodeDesignerTargetSummary(targetKind, targetNodeIds, targetEdgeIds),
+        handoffPath: nodeDesignerGraphReviewHandoffPath(targetKind),
+        handoffPathRefs: nodeDesignerGraphReviewHandoffPathRefs(targetKind, targetRefs),
         summary: check.summary,
         reviewerQuestion:
           "Does this graph finding identify the node or edge context a reviewer should inspect before handoff?",
@@ -624,6 +630,8 @@ function buildNodeDesignerGraphReviewFindings(
         severity: check.severity,
         targetRefs,
         targetSummary: nodeDesignerTargetSummary(targetKind, targetNodeIds, targetEdgeIds),
+        handoffPath: nodeDesignerGraphReviewHandoffPath(targetKind),
+        handoffPathRefs: nodeDesignerGraphReviewHandoffPathRefs(targetKind, targetRefs),
         summary: `${check.summary} Missing fields: ${
           check.missingFields.length > 0 ? check.missingFields.join(", ") : "none"
         }.`,
@@ -641,6 +649,8 @@ function buildNodeDesignerGraphReviewFindings(
     severity: check.severity,
     targetRefs: [check.capabilityId],
     targetSummary: `Graph-level blocked capability: ${check.capabilityId}`,
+    handoffPath: nodeDesignerGraphReviewHandoffPath("graph"),
+    handoffPathRefs: nodeDesignerGraphReviewHandoffPathRefs("graph", [check.capabilityId]),
     summary: check.summary,
     reviewerQuestion: "Which missing prerequisite keeps this graph-level capability blocked for the handoff?",
     evidenceRefs: [check.checkId, check.capabilityId, check.auditRef],
@@ -761,6 +771,32 @@ function nodeDesignerTargetSummary(
     return `${nodeIds.length} related nodes`;
   }
   return "Graph-level review item";
+}
+
+function nodeDesignerGraphReviewHandoffPath(
+  targetKind: WorkflowReviewHandoffNodeDesignerGraphFinding["targetKind"],
+): string {
+  if (targetKind === "node") {
+    return "validation overlay / node inspector / saved draft mapping";
+  }
+  if (targetKind === "edge") {
+    return "validation overlay / connected edge review / draft edge summary";
+  }
+  return "validation overlay / runtime readiness / decision blockers";
+}
+
+function nodeDesignerGraphReviewHandoffPathRefs(
+  targetKind: WorkflowReviewHandoffNodeDesignerGraphFinding["targetKind"],
+  targetRefs: string[],
+): string[] {
+  const sectionRefs =
+    targetKind === "node"
+      ? ["node_designer_validation_overlay", "node_designer_inspector_state"]
+      : targetKind === "edge"
+        ? ["node_designer_validation_overlay", "node_designer_saved_draft_mapping"]
+        : ["node_designer_validation_overlay", "runtime_readiness", "decision_blockers"];
+
+  return [...sectionRefs, ...targetRefs].slice(0, 8);
 }
 
 function buildRecipients(source: WorkflowReviewHandoffSource): WorkflowReviewHandoffRecipient[] {

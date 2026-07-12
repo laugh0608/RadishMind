@@ -2,7 +2,6 @@ package httpapi
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -64,9 +63,9 @@ type openAIResponsesStreamEvent struct {
 func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, "/v1/responses")
 	var responseRequest openAIResponsesRequest
-	decoder := json.NewDecoder(request.Body)
-	if err := decoder.Decode(&responseRequest); err != nil {
-		s.writePlatformError(writer, trace, "INVALID_JSON", fmt.Sprintf("invalid responses request: %v", err))
+	if !s.decodeJSONRequestBody(writer, request, trace, &responseRequest, jsonRequestBodyOptions{
+		maxBytes: maxNorthboundJSONRequestBodyBytes,
+	}) {
 		return
 	}
 
@@ -96,7 +95,7 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 
 	if responseRequest.Stream {
 		if err := s.streamOpenAIResponsesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(responseRequest.Temperature, s.config.Temperature), trace); err != nil {
-			s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
+			s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 			return
 		}
 		return
@@ -108,7 +107,7 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 		s.buildBridgeEnvelopeOptions(selection, effectiveTemperature(responseRequest.Temperature, s.config.Temperature)),
 	)
 	if err != nil {
-		s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
+		s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 		return
 	}
 	if strings.EqualFold(envelope.Status, "failed") {
@@ -290,11 +289,11 @@ func (s *Server) streamOpenAIResponsesResponse(
 					completedEnvelope = event.Envelope
 				}
 				if event.Envelope != nil && strings.EqualFold(event.Envelope.Status, "failed") && !emittedContent {
-					return fmt.Errorf(gatewayErrorMessage(event.Envelope.Error))
+					return fmt.Errorf("%s", gatewayErrorMessage(event.Envelope.Error))
 				}
 				return nil
 			case "error":
-				return fmt.Errorf(gatewayErrorMessage(event.Error))
+				return fmt.Errorf("%s", gatewayErrorMessage(event.Error))
 			default:
 				return nil
 			}

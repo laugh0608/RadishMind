@@ -415,11 +415,36 @@ function WorkflowReviewHandoffNodeDesignerGraphFindingCard({
           <dt>Target</dt>
           <dd>{finding.targetSummary}</dd>
         </div>
+        <div>
+          <dt>Handoff path</dt>
+          <dd>{finding.handoffPath}</dd>
+        </div>
       </dl>
-      <div className="workflow-workspace-review-token-list" aria-label={`${finding.label} target refs`}>
-        {finding.targetRefs.map((targetRef) => (
-          <code key={targetRef}>{targetRef}</code>
-        ))}
+      <div className="workflow-review-handoff-graph-card-traces">
+        <div>
+          <span>Target refs</span>
+          <div className="workflow-workspace-review-token-list" aria-label={`${finding.label} target refs`}>
+            {finding.targetRefs.map((targetRef) => (
+              <code key={targetRef}>{targetRef}</code>
+            ))}
+          </div>
+        </div>
+        <div>
+          <span>Handoff path refs</span>
+          <div className="workflow-workspace-review-token-list" aria-label={`${finding.label} handoff path refs`}>
+            {finding.handoffPathRefs.map((handoffPathRef) => (
+              <code key={handoffPathRef}>{handoffPathRef}</code>
+            ))}
+          </div>
+        </div>
+        <div>
+          <span>Evidence refs</span>
+          <div className="workflow-workspace-review-token-list" aria-label={`${finding.label} evidence refs`}>
+            {finding.evidenceRefs.map((evidenceRef) => (
+              <code key={evidenceRef}>{evidenceRef}</code>
+            ))}
+          </div>
+        </div>
       </div>
       <p>{finding.summary}</p>
       <p>{finding.reviewerQuestion}</p>

@@ -1,6 +1,6 @@
 # Workflow Review Handoff Active Draft v1 专题
 
-更新时间：2026-07-01
+更新时间：2026-07-04
 
 ## 专题定位
 
@@ -16,6 +16,7 @@
 - `WorkflowReviewHandoffViewModel` 新增 active draft review record，显式记录 validation / plan / readiness 三段审查来源、状态、blocker count、request / audit metadata 和 reviewer question。
 - Review Handoff 面板新增 `Active Draft Review Record` 区域，供人工审查者先确认当前 draft 的 validation、plan 和 readiness 证据链。
 - Review Handoff 现在消费 Draft Designer 的 `WorkflowSavedDraftConflictReviewSummary`，在 `version_conflict` 后显示 saved metadata state、restore action state、本地草案保留说明、reviewer 下一步和 auto overwrite / auto merge 停止线。
+- 当 active draft 包含 Node Designer 画布证据时，Review Handoff 会在 `Active Draft Review Record` 后展示 `Node Designer Review Handoff`；两者共享同一 active draft 和 inspector evidence，但 active draft record 仍只解释 validation / plan / readiness 三段主链路。
 - handoff record 只由当前浏览器内 view model 派生，不保存、不导出、不发送、不请求 live backend。
 - 新增 `workflow-review-handoff-active-draft-v1` fixture / checker，固定 handoff 对 active draft 三段 inspector 的消费链、UI 渲染和停止线。
 
@@ -45,6 +46,20 @@
 4. runtime readiness inspector 消费 execution plan preview，生成 executor、provider、confirmation、store、audit、writeback、replay、auth / store 和 publish 前置状态。
 5. Review Handoff 汇总上述三段 view model，形成 active draft review record，并与 recipients、key findings、evidence checklist、decision blockers 和 boundary locks 一起展示。
 6. 如果 Draft Designer 最近一次保存进入 `version_conflict`，Review Handoff 额外展示同一份 conflict review summary，供 reviewer 判断当前应继续本地草案、等待 metadata 刷新，还是显式恢复 saved version。
+
+## 与 Node Designer Review Handoff 的关系
+
+`Active Draft Review Record` 是 Review Handoff 的主审查链路，回答当前草案在 validation、execution plan preview 和 runtime readiness 上处于什么状态。`Node Designer Review Handoff` 是同一 active draft 的画布审查补充，回答 validation overlay 中的问题应定位到哪些节点、连线或全图能力。
+
+两者的关系如下：
+
+- Active draft record 固定三段主链路：validation、plan、readiness。
+- Node Designer record 固定画布侧证据：layout 来源、validation overlay、inspector state、saved draft mapping 和 `graphReviewFindings`。
+- `graphReviewFindings` 只把 validation inspector 的检查结果整理成 node / edge / graph-level 阅读路径，不改变 active draft record 的状态结论。
+- conflict review summary 独立于 graph review。前者解释 saved metadata 与本地草案的版本冲突，后者解释当前草案图结构和 blocked capability 的审查定位。
+- 如果页面同时出现 conflict summary 和 graph review finding，reviewer 应先确认本地草案是否继续作为审查对象，再按 `handoffPath` 阅读节点、连线或全图证据。
+
+这些区块都属于浏览器内只读审查视图。页面不会因为展示上述信息而保存草案、恢复 saved version、发送 handoff、生成执行计划、解锁发布、启动 runtime 或提交确认决策。
 
 ## 验收方式
 

@@ -95,8 +95,8 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
         require(local_edit_index != -1, f"{edit_handler} must mark draft as local_edit")
 
     for literal in (
-        "disabled={operationPending}",
-        "disabled={!draftEditDirty || operationPending}",
+        "disabled={interactionDisabled}",
+        "disabled={!draftEditDirty || interactionDisabled}",
         "onResetDraftEdits",
         "onUpdateNodeLabel",
         "onUpdateEdgeCondition",

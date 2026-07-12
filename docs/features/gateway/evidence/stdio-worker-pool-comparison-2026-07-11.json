@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "run_id": "gateway-bridge-stdio-pool-comparison-20260711",
+  "status": "completed",
+  "provider": "mock",
+  "request_fixture": "datasets/examples/radishflow-copilot-request-ghost-valve-ambiguous-001.json",
+  "percentile_method": "nearest_rank",
+  "baseline_reference": "docs/features/gateway/evidence/process-per-request-baseline-2026-07-11.json",
+  "runtime": {
+    "go_version": "go1.26.3",
+    "platform": "darwin/arm64",
+    "python_runtime": "repository_venv"
+  },
+  "shared_parameters": {
+    "warmup_requests": 2,
+    "sequential_requests": 20,
+    "concurrent_requests": 20,
+    "concurrency": 4,
+    "request_timeout_seconds": 30
+  },
+  "process_per_request_recheck": {
+    "measured_at": "2026-07-11T06:44:01Z",
+    "command": "go run ./cmd/radishmind-bridge-benchmark --mode process_per_request --worker-count 4 --queue-capacity 64 --handshake-timeout 5s --sequential-requests 20 --concurrent-requests 20 --concurrency 4 --warmup-requests 2",
+    "expected_process_starts": 42,
+    "process_starts": 42,
+    "sequential": {
+      "wall_time_ms": 2042.148,
+      "throughput_requests_per_second": 9.794,
+      "total": {
+        "minimum_ms": 100.154,
+        "mean_ms": 102.101,
+        "p50_ms": 101.638,
+        "p95_ms": 107.646,
+        "maximum_ms": 108.796
+      },
+      "bridge_overhead": {
+        "minimum_ms": 59.789,
+        "mean_ms": 60.951,
+        "p50_ms": 60.638,
+        "p95_ms": 62.796,
+        "maximum_ms": 66.646
+      },
+      "python_gateway": {
+        "minimum_ms": 20,
+        "mean_ms": 20.9,
+        "p50_ms": 21,
+        "p95_ms": 21,
+        "maximum_ms": 23
+      },
+      "provider": {
+        "minimum_ms": 20,
+        "mean_ms": 20.25,
+        "p50_ms": 20,
+        "p95_ms": 21,
+        "maximum_ms": 23
+      }
+    },
+    "concurrent": {
+      "wall_time_ms": 588.497,
+      "throughput_requests_per_second": 33.985,
+      "total": {
+        "minimum_ms": 113.759,
+        "mean_ms": 117.212,
+        "p50_ms": 116.745,
+        "p95_ms": 120.339,
+        "maximum_ms": 122.056
+      },
+      "bridge_overhead": {
+        "minimum_ms": 70.759,
+        "mean_ms": 73.512,
+        "p50_ms": 73.4,
+        "p95_ms": 75.439,
+        "maximum_ms": 78.056
+      },
+      "python_gateway": {
+        "minimum_ms": 21,
+        "mean_ms": 22.15,
+        "p50_ms": 22,
+        "p95_ms": 23,
+        "maximum_ms": 24
+      },
+      "provider": {
+        "minimum_ms": 21,
+        "mean_ms": 21.55,
+        "p50_ms": 21,
+        "p95_ms": 23,
+        "maximum_ms": 23
+      }
+    }
+  },
+  "stdio_pool": {
+    "measured_at": "2026-07-11T06:43:50Z",
+    "command": "go run ./cmd/radishmind-bridge-benchmark --mode stdio_pool --worker-count 4 --queue-capacity 64 --handshake-timeout 5s --sequential-requests 20 --concurrent-requests 20 --concurrency 4 --warmup-requests 2",
+    "worker_count": 4,
+    "queue_capacity": 64,
+    "handshake_timeout_seconds": 5,
+    "expected_process_starts": 4,
+    "process_starts": 4,
+    "sequential": {
+      "wall_time_ms": 895.605,
+      "throughput_requests_per_second": 22.331,
+      "total": {
+        "minimum_ms": 43.521,
+        "mean_ms": 44.776,
+        "p50_ms": 44.18,
+        "p95_ms": 48.265,
+        "maximum_ms": 48.319
+      },
+      "bridge_overhead": {
+        "minimum_ms": 3.103,
+        "mean_ms": 3.626,
+        "p50_ms": 3.566,
+        "p95_ms": 4.098,
+        "maximum_ms": 4.265
+      },
+      "python_gateway": {
+        "minimum_ms": 20,
+        "mean_ms": 20.65,
+        "p50_ms": 20,
+        "p95_ms": 22,
+        "maximum_ms": 23
+      },
+      "provider": {
+        "minimum_ms": 20,
+        "mean_ms": 20.5,
+        "p50_ms": 20,
+        "p95_ms": 22,
+        "maximum_ms": 22
+      }
+    },
+    "concurrent": {
+      "wall_time_ms": 233.344,
+      "throughput_requests_per_second": 85.71,
+      "total": {
+        "minimum_ms": 45.047,
+        "mean_ms": 46.498,
+        "p50_ms": 46.417,
+        "p95_ms": 47.843,
+        "maximum_ms": 48.04
+      },
+      "bridge_overhead": {
+        "minimum_ms": 3.035,
+        "mean_ms": 3.748,
+        "p50_ms": 3.868,
+        "p95_ms": 4.252,
+        "maximum_ms": 4.276
+      },
+      "python_gateway": {
+        "minimum_ms": 20,
+        "mean_ms": 21.25,
+        "p50_ms": 21,
+        "p95_ms": 22,
+        "maximum_ms": 22
+      },
+      "provider": {
+        "minimum_ms": 21,
+        "mean_ms": 21.5,
+        "p50_ms": 21,
+        "p95_ms": 22,
+        "maximum_ms": 23
+      }
+    }
+  },
+  "comparison": {
+    "sequential_bridge_overhead_p95_reduction_percent": 93.5,
+    "concurrent_bridge_overhead_p95_reduction_percent": 94.4,
+    "sequential_total_p95_reduction_percent": 55.2,
+    "concurrent_total_p95_reduction_percent": 60.2,
+    "sequential_throughput_increase_percent": 128.0,
+    "concurrent_throughput_increase_percent": 152.2,
+    "original_committed_baseline_sequential_overhead_reduction_percent": 94.4,
+    "original_committed_baseline_concurrent_overhead_reduction_percent": 97.6,
+    "performance_gate": "passed"
+  },
+  "correctness_evidence": {
+    "worker_protocol_version": 1,
+    "one_inflight_request_per_worker": true,
+    "bounded_queue": true,
+    "request_credential_not_in_worker_environment": true,
+    "request_credential_not_cached": true,
+    "request_frame_buffer_cleared_after_write": true,
+    "python_request_frame_references_released_after_request": true,
+    "blocked_request_write_is_context_cancelable": true,
+    "stream_events_correlated": true,
+    "current_request_auto_retry": false,
+    "worker_rebuilt_for_later_request_after_failure": true,
+    "graceful_close_reaps_workers": true,
+    "default_mode": "stdio_pool",
+    "rollback_mode": "process_per_request"
+  },
+  "limitations": [
+    "mock_provider_results_do_not_represent_real_provider_latency_or_sla",
+    "worker_startup_handshake_is_completed_before_measured_requests",
+    "bridge_overhead_is_derived_from_go_wall_time_minus_python_gateway_duration",
+    "dynamic_worker_scaling_and_cross_instance_scheduling_are_not_implemented"
+  ],
+  "contains_secret_material": false,
+  "sanitized": true
+}

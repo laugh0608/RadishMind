@@ -43,19 +43,153 @@ FOLLOWUP_AFTER_SELECTION_FIXTURE = (
 FOLLOWUP_AFTER_SELECTION_STATUS = (
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
 )
-FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_table_schema_artifact_materialization_entry_review"
+FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY = "storage_adapter_database_provider_connection_runtime_boundary_readiness"
 FOLLOWUP_AFTER_SELECTION_BLOCKER_STATUS = (
-    "storage_adapter_append_only_table_schema_boundary_readiness_defined_task_card_blocked"
+    "storage_adapter_runtime_entry_refresh_after_database_connection_lifecycle_defined_task_card_blocked"
 )
 FOLLOWUP_AFTER_SELECTION_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-append-only-table-schema-boundary-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-connection-lifecycle-v1"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1.json"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS = (
+    "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY = (
+    "storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_BLOCKER_STATUS = (
+    "storage_adapter_database_provider_connection_runtime_boundary_readiness_defined_task_card_blocked"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-database-provider-connection-runtime-boundary-v1.json"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_NEXT_DEPENDENCY = (
+    "storage_adapter_managed_database_product_selection_readiness"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_database_provider_connection_runtime_boundary_defined_task_card_blocked"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-database-provider-connection-runtime-boundary-v1"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1.json"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS = (
+    "audit_store_storage_adapter_managed_database_product_selection_review_defined"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_NEXT_DEPENDENCY = (
+    "storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_BLOCKER_STATUS = (
+    "storage_adapter_managed_database_product_selection_review_defined_task_card_blocked"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1"
+)
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-managed-database-product-selection-review-v1.json"
+)
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_defined"
+)
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_NEXT_DEPENDENCY = (
+    "storage_adapter_concrete_managed_database_provider_selection_readiness"
+)
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review_defined_task_card_blocked"
+)
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-managed-database-product-selection-review-v1"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1.json"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_STATUS = (
+    "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_NEXT_DEPENDENCY = (
+    "storage_adapter_concrete_managed_database_provider_selection_review"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_BLOCKER_STATUS = (
+    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-review-v1.json"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS = (
+    "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY = (
+    "storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_BLOCKER_STATUS = (
+    "storage_adapter_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-review-v1"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-concrete-managed-database-provider-selection-review-v1.json"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY = (
+    "storage_adapter_provider_account_resource_endpoint_readiness"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-concrete-managed-database-provider-selection-review-v1"
+)
+FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_FIXTURE = (
+    "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.json"
+)
+FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_STATUS = (
+    "audit_store_storage_adapter_provider_account_resource_endpoint_review_defined"
+)
+FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_NEXT_DEPENDENCY = (
+    "storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review"
+)
+FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_BLOCKER_STATUS = (
+    "storage_adapter_provider_account_resource_endpoint_review_defined_task_card_blocked"
+)
+FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1"
 )
 FOLLOWUP_SELECTION_ALIGNMENT = {
     "audit_store_storage_adapter_backend_product_selection_review_status": FOLLOWUP_SELECTION_STATUS,
     "audit_storage_adapter_backend_product_selection_status": "selected_static_product_class_without_backend_provider",
     "audit_storage_adapter_selected_backend_product_class": "managed_database_append_only_table",
     "audit_storage_adapter_selected_backend_product_profile": "reserved_managed_database_append_only_table_profile",
-    "audit_storage_adapter_database_product_status": "not_selected",
+    "audit_storage_adapter_database_product_status": "engine_selected_without_managed_product",
     "audit_storage_adapter_database_connection_provider_status": "not_created",
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_SELECTION_NEXT_DEPENDENCY,
 }
@@ -64,7 +198,7 @@ FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
         FOLLOWUP_AFTER_SELECTION_STATUS
     ),
     "audit_storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_append_only_table_schema_boundary_readiness"
+        "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_entry_refresh"
     ),
     "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_SELECTION_NEXT_DEPENDENCY,
     "audit_storage_adapter_database_provider_driver_dsn_tls_role_policy_status": (
@@ -73,7 +207,81 @@ FOLLOWUP_AFTER_SELECTION_ALIGNMENT = {
     "audit_storage_adapter_append_only_table_schema_boundary_status": "defined_without_sql_or_runtime",
     "audit_storage_adapter_migration_schema_marker_boundary_status": "logical_schema_marker_handoff_boundary_defined",
     "audit_storage_adapter_offline_adapter_smoke_strategy_status": "required_before_runtime_task_card",
-    "audit_storage_adapter_negative_leakage_runtime_scan_boundary_status": "required_before_runtime_task_card",
+    "audit_storage_adapter_negative_leakage_runtime_scan_boundary_status": "defined_without_runtime",
+}
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT = {
+    "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_status": (
+        FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_readiness"
+    ),
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_NEXT_DEPENDENCY,
+    "audit_storage_adapter_database_provider_connection_runtime_boundary_status": (
+        "metadata_only_boundary_defined_without_runtime"
+    ),
+}
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_ALIGNMENT = {
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_status": (
+        FOLLOWUP_AFTER_PROVIDER_BOUNDARY_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_entry_refresh"
+    ),
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_PROVIDER_BOUNDARY_NEXT_DEPENDENCY,
+}
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_ALIGNMENT = {
+    "audit_store_storage_adapter_managed_database_product_selection_readiness_status": (
+        FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review"
+    ),
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_NEXT_DEPENDENCY,
+    "audit_storage_adapter_managed_product_selection_status": "selected_reference_product_profile_without_vendor",
+    "audit_storage_adapter_managed_product_selection_review_status": "not_started",
+}
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_ALIGNMENT = {
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_status": (
+        FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review_entry_refresh"
+    ),
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_NEXT_DEPENDENCY,
+    "audit_storage_adapter_managed_product_selection_status": "selected_reference_product_profile_without_vendor",
+    "audit_storage_adapter_managed_product_selection_review_status": FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS,
+    "audit_storage_adapter_selected_managed_product_profile": "managed_postgresql_compatible_audit_store_profile",
+    "audit_storage_adapter_managed_database_product_status": "selected_reference_profile_not_vendor_product",
+}
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT = {
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_status": (
+        FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh"
+    ),
+    "audit_storage_adapter_current_next_dependency": (
+        FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_NEXT_DEPENDENCY
+    ),
+    "audit_storage_adapter_selected_provider_reference": "managed_postgresql_compatible_provider_reference",
+    "audit_storage_adapter_concrete_provider_selection_status": "selected_reference_provider_profile_without_real_provider",
+}
+FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_ALIGNMENT = {
+    "audit_store_storage_adapter_provider_account_resource_endpoint_review_status": (
+        FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_STATUS
+    ),
+    "audit_storage_adapter_runtime_task_card_decision": (
+        "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_review"
+    ),
+    "audit_storage_adapter_current_next_dependency": FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_NEXT_DEPENDENCY,
+    "audit_storage_adapter_selected_provider_reference": "managed_postgresql_compatible_provider_reference",
+    "audit_storage_adapter_concrete_provider_selection_status": "selected_reference_provider_profile_without_real_provider",
+    "audit_storage_adapter_provider_account_resource_status": "metadata_only_readiness_defined_without_real_resource",
+    "audit_storage_adapter_provider_resource_status": "not_selected",
+    "audit_storage_adapter_database_endpoint_status": "metadata_only_endpoint_requirements_defined_without_endpoint",
+    "audit_storage_adapter_region_detail_status": "metadata_only_region_requirements_defined_without_region_detail",
+    "audit_storage_adapter_provider_account_confirmation_status": "operator_confirmation_required_before_runtime",
 }
 
 EXPECTED_DEPENDENCIES = {
@@ -286,6 +494,70 @@ def followup_after_selection_exists() -> bool:
     return source_status(followup) == FOLLOWUP_AFTER_SELECTION_STATUS
 
 
+def followup_connection_runtime_boundary_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_FIXTURE
+    if not path.exists():
+        return False
+    followup = load_json(path)
+    return source_status(followup) == FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS
+
+
+def followup_after_provider_boundary_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_AFTER_PROVIDER_BOUNDARY_FIXTURE
+    if not path.exists():
+        return False
+    followup = load_json(path)
+    return source_status(followup) == FOLLOWUP_AFTER_PROVIDER_BOUNDARY_STATUS
+
+
+def followup_managed_product_selection_readiness_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_FIXTURE
+    if not path.exists():
+        return False
+    followup = load_json(path)
+    return source_status(followup) == FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS
+
+
+def followup_after_managed_product_selection_review_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_FIXTURE
+    if not path.exists():
+        return False
+    followup = load_json(path)
+    return source_status(followup) == FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS
+
+
+def followup_concrete_managed_database_provider_selection_readiness_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_FIXTURE
+    if not path.exists():
+        return False
+    followup = load_json(path)
+    return source_status(followup) == FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_STATUS
+
+
+def followup_concrete_managed_database_provider_selection_review_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE
+    if not path.exists():
+        return False
+    followup = load_json(path)
+    return source_status(followup) == FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS
+
+
+def followup_after_concrete_managed_database_provider_selection_review_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE
+    if not path.exists():
+        return False
+    followup = load_json(path)
+    return source_status(followup) == FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS
+
+
+def followup_provider_account_resource_endpoint_readiness_exists() -> bool:
+    path = REPO_ROOT / FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_FIXTURE
+    if not path.exists():
+        return False
+    followup = load_json(path)
+    return source_status(followup) == FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_STATUS
+
+
 def assert_slice(fixture: dict[str, Any]) -> None:
     require(fixture.get("schema_version") == 1, "unexpected schema_version")
     require(
@@ -486,7 +758,31 @@ def assert_blocker_matrix_alignment() -> None:
     )
     blockers = rows_by_id(matrix, "blocker_matrix", "blocker_id")
     durable = blockers.get("durable_audit_backend") or {}
-    if followup_after_selection_exists():
+    if followup_provider_account_resource_endpoint_readiness_exists():
+        expected_blocker_status = FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_BLOCKER_STATUS
+        expected_source = FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_SOURCE
+    elif followup_after_concrete_managed_database_provider_selection_review_exists():
+        expected_blocker_status = FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_BLOCKER_STATUS
+        expected_source = FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_SOURCE
+    elif followup_concrete_managed_database_provider_selection_review_exists():
+        expected_blocker_status = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_BLOCKER_STATUS
+        expected_source = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_SOURCE
+    elif followup_concrete_managed_database_provider_selection_readiness_exists():
+        expected_blocker_status = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_BLOCKER_STATUS
+        expected_source = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_SOURCE
+    elif followup_after_managed_product_selection_review_exists():
+        expected_blocker_status = FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_BLOCKER_STATUS
+        expected_source = FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_SOURCE
+    elif followup_managed_product_selection_readiness_exists():
+        expected_blocker_status = FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_BLOCKER_STATUS
+        expected_source = FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_SOURCE
+    elif followup_after_provider_boundary_exists():
+        expected_blocker_status = FOLLOWUP_AFTER_PROVIDER_BOUNDARY_BLOCKER_STATUS
+        expected_source = FOLLOWUP_AFTER_PROVIDER_BOUNDARY_SOURCE
+    elif followup_connection_runtime_boundary_exists():
+        expected_blocker_status = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_BLOCKER_STATUS
+        expected_source = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_SOURCE
+    elif followup_after_selection_exists():
         expected_blocker_status = FOLLOWUP_AFTER_SELECTION_BLOCKER_STATUS
         expected_source = FOLLOWUP_AFTER_SELECTION_SOURCE
     elif followup_selection_exists():
@@ -520,6 +816,30 @@ def assert_implementation_readiness_alignment(fixture: dict[str, Any]) -> None:
             expected = FOLLOWUP_ALIGNMENT[field]
         if after_selection_exists and field in FOLLOWUP_AFTER_SELECTION_ALIGNMENT:
             expected = FOLLOWUP_AFTER_SELECTION_ALIGNMENT[field]
+        if followup_connection_runtime_boundary_exists() and field in FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT:
+            expected = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_ALIGNMENT[field]
+        if followup_after_provider_boundary_exists() and field in FOLLOWUP_AFTER_PROVIDER_BOUNDARY_ALIGNMENT:
+            expected = FOLLOWUP_AFTER_PROVIDER_BOUNDARY_ALIGNMENT[field]
+        if (
+            followup_managed_product_selection_readiness_exists()
+            and field in FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_ALIGNMENT
+        ):
+            expected = FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_ALIGNMENT[field]
+        if (
+            followup_after_managed_product_selection_review_exists()
+            and field in FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_ALIGNMENT
+        ):
+            expected = FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_ALIGNMENT[field]
+        if (
+            followup_after_concrete_managed_database_provider_selection_review_exists()
+            and field in FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT
+        ):
+            expected = FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_ALIGNMENT[field]
+        if (
+            followup_provider_account_resource_endpoint_readiness_exists()
+            and field in FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_ALIGNMENT
+        ):
+            expected = FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_ALIGNMENT[field]
         require(target.get(field) == expected, f"implementation readiness {field} drifted")
 
     planned = {str(row.get("id")): row for row in readiness.get("planned_slices") or [] if isinstance(row, dict)}

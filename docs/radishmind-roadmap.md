@@ -1,6 +1,8 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-06-28
+更新时间：2026-07-11
+
+<!-- markdown-size-allow: 历史阶段流水与 checker 锚点暂时保留；人工默认只读 2026-07-11 当前执行顺序，R6 解耦后将历史内容迁入归档并删除本标记。 -->
 
 ## 路线图原则
 
@@ -9,6 +11,8 @@
 当前长期目标更新为：`RadishMind` 是 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台，不是单一万能模型，也不是只服务本地 demo 的 runtime 壳。
 
 若要理解“为什么路线这样排”，先读 [战略定义](radishmind-strategy.md)；若要推进具体功能，先读 [功能设计文档](features/README.md)，再拆实现任务。长期产品机会单独维护在 [产品机会池](radishmind-product-ideas.md)，该文件只记录候选方向，不代表路线图承诺。
+
+2026-07-11 起，`P1` 至 `P7` 只作为历史能力阶段与长期专题编号，不再解释为必须严格顺序完成的当前成熟度等级；当前成熟度统一称为“内部开发者预览”。当前执行顺序以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 为准，旧 storage adapter readiness 的 next dependency 只保留为历史 checker 锚点。
 
 ## 当前路线切换
 
@@ -214,13 +218,25 @@
 
 状态：边界任务卡已开始。当前 `apps/radishmind-console/` 只是本地 ops surface，不是用户端产品；`Control Plane / User Workspace / Workflow v1` 任务卡只定义用户工作区和 workflow builder 的资源边界、运行记录和停止线，不实现正式用户端或 executor。`Workflow / Agent Runtime Function Surface v1` 已完成只读 detail、blocked action preview、confirmation placeholder、fake-store dev path、`workflow-draft-designer-offline-v1`、`workflow-draft-validation-inspector-offline-v1`、`workflow-execution-plan-preview-offline-v1` 和 `workflow-runtime-readiness-inspector-offline-v1`，状态达到 `workflow_function_surface_readiness_closed`；`apps/radishmind-web/` 已形成 workflow draft designer、validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector、review workspace、Workspace Home saved draft list / restore 和 active draft review handoff。2026-06-14 已完成 Saved Workflow Draft v1 的 platform Go domain service 和 memory dev store boundary；2026-06-15 已完成 dev-only HTTP route + web consumer、route contract、version conflict 状态、Draft Designer 受控编辑、User Workspace 本地草案创建，以及 durable store / repository contract / schema migration / auth context / store selector / schema artifact / selector smoke 前置设计；2026-06-16 已完成 saved draft list / restore、本地图结构编辑、节点属性编辑、active draft review handoff、repository contract smoke、smoke runner readiness 和 static smoke runner implementation；2026-06-17 已完成 repository adapter implementation plan、schema artifact manifest、adapter smoke readiness、selector entry review、schema materialization review、store selector implementation、schema artifact materialization、production auth readiness 和 repository adapter implementation entry review；2026-06-18 已完成 repository adapter implementation、adapter smoke execution 和 production auth runtime bridge；2026-06-19 已完成 runner implementation entry review、database connection / schema marker preconditions、connection provider entry review、database secret resolver readiness、secret resolver implementation entry review，以及 Production Secret Backend config / secret ref、provider profile binding、disabled resolver interface、operator runbook / negative gates、rotation / audit policy、test fixture strategy / fake resolver entry review、fake resolver contract / no leakage strategy、fake resolver task card entry readiness 和 fake resolver implementation task card；2026-06-20 已完成 fake resolver runtime implementation entry review、test-only fake resolver runtime、真实 resolver runtime preconditions、真实 resolver runtime implementation entry review、resolver backend profile selection readiness、real resolver no leakage smoke runtime strategy、credential handle runtime boundary readiness、operator approval runtime evidence readiness、audit store handoff readiness、resolver backend health boundary readiness 和 resolver backend health runtime implementation entry review；2026-06-22 已完成 Radish OIDC token / membership readiness 与 implementation entry review、schema marker contract entry review、manual migration runner entry refresh、connection provider entry refresh、database driver / DSN / TLS policy readiness、database role policy readiness 和 database connection smoke strategy；2026-06-23 已完成 database connection lifecycle readiness、connection provider implementation entry refresh v2、Radish OIDC upstream evidence refresh、schema marker runtime dependency refresh 与 secret resolver runtime dependency refresh；2026-06-28 已完成 production resolver runtime implementation entry refresh v2，状态为 `production_resolver_runtime_implementation_entry_refresh_v2_defined`，结论仍为 `production_resolver_runtime_task_card_still_blocked_after_refresh_v2`。当前仍不提供 durable draft persistence、repository store mode enablement、真实数据库、Radish OIDC token validation、membership adapter、secret resolver runtime、production resolver runtime、no secret leakage smoke runtime、credential handle runtime、approval runtime、production secret audit store、audit writer、audit event、backend health runtime、backend health check、connection lifecycle runtime、connection smoke runtime、发布、执行、确认提交、校验结果持久化、execution plan / runtime readiness / scenario / review 持久化或写回能力。
 
+2026-07-11 覆盖：Saved Draft 已完成显式 `postgres_dev_test` durable repository、manual migration、runtime/migration role separation、服务重启恢复、原子 CAS 和真实浏览器冲突审查。上一段末尾“不提供 durable draft persistence / 真实数据库”仅描述 production 路径；开发 / 测试持久化现已成立，production OIDC、secret、repository、publish、run 和 executor 仍未成立。
+
 ### `P7`：Admin Control Plane & Radish Auth Integration
 
 目标：形成正式管理端，管理租户、用户、角色、权限、provider/profile、模型路由、quota、price、secret、审计和部署状态，并作为 OIDC client 接入 `Radish`。
 
 状态：边界任务卡已开始。当前只保留 Radish 对齐方向，不实现账号系统、不接真实 OIDC、不声明 production ready。`apps/radishmind-web/` 已有只读 tenant overview、audit log 和普通离线 Admin Operations Review / Readiness，用 tenant、audit、gateway evidence review 与 Production Ops 静态证据解释管理端 readiness、risk 和 boundary locks。默认技术栈为 Go control plane + Go gateway + Python model/eval/worker + TypeScript/Vite frontend，不新增 `.NET` 作为默认后端语言；任务卡只固定 OIDC client、tenant、quota、API key、secret ref、audit 和 deployment status 的前置边界。
 
-## 下一步
+## 2026-07-11 当前执行顺序
+
+1. `R3 Workflow Draft Review Loop` 已于 2026-07-11 完成真实浏览器正常路径、版本冲突路径、Continue / Restore 和 Review Handoff 收口，未新增同层 readiness / checker。
+2. Saved Workflow Draft PostgreSQL dev/test repository 已完成 migration / rollback / reapply、重启恢复、CAS、scope、no fallback、CI 和真实浏览器验收；production repository mode 继续关闭。
+3. `R4 Gateway` 已完成：受控 `stdio` worker pool 成为默认模式，顺序 / 四并发 bridge 自身 p95 相对 back-to-back process 基线下降 `93.5% / 94.4%`，process 模式保留回滚。
+4. 无外部副作用 [Workflow Executor v0](features/workflow/workflow-executor-v0.md) 已完成 Platform 执行、dev API、受控 Web 入口、tenant / workspace / application scoped run record 与真实浏览器回读验证。
+5. Workflow Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning 与 Evaluation Suite / Release Review 已完成 scoped API、PostgreSQL dev/test persistence、重启恢复、并发、脱敏和真实 Web 审查；tool、业务写回、自动确认提交和 replay 继续后置。
+6. 下一产品主任务建议更新 Model Gateway / API Distribution 功能设计，定义真实 northbound request history、usage / timing、failure review、scope、分页、过滤、脱敏、dev/test store 和 Web 审查路径；设计清楚后再为新 API/schema 创建实现任务卡。
+7. OIDC、production secret、真实云资源、production API key、quota enforcement / billing、真实生图和模型训练只在外部资源、负责人和独立运行窗口明确后重开。
+
+## 历史下一步记录（仅供 checker 兼容，不再执行）
 
 1. 把后续推进从 gate-driven 调整为 feature-driven：先更新 `docs/features/` 中对应功能文档，再决定实现批次、测试和必要门禁。
 2. 已完成的 Workflow review surface、Model Gateway evidence、Admin readiness、Image Path metadata-only runtime integration 和 Control Plane durable read foundation 继续作为证据保留；后续不默认继续扩同层只读面板或 gate-only 任务。

@@ -180,6 +180,171 @@ EXPECTED_DEPENDENCIES = {
         ),
         "audit_store_storage_adapter_append_only_table_schema_boundary_readiness_defined",
     ),
+    "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-entry-review-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-entry-review-v1.json"
+        ),
+        "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1.json"
+        ),
+        "audit_store_storage_adapter_table_schema_artifact_materialized",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+            "after-negative-leakage-runtime-scan-boundary-v1.json"
+        ),
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_concrete_database_selection_readiness_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-review-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-review-v1.json"
+        ),
+        "audit_store_storage_adapter_concrete_database_selection_review_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-database-provider-selection-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-database-provider-selection-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_database_provider_selection_readiness_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-database-provider-selection-review-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-database-provider-selection-review-v1.json"
+        ),
+        "audit_store_storage_adapter_database_provider_selection_review_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-database-driver-selection-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-database-driver-selection-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_database_driver_selection_readiness_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-database-driver-selection-review-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-database-driver-selection-review-v1.json"
+        ),
+        "audit_store_storage_adapter_database_driver_selection_review_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_database_connection_lifecycle_readiness_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-connection-lifecycle-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+            "after-database-connection-lifecycle-v1.json"
+        ),
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-provider-connection-runtime-boundary-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+            "after-database-provider-connection-runtime-boundary-v1.json"
+        ),
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_managed_database_product_selection_readiness_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1.json"
+        ),
+        "audit_store_storage_adapter_managed_database_product_selection_review_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-managed-database-product-selection-review-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-managed-database-product-selection-review-v1.json"
+        ),
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-review-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-review-v1.json"
+        ),
+        "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+            "after-concrete-managed-database-provider-selection-review-v1.json"
+        ),
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1.json"
+        ),
+        "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined",
+    ),
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1": (
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.json"
+        ),
+        "audit_store_storage_adapter_provider_account_resource_endpoint_review_defined",
+    ),
     "production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1": (
         "scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.json",
         "credential_handle_runtime_implementation_entry_refresh_defined",
@@ -225,9 +390,7 @@ EXPECTED_BOUNDARY = {
     "durable_backend_selection_decision_after_review": (
         "durable_backend_family_selected_static_append_only_audit_log_runtime_blocked"
     ),
-    "durable_audit_backend_status": (
-        "storage_adapter_append_only_table_schema_boundary_readiness_defined_task_card_blocked"
-    ),
+    "durable_audit_backend_status": "storage_adapter_provider_account_resource_endpoint_review_defined_task_card_blocked",
     "selected_durable_backend_family": "append_only_metadata_audit_log",
     "selected_reserved_candidate": "reserved_append_only_audit_log",
     "storage_adapter_runtime_implementation_entry_review_status": (
@@ -248,7 +411,9 @@ EXPECTED_BOUNDARY = {
     "storage_adapter_backend_product_selection_status": "selected_static_product_class_without_backend_provider",
     "storage_adapter_selected_backend_product_class": "managed_database_append_only_table",
     "storage_adapter_selected_backend_product_profile": "reserved_managed_database_append_only_table_profile",
-    "storage_adapter_database_product_status": "not_selected",
+    "storage_adapter_selected_database_engine": "postgresql_compatible_append_only_relational_database",
+    "storage_adapter_selected_database_engine_status": "selected_without_vendor_product_driver_or_provider",
+    "storage_adapter_database_product_status": "engine_selected_without_managed_product",
     "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_status": (
         "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_defined"
     ),
@@ -258,6 +423,12 @@ EXPECTED_BOUNDARY = {
     "storage_adapter_database_tls_policy_status": "tls_mode_policy_defined",
     "storage_adapter_database_role_policy_status": "least_privilege_role_policy_defined",
     "storage_adapter_database_connection_provider_status": "not_created",
+    "storage_adapter_database_driver_status": "selected_reference_only",
+    "storage_adapter_selected_database_driver_candidate": "github.com/jackc/pgx/v5",
+    "storage_adapter_database_driver_package_status": "selected_candidate_reference_only",
+    "storage_adapter_database_driver_import_status": "not_created",
+    "storage_adapter_driver_dependency_version_status": "not_pinned",
+    "storage_adapter_database_dsn_status": "not_defined",
     "storage_adapter_database_provider_driver_dsn_tls_role_policy_status": "defined_without_runtime",
     "storage_adapter_append_only_table_schema_boundary_readiness_status": (
         "audit_store_storage_adapter_append_only_table_schema_boundary_readiness_defined"
@@ -272,7 +443,26 @@ EXPECTED_BOUNDARY = {
         "logical_retention_redaction_reference_boundary_defined"
     ),
     "storage_adapter_schema_marker_handoff_boundary_status": "logical_schema_marker_handoff_boundary_defined",
-    "storage_adapter_table_schema_artifact_status": "not_created",
+    "storage_adapter_table_schema_artifact_materialization_entry_review_status": (
+        "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_defined"
+    ),
+    "storage_adapter_table_schema_artifact_materialization_task_card_decision": (
+        "table_schema_artifact_materialization_task_card_defined_after_entry_review"
+    ),
+    "storage_adapter_table_schema_artifact_materialization_task_card_status": "created",
+    "storage_adapter_table_schema_artifact_materialization_task_card_defined_status": (
+        "audit_store_storage_adapter_table_schema_artifact_materialized"
+    ),
+    "storage_adapter_table_schema_artifact_materialization_status": (
+        "audit_store_storage_adapter_table_schema_artifact_materialized"
+    ),
+    "storage_adapter_table_schema_artifact_status": "materialized_static_logical_table_schema",
+    "storage_adapter_table_schema_artifact_path_status": "materialized_static_path",
+    "storage_adapter_table_schema_artifact_validation_status": "implemented_offline_schema_validation",
+    "storage_adapter_table_schema_metadata_contract_compatibility_status": (
+        "implemented_static_contract_compatibility"
+    ),
+    "storage_adapter_table_schema_no_secret_material_scan_status": "implemented_static_scan",
     "storage_adapter_sql_migration_status": "not_created",
     "storage_adapter_ddl_status": "not_created",
     "storage_adapter_table_name_status": "not_selected",
@@ -282,8 +472,36 @@ EXPECTED_BOUNDARY = {
     "storage_adapter_migration_schema_marker_boundary_status": "logical_schema_marker_handoff_boundary_defined",
     "storage_adapter_schema_marker_runtime_status": "not_created",
     "storage_adapter_migration_runner_status": "not_created",
-    "storage_adapter_offline_adapter_smoke_strategy_status": "required_before_runtime_task_card",
-    "storage_adapter_negative_leakage_runtime_scan_boundary_status": "required_before_runtime_task_card",
+    "storage_adapter_offline_adapter_smoke_strategy_readiness_status": (
+        "audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_defined"
+    ),
+    "storage_adapter_offline_adapter_smoke_strategy_status": (
+        "offline_adapter_smoke_strategy_defined_without_runtime"
+    ),
+    "storage_adapter_offline_adapter_smoke_manifest_status": "metadata_only_smoke_manifest_defined",
+    "storage_adapter_offline_adapter_smoke_positive_case_status": "metadata_only_positive_case_defined",
+    "storage_adapter_offline_adapter_smoke_negative_case_status": "metadata_only_negative_case_defined",
+    "storage_adapter_offline_adapter_smoke_backend_touch_policy_status": "real_backend_touch_forbidden",
+    "storage_adapter_offline_adapter_smoke_runner_status": "not_created",
+    "storage_adapter_offline_adapter_smoke_output_status": "not_created",
+    "storage_adapter_negative_leakage_runtime_scan_boundary_readiness_status": (
+        "audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined"
+    ),
+    "storage_adapter_negative_leakage_runtime_scan_boundary_status": "defined_without_runtime",
+    "storage_adapter_negative_leakage_runtime_scan_manifest_status": (
+        "metadata_only_runtime_scan_manifest_defined"
+    ),
+    "storage_adapter_negative_leakage_runtime_scan_target_allowlist_status": (
+        "metadata_only_scan_target_allowlist_defined"
+    ),
+    "storage_adapter_negative_leakage_runtime_scan_forbidden_material_coverage_status": (
+        "raw_payload_secret_credential_provider_backend_detail_coverage_defined"
+    ),
+    "storage_adapter_negative_leakage_runtime_scan_diagnostic_allowlist_status": (
+        "metadata_only_diagnostic_allowlist_defined"
+    ),
+    "storage_adapter_negative_leakage_runtime_scan_runner_status": "not_created",
+    "storage_adapter_negative_leakage_runtime_scan_output_status": "not_created",
     "storage_adapter_backend_product_candidate_source_status": "metadata_only_candidate_source_defined",
     "storage_adapter_metadata_contract_artifact_status": "materialized_static_metadata_contract",
     "storage_adapter_contract_artifact_path_status": "materialized_static_path",
@@ -378,8 +596,11 @@ EXPECTED_BOUNDARY = {
     "storage_adapter_runtime_implementation_entry_refresh_after_product_selection_status": (
         "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
     ),
+    "storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_status": (
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_defined"
+    ),
     "storage_adapter_runtime_task_card_decision": (
-        "storage_adapter_runtime_task_card_still_blocked_after_append_only_table_schema_boundary_readiness"
+        "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_review"
     ),
     "storage_adapter_evidence_chain_status": "static_evidence_chain_ready_for_contract_materialization_review",
     "storage_adapter_next_dependency": "storage_adapter_metadata_contract_artifact_materialization_entry_review",
@@ -393,7 +614,153 @@ EXPECTED_BOUNDARY = {
         "metadata_contract_artifact_materialization_task_card_ready_after_entry_review"
     ),
     "storage_adapter_contract_artifact_materialization_task_card_status": "created",
-    "storage_adapter_current_next_dependency": "storage_adapter_table_schema_artifact_materialization_entry_review",
+    "storage_adapter_current_next_dependency": (
+        "storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review"
+    ),
+    "storage_adapter_concrete_database_selection_readiness_status": (
+        "audit_store_storage_adapter_concrete_database_selection_readiness_defined"
+    ),
+    "storage_adapter_concrete_database_selection_review_status": (
+        "audit_store_storage_adapter_concrete_database_selection_review_defined"
+    ),
+    "storage_adapter_concrete_database_selection_status": "selected_database_engine_without_vendor_or_provider",
+    "storage_adapter_candidate_input_evidence_status": "metadata_only_input_evidence_defined",
+    "storage_adapter_candidate_evaluation_matrix_status": "metadata_only_evaluation_matrix_defined",
+    "storage_adapter_database_selection_review_status": (
+        "audit_store_storage_adapter_concrete_database_selection_review_defined"
+    ),
+    "storage_adapter_database_provider_selection_readiness_status": (
+        "audit_store_storage_adapter_database_provider_selection_readiness_defined"
+    ),
+    "storage_adapter_database_provider_selection_review_status": (
+        "audit_store_storage_adapter_database_provider_selection_review_defined"
+    ),
+    "storage_adapter_selected_provider_candidate_class": "managed_postgresql_compatible_service",
+    "storage_adapter_database_provider_selection_status": (
+        "selected_provider_candidate_class_without_vendor_or_product"
+    ),
+    "storage_adapter_provider_candidate_source_status": "metadata_only_provider_candidate_source_defined",
+    "storage_adapter_provider_input_evidence_status": "metadata_only_provider_input_evidence_defined",
+    "storage_adapter_provider_evaluation_dimension_status": (
+        "metadata_only_provider_evaluation_dimensions_defined"
+    ),
+    "storage_adapter_provider_selection_review_status": (
+        "audit_store_storage_adapter_database_provider_selection_review_defined"
+    ),
+    "storage_adapter_database_driver_selection_readiness_status": (
+        "audit_store_storage_adapter_database_driver_selection_readiness_defined"
+    ),
+    "storage_adapter_database_driver_selection_review_status": (
+        "audit_store_storage_adapter_database_driver_selection_review_defined"
+    ),
+    "storage_adapter_database_driver_selection_status": "selected_driver_candidate_without_runtime_import",
+    "storage_adapter_driver_candidate_source_status": "metadata_only_driver_candidate_source_defined",
+    "storage_adapter_driver_import_boundary_status": "metadata_only_driver_import_boundary_defined",
+    "storage_adapter_driver_capability_evidence_status": "metadata_only_driver_capability_evidence_defined",
+    "storage_adapter_driver_dsn_secret_ref_compatibility_status": (
+        "metadata_only_dsn_secret_ref_compatibility_defined"
+    ),
+    "storage_adapter_driver_tls_mode_compatibility_status": "metadata_only_tls_mode_compatibility_defined",
+    "storage_adapter_driver_role_policy_compatibility_status": "metadata_only_role_policy_compatibility_defined",
+    "storage_adapter_driver_connection_lifecycle_boundary_status": (
+        "metadata_only_connection_lifecycle_boundary_defined"
+    ),
+    "storage_adapter_driver_migration_schema_marker_boundary_status": "logical_schema_marker_handoff_boundary_defined",
+    "storage_adapter_driver_offline_smoke_boundary_status": "metadata_only_offline_adapter_smoke_boundary_defined",
+    "storage_adapter_driver_negative_leakage_scan_boundary_status": (
+        "metadata_only_negative_leakage_runtime_scan_boundary_defined"
+    ),
+    "storage_adapter_driver_rollout_rollback_boundary_status": "metadata_only_rollout_rollback_boundary_defined",
+    "storage_adapter_database_connection_lifecycle_readiness_status": (
+        "audit_store_storage_adapter_database_connection_lifecycle_readiness_defined"
+    ),
+    "storage_adapter_database_connection_lifecycle_readiness_decision": (
+        "database_connection_lifecycle_readiness_defined_without_connection_runtime"
+    ),
+    "storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_status": (
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_defined"
+    ),
+    "storage_adapter_database_provider_connection_runtime_boundary_status": (
+        "metadata_only_boundary_defined_without_runtime"
+    ),
+    "storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_status": (
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined"
+    ),
+    "storage_adapter_managed_database_product_selection_readiness_status": (
+        "audit_store_storage_adapter_managed_database_product_selection_readiness_defined"
+    ),
+    "storage_adapter_managed_database_product_selection_review_status": (
+        "audit_store_storage_adapter_managed_database_product_selection_review_defined"
+    ),
+    "storage_adapter_managed_product_selection_status": "selected_reference_product_profile_without_vendor",
+    "storage_adapter_managed_product_selection_review_status": (
+        "audit_store_storage_adapter_managed_database_product_selection_review_defined"
+    ),
+    "storage_adapter_selected_managed_product_profile": "managed_postgresql_compatible_audit_store_profile",
+    "storage_adapter_managed_database_product_status": "selected_reference_profile_not_vendor_product",
+    "storage_adapter_managed_product_input_evidence_status": "metadata_only_product_input_evidence_defined",
+    "storage_adapter_managed_product_candidate_field_status": "metadata_only_candidate_fields_defined",
+    "storage_adapter_managed_product_evaluation_dimension_status": "metadata_only_evaluation_dimensions_defined",
+    "storage_adapter_concrete_managed_database_provider_selection_readiness_status": (
+        "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined"
+    ),
+    "storage_adapter_concrete_managed_database_provider_selection_review_status": (
+        "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined"
+    ),
+    "storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_status": (
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined"
+    ),
+    "storage_adapter_provider_account_resource_endpoint_readiness_status": (
+        "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined"
+    ),
+    "storage_adapter_provider_account_resource_endpoint_review_status": (
+        "audit_store_storage_adapter_provider_account_resource_endpoint_review_defined"
+    ),
+    "storage_adapter_selected_concrete_provider_reference": "managed_postgresql_compatible_provider_reference",
+    "storage_adapter_selected_concrete_provider_reference_kind": "reference_only_concrete_provider_profile",
+    "storage_adapter_concrete_provider_input_evidence_status": "metadata_only_provider_input_evidence_defined",
+    "storage_adapter_concrete_provider_candidate_field_status": "metadata_only_provider_candidate_fields_defined",
+    "storage_adapter_concrete_provider_evaluation_dimension_status": (
+        "metadata_only_provider_evaluation_dimensions_defined"
+    ),
+    "storage_adapter_concrete_provider_selection_status": "reference_profile_selected_without_provider_resource",
+    "storage_adapter_concrete_provider_selection_review_status": (
+        "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined"
+    ),
+    "storage_adapter_concrete_cloud_product_status": "not_selected",
+    "storage_adapter_provider_account_resource_status": "metadata_only_readiness_defined_without_real_resource",
+    "storage_adapter_provider_resource_status": "not_selected",
+    "storage_adapter_database_endpoint_status": "metadata_only_endpoint_requirements_defined_without_endpoint",
+    "storage_adapter_region_detail_status": "metadata_only_region_requirements_defined_without_region_detail",
+    "storage_adapter_provider_account_confirmation_status": "operator_confirmation_required_before_runtime",
+    "storage_adapter_provider_account_resource_review_status": (
+        "metadata_only_requirements_reviewed_without_real_resource"
+    ),
+    "storage_adapter_provider_resource_review_status": (
+        "metadata_only_scope_reviewed_without_resource_selection"
+    ),
+    "storage_adapter_database_endpoint_review_status": (
+        "metadata_only_endpoint_requirements_reviewed_without_endpoint"
+    ),
+    "storage_adapter_region_detail_review_status": (
+        "metadata_only_region_requirements_reviewed_without_region_detail"
+    ),
+    "storage_adapter_provider_account_confirmation_review_status": (
+        "confirmation_requirements_reviewed_still_required_before_runtime"
+    ),
+    "storage_adapter_secret_ref_only_dsn_handoff_status": "secret_ref_only_dsn_handoff_defined",
+    "storage_adapter_tls_role_environment_binding_status": "static_tls_role_environment_binding_defined",
+    "storage_adapter_pool_policy_status": "static_pool_policy_defined_without_pool_runtime",
+    "storage_adapter_timeout_budget_status": "static_timeout_budget_defined_without_runtime_timer",
+    "storage_adapter_retry_transaction_recovery_status": "static_recovery_policy_defined_without_runtime",
+    "storage_adapter_duplicate_replay_fail_closed_status": "duplicate_replay_fail_closed_policy_defined",
+    "storage_adapter_sanitized_diagnostics_status": "sanitized_diagnostics_allowlist_defined",
+    "storage_adapter_schema_marker_migration_handoff_status": "schema_marker_migration_handoff_defined",
+    "storage_adapter_offline_verification_status": "metadata_only_offline_verification_defined",
+    "storage_adapter_connection_lifecycle_runtime_status": "not_created",
+    "storage_adapter_connection_factory_status": "not_created",
+    "storage_adapter_pool_runtime_status": "not_created",
+    "storage_adapter_health_check_runtime_status": "not_created",
     "writer_runtime_implementation_entry_review_status": (
         "audit_store_writer_runtime_implementation_entry_review_defined"
     ),
@@ -451,9 +818,7 @@ EXPECTED_FALSE_FLAGS = {
 
 EXPECTED_BLOCKERS = {
     "runtime_event_schema_artifact": "implemented_static_schema_artifact",
-    "durable_audit_backend": (
-        "storage_adapter_append_only_table_schema_boundary_readiness_defined_task_card_blocked"
-    ),
+    "durable_audit_backend": "storage_adapter_provider_account_resource_endpoint_review_defined_task_card_blocked",
     "audit_writer_runtime": "entry_review_defined_task_card_blocked",
     "idempotency_runtime": "entry_review_defined_task_card_blocked",
     "delivery_runtime": "entry_review_defined_task_card_blocked",
@@ -483,6 +848,31 @@ EXPECTED_ORDER = [
     "storage_adapter_runtime_entry_refresh_after_product_selection",
     "storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness",
     "storage_adapter_append_only_table_schema_boundary_readiness",
+    "storage_adapter_table_schema_artifact_materialization_entry_review",
+    "storage_adapter_table_schema_artifact_materialization_task_card",
+    "storage_adapter_table_schema_artifact_materialization",
+    "storage_adapter_offline_adapter_smoke_strategy_readiness",
+    "storage_adapter_negative_leakage_runtime_scan_boundary_readiness",
+    "storage_adapter_runtime_entry_refresh_after_negative_leakage_runtime_scan_boundary",
+    "storage_adapter_concrete_database_selection_readiness",
+    "storage_adapter_concrete_database_selection_review",
+    "storage_adapter_database_provider_selection_readiness",
+    "storage_adapter_database_provider_selection_review",
+    "storage_adapter_database_driver_selection_readiness",
+    "storage_adapter_database_driver_selection_review",
+    "storage_adapter_database_connection_lifecycle_readiness",
+    "storage_adapter_runtime_entry_refresh_after_database_connection_lifecycle",
+    "storage_adapter_database_provider_connection_runtime_boundary_readiness",
+    "storage_adapter_runtime_entry_refresh_after_database_provider_connection_runtime_boundary",
+    "storage_adapter_managed_database_product_selection_readiness",
+    "storage_adapter_managed_database_product_selection_review",
+    "storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review",
+    "storage_adapter_concrete_managed_database_provider_selection_readiness",
+    "storage_adapter_concrete_managed_database_provider_selection_review",
+    "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review",
+    "storage_adapter_provider_account_resource_endpoint_readiness",
+    "storage_adapter_provider_account_resource_endpoint_review",
+    "storage_adapter_runtime_entry_refresh_after_provider_account_resource_endpoint_review",
     "audit_writer_runtime_entry_review",
     "idempotency_runtime_entry_review",
     "delivery_runtime_entry_review",
@@ -562,6 +952,13 @@ EXPECTED_REQUIRED_CHECKS = {
     "run audit store storage adapter runtime implementation entry refresh after product selection checker",
     "run audit store storage adapter database provider driver DSN TLS role policy readiness checker",
     "run audit store storage adapter append-only table schema boundary readiness checker",
+    "run audit store storage adapter table schema artifact materialization checker",
+    "run audit store storage adapter offline adapter smoke strategy readiness checker",
+    "run audit store storage adapter runtime implementation entry refresh after negative leakage runtime scan boundary checker",
+    "run audit store storage adapter concrete database selection readiness checker",
+    "run audit store storage adapter database provider selection readiness checker",
+    "run audit store storage adapter runtime implementation entry refresh after database connection lifecycle checker",
+    "run audit store storage adapter provider account resource endpoint readiness checker",
     "run audit store runtime event schema artifact checker",
     "run audit store runtime implementation entry refresh v4 checker",
     "run production resolver runtime implementation entry refresh v2 checker",
@@ -773,7 +1170,13 @@ def assert_prior_evidence_alignment() -> None:
         "audit_storage_adapter_selected_backend_product_profile": (
             "reserved_managed_database_append_only_table_profile"
         ),
-        "audit_storage_adapter_database_product_status": "not_selected",
+        "audit_storage_adapter_selected_database_engine": (
+            "postgresql_compatible_append_only_relational_database"
+        ),
+        "audit_storage_adapter_selected_database_engine_status": (
+            "selected_without_vendor_product_driver_or_provider"
+        ),
+        "audit_storage_adapter_database_product_status": "engine_selected_without_managed_product",
         "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_status": (
             "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_defined"
         ),
@@ -823,13 +1226,247 @@ def assert_prior_evidence_alignment() -> None:
         ),
         "audit_storage_adapter_contract_materialization_task_card_status": "created",
         "audit_storage_adapter_current_next_dependency": (
-            "storage_adapter_table_schema_artifact_materialization_entry_review"
+            "storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review"
+        ),
+        "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_status": (
+            "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_defined"
+        ),
+        "audit_storage_adapter_table_schema_artifact_materialization_task_card_decision": (
+            "table_schema_artifact_materialization_task_card_defined_after_entry_review"
+        ),
+        "audit_storage_adapter_table_schema_artifact_materialization_task_card_status": (
+            "created"
+        ),
+        "audit_storage_adapter_table_schema_artifact_materialization_task_card_defined_status": (
+            "audit_store_storage_adapter_table_schema_artifact_materialized"
+        ),
+        "audit_storage_adapter_table_schema_artifact_materialization_status": (
+            "audit_store_storage_adapter_table_schema_artifact_materialized"
         ),
         "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_status": (
             "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
         ),
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_status": (
+            "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_defined"
+        ),
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_status": (
+            "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_defined"
+        ),
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_status": (
+            "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined"
+        ),
+        "audit_store_storage_adapter_managed_database_product_selection_readiness_status": (
+            "audit_store_storage_adapter_managed_database_product_selection_readiness_defined"
+        ),
+        "audit_store_storage_adapter_managed_database_product_selection_review_status": (
+            "audit_store_storage_adapter_managed_database_product_selection_review_defined"
+        ),
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_status": (
+            "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_defined"
+        ),
+        "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_status": (
+            "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined"
+        ),
+        "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_status": (
+            "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined"
+        ),
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_status": (
+            "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined"
+        ),
+        "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_status": (
+            "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined"
+        ),
+        "audit_store_storage_adapter_provider_account_resource_endpoint_review_status": (
+            "audit_store_storage_adapter_provider_account_resource_endpoint_review_defined"
+        ),
+        "audit_storage_adapter_selected_concrete_provider_reference": (
+            "managed_postgresql_compatible_provider_reference"
+        ),
+        "audit_storage_adapter_selected_concrete_provider_reference_kind": (
+            "reference_only_concrete_provider_profile"
+        ),
+        "audit_storage_adapter_concrete_provider_input_evidence_status": (
+            "metadata_only_provider_input_evidence_defined"
+        ),
+        "audit_storage_adapter_concrete_provider_candidate_field_status": (
+            "metadata_only_provider_candidate_fields_defined"
+        ),
+        "audit_storage_adapter_concrete_provider_evaluation_dimension_status": (
+            "metadata_only_provider_evaluation_dimensions_defined"
+        ),
+        "audit_storage_adapter_concrete_provider_selection_status": (
+            "reference_profile_selected_without_provider_resource"
+        ),
+        "audit_storage_adapter_concrete_provider_selection_review_status": (
+            "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined"
+        ),
+        "audit_storage_adapter_concrete_cloud_product_status": "not_selected",
+        "audit_storage_adapter_provider_account_resource_status": (
+            "metadata_only_readiness_defined_without_real_resource"
+        ),
+        "audit_storage_adapter_provider_resource_status": "not_selected",
+        "audit_storage_adapter_database_endpoint_status": (
+            "metadata_only_endpoint_requirements_defined_without_endpoint"
+        ),
+        "audit_storage_adapter_region_detail_status": (
+            "metadata_only_region_requirements_defined_without_region_detail"
+        ),
+        "audit_storage_adapter_provider_account_confirmation_status": (
+            "operator_confirmation_required_before_runtime"
+        ),
+        "audit_storage_adapter_provider_account_resource_review_status": (
+            "metadata_only_requirements_reviewed_without_real_resource"
+        ),
+        "audit_storage_adapter_provider_resource_review_status": (
+            "metadata_only_scope_reviewed_without_resource_selection"
+        ),
+        "audit_storage_adapter_database_endpoint_review_status": (
+            "metadata_only_endpoint_requirements_reviewed_without_endpoint"
+        ),
+        "audit_storage_adapter_region_detail_review_status": (
+            "metadata_only_region_requirements_reviewed_without_region_detail"
+        ),
+        "audit_storage_adapter_provider_account_confirmation_review_status": (
+            "confirmation_requirements_reviewed_still_required_before_runtime"
+        ),
+        "audit_storage_adapter_managed_product_selection_status": "selected_reference_product_profile_without_vendor",
+        "audit_storage_adapter_managed_product_selection_review_status": (
+            "audit_store_storage_adapter_managed_database_product_selection_review_defined"
+        ),
+        "audit_storage_adapter_selected_managed_product_profile": "managed_postgresql_compatible_audit_store_profile",
+        "audit_storage_adapter_managed_database_product_status": "selected_reference_profile_not_vendor_product",
+        "audit_storage_adapter_managed_product_input_evidence_status": (
+            "metadata_only_product_input_evidence_defined"
+        ),
+        "audit_storage_adapter_managed_product_candidate_field_status": (
+            "metadata_only_candidate_fields_defined"
+        ),
+        "audit_storage_adapter_managed_product_evaluation_dimension_status": (
+            "metadata_only_evaluation_dimensions_defined"
+        ),
         "audit_storage_adapter_runtime_task_card_decision": (
-            "storage_adapter_runtime_task_card_still_blocked_after_append_only_table_schema_boundary_readiness"
+            "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_review"
+        ),
+        "audit_store_storage_adapter_concrete_database_selection_readiness_status": (
+            "audit_store_storage_adapter_concrete_database_selection_readiness_defined"
+        ),
+        "audit_store_storage_adapter_concrete_database_selection_review_status": (
+            "audit_store_storage_adapter_concrete_database_selection_review_defined"
+        ),
+        "audit_storage_adapter_concrete_database_selection_status": (
+            "selected_database_engine_without_vendor_or_provider"
+        ),
+        "audit_storage_adapter_selected_database_engine": (
+            "postgresql_compatible_append_only_relational_database"
+        ),
+        "audit_storage_adapter_selected_database_engine_status": (
+            "selected_without_vendor_product_driver_or_provider"
+        ),
+        "audit_storage_adapter_candidate_input_evidence_status": "metadata_only_input_evidence_defined",
+        "audit_storage_adapter_candidate_evaluation_matrix_status": "metadata_only_evaluation_matrix_defined",
+        "audit_storage_adapter_database_selection_review_status": (
+            "audit_store_storage_adapter_concrete_database_selection_review_defined"
+        ),
+        "audit_store_storage_adapter_database_provider_selection_readiness_status": (
+            "audit_store_storage_adapter_database_provider_selection_readiness_defined"
+        ),
+        "audit_storage_adapter_database_provider_selection_readiness_status": (
+            "audit_store_storage_adapter_database_provider_selection_readiness_defined"
+        ),
+        "audit_store_storage_adapter_database_provider_selection_review_status": (
+            "audit_store_storage_adapter_database_provider_selection_review_defined"
+        ),
+        "audit_storage_adapter_database_provider_selection_review_status": (
+            "audit_store_storage_adapter_database_provider_selection_review_defined"
+        ),
+        "audit_storage_adapter_selected_provider_candidate_class": (
+            "managed_postgresql_compatible_service"
+        ),
+        "audit_storage_adapter_database_provider_selection_status": (
+            "selected_provider_candidate_class_without_vendor_or_product"
+        ),
+        "audit_storage_adapter_provider_candidate_source_status": (
+            "metadata_only_provider_candidate_source_defined"
+        ),
+        "audit_storage_adapter_provider_input_evidence_status": (
+            "metadata_only_provider_input_evidence_defined"
+        ),
+        "audit_storage_adapter_provider_evaluation_dimension_status": (
+            "metadata_only_provider_evaluation_dimensions_defined"
+        ),
+        "audit_storage_adapter_provider_selection_review_status": (
+            "audit_store_storage_adapter_database_provider_selection_review_defined"
+        ),
+        "audit_store_storage_adapter_database_driver_selection_readiness_status": (
+            "audit_store_storage_adapter_database_driver_selection_readiness_defined"
+        ),
+        "audit_storage_adapter_database_driver_selection_readiness_status": (
+            "audit_store_storage_adapter_database_driver_selection_readiness_defined"
+        ),
+        "audit_store_storage_adapter_database_driver_selection_review_status": (
+            "audit_store_storage_adapter_database_driver_selection_review_defined"
+        ),
+        "audit_storage_adapter_database_driver_selection_review_status": (
+            "audit_store_storage_adapter_database_driver_selection_review_defined"
+        ),
+        "audit_storage_adapter_database_driver_selection_status": (
+            "selected_driver_candidate_without_runtime_import"
+        ),
+        "audit_storage_adapter_selected_database_driver_candidate": "github.com/jackc/pgx/v5",
+        "audit_storage_adapter_database_driver_status": "selected_reference_only",
+        "audit_storage_adapter_database_driver_package_status": "selected_candidate_reference_only",
+        "audit_storage_adapter_database_driver_import_status": "not_created",
+        "audit_storage_adapter_driver_dependency_version_status": "not_pinned",
+        "audit_storage_adapter_driver_candidate_source_status": "metadata_only_driver_candidate_source_defined",
+        "audit_storage_adapter_driver_import_boundary_status": "metadata_only_driver_import_boundary_defined",
+        "audit_storage_adapter_driver_capability_evidence_status": "metadata_only_driver_capability_evidence_defined",
+        "audit_storage_adapter_dsn_secret_ref_compatibility_status": (
+            "metadata_only_dsn_secret_ref_compatibility_defined"
+        ),
+        "audit_storage_adapter_tls_mode_compatibility_status": "metadata_only_tls_mode_compatibility_defined",
+        "audit_storage_adapter_role_policy_compatibility_status": "metadata_only_role_policy_compatibility_defined",
+        "audit_storage_adapter_connection_lifecycle_boundary_status": (
+            "metadata_only_connection_lifecycle_boundary_defined"
+        ),
+        "audit_store_storage_adapter_database_connection_lifecycle_readiness_status": (
+            "audit_store_storage_adapter_database_connection_lifecycle_readiness_defined"
+        ),
+        "audit_storage_adapter_database_connection_lifecycle_readiness_status": (
+            "audit_store_storage_adapter_database_connection_lifecycle_readiness_defined"
+        ),
+        "audit_storage_adapter_database_connection_lifecycle_readiness_decision": (
+            "database_connection_lifecycle_readiness_defined_without_connection_runtime"
+        ),
+        "audit_storage_adapter_secret_ref_only_dsn_handoff_status": "secret_ref_only_dsn_handoff_defined",
+        "audit_storage_adapter_tls_role_environment_binding_status": (
+            "static_tls_role_environment_binding_defined"
+        ),
+        "audit_storage_adapter_pool_policy_status": "static_pool_policy_defined_without_pool_runtime",
+        "audit_storage_adapter_timeout_budget_status": "static_timeout_budget_defined_without_runtime_timer",
+        "audit_storage_adapter_retry_transaction_recovery_status": "static_recovery_policy_defined_without_runtime",
+        "audit_storage_adapter_duplicate_replay_fail_closed_status": (
+            "duplicate_replay_fail_closed_policy_defined"
+        ),
+        "audit_storage_adapter_sanitized_diagnostics_status": "sanitized_diagnostics_allowlist_defined",
+        "audit_storage_adapter_schema_marker_migration_handoff_status": "schema_marker_migration_handoff_defined",
+        "audit_storage_adapter_offline_verification_status": "metadata_only_offline_verification_defined",
+        "audit_storage_adapter_connection_lifecycle_runtime_status": "not_created",
+        "audit_storage_adapter_connection_factory_status": "not_created",
+        "audit_storage_adapter_pool_runtime_status": "not_created",
+        "audit_storage_adapter_health_check_runtime_status": "not_created",
+        "audit_storage_adapter_database_provider_connection_runtime_boundary_status": (
+            "metadata_only_boundary_defined_without_runtime"
+        ),
+        "audit_storage_adapter_migration_schema_marker_boundary_status": "logical_schema_marker_handoff_boundary_defined",
+        "audit_storage_adapter_driver_offline_smoke_boundary_status": (
+            "metadata_only_offline_adapter_smoke_boundary_defined"
+        ),
+        "audit_storage_adapter_driver_negative_leakage_scan_boundary_status": (
+            "metadata_only_negative_leakage_runtime_scan_boundary_defined"
+        ),
+        "audit_storage_adapter_rollout_rollback_boundary_status": "metadata_only_rollout_rollback_boundary_defined",
+        "audit_storage_adapter_concrete_database_selection_readiness_status": (
+            "audit_store_storage_adapter_concrete_database_selection_readiness_defined"
         ),
         "audit_storage_adapter_database_provider_driver_dsn_tls_role_policy_status": (
             "defined_without_runtime"
@@ -858,7 +1495,13 @@ def assert_prior_evidence_alignment() -> None:
         "audit_storage_adapter_schema_marker_handoff_boundary_status": (
             "logical_schema_marker_handoff_boundary_defined"
         ),
-        "audit_storage_adapter_table_schema_artifact_status": "not_created",
+        "audit_storage_adapter_table_schema_artifact_status": "materialized_static_logical_table_schema",
+        "audit_storage_adapter_table_schema_artifact_path_status": "materialized_static_path",
+        "audit_storage_adapter_table_schema_artifact_validation_status": "implemented_offline_schema_validation",
+        "audit_storage_adapter_table_schema_metadata_contract_compatibility_status": (
+            "implemented_static_contract_compatibility"
+        ),
+        "audit_storage_adapter_table_schema_no_secret_material_scan_status": "implemented_static_scan",
         "audit_storage_adapter_sql_migration_status": "not_created",
         "audit_storage_adapter_ddl_status": "not_created",
         "audit_storage_adapter_table_name_status": "not_selected",
@@ -870,12 +1513,44 @@ def assert_prior_evidence_alignment() -> None:
         ),
         "audit_storage_adapter_schema_marker_runtime_status": "not_created",
         "audit_storage_adapter_migration_runner_status": "not_created",
+        "audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_status": (
+            "audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_defined"
+        ),
         "audit_storage_adapter_offline_adapter_smoke_strategy_status": (
-            "required_before_runtime_task_card"
+            "offline_adapter_smoke_strategy_defined_without_runtime"
         ),
-        "audit_storage_adapter_negative_leakage_runtime_scan_boundary_status": (
-            "required_before_runtime_task_card"
+        "audit_storage_adapter_offline_adapter_smoke_manifest_status": (
+            "metadata_only_smoke_manifest_defined"
         ),
+        "audit_storage_adapter_offline_adapter_smoke_positive_case_status": (
+            "metadata_only_positive_case_defined"
+        ),
+        "audit_storage_adapter_offline_adapter_smoke_negative_case_status": (
+            "metadata_only_negative_case_defined"
+        ),
+        "audit_storage_adapter_offline_adapter_smoke_backend_touch_policy_status": (
+            "real_backend_touch_forbidden"
+        ),
+        "audit_storage_adapter_offline_adapter_smoke_runner_status": "not_created",
+        "audit_storage_adapter_offline_adapter_smoke_output_status": "not_created",
+        "audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_status": (
+            "audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_boundary_status": "defined_without_runtime",
+        "audit_storage_adapter_negative_leakage_runtime_scan_manifest_status": (
+            "metadata_only_runtime_scan_manifest_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_target_allowlist_status": (
+            "metadata_only_scan_target_allowlist_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_forbidden_material_coverage_status": (
+            "raw_payload_secret_credential_provider_backend_detail_coverage_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_diagnostic_allowlist_status": (
+            "metadata_only_diagnostic_allowlist_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_runner_status": "not_created",
+        "audit_storage_adapter_negative_leakage_runtime_scan_output_status": "not_created",
         "audit_store_storage_adapter_append_only_semantics_evidence_readiness_status": (
             "audit_store_storage_adapter_append_only_semantics_evidence_readiness_defined"
         ),
@@ -1074,6 +1749,46 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         'run_python_script("check-production-ops-secret-backend-audit-store-'
         'storage-adapter-database-provider-driver-dsn-tls-role-policy-readiness-v1.py", [])'
     )
+    storage_adapter_append_only_table_schema_boundary_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'storage-adapter-append-only-table-schema-boundary-readiness-v1.py", [])'
+    )
+    storage_adapter_table_schema_materialization_entry_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'storage-adapter-table-schema-artifact-materialization-entry-review-v1.py", [])'
+    )
+    storage_adapter_table_schema_materialization_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'storage-adapter-table-schema-artifact-materialization-v1.py", [])'
+    )
+    storage_adapter_offline_smoke_strategy_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'storage-adapter-offline-adapter-smoke-strategy-readiness-v1.py", [])'
+    )
+    storage_adapter_negative_leakage_runtime_boundary_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'storage-adapter-negative-leakage-runtime-scan-boundary-readiness-v1.py", [])'
+    )
+    storage_adapter_after_negative_leakage_refresh_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary-v1.py", [])'
+    )
+    storage_adapter_concrete_database_selection_readiness_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'storage-adapter-concrete-database-selection-readiness-v1.py", [])'
+    )
+    storage_adapter_concrete_database_selection_review_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'storage-adapter-concrete-database-selection-review-v1.py", [])'
+    )
+    storage_adapter_provider_account_resource_endpoint_readiness_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'storage-adapter-provider-account-resource-endpoint-readiness-v1.py", [])'
+    )
+    storage_adapter_provider_account_resource_endpoint_review_call = (
+        'run_python_script("check-production-ops-secret-backend-audit-store-'
+        'storage-adapter-provider-account-resource-endpoint-review-v1.py", [])'
+    )
     current_call = 'run_python_script("check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py", [])'
     resolver_call = (
         'run_python_script("check-production-ops-secret-backend-'
@@ -1100,6 +1815,16 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         storage_adapter_backend_product_selection_call,
         storage_adapter_after_product_selection_refresh_call,
         storage_adapter_database_provider_policy_readiness_call,
+        storage_adapter_append_only_table_schema_boundary_call,
+        storage_adapter_table_schema_materialization_entry_call,
+        storage_adapter_table_schema_materialization_call,
+        storage_adapter_offline_smoke_strategy_call,
+        storage_adapter_negative_leakage_runtime_boundary_call,
+        storage_adapter_after_negative_leakage_refresh_call,
+        storage_adapter_concrete_database_selection_readiness_call,
+        storage_adapter_concrete_database_selection_review_call,
+        storage_adapter_provider_account_resource_endpoint_readiness_call,
+        storage_adapter_provider_account_resource_endpoint_review_call,
         current_call,
         resolver_call,
     ):
@@ -1125,6 +1850,16 @@ def assert_artifact_guard_and_docs(fixture: dict[str, Any]) -> None:
         < check_repo.index(storage_adapter_backend_product_selection_call)
         < check_repo.index(storage_adapter_after_product_selection_refresh_call)
         < check_repo.index(storage_adapter_database_provider_policy_readiness_call)
+        < check_repo.index(storage_adapter_append_only_table_schema_boundary_call)
+        < check_repo.index(storage_adapter_table_schema_materialization_entry_call)
+        < check_repo.index(storage_adapter_table_schema_materialization_call)
+        < check_repo.index(storage_adapter_offline_smoke_strategy_call)
+        < check_repo.index(storage_adapter_negative_leakage_runtime_boundary_call)
+        < check_repo.index(storage_adapter_after_negative_leakage_refresh_call)
+        < check_repo.index(storage_adapter_concrete_database_selection_readiness_call)
+        < check_repo.index(storage_adapter_concrete_database_selection_review_call)
+        < check_repo.index(storage_adapter_provider_account_resource_endpoint_readiness_call)
+        < check_repo.index(storage_adapter_provider_account_resource_endpoint_review_call)
         < check_repo.index(current_call)
         < check_repo.index(resolver_call),
         "check order drifted",

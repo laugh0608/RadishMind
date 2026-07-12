@@ -172,6 +172,72 @@ REQUIRED_PLANNED_SLICES = {
     "audit-store-storage-adapter-append-only-table-schema-boundary-readiness": (
         "audit_store_storage_adapter_append_only_table_schema_boundary_readiness_defined"
     ),
+    "audit-store-storage-adapter-table-schema-artifact-materialization-entry-review": (
+        "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_defined"
+    ),
+    "audit-store-storage-adapter-table-schema-artifact-materialization": (
+        "audit_store_storage_adapter_table_schema_artifact_materialized"
+    ),
+    "audit-store-storage-adapter-offline-adapter-smoke-strategy-readiness": (
+        "audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_defined"
+    ),
+    "audit-store-storage-adapter-negative-leakage-runtime-scan-boundary-readiness": (
+        "audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined"
+    ),
+    "audit-store-storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary": (
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_defined"
+    ),
+    "audit-store-storage-adapter-concrete-database-selection-readiness": (
+        "audit_store_storage_adapter_concrete_database_selection_readiness_defined"
+    ),
+    "audit-store-storage-adapter-concrete-database-selection-review": (
+        "audit_store_storage_adapter_concrete_database_selection_review_defined"
+    ),
+    "audit-store-storage-adapter-database-provider-selection-readiness": (
+        "audit_store_storage_adapter_database_provider_selection_readiness_defined"
+    ),
+    "audit-store-storage-adapter-database-provider-selection-review": (
+        "audit_store_storage_adapter_database_provider_selection_review_defined"
+    ),
+    "audit-store-storage-adapter-database-driver-selection-readiness": (
+        "audit_store_storage_adapter_database_driver_selection_readiness_defined"
+    ),
+    "audit-store-storage-adapter-database-driver-selection-review": (
+        "audit_store_storage_adapter_database_driver_selection_review_defined"
+    ),
+    "audit-store-storage-adapter-database-connection-lifecycle-readiness": (
+        "audit_store_storage_adapter_database_connection_lifecycle_readiness_defined"
+    ),
+    "audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-connection-lifecycle": (
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_defined"
+    ),
+    "audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness": (
+        "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined"
+    ),
+    "audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-provider-connection-runtime-boundary": (
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined"
+    ),
+    "audit-store-storage-adapter-managed-database-product-selection-readiness": (
+        "audit_store_storage_adapter_managed_database_product_selection_readiness_defined"
+    ),
+    "audit-store-storage-adapter-managed-database-product-selection-review": (
+        "audit_store_storage_adapter_managed_database_product_selection_review_defined"
+    ),
+    "audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness": (
+        "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined"
+    ),
+    "audit-store-storage-adapter-concrete-managed-database-provider-selection-review": (
+        "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined"
+    ),
+    "audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review": (
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined"
+    ),
+    "audit-store-storage-adapter-provider-account-resource-endpoint-readiness": (
+        "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined"
+    ),
+    "audit-store-storage-adapter-provider-account-resource-endpoint-review": (
+        "audit_store_storage_adapter_provider_account_resource_endpoint_review_defined"
+    ),
     "resolver-backend-health-boundary-readiness": "resolver_backend_health_boundary_readiness_defined",
     "resolver-backend-health-runtime-implementation-entry-review": (
         "resolver_backend_health_runtime_implementation_entry_review_defined"
@@ -310,6 +376,79 @@ REQUIRED_DOC_REFERENCES = {
         "audit_store_storage_adapter_database_provider_driver_dsn_tls_role_policy_readiness_defined",
         "production-secret-backend-audit-store-storage-adapter-append-only-table-schema-boundary-readiness-v1",
         "audit_store_storage_adapter_append_only_table_schema_boundary_readiness_defined",
+        "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary-v1",
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_defined",
+        "storage_adapter_concrete_database_selection_readiness",
+        "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1",
+        "audit_store_storage_adapter_concrete_database_selection_readiness_defined",
+        "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-review-v1",
+        "audit_store_storage_adapter_concrete_database_selection_review_defined",
+        "storage_adapter_database_provider_selection_readiness",
+        "production-secret-backend-audit-store-storage-adapter-database-provider-selection-readiness-v1",
+        "audit_store_storage_adapter_database_provider_selection_readiness_defined",
+        "storage_adapter_database_provider_selection_review",
+        "production-secret-backend-audit-store-storage-adapter-database-provider-selection-review-v1",
+        "audit_store_storage_adapter_database_provider_selection_review_defined",
+        "managed_postgresql_compatible_service",
+        "production-secret-backend-audit-store-storage-adapter-database-driver-selection-readiness-v1",
+        "audit_store_storage_adapter_database_driver_selection_readiness_defined",
+        "production-secret-backend-audit-store-storage-adapter-database-driver-selection-review-v1",
+        "audit_store_storage_adapter_database_driver_selection_review_defined",
+        "github.com/jackc/pgx/v5",
+        "storage_adapter_database_connection_lifecycle_readiness",
+        "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1",
+        "audit_store_storage_adapter_database_connection_lifecycle_readiness_defined",
+        "database_connection_lifecycle_readiness_defined_without_connection_runtime",
+        "storage_adapter_runtime_task_card_still_blocked_after_database_connection_lifecycle_entry_refresh",
+        "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-connection-lifecycle-v1",
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_defined",
+        "production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1",
+        "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined",
+        "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_readiness",
+        "storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_readiness",
+        "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-provider-connection-runtime-boundary-v1",
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined",
+        "storage_adapter_runtime_task_card_still_blocked_after_database_provider_connection_runtime_boundary_entry_refresh",
+        "storage_adapter_managed_database_product_selection_readiness",
+        "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1",
+        "audit_store_storage_adapter_managed_database_product_selection_readiness_defined",
+        "managed_database_product_selection_readiness_defined_without_product_selection",
+        "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_readiness",
+        "storage_adapter_managed_database_product_selection_review",
+        "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1",
+        "audit_store_storage_adapter_managed_database_product_selection_review_defined",
+        "managed_database_product_profile_selected_reference_only_runtime_blocked",
+        "managed_postgresql_compatible_audit_store_profile",
+        "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review",
+        "storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review",
+        "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-managed-database-product-selection-review-v1",
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_defined",
+        "storage_adapter_runtime_task_card_still_blocked_after_managed_database_product_selection_review_entry_refresh",
+        "storage_adapter_concrete_managed_database_provider_selection_readiness",
+        "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1",
+        "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined",
+        "concrete_managed_database_provider_selection_readiness_defined_without_provider_selection",
+        "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_readiness",
+        "storage_adapter_concrete_managed_database_provider_selection_review",
+        "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-review-v1",
+        "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined",
+        "concrete_managed_database_provider_reference_selected_runtime_blocked",
+        "managed_postgresql_compatible_provider_reference",
+        "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review",
+        "storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review",
+        "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1",
+        "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined",
+        "storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh",
+        "storage_adapter_provider_account_resource_endpoint_readiness",
+        "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1",
+        "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined",
+        "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_readiness",
+        "storage_adapter_provider_account_resource_endpoint_review",
+        "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1",
+        "audit_store_storage_adapter_provider_account_resource_endpoint_review_defined",
+        "provider_account_resource_endpoint_review_defined_runtime_blocked",
+        "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_review",
+        "storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review",
         "production-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1",
         "audit_store_writer_runtime_implementation_entry_review_defined",
         "production-secret-backend-resolver-backend-health-boundary-readiness-v1",
@@ -403,6 +542,10 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-readiness-v1.py",
         "check-production-ops-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-policy-readiness-v1.py",
         "check-production-ops-secret-backend-audit-store-storage-adapter-append-only-table-schema-boundary-readiness-v1.py",
+        "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-negative-leakage-runtime-scan-boundary-v1.py",
+        "check-production-ops-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.py",
+        "check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-connection-lifecycle-v1.py",
+        "check-production-ops-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py",
         "check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py",
     ],
@@ -894,8 +1037,18 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit storage adapter selected backend product profile drifted",
     )
     require(
-        target.get("audit_storage_adapter_database_product_status") == "not_selected",
+        target.get("audit_storage_adapter_database_product_status") == "engine_selected_without_managed_product",
         "audit storage adapter database product status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_selected_database_engine")
+        == "postgresql_compatible_append_only_relational_database",
+        "audit storage adapter selected database engine drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_selected_database_engine_status")
+        == "selected_without_vendor_product_driver_or_provider",
+        "audit storage adapter selected database engine status drifted",
     )
     require(
         target.get("audit_storage_adapter_database_vendor_status") == "not_selected",
@@ -984,8 +1137,33 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit storage adapter schema marker handoff boundary status drifted",
     )
     require(
-        target.get("audit_storage_adapter_table_schema_artifact_status") == "not_created",
+        target.get("audit_storage_adapter_table_schema_artifact_materialization_status")
+        == "audit_store_storage_adapter_table_schema_artifact_materialized",
+        "audit storage adapter table schema artifact materialization status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_table_schema_artifact_status")
+        == "materialized_static_logical_table_schema",
         "audit storage adapter table schema artifact status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_table_schema_artifact_path_status") == "materialized_static_path",
+        "audit storage adapter table schema artifact path status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_table_schema_artifact_validation_status")
+        == "implemented_offline_schema_validation",
+        "audit storage adapter table schema artifact validation status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_table_schema_metadata_contract_compatibility_status")
+        == "implemented_static_contract_compatibility",
+        "audit storage adapter table schema metadata contract compatibility status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_table_schema_no_secret_material_scan_status")
+        == "implemented_static_scan",
+        "audit storage adapter table schema no secret material scan status drifted",
     )
     require(
         target.get("audit_storage_adapter_sql_migration_status") == "not_created",
@@ -1026,14 +1204,36 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_offline_adapter_smoke_strategy_status")
-        == "required_before_runtime_task_card",
+        == "offline_adapter_smoke_strategy_defined_without_runtime",
         "audit storage adapter offline adapter smoke strategy status drifted",
     )
     require(
+        target.get("audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_status")
+        == "audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined",
+        "audit storage adapter negative leakage runtime scan boundary readiness status drifted",
+    )
+    require(
         target.get("audit_storage_adapter_negative_leakage_runtime_scan_boundary_status")
-        == "required_before_runtime_task_card",
+        == "defined_without_runtime",
         "audit storage adapter negative leakage runtime scan boundary status drifted",
     )
+    for field, expected in {
+        "audit_storage_adapter_negative_leakage_runtime_scan_manifest_status": (
+            "metadata_only_runtime_scan_manifest_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_target_allowlist_status": (
+            "metadata_only_scan_target_allowlist_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_forbidden_material_coverage_status": (
+            "raw_payload_secret_credential_provider_backend_detail_coverage_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_diagnostic_allowlist_status": (
+            "metadata_only_diagnostic_allowlist_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_runner_status": "not_created",
+        "audit_storage_adapter_negative_leakage_runtime_scan_output_status": "not_created",
+    }.items():
+        require(target.get(field) == expected, f"{field} drifted")
     require(
         target.get("audit_storage_adapter_backend_product_candidate_source_status")
         == "metadata_only_candidate_source_defined",
@@ -1303,8 +1503,62 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
         "audit store storage adapter runtime implementation entry refresh after product selection status drifted",
     )
     require(
+        target.get(
+            "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_status"
+        )
+        == "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_negative_leakage_runtime_scan_boundary_defined",
+        "audit store storage adapter runtime implementation entry refresh after negative leakage status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_status")
+        == "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_connection_lifecycle_defined",
+        "audit store storage adapter runtime implementation entry refresh after database connection lifecycle status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_status")
+        == "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined",
+        "audit store storage adapter database provider connection runtime boundary readiness status drifted",
+    )
+    require(
+        target.get(
+            "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_status"
+        )
+        == "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined",
+        "audit store storage adapter runtime implementation entry refresh after database provider connection runtime boundary status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_managed_database_product_selection_readiness_status")
+        == "audit_store_storage_adapter_managed_database_product_selection_readiness_defined",
+        "audit store storage adapter managed database product selection readiness status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_managed_database_product_selection_review_status")
+        == "audit_store_storage_adapter_managed_database_product_selection_review_defined",
+        "audit store storage adapter managed database product selection review status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_status")
+        == "audit_store_storage_adapter_table_schema_artifact_materialization_entry_review_defined",
+        "audit store storage adapter table schema artifact materialization entry review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_table_schema_artifact_materialization_task_card_decision")
+        == "table_schema_artifact_materialization_task_card_defined_after_entry_review",
+        "audit storage adapter table schema materialization task card decision drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_table_schema_artifact_materialization_task_card_status")
+        == "created",
+        "audit storage adapter table schema materialization task card status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_table_schema_artifact_materialization_task_card_defined_status")
+        == "audit_store_storage_adapter_table_schema_artifact_materialized",
+        "audit storage adapter table schema materialization task card defined status drifted",
+    )
+    require(
         target.get("audit_storage_adapter_runtime_task_card_decision")
-        == "storage_adapter_runtime_task_card_still_blocked_after_append_only_table_schema_boundary_readiness",
+        == "storage_adapter_runtime_task_card_still_blocked_after_provider_account_resource_endpoint_review",
         "audit storage adapter runtime task card decision drifted",
     )
     require(
@@ -1328,9 +1582,445 @@ def assert_implementation_target(fixture: dict[str, Any]) -> None:
     )
     require(
         target.get("audit_storage_adapter_current_next_dependency")
-        == "storage_adapter_table_schema_artifact_materialization_entry_review",
+        == "storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review",
         "audit storage adapter current next dependency drifted",
     )
+    require(
+        target.get("audit_store_storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_status")
+        == "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_defined",
+        "audit store storage adapter entry refresh after managed product review status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_status")
+        == "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined",
+        "audit store storage adapter concrete managed provider selection readiness status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_concrete_managed_database_provider_selection_review_status")
+        == "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined",
+        "audit store storage adapter concrete managed provider selection review status drifted",
+    )
+    require(
+        target.get(
+            "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_status"
+        )
+        == "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined",
+        "audit store storage adapter entry refresh after concrete provider review status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_provider_account_resource_endpoint_readiness_status")
+        == "audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined",
+        "audit store storage adapter provider account resource endpoint readiness status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_provider_account_resource_endpoint_review_status")
+        == "audit_store_storage_adapter_provider_account_resource_endpoint_review_defined",
+        "audit store storage adapter provider account resource endpoint review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_managed_product_selection_status")
+        == "selected_reference_product_profile_without_vendor",
+        "audit storage adapter managed product selection status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_managed_product_selection_review_status")
+        == "audit_store_storage_adapter_managed_database_product_selection_review_defined",
+        "audit storage adapter managed product selection review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_selected_managed_product_profile")
+        == "managed_postgresql_compatible_audit_store_profile",
+        "audit storage adapter selected managed product profile drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_managed_database_product_status")
+        == "selected_reference_profile_not_vendor_product",
+        "audit storage adapter managed database product status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_managed_product_input_evidence_status")
+        == "metadata_only_product_input_evidence_defined",
+        "audit storage adapter managed product input evidence status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_managed_product_candidate_field_status")
+        == "metadata_only_candidate_fields_defined",
+        "audit storage adapter managed product candidate field status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_managed_product_evaluation_dimension_status")
+        == "metadata_only_evaluation_dimensions_defined",
+        "audit storage adapter managed product evaluation dimension status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_concrete_provider_input_evidence_status")
+        == "metadata_only_provider_input_evidence_defined",
+        "audit storage adapter concrete provider input evidence status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_concrete_provider_candidate_field_status")
+        == "metadata_only_provider_candidate_fields_defined",
+        "audit storage adapter concrete provider candidate field status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_concrete_provider_evaluation_dimension_status")
+        == "metadata_only_provider_evaluation_dimensions_defined",
+        "audit storage adapter concrete provider evaluation dimension status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_selected_concrete_provider_reference")
+        == "managed_postgresql_compatible_provider_reference",
+        "audit storage adapter selected concrete provider reference drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_selected_concrete_provider_reference_kind")
+        == "reference_only_concrete_provider_profile",
+        "audit storage adapter selected concrete provider reference kind drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_concrete_provider_selection_status")
+        == "reference_profile_selected_without_provider_resource",
+        "audit storage adapter concrete provider selection status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_concrete_provider_selection_review_status")
+        == "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined",
+        "audit storage adapter concrete provider selection review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_concrete_cloud_product_status") == "not_selected",
+        "audit storage adapter concrete cloud product status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_account_resource_status")
+        == "metadata_only_readiness_defined_without_real_resource",
+        "audit storage adapter provider account resource status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_resource_status") == "not_selected",
+        "audit storage adapter provider resource status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_endpoint_status")
+        == "metadata_only_endpoint_requirements_defined_without_endpoint",
+        "audit storage adapter database endpoint status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_region_detail_status")
+        == "metadata_only_region_requirements_defined_without_region_detail",
+        "audit storage adapter region detail status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_account_confirmation_status")
+        == "operator_confirmation_required_before_runtime",
+        "audit storage adapter provider account confirmation status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_account_resource_review_status")
+        == "metadata_only_requirements_reviewed_without_real_resource",
+        "audit storage adapter provider account resource review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_resource_review_status")
+        == "metadata_only_scope_reviewed_without_resource_selection",
+        "audit storage adapter provider resource review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_endpoint_review_status")
+        == "metadata_only_endpoint_requirements_reviewed_without_endpoint",
+        "audit storage adapter database endpoint review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_region_detail_review_status")
+        == "metadata_only_region_requirements_reviewed_without_region_detail",
+        "audit storage adapter region detail review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_account_confirmation_review_status")
+        == "confirmation_requirements_reviewed_still_required_before_runtime",
+        "audit storage adapter provider account confirmation review status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_concrete_database_selection_readiness_status")
+        == "audit_store_storage_adapter_concrete_database_selection_readiness_defined",
+        "audit store storage adapter concrete database selection readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_concrete_database_selection_readiness_status")
+        == "audit_store_storage_adapter_concrete_database_selection_readiness_defined",
+        "audit storage adapter concrete database selection readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_concrete_database_selection_status")
+        == "selected_database_engine_without_vendor_or_provider",
+        "audit storage adapter concrete database selection status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_candidate_input_evidence_status") == "metadata_only_input_evidence_defined",
+        "audit storage adapter candidate input evidence status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_candidate_evaluation_matrix_status") == "metadata_only_evaluation_matrix_defined",
+        "audit storage adapter candidate evaluation matrix status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_concrete_database_selection_review_status")
+        == "audit_store_storage_adapter_concrete_database_selection_review_defined",
+        "audit store storage adapter concrete database selection review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_selection_review_status")
+        == "audit_store_storage_adapter_concrete_database_selection_review_defined",
+        "audit storage adapter database selection review status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_database_provider_selection_readiness_status")
+        == "audit_store_storage_adapter_database_provider_selection_readiness_defined",
+        "audit store storage adapter database provider selection readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_provider_selection_readiness_status")
+        == "audit_store_storage_adapter_database_provider_selection_readiness_defined",
+        "audit storage adapter database provider selection readiness status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_database_provider_selection_review_status")
+        == "audit_store_storage_adapter_database_provider_selection_review_defined",
+        "audit store storage adapter database provider selection review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_provider_selection_review_status")
+        == "audit_store_storage_adapter_database_provider_selection_review_defined",
+        "audit storage adapter database provider selection review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_selected_provider_candidate_class")
+        == "managed_postgresql_compatible_service",
+        "audit storage adapter selected provider candidate class drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_provider_selection_status")
+        == "selected_provider_candidate_class_without_vendor_or_product",
+        "audit storage adapter database provider selection status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_candidate_source_status")
+        == "metadata_only_provider_candidate_source_defined",
+        "audit storage adapter provider candidate source status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_input_evidence_status")
+        == "metadata_only_provider_input_evidence_defined",
+        "audit storage adapter provider input evidence status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_evaluation_dimension_status")
+        == "metadata_only_provider_evaluation_dimensions_defined",
+        "audit storage adapter provider evaluation dimension status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_provider_selection_review_status")
+        == "audit_store_storage_adapter_database_provider_selection_review_defined",
+        "audit storage adapter provider selection review status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_database_driver_selection_readiness_status")
+        == "audit_store_storage_adapter_database_driver_selection_readiness_defined",
+        "audit store storage adapter database driver selection readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_driver_selection_readiness_status")
+        == "audit_store_storage_adapter_database_driver_selection_readiness_defined",
+        "audit storage adapter database driver selection readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_driver_selection_status")
+        == "selected_driver_candidate_without_runtime_import",
+        "audit storage adapter database driver selection status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_database_driver_selection_review_status")
+        == "audit_store_storage_adapter_database_driver_selection_review_defined",
+        "audit store storage adapter database driver selection review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_driver_selection_review_status")
+        == "audit_store_storage_adapter_database_driver_selection_review_defined",
+        "audit storage adapter database driver selection review status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_selected_database_driver_candidate") == "github.com/jackc/pgx/v5",
+        "audit storage adapter selected database driver candidate drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_driver_status") == "selected_reference_only",
+        "audit storage adapter database driver status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_driver_package_status")
+        == "selected_candidate_reference_only",
+        "audit storage adapter database driver package status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_database_driver_import_status") == "not_created",
+        "audit storage adapter database driver import status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_driver_dependency_version_status") == "not_pinned",
+        "audit storage adapter driver dependency version status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_driver_candidate_source_status")
+        == "metadata_only_driver_candidate_source_defined",
+        "audit storage adapter driver candidate source status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_driver_import_boundary_status")
+        == "metadata_only_driver_import_boundary_defined",
+        "audit storage adapter driver import boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_driver_capability_evidence_status")
+        == "metadata_only_driver_capability_evidence_defined",
+        "audit storage adapter driver capability evidence status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_dsn_secret_ref_compatibility_status")
+        == "metadata_only_dsn_secret_ref_compatibility_defined",
+        "audit storage adapter DSN secret ref compatibility status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_tls_mode_compatibility_status")
+        == "metadata_only_tls_mode_compatibility_defined",
+        "audit storage adapter TLS mode compatibility status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_role_policy_compatibility_status")
+        == "metadata_only_role_policy_compatibility_defined",
+        "audit storage adapter role policy compatibility status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_connection_lifecycle_boundary_status")
+        == "metadata_only_connection_lifecycle_boundary_defined",
+        "audit storage adapter connection lifecycle boundary status drifted",
+    )
+    for field, expected in {
+        "audit_store_storage_adapter_database_connection_lifecycle_readiness_status": (
+            "audit_store_storage_adapter_database_connection_lifecycle_readiness_defined"
+        ),
+        "audit_storage_adapter_database_connection_lifecycle_readiness_status": (
+            "audit_store_storage_adapter_database_connection_lifecycle_readiness_defined"
+        ),
+        "audit_storage_adapter_database_connection_lifecycle_readiness_decision": (
+            "database_connection_lifecycle_readiness_defined_without_connection_runtime"
+        ),
+        "audit_storage_adapter_secret_ref_only_dsn_handoff_status": "secret_ref_only_dsn_handoff_defined",
+        "audit_storage_adapter_tls_role_environment_binding_status": (
+            "static_tls_role_environment_binding_defined"
+        ),
+        "audit_storage_adapter_pool_policy_status": "static_pool_policy_defined_without_pool_runtime",
+        "audit_storage_adapter_timeout_budget_status": "static_timeout_budget_defined_without_runtime_timer",
+        "audit_storage_adapter_retry_transaction_recovery_status": "static_recovery_policy_defined_without_runtime",
+        "audit_storage_adapter_duplicate_replay_fail_closed_status": (
+            "duplicate_replay_fail_closed_policy_defined"
+        ),
+        "audit_storage_adapter_sanitized_diagnostics_status": "sanitized_diagnostics_allowlist_defined",
+        "audit_storage_adapter_schema_marker_migration_handoff_status": "schema_marker_migration_handoff_defined",
+        "audit_storage_adapter_offline_verification_status": "metadata_only_offline_verification_defined",
+        "audit_storage_adapter_database_provider_connection_runtime_boundary_status": (
+            "metadata_only_boundary_defined_without_runtime"
+        ),
+        "audit_storage_adapter_connection_lifecycle_runtime_status": "not_created",
+        "audit_storage_adapter_connection_factory_status": "not_created",
+        "audit_storage_adapter_pool_runtime_status": "not_created",
+        "audit_storage_adapter_health_check_runtime_status": "not_created",
+    }.items():
+        require(target.get(field) == expected, f"{field} drifted")
+    require(
+        target.get("audit_storage_adapter_migration_schema_marker_boundary_status")
+        == "logical_schema_marker_handoff_boundary_defined",
+        "audit storage adapter migration schema marker boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_driver_offline_smoke_boundary_status")
+        == "metadata_only_offline_adapter_smoke_boundary_defined",
+        "audit storage adapter driver offline smoke boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_driver_negative_leakage_scan_boundary_status")
+        == "metadata_only_negative_leakage_runtime_scan_boundary_defined",
+        "audit storage adapter driver negative leakage scan boundary status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_rollout_rollback_boundary_status")
+        == "metadata_only_rollout_rollback_boundary_defined",
+        "audit storage adapter rollout rollback boundary status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_status")
+        == "audit_store_storage_adapter_offline_adapter_smoke_strategy_readiness_defined",
+        "audit storage adapter offline adapter smoke strategy readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_adapter_smoke_strategy_status")
+        == "offline_adapter_smoke_strategy_defined_without_runtime",
+        "audit storage adapter offline adapter smoke strategy status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_adapter_smoke_manifest_status")
+        == "metadata_only_smoke_manifest_defined",
+        "audit storage adapter offline adapter smoke manifest status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_adapter_smoke_positive_case_status")
+        == "metadata_only_positive_case_defined",
+        "audit storage adapter offline adapter smoke positive case status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_adapter_smoke_negative_case_status")
+        == "metadata_only_negative_case_defined",
+        "audit storage adapter offline adapter smoke negative case status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_adapter_smoke_backend_touch_policy_status")
+        == "real_backend_touch_forbidden",
+        "audit storage adapter offline adapter smoke backend touch policy status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_adapter_smoke_runner_status") == "not_created",
+        "audit storage adapter offline adapter smoke runner status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_offline_adapter_smoke_output_status") == "not_created",
+        "audit storage adapter offline adapter smoke output status drifted",
+    )
+    require(
+        target.get("audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_status")
+        == "audit_store_storage_adapter_negative_leakage_runtime_scan_boundary_readiness_defined",
+        "audit storage adapter negative leakage runtime scan boundary readiness status drifted",
+    )
+    require(
+        target.get("audit_storage_adapter_negative_leakage_runtime_scan_boundary_status")
+        == "defined_without_runtime",
+        "audit storage adapter negative leakage runtime scan boundary status drifted",
+    )
+    for field, expected in {
+        "audit_storage_adapter_negative_leakage_runtime_scan_manifest_status": (
+            "metadata_only_runtime_scan_manifest_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_target_allowlist_status": (
+            "metadata_only_scan_target_allowlist_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_forbidden_material_coverage_status": (
+            "raw_payload_secret_credential_provider_backend_detail_coverage_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_diagnostic_allowlist_status": (
+            "metadata_only_diagnostic_allowlist_defined"
+        ),
+        "audit_storage_adapter_negative_leakage_runtime_scan_runner_status": "not_created",
+        "audit_storage_adapter_negative_leakage_runtime_scan_output_status": "not_created",
+    }.items():
+        require(target.get(field) == expected, f"{field} drifted")
     require(
         target.get("audit_storage_adapter_runtime_task_card_status") == "not_created",
         "audit storage adapter runtime task card must remain not_created",
@@ -2343,6 +3033,26 @@ def assert_planned_slices_and_blocks(fixture: dict[str, Any]) -> None:
             }:
                 require(path in evidence, f"{slice_id} missing evidence: {path}")
                 require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "audit-store-storage-adapter-provider-account-resource-endpoint-readiness":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1.md",
+                "docs/task-cards/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1.json",
+                "scripts/check-production-ops-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
+        if slice_id == "audit-store-storage-adapter-provider-account-resource-endpoint-review":
+            evidence = set(planned[slice_id].get("evidence") or [])
+            for path in {
+                "docs/platform/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.md",
+                "docs/task-cards/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1-plan.md",
+                "scripts/checks/fixtures/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.json",
+                "scripts/check-production-ops-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.py",
+            }:
+                require(path in evidence, f"{slice_id} missing evidence: {path}")
+                require((REPO_ROOT / path).exists(), f"{slice_id} evidence missing on disk: {path}")
 
     blocked = {str(item.get("id")): item for item in fixture.get("blocked_conditions") or [] if isinstance(item, dict)}
     missing_blocked = sorted(set(REQUIRED_BLOCKED) - set(blocked))
@@ -2383,6 +3093,8 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "audit store storage adapter retention redaction policy evidence readiness defined without runtime",
         "audit store storage adapter runtime implementation entry refresh after product selection blocked before database provider readiness",
         "audit store storage adapter database provider driver DSN TLS role policy readiness defined without runtime",
+        "audit store storage adapter concrete database selection readiness defined without database selection",
+        "audit store storage adapter provider account resource endpoint readiness defined without real provider resource",
         "resolver backend health boundary readiness defined without backend health runtime",
         "resolver backend health runtime implementation entry review blocked before task card",
         "resolver backend health runtime implementation entry refresh blocked before task card",
@@ -2585,6 +3297,36 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/checks/fixtures/production-secret-audit-event-event-kind-invalid-negative-v1.json",
         "scripts/checks/fixtures/production-secret-backend-audit-store-runtime-event-schema-artifact-v1.json",
         "scripts/check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-v1.py",
+        "docs/platform/production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.md",
+        "docs/task-cards/production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1-plan.md",
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.json"
+        ),
+        (
+            "scripts/"
+            "check-production-ops-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.py"
+        ),
+        "docs/platform/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1.md",
+        "docs/task-cards/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1-plan.md",
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1.json"
+        ),
+        (
+            "scripts/"
+            "check-production-ops-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1.py"
+        ),
+        "docs/platform/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.md",
+        "docs/task-cards/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1-plan.md",
+        (
+            "scripts/checks/fixtures/"
+            "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.json"
+        ),
+        (
+            "scripts/"
+            "check-production-ops-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.py"
+        ),
         "docs/platform/production-secret-backend-resolver-backend-health-boundary-readiness-v1.md",
         "docs/task-cards/production-secret-backend-resolver-backend-health-boundary-readiness-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-resolver-backend-health-boundary-readiness-v1.json",
@@ -2965,6 +3707,33 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         )
         in check_repo,
         "check-repo.py must run audit store storage adapter database provider driver DSN TLS role policy readiness check",
+    )
+    require(
+        (
+            'run_python_script("'
+            "check-production-ops-secret-backend-audit-store-storage-adapter-concrete-database-selection-readiness-v1.py"
+            '", [])'
+        )
+        in check_repo,
+        "check-repo.py must run audit store storage adapter concrete database selection readiness check",
+    )
+    require(
+        (
+            'run_python_script("'
+            "check-production-ops-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1.py"
+            '", [])'
+        )
+        in check_repo,
+        "check-repo.py must run audit store storage adapter provider account resource endpoint readiness check",
+    )
+    require(
+        (
+            'run_python_script("'
+            "check-production-ops-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.py"
+            '", [])'
+        )
+        in check_repo,
+        "check-repo.py must run audit store storage adapter provider account resource endpoint review check",
     )
     require(
         (

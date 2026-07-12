@@ -9,12 +9,14 @@ type WorkflowSavedDraftStoreMode string
 
 const (
 	WorkflowSavedDraftStoreModeMemoryDev          WorkflowSavedDraftStoreMode = "memory_dev"
+	WorkflowSavedDraftStoreModePostgresDevTest    WorkflowSavedDraftStoreMode = "postgres_dev_test"
 	WorkflowSavedDraftStoreModeRepositoryDisabled WorkflowSavedDraftStoreMode = "repository_disabled"
 	WorkflowSavedDraftStoreModeRepository         WorkflowSavedDraftStoreMode = "repository"
 )
 
 type WorkflowSavedDraftStoreSelector struct {
-	MemoryDevStore savedWorkflowDraftStore
+	MemoryDevStore       savedWorkflowDraftStore
+	PostgresDevTestStore savedWorkflowDraftStore
 }
 
 type WorkflowSavedDraftStoreSelection struct {
@@ -41,6 +43,17 @@ func SelectWorkflowSavedDraftStore(
 		return WorkflowSavedDraftStoreSelection{
 			Mode:  WorkflowSavedDraftStoreModeMemoryDev,
 			Store: store,
+		}
+	case WorkflowSavedDraftStoreModePostgresDevTest:
+		if selector.PostgresDevTestStore == nil {
+			return disabledWorkflowSavedDraftStoreSelection(
+				WorkflowSavedDraftStoreModePostgresDevTest,
+				SavedWorkflowDraftFailureStoreUnavailable,
+			)
+		}
+		return WorkflowSavedDraftStoreSelection{
+			Mode:  WorkflowSavedDraftStoreModePostgresDevTest,
+			Store: selector.PostgresDevTestStore,
 		}
 	case WorkflowSavedDraftStoreModeRepositoryDisabled:
 		return disabledWorkflowSavedDraftStoreSelection(
@@ -76,20 +89,24 @@ func disabledWorkflowSavedDraftStoreSelection(
 }
 
 func (store disabledSavedWorkflowDraftStore) ReadDraftByID(
+	_ SavedWorkflowDraftContext,
 	_ string,
 ) (SavedWorkflowDraft, bool, error) {
 	return SavedWorkflowDraft{}, false, savedWorkflowDraftStoreSelectionFailure(store.failureCode)
 }
 
-func (store disabledSavedWorkflowDraftStore) ListDraftsByScope(
-	_ string,
-	_ string,
-) ([]SavedWorkflowDraft, error) {
+func (store disabledSavedWorkflowDraftStore) ListDraftSummariesByScope(
+	_ SavedWorkflowDraftContext,
+) ([]SavedWorkflowDraftSummary, error) {
 	return nil, savedWorkflowDraftStoreSelectionFailure(store.failureCode)
 }
 
-func (store disabledSavedWorkflowDraftStore) WriteDraft(_ SavedWorkflowDraft) error {
-	return savedWorkflowDraftStoreSelectionFailure(store.failureCode)
+func (store disabledSavedWorkflowDraftStore) WriteDraft(
+	_ SavedWorkflowDraftContext,
+	_ SavedWorkflowDraft,
+	_ int,
+) (int, error) {
+	return 0, savedWorkflowDraftStoreSelectionFailure(store.failureCode)
 }
 
 func (store disabledSavedWorkflowDraftStore) SideEffects() SavedWorkflowDraftSideEffects {
@@ -97,6 +114,14 @@ func (store disabledSavedWorkflowDraftStore) SideEffects() SavedWorkflowDraftSid
 }
 
 type savedWorkflowDraftStoreSelectionError struct {
+	failureCode SavedWorkflowDraftFailureCode
+}
+
+type savedWorkflowDraftStoreWriteError struct {
+	failureCode SavedWorkflowDraftFailureCode
+}
+
+type savedWorkflowDraftStoreOperationError struct {
 	failureCode SavedWorkflowDraftFailureCode
 }
 
@@ -108,6 +133,22 @@ func savedWorkflowDraftStoreSelectionFailure(failureCode SavedWorkflowDraftFailu
 	return &savedWorkflowDraftStoreSelectionError{failureCode: failureCode}
 }
 
+func (err *savedWorkflowDraftStoreWriteError) Error() string {
+	return string(err.failureCode)
+}
+
+func savedWorkflowDraftStoreWriteFailure(failureCode SavedWorkflowDraftFailureCode) error {
+	return &savedWorkflowDraftStoreWriteError{failureCode: failureCode}
+}
+
+func (err *savedWorkflowDraftStoreOperationError) Error() string {
+	return string(err.failureCode)
+}
+
+func savedWorkflowDraftStoreOperationFailure(failureCode SavedWorkflowDraftFailureCode) error {
+	return &savedWorkflowDraftStoreOperationError{failureCode: failureCode}
+}
+
 func savedWorkflowDraftStoreFailureCode(err error) SavedWorkflowDraftFailureCode {
 	if err == nil {
 		return ""
@@ -115,6 +156,14 @@ func savedWorkflowDraftStoreFailureCode(err error) SavedWorkflowDraftFailureCode
 	var selectionErr *savedWorkflowDraftStoreSelectionError
 	if errors.As(err, &selectionErr) {
 		return selectionErr.failureCode
+	}
+	var writeErr *savedWorkflowDraftStoreWriteError
+	if errors.As(err, &writeErr) {
+		return writeErr.failureCode
+	}
+	var operationErr *savedWorkflowDraftStoreOperationError
+	if errors.As(err, &operationErr) {
+		return operationErr.failureCode
 	}
 	return SavedWorkflowDraftFailureStoreUnavailable
 }

@@ -5,6 +5,14 @@ import type {
   WorkflowDraftDesignerLayoutPosition,
   WorkflowDraftDesignerNode,
 } from "./workflowDraftDesigner";
+import {
+  nextWorkflowSavedDraftExpectedVersion,
+  resolveWorkflowSavedDraftVersion,
+  workflowSavedDraftConflictRequiresResolution,
+} from "./savedWorkflowDraftLifecycle";
+import { workflowSavedDraftRequestedCapabilities } from "./workflowSavedDraftCapabilityPolicy.ts";
+
+export { nextWorkflowSavedDraftExpectedVersion, workflowSavedDraftConflictRequiresResolution };
 
 const DEV_SAVED_DRAFT_SOURCE = "dev-saved-draft-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
@@ -16,6 +24,7 @@ const SAVED_DRAFT_SCHEMA_VERSION = "saved_workflow_draft.v1";
 const DESIGNER_LAYOUT_VERSION = "designer_layout_v1";
 const DESIGNER_LAYOUT_SOURCE = "workflow_node_designer";
 const DESIGNER_LAYOUT_PERSISTENCE = "saved_draft_metadata";
+const EXECUTOR_V0_METADATA_VERSION = "workflow_executor_v0";
 const MAX_DESIGNER_LAYOUT_COORDINATE = 10000;
 
 export type WorkflowSavedDraftConsumerMode = "sample_only" | "dev_saved_draft_http";
@@ -214,7 +223,13 @@ type SavedWorkflowDraftPayload = {
 
 type SavedWorkflowDraftAdditionalFields = {
   designer_layout_v1?: SavedWorkflowDraftDesignerLayoutV1;
+  executor_v0?: SavedWorkflowDraftExecutorV0Metadata;
 } & Record<string, unknown>;
+
+type SavedWorkflowDraftExecutorV0Metadata = {
+  version: typeof EXECUTOR_V0_METADATA_VERSION;
+  side_effect_policy: "no_external_side_effects";
+};
 
 type SavedWorkflowDraftDesignerLayoutV1 = {
   layout_version: typeof DESIGNER_LAYOUT_VERSION;
@@ -374,12 +389,13 @@ export async function saveWorkflowDraftDevRecord(
       draft: toSavedWorkflowDraftPayload(draft, config),
     }),
   });
-  return stateFromSavedWorkflowDraftEnvelope(envelope, "save");
+  return stateFromSavedWorkflowDraftEnvelope(envelope, "save", expectedDraftVersion);
 }
 
 export async function validateWorkflowDraftDevRecord(
   draft: WorkflowDraftDesignerDraft,
   config: WorkflowSavedDraftConsumerConfig,
+  currentDraftVersion = 0,
 ): Promise<WorkflowSavedDraftConsumerState> {
   const envelope = await requestSavedWorkflowDraftEnvelope(
     "/v1/user-workspace/workflow-drafts/validate",
@@ -390,12 +406,13 @@ export async function validateWorkflowDraftDevRecord(
       body: JSON.stringify({ draft: toSavedWorkflowDraftPayload(draft, config) }),
     },
   );
-  return stateFromSavedWorkflowDraftEnvelope(envelope, "validate");
+  return stateFromSavedWorkflowDraftEnvelope(envelope, "validate", currentDraftVersion);
 }
 
 export async function readWorkflowDraftDevRecord(
   draft: WorkflowDraftDesignerDraft,
   config: WorkflowSavedDraftConsumerConfig,
+  currentDraftVersion = 0,
 ): Promise<WorkflowSavedDraftConsumerState> {
   const query = new URLSearchParams({
     workspace_id: config.workspaceId,
@@ -407,7 +424,7 @@ export async function readWorkflowDraftDevRecord(
     draft,
     { method: "GET" },
   );
-  return stateFromSavedWorkflowDraftEnvelope(envelope, "read");
+  return stateFromSavedWorkflowDraftEnvelope(envelope, "read", currentDraftVersion);
 }
 
 export async function listWorkflowDraftDevRecords(
@@ -441,19 +458,11 @@ export async function restoreWorkflowDraftDevRecord(
     `dev-saved-draft-restore-${summary.draftId}`,
     { method: "GET" },
   );
-  const state = stateFromSavedWorkflowDraftEnvelope(envelope, "read");
+  const state = stateFromSavedWorkflowDraftEnvelope(envelope, "read", summary.draftVersion);
   if (envelope.failure_code || !envelope.draft) {
     return { state, draft: null };
   }
   return { state, draft: workflowDraftFromSavedWorkflowDraftDocument(envelope.draft) };
-}
-
-export function nextWorkflowSavedDraftExpectedVersion(state: WorkflowSavedDraftConsumerState): number {
-  return state.status === "saved_dev_record" ||
-    state.status === "version_conflict" ||
-    state.status === "conflict_local_continued"
-    ? state.currentDraftVersion
-    : 0;
 }
 
 export function continueLocalWorkflowDraftAfterVersionConflict(
@@ -638,11 +647,17 @@ function listStateFromSavedWorkflowDraftEnvelope(
 function stateFromSavedWorkflowDraftEnvelope(
   envelope: SavedWorkflowDraftEnvelope,
   operation: "save" | "read" | "validate",
+  previousDraftVersion: number,
 ): WorkflowSavedDraftConsumerState {
   const base = {
     mode: "dev_saved_draft_http" as const,
     failureCode: envelope.failure_code,
-    currentDraftVersion: envelope.current_draft_version,
+    currentDraftVersion: resolveWorkflowSavedDraftVersion({
+      operation,
+      failureCode: envelope.failure_code,
+      envelopeDraftVersion: envelope.current_draft_version,
+      previousDraftVersion,
+    }),
     conflictDraftVersion: null,
     auditRef: envelope.audit_ref,
     requestId: envelope.request_id,
@@ -823,7 +838,7 @@ function toSavedWorkflowDraftPayload(
     provider_refs: workflowDraftProviderRefs(draft),
     tool_refs: workflowDraftToolRefs(draft),
     rag_refs: workflowDraftRagRefs(draft),
-    requested_capabilities: ["publish", "run", "confirmation_decision", "writeback", "replay"],
+    requested_capabilities: workflowSavedDraftRequestedCapabilities(draft),
     ...(additionalFields ? { additional_fields: additionalFields } : {}),
   };
 }
@@ -832,17 +847,22 @@ function toSavedWorkflowDraftAdditionalFields(
   draft: WorkflowDraftDesignerDraft,
 ): SavedWorkflowDraftAdditionalFields | undefined {
   const layoutNodes = savedWorkflowDraftDesignerLayoutNodes(draft);
-  if (layoutNodes.length === 0) {
-    return undefined;
-  }
-  return {
-    designer_layout_v1: {
+  const additionalFields: SavedWorkflowDraftAdditionalFields = {};
+  if (layoutNodes.length > 0) {
+    additionalFields.designer_layout_v1 = {
       layout_version: DESIGNER_LAYOUT_VERSION,
       source: DESIGNER_LAYOUT_SOURCE,
       persistence: DESIGNER_LAYOUT_PERSISTENCE,
       nodes: layoutNodes,
-    },
-  };
+    };
+  }
+  if (draft.executionProfile === "executor_v0") {
+    additionalFields.executor_v0 = {
+      version: EXECUTOR_V0_METADATA_VERSION,
+      side_effect_policy: "no_external_side_effects",
+    };
+  }
+  return Object.keys(additionalFields).length > 0 ? additionalFields : undefined;
 }
 
 function savedWorkflowDraftDesignerLayoutNodes(
@@ -941,7 +961,19 @@ function workflowDraftFromSavedWorkflowDraftDocument(
       auditRef: document.request_audit_metadata?.audit_ref ?? "audit_saved_draft_restore",
     },
     localOnlyInteraction: "inspect_only",
+    executionProfile: isSavedWorkflowDraftExecutorV0Metadata(document.additional_fields?.executor_v0)
+      ? "executor_v0"
+      : "review_only",
   };
+}
+
+function isSavedWorkflowDraftExecutorV0Metadata(value: unknown): value is SavedWorkflowDraftExecutorV0Metadata {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const candidate = value as Partial<SavedWorkflowDraftExecutorV0Metadata>;
+  return candidate.version === EXECUTOR_V0_METADATA_VERSION &&
+    candidate.side_effect_policy === "no_external_side_effects";
 }
 
 function workflowDraftDesignerLayoutFromSavedDraftAdditionalFields(

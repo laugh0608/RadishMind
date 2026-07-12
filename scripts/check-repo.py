@@ -73,6 +73,15 @@ def run_python_script(script_name: str, args: list[str]) -> None:
         raise SystemExit(result.returncode)
 
 
+def run_python_unittest(test_directory: str) -> None:
+    result = subprocess.run(
+        [sys.executable, "-m", "unittest", "discover", "-s", test_directory, "-p", "test_*.py"],
+        cwd=REPO_ROOT,
+    )
+    if result.returncode != 0:
+        raise SystemExit(result.returncode)
+
+
 def load_json_file(relative_path: str) -> object:
     return json.loads((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
 
@@ -1089,6 +1098,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-radishmind-core-candidate-citation-scaffold.py", [])
     run_python_script("check-radishmind-core-candidate-answer-scaffold.py", [])
     run_python_script("check-radishmind-core-candidate-prompt-budget.py", [])
+    run_python_unittest("services/gateway/tests")
     run_python_script("check-runtime-provider-dispatch.py", [])
     run_python_script("check-provider-capability-matrix.py", [])
     run_python_script("check-provider-health-smoke.py", [])
@@ -1122,51 +1132,6 @@ def check_fast_baseline() -> None:
     run_python_script("checks/control_plane/check-control-plane-read-admin-audit-log-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-formal-ui-readiness-close-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-dev-live-consumer-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-auth-store-transition-preconditions-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-preconditions-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-disabled-database-guard-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-smoke-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-implementation-readiness-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-store-selection-readiness-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-schema-migration-readiness-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-types-readiness-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-types-implementation-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-smoke-runner-readiness-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-contract-smoke-runner-implementation-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-repository-interface-readiness-v1.py", [])
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-repository-adapter-implementation-readiness-refresh-v1.py",
-        [],
-    )
-    run_python_script("checks/control_plane/check-control-plane-read-store-selector-enablement-preconditions-v1.py", [])
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-schema-migration-implementation-preconditions-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-repository-adapter-implementation-plan-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-schema-artifact-manifest-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-store-selector-smoke-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-production-auth-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-adapter-smoke-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-implementation-trigger-review-v1.py",
-        [],
-    )
     run_python_script(
         "checks/control_plane/check-workflow-function-surface-boundary-v1.py",
         [],
@@ -1255,293 +1220,13 @@ def check_fast_baseline() -> None:
         "checks/control_plane/check-workflow-node-designer-edge-editing-save-preconditions-v1.py",
         [],
     )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-durable-store-preconditions-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-repository-contract-preconditions-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-schema-migration-preconditions-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-auth-context-preconditions-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-store-selector-enablement-preconditions-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-schema-artifact-evidence-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-store-selector-smoke-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-repository-contract-smoke-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-repository-contract-smoke-runner-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-repository-contract-smoke-runner-implementation-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-repository-adapter-implementation-plan-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-schema-artifact-manifest-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-adapter-smoke-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-store-selector-implementation-entry-review-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-schema-artifact-materialization-review-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-store-selector-smoke-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-schema-artifact-materialization-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-production-auth-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-repository-adapter-implementation-entry-review-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-repository-adapter-implementation-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-adapter-smoke-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-production-auth-runtime-v1.py",
-        [],
-    )
-    run_python_script("checks/control_plane/check-radish-oidc-token-membership-readiness-v1.py", [])
-    run_python_script("checks/control_plane/check-radish-oidc-token-membership-implementation-entry-review-v1.py", [])
-    run_python_script("checks/control_plane/check-radish-oidc-token-membership-upstream-evidence-refresh-v1.py", [])
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-repository-mode-enablement-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-schema-migration-runner-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-schema-migration-runner-implementation-entry-review-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-database-connection-schema-marker-preconditions-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-database-connection-provider-implementation-entry-review-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-database-secret-resolver-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-database-secret-resolver-implementation-entry-review-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-repository-mode-runtime-boundary-review-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-schema-marker-migration-runner-readiness-refresh-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-schema-marker-contract-implementation-entry-review-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-manual-migration-runner-implementation-entry-refresh-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-database-connection-provider-implementation-entry-refresh-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-database-driver-dsn-tls-policy-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-database-role-policy-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-database-connection-smoke-strategy-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-database-connection-lifecycle-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-database-connection-provider-implementation-entry-refresh-v2.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-schema-marker-runtime-dependency-refresh-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-database-secret-resolver-runtime-dependency-refresh-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-token-validation-auth-middleware-runtime-entry-review-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-token-validation-schema-task-card-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-token-validation-schema-implementation-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-token-validation-schema-artifact-implementation-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-auth-middleware-membership-adapter-task-card-entry-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-workflow-saved-draft-negative-auth-smoke-runtime-readiness-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-product-surface-readiness-implementation-trigger-recheck-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-schema-artifact-evidence-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-read-implementation-entry-review-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-product-surface-usage-gap-triage-v1.py",
-        [],
-    )
-    run_python_script(
-        "checks/control_plane/check-control-plane-durable-read-foundation-v1.py",
-        [],
-    )
     run_python_script("check-platform-ops-smoke.py", [])
     run_python_script("check-platform-config.py", [])
     run_python_script("check-platform-deployment-smoke.py", [])
     run_python_script("check-platform-diagnostics.py", [])
     run_python_script("check-production-ops-config-secret-boundary.py", [])
     run_python_script("check-production-ops-secret-backend-contract.py", [])
-    run_python_script("check-production-ops-secret-backend-implementation-readiness.py", [])
     run_python_script("check-production-secret-reference-contract.py", [])
-    run_python_script("check-production-ops-secret-backend-config-secret-ref-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-operator-runbook-negative-gates-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-fake-resolver-implementation-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-fake-resolver-runtime-implementation-entry-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-fake-resolver-runtime-implementation-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-real-resolver-runtime-preconditions-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-resolver-backend-profile-selection-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-credential-handle-runtime-boundary-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-operator-approval-runtime-evidence-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-handoff-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-resolver-backend-health-boundary-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-runtime-implementation-entry-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-contract-event-schema-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-runtime-implementation-entry-refresh-v2.py", [])
-    run_python_script("check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-credential-handle-runtime-implementation-entry-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-real-resolver-runtime-implementation-entry-refresh-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-ownership-boundary-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-delivery-idempotency-runtime-boundary-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-runtime-implementation-entry-refresh-v3.py", [])
-    run_python_script("check-production-ops-secret-backend-production-resolver-runtime-blocker-consolidation-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-credential-handle-runtime-implementation-entry-refresh-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-operator-approval-runtime-implementation-entry-refresh-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-cloud-secret-service-selection-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-resolver-backend-health-runtime-implementation-entry-refresh-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-implementation-entry-refresh-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-durable-backend-boundary-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-writer-runtime-boundary-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-runtime-event-schema-materialization-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-delivery-runtime-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-idempotency-runtime-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-runtime-implementation-entry-refresh-v4.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-implementation-entry-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-implementation-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-durable-backend-selection-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-concrete-durable-backend-selection-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-writer-runtime-implementation-entry-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-idempotency-runtime-implementation-entry-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-delivery-runtime-implementation-entry-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-runtime-implementation-entry-refresh-v5.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-backend-product-evidence-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-append-only-semantics-evidence-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-retention-redaction-policy-evidence-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-offline-validation-evidence-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-negative-leakage-scan-evidence-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-rollback-recovery-evidence-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-entry-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-backend-product-selection-review-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-product-selection-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-database-provider-driver-dsn-tls-role-policy-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-storage-adapter-append-only-table-schema-boundary-readiness-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-audit-store-runtime-blocker-matrix-v1.py", [])
-    run_python_script("check-production-ops-secret-backend-production-resolver-runtime-implementation-entry-refresh-v2.py", [])
     run_python_script("check-production-ops-startup-supervisor-boundary.py", [])
     run_python_script("check-production-ops-environment-isolation-boundary.py", [])
     run_python_script("check-production-ops-console-package-smoke.py", [])

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
 )
 
@@ -115,6 +116,12 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryNorthboundRequest,
 			defaultMessage:  "request body must be valid JSON",
 		},
+		"REQUEST_BODY_TOO_LARGE": {
+			statusCode:      http.StatusRequestEntityTooLarge,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "request body exceeds the endpoint limit",
+		},
 		"MISSING_MESSAGES": {
 			statusCode:      http.StatusBadRequest,
 			errorType:       "invalid_request_error",
@@ -211,6 +218,12 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryConfiguration,
 			defaultMessage:  "saved workflow draft dev HTTP route is disabled",
 		},
+		"WORKFLOW_EXECUTOR_DEV_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "workflow executor dev route is disabled",
+		},
 		"CONFIG_REQUIRED_FIELDS_MISSING": {
 			statusCode:      http.StatusServiceUnavailable,
 			errorType:       "configuration_error",
@@ -241,6 +254,60 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryPythonBridge,
 			defaultMessage:  "platform gateway failed",
 		},
+		bridge.ErrorCodeWorkerQueueFull: {
+			statusCode:      http.StatusServiceUnavailable,
+			errorType:       "platform_error",
+			failureBoundary: errorBoundaryPythonBridge,
+			defaultMessage:  "bridge worker queue is full",
+		},
+		bridge.ErrorCodeWorkerTimeout: {
+			statusCode:      http.StatusGatewayTimeout,
+			errorType:       "platform_error",
+			failureBoundary: errorBoundaryPythonBridge,
+			defaultMessage:  "bridge worker request timed out",
+		},
+		bridge.ErrorCodeWorkerCanceled: {
+			statusCode:      http.StatusRequestTimeout,
+			errorType:       "platform_error",
+			failureBoundary: errorBoundaryPythonBridge,
+			defaultMessage:  "bridge worker request was canceled",
+		},
+		bridge.ErrorCodeWorkerExited: {
+			statusCode:      http.StatusBadGateway,
+			errorType:       "platform_error",
+			failureBoundary: errorBoundaryPythonBridge,
+			defaultMessage:  "bridge worker exited before completing request",
+		},
+		bridge.ErrorCodeWorkerProtocol: {
+			statusCode:      http.StatusBadGateway,
+			errorType:       "platform_error",
+			failureBoundary: errorBoundaryPythonBridge,
+			defaultMessage:  "bridge worker protocol failed",
+		},
+		bridge.ErrorCodeWorkerUnavailable: {
+			statusCode:      http.StatusServiceUnavailable,
+			errorType:       "platform_error",
+			failureBoundary: errorBoundaryPythonBridge,
+			defaultMessage:  "bridge worker is unavailable",
+		},
+		bridge.ErrorCodeWorkerRequestFailed: {
+			statusCode:      http.StatusBadGateway,
+			errorType:       "platform_error",
+			failureBoundary: errorBoundaryPythonBridge,
+			defaultMessage:  "bridge worker request failed",
+		},
+		bridge.ErrorCodeClientClosed: {
+			statusCode:      http.StatusServiceUnavailable,
+			errorType:       "platform_error",
+			failureBoundary: errorBoundaryPythonBridge,
+			defaultMessage:  "bridge client is closed",
+		},
+		bridge.ErrorCodeProcessFailed: {
+			statusCode:      http.StatusBadGateway,
+			errorType:       "platform_error",
+			failureBoundary: errorBoundaryPythonBridge,
+			defaultMessage:  "platform bridge process failed",
+		},
 		"PLATFORM_RESPONSE_INVALID": {
 			statusCode:      http.StatusBadGateway,
 			errorType:       "platform_error",
@@ -269,6 +336,13 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 		failureBoundary: errorBoundaryUnknown,
 		defaultMessage:  "platform request failed",
 	}
+}
+
+func bridgeFailureCode(err error) string {
+	if code := bridge.ErrorCode(err); code != "" {
+		return code
+	}
+	return "PLATFORM_BRIDGE_FAILED"
 }
 
 func buildTraceErrorMetadata(trace requestTrace) map[string]any {

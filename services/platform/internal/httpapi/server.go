@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 
 	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
@@ -31,7 +33,13 @@ type Server struct {
 	controlPlaneReadStore controlPlaneReadStore
 	controlPlaneReadRepo  ControlPlaneReadRepository
 
-	savedWorkflowDraftStore savedWorkflowDraftStore
+	savedWorkflowDraftStore      savedWorkflowDraftStore
+	workflowRunStore             workflowRunStore
+	workflowEvaluationStore      workflowEvaluationStore
+	workflowEvaluationSuiteStore workflowEvaluationSuiteStore
+	closeSavedWorkflowDraftStore func()
+	closeWorkflowRunStore        func()
+	closeOnce                    sync.Once
 }
 
 type errorDocument struct {
@@ -49,12 +57,42 @@ type errorBody struct {
 }
 
 func NewServer(cfg config.Config, options Options) *Server {
+	server, err := NewServerWithError(cfg, options)
+	if err != nil {
+		panic(err)
+	}
+	return server
+}
+
+func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
+	savedWorkflowDraftStore, closeSavedWorkflowDraftStore, err := newSavedWorkflowDraftStoreFromConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
+	workflowRunStore, closeWorkflowRunStore, err := newWorkflowRunStoreFromConfig(cfg)
+	if err != nil {
+		closeSavedWorkflowDraftStore()
+		return nil, err
+	}
+	platformBridge, err := newPlatformBridgeClient(cfg)
+	if err != nil {
+		closeWorkflowRunStore()
+		if closeSavedWorkflowDraftStore != nil {
+			closeSavedWorkflowDraftStore()
+		}
+		return nil, err
+	}
 	mux := http.NewServeMux()
 	server := &Server{
-		options:                 options,
-		bridge:                  bridge.NewClient(cfg.PythonBinary, cfg.BridgeScript),
-		config:                  cfg,
-		savedWorkflowDraftStore: newSavedWorkflowDraftStoreFromConfig(cfg),
+		options:                      options,
+		bridge:                       platformBridge,
+		config:                       cfg,
+		savedWorkflowDraftStore:      savedWorkflowDraftStore,
+		workflowRunStore:             workflowRunStore,
+		workflowEvaluationStore:      newWorkflowEvaluationStoreForRunStore(workflowRunStore),
+		workflowEvaluationSuiteStore: newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
+		closeSavedWorkflowDraftStore: closeSavedWorkflowDraftStore,
+		closeWorkflowRunStore:        closeWorkflowRunStore,
 	}
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
@@ -80,6 +118,23 @@ func NewServer(cfg config.Config, options Options) *Server {
 	mux.HandleFunc(savedWorkflowDraftListRoute, server.handleListWorkflowDrafts)
 	mux.HandleFunc(savedWorkflowDraftReadRoute, server.handleReadWorkflowDraft)
 	mux.HandleFunc(savedWorkflowDraftValidateRoute, server.handleValidateWorkflowDraft)
+	mux.HandleFunc(workflowExecutorStartRoute, server.handleStartWorkflowRun)
+	mux.HandleFunc(workflowRunListRoute, server.handleListWorkflowRuns)
+	mux.HandleFunc(workflowRunReadRoute, server.handleReadWorkflowRun)
+	mux.HandleFunc(workflowRunComparisonRoute, server.handleCompareWorkflowRuns)
+	mux.HandleFunc(workflowEvaluationCreateRoute, server.handleCreateWorkflowEvaluation)
+	mux.HandleFunc(workflowEvaluationListRoute, server.handleListWorkflowEvaluations)
+	mux.HandleFunc(workflowEvaluationReadRoute, server.handleReadWorkflowEvaluation)
+	mux.HandleFunc(workflowEvaluationReviewRoute, server.handleReviewWorkflowEvaluation)
+	mux.HandleFunc(workflowEvaluationRevisionCreateRoute, server.handleCreateWorkflowEvaluationRevision)
+	mux.HandleFunc(workflowEvaluationRevisionListRoute, server.handleListWorkflowEvaluationRevisions)
+	mux.HandleFunc(workflowEvaluationRevisionReadRoute, server.handleReadWorkflowEvaluationRevision)
+	mux.HandleFunc(workflowEvaluationSuiteCreateRoute, server.handleCreateWorkflowEvaluationSuite)
+	mux.HandleFunc(workflowEvaluationSuiteListRoute, server.handleListWorkflowEvaluationSuites)
+	mux.HandleFunc(workflowEvaluationSuiteReadRoute, server.handleReadWorkflowEvaluationSuite)
+	mux.HandleFunc(workflowEvaluationSuiteReviewRoute, server.handleReviewWorkflowEvaluationSuite)
+	mux.HandleFunc(workflowEvaluationDecisionCreateRoute, server.handleCreateWorkflowEvaluationDecision)
+	mux.HandleFunc(workflowEvaluationDecisionListRoute, server.handleListWorkflowEvaluationDecisions)
 
 	server.httpServer = &http.Server{
 		Addr:              cfg.ListenAddr,
@@ -87,11 +142,75 @@ func NewServer(cfg config.Config, options Options) *Server {
 		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
 		WriteTimeout:      cfg.WriteTimeout,
 	}
-	return server
+	return server, nil
+}
+
+func newPlatformBridgeClient(cfg config.Config) (*bridge.Client, error) {
+	modeText := strings.TrimSpace(cfg.BridgeMode)
+	if modeText == "" {
+		modeText = string(bridge.ModeProcessPerRequest)
+	}
+	mode, err := bridge.ParseMode(modeText)
+	if err != nil {
+		return nil, err
+	}
+	client, err := bridge.NewClientWithOptions(cfg.PythonBinary, cfg.BridgeScript, bridge.ClientOptions{
+		Mode:             mode,
+		WorkerCount:      cfg.BridgeWorkerCount,
+		QueueCapacity:    cfg.BridgeQueueCapacity,
+		HandshakeTimeout: cfg.BridgeHandshakeTimeout,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if mode == bridge.ModeStdioPool {
+		startupTimeout := cfg.BridgeHandshakeTimeout
+		if startupTimeout <= 0 {
+			startupTimeout = bridge.DefaultHandshakeTimeout
+		}
+		workerCount := cfg.BridgeWorkerCount
+		if workerCount <= 0 {
+			workerCount = bridge.DefaultWorkerCount
+		}
+		startupTimeout *= time.Duration(workerCount)
+		ctx, cancel := context.WithTimeout(context.Background(), startupTimeout)
+		defer cancel()
+		if err := client.Start(ctx); err != nil {
+			client.Close()
+			return nil, err
+		}
+	}
+	return client, nil
 }
 
 func (s *Server) ListenAndServe() error {
 	return s.httpServer.ListenAndServe()
+}
+
+func (s *Server) Shutdown(ctx context.Context) error {
+	if s == nil {
+		return nil
+	}
+	err := s.httpServer.Shutdown(ctx)
+	s.Close()
+	return err
+}
+
+func (s *Server) Close() {
+	if s == nil {
+		return
+	}
+	s.closeOnce.Do(func() {
+		if closer, ok := s.bridge.(interface{ Close() }); ok {
+			closer.Close()
+		}
+		if s.closeSavedWorkflowDraftStore != nil {
+			s.closeSavedWorkflowDraftStore()
+		}
+		if s.closeWorkflowRunStore != nil {
+			s.closeWorkflowRunStore()
+		}
+	})
 }
 
 func (s *Server) handleHealthz(writer http.ResponseWriter, request *http.Request) {

@@ -335,20 +335,25 @@
     }
   ],
   "migration_plan": {
-    "migration_id": "workflow_saved_drafts_store_v1_static_schema_artifact",
+    "migration_id": "0001_saved_workflow_drafts",
     "migration_root": "services/platform/migrations/workflow_saved_drafts",
-    "up_migration_path": null,
-    "down_migration_path": null,
-    "forward_only_exception": "not_applicable_until_future_sql_migration",
+    "up_migration_path": "services/platform/migrations/workflow_saved_drafts/0001_saved_workflow_drafts.up.sql",
+    "down_migration_path": "services/platform/migrations/workflow_saved_drafts/0001_saved_workflow_drafts.down.sql",
+    "forward_only_exception": null,
     "manual_apply_required": true,
     "startup_auto_migration_allowed": false,
     "app_runtime_role_can_migrate": false,
     "schema_version_table": "workflow_saved_draft_schema_versions",
     "migration_lock_required": true,
-    "backup_requirement": "required_before_future_sql_apply",
-    "sql_migration_created": false,
-    "migration_runner_created": false,
-    "database_connection_allowed": false
+    "backup_requirement": "required_before_non_disposable_database_apply",
+    "sql_migration_created": true,
+    "migration_runner_created": true,
+    "database_connection_allowed": true,
+    "database_connection_scope": "explicit_dev_test_only",
+    "driver": "github.com/jackc/pgx/v5@v5.9.2",
+    "go_baseline": "1.25",
+    "runtime_role": "table_dml_without_schema_create",
+    "migration_role": "explicit_one_time_ddl"
   },
   "evidence_refs": {
     "ddl_review": "services/platform/migrations/workflow_saved_drafts/ddl-review.md",
@@ -372,7 +377,7 @@
       ],
       "fallback_to_memory_dev_store_allowed": false,
       "fallback_to_sample_allowed": false,
-      "side_effect_allowed": false
+      "side_effect_allowed": true
     },
     {
       "operation": "ReadWorkflowDraftRecord",
@@ -424,13 +429,15 @@
     "draft_not_found",
     "draft_store_unavailable"
   ],
-  "no_side_effect_counters": [
-    "repository_write_count=0",
-    "database_write_count=0",
-    "migration_apply_count=0",
+  "forbidden_side_effect_counters": [
     "executor_call_count=0",
     "confirmation_call_count=0",
     "business_writeback_count=0",
     "replay_call_count=0"
+  ],
+  "allowed_dev_test_side_effects": [
+    "manual_migration_apply",
+    "saved_workflow_draft_insert",
+    "saved_workflow_draft_compare_and_swap_update"
   ]
 }

@@ -246,15 +246,10 @@ def assert_docs_and_fast_baseline(fixture: dict[str, Any]) -> None:
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     previous_checker = "check-workflow-node-designer-persisted-layout-v1.py"
     current_checker = "check-workflow-node-designer-edge-editing-save-preconditions-v1.py"
-    next_checker = "check-workflow-saved-draft-durable-store-preconditions-v1.py"
     require(current_checker in check_repo, "check-repo.py must run node designer edge editing preconditions check")
     require(
         check_repo.index(previous_checker) < check_repo.index(current_checker),
         "edge editing preconditions check must run after node designer persisted layout check",
-    )
-    require(
-        check_repo.index(current_checker) < check_repo.index(next_checker),
-        "edge editing preconditions check must run before durable store precondition checks",
     )
 
     doc_refs = fixture.get("required_doc_references") or {}

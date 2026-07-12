@@ -1,10 +1,12 @@
 package httpapi
 
 import (
+	"context"
 	"errors"
 	"math"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -70,12 +72,16 @@ const (
 )
 
 type SavedWorkflowDraftContext struct {
-	RequestID     string
-	WorkspaceID   string
-	ApplicationID string
-	ActorRef      string
-	AuditRef      string
-	WriteEnabled  bool
+	RequestContext  context.Context
+	RequestID       string
+	TenantRef       string
+	WorkspaceID     string
+	ApplicationID   string
+	ActorRef        string
+	OwnerSubjectRef string
+	ScopeGrants     []string
+	AuditRef        string
+	WriteEnabled    bool
 }
 
 type SaveWorkflowDraftRequest struct {
@@ -237,9 +243,9 @@ type SavedWorkflowDraftListResult struct {
 }
 
 type savedWorkflowDraftStore interface {
-	ReadDraftByID(draftID string) (SavedWorkflowDraft, bool, error)
-	ListDraftsByScope(workspaceID string, applicationID string) ([]SavedWorkflowDraft, error)
-	WriteDraft(draft SavedWorkflowDraft) error
+	ReadDraftByID(requestContext SavedWorkflowDraftContext, draftID string) (SavedWorkflowDraft, bool, error)
+	ListDraftSummariesByScope(requestContext SavedWorkflowDraftContext) ([]SavedWorkflowDraftSummary, error)
+	WriteDraft(requestContext SavedWorkflowDraftContext, draft SavedWorkflowDraft, expectedDraftVersion int) (int, error)
 	SideEffects() SavedWorkflowDraftSideEffects
 }
 
@@ -254,6 +260,7 @@ type SavedWorkflowDraftSideEffects struct {
 }
 
 type memorySavedWorkflowDraftStore struct {
+	mu          sync.RWMutex
 	drafts      map[string]SavedWorkflowDraft
 	sideEffects SavedWorkflowDraftSideEffects
 	unavailable bool
@@ -294,7 +301,7 @@ func (service savedWorkflowDraftService) SaveDraft(
 		return validationResult
 	}
 
-	existing, found, err := service.store.ReadDraftByID(normalized.DraftID)
+	existing, found, err := service.store.ReadDraftByID(context, normalized.DraftID)
 	if err != nil {
 		return savedWorkflowDraftFailure(savedWorkflowDraftStoreFailureCode(err), auditMetadata)
 	}
@@ -349,8 +356,11 @@ func (service savedWorkflowDraftService) SaveDraft(
 		RequestAuditMetadata:       auditMetadata,
 		SampleOrUnsavedDraftStatus: "saved_draft_record",
 	}
-	if err := service.store.WriteDraft(draft); err != nil {
-		return savedWorkflowDraftFailure(savedWorkflowDraftStoreFailureCode(err), auditMetadata)
+	currentDraftVersion, err := service.store.WriteDraft(context, draft, request.ExpectedDraftVersion)
+	if err != nil {
+		result := savedWorkflowDraftFailure(savedWorkflowDraftStoreFailureCode(err), auditMetadata)
+		result.CurrentDraftVersion = currentDraftVersion
+		return result
 	}
 
 	return SavedWorkflowDraftResult{
@@ -375,7 +385,7 @@ func (service savedWorkflowDraftService) ReadDraft(
 		return savedWorkflowDraftFailure(SavedWorkflowDraftFailureScopeDenied, auditMetadata)
 	}
 
-	draft, found, err := service.store.ReadDraftByID(draftID)
+	draft, found, err := service.store.ReadDraftByID(context, draftID)
 	if err != nil {
 		return savedWorkflowDraftFailure(savedWorkflowDraftStoreFailureCode(err), auditMetadata)
 	}
@@ -433,17 +443,15 @@ func (service savedWorkflowDraftService) ListDrafts(
 		return savedWorkflowDraftListFailure(SavedWorkflowDraftFailureScopeDenied, auditMetadata)
 	}
 
-	drafts, err := service.store.ListDraftsByScope(context.WorkspaceID, context.ApplicationID)
+	summaries, err := service.store.ListDraftSummariesByScope(context)
 	if err != nil {
 		return savedWorkflowDraftListFailure(savedWorkflowDraftStoreFailureCode(err), auditMetadata)
 	}
 
-	summaries := make([]SavedWorkflowDraftSummary, 0, len(drafts))
-	for _, draft := range drafts {
-		if !savedWorkflowDraftMatchesScope(draft, context.WorkspaceID, context.ApplicationID) {
+	for _, summary := range summaries {
+		if summary.WorkspaceID != context.WorkspaceID || summary.ApplicationID != context.ApplicationID {
 			return savedWorkflowDraftListFailure(SavedWorkflowDraftFailureScopeDenied, auditMetadata)
 		}
-		summaries = append(summaries, savedWorkflowDraftSummaryFromDraft(draft))
 	}
 	sort.Slice(summaries, func(i, j int) bool {
 		if summaries[i].UpdatedAt == summaries[j].UpdatedAt {
@@ -543,7 +551,13 @@ func (service savedWorkflowDraftService) validatePayload(
 	}
 }
 
-func (store *memorySavedWorkflowDraftStore) ReadDraftByID(draftID string) (SavedWorkflowDraft, bool, error) {
+func (store *memorySavedWorkflowDraftStore) ReadDraftByID(
+	_ SavedWorkflowDraftContext,
+	draftID string,
+) (SavedWorkflowDraft, bool, error) {
+	store.mu.RLock()
+	defer store.mu.RUnlock()
+
 	if store.unavailable {
 		return SavedWorkflowDraft{}, false, errors.New("saved workflow draft store unavailable")
 	}
@@ -554,16 +568,18 @@ func (store *memorySavedWorkflowDraftStore) ReadDraftByID(draftID string) (Saved
 	return cloneSavedWorkflowDraft(draft), true, nil
 }
 
-func (store *memorySavedWorkflowDraftStore) ListDraftsByScope(
-	workspaceID string,
-	applicationID string,
-) ([]SavedWorkflowDraft, error) {
+func (store *memorySavedWorkflowDraftStore) ListDraftSummariesByScope(
+	requestContext SavedWorkflowDraftContext,
+) ([]SavedWorkflowDraftSummary, error) {
+	store.mu.RLock()
+	defer store.mu.RUnlock()
+
 	if store.unavailable {
 		return nil, errors.New("saved workflow draft store unavailable")
 	}
 	drafts := make([]SavedWorkflowDraft, 0)
 	for _, draft := range store.drafts {
-		if savedWorkflowDraftMatchesScope(draft, workspaceID, applicationID) {
+		if savedWorkflowDraftMatchesScope(draft, requestContext.WorkspaceID, requestContext.ApplicationID) {
 			drafts = append(drafts, cloneSavedWorkflowDraft(draft))
 		}
 	}
@@ -573,19 +589,43 @@ func (store *memorySavedWorkflowDraftStore) ListDraftsByScope(
 		}
 		return drafts[i].UpdatedAt > drafts[j].UpdatedAt
 	})
-	return drafts, nil
+	summaries := make([]SavedWorkflowDraftSummary, 0, len(drafts))
+	for _, draft := range drafts {
+		summaries = append(summaries, savedWorkflowDraftSummaryFromDraft(draft))
+	}
+	return summaries, nil
 }
 
-func (store *memorySavedWorkflowDraftStore) WriteDraft(draft SavedWorkflowDraft) error {
+func (store *memorySavedWorkflowDraftStore) WriteDraft(
+	_ SavedWorkflowDraftContext,
+	draft SavedWorkflowDraft,
+	expectedDraftVersion int,
+) (int, error) {
+	store.mu.Lock()
+	defer store.mu.Unlock()
+
 	if store.unavailable {
-		return errors.New("saved workflow draft store unavailable")
+		return 0, errors.New("saved workflow draft store unavailable")
+	}
+	existing, found := store.drafts[draft.DraftID]
+	if found && !savedWorkflowDraftMatchesScope(existing, draft.WorkspaceID, draft.ApplicationID) {
+		return 0, savedWorkflowDraftStoreWriteFailure(SavedWorkflowDraftFailureScopeDenied)
+	}
+	if found && existing.DraftVersion != expectedDraftVersion {
+		return existing.DraftVersion, savedWorkflowDraftStoreWriteFailure(SavedWorkflowDraftFailureVersionConflict)
+	}
+	if !found && expectedDraftVersion != 0 {
+		return 0, savedWorkflowDraftStoreWriteFailure(SavedWorkflowDraftFailureNotFound)
 	}
 	store.drafts[draft.DraftID] = cloneSavedWorkflowDraft(draft)
 	store.sideEffects.DraftWriteCount++
-	return nil
+	return draft.DraftVersion, nil
 }
 
 func (store *memorySavedWorkflowDraftStore) SideEffects() SavedWorkflowDraftSideEffects {
+	store.mu.RLock()
+	defer store.mu.RUnlock()
+
 	return store.sideEffects
 }
 
@@ -977,9 +1017,6 @@ func deriveSavedWorkflowDraftValidationState(
 		if finding.Severity == SavedWorkflowDraftValidationBlocking {
 			return SavedWorkflowDraftStatusInvalidDraft
 		}
-	}
-	if len(findings) > 0 {
-		return SavedWorkflowDraftStatusInvalidDraft
 	}
 	return SavedWorkflowDraftStatusValidForReview
 }

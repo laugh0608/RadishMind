@@ -260,7 +260,10 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
         require(f'"{state}"' in detail_source, f"missing timeline state fixture: {state}")
 
     for forbidden in fixture.get("forbidden_source_literals") or []:
-        require(str(forbidden) not in checked_source, f"run detail source contains forbidden literal: {forbidden}")
+        require(
+            str(forbidden) not in detail_source,
+            f"workflowRunDetail.ts contains forbidden literal: {forbidden}",
+        )
 
 
 def assert_docs_and_fast_baseline(fixture: dict[str, Any]) -> None:

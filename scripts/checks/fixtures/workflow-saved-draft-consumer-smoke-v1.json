@@ -88,6 +88,8 @@
       "continueLocalWorkflowDraftAfterVersionConflict",
       "canAutoOverwriteLocalDraft: false",
       "nextWorkflowSavedDraftExpectedVersion",
+      "resolveWorkflowSavedDraftVersion",
+      "workflowSavedDraftConflictRequiresResolution",
       "VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE",
       "dev-saved-draft-http"
     ]
@@ -103,9 +105,29 @@
       "savedDraftConflictReviewSummary",
       "Conflict current version",
       "nextWorkflowSavedDraftExpectedVersion(savedDraftConsumerState)",
+      "expectedDraftVersion === null",
+      "workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState)",
+      "interactionDisabled",
       "nextState.status === \"version_conflict\"",
       "refreshSavedWorkflowDraftList(activeWorkflowDraft.applicationRef)",
       "Saved version metadata is refreshing"
+    ]
+  },
+  "lifecycle_contract": {
+    "file": "apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftLifecycle.ts",
+    "test_file": "apps/radishmind-web/tests/savedWorkflowDraftLifecycle.test.ts",
+    "required_literals": [
+      "state.status === \"version_conflict\"",
+      "normalizeWorkflowSavedDraftVersion(state.currentDraftVersion)",
+      "operation === \"validate\"",
+      "failureCode !== \"draft_version_conflict\""
+    ],
+    "required_test_literals": [
+      "saved draft edits keep their persisted base version",
+      "unresolved conflicts block save until the user explicitly continues",
+      "validation and non-conflict failures preserve the saved base version",
+      "status: \"unsaved_local\", currentDraftVersion: 3",
+      "status: \"version_conflict\", currentDraftVersion: 4"
     ]
   },
   "required_doc_references": {
@@ -146,6 +168,12 @@
       "id": "web_build",
       "status": "required_now",
       "command": "npm run build",
+      "working_directory": "apps/radishmind-web/"
+    },
+    {
+      "id": "web_lifecycle_unit_test",
+      "status": "required_now",
+      "command": "npm test",
       "working_directory": "apps/radishmind-web/"
     },
     {

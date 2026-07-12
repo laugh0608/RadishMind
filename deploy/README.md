@@ -9,6 +9,8 @@
 当前文件：
 
 - `docker-compose.local.yaml`：本地容器 smoke 编排，允许本机 build platform 与 console 镜像，默认 `mock` provider，端口默认为 `7000` / `4000`。
+- `docker-compose.saved-draft-dev-test.yaml`：Saved Draft PostgreSQL 17 开发 / 测试编排，只绑定 loopback `55432`，拆分 migration 与 runtime role。
+- `postgres/saved-draft-dev-test-init.sql`：本地测试库 runtime role 初始化和默认表权限，不包含 secret。
 - `docker-compose.yaml`：测试 / 生产共用的部署态 compose，只引用预构建镜像，不执行本地 build。
 - `.env.example`：部署态 compose 的非密钥配置样例；真实 `.env` 不提交。
 
@@ -49,6 +51,19 @@ docker compose -f deploy/docker-compose.local.yaml down
 这条路径只证明本地容器 smoke 可运行。它使用 `mock` provider，不代表测试环境、生产环境或 provider credential readiness。
 
 运行记录应按 `scripts/checks/fixtures/production-ops-container-smoke-record-template.json` 的字段写入 `tmp/production-ops/container-smoke/`。该目录用于本地运行证据，不提交入仓。
+
+Saved Draft PostgreSQL dev/test 使用独立入口：
+
+```bash
+./scripts/run-workflow-saved-draft-postgres-dev-test.sh check
+./scripts/run-radishmind-web-dev.sh --mode dev-live --saved-draft-postgres-dev-test
+./scripts/run-radishmind-web-dev.sh --mode dev-live --saved-draft-postgres-dev-test --workflow-diagnostics-dev
+./scripts/run-workflow-saved-draft-postgres-dev-test.sh down
+```
+
+该 dev/test 入口会同时准备独立的 Saved Draft 与 Workflow Run schema；Platform runtime 只持有 DML 权限，migration runner 仍需显式执行。真实运行历史使用 `/v1/user-workspace/workflow-runs`，不复用旧 `/v1/user-workspace/runs` read fixture。
+
+`check` 会启动数据库、执行真实集成测试，并重新应用 reviewed schema 供浏览器联调；`down` 保留命名卷。默认 `radishmind_migrator` 只用于显式 migration，`radishmind_runtime` 没有 schema `CREATE` 权限。该 Compose 不等于 test deployment 或 production database readiness。
 
 ### `docker_test`
 

@@ -1,6 +1,6 @@
 # RadishMind 服务/API 接入契约
 
-更新时间：2026-05-28
+更新时间：2026-07-11
 
 ## 协议兼容边界
 
@@ -102,12 +102,13 @@ envelope = handle_copilot_request(
 )
 ```
 
-HTTP JSON 现在由 `Go` 平台服务层承接，但它仍然只是这条 canonical bridge 的包装形态；长驻服务、鉴权、端口和部署生命周期尚未进入更完整切片前，不把更复杂的 API 表面当成真相源。未来若扩展更多 northbound 形态，也必须复用同一个 `CopilotGatewayEnvelope` 语义，而不是引入第二套响应协议。
+HTTP JSON 现在由 `Go` 平台服务层承接，默认通过四个受控 `stdio` worker 复用 Python runtime，`process_per_request` 仅作为显式回滚模式；两种模式都复用同一个 canonical bridge 与 `CopilotGatewayEnvelope`，不得引入第二套响应协议或 provider 真相源。
 
 调用侧口径建议固定为：
 
 - 上层提交 schema-valid `CopilotRequest`，不直接调用任务 runtime 或 provider
 - Gateway 返回 `schema_version / status / request_id / project / task / response / error / metadata`
+- `metadata.duration_ms` 表示 Python Gateway 总耗时，`metadata.provider_duration_ms` 表示其中的 `run_inference` 调用段；两者都是必填的非负毫秒观测值，不包含 secret 或 provider 原始响应，也不能解释为真实 provider SLA
 - 当 `status=ok` 或 `status=partial` 时，`response` 必须存在，并继续按 `contracts/copilot-response.schema.json` 校验和消费
 - 当 `status=failed` 时，调用侧必须优先读取 `error.code` 与 `error.message`；若同时存在 `response`，它也只能作为 failed advisory response 展示或记录，不能转成可执行动作
 - `metadata.route` 固定表达 `project/task`，用于调用侧日志、审计和路由观测

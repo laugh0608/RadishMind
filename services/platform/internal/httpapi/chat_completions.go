@@ -77,9 +77,9 @@ type openAIChatMessage struct {
 func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, "/v1/chat/completions")
 	var chatRequest chatCompletionRequest
-	decoder := json.NewDecoder(request.Body)
-	if err := decoder.Decode(&chatRequest); err != nil {
-		s.writePlatformError(writer, trace, "INVALID_JSON", fmt.Sprintf("invalid chat completion request: %v", err))
+	if !s.decodeJSONRequestBody(writer, request, trace, &chatRequest, jsonRequestBodyOptions{
+		maxBytes: maxNorthboundJSONRequestBodyBytes,
+	}) {
 		return
 	}
 
@@ -108,7 +108,7 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 
 	if chatRequest.Stream {
 		if err := s.streamOpenAIChatCompletionResponse(ctx, writer, canonicalRequest, selection, temperature, trace); err != nil {
-			s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
+			s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 		}
 		return
 	}
@@ -119,7 +119,7 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 		s.buildBridgeEnvelopeOptions(selection, temperature),
 	)
 	if err != nil {
-		s.writePlatformError(writer, trace, "PLATFORM_BRIDGE_FAILED", err.Error())
+		s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 		return
 	}
 	if strings.EqualFold(envelope.Status, "failed") {
@@ -379,11 +379,11 @@ func (s *Server) streamOpenAIChatCompletionResponse(
 			case "completed":
 				streamCompleted = true
 				if event.Envelope != nil && strings.EqualFold(event.Envelope.Status, "failed") && !emittedContent {
-					return fmt.Errorf(gatewayErrorMessage(event.Envelope.Error))
+					return fmt.Errorf("%s", gatewayErrorMessage(event.Envelope.Error))
 				}
 				return nil
 			case "error":
-				return fmt.Errorf(gatewayErrorMessage(event.Error))
+				return fmt.Errorf("%s", gatewayErrorMessage(event.Error))
 			default:
 				return nil
 			}

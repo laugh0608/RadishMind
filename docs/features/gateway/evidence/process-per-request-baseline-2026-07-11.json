@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "run_id": "gateway-bridge-process-baseline-20260711",
+  "status": "completed",
+  "measured_at": "2026-07-11T05:40:51Z",
+  "mode": "process_per_request",
+  "provider": "mock",
+  "request_fixture": "datasets/examples/radishflow-copilot-request-ghost-valve-ambiguous-001.json",
+  "percentile_method": "nearest_rank",
+  "runtime": {
+    "go_version": "go1.26.3",
+    "platform": "darwin/arm64",
+    "python_runtime": "repository_venv"
+  },
+  "bridge_benchmark": {
+    "command": "go run ./cmd/radishmind-bridge-benchmark --sequential-requests 20 --concurrent-requests 20 --concurrency 4 --warmup-requests 2",
+    "warmup_requests": 2,
+    "expected_process_starts": 42,
+    "sequential": {
+      "request_count": 20,
+      "concurrency": 1,
+      "wall_time_ms": 2337.894,
+      "throughput_requests_per_second": 8.555,
+      "total": {
+        "minimum_ms": 110.574,
+        "mean_ms": 116.887,
+        "p50_ms": 114.455,
+        "p95_ms": 120.712,
+        "maximum_ms": 158.595
+      },
+      "process_and_ipc": {
+        "minimum_ms": 67.819,
+        "mean_ms": 72.637,
+        "p50_ms": 70.548,
+        "p95_ms": 73.712,
+        "maximum_ms": 114.595
+      },
+      "python_gateway": {
+        "minimum_ms": 21,
+        "mean_ms": 22.55,
+        "p50_ms": 22,
+        "p95_ms": 24,
+        "maximum_ms": 25
+      },
+      "provider": {
+        "minimum_ms": 21,
+        "mean_ms": 21.7,
+        "p50_ms": 22,
+        "p95_ms": 23,
+        "maximum_ms": 23
+      }
+    },
+    "concurrent": {
+      "request_count": 20,
+      "concurrency": 4,
+      "wall_time_ms": 985.762,
+      "throughput_requests_per_second": 20.289,
+      "total": {
+        "minimum_ms": 145.338,
+        "mean_ms": 195.509,
+        "p50_ms": 164.121,
+        "p95_ms": 273.888,
+        "maximum_ms": 276.874
+      },
+      "process_and_ipc": {
+        "minimum_ms": 88.338,
+        "mean_ms": 126.159,
+        "p50_ms": 100.104,
+        "p95_ms": 175.854,
+        "maximum_ms": 175.888
+      },
+      "python_gateway": {
+        "minimum_ms": 26,
+        "mean_ms": 35.6,
+        "p50_ms": 33,
+        "p95_ms": 51,
+        "maximum_ms": 54
+      },
+      "provider": {
+        "minimum_ms": 26,
+        "mean_ms": 33.75,
+        "p50_ms": 32,
+        "p95_ms": 47,
+        "maximum_ms": 58
+      }
+    }
+  },
+  "go_route_benchmark": {
+    "command": "go test -run '^$' -bench '^BenchmarkGatewayChatCompletionsRoute$' -benchmem -count=5 ./internal/httpapi",
+    "rounds": [
+      {
+        "ns_per_op": 11772,
+        "bytes_per_op": 21198,
+        "allocs_per_op": 213
+      },
+      {
+        "ns_per_op": 11315,
+        "bytes_per_op": 21199,
+        "allocs_per_op": 213
+      },
+      {
+        "ns_per_op": 11283,
+        "bytes_per_op": 21200,
+        "allocs_per_op": 213
+      },
+      {
+        "ns_per_op": 13478,
+        "bytes_per_op": 21200,
+        "allocs_per_op": 213
+      },
+      {
+        "ns_per_op": 13559,
+        "bytes_per_op": 21201,
+        "allocs_per_op": 213
+      }
+    ],
+    "p50_ns_per_op": 11772,
+    "p95_ns_per_op": 13559,
+    "p50_bytes_per_op": 21200,
+    "p50_allocs_per_op": 213
+  },
+  "derived_evidence": {
+    "sequential_process_share_of_bridge_self_overhead_percent": 75.4,
+    "concurrent_process_share_of_bridge_self_overhead_percent": 77.5,
+    "go_route_p50_ms": 0.011772,
+    "go_route_p95_ms": 0.013559,
+    "decision": "process_startup_and_ipc_is_the_primary_r4_target"
+  },
+  "selection": {
+    "selected_candidate": "controlled_stdio_worker_pool",
+    "decision": "selected_for_next_implementation_batch",
+    "reasons": [
+      "process_and_ipc_is_the_largest_measured_segment",
+      "projected_removable_share_exceeds_the_70_percent_target",
+      "one_inflight_request_per_worker_keeps_stream_and_credential_isolation_explicit",
+      "does_not_add_a_network_port_or_second_gateway_truth_source"
+    ],
+    "not_selected": [
+      "single_worker_multiplexed_stdio",
+      "internal_http_python_service"
+    ]
+  },
+  "limitations": [
+    "mock_provider_results_do_not_represent_real_provider_latency_or_sla",
+    "process_and_ipc_is_derived_from_go_wall_time_minus_python_gateway_duration",
+    "go_route_benchmark_excludes_network_stack_and_python_bridge"
+  ],
+  "contains_secret_material": false,
+  "sanitized": true
+}

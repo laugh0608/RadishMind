@@ -9,11 +9,17 @@ subject_ref="subject_demo_user"
 timeout_seconds=60
 verify_only=0
 exit_after_probe=0
+saved_draft_dev=0
+saved_draft_postgres_dev_test=0
+workflow_diagnostics_dev=0
+saved_draft_workspace_id="workspace_demo"
+saved_draft_application_id="app_flow_copilot"
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "${script_dir}/.." && pwd)"
 web_dir="${repo_root}/apps/radishmind-web"
 platform_wrapper="${repo_root}/scripts/run-platform-service.sh"
+platform_dir="${repo_root}/services/platform"
 log_dir="${repo_root}/tmp/radishmind-web-dev"
 spawned_pids=()
 
@@ -28,6 +34,11 @@ Options:
   --backend-url URL       Platform base URL. Default: http://127.0.0.1:7000
   --frontend-url URL      Web UI URL. Default: http://127.0.0.1:4100
   --timeout-seconds N     Probe timeout. Default: 60
+  --saved-draft-dev       Enable the explicit memory-dev Saved Draft read/write path.
+  --saved-draft-postgres-dev-test
+                           Enable the explicit PostgreSQL dev/test Saved Draft path.
+  --workflow-diagnostics-dev
+                           Enable fixed mock Workflow failure scenarios; requires a Saved Draft dev mode.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
   -h, --help              Show this help.
@@ -64,6 +75,18 @@ while [[ $# -gt 0 ]]; do
       timeout_seconds="${2:?missing value for --timeout-seconds}"
       shift 2
       ;;
+    --saved-draft-dev)
+      saved_draft_dev=1
+      shift
+      ;;
+    --saved-draft-postgres-dev-test)
+      saved_draft_postgres_dev_test=1
+      shift
+      ;;
+    --workflow-diagnostics-dev)
+      workflow_diagnostics_dev=1
+      shift
+      ;;
     --verify-only)
       verify_only=1
       shift
@@ -93,6 +116,28 @@ case "${mode}" in
     ;;
 esac
 
+if [[ "${saved_draft_dev}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--saved-draft-dev requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${saved_draft_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--saved-draft-postgres-dev-test requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${saved_draft_dev}" -eq 1 && "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
+  echo "Choose either --saved-draft-dev or --saved-draft-postgres-dev-test" >&2
+  exit 2
+fi
+if [[ "${workflow_diagnostics_dev}" -eq 1 && "${saved_draft_dev}" -eq 0 && "${saved_draft_postgres_dev_test}" -eq 0 ]]; then
+  echo "--workflow-diagnostics-dev requires --saved-draft-dev or --saved-draft-postgres-dev-test" >&2
+  exit 2
+fi
+
+saved_draft_enabled=0
+if [[ "${saved_draft_dev}" -eq 1 || "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
+  saved_draft_enabled=1
+fi
+
 step() {
   echo "[radishmind-web-dev] $*"
 }
@@ -117,6 +162,45 @@ find_python() {
 }
 
 python_bin="$(find_python)"
+
+build_saved_draft_database_url() {
+  if [[ -n "${RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL:-}" ]]; then
+    printf '%s\n' "${RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL}"
+    return
+  fi
+  "${python_bin}" - <<'PY'
+import os
+from urllib.parse import quote, urlencode
+
+host = os.environ.get("PGHOST", "127.0.0.1")
+port = os.environ.get("PGPORT", "55432")
+user = quote(os.environ.get("PGUSER", "radishmind_runtime"), safe="")
+password = os.environ.get("PGPASSWORD", "")
+userinfo = user if not password else f"{user}:{quote(password, safe='')}"
+database = quote(os.environ.get("PGDATABASE", "radishmind_saved_draft_test"), safe="")
+query = urlencode({"sslmode": os.environ.get("PGSSLMODE", "disable")})
+if ":" in host and not host.startswith("["):
+    host = f"[{host}]"
+print(f"postgresql://{userinfo}@{host}:{port}/{database}?{query}")
+PY
+}
+
+probe_saved_draft_postgres_migration() {
+  local database_url="$1"
+  (
+    export RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH="1"
+    export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
+    export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
+		export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
+    export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="postgres_dev_test"
+    export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL="${database_url}"
+		export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
+		export RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL="${database_url}"
+    cd "${platform_dir}"
+    go run ./cmd/radishmind-workflow-draft-migrate status >/dev/null
+		go run ./cmd/radishmind-workflow-run-migrate status >/dev/null
+  )
+}
 
 url_part() {
   local url="$1"
@@ -255,6 +339,110 @@ for path in routes:
 PY
 }
 
+probe_saved_workflow_draft_route() {
+  local base_url="$1"
+  local tenant="$2"
+  local subject="$3"
+  local workspace_id="$4"
+  local application_id="$5"
+  "${python_bin}" - "$base_url" "$tenant" "$subject" "$workspace_id" "$application_id" <<'PY'
+import json
+import sys
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+
+base_url = sys.argv[1].rstrip("/")
+tenant = sys.argv[2]
+subject = sys.argv[3]
+workspace_id = sys.argv[4]
+application_id = sys.argv[5]
+query = urlencode({"workspace_id": workspace_id, "application_id": application_id})
+url = f"{base_url}/v1/user-workspace/workflow-drafts?{query}"
+request = Request(
+    url,
+    headers={
+        "Accept": "application/json",
+        "X-Request-Id": "dev-live-saved-draft-probe",
+        "X-RadishMind-Dev-Read-Identity": "dev-live-saved-draft-probe",
+        "X-RadishMind-Dev-Read-Tenant": tenant,
+        "X-RadishMind-Dev-Read-Subject": subject,
+        "X-RadishMind-Dev-Read-Scopes": "workflow_drafts:read,workflow_drafts:write",
+        "X-RadishMind-Dev-Read-Audit": "audit_dev_live_saved_draft_probe",
+        "X-RadishMind-Dev-Workflow-Workspace": workspace_id,
+        "X-RadishMind-Dev-Workflow-Application": application_id,
+    },
+    method="GET",
+)
+with urlopen(request, timeout=5) as response:
+    if response.status < 200 or response.status >= 300:
+        raise SystemExit(f"Unexpected HTTP status {response.status} from {url}")
+    document = json.loads(response.read().decode("utf-8"))
+if document.get("failure_code") is not None:
+    raise SystemExit(f"Saved Draft route returned failure_code={document.get('failure_code')} from {url}")
+if not isinstance(document.get("draft_summaries"), list):
+    raise SystemExit(f"Saved Draft route did not return draft_summaries[] from {url}")
+PY
+}
+
+probe_workflow_executor_route() {
+  local base_url="$1"
+  local tenant="$2"
+  local subject="$3"
+  local workspace_id="$4"
+  local application_id="$5"
+  "${python_bin}" - "$base_url" "$tenant" "$subject" "$workspace_id" "$application_id" <<'PY'
+import json
+import sys
+from urllib.request import Request, urlopen
+
+base_url = sys.argv[1].rstrip("/")
+tenant = sys.argv[2]
+subject = sys.argv[3]
+workspace_id = sys.argv[4]
+application_id = sys.argv[5]
+url = f"{base_url}/v1/user-workspace/workflow-drafts/draft_executor_probe_missing/runs"
+body = json.dumps({
+    "workspace_id": workspace_id,
+    "application_id": application_id,
+    "input_text": "executor dev gate probe",
+    "condition_values": {},
+}).encode("utf-8")
+request = Request(
+    url,
+    data=body,
+    headers={
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "X-Request-Id": "dev-live-workflow-executor-probe",
+        "X-RadishMind-Dev-Read-Identity": "dev-live-workflow-executor-probe",
+        "X-RadishMind-Dev-Read-Tenant": tenant,
+        "X-RadishMind-Dev-Read-Subject": subject,
+        "X-RadishMind-Dev-Read-Scopes": "workflow_drafts:read,workflow_runs:execute,workflow_runs:read",
+        "X-RadishMind-Dev-Read-Audit": "audit_dev_live_workflow_executor_probe",
+        "X-RadishMind-Dev-Workflow-Workspace": workspace_id,
+        "X-RadishMind-Dev-Workflow-Application": application_id,
+    },
+    method="POST",
+)
+with urlopen(request, timeout=5) as response:
+    if response.status < 200 or response.status >= 300:
+        raise SystemExit(f"Unexpected HTTP status {response.status} from {url}")
+    document = json.loads(response.read().decode("utf-8"))
+if document.get("failure_code") != "workflow_run_draft_not_found":
+    raise SystemExit(f"Workflow Executor dev gate probe returned unexpected failure_code={document.get('failure_code')}")
+if document.get("run") is not None:
+    raise SystemExit("Workflow Executor dev gate probe must not create a run for a missing draft")
+list_url = f"{base_url}/v1/user-workspace/workflow-runs?workspace_id={workspace_id}&application_id={application_id}&limit=1"
+list_request = Request(list_url, headers={key: value for key, value in request.headers.items() if key.lower() != "content-type"}, method="GET")
+with urlopen(list_request, timeout=5) as response:
+    if response.status < 200 or response.status >= 300:
+        raise SystemExit(f"Unexpected HTTP status {response.status} from {list_url}")
+    list_document = json.loads(response.read().decode("utf-8"))
+if list_document.get("failure_code") is not None or not isinstance(list_document.get("runs"), list):
+    raise SystemExit("Workflow run history list probe did not return a successful runs[] envelope")
+PY
+}
+
 probe_cors() {
   local read_url="$1"
   local origin="$2"
@@ -346,6 +534,8 @@ show_failure_help() {
     echo "- Port conflict: backend should answer on http://127.0.0.1:7000 and web on http://127.0.0.1:4100."
     echo "- macOS port 7000 conflict: AirPlay / Control Center may occupy it; retry with --backend-url http://127.0.0.1:7100."
     echo "- Dev-live auth: backend must be started with RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1 for fake-store-backed read routes."
+    echo "- Saved Draft mode: choose --saved-draft-dev or --saved-draft-postgres-dev-test so backend and web opt in together."
+    echo "- PostgreSQL dev/test mode: start and migrate it with ./scripts/run-workflow-saved-draft-postgres-dev-test.sh check."
     echo "- CORS/preflight: platform should allow http://127.0.0.1:4100 and dev read headers in local development."
     echo "- Missing dependencies: run npm install in apps/radishmind-web if npm cannot start Vite."
     echo "- Backend diagnostics: run ./scripts/run-platform-service.sh diagnostics from the repo root."
@@ -394,6 +584,17 @@ if [[ "${mode}" == "dev-live" && ! -f "${platform_wrapper}" ]]; then
   exit 1
 fi
 
+saved_draft_database_url=""
+if [[ "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
+  require_command go
+  saved_draft_database_url="$(build_saved_draft_database_url)"
+  if ! probe_saved_draft_postgres_migration "${saved_draft_database_url}"; then
+    show_failure_help "Saved Draft PostgreSQL migration preflight failed"
+    exit 1
+  fi
+  step "Saved Draft PostgreSQL migration preflight passed."
+fi
+
 if [[ "${verify_only}" -eq 0 ]]; then
   require_command npm
   mkdir -p "${log_dir}"
@@ -409,6 +610,23 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export RADISHMIND_PLATFORM_PROVIDER="${RADISHMIND_PLATFORM_PROVIDER:-mock}"
         export RADISHMIND_PLATFORM_MODEL="${RADISHMIND_PLATFORM_MODEL:-radishmind-local-dev}"
         export RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH="1"
+        if [[ "${saved_draft_dev}" -eq 1 ]]; then
+          export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
+          export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
+          export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
+          export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="memory_dev"
+        elif [[ "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
+          export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
+          export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
+          export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
+          export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="postgres_dev_test"
+          export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+			export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
+			export RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+        fi
+        if [[ "${workflow_diagnostics_dev}" -eq 1 ]]; then
+          export RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV="1"
+        fi
         exec "${platform_wrapper}" serve
       ) >"${log_dir}/platform.out.log" 2>"${log_dir}/platform.err.log" &
       spawned_pids+=("$!")
@@ -426,9 +644,18 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL="${backend_url%/}"
         export VITE_RADISHMIND_DEV_READ_TENANT_REF="${tenant_ref}"
         export VITE_RADISHMIND_DEV_READ_SUBJECT_REF="${subject_ref}"
+        if [[ "${saved_draft_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE="dev-saved-draft-http"
+          export VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE="dev-workflow-executor-http"
+        fi
+        if [[ "${workflow_diagnostics_dev}" -eq 1 ]]; then
+          export VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV="true"
+        fi
       else
         unset VITE_RADISHMIND_READ_SOURCE
         unset VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL
+        unset VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE
       fi
       exec npm run dev
     ) >"${log_dir}/web.out.log" 2>"${log_dir}/web.err.log" &
@@ -449,6 +676,28 @@ if [[ "${mode}" == "dev-live" ]]; then
     show_failure_help "dev-live read route probe failed"
     exit 1
   fi
+  if [[ "${saved_draft_enabled}" -eq 1 ]] && ! wait_until \
+    "Saved Draft dev route" \
+    probe_saved_workflow_draft_route \
+    "${backend_url}" \
+    "${tenant_ref}" \
+    "${subject_ref}" \
+    "${saved_draft_workspace_id}" \
+    "${saved_draft_application_id}"; then
+    show_failure_help "Saved Draft dev route probe failed"
+    exit 1
+  fi
+  if [[ "${saved_draft_enabled}" -eq 1 ]] && ! wait_until \
+    "Workflow Executor dev route" \
+    probe_workflow_executor_route \
+    "${backend_url}" \
+    "${tenant_ref}" \
+    "${subject_ref}" \
+    "${saved_draft_workspace_id}" \
+    "${saved_draft_application_id}"; then
+    show_failure_help "Workflow Executor dev route probe failed"
+    exit 1
+  fi
 fi
 
 if ! wait_until "frontend web" probe_page "${frontend_url}"; then
@@ -459,8 +708,13 @@ fi
 step "RadishMind web is ready: ${frontend_url}"
 if [[ "${mode}" == "dev-live" ]]; then
   step "Dev-live read backend passed: ${healthz_url} ; ${tenant_summary_url}"
+  if [[ "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
+    step "Saved Draft PostgreSQL dev/test read/write mode passed for ${saved_draft_workspace_id}/${saved_draft_application_id}."
+  elif [[ "${saved_draft_dev}" -eq 1 ]]; then
+    step "Saved Draft memory-dev read/write mode passed for ${saved_draft_workspace_id}/${saved_draft_application_id}."
+  fi
 fi
-step "This is a dev-only launcher, not a production supervisor. It does not implement real auth, database, repository adapter, executor, confirmation, writeback, or replay."
+step "This is a dev-only launcher, not a production supervisor. Controlled executor v0 is dev-only; production auth, secret resolution, unrestricted tools, confirmation commit, writeback and replay remain disabled."
 
 if [[ "${verify_only}" -eq 0 && "${exit_after_probe}" -eq 0 && "${#spawned_pids[@]}" -gt 0 ]]; then
   step "Press Ctrl+C to stop spawned local dev processes."

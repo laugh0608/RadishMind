@@ -82,8 +82,8 @@
 - `scripts/` 根目录只放稳定入口、跨平台包装脚本和少量高频直达命令。
 - 内部实现、检查逻辑、fixture helper 和较长实现应放入浅层分类目录，例如 `scripts/checks/`、`scripts/eval/`。
 - 高风险边界、协议准入、生产声明、外部 provider 风险或 auth / database / repository 入口评审类专项检查器，优先放入 `scripts/checks/control_plane/`；配套 fixture 放入 `scripts/checks/fixtures/`，并在 `scripts/check-repo.py` 与 `scripts/README.md` 注册为可复验入口。
-- 新增 checker / fixture 应使用稳定短 ID、明确状态锚点和可审计 failure taxonomy；auth、repository、secret、database、artifact 相关 checker 必须显式检查 no fallback、no side effects、artifact guard 和停止线，不用长路径或长自然语言文件名承载语义。
-- 当多个 checker 共同维护同一 runtime 前置链时，应同步更新共享 readiness / implementation readiness fixture 与 checker，让聚合状态消费最新单项 blocker；单项 checker 只能证明对应边界已定义或 entry refresh 已完成，不能暗示 runtime、task card、provider、database、repository mode 或 public API 已解锁。
+- 新增 checker / fixture 应使用稳定短 ID、明确状态锚点和可审计失败分类；auth、repository、secret、database、artifact 相关 checker 必须显式检查不回退、无副作用、产物守卫和停止线，不用长路径或长自然语言文件名承载语义。
+- 当多个 checker 共同维护同一运行时前置链时，应同步更新共享准入边界 / 实现准入 fixture 与 checker，让聚合状态消费最新单项阻塞项；单项 checker 只能证明对应边界已定义或入口复评已完成，不能暗示运行时、task card、provider、database、repository mode 或 public API 已解锁。
 - 新脚本必须有清晰输入、输出和失败语义；不要依赖调用者猜测副作用。
 - 会写入 committed 资产的脚本，应支持 check / dry-run 或 summary 校验路径。
 - 长时间运行、加载本地模型、下载数据或显著占用资源的脚本，不作为默认自动验证入口。
@@ -95,12 +95,13 @@
 - 文档正文默认使用中文；没有稳定中文对应的专业名词、代码、命令、路径、配置键、类型名、接口名、API route、schema / status / fixture / checker ID、外部产品名和必要原文引用保留原文。
 - 标题、表格列名、结论、下一步和阻塞项应优先中文；必要英文标识符放入反引号，或以中文说明后跟原文标识符。
 - 英文领域词首次出现时优先给出中文解释，再保留原文标识；后续正文使用中文概念，不把多个英文名词串成自然语言句子。
-- 不批量翻译机器检查依赖的 literal、状态锚点、fixture key 或路径；确需改名时，必须同步更新相关 checker、fixture、文档入口和验证记录。
+- 不批量翻译机器检查依赖的字面量 literal、状态锚点、fixture key 或路径；确需改名时，必须同步更新相关 checker、fixture、文档入口和验证记录。
 - 历史英文工程短语按入口文档、功能 / 平台专题、契约、任务卡和周志顺序逐批收口；不做破坏证据链的机械全文翻译。
+- 文档语言治理的可保留英文类别、优先中文化短语和停止线以 [文档语言治理 v1](document-language-governance-v1.md) 与 `doc-language-policy-v1` fixture 为准。
 - 入口文档保持短；长实验观察、批次细节和命令输出进入周志、manifest、summary 或 run record。
 - 文档应按“短入口 + 专题页 + 证据附件”组织：入口只放定位、当前结论、索引和下一步，稳定专题承载契约细节，长观察和长列表进入 `.parts/`、manifest、summary 或 run record。
 - 功能或长期开发目标默认先写入 `docs/features/`，说明目标用户、核心流程、数据边界、当前实现、下一批开发和停止线；task card 只服务具体实现批次、前置条件或高风险边界。
-- 不为普通 UI、文案、布局、只读 evidence 组织和使用性整理默认新增 task card / fixture / checker；只有新增 API、执行边界、生产声明、schema / 数据格式、外部 provider 风险或高风险能力时，才新增专项 gate。
+- 不为普通 UI、文案、布局、只读证据组织和使用性整理默认新增 task card / fixture / checker；只有新增 API、执行边界、生产声明、schema / 数据格式、外部 provider 风险或高风险能力时，才新增专项门禁。
 - 默认 committed Markdown 文件超过 `500` 行触发 warning，超过 `800` 行触发 error；入口文档超过 `250` 行触发 error；周志与任务卡超过 `350` 行触发 warning，超过 `600` 行触发 error。
 - 单个二级章节建议控制在 `80-120` 行；超过时应优先拆成独立专题页，而不是继续加长入口文档。
 - 必须临时保留的超限文档，应在文件头部 20 行内写入 `markdown-size-allow:` 说明保留原因、默认是否需要阅读和后续拆分计划；该标记只能作为过渡，不应替代拆分。

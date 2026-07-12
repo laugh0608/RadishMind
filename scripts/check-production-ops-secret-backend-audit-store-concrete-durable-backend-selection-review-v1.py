@@ -36,10 +36,154 @@ FOLLOWUP_AFTER_SELECTION_STATUS = (
     "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_product_selection_defined"
 )
 FOLLOWUP_AFTER_SELECTION_DURABLE_BLOCKER_STATUS = (
-    "storage_adapter_append_only_table_schema_boundary_readiness_defined_task_card_blocked"
+    "storage_adapter_database_driver_selection_review_defined_task_card_blocked"
 )
 FOLLOWUP_AFTER_SELECTION_DURABLE_BLOCKER_SOURCE = (
-    "production-secret-backend-audit-store-storage-adapter-append-only-table-schema-boundary-readiness-v1"
+    "production-secret-backend-audit-store-storage-adapter-database-driver-selection-review-v1"
+)
+FOLLOWUP_CONNECTION_LIFECYCLE_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-database-connection-lifecycle-readiness-v1.json"
+)
+FOLLOWUP_CONNECTION_LIFECYCLE_STATUS = "audit_store_storage_adapter_database_connection_lifecycle_readiness_defined"
+FOLLOWUP_CONNECTION_LIFECYCLE_DURABLE_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_database_connection_lifecycle_defined_task_card_blocked"
+)
+FOLLOWUP_CONNECTION_LIFECYCLE_DURABLE_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-database-connection-lifecycle-v1"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1.json"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS = (
+    "audit_store_storage_adapter_database_provider_connection_runtime_boundary_readiness_defined"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_DURABLE_BLOCKER_STATUS = (
+    "storage_adapter_database_provider_connection_runtime_boundary_readiness_defined_task_card_blocked"
+)
+FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_DURABLE_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-database-provider-connection-runtime-boundary-readiness-v1"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-database-provider-connection-runtime-boundary-v1.json"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_database_provider_connection_runtime_boundary_defined"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_DURABLE_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_database_provider_connection_runtime_boundary_defined_task_card_blocked"
+)
+FOLLOWUP_AFTER_PROVIDER_BOUNDARY_DURABLE_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-database-provider-connection-runtime-boundary-v1"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1.json"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS = (
+    "audit_store_storage_adapter_managed_database_product_selection_readiness_defined"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_DURABLE_BLOCKER_STATUS = (
+    "storage_adapter_managed_database_product_selection_readiness_defined_task_card_blocked"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_DURABLE_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-readiness-v1"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1.json"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS = (
+    "audit_store_storage_adapter_managed_database_product_selection_review_defined"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_DURABLE_BLOCKER_STATUS = (
+    "storage_adapter_managed_database_product_selection_review_defined_task_card_blocked"
+)
+FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_DURABLE_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-managed-database-product-selection-review-v1"
+)
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-managed-database-product-selection-review-v1.json"
+)
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_managed_database_product_selection_review_defined"
+)
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_DURABLE_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_managed_database_product_selection_review_defined_task_card_blocked"
+)
+FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_DURABLE_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-managed-database-product-selection-review-v1"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1.json"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_STATUS = (
+    "audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_DURABLE_BLOCKER_STATUS = (
+    "storage_adapter_concrete_managed_database_provider_selection_readiness_defined_task_card_blocked"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_DURABLE_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-review-v1.json"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS = (
+    "audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_DURABLE_BLOCKER_STATUS = (
+    "storage_adapter_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
+)
+FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_DURABLE_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-review-v1"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-concrete-managed-database-provider-selection-review-v1.json"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS = (
+    "audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_DURABLE_BLOCKER_STATUS = (
+    "storage_adapter_runtime_entry_refresh_after_concrete_managed_database_provider_selection_review_defined_task_card_blocked"
+)
+FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_DURABLE_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-"
+    "after-concrete-managed-database-provider-selection-review-v1"
+)
+FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_FIXTURE_PATH = (
+    REPO_ROOT
+    / "scripts/checks/fixtures/"
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.json"
+)
+FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_STATUS = (
+    "audit_store_storage_adapter_provider_account_resource_endpoint_review_defined"
+)
+FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_DURABLE_BLOCKER_STATUS = (
+    "storage_adapter_provider_account_resource_endpoint_review_defined_task_card_blocked"
+)
+FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_DURABLE_BLOCKER_SOURCE = (
+    "production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1"
 )
 RUNTIME_REFRESH_DURABLE_BLOCKER_STATUS = "storage_adapter_runtime_entry_refresh_defined_task_card_blocked"
 RUNTIME_REFRESH_DURABLE_BLOCKER_SOURCE = (
@@ -266,6 +410,76 @@ def followup_after_selection_exists() -> bool:
     return source_status(followup) == FOLLOWUP_AFTER_SELECTION_STATUS
 
 
+def followup_connection_lifecycle_exists() -> bool:
+    if not FOLLOWUP_CONNECTION_LIFECYCLE_FIXTURE_PATH.exists():
+        return False
+    followup = load_json(FOLLOWUP_CONNECTION_LIFECYCLE_FIXTURE_PATH)
+    return source_status(followup) == FOLLOWUP_CONNECTION_LIFECYCLE_STATUS
+
+
+def followup_connection_runtime_boundary_exists() -> bool:
+    if not FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_FIXTURE_PATH.exists():
+        return False
+    followup = load_json(FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_FIXTURE_PATH)
+    return source_status(followup) == FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_STATUS
+
+
+def followup_after_provider_boundary_exists() -> bool:
+    if not FOLLOWUP_AFTER_PROVIDER_BOUNDARY_FIXTURE_PATH.exists():
+        return False
+    followup = load_json(FOLLOWUP_AFTER_PROVIDER_BOUNDARY_FIXTURE_PATH)
+    return source_status(followup) == FOLLOWUP_AFTER_PROVIDER_BOUNDARY_STATUS
+
+
+def followup_managed_product_selection_readiness_exists() -> bool:
+    if not FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_FIXTURE_PATH.exists():
+        return False
+    followup = load_json(FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_FIXTURE_PATH)
+    return source_status(followup) == FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_STATUS
+
+
+def followup_managed_product_selection_review_exists() -> bool:
+    if not FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_FIXTURE_PATH.exists():
+        return False
+    followup = load_json(FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_FIXTURE_PATH)
+    return source_status(followup) == FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS
+
+
+def followup_after_managed_product_selection_review_exists() -> bool:
+    if not FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_FIXTURE_PATH.exists():
+        return False
+    followup = load_json(FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_FIXTURE_PATH)
+    return source_status(followup) == FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_STATUS
+
+
+def followup_concrete_managed_database_provider_selection_readiness_exists() -> bool:
+    if not FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_FIXTURE_PATH.exists():
+        return False
+    followup = load_json(FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_FIXTURE_PATH)
+    return source_status(followup) == FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_STATUS
+
+
+def followup_concrete_managed_database_provider_selection_review_exists() -> bool:
+    if not FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE_PATH.exists():
+        return False
+    followup = load_json(FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE_PATH)
+    return source_status(followup) == FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS
+
+
+def followup_after_concrete_managed_database_provider_selection_review_exists() -> bool:
+    if not FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE_PATH.exists():
+        return False
+    followup = load_json(FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_FIXTURE_PATH)
+    return source_status(followup) == FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_STATUS
+
+
+def followup_provider_account_resource_endpoint_readiness_exists() -> bool:
+    if not FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_FIXTURE_PATH.exists():
+        return False
+    followup = load_json(FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_FIXTURE_PATH)
+    return source_status(followup) == FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_STATUS
+
+
 def rows_by_id(fixture: dict[str, Any], key: str, id_field: str) -> dict[str, dict[str, Any]]:
     rows = {str(row.get(id_field) or ""): row for row in fixture.get(key) or [] if isinstance(row, dict)}
     require(rows, f"{key} must not be empty")
@@ -397,7 +611,37 @@ def assert_doc_references() -> None:
 def assert_blocker_matrix_alignment() -> None:
     matrix = load_json(BLOCKER_MATRIX_PATH)
     boundary = matrix.get("matrix_boundary") or {}
-    if followup_after_selection_exists():
+    if followup_provider_account_resource_endpoint_readiness_exists():
+        expected_status = FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_DURABLE_BLOCKER_STATUS
+        expected_source = FOLLOWUP_PROVIDER_ACCOUNT_RESOURCE_ENDPOINT_READINESS_DURABLE_BLOCKER_SOURCE
+    elif followup_after_concrete_managed_database_provider_selection_review_exists():
+        expected_status = FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_DURABLE_BLOCKER_STATUS
+        expected_source = FOLLOWUP_AFTER_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_DURABLE_BLOCKER_SOURCE
+    elif followup_concrete_managed_database_provider_selection_review_exists():
+        expected_status = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_DURABLE_BLOCKER_STATUS
+        expected_source = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_REVIEW_DURABLE_BLOCKER_SOURCE
+    elif followup_concrete_managed_database_provider_selection_readiness_exists():
+        expected_status = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_DURABLE_BLOCKER_STATUS
+        expected_source = FOLLOWUP_CONCRETE_MANAGED_DATABASE_PROVIDER_SELECTION_READINESS_DURABLE_BLOCKER_SOURCE
+    elif followup_after_managed_product_selection_review_exists():
+        expected_status = FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_DURABLE_BLOCKER_STATUS
+        expected_source = FOLLOWUP_AFTER_MANAGED_PRODUCT_SELECTION_REVIEW_DURABLE_BLOCKER_SOURCE
+    elif followup_managed_product_selection_review_exists():
+        expected_status = FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_DURABLE_BLOCKER_STATUS
+        expected_source = FOLLOWUP_MANAGED_PRODUCT_SELECTION_REVIEW_DURABLE_BLOCKER_SOURCE
+    elif followup_managed_product_selection_readiness_exists():
+        expected_status = FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_DURABLE_BLOCKER_STATUS
+        expected_source = FOLLOWUP_MANAGED_PRODUCT_SELECTION_READINESS_DURABLE_BLOCKER_SOURCE
+    elif followup_after_provider_boundary_exists():
+        expected_status = FOLLOWUP_AFTER_PROVIDER_BOUNDARY_DURABLE_BLOCKER_STATUS
+        expected_source = FOLLOWUP_AFTER_PROVIDER_BOUNDARY_DURABLE_BLOCKER_SOURCE
+    elif followup_connection_runtime_boundary_exists():
+        expected_status = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_DURABLE_BLOCKER_STATUS
+        expected_source = FOLLOWUP_CONNECTION_RUNTIME_BOUNDARY_DURABLE_BLOCKER_SOURCE
+    elif followup_connection_lifecycle_exists():
+        expected_status = FOLLOWUP_CONNECTION_LIFECYCLE_DURABLE_BLOCKER_STATUS
+        expected_source = FOLLOWUP_CONNECTION_LIFECYCLE_DURABLE_BLOCKER_SOURCE
+    elif followup_after_selection_exists():
         expected_status = FOLLOWUP_AFTER_SELECTION_DURABLE_BLOCKER_STATUS
         expected_source = FOLLOWUP_AFTER_SELECTION_DURABLE_BLOCKER_SOURCE
     elif followup_selection_exists():
@@ -431,6 +675,7 @@ def assert_blocker_matrix_alignment() -> None:
     require(
         order.index("durable_backend_selection_readiness")
         < order.index("concrete_durable_backend_selection_review")
+        < order.index("storage_adapter_database_provider_selection_review")
         < order.index("audit_writer_runtime_entry_review"),
         "concrete durable backend selection review must sit before writer entry review",
     )

@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -32,7 +33,7 @@ func TestSavedWorkflowDraftRepositoryAdapterSmokeExecutionConsumesStaticCases(t 
 		}
 		switch smokeCase.Operation {
 		case "SaveWorkflowDraftRecord":
-			result := adapter.SaveWorkflowDraftRecord(actor, SaveWorkflowDraftRecordRequest{
+			result := adapter.SaveWorkflowDraftRecord(context.Background(), actor, SaveWorkflowDraftRecordRequest{
 				ExpectedDraftVersion: 0,
 				Draft:                draft,
 			})
@@ -41,7 +42,7 @@ func TestSavedWorkflowDraftRepositoryAdapterSmokeExecutionConsumesStaticCases(t 
 				t.Fatalf("adapter smoke save failed: %#v", result)
 			}
 		case "ReadWorkflowDraftRecord":
-			result := adapter.ReadWorkflowDraftRecord(actor, ReadWorkflowDraftRecordRequest{
+			result := adapter.ReadWorkflowDraftRecord(context.Background(), actor, ReadWorkflowDraftRecordRequest{
 				DraftID: draft.DraftID,
 			})
 			resultsByOperation[smokeCase.Operation] = result.FailureCode
@@ -49,7 +50,7 @@ func TestSavedWorkflowDraftRepositoryAdapterSmokeExecutionConsumesStaticCases(t 
 				t.Fatalf("adapter smoke read failed: %#v", result)
 			}
 		case "ListWorkflowDraftRecords":
-			result := adapter.ListWorkflowDraftRecords(actor, ListWorkflowDraftRecordsRequest{})
+			result := adapter.ListWorkflowDraftRecords(context.Background(), actor, ListWorkflowDraftRecordsRequest{})
 			resultsByOperation[smokeCase.Operation] = result.FailureCode
 			if result.FailureCode != "" || len(result.Summaries) != 1 ||
 				result.Summaries[0].DraftID != draft.DraftID {
@@ -86,11 +87,11 @@ func TestSavedWorkflowDraftRepositoryAdapterSmokeExecutionFailureMapping(t *test
 				})
 				actor := validSavedWorkflowDraftRepositoryActorContext()
 				draft := validSavedWorkflowDraftRepositoryDraft()
-				first := adapter.SaveWorkflowDraftRecord(actor, SaveWorkflowDraftRecordRequest{Draft: draft})
+				first := adapter.SaveWorkflowDraftRecord(context.Background(), actor, SaveWorkflowDraftRecordRequest{Draft: draft})
 				if first.FailureCode != "" {
 					t.Fatalf("seed save failed: %#v", first)
 				}
-				return adapter.SaveWorkflowDraftRecord(actor, SaveWorkflowDraftRecordRequest{
+				return adapter.SaveWorkflowDraftRecord(context.Background(), actor, SaveWorkflowDraftRecordRequest{
 					ExpectedDraftVersion: 0,
 					Draft:                draft,
 				}).FailureCode
@@ -104,6 +105,7 @@ func TestSavedWorkflowDraftRepositoryAdapterSmokeExecutionFailureMapping(t *test
 					QueryExecutor: newFakeSavedWorkflowDraftRepositoryQueryExecutor(),
 				})
 				return adapter.ReadWorkflowDraftRecord(
+					context.Background(),
 					validSavedWorkflowDraftRepositoryActorContext(),
 					ReadWorkflowDraftRecordRequest{DraftID: "missing_draft"},
 				).FailureCode
@@ -115,6 +117,7 @@ func TestSavedWorkflowDraftRepositoryAdapterSmokeExecutionFailureMapping(t *test
 			run: func() SavedWorkflowDraftFailureCode {
 				adapter := NewSavedWorkflowDraftRepositoryAdapter(SavedWorkflowDraftRepositoryAdapterConfig{})
 				return adapter.ListWorkflowDraftRecords(
+					context.Background(),
 					validSavedWorkflowDraftRepositoryActorContext(),
 					ListWorkflowDraftRecordsRequest{},
 				).FailureCode
@@ -136,7 +139,7 @@ func TestSavedWorkflowDraftRepositoryAdapterSmokeExecutionFailureMapping(t *test
 				adapter := NewSavedWorkflowDraftRepositoryAdapter(SavedWorkflowDraftRepositoryAdapterConfig{
 					QueryExecutor: executor,
 				})
-				return adapter.ReadWorkflowDraftRecord(actor, ReadWorkflowDraftRecordRequest{
+				return adapter.ReadWorkflowDraftRecord(context.Background(), actor, ReadWorkflowDraftRecordRequest{
 					DraftID: record.DraftID,
 				}).FailureCode
 			},
@@ -152,6 +155,7 @@ func TestSavedWorkflowDraftRepositoryAdapterSmokeExecutionFailureMapping(t *test
 					},
 				})
 				return adapter.SaveWorkflowDraftRecord(
+					context.Background(),
 					validSavedWorkflowDraftRepositoryActorContext(),
 					SaveWorkflowDraftRecordRequest{Draft: validSavedWorkflowDraftRepositoryDraft()},
 				).FailureCode
@@ -168,6 +172,7 @@ func TestSavedWorkflowDraftRepositoryAdapterSmokeExecutionFailureMapping(t *test
 					},
 				})
 				return adapter.ReadWorkflowDraftRecord(
+					context.Background(),
 					validSavedWorkflowDraftRepositoryActorContext(),
 					ReadWorkflowDraftRecordRequest{DraftID: validSavedWorkflowDraftRepositoryDraft().DraftID},
 				).FailureCode
@@ -184,6 +189,7 @@ func TestSavedWorkflowDraftRepositoryAdapterSmokeExecutionFailureMapping(t *test
 					},
 				})
 				return adapter.ListWorkflowDraftRecords(
+					context.Background(),
 					validSavedWorkflowDraftRepositoryActorContext(),
 					ListWorkflowDraftRecordsRequest{},
 				).FailureCode
@@ -198,7 +204,7 @@ func TestSavedWorkflowDraftRepositoryAdapterSmokeExecutionFailureMapping(t *test
 				adapter := NewSavedWorkflowDraftRepositoryAdapter(SavedWorkflowDraftRepositoryAdapterConfig{
 					QueryExecutor: newFakeSavedWorkflowDraftRepositoryQueryExecutor(),
 				})
-				return adapter.ReadWorkflowDraftRecord(actor, ReadWorkflowDraftRecordRequest{
+				return adapter.ReadWorkflowDraftRecord(context.Background(), actor, ReadWorkflowDraftRecordRequest{
 					DraftID: validSavedWorkflowDraftRepositoryDraft().DraftID,
 				}).FailureCode
 			},
@@ -212,7 +218,7 @@ func TestSavedWorkflowDraftRepositoryAdapterSmokeExecutionFailureMapping(t *test
 				adapter := NewSavedWorkflowDraftRepositoryAdapter(SavedWorkflowDraftRepositoryAdapterConfig{
 					QueryExecutor: newFakeSavedWorkflowDraftRepositoryQueryExecutor(),
 				})
-				return adapter.SaveWorkflowDraftRecord(actor, SaveWorkflowDraftRecordRequest{
+				return adapter.SaveWorkflowDraftRecord(context.Background(), actor, SaveWorkflowDraftRecordRequest{
 					Draft: validSavedWorkflowDraftRepositoryDraft(),
 				}).FailureCode
 			},

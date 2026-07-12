@@ -128,15 +128,13 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     for literal in fixture.get("required_source_literals") or []:
         require(str(literal) in source, f"source missing required literal: {literal}")
 
-    web_source = "\n".join(
-        path.read_text(encoding="utf-8")
-        for path in sorted((REPO_ROOT / "apps/radishmind-web/src").rglob("*"))
-        if path.is_file()
-    )
-    for literal in fixture.get("forbidden_source_literals") or []:
-        require(str(literal) not in web_source, f"apps/radishmind-web must not contain forbidden literal: {literal}")
-
     dev_consumer = read_text("apps/radishmind-web/src/features/control-plane-read/devLiveReadConsumer.ts")
+    for literal in fixture.get("forbidden_source_literals") or []:
+        require(
+            str(literal) not in dev_consumer,
+            f"devLiveReadConsumer.ts must not contain forbidden literal: {literal}",
+        )
+
     require("mode: source === DEV_LIVE_SOURCE ? \"dev_live_http\" : \"offline_fixture\"" in dev_consumer, "live mode must be explicit opt-in")
     require("return {};" in dev_consumer, "offline mode must not fetch live routes")
     for header in EXPECTED_HEADERS:

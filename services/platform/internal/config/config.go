@@ -14,10 +14,17 @@ const (
 	defaultReadHeaderTimeout = 5 * time.Second
 	defaultWriteTimeout      = 30 * time.Second
 	defaultBridgeTimeout     = 30 * time.Second
+	defaultBridgeMode        = "stdio_pool"
+	defaultBridgeWorkerCount = 4
+	defaultBridgeQueueSize   = 64
+	defaultBridgeHandshake   = 5 * time.Second
+	defaultDraftDBTimeout    = 5 * time.Second
+	defaultRunDBTimeout      = 5 * time.Second
 	defaultPythonBinary      = "python3"
 	defaultBridgeScript      = "scripts/run-platform-bridge.py"
 	defaultProvider          = "mock"
 	defaultDraftStoreMode    = "memory_dev"
+	defaultRunStoreMode      = "memory_dev"
 )
 
 const (
@@ -31,10 +38,21 @@ type Config struct {
 	ReadHeaderTimeout                 time.Duration
 	WriteTimeout                      time.Duration
 	BridgeTimeout                     time.Duration
+	BridgeMode                        string
+	BridgeWorkerCount                 int
+	BridgeQueueCapacity               int
+	BridgeHandshakeTimeout            time.Duration
 	ControlPlaneReadDevAuthEnabled    bool
 	WorkflowSavedDraftDevHTTPEnabled  bool
 	WorkflowSavedDraftDevWriteEnabled bool
+	WorkflowExecutorDevEnabled        bool
+	WorkflowDiagnosticsDevEnabled     bool
 	WorkflowSavedDraftStoreMode       string
+	WorkflowSavedDraftDatabaseURL     string
+	WorkflowSavedDraftDatabaseTimeout time.Duration
+	WorkflowRunStoreMode              string
+	WorkflowRunDatabaseURL            string
+	WorkflowRunDatabaseTimeout        time.Duration
 	PythonBinary                      string
 	BridgeScript                      string
 	Provider                          string
@@ -48,31 +66,40 @@ type Config struct {
 }
 
 type ConfigSummary struct {
-	ListenAddr                        string            `json:"listen_addr"`
-	ControlPlaneReadDevAuthEnabled    bool              `json:"control_plane_read_dev_auth_enabled"`
-	WorkflowSavedDraftDevHTTPEnabled  bool              `json:"workflow_saved_draft_dev_http_enabled"`
-	WorkflowSavedDraftDevWriteEnabled bool              `json:"workflow_saved_draft_dev_write_enabled"`
-	WorkflowSavedDraftStoreMode       string            `json:"workflow_saved_draft_store_mode"`
-	Provider                          string            `json:"provider"`
-	Profile                           string            `json:"profile"`
-	Model                             string            `json:"model"`
-	ModelConfigured                   bool              `json:"model_configured"`
-	BaseURLConfigured                 bool              `json:"base_url_configured"`
-	CredentialState                   string            `json:"credential_state"`
-	Timeouts                          map[string]string `json:"timeouts"`
-	PythonBridge                      PythonBridge      `json:"python_bridge"`
-	Temperature                       float64           `json:"temperature"`
-	RequiredFields                    []string          `json:"required_fields"`
-	MissingRequiredFields             []string          `json:"missing_required_fields"`
-	SecretFields                      []string          `json:"secret_fields"`
-	ConfigFile                        ConfigFileSummary `json:"config_file"`
-	FieldSources                      map[string]string `json:"field_sources"`
-	Sanitized                         bool              `json:"sanitized"`
+	ListenAddr                           string            `json:"listen_addr"`
+	ControlPlaneReadDevAuthEnabled       bool              `json:"control_plane_read_dev_auth_enabled"`
+	WorkflowSavedDraftDevHTTPEnabled     bool              `json:"workflow_saved_draft_dev_http_enabled"`
+	WorkflowSavedDraftDevWriteEnabled    bool              `json:"workflow_saved_draft_dev_write_enabled"`
+	WorkflowExecutorDevEnabled           bool              `json:"workflow_executor_dev_enabled"`
+	WorkflowDiagnosticsDevEnabled        bool              `json:"workflow_diagnostics_dev_enabled"`
+	WorkflowSavedDraftStoreMode          string            `json:"workflow_saved_draft_store_mode"`
+	WorkflowSavedDraftDatabaseConfigured bool              `json:"workflow_saved_draft_database_configured"`
+	WorkflowRunStoreMode                 string            `json:"workflow_run_store_mode"`
+	WorkflowRunDatabaseConfigured        bool              `json:"workflow_run_database_configured"`
+	Provider                             string            `json:"provider"`
+	Profile                              string            `json:"profile"`
+	Model                                string            `json:"model"`
+	ModelConfigured                      bool              `json:"model_configured"`
+	BaseURLConfigured                    bool              `json:"base_url_configured"`
+	CredentialState                      string            `json:"credential_state"`
+	Timeouts                             map[string]string `json:"timeouts"`
+	PythonBridge                         PythonBridge      `json:"python_bridge"`
+	Temperature                          float64           `json:"temperature"`
+	RequiredFields                       []string          `json:"required_fields"`
+	MissingRequiredFields                []string          `json:"missing_required_fields"`
+	SecretFields                         []string          `json:"secret_fields"`
+	ConfigFile                           ConfigFileSummary `json:"config_file"`
+	FieldSources                         map[string]string `json:"field_sources"`
+	Sanitized                            bool              `json:"sanitized"`
 }
 
 type PythonBridge struct {
-	PythonBinary string `json:"python_binary"`
-	Script       string `json:"script"`
+	PythonBinary     string `json:"python_binary"`
+	Script           string `json:"script"`
+	Mode             string `json:"mode"`
+	WorkerCount      int    `json:"worker_count"`
+	QueueCapacity    int    `json:"queue_capacity"`
+	HandshakeTimeout string `json:"handshake_timeout"`
 }
 
 type ConfigFileSummary struct {
@@ -87,6 +114,10 @@ type fileConfig struct {
 	ReadHeaderTimeout  *string          `json:"read_header_timeout"`
 	WriteTimeout       *string          `json:"write_timeout"`
 	BridgeTimeout      *string          `json:"bridge_timeout"`
+	BridgeMode         *string          `json:"bridge_mode"`
+	BridgeWorkerCount  *int             `json:"bridge_worker_count"`
+	BridgeQueueSize    *int             `json:"bridge_queue_capacity"`
+	BridgeHandshake    *string          `json:"bridge_handshake_timeout"`
 	PythonBinary       *string          `json:"python_binary"`
 	BridgeScript       *string          `json:"bridge_script"`
 	Provider           *string          `json:"provider"`
@@ -113,43 +144,64 @@ func LoadFromEnv() (Config, error) {
 	if err := applyEnvOverrides(&cfg); err != nil {
 		return Config{}, err
 	}
+	if err := validateBridgeRuntimeConfig(cfg); err != nil {
+		return Config{}, err
+	}
 
 	return cfg, nil
 }
 
 func defaultConfig() Config {
 	return Config{
-		ListenAddr:                  defaultListenAddr,
-		ReadHeaderTimeout:           defaultReadHeaderTimeout,
-		WriteTimeout:                defaultWriteTimeout,
-		BridgeTimeout:               defaultBridgeTimeout,
-		PythonBinary:                defaultPythonBinary,
-		BridgeScript:                defaultBridgeScript,
-		Provider:                    defaultProvider,
-		ProviderProfile:             "",
-		Model:                       "",
-		BaseURL:                     "",
-		APIKey:                      "",
-		Temperature:                 0,
-		WorkflowSavedDraftStoreMode: defaultDraftStoreMode,
+		ListenAddr:                        defaultListenAddr,
+		ReadHeaderTimeout:                 defaultReadHeaderTimeout,
+		WriteTimeout:                      defaultWriteTimeout,
+		BridgeTimeout:                     defaultBridgeTimeout,
+		BridgeMode:                        defaultBridgeMode,
+		BridgeWorkerCount:                 defaultBridgeWorkerCount,
+		BridgeQueueCapacity:               defaultBridgeQueueSize,
+		BridgeHandshakeTimeout:            defaultBridgeHandshake,
+		PythonBinary:                      defaultPythonBinary,
+		BridgeScript:                      defaultBridgeScript,
+		Provider:                          defaultProvider,
+		ProviderProfile:                   "",
+		Model:                             "",
+		BaseURL:                           "",
+		APIKey:                            "",
+		Temperature:                       0,
+		WorkflowSavedDraftStoreMode:       defaultDraftStoreMode,
+		WorkflowSavedDraftDatabaseTimeout: defaultDraftDBTimeout,
+		WorkflowRunStoreMode:              defaultRunStoreMode,
+		WorkflowRunDatabaseTimeout:        defaultRunDBTimeout,
 		FieldSources: map[string]string{
-			"listen_addr":                    configSourceDefault,
-			"read_header_timeout":            configSourceDefault,
-			"write_timeout":                  configSourceDefault,
-			"bridge_timeout":                 configSourceDefault,
-			"control_plane_read_dev_auth":    configSourceDefault,
-			"workflow_saved_draft_dev_http":  configSourceDefault,
-			"workflow_saved_draft_dev_write": configSourceDefault,
-			"workflow_saved_draft_store":     configSourceDefault,
-			"python_binary":                  configSourceDefault,
-			"bridge_script":                  configSourceDefault,
-			"provider":                       configSourceDefault,
-			"profile":                        configSourceDefault,
-			"model":                          configSourceDefault,
-			"base_url":                       configSourceDefault,
-			"credential":                     configSourceDefault,
-			"temperature":                    configSourceDefault,
-			"config_file":                    configSourceDefault,
+			"listen_addr":                           configSourceDefault,
+			"read_header_timeout":                   configSourceDefault,
+			"write_timeout":                         configSourceDefault,
+			"bridge_timeout":                        configSourceDefault,
+			"bridge_mode":                           configSourceDefault,
+			"bridge_worker_count":                   configSourceDefault,
+			"bridge_queue_capacity":                 configSourceDefault,
+			"bridge_handshake_timeout":              configSourceDefault,
+			"control_plane_read_dev_auth":           configSourceDefault,
+			"workflow_saved_draft_dev_http":         configSourceDefault,
+			"workflow_saved_draft_dev_write":        configSourceDefault,
+			"workflow_executor_dev":                 configSourceDefault,
+			"workflow_diagnostics_dev":              configSourceDefault,
+			"workflow_saved_draft_store":            configSourceDefault,
+			"workflow_saved_draft_database":         configSourceDefault,
+			"workflow_saved_draft_database_timeout": configSourceDefault,
+			"workflow_run_store":                    configSourceDefault,
+			"workflow_run_database":                 configSourceDefault,
+			"workflow_run_database_timeout":         configSourceDefault,
+			"python_binary":                         configSourceDefault,
+			"bridge_script":                         configSourceDefault,
+			"provider":                              configSourceDefault,
+			"profile":                               configSourceDefault,
+			"model":                                 configSourceDefault,
+			"base_url":                              configSourceDefault,
+			"credential":                            configSourceDefault,
+			"temperature":                           configSourceDefault,
+			"config_file":                           configSourceDefault,
 		},
 	}
 }
@@ -186,6 +238,40 @@ func applyConfigFile(cfg *Config, pathText string) error {
 			return err
 		}
 		applyDurationValue(&cfg.BridgeTimeout, parsed, cfg.FieldSources, "bridge_timeout", configSourceFile)
+	}
+	if document.BridgeMode != nil {
+		applyStringValue(&cfg.BridgeMode, *document.BridgeMode, cfg.FieldSources, "bridge_mode", configSourceFile)
+	}
+	if document.BridgeWorkerCount != nil {
+		applyIntValue(
+			&cfg.BridgeWorkerCount,
+			*document.BridgeWorkerCount,
+			cfg.FieldSources,
+			"bridge_worker_count",
+			configSourceFile,
+		)
+	}
+	if document.BridgeQueueSize != nil {
+		applyIntValue(
+			&cfg.BridgeQueueCapacity,
+			*document.BridgeQueueSize,
+			cfg.FieldSources,
+			"bridge_queue_capacity",
+			configSourceFile,
+		)
+	}
+	if document.BridgeHandshake != nil {
+		parsed, err := parseDurationValue("bridge_handshake_timeout", *document.BridgeHandshake)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(
+			&cfg.BridgeHandshakeTimeout,
+			parsed,
+			cfg.FieldSources,
+			"bridge_handshake_timeout",
+			configSourceFile,
+		)
 	}
 	if document.PythonBinary != nil {
 		applyStringValue(&cfg.PythonBinary, *document.PythonBinary, cfg.FieldSources, "python_binary", configSourceFile)
@@ -253,6 +339,36 @@ func applyEnvOverrides(cfg *Config) error {
 		}
 		applyDurationValue(&cfg.BridgeTimeout, parsed, cfg.FieldSources, "bridge_timeout", configSourceEnv)
 	}
+	if value, ok := stringEnv("RADISHMIND_PLATFORM_BRIDGE_MODE"); ok {
+		applyStringValue(&cfg.BridgeMode, value, cfg.FieldSources, "bridge_mode", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_PLATFORM_BRIDGE_WORKER_COUNT"); ok {
+		parsed, err := parseIntValue("RADISHMIND_PLATFORM_BRIDGE_WORKER_COUNT", value)
+		if err != nil {
+			return err
+		}
+		applyIntValue(&cfg.BridgeWorkerCount, parsed, cfg.FieldSources, "bridge_worker_count", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_PLATFORM_BRIDGE_QUEUE_CAPACITY"); ok {
+		parsed, err := parseIntValue("RADISHMIND_PLATFORM_BRIDGE_QUEUE_CAPACITY", value)
+		if err != nil {
+			return err
+		}
+		applyIntValue(&cfg.BridgeQueueCapacity, parsed, cfg.FieldSources, "bridge_queue_capacity", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_PLATFORM_BRIDGE_HANDSHAKE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_PLATFORM_BRIDGE_HANDSHAKE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(
+			&cfg.BridgeHandshakeTimeout,
+			parsed,
+			cfg.FieldSources,
+			"bridge_handshake_timeout",
+			configSourceEnv,
+		)
+	}
 	if value, ok := stringEnv("RADISHMIND_PLATFORM_PYTHON_BIN"); ok {
 		applyStringValue(&cfg.PythonBinary, value, cfg.FieldSources, "python_binary", configSourceEnv)
 	}
@@ -306,6 +422,22 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.WorkflowSavedDraftDevWriteEnabled = parsed
 		cfg.FieldSources["workflow_saved_draft_dev_write"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_EXECUTOR_DEV"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_EXECUTOR_DEV", value)
+		if err != nil {
+			return err
+		}
+		cfg.WorkflowExecutorDevEnabled = parsed
+		cfg.FieldSources["workflow_executor_dev"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV", value)
+		if err != nil {
+			return err
+		}
+		cfg.WorkflowDiagnosticsDevEnabled = parsed
+		cfg.FieldSources["workflow_diagnostics_dev"] = configSourceEnv
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE"); ok {
 		applyStringValue(
 			&cfg.WorkflowSavedDraftStoreMode,
@@ -314,6 +446,41 @@ func applyEnvOverrides(cfg *Config) error {
 			"workflow_saved_draft_store",
 			configSourceEnv,
 		)
+	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL"); ok {
+		applyStringValue(
+			&cfg.WorkflowSavedDraftDatabaseURL,
+			value,
+			cfg.FieldSources,
+			"workflow_saved_draft_database",
+			configSourceEnv,
+		)
+	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(
+			&cfg.WorkflowSavedDraftDatabaseTimeout,
+			parsed,
+			cfg.FieldSources,
+			"workflow_saved_draft_database_timeout",
+			configSourceEnv,
+		)
+	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_RUN_STORE"); ok {
+		applyStringValue(&cfg.WorkflowRunStoreMode, value, cfg.FieldSources, "workflow_run_store", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL"); ok {
+		applyStringValue(&cfg.WorkflowRunDatabaseURL, value, cfg.FieldSources, "workflow_run_database", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_RUN_DATABASE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_WORKFLOW_RUN_DATABASE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.WorkflowRunDatabaseTimeout, parsed, cfg.FieldSources, "workflow_run_database_timeout", configSourceEnv)
 	}
 	return nil
 }
@@ -326,39 +493,95 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	profile := strings.TrimSpace(cfg.ProviderProfile)
 	model := strings.TrimSpace(cfg.Model)
 	baseURLConfigured := strings.TrimSpace(cfg.BaseURL) != ""
+	bridgeMode := strings.TrimSpace(cfg.BridgeMode)
+	if bridgeMode == "" {
+		bridgeMode = "process_per_request"
+	}
+	bridgeWorkerCount := cfg.BridgeWorkerCount
+	if bridgeWorkerCount <= 0 {
+		bridgeWorkerCount = defaultBridgeWorkerCount
+	}
+	bridgeQueueCapacity := cfg.BridgeQueueCapacity
+	if bridgeQueueCapacity <= 0 {
+		bridgeQueueCapacity = defaultBridgeQueueSize
+	}
+	bridgeHandshakeTimeout := cfg.BridgeHandshakeTimeout
+	if bridgeHandshakeTimeout <= 0 {
+		bridgeHandshakeTimeout = defaultBridgeHandshake
+	}
 	workflowSavedDraftStoreMode := strings.TrimSpace(cfg.WorkflowSavedDraftStoreMode)
 	if workflowSavedDraftStoreMode == "" {
 		workflowSavedDraftStoreMode = defaultDraftStoreMode
 	}
+	workflowRunStoreMode := strings.TrimSpace(cfg.WorkflowRunStoreMode)
+	if workflowRunStoreMode == "" {
+		workflowRunStoreMode = defaultRunStoreMode
+	}
 	credentialState := credentialState(provider, strings.TrimSpace(cfg.APIKey) != "")
 	requiredFields := requiredConfigFields(provider)
+	if workflowSavedDraftStoreMode == "postgres_dev_test" {
+		requiredFields = append(
+			requiredFields,
+			"control_plane_read_dev_auth",
+			"workflow_saved_draft_dev_http",
+			"workflow_saved_draft_dev_write",
+			"workflow_saved_draft_database",
+		)
+	}
+	if cfg.WorkflowExecutorDevEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "workflow_saved_draft_dev_http")
+	}
+	if workflowRunStoreMode == "postgres_dev_test" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
+		requiredFields = appendRequiredConfigField(requiredFields, "workflow_run_database")
+	}
 	missingRequiredFields := missingRequiredConfigFields(cfg, requiredFields)
 
 	return ConfigSummary{
-		ListenAddr:                        strings.TrimSpace(cfg.ListenAddr),
-		ControlPlaneReadDevAuthEnabled:    cfg.ControlPlaneReadDevAuthEnabled,
-		WorkflowSavedDraftDevHTTPEnabled:  cfg.WorkflowSavedDraftDevHTTPEnabled,
-		WorkflowSavedDraftDevWriteEnabled: cfg.WorkflowSavedDraftDevWriteEnabled,
-		WorkflowSavedDraftStoreMode:       workflowSavedDraftStoreMode,
-		Provider:                          provider,
-		Profile:                           profile,
-		Model:                             model,
-		ModelConfigured:                   model != "",
-		BaseURLConfigured:                 baseURLConfigured,
-		CredentialState:                   credentialState,
+		ListenAddr:                           strings.TrimSpace(cfg.ListenAddr),
+		ControlPlaneReadDevAuthEnabled:       cfg.ControlPlaneReadDevAuthEnabled,
+		WorkflowSavedDraftDevHTTPEnabled:     cfg.WorkflowSavedDraftDevHTTPEnabled,
+		WorkflowSavedDraftDevWriteEnabled:    cfg.WorkflowSavedDraftDevWriteEnabled,
+		WorkflowExecutorDevEnabled:           cfg.WorkflowExecutorDevEnabled,
+		WorkflowDiagnosticsDevEnabled:        cfg.WorkflowDiagnosticsDevEnabled,
+		WorkflowSavedDraftStoreMode:          workflowSavedDraftStoreMode,
+		WorkflowSavedDraftDatabaseConfigured: strings.TrimSpace(cfg.WorkflowSavedDraftDatabaseURL) != "",
+		WorkflowRunStoreMode:                 workflowRunStoreMode,
+		WorkflowRunDatabaseConfigured:        strings.TrimSpace(cfg.WorkflowRunDatabaseURL) != "",
+		Provider:                             provider,
+		Profile:                              profile,
+		Model:                                model,
+		ModelConfigured:                      model != "",
+		BaseURLConfigured:                    baseURLConfigured,
+		CredentialState:                      credentialState,
 		Timeouts: map[string]string{
-			"read_header": cfg.ReadHeaderTimeout.String(),
-			"write":       cfg.WriteTimeout.String(),
-			"bridge":      cfg.BridgeTimeout.String(),
+			"read_header":                   cfg.ReadHeaderTimeout.String(),
+			"write":                         cfg.WriteTimeout.String(),
+			"bridge":                        cfg.BridgeTimeout.String(),
+			"bridge_handshake":              bridgeHandshakeTimeout.String(),
+			"workflow_saved_draft_database": cfg.WorkflowSavedDraftDatabaseTimeout.String(),
+			"workflow_run_database":         cfg.WorkflowRunDatabaseTimeout.String(),
 		},
 		PythonBridge: PythonBridge{
-			PythonBinary: strings.TrimSpace(cfg.PythonBinary),
-			Script:       strings.TrimSpace(cfg.BridgeScript),
+			PythonBinary:     strings.TrimSpace(cfg.PythonBinary),
+			Script:           strings.TrimSpace(cfg.BridgeScript),
+			Mode:             bridgeMode,
+			WorkerCount:      bridgeWorkerCount,
+			QueueCapacity:    bridgeQueueCapacity,
+			HandshakeTimeout: bridgeHandshakeTimeout.String(),
 		},
 		Temperature:           cfg.Temperature,
 		RequiredFields:        requiredFields,
 		MissingRequiredFields: missingRequiredFields,
-		SecretFields:          []string{"RADISHMIND_PLATFORM_API_KEY"},
+		SecretFields: []string{
+			"RADISHMIND_PLATFORM_API_KEY",
+			"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
+			"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
+			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
+			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
+		},
 		ConfigFile: ConfigFileSummary{
 			Path:       strings.TrimSpace(cfg.ConfigFile),
 			Configured: strings.TrimSpace(cfg.ConfigFile) != "",
@@ -430,9 +653,42 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			if credentialState(cfg.Provider, strings.TrimSpace(cfg.APIKey) != "") == "missing" {
 				missing = append(missing, field)
 			}
+		case "control_plane_read_dev_auth":
+			if !cfg.ControlPlaneReadDevAuthEnabled {
+				missing = append(missing, field)
+			}
+		case "workflow_saved_draft_dev_http":
+			if !cfg.WorkflowSavedDraftDevHTTPEnabled {
+				missing = append(missing, field)
+			}
+		case "workflow_saved_draft_dev_write":
+			if !cfg.WorkflowSavedDraftDevWriteEnabled {
+				missing = append(missing, field)
+			}
+		case "workflow_saved_draft_database":
+			if strings.TrimSpace(cfg.WorkflowSavedDraftDatabaseURL) == "" {
+				missing = append(missing, field)
+			}
+		case "workflow_executor_dev":
+			if !cfg.WorkflowExecutorDevEnabled {
+				missing = append(missing, field)
+			}
+		case "workflow_run_database":
+			if strings.TrimSpace(cfg.WorkflowRunDatabaseURL) == "" {
+				missing = append(missing, field)
+			}
 		}
 	}
 	return missing
+}
+
+func appendRequiredConfigField(fields []string, field string) []string {
+	for _, existing := range fields {
+		if existing == field {
+			return fields
+		}
+	}
+	return append(fields, field)
 }
 
 func sanitizedFieldSources(fieldSources map[string]string) map[string]string {
@@ -476,6 +732,11 @@ func applyDurationValue(target *time.Duration, value time.Duration, fieldSources
 	fieldSources[fieldName] = source
 }
 
+func applyIntValue(target *int, value int, fieldSources map[string]string, fieldName string, source string) {
+	*target = value
+	fieldSources[fieldName] = source
+}
+
 func parseDurationValue(key string, rawValue string) (time.Duration, error) {
 	parsed, err := time.ParseDuration(strings.TrimSpace(rawValue))
 	if err != nil {
@@ -490,6 +751,40 @@ func parseFloatValue(key string, rawValue string) (float64, error) {
 		return 0, fmt.Errorf("%s must be a valid float: %w", key, err)
 	}
 	return parsed, nil
+}
+
+func parseIntValue(key string, rawValue string) (int, error) {
+	parsed, err := strconv.Atoi(strings.TrimSpace(rawValue))
+	if err != nil {
+		return 0, fmt.Errorf("%s must be a valid integer: %w", key, err)
+	}
+	return parsed, nil
+}
+
+func validateBridgeRuntimeConfig(cfg Config) error {
+	if cfg.WorkflowDiagnosticsDevEnabled {
+		if !cfg.WorkflowExecutorDevEnabled {
+			return fmt.Errorf("workflow diagnostics dev requires workflow executor dev")
+		}
+		if !strings.EqualFold(strings.TrimSpace(cfg.Provider), "mock") {
+			return fmt.Errorf("workflow diagnostics dev requires mock provider")
+		}
+	}
+	switch strings.TrimSpace(cfg.BridgeMode) {
+	case "process_per_request", "stdio_pool":
+	default:
+		return fmt.Errorf("bridge_mode must be process_per_request or stdio_pool")
+	}
+	if cfg.BridgeWorkerCount < 1 || cfg.BridgeWorkerCount > 32 {
+		return fmt.Errorf("bridge_worker_count must be between 1 and 32")
+	}
+	if cfg.BridgeQueueCapacity < 1 || cfg.BridgeQueueCapacity > 1024 {
+		return fmt.Errorf("bridge_queue_capacity must be between 1 and 1024")
+	}
+	if cfg.BridgeHandshakeTimeout <= 0 {
+		return fmt.Errorf("bridge_handshake_timeout must be positive")
+	}
+	return nil
 }
 
 func parseBoolValue(key string, rawValue string) (bool, error) {

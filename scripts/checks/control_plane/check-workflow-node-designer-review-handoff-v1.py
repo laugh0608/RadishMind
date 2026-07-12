@@ -103,7 +103,7 @@ def assert_docs_and_fast_baseline(fixture: dict[str, Any]) -> None:
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     previous_checker = "check-workflow-review-handoff-active-draft-v1.py"
     current_checker = "check-workflow-node-designer-review-handoff-v1.py"
-    next_checker = "check-workflow-saved-draft-durable-store-preconditions-v1.py"
+    next_checker = "check-workflow-node-designer-persisted-layout-v1.py"
     require(current_checker in check_repo, "check-repo.py must run node designer review handoff check")
     require(
         check_repo.index(previous_checker) < check_repo.index(current_checker),
@@ -111,7 +111,7 @@ def assert_docs_and_fast_baseline(fixture: dict[str, Any]) -> None:
     )
     require(
         check_repo.index(current_checker) < check_repo.index(next_checker),
-        "node designer review handoff check must run before durable store precondition checks",
+        "node designer review handoff check must run before persisted layout checks",
     )
 
     doc_refs = fixture.get("required_doc_references") or {}

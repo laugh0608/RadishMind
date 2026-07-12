@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"sort"
 	"strings"
 )
@@ -26,9 +27,13 @@ func NewSavedWorkflowDraftRepositoryAdapter(
 }
 
 func (adapter SavedWorkflowDraftRepositoryAdapter) SaveWorkflowDraftRecord(
+	ctx context.Context,
 	actor SavedWorkflowDraftRepositoryActorContext,
 	request SaveWorkflowDraftRecordRequest,
 ) SaveWorkflowDraftRecordResult {
+	if ctx == nil {
+		return SaveWorkflowDraftRecordResult{FailureCode: SavedWorkflowDraftFailureAuthContextMismatch}
+	}
 	actor = normalizeSavedWorkflowDraftRepositoryActorContext(actor)
 	if failureCode := savedWorkflowDraftRepositoryActorFailure(actor, "workflow_drafts:write"); failureCode != "" {
 		return SaveWorkflowDraftRecordResult{FailureCode: failureCode}
@@ -44,7 +49,7 @@ func (adapter SavedWorkflowDraftRepositoryAdapter) SaveWorkflowDraftRecord(
 		return SaveWorkflowDraftRecordResult{FailureCode: SavedWorkflowDraftFailureStoreUnavailable}
 	}
 
-	queryResult := adapter.queryExecutor.SaveWorkflowDraftRecord(savedWorkflowDraftRepositorySaveQuery{
+	queryResult := adapter.queryExecutor.SaveWorkflowDraftRecord(ctx, savedWorkflowDraftRepositorySaveQuery{
 		ActorContext:         actor,
 		ExpectedDraftVersion: request.ExpectedDraftVersion,
 		Record:               savedWorkflowDraftRepositoryRecordFromDraft(actor, draft, adapter.schemaPreflight),
@@ -62,9 +67,13 @@ func (adapter SavedWorkflowDraftRepositoryAdapter) SaveWorkflowDraftRecord(
 }
 
 func (adapter SavedWorkflowDraftRepositoryAdapter) ReadWorkflowDraftRecord(
+	ctx context.Context,
 	actor SavedWorkflowDraftRepositoryActorContext,
 	request ReadWorkflowDraftRecordRequest,
 ) ReadWorkflowDraftRecordResult {
+	if ctx == nil {
+		return ReadWorkflowDraftRecordResult{FailureCode: SavedWorkflowDraftFailureAuthContextMismatch}
+	}
 	actor = normalizeSavedWorkflowDraftRepositoryActorContext(actor)
 	if failureCode := savedWorkflowDraftRepositoryActorFailure(actor, "workflow_drafts:read"); failureCode != "" {
 		return ReadWorkflowDraftRecordResult{FailureCode: failureCode}
@@ -80,7 +89,7 @@ func (adapter SavedWorkflowDraftRepositoryAdapter) ReadWorkflowDraftRecord(
 		return ReadWorkflowDraftRecordResult{FailureCode: SavedWorkflowDraftFailureStoreUnavailable}
 	}
 
-	queryResult := adapter.queryExecutor.ReadWorkflowDraftRecord(savedWorkflowDraftRepositoryReadQuery{
+	queryResult := adapter.queryExecutor.ReadWorkflowDraftRecord(ctx, savedWorkflowDraftRepositoryReadQuery{
 		ActorContext: actor,
 		DraftID:      draftID,
 	})
@@ -103,9 +112,13 @@ func (adapter SavedWorkflowDraftRepositoryAdapter) ReadWorkflowDraftRecord(
 }
 
 func (adapter SavedWorkflowDraftRepositoryAdapter) ListWorkflowDraftRecords(
+	ctx context.Context,
 	actor SavedWorkflowDraftRepositoryActorContext,
 	_ ListWorkflowDraftRecordsRequest,
 ) ListWorkflowDraftRecordsResult {
+	if ctx == nil {
+		return ListWorkflowDraftRecordsResult{FailureCode: SavedWorkflowDraftFailureAuthContextMismatch}
+	}
 	actor = normalizeSavedWorkflowDraftRepositoryActorContext(actor)
 	if failureCode := savedWorkflowDraftRepositoryActorFailure(actor, "workflow_drafts:read"); failureCode != "" {
 		return ListWorkflowDraftRecordsResult{FailureCode: failureCode}
@@ -117,7 +130,7 @@ func (adapter SavedWorkflowDraftRepositoryAdapter) ListWorkflowDraftRecords(
 		return ListWorkflowDraftRecordsResult{FailureCode: SavedWorkflowDraftFailureStoreUnavailable}
 	}
 
-	queryResult := adapter.queryExecutor.ListWorkflowDraftRecords(savedWorkflowDraftRepositoryListQuery{
+	queryResult := adapter.queryExecutor.ListWorkflowDraftRecords(ctx, savedWorkflowDraftRepositoryListQuery{
 		ActorContext: actor,
 	})
 	if queryResult.FailureCode != "" {
