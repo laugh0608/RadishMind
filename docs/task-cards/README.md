@@ -12,10 +12,9 @@
 
 ## 当前活跃任务
 
-1. [Model Gateway Request History / Usage & Failure Review v1](model-gateway-request-history-usage-failure-review-v1-plan.md)：按已完成的功能设计实施 caller context、真实 northbound request record、独立 dev/test repository、scoped API 和 Web 审查纵向链。
-2. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R5 包体预算已进入现有 Vite build；后续继续处理低覆盖包，R6 随功能批次收敛入口文档和历史 checker 耦合。
+1. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R5 包体预算已进入现有 Vite build；后续继续处理低覆盖包，R6 随功能批次收敛入口文档和历史 checker 耦合。
 
-R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、[Evaluation Cases / Batch Regression Review](workflow-evaluation-cases-batch-regression-review-v1-plan.md)、[Baseline / Case Versioning](workflow-evaluation-baseline-case-versioning-v1-plan.md) 与 [Evaluation Suite / Release Review](workflow-evaluation-suite-release-review-v1-plan.md) 已于 2026-07-11 完成。Model Gateway Request History / Usage & Failure Review v1 已完成对应功能设计，确认新增独立 API 与 PostgreSQL dev/test schema，不存在复用 Workflow repository 的理由，并已创建一张纵向实现任务卡。不恢复旧 storage adapter readiness 链，也不派生新的 Gateway / executor / run store gate-only readiness 链。
+R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、[Evaluation Cases / Batch Regression Review](workflow-evaluation-cases-batch-regression-review-v1-plan.md)、[Baseline / Case Versioning](workflow-evaluation-baseline-case-versioning-v1-plan.md) 与 [Evaluation Suite / Release Review](workflow-evaluation-suite-release-review-v1-plan.md) 已于 2026-07-11 完成。Model Gateway Request History / Usage & Failure Review v1、User Workspace Application API Integration & Invocation v1 和 Application Configuration Draft & Review v1 已完成实现与验证；不恢复旧 storage adapter readiness 链，也不派生新的 Gateway / executor / run store gate-only readiness 链。
 
 当前没有活跃的 Production Secret Backend / Storage Adapter readiness 任务卡。下方既有任务卡均按历史完成、冻结或外部阻塞证据读取，不表示当前排期；新增实现任务应先回到对应功能专题和整改总入口确认用户目标。
 
@@ -194,6 +193,7 @@ R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run
 134. [`Production Secret Backend Audit Store Storage Adapter Runtime Implementation Entry Refresh After Concrete Managed Database Provider Selection Review` v1 任务卡](production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1-plan.md)（`production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1` / `audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined`）
 135. [`Production Secret Backend Audit Store Storage Adapter Provider Account / Resource / Endpoint Readiness` v1 任务卡](production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1-plan.md)（`production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1` / `audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined`）
 136. [`Production Secret Backend Audit Store Storage Adapter Provider Account / Resource / Endpoint Review` v1 任务卡](production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1-plan.md)（`production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1` / `audit_store_storage_adapter_provider_account_resource_endpoint_review_defined`）
+137. [`Application Configuration Draft & Review` v1 任务卡](application-configuration-draft-review-v1-plan.md)（`application-configuration-draft-review-v1` / `application_configuration_draft_review_v1_complete`）
 
 ## UI 设计专题
 

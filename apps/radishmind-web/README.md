@@ -16,6 +16,7 @@
 - Gateway Request History 独立使用 `VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE=dev-gateway-request-history-http`；默认 offline evidence 零请求。显式启用后，现有 Model Gateway Evidence Review 内的独立 lazy panel 读取 `/v1/model-gateway/requests` list / detail，展示 sanitized caller refs、route / protocol、selection、timing、usage availability 和稳定 failure，不回退旧 quota / cost 或 Workflow run fixture。后端必须同时启用 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 与 `RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV=1`。
 - Gateway Playground 使用 `VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE=dev-gateway-playground-http`；默认 offline 零请求。显式启用后可从 Web 调用 Chat Completions、Responses、Messages 的 unary / stream，用户可取消请求并按同一 request id 打开 sanitized history。输入输出只保留在组件内存，不写 URL 或浏览器 storage。
 - Application API Integration 复用同一 Gateway Playground 开关与 caller scope；从当前 Application Detail 主动加载 `/v1/models`，生成 Chat Completions、Responses、Messages 的 cURL / Python / TypeScript 环境变量占位示例，并把当前 application / protocol / model 交给既有 Playground。示例不展示真实 key、hash 或内部 dev caller headers，application 切换会清空旧目录与选择。
+- Application Configuration Draft 使用独立的 `VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE=dev-application-draft-http` 开关；默认 offline 零请求且编辑状态只在当前组件内存。显式启用后可在当前 application scope 下校验、保存、列出和恢复配置草案，使用 expected-version 处理并发冲突，并把协议与模型继续交给 API Integration 或既有 Playground。草案不保存 secret、Gateway 测试输入输出，也不创建、发布或删除正式 application。
 - 只渲染 read route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、只读 `admin-audit-log`、普通离线 Admin Operations Review / Readiness、普通离线 Admin Provider/Profile & Deployment Evidence Review / Readiness、只读 `workspace-applications`、只读 `workspace-api-keys`、只读 `workspace-usage-quota`、只读 `workspace-workflow-definitions`、只读 `workspace-run-history`、User Workspace Home、Model Gateway Overview、Model Gateway Route Evidence、Model Gateway Usage/Audit Evidence、Model Gateway Evidence Review / Readiness 和 workflow function surface 面板。
 - `admin-tenant-overview` 只消费 `tenant-summary-route` 的离线 view model，展示租户摘要、route metadata、request / audit ref 和状态预览。
 - `admin-audit-log` 只消费 `audit-summary-list-route` 的离线 view model，展示 audit ref、actor、event kind、resource、decision、failure code、trace id、recorded timestamp、route metadata、request / audit ref、cursor 和状态预览。
@@ -126,7 +127,19 @@ VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http
 
 这些开关只服务本地开发态 Saved Draft 与受控 executor v0；`--saved-draft-postgres-dev-test` 可显式使用 PostgreSQL dev/test repository。两者都不代表 production persistence、production auth 或 production API。
 
-Gateway Request History 与 Playground 可以通过 launcher 的 `--gateway-request-postgres-dev-test` / `-GatewayRequestPostgresDevTest` 一起开启；launcher 会为 Platform 与 Web 绑定同一 caller scope，并先执行三套 PostgreSQL migration status preflight。真实 northbound 请求仍必须携带同组 `X-RadishMind-Dev-Gateway-*` header 才会形成记录。手动联调 `memory_dev` 时可使用以下最小开关：
+Application Configuration Draft 通过独立开关启用；可与 Gateway PostgreSQL dev/test 联调组合使用：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --application-draft-dev --gateway-request-postgres-dev-test --backend-url http://127.0.0.1:7100
+```
+
+```powershell
+pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -ApplicationDraftDev -GatewayRequestPostgresDevTest -BackendUrl http://127.0.0.1:7100
+```
+
+launcher 会设置 application draft 的 dev HTTP / write gate、当前 workspace 和 Web consumer source；如同时选择 PostgreSQL dev/test，会先检查 application draft migration marker，再启动 Platform。默认 offline 与未传入该开关的 dev-live 都不会发出 application draft 请求。
+
+Gateway Request History 与 Playground 可以通过 launcher 的 `--gateway-request-postgres-dev-test` / `-GatewayRequestPostgresDevTest` 一起开启；launcher 会为 Platform 与 Web 绑定同一 caller scope，并先执行 Saved Draft、Workflow Run、Gateway Request 与 Application Draft 四套 PostgreSQL migration status preflight。真实 northbound 请求仍必须携带同组 `X-RadishMind-Dev-Gateway-*` header 才会形成记录。手动联调 `memory_dev` 时可使用以下必要开关：
 
 ```bash
 RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1

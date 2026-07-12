@@ -10,6 +10,7 @@
 
 - `apps/radishmind-web/` 已有 read-side shell、Workspace Home、applications、API keys、usage quota、workflow definitions、run history、Workflow Review Workspace 和 Workflow Review Handoff。
 - [Application API Integration & Invocation v1](user-workspace/application-api-integration-invocation-v1.md) 已把当前选中 application、`/v1/models` 模型目录、三协议 × 三语言接入示例、现有 Gateway Playground 和 sanitized Request History 串成连续的内部开发者路径；scope 不再依赖固定 application 配置。
+- [Application Configuration Draft & Review v1](user-workspace/application-configuration-draft-review-v1.md) 已让当前 application 建立独立 sanitized 配置草案，完成模型 / 协议校验、memory 与 PostgreSQL dev/test 保存、恢复、配置比较、CAS 冲突审查和 API Integration / Playground handoff；正式 application 真相源仍只读。
 - Workspace Home 和 workflow definitions 已支持创建本地 workflow 草案并进入 Draft Designer；草案保存仍复用 dev-only saved draft consumer，不代表 production persistence。
 - `User Workspace Saved Draft List v1` 已在 Workspace Home 支持 dev-only saved draft list：显示当前 application 下已保存草案的 sanitized summary、empty / failure state、refresh 和 restore；默认 memory 路径与显式 PostgreSQL dev/test repository 均可承载该路径，但不代表 production persistence。
 - Draft Designer 已通过 `Workflow Draft Node Attribute Editing Model v1` 支持本地节点新增、移动、删除保护、属性编辑和边重建；validation inspector、execution plan preview 和 runtime readiness inspector 使用当前 active draft，不代表 workflow 可发布或可执行。
@@ -38,8 +39,8 @@
 ## 下一批开发方向
 
 1. Draft Review、Saved Draft dev/test persistence、受控执行、运行历史、evaluation release evidence、Gateway Request History、Gateway Playground 与 application-scoped API Integration 已落地；不继续给 Workflow / Gateway 审查链叠加同层面板。
-2. 下一产品任务重新比较 application 生命周期、Admin 的真实 auth/read store、Gateway 的 production distribution 前置与 Workflow 高风险能力；外部依赖未成立前不伪造实现顺位。
-3. 在进入任何生产写入前，先补用户工作区功能设计更新，明确创建、保存、发布、执行、确认和回滚边界。
+2. 下一产品任务优先设计 `Application Publish Governance & Promotion v1`，明确草案审查、审批、版本绑定、发布候选和回滚边界；设计完成前不把 dev/test draft 直接写为正式 application。
+3. 若真实 OIDC / membership、正式 application repository 或发布 owner 仍未成立，则保留 publish blocked，并重新比较 Admin auth-read store、Gateway production distribution 前置与 Workflow 高风险能力。
 4. 若下一步只改展示、分组、文案或使用性，不新增专项 gate，复用 web build、consumer smoke 和仓库基线。
 5. 若新增 API、写入、真实 auth、真实数据源或执行能力，必须新增 task card，并按风险补 fixture / checker。
 
