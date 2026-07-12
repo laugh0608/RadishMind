@@ -63,7 +63,7 @@ export default function ModelGatewayRequestHistoryPanel() {
           <h4>Usage, timing, and stable failure review</h4>
         </div>
         <span className={`status-badge ${config.mode === "dev_gateway_request_history_http" ? "good" : "neutral"}`}>
-          {config.mode === "dev_gateway_request_history_http" ? "memory dev/test" : "offline evidence"}
+          {config.mode === "dev_gateway_request_history_http" ? (history.requests[0]?.storeMode ?? "dev/test") : "offline evidence"}
         </span>
       </div>
 
@@ -165,7 +165,7 @@ function GatewayRequestDetail({ detail }: { detail: GatewayRequestHistoryDetail 
         <div><dt>HTTP / failure</dt><dd>{detail.httpStatusCode || "unavailable"} · {detail.failureBoundary || "no failure"} · {detail.failureCode || "none"}</dd></div>
         <div><dt>Started / completed</dt><dd>{formatTimestamp(detail.startedAt)} / {detail.completedAt ? formatTimestamp(detail.completedAt) : "not completed"}</dd></div>
         <div><dt>Request / audit</dt><dd>{detail.requestId} / {detail.auditRef}</dd></div>
-        <div><dt>Record</dt><dd>{detail.schemaVersion} · version {detail.recordVersion} · memory_dev{detail.staleStarted ? " · stale started" : ""}</dd></div>
+        <div><dt>Record</dt><dd>{detail.schemaVersion} · version {detail.recordVersion} · {detail.storeMode}{detail.staleStarted ? " · stale started" : ""}</dd></div>
       </dl>
       <p className="boundary-note">Raw input, output, credentials, endpoints, provider envelopes, retry/fallback, billing writes, tools, confirmation, business writes, replay, and resume are not retained or exposed.</p>
     </article>

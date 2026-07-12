@@ -157,6 +157,7 @@ function summaryDocument() {
   return {
     schema_version: "gateway_request_record.v1",
     record_version: 3,
+    store_mode: "postgres_dev_test",
     request_id: "request_gateway_1",
     audit_ref: "audit_gateway_1",
     route: "POST /v1/responses",

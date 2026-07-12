@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
@@ -13,12 +14,14 @@ import (
 )
 
 const (
-	gatewayRequestRecordSchemaVersion = "gateway_request_record.v1"
-	gatewayRequestListDefaultLimit    = 25
-	gatewayRequestListMaxLimit        = 100
-	gatewayRequestListMaxRange        = 31 * 24 * time.Hour
-	gatewayRequestListFutureSkew      = 5 * time.Minute
-	gatewayRequestStaleThreshold      = 5 * time.Minute
+	gatewayRequestRecordSchemaVersion      = "gateway_request_record.v1"
+	gatewayRequestStoreModeMemoryDev       = "memory_dev"
+	gatewayRequestStoreModePostgresDevTest = "postgres_dev_test"
+	gatewayRequestListDefaultLimit         = 25
+	gatewayRequestListMaxLimit             = 100
+	gatewayRequestListMaxRange             = 31 * 24 * time.Hour
+	gatewayRequestListFutureSkew           = 5 * time.Minute
+	gatewayRequestStaleThreshold           = 5 * time.Minute
 )
 
 type GatewayRequestStatus string
@@ -41,26 +44,29 @@ const (
 type GatewayRequestHistoryFailureCode string
 
 const (
-	GatewayRequestHistoryFailureDisabled      GatewayRequestHistoryFailureCode = "gateway_request_history_disabled"
-	GatewayRequestHistoryFailureScopeDenied   GatewayRequestHistoryFailureCode = "gateway_request_scope_denied"
-	GatewayRequestHistoryFailureNotFound      GatewayRequestHistoryFailureCode = "gateway_request_record_not_found"
-	GatewayRequestHistoryFailureFilterInvalid GatewayRequestHistoryFailureCode = "gateway_request_filter_invalid"
-	GatewayRequestHistoryFailureCursorInvalid GatewayRequestHistoryFailureCode = "gateway_request_cursor_invalid"
-	GatewayRequestHistoryFailureStore         GatewayRequestHistoryFailureCode = "gateway_request_store_unavailable"
-	GatewayRequestHistoryFailureContract      GatewayRequestHistoryFailureCode = "gateway_request_store_contract_mismatch"
+	GatewayRequestHistoryFailureDisabled          GatewayRequestHistoryFailureCode = "gateway_request_history_disabled"
+	GatewayRequestHistoryFailureScopeDenied       GatewayRequestHistoryFailureCode = "gateway_request_scope_denied"
+	GatewayRequestHistoryFailureNotFound          GatewayRequestHistoryFailureCode = "gateway_request_record_not_found"
+	GatewayRequestHistoryFailureFilterInvalid     GatewayRequestHistoryFailureCode = "gateway_request_filter_invalid"
+	GatewayRequestHistoryFailureCursorInvalid     GatewayRequestHistoryFailureCode = "gateway_request_cursor_invalid"
+	GatewayRequestHistoryFailureStore             GatewayRequestHistoryFailureCode = "gateway_request_store_unavailable"
+	GatewayRequestHistoryFailureContract          GatewayRequestHistoryFailureCode = "gateway_request_store_contract_mismatch"
+	GatewayRequestHistoryFailureStoreModeInvalid  GatewayRequestHistoryFailureCode = "gateway_request_store_mode_invalid"
+	GatewayRequestHistoryFailureStoreModeDisabled GatewayRequestHistoryFailureCode = "gateway_request_store_mode_disabled"
 )
 
 type GatewayRequestContext struct {
-	TenantRef     string
-	WorkspaceID   string
-	ConsumerRef   string
-	ApplicationID string
-	SubjectRef    string
-	ScopeGrants   []string
-	AuditContext  string
-	Source        string
-	RequestID     string
-	AuditRef      string
+	RequestContext context.Context
+	TenantRef      string
+	WorkspaceID    string
+	ConsumerRef    string
+	ApplicationID  string
+	SubjectRef     string
+	ScopeGrants    []string
+	AuditContext   string
+	Source         string
+	RequestID      string
+	AuditRef       string
 }
 
 type GatewayRequestUsage struct {
@@ -74,6 +80,7 @@ type GatewayRequestUsage struct {
 type GatewayRequestRecord struct {
 	SchemaVersion             string               `json:"schema_version"`
 	RecordVersion             int                  `json:"record_version"`
+	StoreMode                 string               `json:"store_mode"`
 	RequestID                 string               `json:"request_id"`
 	AuditRef                  string               `json:"audit_ref"`
 	TenantRef                 string               `json:"tenant_ref"`

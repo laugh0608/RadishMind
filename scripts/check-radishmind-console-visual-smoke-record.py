@@ -96,7 +96,8 @@ PORT_SOURCE_FILES = {
         "http://localhost:4000",
     ],
     "services/platform/internal/config/config.go": [
-        'defaultListenAddr        = ":7000"',
+        "defaultListenAddr",
+        '= ":7000"',
     ],
     "services/platform/internal/httpapi/server.go": [
         "http://127.0.0.1:4000",

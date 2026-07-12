@@ -24,6 +24,7 @@ export type GatewayRequestHistoryFilter = {
 export type GatewayRequestHistorySummary = {
   schemaVersion: "gateway_request_record.v1";
   recordVersion: number;
+  storeMode: "memory_dev" | "postgres_dev_test";
   requestId: string;
   auditRef: string;
   route: string;
@@ -74,6 +75,7 @@ export type GatewayRequestHistoryState = {
 type GatewayRequestSummaryDocument = {
   schema_version: "gateway_request_record.v1";
   record_version: number;
+  store_mode: "memory_dev" | "postgres_dev_test";
   request_id: string;
   audit_ref: string;
   route: string;
@@ -279,6 +281,7 @@ function mapGatewayRequestSummary(value: GatewayRequestSummaryDocument): Gateway
   return {
     schemaVersion: value.schema_version,
     recordVersion: value.record_version,
+    storeMode: value.store_mode,
     requestId: value.request_id,
     auditRef: value.audit_ref,
     route: value.route,
@@ -336,6 +339,7 @@ function isGatewayRequestReadEnvelope(value: unknown): value is GatewayRequestRe
 function isGatewayRequestSummaryDocument(value: unknown): value is GatewayRequestSummaryDocument {
   if (!isRecord(value)) return false;
   return value.schema_version === "gateway_request_record.v1" && isNonNegativeInteger(value.record_version) &&
+    ["memory_dev", "postgres_dev_test"].includes(String(value.store_mode)) &&
     stringFields(value, ["request_id", "audit_ref", "route", "protocol", "started_at", "completed_at", "selection_source", "selected_provider", "selected_profile", "selected_model", "failure_code", "failure_boundary"]) &&
     typeof value.stream === "boolean" && ["started", "succeeded", "failed", "canceled"].includes(String(value.status)) &&
     isNonNegativeInteger(value.duration_ms) && isNonNegativeInteger(value.provider_duration_ms) &&

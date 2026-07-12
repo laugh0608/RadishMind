@@ -24,16 +24,17 @@ func gatewayRequestContextFromDevHeaders(
 	trace requestTrace,
 ) (GatewayRequestContext, bool) {
 	requestContext := GatewayRequestContext{
-		TenantRef:     strings.TrimSpace(request.Header.Get(gatewayRequestDevTenantHeader)),
-		WorkspaceID:   strings.TrimSpace(request.Header.Get(gatewayRequestDevWorkspaceHeader)),
-		ConsumerRef:   strings.TrimSpace(request.Header.Get(gatewayRequestDevConsumerHeader)),
-		ApplicationID: strings.TrimSpace(request.Header.Get(gatewayRequestDevApplicationHeader)),
-		SubjectRef:    strings.TrimSpace(request.Header.Get(gatewayRequestDevSubjectHeader)),
-		ScopeGrants:   splitControlPlaneReadDevScopes(request.Header.Get(gatewayRequestDevScopesHeader)),
-		AuditContext:  strings.TrimSpace(request.Header.Get(gatewayRequestDevAuditHeader)),
-		Source:        "dev_headers",
-		RequestID:     trace.requestID,
-		AuditRef:      "audit_" + trace.requestID + "_gateway-request",
+		RequestContext: request.Context(),
+		TenantRef:      strings.TrimSpace(request.Header.Get(gatewayRequestDevTenantHeader)),
+		WorkspaceID:    strings.TrimSpace(request.Header.Get(gatewayRequestDevWorkspaceHeader)),
+		ConsumerRef:    strings.TrimSpace(request.Header.Get(gatewayRequestDevConsumerHeader)),
+		ApplicationID:  strings.TrimSpace(request.Header.Get(gatewayRequestDevApplicationHeader)),
+		SubjectRef:     strings.TrimSpace(request.Header.Get(gatewayRequestDevSubjectHeader)),
+		ScopeGrants:    splitControlPlaneReadDevScopes(request.Header.Get(gatewayRequestDevScopesHeader)),
+		AuditContext:   strings.TrimSpace(request.Header.Get(gatewayRequestDevAuditHeader)),
+		Source:         "dev_headers",
+		RequestID:      trace.requestID,
+		AuditRef:       "audit_" + trace.requestID + "_gateway-request",
 	}
 	return requestContext, validGatewayRequestContext(requestContext) && len(requestContext.ScopeGrants) > 0
 }
@@ -57,6 +58,7 @@ func (s *Server) startGatewayRequestTrace(
 	}
 	record := GatewayRequestRecord{
 		SchemaVersion: gatewayRequestRecordSchemaVersion,
+		StoreMode:     s.gatewayRequestHistoryStoreMode,
 		RequestID:     trace.requestID,
 		AuditRef:      requestContext.AuditRef,
 		TenantRef:     requestContext.TenantRef,
@@ -71,12 +73,12 @@ func (s *Server) startGatewayRequestTrace(
 		Usage:         GatewayRequestUsage{Availability: GatewayRequestUsageNotReported},
 	}
 	if err := s.gatewayRequestStore().CreateRequest(requestContext, &record); err != nil {
-		logGatewayRequestStoreOutcome(trace.requestID, trace.route, "create_failed")
+		logGatewayRequestStoreOutcome(trace.requestID, trace.route, record.StoreMode, "create_failed")
 		return
 	}
 	trace.gatewayRequestContext = requestContext
 	trace.gatewayRequest = &record
-	logGatewayRequestStoreOutcome(trace.requestID, trace.route, "started")
+	logGatewayRequestStoreOutcome(trace.requestID, trace.route, record.StoreMode, "started")
 }
 
 func (s *Server) checkpointGatewayRequestTrace(trace *requestTrace, stream bool) {
@@ -87,10 +89,10 @@ func (s *Server) checkpointGatewayRequestTrace(trace *requestTrace, stream bool)
 	record.Stream = stream
 	applyGatewayRequestSelection(record, *trace)
 	if err := s.gatewayRequestStore().UpdateRequest(trace.gatewayRequestContext, record); err != nil {
-		logGatewayRequestStoreOutcome(trace.requestID, trace.route, "checkpoint_failed")
+		logGatewayRequestStoreOutcome(trace.requestID, trace.route, record.StoreMode, "checkpoint_failed")
 		return
 	}
-	logGatewayRequestStoreOutcome(trace.requestID, trace.route, "checkpoint_stored")
+	logGatewayRequestStoreOutcome(trace.requestID, trace.route, record.StoreMode, "checkpoint_stored")
 }
 
 func (s *Server) applyGatewayEnvelopeToTrace(trace *requestTrace, envelope bridge.GatewayEnvelope) {
@@ -126,10 +128,10 @@ func (s *Server) finishGatewayRequestTrace(
 	record.FailureCode = strings.TrimSpace(failureCode)
 	record.FailureBoundary = strings.TrimSpace(failureBoundary)
 	if err := s.gatewayRequestStore().UpdateRequest(trace.gatewayRequestContext, record); err != nil {
-		logGatewayRequestStoreOutcome(trace.requestID, trace.route, "terminal_failed")
+		logGatewayRequestStoreOutcome(trace.requestID, trace.route, record.StoreMode, "terminal_failed")
 		return
 	}
-	logGatewayRequestStoreOutcome(trace.requestID, trace.route, "terminal_stored")
+	logGatewayRequestStoreOutcome(trace.requestID, trace.route, record.StoreMode, "terminal_stored")
 }
 
 func applyGatewayRequestSelection(record *GatewayRequestRecord, trace requestTrace) {
@@ -160,11 +162,12 @@ func gatewayMetadataInt64(metadata map[string]any, key string) (int64, bool) {
 	}
 }
 
-func logGatewayRequestStoreOutcome(requestID string, route string, outcome string) {
+func logGatewayRequestStoreOutcome(requestID string, route string, storeMode string, outcome string) {
 	log.Printf(
-		"radishmind_gateway_request_history request_id=%s route=%s store_mode=memory_dev outcome=%s",
+		"radishmind_gateway_request_history request_id=%s route=%s store_mode=%s outcome=%s",
 		strings.TrimSpace(requestID),
 		strings.TrimSpace(route),
+		strings.TrimSpace(storeMode),
 		strings.TrimSpace(outcome),
 	)
 }

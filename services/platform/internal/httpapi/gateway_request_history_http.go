@@ -15,6 +15,7 @@ const (
 type gatewayRequestSummaryDocument struct {
 	SchemaVersion             string                          `json:"schema_version"`
 	RecordVersion             int                             `json:"record_version"`
+	StoreMode                 string                          `json:"store_mode"`
 	RequestID                 string                          `json:"request_id"`
 	AuditRef                  string                          `json:"audit_ref"`
 	Route                     string                          `json:"route"`
@@ -237,6 +238,7 @@ func writeGatewayRequestReadResult(
 func gatewayRequestSummaryFromRecord(record GatewayRequestRecord, now time.Time) gatewayRequestSummaryDocument {
 	return gatewayRequestSummaryDocument{
 		SchemaVersion: record.SchemaVersion, RecordVersion: record.RecordVersion,
+		StoreMode: record.StoreMode,
 		RequestID: record.RequestID, AuditRef: record.AuditRef, Route: record.Route,
 		Protocol: record.Protocol, Stream: record.Stream, Status: record.Status,
 		StartedAt: record.StartedAt, CompletedAt: record.CompletedAt, DurationMS: record.DurationMS,

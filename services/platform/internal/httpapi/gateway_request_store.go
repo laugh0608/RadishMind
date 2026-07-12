@@ -65,6 +65,9 @@ func (store *memoryGatewayRequestStore) CreateRequest(
 	requestContext GatewayRequestContext,
 	record *GatewayRequestRecord,
 ) error {
+	if record != nil && record.StoreMode == "" {
+		record.StoreMode = gatewayRequestStoreModeMemoryDev
+	}
 	if err := validateGatewayRequestStoreRecord(requestContext, record); err != nil || record.RecordVersion != 0 || record.Status != GatewayRequestStatusStarted {
 		return errGatewayRequestStoreContract
 	}
@@ -178,6 +181,7 @@ func validateGatewayRequestStoreRecord(
 ) error {
 	if record == nil || !validGatewayRequestContext(requestContext) ||
 		record.SchemaVersion != gatewayRequestRecordSchemaVersion || record.RecordVersion < 0 ||
+		(record.StoreMode != gatewayRequestStoreModeMemoryDev && record.StoreMode != gatewayRequestStoreModePostgresDevTest) ||
 		record.TenantRef != requestContext.TenantRef || record.WorkspaceID != requestContext.WorkspaceID ||
 		record.ConsumerRef != requestContext.ConsumerRef || record.ApplicationID != requestContext.ApplicationID ||
 		record.SubjectRef != requestContext.SubjectRef || !validGatewayRequestReference(record.RequestID, 160) ||

@@ -108,6 +108,10 @@ function Invoke-Migration {
     $env:RADISHMIND_WORKFLOW_RUN_STORE = "postgres_dev_test"
     $env:RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
     $env:RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
+    $env:RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV = "1"
+    $env:RADISHMIND_GATEWAY_REQUEST_STORE = "postgres_dev_test"
+    $env:RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
+    $env:RADISHMIND_GATEWAY_REQUEST_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
     Push-Location $platformDir
     try {
         & $go run ./cmd/radishmind-workflow-draft-migrate $MigrationAction
@@ -117,6 +121,10 @@ function Invoke-Migration {
         & $go run ./cmd/radishmind-workflow-run-migrate $MigrationAction
         if ($LASTEXITCODE -ne 0) {
             throw "workflow run migration runner failed with exit code $LASTEXITCODE"
+        }
+        & $go run ./cmd/radishmind-gateway-request-migrate $MigrationAction
+        if ($LASTEXITCODE -ne 0) {
+            throw "Gateway request migration runner failed with exit code $LASTEXITCODE"
         }
     }
     finally {
@@ -164,7 +172,7 @@ switch ($Action) {
         Invoke-Compose -Arguments @("up", "-d", "--wait")
         Write-Step "Running the PostgreSQL repository integration suite."
         Invoke-IntegrationTest
-        Write-Step "Restoring the reviewed migrated schema for interactive development."
+        Write-Step "Restoring the reviewed saved draft, workflow run, and Gateway request schemas for interactive development."
         Invoke-Migration -MigrationAction "up"
     }
     "down" {

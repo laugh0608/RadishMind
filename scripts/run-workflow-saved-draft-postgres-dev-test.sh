@@ -108,9 +108,14 @@ run_migration() {
     export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
 		export RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL="${runtime_database_url}"
 		export RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL="${migration_database_url}"
+		export RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV="1"
+		export RADISHMIND_GATEWAY_REQUEST_STORE="postgres_dev_test"
+		export RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL="${runtime_database_url}"
+		export RADISHMIND_GATEWAY_REQUEST_DEV_TEST_MIGRATION_DATABASE_URL="${migration_database_url}"
     cd "${platform_dir}"
     go run ./cmd/radishmind-workflow-draft-migrate "${migration_action}"
 		go run ./cmd/radishmind-workflow-run-migrate "${migration_action}"
+		go run ./cmd/radishmind-gateway-request-migrate "${migration_action}"
   )
 }
 
@@ -153,7 +158,7 @@ case "${action}" in
     compose up -d --wait
     step "Running the PostgreSQL repository integration suite."
     run_integration_test
-    step "Restoring the reviewed saved draft and workflow run schemas for interactive development."
+    step "Restoring the reviewed saved draft, workflow run, and Gateway request schemas for interactive development."
     run_migration up
     ;;
   down)

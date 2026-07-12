@@ -12,6 +12,7 @@ exit_after_probe=0
 saved_draft_dev=0
 saved_draft_postgres_dev_test=0
 workflow_diagnostics_dev=0
+gateway_request_postgres_dev_test=0
 saved_draft_workspace_id="workspace_demo"
 saved_draft_application_id="app_flow_copilot"
 
@@ -39,6 +40,8 @@ Options:
                            Enable the explicit PostgreSQL dev/test Saved Draft path.
   --workflow-diagnostics-dev
                            Enable fixed mock Workflow failure scenarios; requires a Saved Draft dev mode.
+  --gateway-request-postgres-dev-test
+                           Enable durable dev/test Gateway Request History in the existing Evidence Review.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
   -h, --help              Show this help.
@@ -87,6 +90,10 @@ while [[ $# -gt 0 ]]; do
       workflow_diagnostics_dev=1
       shift
       ;;
+    --gateway-request-postgres-dev-test)
+      gateway_request_postgres_dev_test=1
+      shift
+      ;;
     --verify-only)
       verify_only=1
       shift
@@ -130,6 +137,10 @@ if [[ "${saved_draft_dev}" -eq 1 && "${saved_draft_postgres_dev_test}" -eq 1 ]];
 fi
 if [[ "${workflow_diagnostics_dev}" -eq 1 && "${saved_draft_dev}" -eq 0 && "${saved_draft_postgres_dev_test}" -eq 0 ]]; then
   echo "--workflow-diagnostics-dev requires --saved-draft-dev or --saved-draft-postgres-dev-test" >&2
+  exit 2
+fi
+if [[ "${gateway_request_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--gateway-request-postgres-dev-test requires --mode dev-live" >&2
   exit 2
 fi
 
@@ -196,9 +207,13 @@ probe_saved_draft_postgres_migration() {
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL="${database_url}"
 		export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
 		export RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL="${database_url}"
+		export RADISHMIND_GATEWAY_REQUEST_STORE="postgres_dev_test"
+		export RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL="${database_url}"
+		export RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV="1"
     cd "${platform_dir}"
-    go run ./cmd/radishmind-workflow-draft-migrate status >/dev/null
-		go run ./cmd/radishmind-workflow-run-migrate status >/dev/null
+		go run ./cmd/radishmind-workflow-draft-migrate status >/dev/null || return
+		go run ./cmd/radishmind-workflow-run-migrate status >/dev/null || return
+		go run ./cmd/radishmind-gateway-request-migrate status >/dev/null || return
   )
 }
 
@@ -535,6 +550,7 @@ show_failure_help() {
     echo "- macOS port 7000 conflict: AirPlay / Control Center may occupy it; retry with --backend-url http://127.0.0.1:7100."
     echo "- Dev-live auth: backend must be started with RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1 for fake-store-backed read routes."
     echo "- Saved Draft mode: choose --saved-draft-dev or --saved-draft-postgres-dev-test so backend and web opt in together."
+    echo "- Gateway Request History: use --gateway-request-postgres-dev-test after running the PostgreSQL check entry."
     echo "- PostgreSQL dev/test mode: start and migrate it with ./scripts/run-workflow-saved-draft-postgres-dev-test.sh check."
     echo "- CORS/preflight: platform should allow http://127.0.0.1:4100 and dev read headers in local development."
     echo "- Missing dependencies: run npm install in apps/radishmind-web if npm cannot start Vite."
@@ -585,14 +601,14 @@ if [[ "${mode}" == "dev-live" && ! -f "${platform_wrapper}" ]]; then
 fi
 
 saved_draft_database_url=""
-if [[ "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
+if [[ "${saved_draft_postgres_dev_test}" -eq 1 || "${gateway_request_postgres_dev_test}" -eq 1 ]]; then
   require_command go
   saved_draft_database_url="$(build_saved_draft_database_url)"
   if ! probe_saved_draft_postgres_migration "${saved_draft_database_url}"; then
-    show_failure_help "Saved Draft PostgreSQL migration preflight failed"
+    show_failure_help "PostgreSQL dev/test migration preflight failed"
     exit 1
   fi
-  step "Saved Draft PostgreSQL migration preflight passed."
+  step "PostgreSQL dev/test migration preflight passed."
 fi
 
 if [[ "${verify_only}" -eq 0 ]]; then
@@ -627,6 +643,11 @@ if [[ "${verify_only}" -eq 0 ]]; then
         if [[ "${workflow_diagnostics_dev}" -eq 1 ]]; then
           export RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV="1"
         fi
+        if [[ "${gateway_request_postgres_dev_test}" -eq 1 ]]; then
+          export RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV="1"
+          export RADISHMIND_GATEWAY_REQUEST_STORE="postgres_dev_test"
+          export RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+        fi
         exec "${platform_wrapper}" serve
       ) >"${log_dir}/platform.out.log" 2>"${log_dir}/platform.err.log" &
       spawned_pids+=("$!")
@@ -650,6 +671,15 @@ if [[ "${verify_only}" -eq 0 ]]; then
         fi
         if [[ "${workflow_diagnostics_dev}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV="true"
+        fi
+        if [[ "${gateway_request_postgres_dev_test}" -eq 1 ]]; then
+          export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE="dev-gateway-request-history-http"
+          export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_TENANT_REF="${tenant_ref}"
+          export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_WORKSPACE_ID="${saved_draft_workspace_id}"
+          export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_CONSUMER_REF="consumer_web_dev"
+          export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_APPLICATION_ID="${saved_draft_application_id}"
+          export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SUBJECT_REF="${subject_ref}"
         fi
       else
         unset VITE_RADISHMIND_READ_SOURCE
@@ -712,6 +742,9 @@ if [[ "${mode}" == "dev-live" ]]; then
     step "Saved Draft PostgreSQL dev/test read/write mode passed for ${saved_draft_workspace_id}/${saved_draft_application_id}."
   elif [[ "${saved_draft_dev}" -eq 1 ]]; then
     step "Saved Draft memory-dev read/write mode passed for ${saved_draft_workspace_id}/${saved_draft_application_id}."
+  fi
+  if [[ "${gateway_request_postgres_dev_test}" -eq 1 ]]; then
+    step "Gateway Request History PostgreSQL dev/test mode enabled for ${saved_draft_workspace_id}/consumer_web_dev/${saved_draft_application_id}."
   fi
 fi
 step "This is a dev-only launcher, not a production supervisor. Controlled executor v0 is dev-only; production auth, secret resolution, unrestricted tools, confirmation commit, writeback and replay remain disabled."

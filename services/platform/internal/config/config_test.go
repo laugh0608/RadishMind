@@ -69,6 +69,8 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_MIGRATION_DATABASE_URL",
 	}) {
 		t.Fatalf("unexpected secret fields: %#v", summary.SecretFields)
 	}
@@ -112,6 +114,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE", "true")
 	t.Setenv("RADISHMIND_WORKFLOW_EXECUTOR_DEV", "1")
 	t.Setenv("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_STORE", "postgres_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL", "postgresql://gateway-runtime.invalid/secret")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_DATABASE_TIMEOUT", "8s")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE", "repository_disabled")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL", "postgresql://runtime.invalid/secret")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_TIMEOUT", "9s")
@@ -151,6 +156,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if !cfg.GatewayRequestHistoryDevEnabled {
 		t.Fatalf("expected gateway request history dev env override")
+	}
+	if cfg.GatewayRequestStoreMode != "postgres_dev_test" || cfg.GatewayRequestDatabaseURL == "" || cfg.GatewayRequestDatabaseTimeout != 8*time.Second {
+		t.Fatalf("expected Gateway request store env overrides: %#v", cfg)
 	}
 	if cfg.WorkflowSavedDraftStoreMode != "repository_disabled" {
 		t.Fatalf("expected workflow saved draft store env override, got %s", cfg.WorkflowSavedDraftStoreMode)
@@ -196,6 +204,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if summary.FieldSources["gateway_request_history_dev"] != "env" {
 		t.Fatalf("expected gateway_request_history_dev source=env, got %#v", summary.FieldSources)
+	}
+	if summary.FieldSources["gateway_request_store"] != "env" || summary.FieldSources["gateway_request_database"] != "env" || summary.FieldSources["gateway_request_database_timeout"] != "env" {
+		t.Fatalf("expected Gateway request store sources=env, got %#v", summary.FieldSources)
 	}
 	if summary.FieldSources["workflow_saved_draft_store"] != "env" {
 		t.Fatalf("expected workflow_saved_draft_store source=env, got %#v", summary.FieldSources)
@@ -358,6 +369,24 @@ func TestPostgresWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
 	}
 }
 
+func TestPostgresGatewayRequestModeRequiresExplicitDevelopmentGates(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.GatewayRequestStoreMode = "postgres_dev_test"
+	summary := cfg.SanitizedSummary()
+	if !reflect.DeepEqual(summary.MissingRequiredFields, []string{
+		"control_plane_read_dev_auth", "gateway_request_history_dev", "gateway_request_database",
+	}) {
+		t.Fatalf("unexpected Gateway request PostgreSQL requirements: %#v", summary.MissingRequiredFields)
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	cfg.GatewayRequestHistoryDevEnabled = true
+	cfg.GatewayRequestDatabaseURL = "postgresql://runtime.invalid/secret"
+	summary = cfg.SanitizedSummary()
+	if len(summary.MissingRequiredFields) != 0 || !summary.GatewayRequestDatabaseConfigured || summary.GatewayRequestStoreMode != "postgres_dev_test" {
+		t.Fatalf("Gateway request PostgreSQL config should be ready and sanitized: %#v", summary)
+	}
+}
+
 func TestWorkflowExecutorDevModeRequiresDevelopmentAuthAndSavedDraftHTTP(t *testing.T) {
 	config := Config{
 		ListenAddr:                 ":7000",
@@ -434,6 +463,10 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_WORKFLOW_EXECUTOR_DEV",
 		"RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV",
 		"RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV",
+		"RADISHMIND_GATEWAY_REQUEST_STORE",
+		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_GATEWAY_REQUEST_DATABASE_TIMEOUT",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",

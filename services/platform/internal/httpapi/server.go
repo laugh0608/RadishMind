@@ -33,14 +33,16 @@ type Server struct {
 	controlPlaneReadStore controlPlaneReadStore
 	controlPlaneReadRepo  ControlPlaneReadRepository
 
-	savedWorkflowDraftStore      savedWorkflowDraftStore
-	workflowRunStore             workflowRunStore
-	workflowEvaluationStore      workflowEvaluationStore
-	workflowEvaluationSuiteStore workflowEvaluationSuiteStore
-	gatewayRequestHistoryStore   gatewayRequestStore
-	closeSavedWorkflowDraftStore func()
-	closeWorkflowRunStore        func()
-	closeOnce                    sync.Once
+	savedWorkflowDraftStore        savedWorkflowDraftStore
+	workflowRunStore               workflowRunStore
+	workflowEvaluationStore        workflowEvaluationStore
+	workflowEvaluationSuiteStore   workflowEvaluationSuiteStore
+	gatewayRequestHistoryStore     gatewayRequestStore
+	gatewayRequestHistoryStoreMode string
+	closeSavedWorkflowDraftStore   func()
+	closeWorkflowRunStore          func()
+	closeGatewayRequestStore       func()
+	closeOnce                      sync.Once
 }
 
 type errorDocument struct {
@@ -75,8 +77,15 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeSavedWorkflowDraftStore()
 		return nil, err
 	}
+	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfig(cfg)
+	if err != nil {
+		closeWorkflowRunStore()
+		closeSavedWorkflowDraftStore()
+		return nil, err
+	}
 	platformBridge, err := newPlatformBridgeClient(cfg)
 	if err != nil {
+		closeGatewayRequestStore()
 		closeWorkflowRunStore()
 		if closeSavedWorkflowDraftStore != nil {
 			closeSavedWorkflowDraftStore()
@@ -85,16 +94,18 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	}
 	mux := http.NewServeMux()
 	server := &Server{
-		options:                      options,
-		bridge:                       platformBridge,
-		config:                       cfg,
-		savedWorkflowDraftStore:      savedWorkflowDraftStore,
-		workflowRunStore:             workflowRunStore,
-		workflowEvaluationStore:      newWorkflowEvaluationStoreForRunStore(workflowRunStore),
-		workflowEvaluationSuiteStore: newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
-		gatewayRequestHistoryStore:   newMemoryGatewayRequestStore(defaultGatewayRequestStoreCapacity),
-		closeSavedWorkflowDraftStore: closeSavedWorkflowDraftStore,
-		closeWorkflowRunStore:        closeWorkflowRunStore,
+		options:                        options,
+		bridge:                         platformBridge,
+		config:                         cfg,
+		savedWorkflowDraftStore:        savedWorkflowDraftStore,
+		workflowRunStore:               workflowRunStore,
+		workflowEvaluationStore:        newWorkflowEvaluationStoreForRunStore(workflowRunStore),
+		workflowEvaluationSuiteStore:   newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
+		gatewayRequestHistoryStore:     gatewayRequestStore,
+		gatewayRequestHistoryStoreMode: gatewayRequestStoreMode,
+		closeSavedWorkflowDraftStore:   closeSavedWorkflowDraftStore,
+		closeWorkflowRunStore:          closeWorkflowRunStore,
+		closeGatewayRequestStore:       closeGatewayRequestStore,
 	}
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
@@ -213,6 +224,9 @@ func (s *Server) Close() {
 		}
 		if s.closeWorkflowRunStore != nil {
 			s.closeWorkflowRunStore()
+		}
+		if s.closeGatewayRequestStore != nil {
+			s.closeGatewayRequestStore()
 		}
 	})
 }

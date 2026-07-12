@@ -10,6 +10,7 @@ param(
     [switch]$SavedDraftDev,
     [switch]$SavedDraftPostgresDevTest,
     [switch]$WorkflowDiagnosticsDev,
+    [switch]$GatewayRequestPostgresDevTest,
     [switch]$VerifyOnly,
     [switch]$ExitAfterProbe,
     [switch]$Help
@@ -31,6 +32,8 @@ Options:
                         Enable the explicit PostgreSQL dev/test Saved Draft path.
   -WorkflowDiagnosticsDev
                         Enable fixed mock Workflow failure scenarios; requires a Saved Draft dev mode.
+  -GatewayRequestPostgresDevTest
+                        Enable durable dev/test Gateway Request History in the existing Evidence Review.
   -VerifyOnly           Probe existing backend/frontend processes only.
   -ExitAfterProbe       Start missing local processes, probe, then stop spawned processes.
 "@
@@ -48,6 +51,9 @@ if ($SavedDraftDev -and $SavedDraftPostgresDevTest) {
 }
 if ($WorkflowDiagnosticsDev -and -not ($SavedDraftDev -or $SavedDraftPostgresDevTest)) {
     throw "-WorkflowDiagnosticsDev requires -SavedDraftDev or -SavedDraftPostgresDevTest"
+}
+if ($GatewayRequestPostgresDevTest -and $Mode -ne "dev-live") {
+    throw "-GatewayRequestPostgresDevTest requires -Mode dev-live"
 }
 
 $savedDraftEnabled = $SavedDraftDev -or $SavedDraftPostgresDevTest
@@ -118,6 +124,9 @@ function Invoke-SavedDraftPostgresMigrationStatus {
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
     $env:RADISHMIND_WORKFLOW_RUN_STORE = "postgres_dev_test"
     $env:RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
+    $env:RADISHMIND_GATEWAY_REQUEST_STORE = "postgres_dev_test"
+    $env:RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
+    $env:RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV = "1"
     Push-Location $platformDir
     try {
         & $goPath run ./cmd/radishmind-workflow-draft-migrate status | Out-Null
@@ -127,6 +136,10 @@ function Invoke-SavedDraftPostgresMigrationStatus {
         & $goPath run ./cmd/radishmind-workflow-run-migrate status | Out-Null
         if ($LASTEXITCODE -ne 0) {
             throw "Workflow Run PostgreSQL migration preflight failed"
+        }
+        & $goPath run ./cmd/radishmind-gateway-request-migrate status | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Gateway Request PostgreSQL migration preflight failed"
         }
     }
     finally {
@@ -474,9 +487,9 @@ try {
     if ($Mode -eq "dev-live" -and -not (Test-Path -LiteralPath $platformWrapper -PathType Leaf)) {
         throw "Missing platform wrapper: $platformWrapper"
     }
-    if ($SavedDraftPostgresDevTest) {
+    if ($SavedDraftPostgresDevTest -or $GatewayRequestPostgresDevTest) {
         Invoke-SavedDraftPostgresMigrationStatus
-        Write-Step "Saved Draft PostgreSQL migration preflight passed."
+        Write-Step "PostgreSQL dev/test migration preflight passed."
     }
 
     if (-not $VerifyOnly) {
@@ -512,6 +525,11 @@ try {
             if ($WorkflowDiagnosticsDev) {
                 $env:RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV = "1"
             }
+            if ($GatewayRequestPostgresDevTest) {
+                $env:RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV = "1"
+                $env:RADISHMIND_GATEWAY_REQUEST_STORE = "postgres_dev_test"
+                $env:RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
+            }
 
             $backendPortOpen = Test-TcpPort -HostName $backendUri.Host -Port $backendUri.Port
             if ($backendPortOpen) {
@@ -543,6 +561,15 @@ try {
                 }
                 if ($WorkflowDiagnosticsDev) {
                     $env:VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV = "true"
+                }
+                if ($GatewayRequestPostgresDevTest) {
+                    $env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE = "dev-gateway-request-history-http"
+                    $env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_BASE_URL = $BackendUrl.TrimEnd("/")
+                    $env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_TENANT_REF = $TenantRef
+                    $env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_WORKSPACE_ID = $savedDraftWorkspaceId
+                    $env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_CONSUMER_REF = "consumer_web_dev"
+                    $env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_APPLICATION_ID = $savedDraftApplicationId
+                    $env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SUBJECT_REF = $SubjectRef
                 }
             }
             else {
@@ -594,6 +621,9 @@ try {
         Write-Step "Dev-live read backend passed: $healthzUrl ; $tenantSummaryUrl"
         if ($SavedDraftPostgresDevTest) {
             Write-Step "Saved Draft PostgreSQL dev/test read/write mode passed for $savedDraftWorkspaceId/$savedDraftApplicationId."
+        }
+        if ($GatewayRequestPostgresDevTest) {
+            Write-Step "Gateway Request History PostgreSQL dev/test mode enabled for $savedDraftWorkspaceId/consumer_web_dev/$savedDraftApplicationId."
         }
         elseif ($SavedDraftDev) {
             Write-Step "Saved Draft memory-dev read/write mode passed for $savedDraftWorkspaceId/$savedDraftApplicationId."
