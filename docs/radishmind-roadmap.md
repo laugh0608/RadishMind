@@ -234,8 +234,9 @@
 4. 无外部副作用 [Workflow Executor v0](features/workflow/workflow-executor-v0.md) 已完成 Platform 执行、dev API、受控 Web 入口、tenant / workspace / application scoped run record 与真实浏览器回读验证。
 5. Workflow Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning 与 Evaluation Suite / Release Review 已完成 scoped API、PostgreSQL dev/test persistence、重启恢复、并发、脱敏和真实 Web 审查；tool、业务写回、自动确认提交和 replay 继续后置。
 6. [Model Gateway Request History / Usage & Failure Review v1](features/gateway/model-gateway-request-history-usage-failure-review-v1.md) 已完成 `memory_dev`、独立 PostgreSQL dev/test repository、manual migration、runtime role、no-fallback、分页详情、重启恢复及 queue / timeout / unary cancel / stream cancel 终态浏览器证据并关闭；不提前打开 production API key、quota、billing 或自动 retry / fallback。
-7. R5 Web 主入口与关键 lazy chunk 预算已接入现有 Vite build；后续不新增同层 checker，工程线转向低覆盖包。
-8. OIDC、production secret、真实云资源、production API key、quota enforcement / billing、真实生图和模型训练只在外部资源、负责人和独立运行窗口明确后重开。
+7. [Gateway Playground / Request Review Loop v1](features/gateway/gateway-playground-request-review-loop-v1.md) 已完成三协议 Web 调用、stream 取消、稳定失败和 request-id history handoff，不新增 schema 或生产声明。
+8. R5 Web 主入口与关键 lazy chunk 预算已接入现有 Vite build；后续不新增同层 checker，工程线转向低覆盖包。
+9. OIDC、production secret、真实云资源、production API key、quota enforcement / billing、真实生图和模型训练只在外部资源、负责人和独立运行窗口明确后重开。
 
 ## 历史下一步记录（仅供 checker 兼容，不再执行）
 

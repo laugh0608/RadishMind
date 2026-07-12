@@ -158,7 +158,7 @@
 
 `Saved Workflow Draft v1` 的 dev-only consumer integration、正式草案编辑入口、用户工作区创建、saved dev draft list / restore、本地图结构编辑、节点属性编辑和 active draft review record 均已落地。`Workflow Node Designer` 方向已完成 surface、library selection、首批画布实现、saved draft mapping、Review Handoff、persisted layout、edge editing preconditions、controlled edge mutation、layout review findings、builder interaction polish、validation overlay navigation 和 `Workflow Node Designer Graph Review Handoff Refinement v1`；Review Handoff 现在能展示 node / edge / graph-level `graphReviewFindings`，并已补 graph review summary / grouping UI、handoff path 与 evidence refs 阅读路径。
 
-2026-07-11 执行覆盖：R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、Evaluation Cases、Baseline / Case Versioning 与 Evaluation Suite / Release Review 均已完成。下一产品顺位转向 Model Gateway Request History / Usage & Failure Review v1 的功能设计，不继续在 Workflow 页面叠加同层审查能力；下方 storage adapter next dependency 继续作为历史索引。
+2026-07-12 执行覆盖：R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、Evaluation Cases、Baseline / Case Versioning、Evaluation Suite / Release Review、Gateway Request History 与 Gateway Playground 均已完成。不继续在 Workflow 页面叠加同层审查能力；下方 storage adapter next dependency 继续作为历史索引。
 
 已完成专题 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](saved-workflow-draft-postgresql-dev-test-repository-v1.md)：显式 `postgres_dev_test` 模式覆盖真实 migration、回滚 / 重建、重启恢复、原子 CAS、tenant / workspace / application / owner scope、no fallback 和 PostgreSQL 集成测试；production `repository` 继续关闭。
 

@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-12 当前执行口径：Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、durable run history、failure review、run comparison、evaluation cases、[Workflow Evaluation Baseline & Case Versioning v1](workflow/workflow-evaluation-baseline-case-versioning-v1.md)、[Workflow Evaluation Suite / Release Review v1](workflow/workflow-evaluation-suite-release-review-v1.md) 与 [Model Gateway Request History / Usage & Failure Review v1](gateway/model-gateway-request-history-usage-failure-review-v1.md) 均已完成。R5 Web 主入口 500 KiB 与关键 lazy chunk 预算已接入现有 Vite build，不新增同层 checker。旧 Production Secret Backend / Storage Adapter readiness 只作为历史索引。
+2026-07-12 当前执行口径：Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、durable run history、failure review、run comparison、evaluation cases、[Workflow Evaluation Baseline & Case Versioning v1](workflow/workflow-evaluation-baseline-case-versioning-v1.md)、[Workflow Evaluation Suite / Release Review v1](workflow/workflow-evaluation-suite-release-review-v1.md)、[Model Gateway Request History / Usage & Failure Review v1](gateway/model-gateway-request-history-usage-failure-review-v1.md) 与 [Gateway Playground / Request Review Loop v1](gateway/gateway-playground-request-review-loop-v1.md) 均已完成。R5 Web 主入口 500 KiB 与关键 lazy chunk 预算已接入现有 Vite build，不新增同层 checker。旧 Production Secret Backend / Storage Adapter readiness 只作为历史索引。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -54,6 +54,7 @@
 | [Gateway Python Bridge Runtime v1](gateway/python-bridge-runtime-v1.md) | 运行时专题 | 受控 `stdio` worker pool 已成为默认模式，完成生命周期、取消、崩溃恢复、请求隔离和性能验收；process 模式保留回滚 |
 | [Model Gateway Request History / Usage & Failure Review v1](gateway/model-gateway-request-history-usage-failure-review-v1.md) | 功能专题 | `memory_dev`、PostgreSQL dev/test、终态证据、分页详情、重启恢复和真实 Web 审查已完成；reported usage 与 production 能力后置 |
 | [Model Gateway Request History / Usage & Failure Review v1 任务卡](../task-cards/model-gateway-request-history-usage-failure-review-v1-plan.md) | 实现批次 | 状态为 `complete`；保留为实现与验证索引，不继续派生同层 readiness 链 |
+| [Gateway Playground / Request Review Loop v1](gateway/gateway-playground-request-review-loop-v1.md) | 功能专题 | 三协议 unary / stream、取消、稳定失败和精确 history handoff 已完成；不持久化输入输出 |
 | [Workflow 细专题入口](workflow/README.md) | 功能专题目录 | 承接 workflow 具体功能、页面 / 界面和实现专题 |
 | [Saved Workflow Draft v1](workflow/saved-workflow-draft-v1.md) | 功能专题 | 固定草案创建、编辑、校验、持久保存、恢复、版本冲突和 Review Handoff；开发 / 测试态 PostgreSQL repository 已完成，production repository 继续关闭，旧 Production Secret Backend / Storage Adapter readiness 链仅作为历史证据索引 |
 | [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) | 实现专题 | 已完成 `postgres_dev_test` migration、回滚 / 重建、运行角色隔离、服务重启恢复、原子 CAS、scope / owner 隔离、no fallback、CI 与真实浏览器验收 |

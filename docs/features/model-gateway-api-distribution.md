@@ -12,6 +12,7 @@
 - `apps/radishmind-web/` 已有 Model Gateway Overview、Route Evidence、Usage/Audit Evidence 和 Evidence Review / Readiness。
 - provider capability、health smoke、selection policy、retry/fallback policy 和 runtime docs 已进入仓库快速门禁。
 - Go Gateway 已默认使用受控 `stdio` worker pool，复用四个 Python worker；`process_per_request` 仅保留为显式回滚模式，凭证不进入 argv 或 worker 环境。
+- [Model Gateway Request History / Usage & Failure Review v1](gateway/model-gateway-request-history-usage-failure-review-v1.md) 已完成 `memory_dev`、PostgreSQL dev/test、分页详情、重启恢复和完整失败 / 取消终态证据。
 - 当前不执行真实 API key 生命周期、quota enforcement、rate limit、billing、cost ledger、provider retry/fallback execution、production gateway 或 load balancing。
 
 ## 当前开发目标
@@ -20,9 +21,9 @@ R4 第一批 [Gateway Python Bridge Runtime v1](gateway/python-bridge-runtime-v1
 
 [Gateway Bridge stdio Worker Pool v1 任务卡](../task-cards/gateway-bridge-stdio-worker-pool-v1-plan.md) 已在现有 `bridgeClient` 后完成有界 worker pool、版本化握手、排队、超时 / 取消、崩溃后重建、优雅退出和请求级 credential / stream 隔离。它没有改变 northbound request / response 语义，没有接真实 provider，也没有启用生产 secret、自动 retry/fallback 或新的公开 API。
 
-Workflow 产品链在 2026-07-11 已完成 durable dev/test 运行与 evaluation 审查。下一产品专题已进入 [Model Gateway Request History / Usage & Failure Review v1](gateway/model-gateway-request-history-usage-failure-review-v1.md)：把现有 northbound route、selection metadata、`duration_ms` / `provider_duration_ms`、稳定错误和 request/audit ref 组织为可分页、可过滤、可重启恢复的开发 / 测试审查记录，再把真实 consumer 接入现有 Gateway Usage/Audit Evidence 与 Evidence Review。
+Workflow 产品链、Gateway Request History 与 [Gateway Playground / Request Review Loop v1](gateway/gateway-playground-request-review-loop-v1.md) 均已关闭。内部开发者现在可以从 Web 真实调用三个现有 northbound 协议、取消 stream、查看当前响应，并按同一 request id 进入 sanitized history detail。
 
-功能设计已固定独立 `GatewayCallerContextProvider`、tenant + workspace + consumer 最小 scope、可选 application binding、`gateway_request_record.v1` 生命周期、usage availability、keyset cursor、14 天 dev/test 保留声明、sanitized allowlist、store failure 可观测性和 Web 路径，并确认需要独立 API 与 PostgreSQL schema。下一步按单张 [纵向实现任务卡](../task-cards/model-gateway-request-history-usage-failure-review-v1-plan.md)实施；记录不得包含 prompt、messages、response body、authorization header、credential、endpoint、provider raw envelope 或原始错误正文。
+该功能只增加 Web consumer / lazy panel 与 request-id handoff，复用现有 API、dev/test caller scope 和 history，不新增 schema、repository、provider contract 或生产授权。输入输出只存在于当前组件内存，Request History 继续只保存 sanitized operational metadata。
 
 ## 设计边界
 
@@ -40,6 +41,7 @@ Workflow 产品链在 2026-07-11 已完成 durable dev/test 运行与 evaluation
 3. 已比较受控 stdio worker pool、单 worker 多路复用与内部 HTTP 服务，选定受控 `stdio` worker pool。
 4. 已实现健康握手、并发上限、排队、超时 / 取消、崩溃恢复、优雅退出和 credential 隔离。
 5. 新实现相对 back-to-back process 基线的顺序 / 并发 bridge 自身 p95 开销下降 `93.5% / 94.4%`，已切换默认模式。
+6. Request History 与 Playground v1 已完成三协议 request → response → history 交互闭环；下一步重新比较四个一级产品面的未完成用户价值。
 
 ## 验收方式
 
@@ -55,4 +57,4 @@ Workflow 产品链在 2026-07-11 已完成 durable dev/test 运行与 evaluation
 - 不把 mock provider 性能解释为真实 provider SLA。
 - 不在本批启用 production API key、quota、billing、自动 fallback、load balancing 或 production deployment。
 - 不为基线与选型新增 readiness / refresh checker 链；现有单元测试、benchmark、Gateway smoke 和仓库门禁足以承载。
-- 下一批 request history / usage evidence 只服务开发 / 测试审查，不等于 production API key、quota enforcement、billing、cost ledger、自动 retry/fallback、load balancing 或 production gateway ready。
+- Playground 与 Request History 只服务开发 / 测试交互和审查，不等于 production API key、quota enforcement、billing、cost ledger、自动 retry/fallback、load balancing 或 production gateway ready。

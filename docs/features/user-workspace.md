@@ -1,6 +1,6 @@
 # User Workspace 设计与开发文档
 
-更新时间：2026-06-16
+更新时间：2026-07-12
 
 ## 功能定位
 
@@ -36,8 +36,8 @@
 
 ## 下一批开发方向
 
-1. Draft Review、Saved Draft dev/test persistence、受控执行、运行历史与 evaluation release evidence 已落地；下一批不继续给 Workflow 审查链叠加同层面板，优先让另一个一级产品面形成真实用户路径。
-2. 建议下一批由 Model Gateway request history / usage / failure review 接入现有 User Workspace / Gateway evidence；是否按 application 展示必须由 scope 设计确定，不能用旧 fake `/v1/user-workspace/runs` 或离线 cost snapshot 充当真实 Gateway 请求真相源。
+1. Draft Review、Saved Draft dev/test persistence、受控执行、运行历史、evaluation release evidence、Gateway Request History 与 Gateway Playground 已落地；不继续给 Workflow / Gateway 审查链叠加同层面板。
+2. 下一产品任务重新比较用户工作区中的 API consumer / application 使用路径、Admin 的真实 auth/read store、Gateway 的 production distribution 前置与 Workflow 高风险能力；外部依赖未成立前不伪造实现顺位。
 3. 在进入任何生产写入前，先补用户工作区功能设计更新，明确创建、保存、发布、执行、确认和回滚边界。
 4. 若下一步只改展示、分组、文案或使用性，不新增专项 gate，复用 web build、consumer smoke 和仓库基线。
 5. 若新增 API、写入、真实 auth、真实数据源或执行能力，必须新增 task card，并按风险补 fixture / checker。
