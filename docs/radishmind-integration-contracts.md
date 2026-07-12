@@ -39,6 +39,7 @@
 - 上层项目只消费建议、解释、候选动作和审计信息，最终业务真相源仍由上层维护。
 - 用户端、管理端、模型网关和 workflow runtime 都必须复用同一套 canonical contract，不为每个产品面另起一套私有协议。
 - Admin authenticated read 只消费 Radish 的 verified identity、tenant 和审查后的 permission projection；RadishMind 不解析分散 claim、不读取 Radish 业务数据库，也不复制 user / tenant / role 真相源。workspace / application membership 属于 RadishMind 资源绑定，不能由 `radish-api` scope 或角色名称隐式推导。
+- 当前 `signed_test_token` 只用于本仓库 dev/test：固定 `RS256`、显式 issuer / audience / test public key 和版本化 permission allowlist，输出 sanitized verified context；它不是 Radish OIDC client、JWKS 联调、production token 或 workspace membership 替代品。
 - 部署、数据库和登录 / 授权默认参考 `Radish`；未来 RadishMind 作为 OIDC client 接入 `Radish`，不把用户身份和权限真相源放进模型 runtime，也不默认引入 `.NET` / ASP.NET Core。
 - `RadishFlow` 和 `Radish` 的真实挂载点成熟度不作为 RadishMind 平台功能开发的阻塞条件。没有稳定 UI、command 或 API 承接入口时，本仓库先推进离线、只读、advisory-only、blocked capability 的产品面和协议边界；真实接入只在上层提供明确挂载点、确认流和审计落点后选择一个切片推进。
 - `P2 Session & Tooling Foundation` 当前只声明 close candidate / governance-only；negative regression governance suite、deny-by-default gates、negative coverage rollup、route negative coverage matrix、route smoke readiness rollup、short close readiness delta、readiness consistency rollup、enablement plan 和 stop-line manifest 都是治理证据链，不代表真实执行、持久化、结果读取、confirmation 接线或 replay 已启用。

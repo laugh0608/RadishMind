@@ -2,7 +2,7 @@
 
 更新时间：2026-07-12
 
-状态：`admin_control_plane_authenticated_read_store_transition_v1_design_defined`
+状态：`admin_control_plane_authenticated_read_store_transition_v1_in_progress`
 
 ## 功能目标
 
@@ -200,6 +200,8 @@ token signature、issuer、audience、algorithm、time 或 required claim 失败
 - 更新 Web consumer 解析 401 / 403 sanitized failure；默认 offline 和 dev header 路径继续可复验。
 - 不连接 Radish、不 fetch 真实 JWKS、不创建 database adapter。
 
+完成状态：`control_plane_verified_identity_negative_auth_runtime_v1_complete`。现有 runtime 已支持 `disabled / dev_headers / signed_test_token`、RS256 test verifier、版本化 permission projection、13 类负向认证、七条 route authorization、sanitized 非 2xx envelope 和 Web denial state；repository 继续使用 fake store。
+
 ### 第二批：Admin Tenant / Audit PostgreSQL Read Repository
 
 - 创建独立 task card、schema / migration / marker / runner、read-only runtime role 和 selector。
@@ -243,4 +245,4 @@ token signature、issuer、audience、algorithm、time 或 required claim 失败
 
 ## 下一实现入口
 
-下一步应创建 `Control Plane Verified Identity Context & Negative Auth Runtime v1` 高风险实现任务卡，先完成共享身份边界、signed test token、permission projection、负向认证和 HTTP failure 语义。该批完成前不创建 Admin PostgreSQL read repository task card。
+下一步先为 `Admin Tenant / Audit PostgreSQL Read Repository v1` 补充实现设计与高风险任务卡，只迁移 tenant summary 和 audit summary；继续使用 signed test token，不接真实 Radish OIDC，也不迁移五条 workspace-scoped route。

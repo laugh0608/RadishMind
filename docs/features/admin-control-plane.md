@@ -13,7 +13,7 @@
 - Go read handlers 仍走 fake-store-backed repository bridge。
 - 当前没有 Radish OIDC、token validation、auth middleware、真实数据库、repository adapter、secret resolver、deployment preflight 或 production admin 操作。
 - User Workspace 的 Application Publish Governance 已把正式 application repository、production auth / membership 和发布 owner 明确暴露为 promotion blocker；dev/test candidate approved 不会绕过这些 blocker。
-- [Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) 已固定 verified identity、tenant permission binding、Admin tenant / audit durable read repository、auth / store mode compatibility、HTTP failure、隐私边界和分阶段实施顺序；当前状态仍是设计完成、runtime 未开始。
+- [Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) 第一批 runtime 已完成：shared verified identity、RS256 signed test token、permission projection、13 类负向认证、七条 route authorization 和 Web sanitized denial state 均可复验；repository 仍为 fake store。
 
 ## 设计边界
 
@@ -24,8 +24,8 @@
 
 ## 下一批开发方向
 
-1. 下一实现入口创建 `Control Plane Verified Identity Context & Negative Auth Runtime v1` 高风险任务卡，先完成共享 verified identity、permission projection、signed test token、13 类负向认证和 HTTP failure 语义。
-2. 第一批 repository 继续使用 fake store，禁止同时创建 PostgreSQL adapter；identity runtime 通过后，再为 Admin tenant / audit PostgreSQL read repository 创建独立任务卡。
+1. 下一产品设计进入 `Admin Tenant / Audit PostgreSQL Read Repository v1`，明确 projection owner、schema、migration、read-only role、selector、分页、重启恢复和 no-fallback。
+2. 实现任务卡只迁移 tenant summary 与 audit summary，继续使用 signed test token；不把五条 workspace route 一并接入数据库。
 3. Radish issuer / client registration / permission mapping evidence 未审查前，不接真实 OIDC；workspace membership contract 未成立前，不迁移五条 User Workspace read route。
 4. 普通 evidence review 展示不再新增逐项 task card；只有真实 auth、数据库、secret、deployment 或管理动作才新增专项 gate。
 

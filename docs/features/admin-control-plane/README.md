@@ -6,7 +6,7 @@
 
 ## 当前专题
 
-- [Authenticated Read Store Transition v1](authenticated-read-store-transition-v1.md)：固定从 dev header / fake store 迁移到 verified identity、tenant permission binding 和 durable read repository 的阶段顺序、失败语义、双轨验证与停止线。
+- [Authenticated Read Store Transition v1](authenticated-read-store-transition-v1.md)：第一批 verified identity / negative auth runtime 已完成；下一批只设计并实现 Admin tenant / audit PostgreSQL dev/test read repository。
 
 ## 目录停止线
 
