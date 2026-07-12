@@ -4,6 +4,7 @@ package httpapi
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"strings"
 	"sync"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
 	gatewayrequestmigrations "radishmind.local/services/platform/migrations/gateway_requests"
 )
@@ -93,6 +95,35 @@ func TestPostgresGatewayRequestStoreIntegration(t *testing.T) {
 	recovered, found, err := store.ReadRequest(requestContext, "request_pg_c")
 	if err != nil || !found || recovered.Status != GatewayRequestStatusSucceeded || recovered.StoreMode != gatewayRequestStoreModePostgresDevTest {
 		t.Fatalf("Gateway request restart recovery failed: found=%v record=%#v err=%v", found, recovered, err)
+	}
+
+	canceledContext := requestContext
+	canceledRequestContext, cancelRequest := context.WithCancel(ctx)
+	canceledContext.RequestContext = canceledRequestContext
+	canceledRecord := gatewayRequestTestRecord(canceledContext, "request_pg_canceled", time.Now().UTC())
+	if err = store.CreateRequest(canceledContext, &canceledRecord); err != nil {
+		t.Fatal(err)
+	}
+	cancelRequest()
+	canceledRecord.Status = GatewayRequestStatusCanceled
+	canceledRecord.CompletedAt = time.Now().UTC().Format(time.RFC3339Nano)
+	canceledRecord.HTTPStatusCode = http.StatusRequestTimeout
+	canceledRecord.FailureCode = bridge.ErrorCodeWorkerCanceled
+	canceledRecord.FailureBoundary = errorBoundaryPythonBridge
+	directUpdate := canceledRecord
+	if updateErr := store.UpdateRequest(canceledContext, &directUpdate); updateErr == nil {
+		t.Fatal("canceled request context unexpectedly persisted the terminal record")
+	}
+	terminalServer := &Server{config: config.Config{GatewayRequestDatabaseTimeout: time.Second}}
+	terminalContext, terminalCancel := terminalServer.gatewayRequestTerminalStoreContext(canceledContext)
+	if err = store.UpdateRequest(terminalContext, &canceledRecord); err != nil {
+		terminalCancel()
+		t.Fatalf("detached terminal context did not persist cancellation: %v", err)
+	}
+	terminalCancel()
+	persistedCancellation, found, err := store.ReadRequest(requestContext, canceledRecord.RequestID)
+	if err != nil || !found || persistedCancellation.Status != GatewayRequestStatusCanceled || persistedCancellation.RecordVersion != 2 {
+		t.Fatalf("canceled Gateway request terminal state was not durable: found=%v record=%#v err=%v", found, persistedCancellation, err)
 	}
 
 	running := gatewayRequestTestRecord(requestContext, "request_pg_concurrent", time.Now().UTC())

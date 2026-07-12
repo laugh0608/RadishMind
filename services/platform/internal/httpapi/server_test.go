@@ -19,11 +19,14 @@ type fakeBridge struct {
 	providers    []bridge.ProviderDescription
 	inventory    bridge.ProviderInventory
 	envelope     bridge.GatewayEnvelope
+	handleErr    error
+	handleHook   func()
 	lastRequest  []byte
 	lastOptions  bridge.EnvelopeOptions
 	handleCalls  int
 	streamCalled bool
 	streamErr    error
+	streamHook   func()
 }
 
 type checkpointDeniedQueriesFixture struct {
@@ -50,13 +53,19 @@ func (f *fakeBridge) HandleEnvelope(_ context.Context, canonicalRequest []byte, 
 	f.lastRequest = append(f.lastRequest[:0], canonicalRequest...)
 	f.lastOptions = options
 	f.handleCalls++
-	return f.envelope, nil
+	if f.handleHook != nil {
+		f.handleHook()
+	}
+	return f.envelope, f.handleErr
 }
 
 func (f *fakeBridge) StreamEnvelope(_ context.Context, canonicalRequest []byte, options bridge.EnvelopeOptions, handleEvent func(bridge.StreamEvent) error) error {
 	f.lastRequest = append(f.lastRequest[:0], canonicalRequest...)
 	f.lastOptions = options
 	f.streamCalled = true
+	if f.streamHook != nil {
+		f.streamHook()
+	}
 	if f.streamErr != nil {
 		return f.streamErr
 	}

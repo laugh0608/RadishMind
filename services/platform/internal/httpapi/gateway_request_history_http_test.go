@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -167,6 +168,113 @@ func TestGatewayRequestHistoryRecordsResponsesAndMessagesStream(t *testing.T) {
 	}
 }
 
+func TestGatewayRequestHistoryRecordsBridgeTimeoutAndCancellationTerminalStates(t *testing.T) {
+	tests := []struct {
+		name           string
+		path           string
+		body           string
+		expectedStatus GatewayRequestStatus
+		expectedCode   string
+		expectedHTTP   int
+		configure      func(*fakeBridge, context.CancelFunc)
+	}{
+		{
+			name: "unary timeout", path: "/v1/chat/completions",
+			body:           `{"model":"platform-model","messages":[{"role":"user","content":"timeout payload must not persist"}]}`,
+			expectedStatus: GatewayRequestStatusFailed,
+			expectedCode:   bridge.ErrorCodeWorkerTimeout,
+			expectedHTTP:   http.StatusGatewayTimeout,
+			configure: func(fake *fakeBridge, _ context.CancelFunc) {
+				fake.handleErr = context.DeadlineExceeded
+			},
+		},
+		{
+			name: "unary canceled", path: "/v1/chat/completions",
+			body:           `{"model":"platform-model","messages":[{"role":"user","content":"canceled payload must not persist"}]}`,
+			expectedStatus: GatewayRequestStatusCanceled,
+			expectedCode:   bridge.ErrorCodeWorkerCanceled,
+			expectedHTTP:   http.StatusRequestTimeout,
+			configure: func(fake *fakeBridge, cancel context.CancelFunc) {
+				fake.handleHook = cancel
+				fake.handleErr = context.Canceled
+			},
+		},
+		{
+			name: "stream canceled", path: "/v1/messages",
+			body:           `{"model":"platform-model","messages":[{"role":"user","content":"stream payload must not persist"}],"stream":true}`,
+			expectedStatus: GatewayRequestStatusCanceled,
+			expectedCode:   bridge.ErrorCodeWorkerCanceled,
+			expectedHTTP:   http.StatusRequestTimeout,
+			configure: func(fake *fakeBridge, cancel context.CancelFunc) {
+				fake.streamHook = cancel
+				fake.streamErr = context.Canceled
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			server := newGatewayRequestHistoryHTTPTestServer()
+			observedStore := &terminalContextObservingGatewayRequestStore{gatewayRequestStore: server.gatewayRequestStore()}
+			server.gatewayRequestHistoryStore = observedStore
+			requestContext, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			test.configure(server.bridge.(*fakeBridge), cancel)
+			request := httptest.NewRequest(http.MethodPost, test.path, strings.NewReader(test.body)).WithContext(requestContext)
+			request.Header.Set("X-Request-Id", "request_gateway_"+strings.ReplaceAll(test.name, " ", "_"))
+			setGatewayRequestDevHeaders(request, "gateway_requests:read")
+			response := httptest.NewRecorder()
+
+			server.httpServer.Handler.ServeHTTP(response, request)
+
+			if response.Code != test.expectedHTTP {
+				t.Fatalf("unexpected northbound status: %d %s", response.Code, response.Body.String())
+			}
+			record, found, err := observedStore.ReadRequest(gatewayRequestTestContext(), request.Header.Get("X-Request-Id"))
+			if err != nil || !found {
+				t.Fatalf("terminal request record missing: found=%v err=%v", found, err)
+			}
+			if record.Status != test.expectedStatus || record.FailureCode != test.expectedCode ||
+				record.FailureBoundary != errorBoundaryPythonBridge || record.RecordVersion != 3 {
+				t.Fatalf("unexpected terminal request record: %#v", record)
+			}
+			if observedStore.terminalUpdates != 1 {
+				t.Fatalf("terminal store context was not observed exactly once: %d", observedStore.terminalUpdates)
+			}
+			encoded, marshalErr := json.Marshal(record)
+			if marshalErr != nil {
+				t.Fatal(marshalErr)
+			}
+			if strings.Contains(string(encoded), "payload must not persist") {
+				t.Fatalf("terminal request history leaked payload: %s", encoded)
+			}
+		})
+	}
+}
+
+func TestGatewayRequestHistoryRecordsQueueFullAsFailed(t *testing.T) {
+	server := newGatewayRequestHistoryHTTPTestServer()
+	request := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", nil)
+	request.Header.Set("X-Request-Id", "request_gateway_queue_full")
+	setGatewayRequestDevHeaders(request, "gateway_requests:read")
+	trace := newRequestTrace(request, "/v1/chat/completions")
+	server.startGatewayRequestTrace(request, &trace, northboundProtocolChatCompletions)
+	trace.applySelection(northboundSelection{provider: "mock", model: "platform-model", source: "config"})
+	server.checkpointGatewayRequestTrace(&trace, false)
+	response := httptest.NewRecorder()
+
+	server.writePlatformError(response, trace, bridge.ErrorCodeWorkerQueueFull, "bridge worker queue is full")
+
+	record, found, err := server.gatewayRequestStore().ReadRequest(gatewayRequestTestContext(), trace.requestID)
+	if err != nil || !found {
+		t.Fatalf("queue-full request record missing: found=%v err=%v", found, err)
+	}
+	if response.Code != http.StatusServiceUnavailable || record.Status != GatewayRequestStatusFailed ||
+		record.FailureCode != bridge.ErrorCodeWorkerQueueFull || record.FailureBoundary != errorBoundaryPythonBridge {
+		t.Fatalf("unexpected queue-full terminal evidence: response=%d record=%#v", response.Code, record)
+	}
+}
+
 func TestGatewayRequestHistoryStoreCreateFailureDoesNotChangeProviderOutcome(t *testing.T) {
 	server := newGatewayRequestHistoryHTTPTestServer()
 	server.gatewayRequestHistoryStore = failingGatewayRequestStore{}
@@ -269,6 +377,27 @@ func setGatewayRequestDevHeaders(request *http.Request, scopes string) {
 	request.Header.Set(gatewayRequestDevSubjectHeader, "subject_demo")
 	request.Header.Set(gatewayRequestDevScopesHeader, scopes)
 	request.Header.Set(gatewayRequestDevAuditHeader, "audit_context_demo")
+}
+
+type terminalContextObservingGatewayRequestStore struct {
+	gatewayRequestStore
+	terminalUpdates int
+}
+
+func (store *terminalContextObservingGatewayRequestStore) UpdateRequest(
+	requestContext GatewayRequestContext,
+	record *GatewayRequestRecord,
+) error {
+	if record != nil && isTerminalGatewayRequestStatus(record.Status) {
+		if requestContext.RequestContext == nil || requestContext.RequestContext.Err() != nil {
+			return errGatewayRequestStoreContract
+		}
+		if _, ok := requestContext.RequestContext.Deadline(); !ok {
+			return errGatewayRequestStoreContract
+		}
+		store.terminalUpdates++
+	}
+	return store.gatewayRequestStore.UpdateRequest(requestContext, record)
 }
 
 func decodeGatewayRequestListEnvelope(t *testing.T, response *httptest.ResponseRecorder) gatewayRequestListEnvelope {

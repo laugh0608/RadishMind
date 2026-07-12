@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"strings"
@@ -127,11 +128,29 @@ func (s *Server) finishGatewayRequestTrace(
 	record.HTTPStatusCode = httpStatusCode
 	record.FailureCode = strings.TrimSpace(failureCode)
 	record.FailureBoundary = strings.TrimSpace(failureBoundary)
-	if err := s.gatewayRequestStore().UpdateRequest(trace.gatewayRequestContext, record); err != nil {
+	requestContext, cancel := s.gatewayRequestTerminalStoreContext(trace.gatewayRequestContext)
+	defer cancel()
+	if err := s.gatewayRequestStore().UpdateRequest(requestContext, record); err != nil {
 		logGatewayRequestStoreOutcome(trace.requestID, trace.route, record.StoreMode, "terminal_failed")
 		return
 	}
 	logGatewayRequestStoreOutcome(trace.requestID, trace.route, record.StoreMode, "terminal_stored")
+}
+
+func (s *Server) gatewayRequestTerminalStoreContext(requestContext GatewayRequestContext) (GatewayRequestContext, context.CancelFunc) {
+	timeout := s.config.GatewayRequestDatabaseTimeout
+	if timeout <= 0 {
+		timeout = 5 * time.Second
+	}
+	parent := requestContext.RequestContext
+	if parent == nil {
+		parent = context.Background()
+	} else {
+		parent = context.WithoutCancel(parent)
+	}
+	terminalContext, cancel := context.WithTimeout(parent, timeout)
+	requestContext.RequestContext = terminalContext
+	return requestContext, cancel
 }
 
 func applyGatewayRequestSelection(record *GatewayRequestRecord, trace requestTrace) {
