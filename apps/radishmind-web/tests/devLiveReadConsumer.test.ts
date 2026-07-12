@@ -112,3 +112,47 @@ test("Control Plane read consumer uses an in-memory signed token without dev hea
     delete globalWithToken.__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__;
   }
 });
+
+test("Control Plane read consumer isolates an in-memory OIDC integration token", async () => {
+  const originalFetch = globalThis.fetch;
+  const globalWithToken = globalThis as typeof globalThis & {
+    __RADISHMIND_CONTROL_PLANE_OIDC_INTEGRATION_TOKEN__?: () => string;
+    __RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__?: () => string;
+  };
+  globalWithToken.__RADISHMIND_CONTROL_PLANE_OIDC_INTEGRATION_TOKEN__ = () => "oidc-memory-token";
+  globalWithToken.__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__ = () => "must-not-fallback";
+  let calls = 0;
+  globalThis.fetch = async (input, init) => {
+    calls += 1;
+    const headers = new Headers(init?.headers);
+    assert.equal(headers.get("Authorization"), "Bearer oidc-memory-token");
+    assert.equal(headers.has("X-RadishMind-Dev-Read-Identity"), false);
+    const isAdminRoute = String(input).includes("/v1/control-plane/");
+    return new Response(JSON.stringify({
+      request_id: "request-oidc",
+      tenant_ref: "tenant_demo",
+      items: [],
+      next_cursor: null,
+      failure_code: isAdminRoute ? null : "workspace_membership_unavailable",
+      audit_ref: "audit-oidc",
+    }), { status: isAdminRoute ? 200 : 503 });
+  };
+  try {
+    const collections = await loadControlPlaneReadDevLiveCollections({
+      mode: "dev_live_http",
+      baseUrl: "http://127.0.0.1:7000",
+      tenantRef: "tenant_demo",
+      subjectRef: "subject_demo_user",
+      authMode: "radish_oidc_integration_test",
+      storeMode: "postgres_dev_test",
+    });
+    assert.equal(calls, 7);
+    assert.equal(collections["tenant-summary-route"]?.failureCode, null);
+    assert.equal(collections["audit-summary-list-route"]?.failureCode, null);
+    assert.equal(collections["application-summary-list-route"]?.failureCode, "workspace_membership_unavailable");
+  } finally {
+    globalThis.fetch = originalFetch;
+    delete globalWithToken.__RADISHMIND_CONTROL_PLANE_OIDC_INTEGRATION_TOKEN__;
+    delete globalWithToken.__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__;
+  }
+});

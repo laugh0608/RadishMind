@@ -37,6 +37,14 @@ const (
 	defaultControlPlaneReadAuthMode    = ""
 	defaultControlPlaneReadStoreMode   = "fake_store_dev"
 	defaultControlPlaneReadDBTimeout   = 5 * time.Second
+	defaultOIDCDiscoveryTimeout        = 3 * time.Second
+	defaultOIDCJWKSMaxAge              = 5 * time.Minute
+	defaultOIDCJWKSHardExpiry          = 15 * time.Minute
+	defaultOIDCRotationOverlap         = 5 * time.Minute
+	defaultOIDCClockSkew               = 30 * time.Second
+	defaultOIDCMaxTokenLifetime        = 10 * time.Minute
+	defaultOIDCMaxResponseBytes        = 256 * 1024
+	defaultOIDCMaxKeys                 = 32
 )
 
 const (
@@ -46,56 +54,76 @@ const (
 )
 
 type Config struct {
-	ListenAddr                        string
-	ReadHeaderTimeout                 time.Duration
-	WriteTimeout                      time.Duration
-	BridgeTimeout                     time.Duration
-	BridgeMode                        string
-	BridgeWorkerCount                 int
-	BridgeQueueCapacity               int
-	BridgeHandshakeTimeout            time.Duration
-	ControlPlaneReadDevAuthEnabled    bool
-	ControlPlaneReadAuthMode          string
-	ControlPlaneReadTestIssuer        string
-	ControlPlaneReadTestAudience      string
-	ControlPlaneReadTestPublicKeyPEM  string
-	ControlPlaneReadStoreMode         string
-	ControlPlaneReadDatabaseURL       string
-	ControlPlaneReadDatabaseTimeout   time.Duration
-	WorkflowSavedDraftDevHTTPEnabled  bool
-	WorkflowSavedDraftDevWriteEnabled bool
-	ApplicationDraftDevHTTPEnabled    bool
-	ApplicationDraftDevWriteEnabled   bool
-	ApplicationDraftStoreMode         string
-	ApplicationDraftDatabaseURL       string
-	ApplicationDraftDatabaseTimeout   time.Duration
-	ApplicationPublishDevHTTPEnabled  bool
-	ApplicationPublishDevWriteEnabled bool
-	ApplicationPublishStoreMode       string
-	ApplicationPublishDatabaseURL     string
-	ApplicationPublishDatabaseTimeout time.Duration
-	WorkflowExecutorDevEnabled        bool
-	WorkflowDiagnosticsDevEnabled     bool
-	GatewayRequestHistoryDevEnabled   bool
-	GatewayRequestStoreMode           string
-	GatewayRequestDatabaseURL         string
-	GatewayRequestDatabaseTimeout     time.Duration
-	WorkflowSavedDraftStoreMode       string
-	WorkflowSavedDraftDatabaseURL     string
-	WorkflowSavedDraftDatabaseTimeout time.Duration
-	WorkflowRunStoreMode              string
-	WorkflowRunDatabaseURL            string
-	WorkflowRunDatabaseTimeout        time.Duration
-	PythonBinary                      string
-	BridgeScript                      string
-	Provider                          string
-	ProviderProfile                   string
-	Model                             string
-	BaseURL                           string
-	APIKey                            string
-	Temperature                       float64
-	ConfigFile                        string
-	FieldSources                      map[string]string
+	ListenAddr                           string
+	ReadHeaderTimeout                    time.Duration
+	WriteTimeout                         time.Duration
+	BridgeTimeout                        time.Duration
+	BridgeMode                           string
+	BridgeWorkerCount                    int
+	BridgeQueueCapacity                  int
+	BridgeHandshakeTimeout               time.Duration
+	ControlPlaneReadDevAuthEnabled       bool
+	ControlPlaneReadAuthMode             string
+	ControlPlaneReadTestIssuer           string
+	ControlPlaneReadTestAudience         string
+	ControlPlaneReadTestPublicKeyPEM     string
+	ControlPlaneReadOIDCIssuer           string
+	ControlPlaneReadOIDCDiscoveryURL     string
+	ControlPlaneReadOIDCAudience         string
+	ControlPlaneReadOIDCMappingVersion   string
+	ControlPlaneReadOIDCEvidenceRef      string
+	ControlPlaneReadOIDCSubjectClaim     string
+	ControlPlaneReadOIDCTenantClaim      string
+	ControlPlaneReadOIDCPermissionClaim  string
+	ControlPlaneReadOIDCTenantPermission string
+	ControlPlaneReadOIDCAuditPermission  string
+	ControlPlaneReadOIDCAlgorithms       string
+	ControlPlaneReadOIDCJWKSOrigin       string
+	ControlPlaneReadOIDCDiscoveryTimeout time.Duration
+	ControlPlaneReadOIDCJWKSMaxAge       time.Duration
+	ControlPlaneReadOIDCJWKSHardExpiry   time.Duration
+	ControlPlaneReadOIDCRotationOverlap  time.Duration
+	ControlPlaneReadOIDCClockSkew        time.Duration
+	ControlPlaneReadOIDCMaxTokenLifetime time.Duration
+	ControlPlaneReadOIDCMaxResponseBytes int
+	ControlPlaneReadOIDCMaxKeys          int
+	ControlPlaneReadStoreMode            string
+	ControlPlaneReadDatabaseURL          string
+	ControlPlaneReadDatabaseTimeout      time.Duration
+	WorkflowSavedDraftDevHTTPEnabled     bool
+	WorkflowSavedDraftDevWriteEnabled    bool
+	ApplicationDraftDevHTTPEnabled       bool
+	ApplicationDraftDevWriteEnabled      bool
+	ApplicationDraftStoreMode            string
+	ApplicationDraftDatabaseURL          string
+	ApplicationDraftDatabaseTimeout      time.Duration
+	ApplicationPublishDevHTTPEnabled     bool
+	ApplicationPublishDevWriteEnabled    bool
+	ApplicationPublishStoreMode          string
+	ApplicationPublishDatabaseURL        string
+	ApplicationPublishDatabaseTimeout    time.Duration
+	WorkflowExecutorDevEnabled           bool
+	WorkflowDiagnosticsDevEnabled        bool
+	GatewayRequestHistoryDevEnabled      bool
+	GatewayRequestStoreMode              string
+	GatewayRequestDatabaseURL            string
+	GatewayRequestDatabaseTimeout        time.Duration
+	WorkflowSavedDraftStoreMode          string
+	WorkflowSavedDraftDatabaseURL        string
+	WorkflowSavedDraftDatabaseTimeout    time.Duration
+	WorkflowRunStoreMode                 string
+	WorkflowRunDatabaseURL               string
+	WorkflowRunDatabaseTimeout           time.Duration
+	PythonBinary                         string
+	BridgeScript                         string
+	Provider                             string
+	ProviderProfile                      string
+	Model                                string
+	BaseURL                              string
+	APIKey                               string
+	Temperature                          float64
+	ConfigFile                           string
+	FieldSources                         map[string]string
 }
 
 type ConfigSummary struct {
@@ -103,6 +131,9 @@ type ConfigSummary struct {
 	ControlPlaneReadDevAuthEnabled       bool              `json:"control_plane_read_dev_auth_enabled"`
 	ControlPlaneReadAuthMode             string            `json:"control_plane_read_auth_mode"`
 	ControlPlaneReadTestConfigured       bool              `json:"control_plane_read_signed_test_configured"`
+	ControlPlaneReadOIDCConfigured       bool              `json:"control_plane_read_oidc_integration_configured"`
+	ControlPlaneReadOIDCMappingVersion   string            `json:"control_plane_read_oidc_mapping_version,omitempty"`
+	ControlPlaneReadOIDCEvidenceRef      string            `json:"control_plane_read_oidc_evidence_ref,omitempty"`
 	ControlPlaneReadStoreMode            string            `json:"control_plane_read_store_mode"`
 	ControlPlaneReadDatabaseConfigured   bool              `json:"control_plane_read_database_configured"`
 	WorkflowSavedDraftDevHTTPEnabled     bool              `json:"workflow_saved_draft_dev_http_enabled"`
@@ -201,35 +232,43 @@ func LoadFromEnv() (Config, error) {
 
 func defaultConfig() Config {
 	return Config{
-		ListenAddr:                        defaultListenAddr,
-		ReadHeaderTimeout:                 defaultReadHeaderTimeout,
-		WriteTimeout:                      defaultWriteTimeout,
-		BridgeTimeout:                     defaultBridgeTimeout,
-		BridgeMode:                        defaultBridgeMode,
-		BridgeWorkerCount:                 defaultBridgeWorkerCount,
-		BridgeQueueCapacity:               defaultBridgeQueueSize,
-		BridgeHandshakeTimeout:            defaultBridgeHandshake,
-		ControlPlaneReadAuthMode:          defaultControlPlaneReadAuthMode,
-		ControlPlaneReadStoreMode:         defaultControlPlaneReadStoreMode,
-		ControlPlaneReadDatabaseTimeout:   defaultControlPlaneReadDBTimeout,
-		PythonBinary:                      defaultPythonBinary,
-		BridgeScript:                      defaultBridgeScript,
-		Provider:                          defaultProvider,
-		ProviderProfile:                   "",
-		Model:                             "",
-		BaseURL:                           "",
-		APIKey:                            "",
-		Temperature:                       0,
-		WorkflowSavedDraftStoreMode:       defaultDraftStoreMode,
-		WorkflowSavedDraftDatabaseTimeout: defaultDraftDBTimeout,
-		ApplicationDraftStoreMode:         defaultApplicationDraftStoreMode,
-		ApplicationDraftDatabaseTimeout:   defaultApplicationDraftDBTimeout,
-		ApplicationPublishStoreMode:       defaultApplicationPublishStoreMode,
-		ApplicationPublishDatabaseTimeout: defaultApplicationPublishDBTimeout,
-		WorkflowRunStoreMode:              defaultRunStoreMode,
-		WorkflowRunDatabaseTimeout:        defaultRunDBTimeout,
-		GatewayRequestStoreMode:           defaultGatewayRequestStoreMode,
-		GatewayRequestDatabaseTimeout:     defaultGatewayRequestDBTimeout,
+		ListenAddr:                           defaultListenAddr,
+		ReadHeaderTimeout:                    defaultReadHeaderTimeout,
+		WriteTimeout:                         defaultWriteTimeout,
+		BridgeTimeout:                        defaultBridgeTimeout,
+		BridgeMode:                           defaultBridgeMode,
+		BridgeWorkerCount:                    defaultBridgeWorkerCount,
+		BridgeQueueCapacity:                  defaultBridgeQueueSize,
+		BridgeHandshakeTimeout:               defaultBridgeHandshake,
+		ControlPlaneReadAuthMode:             defaultControlPlaneReadAuthMode,
+		ControlPlaneReadStoreMode:            defaultControlPlaneReadStoreMode,
+		ControlPlaneReadDatabaseTimeout:      defaultControlPlaneReadDBTimeout,
+		ControlPlaneReadOIDCDiscoveryTimeout: defaultOIDCDiscoveryTimeout,
+		ControlPlaneReadOIDCJWKSMaxAge:       defaultOIDCJWKSMaxAge,
+		ControlPlaneReadOIDCJWKSHardExpiry:   defaultOIDCJWKSHardExpiry,
+		ControlPlaneReadOIDCRotationOverlap:  defaultOIDCRotationOverlap,
+		ControlPlaneReadOIDCClockSkew:        defaultOIDCClockSkew,
+		ControlPlaneReadOIDCMaxTokenLifetime: defaultOIDCMaxTokenLifetime,
+		ControlPlaneReadOIDCMaxResponseBytes: defaultOIDCMaxResponseBytes,
+		ControlPlaneReadOIDCMaxKeys:          defaultOIDCMaxKeys,
+		PythonBinary:                         defaultPythonBinary,
+		BridgeScript:                         defaultBridgeScript,
+		Provider:                             defaultProvider,
+		ProviderProfile:                      "",
+		Model:                                "",
+		BaseURL:                              "",
+		APIKey:                               "",
+		Temperature:                          0,
+		WorkflowSavedDraftStoreMode:          defaultDraftStoreMode,
+		WorkflowSavedDraftDatabaseTimeout:    defaultDraftDBTimeout,
+		ApplicationDraftStoreMode:            defaultApplicationDraftStoreMode,
+		ApplicationDraftDatabaseTimeout:      defaultApplicationDraftDBTimeout,
+		ApplicationPublishStoreMode:          defaultApplicationPublishStoreMode,
+		ApplicationPublishDatabaseTimeout:    defaultApplicationPublishDBTimeout,
+		WorkflowRunStoreMode:                 defaultRunStoreMode,
+		WorkflowRunDatabaseTimeout:           defaultRunDBTimeout,
+		GatewayRequestStoreMode:              defaultGatewayRequestStoreMode,
+		GatewayRequestDatabaseTimeout:        defaultGatewayRequestDBTimeout,
 		FieldSources: map[string]string{
 			"listen_addr":                           configSourceDefault,
 			"read_header_timeout":                   configSourceDefault,
@@ -493,6 +532,9 @@ func applyEnvOverrides(cfg *Config) error {
 	if value, ok := stringEnv("RADISHMIND_CONTROL_PLANE_READ_SIGNED_TEST_PUBLIC_KEY_PEM"); ok {
 		cfg.ControlPlaneReadTestPublicKeyPEM = strings.TrimSpace(value)
 	}
+	if err := applyControlPlaneReadOIDCEnvOverrides(cfg); err != nil {
+		return err
+	}
 	if value, ok := stringEnv("RADISHMIND_CONTROL_PLANE_READ_STORE"); ok {
 		applyStringValue(&cfg.ControlPlaneReadStoreMode, value, cfg.FieldSources, "control_plane_read_store", configSourceEnv)
 	}
@@ -754,7 +796,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_run_database")
 	}
 	if controlPlaneReadStoreMode == "postgres_dev_test" {
-		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_signed_test_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_verified_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_database")
 	}
 	missingRequiredFields := missingRequiredConfigFields(cfg, requiredFields)
@@ -764,6 +806,9 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		ControlPlaneReadDevAuthEnabled:       cfg.ControlPlaneReadDevAuthEnabled,
 		ControlPlaneReadAuthMode:             EffectiveControlPlaneReadAuthMode(cfg),
 		ControlPlaneReadTestConfigured:       strings.TrimSpace(cfg.ControlPlaneReadTestIssuer) != "" && strings.TrimSpace(cfg.ControlPlaneReadTestAudience) != "" && strings.TrimSpace(cfg.ControlPlaneReadTestPublicKeyPEM) != "",
+		ControlPlaneReadOIDCConfigured:       strings.TrimSpace(cfg.ControlPlaneReadOIDCIssuer) != "" && strings.TrimSpace(cfg.ControlPlaneReadOIDCAudience) != "" && strings.TrimSpace(cfg.ControlPlaneReadOIDCMappingVersion) != "",
+		ControlPlaneReadOIDCMappingVersion:   strings.TrimSpace(cfg.ControlPlaneReadOIDCMappingVersion),
+		ControlPlaneReadOIDCEvidenceRef:      strings.TrimSpace(cfg.ControlPlaneReadOIDCEvidenceRef),
 		ControlPlaneReadStoreMode:            controlPlaneReadStoreMode,
 		ControlPlaneReadDatabaseConfigured:   strings.TrimSpace(cfg.ControlPlaneReadDatabaseURL) != "",
 		WorkflowSavedDraftDevHTTPEnabled:     cfg.WorkflowSavedDraftDevHTTPEnabled,
@@ -792,15 +837,17 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		BaseURLConfigured:                    baseURLConfigured,
 		CredentialState:                      credentialState,
 		Timeouts: map[string]string{
-			"read_header":                   cfg.ReadHeaderTimeout.String(),
-			"write":                         cfg.WriteTimeout.String(),
-			"bridge":                        cfg.BridgeTimeout.String(),
-			"bridge_handshake":              bridgeHandshakeTimeout.String(),
-			"control_plane_read_database":   cfg.ControlPlaneReadDatabaseTimeout.String(),
-			"workflow_saved_draft_database": cfg.WorkflowSavedDraftDatabaseTimeout.String(),
-			"application_draft_database":    cfg.ApplicationDraftDatabaseTimeout.String(),
-			"application_publish_database":  cfg.ApplicationPublishDatabaseTimeout.String(),
-			"workflow_run_database":         cfg.WorkflowRunDatabaseTimeout.String(),
+			"read_header":                          cfg.ReadHeaderTimeout.String(),
+			"write":                                cfg.WriteTimeout.String(),
+			"bridge":                               cfg.BridgeTimeout.String(),
+			"bridge_handshake":                     bridgeHandshakeTimeout.String(),
+			"control_plane_read_database":          cfg.ControlPlaneReadDatabaseTimeout.String(),
+			"control_plane_read_oidc_discovery":    cfg.ControlPlaneReadOIDCDiscoveryTimeout.String(),
+			"control_plane_read_oidc_jwks_max_age": cfg.ControlPlaneReadOIDCJWKSMaxAge.String(),
+			"workflow_saved_draft_database":        cfg.WorkflowSavedDraftDatabaseTimeout.String(),
+			"application_draft_database":           cfg.ApplicationDraftDatabaseTimeout.String(),
+			"application_publish_database":         cfg.ApplicationPublishDatabaseTimeout.String(),
+			"workflow_run_database":                cfg.WorkflowRunDatabaseTimeout.String(),
 		},
 		PythonBridge: PythonBridge{
 			PythonBinary:     strings.TrimSpace(cfg.PythonBinary),
@@ -903,8 +950,9 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			if !cfg.ControlPlaneReadDevAuthEnabled {
 				missing = append(missing, field)
 			}
-		case "control_plane_read_signed_test_auth":
-			if EffectiveControlPlaneReadAuthMode(cfg) != "signed_test_token" {
+		case "control_plane_read_verified_auth":
+			mode := EffectiveControlPlaneReadAuthMode(cfg)
+			if mode != "signed_test_token" && mode != "radish_oidc_integration_test" {
 				missing = append(missing, field)
 			}
 		case "control_plane_read_database":
@@ -1065,14 +1113,19 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 		if !isRSAPublicKeyPEM(cfg.ControlPlaneReadTestPublicKeyPEM) {
 			return fmt.Errorf("control plane read signed_test_token public key PEM must contain an RSA public key")
 		}
+	case "radish_oidc_integration_test":
+		if err := validateControlPlaneReadOIDCIntegrationConfig(cfg); err != nil {
+			return err
+		}
 	default:
-		return fmt.Errorf("control plane read auth mode must be disabled, dev_headers, or signed_test_token")
+		return fmt.Errorf("control plane read auth mode must be disabled, dev_headers, signed_test_token, or radish_oidc_integration_test")
 	}
 	switch EffectiveControlPlaneReadStoreMode(cfg) {
 	case "fake_store_dev":
 	case "postgres_dev_test":
-		if EffectiveControlPlaneReadAuthMode(cfg) != "signed_test_token" {
-			return fmt.Errorf("control plane read postgres_dev_test store requires signed_test_token auth mode")
+		mode := EffectiveControlPlaneReadAuthMode(cfg)
+		if mode != "signed_test_token" && mode != "radish_oidc_integration_test" {
+			return fmt.Errorf("control plane read postgres_dev_test store requires signed_test_token or radish_oidc_integration_test auth mode")
 		}
 		if strings.TrimSpace(cfg.ControlPlaneReadDatabaseURL) == "" {
 			return fmt.Errorf("control plane read postgres_dev_test store requires a database URL")

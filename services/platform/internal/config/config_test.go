@@ -538,6 +538,45 @@ func TestControlPlaneReadAuthModesFailClosed(t *testing.T) {
 	}
 }
 
+func TestControlPlaneReadOIDCIntegrationConfigFailsClosed(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.ControlPlaneReadAuthMode = "radish_oidc_integration_test"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil {
+		t.Fatal("OIDC integration mode without reviewed policy was accepted")
+	}
+	cfg.ControlPlaneReadStoreMode = "postgres_dev_test"
+	cfg.ControlPlaneReadDatabaseURL = "postgresql://runtime.invalid/secret"
+	cfg.ControlPlaneReadOIDCIssuer = "http://127.0.0.1:18080/issuer"
+	cfg.ControlPlaneReadOIDCDiscoveryURL = "http://127.0.0.1:18080/.well-known/openid-configuration"
+	cfg.ControlPlaneReadOIDCAudience = "audience:radishmind-integration"
+	cfg.ControlPlaneReadOIDCMappingVersion = "mapping:reviewed-v1"
+	cfg.ControlPlaneReadOIDCEvidenceRef = "issuer:reviewed-evidence"
+	cfg.ControlPlaneReadOIDCSubjectClaim = "sub"
+	cfg.ControlPlaneReadOIDCTenantClaim = "tenant_id"
+	cfg.ControlPlaneReadOIDCPermissionClaim = "permissions"
+	cfg.ControlPlaneReadOIDCTenantPermission = "permission:tenant-read"
+	cfg.ControlPlaneReadOIDCAuditPermission = "permission:audit-read"
+	cfg.ControlPlaneReadOIDCAlgorithms = "RS256"
+	cfg.ControlPlaneReadOIDCJWKSOrigin = "http://127.0.0.1:18080"
+	if err := validateBridgeRuntimeConfig(cfg); err != nil {
+		t.Fatalf("complete deterministic OIDC integration policy was rejected: %v", err)
+	}
+	summary := cfg.SanitizedSummary()
+	if !summary.ControlPlaneReadOIDCConfigured || summary.ControlPlaneReadOIDCMappingVersion != "mapping:reviewed-v1" ||
+		summary.ControlPlaneReadOIDCEvidenceRef != "issuer:reviewed-evidence" {
+		t.Fatalf("unexpected sanitized OIDC summary: %#v", summary)
+	}
+	cfg.ControlPlaneReadStoreMode = "fake_store_dev"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil {
+		t.Fatal("OIDC integration mode was allowed with fake store")
+	}
+	cfg.ControlPlaneReadStoreMode = "postgres_dev_test"
+	cfg.ControlPlaneReadOIDCAlgorithms = "RS256,HS256"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil {
+		t.Fatal("OIDC integration mode accepted an unsafe algorithm")
+	}
+}
+
 func TestWorkflowExecutorDevModeRequiresDevelopmentAuthAndSavedDraftHTTP(t *testing.T) {
 	config := Config{
 		ListenAddr:                 ":7000",

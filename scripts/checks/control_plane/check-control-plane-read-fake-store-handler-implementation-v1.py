@@ -333,13 +333,19 @@ def assert_go_files_and_routes(fixture: dict[str, Any]) -> None:
     for forbidden in (
         "database/sql",
         "gorm",
-        "OIDC",
         "api key generation",
         "workflow executor",
         "business_writeback_payload",
         "full_prompt_dump_with_secret",
     ):
         require(forbidden not in handler_go + fake_store_go, f"implementation must not include forbidden dependency: {forbidden}")
+
+    require("OIDC" not in fake_store_go, "fake repository must not depend on OIDC")
+    for forbidden_auth_implementation in ("oidcTokenVerifier", "fetchDiscovery", "refreshKeys"):
+        require(
+            forbidden_auth_implementation not in handler_go + fake_store_go,
+            f"read handler or fake repository must not implement auth transport: {forbidden_auth_implementation}",
+        )
 
     route_registration = fixture.get("route_registration") or {}
     require(route_registration.get("file") == "services/platform/internal/httpapi/server.go", "route registration file drifted")

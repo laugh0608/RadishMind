@@ -16,7 +16,7 @@ const DEFAULT_SUBJECT_REF = "subject_demo_user";
 const DEFAULT_SCOPES = "tenant:read,applications:read,api_keys:read,usage:read,runs:read,audit:read";
 
 export type ControlPlaneReadDataSourceMode = "offline_fixture" | "dev_live_http";
-export type ControlPlaneReadAuthMode = "dev_headers" | "signed_test_token";
+export type ControlPlaneReadAuthMode = "dev_headers" | "signed_test_token" | "radish_oidc_integration_test";
 export type ControlPlaneReadStoreMode = "fake_store_dev" | "postgres_dev_test";
 
 export type ControlPlaneReadDevLiveConfig = {
@@ -59,7 +59,7 @@ export function readControlPlaneReadDevLiveConfig(): ControlPlaneReadDevLiveConf
     baseUrl: normalizeBaseUrl(env.VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL ?? DEFAULT_BASE_URL),
     tenantRef: env.VITE_RADISHMIND_DEV_READ_TENANT_REF?.trim() || DEFAULT_TENANT_REF,
     subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || DEFAULT_SUBJECT_REF,
-    authMode: env.VITE_RADISHMIND_READ_AUTH_MODE?.trim() === "signed_test_token" ? "signed_test_token" : "dev_headers",
+    authMode: normalizeAuthMode(env.VITE_RADISHMIND_READ_AUTH_MODE),
     storeMode: env.VITE_RADISHMIND_READ_STORE_MODE?.trim() === "postgres_dev_test" ? "postgres_dev_test" : "fake_store_dev",
   };
 }
@@ -77,7 +77,9 @@ export function initialControlPlaneReadDevLiveLoadState(
   return {
     status: "loading",
     mode: "dev_live_http",
-    message: config.storeMode === "postgres_dev_test"
+    message: config.authMode === "radish_oidc_integration_test"
+      ? "Loading Admin reads while workspace operations remain membership-blocked."
+      : config.storeMode === "postgres_dev_test"
       ? "Loading routed PostgreSQL and fake read operations over signed dev/test HTTP."
       : "Loading fake-store-backed read routes over dev HTTP.",
   };
@@ -127,6 +129,22 @@ function devLiveRouteUrl(routeId: ControlPlaneReadRouteId, config: ControlPlaneR
 }
 
 function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneReadDevLiveConfig): HeadersInit {
+  if (config.authMode === "radish_oidc_integration_test") {
+    const tokenProvider = (
+      globalThis as typeof globalThis & {
+        __RADISHMIND_CONTROL_PLANE_OIDC_INTEGRATION_TOKEN__?: () => string;
+      }
+    ).__RADISHMIND_CONTROL_PLANE_OIDC_INTEGRATION_TOKEN__;
+    const token = tokenProvider?.().trim() ?? "";
+    if (!token) {
+      throw new Error("OIDC integration token is unavailable in browser memory");
+    }
+    return {
+      Accept: "application/json",
+      "X-Request-Id": `dev-live-${routeId}`,
+      Authorization: `Bearer ${token}`,
+    };
+  }
   if (config.authMode === "signed_test_token") {
     const tokenProvider = (
       globalThis as typeof globalThis & {
@@ -152,6 +170,14 @@ function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneRe
     "X-RadishMind-Dev-Read-Scopes": DEFAULT_SCOPES,
     "X-RadishMind-Dev-Read-Audit": "audit_dev_live_read_consumer",
   };
+}
+
+function normalizeAuthMode(value: string | undefined): ControlPlaneReadAuthMode {
+  const normalized = value?.trim();
+  if (normalized === "signed_test_token" || normalized === "radish_oidc_integration_test") {
+    return normalized;
+  }
+  return "dev_headers";
 }
 
 function normalizeBaseUrl(baseUrl: string): string {

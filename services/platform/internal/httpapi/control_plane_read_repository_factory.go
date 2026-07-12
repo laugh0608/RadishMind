@@ -16,8 +16,9 @@ func newControlPlaneReadRepositoryFromConfig(cfg config.Config) (ControlPlaneRea
 	case "fake_store_dev":
 		return fakeRepository, func() {}, nil
 	case "postgres_dev_test":
-		if config.EffectiveControlPlaneReadAuthMode(cfg) != "signed_test_token" || strings.TrimSpace(cfg.ControlPlaneReadDatabaseURL) == "" {
-			return nil, func() {}, errors.New("control plane read postgres_dev_test requires signed test auth and database configuration")
+		authMode := config.EffectiveControlPlaneReadAuthMode(cfg)
+		if (authMode != "signed_test_token" && authMode != "radish_oidc_integration_test") || strings.TrimSpace(cfg.ControlPlaneReadDatabaseURL) == "" {
+			return nil, func() {}, errors.New("control plane read postgres_dev_test requires verified test auth and database configuration")
 		}
 		timeout := cfg.ControlPlaneReadDatabaseTimeout
 		if timeout <= 0 {

@@ -96,7 +96,6 @@
   "forbidden_source_literals": [
     "CREATE TABLE",
     "database/sql",
-    "oidc",
     "oauth",
     "issue_api_key",
     "rotate_api_key",

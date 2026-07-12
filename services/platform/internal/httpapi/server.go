@@ -73,6 +73,10 @@ func NewServer(cfg config.Config, options Options) *Server {
 }
 
 func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
+	authenticator, err := newControlPlaneReadAuthenticator(context.Background(), cfg)
+	if err != nil {
+		return nil, err
+	}
 	controlPlaneReadRepository, closeControlPlaneReadRepository, err := newControlPlaneReadRepositoryFromConfig(cfg)
 	if err != nil {
 		return nil, err
@@ -199,7 +203,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 
 	server.httpServer = &http.Server{
 		Addr:              cfg.ListenAddr,
-		Handler:           withLocalConsoleCORS(withControlPlaneReadAuth(mux, cfg)),
+		Handler:           withLocalConsoleCORS(withControlPlaneReadAuthenticator(mux, authenticator)),
 		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
 		WriteTimeout:      cfg.WriteTimeout,
 	}

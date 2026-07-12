@@ -19,10 +19,11 @@ import (
 )
 
 const (
-	controlPlaneReadAuthModeDisabled        = "disabled"
-	controlPlaneReadAuthModeDevHeaders      = "dev_headers"
-	controlPlaneReadAuthModeSignedTestToken = "signed_test_token"
-	controlPlaneReadAuthPolicyVersion       = "control_plane_read_auth_policy_v1"
+	controlPlaneReadAuthModeDisabled                  = "disabled"
+	controlPlaneReadAuthModeDevHeaders                = "dev_headers"
+	controlPlaneReadAuthModeSignedTestToken           = "signed_test_token"
+	controlPlaneReadAuthModeRadishOIDCIntegrationTest = "radish_oidc_integration_test"
+	controlPlaneReadAuthPolicyVersion                 = "control_plane_read_auth_policy_v1"
 )
 
 var controlPlaneReadPermissionGrants = map[string]string{
@@ -63,6 +64,7 @@ type ControlPlaneResourceBinding struct {
 }
 
 type controlPlaneReadAuthContext struct {
+	AuthMode         string
 	IdentityContext  string
 	TenantBinding    string
 	SubjectBinding   string
@@ -73,6 +75,13 @@ type controlPlaneReadAuthContext struct {
 	VerifiedIdentity *VerifiedControlPlaneIdentity
 	ResourceBinding  ControlPlaneResourceBinding
 	FailureCode      string
+	FailureStatus    int
+}
+
+type controlPlaneReadAuthenticator struct {
+	mode            string
+	signedValidator *signedTestTokenValidator
+	oidcVerifier    *oidcTokenVerifier
 }
 
 type controlPlaneReadAuthContextKey struct{}
@@ -108,11 +117,19 @@ func withControlPlaneReadFakeAuthContext(ctx context.Context, auth controlPlaneR
 }
 
 func withControlPlaneReadAuth(next http.Handler, cfg config.Config) http.Handler {
+	authenticator, err := newControlPlaneReadAuthenticator(context.Background(), cfg)
+	if err != nil {
+		authenticator = &controlPlaneReadAuthenticator{mode: config.EffectiveControlPlaneReadAuthMode(cfg)}
+	}
+	return withControlPlaneReadAuthenticator(next, authenticator)
+}
+
+func newControlPlaneReadAuthenticator(ctx context.Context, cfg config.Config) (*controlPlaneReadAuthenticator, error) {
 	mode := config.EffectiveControlPlaneReadAuthMode(cfg)
-	var validator *signedTestTokenValidator
+	authenticator := &controlPlaneReadAuthenticator{mode: mode}
 	if mode == controlPlaneReadAuthModeSignedTestToken {
 		if publicKey, err := parseSignedTestRSAPublicKey(cfg.ControlPlaneReadTestPublicKeyPEM); err == nil {
-			validator = &signedTestTokenValidator{
+			authenticator.signedValidator = &signedTestTokenValidator{
 				issuer:    strings.TrimSpace(cfg.ControlPlaneReadTestIssuer),
 				audience:  strings.TrimSpace(cfg.ControlPlaneReadTestAudience),
 				publicKey: publicKey,
@@ -120,20 +137,84 @@ func withControlPlaneReadAuth(next http.Handler, cfg config.Config) http.Handler
 			}
 		}
 	}
+	if mode == controlPlaneReadAuthModeRadishOIDCIntegrationTest {
+		if err := config.ValidateControlPlaneReadOIDCIntegration(cfg); err != nil {
+			return nil, errors.New("control plane read OIDC auth policy mismatch")
+		}
+		verifier, err := newOIDCTokenVerifier(ctx, cfg)
+		if err != nil {
+			return nil, err
+		}
+		authenticator.oidcVerifier = verifier
+	}
+	return authenticator, nil
+}
 
+func withControlPlaneReadAuthenticator(next http.Handler, authenticator *controlPlaneReadAuthenticator) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		switch mode {
+		if authenticator == nil {
+			next.ServeHTTP(writer, request)
+			return
+		}
+		switch authenticator.mode {
 		case controlPlaneReadAuthModeDevHeaders:
 			if auth, ok := controlPlaneReadDevAuthFromHeaders(request); ok {
 				request = request.WithContext(withControlPlaneReadFakeAuthContext(request.Context(), auth))
 			}
 		case controlPlaneReadAuthModeSignedTestToken:
-			auth := controlPlaneReadSignedTestAuthFromRequest(request, validator)
-			request = request.WithContext(withControlPlaneReadFakeAuthContext(request.Context(), auth))
+			auth := controlPlaneReadSignedTestAuthFromRequest(request, authenticator.signedValidator)
+			request = sanitizedControlPlaneReadAuthRequest(request, auth)
+		case controlPlaneReadAuthModeRadishOIDCIntegrationTest:
+			auth := controlPlaneReadOIDCAuthFromRequest(request, authenticator.oidcVerifier)
+			request = sanitizedControlPlaneReadAuthRequest(request, auth)
 		case controlPlaneReadAuthModeDisabled:
 		}
 		next.ServeHTTP(writer, request)
 	})
+}
+
+func sanitizedControlPlaneReadAuthRequest(request *http.Request, auth controlPlaneReadAuthContext) *http.Request {
+	cloned := request.Clone(withControlPlaneReadFakeAuthContext(request.Context(), auth))
+	cloned.Header.Del("Authorization")
+	for _, header := range []string{controlPlaneReadDevIdentityHeader, controlPlaneReadDevTenantHeader, controlPlaneReadDevSubjectHeader, controlPlaneReadDevScopesHeader, controlPlaneReadDevAuditHeader} {
+		cloned.Header.Del(header)
+	}
+	return cloned
+}
+
+func controlPlaneReadOIDCAuthFromRequest(request *http.Request, verifier *oidcTokenVerifier) controlPlaneReadAuthContext {
+	if controlPlaneReadHasAnyDevHeader(request) {
+		return controlPlaneReadAuthContext{AuthMode: controlPlaneReadAuthModeRadishOIDCIntegrationTest, FailureCode: "auth_context_contract_mismatch"}
+	}
+	values := request.Header.Values("Authorization")
+	if len(values) == 0 || strings.TrimSpace(values[0]) == "" {
+		return controlPlaneReadAuthContext{AuthMode: controlPlaneReadAuthModeRadishOIDCIntegrationTest, FailureCode: "identity_context_missing"}
+	}
+	parts := strings.Fields(values[0])
+	if len(values) != 1 || len(parts) != 2 || parts[0] != "Bearer" || verifier == nil {
+		return controlPlaneReadAuthContext{AuthMode: controlPlaneReadAuthModeRadishOIDCIntegrationTest, FailureCode: "auth_context_contract_mismatch"}
+	}
+	identity, err := verifier.Validate(request.Context(), parts[1])
+	if errors.Is(err, errOIDCIdentityProviderUnavailable) {
+		return controlPlaneReadAuthContext{AuthMode: controlPlaneReadAuthModeRadishOIDCIntegrationTest, FailureCode: "identity_provider_unavailable"}
+	}
+	if errors.Is(err, errOIDCTenantBindingMissing) {
+		return controlPlaneReadAuthContext{AuthMode: controlPlaneReadAuthModeRadishOIDCIntegrationTest, FailureCode: "tenant_binding_missing", FailureStatus: http.StatusUnauthorized}
+	}
+	if err != nil {
+		return controlPlaneReadAuthContext{AuthMode: controlPlaneReadAuthModeRadishOIDCIntegrationTest, FailureCode: "auth_context_contract_mismatch"}
+	}
+	binding := ControlPlaneResourceBinding{
+		TenantRef: identity.TenantRef, TenantVerified: strings.TrimSpace(identity.TenantRef) != "",
+		PermissionGrants: append([]string{}, identity.ScopeGrants...), SourceRef: "binding:radish-oidc-integration-test",
+		PolicyVersion: identity.PolicyVersion, ExpiresAt: identity.ExpiresAt,
+	}
+	return controlPlaneReadAuthContext{
+		AuthMode: controlPlaneReadAuthModeRadishOIDCIntegrationTest, IdentityContext: "verified:radish-oidc-integration-test",
+		TenantBinding: identity.TenantRef, SubjectBinding: identity.SubjectRef, ScopeGrants: append([]string{}, identity.ScopeGrants...),
+		AuditContext: "audit:radish-oidc-integration-test", IssuerRef: identity.IssuerRef, SessionRef: identity.SessionRef,
+		VerifiedIdentity: &identity, ResourceBinding: binding,
+	}
 }
 
 func controlPlaneReadDevAuthFromHeaders(request *http.Request) (controlPlaneReadAuthContext, bool) {
@@ -155,6 +236,7 @@ func controlPlaneReadDevAuthFromHeaders(request *http.Request) (controlPlaneRead
 		SessionRef:    "session:dev-read",
 	}
 	return controlPlaneReadAuthContext{
+		AuthMode:         controlPlaneReadAuthModeDevHeaders,
 		IdentityContext:  identity,
 		TenantBinding:    tenantRef,
 		SubjectBinding:   subjectRef,
@@ -209,6 +291,7 @@ func controlPlaneReadSignedTestAuthFromRequest(request *http.Request, validator 
 		ExpiresAt:        identity.ExpiresAt,
 	}
 	return controlPlaneReadAuthContext{
+		AuthMode:         controlPlaneReadAuthModeSignedTestToken,
 		IdentityContext:  "verified:signed-test-token",
 		TenantBinding:    identity.TenantRef,
 		SubjectBinding:   identity.SubjectRef,

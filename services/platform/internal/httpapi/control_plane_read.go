@@ -343,7 +343,11 @@ func (s *Server) allowControlPlaneReadQuery(writer http.ResponseWriter, request 
 func authorizeControlPlaneReadRequest(request *http.Request, tenantRef string, requiredScope string) (controlPlaneReadAuthContext, string, int) {
 	auth, ok := request.Context().Value(controlPlaneReadAuthContextKey{}).(controlPlaneReadAuthContext)
 	if ok && strings.TrimSpace(auth.FailureCode) != "" {
-		return auth, strings.TrimSpace(auth.FailureCode), http.StatusUnauthorized
+		failure := strings.TrimSpace(auth.FailureCode)
+		if auth.FailureStatus != 0 {
+			return auth, failure, auth.FailureStatus
+		}
+		return auth, failure, controlPlaneReadFailureHTTPStatus(failure)
 	}
 	if !ok || strings.TrimSpace(auth.IdentityContext) == "" || strings.TrimSpace(auth.SubjectBinding) == "" {
 		return controlPlaneReadAuthContext{}, "identity_context_missing", http.StatusUnauthorized
@@ -355,6 +359,9 @@ func authorizeControlPlaneReadRequest(request *http.Request, tenantRef string, r
 	}
 	if tenantRef != "" && auth.TenantBinding != tenantRef {
 		return auth, "tenant_binding_missing", http.StatusForbidden
+	}
+	if auth.AuthMode == controlPlaneReadAuthModeRadishOIDCIntegrationTest && requiredScope != "tenant:read" && requiredScope != "audit:read" {
+		return auth, "workspace_membership_unavailable", http.StatusServiceUnavailable
 	}
 	if !controlPlaneReadHasScope(auth.ScopeGrants, requiredScope) {
 		return auth, "scope_denied", http.StatusForbidden
@@ -461,7 +468,7 @@ func controlPlaneReadFailureHTTPStatus(failureCode string) int {
 		return http.StatusBadRequest
 	case "tenant_not_found", "quota_policy_missing":
 		return http.StatusNotFound
-	case "read_store_unavailable", "database_read_disabled", "schema_migration_not_applied", "schema_version_mismatch":
+	case "read_store_unavailable", "database_read_disabled", "schema_migration_not_applied", "schema_version_mismatch", "identity_provider_unavailable", "workspace_membership_unavailable":
 		return http.StatusServiceUnavailable
 	case "read_store_contract_mismatch":
 		return http.StatusInternalServerError
