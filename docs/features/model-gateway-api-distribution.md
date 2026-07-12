@@ -15,6 +15,7 @@
 - [Model Gateway Request History / Usage & Failure Review v1](gateway/model-gateway-request-history-usage-failure-review-v1.md) 已完成 `memory_dev`、PostgreSQL dev/test、分页详情、重启恢复和完整失败 / 取消终态证据。
 - [User Workspace Application API Integration & Invocation v1](user-workspace/application-api-integration-invocation-v1.md) 已复用 `/v1/models`、Playground 与 History，让当前选中 application 完成模型发现、接入示例、dev/test 调用和同 request id 审查；没有扩 Gateway API 或 schema。
 - [Application Configuration Draft & Review v1](user-workspace/application-configuration-draft-review-v1.md) 已把经过模型 / 协议校验的 application draft 配置交给既有 Integration / Playground；Gateway 仍只消费 application / protocol / model，不读取草案描述、不保存测试输入输出，也没有新增 northbound schema。
+- [Application Publish Governance & Promotion v1](user-workspace/application-publish-governance-promotion-v1.md) 只把 sanitized Gateway `request_id` 作为 candidate evidence reference，并复用既有 Integration / Playground / History handoff；Gateway 不读取 candidate、review 或 eligibility，也没有新增协议、schema、provider registry 或发布职责。
 - 当前不执行真实 API key 生命周期、quota enforcement、rate limit、billing、cost ledger、provider retry/fallback execution、production gateway 或 load balancing。
 
 ## 当前开发目标
@@ -43,7 +44,7 @@ Workflow 产品链、Gateway Request History、[Gateway Playground / Request Rev
 3. 已比较受控 stdio worker pool、单 worker 多路复用与内部 HTTP 服务，选定受控 `stdio` worker pool。
 4. 已实现健康握手、并发上限、排队、超时 / 取消、崩溃恢复、优雅退出和 credential 隔离。
 5. 新实现相对 back-to-back process 基线的顺序 / 并发 bridge 自身 p95 开销下降 `93.5% / 94.4%`，已切换默认模式。
-6. Request History、Playground、Application API Integration 与 Application Configuration Draft / Review 已完成 application → validated configuration → models / examples → request → response → history 路径；下一步先设计 application publish governance，不提前打开 production distribution。
+6. Request History、Playground、Application API Integration、Application Configuration Draft / Review 与 Publish Governance 已完成 application → validated configuration → models / examples → request → response → history → immutable candidate / review 的开发测试路径；下一步转向 Admin authenticated read transition，不提前打开 production distribution。
 
 ## 验收方式
 

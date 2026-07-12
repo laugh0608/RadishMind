@@ -13,15 +13,15 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明 production ready。
-- 产品焦点：Workflow 审查链、Gateway Request History、[Gateway Playground / Request Review Loop v1](features/gateway/gateway-playground-request-review-loop-v1.md)、[Application API Integration & Invocation v1](features/user-workspace/application-api-integration-invocation-v1.md) 与 [Application Configuration Draft & Review v1](features/user-workspace/application-configuration-draft-review-v1.md) 均已完成。下一产品设计优先进入 application publish governance；不追加同层 evidence，不直接打开正式 application mutation、production key / quota / billing。
+- 产品焦点：Workflow 审查链、Gateway Request History、[Gateway Playground / Request Review Loop v1](features/gateway/gateway-playground-request-review-loop-v1.md)、[Application API Integration & Invocation v1](features/user-workspace/application-api-integration-invocation-v1.md)、[Application Configuration Draft & Review v1](features/user-workspace/application-configuration-draft-review-v1.md) 与 [Application Publish Governance & Promotion v1](features/user-workspace/application-publish-governance-promotion-v1.md) 均已完成。下一产品设计转向 Admin authenticated read identity / membership / repository transition；不追加同层 evidence，不直接打开正式 application promotion、production key / quota / billing。
 - `R2 正确性与安全清零`、`R3 Workflow Draft Review Loop`、`R4 Gateway 运行时产品化` 已完成；`R5 测试、CI 与性能预算` 进入后续工程线，`R6 文档与 checker 收敛` 继续作为治理约束。
 - 四个正式一级产品面保持为 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；Image Path 是横切适配能力，不作为当前第五条一级主线。
 - 旧 Production Secret Backend / Storage Adapter readiness 链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：Application Configuration Draft & Review 已完成当前 application → sanitized configuration draft → `/v1/models` 兼容校验 → memory / PostgreSQL dev-test save / restore / CAS conflict → Integration / Playground → 同 request id History detail 的连续路径。下一步先创建 `Application Publish Governance & Promotion v1` 功能专题，明确审批、版本绑定、发布候选、正式 repository owner 和回滚；依赖不成立时保持 publish blocked。
-2. 工程线：R5 当前 Web 主入口为 431.91 KiB，Application Configuration Draft lazy chunk 为 21.06 KiB；主入口 500 KiB、关键 vendor / Node Designer 与普通 lazy chunk 预算继续由现有 Vite build 执行，不新增同层 checker。R6 继续收敛入口文档的过期事实和历史 checker 文字耦合。
+1. 产品线：Application Publish Governance 已完成 saved valid draft → server-side reload / digest → immutable candidate → append-only review CAS → drift / superseded eligibility → Integration / Playground / exact History handoff。approved 仍由正式 repository、production auth、发布 owner和 promotion runtime 四项 blocker 阻止发布。下一步先设计 `Admin Control Plane Authenticated Read Store Transition v1`，一次只推进 verified identity、membership 与 read repository 的迁移顺序。
+2. 工程线：R5 Web 主入口和 Publish Review lazy chunk 继续受现有 Vite build 预算约束，不新增同层 checker。R6 继续收敛入口文档的过期事实和历史 checker 文字耦合。
 
 R3 与 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖 migration / rollback / reapply、运行角色 DDL 拒绝、服务重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback、CI 与真实浏览器双标签冲突审查。该完成不启用 production repository mode，也不代表 OIDC、production secret、audit store 或公开生产 API ready。
 
@@ -43,7 +43,8 @@ durable draft repository、稳定 Gateway、executor v0 与 durable dev/test run
 12. [Model Gateway Request History / Usage & Failure Review v1](features/gateway/model-gateway-request-history-usage-failure-review-v1.md)
 13. [User Workspace Application API Integration & Invocation v1](features/user-workspace/application-api-integration-invocation-v1.md)
 14. [User Workspace Application Configuration Draft & Review v1](features/user-workspace/application-configuration-draft-review-v1.md)
-15. [本周周志](devlogs/2026-W28.md)
+15. [User Workspace Application Publish Governance & Promotion v1](features/user-workspace/application-publish-governance-promotion-v1.md)
+16. [本周周志](devlogs/2026-W28.md)
 
 以下“历史兼容状态与证据索引”暂时保留大量机器检查依赖的状态锚点，人工判断当前方向时默认不再继续读取；后续由 R6 逐批迁出。
 

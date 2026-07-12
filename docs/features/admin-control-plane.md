@@ -1,6 +1,6 @@
 # Admin Control Plane 设计与开发文档
 
-更新时间：2026-06-14
+更新时间：2026-07-12
 
 ## 功能定位
 
@@ -12,6 +12,7 @@
 - 现有页面只整理 readiness、evidence checklist、operator risk、provider/profile readiness、secret ref readiness 和 deployment status。
 - Go read handlers 仍走 fake-store-backed repository bridge。
 - 当前没有 Radish OIDC、token validation、auth middleware、真实数据库、repository adapter、secret resolver、deployment preflight 或 production admin 操作。
+- User Workspace 的 Application Publish Governance 已把正式 application repository、production auth / membership 和发布 owner 明确暴露为 promotion blocker；dev/test candidate approved 不会绕过这些 blocker。
 
 ## 设计边界
 
@@ -22,9 +23,9 @@
 
 ## 下一批开发方向
 
-1. 在进入真实管理端前，先更新本功能文档，明确 tenant / role / permission / provider profile / route / quota 的写入职责。
-2. 若要接 Radish OIDC，先形成 OIDC client design、claim mapping、tenant binding、failure taxonomy 和 smoke plan。
-3. 若要接真实 read store，先从 repository adapter / store selector / schema migration 的单一方向推进，不与 auth 或管理写入并行打开。
+1. 下一产品设计创建 `Admin Control Plane Authenticated Read Store Transition v1`，明确 verified identity、tenant / workspace membership、read scope projection、正式 read repository 与 dev header / fake read store 的迁移顺序。
+2. 该专题先形成 OIDC client / claim / tenant binding、membership ownership、failure taxonomy、dual smoke 与 no-fallback 设计，再决定是否拆实现任务卡；不把已有静态 readiness 直接解释为 runtime ready。
+3. read transition 一次只打开一个受控方向，不与管理端写入、application promotion、API key lifecycle、quota enforcement 或 billing 并行启用。
 4. 普通 evidence review 展示不再新增逐项 task card；只有真实 auth、数据库、secret、deployment 或管理动作才新增专项 gate。
 
 ## 验收方式

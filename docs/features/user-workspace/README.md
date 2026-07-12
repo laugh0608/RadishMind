@@ -8,6 +8,7 @@
 
 - [Application API Integration & Invocation v1](application-api-integration-invocation-v1.md)：把选中 application、`/v1/models` 模型目录、三协议接入示例、现有 Gateway Playground 调用与 sanitized Request History 审查串成连续的内部开发者路径。
 - [Application Configuration Draft & Review v1](application-configuration-draft-review-v1.md)：为当前 application 建立独立配置草案、校验、开发测试态持久化、版本冲突、比较和 API Integration handoff。
+- [Application Publish Governance & Promotion v1](application-publish-governance-promotion-v1.md)：已完成不可变 publish candidate、版本绑定、review CAS、漂移识别、阻塞式 promotion eligibility 和既有 Integration / Playground / History 交接；不直接发布正式 application。
 
 ## 目录停止线
 
