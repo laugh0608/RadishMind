@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-12 当前执行口径：Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、durable run history、failure review、run comparison、evaluation cases、Gateway Request History / Playground、Application API Integration、Configuration Draft 与 Publish Governance 均已完成。Admin verified identity / negative auth runtime 已完成，[Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 已完成产品设计；下一入口是统一的高风险实现任务卡。正式 application mutation、production auth、workspace membership 与 production repository 仍关闭。
+2026-07-12 当前执行口径：Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、durable run history、failure review、run comparison、evaluation cases、Gateway Request History / Playground、Application API Integration、Configuration Draft 与 Publish Governance 均已完成。Admin verified identity / negative auth runtime 已完成，[Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 已完成产品设计，统一 Runtime v1 高风险任务卡已进入批次 A。正式 application mutation、production auth、workspace membership 与 production repository 仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。

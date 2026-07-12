@@ -270,4 +270,4 @@
 
 ## 下一实现入口
 
-下一步创建 `Admin Tenant / Audit PostgreSQL Read Repository Runtime v1` 高风险任务卡，统一承接 schema/migration、read-only role、adapter、routed selector、cursor 和 integration/browser evidence；不再派生一串同层 readiness 文档。
+[Admin Tenant / Audit PostgreSQL Read Repository Runtime v1](../../task-cards/admin-tenant-audit-postgresql-read-repository-runtime-v1-plan.md) 高风险任务卡已创建，统一承接 schema/migration、read-only role、adapter、routed selector、cursor 和 integration/browser evidence；当前从批次 A 开始实施，不再派生一串同层 readiness 文档。
