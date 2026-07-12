@@ -69,6 +69,8 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
@@ -127,6 +129,11 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_APPLICATION_DRAFT_STORE", "memory_dev")
 	t.Setenv("RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL", "postgresql://application-draft.invalid/secret")
 	t.Setenv("RADISHMIND_APPLICATION_DRAFT_DATABASE_TIMEOUT", "11s")
+	t.Setenv("RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE", "true")
+	t.Setenv("RADISHMIND_APPLICATION_PUBLISH_STORE", "memory_dev")
+	t.Setenv("RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL", "postgresql://application-publish.invalid/secret")
+	t.Setenv("RADISHMIND_APPLICATION_PUBLISH_DATABASE_TIMEOUT", "13s")
 
 	cfg, err := LoadFromEnv()
 	if err != nil {
@@ -176,6 +183,10 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	if !cfg.ApplicationDraftDevHTTPEnabled || !cfg.ApplicationDraftDevWriteEnabled || cfg.ApplicationDraftStoreMode != "memory_dev" ||
 		cfg.ApplicationDraftDatabaseURL == "" || cfg.ApplicationDraftDatabaseTimeout != 11*time.Second {
 		t.Fatalf("expected application draft env overrides: %#v", cfg)
+	}
+	if !cfg.ApplicationPublishDevHTTPEnabled || !cfg.ApplicationPublishDevWriteEnabled || cfg.ApplicationPublishStoreMode != "memory_dev" ||
+		cfg.ApplicationPublishDatabaseURL == "" || cfg.ApplicationPublishDatabaseTimeout != 13*time.Second {
+		t.Fatalf("expected application publish env overrides: %#v", cfg)
 	}
 
 	summary := cfg.SanitizedSummary()
@@ -233,6 +244,11 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 		summary.FieldSources["application_draft_store"] != "env" || summary.FieldSources["application_draft_database"] != "env" ||
 		summary.FieldSources["application_draft_database_timeout"] != "env" {
 		t.Fatalf("expected application draft sources=env, got %#v", summary.FieldSources)
+	}
+	if summary.FieldSources["application_publish_dev_http"] != "env" || summary.FieldSources["application_publish_dev_write"] != "env" ||
+		summary.FieldSources["application_publish_store"] != "env" || summary.FieldSources["application_publish_database"] != "env" ||
+		summary.FieldSources["application_publish_database_timeout"] != "env" {
+		t.Fatalf("expected application publish sources=env, got %#v", summary.FieldSources)
 	}
 	if summary.ConfigFile.Path != configPath || !summary.ConfigFile.Configured || !summary.ConfigFile.Loaded {
 		t.Fatalf("unexpected config file summary: %#v", summary.ConfigFile)
@@ -379,12 +395,44 @@ func TestApplicationDraftPostgresDevTestModeRequiresExplicitDevelopmentGates(t *
 	config.ControlPlaneReadDevAuthEnabled = true
 	config.ApplicationDraftDevHTTPEnabled = true
 	config.ApplicationDraftDevWriteEnabled = true
+	config.ApplicationDraftStoreMode = "postgres_dev_test"
 	config.ApplicationDraftDatabaseURL = "postgresql://runtime.invalid/secret"
 	if got := config.Check(); len(got) != 0 {
 		t.Fatalf("complete application draft postgres config should pass: %#v", got)
 	}
 	if summary := config.SanitizedSummary(); !summary.ApplicationDraftDatabaseConfigured || summary.ApplicationDraftStoreMode != "postgres_dev_test" {
 		t.Fatalf("application draft database summary must stay sanitized: %#v", summary)
+	}
+}
+
+func TestApplicationPublishPostgresDevTestModeRequiresDraftAndPublishGates(t *testing.T) {
+	config := defaultConfig()
+	config.ApplicationPublishStoreMode = "postgres_dev_test"
+	if got := config.Check(); !reflect.DeepEqual(got, []string{
+		"control_plane_read_dev_auth",
+		"application_draft_dev_http",
+		"application_draft_dev_write",
+		"application_draft_store_postgres_dev_test",
+		"application_draft_database",
+		"application_publish_dev_http",
+		"application_publish_dev_write",
+		"application_publish_database",
+	}) {
+		t.Fatalf("unexpected application publish postgres dev/test missing fields: %#v", got)
+	}
+	config.ControlPlaneReadDevAuthEnabled = true
+	config.ApplicationDraftDevHTTPEnabled = true
+	config.ApplicationDraftDevWriteEnabled = true
+	config.ApplicationDraftStoreMode = "postgres_dev_test"
+	config.ApplicationDraftDatabaseURL = "postgresql://draft-runtime.invalid/secret"
+	config.ApplicationPublishDevHTTPEnabled = true
+	config.ApplicationPublishDevWriteEnabled = true
+	config.ApplicationPublishDatabaseURL = "postgresql://runtime.invalid/secret"
+	if got := config.Check(); len(got) != 0 {
+		t.Fatalf("complete application publish postgres config should pass: %#v", got)
+	}
+	if summary := config.SanitizedSummary(); !summary.ApplicationPublishDatabaseConfigured || summary.ApplicationPublishStoreMode != "postgres_dev_test" {
+		t.Fatalf("application publish database summary must stay sanitized: %#v", summary)
 	}
 }
 
@@ -516,6 +564,12 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_APPLICATION_DRAFT_DATABASE_TIMEOUT",
+		"RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP",
+		"RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE",
+		"RADISHMIND_APPLICATION_PUBLISH_STORE",
+		"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_APPLICATION_PUBLISH_DATABASE_TIMEOUT",
 		"RADISHMIND_WORKFLOW_RUN_STORE",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",

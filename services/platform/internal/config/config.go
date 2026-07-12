@@ -10,25 +10,27 @@ import (
 )
 
 const (
-	defaultListenAddr                = ":7000"
-	defaultReadHeaderTimeout         = 5 * time.Second
-	defaultWriteTimeout              = 30 * time.Second
-	defaultBridgeTimeout             = 30 * time.Second
-	defaultBridgeMode                = "stdio_pool"
-	defaultBridgeWorkerCount         = 4
-	defaultBridgeQueueSize           = 64
-	defaultBridgeHandshake           = 5 * time.Second
-	defaultDraftDBTimeout            = 5 * time.Second
-	defaultApplicationDraftDBTimeout = 5 * time.Second
-	defaultRunDBTimeout              = 5 * time.Second
-	defaultGatewayRequestDBTimeout   = 5 * time.Second
-	defaultPythonBinary              = "python3"
-	defaultBridgeScript              = "scripts/run-platform-bridge.py"
-	defaultProvider                  = "mock"
-	defaultDraftStoreMode            = "memory_dev"
-	defaultApplicationDraftStoreMode = "memory_dev"
-	defaultRunStoreMode              = "memory_dev"
-	defaultGatewayRequestStoreMode   = "memory_dev"
+	defaultListenAddr                  = ":7000"
+	defaultReadHeaderTimeout           = 5 * time.Second
+	defaultWriteTimeout                = 30 * time.Second
+	defaultBridgeTimeout               = 30 * time.Second
+	defaultBridgeMode                  = "stdio_pool"
+	defaultBridgeWorkerCount           = 4
+	defaultBridgeQueueSize             = 64
+	defaultBridgeHandshake             = 5 * time.Second
+	defaultDraftDBTimeout              = 5 * time.Second
+	defaultApplicationDraftDBTimeout   = 5 * time.Second
+	defaultApplicationPublishDBTimeout = 5 * time.Second
+	defaultRunDBTimeout                = 5 * time.Second
+	defaultGatewayRequestDBTimeout     = 5 * time.Second
+	defaultPythonBinary                = "python3"
+	defaultBridgeScript                = "scripts/run-platform-bridge.py"
+	defaultProvider                    = "mock"
+	defaultDraftStoreMode              = "memory_dev"
+	defaultApplicationDraftStoreMode   = "memory_dev"
+	defaultApplicationPublishStoreMode = "memory_dev"
+	defaultRunStoreMode                = "memory_dev"
+	defaultGatewayRequestStoreMode     = "memory_dev"
 )
 
 const (
@@ -54,6 +56,11 @@ type Config struct {
 	ApplicationDraftStoreMode         string
 	ApplicationDraftDatabaseURL       string
 	ApplicationDraftDatabaseTimeout   time.Duration
+	ApplicationPublishDevHTTPEnabled  bool
+	ApplicationPublishDevWriteEnabled bool
+	ApplicationPublishStoreMode       string
+	ApplicationPublishDatabaseURL     string
+	ApplicationPublishDatabaseTimeout time.Duration
 	WorkflowExecutorDevEnabled        bool
 	WorkflowDiagnosticsDevEnabled     bool
 	GatewayRequestHistoryDevEnabled   bool
@@ -87,6 +94,10 @@ type ConfigSummary struct {
 	ApplicationDraftDevWriteEnabled      bool              `json:"application_draft_dev_write_enabled"`
 	ApplicationDraftStoreMode            string            `json:"application_draft_store_mode"`
 	ApplicationDraftDatabaseConfigured   bool              `json:"application_draft_database_configured"`
+	ApplicationPublishDevHTTPEnabled     bool              `json:"application_publish_dev_http_enabled"`
+	ApplicationPublishDevWriteEnabled    bool              `json:"application_publish_dev_write_enabled"`
+	ApplicationPublishStoreMode          string            `json:"application_publish_store_mode"`
+	ApplicationPublishDatabaseConfigured bool              `json:"application_publish_database_configured"`
 	WorkflowExecutorDevEnabled           bool              `json:"workflow_executor_dev_enabled"`
 	WorkflowDiagnosticsDevEnabled        bool              `json:"workflow_diagnostics_dev_enabled"`
 	GatewayRequestHistoryDevEnabled      bool              `json:"gateway_request_history_dev_enabled"`
@@ -193,6 +204,8 @@ func defaultConfig() Config {
 		WorkflowSavedDraftDatabaseTimeout: defaultDraftDBTimeout,
 		ApplicationDraftStoreMode:         defaultApplicationDraftStoreMode,
 		ApplicationDraftDatabaseTimeout:   defaultApplicationDraftDBTimeout,
+		ApplicationPublishStoreMode:       defaultApplicationPublishStoreMode,
+		ApplicationPublishDatabaseTimeout: defaultApplicationPublishDBTimeout,
 		WorkflowRunStoreMode:              defaultRunStoreMode,
 		WorkflowRunDatabaseTimeout:        defaultRunDBTimeout,
 		GatewayRequestStoreMode:           defaultGatewayRequestStoreMode,
@@ -214,6 +227,11 @@ func defaultConfig() Config {
 			"application_draft_store":               configSourceDefault,
 			"application_draft_database":            configSourceDefault,
 			"application_draft_database_timeout":    configSourceDefault,
+			"application_publish_dev_http":          configSourceDefault,
+			"application_publish_dev_write":         configSourceDefault,
+			"application_publish_store":             configSourceDefault,
+			"application_publish_database":          configSourceDefault,
+			"application_publish_database_timeout":  configSourceDefault,
 			"workflow_executor_dev":                 configSourceDefault,
 			"workflow_diagnostics_dev":              configSourceDefault,
 			"gateway_request_history_dev":           configSourceDefault,
@@ -484,6 +502,35 @@ func applyEnvOverrides(cfg *Config) error {
 		}
 		applyDurationValue(&cfg.ApplicationDraftDatabaseTimeout, parsed, cfg.FieldSources, "application_draft_database_timeout", configSourceEnv)
 	}
+	if value, ok := stringEnv("RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP", value)
+		if err != nil {
+			return err
+		}
+		cfg.ApplicationPublishDevHTTPEnabled = parsed
+		cfg.FieldSources["application_publish_dev_http"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE", value)
+		if err != nil {
+			return err
+		}
+		cfg.ApplicationPublishDevWriteEnabled = parsed
+		cfg.FieldSources["application_publish_dev_write"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_APPLICATION_PUBLISH_STORE"); ok {
+		applyStringValue(&cfg.ApplicationPublishStoreMode, value, cfg.FieldSources, "application_publish_store", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL"); ok {
+		applyStringValue(&cfg.ApplicationPublishDatabaseURL, value, cfg.FieldSources, "application_publish_database", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_APPLICATION_PUBLISH_DATABASE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_APPLICATION_PUBLISH_DATABASE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.ApplicationPublishDatabaseTimeout, parsed, cfg.FieldSources, "application_publish_database_timeout", configSourceEnv)
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_EXECUTOR_DEV"); ok {
 		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_EXECUTOR_DEV", value)
 		if err != nil {
@@ -600,6 +647,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if applicationDraftStoreMode == "" {
 		applicationDraftStoreMode = defaultApplicationDraftStoreMode
 	}
+	applicationPublishStoreMode := strings.TrimSpace(cfg.ApplicationPublishStoreMode)
+	if applicationPublishStoreMode == "" {
+		applicationPublishStoreMode = defaultApplicationPublishStoreMode
+	}
 	workflowRunStoreMode := strings.TrimSpace(cfg.WorkflowRunStoreMode)
 	if workflowRunStoreMode == "" {
 		workflowRunStoreMode = defaultRunStoreMode
@@ -624,6 +675,16 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_http")
 		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_write")
 		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_database")
+	}
+	if applicationPublishStoreMode == "postgres_dev_test" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_write")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_store_postgres_dev_test")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_database")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_publish_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_publish_dev_write")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_publish_database")
 	}
 	if cfg.WorkflowExecutorDevEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
@@ -653,6 +714,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		ApplicationDraftDevWriteEnabled:      cfg.ApplicationDraftDevWriteEnabled,
 		ApplicationDraftStoreMode:            applicationDraftStoreMode,
 		ApplicationDraftDatabaseConfigured:   strings.TrimSpace(cfg.ApplicationDraftDatabaseURL) != "",
+		ApplicationPublishDevHTTPEnabled:     cfg.ApplicationPublishDevHTTPEnabled,
+		ApplicationPublishDevWriteEnabled:    cfg.ApplicationPublishDevWriteEnabled,
+		ApplicationPublishStoreMode:          applicationPublishStoreMode,
+		ApplicationPublishDatabaseConfigured: strings.TrimSpace(cfg.ApplicationPublishDatabaseURL) != "",
 		WorkflowExecutorDevEnabled:           cfg.WorkflowExecutorDevEnabled,
 		WorkflowDiagnosticsDevEnabled:        cfg.WorkflowDiagnosticsDevEnabled,
 		GatewayRequestHistoryDevEnabled:      cfg.GatewayRequestHistoryDevEnabled,
@@ -675,6 +740,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"bridge_handshake":              bridgeHandshakeTimeout.String(),
 			"workflow_saved_draft_database": cfg.WorkflowSavedDraftDatabaseTimeout.String(),
 			"application_draft_database":    cfg.ApplicationDraftDatabaseTimeout.String(),
+			"application_publish_database":  cfg.ApplicationPublishDatabaseTimeout.String(),
 			"workflow_run_database":         cfg.WorkflowRunDatabaseTimeout.String(),
 		},
 		PythonBridge: PythonBridge{
@@ -694,6 +760,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
+			"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL",
+			"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
@@ -796,6 +864,22 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			}
 		case "application_draft_database":
 			if strings.TrimSpace(cfg.ApplicationDraftDatabaseURL) == "" {
+				missing = append(missing, field)
+			}
+		case "application_draft_store_postgres_dev_test":
+			if strings.TrimSpace(cfg.ApplicationDraftStoreMode) != "postgres_dev_test" {
+				missing = append(missing, field)
+			}
+		case "application_publish_dev_http":
+			if !cfg.ApplicationPublishDevHTTPEnabled {
+				missing = append(missing, field)
+			}
+		case "application_publish_dev_write":
+			if !cfg.ApplicationPublishDevWriteEnabled {
+				missing = append(missing, field)
+			}
+		case "application_publish_database":
+			if strings.TrimSpace(cfg.ApplicationPublishDatabaseURL) == "" {
 				missing = append(missing, field)
 			}
 		case "workflow_executor_dev":

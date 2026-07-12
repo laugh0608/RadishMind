@@ -14,6 +14,8 @@ saved_draft_postgres_dev_test=0
 workflow_diagnostics_dev=0
 gateway_request_postgres_dev_test=0
 application_draft_dev=0
+application_publish_dev=0
+application_publish_postgres_dev_test=0
 saved_draft_workspace_id="workspace_demo"
 saved_draft_application_id="app_flow_copilot"
 
@@ -44,6 +46,10 @@ Options:
   --gateway-request-postgres-dev-test
                            Enable durable dev/test Gateway Request History and the scoped Gateway Playground.
   --application-draft-dev Enable the explicit memory-dev Application Configuration Draft path.
+  --application-publish-dev
+                           Enable memory-dev Application Draft and Publish Candidate review.
+  --application-publish-postgres-dev-test
+                           Enable PostgreSQL dev/test Application Draft and Publish Candidate review.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
   -h, --help              Show this help.
@@ -100,6 +106,14 @@ while [[ $# -gt 0 ]]; do
       application_draft_dev=1
       shift
       ;;
+    --application-publish-dev)
+      application_publish_dev=1
+      shift
+      ;;
+    --application-publish-postgres-dev-test)
+      application_publish_postgres_dev_test=1
+      shift
+      ;;
     --verify-only)
       verify_only=1
       shift
@@ -151,6 +165,22 @@ if [[ "${gateway_request_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live" ]]
 fi
 if [[ "${application_draft_dev}" -eq 1 && "${mode}" != "dev-live" ]]; then
   echo "--application-draft-dev requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${application_publish_dev}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--application-publish-dev requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${application_publish_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--application-publish-postgres-dev-test requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${application_publish_dev}" -eq 1 && "${application_publish_postgres_dev_test}" -eq 1 ]]; then
+  echo "Choose either --application-publish-dev or --application-publish-postgres-dev-test" >&2
+  exit 2
+fi
+if [[ "${application_draft_dev}" -eq 1 && "${application_publish_postgres_dev_test}" -eq 1 ]]; then
+  echo "--application-draft-dev cannot be combined with --application-publish-postgres-dev-test" >&2
   exit 2
 fi
 
@@ -616,7 +646,7 @@ if [[ "${mode}" == "dev-live" && ! -f "${platform_wrapper}" ]]; then
 fi
 
 saved_draft_database_url=""
-if [[ "${saved_draft_postgres_dev_test}" -eq 1 || "${gateway_request_postgres_dev_test}" -eq 1 ]]; then
+if [[ "${saved_draft_postgres_dev_test}" -eq 1 || "${gateway_request_postgres_dev_test}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 ]]; then
   require_command go
   saved_draft_database_url="$(build_saved_draft_database_url)"
   if ! probe_saved_draft_postgres_migration "${saved_draft_database_url}"; then
@@ -641,7 +671,23 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export RADISHMIND_PLATFORM_PROVIDER="${RADISHMIND_PLATFORM_PROVIDER:-mock}"
         export RADISHMIND_PLATFORM_MODEL="${RADISHMIND_PLATFORM_MODEL:-radishmind-local-dev}"
         export RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH="1"
-        if [[ "${application_draft_dev}" -eq 1 ]]; then
+        if [[ "${application_publish_postgres_dev_test}" -eq 1 ]]; then
+          export RADISHMIND_APPLICATION_DRAFT_DEV_HTTP="1"
+          export RADISHMIND_APPLICATION_DRAFT_DEV_WRITE="1"
+          export RADISHMIND_APPLICATION_DRAFT_STORE="postgres_dev_test"
+          export RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+          export RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP="1"
+          export RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE="1"
+          export RADISHMIND_APPLICATION_PUBLISH_STORE="postgres_dev_test"
+          export RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+        elif [[ "${application_publish_dev}" -eq 1 ]]; then
+          export RADISHMIND_APPLICATION_DRAFT_DEV_HTTP="1"
+          export RADISHMIND_APPLICATION_DRAFT_DEV_WRITE="1"
+          export RADISHMIND_APPLICATION_DRAFT_STORE="memory_dev"
+          export RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP="1"
+          export RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE="1"
+          export RADISHMIND_APPLICATION_PUBLISH_STORE="memory_dev"
+        elif [[ "${application_draft_dev}" -eq 1 ]]; then
           export RADISHMIND_APPLICATION_DRAFT_DEV_HTTP="1"
           export RADISHMIND_APPLICATION_DRAFT_DEV_WRITE="1"
           export RADISHMIND_APPLICATION_DRAFT_STORE="memory_dev"
@@ -685,10 +731,15 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL="${backend_url%/}"
         export VITE_RADISHMIND_DEV_READ_TENANT_REF="${tenant_ref}"
         export VITE_RADISHMIND_DEV_READ_SUBJECT_REF="${subject_ref}"
-        if [[ "${application_draft_dev}" -eq 1 ]]; then
+        if [[ "${application_draft_dev}" -eq 1 || "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 ]]; then
           export VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE="dev-application-draft-http"
           export VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID="${saved_draft_workspace_id}"
+        fi
+        if [[ "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 ]]; then
+          export VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE="dev-application-publish-http"
+          export VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
         if [[ "${saved_draft_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE="dev-saved-draft-http"
@@ -717,6 +768,9 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE
         unset VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL
         unset VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID
+        unset VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE
+        unset VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL
+        unset VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID
       fi
       exec npm run dev
     ) >"${log_dir}/web.out.log" 2>"${log_dir}/web.err.log" &

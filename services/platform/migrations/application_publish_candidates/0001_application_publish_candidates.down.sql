@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS application_publish_candidates;
+DROP TABLE IF EXISTS application_publish_candidate_schema_versions;

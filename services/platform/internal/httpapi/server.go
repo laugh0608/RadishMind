@@ -33,18 +33,20 @@ type Server struct {
 	controlPlaneReadStore controlPlaneReadStore
 	controlPlaneReadRepo  ControlPlaneReadRepository
 
-	savedWorkflowDraftStore        savedWorkflowDraftStore
-	applicationDraftRepository     applicationConfigurationDraftRepository
-	workflowRunStore               workflowRunStore
-	workflowEvaluationStore        workflowEvaluationStore
-	workflowEvaluationSuiteStore   workflowEvaluationSuiteStore
-	gatewayRequestHistoryStore     gatewayRequestStore
-	gatewayRequestHistoryStoreMode string
-	closeSavedWorkflowDraftStore   func()
-	closeApplicationDraftStore     func()
-	closeWorkflowRunStore          func()
-	closeGatewayRequestStore       func()
-	closeOnce                      sync.Once
+	savedWorkflowDraftStore               savedWorkflowDraftStore
+	applicationDraftRepository            applicationConfigurationDraftRepository
+	applicationPublishCandidateRepository applicationPublishCandidateRepository
+	workflowRunStore                      workflowRunStore
+	workflowEvaluationStore               workflowEvaluationStore
+	workflowEvaluationSuiteStore          workflowEvaluationSuiteStore
+	gatewayRequestHistoryStore            gatewayRequestStore
+	gatewayRequestHistoryStoreMode        string
+	closeSavedWorkflowDraftStore          func()
+	closeApplicationDraftStore            func()
+	closeApplicationPublishStore          func()
+	closeWorkflowRunStore                 func()
+	closeGatewayRequestStore              func()
+	closeOnce                             sync.Once
 }
 
 type errorDocument struct {
@@ -79,8 +81,15 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeSavedWorkflowDraftStore()
 		return nil, err
 	}
+	applicationPublishRepository, closeApplicationPublishStore, err := newApplicationPublishCandidateRepositoryFromConfig(cfg)
+	if err != nil {
+		closeApplicationDraftStore()
+		closeSavedWorkflowDraftStore()
+		return nil, err
+	}
 	workflowRunStore, closeWorkflowRunStore, err := newWorkflowRunStoreFromConfig(cfg)
 	if err != nil {
+		closeApplicationPublishStore()
 		closeApplicationDraftStore()
 		closeSavedWorkflowDraftStore()
 		return nil, err
@@ -88,6 +97,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfig(cfg)
 	if err != nil {
 		closeWorkflowRunStore()
+		closeApplicationPublishStore()
 		closeApplicationDraftStore()
 		closeSavedWorkflowDraftStore()
 		return nil, err
@@ -96,6 +106,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	if err != nil {
 		closeGatewayRequestStore()
 		closeWorkflowRunStore()
+		closeApplicationPublishStore()
 		closeApplicationDraftStore()
 		if closeSavedWorkflowDraftStore != nil {
 			closeSavedWorkflowDraftStore()
@@ -104,20 +115,22 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	}
 	mux := http.NewServeMux()
 	server := &Server{
-		options:                        options,
-		bridge:                         platformBridge,
-		config:                         cfg,
-		savedWorkflowDraftStore:        savedWorkflowDraftStore,
-		applicationDraftRepository:     applicationDraftRepository,
-		workflowRunStore:               workflowRunStore,
-		workflowEvaluationStore:        newWorkflowEvaluationStoreForRunStore(workflowRunStore),
-		workflowEvaluationSuiteStore:   newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
-		gatewayRequestHistoryStore:     gatewayRequestStore,
-		gatewayRequestHistoryStoreMode: gatewayRequestStoreMode,
-		closeSavedWorkflowDraftStore:   closeSavedWorkflowDraftStore,
-		closeApplicationDraftStore:     closeApplicationDraftStore,
-		closeWorkflowRunStore:          closeWorkflowRunStore,
-		closeGatewayRequestStore:       closeGatewayRequestStore,
+		options:                               options,
+		bridge:                                platformBridge,
+		config:                                cfg,
+		savedWorkflowDraftStore:               savedWorkflowDraftStore,
+		applicationDraftRepository:            applicationDraftRepository,
+		applicationPublishCandidateRepository: applicationPublishRepository,
+		workflowRunStore:                      workflowRunStore,
+		workflowEvaluationStore:               newWorkflowEvaluationStoreForRunStore(workflowRunStore),
+		workflowEvaluationSuiteStore:          newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
+		gatewayRequestHistoryStore:            gatewayRequestStore,
+		gatewayRequestHistoryStoreMode:        gatewayRequestStoreMode,
+		closeSavedWorkflowDraftStore:          closeSavedWorkflowDraftStore,
+		closeApplicationDraftStore:            closeApplicationDraftStore,
+		closeApplicationPublishStore:          closeApplicationPublishStore,
+		closeWorkflowRunStore:                 closeWorkflowRunStore,
+		closeGatewayRequestStore:              closeGatewayRequestStore,
 	}
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
@@ -147,6 +160,10 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationDraftListRoute, server.handleListApplicationConfigurationDrafts)
 	mux.HandleFunc(applicationDraftReadRoute, server.handleReadApplicationConfigurationDraft)
 	mux.HandleFunc(applicationDraftValidateRoute, server.handleValidateApplicationConfigurationDraft)
+	mux.HandleFunc(applicationPublishCandidateCreateRoute, server.handleCreateApplicationPublishCandidate)
+	mux.HandleFunc(applicationPublishCandidateListRoute, server.handleListApplicationPublishCandidates)
+	mux.HandleFunc(applicationPublishCandidateReadRoute, server.handleReadApplicationPublishCandidate)
+	mux.HandleFunc(applicationPublishCandidateReviewRoute, server.handleReviewApplicationPublishCandidate)
 	mux.HandleFunc(workflowExecutorStartRoute, server.handleStartWorkflowRun)
 	mux.HandleFunc(workflowRunListRoute, server.handleListWorkflowRuns)
 	mux.HandleFunc(workflowRunReadRoute, server.handleReadWorkflowRun)
@@ -241,6 +258,9 @@ func (s *Server) Close() {
 		if s.closeApplicationDraftStore != nil {
 			s.closeApplicationDraftStore()
 		}
+		if s.closeApplicationPublishStore != nil {
+			s.closeApplicationPublishStore()
+		}
 		if s.closeWorkflowRunStore != nil {
 			s.closeWorkflowRunStore()
 		}
@@ -309,6 +329,8 @@ func localConsoleAllowedHeaders() []string {
 		savedWorkflowDraftDevApplicationHeader,
 		applicationDraftDevWorkspaceHeader,
 		applicationDraftDevApplicationHeader,
+		applicationPublishDevWorkspaceHeader,
+		applicationPublishDevApplicationHeader,
 		gatewayRequestDevTenantHeader,
 		gatewayRequestDevWorkspaceHeader,
 		gatewayRequestDevConsumerHeader,

@@ -12,6 +12,8 @@ param(
     [switch]$WorkflowDiagnosticsDev,
     [switch]$GatewayRequestPostgresDevTest,
     [switch]$ApplicationDraftDev,
+    [switch]$ApplicationPublishDev,
+    [switch]$ApplicationPublishPostgresDevTest,
     [switch]$VerifyOnly,
     [switch]$ExitAfterProbe,
     [switch]$Help
@@ -36,6 +38,10 @@ Options:
   -GatewayRequestPostgresDevTest
                         Enable durable dev/test Gateway Request History and the scoped Gateway Playground.
   -ApplicationDraftDev  Enable the explicit memory-dev Application Configuration Draft path.
+  -ApplicationPublishDev
+                        Enable memory-dev Application Draft and Publish Candidate review.
+  -ApplicationPublishPostgresDevTest
+                        Enable PostgreSQL dev/test Application Draft and Publish Candidate review.
   -VerifyOnly           Probe existing backend/frontend processes only.
   -ExitAfterProbe       Start missing local processes, probe, then stop spawned processes.
 "@
@@ -59,6 +65,18 @@ if ($GatewayRequestPostgresDevTest -and $Mode -ne "dev-live") {
 }
 if ($ApplicationDraftDev -and $Mode -ne "dev-live") {
     throw "-ApplicationDraftDev requires -Mode dev-live"
+}
+if ($ApplicationPublishDev -and $Mode -ne "dev-live") {
+    throw "-ApplicationPublishDev requires -Mode dev-live"
+}
+if ($ApplicationPublishPostgresDevTest -and $Mode -ne "dev-live") {
+    throw "-ApplicationPublishPostgresDevTest requires -Mode dev-live"
+}
+if ($ApplicationPublishDev -and $ApplicationPublishPostgresDevTest) {
+    throw "Choose either -ApplicationPublishDev or -ApplicationPublishPostgresDevTest"
+}
+if ($ApplicationDraftDev -and $ApplicationPublishPostgresDevTest) {
+    throw "-ApplicationDraftDev cannot be combined with -ApplicationPublishPostgresDevTest"
 }
 
 $savedDraftEnabled = $SavedDraftDev -or $SavedDraftPostgresDevTest
@@ -500,7 +518,7 @@ try {
     if ($Mode -eq "dev-live" -and -not (Test-Path -LiteralPath $platformWrapper -PathType Leaf)) {
         throw "Missing platform wrapper: $platformWrapper"
     }
-    if ($SavedDraftPostgresDevTest -or $GatewayRequestPostgresDevTest) {
+    if ($SavedDraftPostgresDevTest -or $GatewayRequestPostgresDevTest -or $ApplicationPublishPostgresDevTest) {
         Invoke-SavedDraftPostgresMigrationStatus
         Write-Step "PostgreSQL dev/test migration preflight passed."
     }
@@ -520,7 +538,26 @@ try {
                 $env:RADISHMIND_PLATFORM_MODEL = "radishmind-local-dev"
             }
             $env:RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH = "1"
-            if ($ApplicationDraftDev) {
+            if ($ApplicationPublishPostgresDevTest) {
+                $databaseUrl = Get-SavedDraftDatabaseUrl
+                $env:RADISHMIND_APPLICATION_DRAFT_DEV_HTTP = "1"
+                $env:RADISHMIND_APPLICATION_DRAFT_DEV_WRITE = "1"
+                $env:RADISHMIND_APPLICATION_DRAFT_STORE = "postgres_dev_test"
+                $env:RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL = $databaseUrl
+                $env:RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP = "1"
+                $env:RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE = "1"
+                $env:RADISHMIND_APPLICATION_PUBLISH_STORE = "postgres_dev_test"
+                $env:RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL = $databaseUrl
+            }
+            elseif ($ApplicationPublishDev) {
+                $env:RADISHMIND_APPLICATION_DRAFT_DEV_HTTP = "1"
+                $env:RADISHMIND_APPLICATION_DRAFT_DEV_WRITE = "1"
+                $env:RADISHMIND_APPLICATION_DRAFT_STORE = "memory_dev"
+                $env:RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP = "1"
+                $env:RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE = "1"
+                $env:RADISHMIND_APPLICATION_PUBLISH_STORE = "memory_dev"
+            }
+            elseif ($ApplicationDraftDev) {
                 $env:RADISHMIND_APPLICATION_DRAFT_DEV_HTTP = "1"
                 $env:RADISHMIND_APPLICATION_DRAFT_DEV_WRITE = "1"
                 $env:RADISHMIND_APPLICATION_DRAFT_STORE = "memory_dev"
@@ -573,10 +610,15 @@ try {
                 $env:VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL = $BackendUrl.TrimEnd("/")
                 $env:VITE_RADISHMIND_DEV_READ_TENANT_REF = $TenantRef
                 $env:VITE_RADISHMIND_DEV_READ_SUBJECT_REF = $SubjectRef
-                if ($ApplicationDraftDev) {
+                if ($ApplicationDraftDev -or $ApplicationPublishDev -or $ApplicationPublishPostgresDevTest) {
                     $env:VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE = "dev-application-draft-http"
                     $env:VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID = $savedDraftWorkspaceId
+                }
+                if ($ApplicationPublishDev -or $ApplicationPublishPostgresDevTest) {
+                    $env:VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE = "dev-application-publish-http"
+                    $env:VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL = $BackendUrl.TrimEnd("/")
+                    $env:VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
                 if ($savedDraftEnabled) {
                     $env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE = "dev-saved-draft-http"
@@ -608,6 +650,9 @@ try {
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV -ErrorAction SilentlyContinue
