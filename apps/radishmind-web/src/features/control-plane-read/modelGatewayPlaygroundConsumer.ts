@@ -89,6 +89,13 @@ export function initialModelGatewayPlaygroundResult(config: ModelGatewayPlaygrou
   };
 }
 
+export function modelGatewayPlaygroundConfigForApplication(
+  config: ModelGatewayPlaygroundConfig,
+  applicationId: string,
+): ModelGatewayPlaygroundConfig {
+  return { ...config, applicationId: applicationId.trim() };
+}
+
 export function createGatewayPlaygroundRequestId(): string {
   const randomPart = globalThis.crypto?.randomUUID?.().replaceAll("-", "") ?? Math.random().toString(16).slice(2);
   return `playground-${Date.now()}-${randomPart.slice(0, 16)}`;

@@ -196,6 +196,7 @@ const WorkflowNodeDesigner = lazy(() => import("../features/control-plane-read/w
 const AdminOperationsReviewPanel = lazy(() => import("../features/control-plane-read/adminOperationsReviewPanel").then((module) => ({ default: module.AdminOperationsReviewPanel })));
 const ModelGatewayEvidenceReviewPanel = lazy(() => import("../features/control-plane-read/modelGatewayEvidenceReviewPanel").then((module) => ({ default: module.ModelGatewayEvidenceReviewPanel })));
 const ModelGatewayPlaygroundPanel = lazy(() => import("../features/control-plane-read/modelGatewayPlaygroundPanel"));
+const ApplicationApiIntegrationPanel = lazy(() => import("../features/control-plane-read/applicationApiIntegrationPanel"));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
 const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
 
@@ -1162,6 +1163,7 @@ export function App() {
             <p className="nav-link-group-label">Workspace</p>
             <a href="#workflow-user-workspace-home">Workspace Home</a>
             <a href="#workspace-applications">Applications</a>
+            <a href="#application-api-integration">API Integration</a>
             <a href="#workspace-workflow-definitions">Workflows</a>
             <a href="#workspace-run-history">Run History</a>
             <a href="#workspace-api-keys">API Keys</a>
@@ -1522,6 +1524,13 @@ export function App() {
           </div>
 
           <WorkflowApplicationDetailPanel detail={workflowApplicationDetail} />
+          <Suspense fallback={<div className="application-api-integration"><p>Loading Application API Integration…</p></div>}>
+            <ApplicationApiIntegrationPanel
+              key={selectedApplication.applicationRef}
+              applicationId={selectedApplication.applicationRef}
+              applicationName={selectedApplication.displayName}
+            />
+          </Suspense>
 
           <div className="application-states" aria-label="Workspace application states">
             {workspaceApplications.statePreviews.map((state) => (

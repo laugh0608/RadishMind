@@ -1,24 +1,52 @@
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   createGatewayPlaygroundRequestId,
   initialModelGatewayPlaygroundResult,
+  modelGatewayPlaygroundConfigForApplication,
   readModelGatewayPlaygroundConfig,
   submitModelGatewayPlaygroundRequest,
   type ModelGatewayPlaygroundProtocol,
 } from "./modelGatewayPlaygroundConsumer.ts";
-import { requestGatewayRequestHistoryReview } from "./modelGatewayPlaygroundEvents.ts";
+import {
+  MODEL_GATEWAY_PLAYGROUND_HANDOFF_EVENT,
+  requestGatewayRequestHistoryReview,
+  type ModelGatewayPlaygroundHandoffEventDetail,
+} from "./modelGatewayPlaygroundEvents.ts";
 
-const config = readModelGatewayPlaygroundConfig();
+const baseConfig = readModelGatewayPlaygroundConfig();
 const DEFAULT_INPUT = "请用简洁的中文说明 RadishMind Gateway 当前请求的处理结果。";
 
 export default function ModelGatewayPlaygroundPanel() {
+  const [applicationId, setApplicationId] = useState(baseConfig.applicationId);
   const [protocol, setProtocol] = useState<ModelGatewayPlaygroundProtocol>("chat_completions");
-  const [model, setModel] = useState(config.defaultModel);
+  const [model, setModel] = useState(baseConfig.defaultModel);
   const [inputText, setInputText] = useState(DEFAULT_INPUT);
   const [stream, setStream] = useState(false);
-  const [result, setResult] = useState(() => initialModelGatewayPlaygroundResult(config));
+  const [result, setResult] = useState(() => initialModelGatewayPlaygroundResult(baseConfig));
   const activeController = useRef<AbortController | null>(null);
+  const config = useMemo(
+    () => modelGatewayPlaygroundConfigForApplication(baseConfig, applicationId),
+    [applicationId],
+  );
+
+  useEffect(() => {
+    function receiveApplicationHandoff(event: Event) {
+      const detail = (event as CustomEvent<ModelGatewayPlaygroundHandoffEventDetail>).detail;
+      if (!detail?.applicationId || !detail.model) return;
+      activeController.current?.abort();
+      activeController.current = null;
+      const nextConfig = modelGatewayPlaygroundConfigForApplication(baseConfig, detail.applicationId);
+      setApplicationId(detail.applicationId);
+      setProtocol(detail.protocol);
+      setModel(detail.model);
+      setInputText(DEFAULT_INPUT);
+      setStream(false);
+      setResult(initialModelGatewayPlaygroundResult(nextConfig));
+    }
+    window.addEventListener(MODEL_GATEWAY_PLAYGROUND_HANDOFF_EVENT, receiveApplicationHandoff);
+    return () => window.removeEventListener(MODEL_GATEWAY_PLAYGROUND_HANDOFF_EVENT, receiveApplicationHandoff);
+  }, []);
 
   async function submit() {
     const controller = new AbortController();
@@ -35,6 +63,7 @@ export default function ModelGatewayPlaygroundPanel() {
       controller.signal,
       (outputText) => setResult((current) => ({ ...current, outputText })),
     );
+    if (activeController.current !== controller) return;
     activeController.current = null;
     setResult(next);
   }
@@ -44,7 +73,7 @@ export default function ModelGatewayPlaygroundPanel() {
   }
 
   function reviewHistory() {
-    requestGatewayRequestHistoryReview(result.requestId);
+    requestGatewayRequestHistoryReview(result.requestId, applicationId);
     window.location.hash = "model-gateway-request-history";
   }
 
@@ -62,6 +91,7 @@ export default function ModelGatewayPlaygroundPanel() {
       ) : (
         <div className="gateway-playground-layout">
           <form className="gateway-playground-form" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
+            <p className="gateway-playground-scope"><strong>Application scope</strong><code>{applicationId || "unbound"}</code></p>
             <label>Protocol<select value={protocol} onChange={(event) => setProtocol(event.target.value as ModelGatewayPlaygroundProtocol)} disabled={result.status === "submitting"}><option value="chat_completions">Chat Completions</option><option value="responses">Responses</option><option value="messages">Messages</option></select></label>
             <label>Model<input value={model} onChange={(event) => setModel(event.target.value)} maxLength={160} disabled={result.status === "submitting"} /></label>
             <label className="gateway-playground-input">Temporary input<textarea value={inputText} onChange={(event) => setInputText(event.target.value)} maxLength={8000} rows={7} disabled={result.status === "submitting"} /></label>

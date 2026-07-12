@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   initialModelGatewayPlaygroundResult,
+  modelGatewayPlaygroundConfigForApplication,
   submitModelGatewayPlaygroundRequest,
   type ModelGatewayPlaygroundConfig,
   type ModelGatewayPlaygroundInput,
@@ -61,6 +62,22 @@ test("Gateway Playground maps all unary protocols and scoped caller headers", as
       assert.equal(result.requestId, "playground-test-request");
       assert.equal(JSON.stringify(result).includes("private playground input"), false);
     }
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Gateway Playground replaces fixed application config with the current handoff scope", async () => {
+  const originalFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = async (_url, init) => {
+      const headers = new Headers(init?.headers);
+      assert.equal(headers.get("X-RadishMind-Dev-Gateway-Application"), "app_docs_assistant");
+      return jsonResponse({ output_text: "scoped output" }, "playground-test-request");
+    };
+    const scoped = modelGatewayPlaygroundConfigForApplication(live, "app_docs_assistant");
+    const result = await submitModelGatewayPlaygroundRequest(scoped, input("responses", false));
+    assert.equal(result.status, "succeeded");
   } finally {
     globalThis.fetch = originalFetch;
   }

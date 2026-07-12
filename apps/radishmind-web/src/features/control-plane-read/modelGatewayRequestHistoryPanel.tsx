@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   EMPTY_GATEWAY_REQUEST_HISTORY_FILTER,
@@ -12,14 +12,16 @@ import {
 } from "./modelGatewayRequestHistoryConsumer.ts";
 import { MODEL_GATEWAY_REQUEST_REVIEW_EVENT, type ModelGatewayRequestReviewEventDetail } from "./modelGatewayPlaygroundEvents.ts";
 
-const config = readModelGatewayRequestHistoryConfig();
+const baseConfig = readModelGatewayRequestHistoryConfig();
 
 export default function ModelGatewayRequestHistoryPanel() {
+  const [applicationId, setApplicationId] = useState(baseConfig.applicationId);
   const [filter, setFilter] = useState<GatewayRequestHistoryFilter>(EMPTY_GATEWAY_REQUEST_HISTORY_FILTER);
-  const [history, setHistory] = useState(() => initialGatewayRequestHistoryState(config));
+  const [history, setHistory] = useState(() => initialGatewayRequestHistoryState(baseConfig));
   const [selectedRequestId, setSelectedRequestId] = useState("");
   const [detail, setDetail] = useState<GatewayRequestHistoryDetail | null>(null);
   const [detailFailure, setDetailFailure] = useState("");
+  const config = useMemo(() => ({ ...baseConfig, applicationId }), [applicationId]);
 
   const load = useCallback(async (cursor = "", append = false) => {
     if (config.mode !== "dev_gateway_request_history_http") return;
@@ -36,22 +38,25 @@ export default function ModelGatewayRequestHistoryPanel() {
         failureSummary: error instanceof Error ? error.message : "Gateway request history is unavailable.",
       }));
     }
-  }, [filter, history.requests]);
+  }, [config, filter, history.requests]);
 
   useEffect(() => { void load(); }, []);
 
   useEffect(() => {
     function reviewPlaygroundRequest(event: Event) {
       const requestId = (event as CustomEvent<ModelGatewayRequestReviewEventDetail>).detail?.requestId?.trim();
-      if (!requestId || config.mode !== "dev_gateway_request_history_http") return;
+      const nextApplicationId = (event as CustomEvent<ModelGatewayRequestReviewEventDetail>).detail?.applicationId?.trim();
+      if (!requestId || !nextApplicationId || baseConfig.mode !== "dev_gateway_request_history_http") return;
+      const reviewConfig = { ...baseConfig, applicationId: nextApplicationId };
+      setApplicationId(nextApplicationId);
       setFilter(EMPTY_GATEWAY_REQUEST_HISTORY_FILTER);
       setSelectedRequestId(requestId);
       setDetail(null);
       setDetailFailure("");
       setHistory((current) => ({ ...current, status: "loading", failureCode: "", failureSummary: "" }));
       void Promise.all([
-        listGatewayRequestHistory(config, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER),
-        readGatewayRequestHistoryDetail(config, requestId),
+        listGatewayRequestHistory(reviewConfig, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER),
+        readGatewayRequestHistoryDetail(reviewConfig, requestId),
       ]).then(([nextHistory, nextDetail]) => {
         setHistory(nextHistory);
         setDetail(nextDetail);
@@ -104,7 +109,7 @@ export default function ModelGatewayRequestHistoryPanel() {
             <article className="model-gateway-overview-trace">
               <p className="eyebrow">Scoped dev/test API</p>
               <h5>/v1/model-gateway/requests</h5>
-              <p>{config.workspaceId} · {config.consumerRef} · {history.status}</p>
+              <p>{config.workspaceId} · {config.applicationId || "unbound"} · {config.consumerRef} · {history.status}</p>
               <dl className="model-gateway-overview-meta">
                 <div><dt>Records</dt><dd>{history.requests.length}</dd></div>
                 <div><dt>Failed / canceled</dt><dd>{failedCount} / {canceledCount}</dd></div>
