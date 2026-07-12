@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约
 
-更新时间：2026-07-08
+更新时间：2026-07-12
 
 ## 文档目的
 
@@ -38,6 +38,7 @@
 - 兼容层只做翻译，不另起第二套真相源。
 - 上层项目只消费建议、解释、候选动作和审计信息，最终业务真相源仍由上层维护。
 - 用户端、管理端、模型网关和 workflow runtime 都必须复用同一套 canonical contract，不为每个产品面另起一套私有协议。
+- Admin authenticated read 只消费 Radish 的 verified identity、tenant 和审查后的 permission projection；RadishMind 不解析分散 claim、不读取 Radish 业务数据库，也不复制 user / tenant / role 真相源。workspace / application membership 属于 RadishMind 资源绑定，不能由 `radish-api` scope 或角色名称隐式推导。
 - 部署、数据库和登录 / 授权默认参考 `Radish`；未来 RadishMind 作为 OIDC client 接入 `Radish`，不把用户身份和权限真相源放进模型 runtime，也不默认引入 `.NET` / ASP.NET Core。
 - `RadishFlow` 和 `Radish` 的真实挂载点成熟度不作为 RadishMind 平台功能开发的阻塞条件。没有稳定 UI、command 或 API 承接入口时，本仓库先推进离线、只读、advisory-only、blocked capability 的产品面和协议边界；真实接入只在上层提供明确挂载点、确认流和审计落点后选择一个切片推进。
 - `P2 Session & Tooling Foundation` 当前只声明 close candidate / governance-only；negative regression governance suite、deny-by-default gates、negative coverage rollup、route negative coverage matrix、route smoke readiness rollup、short close readiness delta、readiness consistency rollup、enablement plan 和 stop-line manifest 都是治理证据链，不代表真实执行、持久化、结果读取、confirmation 接线或 replay 已启用。
@@ -95,6 +96,7 @@
 - [训练 / 蒸馏样本契约](contracts/training-samples.md)：`CopilotTrainingSample`、训练集合治理、candidate record 转换、offline eval runner、本地模型 candidate wrapper 和 M4 builder/tooling 证据边界。
 - [图片生成契约](contracts/image-generation.md)：`RadishMind-Image Adapter`、image intent、backend request、artifact metadata、metadata-only runtime mapper / response consumer / response builder hook 和最小评测 manifest。
 - [Radish OIDC Token / Membership Upstream Evidence Refresh v1](integrations/radish-oidc-token-membership-upstream-evidence-refresh-v1.md)：Radish OIDC issuer / JWKS / client registration / membership 证据刷新、auth middleware ownership、negative auth smoke matrix 和 Saved Draft repository actor context handoff 前置说明。
+- [Admin Control Plane Authenticated Read Store Transition v1](features/admin-control-plane/authenticated-read-store-transition-v1.md)：verified identity、tenant permission mapping、Admin tenant / audit durable read、auth / store compatibility、失败语义、隐私和真实 Radish 联调顺序。
 - [输入与项目上下文契约](contracts/input-context.md)：`CopilotRequest`、artifact 抽象和项目上下文专题索引。
 - [RadishFlow 上下文契约](contracts/radishflow-context.md)：`RadishFlow` export snapshot、ghost completion、上游实现清单和任务级上下文要求。
 - [Radish 上下文契约](contracts/radish-context.md)：`Radish` docs QA 的知识上下文、检索来源和 artifact metadata 约束。

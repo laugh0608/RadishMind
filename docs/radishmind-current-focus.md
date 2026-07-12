@@ -13,14 +13,14 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明 production ready。
-- 产品焦点：Workflow 审查链、Gateway Request History、[Gateway Playground / Request Review Loop v1](features/gateway/gateway-playground-request-review-loop-v1.md)、[Application API Integration & Invocation v1](features/user-workspace/application-api-integration-invocation-v1.md)、[Application Configuration Draft & Review v1](features/user-workspace/application-configuration-draft-review-v1.md) 与 [Application Publish Governance & Promotion v1](features/user-workspace/application-publish-governance-promotion-v1.md) 均已完成。下一产品设计转向 Admin authenticated read identity / membership / repository transition；不追加同层 evidence，不直接打开正式 application promotion、production key / quota / billing。
+- 产品焦点：Workflow 审查链、Gateway Request History、[Gateway Playground / Request Review Loop v1](features/gateway/gateway-playground-request-review-loop-v1.md)、Application API Integration、Configuration Draft 与 Publish Governance 均已完成；[Admin Authenticated Read Store Transition v1](features/admin-control-plane/authenticated-read-store-transition-v1.md) 已完成产品设计。下一实现入口是 shared verified identity / negative auth runtime；不直接打开 PostgreSQL read adapter、真实 Radish OIDC、application promotion、production key / quota / billing。
 - `R2 正确性与安全清零`、`R3 Workflow Draft Review Loop`、`R4 Gateway 运行时产品化` 已完成；`R5 测试、CI 与性能预算` 进入后续工程线，`R6 文档与 checker 收敛` 继续作为治理约束。
 - 四个正式一级产品面保持为 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；Image Path 是横切适配能力，不作为当前第五条一级主线。
 - 旧 Production Secret Backend / Storage Adapter readiness 链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：Application Publish Governance 已完成 saved valid draft → server-side reload / digest → immutable candidate → append-only review CAS → drift / superseded eligibility → Integration / Playground / exact History handoff。approved 仍由正式 repository、production auth、发布 owner和 promotion runtime 四项 blocker 阻止发布。下一步先设计 `Admin Control Plane Authenticated Read Store Transition v1`，一次只推进 verified identity、membership 与 read repository 的迁移顺序。
+1. 产品线：Admin Authenticated Read Store Transition 已定义 Radish identity / tenant / permission ownership、共享 verified context、Admin tenant / audit route、auth / store compatibility、401 / 403 / 503 sanitized failure、PostgreSQL dev/test 与真实 Radish 联调顺序。下一步创建 `Control Plane Verified Identity Context & Negative Auth Runtime v1` 高风险任务卡；第一批只接 signed test token + fake store，不并行打开数据库。
 2. 工程线：R5 Web 主入口和 Publish Review lazy chunk 继续受现有 Vite build 预算约束，不新增同层 checker。R6 继续收敛入口文档的过期事实和历史 checker 文字耦合。
 
 R3 与 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖 migration / rollback / reapply、运行角色 DDL 拒绝、服务重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback、CI 与真实浏览器双标签冲突审查。该完成不启用 production repository mode，也不代表 OIDC、production secret、audit store 或公开生产 API ready。
@@ -44,7 +44,8 @@ durable draft repository、稳定 Gateway、executor v0 与 durable dev/test run
 13. [User Workspace Application API Integration & Invocation v1](features/user-workspace/application-api-integration-invocation-v1.md)
 14. [User Workspace Application Configuration Draft & Review v1](features/user-workspace/application-configuration-draft-review-v1.md)
 15. [User Workspace Application Publish Governance & Promotion v1](features/user-workspace/application-publish-governance-promotion-v1.md)
-16. [本周周志](devlogs/2026-W28.md)
+16. [Admin Control Plane Authenticated Read Store Transition v1](features/admin-control-plane/authenticated-read-store-transition-v1.md)
+17. [本周周志](devlogs/2026-W28.md)
 
 以下“历史兼容状态与证据索引”暂时保留大量机器检查依赖的状态锚点，人工判断当前方向时默认不再继续读取；后续由 R6 逐批迁出。
 
