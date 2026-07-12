@@ -1,8 +1,19 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 
+import { enforceWebChunkBudgets } from "./config/chunkBudget";
+
+function webChunkBudgetPlugin(): Plugin {
+  return {
+    name: "radishmind-web-chunk-budget",
+    generateBundle(_options, bundle) {
+      enforceWebChunkBudgets(bundle);
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), webChunkBudgetPlugin()],
   build: {
     rollupOptions: {
       output: {
