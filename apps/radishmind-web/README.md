@@ -124,7 +124,7 @@ VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http
 
 这些开关只服务本地开发态 Saved Draft 与受控 executor v0；`--saved-draft-postgres-dev-test` 可显式使用 PostgreSQL dev/test repository。两者都不代表 production persistence、production auth 或 production API。
 
-Gateway Request History 当前尚未接入 launcher flag；需要联调 `memory_dev` 纵向切片时，应分别为 Platform 和 Web 显式提供以下最小开关与同一 caller scope。真实 northbound 请求也必须携带同组 `X-RadishMind-Dev-Gateway-*` header 才会形成记录：
+Gateway Request History 可以通过 launcher 的 `--gateway-request-postgres-dev-test` / `-GatewayRequestPostgresDevTest` 独立开启；launcher 会为 Platform 与 Web 绑定同一 caller scope，并先执行三套 PostgreSQL migration status preflight。真实 northbound 请求仍必须携带同组 `X-RadishMind-Dev-Gateway-*` header 才会形成记录。手动联调 `memory_dev` 时可使用以下最小开关：
 
 ```bash
 RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1
@@ -137,7 +137,7 @@ VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_CONSUMER_REF=consumer_web_dev
 VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SUBJECT_REF=subject_web_dev
 ```
 
-该路径当前随 Platform 重启清空；只有后续 `postgres_dev_test` repository 与重启恢复验收完成后，才可声明开发 / 测试态 durable history。
+`memory_dev` 随 Platform 重启清空；`postgres_dev_test` 已完成独立 migration、no-fallback 和重启恢复验收，但仍只属于开发 / 测试态 history，不是 production audit、billing 或合规账本。
 
 底层 wrapper 也可单独执行：
 

@@ -5,14 +5,15 @@
 ## 任务标识
 
 - 任务 ID：`model-gateway-request-history-usage-failure-review-v1`
-- 状态：`in_progress_memory_dev_vertical_slice_implemented`
+- 状态：`in_progress_postgres_dev_test_vertical_slice_implemented`
 - 对应功能专题：`docs/features/gateway/model-gateway-request-history-usage-failure-review-v1.md`
 
 ## 当前批次进度
 
 - 已完成：caller context、record lifecycle / taxonomy、`memory_dev` store、三个 northbound route recorder、list / detail API、scope / filter / cursor、Web consumer、Evidence Review lazy panel，以及 Go / race / vet / Web test / build 验证。
 - 已确认：缺少 caller context 时不创建 unscoped record；store create failure 不改写 provider 成功；usage 无可信来源时保持 `not_reported`；Web 默认 offline 零请求且拒绝嵌套 forbidden field。
-- 待完成：`postgres_dev_test` selector、manual migration、schema marker / checksum preflight、runtime role、重启恢复与 no-fallback integration；随后进行真实浏览器失败 / 分页 / stream / restart 路径和最终仓库门禁。
+- 第二批已完成：独立 `postgres_dev_test` selector、manual migration、schema marker / checksum preflight、runtime role、pool close、no-fallback integration、27 条真实浏览器分页 / 详情 / 过滤和 Platform / Web 重启恢复。
+- 待完成：真实 provider 缺席时继续保持 usage `not_reported`；补 queue / timeout / cancel / stream cancel 的浏览器终态证据与最终功能 close。不得为此新增同层 repository、API、面板或 checker。
 
 ## 用户结果
 

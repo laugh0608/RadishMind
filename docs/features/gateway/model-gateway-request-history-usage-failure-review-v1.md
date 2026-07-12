@@ -2,13 +2,15 @@
 
 更新时间：2026-07-12
 
-状态：`model_gateway_request_history_memory_dev_vertical_slice_implemented`
+状态：`model_gateway_request_history_postgres_dev_test_vertical_slice_implemented`
 
 ## 当前实现进度
 
 2026-07-12 已完成首个可运行的 `memory_dev` 纵向切片：Platform 新增独立 caller context、`gateway_request_record.v1`、500 条进程内 store、三个 northbound route 的 recorder、scoped list / detail API，以及 Web 独立 consumer 和 Evidence Review 内的 lazy Request History panel。已验证 invalid JSON、缺少 caller context、三个协议、unary / stream 成功、store create failure 不改写 provider outcome、scope denied、过滤 / cursor、敏感字段拒绝、offline 零请求、Web build 和 chunk budget。
 
-当前仍未完成 `postgres_dev_test` migration / selector / restart recovery、真实浏览器联调和 committed browser evidence，因此本专题不标记完成。下一批应优先实现独立 PostgreSQL repository 与 no-fallback integration，再进行 Platform / Web / PostgreSQL 重启恢复浏览器验收；production API key、quota、billing、自动 retry / fallback 和 production Gateway 继续关闭。
+2026-07-12 第二批已完成独立 `postgres_dev_test` repository、manual migration、marker / checksum preflight、runtime DML role、selector、pool close、no-fallback 和 restart recovery。破坏性集成覆盖 fresh / repeat apply、DDL 拒绝、scope、过滤分页、并发终态 CAS、pool 重开、marker mismatch、rollback / reapply；真实浏览器以 27 条记录验证 25+2 分页、详情、过滤和 Platform / Web 重启恢复，详情显示 `postgres_dev_test`，全新会话无 error / warning。
+
+当前仍保留最终关闭项：adapter 尚无可证明的 reported token 来源，因此 usage 正确保持 `not_reported`；真实 provider、queue / timeout / cancel 浏览器矩阵和最终功能 close 尚未执行。本专题继续保持进行中，下一批只补这些终态 / usage 证据和最终收口，不再扩 repository、UI 面板或平行 checker；production API key、quota、billing、自动 retry / fallback 和 production Gateway 继续关闭。
 
 ## 功能目标
 
