@@ -10,6 +10,7 @@ import {
   type GatewayRequestHistoryFilter,
   type GatewayRequestHistorySummary,
 } from "./modelGatewayRequestHistoryConsumer.ts";
+import { MODEL_GATEWAY_REQUEST_REVIEW_EVENT, type ModelGatewayRequestReviewEventDetail } from "./modelGatewayPlaygroundEvents.ts";
 
 const config = readModelGatewayRequestHistoryConfig();
 
@@ -38,6 +39,30 @@ export default function ModelGatewayRequestHistoryPanel() {
   }, [filter, history.requests]);
 
   useEffect(() => { void load(); }, []);
+
+  useEffect(() => {
+    function reviewPlaygroundRequest(event: Event) {
+      const requestId = (event as CustomEvent<ModelGatewayRequestReviewEventDetail>).detail?.requestId?.trim();
+      if (!requestId || config.mode !== "dev_gateway_request_history_http") return;
+      setFilter(EMPTY_GATEWAY_REQUEST_HISTORY_FILTER);
+      setSelectedRequestId(requestId);
+      setDetail(null);
+      setDetailFailure("");
+      setHistory((current) => ({ ...current, status: "loading", failureCode: "", failureSummary: "" }));
+      void Promise.all([
+        listGatewayRequestHistory(config, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER),
+        readGatewayRequestHistoryDetail(config, requestId),
+      ]).then(([nextHistory, nextDetail]) => {
+        setHistory(nextHistory);
+        setDetail(nextDetail);
+      }).catch((error: unknown) => {
+        setDetailFailure(error instanceof Error ? error.message : "Gateway request history handoff failed.");
+        setHistory((current) => ({ ...current, status: "failed", failureCode: "gateway_request_store_unavailable" }));
+      });
+    }
+    window.addEventListener(MODEL_GATEWAY_REQUEST_REVIEW_EVENT, reviewPlaygroundRequest);
+    return () => window.removeEventListener(MODEL_GATEWAY_REQUEST_REVIEW_EVENT, reviewPlaygroundRequest);
+  }, []);
 
   async function selectRequest(request: GatewayRequestHistorySummary) {
     setSelectedRequestId(request.requestId);

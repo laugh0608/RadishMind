@@ -195,6 +195,7 @@ const WorkflowRunHistoryPanel = lazy(() => import("../features/control-plane-rea
 const WorkflowNodeDesigner = lazy(() => import("../features/control-plane-read/workflowNodeDesigner").then((module) => ({ default: module.WorkflowNodeDesigner })));
 const AdminOperationsReviewPanel = lazy(() => import("../features/control-plane-read/adminOperationsReviewPanel").then((module) => ({ default: module.AdminOperationsReviewPanel })));
 const ModelGatewayEvidenceReviewPanel = lazy(() => import("../features/control-plane-read/modelGatewayEvidenceReviewPanel").then((module) => ({ default: module.ModelGatewayEvidenceReviewPanel })));
+const ModelGatewayPlaygroundPanel = lazy(() => import("../features/control-plane-read/modelGatewayPlaygroundPanel"));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
 const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
 
@@ -1168,6 +1169,7 @@ export function App() {
           </div>
           <div className="nav-link-group" aria-label="Model gateway sections">
             <p className="nav-link-group-label">Model Gateway</p>
+            <a href="#model-gateway-playground">Playground</a>
             <a href="#model-gateway-overview">Gateway Overview</a>
             <a href="#model-gateway-route-evidence">Route Evidence</a>
             <a href="#model-gateway-usage-audit-evidence">Usage Evidence</a>
@@ -1314,6 +1316,9 @@ export function App() {
           onRefreshSavedDrafts={handleRefreshSavedWorkflowDraftList}
           onRestoreSavedDraft={handleRestoreSavedWorkflowDraft}
         />
+        <Suspense fallback={<section className="surface-band"><p>Loading Gateway Playground…</p></section>}>
+          <ModelGatewayPlaygroundPanel />
+        </Suspense>
         <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
         <ModelGatewayRouteEvidencePanel detail={modelGatewayRouteEvidence} />
         <ModelGatewayUsageAuditEvidencePanel evidence={modelGatewayUsageAuditEvidence} />

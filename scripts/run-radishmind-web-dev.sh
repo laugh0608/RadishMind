@@ -41,7 +41,7 @@ Options:
   --workflow-diagnostics-dev
                            Enable fixed mock Workflow failure scenarios; requires a Saved Draft dev mode.
   --gateway-request-postgres-dev-test
-                           Enable durable dev/test Gateway Request History in the existing Evidence Review.
+                           Enable durable dev/test Gateway Request History and the scoped Gateway Playground.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
   -h, --help              Show this help.
@@ -674,6 +674,9 @@ if [[ "${verify_only}" -eq 0 ]]; then
         fi
         if [[ "${gateway_request_postgres_dev_test}" -eq 1 ]]; then
           export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE="dev-gateway-request-history-http"
+          export VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE="dev-gateway-playground-http"
+          export VITE_RADISHMIND_GATEWAY_PLAYGROUND_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_GATEWAY_PLAYGROUND_MODEL="${RADISHMIND_PLATFORM_MODEL:-radishmind-local-dev}"
           export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_TENANT_REF="${tenant_ref}"
           export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_WORKSPACE_ID="${saved_draft_workspace_id}"
@@ -744,7 +747,7 @@ if [[ "${mode}" == "dev-live" ]]; then
     step "Saved Draft memory-dev read/write mode passed for ${saved_draft_workspace_id}/${saved_draft_application_id}."
   fi
   if [[ "${gateway_request_postgres_dev_test}" -eq 1 ]]; then
-    step "Gateway Request History PostgreSQL dev/test mode enabled for ${saved_draft_workspace_id}/consumer_web_dev/${saved_draft_application_id}."
+    step "Gateway Playground and Request History PostgreSQL dev/test mode enabled for ${saved_draft_workspace_id}/consumer_web_dev/${saved_draft_application_id}."
   fi
 fi
 step "This is a dev-only launcher, not a production supervisor. Controlled executor v0 is dev-only; production auth, secret resolution, unrestricted tools, confirmation commit, writeback and replay remain disabled."

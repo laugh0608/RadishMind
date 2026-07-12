@@ -863,6 +863,90 @@ h4 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.gateway-playground-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.85fr) minmax(360px, 1.15fr);
+  gap: 16px;
+}
+
+.gateway-playground-form,
+.gateway-playground-result {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.gateway-playground-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.gateway-playground-form label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  color: #4e5f73;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.gateway-playground-form input,
+.gateway-playground-form select,
+.gateway-playground-form textarea {
+  min-width: 0;
+  width: 100%;
+}
+
+.gateway-playground-input,
+.gateway-playground-actions,
+.gateway-playground-form .boundary-note {
+  grid-column: 1 / -1;
+}
+
+.gateway-playground-form textarea {
+  resize: vertical;
+}
+
+.gateway-playground-stream {
+  display: flex !important;
+  grid-column: 1 / -1;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+
+.gateway-playground-stream input {
+  width: auto;
+}
+
+.gateway-playground-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.gateway-playground-result {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.gateway-playground-output {
+  max-height: 360px;
+  margin: 0;
+  padding: 14px;
+  overflow: auto;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #17202a;
+  font: inherit;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .gateway-request-history {
   display: grid;
   gap: 12px;
@@ -3595,6 +3679,8 @@ dd {
   .model-gateway-usage-audit-evidence-audit-grid,
   .model-gateway-usage-audit-evidence-guard-grid,
   .model-gateway-usage-audit-evidence-meta,
+  .gateway-playground-layout,
+  .gateway-playground-form,
   .gateway-request-history-summary,
   .gateway-request-history-filters,
   .gateway-request-history-row,

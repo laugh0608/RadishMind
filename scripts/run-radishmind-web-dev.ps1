@@ -33,7 +33,7 @@ Options:
   -WorkflowDiagnosticsDev
                         Enable fixed mock Workflow failure scenarios; requires a Saved Draft dev mode.
   -GatewayRequestPostgresDevTest
-                        Enable durable dev/test Gateway Request History in the existing Evidence Review.
+                        Enable durable dev/test Gateway Request History and the scoped Gateway Playground.
   -VerifyOnly           Probe existing backend/frontend processes only.
   -ExitAfterProbe       Start missing local processes, probe, then stop spawned processes.
 "@
@@ -564,6 +564,13 @@ try {
                 }
                 if ($GatewayRequestPostgresDevTest) {
                     $env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE = "dev-gateway-request-history-http"
+                    $env:VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE = "dev-gateway-playground-http"
+                    $env:VITE_RADISHMIND_GATEWAY_PLAYGROUND_BASE_URL = $BackendUrl.TrimEnd("/")
+                    $playgroundModel = "radishmind-local-dev"
+                    if ($env:RADISHMIND_PLATFORM_MODEL) {
+                        $playgroundModel = $env:RADISHMIND_PLATFORM_MODEL
+                    }
+                    $env:VITE_RADISHMIND_GATEWAY_PLAYGROUND_MODEL = $playgroundModel
                     $env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_TENANT_REF = $TenantRef
                     $env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_WORKSPACE_ID = $savedDraftWorkspaceId
@@ -623,7 +630,7 @@ try {
             Write-Step "Saved Draft PostgreSQL dev/test read/write mode passed for $savedDraftWorkspaceId/$savedDraftApplicationId."
         }
         if ($GatewayRequestPostgresDevTest) {
-            Write-Step "Gateway Request History PostgreSQL dev/test mode enabled for $savedDraftWorkspaceId/consumer_web_dev/$savedDraftApplicationId."
+            Write-Step "Gateway Playground and Request History PostgreSQL dev/test mode enabled for $savedDraftWorkspaceId/consumer_web_dev/$savedDraftApplicationId."
         }
         elseif ($SavedDraftDev) {
             Write-Step "Saved Draft memory-dev read/write mode passed for $savedDraftWorkspaceId/$savedDraftApplicationId."
