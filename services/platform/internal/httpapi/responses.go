@@ -62,6 +62,7 @@ type openAIResponsesStreamEvent struct {
 
 func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, "/v1/responses")
+	s.startGatewayRequestTrace(request, &trace, northboundProtocolResponses)
 	var responseRequest openAIResponsesRequest
 	if !s.decodeJSONRequestBody(writer, request, trace, &responseRequest, jsonRequestBodyOptions{
 		maxBytes: maxNorthboundJSONRequestBodyBytes,
@@ -74,6 +75,7 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 
 	selection := s.resolveNorthboundSelection(ctx, responseRequest.Model, responseRequest.RadishMind)
 	trace.applySelection(selection)
+	s.checkpointGatewayRequestTrace(&trace, responseRequest.Stream)
 	promptText, northboundFields, err := buildResponsesPromptText(responseRequest, selection)
 	if err != nil {
 		s.writePlatformError(writer, trace, "INVALID_RESPONSES_REQUEST", err.Error())
@@ -98,6 +100,7 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 			s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 			return
 		}
+		s.finishGatewayRequestTrace(&trace, GatewayRequestStatusSucceeded, http.StatusOK, "", "")
 		return
 	}
 
@@ -111,9 +114,11 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 		return
 	}
 	if strings.EqualFold(envelope.Status, "failed") {
+		s.applyGatewayEnvelopeToTrace(&trace, envelope)
 		s.writePlatformError(writer, trace, gatewayErrorCode(envelope.Error), gatewayErrorMessage(envelope.Error))
 		return
 	}
+	s.applyGatewayEnvelopeToTrace(&trace, envelope)
 
 	responseDocument, err := buildOpenAIResponsesResponse(envelope, selection.model)
 	if err != nil {
@@ -121,6 +126,7 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 		return
 	}
 	writeObservedJSON(writer, http.StatusOK, trace, responseDocument)
+	s.finishGatewayRequestTrace(&trace, GatewayRequestStatusSucceeded, http.StatusOK, "", "")
 }
 
 func buildResponsesPromptText(request openAIResponsesRequest, selection northboundSelection) (string, map[string]any, error) {

@@ -47,6 +47,7 @@ type Config struct {
 	WorkflowSavedDraftDevWriteEnabled bool
 	WorkflowExecutorDevEnabled        bool
 	WorkflowDiagnosticsDevEnabled     bool
+	GatewayRequestHistoryDevEnabled   bool
 	WorkflowSavedDraftStoreMode       string
 	WorkflowSavedDraftDatabaseURL     string
 	WorkflowSavedDraftDatabaseTimeout time.Duration
@@ -72,6 +73,7 @@ type ConfigSummary struct {
 	WorkflowSavedDraftDevWriteEnabled    bool              `json:"workflow_saved_draft_dev_write_enabled"`
 	WorkflowExecutorDevEnabled           bool              `json:"workflow_executor_dev_enabled"`
 	WorkflowDiagnosticsDevEnabled        bool              `json:"workflow_diagnostics_dev_enabled"`
+	GatewayRequestHistoryDevEnabled      bool              `json:"gateway_request_history_dev_enabled"`
 	WorkflowSavedDraftStoreMode          string            `json:"workflow_saved_draft_store_mode"`
 	WorkflowSavedDraftDatabaseConfigured bool              `json:"workflow_saved_draft_database_configured"`
 	WorkflowRunStoreMode                 string            `json:"workflow_run_store_mode"`
@@ -187,6 +189,7 @@ func defaultConfig() Config {
 			"workflow_saved_draft_dev_write":        configSourceDefault,
 			"workflow_executor_dev":                 configSourceDefault,
 			"workflow_diagnostics_dev":              configSourceDefault,
+			"gateway_request_history_dev":           configSourceDefault,
 			"workflow_saved_draft_store":            configSourceDefault,
 			"workflow_saved_draft_database":         configSourceDefault,
 			"workflow_saved_draft_database_timeout": configSourceDefault,
@@ -438,6 +441,14 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.WorkflowDiagnosticsDevEnabled = parsed
 		cfg.FieldSources["workflow_diagnostics_dev"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV", value)
+		if err != nil {
+			return err
+		}
+		cfg.GatewayRequestHistoryDevEnabled = parsed
+		cfg.FieldSources["gateway_request_history_dev"] = configSourceEnv
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE"); ok {
 		applyStringValue(
 			&cfg.WorkflowSavedDraftStoreMode,
@@ -532,6 +543,9 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_saved_draft_dev_http")
 	}
+	if cfg.GatewayRequestHistoryDevEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+	}
 	if workflowRunStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
@@ -546,6 +560,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		WorkflowSavedDraftDevWriteEnabled:    cfg.WorkflowSavedDraftDevWriteEnabled,
 		WorkflowExecutorDevEnabled:           cfg.WorkflowExecutorDevEnabled,
 		WorkflowDiagnosticsDevEnabled:        cfg.WorkflowDiagnosticsDevEnabled,
+		GatewayRequestHistoryDevEnabled:      cfg.GatewayRequestHistoryDevEnabled,
 		WorkflowSavedDraftStoreMode:          workflowSavedDraftStoreMode,
 		WorkflowSavedDraftDatabaseConfigured: strings.TrimSpace(cfg.WorkflowSavedDraftDatabaseURL) != "",
 		WorkflowRunStoreMode:                 workflowRunStoreMode,
@@ -762,6 +777,9 @@ func parseIntValue(key string, rawValue string) (int, error) {
 }
 
 func validateBridgeRuntimeConfig(cfg Config) error {
+	if cfg.GatewayRequestHistoryDevEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return fmt.Errorf("gateway request history dev requires control plane read dev auth")
+	}
 	if cfg.WorkflowDiagnosticsDevEnabled {
 		if !cfg.WorkflowExecutorDevEnabled {
 			return fmt.Errorf("workflow diagnostics dev requires workflow executor dev")

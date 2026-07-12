@@ -23,11 +23,13 @@ const (
 )
 
 type requestTrace struct {
-	requestID    string
-	route        string
-	startedAt    time.Time
-	selection    northboundSelection
-	hasSelection bool
+	requestID             string
+	route                 string
+	startedAt             time.Time
+	selection             northboundSelection
+	hasSelection          bool
+	gatewayRequestContext GatewayRequestContext
+	gatewayRequest        *GatewayRequestRecord
 }
 
 type platformErrorDefinition struct {
@@ -105,6 +107,11 @@ func (s *Server) writePlatformError(writer http.ResponseWriter, trace requestTra
 		},
 	})
 	logRequestTrace(trace, definition.statusCode, strings.TrimSpace(code), definition.failureBoundary)
+	status := GatewayRequestStatusFailed
+	if strings.TrimSpace(code) == bridge.ErrorCodeWorkerCanceled {
+		status = GatewayRequestStatusCanceled
+	}
+	s.finishGatewayRequestTrace(&trace, status, definition.statusCode, strings.TrimSpace(code), definition.failureBoundary)
 }
 
 func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
@@ -223,6 +230,12 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			errorType:       "invalid_request_error",
 			failureBoundary: errorBoundaryConfiguration,
 			defaultMessage:  "workflow executor dev route is disabled",
+		},
+		"GATEWAY_REQUEST_HISTORY_DEV_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "gateway request history dev route is disabled",
 		},
 		"CONFIG_REQUIRED_FIELDS_MISSING": {
 			statusCode:      http.StatusServiceUnavailable,

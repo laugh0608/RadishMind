@@ -1,3 +1,5 @@
+import { lazy, Suspense } from "react";
+
 import type {
   ModelGatewayEvidenceChecklistItem,
   ModelGatewayEvidenceLockedCapability,
@@ -6,6 +8,8 @@ import type {
   ModelGatewayEvidenceReviewViewModel,
   ModelGatewayEvidenceRisk,
 } from "./modelGatewayEvidenceReview";
+
+const ModelGatewayRequestHistoryPanel = lazy(() => import("./modelGatewayRequestHistoryPanel.tsx"));
 
 type StatusBadgeTone = "good" | "bad" | "neutral";
 
@@ -55,6 +59,10 @@ export function ModelGatewayEvidenceReviewPanel({
           </div>
         </dl>
       </article>
+
+      <Suspense fallback={<div className="model-gateway-overview-section"><p>Loading Gateway request history…</p></div>}>
+        <ModelGatewayRequestHistoryPanel />
+      </Suspense>
 
       <div className="model-gateway-overview-section">
         <div className="model-gateway-overview-subheading">

@@ -37,6 +37,7 @@ type Server struct {
 	workflowRunStore             workflowRunStore
 	workflowEvaluationStore      workflowEvaluationStore
 	workflowEvaluationSuiteStore workflowEvaluationSuiteStore
+	gatewayRequestHistoryStore   gatewayRequestStore
 	closeSavedWorkflowDraftStore func()
 	closeWorkflowRunStore        func()
 	closeOnce                    sync.Once
@@ -91,6 +92,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		workflowRunStore:             workflowRunStore,
 		workflowEvaluationStore:      newWorkflowEvaluationStoreForRunStore(workflowRunStore),
 		workflowEvaluationSuiteStore: newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
+		gatewayRequestHistoryStore:   newMemoryGatewayRequestStore(defaultGatewayRequestStoreCapacity),
 		closeSavedWorkflowDraftStore: closeSavedWorkflowDraftStore,
 		closeWorkflowRunStore:        closeWorkflowRunStore,
 	}
@@ -135,6 +137,8 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(workflowEvaluationSuiteReviewRoute, server.handleReviewWorkflowEvaluationSuite)
 	mux.HandleFunc(workflowEvaluationDecisionCreateRoute, server.handleCreateWorkflowEvaluationDecision)
 	mux.HandleFunc(workflowEvaluationDecisionListRoute, server.handleListWorkflowEvaluationDecisions)
+	mux.HandleFunc(gatewayRequestListRoute, server.handleListGatewayRequests)
+	mux.HandleFunc(gatewayRequestReadRoute, server.handleReadGatewayRequest)
 
 	server.httpServer = &http.Server{
 		Addr:              cfg.ListenAddr,
@@ -270,6 +274,13 @@ func localConsoleAllowedHeaders() []string {
 		controlPlaneReadDevAuditHeader,
 		savedWorkflowDraftDevWorkspaceHeader,
 		savedWorkflowDraftDevApplicationHeader,
+		gatewayRequestDevTenantHeader,
+		gatewayRequestDevWorkspaceHeader,
+		gatewayRequestDevConsumerHeader,
+		gatewayRequestDevApplicationHeader,
+		gatewayRequestDevSubjectHeader,
+		gatewayRequestDevScopesHeader,
+		gatewayRequestDevAuditHeader,
 	}
 }
 

@@ -111,6 +111,7 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE", "true")
 	t.Setenv("RADISHMIND_WORKFLOW_EXECUTOR_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE", "repository_disabled")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL", "postgresql://runtime.invalid/secret")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_TIMEOUT", "9s")
@@ -147,6 +148,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if !cfg.WorkflowExecutorDevEnabled {
 		t.Fatalf("expected workflow executor dev env override")
+	}
+	if !cfg.GatewayRequestHistoryDevEnabled {
+		t.Fatalf("expected gateway request history dev env override")
 	}
 	if cfg.WorkflowSavedDraftStoreMode != "repository_disabled" {
 		t.Fatalf("expected workflow saved draft store env override, got %s", cfg.WorkflowSavedDraftStoreMode)
@@ -189,6 +193,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if summary.FieldSources["workflow_executor_dev"] != "env" {
 		t.Fatalf("expected workflow_executor_dev source=env, got %#v", summary.FieldSources)
+	}
+	if summary.FieldSources["gateway_request_history_dev"] != "env" {
+		t.Fatalf("expected gateway_request_history_dev source=env, got %#v", summary.FieldSources)
 	}
 	if summary.FieldSources["workflow_saved_draft_store"] != "env" {
 		t.Fatalf("expected workflow_saved_draft_store source=env, got %#v", summary.FieldSources)
@@ -390,6 +397,15 @@ func TestWorkflowDiagnosticsDevRequiresExecutorAndMockProvider(t *testing.T) {
 	if err := validateBridgeRuntimeConfig(base); err != nil {
 		t.Fatalf("explicit mock diagnostics config was rejected: %v", err)
 	}
+	base = defaultConfig()
+	base.GatewayRequestHistoryDevEnabled = true
+	if err := validateBridgeRuntimeConfig(base); err == nil {
+		t.Fatal("gateway request history dev was accepted without control plane read dev auth")
+	}
+	base.ControlPlaneReadDevAuthEnabled = true
+	if err := validateBridgeRuntimeConfig(base); err != nil {
+		t.Fatalf("explicit gateway request history dev config was rejected: %v", err)
+	}
 }
 
 func clearPlatformEnv(t *testing.T) {
@@ -417,6 +433,7 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE",
 		"RADISHMIND_WORKFLOW_EXECUTOR_DEV",
 		"RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV",
+		"RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
