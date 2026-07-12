@@ -1072,6 +1072,189 @@ h4 {
   overflow-wrap: anywhere;
 }
 
+.application-configuration-draft {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.application-draft-scope,
+.application-draft-layout,
+.application-draft-lower-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.application-draft-scope {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.application-draft-layout,
+.application-draft-lower-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.application-draft-scope article,
+.application-draft-editor,
+.application-draft-review,
+.application-draft-diff,
+.application-draft-saved {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #d8dee8;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.application-draft-scope span,
+.application-draft-editor label,
+.application-draft-editor legend {
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.application-draft-scope strong,
+.application-draft-scope code {
+  display: block;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+
+.application-draft-scope p,
+.application-draft-review p {
+  color: #4e5f73;
+  line-height: 1.5;
+}
+
+.application-draft-editor,
+.application-draft-review,
+.application-draft-diff,
+.application-draft-saved {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.application-draft-editor label {
+  display: grid;
+  gap: 6px;
+}
+
+.application-draft-editor input,
+.application-draft-editor textarea,
+.application-draft-editor select {
+  width: 100%;
+  min-width: 0;
+}
+
+.application-draft-editor fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+}
+
+.application-draft-editor fieldset label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.application-draft-editor fieldset input {
+  width: auto;
+}
+
+.application-draft-actions,
+.application-draft-handoff {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.application-draft-actions button,
+.application-draft-handoff button,
+.application-draft-conflict button,
+.application-draft-saved button {
+  min-height: 36px;
+  border: 1px solid #cad3df;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #17202a;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.application-draft-actions button:disabled,
+.application-draft-handoff button:disabled,
+.application-draft-saved button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.application-draft-findings {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.application-draft-findings li,
+.application-draft-conflict {
+  padding: 12px;
+  border: 1px solid #efc8c8;
+  border-radius: 8px;
+  background: #fff8f8;
+}
+
+.application-draft-findings li span {
+  display: block;
+  color: #a33a3a;
+  font-size: 12px;
+}
+
+.application-draft-findings li p {
+  margin-bottom: 0;
+}
+
+.application-draft-diff > div:not(.application-api-card-heading) {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.8fr) minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+
+.application-draft-diff .changed {
+  border-color: #b9d8cb;
+  background: #f3fbf7;
+}
+
+.application-draft-summary {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 12px;
+  text-align: left;
+}
+
+.application-draft-summary span,
+.application-draft-summary small {
+  overflow-wrap: anywhere;
+  color: #607086;
+}
+
 .gateway-request-history {
   display: grid;
   gap: 12px;
@@ -3808,10 +3991,17 @@ dd {
   .gateway-playground-form,
   .application-api-integration-scope,
   .application-api-integration-layout,
+  .application-draft-scope,
+  .application-draft-layout,
+  .application-draft-lower-grid,
   .gateway-request-history-summary,
   .gateway-request-history-filters,
   .gateway-request-history-row,
   .gateway-request-history-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .application-draft-diff > div:not(.application-api-card-heading) {
     grid-template-columns: 1fr;
   }
 

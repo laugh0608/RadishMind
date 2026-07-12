@@ -197,6 +197,7 @@ const AdminOperationsReviewPanel = lazy(() => import("../features/control-plane-
 const ModelGatewayEvidenceReviewPanel = lazy(() => import("../features/control-plane-read/modelGatewayEvidenceReviewPanel").then((module) => ({ default: module.ModelGatewayEvidenceReviewPanel })));
 const ModelGatewayPlaygroundPanel = lazy(() => import("../features/control-plane-read/modelGatewayPlaygroundPanel"));
 const ApplicationApiIntegrationPanel = lazy(() => import("../features/control-plane-read/applicationApiIntegrationPanel"));
+const ApplicationConfigurationDraftPanel = lazy(() => import("../features/control-plane-read/applicationConfigurationDraftPanel"));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
 const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
 
@@ -1524,6 +1525,17 @@ export function App() {
           </div>
 
           <WorkflowApplicationDetailPanel detail={workflowApplicationDetail} />
+          <Suspense fallback={<div className="application-configuration-draft"><p>Loading Application Configuration Draft…</p></div>}>
+            <ApplicationConfigurationDraftPanel
+              key={selectedApplication.applicationRef}
+              baseline={{
+                applicationId: selectedApplication.applicationRef,
+                displayName: selectedApplication.displayName,
+                applicationKind: selectedApplication.applicationKind,
+                updatedAt: selectedApplication.updatedAt,
+              }}
+            />
+          </Suspense>
           <Suspense fallback={<div className="application-api-integration"><p>Loading Application API Integration…</p></div>}>
             <ApplicationApiIntegrationPanel
               key={selectedApplication.applicationRef}

@@ -10,6 +10,10 @@ import {
   type ApplicationApiProtocol,
 } from "./applicationApiIntegrationConsumer.ts";
 import { requestModelGatewayPlaygroundHandoff } from "./modelGatewayPlaygroundEvents.ts";
+import {
+  APPLICATION_API_INTEGRATION_DRAFT_HANDOFF_EVENT,
+  type ApplicationApiIntegrationDraftHandoffDetail,
+} from "./applicationApiIntegrationEvents.ts";
 
 const config = readApplicationApiIntegrationConfig();
 
@@ -35,12 +39,23 @@ export default function ApplicationApiIntegrationPanel({
 
   useEffect(() => () => activeCatalogController.current?.abort(), []);
 
+  useEffect(() => {
+    function handleDraftHandoff(event: Event) {
+      const detail = (event as CustomEvent<ApplicationApiIntegrationDraftHandoffDetail>).detail;
+      if (!detail || detail.applicationId !== applicationId) return;
+      setProtocol(detail.protocol);
+      void loadModels(detail.model);
+    }
+    window.addEventListener(APPLICATION_API_INTEGRATION_DRAFT_HANDOFF_EVENT, handleDraftHandoff);
+    return () => window.removeEventListener(APPLICATION_API_INTEGRATION_DRAFT_HANDOFF_EVENT, handleDraftHandoff);
+  }, [applicationId]);
+
   const example = useMemo(() => {
     if (!catalog.selectedModel) return "Select a validated model to generate an integration example.";
     return generateApplicationApiIntegrationExample({ protocol, language, model: catalog.selectedModel });
   }, [catalog.selectedModel, language, protocol]);
 
-  async function loadModels() {
+  async function loadModels(preferredModel = "") {
     const controller = new AbortController();
     activeCatalogController.current?.abort();
     activeCatalogController.current = controller;
@@ -49,7 +64,12 @@ export default function ApplicationApiIntegrationPanel({
       const next = await loadApplicationModelCatalog(config, applicationId, controller.signal);
       if (activeCatalogController.current !== controller) return;
       activeCatalogController.current = null;
-      setCatalog(next);
+      setCatalog({
+        ...next,
+        selectedModel: preferredModel && next.models.some((model) => model.id === preferredModel)
+          ? preferredModel
+          : next.selectedModel,
+      });
     } catch (error) {
       if (activeCatalogController.current !== controller) return;
       activeCatalogController.current = null;
