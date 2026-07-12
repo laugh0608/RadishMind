@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-12 当前执行口径：Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、durable run history、failure review、run comparison、evaluation cases、Gateway Request History / Playground、Application API Integration、Configuration Draft 与 Publish Governance 均已完成。Admin verified identity / negative auth、[Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) dev/test runtime，以及 [Radish OIDC Integration Test v1](admin-control-plane/radish-oidc-integration-test-v1.md) deterministic runtime 均已完成；真实 Radish 联调主动 deferred，不阻塞下一产品任务。production auth、workspace membership 与 production repository 仍关闭。
+2026-07-12 当前执行口径：Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、durable run history、failure review、run comparison、evaluation cases、Gateway Request History / Playground、Application API Integration、Configuration Draft 与 Publish Governance 均已完成。Admin verified identity / negative auth、[Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) dev/test runtime，以及 [Radish OIDC Integration Test v1](admin-control-plane/radish-oidc-integration-test-v1.md) deterministic runtime 均已完成；真实 Radish 联调主动 deferred。下一产品专题先设计 `User Workspace Application Catalog & Lifecycle Dev/Test v1`，再进入实现批次；production auth、workspace membership、正式 promotion 与 production repository 仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -40,7 +40,7 @@
 
 | 功能文档 | 当前作用 | 下一步默认入口 |
 | --- | --- | --- |
-| [User Workspace](user-workspace.md) | 用户端 AI 应用、API key、用量、运行记录和审查入口 | 从只读工作区转向真实用户工作流前先更新 |
+| [User Workspace](user-workspace.md) | 用户端 AI 应用、API key、用量、运行记录和审查入口 | 下一专题设计 Application Catalog & Lifecycle Dev/Test v1 |
 | [Admin Control Plane](admin-control-plane.md) | 租户、权限、provider/profile、quota、secret、审计和部署证据 | 进入真实管理端、OIDC 或数据库前先更新 |
 | [Model Gateway / API Distribution](model-gateway-api-distribution.md) | northbound API、provider/profile route、key/quota、trace 和审计 | 进入真实 API 分发、quota 或 billing 前先更新 |
 | [Workflow / Agent Runtime](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败/比较/evaluation 审查 | 进入 tool、confirmation、writeback、replay 或 production enablement 前先更新 |
@@ -55,7 +55,7 @@
 | [User Workspace Application Configuration Draft & Review v1](user-workspace/application-configuration-draft-review-v1.md) | 功能 / 页面专题 | 已完成 application 配置草案、校验、memory / PostgreSQL dev-test 持久化、版本冲突、比较与 API Integration handoff |
 | [User Workspace Application Publish Governance & Promotion v1](user-workspace/application-publish-governance-promotion-v1.md) | 功能 / 治理专题 | 已完成不可变 publish candidate、server-side draft reload、review CAS、漂移识别、阻塞式 eligibility 与 Integration / Playground / History handoff；不执行正式发布 |
 | [Admin Control Plane 细专题入口](admin-control-plane/README.md) | 功能专题目录 | 承接 authenticated read、permission binding、repository transition 与后续管理端真实使用路径 |
-| [Admin Control Plane Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) | 功能 / 平台协同专题 | 第一批 verified identity runtime 已完成，第二批 tenant / audit PostgreSQL read repository 已完成产品设计 |
+| [Admin Control Plane Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) | 功能 / 平台协同专题 | verified identity、tenant / audit PostgreSQL dev/test repository 与 deterministic OIDC boundary 均已完成；真实 Radish 联调 deferred |
 | [Admin Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) | 功能 / 平台协同专题 | schema / migration、manual CLI、read-only role、selector、cursor、真实 PostgreSQL、HTTP/Web 与 browser validation 已完成 |
 | [Radish OIDC Integration Test v1](admin-control-plane/radish-oidc-integration-test-v1.md) | 功能 / 集成专题 | deterministic discovery / JWKS / JWT verifier、两条 Admin auth boundary、五条 workspace membership fail-closed 与 Web 内存 token consumer 已完成；真实 Radish 联调为 `real_radish_integration_deferred`，未来按 application/client registration 恢复 |
 | [Control Plane Verified Identity Context & Negative Auth Runtime v1](../task-cards/control-plane-verified-identity-negative-auth-runtime-v1-plan.md) | 高风险实现批次 | 已完成 RS256 signed test token、permission projection、13 类负向认证、七条 route authorization 与 Web sanitized denial state；fake store 保持不变 |

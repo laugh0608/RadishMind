@@ -270,4 +270,4 @@
 
 ## 下一实现入口
 
-[Admin Tenant / Audit PostgreSQL Read Repository Runtime v1](../../task-cards/admin-tenant-audit-postgresql-read-repository-runtime-v1-plan.md) 已完成 schema/migration、manual CLI、startup preflight、adapter、routed selector、strict cursor、真实 PostgreSQL、HTTP/Web 与浏览器验收。下一产品设计可进入 Radish OIDC Integration Test v1，但不会自动打开 production auth。
+[Admin Tenant / Audit PostgreSQL Read Repository Runtime v1](../../task-cards/admin-tenant-audit-postgresql-read-repository-runtime-v1-plan.md) 已完成 schema/migration、manual CLI、startup preflight、adapter、routed selector、strict cursor、真实 PostgreSQL、HTTP/Web 与浏览器验收；后续 Radish OIDC Integration Test deterministic runtime 也已完成。真实 Radish 联调为 `real_radish_integration_deferred`，不会自动打开 production auth。

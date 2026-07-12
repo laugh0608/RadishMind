@@ -26,9 +26,8 @@
 - `Saved Workflow Draft Repository Contract Smoke v1`、`Saved Workflow Draft Repository Contract Smoke Runner Readiness v1` 和 `Saved Workflow Draft Repository Contract Smoke Runner Implementation v1` 已固定 repository smoke、runner readiness 和 static runner implementation，仍不代表 repository adapter、durable persistence、database、OIDC 或 production API ready。
 - dev-only live read consumer 只能在显式 opt-in 下读取 fake-store-backed Go handlers。
 - `ControlPlaneReadRepository` interface 已落地，七条 read handlers 已通过 fake-store repository bridge 消费数据。
-- 当前仍不具备 production API consumer、真实数据库、Radish OIDC、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
-
-2026-07-11 覆盖更新：Saved Draft 已具备显式 PostgreSQL dev/test repository，受控 executor v0、真实 `/v1/user-workspace/workflow-runs` 历史/详情、Failure Review、Run Comparison、Evaluation Cases / Versioning 和 Evaluation Suite / Release Review 已接入 Workspace Run History。上段“无真实数据库 / workflow executor”仅描述 production 与未受控能力；当前仍不具备 production auth / repository、API key lifecycle、quota enforcement、billing、tool、confirmation commit、业务写回或 replay。
+- Saved Draft、Workflow Run History、Application Configuration Draft 与 Publish Candidate 已具备各自显式 PostgreSQL dev/test repository，受控 executor v0、Failure Review、Run Comparison、Evaluation Cases / Versioning 和 Evaluation Suite / Release Review 已接入 Workspace Run History；application summary 仍来自预置 fake read repository。
+- 当前仍不具备 production auth / repository、Radish workspace membership、正式 application lifecycle / promotion、API key lifecycle、quota enforcement、billing、tool、confirmation commit、业务写回或 replay。
 
 ## 设计边界
 
@@ -40,10 +39,10 @@
 ## 下一批开发方向
 
 1. Draft Review、Saved Draft dev/test persistence、Gateway 调用审查和 Application Publish Governance 已落地；不继续给 User Workspace、Workflow 或 Gateway 审查链叠加同层面板。
-2. 下一产品任务优先设计 `Admin Control Plane Authenticated Read Store Transition v1`，明确 Radish OIDC verified identity、workspace membership、正式 read repository 和现有 dev header / fake read store 的迁移顺序。
-3. authenticated read identity、membership 与 repository 证据未成立前，publish eligibility 保持 blocked；不把 dev/test reviewer 或 PostgreSQL candidate store解释为生产授权和正式 application repository。
-4. 下一专题一次只打开 read transition，不并行打开管理写入、application promotion、production API key、quota 或 billing。
-5. 若新增 API、写入、真实 auth、真实数据源或执行能力，必须新增 task card，并按风险补 fixture / checker。
+2. 下一产品任务优先设计 `Application Catalog & Lifecycle Dev/Test v1`，解决当前 Applications 依赖预置 summary、用户不能创建和管理 application、后续 Configuration Draft / Integration / Publish Review 只能绑定既有 application 的产品缺口。
+3. 功能设计必须明确 application ownership、tenant / workspace scope、创建 / 更新 / 归档与 CAS、PostgreSQL dev/test repository、现有三个 Application 专题的 handoff、稳定失败和隐私边界；OIDC 模式在 membership contract 未成立时继续 fail closed。
+4. 设计评审通过后再拆 Platform domain / repository、Web workspace、PostgreSQL migration 与真实浏览器验收批次；不把 dev/test application catalog 写成 production application repository，也不解除现有 promotion blockers。
+5. 本专题不并行打开 production auth、workspace membership adapter、正式 promotion、production API key、quota、billing、provider secret 或 Gateway schema 扩展；新增 scoped dev/test API 与 repository 时使用专项 task card 和相称负向测试。
 
 ## 验收方式
 

@@ -161,4 +161,4 @@ store failure、scope denial、draft mismatch、baseline drift 和 CAS conflict 
 
 ## 后续顺位
 
-下一产品设计转向 `Admin Control Plane Authenticated Read Store Transition v1`，一次只处理 authenticated read identity、workspace membership 与正式 read repository 的边界和迁移顺序。该专题形成设计与可复验前置条件前，不启用 application promotion，也不并行打开管理写入、production API key、quota 或 billing。
+Admin authenticated read、Tenant / Audit PostgreSQL dev/test runtime 与 deterministic OIDC boundary 已完成，真实 Radish 联调已 deferred。下一产品设计转向 `User Workspace Application Catalog & Lifecycle Dev/Test v1`，先解决 application 仍依赖预置 summary、用户不能创建和管理 application 的缺口，并把新 application 接入现有 Configuration Draft、Integration 与 Publish Review。该专题不启用正式 promotion，production auth / membership、production API key、quota 和 billing 继续关闭。
