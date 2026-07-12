@@ -46,6 +46,7 @@ type Server struct {
 	closeApplicationPublishStore          func()
 	closeWorkflowRunStore                 func()
 	closeGatewayRequestStore              func()
+	closeControlPlaneReadRepository       func()
 	closeOnce                             sync.Once
 }
 
@@ -72,19 +73,26 @@ func NewServer(cfg config.Config, options Options) *Server {
 }
 
 func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
+	controlPlaneReadRepository, closeControlPlaneReadRepository, err := newControlPlaneReadRepositoryFromConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
 	savedWorkflowDraftStore, closeSavedWorkflowDraftStore, err := newSavedWorkflowDraftStoreFromConfig(cfg)
 	if err != nil {
+		closeControlPlaneReadRepository()
 		return nil, err
 	}
 	applicationDraftRepository, closeApplicationDraftStore, err := newApplicationConfigurationDraftRepositoryFromConfig(cfg)
 	if err != nil {
 		closeSavedWorkflowDraftStore()
+		closeControlPlaneReadRepository()
 		return nil, err
 	}
 	applicationPublishRepository, closeApplicationPublishStore, err := newApplicationPublishCandidateRepositoryFromConfig(cfg)
 	if err != nil {
 		closeApplicationDraftStore()
 		closeSavedWorkflowDraftStore()
+		closeControlPlaneReadRepository()
 		return nil, err
 	}
 	workflowRunStore, closeWorkflowRunStore, err := newWorkflowRunStoreFromConfig(cfg)
@@ -92,6 +100,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeApplicationPublishStore()
 		closeApplicationDraftStore()
 		closeSavedWorkflowDraftStore()
+		closeControlPlaneReadRepository()
 		return nil, err
 	}
 	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfig(cfg)
@@ -100,6 +109,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeApplicationPublishStore()
 		closeApplicationDraftStore()
 		closeSavedWorkflowDraftStore()
+		closeControlPlaneReadRepository()
 		return nil, err
 	}
 	platformBridge, err := newPlatformBridgeClient(cfg)
@@ -111,6 +121,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		if closeSavedWorkflowDraftStore != nil {
 			closeSavedWorkflowDraftStore()
 		}
+		closeControlPlaneReadRepository()
 		return nil, err
 	}
 	mux := http.NewServeMux()
@@ -118,6 +129,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		options:                               options,
 		bridge:                                platformBridge,
 		config:                                cfg,
+		controlPlaneReadRepo:                  controlPlaneReadRepository,
 		savedWorkflowDraftStore:               savedWorkflowDraftStore,
 		applicationDraftRepository:            applicationDraftRepository,
 		applicationPublishCandidateRepository: applicationPublishRepository,
@@ -131,6 +143,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeApplicationPublishStore:          closeApplicationPublishStore,
 		closeWorkflowRunStore:                 closeWorkflowRunStore,
 		closeGatewayRequestStore:              closeGatewayRequestStore,
+		closeControlPlaneReadRepository:       closeControlPlaneReadRepository,
 	}
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
@@ -266,6 +279,9 @@ func (s *Server) Close() {
 		}
 		if s.closeGatewayRequestStore != nil {
 			s.closeGatewayRequestStore()
+		}
+		if s.closeControlPlaneReadRepository != nil {
+			s.closeControlPlaneReadRepository()
 		}
 	})
 }

@@ -3,6 +3,7 @@ package httpapi
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -34,11 +35,12 @@ type controlPlaneReadEnvelope struct {
 }
 
 type controlPlaneReadCursorListSpec struct {
-	RoutePattern  string
-	RequiredScope string
-	AuditSuffix   string
-	AllowedFilter []string
-	ReadItems     func(ControlPlaneReadRepository, ReadRepositoryContext, ReadRepositoryRequest) controlPlaneReadRepositoryListResult
+	RoutePattern          string
+	RequiredScope         string
+	AuditSuffix           string
+	AllowedFilter         []string
+	StrictAuditPagination bool
+	ReadItems             func(ControlPlaneReadRepository, ReadRepositoryContext, ReadRepositoryRequest) controlPlaneReadRepositoryListResult
 }
 
 type controlPlaneReadRepositoryListResult struct {
@@ -67,7 +69,7 @@ func (s *Server) handleControlPlaneTenantSummary(writer http.ResponseWriter, req
 
 	auditRef := auditRefForControlPlaneRead(trace, "tenant-summary")
 	result := s.controlPlaneReadRepository().ReadTenantSummary(
-		controlPlaneReadRepositoryContext(trace, auth, auditRef),
+		controlPlaneReadRepositoryContext(request, trace, auth, auditRef),
 		ReadTenantSummaryRequest{},
 	)
 	if result.FailureCode != "" {
@@ -137,7 +139,7 @@ func (s *Server) handleUserWorkspaceQuotaSummary(writer http.ResponseWriter, req
 
 	auditRef := auditRefForControlPlaneRead(trace, "quota-summary")
 	result := s.controlPlaneReadRepository().ReadQuotaSummary(
-		controlPlaneReadRepositoryContext(trace, auth, auditRef),
+		controlPlaneReadRepositoryContext(request, trace, auth, auditRef),
 		ReadQuotaSummaryRequest{},
 	)
 	if result.FailureCode != "" {
@@ -192,10 +194,11 @@ func (s *Server) handleUserWorkspaceRunRecordSummaryList(writer http.ResponseWri
 
 func (s *Server) handleControlPlaneAuditSummaryList(writer http.ResponseWriter, request *http.Request) {
 	s.handleControlPlaneReadCursorList(writer, request, controlPlaneReadCursorListSpec{
-		RoutePattern:  controlPlaneAuditSummaryListRoute,
-		RequiredScope: "audit:read",
-		AuditSuffix:   "audit",
-		AllowedFilter: []string{"event_kind", "resource_ref", "actor_subject_ref", "failure_code"},
+		RoutePattern:          controlPlaneAuditSummaryListRoute,
+		RequiredScope:         "audit:read",
+		AuditSuffix:           "audit",
+		AllowedFilter:         []string{"event_kind", "resource_ref", "actor_subject_ref", "failure_code"},
+		StrictAuditPagination: true,
 		ReadItems: func(repository ControlPlaneReadRepository, context ReadRepositoryContext, request ReadRepositoryRequest) controlPlaneReadRepositoryListResult {
 			result := repository.ListAuditSummaries(context, ListAuditSummariesRequest{ReadRepositoryRequest: request})
 			return controlPlaneReadRepositoryListResult{
@@ -235,10 +238,15 @@ func (s *Server) handleControlPlaneReadCursorList(writer http.ResponseWriter, re
 	}
 
 	auditRef := auditRefForControlPlaneRead(trace, spec.AuditSuffix)
+	repositoryRequest, requestFailureCode := controlPlaneReadRepositoryRequestFromQuery(request, filters, spec.StrictAuditPagination)
+	if requestFailureCode != "" {
+		writeControlPlaneReadFailure(writer, trace, auth.TenantBinding, requestFailureCode, auditRefForControlPlaneRead(trace, spec.AuditSuffix+"-invalid-pagination"))
+		return
+	}
 	result := spec.ReadItems(
 		s.controlPlaneReadRepository(),
-		controlPlaneReadRepositoryContext(trace, auth, auditRef),
-		controlPlaneReadRepositoryRequestFromQuery(request, filters),
+		controlPlaneReadRepositoryContext(request, trace, auth, auditRef),
+		repositoryRequest,
 	)
 	if result.FailureCode != "" {
 		writeControlPlaneReadFailure(writer, trace, auth.TenantBinding, string(result.FailureCode), auditRef)
@@ -247,25 +255,63 @@ func (s *Server) handleControlPlaneReadCursorList(writer http.ResponseWriter, re
 	writeControlPlaneReadSuccess(writer, trace, result.TenantRef, result.Items, result.NextCursor, auditRef)
 }
 
-func controlPlaneReadRepositoryContext(trace requestTrace, auth controlPlaneReadAuthContext, auditRef string) ReadRepositoryContext {
+func controlPlaneReadRepositoryContext(request *http.Request, trace requestTrace, auth controlPlaneReadAuthContext, auditRef string) ReadRepositoryContext {
 	return ReadRepositoryContext{
-		RequestID:   trace.requestID,
-		TenantRef:   auth.TenantBinding,
-		SubjectRef:  auth.SubjectBinding,
-		ScopeGrants: append([]string{}, auth.ScopeGrants...),
-		AuditRef:    auditRef,
-		IssuerRef:   auth.IssuerRef,
-		SessionRef:  auth.SessionRef,
+		RequestContext: request.Context(),
+		RequestID:      trace.requestID,
+		TenantRef:      auth.TenantBinding,
+		SubjectRef:     auth.SubjectBinding,
+		ScopeGrants:    append([]string{}, auth.ScopeGrants...),
+		AuditRef:       auditRef,
+		IssuerRef:      auth.IssuerRef,
+		SessionRef:     auth.SessionRef,
 	}
 }
 
-func controlPlaneReadRepositoryRequestFromQuery(request *http.Request, filters map[string]string) ReadRepositoryRequest {
+func controlPlaneReadRepositoryRequestFromQuery(request *http.Request, filters map[string]string, strictAuditPagination bool) (ReadRepositoryRequest, string) {
 	query := request.URL.Query()
-	return ReadRepositoryRequest{
+	result := ReadRepositoryRequest{
 		Cursor:  strings.TrimSpace(query.Get("cursor")),
 		Filters: ReadRepositoryFilters(filters),
 		Sort:    ReadRepositorySort(strings.TrimSpace(query.Get("sort"))),
 	}
+	if !strictAuditPagination {
+		return result, ""
+	}
+	for _, key := range []string{"limit", "cursor", "sort"} {
+		if values, found := query[key]; found && len(values) != 1 {
+			return ReadRepositoryRequest{}, "invalid_filter"
+		}
+	}
+	for key, values := range query {
+		if key != "tenant_ref" && key != "limit" && key != "cursor" && key != "sort" && len(values) != 1 {
+			return ReadRepositoryRequest{}, "invalid_filter"
+		}
+	}
+	result.Limit = 50
+	if rawLimit := strings.TrimSpace(query.Get("limit")); rawLimit != "" {
+		limit, err := strconv.Atoi(rawLimit)
+		if err != nil || limit < 1 || limit > 100 {
+			return ReadRepositoryRequest{}, "invalid_filter"
+		}
+		result.Limit = limit
+	} else if _, found := query["limit"]; found {
+		return ReadRepositoryRequest{}, "invalid_filter"
+	}
+	if result.Sort == "" {
+		result.Sort = "recorded_at_desc"
+	} else if result.Sort != "recorded_at_desc" {
+		return ReadRepositoryRequest{}, "invalid_filter"
+	}
+	if len(result.Cursor) > 1024 {
+		return ReadRepositoryRequest{}, "invalid_filter"
+	}
+	if result.Cursor != "" {
+		if _, err := decodeControlPlaneAuditCursor(result.Cursor); err != nil {
+			return ReadRepositoryRequest{}, "invalid_filter"
+		}
+	}
+	return result, ""
 }
 
 func (s *Server) allowControlPlaneReadMethod(writer http.ResponseWriter, request *http.Request, trace requestTrace) bool {

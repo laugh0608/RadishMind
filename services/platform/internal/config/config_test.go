@@ -79,6 +79,8 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_MIGRATION_DATABASE_URL",
 	}) {
 		t.Fatalf("unexpected secret fields: %#v", summary.SecretFields)
 	}
@@ -517,6 +519,19 @@ func TestControlPlaneReadAuthModesFailClosed(t *testing.T) {
 		t.Fatalf("unexpected signed test auth summary: %#v", summary)
 	}
 
+	cfg.ControlPlaneReadStoreMode = "postgres_dev_test"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil {
+		t.Fatal("control plane PostgreSQL store without database URL was accepted")
+	}
+	cfg.ControlPlaneReadDatabaseURL = "postgresql://runtime.invalid/secret"
+	if err := validateBridgeRuntimeConfig(cfg); err != nil {
+		t.Fatalf("complete control plane PostgreSQL config was rejected: %v", err)
+	}
+	summary = cfg.SanitizedSummary()
+	if summary.ControlPlaneReadStoreMode != "postgres_dev_test" || !summary.ControlPlaneReadDatabaseConfigured || len(summary.MissingRequiredFields) != 0 {
+		t.Fatalf("unexpected control plane PostgreSQL summary: %#v", summary)
+	}
+
 	cfg.ControlPlaneReadAuthMode = "production_oidc"
 	if err := validateBridgeRuntimeConfig(cfg); err == nil {
 		t.Fatal("unknown control plane read auth mode was accepted")
@@ -598,6 +613,10 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_CONTROL_PLANE_READ_SIGNED_TEST_ISSUER",
 		"RADISHMIND_CONTROL_PLANE_READ_SIGNED_TEST_AUDIENCE",
 		"RADISHMIND_CONTROL_PLANE_READ_SIGNED_TEST_PUBLIC_KEY_PEM",
+		"RADISHMIND_CONTROL_PLANE_READ_STORE",
+		"RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_CONTROL_PLANE_READ_DATABASE_TIMEOUT",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE",
 		"RADISHMIND_WORKFLOW_EXECUTOR_DEV",

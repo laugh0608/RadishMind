@@ -1,0 +1,9 @@
+{
+  "component": "control_plane_admin_read",
+  "migration_id": "0001_admin_tenant_audit_read",
+  "store_schema_version": "control_plane_admin_read_store_v1",
+  "up": "0001_admin_tenant_audit_read.up.sql",
+  "down": "0001_admin_tenant_audit_read.down.sql",
+  "automatic_apply": false,
+  "environment": "dev_test_only"
+}

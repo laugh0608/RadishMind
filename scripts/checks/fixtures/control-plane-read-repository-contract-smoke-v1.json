@@ -268,8 +268,7 @@
         "filters": {
           "actor_subject_ref": "subject:demo",
           "event_kind": "read",
-          "resource_kind": "application",
-          "decision": "allow",
+          "resource_ref": "application:demo",
           "failure_code": null
         },
         "sort": "recorded_at_desc",

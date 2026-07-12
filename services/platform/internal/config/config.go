@@ -35,6 +35,8 @@ const (
 	defaultRunStoreMode                = "memory_dev"
 	defaultGatewayRequestStoreMode     = "memory_dev"
 	defaultControlPlaneReadAuthMode    = ""
+	defaultControlPlaneReadStoreMode   = "fake_store_dev"
+	defaultControlPlaneReadDBTimeout   = 5 * time.Second
 )
 
 const (
@@ -57,6 +59,9 @@ type Config struct {
 	ControlPlaneReadTestIssuer        string
 	ControlPlaneReadTestAudience      string
 	ControlPlaneReadTestPublicKeyPEM  string
+	ControlPlaneReadStoreMode         string
+	ControlPlaneReadDatabaseURL       string
+	ControlPlaneReadDatabaseTimeout   time.Duration
 	WorkflowSavedDraftDevHTTPEnabled  bool
 	WorkflowSavedDraftDevWriteEnabled bool
 	ApplicationDraftDevHTTPEnabled    bool
@@ -98,6 +103,8 @@ type ConfigSummary struct {
 	ControlPlaneReadDevAuthEnabled       bool              `json:"control_plane_read_dev_auth_enabled"`
 	ControlPlaneReadAuthMode             string            `json:"control_plane_read_auth_mode"`
 	ControlPlaneReadTestConfigured       bool              `json:"control_plane_read_signed_test_configured"`
+	ControlPlaneReadStoreMode            string            `json:"control_plane_read_store_mode"`
+	ControlPlaneReadDatabaseConfigured   bool              `json:"control_plane_read_database_configured"`
 	WorkflowSavedDraftDevHTTPEnabled     bool              `json:"workflow_saved_draft_dev_http_enabled"`
 	WorkflowSavedDraftDevWriteEnabled    bool              `json:"workflow_saved_draft_dev_write_enabled"`
 	ApplicationDraftDevHTTPEnabled       bool              `json:"application_draft_dev_http_enabled"`
@@ -203,6 +210,8 @@ func defaultConfig() Config {
 		BridgeQueueCapacity:               defaultBridgeQueueSize,
 		BridgeHandshakeTimeout:            defaultBridgeHandshake,
 		ControlPlaneReadAuthMode:          defaultControlPlaneReadAuthMode,
+		ControlPlaneReadStoreMode:         defaultControlPlaneReadStoreMode,
+		ControlPlaneReadDatabaseTimeout:   defaultControlPlaneReadDBTimeout,
 		PythonBinary:                      defaultPythonBinary,
 		BridgeScript:                      defaultBridgeScript,
 		Provider:                          defaultProvider,
@@ -232,6 +241,9 @@ func defaultConfig() Config {
 			"bridge_handshake_timeout":              configSourceDefault,
 			"control_plane_read_dev_auth":           configSourceDefault,
 			"control_plane_read_auth_mode":          configSourceDefault,
+			"control_plane_read_store":              configSourceDefault,
+			"control_plane_read_database":           configSourceDefault,
+			"control_plane_read_database_timeout":   configSourceDefault,
 			"workflow_saved_draft_dev_http":         configSourceDefault,
 			"workflow_saved_draft_dev_write":        configSourceDefault,
 			"application_draft_dev_http":            configSourceDefault,
@@ -481,6 +493,19 @@ func applyEnvOverrides(cfg *Config) error {
 	if value, ok := stringEnv("RADISHMIND_CONTROL_PLANE_READ_SIGNED_TEST_PUBLIC_KEY_PEM"); ok {
 		cfg.ControlPlaneReadTestPublicKeyPEM = strings.TrimSpace(value)
 	}
+	if value, ok := stringEnv("RADISHMIND_CONTROL_PLANE_READ_STORE"); ok {
+		applyStringValue(&cfg.ControlPlaneReadStoreMode, value, cfg.FieldSources, "control_plane_read_store", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_DATABASE_URL"); ok {
+		applyStringValue(&cfg.ControlPlaneReadDatabaseURL, value, cfg.FieldSources, "control_plane_read_database", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_CONTROL_PLANE_READ_DATABASE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_CONTROL_PLANE_READ_DATABASE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.ControlPlaneReadDatabaseTimeout, parsed, cfg.FieldSources, "control_plane_read_database_timeout", configSourceEnv)
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP"); ok {
 		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP", value)
 		if err != nil {
@@ -683,6 +708,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if gatewayRequestStoreMode == "" {
 		gatewayRequestStoreMode = defaultGatewayRequestStoreMode
 	}
+	controlPlaneReadStoreMode := EffectiveControlPlaneReadStoreMode(cfg)
 	credentialState := credentialState(provider, strings.TrimSpace(cfg.APIKey) != "")
 	requiredFields := requiredConfigFields(provider)
 	if workflowSavedDraftStoreMode == "postgres_dev_test" {
@@ -727,6 +753,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_run_database")
 	}
+	if controlPlaneReadStoreMode == "postgres_dev_test" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_signed_test_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_database")
+	}
 	missingRequiredFields := missingRequiredConfigFields(cfg, requiredFields)
 
 	return ConfigSummary{
@@ -734,6 +764,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		ControlPlaneReadDevAuthEnabled:       cfg.ControlPlaneReadDevAuthEnabled,
 		ControlPlaneReadAuthMode:             EffectiveControlPlaneReadAuthMode(cfg),
 		ControlPlaneReadTestConfigured:       strings.TrimSpace(cfg.ControlPlaneReadTestIssuer) != "" && strings.TrimSpace(cfg.ControlPlaneReadTestAudience) != "" && strings.TrimSpace(cfg.ControlPlaneReadTestPublicKeyPEM) != "",
+		ControlPlaneReadStoreMode:            controlPlaneReadStoreMode,
+		ControlPlaneReadDatabaseConfigured:   strings.TrimSpace(cfg.ControlPlaneReadDatabaseURL) != "",
 		WorkflowSavedDraftDevHTTPEnabled:     cfg.WorkflowSavedDraftDevHTTPEnabled,
 		WorkflowSavedDraftDevWriteEnabled:    cfg.WorkflowSavedDraftDevWriteEnabled,
 		ApplicationDraftDevHTTPEnabled:       cfg.ApplicationDraftDevHTTPEnabled,
@@ -764,6 +796,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"write":                         cfg.WriteTimeout.String(),
 			"bridge":                        cfg.BridgeTimeout.String(),
 			"bridge_handshake":              bridgeHandshakeTimeout.String(),
+			"control_plane_read_database":   cfg.ControlPlaneReadDatabaseTimeout.String(),
 			"workflow_saved_draft_database": cfg.WorkflowSavedDraftDatabaseTimeout.String(),
 			"application_draft_database":    cfg.ApplicationDraftDatabaseTimeout.String(),
 			"application_publish_database":  cfg.ApplicationPublishDatabaseTimeout.String(),
@@ -792,6 +825,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_MIGRATION_DATABASE_URL",
+			"RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_DATABASE_URL",
+			"RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_MIGRATION_DATABASE_URL",
 		},
 		ConfigFile: ConfigFileSummary{
 			Path:       strings.TrimSpace(cfg.ConfigFile),
@@ -866,6 +901,14 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			}
 		case "control_plane_read_dev_auth":
 			if !cfg.ControlPlaneReadDevAuthEnabled {
+				missing = append(missing, field)
+			}
+		case "control_plane_read_signed_test_auth":
+			if EffectiveControlPlaneReadAuthMode(cfg) != "signed_test_token" {
+				missing = append(missing, field)
+			}
+		case "control_plane_read_database":
+			if strings.TrimSpace(cfg.ControlPlaneReadDatabaseURL) == "" {
 				missing = append(missing, field)
 			}
 		case "workflow_saved_draft_dev_http":
@@ -1025,6 +1068,21 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	default:
 		return fmt.Errorf("control plane read auth mode must be disabled, dev_headers, or signed_test_token")
 	}
+	switch EffectiveControlPlaneReadStoreMode(cfg) {
+	case "fake_store_dev":
+	case "postgres_dev_test":
+		if EffectiveControlPlaneReadAuthMode(cfg) != "signed_test_token" {
+			return fmt.Errorf("control plane read postgres_dev_test store requires signed_test_token auth mode")
+		}
+		if strings.TrimSpace(cfg.ControlPlaneReadDatabaseURL) == "" {
+			return fmt.Errorf("control plane read postgres_dev_test store requires a database URL")
+		}
+	default:
+		return fmt.Errorf("control plane read store must be fake_store_dev or postgres_dev_test")
+	}
+	if cfg.ControlPlaneReadDatabaseTimeout <= 0 {
+		return fmt.Errorf("control plane read database timeout must be positive")
+	}
 	if cfg.GatewayRequestHistoryDevEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return fmt.Errorf("gateway request history dev requires control plane read dev auth")
 	}
@@ -1063,6 +1121,14 @@ func EffectiveControlPlaneReadAuthMode(cfg Config) string {
 	}
 	if mode == "" {
 		return "disabled"
+	}
+	return mode
+}
+
+func EffectiveControlPlaneReadStoreMode(cfg Config) string {
+	mode := strings.TrimSpace(cfg.ControlPlaneReadStoreMode)
+	if mode == "" {
+		return defaultControlPlaneReadStoreMode
 	}
 	return mode
 }

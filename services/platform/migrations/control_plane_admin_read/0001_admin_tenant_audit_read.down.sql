@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS control_plane_audit_summary_projections;
+DROP TABLE IF EXISTS control_plane_tenant_summary_projections;
+DROP TABLE IF EXISTS control_plane_read_schema_versions;
