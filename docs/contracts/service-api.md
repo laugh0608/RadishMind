@@ -1,6 +1,6 @@
 # RadishMind 服务/API 接入契约
 
-更新时间：2026-07-11
+更新时间：2026-07-12
 
 ## 协议兼容边界
 
@@ -18,14 +18,15 @@
 当前目标口径应固定为：
 
 - 北向兼容：native Copilot API、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/models/{id}`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions`，以及 Control Plane Read-Side 的七条 read-only route
+- 本地产品 API：Workflow Draft / Run / Evaluation、Application Configuration Draft / Publish Candidate、Gateway Request History；这些路由只在各自显式 dev/test gate 下开放，不属于公开 production northbound compatibility surface
 - 南向兼容：`RadishMind-Core`、`local_transformers / HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native、Anthropic messages
 
-control plane / user workspace 的 read-only route contract 已单独收口到 [Control Plane Read-Side 契约](control-plane-read-side.md)。当前七条 read-only route 均已作为 fake-store-backed Go route 注册到 `services/platform/` HTTP surface：tenant summary、applications、API keys、quota summary、workflow definitions、runs 与 audit。它们仍只依赖 in-memory fixture fake store 和 test-only fake auth context；长驻 HTTP 服务尚未接入真实 auth middleware，因此未注入身份上下文的请求必须 fail-closed，而不是被解释为正式可用 API。
+control plane / user workspace 的 read-only route contract 已单独收口到 [Control Plane Read-Side 契约](control-plane-read-side.md)。当前七条 read-only route 均已注册到 `services/platform/` HTTP surface，并统一经过 shared verified identity 与 route authorization。`fake_store_dev` 保留给显式开发测试路径；`postgres_dev_test` 只路由 Tenant Summary 与 Audit，五条 workspace operation 在 signed test 模式保留 fake binding。`radish_oidc_integration_test` 只允许 `postgres_dev_test`，只开放 Tenant Summary / Audit，workspace operation 统一 fail closed 为 `workspace_membership_unavailable`。
 
 当前真实状态是：
 
 - `services/runtime/inference_provider.py` 已具备 `openai-compatible` 主入口，并可按 profile 分流到 `openai-compatible chat`、`gemini-native` 与 `anthropic-messages`；同时已补上 `HuggingFace` 与 `Ollama` 的第一版 chat-completions provider coverage
-- `services/platform/` 已具备最小 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，先固定 `HTTP` 服务启动、`/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/models`、`/v1/models/{id}`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions`，以及七条 fake-store-backed Control Plane Read-Side route，并开始把 northbound 请求翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`
+- `services/platform/` 已具备 `Go` 服务壳与 Python bridge-backed `HTTP` 路由，除 northbound compatibility surface 外，还承载 gated Workflow、Application 与 Gateway History dev/test API；northbound 请求继续翻译并桥接到 canonical `CopilotRequest / CopilotResponse / CopilotGatewayEnvelope`，本地产品 API 不得另造模型响应协议
 - `local_transformers` 当前主要存在于 `scripts/run-radishmind-core-candidate.py` 的本地 candidate/runtime 评测链路
 - `HuggingFace` / `Ollama` 已有第一版 provider coverage，`/v1/models` 已暴露 provider-qualified profile inventory，并与请求选择、diagnostics、request observability 和 error taxonomy 共享平台门禁；provider capability matrix、provider health smoke、provider selection policy、provider-retry-fallback-policy-v1 和 provider runtime docs refresh 已进入 fast baseline；正式 secret backend、环境隔离、外部 provider live health 和 retry/fallback execution 仍未落地
 
@@ -140,7 +141,17 @@ HTTP JSON 现在由 `Go` 平台服务层承接，默认通过四个受控 `stdio
 
 当前 `GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 只承接最小 session/tooling 产品骨架。session metadata route 返回 northbound `radishmind` 扩展字段、history/state/recovery 边界和 disabled capability；tools metadata route 返回当前 contract-only registry view；tool action route 对工具 action 请求返回 `tool_action_blocked_response`，用于上层或 UI 消费 `status=blocked`、denial code、confirmation requirement 和 side-effect absence。该 blocked response 不代表 confirmation 接线、executor、durable store、materialized result reader、长期记忆、业务写回或 replay 已启用。
 
-当前 Control Plane Read-Side 的七条 route 已注册到 Go platform mux，并统一返回 `request_id / tenant_ref / items / next_cursor / failure_code / audit_ref` envelope。成功路径只在 Go route smoke 中通过 test-only fake auth context 和 in-memory fake store 覆盖；真实 HTTP 入口在接入 `future Radish OIDC / auth middleware` 前没有可用的身份注入机制，缺少身份、跨租户、scope 不足、非法 filter、forbidden method / query 和敏感字段投影都必须 fail-closed。该 read-side surface 不启用数据库 query、repository、OIDC validation、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
+当前 Control Plane Read-Side 的七条 route 已注册到 Go platform mux，并统一返回 `request_id / tenant_ref / items / next_cursor / failure_code / audit_ref` envelope。auth mode 支持 `disabled / dev_headers / signed_test_token / radish_oidc_integration_test`；store mode 支持 `fake_store_dev / postgres_dev_test`，且组合规则在启动时 fail closed。Tenant Summary / Audit 已具备 PostgreSQL dev/test repository 和 deterministic OIDC validation；五条 workspace operation 在 OIDC integration 下因 membership contract 未成立而拒绝。缺少身份、issuer / audience / time / claim 失败、跨租户、permission 不足、membership 缺失、非法 filter、forbidden method / query 和敏感字段投影都必须在 repository query 前结束。该 read-side surface 仍不代表 production auth、production repository、API key lifecycle、quota enforcement、confirmation、writeback 或 replay。
+
+## 本地产品 API 分组
+
+这些路由使用各自独立的 dev/test gate、scope header 与 store selector：
+
+- Workflow：saved draft save / list / read / validate、bounded run start / list / read / comparison、evaluation case / revision / suite / decision。
+- Application：configuration draft validate / save / list / read，以及 immutable publish candidate create / list / read / append-only review。
+- Model Gateway：`GET /v1/model-gateway/requests` 与 `GET /v1/model-gateway/requests/{request_id}`；三个 northbound protocol 只有在完整 dev gateway caller scope 下才记录 sanitized history。
+
+Application Draft、Publish Candidate、Workflow Draft / Run 和 Gateway Request 都支持显式 `memory_dev` 或 `postgres_dev_test`。PostgreSQL 模式要求各自 migration marker / checksum、runtime DML role 和 startup preflight；任一数据库失败都不得回退内存。Application candidate create 必须由服务端重新读取 saved valid draft 并计算 digest；review 只追加决定，不修改 candidate snapshot。Gateway history 不持久化 prompt、message、模型正文、Authorization、API key 或 provider raw payload。
 
 当前 `GET /v1/platform/overview` 是 `P3 Local Product Shell / Ops Surface` 的首个只读产品面入口。它聚合服务状态、`/v1/models` provider/profile inventory、session metadata route、tool metadata route、blocked action route 和停止线，供未来本地控制台或上层 UI 一次读取当前平台可展示能力。该 overview 只消费已有 metadata / blocked shell，不引入第二套业务真相源，也不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 

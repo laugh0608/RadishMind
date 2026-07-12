@@ -1,14 +1,14 @@
 # Control Plane Read-Side 契约
 
-更新时间：2026-06-15
+更新时间：2026-07-12
 
 ## 契约目的
 
 本专题说明 `Control Plane / User Workspace / Workflow v1` 的只读控制面契约层。它把用户工作区和管理端会消费的 summary、route、response、negative contract、implementation preconditions、fake-store-backed read handler plan、fake-store-backed read handler implementation、auth/db preconditions、consumer contract、正式 UI 边界、正式 UI 实现 readiness、shared shell、管理端只读页面切片、用户工作区只读页面切片、formal UI readiness close、dev-only live read consumer、product sample consistency、workflow workspace context consistency、auth/store transition preconditions、repository contract preconditions、disabled database read guard、repository contract smoke、repository implementation readiness、store selection readiness、schema migration readiness、schema migration implementation preconditions、repository adapter implementation plan、schema artifact manifest readiness、schema artifact evidence、store selector smoke readiness、production auth readiness、adapter smoke readiness、implementation trigger review 和 `control-plane-durable-read-foundation-v1` 固定为可检查治理边界，避免在正式数据库、OIDC 或完整 UI 尚未准备好时，从本地 ops console 直接堆出产品功能。
 
-当前 `control-plane-read-disabled-database-guard-v1` 已把 disabled database read guard 纳入同一 read-side 契约层；它只固定 database / postgres / repository read mode 的 reserved disabled 状态、`database_read_disabled` fail-closed guard 和无 fake fallback 口径，不实现数据库、OIDC、repository、API key / quota、workflow executor、confirmation、writeback 或 replay。
+## 当前运行契约
 
-当前 `control-plane-read-repository-contract-smoke-v1` 已把未来 repository contract smoke 的输入输出、七条 read route 覆盖、failure mapping、no fake fallback、no side effects 和文档停止线纳入同一 read-side 契约层；它只定义未来 smoke 应验证什么，不实现 SQL、migration、repository adapter、真实数据库、Radish OIDC、token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
+本文后续保留 read-side 从 readiness 到实现的历史证据梯。当前 auth mode、repository 路由、PostgreSQL、OIDC、零查询失败与隐私语义统一见 [Control Plane 鉴权与只读运行时契约](control-plane-auth-read-runtime.md)；该运行时只证明受控开发测试态 Admin read path，不声明 production auth、workspace membership、production repository 或管理写入 ready。
 
 当前 `control-plane-read-repository-implementation-readiness-v1` 已把未来 repository implementation readiness 纳入同一 read-side 契约层；它只固定未来文件落点、实现准入 gate、七条 route readiness matrix、dual smoke plan、failure mapping、no fake fallback、no side effects 和停止线，该切片本身不创建 Go repository 文件、不声明 repository interface、不实现 repository adapter、不写 SQL、不建 migration、不接真实数据库、Radish OIDC、token validation 或 production API consumer。
 
@@ -58,7 +58,7 @@
 
 如果这些 checker 因 forbidden artifact、forbidden literal 或 `does_not_claim` 漂移失败，优先按“过早实现或误声明”处理：删除越界 artifact 或恢复停止线，而不是为了让检查通过去削弱 fixture。只有当外部真实证据和对应 task card 都已补齐后，才允许把某个候选从 readiness 改成实现切片。
 
-当前 read-side 已实现七条 fake-store-backed Go read route：`tenant-summary-route`、`application-summary-list-route`、`api-key-summary-list-route`、`quota-summary-route`、`workflow-definition-summary-list-route`、`run-record-summary-list-route` 与 `audit-summary-list-route`。这些 route 现在通过 `ControlPlaneReadRepository` interface 消费 in-memory fixture fake store 与 test-only fake auth context，不代表完整 read-side API、数据库 query、repository adapter、真实 OIDC 或正式 UI 已实现。
+当前 read-side 已实现七条 Go read route：`tenant-summary-route`、`application-summary-list-route`、`api-key-summary-list-route`、`quota-summary-route`、`workflow-definition-summary-list-route`、`run-record-summary-list-route` 与 `audit-summary-list-route`。fake-store-backed route 仍作为 dev/test 与 contract evidence 保留；Tenant Summary / Audit 已增加 PostgreSQL dev/test repository 和 deterministic OIDC integration boundary。具体路由到 repository 的选择必须遵守“当前运行契约”，不得把 workspace operation 的 fake binding 暴露给 OIDC integration identity。
 
 `control-plane-read-auth-db-preconditions-v1` 进一步固定未来迁移到 `future Radish OIDC / auth middleware` 与 `future control plane read store repository` 之前的准入条件。它只定义 auth context contract、read store repository contract、route transition requirements、failure taxonomy 和 smoke transition plan，不实现真实 auth middleware、数据库 query 或 repository。
 

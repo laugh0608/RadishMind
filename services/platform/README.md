@@ -15,7 +15,7 @@
 - 不在这里重写模型推理、训练、评测或 `builder`
 - 不绕过 `contracts/` 自定义另一套 canonical protocol
 
-当前最小路由：
+当前 HTTP 路由：
 
 - `GET /healthz`
 - `GET /v1/platform/overview`
@@ -44,6 +44,31 @@
 - `POST /v1/user-workspace/application-drafts`
 - `GET /v1/user-workspace/application-drafts`
 - `GET /v1/user-workspace/application-drafts/{draft_id}`
+- `POST /v1/user-workspace/application-publish-candidates`
+- `GET /v1/user-workspace/application-publish-candidates`
+- `GET /v1/user-workspace/application-publish-candidates/{candidate_id}`
+- `POST /v1/user-workspace/application-publish-candidates/{candidate_id}/reviews`
+- `POST /v1/user-workspace/workflow-drafts/{draft_id}/runs`
+- `GET /v1/user-workspace/workflow-runs`
+- `GET /v1/user-workspace/workflow-runs/{run_id}`
+- `GET /v1/user-workspace/workflow-runs/{candidate_run_id}/comparison`
+- `POST /v1/user-workspace/workflow-evaluation-cases`
+- `GET /v1/user-workspace/workflow-evaluation-cases`
+- `GET /v1/user-workspace/workflow-evaluation-cases/{case_id}`
+- `GET /v1/user-workspace/workflow-evaluation-cases/{case_id}/review`
+- `POST /v1/user-workspace/workflow-evaluation-cases/{case_id}/revisions`
+- `GET /v1/user-workspace/workflow-evaluation-cases/{case_id}/revisions`
+- `GET /v1/user-workspace/workflow-evaluation-cases/{case_id}/revisions/{version}`
+- `POST /v1/user-workspace/workflow-evaluation-suites`
+- `GET /v1/user-workspace/workflow-evaluation-suites`
+- `GET /v1/user-workspace/workflow-evaluation-suites/{suite_id}`
+- `GET /v1/user-workspace/workflow-evaluation-suites/{suite_id}/review`
+- `POST /v1/user-workspace/workflow-evaluation-suites/{suite_id}/decisions`
+- `GET /v1/user-workspace/workflow-evaluation-suites/{suite_id}/decisions`
+- `GET /v1/model-gateway/requests`
+- `GET /v1/model-gateway/requests/{request_id}`
+
+路由是否可用由各自的显式 dev/test gate 决定；注册到 mux 不等于默认开放。Application Draft、Application Publish、Workflow Executor / Evaluation 和 Gateway Request History 的开关、store selector、数据库连接与失败语义见本文后面的配置表。所有 `postgres_dev_test` store 都要求对应 manual migration marker / checksum preflight，连接或 preflight 失败时不得回退 `memory_dev`。
 
 其中 `GET /v1/platform/overview` 是 `P3 Local Product Shell / Ops Surface` 的首个只读产品面入口：它汇总服务状态、可选 model/profile、session/tooling metadata route、blocked action route 和当前停止线，供 `apps/radishmind-console/` 本地控制台或上层 UI 一次读取。它不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 
@@ -55,7 +80,7 @@
 
 `GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 当前构成最小 session/tooling 可用外壳：前两者返回平台可消费的 session 扩展字段、history/state/recovery 边界、tool registry metadata 和 contract-only execution policy；后者对任何工具 action 请求都返回 `tool_action_blocked_response`，明确 `status=blocked`、`execution_enabled=false`、`executed=false`、`result_ref=null`、`durable_memory_written=false`、`writes_business_truth=false`。这些路由只用于上层或 UI 发现能力和展示 blocked action 状态，不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 
-`control-plane-read-fake-store-handler-plan-v1` 仍作为 fake-store-backed read handler plan 保留；`control-plane-read-fake-store-handler-implementation-v1` 当前实现七条 fake-store-backed read route：`GET /v1/control-plane/tenants/{tenant_ref}/summary`、`GET /v1/user-workspace/applications`、`GET /v1/user-workspace/api-keys`、`GET /v1/user-workspace/usage/quota-summary`、`GET /v1/user-workspace/workflow-definitions`、`GET /v1/user-workspace/runs` 与 `GET /v1/control-plane/audit`。它们现在通过 `ControlPlaneReadRepository` interface 消费 `services/platform/internal/httpapi` 内的 in-memory fake store 和 test-only fake auth context，Go route smoke 覆盖成功、missing identity、tenant binding mismatch、cross-tenant query denied、scope denied、invalid filter、forbidden sensitive projection、forbidden method、forbidden query 和 no-side-effects。长驻 HTTP 服务默认没有可公开使用的 fake-auth header 或真实 auth middleware；只有显式设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，dev-only live consumer 才能通过 `X-RadishMind-Dev-Read-*` 测试身份 header 注入 test-only fake auth context。未启用 dev auth 或未注入身份上下文的外部请求应返回 fail-closed envelope，而不是成功读取 fixture 数据。该实现仍不接数据库 query、repository adapter、OIDC、API key lifecycle、quota enforcement、executor、confirmation、writeback 或 replay，也不声明正式 user workspace / admin control plane UI ready。
+`control-plane-read-fake-store-handler-plan-v1` 与 `control-plane-read-fake-store-handler-implementation-v1` 继续作为历史 contract evidence 保留；当前七条 read route 已统一经过 shared verified identity 与 route authorization。`RADISHMIND_CONTROL_PLANE_READ_STORE=fake_store_dev` 仍服务显式开发测试路径；`postgres_dev_test` 只把 Tenant Summary 与 Audit 路由到 PostgreSQL read repository，五条 workspace operation 在 signed test 模式仍使用 fake binding。`radish_oidc_integration_test` 只允许与 `postgres_dev_test` 组合：Tenant Summary / Audit 分别要求映射后的 tenant-read / audit-read permission，五条 workspace operation 因 membership owner 未成立统一返回 `workspace_membership_unavailable`，不得读取 fake repository。任何 identity、tenant、permission、membership 或 provider denial 都必须在 repository query 前结束。
 
 `control-plane-verified-identity-negative-auth-runtime-v1` 已在同一七条 route 上新增 `disabled / dev_headers / signed_test_token` auth mode、shared verified identity / resource binding、`RS256` test-token verifier、显式 permission projection 和 sanitized `401 / 403` envelope。后续 `radish_oidc_integration_test` 已完成 deterministic discovery / JWKS / JWT verifier、两条 Admin route 和五条 workspace membership fail-closed；signed test verifier 仍不连接 discovery / JWKS，OIDC integration 也不代表真实 Radish 联调或 production auth。
 
@@ -395,7 +420,7 @@ go run ./cmd/radishmind-platform
 | `RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_MIGRATION_DATABASE_URL` | 空 | publish candidate migration 一次性 DDL 连接；secret |
 | `RADISHMIND_APPLICATION_PUBLISH_DATABASE_TIMEOUT` | `5s` | publish candidate PostgreSQL connect / preflight timeout |
 | `RADISHMIND_WORKFLOW_EXECUTOR_DEV` | `false` | 显式启用受控 Workflow Executor v0 dev-only POST / GET route；不启用完整生产执行器 |
-| `RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV` | `false` | 与 dev auth 双 gate 显式启用 Gateway 请求历史记录和 scoped list / detail route；当前 store 为进程内 `memory_dev` |
+| `RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV` | `false` | 与 dev auth 双 gate 显式启用 Gateway 请求历史记录和 scoped list / detail route；store 由 `RADISHMIND_GATEWAY_REQUEST_STORE` 选择 |
 | `RADISHMIND_GATEWAY_REQUEST_STORE` | `memory_dev` | `memory_dev` 或显式 `postgres_dev_test`；reserved production mode 和 unknown mode fail closed |
 | `RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL` | 空 | Gateway request `postgres_dev_test` runtime DML 连接；secret，不进入摘要或日志 |
 | `RADISHMIND_GATEWAY_REQUEST_DEV_TEST_MIGRATION_DATABASE_URL` | 空 | 仅 Gateway request manual migration `up` 使用的一次性 DDL 连接；secret |
@@ -542,7 +567,7 @@ curl -sS http://127.0.0.1:7000/v1/chat/completions \
 - `/v1/session/metadata` 返回 `session_metadata`，其中 durable session/checkpoint store、long-term memory、automatic replay 和 business truth write 均为 `false`。
 - `/v1/session/recovery/checkpoints/session-checkpoint-0001` 返回 `session_recovery_checkpoint_read_result`，且 `access_policy.metadata_only=true`、`materialized_results_included=false`、`auto_replay_enabled=false`，`result.tool_audit_summary.execution_enabled=false`。
 - `/v1/tools/metadata` 返回 `tooling_metadata`，其中 `registry_policy.execution_enabled=false`，每个工具的 execution mode 为 `contract_only`。
-- 七条 control-plane read route 目前只在 Go test 中通过 test-only fake auth context 验证；直接 curl 未带未来 auth context 时应 fail closed，而不是匿名返回跨租户数据。
+- 七条 control-plane read route 默认 fail closed；显式 dev headers、signed test token 或 OIDC integration 请求必须满足对应 auth / store 配置。OIDC integration 只允许 Tenant Summary / Audit 成功，workspace operation 应返回 `workspace_membership_unavailable`。
 - workflow saved draft dev route 默认关闭；只有同时设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 和 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1` 才能 list / read / validate，保存还必须设置 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1`，并带上 `X-RadishMind-Dev-Workflow-Workspace` / `X-RadishMind-Dev-Workflow-Application` 与匹配 scope。`RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE` 默认 `memory_dev`；设置为 `repository_disabled` / `repository` 会返回 `repository_store_disabled`，设置未知值会返回 `invalid_draft_store_mode`，不会把失败请求回退成 sample 或 memory dev 成功。
 - application configuration draft dev route 默认关闭；只有同时设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 和 `RADISHMIND_APPLICATION_DRAFT_DEV_HTTP=1` 才能 list / read / validate，保存还要求 `RADISHMIND_APPLICATION_DRAFT_DEV_WRITE=1`、`application_drafts:write` scope，以及匹配的 `X-RadishMind-Dev-Application-Workspace` / `Application` header。store 默认是 `memory_dev`；显式 `postgres_dev_test` 要求手工 migration、独立 runtime DSN 与 marker / checksum preflight，数据库失败不回退内存。
 - application publish candidate dev route 默认关闭；只有同时设置 dev auth、`RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP=1` 与匹配 scope / workspace / application header 才能 list / read；create / review 还要求 `RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE=1`。`postgres_dev_test` 同时要求 application draft 也使用 PostgreSQL dev/test，使服务端 draft reload 与 candidate create 保持 durable；数据库失败不回退内存。
