@@ -14,7 +14,7 @@
 - 当前没有真实 Radish OIDC / JWKS、production token / session、Control Plane PostgreSQL adapter、secret resolver、deployment preflight 或 production admin 操作。
 - User Workspace 的 Application Publish Governance 已把正式 application repository、production auth / membership 和发布 owner 明确暴露为 promotion blocker；dev/test candidate approved 不会绕过这些 blocker。
 - [Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) 第一批 runtime 已完成：shared verified identity、RS256 signed test token、permission projection、13 类负向认证、七条 route authorization 和 Web sanitized denial state 均可复验；repository 仍为 fake store。
-- [Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 已落地两条 Admin operation 的 schema、manual migration、read-only preflight、routed selector、分页和 no-fallback；真实 PostgreSQL、HTTP/Web 与浏览器验收尚未执行。
+- [Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 已完成两条 Admin operation 的 schema、manual migration、read-only role、routed selector、分页、no-fallback、真实 PostgreSQL、HTTP/Web 与浏览器验收。
 
 ## 设计边界
 
@@ -25,7 +25,7 @@
 
 ## 下一批开发方向
 
-1. 执行 `Admin Tenant / Audit PostgreSQL Read Repository Runtime v1` 的真实 PostgreSQL lifecycle / read-only role、signed-token HTTP/Web 与浏览器验收，通过后关闭第二批。
+1. 下一产品设计评审 `Radish OIDC Integration Test v1`，先固定 issuer / JWKS / claim / permission mapping 的联调所有权、失败语义和停止线，不直接启用 production auth。
 2. 实现只迁移 tenant summary 与 audit summary，继续使用 signed test token；不把五条 workspace route 一并接入数据库，也不派生同层 readiness 文档链。
 3. Radish issuer / client registration / permission mapping evidence 未审查前，不接真实 OIDC；workspace membership contract 未成立前，不迁移五条 User Workspace read route。
 4. 普通 evidence review 展示不再新增逐项 task card；只有真实 auth、数据库、secret、deployment 或管理动作才新增专项 gate。
