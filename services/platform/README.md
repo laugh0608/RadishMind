@@ -143,7 +143,7 @@
 
 ## Control Plane Read-Side readiness 运行层说明
 
-平台服务层当前只注册 fake-store-backed read route 和 dev-only live consumer 所需的测试身份入口。`control-plane-read-production-auth-readiness-v1`、`control-plane-read-adapter-smoke-readiness-v1`、`control-plane-read-implementation-trigger-review-v1` 和 `control-plane-read-implementation-entry-review-v1` 都是静态治理检查，不会改变 HTTP route 行为，也不会启用 `RADISHMIND_CONTROL_PLANE_READ_STORE`、production auth middleware、数据库连接或 production API consumer。
+平台服务层当前支持 `fake_store_dev` 与受限的 `signed_test_token + postgres_dev_test` Control Plane read 组合。数据库模式只把 Admin tenant summary 与 audit summary 路由到 `control_plane_admin_read` PostgreSQL projection，其余五条 workspace route 继续显式使用 fake repository；startup 校验 migration marker、checksum 与 runtime SELECT 权限，任何 Admin query 失败均不回退 fake 数据。该路径仍是 dev/test runtime，不启用真实 Radish OIDC、production repository、运行时 writer 或 production API consumer。
 
 Control Plane Read 在 formal UI / dev-live consumer 之后的旧 repository readiness 尾链已退出活动仓库基线，历史文件继续保留。当前 read route contract、negative contract、正式 UI 聚合检查和 Go 测试仍是活动门禁；这次放宽只服务 Saved Draft `postgres_dev_test`，不代表 Control Plane Read database store 已实现。
 

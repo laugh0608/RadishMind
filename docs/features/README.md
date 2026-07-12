@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-12 当前执行口径：Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、durable run history、failure review、run comparison、evaluation cases、Gateway Request History / Playground、Application API Integration、Configuration Draft 与 Publish Governance 均已完成。Admin verified identity / negative auth runtime 已完成，[Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 已完成产品设计，统一 Runtime v1 高风险任务卡已进入批次 A。正式 application mutation、production auth、workspace membership 与 production repository 仍关闭。
+2026-07-12 当前执行口径：Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、durable run history、failure review、run comparison、evaluation cases、Gateway Request History / Playground、Application API Integration、Configuration Draft 与 Publish Governance 均已完成。Admin verified identity / negative auth runtime 已完成，[Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 数据库 runtime 已落地，真实 PostgreSQL 与浏览器验收待执行。正式 application mutation、production auth、workspace membership 与 production repository 仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -56,7 +56,7 @@
 | [User Workspace Application Publish Governance & Promotion v1](user-workspace/application-publish-governance-promotion-v1.md) | 功能 / 治理专题 | 已完成不可变 publish candidate、server-side draft reload、review CAS、漂移识别、阻塞式 eligibility 与 Integration / Playground / History handoff；不执行正式发布 |
 | [Admin Control Plane 细专题入口](admin-control-plane/README.md) | 功能专题目录 | 承接 authenticated read、permission binding、repository transition 与后续管理端真实使用路径 |
 | [Admin Control Plane Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) | 功能 / 平台协同专题 | 第一批 verified identity runtime 已完成，第二批 tenant / audit PostgreSQL read repository 已完成产品设计 |
-| [Admin Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) | 功能 / 平台协同专题 | 已定义 Admin 两条 operation 的 schema / migration、read-only role、selector、cursor、重启恢复与 no-fallback；runtime 尚未开始 |
+| [Admin Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) | 功能 / 平台协同专题 | schema / migration、manual CLI、read-only preflight、selector、cursor 与 integration test 已落地；真实 PostgreSQL / browser validation pending |
 | [Control Plane Verified Identity Context & Negative Auth Runtime v1](../task-cards/control-plane-verified-identity-negative-auth-runtime-v1-plan.md) | 高风险实现批次 | 已完成 RS256 signed test token、permission projection、13 类负向认证、七条 route authorization 与 Web sanitized denial state；fake store 保持不变 |
 | [Gateway 细专题入口](gateway/README.md) | 功能专题目录 | 承接 Gateway 运行时、协议兼容和真实使用路径专题 |
 | [Gateway Python Bridge Runtime v1](gateway/python-bridge-runtime-v1.md) | 运行时专题 | 受控 `stdio` worker pool 已成为默认模式，完成生命周期、取消、崩溃恢复、请求隔离和性能验收；process 模式保留回滚 |

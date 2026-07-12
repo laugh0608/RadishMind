@@ -2,7 +2,7 @@
 
 更新时间：2026-07-12
 
-状态：`admin_tenant_audit_postgresql_read_repository_v1_design_defined`
+状态：`admin_tenant_audit_postgresql_read_repository_v1_runtime_landed_validation_pending`
 
 ## 功能定位
 
@@ -270,4 +270,4 @@
 
 ## 下一实现入口
 
-[Admin Tenant / Audit PostgreSQL Read Repository Runtime v1](../../task-cards/admin-tenant-audit-postgresql-read-repository-runtime-v1-plan.md) 高风险任务卡已创建，统一承接 schema/migration、read-only role、adapter、routed selector、cursor 和 integration/browser evidence；当前从批次 A 开始实施，不再派生一串同层 readiness 文档。
+[Admin Tenant / Audit PostgreSQL Read Repository Runtime v1](../../task-cards/admin-tenant-audit-postgresql-read-repository-runtime-v1-plan.md) 已落地 schema/migration、manual CLI、startup preflight、adapter、routed selector、strict cursor 与 integration test；下一步执行真实 PostgreSQL、HTTP/Web 和浏览器验收，不再派生同层 readiness 文档。

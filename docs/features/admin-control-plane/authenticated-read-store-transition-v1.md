@@ -209,7 +209,7 @@ token signature、issuer、audience、algorithm、time 或 required claim 失败
 - 使用 `signed_test_token + postgres_dev_test` 完成真实浏览器 authenticated / denied / empty / store failure 路径。
 - 不启用 production repository，不创建 audit writer 或管理写入。
 
-设计状态：[`admin_tenant_audit_postgresql_read_repository_v1_design_defined`](tenant-audit-postgresql-read-repository-v1.md)。该设计已固定 projection schema / ownership、manual migration、read-only role、routed selector、strict cursor / filter、restart、failure 和 no-fallback；runtime 尚未开始。
+实施状态：[`admin_tenant_audit_postgresql_read_repository_v1_runtime_landed_validation_pending`](tenant-audit-postgresql-read-repository-v1.md)。projection schema / ownership、manual migration、read-only preflight、routed selector、strict cursor / filter、failure 和 no-fallback runtime 已落地；真实 PostgreSQL、HTTP/Web 与浏览器验收待执行。
 
 ### 第三批：Radish OIDC Integration Test
 
@@ -247,4 +247,4 @@ token signature、issuer、audience、algorithm、time 或 required claim 失败
 
 ## 下一实现入口
 
-下一步创建 `Admin Tenant / Audit PostgreSQL Read Repository Runtime v1` 高风险任务卡，统一承接 schema/migration、read-only role、adapter、routed selector、cursor 与 integration/browser evidence；继续使用 signed test token，不接真实 Radish OIDC，也不迁移五条 workspace-scoped route。
+`Admin Tenant / Audit PostgreSQL Read Repository Runtime v1` 已落地数据库 runtime 与 integration test；下一步执行真实 PostgreSQL、signed-token HTTP/Web 和浏览器验收。继续使用 signed test token，不接真实 Radish OIDC，也不迁移五条 workspace-scoped route。
