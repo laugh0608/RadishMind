@@ -76,3 +76,39 @@ test("Control Plane read consumer rejects a non-envelope HTTP failure", async ()
     globalThis.fetch = originalFetch;
   }
 });
+
+test("Control Plane read consumer uses an in-memory signed token without dev headers", async () => {
+  const originalFetch = globalThis.fetch;
+  const globalWithToken = globalThis as typeof globalThis & {
+    __RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__?: () => string;
+  };
+  globalWithToken.__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__ = () => "test-token-material";
+  let calls = 0;
+  globalThis.fetch = async (_input, init) => {
+    calls += 1;
+    const headers = new Headers(init?.headers);
+    assert.equal(headers.get("Authorization"), "Bearer test-token-material");
+    assert.equal(headers.has("X-RadishMind-Dev-Read-Identity"), false);
+    return new Response(JSON.stringify({
+      request_id: "request-signed",
+      tenant_ref: "tenant_demo",
+      items: [],
+      next_cursor: null,
+      failure_code: null,
+      audit_ref: "audit-signed",
+    }), { status: 200 });
+  };
+  try {
+    await loadControlPlaneReadDevLiveCollections({
+      mode: "dev_live_http",
+      baseUrl: "http://127.0.0.1:7000",
+      tenantRef: "tenant_demo",
+      subjectRef: "subject_demo_user",
+      authMode: "signed_test_token",
+    });
+    assert.equal(calls, 7);
+  } finally {
+    globalThis.fetch = originalFetch;
+    delete globalWithToken.__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__;
+  }
+});

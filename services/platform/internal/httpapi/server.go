@@ -334,6 +334,7 @@ func localConsoleAllowedOrigins() []string {
 func localConsoleAllowedHeaders() []string {
 	return []string{
 		"Accept",
+		"Authorization",
 		"Content-Type",
 		"X-Request-Id",
 		controlPlaneReadDevIdentityHeader,

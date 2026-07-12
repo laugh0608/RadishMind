@@ -128,6 +128,10 @@ run_migration() {
 		go run ./cmd/radishmind-application-publish-migrate "${migration_action}"
 		go run ./cmd/radishmind-workflow-run-migrate "${migration_action}"
 		go run ./cmd/radishmind-gateway-request-migrate "${migration_action}"
+		export RADISHMIND_CONTROL_PLANE_READ_STORE="postgres_dev_test"
+		export RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_DATABASE_URL="${runtime_database_url}"
+		export RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_MIGRATION_DATABASE_URL="${migration_database_url}"
+		go run ./cmd/radishmind-control-plane-read-migrate "${migration_action}"
   )
 }
 
@@ -170,7 +174,7 @@ case "${action}" in
     compose up -d --wait
     step "Running the PostgreSQL repository integration suite."
     run_integration_test
-    step "Restoring the reviewed workflow draft, application draft, application publish, workflow run, and Gateway request schemas for interactive development."
+    step "Restoring the reviewed workflow draft, application draft, application publish, workflow run, Gateway request, and Control Plane Admin read schemas for interactive development."
     run_migration up
     ;;
   down)

@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"radishmind.local/services/platform/internal/config"
 	controlplanereadmigrations "radishmind.local/services/platform/migrations/control_plane_admin_read"
 )
 
@@ -33,24 +32,23 @@ func main() {
 	if action != "status" && action != "up" {
 		fail(action, false, "unsupported migration action; expected status or up")
 	}
-	cfg, err := config.LoadFromEnv()
-	if err != nil {
-		fail(action, false, "load platform configuration failed")
-	}
-	if config.EffectiveControlPlaneReadAuthMode(cfg) != "signed_test_token" ||
-		config.EffectiveControlPlaneReadStoreMode(cfg) != "postgres_dev_test" {
-		fail(action, strings.TrimSpace(cfg.ControlPlaneReadDatabaseURL) != "", "control plane read migration requires signed_test_token and postgres_dev_test modes")
+	if strings.TrimSpace(os.Getenv("RADISHMIND_CONTROL_PLANE_READ_STORE")) != "postgres_dev_test" {
+		fail(action, false, "control plane read migration requires postgres_dev_test store mode")
 	}
 	databaseURL := strings.TrimSpace(os.Getenv(migrationDatabaseURLEnv))
 	if action == "status" && databaseURL == "" {
-		databaseURL = strings.TrimSpace(cfg.ControlPlaneReadDatabaseURL)
+		databaseURL = strings.TrimSpace(os.Getenv("RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_DATABASE_URL"))
 	}
 	if databaseURL == "" {
 		fail(action, false, "control plane read migration database URL is missing")
 	}
-	timeout := cfg.ControlPlaneReadDatabaseTimeout
-	if timeout <= 0 {
-		timeout = 5 * time.Second
+	timeout := 5 * time.Second
+	if rawTimeout := strings.TrimSpace(os.Getenv("RADISHMIND_CONTROL_PLANE_READ_DATABASE_TIMEOUT")); rawTimeout != "" {
+		parsed, parseErr := time.ParseDuration(rawTimeout)
+		if parseErr != nil || parsed <= 0 {
+			fail(action, true, "control plane read database timeout must be a positive duration")
+		}
+		timeout = parsed
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()

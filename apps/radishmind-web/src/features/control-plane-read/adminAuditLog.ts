@@ -193,7 +193,7 @@ function buildStatePreviews(
       id: "ready",
       label: "Ready",
       status: collection.statusLabel,
-      summary: "Audit summaries render from the offline consumer view model.",
+      summary: "Audit summaries render from the validated read consumer view model.",
       itemCount: collection.itemCount,
       failureCode: collection.failureCode ?? "none",
     },

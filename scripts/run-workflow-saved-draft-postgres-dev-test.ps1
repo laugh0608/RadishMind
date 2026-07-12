@@ -144,6 +144,13 @@ function Invoke-Migration {
         if ($LASTEXITCODE -ne 0) {
             throw "Gateway request migration runner failed with exit code $LASTEXITCODE"
         }
+        $env:RADISHMIND_CONTROL_PLANE_READ_STORE = "postgres_dev_test"
+        $env:RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
+        $env:RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
+        & $go run ./cmd/radishmind-control-plane-read-migrate $MigrationAction
+        if ($LASTEXITCODE -ne 0) {
+            throw "Control Plane Admin read migration runner failed with exit code $LASTEXITCODE"
+        }
     }
     finally {
         Pop-Location
@@ -190,7 +197,7 @@ switch ($Action) {
         Invoke-Compose -Arguments @("up", "-d", "--wait")
         Write-Step "Running the PostgreSQL repository integration suite."
         Invoke-IntegrationTest
-        Write-Step "Restoring the reviewed saved draft, application draft, application publish, workflow run, and Gateway request schemas for interactive development."
+        Write-Step "Restoring the reviewed saved draft, application draft, application publish, workflow run, Gateway request, and Control Plane Admin read schemas for interactive development."
         Invoke-Migration -MigrationAction "up"
     }
     "down" {

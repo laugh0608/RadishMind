@@ -18,6 +18,7 @@ import {
   initialControlPlaneReadDevLiveLoadState,
   loadControlPlaneReadDevLiveCollections,
   readControlPlaneReadDevLiveConfig,
+  type ControlPlaneReadDevLiveConfig,
   type ControlPlaneReadDevLiveLoadState,
 } from "../features/control-plane-read/devLiveReadConsumer";
 import {
@@ -287,7 +288,9 @@ export function App() {
     setDevLiveState({
       status: "loading",
       mode: "dev_live_http",
-      message: "Loading fake-store-backed read routes over dev HTTP.",
+      message: devLiveConfig.storeMode === "postgres_dev_test"
+        ? "Loading routed PostgreSQL and fake read operations over signed dev/test HTTP."
+        : "Loading fake-store-backed read routes over dev HTTP.",
     });
     loadControlPlaneReadDevLiveCollections(devLiveConfig)
       .then((collections) => {
@@ -297,7 +300,9 @@ export function App() {
         setDevLiveState({
           status: "ready",
           mode: "dev_live_http",
-          message: "Dev live read consumer loaded fake-store-backed HTTP envelopes.",
+          message: devLiveConfig.storeMode === "postgres_dev_test"
+            ? "Dev live read consumer loaded signed-token envelopes from the routed PostgreSQL read repository."
+            : "Dev live read consumer loaded fake-store-backed HTTP envelopes.",
           collections,
         });
       })
@@ -1224,7 +1229,12 @@ export function App() {
           </div>
           <div className="header-facts" aria-label="Read shell facts">
             <Fact label="Routes" value={String(shell.catalog.routes.length)} />
-            <Fact label="Database" value={shell.catalog.databaseBacked ? "attached" : "detached"} />
+            <Fact
+              label="Database"
+              value={devLiveConfig.mode === "dev_live_http" && devLiveConfig.storeMode === "postgres_dev_test"
+                ? "dev/test attached"
+                : shell.catalog.databaseBacked ? "attached" : "detached"}
+            />
             <Fact label="Writes" value={shell.catalog.allRoutesReadOnly ? "locked" : "enabled"} />
             <Fact label="Source" value={devLiveState.mode === "dev_live_http" ? devLiveState.status : "offline"} />
             <Fact label="Tenant page" value={tenantOverview.canRenderTenant ? "ready" : "blocked"} />
@@ -1312,7 +1322,7 @@ export function App() {
           </div>
         </header>
 
-        <LiveReadSourceStatus state={devLiveState} baseUrl={devLiveConfig.baseUrl} />
+        <LiveReadSourceStatus state={devLiveState} config={devLiveConfig} />
         <WorkflowUserWorkspaceHomePanel
           home={workflowUserWorkspaceHome}
           createdDraftCountsByWorkflowDefinition={createdWorkspaceDraftCountsByDefinition}
@@ -5423,7 +5433,7 @@ function Fact({ label, value }: { label: string; value: string }) {
   );
 }
 
-function LiveReadSourceStatus({ state, baseUrl }: { state: ControlPlaneReadDevLiveLoadState; baseUrl: string }) {
+function LiveReadSourceStatus({ state, config }: { state: ControlPlaneReadDevLiveLoadState; config: ControlPlaneReadDevLiveConfig }) {
   const tone = state.status === "failed" ? "bad" : state.status === "ready" ? "good" : "neutral";
   return (
     <section className="live-read-source" aria-label="Read data source">
@@ -5435,15 +5445,19 @@ function LiveReadSourceStatus({ state, baseUrl }: { state: ControlPlaneReadDevLi
       <dl>
         <div>
           <dt>Base URL</dt>
-          <dd>{state.mode === "dev_live_http" ? baseUrl : "not used"}</dd>
+          <dd>{state.mode === "dev_live_http" ? config.baseUrl : "not used"}</dd>
         </div>
         <div>
           <dt>Auth</dt>
-          <dd>{state.mode === "dev_live_http" ? "dev fake header" : "offline view model"}</dd>
+          <dd>{state.mode === "dev_live_http"
+            ? config.authMode === "signed_test_token" ? "signed test token" : "dev fake header"
+            : "offline view model"}</dd>
         </div>
         <div>
           <dt>Database</dt>
-          <dd>detached</dd>
+          <dd>{state.mode === "dev_live_http" && config.storeMode === "postgres_dev_test"
+            ? "PostgreSQL dev/test projection"
+            : "detached"}</dd>
         </div>
       </dl>
       <StatusBadge tone={tone}>{state.status}</StatusBadge>

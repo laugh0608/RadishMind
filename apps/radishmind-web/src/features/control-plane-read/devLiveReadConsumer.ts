@@ -16,12 +16,16 @@ const DEFAULT_SUBJECT_REF = "subject_demo_user";
 const DEFAULT_SCOPES = "tenant:read,applications:read,api_keys:read,usage:read,runs:read,audit:read";
 
 export type ControlPlaneReadDataSourceMode = "offline_fixture" | "dev_live_http";
+export type ControlPlaneReadAuthMode = "dev_headers" | "signed_test_token";
+export type ControlPlaneReadStoreMode = "fake_store_dev" | "postgres_dev_test";
 
 export type ControlPlaneReadDevLiveConfig = {
   mode: ControlPlaneReadDataSourceMode;
   baseUrl: string;
   tenantRef: string;
   subjectRef: string;
+  authMode?: ControlPlaneReadAuthMode;
+  storeMode?: ControlPlaneReadStoreMode;
 };
 
 export type ControlPlaneReadDevLiveLoadState =
@@ -55,6 +59,8 @@ export function readControlPlaneReadDevLiveConfig(): ControlPlaneReadDevLiveConf
     baseUrl: normalizeBaseUrl(env.VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL ?? DEFAULT_BASE_URL),
     tenantRef: env.VITE_RADISHMIND_DEV_READ_TENANT_REF?.trim() || DEFAULT_TENANT_REF,
     subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || DEFAULT_SUBJECT_REF,
+    authMode: env.VITE_RADISHMIND_READ_AUTH_MODE?.trim() === "signed_test_token" ? "signed_test_token" : "dev_headers",
+    storeMode: env.VITE_RADISHMIND_READ_STORE_MODE?.trim() === "postgres_dev_test" ? "postgres_dev_test" : "fake_store_dev",
   };
 }
 
@@ -71,7 +77,9 @@ export function initialControlPlaneReadDevLiveLoadState(
   return {
     status: "loading",
     mode: "dev_live_http",
-    message: "Loading fake-store-backed read routes over dev HTTP.",
+    message: config.storeMode === "postgres_dev_test"
+      ? "Loading routed PostgreSQL and fake read operations over signed dev/test HTTP."
+      : "Loading fake-store-backed read routes over dev HTTP.",
   };
 }
 
@@ -119,6 +127,22 @@ function devLiveRouteUrl(routeId: ControlPlaneReadRouteId, config: ControlPlaneR
 }
 
 function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneReadDevLiveConfig): HeadersInit {
+  if (config.authMode === "signed_test_token") {
+    const tokenProvider = (
+      globalThis as typeof globalThis & {
+        __RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__?: () => string;
+      }
+    ).__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__;
+    const token = tokenProvider?.().trim() ?? "";
+    if (!token) {
+      throw new Error("signed test token is unavailable in browser memory");
+    }
+    return {
+      Accept: "application/json",
+      "X-Request-Id": `dev-live-${routeId}`,
+      Authorization: `Bearer ${token}`,
+    };
+  }
   return {
     Accept: "application/json",
     "X-Request-Id": `dev-live-${routeId}`,

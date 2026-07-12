@@ -81,7 +81,7 @@ export function buildControlPlaneReadShellViewModel(): ControlPlaneReadShellView
     deniedPreview,
     forbiddenProjectionBlocked,
     forbiddenOutputKeys: CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
-    lockedCapabilities: ["writeback locked", "unrestricted executor locked", "database detached", "auth pending"],
+    lockedCapabilities: ["writeback locked", "unrestricted executor locked", "production database locked", "production auth pending"],
     usesCanonicalRoutes:
       CONTROL_PLANE_READ_ROUTE_DEFINITIONS["tenant-summary-route"].path === CONTROL_PLANE_READ_ROUTES.tenantSummary &&
       isControlPlaneReadEnvelope(readyEnvelope),

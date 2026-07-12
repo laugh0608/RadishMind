@@ -35,15 +35,7 @@ func TestControlPlaneAdminReadPostgresLifecycle(t *testing.T) {
 	if err != nil || state.MigrationState != controlplanereadmigrations.MigrationStateApplied {
 		t.Fatalf("apply control plane read migration: %#v %v", state, err)
 	}
-	quotedRuntimeUser := pgx.Identifier{runtimeUser}.Sanitize()
-	for _, statement := range []string{
-		"REVOKE ALL ON control_plane_read_schema_versions, control_plane_tenant_summary_projections, control_plane_audit_summary_projections FROM " + quotedRuntimeUser,
-		"GRANT SELECT ON control_plane_read_schema_versions, control_plane_tenant_summary_projections, control_plane_audit_summary_projections TO " + quotedRuntimeUser,
-	} {
-		if _, err := adminPool.Exec(ctx, statement); err != nil {
-			t.Fatalf("configure control plane runtime read privileges: %v", err)
-		}
-	}
+	configureControlPlaneRuntimeReadPrivileges(t, ctx, adminPool, runtimeUser)
 	if _, err := adminPool.Exec(ctx, `INSERT INTO control_plane_tenant_summary_projections
         (tenant_ref, schema_version, projection_version, tenant_display_name, tenant_state, plan_ref,
          quota_summary_ref, deployment_status_ref, audit_summary_ref, projected_at)
@@ -115,5 +107,21 @@ func TestControlPlaneAdminReadPostgresLifecycle(t *testing.T) {
 	}
 	if _, err := controlplanereadmigrations.Apply(ctx, adminPool); err != nil {
 		t.Fatalf("reapply control plane read migration: %v", err)
+	}
+	configureControlPlaneRuntimeReadPrivileges(t, ctx, adminPool, runtimeUser)
+}
+
+func configureControlPlaneRuntimeReadPrivileges(t *testing.T, ctx context.Context, adminPool interface {
+	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
+}, runtimeUser string) {
+	t.Helper()
+	quotedRuntimeUser := pgx.Identifier{runtimeUser}.Sanitize()
+	for _, statement := range []string{
+		"REVOKE ALL ON control_plane_read_schema_versions, control_plane_tenant_summary_projections, control_plane_audit_summary_projections FROM " + quotedRuntimeUser,
+		"GRANT SELECT ON control_plane_read_schema_versions, control_plane_tenant_summary_projections, control_plane_audit_summary_projections TO " + quotedRuntimeUser,
+	} {
+		if _, err := adminPool.Exec(ctx, statement); err != nil {
+			t.Fatalf("configure control plane runtime read privileges: %v", err)
+		}
 	}
 }
