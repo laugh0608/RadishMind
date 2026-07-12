@@ -340,13 +340,33 @@ def check_path_budget() -> None:
 
 
 def check_content_baseline() -> None:
-    agents_content = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
-    if "当前常态开发分支为 `dev`" not in agents_content:
-        raise SystemExit("AGENTS.md does not mention dev as the default development branch")
+    for collaboration_filename in ("AGENTS.md", "CLAUDE.md"):
+        collaboration_content = (REPO_ROOT / collaboration_filename).read_text(encoding="utf-8")
+        for expected_content in (
+            "当前常态开发分支为 `dev`",
+            "`feature/* -> dev -> master -> dev`",
+            "每次 `dev -> master` PR 合并后",
+            "`master -> dev` 是合并后的稳定主线回同步",
+        ):
+            if expected_content not in collaboration_content:
+                raise SystemExit(
+                    f"{collaboration_filename} is missing branch topology governance: {expected_content}"
+                )
 
     pr_template_content = (REPO_ROOT / ".github/PULL_REQUEST_TEMPLATE.md").read_text(encoding="utf-8")
     if "默认目标分支为 `dev`" not in pr_template_content:
         raise SystemExit("PULL_REQUEST_TEMPLATE.md does not mention dev as the default target branch")
+    if "合并后的 `master -> dev` 回同步责任与预期方式" not in pr_template_content:
+        raise SystemExit("PULL_REQUEST_TEMPLATE.md does not require master-to-dev synchronization handoff")
+
+    topology_documents = {
+        ".github/rulesets/README.md": "PR 合并后必须完成 `master -> dev` 回同步",
+        "docs/adr/0001-branch-and-pr-governance.md": "`feature/* -> dev -> master -> dev` 闭环",
+    }
+    for relative_path, expected_content in topology_documents.items():
+        document_content = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        if expected_content not in document_content:
+            raise SystemExit(f"{relative_path} is missing branch topology governance: {expected_content}")
 
     ruleset = json.loads((REPO_ROOT / ".github/rulesets/master-protection.json").read_text(encoding="utf-8"))
     include_refs = (((ruleset.get("conditions") or {}).get("ref_name") or {}).get("include") or [])
@@ -372,12 +392,27 @@ def check_content_baseline() -> None:
         raise SystemExit(f"master-protection.json is missing required checks: {missing_contexts}")
 
     pr_workflow = (REPO_ROOT / ".github/workflows/pr-check.yml").read_text(encoding="utf-8")
+    expected_pr_trigger = """on:
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+"""
+    if expected_pr_trigger not in pr_workflow:
+        raise SystemExit(
+            ".github/workflows/pr-check.yml must only auto-trigger for pull requests targeting master"
+        )
+    for unexpected_pattern in ("  push:\n", "      - dev\n"):
+        if unexpected_pattern in pr_workflow:
+            raise SystemExit(
+                ".github/workflows/pr-check.yml must not auto-trigger for dev pull requests or pushes"
+            )
+
     for pattern in (
         "name: PR Checks",
         "pull_request:",
-        "push:",
-        "- dev",
         "- master",
+        "workflow_dispatch:",
         "name: Repo Hygiene",
         "name: Repository Baseline",
         "name: RadishMind Web Build",
