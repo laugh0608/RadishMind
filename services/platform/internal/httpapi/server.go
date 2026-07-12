@@ -34,12 +34,14 @@ type Server struct {
 	controlPlaneReadRepo  ControlPlaneReadRepository
 
 	savedWorkflowDraftStore        savedWorkflowDraftStore
+	applicationDraftRepository     applicationConfigurationDraftRepository
 	workflowRunStore               workflowRunStore
 	workflowEvaluationStore        workflowEvaluationStore
 	workflowEvaluationSuiteStore   workflowEvaluationSuiteStore
 	gatewayRequestHistoryStore     gatewayRequestStore
 	gatewayRequestHistoryStoreMode string
 	closeSavedWorkflowDraftStore   func()
+	closeApplicationDraftStore     func()
 	closeWorkflowRunStore          func()
 	closeGatewayRequestStore       func()
 	closeOnce                      sync.Once
@@ -72,14 +74,21 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	applicationDraftRepository, closeApplicationDraftStore, err := newApplicationConfigurationDraftRepositoryFromConfig(cfg)
+	if err != nil {
+		closeSavedWorkflowDraftStore()
+		return nil, err
+	}
 	workflowRunStore, closeWorkflowRunStore, err := newWorkflowRunStoreFromConfig(cfg)
 	if err != nil {
+		closeApplicationDraftStore()
 		closeSavedWorkflowDraftStore()
 		return nil, err
 	}
 	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfig(cfg)
 	if err != nil {
 		closeWorkflowRunStore()
+		closeApplicationDraftStore()
 		closeSavedWorkflowDraftStore()
 		return nil, err
 	}
@@ -87,6 +96,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	if err != nil {
 		closeGatewayRequestStore()
 		closeWorkflowRunStore()
+		closeApplicationDraftStore()
 		if closeSavedWorkflowDraftStore != nil {
 			closeSavedWorkflowDraftStore()
 		}
@@ -98,12 +108,14 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		bridge:                         platformBridge,
 		config:                         cfg,
 		savedWorkflowDraftStore:        savedWorkflowDraftStore,
+		applicationDraftRepository:     applicationDraftRepository,
 		workflowRunStore:               workflowRunStore,
 		workflowEvaluationStore:        newWorkflowEvaluationStoreForRunStore(workflowRunStore),
 		workflowEvaluationSuiteStore:   newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
 		gatewayRequestHistoryStore:     gatewayRequestStore,
 		gatewayRequestHistoryStoreMode: gatewayRequestStoreMode,
 		closeSavedWorkflowDraftStore:   closeSavedWorkflowDraftStore,
+		closeApplicationDraftStore:     closeApplicationDraftStore,
 		closeWorkflowRunStore:          closeWorkflowRunStore,
 		closeGatewayRequestStore:       closeGatewayRequestStore,
 	}
@@ -131,6 +143,10 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(savedWorkflowDraftListRoute, server.handleListWorkflowDrafts)
 	mux.HandleFunc(savedWorkflowDraftReadRoute, server.handleReadWorkflowDraft)
 	mux.HandleFunc(savedWorkflowDraftValidateRoute, server.handleValidateWorkflowDraft)
+	mux.HandleFunc(applicationDraftSaveRoute, server.handleSaveApplicationConfigurationDraft)
+	mux.HandleFunc(applicationDraftListRoute, server.handleListApplicationConfigurationDrafts)
+	mux.HandleFunc(applicationDraftReadRoute, server.handleReadApplicationConfigurationDraft)
+	mux.HandleFunc(applicationDraftValidateRoute, server.handleValidateApplicationConfigurationDraft)
 	mux.HandleFunc(workflowExecutorStartRoute, server.handleStartWorkflowRun)
 	mux.HandleFunc(workflowRunListRoute, server.handleListWorkflowRuns)
 	mux.HandleFunc(workflowRunReadRoute, server.handleReadWorkflowRun)
@@ -222,6 +238,9 @@ func (s *Server) Close() {
 		if s.closeSavedWorkflowDraftStore != nil {
 			s.closeSavedWorkflowDraftStore()
 		}
+		if s.closeApplicationDraftStore != nil {
+			s.closeApplicationDraftStore()
+		}
 		if s.closeWorkflowRunStore != nil {
 			s.closeWorkflowRunStore()
 		}
@@ -288,6 +307,8 @@ func localConsoleAllowedHeaders() []string {
 		controlPlaneReadDevAuditHeader,
 		savedWorkflowDraftDevWorkspaceHeader,
 		savedWorkflowDraftDevApplicationHeader,
+		applicationDraftDevWorkspaceHeader,
+		applicationDraftDevApplicationHeader,
 		gatewayRequestDevTenantHeader,
 		gatewayRequestDevWorkspaceHeader,
 		gatewayRequestDevConsumerHeader,

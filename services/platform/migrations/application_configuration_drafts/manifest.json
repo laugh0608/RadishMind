@@ -1,0 +1,9 @@
+{
+  "component": "application_configuration_drafts",
+  "migration_id": "0001_application_configuration_drafts",
+  "store_schema_version": "application_configuration_drafts_store_v1",
+  "up": "0001_application_configuration_drafts.up.sql",
+  "down": "0001_application_configuration_drafts.down.sql",
+  "automatic_apply": false,
+  "environment": "dev_test_only"
+}

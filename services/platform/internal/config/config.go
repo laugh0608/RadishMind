@@ -10,23 +10,25 @@ import (
 )
 
 const (
-	defaultListenAddr              = ":7000"
-	defaultReadHeaderTimeout       = 5 * time.Second
-	defaultWriteTimeout            = 30 * time.Second
-	defaultBridgeTimeout           = 30 * time.Second
-	defaultBridgeMode              = "stdio_pool"
-	defaultBridgeWorkerCount       = 4
-	defaultBridgeQueueSize         = 64
-	defaultBridgeHandshake         = 5 * time.Second
-	defaultDraftDBTimeout          = 5 * time.Second
-	defaultRunDBTimeout            = 5 * time.Second
-	defaultGatewayRequestDBTimeout = 5 * time.Second
-	defaultPythonBinary            = "python3"
-	defaultBridgeScript            = "scripts/run-platform-bridge.py"
-	defaultProvider                = "mock"
-	defaultDraftStoreMode          = "memory_dev"
-	defaultRunStoreMode            = "memory_dev"
-	defaultGatewayRequestStoreMode = "memory_dev"
+	defaultListenAddr                = ":7000"
+	defaultReadHeaderTimeout         = 5 * time.Second
+	defaultWriteTimeout              = 30 * time.Second
+	defaultBridgeTimeout             = 30 * time.Second
+	defaultBridgeMode                = "stdio_pool"
+	defaultBridgeWorkerCount         = 4
+	defaultBridgeQueueSize           = 64
+	defaultBridgeHandshake           = 5 * time.Second
+	defaultDraftDBTimeout            = 5 * time.Second
+	defaultApplicationDraftDBTimeout = 5 * time.Second
+	defaultRunDBTimeout              = 5 * time.Second
+	defaultGatewayRequestDBTimeout   = 5 * time.Second
+	defaultPythonBinary              = "python3"
+	defaultBridgeScript              = "scripts/run-platform-bridge.py"
+	defaultProvider                  = "mock"
+	defaultDraftStoreMode            = "memory_dev"
+	defaultApplicationDraftStoreMode = "memory_dev"
+	defaultRunStoreMode              = "memory_dev"
+	defaultGatewayRequestStoreMode   = "memory_dev"
 )
 
 const (
@@ -47,6 +49,11 @@ type Config struct {
 	ControlPlaneReadDevAuthEnabled    bool
 	WorkflowSavedDraftDevHTTPEnabled  bool
 	WorkflowSavedDraftDevWriteEnabled bool
+	ApplicationDraftDevHTTPEnabled    bool
+	ApplicationDraftDevWriteEnabled   bool
+	ApplicationDraftStoreMode         string
+	ApplicationDraftDatabaseURL       string
+	ApplicationDraftDatabaseTimeout   time.Duration
 	WorkflowExecutorDevEnabled        bool
 	WorkflowDiagnosticsDevEnabled     bool
 	GatewayRequestHistoryDevEnabled   bool
@@ -76,6 +83,10 @@ type ConfigSummary struct {
 	ControlPlaneReadDevAuthEnabled       bool              `json:"control_plane_read_dev_auth_enabled"`
 	WorkflowSavedDraftDevHTTPEnabled     bool              `json:"workflow_saved_draft_dev_http_enabled"`
 	WorkflowSavedDraftDevWriteEnabled    bool              `json:"workflow_saved_draft_dev_write_enabled"`
+	ApplicationDraftDevHTTPEnabled       bool              `json:"application_draft_dev_http_enabled"`
+	ApplicationDraftDevWriteEnabled      bool              `json:"application_draft_dev_write_enabled"`
+	ApplicationDraftStoreMode            string            `json:"application_draft_store_mode"`
+	ApplicationDraftDatabaseConfigured   bool              `json:"application_draft_database_configured"`
 	WorkflowExecutorDevEnabled           bool              `json:"workflow_executor_dev_enabled"`
 	WorkflowDiagnosticsDevEnabled        bool              `json:"workflow_diagnostics_dev_enabled"`
 	GatewayRequestHistoryDevEnabled      bool              `json:"gateway_request_history_dev_enabled"`
@@ -180,6 +191,8 @@ func defaultConfig() Config {
 		Temperature:                       0,
 		WorkflowSavedDraftStoreMode:       defaultDraftStoreMode,
 		WorkflowSavedDraftDatabaseTimeout: defaultDraftDBTimeout,
+		ApplicationDraftStoreMode:         defaultApplicationDraftStoreMode,
+		ApplicationDraftDatabaseTimeout:   defaultApplicationDraftDBTimeout,
 		WorkflowRunStoreMode:              defaultRunStoreMode,
 		WorkflowRunDatabaseTimeout:        defaultRunDBTimeout,
 		GatewayRequestStoreMode:           defaultGatewayRequestStoreMode,
@@ -196,6 +209,11 @@ func defaultConfig() Config {
 			"control_plane_read_dev_auth":           configSourceDefault,
 			"workflow_saved_draft_dev_http":         configSourceDefault,
 			"workflow_saved_draft_dev_write":        configSourceDefault,
+			"application_draft_dev_http":            configSourceDefault,
+			"application_draft_dev_write":           configSourceDefault,
+			"application_draft_store":               configSourceDefault,
+			"application_draft_database":            configSourceDefault,
+			"application_draft_database_timeout":    configSourceDefault,
 			"workflow_executor_dev":                 configSourceDefault,
 			"workflow_diagnostics_dev":              configSourceDefault,
 			"gateway_request_history_dev":           configSourceDefault,
@@ -437,6 +455,35 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.WorkflowSavedDraftDevWriteEnabled = parsed
 		cfg.FieldSources["workflow_saved_draft_dev_write"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_APPLICATION_DRAFT_DEV_HTTP"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_APPLICATION_DRAFT_DEV_HTTP", value)
+		if err != nil {
+			return err
+		}
+		cfg.ApplicationDraftDevHTTPEnabled = parsed
+		cfg.FieldSources["application_draft_dev_http"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_APPLICATION_DRAFT_DEV_WRITE"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_APPLICATION_DRAFT_DEV_WRITE", value)
+		if err != nil {
+			return err
+		}
+		cfg.ApplicationDraftDevWriteEnabled = parsed
+		cfg.FieldSources["application_draft_dev_write"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_APPLICATION_DRAFT_STORE"); ok {
+		applyStringValue(&cfg.ApplicationDraftStoreMode, value, cfg.FieldSources, "application_draft_store", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL"); ok {
+		applyStringValue(&cfg.ApplicationDraftDatabaseURL, value, cfg.FieldSources, "application_draft_database", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_APPLICATION_DRAFT_DATABASE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_APPLICATION_DRAFT_DATABASE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.ApplicationDraftDatabaseTimeout, parsed, cfg.FieldSources, "application_draft_database_timeout", configSourceEnv)
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_EXECUTOR_DEV"); ok {
 		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_EXECUTOR_DEV", value)
 		if err != nil {
@@ -549,6 +596,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if workflowSavedDraftStoreMode == "" {
 		workflowSavedDraftStoreMode = defaultDraftStoreMode
 	}
+	applicationDraftStoreMode := strings.TrimSpace(cfg.ApplicationDraftStoreMode)
+	if applicationDraftStoreMode == "" {
+		applicationDraftStoreMode = defaultApplicationDraftStoreMode
+	}
 	workflowRunStoreMode := strings.TrimSpace(cfg.WorkflowRunStoreMode)
 	if workflowRunStoreMode == "" {
 		workflowRunStoreMode = defaultRunStoreMode
@@ -567,6 +618,12 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"workflow_saved_draft_dev_write",
 			"workflow_saved_draft_database",
 		)
+	}
+	if applicationDraftStoreMode == "postgres_dev_test" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_write")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_database")
 	}
 	if cfg.WorkflowExecutorDevEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
@@ -592,6 +649,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		ControlPlaneReadDevAuthEnabled:       cfg.ControlPlaneReadDevAuthEnabled,
 		WorkflowSavedDraftDevHTTPEnabled:     cfg.WorkflowSavedDraftDevHTTPEnabled,
 		WorkflowSavedDraftDevWriteEnabled:    cfg.WorkflowSavedDraftDevWriteEnabled,
+		ApplicationDraftDevHTTPEnabled:       cfg.ApplicationDraftDevHTTPEnabled,
+		ApplicationDraftDevWriteEnabled:      cfg.ApplicationDraftDevWriteEnabled,
+		ApplicationDraftStoreMode:            applicationDraftStoreMode,
+		ApplicationDraftDatabaseConfigured:   strings.TrimSpace(cfg.ApplicationDraftDatabaseURL) != "",
 		WorkflowExecutorDevEnabled:           cfg.WorkflowExecutorDevEnabled,
 		WorkflowDiagnosticsDevEnabled:        cfg.WorkflowDiagnosticsDevEnabled,
 		GatewayRequestHistoryDevEnabled:      cfg.GatewayRequestHistoryDevEnabled,
@@ -613,6 +674,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"bridge":                        cfg.BridgeTimeout.String(),
 			"bridge_handshake":              bridgeHandshakeTimeout.String(),
 			"workflow_saved_draft_database": cfg.WorkflowSavedDraftDatabaseTimeout.String(),
+			"application_draft_database":    cfg.ApplicationDraftDatabaseTimeout.String(),
 			"workflow_run_database":         cfg.WorkflowRunDatabaseTimeout.String(),
 		},
 		PythonBridge: PythonBridge{
@@ -630,6 +692,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"RADISHMIND_PLATFORM_API_KEY",
 			"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
+			"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL",
+			"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
@@ -720,6 +784,18 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			}
 		case "workflow_saved_draft_database":
 			if strings.TrimSpace(cfg.WorkflowSavedDraftDatabaseURL) == "" {
+				missing = append(missing, field)
+			}
+		case "application_draft_dev_http":
+			if !cfg.ApplicationDraftDevHTTPEnabled {
+				missing = append(missing, field)
+			}
+		case "application_draft_dev_write":
+			if !cfg.ApplicationDraftDevWriteEnabled {
+				missing = append(missing, field)
+			}
+		case "application_draft_database":
+			if strings.TrimSpace(cfg.ApplicationDraftDatabaseURL) == "" {
 				missing = append(missing, field)
 			}
 		case "workflow_executor_dev":
@@ -825,6 +901,9 @@ func parseIntValue(key string, rawValue string) (int, error) {
 func validateBridgeRuntimeConfig(cfg Config) error {
 	if cfg.GatewayRequestHistoryDevEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return fmt.Errorf("gateway request history dev requires control plane read dev auth")
+	}
+	if cfg.ApplicationDraftDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return fmt.Errorf("application draft dev HTTP requires control plane read dev auth")
 	}
 	if cfg.WorkflowDiagnosticsDevEnabled {
 		if !cfg.WorkflowExecutorDevEnabled {

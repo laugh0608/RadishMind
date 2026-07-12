@@ -11,6 +11,7 @@ param(
     [switch]$SavedDraftPostgresDevTest,
     [switch]$WorkflowDiagnosticsDev,
     [switch]$GatewayRequestPostgresDevTest,
+    [switch]$ApplicationDraftDev,
     [switch]$VerifyOnly,
     [switch]$ExitAfterProbe,
     [switch]$Help
@@ -34,6 +35,7 @@ Options:
                         Enable fixed mock Workflow failure scenarios; requires a Saved Draft dev mode.
   -GatewayRequestPostgresDevTest
                         Enable durable dev/test Gateway Request History and the scoped Gateway Playground.
+  -ApplicationDraftDev  Enable the explicit memory-dev Application Configuration Draft path.
   -VerifyOnly           Probe existing backend/frontend processes only.
   -ExitAfterProbe       Start missing local processes, probe, then stop spawned processes.
 "@
@@ -54,6 +56,9 @@ if ($WorkflowDiagnosticsDev -and -not ($SavedDraftDev -or $SavedDraftPostgresDev
 }
 if ($GatewayRequestPostgresDevTest -and $Mode -ne "dev-live") {
     throw "-GatewayRequestPostgresDevTest requires -Mode dev-live"
+}
+if ($ApplicationDraftDev -and $Mode -ne "dev-live") {
+    throw "-ApplicationDraftDev requires -Mode dev-live"
 }
 
 $savedDraftEnabled = $SavedDraftDev -or $SavedDraftPostgresDevTest
@@ -122,6 +127,10 @@ function Invoke-SavedDraftPostgresMigrationStatus {
     $env:RADISHMIND_WORKFLOW_EXECUTOR_DEV = "1"
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE = "postgres_dev_test"
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
+    $env:RADISHMIND_APPLICATION_DRAFT_DEV_HTTP = "1"
+    $env:RADISHMIND_APPLICATION_DRAFT_DEV_WRITE = "1"
+    $env:RADISHMIND_APPLICATION_DRAFT_STORE = "postgres_dev_test"
+    $env:RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
     $env:RADISHMIND_WORKFLOW_RUN_STORE = "postgres_dev_test"
     $env:RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
     $env:RADISHMIND_GATEWAY_REQUEST_STORE = "postgres_dev_test"
@@ -132,6 +141,10 @@ function Invoke-SavedDraftPostgresMigrationStatus {
         & $goPath run ./cmd/radishmind-workflow-draft-migrate status | Out-Null
         if ($LASTEXITCODE -ne 0) {
             throw "Saved Draft PostgreSQL migration preflight failed"
+        }
+        & $goPath run ./cmd/radishmind-application-draft-migrate status | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Application Draft PostgreSQL migration preflight failed"
         }
         & $goPath run ./cmd/radishmind-workflow-run-migrate status | Out-Null
         if ($LASTEXITCODE -ne 0) {
@@ -507,6 +520,11 @@ try {
                 $env:RADISHMIND_PLATFORM_MODEL = "radishmind-local-dev"
             }
             $env:RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH = "1"
+            if ($ApplicationDraftDev) {
+                $env:RADISHMIND_APPLICATION_DRAFT_DEV_HTTP = "1"
+                $env:RADISHMIND_APPLICATION_DRAFT_DEV_WRITE = "1"
+                $env:RADISHMIND_APPLICATION_DRAFT_STORE = "memory_dev"
+            }
             if ($SavedDraftDev) {
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE = "1"
@@ -555,6 +573,11 @@ try {
                 $env:VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL = $BackendUrl.TrimEnd("/")
                 $env:VITE_RADISHMIND_DEV_READ_TENANT_REF = $TenantRef
                 $env:VITE_RADISHMIND_DEV_READ_SUBJECT_REF = $SubjectRef
+                if ($ApplicationDraftDev) {
+                    $env:VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE = "dev-application-draft-http"
+                    $env:VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL = $BackendUrl.TrimEnd("/")
+                    $env:VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID = $savedDraftWorkspaceId
+                }
                 if ($savedDraftEnabled) {
                     $env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE = "dev-saved-draft-http"
                     $env:VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE = "dev-workflow-executor-http"
@@ -584,6 +607,9 @@ try {
                 Remove-Item Env:VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV -ErrorAction SilentlyContinue
             }
 

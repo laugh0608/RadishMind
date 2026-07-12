@@ -13,6 +13,7 @@ saved_draft_dev=0
 saved_draft_postgres_dev_test=0
 workflow_diagnostics_dev=0
 gateway_request_postgres_dev_test=0
+application_draft_dev=0
 saved_draft_workspace_id="workspace_demo"
 saved_draft_application_id="app_flow_copilot"
 
@@ -42,6 +43,7 @@ Options:
                            Enable fixed mock Workflow failure scenarios; requires a Saved Draft dev mode.
   --gateway-request-postgres-dev-test
                            Enable durable dev/test Gateway Request History and the scoped Gateway Playground.
+  --application-draft-dev Enable the explicit memory-dev Application Configuration Draft path.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
   -h, --help              Show this help.
@@ -94,6 +96,10 @@ while [[ $# -gt 0 ]]; do
       gateway_request_postgres_dev_test=1
       shift
       ;;
+    --application-draft-dev)
+      application_draft_dev=1
+      shift
+      ;;
     --verify-only)
       verify_only=1
       shift
@@ -141,6 +147,10 @@ if [[ "${workflow_diagnostics_dev}" -eq 1 && "${saved_draft_dev}" -eq 0 && "${sa
 fi
 if [[ "${gateway_request_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live" ]]; then
   echo "--gateway-request-postgres-dev-test requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${application_draft_dev}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--application-draft-dev requires --mode dev-live" >&2
   exit 2
 fi
 
@@ -205,6 +215,10 @@ probe_saved_draft_postgres_migration() {
 		export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="postgres_dev_test"
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL="${database_url}"
+		export RADISHMIND_APPLICATION_DRAFT_DEV_HTTP="1"
+		export RADISHMIND_APPLICATION_DRAFT_DEV_WRITE="1"
+		export RADISHMIND_APPLICATION_DRAFT_STORE="postgres_dev_test"
+		export RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL="${database_url}"
 		export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
 		export RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL="${database_url}"
 		export RADISHMIND_GATEWAY_REQUEST_STORE="postgres_dev_test"
@@ -212,6 +226,7 @@ probe_saved_draft_postgres_migration() {
 		export RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV="1"
     cd "${platform_dir}"
 		go run ./cmd/radishmind-workflow-draft-migrate status >/dev/null || return
+		go run ./cmd/radishmind-application-draft-migrate status >/dev/null || return
 		go run ./cmd/radishmind-workflow-run-migrate status >/dev/null || return
 		go run ./cmd/radishmind-gateway-request-migrate status >/dev/null || return
   )
@@ -626,6 +641,11 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export RADISHMIND_PLATFORM_PROVIDER="${RADISHMIND_PLATFORM_PROVIDER:-mock}"
         export RADISHMIND_PLATFORM_MODEL="${RADISHMIND_PLATFORM_MODEL:-radishmind-local-dev}"
         export RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH="1"
+        if [[ "${application_draft_dev}" -eq 1 ]]; then
+          export RADISHMIND_APPLICATION_DRAFT_DEV_HTTP="1"
+          export RADISHMIND_APPLICATION_DRAFT_DEV_WRITE="1"
+          export RADISHMIND_APPLICATION_DRAFT_STORE="memory_dev"
+        fi
         if [[ "${saved_draft_dev}" -eq 1 ]]; then
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
@@ -665,6 +685,11 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL="${backend_url%/}"
         export VITE_RADISHMIND_DEV_READ_TENANT_REF="${tenant_ref}"
         export VITE_RADISHMIND_DEV_READ_SUBJECT_REF="${subject_ref}"
+        if [[ "${application_draft_dev}" -eq 1 ]]; then
+          export VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE="dev-application-draft-http"
+          export VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID="${saved_draft_workspace_id}"
+        fi
         if [[ "${saved_draft_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE="dev-saved-draft-http"
           export VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE="dev-workflow-executor-http"
@@ -689,6 +714,9 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL
         unset VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE
         unset VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE
+        unset VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE
+        unset VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL
+        unset VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID
       fi
       exec npm run dev
     ) >"${log_dir}/web.out.log" 2>"${log_dir}/web.err.log" &

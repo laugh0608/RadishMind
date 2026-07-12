@@ -67,6 +67,8 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 		"RADISHMIND_PLATFORM_API_KEY",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
@@ -120,6 +122,11 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE", "repository_disabled")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL", "postgresql://runtime.invalid/secret")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_TIMEOUT", "9s")
+	t.Setenv("RADISHMIND_APPLICATION_DRAFT_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_APPLICATION_DRAFT_DEV_WRITE", "true")
+	t.Setenv("RADISHMIND_APPLICATION_DRAFT_STORE", "memory_dev")
+	t.Setenv("RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL", "postgresql://application-draft.invalid/secret")
+	t.Setenv("RADISHMIND_APPLICATION_DRAFT_DATABASE_TIMEOUT", "11s")
 
 	cfg, err := LoadFromEnv()
 	if err != nil {
@@ -165,6 +172,10 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if cfg.WorkflowSavedDraftDatabaseURL == "" || cfg.WorkflowSavedDraftDatabaseTimeout != 9*time.Second {
 		t.Fatalf("expected workflow saved draft database env overrides")
+	}
+	if !cfg.ApplicationDraftDevHTTPEnabled || !cfg.ApplicationDraftDevWriteEnabled || cfg.ApplicationDraftStoreMode != "memory_dev" ||
+		cfg.ApplicationDraftDatabaseURL == "" || cfg.ApplicationDraftDatabaseTimeout != 11*time.Second {
+		t.Fatalf("expected application draft env overrides: %#v", cfg)
 	}
 
 	summary := cfg.SanitizedSummary()
@@ -217,6 +228,11 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if summary.WorkflowSavedDraftStoreMode != "repository_disabled" {
 		t.Fatalf("unexpected workflow saved draft store summary: %#v", summary)
+	}
+	if summary.FieldSources["application_draft_dev_http"] != "env" || summary.FieldSources["application_draft_dev_write"] != "env" ||
+		summary.FieldSources["application_draft_store"] != "env" || summary.FieldSources["application_draft_database"] != "env" ||
+		summary.FieldSources["application_draft_database_timeout"] != "env" {
+		t.Fatalf("expected application draft sources=env, got %#v", summary.FieldSources)
 	}
 	if summary.ConfigFile.Path != configPath || !summary.ConfigFile.Configured || !summary.ConfigFile.Loaded {
 		t.Fatalf("unexpected config file summary: %#v", summary.ConfigFile)
@@ -349,6 +365,29 @@ func TestPostgresDevTestModeRequiresExplicitDevelopmentGates(t *testing.T) {
 	}
 }
 
+func TestApplicationDraftPostgresDevTestModeRequiresExplicitDevelopmentGates(t *testing.T) {
+	config := defaultConfig()
+	config.ApplicationDraftStoreMode = "postgres_dev_test"
+	if got := config.Check(); !reflect.DeepEqual(got, []string{
+		"control_plane_read_dev_auth",
+		"application_draft_dev_http",
+		"application_draft_dev_write",
+		"application_draft_database",
+	}) {
+		t.Fatalf("unexpected application draft postgres dev/test missing fields: %#v", got)
+	}
+	config.ControlPlaneReadDevAuthEnabled = true
+	config.ApplicationDraftDevHTTPEnabled = true
+	config.ApplicationDraftDevWriteEnabled = true
+	config.ApplicationDraftDatabaseURL = "postgresql://runtime.invalid/secret"
+	if got := config.Check(); len(got) != 0 {
+		t.Fatalf("complete application draft postgres config should pass: %#v", got)
+	}
+	if summary := config.SanitizedSummary(); !summary.ApplicationDraftDatabaseConfigured || summary.ApplicationDraftStoreMode != "postgres_dev_test" {
+		t.Fatalf("application draft database summary must stay sanitized: %#v", summary)
+	}
+}
+
 func TestPostgresWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
 	cfg := defaultConfig()
 	cfg.WorkflowRunStoreMode = "postgres_dev_test"
@@ -471,6 +510,12 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_TIMEOUT",
+		"RADISHMIND_APPLICATION_DRAFT_DEV_HTTP",
+		"RADISHMIND_APPLICATION_DRAFT_DEV_WRITE",
+		"RADISHMIND_APPLICATION_DRAFT_STORE",
+		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_APPLICATION_DRAFT_DATABASE_TIMEOUT",
 		"RADISHMIND_WORKFLOW_RUN_STORE",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
