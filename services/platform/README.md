@@ -143,7 +143,7 @@
 
 ## Control Plane Read-Side readiness 运行层说明
 
-平台服务层当前支持 `fake_store_dev`、受限的 `signed_test_token + postgres_dev_test`，以及 `radish_oidc_integration_test + postgres_dev_test` Control Plane read 组合。数据库模式只把 Admin tenant summary 与 audit summary 路由到 `control_plane_admin_read` PostgreSQL projection；signed test 模式下其余五条 workspace route 保持显式 fake binding，OIDC integration 模式下则在 handler 授权边界统一返回 `workspace_membership_unavailable`，不会触达 fake repository。startup 校验 OIDC policy / discovery / JWKS、migration marker、checksum 与 runtime SELECT 权限，任何失败均不回退。真实 Radish 联调保持 `blocked_by_upstream_evidence`；该路径不启用 production repository、运行时 writer 或 production API consumer。
+平台服务层当前支持 `fake_store_dev`、受限的 `signed_test_token + postgres_dev_test`，以及 `radish_oidc_integration_test + postgres_dev_test` Control Plane read 组合。数据库模式只把 Admin tenant summary 与 audit summary 路由到 `control_plane_admin_read` PostgreSQL projection；signed test 模式下其余五条 workspace route 保持显式 fake binding，OIDC integration 模式下则在 handler 授权边界统一返回 `workspace_membership_unavailable`，不会触达 fake repository。startup 校验 OIDC policy / discovery / JWKS、migration marker、checksum 与 runtime SELECT 权限，任何失败均不回退。真实 Radish 联调为 `real_radish_integration_deferred`；未来由 Radish 注册 RadishMind application/client 与 resource audience 后恢复。该路径不启用 production repository、运行时 writer 或 production API consumer。
 
 Control Plane Read 在 formal UI / dev-live consumer 之后的旧 repository readiness 尾链已退出活动仓库基线，历史文件继续保留。当前 read route contract、negative contract、正式 UI 聚合检查和 Go 测试仍是活动门禁；这次放宽只服务 Saved Draft `postgres_dev_test`，不代表 Control Plane Read database store 已实现。
 

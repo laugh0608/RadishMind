@@ -18,7 +18,7 @@
 - 模型负责理解、推理、归纳、排序和建议生成；runtime、adapter、tooling、rule validation 和 audit 负责上下文打包、工具调用、结构校验、权限边界和可追溯性。
 - `RadishMind-Core` 是基座适配型自研主模型路线，不是从零预训练基础大模型。
 - 图片像素生成不并入主模型职责，默认由 `RadishMind-Image Adapter` 与独立 backend 承接。
-- 部署方式、数据库选型、登录 / 授权边界优先参考 `Radish`；未来 RadishMind 作为 OIDC client 接入 `Radish`，不自建第二套身份真相源。参考 `Radish` 不代表默认引入 `.NET` / ASP.NET Core；RadishMind 后端默认继续使用 `Go` 承载 control plane / gateway / API 服务，`Python` 只保留在模型、评测和 AI 生态强相关链路，`TypeScript/Vite` 承载前端。
+- 部署方式、数据库选型、登录 / 授权边界优先参考 `Radish`；未来由 Radish 注册 RadishMind application/client 与 resource audience，RadishMind 服务端作为 resource server 消费 verified token，不自建第二套 issuer、账号、角色或身份真相源。参考 `Radish` 不代表默认引入 `.NET` / ASP.NET Core；RadishMind 后端默认继续使用 `Go` 承载 control plane / gateway / API 服务，`Python` 只保留在模型、评测和 AI 生态强相关链路，`TypeScript/Vite` 承载前端。
 - `RadishFlow` 和 `Radish` 是优先接入对象与产品参考，但不是 RadishMind 平台本体开发的阻塞条件。上层暂时没有稳定 UI、command 或 API 挂载点时，本仓库应继续推进可离线验证、可复用到后续真实接入的用户端、workflow runtime、control plane 和模型网关功能；不把等待上层接线写成产品停滞理由。
 - 当前首要用户是 Radish 体系内部开发者和团队成员，首要产品任务是创建、校验、保存、恢复和审查 Workflow；Gateway 是第一工程支撑面，Admin 只推进支撑 Workflow / Gateway 所需能力。
 - 四个一级产品面保持不变；`Image Generation / Artifact Return` 是横切适配能力，不作为当前第五条一级产品主线。
@@ -218,7 +218,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 - 不让模型替代 `RadishFlow` 求解、`Radish` 权限判定或 `RadishCatalyst` 游戏权威。
 - 不把通用 unrestricted tool calling 当成当前默认能力。
 - 不把平台锁死在单一模型、单一 provider、单一上游协议或单一对外接口上。
-- 不自建与 `Radish` 冲突的用户身份、权限和部署真相源；未来 RadishMind 应作为 OIDC client 接入 `Radish`。
+- 不自建与 `Radish` 冲突的用户身份、权限和部署真相源；未来 RadishMind 应作为 Radish 注册的 application/client 与 resource server 接入。
 - 不把“参考 Radish”解释成复制 Radish 后端语言栈；除非未来必须直接复用 Radish 后端包或共发布，否则不新增 `.NET` 作为默认后端栈。
 - 不默认继续真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏或权重相关工作；这些内容后续作为独立专题重开。
 - 不默认下载大模型、数据集或权重。

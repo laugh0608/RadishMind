@@ -215,7 +215,7 @@ token signature、issuer、audience、algorithm、time 或 required claim 失败
 
 - 已创建统一高风险任务卡，并完成 deterministic discovery / JWKS、JWT validation、tenant permission binding、两条 Admin route、key rotation / JWKS unavailable、跨 tenant、permission denied、zero-query 与 no dev fallback。
 - 五条 workspace operation 在 membership owner 缺失时统一返回 `workspace_membership_unavailable`，不读取 fake repository。
-- 当前 reviewed issuer / audience / JWKS policy / claim mapping / permission identifier 仍未落地，真实 Radish HTTP/Web/浏览器联调状态为 `blocked_by_upstream_evidence`。
+- 当前 reviewed issuer / audience / JWKS policy / claim mapping / permission identifier 仍未落地，真实 Radish HTTP/Web/浏览器联调主动 deferred，不再阻塞当前产品开发。
 - 本批不实现 authorization code、PKCE、BFF、session cookie、refresh token 或 logout；未来 production auth 必须另行设计和验收，不从集成测试自动晋级。
 
 ### 第四批：Workspace-scoped Read Transition
@@ -247,4 +247,4 @@ token signature、issuer、audience、algorithm、time 或 required claim 失败
 
 ## 下一实现入口
 
-`Admin Tenant / Audit PostgreSQL Read Repository Runtime v1` 已完成真实 PostgreSQL、signed-token HTTP/Web 和浏览器验收。[Radish OIDC Integration Test v1](radish-oidc-integration-test-v1.md) 已完成 deterministic runtime、auth boundary 与 operation gate。下一步仅在 Radish owner 提供完整 reviewed upstream evidence 后执行真实 Radish 联调；当前保持 `blocked_by_upstream_evidence`，不迁移五条 workspace-scoped route。
+`Admin Tenant / Audit PostgreSQL Read Repository Runtime v1` 已完成真实 PostgreSQL、signed-token HTTP/Web 和浏览器验收。[Radish OIDC Integration Test v1](radish-oidc-integration-test-v1.md) 已完成 deterministic runtime、auth boundary 与 operation gate。真实 Radish 联调为 `real_radish_integration_deferred`，不再是当前下一步；未来由 Radish 注册 RadishMind application/client 与 resource audience 后恢复，不迁移五条 workspace-scoped route。

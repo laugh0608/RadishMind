@@ -2,7 +2,7 @@
 
 更新时间：2026-07-12
 
-状态：`radish_oidc_integration_test_runtime_v1_deterministic_complete_blocked_by_upstream_evidence`
+状态：`radish_oidc_integration_test_runtime_v1_deterministic_complete_real_integration_deferred`
 
 ## 功能定位
 
@@ -22,6 +22,14 @@
 - 当前仍没有 reviewed Radish issuer、discovery document、JWKS URI、signing algorithm、resource audience 或 claim mapping evidence。
 - 当前没有 workspace / application membership data source、cache policy 或 owner；真实 OIDC token 不能替代该缺口。
 - 历史 upstream evidence / readiness 文档保留为归档输入，不再派生同层 checker 链；本设计以一个后续高风险任务卡承接实现和联调。
+
+## 阶段决策与未来接入形态
+
+- deterministic resource-server 基础继续保留，真实 Radish integration 主动退出当前排期，不再作为下一产品任务的阻塞项。
+- 未来由 Radish 注册 RadishMind application/client，并为 RadishMind 分配专用 resource audience；Radish 继续拥有 issuer、登录、用户、tenant、角色和上游权限语义。
+- RadishMind 只实现自己的接入 profile、claim / permission mapping、resource-server validation 与 Admin route authorization，不自建 issuer、账号系统、角色数据库或第二套 OIDC 真相源。
+- 当前两条 Admin API 的服务端路径仍是 resource server；若未来需要交互式浏览器登录，Authorization Code + PKCE 或 BFF 必须作为独立功能设计，不从本任务自动打开。
+- 恢复真实联调的触发条件是 application/client registration、resource audience、reviewed discovery / JWKS / mapping evidence 和短期 token 流程同时就绪；恢复时执行批次 C，不重做已完成的 deterministic 批次 A / B。
 
 ## 用户与运维流程
 
@@ -63,6 +71,7 @@
 
 | evidence | 必需内容 | 禁止内容 |
 | --- | --- | --- |
+| application / resource registration | RadishMind application/client ref、resource audience、environment binding、owner、review window | client secret、production credential、未审查 redirect URI |
 | issuer registration | environment ref、exact issuer、owner、reviewed_at、expiry / review window | client secret、operator credential |
 | discovery | issuer、authorization metadata availability、JWKS URI origin、supported algorithm refs | raw document dump、未知 endpoint |
 | JWKS policy | allowed origin、refresh / max-age、key rotation owner、`kid` policy、size limit | committed key set、private key |
@@ -210,7 +219,7 @@ Radish owner 拥有 upstream claim semantics；RadishMind owner 拥有 mapping v
 
 - 由 Radish owner 提供 reviewed integration environment 和短期 token issuance procedure。
 - 执行真实 issuer、rotation、negative claim、PostgreSQL、HTTP/Web 和浏览器验收。
-- 清理 credential 与服务后关闭任务卡；未取得 upstream evidence 时保持 `blocked_by_upstream_evidence`，不以本地 issuer 代替完成。
+- 清理 credential 与服务后关闭真实联调记录；当前批次状态为 `real_radish_integration_deferred`，不以本地 issuer 代替完成。
 
 ## 停止线
 
@@ -224,4 +233,4 @@ Radish owner 拥有 upstream claim semantics；RadishMind owner 拥有 mapping v
 
 ## 下一实现入口
 
-[Radish OIDC Integration Test Runtime v1 任务卡](../../task-cards/radish-oidc-integration-test-runtime-v1.md) 已完成 deterministic verifier、auth boundary、operation gate、zero-query 与 Web 内存 token 批次。真实 Radish integration 保持 `blocked_by_upstream_evidence`；下一步由 Radish owner 提供 reviewed metadata-only evidence 与短期 token 流程，证据未到位前不派生同层 readiness 文档链，也不把 loopback 测试解释为真实联调。
+[Radish OIDC Integration Test Runtime v1 任务卡](../../task-cards/radish-oidc-integration-test-runtime-v1.md) 已完成 deterministic verifier、auth boundary、operation gate、zero-query 与 Web 内存 token 批次。真实 Radish integration 为 `real_radish_integration_deferred`，不再是当前下一步；未来 Radish 完成 RadishMind application/client registration、resource audience 和 reviewed evidence 后恢复批次 C，不派生同层 readiness 文档链，也不把 loopback 测试解释为真实联调。

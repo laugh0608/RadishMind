@@ -2,11 +2,11 @@
 
 更新时间：2026-07-12
 
-状态：`deterministic_runtime_complete_blocked_by_upstream_evidence`
+状态：`deterministic_runtime_complete_real_radish_integration_deferred`
 
 ## 任务目标
 
-本任务实现 `radish_oidc_integration_test` 受控认证模式，使 Admin Tenant Summary 与 Audit 能通过真实 discovery、JWKS 和 JWT validation 边界接入现有 PostgreSQL dev/test read repository。当前仓库缺少完整 reviewed Radish upstream evidence，因此本批关闭 deterministic runtime、auth boundary 与 operation gate，但不声明真实 Radish 联调完成。
+本任务实现 `radish_oidc_integration_test` 受控认证模式，使 Admin Tenant Summary 与 Audit 能通过 discovery、JWKS 和 JWT validation 边界接入现有 PostgreSQL dev/test read repository。deterministic runtime、auth boundary 与 operation gate 已关闭；真实 Radish 联调主动 deferred，不占用当前开发主线，也不声明真实联调完成。
 
 ## 实现批次
 
@@ -30,15 +30,17 @@
 
 - 使用测试进程独占的 deterministic issuer 覆盖 discovery、JWKS、rotation、算法混淆、claim/time、permission、tenant mismatch、no-fallback、zero-query 和诊断脱敏。
 - 只有 upstream evidence gate 完整且仍在 review window 内，才使用短期 Radish integration token 执行真实 HTTP/Web/浏览器联调。
-- 当前真实联调状态固定为 `blocked_by_upstream_evidence`；loopback issuer 只证明 verifier 行为，不作为 Radish evidence。
+- 当前真实联调状态固定为 `real_radish_integration_deferred`；loopback issuer 只证明 verifier 行为，不作为 Radish evidence。
+
+未来恢复入口：由 Radish owner 注册 RadishMind application/client 与专用 resource audience，提供 reviewed issuer、JWKS policy、claim / permission mapping 和短期 token 流程后，再创建真实联调执行记录；不重开 deterministic runtime 实现批次。
 
 ## 上游证据门禁
 
 真实 Radish 联调前必须由 Radish owner review 并提供 metadata-only manifest，至少包含：
 
-1. environment ref、exact issuer、explicit discovery URL、owner、`reviewed_at` 和 review expiry；
-2. exact JWKS scheme / host / port、algorithm allowlist、refresh max-age、rotation overlap、hard expiry、key count和响应大小限制；
-3. exact RadishMind integration audience；
+1. RadishMind application/client ref、专用 resource audience、environment binding、owner 和 review window；
+2. environment ref、exact issuer、explicit discovery URL、owner、`reviewed_at` 和 review expiry；
+3. exact JWKS scheme / host / port、algorithm allowlist、refresh max-age、rotation overlap、hard expiry、key count和响应大小限制；
 4. mapping version、subject claim、tenant claim、permission claim及其 JSON 类型 / cardinality；
 5. exact tenant-read 与 audit-read upstream permission identifier；
 6. token max lifetime、clock skew、required time claims和短期 token 清理流程。
