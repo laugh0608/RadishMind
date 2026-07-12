@@ -5,7 +5,7 @@
 ## 任务标识
 
 - 任务 ID：`model-gateway-request-history-usage-failure-review-v1`
-- 状态：`in_progress_postgres_dev_test_vertical_slice_implemented`
+- 状态：`complete`
 - 对应功能专题：`docs/features/gateway/model-gateway-request-history-usage-failure-review-v1.md`
 
 ## 当前批次进度
@@ -13,7 +13,9 @@
 - 已完成：caller context、record lifecycle / taxonomy、`memory_dev` store、三个 northbound route recorder、list / detail API、scope / filter / cursor、Web consumer、Evidence Review lazy panel，以及 Go / race / vet / Web test / build 验证。
 - 已确认：缺少 caller context 时不创建 unscoped record；store create failure 不改写 provider 成功；usage 无可信来源时保持 `not_reported`；Web 默认 offline 零请求且拒绝嵌套 forbidden field。
 - 第二批已完成：独立 `postgres_dev_test` selector、manual migration、schema marker / checksum preflight、runtime role、pool close、no-fallback integration、27 条真实浏览器分页 / 详情 / 过滤和 Platform / Web 重启恢复。
-- 待完成：真实 provider 缺席时继续保持 usage `not_reported`；补 queue / timeout / cancel / stream cancel 的浏览器终态证据与最终功能 close。不得为此新增同层 repository、API、面板或 checker。
+- 第三批已完成：修复取消后 PostgreSQL terminal update 误用已取消 request context 的根因；终态写入只派生受数据库超时约束的 detached context，不继续 provider 执行或响应写入。
+- 最终证据已完成：精准测试与真实 PostgreSQL 覆盖 queue / timeout / unary cancel / stream cancel；真实浏览器验证 40 路有界队列、失败 / 取消详情、canceled filter、usage `not_reported` 和全新会话零 error / warning。证据摘要为 `docs/features/gateway/evidence/request-history-terminal-evidence-2026-07-12.json`。
+- 本任务卡关闭：没有可信 provider token 来源时继续保持 usage `not_reported`；未来 reported usage、production auth / repository、quota 或 billing 必须另开功能专题，不继续扩张本任务卡。
 
 ## 用户结果
 

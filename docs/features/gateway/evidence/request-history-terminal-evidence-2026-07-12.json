@@ -1,0 +1,84 @@
+{
+  "schema_version": "radishmind.gateway_request_history_terminal_evidence.v1",
+  "status": "passed",
+  "record_schema_version": "gateway_request_record.v1",
+  "store_mode": "postgres_dev_test",
+  "bridge_test_profile": {
+    "mode": "stdio_pool",
+    "worker_count": 1,
+    "queue_capacity": 1,
+    "timeout_profiles": [
+      "200ms",
+      "1ms"
+    ],
+    "production_claim": false
+  },
+  "browser_evidence": {
+    "queue_batch": {
+      "request_count": 40,
+      "http_status_counts": {
+        "200": 2,
+        "503": 38
+      }
+    },
+    "timeout": {
+      "request_id": "browser-gateway-terminal-timeout",
+      "route": "/v1/responses",
+      "status": "failed",
+      "http_status_code": 504,
+      "failure_code": "BRIDGE_WORKER_TIMEOUT",
+      "failure_boundary": "python_bridge",
+      "record_version": 3
+    },
+    "unary_cancel": {
+      "request_id": "browser-gateway-terminal-unary-cancel",
+      "route": "/v1/chat/completions",
+      "stream": false,
+      "status": "canceled",
+      "http_status_code": 408,
+      "failure_code": "BRIDGE_WORKER_CANCELED",
+      "failure_boundary": "python_bridge",
+      "record_version": 3
+    },
+    "stream_cancel": {
+      "request_id": "browser-gateway-terminal-stream-cancel",
+      "route": "/v1/chat/completions",
+      "stream": true,
+      "status": "canceled",
+      "http_status_code": 408,
+      "failure_code": "BRIDGE_WORKER_CANCELED",
+      "failure_boundary": "python_bridge",
+      "record_version": 2
+    },
+    "canceled_filter": {
+      "record_count": 2,
+      "failed_count": 0,
+      "canceled_count": 2
+    },
+    "clean_browser_session": {
+      "errors": 0,
+      "warnings": 0
+    }
+  },
+  "persistence_evidence": {
+    "canceled_request_context_direct_update": "rejected",
+    "bounded_detached_terminal_update": "persisted",
+    "runtime_role_schema_ddl": "rejected",
+    "memory_fallback": false
+  },
+  "usage_evidence": {
+    "availability": "not_reported",
+    "reported_usage_claimed": false,
+    "reason": "The current validated adapter contract does not provide a trustworthy provider token source."
+  },
+  "forbidden_side_effects": {
+    "automatic_retry": 0,
+    "automatic_fallback": 0,
+    "quota_write": 0,
+    "billing_write": 0,
+    "tool_call": 0,
+    "confirmation_commit": 0,
+    "business_write": 0,
+    "replay_or_resume": 0
+  }
+}

@@ -2,7 +2,7 @@
 
 更新时间：2026-07-12
 
-状态：`model_gateway_request_history_postgres_dev_test_vertical_slice_implemented`
+状态：`model_gateway_request_history_usage_failure_review_v1_complete`
 
 ## 当前实现进度
 
@@ -10,7 +10,9 @@
 
 2026-07-12 第二批已完成独立 `postgres_dev_test` repository、manual migration、marker / checksum preflight、runtime DML role、selector、pool close、no-fallback 和 restart recovery。破坏性集成覆盖 fresh / repeat apply、DDL 拒绝、scope、过滤分页、并发终态 CAS、pool 重开、marker mismatch、rollback / reapply；真实浏览器以 27 条记录验证 25+2 分页、详情、过滤和 Platform / Web 重启恢复，详情显示 `postgres_dev_test`，全新会话无 error / warning。
 
-当前仍保留最终关闭项：adapter 尚无可证明的 reported token 来源，因此 usage 正确保持 `not_reported`；真实 provider、queue / timeout / cancel 浏览器矩阵和最终功能 close 尚未执行。本专题继续保持进行中，下一批只补这些终态 / usage 证据和最终收口，不再扩 repository、UI 面板或平行 checker；production API key、quota、billing、自动 retry / fallback 和 production Gateway 继续关闭。
+2026-07-12 第三批已完成最终终态证据与功能关闭。审查发现 northbound request context 取消后无法继续驱动 PostgreSQL terminal update，会让 durable record 停留在 `started`；recorder 现仅为 terminal store update 派生保留 caller values、移除原取消信号并受数据库超时约束的短时 context。该 context 不传给 bridge / provider，不继续生成响应，不重试 northbound 请求，也不改变取消响应语义。
+
+真实浏览器以单 worker / 有界 queue 的显式测试配置验证 40 路并发中 38 个 `503` queue full、`504 / BRIDGE_WORKER_TIMEOUT`、unary 与 stream `408 / BRIDGE_WORKER_CANCELED`，PostgreSQL 详情和 canceled filter 均可复验，全新浏览器会话无 error / warning。完整摘要见 [终态证据附件](evidence/request-history-terminal-evidence-2026-07-12.json)。adapter 尚无可证明的 provider token 来源，因此 usage 正确保持 `not_reported`，本功能不声明 reported usage 已验证；未来出现可信 usage contract 时应作为独立功能批次打开，不阻塞本次 dev/test request history v1 关闭。
 
 ## 功能目标
 
@@ -76,6 +78,7 @@
 - provider timing 从经校验 Gateway envelope 的 `provider_duration_ms` 取得；Platform 端到端 timing 由 Go trace 计算，二者不得混为同一字段。
 - 非流式请求在 response document 成功构建后终态化；流式请求在 terminal event 写出后终态化，首段成功不代表整个 stream 成功。
 - client cancellation 与 bridge cancellation 映射为 `canceled`；queue full、timeout、worker crash、protocol、provider 和 response translation 映射为 `failed` 加稳定 boundary。
+- terminal store update 必须与 provider execution context 分离：取消后只允许在数据库超时预算内保存 sanitized terminal metadata；禁止借此继续 provider 调用、重放、重试、写响应或隐藏 store failure。
 - Platform 重启后遗留 `started` 记录只派生 `stale_started=true`；v1 不自动恢复、不重放、不自动改写终态。默认 stale 阈值为 5 分钟，并受 Platform request timeout 上限约束。
 - started create 失败时继续执行当前 northbound 请求，但记录稳定 store observation failure；后续 update 不尝试改写 memory fallback。terminal update 失败时保留最后持久快照并记录 failure，不把未落库终态伪装成 durable success。
 
@@ -199,7 +202,7 @@ v1 声明 dev/test 默认保留 14 天、每 scope 最多 50,000 条，但请求
 - read API：strict query、scope、空列表、list/detail 对齐、filter / cursor 篡改、store failure 和无 fixture fallback。
 - PostgreSQL：fresh migration、rollback / reapply、runtime DDL 拒绝、重启恢复、并发、scope 隔离、分页、marker mismatch、连接失败与 no fallback。
 - Web：offline 零请求、strict mapping、filter、pagination、detail、usage unavailable、失败状态、forbidden-field 拒绝和独立 chunk。
-- 浏览器：成功、invalid request、provider failure、queue/timeout/cancel、stream complete/cancel、usage reported/unavailable、分页过滤、详情、Platform 重启恢复和敏感字段缺失。
+- 浏览器：成功、invalid request、provider failure、queue/timeout/cancel、stream complete/cancel、usage unavailable、分页过滤、详情、Platform 重启恢复和敏感字段缺失；`reported` 只在可信 provider usage contract 成立后另行验收。
 - 所有路径确认自动 retry / fallback、quota write、billing write、tool、confirmation、business write 和 replay 为 0。
 
 ## 停止线

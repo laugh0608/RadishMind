@@ -12,7 +12,7 @@
 
 如果你要推进具体产品能力，先读 [功能设计文档入口](features/README.md)。2026-06-14 起，长期功能设计不再默认塞进 task card；task card、fixture 和 checker 只服务具体实现批次、前置条件或高风险边界。
 
-2026-07-12 覆盖：Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning 与 Evaluation Suite / Release Review 已完成；Model Gateway 请求历史、用量与失败审查已完成 `memory_dev` 和独立 PostgreSQL dev/test 纵向实现，包括 caller scope、record lifecycle、三个 northbound recorder、scoped API、Web lazy consumer、manual migration、no-fallback、分页详情和重启恢复。下表 `Product Surfaces` 长行中的“无数据库 / 无 executor / 缺运行记录存储”仅保留历史阶段语义；当前缺口是 Gateway 剩余失败 / 取消终态证据与最终 close，以及仍关闭的 production auth / repository、tool、confirmation、writeback、replay、production API key、quota enforcement 和 billing。
+2026-07-12 覆盖：Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning、Evaluation Suite / Release Review 与 Model Gateway Request History / Usage & Failure Review v1 已完成。Gateway 请求历史包括 caller scope、record lifecycle、三个 northbound recorder、scoped API、Web lazy consumer、`memory_dev`、独立 PostgreSQL dev/test、manual migration、no-fallback、分页详情、重启恢复和 queue / timeout / unary cancel / stream cancel 终态证据。下表 `Product Surfaces` 长行中的“无数据库 / 无 executor / 缺运行记录存储”仅保留历史阶段语义；当前缺口转为仍关闭的 production auth / repository、tool、confirmation、writeback、replay、production API key、可信 reported usage、quota enforcement 和 billing。
 
 | 主线 | 当前已有 | 当前缺口 | 当前不做 | 下一步 |
 | --- | --- | --- | --- | --- |

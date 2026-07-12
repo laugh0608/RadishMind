@@ -9,6 +9,6 @@
 | 专题 | 状态 | 当前作用 |
 | --- | --- | --- |
 | [Gateway Python Bridge Runtime v1](python-bridge-runtime-v1.md) | `gateway_bridge_stdio_worker_pool_completed` | 受控 `stdio` worker pool 已成为默认模式，完成生命周期、排队、取消、崩溃重建、请求隔离和性能验收；process 模式保留回滚 |
-| [Model Gateway Request History / Usage & Failure Review v1](model-gateway-request-history-usage-failure-review-v1.md) | `model_gateway_request_history_postgres_dev_test_vertical_slice_implemented` | `memory_dev` 与独立 PostgreSQL dev/test repository、migration、no-fallback、分页详情和重启恢复已完成；下一步只补失败 / 取消浏览器矩阵与最终 close |
+| [Model Gateway Request History / Usage & Failure Review v1](model-gateway-request-history-usage-failure-review-v1.md) | `model_gateway_request_history_usage_failure_review_v1_complete` | `memory_dev`、PostgreSQL dev/test、失败 / 取消终态、分页详情、重启恢复和真实 Web 审查已完成；reported usage 与 production 能力后置 |
 
 普通 Gateway UI 文案、只读 evidence 和布局改动不在本目录新增专题；它们继续复用 Web build、Gateway smoke 与仓库聚合门禁。
