@@ -1,7 +1,10 @@
 package config
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"os"
 	"strconv"
@@ -31,6 +34,7 @@ const (
 	defaultApplicationPublishStoreMode = "memory_dev"
 	defaultRunStoreMode                = "memory_dev"
 	defaultGatewayRequestStoreMode     = "memory_dev"
+	defaultControlPlaneReadAuthMode    = ""
 )
 
 const (
@@ -49,6 +53,10 @@ type Config struct {
 	BridgeQueueCapacity               int
 	BridgeHandshakeTimeout            time.Duration
 	ControlPlaneReadDevAuthEnabled    bool
+	ControlPlaneReadAuthMode          string
+	ControlPlaneReadTestIssuer        string
+	ControlPlaneReadTestAudience      string
+	ControlPlaneReadTestPublicKeyPEM  string
 	WorkflowSavedDraftDevHTTPEnabled  bool
 	WorkflowSavedDraftDevWriteEnabled bool
 	ApplicationDraftDevHTTPEnabled    bool
@@ -88,6 +96,8 @@ type Config struct {
 type ConfigSummary struct {
 	ListenAddr                           string            `json:"listen_addr"`
 	ControlPlaneReadDevAuthEnabled       bool              `json:"control_plane_read_dev_auth_enabled"`
+	ControlPlaneReadAuthMode             string            `json:"control_plane_read_auth_mode"`
+	ControlPlaneReadTestConfigured       bool              `json:"control_plane_read_signed_test_configured"`
 	WorkflowSavedDraftDevHTTPEnabled     bool              `json:"workflow_saved_draft_dev_http_enabled"`
 	WorkflowSavedDraftDevWriteEnabled    bool              `json:"workflow_saved_draft_dev_write_enabled"`
 	ApplicationDraftDevHTTPEnabled       bool              `json:"application_draft_dev_http_enabled"`
@@ -192,6 +202,7 @@ func defaultConfig() Config {
 		BridgeWorkerCount:                 defaultBridgeWorkerCount,
 		BridgeQueueCapacity:               defaultBridgeQueueSize,
 		BridgeHandshakeTimeout:            defaultBridgeHandshake,
+		ControlPlaneReadAuthMode:          defaultControlPlaneReadAuthMode,
 		PythonBinary:                      defaultPythonBinary,
 		BridgeScript:                      defaultBridgeScript,
 		Provider:                          defaultProvider,
@@ -220,6 +231,7 @@ func defaultConfig() Config {
 			"bridge_queue_capacity":                 configSourceDefault,
 			"bridge_handshake_timeout":              configSourceDefault,
 			"control_plane_read_dev_auth":           configSourceDefault,
+			"control_plane_read_auth_mode":          configSourceDefault,
 			"workflow_saved_draft_dev_http":         configSourceDefault,
 			"workflow_saved_draft_dev_write":        configSourceDefault,
 			"application_draft_dev_http":            configSourceDefault,
@@ -456,6 +468,18 @@ func applyEnvOverrides(cfg *Config) error {
 		}
 		cfg.ControlPlaneReadDevAuthEnabled = parsed
 		cfg.FieldSources["control_plane_read_dev_auth"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE"); ok {
+		applyStringValue(&cfg.ControlPlaneReadAuthMode, value, cfg.FieldSources, "control_plane_read_auth_mode", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_CONTROL_PLANE_READ_SIGNED_TEST_ISSUER"); ok {
+		cfg.ControlPlaneReadTestIssuer = strings.TrimSpace(value)
+	}
+	if value, ok := stringEnv("RADISHMIND_CONTROL_PLANE_READ_SIGNED_TEST_AUDIENCE"); ok {
+		cfg.ControlPlaneReadTestAudience = strings.TrimSpace(value)
+	}
+	if value, ok := stringEnv("RADISHMIND_CONTROL_PLANE_READ_SIGNED_TEST_PUBLIC_KEY_PEM"); ok {
+		cfg.ControlPlaneReadTestPublicKeyPEM = strings.TrimSpace(value)
 	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP"); ok {
 		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP", value)
@@ -708,6 +732,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	return ConfigSummary{
 		ListenAddr:                           strings.TrimSpace(cfg.ListenAddr),
 		ControlPlaneReadDevAuthEnabled:       cfg.ControlPlaneReadDevAuthEnabled,
+		ControlPlaneReadAuthMode:             EffectiveControlPlaneReadAuthMode(cfg),
+		ControlPlaneReadTestConfigured:       strings.TrimSpace(cfg.ControlPlaneReadTestIssuer) != "" && strings.TrimSpace(cfg.ControlPlaneReadTestAudience) != "" && strings.TrimSpace(cfg.ControlPlaneReadTestPublicKeyPEM) != "",
 		WorkflowSavedDraftDevHTTPEnabled:     cfg.WorkflowSavedDraftDevHTTPEnabled,
 		WorkflowSavedDraftDevWriteEnabled:    cfg.WorkflowSavedDraftDevWriteEnabled,
 		ApplicationDraftDevHTTPEnabled:       cfg.ApplicationDraftDevHTTPEnabled,
@@ -983,6 +1009,22 @@ func parseIntValue(key string, rawValue string) (int, error) {
 }
 
 func validateBridgeRuntimeConfig(cfg Config) error {
+	switch EffectiveControlPlaneReadAuthMode(cfg) {
+	case "disabled":
+	case "dev_headers":
+		if !cfg.ControlPlaneReadDevAuthEnabled {
+			return fmt.Errorf("control plane read dev_headers auth mode requires control plane read dev auth")
+		}
+	case "signed_test_token":
+		if strings.TrimSpace(cfg.ControlPlaneReadTestIssuer) == "" || strings.TrimSpace(cfg.ControlPlaneReadTestAudience) == "" || strings.TrimSpace(cfg.ControlPlaneReadTestPublicKeyPEM) == "" {
+			return fmt.Errorf("control plane read signed_test_token auth mode requires issuer, audience, and public key PEM")
+		}
+		if !isRSAPublicKeyPEM(cfg.ControlPlaneReadTestPublicKeyPEM) {
+			return fmt.Errorf("control plane read signed_test_token public key PEM must contain an RSA public key")
+		}
+	default:
+		return fmt.Errorf("control plane read auth mode must be disabled, dev_headers, or signed_test_token")
+	}
 	if cfg.GatewayRequestHistoryDevEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return fmt.Errorf("gateway request history dev requires control plane read dev auth")
 	}
@@ -1012,6 +1054,30 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 		return fmt.Errorf("bridge_handshake_timeout must be positive")
 	}
 	return nil
+}
+
+func EffectiveControlPlaneReadAuthMode(cfg Config) string {
+	mode := strings.TrimSpace(cfg.ControlPlaneReadAuthMode)
+	if mode == "" && cfg.ControlPlaneReadDevAuthEnabled {
+		return "dev_headers"
+	}
+	if mode == "" {
+		return "disabled"
+	}
+	return mode
+}
+
+func isRSAPublicKeyPEM(rawPEM string) bool {
+	block, _ := pem.Decode([]byte(strings.TrimSpace(rawPEM)))
+	if block == nil {
+		return false
+	}
+	if parsed, err := x509.ParsePKIXPublicKey(block.Bytes); err == nil {
+		_, ok := parsed.(*rsa.PublicKey)
+		return ok
+	}
+	_, err := x509.ParsePKCS1PublicKey(block.Bytes)
+	return err == nil
 }
 
 func parseBoolValue(key string, rawValue string) (bool, error) {

@@ -7,7 +7,7 @@ import {
   type ControlPlaneReadCollectionViewModel,
   type ControlPlaneReadRouteId,
   type ControlPlaneReadSummaryItem,
-} from "../../../../../contracts/typescript/control-plane-read-api";
+} from "../../../../../contracts/typescript/control-plane-read-api.ts";
 
 const DEV_LIVE_SOURCE = "dev-live-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
@@ -104,11 +104,8 @@ async function fetchDevLiveEnvelope(routeId: ControlPlaneReadRouteId, config: Co
     headers: devLiveHeaders(routeId, config),
   });
   const body: unknown = await response.json();
-  if (!response.ok) {
-    throw new Error(`${routeId} returned HTTP ${response.status}`);
-  }
   if (!isControlPlaneReadEnvelope(body)) {
-    throw new Error(`${routeId} returned a non read-side envelope`);
+    throw new Error(`${routeId} returned HTTP ${response.status} with a non read-side envelope`);
   }
   return body as Parameters<typeof toControlPlaneReadCollectionViewModel>[1] & {
     items: ControlPlaneReadSummaryItem[];

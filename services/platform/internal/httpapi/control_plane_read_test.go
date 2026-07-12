@@ -160,7 +160,7 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 
 		server.httpServer.Handler.ServeHTTP(rec, req)
 
-		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusOK)
+		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusUnauthorized)
 		assertControlPlaneReadFailure(t, envelope, "identity_context_missing")
 	})
 
@@ -172,7 +172,7 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 
 		server.httpServer.Handler.ServeHTTP(rec, req)
 
-		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusOK)
+		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusUnauthorized)
 		assertControlPlaneReadFailure(t, envelope, "identity_context_missing")
 	})
 
@@ -207,7 +207,7 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 
 		server.httpServer.Handler.ServeHTTP(rec, req)
 
-		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusOK)
+		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusForbidden)
 		assertControlPlaneReadFailure(t, envelope, "tenant_binding_missing")
 	})
 
@@ -222,7 +222,7 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 
 		server.httpServer.Handler.ServeHTTP(rec, req)
 
-		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusOK)
+		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusForbidden)
 		assertControlPlaneReadFailure(t, envelope, "scope_denied")
 	})
 
@@ -237,7 +237,7 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 
 		server.httpServer.Handler.ServeHTTP(rec, req)
 
-		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusOK)
+		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusForbidden)
 		assertControlPlaneReadFailure(t, envelope, "tenant_binding_missing")
 	})
 
@@ -252,7 +252,7 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 
 		server.httpServer.Handler.ServeHTTP(rec, req)
 
-		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusOK)
+		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusBadRequest)
 		assertControlPlaneReadFailure(t, envelope, "invalid_filter")
 	})
 
@@ -267,7 +267,7 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 
 		server.httpServer.Handler.ServeHTTP(rec, req)
 
-		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusOK)
+		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusBadRequest)
 		assertControlPlaneReadFailure(t, envelope, "invalid_filter")
 		assertControlPlaneReadNoForbiddenPayload(t, rec.Body.String())
 	})
@@ -441,13 +441,25 @@ func assertControlPlaneReadNoForbiddenPayload(t *testing.T, body string) {
 
 type recordingControlPlaneReadRepository struct {
 	applicationCalls int
+	totalCalls       int
+	lastContext      ReadRepositoryContext
 }
 
 func (repository *recordingControlPlaneReadRepository) ReadTenantSummary(
 	context ReadRepositoryContext,
 	request ReadTenantSummaryRequest,
 ) ReadTenantSummaryResult {
-	return ReadTenantSummaryResult{TenantRef: context.TenantRef, Items: []TenantSummary{}, AuditRef: context.AuditRef}
+	repository.totalCalls++
+	repository.lastContext = context
+	return ReadTenantSummaryResult{
+		TenantRef: context.TenantRef,
+		Items: []TenantSummary{{
+			TenantRef:         context.TenantRef,
+			TenantDisplayName: "Repository Interface Tenant",
+			TenantState:       "active",
+		}},
+		AuditRef: context.AuditRef,
+	}
 }
 
 func (repository *recordingControlPlaneReadRepository) ListApplicationSummaries(
@@ -455,6 +467,8 @@ func (repository *recordingControlPlaneReadRepository) ListApplicationSummaries(
 	request ListApplicationSummariesRequest,
 ) ListApplicationSummariesResult {
 	repository.applicationCalls++
+	repository.totalCalls++
+	repository.lastContext = context
 	return ListApplicationSummariesResult{
 		TenantRef: context.TenantRef,
 		Items: []ApplicationSummary{
@@ -477,6 +491,8 @@ func (repository *recordingControlPlaneReadRepository) ListAPIKeySummaries(
 	context ReadRepositoryContext,
 	request ListAPIKeySummariesRequest,
 ) ListAPIKeySummariesResult {
+	repository.totalCalls++
+	repository.lastContext = context
 	return ListAPIKeySummariesResult{TenantRef: context.TenantRef, Items: []APIKeySummary{}, AuditRef: context.AuditRef}
 }
 
@@ -484,6 +500,8 @@ func (repository *recordingControlPlaneReadRepository) ReadQuotaSummary(
 	context ReadRepositoryContext,
 	request ReadQuotaSummaryRequest,
 ) ReadQuotaSummaryResult {
+	repository.totalCalls++
+	repository.lastContext = context
 	return ReadQuotaSummaryResult{TenantRef: context.TenantRef, Items: []QuotaSummary{}, AuditRef: context.AuditRef}
 }
 
@@ -491,6 +509,8 @@ func (repository *recordingControlPlaneReadRepository) ListWorkflowDefinitionSum
 	context ReadRepositoryContext,
 	request ListWorkflowDefinitionSummariesRequest,
 ) ListWorkflowDefinitionSummariesResult {
+	repository.totalCalls++
+	repository.lastContext = context
 	return ListWorkflowDefinitionSummariesResult{TenantRef: context.TenantRef, Items: []WorkflowDefinitionSummary{}, AuditRef: context.AuditRef}
 }
 
@@ -498,6 +518,8 @@ func (repository *recordingControlPlaneReadRepository) ListRunRecordSummaries(
 	context ReadRepositoryContext,
 	request ListRunRecordSummariesRequest,
 ) ListRunRecordSummariesResult {
+	repository.totalCalls++
+	repository.lastContext = context
 	return ListRunRecordSummariesResult{TenantRef: context.TenantRef, Items: []RunRecordSummary{}, AuditRef: context.AuditRef}
 }
 
@@ -505,6 +527,8 @@ func (repository *recordingControlPlaneReadRepository) ListAuditSummaries(
 	context ReadRepositoryContext,
 	request ListAuditSummariesRequest,
 ) ListAuditSummariesResult {
+	repository.totalCalls++
+	repository.lastContext = context
 	return ListAuditSummariesResult{TenantRef: context.TenantRef, Items: []AuditSummary{}, AuditRef: context.AuditRef}
 }
 

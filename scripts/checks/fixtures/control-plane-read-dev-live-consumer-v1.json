@@ -67,6 +67,7 @@
     "contracts/typescript/control-plane-read-api.ts",
     "services/platform/internal/config/config.go",
     "services/platform/internal/httpapi/control_plane_read.go",
+    "services/platform/internal/httpapi/control_plane_read_auth.go",
     "services/platform/internal/httpapi/server.go",
     "services/platform/internal/httpapi/control_plane_read_test.go"
   ],
@@ -84,7 +85,7 @@
     "productionApiConsumer: false",
     "ControlPlaneReadDevAuthEnabled",
     "RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH",
-    "withControlPlaneReadDevAuth",
+    "withControlPlaneReadAuth",
     "controlPlaneReadDevAuthFromHeaders"
   ],
   "required_test_literals": [

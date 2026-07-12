@@ -186,7 +186,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 
 	server.httpServer = &http.Server{
 		Addr:              cfg.ListenAddr,
-		Handler:           withLocalConsoleCORS(withControlPlaneReadDevAuth(mux, cfg.ControlPlaneReadDevAuthEnabled)),
+		Handler:           withLocalConsoleCORS(withControlPlaneReadAuth(mux, cfg)),
 		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
 		WriteTimeout:      cfg.WriteTimeout,
 	}

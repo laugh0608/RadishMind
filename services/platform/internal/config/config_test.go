@@ -1,6 +1,10 @@
 package config
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -474,6 +478,51 @@ func TestPostgresGatewayRequestModeRequiresExplicitDevelopmentGates(t *testing.T
 	}
 }
 
+func TestControlPlaneReadAuthModesFailClosed(t *testing.T) {
+	cfg := defaultConfig()
+	if got := EffectiveControlPlaneReadAuthMode(cfg); got != "disabled" {
+		t.Fatalf("unexpected default auth mode: %s", got)
+	}
+
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	if got := EffectiveControlPlaneReadAuthMode(cfg); got != "dev_headers" {
+		t.Fatalf("legacy dev auth must map to dev_headers, got %s", got)
+	}
+
+	cfg = defaultConfig()
+	cfg.ControlPlaneReadAuthMode = "signed_test_token"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil {
+		t.Fatal("signed test auth without verifier material was accepted")
+	}
+	cfg.ControlPlaneReadTestIssuer = "https://radish.test/oidc"
+	cfg.ControlPlaneReadTestAudience = "radishmind-control-plane"
+	cfg.ControlPlaneReadTestPublicKeyPEM = "not-a-public-key"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil {
+		t.Fatal("signed test auth with invalid public key material was accepted")
+	}
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("generate test RSA key: %v", err)
+	}
+	publicKeyDER, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
+	if err != nil {
+		t.Fatalf("marshal test RSA public key: %v", err)
+	}
+	cfg.ControlPlaneReadTestPublicKeyPEM = string(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: publicKeyDER}))
+	if err := validateBridgeRuntimeConfig(cfg); err != nil {
+		t.Fatalf("complete signed test auth config was rejected: %v", err)
+	}
+	summary := cfg.SanitizedSummary()
+	if summary.ControlPlaneReadAuthMode != "signed_test_token" || !summary.ControlPlaneReadTestConfigured {
+		t.Fatalf("unexpected signed test auth summary: %#v", summary)
+	}
+
+	cfg.ControlPlaneReadAuthMode = "production_oidc"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil {
+		t.Fatal("unknown control plane read auth mode was accepted")
+	}
+}
+
 func TestWorkflowExecutorDevModeRequiresDevelopmentAuthAndSavedDraftHTTP(t *testing.T) {
 	config := Config{
 		ListenAddr:                 ":7000",
@@ -545,6 +594,10 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_PLATFORM_API_KEY",
 		"RADISHMIND_PLATFORM_TEMPERATURE",
 		"RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH",
+		"RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE",
+		"RADISHMIND_CONTROL_PLANE_READ_SIGNED_TEST_ISSUER",
+		"RADISHMIND_CONTROL_PLANE_READ_SIGNED_TEST_AUDIENCE",
+		"RADISHMIND_CONTROL_PLANE_READ_SIGNED_TEST_PUBLIC_KEY_PEM",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE",
 		"RADISHMIND_WORKFLOW_EXECUTOR_DEV",

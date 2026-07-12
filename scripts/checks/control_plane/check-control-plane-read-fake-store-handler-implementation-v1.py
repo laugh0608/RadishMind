@@ -281,6 +281,7 @@ def assert_go_files_and_routes(fixture: dict[str, Any]) -> None:
         require((REPO_ROOT / str(relative_path)).is_file(), f"missing Go file: {relative_path}")
 
     handler_go = read("services/platform/internal/httpapi/control_plane_read.go")
+    auth_go = read("services/platform/internal/httpapi/control_plane_read_auth.go")
     fake_store_go = read("services/platform/internal/httpapi/control_plane_read_fake_store.go")
     test_go = read("services/platform/internal/httpapi/control_plane_read_test.go")
     server_go = read("services/platform/internal/httpapi/server.go")
@@ -298,10 +299,14 @@ def assert_go_files_and_routes(fixture: dict[str, Any]) -> None:
         "authorizeControlPlaneReadRequest",
         "forbiddenControlPlaneReadQueryParameter",
         "controlPlaneReadFiltersFromQuery",
-        "withControlPlaneReadFakeAuthContext",
         "controlPlaneReadEnvelope",
     ):
         require(literal in handler_go, f"handler file missing {literal}")
+
+    require(
+        "withControlPlaneReadFakeAuthContext" in auth_go,
+        "auth boundary missing withControlPlaneReadFakeAuthContext",
+    )
 
     for literal in (
         "newControlPlaneReadFakeStore",
