@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-07-11
+更新时间：2026-07-12
 
 <!-- markdown-size-allow: 历史 checker 仍直接读取本文件中的状态锚点；人工默认只读“当前结论”，R6 将逐批迁出兼容锚点并删除本标记。 -->
 
@@ -13,15 +13,15 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明 production ready。
-- 产品焦点：Workflow Draft Review Loop、Saved Draft durable dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、Evaluation Cases、[Workflow Evaluation Baseline & Case Versioning v1](features/workflow/workflow-evaluation-baseline-case-versioning-v1.md) 与 [Workflow Evaluation Suite / Release Review v1](features/workflow/workflow-evaluation-suite-release-review-v1.md) 均已完成；明日建议转向 `Model Gateway Request History / Usage & Failure Review v1` 功能设计，不继续给已完成的 Workflow 审查链追加同层功能。
+- 产品焦点：Workflow Draft Review Loop、Saved Draft durable dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、Evaluation Cases、[Workflow Evaluation Baseline & Case Versioning v1](features/workflow/workflow-evaluation-baseline-case-versioning-v1.md) 与 [Workflow Evaluation Suite / Release Review v1](features/workflow/workflow-evaluation-suite-release-review-v1.md) 均已完成；[Model Gateway Request History / Usage & Failure Review v1](features/gateway/model-gateway-request-history-usage-failure-review-v1.md) 已完成设计并进入单张纵向实现任务卡，不继续给已完成的 Workflow 审查链追加同层功能。
 - `R2 正确性与安全清零`、`R3 Workflow Draft Review Loop`、`R4 Gateway 运行时产品化` 已完成；`R5 测试、CI 与性能预算` 进入后续工程线，`R6 文档与 checker 收敛` 继续作为治理约束。
 - 四个正式一级产品面保持为 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；Image Path 是横切适配能力，不作为当前第五条一级主线。
 - 旧 Production Secret Backend / Storage Adapter readiness 链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：Evaluation Suite / Release Review 已完成 exact case version、即时聚合审查、SHA-256 digest、append-only decision、expected-version CAS、PostgreSQL 0005、重启恢复和真实 Web 路径。明日先更新 Model Gateway 功能设计，定义 northbound 请求元数据生命周期、scope、分页、过滤、脱敏、用量/失败语义、dev/test 持久化与真实 Web 审查，再判断是否创建 API/schema 实现任务卡；不打开 production API key、quota enforcement、billing、自动 fallback 或 production gateway。
-2. 工程线：R5 已把 Web 主入口降到 430.39 KiB，低于 500 KiB 目标；明日把主入口和关键 lazy chunks 的预算接入现有 Web build / 聚合入口，使超预算可发现，不新增同层 checker。R6 继续收敛入口文档的过期事实和历史 checker 文字耦合。
+1. 产品线：Model Gateway request history 设计已固定独立 caller context、tenant + workspace + consumer 最小 scope、可选 application binding、record 生命周期、usage availability、分页过滤、脱敏、独立 dev/test repository、store failure 和真实 Web 审查路径。下一批按单张任务卡实现 Platform domain / recorder / API、PostgreSQL 与 Web 纵向链；不打开 production API key、quota enforcement、billing、自动 fallback 或 production gateway。
+2. 工程线：R5 已把 Web 主入口降到 430.39 KiB，并将主入口 500 KiB、关键 vendor / Node Designer 与普通 lazy chunk 预算直接接入现有 Vite build，使超预算构建失败；不新增同层 checker。R6 继续收敛入口文档的过期事实和历史 checker 文字耦合。
 
 R3 与 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖 migration / rollback / reapply、运行角色 DDL 拒绝、服务重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback、CI 与真实浏览器双标签冲突审查。该完成不启用 production repository mode，也不代表 OIDC、production secret、audit store 或公开生产 API ready。
 
@@ -40,7 +40,8 @@ durable draft repository、稳定 Gateway、executor v0 与 durable dev/test run
 9. [Workflow Evaluation Cases / Batch Regression Review v1](features/workflow/workflow-evaluation-cases-batch-regression-review-v1.md)
 10. [Workflow Evaluation Baseline & Case Versioning v1](features/workflow/workflow-evaluation-baseline-case-versioning-v1.md)
 11. [Workflow Evaluation Suite / Release Review v1](features/workflow/workflow-evaluation-suite-release-review-v1.md)
-12. [本周周志](devlogs/2026-W28.md)
+12. [Model Gateway Request History / Usage & Failure Review v1](features/gateway/model-gateway-request-history-usage-failure-review-v1.md)
+13. [本周周志](devlogs/2026-W28.md)
 
 以下“历史兼容状态与证据索引”暂时保留大量机器检查依赖的状态锚点，人工判断当前方向时默认不再继续读取；后续由 R6 逐批迁出。
 

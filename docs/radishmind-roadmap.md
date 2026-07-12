@@ -1,8 +1,8 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-07-11
+更新时间：2026-07-12
 
-<!-- markdown-size-allow: 历史阶段流水与 checker 锚点暂时保留；人工默认只读 2026-07-11 当前执行顺序，R6 解耦后将历史内容迁入归档并删除本标记。 -->
+<!-- markdown-size-allow: 历史阶段流水与 checker 锚点暂时保留；人工默认只读 2026-07-12 当前执行顺序，R6 解耦后将历史内容迁入归档并删除本标记。 -->
 
 ## 路线图原则
 
@@ -226,15 +226,16 @@
 
 状态：边界任务卡已开始。当前只保留 Radish 对齐方向，不实现账号系统、不接真实 OIDC、不声明 production ready。`apps/radishmind-web/` 已有只读 tenant overview、audit log 和普通离线 Admin Operations Review / Readiness，用 tenant、audit、gateway evidence review 与 Production Ops 静态证据解释管理端 readiness、risk 和 boundary locks。默认技术栈为 Go control plane + Go gateway + Python model/eval/worker + TypeScript/Vite frontend，不新增 `.NET` 作为默认后端语言；任务卡只固定 OIDC client、tenant、quota、API key、secret ref、audit 和 deployment status 的前置边界。
 
-## 2026-07-11 当前执行顺序
+## 2026-07-12 当前执行顺序
 
 1. `R3 Workflow Draft Review Loop` 已于 2026-07-11 完成真实浏览器正常路径、版本冲突路径、Continue / Restore 和 Review Handoff 收口，未新增同层 readiness / checker。
 2. Saved Workflow Draft PostgreSQL dev/test repository 已完成 migration / rollback / reapply、重启恢复、CAS、scope、no fallback、CI 和真实浏览器验收；production repository mode 继续关闭。
 3. `R4 Gateway` 已完成：受控 `stdio` worker pool 成为默认模式，顺序 / 四并发 bridge 自身 p95 相对 back-to-back process 基线下降 `93.5% / 94.4%`，process 模式保留回滚。
 4. 无外部副作用 [Workflow Executor v0](features/workflow/workflow-executor-v0.md) 已完成 Platform 执行、dev API、受控 Web 入口、tenant / workspace / application scoped run record 与真实浏览器回读验证。
 5. Workflow Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning 与 Evaluation Suite / Release Review 已完成 scoped API、PostgreSQL dev/test persistence、重启恢复、并发、脱敏和真实 Web 审查；tool、业务写回、自动确认提交和 replay 继续后置。
-6. 下一产品主任务建议更新 Model Gateway / API Distribution 功能设计，定义真实 northbound request history、usage / timing、failure review、scope、分页、过滤、脱敏、dev/test store 和 Web 审查路径；设计清楚后再为新 API/schema 创建实现任务卡。
-7. OIDC、production secret、真实云资源、production API key、quota enforcement / billing、真实生图和模型训练只在外部资源、负责人和独立运行窗口明确后重开。
+6. [Model Gateway Request History / Usage & Failure Review v1](features/gateway/model-gateway-request-history-usage-failure-review-v1.md) 已完成 caller context、scope、生命周期、usage / timing、failure、分页、脱敏、独立 dev/test store 和 Web 审查路径设计，并创建单张纵向实现任务卡；下一产品主任务按该任务卡实施。
+7. R5 Web 主入口与关键 lazy chunk 预算已接入现有 Vite build；后续不新增同层 checker，工程线转向低覆盖包。
+8. OIDC、production secret、真实云资源、production API key、quota enforcement / billing、真实生图和模型训练只在外部资源、负责人和独立运行窗口明确后重开。
 
 ## 历史下一步记录（仅供 checker 兼容，不再执行）
 

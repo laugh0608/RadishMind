@@ -1,6 +1,6 @@
 # RadishMind 能力矩阵
 
-更新时间：2026-07-11
+更新时间：2026-07-12
 
 本文档用于回答三件事：
 
@@ -12,7 +12,7 @@
 
 如果你要推进具体产品能力，先读 [功能设计文档入口](features/README.md)。2026-06-14 起，长期功能设计不再默认塞进 task card；task card、fixture 和 checker 只服务具体实现批次、前置条件或高风险边界。
 
-2026-07-11 覆盖：Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning 与 Evaluation Suite / Release Review 已完成。下表 `Product Surfaces` 长行中的“无数据库 / 无 executor / 缺运行记录存储”仅保留历史阶段语义；当前真实产品缺口已转为 Model Gateway 请求历史、用量与失败审查的真实 consumer / dev-test store，以及仍关闭的 production auth / repository、tool、confirmation、writeback、replay、production API key、quota enforcement 和 billing。
+2026-07-12 覆盖：Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning 与 Evaluation Suite / Release Review 已完成；Model Gateway 请求历史、用量与失败审查已完成 caller scope、record lifecycle、独立 API / dev-test store 和真实 consumer 设计并进入单张实现任务卡。下表 `Product Surfaces` 长行中的“无数据库 / 无 executor / 缺运行记录存储”仅保留历史阶段语义；当前缺口是落实该 Gateway 纵向实现，以及仍关闭的 production auth / repository、tool、confirmation、writeback、replay、production API key、quota enforcement 和 billing。
 
 | 主线 | 当前已有 | 当前缺口 | 当前不做 | 下一步 |
 | --- | --- | --- | --- | --- |

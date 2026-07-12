@@ -1,6 +1,6 @@
 # Model Gateway / API Distribution 设计与开发文档
 
-更新时间：2026-07-11
+更新时间：2026-07-12
 
 ## 功能定位
 
@@ -20,9 +20,9 @@ R4 第一批 [Gateway Python Bridge Runtime v1](gateway/python-bridge-runtime-v1
 
 [Gateway Bridge stdio Worker Pool v1 任务卡](../task-cards/gateway-bridge-stdio-worker-pool-v1-plan.md) 已在现有 `bridgeClient` 后完成有界 worker pool、版本化握手、排队、超时 / 取消、崩溃后重建、优雅退出和请求级 credential / stream 隔离。它没有改变 northbound request / response 语义，没有接真实 provider，也没有启用生产 secret、自动 retry/fallback 或新的公开 API。
 
-Workflow 产品链在 2026-07-11 已完成 durable dev/test 运行与 evaluation 审查。下一产品建议进入 `Model Gateway Request History / Usage & Failure Review v1`：先把现有 northbound route、selection metadata、`duration_ms` / `provider_duration_ms`、稳定错误和 request/audit ref 组织为可分页、可过滤、可重启恢复的开发 / 测试审查记录，再把真实 consumer 接入现有 Gateway Usage/Audit Evidence 与 Evidence Review。
+Workflow 产品链在 2026-07-11 已完成 durable dev/test 运行与 evaluation 审查。下一产品专题已进入 [Model Gateway Request History / Usage & Failure Review v1](gateway/model-gateway-request-history-usage-failure-review-v1.md)：把现有 northbound route、selection metadata、`duration_ms` / `provider_duration_ms`、稳定错误和 request/audit ref 组织为可分页、可过滤、可重启恢复的开发 / 测试审查记录，再把真实 consumer 接入现有 Gateway Usage/Audit Evidence 与 Evidence Review。
 
-明日先写功能设计，不直接落 API 或 schema。设计必须明确 record 生命周期、tenant / workspace / application 或 API consumer scope、cursor、route / provider / profile / model / status / failure / time filters、retention、redaction、store failure、observability 和 Web 路径；若确认需要新 API 与 PostgreSQL schema，再创建单张实现任务卡并继续实施。记录不得包含 prompt、messages、response body、authorization header、credential、endpoint、provider raw envelope 或原始错误正文。
+功能设计已固定独立 `GatewayCallerContextProvider`、tenant + workspace + consumer 最小 scope、可选 application binding、`gateway_request_record.v1` 生命周期、usage availability、keyset cursor、14 天 dev/test 保留声明、sanitized allowlist、store failure 可观测性和 Web 路径，并确认需要独立 API 与 PostgreSQL schema。下一步按单张 [纵向实现任务卡](../task-cards/model-gateway-request-history-usage-failure-review-v1-plan.md)实施；记录不得包含 prompt、messages、response body、authorization header、credential、endpoint、provider raw envelope 或原始错误正文。
 
 ## 设计边界
 
