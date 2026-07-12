@@ -6,7 +6,8 @@
 
 ## 当前专题
 
-- [Authenticated Read Store Transition v1](authenticated-read-store-transition-v1.md)：第一批 verified identity / negative auth runtime 已完成；下一批只设计并实现 Admin tenant / audit PostgreSQL dev/test read repository。
+- [Authenticated Read Store Transition v1](authenticated-read-store-transition-v1.md)：第一批 verified identity / negative auth runtime 已完成；第二批产品设计已完成，下一步通过统一高风险任务卡进入实现。
+- [Tenant / Audit PostgreSQL Read Repository v1](tenant-audit-postgresql-read-repository-v1.md)：已定义两条 Admin operation 的 projection schema、manual migration、read-only role、routed selector、keyset pagination、failure / no-fallback 和分批验收。
 
 ## 目录停止线
 
