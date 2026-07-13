@@ -222,14 +222,27 @@ func validateGatewayRequestStoreRecord(
 
 func validGatewayRequestContext(requestContext GatewayRequestContext) bool {
 	for _, reference := range []string{
-		requestContext.TenantRef, requestContext.WorkspaceID, requestContext.ConsumerRef,
-		requestContext.SubjectRef, requestContext.AuditContext, requestContext.Source,
+		requestContext.TenantRef, requestContext.WorkspaceID,
+		requestContext.SubjectRef, requestContext.AuditContext,
 	} {
 		if !validGatewayRequestReference(reference, 256) {
 			return false
 		}
 	}
-	return requestContext.ApplicationID == "" || validGatewayRequestReference(requestContext.ApplicationID, 256)
+	return validGatewayRequestSource(requestContext.Source) && validGatewayRequestConsumerRef(requestContext.ConsumerRef) &&
+		(requestContext.ApplicationID == "" || validGatewayRequestReference(requestContext.ApplicationID, 256))
+}
+
+func validGatewayRequestSource(value string) bool {
+	return strings.TrimSpace(value) == gatewayAPIKeyAuthenticationSource || validGatewayRequestReference(value, 256)
+}
+
+func validGatewayRequestConsumerRef(value string) bool {
+	value = strings.TrimSpace(value)
+	if strings.HasPrefix(value, "api_key:") {
+		return apiKeyIDPattern.MatchString(strings.TrimPrefix(value, "api_key:"))
+	}
+	return validGatewayRequestReference(value, 256)
 }
 
 func validGatewayRequestUsage(usage GatewayRequestUsage) bool {

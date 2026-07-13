@@ -132,6 +132,11 @@ func (server *Server) handleListAPIKeys(writer http.ResponseWriter, request *htt
 }
 
 func (server *Server) apiKeyContextFromRequest(request *http.Request, trace requestTrace, workspaceID, requiredScope, auditSuffix string) (APIKeyContext, string, int) {
+	for _, authorization := range request.Header.Values("Authorization") {
+		if strings.Contains(authorization, apiKeyTokenPrefix) {
+			return APIKeyContext{RequestContext: request.Context(), RequestID: trace.requestID}, APIKeyFailureCredentialConflict, http.StatusBadRequest
+		}
+	}
 	auth, failureCode, status := authorizeControlPlaneReadRequest(request, "", requiredScope)
 	requestContext := APIKeyContext{
 		RequestContext: request.Context(), RequestID: trace.requestID, TenantRef: strings.TrimSpace(auth.TenantBinding),
@@ -221,7 +226,7 @@ func apiKeyResultHTTPStatus(failureCode string, successStatus int) int {
 	switch failureCode {
 	case "":
 		return successStatus
-	case APIKeyFailurePayloadInvalid, APIKeyFailureSecretForbidden, APIKeyFailureCursorInvalid:
+	case APIKeyFailurePayloadInvalid, APIKeyFailureSecretForbidden, APIKeyFailureCursorInvalid, APIKeyFailureCredentialConflict:
 		return http.StatusBadRequest
 	case APIKeyFailureScopeDenied, APIKeyFailureApplicationUnavailable, APIKeyFailureWriteDisabled,
 		APIKeyFailureRevoked, APIKeyFailureExpired, APIKeyFailureLifecycleDisabled:

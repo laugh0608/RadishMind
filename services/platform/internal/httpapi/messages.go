@@ -71,7 +71,9 @@ type anthropicStopDelta struct {
 
 func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, "/v1/messages")
-	s.startGatewayRequestTrace(request, &trace, northboundProtocolMessages)
+	if !s.prepareGatewayRequest(writer, request, &trace, northboundProtocolMessages, "messages:invoke") {
+		return
+	}
 	var messageRequest anthropicMessagesRequest
 	if !s.decodeJSONRequestBody(writer, request, trace, &messageRequest, jsonRequestBodyOptions{
 		maxBytes: maxNorthboundJSONRequestBodyBytes,

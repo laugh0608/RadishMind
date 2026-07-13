@@ -47,6 +47,7 @@ type Server struct {
 	closeApplicationDraftStore            func()
 	closeApplicationPublishStore          func()
 	closeApplicationCatalogStore          func()
+	closeAPIKeyStore                      func()
 	closeWorkflowRunStore                 func()
 	closeGatewayRequestStore              func()
 	closeControlPlaneReadRepository       func()
@@ -110,8 +111,18 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeControlPlaneReadRepository()
 		return nil, err
 	}
+	apiKeyRepository, closeAPIKeyStore, err := newAPIKeyRepositoryFromConfig(cfg)
+	if err != nil {
+		closeApplicationCatalogStore()
+		closeApplicationPublishStore()
+		closeApplicationDraftStore()
+		closeSavedWorkflowDraftStore()
+		closeControlPlaneReadRepository()
+		return nil, err
+	}
 	workflowRunStore, closeWorkflowRunStore, err := newWorkflowRunStoreFromConfig(cfg)
 	if err != nil {
+		closeAPIKeyStore()
 		closeApplicationCatalogStore()
 		closeApplicationPublishStore()
 		closeApplicationDraftStore()
@@ -122,6 +133,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfig(cfg)
 	if err != nil {
 		closeWorkflowRunStore()
+		closeAPIKeyStore()
 		closeApplicationCatalogStore()
 		closeApplicationPublishStore()
 		closeApplicationDraftStore()
@@ -133,6 +145,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	if err != nil {
 		closeGatewayRequestStore()
 		closeWorkflowRunStore()
+		closeAPIKeyStore()
 		closeApplicationCatalogStore()
 		closeApplicationPublishStore()
 		closeApplicationDraftStore()
@@ -152,7 +165,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		applicationDraftRepository:            applicationDraftRepository,
 		applicationPublishCandidateRepository: applicationPublishRepository,
 		applicationCatalogRepository:          applicationCatalogRepository,
-		apiKeyRepository:                      newMemoryAPIKeyRepository(),
+		apiKeyRepository:                      apiKeyRepository,
 		workflowRunStore:                      workflowRunStore,
 		workflowEvaluationStore:               newWorkflowEvaluationStoreForRunStore(workflowRunStore),
 		workflowEvaluationSuiteStore:          newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
@@ -162,6 +175,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeApplicationDraftStore:            closeApplicationDraftStore,
 		closeApplicationPublishStore:          closeApplicationPublishStore,
 		closeApplicationCatalogStore:          closeApplicationCatalogStore,
+		closeAPIKeyStore:                      closeAPIKeyStore,
 		closeWorkflowRunStore:                 closeWorkflowRunStore,
 		closeGatewayRequestStore:              closeGatewayRequestStore,
 		closeControlPlaneReadRepository:       closeControlPlaneReadRepository,
@@ -304,6 +318,9 @@ func (s *Server) Close() {
 		}
 		if s.closeApplicationCatalogStore != nil {
 			s.closeApplicationCatalogStore()
+		}
+		if s.closeAPIKeyStore != nil {
+			s.closeAPIKeyStore()
 		}
 		if s.closeWorkflowRunStore != nil {
 			s.closeWorkflowRunStore()

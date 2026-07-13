@@ -30,6 +30,9 @@ const (
 	APIKeyFailureVersionConflict        = "api_key_version_conflict"
 	APIKeyFailureRevoked                = "api_key_revoked"
 	APIKeyFailureExpired                = "api_key_expired"
+	APIKeyFailureMissing                = "api_key_missing"
+	APIKeyFailureInvalid                = "api_key_invalid"
+	APIKeyFailureCredentialConflict     = "api_key_credential_conflict"
 	APIKeyFailureTransitionInvalid      = "api_key_transition_invalid"
 	APIKeyFailureCursorInvalid          = "api_key_cursor_invalid"
 	APIKeyFailureStoreUnavailable       = "api_key_store_unavailable"
@@ -53,6 +56,7 @@ var (
 	errAPIKeyNotFound            = errors.New(APIKeyFailureNotFound)
 	errAPIKeyVersionConflict     = errors.New(APIKeyFailureVersionConflict)
 	errAPIKeyRevoked             = errors.New(APIKeyFailureRevoked)
+	errAPIKeyExpired             = errors.New(APIKeyFailureExpired)
 	errAPIKeyTransitionInvalid   = errors.New(APIKeyFailureTransitionInvalid)
 	errAPIKeyStoreUnavailable    = errors.New(APIKeyFailureStoreUnavailable)
 	errAPIKeyIdentifierCollision = errors.New("api key identifier collision")
@@ -163,6 +167,8 @@ type apiKeyRepository interface {
 	Create(APIKeyContext, APIKeyRecord) (APIKeyRecord, error)
 	Read(APIKeyContext, string) (APIKeyRecord, error)
 	List(APIKeyContext, apiKeyListQuery) ([]APIKeyRecord, error)
+	FindCredential(context.Context, string) (APIKeyRecord, error)
+	RecordSuccessfulAuthentication(context.Context, string, int, time.Time) (APIKeyRecord, error)
 	Revoke(APIKeyContext, string, int, APIKeyRecord) (APIKeyRecord, error)
 }
 
@@ -499,6 +505,11 @@ func (repository *memoryAPIKeyRepository) Create(requestContext APIKeyContext, r
 	if repository.unavailable {
 		return APIKeyRecord{}, errAPIKeyStoreUnavailable
 	}
+	for _, existing := range repository.records {
+		if existing.APIKeyID == record.APIKeyID {
+			return APIKeyRecord{}, errAPIKeyIdentifierCollision
+		}
+	}
 	key := apiKeyRepositoryKey(requestContext, record.APIKeyID)
 	if _, exists := repository.records[key]; exists {
 		return APIKeyRecord{}, errAPIKeyIdentifierCollision
@@ -506,6 +517,59 @@ func (repository *memoryAPIKeyRepository) Create(requestContext APIKeyContext, r
 	record = cloneAPIKeyRecord(record)
 	repository.records[key] = record
 	return cloneAPIKeyRecord(record), nil
+}
+
+func (repository *memoryAPIKeyRepository) FindCredential(_ context.Context, apiKeyID string) (APIKeyRecord, error) {
+	repository.mu.RLock()
+	defer repository.mu.RUnlock()
+	if repository.unavailable {
+		return APIKeyRecord{}, errAPIKeyStoreUnavailable
+	}
+	for _, record := range repository.records {
+		if record.APIKeyID == apiKeyID {
+			return cloneAPIKeyRecord(record), nil
+		}
+	}
+	return APIKeyRecord{}, errAPIKeyNotFound
+}
+
+func (repository *memoryAPIKeyRepository) RecordSuccessfulAuthentication(_ context.Context, apiKeyID string, expectedVersion int, usedAt time.Time) (APIKeyRecord, error) {
+	repository.mu.Lock()
+	defer repository.mu.Unlock()
+	if repository.unavailable {
+		return APIKeyRecord{}, errAPIKeyStoreUnavailable
+	}
+	for key, record := range repository.records {
+		if record.APIKeyID != apiKeyID {
+			continue
+		}
+		if record.LifecycleState == apiKeyLifecycleRevoked {
+			return APIKeyRecord{}, errAPIKeyRevoked
+		}
+		if record.RecordVersion != expectedVersion {
+			return APIKeyRecord{}, apiKeyVersionConflictError{CurrentVersion: record.RecordVersion, CurrentState: record.LifecycleState}
+		}
+		expiresAt, err := time.Parse(time.RFC3339Nano, record.ExpiresAt)
+		if err != nil {
+			return APIKeyRecord{}, errAPIKeyStoreUnavailable
+		}
+		usedAt = usedAt.UTC()
+		if !usedAt.Before(expiresAt.UTC()) {
+			return APIKeyRecord{}, errAPIKeyExpired
+		}
+		if record.LastUsedAt == nil {
+			value := usedAt.Format(time.RFC3339Nano)
+			record.LastUsedAt = &value
+		} else if previous, parseErr := time.Parse(time.RFC3339Nano, *record.LastUsedAt); parseErr != nil {
+			return APIKeyRecord{}, errAPIKeyStoreUnavailable
+		} else if usedAt.After(previous) {
+			value := usedAt.Format(time.RFC3339Nano)
+			record.LastUsedAt = &value
+		}
+		repository.records[key] = cloneAPIKeyRecord(record)
+		return cloneAPIKeyRecord(record), nil
+	}
+	return APIKeyRecord{}, errAPIKeyNotFound
 }
 
 func (repository *memoryAPIKeyRepository) Read(requestContext APIKeyContext, apiKeyID string) (APIKeyRecord, error) {

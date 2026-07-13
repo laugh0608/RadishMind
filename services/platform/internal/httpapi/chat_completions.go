@@ -76,7 +76,9 @@ type openAIChatMessage struct {
 
 func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, "/v1/chat/completions")
-	s.startGatewayRequestTrace(request, &trace, northboundProtocolChatCompletions)
+	if !s.prepareGatewayRequest(writer, request, &trace, northboundProtocolChatCompletions, "chat:invoke") {
+		return
+	}
 	var chatRequest chatCompletionRequest
 	if !s.decodeJSONRequestBody(writer, request, trace, &chatRequest, jsonRequestBodyOptions{
 		maxBytes: maxNorthboundJSONRequestBodyBytes,

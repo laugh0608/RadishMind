@@ -18,6 +18,7 @@ const (
 	errorBoundaryPythonBridge       = "python_bridge"
 	errorBoundaryPlatformResponse   = "platform_response"
 	errorBoundarySouthboundProvider = "southbound_provider"
+	errorBoundaryGatewayAuth        = "gateway_authentication"
 	errorBoundaryConfiguration      = "configuration"
 	errorBoundaryUnknown            = "unknown"
 )
@@ -230,6 +231,42 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			errorType:       "invalid_request_error",
 			failureBoundary: errorBoundaryConfiguration,
 			defaultMessage:  "API key lifecycle dev HTTP route is disabled",
+		},
+		APIKeyFailureMissing: {
+			statusCode: http.StatusUnauthorized, errorType: "authentication_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "API key is required",
+		},
+		APIKeyFailureInvalid: {
+			statusCode: http.StatusUnauthorized, errorType: "authentication_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "API key is invalid",
+		},
+		APIKeyFailureCredentialConflict: {
+			statusCode: http.StatusBadRequest, errorType: "invalid_request_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "conflicting Gateway credentials are not allowed",
+		},
+		APIKeyFailureRevoked: {
+			statusCode: http.StatusForbidden, errorType: "authentication_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "API key is revoked",
+		},
+		APIKeyFailureExpired: {
+			statusCode: http.StatusForbidden, errorType: "authentication_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "API key is expired",
+		},
+		APIKeyFailureScopeDenied: {
+			statusCode: http.StatusForbidden, errorType: "permission_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "API key scope is denied",
+		},
+		APIKeyFailureApplicationUnavailable: {
+			statusCode: http.StatusForbidden, errorType: "authentication_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "API key application is unavailable",
+		},
+		APIKeyFailureStoreUnavailable: {
+			statusCode: http.StatusServiceUnavailable, errorType: "service_unavailable_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "API key store is unavailable",
+		},
+		string(GatewayRequestHistoryFailureStore): {
+			statusCode: http.StatusServiceUnavailable, errorType: "service_unavailable_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "Gateway request history store is unavailable",
 		},
 		"WORKFLOW_EXECUTOR_DEV_DISABLED": {
 			statusCode:      http.StatusForbidden,

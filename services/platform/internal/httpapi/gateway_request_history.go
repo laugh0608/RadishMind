@@ -359,14 +359,14 @@ func validGatewayRequestUsageAvailability(value GatewayRequestUsageAvailability)
 }
 
 func validGatewayRequestProtocol(value string) bool {
-	return value == northboundProtocolChatCompletions || value == northboundProtocolResponses || value == northboundProtocolMessages
+	return value == northboundProtocolModels || value == northboundProtocolChatCompletions || value == northboundProtocolResponses || value == northboundProtocolMessages
 }
 
 func validGatewayRequestFailureBoundary(value string) bool {
 	switch value {
 	case errorBoundaryNorthboundRequest, errorBoundaryCanonicalRequest, errorBoundaryProviderInventory,
 		errorBoundaryPythonBridge, errorBoundaryPlatformResponse, errorBoundarySouthboundProvider,
-		errorBoundaryConfiguration, errorBoundaryUnknown:
+		errorBoundaryGatewayAuth, errorBoundaryConfiguration, errorBoundaryUnknown:
 		return true
 	default:
 		return false

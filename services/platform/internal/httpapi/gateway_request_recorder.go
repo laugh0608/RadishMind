@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"radishmind.local/services/platform/internal/bridge"
+	"radishmind.local/services/platform/internal/config"
 )
 
 const (
@@ -44,18 +45,27 @@ func (s *Server) startGatewayRequestTrace(
 	request *http.Request,
 	trace *requestTrace,
 	protocol string,
-) {
+) error {
 	if trace == nil || !s.config.GatewayRequestHistoryDevEnabled {
-		return
+		return nil
 	}
-	requestContext, ok := gatewayRequestContextFromDevHeaders(request, *trace)
+	requestContext := trace.gatewayRequestContext
+	ok := false
+	if config.EffectiveGatewayAuthMode(s.config) == gatewayAPIKeyAuthenticationSource {
+		ok = requestContext.Source == gatewayAPIKeyAuthenticationSource && validGatewayRequestContext(requestContext)
+		if !ok {
+			return errGatewayRequestStoreContract
+		}
+	} else {
+		requestContext, ok = gatewayRequestContextFromDevHeaders(request, *trace)
+	}
 	if !ok {
 		log.Printf(
 			"radishmind_gateway_request_history request_id=%s route=%s outcome=caller_context_unavailable",
 			trace.requestID,
 			trace.route,
 		)
-		return
+		return nil
 	}
 	record := GatewayRequestRecord{
 		SchemaVersion: gatewayRequestRecordSchemaVersion,
@@ -75,11 +85,15 @@ func (s *Server) startGatewayRequestTrace(
 	}
 	if err := s.gatewayRequestStore().CreateRequest(requestContext, &record); err != nil {
 		logGatewayRequestStoreOutcome(trace.requestID, trace.route, record.StoreMode, "create_failed")
-		return
+		if requestContext.Source == gatewayAPIKeyAuthenticationSource {
+			return err
+		}
+		return nil
 	}
 	trace.gatewayRequestContext = requestContext
 	trace.gatewayRequest = &record
 	logGatewayRequestStoreOutcome(trace.requestID, trace.route, record.StoreMode, "started")
+	return nil
 }
 
 func (s *Server) checkpointGatewayRequestTrace(trace *requestTrace, stream bool) {

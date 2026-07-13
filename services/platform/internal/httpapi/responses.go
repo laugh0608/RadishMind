@@ -62,7 +62,9 @@ type openAIResponsesStreamEvent struct {
 
 func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, "/v1/responses")
-	s.startGatewayRequestTrace(request, &trace, northboundProtocolResponses)
+	if !s.prepareGatewayRequest(writer, request, &trace, northboundProtocolResponses, "responses:invoke") {
+		return
+	}
 	var responseRequest openAIResponsesRequest
 	if !s.decodeJSONRequestBody(writer, request, trace, &responseRequest, jsonRequestBodyOptions{
 		maxBytes: maxNorthboundJSONRequestBodyBytes,

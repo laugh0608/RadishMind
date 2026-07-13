@@ -25,6 +25,7 @@ const (
 	defaultApplicationDraftDBTimeout   = 5 * time.Second
 	defaultApplicationPublishDBTimeout = 5 * time.Second
 	defaultApplicationCatalogDBTimeout = 5 * time.Second
+	defaultAPIKeyDBTimeout             = 5 * time.Second
 	defaultRunDBTimeout                = 5 * time.Second
 	defaultGatewayRequestDBTimeout     = 5 * time.Second
 	defaultPythonBinary                = "python3"
@@ -34,6 +35,8 @@ const (
 	defaultApplicationDraftStoreMode   = "memory_dev"
 	defaultApplicationPublishStoreMode = "memory_dev"
 	defaultApplicationCatalogStoreMode = "memory_dev"
+	defaultAPIKeyStoreMode             = "memory_dev"
+	defaultGatewayAuthMode             = "dev_headers"
 	defaultRunStoreMode                = "memory_dev"
 	defaultGatewayRequestStoreMode     = "memory_dev"
 	defaultControlPlaneReadAuthMode    = ""
@@ -111,6 +114,10 @@ type Config struct {
 	ApplicationCatalogDatabaseTimeout    time.Duration
 	APIKeyLifecycleDevHTTPEnabled        bool
 	APIKeyLifecycleDevWriteEnabled       bool
+	APIKeyStoreMode                      string
+	APIKeyDatabaseURL                    string
+	APIKeyDatabaseTimeout                time.Duration
+	GatewayAuthMode                      string
 	WorkflowExecutorDevEnabled           bool
 	WorkflowDiagnosticsDevEnabled        bool
 	GatewayRequestHistoryDevEnabled      bool
@@ -161,6 +168,9 @@ type ConfigSummary struct {
 	ApplicationCatalogDatabaseConfigured bool              `json:"application_catalog_database_configured"`
 	APIKeyLifecycleDevHTTPEnabled        bool              `json:"api_key_lifecycle_dev_http_enabled"`
 	APIKeyLifecycleDevWriteEnabled       bool              `json:"api_key_lifecycle_dev_write_enabled"`
+	APIKeyStoreMode                      string            `json:"api_key_store_mode"`
+	APIKeyDatabaseConfigured             bool              `json:"api_key_database_configured"`
+	GatewayAuthMode                      string            `json:"gateway_auth_mode"`
 	WorkflowExecutorDevEnabled           bool              `json:"workflow_executor_dev_enabled"`
 	WorkflowDiagnosticsDevEnabled        bool              `json:"workflow_diagnostics_dev_enabled"`
 	GatewayRequestHistoryDevEnabled      bool              `json:"gateway_request_history_dev_enabled"`
@@ -282,6 +292,9 @@ func defaultConfig() Config {
 		ApplicationPublishDatabaseTimeout:    defaultApplicationPublishDBTimeout,
 		ApplicationCatalogStoreMode:          defaultApplicationCatalogStoreMode,
 		ApplicationCatalogDatabaseTimeout:    defaultApplicationCatalogDBTimeout,
+		APIKeyStoreMode:                      defaultAPIKeyStoreMode,
+		APIKeyDatabaseTimeout:                defaultAPIKeyDBTimeout,
+		GatewayAuthMode:                      defaultGatewayAuthMode,
 		WorkflowRunStoreMode:                 defaultRunStoreMode,
 		WorkflowRunDatabaseTimeout:           defaultRunDBTimeout,
 		GatewayRequestStoreMode:              defaultGatewayRequestStoreMode,
@@ -317,6 +330,10 @@ func defaultConfig() Config {
 			"application_catalog_store":             configSourceDefault,
 			"application_catalog_database":          configSourceDefault,
 			"application_catalog_database_timeout":  configSourceDefault,
+			"api_key_store":                         configSourceDefault,
+			"api_key_database":                      configSourceDefault,
+			"api_key_database_timeout":              configSourceDefault,
+			"gateway_auth_mode":                     configSourceDefault,
 			"workflow_executor_dev":                 configSourceDefault,
 			"workflow_diagnostics_dev":              configSourceDefault,
 			"gateway_request_history_dev":           configSourceDefault,
@@ -689,6 +706,22 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.APIKeyLifecycleDevWriteEnabled = parsed
 		cfg.FieldSources["api_key_lifecycle_dev_write"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_API_KEY_STORE"); ok {
+		applyStringValue(&cfg.APIKeyStoreMode, value, cfg.FieldSources, "api_key_store", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL"); ok {
+		applyStringValue(&cfg.APIKeyDatabaseURL, value, cfg.FieldSources, "api_key_database", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_API_KEY_DATABASE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_API_KEY_DATABASE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.APIKeyDatabaseTimeout, parsed, cfg.FieldSources, "api_key_database_timeout", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_GATEWAY_AUTH_MODE"); ok {
+		applyStringValue(&cfg.GatewayAuthMode, value, cfg.FieldSources, "gateway_auth_mode", configSourceEnv)
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_EXECUTOR_DEV"); ok {
 		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_EXECUTOR_DEV", value)
 		if err != nil {
@@ -813,6 +846,11 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if applicationCatalogStoreMode == "" {
 		applicationCatalogStoreMode = defaultApplicationCatalogStoreMode
 	}
+	apiKeyStoreMode := strings.TrimSpace(cfg.APIKeyStoreMode)
+	if apiKeyStoreMode == "" {
+		apiKeyStoreMode = defaultAPIKeyStoreMode
+	}
+	gatewayAuthMode := EffectiveGatewayAuthMode(cfg)
 	workflowRunStoreMode := strings.TrimSpace(cfg.WorkflowRunStoreMode)
 	if workflowRunStoreMode == "" {
 		workflowRunStoreMode = defaultRunStoreMode
@@ -854,6 +892,16 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "application_catalog_dev_http")
 		requiredFields = appendRequiredConfigField(requiredFields, "application_catalog_dev_write")
 		requiredFields = appendRequiredConfigField(requiredFields, "application_catalog_database")
+	}
+	if apiKeyStoreMode == "postgres_dev_test" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "api_key_lifecycle_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "api_key_lifecycle_dev_write")
+		requiredFields = appendRequiredConfigField(requiredFields, "api_key_database")
+	}
+	if gatewayAuthMode == "api_key_dev_test" {
+		requiredFields = appendRequiredConfigField(requiredFields, "api_key_lifecycle_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "gateway_request_history_dev")
 	}
 	if cfg.WorkflowExecutorDevEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
@@ -904,6 +952,9 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		ApplicationCatalogDatabaseConfigured: strings.TrimSpace(cfg.ApplicationCatalogDatabaseURL) != "",
 		APIKeyLifecycleDevHTTPEnabled:        cfg.APIKeyLifecycleDevHTTPEnabled,
 		APIKeyLifecycleDevWriteEnabled:       cfg.APIKeyLifecycleDevWriteEnabled,
+		APIKeyStoreMode:                      apiKeyStoreMode,
+		APIKeyDatabaseConfigured:             strings.TrimSpace(cfg.APIKeyDatabaseURL) != "",
+		GatewayAuthMode:                      gatewayAuthMode,
 		WorkflowExecutorDevEnabled:           cfg.WorkflowExecutorDevEnabled,
 		WorkflowDiagnosticsDevEnabled:        cfg.WorkflowDiagnosticsDevEnabled,
 		GatewayRequestHistoryDevEnabled:      cfg.GatewayRequestHistoryDevEnabled,
@@ -931,6 +982,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"application_draft_database":           cfg.ApplicationDraftDatabaseTimeout.String(),
 			"application_publish_database":         cfg.ApplicationPublishDatabaseTimeout.String(),
 			"application_catalog_database":         cfg.ApplicationCatalogDatabaseTimeout.String(),
+			"api_key_database":                     cfg.APIKeyDatabaseTimeout.String(),
 			"workflow_run_database":                cfg.WorkflowRunDatabaseTimeout.String(),
 		},
 		PythonBridge: PythonBridge{
@@ -954,6 +1006,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL",
+			"RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL",
+			"RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
@@ -1095,6 +1149,18 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			}
 		case "application_catalog_database":
 			if strings.TrimSpace(cfg.ApplicationCatalogDatabaseURL) == "" {
+				missing = append(missing, field)
+			}
+		case "api_key_lifecycle_dev_http":
+			if !cfg.APIKeyLifecycleDevHTTPEnabled {
+				missing = append(missing, field)
+			}
+		case "api_key_lifecycle_dev_write":
+			if !cfg.APIKeyLifecycleDevWriteEnabled {
+				missing = append(missing, field)
+			}
+		case "api_key_database":
+			if strings.TrimSpace(cfg.APIKeyDatabaseURL) == "" {
 				missing = append(missing, field)
 			}
 		case "workflow_executor_dev":
@@ -1270,6 +1336,27 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	if cfg.APIKeyLifecycleDevWriteEnabled && !cfg.ApplicationCatalogDevWriteEnabled {
 		return fmt.Errorf("API key lifecycle dev write requires application catalog dev write")
 	}
+	switch strings.TrimSpace(cfg.APIKeyStoreMode) {
+	case "", "memory_dev":
+	case "postgres_dev_test":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.APIKeyLifecycleDevHTTPEnabled || !cfg.APIKeyLifecycleDevWriteEnabled || strings.TrimSpace(cfg.APIKeyDatabaseURL) == "" {
+			return fmt.Errorf("API key postgres_dev_test store requires complete development gates and a database URL")
+		}
+	default:
+		return fmt.Errorf("API key store must be memory_dev or postgres_dev_test")
+	}
+	if cfg.APIKeyDatabaseTimeout <= 0 {
+		return fmt.Errorf("API key database timeout must be positive")
+	}
+	switch EffectiveGatewayAuthMode(cfg) {
+	case "dev_headers":
+	case "api_key_dev_test":
+		if !cfg.APIKeyLifecycleDevHTTPEnabled || !cfg.GatewayRequestHistoryDevEnabled {
+			return fmt.Errorf("Gateway api_key_dev_test auth requires API key lifecycle HTTP and Gateway request history")
+		}
+	default:
+		return fmt.Errorf("Gateway auth mode must be dev_headers or api_key_dev_test")
+	}
 	if cfg.WorkflowDiagnosticsDevEnabled {
 		if !cfg.WorkflowExecutorDevEnabled {
 			return fmt.Errorf("workflow diagnostics dev requires workflow executor dev")
@@ -1302,6 +1389,14 @@ func EffectiveControlPlaneReadAuthMode(cfg Config) string {
 	}
 	if mode == "" {
 		return "disabled"
+	}
+	return mode
+}
+
+func EffectiveGatewayAuthMode(cfg Config) string {
+	mode := strings.TrimSpace(cfg.GatewayAuthMode)
+	if mode == "" {
+		return defaultGatewayAuthMode
 	}
 	return mode
 }

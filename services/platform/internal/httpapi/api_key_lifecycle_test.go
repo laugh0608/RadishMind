@@ -320,6 +320,17 @@ func TestAPIKeyLifecycleHTTPPermissionsUnknownFieldsAndOIDCZeroQuery(t *testing.
 		t.Fatalf("unknown sensitive field must be rejected before repository: %d body=%s", unknownRecorder.Code, unknownRecorder.Body.String())
 	}
 
+	writeAuth := readOnlyAuth
+	writeAuth.ScopeGrants = []string{"api_keys:write"}
+	apiKeyCredential := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/api-keys", strings.NewReader(`{"workspace_id":"workspace_demo","application_id":"app_aaaaaaaaaaaaaaaa","display_name":"SDK key","scopes":["models:read"],"expires_in_days":30}`))
+	apiKeyCredential.Header.Set("Authorization", "Bearer rmd_dev_key_aaaaaaaaaaaaaaaa.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+	apiKeyCredential = apiKeyCredential.WithContext(withControlPlaneReadFakeAuthContext(context.Background(), writeAuth))
+	apiKeyCredentialRecorder := httptest.NewRecorder()
+	server.handleCreateAPIKey(apiKeyCredentialRecorder, apiKeyCredential)
+	if apiKeyCredentialRecorder.Code != http.StatusBadRequest || !strings.Contains(apiKeyCredentialRecorder.Body.String(), APIKeyFailureCredentialConflict) || counting.createCalls.Load() != 0 {
+		t.Fatalf("API key credential must not authorize its management route: status=%d body=%s calls=%d", apiKeyCredentialRecorder.Code, apiKeyCredentialRecorder.Body.String(), counting.createCalls.Load())
+	}
+
 	oidcAuth := readOnlyAuth
 	oidcAuth.AuthMode = controlPlaneReadAuthModeRadishOIDCIntegrationTest
 	list := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/api-keys?workspace_id=workspace_demo", nil)

@@ -31,7 +31,10 @@ type northboundModelCatalog struct {
 
 func handleModels(writer http.ResponseWriter, request *http.Request, server *Server) {
 	trace := newRequestTrace(request, "/v1/models")
-	ctx, cancel := context.WithTimeout(context.Background(), server.config.BridgeTimeout)
+	if !server.prepareGatewayRequest(writer, request, &trace, northboundProtocolModels, "models:read") {
+		return
+	}
+	ctx, cancel := context.WithTimeout(request.Context(), server.config.BridgeTimeout)
 	defer cancel()
 
 	inventory, err := server.bridge.DescribeInventory(ctx)
@@ -42,17 +45,21 @@ func handleModels(writer http.ResponseWriter, request *http.Request, server *Ser
 
 	catalog := buildNorthboundModelCatalog(server, inventory)
 	writeObservedJSON(writer, http.StatusOK, trace, catalog.list)
+	server.finishGatewayRequestTrace(&trace, GatewayRequestStatusSucceeded, http.StatusOK, "", "")
 }
 
 func handleModel(writer http.ResponseWriter, request *http.Request, server *Server) {
 	trace := newRequestTrace(request, "/v1/models/{id}")
+	if !server.prepareGatewayRequest(writer, request, &trace, northboundProtocolModels, "models:read") {
+		return
+	}
 	modelID := strings.TrimSpace(request.PathValue("id"))
 	if modelID == "" {
 		server.writePlatformError(writer, trace, "MISSING_MODEL_ID", "model id is required")
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), server.config.BridgeTimeout)
+	ctx, cancel := context.WithTimeout(request.Context(), server.config.BridgeTimeout)
 	defer cancel()
 
 	inventory, err := server.bridge.DescribeInventory(ctx)
@@ -69,6 +76,7 @@ func handleModel(writer http.ResponseWriter, request *http.Request, server *Serv
 	}
 
 	writeObservedJSON(writer, http.StatusOK, trace, model)
+	server.finishGatewayRequestTrace(&trace, GatewayRequestStatusSucceeded, http.StatusOK, "", "")
 }
 
 func buildNorthboundModelCatalog(server *Server, inventory bridge.ProviderInventory) northboundModelCatalog {

@@ -156,7 +156,7 @@ func newControlPlaneReadAuthenticator(ctx context.Context, cfg config.Config) (*
 
 func withControlPlaneReadAuthenticator(next http.Handler, authenticator *controlPlaneReadAuthenticator) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		if authenticator == nil {
+		if authenticator == nil || isGatewayNorthboundRequest(request) {
 			next.ServeHTTP(writer, request)
 			return
 		}

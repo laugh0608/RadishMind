@@ -120,6 +120,11 @@ run_migration() {
 		export RADISHMIND_APPLICATION_CATALOG_STORE="postgres_dev_test"
 		export RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL="${runtime_database_url}"
 		export RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL="${migration_database_url}"
+		export RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP="1"
+		export RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE="1"
+		export RADISHMIND_API_KEY_STORE="postgres_dev_test"
+		export RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL="${runtime_database_url}"
+		export RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL="${migration_database_url}"
     export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
 		export RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL="${runtime_database_url}"
 		export RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL="${migration_database_url}"
@@ -132,6 +137,7 @@ run_migration() {
 		go run ./cmd/radishmind-application-draft-migrate "${migration_action}"
 		go run ./cmd/radishmind-application-publish-migrate "${migration_action}"
 		go run ./cmd/radishmind-application-catalog-migrate "${migration_action}"
+		go run ./cmd/radishmind-api-key-migrate "${migration_action}"
 		go run ./cmd/radishmind-workflow-run-migrate "${migration_action}"
 		go run ./cmd/radishmind-gateway-request-migrate "${migration_action}"
 		export RADISHMIND_CONTROL_PLANE_READ_STORE="postgres_dev_test"
@@ -180,7 +186,7 @@ case "${action}" in
     compose up -d --wait
     step "Running the PostgreSQL repository integration suite."
     run_integration_test
-    step "Restoring the reviewed workflow draft, application draft, application publish, application catalog, workflow run, Gateway request, and Control Plane Admin read schemas for interactive development."
+    step "Restoring the reviewed workflow draft, application draft, application publish, application catalog, API key, workflow run, Gateway request, and Control Plane Admin read schemas for interactive development."
     run_migration up
     ;;
   down)

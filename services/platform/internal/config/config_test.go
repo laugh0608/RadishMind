@@ -77,6 +77,8 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 		"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
@@ -149,6 +151,10 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DATABASE_TIMEOUT", "14s")
 	t.Setenv("RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP", "1")
 	t.Setenv("RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE", "true")
+	t.Setenv("RADISHMIND_API_KEY_STORE", "memory_dev")
+	t.Setenv("RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL", "postgresql://api-key.invalid/secret")
+	t.Setenv("RADISHMIND_API_KEY_DATABASE_TIMEOUT", "15s")
+	t.Setenv("RADISHMIND_GATEWAY_AUTH_MODE", "api_key_dev_test")
 
 	cfg, err := LoadFromEnv()
 	if err != nil {
@@ -209,6 +215,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if !cfg.APIKeyLifecycleDevHTTPEnabled || !cfg.APIKeyLifecycleDevWriteEnabled {
 		t.Fatalf("expected API key lifecycle env overrides: %#v", cfg)
+	}
+	if cfg.APIKeyStoreMode != "memory_dev" || cfg.APIKeyDatabaseURL == "" || cfg.APIKeyDatabaseTimeout != 15*time.Second || cfg.GatewayAuthMode != "api_key_dev_test" {
+		t.Fatalf("expected API key store and Gateway auth env overrides: %#v", cfg)
 	}
 
 	summary := cfg.SanitizedSummary()
@@ -505,6 +514,45 @@ func TestAPIKeyLifecycleRequiresExplicitApplicationCatalogGates(t *testing.T) {
 	}
 }
 
+func TestAPIKeyPostgresAndGatewayAuthRequireCompleteDevelopmentChain(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.APIKeyStoreMode = "postgres_dev_test"
+	if got := cfg.SanitizedSummary().MissingRequiredFields; !reflect.DeepEqual(got, []string{
+		"control_plane_read_dev_auth", "api_key_lifecycle_dev_http", "api_key_lifecycle_dev_write", "api_key_database",
+	}) {
+		t.Fatalf("unexpected API key PostgreSQL requirements: %#v", got)
+	}
+	if err := validateBridgeRuntimeConfig(cfg); err == nil {
+		t.Fatal("incomplete API key PostgreSQL store was accepted")
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	cfg.ApplicationCatalogDevHTTPEnabled = true
+	cfg.ApplicationCatalogDevWriteEnabled = true
+	cfg.APIKeyLifecycleDevHTTPEnabled = true
+	cfg.APIKeyLifecycleDevWriteEnabled = true
+	cfg.APIKeyDatabaseURL = "postgresql://runtime.invalid/secret"
+	if err := validateBridgeRuntimeConfig(cfg); err != nil {
+		t.Fatalf("complete API key PostgreSQL config was rejected: %v", err)
+	}
+	summary := cfg.SanitizedSummary()
+	if summary.APIKeyStoreMode != "postgres_dev_test" || !summary.APIKeyDatabaseConfigured || summary.GatewayAuthMode != "dev_headers" {
+		t.Fatalf("API key store summary is incomplete or exposed a secret: %#v", summary)
+	}
+
+	cfg.GatewayAuthMode = "api_key_dev_test"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil || err.Error() != "Gateway api_key_dev_test auth requires API key lifecycle HTTP and Gateway request history" {
+		t.Fatalf("Gateway API key auth accepted missing request history: %v", err)
+	}
+	cfg.GatewayRequestHistoryDevEnabled = true
+	if err := validateBridgeRuntimeConfig(cfg); err != nil {
+		t.Fatalf("complete Gateway API key auth chain was rejected: %v", err)
+	}
+	cfg.GatewayAuthMode = "unknown"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil || err.Error() != "Gateway auth mode must be dev_headers or api_key_dev_test" {
+		t.Fatalf("unknown Gateway auth mode was not rejected: %v", err)
+	}
+}
+
 func TestPostgresWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
 	cfg := defaultConfig()
 	cfg.WorkflowRunStoreMode = "postgres_dev_test"
@@ -752,6 +800,11 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_APPLICATION_CATALOG_DATABASE_TIMEOUT",
 		"RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP",
 		"RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE",
+		"RADISHMIND_API_KEY_STORE",
+		"RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_API_KEY_DATABASE_TIMEOUT",
+		"RADISHMIND_GATEWAY_AUTH_MODE",
 		"RADISHMIND_WORKFLOW_RUN_STORE",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
