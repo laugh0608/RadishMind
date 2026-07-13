@@ -24,6 +24,7 @@ const (
 	defaultDraftDBTimeout              = 5 * time.Second
 	defaultApplicationDraftDBTimeout   = 5 * time.Second
 	defaultApplicationPublishDBTimeout = 5 * time.Second
+	defaultApplicationCatalogDBTimeout = 5 * time.Second
 	defaultRunDBTimeout                = 5 * time.Second
 	defaultGatewayRequestDBTimeout     = 5 * time.Second
 	defaultPythonBinary                = "python3"
@@ -106,6 +107,8 @@ type Config struct {
 	ApplicationCatalogDevHTTPEnabled     bool
 	ApplicationCatalogDevWriteEnabled    bool
 	ApplicationCatalogStoreMode          string
+	ApplicationCatalogDatabaseURL        string
+	ApplicationCatalogDatabaseTimeout    time.Duration
 	WorkflowExecutorDevEnabled           bool
 	WorkflowDiagnosticsDevEnabled        bool
 	GatewayRequestHistoryDevEnabled      bool
@@ -153,6 +156,7 @@ type ConfigSummary struct {
 	ApplicationCatalogDevHTTPEnabled     bool              `json:"application_catalog_dev_http_enabled"`
 	ApplicationCatalogDevWriteEnabled    bool              `json:"application_catalog_dev_write_enabled"`
 	ApplicationCatalogStoreMode          string            `json:"application_catalog_store_mode"`
+	ApplicationCatalogDatabaseConfigured bool              `json:"application_catalog_database_configured"`
 	WorkflowExecutorDevEnabled           bool              `json:"workflow_executor_dev_enabled"`
 	WorkflowDiagnosticsDevEnabled        bool              `json:"workflow_diagnostics_dev_enabled"`
 	GatewayRequestHistoryDevEnabled      bool              `json:"gateway_request_history_dev_enabled"`
@@ -273,6 +277,7 @@ func defaultConfig() Config {
 		ApplicationPublishStoreMode:          defaultApplicationPublishStoreMode,
 		ApplicationPublishDatabaseTimeout:    defaultApplicationPublishDBTimeout,
 		ApplicationCatalogStoreMode:          defaultApplicationCatalogStoreMode,
+		ApplicationCatalogDatabaseTimeout:    defaultApplicationCatalogDBTimeout,
 		WorkflowRunStoreMode:                 defaultRunStoreMode,
 		WorkflowRunDatabaseTimeout:           defaultRunDBTimeout,
 		GatewayRequestStoreMode:              defaultGatewayRequestStoreMode,
@@ -306,6 +311,8 @@ func defaultConfig() Config {
 			"application_catalog_dev_http":          configSourceDefault,
 			"application_catalog_dev_write":         configSourceDefault,
 			"application_catalog_store":             configSourceDefault,
+			"application_catalog_database":          configSourceDefault,
+			"application_catalog_database_timeout":  configSourceDefault,
 			"workflow_executor_dev":                 configSourceDefault,
 			"workflow_diagnostics_dev":              configSourceDefault,
 			"gateway_request_history_dev":           configSourceDefault,
@@ -652,6 +659,16 @@ func applyEnvOverrides(cfg *Config) error {
 	if value, ok := stringEnv("RADISHMIND_APPLICATION_CATALOG_STORE"); ok {
 		applyStringValue(&cfg.ApplicationCatalogStoreMode, value, cfg.FieldSources, "application_catalog_store", configSourceEnv)
 	}
+	if value, ok := stringEnv("RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL"); ok {
+		applyStringValue(&cfg.ApplicationCatalogDatabaseURL, value, cfg.FieldSources, "application_catalog_database", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_APPLICATION_CATALOG_DATABASE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_APPLICATION_CATALOG_DATABASE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.ApplicationCatalogDatabaseTimeout, parsed, cfg.FieldSources, "application_catalog_database_timeout", configSourceEnv)
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_EXECUTOR_DEV"); ok {
 		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_EXECUTOR_DEV", value)
 		if err != nil {
@@ -812,6 +829,12 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "application_publish_dev_write")
 		requiredFields = appendRequiredConfigField(requiredFields, "application_publish_database")
 	}
+	if applicationCatalogStoreMode == "postgres_dev_test" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_catalog_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_catalog_dev_write")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_catalog_database")
+	}
 	if cfg.WorkflowExecutorDevEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_saved_draft_dev_http")
@@ -858,6 +881,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		ApplicationCatalogDevHTTPEnabled:     cfg.ApplicationCatalogDevHTTPEnabled,
 		ApplicationCatalogDevWriteEnabled:    cfg.ApplicationCatalogDevWriteEnabled,
 		ApplicationCatalogStoreMode:          applicationCatalogStoreMode,
+		ApplicationCatalogDatabaseConfigured: strings.TrimSpace(cfg.ApplicationCatalogDatabaseURL) != "",
 		WorkflowExecutorDevEnabled:           cfg.WorkflowExecutorDevEnabled,
 		WorkflowDiagnosticsDevEnabled:        cfg.WorkflowDiagnosticsDevEnabled,
 		GatewayRequestHistoryDevEnabled:      cfg.GatewayRequestHistoryDevEnabled,
@@ -884,6 +908,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"workflow_saved_draft_database":        cfg.WorkflowSavedDraftDatabaseTimeout.String(),
 			"application_draft_database":           cfg.ApplicationDraftDatabaseTimeout.String(),
 			"application_publish_database":         cfg.ApplicationPublishDatabaseTimeout.String(),
+			"application_catalog_database":         cfg.ApplicationCatalogDatabaseTimeout.String(),
 			"workflow_run_database":                cfg.WorkflowRunDatabaseTimeout.String(),
 		},
 		PythonBridge: PythonBridge{
@@ -905,6 +930,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_MIGRATION_DATABASE_URL",
+			"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL",
+			"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
@@ -1034,6 +1061,18 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			}
 		case "application_publish_database":
 			if strings.TrimSpace(cfg.ApplicationPublishDatabaseURL) == "" {
+				missing = append(missing, field)
+			}
+		case "application_catalog_dev_http":
+			if !cfg.ApplicationCatalogDevHTTPEnabled {
+				missing = append(missing, field)
+			}
+		case "application_catalog_dev_write":
+			if !cfg.ApplicationCatalogDevWriteEnabled {
+				missing = append(missing, field)
+			}
+		case "application_catalog_database":
+			if strings.TrimSpace(cfg.ApplicationCatalogDatabaseURL) == "" {
 				missing = append(missing, field)
 			}
 		case "workflow_executor_dev":
@@ -1187,8 +1226,15 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	switch strings.TrimSpace(cfg.ApplicationCatalogStoreMode) {
 	case "", "memory_dev":
+	case "postgres_dev_test":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled || !cfg.ApplicationCatalogDevWriteEnabled || strings.TrimSpace(cfg.ApplicationCatalogDatabaseURL) == "" {
+			return fmt.Errorf("application catalog postgres_dev_test store requires complete development gates and a database URL")
+		}
 	default:
-		return fmt.Errorf("application catalog store must be memory_dev until PostgreSQL batch B is enabled")
+		return fmt.Errorf("application catalog store must be memory_dev or postgres_dev_test")
+	}
+	if cfg.ApplicationCatalogDatabaseTimeout <= 0 {
+		return fmt.Errorf("application catalog database timeout must be positive")
 	}
 	if cfg.WorkflowDiagnosticsDevEnabled {
 		if !cfg.WorkflowExecutorDevEnabled {

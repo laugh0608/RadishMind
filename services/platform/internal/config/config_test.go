@@ -75,6 +75,8 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
@@ -143,6 +145,8 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_HTTP", "1")
 	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_WRITE", "true")
 	t.Setenv("RADISHMIND_APPLICATION_CATALOG_STORE", "memory_dev")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL", "postgresql://application-catalog.invalid/secret")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DATABASE_TIMEOUT", "14s")
 
 	cfg, err := LoadFromEnv()
 	if err != nil {
@@ -197,7 +201,8 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 		cfg.ApplicationPublishDatabaseURL == "" || cfg.ApplicationPublishDatabaseTimeout != 13*time.Second {
 		t.Fatalf("expected application publish env overrides: %#v", cfg)
 	}
-	if !cfg.ApplicationCatalogDevHTTPEnabled || !cfg.ApplicationCatalogDevWriteEnabled || cfg.ApplicationCatalogStoreMode != "memory_dev" {
+	if !cfg.ApplicationCatalogDevHTTPEnabled || !cfg.ApplicationCatalogDevWriteEnabled || cfg.ApplicationCatalogStoreMode != "memory_dev" ||
+		cfg.ApplicationCatalogDatabaseURL == "" || cfg.ApplicationCatalogDatabaseTimeout != 14*time.Second {
 		t.Fatalf("expected application catalog env overrides: %#v", cfg)
 	}
 
@@ -448,6 +453,29 @@ func TestApplicationPublishPostgresDevTestModeRequiresDraftAndPublishGates(t *te
 	}
 }
 
+func TestApplicationCatalogPostgresDevTestModeRequiresExplicitDevelopmentGates(t *testing.T) {
+	config := defaultConfig()
+	config.ApplicationCatalogStoreMode = "postgres_dev_test"
+	if got := config.Check(); !reflect.DeepEqual(got, []string{
+		"control_plane_read_dev_auth",
+		"application_catalog_dev_http",
+		"application_catalog_dev_write",
+		"application_catalog_database",
+	}) {
+		t.Fatalf("unexpected application catalog postgres dev/test missing fields: %#v", got)
+	}
+	config.ControlPlaneReadDevAuthEnabled = true
+	config.ApplicationCatalogDevHTTPEnabled = true
+	config.ApplicationCatalogDevWriteEnabled = true
+	config.ApplicationCatalogDatabaseURL = "postgresql://runtime.invalid/secret"
+	if got := config.Check(); len(got) != 0 {
+		t.Fatalf("complete application catalog postgres config should pass: %#v", got)
+	}
+	if summary := config.SanitizedSummary(); !summary.ApplicationCatalogDatabaseConfigured || summary.ApplicationCatalogStoreMode != "postgres_dev_test" {
+		t.Fatalf("application catalog database summary must stay sanitized: %#v", summary)
+	}
+}
+
 func TestPostgresWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
 	cfg := defaultConfig()
 	cfg.WorkflowRunStoreMode = "postgres_dev_test"
@@ -690,6 +718,9 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_APPLICATION_CATALOG_DEV_HTTP",
 		"RADISHMIND_APPLICATION_CATALOG_DEV_WRITE",
 		"RADISHMIND_APPLICATION_CATALOG_STORE",
+		"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_APPLICATION_CATALOG_DATABASE_TIMEOUT",
 		"RADISHMIND_WORKFLOW_RUN_STORE",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",

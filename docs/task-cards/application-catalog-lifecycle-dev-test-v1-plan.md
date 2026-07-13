@@ -2,7 +2,7 @@
 
 更新时间：2026-07-13
 
-状态：`application_catalog_lifecycle_dev_test_v1_backend_core_implemented`
+状态：`application_catalog_lifecycle_dev_test_v1_postgres_implemented`
 
 ## 任务目标
 
@@ -41,13 +41,15 @@
 - 配置草案与发布审查的精确 `RequireActive`；
 - 发布基线从列表扫描切换为精确读取。
 
-状态：待实施。发布基线在目录模式下已经切换为精确读取；本批剩余 PostgreSQL schema、迁移、运行器、选择器和重启恢复。
+状态：已完成。发布基线使用精确读取；应用目录已具备独立 schema、迁移清单与校验和、手动迁移运行器、存储选择器、启动前 schema 校验和无回退语义。破坏性集成验证覆盖迁移重复应用 / 回滚 / 重应用、运行角色 DDL 拒绝、服务重建恢复和 8 路并发 CAS 单一成功者。
 
 ### 批次 C：Web 与连续验收
 
 - 应用目录管理界面和严格消费端；
 - 配置、接入、调试台、历史和发布审查交接；
 - 多标签冲突、归档阻断、重启恢复和完整门禁。
+
+状态：待实施。下一批只进入 Web 严格消费端、管理交互和真实浏览器连续路径，不扩生产授权或 Gateway 上行协议。
 
 ## 高风险边界
 

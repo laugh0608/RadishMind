@@ -347,7 +347,7 @@
       },
       {
         "path": "docs/features/user-workspace.md",
-        "snippets": ["应用摘要仍来自预置只读假数据存储库", "只读侧与后续写入 / 执行侧"]
+        "snippets": ["应用目录未启用时，历史只读列表仍来自预置假数据存储库", "只读侧与后续写入 / 执行侧"]
       },
       {
         "path": "docs/features/user-workspace/README.md",
