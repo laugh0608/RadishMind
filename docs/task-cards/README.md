@@ -12,7 +12,8 @@
 
 ## 当前活跃任务
 
-1. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R5 包体预算已进入现有 Vite build；后续继续处理低覆盖包，R6 随功能批次收敛入口文档和历史 checker 耦合。
+1. [用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1-plan.md)：功能设计已完成；下一批先实现领域、内存存储、管理 API、一次性交接和高风险负向边界，再进入 Gateway / PostgreSQL 与 Web 连续验收。
+2. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R5 包体预算已进入现有 Vite build；后续继续处理低覆盖包，R6 随功能批次收敛入口文档和历史 checker 耦合。
 
 最近关闭：[用户工作区应用目录与生命周期（开发/测试态）v1](application-catalog-lifecycle-dev-test-v1-plan.md) 已完成核心生命周期、作用域 API、独立 PostgreSQL 开发测试态持久化、Web 管理和真实浏览器连续验收。
 

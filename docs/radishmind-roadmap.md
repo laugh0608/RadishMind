@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-07-12
+更新时间：2026-07-13
 
 <!-- markdown-size-allow: 历史阶段流水与 checker 锚点暂时保留；人工默认只读 2026-07-12 当前执行顺序，R6 解耦后将历史内容迁入归档并删除本标记。 -->
 
@@ -82,7 +82,7 @@
 
 状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、`GET /v1/models/{id}` 精确 lookup、request-side provider/profile 选择、流式增量转发、`HuggingFace` / `Ollama` coverage。平台级 `ops smoke` 已固定 `go test ./...`、provider registry 与受控 profile inventory 门禁；本地启动 runbook、runbook drift check、脱敏配置摘要 / config check、JSON 配置文件层级、稳定本地启动 wrapper、最小 deployment smoke、结构化 diagnostics/failure boundary、provider/profile discoverability 对齐、request-level observability 与 error taxonomy 已补齐。`P1 Runtime Foundation` 已达到 short close；第一版 northbound 仍是窄切片，但继续横向扩同层配置、别名和兜底的收益已经下降，主要实现重心切到 `P2 Session & Tooling Foundation`。
 
-下一步：不再继续把 `P1` 做成无限硬化阶段；`P2 Session & Tooling Foundation` 和 `P3 Local Product Shell / Ops Surface` 已有 metadata / blocked / read-only 产品外壳，Production Ops 静态边界也已收口。`Provider Runtime & Health v1` 已把 provider capability、health smoke、selection policy、provider-retry-fallback-policy-v1 与 docs refresh 固定成可检查口径，进入 close candidate；后续不再默认扩 provider runtime 同层切片。模型网关继续推进时，应围绕 API key、quota、trace、cost、tenant binding、secret ref readiness 和真实 production secret backend 的前置条件拆任务。
+下一步：不再继续把 `P1` 做成无限硬化阶段；`P2 Session & Tooling Foundation` 和 `P3 Local Product Shell / Ops Surface` 已有 metadata / blocked / read-only 产品外壳，Production Ops 静态边界也已收口。`Provider Runtime & Health v1` 已把 provider capability、health smoke、selection policy、provider-retry-fallback-policy-v1 与 docs refresh 固定成可检查口径，进入 close candidate；后续不再默认扩 provider runtime 同层切片。当前已经选择[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md)，先完成有期限密钥签发、一次性交接、应用 / 作用域绑定、Gateway 验证、请求历史和吊销拒绝；quota、cost、生产 tenant binding、secret backend 和公开 production gateway 后置为独立目标。
 
 上述拆任务应优先沿 `Control Plane / User Workspace / Workflow v1` 任务卡推进，避免把模型网关、用户端和管理端混入当前本地 ops console。
 
