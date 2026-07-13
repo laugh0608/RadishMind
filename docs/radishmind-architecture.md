@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-07-12
+更新时间：2026-07-13
 
 ## 架构目标
 
@@ -16,7 +16,7 @@
 
 2026-07-11 覆盖说明：当前执行以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 为准。下文保留的 storage adapter `next dependency`、readiness / review / refresh 顺序只作为历史架构证据，不再指导当前开发。架构门禁改为约束配置启用、运行行为和发布声明，不再长期要求未来 adapter、migration 或 repository 文件必须不存在。
 
-Saved Draft persistence 与 Production Secret Audit Store 已从推进顺序上解耦。R3 和显式 `postgres_dev_test` repository 均于 2026-07-11 完成：平台以 `pgx/v5`、独立 migration/runtime role、manual migration、schema marker、连接池和真实集成测试承载开发 / 测试草案持久化；production `repository` 仍依赖 Radish OIDC、membership、生产 secret、数据库资源、审计和部署复核。`Radish` 继续拥有身份、成员关系和上层业务真相，RadishMind 拥有自身 draft、version、run record、trace、usage 和 audit 运行数据。
+Saved Draft persistence 与 Production Secret Audit Store 已从推进顺序上解耦。R3 和显式 `postgres_dev_test` repository 均于 2026-07-11 完成：平台以 `pgx/v5`、独立 migration/runtime role、manual migration、schema marker、连接池和真实集成测试承载开发 / 测试草案持久化；2026-07-13 新增[本地 SQLite 开发持久化 v1](platform/local-sqlite-dev-persistence-v1.md)，把存储分为 `memory_dev` 快速测试、`sqlite_dev` 本地连续开发和 `postgres_dev_test` 数据库同构验证三层。SQLite 只承载 RadishMind 自有的七组本地运行数据，不替代 PostgreSQL 门禁，也不持久化外部身份或业务真相；production `repository` 仍依赖 Radish OIDC、membership、生产 secret、数据库资源、审计和部署复核。`Radish` 继续拥有身份、成员关系和上层业务真相，RadishMind 拥有自身 draft、version、run record、trace、usage 和 audit 运行数据。
 
 Saved Draft 数据路径固定为 `HTTP auth/scope context -> domain service -> repository store -> contract adapter -> PostgreSQL query executor`。create 由唯一键约束，update 在 SQL predicate 内做 owner-scoped version CAS，read/list 使用 tenant / workspace / application / owner predicate；数据库或 marker 不可用时失败关闭。服务只 preflight schema，migration CLI 才持有 DDL 连接，runtime role 只有表级 DML。旧段落中“SQL / migration / database 仍不存在”的表述只作为历史阶段记录，不再描述当前 `postgres_dev_test`。
 

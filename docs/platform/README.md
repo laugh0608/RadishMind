@@ -1,5 +1,5 @@
 # RadishMind 平台专题入口
-更新时间：2026-07-11
+更新时间：2026-07-13
 
 ## 文档目的
 
@@ -20,6 +20,7 @@
 
 | 专题 | 当前状态 | 现有事实源 | 下一步 |
 | --- | --- | --- | --- |
+| 本地 SQLite 开发持久化 | `local_sqlite_dev_persistence_v1_defined` | [本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1.md)、[单一实施任务卡](../task-cards/local-sqlite-dev-persistence-v1-plan.md)、七组现有 repository / migration 与 `memory_dev / postgres_dev_test` selector | 先实现共享 SQLite runtime 和迁移骨架，再整体接入七组本地运行数据；全部就绪前不开放不完整的聚合本地启动档 |
 | Auth / Store Transition | 准入证据已有；`Radish OIDC token / membership readiness` 已固定 `radish_oidc_token_membership_readiness_defined`，实现入口评审已固定 `radish_oidc_token_membership_implementation_entry_review_defined`，上游证据刷新已固定 `radish_oidc_token_membership_upstream_evidence_refresh_defined` | `docs/contracts/control-plane-read-side.md`、相关 control-plane read task cards、[Radish OIDC Token / Membership Readiness v1](../integrations/radish-oidc-token-membership-readiness-v1.md)、[Radish OIDC Token / Membership Implementation Entry Review v1](../integrations/radish-oidc-token-membership-implementation-entry-review-v1.md)、[Radish OIDC Token / Membership Upstream Evidence Refresh v1](../integrations/radish-oidc-token-membership-upstream-evidence-refresh-v1.md) | 后续应先重新评审 schema / middleware / membership / runtime smoke 是否可进入任务卡；不直接创建 auth middleware、token validator、membership adapter、repository mode 或 production API |
 | Repository Adapter / Store Selector | control-plane 准入证据已有；saved workflow draft selector 已按失败关闭的模式选择落地 | `control-plane-read-*repository*`、`*store-selector*` task cards、`docs/features/workflow/saved-workflow-draft-store-selector-implementation-v1.md` | 后续 repository adapter / database 仍需独立实现专题 |
 | Provider Runtime & Health | 接近收口 | [Provider Runtime & Health v1 任务卡](../task-cards/provider-runtime-health-v1-plan.md) | 不继续扩同层 provider 小切片 |

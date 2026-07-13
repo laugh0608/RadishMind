@@ -2,7 +2,7 @@
 
 更新时间：2026-07-13
 
-状态：`api_key_lifecycle_gateway_dev_test_auth_v1_backend_core_implemented`
+状态：`api_key_lifecycle_gateway_dev_test_auth_v1_sqlite_dual_persistence_planned`
 
 ## 当前结论
 
@@ -18,7 +18,13 @@
 
 管理权限已经拆为 `api_keys:read`、`api_keys:write` 和 `api_keys:revoke`。应用缺失、已归档或跨所有者统一失败关闭；OIDC 成员关系未成立时保持存储库零查询；并发吊销只有一个版本能够成功。专项竞态测试和完整平台 Go 回归已经通过。
 
-当前尚未实现 Gateway Bearer 认证、可信 `GatewayRequestContext`、最近使用时间更新、PostgreSQL 持久化、Web 一次性交接和浏览器连续验收。因此批次 A 只能证明管理端后端核心成立，不能解释为密钥已经能够调用 Gateway，也不能解除现有开发请求头依赖。
+批次 B 的代码实现已经完成：新增互斥的 `dev_headers` / `api_key_dev_test` Gateway 认证模式，为五条 northbound 路由建立 Bearer 解析、路由作用域、活跃应用检查和可信 `GatewayRequestContext`；成功认证原子更新 `last_used_at` 并写入既有脱敏请求历史，凭据冲突、无效、吊销、过期、作用域不足、应用不可用以及任一存储故障都在 bridge / provider 前失败关闭。管理 API 明确拒绝开发测试态 API 密钥凭据，control-plane 认证中间件不再消费 northbound Authorization。
+
+独立 PostgreSQL `api_key_records` / `api_key_schema_versions`、迁移清单与校验和、手动迁移命令、存储选择器、摘要隔离、稳定分页、吊销 CAS 和最近使用更新也已实现。配置 / 迁移单测、Gateway 负向与防回退测试、专项竞态以及完整平台 Go 回归已经通过；带 PostgreSQL 标签的测试已完成编译，但真实迁移、运行角色、重启恢复和并发认证 / 吊销尚未执行。
+
+本专题现已消费[本地 SQLite 开发持久化 v1](../../platform/local-sqlite-dev-persistence-v1.md)：在进入 Web 前，先为应用目录、API 密钥和请求历史所在的完整七组件本地数据链补齐统一 `sqlite_dev`，形成 `memory_dev / sqlite_dev / postgres_dev_test` 三层存储。现有 PostgreSQL 实现继续保留，不被 SQLite 替代；待 SQLite 连续链路与 PostgreSQL 专属门禁均通过后，批次 B 才关闭。
+
+当前尚未实现 Web 一次性交接和浏览器连续验收。开发请求头仍是默认认证模式；只有显式设置 `RADISHMIND_GATEWAY_AUTH_MODE=api_key_dev_test` 才由 API 密钥保护 Gateway，不能从开发测试态实现反推生产凭据能力成立。
 
 ## 产品缺口与用户流程
 
@@ -40,7 +46,7 @@
 - API 密钥生命周期默认关闭；只有显式启用后才接管 `GET /v1/user-workspace/api-keys` 并开放写入端点。
 - 显式密钥模式要求应用目录同时启用。签发与 Gateway 验证都必须精确读取同一 `ApplicationCatalogRepository` 中的活跃应用，不允许绑定预置假应用。
 - `APIKeyRepository` 是密钥标识、应用绑定、所有者、作用域、有效期、吊销状态、记录版本、凭据摘要和最近使用时间的唯一真相源。
-- `memory_dev` 与 `postgres_dev_test` 是互斥存储模式；连接、schema 标记、查询、凭据验证或写入失败必须显式失败，不得回退内存、预置摘要或开发请求头。
+- `memory_dev`、`sqlite_dev` 与 `postgres_dev_test` 是互斥存储模式；正式本地启动档统一选择 `sqlite_dev`，批次 / CI 数据库门禁选择 `postgres_dev_test`。连接、文件、schema 标记、查询、凭据验证或写入失败必须显式失败，不得回退内存、预置摘要或开发请求头。
 - 未启用时，现有只读假数据路由和离线页面保持原状；同一运行实例不得把假数据摘要和可验证密钥合并成一个可写列表。
 
 历史 `gateway-api-key-quota-readiness` 只作为字段、失败语义和脱敏边界输入，不再派生同层准入链。本专题以功能设计、单一实施任务卡、单元 / 集成测试和现有聚合门禁承载实现证据。
@@ -194,13 +200,25 @@ PostgreSQL 使用独立 `api_key_records` 和 `api_key_schema_versions`，不复
 - 实现内存存储库、列表 / 详情 / 创建 / 吊销、CAS 与应用活跃检查；
 - 用单元和 HTTP 负向测试固定一次性返回、零泄漏、权限分离、成员关系失败关闭和无回退。
 
-### 批次 B：Gateway 认证与 PostgreSQL
+### 批次 B：Gateway 认证与 PostgreSQL 实现
 
-状态：下一批。
+状态：代码已实现，等待 SQLite 平台依赖与双数据库验证。
 
 - 实现显式 Gateway 认证模式、路由作用域映射、可信 `GatewayRequestContext` 和认证失败零 bridge / provider / history 副作用；
 - 实现独立 PostgreSQL schema、迁移、运行器、存储选择器、原子最近使用更新、吊销 CAS 和重启恢复；
 - 完成迁移、运行角色、摘要不可逆读取、并发认证 / 吊销、应用归档竞态和 no-fallback 集成验证。
+
+### 批次 B2：统一 SQLite 本地持久化
+
+- 消费平台级 `sqlite_dev` 共享 runtime、schema migration 和聚合本地启动档；
+- API 密钥、应用目录和请求历史与其余四组本地运行数据整体接入，避免正式本地入口长期混用存储；
+- 验证签发、重启恢复、Gateway 认证、最近使用更新、请求历史、吊销和敏感信息边界，全程不需要 Docker。
+
+### 批次 B3：双数据库门禁
+
+- SQLite 验证本地连续产品链、重启恢复、分页、CAS 和 no-fallback；
+- PostgreSQL 验证 migration、运行 / 迁移角色、类型 / 索引语义、多连接并发和部署同构；
+- 两种数据库均通过后关闭后端持久化批次，再进入 Web。
 
 ### 批次 C：Web 与连续验收
 
