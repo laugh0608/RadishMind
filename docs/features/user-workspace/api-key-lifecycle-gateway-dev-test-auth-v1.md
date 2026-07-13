@@ -2,7 +2,7 @@
 
 更新时间：2026-07-13
 
-状态：`api_key_lifecycle_gateway_dev_test_auth_v1_defined`
+状态：`api_key_lifecycle_gateway_dev_test_auth_v1_backend_core_implemented`
 
 ## 当前结论
 
@@ -11,6 +11,14 @@
 完整路径必须同时成立：用户为自己的活跃应用签发一枚有明确调用作用域和有效期的密钥；原始令牌只在创建成功后展示一次；Gateway 通过令牌恢复租户、工作区、应用、所有者和调用作用域；成功调用进入既有脱敏请求历史；吊销、过期、作用域不足、应用归档和存储故障都在 bridge / provider 之前失败关闭。
 
 本功能只服务内部开发者预览。它不声明生产 API 密钥、正式工作区成员授权、配额、限流、计费、生产凭据后端或公开生产 Gateway 已就绪。
+
+## 当前实现
+
+批次 A 已完成密钥领域、密码学安全生成、一次性凭据交接、内存存储库和管理 API。显式生命周期模式可为当前所有者的活跃应用签发有期限且有受控作用域的密钥，支持脱敏列表、详情、筛选分页和预期版本吊销；创建成功响应是唯一返回原始令牌的位置，并设置 `Cache-Control: no-store`。
+
+管理权限已经拆为 `api_keys:read`、`api_keys:write` 和 `api_keys:revoke`。应用缺失、已归档或跨所有者统一失败关闭；OIDC 成员关系未成立时保持存储库零查询；并发吊销只有一个版本能够成功。专项竞态测试和完整平台 Go 回归已经通过。
+
+当前尚未实现 Gateway Bearer 认证、可信 `GatewayRequestContext`、最近使用时间更新、PostgreSQL 持久化、Web 一次性交接和浏览器连续验收。因此批次 A 只能证明管理端后端核心成立，不能解释为密钥已经能够调用 Gateway，也不能解除现有开发请求头依赖。
 
 ## 产品缺口与用户流程
 
@@ -180,11 +188,15 @@ PostgreSQL 使用独立 `api_key_records` 和 `api_key_schema_versions`，不复
 
 ### 批次 A：领域、内存存储与管理 API
 
+状态：已完成。
+
 - 实现记录、密码学安全生成、一次性交接、作用域 / 有效期校验、所有者作用域和敏感信息保护；
 - 实现内存存储库、列表 / 详情 / 创建 / 吊销、CAS 与应用活跃检查；
 - 用单元和 HTTP 负向测试固定一次性返回、零泄漏、权限分离、成员关系失败关闭和无回退。
 
 ### 批次 B：Gateway 认证与 PostgreSQL
+
+状态：下一批。
 
 - 实现显式 Gateway 认证模式、路由作用域映射、可信 `GatewayRequestContext` 和认证失败零 bridge / provider / history 副作用；
 - 实现独立 PostgreSQL schema、迁移、运行器、存储选择器、原子最近使用更新、吊销 CAS 和重启恢复；

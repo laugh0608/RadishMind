@@ -109,6 +109,8 @@ type Config struct {
 	ApplicationCatalogStoreMode          string
 	ApplicationCatalogDatabaseURL        string
 	ApplicationCatalogDatabaseTimeout    time.Duration
+	APIKeyLifecycleDevHTTPEnabled        bool
+	APIKeyLifecycleDevWriteEnabled       bool
 	WorkflowExecutorDevEnabled           bool
 	WorkflowDiagnosticsDevEnabled        bool
 	GatewayRequestHistoryDevEnabled      bool
@@ -157,6 +159,8 @@ type ConfigSummary struct {
 	ApplicationCatalogDevWriteEnabled    bool              `json:"application_catalog_dev_write_enabled"`
 	ApplicationCatalogStoreMode          string            `json:"application_catalog_store_mode"`
 	ApplicationCatalogDatabaseConfigured bool              `json:"application_catalog_database_configured"`
+	APIKeyLifecycleDevHTTPEnabled        bool              `json:"api_key_lifecycle_dev_http_enabled"`
+	APIKeyLifecycleDevWriteEnabled       bool              `json:"api_key_lifecycle_dev_write_enabled"`
 	WorkflowExecutorDevEnabled           bool              `json:"workflow_executor_dev_enabled"`
 	WorkflowDiagnosticsDevEnabled        bool              `json:"workflow_diagnostics_dev_enabled"`
 	GatewayRequestHistoryDevEnabled      bool              `json:"gateway_request_history_dev_enabled"`
@@ -669,6 +673,22 @@ func applyEnvOverrides(cfg *Config) error {
 		}
 		applyDurationValue(&cfg.ApplicationCatalogDatabaseTimeout, parsed, cfg.FieldSources, "application_catalog_database_timeout", configSourceEnv)
 	}
+	if value, ok := stringEnv("RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP", value)
+		if err != nil {
+			return err
+		}
+		cfg.APIKeyLifecycleDevHTTPEnabled = parsed
+		cfg.FieldSources["api_key_lifecycle_dev_http"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE", value)
+		if err != nil {
+			return err
+		}
+		cfg.APIKeyLifecycleDevWriteEnabled = parsed
+		cfg.FieldSources["api_key_lifecycle_dev_write"] = configSourceEnv
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_EXECUTOR_DEV"); ok {
 		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_EXECUTOR_DEV", value)
 		if err != nil {
@@ -882,6 +902,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		ApplicationCatalogDevWriteEnabled:    cfg.ApplicationCatalogDevWriteEnabled,
 		ApplicationCatalogStoreMode:          applicationCatalogStoreMode,
 		ApplicationCatalogDatabaseConfigured: strings.TrimSpace(cfg.ApplicationCatalogDatabaseURL) != "",
+		APIKeyLifecycleDevHTTPEnabled:        cfg.APIKeyLifecycleDevHTTPEnabled,
+		APIKeyLifecycleDevWriteEnabled:       cfg.APIKeyLifecycleDevWriteEnabled,
 		WorkflowExecutorDevEnabled:           cfg.WorkflowExecutorDevEnabled,
 		WorkflowDiagnosticsDevEnabled:        cfg.WorkflowDiagnosticsDevEnabled,
 		GatewayRequestHistoryDevEnabled:      cfg.GatewayRequestHistoryDevEnabled,
@@ -1235,6 +1257,18 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.ApplicationCatalogDatabaseTimeout <= 0 {
 		return fmt.Errorf("application catalog database timeout must be positive")
+	}
+	if cfg.APIKeyLifecycleDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return fmt.Errorf("API key lifecycle dev HTTP requires control plane read dev auth")
+	}
+	if cfg.APIKeyLifecycleDevHTTPEnabled && !cfg.ApplicationCatalogDevHTTPEnabled {
+		return fmt.Errorf("API key lifecycle dev HTTP requires application catalog dev HTTP")
+	}
+	if cfg.APIKeyLifecycleDevWriteEnabled && !cfg.APIKeyLifecycleDevHTTPEnabled {
+		return fmt.Errorf("API key lifecycle dev write requires API key lifecycle dev HTTP")
+	}
+	if cfg.APIKeyLifecycleDevWriteEnabled && !cfg.ApplicationCatalogDevWriteEnabled {
+		return fmt.Errorf("API key lifecycle dev write requires application catalog dev write")
 	}
 	if cfg.WorkflowDiagnosticsDevEnabled {
 		if !cfg.WorkflowExecutorDevEnabled {

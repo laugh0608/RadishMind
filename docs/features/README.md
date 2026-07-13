@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-13 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md) 确定性运行时也已完成；真实 Radish 联调已主动延后。新目标已确定为[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md)，当前先推进领域、内存存储、管理 API 和一次性交接，不继续派生同层应用目录面板或检查器。生产认证、工作区成员关系、正式晋级、生产 API 密钥、配额与计费仍关闭。
+2026-07-13 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md) 确定性运行时也已完成；真实 Radish 联调已主动延后。[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已完成领域、内存存储、管理 API、一次性交接和高风险负向边界，下一批接入 Gateway 认证与 PostgreSQL，不继续派生同层应用目录面板或检查器。生产认证、工作区成员关系、正式晋级、生产 API 密钥、配额与计费仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -51,7 +51,7 @@
 | 专题 | 类型 | 当前用途 |
 | --- | --- | --- |
 | [用户工作区细专题入口](user-workspace/README.md) | 功能专题目录 | 承接应用、模型发现、API 接入、调用与审查的连续用户路径 |
-| [API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) | 功能 / 认证专题 | 已完成签发、一次性交接、持久验证、Gateway 作用域认证、请求历史与吊销拒绝的完整设计；下一批进入核心实现 |
+| [API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) | 功能 / 认证专题 | 后端核心已实现；下一批进入 Gateway 认证与 PostgreSQL，尚未形成可调用的完整纵向链 |
 | [应用目录与生命周期（开发/测试态）v1](user-workspace/application-catalog-lifecycle-dev-test-v1.md) | 功能 / 生命周期专题 | 核心生命周期、PostgreSQL 持久化、Web 管理和真实浏览器连续验收已完成 |
 | [应用 API 接入与调用 v1](user-workspace/application-api-integration-invocation-v1.md) | 功能 / 页面专题 | 已完成选中应用、`/v1/models`、三协议 × 三语言接入示例、现有调试台与脱敏请求历史的内部开发者闭环 |
 | [应用配置草案与审查 v1](user-workspace/application-configuration-draft-review-v1.md) | 功能 / 页面专题 | 已完成应用配置草案、校验、`memory_dev` / PostgreSQL 开发测试态持久化、版本冲突、比较与 API 接入交接 |

@@ -225,6 +225,12 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryConfiguration,
 			defaultMessage:  "saved workflow draft dev HTTP route is disabled",
 		},
+		"API_KEY_LIFECYCLE_DEV_HTTP_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "API key lifecycle dev HTTP route is disabled",
+		},
 		"WORKFLOW_EXECUTOR_DEV_DISABLED": {
 			statusCode:      http.StatusForbidden,
 			errorType:       "invalid_request_error",

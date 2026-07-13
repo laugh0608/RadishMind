@@ -37,6 +37,7 @@ type Server struct {
 	applicationDraftRepository            applicationConfigurationDraftRepository
 	applicationPublishCandidateRepository applicationPublishCandidateRepository
 	applicationCatalogRepository          applicationCatalogRepository
+	apiKeyRepository                      apiKeyRepository
 	workflowRunStore                      workflowRunStore
 	workflowEvaluationStore               workflowEvaluationStore
 	workflowEvaluationSuiteStore          workflowEvaluationSuiteStore
@@ -151,6 +152,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		applicationDraftRepository:            applicationDraftRepository,
 		applicationPublishCandidateRepository: applicationPublishRepository,
 		applicationCatalogRepository:          applicationCatalogRepository,
+		apiKeyRepository:                      newMemoryAPIKeyRepository(),
 		workflowRunStore:                      workflowRunStore,
 		workflowEvaluationStore:               newWorkflowEvaluationStoreForRunStore(workflowRunStore),
 		workflowEvaluationSuiteStore:          newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
@@ -184,6 +186,9 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationCatalogUpdateRoute, server.handleUpdateApplicationCatalogRecord)
 	mux.HandleFunc(applicationCatalogArchiveRoute, server.handleArchiveApplicationCatalogRecord)
 	mux.HandleFunc(controlPlaneAPIKeySummaryListRoute, server.handleUserWorkspaceAPIKeySummaryList)
+	mux.HandleFunc(apiKeyCreateRoute, server.handleCreateAPIKey)
+	mux.HandleFunc(apiKeyReadRoute, server.handleReadAPIKey)
+	mux.HandleFunc(apiKeyRevokeRoute, server.handleRevokeAPIKey)
 	mux.HandleFunc(controlPlaneQuotaSummaryRoute, server.handleUserWorkspaceQuotaSummary)
 	mux.HandleFunc(controlPlaneWorkflowDefinitionSummaryListRoute, server.handleUserWorkspaceWorkflowDefinitionSummaryList)
 	mux.HandleFunc(controlPlaneRunRecordSummaryListRoute, server.handleUserWorkspaceRunRecordSummaryList)

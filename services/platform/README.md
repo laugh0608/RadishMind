@@ -32,6 +32,9 @@
 - `GET /v1/control-plane/tenants/{tenant_ref}/summary`
 - `GET /v1/user-workspace/applications`
 - `GET /v1/user-workspace/api-keys`
+- `POST /v1/user-workspace/api-keys`
+- `GET /v1/user-workspace/api-keys/{api_key_id}`
+- `POST /v1/user-workspace/api-keys/{api_key_id}/revoke`
 - `GET /v1/user-workspace/usage/quota-summary`
 - `GET /v1/user-workspace/workflow-definitions`
 - `GET /v1/user-workspace/runs`
@@ -425,6 +428,8 @@ go run ./cmd/radishmind-platform
 | `RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL` | 空 | application catalog PostgreSQL dev/test runtime DML 连接；secret |
 | `RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL` | 空 | application catalog migration 一次性 DDL 连接；secret |
 | `RADISHMIND_APPLICATION_CATALOG_DATABASE_TIMEOUT` | `5s` | application catalog PostgreSQL connect / preflight timeout |
+| `RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP` | `false` | 显式启用 API 密钥生命周期 list / create / read / revoke route；要求 control-plane dev auth 与 application catalog dev HTTP 同时启用 |
+| `RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE` | `false` | 显式允许 API 密钥签发和吊销；要求生命周期 HTTP 与 application catalog dev write 同时启用 |
 | `RADISHMIND_WORKFLOW_EXECUTOR_DEV` | `false` | 显式启用受控 Workflow Executor v0 dev-only POST / GET route；不启用完整生产执行器 |
 | `RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV` | `false` | 与 dev auth 双 gate 显式启用 Gateway 请求历史记录和 scoped list / detail route；store 由 `RADISHMIND_GATEWAY_REQUEST_STORE` 选择 |
 | `RADISHMIND_GATEWAY_REQUEST_STORE` | `memory_dev` | `memory_dev` 或显式 `postgres_dev_test`；reserved production mode 和 unknown mode fail closed |
@@ -578,6 +583,7 @@ curl -sS http://127.0.0.1:7000/v1/chat/completions \
 - application configuration draft dev route 默认关闭；只有同时设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 和 `RADISHMIND_APPLICATION_DRAFT_DEV_HTTP=1` 才能 list / read / validate，保存还要求 `RADISHMIND_APPLICATION_DRAFT_DEV_WRITE=1`、`application_drafts:write` scope，以及匹配的 `X-RadishMind-Dev-Application-Workspace` / `Application` header。store 默认是 `memory_dev`；显式 `postgres_dev_test` 要求手工 migration、独立 runtime DSN 与 marker / checksum preflight，数据库失败不回退内存。
 - application publish candidate dev route 默认关闭；只有同时设置 dev auth、`RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP=1` 与匹配 scope / workspace / application header 才能 list / read；create / review 还要求 `RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE=1`。`postgres_dev_test` 同时要求 application draft 也使用 PostgreSQL dev/test，使服务端 draft reload 与 candidate create 保持 durable；数据库失败不回退内存。
 - application catalog dev route 默认关闭；只有同时设置 dev auth、`RADISHMIND_APPLICATION_CATALOG_DEV_HTTP=1` 和对应 read / write / archive scope 才能访问，写入还要求 `RADISHMIND_APPLICATION_CATALOG_DEV_WRITE=1`。store 默认是 `memory_dev`；显式 `postgres_dev_test` 要求手工 migration、独立 runtime DSN 与 marker / checksum preflight，数据库失败不回退内存或预置应用列表。
+- API 密钥生命周期 dev route 默认关闭；只有同时设置 dev auth、`RADISHMIND_APPLICATION_CATALOG_DEV_HTTP=1` 和 `RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP=1` 才接管列表并开放详情，签发与吊销还要求应用目录和密钥生命周期两个 write gate。列表 / 详情、签发和吊销分别要求 `api_keys:read`、`api_keys:write` 与 `api_keys:revoke`；原始令牌只在签发成功响应中返回一次。当前只实现 `memory_dev` 管理端后端核心，尚未接入 Gateway Bearer 认证或 PostgreSQL，不能把密钥当作可用 Gateway 凭据。
 - Gateway request history 默认关闭；只有同时设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 与 `RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV=1`，并带完整 `X-RadishMind-Dev-Gateway-Tenant` / `Workspace` / `Consumer` / 可选 `Application` / `Subject` / `Scopes` / `Audit` header 时，三个 northbound route 才创建 scoped sanitized record。`GET /v1/model-gateway/requests` 与 detail 还要求 `gateway_requests:read`。store 默认是 500 条进程内 `memory_dev`；显式 `postgres_dev_test` 要求 manual migration、独立 runtime DSN 和 marker / checksum preflight，数据库失败不回退内存。两种模式都不是 production audit ledger。
 - Gateway request migration 使用 `go run ./cmd/radishmind-gateway-request-migrate status|up`；application draft / publish / catalog migration 分别使用 `go run ./cmd/radishmind-application-draft-migrate status|up`、`go run ./cmd/radishmind-application-publish-migrate status|up` 与 `go run ./cmd/radishmind-application-catalog-migrate status|up`。`status` 使用 runtime DSN 且只读 marker，`up` 只接受独立 migration DSN。仓库 PostgreSQL 集成入口会同时验证 Saved Draft、Workflow Run、Gateway Request、Application Draft、Application Publish 与 Application Catalog 六套相互独立的 schema。
 - `/v1/tools/actions` 返回 `tool_action_blocked_response`，且不会运行工具、返回 materialized result、写 durable memory 或写业务真相源。

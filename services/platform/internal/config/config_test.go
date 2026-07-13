@@ -147,6 +147,8 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_APPLICATION_CATALOG_STORE", "memory_dev")
 	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL", "postgresql://application-catalog.invalid/secret")
 	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DATABASE_TIMEOUT", "14s")
+	t.Setenv("RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE", "true")
 
 	cfg, err := LoadFromEnv()
 	if err != nil {
@@ -204,6 +206,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	if !cfg.ApplicationCatalogDevHTTPEnabled || !cfg.ApplicationCatalogDevWriteEnabled || cfg.ApplicationCatalogStoreMode != "memory_dev" ||
 		cfg.ApplicationCatalogDatabaseURL == "" || cfg.ApplicationCatalogDatabaseTimeout != 14*time.Second {
 		t.Fatalf("expected application catalog env overrides: %#v", cfg)
+	}
+	if !cfg.APIKeyLifecycleDevHTTPEnabled || !cfg.APIKeyLifecycleDevWriteEnabled {
+		t.Fatalf("expected API key lifecycle env overrides: %#v", cfg)
 	}
 
 	summary := cfg.SanitizedSummary()
@@ -476,6 +481,30 @@ func TestApplicationCatalogPostgresDevTestModeRequiresExplicitDevelopmentGates(t
 	}
 }
 
+func TestAPIKeyLifecycleRequiresExplicitApplicationCatalogGates(t *testing.T) {
+	config := defaultConfig()
+	config.APIKeyLifecycleDevHTTPEnabled = true
+	if err := validateBridgeRuntimeConfig(config); err == nil || err.Error() != "API key lifecycle dev HTTP requires control plane read dev auth" {
+		t.Fatalf("unexpected missing auth validation: %v", err)
+	}
+	config.ControlPlaneReadDevAuthEnabled = true
+	if err := validateBridgeRuntimeConfig(config); err == nil || err.Error() != "API key lifecycle dev HTTP requires application catalog dev HTTP" {
+		t.Fatalf("unexpected missing catalog validation: %v", err)
+	}
+	config.ApplicationCatalogDevHTTPEnabled = true
+	config.APIKeyLifecycleDevWriteEnabled = true
+	if err := validateBridgeRuntimeConfig(config); err == nil || err.Error() != "API key lifecycle dev write requires application catalog dev write" {
+		t.Fatalf("unexpected missing catalog write validation: %v", err)
+	}
+	config.ApplicationCatalogDevWriteEnabled = true
+	if err := validateBridgeRuntimeConfig(config); err != nil {
+		t.Fatalf("complete API key lifecycle development gates should pass: %v", err)
+	}
+	if summary := config.SanitizedSummary(); !summary.APIKeyLifecycleDevHTTPEnabled || !summary.APIKeyLifecycleDevWriteEnabled {
+		t.Fatalf("API key lifecycle summary must expose only enablement state: %#v", summary)
+	}
+}
+
 func TestPostgresWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
 	cfg := defaultConfig()
 	cfg.WorkflowRunStoreMode = "postgres_dev_test"
@@ -721,6 +750,8 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_APPLICATION_CATALOG_DATABASE_TIMEOUT",
+		"RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP",
+		"RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE",
 		"RADISHMIND_WORKFLOW_RUN_STORE",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",

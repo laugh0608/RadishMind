@@ -32,6 +32,8 @@ var controlPlaneReadPermissionGrants = map[string]string{
 	"radishmind.applications.write":   "applications:write",
 	"radishmind.applications.archive": "applications:archive",
 	"radishmind.api-keys.read":        "api_keys:read",
+	"radishmind.api-keys.write":       "api_keys:write",
+	"radishmind.api-keys.revoke":      "api_keys:revoke",
 	"radishmind.usage.read":           "usage:read",
 	"radishmind.runs.read":            "runs:read",
 	"radishmind.audit.read":           "audit:read",

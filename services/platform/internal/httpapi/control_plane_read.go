@@ -108,6 +108,10 @@ func (s *Server) handleUserWorkspaceApplicationSummaryList(writer http.ResponseW
 }
 
 func (s *Server) handleUserWorkspaceAPIKeySummaryList(writer http.ResponseWriter, request *http.Request) {
+	if s.config.APIKeyLifecycleDevHTTPEnabled {
+		s.handleListAPIKeys(writer, request)
+		return
+	}
 	s.handleControlPlaneReadCursorList(writer, request, controlPlaneReadCursorListSpec{
 		RoutePattern:  controlPlaneAPIKeySummaryListRoute,
 		RequiredScope: "api_keys:read",
