@@ -31,6 +31,10 @@
 - `POST /v1/tools/actions`
 - `GET /v1/control-plane/tenants/{tenant_ref}/summary`
 - `GET /v1/user-workspace/applications`
+- `POST /v1/user-workspace/applications`
+- `GET /v1/user-workspace/applications/{application_id}`
+- `PUT /v1/user-workspace/applications/{application_id}`
+- `POST /v1/user-workspace/applications/{application_id}/archive`
 - `GET /v1/user-workspace/api-keys`
 - `POST /v1/user-workspace/api-keys`
 - `GET /v1/user-workspace/api-keys/{api_key_id}`
@@ -72,6 +76,8 @@
 - `GET /v1/model-gateway/requests/{request_id}`
 
 路由是否可用由各自的显式 dev/test gate 决定；注册到 mux 不等于默认开放。Application Draft、Application Publish、Workflow Executor / Evaluation 和 Gateway Request History 的开关、store selector、数据库连接与失败语义见本文后面的配置表。所有 `postgres_dev_test` store 都要求对应 manual migration marker / checksum preflight，连接或 preflight 失败时不得回退 `memory_dev`。
+
+应用目录、API 密钥生命周期和 Gateway Bearer 认证的本地闭环、作用域映射与安全约束见[应用目录与 API 密钥开发测试指南](../../docs/features/user-workspace/application-catalog-api-key-dev-test-guide.md)。
 
 其中 `GET /v1/platform/overview` 是 `P3 Local Product Shell / Ops Surface` 的首个只读产品面入口：它汇总服务状态、可选 model/profile、session/tooling metadata route、blocked action route 和当前停止线，供 `apps/radishmind-console/` 本地控制台或上层 UI 一次读取。它不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 
@@ -185,7 +191,7 @@ Control Plane Read 在 formal UI / dev-live consumer 之后的旧 repository rea
 
 `control-plane-read-admin-tenant-overview-v1` 当前在 `apps/radishmind-web/` 的 shared shell 内新增只读 `admin-tenant-overview` 页面切片。它只消费 `tenant-summary-route` 的离线 TypeScript view model，展示租户摘要、route metadata、request / audit ref、页面状态和 forbidden output guard；不请求 platform live route，不新增 platform route，不接数据库、OIDC、API key / quota、executor、confirmation、writeback 或 replay，也不声明 production admin console ready。
 
-`control-plane-read-workspace-applications-v1` 当前在 `apps/radishmind-web/` 的 shared shell 内新增只读 `workspace-applications` 页面切片。它只消费 `application-summary-list-route` 的离线 TypeScript view model，展示应用摘要列表、cursor、route metadata、request / audit ref、页面状态和 forbidden output guard；不请求 platform live route，不新增 platform route，不接数据库、OIDC、API key / quota、executor、confirmation、writeback 或 replay，也不声明 formal user workspace complete。
+`control-plane-read-workspace-applications-v1` 是 `workspace-applications` 最初的只读 shared-shell 基线：默认离线模式仍消费 `application-summary-list-route` 的 TypeScript view model，展示应用摘要、cursor、route metadata、request / audit ref、页面状态和 forbidden output guard。显式 Application Catalog dev/test source 已在此基线上增加 create / read / update / archive；它仍不代表 OIDC、production repository、正式 promotion、confirmation、writeback 或 replay 已可用。
 
 `control-plane-read-workspace-api-keys-v1` 当前在 `apps/radishmind-web/` 的 shared shell 内新增只读 `workspace-api-keys` 页面切片。它只消费 `api-key-summary-list-route` 的离线 TypeScript view model，展示 API key id、owner、scope、state、时间字段、route metadata、request / audit ref、页面状态和 forbidden output guard；不请求 platform live route，不新增 platform route，不接数据库、OIDC、API key lifecycle、quota enforcement、executor、confirmation、writeback 或 replay，不展示 key value 或 hash，也不声明 formal user workspace complete。
 

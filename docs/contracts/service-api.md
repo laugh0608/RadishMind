@@ -1,6 +1,6 @@
 # RadishMind 服务/API 接入契约
 
-更新时间：2026-07-12
+更新时间：2026-07-13
 
 ## 协议兼容边界
 
@@ -18,7 +18,7 @@
 当前目标口径应固定为：
 
 - 北向兼容：native Copilot API、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/models/{id}`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions`，以及 Control Plane Read-Side 的七条 read-only route
-- 本地产品 API：Workflow Draft / Run / Evaluation、Application Configuration Draft / Publish Candidate、Gateway Request History；这些路由只在各自显式 dev/test gate 下开放，不属于公开 production northbound compatibility surface
+- 本地产品 API：Workflow Draft / Run / Evaluation、Application Catalog、Application Configuration Draft / Publish Candidate、API Key Lifecycle、Gateway Request History；这些路由只在各自显式 dev/test gate 下开放，不属于公开 production northbound compatibility surface
 - 南向兼容：`RadishMind-Core`、`local_transformers / HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native、Anthropic messages
 
 control plane / user workspace 的 read-only route contract 已单独收口到 [Control Plane Read-Side 契约](control-plane-read-side.md)。当前七条 read-only route 均已注册到 `services/platform/` HTTP surface，并统一经过 shared verified identity 与 route authorization。`fake_store_dev` 保留给显式开发测试路径；`postgres_dev_test` 只路由 Tenant Summary 与 Audit，五条 workspace operation 在 signed test 模式保留 fake binding。`radish_oidc_integration_test` 只允许 `postgres_dev_test`，只开放 Tenant Summary / Audit，workspace operation 统一 fail closed 为 `workspace_membership_unavailable`。
@@ -145,13 +145,18 @@ HTTP JSON 现在由 `Go` 平台服务层承接，默认通过四个受控 `stdio
 
 ## 本地产品 API 分组
 
-这些路由使用各自独立的 dev/test gate、scope header 与 store selector：
+这些路由使用各自独立的 dev/test gate、授权上下文与 store selector：
 
 - Workflow：saved draft save / list / read / validate、bounded run start / list / read / comparison、evaluation case / revision / suite / decision。
-- Application：configuration draft validate / save / list / read，以及 immutable publish candidate create / list / read / append-only review。
-- Model Gateway：`GET /v1/model-gateway/requests` 与 `GET /v1/model-gateway/requests/{request_id}`；三个 northbound protocol 只有在完整 dev gateway caller scope 下才记录 sanitized history。
+- Application：application catalog create / list / read / update / archive、configuration draft validate / save / list / read，以及 immutable publish candidate create / list / read / append-only review。
+- API 密钥：绑定 active application 的 list / create / read / revoke；原始令牌只在 create 响应的 `credential.token` 返回一次，后续响应不得返回令牌或摘要。
+- Model Gateway：`GET /v1/model-gateway/requests` 与 `GET /v1/model-gateway/requests/{request_id}`；开发身份头模式要求完整 caller scope，`api_key_dev_test` 模式则从 Bearer 密钥恢复可信调用方上下文并记录 sanitized history。
 
-Application Draft、Publish Candidate、Workflow Draft / Run 和 Gateway Request 都支持显式 `memory_dev` 或 `postgres_dev_test`。PostgreSQL 模式要求各自 migration marker / checksum、runtime DML role 和 startup preflight；任一数据库失败都不得回退内存。Application candidate create 必须由服务端重新读取 saved valid draft 并计算 digest；review 只追加决定，不修改 candidate snapshot。Gateway history 不持久化 prompt、message、模型正文、Authorization、API key 或 provider raw payload。
+Application Catalog、API Key、Application Draft、Publish Candidate、Workflow Draft / Run 和 Gateway Request 都支持显式 `memory_dev` 或 `postgres_dev_test`。PostgreSQL 模式要求各自 migration marker / checksum、runtime DML role 和 startup preflight；任一数据库失败都不得回退内存。Application candidate create 必须由服务端重新读取 saved valid draft 并计算 digest；review 只追加决定，不修改 candidate snapshot。Gateway history 不持久化 prompt、message、模型正文、Authorization、API key、令牌摘要或 provider raw payload。
+
+管理面与消费面必须使用不同认证边界。Application Catalog 与 API Key Lifecycle 继续经过受验证的 control-plane identity 和 workspace scope，所需管理作用域分别为 `applications:read|write|archive` 与 `api_keys:read|write|revoke`；这些管理路由会拒绝 RadishMind API 密钥。`RADISHMIND_GATEWAY_AUTH_MODE=api_key_dev_test` 只用于五条模型网关 northbound route，按路由要求 `models:read`、`chat:invoke`、`responses:invoke` 或 `messages:invoke`，并拒绝混入开发 Gateway 身份头。认证必须在 bridge / provider 前检查密钥状态、过期时间、作用域、active application 和存储可用性，成功后只记录 `api_key:<api_key_id>` 与更新 `last_used_at`。
+
+可复验的本地调用顺序、请求示例与 PostgreSQL 手动迁移入口见[应用目录与 API 密钥开发测试指南](../features/user-workspace/application-catalog-api-key-dev-test-guide.md)。
 
 当前 `GET /v1/platform/overview` 是 `P3 Local Product Shell / Ops Surface` 的首个只读产品面入口。它聚合服务状态、`/v1/models` provider/profile inventory、session metadata route、tool metadata route、blocked action route 和停止线，供未来本地控制台或上层 UI 一次读取当前平台可展示能力。该 overview 只消费已有 metadata / blocked shell，不引入第二套业务真相源，也不启用真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay。
 

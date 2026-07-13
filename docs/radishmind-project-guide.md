@@ -191,9 +191,9 @@ pwsh ./scripts/run-radishmind-console-dev.ps1
 
 console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local-smoke`，展示 Runtime overview、Service Status、Model Inventory、Provider/Profile Details、Session And Tooling、Blocked Action Detail、Dev Diagnostics、Local Readiness、Stop Lines 和 Audit Boundary。它仍是本地只读 ops surface，不是 production console、正式用户端或生产管理端。
 
-### 3.7 运行正式 read-only product UI shell
+### 3.7 运行产品 UI shell（开发测试态）
 
-正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它默认离线，显式 dev-only 模式可分别连接 Control Plane Read、Saved Draft / Executor、Gateway Playground / History、Application Configuration Draft 和 Application Publish Review。RadishFlow Copilot 与 Radish Docs Assistant 的只读样例仍由统一 fixture 防止漂移；任何 dev/test live path 都不能解释为 production API consumer、正式 application 发布、API key / quota、production repository 或完整 workflow runtime ready。
+正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它默认离线，显式 dev-only 模式可分别连接 Control Plane Read、Saved Draft / Executor、Gateway Playground / History、Application Catalog、Application Configuration Draft 和 Application Publish Review。Application Catalog 已支持创建、编辑和归档；API 密钥页面仍只展示脱敏摘要，签发、Gateway Bearer 认证与吊销应按[应用目录与 API 密钥开发测试指南](features/user-workspace/application-catalog-api-key-dev-test-guide.md)通过 HTTP API 验证。RadishFlow Copilot 与 Radish Docs Assistant 的离线样例仍由统一 fixture 防止漂移；任何 dev/test live path 都不能解释为 production API consumer、正式 application 发布、生产 API key / quota、production repository 或完整 workflow runtime ready。
 
 日常预览或前后端联调优先使用仓库根目录启动脚本，不再手动拼接环境变量：
 
@@ -208,7 +208,7 @@ Windows / PowerShell 使用：
 pwsh ./start.ps1 -Command web-live
 ```
 
-`web-live` 会启动或复用 Platform 与产品 UI。按使用目标显式组合 `--saved-draft-dev` / `--saved-draft-postgres-dev-test`、`--gateway-request-postgres-dev-test`、`--application-draft-dev`、`--application-publish-dev` 或 `--application-publish-postgres-dev-test`；launcher 会设置对应 HTTP/write gate、consumer source 和 migration status preflight。完整命令见 [Web README](../apps/radishmind-web/README.md)。它不是 production supervisor，不启用 production auth、正式 promotion、API key lifecycle、quota enforcement、tool、confirmation、writeback 或 replay。
+`web-live` 会启动或复用 Platform 与产品 UI。按使用目标显式组合 `--saved-draft-dev` / `--saved-draft-postgres-dev-test`、`--gateway-request-postgres-dev-test`、`--application-draft-dev`、`--application-publish-dev`、`--application-publish-postgres-dev-test` 或 `--application-catalog-postgres-dev-test`；launcher 会设置对应 HTTP/write gate、consumer source 和 migration status preflight。完整命令见 [Web README](../apps/radishmind-web/README.md)。它不是 production supervisor，不启用 production auth、正式 promotion、API 密钥 Web 生命周期、quota enforcement、tool、confirmation、writeback 或 replay。
 
 如果 macOS `Control Center` / AirPlay 占用了默认 backend 端口 `7000`，改用备用本地端口启动：
 

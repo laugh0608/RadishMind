@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约
 
-更新时间：2026-07-12
+更新时间：2026-07-13
 
 ## 文档目的
 
@@ -38,6 +38,7 @@
 - 兼容层只做翻译，不另起第二套真相源。
 - 上层项目只消费建议、解释、候选动作和审计信息，最终业务真相源仍由上层维护。
 - 用户端、管理端、模型网关和 workflow runtime 都必须复用同一套 canonical contract，不为每个产品面另起一套私有协议。
+- 管理身份与模型调用凭证必须分层：Application Catalog 与 API Key Lifecycle 使用受验证的 control-plane identity、workspace binding 和管理作用域；五条模型网关 northbound route 可在显式 `api_key_dev_test` 下使用 Bearer 密钥，并仅从密钥记录恢复租户、工作区、应用、所有者和调用作用域。管理 API 不接受 RadishMind API 密钥，Gateway API key 模式不接受开发身份头覆盖，所有失败都必须在 bridge / provider 前结束。
 - Admin authenticated read 只消费 Radish 的 verified identity、tenant 和审查后的 permission projection；RadishMind 不解析分散 claim、不读取 Radish 业务数据库，也不复制 user / tenant / role 真相源。workspace / application membership 属于 RadishMind 资源绑定，不能由 `radish-api` scope 或角色名称隐式推导。
 - 当前 `signed_test_token` 只用于本仓库 dev/test：固定 `RS256`、显式 issuer / audience / test public key 和版本化 permission allowlist，输出 sanitized verified context；它不是 Radish OIDC client、JWKS 联调、production token 或 workspace membership 替代品。
 - `Radish OIDC Integration Test v1` 已为 tenant / audit 两条 Admin operation 实现 deterministic issuer / discovery / JWKS / JWT verifier、版本化 permission projection、zero-query auth boundary 和 Web 内存 token consumer；五条 workspace operation 在 membership adapter 前统一返回 `workspace_membership_unavailable`，不读取 fake repository。真实 Radish 联调为 `real_radish_integration_deferred`：未来由 Radish 注册 RadishMind application/client 与 resource audience，真实 issuer、audience、claim 与 permission mapping 仍必须来自 reviewed upstream evidence。RadishMind 只拥有自己的接入 profile 和 route mapping，不自建 issuer、账号或角色真相源；该模式不构成 browser login 或 production auth。
@@ -100,6 +101,7 @@
 - [图片生成契约](contracts/image-generation.md)：`RadishMind-Image Adapter`、image intent、backend request、artifact metadata、metadata-only runtime mapper / response consumer / response builder hook 和最小评测 manifest。
 - [Radish OIDC Token / Membership Upstream Evidence Refresh v1](integrations/radish-oidc-token-membership-upstream-evidence-refresh-v1.md)：Radish OIDC issuer / JWKS / client registration / membership 证据刷新、auth middleware ownership、negative auth smoke matrix 和 Saved Draft repository actor context handoff 前置说明。
 - [Admin Control Plane Authenticated Read Store Transition v1](features/admin-control-plane/authenticated-read-store-transition-v1.md)：verified identity、tenant permission mapping、Admin tenant / audit durable read、auth / store compatibility、失败语义、隐私和真实 Radish 联调顺序。
+- [应用目录与 API 密钥开发测试指南](features/user-workspace/application-catalog-api-key-dev-test-guide.md)：应用创建、密钥签发、Gateway Bearer 认证、作用域映射、吊销和持久化模式的可复验说明。
 - [输入与项目上下文契约](contracts/input-context.md)：`CopilotRequest`、artifact 抽象和项目上下文专题索引。
 - [RadishFlow 上下文契约](contracts/radishflow-context.md)：`RadishFlow` export snapshot、ghost completion、上游实现清单和任务级上下文要求。
 - [Radish 上下文契约](contracts/radish-context.md)：`Radish` docs QA 的知识上下文、检索来源和 artifact metadata 约束。
