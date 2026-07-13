@@ -6,14 +6,14 @@
 
 ## 当前专题
 
-- [应用目录与生命周期（开发/测试态）v1](application-catalog-lifecycle-dev-test-v1.md)：核心生命周期、内存与 PostgreSQL 开发测试态存储、独立迁移、无回退和下游归档阻断已完成；下一步进入 Web 管理与真实浏览器连续验收。
+- [应用目录与生命周期（开发/测试态）v1](application-catalog-lifecycle-dev-test-v1.md)：核心生命周期、内存与 PostgreSQL 开发测试态存储、Web 管理、下游归档只读约束和真实浏览器连续验收均已完成。
 - [应用 API 接入与调用 v1](application-api-integration-invocation-v1.md)：把选中应用、`/v1/models` 模型目录、三协议接入示例、现有 Gateway 调试台调用与脱敏请求历史审查串成连续的内部开发者路径。
 - [应用配置草案与审查 v1](application-configuration-draft-review-v1.md)：为当前应用建立独立配置草案、校验、开发测试态持久化、版本冲突、比较和 API 接入交接。
 - [应用发布治理与晋级审查 v1](application-publish-governance-promotion-v1.md)：已完成不可变候选版本、版本绑定、审查 CAS、漂移识别、阻塞式晋级资格判断，以及既有接入区、调试台和请求历史交接；不直接发布正式应用。
 
 ## 下一步
 
-- 在现有单一任务卡内实现应用目录 Web 严格消费端、创建 / 更新 / 冲突 / 归档交互和下游连续交接，并用真实 PostgreSQL 完成双标签 CAS、归档阻断与重启恢复验收；OIDC 成员关系未成立时继续失败关闭。
+- 应用目录专题已经关闭；下一批先回到[功能设计文档入口](../README.md)选择新的长期用户目标，不继续扩同层目录面板、检查器或证据切片。OIDC 成员关系未成立时继续失败关闭。
 
 ## 目录停止线
 

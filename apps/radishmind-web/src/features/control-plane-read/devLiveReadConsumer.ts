@@ -26,6 +26,8 @@ export type ControlPlaneReadDevLiveConfig = {
   subjectRef: string;
   authMode?: ControlPlaneReadAuthMode;
   storeMode?: ControlPlaneReadStoreMode;
+  applicationCatalogEnabled?: boolean;
+  workspaceId?: string;
 };
 
 export type ControlPlaneReadDevLiveLoadState =
@@ -61,6 +63,8 @@ export function readControlPlaneReadDevLiveConfig(): ControlPlaneReadDevLiveConf
     subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || DEFAULT_SUBJECT_REF,
     authMode: normalizeAuthMode(env.VITE_RADISHMIND_READ_AUTH_MODE),
     storeMode: env.VITE_RADISHMIND_READ_STORE_MODE?.trim() === "postgres_dev_test" ? "postgres_dev_test" : "fake_store_dev",
+    applicationCatalogEnabled: env.VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE?.trim() === "dev-application-catalog-http",
+    workspaceId: env.VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID?.trim() || "workspace_demo",
   };
 }
 
@@ -125,6 +129,9 @@ async function fetchDevLiveEnvelope(routeId: ControlPlaneReadRouteId, config: Co
 function devLiveRouteUrl(routeId: ControlPlaneReadRouteId, config: ControlPlaneReadDevLiveConfig): string {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS[routeId];
   const path = route.path.replace("{tenant_ref}", encodeURIComponent(config.tenantRef));
+  if (routeId === "application-summary-list-route" && config.applicationCatalogEnabled) {
+    return `${config.baseUrl}${path}?workspace_id=${encodeURIComponent(config.workspaceId ?? "workspace_demo")}&lifecycle_state=active&limit=100`;
+  }
   return `${config.baseUrl}${path}`;
 }
 

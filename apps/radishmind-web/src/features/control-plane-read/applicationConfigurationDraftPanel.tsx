@@ -28,7 +28,7 @@ const protocols: Array<{ id: ApplicationApiProtocol; label: string }> = [
   { id: "messages", label: "Messages" },
 ];
 
-export default function ApplicationConfigurationDraftPanel({ baseline }: { baseline: ApplicationConfigurationBaseline }) {
+export default function ApplicationConfigurationDraftPanel({ baseline, readOnly = false }: { baseline: ApplicationConfigurationBaseline; readOnly?: boolean }) {
   const [draft, setDraft] = useState(() => createApplicationConfigurationDraft(config, baseline));
   const [operation, setOperation] = useState(() => initialApplicationConfigurationDraftState(config));
   const [catalog, setCatalog] = useState(() => initialApplicationDraftModelCatalog(config, baseline.applicationId));
@@ -49,7 +49,12 @@ export default function ApplicationConfigurationDraftPanel({ baseline }: { basel
   const differences = useMemo(() => compareApplicationConfigurationDraft(baseline, draft), [baseline, draft]);
   const currentValidation = useMemo(() => validateApplicationConfigurationDraft(draft, catalog.models), [catalog.models, draft]);
   const enabled = config.mode === "dev_application_draft_http";
+  const mutationEnabled = enabled && !readOnly;
   const handoffReady = operation.validation.isValid && currentValidation.isValid && catalog.status === "ready";
+
+  useEffect(() => {
+    if (readOnly && enabled) void refreshList();
+  }, [baseline.applicationId, readOnly]);
 
   function edit(patch: Partial<ApplicationConfigurationDraft>) {
     setDraft((current) => ({ ...current, ...patch }));
@@ -57,6 +62,7 @@ export default function ApplicationConfigurationDraftPanel({ baseline }: { basel
   }
 
   async function loadModels() {
+    if (readOnly) return;
     const controller = new AbortController();
     catalogController.current?.abort();
     catalogController.current = controller;
@@ -72,6 +78,7 @@ export default function ApplicationConfigurationDraftPanel({ baseline }: { basel
   }
 
   async function validateDraft() {
+    if (readOnly) return;
     const local = validateApplicationConfigurationDraft(draft, catalog.models);
     if (!local.isValid || !enabled) {
       setOperation((current) => ({ ...current, status: local.isValid ? "valid" : "invalid", validation: local, failureCode: local.findings[0]?.code ?? "", summary: local.isValid ? "Application configuration is valid in offline memory; saving remains disabled." : "Resolve the blocking configuration findings before saving or handoff." }));
@@ -83,6 +90,7 @@ export default function ApplicationConfigurationDraftPanel({ baseline }: { basel
   }
 
   async function saveDraft() {
+    if (readOnly) return;
     const local = validateApplicationConfigurationDraft(draft, catalog.models);
     if (!local.isValid) {
       setOperation((current) => ({ ...current, status: "invalid", validation: local, failureCode: local.findings[0]?.code ?? "application_draft_payload_invalid", summary: "Resolve the blocking configuration findings before saving." }));
@@ -113,19 +121,19 @@ export default function ApplicationConfigurationDraftPanel({ baseline }: { basel
   }
 
   function openIntegration() {
-    if (!handoffReady) return;
+    if (readOnly || !handoffReady) return;
     requestApplicationApiIntegrationDraftHandoff(draft.applicationId, draft.defaultProtocol, draft.defaultModel);
     window.location.hash = "application-api-integration";
   }
 
   function openPlayground() {
-    if (!handoffReady) return;
+    if (readOnly || !handoffReady) return;
     requestModelGatewayPlaygroundHandoff(draft.applicationId, draft.defaultProtocol, draft.defaultModel);
     window.location.hash = "model-gateway-playground";
   }
 
   function openPublishReview() {
-    if (operation.status !== "saved" && operation.status !== "restored") return;
+    if (readOnly || operation.status !== "saved" && operation.status !== "restored") return;
     window.location.hash = "application-publish-review";
   }
 
@@ -133,7 +141,7 @@ export default function ApplicationConfigurationDraftPanel({ baseline }: { basel
     <section className="application-configuration-draft" id="application-configuration-draft" aria-labelledby="application-configuration-draft-title">
       <div className="section-heading compact-heading">
         <div><p className="eyebrow">Application Configuration Draft</p><h4 id="application-configuration-draft-title">Configure, validate, save, and review</h4></div>
-        <span className={`status-badge ${operation.status === "saved" || operation.status === "valid" || operation.status === "restored" ? "good" : operation.status === "invalid" || operation.status === "version_conflict" || operation.status === "store_failure" ? "bad" : "neutral"}`}>{operation.status}</span>
+        <span className={`status-badge ${readOnly || operation.status === "saved" || operation.status === "valid" || operation.status === "restored" ? "good" : operation.status === "invalid" || operation.status === "version_conflict" || operation.status === "store_failure" ? "bad" : "neutral"}`}>{readOnly ? "archived read-only" : operation.status}</span>
       </div>
 
       <div className="application-draft-scope">
@@ -145,13 +153,13 @@ export default function ApplicationConfigurationDraftPanel({ baseline }: { basel
       <div className="application-draft-layout">
         <article className="application-draft-editor">
           <div className="application-api-card-heading"><div><p className="eyebrow">Sanitized configuration</p><h5>{draft.draftId}</h5></div><span className="status-badge neutral">{draft.schemaVersion}</span></div>
-          <label>Display name<input value={draft.displayName} onChange={(event) => edit({ displayName: event.target.value })} maxLength={120} /></label>
-          <label>Description<textarea value={draft.description} onChange={(event) => edit({ description: event.target.value })} maxLength={1000} rows={4} placeholder="Public application purpose; never paste credentials or request content." /></label>
-          <label>Application kind<select value={draft.applicationKind} onChange={(event) => edit({ applicationKind: event.target.value })}><option value="workflow_copilot">Workflow Copilot</option><option value="docs_qa">Docs QA</option><option value="agent">Agent</option><option value="prompt_application">Prompt Application</option></select></label>
-          <fieldset><legend>Allowed protocols</legend>{protocols.map((protocol) => <label key={protocol.id}><input type="checkbox" checked={draft.allowedProtocols.includes(protocol.id)} onChange={(event) => edit({ allowedProtocols: event.target.checked ? [...draft.allowedProtocols, protocol.id] : draft.allowedProtocols.filter((item) => item !== protocol.id) })} />{protocol.label}</label>)}</fieldset>
-          <label>Default protocol<select value={draft.defaultProtocol} onChange={(event) => edit({ defaultProtocol: event.target.value as ApplicationApiProtocol })}>{protocols.map((protocol) => <option key={protocol.id} value={protocol.id}>{protocol.label}</option>)}</select></label>
-          <label>Default model<select value={draft.defaultModel} disabled={catalog.models.length === 0} onChange={(event) => edit({ defaultModel: event.target.value })}><option value="">No validated model</option>{catalog.models.map((model) => <option key={model.id} value={model.id}>{model.id} · {model.protocols.join(", ")}</option>)}</select></label>
-          <div className="application-draft-actions"><button type="button" onClick={() => void loadModels()} disabled={!enabled || catalog.status === "loading"}>{catalog.status === "loading" ? "Loading models…" : "Load / refresh models"}</button><button type="button" onClick={() => void validateDraft()}>Validate configuration</button><button type="button" onClick={() => void saveDraft()} disabled={!enabled || operation.status === "saving" || operation.status === "validating" || operation.status === "version_conflict"}>Save draft</button></div>
+          <label>Display name<input value={draft.displayName} onChange={(event) => edit({ displayName: event.target.value })} maxLength={120} disabled={readOnly} /></label>
+          <label>Description<textarea value={draft.description} onChange={(event) => edit({ description: event.target.value })} maxLength={1000} rows={4} placeholder="Public application purpose; never paste credentials or request content." disabled={readOnly} /></label>
+          <label>Application kind<select value={draft.applicationKind} onChange={(event) => edit({ applicationKind: event.target.value })} disabled={readOnly}><option value="workflow_copilot">Workflow Copilot</option><option value="docs_qa">Docs QA</option><option value="agent">Agent</option><option value="prompt_application">Prompt Application</option></select></label>
+          <fieldset disabled={readOnly}><legend>Allowed protocols</legend>{protocols.map((protocol) => <label key={protocol.id}><input type="checkbox" checked={draft.allowedProtocols.includes(protocol.id)} onChange={(event) => edit({ allowedProtocols: event.target.checked ? [...draft.allowedProtocols, protocol.id] : draft.allowedProtocols.filter((item) => item !== protocol.id) })} />{protocol.label}</label>)}</fieldset>
+          <label>Default protocol<select value={draft.defaultProtocol} onChange={(event) => edit({ defaultProtocol: event.target.value as ApplicationApiProtocol })} disabled={readOnly}>{protocols.map((protocol) => <option key={protocol.id} value={protocol.id}>{protocol.label}</option>)}</select></label>
+          <label>Default model<select value={draft.defaultModel} disabled={readOnly || catalog.models.length === 0} onChange={(event) => edit({ defaultModel: event.target.value })}><option value="">No validated model</option>{readOnly && draft.defaultModel && !catalog.models.some((model) => model.id === draft.defaultModel) ? <option value={draft.defaultModel}>{draft.defaultModel} · saved draft</option> : null}{catalog.models.map((model) => <option key={model.id} value={model.id}>{model.id} · {model.protocols.join(", ")}</option>)}</select></label>
+          {readOnly ? <p className="boundary-note">Archived application configuration is read-only. Existing saved drafts remain available below.</p> : <div className="application-draft-actions"><button type="button" onClick={() => void loadModels()} disabled={!mutationEnabled || catalog.status === "loading"}>{catalog.status === "loading" ? "Loading models…" : "Load / refresh models"}</button><button type="button" onClick={() => void validateDraft()}>Validate configuration</button><button type="button" onClick={() => void saveDraft()} disabled={!mutationEnabled || operation.status === "saving" || operation.status === "validating" || operation.status === "version_conflict"}>Save draft</button></div>}
           <p className="boundary-note">{catalog.summary}</p>
         </article>
 
@@ -160,7 +168,7 @@ export default function ApplicationConfigurationDraftPanel({ baseline }: { basel
           {operation.failureCode ? <p className="failure-summary">{operation.failureCode}</p> : null}
           {operation.validation.findings.length ? <ul className="application-draft-findings">{operation.validation.findings.map((finding) => <li key={`${finding.code}-${finding.field}`}><strong>{finding.field}</strong><span>{finding.code}</span><p>{finding.summary}</p></li>)}</ul> : <p className="boundary-note">No validation findings are currently available.</p>}
           {operation.status === "version_conflict" ? <div className="application-draft-conflict"><strong>Saved version {operation.currentDraftVersion} is newer.</strong><p>Your in-memory edits were not overwritten.</p><button type="button" onClick={continueAfterConflict}>Continue local edits against saved version</button>{list.summaries[0] ? <button type="button" onClick={() => void restoreDraft(list.summaries[0].draftId)}>Restore saved version</button> : null}</div> : null}
-          <div className="application-draft-handoff"><button type="button" disabled={!handoffReady} onClick={openIntegration}>Open API Integration</button><button type="button" disabled={!handoffReady} onClick={openPlayground}>Test in Playground</button><button type="button" disabled={operation.status !== "saved" && operation.status !== "restored"} onClick={openPublishReview}>Open Publish Review</button></div>
+          {!readOnly ? <div className="application-draft-handoff"><button type="button" disabled={!handoffReady} onClick={openIntegration}>Open API Integration</button><button type="button" disabled={!handoffReady} onClick={openPlayground}>Test in Playground</button><button type="button" disabled={operation.status !== "saved" && operation.status !== "restored"} onClick={openPublishReview}>Open Publish Review</button></div> : null}
           <p className="boundary-note">Handoff contains only application, protocol, and validated model. It never contains form text, credentials, or request input.</p>
         </article>
       </div>

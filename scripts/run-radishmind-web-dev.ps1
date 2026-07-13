@@ -14,6 +14,7 @@ param(
     [switch]$ApplicationDraftDev,
     [switch]$ApplicationPublishDev,
     [switch]$ApplicationPublishPostgresDevTest,
+    [switch]$ApplicationCatalogPostgresDevTest,
     [switch]$VerifyOnly,
     [switch]$ExitAfterProbe,
     [switch]$Help
@@ -42,6 +43,8 @@ Options:
                         Enable memory-dev Application Draft and Publish Candidate review.
   -ApplicationPublishPostgresDevTest
                         Enable PostgreSQL dev/test Application Draft and Publish Candidate review.
+  -ApplicationCatalogPostgresDevTest
+                        Enable the PostgreSQL dev/test Application Catalog lifecycle UI.
   -VerifyOnly           Probe existing backend/frontend processes only.
   -ExitAfterProbe       Start missing local processes, probe, then stop spawned processes.
 "@
@@ -71,6 +74,9 @@ if ($ApplicationPublishDev -and $Mode -ne "dev-live") {
 }
 if ($ApplicationPublishPostgresDevTest -and $Mode -ne "dev-live") {
     throw "-ApplicationPublishPostgresDevTest requires -Mode dev-live"
+}
+if ($ApplicationCatalogPostgresDevTest -and $Mode -ne "dev-live") {
+    throw "-ApplicationCatalogPostgresDevTest requires -Mode dev-live"
 }
 if ($ApplicationPublishDev -and $ApplicationPublishPostgresDevTest) {
     throw "Choose either -ApplicationPublishDev or -ApplicationPublishPostgresDevTest"
@@ -154,6 +160,14 @@ function Invoke-SavedDraftPostgresMigrationStatus {
     $env:RADISHMIND_GATEWAY_REQUEST_STORE = "postgres_dev_test"
     $env:RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
     $env:RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV = "1"
+    $env:RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP = "1"
+    $env:RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE = "1"
+    $env:RADISHMIND_APPLICATION_PUBLISH_STORE = "postgres_dev_test"
+    $env:RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
+    $env:RADISHMIND_APPLICATION_CATALOG_DEV_HTTP = "1"
+    $env:RADISHMIND_APPLICATION_CATALOG_DEV_WRITE = "1"
+    $env:RADISHMIND_APPLICATION_CATALOG_STORE = "postgres_dev_test"
+    $env:RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
     Push-Location $platformDir
     try {
         & $goPath run ./cmd/radishmind-workflow-draft-migrate status | Out-Null
@@ -171,6 +185,18 @@ function Invoke-SavedDraftPostgresMigrationStatus {
         & $goPath run ./cmd/radishmind-gateway-request-migrate status | Out-Null
         if ($LASTEXITCODE -ne 0) {
             throw "Gateway Request PostgreSQL migration preflight failed"
+        }
+        if ($ApplicationPublishPostgresDevTest) {
+            & $goPath run ./cmd/radishmind-application-publish-migrate status | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                throw "Application Publish PostgreSQL migration preflight failed"
+            }
+        }
+        if ($ApplicationCatalogPostgresDevTest) {
+            & $goPath run ./cmd/radishmind-application-catalog-migrate status | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                throw "Application Catalog PostgreSQL migration preflight failed"
+            }
         }
     }
     finally {
@@ -263,9 +289,13 @@ function Invoke-ControlPlaneReadRoutesProbe {
         [string]$Subject
     )
     $encodedTenant = [Uri]::EscapeDataString($Tenant)
+    $applicationRoute = "/v1/user-workspace/applications"
+    if ($ApplicationCatalogPostgresDevTest) {
+        $applicationRoute += "?workspace_id=$([Uri]::EscapeDataString($savedDraftWorkspaceId))&lifecycle_state=active&limit=1"
+    }
     $routes = @(
         "/v1/control-plane/tenants/$encodedTenant/summary",
-        "/v1/user-workspace/applications",
+        $applicationRoute,
         "/v1/user-workspace/api-keys",
         "/v1/user-workspace/usage/quota-summary",
         "/v1/user-workspace/workflow-definitions",
@@ -518,7 +548,7 @@ try {
     if ($Mode -eq "dev-live" -and -not (Test-Path -LiteralPath $platformWrapper -PathType Leaf)) {
         throw "Missing platform wrapper: $platformWrapper"
     }
-    if ($SavedDraftPostgresDevTest -or $GatewayRequestPostgresDevTest -or $ApplicationPublishPostgresDevTest) {
+    if ($SavedDraftPostgresDevTest -or $GatewayRequestPostgresDevTest -or $ApplicationPublishPostgresDevTest -or $ApplicationCatalogPostgresDevTest) {
         Invoke-SavedDraftPostgresMigrationStatus
         Write-Step "PostgreSQL dev/test migration preflight passed."
     }
@@ -585,6 +615,12 @@ try {
                 $env:RADISHMIND_GATEWAY_REQUEST_STORE = "postgres_dev_test"
                 $env:RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
             }
+            if ($ApplicationCatalogPostgresDevTest) {
+                $env:RADISHMIND_APPLICATION_CATALOG_DEV_HTTP = "1"
+                $env:RADISHMIND_APPLICATION_CATALOG_DEV_WRITE = "1"
+                $env:RADISHMIND_APPLICATION_CATALOG_STORE = "postgres_dev_test"
+                $env:RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
+            }
 
             $backendPortOpen = Test-TcpPort -HostName $backendUri.Host -Port $backendUri.Port
             if ($backendPortOpen) {
@@ -620,6 +656,11 @@ try {
                     $env:VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
+                if ($ApplicationCatalogPostgresDevTest) {
+                    $env:VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE = "dev-application-catalog-http"
+                    $env:VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL = $BackendUrl.TrimEnd("/")
+                    $env:VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID = $savedDraftWorkspaceId
+                }
                 if ($savedDraftEnabled) {
                     $env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE = "dev-saved-draft-http"
                     $env:VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE = "dev-workflow-executor-http"
@@ -653,6 +694,9 @@ try {
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV -ErrorAction SilentlyContinue

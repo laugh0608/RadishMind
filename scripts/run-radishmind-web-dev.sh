@@ -16,6 +16,7 @@ gateway_request_postgres_dev_test=0
 application_draft_dev=0
 application_publish_dev=0
 application_publish_postgres_dev_test=0
+application_catalog_postgres_dev_test=0
 saved_draft_workspace_id="workspace_demo"
 saved_draft_application_id="app_flow_copilot"
 
@@ -50,6 +51,8 @@ Options:
                            Enable memory-dev Application Draft and Publish Candidate review.
   --application-publish-postgres-dev-test
                            Enable PostgreSQL dev/test Application Draft and Publish Candidate review.
+  --application-catalog-postgres-dev-test
+                           Enable the PostgreSQL dev/test Application Catalog lifecycle UI.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
   -h, --help              Show this help.
@@ -114,6 +117,10 @@ while [[ $# -gt 0 ]]; do
       application_publish_postgres_dev_test=1
       shift
       ;;
+    --application-catalog-postgres-dev-test)
+      application_catalog_postgres_dev_test=1
+      shift
+      ;;
     --verify-only)
       verify_only=1
       shift
@@ -173,6 +180,10 @@ if [[ "${application_publish_dev}" -eq 1 && "${mode}" != "dev-live" ]]; then
 fi
 if [[ "${application_publish_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live" ]]; then
   echo "--application-publish-postgres-dev-test requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${application_catalog_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--application-catalog-postgres-dev-test requires --mode dev-live" >&2
   exit 2
 fi
 if [[ "${application_publish_dev}" -eq 1 && "${application_publish_postgres_dev_test}" -eq 1 ]]; then
@@ -254,11 +265,25 @@ probe_saved_draft_postgres_migration() {
 		export RADISHMIND_GATEWAY_REQUEST_STORE="postgres_dev_test"
 		export RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL="${database_url}"
 		export RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV="1"
+		export RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP="1"
+		export RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE="1"
+		export RADISHMIND_APPLICATION_PUBLISH_STORE="postgres_dev_test"
+		export RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL="${database_url}"
+		export RADISHMIND_APPLICATION_CATALOG_DEV_HTTP="1"
+		export RADISHMIND_APPLICATION_CATALOG_DEV_WRITE="1"
+		export RADISHMIND_APPLICATION_CATALOG_STORE="postgres_dev_test"
+		export RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL="${database_url}"
     cd "${platform_dir}"
 		go run ./cmd/radishmind-workflow-draft-migrate status >/dev/null || return
 		go run ./cmd/radishmind-application-draft-migrate status >/dev/null || return
 		go run ./cmd/radishmind-workflow-run-migrate status >/dev/null || return
 		go run ./cmd/radishmind-gateway-request-migrate status >/dev/null || return
+		if [[ "${application_publish_postgres_dev_test}" -eq 1 ]]; then
+			go run ./cmd/radishmind-application-publish-migrate status >/dev/null || return
+		fi
+		if [[ "${application_catalog_postgres_dev_test}" -eq 1 ]]; then
+			go run ./cmd/radishmind-application-catalog-migrate status >/dev/null || return
+		fi
   )
 }
 
@@ -356,7 +381,7 @@ probe_control_plane_read_routes() {
   local base_url="$1"
   local tenant="$2"
   local subject="$3"
-  "${python_bin}" - "$base_url" "$tenant" "$subject" <<'PY'
+  "${python_bin}" - "$base_url" "$tenant" "$subject" "${application_catalog_postgres_dev_test}" "${saved_draft_workspace_id}" <<'PY'
 import json
 import sys
 from urllib.parse import quote
@@ -365,9 +390,14 @@ from urllib.request import Request, urlopen
 base_url = sys.argv[1].rstrip("/")
 tenant = sys.argv[2]
 subject = sys.argv[3]
+catalog_enabled = sys.argv[4] == "1"
+workspace_id = sys.argv[5]
+application_route = "/v1/user-workspace/applications"
+if catalog_enabled:
+    application_route += f"?workspace_id={quote(workspace_id)}&lifecycle_state=active&limit=1"
 routes = [
     f"/v1/control-plane/tenants/{quote(tenant)}/summary",
-    "/v1/user-workspace/applications",
+    application_route,
     "/v1/user-workspace/api-keys",
     "/v1/user-workspace/usage/quota-summary",
     "/v1/user-workspace/workflow-definitions",
@@ -646,7 +676,7 @@ if [[ "${mode}" == "dev-live" && ! -f "${platform_wrapper}" ]]; then
 fi
 
 saved_draft_database_url=""
-if [[ "${saved_draft_postgres_dev_test}" -eq 1 || "${gateway_request_postgres_dev_test}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 ]]; then
+if [[ "${saved_draft_postgres_dev_test}" -eq 1 || "${gateway_request_postgres_dev_test}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${application_catalog_postgres_dev_test}" -eq 1 ]]; then
   require_command go
   saved_draft_database_url="$(build_saved_draft_database_url)"
   if ! probe_saved_draft_postgres_migration "${saved_draft_database_url}"; then
@@ -714,6 +744,12 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export RADISHMIND_GATEWAY_REQUEST_STORE="postgres_dev_test"
           export RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
         fi
+        if [[ "${application_catalog_postgres_dev_test}" -eq 1 ]]; then
+          export RADISHMIND_APPLICATION_CATALOG_DEV_HTTP="1"
+          export RADISHMIND_APPLICATION_CATALOG_DEV_WRITE="1"
+          export RADISHMIND_APPLICATION_CATALOG_STORE="postgres_dev_test"
+          export RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+        fi
         exec "${platform_wrapper}" serve
       ) >"${log_dir}/platform.out.log" 2>"${log_dir}/platform.err.log" &
       spawned_pids+=("$!")
@@ -740,6 +776,11 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE="dev-application-publish-http"
           export VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID="${saved_draft_workspace_id}"
+        fi
+        if [[ "${application_catalog_postgres_dev_test}" -eq 1 ]]; then
+          export VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE="dev-application-catalog-http"
+          export VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
         if [[ "${saved_draft_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE="dev-saved-draft-http"
@@ -771,6 +812,9 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE
         unset VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL
         unset VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID
+        unset VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE
+        unset VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL
+        unset VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID
       fi
       exec npm run dev
     ) >"${log_dir}/web.out.log" 2>"${log_dir}/web.err.log" &

@@ -2,15 +2,15 @@
 
 更新时间：2026-07-13
 
-状态：`application_catalog_lifecycle_dev_test_v1_postgres_implemented`
+状态：`application_catalog_lifecycle_dev_test_v1_complete`
 
 ## 当前结论
 
 本专题建立用户可创建、查看、更新和归档应用的开发测试态生命周期，并把新应用连续交给现有配置草案、API 接入、Gateway 调试台、请求历史和发布审查。
 
-当前实现已完成核心生命周期与 PostgreSQL 持久化批次：默认未启用时，`GET /v1/user-workspace/applications` 继续从预置只读假数据存储库返回 `ApplicationSummary`；显式启用应用目录模式后，同一路由及新增写入路由统一由独立 `ApplicationCatalogRepository` 提供，不叠加或合并两套列表，也不在目录失败时回退假数据。当前已具备 `memory_dev` 与 `postgres_dev_test`、服务端标识、所有者作用域、权限分离、筛选分页、完整元数据更新、原子 CAS、软归档、OIDC 成员关系失败关闭，以及归档后配置草案保存和发布候选创建 / 审查阻断。PostgreSQL 模式使用独立 schema、手动迁移、运行 / 迁移角色分离和启动前 schema 校验，并已验证服务重建恢复与并发单一成功者。
+本专题已完成。默认未启用时，`GET /v1/user-workspace/applications` 继续从预置只读假数据存储库返回 `ApplicationSummary`；显式启用应用目录模式后，同一路由及新增写入路由统一由独立 `ApplicationCatalogRepository` 提供，不叠加或合并两套列表，也不在目录失败时回退假数据。当前已具备 `memory_dev` 与 `postgres_dev_test`、服务端标识、所有者作用域、权限分离、筛选分页、完整元数据更新、原子 CAS、软归档、OIDC 成员关系失败关闭，以及归档后配置草案保存和发布候选创建 / 审查阻断。PostgreSQL 模式使用独立 schema、手动迁移、运行 / 迁移角色分离和启动前 schema 校验，并已验证服务重建恢复与并发单一成功者。
 
-Web 管理界面和真实浏览器连续路径尚未完成，继续由同一实施任务卡承接，不派生新的同层准入链。
+Web 已接入严格目录消费端和单一应用真相源，覆盖活跃 / 已归档筛选、创建、详情、更新、冲突保留、显式刷新、归档确认、应用上下文切换与归档只读历史。真实 PostgreSQL 浏览器路径已连续验证空目录创建、配置草案、单次 / 流式 / 取消调用、精确请求历史、发布候选、双标签 CAS、归档阻断、既有草案 / 候选 / 请求历史只读和服务重启恢复。
 
 本功能属于内部开发者预览。开发测试态目录可持久化、可审查和可恢复，不代表生产应用存储库、正式工作区成员授权、应用晋级、生产 API 密钥、配额或计费已成立。
 
@@ -248,4 +248,4 @@ PostgreSQL 使用独立 `application_catalog_records` 和 `application_catalog_s
 
 ## 当前实施下一步
 
-核心生命周期与 PostgreSQL 持久化批次已经完成。独立 schema、迁移清单与校验和、手动迁移运行器、存储选择器、启动前 schema 校验、无回退、运行角色 DDL 拒绝、迁移重复应用 / 回滚 / 重应用、重启恢复和并发 CAS 单一成功者均已验证。下一步在同一[实施任务卡](../../task-cards/application-catalog-lifecycle-dev-test-v1-plan.md)内进入 Web 管理与真实浏览器连续验收。实现过程中如果发现必须改变现有应用草案 / 候选 schema、Gateway 授权或工作流执行边界，应停止当前批次并回到对应功能专题更新设计，不能在应用目录实现中顺带扩张。
+本专题的核心生命周期、PostgreSQL 持久化、Web 管理和真实浏览器连续验收均已完成，单一[实施任务卡](../../task-cards/application-catalog-lifecycle-dev-test-v1-plan.md)同步关闭。后续不继续派生同层目录面板、准入检查器或证据切片；若要增加共享角色、反归档、生产授权、正式晋级、API 密钥、配额或计费，必须先建立或更新对应功能设计，再进入新的实现批次。

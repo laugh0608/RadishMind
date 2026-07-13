@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-13 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案和发布治理均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md) 确定性运行时均已完成；真实 Radish 联调已主动延后。活跃产品链路文档语言治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”的核心生命周期和 PostgreSQL 持久化批次已经完成；下一步进入 Web 管理与真实浏览器连续验收。生产认证、工作区成员关系、正式晋级与生产存储库仍关闭。
+2026-07-13 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md) 确定性运行时也已完成；真实 Radish 联调已主动延后。下一批应先选择新的功能设计目标，不继续派生同层应用目录面板或检查器。生产认证、工作区成员关系、正式晋级与生产存储库仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -40,7 +40,7 @@
 
 | 功能文档 | 当前作用 | 下一步默认入口 |
 | --- | --- | --- |
-| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口 | 完成应用目录 Web 管理与真实浏览器连续验收 |
+| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口 | 应用目录专题已完成；新批次先选择独立功能设计 |
 | [管理控制面](admin-control-plane.md) | 租户、权限、模型服务配置、配额、凭据、审计和部署证据 | 进入真实管理端、OIDC 或数据库前先更新 |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
 | [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查 | 进入工具、确认、写回、重放或生产启用前先更新 |
@@ -51,7 +51,7 @@
 | 专题 | 类型 | 当前用途 |
 | --- | --- | --- |
 | [用户工作区细专题入口](user-workspace/README.md) | 功能专题目录 | 承接应用、模型发现、API 接入、调用与审查的连续用户路径 |
-| [应用目录与生命周期（开发/测试态）v1](user-workspace/application-catalog-lifecycle-dev-test-v1.md) | 功能 / 生命周期专题 | 核心生命周期与 PostgreSQL 持久化已完成；下一步实现 Web 管理并完成真实浏览器连续验收 |
+| [应用目录与生命周期（开发/测试态）v1](user-workspace/application-catalog-lifecycle-dev-test-v1.md) | 功能 / 生命周期专题 | 核心生命周期、PostgreSQL 持久化、Web 管理和真实浏览器连续验收已完成 |
 | [应用 API 接入与调用 v1](user-workspace/application-api-integration-invocation-v1.md) | 功能 / 页面专题 | 已完成选中应用、`/v1/models`、三协议 × 三语言接入示例、现有调试台与脱敏请求历史的内部开发者闭环 |
 | [应用配置草案与审查 v1](user-workspace/application-configuration-draft-review-v1.md) | 功能 / 页面专题 | 已完成应用配置草案、校验、`memory_dev` / PostgreSQL 开发测试态持久化、版本冲突、比较与 API 接入交接 |
 | [应用发布治理与晋级审查 v1](user-workspace/application-publish-governance-promotion-v1.md) | 功能 / 治理专题 | 已完成不可变候选版本、服务端草案重读、审查 CAS、漂移识别、阻塞式晋级资格判断，以及接入区 / 调试台 / 请求历史交接；不执行正式发布 |

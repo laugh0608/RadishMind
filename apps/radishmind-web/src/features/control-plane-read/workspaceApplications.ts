@@ -7,7 +7,8 @@ import {
   type ApplicationSummary,
   type ControlPlaneReadCollectionViewModel,
   type ControlPlaneReadResponseByRoute,
-} from "../../../../../contracts/typescript/control-plane-read-api";
+} from "../../../../../contracts/typescript/control-plane-read-api.ts";
+import type { ApplicationCatalogRecord } from "./applicationCatalogConsumer.ts";
 
 export type WorkspaceApplicationsStateId =
   | "ready"
@@ -31,6 +32,17 @@ export type WorkspaceApplicationRow = {
   latestWorkflowDefinitionRef: string;
   lastRunStatus: string;
   updatedAt: string;
+  workspaceId?: string;
+  description?: string;
+  lifecycleState?: "active" | "archived";
+  recordVersion?: number;
+  createdAt?: string;
+  archivedAt?: string | null;
+};
+
+export type WorkspaceApplicationCatalogProjection = {
+  records: ApplicationCatalogRecord[];
+  summary: string;
 };
 
 export type WorkspaceApplicationsStatePreview = {
@@ -63,11 +75,45 @@ export type WorkspaceApplicationsViewModel = {
 
 export function buildWorkspaceApplicationsViewModel(
   collectionOverride?: ControlPlaneReadCollectionViewModel,
+  catalogProjection?: WorkspaceApplicationCatalogProjection,
 ): WorkspaceApplicationsViewModel {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS["application-summary-list-route"];
   const collection =
     collectionOverride ??
     toControlPlaneReadCollectionViewModel("application-summary-list-route", buildApplicationsEnvelope());
+  if (catalogProjection) {
+    const applications = catalogProjection.records.map(toCatalogApplicationRow);
+    const catalogCollection: ControlPlaneReadCollectionViewModel = {
+      ...collection,
+      source: "dev_live_http",
+      items: [],
+      itemCount: applications.length,
+      nextCursor: null,
+      failureCode: null,
+      statusLabel: "ready",
+      canRenderItems: true,
+      canFetchNextPage: false,
+      devLiveHttpEnabled: true,
+    };
+    return {
+      pageId: "workspace-applications",
+      routeId: "application-summary-list-route",
+      routePath: CONTROL_PLANE_READ_ROUTES.applications,
+      readModel: "application-summary",
+      requiredScope: "applications:read",
+      collection: catalogCollection,
+      applications,
+      metrics: buildMetrics(catalogCollection, applications),
+      statePreviews: buildStatePreviews(catalogCollection, false),
+      auditRef: "audit_application_catalog_snapshot",
+      requestId: "request_application_catalog_snapshot",
+      nextCursor: null,
+      forbiddenProjectionBlocked: false,
+      canRenderApplications: true,
+      canRequestLiveBackend: true,
+      canMutate: false,
+    };
+  }
   const applications = collection.items.map((item) => toApplicationRow(item as ApplicationSummary));
   const forbiddenProjectionBlocked = controlPlaneReadResponseHasForbiddenOutput({
     items: [{ [CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS[7]]: "blocked" }],
@@ -94,6 +140,24 @@ export function buildWorkspaceApplicationsViewModel(
       !controlPlaneReadResponseHasForbiddenOutput(collection),
     canRequestLiveBackend: collection.devLiveHttpEnabled,
     canMutate: false,
+  };
+}
+
+function toCatalogApplicationRow(record: ApplicationCatalogRecord): WorkspaceApplicationRow {
+  return {
+    applicationRef: record.applicationId,
+    displayName: record.displayName,
+    applicationKind: record.applicationKind,
+    ownerSubjectRef: record.ownerSubjectRef,
+    latestWorkflowDefinitionRef: "",
+    lastRunStatus: "not_available",
+    updatedAt: record.updatedAt,
+    workspaceId: record.workspaceId,
+    description: record.description,
+    lifecycleState: record.lifecycleState,
+    recordVersion: record.recordVersion,
+    createdAt: record.createdAt,
+    archivedAt: record.archivedAt,
   };
 }
 
