@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-07-12
+更新时间：2026-07-13
 
 <!-- markdown-size-allow: 历史 checker 仍直接读取本文件中的状态锚点；人工默认只读“当前结论”，R6 将逐批迁出兼容锚点并删除本标记。 -->
 
@@ -8,24 +8,24 @@
 
 本文档用于回答“根据项目规划和开发进度，今天要做什么以推进开发”。它是新会话短入口，只保留当前阶段、最近结论、下一顺位和停止线；正文默认中文，代码标识符、路径、配置键和状态锚点保留原文。
 
-功能细节默认先进入 [功能设计文档入口](features/README.md) 所定义的专题层级：产品面大方向进入 `docs/features/*.md`，具体功能和复杂页面进入对应子目录，平台横切能力进入 `docs/platform/`，外部接入进入 `docs/integrations/`。实现批次进入 `docs/task-cards/`，长验证记录进入周志、manifest、summary 或 run record。
+功能细节默认先进入 [功能设计文档入口](features/README.md) 所定义的专题层级：产品面大方向进入 `docs/features/*.md`，具体功能和复杂页面进入对应子目录，平台横切能力进入 `docs/platform/`，外部接入进入 `docs/integrations/`。实现批次进入 `docs/task-cards/`，长验证记录进入周志、清单、摘要或运行记录。
 
 ## 当前结论（默认读取到本节结束）
 
-- 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明 production ready。
-- 产品焦点：Workflow 审查链、Gateway Request History / Playground、Application API Integration、Configuration Draft 与 Publish Governance 均已完成；Admin verified identity / negative auth、Tenant / Audit PostgreSQL dev/test runtime，以及 Radish OIDC deterministic verifier / auth boundary / operation gate 均已完成。真实 Radish 联调已主动退出当前排期，状态为 `real_radish_integration_deferred`；未来由 Radish 注册 RadishMind application/client 与 resource audience 后再恢复专项联调。下一产品任务转向 `User Workspace Application Catalog & Lifecycle Dev/Test v1`，让用户从预置 application 进入可创建、可管理、可继续配置与审查的开发测试态应用生命周期；当前不打开 production auth、workspace route migration、application promotion、production key / quota / billing。
-- `R2 正确性与安全清零`、`R3 Workflow Draft Review Loop`、`R4 Gateway 运行时产品化` 已完成；`R5 测试、CI 与性能预算` 进入后续工程线，`R6 文档与 checker 收敛` 继续作为治理约束。
-- 四个正式一级产品面保持为 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；Image Path 是横切适配能力，不作为当前第五条一级主线。
-- 旧 Production Secret Backend / Storage Adapter readiness 链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
+- 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
+- 产品焦点：工作流审查链、Gateway 请求历史与调试台、应用 API 接入、配置草案和发布治理均已完成；管理端的已验证身份、负向认证、租户 / 审计 PostgreSQL 开发测试态运行时，以及 Radish OIDC 确定性验证器、认证边界和操作门禁也已完成。真实 Radish 联调已主动退出当前排期，状态为 `real_radish_integration_deferred`。下一产品任务“用户工作区应用目录与生命周期（开发/测试态）v1”已完成设计，固定从预置应用转向唯一可写目录、创建 / 更新 / 归档、所有者作用域、CAS 和现有应用专题交接；当前等待设计评审，不打开生产认证、工作区路由迁移、应用正式晋级、生产密钥、配额或计费。
+- `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化` 已完成；`R5 测试、CI 与性能预算` 进入后续工程线，`R6 文档与检查器收敛` 提前执行活跃产品链路语言治理，再回到应用目录功能设计。
+- 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
+- 旧生产凭据后端 / 存储适配器准入链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：明日先建立 `User Workspace Application Catalog & Lifecycle Dev/Test v1` 功能设计，审清 application ownership、tenant / workspace scope、创建 / 更新 / 归档语义、PostgreSQL dev/test repository、现有 Configuration Draft / Publish Governance handoff，以及 OIDC 模式下 membership 缺失时的 fail-closed 行为；设计通过后再拆实现批次。`real_radish_integration_deferred` 不占用该主线。
-2. 工程线：R5 Web 主入口和 Publish Review lazy chunk 继续受现有 Vite build 预算约束，不新增同层 checker。R6 继续收敛入口文档的过期事实和历史 checker 文字耦合。
+1. 产品线：评审 [用户工作区应用目录与生命周期（开发/测试态）v1](features/user-workspace/application-catalog-lifecycle-dev-test-v1.md)，重点确认唯一应用真相源、所有者作用域、软归档、现有配置草案 / API 接入 / 发布治理交接和 OIDC 成员关系缺失时的失败关闭行为；通过后创建一张专项实现任务卡。`real_radish_integration_deferred` 不占用该主线。
+2. 工程线：R6 活跃入口和应用产品链路语言治理已完成并进入验证；不机械翻译历史兼容索引，也不新增同层检查器。R5 Web 主入口和发布审查延迟加载分块继续受现有 Vite 构建预算约束。
 
-R3 与 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖 migration / rollback / reapply、运行角色 DDL 拒绝、服务重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback、CI 与真实浏览器双标签冲突审查。该完成不启用 production repository mode，也不代表 OIDC、production secret、audit store 或公开生产 API ready。
+R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
 
-durable draft repository、稳定 Gateway、executor v0 与 durable dev/test run history 均已成立。真实浏览器已验证 `Create → Save → Start bounded run → paginated history → detail → service restart recovery`，run record 中 provider call 为 1，tool / confirmation / business write / replay 均为 0，原始输入与 condition value 未持久化。unrestricted tool、业务写回、自动 confirmation commit、replay / resume 继续关闭。
+持久草案存储库、稳定 Gateway、执行器 v0 与持久开发测试态运行历史均已成立。真实浏览器已验证“创建 → 保存 → 启动受限运行 → 分页历史 → 详情 → 服务重启恢复”，运行记录中模型服务调用为 1，工具、确认、业务写入和重放均为 0，原始输入与条件值未持久化。无限制工具、业务写回、自动确认提交、重放和恢复继续关闭。
 
 总入口与证据：
 
@@ -41,11 +41,12 @@ durable draft repository、稳定 Gateway、executor v0 与 durable dev/test run
 10. [Workflow Evaluation Baseline & Case Versioning v1](features/workflow/workflow-evaluation-baseline-case-versioning-v1.md)
 11. [Workflow Evaluation Suite / Release Review v1](features/workflow/workflow-evaluation-suite-release-review-v1.md)
 12. [Model Gateway Request History / Usage & Failure Review v1](features/gateway/model-gateway-request-history-usage-failure-review-v1.md)
-13. [User Workspace Application API Integration & Invocation v1](features/user-workspace/application-api-integration-invocation-v1.md)
-14. [User Workspace Application Configuration Draft & Review v1](features/user-workspace/application-configuration-draft-review-v1.md)
-15. [User Workspace Application Publish Governance & Promotion v1](features/user-workspace/application-publish-governance-promotion-v1.md)
-16. [Admin Control Plane Authenticated Read Store Transition v1](features/admin-control-plane/authenticated-read-store-transition-v1.md)
-17. [本周周志](devlogs/2026-W28.md)
+13. [用户工作区应用 API 接入与调用 v1](features/user-workspace/application-api-integration-invocation-v1.md)
+14. [用户工作区应用配置草案与审查 v1](features/user-workspace/application-configuration-draft-review-v1.md)
+15. [用户工作区应用发布治理与晋级审查 v1](features/user-workspace/application-publish-governance-promotion-v1.md)
+16. [用户工作区应用目录与生命周期（开发/测试态）v1](features/user-workspace/application-catalog-lifecycle-dev-test-v1.md)
+17. [Admin Control Plane Authenticated Read Store Transition v1](features/admin-control-plane/authenticated-read-store-transition-v1.md)
+18. [本周周志](devlogs/2026-W29.md)
 
 以下“历史兼容状态与证据索引”暂时保留大量机器检查依赖的状态锚点，人工判断当前方向时默认不再继续读取；后续由 R6 逐批迁出。
 
@@ -243,11 +244,11 @@ durable draft repository、稳定 Gateway、executor v0 与 durable dev/test run
 
 推荐下一批开发目标从以下方向选择一个：
 
-1. `User Workspace`：下一产品任务为 `Application Catalog & Lifecycle Dev/Test v1`。先创建功能设计文档，覆盖 application 创建、列表、详情、受控元数据更新、归档、scope / owner / CAS、PostgreSQL dev/test persistence、从新 application 进入 Configuration Draft / Integration / Publish Review 的连续路径，以及稳定失败和隐私边界；随后按 Platform domain / repository、Web workspace、PostgreSQL 与浏览器验收拆实现批次，并继续遵守公开生产 API 停止线。
-2. `Workflow / Agent Runtime`：Saved Draft、Node Designer、受控 executor、durable run history 与 evaluation 审查链已完成当前阶段，不继续扩同层恢复体验、审查面板或 readiness/checker；只有新的真实用户问题或独立执行能力目标出现时才重开。历史兼容锚点保留为 `workflow_node_designer_persisted_layout_v1_implemented`、`workflow_node_designer_layout_review_findings_v1_implemented`、`workflow_node_designer_builder_interaction_polish_v1_implemented`、`workflow_node_designer_validation_overlay_navigation_v1_implemented`、`workflow_node_designer_graph_review_handoff_refinement_v1_implemented` 与 `workflow_saved_draft_conflict_review_v1_implemented`，不代表继续派生同层任务。
-3. `Model Gateway / API Distribution`：`Model Gateway Request History / Usage & Failure Review v1` 已完成 `memory_dev`、独立 PostgreSQL dev/test、manual migration、no-fallback、分页详情、重启恢复以及 queue / timeout / unary cancel / stream cancel 终态证据并关闭。adapter 没有可信 token 来源时继续使用 `not_reported`；后续只有明确选择 production API consumer、可信 usage contract、quota enforcement 或 billing 等独立目标时才重开，不继续扩同层 evidence / checker。
-4. `Admin Control Plane`：Radish OIDC Integration Test v1 的 deterministic verifier、auth / operation gate、zero-query denial 和 Web 内存 token consumer 已完成；真实 Radish 联调已 deferred，不再作为当前下一步。未来 Radish 注册 RadishMind application/client 与 resource audience，并提供 reviewed evidence 与短期 token 流程后，再恢复真实 HTTP/Web/浏览器专项联调；不新增同层 readiness 链或提前打开 production auth。
-5. `Image Generation / Artifact Return`：若继续推进，只能在 store、reader、public URL 或 backend adapter 中选择一个方向独立设计。
+1. 用户工作区：下一产品任务为“应用目录与生命周期（开发/测试态）v1”。先创建功能设计文档，覆盖应用创建、列表、详情、受控元数据更新、归档、作用域 / 所有者 / CAS、PostgreSQL 开发测试态持久化，以及从新应用进入配置草案、API 接入和发布审查的连续路径；随后按平台领域 / 存储库、Web 工作区、PostgreSQL 与浏览器验收拆实现批次，并继续遵守公开生产 API 停止线。
+2. 工作流 / Agent 运行时：已保存草案、节点设计器、受控执行器、持久运行历史与评测审查链已完成当前阶段，不继续扩同层恢复体验、审查面板或准入检查；只有新的真实用户问题或独立执行能力目标出现时才重开。历史兼容锚点保留为 `workflow_node_designer_persisted_layout_v1_implemented`、`workflow_node_designer_layout_review_findings_v1_implemented`、`workflow_node_designer_builder_interaction_polish_v1_implemented`、`workflow_node_designer_validation_overlay_navigation_v1_implemented`、`workflow_node_designer_graph_review_handoff_refinement_v1_implemented` 与 `workflow_saved_draft_conflict_review_v1_implemented`，不代表继续派生同层任务。
+3. 模型网关 / API 分发：Gateway 请求历史已完成 `memory_dev`、独立 PostgreSQL 开发测试态存储、手动迁移、不回退、分页详情、重启恢复，以及队列满、超时、单次响应取消和流式取消终态证据并关闭。适配器没有可信令牌来源时继续使用 `not_reported`；后续只有明确选择生产 API 消费方、可信用量契约、配额执行或计费等独立目标时才重开，不继续扩同层证据或检查器。
+4. 管理控制面：Radish OIDC 集成测试的确定性验证器、认证 / 操作门禁、查询前拒绝和 Web 内存令牌消费端已完成；真实 Radish 联调已延后，不再作为当前下一步。未来 Radish 注册 RadishMind 应用 / 客户端与资源受众，并提供已评审证据与短期令牌流程后，再恢复真实 HTTP、Web 和浏览器专项联调；不新增同层准入链或提前打开生产认证。
+5. 图片生成 / 产物返回：若继续推进，只能在存储、读取、公开 URL 或后端适配器中选择一个方向独立设计。
 
 ## 当前不要做
 

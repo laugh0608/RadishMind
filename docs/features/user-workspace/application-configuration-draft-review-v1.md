@@ -1,50 +1,50 @@
-# User Workspace Application Configuration Draft & Review v1
+# 用户工作区应用配置草案与审查 v1
 
-更新时间：2026-07-12
+更新时间：2026-07-13
 
 状态：`application_configuration_draft_review_v1_complete`
 
 ## 当前实现结果
 
-2026-07-12 已完成独立 application configuration draft 领域、dev-only validate / save / read / list API、memory dev 与 PostgreSQL dev/test repository、显式 migration、scope / owner 隔离、CAS 版本冲突、secret fail closed、Web 配置 / 校验 / 比较 / 恢复 / 冲突审查，以及到现有 API Integration 和 Playground 的 application / protocol / model handoff。
+2026-07-12 已完成独立应用配置草案领域、仅开发的校验 / 保存 / 读取 / 列表 API、`memory_dev` 与 PostgreSQL 开发测试态存储库、显式迁移、作用域 / 所有者隔离、CAS 版本冲突、敏感信息失败关闭、Web 配置 / 校验 / 比较 / 恢复 / 冲突审查，以及到现有 API 接入区和调试台的应用 / 协议 / 模型交接。
 
-Web 49 项测试与 production build、Platform 全量 Go 测试和 PostgreSQL integration suite 通过。真实浏览器以 `app_docs_assistant` 加载 6 个模型，保存 version 1，在第二标签页保存 version 2，第一标签页触发冲突并显式恢复；随后完成 Responses unary、stream、用户取消，并以同一 `request_id` 打开 `408 / BRIDGE_WORKER_CANCELED / postgres_dev_test` History detail。console 为 0 error / 0 warning，URL 只含稳定 section hash，localStorage / sessionStorage 为空。
+Web 49 项测试与生产构建、平台全量 Go 测试和 PostgreSQL 集成套件通过。真实浏览器以 `app_docs_assistant` 加载 6 个模型，保存版本 1，在第二标签页保存版本 2，第一标签页触发冲突并显式恢复；随后完成 Responses 单次响应、流式响应、用户取消，并以同一 `request_id` 打开 `408 / BRIDGE_WORKER_CANCELED / postgres_dev_test` 请求历史详情。控制台为 0 个错误 / 0 个警告，URL 只含稳定区段锚点，`localStorage` / `sessionStorage` 为空。
 
 ## 功能目标
 
-让内部开发者从当前 User Workspace application 建立独立配置草案，完成编辑、模型与协议校验、开发测试态保存、恢复、版本冲突审查、配置差异比较，并把已校验的 application、protocol 和 model 交给现有 API Integration Workspace 与 Gateway Playground。
+让内部开发者从当前用户工作区应用建立独立配置草案，完成编辑、模型与协议校验、开发测试态保存、恢复、版本冲突审查和配置差异比较，并把已校验的应用、协议和模型交给现有 API 接入工作区与 Gateway 调试台。
 
-本功能建立 application configuration draft 的领域与持久化边界，但不直接修改 Control Plane Read application summary，不创建正式 application，也不提供发布、删除或生产授权。
+本功能建立应用配置草案的领域与持久化边界，但不直接修改控制面只读应用摘要，不创建正式应用，也不提供发布、删除或生产授权。
 
 ## 用户流程
 
-1. 用户从 Applications 选择一个 application，进入现有 Application Detail。
-2. Application Configuration Workspace 以当前 application 的公开字段建立内存工作副本；application 切换会清除旧表单、校验、版本、冲突和 handoff 状态。
-3. 用户编辑 display name、description、application kind、默认 protocol、默认 model 与允许协议集合。
-4. 默认 offline 模式不发网络请求，允许本地编辑、校验和比较，但不保存、不恢复、不加载模型。
-5. 显式 dev/test 模式下，用户从现有 `/v1/models` consumer 加载当前 application scope 的模型目录；只有通过响应校验的 model id 和协议能力可进入草案。
-6. 用户执行本地校验；通过后可调用 dev-only application draft route 保存。首次保存得到 version `1`，后续保存必须携带 expected version。
-7. 用户可以刷新草案列表、恢复当前 application 下自己的草案，并比较草案与只读 application 基线。
-8. 版本冲突时保留当前内存修改，展示服务器当前版本；用户必须显式恢复已保存版本或以当前版本为新基线继续编辑，不能静默覆盖。
-9. 已通过校验的 protocol 与 model 可以交给现有 Application API Integration / Playground；调用与 History 继续由既有 Gateway consumer 和同一 `request_id` 链路承载。
+1. 用户从应用列表选择一个应用，进入现有应用详情。
+2. 应用配置工作区以当前应用的公开字段建立内存工作副本；切换应用会清除旧表单、校验、版本、冲突和交接状态。
+3. 用户编辑展示名、描述、应用类型、默认协议、默认模型与允许协议集合。
+4. 默认离线模式不发网络请求，允许本地编辑、校验和比较，但不保存、不恢复、不加载模型。
+5. 显式开发测试态模式下，用户从现有 `/v1/models` 消费端加载当前应用作用域的模型目录；只有通过响应校验的模型标识和协议能力可进入草案。
+6. 用户执行本地校验；通过后可调用仅开发的应用草案路由保存。首次保存得到版本 `1`，后续保存必须携带预期版本。
+7. 用户可以刷新草案列表、恢复当前应用下自己的草案，并比较草案与只读应用基线。
+8. 版本冲突时保留当前内存修改并展示服务器当前版本；用户必须显式恢复已保存版本，或以当前版本为新基线继续编辑，不能静默覆盖。
+9. 已通过校验的协议与模型可以交给现有应用 API 接入区和调试台；调用与请求历史继续由既有 Gateway 消费端和同一 `request_id` 链路承载。
 
 ## 数据来源与职责
 
-| 数据 | 真相源 / owner | 本功能用途 | 禁止替代来源 |
+| 数据 | 真相源 / 所有者 | 本功能用途 | 禁止替代来源 |
 | --- | --- | --- | --- |
-| 当前 application | User Workspace Applications / Application Detail | 建立只读比较基线和 application scope | 不从 URL 或浏览器存储恢复 |
-| 模型目录 | 现有 `GET /v1/models` consumer | 校验默认模型和协议兼容性 | 不复制 provider registry 或静态伪造 live 目录 |
-| application draft | application draft service / dev-test repository | 保存 sanitized configuration draft、版本和审计元数据 | 不复用 Workflow draft repository，不写 Control Plane Read fixture |
-| 测试调用 | 现有 Gateway Playground | 消费已校验 application / protocol / model handoff | 不新增协议 adapter、SSE parser 或请求状态模型 |
-| 调用审查 | 现有 Gateway Request History | 使用调用产生的同一 `request_id` | 不把草案内容补写到 Gateway history |
+| 当前应用 | 用户工作区应用列表 / 应用详情 | 建立只读比较基线和应用作用域 | 不从 URL 或浏览器存储恢复 |
+| 模型目录 | 现有 `GET /v1/models` 消费端 | 校验默认模型和协议兼容性 | 不复制模型服务注册表或静态伪造实时目录 |
+| 应用配置草案 | 应用配置草案服务 / 开发测试态存储库 | 保存脱敏配置草案、版本和审计元数据 | 不复用工作流草案存储库，不写控制面只读 fixture |
+| 测试调用 | 现有 Gateway 调试台 | 消费已校验应用 / 协议 / 模型交接 | 不新增协议适配器、SSE 解析器或请求状态模型 |
+| 调用审查 | 现有 Gateway 请求历史 | 使用调用产生的同一 `request_id` | 不把草案内容补写到 Gateway 请求历史 |
 
-## Application scope 与身份
+## 应用作用域与身份
 
 - 所有保存、读取和列表操作都必须绑定 `tenant_ref / workspace_id / application_id / owner_subject_ref`。
-- application id 只能来自当前 Applications 选择；请求 body、query 和 dev scope header 必须一致。
-- dev/test actor context 复用现有显式开发身份头，但 application draft 使用独立 scope：`application_drafts:read` 与 `application_drafts:write`。
-- list 只返回当前 scope 与 owner 的 sanitized summary；read 和 save 不允许跨 application、workspace 或 owner。
-- 本批次不接 Radish OIDC、真实 membership 或 production authorization；dev headers 不进入 UI、草案 payload、日志或示例。
+- 应用标识只能来自当前应用列表选择；请求正文、查询参数和开发作用域请求头必须一致。
+- 开发测试态参与者上下文复用现有显式开发身份头，但应用配置草案使用独立权限：`application_drafts:read` 与 `application_drafts:write`。
+- 列表只返回当前作用域与所有者的脱敏摘要；读取和保存不允许跨应用、工作区或所有者。
+- 本批次不接 Radish OIDC、真实成员关系或生产授权；开发请求头不进入界面、草案载荷、日志或示例。
 
 ## 配置草案模型
 
@@ -54,23 +54,23 @@ Web 49 项测试与 production build、Platform 全量 Go 测试和 PostgreSQL i
 - `workspace_id`、`application_id`、`base_application_updated_at`；
 - `display_name`、`description`、`application_kind`；
 - `default_protocol`、`default_model`、`allowed_protocols`；
-- `draft_version`、`validation_state`、创建 / 更新时间和 actor ref；
-- sanitized validation findings 与 request audit metadata。
+- `draft_version`、`validation_state`、创建 / 更新时间和参与者引用；
+- 脱敏校验发现与请求审计元数据。
 
-草案不允许包含 API key、key hash、Authorization、cookie、provider credential、provider endpoint、内部 caller header、prompt / message 输入、模型输出或业务数据。服务端必须递归检查禁止字段名，并限制字符串、数组和 payload 大小。
+草案不允许包含 API 密钥、密钥哈希、`Authorization`、cookie、模型服务凭据 / 端点、内部调用方请求头、提示词 / 消息输入、模型输出或业务数据。服务端必须递归检查禁止字段名，并限制字符串、数组和载荷大小。
 
 ## 校验与比较
 
 校验规则包括：
 
-- display name、description、application kind、draft id 和 scope 字段的长度与字符约束；
-- application kind 必须来自当前受控 allowlist；
-- allowed protocols 只能包含 Chat Completions、Responses、Messages，且去重后非空；
-- default protocol 必须属于 allowed protocols；
-- dev/test 加载过模型目录时，default model 必须存在，default protocol 必须属于该模型公开支持协议；
-- payload 任意层级出现 secret、credential、authorization、header、endpoint 或原始调用内容字段时 fail closed。
+- 展示名、描述、应用类型、草案标识和作用域字段的长度与字符约束；
+- 应用类型必须来自当前受控允许列表；
+- 允许协议只能包含 Chat Completions、Responses、Messages，且去重后非空；
+- 默认协议必须属于允许协议；
+- 开发测试态加载过模型目录时，默认模型必须存在，默认协议必须属于该模型公开支持协议；
+- 载荷任意层级出现敏感信息、凭据、授权、请求头、端点或原始调用内容字段时按失败关闭处理。
 
-比较视图只展示公开配置字段的 before / after / unchanged 状态，不展示 actor header、repository metadata、credential 或测试输入输出。模型目录刷新后模型不可用时，草案保持原值但进入 blocking validation，不能交给 Playground。
+比较视图只展示公开配置字段的变更前 / 变更后 / 未变化状态，不展示参与者请求头、存储库元数据、凭据或测试输入输出。模型目录刷新后模型不可用时，草案保持原值但进入阻塞校验状态，不能交给调试台。
 
 ## 状态与失败语义
 
@@ -90,59 +90,48 @@ Web 49 项测试与 production build、Platform 全量 Go 测试和 PostgreSQL i
 - `application_draft_store_unavailable`；
 - `application_draft_write_disabled`。
 
-repository 故障必须显式失败，`postgres_dev_test` 不得回退 memory；冲突响应只能返回当前版本和 sanitized finding，不能返回他人的草案。
+存储库故障必须显式失败，`postgres_dev_test` 不得回退到内存存储；冲突响应只能返回当前版本和脱敏发现，不能返回他人的草案。
 
 ## 持久化与隐私边界
 
-- offline 模式必须保持零 fetch。
-- 未保存编辑、模型目录、比较选择和 Playground 输入输出只存在当前 React 组件内存。
-- 不写入 URL query/hash payload、`localStorage`、`sessionStorage`、Workflow draft、Workflow run、Gateway history payload 或业务真相源。
-- memory dev store 只用于当前进程内显式开发路径；PostgreSQL dev/test store用于重启恢复与并发验证，不代表 production repository。
-- committed 文档、测试 fixture 和浏览器证据不得保存真实 secret、DSN、用户输入或模型输出。
+- 离线模式必须保持零请求。
+- 未保存编辑、模型目录、比较选择和调试台输入输出只存在当前 React 组件内存。
+- 不写入 URL 查询 / 锚点载荷、`localStorage`、`sessionStorage`、工作流草案、工作流运行、Gateway 请求历史载荷或业务真相源。
+- `memory_dev` 只用于当前进程内显式开发路径；`postgres_dev_test` 用于重启恢复与并发验证，不代表生产存储库。
+- 已提交文档、测试 fixture 和浏览器证据不得保存真实敏感信息、DSN、用户输入或模型输出。
 
-## API 与 repository 边界
+## API 与存储库边界
 
-新增 dev-only routes：
+新增仅开发路由：
 
 - `POST /v1/user-workspace/application-drafts/validate`
 - `POST /v1/user-workspace/application-drafts`
 - `GET /v1/user-workspace/application-drafts`
 - `GET /v1/user-workspace/application-drafts/{draft_id}`
 
-repository contract 只提供 validate 之外的 save / read / list；validation 属于领域 service。memory 与 PostgreSQL adapter 必须共享同一 CAS、scope 和 sanitized projection 语义。migration 只由显式 dev/test runner 执行，平台启动不自动迁移。
+存储库契约只提供校验之外的保存 / 读取 / 列表操作；校验属于领域服务。内存与 PostgreSQL 适配器必须共享同一 CAS、作用域和脱敏投影语义。迁移只由显式开发测试态运行器执行，平台启动不自动迁移。
 
 ## 实施拆分
 
-1. 建立 application draft 领域类型、校验、memory store、HTTP route、稳定失败与单元测试。
-2. 建立 PostgreSQL schema、marker、manual migration runner、CAS repository、store selector 和集成测试。
-3. 建立独立 lazy Application Configuration Workspace，复用模型目录 consumer 与 Playground handoff。
-4. 完成草案列表、恢复、比较、版本冲突处置和 application 切换隔离。
+1. 建立应用配置草案领域类型、校验、内存存储、HTTP 路由、稳定失败与单元测试。
+2. 建立 PostgreSQL schema、标记、手动迁移运行器、CAS 存储库、存储模式选择器和集成测试。
+3. 建立独立延迟加载应用配置工作区，复用模型目录消费端与调试台交接。
+4. 完成草案列表、恢复、比较、版本冲突处置和应用切换隔离。
 5. 完成真实浏览器连续流程、泄漏检查、文档真相源和阶段收口。
 
 ## 验收方式
 
-单元与集成测试至少覆盖：
+单元与集成测试至少覆盖：离线零请求；本地合法 / 非法校验与敏感信息失败关闭；保存 / 读取 / 列表和脱敏摘要；租户 / 工作区 / 应用 / 所有者隔离；CAS 版本冲突且不覆盖；PostgreSQL 迁移应用 / 回滚 / 重新应用、重启恢复和不回退；`/v1/models` 兼容性校验；应用切换清除旧状态；草案到 API 接入区 / 调试台的应用、协议、模型交接；调试台到请求历史的同请求标识交接继续通过既有测试。
 
-- offline 零请求；
-- 本地合法 / 非法校验与 secret fail closed；
-- save / read / list 和 sanitized summary；
-- tenant / workspace / application / owner 隔离；
-- CAS 版本冲突且不覆盖；
-- PostgreSQL migration apply / rollback / reapply、重启恢复和 no fallback；
-- `/v1/models` 兼容性校验；
-- application 切换清除旧状态；
-- 草案到 API Integration / Playground 的 application、protocol、model handoff；
-- Playground 到 History 的同 request id handoff继续通过既有测试。
+真实浏览器在显式开发测试态配置下完成：选择应用、建立草案、加载模型、编辑、校验、保存、刷新恢复、制造并审查版本冲突、比较配置、交给调试台、完成单次响应 / 流式响应 / 取消并打开精确请求历史详情。验收同时检查控制台错误、URL、`localStorage` 和 `sessionStorage`。
 
-真实浏览器在显式 dev/test 配置下完成：选择 application、建立草案、加载模型、编辑、校验、保存、刷新恢复、制造并审查版本冲突、比较配置、交给 Playground、完成 unary / stream / cancel 并打开精确 History detail。验收同时检查 console error、URL、localStorage 和 sessionStorage。
-
-相称验证包括 Web 单测、production build、Go 单元与集成测试、migration 往返、`git diff --check`、`./scripts/check-repo.sh --fast` 和完整 `./scripts/check-repo.sh`。
+相称验证包括 Web 单元测试、生产构建、Go 单元与集成测试、迁移往返、`git diff --check`、`./scripts/check-repo.sh --fast` 和完整 `./scripts/check-repo.sh`。
 
 ## 停止线
 
-- 不创建、发布、删除或直接更新正式 application。
-- 不接 production API key、key lifecycle、quota、billing、cost ledger、production auth 或真实 membership。
-- 不保存 provider credential、endpoint、Authorization、内部 dev header、测试输入输出或完整 HTTP payload。
-- 不新增 northbound Gateway protocol、provider registry、协议 adapter、SSE parser、fallback 或 load balancing。
-- 不把 dev/test 草案保存、模型校验或调用成功解释为 production ready、真实 provider SLA 或正式 application 已发布。
-- 不扩展 Workflow tool、confirmation、writeback、replay 或 resume。
+- 不创建、发布、删除或直接更新正式应用。
+- 不接生产 API 密钥、密钥生命周期、配额、计费、成本账本、生产认证或真实成员关系。
+- 不保存模型服务凭据、端点、`Authorization`、内部开发请求头、测试输入输出或完整 HTTP 载荷。
+- 不新增 Gateway 上行协议、模型服务注册表、协议适配器、SSE 解析器、回退或负载均衡。
+- 不把开发测试态草案保存、模型校验或调用成功解释为生产就绪、真实模型服务 SLA 或正式应用已发布。
+- 不扩展工作流工具、确认、写回、重放或恢复。

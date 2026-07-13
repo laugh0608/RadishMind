@@ -1,51 +1,60 @@
-# User Workspace 设计与开发文档
+# 用户工作区设计与开发文档
 
-更新时间：2026-07-12
+更新时间：2026-07-13
 
 ## 功能定位
 
-`User Workspace` 是 RadishMind 面向终端用户和项目成员的主工作区。它用于查看和管理 AI 应用、Prompt 应用、Workflow、Agent / Copilot 应用、API key、调用量、运行记录、成本摘要和人工审查入口。
+用户工作区是 RadishMind 面向终端用户和项目成员的主工作区，用于查看和管理 AI 应用、提示词应用、工作流、Agent / Copilot 应用、API 密钥、调用量、运行记录、成本摘要和人工审查入口。
 
 ## 当前状态
 
-- `apps/radishmind-web/` 已有 read-side shell、Workspace Home、applications、API keys、usage quota、workflow definitions、run history、Workflow Review Workspace 和 Workflow Review Handoff。
-- [Application API Integration & Invocation v1](user-workspace/application-api-integration-invocation-v1.md) 已把当前选中 application、`/v1/models` 模型目录、三协议 × 三语言接入示例、现有 Gateway Playground 和 sanitized Request History 串成连续的内部开发者路径；scope 不再依赖固定 application 配置。
-- [Application Configuration Draft & Review v1](user-workspace/application-configuration-draft-review-v1.md) 已让当前 application 建立独立 sanitized 配置草案，完成模型 / 协议校验、memory 与 PostgreSQL dev/test 保存、恢复、配置比较、CAS 冲突审查和 API Integration / Playground handoff；正式 application 真相源仍只读。
-- [Application Publish Governance & Promotion v1](user-workspace/application-publish-governance-promotion-v1.md) 已把已保存 valid draft 固定为不可变 candidate，完成 server-side reload、digest、review CAS、漂移 / superseded 检查、阻塞式 eligibility 和 Integration / Playground / History handoff；approved 仍不修改正式 application。
-- Workspace Home 和 workflow definitions 已支持创建本地 workflow 草案并进入 Draft Designer；草案保存仍复用 dev-only saved draft consumer，不代表 production persistence。
-- `User Workspace Saved Draft List v1` 已在 Workspace Home 支持 dev-only saved draft list：显示当前 application 下已保存草案的 sanitized summary、empty / failure state、refresh 和 restore；默认 memory 路径与显式 PostgreSQL dev/test repository 均可承载该路径，但不代表 production persistence。
-- Draft Designer 已通过 `Workflow Draft Node Attribute Editing Model v1` 支持本地节点新增、移动、删除保护、属性编辑和边重建；validation inspector、execution plan preview 和 runtime readiness inspector 使用当前 active draft，不代表 workflow 可发布或可执行。
-- `Workflow Review Handoff Active Draft v1` 已把恢复后的 active draft validation inspector、execution plan preview 和 runtime readiness inspector 汇总为 Review Handoff 中的可交接审查记录，仍不保存、不导出、不发送 handoff。
-- `Saved Workflow Draft Durable Store Preconditions v1` 已固定 durable store 迁移前置设计，明确 draft scope、owner / workspace 归属、version conflict、no sample fallback，以及 dev store 到未来 repository adapter 的切换停止线。
-- `Saved Workflow Draft Repository Contract Preconditions v1` 已固定 repository contract preconditions，明确 future saved draft list 需要的 list operation 只能返回 sanitized summary / metadata，仍不代表 durable persistence 或 production API ready。
-- `Saved Workflow Draft Schema / Migration Preconditions v1` 已固定 `draft_schema_migration_preconditions_defined`，明确 future saved draft durable store 的 logical schema、index strategy、migration gate 和 failure mapping，仍不代表 database ready 或 migration ready。
-- `Saved Workflow Draft Auth Context Preconditions v1` 已固定 `draft_auth_context_preconditions_defined`，明确 future saved draft repository actor context 的身份来源、workspace membership、owner policy、scope grants 和 audit / sanitization 边界，仍不代表 Radish OIDC 或 production auth ready。
-- `Saved Workflow Draft Store Selector Enablement Preconditions v1` 已固定 `draft_store_selector_enablement_preconditions_defined`，明确 future saved draft store mode、selector gate、failure mapping、no fallback 和 dev flag boundary，仍不代表 store selector ready 或 repository mode ready。
-- `Saved Workflow Draft Schema Artifact Evidence v1` 已固定 `draft_schema_artifact_evidence_defined`，明确 future saved draft schema artifact manifest、DDL review、rollback evidence、migration smoke 和 artifact guard，仍不代表 schema artifact ready、migration ready 或 database ready。
-- `Saved Workflow Draft Store Selector Smoke Readiness v1` 已固定 `draft_store_selector_smoke_readiness_defined`，明确 future saved draft selector smoke mode matrix、operation matrix、schema artifact failure、no fallback 和 no side effects，仍不代表 selector smoke ready 或 store selector ready。
-- `Saved Workflow Draft Repository Contract Smoke v1`、`Saved Workflow Draft Repository Contract Smoke Runner Readiness v1` 和 `Saved Workflow Draft Repository Contract Smoke Runner Implementation v1` 已固定 repository smoke、runner readiness 和 static runner implementation，仍不代表 repository adapter、durable persistence、database、OIDC 或 production API ready。
-- dev-only live read consumer 只能在显式 opt-in 下读取 fake-store-backed Go handlers。
-- `ControlPlaneReadRepository` interface 已落地，七条 read handlers 已通过 fake-store repository bridge 消费数据。
-- Saved Draft、Workflow Run History、Application Configuration Draft 与 Publish Candidate 已具备各自显式 PostgreSQL dev/test repository，受控 executor v0、Failure Review、Run Comparison、Evaluation Cases / Versioning 和 Evaluation Suite / Release Review 已接入 Workspace Run History；application summary 仍来自预置 fake read repository。
-- 当前仍不具备 production auth / repository、Radish workspace membership、正式 application lifecycle / promotion、API key lifecycle、quota enforcement、billing、tool、confirmation commit、业务写回或 replay。
+- `apps/radishmind-web/` 已有只读产品壳、工作区首页、应用列表、API 密钥、用量配额、工作流定义、运行历史、工作流审查区和审查交接区。
+- [应用 API 接入与调用 v1](user-workspace/application-api-integration-invocation-v1.md) 已把当前选中应用、`/v1/models` 模型目录、三协议 × 三语言接入示例、现有 Gateway 调试台和脱敏请求历史串成连续的内部开发者路径；作用域不再依赖固定应用配置。
+- [应用配置草案与审查 v1](user-workspace/application-configuration-draft-review-v1.md) 已为当前应用建立独立脱敏配置草案，完成模型 / 协议校验、`memory_dev` 与 PostgreSQL 开发测试态保存、恢复、配置比较、CAS 冲突审查，以及到 API 接入区和调试台的交接；正式应用真相源仍只读。
+- [应用发布治理与晋级审查 v1](user-workspace/application-publish-governance-promotion-v1.md) 已把有效的已保存草案固定为不可变候选版本，完成服务端重读、摘要计算、审查 CAS、漂移 / 被取代检查、阻塞式晋级资格判断，以及到接入区、调试台和请求历史的交接；`approved` 仍不修改正式应用。
+- [应用目录与生命周期（开发/测试态）v1](user-workspace/application-catalog-lifecycle-dev-test-v1.md) 已完成设计，固定应用唯一真相源、服务端标识、所有者作用域、完整元数据更新、软归档、CAS、PostgreSQL 开发测试态存储库、现有三个应用专题交接和真实浏览器纵向验收；尚未创建实现任务卡或运行时。
+- 工作区首页和工作流定义已支持创建本地工作流草案并进入草案设计器；草案保存复用仅开发的已保存草案消费端，不代表生产持久化已成立。
+- `User Workspace Saved Draft List v1` 已在工作区首页支持仅开发的已保存草案列表：显示当前应用下已保存草案的脱敏摘要、空结果 / 失败状态、刷新和恢复。默认内存路径与显式 PostgreSQL 开发测试态存储库均可承载该路径，但不代表生产持久化已成立。
+- 草案设计器已支持本地节点新增、移动、删除保护、属性编辑和边重建；校验检查器、执行计划预览和运行时准入检查器使用当前活跃草案，不代表工作流可正式发布或执行。
+- 工作流审查交接已把恢复后的活跃草案校验、执行计划和运行时准入结果汇总为可交接审查记录，仍不保存、不导出、不发送交接内容。
+- 已保存草案与运行历史具备各自独立的 PostgreSQL 开发测试态存储库；受控执行器 v0、失败审查、运行比较、评测用例 / 版本管理和评测套件 / 发布审查已接入工作区运行历史。
+- 应用配置草案与发布候选也具备各自独立的 PostgreSQL 开发测试态存储库，但应用摘要仍来自预置只读假数据存储库。
+- 当前仍不具备生产认证 / 存储库、Radish 工作区成员关系、正式应用生命周期 / 晋级、API 密钥生命周期、配额执行、计费、工具调用、确认提交、业务写回或重放。
+
+历史已保存草案准入专题继续作为证据索引保留，不再在本入口重复展开。需要追溯时，从 [工作流专题入口](workflow/README.md) 和对应实现专题进入。
 
 ## 设计边界
 
 - 用户端默认只输出建议、解释、审查包和候选动作，不直接写业务真相源。
 - 高风险动作必须保留 `requires_confirmation`。
-- read-side 与未来 write/execution side 必须分开设计；展示 ready 不等于执行 ready。
-- API key 页面不得展示 key value、hash、authorization header 或 secret material。
+- 只读侧与后续写入 / 执行侧必须分开设计；界面可展示不等于执行能力已就绪。
+- API 密钥页面不得展示密钥值、哈希、`Authorization` 请求头或任何敏感材料。
 
 ## 下一批开发方向
 
-1. Draft Review、Saved Draft dev/test persistence、Gateway 调用审查和 Application Publish Governance 已落地；不继续给 User Workspace、Workflow 或 Gateway 审查链叠加同层面板。
-2. 下一产品任务优先设计 `Application Catalog & Lifecycle Dev/Test v1`，解决当前 Applications 依赖预置 summary、用户不能创建和管理 application、后续 Configuration Draft / Integration / Publish Review 只能绑定既有 application 的产品缺口。
-3. 功能设计必须明确 application ownership、tenant / workspace scope、创建 / 更新 / 归档与 CAS、PostgreSQL dev/test repository、现有三个 Application 专题的 handoff、稳定失败和隐私边界；OIDC 模式在 membership contract 未成立时继续 fail closed。
-4. 设计评审通过后再拆 Platform domain / repository、Web workspace、PostgreSQL migration 与真实浏览器验收批次；不把 dev/test application catalog 写成 production application repository，也不解除现有 promotion blockers。
-5. 本专题不并行打开 production auth、workspace membership adapter、正式 promotion、production API key、quota、billing、provider secret 或 Gateway schema 扩展；新增 scoped dev/test API 与 repository 时使用专项 task card 和相称负向测试。
+1. 草案审查、已保存草案开发测试态持久化、Gateway 调用审查和应用发布治理已落地；不继续给用户工作区、工作流或 Gateway 审查链叠加同层面板。
+2. 下一步先评审“用户工作区应用目录与生命周期（开发/测试态）v1”，确认应用目录模式不会与预置只读摘要形成双真相源，并确认所有者作用域、创建 / 更新 / 归档 CAS、现有三个应用专题交接和归档后行为。
+3. 设计评审通过后创建单一专项任务卡，按平台领域 / 存储库、带作用域的开发测试态 API、Web 工作区、PostgreSQL 迁移与真实浏览器验收推进；不继续派生同层准入文档链。
+4. 不把开发测试态应用目录解释为生产应用存储库，也不解除现有晋级阻塞项；OIDC 模式在成员关系契约未成立时继续失败关闭。
+5. 本专题不并行打开生产认证、工作区成员关系适配器、正式晋级、生产 API 密钥、配额、计费、模型服务凭据或 Gateway schema 扩展；新增带作用域的开发测试态 API 与存储库时，使用专项任务卡和相称的负向测试。
 
 ## 验收方式
 
 - 功能展示类：`npm run build`、必要浏览器布局检查、`./scripts/check-repo.sh --fast`。
-- read contract 类：consumer smoke、Go handler tests、read-side contract checker。
-- 写入或执行类：先补设计文档和 task card，再补单测、负向测试、仓库级检查和人工确认路径。
+- 只读契约类：消费端冒烟验证、Go 处理器测试和只读侧契约检查。
+- 写入或执行类：先补设计文档和任务卡，再补单元测试、负向测试、仓库级检查和人工确认路径。
+
+<!--
+历史检查器兼容字面量，仅供既有证据链读取，人工默认不读：
+repository contract preconditions
+saved draft list
+durable store 迁移前置设计
+owner / workspace
+Workflow Draft Node Attribute Editing Model v1
+Workflow Review Handoff Active Draft v1
+Workspace Home / workflow definitions
+创建本地 workflow 草案
+dev-only saved draft consumer
+User Workspace Saved Draft List v1
+sanitized summary
+-->

@@ -51,6 +51,15 @@ EXPECTED_TERM_IDS = [
     "metadata-only",
     "fail-closed",
     "dev-only",
+    "scope",
+    "owner",
+    "repository",
+    "handoff",
+    "candidate",
+    "baseline",
+    "drift",
+    "offline",
+    "production",
 ]
 EXPECTED_PRIORITY_REMEDIATION_DOCS = [
     "docs/radishmind-current-focus.md",
@@ -65,6 +74,15 @@ EXPECTED_SECOND_BATCH_BOUNDARIES = [
     "prioritize_entry_and_topic_documents",
     "document_term_changes_with_fixture_checker_sync",
     "avoid_mass_translation",
+]
+EXPECTED_ACTIVE_PRODUCT_PATH_DOCS = [
+    "docs/radishmind-current-focus.md",
+    "docs/features/README.md",
+    "docs/features/user-workspace.md",
+    "docs/features/user-workspace/README.md",
+    "docs/features/user-workspace/application-api-integration-invocation-v1.md",
+    "docs/features/user-workspace/application-configuration-draft-review-v1.md",
+    "docs/features/user-workspace/application-publish-governance-promotion-v1.md",
 ]
 EXPECTED_FORBIDDEN_ACTIONS = [
     "mass_translate_repository",
@@ -231,6 +249,43 @@ def check_priority_remediation_batch(document: dict[str, Any]) -> None:
     require(snippet_paths == EXPECTED_PRIORITY_REMEDIATION_DOCS, f"priority snippet paths mismatch: {snippet_paths}")
 
 
+def check_active_product_path_remediation_batch(document: dict[str, Any]) -> None:
+    batch = document.get("active_product_path_remediation_batch")
+    require(isinstance(batch, dict), "active_product_path_remediation_batch must be an object")
+    status = batch.get("status")
+    require(
+        status == "doc_language_active_product_path_remediation_v2_defined",
+        "active_product_path_remediation_batch.status mismatch",
+    )
+    target_documents = batch.get("target_documents")
+    require(
+        target_documents == EXPECTED_ACTIVE_PRODUCT_PATH_DOCS,
+        f"active product path target docs mismatch: {target_documents}",
+    )
+    topic_text = read(document["topic_document"]["path"])
+    require(status in topic_text, f"topic document missing active product path status: {status}")
+
+    document_snippets = batch.get("document_snippets")
+    require(isinstance(document_snippets, list), "active product path document_snippets must be a list")
+    snippet_paths = []
+    for entry in document_snippets:
+        require(isinstance(entry, dict), "active product path snippet entry must be an object")
+        path = entry.get("path")
+        snippets = entry.get("snippets")
+        require(isinstance(path, str) and path in target_documents, f"unknown active product path: {path}")
+        require(isinstance(snippets, list) and snippets, f"{path} active product path snippets must be non-empty")
+        text = read(path)
+        for snippet in snippets:
+            require(isinstance(snippet, str) and snippet, f"{path} active product path snippet must be non-empty")
+            require(snippet in text, f"{path} missing active product path snippet: {snippet}")
+        snippet_paths.append(path)
+
+    require(
+        snippet_paths == EXPECTED_ACTIVE_PRODUCT_PATH_DOCS,
+        f"active product path snippet paths mismatch: {snippet_paths}",
+    )
+
+
 def check_repo_registration() -> None:
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     require(
@@ -246,6 +301,7 @@ def main() -> int:
     check_policy_anchors(document)
     check_preferred_terms(document)
     check_priority_remediation_batch(document)
+    check_active_product_path_remediation_batch(document)
     check_repo_registration()
     print("doc language policy v1 checks passed.")
     return 0

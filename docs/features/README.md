@@ -21,39 +21,40 @@
 
 ## 当前口径
 
-2026-07-12 当前执行口径：Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、durable run history、failure review、run comparison、evaluation cases、Gateway Request History / Playground、Application API Integration、Configuration Draft 与 Publish Governance 均已完成。Admin verified identity / negative auth、[Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) dev/test runtime，以及 [Radish OIDC Integration Test v1](admin-control-plane/radish-oidc-integration-test-v1.md) deterministic runtime 均已完成；真实 Radish 联调主动 deferred。下一产品专题先设计 `User Workspace Application Catalog & Lifecycle Dev/Test v1`，再进入实现批次；production auth、workspace membership、正式 promotion 与 production repository 仍关闭。
+2026-07-13 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案和发布治理均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md) 确定性运行时均已完成；真实 Radish 联调已主动延后。活跃产品链路文档语言治理和“用户工作区应用目录与生命周期（开发/测试态）v1”设计已经完成，下一步先评审设计，再创建单一实现任务卡；生产认证、工作区成员关系、正式晋级与生产存储库仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
 - 页面 / 界面专题只在页面承担复杂状态组织或真实用户流程时新增；普通展示、文案和布局不单独建专题。
-- 平台专题和扩展专题不是 task card；它们负责长期边界和准入条件，具体实现仍用 task card 承接。
+- 平台专题和扩展专题不是任务卡；它们负责长期边界和准入条件，具体实现仍用任务卡承接。
 - 功能设计文档不是禁止清单；它应明确本功能允许打开的实现范围，以及哪些能力需要作为后续独立目标推进。
-- 总体规划文档只负责方向、阶段、优先级和下一顺位；产品面大专题负责长期边界、停止线和推进顺序；功能 / 页面子专题负责具体流程、数据边界、验收方式和实施拆分；task card 只承接具体批次、前置条件或高风险门禁。
+- 总体规划文档只负责方向、阶段、优先级和下一顺位；产品面大专题负责长期边界、停止线和推进顺序；功能 / 页面子专题负责具体流程、数据边界、验收方式和实施拆分；任务卡只承接具体批次、前置条件或高风险门禁。
 - 功能文档正文默认中文；功能名、路径、状态锚点、schema / fixture / checker ID 等必要标识符保留原文并优先使用反引号。
 - 文档语言治理属于跨文档治理专题，入口是 [文档语言治理 v1](../document-language-governance-v1.md)；它不替代产品面、平台专题或实现批次边界。
 - `docs/radishmind-current-focus.md` 只回答当前阶段与下一顺位，不再承载长功能细节。
 - `docs/task-cards/` 只承载具体实现批次、前置条件或高风险边界，不再作为产品功能的默认主文档。
-- `scripts/checks/fixtures/` 与专项 checker 只在协议、schema、执行边界、生产声明、外部 provider 风险或高风险能力变化时新增。
+- `scripts/checks/fixtures/` 与专项检查器只在协议、schema、执行边界、生产声明、外部模型服务风险或高风险能力变化时新增。
 - 普通 UI、文案、布局、只读证据组织和使用性整理优先复用现有聚合门禁、web 构建、消费端冒烟验证和仓库基线。
 
 ## 产品面大方向导航
 
 | 功能文档 | 当前作用 | 下一步默认入口 |
 | --- | --- | --- |
-| [User Workspace](user-workspace.md) | 用户端 AI 应用、API key、用量、运行记录和审查入口 | 下一专题设计 Application Catalog & Lifecycle Dev/Test v1 |
-| [Admin Control Plane](admin-control-plane.md) | 租户、权限、provider/profile、quota、secret、审计和部署证据 | 进入真实管理端、OIDC 或数据库前先更新 |
-| [Model Gateway / API Distribution](model-gateway-api-distribution.md) | northbound API、provider/profile route、key/quota、trace 和审计 | 进入真实 API 分发、quota 或 billing 前先更新 |
-| [Workflow / Agent Runtime](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败/比较/evaluation 审查 | 进入 tool、confirmation、writeback、replay 或 production enablement 前先更新 |
-| [Image Generation / Artifact Return](image-generation-artifact-return.md) | 生图意图、artifact metadata、response merge 和后续后端适配器 | 进入 store / reader / public URL / backend adapter 前先更新 |
+| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口 | 下一专题设计“应用目录与生命周期（开发/测试态）v1” |
+| [管理控制面](admin-control-plane.md) | 租户、权限、模型服务配置、配额、凭据、审计和部署证据 | 进入真实管理端、OIDC 或数据库前先更新 |
+| [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
+| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查 | 进入工具、确认、写回、重放或生产启用前先更新 |
+| [图片生成 / 产物返回](image-generation-artifact-return.md) | 生图意图、产物元数据、响应合并和后续后端适配器 | 进入存储、读取、公开 URL 或后端适配器前先更新 |
 
 ## 细专题导航
 
 | 专题 | 类型 | 当前用途 |
 | --- | --- | --- |
-| [User Workspace 细专题入口](user-workspace/README.md) | 功能专题目录 | 承接 Applications、模型发现、API 接入、调用与审查的连续用户路径 |
-| [User Workspace Application API Integration & Invocation v1](user-workspace/application-api-integration-invocation-v1.md) | 功能 / 页面专题 | 已完成选中 application、`/v1/models`、三协议 × 三语言接入示例、现有 Playground 与 sanitized History 的内部开发者闭环 |
-| [User Workspace Application Configuration Draft & Review v1](user-workspace/application-configuration-draft-review-v1.md) | 功能 / 页面专题 | 已完成 application 配置草案、校验、memory / PostgreSQL dev-test 持久化、版本冲突、比较与 API Integration handoff |
-| [User Workspace Application Publish Governance & Promotion v1](user-workspace/application-publish-governance-promotion-v1.md) | 功能 / 治理专题 | 已完成不可变 publish candidate、server-side draft reload、review CAS、漂移识别、阻塞式 eligibility 与 Integration / Playground / History handoff；不执行正式发布 |
+| [用户工作区细专题入口](user-workspace/README.md) | 功能专题目录 | 承接应用、模型发现、API 接入、调用与审查的连续用户路径 |
+| [应用目录与生命周期（开发/测试态）v1](user-workspace/application-catalog-lifecycle-dev-test-v1.md) | 功能 / 生命周期专题 | 已完成应用唯一真相源、创建 / 更新 / 归档、所有者作用域、CAS、PostgreSQL 开发测试态存储库和现有应用专题交接设计；等待评审后进入实现 |
+| [应用 API 接入与调用 v1](user-workspace/application-api-integration-invocation-v1.md) | 功能 / 页面专题 | 已完成选中应用、`/v1/models`、三协议 × 三语言接入示例、现有调试台与脱敏请求历史的内部开发者闭环 |
+| [应用配置草案与审查 v1](user-workspace/application-configuration-draft-review-v1.md) | 功能 / 页面专题 | 已完成应用配置草案、校验、`memory_dev` / PostgreSQL 开发测试态持久化、版本冲突、比较与 API 接入交接 |
+| [应用发布治理与晋级审查 v1](user-workspace/application-publish-governance-promotion-v1.md) | 功能 / 治理专题 | 已完成不可变候选版本、服务端草案重读、审查 CAS、漂移识别、阻塞式晋级资格判断，以及接入区 / 调试台 / 请求历史交接；不执行正式发布 |
 | [Admin Control Plane 细专题入口](admin-control-plane/README.md) | 功能专题目录 | 承接 authenticated read、permission binding、repository transition 与后续管理端真实使用路径 |
 | [Admin Control Plane Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) | 功能 / 平台协同专题 | verified identity、tenant / audit PostgreSQL dev/test repository 与 deterministic OIDC boundary 均已完成；真实 Radish 联调 deferred |
 | [Admin Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) | 功能 / 平台协同专题 | schema / migration、manual CLI、read-only role、selector、cursor、真实 PostgreSQL、HTTP/Web 与 browser validation 已完成 |
