@@ -157,7 +157,7 @@ func TestLocalConsoleCORS(t *testing.T) {
 		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "http://127.0.0.1:4000" {
 			t.Fatalf("unexpected allow origin: %q", got)
 		}
-		if got := rec.Header().Get("Access-Control-Allow-Methods"); got != "GET, POST, OPTIONS" {
+		if got := rec.Header().Get("Access-Control-Allow-Methods"); got != "GET, POST, PUT, OPTIONS" {
 			t.Fatalf("unexpected allow methods: %q", got)
 		}
 	})

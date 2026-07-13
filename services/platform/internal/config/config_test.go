@@ -140,6 +140,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_APPLICATION_PUBLISH_STORE", "memory_dev")
 	t.Setenv("RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL", "postgresql://application-publish.invalid/secret")
 	t.Setenv("RADISHMIND_APPLICATION_PUBLISH_DATABASE_TIMEOUT", "13s")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_WRITE", "true")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_STORE", "memory_dev")
 
 	cfg, err := LoadFromEnv()
 	if err != nil {
@@ -193,6 +196,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	if !cfg.ApplicationPublishDevHTTPEnabled || !cfg.ApplicationPublishDevWriteEnabled || cfg.ApplicationPublishStoreMode != "memory_dev" ||
 		cfg.ApplicationPublishDatabaseURL == "" || cfg.ApplicationPublishDatabaseTimeout != 13*time.Second {
 		t.Fatalf("expected application publish env overrides: %#v", cfg)
+	}
+	if !cfg.ApplicationCatalogDevHTTPEnabled || !cfg.ApplicationCatalogDevWriteEnabled || cfg.ApplicationCatalogStoreMode != "memory_dev" {
+		t.Fatalf("expected application catalog env overrides: %#v", cfg)
 	}
 
 	summary := cfg.SanitizedSummary()
@@ -681,6 +687,9 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_APPLICATION_PUBLISH_DATABASE_TIMEOUT",
+		"RADISHMIND_APPLICATION_CATALOG_DEV_HTTP",
+		"RADISHMIND_APPLICATION_CATALOG_DEV_WRITE",
+		"RADISHMIND_APPLICATION_CATALOG_STORE",
 		"RADISHMIND_WORKFLOW_RUN_STORE",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",

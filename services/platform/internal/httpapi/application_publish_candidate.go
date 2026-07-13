@@ -28,6 +28,7 @@ const (
 	ApplicationPublishFailureReviewTransitionInvalid = "publish_candidate_review_transition_invalid"
 	ApplicationPublishFailureStoreUnavailable        = "publish_candidate_store_unavailable"
 	ApplicationPublishFailureWriteDisabled           = "publish_candidate_write_disabled"
+	ApplicationPublishFailureApplicationArchived     = ApplicationCatalogFailureArchived
 )
 
 const (
@@ -234,6 +235,9 @@ func (service applicationPublishCandidateService) Create(requestContext Applicat
 		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureDraftInvalid, CurrentDraftVersion: draft.DraftVersion}
 	}
 	baseline, err := service.readBaseline(requestContext)
+	if errors.Is(err, errApplicationCatalogArchived) {
+		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureApplicationArchived, CurrentDraftVersion: draft.DraftVersion}
+	}
 	if err != nil || strings.TrimSpace(baseline.ApplicationRef) == "" {
 		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureStoreUnavailable}
 	}
@@ -303,6 +307,11 @@ func (service applicationPublishCandidateService) Review(requestContext Applicat
 	if applicationDraftStringContainsSecret(reason) {
 		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureSecretForbidden}
 	}
+	if _, err := service.readBaseline(requestContext); errors.Is(err, errApplicationCatalogArchived) {
+		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureApplicationArchived}
+	} else if err != nil {
+		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureStoreUnavailable}
+	}
 	state := applicationPublishStateForDecision(decision)
 	now := service.now().Format(time.RFC3339Nano)
 	review := ApplicationPublishReviewRecord{
@@ -329,7 +338,9 @@ func (service applicationPublishCandidateService) decorate(requestContext Applic
 func (service applicationPublishCandidateService) decorateFromCandidates(requestContext ApplicationPublishContext, candidate ApplicationPublishCandidate, candidates []ApplicationPublishCandidate) ApplicationPublishCandidate {
 	blockers := applicationPublishReviewBlockers(candidate)
 	baseline, err := service.readBaseline(requestContext)
-	if err != nil {
+	if errors.Is(err, errApplicationCatalogArchived) {
+		blockers = append(blockers, ApplicationPromotionBlocker{Code: ApplicationPublishFailureApplicationArchived, Summary: "Application is archived and cannot continue publish review."})
+	} else if err != nil {
 		blockers = append(blockers, ApplicationPromotionBlocker{Code: "application_baseline_unavailable", Summary: "Current application baseline is unavailable."})
 	} else if strings.TrimSpace(baseline.UpdatedAt) != strings.TrimSpace(candidate.BaseApplicationUpdatedAt) {
 		blockers = append(blockers, ApplicationPromotionBlocker{Code: ApplicationPublishFailureBaseRevisionChanged, Summary: "Application baseline changed after candidate creation."})

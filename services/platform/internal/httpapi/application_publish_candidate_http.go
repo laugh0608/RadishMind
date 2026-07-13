@@ -137,6 +137,27 @@ func (server *Server) applicationPublishCandidateService() applicationPublishCan
 }
 
 func (server *Server) readApplicationPublishBaseline(requestContext ApplicationPublishContext) (ApplicationSummary, error) {
+	if server.config.ApplicationCatalogDevHTTPEnabled {
+		result := server.applicationCatalogService().RequireActive(ApplicationCatalogContext{
+			RequestContext: requestContext.RequestContext, RequestID: requestContext.RequestID, TenantRef: requestContext.TenantRef,
+			WorkspaceID: requestContext.WorkspaceID, ActorRef: requestContext.ActorRef, OwnerSubjectRef: requestContext.OwnerSubjectRef,
+			AuditRef: requestContext.AuditRef,
+		}, requestContext.ApplicationID)
+		if result.FailureCode == ApplicationCatalogFailureArchived {
+			return ApplicationSummary{}, errApplicationCatalogArchived
+		}
+		if result.FailureCode == ApplicationCatalogFailureNotFound {
+			return ApplicationSummary{}, errApplicationPublishBaselineNotFound
+		}
+		if result.FailureCode != "" || result.Record == nil {
+			return ApplicationSummary{}, errApplicationPublishBaselineUnavailable
+		}
+		return ApplicationSummary{
+			ApplicationRef: result.Record.ApplicationID, TenantRef: result.Record.TenantRef,
+			ApplicationKind: result.Record.ApplicationKind, DisplayName: result.Record.DisplayName,
+			OwnerSubjectRef: result.Record.OwnerSubjectRef, LastRunStatus: "not_available", UpdatedAt: result.Record.UpdatedAt,
+		}, nil
+	}
 	result := server.controlPlaneReadRepository().ListApplicationSummaries(ReadRepositoryContext{
 		RequestID: requestContext.RequestID, TenantRef: requestContext.TenantRef, SubjectRef: requestContext.ActorRef,
 		ScopeGrants: []string{"applications:read"}, AuditRef: requestContext.AuditRef,

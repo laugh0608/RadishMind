@@ -27,12 +27,14 @@ const (
 )
 
 var controlPlaneReadPermissionGrants = map[string]string{
-	"radishmind.tenant.read":       "tenant:read",
-	"radishmind.applications.read": "applications:read",
-	"radishmind.api-keys.read":     "api_keys:read",
-	"radishmind.usage.read":        "usage:read",
-	"radishmind.runs.read":         "runs:read",
-	"radishmind.audit.read":        "audit:read",
+	"radishmind.tenant.read":          "tenant:read",
+	"radishmind.applications.read":    "applications:read",
+	"radishmind.applications.write":   "applications:write",
+	"radishmind.applications.archive": "applications:archive",
+	"radishmind.api-keys.read":        "api_keys:read",
+	"radishmind.usage.read":           "usage:read",
+	"radishmind.runs.read":            "runs:read",
+	"radishmind.audit.read":           "audit:read",
 }
 
 var controlPlaneReadAuthReferencePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$`)

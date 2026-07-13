@@ -123,7 +123,18 @@ func (server *Server) applicationConfigurationDraftService() applicationConfigur
 	if server.applicationDraftRepository == nil {
 		server.applicationDraftRepository = &memoryApplicationConfigurationDraftRepository{drafts: make(map[string]ApplicationConfigurationDraft), unavailable: true}
 	}
-	return newApplicationConfigurationDraftService(server.applicationDraftRepository)
+	service := newApplicationConfigurationDraftService(server.applicationDraftRepository)
+	if server.config.ApplicationCatalogDevHTTPEnabled {
+		service.requireActive = func(draftContext ApplicationConfigurationDraftContext) string {
+			catalogContext := ApplicationCatalogContext{
+				RequestContext: draftContext.RequestContext, RequestID: draftContext.RequestID, TenantRef: draftContext.TenantRef,
+				WorkspaceID: draftContext.WorkspaceID, ActorRef: draftContext.ActorRef, OwnerSubjectRef: draftContext.OwnerSubjectRef,
+				AuditRef: draftContext.AuditRef,
+			}
+			return server.applicationCatalogService().RequireActive(catalogContext, draftContext.ApplicationID).FailureCode
+		}
+	}
+	return service
 }
 
 func applicationConfigurationDraftContextFromRequest(

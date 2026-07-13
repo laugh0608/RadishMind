@@ -13,14 +13,14 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
-- 产品焦点：工作流审查链、Gateway 请求历史与调试台、应用 API 接入、配置草案和发布治理均已完成；管理端的已验证身份、负向认证、租户 / 审计 PostgreSQL 开发测试态运行时，以及 Radish OIDC 确定性验证器、认证边界和操作门禁也已完成。真实 Radish 联调已主动退出当前排期，状态为 `real_radish_integration_deferred`。下一产品任务“用户工作区应用目录与生命周期（开发/测试态）v1”已完成设计，固定从预置应用转向唯一可写目录、创建 / 更新 / 归档、所有者作用域、CAS 和现有应用专题交接；当前等待设计评审，不打开生产认证、工作区路由迁移、应用正式晋级、生产密钥、配额或计费。
+- 产品焦点：工作流审查链、Gateway 请求历史与调试台、应用 API 接入、配置草案和发布治理均已完成；管理端的已验证身份、负向认证、租户 / 审计 PostgreSQL 开发测试态运行时，以及 Radish OIDC 确定性验证器、认证边界和操作门禁也已完成。真实 Radish 联调已主动退出当前排期，状态为 `real_radish_integration_deferred`。下一产品任务“用户工作区应用目录与生命周期（开发/测试态）v1”已完成核心生命周期批次：显式目录模式、内存存储库、服务端标识、所有者作用域、权限分离、CAS、软归档、精确发布基线和下游归档阻断均已实现；下一步继续独立 PostgreSQL 持久化，不打开生产认证、应用正式晋级、生产密钥、配额或计费。
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化` 已完成；`R5 测试、CI 与性能预算` 进入后续工程线，`R6 文档与检查器收敛` 提前执行活跃产品链路语言治理，再回到应用目录功能设计。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
 - 旧生产凭据后端 / 存储适配器准入链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：评审 [用户工作区应用目录与生命周期（开发/测试态）v1](features/user-workspace/application-catalog-lifecycle-dev-test-v1.md)，重点确认唯一应用真相源、所有者作用域、软归档、现有配置草案 / API 接入 / 发布治理交接和 OIDC 成员关系缺失时的失败关闭行为；通过后创建一张专项实现任务卡。`real_radish_integration_deferred` 不占用该主线。
+1. 产品线：按单一[实施任务卡](task-cards/application-catalog-lifecycle-dev-test-v1-plan.md)继续 [用户工作区应用目录与生命周期（开发/测试态）v1](features/user-workspace/application-catalog-lifecycle-dev-test-v1.md) 的 PostgreSQL 批次，完成独立 schema、迁移运行器、存储选择器、无回退和重启恢复；随后进入 Web 与真实浏览器连续验收。`real_radish_integration_deferred` 不占用该主线。
 2. 工程线：R6 活跃入口和应用产品链路语言治理已完成并进入验证；不机械翻译历史兼容索引，也不新增同层检查器。R5 Web 主入口和发布审查延迟加载分块继续受现有 Vite 构建预算约束。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
@@ -244,7 +244,7 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 
 推荐下一批开发目标从以下方向选择一个：
 
-1. 用户工作区：下一产品任务为“应用目录与生命周期（开发/测试态）v1”。先创建功能设计文档，覆盖应用创建、列表、详情、受控元数据更新、归档、作用域 / 所有者 / CAS、PostgreSQL 开发测试态持久化，以及从新应用进入配置草案、API 接入和发布审查的连续路径；随后按平台领域 / 存储库、Web 工作区、PostgreSQL 与浏览器验收拆实现批次，并继续遵守公开生产 API 停止线。
+1. 用户工作区：“应用目录与生命周期（开发/测试态）v1”已完成平台领域、内存存储库、作用域 API、CAS、归档和配置 / 发布阻断；下一步完成 PostgreSQL 开发测试态持久化，再进入 Web 工作区和浏览器连续验收，并继续遵守公开生产 API 停止线。
 2. 工作流 / Agent 运行时：已保存草案、节点设计器、受控执行器、持久运行历史与评测审查链已完成当前阶段，不继续扩同层恢复体验、审查面板或准入检查；只有新的真实用户问题或独立执行能力目标出现时才重开。历史兼容锚点保留为 `workflow_node_designer_persisted_layout_v1_implemented`、`workflow_node_designer_layout_review_findings_v1_implemented`、`workflow_node_designer_builder_interaction_polish_v1_implemented`、`workflow_node_designer_validation_overlay_navigation_v1_implemented`、`workflow_node_designer_graph_review_handoff_refinement_v1_implemented` 与 `workflow_saved_draft_conflict_review_v1_implemented`，不代表继续派生同层任务。
 3. 模型网关 / API 分发：Gateway 请求历史已完成 `memory_dev`、独立 PostgreSQL 开发测试态存储、手动迁移、不回退、分页详情、重启恢复，以及队列满、超时、单次响应取消和流式取消终态证据并关闭。适配器没有可信令牌来源时继续使用 `not_reported`；后续只有明确选择生产 API 消费方、可信用量契约、配额执行或计费等独立目标时才重开，不继续扩同层证据或检查器。
 4. 管理控制面：Radish OIDC 集成测试的确定性验证器、认证 / 操作门禁、查询前拒绝和 Web 内存令牌消费端已完成；真实 Radish 联调已延后，不再作为当前下一步。未来 Radish 注册 RadishMind 应用 / 客户端与资源受众，并提供已评审证据与短期令牌流程后，再恢复真实 HTTP、Web 和浏览器专项联调；不新增同层准入链或提前打开生产认证。

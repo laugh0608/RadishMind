@@ -2,13 +2,15 @@
 
 更新时间：2026-07-13
 
-状态：`application_catalog_lifecycle_dev_test_v1_defined`
+状态：`application_catalog_lifecycle_dev_test_v1_backend_core_implemented`
 
 ## 当前结论
 
 本专题建立用户可创建、查看、更新和归档应用的开发测试态生命周期，并把新应用连续交给现有配置草案、API 接入、Gateway 调试台、请求历史和发布审查。
 
-当前实现中的 `GET /v1/user-workspace/applications` 仍从预置只读假数据存储库返回 `ApplicationSummary`。本专题不在该列表上叠加可写覆盖层，也不合并两套应用列表；显式启用应用目录模式后，应用身份、所有权、元数据和生命周期统一由独立 `ApplicationCatalogRepository` 提供。旧只读假数据模式只保留为未启用应用目录时的历史开发路径，不能作为目录存储失败时的回退来源。
+当前实现已完成核心生命周期批次：默认未启用时，`GET /v1/user-workspace/applications` 继续从预置只读假数据存储库返回 `ApplicationSummary`；显式启用应用目录模式后，同一路由及新增写入路由统一由独立 `ApplicationCatalogRepository` 提供，不叠加或合并两套列表，也不在目录失败时回退假数据。当前已具备 `memory_dev`、服务端标识、所有者作用域、权限分离、筛选分页、完整元数据更新、CAS、软归档、OIDC 成员关系失败关闭，以及归档后配置草案保存和发布候选创建 / 审查阻断。
+
+独立 PostgreSQL 存储、迁移运行器、Web 管理界面和真实浏览器连续路径尚未完成，继续由同一实施任务卡承接，不派生新的同层准入链。
 
 本功能属于内部开发者预览。开发测试态目录可持久化、可审查和可恢复，不代表生产应用存储库、正式工作区成员授权、应用晋级、生产 API 密钥、配额或计费已成立。
 
@@ -244,6 +246,6 @@ PostgreSQL 使用独立 `application_catalog_records` 和 `application_catalog_s
 - 不扩展工作流工具、RAG、确认提交、业务写回、重放或恢复。
 - 不把开发测试态应用目录、已批准候选版本、Web 归档阻断或本地调用成功解释为生产应用生命周期或生产授权已就绪。
 
-## 设计评审后下一步
+## 当前实施下一步
 
-设计评审通过后，创建单一实现任务卡，先落地应用领域、`memory_dev`、带作用域 API 和负向测试，再完成 PostgreSQL、Web 与真实浏览器纵向闭环。实现过程中如果发现必须改变现有应用草案 / 候选 schema、Gateway 授权或工作流执行边界，应停止当前批次并回到对应功能专题更新设计，不能在应用目录实现中顺带扩张。
+核心生命周期批次已经完成并通过 Go 单元、完整平台回归与竞态验证。下一步在同一[实施任务卡](../../task-cards/application-catalog-lifecycle-dev-test-v1-plan.md)内完成独立 PostgreSQL schema、迁移运行器、存储选择器和重启恢复，再进入 Web 与真实浏览器连续验收。实现过程中如果发现必须改变现有应用草案 / 候选 schema、Gateway 授权或工作流执行边界，应停止当前批次并回到对应功能专题更新设计，不能在应用目录实现中顺带扩张。

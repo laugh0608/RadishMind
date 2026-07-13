@@ -85,6 +85,10 @@ func (s *Server) handleControlPlaneTenantSummary(writer http.ResponseWriter, req
 }
 
 func (s *Server) handleUserWorkspaceApplicationSummaryList(writer http.ResponseWriter, request *http.Request) {
+	if s.config.ApplicationCatalogDevHTTPEnabled {
+		s.handleListApplicationCatalogRecords(writer, request)
+		return
+	}
 	s.handleControlPlaneReadCursorList(writer, request, controlPlaneReadCursorListSpec{
 		RoutePattern:  controlPlaneApplicationSummaryListRoute,
 		RequiredScope: "applications:read",

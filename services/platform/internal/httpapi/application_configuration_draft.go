@@ -129,8 +129,9 @@ type memoryApplicationConfigurationDraftRepository struct {
 }
 
 type applicationConfigurationDraftService struct {
-	repository applicationConfigurationDraftRepository
-	now        func() time.Time
+	repository    applicationConfigurationDraftRepository
+	requireActive func(ApplicationConfigurationDraftContext) string
+	now           func() time.Time
 }
 
 func newApplicationConfigurationDraftService(repository applicationConfigurationDraftRepository) applicationConfigurationDraftService {
@@ -177,6 +178,11 @@ func (service applicationConfigurationDraftService) Save(
 	}
 	if expectedVersion < 0 {
 		return ApplicationConfigurationDraftResult{FailureCode: ApplicationDraftFailurePayloadInvalid, ValidationSummary: validation}
+	}
+	if service.requireActive != nil {
+		if failureCode := service.requireActive(requestContext); failureCode != "" {
+			return ApplicationConfigurationDraftResult{FailureCode: failureCode, ValidationSummary: validation}
+		}
 	}
 	now := service.now().Format(time.RFC3339)
 	draft := ApplicationConfigurationDraft{

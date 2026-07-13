@@ -36,6 +36,7 @@ type Server struct {
 	savedWorkflowDraftStore               savedWorkflowDraftStore
 	applicationDraftRepository            applicationConfigurationDraftRepository
 	applicationPublishCandidateRepository applicationPublishCandidateRepository
+	applicationCatalogRepository          applicationCatalogRepository
 	workflowRunStore                      workflowRunStore
 	workflowEvaluationStore               workflowEvaluationStore
 	workflowEvaluationSuiteStore          workflowEvaluationSuiteStore
@@ -44,6 +45,7 @@ type Server struct {
 	closeSavedWorkflowDraftStore          func()
 	closeApplicationDraftStore            func()
 	closeApplicationPublishStore          func()
+	closeApplicationCatalogStore          func()
 	closeWorkflowRunStore                 func()
 	closeGatewayRequestStore              func()
 	closeControlPlaneReadRepository       func()
@@ -99,8 +101,17 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeControlPlaneReadRepository()
 		return nil, err
 	}
+	applicationCatalogRepository, closeApplicationCatalogStore, err := newApplicationCatalogRepositoryFromConfig(cfg)
+	if err != nil {
+		closeApplicationPublishStore()
+		closeApplicationDraftStore()
+		closeSavedWorkflowDraftStore()
+		closeControlPlaneReadRepository()
+		return nil, err
+	}
 	workflowRunStore, closeWorkflowRunStore, err := newWorkflowRunStoreFromConfig(cfg)
 	if err != nil {
+		closeApplicationCatalogStore()
 		closeApplicationPublishStore()
 		closeApplicationDraftStore()
 		closeSavedWorkflowDraftStore()
@@ -110,6 +121,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfig(cfg)
 	if err != nil {
 		closeWorkflowRunStore()
+		closeApplicationCatalogStore()
 		closeApplicationPublishStore()
 		closeApplicationDraftStore()
 		closeSavedWorkflowDraftStore()
@@ -120,6 +132,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	if err != nil {
 		closeGatewayRequestStore()
 		closeWorkflowRunStore()
+		closeApplicationCatalogStore()
 		closeApplicationPublishStore()
 		closeApplicationDraftStore()
 		if closeSavedWorkflowDraftStore != nil {
@@ -137,6 +150,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		savedWorkflowDraftStore:               savedWorkflowDraftStore,
 		applicationDraftRepository:            applicationDraftRepository,
 		applicationPublishCandidateRepository: applicationPublishRepository,
+		applicationCatalogRepository:          applicationCatalogRepository,
 		workflowRunStore:                      workflowRunStore,
 		workflowEvaluationStore:               newWorkflowEvaluationStoreForRunStore(workflowRunStore),
 		workflowEvaluationSuiteStore:          newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
@@ -145,6 +159,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeSavedWorkflowDraftStore:          closeSavedWorkflowDraftStore,
 		closeApplicationDraftStore:            closeApplicationDraftStore,
 		closeApplicationPublishStore:          closeApplicationPublishStore,
+		closeApplicationCatalogStore:          closeApplicationCatalogStore,
 		closeWorkflowRunStore:                 closeWorkflowRunStore,
 		closeGatewayRequestStore:              closeGatewayRequestStore,
 		closeControlPlaneReadRepository:       closeControlPlaneReadRepository,
@@ -164,6 +179,10 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc("POST /v1/tools/actions", server.handleToolAction)
 	mux.HandleFunc(controlPlaneTenantSummaryRoute, server.handleControlPlaneTenantSummary)
 	mux.HandleFunc(controlPlaneApplicationSummaryListRoute, server.handleUserWorkspaceApplicationSummaryList)
+	mux.HandleFunc(applicationCatalogCreateRoute, server.handleCreateApplicationCatalogRecord)
+	mux.HandleFunc(applicationCatalogReadRoute, server.handleReadApplicationCatalogRecord)
+	mux.HandleFunc(applicationCatalogUpdateRoute, server.handleUpdateApplicationCatalogRecord)
+	mux.HandleFunc(applicationCatalogArchiveRoute, server.handleArchiveApplicationCatalogRecord)
 	mux.HandleFunc(controlPlaneAPIKeySummaryListRoute, server.handleUserWorkspaceAPIKeySummaryList)
 	mux.HandleFunc(controlPlaneQuotaSummaryRoute, server.handleUserWorkspaceQuotaSummary)
 	mux.HandleFunc(controlPlaneWorkflowDefinitionSummaryListRoute, server.handleUserWorkspaceWorkflowDefinitionSummaryList)
@@ -278,6 +297,9 @@ func (s *Server) Close() {
 		if s.closeApplicationPublishStore != nil {
 			s.closeApplicationPublishStore()
 		}
+		if s.closeApplicationCatalogStore != nil {
+			s.closeApplicationCatalogStore()
+		}
 		if s.closeWorkflowRunStore != nil {
 			s.closeWorkflowRunStore()
 		}
@@ -316,7 +338,7 @@ func applyLocalConsoleCORS(writer http.ResponseWriter, request *http.Request) bo
 	}
 	headers := writer.Header()
 	headers.Set("Access-Control-Allow-Origin", origin)
-	headers.Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	headers.Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
 	headers.Set("Access-Control-Allow-Headers", strings.Join(localConsoleAllowedHeaders(), ", "))
 	headers.Set("Vary", "Origin")
 	return true
