@@ -41,6 +41,43 @@ type migrationState struct {
 	AppliedAt          time.Time
 }
 
+func (runtime *Runtime) VerifyMigrations(ctx context.Context, migrations []Migration) error {
+	if runtime == nil || runtime.database == nil {
+		return errors.New("SQLite development runtime is unavailable")
+	}
+	if err := validateMigrations(migrations); err != nil {
+		return err
+	}
+	expectedCountByComponent := make(map[string]int)
+	for _, migration := range migrations {
+		var storeSchemaVersion string
+		var checksum string
+		err := runtime.database.QueryRowContext(ctx, `SELECT store_schema_version, migration_checksum
+            FROM radishmind_schema_migrations WHERE component=? AND migration_id=?`, migration.Component, migration.ID).
+			Scan(&storeSchemaVersion, &checksum)
+		if errors.Is(err, sql.ErrNoRows) {
+			return errors.New("SQLite development component migration is not applied")
+		}
+		if err != nil {
+			return errors.New("verify SQLite development component migration")
+		}
+		if storeSchemaVersion != migration.StoreSchemaVersion || checksum != migration.Checksum() {
+			return errors.New("SQLite development component migration marker mismatch")
+		}
+		expectedCountByComponent[migration.Component]++
+	}
+	for component, expectedCount := range expectedCountByComponent {
+		var actualCount int
+		if err := runtime.database.QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, component).Scan(&actualCount); err != nil {
+			return errors.New("count SQLite development component migrations")
+		}
+		if actualCount != expectedCount {
+			return errors.New("SQLite development component contains an unexpected migration marker")
+		}
+	}
+	return nil
+}
+
 func (migration Migration) Checksum() string {
 	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(migration.UpSQL)))
 }

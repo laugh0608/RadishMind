@@ -796,6 +796,20 @@ func TestLocalPersistenceRejectsUnknownModeAndComponentConflict(t *testing.T) {
 	}
 }
 
+func TestApplicationCatalogSQLiteComponentSelectorRequiresDevelopmentGates(t *testing.T) {
+	base := defaultConfig()
+	base.ApplicationCatalogStoreMode = "sqlite_dev"
+	if err := validateBridgeRuntimeConfig(base); err == nil || err.Error() != "application catalog sqlite_dev store requires complete development gates" {
+		t.Fatalf("application catalog sqlite_dev without development gates must fail, got %v", err)
+	}
+	base.ControlPlaneReadDevAuthEnabled = true
+	base.ApplicationCatalogDevHTTPEnabled = true
+	base.ApplicationCatalogDevWriteEnabled = true
+	if err := validateBridgeRuntimeConfig(base); err != nil {
+		t.Fatalf("application catalog sqlite_dev component selector was rejected: %v", err)
+	}
+}
+
 func clearPlatformEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{

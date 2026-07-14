@@ -1366,12 +1366,16 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	switch strings.TrimSpace(cfg.ApplicationCatalogStoreMode) {
 	case "", "memory_dev":
+	case "sqlite_dev":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled || !cfg.ApplicationCatalogDevWriteEnabled {
+			return fmt.Errorf("application catalog sqlite_dev store requires complete development gates")
+		}
 	case "postgres_dev_test":
 		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled || !cfg.ApplicationCatalogDevWriteEnabled || strings.TrimSpace(cfg.ApplicationCatalogDatabaseURL) == "" {
 			return fmt.Errorf("application catalog postgres_dev_test store requires complete development gates and a database URL")
 		}
 	default:
-		return fmt.Errorf("application catalog store must be memory_dev or postgres_dev_test")
+		return fmt.Errorf("application catalog store must be memory_dev, sqlite_dev, or postgres_dev_test")
 	}
 	if cfg.ApplicationCatalogDatabaseTimeout <= 0 {
 		return fmt.Errorf("application catalog database timeout must be positive")

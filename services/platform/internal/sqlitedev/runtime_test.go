@@ -86,6 +86,47 @@ func TestRuntimeRejectsChangedAndUnexpectedMigrationMarkers(t *testing.T) {
 	}
 }
 
+func TestRuntimeVerifiesRequestedComponentMigrations(t *testing.T) {
+	ctx := context.Background()
+	migrations := testMigrations()
+	runtime, err := Open(ctx, Options{DatabasePath: filepath.Join(t.TempDir(), "radishmind.db"), Migrations: migrations})
+	if err != nil {
+		t.Fatalf("open SQLite development runtime: %v", err)
+	}
+	t.Cleanup(func() { _ = runtime.Close() })
+	if err := runtime.VerifyMigrations(ctx, migrations); err != nil {
+		t.Fatalf("verify applied component migrations: %v", err)
+	}
+	missing := []Migration{{
+		Component:          "missing_records",
+		ID:                 "0001_missing_records",
+		StoreSchemaVersion: "missing_records_store_v1",
+		UpSQL:              "CREATE TABLE missing_records (record_id TEXT PRIMARY KEY);",
+	}}
+	if err := runtime.VerifyMigrations(ctx, missing); err == nil || err.Error() != "SQLite development component migration is not applied" {
+		t.Fatalf("missing component migration must fail verification, got %v", err)
+	}
+	if _, err := runtime.DB().ExecContext(ctx, `UPDATE radishmind_schema_migrations SET migration_checksum=?
+        WHERE component=? AND migration_id=?`, "sha256:changed", migrations[0].Component, migrations[0].ID); err != nil {
+		t.Fatalf("change component migration marker: %v", err)
+	}
+	if err := runtime.VerifyMigrations(ctx, migrations); err == nil || err.Error() != "SQLite development component migration marker mismatch" {
+		t.Fatalf("changed component migration must fail verification, got %v", err)
+	}
+	if _, err := runtime.DB().ExecContext(ctx, `UPDATE radishmind_schema_migrations SET migration_checksum=?
+        WHERE component=? AND migration_id=?`, migrations[0].Checksum(), migrations[0].Component, migrations[0].ID); err != nil {
+		t.Fatalf("restore component migration marker: %v", err)
+	}
+	if _, err := runtime.DB().ExecContext(ctx, `INSERT INTO radishmind_schema_migrations
+        (component, migration_id, store_schema_version, migration_checksum, applied_at)
+        VALUES (?, ?, ?, ?, ?)`, migrations[0].Component, "0003_unexpected", "test_records_store_v3", "sha256:unexpected", time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+		t.Fatalf("insert unexpected component migration marker: %v", err)
+	}
+	if err := runtime.VerifyMigrations(ctx, migrations); err == nil || err.Error() != "SQLite development component contains an unexpected migration marker" {
+		t.Fatalf("unexpected component migration must fail verification, got %v", err)
+	}
+}
+
 func TestRuntimeRollsBackFailedMigration(t *testing.T) {
 	ctx := context.Background()
 	databasePath := filepath.Join(t.TempDir(), "radishmind.db")

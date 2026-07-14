@@ -15,7 +15,11 @@ import (
 )
 
 func TestApplicationCatalogLifecycleAndOwnerIsolation(t *testing.T) {
-	repository := newMemoryApplicationCatalogRepository()
+	runApplicationCatalogLifecycleAndOwnerIsolation(t, newMemoryApplicationCatalogRepository())
+}
+
+func runApplicationCatalogLifecycleAndOwnerIsolation(t *testing.T, repository applicationCatalogRepository) {
+	t.Helper()
 	service := newApplicationCatalogService(repository)
 	service.newID = func() (string, error) { return "app_aaaaaaaaaaaaaaaa", nil }
 	service.now = func() time.Time { return time.Date(2026, 7, 13, 12, 0, 0, 0, time.UTC) }
@@ -63,7 +67,11 @@ func TestApplicationCatalogLifecycleAndOwnerIsolation(t *testing.T) {
 }
 
 func TestApplicationCatalogValidationPaginationAndCAS(t *testing.T) {
-	repository := newMemoryApplicationCatalogRepository()
+	runApplicationCatalogValidationPaginationAndCAS(t, newMemoryApplicationCatalogRepository())
+}
+
+func runApplicationCatalogValidationPaginationAndCAS(t *testing.T, repository applicationCatalogRepository) {
+	t.Helper()
 	service := newApplicationCatalogService(repository)
 	identifiers := []string{"app_aaaaaaaaaaaaaaaa", "app_bbbbbbbbbbbbbbbb", "app_cccccccccccccccc"}
 	var identifierIndex int

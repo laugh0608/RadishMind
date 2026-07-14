@@ -2,7 +2,7 @@
 
 更新时间：2026-07-14
 
-状态：`local_sqlite_dev_persistence_v1_s1_completed`
+状态：`local_sqlite_dev_persistence_v1_s2_application_catalog_completed`
 
 ## 任务目标
 
@@ -46,6 +46,8 @@
 - 依次接入应用目录、配置草案、发布候选、API 密钥、Gateway 请求历史、工作流草案和工作流运行；
 - 每完成一个组件即运行同领域契约、重启恢复、CAS / 终态、分页和敏感信息测试；
 - 不在中途把正式本地入口暴露成混合 store mode。
+
+实现记录：2026-07-14 已完成首个应用目录纵向切片。新增应用目录 SQLite migration 与 repository，复用 memory / SQLite 同组领域契约，覆盖所有者隔离、稳定分页、预期版本 CAS、不可逆归档、重启恢复和 no-fallback；组件 selector 必须接收共享 runtime 并复验本组件 marker，不能自行打开数据库。聚合 `sqlite_dev` 启动检查继续关闭。下一项固定为应用配置草案，其余五组随后按既定顺序推进。
 
 完成标志：七组件均由同一 SQLite runtime 承载，领域状态、版本、顺序、失败码和公开投影与既有模式一致。
 
