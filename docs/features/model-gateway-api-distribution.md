@@ -46,7 +46,7 @@ Workflow 产品链、Gateway Request History、[Gateway Playground / Request Rev
 4. 已实现健康握手、并发上限、排队、超时 / 取消、崩溃恢复、优雅退出和 credential 隔离。
 5. 新实现相对 back-to-back process 基线的顺序 / 并发 bridge 自身 p95 开销下降 `93.5% / 94.4%`，已切换默认模式。
 6. Request History、Playground、Application API Integration、Application Configuration Draft / Review 与 Publish Governance 已完成 application → validated configuration → models / examples → request → response → history → immutable candidate / review 的开发测试路径。
-7. API 密钥 Gateway 认证与独立 PostgreSQL 代码已经实现；下一批先建立七组件统一 `sqlite_dev`，再分别完成 SQLite 连续链路与 PostgreSQL migration / 角色 / 并发门禁，通过后进入 Web，不提前打开 production distribution、配额或计费。
+7. API 密钥 Gateway 认证、独立 PostgreSQL 代码、七组件 `sqlite_dev` repository 与聚合 shared runtime 已经实现；下一批先完成 SQLite 本地连续链路，再执行 PostgreSQL migration / 角色 / 并发门禁，通过后进入 Web，不提前打开 production distribution、配额或计费。
 
 ## 验收方式
 

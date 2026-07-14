@@ -364,6 +364,8 @@ go run ./cmd/radishmind-platform
 
 启动路径仍由 `config.LoadFromEnv -> httpapi.NewServer -> ListenAndServe` 组成。默认 `stdio_pool` 在监听端口前完成四个 Python worker 的 protocol v1 handshake，`Go` 层只负责本地 HTTP 壳、northbound 请求翻译和受控 bridge 调度，不直接承载模型推理逻辑。
 
+聚合 `sqlite_dev` 已接入同一启动路径：`RADISHMIND_LOCAL_PERSISTENCE_MODE=sqlite_dev` 会把工作流草案、应用配置草案、发布候选、应用目录、API 密钥、工作流运行和 Gateway 请求历史一次性选择到同一个 SQLite 文件，按固定顺序应用七组 migration，并由 `Server` 统一负责构造失败回滚、checkpoint 和关闭。该模式仍要求现有 dev-only HTTP / write / executor / history gates；显式组件 `*_STORE` 与聚合模式同时设置会拒绝启动。跨平台本地产品 wrapper 与连续浏览器验收进入下一批，当前能力不替代 PostgreSQL 门禁或生产数据库。
+
 ## 环境变量
 
 | 变量 | 默认值 | 说明 |
@@ -385,6 +387,8 @@ go run ./cmd/radishmind-platform
 | `RADISHMIND_PLATFORM_BASE_URL` | 空 | 显式 provider base URL 覆盖 |
 | `RADISHMIND_PLATFORM_API_KEY` | 空 | 显式 provider API key 覆盖；不得写入文档或提交 |
 | `RADISHMIND_PLATFORM_TEMPERATURE` | `0` | provider 调用温度 |
+| `RADISHMIND_LOCAL_PERSISTENCE_MODE` | `memory_dev` | 聚合本地持久化模式：`memory_dev` 或 `sqlite_dev`；选择 SQLite 时一次性投影七组件 store mode |
+| `RADISHMIND_SQLITE_DEV_DATABASE_PATH` | `var/sqlite-dev/radishmind.db` | 聚合 SQLite 开发数据库路径；配置摘要只报告是否配置，不输出路径 |
 | `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH` | `false` | 显式启用 read-side、workflow saved draft、application draft 与 publish candidate 的 dev-only 测试身份 header |
 | `RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE` | `disabled` | `disabled`、`dev_headers`、`signed_test_token` 或受控 `radish_oidc_integration_test` |
 | `RADISHMIND_CONTROL_PLANE_READ_STORE` | `fake_store_dev` | `fake_store_dev` 或 `postgres_dev_test`；OIDC integration 只允许后者 |

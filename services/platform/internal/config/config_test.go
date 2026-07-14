@@ -807,7 +807,7 @@ func TestWorkflowDiagnosticsDevRequiresExecutorAndMockProvider(t *testing.T) {
 	}
 }
 
-func TestSQLiteDevLocalPersistenceConfigurationIsVisibleButStartBlocked(t *testing.T) {
+func TestSQLiteDevLocalPersistenceProjectsEffectiveStoresAndRequiresDevelopmentGates(t *testing.T) {
 	clearPlatformEnv(t)
 	databasePath := filepath.Join(t.TempDir(), "radishmind.db")
 	t.Setenv("RADISHMIND_LOCAL_PERSISTENCE_MODE", "sqlite_dev")
@@ -823,11 +823,29 @@ func TestSQLiteDevLocalPersistenceConfigurationIsVisibleButStartBlocked(t *testi
 	summary := cfg.SanitizedSummary()
 	if summary.LocalPersistenceMode != "sqlite_dev" || !summary.LocalPersistenceConfigured ||
 		!summary.SQLiteDevDatabaseConfigured || !summary.LocalPersistenceComponentsConsistent ||
-		summary.SQLiteDevSchemaStatus != "runtime_ready_repositories_pending" {
+		summary.SQLiteDevSchemaStatus != "startup_migrations_configured" ||
+		summary.ApplicationCatalogStoreMode != "sqlite_dev" || summary.ApplicationDraftStoreMode != "sqlite_dev" ||
+		summary.ApplicationPublishStoreMode != "sqlite_dev" || summary.APIKeyStoreMode != "sqlite_dev" ||
+		summary.GatewayRequestStoreMode != "sqlite_dev" || summary.WorkflowSavedDraftStoreMode != "sqlite_dev" ||
+		summary.WorkflowRunStoreMode != "sqlite_dev" {
 		t.Fatalf("unexpected sqlite_dev sanitized summary: %#v", summary)
 	}
-	if !reflect.DeepEqual(summary.MissingRequiredFields, []string{"sqlite_dev_repository_set"}) {
-		t.Fatalf("sqlite_dev must expose the incomplete repository set: %#v", summary.MissingRequiredFields)
+	if !reflect.DeepEqual(summary.MissingRequiredFields, []string{
+		"control_plane_read_dev_auth",
+		"workflow_saved_draft_dev_http",
+		"workflow_saved_draft_dev_write",
+		"application_draft_dev_http",
+		"application_draft_dev_write",
+		"application_publish_dev_http",
+		"application_publish_dev_write",
+		"application_catalog_dev_http",
+		"application_catalog_dev_write",
+		"api_key_lifecycle_dev_http",
+		"api_key_lifecycle_dev_write",
+		"gateway_request_history_dev",
+		"workflow_executor_dev",
+	}) {
+		t.Fatalf("sqlite_dev must expose incomplete development gates: %#v", summary.MissingRequiredFields)
 	}
 	encoded, err := json.Marshal(summary)
 	if err != nil {
@@ -836,8 +854,28 @@ func TestSQLiteDevLocalPersistenceConfigurationIsVisibleButStartBlocked(t *testi
 	if strings.Contains(string(encoded), databasePath) {
 		t.Fatalf("sanitized summary leaked SQLite database path: %s", encoded)
 	}
-	if err := ValidateServerStart(cfg); err == nil || err.Error() != "sqlite_dev local persistence is unavailable until all seven repositories are connected" {
-		t.Fatalf("incomplete sqlite_dev server start must fail explicitly, got %v", err)
+	if err := ValidateServerStart(cfg); err == nil || err.Error() != "saved workflow draft sqlite_dev store requires complete development gates" {
+		t.Fatalf("sqlite_dev without development gates must fail before runtime construction, got %v", err)
+	}
+
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	cfg.WorkflowSavedDraftDevHTTPEnabled = true
+	cfg.WorkflowSavedDraftDevWriteEnabled = true
+	cfg.ApplicationDraftDevHTTPEnabled = true
+	cfg.ApplicationDraftDevWriteEnabled = true
+	cfg.ApplicationPublishDevHTTPEnabled = true
+	cfg.ApplicationPublishDevWriteEnabled = true
+	cfg.ApplicationCatalogDevHTTPEnabled = true
+	cfg.ApplicationCatalogDevWriteEnabled = true
+	cfg.APIKeyLifecycleDevHTTPEnabled = true
+	cfg.APIKeyLifecycleDevWriteEnabled = true
+	cfg.GatewayRequestHistoryDevEnabled = true
+	cfg.WorkflowExecutorDevEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("complete sqlite_dev aggregate start config was rejected: %v", err)
+	}
+	if missing := cfg.SanitizedSummary().MissingRequiredFields; len(missing) != 0 {
+		t.Fatalf("complete sqlite_dev aggregate config reported missing fields: %#v", missing)
 	}
 }
 

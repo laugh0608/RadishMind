@@ -845,6 +845,7 @@ func applyEnvOverrides(cfg *Config) error {
 }
 
 func (cfg Config) SanitizedSummary() ConfigSummary {
+	cfg = EffectiveLocalPersistenceConfig(cfg)
 	provider := strings.TrimSpace(cfg.Provider)
 	if provider == "" {
 		provider = defaultProvider
@@ -983,9 +984,6 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if gatewayRequestStoreMode == "sqlite_dev" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "gateway_request_history_dev")
-	}
-	if localPersistenceMode == "sqlite_dev" {
-		requiredFields = appendRequiredConfigField(requiredFields, "sqlite_dev_repository_set")
 	}
 	if workflowRunStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
@@ -1268,8 +1266,6 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			if strings.TrimSpace(cfg.GatewayRequestDatabaseURL) == "" {
 				missing = append(missing, field)
 			}
-		case "sqlite_dev_repository_set":
-			missing = append(missing, field)
 		}
 	}
 	return missing

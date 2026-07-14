@@ -10,6 +10,7 @@ import (
 
 	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
+	"radishmind.local/services/platform/internal/sqlitedev"
 )
 
 const serviceName = "radishmind-platform"
@@ -50,6 +51,7 @@ type Server struct {
 	closeAPIKeyStore                      func()
 	closeWorkflowRunStore                 func()
 	closeGatewayRequestStore              func()
+	localPersistenceRuntime               *sqlitedev.Runtime
 	closeControlPlaneReadRepository       func()
 	closeOnce                             sync.Once
 }
@@ -80,89 +82,66 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	if err := config.ValidateServerStart(cfg); err != nil {
 		return nil, err
 	}
-	authenticator, err := newControlPlaneReadAuthenticator(context.Background(), cfg)
+	runtimeConfig := config.EffectiveLocalPersistenceConfig(cfg)
+	authenticator, err := newControlPlaneReadAuthenticator(context.Background(), runtimeConfig)
 	if err != nil {
 		return nil, err
 	}
-	controlPlaneReadRepository, closeControlPlaneReadRepository, err := newControlPlaneReadRepositoryFromConfig(cfg)
+	controlPlaneReadRepository, closeControlPlaneReadRepository, err := newControlPlaneReadRepositoryFromConfig(runtimeConfig)
 	if err != nil {
 		return nil, err
 	}
-	savedWorkflowDraftStore, closeSavedWorkflowDraftStore, err := newSavedWorkflowDraftStoreFromConfig(cfg)
+	localPersistenceRuntime, err := openLocalPersistenceRuntime(runtimeConfig)
 	if err != nil {
-		closeControlPlaneReadRepository()
+		closeServerStartupResources(closeControlPlaneReadRepository)
 		return nil, err
 	}
-	applicationDraftRepository, closeApplicationDraftStore, err := newApplicationConfigurationDraftRepositoryFromConfig(cfg)
+	closeLocalPersistenceRuntime := sqliteRuntimeCloser(localPersistenceRuntime)
+	savedWorkflowDraftStore, closeSavedWorkflowDraftStore, err := newSavedWorkflowDraftStoreFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
-		closeSavedWorkflowDraftStore()
-		closeControlPlaneReadRepository()
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime)
 		return nil, err
 	}
-	applicationPublishRepository, closeApplicationPublishStore, err := newApplicationPublishCandidateRepositoryFromConfig(cfg)
+	applicationDraftRepository, closeApplicationDraftStore, err := newApplicationConfigurationDraftRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
-		closeApplicationDraftStore()
-		closeSavedWorkflowDraftStore()
-		closeControlPlaneReadRepository()
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore)
 		return nil, err
 	}
-	applicationCatalogRepository, closeApplicationCatalogStore, err := newApplicationCatalogRepositoryFromConfig(cfg)
+	applicationPublishRepository, closeApplicationPublishStore, err := newApplicationPublishCandidateRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
-		closeApplicationPublishStore()
-		closeApplicationDraftStore()
-		closeSavedWorkflowDraftStore()
-		closeControlPlaneReadRepository()
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore)
 		return nil, err
 	}
-	apiKeyRepository, closeAPIKeyStore, err := newAPIKeyRepositoryFromConfig(cfg)
+	applicationCatalogRepository, closeApplicationCatalogStore, err := newApplicationCatalogRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
-		closeApplicationCatalogStore()
-		closeApplicationPublishStore()
-		closeApplicationDraftStore()
-		closeSavedWorkflowDraftStore()
-		closeControlPlaneReadRepository()
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore)
 		return nil, err
 	}
-	workflowRunStore, closeWorkflowRunStore, err := newWorkflowRunStoreFromConfig(cfg)
+	apiKeyRepository, closeAPIKeyStore, err := newAPIKeyRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
-		closeAPIKeyStore()
-		closeApplicationCatalogStore()
-		closeApplicationPublishStore()
-		closeApplicationDraftStore()
-		closeSavedWorkflowDraftStore()
-		closeControlPlaneReadRepository()
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore)
 		return nil, err
 	}
-	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfig(cfg)
+	workflowRunStore, closeWorkflowRunStore, err := newWorkflowRunStoreFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
-		closeWorkflowRunStore()
-		closeAPIKeyStore()
-		closeApplicationCatalogStore()
-		closeApplicationPublishStore()
-		closeApplicationDraftStore()
-		closeSavedWorkflowDraftStore()
-		closeControlPlaneReadRepository()
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore)
 		return nil, err
 	}
-	platformBridge, err := newPlatformBridgeClient(cfg)
+	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
-		closeGatewayRequestStore()
-		closeWorkflowRunStore()
-		closeAPIKeyStore()
-		closeApplicationCatalogStore()
-		closeApplicationPublishStore()
-		closeApplicationDraftStore()
-		if closeSavedWorkflowDraftStore != nil {
-			closeSavedWorkflowDraftStore()
-		}
-		closeControlPlaneReadRepository()
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
+	platformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore)
 		return nil, err
 	}
 	mux := http.NewServeMux()
 	server := &Server{
 		options:                               options,
 		bridge:                                platformBridge,
-		config:                                cfg,
+		config:                                runtimeConfig,
 		controlPlaneReadRepo:                  controlPlaneReadRepository,
 		savedWorkflowDraftStore:               savedWorkflowDraftStore,
 		applicationDraftRepository:            applicationDraftRepository,
@@ -181,6 +160,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeAPIKeyStore:                      closeAPIKeyStore,
 		closeWorkflowRunStore:                 closeWorkflowRunStore,
 		closeGatewayRequestStore:              closeGatewayRequestStore,
+		localPersistenceRuntime:               localPersistenceRuntime,
 		closeControlPlaneReadRepository:       closeControlPlaneReadRepository,
 	}
 
@@ -243,10 +223,10 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(gatewayRequestReadRoute, server.handleReadGatewayRequest)
 
 	server.httpServer = &http.Server{
-		Addr:              cfg.ListenAddr,
+		Addr:              runtimeConfig.ListenAddr,
 		Handler:           withLocalConsoleCORS(withControlPlaneReadAuthenticator(mux, authenticator)),
-		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
-		WriteTimeout:      cfg.WriteTimeout,
+		ReadHeaderTimeout: runtimeConfig.ReadHeaderTimeout,
+		WriteTimeout:      runtimeConfig.WriteTimeout,
 	}
 	return server, nil
 }
@@ -310,26 +290,29 @@ func (s *Server) Close() {
 		if closer, ok := s.bridge.(interface{ Close() }); ok {
 			closer.Close()
 		}
-		if s.closeSavedWorkflowDraftStore != nil {
-			s.closeSavedWorkflowDraftStore()
-		}
-		if s.closeApplicationDraftStore != nil {
-			s.closeApplicationDraftStore()
-		}
-		if s.closeApplicationPublishStore != nil {
-			s.closeApplicationPublishStore()
-		}
-		if s.closeApplicationCatalogStore != nil {
-			s.closeApplicationCatalogStore()
-		}
-		if s.closeAPIKeyStore != nil {
-			s.closeAPIKeyStore()
+		if s.closeGatewayRequestStore != nil {
+			s.closeGatewayRequestStore()
 		}
 		if s.closeWorkflowRunStore != nil {
 			s.closeWorkflowRunStore()
 		}
-		if s.closeGatewayRequestStore != nil {
-			s.closeGatewayRequestStore()
+		if s.closeAPIKeyStore != nil {
+			s.closeAPIKeyStore()
+		}
+		if s.closeApplicationCatalogStore != nil {
+			s.closeApplicationCatalogStore()
+		}
+		if s.closeApplicationPublishStore != nil {
+			s.closeApplicationPublishStore()
+		}
+		if s.closeApplicationDraftStore != nil {
+			s.closeApplicationDraftStore()
+		}
+		if s.closeSavedWorkflowDraftStore != nil {
+			s.closeSavedWorkflowDraftStore()
+		}
+		if s.localPersistenceRuntime != nil {
+			_ = s.localPersistenceRuntime.Close()
 		}
 		if s.closeControlPlaneReadRepository != nil {
 			s.closeControlPlaneReadRepository()

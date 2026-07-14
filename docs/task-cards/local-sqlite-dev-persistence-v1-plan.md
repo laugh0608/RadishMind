@@ -2,7 +2,7 @@
 
 更新时间：2026-07-14
 
-状态：`local_sqlite_dev_persistence_v1_s2_repositories_completed`
+状态：`local_sqlite_dev_persistence_v1_s2_aggregate_runtime_completed`
 
 ## 任务目标
 
@@ -58,6 +58,8 @@
 实施记录：2026-07-14 已完成工作流草案 SQLite 组件。实现新增独立 migration 和 query executor，继续复用 domain service、repository adapter、actor scope、schema preflight、版本冲突和公开投影；列表使用整数纳秒与 draft id 保证稳定顺序，读取复验物理时间与严格 sanitized document。验证覆盖创建 / 连续保存、16 路 expected-version 单写者、完整作用域隔离、HTTP 路径、重启恢复、关闭不回退、marker mismatch、损坏记录无部分列表和敏感内容文件扫描。S2 当前完成 6/7，下一项为工作流运行；聚合启动、Web 和 PostgreSQL 专属门禁保持不变。
 
 实施记录：2026-07-14 已完成工作流运行 SQLite 组件，S2 七组 repository 全部齐备。实现新增独立 migration、STRICT 表、严格存储编解码和 run store，复用既有生命周期、诊断筛选、keyset 游标、完整 scope、版本 CAS、终态不可逆与零禁止副作用契约；evaluation case / suite 没有扩入 SQLite。验证覆盖 memory / SQLite 同组契约、等时刻排序、16 路终态单写者、真实 executor、重启恢复、关闭不回退、marker mismatch、未知 document 字段、物理列漂移、损坏记录无部分列表、原始输入禁入和超出纳秒范围时间拒绝。下一批进入 S3 前置的聚合 shared runtime 接线与启动生命周期，不在本批开放 Web 或 production。
+
+实施记录：2026-07-14 已完成聚合 runtime 接线。聚合配置一次性投影七组件 `sqlite_dev` 有效 store mode，按稳定依赖顺序应用全部 migration，并由平台 `Server` 独占 shared runtime 生命周期。启动前完成开发门禁、组件配置冲突和 schema 校验；repository / bridge 构造失败时按逆序关闭已经建立的资源；正常 `Close` / `Shutdown` 先停止组件使用连接，再 checkpoint 并关闭 shared runtime。真实临时文件测试验证七组件 marker、七种 selector、七类数据跨 `Server` 重启恢复、关闭后连接不可用、migration marker 不兼容失败关闭，以及 bridge 启动失败后同一数据库可干净重启。下一批进入 S3 的跨平台本地启动档与 SQLite 连续链路，不提前声明 PostgreSQL 或 Web 验收通过。
 
 完成标志：七组件均由同一 SQLite runtime 承载，领域状态、版本、顺序、失败码和公开投影与既有模式一致。
 

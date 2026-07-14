@@ -146,7 +146,7 @@ Production Secret Backend storage adapter 证据链已收束到 [Storage Adapter
 - sanitized draft document、validation summary 与 blocked capability summary 使用受约束 JSON 文本；读取时复验列与 document 的作用域、schema、版本、状态和时间，不返回部分列表。
 - query executor 只使用注入的共享 `sqlitedev.Runtime` 连接；factory 复验本组件 migration marker，缺少 runtime、marker 不匹配、连接关闭或数据损坏均失败关闭且不回退 memory。
 
-本批验收覆盖创建与连续保存、16 路并发预期版本竞争、tenant / workspace / application / owner 隔离、稳定列表顺序、HTTP 保存与读取、服务级重启恢复、关闭后 no-fallback、损坏记录拒绝，以及 forbidden / sensitive material 不进入数据库、WAL 或共享内存文件。工作流运行 repository 完成前，聚合 `sqlite_dev` 和浏览器连续链仍保持关闭。
+本批验收覆盖创建与连续保存、16 路并发预期版本竞争、tenant / workspace / application / owner 隔离、稳定列表顺序、HTTP 保存与读取、服务级重启恢复、关闭后 no-fallback、损坏记录拒绝，以及 forbidden / sensitive material 不进入数据库、WAL 或共享内存文件。工作流运行 repository 与聚合 `sqlite_dev` shared runtime 后续均已完成；跨平台本地启动档和浏览器连续链仍待下一批。
 
 ## 目标用户
 

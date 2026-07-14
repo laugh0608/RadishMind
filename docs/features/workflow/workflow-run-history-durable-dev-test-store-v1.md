@@ -78,7 +78,7 @@ SQLite 使用独立 STRICT `workflow_run_records` 表，主键仍为 tenant、wo
 
 开始与完成时间使用 UTC Unix 纳秒整数，超出纳秒可表达范围的时间拒绝写入；排序固定为 `started_at_unix_nano DESC, run_id DESC`，时间区间、stale running 与游标均使用物理整数列。create 只接受 version 0 的 `running` 记录并写为 version 1；update 必须同时命中完整 scope、run id、预期版本、原始开始时间和 `running` 状态，再由数据库原子递增版本。终态不可逆，不以进程锁替代数据库 CAS。
 
-本批只持久化工作流运行记录，不把 PostgreSQL migration 中的 evaluation case、revision、suite 或 release decision 扩入 SQLite。后续聚合 `sqlite_dev` 接线前，平台正式启动仍保持关闭；PostgreSQL migration、运行角色、tuple pagination 与多连接并发继续由真实 PostgreSQL 门禁验收。
+本批只持久化工作流运行记录，不把 PostgreSQL migration 中的 evaluation case、revision、suite 或 release decision 扩入 SQLite。聚合 `sqlite_dev` 已完成统一接线和服务生命周期，下一批打开跨平台本地启动档并执行连续产品链；PostgreSQL migration、运行角色、tuple pagination 与多连接并发继续由真实 PostgreSQL 门禁验收。
 
 开发 / 测试 v1 不在请求路径自动删除记录。默认保留策略声明为 30 天、每 scope 最多 10,000 条，由后续显式维护命令承接；本批 schema 和查询必须支持 `completed_at / started_at` 保留索引，但不实现后台清理 goroutine。超过策略的环境应由操作者清理或重建 disposable 数据库，不得在 list 时隐式删除。
 
@@ -151,7 +151,7 @@ services/platform/migrations/workflow_runs/
 - 浏览器截图保存在本地 `output/playwright/workflow-run-history-durable-dev-test/`，不作为 committed 真相源；复验后已关闭浏览器、Platform / Web 与 PostgreSQL 容器和网络。
 - 已新增独立 SQLite migration、STRICT 表和 `sqlite_dev` run store；memory、SQLite 与 PostgreSQL 复用同一严格 JSON 编解码、领域校验、完整 scope、筛选、稳定 keyset 顺序、版本 CAS 和终态不可逆语义。
 - SQLite 专项验证覆盖等时刻 run id 排序、完整 scope 隔离、16 路终态单写者、真实 executor 运行、重启恢复、关闭不回退、marker mismatch、未知 document 字段、物理列漂移、损坏记录无部分列表、原始输入禁入和超出纳秒范围时间拒绝。evaluation case / suite 未扩入 SQLite。
-- 本次只完成 S2 第七组 repository；聚合 `sqlite_dev` 启动、浏览器连续链与 PostgreSQL 专属门禁进入下一批，production 与 Web 新能力没有开放。
+- S2 第七组 repository 与后续聚合 shared runtime 已完成；跨平台本地启动档、浏览器连续链与 PostgreSQL 专属门禁进入下一批，production 与 Web 新能力没有开放。
 
 ## 停止线
 

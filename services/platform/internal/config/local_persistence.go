@@ -6,10 +6,10 @@ import (
 )
 
 func ValidateServerStart(cfg Config) error {
-	if EffectiveLocalPersistenceMode(cfg) == "sqlite_dev" {
-		return errors.New("sqlite_dev local persistence is unavailable until all seven repositories are connected")
+	if EffectiveLocalPersistenceMode(cfg) != "sqlite_dev" {
+		return nil
 	}
-	return nil
+	return validateBridgeRuntimeConfig(EffectiveLocalPersistenceConfig(cfg))
 }
 
 func EffectiveLocalPersistenceMode(cfg Config) string {
@@ -18,6 +18,20 @@ func EffectiveLocalPersistenceMode(cfg Config) string {
 		return defaultLocalPersistenceMode
 	}
 	return mode
+}
+
+func EffectiveLocalPersistenceConfig(cfg Config) Config {
+	if EffectiveLocalPersistenceMode(cfg) != "sqlite_dev" {
+		return cfg
+	}
+	cfg.ApplicationCatalogStoreMode = "sqlite_dev"
+	cfg.ApplicationDraftStoreMode = "sqlite_dev"
+	cfg.ApplicationPublishStoreMode = "sqlite_dev"
+	cfg.APIKeyStoreMode = "sqlite_dev"
+	cfg.GatewayRequestStoreMode = "sqlite_dev"
+	cfg.WorkflowSavedDraftStoreMode = "sqlite_dev"
+	cfg.WorkflowRunStoreMode = "sqlite_dev"
+	return cfg
 }
 
 func validateLocalPersistenceConfig(cfg Config) error {
@@ -71,7 +85,7 @@ func localPersistenceComponentsConsistent(cfg Config) bool {
 
 func sqliteDevSchemaStatus(localPersistenceMode string) string {
 	if localPersistenceMode == "sqlite_dev" {
-		return "runtime_ready_repositories_pending"
+		return "startup_migrations_configured"
 	}
 	return "not_selected"
 }

@@ -41,10 +41,18 @@ type checkpointQueryCase struct {
 	ExpectedErrorCode string `json:"expected_error_code"`
 }
 
-func TestServerRejectsIncompleteSQLiteDevLocalPersistence(t *testing.T) {
+func TestServerRejectsIncompleteSQLiteDevLocalPersistenceBeforeRuntimeConstruction(t *testing.T) {
 	_, err := NewServerWithError(config.Config{LocalPersistenceMode: "sqlite_dev"}, Options{BuildVersion: "sqlite-s1"})
-	if err == nil || err.Error() != "sqlite_dev local persistence is unavailable until all seven repositories are connected" {
-		t.Fatalf("incomplete sqlite_dev start must fail before store construction, got %v", err)
+	if err == nil || err.Error() != "sqlite_dev local persistence requires a database path" {
+		t.Fatalf("sqlite_dev without a database path must fail before runtime construction, got %v", err)
+	}
+	_, err = NewServerWithError(config.Config{
+		LocalPersistenceMode:            "sqlite_dev",
+		SQLiteDevDatabasePath:           filepath.Join(t.TempDir(), "radishmind.db"),
+		ControlPlaneReadDatabaseTimeout: time.Second,
+	}, Options{BuildVersion: "sqlite-s2"})
+	if err == nil || err.Error() != "saved workflow draft sqlite_dev store requires complete development gates" {
+		t.Fatalf("sqlite_dev without development gates must fail before runtime construction, got %v", err)
 	}
 }
 

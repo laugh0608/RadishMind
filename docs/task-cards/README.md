@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-1. [本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1-plan.md)：S1 共享 SQLite runtime、迁移骨架和聚合配置失败关闭已完成；S2 从应用目录开始接入七组件 repository，全部就绪前不开放聚合本地启动档。
+1. [本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1-plan.md)：S1、S2 七组件 repository 与聚合 shared runtime 生命周期已完成；下一批打开跨平台本地启动档并执行 SQLite 连续产品链，之后再跑 PostgreSQL 专属门禁。
 2. [用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1-plan.md)：Gateway 与 PostgreSQL 代码已实现；消费统一 `sqlite_dev` 后完成 SQLite / PostgreSQL 双数据库门禁，再进入 Web 连续验收。
 3. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R5 包体预算已进入现有 Vite build；后续继续处理低覆盖包，R6 随功能批次收敛入口文档和历史 checker 耦合。
 
