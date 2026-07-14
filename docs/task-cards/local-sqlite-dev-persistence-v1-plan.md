@@ -2,7 +2,7 @@
 
 更新时间：2026-07-14
 
-状态：`local_sqlite_dev_persistence_v1_s2_five_repositories_completed`
+状态：`local_sqlite_dev_persistence_v1_s2_six_repositories_completed`
 
 ## 任务目标
 
@@ -53,7 +53,9 @@
 
 实施记录：2026-07-14 已完成 API 密钥 SQLite 组件。该组件复用共享 runtime 并依赖应用目录 migration，采用整数纳秒承担过期、最近使用与分页时间谓词；验证覆盖签发、作用域 / 所有者隔离、稳定分页、最近使用单调更新、吊销 CAS、Gateway northbound 认证、认证 / 吊销并发、两次重启恢复、关闭失败和原始令牌文件扫描。S2 当前完成 4/7，下一项为 Gateway 请求历史；聚合启动、Web 和 PostgreSQL 专属门禁均未修改。
 
-实施记录：2026-07-14 已完成 Gateway 请求历史 SQLite 组件。实现复用既有 caller scope、脱敏记录、终态 CAS、全过滤器与游标契约，物理时间谓词采用整数纳秒；共享 runtime 只注入连接并复验本组件 migration。验证覆盖等时刻排序、8 路终态单写者、checkpoint → canceled、取消后受限 detached context、重启恢复、关闭不回退、损坏文档拒绝、请求 / 响应正文禁入，以及应用目录、API 密钥和请求历史共享 runtime 的可信调用。普通 recorder store 故障不改写 provider outcome，API 密钥认证要求的请求历史可用性继续失败关闭。S2 当前完成 5/7，下一项为工作流草案；聚合启动、Web 和 PostgreSQL 专属门禁保持不变。
+实施记录：2026-07-14 已完成 Gateway 请求历史 SQLite 组件。实现复用既有 caller scope、脱敏记录、终态 CAS、全过滤器与游标契约，物理时间谓词采用整数纳秒；共享 runtime 只注入连接并复验本组件 migration。验证覆盖等时刻排序、8 路终态单写者、checkpoint → canceled、取消后受限 detached context、重启恢复、关闭不回退、损坏文档拒绝、请求 / 响应正文禁入，以及应用目录、API 密钥和请求历史共享 runtime 的可信调用。普通 recorder store 故障不改写 provider outcome，API 密钥认证要求的请求历史可用性继续失败关闭。该批结束时 S2 完成 5/7，下一项为工作流草案。
+
+实施记录：2026-07-14 已完成工作流草案 SQLite 组件。实现新增独立 migration 和 query executor，继续复用 domain service、repository adapter、actor scope、schema preflight、版本冲突和公开投影；列表使用整数纳秒与 draft id 保证稳定顺序，读取复验物理时间与严格 sanitized document。验证覆盖创建 / 连续保存、16 路 expected-version 单写者、完整作用域隔离、HTTP 路径、重启恢复、关闭不回退、marker mismatch、损坏记录无部分列表和敏感内容文件扫描。S2 当前完成 6/7，下一项为工作流运行；聚合启动、Web 和 PostgreSQL 专属门禁保持不变。
 
 完成标志：七组件均由同一 SQLite runtime 承载，领域状态、版本、顺序、失败码和公开投影与既有模式一致。
 

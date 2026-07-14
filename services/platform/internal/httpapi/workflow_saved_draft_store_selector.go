@@ -9,6 +9,7 @@ type WorkflowSavedDraftStoreMode string
 
 const (
 	WorkflowSavedDraftStoreModeMemoryDev          WorkflowSavedDraftStoreMode = "memory_dev"
+	WorkflowSavedDraftStoreModeSQLiteDev          WorkflowSavedDraftStoreMode = "sqlite_dev"
 	WorkflowSavedDraftStoreModePostgresDevTest    WorkflowSavedDraftStoreMode = "postgres_dev_test"
 	WorkflowSavedDraftStoreModeRepositoryDisabled WorkflowSavedDraftStoreMode = "repository_disabled"
 	WorkflowSavedDraftStoreModeRepository         WorkflowSavedDraftStoreMode = "repository"
@@ -16,6 +17,7 @@ const (
 
 type WorkflowSavedDraftStoreSelector struct {
 	MemoryDevStore       savedWorkflowDraftStore
+	SQLiteDevStore       savedWorkflowDraftStore
 	PostgresDevTestStore savedWorkflowDraftStore
 }
 
@@ -43,6 +45,17 @@ func SelectWorkflowSavedDraftStore(
 		return WorkflowSavedDraftStoreSelection{
 			Mode:  WorkflowSavedDraftStoreModeMemoryDev,
 			Store: store,
+		}
+	case WorkflowSavedDraftStoreModeSQLiteDev:
+		if selector.SQLiteDevStore == nil {
+			return disabledWorkflowSavedDraftStoreSelection(
+				WorkflowSavedDraftStoreModeSQLiteDev,
+				SavedWorkflowDraftFailureStoreUnavailable,
+			)
+		}
+		return WorkflowSavedDraftStoreSelection{
+			Mode:  WorkflowSavedDraftStoreModeSQLiteDev,
+			Store: selector.SQLiteDevStore,
 		}
 	case WorkflowSavedDraftStoreModePostgresDevTest:
 		if selector.PostgresDevTestStore == nil {

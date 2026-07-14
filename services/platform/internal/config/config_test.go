@@ -414,6 +414,47 @@ func TestPostgresDevTestModeRequiresExplicitDevelopmentGates(t *testing.T) {
 	}
 }
 
+func TestSQLiteWorkflowSavedDraftModeRequiresExplicitDevelopmentGates(t *testing.T) {
+	config := defaultConfig()
+	config.WorkflowSavedDraftStoreMode = "sqlite_dev"
+	if got := config.Check(); !reflect.DeepEqual(got, []string{
+		"control_plane_read_dev_auth",
+		"workflow_saved_draft_dev_http",
+		"workflow_saved_draft_dev_write",
+	}) {
+		t.Fatalf("unexpected SQLite saved draft missing fields: %#v", got)
+	}
+	if summary := config.SanitizedSummary(); summary.WorkflowSavedDraftStoreMode != "sqlite_dev" ||
+		summary.WorkflowSavedDraftDatabaseConfigured {
+		t.Fatalf("SQLite saved draft summary drifted: %#v", summary)
+	}
+
+	config.ControlPlaneReadDevAuthEnabled = true
+	config.WorkflowSavedDraftDevHTTPEnabled = true
+	config.WorkflowSavedDraftDevWriteEnabled = true
+	if got := config.Check(); len(got) != 0 {
+		t.Fatalf("complete SQLite saved draft config should pass: %#v", got)
+	}
+	if err := validateBridgeRuntimeConfig(config); err != nil {
+		t.Fatalf("complete SQLite saved draft runtime config was rejected: %v", err)
+	}
+
+	config.WorkflowSavedDraftStoreMode = "future_backend"
+	if err := validateBridgeRuntimeConfig(config); err == nil ||
+		err.Error() != "saved workflow draft store must be memory_dev, sqlite_dev, postgres_dev_test, repository_disabled, or repository" {
+		t.Fatalf("unknown saved draft store mode did not fail closed: %v", err)
+	}
+	config.WorkflowSavedDraftStoreMode = "repository_disabled"
+	if err := validateBridgeRuntimeConfig(config); err != nil {
+		t.Fatalf("reserved saved draft store mode should remain request-time disabled: %v", err)
+	}
+	config.WorkflowSavedDraftDatabaseTimeout = 0
+	if err := validateBridgeRuntimeConfig(config); err == nil ||
+		err.Error() != "saved workflow draft database timeout must be positive" {
+		t.Fatalf("non-positive saved draft database timeout was accepted: %v", err)
+	}
+}
+
 func TestApplicationDraftPostgresDevTestModeRequiresExplicitDevelopmentGates(t *testing.T) {
 	config := defaultConfig()
 	config.ApplicationDraftStoreMode = "postgres_dev_test"

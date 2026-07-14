@@ -910,6 +910,11 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"workflow_saved_draft_database",
 		)
 	}
+	if workflowSavedDraftStoreMode == "sqlite_dev" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "workflow_saved_draft_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "workflow_saved_draft_dev_write")
+	}
 	if applicationDraftStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_http")
@@ -1384,6 +1389,30 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.ControlPlaneReadDatabaseTimeout <= 0 {
 		return fmt.Errorf("control plane read database timeout must be positive")
+	}
+	if cfg.WorkflowSavedDraftDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return fmt.Errorf("saved workflow draft dev HTTP requires control plane read dev auth")
+	}
+	if cfg.WorkflowSavedDraftDevWriteEnabled && !cfg.WorkflowSavedDraftDevHTTPEnabled {
+		return fmt.Errorf("saved workflow draft dev write requires saved workflow draft dev HTTP")
+	}
+	switch strings.TrimSpace(cfg.WorkflowSavedDraftStoreMode) {
+	case "", "memory_dev", "repository_disabled", "repository":
+	case "sqlite_dev":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled ||
+			!cfg.WorkflowSavedDraftDevWriteEnabled {
+			return fmt.Errorf("saved workflow draft sqlite_dev store requires complete development gates")
+		}
+	case "postgres_dev_test":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled ||
+			!cfg.WorkflowSavedDraftDevWriteEnabled || strings.TrimSpace(cfg.WorkflowSavedDraftDatabaseURL) == "" {
+			return fmt.Errorf("saved workflow draft postgres_dev_test store requires complete development gates and a database URL")
+		}
+	default:
+		return fmt.Errorf("saved workflow draft store must be memory_dev, sqlite_dev, postgres_dev_test, repository_disabled, or repository")
+	}
+	if cfg.WorkflowSavedDraftDatabaseTimeout <= 0 {
+		return fmt.Errorf("saved workflow draft database timeout must be positive")
 	}
 	if cfg.GatewayRequestHistoryDevEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return fmt.Errorf("gateway request history dev requires control plane read dev auth")

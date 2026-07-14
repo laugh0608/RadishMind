@@ -13,14 +13,14 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
-- 产品焦点：工作流审查链、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成；管理端的已验证身份、负向认证、租户 / 审计 PostgreSQL 开发测试态运行时，以及 Radish OIDC 确定性验证器、认证边界和操作门禁也已完成。[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 的 Gateway、PostgreSQL 与 SQLite repository 代码已实现，状态为 `api_key_lifecycle_gateway_dev_test_auth_v1_sqlite_repository_completed`；[本地 SQLite 开发持久化 v1](platform/local-sqlite-dev-persistence-v1.md) 的 S1 以及 S2 应用目录、应用配置草案、发布候选、API 密钥和 Gateway 请求历史 repository 已完成，当前进入工作流草案 SQLite repository。七组件齐备后再完成 SQLite 连续链路与 PostgreSQL 专属门禁并进入 Web。真实 Radish 联调仍为 `real_radish_integration_deferred`；生产认证、正式晋级、生产密钥、配额和计费继续关闭。
+- 产品焦点：工作流审查链、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成；管理端的已验证身份、负向认证、租户 / 审计 PostgreSQL 开发测试态运行时，以及 Radish OIDC 确定性验证器、认证边界和操作门禁也已完成。[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 的 Gateway、PostgreSQL 与 SQLite repository 代码已实现，状态为 `api_key_lifecycle_gateway_dev_test_auth_v1_sqlite_repository_completed`；[本地 SQLite 开发持久化 v1](platform/local-sqlite-dev-persistence-v1.md) 的 S1 以及 S2 应用目录、应用配置草案、发布候选、API 密钥、Gateway 请求历史和工作流草案 repository 已完成，当前进入最后一项工作流运行 SQLite repository。七组件齐备后再完成 SQLite 连续链路与 PostgreSQL 专属门禁并进入 Web。真实 Radish 联调仍为 `real_radish_integration_deferred`；生产认证、正式晋级、生产密钥、配额和计费继续关闭。
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化` 已完成；`R5 测试、CI 与性能预算` 进入后续工程线，`R6 文档与检查器收敛` 已完成活跃产品链路语言治理，并随应用目录收口同步更新真相源。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
 - 旧生产凭据后端 / 存储适配器准入链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：[本地 SQLite 开发持久化 v1](platform/local-sqlite-dev-persistence-v1.md) 的 S1 以及 S2 应用目录、应用配置草案、发布候选、API 密钥和 Gateway 请求历史 repository 已完成；当前进入工作流草案，再推进工作流运行 repository，之后按 [API 密钥生命周期与 Gateway 开发测试态认证 v1](features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 完成 SQLite / PostgreSQL 双数据库门禁。聚合 `sqlite_dev` 未完整接入前不开放半成品本地启动档，双数据库验证通过前不进入 Web。`real_radish_integration_deferred` 不占用该主线。
+1. 产品线：[本地 SQLite 开发持久化 v1](platform/local-sqlite-dev-persistence-v1.md) 的 S1 以及 S2 应用目录、应用配置草案、发布候选、API 密钥、Gateway 请求历史和工作流草案 repository 已完成；当前推进最后一项工作流运行 repository，之后按 [API 密钥生命周期与 Gateway 开发测试态认证 v1](features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 完成 SQLite 连续链路与 PostgreSQL 专属门禁。聚合 `sqlite_dev` 未完整接入前不开放半成品本地启动档，双数据库验证通过前不进入 Web。`real_radish_integration_deferred` 不占用该主线。
 2. 工程线：R6 活跃入口和应用产品链路语言治理已完成并进入验证；不机械翻译历史兼容索引，也不新增同层检查器。R5 Web 主入口和发布审查延迟加载分块继续受现有 Vite 构建预算约束。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。

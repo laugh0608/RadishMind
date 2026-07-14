@@ -2,19 +2,10 @@ package httpapi
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"strings"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-)
-
-const postgresSavedWorkflowDraftListLimit = 200
-
-var errPostgresSavedWorkflowDraftStoredRecordContract = errors.New(
-	"stored saved workflow draft does not match the repository contract",
 )
 
 type postgresSavedWorkflowDraftQueryExecutor struct {
@@ -46,7 +37,7 @@ func (executor *postgresSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord
 		}
 	}
 	payload, validation, blocked, createdAt, updatedAt, failureCode :=
-		postgresSavedWorkflowDraftRecordValues(query.Record)
+		savedWorkflowDraftRecordValues(query.Record)
 	if failureCode != "" {
 		return savedWorkflowDraftRepositoryQuerySaveResult{FailureCode: failureCode}
 	}
@@ -106,7 +97,7 @@ func (executor *postgresSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord
 			CurrentDraftVersion: record.Draft.DraftVersion,
 		}
 	}
-	if errors.Is(err, errPostgresSavedWorkflowDraftStoredRecordContract) {
+	if errors.Is(err, errSavedWorkflowDraftStoredRecordContract) {
 		return savedWorkflowDraftRepositoryQuerySaveResult{
 			FailureCode: SavedWorkflowDraftFailureStoreContractMismatch,
 		}
@@ -143,7 +134,7 @@ func (executor *postgresSavedWorkflowDraftQueryExecutor) ReadWorkflowDraftRecord
 			CurrentDraftVersion: record.Draft.DraftVersion,
 		}
 	}
-	if errors.Is(err, errPostgresSavedWorkflowDraftStoredRecordContract) {
+	if errors.Is(err, errSavedWorkflowDraftStoredRecordContract) {
 		return savedWorkflowDraftRepositoryQueryReadResult{
 			FailureCode: SavedWorkflowDraftFailureStoreContractMismatch,
 		}
@@ -196,7 +187,7 @@ func (executor *postgresSavedWorkflowDraftQueryExecutor) ListWorkflowDraftRecord
 		query.ActorContext.WorkspaceID,
 		query.ActorContext.ApplicationID,
 		query.ActorContext.OwnerSubjectRef,
-		postgresSavedWorkflowDraftListLimit,
+		savedWorkflowDraftRepositoryListLimit,
 	)
 	if err != nil {
 		return savedWorkflowDraftRepositoryQueryListResult{
@@ -278,36 +269,6 @@ func (executor *postgresSavedWorkflowDraftQueryExecutor) currentVersionAndOwner(
 	return currentVersion, owner, true, false
 }
 
-func postgresSavedWorkflowDraftRecordValues(
-	record SavedWorkflowDraftRepositoryStoredRecord,
-) ([]byte, []byte, []byte, time.Time, time.Time, SavedWorkflowDraftFailureCode) {
-	document := savedWorkflowDraftDocumentPointer(&record.Draft)
-	if document == nil {
-		return nil, nil, nil, time.Time{}, time.Time{}, SavedWorkflowDraftFailureStoreContractMismatch
-	}
-	payload, err := json.Marshal(document)
-	if err != nil {
-		return nil, nil, nil, time.Time{}, time.Time{}, SavedWorkflowDraftFailureStoreContractMismatch
-	}
-	validation, err := json.Marshal(document.ValidationSummary)
-	if err != nil {
-		return nil, nil, nil, time.Time{}, time.Time{}, SavedWorkflowDraftFailureStoreContractMismatch
-	}
-	blocked, err := json.Marshal(document.BlockedCapabilitySummary)
-	if err != nil {
-		return nil, nil, nil, time.Time{}, time.Time{}, SavedWorkflowDraftFailureStoreContractMismatch
-	}
-	createdAt, err := time.Parse(time.RFC3339, record.Draft.CreatedAt)
-	if err != nil {
-		return nil, nil, nil, time.Time{}, time.Time{}, SavedWorkflowDraftFailureStoreContractMismatch
-	}
-	updatedAt, err := time.Parse(time.RFC3339, record.Draft.UpdatedAt)
-	if err != nil || updatedAt.Before(createdAt) {
-		return nil, nil, nil, time.Time{}, time.Time{}, SavedWorkflowDraftFailureStoreContractMismatch
-	}
-	return payload, validation, blocked, createdAt, updatedAt, ""
-}
-
 func scanPostgresSavedWorkflowDraftRecord(
 	row savedWorkflowDraftRowScanner,
 ) (SavedWorkflowDraftRepositoryStoredRecord, error) {
@@ -330,21 +291,12 @@ func scanPostgresSavedWorkflowDraftRecord(
 	); err != nil {
 		return SavedWorkflowDraftRepositoryStoredRecord{}, err
 	}
-	var document savedWorkflowDraftDocument
-	if err := json.Unmarshal(payload, &document); err != nil {
-		return SavedWorkflowDraftRepositoryStoredRecord{}, errPostgresSavedWorkflowDraftStoredRecordContract
+	decoded, err := decodeSavedWorkflowDraftStoredRecord(record, payload)
+	if err != nil || decoded.Draft.SchemaVersion != schemaVersion ||
+		decoded.Draft.DraftVersion != draftVersion || string(decoded.Draft.DraftStatus) != draftStatus {
+		return SavedWorkflowDraftRepositoryStoredRecord{}, errSavedWorkflowDraftStoredRecordContract
 	}
-	record.Draft = savedWorkflowDraftFromDocument(document)
-	if record.Draft.DraftID != record.DraftID ||
-		record.Draft.WorkspaceID != record.WorkspaceID ||
-		record.Draft.ApplicationID != record.ApplicationID ||
-		record.Draft.SchemaVersion != schemaVersion ||
-		record.Draft.DraftVersion != draftVersion ||
-		string(record.Draft.DraftStatus) != draftStatus ||
-		strings.TrimSpace(record.Draft.SampleOrUnsavedDraftStatus) != "saved_draft_record" {
-		return SavedWorkflowDraftRepositoryStoredRecord{}, errPostgresSavedWorkflowDraftStoredRecordContract
-	}
-	return record, nil
+	return decoded, nil
 }
 
 const postgresSavedWorkflowDraftReturningColumns = `
