@@ -616,6 +616,32 @@ func TestPostgresWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
 	}
 }
 
+func TestSQLiteWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.WorkflowRunStoreMode = "sqlite_dev"
+	summary := cfg.SanitizedSummary()
+	if !reflect.DeepEqual(summary.MissingRequiredFields, []string{
+		"control_plane_read_dev_auth", "workflow_executor_dev",
+	}) {
+		t.Fatalf("unexpected workflow run SQLite requirements: %#v", summary.MissingRequiredFields)
+	}
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "workflow run sqlite_dev store requires control plane read dev auth, saved workflow draft dev HTTP, and workflow executor dev" {
+		t.Fatalf("incomplete workflow run SQLite config was accepted: %v", err)
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	cfg.WorkflowSavedDraftDevHTTPEnabled = true
+	cfg.WorkflowExecutorDevEnabled = true
+	if err := validateBridgeRuntimeConfig(cfg); err != nil {
+		t.Fatalf("complete workflow run SQLite config was rejected: %v", err)
+	}
+	summary = cfg.SanitizedSummary()
+	if len(summary.MissingRequiredFields) != 0 || summary.WorkflowRunStoreMode != "sqlite_dev" ||
+		summary.WorkflowRunDatabaseConfigured {
+		t.Fatalf("workflow run SQLite config should be ready and sanitized: %#v", summary)
+	}
+}
+
 func TestPostgresGatewayRequestModeRequiresExplicitDevelopmentGates(t *testing.T) {
 	cfg := defaultConfig()
 	cfg.GatewayRequestStoreMode = "postgres_dev_test"

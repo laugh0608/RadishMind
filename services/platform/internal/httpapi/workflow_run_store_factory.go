@@ -8,18 +8,47 @@ import (
 	"time"
 
 	"radishmind.local/services/platform/internal/config"
+	"radishmind.local/services/platform/internal/sqlitedev"
+	sqliteworkflowrunmigrations "radishmind.local/services/platform/migrations/sqlite/workflow_runs"
 	workflowrunmigrations "radishmind.local/services/platform/migrations/workflow_runs"
 )
 
 const (
 	workflowRunStoreModeMemoryDev       = "memory_dev"
+	workflowRunStoreModeSQLiteDev       = "sqlite_dev"
 	workflowRunStoreModePostgresDevTest = "postgres_dev_test"
 )
 
 func newWorkflowRunStoreFromConfig(cfg config.Config) (workflowRunStore, func(), error) {
+	return newWorkflowRunStoreFromConfigWithSQLiteRuntime(cfg, nil)
+}
+
+func newWorkflowRunStoreFromConfigWithSQLiteRuntime(
+	cfg config.Config,
+	sqliteRuntime *sqlitedev.Runtime,
+) (workflowRunStore, func(), error) {
 	mode := strings.TrimSpace(cfg.WorkflowRunStoreMode)
 	if mode == "" || mode == workflowRunStoreModeMemoryDev {
 		return newMemoryWorkflowRunStore(defaultWorkflowRunStoreCapacity), func() {}, nil
+	}
+	if mode == workflowRunStoreModeSQLiteDev {
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled ||
+			!cfg.WorkflowExecutorDevEnabled {
+			return nil, nil, errors.New("sqlite_dev workflow run store config is incomplete")
+		}
+		if sqliteRuntime == nil || sqliteRuntime.DB() == nil {
+			return nil, nil, errors.New("sqlite_dev workflow run store requires the shared SQLite runtime")
+		}
+		timeout := cfg.WorkflowRunDatabaseTimeout
+		if timeout <= 0 {
+			timeout = 5 * time.Second
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		if err := sqliteRuntime.VerifyMigrations(ctx, sqliteworkflowrunmigrations.Migrations()); err != nil {
+			return nil, nil, err
+		}
+		return newSQLiteWorkflowRunStore(sqliteRuntime.DB()), func() {}, nil
 	}
 	if mode != workflowRunStoreModePostgresDevTest {
 		if mode == "repository" || mode == "repository_disabled" {
@@ -27,7 +56,8 @@ func newWorkflowRunStoreFromConfig(cfg config.Config) (workflowRunStore, func(),
 		}
 		return nil, nil, fmt.Errorf("%s", WorkflowRunFailureStoreModeInvalid)
 	}
-	if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowExecutorDevEnabled || strings.TrimSpace(cfg.WorkflowRunDatabaseURL) == "" {
+	if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled ||
+		!cfg.WorkflowExecutorDevEnabled || strings.TrimSpace(cfg.WorkflowRunDatabaseURL) == "" {
 		return nil, nil, errors.New("postgres_dev_test workflow run store config is incomplete")
 	}
 	timeout := cfg.WorkflowRunDatabaseTimeout

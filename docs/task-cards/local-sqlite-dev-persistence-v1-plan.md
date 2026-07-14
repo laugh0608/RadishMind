@@ -2,7 +2,7 @@
 
 更新时间：2026-07-14
 
-状态：`local_sqlite_dev_persistence_v1_s2_six_repositories_completed`
+状态：`local_sqlite_dev_persistence_v1_s2_repositories_completed`
 
 ## 任务目标
 
@@ -56,6 +56,8 @@
 实施记录：2026-07-14 已完成 Gateway 请求历史 SQLite 组件。实现复用既有 caller scope、脱敏记录、终态 CAS、全过滤器与游标契约，物理时间谓词采用整数纳秒；共享 runtime 只注入连接并复验本组件 migration。验证覆盖等时刻排序、8 路终态单写者、checkpoint → canceled、取消后受限 detached context、重启恢复、关闭不回退、损坏文档拒绝、请求 / 响应正文禁入，以及应用目录、API 密钥和请求历史共享 runtime 的可信调用。普通 recorder store 故障不改写 provider outcome，API 密钥认证要求的请求历史可用性继续失败关闭。该批结束时 S2 完成 5/7，下一项为工作流草案。
 
 实施记录：2026-07-14 已完成工作流草案 SQLite 组件。实现新增独立 migration 和 query executor，继续复用 domain service、repository adapter、actor scope、schema preflight、版本冲突和公开投影；列表使用整数纳秒与 draft id 保证稳定顺序，读取复验物理时间与严格 sanitized document。验证覆盖创建 / 连续保存、16 路 expected-version 单写者、完整作用域隔离、HTTP 路径、重启恢复、关闭不回退、marker mismatch、损坏记录无部分列表和敏感内容文件扫描。S2 当前完成 6/7，下一项为工作流运行；聚合启动、Web 和 PostgreSQL 专属门禁保持不变。
+
+实施记录：2026-07-14 已完成工作流运行 SQLite 组件，S2 七组 repository 全部齐备。实现新增独立 migration、STRICT 表、严格存储编解码和 run store，复用既有生命周期、诊断筛选、keyset 游标、完整 scope、版本 CAS、终态不可逆与零禁止副作用契约；evaluation case / suite 没有扩入 SQLite。验证覆盖 memory / SQLite 同组契约、等时刻排序、16 路终态单写者、真实 executor、重启恢复、关闭不回退、marker mismatch、未知 document 字段、物理列漂移、损坏记录无部分列表、原始输入禁入和超出纳秒范围时间拒绝。下一批进入 S3 前置的聚合 shared runtime 接线与启动生命周期，不在本批开放 Web 或 production。
 
 完成标志：七组件均由同一 SQLite runtime 承载，领域状态、版本、顺序、失败码和公开投影与既有模式一致。
 

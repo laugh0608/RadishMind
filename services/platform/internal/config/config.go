@@ -992,6 +992,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_run_database")
 	}
+	if workflowRunStoreMode == "sqlite_dev" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
+	}
 	if controlPlaneReadStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_verified_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_database")
@@ -1555,6 +1559,24 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 		if !strings.EqualFold(strings.TrimSpace(cfg.Provider), "mock") {
 			return fmt.Errorf("workflow diagnostics dev requires mock provider")
 		}
+	}
+	switch strings.TrimSpace(cfg.WorkflowRunStoreMode) {
+	case "", "memory_dev", "repository_disabled", "repository":
+	case "sqlite_dev":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled ||
+			!cfg.WorkflowExecutorDevEnabled {
+			return fmt.Errorf("workflow run sqlite_dev store requires control plane read dev auth, saved workflow draft dev HTTP, and workflow executor dev")
+		}
+	case "postgres_dev_test":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled ||
+			!cfg.WorkflowExecutorDevEnabled || strings.TrimSpace(cfg.WorkflowRunDatabaseURL) == "" {
+			return fmt.Errorf("workflow run postgres_dev_test store requires complete development gates and a database URL")
+		}
+	default:
+		return fmt.Errorf("workflow run store must be memory_dev, sqlite_dev, postgres_dev_test, repository_disabled, or repository")
+	}
+	if cfg.WorkflowRunDatabaseTimeout <= 0 {
+		return fmt.Errorf("workflow run database timeout must be positive")
 	}
 	switch strings.TrimSpace(cfg.BridgeMode) {
 	case "process_per_request", "stdio_pool":

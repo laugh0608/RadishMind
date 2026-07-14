@@ -1,8 +1,8 @@
 # Workflow Run History / Durable Dev-Test Run Store v1
 
-更新时间：2026-07-11
+更新时间：2026-07-14
 
-状态：`workflow_run_history_durable_dev_test_store_v1_completed`
+状态：`workflow_run_history_durable_dev_test_store_v1_sqlite_repository_completed`
 
 ## 功能目标
 
@@ -69,6 +69,16 @@ RADISHMIND_WORKFLOW_RUN_DATABASE_TIMEOUT=5s
 ```
 
 `postgres_dev_test` 还要求现有 control-plane dev auth、Saved Draft dev read 与 executor dev gate 显式开启。它使用独立 `workflow_run_records` 表、schema marker、manual migration 命令和连接池；可以复用 `pgx` 依赖与数据库连接做法，但不复用、改名或扩张 Saved Draft repository。
+
+### SQLite 开发 repository
+
+S2 增加组件级 `sqlite_dev` 选择，只供专项测试和后续聚合本地启动档注入共享 SQLite runtime。它要求 control-plane dev auth、Saved Draft dev read 与 executor dev gate 同时开启；缺少共享 runtime、缺少或不匹配本组件 migration marker、数据库关闭或查询失败时必须失败关闭，不创建组件私有连接，也不回退 `memory_dev`。
+
+SQLite 使用独立 STRICT `workflow_run_records` 表，主键仍为 tenant、workspace、application 与 run id。表内同时保存脱敏 JSON 记录和 draft / record version、schema、状态、开始 / 完成时间、失败分类、provider / model 与审计 metadata 等筛选列；读取和列表必须复验物理列与 JSON 一致，任一记录损坏时拒绝整次结果，不返回部分列表。
+
+开始与完成时间使用 UTC Unix 纳秒整数，超出纳秒可表达范围的时间拒绝写入；排序固定为 `started_at_unix_nano DESC, run_id DESC`，时间区间、stale running 与游标均使用物理整数列。create 只接受 version 0 的 `running` 记录并写为 version 1；update 必须同时命中完整 scope、run id、预期版本、原始开始时间和 `running` 状态，再由数据库原子递增版本。终态不可逆，不以进程锁替代数据库 CAS。
+
+本批只持久化工作流运行记录，不把 PostgreSQL migration 中的 evaluation case、revision、suite 或 release decision 扩入 SQLite。后续聚合 `sqlite_dev` 接线前，平台正式启动仍保持关闭；PostgreSQL migration、运行角色、tuple pagination 与多连接并发继续由真实 PostgreSQL 门禁验收。
 
 开发 / 测试 v1 不在请求路径自动删除记录。默认保留策略声明为 30 天、每 scope 最多 10,000 条，由后续显式维护命令承接；本批 schema 和查询必须支持 `completed_at / started_at` 保留索引，但不实现后台清理 goroutine。超过策略的环境应由操作者清理或重建 disposable 数据库，不得在 list 时隐式删除。
 
@@ -139,6 +149,9 @@ services/platform/migrations/workflow_runs/
 - Web 真实 history / detail consumer 已拆为约 9.9 KiB lazy chunk；主包从约 862 KiB 降到 848.4 KiB。默认 offline 不发请求，dev/test 历史只读取新资源族。
 - 真实浏览器完成 26 条记录的 25+1 分页、草案过滤、详情节点时间线和 Platform / Web 重启恢复；详情显示 provider call 为 1，tool / confirmation / business write / replay 合计为 0，原始输入和 condition value 未出现。最终全新会话无 console error / warning。
 - 浏览器截图保存在本地 `output/playwright/workflow-run-history-durable-dev-test/`，不作为 committed 真相源；复验后已关闭浏览器、Platform / Web 与 PostgreSQL 容器和网络。
+- 已新增独立 SQLite migration、STRICT 表和 `sqlite_dev` run store；memory、SQLite 与 PostgreSQL 复用同一严格 JSON 编解码、领域校验、完整 scope、筛选、稳定 keyset 顺序、版本 CAS 和终态不可逆语义。
+- SQLite 专项验证覆盖等时刻 run id 排序、完整 scope 隔离、16 路终态单写者、真实 executor 运行、重启恢复、关闭不回退、marker mismatch、未知 document 字段、物理列漂移、损坏记录无部分列表、原始输入禁入和超出纳秒范围时间拒绝。evaluation case / suite 未扩入 SQLite。
+- 本次只完成 S2 第七组 repository；聚合 `sqlite_dev` 启动、浏览器连续链与 PostgreSQL 专属门禁进入下一批，production 与 Web 新能力没有开放。
 
 ## 停止线
 

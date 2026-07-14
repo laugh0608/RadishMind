@@ -11,8 +11,9 @@ import (
 const defaultWorkflowRunStoreCapacity = 100
 
 var (
-	errWorkflowRunStoreContract = errors.New("workflow run store contract mismatch")
-	errWorkflowRunStoreConflict = errors.New("workflow run store record version conflict")
+	errWorkflowRunStoreContract    = errors.New("workflow run store contract mismatch")
+	errWorkflowRunStoreConflict    = errors.New("workflow run store record version conflict")
+	errWorkflowRunStoreUnavailable = errors.New("workflow run store unavailable")
 )
 
 type WorkflowRunListFilter struct {
@@ -124,10 +125,7 @@ func (store *memoryWorkflowRunStore) ListRuns(
 		}
 		return records[left].StartedAt > records[right].StartedAt
 	})
-	limit := filter.Limit
-	if limit <= 0 {
-		limit = 25
-	}
+	limit := workflowRunStoreListLimit(filter.Limit)
 	hasMore := len(records) > limit
 	if hasMore {
 		records = records[:limit]
@@ -176,6 +174,13 @@ func workflowRunMatchesFilter(record WorkflowRunRecord, filter WorkflowRunListFi
 		}
 	}
 	return true
+}
+
+func workflowRunStoreListLimit(limit int) int {
+	if limit <= 0 {
+		return workflowRunListDefaultLimit
+	}
+	return limit
 }
 
 func validateWorkflowRunStoreRecord(runContext WorkflowRunContext, record *WorkflowRunRecord) error {

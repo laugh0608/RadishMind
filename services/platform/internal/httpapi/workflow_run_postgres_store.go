@@ -1,9 +1,7 @@
 package httpapi
 
 import (
-	"encoding/json"
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -25,21 +23,9 @@ func (store *postgresWorkflowRunStore) UpsertRun(runContext WorkflowRunContext, 
 	}
 	next := cloneWorkflowRunRecord(*record)
 	next.RecordVersion++
-	payload, err := json.Marshal(next)
+	payload, startedAt, completedAt, err := encodeWorkflowRunStorageRecord(next)
 	if err != nil {
-		return errWorkflowRunStoreContract
-	}
-	startedAt, err := time.Parse(time.RFC3339Nano, next.StartedAt)
-	if err != nil {
-		return errWorkflowRunStoreContract
-	}
-	var completedAt *time.Time
-	if next.CompletedAt != "" {
-		parsed, parseErr := time.Parse(time.RFC3339Nano, next.CompletedAt)
-		if parseErr != nil {
-			return errWorkflowRunStoreContract
-		}
-		completedAt = &parsed
+		return err
 	}
 	var storedVersion int
 	if record.RecordVersion == 0 {
@@ -85,7 +71,7 @@ func (store *postgresWorkflowRunStore) ReadRun(runContext WorkflowRunContext, ru
 	if err != nil {
 		return WorkflowRunRecord{}, false, err
 	}
-	record, err := decodePostgresWorkflowRunRecord(runContext, payload)
+	record, err := decodeWorkflowRunStorageRecord(runContext, payload)
 	if err != nil {
 		return WorkflowRunRecord{}, false, err
 	}
@@ -96,6 +82,7 @@ func (store *postgresWorkflowRunStore) ListRuns(runContext WorkflowRunContext, f
 	if store == nil || store.pool == nil || runContext.RequestContext == nil {
 		return WorkflowRunListPage{}, errWorkflowRunStoreContract
 	}
+	limit := workflowRunStoreListLimit(filter.Limit)
 	rows, err := store.pool.Query(runContext.RequestContext, `SELECT sanitized_run_record FROM workflow_run_records
  WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3
  AND ($4='' OR run_status=$4) AND ($5='' OR draft_id=$5)
@@ -108,18 +95,18 @@ func (store *postgresWorkflowRunStore) ListRuns(runContext WorkflowRunContext, f
 		runContext.TenantRef, runContext.WorkspaceID, runContext.ApplicationID, string(filter.Status), filter.DraftID,
 		string(filter.FailureCode), string(filter.FailureBoundary), filter.Provider, filter.Model, filter.StaleRunning,
 		time.Now().UTC().Add(-workflowExecutorDefaultMaxRuntime), filter.StartedFrom, filter.StartedTo,
-		filter.BeforeTime, filter.BeforeRunID, filter.Limit+1)
+		filter.BeforeTime, filter.BeforeRunID, limit+1)
 	if err != nil {
 		return WorkflowRunListPage{}, err
 	}
 	defer rows.Close()
-	records := make([]WorkflowRunRecord, 0, filter.Limit+1)
+	records := make([]WorkflowRunRecord, 0, limit+1)
 	for rows.Next() {
 		var payload []byte
 		if err = rows.Scan(&payload); err != nil {
 			return WorkflowRunListPage{}, err
 		}
-		record, decodeErr := decodePostgresWorkflowRunRecord(runContext, payload)
+		record, decodeErr := decodeWorkflowRunStorageRecord(runContext, payload)
 		if decodeErr != nil {
 			return WorkflowRunListPage{}, decodeErr
 		}
@@ -128,9 +115,9 @@ func (store *postgresWorkflowRunStore) ListRuns(runContext WorkflowRunContext, f
 	if rows.Err() != nil {
 		return WorkflowRunListPage{}, rows.Err()
 	}
-	hasMore := len(records) > filter.Limit
+	hasMore := len(records) > limit
 	if hasMore {
-		records = records[:filter.Limit]
+		records = records[:limit]
 	}
 	return WorkflowRunListPage{Records: records, HasMore: hasMore}, nil
 }
@@ -140,19 +127,6 @@ func workflowRunRecordFailureBoundary(record WorkflowRunRecord) WorkflowRunFailu
 		return ""
 	}
 	return record.Diagnostic.FailureBoundary
-}
-
-func decodePostgresWorkflowRunRecord(runContext WorkflowRunContext, payload []byte) (WorkflowRunRecord, error) {
-	var record WorkflowRunRecord
-	decoder := json.NewDecoder(strings.NewReader(string(payload)))
-	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(&record); err != nil {
-		return WorkflowRunRecord{}, errWorkflowRunStoreContract
-	}
-	if err := validateWorkflowRunStoreRecord(runContext, &record); err != nil || record.RecordVersion <= 0 {
-		return WorkflowRunRecord{}, errWorkflowRunStoreContract
-	}
-	return record, nil
 }
 
 var _ workflowRunStore = (*postgresWorkflowRunStore)(nil)

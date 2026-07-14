@@ -8,7 +8,11 @@ import (
 )
 
 func TestMemoryWorkflowRunHistoryScopeFilterAndCursor(t *testing.T) {
-	store := newMemoryWorkflowRunStore(20)
+	runWorkflowRunHistoryScopeFilterAndCursor(t, newMemoryWorkflowRunStore(20))
+}
+
+func runWorkflowRunHistoryScopeFilterAndCursor(t *testing.T, store workflowRunStore) {
+	t.Helper()
 	runContext := workflowExecutorTestContext()
 	base := time.Date(2026, 7, 11, 10, 0, 0, 0, time.UTC)
 	for index, status := range []WorkflowRunStatus{WorkflowRunStatusSucceeded, WorkflowRunStatusFailed, WorkflowRunStatusSucceeded} {
@@ -47,7 +51,11 @@ func TestMemoryWorkflowRunHistoryScopeFilterAndCursor(t *testing.T) {
 }
 
 func TestMemoryWorkflowRunStoreRejectsConcurrentOldVersionAndTerminalRewrite(t *testing.T) {
-	store := newMemoryWorkflowRunStore(10)
+	runWorkflowRunStoreRejectsConcurrentOldVersionAndTerminalRewrite(t, newMemoryWorkflowRunStore(10))
+}
+
+func runWorkflowRunStoreRejectsConcurrentOldVersionAndTerminalRewrite(t *testing.T, store workflowRunStore) {
+	t.Helper()
 	runContext := workflowExecutorTestContext()
 	record := workflowRunHistoryTestRecord(runContext, "run_concurrent", "draft_a", time.Now().UTC())
 	if err := store.UpsertRun(runContext, &record); err != nil {
@@ -87,7 +95,11 @@ func TestMemoryWorkflowRunStoreRejectsConcurrentOldVersionAndTerminalRewrite(t *
 }
 
 func TestWorkflowRunStoreRejectsForbiddenSideEffects(t *testing.T) {
-	store := newMemoryWorkflowRunStore(10)
+	runWorkflowRunStoreRejectsForbiddenSideEffects(t, newMemoryWorkflowRunStore(10))
+}
+
+func runWorkflowRunStoreRejectsForbiddenSideEffects(t *testing.T, store workflowRunStore) {
+	t.Helper()
 	runContext := workflowExecutorTestContext()
 	record := workflowRunHistoryTestRecord(runContext, "run_forbidden", "draft_a", time.Now().UTC())
 	record.SideEffects.ToolCalls = 1
@@ -115,7 +127,11 @@ func TestWorkflowRunListFilterValidation(t *testing.T) {
 }
 
 func TestWorkflowRunDiagnosticFiltersAndCursorBinding(t *testing.T) {
-	store := newMemoryWorkflowRunStore(10)
+	runWorkflowRunDiagnosticFiltersAndCursorBinding(t, newMemoryWorkflowRunStore(10))
+}
+
+func runWorkflowRunDiagnosticFiltersAndCursorBinding(t *testing.T, store workflowRunStore) {
+	t.Helper()
 	runContext := workflowExecutorTestContext()
 	stale := workflowRunHistoryTestRecord(runContext, "run_stale", "draft_a", time.Now().UTC().Add(-time.Minute))
 	stale.SelectedProvider = "mock"

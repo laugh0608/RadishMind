@@ -1,5 +1,5 @@
 # RadishMind 平台专题入口
-更新时间：2026-07-13
+更新时间：2026-07-14
 
 ## 文档目的
 
@@ -20,7 +20,7 @@
 
 | 专题 | 当前状态 | 现有事实源 | 下一步 |
 | --- | --- | --- | --- |
-| 本地 SQLite 开发持久化 | `local_sqlite_dev_persistence_v1_s1_completed` | [本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1.md)、[单一实施任务卡](../task-cards/local-sqlite-dev-persistence-v1-plan.md)、共享 SQLite runtime / migration 测试、七组现有 repository 与 `memory_dev / postgres_dev_test` selector | S1 runtime 与 migration 已完成；S2 先接应用目录，再按依赖顺序接入其余六组 repository，全部就绪前不开放聚合本地启动档 |
+| 本地 SQLite 开发持久化 | `local_sqlite_dev_persistence_v1_s2_repositories_completed` | [本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1.md)、[单一实施任务卡](../task-cards/local-sqlite-dev-persistence-v1-plan.md)、共享 SQLite runtime / migration 测试、七组 SQLite repository 与既有领域契约 | S1 runtime 与 S2 七组 repository 已完成；下一批统一接入聚合 `sqlite_dev` 启动、共享连接生命周期和连续链路，再执行 PostgreSQL 专属门禁 |
 | Auth / Store Transition | 准入证据已有；`Radish OIDC token / membership readiness` 已固定 `radish_oidc_token_membership_readiness_defined`，实现入口评审已固定 `radish_oidc_token_membership_implementation_entry_review_defined`，上游证据刷新已固定 `radish_oidc_token_membership_upstream_evidence_refresh_defined` | `docs/contracts/control-plane-read-side.md`、相关 control-plane read task cards、[Radish OIDC Token / Membership Readiness v1](../integrations/radish-oidc-token-membership-readiness-v1.md)、[Radish OIDC Token / Membership Implementation Entry Review v1](../integrations/radish-oidc-token-membership-implementation-entry-review-v1.md)、[Radish OIDC Token / Membership Upstream Evidence Refresh v1](../integrations/radish-oidc-token-membership-upstream-evidence-refresh-v1.md) | 后续应先重新评审 schema / middleware / membership / runtime smoke 是否可进入任务卡；不直接创建 auth middleware、token validator、membership adapter、repository mode 或 production API |
 | Repository Adapter / Store Selector | control-plane 准入证据已有；saved workflow draft selector 已按失败关闭的模式选择落地 | `control-plane-read-*repository*`、`*store-selector*` task cards、`docs/features/workflow/saved-workflow-draft-store-selector-implementation-v1.md` | 后续 repository adapter / database 仍需独立实现专题 |
 | Provider Runtime & Health | 接近收口 | [Provider Runtime & Health v1 任务卡](../task-cards/provider-runtime-health-v1-plan.md) | 不继续扩同层 provider 小切片 |
