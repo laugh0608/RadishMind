@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-07-12
+更新时间：2026-07-14
 
 ## 阅读原则
 
@@ -25,7 +25,7 @@
 ## 当前状态
 
 - 当前成熟度是“内部开发者预览”；整改与当前执行顺序以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 和 [当前推进焦点](radishmind-current-focus.md) 为准。
-- Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、受控 Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning 与 Evaluation Suite / Release Review 已于 2026-07-11 完成。2026-07-12 已完成 [Model Gateway Request History / Usage & Failure Review v1](features/gateway/model-gateway-request-history-usage-failure-review-v1.md) 设计并创建单张纵向实现任务卡；R5 Web 主入口与关键 lazy chunk 预算已接入现有 Vite build。旧 Production Secret Backend / Storage Adapter next dependency 只保留为历史 checker 锚点，不再作为当前开发任务。
+- Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、受控 Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning、Evaluation Suite / Release Review、Gateway Request History、Application API Integration、Configuration Draft、Publish Governance 与 Application Catalog 已完成。2026-07-14 进一步完成七组件共享 SQLite runtime、默认 `local-product` 启动档、同一应用作用域 HTTP 连续链和真实 PostgreSQL 专项门禁；[API 密钥生命周期与 Gateway 开发测试态认证 v1](features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 当前下一项为 Web 一次性交接与浏览器连续验收。旧 Production Secret Backend / Storage Adapter 下一依赖只保留为历史 checker 锚点，不再作为当前开发任务。
 - `RadishMind` 已正式从“模型实验 / 接入准备仓库”的狭义口径，收口为 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台。
 - 当前仓库主线不再只是等待其他项目真实接入；长期按四个一级产品面和五条工程主线组织。四个产品面是 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；`Image Generation / Artifact Return` 作为横切适配能力保留。五条工程主线是 `Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。
 - 当前项目的更强正式定义已经固定在 [战略定义](radishmind-strategy.md)：`RadishMind` 是 `AI Tools / Workflow / Model Gateway / Copilot Integration Platform`，核心价值是把 AI 应用构建、工作流运行、模型 API 分发、多模型接入和 Copilot 集成收口成可控产品能力。

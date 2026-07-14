@@ -2,7 +2,7 @@
 
 更新时间：2026-07-14
 
-状态：`local_sqlite_dev_persistence_v1_s3_local_product_chain_completed`
+状态：`local_sqlite_dev_persistence_v1_s3_dual_database_gate_completed`
 
 ## 任务目标
 
@@ -73,7 +73,9 @@
 
 完成标志：日常产品联调不需要 Docker；批次级 PostgreSQL 验证仍可独立执行并保持通过；任何文档都不把 SQLite 写成生产数据库或 PostgreSQL 替代品。
 
-实施记录：2026-07-14 已完成 S3 的本地产品档与 SQLite 连续链。Shell / PowerShell wrapper 默认 `local-product` 档统一注入聚合 `sqlite_dev`、仓库根数据库路径和七组件开发门禁；显式 `configured` 档不注入持久化配置，用于 PostgreSQL 专项验收与故障注入。现有 deployment smoke 验证配置摘要、配置检查、两个档、组件冲突、未知档退出码、路径不泄露和校验阶段零数据库创建。平台真实 HTTP 测试在同一应用作用域完成应用、配置草案、发布审查、API 密钥、Bearer Gateway、请求历史、工作流草案和运行，并逐项验证重启恢复及原始令牌 / 输入不进入 SQLite 物理文件。下一项进入 PostgreSQL 专属门禁，Web 和浏览器仍未开始。
+实施记录：2026-07-14 已完成 S3 的本地产品档与 SQLite 连续链。Shell / PowerShell wrapper 默认 `local-product` 档统一注入聚合 `sqlite_dev`、仓库根数据库路径和七组件开发门禁；显式 `configured` 档不注入持久化配置，用于 PostgreSQL 专项验收与故障注入。现有 deployment smoke 验证配置摘要、配置检查、两个档、组件冲突、未知档退出码、路径不泄露和校验阶段零数据库创建。平台真实 HTTP 测试在同一应用作用域完成应用、配置草案、发布审查、API 密钥、Bearer Gateway、请求历史、工作流草案和运行，并逐项验证重启恢复及原始令牌 / 输入不进入 SQLite 物理文件。
+
+实施记录：同日完成真实 PostgreSQL 专项门禁。七组件 migration 已通过首次应用、重复应用、回滚 / 重应用、两路并发应用和 advisory lock 验证；运行角色与迁移角色隔离，运行角色可执行必要 DML、可并发持有四个连接，但 DDL 稳定返回 `42501`。schema 检查覆盖 `bytea`、`text[]`、`jsonb`、`timestamptz`、`bigint` 和必要索引，应用目录、API 密钥与 Gateway 请求历史的相同时间戳复合游标保持稳定分页。configured 连续链复验七组件关联、竞态、重启恢复和全部存储失败时 no-fallback；临时 PostgreSQL 容器与网络已清理。双数据库门禁完成，下一项固定为 API 密钥 Web 一次性交接与浏览器连续验收。
 
 ## 高风险边界
 

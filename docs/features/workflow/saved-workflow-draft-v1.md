@@ -22,7 +22,7 @@
 - 当前已接入 [Workflow Review Handoff Active Draft v1](review-handoff-active-draft-v1.md)：Review Handoff 会把恢复后的 active draft validation inspector、execution plan preview、runtime readiness inspector 和 saved draft conflict review summary 汇总为 advisory-only 审查交接记录。
 - 2026-07-11 已完成 R3 最新 dev-live 收口：真实 Web consumer 与 Go dev-only route 覆盖创建、编辑、校验、连续保存、列表刷新、恢复、真实版本冲突、Continue / Restore 和 Review Handoff；launcher 已提供显式 Saved Draft dev 模式与 route probe，Handoff layout evidence 重复 key 和 favicon 控制台噪声已修复。
 - 当前已完成 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](saved-workflow-draft-postgresql-dev-test-repository-v1.md)：显式 `postgres_dev_test` 模式已实现真实 migration、回滚 / 重建、重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback、CI 与真实浏览器验收；production `repository` 继续关闭。
-- 2026-07-14 已完成本地 SQLite S2 工作流草案批次，状态为 `workflow_saved_draft_sqlite_repository_completed`。本批复用同一 `SavedWorkflowDraftRepositoryAdapter` 和领域失败语义，新增独立 SQLite migration、共享 runtime query executor 与显式 `sqlite_dev` selector；已验证预期版本竞争、完整作用域、稳定顺序、HTTP 保存 / 读取、重启恢复、损坏记录拒绝和敏感内容禁入，不开放聚合本地启动、Web 或 production `repository`。
+- 2026-07-14 已完成本地 SQLite S2 工作流草案批次，状态为 `workflow_saved_draft_sqlite_repository_completed`。本批复用同一 `SavedWorkflowDraftRepositoryAdapter` 和领域失败语义，新增独立 SQLite migration、共享 runtime query executor 与显式 `sqlite_dev` selector；已验证预期版本竞争、完整作用域、稳定顺序、HTTP 保存 / 读取、重启恢复、损坏记录拒绝和敏感内容禁入。随后七组件聚合 `sqlite_dev`、跨平台本地产品启动档、连续 HTTP 产品链和真实 PostgreSQL 专项门禁均已通过；production `repository` 继续关闭。
 - 当前已新增 [Saved Workflow Draft Durable Store Preconditions v1](saved-workflow-draft-durable-store-preconditions-v1.md)：固定 durable store 迁移前的 draft scope、`owner_subject_ref` / workspace 归属、version conflict、no sample fallback、dev store 与未来 repository adapter 的切换停止线；它只定义前置设计，不实现 durable persistence。
 - 当前已新增 [Saved Workflow Draft Repository Contract Preconditions v1](saved-workflow-draft-repository-contract-preconditions-v1.md)：固定 future `SavedWorkflowDraftRepository` 的 `SaveWorkflowDraftRecord`、`ReadWorkflowDraftRecord` 和 `ListWorkflowDraftRecords` contract preconditions；它只定义 actor context、request / result、failure 和 projection 边界，不创建 repository interface。
 - 当前已新增 [Saved Workflow Draft Schema / Migration Preconditions v1](saved-workflow-draft-schema-migration-preconditions-v1.md)：固定 future durable store 的 logical schema、index strategy、migration gate、failure mapping、no sample fallback 和 artifact guard；状态为 `draft_schema_migration_preconditions_defined`，不创建真实数据库 schema 或 SQL migration。
@@ -146,7 +146,7 @@ Production Secret Backend storage adapter 证据链已收束到 [Storage Adapter
 - sanitized draft document、validation summary 与 blocked capability summary 使用受约束 JSON 文本；读取时复验列与 document 的作用域、schema、版本、状态和时间，不返回部分列表。
 - query executor 只使用注入的共享 `sqlitedev.Runtime` 连接；factory 复验本组件 migration marker，缺少 runtime、marker 不匹配、连接关闭或数据损坏均失败关闭且不回退 memory。
 
-本批验收覆盖创建与连续保存、16 路并发预期版本竞争、tenant / workspace / application / owner 隔离、稳定列表顺序、HTTP 保存与读取、服务级重启恢复、关闭后 no-fallback、损坏记录拒绝，以及 forbidden / sensitive material 不进入数据库、WAL 或共享内存文件。工作流运行 repository 与聚合 `sqlite_dev` shared runtime 后续均已完成；跨平台本地启动档和浏览器连续链仍待下一批。
+本批验收覆盖创建与连续保存、16 路并发预期版本竞争、tenant / workspace / application / owner 隔离、稳定列表顺序、HTTP 保存与读取、服务级重启恢复、关闭后 no-fallback、损坏记录拒绝，以及 forbidden / sensitive material 不进入数据库、WAL 或共享内存文件。工作流运行 repository、聚合 `sqlite_dev` shared runtime、跨平台本地启动档、SQLite 连续产品链与真实 PostgreSQL 专项门禁后续均已完成；当前浏览器批次只承接 API 密钥 Web 一次性交接，不扩张工作流草案职责。
 
 ## 目标用户
 

@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-07-12
+更新时间：2026-07-14
 
 ## 这份文档讲什么
 
@@ -68,6 +68,8 @@
 2026-07-11 覆盖：Saved Draft 已完成显式 `postgres_dev_test` repository；Workflow Executor v0 已完成 dev-only POST / GET route、服务端图准入、Gateway advisory 调用、tenant / workspace / application scoped 进程内 run record 和 Web 创建 / 保存 / 执行 / 回读。上段“不表示 durable persistence / run / executor ready”只描述早期阶段与 production / unrestricted 边界；当前仍不开放 production repository、OIDC、tool、confirmation commit、writeback、replay / resume 或公开生产 API。
 
 2026-07-12 覆盖：Gateway Request History、Application Configuration Draft、Application Publish Candidate 和 Admin Tenant / Audit read 均支持显式 PostgreSQL dev/test repository、manual migration、marker / checksum、runtime role、no-fallback 与重启恢复。Control Plane auth 已支持 signed test token 和 `radish_oidc_integration_test`；后者只开放 Tenant Summary / Audit，workspace operation 因 membership 未成立而 fail closed。真实 Radish 联调已 deferred，不把 deterministic issuer 或本地浏览器路径解释为真实接入。
+
+2026-07-14 覆盖：应用目录、配置草案、发布候选、API 密钥、Gateway 请求历史、工作流草案和工作流运行已由同一个 `sqlite_dev` shared runtime 承载，并通过跨平台 `local-product` 启动档、同一应用作用域 HTTP 连续链和重启恢复。显式 `configured` 档下的真实 PostgreSQL migration、角色隔离、类型 / 索引、advisory lock、多连接并发、竞态、重启恢复与 no-fallback 门禁也已通过。当前下一项是 API 密钥 Web 一次性交接与浏览器连续验收；production repository、生产认证、生产密钥、配额和计费仍未开放。
 
 `contracts/radish-oidc-token-validation.schema.json` 固定 future workspace membership / repository actor context 的 verified token context 脱敏投影。它只允许 `issuer_ref`、`subject_ref`、`tenant_ref`、audience / scope / workspace / application refs、时间戳、policy version、request id 和 audit ref，显式拒绝 raw token / claims、cookie、JWKS dump、membership raw record 和 secret。当前 Admin OIDC runtime 使用内部 sanitized `VerifiedControlPlaneIdentity`，不会用该 schema 绕过 workspace membership；两者关系见 [Radish OIDC Token Validation 契约](contracts/radish-oidc-token-validation.md)。
 
