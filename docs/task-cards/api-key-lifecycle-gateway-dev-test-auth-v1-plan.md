@@ -2,7 +2,7 @@
 
 更新时间：2026-07-14
 
-状态：`api_key_lifecycle_gateway_dev_test_auth_v1_sqlite_local_product_chain_completed`
+状态：`api_key_lifecycle_gateway_dev_test_auth_v1_dual_database_backend_gate_completed`
 
 ## 任务目标
 
@@ -44,7 +44,7 @@
 
 ### 批次 B：Gateway 认证与 PostgreSQL
 
-状态：代码与 SQLite 本地产品链已实现，等待 PostgreSQL 专属验证。
+状态：已完成；代码、SQLite 本地产品链与真实 PostgreSQL 专项验证均已通过。
 
 - 显式 Gateway 认证模式、Bearer 解析、路由作用域、可信上下文和凭据冲突拒绝；
 - 独立 schema、迁移清单、校验和、手动运行器、运行 / 迁移角色和存储选择器；
@@ -52,7 +52,7 @@
 
 完成标志：PostgreSQL 模式下有效密钥可以调用受支持 Gateway 路由并进入同作用域请求历史；吊销、过期、作用域不足、应用归档和存储故障都在 bridge / provider 前拒绝。
 
-实现记录：五条 northbound 路由已经接入互斥且失败关闭的 `api_key_dev_test` 认证，可信上下文、作用域、应用活跃状态、最近使用更新和脱敏请求历史均由服务端记录恢复；无效凭据、开发身份头冲突、吊销、过期、作用域不足、应用不可用以及密钥 / 历史存储故障均有执行前负向测试。独立 API 密钥 PostgreSQL schema、手动迁移命令、存储选择器、摘要隔离、吊销 CAS、重启恢复与并发集成测试已经落地。配置 / 迁移测试、专项竞态和完整平台 Go 回归通过；真实 PostgreSQL 集成尚未执行，现按平台三层存储设计先补统一 SQLite 本地持久化，再完成双数据库验证。
+实现记录：五条 northbound 路由已经接入互斥且失败关闭的 `api_key_dev_test` 认证，可信上下文、作用域、应用活跃状态、最近使用更新和脱敏请求历史均由服务端记录恢复；无效凭据、开发身份头冲突、吊销、过期、作用域不足、应用不可用以及密钥 / 历史存储故障均有执行前负向测试。独立 API 密钥 PostgreSQL schema、手动迁移命令、存储选择器、摘要隔离、吊销 CAS、重启恢复与并发集成测试已经落地。2026-07-14 已以真实 PostgreSQL 完成七组件 configured 连续链、migration 重复 / 回滚 / 重应用、marker 与物理表一致性、角色隔离、运行角色 DDL 拒绝、类型 / 索引、稳定分页、advisory lock、多连接、竞态、重启恢复和所有存储关闭后的 no-fallback；配置 / 迁移测试、专项竞态和完整平台 Go 回归同步通过。
 
 ### 批次 B2：统一 SQLite 本地持久化
 
@@ -68,7 +68,7 @@
 
 ### 批次 B3：双数据库验证
 
-状态：进行中；SQLite 职责证据已通过，下一步执行 PostgreSQL 专属门禁。
+状态：已完成；两种数据库的职责证据分别成立。
 
 - SQLite 承载日常本地连续路径与浏览器重启恢复；
 - PostgreSQL 承载 migration / runtime 角色、advisory lock、类型 / 索引、并发和部署同构门禁；
@@ -76,7 +76,11 @@
 
 完成标志：SQLite 和 PostgreSQL 的职责证据分别成立，且没有以 SQLite 结果替代 PostgreSQL 专属验证。
 
+实施记录：PostgreSQL 17 临时环境执行平台 runner `check` 通过；七个产品 store 由 `configured` 启动档完成 preflight，既有 Control Plane migration 作为关联回归继续复验但未泄漏进该启动组合。新增聚合集成用例检查必要列类型与索引、等时刻 tuple pagination、两路并发 migration、四个独立池连接、摘要与原始输入禁入、最近使用单调更新、八路认证 / 吊销和归档竞态、七存储失败关闭以及平台重启恢复。专项用例在 Go race detector 下连续三轮通过。
+
 ### 批次 C：Web 与连续验收
+
+状态：下一项；尚未开始。
 
 - 严格 API 消费端、应用筛选、签发表单、一次性令牌面板、调试台内存交接和吊销确认；
 - 刷新 / 路由离开 / 应用切换清除令牌，列表与详情始终只读脱敏字段；
