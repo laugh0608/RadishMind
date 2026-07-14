@@ -50,7 +50,7 @@
 
 | 专题 | 类型 | 当前用途 |
 | --- | --- | --- |
-| [本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md) | 平台 / 本地持久化专题 | 已定义三层存储、七组件范围、共享 SQLite runtime、迁移、双数据库门禁和停止线；下一批进入实现 |
+| [本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md) | 平台 / 本地持久化专题 | S1 共享 runtime、迁移骨架和聚合配置失败关闭已完成；下一批从应用目录开始接入七组件 repository，全部齐备前不开放正式 `sqlite_dev` |
 | [用户工作区细专题入口](user-workspace/README.md) | 功能专题目录 | 承接应用、模型发现、API 接入、调用与审查的连续用户路径 |
 | [API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) | 功能 / 认证专题 | Gateway 与 PostgreSQL 代码已实现；先补统一 `sqlite_dev` 本地持久化，再做双数据库验证和 Web 连续链路 |
 | [应用目录与生命周期（开发/测试态）v1](user-workspace/application-catalog-lifecycle-dev-test-v1.md) | 功能 / 生命周期专题 | 核心生命周期、PostgreSQL 持久化、Web 管理和真实浏览器连续验收已完成 |

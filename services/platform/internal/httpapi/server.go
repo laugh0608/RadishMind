@@ -77,6 +77,9 @@ func NewServer(cfg config.Config, options Options) *Server {
 }
 
 func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
+	if err := config.ValidateServerStart(cfg); err != nil {
+		return nil, err
+	}
 	authenticator, err := newControlPlaneReadAuthenticator(context.Background(), cfg)
 	if err != nil {
 		return nil, err

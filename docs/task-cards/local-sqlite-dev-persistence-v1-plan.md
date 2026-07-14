@@ -1,8 +1,8 @@
 # 本地 SQLite 开发持久化 v1 实施任务卡
 
-更新时间：2026-07-13
+更新时间：2026-07-14
 
-状态：`local_sqlite_dev_persistence_v1_implementation_planned`
+状态：`local_sqlite_dev_persistence_v1_s1_completed`
 
 ## 任务目标
 
@@ -38,6 +38,8 @@
 - 加入聚合配置校验，但保持正式 `sqlite_dev` 启用失败，直到七组件齐备。
 
 完成标志：临时 SQLite 文件可可靠创建、迁移、重复检查、重开和关闭；损坏、marker mismatch、配置冲突与不可写路径均稳定失败，不产生 fallback。
+
+实现记录：2026-07-14 已锁定 `modernc.org/sqlite v1.53.0`，完成共享 runtime、文件 / WAL / 共享内存权限、foreign keys、WAL、busy timeout、完整性检查、checkpoint、事务 migration marker、checksum、不兼容失败关闭和聚合配置。专项测试覆盖首次创建、两步 migration、重复执行、重开恢复、marker / checksum mismatch、未知 marker、migration 回滚、损坏文件、非法路径、配置冲突与启动前失败；七组件未齐备前继续以 `sqlite_dev_repository_set` 阻止正式启动。CGO 关闭条件下的 macOS / Linux / Windows 编译、专项竞态、平台完整 Go 回归、`go vet`、模块校验和仓库快速门禁均已通过。
 
 ### S2：七组件 repository
 

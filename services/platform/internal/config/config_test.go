@@ -4,10 +4,12 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
@@ -738,6 +740,62 @@ func TestWorkflowDiagnosticsDevRequiresExecutorAndMockProvider(t *testing.T) {
 	}
 }
 
+func TestSQLiteDevLocalPersistenceConfigurationIsVisibleButStartBlocked(t *testing.T) {
+	clearPlatformEnv(t)
+	databasePath := filepath.Join(t.TempDir(), "radishmind.db")
+	t.Setenv("RADISHMIND_LOCAL_PERSISTENCE_MODE", "sqlite_dev")
+	t.Setenv("RADISHMIND_SQLITE_DEV_DATABASE_PATH", databasePath)
+
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load sqlite_dev local persistence config: %v", err)
+	}
+	if cfg.LocalPersistenceMode != "sqlite_dev" || cfg.SQLiteDevDatabasePath != databasePath {
+		t.Fatalf("unexpected sqlite_dev config: %#v", cfg)
+	}
+	summary := cfg.SanitizedSummary()
+	if summary.LocalPersistenceMode != "sqlite_dev" || !summary.LocalPersistenceConfigured ||
+		!summary.SQLiteDevDatabaseConfigured || !summary.LocalPersistenceComponentsConsistent ||
+		summary.SQLiteDevSchemaStatus != "runtime_ready_repositories_pending" {
+		t.Fatalf("unexpected sqlite_dev sanitized summary: %#v", summary)
+	}
+	if !reflect.DeepEqual(summary.MissingRequiredFields, []string{"sqlite_dev_repository_set"}) {
+		t.Fatalf("sqlite_dev must expose the incomplete repository set: %#v", summary.MissingRequiredFields)
+	}
+	encoded, err := json.Marshal(summary)
+	if err != nil {
+		t.Fatalf("encode sqlite_dev summary: %v", err)
+	}
+	if strings.Contains(string(encoded), databasePath) {
+		t.Fatalf("sanitized summary leaked SQLite database path: %s", encoded)
+	}
+	if err := ValidateServerStart(cfg); err == nil || err.Error() != "sqlite_dev local persistence is unavailable until all seven repositories are connected" {
+		t.Fatalf("incomplete sqlite_dev server start must fail explicitly, got %v", err)
+	}
+}
+
+func TestLocalPersistenceRejectsUnknownModeAndComponentConflict(t *testing.T) {
+	base := defaultConfig()
+	base.LocalPersistenceMode = "unknown"
+	if err := validateBridgeRuntimeConfig(base); err == nil || err.Error() != "local persistence mode must be memory_dev or sqlite_dev" {
+		t.Fatalf("unknown local persistence mode must fail, got %v", err)
+	}
+
+	base = defaultConfig()
+	base.LocalPersistenceMode = "sqlite_dev"
+	base.FieldSources["api_key_store"] = configSourceEnv
+	if err := validateBridgeRuntimeConfig(base); err == nil || err.Error() != "sqlite_dev local persistence conflicts with an explicit component store mode" {
+		t.Fatalf("sqlite_dev component override must fail, got %v", err)
+	}
+
+	base = defaultConfig()
+	base.LocalPersistenceMode = "memory_dev"
+	base.ApplicationCatalogStoreMode = "postgres_dev_test"
+	if err := validateBridgeRuntimeConfig(base); err == nil || err.Error() != "memory_dev local persistence conflicts with an explicit component store mode" {
+		t.Fatalf("memory_dev component conflict must fail, got %v", err)
+	}
+}
+
 func clearPlatformEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{
@@ -776,6 +834,8 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DATABASE_TIMEOUT",
+		"RADISHMIND_LOCAL_PERSISTENCE_MODE",
+		"RADISHMIND_SQLITE_DEV_DATABASE_PATH",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",

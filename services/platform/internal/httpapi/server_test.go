@@ -41,6 +41,13 @@ type checkpointQueryCase struct {
 	ExpectedErrorCode string `json:"expected_error_code"`
 }
 
+func TestServerRejectsIncompleteSQLiteDevLocalPersistence(t *testing.T) {
+	_, err := NewServerWithError(config.Config{LocalPersistenceMode: "sqlite_dev"}, Options{BuildVersion: "sqlite-s1"})
+	if err == nil || err.Error() != "sqlite_dev local persistence is unavailable until all seven repositories are connected" {
+		t.Fatalf("incomplete sqlite_dev start must fail before store construction, got %v", err)
+	}
+}
+
 func (f *fakeBridge) DescribeProviders(context.Context) ([]bridge.ProviderDescription, error) {
 	return f.providers, nil
 }

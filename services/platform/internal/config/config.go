@@ -39,6 +39,8 @@ const (
 	defaultGatewayAuthMode             = "dev_headers"
 	defaultRunStoreMode                = "memory_dev"
 	defaultGatewayRequestStoreMode     = "memory_dev"
+	defaultLocalPersistenceMode        = "memory_dev"
+	defaultSQLiteDevDatabasePath       = "var/sqlite-dev/radishmind.db"
 	defaultControlPlaneReadAuthMode    = ""
 	defaultControlPlaneReadStoreMode   = "fake_store_dev"
 	defaultControlPlaneReadDBTimeout   = 5 * time.Second
@@ -124,6 +126,8 @@ type Config struct {
 	GatewayRequestStoreMode              string
 	GatewayRequestDatabaseURL            string
 	GatewayRequestDatabaseTimeout        time.Duration
+	LocalPersistenceMode                 string
+	SQLiteDevDatabasePath                string
 	WorkflowSavedDraftStoreMode          string
 	WorkflowSavedDraftDatabaseURL        string
 	WorkflowSavedDraftDatabaseTimeout    time.Duration
@@ -176,6 +180,11 @@ type ConfigSummary struct {
 	GatewayRequestHistoryDevEnabled      bool              `json:"gateway_request_history_dev_enabled"`
 	GatewayRequestStoreMode              string            `json:"gateway_request_store_mode"`
 	GatewayRequestDatabaseConfigured     bool              `json:"gateway_request_database_configured"`
+	LocalPersistenceMode                 string            `json:"local_persistence_mode"`
+	LocalPersistenceConfigured           bool              `json:"local_persistence_configured"`
+	SQLiteDevDatabaseConfigured          bool              `json:"sqlite_dev_database_configured"`
+	SQLiteDevSchemaStatus                string            `json:"sqlite_dev_schema_status"`
+	LocalPersistenceComponentsConsistent bool              `json:"local_persistence_components_consistent"`
 	WorkflowSavedDraftStoreMode          string            `json:"workflow_saved_draft_store_mode"`
 	WorkflowSavedDraftDatabaseConfigured bool              `json:"workflow_saved_draft_database_configured"`
 	WorkflowRunStoreMode                 string            `json:"workflow_run_store_mode"`
@@ -231,6 +240,8 @@ type fileConfig struct {
 	APIKey             *string          `json:"api_key"`
 	Temperature        *json.RawMessage `json:"temperature"`
 	WorkflowDraftStore *string          `json:"workflow_saved_draft_store"`
+	LocalPersistence   *string          `json:"local_persistence_mode"`
+	SQLiteDatabasePath *string          `json:"sqlite_dev_database_path"`
 }
 
 func LoadFromEnv() (Config, error) {
@@ -299,6 +310,7 @@ func defaultConfig() Config {
 		WorkflowRunDatabaseTimeout:           defaultRunDBTimeout,
 		GatewayRequestStoreMode:              defaultGatewayRequestStoreMode,
 		GatewayRequestDatabaseTimeout:        defaultGatewayRequestDBTimeout,
+		SQLiteDevDatabasePath:                defaultSQLiteDevDatabasePath,
 		FieldSources: map[string]string{
 			"listen_addr":                           configSourceDefault,
 			"read_header_timeout":                   configSourceDefault,
@@ -340,6 +352,8 @@ func defaultConfig() Config {
 			"gateway_request_store":                 configSourceDefault,
 			"gateway_request_database":              configSourceDefault,
 			"gateway_request_database_timeout":      configSourceDefault,
+			"local_persistence_mode":                configSourceDefault,
+			"sqlite_dev_database_path":              configSourceDefault,
 			"workflow_saved_draft_store":            configSourceDefault,
 			"workflow_saved_draft_database":         configSourceDefault,
 			"workflow_saved_draft_database_timeout": configSourceDefault,
@@ -461,6 +475,24 @@ func applyConfigFile(cfg *Config, pathText string) error {
 			*document.WorkflowDraftStore,
 			cfg.FieldSources,
 			"workflow_saved_draft_store",
+			configSourceFile,
+		)
+	}
+	if document.LocalPersistence != nil {
+		applyStringValue(
+			&cfg.LocalPersistenceMode,
+			*document.LocalPersistence,
+			cfg.FieldSources,
+			"local_persistence_mode",
+			configSourceFile,
+		)
+	}
+	if document.SQLiteDatabasePath != nil {
+		applyStringValue(
+			&cfg.SQLiteDevDatabasePath,
+			*document.SQLiteDatabasePath,
+			cfg.FieldSources,
+			"sqlite_dev_database_path",
 			configSourceFile,
 		)
 	}
@@ -759,6 +791,12 @@ func applyEnvOverrides(cfg *Config) error {
 		}
 		applyDurationValue(&cfg.GatewayRequestDatabaseTimeout, parsed, cfg.FieldSources, "gateway_request_database_timeout", configSourceEnv)
 	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_PERSISTENCE_MODE"); ok {
+		applyStringValue(&cfg.LocalPersistenceMode, value, cfg.FieldSources, "local_persistence_mode", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_SQLITE_DEV_DATABASE_PATH"); ok {
+		applyStringValue(&cfg.SQLiteDevDatabasePath, value, cfg.FieldSources, "sqlite_dev_database_path", configSourceEnv)
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE"); ok {
 		applyStringValue(
 			&cfg.WorkflowSavedDraftStoreMode,
@@ -859,6 +897,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if gatewayRequestStoreMode == "" {
 		gatewayRequestStoreMode = defaultGatewayRequestStoreMode
 	}
+	localPersistenceMode := EffectiveLocalPersistenceMode(cfg)
 	controlPlaneReadStoreMode := EffectiveControlPlaneReadStoreMode(cfg)
 	credentialState := credentialState(provider, strings.TrimSpace(cfg.APIKey) != "")
 	requiredFields := requiredConfigFields(provider)
@@ -915,6 +954,9 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "gateway_request_history_dev")
 		requiredFields = appendRequiredConfigField(requiredFields, "gateway_request_database")
 	}
+	if localPersistenceMode == "sqlite_dev" {
+		requiredFields = appendRequiredConfigField(requiredFields, "sqlite_dev_repository_set")
+	}
 	if workflowRunStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
@@ -960,6 +1002,11 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		GatewayRequestHistoryDevEnabled:      cfg.GatewayRequestHistoryDevEnabled,
 		GatewayRequestStoreMode:              gatewayRequestStoreMode,
 		GatewayRequestDatabaseConfigured:     strings.TrimSpace(cfg.GatewayRequestDatabaseURL) != "",
+		LocalPersistenceMode:                 localPersistenceMode,
+		LocalPersistenceConfigured:           strings.TrimSpace(cfg.LocalPersistenceMode) != "",
+		SQLiteDevDatabaseConfigured:          strings.TrimSpace(cfg.SQLiteDevDatabasePath) != "",
+		SQLiteDevSchemaStatus:                sqliteDevSchemaStatus(localPersistenceMode),
+		LocalPersistenceComponentsConsistent: localPersistenceComponentsConsistent(cfg),
 		WorkflowSavedDraftStoreMode:          workflowSavedDraftStoreMode,
 		WorkflowSavedDraftDatabaseConfigured: strings.TrimSpace(cfg.WorkflowSavedDraftDatabaseURL) != "",
 		WorkflowRunStoreMode:                 workflowRunStoreMode,
@@ -1179,6 +1226,8 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			if strings.TrimSpace(cfg.GatewayRequestDatabaseURL) == "" {
 				missing = append(missing, field)
 			}
+		case "sqlite_dev_repository_set":
+			missing = append(missing, field)
 		}
 	}
 	return missing
@@ -1264,6 +1313,9 @@ func parseIntValue(key string, rawValue string) (int, error) {
 }
 
 func validateBridgeRuntimeConfig(cfg Config) error {
+	if err := validateLocalPersistenceConfig(cfg); err != nil {
+		return err
+	}
 	switch EffectiveControlPlaneReadAuthMode(cfg) {
 	case "disabled":
 	case "dev_headers":

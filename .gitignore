@@ -150,6 +150,7 @@ celerybeat.pid
 .env
 .env.local
 .envrc
+var/sqlite-dev/
 .venv
 env/
 venv/
