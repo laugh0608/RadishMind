@@ -1,7 +1,13 @@
 package httpapi
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -142,6 +148,310 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 	restoredRun, found, err := secondServer.workflowRunStore.ReadRun(runContext, runRecord.RunID)
 	if err != nil || !found || restoredRun.RecordVersion != 1 || restoredRun.Status != WorkflowRunStatusRunning {
 		t.Fatalf("restore aggregate SQLite workflow run: found=%t record=%#v err=%v", found, restoredRun, err)
+	}
+}
+
+func TestSQLiteDevLocalProductHTTPChainSurvivesServerRestart(t *testing.T) {
+	databasePath := filepath.Join(t.TempDir(), "radishmind.db")
+	cfg := aggregateSQLiteDevServerConfig(databasePath)
+	cfg.GatewayAuthMode = gatewayAPIKeyAuthenticationSource
+	cfg.Model = "platform-model"
+
+	firstServer, err := NewServerWithError(cfg, Options{BuildVersion: "sqlite-local-product-first"})
+	if err != nil {
+		t.Fatalf("start first local product server: %v", err)
+	}
+	t.Cleanup(firstServer.Close)
+	firstBridge := &workflowExecutorTestBridge{}
+	firstServer.bridge = firstBridge
+
+	createApplicationRequest := httptest.NewRequest(
+		http.MethodPost,
+		"/v1/user-workspace/applications",
+		bytes.NewReader(mustLocalProductJSON(t, applicationCatalogCreateBody{
+			WorkspaceID: "workspace_demo", DisplayName: "SQLite local product", Description: "Continuous local product chain.", ApplicationKind: "workflow_copilot",
+		})),
+	)
+	setLocalProductControlHeaders(createApplicationRequest, "applications:read,applications:write")
+	createApplicationResponse := httptest.NewRecorder()
+	firstServer.httpServer.Handler.ServeHTTP(createApplicationResponse, createApplicationRequest)
+	var createdApplication applicationCatalogEnvelope
+	decodeLocalProductResponse(t, createApplicationResponse, http.StatusOK, &createdApplication)
+	if createdApplication.FailureCode != nil || createdApplication.Record == nil {
+		t.Fatalf("create local product application: %#v", createdApplication)
+	}
+	applicationID := createdApplication.Record.ApplicationID
+
+	applicationDraft := validApplicationDraftPayload()
+	applicationDraft.DraftID = "app-config-local-product-chain"
+	applicationDraft.ApplicationID = applicationID
+	applicationDraft.BaseApplicationUpdatedAt = createdApplication.Record.UpdatedAt
+	createdApplicationDraft := performApplicationDraftRequest(
+		t,
+		firstServer,
+		http.MethodPost,
+		"/v1/user-workspace/application-drafts",
+		applicationConfigurationDraftSaveBody{Draft: applicationDraft},
+		"application_drafts:read,application_drafts:write",
+		applicationID,
+	)
+	if createdApplicationDraft.FailureCode != nil || createdApplicationDraft.Draft == nil || createdApplicationDraft.CurrentDraftVersion != 1 {
+		t.Fatalf("save local product application draft: %#v", createdApplicationDraft)
+	}
+
+	createdCandidate := performApplicationPublishRequest(
+		t,
+		firstServer,
+		http.MethodPost,
+		"/v1/user-workspace/application-publish-candidates",
+		applicationPublishCandidateCreateBody{
+			CandidateID: "candidate-local-product-chain", DraftID: applicationDraft.DraftID, ExpectedDraftVersion: 1,
+		},
+		"application_publish_candidates:write",
+		applicationID,
+	)
+	if createdCandidate.FailureCode != nil || createdCandidate.Candidate == nil {
+		t.Fatalf("create local product publish candidate: %#v", createdCandidate)
+	}
+	approvedCandidate := performApplicationPublishRequest(
+		t,
+		firstServer,
+		http.MethodPost,
+		"/v1/user-workspace/application-publish-candidates/candidate-local-product-chain/reviews",
+		applicationPublishCandidateReviewBody{
+			ExpectedReviewVersion: 0, Decision: "approve", Reason: "Approved through the local SQLite product chain.",
+		},
+		"application_publish_candidates:review",
+		applicationID,
+	)
+	if approvedCandidate.FailureCode != nil || approvedCandidate.Candidate == nil || approvedCandidate.Candidate.CandidateState != applicationPublishStateApproved {
+		t.Fatalf("approve local product publish candidate: %#v", approvedCandidate)
+	}
+
+	issueKeyRequest := httptest.NewRequest(
+		http.MethodPost,
+		"/v1/user-workspace/api-keys",
+		bytes.NewReader(mustLocalProductJSON(t, apiKeyCreateBody{
+			WorkspaceID: "workspace_demo", ApplicationID: applicationID, DisplayName: "Local product Gateway key",
+			Scopes: []string{"models:read", "chat:invoke"}, ExpiresInDays: 30,
+		})),
+	)
+	setLocalProductControlHeaders(issueKeyRequest, "api_keys:read,api_keys:write")
+	issueKeyResponse := httptest.NewRecorder()
+	firstServer.httpServer.Handler.ServeHTTP(issueKeyResponse, issueKeyRequest)
+	var issuedKey apiKeyEnvelope
+	decodeLocalProductResponse(t, issueKeyResponse, http.StatusCreated, &issuedKey)
+	if issuedKey.FailureCode != nil || issuedKey.Record == nil || issuedKey.Credential == nil || issuedKey.Credential.Token == "" {
+		t.Fatalf("issue local product API key: record=%#v credential_present=%t", issuedKey.Record, issuedKey.Credential != nil)
+	}
+
+	rawGatewayInput := "private Gateway prompt must not persist"
+	gatewayRequestID := "request-local-product-chain"
+	gatewayRequest := httptest.NewRequest(
+		http.MethodPost,
+		"/v1/chat/completions",
+		bytes.NewReader(mustLocalProductJSON(t, map[string]any{
+			"model": "platform-model", "messages": []map[string]string{{"role": "user", "content": rawGatewayInput}},
+		})),
+	)
+	gatewayRequest.Header.Set("Authorization", "Bearer "+issuedKey.Credential.Token)
+	gatewayRequest.Header.Set("X-Request-Id", gatewayRequestID)
+	gatewayResponse := httptest.NewRecorder()
+	firstServer.httpServer.Handler.ServeHTTP(gatewayResponse, gatewayRequest)
+	if gatewayResponse.Code != http.StatusOK {
+		t.Fatalf("call local product Gateway with issued key: %d %s", gatewayResponse.Code, gatewayResponse.Body.String())
+	}
+
+	workflowDraft := validSavedWorkflowDraftPayload()
+	workflowDraft.DraftID = "draft_local_product_chain"
+	workflowDraft.ApplicationID = applicationID
+	saveWorkflowRequest := httptest.NewRequest(
+		http.MethodPost,
+		"/v1/user-workspace/workflow-drafts",
+		bytes.NewReader(mustSavedWorkflowDraftJSON(t, savedWorkflowDraftSaveHTTPBody{
+			Draft: savedWorkflowDraftPayloadDocumentFromDraftPayload(workflowDraft),
+		})),
+	)
+	setLocalProductWorkflowHeaders(saveWorkflowRequest, "workflow_drafts:read,workflow_drafts:write", applicationID)
+	saveWorkflowResponse := httptest.NewRecorder()
+	firstServer.httpServer.Handler.ServeHTTP(saveWorkflowResponse, saveWorkflowRequest)
+	savedWorkflow := decodeSavedWorkflowDraftEnvelope(t, saveWorkflowResponse, http.StatusOK)
+	if savedWorkflow.FailureCode != nil || savedWorkflow.Draft == nil || savedWorkflow.CurrentDraftVersion != 1 {
+		t.Fatalf("save local product workflow draft: %#v", savedWorkflow)
+	}
+
+	rawWorkflowInput := "private workflow run input must not persist"
+	startRunRequest := httptest.NewRequest(
+		http.MethodPost,
+		"/v1/user-workspace/workflow-drafts/"+workflowDraft.DraftID+"/runs",
+		bytes.NewReader(mustWorkflowRunJSON(t, workflowRunStartHTTPBody{
+			WorkspaceID: "workspace_demo", ApplicationID: applicationID, InputText: rawWorkflowInput, Model: "platform-model",
+		})),
+	)
+	setLocalProductWorkflowHeaders(startRunRequest, "workflow_drafts:read,workflow_runs:execute,workflow_runs:read", applicationID)
+	startRunResponse := httptest.NewRecorder()
+	firstServer.httpServer.Handler.ServeHTTP(startRunResponse, startRunRequest)
+	startedRun := decodeWorkflowRunEnvelope(t, startRunResponse, http.StatusOK)
+	if startedRun.FailureCode != nil || startedRun.Run == nil || startedRun.Run.Status != WorkflowRunStatusSucceeded {
+		t.Fatalf("start local product workflow run: %#v", startedRun)
+	}
+	if firstBridge.callCount() != 2 {
+		t.Fatalf("local product chain should call the bridge once for Gateway and once for Workflow, got %d", firstBridge.callCount())
+	}
+
+	firstServer.Close()
+
+	restartedServer, err := NewServerWithError(cfg, Options{BuildVersion: "sqlite-local-product-restarted"})
+	if err != nil {
+		t.Fatalf("restart local product server: %v", err)
+	}
+	t.Cleanup(restartedServer.Close)
+	restartedServer.bridge = &workflowExecutorTestBridge{}
+
+	readApplicationRequest := httptest.NewRequest(
+		http.MethodGet,
+		"/v1/user-workspace/applications/"+applicationID+"?workspace_id=workspace_demo",
+		nil,
+	)
+	setLocalProductControlHeaders(readApplicationRequest, "applications:read")
+	readApplicationResponse := httptest.NewRecorder()
+	restartedServer.httpServer.Handler.ServeHTTP(readApplicationResponse, readApplicationRequest)
+	var restoredApplication applicationCatalogEnvelope
+	decodeLocalProductResponse(t, readApplicationResponse, http.StatusOK, &restoredApplication)
+	if restoredApplication.FailureCode != nil || restoredApplication.Record == nil || restoredApplication.Record.ApplicationID != applicationID {
+		t.Fatalf("restore local product application over HTTP: %#v", restoredApplication)
+	}
+
+	restoredApplicationDraft := performApplicationDraftRequest(
+		t,
+		restartedServer,
+		http.MethodGet,
+		"/v1/user-workspace/application-drafts/"+applicationDraft.DraftID+"?workspace_id=workspace_demo&application_id="+applicationID,
+		nil,
+		"application_drafts:read",
+		applicationID,
+	)
+	if restoredApplicationDraft.FailureCode != nil || restoredApplicationDraft.Draft == nil || restoredApplicationDraft.Draft.DraftVersion != 1 {
+		t.Fatalf("restore local product application draft over HTTP: %#v", restoredApplicationDraft)
+	}
+
+	restoredCandidate := performApplicationPublishRequest(
+		t,
+		restartedServer,
+		http.MethodGet,
+		"/v1/user-workspace/application-publish-candidates/candidate-local-product-chain?workspace_id=workspace_demo&application_id="+applicationID,
+		nil,
+		"application_publish_candidates:read",
+		applicationID,
+	)
+	if restoredCandidate.FailureCode != nil || restoredCandidate.Candidate == nil || restoredCandidate.Candidate.CandidateState != applicationPublishStateApproved {
+		t.Fatalf("restore local product publish candidate over HTTP: %#v", restoredCandidate)
+	}
+
+	readKeyRequest := httptest.NewRequest(
+		http.MethodGet,
+		"/v1/user-workspace/api-keys/"+issuedKey.Record.APIKeyID+"?workspace_id=workspace_demo",
+		nil,
+	)
+	setLocalProductControlHeaders(readKeyRequest, "api_keys:read")
+	readKeyResponse := httptest.NewRecorder()
+	restartedServer.httpServer.Handler.ServeHTTP(readKeyResponse, readKeyRequest)
+	var restoredKey apiKeyEnvelope
+	decodeLocalProductResponse(t, readKeyResponse, http.StatusOK, &restoredKey)
+	if restoredKey.FailureCode != nil || restoredKey.Record == nil || restoredKey.Record.LastUsedAt == nil || restoredKey.Credential != nil {
+		t.Fatalf("restore used local product API key without credential: %#v", restoredKey)
+	}
+
+	gatewayQuery := url.Values{
+		"workspace_id": {"workspace_demo"}, "consumer_ref": {"api_key:" + issuedKey.Record.APIKeyID},
+		"application_id": {applicationID}, "status": {string(GatewayRequestStatusSucceeded)},
+	}
+	readGatewayRequest := httptest.NewRequest(http.MethodGet, "/v1/model-gateway/requests?"+gatewayQuery.Encode(), nil)
+	setGatewayRequestDevHeaders(readGatewayRequest, "gateway_requests:read")
+	readGatewayRequest.Header.Set(gatewayRequestDevConsumerHeader, "api_key:"+issuedKey.Record.APIKeyID)
+	readGatewayRequest.Header.Set(gatewayRequestDevApplicationHeader, applicationID)
+	readGatewayRequest.Header.Set(gatewayRequestDevSubjectHeader, "subject_demo_user")
+	readGatewayResponse := httptest.NewRecorder()
+	restartedServer.httpServer.Handler.ServeHTTP(readGatewayResponse, readGatewayRequest)
+	restoredGatewayHistory := decodeGatewayRequestListEnvelope(t, readGatewayResponse)
+	if restoredGatewayHistory.FailureCode != nil || len(restoredGatewayHistory.Requests) != 1 || restoredGatewayHistory.Requests[0].RequestID != gatewayRequestID {
+		t.Fatalf("restore local product Gateway request history: %#v", restoredGatewayHistory)
+	}
+
+	readWorkflowRequest := httptest.NewRequest(
+		http.MethodGet,
+		"/v1/user-workspace/workflow-drafts/"+workflowDraft.DraftID+"?workspace_id=workspace_demo&application_id="+applicationID,
+		nil,
+	)
+	setLocalProductWorkflowHeaders(readWorkflowRequest, "workflow_drafts:read", applicationID)
+	readWorkflowResponse := httptest.NewRecorder()
+	restartedServer.httpServer.Handler.ServeHTTP(readWorkflowResponse, readWorkflowRequest)
+	restoredWorkflow := decodeSavedWorkflowDraftEnvelope(t, readWorkflowResponse, http.StatusOK)
+	if restoredWorkflow.FailureCode != nil || restoredWorkflow.Draft == nil || restoredWorkflow.Draft.DraftVersion != 1 {
+		t.Fatalf("restore local product workflow draft over HTTP: %#v", restoredWorkflow)
+	}
+
+	readRunRequest := httptest.NewRequest(
+		http.MethodGet,
+		"/v1/user-workspace/workflow-runs/"+startedRun.Run.RunID+"?workspace_id=workspace_demo&application_id="+applicationID,
+		nil,
+	)
+	setLocalProductWorkflowHeaders(readRunRequest, "workflow_runs:read", applicationID)
+	readRunResponse := httptest.NewRecorder()
+	restartedServer.httpServer.Handler.ServeHTTP(readRunResponse, readRunRequest)
+	restoredRun := decodeWorkflowRunEnvelope(t, readRunResponse, http.StatusOK)
+	if restoredRun.FailureCode != nil || restoredRun.Run == nil || restoredRun.Run.Status != WorkflowRunStatusSucceeded {
+		t.Fatalf("restore local product workflow run over HTTP: %#v", restoredRun)
+	}
+
+	restartedServer.Close()
+	assertLocalProductSQLiteFilesExclude(t, databasePath, issuedKey.Credential.Token, rawGatewayInput, rawWorkflowInput)
+}
+
+func mustLocalProductJSON(t *testing.T, document any) []byte {
+	t.Helper()
+	encoded, err := json.Marshal(document)
+	if err != nil {
+		t.Fatalf("marshal local product request: %v", err)
+	}
+	return encoded
+}
+
+func decodeLocalProductResponse(t *testing.T, response *httptest.ResponseRecorder, expectedStatus int, destination any) {
+	t.Helper()
+	if response.Code != expectedStatus {
+		t.Fatalf("unexpected local product response status: expected=%d actual=%d body=%s", expectedStatus, response.Code, response.Body.String())
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), destination); err != nil {
+		t.Fatalf("decode local product response: %v body=%s", err, response.Body.String())
+	}
+}
+
+func setLocalProductControlHeaders(request *http.Request, scopes string) {
+	setControlPlaneReadDevAuthHeaders(request)
+	request.Header.Set(controlPlaneReadDevScopesHeader, scopes)
+}
+
+func setLocalProductWorkflowHeaders(request *http.Request, scopes, applicationID string) {
+	setSavedWorkflowDraftDevHeaders(request, scopes)
+	request.Header.Set(savedWorkflowDraftDevApplicationHeader, applicationID)
+}
+
+func assertLocalProductSQLiteFilesExclude(t *testing.T, databasePath string, forbidden ...string) {
+	t.Helper()
+	for _, path := range []string{databasePath, databasePath + "-wal", databasePath + "-shm"} {
+		content, err := os.ReadFile(path)
+		if os.IsNotExist(err) {
+			continue
+		}
+		if err != nil {
+			t.Fatalf("read local product SQLite artifact %s: %v", filepath.Base(path), err)
+		}
+		for _, value := range forbidden {
+			if value != "" && bytes.Contains(content, []byte(value)) {
+				t.Fatalf("local product SQLite artifact %s contains forbidden runtime input", filepath.Base(path))
+			}
+		}
 	}
 }
 

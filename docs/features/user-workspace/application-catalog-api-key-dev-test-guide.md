@@ -1,6 +1,6 @@
 # 应用目录与 API 密钥开发测试指南
 
-更新时间：2026-07-13
+更新时间：2026-07-14
 
 ## 适用范围
 
@@ -12,7 +12,7 @@
 4. 检查密钥最近使用时间并吊销密钥。
 5. 验证吊销密钥或归档应用后，调用在进入 bridge / provider 前失败关闭。
 
-当前实现支持 `memory_dev` 与显式 `postgres_dev_test`。它不代表生产身份系统、生产密钥服务、公开生产网关或正式配额计费已经可用。产品 Web 已支持应用目录的创建、编辑和归档；API 密钥签发与吊销目前通过 HTTP API 验证，Web 端仍只展示脱敏摘要。
+当前实现支持 `memory_dev`、默认本地产品档 `sqlite_dev` 与显式 `postgres_dev_test`。它不代表生产身份系统、生产密钥服务、公开生产网关或正式配额计费已经可用。产品 Web 已支持应用目录的创建、编辑和归档；API 密钥签发与吊销目前通过 HTTP API 验证，Web 端仍只展示脱敏摘要。
 
 ## 两类身份必须分开
 
@@ -25,23 +25,19 @@
 
 管理 API 会拒绝 RadishMind API 密钥。`api_key_dev_test` 模式下，模型网关也会拒绝同时携带 Bearer 密钥与 `X-RadishMind-Dev-Gateway-*` 身份头的请求，避免调用方覆盖可信身份。
 
-## 启动内存开发测试链
+## 启动 SQLite 本地产品链
 
 在仓库根目录执行：
 
 ```bash
-RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1 \
-RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE=dev_headers \
-RADISHMIND_APPLICATION_CATALOG_DEV_HTTP=1 \
-RADISHMIND_APPLICATION_CATALOG_DEV_WRITE=1 \
-RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP=1 \
-RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE=1 \
-RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV=1 \
+RADISHMIND_GATEWAY_AUTH_MODE=api_key_dev_test \
+./scripts/run-platform-service.sh config-check
+
 RADISHMIND_GATEWAY_AUTH_MODE=api_key_dev_test \
 ./scripts/run-platform-service.sh serve
 ```
 
-这是长期运行的本地服务命令，应由开发者在本机终端启动，并在验证结束后停止。未显式设置 store 时，应用、密钥和调用记录都保存在当前进程内存中，服务重启后清空。
+这是长期运行的本地服务命令，应由开发者在本机终端启动，并在验证结束后停止。默认 `local-product` 档会一次性选择七组件 `sqlite_dev`、仓库根 `var/sqlite-dev/radishmind.db` 和所需开发门禁；`config-check` 只检查配置，不创建数据库。应用、密钥、调用记录、配置草案和工作流数据会在服务重启后恢复。需要回到显式内存或 PostgreSQL 组件配置时，改用 `--profile configured` 并完整提供对应门禁与 store 配置。
 
 以下示例统一使用：
 

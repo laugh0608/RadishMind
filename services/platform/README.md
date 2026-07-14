@@ -301,7 +301,7 @@ read-side UI 当前已经完成七个页面、formal UI readiness close、dev-on
 
 `startup-supervisor-boundary` 已由 `scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json` 与 `scripts/check-production-ops-startup-supervisor-boundary.py` 固定为 governance boundary。当前支持的启动入口只有两类：`scripts/run-platform-service.ps1` / `scripts/run-platform-service.sh` 的人工 platform wrapper，以及 `scripts/run-radishmind-console-dev.ps1` / `scripts/run-radishmind-console-dev.sh` 的本地 console dev launcher。
 
-platform wrapper 只支持 `serve`、`config-summary`、`config-check` 和 `diagnostics`，未知命令必须失败并返回退出码 `2`。console dev launcher 只负责启动或复用本地 backend / frontend，探测 `/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、本地 CORS preflight 和前端页面；`-ExitAfterProbe` / `--exit-after-probe` 只表示探测后清理本次创建的开发进程，不是 lifecycle management。
+platform wrapper 只支持 `serve`、`config-summary`、`config-check` 和 `diagnostics`，并提供默认 `local-product` 与显式 `configured` 两个启动档；未知命令或启动档必须失败并返回退出码 `2`。console dev launcher 只负责启动或复用本地 backend / frontend，探测 `/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、本地 CORS preflight 和前端页面；`-ExitAfterProbe` / `--exit-after-probe` 只表示探测后清理本次创建的开发进程，不是 lifecycle management。
 
 当前仍没有 production process supervisor、automatic restart、production service manager 或 production log retention。`tmp/radishmind-console-dev` 下的日志只用于本地排障，不能解释为生产日志路径；port reuse 只表示开发期复用本机已有进程，不能解释为服务发现。`local-smoke` 仍不是 production health。
 
@@ -325,7 +325,7 @@ production readiness 仍必须等待 deployment environment isolation、producti
 
 本地 compose 默认使用 `mock` provider，发布 `7000/4000` 到宿主机，console 构建期 `VITE_RADISHMIND_PLATFORM_BASE_URL` 默认指向 `http://127.0.0.1:7000`。它不包含 secret、不使用 `RADISHMIND_IMAGE_TRACK` / `RADISHMIND_IMAGE_TAG`，不定义测试 / 生产部署态，不实现 production secret backend、process supervisor、正式 auth / CORS policy、镜像发布或 production ready。
 
-本地长驻服务入口由 `scripts/run-platform-service.sh` 与 `scripts/run-platform-service.ps1` 收口。wrapper 会固定仓库根、`services/platform` 工作目录、默认 `GOCACHE=/tmp/radishmind-go-build-cache`，在未显式设置 `RADISHMIND_PLATFORM_PYTHON_BIN` 时使用仓库 `.venv` Python；缺少 `.venv` 时要求先执行 bootstrap，不再隐式回退系统 Python。`tmp/radishmind-platform.local.json` 存在时会自动作为默认 `RADISHMIND_PLATFORM_CONFIG`。
+本地长驻服务入口由 `scripts/run-platform-service.sh` 与 `scripts/run-platform-service.ps1` 收口。wrapper 会固定仓库根、`services/platform` 工作目录、默认 `GOCACHE=/tmp/radishmind-go-build-cache`，在未显式设置 `RADISHMIND_PLATFORM_PYTHON_BIN` 时使用仓库 `.venv` Python；缺少 `.venv` 时要求先执行 bootstrap，不再隐式回退系统 Python。`tmp/radishmind-platform.local.json` 存在时会自动作为默认 `RADISHMIND_PLATFORM_CONFIG`。默认 `local-product` 档同时注入聚合 `sqlite_dev`、仓库根 `var/sqlite-dev/radishmind.db` 和七组件开发门禁；`--profile configured` / `-Profile configured` 不注入持久化与组件门禁，只用于显式 PostgreSQL、故障注入或兼容诊断配置，不代表生产启动档。
 
 `/v1/models` 的 profile metadata 现在必须带出稳定 discoverability 字段：`capabilities`、`northbound_protocols`、`northbound_routes`、`credential_state`、`deployment_mode`、`auth_mode` 与 `streaming`。调用方应基于这些字段判断某个 profile 能否用于 chat、是否支持流式、凭据是否已配置，以及它属于 remote API 还是 local daemon。
 
@@ -364,7 +364,7 @@ go run ./cmd/radishmind-platform
 
 启动路径仍由 `config.LoadFromEnv -> httpapi.NewServer -> ListenAndServe` 组成。默认 `stdio_pool` 在监听端口前完成四个 Python worker 的 protocol v1 handshake，`Go` 层只负责本地 HTTP 壳、northbound 请求翻译和受控 bridge 调度，不直接承载模型推理逻辑。
 
-聚合 `sqlite_dev` 已接入同一启动路径：`RADISHMIND_LOCAL_PERSISTENCE_MODE=sqlite_dev` 会把工作流草案、应用配置草案、发布候选、应用目录、API 密钥、工作流运行和 Gateway 请求历史一次性选择到同一个 SQLite 文件，按固定顺序应用七组 migration，并由 `Server` 统一负责构造失败回滚、checkpoint 和关闭。该模式仍要求现有 dev-only HTTP / write / executor / history gates；显式组件 `*_STORE` 与聚合模式同时设置会拒绝启动。跨平台本地产品 wrapper 与连续浏览器验收进入下一批，当前能力不替代 PostgreSQL 门禁或生产数据库。
+聚合 `sqlite_dev` 已接入同一启动路径：`RADISHMIND_LOCAL_PERSISTENCE_MODE=sqlite_dev` 会把工作流草案、应用配置草案、发布候选、应用目录、API 密钥、工作流运行和 Gateway 请求历史一次性选择到同一个 SQLite 文件，按固定顺序应用七组 migration，并由 `Server` 统一负责构造失败回滚、checkpoint 和关闭。该模式仍要求现有 dev-only HTTP / write / executor / history gates；显式组件 `*_STORE` 与聚合模式同时设置会拒绝启动。跨平台 `local-product` wrapper 与同一应用作用域 HTTP 连续链已经通过；下一项是 PostgreSQL 专属门禁，当前能力不替代 PostgreSQL 或生产数据库。
 
 ## 环境变量
 
@@ -478,6 +478,8 @@ go run ./services/platform/cmd/radishmind-platform
 ./scripts/run-platform-service.sh serve
 ```
 
+上述命令默认使用 `local-product` 档。PostgreSQL 专项验收或组件级显式配置使用 `./scripts/run-platform-service.sh --profile configured config-check` 与 `./scripts/run-platform-service.sh --profile configured serve`；聚合模式与组件 `*_STORE` 不允许同时存在。
+
 Windows / PowerShell 使用：
 
 ```powershell
@@ -485,6 +487,8 @@ pwsh ./scripts/run-platform-service.ps1 -Command config-check
 pwsh ./scripts/run-platform-service.ps1 -Command diagnostics
 pwsh ./scripts/run-platform-service.ps1 -Command serve
 ```
+
+PowerShell 的显式配置档使用 `pwsh ./scripts/run-platform-service.ps1 -Profile configured -Command config-check` 或 `-Command serve`。`config-summary` 与 `config-check` 只加载和校验配置，不创建 SQLite 文件或执行 migration；`serve` 才进入 `Server` 生命周期。
 
 上层消费 smoke 可以先用离线 fixture 生成展示视图，不要求启动服务：
 

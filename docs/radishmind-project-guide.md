@@ -153,6 +153,8 @@ Production secret backend 当前仍只到说明、检查、metadata-only artifac
 
 Windows / PowerShell 使用对应的 `pwsh ./scripts/run-platform-service.ps1 config-check|diagnostics|serve`。
 
+wrapper 默认使用 `local-product` 档，把七组本地运行数据统一写入仓库根 `var/sqlite-dev/radishmind.db`，并开启对应开发门禁；配置摘要不会输出绝对路径。需要执行 PostgreSQL 专项验收或组件故障注入时，Shell 使用 `--profile configured`，PowerShell 使用 `-Profile configured`，该档不自动注入聚合持久化配置。
+
 当前 Platform 除 `/healthz`、overview / local-smoke、models、三协议 northbound、session/tooling 与七条 Control Plane Read-Side route 外，还注册 Workflow Draft / Run / Evaluation、Application Draft / Publish Candidate 和 Gateway Request History dev/test route。完整路由与 gate 见 [Platform README](../services/platform/README.md)；路由注册不等于默认开放。
 
 Control Plane Read-Side 支持 `dev_headers`、`signed_test_token` 和 `radish_oidc_integration_test` 三种显式开发测试 auth mode。`postgres_dev_test` 只承载 Tenant Summary / Audit；OIDC integration 下其余 workspace operation 返回 `workspace_membership_unavailable`，不会读取 fake repository。默认 disabled、非法组合、缺少 identity / permission / tenant binding 或 identity provider 不可用都 fail closed。
