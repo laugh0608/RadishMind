@@ -16,6 +16,7 @@ import (
 const (
 	gatewayRequestRecordSchemaVersion      = "gateway_request_record.v1"
 	gatewayRequestStoreModeMemoryDev       = "memory_dev"
+	gatewayRequestStoreModeSQLiteDev       = "sqlite_dev"
 	gatewayRequestStoreModePostgresDevTest = "postgres_dev_test"
 	gatewayRequestListDefaultLimit         = 25
 	gatewayRequestListMaxLimit             = 100

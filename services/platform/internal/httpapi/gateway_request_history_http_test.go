@@ -15,6 +15,12 @@ import (
 
 func TestGatewayRequestHistoryRecordsNorthboundAndReadsScopedHistory(t *testing.T) {
 	server := newGatewayRequestHistoryHTTPTestServer()
+	t.Cleanup(server.Close)
+	runGatewayRequestHistoryRecordsNorthboundAndReadsScopedHistory(t, server)
+}
+
+func runGatewayRequestHistoryRecordsNorthboundAndReadsScopedHistory(t *testing.T, server *Server) {
+	t.Helper()
 	request := httptest.NewRequest(
 		http.MethodPost,
 		"/v1/chat/completions",

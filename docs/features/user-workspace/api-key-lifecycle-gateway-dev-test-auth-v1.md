@@ -24,7 +24,7 @@
 
 本专题现已消费[本地 SQLite 开发持久化 v1](../../platform/local-sqlite-dev-persistence-v1.md)：在进入 Web 前，先为应用目录、API 密钥和请求历史所在的完整七组件本地数据链补齐统一 `sqlite_dev`，形成 `memory_dev / sqlite_dev / postgres_dev_test` 三层存储。现有 PostgreSQL 实现继续保留，不被 SQLite 替代；待 SQLite 连续链路与 PostgreSQL 专属门禁均通过后，批次 B 才关闭。
 
-2026-07-14 已完成 API 密钥 SQLite repository。该组件只接入共享 runtime、独立 component migration、领域 repository 与组件 selector；selector 同时复验应用目录与 API 密钥 migration。SQLite 的创建 / 过期 / 最近使用 / 吊销时间使用整数纳秒列参与比较和排序，公开记录继续保留 RFC3339Nano，避免可变小数位文本产生时间字典序偏差。memory / SQLite 复用签发、筛选分页、所有者隔离、吊销 CAS 和 Gateway 认证契约；真实文件测试覆盖最近使用单调更新、认证 / 吊销竞态、两次重启恢复、关闭失败以及原始令牌不进入数据库、WAL 或共享内存。Gateway 请求历史仍按 S2 顺序在下一组件单独接入，聚合 `sqlite_dev` 继续关闭。
+2026-07-14 已完成 API 密钥 SQLite repository。该组件只接入共享 runtime、独立 component migration、领域 repository 与组件 selector；selector 同时复验应用目录与 API 密钥 migration。SQLite 的创建 / 过期 / 最近使用 / 吊销时间使用整数纳秒列参与比较和排序，公开记录继续保留 RFC3339Nano，避免可变小数位文本产生时间字典序偏差。memory / SQLite 复用签发、筛选分页、所有者隔离、吊销 CAS 和 Gateway 认证契约；真实文件测试覆盖最近使用单调更新、认证 / 吊销竞态、两次重启恢复、关闭失败以及原始令牌不进入数据库、WAL 或共享内存。Gateway 请求历史 SQLite repository 随后也已完成，并验证应用目录、密钥和脱敏请求记录在同一 shared runtime 上完成可信 northbound 调用；聚合 `sqlite_dev` 仍等待工作流草案与工作流运行接入。
 
 当前尚未实现 Web 一次性交接和浏览器连续验收。开发请求头仍是默认认证模式；只有显式设置 `RADISHMIND_GATEWAY_AUTH_MODE=api_key_dev_test` 才由 API 密钥保护 Gateway，不能从开发测试态实现反推生产凭据能力成立。
 

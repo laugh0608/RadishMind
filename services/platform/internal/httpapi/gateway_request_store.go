@@ -1,7 +1,10 @@
 package httpapi
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"io"
 	"sort"
 	"strings"
 	"sync"
@@ -11,8 +14,9 @@ import (
 const defaultGatewayRequestStoreCapacity = 500
 
 var (
-	errGatewayRequestStoreContract = errors.New("gateway request store contract mismatch")
-	errGatewayRequestStoreConflict = errors.New("gateway request store record version conflict")
+	errGatewayRequestStoreContract    = errors.New("gateway request store contract mismatch")
+	errGatewayRequestStoreConflict    = errors.New("gateway request store record version conflict")
+	errGatewayRequestStoreUnavailable = errors.New("gateway request store unavailable")
 )
 
 type GatewayRequestListFilter struct {
@@ -181,7 +185,7 @@ func validateGatewayRequestStoreRecord(
 ) error {
 	if record == nil || !validGatewayRequestContext(requestContext) ||
 		record.SchemaVersion != gatewayRequestRecordSchemaVersion || record.RecordVersion < 0 ||
-		(record.StoreMode != gatewayRequestStoreModeMemoryDev && record.StoreMode != gatewayRequestStoreModePostgresDevTest) ||
+		!validGatewayRequestStoreMode(record.StoreMode) ||
 		record.TenantRef != requestContext.TenantRef || record.WorkspaceID != requestContext.WorkspaceID ||
 		record.ConsumerRef != requestContext.ConsumerRef || record.ApplicationID != requestContext.ApplicationID ||
 		record.SubjectRef != requestContext.SubjectRef || !validGatewayRequestReference(record.RequestID, 160) ||
@@ -218,6 +222,32 @@ func validateGatewayRequestStoreRecord(
 		return errGatewayRequestStoreContract
 	}
 	return nil
+}
+
+func validGatewayRequestStoreMode(mode string) bool {
+	return mode == gatewayRequestStoreModeMemoryDev || mode == gatewayRequestStoreModeSQLiteDev ||
+		mode == gatewayRequestStoreModePostgresDevTest
+}
+
+func decodeGatewayRequestStoreRecord(
+	requestContext GatewayRequestContext,
+	payload []byte,
+	expectedStoreMode string,
+) (GatewayRequestRecord, error) {
+	var record GatewayRequestRecord
+	decoder := json.NewDecoder(bytes.NewReader(payload))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&record); err != nil {
+		return GatewayRequestRecord{}, errGatewayRequestStoreContract
+	}
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return GatewayRequestRecord{}, errGatewayRequestStoreContract
+	}
+	if err := validateGatewayRequestStoreRecord(requestContext, &record); err != nil ||
+		record.RecordVersion < 1 || record.StoreMode != expectedStoreMode {
+		return GatewayRequestRecord{}, errGatewayRequestStoreContract
+	}
+	return record, nil
 }
 
 func validGatewayRequestContext(requestContext GatewayRequestContext) bool {

@@ -1,8 +1,8 @@
 # Model Gateway Request History / Usage & Failure Review v1
 
-更新时间：2026-07-12
+更新时间：2026-07-14
 
-状态：`model_gateway_request_history_usage_failure_review_v1_complete`
+状态：`model_gateway_request_history_usage_failure_review_v1_sqlite_repository_completed`
 
 ## 当前实现进度
 
@@ -13,6 +13,10 @@
 2026-07-12 第三批已完成最终终态证据与功能关闭。审查发现 northbound request context 取消后无法继续驱动 PostgreSQL terminal update，会让 durable record 停留在 `started`；recorder 现仅为 terminal store update 派生保留 caller values、移除原取消信号并受数据库超时约束的短时 context。该 context 不传给 bridge / provider，不继续生成响应，不重试 northbound 请求，也不改变取消响应语义。
 
 真实浏览器以单 worker / 有界 queue 的显式测试配置验证 40 路并发中 38 个 `503` queue full、`504 / BRIDGE_WORKER_TIMEOUT`、unary 与 stream `408 / BRIDGE_WORKER_CANCELED`，PostgreSQL 详情和 canceled filter 均可复验，全新浏览器会话无 error / warning。完整摘要见 [终态证据附件](evidence/request-history-terminal-evidence-2026-07-12.json)。adapter 尚无可证明的 provider token 来源，因此 usage 正确保持 `not_reported`，本功能不声明 reported usage 已验证；未来出现可信 usage contract 时应作为独立功能批次打开，不阻塞本次 dev/test request history v1 关闭。
+
+2026-07-14 已按[本地 SQLite 开发持久化 v1](../../platform/local-sqlite-dev-persistence-v1.md)完成 SQLite repository：复用既有 `gateway_request_record.v1`、完整 caller scope、终态 CAS、筛选分页和 recorder 语义，新增独立 component migration、共享 runtime 注入与配置失败关闭。SQLite 时间排序采用整数纳秒，避免 RFC3339 可变小数位文本承担数据库顺序；相同时刻继续按 `request_id DESC` 稳定翻页。
+
+memory 与 SQLite 已复用作用域、全过滤器、游标、等时刻排序和并发终态单写者契约。真实文件测试覆盖 checkpoint → canceled 终态、取消后受限 detached context、重启恢复、关闭不回退、存储文档损坏拒绝、请求 / 响应正文禁入，以及应用目录、API 密钥和请求历史在同一 shared runtime 上完成可信 northbound 调用。普通 review store 写入失败仍不改写 provider outcome；API 密钥认证所要求的请求历史可用性仍在 bridge / provider 前失败关闭。
 
 ## 功能目标
 

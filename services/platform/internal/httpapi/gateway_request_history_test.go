@@ -7,13 +7,20 @@ import (
 )
 
 func TestMemoryGatewayRequestHistoryScopeFilterAndCursor(t *testing.T) {
-	store := newMemoryGatewayRequestStore(20)
+	runGatewayRequestHistoryScopeFilterAndCursor(t, newMemoryGatewayRequestStore(20))
+}
+
+func runGatewayRequestHistoryScopeFilterAndCursor(t *testing.T, store gatewayRequestStore) {
+	t.Helper()
 	requestContext := gatewayRequestTestContext()
 	base := time.Date(2026, 7, 12, 8, 0, 0, 0, time.UTC)
 	for index, status := range []GatewayRequestStatus{
 		GatewayRequestStatusSucceeded, GatewayRequestStatusFailed, GatewayRequestStatusSucceeded,
 	} {
 		record := gatewayRequestTestRecord(requestContext, "request_"+string(rune('a'+index)), base.Add(time.Duration(index)*time.Minute))
+		record.SelectedProvider = "mock"
+		record.SelectedProfile = "profile_demo"
+		record.SelectedModel = "model_demo"
 		if err := store.CreateRequest(requestContext, &record); err != nil {
 			t.Fatal(err)
 		}
@@ -25,6 +32,15 @@ func TestMemoryGatewayRequestHistoryScopeFilterAndCursor(t *testing.T) {
 			record.HTTPStatusCode = 502
 			record.FailureCode = "PLATFORM_GATEWAY_FAILED"
 			record.FailureBoundary = errorBoundaryPythonBridge
+		}
+		if index == 2 {
+			record.Usage = GatewayRequestUsage{
+				Availability: GatewayRequestUsageReported,
+				Source:       "provider_response",
+				InputTokens:  2,
+				OutputTokens: 3,
+				TotalTokens:  5,
+			}
 		}
 		if err := store.UpdateRequest(requestContext, &record); err != nil {
 			t.Fatal(err)
@@ -43,18 +59,73 @@ func TestMemoryGatewayRequestHistoryScopeFilterAndCursor(t *testing.T) {
 	if len(filtered.Records) != 1 || filtered.Records[0].RequestID != "request_b" {
 		t.Fatalf("unexpected filter: %#v", filtered)
 	}
+	for name, request := range map[string]GatewayRequestListRequest{
+		"route":              {Route: "/v1/chat/completions"},
+		"protocol":           {Protocol: northboundProtocolChatCompletions},
+		"provider profile":   {Provider: "mock", Profile: "profile_demo", Model: "model_demo"},
+		"failure boundary":   {FailureBoundary: errorBoundaryPythonBridge},
+		"usage availability": {UsageAvailability: GatewayRequestUsageReported},
+		"started from":       {StartedFrom: gatewayRequestTimePointer(base.Add(90 * time.Second))},
+		"started to":         {StartedTo: gatewayRequestTimePointer(base.Add(30 * time.Second))},
+	} {
+		result := service.List(requestContext, request)
+		if result.FailureCode != "" || len(result.Records) == 0 {
+			t.Fatalf("%s filter failed: %#v", name, result)
+		}
+	}
+	if result := service.List(requestContext, GatewayRequestListRequest{FailureBoundary: errorBoundaryPythonBridge}); len(result.Records) != 1 || result.Records[0].RequestID != "request_b" {
+		t.Fatalf("failure boundary filter drifted: %#v", result)
+	}
+	if result := service.List(requestContext, GatewayRequestListRequest{UsageAvailability: GatewayRequestUsageReported}); len(result.Records) != 1 || result.Records[0].RequestID != "request_c" {
+		t.Fatalf("usage availability filter drifted: %#v", result)
+	}
+	if result := service.List(requestContext, GatewayRequestListRequest{StartedFrom: gatewayRequestTimePointer(base.Add(90 * time.Second))}); len(result.Records) != 1 || result.Records[0].RequestID != "request_c" {
+		t.Fatalf("started-from filter drifted: %#v", result)
+	}
+	if result := service.List(requestContext, GatewayRequestListRequest{StartedTo: gatewayRequestTimePointer(base.Add(30 * time.Second))}); len(result.Records) != 1 || result.Records[0].RequestID != "request_a" {
+		t.Fatalf("started-to filter drifted: %#v", result)
+	}
 	if changed := service.List(requestContext, GatewayRequestListRequest{Limit: 3, Cursor: first.NextCursor}); changed.FailureCode != GatewayRequestHistoryFailureCursorInvalid {
 		t.Fatalf("cursor must bind filter: %#v", changed)
 	}
-	other := requestContext
-	other.TenantRef = "tenant_other"
-	if scoped := service.List(other, GatewayRequestListRequest{}); len(scoped.Records) != 0 {
-		t.Fatalf("cross-tenant request history leaked: %#v", scoped)
+	tieTime := base.Add(10 * time.Minute)
+	for _, requestID := range []string{"request_tie_a", "request_tie_b"} {
+		record := gatewayRequestTestRecord(requestContext, requestID, tieTime)
+		if err := store.CreateRequest(requestContext, &record); err != nil {
+			t.Fatalf("create equal-time Gateway request record: %v", err)
+		}
+		record.Status = GatewayRequestStatusSucceeded
+		record.CompletedAt = tieTime.Add(time.Second).Format(time.RFC3339Nano)
+		record.DurationMS = 1000
+		record.HTTPStatusCode = 200
+		if err := store.UpdateRequest(requestContext, &record); err != nil {
+			t.Fatalf("complete equal-time Gateway request record: %v", err)
+		}
+	}
+	tied := service.List(requestContext, GatewayRequestListRequest{StartedFrom: gatewayRequestTimePointer(tieTime)})
+	if tied.FailureCode != "" || len(tied.Records) != 2 || tied.Records[0].RequestID != "request_tie_b" || tied.Records[1].RequestID != "request_tie_a" {
+		t.Fatalf("equal-time Gateway request ordering drifted: %#v", tied)
+	}
+	for name, mutate := range map[string]func(*GatewayRequestContext){
+		"tenant":      func(value *GatewayRequestContext) { value.TenantRef = "tenant_other" },
+		"workspace":   func(value *GatewayRequestContext) { value.WorkspaceID = "workspace_other" },
+		"consumer":    func(value *GatewayRequestContext) { value.ConsumerRef = "consumer_other" },
+		"application": func(value *GatewayRequestContext) { value.ApplicationID = "application_other" },
+	} {
+		other := requestContext
+		mutate(&other)
+		if scoped := service.List(other, GatewayRequestListRequest{}); scoped.FailureCode != "" || len(scoped.Records) != 0 {
+			t.Fatalf("cross-%s request history leaked: %#v", name, scoped)
+		}
 	}
 }
 
 func TestMemoryGatewayRequestStoreRejectsConcurrentTerminalRewrite(t *testing.T) {
-	store := newMemoryGatewayRequestStore(10)
+	runGatewayRequestStoreRejectsConcurrentTerminalRewrite(t, newMemoryGatewayRequestStore(10))
+}
+
+func runGatewayRequestStoreRejectsConcurrentTerminalRewrite(t *testing.T, store gatewayRequestStore) {
+	t.Helper()
 	requestContext := gatewayRequestTestContext()
 	record := gatewayRequestTestRecord(requestContext, "request_concurrent", time.Now().UTC())
 	if err := store.CreateRequest(requestContext, &record); err != nil {
@@ -94,7 +165,11 @@ func TestMemoryGatewayRequestStoreRejectsConcurrentTerminalRewrite(t *testing.T)
 }
 
 func TestGatewayRequestStoreRejectsSensitiveAndInvalidUsage(t *testing.T) {
-	store := newMemoryGatewayRequestStore(10)
+	runGatewayRequestStoreRejectsSensitiveAndInvalidUsage(t, newMemoryGatewayRequestStore(10))
+}
+
+func runGatewayRequestStoreRejectsSensitiveAndInvalidUsage(t *testing.T, store gatewayRequestStore) {
+	t.Helper()
 	requestContext := gatewayRequestTestContext()
 	record := gatewayRequestTestRecord(requestContext, "request_endpoint", time.Now().UTC())
 	record.SelectedProvider = "https://provider.invalid/raw"
@@ -106,6 +181,10 @@ func TestGatewayRequestStoreRejectsSensitiveAndInvalidUsage(t *testing.T) {
 	if err := store.CreateRequest(requestContext, &record); err != errGatewayRequestStoreContract {
 		t.Fatalf("inconsistent usage accepted: %v", err)
 	}
+}
+
+func gatewayRequestTimePointer(value time.Time) *time.Time {
+	return &value
 }
 
 func gatewayRequestTestContext() GatewayRequestContext {

@@ -975,6 +975,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "gateway_request_history_dev")
 		requiredFields = appendRequiredConfigField(requiredFields, "gateway_request_database")
 	}
+	if gatewayRequestStoreMode == "sqlite_dev" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "gateway_request_history_dev")
+	}
 	if localPersistenceMode == "sqlite_dev" {
 		requiredFields = appendRequiredConfigField(requiredFields, "sqlite_dev_repository_set")
 	}
@@ -1383,6 +1387,23 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.GatewayRequestHistoryDevEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return fmt.Errorf("gateway request history dev requires control plane read dev auth")
+	}
+	switch strings.TrimSpace(cfg.GatewayRequestStoreMode) {
+	case "", "memory_dev":
+	case "sqlite_dev":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.GatewayRequestHistoryDevEnabled {
+			return fmt.Errorf("Gateway request sqlite_dev store requires complete development gates")
+		}
+	case "postgres_dev_test":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.GatewayRequestHistoryDevEnabled ||
+			strings.TrimSpace(cfg.GatewayRequestDatabaseURL) == "" {
+			return fmt.Errorf("Gateway request postgres_dev_test store requires complete development gates and a database URL")
+		}
+	default:
+		return fmt.Errorf("Gateway request store must be memory_dev, sqlite_dev, or postgres_dev_test")
+	}
+	if cfg.GatewayRequestDatabaseTimeout <= 0 {
+		return fmt.Errorf("Gateway request database timeout must be positive")
 	}
 	if cfg.ApplicationDraftDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return fmt.Errorf("application draft dev HTTP requires control plane read dev auth")

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -178,16 +177,7 @@ func encodePostgresGatewayRequestRecord(record GatewayRequestRecord) ([]byte, ti
 }
 
 func decodePostgresGatewayRequestRecord(requestContext GatewayRequestContext, payload []byte) (GatewayRequestRecord, error) {
-	var record GatewayRequestRecord
-	decoder := json.NewDecoder(strings.NewReader(string(payload)))
-	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(&record); err != nil {
-		return GatewayRequestRecord{}, errGatewayRequestStoreContract
-	}
-	if err := validateGatewayRequestStoreRecord(requestContext, &record); err != nil || record.RecordVersion < 1 || record.StoreMode != gatewayRequestStoreModePostgresDevTest {
-		return GatewayRequestRecord{}, errGatewayRequestStoreContract
-	}
-	return record, nil
+	return decodeGatewayRequestStoreRecord(requestContext, payload, gatewayRequestStoreModePostgresDevTest)
 }
 
 func requestDatabaseContext(requestContext GatewayRequestContext) context.Context {

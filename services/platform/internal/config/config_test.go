@@ -903,6 +903,49 @@ func TestAPIKeyRejectsUnknownStoreMode(t *testing.T) {
 	}
 }
 
+func TestGatewayRequestSQLiteSelectorRequiresDevelopmentGates(t *testing.T) {
+	base := defaultConfig()
+	base.GatewayRequestStoreMode = "sqlite_dev"
+	if summary := base.SanitizedSummary(); !reflect.DeepEqual(summary.MissingRequiredFields, []string{
+		"control_plane_read_dev_auth", "gateway_request_history_dev",
+	}) {
+		t.Fatalf("unexpected Gateway request sqlite_dev requirements: %#v", summary.MissingRequiredFields)
+	}
+	if err := validateBridgeRuntimeConfig(base); err == nil ||
+		err.Error() != "Gateway request sqlite_dev store requires complete development gates" {
+		t.Fatalf("Gateway request sqlite_dev without gates must fail, got %v", err)
+	}
+
+	base.ControlPlaneReadDevAuthEnabled = true
+	base.GatewayRequestHistoryDevEnabled = true
+	if err := validateBridgeRuntimeConfig(base); err != nil {
+		t.Fatalf("complete Gateway request sqlite_dev selector was rejected: %v", err)
+	}
+	if missing := base.SanitizedSummary().MissingRequiredFields; len(missing) != 0 {
+		t.Fatalf("complete Gateway request sqlite_dev selector reported missing fields: %#v", missing)
+	}
+	if summary := base.SanitizedSummary(); summary.GatewayRequestStoreMode != "sqlite_dev" ||
+		summary.GatewayRequestDatabaseConfigured {
+		t.Fatalf("Gateway request sqlite_dev summary drifted: %#v", summary)
+	}
+}
+
+func TestGatewayRequestStoreRejectsUnknownModeAndInvalidTimeout(t *testing.T) {
+	base := defaultConfig()
+	base.GatewayRequestStoreMode = "unknown"
+	if err := validateBridgeRuntimeConfig(base); err == nil ||
+		err.Error() != "Gateway request store must be memory_dev, sqlite_dev, or postgres_dev_test" {
+		t.Fatalf("unknown Gateway request store mode must fail, got %v", err)
+	}
+
+	base = defaultConfig()
+	base.GatewayRequestDatabaseTimeout = 0
+	if err := validateBridgeRuntimeConfig(base); err == nil ||
+		err.Error() != "Gateway request database timeout must be positive" {
+		t.Fatalf("invalid Gateway request database timeout must fail, got %v", err)
+	}
+}
+
 func clearPlatformEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{

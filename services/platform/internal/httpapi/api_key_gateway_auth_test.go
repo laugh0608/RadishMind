@@ -30,6 +30,22 @@ func TestGatewayAPIKeyAuthenticationProtectsNorthboundAndWritesHistory(t *testin
 }
 
 func runGatewayAPIKeyAuthenticationProtectsNorthboundAndWritesHistory(t *testing.T, keyRepository apiKeyRepository, applicationRepository applicationCatalogRepository) {
+	runGatewayAPIKeyAuthenticationProtectsNorthboundWithHistoryStore(
+		t,
+		keyRepository,
+		applicationRepository,
+		newMemoryGatewayRequestStore(20),
+		gatewayRequestStoreModeMemoryDev,
+	)
+}
+
+func runGatewayAPIKeyAuthenticationProtectsNorthboundWithHistoryStore(
+	t *testing.T,
+	keyRepository apiKeyRepository,
+	applicationRepository applicationCatalogRepository,
+	historyStore gatewayRequestStore,
+	historyStoreMode string,
+) {
 	t.Helper()
 	managementContext := apiKeyTestContext("subject_owner")
 	seedAPIKeyTestApplication(t, applicationRepository, managementContext, "app_aaaaaaaaaaaaaaaa", applicationCatalogLifecycleActive)
@@ -43,7 +59,6 @@ func runGatewayAPIKeyAuthenticationProtectsNorthboundAndWritesHistory(t *testing
 		t.Fatalf("issue Gateway API key: failure=%s record_present=%t credential_present=%t", issued.FailureCode, issued.Record != nil, issued.CredentialToken != "")
 	}
 
-	historyStore := newMemoryGatewayRequestStore(20)
 	testBridge := &apiKeyGatewayTestBridge{}
 	server := &Server{
 		config: config.Config{
@@ -52,7 +67,7 @@ func runGatewayAPIKeyAuthenticationProtectsNorthboundAndWritesHistory(t *testing
 		},
 		bridge: testBridge, applicationCatalogRepository: applicationRepository,
 		apiKeyRepository: keyRepository, gatewayRequestHistoryStore: historyStore,
-		gatewayRequestHistoryStoreMode: gatewayRequestStoreModeMemoryDev,
+		gatewayRequestHistoryStoreMode: historyStoreMode,
 	}
 	for _, scope := range []string{"models:read", "chat:invoke", "responses:invoke", "messages:invoke"} {
 		request := httptest.NewRequest(http.MethodGet, "/v1/models", nil)
