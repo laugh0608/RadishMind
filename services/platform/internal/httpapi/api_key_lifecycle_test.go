@@ -16,10 +16,13 @@ import (
 )
 
 func TestAPIKeyServiceIssueReadListAndRevoke(t *testing.T) {
-	applicationRepository := newMemoryApplicationCatalogRepository()
+	runAPIKeyServiceIssueReadListAndRevoke(t, newMemoryAPIKeyRepository(), newMemoryApplicationCatalogRepository())
+}
+
+func runAPIKeyServiceIssueReadListAndRevoke(t *testing.T, repository apiKeyRepository, applicationRepository applicationCatalogRepository) {
+	t.Helper()
 	requestContext := apiKeyTestContext("subject_owner")
 	seedAPIKeyTestApplication(t, applicationRepository, requestContext, "app_aaaaaaaaaaaaaaaa", applicationCatalogLifecycleActive)
-	repository := newMemoryAPIKeyRepository()
 	service := newAPIKeyService(repository, applicationRepository)
 	service.now = func() time.Time { return time.Date(2026, 7, 13, 8, 0, 0, 0, time.UTC) }
 	service.newID = func() (string, error) { return "key_aaaaaaaaaaaaaaaa", nil }
@@ -29,7 +32,7 @@ func TestAPIKeyServiceIssueReadListAndRevoke(t *testing.T) {
 		Scopes: []string{"responses:invoke", "models:read", "models:read"}, ExpiresInDays: 30,
 	})
 	if issued.FailureCode != "" || issued.Record == nil || issued.CredentialToken == "" {
-		t.Fatalf("issue API key: %#v", issued)
+		t.Fatalf("issue API key: failure=%s record_present=%t credential_present=%t", issued.FailureCode, issued.Record != nil, issued.CredentialToken != "")
 	}
 	if issued.Record.SchemaVersion != apiKeyRecordSchemaVersion || issued.Record.RecordVersion != 1 ||
 		issued.Record.EffectiveState != apiKeyLifecycleActive || issued.Record.ExpiresAt != "2026-08-12T08:00:00Z" {
@@ -101,7 +104,7 @@ func TestAPIKeyServiceRejectsInvalidAndInactiveApplicationBeforeCredentialGenera
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			if result := service.Create(requestContext, test.input); result.FailureCode != test.expected || result.CredentialToken != "" {
-				t.Fatalf("unexpected rejection: %#v", result)
+				t.Fatalf("unexpected rejection: failure=%s record_present=%t credential_present=%t", result.FailureCode, result.Record != nil, result.CredentialToken != "")
 			}
 		})
 	}
@@ -111,23 +114,26 @@ func TestAPIKeyServiceRejectsInvalidAndInactiveApplicationBeforeCredentialGenera
 
 	withoutCatalog := newAPIKeyService(repository, nil).Create(requestContext, validAPIKeyCreateInput("app_aaaaaaaaaaaaaaaa", 30))
 	if withoutCatalog.FailureCode != APIKeyFailureCatalogRequired {
-		t.Fatalf("missing application catalog must fail closed: %#v", withoutCatalog)
+		t.Fatalf("missing application catalog must fail closed: failure=%s credential_present=%t", withoutCatalog.FailureCode, withoutCatalog.CredentialToken != "")
 	}
 	otherOwner := requestContext
 	otherOwner.OwnerSubjectRef = "subject_other"
 	otherOwner.ActorRef = "subject_other"
 	if result := service.Create(otherOwner, validAPIKeyCreateInput("app_aaaaaaaaaaaaaaaa", 30)); result.FailureCode != APIKeyFailureApplicationUnavailable {
-		t.Fatalf("cross-owner application must not be visible: %#v", result)
+		t.Fatalf("cross-owner application must not be visible: failure=%s credential_present=%t", result.FailureCode, result.CredentialToken != "")
 	}
 }
 
 func TestAPIKeyServiceExpiryFilteringPaginationAndOwnerIsolation(t *testing.T) {
-	applicationRepository := newMemoryApplicationCatalogRepository()
+	runAPIKeyServiceExpiryFilteringPaginationAndOwnerIsolation(t, newMemoryAPIKeyRepository(), newMemoryApplicationCatalogRepository())
+}
+
+func runAPIKeyServiceExpiryFilteringPaginationAndOwnerIsolation(t *testing.T, repository apiKeyRepository, applicationRepository applicationCatalogRepository) {
+	t.Helper()
 	owner := apiKeyTestContext("subject_owner")
 	other := apiKeyTestContext("subject_other")
 	seedAPIKeyTestApplication(t, applicationRepository, owner, "app_aaaaaaaaaaaaaaaa", applicationCatalogLifecycleActive)
 	seedAPIKeyTestApplication(t, applicationRepository, other, "app_bbbbbbbbbbbbbbbb", applicationCatalogLifecycleActive)
-	repository := newMemoryAPIKeyRepository()
 	now := time.Date(2026, 7, 13, 8, 0, 0, 0, time.UTC)
 	service := newAPIKeyService(repository, applicationRepository)
 	service.now = func() time.Time { return now }
@@ -143,7 +149,7 @@ func TestAPIKeyServiceExpiryFilteringPaginationAndOwnerIsolation(t *testing.T) {
 	now = now.Add(time.Second)
 	third := service.Create(other, validAPIKeyCreateInput("app_bbbbbbbbbbbbbbbb", 30))
 	if first.FailureCode != "" || second.FailureCode != "" || third.FailureCode != "" {
-		t.Fatalf("seed API keys: first=%#v second=%#v third=%#v", first, second, third)
+		t.Fatalf("seed API keys: first=%s second=%s third=%s", first.FailureCode, second.FailureCode, third.FailureCode)
 	}
 
 	now = time.Date(2026, 7, 15, 8, 0, 0, 0, time.UTC)
@@ -168,14 +174,18 @@ func TestAPIKeyServiceExpiryFilteringPaginationAndOwnerIsolation(t *testing.T) {
 }
 
 func TestAPIKeyMemoryRepositoryConcurrentRevokeHasSingleWinner(t *testing.T) {
-	applicationRepository := newMemoryApplicationCatalogRepository()
+	runAPIKeyConcurrentRevokeHasSingleWinner(t, newMemoryAPIKeyRepository(), newMemoryApplicationCatalogRepository())
+}
+
+func runAPIKeyConcurrentRevokeHasSingleWinner(t *testing.T, repository apiKeyRepository, applicationRepository applicationCatalogRepository) {
+	t.Helper()
 	requestContext := apiKeyTestContext("subject_owner")
 	seedAPIKeyTestApplication(t, applicationRepository, requestContext, "app_aaaaaaaaaaaaaaaa", applicationCatalogLifecycleActive)
-	service := newAPIKeyService(newMemoryAPIKeyRepository(), applicationRepository)
+	service := newAPIKeyService(repository, applicationRepository)
 	service.newID = func() (string, error) { return "key_aaaaaaaaaaaaaaaa", nil }
 	issued := service.Create(requestContext, validAPIKeyCreateInput("app_aaaaaaaaaaaaaaaa", 30))
 	if issued.FailureCode != "" {
-		t.Fatalf("issue API key: %#v", issued)
+		t.Fatalf("issue API key: failure=%s credential_present=%t", issued.FailureCode, issued.CredentialToken != "")
 	}
 
 	var successes atomic.Int32
@@ -209,7 +219,7 @@ func TestAPIKeyServiceStoreUnavailableDoesNotFallback(t *testing.T) {
 	repository := &memoryAPIKeyRepository{records: make(map[string]APIKeyRecord), unavailable: true}
 	service := newAPIKeyService(repository, applicationRepository)
 	if result := service.Create(requestContext, validAPIKeyCreateInput("app_aaaaaaaaaaaaaaaa", 30)); result.FailureCode != APIKeyFailureStoreUnavailable || result.CredentialToken != "" {
-		t.Fatalf("create must fail without returning a credential: %#v", result)
+		t.Fatalf("create must fail without returning a credential: failure=%s credential_present=%t", result.FailureCode, result.CredentialToken != "")
 	}
 	if result := service.Read(requestContext, "key_aaaaaaaaaaaaaaaa"); result.FailureCode != APIKeyFailureStoreUnavailable {
 		t.Fatalf("read must expose store failure: %#v", result)
@@ -252,7 +262,7 @@ func TestAPIKeyLifecycleHTTPCreateListReadRevokeAndNoLeakage(t *testing.T) {
 	}
 	var issued apiKeyEnvelope
 	if err := json.Unmarshal(createRecorder.Body.Bytes(), &issued); err != nil || issued.Record == nil || issued.Credential == nil || issued.Credential.Token == "" {
-		t.Fatalf("decode issue response: err=%v response=%#v body=%s", err, issued, createRecorder.Body.String())
+		t.Fatalf("decode issue response: err=%v record_present=%t credential_present=%t", err, issued.Record != nil, issued.Credential != nil && issued.Credential.Token != "")
 	}
 	token := issued.Credential.Token
 	if strings.Count(createRecorder.Body.String(), token) != 1 || strings.Contains(createRecorder.Body.String(), "credential_digest") {

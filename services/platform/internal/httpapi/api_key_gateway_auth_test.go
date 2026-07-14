@@ -26,18 +26,21 @@ func (testBridge *apiKeyGatewayTestBridge) DescribeInventory(context.Context) (b
 }
 
 func TestGatewayAPIKeyAuthenticationProtectsNorthboundAndWritesHistory(t *testing.T) {
-	applicationRepository := newMemoryApplicationCatalogRepository()
+	runGatewayAPIKeyAuthenticationProtectsNorthboundAndWritesHistory(t, newMemoryAPIKeyRepository(), newMemoryApplicationCatalogRepository())
+}
+
+func runGatewayAPIKeyAuthenticationProtectsNorthboundAndWritesHistory(t *testing.T, keyRepository apiKeyRepository, applicationRepository applicationCatalogRepository) {
+	t.Helper()
 	managementContext := apiKeyTestContext("subject_owner")
 	seedAPIKeyTestApplication(t, applicationRepository, managementContext, "app_aaaaaaaaaaaaaaaa", applicationCatalogLifecycleActive)
-	apiKeyRepository := newMemoryAPIKeyRepository()
-	service := newAPIKeyService(apiKeyRepository, applicationRepository)
+	service := newAPIKeyService(keyRepository, applicationRepository)
 	service.newID = func() (string, error) { return "key_aaaaaaaaaaaaaaaa", nil }
 	issued := service.Create(managementContext, APIKeyCreateInput{
 		ApplicationID: "app_aaaaaaaaaaaaaaaa", DisplayName: "Gateway SDK key",
 		Scopes: []string{"models:read", "chat:invoke", "responses:invoke", "messages:invoke"}, ExpiresInDays: 30,
 	})
 	if issued.FailureCode != "" || issued.CredentialToken == "" {
-		t.Fatalf("issue Gateway API key: %#v", issued)
+		t.Fatalf("issue Gateway API key: failure=%s record_present=%t credential_present=%t", issued.FailureCode, issued.Record != nil, issued.CredentialToken != "")
 	}
 
 	historyStore := newMemoryGatewayRequestStore(20)
@@ -48,7 +51,7 @@ func TestGatewayAPIKeyAuthenticationProtectsNorthboundAndWritesHistory(t *testin
 			GatewayRequestDatabaseTimeout: time.Second, BridgeTimeout: time.Second,
 		},
 		bridge: testBridge, applicationCatalogRepository: applicationRepository,
-		apiKeyRepository: apiKeyRepository, gatewayRequestHistoryStore: historyStore,
+		apiKeyRepository: keyRepository, gatewayRequestHistoryStore: historyStore,
 		gatewayRequestHistoryStoreMode: gatewayRequestStoreModeMemoryDev,
 	}
 	for _, scope := range []string{"models:read", "chat:invoke", "responses:invoke", "messages:invoke"} {
@@ -81,7 +84,7 @@ func TestGatewayAPIKeyAuthenticationProtectsNorthboundAndWritesHistory(t *testin
 		record.ConsumerRef != historyContext.ConsumerRef || record.ApplicationID != issued.Record.ApplicationID {
 		t.Fatalf("successful API key call did not write sanitized history: found=%v record=%#v err=%v", found, record, err)
 	}
-	stored, err := apiKeyRepository.Read(managementContext, issued.Record.APIKeyID)
+	stored, err := keyRepository.Read(managementContext, issued.Record.APIKeyID)
 	if err != nil || stored.LastUsedAt == nil {
 		t.Fatalf("successful authentication did not update last_used_at: record=%#v err=%v", stored, err)
 	}
@@ -99,7 +102,7 @@ func TestGatewayAPIKeyAuthenticationFailuresStopBeforeInventoryAndHistory(t *tes
 	service.newID = func() (string, error) { return "key_bbbbbbbbbbbbbbbb", nil }
 	issued := service.Create(managementContext, validAPIKeyCreateInput("app_aaaaaaaaaaaaaaaa", 30))
 	if issued.FailureCode != "" {
-		t.Fatalf("issue restricted API key: %#v", issued)
+		t.Fatalf("issue restricted API key: failure=%s credential_present=%t", issued.FailureCode, issued.CredentialToken != "")
 	}
 	testBridge := &apiKeyGatewayTestBridge{}
 	historyStore := newMemoryGatewayRequestStore(20)
@@ -181,7 +184,7 @@ func TestGatewayAPIKeyHistoryAndCredentialStoreFailuresDoNotFallback(t *testing.
 	service.newID = func() (string, error) { return "key_cccccccccccccccc", nil }
 	issued := service.Create(managementContext, validAPIKeyCreateInput("app_aaaaaaaaaaaaaaaa", 30))
 	if issued.FailureCode != "" {
-		t.Fatalf("issue API key: %#v", issued)
+		t.Fatalf("issue API key: failure=%s credential_present=%t", issued.FailureCode, issued.CredentialToken != "")
 	}
 	testBridge := &apiKeyGatewayTestBridge{}
 	server := &Server{
@@ -230,11 +233,14 @@ func TestGatewayAPIKeyHistoryAndCredentialStoreFailuresDoNotFallback(t *testing.
 }
 
 func TestGatewayAPIKeyExpiryApplicationArchiveAndRevokeRace(t *testing.T) {
-	applicationRepository := newMemoryApplicationCatalogRepository()
+	runGatewayAPIKeyExpiryApplicationArchiveAndRevokeRace(t, newMemoryAPIKeyRepository(), newMemoryApplicationCatalogRepository())
+}
+
+func runGatewayAPIKeyExpiryApplicationArchiveAndRevokeRace(t *testing.T, keyRepository apiKeyRepository, applicationRepository applicationCatalogRepository) {
+	t.Helper()
 	managementContext := apiKeyTestContext("subject_owner")
 	seedAPIKeyTestApplication(t, applicationRepository, managementContext, "app_aaaaaaaaaaaaaaaa", applicationCatalogLifecycleActive)
-	apiKeyRepository := newMemoryAPIKeyRepository()
-	service := newAPIKeyService(apiKeyRepository, applicationRepository)
+	service := newAPIKeyService(keyRepository, applicationRepository)
 	ids := []string{"key_dddddddddddddddd", "key_eeeeeeeeeeeeeeee"}
 	service.newID = func() (string, error) {
 		id := ids[0]
@@ -246,9 +252,9 @@ func TestGatewayAPIKeyExpiryApplicationArchiveAndRevokeRace(t *testing.T) {
 	service.now = func() time.Time { return time.Now().UTC() }
 	active := service.Create(managementContext, validAPIKeyCreateInput("app_aaaaaaaaaaaaaaaa", 30))
 	if expired.FailureCode != "" || active.FailureCode != "" {
-		t.Fatalf("seed expiry and race API keys: expired=%#v active=%#v", expired, active)
+		t.Fatalf("seed expiry and race API keys: expired=%s active=%s", expired.FailureCode, active.FailureCode)
 	}
-	server := &Server{config: config.Config{GatewayAuthMode: gatewayAPIKeyAuthenticationSource}, applicationCatalogRepository: applicationRepository, apiKeyRepository: apiKeyRepository}
+	server := &Server{config: config.Config{GatewayAuthMode: gatewayAPIKeyAuthenticationSource}, applicationCatalogRepository: applicationRepository, apiKeyRepository: keyRepository}
 	authenticate := func(token string) gatewayAPIKeyAuthenticationResult {
 		request := httptest.NewRequest(http.MethodGet, "/v1/models", nil)
 		request.Header.Set("Authorization", "Bearer "+token)
@@ -288,7 +294,7 @@ func TestGatewayAPIKeyExpiryApplicationArchiveAndRevokeRace(t *testing.T) {
 	service.newID = func() (string, error) { return "key_ffffffffffffffff", nil }
 	archivedKey := service.Create(managementContext, validAPIKeyCreateInput("app_aaaaaaaaaaaaaaaa", 30))
 	if archivedKey.FailureCode != "" {
-		t.Fatalf("issue key before application archive: %#v", archivedKey)
+		t.Fatalf("issue key before application archive: failure=%s credential_present=%t", archivedKey.FailureCode, archivedKey.CredentialToken != "")
 	}
 	catalogContext := ApplicationCatalogContext{
 		RequestContext: context.Background(), RequestID: "request_archive_app", TenantRef: managementContext.TenantRef,

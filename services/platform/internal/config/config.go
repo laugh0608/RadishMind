@@ -951,6 +951,14 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "api_key_lifecycle_dev_write")
 		requiredFields = appendRequiredConfigField(requiredFields, "api_key_database")
 	}
+	if apiKeyStoreMode == "sqlite_dev" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_catalog_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_catalog_dev_write")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_catalog_store_sqlite_dev")
+		requiredFields = appendRequiredConfigField(requiredFields, "api_key_lifecycle_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "api_key_lifecycle_dev_write")
+	}
 	if gatewayAuthMode == "api_key_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "api_key_lifecycle_dev_http")
 		requiredFields = appendRequiredConfigField(requiredFields, "gateway_request_history_dev")
@@ -1215,6 +1223,10 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			if strings.TrimSpace(cfg.ApplicationCatalogDatabaseURL) == "" {
 				missing = append(missing, field)
 			}
+		case "application_catalog_store_sqlite_dev":
+			if strings.TrimSpace(cfg.ApplicationCatalogStoreMode) != "sqlite_dev" {
+				missing = append(missing, field)
+			}
 		case "api_key_lifecycle_dev_http":
 			if !cfg.APIKeyLifecycleDevHTTPEnabled {
 				missing = append(missing, field)
@@ -1461,12 +1473,18 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	switch strings.TrimSpace(cfg.APIKeyStoreMode) {
 	case "", "memory_dev":
+	case "sqlite_dev":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled || !cfg.ApplicationCatalogDevWriteEnabled ||
+			strings.TrimSpace(cfg.ApplicationCatalogStoreMode) != "sqlite_dev" ||
+			!cfg.APIKeyLifecycleDevHTTPEnabled || !cfg.APIKeyLifecycleDevWriteEnabled {
+			return fmt.Errorf("API key sqlite_dev store requires complete development gates and sqlite_dev application catalog store")
+		}
 	case "postgres_dev_test":
 		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.APIKeyLifecycleDevHTTPEnabled || !cfg.APIKeyLifecycleDevWriteEnabled || strings.TrimSpace(cfg.APIKeyDatabaseURL) == "" {
 			return fmt.Errorf("API key postgres_dev_test store requires complete development gates and a database URL")
 		}
 	default:
-		return fmt.Errorf("API key store must be memory_dev or postgres_dev_test")
+		return fmt.Errorf("API key store must be memory_dev, sqlite_dev, or postgres_dev_test")
 	}
 	if cfg.APIKeyDatabaseTimeout <= 0 {
 		return fmt.Errorf("API key database timeout must be positive")

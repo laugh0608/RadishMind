@@ -1,8 +1,8 @@
 # 用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1 实施任务卡
 
-更新时间：2026-07-13
+更新时间：2026-07-14
 
-状态：`api_key_lifecycle_gateway_dev_test_auth_v1_sqlite_dual_persistence_planned`
+状态：`api_key_lifecycle_gateway_dev_test_auth_v1_sqlite_repository_completed`
 
 ## 任务目标
 
@@ -56,9 +56,13 @@
 
 ### 批次 B2：统一 SQLite 本地持久化
 
+状态：进行中；API 密钥 repository 已完成，等待其余本地数据组件和双数据库门禁。
+
 - 消费[本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md)的共享 runtime、component migration 和聚合启动档；
 - API 密钥不得单独引入私有 SQLite 连接或临时 schema，必须与七组本地运行数据统一选择、统一生命周期和统一失败语义；
 - 不依赖 Docker 验证应用、签发、认证、最近使用、请求历史、吊销与平台重启恢复。
+
+实施记录：2026-07-14 已完成 API 密钥 SQLite 组件。repository 复用共享 runtime，不创建私有连接；selector 同时复验应用目录与 API 密钥 migration。整数纳秒承担过期、最近使用与分页时间谓词，领域投影继续使用 RFC3339Nano；memory / SQLite 同组契约覆盖稳定分页、过期筛选、所有者隔离、最近使用单调更新、吊销 CAS 与 Gateway northbound 认证。真实文件进一步覆盖认证 / 吊销并发、两次重启恢复、关闭失败和原始令牌对数据库 / WAL / 共享内存的禁入边界。本批未提前接入 Gateway 请求历史、未开放聚合启动档，也未替代 PostgreSQL 专属门禁。
 
 完成标志：正式本地启动档只需 SQLite 文件即可恢复完整开发数据链；API 密钥原始令牌不进入数据库、WAL、日志或后续响应，存储失败不回退内存。
 

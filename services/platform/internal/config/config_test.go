@@ -863,6 +863,46 @@ func TestApplicationConfigurationAndPublishRejectUnknownStoreModes(t *testing.T)
 	}
 }
 
+func TestAPIKeySQLiteSelectorRequiresApplicationCatalogChain(t *testing.T) {
+	base := defaultConfig()
+	base.APIKeyStoreMode = "sqlite_dev"
+	if summary := base.SanitizedSummary(); !reflect.DeepEqual(summary.MissingRequiredFields, []string{
+		"control_plane_read_dev_auth", "application_catalog_dev_http", "application_catalog_dev_write",
+		"application_catalog_store_sqlite_dev", "api_key_lifecycle_dev_http", "api_key_lifecycle_dev_write",
+	}) {
+		t.Fatalf("unexpected API key sqlite_dev requirements: %#v", summary.MissingRequiredFields)
+	}
+	if err := validateBridgeRuntimeConfig(base); err == nil || err.Error() != "API key sqlite_dev store requires complete development gates and sqlite_dev application catalog store" {
+		t.Fatalf("API key sqlite_dev without gates must fail, got %v", err)
+	}
+
+	base.ControlPlaneReadDevAuthEnabled = true
+	base.ApplicationCatalogDevHTTPEnabled = true
+	base.ApplicationCatalogDevWriteEnabled = true
+	base.ApplicationCatalogStoreMode = "sqlite_dev"
+	base.APIKeyLifecycleDevHTTPEnabled = true
+	base.APIKeyLifecycleDevWriteEnabled = true
+	if err := validateBridgeRuntimeConfig(base); err != nil {
+		t.Fatalf("complete API key sqlite_dev chain was rejected: %v", err)
+	}
+	if missing := base.SanitizedSummary().MissingRequiredFields; len(missing) != 0 {
+		t.Fatalf("complete API key sqlite_dev chain reported missing fields: %#v", missing)
+	}
+
+	base.ApplicationCatalogStoreMode = "memory_dev"
+	if err := validateBridgeRuntimeConfig(base); err == nil || err.Error() != "API key sqlite_dev store requires complete development gates and sqlite_dev application catalog store" {
+		t.Fatalf("API key sqlite_dev with memory application catalog must fail, got %v", err)
+	}
+}
+
+func TestAPIKeyRejectsUnknownStoreMode(t *testing.T) {
+	base := defaultConfig()
+	base.APIKeyStoreMode = "unknown"
+	if err := validateBridgeRuntimeConfig(base); err == nil || err.Error() != "API key store must be memory_dev, sqlite_dev, or postgres_dev_test" {
+		t.Fatalf("unknown API key store mode must fail, got %v", err)
+	}
+}
+
 func clearPlatformEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{
