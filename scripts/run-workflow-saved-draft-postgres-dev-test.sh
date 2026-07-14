@@ -27,10 +27,10 @@ Usage: scripts/run-workflow-saved-draft-postgres-dev-test.sh [action]
 
 Actions:
   up       Start the local PostgreSQL 17 dev/test container and wait for health.
-  status   Inspect the saved draft migration marker without changing the database.
-  migrate  Apply the reviewed saved draft migration through the one-time runner.
-  test     Run the destructive integration suite against a database whose name contains "test".
-  check    Start PostgreSQL, run integration tests, then leave the schema migrated and ready.
+  status   Inspect all platform PostgreSQL migration markers without changing the database.
+  migrate  Apply all reviewed platform migrations through their one-time runners.
+  test     Run the destructive platform integration suite against a database whose name contains "test".
+  check    Start PostgreSQL, run the integration suite, migrate all schemas, and verify the configured profile.
   down     Stop the local container while preserving its named volume.
 
 The platform runtime connection comes from PGHOST, PGPORT, PGUSER, PGDATABASE,
@@ -42,7 +42,7 @@ EOF
 }
 
 step() {
-  echo "[saved-draft-postgres-dev-test] $*"
+  echo "[platform-postgres-dev-test] $*"
 }
 
 require_command() {
@@ -98,6 +98,7 @@ run_migration() {
   runtime_database_url="$(build_database_url "${runtime_user}" "${runtime_password}")"
   migration_database_url="$(build_database_url "${migration_user}" "${migration_password}")"
   (
+    unset RADISHMIND_LOCAL_PERSISTENCE_MODE RADISHMIND_SQLITE_DEV_DATABASE_PATH
     export RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH="1"
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
@@ -125,6 +126,7 @@ run_migration() {
 		export RADISHMIND_API_KEY_STORE="postgres_dev_test"
 		export RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL="${runtime_database_url}"
 		export RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL="${migration_database_url}"
+		export RADISHMIND_GATEWAY_AUTH_MODE="api_key_dev_test"
     export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
 		export RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL="${runtime_database_url}"
 		export RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL="${migration_database_url}"
@@ -144,6 +146,12 @@ run_migration() {
 		export RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_DATABASE_URL="${runtime_database_url}"
 		export RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_MIGRATION_DATABASE_URL="${migration_database_url}"
 		go run ./cmd/radishmind-control-plane-read-migrate "${migration_action}"
+		unset RADISHMIND_CONTROL_PLANE_READ_STORE
+		unset RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_DATABASE_URL
+		unset RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_MIGRATION_DATABASE_URL
+		if [[ "${migration_action}" == "up" ]]; then
+			"${repo_root}/scripts/run-platform-service.sh" --profile configured config-check >/dev/null
+		fi
   )
 }
 
@@ -170,23 +178,23 @@ case "${action}" in
     compose up -d --wait
     ;;
   status)
-    step "Inspecting the saved draft schema marker."
+    step "Inspecting all platform PostgreSQL schema markers."
     run_migration status
     ;;
   migrate)
-    step "Applying the reviewed saved draft migration."
+    step "Applying all reviewed platform PostgreSQL migrations."
     run_migration up
     ;;
   test)
-    step "Running the PostgreSQL repository integration suite."
+    step "Running the platform PostgreSQL integration suite."
     run_integration_test
     ;;
   check)
     step "Starting loopback-only PostgreSQL dev/test service."
     compose up -d --wait
-    step "Running the PostgreSQL repository integration suite."
+    step "Running the platform PostgreSQL integration suite."
     run_integration_test
-    step "Restoring the reviewed workflow draft, application draft, application publish, application catalog, API key, workflow run, Gateway request, and Control Plane Admin read schemas for interactive development."
+    step "Restoring all reviewed schemas and verifying the configured platform startup profile."
     run_migration up
     ;;
   down)

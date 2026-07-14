@@ -191,8 +191,13 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 	if err != nil {
 		return State{}, errors.New("read application publish migration marker")
 	}
+	var tableExists bool
+	if err := query.QueryRow(ctx, "SELECT to_regclass('public.application_publish_candidates') IS NOT NULL").Scan(&tableExists); err != nil {
+		return State{}, errors.New("inspect application publish records table")
+	}
 	state.MigrationState = MigrationStateApplied
-	if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() {
+	if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion ||
+		state.MigrationChecksum != ExpectedChecksum() || !tableExists {
 		state.MigrationState = MigrationStateMismatch
 	}
 	return state, nil

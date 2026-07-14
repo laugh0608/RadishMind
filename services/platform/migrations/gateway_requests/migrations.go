@@ -136,7 +136,20 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 	if pool == nil {
 		return State{}, errors.New("Gateway request PostgreSQL pool is missing")
 	}
-	tx, err := pool.Begin(ctx)
+	connection, err := pool.Acquire(ctx)
+	if err != nil {
+		return State{}, safeDatabaseError("acquire Gateway request rollback connection", err)
+	}
+	defer connection.Release()
+	if _, err = connection.Exec(ctx, "SELECT pg_advisory_lock($1)", migrationAdvisoryLockKey); err != nil {
+		return State{}, safeDatabaseError("lock Gateway request rollback", err)
+	}
+	defer func() {
+		unlock, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		_, _ = connection.Exec(unlock, "SELECT pg_advisory_unlock($1)", migrationAdvisoryLockKey)
+	}()
+	tx, err := connection.Begin(ctx)
 	if err != nil {
 		return State{}, safeDatabaseError("begin Gateway request rollback", err)
 	}

@@ -191,7 +191,20 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 	if pool == nil {
 		return State{}, errors.New("workflow run PostgreSQL pool is missing")
 	}
-	tx, err := pool.Begin(ctx)
+	conn, err := pool.Acquire(ctx)
+	if err != nil {
+		return State{}, safeDatabaseError("acquire workflow run rollback connection", err)
+	}
+	defer conn.Release()
+	if _, err = conn.Exec(ctx, "SELECT pg_advisory_lock($1)", migrationAdvisoryLockKey); err != nil {
+		return State{}, safeDatabaseError("lock workflow run rollback", err)
+	}
+	defer func() {
+		unlock, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		_, _ = conn.Exec(unlock, "SELECT pg_advisory_unlock($1)", migrationAdvisoryLockKey)
+	}()
+	tx, err := conn.Begin(ctx)
 	if err != nil {
 		return State{}, safeDatabaseError("begin workflow run rollback", err)
 	}

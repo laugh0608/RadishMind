@@ -192,8 +192,13 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 	if err != nil {
 		return State{}, errors.New("read API key migration marker")
 	}
+	var tableExists bool
+	if err := query.QueryRow(ctx, "SELECT to_regclass('public.api_key_records') IS NOT NULL").Scan(&tableExists); err != nil {
+		return State{}, errors.New("inspect API key records table")
+	}
 	state.MigrationState = MigrationStateApplied
-	if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() {
+	if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion ||
+		state.MigrationChecksum != ExpectedChecksum() || !tableExists {
 		state.MigrationState = MigrationStateMismatch
 	}
 	return state, nil

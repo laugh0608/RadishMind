@@ -155,7 +155,7 @@
 - `postgres_dev_test` 使用独立 migration / runtime 数据库身份，runtime 只有表级 DML。任何数据库、marker 或连接错误都失败关闭，不能回退 `memory_dev`。
 - `workflow_saved_draft_production_auth_runtime.go` 仍只接受上游 verified context；production OIDC middleware、membership adapter 和 production `repository` 没有启用。
 
-本地 PostgreSQL dev/test 依次运行 `./scripts/run-workflow-saved-draft-postgres-dev-test.sh check`、`./scripts/run-radishmind-web-dev.sh --mode dev-live --saved-draft-postgres-dev-test` 与 `./scripts/run-workflow-saved-draft-postgres-dev-test.sh down`；PowerShell 使用同名 `.ps1` 入口与 `-SavedDraftPostgresDevTest`。`check` 留下已迁移 schema 供联调，`down` 停止容器但保留命名卷。
+本地 PostgreSQL dev/test 依次运行 `./scripts/run-workflow-saved-draft-postgres-dev-test.sh check`、`./scripts/run-radishmind-web-dev.sh --mode dev-live --saved-draft-postgres-dev-test` 与 `./scripts/run-workflow-saved-draft-postgres-dev-test.sh down`；PowerShell 使用同名 `.ps1` 入口与 `-SavedDraftPostgresDevTest`。旧文件名作为兼容入口保留；`check` 现在重复应用平台已评审 PostgreSQL migration、校验七组件 `configured` 启动档并运行完整 PostgreSQL integration suite，随后保留 schema 供联调；`down` 停止容器但保留命名卷。
 
 新增 failure code 均应保持 fail closed：`draft_auth_context_contract_mismatch`、`draft_identity_context_missing`、`draft_tenant_binding_missing`、`draft_workspace_membership_denied`、`draft_application_scope_denied`、`draft_owner_scope_denied`、`draft_scope_grant_missing`、`draft_audit_context_missing`、`draft_store_contract_mismatch`、`draft_schema_migration_not_applied`、`draft_store_schema_version_mismatch` 和 `draft_store_migration_unavailable` 不得返回草案主体，也不得创建 executor、confirmation、writeback 或 replay side effect。
 

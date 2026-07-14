@@ -50,7 +50,7 @@ func (store *postgresGatewayRequestStore) CreateRequest(requestContext GatewayRe
 		return errGatewayRequestStoreConflict
 	}
 	if err != nil {
-		return err
+		return errGatewayRequestStoreUnavailable
 	}
 	record.RecordVersion = storedVersion
 	return nil
@@ -85,7 +85,7 @@ func (store *postgresGatewayRequestStore) UpdateRequest(requestContext GatewayRe
 		return errGatewayRequestStoreConflict
 	}
 	if err != nil {
-		return err
+		return errGatewayRequestStoreUnavailable
 	}
 	record.RecordVersion = storedVersion
 	return nil
@@ -104,7 +104,7 @@ func (store *postgresGatewayRequestStore) ReadRequest(requestContext GatewayRequ
 		return GatewayRequestRecord{}, false, nil
 	}
 	if err != nil {
-		return GatewayRequestRecord{}, false, err
+		return GatewayRequestRecord{}, false, errGatewayRequestStoreUnavailable
 	}
 	record, err := decodePostgresGatewayRequestRecord(requestContext, payload)
 	if err != nil {
@@ -131,14 +131,14 @@ func (store *postgresGatewayRequestStore) ListRequests(requestContext GatewayReq
 		filter.BeforeTime, filter.BeforeRequestID, filter.Limit+1,
 	)
 	if err != nil {
-		return GatewayRequestListPage{}, err
+		return GatewayRequestListPage{}, errGatewayRequestStoreUnavailable
 	}
 	defer rows.Close()
 	records := make([]GatewayRequestRecord, 0, filter.Limit+1)
 	for rows.Next() {
 		var payload []byte
 		if err = rows.Scan(&payload); err != nil {
-			return GatewayRequestListPage{}, err
+			return GatewayRequestListPage{}, errGatewayRequestStoreUnavailable
 		}
 		record, decodeErr := decodePostgresGatewayRequestRecord(requestContext, payload)
 		if decodeErr != nil {
@@ -147,7 +147,7 @@ func (store *postgresGatewayRequestStore) ListRequests(requestContext GatewayReq
 		records = append(records, record)
 	}
 	if rows.Err() != nil {
-		return GatewayRequestListPage{}, rows.Err()
+		return GatewayRequestListPage{}, errGatewayRequestStoreUnavailable
 	}
 	hasMore := len(records) > filter.Limit
 	if hasMore {

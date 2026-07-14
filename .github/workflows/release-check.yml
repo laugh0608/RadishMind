@@ -130,7 +130,7 @@ jobs:
         with:
           go-version-file: services/platform/go.mod
 
-      - name: Test saved draft PostgreSQL repository
+      - name: Test platform PostgreSQL repositories
         env:
           RADISHMIND_RUN_POSTGRES_INTEGRATION: "1"
           PGHOST: 127.0.0.1

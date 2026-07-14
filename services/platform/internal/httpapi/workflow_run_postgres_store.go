@@ -53,7 +53,7 @@ func (store *postgresWorkflowRunStore) UpsertRun(runContext WorkflowRunContext, 
 		return errWorkflowRunStoreConflict
 	}
 	if err != nil {
-		return err
+		return errWorkflowRunStoreUnavailable
 	}
 	record.RecordVersion = storedVersion
 	return nil
@@ -69,7 +69,7 @@ func (store *postgresWorkflowRunStore) ReadRun(runContext WorkflowRunContext, ru
 		return WorkflowRunRecord{}, false, nil
 	}
 	if err != nil {
-		return WorkflowRunRecord{}, false, err
+		return WorkflowRunRecord{}, false, errWorkflowRunStoreUnavailable
 	}
 	record, err := decodeWorkflowRunStorageRecord(runContext, payload)
 	if err != nil {
@@ -97,14 +97,14 @@ func (store *postgresWorkflowRunStore) ListRuns(runContext WorkflowRunContext, f
 		time.Now().UTC().Add(-workflowExecutorDefaultMaxRuntime), filter.StartedFrom, filter.StartedTo,
 		filter.BeforeTime, filter.BeforeRunID, limit+1)
 	if err != nil {
-		return WorkflowRunListPage{}, err
+		return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
 	}
 	defer rows.Close()
 	records := make([]WorkflowRunRecord, 0, limit+1)
 	for rows.Next() {
 		var payload []byte
 		if err = rows.Scan(&payload); err != nil {
-			return WorkflowRunListPage{}, err
+			return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
 		}
 		record, decodeErr := decodeWorkflowRunStorageRecord(runContext, payload)
 		if decodeErr != nil {
@@ -113,7 +113,7 @@ func (store *postgresWorkflowRunStore) ListRuns(runContext WorkflowRunContext, f
 		records = append(records, record)
 	}
 	if rows.Err() != nil {
-		return WorkflowRunListPage{}, rows.Err()
+		return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
 	}
 	hasMore := len(records) > limit
 	if hasMore {
