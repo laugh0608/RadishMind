@@ -1,13 +1,14 @@
 # RadishMind Platform Service Layer
 <!-- markdown-size-allow: 平台历史运行说明仍被多项 runbook checker 直接读取；人工按当前功能定位阅读，R6 将拆分配置、路由与历史 readiness 章节。 -->
-本目录承载 `Go` 平台服务层的最小骨架。
+本目录承载 `Go` 平台服务层，统一托管 northbound HTTP、Gateway bridge、开发测试态认证、产品 repository 选择和服务生命周期。
 
 当前职责：
 
-- 启动最小本地 `HTTP` 服务
+- 启动本地 `HTTP` 服务并管理配置、连接与优雅关闭
 - 承载 northbound `API` / `gateway` 入口
 - 通过 Python bridge 调用 canonical `CopilotGatewayEnvelope`
-- 提供结构化诊断、观测、本地产品 overview、部署壳和后续鉴权 / 流式转发落点
+- 为七组 RadishMind 自有产品数据提供 `memory_dev`、聚合 `sqlite_dev` 与显式 `postgres_dev_test` 存储边界
+- 提供结构化诊断、观测、本地产品 overview、部署壳和后续生产鉴权 / 流式转发落点
 
 当前明确不做：
 
@@ -75,7 +76,7 @@
 - `GET /v1/model-gateway/requests`
 - `GET /v1/model-gateway/requests/{request_id}`
 
-路由是否可用由各自的显式 dev/test gate 决定；注册到 mux 不等于默认开放。Application Draft、Application Publish、Workflow Executor / Evaluation 和 Gateway Request History 的开关、store selector、数据库连接与失败语义见本文后面的配置表。所有 `postgres_dev_test` store 都要求对应 manual migration marker / checksum preflight，连接或 preflight 失败时不得回退 `memory_dev`。
+路由是否可用由各自的显式 dev/test gate 决定；注册到 mux 不等于默认开放。Application Draft、Application Publish、Workflow Executor / Evaluation 和 Gateway Request History 的开关、store selector、数据库连接与失败语义见本文后面的配置表。聚合 `sqlite_dev` 由平台在启动时应用七组 migration 并复验组件 marker；所有 `postgres_dev_test` store 都要求对应 manual migration marker / checksum preflight。任一连接、migration、marker、checksum 或查询失败都不得回退 `memory_dev`。
 
 应用目录、API 密钥生命周期和 Gateway Bearer 认证的本地闭环、作用域映射与安全约束见[应用目录与 API 密钥开发测试指南](../../docs/features/user-workspace/application-catalog-api-key-dev-test-guide.md)。
 
@@ -143,15 +144,15 @@
 
 `control-plane-durable-read-foundation-v1` 当前固定为 `durable_read_foundation_implemented`：`ControlPlaneReadRepository` interface 边界已在 `services/platform/internal/httpapi/control_plane_read_repository.go` 落地，现有七条 fake-store-backed read handlers 已通过 repository interface 消费数据。当前 repository 只包裹 fixture-backed fake store，保持 response envelope、dev-only fake auth、product sample fixture 和 no-side-effects 行为稳定；它不实现 repository adapter、store selector、SQL、migration、真实数据库、Radish OIDC、token validation、production API consumer、API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay。
 
-`workflow-saved-draft-v1-implementation` 已同时支持默认 `memory_dev` 和显式 `postgres_dev_test`。后者落地真实 PostgreSQL migration、schema marker、连接池、repository query executor、重启恢复和原子 expected-version；`repository_disabled` / production `repository` 仍返回 `repository_store_disabled`。这项开发 / 测试能力与 Production Secret Backend / Audit Store 链解耦；其上只新增了显式 opt-in 的 Workflow Executor v0，OIDC、production secret、publish、tool、confirmation、writeback、replay 和 production executor 停止线不变。
+`workflow-saved-draft-v1-implementation` 已支持默认 `memory_dev`、聚合 `sqlite_dev` 和显式 `postgres_dev_test`。SQLite 与 PostgreSQL 分别拥有独立 migration / marker，但复用同一 repository contract、作用域和 expected-version CAS；`repository_disabled` / production `repository` 仍返回 `repository_store_disabled`。这项开发 / 测试能力与 Production Secret Backend / Audit Store 链解耦；OIDC、production secret、publish、tool、confirmation、writeback、replay 和 production executor 停止线不变。
 ## Saved Workflow Draft 运行层说明
 
 维护 saved draft 平台代码时，按以下边界理解当前已落地的 durable store 相关实现：
 
 - `workflow_saved_draft.go` 是 domain service；只有 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1` 时 route 才可用，保存还必须显式启用 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1`。
-- `workflow_saved_draft_repository.go` 定义 repository contract；`workflow_saved_draft_postgres.go` 以 PostgreSQL 原子 CAS 实现 save / read / list，`workflow_saved_draft_repository_store.go` 负责 domain bridge。
+- `workflow_saved_draft_repository.go` 定义 repository contract；`workflow_saved_draft_sqlite.go` 与 `workflow_saved_draft_postgres.go` 分别以数据库条件更新实现 save / read / list，`workflow_saved_draft_repository_store.go` 负责 domain bridge，共享存储编解码位于 `workflow_saved_draft_repository_storage.go`。
 - `workflow_saved_draft_repository_adapter.go` 是 adapter contract enforcement：先检查 actor context、operation scope、payload scope 和 schema preflight，再调用 injected query executor。query executor 缺失返回 `draft_store_unavailable`，schema migration 未应用返回 `draft_schema_migration_not_applied`，store schema 不一致返回 `draft_store_schema_version_mismatch`，migration 状态不可观测返回 `draft_store_migration_unavailable`。
-- `migrations/workflow_saved_drafts/` 与 `cmd/radishmind-workflow-draft-migrate` 提供 reviewed up/down SQL、checksum、advisory lock 和显式 `status` / `up`；服务启动只 preflight，不自动 migration。
+- `migrations/sqlite/workflow_saved_drafts/` 由聚合 SQLite 启动过程应用；`migrations/workflow_saved_drafts/` 与 `cmd/radishmind-workflow-draft-migrate` 提供 PostgreSQL reviewed up/down SQL、checksum、advisory lock 和显式 `status` / `up`。平台只在 SQLite 本地产品模式自动应用自有 migration；PostgreSQL 服务启动仍只 preflight，不自动 DDL。
 - `postgres_dev_test` 使用独立 migration / runtime 数据库身份，runtime 只有表级 DML。任何数据库、marker 或连接错误都失败关闭，不能回退 `memory_dev`。
 - `workflow_saved_draft_production_auth_runtime.go` 仍只接受上游 verified context；production OIDC middleware、membership adapter 和 production `repository` 没有启用。
 
@@ -163,16 +164,16 @@
 
 - `application_configuration_draft.go` 定义独立 application draft domain、sanitized payload、validation、scope / owner 和 expected-version CAS；不复用 Workflow draft graph 或 repository。
 - `application_configuration_draft_http.go` 提供 dev-only validate / save / read / list routes。只有 `RADISHMIND_APPLICATION_DRAFT_DEV_HTTP=1` 可访问，保存还要求 `RADISHMIND_APPLICATION_DRAFT_DEV_WRITE=1`、dev auth、`application_drafts:write` 和匹配 workspace / application headers。
-- `application_configuration_draft_postgres.go` 与 `migrations/application_configuration_drafts/` 提供 PostgreSQL dev/test repository、0001 schema、marker、checksum、advisory lock 和显式 `status` / `up` runner；平台启动只 preflight，不自动 migration。
-- `memory_dev` 与 `postgres_dev_test` 使用相同 validation、scope 和 CAS 语义；PostgreSQL store 连接、marker 或 query 失败返回 `application_draft_store_unavailable`，不得回退 memory。
+- `application_configuration_draft_sqlite.go` 与 `migrations/sqlite/application_configuration_drafts/` 提供聚合 SQLite 实现；`application_configuration_draft_postgres.go` 与 `migrations/application_configuration_drafts/` 提供 PostgreSQL dev/test repository、0001 schema、marker、checksum、advisory lock 和显式 `status` / `up` runner。
+- memory、SQLite 与 PostgreSQL 使用相同 validation、scope 和 CAS 语义；任一 store 连接、marker 或 query 失败都返回 `application_draft_store_unavailable`，不得回退 memory。
 - 草案不保存 API key、Authorization、internal caller header、provider credential / endpoint 或 Gateway 测试输入输出，也不创建 / 发布 / 删除正式 application。
 
 ## Application Publish Governance 运行层说明
 
 - `application_publish_candidate.go` 定义 immutable candidate、append-only review、server-side draft reload / digest、baseline / draft drift、superseded 与 promotion eligibility；candidate body 不接受配置 snapshot。
 - `application_publish_candidate_http.go` 提供 dev-only create / list / read / review routes，分别要求 `application_publish_candidates:write`、`:read` 或 `:review`，以及匹配 workspace / application header。
-- `application_publish_candidate_postgres.go` 与 `migrations/application_publish_candidates/` 提供独立 PostgreSQL dev/test repository、0001 schema、marker、checksum、advisory lock和显式 `status` / `up` runner；平台启动只 preflight，不自动 migration。
-- `memory_dev` 与 `postgres_dev_test` 共享 immutable create、scope、review CAS、排序和 sanitized projection 语义；数据库失败返回稳定 store failure，不回退 memory。
+- `application_publish_candidate_sqlite.go` 与 `migrations/sqlite/application_publish_candidates/` 提供聚合 SQLite 实现；`application_publish_candidate_postgres.go` 与 `migrations/application_publish_candidates/` 提供独立 PostgreSQL dev/test repository、0001 schema、marker、checksum、advisory lock 和显式 `status` / `up` runner。
+- memory、SQLite 与 PostgreSQL 共享 immutable create、scope、review CAS、排序和 sanitized projection 语义；数据库失败返回稳定 store failure，不回退 memory。
 - eligibility 当前总是 `promotion_blocked`；正式 application repository、production auth / membership、发布 owner 与 promotion runtime 未建立，不存在 promotion route，也不修改 application read model。
 
 ## Control Plane Read-Side readiness 运行层说明
@@ -364,7 +365,18 @@ go run ./cmd/radishmind-platform
 
 启动路径仍由 `config.LoadFromEnv -> httpapi.NewServer -> ListenAndServe` 组成。默认 `stdio_pool` 在监听端口前完成四个 Python worker 的 protocol v1 handshake，`Go` 层只负责本地 HTTP 壳、northbound 请求翻译和受控 bridge 调度，不直接承载模型推理逻辑。
 
-聚合 `sqlite_dev` 已接入同一启动路径：`RADISHMIND_LOCAL_PERSISTENCE_MODE=sqlite_dev` 会把工作流草案、应用配置草案、发布候选、应用目录、API 密钥、工作流运行和 Gateway 请求历史一次性选择到同一个 SQLite 文件，按固定顺序应用七组 migration，并由 `Server` 统一负责构造失败回滚、checkpoint 和关闭。该模式仍要求现有 dev-only HTTP / write / executor / history gates；显式组件 `*_STORE` 与聚合模式同时设置会拒绝启动。跨平台 `local-product` wrapper 与同一应用作用域 HTTP 连续链已经通过；下一项是 PostgreSQL 专属门禁，当前能力不替代 PostgreSQL 或生产数据库。
+聚合 `sqlite_dev` 已接入同一启动路径：`RADISHMIND_LOCAL_PERSISTENCE_MODE=sqlite_dev` 会把工作流草案、应用配置草案、发布候选、应用目录、API 密钥、工作流运行和 Gateway 请求历史一次性选择到同一个 SQLite 文件，按固定顺序应用七组 migration，并由 `Server` 统一负责构造失败回滚、checkpoint 和关闭。该模式仍要求现有 dev-only HTTP / write / executor / history gates；显式组件 `*_STORE` 与聚合模式同时设置会拒绝启动。跨平台 `local-product` wrapper、同一应用作用域 HTTP 连续链和真实 PostgreSQL migration / 角色 / schema / 并发门禁均已通过；这些开发测试能力不代表生产数据库或 production repository 已启用。
+
+### 本地持久化与启动档
+
+稳定 wrapper 提供两个互斥启动档：
+
+- `local-product` 是默认本地产品档。它设置聚合 `sqlite_dev`、仓库根 `var/sqlite-dev/radishmind.db` 和七组件所需的开发门禁；调用方可以覆盖 SQLite 文件路径，但不能再设置任一组件 `*_STORE`。Gateway 默认仍使用 `dev_headers`，需要 API 密钥认证时应额外显式设置 `RADISHMIND_GATEWAY_AUTH_MODE=api_key_dev_test`。
+- `configured` 不注入 store、数据库连接或开发门禁，只消费调用方显式配置，供 PostgreSQL 集成、组件故障注入和兼容诊断使用。它不是生产启动档，也不会替调用方推断缺失的数据库角色或连接。
+
+`config-summary`、`config-check` 和 `diagnostics` 只加载、投影和校验配置，不创建 SQLite 文件，也不执行 migration。`serve` 才会打开共享 SQLite runtime、按应用目录、配置草案、发布候选、API 密钥、Gateway 请求历史、工作流草案、工作流运行的顺序应用 migration，并把同一个连接句柄注入七个 repository。组件 factory 只复验自己的 marker，不创建或关闭私有 SQLite 连接；服务关闭时先停止 repository，再 checkpoint 并关闭 shared runtime。
+
+SQLite 文件、WAL 和共享内存文件属于本地运行数据，默认位于已忽略的 `var/sqlite-dev/`。配置摘要不会输出数据库路径；原始 API 密钥、Authorization、模型请求 / 响应正文和工作流原始输入不得进入数据库、日志或后续公开响应。schema 不兼容、文件损坏、连接关闭或查询失败均直接失败，不自动重建数据库，也不回退内存。
 
 ## 环境变量
 
@@ -416,41 +428,48 @@ go run ./cmd/radishmind-platform
 | `RADISHMIND_CONTROL_PLANE_READ_OIDC_INTEGRATION_MAX_KEYS` | `32` | bounded JWKS cache 最大 key 数 |
 | `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP` | `false` | 显式启用 saved workflow draft dev-only HTTP route |
 | `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE` | `false` | 显式允许 saved workflow draft dev-only save 操作；read / validate 不用该开关 |
-| `RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE` | `memory_dev` | `memory_dev` 或显式 `postgres_dev_test`；production `repository`、`repository_disabled` 和 unknown mode 均 fail closed |
+| `RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE` | `memory_dev` | 组件显式配置只使用 `memory_dev` 或 `postgres_dev_test`；`sqlite_dev` 只由聚合本地持久化模式注入，直接设置组件 store 会产生配置冲突 |
 | `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL` | 空 | `postgres_dev_test` 平台运行连接；secret，不进入摘要或日志 |
 | `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL` | 空 | 仅 migration `up` 使用的一次性 DDL 连接；secret |
 | `RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_TIMEOUT` | `5s` | PostgreSQL connect / preflight timeout |
 | `RADISHMIND_APPLICATION_DRAFT_DEV_HTTP` | `false` | 显式启用 application configuration draft dev-only validate / read / list route |
 | `RADISHMIND_APPLICATION_DRAFT_DEV_WRITE` | `false` | 显式允许 application configuration draft save |
-| `RADISHMIND_APPLICATION_DRAFT_STORE` | `memory_dev` | `memory_dev` 或显式 `postgres_dev_test`；其他 mode fail closed |
+| `RADISHMIND_APPLICATION_DRAFT_STORE` | `memory_dev` | 组件显式配置只使用 `memory_dev` 或 `postgres_dev_test`；`sqlite_dev` 只由聚合本地持久化模式注入 |
 | `RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL` | 空 | application draft PostgreSQL dev/test runtime DML 连接；secret |
 | `RADISHMIND_APPLICATION_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL` | 空 | application draft migration 一次性 DDL 连接；secret |
 | `RADISHMIND_APPLICATION_DRAFT_DATABASE_TIMEOUT` | `5s` | application draft PostgreSQL connect / preflight timeout |
 | `RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP` | `false` | 显式启用 application publish candidate dev-only create / read / list / review route |
 | `RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE` | `false` | 显式允许 candidate create / review；不启用正式 promotion |
-| `RADISHMIND_APPLICATION_PUBLISH_STORE` | `memory_dev` | `memory_dev` 或显式 `postgres_dev_test`；其他 mode fail closed |
+| `RADISHMIND_APPLICATION_PUBLISH_STORE` | `memory_dev` | 组件显式配置只使用 `memory_dev` 或 `postgres_dev_test`；`sqlite_dev` 只由聚合本地持久化模式注入 |
 | `RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL` | 空 | publish candidate PostgreSQL dev/test runtime DML 连接；secret |
 | `RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_MIGRATION_DATABASE_URL` | 空 | publish candidate migration 一次性 DDL 连接；secret |
 | `RADISHMIND_APPLICATION_PUBLISH_DATABASE_TIMEOUT` | `5s` | publish candidate PostgreSQL connect / preflight timeout |
 | `RADISHMIND_APPLICATION_CATALOG_DEV_HTTP` | `false` | 显式启用 application catalog dev-only list / create / read / update / archive route |
 | `RADISHMIND_APPLICATION_CATALOG_DEV_WRITE` | `false` | 显式允许 application catalog create / update / archive |
-| `RADISHMIND_APPLICATION_CATALOG_STORE` | `memory_dev` | `memory_dev` 或显式 `postgres_dev_test`；其他 mode fail closed |
+| `RADISHMIND_APPLICATION_CATALOG_STORE` | `memory_dev` | 组件显式配置只使用 `memory_dev` 或 `postgres_dev_test`；`sqlite_dev` 只由聚合本地持久化模式注入 |
 | `RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL` | 空 | application catalog PostgreSQL dev/test runtime DML 连接；secret |
 | `RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL` | 空 | application catalog migration 一次性 DDL 连接；secret |
 | `RADISHMIND_APPLICATION_CATALOG_DATABASE_TIMEOUT` | `5s` | application catalog PostgreSQL connect / preflight timeout |
 | `RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP` | `false` | 显式启用 API 密钥生命周期 list / create / read / revoke route；要求 control-plane dev auth 与 application catalog dev HTTP 同时启用 |
 | `RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE` | `false` | 显式允许 API 密钥签发和吊销；要求生命周期 HTTP 与 application catalog dev write 同时启用 |
-| `RADISHMIND_API_KEY_STORE` | `memory_dev` | `memory_dev` 或显式 `postgres_dev_test`；连接、schema 标记、查询和认证更新失败均不回退内存 |
+| `RADISHMIND_API_KEY_STORE` | `memory_dev` | 组件显式配置只使用 `memory_dev` 或 `postgres_dev_test`；`sqlite_dev` 只由聚合本地持久化模式注入，任何认证或存储失败均不回退内存 |
 | `RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL` | 空 | API 密钥 `postgres_dev_test` runtime DML 连接；secret，不进入摘要或日志 |
 | `RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL` | 空 | 仅 API 密钥手动迁移 `up` 使用的一次性 DDL 连接；secret |
 | `RADISHMIND_API_KEY_DATABASE_TIMEOUT` | `5s` | API 密钥 PostgreSQL connect / preflight timeout |
 | `RADISHMIND_GATEWAY_AUTH_MODE` | `dev_headers` | `dev_headers` 或显式 `api_key_dev_test`；后者要求 API 密钥生命周期与 Gateway 请求历史同时启用 |
 | `RADISHMIND_WORKFLOW_EXECUTOR_DEV` | `false` | 显式启用受控 Workflow Executor v0 dev-only POST / GET route；不启用完整生产执行器 |
+| `RADISHMIND_WORKFLOW_RUN_STORE` | `memory_dev` | 组件显式配置只使用 `memory_dev` 或 `postgres_dev_test`；`sqlite_dev` 只由聚合本地持久化模式注入 |
+| `RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL` | 空 | workflow run `postgres_dev_test` runtime DML 连接；secret，不进入摘要或日志 |
+| `RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL` | 空 | 仅 workflow run manual migration `up` 使用的一次性 DDL 连接；secret |
+| `RADISHMIND_WORKFLOW_RUN_DATABASE_TIMEOUT` | `5s` | workflow run PostgreSQL connect / preflight timeout |
 | `RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV` | `false` | 与 dev auth 双 gate 显式启用 Gateway 请求历史记录和 scoped list / detail route；store 由 `RADISHMIND_GATEWAY_REQUEST_STORE` 选择 |
-| `RADISHMIND_GATEWAY_REQUEST_STORE` | `memory_dev` | `memory_dev` 或显式 `postgres_dev_test`；reserved production mode 和 unknown mode fail closed |
+| `RADISHMIND_GATEWAY_REQUEST_STORE` | `memory_dev` | 组件显式配置只使用 `memory_dev` 或 `postgres_dev_test`；`sqlite_dev` 只由聚合本地持久化模式注入 |
 | `RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL` | 空 | Gateway request `postgres_dev_test` runtime DML 连接；secret，不进入摘要或日志 |
 | `RADISHMIND_GATEWAY_REQUEST_DEV_TEST_MIGRATION_DATABASE_URL` | 空 | 仅 Gateway request manual migration `up` 使用的一次性 DDL 连接；secret |
 | `RADISHMIND_GATEWAY_REQUEST_DATABASE_TIMEOUT` | `5s` | Gateway request PostgreSQL connect / preflight timeout |
+
+所有 component store 的未知值、保留 production 值和不完整数据库配置都在启动前失败关闭。`postgres_dev_test` 的 runtime URL 只授予业务所需 DML，migration URL 只供手动 runner 使用；两类 URL 不得互换、写入配置摘要或提交到仓库。
+
 配置优先级固定为 `default < config file < env`。配置文件当前使用 JSON，字段名与脱敏 summary 保持一致，例如：
 
 ```json
@@ -489,6 +508,22 @@ pwsh ./scripts/run-platform-service.ps1 -Command serve
 ```
 
 PowerShell 的显式配置档使用 `pwsh ./scripts/run-platform-service.ps1 -Profile configured -Command config-check` 或 `-Command serve`。`config-summary` 与 `config-check` 只加载和校验配置，不创建 SQLite 文件或执行 migration；`serve` 才进入 `Server` 生命周期。
+
+真实 PostgreSQL 开发测试套件继续复用历史兼容入口。它默认在回环地址 `127.0.0.1:55432` 启动 PostgreSQL 17，数据库名包含 `test`，依次执行八组平台 migration / rollback / reapply、角色与 schema 检查、破坏性 integration test，并复验 `configured` 配置档：
+
+```bash
+./scripts/run-workflow-saved-draft-postgres-dev-test.sh check
+./scripts/run-workflow-saved-draft-postgres-dev-test.sh status
+./scripts/run-workflow-saved-draft-postgres-dev-test.sh down
+```
+
+```powershell
+pwsh ./scripts/run-workflow-saved-draft-postgres-dev-test.ps1 -Action check
+pwsh ./scripts/run-workflow-saved-draft-postgres-dev-test.ps1 -Action status
+pwsh ./scripts/run-workflow-saved-draft-postgres-dev-test.ps1 -Action down
+```
+
+`check` 会启动容器并在通过后保留已迁移 schema，便于后续联调；它不会自动关闭 PostgreSQL。验证结束后必须显式执行 `down`，该动作停止容器但保留命名卷。runner 在内存中组装 migration / runtime URL，不输出密码；运行角色只允许必要 DML，DDL 应稳定被 PostgreSQL 拒绝。
 
 上层消费 smoke 可以先用离线 fixture 生成展示视图，不要求启动服务：
 
@@ -599,12 +634,13 @@ curl -sS http://127.0.0.1:7000/v1/chat/completions \
 - `/v1/tools/metadata` 返回 `tooling_metadata`，其中 `registry_policy.execution_enabled=false`，每个工具的 execution mode 为 `contract_only`。
 - 七条 control-plane read route 默认 fail closed；显式 dev headers、signed test token 或 OIDC integration 请求必须满足对应 auth / store 配置。OIDC integration 只允许 Tenant Summary / Audit 成功，workspace operation 应返回 `workspace_membership_unavailable`。
 - workflow saved draft dev route 默认关闭；只有同时设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 和 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1` 才能 list / read / validate，保存还必须设置 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1`，并带上 `X-RadishMind-Dev-Workflow-Workspace` / `X-RadishMind-Dev-Workflow-Application` 与匹配 scope。`RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE` 默认 `memory_dev`；设置为 `repository_disabled` / `repository` 会返回 `repository_store_disabled`，设置未知值会返回 `invalid_draft_store_mode`，不会把失败请求回退成 sample 或 memory dev 成功。
+- 当 `RADISHMIND_LOCAL_PERSISTENCE_MODE=sqlite_dev` 时，七个 component store 的有效值统一投影为 `sqlite_dev`，各组件继续使用上述 HTTP / write / scope gate。此时不得显式设置任一 `*_STORE`；配置冲突、SQLite marker 不匹配或 shared runtime 不可用都会阻止启动，不会局部回退 memory。
 - application configuration draft dev route 默认关闭；只有同时设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 和 `RADISHMIND_APPLICATION_DRAFT_DEV_HTTP=1` 才能 list / read / validate，保存还要求 `RADISHMIND_APPLICATION_DRAFT_DEV_WRITE=1`、`application_drafts:write` scope，以及匹配的 `X-RadishMind-Dev-Application-Workspace` / `Application` header。store 默认是 `memory_dev`；显式 `postgres_dev_test` 要求手工 migration、独立 runtime DSN 与 marker / checksum preflight，数据库失败不回退内存。
 - application publish candidate dev route 默认关闭；只有同时设置 dev auth、`RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP=1` 与匹配 scope / workspace / application header 才能 list / read；create / review 还要求 `RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE=1`。`postgres_dev_test` 同时要求 application draft 也使用 PostgreSQL dev/test，使服务端 draft reload 与 candidate create 保持 durable；数据库失败不回退内存。
 - application catalog dev route 默认关闭；只有同时设置 dev auth、`RADISHMIND_APPLICATION_CATALOG_DEV_HTTP=1` 和对应 read / write / archive scope 才能访问，写入还要求 `RADISHMIND_APPLICATION_CATALOG_DEV_WRITE=1`。store 默认是 `memory_dev`；显式 `postgres_dev_test` 要求手工 migration、独立 runtime DSN 与 marker / checksum preflight，数据库失败不回退内存或预置应用列表。
 - API 密钥生命周期 dev route 默认关闭；只有同时设置 dev auth、`RADISHMIND_APPLICATION_CATALOG_DEV_HTTP=1` 和 `RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP=1` 才接管列表并开放详情，签发与吊销还要求应用目录和密钥生命周期两个 write gate。列表 / 详情、签发和吊销分别要求 `api_keys:read`、`api_keys:write` 与 `api_keys:revoke`；原始令牌只在签发成功响应中返回一次。store 默认是进程内 `memory_dev`；显式 `postgres_dev_test` 要求手工迁移、独立 runtime DSN 和 marker / checksum preflight，数据库失败不回退内存。
 - Gateway request history 默认关闭；`RADISHMIND_GATEWAY_AUTH_MODE=dev_headers` 保留显式开发身份头路径。设置为 `api_key_dev_test` 时，Models、Chat Completions、Responses 和 Messages 五条 northbound route 必须携带有效 Bearer 密钥，可信租户、工作区、应用、所有者与作用域仅从密钥记录恢复；请求头冲突、无效、吊销、过期、作用域不足、应用归档、密钥存储或请求历史故障均在 bridge / provider 前失败关闭。成功认证记录 `api_key:<api_key_id>` 脱敏调用方和 `last_used_at`，不保存令牌或摘要。该模式仍只属于开发测试态，不是生产 API 消费方认证。
-- Gateway request migration 使用 `go run ./cmd/radishmind-gateway-request-migrate status|up`；API 密钥迁移使用 `go run ./cmd/radishmind-api-key-migrate status|up`；application draft / publish / catalog migration 分别使用 `go run ./cmd/radishmind-application-draft-migrate status|up`、`go run ./cmd/radishmind-application-publish-migrate status|up` 与 `go run ./cmd/radishmind-application-catalog-migrate status|up`。`status` 使用 runtime DSN 且只读 marker，`up` 只接受独立 migration DSN。仓库 PostgreSQL 集成入口会同时验证 Saved Draft、Application Draft、Application Publish、Application Catalog、API Key、Workflow Run、Gateway Request 与 Control Plane Admin read 八套相互独立的 schema。
+- PostgreSQL individual migration command 包括 `radishmind-workflow-draft-migrate`、`radishmind-application-draft-migrate`、`radishmind-application-publish-migrate`、`radishmind-application-catalog-migrate`、`radishmind-api-key-migrate`、`radishmind-workflow-run-migrate`、`radishmind-gateway-request-migrate` 与 `radishmind-control-plane-read-migrate`，均接受 `status|up`。`status` 使用 runtime DSN 且只读 marker，`up` 只接受独立 migration DSN。日常完整验证优先使用统一 PostgreSQL runner，由它验证八套相互独立的 schema 和七组件 `configured` 启动档。
 - `/v1/tools/actions` 返回 `tool_action_blocked_response`，且不会运行工具、返回 materialized result、写 durable memory 或写业务真相源。
 - `/v1/chat/completions` 在 `mock` provider 下返回 advisory 文本，不访问外部 provider，不写回任何上层项目。
 ## 故障边界
@@ -617,7 +653,7 @@ curl -sS http://127.0.0.1:7000/v1/chat/completions \
 - 若 northbound 路由返回 `BRIDGE_WORKER_*`，先运行 diagnostics 检查 mode、握手和 inventory；必要时可显式设置 `RADISHMIND_PLATFORM_BRIDGE_MODE=process_per_request` 复核回滚路径，但不得恢复 argv 或长期环境变量传递请求 credential。
 - 若返回 `MODEL_NOT_FOUND`，优先用 `/v1/models` 或 `diagnostics.providers.selectable_model_ids` 确认可选择 ID，避免把 provider id、profile id 与真实 upstream model 混用。
 - 若返回 `PLATFORM_RESPONSE_INVALID`，说明 Python bridge 已返回 envelope，但 `Go` northbound 兼容层无法翻译为目标协议响应，应优先检查 envelope 的 `response` 结构。
-- 若 saved workflow draft route 返回 `repository_store_disabled` 或 `invalid_draft_store_mode`，优先检查 `RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE`；只有 `memory_dev` 与完整显式配置的 `postgres_dev_test` 可成功，production `repository` 仍关闭。
+- 若 saved workflow draft route 返回 `repository_store_disabled` 或 `invalid_draft_store_mode`，优先检查 `RADISHMIND_LOCAL_PERSISTENCE_MODE` 与 `RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE` 的来源：组件显式配置只允许 `memory_dev` 或完整的 `postgres_dev_test`，聚合 `sqlite_dev` 必须只通过本地持久化模式注入；production `repository` 仍关闭。
 - 若 saved workflow draft repository adapter 返回 schema / auth 类 failure code，先确认调用方是否误把 readiness artifact 当成 runtime：`draft_schema_migration_not_applied`、`draft_store_schema_version_mismatch` 和 `draft_store_migration_unavailable` 表示 schema preflight 不满足；`draft_auth_context_contract_mismatch`、`draft_identity_context_missing`、`draft_tenant_binding_missing`、`draft_workspace_membership_denied`、`draft_application_scope_denied`、`draft_owner_scope_denied`、`draft_scope_grant_missing` 和 `draft_audit_context_missing` 表示上游 verified auth context 或 binding 不满足。
 - 旧 Saved Draft repository / migration / connection readiness 专题保留为历史设计证据；当前实现真相以 `saved-workflow-draft-postgresql-dev-test-repository-v1`、真实 migration 和 Go 集成测试为准。它们只放宽 `postgres_dev_test`，不启用 production secret resolver 或 production `repository`。
 - 若要接真实 provider，必须通过环境变量或本机 secret 注入 `RADISHMIND_PLATFORM_BASE_URL` / `RADISHMIND_PLATFORM_API_KEY` 或 provider profile 配置；不要把 key、token、cookie 或真实 provider raw dump 写入 committed 文档。

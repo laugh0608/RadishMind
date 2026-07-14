@@ -178,21 +178,29 @@ curl --fail-with-body --silent --show-error \
 
 ## PostgreSQL 开发测试模式
 
-持久化模式必须为应用目录、API 密钥和 Gateway 请求历史分别配置 runtime DML 连接，并先使用独立 migration 连接执行手动迁移：
+PostgreSQL 模式必须为七个产品组件分别提供 runtime DML 连接，并使用独立 migration 连接执行 DDL。仓库继续保留历史文件名的统一 runner；它实际覆盖八组平台 migration、七组件 repository、关联 Control Plane read schema 和 `configured` 启动档：
 
 ```bash
-cd services/platform
-go run ./cmd/radishmind-application-catalog-migrate status
-go run ./cmd/radishmind-application-catalog-migrate up
-go run ./cmd/radishmind-api-key-migrate status
-go run ./cmd/radishmind-api-key-migrate up
-go run ./cmd/radishmind-gateway-request-migrate status
-go run ./cmd/radishmind-gateway-request-migrate up
+./scripts/run-workflow-saved-draft-postgres-dev-test.sh check
+./scripts/run-workflow-saved-draft-postgres-dev-test.sh status
+./scripts/run-workflow-saved-draft-postgres-dev-test.sh down
 ```
 
-完整配置键和角色边界见 [Platform Service Layer](../../../services/platform/README.md)。连接、schema marker、checksum、查询或认证更新失败时必须失败关闭，不得回退到 `memory_dev`。数据库连接字符串与密钥只保存在本地环境，不进入 `.env.example`、文档或提交。
+Windows / PowerShell 使用：
 
-本地 SQLite 与 PostgreSQL 并行的正式设计见 [本地 SQLite 开发持久化 v1](../../platform/local-sqlite-dev-persistence-v1.md)。当前应用目录、API 密钥和 Gateway 请求历史的可运行 store 仍只有 `memory_dev` 与 `postgres_dev_test`，不得把设计稿误写成已实现的 `sqlite_dev`。
+```powershell
+pwsh ./scripts/run-workflow-saved-draft-postgres-dev-test.ps1 -Action check
+pwsh ./scripts/run-workflow-saved-draft-postgres-dev-test.ps1 -Action status
+pwsh ./scripts/run-workflow-saved-draft-postgres-dev-test.ps1 -Action down
+```
+
+`check` 会在 `127.0.0.1:55432` 启动 PostgreSQL 17，对数据库名包含 `test` 的实例执行破坏性 integration suite，覆盖 migration 重复应用、回滚 / 重应用、advisory lock、运行 / 迁移角色隔离、类型 / 索引、稳定分页、多连接并发、竞态、重启恢复和 no-fallback。通过后容器与已迁移 schema 会继续保留，便于显式联调；验证结束后必须执行 `down`，该动作停止容器但保留命名卷。
+
+只需应用 migration 时使用 runner 的 `migrate`；只检查 marker 时使用 `status`。需要手动启动平台时，完整提供各组件 `*_STORE=postgres_dev_test`、runtime URL、开发门禁和 `RADISHMIND_GATEWAY_AUTH_MODE=api_key_dev_test`，再通过 `./scripts/run-platform-service.sh --profile configured config-check` 与 `serve` 启动；不要把 PostgreSQL 配置混入默认 `local-product` 档。
+
+完整配置键、统一 migration runner 和角色边界见 [Platform Service Layer](../../../services/platform/README.md)。连接、schema marker、checksum、查询或认证更新失败时必须失败关闭，不得回退到 `memory_dev`。数据库连接字符串与密钥只保存在本地环境，不进入 `.env.example`、文档或提交。
+
+本地 SQLite 与 PostgreSQL 并行的正式设计见 [本地 SQLite 开发持久化 v1](../../platform/local-sqlite-dev-persistence-v1.md)。应用目录、API 密钥、Gateway 请求历史及其关联的配置草案、发布候选、工作流草案和工作流运行都已支持 `memory_dev`、聚合 `sqlite_dev` 与显式 `postgres_dev_test`；三种模式保持相同的领域作用域、版本保护、稳定分页和失败关闭语义，但分别承担快速测试、本地连续开发和 PostgreSQL 同构验证职责。
 
 ## 常见失败语义
 

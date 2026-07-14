@@ -1,6 +1,6 @@
 # RadishMind 服务/API 接入契约
 
-更新时间：2026-07-13
+更新时间：2026-07-14
 
 ## 协议兼容边界
 
@@ -152,7 +152,9 @@ HTTP JSON 现在由 `Go` 平台服务层承接，默认通过四个受控 `stdio
 - API 密钥：绑定 active application 的 list / create / read / revoke；原始令牌只在 create 响应的 `credential.token` 返回一次，后续响应不得返回令牌或摘要。
 - Model Gateway：`GET /v1/model-gateway/requests` 与 `GET /v1/model-gateway/requests/{request_id}`；开发身份头模式要求完整 caller scope，`api_key_dev_test` 模式则从 Bearer 密钥恢复可信调用方上下文并记录 sanitized history。
 
-Application Catalog、API Key、Application Draft、Publish Candidate、Workflow Draft / Run 和 Gateway Request 都支持显式 `memory_dev` 或 `postgres_dev_test`。PostgreSQL 模式要求各自 migration marker / checksum、runtime DML role 和 startup preflight；任一数据库失败都不得回退内存。Application candidate create 必须由服务端重新读取 saved valid draft 并计算 digest；review 只追加决定，不修改 candidate snapshot。Gateway history 不持久化 prompt、message、模型正文、Authorization、API key、令牌摘要或 provider raw payload。
+Application Catalog、API Key、Application Draft、Publish Candidate、Workflow Draft / Run 和 Gateway Request 共享三层开发测试存储契约：`memory_dev` 用于进程内测试；聚合 `sqlite_dev` 用于本地产品启动，由平台在单一共享文件上应用七组 migration 并统一管理连接生命周期；显式 `postgres_dev_test` 用于数据库同构验证，要求各自 migration marker / checksum、runtime DML role 和 startup preflight。`sqlite_dev` 不能通过单个组件 `*_STORE` 独立启用，聚合模式与任何显式 component store 同时存在时必须拒绝启动。任一数据库、连接、marker、checksum 或查询失败都不得回退内存。
+
+本地 wrapper 默认使用 `local-product` 档并注入聚合 SQLite 与必要开发门禁；`configured` 档不注入持久化配置，只消费调用方显式环境，供 PostgreSQL 集成和故障注入使用。`config-summary`、`config-check` 与 `diagnostics` 不创建数据库或执行 migration，只有 `serve` 进入 repository 和 shared runtime 生命周期。Application candidate create 必须由服务端重新读取 saved valid draft 并计算 digest；review 只追加决定，不修改 candidate snapshot。Gateway history 不持久化 prompt、message、模型正文、Authorization、API key、令牌摘要或 provider raw payload。
 
 管理面与消费面必须使用不同认证边界。Application Catalog 与 API Key Lifecycle 继续经过受验证的 control-plane identity 和 workspace scope，所需管理作用域分别为 `applications:read|write|archive` 与 `api_keys:read|write|revoke`；这些管理路由会拒绝 RadishMind API 密钥。`RADISHMIND_GATEWAY_AUTH_MODE=api_key_dev_test` 只用于五条模型网关 northbound route，按路由要求 `models:read`、`chat:invoke`、`responses:invoke` 或 `messages:invoke`，并拒绝混入开发 Gateway 身份头。认证必须在 bridge / provider 前检查密钥状态、过期时间、作用域、active application 和存储可用性，成功后只记录 `api_key:<api_key_id>` 与更新 `last_used_at`。
 
