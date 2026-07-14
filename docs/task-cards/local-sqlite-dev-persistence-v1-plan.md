@@ -2,7 +2,7 @@
 
 更新时间：2026-07-14
 
-状态：`local_sqlite_dev_persistence_v1_s2_application_catalog_completed`
+状态：`local_sqlite_dev_persistence_v1_s2_three_repositories_completed`
 
 ## 任务目标
 
@@ -47,7 +47,9 @@
 - 每完成一个组件即运行同领域契约、重启恢复、CAS / 终态、分页和敏感信息测试；
 - 不在中途把正式本地入口暴露成混合 store mode。
 
-实现记录：2026-07-14 已完成首个应用目录纵向切片。新增应用目录 SQLite migration 与 repository，复用 memory / SQLite 同组领域契约，覆盖所有者隔离、稳定分页、预期版本 CAS、不可逆归档、重启恢复和 no-fallback；组件 selector 必须接收共享 runtime 并复验本组件 marker，不能自行打开数据库。聚合 `sqlite_dev` 启动检查继续关闭。下一项固定为应用配置草案，其余五组随后按既定顺序推进。
+实现记录：2026-07-14 已完成首个应用目录纵向切片。新增应用目录 SQLite migration 与 repository，复用 memory / SQLite 同组领域契约，覆盖所有者隔离、稳定分页、预期版本 CAS、不可逆归档、重启恢复和 no-fallback；组件 selector 必须接收共享 runtime 并复验本组件 marker，不能自行打开数据库。聚合 `sqlite_dev` 启动检查继续关闭。
+
+实现记录：2026-07-14 已共同完成应用配置草案与发布候选。两组 repository 共享 runtime 但保持独立 schema；发布 selector 同时验证草案和候选 marker。复用契约覆盖草案创建 / 更新、候选不可变创建、审查追加 / 终态、作用域、稳定顺序和漂移语义；真实临时文件进一步覆盖两组 8 路并发单写者、跨组件重启恢复、关闭失败和敏感材料禁入。S2 当前完成 3/7，下一项为 API 密钥；正式晋级、Web、PostgreSQL 专属语义和聚合启动门禁均未修改。
 
 完成标志：七组件均由同一 SQLite runtime 承载，领域状态、版本、顺序、失败码和公开投影与既有模式一致。
 

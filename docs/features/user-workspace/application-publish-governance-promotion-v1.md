@@ -149,6 +149,7 @@ schema 固定为 `application_publish_candidate.v1`，包含：
 - 真实浏览器已完成 `app_flow_copilot` 草案保存、Responses 单次响应、同一 `request_id` 请求历史详情、候选版本创建、第二标签页批准、第一标签页过期审查冲突恢复，以及切换到 `app_docs_assistant` 后旧候选版本 / 原因 / 证据清空。
 - 已批准候选版本仍稳定显示 `promotion_blocked`，并列出正式应用存储库、生产认证、发布所有者和晋级运行时未成立的四项阻塞；没有发生正式应用变更。
 - 浏览器控制台无错误 / 警告，URL 只保留稳定区段锚点，`localStorage` 与 `sessionStorage` 均为空。
+- 2026-07-14 已补齐 SQLite 开发持久化：发布候选通过共享 runtime 使用独立 migration 和 repository，保持不可变创建、稳定列表、只追加审查、审查 CAS、终态、草案漂移和晋级阻塞语义；selector 同时复验配置草案与候选 migration，真实文件覆盖跨组件重启、并发审查、关闭失败和敏感材料禁入。该能力不启用正式晋级，也不替代 PostgreSQL 专属验证。
 
 ## 停止线
 

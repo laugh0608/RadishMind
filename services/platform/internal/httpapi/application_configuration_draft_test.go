@@ -13,7 +13,11 @@ import (
 )
 
 func TestApplicationConfigurationDraftLifecycleAndIsolation(t *testing.T) {
-	repository := newMemoryApplicationConfigurationDraftRepository()
+	runApplicationConfigurationDraftLifecycleAndIsolation(t, newMemoryApplicationConfigurationDraftRepository())
+}
+
+func runApplicationConfigurationDraftLifecycleAndIsolation(t *testing.T, repository applicationConfigurationDraftRepository) {
+	t.Helper()
 	service := newApplicationConfigurationDraftService(repository)
 	service.now = func() time.Time { return time.Date(2026, 7, 12, 8, 0, 0, 0, time.UTC) }
 	requestContext := validApplicationDraftContext()

@@ -810,6 +810,59 @@ func TestApplicationCatalogSQLiteComponentSelectorRequiresDevelopmentGates(t *te
 	}
 }
 
+func TestApplicationConfigurationAndPublishSQLiteSelectorsRequireCompleteChain(t *testing.T) {
+	base := defaultConfig()
+	base.ApplicationDraftStoreMode = "sqlite_dev"
+	if summary := base.SanitizedSummary(); !reflect.DeepEqual(summary.MissingRequiredFields, []string{
+		"control_plane_read_dev_auth", "application_draft_dev_http", "application_draft_dev_write",
+	}) {
+		t.Fatalf("unexpected application draft sqlite_dev requirements: %#v", summary.MissingRequiredFields)
+	}
+	if err := validateBridgeRuntimeConfig(base); err == nil || err.Error() != "application draft sqlite_dev store requires complete development gates" {
+		t.Fatalf("application draft sqlite_dev without gates must fail, got %v", err)
+	}
+
+	base.ControlPlaneReadDevAuthEnabled = true
+	base.ApplicationDraftDevHTTPEnabled = true
+	base.ApplicationDraftDevWriteEnabled = true
+	base.ApplicationPublishStoreMode = "sqlite_dev"
+	if summary := base.SanitizedSummary(); !reflect.DeepEqual(summary.MissingRequiredFields, []string{
+		"application_publish_dev_http", "application_publish_dev_write",
+	}) {
+		t.Fatalf("unexpected application publish sqlite_dev requirements: %#v", summary.MissingRequiredFields)
+	}
+	if err := validateBridgeRuntimeConfig(base); err == nil || err.Error() != "application publish sqlite_dev store requires complete development gates and sqlite_dev application draft store" {
+		t.Fatalf("application publish sqlite_dev without publish gates must fail, got %v", err)
+	}
+
+	base.ApplicationPublishDevHTTPEnabled = true
+	base.ApplicationPublishDevWriteEnabled = true
+	if err := validateBridgeRuntimeConfig(base); err != nil {
+		t.Fatalf("complete application draft and publish sqlite_dev chain was rejected: %v", err)
+	}
+	if missing := base.SanitizedSummary().MissingRequiredFields; len(missing) != 0 {
+		t.Fatalf("complete application draft and publish sqlite_dev chain reported missing fields: %#v", missing)
+	}
+
+	base.ApplicationDraftStoreMode = "memory_dev"
+	if err := validateBridgeRuntimeConfig(base); err == nil || err.Error() != "application publish sqlite_dev store requires complete development gates and sqlite_dev application draft store" {
+		t.Fatalf("publish sqlite_dev with memory draft store must fail, got %v", err)
+	}
+}
+
+func TestApplicationConfigurationAndPublishRejectUnknownStoreModes(t *testing.T) {
+	base := defaultConfig()
+	base.ApplicationDraftStoreMode = "unknown"
+	if err := validateBridgeRuntimeConfig(base); err == nil || err.Error() != "application draft store must be memory_dev, sqlite_dev, or postgres_dev_test" {
+		t.Fatalf("unknown application draft store mode must fail, got %v", err)
+	}
+	base = defaultConfig()
+	base.ApplicationPublishStoreMode = "unknown"
+	if err := validateBridgeRuntimeConfig(base); err == nil || err.Error() != "application publish store must be memory_dev, sqlite_dev, or postgres_dev_test" {
+		t.Fatalf("unknown application publish store mode must fail, got %v", err)
+	}
+}
+
 func clearPlatformEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{

@@ -14,14 +14,18 @@ import (
 )
 
 func TestApplicationPublishCandidateLifecycleAndEligibility(t *testing.T) {
-	draftRepository := newMemoryApplicationConfigurationDraftRepository()
+	runApplicationPublishCandidateLifecycleAndEligibility(t, newMemoryApplicationConfigurationDraftRepository(), newMemoryApplicationPublishCandidateRepository())
+}
+
+func runApplicationPublishCandidateLifecycleAndEligibility(t *testing.T, draftRepository applicationConfigurationDraftRepository, candidateRepository applicationPublishCandidateRepository) {
+	t.Helper()
 	draftContext := validApplicationDraftContext()
 	draft := newApplicationConfigurationDraftService(draftRepository).Save(draftContext, validApplicationDraftPayload(), 0)
 	if draft.Draft == nil {
 		t.Fatalf("seed application draft: %#v", draft)
 	}
 	baselineUpdatedAt := draft.Draft.BaseApplicationUpdatedAt
-	service := newApplicationPublishCandidateService(draftRepository, newMemoryApplicationPublishCandidateRepository(), func(requestContext ApplicationPublishContext) (ApplicationSummary, error) {
+	service := newApplicationPublishCandidateService(draftRepository, candidateRepository, func(requestContext ApplicationPublishContext) (ApplicationSummary, error) {
 		return ApplicationSummary{ApplicationRef: requestContext.ApplicationID, UpdatedAt: baselineUpdatedAt}, nil
 	})
 	service.now = func() time.Time { return time.Date(2026, 7, 12, 10, 0, 0, 0, time.UTC) }
@@ -70,11 +74,15 @@ func TestApplicationPublishCandidateLifecycleAndEligibility(t *testing.T) {
 }
 
 func TestApplicationPublishCandidateDraftBindingAndScope(t *testing.T) {
-	draftRepository := newMemoryApplicationConfigurationDraftRepository()
+	runApplicationPublishCandidateDraftBindingAndScope(t, newMemoryApplicationConfigurationDraftRepository(), newMemoryApplicationPublishCandidateRepository())
+}
+
+func runApplicationPublishCandidateDraftBindingAndScope(t *testing.T, draftRepository applicationConfigurationDraftRepository, candidateRepository applicationPublishCandidateRepository) {
+	t.Helper()
 	draftService := newApplicationConfigurationDraftService(draftRepository)
 	draftContext := validApplicationDraftContext()
 	createdDraft := draftService.Save(draftContext, validApplicationDraftPayload(), 0)
-	service := newApplicationPublishCandidateService(draftRepository, newMemoryApplicationPublishCandidateRepository(), validApplicationPublishBaseline)
+	service := newApplicationPublishCandidateService(draftRepository, candidateRepository, validApplicationPublishBaseline)
 	requestContext := validApplicationPublishContext()
 	wrongVersion := service.Create(requestContext, ApplicationPublishCreateInput{CandidateID: "candidate-wrong-version", DraftID: createdDraft.Draft.DraftID, ExpectedDraftVersion: 2})
 	if wrongVersion.FailureCode != ApplicationPublishFailureDraftVersionConflict || wrongVersion.CurrentDraftVersion != 1 {
@@ -93,14 +101,17 @@ func TestApplicationPublishCandidateDraftBindingAndScope(t *testing.T) {
 }
 
 func TestApplicationPublishCandidateDraftDriftAndSupersede(t *testing.T) {
-	draftRepository := newMemoryApplicationConfigurationDraftRepository()
+	runApplicationPublishCandidateDraftDriftAndSupersede(t, newMemoryApplicationConfigurationDraftRepository(), newMemoryApplicationPublishCandidateRepository())
+}
+
+func runApplicationPublishCandidateDraftDriftAndSupersede(t *testing.T, draftRepository applicationConfigurationDraftRepository, repository applicationPublishCandidateRepository) {
+	t.Helper()
 	draftService := newApplicationConfigurationDraftService(draftRepository)
 	draftContext := validApplicationDraftContext()
 	payload := validApplicationDraftPayload()
 	if seeded := draftService.Save(draftContext, payload, 0); seeded.Draft == nil {
 		t.Fatalf("seed draft: %#v", seeded)
 	}
-	repository := newMemoryApplicationPublishCandidateRepository()
 	service := newApplicationPublishCandidateService(draftRepository, repository, validApplicationPublishBaseline)
 	sequence := 0
 	service.now = func() time.Time { sequence++; return time.Date(2026, 7, 12, 12, sequence, 0, 0, time.UTC) }
@@ -120,6 +131,10 @@ func TestApplicationPublishCandidateDraftDriftAndSupersede(t *testing.T) {
 	readFirst := service.Read(requestContext, "candidate-v1")
 	if readFirst.Candidate == nil || !hasPromotionBlocker(readFirst.Candidate.PromotionEligibility, "publish_candidate_draft_changed") || !hasPromotionBlocker(readFirst.Candidate.PromotionEligibility, "publish_candidate_superseded") {
 		t.Fatalf("old candidate drift/supersede blockers missing: %#v", readFirst)
+	}
+	candidates, err := repository.List(requestContext)
+	if err != nil || len(candidates) != 2 || candidates[0].CandidateID != "candidate-v2" || candidates[1].CandidateID != "candidate-v1" {
+		t.Fatalf("publish candidate list order is unstable: %#v err=%v", candidates, err)
 	}
 }
 

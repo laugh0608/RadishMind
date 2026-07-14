@@ -7,13 +7,37 @@ import (
 	"time"
 
 	"radishmind.local/services/platform/internal/config"
+	"radishmind.local/services/platform/internal/sqlitedev"
 	applicationdraftmigrations "radishmind.local/services/platform/migrations/application_configuration_drafts"
+	sqliteapplicationdraftmigrations "radishmind.local/services/platform/migrations/sqlite/application_configuration_drafts"
 )
 
 func newApplicationConfigurationDraftRepositoryFromConfig(cfg config.Config) (applicationConfigurationDraftRepository, func(), error) {
+	return newApplicationConfigurationDraftRepositoryFromConfigWithSQLiteRuntime(cfg, nil)
+}
+
+func newApplicationConfigurationDraftRepositoryFromConfigWithSQLiteRuntime(cfg config.Config, sqliteRuntime *sqlitedev.Runtime) (applicationConfigurationDraftRepository, func(), error) {
 	mode := strings.TrimSpace(cfg.ApplicationDraftStoreMode)
 	if mode == "" || mode == "memory_dev" {
 		return newMemoryApplicationConfigurationDraftRepository(), func() {}, nil
+	}
+	if mode == "sqlite_dev" {
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationDraftDevHTTPEnabled || !cfg.ApplicationDraftDevWriteEnabled {
+			return nil, nil, errors.New("sqlite_dev application draft config is incomplete")
+		}
+		if sqliteRuntime == nil || sqliteRuntime.DB() == nil {
+			return nil, nil, errors.New("sqlite_dev application draft requires the shared SQLite runtime")
+		}
+		timeout := cfg.ApplicationDraftDatabaseTimeout
+		if timeout <= 0 {
+			timeout = 5 * time.Second
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		if err := sqliteRuntime.VerifyMigrations(ctx, sqliteapplicationdraftmigrations.Migrations()); err != nil {
+			return nil, nil, err
+		}
+		return newSQLiteApplicationConfigurationDraftRepository(sqliteRuntime.DB()), func() {}, nil
 	}
 	if mode != "postgres_dev_test" {
 		return nil, nil, errors.New("unsupported application draft store mode")

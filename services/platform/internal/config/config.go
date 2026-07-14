@@ -916,6 +916,11 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_write")
 		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_database")
 	}
+	if applicationDraftStoreMode == "sqlite_dev" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_write")
+	}
 	if applicationPublishStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_http")
@@ -925,6 +930,14 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "application_publish_dev_http")
 		requiredFields = appendRequiredConfigField(requiredFields, "application_publish_dev_write")
 		requiredFields = appendRequiredConfigField(requiredFields, "application_publish_database")
+	}
+	if applicationPublishStoreMode == "sqlite_dev" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_write")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_store_sqlite_dev")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_publish_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_publish_dev_write")
 	}
 	if applicationCatalogStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
@@ -1174,6 +1187,10 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			if strings.TrimSpace(cfg.ApplicationDraftStoreMode) != "postgres_dev_test" {
 				missing = append(missing, field)
 			}
+		case "application_draft_store_sqlite_dev":
+			if strings.TrimSpace(cfg.ApplicationDraftStoreMode) != "sqlite_dev" {
+				missing = append(missing, field)
+			}
 		case "application_publish_dev_http":
 			if !cfg.ApplicationPublishDevHTTPEnabled {
 				missing = append(missing, field)
@@ -1357,6 +1374,56 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.ApplicationDraftDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return fmt.Errorf("application draft dev HTTP requires control plane read dev auth")
+	}
+	if cfg.ApplicationDraftDevWriteEnabled && !cfg.ApplicationDraftDevHTTPEnabled {
+		return fmt.Errorf("application draft dev write requires application draft dev HTTP")
+	}
+	switch strings.TrimSpace(cfg.ApplicationDraftStoreMode) {
+	case "", "memory_dev":
+	case "sqlite_dev":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationDraftDevHTTPEnabled || !cfg.ApplicationDraftDevWriteEnabled {
+			return fmt.Errorf("application draft sqlite_dev store requires complete development gates")
+		}
+	case "postgres_dev_test":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationDraftDevHTTPEnabled || !cfg.ApplicationDraftDevWriteEnabled || strings.TrimSpace(cfg.ApplicationDraftDatabaseURL) == "" {
+			return fmt.Errorf("application draft postgres_dev_test store requires complete development gates and a database URL")
+		}
+	default:
+		return fmt.Errorf("application draft store must be memory_dev, sqlite_dev, or postgres_dev_test")
+	}
+	if cfg.ApplicationDraftDatabaseTimeout <= 0 {
+		return fmt.Errorf("application draft database timeout must be positive")
+	}
+	if cfg.ApplicationPublishDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return fmt.Errorf("application publish dev HTTP requires control plane read dev auth")
+	}
+	if cfg.ApplicationPublishDevHTTPEnabled && !cfg.ApplicationDraftDevHTTPEnabled {
+		return fmt.Errorf("application publish dev HTTP requires application draft dev HTTP")
+	}
+	if cfg.ApplicationPublishDevWriteEnabled && !cfg.ApplicationPublishDevHTTPEnabled {
+		return fmt.Errorf("application publish dev write requires application publish dev HTTP")
+	}
+	if cfg.ApplicationPublishDevWriteEnabled && !cfg.ApplicationDraftDevWriteEnabled {
+		return fmt.Errorf("application publish dev write requires application draft dev write")
+	}
+	switch strings.TrimSpace(cfg.ApplicationPublishStoreMode) {
+	case "", "memory_dev":
+	case "sqlite_dev":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationDraftDevHTTPEnabled || !cfg.ApplicationDraftDevWriteEnabled ||
+			strings.TrimSpace(cfg.ApplicationDraftStoreMode) != "sqlite_dev" || !cfg.ApplicationPublishDevHTTPEnabled || !cfg.ApplicationPublishDevWriteEnabled {
+			return fmt.Errorf("application publish sqlite_dev store requires complete development gates and sqlite_dev application draft store")
+		}
+	case "postgres_dev_test":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationDraftDevHTTPEnabled || !cfg.ApplicationDraftDevWriteEnabled ||
+			strings.TrimSpace(cfg.ApplicationDraftStoreMode) != "postgres_dev_test" || strings.TrimSpace(cfg.ApplicationDraftDatabaseURL) == "" ||
+			!cfg.ApplicationPublishDevHTTPEnabled || !cfg.ApplicationPublishDevWriteEnabled || strings.TrimSpace(cfg.ApplicationPublishDatabaseURL) == "" {
+			return fmt.Errorf("application publish postgres_dev_test store requires complete development gates and postgres_dev_test application draft store")
+		}
+	default:
+		return fmt.Errorf("application publish store must be memory_dev, sqlite_dev, or postgres_dev_test")
+	}
+	if cfg.ApplicationPublishDatabaseTimeout <= 0 {
+		return fmt.Errorf("application publish database timeout must be positive")
 	}
 	if cfg.ApplicationCatalogDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return fmt.Errorf("application catalog dev HTTP requires control plane read dev auth")

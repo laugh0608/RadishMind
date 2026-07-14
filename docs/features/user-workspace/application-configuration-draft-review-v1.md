@@ -10,6 +10,8 @@
 
 Web 49 项测试与生产构建、平台全量 Go 测试和 PostgreSQL 集成套件通过。真实浏览器以 `app_docs_assistant` 加载 6 个模型，保存版本 1，在第二标签页保存版本 2，第一标签页触发冲突并显式恢复；随后完成 Responses 单次响应、流式响应、用户取消，并以同一 `request_id` 打开 `408 / BRIDGE_WORKER_CANCELED / postgres_dev_test` 请求历史详情。控制台为 0 个错误 / 0 个警告，URL 只含稳定区段锚点，`localStorage` / `sessionStorage` 为空。
 
+2026-07-14 已补齐 SQLite 开发持久化：配置草案通过共享 runtime 使用独立 migration 和 repository，保持作用域、稳定列表、创建元数据与保存 CAS；memory / SQLite 运行同组契约，真实文件覆盖多连接并发、关闭失败、重启恢复和敏感材料禁入。该能力只服务统一 `sqlite_dev` 规划，不改变既有 PostgreSQL 手动迁移与生产停止线。
+
 ## 功能目标
 
 让内部开发者从当前用户工作区应用建立独立配置草案，完成编辑、模型与协议校验、开发测试态保存、恢复、版本冲突审查和配置差异比较，并把已校验的应用、协议和模型交给现有 API 接入工作区与 Gateway 调试台。
