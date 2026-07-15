@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-07-13
+更新时间：2026-07-15
 
 ## 核心定义
 
@@ -95,7 +95,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 - 面向 API 调用者和上层服务。
 - 提供 OpenAI-compatible / Responses / Messages / Models 等 northbound API，统一分发到多 provider、多 profile 和多模型。
 - 支持后续的 API key 分发、配额、限流、成本统计、trace、fallback / load balancing 和 provider health。
-- 当前 `apps/radishmind-web/` 已提供普通离线 Model Gateway Overview、Route Evidence、Usage/Audit Evidence 与 Evidence Review / Readiness，只解释 provider/profile、route、key / quota、trace、audit、risk 和 locked capability 证据，不执行真实分发能力。
+- 当前 `apps/radishmind-web/` 的普通离线 Model Gateway Overview、Route Evidence、Usage/Audit Evidence 与 Evidence Review / Readiness 只解释 provider/profile、route、key / quota、trace、audit、risk 和 locked capability 证据；显式开发测试态 Playground 已可通过应用 API 密钥调用既有 northbound API 并按 request id 审查脱敏历史，但不代表生产分发能力成立。
 - 模型 API 分发方向参考 `sub2api` 与 `axonhub`，但必须保留本仓库的 provider registry、审计和生产停止线。
 
 4. `Workflow / Agent Runtime`
@@ -103,8 +103,8 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 - 面向 AI 应用执行。
 - 承载 Prompt、LLM、HTTP tool、RAG retrieval、condition、output、后续受控 code / sandbox 与 agent loop。
 - 每次运行都应有 trace、输入输出摘要、成本、错误分类和风险边界。
-- `workflow-definition-run-record-boundary` 只把 workflow definition、run record、node execution、tool audit、result materialization、confirmation decision、状态流转、失败分类、审计证据和停止线固定为治理证据，不代表 executor、confirmation、writeback 或 replay 已实现。
-- `Workflow / Agent Runtime Function Surface v1` 已把现阶段可推进功能面限定为 application detail、workflow definition detail、run detail、tool action preview、confirmation placeholder、Draft Designer、offline validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector、Workflow Review Workspace、User Workspace Home 和 Workflow Review Handoff 的只读 / blocked / local-only surface，优先走 fixture 或 fake-store dev path。它们只展示 selected context、draft、validation、plan、readiness、scenario、blocked capability、stop line、route / request / audit metadata、review rollup 和 human review handoff；Draft Designer 可做受控本地编辑、本地结构编辑、节点属性编辑，并在显式 dev-only 配置下保存 / 读取 / 校验 / 列出 memory dev draft。保存遇到 `version_conflict` 时，产品语义是保留本地 active draft、刷新当前 application 的 saved draft list、允许继续本地草案或显式恢复 saved version，并在 Review Handoff 展示 advisory-only conflict summary；它不是 auto merge、auto overwrite 或执行解锁。User Workspace Home 可恢复 saved dev draft，Review Handoff 可显示 active draft review record，但不提供 durable draft persistence、validation / execution plan / readiness / scenario / review / handoff persistence、publish、executor、confirmation decision、writeback 或 replay。
+- `workflow-definition-run-record-boundary` 继续定义 workflow definition、run record、node execution、tool audit、result materialization、confirmation decision、状态流转、失败分类、审计证据和停止线；当前 executor v0 只实现开发测试态 Prompt / LLM / condition / output 与持久运行历史，tool、confirmation、writeback 和 replay 仍未实现。
+- `Workflow / Agent Runtime Function Surface v1` 的离线审查面、Draft Designer、Review Handoff 与 Node Designer 已完成；Saved Draft 具备 memory / SQLite / PostgreSQL 开发测试态持久化、冲突恢复与重启复验，executor v0 具备受控运行、持久历史、失败审查、运行比较和评测审查。下一项先设计受控 HTTP Tool 与人工确认执行，不能从既有 placeholder、readiness 或 executor v0 直接解锁高风险动作。
 - 上层挂载点未成熟时，workflow 产品面继续先做离线草案设计、结构检查、execution plan preview、readiness 展示、场景解释、review workspace 和 blocked capability 说明；这些产品能力应复用未来真实接入所需的 canonical contract 和停止线，而不是等待 `RadishFlow` 或 `Radish` 提供承接入口后才开始。
 - 高风险 tool/action 默认 `requires_confirmation`，不得直接写上层业务真相源。
 

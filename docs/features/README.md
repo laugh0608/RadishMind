@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-15 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md) 确定性运行时也已完成；真实 Radish 联调已主动延后。[本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md) 已完成七组件 repository、聚合 shared runtime、跨平台本地启动档与 SQLite 连续产品链；[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已完成双数据库门禁、Web 一次性交接、真实浏览器连续验收和重启复验，专题关闭。当前下一项先选择并更新新的功能设计目标；生产认证、工作区成员关系、正式晋级、生产 API 密钥、配额与计费仍关闭。
+2026-07-15 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md) 确定性运行时也已完成；真实 Radish 联调已主动延后。[本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md) 已完成七组件 repository、聚合 shared runtime、跨平台本地启动档与 SQLite 连续产品链；[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已完成双数据库门禁、Web 一次性交接、真实浏览器连续验收和重启复验，专题关闭。下一项在 [Workflow / Agent Runtime](workflow-agent-runtime.md) 下先设计“Workflow 受控 HTTP Tool 与人工确认执行（开发/测试态）v1”，通过边界评审后再拆实现；生产认证、工作区成员关系、正式晋级、生产 API 密钥、配额与计费仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。

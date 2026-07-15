@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-07-14
+更新时间：2026-07-15
 
 ## 这份文档讲什么
 
@@ -69,7 +69,7 @@
 
 2026-07-12 覆盖：Gateway Request History、Application Configuration Draft、Application Publish Candidate 和 Admin Tenant / Audit read 均支持显式 PostgreSQL dev/test repository、manual migration、marker / checksum、runtime role、no-fallback 与重启恢复。Control Plane auth 已支持 signed test token 和 `radish_oidc_integration_test`；后者只开放 Tenant Summary / Audit，workspace operation 因 membership 未成立而 fail closed。真实 Radish 联调已 deferred，不把 deterministic issuer 或本地浏览器路径解释为真实接入。
 
-2026-07-14 覆盖：应用目录、配置草案、发布候选、API 密钥、Gateway 请求历史、工作流草案和工作流运行已由同一个 `sqlite_dev` shared runtime 承载，并通过跨平台 `local-product` 启动档、同一应用作用域 HTTP 连续链和重启恢复。显式 `configured` 档下的真实 PostgreSQL migration、角色隔离、类型 / 索引、advisory lock、多连接并发、竞态、重启恢复与 no-fallback 门禁也已通过。当前下一项是 API 密钥 Web 一次性交接与浏览器连续验收；production repository、生产认证、生产密钥、配额和计费仍未开放。
+2026-07-15 覆盖：应用目录、配置草案、发布候选、API 密钥、Gateway 请求历史、工作流草案和工作流运行已由同一个 `sqlite_dev` shared runtime 承载，并通过跨平台 `local-product` 启动档、同一应用作用域 HTTP 连续链和重启恢复。显式 `configured` 档下的真实 PostgreSQL migration、角色隔离、类型 / 索引、advisory lock、多连接并发、竞态、重启恢复与 no-fallback 门禁也已通过。API 密钥 Web 一次性交接、Bearer 调试台、脱敏历史、真实浏览器连续验收和重启复验已经完成；下一项先设计 Workflow 受控 HTTP Tool 与人工确认执行，production repository、生产认证、生产密钥、配额和计费仍未开放。
 
 `contracts/radish-oidc-token-validation.schema.json` 固定 future workspace membership / repository actor context 的 verified token context 脱敏投影。它只允许 `issuer_ref`、`subject_ref`、`tenant_ref`、audience / scope / workspace / application refs、时间戳、policy version、request id 和 audit ref，显式拒绝 raw token / claims、cookie、JWKS dump、membership raw record 和 secret。当前 Admin OIDC runtime 使用内部 sanitized `VerifiedControlPlaneIdentity`，不会用该 schema 绕过 workspace membership；两者关系见 [Radish OIDC Token Validation 契约](contracts/radish-oidc-token-validation.md)。
 
@@ -197,7 +197,7 @@ console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local
 
 ### 3.7 运行产品 UI shell（开发测试态）
 
-正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它默认离线，显式 dev-only 模式可分别连接 Control Plane Read、Saved Draft / Executor、Gateway Playground / History、Application Catalog、Application Configuration Draft 和 Application Publish Review。Application Catalog 已支持创建、编辑和归档；API 密钥页面仍只展示脱敏摘要，签发、Gateway Bearer 认证与吊销应按[应用目录与 API 密钥开发测试指南](features/user-workspace/application-catalog-api-key-dev-test-guide.md)通过 HTTP API 验证。RadishFlow Copilot 与 Radish Docs Assistant 的离线样例仍由统一 fixture 防止漂移；任何 dev/test live path 都不能解释为 production API consumer、正式 application 发布、生产 API key / quota、production repository 或完整 workflow runtime ready。
+正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它默认离线，显式 dev-only 模式可分别连接 Control Plane Read、Saved Draft / Executor、Gateway Playground / History、Application Catalog、Application Configuration Draft 和 Application Publish Review。Application Catalog 已支持创建、编辑和归档；API 密钥页面已支持应用作用域签发、一次性交接、详情、吊销和到 Gateway Playground 的内存凭据交接，后续列表与详情仍只展示脱敏摘要。RadishFlow Copilot 与 Radish Docs Assistant 的离线样例继续由统一 fixture 防止漂移；任何 dev/test live path 都不能解释为 production API consumer、正式 application 发布、生产 API key / quota、production repository 或完整 workflow runtime ready。
 
 日常预览或前后端联调优先使用仓库根目录启动脚本，不再手动拼接环境变量：
 
@@ -212,7 +212,7 @@ Windows / PowerShell 使用：
 pwsh ./start.ps1 -Command web-live
 ```
 
-`web-live` 会启动或复用 Platform 与产品 UI。按使用目标显式组合 `--saved-draft-dev` / `--saved-draft-postgres-dev-test`、`--gateway-request-postgres-dev-test`、`--application-draft-dev`、`--application-publish-dev`、`--application-publish-postgres-dev-test` 或 `--application-catalog-postgres-dev-test`；launcher 会设置对应 HTTP/write gate、consumer source 和 migration status preflight。完整命令见 [Web README](../apps/radishmind-web/README.md)。它不是 production supervisor，不启用 production auth、正式 promotion、API 密钥 Web 生命周期、quota enforcement、tool、confirmation、writeback 或 replay。
+`web-live` 会启动或复用 Platform 与产品 UI。按使用目标显式组合 `--saved-draft-dev` / `--saved-draft-postgres-dev-test`、`--gateway-request-postgres-dev-test`、`--application-draft-dev`、`--application-publish-dev`、`--application-publish-postgres-dev-test`、`--application-catalog-postgres-dev-test` 或 `--api-key-local-product`；launcher 会设置对应 HTTP/write gate、consumer source 和 migration status preflight。完整命令见 [Web README](../apps/radishmind-web/README.md)。它不是 production supervisor，不启用 production auth、正式 promotion、quota enforcement、tool、confirmation、writeback 或 replay。
 
 如果 macOS `Control Center` / AirPlay 占用了默认 backend 端口 `7000`，改用备用本地端口启动：
 
