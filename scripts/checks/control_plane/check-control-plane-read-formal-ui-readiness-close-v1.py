@@ -118,7 +118,7 @@ EXPECTED_SURFACES = {
         "required_scope": "api_keys:read",
         "source_file": "apps/radishmind-web/src/features/control-plane-read/workspaceApiKeys.ts",
         "builder": "buildWorkspaceApiKeysViewModel",
-        "summary_binding": "apiKeys",
+        "summary_binding": "workspaceApiKeys",
     },
     "workspace-usage-quota": {
         "surface": "User Workspace",

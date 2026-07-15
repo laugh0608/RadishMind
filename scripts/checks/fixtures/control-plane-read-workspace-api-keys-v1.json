@@ -94,6 +94,7 @@
     "apps/radishmind-web/src/features/control-plane-read/adminTenantOverview.ts",
     "apps/radishmind-web/src/features/control-plane-read/workspaceApplications.ts",
     "apps/radishmind-web/src/features/control-plane-read/workspaceApiKeys.ts",
+    "apps/radishmind-web/src/features/control-plane-read/apiKeyLifecyclePanel.tsx",
     "apps/radishmind-web/src/styles.css",
     "apps/radishmind-web/package.json"
   ],

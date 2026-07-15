@@ -15,13 +15,16 @@ import { MODEL_GATEWAY_REQUEST_REVIEW_EVENT, type ModelGatewayRequestReviewEvent
 const baseConfig = readModelGatewayRequestHistoryConfig();
 
 export default function ModelGatewayRequestHistoryPanel() {
-  const [applicationId, setApplicationId] = useState(baseConfig.applicationId);
+  const [reviewScope, setReviewScope] = useState({
+    applicationId: baseConfig.applicationId,
+    consumerRef: baseConfig.consumerRef,
+  });
   const [filter, setFilter] = useState<GatewayRequestHistoryFilter>(EMPTY_GATEWAY_REQUEST_HISTORY_FILTER);
   const [history, setHistory] = useState(() => initialGatewayRequestHistoryState(baseConfig));
   const [selectedRequestId, setSelectedRequestId] = useState("");
   const [detail, setDetail] = useState<GatewayRequestHistoryDetail | null>(null);
   const [detailFailure, setDetailFailure] = useState("");
-  const config = useMemo(() => ({ ...baseConfig, applicationId }), [applicationId]);
+  const config = useMemo(() => ({ ...baseConfig, ...reviewScope }), [reviewScope]);
 
   const load = useCallback(async (cursor = "", append = false) => {
     if (config.mode !== "dev_gateway_request_history_http") return;
@@ -46,9 +49,10 @@ export default function ModelGatewayRequestHistoryPanel() {
     function reviewPlaygroundRequest(event: Event) {
       const requestId = (event as CustomEvent<ModelGatewayRequestReviewEventDetail>).detail?.requestId?.trim();
       const nextApplicationId = (event as CustomEvent<ModelGatewayRequestReviewEventDetail>).detail?.applicationId?.trim();
+      const nextConsumerRef = (event as CustomEvent<ModelGatewayRequestReviewEventDetail>).detail?.consumerRef?.trim() || baseConfig.consumerRef;
       if (!requestId || !nextApplicationId || baseConfig.mode !== "dev_gateway_request_history_http") return;
-      const reviewConfig = { ...baseConfig, applicationId: nextApplicationId };
-      setApplicationId(nextApplicationId);
+      const reviewConfig = { ...baseConfig, applicationId: nextApplicationId, consumerRef: nextConsumerRef };
+      setReviewScope({ applicationId: nextApplicationId, consumerRef: nextConsumerRef });
       setFilter(EMPTY_GATEWAY_REQUEST_HISTORY_FILTER);
       setSelectedRequestId(requestId);
       setDetail(null);

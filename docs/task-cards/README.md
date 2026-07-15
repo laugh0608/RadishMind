@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-1. [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1-plan.md)：领域、Gateway 认证、SQLite 本地产品链与 PostgreSQL 专项门禁已完成；下一批实现 Web 一次性交接、调试台内存交接、吊销与浏览器连续验收。
+1. [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1-plan.md)：领域、Gateway 认证、双数据库门禁、Web 一次性交接、调试台内存交接、吊销与浏览器连续验收均已完成，任务卡关闭。
 2. [本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1-plan.md)：S1、S2 与 S3 双数据库后端证据已完成；后续浏览器验收随 API 密钥 Web 批次统一执行，不再派生数据库同层任务卡。
 3. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R5 包体预算已进入现有 Vite build；后续继续处理低覆盖包，R6 随功能批次收敛入口文档和历史 checker 耦合。
 

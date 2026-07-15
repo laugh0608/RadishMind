@@ -61,6 +61,35 @@ test("Control Plane read consumer preserves sanitized non-2xx envelopes", async 
   }
 });
 
+test("Control Plane read consumer scopes catalog and API key lifecycle routes to the active workspace", async () => {
+  const originalFetch = globalThis.fetch;
+  const urls: string[] = [];
+  globalThis.fetch = async (input) => {
+    urls.push(String(input));
+    return new Response(JSON.stringify({
+      request_id: "request-workspace-scope",
+      tenant_ref: "tenant_demo",
+      items: [],
+      next_cursor: null,
+      failure_code: null,
+      audit_ref: "audit-workspace-scope",
+    }), { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+  try {
+    await loadControlPlaneReadDevLiveCollections({
+      ...live,
+      applicationCatalogEnabled: true,
+      apiKeyLifecycleEnabled: true,
+      workspaceId: "workspace_browser",
+    });
+    assert.equal(urls.some((url) => url.endsWith("/v1/user-workspace/applications?workspace_id=workspace_browser&lifecycle_state=active&limit=100")), true);
+    assert.equal(urls.some((url) => url.endsWith("/v1/user-workspace/api-keys?workspace_id=workspace_browser&limit=100")), true);
+    assert.equal(urls.some((url) => url.endsWith("/v1/user-workspace/api-keys")), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("Control Plane read consumer rejects a non-envelope HTTP failure", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response(JSON.stringify({ error: "raw upstream detail" }), {

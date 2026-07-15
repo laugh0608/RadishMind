@@ -79,9 +79,6 @@ import {
 } from "../features/control-plane-read/workflowApplicationDetail";
 import {
   buildWorkspaceApiKeysViewModel,
-  type WorkspaceApiKeyRow,
-  type WorkspaceApiKeysMetric,
-  type WorkspaceApiKeysStatePreview,
 } from "../features/control-plane-read/workspaceApiKeys";
 import {
   buildWorkspaceUsageQuotaViewModel,
@@ -207,6 +204,7 @@ const ApplicationApiIntegrationPanel = lazy(() => import("../features/control-pl
 const ApplicationConfigurationDraftPanel = lazy(() => import("../features/control-plane-read/applicationConfigurationDraftPanel"));
 const ApplicationPublishCandidatePanel = lazy(() => import("../features/control-plane-read/applicationPublishCandidatePanel"));
 const ApplicationCatalogPanel = lazy(() => import("../features/control-plane-read/applicationCatalogPanel").then((module) => ({ default: module.ApplicationCatalogPanel })));
+const APIKeyLifecyclePanel = lazy(() => import("../features/control-plane-read/apiKeyLifecyclePanel").then((module) => ({ default: module.APIKeyLifecyclePanel })));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
 const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
 
@@ -1363,7 +1361,11 @@ export function App() {
           onRestoreSavedDraft={handleRestoreSavedWorkflowDraft}
         />
         <Suspense fallback={<section className="surface-band"><p>Loading Gateway Playground…</p></section>}>
-          <ModelGatewayPlaygroundPanel />
+          <ModelGatewayPlaygroundPanel
+            selectedApplicationId={applicationCatalogLive
+              ? selectedApplicationCatalogRecord?.applicationId ?? ""
+              : selectedApplication.applicationRef}
+          />
         </Suspense>
         <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
         <ModelGatewayRouteEvidencePanel detail={modelGatewayRouteEvidence} />
@@ -1664,66 +1666,15 @@ export function App() {
           </div>
         </section>
 
-        <section className="surface-band workspace-api-keys" id="workspace-api-keys" aria-labelledby="workspace-api-keys-title">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">User Workspace</p>
-              <h3 id="workspace-api-keys-title">API keys</h3>
-            </div>
-            <StatusBadge tone={workspaceApiKeys.canRenderApiKeys ? "good" : "bad"}>
-              {workspaceApiKeys.canRenderApiKeys ? "read-only ready" : "blocked"}
-            </StatusBadge>
-          </div>
-
-          <div className="api-keys-summary">
-            <article className="api-keys-route">
-              <div className="card-title-row">
-                <div>
-                  <p className="eyebrow">API Key Summary List Route</p>
-                  <h4>{workspaceApiKeys.routeId}</h4>
-                </div>
-                <StatusBadge tone="neutral">{workspaceApiKeys.requiredScope}</StatusBadge>
-              </div>
-              <p className="route-path">{workspaceApiKeys.routePath}</p>
-              <dl className="tenant-meta">
-                <div>
-                  <dt>Model</dt>
-                  <dd>{workspaceApiKeys.readModel}</dd>
-                </div>
-                <div>
-                  <dt>Request</dt>
-                  <dd>{workspaceApiKeys.requestId}</dd>
-                </div>
-                <div>
-                  <dt>Next cursor</dt>
-                  <dd>{workspaceApiKeys.nextCursor ?? "none"}</dd>
-                </div>
-                <div>
-                  <dt>Audit</dt>
-                  <dd>{workspaceApiKeys.auditRef}</dd>
-                </div>
-              </dl>
-            </article>
-
-            <div className="api-keys-metrics" aria-label="Workspace API key metrics">
-              {workspaceApiKeys.metrics.map((metric) => (
-                <ApiKeyMetric key={metric.label} metric={metric} />
-              ))}
-            </div>
-          </div>
-
-          <div className="api-key-list" aria-label="Workspace API keys">
-            {workspaceApiKeys.apiKeys.map((apiKey) => (
-              <ApiKeyRow key={apiKey.apiKeyId} apiKey={apiKey} />
-            ))}
-          </div>
-
-          <div className="api-key-states" aria-label="Workspace API key states">
-            {workspaceApiKeys.statePreviews.map((state) => (
-              <ApiKeyStatePreview key={state.id} state={state} />
-            ))}
-          </div>
-        </section>
+        <Suspense fallback={<section className="surface-band workspace-api-keys"><p>Loading API key lifecycle…</p></section>}>
+          <APIKeyLifecyclePanel
+            key={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}
+            applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
+            applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
+            applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
+            offlineView={workspaceApiKeys}
+          />
+        </Suspense>
 
         <section
           className="surface-band workspace-usage-quota"
@@ -5204,64 +5155,6 @@ function UsageQuotaSnapshot({ snapshot }: { snapshot: WorkspaceUsageQuotaSnapsho
 function UsageQuotaStatePreview({ state }: { state: WorkspaceUsageQuotaStatePreview }) {
   return (
     <article className="usage-quota-state">
-      <div>
-        <strong>{state.label}</strong>
-        <span>{state.status}</span>
-      </div>
-      <p>{state.summary}</p>
-      <small>
-        items {state.itemCount} / failure {state.failureCode}
-      </small>
-    </article>
-  );
-}
-
-function ApiKeyMetric({ metric }: { metric: WorkspaceApiKeysMetric }) {
-  return (
-    <article className="api-key-metric">
-      <span>{metric.label}</span>
-      <strong>{metric.value}</strong>
-      <p>{metric.detail}</p>
-    </article>
-  );
-}
-
-function ApiKeyRow({ apiKey }: { apiKey: WorkspaceApiKeyRow }) {
-  return (
-    <article className="api-key-row">
-      <div className="api-key-row-main">
-        <div>
-          <p className="eyebrow">{apiKey.ownerSubjectRef}</p>
-          <h4>{apiKey.apiKeyId}</h4>
-        </div>
-        <StatusBadge tone={apiKey.state === "active" ? "good" : "neutral"}>{apiKey.state}</StatusBadge>
-      </div>
-      <div className="api-key-scopes" aria-label="API key scopes">
-        {apiKey.scopes.map((scope) => (
-          <code key={scope}>{scope}</code>
-        ))}
-      </div>
-      <dl className="api-key-row-meta">
-        <div>
-          <dt>Created</dt>
-          <dd>{apiKey.createdAt}</dd>
-        </div>
-        <div>
-          <dt>Expires</dt>
-          <dd>{apiKey.expiresAt ?? "not set"}</dd>
-        </div>
-        <div>
-          <dt>Last used</dt>
-          <dd>{apiKey.lastUsedAt ?? "not recorded"}</dd>
-        </div>
-      </dl>
-    </article>
-  );
-}
-
-function ApiKeyStatePreview({ state }: { state: WorkspaceApiKeysStatePreview }) {
-  return (
-    <article className="api-key-state">
       <div>
         <strong>{state.label}</strong>
         <span>{state.status}</span>

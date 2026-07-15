@@ -929,6 +929,228 @@ h4 {
   gap: 10px 14px;
 }
 
+.api-key-lifecycle-scope,
+.api-key-lifecycle-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.api-key-lifecycle-scope article,
+.api-key-issue-form,
+.api-key-one-time-panel,
+.api-key-lifecycle-row,
+.api-key-detail,
+.api-key-lifecycle-empty {
+  min-width: 0;
+  border: 1px solid #d8dee8;
+  border-radius: 10px;
+  padding: 16px;
+  background: #fff;
+}
+
+.api-key-lifecycle-scope span,
+.api-key-issue-form > label,
+.api-key-list-controls label {
+  display: grid;
+  gap: 6px;
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.api-key-lifecycle-scope strong,
+.api-key-lifecycle-scope code {
+  display: block;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+
+.api-key-lifecycle-scope p,
+.api-key-one-time-panel p,
+.api-key-list-summary,
+.api-key-lifecycle-empty p,
+.api-key-detail p {
+  color: #4e5f73;
+  line-height: 1.5;
+}
+
+.api-key-issue-form,
+.api-key-one-time-panel,
+.api-key-detail {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.api-key-card-heading,
+.api-key-list-controls,
+.api-key-row-actions,
+.api-key-one-time-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.api-key-card-heading h4 {
+  margin: 2px 0 0;
+}
+
+.api-key-issue-form input,
+.api-key-list-controls select {
+  min-width: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 9px 10px;
+  background: #fff;
+  color: #243140;
+  font: inherit;
+}
+
+.api-key-issue-form fieldset {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.api-key-issue-form legend {
+  padding: 0 5px;
+  color: #607086;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.api-key-issue-form fieldset label {
+  display: grid;
+  grid-template-columns: auto minmax(110px, auto) minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  color: #4e5f73;
+  font-size: 13px;
+}
+
+.api-key-lifecycle button {
+  border: 1px solid #17643a;
+  border-radius: 7px;
+  padding: 8px 11px;
+  background: #17643a;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.api-key-lifecycle button.secondary-action {
+  border-color: #cbd5e1;
+  background: #fff;
+  color: #243140;
+}
+
+.api-key-lifecycle button.danger-action {
+  border-color: #b43b31;
+  background: #b43b31;
+  color: #fff;
+}
+
+.api-key-lifecycle button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.api-key-one-time-panel {
+  border-color: #d8a846;
+  background: #fffbeb;
+}
+
+.api-key-one-time-token {
+  display: block;
+  max-height: 120px;
+  overflow: auto;
+  border: 1px solid #e6c86b;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+  color: #60420d;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.api-key-list-controls {
+  justify-content: flex-start;
+}
+
+.api-key-list-controls label {
+  min-width: 180px;
+}
+
+.api-key-operation-notice {
+  margin: 0;
+  border-left: 4px solid #8191a4;
+  border-radius: 7px;
+  padding: 10px 12px;
+  background: #f2f5f8;
+  color: #40566e;
+}
+
+.api-key-operation-notice.good {
+  border-color: #2f7d50;
+  background: #edf8f1;
+  color: #17643a;
+}
+
+.api-key-operation-notice.bad {
+  border-color: #b43b31;
+  background: #fff1ef;
+  color: #9a3026;
+}
+
+.api-key-lifecycle-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.api-key-lifecycle-row {
+  display: grid;
+  gap: 12px;
+}
+
+.api-key-lifecycle-row.selected {
+  border-color: #2f6f5f;
+  box-shadow: 0 0 0 2px rgb(47 111 95 / 12%);
+}
+
+.api-key-detail dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .api-key-lifecycle-scope,
+  .api-key-lifecycle-layout,
+  .api-key-detail dl {
+    grid-template-columns: 1fr;
+  }
+
+  .api-key-issue-form fieldset label {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .api-key-issue-form fieldset label span {
+    grid-column: 2;
+  }
+}
+
 .application-catalog-fields label {
   padding-top: 9px;
   color: #40566e;
@@ -1099,9 +1321,54 @@ h4 {
   font-size: 12px;
 }
 
+.gateway-playground-scope p {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.gateway-playground-scope button.secondary-action {
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 7px 10px;
+  background: #fff;
+  color: #243140;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .gateway-playground-scope code {
   overflow-wrap: anywhere;
   color: #17202a;
+}
+
+.gateway-playground-model-catalog {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 9px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.gateway-playground-model-catalog > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.gateway-playground-model-catalog p {
+  margin: 0;
+  color: #4e5f73;
+  line-height: 1.45;
+}
+
+.gateway-playground-model-catalog button {
+  justify-self: start;
 }
 
 .gateway-playground-form textarea {

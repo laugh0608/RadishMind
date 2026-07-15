@@ -2,6 +2,7 @@ export type ModelGatewayPlaygroundProtocol = "chat_completions" | "responses" | 
 
 export type ModelGatewayPlaygroundConfig = {
   mode: "offline" | "dev_gateway_playground_http";
+  authMode: "dev_headers" | "api_key_dev_test";
   baseUrl: string;
   tenantRef: string;
   workspaceId: string;
@@ -9,6 +10,8 @@ export type ModelGatewayPlaygroundConfig = {
   applicationId: string;
   subjectRef: string;
   defaultModel: string;
+  apiKeyId: string;
+  apiKeyToken: string;
 };
 
 export type ModelGatewayPlaygroundInput = {
@@ -56,6 +59,7 @@ export function readModelGatewayPlaygroundConfig(): ModelGatewayPlaygroundConfig
     mode: env.VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE?.trim() === DEV_SOURCE
       ? "dev_gateway_playground_http"
       : "offline",
+    authMode: env.VITE_RADISHMIND_GATEWAY_AUTH_MODE?.trim() === "api_key_dev_test" ? "api_key_dev_test" : "dev_headers",
     baseUrl: normalizeBaseUrl(
       env.VITE_RADISHMIND_GATEWAY_PLAYGROUND_BASE_URL ??
         env.VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_BASE_URL ??
@@ -68,6 +72,8 @@ export function readModelGatewayPlaygroundConfig(): ModelGatewayPlaygroundConfig
     applicationId: env.VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_APPLICATION_ID?.trim() || "",
     subjectRef: env.VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SUBJECT_REF?.trim() || "subject_web_dev",
     defaultModel: env.VITE_RADISHMIND_GATEWAY_PLAYGROUND_MODEL?.trim() || "radishmind-local-dev",
+    apiKeyId: "",
+    apiKeyToken: "",
   };
 }
 
@@ -80,11 +86,17 @@ export function initialModelGatewayPlaygroundResult(config: ModelGatewayPlaygrou
     stream: false,
     outputText: "",
     httpStatus: 0,
-    failureCode: config.mode === "dev_gateway_playground_http" ? "" : "gateway_playground_disabled",
+    failureCode: config.mode !== "dev_gateway_playground_http"
+      ? "gateway_playground_disabled"
+      : config.authMode === "api_key_dev_test" && !config.apiKeyToken
+        ? "gateway_api_key_handoff_required"
+        : "",
     failureBoundary: "",
-    summary: config.mode === "dev_gateway_playground_http"
-      ? "Ready for an explicit dev/test Gateway request."
-      : "Offline mode does not send northbound requests.",
+    summary: config.mode !== "dev_gateway_playground_http"
+      ? "Offline mode does not send northbound requests."
+      : config.authMode === "api_key_dev_test" && !config.apiKeyToken
+        ? "Issue an API key and hand it to this Playground before sending a request."
+        : "Ready for an explicit dev/test Gateway request.",
     historyReviewAvailable: false,
   };
 }
@@ -93,7 +105,29 @@ export function modelGatewayPlaygroundConfigForApplication(
   config: ModelGatewayPlaygroundConfig,
   applicationId: string,
 ): ModelGatewayPlaygroundConfig {
-  return { ...config, applicationId: applicationId.trim() };
+  return { ...config, applicationId: applicationId.trim(), apiKeyId: "", apiKeyToken: "" };
+}
+
+export function modelGatewayPlaygroundConfigForAPIKey(
+  config: ModelGatewayPlaygroundConfig,
+  applicationId: string,
+  apiKeyId: string,
+  apiKeyToken: string,
+): ModelGatewayPlaygroundConfig {
+  const normalizedApplicationId = applicationId.trim();
+  const normalizedAPIKeyId = apiKeyId.trim();
+  const normalizedToken = apiKeyToken.trim();
+  if (!/^[A-Za-z0-9._:-]{1,160}$/u.test(normalizedApplicationId) || !/^key_[a-z2-7]{16}$/u.test(normalizedAPIKeyId) ||
+    !/^rmd_dev_key_[a-z2-7]{16}\.[A-Za-z0-9_-]{43}$/u.test(normalizedToken) || !normalizedToken.includes(normalizedAPIKeyId)) {
+    throw new Error("Gateway API key handoff is invalid.");
+  }
+  return {
+    ...config,
+    authMode: "api_key_dev_test",
+    applicationId: normalizedApplicationId,
+    apiKeyId: normalizedAPIKeyId,
+    apiKeyToken: normalizedToken,
+  };
 }
 
 export function createGatewayPlaygroundRequestId(): string {
@@ -108,6 +142,10 @@ export async function submitModelGatewayPlaygroundRequest(
   onStreamOutput?: (outputText: string) => void,
 ): Promise<ModelGatewayPlaygroundResult> {
   if (config.mode !== "dev_gateway_playground_http") return initialModelGatewayPlaygroundResult(config);
+  if (config.authMode === "api_key_dev_test" && !config.apiKeyToken) {
+    const route = protocolRoute(input.protocol);
+    return failureResult(input, route, 0, "gateway_api_key_handoff_required", "client_auth", "Issue an API key and hand it to the Playground before sending a request.", false);
+  }
   const validationFailure = validatePlaygroundInput(input);
   const route = protocolRoute(input.protocol);
   if (validationFailure) {
@@ -188,13 +226,17 @@ function playgroundHeaders(config: ModelGatewayPlaygroundConfig, requestId: stri
     Accept: "application/json, text/event-stream",
     "Content-Type": "application/json",
     "X-Request-Id": requestId,
-    "X-RadishMind-Dev-Gateway-Tenant": config.tenantRef,
-    "X-RadishMind-Dev-Gateway-Workspace": config.workspaceId,
-    "X-RadishMind-Dev-Gateway-Consumer": config.consumerRef,
-    "X-RadishMind-Dev-Gateway-Subject": config.subjectRef,
-    "X-RadishMind-Dev-Gateway-Scopes": "gateway_requests:invoke,gateway_requests:read",
-    "X-RadishMind-Dev-Gateway-Audit": `audit_${requestId}_playground`,
   };
+  if (config.authMode === "api_key_dev_test") {
+    headers.Authorization = `Bearer ${config.apiKeyToken}`;
+    return headers;
+  }
+  headers["X-RadishMind-Dev-Gateway-Tenant"] = config.tenantRef;
+  headers["X-RadishMind-Dev-Gateway-Workspace"] = config.workspaceId;
+  headers["X-RadishMind-Dev-Gateway-Consumer"] = config.consumerRef;
+  headers["X-RadishMind-Dev-Gateway-Subject"] = config.subjectRef;
+  headers["X-RadishMind-Dev-Gateway-Scopes"] = "gateway_requests:invoke,gateway_requests:read";
+  headers["X-RadishMind-Dev-Gateway-Audit"] = `audit_${requestId}_playground`;
   if (config.applicationId) headers["X-RadishMind-Dev-Gateway-Application"] = config.applicationId;
   return headers;
 }
@@ -220,8 +262,15 @@ async function mapGatewayFailure(
     document.error.code,
     document.error.failure_boundary,
     `Gateway request failed with ${document.error.code}.`,
-    true,
+    gatewayFailureHasHistory(document.error.code),
   );
+}
+
+function gatewayFailureHasHistory(failureCode: string): boolean {
+  return !new Set([
+    "api_key_missing", "api_key_invalid", "api_key_credential_conflict", "api_key_revoked", "api_key_expired",
+    "api_key_scope_denied", "api_key_application_unavailable", "api_key_store_unavailable",
+  ]).has(failureCode);
 }
 
 function extractUnaryOutput(protocol: ModelGatewayPlaygroundProtocol, value: unknown): string {

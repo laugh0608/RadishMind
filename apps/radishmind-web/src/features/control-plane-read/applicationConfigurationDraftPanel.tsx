@@ -18,7 +18,12 @@ import {
   type ApplicationConfigurationDraftOperationState,
 } from "./applicationConfigurationDraftConsumer.ts";
 import type { ApplicationApiProtocol } from "./applicationApiIntegrationConsumer.ts";
-import { requestApplicationApiIntegrationDraftHandoff } from "./applicationApiIntegrationEvents.ts";
+import {
+  APPLICATION_MODEL_CATALOG_READY_EVENT,
+  createApplicationModelCatalogReadyDetail,
+  requestApplicationApiIntegrationDraftHandoff,
+  type ApplicationModelCatalogReadyDetail,
+} from "./applicationApiIntegrationEvents.ts";
 import { requestModelGatewayPlaygroundHandoff } from "./modelGatewayPlaygroundEvents.ts";
 
 const config = readApplicationConfigurationDraftConfig();
@@ -45,6 +50,42 @@ export default function ApplicationConfigurationDraftPanel({ baseline, readOnly 
   }, [baseline.applicationId]);
 
   useEffect(() => () => catalogController.current?.abort(), []);
+
+  useEffect(() => {
+    function receiveValidatedCatalog(event: Event) {
+      const detail = (event as CustomEvent<ApplicationModelCatalogReadyDetail>).detail;
+      try {
+        const normalized = createApplicationModelCatalogReadyDetail(
+          detail?.applicationId ?? "",
+          detail?.models ?? [],
+          detail?.selectedModel ?? "",
+        );
+        if (normalized.applicationId !== baseline.applicationId) return;
+        catalogController.current?.abort();
+        catalogController.current = null;
+        setCatalog({
+          status: "ready",
+          applicationId: normalized.applicationId,
+          models: normalized.models,
+          selectedModel: normalized.selectedModel,
+          failureCode: "",
+          summary: `Reused ${normalized.models.length} models validated by the Gateway Playground.`,
+        });
+        setDraft((current) => ({ ...current, defaultModel: normalized.selectedModel }));
+        setOperation((current) => ({
+          ...current,
+          status: "unsaved",
+          summary: "The Playground model catalog is ready for configuration validation.",
+          failureCode: "",
+          validation: { state: "invalid", isValid: false, findings: [] },
+        }));
+      } catch {
+        return;
+      }
+    }
+    window.addEventListener(APPLICATION_MODEL_CATALOG_READY_EVENT, receiveValidatedCatalog);
+    return () => window.removeEventListener(APPLICATION_MODEL_CATALOG_READY_EVENT, receiveValidatedCatalog);
+  }, [baseline.applicationId]);
 
   const differences = useMemo(() => compareApplicationConfigurationDraft(baseline, draft), [baseline, draft]);
   const currentValidation = useMemo(() => validateApplicationConfigurationDraft(draft, catalog.models), [catalog.models, draft]);

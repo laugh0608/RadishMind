@@ -4,10 +4,18 @@ import {
   createGatewayPlaygroundRequestId,
   initialModelGatewayPlaygroundResult,
   modelGatewayPlaygroundConfigForApplication,
+  modelGatewayPlaygroundConfigForAPIKey,
   readModelGatewayPlaygroundConfig,
   submitModelGatewayPlaygroundRequest,
+  type ModelGatewayPlaygroundConfig,
   type ModelGatewayPlaygroundProtocol,
 } from "./modelGatewayPlaygroundConsumer.ts";
+import {
+  applicationApiIntegrationConfigFromGateway,
+  initialApplicationModelCatalogState,
+  loadApplicationModelCatalog,
+} from "./applicationApiIntegrationConsumer.ts";
+import { requestApplicationModelCatalogReady } from "./applicationApiIntegrationEvents.ts";
 import {
   MODEL_GATEWAY_PLAYGROUND_HANDOFF_EVENT,
   requestGatewayRequestHistoryReview,
@@ -17,17 +25,22 @@ import {
 const baseConfig = readModelGatewayPlaygroundConfig();
 const DEFAULT_INPUT = "请用简洁的中文说明 RadishMind Gateway 当前请求的处理结果。";
 
-export default function ModelGatewayPlaygroundPanel() {
+export default function ModelGatewayPlaygroundPanel({ selectedApplicationId }: { selectedApplicationId: string }) {
   const [applicationId, setApplicationId] = useState(baseConfig.applicationId);
+  const [apiKeyCredential, setAPIKeyCredential] = useState<{ apiKeyId: string; token: string } | null>(null);
   const [protocol, setProtocol] = useState<ModelGatewayPlaygroundProtocol>("chat_completions");
   const [model, setModel] = useState(baseConfig.defaultModel);
   const [inputText, setInputText] = useState(DEFAULT_INPUT);
   const [stream, setStream] = useState(false);
   const [result, setResult] = useState(() => initialModelGatewayPlaygroundResult(baseConfig));
+  const [catalog, setCatalog] = useState(() => initialApplicationModelCatalogState(applicationApiIntegrationConfigFromGateway(baseConfig), baseConfig.applicationId));
   const activeController = useRef<AbortController | null>(null);
+  const activeCatalogController = useRef<AbortController | null>(null);
   const config = useMemo(
-    () => modelGatewayPlaygroundConfigForApplication(baseConfig, applicationId),
-    [applicationId],
+    () => apiKeyCredential
+      ? modelGatewayPlaygroundConfigForAPIKey(baseConfig, applicationId, apiKeyCredential.apiKeyId, apiKeyCredential.token)
+      : modelGatewayPlaygroundConfigForApplication(baseConfig, applicationId),
+    [apiKeyCredential, applicationId],
   );
 
   useEffect(() => {
@@ -36,17 +49,93 @@ export default function ModelGatewayPlaygroundPanel() {
       if (!detail?.applicationId || !detail.model) return;
       activeController.current?.abort();
       activeController.current = null;
-      const nextConfig = modelGatewayPlaygroundConfigForApplication(baseConfig, detail.applicationId);
+      activeCatalogController.current?.abort();
+      activeCatalogController.current = null;
+      const nextCredential = detail.apiKeyCredential ?? null;
+      const nextConfig = nextCredential
+        ? modelGatewayPlaygroundConfigForAPIKey(baseConfig, detail.applicationId, nextCredential.apiKeyId, nextCredential.token)
+        : modelGatewayPlaygroundConfigForApplication(baseConfig, detail.applicationId);
       setApplicationId(detail.applicationId);
+      setAPIKeyCredential(nextCredential);
       setProtocol(detail.protocol);
       setModel(detail.model);
       setInputText(DEFAULT_INPUT);
       setStream(false);
       setResult(initialModelGatewayPlaygroundResult(nextConfig));
+      setCatalog(initialApplicationModelCatalogState(applicationApiIntegrationConfigFromGateway(nextConfig), detail.applicationId));
     }
     window.addEventListener(MODEL_GATEWAY_PLAYGROUND_HANDOFF_EVENT, receiveApplicationHandoff);
     return () => window.removeEventListener(MODEL_GATEWAY_PLAYGROUND_HANDOFF_EVENT, receiveApplicationHandoff);
   }, []);
+
+  useEffect(() => {
+    const normalizedApplicationId = selectedApplicationId.trim();
+    if (normalizedApplicationId === applicationId) return;
+    activeController.current?.abort();
+    activeController.current = null;
+    activeCatalogController.current?.abort();
+    activeCatalogController.current = null;
+    setApplicationId(normalizedApplicationId);
+    setAPIKeyCredential(null);
+    const cleared = modelGatewayPlaygroundConfigForApplication(baseConfig, normalizedApplicationId);
+    setResult(initialModelGatewayPlaygroundResult(cleared));
+    setCatalog(initialApplicationModelCatalogState(applicationApiIntegrationConfigFromGateway(cleared), normalizedApplicationId));
+  }, [applicationId, selectedApplicationId]);
+
+  useEffect(() => {
+    function clearCredentialAfterRouteLeave() {
+      if (window.location.hash === "#model-gateway-playground") return;
+      activeController.current?.abort();
+      activeController.current = null;
+      activeCatalogController.current?.abort();
+      activeCatalogController.current = null;
+      setAPIKeyCredential(null);
+      const cleared = modelGatewayPlaygroundConfigForApplication(baseConfig, applicationId);
+      setResult(initialModelGatewayPlaygroundResult(cleared));
+      setCatalog(initialApplicationModelCatalogState(applicationApiIntegrationConfigFromGateway(cleared), applicationId));
+    }
+    window.addEventListener("hashchange", clearCredentialAfterRouteLeave);
+    return () => window.removeEventListener("hashchange", clearCredentialAfterRouteLeave);
+  }, [applicationId]);
+
+  useEffect(() => () => {
+    activeController.current?.abort();
+    activeCatalogController.current?.abort();
+  }, []);
+
+  async function loadModels(configOverride: ModelGatewayPlaygroundConfig = config) {
+    const controller = new AbortController();
+    activeCatalogController.current?.abort();
+    activeCatalogController.current = controller;
+    setCatalog((current) => ({ ...current, status: "loading", models: [], selectedModel: "", failureCode: "", summary: "Loading the scoped Gateway model catalog." }));
+    try {
+      const next = await loadApplicationModelCatalog(applicationApiIntegrationConfigFromGateway(configOverride), configOverride.applicationId, controller.signal);
+      if (activeCatalogController.current !== controller) return;
+      activeCatalogController.current = null;
+      setCatalog(next);
+      if (next.selectedModel) setModel(next.selectedModel);
+      if (next.status === "ready" && next.selectedModel) {
+        requestApplicationModelCatalogReady(next.applicationId, next.models, next.selectedModel);
+      }
+    } catch (error) {
+      if (activeCatalogController.current !== controller) return;
+      activeCatalogController.current = null;
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        setCatalog((current) => ({ ...current, status: "failed", failureCode: "gateway_model_catalog_network_error", summary: "The Gateway model catalog could not be loaded." }));
+      }
+    }
+  }
+
+  function clearCredential() {
+    activeController.current?.abort();
+    activeController.current = null;
+    activeCatalogController.current?.abort();
+    activeCatalogController.current = null;
+    setAPIKeyCredential(null);
+    const cleared = modelGatewayPlaygroundConfigForApplication(baseConfig, applicationId);
+    setCatalog(initialApplicationModelCatalogState(applicationApiIntegrationConfigFromGateway(cleared), applicationId));
+    setResult(initialModelGatewayPlaygroundResult(cleared));
+  }
 
   async function submit() {
     const controller = new AbortController();
@@ -73,11 +162,16 @@ export default function ModelGatewayPlaygroundPanel() {
   }
 
   function reviewHistory() {
-    requestGatewayRequestHistoryReview(result.requestId, applicationId);
+    requestGatewayRequestHistoryReview(
+      result.requestId,
+      applicationId,
+      apiKeyCredential ? `api_key:${apiKeyCredential.apiKeyId}` : config.consumerRef,
+    );
     window.location.hash = "model-gateway-request-history";
   }
 
   const enabled = config.mode === "dev_gateway_playground_http";
+  const credentialReady = config.authMode === "dev_headers" || Boolean(apiKeyCredential);
   return (
     <section className="surface-band model-gateway-overview gateway-playground" id="model-gateway-playground" aria-labelledby="model-gateway-playground-title">
       <div className="section-heading">
@@ -91,16 +185,23 @@ export default function ModelGatewayPlaygroundPanel() {
       ) : (
         <div className="gateway-playground-layout">
           <form className="gateway-playground-form" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
-            <p className="gateway-playground-scope"><strong>Application scope</strong><code>{applicationId || "unbound"}</code></p>
+            <div className="gateway-playground-scope"><p><strong>Application scope</strong><code>{applicationId || "unbound"}</code></p><p><strong>Authentication</strong><code>{config.authMode === "api_key_dev_test" ? apiKeyCredential?.apiKeyId ?? "handoff required" : "dev headers"}</code></p>{apiKeyCredential ? <button type="button" className="secondary-action" onClick={clearCredential}>Clear credential</button> : null}</div>
+            <div className="gateway-playground-model-catalog">
+              <div><p className="eyebrow">Scoped model catalog</p><span className={`status-badge ${catalog.status === "ready" ? "good" : catalog.status === "failed" ? "bad" : "neutral"}`}>{catalog.status}</span></div>
+              <p>{catalog.summary}</p>
+              <button type="button" onClick={() => void loadModels()} disabled={!applicationId || !credentialReady || catalog.status === "loading"}>{catalog.status === "loading" ? "Loading models…" : "Load models"}</button>
+              {catalog.models.length ? <label>Validated model<select value={catalog.selectedModel} onChange={(event) => { const selectedModel = event.target.value; setCatalog((current) => ({ ...current, selectedModel })); setModel(selectedModel); }}>{catalog.models.map((item) => <option key={item.id} value={item.id}>{item.id}</option>)}</select></label> : null}
+              {catalog.failureCode ? <p className="failure-summary">{catalog.failureCode}: {catalog.summary}</p> : null}
+            </div>
             <label>Protocol<select value={protocol} onChange={(event) => setProtocol(event.target.value as ModelGatewayPlaygroundProtocol)} disabled={result.status === "submitting"}><option value="chat_completions">Chat Completions</option><option value="responses">Responses</option><option value="messages">Messages</option></select></label>
             <label>Model<input value={model} onChange={(event) => setModel(event.target.value)} maxLength={160} disabled={result.status === "submitting"} /></label>
             <label className="gateway-playground-input">Temporary input<textarea value={inputText} onChange={(event) => setInputText(event.target.value)} maxLength={8000} rows={7} disabled={result.status === "submitting"} /></label>
             <label className="gateway-playground-stream"><input type="checkbox" checked={stream} onChange={(event) => setStream(event.target.checked)} disabled={result.status === "submitting"} /> Stream response</label>
             <div className="gateway-playground-actions">
-              <button type="submit" disabled={result.status === "submitting"}>Send request</button>
+              <button type="submit" disabled={result.status === "submitting" || !credentialReady}>Send request</button>
               <button type="button" onClick={cancel} disabled={result.status !== "submitting"}>Cancel</button>
             </div>
-            <p className="boundary-note">Input and output stay in this component and the active HTTP request. They are not saved to Request History or browser storage.</p>
+            <p className="boundary-note">Input, output, and any handed-off API key stay in this component and active HTTP requests. The credential is cleared when leaving this route and is never written to browser storage.</p>
           </form>
           <article className="gateway-playground-result" aria-live="polite">
             <div className="model-gateway-overview-row-main">

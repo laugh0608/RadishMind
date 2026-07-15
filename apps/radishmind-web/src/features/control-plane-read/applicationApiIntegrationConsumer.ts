@@ -1,15 +1,20 @@
-import { readModelGatewayPlaygroundConfig } from "./modelGatewayPlaygroundConsumer.ts";
+import {
+  readModelGatewayPlaygroundConfig,
+  type ModelGatewayPlaygroundConfig,
+} from "./modelGatewayPlaygroundConsumer.ts";
 
 export type ApplicationApiProtocol = "chat_completions" | "responses" | "messages";
 export type ApplicationApiExampleLanguage = "curl" | "python" | "typescript";
 
 export type ApplicationApiIntegrationConfig = {
   mode: "offline" | "dev_application_api_http";
+  authMode: "dev_headers" | "api_key_dev_test";
   baseUrl: string;
   tenantRef: string;
   workspaceId: string;
   consumerRef: string;
   subjectRef: string;
+  apiKeyToken: string;
 };
 
 export type ApplicationModelCatalogItem = {
@@ -49,13 +54,21 @@ class ModelCatalogResponseInvalidError extends Error {}
 
 export function readApplicationApiIntegrationConfig(): ApplicationApiIntegrationConfig {
   const gateway = readModelGatewayPlaygroundConfig();
+  return applicationApiIntegrationConfigFromGateway(gateway);
+}
+
+export function applicationApiIntegrationConfigFromGateway(
+  gateway: ModelGatewayPlaygroundConfig,
+): ApplicationApiIntegrationConfig {
   return {
     mode: gateway.mode === "dev_gateway_playground_http" ? "dev_application_api_http" : "offline",
+    authMode: gateway.authMode,
     baseUrl: gateway.baseUrl,
     tenantRef: gateway.tenantRef,
     workspaceId: gateway.workspaceId,
     consumerRef: gateway.consumerRef,
     subjectRef: gateway.subjectRef,
+    apiKeyToken: gateway.apiKeyToken,
   };
 }
 
@@ -95,6 +108,9 @@ export async function loadApplicationModelCatalog(
   }
   if (!isSafeScopeValue(normalizedApplicationId)) {
     return failedCatalogState(normalizedApplicationId, "gateway_model_catalog_scope_invalid", "The selected application scope is invalid.");
+  }
+  if (config.authMode === "api_key_dev_test" && !config.apiKeyToken) {
+    return failedCatalogState(normalizedApplicationId, "gateway_api_key_handoff_required", "Issue an API key and hand it to the Playground before loading models.");
   }
 
   let response: Response;
@@ -235,17 +251,22 @@ function modelCatalogHeaders(
   applicationId: string,
   requestId: string,
 ): HeadersInit {
-  return {
+  const headers: Record<string, string> = {
     Accept: "application/json",
     "X-Request-Id": requestId,
-    "X-RadishMind-Dev-Gateway-Tenant": config.tenantRef,
-    "X-RadishMind-Dev-Gateway-Workspace": config.workspaceId,
-    "X-RadishMind-Dev-Gateway-Consumer": config.consumerRef,
-    "X-RadishMind-Dev-Gateway-Application": applicationId,
-    "X-RadishMind-Dev-Gateway-Subject": config.subjectRef,
-    "X-RadishMind-Dev-Gateway-Scopes": "models:read,gateway_requests:invoke,gateway_requests:read",
-    "X-RadishMind-Dev-Gateway-Audit": `audit_${requestId}_model_catalog`,
   };
+  if (config.authMode === "api_key_dev_test") {
+    headers.Authorization = `Bearer ${config.apiKeyToken}`;
+    return headers;
+  }
+  headers["X-RadishMind-Dev-Gateway-Tenant"] = config.tenantRef;
+  headers["X-RadishMind-Dev-Gateway-Workspace"] = config.workspaceId;
+  headers["X-RadishMind-Dev-Gateway-Consumer"] = config.consumerRef;
+  headers["X-RadishMind-Dev-Gateway-Application"] = applicationId;
+  headers["X-RadishMind-Dev-Gateway-Subject"] = config.subjectRef;
+  headers["X-RadishMind-Dev-Gateway-Scopes"] = "models:read,gateway_requests:invoke,gateway_requests:read";
+  headers["X-RadishMind-Dev-Gateway-Audit"] = `audit_${requestId}_model_catalog`;
+  return headers;
 }
 
 function requestBodySource(protocol: ApplicationApiProtocol, model: string): Record<string, unknown> {

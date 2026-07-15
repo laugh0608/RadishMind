@@ -1,12 +1,12 @@
 # 用户工作区细专题入口
 
-更新时间：2026-07-13
+更新时间：2026-07-15
 
 本目录承接用户工作区中跨应用、模型发现、接入、调用与审查的具体功能专题。产品面长期边界继续以 [用户工作区设计与开发文档](../user-workspace.md) 为准。
 
 ## 当前专题
 
-- [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1.md)：Gateway 认证、统一 `sqlite_dev` repository / 聚合 runtime、本地产品连续链与真实 PostgreSQL 专项门禁已完成；下一批进入 Web 一次性交接与浏览器连续验收。
+- [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1.md)：Gateway 认证、统一 `sqlite_dev` repository / 聚合 runtime、双数据库门禁、Web 一次性交接、真实浏览器连续路径、重启恢复与敏感信息复验均已完成，专题关闭。
 - [应用目录与生命周期（开发/测试态）v1](application-catalog-lifecycle-dev-test-v1.md)：核心生命周期、内存与 PostgreSQL 开发测试态存储、Web 管理、下游归档只读约束和真实浏览器连续验收均已完成。
 - [应用 API 接入与调用 v1](application-api-integration-invocation-v1.md)：把选中应用、`/v1/models` 模型目录、三协议接入示例、现有 Gateway 调试台调用与脱敏请求历史审查串成连续的内部开发者路径。
 - [应用配置草案与审查 v1](application-configuration-draft-review-v1.md)：为当前应用建立独立配置草案、校验、开发测试态持久化、版本冲突、比较和 API 接入交接。
@@ -14,7 +14,7 @@
 
 ## 下一步
 
-- 按[本地 SQLite 开发持久化 v1](../../platform/local-sqlite-dev-persistence-v1.md)打开跨平台本地启动档并完成 SQLite 本地连续链路，再按 [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1.md) 和[实施任务卡](../../task-cards/api-key-lifecycle-gateway-dev-test-auth-v1-plan.md)执行 PostgreSQL 专属门禁；双数据库验证通过前不进入 Web，也不继续扩同层应用目录面板、检查器或证据切片。OIDC 成员关系未成立时继续失败关闭。
+- API 密钥专题已经完成，不继续扩同层数据库、应用目录、页面、检查器或证据切片。下一次用户工作区开发先选择并更新具体功能设计；OIDC 成员关系未成立时继续失败关闭，生产认证、成员关系、生产 API 密钥、配额与计费不会由本专题自动启用。
 
 ## 目录停止线
 

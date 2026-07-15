@@ -27,6 +27,7 @@ export type ControlPlaneReadDevLiveConfig = {
   authMode?: ControlPlaneReadAuthMode;
   storeMode?: ControlPlaneReadStoreMode;
   applicationCatalogEnabled?: boolean;
+  apiKeyLifecycleEnabled?: boolean;
   workspaceId?: string;
 };
 
@@ -64,6 +65,7 @@ export function readControlPlaneReadDevLiveConfig(): ControlPlaneReadDevLiveConf
     authMode: normalizeAuthMode(env.VITE_RADISHMIND_READ_AUTH_MODE),
     storeMode: env.VITE_RADISHMIND_READ_STORE_MODE?.trim() === "postgres_dev_test" ? "postgres_dev_test" : "fake_store_dev",
     applicationCatalogEnabled: env.VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE?.trim() === "dev-application-catalog-http",
+    apiKeyLifecycleEnabled: env.VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE?.trim() === "dev-api-key-lifecycle-http",
     workspaceId: env.VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID?.trim() || "workspace_demo",
   };
 }
@@ -131,6 +133,9 @@ function devLiveRouteUrl(routeId: ControlPlaneReadRouteId, config: ControlPlaneR
   const path = route.path.replace("{tenant_ref}", encodeURIComponent(config.tenantRef));
   if (routeId === "application-summary-list-route" && config.applicationCatalogEnabled) {
     return `${config.baseUrl}${path}?workspace_id=${encodeURIComponent(config.workspaceId ?? "workspace_demo")}&lifecycle_state=active&limit=100`;
+  }
+  if (routeId === "api-key-summary-list-route" && config.apiKeyLifecycleEnabled) {
+    return `${config.baseUrl}${path}?workspace_id=${encodeURIComponent(config.workspaceId ?? "workspace_demo")}&limit=100`;
   }
   return `${config.baseUrl}${path}`;
 }

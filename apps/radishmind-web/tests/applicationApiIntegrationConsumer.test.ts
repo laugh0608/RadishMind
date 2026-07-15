@@ -11,17 +11,23 @@ import {
   type ApplicationApiProtocol,
 } from "../src/features/control-plane-read/applicationApiIntegrationConsumer.ts";
 import {
+  createApplicationModelCatalogReadyDetail,
+} from "../src/features/control-plane-read/applicationApiIntegrationEvents.ts";
+import {
+  createAPIKeyModelGatewayPlaygroundHandoffDetail,
   createModelGatewayPlaygroundHandoffDetail,
   createModelGatewayRequestReviewDetail,
 } from "../src/features/control-plane-read/modelGatewayPlaygroundEvents.ts";
 
 const offline: ApplicationApiIntegrationConfig = {
   mode: "offline",
+  authMode: "dev_headers",
   baseUrl: "http://127.0.0.1:7000",
   tenantRef: "tenant_demo",
   workspaceId: "workspace_demo",
   consumerRef: "consumer_web_dev",
   subjectRef: "subject_web_dev",
+  apiKeyToken: "",
 };
 const live: ApplicationApiIntegrationConfig = { ...offline, mode: "dev_application_api_http" };
 
@@ -64,6 +70,43 @@ test("Application model catalog validates success and carries current scope", as
     assert.equal(state.applicationId, "app_docs_assistant");
     assert.equal(state.selectedModel, "profile:local-dev");
     assert.deepEqual(state.models[0]?.protocols, ["chat_completions", "responses", "messages"]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Application model catalog uses only Bearer auth after an API key handoff", async () => {
+  const originalFetch = globalThis.fetch;
+  const apiKeyToken = `rmd_dev_key_aaaaaaaaaaaaaaaa.${"A".repeat(43)}`;
+  const apiKeyConfig: ApplicationApiIntegrationConfig = {
+    ...live,
+    authMode: "api_key_dev_test",
+    apiKeyToken,
+  };
+  try {
+    globalThis.fetch = async (_url, init) => {
+      const headers = new Headers(init?.headers);
+      assert.equal(headers.get("Authorization"), `Bearer ${apiKeyToken}`);
+      assert.equal(headers.has("X-RadishMind-Dev-Gateway-Tenant"), false);
+      assert.equal(headers.has("X-RadishMind-Dev-Gateway-Application"), false);
+      return jsonResponse({ object: "list", data: [] }, "models-api-key-request");
+    };
+    const loaded = await loadApplicationModelCatalog(apiKeyConfig, "app_aaaaaaaaaaaaaaaa", undefined, "models-api-key-request");
+    assert.equal(loaded.status, "empty");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Application model catalog does not fetch before API key handoff", async () => {
+  const originalFetch = globalThis.fetch;
+  let called = false;
+  globalThis.fetch = async () => { called = true; throw new Error("unexpected fetch"); };
+  try {
+    const waiting: ApplicationApiIntegrationConfig = { ...live, authMode: "api_key_dev_test", apiKeyToken: "" };
+    const state = await loadApplicationModelCatalog(waiting, "app_aaaaaaaaaaaaaaaa");
+    assert.equal(state.failureCode, "gateway_api_key_handoff_required");
+    assert.equal(called, false);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -125,12 +168,59 @@ test("Application API examples cover all protocol and language pairs without sec
 
 test("Application and request-id handoffs preserve exact scope", () => {
   assert.deepEqual(
+    createApplicationModelCatalogReadyDetail(
+      " app_aaaaaaaaaaaaaaaa ",
+      [{ id: " profile:local-dev ", ownedBy: "radishmind", protocols: ["responses", "responses"] }],
+      " profile:local-dev ",
+    ),
+    {
+      applicationId: "app_aaaaaaaaaaaaaaaa",
+      models: [{ id: "profile:local-dev", ownedBy: "radishmind", protocols: ["responses"] }],
+      selectedModel: "profile:local-dev",
+    },
+  );
+  assert.throws(
+    () => createApplicationModelCatalogReadyDetail(
+      "app_aaaaaaaaaaaaaaaa",
+      [{ id: "profile:local-dev", ownedBy: "radishmind", protocols: ["responses"] }],
+      "missing-model",
+    ),
+    /selection is invalid/,
+  );
+  assert.deepEqual(
     createModelGatewayPlaygroundHandoffDetail(" app_docs_assistant ", "responses", " profile:local-dev "),
     { applicationId: "app_docs_assistant", protocol: "responses", model: "profile:local-dev" },
+  );
+  const apiKeyToken = `rmd_dev_key_aaaaaaaaaaaaaaaa.${"A".repeat(43)}`;
+  assert.deepEqual(
+    createAPIKeyModelGatewayPlaygroundHandoffDetail(
+      "app_aaaaaaaaaaaaaaaa",
+      "key_aaaaaaaaaaaaaaaa",
+      apiKeyToken,
+      "profile:local-dev",
+    ),
+    {
+      applicationId: "app_aaaaaaaaaaaaaaaa",
+      protocol: "responses",
+      model: "profile:local-dev",
+      apiKeyCredential: { apiKeyId: "key_aaaaaaaaaaaaaaaa", token: apiKeyToken },
+    },
   );
   assert.deepEqual(
     createModelGatewayRequestReviewDetail(" playground-request-001 ", " app_docs_assistant "),
     { requestId: "playground-request-001", applicationId: "app_docs_assistant" },
+  );
+  assert.deepEqual(
+    createModelGatewayRequestReviewDetail(
+      " playground-request-002 ",
+      " app_aaaaaaaaaaaaaaaa ",
+      " api_key:key_aaaaaaaaaaaaaaaa ",
+    ),
+    {
+      requestId: "playground-request-002",
+      applicationId: "app_aaaaaaaaaaaaaaaa",
+      consumerRef: "api_key:key_aaaaaaaaaaaaaaaa",
+    },
   );
 });
 

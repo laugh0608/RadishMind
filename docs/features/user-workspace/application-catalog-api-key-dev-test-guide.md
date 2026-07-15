@@ -1,6 +1,6 @@
 # 应用目录与 API 密钥开发测试指南
 
-更新时间：2026-07-14
+更新时间：2026-07-15
 
 ## 适用范围
 
@@ -12,9 +12,9 @@
 4. 检查密钥最近使用时间并吊销密钥。
 5. 验证吊销密钥或归档应用后，调用在进入 bridge / provider 前失败关闭。
 
-当前实现支持 `memory_dev`、默认本地产品档 `sqlite_dev` 与显式 `postgres_dev_test`。它不代表生产身份系统、生产密钥服务、公开生产网关或正式配额计费已经可用。产品 Web 已支持应用目录的创建、编辑和归档；API 密钥签发与吊销目前通过 HTTP API 验证，Web 端仍只展示脱敏摘要。
+当前实现支持 `memory_dev`、默认本地产品档 `sqlite_dev` 与显式 `postgres_dev_test`。它不代表生产身份系统、生产密钥服务、公开生产网关或正式配额计费已经可用。产品 Web 已支持应用目录创建、API 密钥签发与吊销、一次性令牌内存交接，以及使用 Bearer 凭据进入既有 Gateway Playground；真实浏览器连续验收与重启复验已经完成。
 
-2026-07-14 已完成七组件共享 SQLite 本地产品链和真实 PostgreSQL 专项门禁：migration、角色隔离、类型 / 索引、稳定分页、advisory lock、多连接并发、认证 / 吊销与应用归档竞态、重启恢复和 no-fallback 均已通过。下一项是在既有应用目录和 Gateway 调试台上实现 API 密钥 Web 一次性交接，再用真实浏览器验证令牌只存在于当前组件内存且不会进入 URL、浏览器存储、cookie、日志或后续响应。
+2026-07-14 已完成七组件共享 SQLite 本地产品链和真实 PostgreSQL 专项门禁：migration、角色隔离、类型 / 索引、稳定分页、advisory lock、多连接并发、认证 / 吊销与应用归档竞态、重启恢复和 no-fallback 均已通过。2026-07-15 已完成 Web 一次性交接、严格消费端、生产构建和真实浏览器连续链：应用配置、密钥签发、模型发现、单次 / 流式 / 取消调用、精确历史、最近使用、吊销后拒绝与重启恢复均成立；令牌未进入 URL、浏览器持久化介质、日志、浏览器产物或 SQLite 物理文件。
 
 ## 两类身份必须分开
 
@@ -29,7 +29,21 @@
 
 ## 启动 SQLite 本地产品链
 
-在仓库根目录执行：
+需要同时启动 Platform 与 Web 并验证 API 密钥产品路径时，在仓库根目录执行：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --api-key-local-product --backend-url http://127.0.0.1:7100
+```
+
+Windows / PowerShell 使用：
+
+```powershell
+pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -APIKeyLocalProduct -BackendUrl http://127.0.0.1:7100
+```
+
+该入口统一启用 SQLite `local-product`、应用目录、配置 / 发布链、API 密钥生命周期、`api_key_dev_test` Gateway、模型目录、Playground 与请求历史，并会验证未携带密钥的 `/v1/models` 返回 `api_key_missing`。长期运行的开发服务应由开发者在本机终端保持，验证结束后停止。
+
+只启动 Platform 或做配置检查时执行：
 
 ```bash
 RADISHMIND_GATEWAY_AUTH_MODE=api_key_dev_test \

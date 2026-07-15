@@ -12,7 +12,10 @@ import {
 import { requestModelGatewayPlaygroundHandoff } from "./modelGatewayPlaygroundEvents.ts";
 import {
   APPLICATION_API_INTEGRATION_DRAFT_HANDOFF_EVENT,
+  APPLICATION_MODEL_CATALOG_READY_EVENT,
+  createApplicationModelCatalogReadyDetail,
   type ApplicationApiIntegrationDraftHandoffDetail,
+  type ApplicationModelCatalogReadyDetail,
 } from "./applicationApiIntegrationEvents.ts";
 
 const config = readApplicationApiIntegrationConfig();
@@ -35,6 +38,34 @@ export default function ApplicationApiIntegrationPanel({
     setCatalog(resetApplicationModelCatalogState(config, applicationId));
     setProtocol("chat_completions");
     setLanguage("curl");
+  }, [applicationId]);
+
+  useEffect(() => {
+    function receiveValidatedCatalog(event: Event) {
+      const detail = (event as CustomEvent<ApplicationModelCatalogReadyDetail>).detail;
+      try {
+        const normalized = createApplicationModelCatalogReadyDetail(
+          detail?.applicationId ?? "",
+          detail?.models ?? [],
+          detail?.selectedModel ?? "",
+        );
+        if (normalized.applicationId !== applicationId) return;
+        activeCatalogController.current?.abort();
+        activeCatalogController.current = null;
+        setCatalog({
+          status: "ready",
+          applicationId: normalized.applicationId,
+          models: normalized.models,
+          selectedModel: normalized.selectedModel,
+          failureCode: "",
+          summary: `Reused ${normalized.models.length} models validated by the Gateway Playground.`,
+        });
+      } catch {
+        return;
+      }
+    }
+    window.addEventListener(APPLICATION_MODEL_CATALOG_READY_EVENT, receiveValidatedCatalog);
+    return () => window.removeEventListener(APPLICATION_MODEL_CATALOG_READY_EVENT, receiveValidatedCatalog);
   }, [applicationId]);
 
   useEffect(() => () => activeCatalogController.current?.abort(), []);

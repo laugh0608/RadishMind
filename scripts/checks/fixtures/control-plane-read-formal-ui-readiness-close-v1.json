@@ -113,7 +113,7 @@
       "source_file": "apps/radishmind-web/src/features/control-plane-read/workspaceApiKeys.ts",
       "builder": "buildWorkspaceApiKeysViewModel",
       "render_anchor": "workspace-api-keys",
-      "summary_binding": "apiKeys",
+      "summary_binding": "workspaceApiKeys",
       "request_ref": "requestId",
       "audit_ref": "auditRef"
     },

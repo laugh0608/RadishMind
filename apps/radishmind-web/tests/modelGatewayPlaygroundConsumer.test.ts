@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   initialModelGatewayPlaygroundResult,
   modelGatewayPlaygroundConfigForApplication,
+  modelGatewayPlaygroundConfigForAPIKey,
   submitModelGatewayPlaygroundRequest,
   type ModelGatewayPlaygroundConfig,
   type ModelGatewayPlaygroundInput,
@@ -12,6 +13,7 @@ import {
 
 const offline: ModelGatewayPlaygroundConfig = {
   mode: "offline",
+  authMode: "dev_headers",
   baseUrl: "http://127.0.0.1:7000",
   tenantRef: "tenant_demo",
   workspaceId: "workspace_demo",
@@ -19,6 +21,8 @@ const offline: ModelGatewayPlaygroundConfig = {
   applicationId: "application_demo",
   subjectRef: "subject_demo",
   defaultModel: "radishmind-local-dev",
+  apiKeyId: "",
+  apiKeyToken: "",
 };
 const live: ModelGatewayPlaygroundConfig = { ...offline, mode: "dev_gateway_playground_http" };
 
@@ -83,6 +87,52 @@ test("Gateway Playground replaces fixed application config with the current hand
   }
 });
 
+test("Gateway Playground uses only an in-memory Bearer credential in API key mode", async () => {
+  const originalFetch = globalThis.fetch;
+  const apiKeyToken = `rmd_dev_key_aaaaaaaaaaaaaaaa.${"A".repeat(43)}`;
+  const apiKeyLive = modelGatewayPlaygroundConfigForAPIKey(
+    live,
+    "app_aaaaaaaaaaaaaaaa",
+    "key_aaaaaaaaaaaaaaaa",
+    apiKeyToken,
+  );
+  const clearedForApplicationSwitch = modelGatewayPlaygroundConfigForApplication(apiKeyLive, "app_bbbbbbbbbbbbbbbb");
+  assert.equal(clearedForApplicationSwitch.applicationId, "app_bbbbbbbbbbbbbbbb");
+  assert.equal(clearedForApplicationSwitch.apiKeyId, "");
+  assert.equal(clearedForApplicationSwitch.apiKeyToken, "");
+  assert.equal(clearedForApplicationSwitch.authMode, "api_key_dev_test");
+  try {
+    globalThis.fetch = async (_url, init) => {
+      const headers = new Headers(init?.headers);
+      assert.equal(headers.get("Authorization"), `Bearer ${apiKeyToken}`);
+      assert.equal(headers.has("X-RadishMind-Dev-Gateway-Tenant"), false);
+      assert.equal(headers.has("X-RadishMind-Dev-Gateway-Application"), false);
+      assert.equal(headers.has("X-RadishMind-Dev-Gateway-Scopes"), false);
+      return jsonResponse({ output_text: "api key output" }, "playground-test-request");
+    };
+    const result = await submitModelGatewayPlaygroundRequest(apiKeyLive, input("responses", false));
+    assert.equal(result.status, "succeeded");
+    assert.equal(JSON.stringify(result).includes(apiKeyToken), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Gateway Playground requires an API key handoff before fetch", async () => {
+  const originalFetch = globalThis.fetch;
+  let called = false;
+  globalThis.fetch = async () => { called = true; throw new Error("unexpected fetch"); };
+  try {
+    const waiting = { ...live, authMode: "api_key_dev_test" as const };
+    const result = await submitModelGatewayPlaygroundRequest(waiting, input("responses", false));
+    assert.equal(result.failureCode, "gateway_api_key_handoff_required");
+    assert.equal(result.historyReviewAvailable, false);
+    assert.equal(called, false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("Gateway Playground parses terminal SSE output for all protocols", async () => {
   const cases: Array<{ protocol: ModelGatewayPlaygroundProtocol; body: string; expected: string }> = [
     {
@@ -130,6 +180,13 @@ test("Gateway Playground preserves stable HTTP failures and rejects correlation 
     assert.equal(failed.httpStatus, 504);
     assert.equal(failed.failureCode, "BRIDGE_WORKER_TIMEOUT");
     assert.equal(failed.failureBoundary, "python_bridge");
+
+    globalThis.fetch = async () => jsonResponse({
+      error: { message: "sanitized", code: "api_key_revoked", failure_boundary: "gateway_auth" },
+    }, "playground-test-request", 403);
+    const revoked = await submitModelGatewayPlaygroundRequest(live, input("responses", false));
+    assert.equal(revoked.failureCode, "api_key_revoked");
+    assert.equal(revoked.historyReviewAvailable, false);
 
     globalThis.fetch = async () => jsonResponse({ output_text: "must be rejected" }, "different-request");
     const mismatch = await submitModelGatewayPlaygroundRequest(live, input("responses", false));

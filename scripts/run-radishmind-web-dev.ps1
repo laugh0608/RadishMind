@@ -15,6 +15,7 @@ param(
     [switch]$ApplicationPublishDev,
     [switch]$ApplicationPublishPostgresDevTest,
     [switch]$ApplicationCatalogPostgresDevTest,
+    [switch]$APIKeyLocalProduct,
     [switch]$VerifyOnly,
     [switch]$ExitAfterProbe,
     [switch]$Help
@@ -45,6 +46,7 @@ Options:
                         Enable PostgreSQL dev/test Application Draft and Publish Candidate review.
   -ApplicationCatalogPostgresDevTest
                         Enable the PostgreSQL dev/test Application Catalog lifecycle UI.
+  -APIKeyLocalProduct   Enable the SQLite local-product Application/API key/Playground chain.
   -VerifyOnly           Probe existing backend/frontend processes only.
   -ExitAfterProbe       Start missing local processes, probe, then stop spawned processes.
 "@
@@ -78,12 +80,22 @@ if ($ApplicationPublishPostgresDevTest -and $Mode -ne "dev-live") {
 if ($ApplicationCatalogPostgresDevTest -and $Mode -ne "dev-live") {
     throw "-ApplicationCatalogPostgresDevTest requires -Mode dev-live"
 }
+if ($APIKeyLocalProduct -and $Mode -ne "dev-live") {
+    throw "-APIKeyLocalProduct requires -Mode dev-live"
+}
 if ($ApplicationPublishDev -and $ApplicationPublishPostgresDevTest) {
     throw "Choose either -ApplicationPublishDev or -ApplicationPublishPostgresDevTest"
 }
 if ($ApplicationDraftDev -and $ApplicationPublishPostgresDevTest) {
     throw "-ApplicationDraftDev cannot be combined with -ApplicationPublishPostgresDevTest"
 }
+
+$explicitComponentMode = $SavedDraftDev -or $SavedDraftPostgresDevTest -or $GatewayRequestPostgresDevTest -or `
+    $ApplicationDraftDev -or $ApplicationPublishDev -or $ApplicationPublishPostgresDevTest -or $ApplicationCatalogPostgresDevTest
+if ($APIKeyLocalProduct -and $explicitComponentMode) {
+    throw "-APIKeyLocalProduct cannot be combined with explicit memory/PostgreSQL component modes"
+}
+$platformProfile = if ($explicitComponentMode) { "configured" } else { "local-product" }
 
 $savedDraftEnabled = $SavedDraftDev -or $SavedDraftPostgresDevTest
 
@@ -290,13 +302,17 @@ function Invoke-ControlPlaneReadRoutesProbe {
     )
     $encodedTenant = [Uri]::EscapeDataString($Tenant)
     $applicationRoute = "/v1/user-workspace/applications"
-    if ($ApplicationCatalogPostgresDevTest) {
+    if ($ApplicationCatalogPostgresDevTest -or $platformProfile -eq "local-product") {
         $applicationRoute += "?workspace_id=$([Uri]::EscapeDataString($savedDraftWorkspaceId))&lifecycle_state=active&limit=1"
+    }
+    $apiKeyRoute = "/v1/user-workspace/api-keys"
+    if ($platformProfile -eq "local-product") {
+        $apiKeyRoute += "?workspace_id=$([Uri]::EscapeDataString($savedDraftWorkspaceId))&limit=1"
     }
     $routes = @(
         "/v1/control-plane/tenants/$encodedTenant/summary",
         $applicationRoute,
-        "/v1/user-workspace/api-keys",
+        $apiKeyRoute,
         "/v1/user-workspace/usage/quota-summary",
         "/v1/user-workspace/workflow-definitions",
         "/v1/user-workspace/runs",
@@ -323,6 +339,38 @@ function Invoke-ControlPlaneReadRoutesProbe {
         }
         if ($null -eq $json.items) {
             throw "Route did not return items[] from $url"
+        }
+    }
+}
+
+function Invoke-GatewayAPIKeyModeProbe {
+    param([string]$BaseUrl)
+    $url = $BaseUrl.TrimEnd("/") + "/v1/models"
+    try {
+        Invoke-WebRequest -Uri $url -Method Get `
+            -Headers @{ Accept = "application/json"; "X-Request-Id" = "api-key-mode-probe" } `
+            -TimeoutSec 5 | Out-Null
+        throw "Gateway accepted an unauthenticated model request; api_key_dev_test mode is not active"
+    }
+    catch {
+        $response = $_.Exception.Response
+        if ($null -eq $response -or [int]$response.StatusCode -ne 401) {
+            throw
+        }
+        if ($response.Content -is [System.Net.Http.HttpContent]) {
+            $body = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+        }
+        elseif ($response.PSObject.Methods.Name -contains "GetResponseStream") {
+            $stream = $response.GetResponseStream()
+            $reader = [System.IO.StreamReader]::new($stream)
+            try { $body = $reader.ReadToEnd() } finally { $reader.Dispose(); $stream.Dispose() }
+        }
+        else {
+            throw "Gateway API key mode probe could not read the HTTP failure body"
+        }
+        $document = $body | ConvertFrom-Json
+        if ($document.error.code -ne "api_key_missing") {
+            throw "Gateway API key mode probe returned an unexpected failure: $($document.error.code)"
         }
     }
 }
@@ -525,6 +573,7 @@ function Show-FailureHelp {
     [Console]::Error.WriteLine("- macOS port 7000 conflict: AirPlay / Control Center may occupy it; retry with -BackendUrl http://127.0.0.1:7100.")
     [Console]::Error.WriteLine("- Dev-live auth: backend must be started with RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1 for fake-store-backed read routes.")
     [Console]::Error.WriteLine("- Saved Draft mode: choose -SavedDraftDev or -SavedDraftPostgresDevTest so backend and web opt in together.")
+    [Console]::Error.WriteLine("- API key local product: use -APIKeyLocalProduct by itself so SQLite lifecycle and api_key_dev_test auth stay aligned.")
     [Console]::Error.WriteLine("- PostgreSQL dev/test mode: start and migrate it with the saved draft PostgreSQL dev/test runner.")
     [Console]::Error.WriteLine("- CORS/preflight: platform should allow http://127.0.0.1:4100 and dev read headers in local development.")
     [Console]::Error.WriteLine("- Missing dependencies: run npm install in apps/radishmind-web if npm cannot start Vite.")
@@ -568,6 +617,9 @@ try {
                 $env:RADISHMIND_PLATFORM_MODEL = "radishmind-local-dev"
             }
             $env:RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH = "1"
+            if ($APIKeyLocalProduct) {
+                $env:RADISHMIND_GATEWAY_AUTH_MODE = "api_key_dev_test"
+            }
             if ($ApplicationPublishPostgresDevTest) {
                 $databaseUrl = Get-SavedDraftDatabaseUrl
                 $env:RADISHMIND_APPLICATION_DRAFT_DEV_HTTP = "1"
@@ -631,7 +683,7 @@ try {
                 Start-LoggedProcess `
                     -Name "platform" `
                     -FilePath $pwshPath `
-                    -Arguments @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $platformWrapper, "-Command", "serve") `
+                    -Arguments @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $platformWrapper, "-Profile", $platformProfile, "-Command", "serve") `
                     -WorkingDirectory $repoRoot | Out-Null
             }
         }
@@ -646,20 +698,26 @@ try {
                 $env:VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL = $BackendUrl.TrimEnd("/")
                 $env:VITE_RADISHMIND_DEV_READ_TENANT_REF = $TenantRef
                 $env:VITE_RADISHMIND_DEV_READ_SUBJECT_REF = $SubjectRef
-                if ($ApplicationDraftDev -or $ApplicationPublishDev -or $ApplicationPublishPostgresDevTest) {
+                if ($ApplicationDraftDev -or $ApplicationPublishDev -or $ApplicationPublishPostgresDevTest -or $APIKeyLocalProduct) {
                     $env:VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE = "dev-application-draft-http"
                     $env:VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
-                if ($ApplicationPublishDev -or $ApplicationPublishPostgresDevTest) {
+                if ($ApplicationPublishDev -or $ApplicationPublishPostgresDevTest -or $APIKeyLocalProduct) {
                     $env:VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE = "dev-application-publish-http"
                     $env:VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
-                if ($ApplicationCatalogPostgresDevTest) {
+                if ($ApplicationCatalogPostgresDevTest -or $APIKeyLocalProduct) {
                     $env:VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE = "dev-application-catalog-http"
                     $env:VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID = $savedDraftWorkspaceId
+                }
+                if ($APIKeyLocalProduct) {
+                    $env:VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE = "dev-api-key-lifecycle-http"
+                    $env:VITE_RADISHMIND_API_KEY_LIFECYCLE_BASE_URL = $BackendUrl.TrimEnd("/")
+                    $env:VITE_RADISHMIND_API_KEY_LIFECYCLE_WORKSPACE_ID = $savedDraftWorkspaceId
+                    $env:VITE_RADISHMIND_GATEWAY_AUTH_MODE = "api_key_dev_test"
                 }
                 if ($savedDraftEnabled) {
                     $env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE = "dev-saved-draft-http"
@@ -668,7 +726,7 @@ try {
                 if ($WorkflowDiagnosticsDev) {
                     $env:VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV = "true"
                 }
-                if ($GatewayRequestPostgresDevTest) {
+                if ($GatewayRequestPostgresDevTest -or $APIKeyLocalProduct) {
                     $env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE = "dev-gateway-request-history-http"
                     $env:VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE = "dev-gateway-playground-http"
                     $env:VITE_RADISHMIND_GATEWAY_PLAYGROUND_BASE_URL = $BackendUrl.TrimEnd("/")
@@ -697,6 +755,20 @@ try {
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_API_KEY_LIFECYCLE_BASE_URL -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_API_KEY_LIFECYCLE_WORKSPACE_ID -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_GATEWAY_AUTH_MODE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_GATEWAY_PLAYGROUND_BASE_URL -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_GATEWAY_PLAYGROUND_MODEL -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_BASE_URL -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_TENANT_REF -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_WORKSPACE_ID -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_CONSUMER_REF -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_APPLICATION_ID -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SUBJECT_REF -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV -ErrorAction SilentlyContinue
@@ -715,6 +787,9 @@ try {
         Wait-Until -Name "dev-live read route CORS" -Probe { Invoke-CorsProbe -ReadUrl $tenantSummaryUrl -Origin $frontendOrigin }
         Wait-Until -Name "dev-live read routes" -Probe {
             Invoke-ControlPlaneReadRoutesProbe -BaseUrl $BackendUrl -Tenant $TenantRef -Subject $SubjectRef
+        }
+        if ($APIKeyLocalProduct) {
+            Wait-Until -Name "Gateway API key auth mode" -Probe { Invoke-GatewayAPIKeyModeProbe -BaseUrl $BackendUrl }
         }
         if ($savedDraftEnabled) {
             Wait-Until -Name "Saved Draft dev route" -Probe {
@@ -749,6 +824,9 @@ try {
         }
         elseif ($SavedDraftDev) {
             Write-Step "Saved Draft memory-dev read/write mode passed for $savedDraftWorkspaceId/$savedDraftApplicationId."
+        }
+        if ($APIKeyLocalProduct) {
+            Write-Step "API key SQLite local-product Web chain enabled for $savedDraftWorkspaceId; raw credentials remain browser-memory only."
         }
     }
     Write-Step "This is a dev-only launcher, not a production supervisor. Controlled executor v0 is dev-only; production auth, secret resolution, unrestricted tools, confirmation commit, writeback and replay remain disabled."

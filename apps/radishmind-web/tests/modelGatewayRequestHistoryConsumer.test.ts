@@ -51,7 +51,7 @@ test("Gateway request history maps scoped summaries, filters, pagination, and ca
     assert.equal(headers.get("X-RadishMind-Dev-Gateway-Application"), "application_demo");
     return jsonResponse({
       request_id: "request_list",
-      requests: [summaryDocument()],
+      requests: [{ ...summaryDocument(), store_mode: "sqlite_dev" }],
       next_cursor: "cursor_next",
       has_more: true,
       failure_code: null,
@@ -67,6 +67,7 @@ test("Gateway request history maps scoped summaries, filters, pagination, and ca
     );
     assert.equal(result.status, "ready");
     assert.equal(result.requests[0]?.requestId, "request_gateway_1");
+    assert.equal(result.requests[0]?.storeMode, "sqlite_dev");
     assert.equal(result.requests[0]?.providerDurationAvailable, true);
     assert.equal(result.hasMore, true);
   } finally {
