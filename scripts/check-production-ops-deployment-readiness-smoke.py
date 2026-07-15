@@ -36,11 +36,6 @@ REQUIRED_DOC_REFERENCES = {
         "container smoke",
         "production ready",
     ],
-    "docs/radishmind-current-focus.md": [
-        "deployment-readiness-smoke",
-        "production-ops-deployment-readiness-smoke.json",
-        "docker compose config",
-    ],
     "docs/radishmind-roadmap.md": [
         "deployment-readiness-smoke",
         "production-ops-deployment-readiness-smoke.json",
@@ -217,7 +212,6 @@ def assert_consumers_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-docker-deployment-mode.py",
         "scripts/check-repo.py",
         "scripts/README.md",
-        "docs/radishmind-current-focus.md",
         "docs/radishmind-roadmap.md",
         "docs/task-cards/production-ops-hardening-v1-plan.md",
         "docs/task-cards/production-ops-docker-deployment-v1-plan.md",

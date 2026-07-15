@@ -286,7 +286,6 @@
     "scripts/check-production-ops-environment-isolation-boundary.py",
     "scripts/check-production-ops-console-package-smoke.py",
     "scripts/check-repo.py",
-    "docs/radishmind-current-focus.md",
     "docs/radishmind-roadmap.md",
     "docs/radishmind-architecture.md",
     "scripts/README.md"

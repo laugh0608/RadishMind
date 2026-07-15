@@ -131,10 +131,6 @@
     ],
     "scripts/README.md": [
       "workflow-review-handoff-active-draft-v1"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "Workflow Review Handoff Active Draft v1",
-      "workflow_review_handoff_active_draft_v1_implemented"
     ]
   },
   "testing_strategy": [

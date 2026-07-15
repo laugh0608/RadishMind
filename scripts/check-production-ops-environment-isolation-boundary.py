@@ -82,10 +82,6 @@ REQUIRED_DOC_REFERENCES = {
         "production-ops-environment-isolation-boundary.json",
         "check-production-ops-environment-isolation-boundary.py",
     ],
-    "docs/radishmind-current-focus.md": [
-        "environment-isolation",
-        "production-ops-environment-isolation-boundary.json",
-    ],
     "docs/radishmind-roadmap.md": [
         "environment-isolation",
         "production-ops-environment-isolation-boundary.json",
@@ -192,7 +188,6 @@ def assert_evidence_and_consumers(document: dict[str, Any]) -> None:
         "scripts/check-repo.py",
         "scripts/check-p3-local-product-shell-short-close-checklist.py",
         "scripts/README.md",
-        "docs/radishmind-current-focus.md",
         "docs/radishmind-roadmap.md",
     }
     missing_consumers = sorted(expected_consumers - consumers)

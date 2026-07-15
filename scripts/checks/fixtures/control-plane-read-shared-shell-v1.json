@@ -132,10 +132,6 @@
       "control-plane-read-shared-shell-v1",
       "shared-read-shell"
     ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-shared-shell-v1",
-      "apps/radishmind-web/"
-    ],
     "docs/radishmind-roadmap.md": [
       "control-plane-read-shared-shell-v1",
       "apps/radishmind-web/"

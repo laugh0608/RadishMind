@@ -79,11 +79,6 @@ REQUIRED_DOC_REFERENCES = {
         "read-only route",
         "不创建数据库 schema",
     ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-route-contract-v1",
-        "control-plane-read-route-contract-v1.json",
-        "check-control-plane-read-route-contract-v1.py",
-    ],
     "docs/radishmind-product-scope.md": [
         "control-plane-read-route-contract-v1",
         "GET /v1/user-workspace/runs",

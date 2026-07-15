@@ -110,11 +110,6 @@ REQUIRED_DOC_REFERENCES = {
         "handler ownership",
         "fake store",
     ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-implementation-preconditions-v1",
-        "negative route smoke readiness",
-        "不直接实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay",
-    ],
     "docs/radishmind-architecture.md": [
         "control-plane-read-implementation-preconditions-v1",
         "fake store",

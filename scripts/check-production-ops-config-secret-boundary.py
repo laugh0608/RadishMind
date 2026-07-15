@@ -69,11 +69,6 @@ REQUIRED_DOC_REFERENCES = {
         "production-ops-config-secret-boundary.json",
         "check-production-ops-config-secret-boundary.py",
     ],
-    "docs/radishmind-current-focus.md": [
-        "Production Ops Hardening v1",
-        "config-secret-boundary",
-        "production-ops-config-secret-boundary.json",
-    ],
     "docs/radishmind-roadmap.md": [
         "Production Ops Hardening v1",
         "config-secret-boundary",
@@ -194,7 +189,6 @@ def assert_evidence_and_consumers(document: dict[str, Any]) -> None:
         "scripts/check-repo.py",
         "scripts/check-p3-local-product-shell-short-close-checklist.py",
         "scripts/README.md",
-        "docs/radishmind-current-focus.md",
         "docs/radishmind-roadmap.md",
     }
     missing_consumers = sorted(expected_consumers - consumers)

@@ -182,7 +182,6 @@
     "scripts/check-production-ops-container-smoke-record-template.py",
     "scripts/check-repo.py",
     "scripts/README.md",
-    "docs/radishmind-current-focus.md",
     "docs/radishmind-roadmap.md",
     "docs/task-cards/production-ops-hardening-v1-plan.md",
     "docs/task-cards/production-ops-docker-deployment-v1-plan.md"

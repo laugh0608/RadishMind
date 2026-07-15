@@ -239,10 +239,6 @@
       "image_artifact_runtime_mapper_runtime_implemented",
       "metadata-only runtime mapper"
     ],
-    "docs/radishmind-current-focus.md": [
-      "image-artifact-runtime-mapper-runtime-implementation-v1",
-      "image_artifact_runtime_mapper_runtime_implemented"
-    ],
     "docs/radishmind-roadmap.md": [
       "image-artifact-runtime-mapper-runtime-implementation-v1",
       "metadata-only runtime mapper"

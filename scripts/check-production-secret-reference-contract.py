@@ -55,11 +55,6 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-secret-reference-contract.py",
         "不保存 secret value",
     ],
-    "docs/radishmind-current-focus.md": [
-        "secret-ref-schema-and-fixtures",
-        "production-secret-reference.schema.json",
-        "production-secret-reference-basic.json",
-    ],
     "docs/radishmind-roadmap.md": [
         "secret-ref-schema-and-fixtures",
         "production-secret-reference.schema.json",

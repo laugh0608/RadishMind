@@ -152,10 +152,6 @@
       "control-plane-read-workspace-usage-quota-v1",
       "quota-summary-route"
     ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-workspace-usage-quota-v1",
-      "workspace-usage-quota"
-    ],
     "docs/radishmind-roadmap.md": [
       "control-plane-read-workspace-usage-quota-v1",
       "workspace-usage-quota"

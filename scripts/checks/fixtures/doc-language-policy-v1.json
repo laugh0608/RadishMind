@@ -272,21 +272,12 @@
   "priority_remediation_batch": {
     "status": "doc_language_priority_documents_remediation_v1_defined",
     "target_documents": [
-      "docs/radishmind-current-focus.md",
       "docs/features/README.md",
       "docs/platform/README.md",
       "scripts/README.md",
       "docs/radishmind-code-standards.md"
     ],
     "document_snippets": [
-      {
-        "path": "docs/radishmind-current-focus.md",
-        "snippets": [
-          "仅元数据 / 静态产品类别 / 逻辑 schema / 产物 / 冒烟验证策略 / 运行时扫描边界 / 入口复评 / 数据库选择评审",
-          "公开生产 API 停止线",
-          "普通离线证据界面"
-        ]
-      },
       {
         "path": "docs/features/README.md",
         "snippets": [

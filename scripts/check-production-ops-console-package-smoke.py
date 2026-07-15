@@ -74,10 +74,6 @@ REQUIRED_DOC_REFERENCES = {
         "production-ops-console-package-smoke.json",
         "check-production-ops-console-package-smoke.py",
     ],
-    "docs/radishmind-current-focus.md": [
-        "console-production-package-smoke",
-        "production-ops-console-package-smoke.json",
-    ],
     "docs/radishmind-roadmap.md": [
         "console-production-package-smoke",
         "production-ops-console-package-smoke.json",
@@ -231,7 +227,6 @@ def assert_evidence_and_consumers(document: dict[str, Any]) -> None:
         "scripts/check-repo.py",
         "scripts/check-p3-local-product-shell-short-close-checklist.py",
         "scripts/README.md",
-        "docs/radishmind-current-focus.md",
         "docs/radishmind-roadmap.md",
     }
     missing_consumers = sorted(expected_consumers - consumers)

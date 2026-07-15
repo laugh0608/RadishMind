@@ -243,7 +243,7 @@
 11. [Admin Control Plane Authenticated Read Store Transition v1](features/admin-control-plane/authenticated-read-store-transition-v1.md) 的 verified identity、[Tenant / Audit PostgreSQL Read Repository v1](features/admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) dev/test runtime，以及 [Radish OIDC Integration Test v1](features/admin-control-plane/radish-oidc-integration-test-v1.md) deterministic runtime 均已完成；真实 Radish 联调 deferred，不接 production auth 或 workspace routes。
 12. 用户工作区应用目录与生命周期、API 密钥生命周期与 Gateway 开发测试态认证均已完成双数据库、严格 Web 消费和真实浏览器连续验收；下一产品任务不自动承接，先从正式功能专题中选择并更新新的用户目标。
 13. R5 已完成：Web 主入口与关键 lazy chunk 预算、Web 可发现覆盖率预算、Platform 核心包分层预算均已建立，PR / release CI 对称执行 Go race、Go vet、Web coverage、Web / Console build 与 PostgreSQL integration；后续不派生同层覆盖率检查器。
-14. R6 第一批已完成 Session / Tooling 活动检查基线收敛：`24` 个重复静态治理脚本退出 fast / full，五项现行契约与负向行为检查继续执行；脚本、fixture、任务卡和手动复验能力仍保留。下一批迁出当前焦点的历史机器锚点。
+14. R6 前两批已完成：Session / Tooling 的 `24` 个重复静态治理脚本退出 fast / full；当前焦点恢复为低于 `10 KiB` 的短入口，`81` 项活动功能检查不再要求它重复保存历史证据。下一批审计本路线图与 `services/platform/README.md` 的体量和调用方。
 15. OIDC、production secret、真实云资源、production API key、quota enforcement / billing、真实生图和模型训练只在外部资源、负责人和独立运行窗口明确后重开。
 
 ## 历史下一步记录（仅供 checker 兼容，不再执行）

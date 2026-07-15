@@ -108,7 +108,6 @@
     "scripts/check-provider-health-smoke.py",
     "scripts/check-repo.py",
     "scripts/README.md",
-    "docs/radishmind-current-focus.md",
     "docs/radishmind-capability-matrix.md",
     "docs/radishmind-roadmap.md",
     "docs/radishmind-architecture.md",

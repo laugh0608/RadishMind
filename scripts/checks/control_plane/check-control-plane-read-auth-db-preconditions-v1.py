@@ -167,11 +167,6 @@ REQUIRED_DOC_REFERENCES = {
         "auth/db preconditions",
         "future control plane read store repository",
     ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-auth-db-preconditions-v1",
-        "control-plane-read-auth-db-preconditions-v1.json",
-        "check-control-plane-read-auth-db-preconditions-v1.py",
-    ],
     "docs/radishmind-architecture.md": [
         "control-plane-read-auth-db-preconditions-v1",
         "future control plane read store repository",

@@ -145,11 +145,6 @@ REQUIRED_DOC_REFERENCES = {
         "正式 UI 边界",
         "formal UI",
     ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-formal-ui-boundary-v1",
-        "control-plane-read-formal-ui-boundary-v1.json",
-        "check-control-plane-read-formal-ui-boundary-v1.py",
-    ],
     "docs/radishmind-architecture.md": [
         "control-plane-read-formal-ui-boundary-v1",
         "正式 UI 边界",

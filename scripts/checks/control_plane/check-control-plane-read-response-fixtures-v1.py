@@ -61,11 +61,6 @@ REQUIRED_DOC_REFERENCES = {
         "response fixture",
         "不创建数据库 schema",
     ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-response-fixtures-v1",
-        "control-plane-read-response-fixtures-v1.json",
-        "check-control-plane-read-response-fixtures-v1.py",
-    ],
     "docs/radishmind-product-scope.md": [
         "control-plane-read-response-fixtures-v1",
         "response fixture",

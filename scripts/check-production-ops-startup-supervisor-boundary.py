@@ -100,10 +100,6 @@ REQUIRED_DOC_REFERENCES = {
         "production-ops-startup-supervisor-boundary.json",
         "check-production-ops-startup-supervisor-boundary.py",
     ],
-    "docs/radishmind-current-focus.md": [
-        "startup-supervisor-boundary",
-        "production-ops-startup-supervisor-boundary.json",
-    ],
     "docs/radishmind-roadmap.md": [
         "startup-supervisor-boundary",
         "production-ops-startup-supervisor-boundary.json",
@@ -198,7 +194,6 @@ def assert_evidence_and_consumers(document: dict[str, Any]) -> None:
         "scripts/check-repo.py",
         "scripts/check-p3-local-product-shell-short-close-checklist.py",
         "scripts/README.md",
-        "docs/radishmind-current-focus.md",
         "docs/radishmind-roadmap.md",
     }
     missing_consumers = sorted(expected_consumers - consumers)

@@ -102,11 +102,6 @@ REQUIRED_DOC_REFERENCES = {
         "fake-store-backed read handler plan",
         "plan-only",
     ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-fake-store-handler-plan-v1",
-        "fake-store-backed read handler plan",
-        "不直接实现数据库、OIDC、executor、confirmation、writeback 或 replay",
-    ],
     "docs/radishmind-architecture.md": [
         "control-plane-read-fake-store-handler-plan-v1",
         "services/platform/internal/httpapi",
@@ -157,11 +152,6 @@ IMPLEMENTED_DOC_REFERENCES = {
         "control-plane-read-fake-store-handler-plan-v1",
         "control-plane-read-fake-store-handler-implementation-v1",
         "fake-store-backed",
-    ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-fake-store-handler-plan-v1",
-        "control-plane-read-fake-store-handler-implementation-v1",
-        "不直接实现数据库、OIDC、executor、confirmation、writeback 或 replay",
     ],
     "docs/radishmind-architecture.md": [
         "control-plane-read-fake-store-handler-plan-v1",

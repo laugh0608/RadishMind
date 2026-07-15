@@ -296,10 +296,6 @@
       "image_artifact_response_builder_runtime_integration_entry_review_defined",
       "single response builder runtime integration implementation"
     ],
-    "docs/radishmind-current-focus.md": [
-      "image-artifact-response-builder-runtime-integration-entry-review-v1",
-      "image_artifact_response_builder_runtime_integration_entry_review_defined"
-    ],
     "docs/radishmind-roadmap.md": [
       "image-artifact-response-builder-runtime-integration-entry-review-v1",
       "runtime integration entry review"

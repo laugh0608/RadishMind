@@ -245,11 +245,6 @@
       "check-workflow-draft-designer-offline-v1.py",
       "workflow-draft-designer-offline-v1.json"
     ],
-    "docs/radishmind-current-focus.md": [
-      "workflow-draft-designer-offline-v1",
-      "RadishFlow",
-      "不阻塞"
-    ],
     "docs/radishmind-product-scope.md": [
       "RadishFlow",
       "不应拖慢 RadishMind"

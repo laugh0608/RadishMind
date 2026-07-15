@@ -119,11 +119,6 @@ REQUIRED_DOC_REFERENCES = {
         "application-summary-list-route",
         "audit-summary-list-route",
     ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-fake-store-handler-implementation-v1",
-        "fake-store-backed read handler implementation",
-        "不直接实现数据库、OIDC、executor、confirmation、writeback 或 replay",
-    ],
     "docs/radishmind-architecture.md": [
         "control-plane-read-fake-store-handler-implementation-v1",
         "services/platform/internal/httpapi",

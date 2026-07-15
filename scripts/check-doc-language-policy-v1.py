@@ -62,7 +62,6 @@ EXPECTED_TERM_IDS = [
     "production",
 ]
 EXPECTED_PRIORITY_REMEDIATION_DOCS = [
-    "docs/radishmind-current-focus.md",
     "docs/features/README.md",
     "docs/platform/README.md",
     "scripts/README.md",

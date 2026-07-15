@@ -287,15 +287,6 @@
       "Workflow Node Designer Edge Editing Save Preconditions v1",
       "edgeId"
     ],
-    "docs/radishmind-current-focus.md": [
-      "Workflow Node Designer Edge Editing Save Preconditions v1",
-      "Workflow Node Designer Layout Review Findings v1",
-      "workflow_node_designer_layout_review_findings_v1_implemented",
-      "Workflow Node Designer Builder Interaction Polish v1",
-      "workflow_node_designer_builder_interaction_polish_v1_implemented",
-      "Workflow Node Designer Validation Overlay Navigation v1",
-      "workflow_node_designer_validation_overlay_navigation_v1_implemented"
-    ],
     "docs/devlogs/2026-W26.md": [
       "workflow-node-designer-controlled-edge-mutation-implementation-v1",
       "workflow_node_designer_controlled_edge_mutation_implementation_v1_implemented",

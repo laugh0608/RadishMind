@@ -131,11 +131,6 @@ REQUIRED_DOC_REFERENCES = {
         "contracts/typescript/control-plane-read-api.ts",
         "run-control-plane-read-consumer-smoke.py",
     ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-consumer-contract-v1",
-        "control-plane-read-consumer-contract-v1.json",
-        "check-control-plane-read-consumer-contract-v1.py",
-    ],
     "docs/radishmind-architecture.md": [
         "control-plane-read-consumer-contract-v1",
         "contracts/typescript/control-plane-read-api.ts",

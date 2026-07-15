@@ -236,10 +236,6 @@
       "check-workflow-draft-validation-inspector-offline-v1.py",
       "workflow-draft-validation-inspector-offline-v1.json"
     ],
-    "docs/radishmind-current-focus.md": [
-      "workflow-draft-validation-inspector-offline-v1",
-      "workflow_draft_validation_inspector_offline_defined"
-    ],
     "docs/radishmind-roadmap.md": [
       "workflow-draft-validation-inspector-offline-v1",
       "workflow_draft_validation_inspector_offline_defined"

@@ -272,10 +272,6 @@
       "image-artifact-response-consumer-implementation-readiness-v1",
       "image_artifact_response_consumer_implementation_readiness_defined"
     ],
-    "docs/radishmind-current-focus.md": [
-      "image-artifact-response-consumer-implementation-readiness-v1",
-      "image_artifact_response_consumer_implementation_readiness_defined"
-    ],
     "docs/radishmind-roadmap.md": [
       "image-artifact-response-consumer-implementation-readiness-v1",
       "response consumer implementation readiness"

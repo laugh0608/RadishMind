@@ -433,7 +433,6 @@
   ],
   "required_consumers": [
     "scripts/check-repo.py",
-    "docs/radishmind-current-focus.md",
     "docs/radishmind-roadmap.md",
     "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-capability-matrix.md",
@@ -444,10 +443,6 @@
     "docs/devlogs/2026-W23.md"
   ],
   "required_doc_references": {
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-store-selector-smoke-readiness-v1",
-      "store_selector_smoke_readiness_defined"
-    ],
     "docs/radishmind-roadmap.md": [
       "control-plane-read-store-selector-smoke-readiness-v1",
       "store_selector_smoke_readiness_defined"

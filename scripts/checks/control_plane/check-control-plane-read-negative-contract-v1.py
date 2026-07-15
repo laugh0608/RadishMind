@@ -82,11 +82,6 @@ REQUIRED_DOC_REFERENCES = {
         "negative contract",
         "不创建数据库 schema",
     ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-negative-contract-v1",
-        "control-plane-read-negative-contract-v1.json",
-        "check-control-plane-read-negative-contract-v1.py",
-    ],
     "docs/radishmind-product-scope.md": [
         "control-plane-read-negative-contract-v1",
         "负向契约",

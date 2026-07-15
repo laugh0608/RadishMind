@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-1. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R5 测试、CI 与性能预算已经完成；R6 第一批已把 Session / Tooling 的重复静态治理检查退出 fast / full 活动基线，同时保留脚本、fixture、任务卡和手动复验入口。下一批迁出当前焦点中的历史机器锚点。
+1. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R5 已完成；R6 第一批已收敛 Session / Tooling 活动门禁，第二批已恢复当前焦点短入口并解除 `81` 项活动功能检查的直接 / 间接历史证据耦合。下一批审计路线图与 `services/platform/README.md` 的体量和调用方。
 
 ## 最近关闭任务
 

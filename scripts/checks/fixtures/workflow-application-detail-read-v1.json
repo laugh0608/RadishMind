@@ -225,10 +225,6 @@
       "check-workflow-application-detail-read-v1.py",
       "workflow-application-detail-read-v1.json"
     ],
-    "docs/radishmind-current-focus.md": [
-      "workflow-application-detail-read-v1",
-      "workflow_application_detail_read_defined"
-    ],
     "docs/radishmind-roadmap.md": [
       "workflow-application-detail-read-v1",
       "workflow_application_detail_read_defined"

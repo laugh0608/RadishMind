@@ -39,7 +39,6 @@ EXPECTED_REQUIRED_DOCUMENTS = {
     "docs/README.md",
     "docs/contracts/service-api.md",
     "docs/radishmind-project-guide.md",
-    "docs/radishmind-current-focus.md",
     "docs/radishmind-integration-contracts.md",
     "docs/radishmind-capability-matrix.md",
     "docs/radishmind-roadmap.md",
@@ -71,14 +70,6 @@ REQUIRED_DOC_REFERENCES = {
         "provider-health-smoke-v1",
         "provider-selection-policy-v1",
         "provider-retry-fallback-policy-v1",
-        "不继续默认新增 provider 同层小切片",
-    ],
-    "docs/radishmind-current-focus.md": [
-        "provider-runtime-docs-refresh",
-        "Provider Runtime & Health v1",
-        "check-provider-runtime-docs-refresh.py",
-        "provider-retry-fallback-policy-v1",
-        "进入 close candidate",
         "不继续默认新增 provider 同层小切片",
     ],
     "docs/radishmind-capability-matrix.md": [

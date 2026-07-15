@@ -195,10 +195,6 @@
       "check-workflow-run-detail-read-v1.py",
       "workflow-run-detail-read-v1.json"
     ],
-    "docs/radishmind-current-focus.md": [
-      "workflow-run-detail-read-v1",
-      "workflow_run_detail_read_defined"
-    ],
     "docs/radishmind-roadmap.md": [
       "workflow-run-detail-read-v1",
       "workflow_run_detail_read_defined"

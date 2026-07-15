@@ -273,10 +273,6 @@
       "control-plane-read-implementation-trigger-review-v1",
       "implementation trigger review"
     ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-implementation-trigger-review-v1",
-      "implementation_trigger_review_defined"
-    ],
     "docs/radishmind-roadmap.md": [
       "control-plane-read-implementation-trigger-review-v1",
       "implementation_trigger_review_defined"
@@ -320,7 +316,6 @@
     "scripts/README.md",
     "services/platform/README.md",
     "docs/contracts/control-plane-read-side.md",
-    "docs/radishmind-current-focus.md",
     "docs/radishmind-roadmap.md",
     "docs/radishmind-capability-matrix.md",
     "docs/radishmind-integration-contracts.md",

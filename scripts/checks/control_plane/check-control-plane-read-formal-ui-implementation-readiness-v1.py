@@ -159,11 +159,6 @@ REQUIRED_DOC_REFERENCES = {
         "apps/radishmind-web/",
         "apps/radishmind-console/",
     ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-formal-ui-implementation-readiness-v1",
-        "control-plane-read-formal-ui-implementation-readiness-v1.json",
-        "check-control-plane-read-formal-ui-implementation-readiness-v1.py",
-    ],
     "docs/task-cards/README.md": [
         "control-plane-read-formal-ui-implementation-readiness-v1",
         "Control Plane Read Formal UI Implementation Readiness",

@@ -234,10 +234,6 @@
       "check-workflow-confirmation-placeholder-read-v1.py",
       "workflow-confirmation-placeholder-read-v1.json"
     ],
-    "docs/radishmind-current-focus.md": [
-      "workflow-confirmation-placeholder-read-v1",
-      "workflow_confirmation_placeholder_read_defined"
-    ],
     "docs/radishmind-roadmap.md": [
       "workflow-confirmation-placeholder-read-v1",
       "workflow_confirmation_placeholder_read_defined"

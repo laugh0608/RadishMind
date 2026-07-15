@@ -76,11 +76,6 @@ REQUIRED_DOC_REFERENCES = {
         "read model",
         "不创建数据库 schema",
     ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-model-v1",
-        "control-plane-read-model-v1.json",
-        "check-control-plane-read-model-v1.py",
-    ],
     "docs/radishmind-product-scope.md": [
         "control-plane-read-model-v1",
         "tenant summary",

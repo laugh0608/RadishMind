@@ -37,7 +37,6 @@ EXPECTED_REQUIRED_CONSUMERS = {
     "scripts/README.md",
     "services/platform/README.md",
     "docs/contracts/service-api.md",
-    "docs/radishmind-current-focus.md",
     "docs/radishmind-capability-matrix.md",
     "docs/radishmind-roadmap.md",
     "docs/radishmind-architecture.md",
@@ -45,11 +44,6 @@ EXPECTED_REQUIRED_CONSUMERS = {
     "docs/devlogs/2026-W22.md",
 }
 REQUIRED_DOC_REFERENCES = {
-    "docs/radishmind-current-focus.md": [
-        "provider-retry-fallback-policy-v1",
-        "provider-retry-fallback-policy-v1.json",
-        "check-provider-retry-fallback-policy.py",
-    ],
     "docs/radishmind-capability-matrix.md": [
         "provider retry/fallback policy",
         "provider-retry-fallback-policy-v1.json",

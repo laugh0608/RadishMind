@@ -328,10 +328,6 @@
       "image_adapter_handshake_safety_gate_defined",
       "metadata-only"
     ],
-    "docs/radishmind-current-focus.md": [
-      "image-adapter-handshake-safety-gate-v1",
-      "image_adapter_handshake_safety_gate_defined"
-    ],
     "docs/devlogs/2026-W24.md": [
       "image-adapter-handshake-safety-gate-v1",
       "image_adapter_handshake_safety_gate_defined"

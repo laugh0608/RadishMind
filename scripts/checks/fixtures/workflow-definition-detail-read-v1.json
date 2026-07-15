@@ -181,10 +181,6 @@
       "check-workflow-definition-detail-read-v1.py",
       "workflow-definition-detail-read-v1.json"
     ],
-    "docs/radishmind-current-focus.md": [
-      "workflow-definition-detail-read-v1",
-      "workflow_definition_detail_read_defined"
-    ],
     "docs/radishmind-roadmap.md": [
       "workflow-definition-detail-read-v1",
       "workflow_definition_detail_read_defined"

@@ -487,10 +487,6 @@
       "control-plane-read-production-auth-readiness-v1",
       "production auth readiness"
     ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-production-auth-readiness-v1",
-      "production_auth_readiness_defined"
-    ],
     "docs/radishmind-roadmap.md": [
       "control-plane-read-production-auth-readiness-v1",
       "production_auth_readiness_defined"
@@ -538,7 +534,6 @@
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/contracts/control-plane-read-side.md",
-    "docs/radishmind-current-focus.md",
     "docs/radishmind-roadmap.md",
     "docs/radishmind-capability-matrix.md",
     "docs/radishmind-integration-contracts.md",

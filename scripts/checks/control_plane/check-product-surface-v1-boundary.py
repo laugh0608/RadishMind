@@ -48,12 +48,6 @@ REQUIRED_DOC_REFERENCES = {
         "product-surface-v1-boundary",
         "不直接实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay",
     ],
-    "docs/radishmind-current-focus.md": [
-        "Control Plane / User Workspace / Workflow v1",
-        "product-surface-v1-boundary",
-        "product-surface-v1-boundary.json",
-        "check-product-surface-v1-boundary.py",
-    ],
     "docs/radishmind-product-scope.md": [
         "product-surface-v1-boundary",
         "User Workspace",

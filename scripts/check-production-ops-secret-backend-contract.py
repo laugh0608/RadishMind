@@ -83,11 +83,6 @@ REQUIRED_DOC_REFERENCES = {
         "不写入真实 secret",
         "不声明 production ready",
     ],
-    "docs/radishmind-current-focus.md": [
-        "production-secret-backend-contract",
-        "production-ops-secret-backend-contract.json",
-        "不实现真实云 secret 服务",
-    ],
     "docs/radishmind-roadmap.md": [
         "production-secret-backend-contract",
         "production-ops-secret-backend-contract.json",
@@ -218,7 +213,6 @@ def assert_evidence_consumers_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-repo.py",
         "scripts/check-p3-local-product-shell-short-close-checklist.py",
         "scripts/README.md",
-        "docs/radishmind-current-focus.md",
         "docs/radishmind-roadmap.md",
         "docs/radishmind-capability-matrix.md",
         "docs/task-cards/production-ops-hardening-v1-plan.md",

@@ -409,10 +409,6 @@
       "check-workflow-function-surface-boundary-v1.py",
       "workflow-function-surface-boundary-v1.json"
     ],
-    "docs/radishmind-current-focus.md": [
-      "workflow-function-surface-boundary-v1",
-      "function_surface_boundary_defined"
-    ],
     "docs/radishmind-roadmap.md": [
       "workflow-function-surface-boundary-v1",
       "function_surface_boundary_defined"

@@ -63,11 +63,6 @@ REQUIRED_DOC_REFERENCES = {
         "gateway-api-key-quota-readiness",
         "不发放真实 API key",
     ],
-    "docs/radishmind-current-focus.md": [
-        "gateway-api-key-quota-readiness",
-        "gateway-api-key-quota-readiness.json",
-        "check-gateway-api-key-quota-readiness.py",
-    ],
     "docs/radishmind-product-scope.md": [
         "gateway-api-key-quota-readiness",
         "API key",

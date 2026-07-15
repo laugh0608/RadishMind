@@ -40,7 +40,6 @@ EXPECTED_REQUIRED_CONSUMERS = {
     "scripts/check-provider-selection-policy.py",
     "scripts/check-repo.py",
     "scripts/README.md",
-    "docs/radishmind-current-focus.md",
     "docs/radishmind-capability-matrix.md",
     "docs/radishmind-roadmap.md",
     "docs/radishmind-architecture.md",
@@ -48,11 +47,6 @@ EXPECTED_REQUIRED_CONSUMERS = {
     "docs/devlogs/2026-W22.md",
 }
 REQUIRED_DOC_REFERENCES = {
-    "docs/radishmind-current-focus.md": [
-        "provider-selection-policy-v1",
-        "provider-selection-policy-v1.json",
-        "check-provider-selection-policy.py",
-    ],
     "docs/radishmind-capability-matrix.md": [
         "provider selection policy",
         "provider-selection-policy-v1.json",

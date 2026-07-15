@@ -198,7 +198,6 @@
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/README.md",
-    "docs/radishmind-current-focus.md",
     "docs/radishmind-product-scope.md",
     "docs/radishmind-architecture.md",
     "docs/radishmind-roadmap.md",

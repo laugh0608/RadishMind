@@ -47,13 +47,6 @@ REQUIRED_STOP_LINES = {
 }
 
 REQUIRED_DOC_REFERENCES = {
-    "docs/radishmind-current-focus.md": [
-        "P3 Local Product Shell / Ops Surface",
-        "local usable / read-only close",
-        "UI Design Topic / Pencil Draft",
-        "p3-local-product-shell-short-close-checklist.json",
-        "check-p3-local-product-shell-short-close-checklist.py",
-    ],
     "docs/radishmind-roadmap.md": [
         "P3 Local Product Shell / Ops Surface",
         "local usable / read-only close",
@@ -310,7 +303,6 @@ def assert_consumers(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-environment-isolation-boundary.py",
         "scripts/check-production-ops-console-package-smoke.py",
         "scripts/check-repo.py",
-        "docs/radishmind-current-focus.md",
         "docs/radishmind-roadmap.md",
         "docs/radishmind-architecture.md",
         "scripts/README.md",

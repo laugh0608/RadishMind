@@ -100,7 +100,6 @@
     "scripts/check-repo.py",
     "scripts/check-p3-local-product-shell-short-close-checklist.py",
     "scripts/README.md",
-    "docs/radishmind-current-focus.md",
     "docs/radishmind-roadmap.md"
   ]
 }

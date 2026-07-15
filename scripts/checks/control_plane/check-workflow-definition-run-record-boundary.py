@@ -101,11 +101,6 @@ REQUIRED_DOC_REFERENCES = {
         "workflow definition",
         "run record",
     ],
-    "docs/radishmind-current-focus.md": [
-        "workflow-definition-run-record-boundary",
-        "workflow-definition-run-record-boundary.json",
-        "check-workflow-definition-run-record-boundary.py",
-    ],
     "docs/radishmind-product-scope.md": [
         "workflow-definition-run-record-boundary",
         "状态流转",

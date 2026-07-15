@@ -564,10 +564,6 @@
       "image_backend_adapter_readiness_defined",
       "backend adapter readiness"
     ],
-    "docs/radishmind-current-focus.md": [
-      "image-backend-adapter-readiness-evidence-v1",
-      "image_backend_adapter_readiness_defined"
-    ],
     "docs/devlogs/2026-W24.md": [
       "image-backend-adapter-readiness-evidence-v1",
       "image_backend_adapter_readiness_defined"

@@ -129,10 +129,6 @@
       "control-plane-read-workspace-applications-v1",
       "application-summary-list-route"
     ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-workspace-applications-v1",
-      "workspace-applications"
-    ],
     "docs/radishmind-roadmap.md": [
       "control-plane-read-workspace-applications-v1",
       "workspace-applications"

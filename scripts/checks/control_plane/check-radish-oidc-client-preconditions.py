@@ -64,11 +64,6 @@ REQUIRED_DOC_REFERENCES = {
         "radish-oidc-client-preconditions",
         "不接真实 OIDC",
     ],
-    "docs/radishmind-current-focus.md": [
-        "radish-oidc-client-preconditions",
-        "radish-oidc-client-preconditions.json",
-        "check-radish-oidc-client-preconditions.py",
-    ],
     "docs/radishmind-product-scope.md": [
         "radish-oidc-client-preconditions",
         "issuer",

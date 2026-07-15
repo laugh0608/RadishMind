@@ -155,11 +155,6 @@
     "do not attach database Radish OIDC repository adapter store selector or production API consumer"
   ],
   "required_doc_references": {
-    "docs/radishmind-current-focus.md": [
-      "workflow-workspace-context-consistency-v1",
-      "workflowWorkspaceContext",
-      "Workflow Review Handoff"
-    ],
     "docs/devlogs/2026-W24.md": [
       "workflow-workspace-context-consistency-v1",
       "RadishFlow",

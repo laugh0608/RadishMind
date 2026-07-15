@@ -125,10 +125,6 @@
       "control-plane-read-admin-tenant-overview-v1",
       "tenant-summary-route"
     ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-admin-tenant-overview-v1",
-      "admin-tenant-overview"
-    ],
     "docs/radishmind-roadmap.md": [
       "control-plane-read-admin-tenant-overview-v1",
       "admin-tenant-overview"

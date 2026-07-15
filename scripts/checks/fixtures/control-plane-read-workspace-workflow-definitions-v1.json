@@ -150,10 +150,6 @@
       "control-plane-read-workspace-workflow-definitions-v1",
       "workflow-definition-summary-list-route"
     ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-workspace-workflow-definitions-v1",
-      "workspace-workflow-definitions"
-    ],
     "docs/radishmind-roadmap.md": [
       "control-plane-read-workspace-workflow-definitions-v1",
       "workspace-workflow-definitions"

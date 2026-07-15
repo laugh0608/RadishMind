@@ -198,10 +198,6 @@
       "check-workflow-blocked-action-preview-v1.py",
       "workflow-blocked-action-preview-v1.json"
     ],
-    "docs/radishmind-current-focus.md": [
-      "workflow-blocked-action-preview-v1",
-      "workflow_blocked_action_preview_defined"
-    ],
     "docs/radishmind-roadmap.md": [
       "workflow-blocked-action-preview-v1",
       "workflow_blocked_action_preview_defined"

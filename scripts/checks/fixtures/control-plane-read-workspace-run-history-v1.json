@@ -150,10 +150,6 @@
       "control-plane-read-workspace-run-history-v1",
       "run-record-summary-list-route"
     ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-workspace-run-history-v1",
-      "workspace-run-history"
-    ],
     "docs/radishmind-roadmap.md": [
       "control-plane-read-workspace-run-history-v1",
       "workspace-run-history"
