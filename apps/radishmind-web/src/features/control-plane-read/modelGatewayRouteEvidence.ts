@@ -439,7 +439,7 @@ function buildRuntimeGuards(source: ModelGatewayRouteEvidenceSource): ModelGatew
       guardId: "request_observability",
       label: "Request observability",
       status: "offline_only",
-      sourceRef: "services/platform/README.md",
+      sourceRef: "docs/contracts/service-api.md",
       enforcedBy: "request_id plus route/provider/profile fields",
       summary: "Route, status, latency, provider/profile, selected model, selection source, error code, and failure boundary are the audit fields for future runs.",
     },

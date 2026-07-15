@@ -533,7 +533,7 @@
       ]
     },
     {
-      "path": "services/platform/README.md",
+      "path": "docs/features/workflow/README.md",
       "must_contain": [
         "workflow-saved-draft-database-connection-schema-marker-preconditions-v1",
         "draft_database_connection_schema_marker_preconditions_defined"

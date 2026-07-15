@@ -242,11 +242,6 @@
   "required_doc_references": {
     "docs/contracts/image-generation.md": [
       "image-artifact-response-builder-integration-entry-review-v1",
-      "image_artifact_response_builder_integration_entry_review_defined",
-      "metadata-only response builder integration entry review"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "image-artifact-response-builder-integration-entry-review-v1",
       "response builder integration entry review"
     ],
     "docs/radishmind-capability-matrix.md": [

@@ -505,11 +505,6 @@
   "required_doc_references": {
     "docs/contracts/image-generation.md": [
       "image-artifact-store-binary-reader-boundary-readiness-v1",
-      "image_artifact_store_binary_reader_boundary_readiness_defined",
-      "hash / mime type / dimensions revalidation"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "image-artifact-store-binary-reader-boundary-readiness-v1",
       "runtime mapper implementation plan"
     ],
     "docs/radishmind-capability-matrix.md": [

@@ -20,7 +20,6 @@ TASK_CARDS_README = REPO_ROOT / "docs/task-cards/README.md"
 CONTRACTS_README = REPO_ROOT / "contracts/README.md"
 CURRENT_FOCUS = REPO_ROOT / "docs/radishmind-current-focus.md"
 CAPABILITY_MATRIX = REPO_ROOT / "docs/radishmind-capability-matrix.md"
-ROADMAP = REPO_ROOT / "docs/radishmind-roadmap.md"
 DEVLOG = REPO_ROOT / "docs/devlogs/2026-W20.md"
 CHECK_REPO = REPO_ROOT / "scripts/check-repo.py"
 THIS_CHECK = REPO_ROOT / "scripts/check-session-tooling-upper-layer-confirmation-flow-readiness.py"
@@ -391,7 +390,6 @@ def check_docs_and_consumers() -> None:
         ("contracts README", CONTRACTS_README.read_text(encoding="utf-8")),
         ("current focus", CURRENT_FOCUS.read_text(encoding="utf-8")),
         ("capability matrix", CAPABILITY_MATRIX.read_text(encoding="utf-8")),
-        ("roadmap", ROADMAP.read_text(encoding="utf-8")),
         ("devlog", DEVLOG.read_text(encoding="utf-8")),
     ):
         require(fixture_name in content, f"{label} must reference upper-layer confirmation readiness fixture")

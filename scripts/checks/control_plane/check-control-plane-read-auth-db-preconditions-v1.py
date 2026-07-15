@@ -171,10 +171,6 @@ REQUIRED_DOC_REFERENCES = {
         "control-plane-read-auth-db-preconditions-v1",
         "future control plane read store repository",
     ],
-    "docs/radishmind-roadmap.md": [
-        "control-plane-read-auth-db-preconditions-v1",
-        "真实 auth/db 前置条件",
-    ],
     "docs/radishmind-capability-matrix.md": [
         "control-plane-read-auth-db-preconditions-v1",
         "auth/db preconditions",
@@ -200,11 +196,6 @@ REQUIRED_DOC_REFERENCES = {
         "check-control-plane-read-auth-db-preconditions-v1.py",
         "control-plane-read-auth-db-preconditions-v1.json",
         "auth/db preconditions",
-    ],
-    "services/platform/README.md": [
-        "control-plane-read-auth-db-preconditions-v1",
-        "future Radish OIDC / auth middleware",
-        "future control plane read store repository",
     ],
     "docs/devlogs/2026-W22.md": [
         "control-plane-read-auth-db-preconditions-v1",
@@ -488,9 +479,9 @@ def assert_policy_and_docs(fixture: dict[str, Any]) -> None:
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     require(
-        'run_python_script("checks/control_plane/check-control-plane-read-auth-db-preconditions-v1.py", [])'
+        '"check-control-plane-read-auth-db-preconditions-v1.py"'
         in check_repo,
-        "check-repo.py must run control plane read auth/db preconditions check",
+        "check-repo.py must catalog control plane read auth/db preconditions check",
     )
 
     for relative_path, required_literals in REQUIRED_DOC_REFERENCES.items():

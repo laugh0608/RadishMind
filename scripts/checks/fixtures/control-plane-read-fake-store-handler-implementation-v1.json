@@ -211,11 +211,11 @@
     "docs/README.md",
     "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-architecture.md",
-    "docs/radishmind-roadmap.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-capability-matrix.md",
     "docs/task-cards/README.md",
     "docs/task-cards/control-plane-read-fake-store-handler-implementation-v1-plan.md",
-    "services/platform/README.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/devlogs/2026-W22.md"
   ]
 }

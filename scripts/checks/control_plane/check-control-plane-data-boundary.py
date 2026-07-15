@@ -67,11 +67,6 @@ REQUIRED_DOC_REFERENCES = {
         "control-plane-data-boundary",
         "Radish remains identity",
     ],
-    "docs/radishmind-roadmap.md": [
-        "control-plane-data-boundary",
-        "control-plane-data-boundary.json",
-        "check-control-plane-data-boundary.py",
-    ],
     "docs/radishmind-capability-matrix.md": [
         "control-plane-data-boundary",
         "control-plane-data-boundary.json",

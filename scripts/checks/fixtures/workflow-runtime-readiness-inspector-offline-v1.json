@@ -229,9 +229,7 @@
   "required_doc_references": {
     "docs/task-cards/workflow-runtime-readiness-inspector-offline-v1-plan.md": [
       "workflow-runtime-readiness-inspector-offline-v1",
-      "workflow_runtime_readiness_inspector_offline_defined",
-      "runtime readiness inspector",
-      "auth, database, and repository gate"
+      "workflow_runtime_readiness_inspector_offline_defined"
     ],
     "docs/task-cards/README.md": [
       "workflow-runtime-readiness-inspector-offline-v1",
@@ -244,10 +242,6 @@
     "apps/radishmind-web/README.md": [
       "workflow-runtime-readiness-inspector-offline-v1",
       "runtime readiness inspector"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "workflow-runtime-readiness-inspector-offline-v1",
-      "workflow_runtime_readiness_inspector_offline_defined"
     ],
     "docs/radishmind-capability-matrix.md": [
       "workflow-runtime-readiness-inspector-offline-v1",

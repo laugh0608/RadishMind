@@ -235,8 +235,7 @@
       "repository_contract_smoke_runner_readiness_defined"
     ],
     "docs/contracts/control-plane-read-side.md": [
-      "control-plane-read-repository-contract-smoke-runner-readiness-v1",
-      "ControlPlaneReadRepositoryContractSmokeRunner"
+      "control-plane-read-repository-contract-smoke-runner-readiness-v1"
     ],
     "docs/task-cards/README.md": [
       "control-plane-read-repository-contract-smoke-runner-readiness-v1"
@@ -246,9 +245,6 @@
     ],
     "scripts/README.md": [
       "check-control-plane-read-repository-contract-smoke-runner-readiness-v1.py"
-    ],
-    "services/platform/README.md": [
-      "control-plane-read-repository-contract-smoke-runner-readiness-v1"
     ],
     "docs/devlogs/2026-W23.md": [
       "control-plane-read-repository-contract-smoke-runner-readiness-v1"

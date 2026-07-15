@@ -287,7 +287,7 @@
       ]
     },
     {
-      "path": "services/platform/README.md",
+      "path": "docs/features/workflow/README.md",
       "must_contain": [
         "workflow-saved-draft-repository-mode-enablement-v1",
         "draft_repository_mode_enablement_review_defined"

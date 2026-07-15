@@ -202,11 +202,6 @@
   "required_doc_references": {
     "docs/contracts/image-generation.md": [
       "image-artifact-response-consumer-runtime-implementation-v1",
-      "image_artifact_response_consumer_runtime_implemented",
-      "metadata-only response consumer runtime"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "image-artifact-response-consumer-runtime-implementation-v1",
       "metadata-only response consumer runtime"
     ],
     "docs/radishmind-capability-matrix.md": [

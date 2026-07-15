@@ -330,10 +330,6 @@
       "control-plane-read-repository-adapter-implementation-readiness-refresh-v1",
       "repository_adapter_implementation_readiness_refreshed"
     ],
-    "docs/radishmind-roadmap.md": [
-      "control-plane-read-repository-adapter-implementation-readiness-refresh-v1",
-      "repository adapter implementation readiness refresh"
-    ],
     "docs/radishmind-capability-matrix.md": [
       "control-plane-read-repository-adapter-implementation-readiness-refresh-v1",
       "repository adapter implementation readiness refresh"
@@ -352,10 +348,6 @@
     "scripts/README.md": [
       "check-control-plane-read-repository-adapter-implementation-readiness-refresh-v1.py",
       "control-plane-read-repository-adapter-implementation-readiness-refresh-v1.json"
-    ],
-    "services/platform/README.md": [
-      "control-plane-read-repository-adapter-implementation-readiness-refresh-v1",
-      "repository adapter implementation readiness refresh"
     ],
     "docs/devlogs/2026-W23.md": [
       "control-plane-read-repository-adapter-implementation-readiness-refresh-v1",
@@ -377,10 +369,10 @@
     "scripts/README.md",
     "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-current-focus.md",
-    "docs/radishmind-roadmap.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-capability-matrix.md",
     "docs/task-cards/README.md",
-    "services/platform/README.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/devlogs/2026-W23.md"
   ]
 }

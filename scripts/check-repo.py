@@ -83,6 +83,72 @@ RETIRED_SESSION_TOOLING_CHECKS = (
     "check-session-tooling-executor-boundary.py", "check-session-tooling-storage-backend-design.py",
 )
 
+# Image Path 的历史准入链继续保留为手动复验资产。目录顺序保持原始
+# contract -> readiness -> implementation -> runtime 消费关系，使历史 checker
+# 仍能确认前后序，但只有实际契约与 runtime 行为检查进入 fast/full。
+IMAGE_PATH_CHECK_CATALOG = (
+    "check-image-generation-intent-contract.py",
+    "check-image-generation-eval-manifest.py",
+    "check-image-adapter-handshake-safety-gate-v1.py",
+    "check-image-artifact-return-runbook-evidence-v1.py",
+    "check-image-safety-runbook-evidence-v1.py",
+    "check-image-backend-adapter-readiness-evidence-v1.py",
+    "check-image-artifact-runtime-mapping-readiness-v1.py",
+    "check-image-artifact-runtime-mapping-implementation-entry-review-v1.py",
+    "check-image-artifact-store-binary-reader-boundary-readiness-v1.py",
+    "check-image-artifact-runtime-mapper-implementation-plan-v1.py",
+    "check-image-artifact-runtime-mapper-implementation-entry-v1.py",
+    "check-image-artifact-runtime-mapper-implementation-v1.py",
+    "check-image-artifact-runtime-mapper-runtime-implementation-v1.py",
+    "check-image-artifact-runtime-mapper-response-consumer-integration-review-v1.py",
+    "check-image-artifact-response-consumer-implementation-readiness-v1.py",
+    "check-image-artifact-response-consumer-implementation-v1.py",
+    "check-image-artifact-response-consumer-runtime-implementation-v1.py",
+    "check-image-artifact-response-builder-integration-entry-review-v1.py",
+    "check-image-artifact-response-builder-integration-v1.py",
+    "check-image-artifact-response-builder-runtime-integration-entry-review-v1.py",
+    "check-image-artifact-response-builder-runtime-integration-implementation-v1.py",
+)
+RETIRED_IMAGE_PATH_CHECKS = (
+    IMAGE_PATH_CHECK_CATALOG[2:12]
+    + IMAGE_PATH_CHECK_CATALOG[13:16]
+    + IMAGE_PATH_CHECK_CATALOG[17:20]
+)
+
+# Control Plane Read 的早期设计 / 准入链继续保留为手动复验资产。
+# 当前活动基线只执行跨 Go / TypeScript 样例一致性、消费契约、已实现
+# Web 只读页面与 dev-live consumer；Go 路由、鉴权和 fake store 行为由
+# services/platform/internal/httpapi 的行为测试承接。
+CONTROL_PLANE_READ_CHECK_CATALOG = (
+    "check-control-plane-read-model-v1.py",
+    "check-control-plane-read-route-contract-v1.py",
+    "check-control-plane-read-response-fixtures-v1.py",
+    "check-control-plane-read-product-sample-consistency-v1.py",
+    "check-control-plane-read-negative-contract-v1.py",
+    "check-control-plane-read-implementation-preconditions-v1.py",
+    "check-control-plane-read-fake-store-handler-plan-v1.py",
+    "check-control-plane-read-fake-store-handler-implementation-v1.py",
+    "check-control-plane-read-auth-db-preconditions-v1.py",
+    "check-control-plane-read-consumer-contract-v1.py",
+    "check-control-plane-read-formal-ui-boundary-v1.py",
+    "check-control-plane-read-formal-ui-implementation-readiness-v1.py",
+    "check-control-plane-read-shared-shell-v1.py",
+    "check-control-plane-read-admin-tenant-overview-v1.py",
+    "check-control-plane-read-workspace-applications-v1.py",
+    "check-control-plane-read-workspace-api-keys-v1.py",
+    "check-control-plane-read-workspace-usage-quota-v1.py",
+    "check-control-plane-read-workspace-workflow-definitions-v1.py",
+    "check-control-plane-read-workspace-run-history-v1.py",
+    "check-control-plane-read-admin-audit-log-v1.py",
+    "check-control-plane-read-formal-ui-readiness-close-v1.py",
+    "check-control-plane-read-dev-live-consumer-v1.py",
+)
+RETIRED_CONTROL_PLANE_READ_CHECKS = (
+    CONTROL_PLANE_READ_CHECK_CATALOG[:3]
+    + CONTROL_PLANE_READ_CHECK_CATALOG[4:9]
+)
+
+
 def run_python_script(script_name: str, args: list[str]) -> None:
     result = subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / script_name), *args], cwd=REPO_ROOT)
     if result.returncode != 0:
@@ -1170,15 +1236,7 @@ def check_fast_baseline() -> None:
     run_python_script("checks/control_plane/check-radish-oidc-client-preconditions.py", [])
     run_python_script("checks/control_plane/check-gateway-api-key-quota-readiness.py", [])
     run_python_script("checks/control_plane/check-workflow-definition-run-record-boundary.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-model-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-route-contract-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-response-fixtures-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-product-sample-consistency-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-negative-contract-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-implementation-preconditions-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-fake-store-handler-plan-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-fake-store-handler-implementation-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-auth-db-preconditions-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-consumer-contract-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-formal-ui-boundary-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-formal-ui-implementation-readiness-v1.py", [])
@@ -1317,24 +1375,8 @@ def check_fast_baseline() -> None:
     run_python_script("check-radishmind-core-model-adaptation-v1-preflight-result.py", [])
     run_python_script("check-image-generation-intent-contract.py", [])
     run_python_script("check-image-generation-eval-manifest.py", [])
-    run_python_script("check-image-adapter-handshake-safety-gate-v1.py", [])
-    run_python_script("check-image-artifact-return-runbook-evidence-v1.py", [])
-    run_python_script("check-image-safety-runbook-evidence-v1.py", [])
-    run_python_script("check-image-backend-adapter-readiness-evidence-v1.py", [])
-    run_python_script("check-image-artifact-runtime-mapping-readiness-v1.py", [])
-    run_python_script("check-image-artifact-runtime-mapping-implementation-entry-review-v1.py", [])
-    run_python_script("check-image-artifact-store-binary-reader-boundary-readiness-v1.py", [])
-    run_python_script("check-image-artifact-runtime-mapper-implementation-plan-v1.py", [])
-    run_python_script("check-image-artifact-runtime-mapper-implementation-entry-v1.py", [])
-    run_python_script("check-image-artifact-runtime-mapper-implementation-v1.py", [])
     run_python_script("check-image-artifact-runtime-mapper-runtime-implementation-v1.py", [])
-    run_python_script("check-image-artifact-runtime-mapper-response-consumer-integration-review-v1.py", [])
-    run_python_script("check-image-artifact-response-consumer-implementation-readiness-v1.py", [])
-    run_python_script("check-image-artifact-response-consumer-implementation-v1.py", [])
     run_python_script("check-image-artifact-response-consumer-runtime-implementation-v1.py", [])
-    run_python_script("check-image-artifact-response-builder-integration-entry-review-v1.py", [])
-    run_python_script("check-image-artifact-response-builder-integration-v1.py", [])
-    run_python_script("check-image-artifact-response-builder-runtime-integration-entry-review-v1.py", [])
     run_python_script("check-image-artifact-response-builder-runtime-integration-implementation-v1.py", [])
     check_path_budget()
     check_required_files()

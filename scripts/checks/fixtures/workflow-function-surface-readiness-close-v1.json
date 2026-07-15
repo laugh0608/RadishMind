@@ -396,9 +396,7 @@
   "required_doc_references": {
     "docs/task-cards/workflow-function-surface-readiness-close-v1-plan.md": [
       "workflow-function-surface-readiness-close-v1",
-      "workflow_function_surface_readiness_closed",
-      "surface matrix",
-      "runtime readiness inspector"
+      "workflow_function_surface_readiness_closed"
     ],
     "docs/task-cards/README.md": [
       "workflow-function-surface-readiness-close-v1",
@@ -413,10 +411,6 @@
       "workflow surface matrix"
     ],
     "docs/README.md": [
-      "workflow-function-surface-readiness-close-v1",
-      "workflow_function_surface_readiness_closed"
-    ],
-    "docs/radishmind-roadmap.md": [
       "workflow-function-surface-readiness-close-v1",
       "workflow_function_surface_readiness_closed"
     ],

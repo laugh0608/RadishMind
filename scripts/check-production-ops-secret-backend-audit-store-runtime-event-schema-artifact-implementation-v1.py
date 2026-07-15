@@ -447,9 +447,6 @@ def assert_docs_and_registration() -> None:
             EXPECTED_STATUS,
             "production-secret-backend-audit-store-runtime-event-schema-artifact-implementation-v1",
         ],
-        "docs/radishmind-roadmap.md": [
-            EXPECTED_STATUS,
-        ],
         "docs/features/README.md": [
             EXPECTED_STATUS,
         ],

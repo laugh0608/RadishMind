@@ -192,7 +192,7 @@ Web 新增标准 `test:coverage` 命令，并补齐 Application / Gateway 事件
 
 第一阶段目标：
 
-- `docs/radishmind-current-focus.md`、`docs/platform/README.md` 等入口回到短入口职责，长历史迁入专题索引或归档摘要。
+- `docs/radishmind-current-focus.md`、`docs/radishmind-roadmap.md`、`services/platform/README.md` 等入口回到短入口职责，长历史迁入职责明确的专题、运行手册或既有归档。
 - 普通入口避免超长单行；单行目标不超过 2,000 字符。
 - `docs/radishmind-current-focus.md` 的人工默认阅读区先收敛到 10 KiB 以内；历史机器锚点在 checker 解耦前进入明确兼容区，不再混入当前决策。
 - 两个迭代内把活跃 `check-*.py` 数量和 checker 代码量各降低至少 15%，优先合并相同 schema / fixture / readiness 扫描。
@@ -233,6 +233,55 @@ Web 新增标准 `test:coverage` 命令，并补齐 Application / Gateway 事件
 完成条件：当前焦点低于 `10 KiB`、不再需要 `markdown-size-allow`，活动 Python 直接调用方从 `39` 个降至四个，活动 fixture 间接功能引用降至零；`81` 项解耦检查独立通过；fast / full 通过；路线图、任务索引和周志明确下一批不再回填历史锚点。本批不修改产品 API、schema、runtime、权限、生产声明或现有功能证据内容。
 
 2026-07-15 完成结论：当前焦点从 `291` 行、`121,651` 字节收敛到 `89` 行、低于 `10 KiB`，并删除 `markdown-size-allow`；活动 Python 直接调用方只保留四项，活动 fixture 间接功能引用归零。`81` 项解耦检查、四项保留检查、fast 和 full 均通过；没有新建兼容索引、checker、fixture 或归档副本，也没有删除既有功能证据。
+
+### 2026-07-15 第三批：路线图与 Platform README 真相源收敛
+
+整改前 `docs/radishmind-roadmap.md` 为 `276` 行、`73,441` 字节，包含四产品面后的逐切片完成流水、历史 next dependency 和 checker 兼容区；`services/platform/README.md` 为 `659` 行、`99,436` 字节，混合服务职责、完整配置表、本地运行手册、Control Plane readiness 和 Production Secret Backend 历史链。路线图原始命中为 `54` 个 Python 文件与 `101` 个 JSON fixture，Platform README 原始命中为 `22` 个 Python 文件、`63` 个 JSON fixture和一个前端文件。
+
+调用方审计区分活动门禁、已退出历史检查和合理产品引用：路线图有 `36` 个活动 Python 直接调用方、`18` 个历史调用方和 `82` 个活动可达 fixture 引用；Platform README 有 `16` 个活动 Python 直接调用方、`6` 个历史调用方和 `38` 个活动可达 fixture 引用。大多数引用只要求入口重复保存切片名、fixture 名或 readiness 状态，不是协议、功能或运行消费。
+
+本批按职责完成以下收敛：
+
+1. 路线图只保留产品方向、阶段顺序、当前执行顺位、权威入口和停止线，从 `276` 行 / `73,441` 字节降到 `85` 行 / `7,271` 字节并删除 `markdown-size-allow`；保留体量治理、P3 / console 生产停止线和四产品面四项 Python 调用，以及 P3、产品面与 required-files 三项 JSON 引用。
+2. Platform README 只保留服务职责、路由分类、启动入口、代码入口、权威专题和停止线，从 `659` 行 / `99,436` 字节降到 `82` 行 / `6,324` 字节并删除 `markdown-size-allow`；唯一 Python 调用方是入口与运行手册漂移检查，JSON 和前端引用归零。
+3. 新增 [平台服务运行手册 v1](platform-service-operations-runbook-v1.md)，集中维护核心配置、直接注册的基础路由、跨平台启动、smoke、PostgreSQL 开发测试态入口和故障边界；前端观测引用改读 `docs/contracts/service-api.md`，Control Plane、Workflow、Image、Provider 和 Production Ops fixture 改读各自协议、功能专题、任务卡或运行手册。
+4. 既有 checker 只解除入口文案耦合，实际 schema、fixture、代码、权限、失败关闭、no fallback 与停止线断言继续保留；没有新增 checker、重复 fixture 或兼容归档，也没有修改产品 API、schema、runtime、权限或生产声明。
+
+完成条件：JSON fixture 全量解析、Python 编译、`39` 项原活动直接调用检查和 `78` 项活动 fixture 消费检查通过；fast / full 仓库门禁通过；当前焦点、整改专题、任务索引、路线图、脚本说明和 W29 周志一致。剩余文档体量提示只允许保留与本批无关的 W28 周志，下一工程批进入活动 checker / fixture 职责重叠审计，不自动批量删除历史证据。
+
+### 2026-07-15 第四批：Image Path 活动准入链收敛
+
+本批重新按 `check_fast_baseline()` 中直接 `run_python_script` 调用统计当前执行面，共有 `135` 项活动检查；该口径包含模型、评测和产品行为检查，不回写第一批采用的治理子集历史口径。Image Path 占其中 `21` 项、`10,551` 行：基础协议与评测两项、实际 runtime 行为三项，以及 `16` 项 handshake、runbook、readiness、entry review 和实现任务卡静态检查。
+
+调用与职责审计确认：这 `16` 项静态检查均不执行 subprocess 或真实 backend，主要递归读取同一批 image schema、fixture、任务卡、`scripts/check-repo.py` 顺序和禁止文件；后续 mapper / consumer / builder runtime 检查已经直接导入实际模块并覆盖成功、blocked、失败关闭、citation 合并、metadata 顺序、最终 schema 校验与零副作用。相邻计划 / 实现脚本的路径重叠最高达到 `97%`，consumer readiness / implementation 达到 `91%`，属于已被后续实现消费的历史准入链，不是独立运行功能。
+
+本批按行为责任完成以下收敛：
+
+1. fast / full 只保留 `check-image-generation-intent-contract.py`、`check-image-generation-eval-manifest.py`、runtime mapper、runtime consumer 和 runtime builder integration 五项，共 `1,867` 行；基础 schema、最小 fixture、确认门禁、评测 manifest、runtime 成功 / 失败关闭、顺序、schema 与零副作用断言继续执行。
+2. 其余 `16` 项、`8,684` 行退出活动基线，但脚本、fixture、任务卡和协议文档均不删除；`IMAGE_PATH_CHECK_CATALOG` 保留原始前后序，使全部历史 checker 仍可独立手动复验。
+3. 当前源码直接活动调用由 `135` 项降到 `119` 项，Image Path 活动项由 `21` 项降到五项；不把文件数下降解释为删除功能证据，也不改 image contract、runtime module、API、schema、权限或生产声明。
+4. Control Plane、Provider 与 Production Ops 本轮审计未证明同等重复：前两者仍混有产品消费和运行策略断言，后者分别覆盖部署模式、环境隔离、容器与停止线，因此本批不机械退出。
+
+完成条件：五项活动 Image 检查与 `16` 项历史检查均独立通过；活动 / 退出集合无缺失且零重叠；Python / JSON 基础校验、fast / full 仓库门禁通过；当前焦点、任务索引、路线图、Image 契约、脚本说明和 W29 周志一致。下一工程批只审计 Control Plane Read 早期静态链与现有 Go / TypeScript 行为覆盖，不自动处理 Provider 或 Production Ops。
+
+2026-07-15 完成结论：全部 `21` 项 Image 检查在收敛前后均可独立执行，活动五项与历史 `16` 项无缺失且零重叠；`374` 个 JSON fixture 解析、Python 编译、差异卫生、fast 与 full 仓库门禁均通过。唯一提示仍是本批未修改的 W28 周志体量 warning；本批没有新增 checker、fixture 或归档副本，也没有修改产品 API、schema、runtime、权限或生产声明。
+
+### 2026-07-15 第五批：Control Plane Read 早期静态链收敛
+
+整改前 `check_fast_baseline()` 直接执行 `119` 项检查，其中 Control Plane Read 有 `22` 项、`7,099` 行。审计将其分为 Go 运行行为、跨端消费一致性、formal UI / 页面实现和历史设计准入四类，没有按命中数量统一退出。
+
+Go 行为证据已经覆盖七条 route、repository interface、fake store、响应 envelope、产品样例、测试身份、签名测试 token、确定性 OIDC、租户 / scope / filter / query 拒绝、敏感字段阻断、禁止 method、零 repository query 与零副作用；TypeScript 行为测试覆盖 dev-live consumer 的离线零请求、sanitized failure、作用域路由、envelope 拒绝与两种 token 模式。保留的产品样例一致性与消费契约检查继续校验 response fixture、Go fake store、前端离线样例、route / read model / scope、forbidden output 和 consumer smoke。
+
+本批据此完成以下收敛：
+
+1. read model、route contract、response fixture、negative contract、implementation preconditions、fake-store plan、fake-store implementation 和 auth/db preconditions 八项、`2,897` 行退出 fast / full；脚本、fixture、任务卡和契约说明继续保留，历史 checker 改读 `CONTROL_PLANE_READ_CHECK_CATALOG` 以保持手动复验能力。
+2. Control Plane Read 活动检查保留十四项、`4,202` 行：产品样例一致性、TypeScript 消费契约、formal UI boundary / implementation readiness、shared shell、七个实际页面、formal UI 聚合收口和 dev-live consumer。
+3. formal UI 两项和七个页面检查不退出。现有 TypeScript 单测只直接覆盖 dev-live consumer 与 Applications 的部分消费路径，尚不能等价证明其余页面的状态、route binding、forbidden projection、request / audit ref 和停止线。
+4. 当前源码直接活动调用从 `119` 项降到 `111` 项；不修改 Control Plane API、schema、运行时、鉴权、数据库、权限或生产声明，也不删除历史 fixture 或新增同层 checker。
+
+完成条件：全部 `22` 项 Control Plane Read 检查在收敛前后均可独立执行；目标 Go 与 Web 行为测试、JSON / Python 基础校验、fast / full 通过；活动十四项与历史八项无缺失且零重叠。下一工程批只做 R6 关闭评审，复算 checker / task card 收敛结果并确认剩余领域是否确有等价行为证据；没有证据就保持现状，不自动处理 Provider、Production Ops 或 formal UI。
+
+2026-07-15 完成结论：Control Plane Read 活动检查已从 `22` 项、`7,099` 行收敛到十四项、`4,202` 行；八项、`2,897` 行历史检查仍可逐项手动复验。目标 Go / Web 行为测试、全部 Control Plane Read 检查、JSON / Python 基础校验、fast 与 full 均通过；唯一提示仍是未修改的 W28 周志体量 warning。本批没有新增 checker、fixture 或归档副本，也没有修改产品 API、schema、runtime、权限或生产声明。
 
 ## 推进顺序
 

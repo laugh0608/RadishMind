@@ -172,10 +172,6 @@ REQUIRED_DOC_REFERENCES = {
         "check-control-plane-read-formal-ui-implementation-readiness-v1.py",
         "control-plane-read-formal-ui-implementation-readiness-v1.json",
     ],
-    "services/platform/README.md": [
-        "control-plane-read-formal-ui-implementation-readiness-v1",
-        "apps/radishmind-web/",
-    ],
     "docs/devlogs/2026-W22.md": [
         "control-plane-read-formal-ui-implementation-readiness-v1",
         "control-plane-read-formal-ui-implementation-readiness-v1.json",

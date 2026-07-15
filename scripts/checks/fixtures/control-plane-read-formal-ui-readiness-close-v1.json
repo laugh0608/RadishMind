@@ -258,10 +258,6 @@
     ],
     "docs/contracts/control-plane-read-side.md": [
       "control-plane-read-formal-ui-readiness-close-v1",
-      "formal_ui_readiness_closed"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "control-plane-read-formal-ui-readiness-close-v1",
       "formal UI readiness close"
     ],
     "docs/radishmind-capability-matrix.md": [

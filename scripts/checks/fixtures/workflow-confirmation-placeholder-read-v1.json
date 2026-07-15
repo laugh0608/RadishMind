@@ -222,9 +222,7 @@
   "required_doc_references": {
     "docs/task-cards/workflow-confirmation-placeholder-read-v1-plan.md": [
       "workflow-confirmation-placeholder-read-v1",
-      "workflow_confirmation_placeholder_read_defined",
-      "required decision shape",
-      "human review requirement"
+      "workflow_confirmation_placeholder_read_defined"
     ],
     "docs/task-cards/README.md": [
       "workflow-confirmation-placeholder-read-v1",
@@ -233,10 +231,6 @@
     "scripts/README.md": [
       "check-workflow-confirmation-placeholder-read-v1.py",
       "workflow-confirmation-placeholder-read-v1.json"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "workflow-confirmation-placeholder-read-v1",
-      "workflow_confirmation_placeholder_read_defined"
     ],
     "docs/radishmind-capability-matrix.md": [
       "workflow-confirmation-placeholder-read-v1",

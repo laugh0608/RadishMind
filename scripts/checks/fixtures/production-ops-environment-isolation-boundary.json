@@ -142,7 +142,7 @@
     "scripts/check-radishmind-console-production-boundary.py",
     "scripts/checks/fixtures/production-ops-config-secret-boundary.json",
     "scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json",
-    "services/platform/README.md",
+    "docs/platform/platform-service-operations-runbook-v1.md",
     "docs/task-cards/production-ops-hardening-v1-plan.md"
   ],
   "required_consumers": [
@@ -150,6 +150,6 @@
     "scripts/check-repo.py",
     "scripts/check-p3-local-product-shell-short-close-checklist.py",
     "scripts/README.md",
-    "docs/radishmind-roadmap.md"
+    "docs/task-cards/production-ops-hardening-v1-plan.md"
   ]
 }

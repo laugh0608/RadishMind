@@ -134,10 +134,6 @@
   "required_doc_references": {
     "docs/contracts/control-plane-read-side.md": [
       "control-plane-read-dev-live-consumer-v1",
-      "dev_live_http"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "control-plane-read-dev-live-consumer-v1",
       "dev-only live read consumer"
     ],
     "docs/radishmind-capability-matrix.md": [

@@ -213,9 +213,7 @@
   "required_doc_references": {
     "docs/task-cards/workflow-application-detail-read-v1-plan.md": [
       "workflow-application-detail-read-v1",
-      "workflow_application_detail_read_defined",
-      "application identity",
-      "blocked capability preview"
+      "workflow_application_detail_read_defined"
     ],
     "docs/task-cards/README.md": [
       "workflow-application-detail-read-v1",
@@ -224,10 +222,6 @@
     "scripts/README.md": [
       "check-workflow-application-detail-read-v1.py",
       "workflow-application-detail-read-v1.json"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "workflow-application-detail-read-v1",
-      "workflow_application_detail_read_defined"
     ],
     "docs/radishmind-capability-matrix.md": [
       "workflow-application-detail-read-v1",

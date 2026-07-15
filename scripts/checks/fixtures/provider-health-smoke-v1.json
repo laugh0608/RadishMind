@@ -109,7 +109,7 @@
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/radishmind-capability-matrix.md",
-    "docs/radishmind-roadmap.md",
+    "docs/contracts/service-api.md",
     "docs/radishmind-architecture.md",
     "docs/task-cards/provider-runtime-health-v1-plan.md",
     "docs/devlogs/2026-W22.md"

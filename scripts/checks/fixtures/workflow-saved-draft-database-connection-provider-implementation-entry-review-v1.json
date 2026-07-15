@@ -517,7 +517,7 @@
       ]
     },
     {
-      "path": "services/platform/README.md",
+      "path": "docs/features/workflow/README.md",
       "must_contain": [
         "workflow-saved-draft-database-connection-provider-implementation-entry-review-v1",
         "draft_database_connection_provider_implementation_entry_review_defined"

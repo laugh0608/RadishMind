@@ -157,10 +157,6 @@ REQUIRED_DOC_REFERENCES = {
         "secret_resolver_interface_disabled_readiness_defined",
         "不接生产后端",
     ],
-    "docs/radishmind-roadmap.md": [
-        "secret-resolver-interface-disabled",
-        "production-secret-backend-secret-resolver-interface-disabled-readiness-v1.json",
-    ],
     "docs/radishmind-capability-matrix.md": [
         "secret-resolver-interface-disabled",
         "production-secret-backend-secret-resolver-interface-disabled-readiness-v1.json",
@@ -180,10 +176,6 @@ REQUIRED_DOC_REFERENCES = {
     ],
     "scripts/README.md": [
         "check-production-ops-secret-backend-secret-resolver-interface-disabled-readiness-v1.py",
-        "production-secret-backend-secret-resolver-interface-disabled-readiness-v1.json",
-    ],
-    "services/platform/README.md": [
-        "Production secret backend secret resolver interface disabled readiness",
         "production-secret-backend-secret-resolver-interface-disabled-readiness-v1.json",
     ],
     "deploy/README.md": [

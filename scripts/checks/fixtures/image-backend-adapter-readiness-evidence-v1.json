@@ -556,9 +556,9 @@
       "image-backend-adapter-readiness-evidence-v1",
       "backend adapter readiness"
     ],
-    "docs/radishmind-roadmap.md": [
+    "docs/task-cards/image-backend-adapter-readiness-evidence-v1-plan.md": [
       "image_backend_adapter_readiness_defined",
-      "artifact runtime mapping readiness"
+      "backend adapter readiness"
     ],
     "docs/radishmind-architecture.md": [
       "image_backend_adapter_readiness_defined",

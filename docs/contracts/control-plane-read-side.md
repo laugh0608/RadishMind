@@ -8,7 +8,7 @@
 
 ## 当前运行契约
 
-本文后续保留 read-side 从 readiness 到实现的历史证据梯。当前 auth mode、repository 路由、PostgreSQL、OIDC、零查询失败与隐私语义统一见 [Control Plane 鉴权与只读运行时契约](control-plane-auth-read-runtime.md)；该运行时只证明受控开发测试态 Admin read path，不声明 production auth、workspace membership、production repository 或管理写入 ready。
+本文后续保留 read-side 从 readiness 到实现的历史证据梯。当前 auth mode、repository 路由、PostgreSQL、OIDC、零查询失败与隐私语义统一见 [Control Plane 鉴权与只读运行时契约](control-plane-auth-read-runtime.md)；该运行时只证明受控开发测试态 Admin read path，不声明 production auth、workspace membership、production repository 或管理写入 ready。仓库活动门禁只保留产品样例一致性、TypeScript 消费契约、尚无完整 TypeScript 行为覆盖的 formal UI / 页面链和 dev-live consumer；早期 model、route、response、negative、preconditions、fake-store 与 auth/db 静态检查保留为历史手动复验资产，Go route / auth / store 行为以 `services/platform/internal/httpapi` 测试为准。
 
 当前 `control-plane-read-repository-implementation-readiness-v1` 已把未来 repository implementation readiness 纳入同一 read-side 契约层；它只固定未来文件落点、实现准入 gate、七条 route readiness matrix、dual smoke plan、failure mapping、no fake fallback、no side effects 和停止线，该切片本身不创建 Go repository 文件、不声明 repository interface、不实现 repository adapter、不写 SQL、不建 migration、不接真实数据库、Radish OIDC、token validation 或 production API consumer。
 

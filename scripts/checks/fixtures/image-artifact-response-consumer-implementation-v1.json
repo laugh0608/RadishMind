@@ -259,10 +259,6 @@
   "required_doc_references": {
     "docs/contracts/image-generation.md": [
       "image-artifact-response-consumer-implementation-v1",
-      "image_artifact_response_consumer_implementation_task_card_defined"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "image-artifact-response-consumer-implementation-v1",
       "response consumer implementation task card"
     ],
     "docs/radishmind-architecture.md": [

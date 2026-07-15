@@ -390,11 +390,6 @@
   "required_doc_references": {
     "docs/task-cards/workflow-function-surface-boundary-v1-plan.md": [
       "workflow-function-surface-boundary-v1",
-      "application detail",
-      "workflow definition detail",
-      "run detail",
-      "tool action preview",
-      "confirmation placeholder",
       "function_surface_boundary_defined"
     ],
     "docs/task-cards/workflow-agent-runtime-function-surface-v1-plan.md": [
@@ -408,10 +403,6 @@
     "scripts/README.md": [
       "check-workflow-function-surface-boundary-v1.py",
       "workflow-function-surface-boundary-v1.json"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "workflow-function-surface-boundary-v1",
-      "function_surface_boundary_defined"
     ],
     "docs/radishmind-capability-matrix.md": [
       "workflow-function-surface-boundary-v1",

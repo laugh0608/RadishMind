@@ -133,10 +133,6 @@ REQUIRED_DOC_REFERENCES = {
         "check-production-ops-secret-backend-config-secret-ref-readiness-v1.py",
         "production-secret-backend-config-secret-ref-readiness-v1.json",
     ],
-    "services/platform/README.md": [
-        "Production secret backend config / secret ref readiness",
-        "production-secret-backend-config-secret-ref-readiness-v1.json",
-    ],
     "deploy/README.md": [
         "production-secret-backend-config-secret-ref-readiness-v1",
         "config-secret-ref-readiness",

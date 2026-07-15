@@ -74,11 +74,6 @@ REQUIRED_DOC_REFERENCES = {
         "radish-oidc-client-preconditions",
         "Radish remains identity truth",
     ],
-    "docs/radishmind-roadmap.md": [
-        "radish-oidc-client-preconditions",
-        "radish-oidc-client-preconditions.json",
-        "check-radish-oidc-client-preconditions.py",
-    ],
     "docs/radishmind-capability-matrix.md": [
         "radish-oidc-client-preconditions",
         "radish-oidc-client-preconditions.json",

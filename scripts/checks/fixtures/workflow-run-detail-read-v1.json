@@ -183,9 +183,7 @@
   "required_doc_references": {
     "docs/task-cards/workflow-run-detail-read-v1-plan.md": [
       "workflow-run-detail-read-v1",
-      "workflow_run_detail_read_defined",
-      "state timeline",
-      "blocked replay / resume preview"
+      "workflow_run_detail_read_defined"
     ],
     "docs/task-cards/README.md": [
       "workflow-run-detail-read-v1",
@@ -194,10 +192,6 @@
     "scripts/README.md": [
       "check-workflow-run-detail-read-v1.py",
       "workflow-run-detail-read-v1.json"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "workflow-run-detail-read-v1",
-      "workflow_run_detail_read_defined"
     ],
     "docs/radishmind-capability-matrix.md": [
       "workflow-run-detail-read-v1",

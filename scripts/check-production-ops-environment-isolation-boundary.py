@@ -70,21 +70,10 @@ REQUIRED_SOURCE_LITERALS = {
 }
 
 REQUIRED_DOC_REFERENCES = {
-    "services/platform/README.md": [
-        "Environment isolation boundary",
-        "environment-isolation",
-        "production-ops-environment-isolation-boundary.json",
-        "local-smoke",
-        "production health",
-    ],
     "docs/task-cards/production-ops-hardening-v1-plan.md": [
         "environment-isolation",
         "production-ops-environment-isolation-boundary.json",
         "check-production-ops-environment-isolation-boundary.py",
-    ],
-    "docs/radishmind-roadmap.md": [
-        "environment-isolation",
-        "production-ops-environment-isolation-boundary.json",
     ],
     "scripts/README.md": [
         "check-production-ops-environment-isolation-boundary.py",
@@ -188,7 +177,6 @@ def assert_evidence_and_consumers(document: dict[str, Any]) -> None:
         "scripts/check-repo.py",
         "scripts/check-p3-local-product-shell-short-close-checklist.py",
         "scripts/README.md",
-        "docs/radishmind-roadmap.md",
     }
     missing_consumers = sorted(expected_consumers - consumers)
     require(not missing_consumers, f"missing environment isolation consumers: {missing_consumers}")

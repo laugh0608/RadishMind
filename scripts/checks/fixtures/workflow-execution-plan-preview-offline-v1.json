@@ -227,9 +227,7 @@
   "required_doc_references": {
     "docs/task-cards/workflow-execution-plan-preview-offline-v1-plan.md": [
       "workflow-execution-plan-preview-offline-v1",
-      "workflow_execution_plan_preview_offline_defined",
-      "execution plan preview",
-      "stage order"
+      "workflow_execution_plan_preview_offline_defined"
     ],
     "docs/task-cards/README.md": [
       "workflow-execution-plan-preview-offline-v1",
@@ -242,10 +240,6 @@
     "apps/radishmind-web/README.md": [
       "workflow-execution-plan-preview-offline-v1",
       "execution plan preview"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "workflow-execution-plan-preview-offline-v1",
-      "workflow_execution_plan_preview_offline_defined"
     ],
     "docs/radishmind-capability-matrix.md": [
       "workflow-execution-plan-preview-offline-v1",

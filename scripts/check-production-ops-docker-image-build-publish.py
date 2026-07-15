@@ -36,10 +36,6 @@ REQUIRED_DOC_REFERENCES = {
         "v*-release",
         "production ready",
     ],
-    "docs/radishmind-roadmap.md": [
-        "docker-image-build-publish",
-        "production-ops-docker-image-build-publish.json",
-    ],
     "docs/task-cards/production-ops-hardening-v1-plan.md": [
         "docker-image-build-publish",
         "production-ops-docker-image-build-publish.json",
@@ -187,7 +183,6 @@ def assert_consumers_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-docker-deployment-mode.py",
         "scripts/check-repo.py",
         "scripts/README.md",
-        "docs/radishmind-roadmap.md",
         "docs/task-cards/production-ops-hardening-v1-plan.md",
         "docs/task-cards/production-ops-docker-deployment-v1-plan.md",
         "docs/devlogs/2026-W21.md",

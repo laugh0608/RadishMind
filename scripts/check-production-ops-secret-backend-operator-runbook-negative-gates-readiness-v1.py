@@ -178,10 +178,6 @@ REQUIRED_DOC_REFERENCES = {
         "operator_runbook_negative_gates_readiness_defined",
         "不接生产后端",
     ],
-    "docs/radishmind-roadmap.md": [
-        "operator-runbook-and-negative-gates",
-        "production-secret-backend-operator-runbook-negative-gates-readiness-v1.json",
-    ],
     "docs/radishmind-capability-matrix.md": [
         "operator-runbook-and-negative-gates",
         "production-secret-backend-operator-runbook-negative-gates-readiness-v1.json",
@@ -201,10 +197,6 @@ REQUIRED_DOC_REFERENCES = {
     ],
     "scripts/README.md": [
         "check-production-ops-secret-backend-operator-runbook-negative-gates-readiness-v1.py",
-        "production-secret-backend-operator-runbook-negative-gates-readiness-v1.json",
-    ],
-    "services/platform/README.md": [
-        "Production secret backend operator runbook / negative gates readiness",
         "production-secret-backend-operator-runbook-negative-gates-readiness-v1.json",
     ],
     "deploy/README.md": [

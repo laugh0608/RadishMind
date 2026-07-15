@@ -200,7 +200,7 @@
     "docs/README.md",
     "docs/radishmind-product-scope.md",
     "docs/radishmind-architecture.md",
-    "docs/radishmind-roadmap.md",
+    "docs/features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md",
     "docs/radishmind-capability-matrix.md",
     "docs/task-cards/control-plane-user-workspace-workflow-v1-plan.md",
     "docs/devlogs/2026-W22.md"

@@ -55,7 +55,6 @@ EXPECTED_REQUIRED_CONSUMERS = {
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/radishmind-capability-matrix.md",
-    "docs/radishmind-roadmap.md",
     "docs/radishmind-architecture.md",
     "docs/task-cards/provider-runtime-health-v1-plan.md",
 }
@@ -64,10 +63,6 @@ REQUIRED_DOC_REFERENCES = {
         "provider capability matrix",
         "provider-capability-matrix-v1.json",
         "check-provider-capability-matrix.py",
-    ],
-    "docs/radishmind-roadmap.md": [
-        "provider-capability-matrix-v1",
-        "provider-capability-matrix-v1.json",
     ],
     "docs/radishmind-architecture.md": [
         "provider-capability-matrix-v1.json",

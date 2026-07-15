@@ -320,9 +320,9 @@
       "image-adapter-handshake-safety-gate-v1",
       "metadata-only"
     ],
-    "docs/radishmind-roadmap.md": [
+    "docs/task-cards/image-adapter-handshake-safety-gate-v1-plan.md": [
       "image_adapter_handshake_safety_gate_defined",
-      "artifact metadata-only"
+      "metadata-only"
     ],
     "docs/radishmind-architecture.md": [
       "image_adapter_handshake_safety_gate_defined",

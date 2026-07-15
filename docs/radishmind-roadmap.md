@@ -2,275 +2,84 @@
 
 更新时间：2026-07-15
 
-<!-- markdown-size-allow: 历史阶段流水与 checker 锚点暂时保留；人工默认只读 2026-07-12 当前执行顺序，R6 解耦后将历史内容迁入归档并删除本标记。 -->
+## 文档职责
 
-## 路线图原则
+本路线图只维护产品方向、阶段顺序、当前执行顺位和停止线。功能流程、数据边界与验收方式进入 [功能设计文档入口](features/README.md)，平台横切能力进入 [平台专题入口](platform/README.md)，具体实现批次进入 [任务卡入口](task-cards/README.md)，历史完成流水进入 [开发周志](devlogs/README.md) 或既有专题。
 
-路线图只记录阶段目标、当前进度、下一步和停止线。批次细节、历史失败、完整实验输出和长命令不放在本入口文档中，应进入周志、实验 manifest、run record 或任务卡。
+当前成熟度统一称为“内部开发者预览”。历史 `M3 / M4` 和 `P1` 至 `P7` 编号只用于定位既有证据与长期专题，不再解释为必须逐级晋升的成熟度等级，也不决定今天的开发顺位。当前执行决策以 [当前推进焦点](radishmind-current-focus.md) 和 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 为准。
 
-当前长期目标更新为：`RadishMind` 是 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台，不是单一万能模型，也不是只服务本地 demo 的 runtime 壳。
+## 产品方向
 
-若要理解“为什么路线这样排”，先读 [战略定义](radishmind-strategy.md)；若要推进具体功能，先读 [功能设计文档](features/README.md)，再拆实现任务。长期产品机会单独维护在 [产品机会池](radishmind-product-ideas.md)，该文件只记录候选方向，不代表路线图承诺。
+`RadishMind` 是 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台。它不替代 `Radish` 的身份、组织成员关系和业务数据真相源；模型输出默认是解释、诊断、结构化建议或候选动作，高风险动作必须经过人工确认或规则复核。
 
-2026-07-11 起，`P1` 至 `P7` 只作为历史能力阶段与长期专题编号，不再解释为必须严格顺序完成的当前成熟度等级；当前成熟度统一称为“内部开发者预览”。当前执行顺序以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 为准，旧 storage adapter readiness 的 next dependency 只保留为历史 checker 锚点。
+长期产品面保持四个：
 
-## 当前路线切换
+1. `User Workspace`：应用、Prompt、Workflow、Agent / Copilot、RAG、API key、调用量、运行记录和成本摘要。
+2. `Admin Control Plane`：租户、用户、角色、权限、provider/profile、模型路由、quota、price、secret backend、审计和部署状态；未来作为 OIDC client 接入 `Radish`。
+3. `Model Gateway / API Distribution`：OpenAI-compatible / Responses / Messages / Models API 分发，多 provider / profile / model 路由，以及后续 quota、限流、成本、trace、受控 fallback 和 health。
+4. `Workflow / Agent Runtime`：Prompt、LLM、condition、output，以及后续受控 HTTP tool、RAG retrieval 和 agent loop；高风险动作默认要求确认。
 
-从 2026-05-10 开始，仓库主线正式从“围绕 `M3/M4` 收口继续做局部维护”切换为“基于已收口证据继续建设平台本体”。
-
-当前已经冻结的历史证据：
-
-- `M3`：gateway、service smoke、UI consumption 与 candidate handoff 已收口为服务/API 门禁。
-- `M4`：broader 15 样本人工复核为 15/15 `reviewed_pass`，`3B/4B` guided capacity review 已收口为正式审计记录。
-
-这些资产继续保留，但不再等同于当前唯一主线。
-
-## 四个产品面
-
-长期产品路线按四个产品面展开：
-
-1. `User Workspace`：AI 应用、Prompt 应用、Workflow、Agent / Copilot 应用、RAG / 知识问答应用、API key、调用量、运行记录和成本摘要。
-2. `Admin Control Plane`：租户、用户、角色、权限、provider/profile、模型路由、API key、quota、price、secret backend、审计和部署状态；未来作为 OIDC client 接入 `Radish`。Control Plane 默认使用 Go，可独立拆服务，不因参考 Radish 而默认引入 `.NET` / ASP.NET Core。
-3. `Model Gateway / API Distribution`：OpenAI-compatible / Responses / Messages / Models 等 API 分发，多 provider / profile / model 路由，后续补 quota、限流、成本、trace、fallback、load balancing 和 health。
-4. `Workflow / Agent Runtime`：Prompt、LLM、HTTP tool、RAG retrieval、condition、output 和后续受控 agent loop；高风险动作默认要求确认。
-
-当前实现仍处在内部开发者预览。`apps/radishmind-web/` 已作为正式产品 UI 的 shell 承载 User Workspace、Model Gateway、Workflow Review 和 Admin；Application API Integration、Configuration Draft 与 Publish Governance 已形成从接入、调用、审查到阻塞式发布治理的开发测试路径。Admin verified identity / negative auth、Tenant / Audit PostgreSQL dev/test runtime，以及 Radish OIDC deterministic discovery / JWKS / JWT verifier、Admin auth boundary 和 workspace operation gate 已完成。真实 Radish OIDC integration 已主动 deferred，不再阻塞当前路线；未来由 Radish 注册 RadishMind application/client 与 resource audience，并提供 reviewed evidence 后恢复。上述能力不代表 workspace membership、production repository、正式 application 发布、production key、quota 或 billing 已完成。
-
-2026-05-27 已新增 [Control Plane / User Workspace / Workflow v1 计划](task-cards/control-plane-user-workspace-workflow-v1-plan.md)，先固定四个产品面的服务边界、数据边界、建议切片和停止线；`product-surface-v1-boundary` 已落地为 `product-surface-v1-boundary.json` 与 `check-product-surface-v1-boundary.py`，`control-plane-data-boundary` 已落地为 `control-plane-data-boundary.json` 与 `check-control-plane-data-boundary.py`，`radish-oidc-client-preconditions` 已落地为 `radish-oidc-client-preconditions.json` 与 `check-radish-oidc-client-preconditions.py`，`gateway-api-key-quota-readiness` 已落地为 `gateway-api-key-quota-readiness.json` 与 `check-gateway-api-key-quota-readiness.py`，`workflow-definition-run-record-boundary` 已落地为 `workflow-definition-run-record-boundary.json` 与 `check-workflow-definition-run-record-boundary.py`，`control-plane-read-model-v1` 已落地为 `control-plane-read-model-v1.json` 与 `check-control-plane-read-model-v1.py`，`control-plane-read-route-contract-v1` 已落地为 `control-plane-read-route-contract-v1.json` 与 `check-control-plane-read-route-contract-v1.py`，`control-plane-read-response-fixtures-v1` 已落地为 `control-plane-read-response-fixtures-v1.json` 与 `check-control-plane-read-response-fixtures-v1.py`，`control-plane-read-negative-contract-v1` 已落地为 `control-plane-read-negative-contract-v1.json` 与 `check-control-plane-read-negative-contract-v1.py`，`control-plane-read-implementation-preconditions-v1` 已落地为 `control-plane-read-implementation-preconditions-v1.json` 与 `check-control-plane-read-implementation-preconditions-v1.py`，`control-plane-read-fake-store-handler-plan-v1` 已落地为 fake-store-backed read handler plan，证据为 `control-plane-read-fake-store-handler-plan-v1.json` 与 `check-control-plane-read-fake-store-handler-plan-v1.py`，`control-plane-read-fake-store-handler-implementation-v1` 已落地为七条 fake-store-backed read handler implementation，`control-plane-read-auth-db-preconditions-v1` 已落地为真实 auth/db 前置条件，证据为 `control-plane-read-auth-db-preconditions-v1.json` 与 `check-control-plane-read-auth-db-preconditions-v1.py`，`control-plane-read-consumer-contract-v1` 已落地为 `control-plane-read-consumer-contract-v1.json` 与 `check-control-plane-read-consumer-contract-v1.py`，固定上层消费契约；`control-plane-read-formal-ui-boundary-v1` 已落地为 `control-plane-read-formal-ui-boundary-v1.json` 与 `check-control-plane-read-formal-ui-boundary-v1.py`，固定正式 UI 边界；这些切片不实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay。read-side 已完成当前页面集合、`control-plane-read-formal-ui-readiness-close-v1`、`control-plane-read-dev-live-consumer-v1` 与 `control-plane-read-auth-store-transition-preconditions-v1`。
-
-2026-05-28 已补 `control-plane-read-formal-ui-implementation-readiness-v1`，落地为 `control-plane-read-formal-ui-implementation-readiness-v1.json` 与 `check-control-plane-read-formal-ui-implementation-readiness-v1.py`，固定正式 UI 实现前的 `apps/radishmind-web/` 预留落点、`apps/radishmind-console/` 边界、页面顺序、contract 复用和测试策略；它不创建 React 页面、不创建 product UI app、不把本地 ops console 升级为 production admin console。
-
-2026-05-31 已完成 `control-plane-read-shared-shell-v1`，创建 `apps/radishmind-web/` 的首个 read-only shared shell，复用 `contracts/typescript/control-plane-read-api.ts` 渲染 route catalog、共享状态组件和 forbidden output guard。该切片不请求真实后端、不接数据库 / OIDC、不实现 API key / quota、workflow executor、confirmation、writeback 或 replay，也不改变 `apps/radishmind-console/` 的本地 ops surface 定位。
-
-2026-05-31 已完成 `control-plane-read-admin-tenant-overview-v1`，在 `apps/radishmind-web/` 的 shared shell 内新增只读 `admin-tenant-overview` 页面切片，消费 `tenant-summary-route` 渲染租户摘要、route metadata、request / audit ref、页面状态和 forbidden output guard。该切片不请求真实后端、不接数据库 / OIDC、不实现 API key / quota、workflow executor、confirmation、writeback 或 replay，也不声明 production admin console ready。
-
-2026-05-31 已完成 `control-plane-read-workspace-applications-v1`，在 `apps/radishmind-web/` 的 shared shell 内新增只读 `workspace-applications` 页面切片，消费 `application-summary-list-route` 渲染应用摘要列表、cursor、route metadata、request / audit ref、页面状态和 forbidden output guard。该切片不请求真实后端、不接数据库 / OIDC、不实现 API key / quota、workflow executor、confirmation、writeback 或 replay，也不声明 formal user workspace complete。
-
-2026-05-31 已完成 `control-plane-read-workspace-api-keys-v1`，在 `apps/radishmind-web/` 的 shared shell 内新增只读 `workspace-api-keys` 页面切片，消费 `api-key-summary-list-route` 渲染 API key id、owner、scope、state、时间字段、route metadata、request / audit ref、页面状态和 forbidden output guard。该切片不请求真实后端、不接数据库 / OIDC、不实现 API key lifecycle、quota enforcement、workflow executor、confirmation、writeback 或 replay，不展示 key value 或 hash，也不声明 formal user workspace complete。
-
-2026-05-31 已完成 `control-plane-read-workspace-usage-quota-v1`，在 `apps/radishmind-web/` 的 shared shell 内新增只读 `workspace-usage-quota` 页面切片，消费 `quota-summary-route` 渲染 quota id、period、request / token / cost limit、usage snapshot、over quota failure code、route metadata、request / audit ref、页面状态和 forbidden output guard。该切片不请求真实后端、不接数据库 / OIDC、不实现 quota enforcement、rate limit、billing、cost ledger、workflow executor、confirmation、writeback 或 replay，也不声明 formal user workspace complete。
-
-2026-05-31 已完成 `control-plane-read-workspace-workflow-definitions-v1`，在 `apps/radishmind-web/` 的 shared shell 内新增只读 `workspace-workflow-definitions` 页面切片，消费 `workflow-definition-summary-list-route` 渲染 workflow definition id、application ref、version、definition status、node count、risk level、requires confirmation capable、updated at、route metadata、request / audit ref、页面状态和 forbidden output guard。该切片不请求真实后端、不接数据库 / OIDC、不实现 workflow builder、workflow definition lifecycle mutation、workflow executor、tool executor、confirmation、writeback 或 replay，也不声明 formal user workspace complete。
-
-2026-05-31 已完成 `control-plane-read-workspace-run-history-v1`，在 `apps/radishmind-web/` 的 shared shell 内新增只读 `workspace-run-history` 页面切片，消费 `run-record-summary-list-route` 渲染 run id、workflow definition ref、application ref、status、failure code、cost summary、trace id、started / completed timestamp、route metadata、request / audit ref、cursor、页面状态和 forbidden output guard。该切片不请求真实后端、不接数据库 / OIDC、不实现 workflow executor、tool executor、run replay、run resume、materialized result reader、confirmation、writeback 或 replay，也不声明 formal user workspace complete。
-
-2026-06-01 已完成 `control-plane-read-admin-audit-log-v1`，在 `apps/radishmind-web/` 的 shared shell 内新增只读 `admin-audit-log` 页面切片，消费 `audit-summary-list-route` 渲染 audit ref、actor、event kind、resource、decision、failure code、trace id、recorded timestamp、route metadata、request / audit ref、cursor、页面状态和 forbidden output guard。该切片不请求真实后端、不接数据库 / OIDC、不实现 durable audit store、raw payload export、audit record mutation、workflow executor、confirmation、writeback 或 replay，也不声明 production admin console ready。
-
-2026-06-01 已完成 `control-plane-read-formal-ui-readiness-close-v1` formal UI readiness close，以 `formal_ui_readiness_closed` 状态和 surface matrix 聚合校验七个只读页面的 route binding、状态预览、request / audit ref、forbidden output guard 和停止线。后续不再默认为普通只读展示页逐项新增 task card、fixture 和 checker；如果放宽到 dev-only live read path，只能消费 fake-store-backed handler 与测试身份上下文，真实数据库、Radish OIDC、API key lifecycle、quota enforcement、billing、workflow executor、confirmation、writeback 和 replay 仍保持停止线。
-
-2026-06-01 已完成 `control-plane-read-dev-live-consumer-v1`，在 `apps/radishmind-web/` 内新增 dev-only live read consumer 路径。默认仍使用离线 fixture/view model；只有显式设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http`，且平台服务设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 时，页面才会通过 HTTP 消费现有 fake-store-backed read handlers 和测试身份上下文。该切片不接真实数据库、不接 Radish OIDC、不实现 repository migration、API key lifecycle、quota enforcement、billing、cost ledger、workflow executor、confirmation、writeback 或 replay，也不声明 production API consumer、production admin console 或完整 formal user workspace ready。
-
-2026-06-01 已完成 `control-plane-read-auth-store-transition-preconditions-v1`，把 dev fake auth / fixture-backed fake store 迁移到未来 `future Radish OIDC / auth middleware` 与 `future control plane read store repository` 前的 auth/store transition preconditions 固定为可检查证据。该切片只定义 auth middleware gates、read store gates、route transition matrix、dual smoke plan、failure code 和禁止项，不接真实数据库、不接 Radish OIDC、不实现 token validation、repository migration、repository implementation、API key lifecycle、quota enforcement、billing、cost ledger、workflow executor、confirmation、writeback 或 replay，也不声明 production API consumer ready。
-2026-06-02 已完成 `control-plane-read-repository-contract-preconditions-v1`，把未来 read store repository contract 固定为可检查证据：`ControlPlaneReadRepository` interface、`ReadRepositoryContext`、七条 read route 到 repository operation 的映射、tenant predicate、sanitized projection、cursor/filter/sort allowlist、contract smoke 和 failure mapping。该切片只推进 read store repository contract，不写 SQL、不建 migration、不实现 repository、不接真实数据库、不接 Radish OIDC、不实现 token validation、API key lifecycle、quota enforcement、billing、cost ledger、workflow executor、confirmation、writeback 或 replay，也不声明 production API consumer ready。
-2026-06-02 已完成 `control-plane-read-disabled-database-guard-v1`，把 disabled database read guard 固定为可检查证据：database / postgres / repository read mode 当前仍是 reserved disabled，七条 route 误入 database mode 时必须 fail-closed 为 `database_read_disabled`，不得静默回退到 fake store，也不得产生写入或执行副作用。该切片不新增正式配置入口、不写 SQL、不建 migration、不实现 repository adapter、不接真实数据库、不接 Radish OIDC、不实现 token validation、API key lifecycle、quota enforcement、billing、cost ledger、workflow executor、confirmation、writeback 或 replay，也不声明 production API consumer ready。
-
-2026-06-02 已完成 `control-plane-read-repository-contract-smoke-v1`，把未来 repository contract smoke 固定为可检查证据：`ControlPlaneReadRepositoryContractSmoke` 输入输出、repository context、七条 read route smoke matrix、failure mapping、no fake fallback、no side effects 和文档停止线。该切片不实现 smoke runner、不写 SQL、不建 migration、不实现 repository adapter、不接真实数据库、不接 Radish OIDC、不实现 token validation、production API consumer、API key lifecycle、quota enforcement、billing、cost ledger、workflow executor、confirmation、writeback 或 replay，也不声明 repository implementation ready。
-2026-06-02 已完成 `control-plane-read-repository-implementation-readiness-v1`、`control-plane-read-store-selection-readiness-v1` 和 `control-plane-read-schema-migration-readiness-v1`：分别固定 repository implementation readiness、store selection readiness 与 schema migration readiness。三者只定义文件落点 / 选择策略 / schema ownership / migration layout / rollback / tenant index / read-only role / failure mapping / no fake fallback / no side effects，不创建正式配置入口、migration 目录或 SQL，不实现 store selector、repository interface / adapter、migration runner、真实数据库、Radish OIDC、token validation、production API consumer、API key lifecycle、quota enforcement、billing、workflow executor、confirmation、writeback 或 replay。
-2026-06-03 已完成 `control-plane-read-repository-contract-types-readiness-v1`，固定 repository contract types readiness：未来 `ReadRepositoryContext`、七条 read route request / result type、failure code type、projection / filter / sort type 和 contract smoke type 输入已进入可检查证据。该切片不创建 Go contract type 文件，不实现 repository interface / adapter、store selector、SQL、migration、真实数据库、Radish OIDC、token validation、production API consumer、API key lifecycle、quota enforcement、billing、workflow executor、confirmation、writeback 或 replay。
-2026-06-03 已完成 `control-plane-read-repository-contract-types-implementation-v1`、`control-plane-read-repository-contract-smoke-runner-readiness-v1` 与 `control-plane-read-repository-contract-smoke-runner-implementation-v1`：完成 repository contract types implementation 与 repository contract smoke runner implementation，创建 Go repository contract type 文件和测试，并实现静态 repository contract smoke runner；runner 消费 `controlPlaneReadRepositoryRouteTypeContracts()`，并与既有 smoke fixture 对齐七条 read route、failure mapping、no fake fallback 和 no side effects。该阶段仍不声明 repository interface，不实现 adapter、SQL、migration、真实数据库、Radish OIDC、token validation 或 production API consumer。
-2026-06-03 已完成 `control-plane-read-repository-interface-readiness-v1`：固定 repository interface readiness，未来 `ControlPlaneReadRepository` method matrix 必须消费已落地 Go contract type 与静态 runner 证据，并继续保留 adapter implementation gate、production auth gate、failure mapping 和 no side effects。该切片不创建 interface 文件，不声明 repository interface，不实现 adapter、SQL、migration、真实数据库、Radish OIDC、token validation 或 production API consumer。
-2026-06-04 已完成 `control-plane-read-repository-adapter-implementation-readiness-refresh-v1`、`control-plane-read-store-selector-enablement-preconditions-v1`、`control-plane-read-schema-migration-implementation-preconditions-v1`、`control-plane-read-repository-adapter-implementation-plan-v1`、`control-plane-read-schema-artifact-manifest-readiness-v1` 与 `control-plane-read-store-selector-smoke-readiness-v1`；2026-06-13 已完成 `control-plane-read-schema-artifact-evidence-v1` 与 `control-plane-read-implementation-entry-review-v1`，状态为 `schema_artifact_evidence_defined` 与 `implementation_entry_review_defined`。这些切片分别固定 repository adapter implementation readiness refresh、store selector enablement preconditions、schema migration implementation preconditions、repository adapter implementation plan、schema artifact manifest readiness、schema artifact evidence、implementation entry review 与 store selector smoke readiness，保留 `schema_artifact_manifest_readiness_defined`、`schema_artifact_evidence_defined`、`implementation_entry_review_defined` 与 `store_selector_smoke_readiness_defined`，最新 schema evidence 覆盖 DDL review、rollback fixture、schema version、tenant index、read-only role 和七条 read route 到未来 schema artifact / projection 的映射，entry review 确认当前不打开实现入口。它们只对齐 adapter gate、selector enablement / smoke gates、migration artifact manifest、DDL review、rollback fixture、schema version / tenant index / read-only role evidence、七条 route adapter / schema artifact / selector smoke matrix、failure mapping、no fake fallback 和 no side effects，不创建 interface / adapter / selector / migration runner 文件，不实现 SQL、migration、真实数据库、Radish OIDC、token validation 或 production API consumer。
-2026-06-06 已完成 `control-plane-read-production-auth-readiness-v1`、`control-plane-read-adapter-smoke-readiness-v1` 与 `control-plane-read-implementation-trigger-review-v1`：分别固定 production auth readiness、adapter smoke readiness 与 implementation trigger review，状态保留为 `production_auth_readiness_defined`、`adapter_smoke_readiness_defined` 和 `implementation_trigger_review_defined`。三者只定义 issuer / token / claim / tenant / scope、future durable adapter smoke 依赖消费和 schema artifact / selector / auth / adapter smoke 实现触发条件审查；当前没有 implementation trigger satisfied，不创建 auth middleware、adapter smoke fixture / checker、repository interface、repository adapter、selector、SQL、migration、真实数据库或 production API consumer。同日新增 [Workflow / Agent Runtime Function Surface v1 计划](task-cards/workflow-agent-runtime-function-surface-v1-plan.md)，2026-06-07 已完成 `workflow-function-surface-boundary-v1`（`function_surface_boundary_defined`）、`workflow-definition-detail-read-v1`（`workflow_definition_detail_read_defined`）、`workflow-run-detail-read-v1`（`workflow_run_detail_read_defined`）、`workflow-blocked-action-preview-v1`（`workflow_blocked_action_preview_defined`）、`workflow-application-detail-read-v1`（`workflow_application_detail_read_defined`）、`workflow-confirmation-placeholder-read-v1`（`workflow_confirmation_placeholder_read_defined`）、`workflow-draft-designer-offline-v1`（`workflow_draft_designer_offline_defined`）与 `workflow-draft-validation-inspector-offline-v1`（`workflow_draft_validation_inspector_offline_defined`）；2026-06-08 已完成 `workflow-execution-plan-preview-offline-v1`（`workflow_execution_plan_preview_offline_defined`）、`workflow-runtime-readiness-inspector-offline-v1`（`workflow_runtime_readiness_inspector_offline_defined`）与 `workflow-function-surface-readiness-close-v1`（`workflow_function_surface_readiness_closed`），并在 `apps/radishmind-web/` 补齐普通离线 Workflow Surface Overview、context selection、Workflow Scenario Inspector 和 Workflow Review Workspace。2026-06-09 已补 User Workspace Home 与 Workflow Review Handoff；2026-06-10 已补普通离线 Model Gateway Overview、Route Evidence、Usage/Audit Evidence、Evidence Review / Readiness 和 Admin Operations Review / Readiness。上述产品面都只固定只读 / blocked / offline 功能面、聚合证据、场景解释、审查工作区和管理端 evidence summary，不实现 executor、builder mutation、durable draft persistence、validation result persistence、execution plan persistence、runtime readiness persistence、scenario / review / handoff persistence、production gateway、API key lifecycle、quota enforcement、cost record write、secret resolver、deployment preflight、confirmation decision、decision store、durable run/result store、writeback 或 replay。
-
-2026-06-13 已完成 `product-surface-usage-gap-triage-v1`，状态为 `product_surface_usage_gap_triage_defined`，只用于确认普通只读产品面的阅读缺口和使用性整理边界；2026-06-14 已完成 `control-plane-durable-read-foundation-v1`，状态为 `durable_read_foundation_implemented`，现有 fake-store-backed read handlers 已通过 `ControlPlaneReadRepository` interface 读取数据。上述证据不改变 read-side contract，不把同层 evidence 面板继续扩成默认开发方向，也不实现 repository adapter、SQL、migration、store selector、真实数据库、Radish OIDC、token validation 或 production API consumer。
-
-## 五条主线
-
-### 1. `Runtime Service / Model Gateway`
-
-目标：把现有 CLI runtime、进程内 gateway、route 识别和 smoke gate 收口为明确的 provider registry、协议兼容层、本地运行、配置、启动、部署基础和模型 API 分发底座。
-
-状态：`scripts/run-copilot-inference.py`、`services/gateway/copilot_gateway.py`、`services/runtime/inference_provider.py`、`services/runtime/provider_registry.py`、`services/platform/`、`RadishFlow` gateway demo 与 service smoke matrix 已具备基础骨架；当前 southbound 已通过统一 registry 收口 `mock`、`openai-compatible`、`HuggingFace`、`Ollama` 主入口与 `openai-compatible chat`、`gemini-native`、`anthropic-messages` 分流，`local_transformers` 则主要存在于 candidate/runtime 实验链路中。平台表层语言分工已固定为 `UI=React + Vite + TypeScript`、`Platform Service Layer=Go`、`Model Side=Python`。当前 `Go` 层已落最小服务启动、`/healthz`、`/v1/models`、`/v1/chat/completions`、`/v1/responses` 和 `/v1/messages` bridge，并补了第一版 SSE 流式兼容骨架、bridge-backed provider/profile inventory、`GET /v1/models/{id}` 精确 lookup、request-side provider/profile 选择、流式增量转发、`HuggingFace` / `Ollama` coverage。平台级 `ops smoke` 已固定 `go test ./...`、provider registry 与受控 profile inventory 门禁；本地启动 runbook、runbook drift check、脱敏配置摘要 / config check、JSON 配置文件层级、稳定本地启动 wrapper、最小 deployment smoke、结构化 diagnostics/failure boundary、provider/profile discoverability 对齐、request-level observability 与 error taxonomy 已补齐。`P1 Runtime Foundation` 已达到 short close；第一版 northbound 仍是窄切片，但继续横向扩同层配置、别名和兜底的收益已经下降，主要实现重心切到 `P2 Session & Tooling Foundation`。
-
-下一步：不再继续把 `P1` 做成无限硬化阶段；`P2 Session & Tooling Foundation` 和 `P3 Local Product Shell / Ops Surface` 已有 metadata / blocked / read-only 产品外壳，Production Ops 静态边界也已收口。`Provider Runtime & Health v1` 已把 provider capability、health smoke、selection policy、provider-retry-fallback-policy-v1 与 docs refresh 固定成可检查口径，进入 close candidate；后续不再默认扩 provider runtime 同层切片。[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 的签发、Gateway 认证、请求历史、吊销、SQLite 本地产品链、PostgreSQL 专项门禁、Web 一次性交接和真实浏览器重启复验已经完成，专题关闭。下一项先选择并更新新的功能设计目标；quota、cost、生产 tenant binding、secret backend 和公开 production gateway 不从本专题自动打开。
-
-上述拆任务应优先沿 `Control Plane / User Workspace / Workflow v1` 任务卡推进，避免把模型网关、用户端和管理端混入当前本地 ops console。
-
-### 2. `Conversation & Session`
-
-目标：让多轮对话、历史压缩、恢复和审计成为平台能力，而不是各任务自己拼上下文。
-
-状态：已补首版 `session-record.schema.json`、`session-recovery-checkpoint.schema.json`、`session-recovery-checkpoint-manifest.schema.json`、`session-recovery-checkpoint-read.schema.json`、fixture 和快速门禁，并让 `Go` northbound 兼容层在显式 `radishmind` 会话扩展存在时写入 `context.northbound.session`；`state_policy` 已固定会话状态与 tool result cache 的 v1 落点只允许 northbound metadata / session recovery checkpoint，不启用 durable memory；recovery checkpoint v1 只保存 request/session/tool audit/tool metadata 引用，read result 只暴露 metadata refs 和 tool audit 治理摘要，不保存或返回真实工具结果，也不自动 replay。平台层已新增 metadata-only route smoke，并通过 denied query fixture 拒绝 materialized result、result ref、executor ref、durable memory 与 replay 类查询参数；readiness summary、implementation preconditions、negative regression skeleton、governance-only `session-tooling-negative-regression-suite.json`、`session-tooling-negative-regression-suite-readiness.json`、deny-by-default implementation gates、`session-tooling-negative-coverage-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json`、`session-tooling-short-close-entry-checklist.json`、`session-tooling-readiness-consistency-rollup.json`、`session-tooling-executor-storage-confirmation-enablement-plan.json`、`session-tooling-stop-line-manifest.json`、confirmation flow design、independent audit records design、result materialization policy design、executor boundary design、storage backend design、`session-tooling-foundation-status-summary.json` 和 `session-tooling-close-candidate-readiness-rollup.json` 已把当前状态收口为 `close candidate / governance-only`，并把到 `P2 short close` 仍缺的硬前置条件与 future route / gate smoke 要求标为 `not_satisfied`；upper-layer confirmation readiness 已把 handoff contract、decision binding、negative gate consumers 和 confirmed action boundary 收口为接线前证据清单；entry checklist 已把 stop-line manifest、short close delta、route smoke readiness 和 suite readiness 聚合为进入条件预检；route negative coverage matrix 当前只声明 2 个 suite case 被 checkpoint read metadata-only route 覆盖，另 7 个仍需要 future route requirement；stop-line manifest 已明确真实 executor、durable store、confirmation 接线、materialized result reader、长期记忆和 replay 仍 blocked；当前仍没有 durable session store、durable checkpoint store、durable audit store、durable result store、长期记忆、真实 checkpoint storage backend 或跨轮恢复执行器，也不声明 P2 short close。
-
-下一步：保持 P2 close-candidate readiness 口径可检查，但不再主动扩新的 readiness、rollup、manifest 或 task card；优先把现有 session metadata 作为 P3 本地产品面的一部分复用。在 short close 前置条件满足前，不进入真实实现设计。
-
-### 3. `Tooling Framework`
-
-目标：把检索、局部规则、候选生成和 builder 经验收口为正式工具契约、registry、policy 和 audit。
-
-状态：当前已有 task-local 的 deterministic tooling 与 builder 资产；最小 `tool.schema.json`、`tool-registry.schema.json`、`tool-audit-record.schema.json`、registry fixture、policy/audit fixture 和快速门禁已开始落地，用于固定工具注册、调用轨、timeout/retry/policy、session binding、metadata-only result cache 和 audit 的结构边界。tool audit summary 已进入 checkpoint read route smoke，用于固定 execution disabled、not executed、metadata-only cache 和 no result ref；session/tooling promotion gate 分层、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression skeleton、governance-only negative regression suite、`session-tooling-negative-regression-suite-readiness.json`、deny-by-default implementation gates、`session-tooling-negative-coverage-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-route-smoke-readiness-rollup.json`、`session-tooling-short-close-readiness-delta.json`、`session-tooling-upper-layer-confirmation-flow-readiness.json`、`session-tooling-short-close-entry-checklist.json`、`session-tooling-readiness-consistency-rollup.json`、`session-tooling-executor-storage-confirmation-enablement-plan.json`、`session-tooling-stop-line-manifest.json`、confirmation flow design、independent audit records design、result materialization policy design、executor boundary design、storage backend design、close candidate status summary 与 close-candidate readiness rollup 已进入快速门禁。当前仍没有真实工具执行器、durable audit store、durable result store、长期记忆或新的 provider/model 实验，negative skeleton、governance suite、suite readiness、deny-by-default gate contract、negative coverage rollup、route negative coverage matrix、route smoke readiness rollup、short close delta、upper-layer confirmation readiness、entry checklist、readiness consistency rollup、enablement plan、stop-line manifest、audit design、materialization policy design、executor boundary design 和 storage backend design 也不等同于完整 `negative_regression_suite`。
-
-下一步：继续守住 tooling contract、audit、result materialization、executor boundary 与 storage backend 的设计停止线；相关 metadata / blocked shell 只作为 UI 设计与只读消费输入复用。在上层确认流接线和完整负向回归满足前，不启动真实执行。
-
-### 4. `Evaluation & Governance`
-
-目标：让 runtime、session、tooling、deployment 和 model adaptation 都有统一门禁，而不是只校验模型输出。
-
-状态：schema、offline eval、candidate record、review record、`check-repo`、service smoke 和 runtime provider dispatch smoke 已具备基础；平台级 smoke 已继续扩展到 runtime config/deployment/diagnostics/request observability 与 P2 session/tooling/checkpoint governance。当前 `session-tooling-foundation-status-summary.json`、`scripts/checks/fixtures/session-tooling-upper-layer-confirmation-flow-readiness.json` 与 `scripts/checks/fixtures/session-tooling-short-close-entry-checklist.json` 只声明 `close candidate / governance-only`、upper-layer confirmation readiness 和 entry checklist 可检查，不声明实现完成。
-
-下一步：维持 advisory-only、confirmation、route、citation、handoff 不执行和 metadata-only 这些不变量；完整负向回归和真实实现 gate 必须先于 executor/storage/confirmation 实现落地。
-
-### 5. `Model Adaptation`
-
-目标：在平台契约稳定后，再定义首版基座、蒸馏和训练升级路径。
-
-状态：raw、repair、injection、guided、task-scoped builder、offline eval 和 training sample conversion 已有资产，但当前还不具备“直接扩大训练规模”的时机。
-
-下一步：真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作转入后置专题；保留现有 P4 v1 runbook、治理复核和预检结果作为未来重开依据。当前不因 Provider Runtime & Health v1 close candidate 而重开模型长跑。
-
-## 辅助支线
-
-### `Image Path`
-
-状态：intent、backend request、artifact schema 与最小评测 manifest 已具备；`image-adapter-handshake-safety-gate-v1`、`image-artifact-return-runbook-evidence-v1`、`image-safety-runbook-evidence-v1`、`image-backend-adapter-readiness-evidence-v1`、`image-artifact-runtime-mapping-readiness-v1`、`image-artifact-runtime-mapping-implementation-entry-review-v1`、`image-artifact-store-binary-reader-boundary-readiness-v1`、`image-artifact-runtime-mapper-implementation-plan-v1`、`image-artifact-runtime-mapper-implementation-entry-v1`、`image-artifact-runtime-mapper-implementation-v1`、`image-artifact-runtime-mapper-runtime-implementation-v1`、`image-artifact-runtime-mapper-response-consumer-integration-review-v1`、`image-artifact-response-consumer-implementation-readiness-v1`、`image-artifact-response-consumer-implementation-v1`、`image-artifact-response-consumer-runtime-implementation-v1`、`image-artifact-response-builder-integration-entry-review-v1`、`image-artifact-response-builder-integration-v1`、`image-artifact-response-builder-runtime-integration-entry-review-v1` 和 `image-artifact-response-builder-runtime-integration-implementation-v1` 已分别固定 `image_adapter_handshake_safety_gate_defined`、`image_artifact_return_runbook_evidence_defined`、`image_safety_runbook_evidence_defined`、`image_backend_adapter_readiness_defined`、`image_artifact_runtime_mapping_readiness_defined`、`image_artifact_runtime_mapping_entry_review_defined`、`image_artifact_store_binary_reader_boundary_readiness_defined`、`image_artifact_runtime_mapper_implementation_plan_defined`、`image_artifact_runtime_mapper_implementation_entry_review_defined`、`image_artifact_runtime_mapper_implementation_task_card_defined`、`image_artifact_runtime_mapper_runtime_implemented`、`image_artifact_runtime_mapper_response_consumer_integration_review_defined`、`image_artifact_response_consumer_implementation_readiness_defined`、`image_artifact_response_consumer_implementation_task_card_defined`、`image_artifact_response_consumer_runtime_implemented`、`image_artifact_response_builder_integration_entry_review_defined`、`image_artifact_response_builder_integration_task_card_defined`、`image_artifact_response_builder_runtime_integration_entry_review_defined` 与 `image_artifact_response_builder_runtime_integration_implemented`，明确结构化 intent handoff、artifact metadata-only、metadata reference、image safety runbook、backend adapter readiness、artifact runtime mapping readiness、artifact store / binary reader boundary readiness、runtime mapper implementation plan、runtime mapper implementation entry review、runtime mapper implementation task card、metadata-only runtime mapper、response consumer integration review、response consumer implementation readiness、response consumer implementation task card、metadata-only response consumer runtime、response builder integration entry review、response builder integration task card、runtime integration entry review 和 runtime integration implementation 边界；真实 backend 仍未接入。
-
-下一步：Image Path 当前层级已完成 `coerce_response_document` metadata-only runtime 接线并继续守住 no schema change / no side effects；后续停止继续扩同层 Image gate。store / reader / public URL / backend adapter 仍不并行打开，不下载模型、不生成图片、不接真实 backend、不读取 artifact 二进制；`Control Plane Durable Read Foundation v1` 已完成 repository interface + fake store interface 化，后续仍不直接进入 adapter、数据库、OIDC、selector、executor、confirmation、writeback 或 replay。
-
-### 上层项目接入
-
-状态：`RadishFlow` 门禁已冻结，`Radish` docs QA 资产已具备，`RadishCatalyst` 仍只做文档预留；三个上层项目当前都不具备真实接入能力。
-
-下一步：先推进平台本体；待上层具备真实挂载点、确认流和命令承接接口后，再只选一个切片真实接入。
-
-### `UI Design Topic / Pencil Draft`
-
-状态：`close candidate`。`docs/designs/radishmind-console-ops-surface-v0.pen` 已覆盖 7 个主要页面并通过 Pencil layout 检查；`apps/radishmind-console/` 第二批 React 已重排为浅色侧栏、主工作区和 readiness / stop-line 辅助栏结构，并完成本地 mock platform ready 态桌面 / 窄屏临时截图复核。它仍不等同于 production console 或 production packaging。
-
-触发条件：已经满足并完成首轮 close candidate。后续只在真实使用暴露新可读性缺口时继续做 UI polish；外部参考素材见 [UI 设计参考](radishmind-ui-design-reference.md)。
-
-停止线：不把当前本地 console 壳写成 production console，不提前实现复杂交互、生产导航、确认流或业务写回 UI。后续任何 UI 能力扩张仍必须先回到设计稿或任务卡说明范围。
+图片输入理解与图片生成是横切适配能力，不是第五个一级产品面。图片像素生成继续由独立 `RadishMind-Image Adapter` 与 backend 承接，主模型只负责理解、规划、约束、审查和结构化意图。
 
 ## 阶段顺序
 
-### `P0`：项目重定义与能力盘点
+### 1. 平台与协议基座
 
-目标：把“项目到底是什么、有哪些主线、哪些能力缺口最关键”写成正式文档和能力矩阵。
+- 统一 canonical contract、模型服务、Gateway、provider/profile 和基础评测。
+- 保持结构化 JSON、失败关闭、密钥脱敏和上层业务真相源只读边界。
+- 历史 `P1 Runtime Foundation`、`M3` 和 `M4` 证据继续可复验，但不再扩同层 readiness 链。
 
-状态：已完成平台重定义、能力矩阵和主线切换；后续只维护文档口径，不再作为主要实现阶段。
+### 2. 工作流与用户闭环
 
-### `P1`：Runtime Foundation
+- 优先完成 Workflow 草案创建、编辑、校验、保存、恢复、审查和安全执行。
+- 运行历史、失败诊断、对比、评测 case / baseline / suite 与 Gateway 请求审查形成连续产品链。
+- 用户工作区应用接入、配置草案、发布治理、应用目录和 API 密钥生命周期按真实使用路径验收。
 
-目标：收口最小本地 service bootstrap、provider registry、northbound/southbound 协议兼容、配置、调用和 smoke 路径。
+### 3. 开发测试态持久化与身份边界
 
-状态：short close。provider registry、Go service bootstrap、northbound bridge、provider/profile discoverability、config layering、wrapper、deployment smoke、diagnostics、request observability、error taxonomy 与三种 northbound 协议的 selection metadata smoke 已进入平台单元测试和快速门禁。
+- RadishMind 自有运行数据允许使用明确命名的 SQLite / PostgreSQL 开发测试态 repository。
+- migration、作用域、原子并发、重启恢复、运行角色和 no fallback 必须有可执行证据。
+- verified identity、负向认证和确定性 OIDC integration test 可以独立完成；真实 Radish 联调与 production auth 必须等待上游资源和负责人。
 
-### `P2`：Session & Tooling Foundation
+### 4. 运行时与工程治理收敛
 
-目标：补齐 conversation/session contract、tool contract、registry、policy 和审计轨。
+- Gateway 使用受控 `stdio` worker pool，保留显式 process 回滚模式。
+- 测试、覆盖率、性能预算、PR / release CI 与仓库门禁按风险分层维护。
+- 入口文档、活动 checker、fixture 和 task card 必须回到各自职责；历史证据可索引、可手工复验，但不占当前主线。
 
-状态：`close candidate / governance-only`，并已具备可消费的 metadata / blocked 外壳。session contract、history policy、state policy、recovery checkpoint、tool schema、tool registry、tool policy、audit record、northbound session metadata、`GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 已能支撑上层或 UI 展示 session/tool metadata 和 blocked action。2026-07-15 起，fast / full 只保留消费契约、Session contract、Tooling contract、recovery checkpoint contract 和 negative regression suite 五项活动检查；既有 readiness、rollup、matrix、设计、enablement plan、stop-line manifest 与 entry checklist 继续作为历史停止线证据和手动复验入口，但不再随聚合门禁重复运行。当前仍不声明 P2 short close，也不具备真实 executor、durable storage、上层 confirmation flow 接线、materialized result reader、durable audit store、durable result store 或完整 `negative_regression_suite`。
+### 5. 外部接入、生产化与模型适配
 
-停止线证据仍以 governance-only fixture 保留：`session-tooling-foundation-status-summary.json`、`session-tooling-negative-regression-suite-readiness.json`、`session-tooling-close-candidate-readiness-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-short-close-entry-checklist.json` 等继续固定 `P2 short close` 前的 `not_satisfied` 条件和 `negative_regression_suite` 边界；这些文件不再作为默认新增工作方向。
+- `RadishFlow` 优先于 `Radish`；真实挂载点、owner、协议和验收环境明确后再恢复接入。
+- production secret、环境隔离、process supervisor、quota / billing、生产 API key 和公开生产声明分别验收。
+- `RadishMind-Core` 采用开源基座加自有协议、数据与评测偏好适配；没有评测和运行窗口时不启动训练或长跑。
 
-### `P3`：Local Product Shell / Ops Surface
+## 当前执行顺位
 
-目标：让本地长驻服务、启动说明、只读 console、观测、故障边界和 ops surface 具备正式口径。
+1. 产品线：工作流审查、Gateway 请求审查、用户工作区应用接入 / 配置 / 发布 / 目录 / API 密钥，以及本地 SQLite 与 PostgreSQL 开发测试态证据链均已关闭。当前不自动承接新的产品实现批次；下一次产品推进先选择或更新一个正式功能设计文档。
+2. 工程线：`R2` 至 `R5` 已完成。`R6` 前五批已完成入口文档、Session / Tooling、Image Path 与 Control Plane Read 活动门禁收敛；入口不再重复保存功能 fixture、readiness 流水和完整运行配置。Control Plane Read 只退出已有 Go 行为与跨端消费证据承接的八项早期静态检查，formal UI 与页面链因 TypeScript 行为覆盖不足继续活动。
+3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
+4. 真实 Radish 联调保持 `real_radish_integration_deferred`；production secret backend、process supervisor、部署环境隔离、console production packaging、生产认证、生产 API key、quota 和 billing 继续为 `not_satisfied`。
+5. 下一工程批做 R6 关闭评审：复算活动 checker / task card 的收敛幅度，并逐项确认 Provider、Production Ops 与保留 formal UI 门禁是否有等价行为证据；没有证据就保持现状，不自动删除历史 fixture，也不新建同层治理入口。
 
-状态：`local usable / read-only close`。本地治理第一版已具备 wrapper、配置文件层级、deployment smoke、启动前 diagnostics、runbook drift check、`GET /v1/platform/overview` 只读产品 overview、`GET /v1/platform/local-smoke` 本地 readiness 摘要、overview / local-smoke consumer smoke 和 `apps/radishmind-console/` 本地 console 壳；console 当前已补一键 dev 启动/验证入口、refresh 状态、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details 只读详情、Stop-line Details 只读详情、overview / local-smoke failure surface、连接失败诊断、更可读的 overview 展示、`scripts/check-radishmind-console-behavior.py` 行为门禁、`scripts/check-radishmind-console-visual-smoke-record.py` 视觉 smoke 记录门禁和 console production packaging 边界门禁。`scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json` 已把本地只读产品面标为可用，同时把 production hardening 固定为 `not_ready`：production secret backend、process supervisor、deployment environment isolation 和 console production packaging 仍为 `not_satisfied`。后续不再默认继续补同类只读 console 小切片，真实使用暴露缺口时再补。
+## 权威入口
 
-### `P3 衔接专题`：UI Design Topic / Pencil Draft
-
-目标：在基础平台和本地只读产品壳足够稳定后，先用 `pencil` 完成 UI 信息架构和界面设计稿，再进入正式 UI 实现。
-
-状态：`close candidate`。当前已有 [UI 设计参考](radishmind-ui-design-reference.md)、[UI 设计规范](radishmind-ui-design-spec.md)、`.pen` 设计稿和第二批 React ops surface 结构重排；后续不再默认扩当前 console 小功能。
-
-进入条件：已满足。P3 的 overview、local-smoke、Dev Diagnostics、只读失败态、Provider/Profile Details、Stop-line Details 和 P3 checklist 已足以说明真实界面要承载哪些状态；同时 production packaging、supervisor、secret backend、confirmation flow 等边界仍清楚标记为未完成。
-
-退出条件：已达到 close candidate。核心页面、状态层级、只读/可执行边界、错误诊断、窄屏布局和 React 第二批实现切片已收口；后续只在真实使用暴露问题时做定向修正。
-
-### `P3 后续专题`：Production Ops Hardening v1
-
-目标：把 P3 的 production secret backend、process supervisor、deployment environment isolation 和 console production packaging 缺口拆成可验证前置条件。
-
-状态：已新增 [Production Ops Hardening v1 任务卡](task-cards/production-ops-hardening-v1-plan.md)。当前只处理配置、密钥边界、production secret backend contract、production-secret-backend-implementation-readiness、secret-ref-schema-and-fixtures、config-secret-ref-readiness、provider-profile-secret-binding、secret-resolver-interface-disabled、operator-runbook-and-negative-gates、rotation-and-audit-policy、test-fixture-strategy / fake resolver entry review、fake resolver contract / no secret leakage smoke strategy、fake resolver implementation task card entry readiness、fake resolver implementation task card、fake resolver runtime implementation entry review、test-only fake resolver runtime、真实 resolver runtime preconditions、真实 resolver runtime implementation entry review、resolver backend profile selection readiness、real resolver no leakage smoke runtime strategy、credential handle runtime boundary readiness、operator approval runtime evidence readiness、audit store handoff readiness、resolver backend health boundary readiness、resolver backend health runtime implementation entry review、启动 / supervisor 边界、环境隔离、console production packaging smoke 和 P3 checklist alignment；不声明 production ready。
-`config-secret-boundary`、`production-secret-backend-contract`、`production-secret-backend-implementation-readiness`、`secret-ref-schema-and-fixtures`、`config-secret-ref-readiness`、`provider-profile-secret-binding`、`secret-resolver-interface-disabled`、`operator-runbook-and-negative-gates`、`rotation-and-audit-policy`、`test-fixture-strategy-fake-resolver-entry-review`、`fake-resolver-contract-no-secret-leakage-smoke-strategy`、`fake-resolver-implementation-task-card-entry-readiness-review`、`fake-resolver-implementation`、`fake-resolver-runtime-implementation-entry-review`、`fake-resolver-runtime-implementation`、`real-resolver-runtime-preconditions`、`real-resolver-runtime-implementation-entry-review`、`resolver-backend-profile-selection-readiness`、`real-resolver-no-secret-leakage-smoke-runtime-strategy`、`credential-handle-runtime-boundary-readiness`、`operator-approval-runtime-evidence-readiness`、`audit-store-handoff-readiness`、`resolver-backend-health-boundary-readiness`、`resolver-backend-health-runtime-implementation-entry-review`、`startup-supervisor-boundary`、`environment-isolation` 与 `console-production-package-smoke` 已分别用 production ops fixture / checker 固定为 governance boundary、implementation readiness、secret ref schema evidence、config secret ref readiness、provider profile binding readiness、disabled resolver interface readiness、operator runbook / negative gates readiness、rotation / audit policy readiness、test fixture strategy entry review、fake resolver static contract / no leakage strategy、task card entry readiness、fake resolver implementation task card evidence、test-only runtime evidence、真实 runtime 前置、blocked-before-task-card evidence、backend profile selection readiness、no leakage strategy evidence、credential handle boundary readiness、operator approval evidence readiness、audit handoff readiness、backend health boundary readiness 或 backend health runtime blocked-before-task-card evidence。
-证据包括 `scripts/checks/fixtures/production-ops-config-secret-boundary.json`、`scripts/checks/fixtures/production-ops-secret-backend-contract.json`、`scripts/checks/fixtures/production-ops-secret-backend-implementation-readiness.json`、`contracts/production-secret-reference.schema.json`、`scripts/checks/fixtures/production-secret-reference-basic.json`、`scripts/checks/fixtures/production-secret-backend-config-secret-ref-readiness-v1.json`、`scripts/checks/fixtures/production-secret-backend-provider-profile-secret-binding-readiness-v1.json`、`scripts/checks/fixtures/production-secret-backend-secret-resolver-interface-disabled-readiness-v1.json`、`scripts/checks/fixtures/production-secret-backend-operator-runbook-negative-gates-readiness-v1.json`、`scripts/checks/fixtures/production-secret-backend-rotation-audit-policy-readiness-v1.json`、`scripts/checks/fixtures/production-secret-backend-test-fixture-strategy-fake-resolver-entry-review-v1.json`、`scripts/checks/fixtures/production-secret-backend-fake-resolver-contract-no-secret-leakage-smoke-strategy-v1.json`、`scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-task-card-entry-readiness-review-v1.json`、`scripts/checks/fixtures/production-secret-backend-fake-resolver-implementation-v1.json`、`scripts/checks/fixtures/production-secret-backend-fake-resolver-runtime-implementation-entry-review-v1.json`、`scripts/checks/fixtures/production-secret-backend-fake-resolver-runtime-implementation-v1.json`、`scripts/checks/fixtures/production-secret-backend-real-resolver-runtime-preconditions-v1.json`、`scripts/checks/fixtures/production-secret-backend-real-resolver-runtime-implementation-entry-review-v1.json`、`scripts/checks/fixtures/production-secret-backend-resolver-backend-profile-selection-readiness-v1.json`、`scripts/checks/fixtures/production-secret-backend-real-resolver-no-secret-leakage-smoke-runtime-strategy-v1.json`、`scripts/checks/fixtures/production-secret-backend-credential-handle-runtime-boundary-readiness-v1.json`、`scripts/checks/fixtures/production-secret-backend-operator-approval-runtime-evidence-readiness-v1.json`、`scripts/checks/fixtures/production-secret-backend-audit-store-handoff-readiness-v1.json`、`scripts/checks/fixtures/production-secret-backend-resolver-backend-health-boundary-readiness-v1.json`、`scripts/checks/fixtures/production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.json`、`scripts/checks/fixtures/production-ops-startup-supervisor-boundary.json`、`scripts/checks/fixtures/production-ops-environment-isolation-boundary.json` 和 `scripts/checks/fixtures/production-ops-console-package-smoke.json`；`scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json` 已完成 `short-close-checklist-refresh`，跨读这些 boundary fixture 并确认 production secret backend 仍为 not_satisfied，process supervisor、deployment environment isolation 和 console production packaging 也仍为 `not_satisfied`。
-这些证据都不保存 secret value、不实现 production resolver runtime、不创建 no secret leakage smoke runtime、不接云、不连接数据库、不创建 credential handle runtime、不执行 approval runtime、不创建 audit store / writer / event、不创建 backend health runtime implementation task card、不创建 backend health runtime、不执行 backend health check、不启用 repository mode、不声明 production ready。已新增 [Production Ops Docker Deployment v1 计划](task-cards/production-ops-docker-deployment-v1-plan.md)，并用 `docker-deployment-mode-definition` 固定 Radish 风格 docker local/test/prod 部署方向；`docker-local-compose` 已用 `scripts/checks/fixtures/production-ops-docker-local-compose.json` 固定为本地容器 smoke 资产；`docker-test-prod-compose` 已用 `scripts/checks/fixtures/production-ops-docker-test-prod-compose.json` 固定测试 / 生产共用部署态 compose 边界，资产包括 `deploy/docker-compose.yaml` 和 `deploy/.env.example`；`docker-image-build-publish` 已用 `scripts/checks/fixtures/production-ops-docker-image-build-publish.json` 固定镜像命名与 tag 后缀策略，真实发布 workflow 仍未实现；`deployment-readiness-smoke` 已用 `scripts/checks/fixtures/production-ops-deployment-readiness-smoke.json` 固定 `docker compose config` / 静态展开检查；`container-smoke-runbook` 已用 `scripts/checks/fixtures/production-ops-container-smoke-runbook.json` 固定容器 smoke 命令和清理边界；`container-smoke-record-template` 已用 `scripts/checks/fixtures/production-ops-container-smoke-record-template.json` 固定运行记录字段和 `tmp/production-ops/container-smoke/` 证据根。2026-05-26 已完成一次 `docker_local` container smoke 运行记录，`container_smoke_ready` 进入可审计证据状态；测试环境 smoke 和生产前复核仍未实现。
-进入条件：已满足。P3 本地只读产品壳已经可用，且 checklist 已明确 production hardening 缺口。
-下一步：该专题的静态边界已 close，且已补一次本地 `docker_local` container smoke 运行记录。Production secret backend 若继续推进，应在 audit store runtime implementation entry、operator approval runtime implementation entry、credential handle runtime implementation entry 或 real resolver runtime implementation entry refresh 中择一；真实 resolver runtime implementation entry review 已确认 production resolver runtime task card 当前 blocked，resolver backend profile selection readiness、no leakage smoke runtime strategy、credential handle runtime boundary readiness、operator approval runtime evidence readiness、audit store handoff readiness、backend health boundary readiness 与 backend health runtime implementation entry review 都只是静态前置证据。后续只有在明确测试或生产前复核窗口后，才执行测试环境 smoke 或 production preflight 记录。没有运行窗口时降为等待项，不再作为默认开发推进方向，也不把已固定的部署态 compose、镜像命名策略、静态展开检查、runbook、operator runbook / negative gates、rotation / audit policy、test-only fake resolver runtime、backend health entry review 或本地 mock smoke 解释为 secret backend、process supervisor、镜像发布或 production ready。
-停止线：不实现真实 secret backend、不实现 process supervisor、不新增 executor、confirmation、writeback、replay 或 materialized result reader；不把 local-smoke、mock provider、demo profile 写成 production ready。
-
-### `Runtime 后续专题`：Provider Runtime & Health v1
-
-目标：把 provider registry、provider/profile inventory、request-side selection、diagnostics 和 error taxonomy 收口为可解释、可检查、可继续接真实 provider 的 runtime/health 层。
-
-状态：已新增 [Provider Runtime & Health v1 任务卡](task-cards/provider-runtime-health-v1-plan.md)。当前只做 provider capability matrix、provider health smoke、provider selection policy、provider retry/fallback policy 和相关文档刷新；不实现真实 tool executor、confirmation / writeback / replay、训练、production secret backend 或 production ready。`provider-capability-matrix-v1` 已落地为 `scripts/checks/fixtures/provider-capability-matrix-v1.json` 与 `scripts/check-provider-capability-matrix.py`；`provider-health-smoke-v1` 已落地为 `scripts/checks/fixtures/provider-health-smoke-v1.json` 与 `scripts/check-provider-health-smoke.py`；`provider-selection-policy-v1` 已落地为 `scripts/checks/fixtures/provider-selection-policy-v1.json`、`scripts/check-provider-selection-policy.py` 和 Go selection 单元测试；`provider-retry-fallback-policy-v1` 已落地为 `scripts/checks/fixtures/provider-retry-fallback-policy-v1.json` 与 `scripts/check-provider-retry-fallback-policy.py`，并用 Go 失败路径测试固定 `retry_policy=caller-managed`、`fallback_policy=disabled`；`provider-runtime-docs-refresh` 已落地为 `scripts/checks/fixtures/provider-runtime-docs-refresh.json` 与 `scripts/check-provider-runtime-docs-refresh.py`。五者均已接入快速仓库检查，Provider Runtime & Health v1 进入 close candidate。
-
-下一步：不再默认扩 provider runtime 同层切片；后续 retry/fallback execution、optional live health、container smoke 或 production secret backend 只作为明确独立任务重开。
-
-停止线：capability 不等于 health；health smoke 不等于 production readiness；默认检查不联网、不要求 credential、不下载模型；不隐式 fallback，不把单一 provider 写成唯一方向。
-
-### `P4`：Model Adaptation & Training
-
-目标：在平台边界稳定后，定义首版基座、蒸馏和训练升级计划。
-
-状态：前置计划已形成阶段证据并转入后置专题。v1 模型能力目标、teacher/student 边界、样本分层、晋级门槛、预检 runbook、治理复核记录和 `Qwen2.5-1.5B-Instruct` full-holdout-9 预检结果已有首版记录。raw student 在 docs QA 与 ghost completion 上通过，但在 `suggest_flowsheet_edits` 上 3/3 blocked；repaired comparison 可通过机器门禁，但只作为后处理证据。`Qwen2.5-3B-Instruct` CPU 单样本 probe 300 秒 timeout，当前不继续默认长跑。
-
-### `P5`：Real Upstream Integration
-
-目标：在上层项目具备真实挂载点后，选择首个切片完成真正接入。
-
-状态：真实接入仍等待上层条件成熟，但这不阻塞 RadishMind 平台本体建设。`RadishFlow` / `Radish` 没有稳定 UI、command 或 API 挂载点时，不继续设计假想接线；RadishMind 先推进可离线验证、可复用到未来接入的产品功能、协议边界和风险治理。
-
-### `P6`：User Workspace & Workflow Builder
-
-目标：形成正式用户端，让用户创建 AI 应用、Prompt 应用、Workflow、Agent / Copilot 应用和 RAG / 知识问答应用，并查看 API key、调用量、运行记录和成本。
-
-状态：边界任务卡已开始。当前 `apps/radishmind-console/` 只是本地 ops surface，不是用户端产品；`Control Plane / User Workspace / Workflow v1` 任务卡只定义用户工作区和 workflow builder 的资源边界、运行记录和停止线，不实现正式用户端或 executor。`Workflow / Agent Runtime Function Surface v1` 已完成只读 detail、blocked action preview、confirmation placeholder、fake-store dev path、`workflow-draft-designer-offline-v1`、`workflow-draft-validation-inspector-offline-v1`、`workflow-execution-plan-preview-offline-v1` 和 `workflow-runtime-readiness-inspector-offline-v1`，状态达到 `workflow_function_surface_readiness_closed`；`apps/radishmind-web/` 已形成 workflow draft designer、validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector、review workspace、Workspace Home saved draft list / restore 和 active draft review handoff。2026-06-14 已完成 Saved Workflow Draft v1 的 platform Go domain service 和 memory dev store boundary；2026-06-15 已完成 dev-only HTTP route + web consumer、route contract、version conflict 状态、Draft Designer 受控编辑、User Workspace 本地草案创建，以及 durable store / repository contract / schema migration / auth context / store selector / schema artifact / selector smoke 前置设计；2026-06-16 已完成 saved draft list / restore、本地图结构编辑、节点属性编辑、active draft review handoff、repository contract smoke、smoke runner readiness 和 static smoke runner implementation；2026-06-17 已完成 repository adapter implementation plan、schema artifact manifest、adapter smoke readiness、selector entry review、schema materialization review、store selector implementation、schema artifact materialization、production auth readiness 和 repository adapter implementation entry review；2026-06-18 已完成 repository adapter implementation、adapter smoke execution 和 production auth runtime bridge；2026-06-19 已完成 runner implementation entry review、database connection / schema marker preconditions、connection provider entry review、database secret resolver readiness、secret resolver implementation entry review，以及 Production Secret Backend config / secret ref、provider profile binding、disabled resolver interface、operator runbook / negative gates、rotation / audit policy、test fixture strategy / fake resolver entry review、fake resolver contract / no leakage strategy、fake resolver task card entry readiness 和 fake resolver implementation task card；2026-06-20 已完成 fake resolver runtime implementation entry review、test-only fake resolver runtime、真实 resolver runtime preconditions、真实 resolver runtime implementation entry review、resolver backend profile selection readiness、real resolver no leakage smoke runtime strategy、credential handle runtime boundary readiness、operator approval runtime evidence readiness、audit store handoff readiness、resolver backend health boundary readiness 和 resolver backend health runtime implementation entry review；2026-06-22 已完成 Radish OIDC token / membership readiness 与 implementation entry review、schema marker contract entry review、manual migration runner entry refresh、connection provider entry refresh、database driver / DSN / TLS policy readiness、database role policy readiness 和 database connection smoke strategy；2026-06-23 已完成 database connection lifecycle readiness、connection provider implementation entry refresh v2、Radish OIDC upstream evidence refresh、schema marker runtime dependency refresh 与 secret resolver runtime dependency refresh；2026-06-28 已完成 production resolver runtime implementation entry refresh v2，状态为 `production_resolver_runtime_implementation_entry_refresh_v2_defined`，结论仍为 `production_resolver_runtime_task_card_still_blocked_after_refresh_v2`。当前仍不提供 durable draft persistence、repository store mode enablement、真实数据库、Radish OIDC token validation、membership adapter、secret resolver runtime、production resolver runtime、no secret leakage smoke runtime、credential handle runtime、approval runtime、production secret audit store、audit writer、audit event、backend health runtime、backend health check、connection lifecycle runtime、connection smoke runtime、发布、执行、确认提交、校验结果持久化、execution plan / runtime readiness / scenario / review 持久化或写回能力。
-
-2026-07-11 覆盖：Saved Draft 已完成显式 `postgres_dev_test` durable repository、manual migration、runtime/migration role separation、服务重启恢复、原子 CAS 和真实浏览器冲突审查。上一段末尾“不提供 durable draft persistence / 真实数据库”仅描述 production 路径；开发 / 测试持久化现已成立，production OIDC、secret、repository、publish、run 和 executor 仍未成立。
-
-2026-07-12 覆盖：Application API Integration、Configuration Draft 与 Publish Governance 已形成从选中 application、模型发现、三协议调用、草案保存 / 比较 / CAS、不可变 candidate、review CAS 到阻塞式 promotion eligibility 的开发测试态路径。下一产品任务转向 `Application Catalog & Lifecycle Dev/Test v1`，补齐用户创建和管理 application 的入口、scope / owner / CAS、PostgreSQL dev/test persistence，以及到现有 Application 专题的连续 handoff；不把该 catalog 写成 production application repository，也不启用正式 promotion。
-
-### `P7`：Admin Control Plane & Radish Auth Integration
-
-目标：形成正式管理端，管理租户、用户、角色、权限、provider/profile、模型路由、quota、price、secret、审计和部署状态，并作为 OIDC client 接入 `Radish`。
-
-状态：shared verified identity、negative auth、Tenant / Audit PostgreSQL dev/test read repository，以及 deterministic OIDC discovery / JWKS / JWT verifier、Admin permission boundary、zero-query denial 和 workspace operation gate 已完成。真实 Radish 联调状态为 `real_radish_integration_deferred`；未来由 Radish 注册 RadishMind application/client 与 resource audience 并提供 reviewed evidence 后恢复。当前不实现账号系统、workspace membership adapter、production auth 或管理写入，也不声明 production ready。
-
-## 2026-07-15 当前执行顺序
-
-1. `R3 Workflow Draft Review Loop` 已于 2026-07-11 完成真实浏览器正常路径、版本冲突路径、Continue / Restore 和 Review Handoff 收口，未新增同层 readiness / checker。
-2. Saved Workflow Draft PostgreSQL dev/test repository 已完成 migration / rollback / reapply、重启恢复、CAS、scope、no fallback、CI 和真实浏览器验收；production repository mode 继续关闭。
-3. `R4 Gateway` 已完成：受控 `stdio` worker pool 成为默认模式，顺序 / 四并发 bridge 自身 p95 相对 back-to-back process 基线下降 `93.5% / 94.4%`，process 模式保留回滚。
-4. 无外部副作用 [Workflow Executor v0](features/workflow/workflow-executor-v0.md) 已完成 Platform 执行、dev API、受控 Web 入口、tenant / workspace / application scoped run record 与真实浏览器回读验证。
-5. Workflow Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning 与 Evaluation Suite / Release Review 已完成 scoped API、PostgreSQL dev/test persistence、重启恢复、并发、脱敏和真实 Web 审查；tool、业务写回、自动确认提交和 replay 继续后置。
-6. [Model Gateway Request History / Usage & Failure Review v1](features/gateway/model-gateway-request-history-usage-failure-review-v1.md) 已完成 `memory_dev`、独立 PostgreSQL dev/test repository、manual migration、runtime role、no-fallback、分页详情、重启恢复及 queue / timeout / unary cancel / stream cancel 终态浏览器证据并关闭；不提前打开 production API key、quota、billing 或自动 retry / fallback。
-7. [Gateway Playground / Request Review Loop v1](features/gateway/gateway-playground-request-review-loop-v1.md) 已完成三协议 Web 调用、stream 取消、稳定失败和 request-id history handoff，不新增 schema 或生产声明。
-8. [User Workspace Application API Integration & Invocation v1](features/user-workspace/application-api-integration-invocation-v1.md) 已完成选中 application、`/v1/models`、三协议 × 三语言接入示例、现有 Playground 与同 request id History detail 的连续路径；不新增 Gateway API、schema、repository 或生产授权。
-9. [User Workspace Application Configuration Draft & Review v1](features/user-workspace/application-configuration-draft-review-v1.md) 已完成独立 application draft domain、memory / PostgreSQL dev-test repository、显式 migration、模型 / 协议校验、save / restore / compare / CAS conflict 和 Integration / Playground handoff。
-10. [User Workspace Application Publish Governance & Promotion v1](features/user-workspace/application-publish-governance-promotion-v1.md) 已完成 server-side draft reload、不可变 candidate、review CAS、memory / PostgreSQL dev-test repository、漂移 / superseded 检查和阻塞式 eligibility。
-11. [Admin Control Plane Authenticated Read Store Transition v1](features/admin-control-plane/authenticated-read-store-transition-v1.md) 的 verified identity、[Tenant / Audit PostgreSQL Read Repository v1](features/admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) dev/test runtime，以及 [Radish OIDC Integration Test v1](features/admin-control-plane/radish-oidc-integration-test-v1.md) deterministic runtime 均已完成；真实 Radish 联调 deferred，不接 production auth 或 workspace routes。
-12. 用户工作区应用目录与生命周期、API 密钥生命周期与 Gateway 开发测试态认证均已完成双数据库、严格 Web 消费和真实浏览器连续验收；下一产品任务不自动承接，先从正式功能专题中选择并更新新的用户目标。
-13. R5 已完成：Web 主入口与关键 lazy chunk 预算、Web 可发现覆盖率预算、Platform 核心包分层预算均已建立，PR / release CI 对称执行 Go race、Go vet、Web coverage、Web / Console build 与 PostgreSQL integration；后续不派生同层覆盖率检查器。
-14. R6 前两批已完成：Session / Tooling 的 `24` 个重复静态治理脚本退出 fast / full；当前焦点恢复为低于 `10 KiB` 的短入口，`81` 项活动功能检查不再要求它重复保存历史证据。下一批审计本路线图与 `services/platform/README.md` 的体量和调用方。
-15. OIDC、production secret、真实云资源、production API key、quota enforcement / billing、真实生图和模型训练只在外部资源、负责人和独立运行窗口明确后重开。
-
-## 历史下一步记录（仅供 checker 兼容，不再执行）
-
-1. 把后续推进从 gate-driven 调整为 feature-driven：先更新 `docs/features/` 中对应功能文档，再决定实现批次、测试和必要门禁。
-2. 已完成的 Workflow review surface、Model Gateway evidence、Admin readiness、Image Path metadata-only runtime integration 和 Control Plane durable read foundation 继续作为证据保留；后续不默认继续扩同层只读面板或 gate-only 任务。
-3. 下一批开发目标继续回到 `Workflow / Agent Runtime` 的 `Saved Workflow Draft v1` 功能专题；2026-06-28 复评已确认 repository mode runtime 仍被 auth middleware / membership adapter、negative auth smoke runtime、DB provider、schema marker runtime、database secret resolver runtime、production resolver runtime、audit store runtime、backend health runtime、no leakage smoke runtime、credential handle runtime 和 approval runtime 阻塞，并已固定 `audit_store_runtime_event_schema_artifact_implemented`，对应 `production-secret-backend-audit-store-runtime-event-schema-artifact-v1`，且保留 `audit_store_runtime_event_schema_artifact_implementation_task_card_defined` 作为前置状态。若继续 secret backend，应回到 audit store runtime blocker matrix，优先评审 durable backend / writer / delivery / idempotency 等 runtime 前置；不得直接启用 repository mode、production resolver runtime、backend health runtime、audit store runtime、production API、connection lifecycle runtime、connection smoke runtime 或执行链路。
-4. 普通展示改动只在真实阅读缺口出现时修正现有 surface / fixture / 文档；只有新增 API、执行边界、生产声明、schema / 数据格式、外部 provider 风险或高风险能力时才新增专项 gate。
-5. 继续把 Production Ops、真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏和权重相关工作保留为后置专题；没有明确运行或实验窗口前不重开。
-6. 继续维持上层项目接入前置条件总表和产品机会池候选，不提前细化不存在的真实接线；`RadishFlow` / `Radish` 不是 RadishMind 产品主线的阻塞条件。
+- 当前决策：[当前推进焦点](radishmind-current-focus.md)
+- 工程整改：[工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md)
+- 功能设计：[功能设计文档入口](features/README.md)
+- 产品边界：[产品范围](radishmind-product-scope.md)
+- 系统边界：[架构](radishmind-architecture.md)
+- 协议边界：[集成契约](radishmind-integration-contracts.md)
+- 能力状态：[能力矩阵](radishmind-capability-matrix.md)
+- 历史完成记录：[2026-W29 周志](devlogs/2026-W29.md)
 
 ## 停止线
 
-- 不把 repaired、injected、guided 或 builder 轨通过写成 raw 模型能力通过。
-- 不把机器指标通过写成人工可接受度通过。
-- 不在没有非重复能力假设时继续扩同一批 `M4` 实验。
-- 不在上层项目没有真实挂载点时继续细化假想接线设计。
-- 不把 `P1` 继续扩成无止境的 provider/config/diagnostics 细化阶段。
-- 不把当前本地 console 写成正式用户端、生产管理端、完整 Dify-like workflow builder 或完整模型 API 分发平台。
-- 不自建与 `Radish` 冲突的身份、权限、数据库和部署真相源；Radish OIDC client 接入必须作为独立任务推进。
-- 不默认进入数据库；真实 read store、repository adapter、schema migration 和 store selector 必须作为独立功能设计与实现批次推进。
-- 不把 Control Plane、Gateway 和 Workflow Executor 混成单体，也不把微服务拆分变成新增语言栈的理由。
-- 不把 P3 继续扩成无止境的本地只读 console 小切片阶段。
-- 不把 Production Ops 继续扩成无止境的静态 governance fixture 阶段。
-- 不把 task card、fixture 和 checker 当成功能设计文档的替代品。
-- 不把 provider health smoke 写成 production readiness 或隐式 provider fallback。
-- 不把当前本地 console 壳扩成 production console、大面积复杂交互或真实确认 / 写回 / replay UI。
-- 不把真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏或权重相关工作作为当前默认主线。
-- 不让模型直接写上层业务真相源。
-- 不用晦涩抽象、空泛 helper 或多层 fallback 掩盖代码职责不清。
+- 不把开发测试态数据库、fake / local adapter、离线 smoke、静态 schema artifact、当前本地 console 或部分覆盖率写成 production ready。
+- 不在缺少真实 issuer、membership source、生产数据库资源、secret backend、部署环境、负责人和发布复核时启用生产能力。
+- 不把 Control Plane、Gateway 和 Workflow Executor 混成隐式单体，也不因服务拆分引入新的默认语言栈。
+- 不把 task card、fixture、checker、readiness 或周志当成功能设计文档和当前决策入口的替代品。
+- 不继续派生“readiness 之后的 readiness”，不把历史 next dependency 恢复为当前开发顺位。
+- 不在上层项目没有真实挂载点时细化假想接线，不跨工作区修改 `RadishFlow`、`Radish` 或 `RadishCatalyst`。
+- 不让模型建议直接写入上层业务真相源，不启用 unrestricted tool、业务写回、自动确认提交或 replay。
+- 不让 API key、token、DSN、provider 原始响应或异常正文进入 argv、公开错误、日志或 committed 资产。
+- 不在缺少评测基线和明确运行窗口时下载模型、长跑真实模型、扩训练 JSONL、蒸馏或权重工作。

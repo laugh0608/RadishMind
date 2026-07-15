@@ -124,11 +124,6 @@ REQUIRED_DOC_REFERENCES = {
         "services/platform/internal/httpapi",
         "fake store",
     ],
-    "docs/radishmind-roadmap.md": [
-        "control-plane-read-fake-store-handler-implementation-v1",
-        "fake-store-backed read handler implementation",
-        "不默认进入数据库",
-    ],
     "docs/radishmind-capability-matrix.md": [
         "control-plane-read-fake-store-handler-implementation-v1",
         "fake-store-backed",
@@ -147,11 +142,6 @@ REQUIRED_DOC_REFERENCES = {
         "check-control-plane-read-fake-store-handler-implementation-v1.py",
         "control-plane-read-fake-store-handler-implementation-v1.json",
         "fake-store-backed read handler implementation",
-    ],
-    "services/platform/README.md": [
-        "control-plane-read-fake-store-handler-implementation-v1",
-        "/v1/user-workspace/applications",
-        "/v1/control-plane/audit",
     ],
     "docs/devlogs/2026-W22.md": [
         "control-plane-read-fake-store-handler-implementation-v1",
@@ -418,9 +408,9 @@ def assert_policy_and_docs(fixture: dict[str, Any]) -> None:
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     require(
-        'run_python_script("checks/control_plane/check-control-plane-read-fake-store-handler-implementation-v1.py", [])'
+        '"check-control-plane-read-fake-store-handler-implementation-v1.py"'
         in check_repo,
-        "check-repo.py must run control plane read fake-store handler implementation check",
+        "check-repo.py must catalog control plane read fake-store handler implementation check",
     )
 
     for relative_path, required_literals in REQUIRED_DOC_REFERENCES.items():

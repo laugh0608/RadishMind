@@ -71,11 +71,6 @@ REQUIRED_DOC_REFERENCES = {
         "response fixture",
         "failure_code",
     ],
-    "docs/radishmind-roadmap.md": [
-        "control-plane-read-response-fixtures-v1",
-        "control-plane-read-response-fixtures-v1.json",
-        "check-control-plane-read-response-fixtures-v1.py",
-    ],
     "docs/radishmind-capability-matrix.md": [
         "control-plane-read-response-fixtures-v1",
         "control-plane-read-response-fixtures-v1.json",
@@ -224,8 +219,8 @@ def assert_policy_and_docs(fixture: dict[str, Any]) -> None:
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     require(
-        'run_python_script("checks/control_plane/check-control-plane-read-response-fixtures-v1.py", [])' in check_repo,
-        "check-repo.py must run control plane read response fixtures check",
+        '"check-control-plane-read-response-fixtures-v1.py"' in check_repo,
+        "check-repo.py must catalog control plane read response fixtures check",
     )
 
     for relative_path, required_literals in REQUIRED_DOC_REFERENCES.items():

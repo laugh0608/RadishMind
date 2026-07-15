@@ -138,10 +138,6 @@
     ],
     "docs/contracts/control-plane-read-side.md": [
       "control-plane-read-workspace-api-keys-v1",
-      "api-key-summary-list-route"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "control-plane-read-workspace-api-keys-v1",
       "workspace-api-keys"
     ],
     "docs/radishmind-capability-matrix.md": [
@@ -159,10 +155,6 @@
     "scripts/README.md": [
       "check-control-plane-read-workspace-api-keys-v1.py",
       "control-plane-read-workspace-api-keys-v1.json"
-    ],
-    "services/platform/README.md": [
-      "control-plane-read-workspace-api-keys-v1",
-      "workspace-api-keys"
     ],
     "docs/devlogs/2026-W22.md": [
       "control-plane-read-workspace-api-keys-v1",

@@ -41,12 +41,10 @@ EXPECTED_REQUIRED_DOCUMENTS = {
     "docs/radishmind-project-guide.md",
     "docs/radishmind-integration-contracts.md",
     "docs/radishmind-capability-matrix.md",
-    "docs/radishmind-roadmap.md",
     "docs/radishmind-architecture.md",
     "docs/radishmind-strategy.md",
     "docs/task-cards/provider-runtime-health-v1-plan.md",
     "scripts/README.md",
-    "services/platform/README.md",
     "docs/devlogs/2026-W22.md",
 }
 EXPECTED_REQUIRED_CONSUMERS = {
@@ -86,12 +84,6 @@ REQUIRED_DOC_REFERENCES = {
         "provider retry/fallback policy",
         "production readiness",
     ],
-    "docs/radishmind-roadmap.md": [
-        "provider-runtime-docs-refresh",
-        "Provider Runtime & Health v1",
-        "进入 close candidate",
-        "provider-retry-fallback-policy-v1",
-    ],
     "docs/radishmind-architecture.md": [
         "provider-runtime-docs-refresh.json",
         "check-provider-runtime-docs-refresh.py",
@@ -126,15 +118,6 @@ REQUIRED_DOC_REFERENCES = {
         "check-provider-runtime-docs-refresh.py",
         "provider-runtime-docs-refresh.json",
         "check-provider-retry-fallback-policy.py",
-    ],
-    "services/platform/README.md": [
-        "Provider runtime / health boundary",
-        "provider-capability-matrix-v1",
-        "provider-health-smoke-v1",
-        "provider-selection-policy-v1",
-        "provider-retry-fallback-policy-v1",
-        "provider-runtime-docs-refresh",
-        "runtime_override",
     ],
     "docs/devlogs/2026-W22.md": [
         "provider-runtime-docs-refresh",

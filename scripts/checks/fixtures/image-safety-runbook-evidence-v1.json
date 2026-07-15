@@ -493,9 +493,8 @@
   ],
   "required_doc_references": {
     "docs/contracts/image-generation.md": [
-      "image-safety-runbook-evidence-v1",
       "image_safety_runbook_evidence_defined",
-      "safety runbook"
+      "真实 backend"
     ],
     "docs/radishmind-capability-matrix.md": [
       "image_safety_runbook_evidence_defined",
@@ -516,10 +515,6 @@
     "contracts/README.md": [
       "image-safety-runbook-evidence-v1",
       "safety runbook"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "image_safety_runbook_evidence_defined",
-      "真实 backend"
     ],
     "docs/radishmind-architecture.md": [
       "image_safety_runbook_evidence_defined",

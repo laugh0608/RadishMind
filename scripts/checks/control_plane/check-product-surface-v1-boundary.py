@@ -60,9 +60,10 @@ REQUIRED_DOC_REFERENCES = {
         "不实现 OIDC、数据库、API key / quota、workflow executor、confirmation、writeback 或 replay",
     ],
     "docs/radishmind-roadmap.md": [
-        "product-surface-v1-boundary",
-        "product-surface-v1-boundary.json",
-        "check-product-surface-v1-boundary.py",
+        "User Workspace",
+        "Admin Control Plane",
+        "Model Gateway / API Distribution",
+        "Workflow / Agent Runtime",
     ],
     "docs/radishmind-capability-matrix.md": [
         "product-surface-v1-boundary",

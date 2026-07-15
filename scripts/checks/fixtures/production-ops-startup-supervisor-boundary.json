@@ -98,7 +98,7 @@
     "scripts/run-radishmind-console-dev.sh",
     "scripts/check-platform-deployment-smoke.py",
     "scripts/check-radishmind-console-dev-entry.py",
-    "services/platform/README.md",
+    "docs/platform/platform-service-operations-runbook-v1.md",
     "apps/radishmind-console/README.md",
     "docs/task-cards/production-ops-hardening-v1-plan.md"
   ],
@@ -107,6 +107,6 @@
     "scripts/check-repo.py",
     "scripts/check-p3-local-product-shell-short-close-checklist.py",
     "scripts/README.md",
-    "docs/radishmind-roadmap.md"
+    "docs/task-cards/production-ops-hardening-v1-plan.md"
   ]
 }

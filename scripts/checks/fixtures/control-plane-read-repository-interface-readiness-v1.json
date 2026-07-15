@@ -252,10 +252,6 @@
       "control-plane-read-repository-interface-readiness-v1",
       "repository_interface_readiness_defined"
     ],
-    "docs/radishmind-roadmap.md": [
-      "control-plane-read-repository-interface-readiness-v1",
-      "repository interface readiness"
-    ],
     "docs/radishmind-capability-matrix.md": [
       "control-plane-read-repository-interface-readiness-v1",
       "repository interface readiness"
@@ -274,10 +270,6 @@
     "scripts/README.md": [
       "check-control-plane-read-repository-interface-readiness-v1.py",
       "control-plane-read-repository-interface-readiness-v1.json"
-    ],
-    "services/platform/README.md": [
-      "control-plane-read-repository-interface-readiness-v1",
-      "repository interface readiness"
     ],
     "docs/devlogs/2026-W23.md": [
       "control-plane-read-repository-interface-readiness-v1",
@@ -298,10 +290,10 @@
     "scripts/README.md",
     "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-current-focus.md",
-    "docs/radishmind-roadmap.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-capability-matrix.md",
     "docs/task-cards/README.md",
-    "services/platform/README.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/devlogs/2026-W23.md"
   ]
 }

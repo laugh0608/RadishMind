@@ -50,8 +50,6 @@ REQUIRED_DOC_REFERENCES = {
     "docs/radishmind-roadmap.md": [
         "P3 Local Product Shell / Ops Surface",
         "local usable / read-only close",
-        "UI Design Topic / Pencil Draft",
-        "p3-local-product-shell-short-close-checklist.json",
         "not_satisfied",
     ],
     "docs/radishmind-architecture.md": [

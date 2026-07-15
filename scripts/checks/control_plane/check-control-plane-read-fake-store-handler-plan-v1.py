@@ -107,11 +107,6 @@ REQUIRED_DOC_REFERENCES = {
         "services/platform/internal/httpapi",
         "fake store",
     ],
-    "docs/radishmind-roadmap.md": [
-        "control-plane-read-fake-store-handler-plan-v1",
-        "fake-store-backed read handler plan",
-        "不默认进入数据库",
-    ],
     "docs/radishmind-capability-matrix.md": [
         "control-plane-read-fake-store-handler-plan-v1",
         "fake-store-backed",
@@ -130,11 +125,6 @@ REQUIRED_DOC_REFERENCES = {
         "check-control-plane-read-fake-store-handler-plan-v1.py",
         "control-plane-read-fake-store-handler-plan-v1.json",
         "fake-store-backed read handler plan",
-    ],
-    "services/platform/README.md": [
-        "control-plane-read-fake-store-handler-plan-v1",
-        "plan-only",
-        "/v1/control-plane/tenants/{tenant_ref}/summary",
     ],
     "docs/devlogs/2026-W22.md": [
         "control-plane-read-fake-store-handler-plan-v1",
@@ -158,11 +148,6 @@ IMPLEMENTED_DOC_REFERENCES = {
         "services/platform/internal/httpapi",
         "fake store",
     ],
-    "docs/radishmind-roadmap.md": [
-        "control-plane-read-fake-store-handler-plan-v1",
-        "control-plane-read-fake-store-handler-implementation-v1",
-        "不默认进入数据库",
-    ],
     "docs/radishmind-capability-matrix.md": [
         "control-plane-read-fake-store-handler-plan-v1",
         "control-plane-read-fake-store-handler-implementation-v1",
@@ -181,11 +166,6 @@ IMPLEMENTED_DOC_REFERENCES = {
         "check-control-plane-read-fake-store-handler-plan-v1.py",
         "control-plane-read-fake-store-handler-plan-v1.json",
         "fake-store-backed read handler plan",
-    ],
-    "services/platform/README.md": [
-        "control-plane-read-fake-store-handler-plan-v1",
-        "control-plane-read-fake-store-handler-implementation-v1",
-        "/v1/control-plane/tenants/{tenant_ref}/summary",
     ],
     "docs/devlogs/2026-W22.md": [
         "control-plane-read-fake-store-handler-plan-v1",
@@ -457,9 +437,9 @@ def assert_policy_and_docs(fixture: dict[str, Any]) -> None:
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     require(
-        'run_python_script("checks/control_plane/check-control-plane-read-fake-store-handler-plan-v1.py", [])'
+        '"check-control-plane-read-fake-store-handler-plan-v1.py"'
         in check_repo,
-        "check-repo.py must run control plane read fake-store handler plan check",
+        "check-repo.py must catalog control plane read fake-store handler plan check",
     )
 
     doc_references = IMPLEMENTED_DOC_REFERENCES if implemented_route_ids() else REQUIRED_DOC_REFERENCES

@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-1. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R5 已完成；R6 第一批已收敛 Session / Tooling 活动门禁，第二批已恢复当前焦点短入口并解除 `81` 项活动功能检查的直接 / 间接历史证据耦合。下一批审计路线图与 `services/platform/README.md` 的体量和调用方。
+1. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R5 已完成；R6 前五批已收敛入口文档、Session / Tooling、Image Path 与 Control Plane Read 活动门禁。Control Plane Read 八项早期静态检查退出，formal UI 与页面链因缺少完整 TypeScript 行为覆盖继续活动；下一工程批做 R6 关闭评审，不自动清理 Provider 或 Production Ops。
 
 ## 最近关闭任务
 
@@ -61,7 +61,7 @@ R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run
 19. [`P2 Session & Tooling` short close entry checklist](session-tooling-short-close-entry-checklist.md)
 20. [`P2 Session & Tooling` upper-layer confirmation flow readiness](session-tooling-upper-layer-confirmation-flow-readiness.md)
 
-## Product Platform
+## Product Platform（历史任务索引）
 
 1. [`Control Plane / User Workspace / Workflow` v1 计划](control-plane-user-workspace-workflow-v1-plan.md)
 2. [`Control Plane Read Model` v1 计划](control-plane-read-model-v1-plan.md)（`control-plane-read-model-v1`）

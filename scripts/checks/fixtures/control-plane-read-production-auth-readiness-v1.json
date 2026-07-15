@@ -487,10 +487,6 @@
       "control-plane-read-production-auth-readiness-v1",
       "production auth readiness"
     ],
-    "docs/radishmind-roadmap.md": [
-      "control-plane-read-production-auth-readiness-v1",
-      "production_auth_readiness_defined"
-    ],
     "docs/radishmind-capability-matrix.md": [
       "control-plane-read-production-auth-readiness-v1",
       "production_auth_readiness_defined"
@@ -511,10 +507,6 @@
       "check-control-plane-read-production-auth-readiness-v1.py",
       "control-plane-read-production-auth-readiness-v1.json"
     ],
-    "services/platform/README.md": [
-      "control-plane-read-production-auth-readiness-v1",
-      "production auth readiness"
-    ],
     "docs/devlogs/2026-W23.md": [
       "control-plane-read-production-auth-readiness-v1",
       "production_auth_readiness_defined"
@@ -534,12 +526,12 @@
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/contracts/control-plane-read-side.md",
-    "docs/radishmind-roadmap.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-capability-matrix.md",
     "docs/radishmind-integration-contracts.md",
     "docs/task-cards/README.md",
     "docs/task-cards/control-plane-read-production-auth-readiness-v1-plan.md",
-    "services/platform/README.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/devlogs/2026-W23.md"
   ]
 }
