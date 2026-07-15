@@ -201,6 +201,24 @@ Web 新增标准 `test:coverage` 命令，并补齐 Application / Gateway 事件
 
 删除或合并前必须先确认：调用方、fixture、CI 注册、文档引用和历史证据是否仍需要；不以批量删除换取表面指标。
 
+### 2026-07-15 第一批：Session / Tooling 活动检查基线收敛
+
+仓库聚合入口整改前通过 `run_python_script` 注册 `132` 个独立检查脚本，共 `38,644` 行活动检查代码；其中 Session / Tooling 在已经收口为 `close candidate / governance-only` 后，仍有 `29` 个脚本进入每次 fast / full。除现行消费契约、核心 schema / fixture 合同与负向回归套件外，其余 `24` 个脚本重复扫描 readiness、rollup、matrix、设计说明和停止线静态字面量，共 `8,138` 行活动检查代码。
+
+本批保留以下五项活动证据：
+
+1. `check-platform-session-tooling-consumer-contract.py`：校验 Go / TypeScript 消费契约和 blocked action 无副作用行为；
+2. `check-session-record-contract.py`：校验 Session schema 与基础 fixture；
+3. `check-tooling-framework-contract.py`：校验 Tool registry、policy 和 audit contract；
+4. `check-session-recovery-checkpoint-contract.py`：校验 checkpoint、manifest、只读结果和禁止查询；
+5. `check-session-tooling-negative-regression-suite.py`：聚合 executor、storage、confirmation 三组负向用例及其停止线依赖。
+
+其余 `24` 个治理脚本退出 `check-repo` 活动基线，但不删除脚本、fixture 或 task card；需要审查历史决策时仍可单独执行。退出范围包括 promotion / negative consumption、readiness / preconditions / skeleton / suite readiness、deny-by-default / coverage / route matrix / rollup、foundation / close candidate / short close / consistency、enablement / stop-line / entry checklist，以及 confirmation / audit / materialization / executor / storage 设计检查。
+
+完成条件：聚合入口不再注册上述 `24` 个脚本，活动检查数量从 `132` 降至 `108`，活动检查代码从 `38,644` 行降至 `30,506` 行，分别减少约 `18.2%` 和 `21.1%`；五项保留检查和至少一项退出脚本可独立通过；fast / full 通过；任务卡索引、路线图、当前焦点、脚本说明和周志明确区分“活动门禁”与“历史可复验资产”。本批不修改 Session / Tool schema、runtime、API、执行权限或生产声明，也不删除历史证据。
+
+2026-07-15 完成结论：活动注册与代码口径达到上述目标；五项保留检查和 `24` 项退出脚本均已独立通过，历史脚本通过非执行清单保持手动自检能力，仓库 fast / full 均通过。任务卡索引、脚本说明、路线图、当前焦点和周志已同步区分活动门禁与历史证据；本批未新增 checker、fixture 或任务卡。
+
 ## 推进顺序
 
 ### 第一阶段：P0 清零

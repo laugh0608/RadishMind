@@ -158,7 +158,7 @@
 
 目标：补齐 conversation/session contract、tool contract、registry、policy 和审计轨。
 
-状态：`close candidate / governance-only`，并已具备可消费的 metadata / blocked 外壳。session contract、history policy、state policy、recovery checkpoint、tool schema、tool registry、tool policy、audit record、northbound session metadata、`GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 已能支撑上层或 UI 展示 session/tool metadata 和 blocked action。既有 readiness、rollup、matrix、enablement plan、stop-line manifest 与 entry checklist 继续作为停止线证据保留；当前仍不声明 P2 short close，也不具备真实 executor、durable storage、上层 confirmation flow 接线、materialized result reader、durable audit store、durable result store 或完整 `negative_regression_suite`。
+状态：`close candidate / governance-only`，并已具备可消费的 metadata / blocked 外壳。session contract、history policy、state policy、recovery checkpoint、tool schema、tool registry、tool policy、audit record、northbound session metadata、`GET /v1/session/metadata`、`GET /v1/tools/metadata` 与 `POST /v1/tools/actions` 已能支撑上层或 UI 展示 session/tool metadata 和 blocked action。2026-07-15 起，fast / full 只保留消费契约、Session contract、Tooling contract、recovery checkpoint contract 和 negative regression suite 五项活动检查；既有 readiness、rollup、matrix、设计、enablement plan、stop-line manifest 与 entry checklist 继续作为历史停止线证据和手动复验入口，但不再随聚合门禁重复运行。当前仍不声明 P2 short close，也不具备真实 executor、durable storage、上层 confirmation flow 接线、materialized result reader、durable audit store、durable result store 或完整 `negative_regression_suite`。
 
 停止线证据仍以 governance-only fixture 保留：`session-tooling-foundation-status-summary.json`、`session-tooling-negative-regression-suite-readiness.json`、`session-tooling-close-candidate-readiness-rollup.json`、`session-tooling-route-negative-coverage-matrix.json`、`session-tooling-short-close-entry-checklist.json` 等继续固定 `P2 short close` 前的 `not_satisfied` 条件和 `negative_regression_suite` 边界；这些文件不再作为默认新增工作方向。
 
@@ -243,7 +243,8 @@
 11. [Admin Control Plane Authenticated Read Store Transition v1](features/admin-control-plane/authenticated-read-store-transition-v1.md) 的 verified identity、[Tenant / Audit PostgreSQL Read Repository v1](features/admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) dev/test runtime，以及 [Radish OIDC Integration Test v1](features/admin-control-plane/radish-oidc-integration-test-v1.md) deterministic runtime 均已完成；真实 Radish 联调 deferred，不接 production auth 或 workspace routes。
 12. 用户工作区应用目录与生命周期、API 密钥生命周期与 Gateway 开发测试态认证均已完成双数据库、严格 Web 消费和真实浏览器连续验收；下一产品任务不自动承接，先从正式功能专题中选择并更新新的用户目标。
 13. R5 已完成：Web 主入口与关键 lazy chunk 预算、Web 可发现覆盖率预算、Platform 核心包分层预算均已建立，PR / release CI 对称执行 Go race、Go vet、Web coverage、Web / Console build 与 PostgreSQL integration；后续不派生同层覆盖率检查器。
-14. OIDC、production secret、真实云资源、production API key、quota enforcement / billing、真实生图和模型训练只在外部资源、负责人和独立运行窗口明确后重开。
+14. R6 第一批已完成 Session / Tooling 活动检查基线收敛：`24` 个重复静态治理脚本退出 fast / full，五项现行契约与负向行为检查继续执行；脚本、fixture、任务卡和手动复验能力仍保留。下一批迁出当前焦点的历史机器锚点。
+15. OIDC、production secret、真实云资源、production API key、quota enforcement / billing、真实生图和模型训练只在外部资源、负责人和独立运行窗口明确后重开。
 
 ## 历史下一步记录（仅供 checker 兼容，不再执行）
 

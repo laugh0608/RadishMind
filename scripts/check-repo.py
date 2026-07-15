@@ -66,6 +66,22 @@ RADISH_CANDIDATE_RECORDS_ROOT = Path("datasets/eval/candidate-records/radish")
 RADISHFLOW_CANDIDATE_RECORDS_MAX_PATH_LENGTH = 120
 RADISHFLOW_CANDIDATE_RECORDS_ROOT = Path("datasets/eval/candidate-records/radishflow")
 RADISHFLOW_ALLOWED_ROOT_ENTRIES = {"README.md", "batches", "dry-run-check"}
+# Historical checks stay listed so their manual self-check can confirm catalog membership
+# without treating them as active run_python_script registrations.
+RETIRED_SESSION_TOOLING_CHECKS = (
+    "check-session-tooling-promotion-gates.py", "check-session-tooling-negative-consumption.py",
+    "check-session-recovery-route-smoke-coverage.py", "check-session-tooling-readiness-summary.py",
+    "check-session-tooling-implementation-preconditions.py", "check-session-tooling-negative-regression-skeleton.py",
+    "check-session-tooling-negative-regression-suite-readiness.py", "check-session-tooling-deny-by-default-implementation-gates.py",
+    "check-session-tooling-negative-coverage-rollup.py", "check-session-tooling-route-negative-coverage-matrix.py",
+    "check-session-tooling-route-smoke-readiness-rollup.py", "check-session-tooling-foundation-status-summary.py",
+    "check-session-tooling-close-candidate-readiness-rollup.py", "check-session-tooling-short-close-readiness-delta.py",
+    "check-session-tooling-readiness-consistency-rollup.py", "check-session-tooling-executor-storage-confirmation-enablement-plan.py",
+    "check-session-tooling-stop-line-manifest.py", "check-session-tooling-upper-layer-confirmation-flow-readiness.py",
+    "check-session-tooling-short-close-entry-checklist.py", "check-session-tooling-confirmation-flow-design.py",
+    "check-session-tooling-independent-audit-records.py", "check-session-tooling-result-materialization-policy.py",
+    "check-session-tooling-executor-boundary.py", "check-session-tooling-storage-backend-design.py",
+)
 
 def run_python_script(script_name: str, args: list[str]) -> None:
     result = subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / script_name), *args], cwd=REPO_ROOT)
@@ -1294,31 +1310,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-session-record-contract.py", [])
     run_python_script("check-tooling-framework-contract.py", [])
     run_python_script("check-session-recovery-checkpoint-contract.py", [])
-    run_python_script("check-session-tooling-promotion-gates.py", [])
-    run_python_script("check-session-tooling-negative-consumption.py", [])
-    run_python_script("check-session-recovery-route-smoke-coverage.py", [])
-    run_python_script("check-session-tooling-readiness-summary.py", [])
-    run_python_script("check-session-tooling-implementation-preconditions.py", [])
-    run_python_script("check-session-tooling-negative-regression-skeleton.py", [])
     run_python_script("check-session-tooling-negative-regression-suite.py", [])
-    run_python_script("check-session-tooling-negative-regression-suite-readiness.py", [])
-    run_python_script("check-session-tooling-deny-by-default-implementation-gates.py", [])
-    run_python_script("check-session-tooling-negative-coverage-rollup.py", [])
-    run_python_script("check-session-tooling-route-negative-coverage-matrix.py", [])
-    run_python_script("check-session-tooling-route-smoke-readiness-rollup.py", [])
-    run_python_script("check-session-tooling-foundation-status-summary.py", [])
-    run_python_script("check-session-tooling-close-candidate-readiness-rollup.py", [])
-    run_python_script("check-session-tooling-short-close-readiness-delta.py", [])
-    run_python_script("check-session-tooling-readiness-consistency-rollup.py", [])
-    run_python_script("check-session-tooling-executor-storage-confirmation-enablement-plan.py", [])
-    run_python_script("check-session-tooling-stop-line-manifest.py", [])
-    run_python_script("check-session-tooling-upper-layer-confirmation-flow-readiness.py", [])
-    run_python_script("check-session-tooling-short-close-entry-checklist.py", [])
-    run_python_script("check-session-tooling-confirmation-flow-design.py", [])
-    run_python_script("check-session-tooling-independent-audit-records.py", [])
-    run_python_script("check-session-tooling-result-materialization-policy.py", [])
-    run_python_script("check-session-tooling-executor-boundary.py", [])
-    run_python_script("check-session-tooling-storage-backend-design.py", [])
     run_python_script("check-copilot-training-sample-contract.py", [])
     run_python_script("check-copilot-training-dataset-governance.py", [])
     run_python_script("check-radishmind-core-model-adaptation-v1-governance-review.py", [])

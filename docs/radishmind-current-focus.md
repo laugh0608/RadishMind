@@ -14,14 +14,14 @@
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
 - 产品焦点：工作流审查链、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成；管理端的已验证身份、负向认证、租户 / 审计 PostgreSQL 开发测试态运行时，以及 Radish OIDC 确定性验证器、认证边界和操作门禁也已完成。[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已完成 SQLite 本地产品链、PostgreSQL 专项门禁、Web 一次性交接、真实浏览器连续验收与重启复验，状态为 `api_key_lifecycle_gateway_dev_test_auth_v1_complete`；[本地 SQLite 开发持久化 v1](platform/local-sqlite-dev-persistence-v1.md) 的跨平台 `local-product` 启动档、同一应用作用域 HTTP 连续链和真实 PostgreSQL 门禁状态为 `local_sqlite_dev_persistence_v1_s3_dual_database_gate_completed`。当前不自动打开新的产品实现批次；下一项先从正式功能专题中选择并更新新的设计目标。真实 Radish 联调仍为 `real_radish_integration_deferred`；生产认证、正式晋级、生产密钥、配额和计费继续关闭。
-- `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算` 已完成；R5 已建立 Platform 核心包分层预算、Web 可发现覆盖率预算，并让 PR / release CI 对称执行 Go race、Go vet、Web coverage、Web / Console build 与 PostgreSQL integration。下一工程批回到 `R6 文档与检查器收敛`，优先合并活跃检查入口和迁出历史兼容锚点。
+- `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算` 已完成；`R6 文档与检查器收敛` 第一批也已完成：`24` 个 readiness、rollup、matrix、设计与停止线静态脚本退出 fast / full，五项现行消费契约、核心合同和负向回归检查继续执行，历史脚本、fixture 与任务卡不删除。下一批 R6 迁出本文件中的历史机器锚点。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
 - 旧生产凭据后端 / 存储适配器准入链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
 1. 产品线：[本地 SQLite 开发持久化 v1](platform/local-sqlite-dev-persistence-v1.md) 与 [API 密钥生命周期与 Gateway 开发测试态认证 v1](features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已形成从双数据库、严格 Web 消费、一次性交接、Bearer 调试台、脱敏历史到真实浏览器重启复验的完整证据链并关闭。当前没有自动承接的产品实现批次；下一次产品推进先选择或更新一个功能设计文档，不派生同层数据库、UI 或 checker 链。`real_radish_integration_deferred` 不占用该主线。
-2. 工程线：R5 已完成。`internal/bridge` 与 `internal/httpapi` 的高风险行为测试、Platform 核心包分层预算、Web 严格消费层预算以及 PR / release 对称 CI 均已落地；下一工程批进入 R6，按调用方和证据职责合并活跃检查入口、迁出当前焦点中的历史机器锚点，不机械翻译兼容索引，也不新增同层检查器。
+2. 工程线：R5 与 R6 第一批均已完成；Session / Tooling 的活动检查从 `29` 项收敛到五项，并保留非执行清单与历史手动复验路径。下一批按调用方迁出当前焦点中的历史机器锚点，不机械翻译兼容索引，也不新增同层检查器。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
 
