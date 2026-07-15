@@ -11,12 +11,22 @@ import {
   type ApplicationApiProtocol,
 } from "../src/features/control-plane-read/applicationApiIntegrationConsumer.ts";
 import {
+  APPLICATION_API_INTEGRATION_DRAFT_HANDOFF_EVENT,
+  APPLICATION_MODEL_CATALOG_READY_EVENT,
+  createApplicationApiIntegrationDraftHandoffDetail,
   createApplicationModelCatalogReadyDetail,
+  requestApplicationApiIntegrationDraftHandoff,
+  requestApplicationModelCatalogReady,
 } from "../src/features/control-plane-read/applicationApiIntegrationEvents.ts";
 import {
+  MODEL_GATEWAY_PLAYGROUND_HANDOFF_EVENT,
+  MODEL_GATEWAY_REQUEST_REVIEW_EVENT,
   createAPIKeyModelGatewayPlaygroundHandoffDetail,
   createModelGatewayPlaygroundHandoffDetail,
   createModelGatewayRequestReviewDetail,
+  requestAPIKeyModelGatewayPlaygroundHandoff,
+  requestGatewayRequestHistoryReview,
+  requestModelGatewayPlaygroundHandoff,
 } from "../src/features/control-plane-read/modelGatewayPlaygroundEvents.ts";
 
 const offline: ApplicationApiIntegrationConfig = {
@@ -168,6 +178,10 @@ test("Application API examples cover all protocol and language pairs without sec
 
 test("Application and request-id handoffs preserve exact scope", () => {
   assert.deepEqual(
+    createApplicationApiIntegrationDraftHandoffDetail(" app_docs_assistant ", "responses", " profile:local-dev "),
+    { applicationId: "app_docs_assistant", protocol: "responses", model: "profile:local-dev" },
+  );
+  assert.deepEqual(
     createApplicationModelCatalogReadyDetail(
       " app_aaaaaaaaaaaaaaaa ",
       [{ id: " profile:local-dev ", ownedBy: "radishmind", protocols: ["responses", "responses"] }],
@@ -221,6 +235,109 @@ test("Application and request-id handoffs preserve exact scope", () => {
       applicationId: "app_aaaaaaaaaaaaaaaa",
       consumerRef: "api_key:key_aaaaaaaaaaaaaaaa",
     },
+  );
+});
+
+test("Application and Gateway handoff events dispatch their validated details", () => {
+  const originalWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+  const eventTarget = new EventTarget();
+  const received: Array<{ type: string; detail: unknown }> = [];
+  for (const type of [
+    APPLICATION_API_INTEGRATION_DRAFT_HANDOFF_EVENT,
+    APPLICATION_MODEL_CATALOG_READY_EVENT,
+    MODEL_GATEWAY_PLAYGROUND_HANDOFF_EVENT,
+    MODEL_GATEWAY_REQUEST_REVIEW_EVENT,
+  ]) {
+    eventTarget.addEventListener(type, (event) => {
+      received.push({ type: event.type, detail: (event as CustomEvent<unknown>).detail });
+    });
+  }
+  Object.defineProperty(globalThis, "window", { configurable: true, value: eventTarget });
+  const apiKeyToken = `rmd_dev_key_aaaaaaaaaaaaaaaa.${"A".repeat(43)}`;
+  try {
+    requestApplicationApiIntegrationDraftHandoff(" app_docs_assistant ", "responses", " profile:local-dev ");
+    requestApplicationModelCatalogReady(
+      " app_docs_assistant ",
+      [{ id: " profile:local-dev ", ownedBy: "radishmind", protocols: ["responses"] }],
+      " profile:local-dev ",
+    );
+    requestModelGatewayPlaygroundHandoff(" app_docs_assistant ", "responses", " profile:local-dev ");
+    requestAPIKeyModelGatewayPlaygroundHandoff(
+      "app_aaaaaaaaaaaaaaaa",
+      "key_aaaaaaaaaaaaaaaa",
+      apiKeyToken,
+      "profile:local-dev",
+    );
+    requestGatewayRequestHistoryReview(" playground-request-001 ", " app_docs_assistant ");
+  } finally {
+    if (originalWindow) {
+      Object.defineProperty(globalThis, "window", originalWindow);
+    } else {
+      Reflect.deleteProperty(globalThis, "window");
+    }
+  }
+
+  assert.deepEqual(received.map((event) => event.type), [
+    APPLICATION_API_INTEGRATION_DRAFT_HANDOFF_EVENT,
+    APPLICATION_MODEL_CATALOG_READY_EVENT,
+    MODEL_GATEWAY_PLAYGROUND_HANDOFF_EVENT,
+    MODEL_GATEWAY_PLAYGROUND_HANDOFF_EVENT,
+    MODEL_GATEWAY_REQUEST_REVIEW_EVENT,
+  ]);
+  assert.deepEqual(received[0]?.detail, {
+    applicationId: "app_docs_assistant",
+    protocol: "responses",
+    model: "profile:local-dev",
+  });
+  assert.deepEqual(received[4]?.detail, {
+    requestId: "playground-request-001",
+    applicationId: "app_docs_assistant",
+  });
+});
+
+test("Application and Gateway handoffs reject ambiguous or unsafe scope", () => {
+  const validModel = { id: "profile:local-dev", ownedBy: "radishmind", protocols: ["responses" as const] };
+  assert.throws(() => createApplicationModelCatalogReadyDetail("bad scope", [validModel], validModel.id), /scope is invalid/);
+  assert.throws(
+    () => createApplicationModelCatalogReadyDetail("app_docs_assistant", [validModel, validModel], validModel.id),
+    /handoff is invalid/,
+  );
+  assert.throws(
+    () => createApplicationModelCatalogReadyDetail(
+      "app_docs_assistant",
+      [{ ...validModel, ownedBy: "unsafe\nowner" }],
+      validModel.id,
+    ),
+    /handoff is invalid/,
+  );
+  assert.throws(
+    () => createApplicationModelCatalogReadyDetail(
+      "app_docs_assistant",
+      [{ ...validModel, protocols: ["unsafe" as never] }],
+      validModel.id,
+    ),
+    /handoff is invalid/,
+  );
+  assert.throws(() => createModelGatewayPlaygroundHandoffDetail("bad scope", "responses", validModel.id), /application/);
+  assert.throws(() => createModelGatewayPlaygroundHandoffDetail("app_docs_assistant", "responses", "bad model"), /model/);
+  assert.throws(
+    () => createModelGatewayPlaygroundHandoffDetail("app_docs_assistant", "unsafe" as never, validModel.id),
+    /protocol/,
+  );
+  assert.throws(
+    () => createAPIKeyModelGatewayPlaygroundHandoffDetail(
+      "app_aaaaaaaaaaaaaaaa",
+      "key_aaaaaaaaaaaaaaab",
+      `rmd_dev_key_aaaaaaaaaaaaaaaa.${"A".repeat(43)}`,
+      validModel.id,
+    ),
+    /API key/,
+  );
+  assert.throws(() => createModelGatewayRequestReviewDetail("short", "app_docs_assistant"), /request/);
+  assert.throws(() => createModelGatewayRequestReviewDetail("request-123", "bad scope"), /application/);
+  assert.throws(
+    () => createModelGatewayRequestReviewDetail("request-123", "app_docs_assistant", "unsafe/consumer"),
+    /consumer/,
   );
 });
 

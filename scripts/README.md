@@ -1,6 +1,6 @@
 # scripts/ 目录说明
 
-更新时间：2026-07-14
+更新时间：2026-07-15
 
 ## 目录目标
 
@@ -18,7 +18,8 @@
   - `run-python.sh` 与 `run-python.ps1` 是 Python 脚本包装入口，默认只使用仓库根 `.venv`，用于避免独立脚本隐式落到全局 Python
   - `check-repo.py` 支持 `--fast`，用于日常快速验证；`check-repo.sh --fast`、`check-repo-fast.sh`、`pwsh ./scripts/check-repo.ps1 -Fast` 与 `pwsh ./scripts/check-repo-fast.ps1` 默认使用仓库根 `.venv`，没有 `.venv` 时要求先执行 bootstrap；这些入口会跳过慢速回归和批量元数据重跑，但仍保留核心静态门禁
   - 当前还提供 `check-doc-language-policy-v1.py`，用于固定文档正文中文优先、必要英文标识符保留原文、历史英文工程短语逐批收口、[文档语言治理 v1](../docs/document-language-governance-v1.md) 专题引用和优先入口文档提示；该检查不做全仓机械翻译，也不改写状态锚点、fixture key、路径或机器检查依赖的字面量 literal
-  - GitHub Actions 当前把 PR / dev 集成检查拆为 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`Platform Go Tests` 与 `Platform PostgreSQL Integration`：仓库治理走聚合入口，Web 执行 test / build，Go 平台执行单元测试，PostgreSQL job 使用临时 service 执行八组平台 migration、七组件 repository 与关联 Control Plane read 集成测试
+  - GitHub Actions 当前把 PR / release 检查对称拆为 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build`、`Platform Go Tests` 与 `Platform PostgreSQL Integration`：仓库治理走聚合入口，Web 执行覆盖率预算与构建，Console 执行构建，Go 平台执行核心包覆盖率预算、race 和 vet，PostgreSQL job 使用临时 service 执行八组平台 migration、七组件 repository 与关联 Control Plane read 集成测试并报告独立覆盖率
+  - `scripts/checks/platform/check_platform_core_coverage.py` 是 Platform 核心包的集中覆盖率入口，分别约束 `bridge`、`config`、`diagnostics`、`httpapi`、`secretbackend` 与 `sqlitedev`；命令包装器、嵌入式 migration 资产和 PostgreSQL 专属执行代码不与核心运行时共用总阈值
   - `Release Checks` 只复用同级预发布验证 job，不发布镜像、不部署、不访问 live backend、不写入 secret，也不声明 production ready
   - 当前还提供 `run-platform-service.sh` 与 `run-platform-service.ps1`，作为本地 Go platform service wrapper；支持 `serve`、`config-summary`、`config-check` 与 `diagnostics`，并统一处理 repo root、`services/platform` 工作目录、默认 `GOCACHE` 和默认本地配置文件。默认 `local-product` 档选择单一共享 SQLite 文件和七组件开发门禁；显式 `configured` 档不注入 store 或门禁，只承接调用方配置，供 PostgreSQL 专项验收与故障注入使用。配置检查不会创建 SQLite 文件，只有 `serve` 进入 migration 与 shared runtime 生命周期
   - 当前还提供 `run-platform-overview-consumer-smoke.py`，用于把 `GET /v1/platform/overview` 转成未来本地 console 可展示的 overview 视图模型；默认使用离线 fixture 模式，可选 `--base-url` 连接正在运行的平台服务，不启动 executor、durable store、confirmation、replay 或业务写回

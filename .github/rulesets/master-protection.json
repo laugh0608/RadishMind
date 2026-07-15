@@ -54,6 +54,9 @@
             "context": "RadishMind Web Build"
           },
           {
+            "context": "RadishMind Console Build"
+          },
+          {
             "context": "Platform Go Tests"
           }
         ],

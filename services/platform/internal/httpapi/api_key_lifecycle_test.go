@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -17,6 +18,61 @@ import (
 
 func TestAPIKeyServiceIssueReadListAndRevoke(t *testing.T) {
 	runAPIKeyServiceIssueReadListAndRevoke(t, newMemoryAPIKeyRepository(), newMemoryApplicationCatalogRepository())
+}
+
+func TestAPIKeyFailureMappingAndUnavailableDefaultService(t *testing.T) {
+	conflict := apiKeyVersionConflictError{CurrentVersion: 4, CurrentState: apiKeyLifecycleRevoked}
+	if conflict.Error() != APIKeyFailureVersionConflict || !errors.Is(conflict, errAPIKeyVersionConflict) || errors.Is(conflict, errAPIKeyNotFound) {
+		t.Fatalf("version conflict error lost stable identity: %v", conflict)
+	}
+
+	tests := []struct {
+		name        string
+		failureCode string
+		wantStatus  int
+	}{
+		{name: "success", wantStatus: http.StatusCreated},
+		{name: "payload", failureCode: APIKeyFailurePayloadInvalid, wantStatus: http.StatusBadRequest},
+		{name: "secret", failureCode: APIKeyFailureSecretForbidden, wantStatus: http.StatusBadRequest},
+		{name: "cursor", failureCode: APIKeyFailureCursorInvalid, wantStatus: http.StatusBadRequest},
+		{name: "credential conflict", failureCode: APIKeyFailureCredentialConflict, wantStatus: http.StatusBadRequest},
+		{name: "scope", failureCode: APIKeyFailureScopeDenied, wantStatus: http.StatusForbidden},
+		{name: "application", failureCode: APIKeyFailureApplicationUnavailable, wantStatus: http.StatusForbidden},
+		{name: "write", failureCode: APIKeyFailureWriteDisabled, wantStatus: http.StatusForbidden},
+		{name: "revoked", failureCode: APIKeyFailureRevoked, wantStatus: http.StatusForbidden},
+		{name: "expired", failureCode: APIKeyFailureExpired, wantStatus: http.StatusForbidden},
+		{name: "lifecycle", failureCode: APIKeyFailureLifecycleDisabled, wantStatus: http.StatusForbidden},
+		{name: "not found", failureCode: APIKeyFailureNotFound, wantStatus: http.StatusNotFound},
+		{name: "version", failureCode: APIKeyFailureVersionConflict, wantStatus: http.StatusConflict},
+		{name: "transition", failureCode: APIKeyFailureTransitionInvalid, wantStatus: http.StatusConflict},
+		{name: "catalog", failureCode: APIKeyFailureCatalogRequired, wantStatus: http.StatusServiceUnavailable},
+		{name: "store", failureCode: APIKeyFailureStoreUnavailable, wantStatus: http.StatusServiceUnavailable},
+		{name: "membership", failureCode: "workspace_membership_unavailable", wantStatus: http.StatusServiceUnavailable},
+		{name: "unknown", failureCode: "api_key_unknown_failure", wantStatus: http.StatusInternalServerError},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if status := apiKeyResultHTTPStatus(test.failureCode, http.StatusCreated); status != test.wantStatus {
+				t.Fatalf("unexpected status for %q: got=%d want=%d", test.failureCode, status, test.wantStatus)
+			}
+		})
+	}
+
+	server := &Server{}
+	service := server.apiKeyService()
+	result := service.Read(apiKeyTestContext("subject_owner"), "key_aaaaaaaaaaaaaaaa")
+	if result.FailureCode != APIKeyFailureStoreUnavailable || server.apiKeyRepository == nil {
+		t.Fatalf("missing API key repository did not fail closed: %#v", result)
+	}
+
+	allowed := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/api-keys?workspace_id=workspace_demo&limit=10", nil)
+	if !allowAPIKeyQuery(allowed, "workspace_id", "limit") {
+		t.Fatal("allowlisted API key query was rejected")
+	}
+	unknown := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/api-keys?workspace_id=workspace_demo&raw_secret=true", nil)
+	if allowAPIKeyQuery(unknown, "workspace_id", "limit") {
+		t.Fatal("unknown API key query parameter was accepted")
+	}
 }
 
 func runAPIKeyServiceIssueReadListAndRevoke(t *testing.T, repository apiKeyRepository, applicationRepository applicationCatalogRepository) {
@@ -357,6 +413,70 @@ func TestAPIKeyLifecycleHTTPPermissionsUnknownFieldsAndOIDCZeroQuery(t *testing.
 	disabled.handleCreateAPIKey(disabledRecorder, disabledRequest)
 	if disabledRecorder.Code != http.StatusForbidden || !strings.Contains(disabledRecorder.Body.String(), "API_KEY_LIFECYCLE_DEV_HTTP_DISABLED") {
 		t.Fatalf("disabled lifecycle must fail closed: %d body=%s", disabledRecorder.Code, disabledRecorder.Body.String())
+	}
+}
+
+func TestAPIKeyLifecycleHTTPRejectsInvalidQueriesAndMissingRecords(t *testing.T) {
+	server := &Server{
+		config: config.Config{
+			ApplicationCatalogDevHTTPEnabled: true,
+			APIKeyLifecycleDevHTTPEnabled:    true,
+			APIKeyLifecycleDevWriteEnabled:   true,
+		},
+		applicationCatalogRepository: newMemoryApplicationCatalogRepository(),
+		apiKeyRepository:             newMemoryAPIKeyRepository(),
+	}
+	auth := controlPlaneReadAuthContext{
+		AuthMode: controlPlaneReadAuthModeDevHeaders, IdentityContext: "dev:test",
+		TenantBinding: "tenant_demo", SubjectBinding: "subject_owner",
+		ScopeGrants: []string{"api_keys:read", "api_keys:revoke"},
+	}
+	withAuth := func(request *http.Request) *http.Request {
+		return request.WithContext(withControlPlaneReadFakeAuthContext(context.Background(), auth))
+	}
+
+	readUnknownQuery := withAuth(httptest.NewRequest(http.MethodGet, "/v1/user-workspace/api-keys/key_aaaaaaaaaaaaaaaa?workspace_id=workspace_demo&raw_secret=true", nil))
+	readUnknownQuery.SetPathValue("api_key_id", "key_aaaaaaaaaaaaaaaa")
+	readUnknownRecorder := httptest.NewRecorder()
+	server.handleReadAPIKey(readUnknownRecorder, readUnknownQuery)
+	if readUnknownRecorder.Code != http.StatusBadRequest || !strings.Contains(readUnknownRecorder.Body.String(), APIKeyFailurePayloadInvalid) {
+		t.Fatalf("read unknown query must fail closed: status=%d body=%s", readUnknownRecorder.Code, readUnknownRecorder.Body.String())
+	}
+
+	readMissing := withAuth(httptest.NewRequest(http.MethodGet, "/v1/user-workspace/api-keys/key_aaaaaaaaaaaaaaaa?workspace_id=workspace_demo", nil))
+	readMissing.SetPathValue("api_key_id", "key_aaaaaaaaaaaaaaaa")
+	readMissingRecorder := httptest.NewRecorder()
+	server.handleReadAPIKey(readMissingRecorder, readMissing)
+	if readMissingRecorder.Code != http.StatusNotFound || !strings.Contains(readMissingRecorder.Body.String(), APIKeyFailureNotFound) {
+		t.Fatalf("missing key read must stay not found: status=%d body=%s", readMissingRecorder.Code, readMissingRecorder.Body.String())
+	}
+
+	for _, target := range []string{
+		"/v1/user-workspace/api-keys?workspace_id=workspace_demo&raw_secret=true",
+		"/v1/user-workspace/api-keys?workspace_id=workspace_demo&limit=not-an-integer",
+	} {
+		request := withAuth(httptest.NewRequest(http.MethodGet, target, nil))
+		recorder := httptest.NewRecorder()
+		server.handleListAPIKeys(recorder, request)
+		if recorder.Code != http.StatusBadRequest || !strings.Contains(recorder.Body.String(), APIKeyFailurePayloadInvalid) {
+			t.Fatalf("invalid list query must fail closed: target=%s status=%d body=%s", target, recorder.Code, recorder.Body.String())
+		}
+	}
+
+	invalidRevoke := withAuth(httptest.NewRequest(http.MethodPost, "/v1/user-workspace/api-keys/key_aaaaaaaaaaaaaaaa/revoke", strings.NewReader(`{"workspace_id":`)))
+	invalidRevoke.SetPathValue("api_key_id", "key_aaaaaaaaaaaaaaaa")
+	invalidRevokeRecorder := httptest.NewRecorder()
+	server.handleRevokeAPIKey(invalidRevokeRecorder, invalidRevoke)
+	if invalidRevokeRecorder.Code != http.StatusBadRequest || !strings.Contains(invalidRevokeRecorder.Body.String(), "INVALID_JSON") {
+		t.Fatalf("invalid revoke body must fail before repository: status=%d body=%s", invalidRevokeRecorder.Code, invalidRevokeRecorder.Body.String())
+	}
+
+	missingRevoke := withAuth(httptest.NewRequest(http.MethodPost, "/v1/user-workspace/api-keys/key_aaaaaaaaaaaaaaaa/revoke", strings.NewReader(`{"workspace_id":"workspace_demo","expected_version":1}`)))
+	missingRevoke.SetPathValue("api_key_id", "key_aaaaaaaaaaaaaaaa")
+	missingRevokeRecorder := httptest.NewRecorder()
+	server.handleRevokeAPIKey(missingRevokeRecorder, missingRevoke)
+	if missingRevokeRecorder.Code != http.StatusNotFound || !strings.Contains(missingRevokeRecorder.Body.String(), APIKeyFailureNotFound) {
+		t.Fatalf("missing key revoke must stay not found: status=%d body=%s", missingRevokeRecorder.Code, missingRevokeRecorder.Body.String())
 	}
 }
 

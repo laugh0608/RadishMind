@@ -158,6 +158,42 @@ func TestApplicationCatalogHTTPScopesUnknownFieldsAndOIDCZeroQuery(t *testing.T)
 		t.Fatalf("unexpected create envelope: %#v err=%v", created, err)
 	}
 
+	applicationID := created.Record.ApplicationID
+	read := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/applications/"+applicationID+"?workspace_id=workspace_demo", nil)
+	read.SetPathValue("application_id", applicationID)
+	read = read.WithContext(withControlPlaneReadFakeAuthContext(read.Context(), auth))
+	readRecorder := httptest.NewRecorder()
+	server.handleReadApplicationCatalogRecord(readRecorder, read)
+	if readRecorder.Code != http.StatusOK || !strings.Contains(readRecorder.Body.String(), `"application_id":"`+applicationID+`"`) {
+		t.Fatalf("unexpected read response: %d body=%s", readRecorder.Code, readRecorder.Body.String())
+	}
+
+	update := httptest.NewRequest(http.MethodPut, "/v1/user-workspace/applications/"+applicationID, strings.NewReader(`{"workspace_id":"workspace_demo","expected_version":1,"display_name":"Catalog App v2","description":"Updated app","application_kind":"agent"}`))
+	update.SetPathValue("application_id", applicationID)
+	update = update.WithContext(withControlPlaneReadFakeAuthContext(update.Context(), auth))
+	updateRecorder := httptest.NewRecorder()
+	server.handleUpdateApplicationCatalogRecord(updateRecorder, update)
+	if updateRecorder.Code != http.StatusOK || !strings.Contains(updateRecorder.Body.String(), `"record_version":2`) {
+		t.Fatalf("unexpected update response: %d body=%s", updateRecorder.Code, updateRecorder.Body.String())
+	}
+
+	activeList := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/applications?workspace_id=workspace_demo&lifecycle_state=active&limit=10", nil)
+	activeList = activeList.WithContext(withControlPlaneReadFakeAuthContext(activeList.Context(), auth))
+	activeListRecorder := httptest.NewRecorder()
+	server.handleListApplicationCatalogRecords(activeListRecorder, activeList)
+	if activeListRecorder.Code != http.StatusOK || !strings.Contains(activeListRecorder.Body.String(), `"application_ref":"`+applicationID+`"`) {
+		t.Fatalf("unexpected list response: %d body=%s", activeListRecorder.Code, activeListRecorder.Body.String())
+	}
+
+	archive := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/applications/"+applicationID+"/archive", strings.NewReader(`{"workspace_id":"workspace_demo","expected_version":2}`))
+	archive.SetPathValue("application_id", applicationID)
+	archive = archive.WithContext(withControlPlaneReadFakeAuthContext(archive.Context(), auth))
+	archiveRecorder := httptest.NewRecorder()
+	server.handleArchiveApplicationCatalogRecord(archiveRecorder, archive)
+	if archiveRecorder.Code != http.StatusOK || !strings.Contains(archiveRecorder.Body.String(), `"lifecycle_state":"archived"`) {
+		t.Fatalf("unexpected archive response: %d body=%s", archiveRecorder.Code, archiveRecorder.Body.String())
+	}
+
 	unknown := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/applications", strings.NewReader(`{"workspace_id":"workspace_demo","display_name":"Catalog App","application_kind":"agent","owner_subject_ref":"subject_other"}`))
 	unknown = unknown.WithContext(withControlPlaneReadFakeAuthContext(unknown.Context(), auth))
 	unknownRecorder := httptest.NewRecorder()

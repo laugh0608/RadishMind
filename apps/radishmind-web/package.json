@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 4100",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "test:coverage": "node --experimental-strip-types --experimental-test-coverage --test-coverage-lines=90 --test-coverage-branches=78 --test-coverage-functions=85 --test tests/*.test.ts",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4100"
   },

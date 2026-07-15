@@ -219,6 +219,9 @@ Platform 必须同时使用 `RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE=radish_oidc
 ```bash
 cd apps/radishmind-web
 npm test
+npm run test:coverage
 npm run build
 npm run preview
 ```
+
+`npm run test:coverage` 是 PR / release 的可发现覆盖率入口，当前预算为行 `90%`、分支 `78%`、函数 `85%`；它约束已进入 Node 严格消费端测试的模块，不替代 React 页面构建和真实浏览器验收。

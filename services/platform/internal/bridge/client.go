@@ -93,11 +93,12 @@ type StreamEvent struct {
 }
 
 type Client struct {
-	pythonBinary  string
-	scriptPath    string
-	mode          Mode
-	pool          *workerPool
-	processStarts atomic.Int64
+	pythonBinary   string
+	scriptPath     string
+	mode           Mode
+	pool           *workerPool
+	processCommand func(context.Context, string, ...string) *exec.Cmd
+	processStarts  atomic.Int64
 }
 
 func NewClient(pythonBinary string, scriptPath string) *Client {
@@ -110,9 +111,10 @@ func NewClient(pythonBinary string, scriptPath string) *Client {
 		normalizedScriptPath = defaultScriptPath
 	}
 	return &Client{
-		pythonBinary: normalizedPythonBinary,
-		scriptPath:   normalizedScriptPath,
-		mode:         ModeProcessPerRequest,
+		pythonBinary:   normalizedPythonBinary,
+		scriptPath:     normalizedScriptPath,
+		mode:           ModeProcessPerRequest,
+		processCommand: exec.CommandContext,
 	}
 }
 
@@ -267,7 +269,7 @@ func (c *Client) run(ctx context.Context, args []string, stdin []byte, apiKey st
 	}
 
 	commandArgs := append([]string{scriptPath}, args...)
-	command := exec.CommandContext(ctx, c.pythonBinary, commandArgs...)
+	command := c.newProcessCommand(ctx, commandArgs...)
 	command.Env = bridgeCommandEnvironment(apiKey)
 	if len(stdin) > 0 {
 		command.Stdin = bytes.NewReader(stdin)
@@ -300,7 +302,7 @@ func (c *Client) runStream(
 	}
 
 	commandArgs := append([]string{scriptPath}, args...)
-	command := exec.CommandContext(ctx, c.pythonBinary, commandArgs...)
+	command := c.newProcessCommand(ctx, commandArgs...)
 	command.Env = bridgeCommandEnvironment(apiKey)
 	if len(stdin) > 0 {
 		command.Stdin = bytes.NewReader(stdin)
@@ -353,6 +355,14 @@ func (c *Client) runStream(
 		return newBridgeError(ErrorCodeProcessFailed, "platform bridge stream failed")
 	}
 	return nil
+}
+
+func (c *Client) newProcessCommand(ctx context.Context, args ...string) *exec.Cmd {
+	commandFactory := c.processCommand
+	if commandFactory == nil {
+		commandFactory = exec.CommandContext
+	}
+	return commandFactory(ctx, c.pythonBinary, args...)
 }
 
 func bridgeCommandEnvironment(apiKey string) []string {

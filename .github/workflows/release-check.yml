@@ -78,13 +78,36 @@ jobs:
         run: npm ci
         working-directory: apps/radishmind-web
 
-      - name: Test web lifecycle
-        run: npm test
+      - name: Test web lifecycle and coverage budgets
+        run: npm run test:coverage
         working-directory: apps/radishmind-web
 
       - name: Build web app
         run: npm run build
         working-directory: apps/radishmind-web
+
+  console-build:
+    name: Release RadishMind Console Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/radishmind-console/package-lock.json
+
+      - name: Install Console dependencies
+        run: npm ci
+        working-directory: apps/radishmind-console
+
+      - name: Build Console app
+        run: npm run build
+        working-directory: apps/radishmind-console
 
   platform-go-tests:
     name: Release Platform Go Tests
@@ -99,8 +122,20 @@ jobs:
         with:
           go-version-file: services/platform/go.mod
 
-      - name: Test platform service
-        run: go test ./...
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Test platform core coverage budgets
+        run: python3 scripts/checks/platform/check_platform_core_coverage.py
+
+      - name: Test platform service with race detector
+        run: go test -race ./...
+        working-directory: services/platform
+
+      - name: Vet platform service
+        run: go vet ./...
         working-directory: services/platform
 
   platform-postgres-integration:
@@ -139,5 +174,5 @@ jobs:
           PGDATABASE: radishmind_saved_draft_test
           PGSSLMODE: disable
           RADISHMIND_POSTGRES_INTEGRATION_RUNTIME_USER: radishmind_runtime
-        run: go test -count=1 -tags=postgres_integration ./internal/httpapi
+        run: go test -count=1 -cover -tags=postgres_integration ./internal/httpapi
         working-directory: services/platform

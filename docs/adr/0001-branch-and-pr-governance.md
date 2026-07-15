@@ -72,7 +72,7 @@ Accepted
 1. 创建远端 `dev` 分支
 2. 将默认分支切换为 `dev`，或至少把开发 PR 默认目标改为 `dev`
 3. 对 `master` 启用 branch protection / ruleset
-4. 要求 `master` 通过 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build` 与 `Platform Go Tests` 状态检查
+4. 要求 `master` 通过 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build` 与 `Platform Go Tests` 状态检查
 5. 对 `master` 开启 “Require a pull request before merging”
 6. 配置管理员仅通过 PR 绕过，不开放直接 push
 7. 仓库 Merge options 中启用 `Merge commits` 与 `Rebase merging`，关闭 `Squash merging`
@@ -86,10 +86,10 @@ Accepted
 - PR 模板
 - GitHub Actions PR 检查工作流
   - `PR Checks` 仅在目标分支为 `master` 的 Pull Request 上自动运行，并保留手动触发
-  - 当前包含 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`Platform Go Tests` 与 `Platform PostgreSQL Integration` 五个 job
-  - `master` required checks 当前按 job 名配置为 `Repo Hygiene` / `Repository Baseline` / `RadishMind Web Build` / `Platform Go Tests`
+  - 当前包含 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build`、`Platform Go Tests` 与 `Platform PostgreSQL Integration` 六个 job
+  - `master` required checks 当前按 job 名配置为 `Repo Hygiene` / `Repository Baseline` / `RadishMind Web Build` / `RadishMind Console Build` / `Platform Go Tests`
   - PR 页面可能展示 workflow 前缀或 `(pull_request)` 后缀，但它们不属于 ruleset 中需要手动配置的 check context
-  - 规范 tag push 与手动补跑改由独立的 `Release Checks` workflow 承担，并使用 `Release Repo Hygiene` / `Release Repository Baseline` / `Release RadishMind Web Build` / `Release Platform Go Tests` 独立 job 名，避免与 PR required check 名称漂移或混淆
+  - 规范 tag push 与手动补跑改由独立的 `Release Checks` workflow 承担，并使用 `Release Repo Hygiene` / `Release Repository Baseline` / `Release RadishMind Web Build` / `Release RadishMind Console Build` / `Release Platform Go Tests` 独立 job 名，避免与 PR required check 名称漂移或混淆
 - 文本编码与文件格式检查脚本
 - 仓库治理基线检查脚本
 - `master` ruleset 模板

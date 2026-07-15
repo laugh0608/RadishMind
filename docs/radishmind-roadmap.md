@@ -228,7 +228,7 @@
 
 状态：shared verified identity、negative auth、Tenant / Audit PostgreSQL dev/test read repository，以及 deterministic OIDC discovery / JWKS / JWT verifier、Admin permission boundary、zero-query denial 和 workspace operation gate 已完成。真实 Radish 联调状态为 `real_radish_integration_deferred`；未来由 Radish 注册 RadishMind application/client 与 resource audience 并提供 reviewed evidence 后恢复。当前不实现账号系统、workspace membership adapter、production auth 或管理写入，也不声明 production ready。
 
-## 2026-07-12 当前执行顺序
+## 2026-07-15 当前执行顺序
 
 1. `R3 Workflow Draft Review Loop` 已于 2026-07-11 完成真实浏览器正常路径、版本冲突路径、Continue / Restore 和 Review Handoff 收口，未新增同层 readiness / checker。
 2. Saved Workflow Draft PostgreSQL dev/test repository 已完成 migration / rollback / reapply、重启恢复、CAS、scope、no fallback、CI 和真实浏览器验收；production repository mode 继续关闭。
@@ -241,8 +241,8 @@
 9. [User Workspace Application Configuration Draft & Review v1](features/user-workspace/application-configuration-draft-review-v1.md) 已完成独立 application draft domain、memory / PostgreSQL dev-test repository、显式 migration、模型 / 协议校验、save / restore / compare / CAS conflict 和 Integration / Playground handoff。
 10. [User Workspace Application Publish Governance & Promotion v1](features/user-workspace/application-publish-governance-promotion-v1.md) 已完成 server-side draft reload、不可变 candidate、review CAS、memory / PostgreSQL dev-test repository、漂移 / superseded 检查和阻塞式 eligibility。
 11. [Admin Control Plane Authenticated Read Store Transition v1](features/admin-control-plane/authenticated-read-store-transition-v1.md) 的 verified identity、[Tenant / Audit PostgreSQL Read Repository v1](features/admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) dev/test runtime，以及 [Radish OIDC Integration Test v1](features/admin-control-plane/radish-oidc-integration-test-v1.md) deterministic runtime 均已完成；真实 Radish 联调 deferred，不接 production auth 或 workspace routes。
-12. 下一产品任务先设计 `User Workspace Application Catalog & Lifecycle Dev/Test v1`，再按 application domain / repository、Web workspace、PostgreSQL 与浏览器验收拆实现批次；目标是补齐 application 创建和管理能力并接入现有 Configuration Draft / Integration / Publish Review，不启用正式 promotion。
-13. R5 Web 主入口与关键 lazy chunk 预算已接入现有 Vite build；后续不新增同层 checker，工程线只在产品实现暴露真实覆盖缺口时补测试。
+12. 用户工作区应用目录与生命周期、API 密钥生命周期与 Gateway 开发测试态认证均已完成双数据库、严格 Web 消费和真实浏览器连续验收；下一产品任务不自动承接，先从正式功能专题中选择并更新新的用户目标。
+13. R5 已完成：Web 主入口与关键 lazy chunk 预算、Web 可发现覆盖率预算、Platform 核心包分层预算均已建立，PR / release CI 对称执行 Go race、Go vet、Web coverage、Web / Console build 与 PostgreSQL integration；后续不派生同层覆盖率检查器。
 14. OIDC、production secret、真实云资源、production API key、quota enforcement / billing、真实生图和模型训练只在外部资源、负责人和独立运行窗口明确后重开。
 
 ## 历史下一步记录（仅供 checker 兼容，不再执行）

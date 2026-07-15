@@ -385,6 +385,7 @@ def check_content_baseline() -> None:
         "Repo Hygiene",
         "Repository Baseline",
         "RadishMind Web Build",
+        "RadishMind Console Build",
         "Platform Go Tests",
     }
     missing_contexts = sorted(required_contexts - set(contexts))
@@ -416,10 +417,14 @@ def check_content_baseline() -> None:
         "name: Repo Hygiene",
         "name: Repository Baseline",
         "name: RadishMind Web Build",
+        "name: RadishMind Console Build",
         "name: Platform Go Tests",
         "npm ci",
+        "npm run test:coverage",
         "npm run build",
-        "go test ./...",
+        "python3 scripts/checks/platform/check_platform_core_coverage.py",
+        "go test -race ./...",
+        "go vet ./...",
     ):
         if pattern not in pr_workflow:
             raise SystemExit(f".github/workflows/pr-check.yml is missing expected content: {pattern}")
@@ -433,10 +438,14 @@ def check_content_baseline() -> None:
         "name: Release Repo Hygiene",
         "name: Release Repository Baseline",
         "name: Release RadishMind Web Build",
+        "name: Release RadishMind Console Build",
         "name: Release Platform Go Tests",
         "npm ci",
+        "npm run test:coverage",
         "npm run build",
-        "go test ./...",
+        "python3 scripts/checks/platform/check_platform_core_coverage.py",
+        "go test -race ./...",
+        "go vet ./...",
     ):
         if pattern not in release_workflow:
             raise SystemExit(f".github/workflows/release-check.yml is missing expected content: {pattern}")
