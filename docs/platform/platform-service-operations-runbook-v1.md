@@ -16,12 +16,18 @@
 ./scripts/bootstrap-dev.sh
 ```
 
-平台层单元测试：
+平台层开发验证：
 
 ```bash
+python3 scripts/checks/platform/check_platform_core_coverage.py
 cd services/platform
 GOCACHE=/tmp/radishmind-go-build-cache go test ./...
+GOCACHE=/tmp/radishmind-go-build-cache go test -race ./...
+GOCACHE=/tmp/radishmind-go-build-cache go vet ./...
+cd ../..
 ```
+
+集中覆盖率入口会以 `go test -count=1 -cover ./...` 读取核心包结果，并分别约束 `internal/bridge` `75%`、`internal/config` `80%`、`internal/diagnostics` `85%`、`internal/httpapi` `70%`、`internal/secretbackend` `80%`、`internal/sqlitedev` `75%`。命令包装器、嵌入式 migration 资产和 PostgreSQL 专属代码不与核心运行时共用单一总阈值；PostgreSQL repository 由后文独立集成入口覆盖。PR 与 release workflow 均执行覆盖率预算、race 和 vet。
 
 从仓库根目录直接启动最小 mock 服务：
 
@@ -132,6 +138,8 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 完整路由按服务 README 的六类入口导航到对应协议或功能专题。路由注册不表示默认启用；User Workspace、Workflow、Gateway history 与 Admin 路由必须满足各自 auth、scope、dev/test gate 和 store selector。
 
 ## 本地 smoke 验证
+
+以下直接 Gateway smoke 假定默认 `dev_headers` / 普通本地模式。若以 `RADISHMIND_GATEWAY_AUTH_MODE=api_key_dev_test` 启动，未携带 Bearer 密钥的五条 northbound 路由会按预期失败关闭；应改按[应用目录与 API 密钥开发测试指南](../features/user-workspace/application-catalog-api-key-dev-test-guide.md)完成签发、调用和吊销，不混入开发 Gateway 身份头。
 
 服务启动后执行：
 

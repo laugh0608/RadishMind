@@ -47,9 +47,11 @@ pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -APIKeyLocalProduct -Ba
 
 ```bash
 RADISHMIND_GATEWAY_AUTH_MODE=api_key_dev_test \
+RADISHMIND_PLATFORM_LISTEN_ADDR=127.0.0.1:7100 \
 ./scripts/run-platform-service.sh config-check
 
 RADISHMIND_GATEWAY_AUTH_MODE=api_key_dev_test \
+RADISHMIND_PLATFORM_LISTEN_ADDR=127.0.0.1:7100 \
 ./scripts/run-platform-service.sh serve
 ```
 
@@ -57,7 +59,7 @@ RADISHMIND_GATEWAY_AUTH_MODE=api_key_dev_test \
 
 以下示例统一使用：
 
-- 服务地址：`http://127.0.0.1:7000`
+- 服务地址：`http://127.0.0.1:7100`
 - 租户：`tenant_demo`
 - 工作区：`workspace_demo`
 - 操作者：`subject_demo`
@@ -78,7 +80,7 @@ X-RadishMind-Dev-Read-Audit: local-guide
 
 ```bash
 curl --fail-with-body --silent --show-error \
-  --request POST http://127.0.0.1:7000/v1/user-workspace/applications \
+  --request POST http://127.0.0.1:7100/v1/user-workspace/applications \
   --header 'Content-Type: application/json' \
   --header 'X-RadishMind-Dev-Read-Identity: user-workspace-api-key-guide' \
   --header 'X-RadishMind-Dev-Read-Tenant: tenant_demo' \
@@ -99,7 +101,7 @@ curl --fail-with-body --silent --show-error \
 
 ```bash
 curl --fail-with-body --silent --show-error \
-  'http://127.0.0.1:7000/v1/user-workspace/applications?workspace_id=workspace_demo&lifecycle_state=active' \
+  'http://127.0.0.1:7100/v1/user-workspace/applications?workspace_id=workspace_demo&lifecycle_state=active' \
   --header 'X-RadishMind-Dev-Read-Identity: user-workspace-api-key-guide' \
   --header 'X-RadishMind-Dev-Read-Tenant: tenant_demo' \
   --header 'X-RadishMind-Dev-Read-Subject: subject_demo' \
@@ -115,7 +117,7 @@ curl --fail-with-body --silent --show-error \
 
 ```bash
 curl --fail-with-body --silent --show-error \
-  --request POST http://127.0.0.1:7000/v1/user-workspace/api-keys \
+  --request POST http://127.0.0.1:7100/v1/user-workspace/api-keys \
   --header 'Content-Type: application/json' \
   --header 'X-RadishMind-Dev-Read-Identity: user-workspace-api-key-guide' \
   --header 'X-RadishMind-Dev-Read-Tenant: tenant_demo' \
@@ -154,7 +156,7 @@ export RADISHMIND_API_KEY
 
 ```bash
 curl --fail-with-body --silent --show-error \
-  http://127.0.0.1:7000/v1/models \
+  http://127.0.0.1:7100/v1/models \
   --header "Authorization: Bearer ${RADISHMIND_API_KEY}"
 ```
 
@@ -166,7 +168,7 @@ curl --fail-with-body --silent --show-error \
 
 ```bash
 curl --fail-with-body --silent --show-error \
-  'http://127.0.0.1:7000/v1/user-workspace/api-keys?workspace_id=workspace_demo&application_id=<APPLICATION_ID>' \
+  'http://127.0.0.1:7100/v1/user-workspace/api-keys?workspace_id=workspace_demo&application_id=<APPLICATION_ID>' \
   --header 'X-RadishMind-Dev-Read-Identity: user-workspace-api-key-guide' \
   --header 'X-RadishMind-Dev-Read-Tenant: tenant_demo' \
   --header 'X-RadishMind-Dev-Read-Subject: subject_demo' \
@@ -178,7 +180,7 @@ curl --fail-with-body --silent --show-error \
 
 ```bash
 curl --fail-with-body --silent --show-error \
-  --request POST http://127.0.0.1:7000/v1/user-workspace/api-keys/<API_KEY_ID>/revoke \
+  --request POST http://127.0.0.1:7100/v1/user-workspace/api-keys/<API_KEY_ID>/revoke \
   --header 'Content-Type: application/json' \
   --header 'X-RadishMind-Dev-Read-Identity: user-workspace-api-key-guide' \
   --header 'X-RadishMind-Dev-Read-Tenant: tenant_demo' \
