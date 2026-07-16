@@ -6,7 +6,7 @@
 
 ## 功能目标
 
-让内部开发者在 Workspace Run History 中审查真实 executor v0 运行历史，并在显式 SQLite / PostgreSQL 开发测试模式下跨平台服务重启恢复运行记录。当前新记录使用 `workflow_run_record.v1`，历史 `workflow_run_record.v0` 继续可读；两者共用 `/v1/user-workspace/workflow-runs` 资源族，不把旧 fake `/v1/user-workspace/runs` 作为运行真相源。
+让内部开发者在 Workspace Run History 中审查真实 executor v0 运行历史，并在显式 SQLite / PostgreSQL 开发测试模式下跨平台服务重启恢复运行记录。普通 executor 新记录使用 `workflow_run_record.v1`，历史 `workflow_run_record.v0` 继续可读；受控 HTTP Tool 使用独立校验的 `workflow_run_record.v2`。三个版本共用 `/v1/user-workspace/workflow-runs` 资源族和 scope / cursor 基础设施，不把旧 fake `/v1/user-workspace/runs` 作为运行真相源。
 
 本专题只扩展 v0 / v1 历史读取、受限记录持久化与执行可观测性，不在本专题中放开 tool、RAG、confirmation、业务写回、replay / resume、生产身份或 production enablement。HTTP Tool 与 confirmation 只能按独立的已评审专题升级到 `workflow_run_record.v2`，不能放宽本专题的 v0 / v1 契约。
 
@@ -53,7 +53,7 @@ GET /v1/user-workspace/workflow-runs?workspace_id=...&application_id=...&limit=.
 - 排序固定为 `started_at DESC, run_id DESC`。
 - cursor 是不透明、版本化、URL-safe base64 JSON，只编码上一页末项的 `started_at` 与 `run_id`，并带当前过滤条件摘要；服务端必须校验版本、字段 allowlist 和过滤摘要，篡改或跨过滤复用返回 `workflow_run_cursor_invalid`。
 - 下一页使用严格 keyset predicate：`started_at < cursor.started_at OR (started_at = cursor.started_at AND run_id < cursor.run_id)`，不得使用 offset。
-- `status` 可选单值：`running|succeeded|failed|canceled`；`draft_id` 可选精确匹配。
+- `status` 可选单值：`running|succeeded|failed|canceled|outcome_unknown`；`draft_id` 可选精确匹配。`outcome_unknown` 只用于已 claim 且远端结果或终态落库结果不可判定的 v2 工具运行。
 - `started_from` / `started_to` 使用 RFC3339 UTC 边界，均为包含关系；from 晚于 to、未来偏差超过 5 分钟或区间超过 90 天返回 `workflow_run_filter_invalid`。
 - list 返回 sanitized summary、`next_cursor` 和 `has_more`。读取 `limit+1` 行决定是否有下一页；空列表是成功，不回退 fake / sample。
 - detail API 保持 `GET /v1/user-workspace/workflow-runs/{run_id}`，与 list 使用同一 scope、失败语义和 store。
@@ -89,7 +89,9 @@ SQLite 使用独立 STRICT `workflow_run_records` 表，主键仍为 tenant、wo
 - credential、secret ref 解引用结果、endpoint、DSN 或 provider raw envelope / raw error。
 - tool payload/result、confirmation decision、业务写回 payload、checkpoint、replay / resume state。
 
-允许持久化 `workflow_run_record.v0` / `workflow_run_record.v1` 的 sanitized node preview 和最终 advisory output，分别受 512 字符和 16 KiB 预算约束。失败摘要只能来自稳定 allowlist 文案。对 v0 / v1，`tool_calls`、`confirmation_calls`、`business_writes`、`replay_writes` 必须持续为 0；repository 在写入前复核计数和 record schema，违反时 fail closed。未来 v2 必须通过新 migration 和版本专属 validator 增量支持，不能改写本约束。
+允许持久化 `workflow_run_record.v0` / `workflow_run_record.v1` 的 sanitized node preview 和最终 advisory output，分别受 512 字符和 16 KiB 预算约束。失败摘要只能来自稳定 allowlist 文案。对 v0 / v1，`tool_calls`、`confirmation_calls`、`business_writes`、`replay_writes` 必须持续为 0；repository 在写入前复核计数和 record schema，违反时 fail closed。
+
+`workflow_run_record.v2` 通过版本专属 validator / codec 和 SQLite 0003、PostgreSQL 0007 migration 增量支持，不改写 v0 / v1 invariant。v2 必须绑定 `plan_id`、`confirmation_id` 和唯一 `tool_attempt`，且固定 `tool_calls=1`、`confirmation_calls=1`、`business_writes=0`、`replay_writes=0`。attempt 状态为 `claimed|succeeded|failed|outcome_unknown`；只保存 tool / profile / digest 引用、HTTP status 类别、响应字节数、耗时和脱敏投影，不保存 endpoint、query、header 或 raw body。工具成功后发生下游 LLM / output 失败时，run 可以为 `failed` / `canceled`，但 attempt 必须保留 `succeeded`，从而分别表达外部副作用结果和工作流终态。
 
 ## Schema 与 migration
 
@@ -130,6 +132,7 @@ services/platform/migrations/workflow_runs/
 - Workspace Run History 在真实 dev source 下只调用 `/v1/user-workspace/workflow-runs` list / detail；旧 `/v1/user-workspace/runs` 只保留历史 sample surface，不得合并成真实结果。
 - 列表提供状态、草案、时间过滤和“加载更早记录”；详情复用 executor v0 的节点时间线、Gateway selection、advisory output、failure 与零副作用审查。
 - 默认 offline source 不发 HTTP，明确展示 sample / offline 标识。route disabled、空列表、过滤失败、游标失败和 store unavailable 都有独立 UI 状态。
+- v2 已进入 memory、SQLite 与 PostgreSQL 的读取契约，但 Web 列表 / 详情对 tool attempt、人工确认、授权副作用和 `outcome_unknown` 的专门展示属于独立 consumer 批次；在完成前不得把 v2 的合法计数显示为 forbidden side effect，也不得推断工具执行未发生。
 
 ## 验收
 
