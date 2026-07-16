@@ -246,7 +246,7 @@ production auth runtime bridge 的唯一允许 auth source 是 `radish_oidc_veri
 
 ## 下一批开发
 
-显式开发 / 测试态 PostgreSQL durable repository、R4 Gateway、executor v0、持久 Run History、本地 SQLite 连续产品链与 API 密钥 Web 验收均已完成，不继续追加 storage adapter readiness，也不启用 `repository` production mode。下一主任务是从 [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) 的已评审设计创建一个高风险实现任务卡；该任务不得改写 Saved Draft v1 的持久化职责。production OIDC、membership、production secret、audit store、公开生产 API、writeback 和 replay 继续关闭。下方旧依赖顺序只作为历史 checker 兼容记录读取。
+显式开发 / 测试态 PostgreSQL durable repository、R4 Gateway、executor v0、持久 Run History、本地 SQLite 连续产品链与 API 密钥 Web 验收均已完成，不继续追加 storage adapter readiness，也不启用 `repository` production mode。[Workflow 受控 HTTP Tool 与人工确认执行实施任务卡](../../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)已经定义，下一主任务只实施其零网络批次 A；该任务不得改写 Saved Draft v1 的持久化职责。production OIDC、membership、production secret、audit store、公开生产 API、writeback 和 replay 继续关闭。下方旧依赖顺序只作为历史 checker 兼容记录读取。
 
 dev-only consumer integration、草案编辑 / 创建 / 列表 / 恢复、本地图结构编辑、Node Designer、版本冲突审查、memory / SQLite / PostgreSQL 开发测试态 repository 和浏览器重启恢复均已落地。历史 production secret / storage adapter 准入锚点继续保留，但不再是 Saved Draft 或当前产品线的下一依赖；production repository、真实 Radish membership、production secret、audit store 与公开生产 API 仍需未来独立专题。
 

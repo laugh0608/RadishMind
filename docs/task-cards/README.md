@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有已经准入的实现任务卡。[Workflow 受控 HTTP Tool 与人工确认执行（开发/测试态）v1](../features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 已完成功能设计与边界评审；下一步先根据该设计创建一个高风险实现任务卡，不在任务卡出现前修改 executor API / schema 或执行真实工具。
+当前唯一活跃实现入口是 [Workflow 受控 HTTP Tool 与人工确认执行（开发/测试态）v1 实施任务卡](workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)，状态为 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_task_card_defined`。它承接已通过边界评审的[功能设计](../features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md)，当前实现尚未开始；下一步只实施批次 A 的版本化契约、durable action plan / confirmation、CAS、三种 store 与 Web 审查，网络、provider 和 run 创建均保持为 0。
 
 ## 最近关闭任务
 
@@ -23,7 +23,7 @@
 
 R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、[Evaluation Cases / Batch Regression Review](workflow-evaluation-cases-batch-regression-review-v1-plan.md)、[Baseline / Case Versioning](workflow-evaluation-baseline-case-versioning-v1-plan.md) 与 [Evaluation Suite / Release Review](workflow-evaluation-suite-release-review-v1-plan.md) 已于 2026-07-11 完成。Model Gateway Request History / Usage & Failure Review v1、User Workspace Application API Integration & Invocation v1、Application Configuration Draft & Review v1 和 Application Publish Governance & Promotion v1 已完成实现与验证；不恢复旧 storage adapter readiness 链，也不派生新的 Gateway / executor / run store gate-only readiness 链。
 
-当前没有活跃的 Production Secret Backend / Storage Adapter readiness 任务卡。下方既有任务卡均按历史完成、冻结或外部阻塞证据读取，不表示当前排期；下一产品任务只从已完成边界评审的 Workflow 受控 HTTP Tool 功能设计拆分，不恢复旧 readiness 链。
+当前没有活跃的 Production Secret Backend / Storage Adapter readiness 任务卡。下方既有任务卡均按历史完成、冻结或外部阻塞证据读取，不表示当前排期；当前只执行受控 HTTP Tool 单卡内的依赖顺序，不恢复旧 readiness 链，也不为三个子批派生平行任务卡。
 
 当前已冻结的应用面任务：
 
@@ -331,7 +331,7 @@ R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run
 使用原则：
 - 任务卡定义的是任务边界、最小输入、输出要求和评测口径，不等同于最终实现代码
 - 前置条件型任务卡定义的是当前不能继续前推的阻塞项、已有门禁和后续触发条件，不等同于已经完成上层接线
-- R6 已关闭，当前没有已经准入的实现任务卡；下一项只能从 Workflow 受控 HTTP Tool 功能设计拆出一个高风险实现任务卡，历史离线 surface 与 readiness 任务卡不恢复为当前顺位
+- R6 已关闭；Workflow 受控 HTTP Tool 唯一高风险实现任务卡已经定义，下一项只实施其零网络批次 A，历史离线 surface 与 readiness 任务卡不恢复为当前顺位
 - 任务卡与 [跨项目集成契约](../radishmind-integration-contracts.md) 和 [真实契约文件](../../contracts/README.md) 保持一致
 - 若未来实现发现字段命名或结构需要调整，应先同步更新任务卡和契约，再改实现
 - 当前阶段优先保证“状态优先、结构化输出、显式风险分级，以及对会写回真相源的动作保留人工确认”

@@ -11,7 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
-- 产品焦点：工作流审查链、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理、应用目录与 API 密钥开发测试态认证均已完成；管理端的已验证身份、负向认证、租户 / 审计 PostgreSQL 开发测试态运行时，以及 Radish OIDC 确定性验证器、认证边界和操作门禁也已完成。[本地 SQLite 开发持久化 v1](platform/local-sqlite-dev-persistence-v1.md) 状态为 `local_sqlite_dev_persistence_v1_s3_dual_database_gate_completed`。[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 已完成功能设计和边界评审，状态为 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_boundary_review_passed`；下一产品顺位只从该设计创建一个高风险实现任务卡，尚未启用真实工具。真实 Radish 联调仍为 `real_radish_integration_deferred`；生产认证、正式晋级、生产密钥、配额和计费继续关闭。
+- 产品焦点：工作流审查链、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理、应用目录与 API 密钥开发测试态认证均已完成；管理端的已验证身份、负向认证、租户 / 审计 PostgreSQL 开发测试态运行时，以及 Radish OIDC 确定性验证器、认证边界和操作门禁也已完成。[本地 SQLite 开发持久化 v1](platform/local-sqlite-dev-persistence-v1.md) 状态为 `local_sqlite_dev_persistence_v1_s3_dual_database_gate_completed`。[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 已完成功能设计和边界评审；其[唯一实施任务卡](task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md) 已定义为 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_task_card_defined`，但实现尚未开始，真实工具仍未启用。下一产品顺位只实施批次 A 的版本化契约、durable action plan / confirmation、CAS、三种 store 与 Web 审查，网络、provider 和 run 创建保持为 0。真实 Radish 联调仍为 `real_radish_integration_deferred`；生产认证、正式晋级、生产密钥、配额和计费继续关闭。
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算`、`R6 文档与检查器收敛` 均已完成。R6 关闭评审确认活动 checker 从 `132` 项、`38,644` 行降至 `111` 项、`28,486` 行，分别下降约 `15.9%` 与 `26.3%`；Provider、Production Ops 和 Control Plane formal UI 因仍有独立证据责任继续活动，不再派生第六批或同层 readiness 链。
 - `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片。production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
@@ -19,7 +19,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：[本地 SQLite 开发持久化 v1](platform/local-sqlite-dev-persistence-v1.md) 与 [API 密钥生命周期与 Gateway 开发测试态认证 v1](features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已形成从双数据库、严格 Web 消费、一次性交接、Bearer 调试台、脱敏历史到真实浏览器重启复验的完整证据链并关闭。[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 已固定 action plan、人工确认、allowlisted GET、SSRF / credential、原子 claim、run v2、三种 store 与 Web 验收边界；下一项只创建一个高风险实现任务卡，先做不联网的 durable action plan / confirmation 子批。`real_radish_integration_deferred` 不占用该主线。
+1. 产品线：[本地 SQLite 开发持久化 v1](platform/local-sqlite-dev-persistence-v1.md) 与 [API 密钥生命周期与 Gateway 开发测试态认证 v1](features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已形成从双数据库、严格 Web 消费、一次性交接、Bearer 调试台、脱敏历史到真实浏览器重启复验的完整证据链并关闭。[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 已固定 action plan、人工确认、allowlisted GET、SSRF / credential、原子 claim、run v2、三种 store 与 Web 验收边界；[唯一实施任务卡](task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md) 已定义，下一项只做不联网的批次 A。`real_radish_integration_deferred` 不占用该主线。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
@@ -46,7 +46,8 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 16. [用户工作区应用目录与生命周期（开发/测试态）v1](features/user-workspace/application-catalog-lifecycle-dev-test-v1.md)
 17. [Admin Control Plane Authenticated Read Store Transition v1](features/admin-control-plane/authenticated-read-store-transition-v1.md)
 18. [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md)
-19. [本周周志](devlogs/2026-W29.md)
+19. [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1 实施任务卡](task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)
+20. [本周周志](devlogs/2026-W29.md)
 
 ## 当前不要做
 

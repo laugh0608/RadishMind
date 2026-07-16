@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-07-15
+更新时间：2026-07-16
 
 ## 这份文档讲什么
 
@@ -69,7 +69,7 @@
 
 2026-07-12 覆盖：Gateway Request History、Application Configuration Draft、Application Publish Candidate 和 Admin Tenant / Audit read 均支持显式 PostgreSQL dev/test repository、manual migration、marker / checksum、runtime role、no-fallback 与重启恢复。Control Plane auth 已支持 signed test token 和 `radish_oidc_integration_test`；后者只开放 Tenant Summary / Audit，workspace operation 因 membership 未成立而 fail closed。真实 Radish 联调已 deferred，不把 deterministic issuer 或本地浏览器路径解释为真实接入。
 
-2026-07-15 覆盖：应用目录、配置草案、发布候选、API 密钥、Gateway 请求历史、工作流草案和工作流运行已由同一个 `sqlite_dev` shared runtime 承载，并通过跨平台 `local-product` 启动档、同一应用作用域 HTTP 连续链和重启恢复。显式 `configured` 档下的真实 PostgreSQL migration、角色隔离、类型 / 索引、advisory lock、多连接并发、竞态、重启恢复与 no-fallback 门禁也已通过。API 密钥 Web 一次性交接、Bearer 调试台、脱敏历史、真实浏览器连续验收和重启复验已经完成；下一项先设计 Workflow 受控 HTTP Tool 与人工确认执行，production repository、生产认证、生产密钥、配额和计费仍未开放。
+2026-07-16 覆盖：应用目录、配置草案、发布候选、API 密钥、Gateway 请求历史、工作流草案和工作流运行已由同一个 `sqlite_dev` shared runtime 承载，并通过跨平台 `local-product` 启动档、同一应用作用域 HTTP 连续链和重启恢复。显式 `configured` 档下的真实 PostgreSQL migration、角色隔离、类型 / 索引、advisory lock、多连接并发、竞态、重启恢复与 no-fallback 门禁也已通过。API 密钥 Web 一次性交接、Bearer 调试台、脱敏历史、真实浏览器连续验收和重启复验已经完成；Workflow 受控 HTTP Tool 与人工确认执行的功能设计和唯一任务卡均已定义，但实现尚未开始，下一项只实施零网络批次 A。production repository、生产认证、生产密钥、配额和计费仍未开放。
 
 `contracts/radish-oidc-token-validation.schema.json` 固定 future workspace membership / repository actor context 的 verified token context 脱敏投影。它只允许 `issuer_ref`、`subject_ref`、`tenant_ref`、audience / scope / workspace / application refs、时间戳、policy version、request id 和 audit ref，显式拒绝 raw token / claims、cookie、JWKS dump、membership raw record 和 secret。当前 Admin OIDC runtime 使用内部 sanitized `VerifiedControlPlaneIdentity`，不会用该 schema 绕过 workspace membership；两者关系见 [Radish OIDC Token Validation 契约](contracts/radish-oidc-token-validation.md)。
 
