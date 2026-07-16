@@ -56,7 +56,7 @@ func (store *sqliteWorkflowRunStore) UpsertRun(
 			next.DraftID,
 			next.DraftVersion,
 			next.RecordVersion,
-			sqliteworkflowrunmigrations.StoreSchemaVersion,
+			sqliteworkflowrunmigrations.RunRecordStoreSchemaVersion,
 			next.SchemaVersion,
 			next.Status,
 			startedAtUnixNano,
@@ -288,7 +288,7 @@ func scanSQLiteWorkflowRunRecord(
 	if tenantRef != runContext.TenantRef || workspaceID != runContext.WorkspaceID ||
 		applicationID != runContext.ApplicationID || runID != record.RunID || draftID != record.DraftID ||
 		draftVersion != record.DraftVersion || recordVersion != record.RecordVersion ||
-		storeSchemaVersion != sqliteworkflowrunmigrations.StoreSchemaVersion || schemaVersion != record.SchemaVersion ||
+		storeSchemaVersion != sqliteworkflowrunmigrations.RunRecordStoreSchemaVersion || schemaVersion != record.SchemaVersion ||
 		status != string(record.Status) || startedAtUnixNano != decodedStartedAtUnixNano ||
 		!sqliteWorkflowRunOptionalTimeMatches(completedAtUnixNano, decodedCompletedAtUnixNano) ||
 		actorRef != record.ActorRef || requestID != record.RequestID || auditRef != record.AuditRef ||

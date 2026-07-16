@@ -13,7 +13,7 @@ export type WorkflowConfirmationDecisionField = {
   fieldId: string;
   label: string;
   required: boolean;
-  source: "future_confirmation_contract" | "audit_context" | "policy_context";
+  source: "archived_legacy_confirmation_contract" | "audit_context" | "policy_context";
 };
 
 export type WorkflowConfirmationPlaceholderPrerequisite = {
@@ -57,6 +57,13 @@ export type WorkflowConfirmationPlaceholderViewModel = {
   disabledReason: string;
   prerequisites: WorkflowConfirmationPlaceholderPrerequisite[];
   auditMetadata: WorkflowConfirmationPlaceholderAuditMetadata;
+  legacyContractStatus: "superseded_archived";
+  historicalReadAllowed: true;
+  newSubmissionAllowed: false;
+  runtimeAuthoritative: false;
+  supersededBy: Array<
+    "workflow_http_tool_action_plan.v1" | "workflow_http_tool_confirmation_decision.v1"
+  >;
   forbiddenProjectionBlocked: boolean;
   canRenderConfirmationPlaceholder: boolean;
   canRequestLiveBackend: false;
@@ -105,21 +112,31 @@ export function buildWorkflowConfirmationPlaceholderViewModel(
     requiredDecisionShape: placeholder.requiredDecisionShape,
     decisionFields,
     humanReviewRequired: true,
-    disabledReason: placeholder.disabledReason,
+    disabledReason:
+      "This run-bound confirmation placeholder is archived and cannot submit a decision. Use the independent pre-run HTTP Tool action plan review surface for new confirmations.",
     prerequisites,
     auditMetadata: {
       sourceRouteId: "run-record-summary-list-route",
       draftRouteId: "confirmation-placeholder-read-draft",
       requestId: blockedActionPreview.requestId,
       auditRef: placeholder.auditRef,
-      policyRef: "session_tooling_confirmation_flow_design",
+      policyRef: "workflow_http_tool_pre_run_confirmation_v1",
       traceRef: "trace_confirmation_placeholder_demo",
     },
+    legacyContractStatus: "superseded_archived",
+    historicalReadAllowed: true,
+    newSubmissionAllowed: false,
+    runtimeAuthoritative: false,
+    supersededBy: [
+      "workflow_http_tool_action_plan.v1",
+      "workflow_http_tool_confirmation_decision.v1",
+    ],
     forbiddenProjectionBlocked,
     canRenderConfirmationPlaceholder:
       route.path === routePath &&
       route.canMutate === false &&
       placeholder.humanReviewRequired &&
+      placeholder.requiredDecisionShape.length > 0 &&
       decisionFields.length >= 4 &&
       prerequisites.length >= 4,
     canRequestLiveBackend: false,
@@ -142,7 +159,7 @@ function buildDecisionFields(): WorkflowConfirmationDecisionField[] {
       fieldId: "decision",
       label: "Decision",
       required: true,
-      source: "future_confirmation_contract",
+      source: "archived_legacy_confirmation_contract",
     },
     {
       fieldId: "actor_subject_ref",
@@ -171,23 +188,25 @@ function buildPrerequisites(
   return [
     {
       prerequisiteId: "prereq_confirmation_flow",
-      label: "Confirmation flow",
-      status: "defined_not_connected",
-      summary: "The placeholder exposes the future decision shape, but no submit path is connected.",
+      label: "Archived run-bound confirmation",
+      status: "blocked",
+      summary:
+        "The legacy placeholder remains readable for historical context, but all new submissions are permanently disabled.",
       auditRef: blockedActionPreview.confirmationPlaceholder.auditRef,
     },
     {
       prerequisiteId: "prereq_executor_gate",
       label: "Executor gate",
-      status: "missing",
-      summary: "Execution cannot continue because the workflow and tool executors are not implemented.",
+      status: "blocked",
+      summary: "Batch A does not register HTTP execution, so this archived placeholder cannot unlock a tool attempt.",
       auditRef: "audit_confirmation_executor_gate_blocked_demo",
     },
     {
       prerequisiteId: "prereq_decision_store",
-      label: "Decision store",
-      status: "missing",
-      summary: "No durable confirmation decision store exists, so decisions cannot be persisted.",
+      label: "Independent pre-run decision store",
+      status: "blocked",
+      summary:
+        "The versioned pre-run decision resource is separate and must never accept this legacy run-bound placeholder shape.",
       auditRef: "audit_confirmation_decision_store_missing_demo",
     },
     {

@@ -781,6 +781,54 @@ func TestWorkflowExecutorDevModeRequiresDevelopmentAuthAndSavedDraftHTTP(t *test
 	}
 }
 
+func TestWorkflowToolActionDevRequiresPreRunGatesAndExecutionRemainsUnavailable(t *testing.T) {
+	config := defaultConfig()
+	config.WorkflowToolActionDevEnabled = true
+	if got := config.Check(); !reflect.DeepEqual(got, []string{
+		"control_plane_read_dev_auth",
+		"workflow_saved_draft_dev_http",
+		"workflow_executor_dev",
+	}) {
+		t.Fatalf("unexpected workflow tool action missing fields: %#v", got)
+	}
+	if err := validateBridgeRuntimeConfig(config); err == nil || !strings.Contains(err.Error(), "workflow tool action dev requires") {
+		t.Fatalf("incomplete workflow tool action gates were accepted: %v", err)
+	}
+	config.ControlPlaneReadDevAuthEnabled = true
+	config.WorkflowSavedDraftDevHTTPEnabled = true
+	config.WorkflowExecutorDevEnabled = true
+	if err := validateBridgeRuntimeConfig(config); err != nil {
+		t.Fatalf("complete pre-run workflow tool action gates were rejected: %v", err)
+	}
+	summary := config.SanitizedSummary()
+	if !summary.WorkflowToolActionDevEnabled || summary.WorkflowHTTPToolExecutionDevEnabled {
+		t.Fatalf("workflow tool gates drifted in sanitized summary: %#v", summary)
+	}
+	config.WorkflowHTTPToolExecutionDevEnabled = true
+	if err := validateBridgeRuntimeConfig(config); err == nil || !strings.Contains(err.Error(), "unavailable before implementation batch B") {
+		t.Fatalf("batch A accepted workflow HTTP tool execution: %v", err)
+	}
+}
+
+func TestWorkflowToolActionEnvironmentGatesAreParsedExplicitly(t *testing.T) {
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_EXECUTOR_DEV", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_TOOL_ACTION_DEV", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_HTTP_TOOL_EXECUTION_DEV", "0")
+	config, err := LoadFromEnv()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !config.WorkflowToolActionDevEnabled || config.WorkflowHTTPToolExecutionDevEnabled {
+		t.Fatalf("workflow tool action environment gates were not parsed: %#v", config.SanitizedSummary())
+	}
+	if config.FieldSources["workflow_tool_action_dev"] != configSourceEnv ||
+		config.FieldSources["workflow_http_tool_execution_dev"] != configSourceEnv {
+		t.Fatalf("workflow tool action gate sources drifted: %#v", config.FieldSources)
+	}
+}
+
 func TestWorkflowDiagnosticsDevRequiresExecutorAndMockProvider(t *testing.T) {
 	base := defaultConfig()
 	base.WorkflowDiagnosticsDevEnabled = true

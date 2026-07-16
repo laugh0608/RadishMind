@@ -80,7 +80,7 @@ const DEFAULT_BLOCKED_ACTION_PREVIEW: WorkflowDefinitionBlockedActionPreview = {
   actionKind: "suggest_flowsheet_edit",
   riskLevel: "medium",
   requiresConfirmation: true,
-  policyReason: "Candidate action remains blocked until a future confirmation flow and executor are implemented.",
+  policyReason: "Candidate action remains blocked; the former run-bound confirmation placeholder is archived and not executable.",
   blockedState: "blocked_executor_not_available",
   auditRef: "audit_tool_action_preview_demo",
 };
@@ -159,9 +159,9 @@ function buildMissingPrerequisites(): WorkflowBlockedActionRequirement[] {
   return [
     {
       requirementId: "req_confirmation_flow_contract",
-      label: "Confirmation flow contract",
-      status: "defined_not_connected",
-      summary: "The future confirmation shape is visible, but no decision path is connected to this surface.",
+      label: "Archived confirmation contract",
+      status: "blocked",
+      summary: "The former run-bound confirmation shape is retained only as historical read evidence and accepts no decisions.",
     },
     {
       requirementId: "req_runtime_gate",
@@ -195,17 +195,17 @@ function buildAuditTrail(action: WorkflowDefinitionBlockedActionPreview): Workfl
     },
     {
       stepId: "audit_step_policy_evaluated",
-      label: "Policy evaluated",
+      label: "Legacy policy evaluated",
       status: "observed",
       auditRef: "audit_tool_action_policy_gate_demo",
-      summary: "The policy gate marked the action as requiring human review before any future runtime path.",
+      summary: "The historical policy record is retained, while new HTTP Tool confirmations use the independent pre-run action plan.",
     },
     {
       stepId: "audit_step_confirmation_placeholder_displayed",
-      label: "Confirmation placeholder displayed",
+      label: "Archived confirmation placeholder displayed",
       status: "blocked",
       auditRef: "audit_confirmation_placeholder_demo",
-      summary: "The placeholder shows the required decision shape without accepting a decision.",
+      summary: "The archived placeholder shows historical decision fields without accepting a decision.",
     },
     {
       stepId: "audit_step_executor_blocked",
@@ -223,10 +223,10 @@ function buildConfirmationPlaceholder(
   return {
     confirmationPlaceholderId: "confirmation_placeholder_tool_action_preview",
     requiredActionRef: action.toolActionId,
-    riskSummary: "Medium-risk candidate action requires future human approval before any runtime can continue.",
+    riskSummary: "This historical medium-risk candidate action belongs to a superseded run-bound confirmation contract.",
     requiredDecisionShape: ["decision: approve | reject", "actor_subject_ref", "reason", "audit_ref"],
     humanReviewRequired: true,
-    disabledReason: "Confirmation submission is disabled until confirmation flow, executor, and writeback gates exist.",
+    disabledReason: "This legacy placeholder is permanently read-only; new HTTP Tool confirmations use independent pre-run action plans.",
     auditRef: "audit_confirmation_placeholder_demo",
   };
 }

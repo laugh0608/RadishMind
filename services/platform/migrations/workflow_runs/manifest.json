@@ -1,9 +1,9 @@
 {
   "component": "workflow_runs",
-  "migration_id": "0005_workflow_evaluation_suites",
-  "store_schema_version": "workflow_run_store_v5",
-  "up": ["0001_workflow_runs.up.sql", "0002_workflow_run_diagnostics.up.sql", "0003_workflow_evaluation_cases.up.sql", "0004_workflow_evaluation_case_revisions.up.sql", "0005_workflow_evaluation_suites.up.sql"],
-  "down": ["0005_workflow_evaluation_suites.down.sql", "0004_workflow_evaluation_case_revisions.down.sql", "0003_workflow_evaluation_cases.down.sql", "0002_workflow_run_diagnostics.down.sql", "0001_workflow_runs.down.sql"],
+  "migration_id": "0006_workflow_http_tool_actions",
+  "store_schema_version": "workflow_run_store_v6",
+  "up": ["0001_workflow_runs.up.sql", "0002_workflow_run_diagnostics.up.sql", "0003_workflow_evaluation_cases.up.sql", "0004_workflow_evaluation_case_revisions.up.sql", "0005_workflow_evaluation_suites.up.sql", "0006_workflow_http_tool_actions.up.sql"],
+  "down": ["0006_workflow_http_tool_actions.down.sql", "0005_workflow_evaluation_suites.down.sql", "0004_workflow_evaluation_case_revisions.down.sql", "0003_workflow_evaluation_cases.down.sql", "0002_workflow_run_diagnostics.down.sql", "0001_workflow_runs.down.sql"],
   "runtime_auto_migration": false,
   "development_test_only": true
 }

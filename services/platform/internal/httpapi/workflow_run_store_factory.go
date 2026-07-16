@@ -90,6 +90,19 @@ func newWorkflowEvaluationStoreForRunStore(store workflowRunStore) workflowEvalu
 	return newMemoryWorkflowEvaluationStore(defaultWorkflowEvaluationCapacity)
 }
 
+func newWorkflowHTTPToolActionStoreForRunStore(store workflowRunStore) workflowHTTPToolActionStore {
+	switch typed := store.(type) {
+	case *memoryWorkflowRunStore:
+		return newMemoryWorkflowHTTPToolActionStore(&typed.mu)
+	case *sqliteWorkflowRunStore:
+		return newSQLiteWorkflowHTTPToolActionStore(typed.database)
+	case *postgresWorkflowRunStore:
+		return newPostgresWorkflowHTTPToolActionStore(typed.pool)
+	default:
+		return nil
+	}
+}
+
 func newWorkflowEvaluationSuiteStoreForRunStore(store workflowRunStore) workflowEvaluationSuiteStore {
 	if postgres, ok := store.(*postgresWorkflowRunStore); ok {
 		return newPostgresWorkflowEvaluationSuiteStore(postgres.pool)

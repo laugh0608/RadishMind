@@ -33,7 +33,7 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 	if err := firstServer.localPersistenceRuntime.DB().QueryRowContext(
 		context.Background(),
 		"SELECT count(*) FROM radishmind_schema_migrations",
-	).Scan(&migrationCount); err != nil || migrationCount != 7 {
+	).Scan(&migrationCount); err != nil || migrationCount != 8 {
 		t.Fatalf("aggregate SQLite migration count drifted: count=%d err=%v", migrationCount, err)
 	}
 
@@ -523,6 +523,9 @@ func assertAggregateSQLiteRepositorySelection(t *testing.T, server *Server) {
 	}
 	if _, ok := server.workflowRunStore.(*sqliteWorkflowRunStore); !ok {
 		t.Fatalf("workflow run did not select SQLite: %T", server.workflowRunStore)
+	}
+	if actionStore, ok := server.workflowHTTPToolActionStore.(*sqliteWorkflowHTTPToolActionStore); !ok || actionStore.database != server.localPersistenceRuntime.DB() {
+		t.Fatalf("workflow tool actions did not share the SQLite runtime: %T", server.workflowHTTPToolActionStore)
 	}
 	for name, mode := range map[string]string{
 		"application_catalog": server.config.ApplicationCatalogStoreMode,

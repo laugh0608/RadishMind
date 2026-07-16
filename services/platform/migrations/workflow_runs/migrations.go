@@ -15,22 +15,24 @@ import (
 )
 
 const (
-	Component                              = "workflow_runs"
-	MigrationID                            = "0005_workflow_evaluation_suites"
-	StoreSchemaVersion                     = "workflow_run_store_v5"
-	legacyMigrationID                      = "0001_workflow_runs"
-	legacyStoreSchemaVersion               = "workflow_run_store_v1"
-	diagnosticsMigrationID                 = "0002_workflow_run_diagnostics"
-	diagnosticsStoreSchemaVersion          = "workflow_run_store_v2"
-	evaluationMigrationID                  = "0003_workflow_evaluation_cases"
-	evaluationStoreSchemaVersion           = "workflow_run_store_v3"
-	caseVersioningMigrationID              = "0004_workflow_evaluation_case_revisions"
-	caseVersioningStoreSchemaVersion       = "workflow_run_store_v4"
-	MigrationStateApplied                  = "applied"
-	MigrationStatePending                  = "pending"
-	MigrationStateNotApplied               = "not_applied"
-	MigrationStateMismatch                 = "mismatch"
-	migrationAdvisoryLockKey         int64 = 0x524d52554e533031
+	Component                               = "workflow_runs"
+	MigrationID                             = "0006_workflow_http_tool_actions"
+	StoreSchemaVersion                      = "workflow_run_store_v6"
+	legacyMigrationID                       = "0001_workflow_runs"
+	legacyStoreSchemaVersion                = "workflow_run_store_v1"
+	diagnosticsMigrationID                  = "0002_workflow_run_diagnostics"
+	diagnosticsStoreSchemaVersion           = "workflow_run_store_v2"
+	evaluationMigrationID                   = "0003_workflow_evaluation_cases"
+	evaluationStoreSchemaVersion            = "workflow_run_store_v3"
+	caseVersioningMigrationID               = "0004_workflow_evaluation_case_revisions"
+	caseVersioningStoreSchemaVersion        = "workflow_run_store_v4"
+	evaluationSuiteMigrationID              = "0005_workflow_evaluation_suites"
+	evaluationSuiteStoreSchemaVersion       = "workflow_run_store_v5"
+	MigrationStateApplied                   = "applied"
+	MigrationStatePending                   = "pending"
+	MigrationStateNotApplied                = "not_applied"
+	MigrationStateMismatch                  = "mismatch"
+	migrationAdvisoryLockKey          int64 = 0x524d52554e533031
 )
 
 const markerSQL = `CREATE TABLE IF NOT EXISTS workflow_run_schema_versions (
@@ -67,8 +69,14 @@ var upSQLV5 string
 //go:embed 0005_workflow_evaluation_suites.down.sql
 var downSQLV5 string
 
-var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5
-var downSQL = downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+//go:embed 0006_workflow_http_tool_actions.up.sql
+var upSQLV6 string
+
+//go:embed 0006_workflow_http_tool_actions.down.sql
+var downSQLV6 string
+
+var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6
+var downSQL = downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 
 type State struct {
 	MigrationState, MigrationID, StoreSchemaVersion, MigrationChecksum string
@@ -110,6 +118,9 @@ func evaluationChecksum() string {
 }
 func caseVersioningChecksum() string {
 	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4)))
+}
+func evaluationSuiteChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5)))
 }
 
 func Inspect(ctx context.Context, pool *pgxpool.Pool) (State, error) {
@@ -158,13 +169,9 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 		return State{}, errors.New("workflow run migration marker mismatch")
 	}
 	if state.MigrationState == MigrationStatePending {
-		pendingSQL := upSQLV5
-		if state.MigrationID == legacyMigrationID {
-			pendingSQL = upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5
-		} else if state.MigrationID == diagnosticsMigrationID {
-			pendingSQL = upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5
-		} else if state.MigrationID == evaluationMigrationID {
-			pendingSQL = upSQLV4 + "\n" + upSQLV5
+		pendingSQL := pendingMigrationSQL(state.MigrationID)
+		if pendingSQL == "" {
+			return State{}, errors.New("workflow run pending migration is unsupported")
 		}
 		if _, err = tx.Exec(ctx, pendingSQL); err != nil {
 			return State{}, safeDatabaseError("apply workflow run pending migrations", err)
@@ -222,13 +229,9 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 	}
 	rollbackSQL := downSQL
 	if state.MigrationState == MigrationStatePending {
-		rollbackSQL = downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
-		if state.MigrationID == legacyMigrationID {
-			rollbackSQL = downSQLV1
-		} else if state.MigrationID == diagnosticsMigrationID {
-			rollbackSQL = downSQLV2 + "\n" + downSQLV1
-		} else if state.MigrationID == evaluationMigrationID {
-			rollbackSQL = downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+		rollbackSQL = rollbackSQLThrough(state.MigrationID)
+		if rollbackSQL == "" {
+			return State{}, errors.New("workflow run pending rollback is unsupported")
 		}
 	}
 	if _, err = tx.Exec(ctx, rollbackSQL); err != nil {
@@ -238,6 +241,40 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 		return State{}, safeDatabaseError("commit workflow run rollback", err)
 	}
 	return State{MigrationState: MigrationStateNotApplied}, nil
+}
+
+func pendingMigrationSQL(appliedMigrationID string) string {
+	switch appliedMigrationID {
+	case legacyMigrationID:
+		return upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6
+	case diagnosticsMigrationID:
+		return upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6
+	case evaluationMigrationID:
+		return upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6
+	case caseVersioningMigrationID:
+		return upSQLV5 + "\n" + upSQLV6
+	case evaluationSuiteMigrationID:
+		return upSQLV6
+	default:
+		return ""
+	}
+}
+
+func rollbackSQLThrough(appliedMigrationID string) string {
+	switch appliedMigrationID {
+	case legacyMigrationID:
+		return downSQLV1
+	case diagnosticsMigrationID:
+		return downSQLV2 + "\n" + downSQLV1
+	case evaluationMigrationID:
+		return downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case caseVersioningMigrationID:
+		return downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case evaluationSuiteMigrationID:
+		return downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	default:
+		return ""
+	}
 }
 
 func inspect(ctx context.Context, query rowQuerier) (State, error) {
@@ -268,6 +305,8 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 		state.MigrationState = MigrationStatePending
 	} else if state.MigrationID == caseVersioningMigrationID && state.StoreSchemaVersion == caseVersioningStoreSchemaVersion && state.MigrationChecksum == caseVersioningChecksum() && tableExists {
 		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == evaluationSuiteMigrationID && state.StoreSchemaVersion == evaluationSuiteStoreSchemaVersion && state.MigrationChecksum == evaluationSuiteChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
 	} else {
 		var diagnosticColumnCount int
 		if err = query.QueryRow(ctx, `SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name='workflow_run_records' AND column_name IN ('failure_code','failure_boundary','selected_provider','selected_model')`).Scan(&diagnosticColumnCount); err != nil {
@@ -292,7 +331,29 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_evaluation_suite_decisions') IS NOT NULL").Scan(&decisionTableExists); err != nil {
 			return State{}, safeDatabaseError("inspect workflow evaluation suite decision table", err)
 		}
-		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 || !evaluationTableExists || !revisionTableExists || currentVersionColumnCount != 1 || !suiteTableExists || !decisionTableExists {
+		var actionPlanTableExists, confirmationDecisionTableExists, executionAuditTableExists bool
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_http_tool_action_plans') IS NOT NULL").Scan(&actionPlanTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow HTTP tool action plan table", err)
+		}
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_http_tool_confirmation_decisions') IS NOT NULL").Scan(&confirmationDecisionTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow HTTP tool confirmation decision table", err)
+		}
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_http_tool_execution_audits') IS NOT NULL").Scan(&executionAuditTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow HTTP tool execution audit table", err)
+		}
+		var appendOnlyTriggerCount int
+		if err = query.QueryRow(ctx, `SELECT count(*)
+			FROM pg_trigger trigger
+			JOIN pg_class relation ON relation.oid=trigger.tgrelid
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE NOT trigger.tgisinternal AND namespace.nspname='public'
+			AND trigger.tgname IN (
+				'workflow_http_tool_confirmation_decisions_append_only',
+				'workflow_http_tool_execution_audits_append_only'
+			)`).Scan(&appendOnlyTriggerCount); err != nil {
+			return State{}, safeDatabaseError("inspect workflow HTTP tool append-only triggers", err)
+		}
+		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 || !evaluationTableExists || !revisionTableExists || currentVersionColumnCount != 1 || !suiteTableExists || !decisionTableExists || !actionPlanTableExists || !confirmationDecisionTableExists || !executionAuditTableExists || appendOnlyTriggerCount != 2 {
 			state.MigrationState = MigrationStateMismatch
 		} else {
 			state.MigrationState = MigrationStateApplied

@@ -65,6 +65,7 @@ case "${profile}" in
     set_default_env RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE "1"
     set_default_env RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV "1"
     set_default_env RADISHMIND_WORKFLOW_EXECUTOR_DEV "1"
+	set_default_env RADISHMIND_WORKFLOW_TOOL_ACTION_DEV "1"
     ;;
   configured)
     ;;

@@ -37,9 +37,9 @@ EXPECTED_FORBIDDEN_CLAIMS = {
     "workflow_executor_ready",
     "node_executor_ready",
     "tool_executor_ready",
-    "confirmation_flow_ready",
-    "confirmation_decision_ready",
-    "confirmation_decision_store_ready",
+    "legacy_run_bound_confirmation_flow_ready",
+    "legacy_run_bound_confirmation_decision_ready",
+    "legacy_run_bound_confirmation_decision_store_ready",
     "execution_unlock_ready",
     "business_writeback_ready",
     "run_replay_ready",
@@ -63,7 +63,7 @@ EXPECTED_CAPABILITIES = {
     "missing_prerequisites_display",
     "forbidden_output_guard_reused",
     "no_live_backend_request",
-    "no_confirmation_or_execution_controls",
+    "archived_legacy_no_confirmation_or_execution_controls",
 }
 EXPECTED_REQUIRED_FIELDS = {
     "confirmationPlaceholderId",
@@ -82,6 +82,11 @@ EXPECTED_REQUIRED_FIELDS = {
     "disabledReason",
     "prerequisites",
     "auditMetadata",
+    "legacyContractStatus",
+    "historicalReadAllowed",
+    "newSubmissionAllowed",
+    "runtimeAuthoritative",
+    "supersededBy",
     "routePath",
     "requestId",
     "auditRef",
@@ -102,20 +107,20 @@ EXPECTED_DECISION_FIELDS = {"decision", "actor_subject_ref", "reason", "audit_re
 EXPECTED_PREREQUISITE_FIELDS = {"prerequisiteId", "label", "status", "summary", "auditRef"}
 EXPECTED_PREREQUISITE_STATUSES = {"missing", "defined_not_connected", "blocked"}
 EXPECTED_STOP_LINES = {
-    "no new runtime API",
+    "no new runtime API from archived placeholder",
     "no live backend request",
     "no workflow executor",
     "no node executor",
     "no tool executor",
-    "no confirmation decision",
-    "no confirmation decision store",
-    "no execution unlock",
+    "no legacy run-bound confirmation decision submission",
+    "no legacy run-bound confirmation decision store",
+    "no execution unlock from archived placeholder",
     "no business writeback",
     "no replay or resume",
     "no durable run store",
     "no durable result store",
     "no materialized result reader",
-    "no database or production auth implementation",
+    "no production auth implementation from archived placeholder",
     "no production readiness claim",
 }
 
@@ -168,7 +173,7 @@ def assert_slice_and_page(fixture: dict[str, Any]) -> None:
     require(page.get("source_route_id") == "run-record-summary-list-route", "source route drifted")
     require(page.get("draft_route_id") == "confirmation-placeholder-read-draft", "draft route id drifted")
     require(
-        page.get("status") == "offline_read_only_confirmation_placeholder_surface",
+        page.get("status") == "archived_legacy_read_only_confirmation_placeholder_surface",
         "page status drifted",
     )
     require(
@@ -179,11 +184,20 @@ def assert_slice_and_page(fixture: dict[str, Any]) -> None:
         page.get("default_required_action_ref") == "tool_action_preview_reconnect_stream",
         "default required action ref drifted",
     )
+    require(page.get("legacy_contract_status") == "superseded_archived", "legacy page must be archived")
+    require(page.get("historical_read_allowed") is True, "legacy page history must stay readable")
+    require(page.get("new_submission_allowed") is False, "legacy page must reject new submissions")
+    require(page.get("runtime_authoritative") is False, "legacy page must not be authoritative")
+    require(
+        set(page.get("superseded_by") or [])
+        == {"workflow_http_tool_action_plan.v1", "workflow_http_tool_confirmation_decision.v1"},
+        "legacy page supersession targets drifted",
+    )
     for field in (
         "live_detail_route_allowed_now",
         "runtime_api_allowed_now",
-        "confirmation_submission_allowed_now",
-        "decision_persistence_allowed_now",
+        "legacy_confirmation_submission_allowed_now",
+        "legacy_decision_persistence_allowed_now",
         "execution_unlock_allowed_now",
     ):
         require(page.get(field) is False, f"{field} must remain false")
@@ -200,12 +214,12 @@ def assert_capability_contract(fixture: dict[str, Any]) -> None:
     require(not missing_decision_fields, f"missing decision shape fields: {missing_decision_fields}")
     require(decision_policy.get("human_review_required") is True, "human review marker must remain true")
     for field in (
-        "submit_confirmation_allowed_now",
-        "approve_allowed_now",
-        "reject_allowed_now",
-        "defer_allowed_now",
-        "persist_decision_allowed_now",
-        "unlock_execution_allowed_now",
+        "submit_legacy_run_bound_confirmation_allowed_now",
+        "approve_legacy_run_bound_confirmation_allowed_now",
+        "reject_legacy_run_bound_confirmation_allowed_now",
+        "defer_legacy_run_bound_confirmation_allowed_now",
+        "persist_legacy_run_bound_decision_allowed_now",
+        "unlock_execution_from_legacy_placeholder_allowed_now",
     ):
         require(decision_policy.get(field) is False, f"{field} must remain false")
 
@@ -260,6 +274,11 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
         "disabledReason",
         "prerequisites",
         "auditMetadata",
+        'legacyContractStatus: "superseded_archived"',
+        "historicalReadAllowed: true",
+        "newSubmissionAllowed: false",
+        "runtimeAuthoritative: false",
+        "supersededBy",
         "canRenderConfirmationPlaceholder",
         "canRequestLiveBackend: false",
         "canMutate: false",
@@ -281,6 +300,10 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
         "WorkflowConfirmationPrerequisiteCard",
         "workflowConfirmationPlaceholder",
         "workflow-confirmation-placeholder",
+        "Archived Legacy Confirmation",
+        "legacyContractStatus",
+        "supersededBy",
+        "historical required field",
     ):
         require(literal in app_source, f"App.tsx missing confirmation render literal: {literal}")
 
@@ -288,7 +311,7 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
         "buildWorkflowBlockedActionPreviewViewModel",
         "WorkflowConfirmationPlaceholderPreview",
         "confirmationPlaceholder",
-        "Confirmation submission is disabled",
+        "legacy placeholder is permanently read-only",
     ):
         require(literal in blocked_source, f"blocked action source missing reusable literal: {literal}")
 

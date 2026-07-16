@@ -1,0 +1,593 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-run-record-v2.schema.json",
+  "title": "WorkflowRunRecordV2",
+  "description": "Static contract for the controlled HTTP Tool run path. Runtime enablement is deferred to batch B; v0 and v1 records retain their zero-tool invariants.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_version",
+    "run_id",
+    "plan_id",
+    "confirmation_id",
+    "tenant_ref",
+    "workspace_id",
+    "application_id",
+    "draft_id",
+    "draft_version",
+    "status",
+    "failure_code",
+    "failure_summary",
+    "started_at",
+    "completed_at",
+    "input_bytes",
+    "requested_model",
+    "selected_provider",
+    "selected_profile",
+    "selected_model",
+    "upstream_model",
+    "selection_source",
+    "nodes",
+    "tool_attempt",
+    "output",
+    "request_id",
+    "audit_ref",
+    "actor_ref",
+    "side_effects",
+    "diagnostic"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "workflow_run_record.v2"
+    },
+    "record_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^run_[a-z0-9]{16,64}$"
+    },
+    "plan_id": {
+      "type": "string",
+      "pattern": "^wtap_[a-z0-9]{16,64}$"
+    },
+    "confirmation_id": {
+      "type": "string",
+      "pattern": "^wtcd_[a-z0-9]{16,64}$"
+    },
+    "tenant_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "workspace_id": {
+      "$ref": "#/$defs/scoped_id"
+    },
+    "application_id": {
+      "$ref": "#/$defs/scoped_id"
+    },
+    "draft_id": {
+      "$ref": "#/$defs/scoped_id"
+    },
+    "draft_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "enum": [
+        "running",
+        "succeeded",
+        "failed",
+        "canceled",
+        "outcome_unknown"
+      ]
+    },
+    "failure_code": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^workflow_(run|tool)_[a-z_]{3,80}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "failure_summary": {
+      "type": "string",
+      "maxLength": 256
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "$ref": "#/$defs/nullable_timestamp"
+    },
+    "input_bytes": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 8192
+    },
+    "requested_model": {
+      "$ref": "#/$defs/safe_string"
+    },
+    "selected_provider": {
+      "$ref": "#/$defs/safe_string"
+    },
+    "selected_profile": {
+      "$ref": "#/$defs/safe_string"
+    },
+    "selected_model": {
+      "$ref": "#/$defs/safe_string"
+    },
+    "upstream_model": {
+      "$ref": "#/$defs/safe_string"
+    },
+    "selection_source": {
+      "$ref": "#/$defs/safe_string"
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "items": {
+        "$ref": "#/$defs/node_record"
+      }
+    },
+    "tool_attempt": {
+      "$ref": "#/$defs/tool_attempt"
+    },
+    "output": {
+      "type": "string",
+      "maxLength": 16384
+    },
+    "request_id": {
+      "$ref": "#/$defs/reference"
+    },
+    "audit_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "actor_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "side_effects": {
+      "$ref": "#/$defs/side_effects"
+    },
+    "diagnostic": {
+      "$ref": "#/$defs/diagnostic"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "running"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "completed_at": {
+            "type": "null"
+          },
+          "failure_code": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "completed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "reference": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$"
+    },
+    "scoped_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 120,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "safe_string": {
+      "type": "string",
+      "maxLength": 256,
+      "not": {
+        "pattern": "://"
+      }
+    },
+    "nullable_timestamp": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullable_failure_code": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^workflow_(run|tool)_[a-z_]{3,80}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "node_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_id",
+        "node_type",
+        "label",
+        "status",
+        "started_at",
+        "completed_at",
+        "duration_ms",
+        "predecessor_node_ids",
+        "provider_ref",
+        "output_preview",
+        "failure_code"
+      ],
+      "properties": {
+        "node_id": {
+          "$ref": "#/$defs/scoped_id"
+        },
+        "node_type": {
+          "enum": [
+            "prompt",
+            "http_tool",
+            "llm",
+            "output"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "running",
+            "succeeded",
+            "skipped",
+            "failed"
+          ]
+        },
+        "started_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        },
+        "completed_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 30000
+        },
+        "predecessor_node_ids": {
+          "type": "array",
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/scoped_id"
+          }
+        },
+        "provider_ref": {
+          "$ref": "#/$defs/safe_string"
+        },
+        "output_preview": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "failure_code": {
+          "$ref": "#/$defs/nullable_failure_code"
+        }
+      }
+    },
+    "tool_attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attempt_id",
+        "node_id",
+        "tool_id",
+        "definition_digest",
+        "profile_id",
+        "profile_digest",
+        "tool_plan_digest",
+        "confirmation_id",
+        "status",
+        "claimed_at",
+        "completed_at",
+        "http_status_class",
+        "response_bytes",
+        "duration_ms",
+        "output_projection",
+        "failure_code"
+      ],
+      "properties": {
+        "attempt_id": {
+          "type": "string",
+          "pattern": "^wtea_[a-z0-9]{16,64}$"
+        },
+        "node_id": {
+          "$ref": "#/$defs/scoped_id"
+        },
+        "tool_id": {
+          "type": "string",
+          "pattern": "^workflow\\.http\\.[a-z0-9][a-z0-9._-]*\\.v[0-9]+$",
+          "maxLength": 120
+        },
+        "definition_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "profile_id": {
+          "type": "string",
+          "pattern": "^workflow_http_profile_[a-z0-9_]{1,80}$"
+        },
+        "profile_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "tool_plan_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "confirmation_id": {
+          "type": "string",
+          "pattern": "^wtcd_[a-z0-9]{16,64}$"
+        },
+        "status": {
+          "enum": [
+            "claimed",
+            "succeeded",
+            "failed",
+            "outcome_unknown"
+          ]
+        },
+        "claimed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completed_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        },
+        "http_status_class": {
+          "oneOf": [
+            {
+              "enum": [
+                "2xx",
+                "3xx",
+                "4xx",
+                "5xx"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "response_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65536
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 30000
+        },
+        "output_projection": {
+          "type": "object",
+          "maxProperties": 16,
+          "propertyNames": {
+            "allOf": [
+              {
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              },
+              {
+                "not": {
+                  "enum": [
+                    "endpoint",
+                    "url",
+                    "uri",
+                    "header",
+                    "headers",
+                    "authorization",
+                    "cookie",
+                    "credential",
+                    "raw_query",
+                    "raw_request",
+                    "raw_response",
+                    "dns",
+                    "ip_address",
+                    "internal_error"
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "string",
+                "maxLength": 4096,
+                "not": {
+                  "pattern": "://"
+                }
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "failure_code": {
+          "$ref": "#/$defs/nullable_failure_code"
+        }
+      }
+    },
+    "side_effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider_calls",
+        "tool_calls",
+        "confirmation_calls",
+        "business_writes",
+        "replay_writes"
+      ],
+      "properties": {
+        "provider_calls": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "tool_calls": {
+          "type": "integer",
+          "const": 1
+        },
+        "confirmation_calls": {
+          "type": "integer",
+          "const": 1
+        },
+        "business_writes": {
+          "type": "integer",
+          "const": 0
+        },
+        "replay_writes": {
+          "type": "integer",
+          "const": 0
+        }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "failure_boundary",
+        "failure_stage",
+        "failed_node_id",
+        "last_completed_node_id",
+        "terminal_write_state",
+        "gateway_failure_category",
+        "tool_failure_category",
+        "summary",
+        "recommended_review_action",
+        "observed_at"
+      ],
+      "properties": {
+        "failure_boundary": {
+          "oneOf": [
+            {
+              "enum": [
+                "draft_read",
+                "executor",
+                "gateway",
+                "provider",
+                "run_store",
+                "request",
+                "tool_policy",
+                "tool_confirmation",
+                "tool_transport",
+                "tool_response",
+                "tool_store"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "failure_stage": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "failed_node_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "last_completed_node_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/scoped_id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "terminal_write_state": {
+          "enum": [
+            "pending",
+            "stored"
+          ]
+        },
+        "gateway_failure_category": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "tool_failure_category": {
+          "enum": [
+            "none",
+            "policy",
+            "confirmation",
+            "transport",
+            "timeout",
+            "response_status",
+            "response_too_large",
+            "response_invalid",
+            "store",
+            "outcome_unknown"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "recommended_review_action": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

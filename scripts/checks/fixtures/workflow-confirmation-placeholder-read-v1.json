@@ -13,9 +13,9 @@
       "workflow_executor_ready",
       "node_executor_ready",
       "tool_executor_ready",
-      "confirmation_flow_ready",
-      "confirmation_decision_ready",
-      "confirmation_decision_store_ready",
+      "legacy_run_bound_confirmation_flow_ready",
+      "legacy_run_bound_confirmation_decision_ready",
+      "legacy_run_bound_confirmation_decision_store_ready",
       "execution_unlock_ready",
       "business_writeback_ready",
       "run_replay_ready",
@@ -38,14 +38,22 @@
     "source_page_id": "workflow-blocked-action-preview-read",
     "source_route_id": "run-record-summary-list-route",
     "draft_route_id": "confirmation-placeholder-read-draft",
-    "status": "offline_read_only_confirmation_placeholder_surface",
+    "status": "archived_legacy_read_only_confirmation_placeholder_surface",
+    "legacy_contract_status": "superseded_archived",
+    "historical_read_allowed": true,
+    "new_submission_allowed": false,
+    "runtime_authoritative": false,
+    "superseded_by": [
+      "workflow_http_tool_action_plan.v1",
+      "workflow_http_tool_confirmation_decision.v1"
+    ],
     "default_confirmation_placeholder_id": "confirmation_placeholder_tool_action_preview",
     "default_required_action_ref": "tool_action_preview_reconnect_stream",
     "app_root": "apps/radishmind-web/",
     "live_detail_route_allowed_now": false,
     "runtime_api_allowed_now": false,
-    "confirmation_submission_allowed_now": false,
-    "decision_persistence_allowed_now": false,
+    "legacy_confirmation_submission_allowed_now": false,
+    "legacy_decision_persistence_allowed_now": false,
     "execution_unlock_allowed_now": false
   },
   "implemented_capabilities": [
@@ -60,7 +68,7 @@
     "missing_prerequisites_display",
     "forbidden_output_guard_reused",
     "no_live_backend_request",
-    "no_confirmation_or_execution_controls"
+    "archived_legacy_no_confirmation_or_execution_controls"
   ],
   "required_view_model_fields": [
     "confirmationPlaceholderId",
@@ -79,6 +87,11 @@
     "disabledReason",
     "prerequisites",
     "auditMetadata",
+    "legacyContractStatus",
+    "historicalReadAllowed",
+    "newSubmissionAllowed",
+    "runtimeAuthoritative",
+    "supersededBy",
     "routePath",
     "requestId",
     "auditRef",
@@ -103,12 +116,12 @@
       "audit_ref"
     ],
     "human_review_required": true,
-    "submit_confirmation_allowed_now": false,
-    "approve_allowed_now": false,
-    "reject_allowed_now": false,
-    "defer_allowed_now": false,
-    "persist_decision_allowed_now": false,
-    "unlock_execution_allowed_now": false
+    "submit_legacy_run_bound_confirmation_allowed_now": false,
+    "approve_legacy_run_bound_confirmation_allowed_now": false,
+    "reject_legacy_run_bound_confirmation_allowed_now": false,
+    "defer_legacy_run_bound_confirmation_allowed_now": false,
+    "persist_legacy_run_bound_decision_allowed_now": false,
+    "unlock_execution_from_legacy_placeholder_allowed_now": false
   },
   "prerequisite_policy": {
     "required_fields": [
@@ -170,20 +183,20 @@
     "ReplayWorkflowRunCommand"
   ],
   "stop_lines": [
-    "no new runtime API",
+    "no new runtime API from archived placeholder",
     "no live backend request",
     "no workflow executor",
     "no node executor",
     "no tool executor",
-    "no confirmation decision",
-    "no confirmation decision store",
-    "no execution unlock",
+    "no legacy run-bound confirmation decision submission",
+    "no legacy run-bound confirmation decision store",
+    "no execution unlock from archived placeholder",
     "no business writeback",
     "no replay or resume",
     "no durable run store",
     "no durable result store",
     "no materialized result reader",
-    "no database or production auth implementation",
+    "no production auth implementation from archived placeholder",
     "no production readiness claim"
   ],
   "testing_strategy": [

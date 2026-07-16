@@ -781,11 +781,13 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
           export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
+		  export RADISHMIND_WORKFLOW_TOOL_ACTION_DEV="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="memory_dev"
         elif [[ "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
           export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
+		  export RADISHMIND_WORKFLOW_TOOL_ACTION_DEV="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="postgres_dev_test"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
 			export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
@@ -846,6 +848,8 @@ if [[ "${verify_only}" -eq 0 ]]; then
         if [[ "${saved_draft_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE="dev-saved-draft-http"
           export VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE="dev-workflow-executor-http"
+          export VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE="dev-workflow-http-tool-http"
+          export VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS="workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm"
         fi
         if [[ "${workflow_diagnostics_dev}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV="true"
@@ -867,6 +871,8 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL
         unset VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE
         unset VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS
         unset VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE
         unset VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL
         unset VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID

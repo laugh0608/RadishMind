@@ -648,12 +648,14 @@ try {
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE = "1"
                 $env:RADISHMIND_WORKFLOW_EXECUTOR_DEV = "1"
+				$env:RADISHMIND_WORKFLOW_TOOL_ACTION_DEV = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE = "memory_dev"
             }
             elseif ($SavedDraftPostgresDevTest) {
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE = "1"
                 $env:RADISHMIND_WORKFLOW_EXECUTOR_DEV = "1"
+				$env:RADISHMIND_WORKFLOW_TOOL_ACTION_DEV = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE = "postgres_dev_test"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
 				$env:RADISHMIND_WORKFLOW_RUN_STORE = "postgres_dev_test"
@@ -722,6 +724,8 @@ try {
                 if ($savedDraftEnabled) {
                     $env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE = "dev-saved-draft-http"
                     $env:VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE = "dev-workflow-executor-http"
+                    $env:VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE = "dev-workflow-http-tool-http"
+                    $env:VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS = "workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm"
                 }
                 if ($WorkflowDiagnosticsDev) {
                     $env:VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV = "true"
@@ -748,6 +752,8 @@ try {
                 Remove-Item Env:VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL -ErrorAction SilentlyContinue

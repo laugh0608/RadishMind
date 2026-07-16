@@ -58,6 +58,9 @@ func TestWorkflowRunSQLiteStoreFactory(t *testing.T) {
 	if _, ok := newWorkflowEvaluationStoreForRunStore(store).(*memoryWorkflowEvaluationStore); !ok {
 		t.Fatalf("SQLite workflow run selection unexpectedly expanded evaluation persistence: %T", newWorkflowEvaluationStoreForRunStore(store))
 	}
+	if actionStore, ok := newWorkflowHTTPToolActionStoreForRunStore(store).(*sqliteWorkflowHTTPToolActionStore); !ok || actionStore.database != runtime.DB() {
+		t.Fatalf("SQLite tool action store did not share the workflow run database: %T", actionStore)
+	}
 	closeStore()
 	if err := runtime.DB().PingContext(context.Background()); err != nil {
 		t.Fatalf("component close must not own the shared SQLite runtime: %v", err)
@@ -111,11 +114,17 @@ func TestWorkflowEvaluationStoresFollowExplicitRunStoreSelection(t *testing.T) {
 	if _, ok := newWorkflowEvaluationSuiteStoreForRunStore(memoryRunStore).(*memoryWorkflowEvaluationSuiteStore); !ok {
 		t.Fatal("memory_dev suite store selection drifted")
 	}
+	if actionStore, ok := newWorkflowHTTPToolActionStoreForRunStore(memoryRunStore).(*memoryWorkflowHTTPToolActionStore); !ok || actionStore.ownerLock != &memoryRunStore.mu {
+		t.Fatalf("memory tool action store did not share the run owner lock: %T", actionStore)
+	}
 	postgresRunStore := newPostgresWorkflowRunStore(nil)
 	if _, ok := newWorkflowEvaluationStoreForRunStore(postgresRunStore).(*postgresWorkflowEvaluationStore); !ok {
 		t.Fatal("postgres_dev_test case store selection drifted")
 	}
 	if _, ok := newWorkflowEvaluationSuiteStoreForRunStore(postgresRunStore).(*postgresWorkflowEvaluationSuiteStore); !ok {
 		t.Fatal("postgres_dev_test suite store selection drifted")
+	}
+	if actionStore, ok := newWorkflowHTTPToolActionStoreForRunStore(postgresRunStore).(*postgresWorkflowHTTPToolActionStore); !ok || actionStore.pool != postgresRunStore.pool {
+		t.Fatalf("PostgreSQL tool action store did not share the run pool: %T", actionStore)
 	}
 }

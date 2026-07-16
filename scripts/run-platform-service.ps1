@@ -45,6 +45,7 @@ switch ($Profile) {
         Set-DefaultEnvironmentValue -Name "RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE" -Value "1"
         Set-DefaultEnvironmentValue -Name "RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV" -Value "1"
         Set-DefaultEnvironmentValue -Name "RADISHMIND_WORKFLOW_EXECUTOR_DEV" -Value "1"
+		Set-DefaultEnvironmentValue -Name "RADISHMIND_WORKFLOW_TOOL_ACTION_DEV" -Value "1"
     }
     "configured" {}
     default {

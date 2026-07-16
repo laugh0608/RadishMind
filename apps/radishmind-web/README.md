@@ -14,6 +14,7 @@
 - Control Plane live consumer 通过 `VITE_RADISHMIND_READ_AUTH_MODE` 区分 `dev_headers`、`signed_test_token` 与 `radish_oidc_integration_test`。OIDC integration 模式只读取页面内存中的 token provider；consumer 仍请求七条 read route，但只把 Tenant Summary 与 Audit 作为允许成功的数据读取，其余五条 workspace operation 的 `workspace_membership_unavailable` 是预期 fail-closed 结果，不会回退 dev headers、signed token 或 fake repository。
 - Workflow saved draft consumer 独立使用 `VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE=dev-saved-draft-http` 开关；默认仍是 sample-only，显式启用后通过 `POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}` 和 `POST /v1/user-workspace/workflow-drafts/validate` 连接 platform memory dev store。后端仍必须设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 与 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1`，保存还需要 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1`。
 - Workflow Executor v0 独立使用 `VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http`；只有 active draft 是已保存、未修改且通过 bounded graph eligibility 的 executor v0 草案时，才能调用 Platform POST run，随后可用 GET scoped read 回读 record。服务端仍会重新读取并校验草案；Web 预检不构成执行授权。
+- Workflow HTTP Tool action planning 独立使用 `VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE=dev-workflow-http-tool-http`，并通过 `VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS` 显式声明 plan / read / confirm 的可用授权；只有精确已保存、未修改且满足单工具线性拓扑的草案才能创建 action plan。批次 A 的 execute grant 始终不可用且不注册 `/executions`，批准后仍保持网络请求、provider 调用和 Workflow run 创建为 0。
 - Gateway Request History 独立使用 `VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE=dev-gateway-request-history-http`；默认 offline evidence 零请求。显式启用后，现有 Model Gateway Evidence Review 内的独立 lazy panel 读取 `/v1/model-gateway/requests` list / detail，展示 sanitized caller refs、route / protocol、selection、timing、usage availability 和稳定 failure，不回退旧 quota / cost 或 Workflow run fixture。后端必须同时启用 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 与 `RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV=1`。
 - Gateway Playground 使用 `VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE=dev-gateway-playground-http`；默认 offline 零请求。显式启用后可从 Web 调用 Chat Completions、Responses、Messages 的 unary / stream，用户可取消请求并按同一 request id 打开 sanitized history。输入输出只保留在组件内存，不写 URL 或浏览器 storage。
 - Application API Integration 复用同一 Gateway Playground 开关与 caller scope；从当前 Application Detail 主动加载 `/v1/models`，生成 Chat Completions、Responses、Messages 的 cURL / Python / TypeScript 环境变量占位示例，并把当前 application / protocol / model 交给既有 Playground。示例不展示真实 key、hash 或内部 dev caller headers，application 切换会清空旧目录与选择。
@@ -120,7 +121,7 @@ pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -BackendUrl http://127.
 pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -SavedDraftDev -BackendUrl http://127.0.0.1:7100
 ```
 
-该开关会集中设置以下六个环境变量；默认 `dev-live` 仍只打开 fake read consumer，不隐式开放 Saved Draft 写入或 executor：
+该开关会集中设置以下九个环境变量；默认 `dev-live` 仍只打开 fake read consumer，不隐式开放 Saved Draft 写入、executor 或 HTTP Tool action planning：
 
 ```bash
 RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1
@@ -129,9 +130,12 @@ RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1
 VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE=dev-saved-draft-http
 RADISHMIND_WORKFLOW_EXECUTOR_DEV=1
 VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http
+RADISHMIND_WORKFLOW_TOOL_ACTION_DEV=1
+VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE=dev-workflow-http-tool-http
+VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS=workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm
 ```
 
-这些开关只服务本地开发态 Saved Draft 与受控 executor v0；`--saved-draft-postgres-dev-test` 可显式使用 PostgreSQL dev/test repository。两者都不代表 production persistence、production auth 或 production API。
+这些开关只服务本地开发态 Saved Draft、受控 executor v0 与批次 A 的 pre-run HTTP Tool action plan / confirmation；批准不会执行网络请求，也不会创建 Workflow run。`--saved-draft-postgres-dev-test` 可显式使用 PostgreSQL dev/test repository。两者都不代表 production persistence、production auth 或 production API。
 
 Application Configuration Draft 通过独立开关启用；可与 Gateway PostgreSQL dev/test 联调组合使用：
 

@@ -1,0 +1,263 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-http-tool-action-plan.schema.json",
+  "title": "WorkflowHttpToolActionPlanV1",
+  "description": "Durable pre-run action plan projection. It contains no endpoint, header, raw query, credential, DNS result, raw response or run binding.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "plan_id",
+    "record_version",
+    "tenant_ref",
+    "workspace_id",
+    "application_id",
+    "draft_id",
+    "draft_version",
+    "node_id",
+    "tool_id",
+    "tool_version",
+    "definition_digest",
+    "profile_id",
+    "profile_version",
+    "profile_digest",
+    "method",
+    "target_policy_key",
+    "public_arguments",
+    "output_fields",
+    "output_schema_digest",
+    "credential_policy",
+    "timeout_ms",
+    "max_response_bytes",
+    "max_output_bytes",
+    "planned_by_actor_ref",
+    "created_at",
+    "expires_at",
+    "tool_plan_digest",
+    "status",
+    "last_decision_by_actor_ref",
+    "last_decision_at",
+    "audit_ref"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "workflow_http_tool_action_plan.v1"
+    },
+    "plan_id": {
+      "type": "string",
+      "pattern": "^wtap_[a-z0-9]{16,64}$"
+    },
+    "record_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "tenant_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "workspace_id": {
+      "$ref": "#/$defs/scoped_id"
+    },
+    "application_id": {
+      "$ref": "#/$defs/scoped_id"
+    },
+    "draft_id": {
+      "$ref": "#/$defs/scoped_id"
+    },
+    "draft_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "node_id": {
+      "$ref": "#/$defs/scoped_id"
+    },
+    "tool_id": {
+      "$ref": "#/$defs/tool_id"
+    },
+    "tool_version": {
+      "const": 1
+    },
+    "definition_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "profile_id": {
+      "type": "string",
+      "pattern": "^workflow_http_profile_[a-z0-9_]{1,80}$"
+    },
+    "profile_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "profile_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "method": {
+      "const": "GET"
+    },
+    "target_policy_key": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{2,79}$"
+    },
+    "public_arguments": {
+      "$ref": "#/$defs/public_arguments"
+    },
+    "output_fields": {
+      "$ref": "#/$defs/output_fields"
+    },
+    "output_schema_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "credential_policy": {
+      "const": "none"
+    },
+    "timeout_ms": {
+      "type": "integer",
+      "const": 5000
+    },
+    "max_response_bytes": {
+      "type": "integer",
+      "const": 65536
+    },
+    "max_output_bytes": {
+      "type": "integer",
+      "const": 16384
+    },
+    "planned_by_actor_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tool_plan_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "deferred",
+        "approved",
+        "rejected",
+        "canceled",
+        "expired",
+        "invalidated",
+        "consumed"
+      ]
+    },
+    "last_decision_by_actor_ref": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/reference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "last_decision_at": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "audit_ref": {
+      "$ref": "#/$defs/reference"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "pending"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "last_decision_by_actor_ref": {
+            "type": "null"
+          },
+          "last_decision_at": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "last_decision_by_actor_ref": {
+            "$ref": "#/$defs/reference"
+          },
+          "last_decision_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "tool_id": {
+      "type": "string",
+      "pattern": "^workflow\\.http\\.[a-z0-9][a-z0-9._-]*\\.v[0-9]+$",
+      "maxLength": 120
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "reference": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$"
+    },
+    "scoped_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 120,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$"
+    },
+    "public_arguments": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resource_key"
+      ],
+      "properties": {
+        "resource_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^(?![A-Za-z][A-Za-z0-9+.-]*://)[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+        },
+        "locale": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 35,
+          "pattern": "^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$"
+        }
+      }
+    },
+    "output_fields": {
+      "type": "array",
+      "const": [
+        "resource_key",
+        "title",
+        "summary",
+        "updated_at"
+      ]
+    }
+  }
+}

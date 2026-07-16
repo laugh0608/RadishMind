@@ -518,6 +518,9 @@ func runConfiguredPostgresMigrationGate(
 func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
 	_, err := pool.Exec(ctx, `DROP TABLE IF EXISTS
+		workflow_http_tool_confirmation_decisions,
+		workflow_http_tool_execution_audits,
+		workflow_http_tool_action_plans,
 		workflow_evaluation_suite_decisions,
 		workflow_evaluation_suites,
 		workflow_evaluation_case_revisions,
@@ -540,6 +543,9 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 	if err != nil {
 		t.Fatalf("reset configured PostgreSQL schemas: %v", err)
 	}
+	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_workflow_http_tool_append_only_mutation()`); err != nil {
+		t.Fatalf("reset configured PostgreSQL append-only guard: %v", err)
+	}
 }
 
 func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
@@ -559,6 +565,9 @@ func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgx
 		{"saved_workflow_drafts", "sanitized_draft_payload", "jsonb"},
 		{"workflow_run_records", "sanitized_run_record", "jsonb"},
 		{"workflow_run_records", "started_at", "timestamp with time zone"},
+		{"workflow_http_tool_action_plans", "tool_version", "integer"},
+		{"workflow_http_tool_confirmation_decisions", "tool_version", "integer"},
+		{"workflow_http_tool_execution_audits", "tool_version", "integer"},
 	}
 	for _, column := range columns {
 		var actual string
@@ -707,6 +716,9 @@ func assertConfiguredPostgresRepositorySelection(t *testing.T, server *Server) {
 	}
 	if _, ok := server.workflowRunStore.(*postgresWorkflowRunStore); !ok {
 		t.Fatalf("configured workflow run store did not select PostgreSQL: %T", server.workflowRunStore)
+	}
+	if actionStore, ok := server.workflowHTTPToolActionStore.(*postgresWorkflowHTTPToolActionStore); !ok || actionStore.pool != server.workflowRunStore.(*postgresWorkflowRunStore).pool {
+		t.Fatalf("configured workflow tool actions did not share the PostgreSQL pool: %T", server.workflowHTTPToolActionStore)
 	}
 }
 

@@ -48,6 +48,21 @@ import {
   type WorkflowExecutorConsumerState,
 } from "../features/control-plane-read/workflowExecutorConsumer";
 import { WorkflowExecutorPanel } from "../features/control-plane-read/workflowExecutorPanel";
+import {
+  createWorkflowHTTPToolActionPlan,
+  decideWorkflowHTTPToolActionPlan,
+  evaluateWorkflowHTTPToolActionEligibility,
+  initialWorkflowHTTPToolActionConsumerState,
+  readWorkflowHTTPToolActionConsumerConfig,
+  readWorkflowHTTPToolActionPlan,
+  readWorkflowHTTPToolActionPlanReference,
+  rememberWorkflowHTTPToolActionPlanReference,
+  workflowHTTPToolActionPermissions,
+  type WorkflowHTTPToolActionConsumerState,
+  type WorkflowHTTPToolHumanDecision,
+  type WorkflowHTTPToolPublicArguments,
+} from "../features/control-plane-read/workflowHTTPToolActionConsumer";
+import { WorkflowHTTPToolActionPanel } from "../features/control-plane-read/workflowHTTPToolActionPanel";
 import { buildModelGatewayOverviewViewModel } from "../features/control-plane-read/modelGatewayOverview";
 import { ModelGatewayOverviewPanel } from "../features/control-plane-read/modelGatewayOverviewPanel";
 import { buildModelGatewayRouteEvidenceViewModel } from "../features/control-plane-read/modelGatewayRouteEvidence";
@@ -195,6 +210,8 @@ const devLiveConfig = readControlPlaneReadDevLiveConfig();
 const applicationCatalogConfig = readApplicationCatalogConfig();
 const savedDraftConsumerConfig = readWorkflowSavedDraftConsumerConfig();
 const workflowExecutorConsumerConfig = readWorkflowExecutorConsumerConfig();
+const workflowHTTPToolActionConsumerConfig = readWorkflowHTTPToolActionConsumerConfig();
+const workflowHTTPToolPermissions = workflowHTTPToolActionPermissions(workflowHTTPToolActionConsumerConfig);
 const WorkflowRunHistoryPanel = lazy(() => import("../features/control-plane-read/workflowRunHistoryPanel"));
 const WorkflowNodeDesigner = lazy(() => import("../features/control-plane-read/workflowNodeDesigner").then((module) => ({ default: module.WorkflowNodeDesigner })));
 const AdminOperationsReviewPanel = lazy(() => import("../features/control-plane-read/adminOperationsReviewPanel").then((module) => ({ default: module.AdminOperationsReviewPanel })));
@@ -283,8 +300,17 @@ export function App() {
   const [workflowExecutorInput, setWorkflowExecutorInput] = useState(DEFAULT_WORKFLOW_EXECUTOR_INPUT);
   const [workflowExecutorModel, setWorkflowExecutorModel] = useState("");
   const [workflowExecutorConditionValues, setWorkflowExecutorConditionValues] = useState<Record<string, boolean>>({});
+  const [workflowHTTPToolActionState, setWorkflowHTTPToolActionState] = useState<WorkflowHTTPToolActionConsumerState>(() =>
+    initialWorkflowHTTPToolActionConsumerState(workflowHTTPToolActionConsumerConfig),
+  );
+  const [workflowHTTPToolResourceKey, setWorkflowHTTPToolResourceKey] = useState("");
+  const [workflowHTTPToolLocale, setWorkflowHTTPToolLocale] = useState("");
   const workflowExecutorOperationPending =
     workflowExecutorState.status === "starting" || workflowExecutorState.status === "reading";
+  const workflowHTTPToolActionOperationPending =
+    workflowHTTPToolActionState.status === "creating" ||
+    workflowHTTPToolActionState.status === "reading" ||
+    workflowHTTPToolActionState.status === "deciding";
 
   useEffect(() => {
     if (devLiveConfig.mode !== "dev_live_http") {
@@ -518,6 +544,10 @@ export function App() {
     () => evaluateWorkflowExecutorEligibility(activeWorkflowDraft, savedDraftConsumerState, workflowDraftEditDirty),
     [activeWorkflowDraft, savedDraftConsumerState, workflowDraftEditDirty],
   );
+  const workflowHTTPToolActionEligibility = useMemo(
+    () => evaluateWorkflowHTTPToolActionEligibility(activeWorkflowDraft, savedDraftConsumerState, workflowDraftEditDirty),
+    [activeWorkflowDraft, savedDraftConsumerState, workflowDraftEditDirty],
+  );
   const activeWorkflowExecutorConditionValues = useMemo(
     () => Object.fromEntries(
       workflowExecutorEligibility.conditionNodeIds.map((nodeId) => [
@@ -552,6 +582,30 @@ export function App() {
     setWorkflowExecutorState(initialWorkflowExecutorConsumerState(workflowExecutorConsumerConfig));
     setWorkflowExecutorConditionValues({});
   }, [selectedWorkflowDraft.draftId]);
+
+  useEffect(() => {
+    setWorkflowHTTPToolActionState(initialWorkflowHTTPToolActionConsumerState(workflowHTTPToolActionConsumerConfig));
+    setWorkflowHTTPToolResourceKey("");
+    setWorkflowHTTPToolLocale("");
+    if (workflowHTTPToolActionConsumerConfig.mode !== "dev_workflow_http_tool_http") return;
+    const reference = readWorkflowHTTPToolActionPlanReference();
+    if (!reference || reference.workspaceId !== workflowHTTPToolActionConsumerConfig.workspaceId ||
+      reference.applicationId !== selectedWorkflowDraft.applicationRef || reference.draftId !== selectedWorkflowDraft.draftId) return;
+
+    let canceled = false;
+    setWorkflowHTTPToolActionState((state) => ({
+      ...state,
+      status: "reading",
+      summary: "Reloading the durable action plan selected before the page refresh.",
+      failureCode: "",
+    }));
+    readWorkflowHTTPToolActionPlan(workflowHTTPToolActionConsumerConfig, reference).then((state) => {
+      if (!canceled) setWorkflowHTTPToolActionState(state);
+    });
+    return () => {
+      canceled = true;
+    };
+  }, [selectedWorkflowDraft.applicationRef, selectedWorkflowDraft.draftId]);
 
   const markWorkflowDraftLocallyEdited = () => {
     setWorkflowDraftEditDirty(true);
@@ -1185,6 +1239,54 @@ export function App() {
         }));
       });
   };
+  const handleCreateWorkflowHTTPToolActionPlan = (publicArguments: WorkflowHTTPToolPublicArguments) => {
+    if (workflowHTTPToolActionConsumerConfig.mode !== "dev_workflow_http_tool_http" ||
+      !workflowHTTPToolActionEligibility.eligible || workflowHTTPToolActionOperationPending) return;
+    setWorkflowHTTPToolActionState((state) => ({
+      ...state,
+      status: "creating",
+      summary: `Creating an immutable plan from saved draft ${activeWorkflowDraft.draftId} version ${workflowHTTPToolActionEligibility.draftVersion}.`,
+      failureCode: "",
+      confirmationDecision: null,
+    }));
+    createWorkflowHTTPToolActionPlan(workflowHTTPToolActionConsumerConfig, {
+      draftId: activeWorkflowDraft.draftId,
+      applicationId: activeWorkflowDraft.applicationRef,
+      draftVersion: workflowHTTPToolActionEligibility.draftVersion,
+      nodeId: workflowHTTPToolActionEligibility.nodeId,
+      publicArguments,
+    }).then((state) => {
+      if (state.actionPlan) rememberWorkflowHTTPToolActionPlanReference(state.actionPlan);
+      setWorkflowHTTPToolActionState(state);
+    });
+  };
+  const handleReloadWorkflowHTTPToolActionPlan = () => {
+    const plan = workflowHTTPToolActionState.actionPlan;
+    if (!plan || workflowHTTPToolActionOperationPending) return;
+    setWorkflowHTTPToolActionState((state) => ({
+      ...state,
+      status: "reading",
+      summary: `Reloading durable action plan ${plan.planId}.`,
+      failureCode: "",
+      confirmationDecision: null,
+    }));
+    readWorkflowHTTPToolActionPlan(workflowHTTPToolActionConsumerConfig, plan).then(setWorkflowHTTPToolActionState);
+  };
+  const handleWorkflowHTTPToolActionDecision = (decision: WorkflowHTTPToolHumanDecision) => {
+    const plan = workflowHTTPToolActionState.actionPlan;
+    if (!plan || workflowHTTPToolActionOperationPending) return;
+    setWorkflowHTTPToolActionState((state) => ({
+      ...state,
+      status: "deciding",
+      summary: `Recording ${decision} against durable plan version ${plan.recordVersion}.`,
+      failureCode: "",
+      confirmationDecision: null,
+    }));
+    decideWorkflowHTTPToolActionPlan(workflowHTTPToolActionConsumerConfig, plan, decision).then((state) => {
+      if (state.actionPlan) rememberWorkflowHTTPToolActionPlanReference(state.actionPlan);
+      setWorkflowHTTPToolActionState(state);
+    });
+  };
 
   return (
     <main className="product-shell">
@@ -1218,6 +1320,7 @@ export function App() {
             <p className="nav-link-group-label">Workflow Review</p>
             <a href="#workflow-application-detail">Application Detail</a>
             <a href="#workflow-draft-designer">Draft Designer</a>
+            <a href="#workflow-http-tool-action-review">HTTP Tool Review</a>
             <a href="#workflow-executor-v0">Executor v0</a>
             <a href="#workflow-draft-validation-inspector">Draft Validation</a>
             <a href="#workflow-execution-plan-preview">Full-runtime Plan</a>
@@ -1285,8 +1388,12 @@ export function App() {
               value={workflowBlockedActionPreview.canRenderBlockedActionPreview ? "ready" : "blocked"}
             />
             <Fact
-              label="Confirm"
-              value={workflowConfirmationPlaceholder.canRenderConfirmationPlaceholder ? "ready" : "blocked"}
+              label="Legacy confirm"
+              value={workflowConfirmationPlaceholder.canRenderConfirmationPlaceholder ? "archived" : "blocked"}
+            />
+            <Fact
+              label="HTTP Tool plan"
+              value={workflowHTTPToolActionState.mode === "dev_workflow_http_tool_http" ? workflowHTTPToolActionState.status : "disabled"}
             />
             <Fact
               label="Draft"
@@ -1824,7 +1931,7 @@ export function App() {
             savedDraftConflictReviewSummary={savedDraftConflictReviewSummary}
             savedDraftConflictRestoreSummary={savedDraftConflictRestoreSummary}
             draftEditDirty={workflowDraftEditDirty}
-            executorOperationPending={workflowExecutorOperationPending}
+            executorOperationPending={workflowExecutorOperationPending || workflowHTTPToolActionOperationPending}
             onSelectDraft={handleSelectWorkflowDraft}
             onUpdateDraftLabel={handleWorkflowDraftLabelChange}
             onUpdateDraftSummary={handleWorkflowDraftSummaryChange}
@@ -1850,6 +1957,19 @@ export function App() {
             onValidateDraft={handleValidateWorkflowDraft}
             onSaveDraft={handleSaveWorkflowDraft}
             onReadDraft={handleReadWorkflowDraft}
+          />
+          <WorkflowHTTPToolActionPanel
+            draft={activeWorkflowDraft}
+            consumerState={workflowHTTPToolActionState}
+            eligibility={workflowHTTPToolActionEligibility}
+            permissions={workflowHTTPToolPermissions}
+            resourceKey={workflowHTTPToolResourceKey}
+            locale={workflowHTTPToolLocale}
+            onResourceKeyChange={setWorkflowHTTPToolResourceKey}
+            onLocaleChange={setWorkflowHTTPToolLocale}
+            onCreatePlan={handleCreateWorkflowHTTPToolActionPlan}
+            onReloadPlan={handleReloadWorkflowHTTPToolActionPlan}
+            onDecision={handleWorkflowHTTPToolActionDecision}
           />
           <WorkflowExecutorPanel
             draft={activeWorkflowDraft}
@@ -2768,7 +2888,7 @@ function WorkflowBlockedActionPreviewPanel({ preview }: { preview: WorkflowBlock
         <article className="workflow-blocked-action-card">
           <span>Risk</span>
           <strong>{preview.riskLevel}</strong>
-          <p>{preview.requiresConfirmation ? "future human review required" : "read-only metadata"}</p>
+          <p>{preview.requiresConfirmation ? "archived confirmation metadata" : "read-only metadata"}</p>
         </article>
       </div>
 
@@ -2839,7 +2959,7 @@ function WorkflowConfirmationPlaceholderCard({
           <p className="eyebrow">{placeholder.confirmationPlaceholderId}</p>
           <h5>{placeholder.requiredActionRef}</h5>
         </div>
-        <StatusBadge tone="bad">{placeholder.humanReviewRequired ? "review required" : "read-only"}</StatusBadge>
+        <StatusBadge tone="neutral">archived legacy · read-only</StatusBadge>
       </div>
       <p>{placeholder.riskSummary}</p>
       <div className="workflow-confirmation-shape" aria-label="Workflow confirmation placeholder decision shape">
@@ -2874,12 +2994,10 @@ function WorkflowConfirmationPlaceholderPanel({
     >
       <div className="section-heading compact-heading">
         <div>
-          <p className="eyebrow">Confirmation Placeholder</p>
+          <p className="eyebrow">Archived Legacy Confirmation</p>
           <h4>{placeholder.confirmationPlaceholderId}</h4>
         </div>
-        <StatusBadge tone={placeholder.canRenderConfirmationPlaceholder ? "bad" : "neutral"}>
-          {placeholder.humanReviewRequired ? "human review required later" : "read-only"}
-        </StatusBadge>
+        <StatusBadge tone="neutral">{placeholder.legacyContractStatus}</StatusBadge>
       </div>
 
       <div className="workflow-confirmation-summary-grid" aria-label="Workflow confirmation placeholder summary">
@@ -2923,6 +3041,14 @@ function WorkflowConfirmationPlaceholderPanel({
           <div>
             <dt>Audit</dt>
             <dd>{placeholder.auditRef}</dd>
+          </div>
+          <div>
+            <dt>Legacy contract</dt>
+            <dd>{placeholder.legacyContractStatus} · historical read only</dd>
+          </div>
+          <div>
+            <dt>Superseded by</dt>
+            <dd>{placeholder.supersededBy.join(", ")}</dd>
           </div>
         </dl>
       </article>
@@ -2983,7 +3109,7 @@ function WorkflowConfirmationDecisionFieldCard({ field }: { field: WorkflowConfi
           <p className="eyebrow">{field.fieldId}</p>
           <h5>{field.label}</h5>
         </div>
-        <StatusBadge tone={field.required ? "bad" : "neutral"}>{field.required ? "required later" : "optional"}</StatusBadge>
+        <StatusBadge tone="neutral">{field.required ? "historical required field" : "historical optional field"}</StatusBadge>
       </div>
       <p>{field.source}</p>
     </article>
@@ -3259,7 +3385,7 @@ function WorkflowDefinitionBlockedActionPreviewCard({
         </div>
         <div>
           <dt>Confirmation</dt>
-          <dd>{preview.requiresConfirmation ? "required later" : "not required"}</dd>
+          <dd>{preview.requiresConfirmation ? "legacy requirement only" : "not required"}</dd>
         </div>
         <div>
           <dt>Audit</dt>

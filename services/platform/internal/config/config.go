@@ -121,6 +121,8 @@ type Config struct {
 	APIKeyDatabaseTimeout                time.Duration
 	GatewayAuthMode                      string
 	WorkflowExecutorDevEnabled           bool
+	WorkflowToolActionDevEnabled         bool
+	WorkflowHTTPToolExecutionDevEnabled  bool
 	WorkflowDiagnosticsDevEnabled        bool
 	GatewayRequestHistoryDevEnabled      bool
 	GatewayRequestStoreMode              string
@@ -176,6 +178,8 @@ type ConfigSummary struct {
 	APIKeyDatabaseConfigured             bool              `json:"api_key_database_configured"`
 	GatewayAuthMode                      string            `json:"gateway_auth_mode"`
 	WorkflowExecutorDevEnabled           bool              `json:"workflow_executor_dev_enabled"`
+	WorkflowToolActionDevEnabled         bool              `json:"workflow_tool_action_dev_enabled"`
+	WorkflowHTTPToolExecutionDevEnabled  bool              `json:"workflow_http_tool_execution_dev_enabled"`
 	WorkflowDiagnosticsDevEnabled        bool              `json:"workflow_diagnostics_dev_enabled"`
 	GatewayRequestHistoryDevEnabled      bool              `json:"gateway_request_history_dev_enabled"`
 	GatewayRequestStoreMode              string            `json:"gateway_request_store_mode"`
@@ -347,6 +351,8 @@ func defaultConfig() Config {
 			"api_key_database_timeout":              configSourceDefault,
 			"gateway_auth_mode":                     configSourceDefault,
 			"workflow_executor_dev":                 configSourceDefault,
+			"workflow_tool_action_dev":              configSourceDefault,
+			"workflow_http_tool_execution_dev":      configSourceDefault,
 			"workflow_diagnostics_dev":              configSourceDefault,
 			"gateway_request_history_dev":           configSourceDefault,
 			"gateway_request_store":                 configSourceDefault,
@@ -762,6 +768,22 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.WorkflowExecutorDevEnabled = parsed
 		cfg.FieldSources["workflow_executor_dev"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_TOOL_ACTION_DEV"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_TOOL_ACTION_DEV", value)
+		if err != nil {
+			return err
+		}
+		cfg.WorkflowToolActionDevEnabled = parsed
+		cfg.FieldSources["workflow_tool_action_dev"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_HTTP_TOOL_EXECUTION_DEV"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_HTTP_TOOL_EXECUTION_DEV", value)
+		if err != nil {
+			return err
+		}
+		cfg.WorkflowHTTPToolExecutionDevEnabled = parsed
+		cfg.FieldSources["workflow_http_tool_execution_dev"] = configSourceEnv
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV"); ok {
 		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV", value)
 		if err != nil {
@@ -973,6 +995,11 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_saved_draft_dev_http")
 	}
+	if cfg.WorkflowToolActionDevEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "workflow_saved_draft_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
+	}
 	if cfg.GatewayRequestHistoryDevEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 	}
@@ -1030,6 +1057,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		APIKeyDatabaseConfigured:             strings.TrimSpace(cfg.APIKeyDatabaseURL) != "",
 		GatewayAuthMode:                      gatewayAuthMode,
 		WorkflowExecutorDevEnabled:           cfg.WorkflowExecutorDevEnabled,
+		WorkflowToolActionDevEnabled:         cfg.WorkflowToolActionDevEnabled,
+		WorkflowHTTPToolExecutionDevEnabled:  cfg.WorkflowHTTPToolExecutionDevEnabled,
 		WorkflowDiagnosticsDevEnabled:        cfg.WorkflowDiagnosticsDevEnabled,
 		GatewayRequestHistoryDevEnabled:      cfg.GatewayRequestHistoryDevEnabled,
 		GatewayRequestStoreMode:              gatewayRequestStoreMode,
@@ -1555,6 +1584,12 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 		if !strings.EqualFold(strings.TrimSpace(cfg.Provider), "mock") {
 			return fmt.Errorf("workflow diagnostics dev requires mock provider")
 		}
+	}
+	if cfg.WorkflowToolActionDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled || !cfg.WorkflowExecutorDevEnabled) {
+		return fmt.Errorf("workflow tool action dev requires control plane read dev auth, saved workflow draft dev HTTP, and workflow executor dev")
+	}
+	if cfg.WorkflowHTTPToolExecutionDevEnabled {
+		return fmt.Errorf("workflow HTTP tool execution dev is unavailable before implementation batch B")
 	}
 	switch strings.TrimSpace(cfg.WorkflowRunStoreMode) {
 	case "", "memory_dev", "repository_disabled", "repository":

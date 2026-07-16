@@ -39,7 +39,7 @@
     "production_api_consumer_allowed_now": false,
     "write_allowed_now": false,
     "executor_allowed_now": false,
-    "confirmation_decision_allowed_now": false,
+    "legacy_run_bound_confirmation_decision_allowed_now": false,
     "business_writeback_allowed_now": false,
     "replay_allowed_now": false
   },
@@ -188,8 +188,15 @@
     },
     {
       "id": "confirmation-placeholder",
-      "status": "placeholder_surface_defined",
-      "source_policy": "offline_fixture_or_future_fake_store_dev_path_only",
+      "status": "superseded_archived_placeholder_surface",
+      "source_policy": "archived_offline_fixture_only",
+      "historical_read_allowed": true,
+      "new_submission_allowed": false,
+      "runtime_authoritative": false,
+      "superseded_by": [
+        "workflow_http_tool_action_plan.v1",
+        "workflow_http_tool_confirmation_decision.v1"
+      ],
       "required_fields": [
         "confirmation_placeholder_id",
         "required_action_ref",
@@ -215,7 +222,7 @@
         "can_replay": false,
         "can_decide_confirmation": false
       },
-      "boundary": "Confirmation placeholder only previews future decision data; this slice does not submit, persist or unlock confirmation decisions."
+      "boundary": "This run-bound placeholder remains readable only as archived historical evidence; it cannot submit, persist or unlock a decision and is superseded by the independent pre-run action-plan confirmation resource."
     }
   ],
   "draft_route_matrix": [
@@ -256,7 +263,7 @@
       "draft_route_id": "confirmation-placeholder-read-draft",
       "method": "GET",
       "path_template": "/v1/user-workspace/runs/{run_id}/confirmations/{confirmation_placeholder_id}",
-      "contract_status": "draft_only_no_api",
+      "contract_status": "archived_legacy_read_only_no_api",
       "implemented_now": false
     }
   ],
@@ -273,7 +280,7 @@
       "blocked_writeback_forbidden"
     ],
     "tool_action_preview_default_state": "blocked_executor_not_available",
-    "confirmation_placeholder_default_state": "blocked_confirmation_required",
+    "confirmation_placeholder_default_state": "superseded_archived",
     "requires_confirmation_must_be_visible": true,
     "policy_reason_must_be_visible": true
   },
@@ -336,23 +343,23 @@
   ],
   "no_side_effect_policy": {
     "side_effect_counters_must_remain": [
-      "runtime_api_added_count=0",
+      "legacy_placeholder_runtime_api_added_count=0",
       "executor_call_count=0",
       "tool_execution_count=0",
-      "confirmation_decision_count=0",
+      "legacy_run_bound_confirmation_decision_submission_count=0",
       "business_writeback_count=0",
       "replay_call_count=0",
-      "database_write_count=0"
+      "legacy_placeholder_database_write_count=0"
     ],
     "forbidden_side_effects": [
       "workflow_execution",
       "node_execution",
       "tool_execution",
-      "confirmation_decision",
+      "legacy_run_bound_confirmation_decision_submission",
       "business_writeback",
       "run_replay",
       "run_resume",
-      "database_write",
+      "legacy_placeholder_database_write",
       "secret_write"
     ]
   },
@@ -360,26 +367,25 @@
     "type WorkflowExecutor interface",
     "func ExecuteWorkflow",
     "func ReplayWorkflowRun",
-    "func SubmitConfirmationDecision",
+    "func SubmitRunBoundConfirmationDecision",
     "func WriteBusinessTruth",
-    "canExecuteWorkflow: true",
-    "canMutate: true",
-    "canWriteBusinessTruth: true",
+    "legacyRunBoundConfirmationSubmissionEnabled: true",
+    "submitLegacyRunBoundConfirmationDecision",
     "workflow_executor_ready"
   ],
   "stop_lines": [
-    "no new runtime API",
+    "no new runtime API from archived placeholder",
     "no workflow builder",
     "no workflow definition mutation",
     "no workflow executor",
     "no node executor",
     "no tool executor",
-    "no confirmation decision",
+    "no legacy run-bound confirmation decision submission",
     "no business writeback",
     "no replay or resume",
     "no durable run store",
     "no materialized result reader",
-    "no database or production auth implementation",
+    "no production auth implementation from archived placeholder",
     "no production readiness claim"
   ],
   "evidence": [

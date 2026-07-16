@@ -40,6 +40,7 @@ type Server struct {
 	applicationCatalogRepository          applicationCatalogRepository
 	apiKeyRepository                      apiKeyRepository
 	workflowRunStore                      workflowRunStore
+	workflowHTTPToolActionStore           workflowHTTPToolActionStore
 	workflowEvaluationStore               workflowEvaluationStore
 	workflowEvaluationSuiteStore          workflowEvaluationSuiteStore
 	gatewayRequestHistoryStore            gatewayRequestStore
@@ -149,6 +150,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		applicationCatalogRepository:          applicationCatalogRepository,
 		apiKeyRepository:                      apiKeyRepository,
 		workflowRunStore:                      workflowRunStore,
+		workflowHTTPToolActionStore:           newWorkflowHTTPToolActionStoreForRunStore(workflowRunStore),
 		workflowEvaluationStore:               newWorkflowEvaluationStoreForRunStore(workflowRunStore),
 		workflowEvaluationSuiteStore:          newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
 		gatewayRequestHistoryStore:            gatewayRequestStore,
@@ -203,6 +205,9 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationPublishCandidateReadRoute, server.handleReadApplicationPublishCandidate)
 	mux.HandleFunc(applicationPublishCandidateReviewRoute, server.handleReviewApplicationPublishCandidate)
 	mux.HandleFunc(workflowExecutorStartRoute, server.handleStartWorkflowRun)
+	mux.HandleFunc(workflowHTTPToolPlanCreateRoute, server.handleCreateWorkflowHTTPToolActionPlan)
+	mux.HandleFunc(workflowHTTPToolPlanReadRoute, server.handleReadWorkflowHTTPToolActionPlan)
+	mux.HandleFunc(workflowHTTPToolDecisionRoute, server.handleDecideWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowRunListRoute, server.handleListWorkflowRuns)
 	mux.HandleFunc(workflowRunReadRoute, server.handleReadWorkflowRun)
 	mux.HandleFunc(workflowRunComparisonRoute, server.handleCompareWorkflowRuns)
