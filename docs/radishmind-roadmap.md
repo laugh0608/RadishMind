@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-07-15
+更新时间：2026-07-16
 
 ## 文档职责
 
@@ -55,11 +55,11 @@
 
 ## 当前执行顺位
 
-1. 产品线：工作流审查、Gateway 请求审查、用户工作区应用接入 / 配置 / 发布 / 目录 / API 密钥，以及本地 SQLite 与 PostgreSQL 开发测试态证据链均已关闭。下一项回到 Workflow 安全执行主线，先建立“Workflow 受控 HTTP Tool 与人工确认执行（开发/测试态）v1”功能设计并完成边界评审，通过后再拆 API、schema 与执行边界实现批次。
-2. 工程线：`R2` 至 `R5` 已完成。`R6` 前五批已完成入口文档、Session / Tooling、Image Path 与 Control Plane Read 活动门禁收敛；入口不再重复保存功能 fixture、readiness 流水和完整运行配置。Control Plane Read 只退出已有 Go 行为与跨端消费证据承接的八项早期静态检查，formal UI 与页面链因 TypeScript 行为覆盖不足继续活动。
+1. 产品线：工作流审查、Gateway 请求审查、用户工作区应用接入 / 配置 / 发布 / 目录 / API 密钥，以及本地 SQLite 与 PostgreSQL 开发测试态证据链均已关闭。“Workflow 受控 HTTP Tool 与人工确认执行（开发/测试态）v1”功能设计与边界评审已经完成；下一项只按该设计创建一个高风险实现任务卡，先建立持久 action plan / confirmation 生命周期，再进入真实受控 HTTP 执行。
+2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；production secret backend、process supervisor、部署环境隔离、console production packaging、生产认证、生产 API key、quota 和 billing 继续为 `not_satisfied`。
-5. 下一工程批做 R6 关闭评审：复算活动 checker / task card 的收敛幅度，并逐项确认 Provider、Production Ops 与保留 formal UI 门禁是否有等价行为证据；没有证据就保持现状，不自动删除历史 fixture，也不新建同层治理入口。
+5. 当前没有独立工程整改批次；后续只在真实功能实现中复用、补强或替代相关行为证据，不自动删除历史 fixture，也不新建同层治理入口。
 
 ## 权威入口
 

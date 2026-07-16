@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-07-15
+更新时间：2026-07-16
 
 ## 核心定义
 
@@ -104,7 +104,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 - 承载 Prompt、LLM、HTTP tool、RAG retrieval、condition、output、后续受控 code / sandbox 与 agent loop。
 - 每次运行都应有 trace、输入输出摘要、成本、错误分类和风险边界。
 - `workflow-definition-run-record-boundary` 继续定义 workflow definition、run record、node execution、tool audit、result materialization、confirmation decision、状态流转、失败分类、审计证据和停止线；当前 executor v0 只实现开发测试态 Prompt / LLM / condition / output 与持久运行历史，tool、confirmation、writeback 和 replay 仍未实现。
-- `Workflow / Agent Runtime Function Surface v1` 的离线审查面、Draft Designer、Review Handoff 与 Node Designer 已完成；Saved Draft 具备 memory / SQLite / PostgreSQL 开发测试态持久化、冲突恢复与重启复验，executor v0 具备受控运行、持久历史、失败审查、运行比较和评测审查。下一项先设计受控 HTTP Tool 与人工确认执行，不能从既有 placeholder、readiness 或 executor v0 直接解锁高风险动作。
+- `Workflow / Agent Runtime Function Surface v1` 的离线审查面、Draft Designer、Review Handoff 与 Node Designer 已完成；Saved Draft 具备 memory / SQLite / PostgreSQL 开发测试态持久化、冲突恢复与重启复验，executor v0 具备受控运行、持久历史、失败审查、运行比较和评测审查。受控 HTTP Tool 与人工确认执行已完成功能设计和边界评审；下一项从该设计创建一个高风险实现任务卡，不能从既有 placeholder、readiness 或 executor v0 直接解锁高风险动作。
 - 上层挂载点未成熟时，workflow 产品面继续先做离线草案设计、结构检查、execution plan preview、readiness 展示、场景解释、review workspace 和 blocked capability 说明；这些产品能力应复用未来真实接入所需的 canonical contract 和停止线，而不是等待 `RadishFlow` 或 `Radish` 提供承接入口后才开始。
 - 高风险 tool/action 默认 `requires_confirmation`，不得直接写上层业务真相源。
 
@@ -161,7 +161,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 ## 当前阶段判断
 
 - 当前成熟度统一称为“内部开发者预览”，不再复用历史 `M2` 编号。2026-07-11 起，当前执行以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 为准；旧 storage adapter readiness 的下一依赖只作为历史证据。
-- R3 浏览器审查闭环、Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning、Evaluation Suite / Release Review、Gateway Request History / Playground、Application API Integration / Configuration / Publish Governance 与 Application Catalog 均已完成。[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已实现签发、一次性交接、管理端吊销、Gateway 作用域认证、请求历史与最近使用更新，并通过七组件 SQLite 本地产品链和 PostgreSQL migration / 角色 / 方言 / 并发专项门禁；下一项为 API 密钥 Web 一次性交接与浏览器连续验收。production repository mode、真实 OIDC、production secret、tool / confirmation / writeback / replay、production API key、quota enforcement / billing 和公开生产 API 仍保持关闭。
+- R3 浏览器审查闭环、Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning、Evaluation Suite / Release Review、Gateway Request History / Playground、Application API Integration / Configuration / Publish Governance 与 Application Catalog 均已完成。[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已完成签发、一次性交接、管理端吊销、Gateway 作用域认证、请求历史、最近使用更新、七组件 SQLite 本地产品链、PostgreSQL 专项门禁、Web 连续验收与重启复验。R6 也已通过关闭评审；当前下一项是从 [Workflow 受控 HTTP Tool 与人工确认执行（开发/测试态）v1](features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 的已评审设计拆分高风险实现任务。production repository mode、真实 OIDC、production secret、业务写回 / replay、production API key、quota enforcement / billing 和公开生产 API 仍保持关闭。
 - 历史上的 `M3` service/API smoke 与 `M4` broader review、`3B/4B` capacity review 已经收口为冻结证据。
 - 当前正式主线切换为“AI 工具 / 工作流 / 模型网关 / Copilot 集成平台重定义 + 平台基础能力建设”，不再把“继续深挖同一批实验”或“提前设计不存在的真实接线”当作默认推进方式。
 - 当前 `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已收口为 `local usable / read-only close`：已用 `/v1/platform/overview`、`/v1/platform/local-smoke`、overview / local-smoke consumer smoke、最小本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist 固定本地 console 可展示能力与未满足的生产前置条件。`Production Ops Hardening v1` 已进一步固定 Docker local/test/prod 部署形态、compose 边界、镜像命名、静态 smoke、runbook 和运行记录模板，并完成一次 `docker_local` container smoke；`Provider Runtime & Health v1` 已固定 capability / health / selection / docs 四个可检查切片并进入 close candidate。2026-06-14 阶段评估后，默认停止继续扩同层只读 UI / gate-only 切片；Image Path 的 metadata-only response builder 接线和 Control Plane Read 的 repository interface + fake store interface 化均已完成，后续产品范围按功能设计文档选择单一实现方向，不在无运行窗口时继续补 console 小切片、provider 同层小切片、Production Ops 静态治理、真实模型长跑或假想上层接线。

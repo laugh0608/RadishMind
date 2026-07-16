@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-07-15
+更新时间：2026-07-16
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,17 +12,18 @@
 
 ## 当前活跃任务
 
-1. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R5 已完成；R6 前五批已收敛入口文档、Session / Tooling、Image Path 与 Control Plane Read 活动门禁。Control Plane Read 八项早期静态检查退出，formal UI 与页面链因缺少完整 TypeScript 行为覆盖继续活动；下一工程批做 R6 关闭评审，不自动清理 Provider 或 Production Ops。
+当前没有已经准入的实现任务卡。[Workflow 受控 HTTP Tool 与人工确认执行（开发/测试态）v1](../features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 已完成功能设计与边界评审；下一步先根据该设计创建一个高风险实现任务卡，不在任务卡出现前修改 executor API / schema 或执行真实工具。
 
 ## 最近关闭任务
 
-1. [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1-plan.md)：领域、Gateway 认证、双数据库门禁、Web 一次性交接、调试台内存交接、吊销与浏览器连续验收均已完成。
-2. [本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1-plan.md)：S1、S2 与 S3 双数据库后端证据已完成；后续浏览器验收已随 API 密钥 Web 批次统一执行。
-3. [用户工作区应用目录与生命周期（开发/测试态）v1](application-catalog-lifecycle-dev-test-v1-plan.md)：核心生命周期、作用域 API、独立 PostgreSQL 开发测试态持久化、Web 管理和真实浏览器连续验收均已完成。
+1. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R2 至 R6 均已完成；R6 关闭评审保留仍有独立证据责任的 Provider、Production Ops 与 Control Plane formal UI 门禁，不派生第六条清理链。
+2. [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1-plan.md)：领域、Gateway 认证、双数据库门禁、Web 一次性交接、调试台内存交接、吊销与浏览器连续验收均已完成。
+3. [本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1-plan.md)：S1、S2 与 S3 双数据库后端证据已完成；后续浏览器验收已随 API 密钥 Web 批次统一执行。
+4. [用户工作区应用目录与生命周期（开发/测试态）v1](application-catalog-lifecycle-dev-test-v1-plan.md)：核心生命周期、作用域 API、独立 PostgreSQL 开发测试态持久化、Web 管理和真实浏览器连续验收均已完成。
 
 R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、[Evaluation Cases / Batch Regression Review](workflow-evaluation-cases-batch-regression-review-v1-plan.md)、[Baseline / Case Versioning](workflow-evaluation-baseline-case-versioning-v1-plan.md) 与 [Evaluation Suite / Release Review](workflow-evaluation-suite-release-review-v1-plan.md) 已于 2026-07-11 完成。Model Gateway Request History / Usage & Failure Review v1、User Workspace Application API Integration & Invocation v1、Application Configuration Draft & Review v1 和 Application Publish Governance & Promotion v1 已完成实现与验证；不恢复旧 storage adapter readiness 链，也不派生新的 Gateway / executor / run store gate-only readiness 链。
 
-当前没有活跃的 Production Secret Backend / Storage Adapter readiness 任务卡。下方既有任务卡均按历史完成、冻结或外部阻塞证据读取，不表示当前排期；下一产品目标先在 Workflow 功能专题中设计受控 HTTP Tool 与人工确认执行，边界评审通过前不创建实现任务卡。
+当前没有活跃的 Production Secret Backend / Storage Adapter readiness 任务卡。下方既有任务卡均按历史完成、冻结或外部阻塞证据读取，不表示当前排期；下一产品任务只从已完成边界评审的 Workflow 受控 HTTP Tool 功能设计拆分，不恢复旧 readiness 链。
 
 当前已冻结的应用面任务：
 
@@ -330,7 +331,7 @@ R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run
 使用原则：
 - 任务卡定义的是任务边界、最小输入、输出要求和评测口径，不等同于最终实现代码
 - 前置条件型任务卡定义的是当前不能继续前推的阻塞项、已有门禁和后续触发条件，不等同于已经完成上层接线
-- 当前只有 R6 关闭评审属于活跃工程任务；下一产品目标先更新 Workflow 功能设计，确认工具权威来源、网络与凭据边界、人工确认状态机、幂等、scope / audit、运行记录和失败语义后，才按高风险能力规则创建实现任务卡；历史离线 surface 与 readiness 任务卡不恢复为当前顺位
+- R6 已关闭，当前没有已经准入的实现任务卡；下一项只能从 Workflow 受控 HTTP Tool 功能设计拆出一个高风险实现任务卡，历史离线 surface 与 readiness 任务卡不恢复为当前顺位
 - 任务卡与 [跨项目集成契约](../radishmind-integration-contracts.md) 和 [真实契约文件](../../contracts/README.md) 保持一致
 - 若未来实现发现字段命名或结构需要调整，应先同步更新任务卡和契约，再改实现
 - 当前阶段优先保证“状态优先、结构化输出、显式风险分级，以及对会写回真相源的动作保留人工确认”

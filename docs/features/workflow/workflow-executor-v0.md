@@ -1,6 +1,6 @@
 # Workflow Executor v0
 
-更新时间：2026-07-11
+更新时间：2026-07-16
 
 状态：`workflow_executor_v0_implemented`
 
@@ -111,7 +111,7 @@ run 状态为 `running`、`succeeded`、`failed`、`canceled`；节点状态为 
 
 ## Run record
 
-run record schema 固定为 `workflow_run_record.v0`，至少包含：
+当前新 run record schema 固定为 `workflow_run_record.v1`，历史 `workflow_run_record.v0` 继续可读；两者至少包含：
 
 - `run_id`、`draft_id`、`draft_version`、workspace / application scope。
 - `status`、`failure_code`、sanitized `failure_summary`、`started_at`、`completed_at`。
@@ -174,4 +174,4 @@ Web 在 Draft Designer 下方提供单独的 Executor v0 区域：
 
 ## 后续顺位
 
-Run History、Failure Review、Run Comparison、[Workflow Evaluation Cases / Batch Regression Review v1](workflow-evaluation-cases-batch-regression-review-v1.md)、[Baseline / Case Versioning v1](workflow-evaluation-baseline-case-versioning-v1.md) 与 [Evaluation Suite / Release Review v1](workflow-evaluation-suite-release-review-v1.md) 已完成。suite decision 只是审查证据，不解锁 executor 或发布；tool 与 confirmation 必须作为独立高风险功能设计推进，不能在 v0 上直接放开。
+Run History、Failure Review、Run Comparison、[Workflow Evaluation Cases / Batch Regression Review v1](workflow-evaluation-cases-batch-regression-review-v1.md)、[Baseline / Case Versioning v1](workflow-evaluation-baseline-case-versioning-v1.md) 与 [Evaluation Suite / Release Review v1](workflow-evaluation-suite-release-review-v1.md) 已完成。[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) 也已通过边界评审；下一项从该设计创建一个高风险实现任务卡，并通过独立 action plan / confirmation 和 `workflow_run_record.v2` 增量实现，不能在 executor v0 或通用 Tooling v1 上直接放开。

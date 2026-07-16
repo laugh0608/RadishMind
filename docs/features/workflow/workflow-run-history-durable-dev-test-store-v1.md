@@ -1,14 +1,14 @@
 # Workflow Run History / Durable Dev-Test Run Store v1
 
-更新时间：2026-07-14
+更新时间：2026-07-16
 
 状态：`workflow_run_history_durable_dev_test_store_v1_sqlite_repository_completed`
 
 ## 功能目标
 
-让内部开发者在 Workspace Run History 中审查真实 executor v0 运行历史，并在显式 PostgreSQL 开发 / 测试模式下跨平台服务重启恢复运行记录。该能力延续 `workflow_run_record.v0` 和 `/v1/user-workspace/workflow-runs` 资源族，不把旧 fake `/v1/user-workspace/runs` 作为运行真相源。
+让内部开发者在 Workspace Run History 中审查真实 executor v0 运行历史，并在显式 SQLite / PostgreSQL 开发测试模式下跨平台服务重启恢复运行记录。当前新记录使用 `workflow_run_record.v1`，历史 `workflow_run_record.v0` 继续可读；两者共用 `/v1/user-workspace/workflow-runs` 资源族，不把旧 fake `/v1/user-workspace/runs` 作为运行真相源。
 
-本专题只扩展历史读取、受限记录持久化与执行可观测性。tool、RAG、confirmation commit、业务写回、replay / resume、生产身份和 production enablement 继续关闭。
+本专题只扩展 v0 / v1 历史读取、受限记录持久化与执行可观测性，不在本专题中放开 tool、RAG、confirmation、业务写回、replay / resume、生产身份或 production enablement。HTTP Tool 与 confirmation 只能按独立的已评审专题升级到 `workflow_run_record.v2`，不能放宽本专题的 v0 / v1 契约。
 
 ## 用户路径
 
@@ -78,7 +78,7 @@ SQLite 使用独立 STRICT `workflow_run_records` 表，主键仍为 tenant、wo
 
 开始与完成时间使用 UTC Unix 纳秒整数，超出纳秒可表达范围的时间拒绝写入；排序固定为 `started_at_unix_nano DESC, run_id DESC`，时间区间、stale running 与游标均使用物理整数列。create 只接受 version 0 的 `running` 记录并写为 version 1；update 必须同时命中完整 scope、run id、预期版本、原始开始时间和 `running` 状态，再由数据库原子递增版本。终态不可逆，不以进程锁替代数据库 CAS。
 
-本批只持久化工作流运行记录，不把 PostgreSQL migration 中的 evaluation case、revision、suite 或 release decision 扩入 SQLite。聚合 `sqlite_dev`、跨平台本地启动档和连续 HTTP 产品链后续均已完成；PostgreSQL migration、运行角色、tuple pagination、多连接并发、重启恢复和 no-fallback 也已由真实数据库门禁复验。下一项只进入 API 密钥 Web 一次性交接与浏览器连续验收，不扩张运行历史职责。
+本批只持久化工作流运行记录，不把 PostgreSQL migration 中的 evaluation case、revision、suite 或 release decision 扩入 SQLite。聚合 `sqlite_dev`、跨平台本地启动档、连续 HTTP 产品链、PostgreSQL 专项门禁、API 密钥 Web 一次性交接和浏览器重启复验均已完成。本专题职责保持关闭；后续 run v2 只由受控 HTTP Tool 高风险任务卡增量设计与验证。
 
 开发 / 测试 v1 不在请求路径自动删除记录。默认保留策略声明为 30 天、每 scope 最多 10,000 条，由后续显式维护命令承接；本批 schema 和查询必须支持 `completed_at / started_at` 保留索引，但不实现后台清理 goroutine。超过策略的环境应由操作者清理或重建 disposable 数据库，不得在 list 时隐式删除。
 
@@ -89,7 +89,7 @@ SQLite 使用独立 STRICT `workflow_run_records` 表，主键仍为 tenant、wo
 - credential、secret ref 解引用结果、endpoint、DSN 或 provider raw envelope / raw error。
 - tool payload/result、confirmation decision、业务写回 payload、checkpoint、replay / resume state。
 
-允许持久化 `workflow_run_record.v0` 的 sanitized node preview 和最终 advisory output，分别受 512 字符和 16 KiB 预算约束。失败摘要只能来自稳定 allowlist 文案。`tool_calls`、`confirmation_calls`、`business_writes`、`replay_writes` 必须持续为 0；repository 在写入前复核这些计数和 record schema，违反时 fail closed。
+允许持久化 `workflow_run_record.v0` / `workflow_run_record.v1` 的 sanitized node preview 和最终 advisory output，分别受 512 字符和 16 KiB 预算约束。失败摘要只能来自稳定 allowlist 文案。对 v0 / v1，`tool_calls`、`confirmation_calls`、`business_writes`、`replay_writes` 必须持续为 0；repository 在写入前复核计数和 record schema，违反时 fail closed。未来 v2 必须通过新 migration 和版本专属 validator 增量支持，不能改写本约束。
 
 ## Schema 与 migration
 
@@ -151,13 +151,13 @@ services/platform/migrations/workflow_runs/
 - 浏览器截图保存在本地 `output/playwright/workflow-run-history-durable-dev-test/`，不作为 committed 真相源；复验后已关闭浏览器、Platform / Web 与 PostgreSQL 容器和网络。
 - 已新增独立 SQLite migration、STRICT 表和 `sqlite_dev` run store；memory、SQLite 与 PostgreSQL 复用同一严格 JSON 编解码、领域校验、完整 scope、筛选、稳定 keyset 顺序、版本 CAS 和终态不可逆语义。
 - SQLite 专项验证覆盖等时刻 run id 排序、完整 scope 隔离、16 路终态单写者、真实 executor 运行、重启恢复、关闭不回退、marker mismatch、未知 document 字段、物理列漂移、损坏记录无部分列表、原始输入禁入和超出纳秒范围时间拒绝。evaluation case / suite 未扩入 SQLite。
-- S2 第七组 repository、聚合 shared runtime、跨平台本地启动档、SQLite 连续产品链与 PostgreSQL 专项门禁均已完成；下一项是 API 密钥 Web 一次性交接和浏览器连续验收，production 与工作流 Web 新能力没有开放。
+- S2 第七组 repository、聚合 shared runtime、跨平台本地启动档、SQLite 连续产品链、PostgreSQL 专项门禁、API 密钥 Web 一次性交接和浏览器重启复验均已完成；本专题关闭，production 能力没有开放。
 
 ## 停止线
 
-- 不实现 tool、RAG、confirmation commit、业务写回、publish、schedule、retry/fallback、replay、resume、checkpoint 或 materialized result reader。
+- 本 v1 专题不实现 tool、RAG、confirmation commit、业务写回、publish、schedule、retry / fallback、replay、resume、checkpoint 或 materialized result reader；受控 HTTP Tool 只允许由独立版本化专题新增 v2 路径，不能改写 v0 / v1。
 - 不启用 production repository、OIDC、membership、production secret、audit store、公开生产 API 或自动保留任务。
 - 不持久化原始输入、condition value、credential、endpoint 或 provider raw envelope。
 - 不把 Saved Draft repository 改造成 run repository，不把旧 fake run API 作为运行真相源。
 
-后续 [Workflow Execution Diagnostics / Failure Review v1](workflow-execution-diagnostics-failure-review-v1.md) 已在本资源族上完成 v1 诊断、失败过滤、受控故障场景和 Web 失败审查；本专题的持久化与 scope 边界保持不变。
+后续 [Workflow Execution Diagnostics / Failure Review v1](workflow-execution-diagnostics-failure-review-v1.md) 已在本资源族上完成 v1 诊断、失败过滤、受控故障场景和 Web 失败审查；本专题的持久化与 scope 边界保持不变。[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) 已固定未来 v2 的兼容边界，目前尚未实现。
