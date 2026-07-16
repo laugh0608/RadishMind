@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前唯一活跃实现入口是 [Workflow 受控 HTTP Tool 与人工确认执行（开发/测试态）v1 实施任务卡](workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)，状态为 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_task_card_defined`。它承接已通过边界评审的[功能设计](../features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md)，当前实现尚未开始；下一步只实施批次 A 的版本化契约、durable action plan / confirmation、CAS、三种 store 与 Web 审查，网络、provider 和 run 创建均保持为 0。
+当前唯一活跃实现入口是 [Workflow 受控 HTTP Tool 与人工确认执行（开发/测试态）v1 实施任务卡](workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)，状态为 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_batch_a_implemented_pending_postgresql_verification`。它承接已通过边界评审的[功能设计](../features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md)；批次 A 代码与本地证据已落地，下一步只补齐真实 PostgreSQL 专项，网络、provider、run v2 runtime 与批次 B 均保持关闭。
 
 ## 最近关闭任务
 

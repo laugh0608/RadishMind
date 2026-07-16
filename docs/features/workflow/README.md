@@ -12,8 +12,8 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
-| [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) | 功能 / 高风险执行专题 | `workflow_controlled_http_tool_human_confirmation_dev_test_v1_boundary_review_passed` | 已固定独立 action plan / confirmation、单次 allowlisted GET、SSRF / 凭据边界、原子 claim、`workflow_run_record.v2`、崩溃不确定结果、三种 store 与 Web 验收边界；真实工具尚未启用 |
-| [Workflow 受控 HTTP Tool 与人工确认执行 v1 实施任务卡](../../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md) | 高风险实现批次 | `workflow_controlled_http_tool_human_confirmation_dev_test_v1_task_card_defined` | 唯一任务卡已定义，实现未开始；下一项只实施零网络批次 A |
+| [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) | 功能 / 高风险执行专题 | `workflow_controlled_http_tool_human_confirmation_dev_test_v1_batch_a_implemented_pending_postgresql_verification` | 批次 A 契约、durable plan / confirmation、三种 store 代码与 Web 审查已落地；真实 PostgreSQL 专项待复验，execution 未启用 |
+| [Workflow 受控 HTTP Tool 与人工确认执行 v1 实施任务卡](../../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md) | 高风险实现批次 | `workflow_controlled_http_tool_human_confirmation_dev_test_v1_batch_a_implemented_pending_postgresql_verification` | 下一项只补齐 PostgreSQL 并发、作用域、回滚、重启与 no-fallback 证据，不进入批次 B |
 | [Workflow Evaluation Suite / Release Review v1](workflow-evaluation-suite-release-review-v1.md) | 功能专题 | `workflow_evaluation_suite_release_review_v1_completed` | 已完成 exact-case-version suite、聚合 review、digest-bound append-only decision、PostgreSQL 0005 和真实 Web 审查路径 |
 | [Workflow Evaluation Baseline & Case Versioning v1](workflow-evaluation-baseline-case-versioning-v1.md) | 功能专题 | `workflow_evaluation_baseline_case_versioning_v1_completed` | 已完成不可变 case revision、人工 baseline promotion、expected-version CAS、PostgreSQL 0004、历史版本 review 和审计链 |
 | [Workflow Evaluation Cases / Batch Regression Review v1](workflow-evaluation-cases-batch-regression-review-v1.md) | 功能专题 | `workflow_evaluation_cases_batch_regression_review_v1_completed` | 已完成 durable case 定义、scoped list、即时 batch review、PostgreSQL 0003、重启恢复和 Web 审查路径 |
@@ -160,7 +160,7 @@
 
 Saved Draft、Node Designer、executor v0、持久 Run History、Failure Review、Run Comparison、Evaluation Cases、Baseline / Case Versioning、Evaluation Suite / Release Review、Gateway Request History、Gateway Playground 与 API 密钥开发测试态认证均已完成。不继续在 Workflow 页面叠加同层只读审查能力。
 
-[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) 已完成功能设计和边界评审，[唯一实施任务卡](../../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)已经定义但实现尚未开始。下一项只实施批次 A 的版本化 definition / profile、durable action plan / confirmation、CAS、三种 store 和 Web 审查，网络、provider 与 run 创建保持为 0；批次 A 通过后才按卡内顺序进入受控 HTTP transport 与 `workflow_run_record.v2`。
+[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) 的批次 A 代码与本地证据已经落地：版本化 definition / profile、durable action plan / confirmation、CAS、memory / SQLite / PostgreSQL store 和 Web 审查均保持网络、provider 与 run 创建为 0。下一项只补齐真实 PostgreSQL 专项；通过并写入批次 A 完成锚点后，才按卡内顺序进入受控 HTTP transport 与 `workflow_run_record.v2` runtime。
 
 Production Secret Backend / Storage Adapter 的历史准入链继续从既有专题、任务索引和归档证据读取，不再提供当前开发顺位；生产 repository、生产认证、业务写回、自动确认、replay / resume 和 agent loop 继续关闭。
 

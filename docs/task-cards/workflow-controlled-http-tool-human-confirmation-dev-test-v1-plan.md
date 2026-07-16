@@ -3,14 +3,14 @@
 更新时间：2026-07-16
 
 - 任务 ID：`workflow-controlled-http-tool-human-confirmation-dev-test-v1`
-- 状态：`workflow_controlled_http_tool_human_confirmation_dev_test_v1_task_card_defined`
+- 状态：`workflow_controlled_http_tool_human_confirmation_dev_test_v1_batch_a_implemented_pending_postgresql_verification`
 - 功能设计：[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](../features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md)
 
 ## 准入结论
 
-本卡是该功能唯一的高风险实现入口，承接版本化契约、持久 action plan / confirmation、受控 HTTP transport、`workflow_run_record.v2`、Web 纵向链和双数据库复验。当前只表示实施边界已经定义，代码实现尚未开始，真实 HTTP Tool 仍未启用。
+本卡是该功能唯一的高风险实现入口，承接版本化契约、持久 action plan / confirmation、受控 HTTP transport、`workflow_run_record.v2`、Web 纵向链和双数据库复验。批次 A 的契约、领域服务、HTTP route、memory / SQLite / PostgreSQL store、增量 migration 与 Web 审查实现已经落地；真实 PostgreSQL 专项仍因本机 Docker daemon 不可用而等待实跑复验，因此批次 A 尚未写入完成锚点，真实 HTTP Tool execution 仍未启用。
 
-下一实施动作固定为批次 A。批次 A 只建立可持久、可审查、可并发复验的治理资源，网络请求、provider 调用和 workflow run 创建必须全部为 0。批次 B、C 只能在前一批完成并通过对应门禁后开始；不为三个子批派生新的 readiness 任务卡。
+下一实施动作固定为完成批次 A 的 PostgreSQL 专项实跑与证据审计。批次 A 只建立可持久、可审查、可并发复验的治理资源，网络请求、provider 调用和 workflow run 创建必须全部为 0。批次 B、C 只能在前一批完成并通过对应门禁后开始；不为三个子批派生新的 readiness 任务卡。
 
 ## 用户目标
 
@@ -68,7 +68,7 @@ POST /v1/user-workspace/workflow-tool-action-plans/{plan_id}/executions
 
 ## 批次 A：版本化治理资源与三种持久化
 
-状态：`not_started`；这是下一实施批次。
+状态：`implemented_pending_postgresql_verification`；实现已落地，完成锚点等待 PostgreSQL 专项实跑。
 
 ### 实现范围
 
@@ -80,6 +80,15 @@ POST /v1/user-workspace/workflow-tool-action-plans/{plan_id}/executions
 6. 实现 create / detail / decisions 三条 route、strict JSON、权限与 scope 绑定、稳定失败映射和脱敏审计。`/executions` 在本批不注册，不创建 blocked 假 run；action service 也不得复用既有 executor service 的 nil-to-memory lazy fallback。
 7. Web 新增独立 action-plan consumer / review panel，接入已保存且无本地脏改动的 Draft Designer / Review Handoff；展示计划、expiry、状态、权限和 CAS 冲突，批准后不自动执行。
 8. 用领域、HTTP、store contract、SQLite / PostgreSQL migration / restart、race 与 Web tests 证明 network、provider、run、business write、replay 均为 0。
+
+### 当前实施证据（2026-07-16）
+
+1. 已物化 definition、profile、action plan、confirmation decision、execution audit 与 run record v2 schema；`tool_id / tool_version=1`、definition / profile / output schema digest 与不可变 `tool_plan_digest` 已贯通 Go、JSON Schema、fixture、数据库和 Web strict consumer。
+2. 已实现 create / detail / decisions 三条 route、严格请求和脱敏响应、plan / read / confirm 独立授权、15 分钟 expiry、源漂移失效、单时间采样和 append-only decision / audit；批次 A 未注册 `/executions`。
+3. memory、SQLite 与 PostgreSQL store 共享既有 workflow runtime owner；CAS 状态矩阵拒绝重复 `deferred -> deferred`，decision / audit 与 plan 状态在同一事务或同一 owner lock 内原子提交。
+4. Web 已提供 durable plan 审查、刷新恢复、权限矩阵、CAS 冲突刷新与独立 approve / execute 提示；execute 明确标记为批次 B 不可用，offline 和缺少授权时请求数为 0。
+5. 已通过 Go 定向与 race、SQLite migration / restart、PostgreSQL integration tag 编译、契约聚合 checker、Web 92 项测试与生产构建；旧 confirmation placeholder 已标记为 archived / superseded。
+6. 尚未通过真实 PostgreSQL 专项实跑。`./scripts/run-workflow-saved-draft-postgres-dev-test.sh check` 在启动前因 Docker daemon socket 不存在而停止；在该门禁完成前不得写 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_batch_a_completed`，批次 B 保持阻塞。
 
 ### 完成门禁
 
