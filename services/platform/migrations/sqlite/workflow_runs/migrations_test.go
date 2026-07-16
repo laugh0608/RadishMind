@@ -9,16 +9,19 @@ import (
 	"radishmind.local/services/platform/internal/sqlitedev"
 )
 
-func TestWorkflowRunSQLiteMigrationsAreOrderedAndBatchAOnly(t *testing.T) {
+func TestWorkflowRunSQLiteMigrationsAreOrderedThroughBatchB(t *testing.T) {
 	migrations := Migrations()
-	if len(migrations) != 2 {
+	if len(migrations) != 3 {
 		t.Fatalf("unexpected workflow run SQLite migration count: %d", len(migrations))
 	}
-	if migrations[0].ID != legacyMigrationID || migrations[0].StoreSchemaVersion != RunRecordStoreSchemaVersion {
+	if migrations[0].ID != legacyMigrationID || migrations[0].StoreSchemaVersion != legacyRunStoreSchemaVersion {
 		t.Fatalf("legacy workflow run migration drifted: %#v", migrations[0])
 	}
-	if migrations[1].ID != MigrationID || migrations[1].StoreSchemaVersion != StoreSchemaVersion {
+	if migrations[1].ID != toolActionsMigrationID || migrations[1].StoreSchemaVersion != toolActionsStoreSchemaVersion {
 		t.Fatalf("HTTP tool action migration drifted: %#v", migrations[1])
+	}
+	if migrations[2].ID != MigrationID || migrations[2].StoreSchemaVersion != StoreSchemaVersion {
+		t.Fatalf("HTTP tool execution migration drifted: %#v", migrations[2])
 	}
 	for _, required := range []string{
 		"CREATE TABLE workflow_http_tool_action_plans",
@@ -43,6 +46,16 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedAndBatchAOnly(t *testing.T) {
 			t.Fatalf("batch A SQLite migration contains batch B storage %q", forbidden)
 		}
 	}
+	for _, required := range []string{
+		"CREATE TABLE workflow_run_records_v3",
+		"workflow_run_record.v2",
+		"outcome_unknown",
+		"CREATE TABLE workflow_http_tool_execution_attempts",
+	} {
+		if !strings.Contains(upSQLV3, required) {
+			t.Fatalf("SQLite HTTP tool execution migration is missing %q", required)
+		}
+	}
 }
 
 func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.T) {
@@ -64,7 +77,7 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		failure_code, failure_boundary, selected_provider, selected_model, sanitized_run_record
 	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, '', '', '', '', ?)`,
 		"tenant_demo", "workspace_demo", "application_demo", "run_legacy",
-		"draft_demo", 1, 1, RunRecordStoreSchemaVersion, "workflow_run_record.v1",
+		"draft_demo", 1, 1, legacyRunStoreSchemaVersion, "workflow_run_record.v1",
 		"running", int64(1), "actor_demo", "request_demo", "audit_run_demo", `{}`,
 	); err != nil {
 		_ = legacyRuntime.Close()
@@ -90,15 +103,16 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		_ = upgradedRuntime.Close()
 		t.Fatalf("legacy workflow run changed during upgrade: count=%d err=%v", legacyRunCount, err)
 	}
-	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 2 {
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 3 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("unexpected workflow run migration markers: count=%d err=%v", migrationCount, err)
 	}
 	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN (
 		'workflow_http_tool_action_plans',
 		'workflow_http_tool_confirmation_decisions',
-		'workflow_http_tool_execution_audits'
-	)`).Scan(&actionTableCount); err != nil || actionTableCount != 3 {
+		'workflow_http_tool_execution_audits',
+		'workflow_http_tool_execution_attempts'
+	)`).Scan(&actionTableCount); err != nil || actionTableCount != 4 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("HTTP tool action tables are incomplete: count=%d err=%v", actionTableCount, err)
 	}

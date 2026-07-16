@@ -190,16 +190,22 @@ func validateWorkflowRunStoreRecord(runContext WorkflowRunContext, record *Workf
 		strings.TrimSpace(record.DraftID) == "" || record.DraftVersion <= 0 || record.RecordVersion < 0 ||
 		strings.TrimSpace(record.ActorRef) == "" || strings.TrimSpace(record.RequestID) == "" || strings.TrimSpace(record.AuditRef) == "" ||
 		record.WorkspaceID != runContext.WorkspaceID || record.ApplicationID != runContext.ApplicationID ||
-		!validWorkflowRunStatus(record.Status) || record.SideEffects.ToolCalls != 0 ||
-		record.SideEffects.ConfirmationCalls != 0 || record.SideEffects.BusinessWrites != 0 ||
-		record.SideEffects.ReplayWrites != 0 || len([]byte(record.Output)) > workflowExecutorMaxOutputBytes ||
+		!validWorkflowRunStatus(record.Status) || len([]byte(record.Output)) > workflowExecutorMaxOutputBytes ||
 		len([]rune(record.FailureSummary)) > 256 || workflowRunRecordContainsEndpoint(record) {
 		return errWorkflowRunStoreContract
 	}
-	if record.SchemaVersion == workflowRunRecordSchemaVersion && !validWorkflowRunDiagnostic(record.Diagnostic, isTerminalWorkflowRunStatus(record.Status)) {
+	if record.SchemaVersion == workflowRunRecordToolSchemaVersion {
+		if err := validateWorkflowRunToolRecord(runContext, record); err != nil ||
+			!validWorkflowRunDiagnostic(record.Diagnostic, isTerminalWorkflowRunStatus(record.Status)) {
+			return errWorkflowRunStoreContract
+		}
+	} else if record.SideEffects.ToolCalls != 0 || record.SideEffects.ConfirmationCalls != 0 ||
+		record.SideEffects.BusinessWrites != 0 || record.SideEffects.ReplayWrites != 0 ||
+		record.PlanID != "" || record.ConfirmationID != "" || record.TenantRef != "" || record.ToolAttempt != nil {
 		return errWorkflowRunStoreContract
-	}
-	if record.SchemaVersion == workflowRunRecordLegacySchemaVersion && record.Diagnostic != nil {
+	} else if record.SchemaVersion == workflowRunRecordSchemaVersion && !validWorkflowRunDiagnostic(record.Diagnostic, isTerminalWorkflowRunStatus(record.Status)) {
+		return errWorkflowRunStoreContract
+	} else if record.SchemaVersion == workflowRunRecordLegacySchemaVersion && record.Diagnostic != nil {
 		return errWorkflowRunStoreContract
 	}
 	for _, node := range record.Nodes {
@@ -227,7 +233,8 @@ func workflowRunRecordContainsEndpoint(record *WorkflowRunRecord) bool {
 }
 
 func validWorkflowRunRecordSchema(schemaVersion string) bool {
-	return schemaVersion == workflowRunRecordSchemaVersion || schemaVersion == workflowRunRecordLegacySchemaVersion
+	return schemaVersion == workflowRunRecordSchemaVersion || schemaVersion == workflowRunRecordLegacySchemaVersion ||
+		schemaVersion == workflowRunRecordToolSchemaVersion
 }
 
 func validWorkflowRunStatus(status WorkflowRunStatus) bool {
@@ -235,7 +242,8 @@ func validWorkflowRunStatus(status WorkflowRunStatus) bool {
 }
 
 func isTerminalWorkflowRunStatus(status WorkflowRunStatus) bool {
-	return status == WorkflowRunStatusSucceeded || status == WorkflowRunStatusFailed || status == WorkflowRunStatusCanceled
+	return status == WorkflowRunStatusSucceeded || status == WorkflowRunStatusFailed || status == WorkflowRunStatusCanceled ||
+		status == WorkflowRunStatusOutcomeUnknown
 }
 
 func workflowRunStoreKey(tenantRef string, workspaceID string, applicationID string, runID string) string {
@@ -249,6 +257,14 @@ func cloneWorkflowRunRecord(record WorkflowRunRecord) WorkflowRunRecord {
 		cloned.Diagnostic = &diagnostic
 	}
 	cloned.ConditionNodeIDs = cloneStringSlice(record.ConditionNodeIDs)
+	if record.ToolAttempt != nil {
+		attempt := *record.ToolAttempt
+		attempt.OutputProjection = make(map[string]any, len(record.ToolAttempt.OutputProjection))
+		for key, value := range record.ToolAttempt.OutputProjection {
+			attempt.OutputProjection[key] = value
+		}
+		cloned.ToolAttempt = &attempt
+	}
 	cloned.Nodes = make([]WorkflowRunNodeRecord, 0, len(record.Nodes))
 	for _, node := range record.Nodes {
 		clonedNode := node

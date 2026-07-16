@@ -518,6 +518,7 @@ func runConfiguredPostgresMigrationGate(
 func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
 	_, err := pool.Exec(ctx, `DROP TABLE IF EXISTS
+		workflow_http_tool_execution_attempts,
 		workflow_http_tool_confirmation_decisions,
 		workflow_http_tool_execution_audits,
 		workflow_http_tool_action_plans,
@@ -568,6 +569,7 @@ func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgx
 		{"workflow_http_tool_action_plans", "tool_version", "integer"},
 		{"workflow_http_tool_confirmation_decisions", "tool_version", "integer"},
 		{"workflow_http_tool_execution_audits", "tool_version", "integer"},
+		{"workflow_http_tool_execution_attempts", "sanitized_execution_attempt", "jsonb"},
 	}
 	for _, column := range columns {
 		var actual string
@@ -595,6 +597,7 @@ func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgx
 		{"gateway_request_records_selection_idx", "started_at DESC, request_id DESC"},
 		{"saved_workflow_drafts_owner_list_idx", "updated_at DESC, draft_id"},
 		{"workflow_run_records_history_idx", "started_at DESC, run_id DESC"},
+		{"workflow_http_tool_execution_attempts_status_idx", "status, claimed_at, attempt_id"},
 	}
 	for _, index := range indexes {
 		var definition string

@@ -79,6 +79,42 @@ func TestWorkflowRunComparisonServiceScopeValidationAndConcurrentReads(t *testin
 	}
 }
 
+func TestWorkflowRunComparisonAndEvaluationRejectToolSideEffectProfileExplicitly(t *testing.T) {
+	runStore := newMemoryWorkflowRunStore(20)
+	actionStore := newMemoryWorkflowHTTPToolActionStore(&runStore.mu)
+	executionStore := newMemoryWorkflowHTTPToolExecutionStore(actionStore, runStore)
+	actionCtx, approvedPlan, confirmation := seedApprovedMemoryWorkflowHTTPToolPlan(t, actionStore)
+	consumedPlan := cloneWorkflowHTTPToolActionPlan(approvedPlan)
+	consumedPlan.Status = WorkflowHTTPToolActionStatusConsumed
+	consumedPlan.RecordVersion++
+	attempt, toolRun, claimAudit := workflowHTTPToolClaimFixture(actionCtx, consumedPlan, confirmation, 0)
+	if err := executionStore.ClaimExecution(actionCtx, &consumedPlan, confirmation, &attempt, &toolRun, claimAudit); err != nil {
+		t.Fatalf("claim tool run: %v", err)
+	}
+	completeWorkflowHTTPToolFixture(actionCtx, &attempt, &toolRun, WorkflowHTTPToolAttemptSucceeded)
+	completionAudit := workflowHTTPToolCompletionAuditFixture(actionCtx, attempt, toolRun, "wtae_4444444444444444")
+	if err := executionStore.CompleteExecution(actionCtx, &attempt, &toolRun, completionAudit); err != nil {
+		t.Fatalf("complete tool run: %v", err)
+	}
+	runCtx := workflowRunContextFromToolAction(actionCtx)
+	baseline := terminalComparisonTestRun(runCtx, "run_zero_side_effect", WorkflowRunStatusSucceeded, time.Now().UTC().Add(-time.Second))
+	storeTerminalComparisonTestRun(t, runStore, runCtx, &baseline)
+
+	comparisonService := newWorkflowExecutorService(nil, nil, runStore)
+	comparison := comparisonService.CompareRuns(runCtx, baseline.RunID, toolRun.RunID)
+	if comparison.FailureCode != WorkflowRunFailureSideEffectUnsupported || comparison.Comparison != nil {
+		t.Fatalf("tool run comparison did not return explicit unsupported profile: %#v", comparison)
+	}
+	evaluationService := newWorkflowEvaluationService(newMemoryWorkflowEvaluationStore(10), runStore)
+	evaluation := evaluationService.Create(runCtx, WorkflowEvaluationCreateRequest{
+		Name: "tool side effect isolation", BaselineRunID: baseline.RunID,
+		Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: toolRun.RunID, ExpectedClassification: WorkflowRunComparisonChanged}},
+	})
+	if evaluation.FailureCode != WorkflowEvaluationFailureSideEffectProfile || evaluation.Case != nil {
+		t.Fatalf("tool run evaluation did not return explicit unsupported profile: %#v", evaluation)
+	}
+}
+
 func TestWorkflowRunComparisonHTTPRoute(t *testing.T) {
 	server, _, draft := newWorkflowExecutorHTTPTestServer(t)
 	ctx := workflowExecutorTestContext()

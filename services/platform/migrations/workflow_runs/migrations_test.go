@@ -20,6 +20,8 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"CREATE TABLE workflow_http_tool_action_plans",
 		"CREATE TABLE workflow_http_tool_confirmation_decisions",
 		"CREATE TABLE workflow_http_tool_execution_audits",
+		"CREATE TABLE workflow_http_tool_execution_attempts",
+		"outcome_unknown",
 		"workflow_http_tool_confirmation_decisions_append_only",
 		"workflow_http_tool_execution_audits_append_only",
 	} {
@@ -28,6 +30,7 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		}
 	}
 	for _, required := range []string{
+		"DROP TABLE IF EXISTS workflow_http_tool_execution_attempts",
 		"DROP TABLE IF EXISTS workflow_http_tool_confirmation_decisions",
 		"DROP TABLE IF EXISTS workflow_http_tool_execution_audits",
 		"DROP TABLE IF EXISTS workflow_http_tool_action_plans",
@@ -70,11 +73,12 @@ func TestWorkflowRunPendingMigrationPaths(t *testing.T) {
 		{name: "v3", migrationID: evaluationMigrationID, requiredFragment: "ADD COLUMN current_version"},
 		{name: "v4", migrationID: caseVersioningMigrationID, requiredFragment: "CREATE TABLE workflow_evaluation_suites"},
 		{name: "v5", migrationID: evaluationSuiteMigrationID, requiredFragment: "CREATE TABLE workflow_http_tool_action_plans", forbiddenFragment: "CREATE TABLE workflow_evaluation_suites"},
+		{name: "v6", migrationID: toolActionsMigrationID, requiredFragment: "CREATE TABLE workflow_http_tool_execution_attempts", forbiddenFragment: "CREATE TABLE workflow_http_tool_action_plans"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			pendingSQL := pendingMigrationSQL(testCase.migrationID)
-			if !strings.Contains(pendingSQL, testCase.requiredFragment) || !strings.Contains(pendingSQL, "CREATE TABLE workflow_http_tool_action_plans") {
+			if !strings.Contains(pendingSQL, testCase.requiredFragment) || !strings.Contains(pendingSQL, "CREATE TABLE workflow_http_tool_execution_attempts") {
 				t.Fatalf("pending migration path is incomplete for %s", testCase.migrationID)
 			}
 			if testCase.forbiddenFragment != "" && strings.Contains(pendingSQL, testCase.forbiddenFragment) {
@@ -102,6 +106,13 @@ func TestWorkflowRunPendingRollbackPathsDoNotDropUnappliedTables(t *testing.T) {
 		if strings.Contains(rollbackSQL, "workflow_http_tool_action_plans") {
 			t.Fatalf("pending rollback tries to remove unapplied v6 for %s", migrationID)
 		}
+		if strings.Contains(rollbackSQL, "workflow_http_tool_execution_attempts") {
+			t.Fatalf("pending rollback tries to remove unapplied v7 for %s", migrationID)
+		}
+	}
+	toolActionRollback := rollbackSQLThrough(toolActionsMigrationID)
+	if !strings.Contains(toolActionRollback, "workflow_http_tool_action_plans") || strings.Contains(toolActionRollback, "workflow_http_tool_execution_attempts") {
+		t.Fatalf("v6 rollback must remove applied action tables without removing unapplied v7: %s", toolActionRollback)
 	}
 	if rollbackSQLThrough("0000_unknown") != "" {
 		t.Fatal("unknown pending rollback must fail closed")

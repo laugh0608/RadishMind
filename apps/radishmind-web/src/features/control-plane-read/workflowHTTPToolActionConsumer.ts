@@ -325,7 +325,7 @@ export function workflowHTTPToolActionPermissions(
       requiredGrants: [...EXECUTE_SCOPE_GRANTS],
       available: false,
       phase: "batch_b",
-      summary: "Unavailable in Batch A; execution requires a separate Batch B capability and grant.",
+      summary: "External execution is deferred to Batch C and requires its separate capability and grant.",
     },
   };
 }

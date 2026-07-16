@@ -41,6 +41,7 @@ type Server struct {
 	apiKeyRepository                      apiKeyRepository
 	workflowRunStore                      workflowRunStore
 	workflowHTTPToolActionStore           workflowHTTPToolActionStore
+	workflowHTTPToolExecutionStore        workflowHTTPToolExecutionStore
 	workflowEvaluationStore               workflowEvaluationStore
 	workflowEvaluationSuiteStore          workflowEvaluationSuiteStore
 	gatewayRequestHistoryStore            gatewayRequestStore
@@ -139,6 +140,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		return nil, err
 	}
 	mux := http.NewServeMux()
+	workflowHTTPToolActionStore := newWorkflowHTTPToolActionStoreForRunStore(workflowRunStore)
 	server := &Server{
 		options:                               options,
 		bridge:                                platformBridge,
@@ -150,7 +152,8 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		applicationCatalogRepository:          applicationCatalogRepository,
 		apiKeyRepository:                      apiKeyRepository,
 		workflowRunStore:                      workflowRunStore,
-		workflowHTTPToolActionStore:           newWorkflowHTTPToolActionStoreForRunStore(workflowRunStore),
+		workflowHTTPToolActionStore:           workflowHTTPToolActionStore,
+		workflowHTTPToolExecutionStore:        newWorkflowHTTPToolExecutionStoreForRunStore(workflowRunStore, workflowHTTPToolActionStore),
 		workflowEvaluationStore:               newWorkflowEvaluationStoreForRunStore(workflowRunStore),
 		workflowEvaluationSuiteStore:          newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
 		gatewayRequestHistoryStore:            gatewayRequestStore,

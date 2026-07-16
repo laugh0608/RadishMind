@@ -17,6 +17,7 @@ import (
 const (
 	workflowRunRecordSchemaVersion       = "workflow_run_record.v1"
 	workflowRunRecordLegacySchemaVersion = "workflow_run_record.v0"
+	workflowRunRecordToolSchemaVersion   = "workflow_run_record.v2"
 	workflowExecutorProtocol             = "workflow-executor-v0"
 	workflowExecutorRoute                = "/v1/user-workspace/workflow-drafts/{draft_id}/runs"
 
@@ -35,10 +36,11 @@ const (
 type WorkflowRunStatus string
 
 const (
-	WorkflowRunStatusRunning   WorkflowRunStatus = "running"
-	WorkflowRunStatusSucceeded WorkflowRunStatus = "succeeded"
-	WorkflowRunStatusFailed    WorkflowRunStatus = "failed"
-	WorkflowRunStatusCanceled  WorkflowRunStatus = "canceled"
+	WorkflowRunStatusRunning        WorkflowRunStatus = "running"
+	WorkflowRunStatusSucceeded      WorkflowRunStatus = "succeeded"
+	WorkflowRunStatusFailed         WorkflowRunStatus = "failed"
+	WorkflowRunStatusCanceled       WorkflowRunStatus = "canceled"
+	WorkflowRunStatusOutcomeUnknown WorkflowRunStatus = "outcome_unknown"
 )
 
 type WorkflowRunNodeStatus string
@@ -72,6 +74,16 @@ const (
 	WorkflowRunFailureStoreModeInvalid        WorkflowRunFailureCode = "workflow_run_store_mode_invalid"
 	WorkflowRunFailureStoreModeDisabled       WorkflowRunFailureCode = "workflow_run_store_mode_disabled"
 	WorkflowRunFailureComparisonInvalid       WorkflowRunFailureCode = "workflow_run_comparison_invalid"
+	WorkflowRunFailureSideEffectUnsupported   WorkflowRunFailureCode = "workflow_run_side_effect_profile_unsupported"
+	WorkflowRunFailureToolPolicy              WorkflowRunFailureCode = "workflow_tool_policy_denied"
+	WorkflowRunFailureToolConfirmation        WorkflowRunFailureCode = "workflow_tool_confirmation_invalid"
+	WorkflowRunFailureToolTransport           WorkflowRunFailureCode = "workflow_tool_transport_failed"
+	WorkflowRunFailureToolTimeout             WorkflowRunFailureCode = "workflow_tool_timeout"
+	WorkflowRunFailureToolResponseStatus      WorkflowRunFailureCode = "workflow_tool_response_status_invalid"
+	WorkflowRunFailureToolResponseTooLarge    WorkflowRunFailureCode = "workflow_tool_response_too_large"
+	WorkflowRunFailureToolResponseInvalid     WorkflowRunFailureCode = "workflow_tool_response_invalid"
+	WorkflowRunFailureToolStore               WorkflowRunFailureCode = "workflow_tool_store_unavailable"
+	WorkflowRunFailureToolOutcomeUnknown      WorkflowRunFailureCode = "workflow_tool_outcome_unknown"
 )
 
 type WorkflowRunContext struct {
@@ -117,33 +129,37 @@ type WorkflowRunNodeRecord struct {
 }
 
 type WorkflowRunRecord struct {
-	SchemaVersion    string                  `json:"schema_version"`
-	RecordVersion    int                     `json:"record_version"`
-	RunID            string                  `json:"run_id"`
-	DraftID          string                  `json:"draft_id"`
-	DraftVersion     int                     `json:"draft_version"`
-	WorkspaceID      string                  `json:"workspace_id"`
-	ApplicationID    string                  `json:"application_id"`
-	Status           WorkflowRunStatus       `json:"status"`
-	FailureCode      WorkflowRunFailureCode  `json:"failure_code"`
-	FailureSummary   string                  `json:"failure_summary"`
-	StartedAt        string                  `json:"started_at"`
-	CompletedAt      string                  `json:"completed_at"`
-	InputBytes       int                     `json:"input_bytes"`
-	ConditionNodeIDs []string                `json:"condition_node_ids"`
-	RequestedModel   string                  `json:"requested_model"`
-	SelectedProvider string                  `json:"selected_provider"`
-	SelectedProfile  string                  `json:"selected_profile"`
-	SelectedModel    string                  `json:"selected_model"`
-	UpstreamModel    string                  `json:"upstream_model"`
-	SelectionSource  string                  `json:"selection_source"`
-	Nodes            []WorkflowRunNodeRecord `json:"nodes"`
-	Output           string                  `json:"output"`
-	RequestID        string                  `json:"request_id"`
-	AuditRef         string                  `json:"audit_ref"`
-	ActorRef         string                  `json:"actor_ref"`
-	SideEffects      WorkflowRunSideEffects  `json:"side_effects"`
-	Diagnostic       *WorkflowRunDiagnostic  `json:"diagnostic,omitempty"`
+	SchemaVersion    string                            `json:"schema_version"`
+	RecordVersion    int                               `json:"record_version"`
+	RunID            string                            `json:"run_id"`
+	PlanID           string                            `json:"plan_id,omitempty"`
+	ConfirmationID   string                            `json:"confirmation_id,omitempty"`
+	TenantRef        string                            `json:"tenant_ref,omitempty"`
+	DraftID          string                            `json:"draft_id"`
+	DraftVersion     int                               `json:"draft_version"`
+	WorkspaceID      string                            `json:"workspace_id"`
+	ApplicationID    string                            `json:"application_id"`
+	Status           WorkflowRunStatus                 `json:"status"`
+	FailureCode      WorkflowRunFailureCode            `json:"failure_code"`
+	FailureSummary   string                            `json:"failure_summary"`
+	StartedAt        string                            `json:"started_at"`
+	CompletedAt      string                            `json:"completed_at"`
+	InputBytes       int                               `json:"input_bytes"`
+	ConditionNodeIDs []string                          `json:"condition_node_ids"`
+	RequestedModel   string                            `json:"requested_model"`
+	SelectedProvider string                            `json:"selected_provider"`
+	SelectedProfile  string                            `json:"selected_profile"`
+	SelectedModel    string                            `json:"selected_model"`
+	UpstreamModel    string                            `json:"upstream_model"`
+	SelectionSource  string                            `json:"selection_source"`
+	Nodes            []WorkflowRunNodeRecord           `json:"nodes"`
+	ToolAttempt      *WorkflowHTTPToolExecutionAttempt `json:"tool_attempt,omitempty"`
+	Output           string                            `json:"output"`
+	RequestID        string                            `json:"request_id"`
+	AuditRef         string                            `json:"audit_ref"`
+	ActorRef         string                            `json:"actor_ref"`
+	SideEffects      WorkflowRunSideEffects            `json:"side_effects"`
+	Diagnostic       *WorkflowRunDiagnostic            `json:"diagnostic,omitempty"`
 }
 
 type WorkflowRunResult struct {

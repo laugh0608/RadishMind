@@ -97,6 +97,9 @@ func (service workflowExecutorService) CompareRuns(runContext WorkflowRunContext
 	if result.FailureCode != "" {
 		return result
 	}
+	if workflowRunComparisonSideEffectProfileUnsupported(baseline) || workflowRunComparisonSideEffectProfileUnsupported(candidate) {
+		return workflowRunComparisonFailure(WorkflowRunFailureSideEffectUnsupported)
+	}
 	if !workflowRunComparisonSideEffectsValid(baseline.SideEffects) || !workflowRunComparisonSideEffectsValid(candidate.SideEffects) {
 		return workflowRunComparisonFailure(WorkflowRunFailureStoreContractMismatch)
 	}
@@ -277,6 +280,11 @@ func workflowRunComparisonSideEffectsValid(value WorkflowRunSideEffects) bool {
 	return value.ToolCalls == 0 && value.ConfirmationCalls == 0 && value.BusinessWrites == 0 && value.ReplayWrites == 0
 }
 
+func workflowRunComparisonSideEffectProfileUnsupported(record WorkflowRunRecord) bool {
+	return record.SchemaVersion == workflowRunRecordToolSchemaVersion ||
+		record.SideEffects.ToolCalls > 0 || record.SideEffects.ConfirmationCalls > 0
+}
+
 func workflowRunComparisonFailure(code WorkflowRunFailureCode) WorkflowRunComparisonResult {
 	summary := "Workflow run comparison request is invalid."
 	if code == WorkflowRunFailureRecordNotFound {
@@ -284,6 +292,9 @@ func workflowRunComparisonFailure(code WorkflowRunFailureCode) WorkflowRunCompar
 	}
 	if code == WorkflowRunFailureStoreUnavailable || code == WorkflowRunFailureStoreContractMismatch {
 		summary = "Workflow run comparison storage is unavailable."
+	}
+	if code == WorkflowRunFailureSideEffectUnsupported {
+		summary = "Workflow run comparison does not support controlled tool side-effect profiles."
 	}
 	return WorkflowRunComparisonResult{FailureCode: code, FailureSummary: summary}
 }

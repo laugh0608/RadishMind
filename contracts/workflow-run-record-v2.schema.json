@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://radishmind.local/contracts/workflow-run-record-v2.schema.json",
   "title": "WorkflowRunRecordV2",
-  "description": "Static contract for the controlled HTTP Tool run path. Runtime enablement is deferred to batch B; v0 and v1 records retain their zero-tool invariants.",
+  "description": "Contract for the controlled HTTP Tool run path. The internal batch B runtime is implemented; external HTTP and Web execution remain deferred to batch C. v0 and v1 records retain their zero-tool invariants.",
   "type": "object",
   "additionalProperties": false,
   "required": [

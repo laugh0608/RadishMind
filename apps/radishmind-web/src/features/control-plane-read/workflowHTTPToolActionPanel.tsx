@@ -193,7 +193,7 @@ export function WorkflowHTTPToolActionPanel({
               </button>
             ))}
             <button type="button" disabled title={permissions.execute.summary}>
-              Execute · Batch B unavailable
+              Execute · Batch C unavailable
             </button>
           </div>
           {plan.status === "approved" ? (

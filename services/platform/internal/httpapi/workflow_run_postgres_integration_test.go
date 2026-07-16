@@ -173,6 +173,81 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 		t.Fatalf("repeated PostgreSQL defer wrote partial evidence: status=%s version=%d decisions=%d audits=%d",
 			deferredStatus, deferredVersion, deferredDecisionCount, deferredAuditCount)
 	}
+	executionContext := workflowHTTPToolActionTestContext()
+	executionContext.RequestContext = ctx
+	executionContext.ScopeGrants = append(executionContext.ScopeGrants, workflowHTTPToolExecutionRequiredScopes...)
+	executionContext.AuditRef = "audit_workflow_http_tool_postgres_execution_create"
+	executionPlan := workflowHTTPToolActionPlanForStoreTest(t, executionContext, "wtap_0000000000000230")
+	if err = actionStore.CreatePlan(executionContext, &executionPlan, workflowHTTPToolAuditForStoreTest(executionPlan, "wtae_0000000000000230", "confirmation_requested")); err != nil {
+		t.Fatalf("create PostgreSQL workflow HTTP tool execution plan: %v", err)
+	}
+	executionPlan.RecordVersion = 2
+	executionPlan.Status = WorkflowHTTPToolActionStatusApproved
+	executionActor, executionDecidedAt := executionContext.ActorRef, "2026-07-16T09:01:00Z"
+	executionPlan.LastDecisionByActorRef, executionPlan.LastDecisionAt = &executionActor, &executionDecidedAt
+	executionDecision := workflowHTTPToolDecisionForStoreTest(executionPlan, "wtcd_0000000000000230", WorkflowHTTPToolConfirmationApprove, executionActor)
+	executionDecision.AuditRef = "audit_workflow_http_tool_postgres_execution_decision"
+	executionContext.AuditRef = executionDecision.AuditRef
+	executionDecisionAudit := workflowHTTPToolAuditForStoreTest(executionPlan, "wtae_0000000000000231", "confirmation_recorded", executionDecision.ConfirmationID)
+	executionDecisionAudit.AuditRef = executionDecision.AuditRef
+	if err = actionStore.DecidePlan(executionContext, &executionPlan, executionDecision, executionDecisionAudit); err != nil {
+		t.Fatalf("approve PostgreSQL workflow HTTP tool execution plan: %v", err)
+	}
+	executionContext.AuditRef = "audit_workflow_http_tool_postgres_execution_claim"
+	executionStore := newPostgresWorkflowHTTPToolExecutionStore(runtimePool)
+	type executionWinner struct {
+		attempt WorkflowHTTPToolExecutionAttempt
+		run     WorkflowRunRecord
+	}
+	var executionWG sync.WaitGroup
+	executionWinners := make(chan executionWinner, 8)
+	executionErrors := make(chan error, 8)
+	for index := 0; index < 8; index++ {
+		executionWG.Add(1)
+		go func(index int) {
+			defer executionWG.Done()
+			candidatePlan := cloneWorkflowHTTPToolActionPlan(executionPlan)
+			candidatePlan.Status = WorkflowHTTPToolActionStatusConsumed
+			candidatePlan.RecordVersion++
+			attempt, run, audit := workflowHTTPToolClaimFixture(executionContext, candidatePlan, executionDecision, index+100)
+			claimErr := executionStore.ClaimExecution(executionContext, &candidatePlan, executionDecision, &attempt, &run, audit)
+			if claimErr == nil {
+				executionWinners <- executionWinner{attempt: attempt, run: run}
+				return
+			}
+			if !errors.Is(claimErr, errWorkflowHTTPToolExecutionConflict) {
+				executionErrors <- claimErr
+			}
+		}(index)
+	}
+	executionWG.Wait()
+	close(executionWinners)
+	close(executionErrors)
+	for claimErr := range executionErrors {
+		t.Fatalf("unexpected PostgreSQL workflow HTTP tool claim error: %v", claimErr)
+	}
+	claimedExecutions := make([]executionWinner, 0, 1)
+	for winner := range executionWinners {
+		claimedExecutions = append(claimedExecutions, winner)
+	}
+	if len(claimedExecutions) != 1 {
+		t.Fatalf("expected one PostgreSQL workflow HTTP tool claim winner, got %d", len(claimedExecutions))
+	}
+	claimedExecution := claimedExecutions[0]
+	var executionAttemptCount, executionStartedAuditCount int
+	var executionPlanStatus string
+	if err = runtimePool.QueryRow(ctx, `SELECT count(*) FROM workflow_http_tool_execution_attempts WHERE plan_id=$1`, executionPlan.PlanID).Scan(&executionAttemptCount); err != nil {
+		t.Fatal(err)
+	}
+	if err = runtimePool.QueryRow(ctx, `SELECT status FROM workflow_http_tool_action_plans WHERE plan_id=$1`, executionPlan.PlanID).Scan(&executionPlanStatus); err != nil {
+		t.Fatal(err)
+	}
+	if err = runtimePool.QueryRow(ctx, `SELECT count(*) FROM workflow_http_tool_execution_audits WHERE plan_id=$1 AND event_kind='tool_execution_started'`, executionPlan.PlanID).Scan(&executionStartedAuditCount); err != nil {
+		t.Fatal(err)
+	}
+	if executionAttemptCount != 1 || executionPlanStatus != string(WorkflowHTTPToolActionStatusConsumed) || executionStartedAuditCount != 1 {
+		t.Fatalf("PostgreSQL execution claim evidence drifted: attempts=%d plan=%s started_audits=%d", executionAttemptCount, executionPlanStatus, executionStartedAuditCount)
+	}
 	base := time.Now().UTC().Add(-time.Minute)
 	for index := 0; index < 3; index++ {
 		record := workflowRunHistoryTestRecord(runContext, "run_pg_"+string(rune('a'+index)), "draft_pg", base.Add(time.Duration(index)*time.Second))
@@ -302,11 +377,24 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	store = newPostgresWorkflowRunStore(reopened)
 	evaluationStore = newPostgresWorkflowEvaluationStore(reopened)
 	actionStore = newPostgresWorkflowHTTPToolActionStore(reopened)
+	executionStore = newPostgresWorkflowHTTPToolExecutionStore(reopened)
 	if recoveredAction, actionFound, actionErr := actionStore.ReadPlan(actionContext, actionPlan.PlanID); actionErr != nil || !actionFound || recoveredAction.Status != WorkflowHTTPToolActionStatusInvalidated || recoveredAction.RecordVersion != 3 {
 		t.Fatalf("restart workflow HTTP tool action recovery failed: found=%v plan=%#v err=%v", actionFound, recoveredAction, actionErr)
 	}
 	if recoveredExpired, actionFound, actionErr := actionStore.ReadPlan(expireContext, expiredActionPlan.PlanID); actionErr != nil || !actionFound || recoveredExpired.Status != WorkflowHTTPToolActionStatusExpired || recoveredExpired.RecordVersion != 2 {
 		t.Fatalf("restart expired workflow HTTP tool action recovery failed: found=%v plan=%#v err=%v", actionFound, recoveredExpired, actionErr)
+	}
+	reconciliationService := workflowHTTPToolExecutionService{store: executionStore}
+	reconciliationService.now = func() time.Time { return time.Date(2026, 7, 16, 9, 4, 0, 0, time.UTC) }
+	reconciliationService.newID = func(string) (string, error) { return "wtae_0000000000000232", nil }
+	reconciledExecution := reconciliationService.ReconcileStale(executionContext, executionPlan.PlanID)
+	if reconciledExecution.FailureCode != WorkflowRunFailureToolOutcomeUnknown || reconciledExecution.Record == nil ||
+		reconciledExecution.Record.RunID != claimedExecution.run.RunID || reconciledExecution.Record.Status != WorkflowRunStatusOutcomeUnknown ||
+		reconciledExecution.Record.RecordVersion != 2 {
+		t.Fatalf("restart PostgreSQL execution reconciliation failed: %#v", reconciledExecution)
+	}
+	if _, _, pendingFound, pendingErr := executionStore.ReadClaimedExecution(executionContext, executionPlan.PlanID); pendingErr != nil || pendingFound {
+		t.Fatalf("reconciled PostgreSQL execution remained claimed: found=%t err=%v", pendingFound, pendingErr)
 	}
 	recovered, found, err := store.ReadRun(runContext, "run_pg_c")
 	if err != nil || !found || recovered.Status != WorkflowRunStatusSucceeded {
@@ -520,7 +608,7 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 
 func resetPostgresWorkflowRunSchema(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
-	if _, err := pool.Exec(ctx, `DROP TABLE IF EXISTS workflow_http_tool_confirmation_decisions, workflow_http_tool_execution_audits, workflow_http_tool_action_plans, workflow_evaluation_suite_decisions, workflow_evaluation_suites, workflow_evaluation_case_revisions, workflow_evaluation_cases, workflow_run_records`); err != nil {
+	if _, err := pool.Exec(ctx, `DROP TABLE IF EXISTS workflow_http_tool_execution_attempts, workflow_http_tool_confirmation_decisions, workflow_http_tool_execution_audits, workflow_http_tool_action_plans, workflow_evaluation_suite_decisions, workflow_evaluation_suites, workflow_evaluation_case_revisions, workflow_evaluation_cases, workflow_run_records`); err != nil {
 		t.Fatalf("reset workflow run integration tables: %v", err)
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_workflow_http_tool_append_only_mutation()`); err != nil {
