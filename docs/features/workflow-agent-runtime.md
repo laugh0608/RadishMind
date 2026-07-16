@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-2026-07-16 当前结论：Saved Draft durable dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、Evaluation Cases、[Baseline / Case Versioning](workflow/workflow-evaluation-baseline-case-versioning-v1.md)、[Evaluation Suite / Release Review](workflow/workflow-evaluation-suite-release-review-v1.md)、Gateway Request History 与 Gateway Playground 已完成。[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 已完成功能设计和边界评审，[唯一实施任务卡](../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)已经定义但实现尚未开始，真实工具仍未启用。下一项只实施零网络批次 A；RAG、业务写回、publish、replay / resume、agent loop 与 production enablement 继续关闭。以下 production durable-store readiness 只保留为历史兼容锚点。
+2026-07-16 当前结论：Saved Draft durable dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、Evaluation Cases、[Baseline / Case Versioning](workflow/workflow-evaluation-baseline-case-versioning-v1.md)、[Evaluation Suite / Release Review](workflow/workflow-evaluation-suite-release-review-v1.md)、Gateway Request History 与 Gateway Playground 已完成。[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 的批次 A、B 已完成，[唯一实施任务卡](../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)下一步进入批次 C；内部单次 transport、原子 claim、run v2 与 outcome reconciliation 已实现，`/executions` 和 Web 仍未启用。RAG、业务写回、publish、replay / resume、agent loop 与 production enablement 继续关闭。以下 production durable-store readiness 只保留为历史兼容锚点。
 
 2026-06-29 Production Secret Backend audit store runtime blocker matrix 及其后续 storage adapter readiness / review 链只作为历史静态锚点保留，不再定义当前顺位，也不影响已经完成的 Workflow memory / SQLite / PostgreSQL 开发测试态存储。production secret、production audit store、production repository mode 与公开生产 API 仍未启用。
 
@@ -18,7 +18,7 @@
 - 当前页面同时包含离线 / 只读审查层和显式开发测试态执行层；默认离线入口不发请求，执行器、持久运行历史与 Gateway 调用只在受控配置下启用，不能据此声明生产能力。
 - `workflowWorkspaceContext` 已作为本地选择和派生关系的共享入口。
 - `Saved Workflow Draft v1` 已完成 platform Go domain service 实现：`SavedWorkflowDraft` v1 类型、内存 dev store boundary、save / read / validate / list 契约、版本冲突、失败语义、sanitized response、no sample fallback 和 no side effects tests 已落地。
-- `Saved Workflow Draft v1` 已完成 dev-only HTTP route、Web consumer、memory / SQLite / PostgreSQL 开发测试态 repository、save / read / validate / list / restore、版本冲突与重启恢复；`Workflow Executor v0` 已完成 Prompt / LLM / condition / output 受控执行和 scoped run record。工具与确认的实现尚未开始，只允许按已评审的新专题进入版本化 action plan / confirmation / run v2 路径，不得在 v0 上原地放开。
+- `Saved Workflow Draft v1` 已完成 dev-only HTTP route、Web consumer、memory / SQLite / PostgreSQL 开发测试态 repository、save / read / validate / list / restore、版本冲突与重启恢复；`Workflow Executor v0` 已完成 Prompt / LLM / condition / output 受控执行和 scoped run record。受控 HTTP Tool 已沿独立版本化 action plan / confirmation / run v2 路径完成批次 A、B，下一步只接入批次 C 的外部 route 与 Web 纵向链；不得在 v0 上原地放开。
 - 当前已实现 `User Workspace Saved Draft List v1`：dev-only list route 只返回 sanitized summary，Workspace Home 可显示已保存 dev draft、empty / failure state，并通过既有 read route 恢复到 Draft Designer。
 - 当前已实现 `Workflow Draft Designer Editing Model v2`：Draft Designer 可本地新增节点、移动节点、删除非受保护节点、重建边，并让 validation inspector、execution plan preview 和 runtime readiness inspector 消费当前 active draft。
 - 当前已实现 `Workflow Draft Node Attribute Editing Model v1`：Draft Designer 提供节点属性编辑，并把节点级 summary、contract fields、output mapping 和 provider / tool / RAG refs 保存 / 恢复到 dev-only saved draft。
