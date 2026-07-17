@@ -112,7 +112,7 @@ test("executor HTTP consumer maps terminal record without retaining raw input", 
 
   const reloaded = await readWorkflowRunDevRecord(started.record!, executorConfig);
   assert.equal(reloaded.status, "succeeded");
-  assert.equal(requests[1]?.url.includes("/v1/user-workspace/workflow-runs/run_executor_test?"), true);
+  assert.equal(requests[1]?.url.includes("/v1/user-workspace/workflow-runs/run_0123456789abcdef?"), true);
 });
 
 test("executor consumer maps v1 structured diagnostic and rejects raw provider material", async (t) => {
@@ -178,7 +178,8 @@ function successEnvelope() {
     audit_ref: "audit_executor_test",
     run: {
       schema_version: "workflow_run_record.v0",
-      run_id: "run_executor_test",
+      record_version: 2,
+      run_id: "run_0123456789abcdef",
       draft_id: "draft_app_flow_copilot_executor_v0_01",
       draft_version: 1,
       workspace_id: "workspace_demo",

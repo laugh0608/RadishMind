@@ -6,8 +6,12 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net"
 	"net/http"
+	"net/http/httptest"
 	"net/netip"
+	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -41,6 +45,67 @@ func TestWorkflowHTTPToolTransportSuccessUsesReviewedTargetAndHeaders(t *testing
 	}
 	if result.OutputProjection["resource_key"] != "docs/alpha" || result.HTTPStatusClass != "2xx" || result.ResponseBytes == 0 {
 		t.Fatalf("unexpected transport result: %#v", result)
+	}
+}
+
+func TestWorkflowHTTPToolTransportTestOnlyLoopbackRequiresIndependentGate(t *testing.T) {
+	networkAttempts := 0
+	loopbackServer := httptest.NewTLSServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		networkAttempts++
+		writer.Header().Set("Content-Type", "application/json")
+		_, _ = writer.Write([]byte(`{"resource_key":"docs/alpha","title":"Alpha","summary":"Loopback test projection","updated_at":"2026-07-17T10:00:00Z"}`))
+	}))
+	t.Cleanup(loopbackServer.Close)
+	serverURL, err := url.Parse(loopbackServer.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, portText, err := net.SplitHostPort(serverURL.Host)
+	if err != nil {
+		t.Fatal(err)
+	}
+	port, err := strconv.Atoi(portText)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	plan, profile := workflowHTTPToolTransportFixture(t)
+	profile.TestOnlyLoopback = true
+	profile.TargetPolicy.Host = "workflow-tool.test"
+	profile.TargetPolicy.Port = port
+	profileDigest, err := canonicalSHA256(profile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan.ProfileDigest = profileDigest
+	plan.ToolPlanDigest, err = workflowHTTPToolPlanDigest(plan)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	transport := newWorkflowHTTPToolTransport()
+	transport.lookupNetIP = func(context.Context, string, string) ([]netip.Addr, error) {
+		return []netip.Addr{netip.MustParseAddr("127.0.0.1")}, nil
+	}
+	loopbackClient := loopbackServer.Client()
+	transport.newClient = func(string, int, []netip.Addr, time.Duration) (*http.Client, error) {
+		return &http.Client{Transport: workflowHTTPToolRoundTripperFunc(func(request *http.Request) (*http.Response, error) {
+			forwarded := request.Clone(request.Context())
+			forwarded.URL.Scheme = serverURL.Scheme
+			forwarded.URL.Host = serverURL.Host
+			return loopbackClient.Transport.RoundTrip(forwarded)
+		})}, nil
+	}
+
+	denied := transport.Execute(context.Background(), plan, profile, "req_workflow_tool_loopback_denied")
+	if denied.FailureCode != WorkflowRunFailureToolPolicy || denied.NetworkAttempted || networkAttempts != 0 {
+		t.Fatalf("test-only loopback profile was accepted without the independent gate: %#v network=%d", denied, networkAttempts)
+	}
+	transport.allowTestOnlyLoopback = true
+	allowed := transport.Execute(context.Background(), plan, profile, "req_workflow_tool_loopback_allowed")
+	if allowed.FailureCode != "" || !allowed.NetworkAttempted || networkAttempts != 1 ||
+		allowed.OutputProjection["resource_key"] != "docs/alpha" {
+		t.Fatalf("independently gated test-only loopback profile did not execute once: %#v network=%d", allowed, networkAttempts)
 	}
 }
 

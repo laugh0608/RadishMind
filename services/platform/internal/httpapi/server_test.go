@@ -56,6 +56,27 @@ func TestServerRejectsIncompleteSQLiteDevLocalPersistenceBeforeRuntimeConstructi
 	}
 }
 
+func TestServerRestrictsWorkflowHTTPToolLoopbackGateToExplicitTestOption(t *testing.T) {
+	cfg := config.Config{
+		ControlPlaneReadDevAuthEnabled:      true,
+		WorkflowSavedDraftDevHTTPEnabled:    true,
+		WorkflowSavedDraftDevWriteEnabled:   true,
+		WorkflowExecutorDevEnabled:          true,
+		WorkflowToolActionDevEnabled:        true,
+		WorkflowHTTPToolExecutionDevEnabled: true,
+		WorkflowHTTPToolTestLoopbackEnabled: true,
+		Provider:                            "mock",
+	}
+	if _, err := NewServerWithError(cfg, Options{BuildVersion: "product-loopback-denied"}); err == nil || !strings.Contains(err.Error(), "restricted to explicit test servers") {
+		t.Fatalf("product server accepted test-only Workflow HTTP Tool loopback: %v", err)
+	}
+	server, err := NewServerWithError(cfg, Options{BuildVersion: "test-loopback-allowed", TestOnly: true})
+	if err != nil {
+		t.Fatalf("explicit test server rejected Workflow HTTP Tool loopback gate: %v", err)
+	}
+	server.Close()
+}
+
 func (f *fakeBridge) DescribeProviders(context.Context) ([]bridge.ProviderDescription, error) {
 	return f.providers, nil
 }

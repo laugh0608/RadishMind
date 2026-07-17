@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -17,6 +18,7 @@ const serviceName = "radishmind-platform"
 
 type Options struct {
 	BuildVersion string
+	TestOnly     bool
 }
 
 type bridgeClient interface {
@@ -42,6 +44,7 @@ type Server struct {
 	workflowRunStore                      workflowRunStore
 	workflowHTTPToolActionStore           workflowHTTPToolActionStore
 	workflowHTTPToolExecutionStore        workflowHTTPToolExecutionStore
+	workflowHTTPToolExecutionTransport    *workflowHTTPToolTransport
 	workflowEvaluationStore               workflowEvaluationStore
 	workflowEvaluationSuiteStore          workflowEvaluationSuiteStore
 	gatewayRequestHistoryStore            gatewayRequestStore
@@ -83,6 +86,9 @@ func NewServer(cfg config.Config, options Options) *Server {
 func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	if err := config.ValidateServerStart(cfg); err != nil {
 		return nil, err
+	}
+	if cfg.WorkflowHTTPToolTestLoopbackEnabled && !options.TestOnly {
+		return nil, fmt.Errorf("workflow HTTP tool test loopback is restricted to explicit test servers")
 	}
 	runtimeConfig := config.EffectiveLocalPersistenceConfig(cfg)
 	authenticator, err := newControlPlaneReadAuthenticator(context.Background(), runtimeConfig)
@@ -211,6 +217,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(workflowHTTPToolPlanCreateRoute, server.handleCreateWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowHTTPToolPlanReadRoute, server.handleReadWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowHTTPToolDecisionRoute, server.handleDecideWorkflowHTTPToolActionPlan)
+	mux.HandleFunc(workflowHTTPToolExecutionRoute, server.handleExecuteWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowRunListRoute, server.handleListWorkflowRuns)
 	mux.HandleFunc(workflowRunReadRoute, server.handleReadWorkflowRun)
 	mux.HandleFunc(workflowRunComparisonRoute, server.handleCompareWorkflowRuns)

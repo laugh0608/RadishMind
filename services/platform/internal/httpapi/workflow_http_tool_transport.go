@@ -68,9 +68,10 @@ type workflowHTTPToolHTTPClientFactory func(
 ) (*http.Client, error)
 
 type workflowHTTPToolTransport struct {
-	lookupNetIP func(context.Context, string, string) ([]netip.Addr, error)
-	newClient   workflowHTTPToolHTTPClientFactory
-	now         func() time.Time
+	lookupNetIP           func(context.Context, string, string) ([]netip.Addr, error)
+	newClient             workflowHTTPToolHTTPClientFactory
+	now                   func() time.Time
+	allowTestOnlyLoopback bool
 }
 
 func newWorkflowHTTPToolTransport() workflowHTTPToolTransport {
@@ -98,10 +99,10 @@ func (transport workflowHTTPToolTransport) Execute(
 	if ctx == nil || transport.lookupNetIP == nil || transport.newClient == nil {
 		return fail(WorkflowRunFailureToolPolicy, WorkflowHTTPToolFailurePolicy, "Workflow HTTP tool transport policy is unavailable.")
 	}
-	if err := validateWorkflowHTTPToolExecutionBinding(plan, profile, requestID); err != nil {
+	if err := validateWorkflowHTTPToolExecutionBinding(plan, profile, requestID, transport.allowTestOnlyLoopback); err != nil {
 		return fail(WorkflowRunFailureToolPolicy, WorkflowHTTPToolFailurePolicy, "Workflow HTTP tool execution profile is invalid or no longer matches the approved plan.")
 	}
-	target, err := workflowHTTPToolTargetURL(plan, profile)
+	target, err := workflowHTTPToolTargetURL(plan, profile, transport.allowTestOnlyLoopback)
 	if err != nil {
 		return fail(WorkflowRunFailureToolPolicy, WorkflowHTTPToolFailurePolicy, "Workflow HTTP tool target policy is invalid.")
 	}
@@ -112,7 +113,10 @@ func (transport workflowHTTPToolTransport) Execute(
 		}
 		return fail(WorkflowRunFailureToolTransport, WorkflowHTTPToolFailureTransport, "Workflow HTTP tool target could not be resolved.")
 	}
-	validatedAddresses, err := validateWorkflowHTTPToolResolvedAddresses(addresses)
+	validatedAddresses, err := validateWorkflowHTTPToolResolvedAddresses(
+		addresses,
+		transport.allowTestOnlyLoopback && profile.TestOnlyLoopback,
+	)
 	if err != nil {
 		return fail(WorkflowRunFailureToolPolicy, WorkflowHTTPToolFailurePolicy, "Workflow HTTP tool target resolution was rejected by the network policy.")
 	}
@@ -195,13 +199,15 @@ func validateWorkflowHTTPToolExecutionBinding(
 	plan WorkflowHTTPToolActionPlan,
 	profile WorkflowHTTPToolExecutionProfile,
 	requestID string,
+	allowTestOnlyLoopback bool,
 ) error {
 	profileDigest, profileDigestErr := canonicalSHA256(profile)
 	planDigest, planDigestErr := workflowHTTPToolPlanDigest(plan)
 	if strings.TrimSpace(requestID) == "" || !workflowHTTPToolReferencePattern.MatchString(requestID) ||
 		plan.SchemaVersion != workflowHTTPToolPlanSchema || plan.Status != WorkflowHTTPToolActionStatusApproved ||
 		plan.ToolID != workflowHTTPToolID || plan.ToolVersion != workflowHTTPToolVersion ||
-		profile.SchemaVersion != workflowHTTPToolProfileSchema || !profile.Enabled || profile.TestOnlyLoopback ||
+		profile.SchemaVersion != workflowHTTPToolProfileSchema || !profile.Enabled ||
+		(profile.TestOnlyLoopback && !allowTestOnlyLoopback) ||
 		profile.ToolID != plan.ToolID || profile.ProfileID != plan.ProfileID ||
 		profile.ProfileVersion != plan.ProfileVersion || profile.DefinitionDigest != plan.DefinitionDigest ||
 		profileDigestErr != nil || profileDigest != plan.ProfileDigest || planDigestErr != nil || planDigest != plan.ToolPlanDigest ||
@@ -226,12 +232,15 @@ func validateWorkflowHTTPToolExecutionBinding(
 func workflowHTTPToolTargetURL(
 	plan WorkflowHTTPToolActionPlan,
 	profile WorkflowHTTPToolExecutionProfile,
+	allowTestOnlyLoopback bool,
 ) (*url.URL, error) {
 	targetPolicy := profile.TargetPolicy
 	host := strings.ToLower(strings.TrimSpace(targetPolicy.Host))
 	path := strings.TrimSpace(targetPolicy.Path)
+	testLoopback := profile.TestOnlyLoopback && allowTestOnlyLoopback
 	if targetPolicy.Scheme != "https" || host == "" || net.ParseIP(host) != nil ||
-		targetPolicy.Port != 443 || !strings.HasPrefix(path, "/") || strings.ContainsAny(path, "?#") ||
+		(targetPolicy.Port != 443 && (!testLoopback || targetPolicy.Port < 1 || targetPolicy.Port > 65535)) ||
+		!strings.HasPrefix(path, "/") || strings.ContainsAny(path, "?#") ||
 		strings.Contains(host, ":") || strings.Contains(host, "/") || strings.Contains(host, "@") {
 		return nil, errors.New("invalid workflow HTTP tool target")
 	}
@@ -267,11 +276,12 @@ func workflowHTTPToolTargetURL(
 	}, nil
 }
 
-func validateWorkflowHTTPToolResolvedAddresses(addresses []netip.Addr) ([]netip.Addr, error) {
+func validateWorkflowHTTPToolResolvedAddresses(addresses []netip.Addr, allowTestOnlyLoopback bool) ([]netip.Addr, error) {
 	unique := make(map[netip.Addr]struct{}, len(addresses))
 	for _, address := range addresses {
 		address = address.Unmap()
-		if !address.IsValid() || !workflowHTTPToolAddressIsPublic(address) {
+		if !address.IsValid() || (!workflowHTTPToolAddressIsPublic(address) &&
+			!(allowTestOnlyLoopback && address.IsLoopback())) {
 			return nil, errors.New("workflow HTTP tool resolved address is not public")
 		}
 		unique[address] = struct{}{}

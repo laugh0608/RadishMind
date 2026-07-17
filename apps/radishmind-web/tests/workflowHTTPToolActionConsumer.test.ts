@@ -27,14 +27,24 @@ const config = {
   ],
 };
 
-test("Batch A permissions separate plan, read, confirm, and unavailable execution", () => {
+test("Batch C permissions keep execution closed until all three grants are explicit", () => {
   const permissions = workflowHTTPToolActionPermissions(config);
   assert.equal(permissions.plan.available, true);
   assert.equal(permissions.read.available, true);
   assert.equal(permissions.confirm.available, true);
   assert.equal(permissions.execute.available, false);
-  assert.equal(permissions.execute.phase, "batch_b");
-  assert.deepEqual(permissions.execute.requiredGrants, ["workflow_tool_actions:execute"]);
+  assert.equal(permissions.execute.phase, "batch_c");
+  assert.deepEqual(permissions.execute.requiredGrants, [
+    "workflow_tool_actions:execute",
+    "workflow_runs:execute",
+    "workflow_drafts:read",
+  ]);
+
+  const executable = workflowHTTPToolActionPermissions({
+    ...config,
+    scopeGrants: [...config.scopeGrants, "workflow_tool_actions:execute", "workflow_runs:execute"],
+  });
+  assert.equal(executable.execute.available, true);
 
   const restricted = workflowHTTPToolActionPermissions({ ...config, scopeGrants: ["workflow_tool_actions:read"] });
   assert.equal(restricted.plan.available, false);

@@ -16,6 +16,7 @@ param(
     [switch]$ApplicationPublishPostgresDevTest,
     [switch]$ApplicationCatalogPostgresDevTest,
     [switch]$APIKeyLocalProduct,
+    [switch]$WorkflowHTTPToolLocalProduct,
     [switch]$VerifyOnly,
     [switch]$ExitAfterProbe,
     [switch]$Help
@@ -47,6 +48,8 @@ Options:
   -ApplicationCatalogPostgresDevTest
                         Enable the PostgreSQL dev/test Application Catalog lifecycle UI.
   -APIKeyLocalProduct   Enable the SQLite local-product Application/API key/Playground chain.
+  -WorkflowHTTPToolLocalProduct
+                        Enable the SQLite local-product Workflow HTTP Tool chain.
   -VerifyOnly           Probe existing backend/frontend processes only.
   -ExitAfterProbe       Start missing local processes, probe, then stop spawned processes.
 "@
@@ -83,6 +86,9 @@ if ($ApplicationCatalogPostgresDevTest -and $Mode -ne "dev-live") {
 if ($APIKeyLocalProduct -and $Mode -ne "dev-live") {
     throw "-APIKeyLocalProduct requires -Mode dev-live"
 }
+if ($WorkflowHTTPToolLocalProduct -and $Mode -ne "dev-live") {
+    throw "-WorkflowHTTPToolLocalProduct requires -Mode dev-live"
+}
 if ($ApplicationPublishDev -and $ApplicationPublishPostgresDevTest) {
     throw "Choose either -ApplicationPublishDev or -ApplicationPublishPostgresDevTest"
 }
@@ -95,9 +101,12 @@ $explicitComponentMode = $SavedDraftDev -or $SavedDraftPostgresDevTest -or $Gate
 if ($APIKeyLocalProduct -and $explicitComponentMode) {
     throw "-APIKeyLocalProduct cannot be combined with explicit memory/PostgreSQL component modes"
 }
+if ($WorkflowHTTPToolLocalProduct -and $explicitComponentMode) {
+    throw "-WorkflowHTTPToolLocalProduct cannot be combined with explicit memory/PostgreSQL component modes"
+}
 $platformProfile = if ($explicitComponentMode) { "configured" } else { "local-product" }
 
-$savedDraftEnabled = $SavedDraftDev -or $SavedDraftPostgresDevTest
+$savedDraftEnabled = $SavedDraftDev -or $SavedDraftPostgresDevTest -or $WorkflowHTTPToolLocalProduct
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $webDir = Join-Path $repoRoot "apps/radishmind-web"
@@ -572,7 +581,7 @@ function Show-FailureHelp {
     [Console]::Error.WriteLine("- Port conflict: backend should answer on http://127.0.0.1:7000 and web on http://127.0.0.1:4100.")
     [Console]::Error.WriteLine("- macOS port 7000 conflict: AirPlay / Control Center may occupy it; retry with -BackendUrl http://127.0.0.1:7100.")
     [Console]::Error.WriteLine("- Dev-live auth: backend must be started with RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1 for fake-store-backed read routes.")
-    [Console]::Error.WriteLine("- Saved Draft mode: choose -SavedDraftDev or -SavedDraftPostgresDevTest so backend and web opt in together.")
+    [Console]::Error.WriteLine("- Workflow mode: choose -SavedDraftDev, -SavedDraftPostgresDevTest, or -WorkflowHTTPToolLocalProduct so backend and web opt in together.")
     [Console]::Error.WriteLine("- API key local product: use -APIKeyLocalProduct by itself so SQLite lifecycle and api_key_dev_test auth stay aligned.")
     [Console]::Error.WriteLine("- PostgreSQL dev/test mode: start and migrate it with the saved draft PostgreSQL dev/test runner.")
     [Console]::Error.WriteLine("- CORS/preflight: platform should allow http://127.0.0.1:4100 and dev read headers in local development.")
@@ -648,14 +657,16 @@ try {
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE = "1"
                 $env:RADISHMIND_WORKFLOW_EXECUTOR_DEV = "1"
-				$env:RADISHMIND_WORKFLOW_TOOL_ACTION_DEV = "1"
+                $env:RADISHMIND_WORKFLOW_TOOL_ACTION_DEV = "1"
+                $env:RADISHMIND_WORKFLOW_HTTP_TOOL_EXECUTION_DEV = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE = "memory_dev"
             }
             elseif ($SavedDraftPostgresDevTest) {
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE = "1"
                 $env:RADISHMIND_WORKFLOW_EXECUTOR_DEV = "1"
-				$env:RADISHMIND_WORKFLOW_TOOL_ACTION_DEV = "1"
+                $env:RADISHMIND_WORKFLOW_TOOL_ACTION_DEV = "1"
+                $env:RADISHMIND_WORKFLOW_HTTP_TOOL_EXECUTION_DEV = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE = "postgres_dev_test"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
 				$env:RADISHMIND_WORKFLOW_RUN_STORE = "postgres_dev_test"
@@ -710,22 +721,24 @@ try {
                     $env:VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
-                if ($ApplicationCatalogPostgresDevTest -or $APIKeyLocalProduct) {
+                if ($ApplicationCatalogPostgresDevTest -or $APIKeyLocalProduct -or $WorkflowHTTPToolLocalProduct) {
                     $env:VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE = "dev-application-catalog-http"
                     $env:VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
-                if ($APIKeyLocalProduct) {
+                if ($APIKeyLocalProduct -or $WorkflowHTTPToolLocalProduct) {
                     $env:VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE = "dev-api-key-lifecycle-http"
                     $env:VITE_RADISHMIND_API_KEY_LIFECYCLE_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_API_KEY_LIFECYCLE_WORKSPACE_ID = $savedDraftWorkspaceId
+                }
+                if ($APIKeyLocalProduct) {
                     $env:VITE_RADISHMIND_GATEWAY_AUTH_MODE = "api_key_dev_test"
                 }
                 if ($savedDraftEnabled) {
                     $env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE = "dev-saved-draft-http"
                     $env:VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE = "dev-workflow-executor-http"
                     $env:VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE = "dev-workflow-http-tool-http"
-                    $env:VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS = "workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm"
+                    $env:VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS = "workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm,workflow_tool_actions:execute,workflow_runs:execute"
                 }
                 if ($WorkflowDiagnosticsDev) {
                     $env:VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV = "true"
@@ -834,8 +847,11 @@ try {
         if ($APIKeyLocalProduct) {
             Write-Step "API key SQLite local-product Web chain enabled for $savedDraftWorkspaceId; raw credentials remain browser-memory only."
         }
+        if ($WorkflowHTTPToolLocalProduct) {
+            Write-Step "Workflow HTTP Tool SQLite local-product Web chain enabled for $savedDraftWorkspaceId/$savedDraftApplicationId; approve and execute remain separate actions."
+        }
     }
-    Write-Step "This is a dev-only launcher, not a production supervisor. Controlled executor v0 is dev-only; production auth, secret resolution, unrestricted tools, confirmation commit, writeback and replay remain disabled."
+    Write-Step "This is a dev-only launcher, not a production supervisor. Controlled execution is dev-only; production auth, secret resolution, unrestricted tools, automatic confirmation, writeback and replay remain disabled."
 
     if (-not $VerifyOnly -and -not $ExitAfterProbe -and $spawnedProcesses.Count -gt 0) {
         Write-Step "Press Ctrl+C to stop spawned local dev processes."

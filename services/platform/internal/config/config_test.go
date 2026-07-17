@@ -781,7 +781,7 @@ func TestWorkflowExecutorDevModeRequiresDevelopmentAuthAndSavedDraftHTTP(t *test
 	}
 }
 
-func TestWorkflowToolActionDevRequiresPreRunGatesAndExecutionRemainsUnavailable(t *testing.T) {
+func TestWorkflowToolActionAndExecutionDevRequireLayeredGates(t *testing.T) {
 	config := defaultConfig()
 	config.WorkflowToolActionDevEnabled = true
 	if got := config.Check(); !reflect.DeepEqual(got, []string{
@@ -805,8 +805,30 @@ func TestWorkflowToolActionDevRequiresPreRunGatesAndExecutionRemainsUnavailable(
 		t.Fatalf("workflow tool gates drifted in sanitized summary: %#v", summary)
 	}
 	config.WorkflowHTTPToolExecutionDevEnabled = true
-	if err := validateBridgeRuntimeConfig(config); err == nil || !strings.Contains(err.Error(), "unavailable before implementation batch B") {
-		t.Fatalf("batch A accepted workflow HTTP tool execution: %v", err)
+	if err := validateBridgeRuntimeConfig(config); err != nil {
+		t.Fatalf("complete workflow HTTP tool execution gates were rejected: %v", err)
+	}
+	config.WorkflowHTTPToolTestLoopbackEnabled = true
+	if err := validateBridgeRuntimeConfig(config); err != nil {
+		t.Fatalf("complete workflow HTTP tool test loopback gates were rejected: %v", err)
+	}
+	if !config.SanitizedSummary().WorkflowHTTPToolTestLoopbackEnabled {
+		t.Fatal("workflow HTTP tool test loopback gate is missing from sanitized summary")
+	}
+	config.WorkflowHTTPToolExecutionDevEnabled = false
+	if got := config.Check(); !reflect.DeepEqual(got, []string{"workflow_http_tool_execution_dev"}) {
+		t.Fatalf("test loopback gate did not require execution dev: %#v", got)
+	}
+	if err := validateBridgeRuntimeConfig(config); err == nil || !strings.Contains(err.Error(), "test loopback requires") {
+		t.Fatalf("test loopback accepted a missing execution gate: %v", err)
+	}
+	config.WorkflowHTTPToolExecutionDevEnabled = true
+	config.WorkflowToolActionDevEnabled = false
+	if got := config.Check(); !reflect.DeepEqual(got, []string{"workflow_tool_action_dev"}) {
+		t.Fatalf("execution gate did not require the action gate: %#v", got)
+	}
+	if err := validateBridgeRuntimeConfig(config); err == nil || !strings.Contains(err.Error(), "requires workflow tool action dev") {
+		t.Fatalf("execution gate accepted a missing action gate: %v", err)
 	}
 }
 
@@ -815,16 +837,19 @@ func TestWorkflowToolActionEnvironmentGatesAreParsedExplicitly(t *testing.T) {
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_EXECUTOR_DEV", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_TOOL_ACTION_DEV", "1")
-	t.Setenv("RADISHMIND_WORKFLOW_HTTP_TOOL_EXECUTION_DEV", "0")
+	t.Setenv("RADISHMIND_WORKFLOW_HTTP_TOOL_EXECUTION_DEV", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_HTTP_TOOL_TEST_LOOPBACK", "1")
 	config, err := LoadFromEnv()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !config.WorkflowToolActionDevEnabled || config.WorkflowHTTPToolExecutionDevEnabled {
+	if !config.WorkflowToolActionDevEnabled || !config.WorkflowHTTPToolExecutionDevEnabled ||
+		!config.WorkflowHTTPToolTestLoopbackEnabled {
 		t.Fatalf("workflow tool action environment gates were not parsed: %#v", config.SanitizedSummary())
 	}
 	if config.FieldSources["workflow_tool_action_dev"] != configSourceEnv ||
-		config.FieldSources["workflow_http_tool_execution_dev"] != configSourceEnv {
+		config.FieldSources["workflow_http_tool_execution_dev"] != configSourceEnv ||
+		config.FieldSources["workflow_http_tool_test_loopback"] != configSourceEnv {
 		t.Fatalf("workflow tool action gate sources drifted: %#v", config.FieldSources)
 	}
 }

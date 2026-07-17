@@ -1,23 +1,29 @@
-import type { WorkflowExecutorConsumerConfig, WorkflowRunRecord } from "./workflowExecutorConsumer.ts";
+import type { WorkflowExecutorConsumerConfig } from "./workflowExecutorConsumer.ts";
 import { readWorkflowRunDevRecordByID } from "./workflowExecutorConsumer.ts";
+import type { WorkflowRunRecord, WorkflowRunSchemaVersion, WorkflowRunStatus } from "./workflowRunRecordConsumer.ts";
 
 export type WorkflowRunHistoryFilter = {
-  status: "" | "running" | "succeeded" | "failed" | "canceled";
+  status: "" | WorkflowRunStatus;
   draftId: string;
   startedFrom: string;
   startedTo: string;
   failureCode: string;
-  failureBoundary: "" | "draft_read" | "executor" | "gateway" | "provider" | "run_store" | "request";
+  failureBoundary: "" | "draft_read" | "executor" | "gateway" | "provider" | "run_store" | "request" |
+    "tool_policy" | "tool_confirmation" | "tool_transport" | "tool_response" | "tool_store";
   provider: string;
   model: string;
   staleRunning: "" | "true" | "false";
 };
 
 export type WorkflowRunHistorySummary = {
+  schemaVersion: WorkflowRunSchemaVersion;
   runId: string;
+  planId: string;
+  confirmationId: string;
+  toolAttemptStatus: "" | "claimed" | "succeeded" | "failed" | "outcome_unknown";
   draftId: string;
   draftVersion: number;
-  status: "running" | "succeeded" | "failed" | "canceled";
+  status: WorkflowRunStatus;
   failureCode: string;
   startedAt: string;
   completedAt: string;
@@ -32,8 +38,9 @@ export type WorkflowRunHistorySummary = {
   failedNodeId: string;
   lastCompletedNodeId: string;
   gatewayFailureCategory: string;
+  toolFailureCategory: string;
   recommendedReviewAction: string;
-  sideEffects: { providerCalls: number; toolCalls: 0; confirmationCalls: 0; businessWrites: 0; replayWrites: 0 };
+  sideEffects: { providerCalls: number; toolCalls: number; confirmationCalls: number; businessWrites: number; replayWrites: number };
 };
 
 export type WorkflowRunHistoryState = {
@@ -52,13 +59,14 @@ type RunHistoryEnvelope = {
   next_cursor: string; has_more: boolean; failure_code: string | null; failure_summary: string; audit_ref: string;
 };
 type RunSummaryDocument = {
-  schema_version: "workflow_run_record.v0" | "workflow_run_record.v1"; record_version: number; run_id: string; draft_id: string;
+  schema_version: WorkflowRunSchemaVersion; record_version: number; run_id: string;
+  plan_id?: string; confirmation_id?: string; tool_attempt_status?: string; draft_id: string;
   draft_version: number; workspace_id: string; application_id: string;
-  status: "running" | "succeeded" | "failed" | "canceled"; failure_code: string;
+  status: WorkflowRunStatus; failure_code: string;
   started_at: string; completed_at: string; duration_ms: number; selected_provider: string;
   selected_profile: string; selected_model: string; request_id: string; audit_ref: string; stale_running: boolean;
   failure_boundary?: string; failed_node_id?: string; last_completed_node_id?: string;
-  gateway_failure_category?: string; recommended_review_action?: string;
+  gateway_failure_category?: string; tool_failure_category?: string; recommended_review_action?: string;
   side_effects: { provider_calls: number; tool_calls: number; confirmation_calls: number; business_writes: number; replay_writes: number };
 };
 
@@ -106,8 +114,26 @@ function workflowRunHistoryHeaders(config: WorkflowExecutorConsumerConfig, appli
 }
 
 function toSummary(value: RunSummaryDocument): WorkflowRunHistorySummary {
-  if (value.side_effects.tool_calls || value.side_effects.confirmation_calls || value.side_effects.business_writes || value.side_effects.replay_writes) throw new Error("workflow run history contains a forbidden side effect count");
-  return { runId: value.run_id, draftId: value.draft_id, draftVersion: value.draft_version, status: value.status, failureCode: value.failure_code, startedAt: value.started_at, completedAt: value.completed_at, durationMs: value.duration_ms, selectedProvider: value.selected_provider, selectedProfile: value.selected_profile, selectedModel: value.selected_model, requestId: value.request_id, auditRef: value.audit_ref, staleRunning: value.stale_running, failureBoundary: value.failure_boundary ?? "", failedNodeId: value.failed_node_id ?? "", lastCompletedNodeId: value.last_completed_node_id ?? "", gatewayFailureCategory: value.gateway_failure_category ?? "", recommendedReviewAction: value.recommended_review_action ?? "", sideEffects: { providerCalls: value.side_effects.provider_calls, toolCalls: 0, confirmationCalls: 0, businessWrites: 0, replayWrites: 0 } };
+  const sideEffects = value.side_effects;
+  const toolRecord = value.schema_version === "workflow_run_record.v2";
+  if (sideEffects.business_writes || sideEffects.replay_writes ||
+    (toolRecord && (sideEffects.tool_calls !== 1 || sideEffects.confirmation_calls !== 1)) ||
+    (!toolRecord && (sideEffects.tool_calls !== 0 || sideEffects.confirmation_calls !== 0))) {
+    throw new Error("workflow run history contains an incompatible side effect count");
+  }
+  return {
+    schemaVersion: value.schema_version, runId: value.run_id, planId: value.plan_id ?? "",
+    confirmationId: value.confirmation_id ?? "", toolAttemptStatus: (value.tool_attempt_status ?? "") as WorkflowRunHistorySummary["toolAttemptStatus"],
+    draftId: value.draft_id, draftVersion: value.draft_version, status: value.status, failureCode: value.failure_code,
+    startedAt: value.started_at, completedAt: value.completed_at, durationMs: value.duration_ms,
+    selectedProvider: value.selected_provider, selectedProfile: value.selected_profile, selectedModel: value.selected_model,
+    requestId: value.request_id, auditRef: value.audit_ref, staleRunning: value.stale_running,
+    failureBoundary: value.failure_boundary ?? "", failedNodeId: value.failed_node_id ?? "",
+    lastCompletedNodeId: value.last_completed_node_id ?? "", gatewayFailureCategory: value.gateway_failure_category ?? "",
+    toolFailureCategory: value.tool_failure_category ?? "", recommendedReviewAction: value.recommended_review_action ?? "",
+    sideEffects: { providerCalls: sideEffects.provider_calls, toolCalls: sideEffects.tool_calls,
+      confirmationCalls: sideEffects.confirmation_calls, businessWrites: sideEffects.business_writes, replayWrites: sideEffects.replay_writes },
+  };
 }
 
 function isRunHistoryEnvelope(value: unknown): value is RunHistoryEnvelope {
@@ -121,5 +147,16 @@ function isRunSummary(value: unknown): value is RunSummaryDocument {
   const item = value as Partial<RunSummaryDocument>;
   const raw = value as Record<string, unknown>;
   for (const forbidden of ["input_text", "condition_values", "credential", "endpoint", "provider_raw_envelope"]) if (forbidden in raw) return false;
-  return (item.schema_version === "workflow_run_record.v0" || item.schema_version === "workflow_run_record.v1") && typeof item.record_version === "number" && typeof item.run_id === "string" && typeof item.draft_id === "string" && typeof item.draft_version === "number" && ["running", "succeeded", "failed", "canceled"].includes(item.status ?? "") && typeof item.started_at === "string" && typeof item.side_effects === "object" && [item.failure_boundary, item.failed_node_id, item.last_completed_node_id, item.gateway_failure_category, item.recommended_review_action].every((field) => field === undefined || typeof field === "string");
+  const schemaValid = item.schema_version === "workflow_run_record.v0" || item.schema_version === "workflow_run_record.v1" || item.schema_version === "workflow_run_record.v2";
+  const statusValid = ["running", "succeeded", "failed", "canceled", "outcome_unknown"].includes(item.status ?? "") &&
+    (item.status !== "outcome_unknown" || item.schema_version === "workflow_run_record.v2");
+  const toolMetadataValid = item.schema_version === "workflow_run_record.v2"
+    ? typeof item.plan_id === "string" && typeof item.confirmation_id === "string" &&
+      ["claimed", "succeeded", "failed", "outcome_unknown"].includes(item.tool_attempt_status ?? "")
+    : [item.plan_id, item.confirmation_id, item.tool_attempt_status].every((field) => field === undefined || field === "");
+  return schemaValid && statusValid && toolMetadataValid && typeof item.record_version === "number" &&
+    typeof item.run_id === "string" && typeof item.draft_id === "string" && typeof item.draft_version === "number" &&
+    typeof item.started_at === "string" && typeof item.side_effects === "object" &&
+    [item.failure_boundary, item.failed_node_id, item.last_completed_node_id, item.gateway_failure_category,
+      item.tool_failure_category, item.recommended_review_action].every((field) => field === undefined || typeof field === "string");
 }

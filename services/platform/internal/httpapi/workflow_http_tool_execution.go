@@ -70,7 +70,12 @@ func (s *Server) workflowHTTPToolExecutionService() (workflowHTTPToolExecutionSe
 		return s.resolveNorthboundSelection(ctx, requestedModel, nil)
 	}
 	executor.envelopeOptions = s.buildBridgeEnvelopeOptions
-	return newWorkflowHTTPToolExecutionService(actions, s.workflowHTTPToolExecutionStore, executor), nil
+	service := newWorkflowHTTPToolExecutionService(actions, s.workflowHTTPToolExecutionStore, executor)
+	if s.workflowHTTPToolExecutionTransport != nil {
+		service.transport = *s.workflowHTTPToolExecutionTransport
+	}
+	service.transport.allowTestOnlyLoopback = s.config.WorkflowHTTPToolTestLoopbackEnabled && s.options.TestOnly
+	return service, nil
 }
 
 func (service workflowHTTPToolExecutionService) Execute(
@@ -124,7 +129,12 @@ func (service workflowHTTPToolExecutionService) Execute(
 	if failureCode != "" {
 		return workflowHTTPToolExecutionFailure(failureCode, failureSummary)
 	}
-	if err := validateWorkflowHTTPToolExecutionBinding(approvedPlan, service.actions.registry.profile, ctx.RequestID); err != nil {
+	if err := validateWorkflowHTTPToolExecutionBinding(
+		approvedPlan,
+		service.actions.registry.profile,
+		ctx.RequestID,
+		service.transport.allowTestOnlyLoopback,
+	); err != nil {
 		return workflowHTTPToolExecutionFailure(WorkflowRunFailureToolPolicy, "Workflow HTTP tool policy no longer matches the approved plan.")
 	}
 	promptPacket := buildWorkflowPromptPacket(executionPlan.nodes[executionPlan.rootNodeID], normalized.InputText)

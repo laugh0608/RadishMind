@@ -37,6 +37,9 @@ type WorkflowRunSummary struct {
 	SchemaVersion           string                            `json:"schema_version"`
 	RecordVersion           int                               `json:"record_version"`
 	RunID                   string                            `json:"run_id"`
+	PlanID                  string                            `json:"plan_id"`
+	ConfirmationID          string                            `json:"confirmation_id"`
+	ToolAttemptStatus       WorkflowHTTPToolAttemptStatus     `json:"tool_attempt_status"`
 	DraftID                 string                            `json:"draft_id"`
 	DraftVersion            int                               `json:"draft_version"`
 	WorkspaceID             string                            `json:"workspace_id"`
@@ -57,6 +60,7 @@ type WorkflowRunSummary struct {
 	FailedNodeID            string                            `json:"failed_node_id"`
 	LastCompletedNodeID     string                            `json:"last_completed_node_id"`
 	GatewayFailureCategory  WorkflowRunGatewayFailureCategory `json:"gateway_failure_category"`
+	ToolFailureCategory     WorkflowHTTPToolFailureCategory   `json:"tool_failure_category"`
 	RecommendedReviewAction WorkflowRunReviewAction           `json:"recommended_review_action"`
 }
 
@@ -256,6 +260,7 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 	}
 	summary := WorkflowRunSummary{
 		SchemaVersion: record.SchemaVersion, RecordVersion: record.RecordVersion, RunID: record.RunID,
+		PlanID: record.PlanID, ConfirmationID: record.ConfirmationID,
 		DraftID: record.DraftID, DraftVersion: record.DraftVersion, WorkspaceID: record.WorkspaceID,
 		ApplicationID: record.ApplicationID, Status: record.Status, FailureCode: record.FailureCode,
 		StartedAt: record.StartedAt, CompletedAt: record.CompletedAt, DurationMS: duration,
@@ -264,11 +269,15 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 		SideEffects:  record.SideEffects,
 		StaleRunning: record.Status == WorkflowRunStatusRunning && now.Sub(startedAt) > workflowExecutorDefaultMaxRuntime,
 	}
+	if record.ToolAttempt != nil {
+		summary.ToolAttemptStatus = record.ToolAttempt.Status
+	}
 	if record.Diagnostic != nil {
 		summary.FailureBoundary = record.Diagnostic.FailureBoundary
 		summary.FailedNodeID = record.Diagnostic.FailedNodeID
 		summary.LastCompletedNodeID = record.Diagnostic.LastCompletedNodeID
 		summary.GatewayFailureCategory = record.Diagnostic.GatewayFailureCategory
+		summary.ToolFailureCategory = record.Diagnostic.ToolFailureCategory
 		summary.RecommendedReviewAction = record.Diagnostic.RecommendedReviewAction
 	}
 	return summary

@@ -63,6 +63,12 @@ import {
   type WorkflowHTTPToolPublicArguments,
 } from "../features/control-plane-read/workflowHTTPToolActionConsumer";
 import { WorkflowHTTPToolActionPanel } from "../features/control-plane-read/workflowHTTPToolActionPanel";
+import {
+  executeWorkflowHTTPToolActionPlan,
+  initialWorkflowHTTPToolExecutionState,
+  type WorkflowHTTPToolExecutionState,
+} from "../features/control-plane-read/workflowHTTPToolExecutionConsumer.ts";
+import { WorkflowHTTPToolExecutionPanel } from "../features/control-plane-read/workflowHTTPToolExecutionPanel.tsx";
 import { buildModelGatewayOverviewViewModel } from "../features/control-plane-read/modelGatewayOverview";
 import { ModelGatewayOverviewPanel } from "../features/control-plane-read/modelGatewayOverviewPanel";
 import { buildModelGatewayRouteEvidenceViewModel } from "../features/control-plane-read/modelGatewayRouteEvidence";
@@ -305,12 +311,19 @@ export function App() {
   );
   const [workflowHTTPToolResourceKey, setWorkflowHTTPToolResourceKey] = useState("");
   const [workflowHTTPToolLocale, setWorkflowHTTPToolLocale] = useState("");
+  const [workflowHTTPToolExecutionState, setWorkflowHTTPToolExecutionState] = useState<WorkflowHTTPToolExecutionState>(() =>
+    initialWorkflowHTTPToolExecutionState(workflowHTTPToolActionConsumerConfig),
+  );
+  const [workflowHTTPToolExecutionInput, setWorkflowHTTPToolExecutionInput] = useState("Review the approved resource and return a bounded advisory summary.");
+  const [workflowHTTPToolExecutionModel, setWorkflowHTTPToolExecutionModel] = useState("");
   const workflowExecutorOperationPending =
     workflowExecutorState.status === "starting" || workflowExecutorState.status === "reading";
   const workflowHTTPToolActionOperationPending =
     workflowHTTPToolActionState.status === "creating" ||
     workflowHTTPToolActionState.status === "reading" ||
     workflowHTTPToolActionState.status === "deciding";
+  const workflowHTTPToolOperationPending = workflowHTTPToolActionOperationPending ||
+    workflowHTTPToolExecutionState.status === "executing";
 
   useEffect(() => {
     if (devLiveConfig.mode !== "dev_live_http") {
@@ -523,6 +536,7 @@ export function App() {
   ) ?? null;
   const applicationCatalogLive = applicationCatalogConfig.mode === "dev_application_catalog_http";
   const canRenderSelectedApplicationActions = !applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active";
+  const workflowScopedApplicationId = selectedApplicationRef?.trim() || activeWorkflowDraft.applicationRef;
   const savedDraftConflictRestoreSummary = useMemo(
     () =>
       savedDraftListState.summaries.find(
@@ -585,6 +599,7 @@ export function App() {
 
   useEffect(() => {
     setWorkflowHTTPToolActionState(initialWorkflowHTTPToolActionConsumerState(workflowHTTPToolActionConsumerConfig));
+    setWorkflowHTTPToolExecutionState(initialWorkflowHTTPToolExecutionState(workflowHTTPToolActionConsumerConfig));
     setWorkflowHTTPToolResourceKey("");
     setWorkflowHTTPToolLocale("");
     if (workflowHTTPToolActionConsumerConfig.mode !== "dev_workflow_http_tool_http") return;
@@ -985,13 +1000,13 @@ export function App() {
   };
   useEffect(() => {
     if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
-      setSavedDraftListState(initialWorkflowSavedDraftListState(savedDraftConsumerConfig, selectedApplication.applicationRef));
+      setSavedDraftListState(initialWorkflowSavedDraftListState(savedDraftConsumerConfig, workflowScopedApplicationId));
       return;
     }
-    refreshSavedWorkflowDraftList(selectedApplication.applicationRef);
-  }, [selectedApplication.applicationRef]);
+    refreshSavedWorkflowDraftList(workflowScopedApplicationId);
+  }, [workflowScopedApplicationId]);
   const handleRefreshSavedWorkflowDraftList = () => {
-    refreshSavedWorkflowDraftList(selectedApplication.applicationRef);
+    refreshSavedWorkflowDraftList(workflowScopedApplicationId);
   };
   const handleRestoreSavedWorkflowDraft = (summary: WorkflowSavedDraftSummary) => {
     if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
@@ -1285,6 +1300,40 @@ export function App() {
     decideWorkflowHTTPToolActionPlan(workflowHTTPToolActionConsumerConfig, plan, decision).then((state) => {
       if (state.actionPlan) rememberWorkflowHTTPToolActionPlanReference(state.actionPlan);
       setWorkflowHTTPToolActionState(state);
+    });
+  };
+
+  const handleRunApprovedHTTPToolActionPlan = () => {
+    const plan = workflowHTTPToolActionState.actionPlan;
+    if (!plan || plan.status !== "approved" || workflowHTTPToolOperationPending || !workflowHTTPToolPermissions.execute.available) return;
+    setWorkflowHTTPToolExecutionState((state) => ({
+      ...state,
+      status: "executing",
+      summary: `Claiming approved plan ${plan.planId} version ${plan.recordVersion} for its single execution attempt.`,
+      failureCode: "",
+      actionPlan: plan,
+      run: null,
+    }));
+    executeWorkflowHTTPToolActionPlan(workflowHTTPToolActionConsumerConfig, plan, {
+      inputText: workflowHTTPToolExecutionInput,
+      model: workflowHTTPToolExecutionModel,
+    }).then((state) => {
+      if (state.actionPlan) {
+        rememberWorkflowHTTPToolActionPlanReference(state.actionPlan);
+        setWorkflowHTTPToolActionState((current) => ({
+          ...current,
+          status: state.actionPlan?.status === "consumed" ? "ready" : current.status,
+          summary: state.actionPlan?.status === "consumed"
+            ? `Durable action plan ${state.actionPlan.planId} was consumed by its single execution attempt.`
+            : current.summary,
+          failureCode: state.failureCode,
+          requestId: state.requestId,
+          auditRef: state.auditRef,
+          actionPlan: state.actionPlan,
+          confirmationDecision: null,
+        }));
+      }
+      setWorkflowHTTPToolExecutionState(state);
     });
   };
 
@@ -1931,7 +1980,7 @@ export function App() {
             savedDraftConflictReviewSummary={savedDraftConflictReviewSummary}
             savedDraftConflictRestoreSummary={savedDraftConflictRestoreSummary}
             draftEditDirty={workflowDraftEditDirty}
-            executorOperationPending={workflowExecutorOperationPending || workflowHTTPToolActionOperationPending}
+            executorOperationPending={workflowExecutorOperationPending || workflowHTTPToolOperationPending}
             onSelectDraft={handleSelectWorkflowDraft}
             onUpdateDraftLabel={handleWorkflowDraftLabelChange}
             onUpdateDraftSummary={handleWorkflowDraftSummaryChange}
@@ -1971,6 +2020,16 @@ export function App() {
             onReloadPlan={handleReloadWorkflowHTTPToolActionPlan}
             onDecision={handleWorkflowHTTPToolActionDecision}
           />
+          <WorkflowHTTPToolExecutionPanel
+            plan={workflowHTTPToolActionState.actionPlan}
+            state={workflowHTTPToolExecutionState}
+            permissions={workflowHTTPToolPermissions}
+            inputText={workflowHTTPToolExecutionInput}
+            model={workflowHTTPToolExecutionModel}
+            onInputTextChange={setWorkflowHTTPToolExecutionInput}
+            onModelChange={setWorkflowHTTPToolExecutionModel}
+            onExecute={handleRunApprovedHTTPToolActionPlan}
+          />
           <WorkflowExecutorPanel
             draft={activeWorkflowDraft}
             consumerState={workflowExecutorState}
@@ -1997,7 +2056,7 @@ export function App() {
         </section>
 
         <Suspense fallback={<section className="surface-band"><p>Loading run history…</p></section>}>
-          <WorkflowRunHistoryPanel applicationId={selectedApplication.applicationRef} />
+          <WorkflowRunHistoryPanel applicationId={workflowScopedApplicationId} />
         </Suspense>
 
         <section hidden aria-hidden="true"
@@ -4029,21 +4088,7 @@ function canRemoveWorkflowDraftNode(draft: WorkflowDraftDesignerDraft, nodeId: s
   if (!hasWorkflowDraftLane(remainingNodes, "context") || !hasWorkflowDraftLane(remainingNodes, "model")) {
     return false;
   }
-  if (countWorkflowDraftLane(remainingNodes, "output") < 2) {
-    return false;
-  }
-  if (
-    node.lane === "policy" &&
-    countWorkflowDraftLane(draft.nodes, "policy") === 1 &&
-    hasWorkflowDraftLane(draft.nodes, "preview")
-  ) {
-    return false;
-  }
-  if (
-    node.lane === "preview" &&
-    countWorkflowDraftLane(draft.nodes, "preview") === 1 &&
-    hasWorkflowDraftLane(draft.nodes, "policy")
-  ) {
+  if (countWorkflowDraftLane(remainingNodes, "output") < 1) {
     return false;
   }
   return rebuildWorkflowDraftEdges(remainingNodes, draft.edges).length >= 3;

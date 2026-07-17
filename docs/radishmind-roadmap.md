@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：工作流审查、Gateway 请求审查、用户工作区应用接入 / 配置 / 发布 / 目录 / API 密钥，以及本地 SQLite 与 PostgreSQL 开发测试态证据链均已关闭。“Workflow 受控 HTTP Tool 与人工确认执行（开发/测试态）v1”批次 A、B 已通过，版本化契约、持久 action plan / confirmation、受控 HTTP transport、原子 claim、run v2、三种 store、diagnostics 与 outcome reconciliation 已完成；当前进入批次 C，实施 `/executions`、Web 执行、Run History v2、双数据库和浏览器重启链。
+1. 产品线：工作流审查、Gateway 请求审查、用户工作区应用接入 / 配置 / 发布 / 目录 / API 密钥，以及本地 SQLite 与 PostgreSQL 开发测试态证据链均已关闭。“Workflow 受控 HTTP Tool 与人工确认执行（开发/测试态）v1”三个批次已通过，状态为 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed`；下一轮先设计 Workflow RAG retrieval 的开发 / 测试态纵向切片，再决定实现批次。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；production secret backend、process supervisor、部署环境隔离、console production packaging、生产认证、生产 API key、quota 和 billing 继续为 `not_satisfied`。

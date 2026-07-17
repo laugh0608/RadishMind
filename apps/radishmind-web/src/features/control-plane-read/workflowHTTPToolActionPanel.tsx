@@ -55,7 +55,7 @@ export function WorkflowHTTPToolActionPanel({
     >
       <div className="section-heading compact-heading">
         <div>
-          <p className="eyebrow">Workflow HTTP Tool · Batch A</p>
+          <p className="eyebrow">Workflow HTTP Tool · Confirmed action</p>
           <h4 id="workflow-http-tool-action-review-title">Durable action plan review</h4>
         </div>
         <ActionStatusBadge state={consumerState} eligible={eligibility.eligible} />
@@ -78,9 +78,9 @@ export function WorkflowHTTPToolActionPanel({
           <p>Every decision uses the displayed durable record version as its CAS boundary.</p>
         </article>
         <article>
-          <span>Batch A boundary</span>
-          <strong>Governance metadata only</strong>
-          <p>Approval records qualification only; network, provider, run, business, and replay counts remain zero.</p>
+          <span>Confirmation boundary</span>
+          <strong>Approval is not execution</strong>
+          <p>Approval records qualification only; the separate Batch C panel is the only network-start action.</p>
         </article>
       </div>
 
@@ -192,13 +192,10 @@ export function WorkflowHTTPToolActionPanel({
                 {decisionLabel(decision)}
               </button>
             ))}
-            <button type="button" disabled title={permissions.execute.summary}>
-              Execute · Batch C unavailable
-            </button>
           </div>
           {plan.status === "approved" ? (
             <p className="boundary-note">
-              Approved qualification is durable. Batch A deliberately provides no network-start action and creates no workflow run.
+              Approved qualification is durable. Use the separate explicit execution panel to start at most one attempt.
             </p>
           ) : null}
         </article>

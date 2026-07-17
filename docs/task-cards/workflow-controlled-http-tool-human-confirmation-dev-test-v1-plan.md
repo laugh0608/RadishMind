@@ -1,16 +1,14 @@
 # Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1 实施任务卡
 
-更新时间：2026-07-16
+更新时间：2026-07-17
 
 - 任务 ID：`workflow-controlled-http-tool-human-confirmation-dev-test-v1`
-- 状态：`workflow_controlled_http_tool_human_confirmation_dev_test_v1_batch_b_completed`
+- 状态：`workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed`
 - 功能设计：[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](../features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md)
 
 ## 准入结论
 
-本卡是该功能唯一的高风险实现入口，承接版本化契约、持久 action plan / confirmation、受控 HTTP transport、`workflow_run_record.v2`、Web 纵向链和双数据库复验。批次 A 的治理资源和批次 B 的内部执行 runtime 均已通过；受控 transport、原子 claim、run v2、三种 store、诊断与不确定结果治理已经形成可复验证据。真实 HTTP `/executions` 与 Web 执行链仍未启用。
-
-下一实施动作固定为批次 C：注册 `/executions`，完成 Web approve / execute 分离、Run History v2 展示、SQLite 连续链、PostgreSQL 复验和真实浏览器重启验收。批次 A 已证明计划和确认阶段的网络请求、provider 调用和 workflow run 创建全部为 0；批次 B 已证明 claim 前零网络、原子单次 claim、无 retry / resume / replay 与不确定结果对账。不为三个子批派生新的 readiness 任务卡。
+本卡是该功能唯一的高风险实现入口，承接版本化契约、持久 action plan / confirmation、受控 HTTP transport、`workflow_run_record.v2`、Web 纵向链和双数据库复验。三个批次已经全部完成：批次 A 证明计划和确认阶段的网络请求、provider 调用和 workflow run 创建全部为 0；批次 B 证明 claim 前零网络、原子单次 claim、无 retry / resume / replay 与不确定结果对账；批次 C 完成独立 `/executions`、Web、Run History v2、SQLite / PostgreSQL 和真实浏览器重启链。完成锚点为 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed`，不派生同层 readiness 任务卡。
 
 ## 用户目标
 
@@ -86,7 +84,7 @@ POST /v1/user-workspace/workflow-tool-action-plans/{plan_id}/executions
 1. 已物化 definition、profile、action plan、confirmation decision、execution audit 与 run record v2 schema；`tool_id / tool_version=1`、definition / profile / output schema digest 与不可变 `tool_plan_digest` 已贯通 Go、JSON Schema、fixture、数据库和 Web strict consumer。
 2. 已实现 create / detail / decisions 三条 route、严格请求和脱敏响应、plan / read / confirm 独立授权、15 分钟 expiry、源漂移失效、单时间采样和 append-only decision / audit；批次 A 未注册 `/executions`。
 3. memory、SQLite 与 PostgreSQL store 共享既有 workflow runtime owner；CAS 状态矩阵拒绝重复 `deferred -> deferred`，decision / audit 与 plan 状态在同一事务或同一 owner lock 内原子提交。
-4. Web 已提供 durable plan 审查、刷新恢复、权限矩阵、CAS 冲突刷新与独立 approve / execute 提示；批次 B 完成后 execute 继续明确标记为批次 C 不可用，offline 和缺少授权时请求数为 0。
+4. Web 已提供 durable plan 审查、刷新恢复、权限矩阵、CAS 冲突刷新与独立 approve / execute 提示；批次 C 已接通显式 execute，offline 和缺少授权时请求数仍为 0。
 5. 已通过 Go 定向与 race、SQLite migration / restart、PostgreSQL integration tag 编译、契约聚合 checker、Web 92 项测试与生产构建；旧 confirmation placeholder 已标记为 archived / superseded。
 6. 真实 PostgreSQL 专项已通过 `./scripts/run-workflow-saved-draft-postgres-dev-test.sh check`：完整 Platform integration suite、`0006_workflow_http_tool_actions` migration、configured startup profile、并发 CAS、三层 scope、事务回滚、重启和 no-fallback 证据均通过，临时容器与网络已由 runner 清理。
 
@@ -131,7 +129,7 @@ POST /v1/user-workspace/workflow-tool-action-plans/{plan_id}/executions
 
 ## 批次 C：Web 执行纵向链与双数据库复验
 
-状态：`ready_for_implementation`。
+状态：`completed`；完成锚点为 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed`。
 
 ### 实现范围
 
@@ -141,11 +139,19 @@ POST /v1/user-workspace/workflow-tool-action-plans/{plan_id}/executions
 4. 完成 SQLite 本地产品连续链与重启恢复；PostgreSQL 单独复验 migration / rollback / reapply、角色、并发 claim、marker mismatch、重启和 no-fallback，不能用 SQLite 结果替代。
 5. 真实浏览器连续验收：保存精确草案 → 创建计划 → 审查 → 批准但不执行 → 显式执行 → Run History / detail → 重启恢复 → 重复执行拒绝。
 
+### 当前实施证据（2026-07-17）
+
+1. 已注册独立 `/executions` handler，严格请求 / envelope、完整 tenant / workspace / application 作用域和三项 execute scope 均在进入批次 B execution service 前失败关闭；测试 loopback 只允许显式 `TestOnly` server 与独立 test gate 同时启用。
+2. Web 已分离 approve 与 execute，执行中和 consumed 状态禁用重复提交；共享严格 run consumer 同时兼容 v0 / v1 / v2，Run History / detail 展示 confirmation、tool attempt、受控副作用、脱敏投影和工具失败分类。
+3. 确定性 TLS transport 集成、SQLite 创建草案到执行 / 重启 / 重复拒绝的完整链，以及 PostgreSQL migration / rollback / reapply、角色、并发 claim、marker、重启和 no-fallback 专项均通过。
+4. 真实浏览器完成“精确 4 节点 / 3 边草案 → 保存 → 计划 → 批准但不执行 → 显式执行一次 → v2 历史 / 详情 → 服务重启 → 草案、consumed 计划和同一运行记录恢复”；测试目标的确定性 transport 失败形成稳定 `tool_transport` 诊断，计划保持 consumed 且没有 retry / resume。
+5. 浏览器重启后没有新增 HTTP / runtime 错误；SQLite 主库、WAL 和 SHM 未发现原始输入、目标 URL、header 或 raw response。Web 96 项测试、生产构建、Platform 全量 Go 测试、PostgreSQL 专项与仓库 fast / full 门禁共同作为关闭证据。
+
 ### 完成门禁
 
 - 浏览器可以明确区分 planned、approved、consumed、failed 与 outcome unknown，批准后网络计数仍为 0，执行后最多一次。
 - 页面、URL、Web Storage、日志、数据库和浏览器产物不包含 endpoint、raw query、header、credential、raw response 或底层错误。
-- 三批全部通过后才能同步状态为 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed`。
+- 三批已经全部通过，状态已同步为 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed`；该状态不代表 production ready。
 
 ## 主要实现落点
 
@@ -153,7 +159,7 @@ POST /v1/user-workspace/workflow-tool-action-plans/{plan_id}/executions
 - Platform：`services/platform/internal/httpapi/` 中新增 tool contract、action service、HTTP route、store、transport 与 policy 文件；更新 `server.go`、`workflow_executor.go`、`workflow_run_store.go`、storage codec、history、diagnostics、comparison 和 evaluation。
 - 配置：`services/platform/internal/config/`、本地启动脚本与 sanitized config summary；默认关闭，不输出 endpoint。
 - 数据库：`services/platform/migrations/workflow_runs/` 的 A=`0006`、B=`0007` 与 `services/platform/migrations/sqlite/workflow_runs/` 的 A=`0002`、B=`0003` 只追加 migration / manifest / tests；复用现有 workflow run migration runner，并把 backend selector 收口为共享 workflow runtime backend owner。
-- Web：`apps/radishmind-web/src/features/control-plane-read/` 中新增独立 action consumer / panel，并更新 Review Handoff、Executor、Run History / detail 的严格类型和测试；不继续扩大单个已有长文件。
+- Web：`apps/radishmind-web/src/features/control-plane-read/` 中独立 action / execution consumer 与 panel、共享 run record consumer，以及 Review Handoff、Executor、Run History / detail 的严格类型和测试；不继续扩大单个已有长文件。
 
 ## 必要验证
 

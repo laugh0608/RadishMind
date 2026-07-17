@@ -18,6 +18,7 @@ application_publish_dev=0
 application_publish_postgres_dev_test=0
 application_catalog_postgres_dev_test=0
 api_key_local_product=0
+workflow_http_tool_local_product=0
 saved_draft_workspace_id="workspace_demo"
 saved_draft_application_id="app_flow_copilot"
 
@@ -55,6 +56,8 @@ Options:
   --application-catalog-postgres-dev-test
                            Enable the PostgreSQL dev/test Application Catalog lifecycle UI.
   --api-key-local-product  Enable the SQLite local-product Application/API key/Playground chain.
+  --workflow-http-tool-local-product
+                           Enable the SQLite local-product Workflow HTTP Tool chain.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
   -h, --help              Show this help.
@@ -127,6 +130,10 @@ while [[ $# -gt 0 ]]; do
       api_key_local_product=1
       shift
       ;;
+    --workflow-http-tool-local-product)
+      workflow_http_tool_local_product=1
+      shift
+      ;;
     --verify-only)
       verify_only=1
       shift
@@ -196,6 +203,10 @@ if [[ "${api_key_local_product}" -eq 1 && "${mode}" != "dev-live" ]]; then
   echo "--api-key-local-product requires --mode dev-live" >&2
   exit 2
 fi
+if [[ "${workflow_http_tool_local_product}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--workflow-http-tool-local-product requires --mode dev-live" >&2
+  exit 2
+fi
 if [[ "${application_publish_dev}" -eq 1 && "${application_publish_postgres_dev_test}" -eq 1 ]]; then
   echo "Choose either --application-publish-dev or --application-publish-postgres-dev-test" >&2
   exit 2
@@ -216,13 +227,18 @@ if [[ "${api_key_local_product}" -eq 1 && "${explicit_component_mode}" -eq 1 ]];
   echo "--api-key-local-product cannot be combined with explicit memory/PostgreSQL component modes" >&2
   exit 2
 fi
+if [[ "${workflow_http_tool_local_product}" -eq 1 && "${explicit_component_mode}" -eq 1 ]]; then
+  echo "--workflow-http-tool-local-product cannot be combined with explicit memory/PostgreSQL component modes" >&2
+  exit 2
+fi
 platform_profile="local-product"
 if [[ "${explicit_component_mode}" -eq 1 ]]; then
   platform_profile="configured"
 fi
 
 saved_draft_enabled=0
-if [[ "${saved_draft_dev}" -eq 1 || "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
+if [[ "${saved_draft_dev}" -eq 1 || "${saved_draft_postgres_dev_test}" -eq 1 ||
+  "${workflow_http_tool_local_product}" -eq 1 ]]; then
   saved_draft_enabled=1
 fi
 
@@ -675,7 +691,7 @@ show_failure_help() {
     echo "- Port conflict: backend should answer on http://127.0.0.1:7000 and web on http://127.0.0.1:4100."
     echo "- macOS port 7000 conflict: AirPlay / Control Center may occupy it; retry with --backend-url http://127.0.0.1:7100."
     echo "- Dev-live auth: backend must be started with RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1 for fake-store-backed read routes."
-    echo "- Saved Draft mode: choose --saved-draft-dev or --saved-draft-postgres-dev-test so backend and web opt in together."
+    echo "- Workflow mode: choose --saved-draft-dev, --saved-draft-postgres-dev-test, or --workflow-http-tool-local-product so backend and web opt in together."
     echo "- Gateway Request History: use --gateway-request-postgres-dev-test after running the PostgreSQL check entry."
     echo "- API key local product: use --api-key-local-product by itself so SQLite lifecycle and api_key_dev_test auth stay aligned."
     echo "- PostgreSQL dev/test mode: start and migrate it with ./scripts/run-workflow-saved-draft-postgres-dev-test.sh check."
@@ -781,13 +797,15 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
           export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
-		  export RADISHMIND_WORKFLOW_TOOL_ACTION_DEV="1"
+          export RADISHMIND_WORKFLOW_TOOL_ACTION_DEV="1"
+          export RADISHMIND_WORKFLOW_HTTP_TOOL_EXECUTION_DEV="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="memory_dev"
         elif [[ "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
           export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
-		  export RADISHMIND_WORKFLOW_TOOL_ACTION_DEV="1"
+          export RADISHMIND_WORKFLOW_TOOL_ACTION_DEV="1"
+          export RADISHMIND_WORKFLOW_HTTP_TOOL_EXECUTION_DEV="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="postgres_dev_test"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
 			export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
@@ -834,22 +852,24 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
-        if [[ "${application_catalog_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 ]]; then
+        if [[ "${application_catalog_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_http_tool_local_product}" -eq 1 ]]; then
           export VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE="dev-application-catalog-http"
           export VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
-        if [[ "${api_key_local_product}" -eq 1 ]]; then
+        if [[ "${api_key_local_product}" -eq 1 || "${workflow_http_tool_local_product}" -eq 1 ]]; then
           export VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE="dev-api-key-lifecycle-http"
           export VITE_RADISHMIND_API_KEY_LIFECYCLE_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_API_KEY_LIFECYCLE_WORKSPACE_ID="${saved_draft_workspace_id}"
+        fi
+        if [[ "${api_key_local_product}" -eq 1 ]]; then
           export VITE_RADISHMIND_GATEWAY_AUTH_MODE="api_key_dev_test"
         fi
         if [[ "${saved_draft_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE="dev-saved-draft-http"
           export VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE="dev-workflow-executor-http"
           export VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE="dev-workflow-http-tool-http"
-          export VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS="workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm"
+          export VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS="workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm,workflow_tool_actions:execute,workflow_runs:execute"
         fi
         if [[ "${workflow_diagnostics_dev}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV="true"
@@ -963,8 +983,11 @@ if [[ "${mode}" == "dev-live" ]]; then
   if [[ "${api_key_local_product}" -eq 1 ]]; then
     step "API key SQLite local-product Web chain enabled for ${saved_draft_workspace_id}; raw credentials remain browser-memory only."
   fi
+  if [[ "${workflow_http_tool_local_product}" -eq 1 ]]; then
+    step "Workflow HTTP Tool SQLite local-product Web chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; approve and execute remain separate actions."
+  fi
 fi
-step "This is a dev-only launcher, not a production supervisor. Controlled executor v0 is dev-only; production auth, secret resolution, unrestricted tools, confirmation commit, writeback and replay remain disabled."
+step "This is a dev-only launcher, not a production supervisor. Controlled execution is dev-only; production auth, secret resolution, unrestricted tools, automatic confirmation, writeback and replay remain disabled."
 
 if [[ "${verify_only}" -eq 0 && "${exit_after_probe}" -eq 0 && "${#spawned_pids[@]}" -gt 0 ]]; then
   step "Press Ctrl+C to stop spawned local dev processes."

@@ -43,7 +43,7 @@ test("workflow run history maps scoped page and preserves zero forbidden side ef
 test("workflow run history rejects forbidden side effect counts", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response(JSON.stringify({ request_id: "request", workspace_id: "workspace_demo", application_id: "app_demo", runs: [{ schema_version: "workflow_run_record.v0", record_version: 2, run_id: "run_bad", draft_id: "draft", draft_version: 1, workspace_id: "workspace_demo", application_id: "app_demo", status: "succeeded", failure_code: "", started_at: "2026-07-11T10:00:00Z", completed_at: "2026-07-11T10:00:01Z", duration_ms: 1000, selected_provider: "mock", selected_profile: "", selected_model: "mock", request_id: "request", audit_ref: "audit", stale_running: false, side_effects: { provider_calls: 1, tool_calls: 1, confirmation_calls: 0, business_writes: 0, replay_writes: 0 } }], next_cursor: "", has_more: false, failure_code: null, failure_summary: "", audit_ref: "audit" }), { status: 200 });
-  try { await assert.rejects(() => listWorkflowRunHistory("app_demo", live, EMPTY_WORKFLOW_RUN_HISTORY_FILTER), /forbidden side effect/); }
+  try { await assert.rejects(() => listWorkflowRunHistory("app_demo", live, EMPTY_WORKFLOW_RUN_HISTORY_FILTER), /incompatible side effect/); }
   finally { globalThis.fetch = originalFetch; }
 });
 
@@ -67,5 +67,38 @@ test("workflow run history maps v1 diagnostics and sends exact failure filters",
     assert.equal(result.runs[0]?.failureBoundary, "gateway");
     assert.equal(result.runs[0]?.gatewayFailureCategory, "timeout");
     assert.equal(result.runs[0]?.failedNodeId, "node_model");
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test("workflow run history maps v2 confirmation, attempt, and outcome evidence", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    request_id: "request_tool_history", workspace_id: "workspace_demo", application_id: "app_demo",
+    runs: [{
+      schema_version: "workflow_run_record.v2", record_version: 2,
+      run_id: "run_0123456789abcdef", plan_id: "wtap_abcdefghijklmnop",
+      confirmation_id: "wtcd_abcdefghijklmnop", tool_attempt_status: "outcome_unknown",
+      draft_id: "draft_tool", draft_version: 4, workspace_id: "workspace_demo", application_id: "app_demo",
+      status: "outcome_unknown", failure_code: "workflow_tool_outcome_unknown",
+      started_at: "2026-07-17T10:00:00Z", completed_at: "2026-07-17T10:00:30Z", duration_ms: 30000,
+      selected_provider: "mock", selected_profile: "provider_profile_mock", selected_model: "mock",
+      request_id: "request_tool_run", audit_ref: "audit_tool_run", stale_running: false,
+      failure_boundary: "tool_transport", failed_node_id: "node_http_tool",
+      last_completed_node_id: "node_prompt", gateway_failure_category: "none",
+      tool_failure_category: "outcome_unknown", recommended_review_action: "review_tool_outcome",
+      side_effects: { provider_calls: 0, tool_calls: 1, confirmation_calls: 1, business_writes: 0, replay_writes: 0 },
+    }],
+    next_cursor: "", has_more: false, failure_code: null, failure_summary: "", audit_ref: "audit_tool_history",
+  }), { status: 200 });
+  try {
+    const result = await listWorkflowRunHistory("app_demo", live, { ...EMPTY_WORKFLOW_RUN_HISTORY_FILTER, status: "outcome_unknown" });
+    const run = result.runs[0];
+    assert.equal(run?.schemaVersion, "workflow_run_record.v2");
+    assert.equal(run?.planId, "wtap_abcdefghijklmnop");
+    assert.equal(run?.confirmationId, "wtcd_abcdefghijklmnop");
+    assert.equal(run?.toolAttemptStatus, "outcome_unknown");
+    assert.equal(run?.toolFailureCategory, "outcome_unknown");
+    assert.equal(run?.sideEffects.toolCalls, 1);
+    assert.equal(run?.sideEffects.businessWrites, 0);
   } finally { globalThis.fetch = originalFetch; }
 });

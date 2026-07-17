@@ -17,7 +17,7 @@ const ACTION_PLAN_REFERENCE_STORAGE_KEY = "radishmind.workflow-http-tool-action-
 const PLAN_SCOPE_GRANTS = ["workflow_drafts:read", "workflow_tool_actions:plan"] as const;
 const READ_SCOPE_GRANTS = ["workflow_tool_actions:read"] as const;
 const CONFIRM_SCOPE_GRANTS = ["workflow_tool_actions:confirm"] as const;
-const EXECUTE_SCOPE_GRANTS = ["workflow_tool_actions:execute"] as const;
+const EXECUTE_SCOPE_GRANTS = ["workflow_tool_actions:execute", "workflow_runs:execute", "workflow_drafts:read"] as const;
 const DEFAULT_BATCH_A_SCOPE_GRANTS = [...PLAN_SCOPE_GRANTS, ...READ_SCOPE_GRANTS, ...CONFIRM_SCOPE_GRANTS];
 const ACTION_PLAN_ENVELOPE_KEYS = [
   "request_id", "workspace_id", "application_id", "action_plan", "confirmation_decision",
@@ -79,7 +79,7 @@ export type WorkflowHTTPToolPermission = {
   operation: "plan" | "read" | "confirm" | "execute";
   requiredGrants: string[];
   available: boolean;
-  phase: "batch_a" | "batch_b";
+  phase: "batch_a" | "batch_c";
   summary: string;
 };
 
@@ -323,9 +323,11 @@ export function workflowHTTPToolActionPermissions(
     execute: {
       operation: "execute",
       requiredGrants: [...EXECUTE_SCOPE_GRANTS],
-      available: false,
-      phase: "batch_b",
-      summary: "External execution is deferred to Batch C and requires its separate capability and grant.",
+      available: enabled && EXECUTE_SCOPE_GRANTS.every((grant) => config.scopeGrants.includes(grant)),
+      phase: "batch_c",
+      summary: enabled && EXECUTE_SCOPE_GRANTS.every((grant) => config.scopeGrants.includes(grant))
+        ? "Available through the separately gated Batch C execution route."
+        : "Unavailable until every Batch C execution grant is configured.",
     },
   };
 }
@@ -779,6 +781,14 @@ function isActionPlanDocument(
   if ((value.last_decision_by_actor_ref === null) !== (value.last_decision_at === null) ||
     (value.status === "pending") !== (value.last_decision_by_actor_ref === null)) return false;
   return new Date(value.expires_at).getTime() > new Date(value.created_at).getTime();
+}
+
+export function parseWorkflowHTTPToolActionPlanDocument(
+  value: unknown,
+  config: WorkflowHTTPToolActionConsumerConfig,
+  applicationId: string,
+): WorkflowHTTPToolActionPlan | null {
+  return isActionPlanDocument(value, config, applicationId) ? mapActionPlan(value) : null;
 }
 
 function isConfirmationDecisionDocument(

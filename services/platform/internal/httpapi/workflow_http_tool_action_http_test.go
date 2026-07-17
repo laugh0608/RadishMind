@@ -2,12 +2,14 @@ package httpapi
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
 )
 
@@ -164,38 +166,101 @@ func TestWorkflowHTTPToolActionHTTPRoutes(t *testing.T) {
 		assertWorkflowHTTPToolBatchAHasNoExecutionSideEffects(t, server, testBridge)
 	})
 
-	t.Run("execution route is not registered in batch A", func(t *testing.T) {
+	t.Run("execution route consumes one approved plan and rejects repeated execution", func(t *testing.T) {
 		server, testBridge, draft := newWorkflowHTTPToolActionHTTPTestServer(t)
 		plan := createWorkflowHTTPToolActionPlanOverHTTP(t, server, draft)
+		plan = approveWorkflowHTTPToolActionPlanOverHTTP(t, server, draft, plan)
+		networkAttempts := 0
+		transport := workflowHTTPToolTestTransport(func(*http.Request) (*http.Response, error) {
+			networkAttempts++
+			return workflowHTTPToolJSONResponse(http.StatusOK, `{"resource_key":"docs/radishflow/overview","title":"RadishFlow","summary":"Reviewed resource","updated_at":"2026-07-17T02:00:00Z"}`), nil
+		})
+		server.workflowHTTPToolExecutionTransport = &transport
 		request := httptest.NewRequest(
 			http.MethodPost,
 			"/v1/user-workspace/workflow-tool-action-plans/"+plan.PlanID+"/executions",
-			strings.NewReader(`{"workspace_id":"workspace_demo","application_id":"app_flow_copilot","expected_record_version":1}`),
+			strings.NewReader(`{"workspace_id":"workspace_demo","application_id":"app_flow_copilot","expected_record_version":2,"input_text":"Review the approved resource.","model":"mock","temperature":0}`),
 		)
 		setWorkflowHTTPToolActionDevHeaders(request, "workflow_tool_actions:execute,workflow_runs:execute,workflow_drafts:read")
 		response := httptest.NewRecorder()
 
 		server.httpServer.Handler.ServeHTTP(response, request)
 
-		if response.Code != http.StatusNotFound {
-			t.Fatalf("batch A must not register /executions, got %d: %s", response.Code, response.Body.String())
+		executed := decodeWorkflowHTTPToolExecutionEnvelope(t, response, http.StatusOK)
+		if executed.FailureCode != nil || executed.ActionPlan == nil || executed.Run == nil ||
+			executed.ActionPlan.Status != WorkflowHTTPToolActionStatusConsumed ||
+			executed.Run.SchemaVersion != workflowRunRecordToolSchemaVersion ||
+			executed.Run.Status != WorkflowRunStatusSucceeded ||
+			executed.Run.SideEffects.ToolCalls != 1 || executed.Run.SideEffects.ConfirmationCalls != 1 ||
+			executed.Run.SideEffects.BusinessWrites != 0 || executed.Run.SideEffects.ReplayWrites != 0 ||
+			networkAttempts != 1 || testBridge.callCount() != 1 {
+			t.Fatalf("approved plan did not execute exactly once: %#v network=%d bridge=%d", executed, networkAttempts, testBridge.callCount())
 		}
-		assertWorkflowHTTPToolBatchAHasNoExecutionSideEffects(t, server, testBridge)
+
+		repeatedResponse := httptest.NewRecorder()
+		repeatedRequest := httptest.NewRequest(http.MethodPost, request.URL.String(), strings.NewReader(`{"workspace_id":"workspace_demo","application_id":"app_flow_copilot","expected_record_version":2,"input_text":"Do not repeat.","model":"mock","temperature":0}`))
+		setWorkflowHTTPToolActionDevHeaders(repeatedRequest, "workflow_tool_actions:execute,workflow_runs:execute,workflow_drafts:read")
+		server.httpServer.Handler.ServeHTTP(repeatedResponse, repeatedRequest)
+		repeated := decodeWorkflowHTTPToolExecutionEnvelope(t, repeatedResponse, http.StatusOK)
+		if repeated.FailureCode == nil || *repeated.FailureCode != string(WorkflowRunFailureToolConfirmation) ||
+			repeated.Run != nil || networkAttempts != 1 || testBridge.callCount() != 1 {
+			t.Fatalf("repeated execution did not fail before side effects: %#v network=%d bridge=%d", repeated, networkAttempts, testBridge.callCount())
+		}
+	})
+
+	t.Run("execution route requires all three scopes and strict JSON", func(t *testing.T) {
+		server, testBridge, draft := newWorkflowHTTPToolActionHTTPTestServer(t)
+		plan := approveWorkflowHTTPToolActionPlanOverHTTP(t, server, draft, createWorkflowHTTPToolActionPlanOverHTTP(t, server, draft))
+		networkAttempts := 0
+		transport := workflowHTTPToolTestTransport(func(*http.Request) (*http.Response, error) {
+			networkAttempts++
+			return workflowHTTPToolJSONResponse(http.StatusOK, `{}`), nil
+		})
+		server.workflowHTTPToolExecutionTransport = &transport
+
+		missingScopeRequest := httptest.NewRequest(
+			http.MethodPost,
+			"/v1/user-workspace/workflow-tool-action-plans/"+plan.PlanID+"/executions",
+			strings.NewReader(`{"workspace_id":"workspace_demo","application_id":"app_flow_copilot","expected_record_version":2,"input_text":"Review.","model":"mock","temperature":0}`),
+		)
+		setWorkflowHTTPToolActionDevHeaders(missingScopeRequest, "workflow_tool_actions:execute,workflow_drafts:read")
+		missingScopeResponse := httptest.NewRecorder()
+		server.httpServer.Handler.ServeHTTP(missingScopeResponse, missingScopeRequest)
+		missingScope := decodeWorkflowHTTPToolExecutionEnvelope(t, missingScopeResponse, http.StatusOK)
+		if missingScope.FailureCode == nil || *missingScope.FailureCode != string(WorkflowRunFailureScopeDenied) {
+			t.Fatalf("missing workflow_runs:execute scope was accepted: %#v", missingScope)
+		}
+
+		unknownFieldRequest := httptest.NewRequest(
+			http.MethodPost,
+			"/v1/user-workspace/workflow-tool-action-plans/"+plan.PlanID+"/executions",
+			strings.NewReader(`{"workspace_id":"workspace_demo","application_id":"app_flow_copilot","expected_record_version":2,"input_text":"Review.","model":"mock","temperature":0,"retry":true}`),
+		)
+		setWorkflowHTTPToolActionDevHeaders(unknownFieldRequest, "workflow_tool_actions:execute,workflow_runs:execute,workflow_drafts:read")
+		unknownFieldResponse := httptest.NewRecorder()
+		server.httpServer.Handler.ServeHTTP(unknownFieldResponse, unknownFieldRequest)
+		assertWorkflowHTTPToolActionStrictJSONError(t, unknownFieldResponse)
+		if networkAttempts != 0 || testBridge.callCount() != 0 {
+			t.Fatalf("pre-claim HTTP failures crossed execution boundary: network=%d bridge=%d", networkAttempts, testBridge.callCount())
+		}
 	})
 }
 
 func newWorkflowHTTPToolActionHTTPTestServer(t *testing.T) (*Server, *workflowExecutorTestBridge, SavedWorkflowDraft) {
 	t.Helper()
 	server := NewServer(config.Config{
-		ControlPlaneReadDevAuthEnabled:    true,
-		WorkflowSavedDraftDevHTTPEnabled:  true,
-		WorkflowSavedDraftDevWriteEnabled: true,
-		WorkflowExecutorDevEnabled:        true,
-		WorkflowToolActionDevEnabled:      true,
-		Provider:                          "mock",
+		ControlPlaneReadDevAuthEnabled:      true,
+		WorkflowSavedDraftDevHTTPEnabled:    true,
+		WorkflowSavedDraftDevWriteEnabled:   true,
+		WorkflowExecutorDevEnabled:          true,
+		WorkflowToolActionDevEnabled:        true,
+		WorkflowHTTPToolExecutionDevEnabled: true,
+		Provider:                            "mock",
 	}, Options{BuildVersion: "test"})
 	t.Cleanup(server.Close)
-	testBridge := &workflowExecutorTestBridge{}
+	testBridge := &workflowExecutorTestBridge{handle: func(context.Context, []byte, bridge.EnvelopeOptions) (bridge.GatewayEnvelope, error) {
+		return successfulWorkflowExecutorEnvelope("reviewable workflow answer"), nil
+	}}
 	server.bridge = testBridge
 	payload := savedWorkflowDraftPayloadFromDraft(workflowHTTPToolEligibleDraftForTest())
 	result := server.savedWorkflowDraftService().SaveDraft(
@@ -229,6 +294,31 @@ func createWorkflowHTTPToolActionPlanOverHTTP(t *testing.T, server *Server, draf
 	return *envelope.ActionPlan
 }
 
+func approveWorkflowHTTPToolActionPlanOverHTTP(
+	t *testing.T,
+	server *Server,
+	draft SavedWorkflowDraft,
+	plan WorkflowHTTPToolActionPlan,
+) WorkflowHTTPToolActionPlan {
+	t.Helper()
+	request := httptest.NewRequest(
+		http.MethodPost,
+		"/v1/user-workspace/workflow-tool-action-plans/"+plan.PlanID+"/decisions",
+		bytes.NewReader(mustWorkflowHTTPToolActionJSON(t, workflowHTTPToolDecisionBody{
+			WorkspaceID: draft.WorkspaceID, ApplicationID: draft.ApplicationID,
+			ExpectedRecordVersion: plan.RecordVersion, Decision: WorkflowHTTPToolConfirmationApprove,
+		})),
+	)
+	setWorkflowHTTPToolActionDevHeaders(request, "workflow_tool_actions:confirm")
+	response := httptest.NewRecorder()
+	server.httpServer.Handler.ServeHTTP(response, request)
+	envelope := decodeWorkflowHTTPToolActionEnvelope(t, response, http.StatusOK)
+	if envelope.FailureCode != nil || envelope.ActionPlan == nil || envelope.ActionPlan.Status != WorkflowHTTPToolActionStatusApproved {
+		t.Fatalf("approve workflow HTTP tool action plan: %#v", envelope)
+	}
+	return *envelope.ActionPlan
+}
+
 func setWorkflowHTTPToolActionDevHeaders(request *http.Request, scopes string) {
 	setSavedWorkflowDraftDevHeaders(request, scopes)
 }
@@ -254,6 +344,22 @@ func decodeWorkflowHTTPToolActionEnvelope(
 	var envelope workflowHTTPToolActionEnvelope
 	if err := json.Unmarshal(response.Body.Bytes(), &envelope); err != nil {
 		t.Fatalf("decode workflow HTTP tool action envelope: %v\n%s", err, response.Body.String())
+	}
+	return envelope
+}
+
+func decodeWorkflowHTTPToolExecutionEnvelope(
+	t *testing.T,
+	response *httptest.ResponseRecorder,
+	expectedStatus int,
+) workflowHTTPToolExecutionEnvelope {
+	t.Helper()
+	if response.Code != expectedStatus {
+		t.Fatalf("expected status %d, got %d: %s", expectedStatus, response.Code, response.Body.String())
+	}
+	var envelope workflowHTTPToolExecutionEnvelope
+	if err := json.Unmarshal(response.Body.Bytes(), &envelope); err != nil {
+		t.Fatalf("decode workflow HTTP tool execution envelope: %v\n%s", err, response.Body.String())
 	}
 	return envelope
 }
