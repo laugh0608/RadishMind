@@ -27,16 +27,19 @@ const (
 )
 
 var controlPlaneReadPermissionGrants = map[string]string{
-	"radishmind.tenant.read":          "tenant:read",
-	"radishmind.applications.read":    "applications:read",
-	"radishmind.applications.write":   "applications:write",
-	"radishmind.applications.archive": "applications:archive",
-	"radishmind.api-keys.read":        "api_keys:read",
-	"radishmind.api-keys.write":       "api_keys:write",
-	"radishmind.api-keys.revoke":      "api_keys:revoke",
-	"radishmind.usage.read":           "usage:read",
-	"radishmind.runs.read":            "runs:read",
-	"radishmind.audit.read":           "audit:read",
+	"radishmind.tenant.read":                    "tenant:read",
+	"radishmind.applications.read":              "applications:read",
+	"radishmind.applications.write":             "applications:write",
+	"radishmind.applications.archive":           "applications:archive",
+	"radishmind.api-keys.read":                  "api_keys:read",
+	"radishmind.api-keys.write":                 "api_keys:write",
+	"radishmind.api-keys.revoke":                "api_keys:revoke",
+	"radishmind.usage.read":                     "usage:read",
+	"radishmind.runs.read":                      "runs:read",
+	"radishmind.audit.read":                     "audit:read",
+	"radishmind.workflow-rag-snapshots.read":    "workflow_rag_snapshots:read",
+	"radishmind.workflow-rag-snapshots.write":   "workflow_rag_snapshots:write",
+	"radishmind.workflow-rag-snapshots.archive": "workflow_rag_snapshots:archive",
 }
 
 var controlPlaneReadAuthReferencePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$`)

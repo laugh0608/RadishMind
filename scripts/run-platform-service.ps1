@@ -47,6 +47,7 @@ switch ($Profile) {
         Set-DefaultEnvironmentValue -Name "RADISHMIND_WORKFLOW_EXECUTOR_DEV" -Value "1"
         Set-DefaultEnvironmentValue -Name "RADISHMIND_WORKFLOW_TOOL_ACTION_DEV" -Value "1"
         Set-DefaultEnvironmentValue -Name "RADISHMIND_WORKFLOW_HTTP_TOOL_EXECUTION_DEV" -Value "1"
+        Set-DefaultEnvironmentValue -Name "RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV" -Value "1"
     }
     "configured" {}
     default {

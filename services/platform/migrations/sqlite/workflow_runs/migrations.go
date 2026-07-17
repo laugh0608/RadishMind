@@ -7,14 +7,16 @@ import (
 )
 
 const (
-	Component                     = "workflow_runs"
-	MigrationID                   = "0003_workflow_http_tool_execution"
-	StoreSchemaVersion            = "workflow_runs_store_v3"
-	RunRecordStoreSchemaVersion   = "workflow_runs_store_v3"
-	legacyMigrationID             = "0001_workflow_runs"
-	toolActionsMigrationID        = "0002_workflow_http_tool_actions"
-	legacyRunStoreSchemaVersion   = "workflow_runs_store_v1"
-	toolActionsStoreSchemaVersion = "workflow_runs_store_v2"
+	Component                       = "workflow_runs"
+	MigrationID                     = "0004_workflow_rag_snapshots"
+	StoreSchemaVersion              = "workflow_run_store_sqlite_v4"
+	RunRecordStoreSchemaVersion     = "workflow_runs_store_v3"
+	legacyMigrationID               = "0001_workflow_runs"
+	toolActionsMigrationID          = "0002_workflow_http_tool_actions"
+	toolExecutionMigrationID        = "0003_workflow_http_tool_execution"
+	legacyRunStoreSchemaVersion     = "workflow_runs_store_v1"
+	toolActionsStoreSchemaVersion   = "workflow_runs_store_v2"
+	toolExecutionStoreSchemaVersion = "workflow_runs_store_v3"
 )
 
 //go:embed 0001_workflow_runs.up.sql
@@ -25,6 +27,9 @@ var upSQLV2 string
 
 //go:embed 0003_workflow_http_tool_execution.up.sql
 var upSQLV3 string
+
+//go:embed 0004_workflow_rag_snapshots.up.sql
+var upSQLV4 string
 
 func Migrations() []sqlitedev.Migration {
 	return []sqlitedev.Migration{
@@ -42,9 +47,15 @@ func Migrations() []sqlitedev.Migration {
 		},
 		{
 			Component:          Component,
+			ID:                 toolExecutionMigrationID,
+			StoreSchemaVersion: toolExecutionStoreSchemaVersion,
+			UpSQL:              upSQLV3,
+		},
+		{
+			Component:          Component,
 			ID:                 MigrationID,
 			StoreSchemaVersion: StoreSchemaVersion,
-			UpSQL:              upSQLV3,
+			UpSQL:              upSQLV4,
 		},
 	}
 }

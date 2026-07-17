@@ -129,3 +129,22 @@ func newWorkflowEvaluationSuiteStoreForRunStore(store workflowRunStore) workflow
 	}
 	return newMemoryWorkflowEvaluationSuiteStore(defaultWorkflowEvaluationCapacity)
 }
+
+func newWorkflowRAGSnapshotRepositoryForRunStore(store workflowRunStore) (workflowRAGSnapshotRepository, error) {
+	switch typed := store.(type) {
+	case *memoryWorkflowRunStore:
+		return newMemoryWorkflowRAGSnapshotRepository(&typed.mu), nil
+	case *sqliteWorkflowRunStore:
+		if typed.database == nil {
+			return nil, errors.New("workflow RAG snapshot store requires the shared SQLite database")
+		}
+		return newSQLiteWorkflowRAGSnapshotRepository(typed.database), nil
+	case *postgresWorkflowRunStore:
+		if typed.pool == nil {
+			return nil, errors.New("workflow RAG snapshot store requires the workflow PostgreSQL pool")
+		}
+		return newPostgresWorkflowRAGSnapshotRepository(typed.pool), nil
+	default:
+		return nil, errors.New("workflow RAG snapshot store requires a supported workflow runtime backend")
+	}
+}

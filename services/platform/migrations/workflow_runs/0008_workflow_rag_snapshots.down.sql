@@ -1,0 +1,8 @@
+DROP TRIGGER IF EXISTS workflow_rag_execution_audits_append_only ON workflow_rag_execution_audits;
+DROP TRIGGER IF EXISTS workflow_rag_snapshot_fragments_append_only ON workflow_rag_snapshot_fragments;
+DROP TRIGGER IF EXISTS workflow_rag_snapshot_versions_append_only ON workflow_rag_snapshot_versions;
+DROP FUNCTION IF EXISTS reject_workflow_rag_snapshot_append_only_mutation();
+DROP TABLE IF EXISTS workflow_rag_execution_audits;
+DROP TABLE IF EXISTS workflow_rag_snapshot_fragments;
+DROP TABLE IF EXISTS workflow_rag_snapshot_versions;
+DROP TABLE IF EXISTS workflow_rag_snapshot_resources;

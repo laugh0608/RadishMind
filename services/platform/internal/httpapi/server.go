@@ -42,6 +42,7 @@ type Server struct {
 	applicationCatalogRepository          applicationCatalogRepository
 	apiKeyRepository                      apiKeyRepository
 	workflowRunStore                      workflowRunStore
+	workflowRAGSnapshotRepository         workflowRAGSnapshotRepository
 	workflowHTTPToolActionStore           workflowHTTPToolActionStore
 	workflowHTTPToolExecutionStore        workflowHTTPToolExecutionStore
 	workflowHTTPToolExecutionTransport    *workflowHTTPToolTransport
@@ -135,6 +136,11 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore)
 		return nil, err
 	}
+	workflowRAGSnapshotRepository, err := newWorkflowRAGSnapshotRepositoryForRunStore(workflowRunStore)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
 	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
@@ -158,6 +164,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		applicationCatalogRepository:          applicationCatalogRepository,
 		apiKeyRepository:                      apiKeyRepository,
 		workflowRunStore:                      workflowRunStore,
+		workflowRAGSnapshotRepository:         workflowRAGSnapshotRepository,
 		workflowHTTPToolActionStore:           workflowHTTPToolActionStore,
 		workflowHTTPToolExecutionStore:        newWorkflowHTTPToolExecutionStoreForRunStore(workflowRunStore, workflowHTTPToolActionStore),
 		workflowEvaluationStore:               newWorkflowEvaluationStoreForRunStore(workflowRunStore),
@@ -214,6 +221,11 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationPublishCandidateReadRoute, server.handleReadApplicationPublishCandidate)
 	mux.HandleFunc(applicationPublishCandidateReviewRoute, server.handleReviewApplicationPublishCandidate)
 	mux.HandleFunc(workflowExecutorStartRoute, server.handleStartWorkflowRun)
+	mux.HandleFunc(workflowRAGSnapshotCreateRoute, server.handleCreateWorkflowRAGSnapshot)
+	mux.HandleFunc(workflowRAGSnapshotListRoute, server.handleListWorkflowRAGSnapshots)
+	mux.HandleFunc(workflowRAGSnapshotReadRoute, server.handleReadWorkflowRAGSnapshot)
+	mux.HandleFunc(workflowRAGSnapshotVersionRoute, server.handleVersionWorkflowRAGSnapshot)
+	mux.HandleFunc(workflowRAGSnapshotArchiveRoute, server.handleArchiveWorkflowRAGSnapshot)
 	mux.HandleFunc(workflowHTTPToolPlanCreateRoute, server.handleCreateWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowHTTPToolPlanReadRoute, server.handleReadWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowHTTPToolDecisionRoute, server.handleDecideWorkflowHTTPToolActionPlan)

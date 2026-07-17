@@ -123,6 +123,7 @@ type Config struct {
 	WorkflowExecutorDevEnabled           bool
 	WorkflowToolActionDevEnabled         bool
 	WorkflowHTTPToolExecutionDevEnabled  bool
+	WorkflowRAGSnapshotDevEnabled        bool
 	WorkflowHTTPToolTestLoopbackEnabled  bool
 	WorkflowDiagnosticsDevEnabled        bool
 	GatewayRequestHistoryDevEnabled      bool
@@ -181,6 +182,7 @@ type ConfigSummary struct {
 	WorkflowExecutorDevEnabled           bool              `json:"workflow_executor_dev_enabled"`
 	WorkflowToolActionDevEnabled         bool              `json:"workflow_tool_action_dev_enabled"`
 	WorkflowHTTPToolExecutionDevEnabled  bool              `json:"workflow_http_tool_execution_dev_enabled"`
+	WorkflowRAGSnapshotDevEnabled        bool              `json:"workflow_rag_snapshot_dev_enabled"`
 	WorkflowHTTPToolTestLoopbackEnabled  bool              `json:"workflow_http_tool_test_loopback_enabled"`
 	WorkflowDiagnosticsDevEnabled        bool              `json:"workflow_diagnostics_dev_enabled"`
 	GatewayRequestHistoryDevEnabled      bool              `json:"gateway_request_history_dev_enabled"`
@@ -355,6 +357,7 @@ func defaultConfig() Config {
 			"workflow_executor_dev":                 configSourceDefault,
 			"workflow_tool_action_dev":              configSourceDefault,
 			"workflow_http_tool_execution_dev":      configSourceDefault,
+			"workflow_rag_snapshot_dev":             configSourceDefault,
 			"workflow_http_tool_test_loopback":      configSourceDefault,
 			"workflow_diagnostics_dev":              configSourceDefault,
 			"gateway_request_history_dev":           configSourceDefault,
@@ -787,6 +790,14 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.WorkflowHTTPToolExecutionDevEnabled = parsed
 		cfg.FieldSources["workflow_http_tool_execution_dev"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV", value)
+		if err != nil {
+			return err
+		}
+		cfg.WorkflowRAGSnapshotDevEnabled = parsed
+		cfg.FieldSources["workflow_rag_snapshot_dev"] = configSourceEnv
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_HTTP_TOOL_TEST_LOOPBACK"); ok {
 		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_HTTP_TOOL_TEST_LOOPBACK", value)
 		if err != nil {
@@ -1014,6 +1025,9 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if cfg.WorkflowHTTPToolExecutionDevEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_tool_action_dev")
 	}
+	if cfg.WorkflowRAGSnapshotDevEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+	}
 	if cfg.WorkflowHTTPToolTestLoopbackEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_http_tool_execution_dev")
 	}
@@ -1076,6 +1090,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		WorkflowExecutorDevEnabled:           cfg.WorkflowExecutorDevEnabled,
 		WorkflowToolActionDevEnabled:         cfg.WorkflowToolActionDevEnabled,
 		WorkflowHTTPToolExecutionDevEnabled:  cfg.WorkflowHTTPToolExecutionDevEnabled,
+		WorkflowRAGSnapshotDevEnabled:        cfg.WorkflowRAGSnapshotDevEnabled,
 		WorkflowHTTPToolTestLoopbackEnabled:  cfg.WorkflowHTTPToolTestLoopbackEnabled,
 		WorkflowDiagnosticsDevEnabled:        cfg.WorkflowDiagnosticsDevEnabled,
 		GatewayRequestHistoryDevEnabled:      cfg.GatewayRequestHistoryDevEnabled,
@@ -1616,6 +1631,9 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.WorkflowHTTPToolExecutionDevEnabled && !cfg.WorkflowToolActionDevEnabled {
 		return fmt.Errorf("workflow HTTP tool execution dev requires workflow tool action dev")
+	}
+	if cfg.WorkflowRAGSnapshotDevEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return fmt.Errorf("workflow RAG snapshot dev requires control plane read dev auth")
 	}
 	if cfg.WorkflowHTTPToolTestLoopbackEnabled && !cfg.WorkflowHTTPToolExecutionDevEnabled {
 		return fmt.Errorf("workflow HTTP tool test loopback requires workflow HTTP tool execution dev")

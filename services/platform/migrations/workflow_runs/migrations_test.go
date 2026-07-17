@@ -21,9 +21,16 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"CREATE TABLE workflow_http_tool_confirmation_decisions",
 		"CREATE TABLE workflow_http_tool_execution_audits",
 		"CREATE TABLE workflow_http_tool_execution_attempts",
+		"CREATE TABLE workflow_rag_snapshot_resources",
+		"CREATE TABLE workflow_rag_snapshot_versions",
+		"CREATE TABLE workflow_rag_snapshot_fragments",
+		"CREATE TABLE workflow_rag_execution_audits",
 		"outcome_unknown",
 		"workflow_http_tool_confirmation_decisions_append_only",
 		"workflow_http_tool_execution_audits_append_only",
+		"workflow_rag_snapshot_versions_append_only",
+		"workflow_rag_snapshot_fragments_append_only",
+		"workflow_rag_execution_audits_append_only",
 	} {
 		if !strings.Contains(upSQL, required) {
 			t.Fatalf("workflow run up migration is missing %q", required)
@@ -31,6 +38,10 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 	}
 	for _, required := range []string{
 		"DROP TABLE IF EXISTS workflow_http_tool_execution_attempts",
+		"DROP TABLE IF EXISTS workflow_rag_execution_audits",
+		"DROP TABLE IF EXISTS workflow_rag_snapshot_fragments",
+		"DROP TABLE IF EXISTS workflow_rag_snapshot_versions",
+		"DROP TABLE IF EXISTS workflow_rag_snapshot_resources",
 		"DROP TABLE IF EXISTS workflow_http_tool_confirmation_decisions",
 		"DROP TABLE IF EXISTS workflow_http_tool_execution_audits",
 		"DROP TABLE IF EXISTS workflow_http_tool_action_plans",
@@ -74,11 +85,12 @@ func TestWorkflowRunPendingMigrationPaths(t *testing.T) {
 		{name: "v4", migrationID: caseVersioningMigrationID, requiredFragment: "CREATE TABLE workflow_evaluation_suites"},
 		{name: "v5", migrationID: evaluationSuiteMigrationID, requiredFragment: "CREATE TABLE workflow_http_tool_action_plans", forbiddenFragment: "CREATE TABLE workflow_evaluation_suites"},
 		{name: "v6", migrationID: toolActionsMigrationID, requiredFragment: "CREATE TABLE workflow_http_tool_execution_attempts", forbiddenFragment: "CREATE TABLE workflow_http_tool_action_plans"},
+		{name: "v7", migrationID: toolExecutionMigrationID, requiredFragment: "CREATE TABLE workflow_rag_snapshot_resources", forbiddenFragment: "CREATE TABLE workflow_http_tool_execution_attempts"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			pendingSQL := pendingMigrationSQL(testCase.migrationID)
-			if !strings.Contains(pendingSQL, testCase.requiredFragment) || !strings.Contains(pendingSQL, "CREATE TABLE workflow_http_tool_execution_attempts") {
+			if !strings.Contains(pendingSQL, testCase.requiredFragment) || !strings.Contains(pendingSQL, "CREATE TABLE workflow_rag_snapshot_resources") {
 				t.Fatalf("pending migration path is incomplete for %s", testCase.migrationID)
 			}
 			if testCase.forbiddenFragment != "" && strings.Contains(pendingSQL, testCase.forbiddenFragment) {
@@ -113,6 +125,10 @@ func TestWorkflowRunPendingRollbackPathsDoNotDropUnappliedTables(t *testing.T) {
 	toolActionRollback := rollbackSQLThrough(toolActionsMigrationID)
 	if !strings.Contains(toolActionRollback, "workflow_http_tool_action_plans") || strings.Contains(toolActionRollback, "workflow_http_tool_execution_attempts") {
 		t.Fatalf("v6 rollback must remove applied action tables without removing unapplied v7: %s", toolActionRollback)
+	}
+	toolExecutionRollback := rollbackSQLThrough(toolExecutionMigrationID)
+	if !strings.Contains(toolExecutionRollback, "workflow_http_tool_execution_attempts") || strings.Contains(toolExecutionRollback, "workflow_rag_snapshot_resources") {
+		t.Fatalf("v7 rollback must remove applied execution tables without removing unapplied v8: %s", toolExecutionRollback)
 	}
 	if rollbackSQLThrough("0000_unknown") != "" {
 		t.Fatal("unknown pending rollback must fail closed")

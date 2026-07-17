@@ -369,6 +369,17 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if scoped, err := store.ListRuns(other, WorkflowRunListFilter{Limit: 10}); err != nil || len(scoped.Records) != 0 {
 		t.Fatalf("scope leaked: %#v %v", scoped, err)
 	}
+	ragRepository := newPostgresWorkflowRAGSnapshotRepository(runtimePool)
+	runWorkflowRAGSnapshotLifecycle(t, ragRepository)
+	if _, mutationErr := runtimePool.Exec(ctx, `UPDATE workflow_rag_snapshot_versions SET snapshot_version=3 WHERE snapshot_id='rags_aaaaaaaaaaaaaaaa' AND snapshot_version=2`); mutationErr == nil {
+		t.Fatal("PostgreSQL runtime role mutated an immutable workflow RAG snapshot version")
+	}
+	if _, mutationErr := runtimePool.Exec(ctx, `DELETE FROM workflow_rag_snapshot_fragments WHERE snapshot_id='rags_aaaaaaaaaaaaaaaa'`); mutationErr == nil {
+		t.Fatal("PostgreSQL runtime role deleted immutable workflow RAG snapshot fragments")
+	}
+	if _, mutationErr := runtimePool.Exec(ctx, `UPDATE workflow_rag_execution_audits SET event_kind='snapshot_created' WHERE snapshot_id='rags_aaaaaaaaaaaaaaaa'`); mutationErr == nil {
+		t.Fatal("PostgreSQL runtime role mutated append-only workflow RAG snapshot audits")
+	}
 	runtimePool.Close()
 	reopened, err := workflowrunmigrations.OpenPool(ctx, runtimeDatabaseURL)
 	if err != nil {
@@ -378,6 +389,13 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	evaluationStore = newPostgresWorkflowEvaluationStore(reopened)
 	actionStore = newPostgresWorkflowHTTPToolActionStore(reopened)
 	executionStore = newPostgresWorkflowHTTPToolExecutionStore(reopened)
+	restoredRAG := newWorkflowRAGSnapshotService(newPostgresWorkflowRAGSnapshotRepository(reopened)).Read(
+		workflowRAGTestContext(), "rags_aaaaaaaaaaaaaaaa", 2,
+	)
+	if restoredRAG.FailureCode != "" || restoredRAG.Record == nil || restoredRAG.Record.LifecycleState != workflowRAGSnapshotArchived ||
+		len(restoredRAG.Record.Fragments) != 1 || restoredRAG.Record.Fragments[0].Content != "version two replacement content" {
+		t.Fatalf("restart workflow RAG snapshot recovery failed: %#v", restoredRAG)
+	}
 	if recoveredAction, actionFound, actionErr := actionStore.ReadPlan(actionContext, actionPlan.PlanID); actionErr != nil || !actionFound || recoveredAction.Status != WorkflowHTTPToolActionStatusInvalidated || recoveredAction.RecordVersion != 3 {
 		t.Fatalf("restart workflow HTTP tool action recovery failed: found=%v plan=%#v err=%v", actionFound, recoveredAction, actionErr)
 	}
@@ -608,8 +626,11 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 
 func resetPostgresWorkflowRunSchema(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
-	if _, err := pool.Exec(ctx, `DROP TABLE IF EXISTS workflow_http_tool_execution_attempts, workflow_http_tool_confirmation_decisions, workflow_http_tool_execution_audits, workflow_http_tool_action_plans, workflow_evaluation_suite_decisions, workflow_evaluation_suites, workflow_evaluation_case_revisions, workflow_evaluation_cases, workflow_run_records`); err != nil {
+	if _, err := pool.Exec(ctx, `DROP TABLE IF EXISTS workflow_rag_execution_audits, workflow_rag_snapshot_fragments, workflow_rag_snapshot_versions, workflow_rag_snapshot_resources, workflow_http_tool_execution_attempts, workflow_http_tool_confirmation_decisions, workflow_http_tool_execution_audits, workflow_http_tool_action_plans, workflow_evaluation_suite_decisions, workflow_evaluation_suites, workflow_evaluation_case_revisions, workflow_evaluation_cases, workflow_run_records`); err != nil {
 		t.Fatalf("reset workflow run integration tables: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_workflow_rag_snapshot_append_only_mutation()`); err != nil {
+		t.Fatalf("reset workflow RAG append-only guard: %v", err)
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_workflow_http_tool_append_only_mutation()`); err != nil {
 		t.Fatalf("reset workflow HTTP tool append-only guard: %v", err)

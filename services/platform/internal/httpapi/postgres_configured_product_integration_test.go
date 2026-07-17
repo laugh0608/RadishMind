@@ -518,6 +518,10 @@ func runConfiguredPostgresMigrationGate(
 func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
 	_, err := pool.Exec(ctx, `DROP TABLE IF EXISTS
+		workflow_rag_execution_audits,
+		workflow_rag_snapshot_fragments,
+		workflow_rag_snapshot_versions,
+		workflow_rag_snapshot_resources,
 		workflow_http_tool_execution_attempts,
 		workflow_http_tool_confirmation_decisions,
 		workflow_http_tool_execution_audits,
@@ -547,6 +551,9 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_workflow_http_tool_append_only_mutation()`); err != nil {
 		t.Fatalf("reset configured PostgreSQL append-only guard: %v", err)
 	}
+	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_workflow_rag_snapshot_append_only_mutation()`); err != nil {
+		t.Fatalf("reset configured PostgreSQL RAG append-only guard: %v", err)
+	}
 }
 
 func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
@@ -570,6 +577,10 @@ func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgx
 		{"workflow_http_tool_confirmation_decisions", "tool_version", "integer"},
 		{"workflow_http_tool_execution_audits", "tool_version", "integer"},
 		{"workflow_http_tool_execution_attempts", "sanitized_execution_attempt", "jsonb"},
+		{"workflow_rag_snapshot_resources", "sanitized_resource_payload", "jsonb"},
+		{"workflow_rag_snapshot_versions", "sanitized_snapshot_payload", "jsonb"},
+		{"workflow_rag_snapshot_fragments", "sanitized_fragment_payload", "jsonb"},
+		{"workflow_rag_execution_audits", "sanitized_audit_payload", "jsonb"},
 	}
 	for _, column := range columns {
 		var actual string
@@ -598,6 +609,9 @@ func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgx
 		{"saved_workflow_drafts_owner_list_idx", "updated_at DESC, draft_id"},
 		{"workflow_run_records_history_idx", "started_at DESC, run_id DESC"},
 		{"workflow_http_tool_execution_attempts_status_idx", "status, claimed_at, attempt_id"},
+		{"workflow_rag_snapshot_resources_list_idx", "lifecycle_state, snapshot_key"},
+		{"workflow_rag_snapshot_versions_history_idx", "snapshot_version DESC"},
+		{"workflow_rag_execution_audits_history_idx", "occurred_at DESC, event_id"},
 	}
 	for _, index := range indexes {
 		var definition string
@@ -722,6 +736,9 @@ func assertConfiguredPostgresRepositorySelection(t *testing.T, server *Server) {
 	}
 	if actionStore, ok := server.workflowHTTPToolActionStore.(*postgresWorkflowHTTPToolActionStore); !ok || actionStore.pool != server.workflowRunStore.(*postgresWorkflowRunStore).pool {
 		t.Fatalf("configured workflow tool actions did not share the PostgreSQL pool: %T", server.workflowHTTPToolActionStore)
+	}
+	if snapshotStore, ok := server.workflowRAGSnapshotRepository.(*postgresWorkflowRAGSnapshotRepository); !ok || snapshotStore.pool != server.workflowRunStore.(*postgresWorkflowRunStore).pool {
+		t.Fatalf("configured workflow RAG snapshots did not share the PostgreSQL pool: %T", server.workflowRAGSnapshotRepository)
 	}
 }
 

@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃实现任务卡。[Workflow 受控 HTTP Tool 与人工确认执行（开发/测试态）v1 实施任务卡](workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)的三个批次已完成并写入 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed`；[Workflow RAG Retrieval 与应用知识快照设计](../features/workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md)已定义并等待边界评审，评审通过前不创建实现任务卡。
+当前唯一活跃实现入口是 [Workflow RAG Retrieval 与应用知识快照（开发/测试态）v1 实施任务卡](workflow-rag-retrieval-application-knowledge-snapshot-dev-test-v1-plan.md)。批次 A 已完成契约、snapshot lifecycle、deterministic lexical provider、三种 store 与 Web 管理；当前只推进批次 B 的 retrieval execution、Gateway、citation 与 run v3 runtime，批次 C 继续阻塞。
 
 ## 最近关闭任务
 
@@ -331,7 +331,7 @@ R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run
 使用原则：
 - 任务卡定义的是任务边界、最小输入、输出要求和评测口径，不等同于最终实现代码
 - 前置条件型任务卡定义的是当前不能继续前推的阻塞项、已有门禁和后续触发条件，不等同于已经完成上层接线
-- R6 已关闭；Workflow 受控 HTTP Tool 唯一高风险实现任务卡的三个批次已完成，RAG Retrieval 与应用知识快照设计等待边界评审，历史离线 surface 与 readiness 任务卡不恢复为当前顺位
+- R6 已关闭；Workflow 受控 HTTP Tool 唯一高风险实现任务卡的三个批次已完成，RAG Retrieval 与应用知识快照批次 A 已完成并进入批次 B，历史离线 surface 与 readiness 任务卡不恢复为当前顺位
 - 任务卡与 [跨项目集成契约](../radishmind-integration-contracts.md) 和 [真实契约文件](../../contracts/README.md) 保持一致
 - 若未来实现发现字段命名或结构需要调整，应先同步更新任务卡和契约，再改实现
 - 当前阶段优先保证“状态优先、结构化输出、显式风险分级，以及对会写回真相源的动作保留人工确认”

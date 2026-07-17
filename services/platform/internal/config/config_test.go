@@ -288,6 +288,25 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 }
 
+func TestWorkflowRAGSnapshotDevGateRequiresVerifiedDevAuth(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV", "1")
+	if _, err := LoadFromEnv(); err == nil || !strings.Contains(err.Error(), "requires control plane read dev auth") {
+		t.Fatalf("workflow RAG snapshot dev gate did not reject missing verified dev auth: %v", err)
+	}
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load workflow RAG snapshot dev gate with auth: %v", err)
+	}
+	if validateErr := ValidateServerStart(cfg); validateErr != nil {
+		t.Fatalf("workflow RAG snapshot dev gate rejected complete dev auth: %v", validateErr)
+	}
+	if summary := cfg.SanitizedSummary(); !summary.WorkflowRAGSnapshotDevEnabled {
+		t.Fatalf("workflow RAG snapshot dev gate missing from sanitized summary: %#v", summary)
+	}
+}
+
 func TestLoadFromEnvRejectsInvalidConfigFileDuration(t *testing.T) {
 	clearPlatformEnv(t)
 	configPath := filepath.Join(t.TempDir(), "platform-config.json")
@@ -1156,6 +1175,7 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE",
 		"RADISHMIND_WORKFLOW_EXECUTOR_DEV",
+		"RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV",
 		"RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV",
 		"RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV",
 		"RADISHMIND_GATEWAY_REQUEST_STORE",

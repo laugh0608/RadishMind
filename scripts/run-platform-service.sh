@@ -67,6 +67,7 @@ case "${profile}" in
     set_default_env RADISHMIND_WORKFLOW_EXECUTOR_DEV "1"
     set_default_env RADISHMIND_WORKFLOW_TOOL_ACTION_DEV "1"
     set_default_env RADISHMIND_WORKFLOW_HTTP_TOOL_EXECUTION_DEV "1"
+    set_default_env RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV "1"
     ;;
   configured)
     ;;

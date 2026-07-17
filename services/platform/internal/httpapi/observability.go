@@ -274,6 +274,18 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryConfiguration,
 			defaultMessage:  "workflow executor dev route is disabled",
 		},
+		"WORKFLOW_RAG_SNAPSHOT_DEV_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "workflow RAG snapshot dev route is disabled",
+		},
+		WorkflowRAGFailurePayloadInvalid: {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "workflow RAG snapshot request is invalid",
+		},
 		"GATEWAY_REQUEST_HISTORY_DEV_DISABLED": {
 			statusCode:      http.StatusForbidden,
 			errorType:       "invalid_request_error",

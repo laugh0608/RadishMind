@@ -242,6 +242,11 @@ if [[ "${saved_draft_dev}" -eq 1 || "${saved_draft_postgres_dev_test}" -eq 1 ||
   saved_draft_enabled=1
 fi
 
+workflow_rag_snapshot_enabled=0
+if [[ "${platform_profile}" == "local-product" || "${saved_draft_enabled}" -eq 1 ]]; then
+  workflow_rag_snapshot_enabled=1
+fi
+
 step() {
   echo "[radishmind-web-dev] $*"
 }
@@ -769,6 +774,9 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export RADISHMIND_PLATFORM_PROVIDER="${RADISHMIND_PLATFORM_PROVIDER:-mock}"
         export RADISHMIND_PLATFORM_MODEL="${RADISHMIND_PLATFORM_MODEL:-radishmind-local-dev}"
         export RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH="1"
+        if [[ "${workflow_rag_snapshot_enabled}" -eq 1 ]]; then
+          export RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV="1"
+        fi
         if [[ "${api_key_local_product}" -eq 1 ]]; then
           export RADISHMIND_GATEWAY_AUTH_MODE="api_key_dev_test"
         fi
@@ -871,6 +879,12 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE="dev-workflow-http-tool-http"
           export VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS="workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm,workflow_tool_actions:execute,workflow_runs:execute"
         fi
+        if [[ "${workflow_rag_snapshot_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_WORKFLOW_RAG_SOURCE="dev-workflow-rag-http"
+          export VITE_RADISHMIND_WORKFLOW_RAG_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_WORKFLOW_RAG_WORKSPACE_ID="${saved_draft_workspace_id}"
+          export VITE_RADISHMIND_WORKFLOW_RAG_SCOPES="workflow_rag_snapshots:read,workflow_rag_snapshots:write,workflow_rag_snapshots:archive"
+        fi
         if [[ "${workflow_diagnostics_dev}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV="true"
         fi
@@ -893,6 +907,10 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE
         unset VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE
         unset VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS
+        unset VITE_RADISHMIND_WORKFLOW_RAG_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_RAG_BASE_URL
+        unset VITE_RADISHMIND_WORKFLOW_RAG_WORKSPACE_ID
+        unset VITE_RADISHMIND_WORKFLOW_RAG_SCOPES
         unset VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE
         unset VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL
         unset VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID

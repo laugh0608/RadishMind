@@ -2,7 +2,7 @@
 
 更新时间：2026-07-17
 
-状态：`workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_design_defined_pending_review`
+状态：`workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_batch_a_completed`
 
 ## 设计结论
 
@@ -10,7 +10,7 @@
 
 首版必须同时覆盖知识资产生命周期、检索执行、引用约束、三种开发测试态 store 和 Web 连续链，不能把预置 fixture、请求内塞入的“已召回文本”或单纯打开 `allow_retrieval=true` 当成真实 RAG 完成。
 
-本设计当前等待边界评审。评审通过后只创建一张高风险实施任务卡，按依赖拆三个实现批次；评审前不新增 schema、route、migration、runtime provider 或 Web 写路径。
+2026-07-17 边界评审已确认五项决策。[唯一高风险实施任务卡](../../task-cards/workflow-rag-retrieval-application-knowledge-snapshot-dev-test-v1-plan.md)按依赖拆为三个实现批次。批次 A 已完成六份契约、应用知识快照生命周期、确定性 lexical provider、memory / SQLite / PostgreSQL store、五条受控 API 和严格 Web 管理面；下一步进入批次 B 的 retrieval execution / Gateway / citation / run v3 runtime。批次 A 仍未注册 retrieval execution、调用 Gateway 或创建 run v3。
 
 ## 用户价值与适用范围
 
@@ -228,9 +228,9 @@ Run History summary 不返回 fragment 正文或原始 query。detail 可在 sna
 
 只有三个批次全部通过，才能声明 `workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_completed`。每批优先扩 Go / TypeScript 行为测试和既有聚合门禁；只有现有证据无法承载新的 schema / 执行边界时才增加一个专项 contract checker，不派生 readiness 链。
 
-## 待评审决策
+## 评审结论
 
-边界评审需要一次性确认：
+2026-07-17 已确认：
 
 1. 首版把“应用知识快照生命周期”纳入 RAG 纵向切片，而不是依赖预置 fixture 或客户端传已召回文本。
 2. 首版只启用本地确定性 `lexical-ngram-dev.v1`，向量 / embedding / external search 延后独立评审。
@@ -246,4 +246,4 @@ Run History summary 不返回 fragment 正文或原始 query。detail 可在 sna
 - 不修改上游文档、Wiki、FAQ、论坛或业务真相源，不把 snapshot 当上游最新真相。
 - 不打开多 retrieval、并行、循环、agent loop、background run、replay、resume、writeback 或 publish。
 - 不把开发测试态 lexical relevance、SQLite / PostgreSQL store 或浏览器闭环写成 production RAG ready。
-- 不在边界评审通过前创建实现任务卡、contract artifact、migration、API 或 runtime provider。
+- 不在批次 A 完成前注册 retrieval execution、接 Gateway 或创建 run v3 runtime。

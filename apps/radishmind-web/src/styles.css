@@ -820,6 +820,212 @@ h4 {
   background: #f8fafc;
 }
 
+.workflow-rag-snapshot-panel {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  border: 1px solid #d8dee8;
+  border-radius: 10px;
+  padding: 16px;
+  background: #f8fbfa;
+}
+
+.workflow-rag-snapshot-panel.offline {
+  background: #f8fafc;
+}
+
+.workflow-rag-scope-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.workflow-rag-scope-grid article,
+.workflow-rag-empty,
+.workflow-rag-record,
+.workflow-rag-operation {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.workflow-rag-scope-grid span,
+.workflow-rag-scope-grid small,
+.workflow-rag-fields span,
+.workflow-rag-fields small,
+.workflow-rag-record dt {
+  color: #607086;
+  font-size: 12px;
+}
+
+.workflow-rag-scope-grid code,
+.workflow-rag-record dd,
+.workflow-rag-list code {
+  overflow-wrap: anywhere;
+}
+
+.workflow-rag-toolbar,
+.workflow-rag-filter,
+.workflow-rag-actions,
+.workflow-rag-archive-confirm,
+.workflow-rag-record > div,
+.workflow-rag-operation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.workflow-rag-filter {
+  justify-content: flex-start;
+  border-radius: 8px;
+  padding: 4px;
+  background: #edf2f7;
+}
+
+.workflow-rag-snapshot-panel button {
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 8px 11px;
+  background: #fff;
+  color: #243140;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.workflow-rag-snapshot-panel button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.workflow-rag-filter button.selected,
+.workflow-rag-actions button:first-child {
+  border-color: #17643a;
+  background: #17643a;
+  color: #fff;
+}
+
+.workflow-rag-snapshot-panel .danger-action {
+  border-color: #b43b31;
+  background: #fff;
+  color: #9a3026;
+}
+
+.workflow-rag-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.35fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+}
+
+.workflow-rag-list,
+.workflow-rag-editor,
+.workflow-rag-fields {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.workflow-rag-list > button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  text-align: left;
+}
+
+.workflow-rag-list > button.selected {
+  border-color: #2f6f5f;
+  box-shadow: 0 0 0 2px rgb(47 111 95 / 12%);
+}
+
+.workflow-rag-list button span {
+  display: grid;
+  gap: 4px;
+}
+
+.workflow-rag-list button span:last-child {
+  justify-items: end;
+}
+
+.workflow-rag-fields label {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.3fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.workflow-rag-fields input,
+.workflow-rag-fields select,
+.workflow-rag-fields textarea {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 9px 10px;
+  background: #fff;
+  color: #17202a;
+  font: inherit;
+}
+
+.workflow-rag-fields .workflow-rag-fragments-field {
+  grid-template-columns: 1fr;
+}
+
+.workflow-rag-fields textarea {
+  min-height: 260px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.workflow-rag-record dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.workflow-rag-record dd {
+  margin: 3px 0 0;
+}
+
+.workflow-rag-boundary-note,
+.workflow-rag-failure,
+.workflow-rag-archive-confirm {
+  margin: 0;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff7e6;
+  color: #5a4b2a;
+}
+
+.workflow-rag-failure,
+.workflow-rag-operation.failed {
+  background: #fff1ef;
+  color: #9a3026;
+}
+
+.workflow-rag-archive-confirm {
+  border: 1px solid #e7b7b1;
+  background: #fff7f6;
+}
+
+@media (max-width: 900px) {
+  .workflow-rag-scope-grid,
+  .workflow-rag-layout,
+  .workflow-rag-record dl {
+    grid-template-columns: 1fr;
+  }
+}
+
 .application-catalog-heading,
 .application-catalog-toolbar,
 .application-catalog-actions,
