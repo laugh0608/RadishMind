@@ -232,6 +232,7 @@ type workflowRAGPromotionListQuery struct {
 type workflowRAGPromotionRepository interface {
 	Create(WorkflowRAGPromotionContext, WorkflowRAGKnowledgePromotionCandidate, WorkflowRAGPromotionAudit) error
 	Read(WorkflowRAGPromotionContext, string) (WorkflowRAGKnowledgePromotionCandidate, []WorkflowRAGKnowledgePromotionDecision, *WorkflowRAGApplicationBinding, []WorkflowRAGPromotionAudit, error)
+	ReadBinding(WorkflowRAGPromotionContext, WorkflowRAGApplicationBindingRef) (WorkflowRAGKnowledgePromotionCandidate, WorkflowRAGApplicationBinding, error)
 	List(WorkflowRAGPromotionContext, workflowRAGPromotionListQuery) ([]WorkflowRAGKnowledgePromotionCandidate, error)
 	AppendDecision(WorkflowRAGPromotionContext, string, int, WorkflowRAGKnowledgePromotionCandidate, WorkflowRAGKnowledgePromotionDecision, *WorkflowRAGApplicationBinding, []WorkflowRAGPromotionAudit) error
 }
@@ -456,36 +457,67 @@ func (service workflowRAGPromotionService) loadPromotionEvidence(ctx WorkflowRAG
 	if failure != "" {
 		return WorkflowRAGPromotionEvidenceBinding{}, failure
 	}
+	sourceDraft, failure := service.loadPromotionSourceDraft(ctx, input, application)
+	if failure != "" {
+		return WorkflowRAGPromotionEvidenceBinding{}, failure
+	}
+	evidence, failure := service.loadPromotionKnowledgeEvidence(ctx, input)
+	if failure != "" {
+		return WorkflowRAGPromotionEvidenceBinding{}, failure
+	}
+	evidence.SourceDraft = sourceDraft
+	if workflowRAGPromotionEvidenceContainsForbiddenMaterial(evidence) {
+		return WorkflowRAGPromotionEvidenceBinding{}, WorkflowRAGPromotionFailureSecretForbidden
+	}
+	return evidence, ""
+}
+
+func (service workflowRAGPromotionService) loadPromotionSourceDraft(
+	ctx WorkflowRAGPromotionContext,
+	input WorkflowRAGPromotionCreateInput,
+	application ApplicationSummary,
+) (WorkflowRAGPromotionSourceDraftBinding, string) {
 	draftContext := workflowRAGPromotionDraftContext(ctx)
 	if service.draftRepository == nil {
-		return WorkflowRAGPromotionEvidenceBinding{}, WorkflowRAGPromotionFailureStoreUnavailable
+		return WorkflowRAGPromotionSourceDraftBinding{}, WorkflowRAGPromotionFailureStoreUnavailable
 	}
 	draft, err := service.draftRepository.Read(draftContext, input.DraftID)
 	if errors.Is(err, errApplicationDraftNotFound) {
-		return WorkflowRAGPromotionEvidenceBinding{}, WorkflowRAGPromotionFailureDraftChanged
+		return WorkflowRAGPromotionSourceDraftBinding{}, WorkflowRAGPromotionFailureDraftChanged
 	}
 	if err != nil {
-		return WorkflowRAGPromotionEvidenceBinding{}, WorkflowRAGPromotionFailureStoreUnavailable
+		return WorkflowRAGPromotionSourceDraftBinding{}, WorkflowRAGPromotionFailureStoreUnavailable
 	}
 	if draft.DraftVersion != input.ExpectedDraftVersion {
-		return WorkflowRAGPromotionEvidenceBinding{}, WorkflowRAGPromotionFailureDraftChanged
+		return WorkflowRAGPromotionSourceDraftBinding{}, WorkflowRAGPromotionFailureDraftChanged
 	}
 	validation := validateApplicationConfigurationDraftPayload(draftContext, draft.ApplicationConfigurationDraftPayload)
-	if draft.SchemaVersion != applicationConfigurationDraftSchemaVersion || !draft.ValidationSummary.IsValid || draft.ValidationSummary.State != applicationDraftValidationValid || !validation.IsValid {
-		return WorkflowRAGPromotionEvidenceBinding{}, WorkflowRAGPromotionFailureDraftInvalid
+	if !applicationConfigurationDraftSchemaSupported(draft.SchemaVersion) || !draft.ValidationSummary.IsValid || draft.ValidationSummary.State != applicationDraftValidationValid || !validation.IsValid {
+		return WorkflowRAGPromotionSourceDraftBinding{}, WorkflowRAGPromotionFailureDraftInvalid
 	}
 	if strings.TrimSpace(draft.BaseApplicationUpdatedAt) != strings.TrimSpace(application.UpdatedAt) {
-		return WorkflowRAGPromotionEvidenceBinding{}, WorkflowRAGPromotionFailureDraftChanged
+		return WorkflowRAGPromotionSourceDraftBinding{}, WorkflowRAGPromotionFailureDraftChanged
 	}
-	draftDigest, err := applicationPublishSnapshotDigest(applicationPublishSnapshotFromDraft(draft))
+	draftDigest, err := applicationConfigurationCanonicalDigest(applicationPublishSnapshotFromDraft(draft))
 	if err != nil || !workflowRAGDigestPattern.MatchString(draftDigest) {
-		return WorkflowRAGPromotionEvidenceBinding{}, WorkflowRAGPromotionFailureStoreContractMismatch
+		return WorkflowRAGPromotionSourceDraftBinding{}, WorkflowRAGPromotionFailureStoreContractMismatch
 	}
+	if draft.DraftDigest != "" && draft.DraftDigest != draftDigest {
+		return WorkflowRAGPromotionSourceDraftBinding{}, WorkflowRAGPromotionFailureDraftChanged
+	}
+	return WorkflowRAGPromotionSourceDraftBinding{
+		DraftID: draft.DraftID, DraftVersion: draft.DraftVersion, DraftDigest: draftDigest,
+		BaseApplicationUpdatedAt: draft.BaseApplicationUpdatedAt,
+	}, ""
+}
+
+func (service workflowRAGPromotionService) loadPromotionKnowledgeEvidence(ctx WorkflowRAGPromotionContext, input WorkflowRAGPromotionCreateInput) (WorkflowRAGPromotionEvidenceBinding, string) {
 	if service.evaluationRepository == nil {
 		return WorkflowRAGPromotionEvidenceBinding{}, WorkflowRAGPromotionFailureStoreUnavailable
 	}
 	snapshotCtx := workflowRAGPromotionSnapshotContext(ctx)
 	resource, version, err := service.evaluationRepository.ReadVersion(snapshotCtx, input.DatasetID, input.DatasetVersion)
+	var failure string
 	if failure = workflowRAGPromotionDatasetReadFailure(err); failure != "" {
 		return WorkflowRAGPromotionEvidenceBinding{}, failure
 	}
@@ -531,10 +563,6 @@ func (service workflowRAGPromotionService) loadPromotionEvidence(ctx WorkflowRAG
 	evidence := WorkflowRAGPromotionEvidenceBinding{
 		Dataset: review.Dataset, CandidateReviewID: review.ReviewID, BaselineSnapshot: review.BaselineSnapshot,
 		CandidateSnapshot: review.CandidateSnapshot, Profile: review.Profile,
-		SourceDraft: WorkflowRAGPromotionSourceDraftBinding{DraftID: draft.DraftID, DraftVersion: draft.DraftVersion, DraftDigest: draftDigest, BaseApplicationUpdatedAt: draft.BaseApplicationUpdatedAt},
-	}
-	if workflowRAGPromotionEvidenceContainsForbiddenMaterial(evidence) {
-		return WorkflowRAGPromotionEvidenceBinding{}, WorkflowRAGPromotionFailureSecretForbidden
 	}
 	return evidence, ""
 }
@@ -560,6 +588,64 @@ func (service workflowRAGPromotionService) validatePromotionEvidence(ctx Workflo
 		return WorkflowRAGPromotionFailureDraftChanged
 	}
 	return ""
+}
+
+func (service workflowRAGPromotionService) validateApprovedPromotionEvidence(ctx WorkflowRAGPromotionContext, expected WorkflowRAGPromotionEvidenceBinding) string {
+	if _, failure := service.readPromotionApplication(ctx); failure != "" {
+		return failure
+	}
+	actual, failure := service.loadPromotionKnowledgeEvidence(ctx, WorkflowRAGPromotionCreateInput{
+		DatasetID: expected.Dataset.DatasetID, DatasetVersion: expected.Dataset.DatasetVersion, DatasetDigest: expected.Dataset.DatasetDigest,
+		CandidateReviewID: expected.CandidateReviewID,
+	})
+	if failure != "" {
+		return failure
+	}
+	if actual.Dataset != expected.Dataset {
+		return WorkflowRAGPromotionFailureDatasetChanged
+	}
+	if actual.CandidateReviewID != expected.CandidateReviewID || actual.BaselineSnapshot != expected.BaselineSnapshot || actual.CandidateSnapshot != expected.CandidateSnapshot {
+		return WorkflowRAGPromotionFailureReviewInvalid
+	}
+	if actual.Profile != expected.Profile {
+		return WorkflowRAGPromotionFailureProfileChanged
+	}
+	return ""
+}
+
+func (service workflowRAGPromotionService) resolveEligibleBinding(
+	ctx WorkflowRAGPromotionContext,
+	ref WorkflowRAGApplicationBindingRef,
+	requireCurrentSourceDraft bool,
+) (WorkflowRAGApplicationBinding, string) {
+	if validateWorkflowRAGPromotionContext(ctx) != nil {
+		return WorkflowRAGApplicationBinding{}, WorkflowRAGPromotionFailureScopeDenied
+	}
+	if !validWorkflowRAGApplicationBindingRef(ref) || service.repository == nil {
+		return WorkflowRAGApplicationBinding{}, WorkflowRAGPromotionFailureBindingNotEligible
+	}
+	candidate, binding, err := service.repository.ReadBinding(ctx, ref)
+	if err != nil {
+		failure := workflowRAGPromotionRepositoryFailure(err).FailureCode
+		if failure == WorkflowRAGPromotionFailureNotFound || failure == WorkflowRAGPromotionFailureScopeDenied {
+			failure = WorkflowRAGPromotionFailureBindingNotEligible
+		}
+		return WorkflowRAGApplicationBinding{}, failure
+	}
+	if binding.WorkflowRAGApplicationBindingRef != ref || candidate.BindingRef == nil || *candidate.BindingRef != ref ||
+		candidate.CandidateState != workflowRAGPromotionStateApproved || validateStoredWorkflowRAGApplicationBinding(binding) != nil {
+		return WorkflowRAGApplicationBinding{}, WorkflowRAGPromotionFailureBindingNotEligible
+	}
+	var failure string
+	if requireCurrentSourceDraft {
+		failure = service.validatePromotionEvidence(ctx, candidate.Evidence)
+	} else {
+		failure = service.validateApprovedPromotionEvidence(ctx, candidate.Evidence)
+	}
+	if failure != "" {
+		return WorkflowRAGApplicationBinding{}, failure
+	}
+	return binding, ""
 }
 
 func (service workflowRAGPromotionService) validatePromotionSnapshot(ctx WorkflowRAGSnapshotContext, binding WorkflowRAGEvaluationSnapshotBinding) string {
@@ -618,8 +704,13 @@ func (service workflowRAGPromotionService) evaluateEligibility(ctx WorkflowRAGPr
 	if candidate.CandidateState != workflowRAGPromotionStateApproved {
 		blockers = append(blockers, WorkflowRAGPromotionBlocker{Code: workflowRAGPromotionBlockerNotApproved})
 	}
-	if candidate.CandidateState == workflowRAGPromotionStatePending || candidate.CandidateState == workflowRAGPromotionStateDeferred || candidate.CandidateState == workflowRAGPromotionStateApproved {
+	if candidate.CandidateState == workflowRAGPromotionStatePending || candidate.CandidateState == workflowRAGPromotionStateDeferred {
 		if failure := service.validatePromotionEvidence(ctx, candidate.Evidence); failure != "" {
+			blockers = append(blockers, WorkflowRAGPromotionBlocker{Code: failure})
+		}
+	}
+	if candidate.CandidateState == workflowRAGPromotionStateApproved {
+		if failure := service.validateApprovedPromotionEvidence(ctx, candidate.Evidence); failure != "" {
 			blockers = append(blockers, WorkflowRAGPromotionBlocker{Code: failure})
 		}
 	}

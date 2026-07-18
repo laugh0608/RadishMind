@@ -12,8 +12,8 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
-| [Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md) | 功能 / 晋级与配置治理专题 | `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_c_ready_for_implementation` | 批次 A / B 已完成 exact binding、人工 decision / CAS、strict API 与双数据库 durable store；下一步进入配置 binding / 发布治理 |
-| [Workflow RAG 知识基线晋级与应用配置绑定审查 v1 实施任务卡](../../task-cards/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1-plan.md) | 高风险实现批次 | `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_c_ready_for_implementation` | 唯一实现入口；批次 C 已获准入，Web 继续等待 |
+| [Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md) | 功能 / 晋级与配置治理专题 | `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_d_ready_for_implementation` | 批次 A / B / C 已完成 durable promotion、配置 binding 与发布治理重校验；下一步进入 Web 收口 |
+| [Workflow RAG 知识基线晋级与应用配置绑定审查 v1 实施任务卡](../../task-cards/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1-plan.md) | 高风险实现批次 | `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_d_ready_for_implementation` | 唯一实现入口；批次 D 已获准入 |
 | [Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1.md) | 功能 / 持久评测专题 | `workflow_rag_evaluation_dataset_application_resource_candidate_snapshot_review_v1_completed` | 应用作用域 dataset、数据分类、权限、CAS、三种 store、精确 baseline / candidate snapshot 对照与 Web metadata-only 审查均已完成 |
 | [Workflow RAG 评测数据集与知识质量审查 v1](workflow-rag-evaluation-dataset-knowledge-quality-review-v1.md) | 功能 / 离线质量专题 | `workflow_rag_evaluation_dataset_knowledge_quality_review_v1_completed` | synthetic-public snapshot / dataset、expected citation evidence、复用运行时 lexical ranker 的确定性指标、metadata-only report 与 CLI check 已完成 |
 | [Workflow RAG Regression Review 与 Evaluation Profile（开发 / 测试态）v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1.md) | 功能 / 回归评测专题 | `workflow_rag_regression_review_evaluation_profile_dev_test_v1_completed` | v3 同 binding Comparison v2、Evaluation / Baseline / Suite profile、SQLite durable resources、PostgreSQL 重启与 Web metadata-only 审查已完成 |
@@ -164,11 +164,11 @@
 
 ## 当前下一步
 
-Saved Draft、Node Designer、executor v0、持久 Run History、Failure Review、Run Comparison、Evaluation Cases、Baseline / Case Versioning、Evaluation Suite / Release Review、Gateway Request History、Gateway Playground 与 API 密钥开发测试态认证均已完成。不继续在 Workflow 页面叠加同层只读审查能力。[Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md) 批次 A / B 已完成，下一步只按唯一任务卡实施批次 C 的 application draft v2 ref-only binding、canonical digest 与 publish governance 重校验。
+Saved Draft、Node Designer、executor v0、持久 Run History、Failure Review、Run Comparison、Evaluation Cases、Baseline / Case Versioning、Evaluation Suite / Release Review、Gateway Request History、Gateway Playground 与 API 密钥开发测试态认证均已完成。不继续在 Workflow 页面叠加同层只读审查能力。[Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md) 批次 A / B / C 已完成，下一步只按唯一任务卡实施批次 D 的 promotion / binding Web、双数据库连续链与真实浏览器收口。
 
 [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) 的三个批次已完成：版本化 definition / profile、durable action plan / confirmation、受控 transport、原子 claim、`workflow_run_record.v2`、memory / SQLite / PostgreSQL、diagnostics、`/executions`、Web 与真实浏览器重启链均已有证据。[Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 的三个批次也已完成：精确 snapshot / `rag_ref`、独立单次 retrieval / Gateway、strict citation、metadata-only run v3、Web、双数据库浏览器重启与 no-fallback 均已有证据；本专题不派生批次 D。
 
-知识晋级批准只产生应用配置 binding 资格，不修改 snapshot、dataset baseline、配置草案、发布候选或发布状态。批次 C 只允许显式 attach / replace 与发布资格重校验，不接 Web，也不调用 Gateway、创建 run 或执行 retrieval。
+知识晋级批准只产生应用配置 binding 资格，不修改 snapshot、dataset baseline、配置草案、发布候选或发布状态。批次 D 只接入显式 approve、attach / replace 与发布资格审查的 Web 路径，不调用 Gateway、创建 run 或执行 retrieval。
 
 Production Secret Backend / Storage Adapter 的历史准入链继续从既有专题、任务索引和归档证据读取，不再提供当前开发顺位；生产 repository、生产认证、业务写回、自动确认、replay / resume 和 agent loop 继续关闭。
 

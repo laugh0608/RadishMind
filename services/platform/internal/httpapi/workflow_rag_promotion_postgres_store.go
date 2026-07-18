@@ -85,6 +85,32 @@ func (repository *postgresWorkflowRAGPromotionRepository) Read(ctx WorkflowRAGPr
 	return cloned.candidate, cloned.decisions, cloned.binding, cloned.audits, nil
 }
 
+func (repository *postgresWorkflowRAGPromotionRepository) ReadBinding(ctx WorkflowRAGPromotionContext, ref WorkflowRAGApplicationBindingRef) (WorkflowRAGKnowledgePromotionCandidate, WorkflowRAGApplicationBinding, error) {
+	if repository == nil || repository.pool == nil {
+		return WorkflowRAGKnowledgePromotionCandidate{}, WorkflowRAGApplicationBinding{}, errWorkflowRAGPromotionStore
+	}
+	var candidateID string
+	err := repository.pool.QueryRow(workflowRAGPromotionDatabaseContext(ctx), `SELECT candidate_id
+	 FROM workflow_rag_application_bindings
+	 WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4
+	 AND binding_id=$5 AND binding_version=$6 AND binding_digest=$7`, ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID,
+		ctx.OwnerSubjectRef, ref.BindingID, ref.BindingVersion, ref.BindingDigest).Scan(&candidateID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return WorkflowRAGKnowledgePromotionCandidate{}, WorkflowRAGApplicationBinding{}, errWorkflowRAGPromotionNotFound
+	}
+	if err != nil {
+		return WorkflowRAGKnowledgePromotionCandidate{}, WorkflowRAGApplicationBinding{}, errWorkflowRAGPromotionStore
+	}
+	candidate, _, binding, _, err := repository.Read(ctx, candidateID)
+	if err != nil {
+		return WorkflowRAGKnowledgePromotionCandidate{}, WorkflowRAGApplicationBinding{}, err
+	}
+	if binding == nil || binding.WorkflowRAGApplicationBindingRef != ref {
+		return WorkflowRAGKnowledgePromotionCandidate{}, WorkflowRAGApplicationBinding{}, errWorkflowRAGPromotionStoreContract
+	}
+	return candidate, *binding, nil
+}
+
 func (repository *postgresWorkflowRAGPromotionRepository) List(ctx WorkflowRAGPromotionContext, query workflowRAGPromotionListQuery) ([]WorkflowRAGKnowledgePromotionCandidate, error) {
 	if repository == nil || repository.pool == nil || query.Limit < 1 {
 		return nil, errWorkflowRAGPromotionStore

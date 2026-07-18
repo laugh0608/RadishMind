@@ -140,6 +140,26 @@ func (repository *memoryWorkflowRAGPromotionRepository) Read(ctx WorkflowRAGProm
 	return cloned.candidate, cloned.decisions, cloned.binding, cloned.audits, nil
 }
 
+func (repository *memoryWorkflowRAGPromotionRepository) ReadBinding(ctx WorkflowRAGPromotionContext, ref WorkflowRAGApplicationBindingRef) (WorkflowRAGKnowledgePromotionCandidate, WorkflowRAGApplicationBinding, error) {
+	if !repository.available {
+		return WorkflowRAGKnowledgePromotionCandidate{}, WorkflowRAGApplicationBinding{}, errWorkflowRAGPromotionStore
+	}
+	repository.ownerLock.RLock()
+	defer repository.ownerLock.RUnlock()
+	for _, entry := range repository.entries {
+		candidate := entry.candidate
+		if candidate.TenantRef != ctx.TenantRef || candidate.WorkspaceID != ctx.WorkspaceID || candidate.ApplicationID != ctx.ApplicationID || candidate.OwnerSubjectRef != ctx.OwnerSubjectRef ||
+			entry.binding == nil || entry.binding.WorkflowRAGApplicationBindingRef != ref {
+			continue
+		}
+		if validateWorkflowRAGPromotionMemoryEntry(entry) != nil {
+			return WorkflowRAGKnowledgePromotionCandidate{}, WorkflowRAGApplicationBinding{}, errWorkflowRAGPromotionStoreContract
+		}
+		return cloneWorkflowRAGPromotionCandidate(candidate), *cloneWorkflowRAGApplicationBinding(entry.binding), nil
+	}
+	return WorkflowRAGKnowledgePromotionCandidate{}, WorkflowRAGApplicationBinding{}, errWorkflowRAGPromotionNotFound
+}
+
 func (repository *memoryWorkflowRAGPromotionRepository) List(ctx WorkflowRAGPromotionContext, query workflowRAGPromotionListQuery) ([]WorkflowRAGKnowledgePromotionCandidate, error) {
 	if !repository.available {
 		return nil, errWorkflowRAGPromotionStore

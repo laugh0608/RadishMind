@@ -81,6 +81,10 @@ func TestPostgresWorkflowRAGPromotionIntegration(t *testing.T) {
 		t.Fatalf("read PostgreSQL promotion chain: candidate=%#v decisions=%d binding=%#v audits=%d err=%v", candidate, len(decisions), binding, len(audits), err)
 	}
 	assertWorkflowRAGPromotionContracts(t, candidate, decisions, *binding, audits)
+	boundCandidate, exactBinding, err := repository.ReadBinding(fixture.ctx, binding.WorkflowRAGApplicationBindingRef)
+	if err != nil || boundCandidate.CandidateID != candidate.CandidateID || exactBinding != *binding {
+		t.Fatalf("read exact PostgreSQL promotion binding: candidate=%#v binding=%#v err=%v", boundCandidate, exactBinding, err)
+	}
 	listed, err := repository.List(fixture.ctx, workflowRAGPromotionListQuery{Limit: 10})
 	if err != nil || len(listed) != 1 || listed[0].CandidateID != candidate.CandidateID {
 		t.Fatalf("list PostgreSQL promotions: candidates=%#v err=%v", listed, err)
@@ -89,6 +93,9 @@ func TestPostgresWorkflowRAGPromotionIntegration(t *testing.T) {
 	otherOwner.OwnerSubjectRef = "subject_other"
 	if _, _, _, _, err = repository.Read(otherOwner, candidate.CandidateID); !errors.Is(err, errWorkflowRAGPromotionScopeDenied) {
 		t.Fatalf("cross-owner PostgreSQL promotion read did not fail closed: %v", err)
+	}
+	if _, _, err = repository.ReadBinding(otherOwner, binding.WorkflowRAGApplicationBindingRef); !errors.Is(err, errWorkflowRAGPromotionNotFound) {
+		t.Fatalf("cross-owner PostgreSQL binding read did not fail closed: %v", err)
 	}
 
 	for name, statement := range map[string]string{

@@ -10,7 +10,11 @@ import (
 	"time"
 )
 
-const applicationConfigurationDraftSchemaVersion = "application_configuration_draft.v1"
+const (
+	applicationConfigurationDraftSchemaVersionV1 = "application_configuration_draft.v1"
+	applicationConfigurationDraftSchemaVersionV2 = "application_configuration_draft.v2"
+	applicationConfigurationDraftSchemaVersion   = applicationConfigurationDraftSchemaVersionV1
+)
 
 const (
 	ApplicationDraftFailureScopeDenied      = "application_draft_scope_denied"
@@ -56,25 +60,28 @@ type ApplicationConfigurationDraftContext struct {
 	OwnerSubjectRef string
 	AuditRef        string
 	WriteEnabled    bool
+	BindingEnabled  bool
 }
 
 type ApplicationConfigurationDraftPayload struct {
-	DraftID                  string   `json:"draft_id"`
-	WorkspaceID              string   `json:"workspace_id"`
-	ApplicationID            string   `json:"application_id"`
-	BaseApplicationUpdatedAt string   `json:"base_application_updated_at"`
-	SchemaVersion            string   `json:"schema_version"`
-	DisplayName              string   `json:"display_name"`
-	Description              string   `json:"description"`
-	ApplicationKind          string   `json:"application_kind"`
-	DefaultProtocol          string   `json:"default_protocol"`
-	DefaultModel             string   `json:"default_model"`
-	AllowedProtocols         []string `json:"allowed_protocols"`
+	DraftID                  string                            `json:"draft_id"`
+	WorkspaceID              string                            `json:"workspace_id"`
+	ApplicationID            string                            `json:"application_id"`
+	BaseApplicationUpdatedAt string                            `json:"base_application_updated_at"`
+	SchemaVersion            string                            `json:"schema_version"`
+	DisplayName              string                            `json:"display_name"`
+	Description              string                            `json:"description"`
+	ApplicationKind          string                            `json:"application_kind"`
+	DefaultProtocol          string                            `json:"default_protocol"`
+	DefaultModel             string                            `json:"default_model"`
+	AllowedProtocols         []string                          `json:"allowed_protocols"`
+	WorkflowRAGBindingRef    *WorkflowRAGApplicationBindingRef `json:"workflow_rag_binding_ref,omitempty"`
 }
 
 type ApplicationConfigurationDraft struct {
 	ApplicationConfigurationDraftPayload
 	DraftVersion      int                                     `json:"draft_version"`
+	DraftDigest       string                                  `json:"draft_digest"`
 	ValidationSummary ApplicationConfigurationDraftValidation `json:"validation_summary"`
 	CreatedAt         string                                  `json:"created_at"`
 	UpdatedAt         string                                  `json:"updated_at"`
@@ -97,16 +104,18 @@ type ApplicationConfigurationDraftValidationFinding struct {
 }
 
 type ApplicationConfigurationDraftSummary struct {
-	DraftID           string `json:"draft_id"`
-	ApplicationID     string `json:"application_id"`
-	DraftVersion      int    `json:"draft_version"`
-	DisplayName       string `json:"display_name"`
-	ApplicationKind   string `json:"application_kind"`
-	DefaultProtocol   string `json:"default_protocol"`
-	DefaultModel      string `json:"default_model"`
-	ValidationState   string `json:"validation_state"`
-	UpdatedAt         string `json:"updated_at"`
-	UpdatedByActorRef string `json:"updated_by_actor_ref"`
+	DraftID               string                            `json:"draft_id"`
+	ApplicationID         string                            `json:"application_id"`
+	DraftVersion          int                               `json:"draft_version"`
+	DisplayName           string                            `json:"display_name"`
+	ApplicationKind       string                            `json:"application_kind"`
+	DefaultProtocol       string                            `json:"default_protocol"`
+	DefaultModel          string                            `json:"default_model"`
+	ValidationState       string                            `json:"validation_state"`
+	DraftDigest           string                            `json:"draft_digest"`
+	WorkflowRAGBindingRef *WorkflowRAGApplicationBindingRef `json:"workflow_rag_binding_ref,omitempty"`
+	UpdatedAt             string                            `json:"updated_at"`
+	UpdatedByActorRef     string                            `json:"updated_by_actor_ref"`
 }
 
 type ApplicationConfigurationDraftResult struct {
@@ -129,9 +138,10 @@ type memoryApplicationConfigurationDraftRepository struct {
 }
 
 type applicationConfigurationDraftService struct {
-	repository    applicationConfigurationDraftRepository
-	requireActive func(ApplicationConfigurationDraftContext) string
-	now           func() time.Time
+	repository      applicationConfigurationDraftRepository
+	requireActive   func(ApplicationConfigurationDraftContext) string
+	validateBinding func(ApplicationConfigurationDraftContext, WorkflowRAGApplicationBindingRef) (WorkflowRAGApplicationBinding, string)
+	now             func() time.Time
 }
 
 func newApplicationConfigurationDraftService(repository applicationConfigurationDraftRepository) applicationConfigurationDraftService {
@@ -184,9 +194,21 @@ func (service applicationConfigurationDraftService) Save(
 			return ApplicationConfigurationDraftResult{FailureCode: failureCode, ValidationSummary: validation}
 		}
 	}
+	payload = normalizeApplicationConfigurationDraftPayload(payload)
+	var current *ApplicationConfigurationDraft
+	if expectedVersion > 0 {
+		stored, err := service.repository.Read(requestContext, payload.DraftID)
+		if err != nil {
+			return applicationConfigurationDraftRepositoryFailure(err, validation)
+		}
+		current = &stored
+	}
+	if failureCode := service.validateBindingChange(requestContext, current, payload); failureCode != "" {
+		return ApplicationConfigurationDraftResult{FailureCode: failureCode, CurrentDraftVersion: expectedVersion, ValidationSummary: validation}
+	}
 	now := service.now().Format(time.RFC3339)
 	draft := ApplicationConfigurationDraft{
-		ApplicationConfigurationDraftPayload: normalizeApplicationConfigurationDraftPayload(payload),
+		ApplicationConfigurationDraftPayload: payload,
 		DraftVersion:                         expectedVersion + 1,
 		ValidationSummary:                    validation,
 		CreatedAt:                            now,
@@ -196,6 +218,11 @@ func (service applicationConfigurationDraftService) Save(
 		RequestID:                            requestContext.RequestID,
 		AuditRef:                             requestContext.AuditRef,
 	}
+	var digestErr error
+	draft.DraftDigest, digestErr = applicationConfigurationCanonicalDigest(applicationPublishSnapshotFromDraft(draft))
+	if digestErr != nil {
+		return ApplicationConfigurationDraftResult{FailureCode: ApplicationDraftFailureStoreUnavailable, CurrentDraftVersion: expectedVersion, ValidationSummary: validation}
+	}
 	saved, err := service.repository.Save(requestContext, draft, expectedVersion)
 	if err != nil {
 		return applicationConfigurationDraftRepositoryFailure(err, validation)
@@ -204,6 +231,62 @@ func (service applicationConfigurationDraftService) Save(
 		Draft:               &saved,
 		CurrentDraftVersion: saved.DraftVersion,
 		ValidationSummary:   saved.ValidationSummary,
+	}
+}
+
+func (service applicationConfigurationDraftService) validateBindingChange(
+	requestContext ApplicationConfigurationDraftContext,
+	current *ApplicationConfigurationDraft,
+	payload ApplicationConfigurationDraftPayload,
+) string {
+	if current == nil {
+		if payload.WorkflowRAGBindingRef != nil {
+			return WorkflowRAGPromotionFailureBindingNotEligible
+		}
+		return ""
+	}
+	if workflowRAGPromotionBindingRefsEqual(current.WorkflowRAGBindingRef, payload.WorkflowRAGBindingRef) {
+		return ""
+	}
+	if !requestContext.BindingEnabled {
+		return ApplicationDraftFailureScopeDenied
+	}
+	if payload.WorkflowRAGBindingRef == nil || service.validateBinding == nil ||
+		payload.SchemaVersion != applicationConfigurationDraftSchemaVersionV2 ||
+		!applicationConfigurationPublicConfigEqual(current.ApplicationConfigurationDraftPayload, payload) {
+		return WorkflowRAGPromotionFailureBindingNotEligible
+	}
+	binding, failureCode := service.validateBinding(requestContext, *payload.WorkflowRAGBindingRef)
+	if failureCode != "" {
+		return applicationBindingMutationFailure(failureCode)
+	}
+	if binding.WorkflowRAGApplicationBindingRef != *payload.WorkflowRAGBindingRef {
+		return WorkflowRAGPromotionFailureBindingNotEligible
+	}
+	currentDigest := current.DraftDigest
+	if currentDigest == "" {
+		var err error
+		currentDigest, err = applicationConfigurationCanonicalDigest(applicationPublishSnapshotFromDraft(*current))
+		if err != nil {
+			return ApplicationDraftFailureStoreUnavailable
+		}
+	}
+	source := binding.Evidence.SourceDraft
+	if source.DraftID != current.DraftID || source.DraftVersion != current.DraftVersion || source.DraftDigest != currentDigest ||
+		source.BaseApplicationUpdatedAt != current.BaseApplicationUpdatedAt {
+		return WorkflowRAGPromotionFailureBindingNotEligible
+	}
+	return ""
+}
+
+func applicationBindingMutationFailure(failureCode string) string {
+	switch failureCode {
+	case WorkflowRAGPromotionFailureStoreUnavailable, WorkflowRAGPromotionFailureStoreContractMismatch:
+		return failureCode
+	case WorkflowRAGPromotionFailureScopeDenied:
+		return ApplicationDraftFailureScopeDenied
+	default:
+		return WorkflowRAGPromotionFailureBindingNotEligible
 	}
 }
 
@@ -246,8 +329,14 @@ func validateApplicationConfigurationDraftPayload(
 	if !applicationDraftIdentifierPattern.MatchString(strings.TrimSpace(payload.DraftID)) {
 		add(ApplicationDraftFailurePayloadInvalid, "draft_id", "Draft id must be a stable identifier up to 160 characters.")
 	}
-	if strings.TrimSpace(payload.SchemaVersion) != applicationConfigurationDraftSchemaVersion {
+	if !applicationConfigurationDraftSchemaSupported(strings.TrimSpace(payload.SchemaVersion)) {
 		add(ApplicationDraftFailurePayloadInvalid, "schema_version", "Application draft schema version is unsupported.")
+	}
+	if payload.SchemaVersion == applicationConfigurationDraftSchemaVersionV1 && payload.WorkflowRAGBindingRef != nil {
+		add(ApplicationDraftFailurePayloadInvalid, "workflow_rag_binding_ref", "Application draft v1 cannot contain a workflow RAG binding reference.")
+	}
+	if payload.WorkflowRAGBindingRef != nil && !validWorkflowRAGApplicationBindingRef(*payload.WorkflowRAGBindingRef) {
+		add(ApplicationDraftFailurePayloadInvalid, "workflow_rag_binding_ref", "Workflow RAG binding reference is invalid.")
 	}
 	if length := len(strings.TrimSpace(payload.DisplayName)); length < 2 || length > 120 {
 		add(ApplicationDraftFailurePayloadInvalid, "display_name", "Display name must contain 2 to 120 characters.")
@@ -299,7 +388,24 @@ func normalizeApplicationConfigurationDraftPayload(payload ApplicationConfigurat
 	payload.DefaultProtocol = strings.TrimSpace(payload.DefaultProtocol)
 	payload.DefaultModel = strings.TrimSpace(payload.DefaultModel)
 	payload.AllowedProtocols = normalizeApplicationDraftProtocols(payload.AllowedProtocols)
+	payload.WorkflowRAGBindingRef = cloneWorkflowRAGApplicationBindingRef(payload.WorkflowRAGBindingRef)
 	return payload
+}
+
+func applicationConfigurationDraftSchemaSupported(schemaVersion string) bool {
+	return schemaVersion == applicationConfigurationDraftSchemaVersionV1 || schemaVersion == applicationConfigurationDraftSchemaVersionV2
+}
+
+func validWorkflowRAGApplicationBindingRef(ref WorkflowRAGApplicationBindingRef) bool {
+	return workflowRAGPromotionBindingIDPattern.MatchString(strings.TrimSpace(ref.BindingID)) && ref.BindingVersion == 1 && workflowRAGDigestPattern.MatchString(strings.TrimSpace(ref.BindingDigest))
+}
+
+func applicationConfigurationPublicConfigEqual(left, right ApplicationConfigurationDraftPayload) bool {
+	left, right = normalizeApplicationConfigurationDraftPayload(left), normalizeApplicationConfigurationDraftPayload(right)
+	return left.DraftID == right.DraftID && left.WorkspaceID == right.WorkspaceID && left.ApplicationID == right.ApplicationID &&
+		left.BaseApplicationUpdatedAt == right.BaseApplicationUpdatedAt && left.DisplayName == right.DisplayName && left.Description == right.Description &&
+		left.ApplicationKind == right.ApplicationKind && left.DefaultProtocol == right.DefaultProtocol && left.DefaultModel == right.DefaultModel &&
+		strings.Join(left.AllowedProtocols, "\x00") == strings.Join(right.AllowedProtocols, "\x00")
 }
 
 func normalizeApplicationDraftProtocols(protocols []string) []string {
@@ -439,6 +545,7 @@ func applicationConfigurationDraftSummary(draft ApplicationConfigurationDraft) A
 		DraftID: draft.DraftID, ApplicationID: draft.ApplicationID, DraftVersion: draft.DraftVersion,
 		DisplayName: draft.DisplayName, ApplicationKind: draft.ApplicationKind, DefaultProtocol: draft.DefaultProtocol,
 		DefaultModel: draft.DefaultModel, ValidationState: draft.ValidationSummary.State, UpdatedAt: draft.UpdatedAt,
-		UpdatedByActorRef: draft.UpdatedByActorRef,
+		UpdatedByActorRef: draft.UpdatedByActorRef, DraftDigest: draft.DraftDigest,
+		WorkflowRAGBindingRef: cloneWorkflowRAGApplicationBindingRef(draft.WorkflowRAGBindingRef),
 	}
 }

@@ -2,7 +2,7 @@
 
 更新时间：2026-07-18
 
-状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_c_ready_for_implementation`
+状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_d_ready_for_implementation`
 
 ## 功能目标
 
@@ -215,12 +215,12 @@ Web 在现有 RAG evaluation dataset / candidate review 面板之后增加 lazy-
 
 1. 批次 A（已完成）：版本化 contract、领域服务、memory repository、独立 gate、四条 strict API、权限、全部 server-side reload、状态机 / CAS / append-only decision / binding / audit 与精准测试。
 2. 批次 B（已完成）：SQLite `0008`、PostgreSQL `0011`、workflow backend 派生 repository、事务原子性、重启、损坏记录、migration 与 no-fallback。
-3. 批次 C（已获实现准入）：应用配置草案 v2 ref-only binding、共享 canonical draft digest、首次 attach 规则，以及发布候选 v2 / publish governance 的 binding 重校验与兼容测试。
-4. 批次 D（等待批次 C）：Web promotion panel、配置草案 / 发布审查接线、应用切换隔离、完整测试 / build、SQLite / PostgreSQL 连续链、真实浏览器和阶段收口。
+3. 批次 C（已完成）：应用配置草案 v2 ref-only binding、共享 canonical draft digest、首次 attach / replace 规则，以及发布候选 v2 / publish governance 的 create、approve、read-time binding 重校验与兼容测试。
+4. 批次 D（已获实现准入）：Web promotion panel、配置草案 / 发布审查接线、应用切换隔离、完整测试 / build、SQLite / PostgreSQL 连续链、真实浏览器和阶段收口。
 
-批次 A 已物化四份 JSON Schema 与 Go strict contract，完成权威 application / draft / dataset / review / snapshots / profile 重读、精确不可变 candidate digest、人工状态机、CAS、append-only decision / audit、approve 原子签发 binding、memory owner lock、独立权限 / gate 和四条 API。批次 B 已在 shared SQLite / PostgreSQL 上物化 promotion candidate current projection、append-only decision / binding / audit，factory 严格复用 workflow database / pool；PostgreSQL 详情证据链使用只读 `REPEATABLE READ` 快照，避免并发提交期间读取到撕裂视图。精准测试与真实 PostgreSQL 门禁覆盖迁移、运行角色、CAS 单一成功、事务回滚、重启、损坏拒绝、append-only、rollback / reapply 和 no-fallback。当前仍未修改配置草案或发布治理 contract，未接 Web。
+批次 A 已物化四份 JSON Schema 与 Go strict contract，完成权威 application / draft / dataset / review / snapshots / profile 重读、精确不可变 candidate digest、人工状态机、CAS、append-only decision / audit、approve 原子签发 binding、memory owner lock、独立权限 / gate 和四条 API。批次 B 已在 shared SQLite / PostgreSQL 上物化 promotion candidate current projection、append-only decision / binding / audit，factory 严格复用 workflow database / pool；PostgreSQL 详情证据链使用只读 `REPEATABLE READ` 快照，避免并发提交期间读取到撕裂视图。批次 C 已让 draft v1 / publish candidate v1 保持兼容，并以 v2 JSON payload 保存 ref-only binding；草案保存、promotion source draft 与发布候选共用唯一 canonical digest。首次 attach / replace 只允许 binding ref 变化，发布候选 create / approve / read-time eligibility 会重新读取不可变 binding 与全部权威知识来源。SQLite 与 PostgreSQL 继续使用既有 application draft / publish `0001` 表和 marker，无 DDL、平行 store 或回填。
 
-边界复核结论继续为通过：Batch B 已证明 shared SQLite / PostgreSQL durable repository、migration、原子 CAS、append-only、重启恢复、损坏拒绝与 no-fallback 成立，下一步只允许按唯一任务卡进入 Batch C 的 application draft v2 ref-only binding 与 publish governance 重校验。状态推进到 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_c_ready_for_implementation`；该准入不代表配置 attach、发布治理重校验、Web、自动 promotion 或生产能力已经完成。
+边界复核结论继续为通过：Batch C 已证明 ref-only binding、source draft 精确 attach / replace、共享 canonical digest、v1 / v2 codec、发布治理动态重校验，以及 JSON payload 无 DDL 兼容成立。状态推进到 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_d_ready_for_implementation`；下一步只允许按唯一任务卡进入 Web 接线、双数据库连续链与真实浏览器收口，该准入不代表自动 promotion、release、publish 或生产能力已经完成。
 
 ## 停止线
 

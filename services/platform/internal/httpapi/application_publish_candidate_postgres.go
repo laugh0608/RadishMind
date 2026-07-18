@@ -143,7 +143,14 @@ func scanApplicationPublishCandidate(row applicationPublishCandidateRow) (Applic
 	}
 	var candidate ApplicationPublishCandidate
 	if err := json.Unmarshal(payload, &candidate); err != nil || strings.TrimSpace(candidate.CandidateID) == "" ||
-		candidate.SchemaVersion != applicationPublishCandidateSchemaVersion || candidate.DraftVersion < 1 || candidate.ReviewVersion < 0 {
+		!applicationPublishCandidateSchemaSupported(candidate.SchemaVersion) || candidate.DraftVersion < 1 || candidate.ReviewVersion < 0 ||
+		(candidate.SchemaVersion == applicationPublishCandidateSchemaVersionV1 && candidate.Configuration.WorkflowRAGBindingRef != nil) ||
+		(candidate.SchemaVersion == applicationPublishCandidateSchemaVersionV2 && candidate.Configuration.WorkflowRAGBindingRef == nil) ||
+		(candidate.Configuration.WorkflowRAGBindingRef != nil && !validWorkflowRAGApplicationBindingRef(*candidate.Configuration.WorkflowRAGBindingRef)) {
+		return ApplicationPublishCandidate{}, errors.New("stored application publish candidate contract mismatch")
+	}
+	digest, err := applicationConfigurationCanonicalDigest(candidate.Configuration)
+	if err != nil || digest != candidate.DraftDigest {
 		return ApplicationPublishCandidate{}, errors.New("stored application publish candidate contract mismatch")
 	}
 	if candidate.EvidenceRequestIDs == nil {
@@ -153,6 +160,10 @@ func scanApplicationPublishCandidate(row applicationPublishCandidateRow) (Applic
 		candidate.Reviews = []ApplicationPublishReviewRecord{}
 	}
 	return candidate, nil
+}
+
+func applicationPublishCandidateSchemaSupported(schemaVersion string) bool {
+	return schemaVersion == applicationPublishCandidateSchemaVersionV1 || schemaVersion == applicationPublishCandidateSchemaVersionV2
 }
 
 func applicationPublishDatabaseContext(requestContext ApplicationPublishContext) context.Context {

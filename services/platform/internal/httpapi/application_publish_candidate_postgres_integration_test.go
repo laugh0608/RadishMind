@@ -57,8 +57,9 @@ func TestApplicationPublishCandidatePostgresLifecycle(t *testing.T) {
 
 	draftContext := validApplicationDraftContext()
 	draftRepository := newPostgresApplicationConfigurationDraftRepository(runtimePool)
-	if created := newApplicationConfigurationDraftService(draftRepository).Save(draftContext, validApplicationDraftPayload(), 0); created.Draft == nil {
-		t.Fatalf("create bound application draft: %#v", created)
+	createdDraft := newApplicationConfigurationDraftService(draftRepository).Save(draftContext, validApplicationDraftPayload(), 0)
+	if createdDraft.Draft == nil {
+		t.Fatalf("create bound application draft: %#v", createdDraft)
 	}
 	requestContext := validApplicationPublishContext()
 	repository := newPostgresApplicationPublishCandidateRepository(runtimePool)
@@ -88,6 +89,38 @@ func TestApplicationPublishCandidatePostgresLifecycle(t *testing.T) {
 	}
 	if _, err := runtimePool.Exec(ctx, "CREATE TABLE application_publish_runtime_ddl_denied(id integer)"); err == nil {
 		t.Fatal("runtime role unexpectedly received DDL permission")
+	}
+
+	binding := testWorkflowRAGApplicationBindingForDraft(*createdDraft.Draft)
+	boundDraftContext := draftContext
+	boundDraftContext.BindingEnabled = true
+	boundDraftService := newApplicationConfigurationDraftService(draftRepository)
+	boundDraftService.validateBinding = func(ApplicationConfigurationDraftContext, WorkflowRAGApplicationBindingRef) (WorkflowRAGApplicationBinding, string) {
+		return binding, ""
+	}
+	boundPayload := createdDraft.Draft.ApplicationConfigurationDraftPayload
+	boundPayload.SchemaVersion = applicationConfigurationDraftSchemaVersionV2
+	boundPayload.WorkflowRAGBindingRef = cloneWorkflowRAGApplicationBindingRef(&binding.WorkflowRAGApplicationBindingRef)
+	boundDraft := boundDraftService.Save(boundDraftContext, boundPayload, 1)
+	if boundDraft.Draft == nil || boundDraft.Draft.DraftVersion != 2 {
+		t.Fatalf("save PostgreSQL v2 bound draft without DDL: %#v", boundDraft)
+	}
+	boundPublishContext := requestContext
+	boundPublishContext.RAGPromotionReadEnabled = true
+	boundPublishService := newApplicationPublishCandidateService(draftRepository, repository, validApplicationPublishBaseline)
+	boundPublishService.validateBinding = func(ApplicationPublishContext, WorkflowRAGApplicationBindingRef) (WorkflowRAGApplicationBinding, string) {
+		return binding, ""
+	}
+	boundCandidate := boundPublishService.Create(boundPublishContext, ApplicationPublishCreateInput{
+		CandidateID: "candidate-postgres-v2", DraftID: boundDraft.Draft.DraftID, ExpectedDraftVersion: 2,
+	})
+	if boundCandidate.Candidate == nil || boundCandidate.Candidate.SchemaVersion != applicationPublishCandidateSchemaVersionV2 || boundCandidate.Candidate.Configuration.WorkflowRAGBindingRef == nil {
+		t.Fatalf("save PostgreSQL v2 publish candidate without DDL: %#v", boundCandidate)
+	}
+	restoredBoundDraft := newApplicationConfigurationDraftService(newPostgresApplicationConfigurationDraftRepository(runtimePool)).Read(boundDraftContext, boundDraft.Draft.DraftID)
+	restoredBoundCandidate := newApplicationPublishCandidateService(draftRepository, newPostgresApplicationPublishCandidateRepository(runtimePool), validApplicationPublishBaseline).Read(boundPublishContext, boundCandidate.Candidate.CandidateID)
+	if restoredBoundDraft.Draft == nil || restoredBoundDraft.Draft.WorkflowRAGBindingRef == nil || restoredBoundCandidate.Candidate == nil || restoredBoundCandidate.Candidate.Configuration.WorkflowRAGBindingRef == nil {
+		t.Fatalf("restore PostgreSQL v2 JSON payloads: draft=%#v candidate=%#v", restoredBoundDraft, restoredBoundCandidate)
 	}
 
 	if _, err := applicationpublishmigrations.RollbackForDevTest(ctx, migrationPool); err != nil {

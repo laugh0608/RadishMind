@@ -133,7 +133,11 @@ func (server *Server) applicationPublishCandidateService() applicationPublishCan
 	if server.applicationPublishCandidateRepository == nil {
 		server.applicationPublishCandidateRepository = &memoryApplicationPublishCandidateRepository{candidates: make(map[string]ApplicationPublishCandidate), unavailable: true}
 	}
-	return newApplicationPublishCandidateService(server.applicationDraftRepository, server.applicationPublishCandidateRepository, server.readApplicationPublishBaseline)
+	service := newApplicationPublishCandidateService(server.applicationDraftRepository, server.applicationPublishCandidateRepository, server.readApplicationPublishBaseline)
+	service.validateBinding = func(publishContext ApplicationPublishContext, ref WorkflowRAGApplicationBindingRef) (WorkflowRAGApplicationBinding, string) {
+		return server.workflowRAGPromotionService().resolveEligibleBinding(workflowRAGPromotionContextFromPublish(publishContext), ref, false)
+	}
+	return service
 }
 
 func (server *Server) readApplicationPublishBaseline(requestContext ApplicationPublishContext) (ApplicationSummary, error) {
@@ -186,12 +190,21 @@ func applicationPublishContextFromRequest(request *http.Request, trace requestTr
 	requestContext.TenantRef = strings.TrimSpace(auth.TenantBinding)
 	requestContext.ActorRef = strings.TrimSpace(auth.SubjectBinding)
 	requestContext.OwnerSubjectRef = requestContext.ActorRef
+	requestContext.RAGPromotionReadEnabled = controlPlaneReadHasScope(auth.ScopeGrants, "workflow_rag_promotions:read")
 	if requestContext.TenantRef == "" || requestContext.WorkspaceID == "" || requestContext.ApplicationID == "" ||
 		strings.TrimSpace(request.Header.Get(applicationPublishDevWorkspaceHeader)) != requestContext.WorkspaceID ||
 		strings.TrimSpace(request.Header.Get(applicationPublishDevApplicationHeader)) != requestContext.ApplicationID {
 		return requestContext, ApplicationPublishFailureScopeDenied
 	}
 	return requestContext, ""
+}
+
+func workflowRAGPromotionContextFromPublish(ctx ApplicationPublishContext) WorkflowRAGPromotionContext {
+	return WorkflowRAGPromotionContext{
+		RequestContext: ctx.RequestContext, RequestID: ctx.RequestID, TenantRef: ctx.TenantRef,
+		WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, ActorRef: ctx.ActorRef,
+		OwnerSubjectRef: ctx.OwnerSubjectRef, AuditRef: ctx.AuditRef, WriteEnabled: ctx.WriteEnabled,
+	}
 }
 
 func writeApplicationPublishCandidateResult(writer http.ResponseWriter, trace requestTrace, requestContext ApplicationPublishContext, result ApplicationPublishResult) {

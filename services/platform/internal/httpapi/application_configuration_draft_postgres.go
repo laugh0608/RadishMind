@@ -161,9 +161,17 @@ func scanApplicationConfigurationDraft(row applicationConfigurationDraftRow) (Ap
 		return ApplicationConfigurationDraft{}, err
 	}
 	var draft ApplicationConfigurationDraft
-	if err := json.Unmarshal(payload, &draft); err != nil || strings.TrimSpace(draft.DraftID) == "" || draft.DraftVersion < 1 || draft.SchemaVersion != applicationConfigurationDraftSchemaVersion {
+	if err := json.Unmarshal(payload, &draft); err != nil || strings.TrimSpace(draft.DraftID) == "" || draft.DraftVersion < 1 || !applicationConfigurationDraftSchemaSupported(draft.SchemaVersion) ||
+		(draft.SchemaVersion == applicationConfigurationDraftSchemaVersionV1 && draft.WorkflowRAGBindingRef != nil) ||
+		(draft.WorkflowRAGBindingRef != nil && !validWorkflowRAGApplicationBindingRef(*draft.WorkflowRAGBindingRef)) {
 		return ApplicationConfigurationDraft{}, errors.New("stored application draft contract mismatch")
 	}
+	draft.ApplicationConfigurationDraftPayload = normalizeApplicationConfigurationDraftPayload(draft.ApplicationConfigurationDraftPayload)
+	digest, err := applicationConfigurationCanonicalDigest(applicationPublishSnapshotFromDraft(draft))
+	if err != nil || draft.DraftDigest != "" && draft.DraftDigest != digest || draft.SchemaVersion == applicationConfigurationDraftSchemaVersionV2 && draft.DraftDigest == "" {
+		return ApplicationConfigurationDraft{}, errors.New("stored application draft contract mismatch")
+	}
+	draft.DraftDigest = digest
 	return draft, nil
 }
 

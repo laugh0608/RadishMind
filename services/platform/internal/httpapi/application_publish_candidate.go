@@ -12,7 +12,11 @@ import (
 	"time"
 )
 
-const applicationPublishCandidateSchemaVersion = "application_publish_candidate.v1"
+const (
+	applicationPublishCandidateSchemaVersionV1 = "application_publish_candidate.v1"
+	applicationPublishCandidateSchemaVersionV2 = "application_publish_candidate.v2"
+	applicationPublishCandidateSchemaVersion   = applicationPublishCandidateSchemaVersionV1
+)
 
 const (
 	ApplicationPublishFailureScopeDenied             = "publish_candidate_scope_denied"
@@ -22,6 +26,8 @@ const (
 	ApplicationPublishFailureDraftNotFound           = "publish_candidate_draft_not_found"
 	ApplicationPublishFailureDraftVersionConflict    = "publish_candidate_draft_version_conflict"
 	ApplicationPublishFailureDraftInvalid            = "publish_candidate_draft_invalid"
+	ApplicationPublishFailureDraftChanged            = "publish_candidate_draft_changed"
+	ApplicationPublishFailureBindingNotEligible      = WorkflowRAGPromotionFailureBindingNotEligible
 	ApplicationPublishFailureBaseRevisionChanged     = "application_base_revision_changed"
 	ApplicationPublishFailureImmutableConflict       = "publish_candidate_immutable_conflict"
 	ApplicationPublishFailureReviewVersionConflict   = "publish_candidate_review_version_conflict"
@@ -68,24 +74,26 @@ func (err applicationPublishReviewConflictError) Is(target error) bool {
 }
 
 type ApplicationPublishContext struct {
-	RequestContext  context.Context
-	RequestID       string
-	TenantRef       string
-	WorkspaceID     string
-	ApplicationID   string
-	ActorRef        string
-	OwnerSubjectRef string
-	AuditRef        string
-	WriteEnabled    bool
+	RequestContext          context.Context
+	RequestID               string
+	TenantRef               string
+	WorkspaceID             string
+	ApplicationID           string
+	ActorRef                string
+	OwnerSubjectRef         string
+	AuditRef                string
+	WriteEnabled            bool
+	RAGPromotionReadEnabled bool
 }
 
 type ApplicationPublishConfigurationSnapshot struct {
-	DisplayName      string   `json:"display_name"`
-	Description      string   `json:"description"`
-	ApplicationKind  string   `json:"application_kind"`
-	DefaultProtocol  string   `json:"default_protocol"`
-	DefaultModel     string   `json:"default_model"`
-	AllowedProtocols []string `json:"allowed_protocols"`
+	DisplayName           string                            `json:"display_name"`
+	Description           string                            `json:"description"`
+	ApplicationKind       string                            `json:"application_kind"`
+	DefaultProtocol       string                            `json:"default_protocol"`
+	DefaultModel          string                            `json:"default_model"`
+	AllowedProtocols      []string                          `json:"allowed_protocols"`
+	WorkflowRAGBindingRef *WorkflowRAGApplicationBindingRef `json:"workflow_rag_binding_ref,omitempty"`
 }
 
 type ApplicationPublishReviewRecord struct {
@@ -134,18 +142,19 @@ type ApplicationPublishCandidate struct {
 }
 
 type ApplicationPublishCandidateSummary struct {
-	CandidateID       string `json:"candidate_id"`
-	ApplicationID     string `json:"application_id"`
-	DraftID           string `json:"draft_id"`
-	DraftVersion      int    `json:"draft_version"`
-	DraftDigest       string `json:"draft_digest"`
-	CandidateState    string `json:"candidate_state"`
-	ReviewVersion     int    `json:"review_version"`
-	PromotionStatus   string `json:"promotion_status"`
-	PromotionBlockers int    `json:"promotion_blockers"`
-	CreatedAt         string `json:"created_at"`
-	UpdatedAt         string `json:"updated_at"`
-	UpdatedByActorRef string `json:"updated_by_actor_ref"`
+	CandidateID           string                            `json:"candidate_id"`
+	ApplicationID         string                            `json:"application_id"`
+	DraftID               string                            `json:"draft_id"`
+	DraftVersion          int                               `json:"draft_version"`
+	DraftDigest           string                            `json:"draft_digest"`
+	CandidateState        string                            `json:"candidate_state"`
+	ReviewVersion         int                               `json:"review_version"`
+	PromotionStatus       string                            `json:"promotion_status"`
+	PromotionBlockers     int                               `json:"promotion_blockers"`
+	WorkflowRAGBindingRef *WorkflowRAGApplicationBindingRef `json:"workflow_rag_binding_ref,omitempty"`
+	CreatedAt             string                            `json:"created_at"`
+	UpdatedAt             string                            `json:"updated_at"`
+	UpdatedByActorRef     string                            `json:"updated_by_actor_ref"`
 }
 
 type ApplicationPublishCreateInput struct {
@@ -188,6 +197,7 @@ type applicationPublishCandidateService struct {
 	draftRepository     applicationConfigurationDraftRepository
 	candidateRepository applicationPublishCandidateRepository
 	readBaseline        applicationPublishBaselineReader
+	validateBinding     func(ApplicationPublishContext, WorkflowRAGApplicationBindingRef) (WorkflowRAGApplicationBinding, string)
 	now                 func() time.Time
 }
 
@@ -245,13 +255,25 @@ func (service applicationPublishCandidateService) Create(requestContext Applicat
 		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureBaseRevisionChanged, CurrentDraftVersion: draft.DraftVersion}
 	}
 	snapshot := applicationPublishSnapshotFromDraft(draft)
-	digest, err := applicationPublishSnapshotDigest(snapshot)
-	if err != nil {
+	digest, err := applicationConfigurationCanonicalDigest(snapshot)
+	if err != nil || draft.DraftDigest != "" && draft.DraftDigest != digest {
 		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureStoreUnavailable}
 	}
+	if snapshot.WorkflowRAGBindingRef != nil {
+		if !requestContext.RAGPromotionReadEnabled {
+			return ApplicationPublishResult{FailureCode: ApplicationPublishFailureScopeDenied}
+		}
+		if _, failureCode := service.resolveBinding(requestContext, *snapshot.WorkflowRAGBindingRef); failureCode != "" {
+			return ApplicationPublishResult{FailureCode: applicationPublishBindingMutationFailure(failureCode)}
+		}
+	}
 	now := service.now().Format(time.RFC3339Nano)
+	schemaVersion := applicationPublishCandidateSchemaVersionV1
+	if snapshot.WorkflowRAGBindingRef != nil {
+		schemaVersion = applicationPublishCandidateSchemaVersionV2
+	}
 	candidate := ApplicationPublishCandidate{
-		SchemaVersion: applicationPublishCandidateSchemaVersion, CandidateID: input.CandidateID,
+		SchemaVersion: schemaVersion, CandidateID: input.CandidateID,
 		WorkspaceID: requestContext.WorkspaceID, ApplicationID: requestContext.ApplicationID,
 		DraftID: draft.DraftID, DraftVersion: draft.DraftVersion, DraftDigest: digest,
 		BaseApplicationUpdatedAt: draft.BaseApplicationUpdatedAt, Configuration: snapshot,
@@ -312,6 +334,21 @@ func (service applicationPublishCandidateService) Review(requestContext Applicat
 	} else if err != nil {
 		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureStoreUnavailable}
 	}
+	if decision == applicationPublishDecisionApprove {
+		candidate, err := service.candidateRepository.Read(requestContext, candidateID)
+		if err != nil {
+			return applicationPublishRepositoryFailure(err)
+		}
+		if candidate.ReviewVersion != input.ExpectedReviewVersion {
+			return ApplicationPublishResult{FailureCode: ApplicationPublishFailureReviewVersionConflict, CurrentReviewVersion: candidate.ReviewVersion, CurrentCandidateState: candidate.CandidateState}
+		}
+		if !applicationPublishTransitionAllowed(candidate.CandidateState, decision) {
+			return ApplicationPublishResult{FailureCode: ApplicationPublishFailureReviewTransitionInvalid}
+		}
+		if failureCode := service.validateApproval(requestContext, candidate); failureCode != "" {
+			return ApplicationPublishResult{FailureCode: failureCode, CurrentReviewVersion: candidate.ReviewVersion, CurrentCandidateState: candidate.CandidateState}
+		}
+	}
 	state := applicationPublishStateForDecision(decision)
 	now := service.now().Format(time.RFC3339Nano)
 	review := ApplicationPublishReviewRecord{
@@ -349,9 +386,16 @@ func (service applicationPublishCandidateService) decorateFromCandidates(request
 	if draftErr != nil {
 		blockers = append(blockers, ApplicationPromotionBlocker{Code: "publish_candidate_draft_unavailable", Summary: "Bound application draft is unavailable."})
 	} else {
-		digest, digestErr := applicationPublishSnapshotDigest(applicationPublishSnapshotFromDraft(draft))
+		digest, digestErr := applicationConfigurationCanonicalDigest(applicationPublishSnapshotFromDraft(draft))
 		if digestErr != nil || draft.DraftVersion != candidate.DraftVersion || digest != candidate.DraftDigest {
-			blockers = append(blockers, ApplicationPromotionBlocker{Code: "publish_candidate_draft_changed", Summary: "Saved draft version or sanitized digest changed after candidate creation."})
+			blockers = append(blockers, ApplicationPromotionBlocker{Code: ApplicationPublishFailureDraftChanged, Summary: "Saved draft version or sanitized digest changed after candidate creation."})
+		}
+	}
+	if candidate.Configuration.WorkflowRAGBindingRef != nil {
+		if !requestContext.RAGPromotionReadEnabled {
+			blockers = append(blockers, ApplicationPromotionBlocker{Code: ApplicationPublishFailureScopeDenied, Summary: "Workflow RAG binding review permission is required."})
+		} else if _, failureCode := service.resolveBinding(requestContext, *candidate.Configuration.WorkflowRAGBindingRef); failureCode != "" {
+			blockers = append(blockers, applicationPublishBindingBlocker(failureCode))
 		}
 	}
 	if applicationPublishCandidateIsSuperseded(candidate, candidates) {
@@ -395,15 +439,81 @@ func applicationPublishDraftContext(requestContext ApplicationPublishContext) Ap
 	}
 }
 
+func (service applicationPublishCandidateService) resolveBinding(requestContext ApplicationPublishContext, ref WorkflowRAGApplicationBindingRef) (WorkflowRAGApplicationBinding, string) {
+	if service.validateBinding == nil {
+		return WorkflowRAGApplicationBinding{}, WorkflowRAGPromotionFailureStoreUnavailable
+	}
+	return service.validateBinding(requestContext, ref)
+}
+
+func (service applicationPublishCandidateService) validateApproval(requestContext ApplicationPublishContext, candidate ApplicationPublishCandidate) string {
+	baseline, err := service.readBaseline(requestContext)
+	if errors.Is(err, errApplicationCatalogArchived) {
+		return ApplicationPublishFailureApplicationArchived
+	}
+	if err != nil {
+		return ApplicationPublishFailureStoreUnavailable
+	}
+	if strings.TrimSpace(baseline.UpdatedAt) != strings.TrimSpace(candidate.BaseApplicationUpdatedAt) {
+		return ApplicationPublishFailureBaseRevisionChanged
+	}
+	draft, err := service.draftRepository.Read(applicationPublishDraftContext(requestContext), candidate.DraftID)
+	if errors.Is(err, errApplicationDraftNotFound) {
+		return ApplicationPublishFailureDraftChanged
+	}
+	if err != nil {
+		return ApplicationPublishFailureStoreUnavailable
+	}
+	digest, err := applicationConfigurationCanonicalDigest(applicationPublishSnapshotFromDraft(draft))
+	if err != nil || draft.DraftVersion != candidate.DraftVersion || digest != candidate.DraftDigest {
+		return ApplicationPublishFailureDraftChanged
+	}
+	if !draft.ValidationSummary.IsValid || !validateApplicationConfigurationDraftPayload(applicationPublishDraftContext(requestContext), draft.ApplicationConfigurationDraftPayload).IsValid {
+		return ApplicationPublishFailureDraftInvalid
+	}
+	if !workflowRAGPromotionBindingRefsEqual(draft.WorkflowRAGBindingRef, candidate.Configuration.WorkflowRAGBindingRef) {
+		return ApplicationPublishFailureBindingNotEligible
+	}
+	if candidate.Configuration.WorkflowRAGBindingRef != nil {
+		if !requestContext.RAGPromotionReadEnabled {
+			return ApplicationPublishFailureScopeDenied
+		}
+		if _, failureCode := service.resolveBinding(requestContext, *candidate.Configuration.WorkflowRAGBindingRef); failureCode != "" {
+			return applicationPublishBindingMutationFailure(failureCode)
+		}
+	}
+	return ""
+}
+
+func applicationPublishBindingMutationFailure(failureCode string) string {
+	switch failureCode {
+	case WorkflowRAGPromotionFailureStoreUnavailable, WorkflowRAGPromotionFailureStoreContractMismatch:
+		return failureCode
+	case WorkflowRAGPromotionFailureScopeDenied:
+		return ApplicationPublishFailureScopeDenied
+	default:
+		return ApplicationPublishFailureBindingNotEligible
+	}
+}
+
+func applicationPublishBindingBlocker(failureCode string) ApplicationPromotionBlocker {
+	summary := "Workflow RAG binding is no longer eligible."
+	if failureCode == WorkflowRAGPromotionFailureStoreUnavailable || failureCode == WorkflowRAGPromotionFailureStoreContractMismatch {
+		summary = "Workflow RAG binding authority is unavailable."
+	}
+	return ApplicationPromotionBlocker{Code: failureCode, Summary: summary}
+}
+
 func applicationPublishSnapshotFromDraft(draft ApplicationConfigurationDraft) ApplicationPublishConfigurationSnapshot {
 	return ApplicationPublishConfigurationSnapshot{
 		DisplayName: strings.TrimSpace(draft.DisplayName), Description: strings.TrimSpace(draft.Description),
 		ApplicationKind: strings.TrimSpace(draft.ApplicationKind), DefaultProtocol: strings.TrimSpace(draft.DefaultProtocol),
 		DefaultModel: strings.TrimSpace(draft.DefaultModel), AllowedProtocols: normalizeApplicationDraftProtocols(draft.AllowedProtocols),
+		WorkflowRAGBindingRef: cloneWorkflowRAGApplicationBindingRef(draft.WorkflowRAGBindingRef),
 	}
 }
 
-func applicationPublishSnapshotDigest(snapshot ApplicationPublishConfigurationSnapshot) (string, error) {
+func applicationConfigurationCanonicalDigest(snapshot ApplicationPublishConfigurationSnapshot) (string, error) {
 	payload, err := json.Marshal(snapshot)
 	if err != nil {
 		return "", err
@@ -574,6 +684,7 @@ func applicationPublishCandidateSummary(candidate ApplicationPublishCandidate) A
 		ReviewVersion: candidate.ReviewVersion, PromotionStatus: candidate.PromotionEligibility.Status,
 		PromotionBlockers: len(candidate.PromotionEligibility.Blockers), CreatedAt: candidate.CreatedAt,
 		UpdatedAt: candidate.UpdatedAt, UpdatedByActorRef: candidate.UpdatedByActorRef,
+		WorkflowRAGBindingRef: cloneWorkflowRAGApplicationBindingRef(candidate.Configuration.WorkflowRAGBindingRef),
 	}
 }
 
@@ -588,6 +699,7 @@ func sortApplicationPublishCandidates(candidates []ApplicationPublishCandidate) 
 
 func cloneApplicationPublishCandidate(candidate ApplicationPublishCandidate) ApplicationPublishCandidate {
 	candidate.Configuration.AllowedProtocols = append([]string(nil), candidate.Configuration.AllowedProtocols...)
+	candidate.Configuration.WorkflowRAGBindingRef = cloneWorkflowRAGApplicationBindingRef(candidate.Configuration.WorkflowRAGBindingRef)
 	candidate.EvidenceRequestIDs = append([]string(nil), candidate.EvidenceRequestIDs...)
 	candidate.Reviews = append([]ApplicationPublishReviewRecord(nil), candidate.Reviews...)
 	candidate.PromotionEligibility.Blockers = append([]ApplicationPromotionBlocker(nil), candidate.PromotionEligibility.Blockers...)

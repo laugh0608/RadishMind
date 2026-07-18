@@ -124,6 +124,9 @@ func (server *Server) applicationConfigurationDraftService() applicationConfigur
 		server.applicationDraftRepository = &memoryApplicationConfigurationDraftRepository{drafts: make(map[string]ApplicationConfigurationDraft), unavailable: true}
 	}
 	service := newApplicationConfigurationDraftService(server.applicationDraftRepository)
+	service.validateBinding = func(draftContext ApplicationConfigurationDraftContext, ref WorkflowRAGApplicationBindingRef) (WorkflowRAGApplicationBinding, string) {
+		return server.workflowRAGPromotionService().resolveEligibleBinding(workflowRAGPromotionContextFromDraft(draftContext), ref, true)
+	}
 	if server.config.ApplicationCatalogDevHTTPEnabled {
 		service.requireActive = func(draftContext ApplicationConfigurationDraftContext) string {
 			catalogContext := ApplicationCatalogContext{
@@ -158,6 +161,7 @@ func applicationConfigurationDraftContextFromRequest(
 	requestContext.TenantRef = strings.TrimSpace(auth.TenantBinding)
 	requestContext.ActorRef = strings.TrimSpace(auth.SubjectBinding)
 	requestContext.OwnerSubjectRef = requestContext.ActorRef
+	requestContext.BindingEnabled = controlPlaneReadHasScope(auth.ScopeGrants, "workflow_rag_promotions:bind")
 	headerWorkspaceID := strings.TrimSpace(request.Header.Get(applicationDraftDevWorkspaceHeader))
 	headerApplicationID := strings.TrimSpace(request.Header.Get(applicationDraftDevApplicationHeader))
 	if requestContext.TenantRef == "" || requestContext.WorkspaceID == "" || requestContext.ApplicationID == "" ||
@@ -165,6 +169,14 @@ func applicationConfigurationDraftContextFromRequest(
 		return requestContext, ApplicationDraftFailureScopeDenied
 	}
 	return requestContext, ""
+}
+
+func workflowRAGPromotionContextFromDraft(ctx ApplicationConfigurationDraftContext) WorkflowRAGPromotionContext {
+	return WorkflowRAGPromotionContext{
+		RequestContext: ctx.RequestContext, RequestID: ctx.RequestID, TenantRef: ctx.TenantRef,
+		WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, ActorRef: ctx.ActorRef,
+		OwnerSubjectRef: ctx.OwnerSubjectRef, AuditRef: ctx.AuditRef, WriteEnabled: ctx.WriteEnabled,
+	}
 }
 
 func writeApplicationConfigurationDraftResult(

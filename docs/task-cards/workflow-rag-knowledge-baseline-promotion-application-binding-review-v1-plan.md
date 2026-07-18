@@ -2,13 +2,13 @@
 
 更新时间：2026-07-18
 
-状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_c_ready_for_implementation`
+状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_d_ready_for_implementation`
 
 ## 目标与准入结论
 
 按 [功能设计](../features/workflow/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md)交付“精确 dataset / candidate review / snapshot / profile / source draft → 人工 decision → 不可变 RAG binding → 应用配置草案引用 → 发布治理重校验”的完整开发测试态链路。
 
-设计与边界评审已经通过，批次 A 与批次 B 已完成并通过领域、HTTP、双数据库、并发与仓库门禁验证；批次 C 获得实现准入。本任务卡继续作为唯一实现入口，不派生第二张任务卡或同层 readiness 文档。
+设计与边界评审已经通过，批次 A、批次 B 与批次 C 已完成并通过领域、HTTP、双数据库、并发与仓库门禁验证；批次 D 获得实现准入。本任务卡继续作为唯一实现入口，不派生第二张任务卡或同层 readiness 文档。
 
 ## 前置基线
 
@@ -59,7 +59,7 @@
 
 ## 批次 C：应用配置 binding 与发布治理
 
-状态：`ready_for_implementation`。
+状态：`completed`；完成锚点为 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_c_completed`。
 
 - 让 application draft v1 继续兼容读取，并以 `application_configuration_draft.v2` 保存 ref-only `workflow_rag_binding_ref`。
 - 抽取服务端唯一 canonical draft digest；promotion source draft、草案保存与 publish candidate 使用同一规范化边界。
@@ -67,9 +67,16 @@
 - `application_publish_candidate.v2` 只复制公开配置与 binding ref；create / approve / read-time eligibility 重新校验 binding，并把取消、漂移、归档和 store failure 映射为稳定 blocker。
 - 证明现有 JSON payload 表无需 DDL；若测试证明需要新增列，必须先在既有 application draft / publish migration family 内评审并追加，不创建新 store。
 
+完成证据：
+
+- application draft v1 继续读取和保存；v2 只增加 `workflow_rag_binding_ref`，历史 v1 payload 缺少 `draft_digest` 时由服务端按同一 canonical 边界恢复。
+- 首次 attach / replace 要求 `workflow_rag_promotions:bind`，服务端按 binding ref 精确读取 promotion resource，重校验当前 source draft 与全部权威知识来源，并证明除 binding ref 外没有夹带配置修改；保留同一 binding 的后续草案允许正常编辑。
+- application publish candidate 仅在绑定草案上写 v2，未绑定路径继续写 v1；create 与 approve 在写入前重读草案、应用基线和 binding，read-time eligibility 将取消、dataset / snapshot / profile 漂移、应用归档与 store failure 映射为稳定 blocker。
+- SQLite 与 PostgreSQL 继续复用 application draft / publish `0001` 表和 marker；JSON v2 保存、重建和重启测试通过，无 schema migration、回填、平行 selector 或 fallback。
+
 ## 批次 D：Web、连续链与收口
 
-状态：等待批次 C。
+状态：`ready_for_implementation`。
 
 - 新增默认 offline 的 strict promotion consumer 与 lazy panel，完成 list / detail / decision / CAS conflict。
 - 接入应用配置草案 binding selector / attach，以及发布审查 exact binding / dynamic blocker；批准、附加、发布审查保持三个显式步骤。

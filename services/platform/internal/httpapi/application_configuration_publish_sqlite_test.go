@@ -45,6 +45,63 @@ func TestApplicationPublishCandidateSQLiteRepositoryContract(t *testing.T) {
 	})
 }
 
+func TestApplicationConfigurationAndPublishV2SQLiteJSONCompatibility(t *testing.T) {
+	databasePath := filepath.Join(t.TempDir(), "radishmind-v2.db")
+	runtime := openApplicationConfigurationPublishSQLiteRuntime(t, databasePath)
+	draftRepository := newSQLiteApplicationConfigurationDraftRepository(runtime.DB())
+	draftContext := validApplicationDraftContext()
+	draftContext.BindingEnabled = true
+	draftService := newApplicationConfigurationDraftService(draftRepository)
+	created := draftService.Save(draftContext, validApplicationDraftPayload(), 0)
+	if created.Draft == nil {
+		t.Fatalf("create SQLite v1 draft before binding: %#v", created)
+	}
+	if _, err := runtime.DB().ExecContext(context.Background(), `UPDATE application_configuration_drafts
+		SET sanitized_draft_payload=json_remove(sanitized_draft_payload, '$.draft_digest') WHERE draft_id=?`, created.Draft.DraftID); err != nil {
+		t.Fatalf("simulate historical SQLite v1 draft payload: %v", err)
+	}
+	legacyDraft, err := draftRepository.Read(draftContext, created.Draft.DraftID)
+	if err != nil || legacyDraft.DraftDigest != created.Draft.DraftDigest {
+		t.Fatalf("historical v1 draft did not synthesize canonical digest: draft=%#v err=%v", legacyDraft, err)
+	}
+	binding := testWorkflowRAGApplicationBindingForDraft(legacyDraft)
+	draftService.validateBinding = func(ApplicationConfigurationDraftContext, WorkflowRAGApplicationBindingRef) (WorkflowRAGApplicationBinding, string) {
+		return binding, ""
+	}
+	payload := created.Draft.ApplicationConfigurationDraftPayload
+	payload.SchemaVersion = applicationConfigurationDraftSchemaVersionV2
+	payload.WorkflowRAGBindingRef = cloneWorkflowRAGApplicationBindingRef(&binding.WorkflowRAGApplicationBindingRef)
+	attached := draftService.Save(draftContext, payload, 1)
+	if attached.Draft == nil || attached.Draft.DraftVersion != 2 {
+		t.Fatalf("save SQLite v2 bound draft: %#v", attached)
+	}
+	publishContext := validApplicationPublishContext()
+	publishContext.RAGPromotionReadEnabled = true
+	publishService := newApplicationPublishCandidateService(draftRepository, newSQLiteApplicationPublishCandidateRepository(runtime.DB()), validApplicationPublishBaseline)
+	publishService.validateBinding = func(ApplicationPublishContext, WorkflowRAGApplicationBindingRef) (WorkflowRAGApplicationBinding, string) {
+		return binding, ""
+	}
+	createdCandidate := publishService.Create(publishContext, ApplicationPublishCreateInput{
+		CandidateID: "candidate-sqlite-binding-v2", DraftID: attached.Draft.DraftID, ExpectedDraftVersion: 2,
+	})
+	if createdCandidate.Candidate == nil || createdCandidate.Candidate.SchemaVersion != applicationPublishCandidateSchemaVersionV2 {
+		t.Fatalf("save SQLite v2 publish candidate: %#v", createdCandidate)
+	}
+	if err := runtime.Close(); err != nil {
+		t.Fatalf("close SQLite v2 runtime: %v", err)
+	}
+	restarted := openApplicationConfigurationPublishSQLiteRuntime(t, databasePath)
+	restoredDraft := newApplicationConfigurationDraftService(newSQLiteApplicationConfigurationDraftRepository(restarted.DB())).Read(draftContext, attached.Draft.DraftID)
+	restoredCandidate := newApplicationPublishCandidateService(
+		newSQLiteApplicationConfigurationDraftRepository(restarted.DB()), newSQLiteApplicationPublishCandidateRepository(restarted.DB()), validApplicationPublishBaseline,
+	).Read(publishContext, createdCandidate.Candidate.CandidateID)
+	if restoredDraft.Draft == nil || restoredDraft.Draft.SchemaVersion != applicationConfigurationDraftSchemaVersionV2 ||
+		restoredDraft.Draft.WorkflowRAGBindingRef == nil || restoredCandidate.Candidate == nil ||
+		restoredCandidate.Candidate.SchemaVersion != applicationPublishCandidateSchemaVersionV2 || restoredCandidate.Candidate.Configuration.WorkflowRAGBindingRef == nil {
+		t.Fatalf("v2 JSON payload did not recover without schema changes: draft=%#v candidate=%#v", restoredDraft, restoredCandidate)
+	}
+}
+
 func TestApplicationConfigurationDraftSQLiteListOrder(t *testing.T) {
 	runtime := openApplicationConfigurationPublishSQLiteRuntime(t, filepath.Join(t.TempDir(), "radishmind.db"))
 	service := newApplicationConfigurationDraftService(newSQLiteApplicationConfigurationDraftRepository(runtime.DB()))

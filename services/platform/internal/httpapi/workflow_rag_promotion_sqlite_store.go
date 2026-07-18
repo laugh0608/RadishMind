@@ -80,6 +80,32 @@ func (repository *sqliteWorkflowRAGPromotionRepository) Read(ctx WorkflowRAGProm
 	return cloned.candidate, cloned.decisions, cloned.binding, cloned.audits, nil
 }
 
+func (repository *sqliteWorkflowRAGPromotionRepository) ReadBinding(ctx WorkflowRAGPromotionContext, ref WorkflowRAGApplicationBindingRef) (WorkflowRAGKnowledgePromotionCandidate, WorkflowRAGApplicationBinding, error) {
+	if repository == nil || repository.database == nil {
+		return WorkflowRAGKnowledgePromotionCandidate{}, WorkflowRAGApplicationBinding{}, errWorkflowRAGPromotionStore
+	}
+	var candidateID string
+	err := repository.database.QueryRowContext(workflowRAGPromotionDatabaseContext(ctx), `SELECT candidate_id
+	 FROM workflow_rag_application_bindings
+	 WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=?
+	 AND binding_id=? AND binding_version=? AND binding_digest=?`, ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID,
+		ctx.OwnerSubjectRef, ref.BindingID, ref.BindingVersion, ref.BindingDigest).Scan(&candidateID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return WorkflowRAGKnowledgePromotionCandidate{}, WorkflowRAGApplicationBinding{}, errWorkflowRAGPromotionNotFound
+	}
+	if err != nil {
+		return WorkflowRAGKnowledgePromotionCandidate{}, WorkflowRAGApplicationBinding{}, errWorkflowRAGPromotionStore
+	}
+	candidate, _, binding, _, err := repository.Read(ctx, candidateID)
+	if err != nil {
+		return WorkflowRAGKnowledgePromotionCandidate{}, WorkflowRAGApplicationBinding{}, err
+	}
+	if binding == nil || binding.WorkflowRAGApplicationBindingRef != ref {
+		return WorkflowRAGKnowledgePromotionCandidate{}, WorkflowRAGApplicationBinding{}, errWorkflowRAGPromotionStoreContract
+	}
+	return candidate, *binding, nil
+}
+
 func (repository *sqliteWorkflowRAGPromotionRepository) List(ctx WorkflowRAGPromotionContext, query workflowRAGPromotionListQuery) ([]WorkflowRAGKnowledgePromotionCandidate, error) {
 	if repository == nil || repository.database == nil || query.Limit < 1 {
 		return nil, errWorkflowRAGPromotionStore
