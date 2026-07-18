@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃实现任务卡。[Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1-plan.md) 三批已完成；下一顺位先进入“Workflow RAG 知识基线晋级与应用配置绑定审查 v1”功能设计，不从已完成任务推导实现或生产准入。
+当前唯一活跃实现任务卡为 [Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1-plan.md)，状态为 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_ready_for_implementation`。设计与边界评审已经通过，下一步只进入批次 A；当前尚未实现 contract、Go / TypeScript、migration、API runtime 或 Web，不从该准入推导自动 promotion、release、publish 或生产能力。
 
 ## 最近关闭任务
 

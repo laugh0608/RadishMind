@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-18 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md) 确定性运行时也已完成；真实 Radish 联调已主动延后。[本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md)、[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md)、Workflow HTTP Tool、RAG Retrieval / 应用知识快照、RAG Regression Review、离线知识质量审查，以及 [Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow/workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1.md) 均已关闭。下一产品动作先设计“Workflow RAG 知识基线晋级与应用配置绑定审查 v1”，固定人工 decision、精确 binding、CAS、漂移、审计与既有配置草案 / 发布治理的职责边界；设计完成前不创建实现任务卡，不进入生产认证、外部 connector、自动 baseline 或自动 release。
+2026-07-18 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md) 确定性运行时也已完成；真实 Radish 联调已主动延后。[本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md)、[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md)、Workflow HTTP Tool、RAG Retrieval / 应用知识快照、RAG Regression Review、离线知识质量审查，以及 [Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow/workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1.md) 均已关闭。[Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md) 已固定人工 decision、精确 binding、CAS、漂移、审计与既有配置草案 / 发布治理职责，并由唯一任务卡获得批次 A 实现准入；不进入生产认证、外部 connector、自动 baseline 或自动 release。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -43,7 +43,7 @@
 | [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口 | 应用目录与 API 密钥纵向专题已关闭；进入新功能前先更新设计 |
 | [管理控制面](admin-control-plane.md) | 租户、权限、模型服务配置、配额、凭据、审计和部署证据 | 进入真实管理端、OIDC 或数据库前先更新 |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
-| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；HTTP Tool、RAG Retrieval / 应用知识快照、RAG regression profile、离线知识质量审查和应用作用域 candidate review 均已完成 | 下一项优先设计 RAG 知识基线晋级与应用配置绑定审查；不得自动 promotion / release，或在 executor v0 原地放开 retrieval、外部 connector、生产能力 |
+| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；HTTP Tool、RAG Retrieval / 应用知识快照、RAG regression profile、离线知识质量审查和应用作用域 candidate review 均已完成 | RAG 知识基线晋级与应用配置绑定审查已 ready for implementation，下一步进入唯一任务卡批次 A；不得自动 promotion / release，或在 executor v0 原地放开 retrieval、外部 connector、生产能力 |
 | [图片生成 / 产物返回](image-generation-artifact-return.md) | 生图意图、产物元数据、响应合并和后续后端适配器 | 进入存储、读取、公开 URL 或后端适配器前先更新 |
 
 ## 细专题导航
@@ -73,6 +73,8 @@
 | [Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) | 功能 / 检索执行专题 | 三批已完成；精确绑定、独立 execution、citation、metadata-only run v3、Web、三种 store、浏览器重启与 no-fallback 已通过 |
 | [Workflow RAG 评测数据集与知识质量审查 v1](workflow/workflow-rag-evaluation-dataset-knowledge-quality-review-v1.md) | 功能 / 离线质量专题 | strict dataset / report、共享 lexical evaluator、CLI 与 synthetic-public starter report 已完成，六项指标均为 `1` |
 | [Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow/workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1.md) | 功能 / 持久评测专题 | durable dataset、三种 store、精确 baseline / candidate lexical review、metadata-only Web 管理面和 no-fallback 已完成 |
+| [Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md) | 功能 / 晋级与配置治理专题 | 已通过设计和边界评审，固定人工 decision、不可变 binding、配置草案引用、发布重校验与漂移失败关闭，状态为 ready for implementation |
+| [Workflow RAG 知识基线晋级与应用配置绑定审查 v1 实施任务卡](../task-cards/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1-plan.md) | 高风险实现批次 | 唯一实施入口，批次 A 已准入；当前未实现 runtime、migration、API 或 Web |
 | [Saved Workflow Draft v1](workflow/saved-workflow-draft-v1.md) | 功能专题 | 固定草案创建、编辑、校验、持久保存、恢复、版本冲突和 Review Handoff；开发 / 测试态 PostgreSQL repository 已完成，production repository 继续关闭，旧 Production Secret Backend / Storage Adapter readiness 链仅作为历史证据索引 |
 | [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) | 实现专题 | 已完成 `postgres_dev_test` migration、回滚 / 重建、运行角色隔离、服务重启恢复、原子 CAS、scope / owner 隔离、no fallback、CI 与真实浏览器验收 |
 | [Production Secret Backend Audit Store Storage Adapter Concrete Managed Database Provider Selection Readiness v1](../platform/production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1.md) | 平台专题 | 固定 concrete managed database provider selection 前置准入；状态为 `audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined`，历史下一项 `storage_adapter_concrete_managed_database_provider_selection_review` 已被后续 review 消费；不选择真实 provider、endpoint、driver import、SQL、storage adapter runtime、audit store runtime、repository mode 或 production API |
