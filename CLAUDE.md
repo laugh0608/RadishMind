@@ -104,6 +104,7 @@
 - 常态阶段 PR 优先使用 `merge commit`，使未继续前进的 `dev` 可以 fast-forward 到 `master`；如使用 `rebase merge` 或 `dev` 已产生后续提交，则通过普通 merge 把 `master` 合入 `dev`，禁止 rebase / force push 共享 `dev` 历史
 - 纯历史回同步且文件树未变化时不重复完整门禁；如出现冲突解决或实际内容变化，应在推送 `dev` 前按风险补对应验证
 - 默认不要求保护 `dev`
+- 目标为 `dev` 或 `master` 的 Pull Request 自动运行 `PR Checks`；普通 `push -> dev` 不触发，`dev` 当前不要求 required checks
 - 管理员如需绕过规则，也应通过 PR 合并，而不是直接 push 到 `master`
 
 ## 仓库结构速记

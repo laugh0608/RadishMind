@@ -22,7 +22,7 @@
 - `PR Checks` 当前包含仓库卫生、仓库治理基线、Web 覆盖率与构建、Console 构建、Go 平台分包覆盖率 / race / vet 和 PostgreSQL 集成验证，保留拆分式门禁
 - 默认分支 ruleset required checks 应按 job 名配置为 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build` 与 `Platform Go Tests`
 - PR 页面里可能显示 workflow 前缀或 `(pull_request)` 后缀，但这些不属于 ruleset 中需要配置的 check context
-- `PR Checks` 仅自动响应 `pull_request -> master`，并保留手动触发；如默认分支切换为 `main`，需先同步调整 workflow 触发分支，再在远端套用该模板
+- `PR Checks` 自动响应 `pull_request -> dev/master`，并保留手动触发；如默认分支切换为 `main`，需先同步调整 workflow 触发分支，再在远端套用该模板
 - tag push 与手动补跑使用独立的 `Release Checks` workflow，并显式使用 `Release Repo Hygiene`、`Release Repository Baseline`、`Release RadishMind Web Build`、`Release RadishMind Console Build` 与 `Release Platform Go Tests` job 名，避免与 PR required checks 混淆
 - 允许 `merge` 与 `rebase` 两种合并方式，禁用 `squash`
 - 常态 `dev -> master` 阶段 PR 优先使用 `merge commit`；PR 合并后必须完成 `master -> dev` 回同步
@@ -32,8 +32,8 @@
 
 - `dev` 是当前常态开发分支
 - 当前阶段不启用 branch protection
-- `push -> dev` 与 `pull_request -> dev` 均不自动触发 `PR Checks`；开发阶段按改动风险执行本地分层验证
-- 如需在 `dev` 上复验远端环境，可手动触发 `PR Checks`；完整自动门禁统一收口到 `pull_request -> master`
+- `push -> dev` 不自动触发 `PR Checks`；目标为 `dev` 的 Pull Request 自动运行同一套检查，为其他开发者提供合并前反馈
+- `dev` 当前不启用 required checks 或 branch protection；完整强制门禁仍统一收口到 `pull_request -> master`
 - `master -> dev` 是每次阶段 PR 或 hotfix PR 合并后的必需回同步步骤，不是独立开发方向
 - 回同步可 fast-forward 时优先 fast-forward；如因 `rebase merge` 或 `dev` 后续提交无法 fast-forward，则普通 merge `master` 到 `dev`，不得重写 `dev` 历史
 - 纯拓扑回同步不重复完整门禁；冲突解决或实际内容变化必须先完成对应验证

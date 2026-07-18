@@ -478,22 +478,24 @@ def check_content_baseline() -> None:
     expected_pr_trigger = """on:
   pull_request:
     branches:
+      - dev
       - master
   workflow_dispatch:
 """
     if expected_pr_trigger not in pr_workflow:
         raise SystemExit(
-            ".github/workflows/pr-check.yml must only auto-trigger for pull requests targeting master"
+            ".github/workflows/pr-check.yml must only auto-trigger for pull requests targeting dev or master"
         )
-    for unexpected_pattern in ("  push:\n", "      - dev\n"):
+    for unexpected_pattern in ("  push:\n",):
         if unexpected_pattern in pr_workflow:
             raise SystemExit(
-                ".github/workflows/pr-check.yml must not auto-trigger for dev pull requests or pushes"
+                ".github/workflows/pr-check.yml must not auto-trigger for branch pushes"
             )
 
     for pattern in (
         "name: PR Checks",
         "pull_request:",
+        "- dev",
         "- master",
         "workflow_dispatch:",
         "name: Repo Hygiene",

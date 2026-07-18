@@ -60,9 +60,9 @@ Accepted
 
 - 允许作为当前阶段默认目标分支
 - 当前阶段不启用分支保护
-- `push -> dev` 与 `pull_request -> dev` 不自动触发 `PR Checks`
-- 开发阶段按改动风险执行本地分层验证；完整自动门禁统一收口到 `pull_request -> master`
-- 如需复验远端环境，可手动触发 `PR Checks`
+- `push -> dev` 不自动触发 `PR Checks`
+- 目标为 `dev` 的 Pull Request 自动运行 `PR Checks`，为其他开发者提供合并前反馈；直接进入共享 `dev` 的连续开发仍按改动风险执行本地分层验证
+- `dev` 当前不启用 required checks 或 branch protection；完整强制门禁统一收口到 `pull_request -> master`
 - `master` PR 合并后必须接收 `master -> dev` 回同步；该回同步不依赖自动 CI 触发，发生实际内容变化时由操作者先补对应验证
 
 ## 需要在 GitHub 仓库设置中完成的动作
@@ -85,7 +85,7 @@ Accepted
 - `AGENTS.md`
 - PR 模板
 - GitHub Actions PR 检查工作流
-  - `PR Checks` 仅在目标分支为 `master` 的 Pull Request 上自动运行，并保留手动触发
+  - `PR Checks` 在目标分支为 `dev` 或 `master` 的 Pull Request 上自动运行，并保留手动触发；普通 `dev` push 不触发
   - 当前包含 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build`、`Platform Go Tests` 与 `Platform PostgreSQL Integration` 六个 job
   - `master` required checks 当前按 job 名配置为 `Repo Hygiene` / `Repository Baseline` / `RadishMind Web Build` / `RadishMind Console Build` / `Platform Go Tests`
   - PR 页面可能展示 workflow 前缀或 `(pull_request)` 后缀，但它们不属于 ruleset 中需要手动配置的 check context
