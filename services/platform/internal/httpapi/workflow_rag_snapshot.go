@@ -77,6 +77,8 @@ var (
 	workflowRAGRAGRefPattern       = regexp.MustCompile(`^workflow\.rag\.[a-z][a-z0-9_]{2,47}\.v[1-9][0-9]*$`)
 	workflowRAGRunIDPattern        = regexp.MustCompile(`^run_[a-z0-9]{16,64}$`)
 	workflowRAGRunFailurePattern   = regexp.MustCompile(`^workflow_rag_[a-z_]{3,80}$`)
+	workflowRAGDatasetIDPattern    = regexp.MustCompile(`^wragd_[a-z0-9_]{3,47}$`)
+	workflowRAGSampleIDPattern     = regexp.MustCompile(`^[a-z][a-z0-9_]{2,47}$`)
 	errWorkflowRAGNotFound         = errors.New(WorkflowRAGFailureNotFound)
 	errWorkflowRAGScopeDenied      = errors.New(WorkflowRAGFailureScopeDenied)
 	errWorkflowRAGVersionConflict  = errors.New(WorkflowRAGFailureVersionConflict)

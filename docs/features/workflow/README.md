@@ -12,6 +12,7 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
+| [Workflow RAG 评测数据集与知识质量审查 v1](workflow-rag-evaluation-dataset-knowledge-quality-review-v1.md) | 功能 / 离线质量专题 | `workflow_rag_evaluation_dataset_knowledge_quality_review_v1_completed` | synthetic-public snapshot / dataset、expected citation evidence、复用运行时 lexical ranker 的确定性指标、metadata-only report 与 CLI check 已完成 |
 | [Workflow RAG Regression Review 与 Evaluation Profile（开发 / 测试态）v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1.md) | 功能 / 回归评测专题 | `workflow_rag_regression_review_evaluation_profile_dev_test_v1_completed` | v3 同 binding Comparison v2、Evaluation / Baseline / Suite profile、SQLite durable resources、PostgreSQL 重启与 Web metadata-only 审查已完成 |
 | [Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) | 功能 / 检索执行专题 | `workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_completed` | 三批已通过；精确 Draft Designer 绑定、独立 execution、Run History v3、双数据库、浏览器重启与 no-fallback 已完成 |
 | [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) | 功能 / 高风险执行专题 | `workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed` | 三批已通过；execution route、Web、Run History v2、双数据库与浏览器重启链已完成 |

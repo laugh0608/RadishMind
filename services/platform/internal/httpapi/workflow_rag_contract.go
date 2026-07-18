@@ -185,6 +185,12 @@ func validateWorkflowRAGContractJSON(contract string, payload []byte) error {
 			return err
 		}
 		return validateWorkflowRAGRunRecordV3(record)
+	case workflowRAGEvaluationDatasetSchemaVersion:
+		_, err := DecodeWorkflowRAGEvaluationDataset(payload)
+		return err
+	case workflowRAGQualityReviewSchemaVersion:
+		_, err := DecodeWorkflowRAGQualityReview(payload)
+		return err
 	default:
 		return errWorkflowRAGStoreContract
 	}

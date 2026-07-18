@@ -549,6 +549,10 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/image-generation-backend-request.schema.json",
         REPO_ROOT / "contracts/image-generation-artifact.schema.json",
         REPO_ROOT / "contracts/radishmind-core-offline-eval-run.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-fragment.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-snapshot.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-evaluation-dataset.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-quality-review.schema.json",
         REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
         REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json",
         REPO_ROOT / "contracts/radishflow-export-snapshot.schema.json",
@@ -559,6 +563,27 @@ def check_contract_schemas() -> None:
     for schema_path in contract_schema_paths:
         document = json.loads(schema_path.read_text(encoding="utf-8"))
         jsonschema.Draft202012Validator.check_schema(document)
+
+    workflow_rag_fragment_schema = load_json_file("contracts/workflow-rag-fragment.schema.json")
+    workflow_rag_snapshot_schema = load_json_file("contracts/workflow-rag-snapshot.schema.json")
+    workflow_rag_dataset_schema = load_json_file("contracts/workflow-rag-evaluation-dataset.schema.json")
+    workflow_rag_review_schema = load_json_file("contracts/workflow-rag-quality-review.schema.json")
+    workflow_rag_snapshot_validation_schema = json.loads(json.dumps(workflow_rag_snapshot_schema))
+    workflow_rag_snapshot_validation_schema["properties"]["fragments"]["items"] = workflow_rag_fragment_schema
+    workflow_rag_snapshot = load_json_file("datasets/eval/workflow-rag/snapshots/dev_core_v1.json")
+    workflow_rag_dataset = load_json_file("datasets/eval/workflow-rag/datasets/dev_core_v1.json")
+    workflow_rag_review = load_json_file("datasets/eval/workflow-rag/reports/dev_core_v1.review.json")
+    jsonschema.Draft202012Validator(workflow_rag_snapshot_validation_schema).validate(workflow_rag_snapshot)
+    jsonschema.Draft202012Validator(workflow_rag_dataset_schema).validate(workflow_rag_dataset)
+    jsonschema.Draft202012Validator(workflow_rag_review_schema).validate(workflow_rag_review)
+    workflow_rag_review_text = json.dumps(workflow_rag_review, ensure_ascii=False, sort_keys=True)
+    forbidden_report_values = [
+        *(sample["query_text"] for sample in workflow_rag_dataset["samples"]),
+        *(sample["review_note"] for sample in workflow_rag_dataset["samples"]),
+        *(fragment["content"] for fragment in workflow_rag_snapshot["fragments"]),
+    ]
+    if any(value in workflow_rag_review_text for value in forbidden_report_values):
+        raise SystemExit("Workflow RAG quality review must remain metadata-only")
 
     ghost_candidate_schema = json.loads(
         (REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json").read_text(encoding="utf-8")
