@@ -18,6 +18,7 @@ const (
 	workflowRunRecordSchemaVersion       = "workflow_run_record.v1"
 	workflowRunRecordLegacySchemaVersion = "workflow_run_record.v0"
 	workflowRunRecordToolSchemaVersion   = "workflow_run_record.v2"
+	workflowRunRecordRAGSchemaVersion    = "workflow_run_record.v3"
 	workflowExecutorProtocol             = "workflow-executor-v0"
 	workflowExecutorRoute                = "/v1/user-workspace/workflow-drafts/{draft_id}/runs"
 
@@ -75,6 +76,7 @@ const (
 	WorkflowRunFailureStoreModeDisabled       WorkflowRunFailureCode = "workflow_run_store_mode_disabled"
 	WorkflowRunFailureComparisonInvalid       WorkflowRunFailureCode = "workflow_run_comparison_invalid"
 	WorkflowRunFailureSideEffectUnsupported   WorkflowRunFailureCode = "workflow_run_side_effect_profile_unsupported"
+	WorkflowRunFailureRetrievalUnsupported    WorkflowRunFailureCode = "workflow_run_retrieval_profile_unsupported"
 	WorkflowRunFailureToolPolicy              WorkflowRunFailureCode = "workflow_tool_policy_denied"
 	WorkflowRunFailureToolConfirmation        WorkflowRunFailureCode = "workflow_tool_confirmation_invalid"
 	WorkflowRunFailureToolTransport           WorkflowRunFailureCode = "workflow_tool_transport_failed"
@@ -107,6 +109,7 @@ type WorkflowRunRequest struct {
 }
 
 type WorkflowRunSideEffects struct {
+	RetrievalCalls    int `json:"retrieval_calls,omitempty"`
 	ProviderCalls     int `json:"provider_calls"`
 	ToolCalls         int `json:"tool_calls"`
 	ConfirmationCalls int `json:"confirmation_calls"`
@@ -137,6 +140,7 @@ type WorkflowRunRecord struct {
 	TenantRef        string                            `json:"tenant_ref,omitempty"`
 	DraftID          string                            `json:"draft_id"`
 	DraftVersion     int                               `json:"draft_version"`
+	DraftDigest      string                            `json:"draft_digest,omitempty"`
 	WorkspaceID      string                            `json:"workspace_id"`
 	ApplicationID    string                            `json:"application_id"`
 	Status           WorkflowRunStatus                 `json:"status"`
@@ -154,6 +158,9 @@ type WorkflowRunRecord struct {
 	SelectionSource  string                            `json:"selection_source"`
 	Nodes            []WorkflowRunNodeRecord           `json:"nodes"`
 	ToolAttempt      *WorkflowHTTPToolExecutionAttempt `json:"tool_attempt,omitempty"`
+	RAGSnapshot      *workflowRAGRunSnapshotBinding    `json:"snapshot,omitempty"`
+	RetrievalAttempt *workflowRAGRunRetrievalAttempt   `json:"retrieval_attempt,omitempty"`
+	RAGAnswer        *WorkflowRAGAnswer                `json:"answer,omitempty"`
 	Output           string                            `json:"output"`
 	RequestID        string                            `json:"request_id"`
 	AuditRef         string                            `json:"audit_ref"`
@@ -163,9 +170,10 @@ type WorkflowRunRecord struct {
 }
 
 type WorkflowRunResult struct {
-	Record         *WorkflowRunRecord
-	FailureCode    WorkflowRunFailureCode
-	FailureSummary string
+	Record          *WorkflowRunRecord
+	RetrievalAnswer *WorkflowRAGAnswer
+	FailureCode     WorkflowRunFailureCode
+	FailureSummary  string
 }
 
 type workflowSavedDraftReader func(

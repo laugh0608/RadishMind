@@ -126,6 +126,9 @@ func workflowRunRecordFailureBoundary(record WorkflowRunRecord) WorkflowRunFailu
 	if record.Diagnostic == nil {
 		return ""
 	}
+	if record.SchemaVersion == workflowRunRecordRAGSchemaVersion && record.Diagnostic.FailureBoundary == "" {
+		return WorkflowRunFailureBoundary("none")
+	}
 	return record.Diagnostic.FailureBoundary
 }
 

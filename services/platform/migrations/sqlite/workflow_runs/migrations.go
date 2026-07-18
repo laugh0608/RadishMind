@@ -8,15 +8,17 @@ import (
 
 const (
 	Component                       = "workflow_runs"
-	MigrationID                     = "0004_workflow_rag_snapshots"
-	StoreSchemaVersion              = "workflow_run_store_sqlite_v4"
+	MigrationID                     = "0005_workflow_rag_execution_audits"
+	StoreSchemaVersion              = "workflow_run_store_sqlite_v5"
 	RunRecordStoreSchemaVersion     = "workflow_runs_store_v3"
 	legacyMigrationID               = "0001_workflow_runs"
 	toolActionsMigrationID          = "0002_workflow_http_tool_actions"
 	toolExecutionMigrationID        = "0003_workflow_http_tool_execution"
+	ragSnapshotMigrationID          = "0004_workflow_rag_snapshots"
 	legacyRunStoreSchemaVersion     = "workflow_runs_store_v1"
 	toolActionsStoreSchemaVersion   = "workflow_runs_store_v2"
 	toolExecutionStoreSchemaVersion = "workflow_runs_store_v3"
+	ragSnapshotStoreSchemaVersion   = "workflow_run_store_sqlite_v4"
 )
 
 //go:embed 0001_workflow_runs.up.sql
@@ -30,6 +32,9 @@ var upSQLV3 string
 
 //go:embed 0004_workflow_rag_snapshots.up.sql
 var upSQLV4 string
+
+//go:embed 0005_workflow_rag_execution_audits.up.sql
+var upSQLV5 string
 
 func Migrations() []sqlitedev.Migration {
 	return []sqlitedev.Migration{
@@ -53,9 +58,15 @@ func Migrations() []sqlitedev.Migration {
 		},
 		{
 			Component:          Component,
+			ID:                 ragSnapshotMigrationID,
+			StoreSchemaVersion: ragSnapshotStoreSchemaVersion,
+			UpSQL:              upSQLV4,
+		},
+		{
+			Component:          Component,
 			ID:                 MigrationID,
 			StoreSchemaVersion: StoreSchemaVersion,
-			UpSQL:              upSQLV4,
+			UpSQL:              upSQLV5,
 		},
 	}
 }

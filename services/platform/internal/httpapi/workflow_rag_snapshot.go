@@ -55,6 +55,14 @@ const (
 	WorkflowRAGFailureBudgetExceeded   = "workflow_rag_budget_exceeded"
 	WorkflowRAGFailureQueryInvalid     = "workflow_rag_query_invalid"
 	WorkflowRAGFailureNoEvidence       = "workflow_rag_no_evidence"
+	WorkflowRAGFailureProfileDisabled  = "workflow_rag_profile_disabled"
+	WorkflowRAGFailureDraftIneligible  = "workflow_rag_draft_ineligible"
+	WorkflowRAGFailureRetrievalFailed  = "workflow_rag_retrieval_failed"
+	WorkflowRAGFailureGatewayFailed    = "workflow_rag_gateway_failed"
+	WorkflowRAGFailureCanceled         = "workflow_rag_canceled"
+	WorkflowRAGFailureAnswerInvalid    = "workflow_rag_answer_invalid"
+	WorkflowRAGFailureCitationInvalid  = "workflow_rag_citation_invalid"
+	WorkflowRAGFailureInterrupted      = "workflow_rag_execution_interrupted"
 	WorkflowRAGFailureStoreUnavailable = "workflow_rag_store_unavailable"
 )
 
@@ -246,8 +254,10 @@ type workflowRAGSnapshotRepository interface {
 	List(WorkflowRAGSnapshotContext, workflowRAGSnapshotListQuery) ([]WorkflowRAGSnapshotResource, error)
 	ReadLatest(WorkflowRAGSnapshotContext, string) (WorkflowRAGSnapshotResource, WorkflowRAGSnapshotRecord, error)
 	ReadVersion(WorkflowRAGSnapshotContext, string, int) (WorkflowRAGSnapshotResource, WorkflowRAGSnapshotRecord, error)
+	ReadByRAGRef(WorkflowRAGSnapshotContext, string) (WorkflowRAGSnapshotResource, WorkflowRAGSnapshotRecord, error)
 	CreateVersion(WorkflowRAGSnapshotContext, string, int, WorkflowRAGSnapshotResource, WorkflowRAGSnapshotRecord, WorkflowRAGExecutionAudit) error
 	Archive(WorkflowRAGSnapshotContext, string, int, WorkflowRAGSnapshotResource, WorkflowRAGExecutionAudit) error
+	AppendAudit(WorkflowRAGSnapshotContext, WorkflowRAGExecutionAudit) error
 }
 
 type workflowRAGMemoryEntry struct {
@@ -706,6 +716,22 @@ func workflowRAGSHA256(value string) string {
 	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(value)))
 }
 
+func parseWorkflowRAGRAGRef(value string) (string, int, bool) {
+	value = strings.TrimSpace(value)
+	if !workflowRAGRAGRefPattern.MatchString(value) {
+		return "", 0, false
+	}
+	marker := strings.LastIndex(value, ".v")
+	if marker < 0 {
+		return "", 0, false
+	}
+	version := 0
+	if _, err := fmt.Sscanf(value[marker+2:], "%d", &version); err != nil || version < 1 {
+		return "", 0, false
+	}
+	return strings.TrimPrefix(value[:marker], "workflow.rag."), version, true
+}
+
 func workflowRAGStoreKey(ctx WorkflowRAGSnapshotContext, snapshotID string) string {
 	return strings.Join([]string{ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, snapshotID}, "\x00")
 }
@@ -797,6 +823,33 @@ func (repository *memoryWorkflowRAGSnapshotRepository) ReadVersion(ctx WorkflowR
 	return cloneWorkflowRAGResource(entry.resource), cloneWorkflowRAGSnapshotRecord(record), nil
 }
 
+func (repository *memoryWorkflowRAGSnapshotRepository) ReadByRAGRef(ctx WorkflowRAGSnapshotContext, ragRef string) (WorkflowRAGSnapshotResource, WorkflowRAGSnapshotRecord, error) {
+	key, version, ok := parseWorkflowRAGRAGRef(ragRef)
+	if !ok {
+		return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGNotFound
+	}
+	if repository == nil || repository.ownerLock == nil || !repository.available {
+		return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGStoreUnavailable
+	}
+	repository.ownerLock.RLock()
+	defer repository.ownerLock.RUnlock()
+	for storageKey, entry := range repository.entries {
+		if strings.HasPrefix(storageKey, workflowRAGStoreKey(ctx, "")) && entry.resource.SnapshotKey == key {
+			record, found := entry.versions[version]
+			if !found {
+				return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGNotFound
+			}
+			return cloneWorkflowRAGResource(entry.resource), cloneWorkflowRAGSnapshotRecord(record), nil
+		}
+	}
+	for _, entry := range repository.entries {
+		if entry.resource.SnapshotKey == key {
+			return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGScopeDenied
+		}
+	}
+	return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGNotFound
+}
+
 func (repository *memoryWorkflowRAGSnapshotRepository) ReadLatest(ctx WorkflowRAGSnapshotContext, snapshotID string) (WorkflowRAGSnapshotResource, WorkflowRAGSnapshotRecord, error) {
 	if repository == nil || repository.ownerLock == nil || !repository.available {
 		return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGStoreUnavailable
@@ -866,6 +919,30 @@ func (repository *memoryWorkflowRAGSnapshotRepository) Archive(ctx WorkflowRAGSn
 	entry.resource = cloneWorkflowRAGResource(resource)
 	entry.audits = append(entry.audits, audit)
 	repository.entries[key] = entry
+	return nil
+}
+
+func (repository *memoryWorkflowRAGSnapshotRepository) AppendAudit(ctx WorkflowRAGSnapshotContext, audit WorkflowRAGExecutionAudit) error {
+	if repository == nil || repository.ownerLock == nil || !repository.available {
+		return errWorkflowRAGStoreUnavailable
+	}
+	if _, err := encodeWorkflowRAGAudit(audit, ctx); err != nil {
+		return err
+	}
+	repository.ownerLock.Lock()
+	defer repository.ownerLock.Unlock()
+	storageKey := workflowRAGStoreKey(ctx, audit.SnapshotID)
+	entry, found := repository.entries[storageKey]
+	if !found {
+		return errWorkflowRAGNotFound
+	}
+	for _, existing := range entry.audits {
+		if existing.EventID == audit.EventID || existing.AuditRef == audit.AuditRef {
+			return errWorkflowRAGStoreContract
+		}
+	}
+	entry.audits = append(entry.audits, audit)
+	repository.entries[storageKey] = entry
 	return nil
 }
 

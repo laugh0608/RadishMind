@@ -44,6 +44,9 @@ type WorkflowHTTPToolExecutionAttempt struct {
 type workflowRunRecordAlias WorkflowRunRecord
 
 func (record WorkflowRunRecord) MarshalJSON() ([]byte, error) {
+	if record.SchemaVersion == workflowRunRecordRAGSchemaVersion {
+		return marshalWorkflowRAGRunRecord(record)
+	}
 	if record.SchemaVersion != workflowRunRecordToolSchemaVersion {
 		return json.Marshal(workflowRunRecordAlias(record))
 	}

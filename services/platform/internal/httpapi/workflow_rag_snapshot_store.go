@@ -77,7 +77,7 @@ func decodeWorkflowRAGFragment(payload []byte) (WorkflowRAGFragment, error) {
 
 func encodeWorkflowRAGAudit(audit WorkflowRAGExecutionAudit, ctx WorkflowRAGSnapshotContext) ([]byte, error) {
 	if audit.SchemaVersion != workflowRAGAuditSchemaVersion ||
-		(audit.EventKind != "snapshot_created" && audit.EventKind != "snapshot_versioned" && audit.EventKind != "snapshot_archived") ||
+		!workflowRAGAuditEventAllowed(audit.EventKind) ||
 		audit.TenantRef != ctx.TenantRef || audit.WorkspaceID != ctx.WorkspaceID || audit.ApplicationID != ctx.ApplicationID ||
 		!workflowRAGSnapshotIDPattern.MatchString(audit.SnapshotID) || !workflowRAGSnapshotKeyPattern.MatchString(audit.SnapshotKey) ||
 		audit.SnapshotVersion < 1 || !workflowRAGDigestPattern.MatchString(audit.SnapshotDigest) ||

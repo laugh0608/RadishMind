@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://radishmind.local/contracts/workflow-run-record-v3.schema.json",
   "title": "WorkflowRunRecordV3",
-  "description": "Metadata-only contract reserved for the batch B retrieval execution path. Batch A validates this shape but creates no v3 runtime records.",
+  "description": "Metadata-only run record for the batch B retrieval execution path. Structured answers are returned to the caller but are never persisted in this record.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version", "record_version", "run_id", "tenant_ref", "workspace_id", "application_id",
-    "draft_id", "draft_version", "status", "failure_code", "failure_summary", "started_at", "completed_at",
+    "draft_id", "draft_version", "draft_digest", "status", "failure_code", "failure_summary", "started_at", "completed_at",
     "snapshot", "retrieval_attempt", "answer", "selected_provider", "selected_model", "request_id",
     "audit_ref", "actor_ref", "side_effects", "diagnostic"
   ],
@@ -20,6 +20,7 @@
     "application_id": { "$ref": "#/$defs/scoped_id" },
     "draft_id": { "$ref": "#/$defs/scoped_id" },
     "draft_version": { "type": "integer", "minimum": 1 },
+    "draft_digest": { "$ref": "#/$defs/digest" },
     "status": { "enum": ["running", "succeeded", "failed", "canceled"] },
     "failure_code": {
       "oneOf": [
@@ -32,12 +33,7 @@
     "completed_at": { "$ref": "#/$defs/nullable_timestamp" },
     "snapshot": { "$ref": "#/$defs/snapshot_binding" },
     "retrieval_attempt": { "$ref": "#/$defs/retrieval_attempt" },
-    "answer": {
-      "oneOf": [
-        { "type": "null" },
-        { "$ref": "workflow-rag-answer.schema.json" }
-      ]
-    },
+    "answer": { "type": "null" },
     "selected_provider": { "$ref": "#/$defs/safe_string" },
     "selected_model": { "$ref": "#/$defs/safe_string" },
     "request_id": { "$ref": "#/$defs/reference" },
@@ -132,7 +128,7 @@
           "enum": ["none", "retrieval_policy", "retrieval_store", "retrieval_rank", "retrieval_context", "retrieval_citation", "provider_selection", "provider_call", "run_store"]
         },
         "retrieval_failure_category": {
-          "enum": ["none", "scope", "snapshot", "profile", "query", "budget", "no_evidence", "answer", "citation", "store"]
+          "enum": ["none", "scope", "snapshot", "profile", "query", "budget", "no_evidence", "provider", "answer", "citation", "store"]
         }
       }
     }

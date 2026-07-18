@@ -40,6 +40,7 @@ var controlPlaneReadPermissionGrants = map[string]string{
 	"radishmind.workflow-rag-snapshots.read":    "workflow_rag_snapshots:read",
 	"radishmind.workflow-rag-snapshots.write":   "workflow_rag_snapshots:write",
 	"radishmind.workflow-rag-snapshots.archive": "workflow_rag_snapshots:archive",
+	"radishmind.workflow-rag.execute":           "workflow_rag:execute",
 }
 
 var controlPlaneReadAuthReferencePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$`)

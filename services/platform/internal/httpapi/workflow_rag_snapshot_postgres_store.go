@@ -99,6 +99,37 @@ func (repository *postgresWorkflowRAGSnapshotRepository) ReadVersion(ctx Workflo
 	return resource, record, nil
 }
 
+func (repository *postgresWorkflowRAGSnapshotRepository) ReadByRAGRef(ctx WorkflowRAGSnapshotContext, ragRef string) (WorkflowRAGSnapshotResource, WorkflowRAGSnapshotRecord, error) {
+	key, version, ok := parseWorkflowRAGRAGRef(ragRef)
+	if !ok || repository == nil || repository.pool == nil {
+		return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGNotFound
+	}
+	resource, err := scanWorkflowRAGResource(repository.pool.QueryRow(workflowRAGDatabaseContext(ctx), `SELECT sanitized_resource_payload
+	 FROM workflow_rag_snapshot_resources WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND snapshot_key=$4`,
+		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, key), ctx)
+	if errors.Is(err, pgx.ErrNoRows) {
+		var count int
+		if countErr := repository.pool.QueryRow(workflowRAGDatabaseContext(ctx), `SELECT count(*) FROM workflow_rag_snapshot_resources WHERE snapshot_key=$1`, key).Scan(&count); countErr != nil {
+			return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGStoreUnavailable
+		}
+		if count > 0 {
+			return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGScopeDenied
+		}
+		return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGNotFound
+	}
+	if err != nil {
+		return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, workflowRAGStoreError(err)
+	}
+	record, err := readPostgresWorkflowRAGVersion(ctx, repository.pool, resource.SnapshotID, version)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGNotFound
+	}
+	if err != nil {
+		return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, workflowRAGStoreError(err)
+	}
+	return resource, record, nil
+}
+
 func (repository *postgresWorkflowRAGSnapshotRepository) ReadLatest(ctx WorkflowRAGSnapshotContext, snapshotID string) (WorkflowRAGSnapshotResource, WorkflowRAGSnapshotRecord, error) {
 	if repository == nil || repository.pool == nil {
 		return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGStoreUnavailable
@@ -228,6 +259,25 @@ func insertPostgresWorkflowRAGAudit(ctx WorkflowRAGSnapshotContext, tx pgx.Tx, a
 		audit.SnapshotID, audit.EventID, audit.EventKind, audit.SnapshotVersion, audit.SnapshotDigest, audit.ActorRef,
 		audit.RequestID, audit.AuditRef, occurredAt, payload)
 	if err != nil {
+		return errWorkflowRAGStoreUnavailable
+	}
+	return nil
+}
+
+func (repository *postgresWorkflowRAGSnapshotRepository) AppendAudit(ctx WorkflowRAGSnapshotContext, audit WorkflowRAGExecutionAudit) error {
+	payload, err := encodeWorkflowRAGAudit(audit, ctx)
+	if err != nil || repository == nil || repository.pool == nil {
+		return errWorkflowRAGStoreContract
+	}
+	tx, err := repository.pool.Begin(workflowRAGDatabaseContext(ctx))
+	if err != nil {
+		return errWorkflowRAGStoreUnavailable
+	}
+	defer func() { _ = tx.Rollback(workflowRAGDatabaseContext(ctx)) }()
+	if err = insertPostgresWorkflowRAGAudit(ctx, tx, audit, payload); err != nil {
+		return err
+	}
+	if err = tx.Commit(workflowRAGDatabaseContext(ctx)); err != nil {
 		return errWorkflowRAGStoreUnavailable
 	}
 	return nil

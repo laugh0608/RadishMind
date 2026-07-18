@@ -371,6 +371,30 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	}
 	ragRepository := newPostgresWorkflowRAGSnapshotRepository(runtimePool)
 	runWorkflowRAGSnapshotLifecycle(t, ragRepository)
+	ragExecutionService, ragExecutionBridge, ragRunContext, ragExecutionSnapshot, ragExecutionDraft := workflowRAGExecutionStoreFixture(
+		t, store, ragRepository, "run_pgretrieval00001",
+	)
+	ragExecution := ragExecutionService.Execute(ragRunContext, WorkflowRAGExecutionRequest{
+		DraftID: ragExecutionDraft.DraftID, DraftVersion: ragExecutionDraft.DraftVersion,
+		InputText: "official retrieval guidance", Model: "mock-rag",
+	})
+	if ragExecution.FailureCode != "" || ragExecution.Record == nil || ragExecution.Record.Status != WorkflowRunStatusSucceeded || ragExecutionBridge.handleCalls != 1 {
+		t.Fatalf("PostgreSQL workflow RAG execution failed: %#v calls=%d", ragExecution, ragExecutionBridge.handleCalls)
+	}
+	ragPlan, ragPlanFailure := buildWorkflowRAGExecutionPlan(ragExecutionDraft, ragExecutionDraft.DraftVersion)
+	if ragPlanFailure != "" {
+		t.Fatalf("build PostgreSQL stale RAG plan: %s", ragPlanFailure)
+	}
+	ragDraftDigest, _ := workflowRAGDraftDigest(ragExecutionDraft)
+	ragStale := newWorkflowRAGRunRecord(
+		ragRunContext,
+		WorkflowRAGExecutionRequest{DraftID: ragExecutionDraft.DraftID, DraftVersion: ragExecutionDraft.DraftVersion, InputText: "official retrieval guidance", Model: "mock-rag"},
+		ragExecutionDraft, ragDraftDigest, ragPlan, ragExecutionSnapshot, workflowRAGLexicalProfile(), workflowRAGTestSelection(),
+		"run_pgragstale000001", time.Now().UTC().Add(-workflowExecutorDefaultMaxRuntime-time.Second),
+	)
+	if err = store.UpsertRun(ragRunContext, &ragStale); err != nil {
+		t.Fatalf("seed PostgreSQL stale workflow RAG run: %v", err)
+	}
 	if _, mutationErr := runtimePool.Exec(ctx, `UPDATE workflow_rag_snapshot_versions SET snapshot_version=3 WHERE snapshot_id='rags_aaaaaaaaaaaaaaaa' AND snapshot_version=2`); mutationErr == nil {
 		t.Fatal("PostgreSQL runtime role mutated an immutable workflow RAG snapshot version")
 	}
@@ -395,6 +419,33 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if restoredRAG.FailureCode != "" || restoredRAG.Record == nil || restoredRAG.Record.LifecycleState != workflowRAGSnapshotArchived ||
 		len(restoredRAG.Record.Fragments) != 1 || restoredRAG.Record.Fragments[0].Content != "version two replacement content" {
 		t.Fatalf("restart workflow RAG snapshot recovery failed: %#v", restoredRAG)
+	}
+	restartedRAGRepository := newPostgresWorkflowRAGSnapshotRepository(reopened)
+	restoredRAGRun, ragRunFound, ragRunErr := store.ReadRun(ragRunContext, ragExecution.Record.RunID)
+	if ragRunErr != nil || !ragRunFound || restoredRAGRun.Status != WorkflowRunStatusSucceeded || restoredRAGRun.RAGAnswer != nil ||
+		restoredRAGRun.RetrievalAttempt == nil || len(restoredRAGRun.RetrievalAttempt.CitationRefs) != 1 {
+		t.Fatalf("restart workflow RAG v3 run recovery failed: %#v found=%t err=%v", restoredRAGRun, ragRunFound, ragRunErr)
+	}
+	ragReconciliation, ragRestartBridge, _, _, _ := workflowRAGExecutionStoreFixtureFromExisting(
+		t, store, restartedRAGRepository, ragExecutionDraft, "run_pgragunused00001",
+	)
+	ragRankCalls := 0
+	ragReconciliation.rank = func(string, []WorkflowRAGFragment, int) WorkflowRAGRankingResult {
+		ragRankCalls++
+		return WorkflowRAGRankingResult{}
+	}
+	ragReconciled := ragReconciliation.ReconcileStale(ragRunContext)
+	if ragReconciled.FailureCode != "" || ragReconciled.Reconciled != 1 || ragRankCalls != 0 || ragRestartBridge.handleCalls != 0 {
+		t.Fatalf("PostgreSQL RAG restart reconciliation retried execution: %#v rank=%d gateway=%d", ragReconciled, ragRankCalls, ragRestartBridge.handleCalls)
+	}
+	restoredRAGStale, ragStaleFound, ragStaleErr := store.ReadRun(ragRunContext, ragStale.RunID)
+	if ragStaleErr != nil || !ragStaleFound || restoredRAGStale.Status != WorkflowRunStatusFailed ||
+		restoredRAGStale.FailureCode != WorkflowRunFailureCode(WorkflowRAGFailureInterrupted) {
+		t.Fatalf("PostgreSQL stale workflow RAG run was not closed: %#v found=%t err=%v", restoredRAGStale, ragStaleFound, ragStaleErr)
+	}
+	var ragExecutionAuditCount int
+	if err = reopened.QueryRow(ctx, `SELECT count(*) FROM workflow_rag_execution_audits WHERE snapshot_id=$1`, ragExecutionSnapshot.SnapshotID).Scan(&ragExecutionAuditCount); err != nil || ragExecutionAuditCount != 4 {
+		t.Fatalf("PostgreSQL workflow RAG execution audits did not survive restart: count=%d err=%v", ragExecutionAuditCount, err)
 	}
 	if recoveredAction, actionFound, actionErr := actionStore.ReadPlan(actionContext, actionPlan.PlanID); actionErr != nil || !actionFound || recoveredAction.Status != WorkflowHTTPToolActionStatusInvalidated || recoveredAction.RecordVersion != 3 {
 		t.Fatalf("restart workflow HTTP tool action recovery failed: found=%v plan=%#v err=%v", actionFound, recoveredAction, actionErr)
@@ -481,6 +532,16 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	}
 
 	reopened.Close()
+	noFallbackRAG, noFallbackBridge, _, _, _ := workflowRAGExecutionStoreFixtureFromExisting(
+		t, store, restartedRAGRepository, ragExecutionDraft, "run_pgragnofallback1",
+	)
+	noFallbackResult := noFallbackRAG.Execute(ragRunContext, WorkflowRAGExecutionRequest{
+		DraftID: ragExecutionDraft.DraftID, DraftVersion: ragExecutionDraft.DraftVersion,
+		InputText: "official retrieval guidance", Model: "mock-rag",
+	})
+	if noFallbackResult.FailureCode != WorkflowRunFailureCode(WorkflowRAGFailureStoreUnavailable) || noFallbackResult.Record != nil || noFallbackBridge.handleCalls != 0 {
+		t.Fatalf("closed PostgreSQL workflow RAG backend fell back or called Gateway: %#v calls=%d", noFallbackResult, noFallbackBridge.handleCalls)
+	}
 	if _, err = pool.Exec(ctx, "UPDATE workflow_run_schema_versions SET migration_checksum='sha256:mismatch' WHERE component=$1", workflowrunmigrations.Component); err != nil {
 		t.Fatal(err)
 	}
@@ -621,6 +682,42 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	}
 	if upgraded, upgradeErr := workflowrunmigrations.Apply(ctx, pool); upgradeErr != nil || upgraded.MigrationState != workflowrunmigrations.MigrationStateApplied {
 		t.Fatalf("tool action migration upgrade failed: %#v %v", upgraded, upgradeErr)
+	}
+	if _, err = workflowrunmigrations.RollbackForDevTest(ctx, pool); err != nil {
+		t.Fatal(err)
+	}
+	toolActionSQL, err := os.ReadFile("../../migrations/workflow_runs/0006_workflow_http_tool_actions.up.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	toolExecutionSQL, err := os.ReadFile("../../migrations/workflow_runs/0007_workflow_http_tool_execution.up.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ragSnapshotSQL, err := os.ReadFile("../../migrations/workflow_runs/0008_workflow_rag_snapshots.up.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	throughV8 := throughV5 + "\n" + string(toolActionSQL) + "\n" + string(toolExecutionSQL) + "\n" + string(ragSnapshotSQL)
+	if _, err = pool.Exec(ctx, throughV8); err != nil {
+		t.Fatalf("apply workflow RAG snapshot migration: %v", err)
+	}
+	ragSnapshotChecksum := fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(throughV8)))
+	if _, err = pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS workflow_run_schema_versions (component text PRIMARY KEY, migration_id text NOT NULL, store_schema_version text NOT NULL, migration_checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = pool.Exec(ctx, `INSERT INTO workflow_run_schema_versions(component,migration_id,store_schema_version,migration_checksum) VALUES($1,'0008_workflow_rag_snapshots','workflow_run_store_v8',$2)`, workflowrunmigrations.Component, ragSnapshotChecksum); err != nil {
+		t.Fatal(err)
+	}
+	if pending, inspectErr := workflowrunmigrations.Inspect(ctx, pool); inspectErr != nil || pending.MigrationState != workflowrunmigrations.MigrationStatePending {
+		t.Fatalf("workflow RAG snapshot marker was not pending for execution migration: %#v %v", pending, inspectErr)
+	}
+	if upgraded, upgradeErr := workflowrunmigrations.Apply(ctx, pool); upgradeErr != nil || upgraded.MigrationState != workflowrunmigrations.MigrationStateApplied {
+		t.Fatalf("workflow RAG execution migration upgrade failed: %#v %v", upgraded, upgradeErr)
+	}
+	var retrievalAuditConstraintCount int
+	if err = pool.QueryRow(ctx, `SELECT count(*) FROM pg_constraint WHERE conname='workflow_rag_execution_audits_event_kind_check' AND pg_get_constraintdef(oid) LIKE '%retrieval_started%'`).Scan(&retrievalAuditConstraintCount); err != nil || retrievalAuditConstraintCount != 1 {
+		t.Fatalf("workflow RAG execution audit constraint was not upgraded: count=%d err=%v", retrievalAuditConstraintCount, err)
 	}
 }
 

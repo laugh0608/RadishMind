@@ -34,34 +34,52 @@ type WorkflowRunListRequest struct {
 }
 
 type WorkflowRunSummary struct {
-	SchemaVersion           string                            `json:"schema_version"`
-	RecordVersion           int                               `json:"record_version"`
-	RunID                   string                            `json:"run_id"`
-	PlanID                  string                            `json:"plan_id"`
-	ConfirmationID          string                            `json:"confirmation_id"`
-	ToolAttemptStatus       WorkflowHTTPToolAttemptStatus     `json:"tool_attempt_status"`
-	DraftID                 string                            `json:"draft_id"`
-	DraftVersion            int                               `json:"draft_version"`
-	WorkspaceID             string                            `json:"workspace_id"`
-	ApplicationID           string                            `json:"application_id"`
-	Status                  WorkflowRunStatus                 `json:"status"`
-	FailureCode             WorkflowRunFailureCode            `json:"failure_code"`
-	StartedAt               string                            `json:"started_at"`
-	CompletedAt             string                            `json:"completed_at"`
-	DurationMS              int64                             `json:"duration_ms"`
-	SelectedProvider        string                            `json:"selected_provider"`
-	SelectedProfile         string                            `json:"selected_profile"`
-	SelectedModel           string                            `json:"selected_model"`
-	RequestID               string                            `json:"request_id"`
-	AuditRef                string                            `json:"audit_ref"`
-	SideEffects             WorkflowRunSideEffects            `json:"side_effects"`
-	StaleRunning            bool                              `json:"stale_running"`
-	FailureBoundary         WorkflowRunFailureBoundary        `json:"failure_boundary"`
-	FailedNodeID            string                            `json:"failed_node_id"`
-	LastCompletedNodeID     string                            `json:"last_completed_node_id"`
-	GatewayFailureCategory  WorkflowRunGatewayFailureCategory `json:"gateway_failure_category"`
-	ToolFailureCategory     WorkflowHTTPToolFailureCategory   `json:"tool_failure_category"`
-	RecommendedReviewAction WorkflowRunReviewAction           `json:"recommended_review_action"`
+	SchemaVersion            string                            `json:"schema_version"`
+	RecordVersion            int                               `json:"record_version"`
+	RunID                    string                            `json:"run_id"`
+	PlanID                   string                            `json:"plan_id"`
+	ConfirmationID           string                            `json:"confirmation_id"`
+	ToolAttemptStatus        WorkflowHTTPToolAttemptStatus     `json:"tool_attempt_status"`
+	DraftID                  string                            `json:"draft_id"`
+	DraftVersion             int                               `json:"draft_version"`
+	DraftDigest              string                            `json:"draft_digest,omitempty"`
+	WorkspaceID              string                            `json:"workspace_id"`
+	ApplicationID            string                            `json:"application_id"`
+	Status                   WorkflowRunStatus                 `json:"status"`
+	FailureCode              WorkflowRunFailureCode            `json:"failure_code"`
+	StartedAt                string                            `json:"started_at"`
+	CompletedAt              string                            `json:"completed_at"`
+	DurationMS               int64                             `json:"duration_ms"`
+	SelectedProvider         string                            `json:"selected_provider"`
+	SelectedProfile          string                            `json:"selected_profile"`
+	SelectedModel            string                            `json:"selected_model"`
+	RequestID                string                            `json:"request_id"`
+	AuditRef                 string                            `json:"audit_ref"`
+	SideEffects              WorkflowRunSideEffects            `json:"side_effects"`
+	StaleRunning             bool                              `json:"stale_running"`
+	FailureBoundary          WorkflowRunFailureBoundary        `json:"failure_boundary"`
+	FailedNodeID             string                            `json:"failed_node_id"`
+	LastCompletedNodeID      string                            `json:"last_completed_node_id"`
+	GatewayFailureCategory   WorkflowRunGatewayFailureCategory `json:"gateway_failure_category"`
+	ToolFailureCategory      WorkflowHTTPToolFailureCategory   `json:"tool_failure_category"`
+	SnapshotID               string                            `json:"snapshot_id,omitempty"`
+	SnapshotVersion          int                               `json:"snapshot_version,omitempty"`
+	SnapshotDigest           string                            `json:"snapshot_digest,omitempty"`
+	RAGRef                   string                            `json:"rag_ref,omitempty"`
+	RetrievalNodeID          string                            `json:"retrieval_node_id,omitempty"`
+	RetrievalAttemptStatus   string                            `json:"retrieval_attempt_status,omitempty"`
+	RetrievalProfileID       string                            `json:"retrieval_profile_id,omitempty"`
+	RetrievalProfileVersion  int                               `json:"retrieval_profile_version,omitempty"`
+	RetrievalProfileDigest   string                            `json:"retrieval_profile_digest,omitempty"`
+	QueryDigest              string                            `json:"query_digest,omitempty"`
+	QueryBytes               int                               `json:"query_bytes,omitempty"`
+	CandidateCount           int                               `json:"candidate_count,omitempty"`
+	SelectedFragments        []workflowRAGRunSelectedFragment  `json:"selected_fragments,omitempty"`
+	CitationRefs             []string                          `json:"citation_refs,omitempty"`
+	RetrievalLatencyMS       int                               `json:"retrieval_latency_ms,omitempty"`
+	RetrievalContextBytes    int                               `json:"retrieval_context_bytes,omitempty"`
+	RetrievalFailureCategory string                            `json:"retrieval_failure_category,omitempty"`
+	RecommendedReviewAction  WorkflowRunReviewAction           `json:"recommended_review_action"`
 }
 
 type WorkflowRunListResult struct {
@@ -261,7 +279,7 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 	summary := WorkflowRunSummary{
 		SchemaVersion: record.SchemaVersion, RecordVersion: record.RecordVersion, RunID: record.RunID,
 		PlanID: record.PlanID, ConfirmationID: record.ConfirmationID,
-		DraftID: record.DraftID, DraftVersion: record.DraftVersion, WorkspaceID: record.WorkspaceID,
+		DraftID: record.DraftID, DraftVersion: record.DraftVersion, DraftDigest: record.DraftDigest, WorkspaceID: record.WorkspaceID,
 		ApplicationID: record.ApplicationID, Status: record.Status, FailureCode: record.FailureCode,
 		StartedAt: record.StartedAt, CompletedAt: record.CompletedAt, DurationMS: duration,
 		SelectedProvider: record.SelectedProvider, SelectedProfile: record.SelectedProfile,
@@ -278,7 +296,22 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 		summary.LastCompletedNodeID = record.Diagnostic.LastCompletedNodeID
 		summary.GatewayFailureCategory = record.Diagnostic.GatewayFailureCategory
 		summary.ToolFailureCategory = record.Diagnostic.ToolFailureCategory
+		summary.RetrievalFailureCategory = record.Diagnostic.RetrievalFailureCategory
 		summary.RecommendedReviewAction = record.Diagnostic.RecommendedReviewAction
+	}
+	if record.RAGSnapshot != nil {
+		summary.SnapshotID, summary.SnapshotVersion = record.RAGSnapshot.SnapshotID, record.RAGSnapshot.SnapshotVersion
+		summary.SnapshotDigest, summary.RAGRef = record.RAGSnapshot.SnapshotDigest, record.RAGSnapshot.RAGRef
+	}
+	if record.RetrievalAttempt != nil {
+		summary.RetrievalNodeID, summary.RetrievalAttemptStatus = record.RetrievalAttempt.NodeID, record.RetrievalAttempt.Status
+		summary.RetrievalProfileID, summary.RetrievalProfileVersion = record.RetrievalAttempt.ProfileID, record.RetrievalAttempt.ProfileVersion
+		summary.RetrievalProfileDigest = record.RetrievalAttempt.ProfileDigest
+		summary.QueryDigest, summary.QueryBytes = record.RetrievalAttempt.QueryDigest, record.RetrievalAttempt.QueryBytes
+		summary.CandidateCount = record.RetrievalAttempt.CandidateCount
+		summary.SelectedFragments = append([]workflowRAGRunSelectedFragment(nil), record.RetrievalAttempt.SelectedFragments...)
+		summary.CitationRefs = cloneStringSlice(record.RetrievalAttempt.CitationRefs)
+		summary.RetrievalLatencyMS, summary.RetrievalContextBytes = record.RetrievalAttempt.RetrievalLatencyMS, record.RetrievalAttempt.ContextBytes
 	}
 	return summary
 }

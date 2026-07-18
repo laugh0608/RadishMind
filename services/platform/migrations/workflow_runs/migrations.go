@@ -16,8 +16,8 @@ import (
 
 const (
 	Component                               = "workflow_runs"
-	MigrationID                             = "0008_workflow_rag_snapshots"
-	StoreSchemaVersion                      = "workflow_run_store_v8"
+	MigrationID                             = "0009_workflow_rag_execution_audits"
+	StoreSchemaVersion                      = "workflow_run_store_v9"
 	legacyMigrationID                       = "0001_workflow_runs"
 	legacyStoreSchemaVersion                = "workflow_run_store_v1"
 	diagnosticsMigrationID                  = "0002_workflow_run_diagnostics"
@@ -32,6 +32,8 @@ const (
 	toolActionsStoreSchemaVersion           = "workflow_run_store_v6"
 	toolExecutionMigrationID                = "0007_workflow_http_tool_execution"
 	toolExecutionStoreSchemaVersion         = "workflow_run_store_v7"
+	ragSnapshotMigrationID                  = "0008_workflow_rag_snapshots"
+	ragSnapshotStoreSchemaVersion           = "workflow_run_store_v8"
 	MigrationStateApplied                   = "applied"
 	MigrationStatePending                   = "pending"
 	MigrationStateNotApplied                = "not_applied"
@@ -91,8 +93,14 @@ var upSQLV8 string
 //go:embed 0008_workflow_rag_snapshots.down.sql
 var downSQLV8 string
 
-var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8
-var downSQL = downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+//go:embed 0009_workflow_rag_execution_audits.up.sql
+var upSQLV9 string
+
+//go:embed 0009_workflow_rag_execution_audits.down.sql
+var downSQLV9 string
+
+var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9
+var downSQL = downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 
 type State struct {
 	MigrationState, MigrationID, StoreSchemaVersion, MigrationChecksum string
@@ -143,6 +151,9 @@ func toolActionsChecksum() string {
 }
 func toolExecutionChecksum() string {
 	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7)))
+}
+func ragSnapshotChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8)))
 }
 
 func Inspect(ctx context.Context, pool *pgxpool.Pool) (State, error) {
@@ -268,19 +279,21 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 func pendingMigrationSQL(appliedMigrationID string) string {
 	switch appliedMigrationID {
 	case legacyMigrationID:
-		return upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8
+		return upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9
 	case diagnosticsMigrationID:
-		return upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8
+		return upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9
 	case evaluationMigrationID:
-		return upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8
+		return upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9
 	case caseVersioningMigrationID:
-		return upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8
+		return upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9
 	case evaluationSuiteMigrationID:
-		return upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8
+		return upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9
 	case toolActionsMigrationID:
-		return upSQLV7 + "\n" + upSQLV8
+		return upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9
 	case toolExecutionMigrationID:
-		return upSQLV8
+		return upSQLV8 + "\n" + upSQLV9
+	case ragSnapshotMigrationID:
+		return upSQLV9
 	default:
 		return ""
 	}
@@ -302,6 +315,8 @@ func rollbackSQLThrough(appliedMigrationID string) string {
 		return downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 	case toolExecutionMigrationID:
 		return downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case ragSnapshotMigrationID:
+		return downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 	default:
 		return ""
 	}
@@ -340,6 +355,8 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 	} else if state.MigrationID == toolActionsMigrationID && state.StoreSchemaVersion == toolActionsStoreSchemaVersion && state.MigrationChecksum == toolActionsChecksum() && tableExists {
 		state.MigrationState = MigrationStatePending
 	} else if state.MigrationID == toolExecutionMigrationID && state.StoreSchemaVersion == toolExecutionStoreSchemaVersion && state.MigrationChecksum == toolExecutionChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == ragSnapshotMigrationID && state.StoreSchemaVersion == ragSnapshotStoreSchemaVersion && state.MigrationChecksum == ragSnapshotChecksum() && tableExists {
 		state.MigrationState = MigrationStatePending
 	} else {
 		var diagnosticColumnCount int
@@ -416,7 +433,19 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 			)`).Scan(&ragAppendOnlyTriggerCount); err != nil {
 			return State{}, safeDatabaseError("inspect workflow RAG append-only triggers", err)
 		}
-		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 || !evaluationTableExists || !revisionTableExists || currentVersionColumnCount != 1 || !suiteTableExists || !decisionTableExists || !actionPlanTableExists || !confirmationDecisionTableExists || !executionAuditTableExists || !executionAttemptTableExists || appendOnlyTriggerCount != 2 || !ragResourceTableExists || !ragVersionTableExists || !ragFragmentTableExists || !ragAuditTableExists || ragAppendOnlyTriggerCount != 3 {
+		var ragExecutionEventConstraintCount int
+		if err = query.QueryRow(ctx, `SELECT count(*)
+			FROM pg_constraint constraint_record
+			JOIN pg_class relation ON relation.oid=constraint_record.conrelid
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE namespace.nspname='public' AND relation.relname='workflow_rag_execution_audits'
+			AND constraint_record.conname='workflow_rag_execution_audits_event_kind_check'
+			AND pg_get_constraintdef(constraint_record.oid) LIKE '%retrieval_started%'
+			AND pg_get_constraintdef(constraint_record.oid) LIKE '%retrieval_succeeded%'
+			AND pg_get_constraintdef(constraint_record.oid) LIKE '%retrieval_failed%'`).Scan(&ragExecutionEventConstraintCount); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG execution audit constraint", err)
+		}
+		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 || !evaluationTableExists || !revisionTableExists || currentVersionColumnCount != 1 || !suiteTableExists || !decisionTableExists || !actionPlanTableExists || !confirmationDecisionTableExists || !executionAuditTableExists || !executionAttemptTableExists || appendOnlyTriggerCount != 2 || !ragResourceTableExists || !ragVersionTableExists || !ragFragmentTableExists || !ragAuditTableExists || ragAppendOnlyTriggerCount != 3 || ragExecutionEventConstraintCount != 1 {
 			state.MigrationState = MigrationStateMismatch
 		} else {
 			state.MigrationState = MigrationStateApplied

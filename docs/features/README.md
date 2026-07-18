@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-07-17
+更新时间：2026-07-18
 
 ## 文档目的
 
@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-17 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md) 确定性运行时也已完成；真实 Radish 联调已主动延后。[本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md)、[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 与 [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 均已关闭。[Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 已完成知识快照基础批次 A，下一顺位为 retrieval execution / run v3 批次 B；生产认证、工作区成员关系、正式晋级、生产 API 密钥、配额与计费仍关闭。
+2026-07-18 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md) 确定性运行时也已完成；真实 Radish 联调已主动延后。[本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md)、[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 与 [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 均已关闭。[Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 已完成独立 retrieval execution / run v3 后端批次 B，下一顺位为 Web 纵向链与真实浏览器双数据库验收批次 C；生产认证、工作区成员关系、正式晋级、生产 API 密钥、配额与计费仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -70,7 +70,7 @@
 | [Workflow 细专题入口](workflow/README.md) | 功能专题目录 | 承接 workflow 具体功能、页面 / 界面和实现专题 |
 | [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) | 功能 / 高风险执行专题 | action plan、人工确认、单次 allowlisted GET、SSRF、原子 claim、run v2、三种 store、Web 与浏览器重启链已完成 |
 | [Workflow 受控 HTTP Tool 与人工确认执行 v1 实施任务卡](../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md) | 高风险实现批次 | 三批完成，状态为 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed` |
-| [Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) | 功能 / 检索执行专题 | 批次 A 已完成六份契约、snapshot lifecycle、lexical provider、三种 store、五条 route 与 Web 管理；批次 B 待实施 |
+| [Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) | 功能 / 检索执行专题 | 批次 B 已完成独立 execution、Gateway、citation、metadata-only run v3、三种 store 与 reconciliation；批次 C 可进入 Web / 浏览器纵向验收 |
 | [Saved Workflow Draft v1](workflow/saved-workflow-draft-v1.md) | 功能专题 | 固定草案创建、编辑、校验、持久保存、恢复、版本冲突和 Review Handoff；开发 / 测试态 PostgreSQL repository 已完成，production repository 继续关闭，旧 Production Secret Backend / Storage Adapter readiness 链仅作为历史证据索引 |
 | [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) | 实现专题 | 已完成 `postgres_dev_test` migration、回滚 / 重建、运行角色隔离、服务重启恢复、原子 CAS、scope / owner 隔离、no fallback、CI 与真实浏览器验收 |
 | [Production Secret Backend Audit Store Storage Adapter Concrete Managed Database Provider Selection Readiness v1](../platform/production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1.md) | 平台专题 | 固定 concrete managed database provider selection 前置准入；状态为 `audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined`，历史下一项 `storage_adapter_concrete_managed_database_provider_selection_review` 已被后续 review 消费；不选择真实 provider、endpoint、driver import、SQL、storage adapter runtime、audit store runtime、repository mode 或 production API |

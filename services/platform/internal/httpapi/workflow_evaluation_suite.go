@@ -33,6 +33,7 @@ const (
 	WorkflowEvaluationSuiteFailureApprovalBlocked  WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_approval_blocked"
 	WorkflowEvaluationSuiteFailureStoreUnavailable WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_store_unavailable"
 	WorkflowEvaluationSuiteFailureStoreContract    WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_store_contract_mismatch"
+	WorkflowEvaluationSuiteFailureRetrievalProfile WorkflowEvaluationSuiteFailureCode = "workflow_run_retrieval_profile_unsupported"
 )
 
 type WorkflowEvaluationSuiteCaseRef struct {
@@ -295,11 +296,15 @@ func (s workflowEvaluationSuiteService) Create(ctx WorkflowRunContext, r Workflo
 			return suiteFailure(WorkflowEvaluationSuiteFailureInvalid)
 		}
 		seen[key] = true
-		if read := s.evaluation.ReadRevision(ctx, refs[i].CaseID, refs[i].Version); read.FailureCode != "" {
+		read := s.evaluation.ReadRevision(ctx, refs[i].CaseID, refs[i].Version)
+		if read.FailureCode != "" {
 			if read.FailureCode == WorkflowEvaluationFailureNotFound {
 				return suiteFailure(WorkflowEvaluationSuiteFailureCaseNotEligible)
 			}
 			return suiteFailure(mapSuiteEvaluationFailure(read.FailureCode))
+		}
+		if failure := s.evaluation.retrievalProfileFailure(ctx, *read.Case); failure != "" {
+			return suiteFailure(mapSuiteEvaluationFailure(failure))
 		}
 	}
 	id, err := s.newSuiteID()
@@ -611,6 +616,8 @@ func suiteFailure(code WorkflowEvaluationSuiteFailureCode) WorkflowEvaluationSui
 		summary = "Workflow evaluation suite approval requires a fully passed review."
 	case WorkflowEvaluationSuiteFailureStoreUnavailable, WorkflowEvaluationSuiteFailureStoreContract:
 		summary = "Workflow evaluation suite storage is unavailable."
+	case WorkflowEvaluationSuiteFailureRetrievalProfile:
+		summary = "Workflow evaluation suite does not support workflow retrieval profiles."
 	}
 	return WorkflowEvaluationSuiteResult{FailureCode: code, FailureSummary: summary}
 }
@@ -641,6 +648,9 @@ func mapSuiteEvaluationFailure(code WorkflowEvaluationFailureCode) WorkflowEvalu
 	}
 	if code == WorkflowEvaluationFailureStoreUnavailable {
 		return WorkflowEvaluationSuiteFailureStoreUnavailable
+	}
+	if code == WorkflowEvaluationFailureRetrievalProfile {
+		return WorkflowEvaluationSuiteFailureRetrievalProfile
 	}
 	return WorkflowEvaluationSuiteFailureCaseNotEligible
 }

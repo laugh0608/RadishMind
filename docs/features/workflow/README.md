@@ -1,6 +1,6 @@
 # Workflow 细专题入口
 
-更新时间：2026-07-17
+更新时间：2026-07-18
 
 ## 文档目的
 
@@ -12,7 +12,7 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
-| [Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) | 功能 / 检索执行专题 | `workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_batch_a_completed` | 契约、知识快照生命周期、lexical provider、三种 store、五条 API 与 Web 管理面已完成；下一步进入 retrieval execution / run v3 批次 B |
+| [Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) | 功能 / 检索执行专题 | `workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_batch_b_completed` | 独立 retrieval execution、Gateway、citation、metadata-only run v3、三种 store、history backend 与 reconciliation 已完成；批次 C 可进入 Web / 浏览器纵向验收 |
 | [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) | 功能 / 高风险执行专题 | `workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed` | 三批已通过；execution route、Web、Run History v2、双数据库与浏览器重启链已完成 |
 | [Workflow 受控 HTTP Tool 与人工确认执行 v1 实施任务卡](../../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md) | 高风险实现批次 | `completed` | 保留三批实现与验证证据，不派生同层 readiness 链 |
 | [Workflow Evaluation Suite / Release Review v1](workflow-evaluation-suite-release-review-v1.md) | 功能专题 | `workflow_evaluation_suite_release_review_v1_completed` | 已完成 exact-case-version suite、聚合 review、digest-bound append-only decision、PostgreSQL 0005 和真实 Web 审查路径 |
@@ -161,12 +161,12 @@
 
 Saved Draft、Node Designer、executor v0、持久 Run History、Failure Review、Run Comparison、Evaluation Cases、Baseline / Case Versioning、Evaluation Suite / Release Review、Gateway Request History、Gateway Playground 与 API 密钥开发测试态认证均已完成。不继续在 Workflow 页面叠加同层只读审查能力。
 
-[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) 的三个批次已完成：版本化 definition / profile、durable action plan / confirmation、受控 transport、原子 claim、`workflow_run_record.v2`、memory / SQLite / PostgreSQL、diagnostics、`/executions`、Web 与真实浏览器重启链均已有证据。[Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 已完成知识快照基础批次 A；下一步只进入独立 retrieval execution、Gateway handoff、citation validator 和 metadata-only run v3 批次 B。
+[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) 的三个批次已完成：版本化 definition / profile、durable action plan / confirmation、受控 transport、原子 claim、`workflow_run_record.v2`、memory / SQLite / PostgreSQL、diagnostics、`/executions`、Web 与真实浏览器重启链均已有证据。[Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 已完成后端执行批次 B；下一步只进入 Draft Designer / Web execution / Run History v3 消费和双数据库真实浏览器连续验收批次 C。
 
 Production Secret Backend / Storage Adapter 的历史准入链继续从既有专题、任务索引和归档证据读取，不再提供当前开发顺位；生产 repository、生产认证、业务写回、自动确认、replay / resume 和 agent loop 继续关闭。
 
 ## 停止线
 
-- [Workflow Executor v0](workflow-executor-v0.md) 继续只开放开发 / 测试态 Prompt / LLM / condition / output 执行；durable history、失败诊断、二元比较、batch review、case versioning 与 suite release evidence 已完成。HTTP Tool 与 confirmation 只能按已评审专题进入版本化路径；RAG 批次 A 只完成知识快照基础，不能在 v0 或通用 Tooling v1 上原地放开，必须等待独立 execution / run v3 批次 B。agent loop、publish、writeback、replay、resume 和 materialized result reader 继续关闭。
+- [Workflow Executor v0](workflow-executor-v0.md) 继续只开放开发 / 测试态 Prompt / LLM / condition / output 执行；durable history、失败诊断、二元比较、batch review、case versioning 与 suite release evidence 已完成。HTTP Tool 与 confirmation 只能按已评审专题进入版本化路径；RAG 批次 B 只在独立 execution / run v3 路径启用一次本地检索，v0 与通用 Tooling v1 的 `allow_retrieval=false` 保持不变。agent loop、publish、writeback、replay、resume 和 materialized result reader 继续关闭。
 - 不把 saved draft、validation summary、risk summary 或 readiness summary 解释为 publish ready、run ready 或 production ready。
 - 只允许显式 `postgres_dev_test` 接入本地 / CI PostgreSQL、SQL migration、schema marker、一次性 migration runner 和受控连接池；production database resource、secret resolver、production resolver runtime、Radish OIDC、token validation、API key lifecycle、quota、billing 与公开生产 API 继续关闭。`memory_dev` 仍是默认开发模式，production `repository`、reserved / unknown mode 必须 fail closed，不能回退 sample、fixture 或 memory store。

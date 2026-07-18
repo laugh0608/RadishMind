@@ -1,8 +1,8 @@
 # Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1
 
-更新时间：2026-07-17
+更新时间：2026-07-18
 
-状态：`workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_batch_a_completed`
+状态：`workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_batch_b_completed`
 
 ## 设计结论
 
@@ -10,7 +10,7 @@
 
 首版必须同时覆盖知识资产生命周期、检索执行、引用约束、三种开发测试态 store 和 Web 连续链，不能把预置 fixture、请求内塞入的“已召回文本”或单纯打开 `allow_retrieval=true` 当成真实 RAG 完成。
 
-2026-07-17 边界评审已确认五项决策。[唯一高风险实施任务卡](../../task-cards/workflow-rag-retrieval-application-knowledge-snapshot-dev-test-v1-plan.md)按依赖拆为三个实现批次。批次 A 已完成六份契约、应用知识快照生命周期、确定性 lexical provider、memory / SQLite / PostgreSQL store、五条受控 API 和严格 Web 管理面；下一步进入批次 B 的 retrieval execution / Gateway / citation / run v3 runtime。批次 A 仍未注册 retrieval execution、调用 Gateway 或创建 run v3。
+2026-07-18 批次 B 已完成独立 retrieval execution、Gateway 单次 handoff、结构化 answer / citation 校验、metadata-only run v3、Run History 后端读取、reconciliation 与三种 store 一致性。结构化回答只随本次 execution 响应返回，run、audit、日志和普通 history 不保存正文。下一步只进入批次 C 的 Draft Designer / Web execution / Run History v3 消费与双数据库真实浏览器连续验收，状态为 `ready_for_implementation`。
 
 ## 用户价值与适用范围
 
@@ -116,6 +116,7 @@ prompt root -> one rag_retrieval -> one llm -> output terminal
 - 恰好四个节点和三条边，不允许 condition、HTTP Tool、并行、循环、多 retrieval、多个 LLM 或后台运行。
 - `rag_retrieval` 风险固定为 `low`、`requires_confirmation=false`；内容分类或 scope 不满足时直接阻塞，不通过人工确认绕过。
 - retrieval execution 使用独立 `POST /v1/user-workspace/workflow-drafts/{draft_id}/retrieval-executions`，不放宽 executor v0 的 `/runs`。
+- execution 使用独立 `RADISHMIND_WORKFLOW_RAG_EXECUTION_DEV=1` 门禁，不复用 snapshot 写入门禁，也不要求打开 executor v0；四项执行 scope 与 verified actor 必须同时成立。
 - 服务端从精确 Saved Draft 重建执行计划，先创建 run v3 running 记录，再执行一次本地 retrieval；pre-run store 失败时 retrieval / provider 调用均为 0。
 - 检索成功后，片段正文只在有界内存中组成 LLM packet；run record 只保存 fragment refs、digests、排名、来源类型与引用。
 
@@ -146,6 +147,8 @@ LLM 输出必须解析为 `workflow_rag_answer.v1`：
 - `confidence` 只允许 `low / medium / high`，不作为业务决策授权。
 
 未知引用、跨快照引用、未召回引用、重复引用、空回答或无法解析的模型输出都进入稳定失败。来源优先级沿用 Radish docs QA 的可复用原则：`is_official=true` 的正式来源优先，FAQ / forum 只能作为补充；但具体来源权重属于 profile 版本，不写死在 Web。
+
+批次 B 的完整 answer 只存在于同步 execution 响应和请求内有界内存中；`workflow_run_record.v3.answer` 固定为 `null`，普通 Run History 只展示 citation refs 等 metadata，避免把模型原始响应或回答正文变成持久化副本。
 
 ## API 与权限设计
 
@@ -178,6 +181,8 @@ snapshot、version、fragment 与 snapshot audit 归入新的 Workflow retrieval
 - `postgres_dev_test` 在 workflow runtime migration 链中追加 migration；
 - selector、marker 或 migration 不匹配时 fail closed，不回退 memory。
 
+批次 B 的 SQLite migration 为 `0005_workflow_rag_execution_audits`，沿用物理 marker `workflow_runs_store_v3`；PostgreSQL migration 为 `0009_workflow_rag_execution_audits`，marker 推进为 `workflow_run_store_v9`。两者都扩展 execution audit event 约束，且 run v0 / v1 / v2 的既有记录与 HTTP Tool 外键保持兼容。
+
 run v3 继续写入既有 workflow run store。snapshot 创建 / 新版本 / archive 各自在单库事务内完成资源、fragment 与 audit；retrieval execution 不锁住 snapshot 内容，只读取不可变精确版本。run 创建成功但本地检索或 LLM 失败时写真实失败终态，不 retry；进程崩溃继续复用 metadata-only reconciliation，不重做 retrieval。
 
 ## Run History、比较与评测边界
@@ -189,7 +194,7 @@ run v3 继续写入既有 workflow run store。snapshot 创建 / 新版本 / arc
 - candidate count、selected fragment refs / digests / ranks / source types；
 - retrieval latency、context bytes、citation refs；
 - `retrieval_calls=1`、`tool_calls=0`、`confirmation_calls=0`、`business_writes=0`、`replay_writes=0`；
-- provider / model、节点状态与结构化失败诊断。
+- provider / model、retrieval attempt 状态与结构化失败诊断。
 
 Run History summary 不返回 fragment 正文或原始 query。detail 可在 snapshot read 授权下按 run 绑定的 fragment refs 读取最多 512 字符的片段预览，并明确其来自不可变 snapshot repository，不从 run record 读取复制内容。
 
@@ -212,8 +217,10 @@ Run History summary 不返回 fragment 正文或原始 query。detail 可在 sna
 | `workflow_rag_budget_exceeded` | snapshot、检索或 context 预算超限 |
 | `workflow_rag_no_evidence` | 没有满足阈值的片段 |
 | `workflow_rag_retrieval_failed` | 本地排名器确定失败 |
+| `workflow_rag_gateway_failed` | 既有 Gateway 或 provider 未完成本次单次调用 |
 | `workflow_rag_answer_invalid` | LLM 输出不满足结构化回答契约 |
 | `workflow_rag_citation_invalid` | 引用未知、跨快照或未被召回 |
+| `workflow_rag_execution_interrupted` | 遗留 running run 在进程恢复后只收敛为失败，不重做 retrieval / Gateway |
 | `workflow_rag_store_unavailable` | repository / run store 不可用且不回退 |
 
 诊断边界增加 `retrieval_policy / retrieval_store / retrieval_rank / retrieval_context / retrieval_citation`，并使用独立 `retrieval_failure_category`。审计事件包括 snapshot created / versioned / archived、retrieval started / succeeded / failed；审计不保存 fragment 正文、query、prompt packet 或模型原始响应。
@@ -223,8 +230,8 @@ Run History summary 不返回 fragment 正文或原始 query。detail 可在 sna
 设计评审通过后，一张任务卡内按依赖实施：
 
 1. 批次 A：版本化 snapshot / fragment / profile / answer / audit / run v3 契约，snapshot 生命周期 API，确定性 lexical provider，memory / SQLite / PostgreSQL repository 与 Web snapshot 管理；本批不启动 Workflow retrieval run。
-2. 批次 B：独立 retrieval execution service / route、run v3、结构化 answer / citation validator、Gateway handoff、诊断、reconciliation 和三种 store 一致性。
-3. 批次 C：Draft Designer 精确 `rag_ref` 选择、显式 execution、Run History v3、SQLite / PostgreSQL 连续链、真实浏览器创建快照到重启恢复，以及正文 / query / credential 泄漏审计。
+2. 批次 B：独立 retrieval execution service / route、run v3、结构化 answer / citation validator、Gateway handoff、诊断、reconciliation 和三种 store 一致性；已完成。
+3. 批次 C：Draft Designer 精确 `rag_ref` 选择、显式 execution、Run History v3 Web 消费、SQLite / PostgreSQL 连续链、真实浏览器创建快照到重启恢复，以及正文 / query / credential 泄漏审计；当前为 `ready_for_implementation`。
 
 只有三个批次全部通过，才能声明 `workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_completed`。每批优先扩 Go / TypeScript 行为测试和既有聚合门禁；只有现有证据无法承载新的 schema / 执行边界时才增加一个专项 contract checker，不派生 readiness 链。
 
@@ -246,4 +253,4 @@ Run History summary 不返回 fragment 正文或原始 query。detail 可在 sna
 - 不修改上游文档、Wiki、FAQ、论坛或业务真相源，不把 snapshot 当上游最新真相。
 - 不打开多 retrieval、并行、循环、agent loop、background run、replay、resume、writeback 或 publish。
 - 不把开发测试态 lexical relevance、SQLite / PostgreSQL store 或浏览器闭环写成 production RAG ready。
-- 不在批次 A 完成前注册 retrieval execution、接 Gateway 或创建 run v3 runtime。
+- 批次 C 只承接 Web 纵向链和真实浏览器 / 双数据库连续验收，不在该批扩 crawler、online search、vector / embedding、复杂拓扑或生产能力。

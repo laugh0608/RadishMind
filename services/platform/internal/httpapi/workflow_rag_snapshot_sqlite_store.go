@@ -97,6 +97,37 @@ func (repository *sqliteWorkflowRAGSnapshotRepository) ReadVersion(ctx WorkflowR
 	return resource, record, nil
 }
 
+func (repository *sqliteWorkflowRAGSnapshotRepository) ReadByRAGRef(ctx WorkflowRAGSnapshotContext, ragRef string) (WorkflowRAGSnapshotResource, WorkflowRAGSnapshotRecord, error) {
+	key, version, ok := parseWorkflowRAGRAGRef(ragRef)
+	if !ok || repository == nil || repository.database == nil {
+		return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGNotFound
+	}
+	resource, err := scanWorkflowRAGResource(repository.database.QueryRowContext(workflowRAGDatabaseContext(ctx), `SELECT sanitized_resource_payload
+	 FROM workflow_rag_snapshot_resources WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND snapshot_key=?`,
+		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, key), ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		var count int
+		if countErr := repository.database.QueryRowContext(workflowRAGDatabaseContext(ctx), `SELECT count(*) FROM workflow_rag_snapshot_resources WHERE snapshot_key=?`, key).Scan(&count); countErr != nil {
+			return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGStoreUnavailable
+		}
+		if count > 0 {
+			return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGScopeDenied
+		}
+		return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGNotFound
+	}
+	if err != nil {
+		return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, workflowRAGStoreError(err)
+	}
+	record, err := readSQLiteWorkflowRAGVersion(ctx, repository.database, resource.SnapshotID, version)
+	if errors.Is(err, sql.ErrNoRows) {
+		return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGNotFound
+	}
+	if err != nil {
+		return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, workflowRAGStoreError(err)
+	}
+	return resource, record, nil
+}
+
 func (repository *sqliteWorkflowRAGSnapshotRepository) ReadLatest(ctx WorkflowRAGSnapshotContext, snapshotID string) (WorkflowRAGSnapshotResource, WorkflowRAGSnapshotRecord, error) {
 	if repository == nil || repository.database == nil {
 		return WorkflowRAGSnapshotResource{}, WorkflowRAGSnapshotRecord{}, errWorkflowRAGStoreUnavailable
@@ -239,6 +270,25 @@ func insertSQLiteWorkflowRAGAudit(ctx WorkflowRAGSnapshotContext, tx *sql.Tx, au
 		audit.EventID, audit.EventKind, audit.SnapshotVersion, audit.SnapshotDigest, audit.ActorRef, audit.RequestID,
 		audit.AuditRef, occurredAt.UnixNano(), string(payload))
 	if err != nil {
+		return errWorkflowRAGStoreUnavailable
+	}
+	return nil
+}
+
+func (repository *sqliteWorkflowRAGSnapshotRepository) AppendAudit(ctx WorkflowRAGSnapshotContext, audit WorkflowRAGExecutionAudit) error {
+	payload, err := encodeWorkflowRAGAudit(audit, ctx)
+	if err != nil || repository == nil || repository.database == nil {
+		return errWorkflowRAGStoreContract
+	}
+	tx, err := repository.database.BeginTx(workflowRAGDatabaseContext(ctx), nil)
+	if err != nil {
+		return errWorkflowRAGStoreUnavailable
+	}
+	defer func() { _ = tx.Rollback() }()
+	if err = insertSQLiteWorkflowRAGAudit(ctx, tx, audit, payload); err != nil {
+		return err
+	}
+	if err = tx.Commit(); err != nil {
 		return errWorkflowRAGStoreUnavailable
 	}
 	return nil

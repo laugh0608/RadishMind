@@ -221,6 +221,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationPublishCandidateReadRoute, server.handleReadApplicationPublishCandidate)
 	mux.HandleFunc(applicationPublishCandidateReviewRoute, server.handleReviewApplicationPublishCandidate)
 	mux.HandleFunc(workflowExecutorStartRoute, server.handleStartWorkflowRun)
+	mux.HandleFunc("POST "+workflowRAGExecutionRoute, server.handleWorkflowRAGExecution)
 	mux.HandleFunc(workflowRAGSnapshotCreateRoute, server.handleCreateWorkflowRAGSnapshot)
 	mux.HandleFunc(workflowRAGSnapshotListRoute, server.handleListWorkflowRAGSnapshots)
 	mux.HandleFunc(workflowRAGSnapshotReadRoute, server.handleReadWorkflowRAGSnapshot)

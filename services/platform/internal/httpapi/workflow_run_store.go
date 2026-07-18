@@ -194,7 +194,11 @@ func validateWorkflowRunStoreRecord(runContext WorkflowRunContext, record *Workf
 		len([]rune(record.FailureSummary)) > 256 || workflowRunRecordContainsEndpoint(record) {
 		return errWorkflowRunStoreContract
 	}
-	if record.SchemaVersion == workflowRunRecordToolSchemaVersion {
+	if record.SchemaVersion == workflowRunRecordRAGSchemaVersion {
+		if err := validateWorkflowRAGRunStoreRecord(runContext, record); err != nil {
+			return errWorkflowRunStoreContract
+		}
+	} else if record.SchemaVersion == workflowRunRecordToolSchemaVersion {
 		if err := validateWorkflowRunToolRecord(runContext, record); err != nil ||
 			!validWorkflowRunDiagnostic(record.Diagnostic, isTerminalWorkflowRunStatus(record.Status)) {
 			return errWorkflowRunStoreContract
@@ -234,7 +238,7 @@ func workflowRunRecordContainsEndpoint(record *WorkflowRunRecord) bool {
 
 func validWorkflowRunRecordSchema(schemaVersion string) bool {
 	return schemaVersion == workflowRunRecordSchemaVersion || schemaVersion == workflowRunRecordLegacySchemaVersion ||
-		schemaVersion == workflowRunRecordToolSchemaVersion
+		schemaVersion == workflowRunRecordToolSchemaVersion || schemaVersion == workflowRunRecordRAGSchemaVersion
 }
 
 func validWorkflowRunStatus(status WorkflowRunStatus) bool {
@@ -264,6 +268,22 @@ func cloneWorkflowRunRecord(record WorkflowRunRecord) WorkflowRunRecord {
 			attempt.OutputProjection[key] = value
 		}
 		cloned.ToolAttempt = &attempt
+	}
+	if record.RAGSnapshot != nil {
+		snapshot := *record.RAGSnapshot
+		cloned.RAGSnapshot = &snapshot
+	}
+	if record.RetrievalAttempt != nil {
+		attempt := *record.RetrievalAttempt
+		attempt.SelectedFragments = append([]workflowRAGRunSelectedFragment(nil), record.RetrievalAttempt.SelectedFragments...)
+		attempt.CitationRefs = cloneStringSlice(record.RetrievalAttempt.CitationRefs)
+		cloned.RetrievalAttempt = &attempt
+	}
+	if record.RAGAnswer != nil {
+		answer := *record.RAGAnswer
+		answer.Citations = append([]WorkflowRAGCitation(nil), record.RAGAnswer.Citations...)
+		answer.Limitations = cloneStringSlice(record.RAGAnswer.Limitations)
+		cloned.RAGAnswer = &answer
 	}
 	cloned.Nodes = make([]WorkflowRunNodeRecord, 0, len(record.Nodes))
 	for _, node := range record.Nodes {

@@ -97,6 +97,9 @@ func (service workflowExecutorService) CompareRuns(runContext WorkflowRunContext
 	if result.FailureCode != "" {
 		return result
 	}
+	if baseline.SchemaVersion == workflowRunRecordRAGSchemaVersion || candidate.SchemaVersion == workflowRunRecordRAGSchemaVersion {
+		return workflowRunComparisonFailure(WorkflowRunFailureRetrievalUnsupported)
+	}
 	if workflowRunComparisonSideEffectProfileUnsupported(baseline) || workflowRunComparisonSideEffectProfileUnsupported(candidate) {
 		return workflowRunComparisonFailure(WorkflowRunFailureSideEffectUnsupported)
 	}
@@ -295,6 +298,9 @@ func workflowRunComparisonFailure(code WorkflowRunFailureCode) WorkflowRunCompar
 	}
 	if code == WorkflowRunFailureSideEffectUnsupported {
 		summary = "Workflow run comparison does not support controlled tool side-effect profiles."
+	}
+	if code == WorkflowRunFailureRetrievalUnsupported {
+		summary = "Workflow run comparison does not support workflow retrieval profiles."
 	}
 	return WorkflowRunComparisonResult{FailureCode: code, FailureSummary: summary}
 }

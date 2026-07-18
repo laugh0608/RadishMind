@@ -124,6 +124,7 @@ type Config struct {
 	WorkflowToolActionDevEnabled         bool
 	WorkflowHTTPToolExecutionDevEnabled  bool
 	WorkflowRAGSnapshotDevEnabled        bool
+	WorkflowRAGExecutionDevEnabled       bool
 	WorkflowHTTPToolTestLoopbackEnabled  bool
 	WorkflowDiagnosticsDevEnabled        bool
 	GatewayRequestHistoryDevEnabled      bool
@@ -183,6 +184,7 @@ type ConfigSummary struct {
 	WorkflowToolActionDevEnabled         bool              `json:"workflow_tool_action_dev_enabled"`
 	WorkflowHTTPToolExecutionDevEnabled  bool              `json:"workflow_http_tool_execution_dev_enabled"`
 	WorkflowRAGSnapshotDevEnabled        bool              `json:"workflow_rag_snapshot_dev_enabled"`
+	WorkflowRAGExecutionDevEnabled       bool              `json:"workflow_rag_execution_dev_enabled"`
 	WorkflowHTTPToolTestLoopbackEnabled  bool              `json:"workflow_http_tool_test_loopback_enabled"`
 	WorkflowDiagnosticsDevEnabled        bool              `json:"workflow_diagnostics_dev_enabled"`
 	GatewayRequestHistoryDevEnabled      bool              `json:"gateway_request_history_dev_enabled"`
@@ -358,6 +360,7 @@ func defaultConfig() Config {
 			"workflow_tool_action_dev":              configSourceDefault,
 			"workflow_http_tool_execution_dev":      configSourceDefault,
 			"workflow_rag_snapshot_dev":             configSourceDefault,
+			"workflow_rag_execution_dev":            configSourceDefault,
 			"workflow_http_tool_test_loopback":      configSourceDefault,
 			"workflow_diagnostics_dev":              configSourceDefault,
 			"gateway_request_history_dev":           configSourceDefault,
@@ -798,6 +801,14 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.WorkflowRAGSnapshotDevEnabled = parsed
 		cfg.FieldSources["workflow_rag_snapshot_dev"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_RAG_EXECUTION_DEV"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_RAG_EXECUTION_DEV", value)
+		if err != nil {
+			return err
+		}
+		cfg.WorkflowRAGExecutionDevEnabled = parsed
+		cfg.FieldSources["workflow_rag_execution_dev"] = configSourceEnv
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_HTTP_TOOL_TEST_LOOPBACK"); ok {
 		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_HTTP_TOOL_TEST_LOOPBACK", value)
 		if err != nil {
@@ -1028,6 +1039,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if cfg.WorkflowRAGSnapshotDevEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 	}
+	if cfg.WorkflowRAGExecutionDevEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "workflow_saved_draft_dev_http")
+	}
 	if cfg.WorkflowHTTPToolTestLoopbackEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_http_tool_execution_dev")
 	}
@@ -1045,12 +1060,16 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	}
 	if workflowRunStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
-		requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
+		if !cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled {
+			requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
+		}
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_run_database")
 	}
 	if workflowRunStoreMode == "sqlite_dev" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
-		requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
+		if !cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled {
+			requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
+		}
 	}
 	if controlPlaneReadStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_verified_auth")
@@ -1091,6 +1110,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		WorkflowToolActionDevEnabled:         cfg.WorkflowToolActionDevEnabled,
 		WorkflowHTTPToolExecutionDevEnabled:  cfg.WorkflowHTTPToolExecutionDevEnabled,
 		WorkflowRAGSnapshotDevEnabled:        cfg.WorkflowRAGSnapshotDevEnabled,
+		WorkflowRAGExecutionDevEnabled:       cfg.WorkflowRAGExecutionDevEnabled,
 		WorkflowHTTPToolTestLoopbackEnabled:  cfg.WorkflowHTTPToolTestLoopbackEnabled,
 		WorkflowDiagnosticsDevEnabled:        cfg.WorkflowDiagnosticsDevEnabled,
 		GatewayRequestHistoryDevEnabled:      cfg.GatewayRequestHistoryDevEnabled,
@@ -1635,6 +1655,9 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	if cfg.WorkflowRAGSnapshotDevEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return fmt.Errorf("workflow RAG snapshot dev requires control plane read dev auth")
 	}
+	if cfg.WorkflowRAGExecutionDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled) {
+		return fmt.Errorf("workflow RAG execution dev requires control plane read dev auth and saved workflow draft dev HTTP")
+	}
 	if cfg.WorkflowHTTPToolTestLoopbackEnabled && !cfg.WorkflowHTTPToolExecutionDevEnabled {
 		return fmt.Errorf("workflow HTTP tool test loopback requires workflow HTTP tool execution dev")
 	}
@@ -1642,12 +1665,12 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	case "", "memory_dev", "repository_disabled", "repository":
 	case "sqlite_dev":
 		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled ||
-			!cfg.WorkflowExecutorDevEnabled {
-			return fmt.Errorf("workflow run sqlite_dev store requires control plane read dev auth, saved workflow draft dev HTTP, and workflow executor dev")
+			(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled) {
+			return fmt.Errorf("workflow run sqlite_dev store requires control plane read dev auth, saved workflow draft dev HTTP, and a workflow execution dev gate")
 		}
 	case "postgres_dev_test":
 		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled ||
-			!cfg.WorkflowExecutorDevEnabled || strings.TrimSpace(cfg.WorkflowRunDatabaseURL) == "" {
+			(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled) || strings.TrimSpace(cfg.WorkflowRunDatabaseURL) == "" {
 			return fmt.Errorf("workflow run postgres_dev_test store requires complete development gates and a database URL")
 		}
 	default:

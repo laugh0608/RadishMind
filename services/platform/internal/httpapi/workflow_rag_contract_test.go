@@ -37,7 +37,7 @@ func TestWorkflowRAGContractValidatorsAcceptVersionedShapes(t *testing.T) {
 	run := workflowRAGRunRecordV3{
 		SchemaVersion: "workflow_run_record.v3", RecordVersion: 1, RunID: "run_aaaaaaaaaaaaaaaa",
 		TenantRef: "tenant_demo", WorkspaceID: "workspace_demo", ApplicationID: "app_flow_copilot",
-		DraftID: "draft_contract", DraftVersion: 1, Status: "succeeded", FailureSummary: "",
+		DraftID: "draft_contract", DraftVersion: 1, DraftDigest: workflowRAGSHA256("draft"), Status: "succeeded", FailureSummary: "",
 		StartedAt: "2026-07-17T12:00:00Z", CompletedAt: &completedAt,
 		Snapshot: workflowRAGRunSnapshotBinding{
 			SnapshotID: created.Record.SnapshotID, SnapshotVersion: 1,
@@ -53,7 +53,7 @@ func TestWorkflowRAGContractValidatorsAcceptVersionedShapes(t *testing.T) {
 			}},
 			RetrievalLatencyMS: 2, ContextBytes: 27, CitationRefs: []string{"official_guide"},
 		},
-		Answer: &answer, SelectedProvider: "mock", SelectedModel: "mock-rag",
+		Answer: nil, SelectedProvider: "mock", SelectedModel: "mock-rag",
 		RequestID: "request_run_v3", AuditRef: "audit_run_v3", ActorRef: "subject_owner",
 		SideEffects: workflowRAGRunSideEffects{RetrievalCalls: 1, ProviderCalls: 1},
 		Diagnostic:  workflowRAGRunDiagnostic{FailureBoundary: "none", RetrievalFailureCategory: "none"},
@@ -94,7 +94,7 @@ func TestWorkflowRAGContractValidatorsRejectUnknownForbiddenAndVersionDrift(t *t
 	invalidRun := workflowRAGRunRecordV3{
 		SchemaVersion: "workflow_run_record.v3", RecordVersion: 1, RunID: "run_aaaaaaaaaaaaaaaa",
 		TenantRef: "tenant_demo", WorkspaceID: "workspace_demo", ApplicationID: "app_flow_copilot",
-		DraftID: "draft_contract", DraftVersion: 1, Status: "succeeded", StartedAt: "2026-07-17T12:00:00Z",
+		DraftID: "draft_contract", DraftVersion: 1, DraftDigest: workflowRAGSHA256("draft"), Status: "succeeded", StartedAt: "2026-07-17T12:00:00Z",
 		Snapshot:         workflowRAGRunSnapshotBinding{SnapshotID: "rags_dddddddddddddddd", SnapshotVersion: 1, SnapshotDigest: workflowRAGSHA256("snapshot"), RAGRef: "workflow.rag.contract_manual.v1"},
 		RetrievalAttempt: workflowRAGRunRetrievalAttempt{NodeID: "node_retrieval", Status: "succeeded", ProfileID: workflowRAGProfileID, ProfileVersion: 1, ProfileDigest: workflowRAGSHA256("profile"), QueryDigest: workflowRAGSHA256("query"), CandidateCount: 1},
 		SelectedProvider: "https://forbidden.invalid", SelectedModel: "mock-rag", RequestID: "request_run_v3", AuditRef: "audit_run_v3", ActorRef: "subject_owner",

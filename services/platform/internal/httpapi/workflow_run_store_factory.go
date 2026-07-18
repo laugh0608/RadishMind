@@ -33,7 +33,7 @@ func newWorkflowRunStoreFromConfigWithSQLiteRuntime(
 	}
 	if mode == workflowRunStoreModeSQLiteDev {
 		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled ||
-			!cfg.WorkflowExecutorDevEnabled {
+			(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled) {
 			return nil, nil, errors.New("sqlite_dev workflow run store config is incomplete")
 		}
 		if sqliteRuntime == nil || sqliteRuntime.DB() == nil {
@@ -57,7 +57,7 @@ func newWorkflowRunStoreFromConfigWithSQLiteRuntime(
 		return nil, nil, fmt.Errorf("%s", WorkflowRunFailureStoreModeInvalid)
 	}
 	if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled ||
-		!cfg.WorkflowExecutorDevEnabled || strings.TrimSpace(cfg.WorkflowRunDatabaseURL) == "" {
+		(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled) || strings.TrimSpace(cfg.WorkflowRunDatabaseURL) == "" {
 		return nil, nil, errors.New("postgres_dev_test workflow run store config is incomplete")
 	}
 	timeout := cfg.WorkflowRunDatabaseTimeout

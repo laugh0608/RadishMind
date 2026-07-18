@@ -10,17 +10,24 @@ import (
 type WorkflowRunFailureBoundary string
 
 const (
-	WorkflowRunFailureBoundaryDraftRead        WorkflowRunFailureBoundary = "draft_read"
-	WorkflowRunFailureBoundaryExecutor         WorkflowRunFailureBoundary = "executor"
-	WorkflowRunFailureBoundaryGateway          WorkflowRunFailureBoundary = "gateway"
-	WorkflowRunFailureBoundaryProvider         WorkflowRunFailureBoundary = "provider"
-	WorkflowRunFailureBoundaryRunStore         WorkflowRunFailureBoundary = "run_store"
-	WorkflowRunFailureBoundaryRequest          WorkflowRunFailureBoundary = "request"
-	WorkflowRunFailureBoundaryToolPolicy       WorkflowRunFailureBoundary = "tool_policy"
-	WorkflowRunFailureBoundaryToolConfirmation WorkflowRunFailureBoundary = "tool_confirmation"
-	WorkflowRunFailureBoundaryToolTransport    WorkflowRunFailureBoundary = "tool_transport"
-	WorkflowRunFailureBoundaryToolResponse     WorkflowRunFailureBoundary = "tool_response"
-	WorkflowRunFailureBoundaryToolStore        WorkflowRunFailureBoundary = "tool_store"
+	WorkflowRunFailureBoundaryDraftRead         WorkflowRunFailureBoundary = "draft_read"
+	WorkflowRunFailureBoundaryExecutor          WorkflowRunFailureBoundary = "executor"
+	WorkflowRunFailureBoundaryGateway           WorkflowRunFailureBoundary = "gateway"
+	WorkflowRunFailureBoundaryProvider          WorkflowRunFailureBoundary = "provider"
+	WorkflowRunFailureBoundaryRunStore          WorkflowRunFailureBoundary = "run_store"
+	WorkflowRunFailureBoundaryRequest           WorkflowRunFailureBoundary = "request"
+	WorkflowRunFailureBoundaryToolPolicy        WorkflowRunFailureBoundary = "tool_policy"
+	WorkflowRunFailureBoundaryToolConfirmation  WorkflowRunFailureBoundary = "tool_confirmation"
+	WorkflowRunFailureBoundaryToolTransport     WorkflowRunFailureBoundary = "tool_transport"
+	WorkflowRunFailureBoundaryToolResponse      WorkflowRunFailureBoundary = "tool_response"
+	WorkflowRunFailureBoundaryToolStore         WorkflowRunFailureBoundary = "tool_store"
+	WorkflowRunFailureBoundaryRetrievalPolicy   WorkflowRunFailureBoundary = "retrieval_policy"
+	WorkflowRunFailureBoundaryRetrievalStore    WorkflowRunFailureBoundary = "retrieval_store"
+	WorkflowRunFailureBoundaryRetrievalRank     WorkflowRunFailureBoundary = "retrieval_rank"
+	WorkflowRunFailureBoundaryRetrievalContext  WorkflowRunFailureBoundary = "retrieval_context"
+	WorkflowRunFailureBoundaryRetrievalCitation WorkflowRunFailureBoundary = "retrieval_citation"
+	WorkflowRunFailureBoundaryProviderSelection WorkflowRunFailureBoundary = "provider_selection"
+	WorkflowRunFailureBoundaryProviderCall      WorkflowRunFailureBoundary = "provider_call"
 )
 
 type WorkflowRunGatewayFailureCategory string
@@ -57,16 +64,17 @@ const (
 )
 
 type WorkflowRunDiagnostic struct {
-	FailureBoundary         WorkflowRunFailureBoundary        `json:"failure_boundary"`
-	FailureStage            string                            `json:"failure_stage"`
-	FailedNodeID            string                            `json:"failed_node_id"`
-	LastCompletedNodeID     string                            `json:"last_completed_node_id"`
-	TerminalWriteState      WorkflowRunTerminalWriteState     `json:"terminal_write_state"`
-	GatewayFailureCategory  WorkflowRunGatewayFailureCategory `json:"gateway_failure_category"`
-	ToolFailureCategory     WorkflowHTTPToolFailureCategory   `json:"tool_failure_category,omitempty"`
-	Summary                 string                            `json:"summary"`
-	RecommendedReviewAction WorkflowRunReviewAction           `json:"recommended_review_action"`
-	ObservedAt              string                            `json:"observed_at"`
+	FailureBoundary          WorkflowRunFailureBoundary        `json:"failure_boundary"`
+	FailureStage             string                            `json:"failure_stage"`
+	FailedNodeID             string                            `json:"failed_node_id"`
+	LastCompletedNodeID      string                            `json:"last_completed_node_id"`
+	TerminalWriteState       WorkflowRunTerminalWriteState     `json:"terminal_write_state"`
+	GatewayFailureCategory   WorkflowRunGatewayFailureCategory `json:"gateway_failure_category"`
+	ToolFailureCategory      WorkflowHTTPToolFailureCategory   `json:"tool_failure_category,omitempty"`
+	RetrievalFailureCategory string                            `json:"retrieval_failure_category,omitempty"`
+	Summary                  string                            `json:"summary"`
+	RecommendedReviewAction  WorkflowRunReviewAction           `json:"recommended_review_action"`
+	ObservedAt               string                            `json:"observed_at"`
 }
 
 type WorkflowRunDevFailureScenario string
@@ -222,7 +230,10 @@ func validWorkflowRunFailureBoundary(value WorkflowRunFailureBoundary) bool {
 		WorkflowRunFailureBoundaryRunStore, WorkflowRunFailureBoundaryRequest,
 		WorkflowRunFailureBoundaryToolPolicy, WorkflowRunFailureBoundaryToolConfirmation,
 		WorkflowRunFailureBoundaryToolTransport, WorkflowRunFailureBoundaryToolResponse,
-		WorkflowRunFailureBoundaryToolStore:
+		WorkflowRunFailureBoundaryToolStore, WorkflowRunFailureBoundaryRetrievalPolicy,
+		WorkflowRunFailureBoundaryRetrievalStore, WorkflowRunFailureBoundaryRetrievalRank,
+		WorkflowRunFailureBoundaryRetrievalContext, WorkflowRunFailureBoundaryRetrievalCitation,
+		WorkflowRunFailureBoundaryProviderSelection, WorkflowRunFailureBoundaryProviderCall:
 		return true
 	default:
 		return false
@@ -244,7 +255,8 @@ func validWorkflowRunFailureCode(value WorkflowRunFailureCode) bool {
 		WorkflowRunFailureToolConfirmation, WorkflowRunFailureToolTransport,
 		WorkflowRunFailureToolTimeout, WorkflowRunFailureToolResponseStatus,
 		WorkflowRunFailureToolResponseTooLarge, WorkflowRunFailureToolResponseInvalid,
-		WorkflowRunFailureToolStore, WorkflowRunFailureToolOutcomeUnknown:
+		WorkflowRunFailureToolStore, WorkflowRunFailureToolOutcomeUnknown,
+		WorkflowRunFailureRetrievalUnsupported:
 		return true
 	default:
 		return false

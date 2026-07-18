@@ -96,6 +96,19 @@ func TestWorkflowRunSQLiteStoreFactoryRequiresDevelopmentGates(t *testing.T) {
 	}
 }
 
+func TestWorkflowRunSQLiteStoreFactoryAcceptsIndependentRAGExecutionGate(t *testing.T) {
+	runtime := openWorkflowRunSQLiteRuntime(t, filepath.Join(t.TempDir(), "radishmind.db"))
+	cfg := sqliteWorkflowRunConfig()
+	cfg.WorkflowExecutorDevEnabled = false
+	cfg.WorkflowRAGExecutionDevEnabled = true
+
+	store, closeStore, err := newWorkflowRunStoreFromConfigWithSQLiteRuntime(cfg, runtime)
+	if err != nil || store == nil || closeStore == nil {
+		t.Fatalf("independent RAG execution gate did not select SQLite run store: store=%#v close_set=%v err=%v", store, closeStore != nil, err)
+	}
+	closeStore()
+}
+
 func sqliteWorkflowRunConfig() config.Config {
 	return config.Config{
 		ControlPlaneReadDevAuthEnabled:   true,

@@ -35,6 +35,7 @@ const (
 	WorkflowEvaluationFailureVersionConflict   WorkflowEvaluationFailureCode = "workflow_evaluation_version_conflict"
 	WorkflowEvaluationFailureRevisionCursor    WorkflowEvaluationFailureCode = "workflow_evaluation_revision_cursor_invalid"
 	WorkflowEvaluationFailureSideEffectProfile WorkflowEvaluationFailureCode = "workflow_run_side_effect_profile_unsupported"
+	WorkflowEvaluationFailureRetrievalProfile  WorkflowEvaluationFailureCode = "workflow_run_retrieval_profile_unsupported"
 )
 
 type WorkflowEvaluationRevisionKind string
@@ -329,6 +330,9 @@ func (s workflowEvaluationService) validateDefinition(ctx WorkflowRunContext, ra
 		if !found {
 			return "", "", nil, WorkflowEvaluationFailureNotFound
 		}
+		if record.SchemaVersion == workflowRunRecordRAGSchemaVersion {
+			return "", "", nil, WorkflowEvaluationFailureRetrievalProfile
+		}
 		if workflowRunComparisonSideEffectProfileUnsupported(record) {
 			return "", "", nil, WorkflowEvaluationFailureSideEffectProfile
 		}
@@ -337,6 +341,27 @@ func (s workflowEvaluationService) validateDefinition(ctx WorkflowRunContext, ra
 		}
 	}
 	return name, baseline, normalized, ""
+}
+
+func (s workflowEvaluationService) retrievalProfileFailure(ctx WorkflowRunContext, evaluation WorkflowEvaluationCase) WorkflowEvaluationFailureCode {
+	runIDs := make([]string, 0, len(evaluation.Expectations)+1)
+	runIDs = append(runIDs, evaluation.BaselineRunID)
+	for _, expectation := range evaluation.Expectations {
+		runIDs = append(runIDs, expectation.CandidateRunID)
+	}
+	for _, runID := range runIDs {
+		record, found, err := s.runStore.ReadRun(ctx, runID)
+		if err != nil {
+			return mapWorkflowEvaluationStoreError(err)
+		}
+		if !found {
+			continue
+		}
+		if record.SchemaVersion == workflowRunRecordRAGSchemaVersion {
+			return WorkflowEvaluationFailureRetrievalProfile
+		}
+	}
+	return ""
 }
 
 func (s workflowEvaluationService) Revise(ctx WorkflowRunContext, id string, request WorkflowEvaluationRevisionRequest) WorkflowEvaluationResult {
@@ -486,6 +511,12 @@ func (s workflowEvaluationService) ReviewVersion(ctx WorkflowRunContext, id stri
 			continue
 		}
 		if result.FailureCode != "" {
+			if result.FailureCode == WorkflowRunFailureRetrievalUnsupported {
+				return WorkflowEvaluationReviewResult{
+					FailureCode:    WorkflowEvaluationFailureRetrievalProfile,
+					FailureSummary: "Workflow evaluation does not support workflow retrieval profiles.",
+				}
+			}
 			if result.FailureCode == WorkflowRunFailureSideEffectUnsupported {
 				return WorkflowEvaluationReviewResult{
 					FailureCode:    WorkflowEvaluationFailureSideEffectProfile,
@@ -726,6 +757,8 @@ func workflowEvaluationFailure(code WorkflowEvaluationFailureCode) WorkflowEvalu
 		summary = "Workflow evaluation changed; review the current version before revising."
 	} else if code == WorkflowEvaluationFailureSideEffectProfile {
 		summary = "Workflow evaluation does not support controlled tool side-effect profiles."
+	} else if code == WorkflowEvaluationFailureRetrievalProfile {
+		summary = "Workflow evaluation does not support workflow retrieval profiles."
 	}
 	return WorkflowEvaluationResult{FailureCode: code, FailureSummary: summary}
 }

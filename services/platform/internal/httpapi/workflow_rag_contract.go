@@ -76,6 +76,7 @@ type workflowRAGRunRecordV3 struct {
 	ApplicationID    string                         `json:"application_id"`
 	DraftID          string                         `json:"draft_id"`
 	DraftVersion     int                            `json:"draft_version"`
+	DraftDigest      string                         `json:"draft_digest"`
 	Status           string                         `json:"status"`
 	FailureCode      *string                        `json:"failure_code"`
 	FailureSummary   string                         `json:"failure_summary"`
@@ -91,6 +92,54 @@ type workflowRAGRunRecordV3 struct {
 	ActorRef         string                         `json:"actor_ref"`
 	SideEffects      workflowRAGRunSideEffects      `json:"side_effects"`
 	Diagnostic       workflowRAGRunDiagnostic       `json:"diagnostic"`
+}
+
+func marshalWorkflowRAGRunRecord(record WorkflowRunRecord) ([]byte, error) {
+	if record.RAGSnapshot == nil || record.RetrievalAttempt == nil || record.Diagnostic == nil {
+		return nil, errWorkflowRunStoreContract
+	}
+	document := workflowRAGRunRecordV3{
+		SchemaVersion: record.SchemaVersion, RecordVersion: record.RecordVersion, RunID: record.RunID,
+		TenantRef: record.TenantRef, WorkspaceID: record.WorkspaceID, ApplicationID: record.ApplicationID,
+		DraftID: record.DraftID, DraftVersion: record.DraftVersion, DraftDigest: record.DraftDigest, Status: string(record.Status),
+		FailureCode: workflowRAGFailureCodePointer(record.FailureCode), FailureSummary: record.FailureSummary,
+		StartedAt: record.StartedAt, CompletedAt: workflowRAGTimestampPointer(record.CompletedAt),
+		Snapshot: *record.RAGSnapshot, RetrievalAttempt: *record.RetrievalAttempt, Answer: record.RAGAnswer,
+		SelectedProvider: record.SelectedProvider, SelectedModel: record.SelectedModel,
+		RequestID: record.RequestID, AuditRef: record.AuditRef, ActorRef: record.ActorRef,
+		SideEffects: workflowRAGRunSideEffects{
+			RetrievalCalls: record.SideEffects.RetrievalCalls, ProviderCalls: record.SideEffects.ProviderCalls,
+			ToolCalls: record.SideEffects.ToolCalls, ConfirmationCalls: record.SideEffects.ConfirmationCalls,
+			BusinessWrites: record.SideEffects.BusinessWrites, ReplayWrites: record.SideEffects.ReplayWrites,
+		},
+		Diagnostic: workflowRAGRunDiagnostic{
+			FailureBoundary:          workflowRAGDiagnosticValue(string(record.Diagnostic.FailureBoundary)),
+			RetrievalFailureCategory: workflowRAGDiagnosticValue(record.Diagnostic.RetrievalFailureCategory),
+		},
+	}
+	return json.Marshal(document)
+}
+
+func workflowRAGFailureCodePointer(value WorkflowRunFailureCode) *string {
+	if value == "" {
+		return nil
+	}
+	normalized := string(value)
+	return &normalized
+}
+
+func workflowRAGTimestampPointer(value string) *string {
+	if strings.TrimSpace(value) == "" {
+		return nil
+	}
+	return &value
+}
+
+func workflowRAGDiagnosticValue(value string) string {
+	if strings.TrimSpace(value) == "" {
+		return "none"
+	}
+	return value
 }
 
 func validateWorkflowRAGContractJSON(contract string, payload []byte) error {
@@ -206,7 +255,7 @@ func validateWorkflowRAGRunRecordV3(record workflowRAGRunRecordV3) error {
 	if record.SchemaVersion != "workflow_run_record.v3" || record.RecordVersion < 1 || !workflowRAGRunIDPattern.MatchString(record.RunID) ||
 		!workflowRAGReferencePattern.MatchString(record.TenantRef) || !workflowRAGScopedIDPattern.MatchString(record.WorkspaceID) ||
 		!workflowRAGScopedIDPattern.MatchString(record.ApplicationID) || !workflowRAGScopedIDPattern.MatchString(record.DraftID) ||
-		record.DraftVersion < 1 || !workflowRAGRunStatusAllowed(record.Status) || !workflowRAGScopedIDPattern.MatchString(record.RetrievalAttempt.NodeID) ||
+		record.DraftVersion < 1 || !workflowRAGDigestPattern.MatchString(record.DraftDigest) || !workflowRAGRunStatusAllowed(record.Status) || !workflowRAGScopedIDPattern.MatchString(record.RetrievalAttempt.NodeID) ||
 		!workflowRAGSnapshotIDPattern.MatchString(record.Snapshot.SnapshotID) || record.Snapshot.SnapshotVersion < 1 ||
 		!workflowRAGDigestPattern.MatchString(record.Snapshot.SnapshotDigest) ||
 		!workflowRAGRAGRefPattern.MatchString(record.Snapshot.RAGRef) ||
@@ -242,7 +291,7 @@ func validateWorkflowRAGRunRecordV3(record workflowRAGRunRecordV3) error {
 	if record.FailureCode != nil && !workflowRAGRunFailurePattern.MatchString(*record.FailureCode) {
 		return errWorkflowRAGStoreContract
 	}
-	if record.Status == "succeeded" && (record.FailureCode != nil || record.Answer == nil ||
+	if record.Status == "succeeded" && (record.FailureCode != nil || record.Answer != nil || len(record.RetrievalAttempt.CitationRefs) == 0 ||
 		record.RetrievalAttempt.Status != "succeeded" || record.SideEffects.RetrievalCalls != 1 || record.SideEffects.ProviderCalls != 1) {
 		return errWorkflowRAGStoreContract
 	}
@@ -275,21 +324,43 @@ func validateWorkflowRAGRunRecordV3(record workflowRAGRunRecordV3) error {
 		citationRefs[citationRef] = true
 	}
 	if record.Answer != nil {
-		if err := validateWorkflowRAGAnswer(*record.Answer, selectedRefs); err != nil {
-			return err
-		}
-		if len(record.Answer.Citations) != len(citationRefs) {
-			return errWorkflowRAGStoreContract
-		}
-		for _, citation := range record.Answer.Citations {
-			if !citationRefs[citation.FragmentRef] {
-				return errWorkflowRAGStoreContract
-			}
-		}
-	} else if len(citationRefs) != 0 {
 		return errWorkflowRAGStoreContract
 	}
 	return nil
+}
+
+func validateWorkflowRAGRunStoreRecord(runContext WorkflowRunContext, record *WorkflowRunRecord) error {
+	if record == nil || record.SchemaVersion != workflowRunRecordRAGSchemaVersion || record.RecordVersion < 0 ||
+		record.TenantRef != strings.TrimSpace(runContext.TenantRef) || record.WorkspaceID != strings.TrimSpace(runContext.WorkspaceID) ||
+		record.ApplicationID != strings.TrimSpace(runContext.ApplicationID) || record.RAGSnapshot == nil ||
+		record.RetrievalAttempt == nil || record.Diagnostic == nil || record.Output != "" || record.ToolAttempt != nil ||
+		record.PlanID != "" || record.ConfirmationID != "" || len(record.ConditionNodeIDs) != 0 || len(record.Nodes) != 0 {
+		return errWorkflowRunStoreContract
+	}
+	version := record.RecordVersion
+	if version == 0 {
+		version = 1
+	}
+	document := workflowRAGRunRecordV3{
+		SchemaVersion: record.SchemaVersion, RecordVersion: version, RunID: record.RunID,
+		TenantRef: record.TenantRef, WorkspaceID: record.WorkspaceID, ApplicationID: record.ApplicationID,
+		DraftID: record.DraftID, DraftVersion: record.DraftVersion, DraftDigest: record.DraftDigest, Status: string(record.Status),
+		FailureCode: workflowRAGFailureCodePointer(record.FailureCode), FailureSummary: record.FailureSummary,
+		StartedAt: record.StartedAt, CompletedAt: workflowRAGTimestampPointer(record.CompletedAt),
+		Snapshot: *record.RAGSnapshot, RetrievalAttempt: *record.RetrievalAttempt, Answer: record.RAGAnswer,
+		SelectedProvider: record.SelectedProvider, SelectedModel: record.SelectedModel,
+		RequestID: record.RequestID, AuditRef: record.AuditRef, ActorRef: record.ActorRef,
+		SideEffects: workflowRAGRunSideEffects{
+			RetrievalCalls: record.SideEffects.RetrievalCalls, ProviderCalls: record.SideEffects.ProviderCalls,
+			ToolCalls: record.SideEffects.ToolCalls, ConfirmationCalls: record.SideEffects.ConfirmationCalls,
+			BusinessWrites: record.SideEffects.BusinessWrites, ReplayWrites: record.SideEffects.ReplayWrites,
+		},
+		Diagnostic: workflowRAGRunDiagnostic{
+			FailureBoundary:          workflowRAGDiagnosticValue(string(record.Diagnostic.FailureBoundary)),
+			RetrievalFailureCategory: workflowRAGDiagnosticValue(record.Diagnostic.RetrievalFailureCategory),
+		},
+	}
+	return validateWorkflowRAGRunRecordV3(document)
 }
 
 func workflowRAGRunStatusAllowed(value string) bool {
@@ -311,7 +382,7 @@ func workflowRAGFailureBoundaryAllowed(value string) bool {
 
 func workflowRAGFailureCategoryAllowed(value string) bool {
 	switch value {
-	case "none", "scope", "snapshot", "profile", "query", "budget", "no_evidence", "answer", "citation", "store":
+	case "none", "scope", "snapshot", "profile", "query", "budget", "no_evidence", "provider", "answer", "citation", "store":
 		return true
 	default:
 		return false
