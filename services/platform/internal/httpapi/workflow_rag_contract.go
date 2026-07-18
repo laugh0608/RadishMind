@@ -202,6 +202,18 @@ func validateWorkflowRAGContractJSON(contract string, payload []byte) error {
 		}
 		ctx := WorkflowRAGSnapshotContext{TenantRef: review.TenantRef, WorkspaceID: review.WorkspaceID, ApplicationID: review.ApplicationID, ActorRef: review.CreatedByActorRef, RequestID: review.RequestID, AuditRef: review.AuditRef}
 		return validateStoredWorkflowRAGCandidateReview(review, ctx)
+	case workflowRAGPromotionCandidateSchemaVersion:
+		_, err := decodeWorkflowRAGPromotionCandidate(payload)
+		return err
+	case workflowRAGPromotionDecisionSchemaVersion:
+		_, err := decodeWorkflowRAGPromotionDecision(payload)
+		return err
+	case workflowRAGApplicationBindingSchemaVersion:
+		_, err := decodeWorkflowRAGApplicationBinding(payload)
+		return err
+	case workflowRAGPromotionAuditSchemaVersion:
+		_, err := decodeWorkflowRAGPromotionAudit(payload)
+		return err
 	case workflowRAGQualityReviewSchemaVersion:
 		_, err := DecodeWorkflowRAGQualityReview(payload)
 		return err

@@ -113,7 +113,7 @@ Web 在应用知识快照面板之后新增 lazy-loaded dataset / candidate revi
 
 ## 后续顺位
 
-本专题关闭时把“Workflow RAG 知识基线晋级与应用配置绑定审查 v1”交给功能设计层；后续已于 2026-07-18 完成 [独立设计与边界评审](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md)，状态推进为 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_ready_for_implementation`。下一步只按唯一任务卡进入批次 A；仍不得从本专题自动修改 snapshot、dataset baseline、应用配置草案或发布状态，也不得打开自动 promotion / release、Gateway execution、connector、在线搜索或生产能力。
+本专题关闭时把“Workflow RAG 知识基线晋级与应用配置绑定审查 v1”交给功能设计层；后续已于 2026-07-18 完成 [独立设计、边界评审与批次 A](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md)，当前状态为 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_b_ready_for_implementation`。下一步只按唯一任务卡实现 SQLite / PostgreSQL durable store；仍不得从本专题自动修改 snapshot、dataset baseline、应用配置草案或发布状态，也不得打开自动 promotion / release、Gateway execution、connector、在线搜索或生产能力。
 
 ## 验收
 

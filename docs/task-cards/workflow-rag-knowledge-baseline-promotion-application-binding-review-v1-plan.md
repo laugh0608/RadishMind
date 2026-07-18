@@ -2,13 +2,13 @@
 
 更新时间：2026-07-18
 
-状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_ready_for_implementation`
+状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_b_ready_for_implementation`
 
 ## 目标与准入结论
 
 按 [功能设计](../features/workflow/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md)交付“精确 dataset / candidate review / snapshot / profile / source draft → 人工 decision → 不可变 RAG binding → 应用配置草案引用 → 发布治理重校验”的完整开发测试态链路。
 
-设计与边界评审已经通过，批次 A 获得实现准入。当前尚未实现 contract、Go / TypeScript、schema migration、API runtime 或 Web 接线；本任务卡是唯一实现入口，不派生第二张任务卡或同层 readiness 文档。
+设计与边界评审已经通过，批次 A 已完成并通过领域、HTTP、并发与仓库门禁验证；批次 B 获得实现准入。本任务卡继续作为唯一实现入口，不派生第二张任务卡或同层 readiness 文档。
 
 ## 前置基线
 
@@ -19,7 +19,7 @@
 
 ## 批次 A：contract、领域与 memory 纵向链
 
-状态：`ready_for_implementation`。
+状态：`completed`；完成锚点为 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_a_completed`。
 
 - 物化 `workflow_rag_knowledge_promotion_candidate.v1`、`workflow_rag_knowledge_promotion_decision.v1`、`workflow_rag_application_binding.v1` 与 audit contract。
 - 实现服务端重读 dataset version / candidate review / baseline + candidate snapshots / lexical profile / source draft / application baseline。
@@ -29,9 +29,19 @@
 
 批次 A 完成前不得创建 SQLite / PostgreSQL migration，不接应用配置草案或发布候选，不实现 Web。
 
+### 批次 A 完成证据
+
+- 四份 JSON Schema、Go strict codec / validator 与 unknown-field 负例已经物化；candidate digest 覆盖精确 evidence、scope、创建者、创建时间和原始 request / audit ref，后续 decision 不改写这些不可变字段。
+- 服务端从既有 application baseline、application draft、evaluation dataset / candidate review、snapshot repository 与 `workflowRAGLexicalProfile()` 重读全部权威来源；客户端不能提交 snapshot、profile、metrics 或 binding 推导。
+- memory repository 与 workflow run / snapshot / evaluation 共用 owner lock；candidate current projection、decision、binding 和 audit 在单次 CAS append 中原子提交，注入 store failure 不留下部分状态。
+- `approve / reject / defer / cancel`、终态、批准后取消、并发 CAS 单一成功、动态 eligibility、全部 dataset / review / snapshot / profile / draft / application 漂移或归档均有精准测试；非授权性决定可安全关闭漂移候选。
+- 独立 `RADISHMIND_WORKFLOW_RAG_PROMOTION_DEV=1` gate、四条 strict API、dedicated permission mapping、scope / secret guard、metadata-only list / conflict 和禁用门禁均已覆盖。
+- 批次 A 未创建 SQLite / PostgreSQL migration，durable selector 明确失败且不回退 memory；未修改 application draft / publish candidate contract，未接 TypeScript / Web。
+- Gateway 调用和 workflow run 创建均为 0；晋级批准只生成不可变配置 binding 资格，不修改 snapshot、dataset、review、应用配置草案、发布候选或应用状态。
+
 ## 批次 B：workflow durable store 与 migration
 
-状态：等待批次 A。
+状态：`ready_for_implementation`。
 
 - SQLite shared workflow database 追加 `0008_workflow_rag_knowledge_promotions`。
 - PostgreSQL workflow run migration family 在 `0010` 后追加 `0011_workflow_rag_knowledge_promotions`，marker 推进为 `workflow_run_store_v11`。

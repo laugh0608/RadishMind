@@ -12,8 +12,8 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
-| [Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md) | 功能 / 晋级与配置治理专题 | `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_ready_for_implementation` | 固定 exact dataset / review / snapshots / profile / source draft binding、人工 decision、CAS、不可变配置 binding、漂移与发布重校验；下一步进入批次 A |
-| [Workflow RAG 知识基线晋级与应用配置绑定审查 v1 实施任务卡](../../task-cards/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1-plan.md) | 高风险实现批次 | `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_ready_for_implementation` | 唯一实现入口；批次 A 获得准入，当前尚无 runtime、migration、API 或 Web 实现 |
+| [Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md) | 功能 / 晋级与配置治理专题 | `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_b_ready_for_implementation` | 批次 A 已完成 exact binding、服务端重读、人工 decision / CAS、不可变 binding 与 strict API；下一步进入 durable store |
+| [Workflow RAG 知识基线晋级与应用配置绑定审查 v1 实施任务卡](../../task-cards/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1-plan.md) | 高风险实现批次 | `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_b_ready_for_implementation` | 唯一实现入口；批次 B 已获准入，配置 attach、发布治理与 Web 继续等待 |
 | [Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1.md) | 功能 / 持久评测专题 | `workflow_rag_evaluation_dataset_application_resource_candidate_snapshot_review_v1_completed` | 应用作用域 dataset、数据分类、权限、CAS、三种 store、精确 baseline / candidate snapshot 对照与 Web metadata-only 审查均已完成 |
 | [Workflow RAG 评测数据集与知识质量审查 v1](workflow-rag-evaluation-dataset-knowledge-quality-review-v1.md) | 功能 / 离线质量专题 | `workflow_rag_evaluation_dataset_knowledge_quality_review_v1_completed` | synthetic-public snapshot / dataset、expected citation evidence、复用运行时 lexical ranker 的确定性指标、metadata-only report 与 CLI check 已完成 |
 | [Workflow RAG Regression Review 与 Evaluation Profile（开发 / 测试态）v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1.md) | 功能 / 回归评测专题 | `workflow_rag_regression_review_evaluation_profile_dev_test_v1_completed` | v3 同 binding Comparison v2、Evaluation / Baseline / Suite profile、SQLite durable resources、PostgreSQL 重启与 Web metadata-only 审查已完成 |
@@ -164,7 +164,7 @@
 
 ## 当前下一步
 
-Saved Draft、Node Designer、executor v0、持久 Run History、Failure Review、Run Comparison、Evaluation Cases、Baseline / Case Versioning、Evaluation Suite / Release Review、Gateway Request History、Gateway Playground 与 API 密钥开发测试态认证均已完成。不继续在 Workflow 页面叠加同层只读审查能力。[Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md) 已完成设计与边界评审，下一步只按唯一任务卡实施批次 A 的 contract、领域、memory store 与 strict API。
+Saved Draft、Node Designer、executor v0、持久 Run History、Failure Review、Run Comparison、Evaluation Cases、Baseline / Case Versioning、Evaluation Suite / Release Review、Gateway Request History、Gateway Playground 与 API 密钥开发测试态认证均已完成。不继续在 Workflow 页面叠加同层只读审查能力。[Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md) 批次 A 已完成，下一步只按唯一任务卡实施批次 B 的 shared SQLite / PostgreSQL durable store、migration、事务 CAS 与 no-fallback。
 
 [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) 的三个批次已完成：版本化 definition / profile、durable action plan / confirmation、受控 transport、原子 claim、`workflow_run_record.v2`、memory / SQLite / PostgreSQL、diagnostics、`/executions`、Web 与真实浏览器重启链均已有证据。[Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 的三个批次也已完成：精确 snapshot / `rag_ref`、独立单次 retrieval / Gateway、strict citation、metadata-only run v3、Web、双数据库浏览器重启与 no-fallback 均已有证据；本专题不派生批次 D。
 

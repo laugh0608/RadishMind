@@ -40,6 +40,10 @@ var controlPlaneReadPermissionGrants = map[string]string{
 	"radishmind.workflow-rag-snapshots.read":    "workflow_rag_snapshots:read",
 	"radishmind.workflow-rag-snapshots.write":   "workflow_rag_snapshots:write",
 	"radishmind.workflow-rag-snapshots.archive": "workflow_rag_snapshots:archive",
+	"radishmind.workflow-rag-promotions.read":   "workflow_rag_promotions:read",
+	"radishmind.workflow-rag-promotions.write":  "workflow_rag_promotions:write",
+	"radishmind.workflow-rag-promotions.review": "workflow_rag_promotions:review",
+	"radishmind.workflow-rag-promotions.bind":   "workflow_rag_promotions:bind",
 	"radishmind.workflow-rag.execute":           "workflow_rag:execute",
 }
 

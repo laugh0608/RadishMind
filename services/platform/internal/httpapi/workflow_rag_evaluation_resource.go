@@ -855,12 +855,32 @@ func cloneWorkflowRAGEvaluationVersion(value WorkflowRAGEvaluationDatasetVersion
 }
 
 func cloneWorkflowRAGCandidateReview(value WorkflowRAGCandidateSnapshotReview) WorkflowRAGCandidateSnapshotReview {
-	value.Baseline.Samples = append([]WorkflowRAGQualitySampleResult(nil), value.Baseline.Samples...)
-	value.Baseline.Findings = append([]WorkflowRAGQualityFinding(nil), value.Baseline.Findings...)
-	value.Candidate.Samples = append([]WorkflowRAGQualitySampleResult(nil), value.Candidate.Samples...)
-	value.Candidate.Findings = append([]WorkflowRAGQualityFinding(nil), value.Candidate.Findings...)
-	value.Samples = append([]WorkflowRAGCandidateSampleComparison(nil), value.Samples...)
+	value.Baseline = cloneWorkflowRAGQualityReview(value.Baseline)
+	value.Candidate = cloneWorkflowRAGQualityReview(value.Candidate)
+	comparisons := make([]WorkflowRAGCandidateSampleComparison, len(value.Samples))
+	copy(comparisons, value.Samples)
+	value.Samples = comparisons
 	value.AddedFindingCodes = cloneStringSlice(value.AddedFindingCodes)
 	value.RemovedFindingCodes = cloneStringSlice(value.RemovedFindingCodes)
+	return value
+}
+
+func cloneWorkflowRAGQualityReview(value WorkflowRAGQualityReview) WorkflowRAGQualityReview {
+	samples := make([]WorkflowRAGQualitySampleResult, len(value.Samples))
+	for index, sample := range value.Samples {
+		samples[index] = sample
+		samples[index].Selected = make([]WorkflowRAGQualitySelectedFragment, len(sample.Selected))
+		copy(samples[index].Selected, sample.Selected)
+	}
+	findings := make([]WorkflowRAGQualityFinding, len(value.Findings))
+	for index, finding := range value.Findings {
+		findings[index] = finding
+		findings[index].FragmentRefs = cloneStringSlice(finding.FragmentRefs)
+	}
+	distribution := make([]WorkflowRAGQualitySourceTypeCount, len(value.KnowledgeSummary.SourceTypeDistribution))
+	copy(distribution, value.KnowledgeSummary.SourceTypeDistribution)
+	value.Samples = samples
+	value.Findings = findings
+	value.KnowledgeSummary.SourceTypeDistribution = distribution
 	return value
 }

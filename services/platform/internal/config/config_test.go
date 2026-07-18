@@ -355,6 +355,28 @@ func TestWorkflowRAGEvaluationDevGateIsIndependentAndRequiresVerifiedAuth(t *tes
 	}
 }
 
+func TestWorkflowRAGPromotionDevGateIsIndependentAndRequiresVerifiedAuth(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_WORKFLOW_RAG_PROMOTION_DEV", "1")
+	if _, err := LoadFromEnv(); err == nil || !strings.Contains(err.Error(), "requires control plane read dev auth") {
+		t.Fatalf("workflow RAG promotion gate accepted missing verified auth: %v", err)
+	}
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load workflow RAG promotion gate: %v", err)
+	}
+	if cfg.WorkflowExecutorDevEnabled || cfg.WorkflowRAGExecutionDevEnabled || cfg.WorkflowRAGSnapshotDevEnabled || cfg.WorkflowRAGEvaluationDevEnabled || !cfg.WorkflowRAGPromotionDevEnabled {
+		t.Fatalf("workflow RAG promotion gate reused another gate: %#v", cfg.SanitizedSummary())
+	}
+	if cfg.FieldSources["workflow_rag_promotion_dev"] != configSourceEnv || !cfg.SanitizedSummary().WorkflowRAGPromotionDevEnabled {
+		t.Fatalf("workflow RAG promotion gate source or summary is incomplete: %#v", cfg.SanitizedSummary())
+	}
+	if validateErr := ValidateServerStart(cfg); validateErr != nil {
+		t.Fatalf("workflow RAG promotion gate rejected complete verified auth: %v", validateErr)
+	}
+}
+
 func TestLoadFromEnvRejectsInvalidConfigFileDuration(t *testing.T) {
 	clearPlatformEnv(t)
 	configPath := filepath.Join(t.TempDir(), "platform-config.json")
@@ -1237,6 +1259,7 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV",
 		"RADISHMIND_WORKFLOW_RAG_EXECUTION_DEV",
 		"RADISHMIND_WORKFLOW_RAG_EVALUATION_DEV",
+		"RADISHMIND_WORKFLOW_RAG_PROMOTION_DEV",
 		"RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV",
 		"RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV",
 		"RADISHMIND_GATEWAY_REQUEST_STORE",

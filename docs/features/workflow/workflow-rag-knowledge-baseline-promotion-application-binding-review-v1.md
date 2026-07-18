@@ -2,7 +2,7 @@
 
 更新时间：2026-07-18
 
-状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_ready_for_implementation`
+状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_b_ready_for_implementation`
 
 ## 功能目标
 
@@ -213,12 +213,14 @@ Web 在现有 RAG evaluation dataset / candidate review 面板之后增加 lazy-
 
 唯一实施入口为[实施任务卡](../../task-cards/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1-plan.md)，按以下依赖顺序推进：
 
-1. 批次 A：版本化 contract、领域服务、memory repository、独立 gate、四条 strict API、权限、全部 server-side reload、状态机 / CAS / append-only decision / binding / audit 与精准测试。
-2. 批次 B：SQLite `0008`、PostgreSQL `0011`、workflow backend 派生 repository、事务原子性、重启、损坏记录、migration 与 no-fallback。
-3. 批次 C：应用配置草案 v2 ref-only binding、共享 canonical draft digest、首次 attach 规则，以及发布候选 v2 / publish governance 的 binding 重校验与兼容测试。
-4. 批次 D：Web promotion panel、配置草案 / 发布审查接线、应用切换隔离、完整测试 / build、SQLite / PostgreSQL 连续链、真实浏览器和阶段收口。
+1. 批次 A（已完成）：版本化 contract、领域服务、memory repository、独立 gate、四条 strict API、权限、全部 server-side reload、状态机 / CAS / append-only decision / binding / audit 与精准测试。
+2. 批次 B（已获实现准入）：SQLite `0008`、PostgreSQL `0011`、workflow backend 派生 repository、事务原子性、重启、损坏记录、migration 与 no-fallback。
+3. 批次 C（等待批次 B）：应用配置草案 v2 ref-only binding、共享 canonical draft digest、首次 attach 规则，以及发布候选 v2 / publish governance 的 binding 重校验与兼容测试。
+4. 批次 D（等待批次 C）：Web promotion panel、配置草案 / 发布审查接线、应用切换隔离、完整测试 / build、SQLite / PostgreSQL 连续链、真实浏览器和阶段收口。
 
-边界评审结论为通过：既有 repository 和 backend ownership 足以承载本功能；资源、状态机、API、migration、Web 与测试停止线已经明确，不需要新增同层 readiness / checker 文档。状态推进到 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_ready_for_implementation`。本次只获得批次 A 的实现准入，不代表任何 runtime、schema migration、API 或 Web 已实现。
+批次 A 已物化四份 JSON Schema 与 Go strict contract，完成权威 application / draft / dataset / review / snapshots / profile 重读、精确不可变 candidate digest、人工状态机、CAS、append-only decision / audit、approve 原子签发 binding、memory owner lock、独立权限 / gate 和四条 API。精准测试覆盖全部漂移 / 归档、跨 owner、secret、非法 transition、并发单一成功、partial-write rollback、metadata-only 和 Gateway / run 为 0；同时根治 candidate review 空 findings 的内存克隆契约问题。批次 A 未新增 migration、未修改配置草案或发布治理 contract、未接 Web。
+
+边界复核结论继续为通过：Batch A 已证明服务端重读、状态机和 memory 原子边界成立，下一步只允许按唯一任务卡进入 Batch B 的 shared SQLite / PostgreSQL durable repository 与 migration。状态推进到 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_b_ready_for_implementation`；该准入不代表 durable store、配置 attach、发布治理、Web、自动 promotion 或生产能力已经完成。
 
 ## 停止线
 
