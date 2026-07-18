@@ -1,6 +1,6 @@
 # 用户工作区应用发布治理与晋级审查 v1
 
-更新时间：2026-07-15
+更新时间：2026-07-18
 
 状态：`application_publish_governance_promotion_v1_complete`
 
@@ -165,4 +165,6 @@ schema 固定为 `application_publish_candidate.v1`，包含：
 
 ## 与后续专题的组合边界
 
-应用目录与开发测试态 API 密钥专题现已完成，并通过本地产品档与本专题组合。应用目录提供当前活跃基线，API 密钥只负责 Gateway 调用身份，发布治理继续只管理不可变候选、审查历史、漂移和阻塞式晋级资格；三者不共享凭据字段，也不由候选批准触发正式应用更新。生产认证、成员关系、正式应用存储库、发布所有者、生产 API 密钥、配额和计费仍需各自独立设计。
+应用目录与开发测试态 API 密钥专题现已完成，并通过本地产品档与本专题组合。应用目录提供当前活跃基线，API 密钥只负责 Gateway 调用身份，发布治理继续只管理不可变候选、审查历史、漂移和阻塞式晋级资格；三者不共享凭据字段，也不由候选批准触发正式应用更新。
+
+[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](../workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)另外定义 ref-only current assignment。只有显式 `activate / replace` 后，API key 调用才可解析 approved v2 candidate；publish approve 不自动建立 assignment，assignment revoke 也不修改候选或其 production blockers。生产认证、成员关系、正式应用存储库、发布所有者、生产 API 密钥、配额和计费仍需各自独立设计。

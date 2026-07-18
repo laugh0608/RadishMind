@@ -1,6 +1,6 @@
 # 用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1
 
-更新时间：2026-07-15
+更新时间：2026-07-18
 
 状态：`api_key_lifecycle_gateway_dev_test_auth_v1_complete`
 
@@ -252,6 +252,10 @@ PostgreSQL 使用独立 `api_key_records` 和 `api_key_schema_versions`，不复
 - Web：默认离线零请求、严格响应校验、一次性令牌只存在内存、刷新清除、应用切换清除、吊销确认和失败状态。
 - 浏览器：空目录创建应用、保存配置、签发密钥、以密钥完成 Gateway 调用、查看同请求历史、刷新确认令牌不可恢复、吊销、再次调用失败、重启后状态保持。
 - 门禁：平台 Go 回归与竞态、Web 单测 / 构建、Gateway smoke、快速仓库检查；本专题涉及认证、schema 和阶段真相源，完成实现批次时补跑完整仓库检查。
+
+## 与后续 Application RAG 调用的边界
+
+[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](../workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)规划新增显式 `application_rag:invoke` scope。该 scope 仍复用本专题的随机令牌、不可逆摘要、有效期 / 吊销、active application、可信调用上下文和一次性交接边界，但不会自动授予 `chat:invoke`、`responses:invoke`、`messages:invoke` 或任何管理权限。该 scope 与新 route 只有在新专题批次 A 完成后才可用；当前完成状态不代表该 scope 已实现。
 
 ## 停止线
 

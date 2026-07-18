@@ -12,6 +12,8 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
+| [Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md) | 功能 / 高风险执行专题 | `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_ready_for_implementation` | 固定人工 current assignment、API key scope、全部 authority reload、candidate snapshot、一次 retrieval / Gateway、metadata-only run v4 和 evaluation 边界 |
+| [Workflow RAG 应用运行时激活与受控调用 v1 实施任务卡](../../task-cards/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1-plan.md) | 当前唯一高风险实现批次 | `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_a_ready_for_implementation` | 只准入 contract、memory assignment、authority resolver、API key scope、一次 retrieval / Gateway 与 run v4；durable store / Web 后置 |
 | [Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md) | 功能 / 晋级与配置治理专题 | `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_completed` | exact evidence、人工决定、双数据库、配置 binding、发布重校验、Web 与浏览器链均已完成 |
 | [Workflow RAG 知识基线晋级与应用配置绑定审查 v1 实施任务卡](../../task-cards/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1-plan.md) | 已归档高风险实现批次 | `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_completed` | 唯一实现任务卡已完成，不派生同层任务 |
 | [Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1.md) | 功能 / 持久评测专题 | `workflow_rag_evaluation_dataset_application_resource_candidate_snapshot_review_v1_completed` | 应用作用域 dataset、数据分类、权限、CAS、三种 store、精确 baseline / candidate snapshot 对照与 Web metadata-only 审查均已完成 |
@@ -164,11 +166,11 @@
 
 ## 当前下一步
 
-Saved Draft、Node Designer、executor v0、持久 Run History、Failure Review、Run Comparison、Evaluation Cases、Baseline / Case Versioning、Evaluation Suite / Release Review、Gateway Request History、Gateway Playground、API 密钥开发测试态认证，以及 [Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md) 均已完成。不继续在 Workflow 页面叠加同层只读审查能力。下一步先选择并评审新的功能设计，优先明确已批准 RAG binding 的受控运行时消费路径；设计完成前不创建实现任务卡或打开 retrieval / production 能力。
+Saved Draft、Node Designer、executor v0、持久 Run History、Failure Review、Run Comparison、Evaluation Cases、Baseline / Case Versioning、Evaluation Suite / Release Review、Gateway Request History、Gateway Playground、API 密钥开发测试态认证，以及 [Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md) 均已完成。不继续在 Workflow 页面叠加同层只读审查能力。[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)已完成设计评审，唯一任务卡只准入批次 A：人工 current assignment、API key `application_rag:invoke`、权威重读、candidate snapshot 与 metadata-only run v4。
 
 [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) 的三个批次已完成：版本化 definition / profile、durable action plan / confirmation、受控 transport、原子 claim、`workflow_run_record.v2`、memory / SQLite / PostgreSQL、diagnostics、`/executions`、Web 与真实浏览器重启链均已有证据。[Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 的三个批次也已完成：精确 snapshot / `rag_ref`、独立单次 retrieval / Gateway、strict citation、metadata-only run v3、Web、双数据库浏览器重启与 no-fallback 均已有证据；本专题不派生批次 D。
 
-知识晋级批准只产生应用配置 binding 资格，不修改 snapshot、dataset baseline、配置草案、发布候选或发布状态。批次 D 只接入显式 approve、attach / replace 与发布资格审查的 Web 路径，不调用 Gateway、创建 run 或执行 retrieval。
+知识晋级批准仍只产生应用配置 binding 资格，不修改 snapshot、dataset baseline、配置草案、发布候选或发布状态。新专题要求在 publish approve 之后再显式 `activate / replace / revoke` runtime assignment；只有 active assignment 的 API key 调用才允许沿独立 route 执行一次 retrieval / Gateway，不能反向改写治理资源。
 
 Production Secret Backend / Storage Adapter 的历史准入链继续从既有专题、任务索引和归档证据读取，不再提供当前开发顺位；生产 repository、生产认证、业务写回、自动确认、replay / resume 和 agent loop 继续关闭。
 
