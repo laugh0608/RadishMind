@@ -12,7 +12,7 @@
 
 ## 前置基线
 
-- `dev` 以 `d7b4a24b` 为设计起点，promotion / binding、application draft v2、publish candidate v2、API key dev/test auth、RAG snapshot / retrieval / evaluation 和 memory / SQLite / PostgreSQL store 均通过现有回归。
+- `dev` 的实现准入基线为设计冻结提交 `f0c6912b`；其代码基线 `d7b4a24b` 已完成 promotion / binding、application draft v2、publish candidate v2、API key dev/test auth、RAG snapshot / retrieval / evaluation 和 memory / SQLite / PostgreSQL store 回归。
 - runtime assignment 必须精确引用已批准且未被取代的 `application_publish_candidate.v2`；服务端从候选重读 exact draft、binding 和全部 promotion authority。
 - 有效检索快照固定为 binding candidate snapshot，baseline snapshot 只作 evidence；调用方不能提交 model、protocol、resource ref、ranking 或 citation。
 - API key scope 固定新增 `application_rag:invoke`，调用 route 只接受 `api_key_dev_test`；管理 assignment 使用 verified actor 和独立 management scopes。
