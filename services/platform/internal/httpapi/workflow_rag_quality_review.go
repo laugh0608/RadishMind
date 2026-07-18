@@ -204,10 +204,45 @@ func WorkflowRAGEvaluationDatasetDigest(dataset WorkflowRAGEvaluationDataset) (s
 }
 
 func reviewWorkflowRAGDataset(snapshot WorkflowRAGSnapshotRecord, dataset WorkflowRAGEvaluationDataset, ranker workflowRAGQualityRanker) (WorkflowRAGQualityReview, error) {
-	if ranker == nil || validateWorkflowRAGEvaluationSnapshot(snapshot) != nil {
+	return reviewWorkflowRAGDatasetWithPolicy(snapshot, dataset, ranker, true)
+}
+
+func reviewWorkflowRAGApplicationDataset(snapshot WorkflowRAGSnapshotRecord, dataset WorkflowRAGEvaluationDataset, ranker workflowRAGQualityRanker) (WorkflowRAGQualityReview, error) {
+	return reviewWorkflowRAGDatasetWithPolicy(snapshot, dataset, ranker, false)
+}
+
+func reviewWorkflowRAGCandidateSnapshot(snapshot WorkflowRAGSnapshotRecord, dataset WorkflowRAGEvaluationDataset, ranker workflowRAGQualityRanker) (WorkflowRAGQualityReview, error) {
+	if ranker == nil || validateWorkflowRAGEvaluationSnapshotForClassification(snapshot, dataset.ContentClassification, false) != nil ||
+		validateWorkflowRAGEvaluationDatasetWithPolicy(dataset, nil, false) != nil {
 		return WorkflowRAGQualityReview{}, errWorkflowRAGQualityReviewContract
 	}
-	if err := validateWorkflowRAGEvaluationDataset(dataset, &snapshot); err != nil {
+	review := WorkflowRAGQualityReview{
+		SchemaVersion: workflowRAGQualityReviewSchemaVersion,
+		Dataset:       WorkflowRAGQualityDatasetBinding{DatasetID: dataset.DatasetID, DatasetVersion: dataset.DatasetVersion, DatasetDigest: dataset.DatasetDigest},
+		Snapshot:      workflowRAGEvaluationSnapshotBinding(snapshot), Profile: dataset.Profile, SampleCount: len(dataset.Samples), Thresholds: dataset.Thresholds,
+		Samples: make([]WorkflowRAGQualitySampleResult, 0, len(dataset.Samples)), Findings: []WorkflowRAGQualityFinding{},
+	}
+	accumulator := workflowRAGQualityMetricAccumulator{}
+	for _, sample := range dataset.Samples {
+		ranking := ranker(sample.QueryText, snapshot.Fragments, sample.TopK)
+		result := buildWorkflowRAGQualitySampleResult(sample, ranking)
+		review.Samples = append(review.Samples, result)
+		accumulator.add(sample, result)
+	}
+	review.Metrics = accumulator.metrics(len(dataset.Samples))
+	review.KnowledgeSummary, review.Findings = buildWorkflowRAGKnowledgeReview(snapshot, dataset)
+	review.Status = workflowRAGQualityStatus(review)
+	if err := validateWorkflowRAGQualityReview(review); err != nil {
+		return WorkflowRAGQualityReview{}, err
+	}
+	return review, nil
+}
+
+func reviewWorkflowRAGDatasetWithPolicy(snapshot WorkflowRAGSnapshotRecord, dataset WorkflowRAGEvaluationDataset, ranker workflowRAGQualityRanker, offlineOnly bool) (WorkflowRAGQualityReview, error) {
+	if ranker == nil || validateWorkflowRAGEvaluationSnapshotForClassification(snapshot, dataset.ContentClassification, offlineOnly) != nil {
+		return WorkflowRAGQualityReview{}, errWorkflowRAGQualityReviewContract
+	}
+	if err := validateWorkflowRAGEvaluationDatasetWithPolicy(dataset, &snapshot, offlineOnly); err != nil {
 		return WorkflowRAGQualityReview{}, err
 	}
 	review := WorkflowRAGQualityReview{
@@ -233,8 +268,18 @@ func reviewWorkflowRAGDataset(snapshot WorkflowRAGSnapshotRecord, dataset Workfl
 }
 
 func validateWorkflowRAGEvaluationSnapshot(snapshot WorkflowRAGSnapshotRecord) error {
+	return validateWorkflowRAGEvaluationSnapshotForClassification(snapshot, workflowRAGEvaluationClassification, true)
+}
+
+func validateWorkflowRAGEvaluationSnapshotForClassification(snapshot WorkflowRAGSnapshotRecord, datasetClassification string, offlineOnly bool) error {
 	ctx := WorkflowRAGSnapshotContext{TenantRef: snapshot.TenantRef, WorkspaceID: snapshot.WorkspaceID, ApplicationID: snapshot.ApplicationID}
-	if validateStoredWorkflowRAGRecord(snapshot, ctx) != nil || snapshot.ContentClassification != "public" ||
+	expectedSnapshotClassification := "public"
+	if datasetClassification == "workspace_internal" && !offlineOnly {
+		expectedSnapshotClassification = "workspace_internal"
+	} else if datasetClassification != workflowRAGEvaluationClassification {
+		return errWorkflowRAGQualityReviewContract
+	}
+	if validateStoredWorkflowRAGRecord(snapshot, ctx) != nil || snapshot.ContentClassification != expectedSnapshotClassification ||
 		(snapshot.LifecycleState != workflowRAGSnapshotActive && snapshot.LifecycleState != workflowRAGSnapshotArchived) ||
 		!workflowRAGReferencePattern.MatchString(snapshot.CreatedByActorRef) || !workflowRAGReferencePattern.MatchString(snapshot.RequestID) ||
 		!workflowRAGReferencePattern.MatchString(snapshot.AuditRef) {
@@ -247,9 +292,17 @@ func validateWorkflowRAGEvaluationSnapshot(snapshot WorkflowRAGSnapshotRecord) e
 }
 
 func validateWorkflowRAGEvaluationDataset(dataset WorkflowRAGEvaluationDataset, snapshot *WorkflowRAGSnapshotRecord) error {
+	return validateWorkflowRAGEvaluationDatasetWithPolicy(dataset, snapshot, true)
+}
+
+func validateWorkflowRAGApplicationEvaluationDataset(dataset WorkflowRAGEvaluationDataset, snapshot *WorkflowRAGSnapshotRecord) error {
+	return validateWorkflowRAGEvaluationDatasetWithPolicy(dataset, snapshot, false)
+}
+
+func validateWorkflowRAGEvaluationDatasetWithPolicy(dataset WorkflowRAGEvaluationDataset, snapshot *WorkflowRAGSnapshotRecord, offlineOnly bool) error {
 	if dataset.SchemaVersion != workflowRAGEvaluationDatasetSchemaVersion ||
 		!workflowRAGDatasetIDPattern.MatchString(dataset.DatasetID) || dataset.DatasetVersion < 1 ||
-		dataset.ContentClassification != workflowRAGEvaluationClassification ||
+		!workflowRAGEvaluationClassificationAllowed(dataset.ContentClassification, offlineOnly) ||
 		!workflowRAGDigestPattern.MatchString(dataset.DatasetDigest) || dataset.Samples == nil || len(dataset.Samples) < 1 || len(dataset.Samples) > 200 ||
 		!workflowRAGReferencePattern.MatchString(dataset.Review.ReviewerRef) || strings.TrimSpace(dataset.Review.ReviewSummary) != dataset.Review.ReviewSummary ||
 		dataset.Review.ReviewSummary == "" || utf8.RuneCountInString(dataset.Review.ReviewSummary) > 512 ||
@@ -270,6 +323,9 @@ func validateWorkflowRAGEvaluationDataset(dataset WorkflowRAGEvaluationDataset, 
 	}
 	fragmentByRef := map[string]WorkflowRAGFragment(nil)
 	if snapshot != nil {
+		if validateWorkflowRAGEvaluationSnapshotForClassification(*snapshot, dataset.ContentClassification, offlineOnly) != nil {
+			return errWorkflowRAGQualityReviewContract
+		}
 		if dataset.Snapshot != workflowRAGEvaluationSnapshotBinding(*snapshot) {
 			return errWorkflowRAGQualityReviewContract
 		}
@@ -286,6 +342,10 @@ func validateWorkflowRAGEvaluationDataset(dataset WorkflowRAGEvaluationDataset, 
 		seen[sample.SampleID] = true
 	}
 	return nil
+}
+
+func workflowRAGEvaluationClassificationAllowed(value string, offlineOnly bool) bool {
+	return value == workflowRAGEvaluationClassification || (!offlineOnly && value == "workspace_internal")
 }
 
 func validateWorkflowRAGEvaluationSnapshotBinding(binding WorkflowRAGEvaluationSnapshotBinding) bool {
@@ -473,7 +533,9 @@ func buildWorkflowRAGKnowledgeReview(snapshot WorkflowRAGSnapshotRecord, dataset
 	sourceCounts := make(map[string]int)
 	digestRefs := make(map[string][]string)
 	officialRefs := make([]string, 0)
+	fragmentRefs := make(map[string]bool, len(snapshot.Fragments))
 	for _, fragment := range snapshot.Fragments {
+		fragmentRefs[fragment.FragmentRef] = true
 		sourceCounts[fragment.SourceType]++
 		digestRefs[fragment.ContentDigest] = append(digestRefs[fragment.ContentDigest], fragment.FragmentRef)
 		if fragment.IsOfficial {
@@ -484,7 +546,9 @@ func buildWorkflowRAGKnowledgeReview(snapshot WorkflowRAGSnapshotRecord, dataset
 	for _, sample := range dataset.Samples {
 		if sample.Expectation == "evidence_required" {
 			for _, ref := range sample.ExpectedCitationRefs {
-				expected[ref] = true
+				if fragmentRefs[ref] {
+					expected[ref] = true
+				}
 			}
 		}
 	}

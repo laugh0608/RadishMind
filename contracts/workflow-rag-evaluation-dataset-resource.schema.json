@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-rag-evaluation-dataset-resource.schema.json",
+  "title": "WorkflowRAGEvaluationDatasetResourceV1",
+  "description": "Application-scoped immutable Workflow RAG evaluation dataset version. Query content is only returned by the separately authorized exact-version detail route.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "dataset_key", "display_name", "lifecycle_state", "created_at", "created_by_actor_ref", "request_id", "audit_ref", "dataset"],
+  "properties": {
+    "schema_version": { "const": "workflow_rag_evaluation_dataset_resource.v1" },
+    "dataset_key": { "$ref": "#/$defs/key" },
+    "display_name": { "type": "string", "minLength": 2, "maxLength": 120 },
+    "lifecycle_state": { "enum": ["active", "archived"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "created_by_actor_ref": { "$ref": "#/$defs/reference" },
+    "request_id": { "$ref": "#/$defs/reference" },
+    "audit_ref": { "$ref": "#/$defs/reference" },
+    "dataset": { "$ref": "#/$defs/dataset" }
+  },
+  "$defs": {
+    "key": { "type": "string", "pattern": "^[a-z][a-z0-9_]{2,47}$" },
+    "reference": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{2,159}$" },
+    "scoped_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{2,119}$" },
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "fragment_refs": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]{2,63}$" }
+    },
+    "snapshot_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tenant_ref", "workspace_id", "application_id", "snapshot_id", "snapshot_version", "snapshot_digest", "rag_ref"],
+      "properties": {
+        "tenant_ref": { "$ref": "#/$defs/reference" },
+        "workspace_id": { "$ref": "#/$defs/scoped_id" },
+        "application_id": { "$ref": "#/$defs/scoped_id" },
+        "snapshot_id": { "type": "string", "pattern": "^rags_[a-z2-7]{16}$" },
+        "snapshot_version": { "type": "integer", "minimum": 1 },
+        "snapshot_digest": { "$ref": "#/$defs/digest" },
+        "rag_ref": { "type": "string", "pattern": "^workflow\\.rag\\.[a-z][a-z0-9_]{2,47}\\.v[1-9][0-9]*$" }
+      }
+    },
+    "profile_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "profile_version", "profile_digest"],
+      "properties": {
+        "profile_id": { "const": "workflow.rag.lexical-ngram-dev.v1" },
+        "profile_version": { "const": 1 },
+        "profile_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hit_at_k", "expected_recall_at_k", "required_official_recall_at_k", "mean_reciprocal_rank", "no_evidence_accuracy", "sample_pass_rate"],
+      "properties": {
+        "hit_at_k": { "type": "number", "minimum": 0, "maximum": 1 },
+        "expected_recall_at_k": { "type": "number", "minimum": 0, "maximum": 1 },
+        "required_official_recall_at_k": { "type": "number", "minimum": 0, "maximum": 1 },
+        "mean_reciprocal_rank": { "type": "number", "minimum": 0, "maximum": 1 },
+        "no_evidence_accuracy": { "type": "number", "minimum": 0, "maximum": 1 },
+        "sample_pass_rate": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "sample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sample_id", "query_text", "expectation", "expected_citation_refs", "required_official_refs", "top_k", "review_note"],
+      "properties": {
+        "sample_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]{2,47}$" },
+        "query_text": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "expectation": { "enum": ["evidence_required", "no_evidence"] },
+        "expected_citation_refs": { "$ref": "#/$defs/fragment_refs" },
+        "required_official_refs": { "$ref": "#/$defs/fragment_refs" },
+        "top_k": { "type": "integer", "minimum": 1, "maximum": 8 },
+        "review_note": { "type": "string", "minLength": 1, "maxLength": 512 }
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "dataset_id", "dataset_version", "dataset_digest", "content_classification", "snapshot", "profile", "thresholds", "review", "samples"],
+      "properties": {
+        "schema_version": { "const": "workflow_rag_evaluation_dataset.v1" },
+        "dataset_id": { "type": "string", "pattern": "^wragd_[a-z0-9_]{3,47}$" },
+        "dataset_version": { "type": "integer", "minimum": 1 },
+        "dataset_digest": { "$ref": "#/$defs/digest" },
+        "content_classification": { "enum": ["synthetic_public", "workspace_internal"] },
+        "snapshot": { "$ref": "#/$defs/snapshot_binding" },
+        "profile": { "$ref": "#/$defs/profile_binding" },
+        "thresholds": { "$ref": "#/$defs/metrics" },
+        "review": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reviewer_ref", "reviewed_at", "review_summary"],
+          "properties": {
+            "reviewer_ref": { "$ref": "#/$defs/reference" },
+            "reviewed_at": { "type": "string", "format": "date-time" },
+            "review_summary": { "type": "string", "minLength": 1, "maxLength": 512 }
+          }
+        },
+        "samples": { "type": "array", "minItems": 1, "maxItems": 200, "items": { "$ref": "#/$defs/sample" } }
+      }
+    }
+  }
+}

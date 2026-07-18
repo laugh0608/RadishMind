@@ -12,15 +12,16 @@
 
 ## 当前活跃任务
 
-当前没有活跃实现任务卡。[Workflow RAG 评测数据集与知识质量审查 v1 实施任务卡](workflow-rag-evaluation-dataset-knowledge-quality-review-v1-plan.md) 已完成；下一顺位先在功能设计层评审“RAG 评测数据集应用资源化与候选快照审查 v1”，不得直接从离线数据集推导 durable API、Web 写面或生产准入。
+当前没有活跃实现任务卡。[Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1-plan.md) 三批已完成；下一顺位先进入“Workflow RAG 知识基线晋级与应用配置绑定审查 v1”功能设计，不从已完成任务推导实现或生产准入。
 
 ## 最近关闭任务
 
-1. [Workflow RAG 评测数据集与知识质量审查 v1](workflow-rag-evaluation-dataset-knowledge-quality-review-v1-plan.md)：两份契约、共享 lexical evaluator、CLI、starter dataset 与 deterministic metadata-only report 已完成。
-2. [Workflow RAG Regression Review 与 Evaluation Profile v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1-plan.md)：Comparison v2、Evaluation / Baseline / Suite profile、SQLite durable resources、PostgreSQL 重启 / no-fallback 和 Web metadata-only 审查已完成。
-3. [Workflow RAG Retrieval 与应用知识快照 v1](workflow-rag-retrieval-application-knowledge-snapshot-dev-test-v1-plan.md)：A / B / C 三批已完成，不派生批次 D。
-4. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R2 至 R6 均已完成；R6 关闭评审保留仍有独立证据责任的 Provider、Production Ops 与 Control Plane formal UI 门禁，不派生第六条清理链。
-5. [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1-plan.md)：领域、Gateway 认证、双数据库门禁、Web 一次性交接、调试台内存交接、吊销与浏览器连续验收均已完成。
+1. [Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1-plan.md)：契约、内存链、SQLite / PostgreSQL durable store、Web 与仓库收口三批均已完成。
+2. [Workflow RAG 评测数据集与知识质量审查 v1](workflow-rag-evaluation-dataset-knowledge-quality-review-v1-plan.md)：两份契约、共享 lexical evaluator、CLI、starter dataset 与 deterministic metadata-only report 已完成。
+3. [Workflow RAG Regression Review 与 Evaluation Profile v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1-plan.md)：Comparison v2、Evaluation / Baseline / Suite profile、SQLite durable resources、PostgreSQL 重启 / no-fallback 和 Web metadata-only 审查已完成。
+4. [Workflow RAG Retrieval 与应用知识快照 v1](workflow-rag-retrieval-application-knowledge-snapshot-dev-test-v1-plan.md)：A / B / C 三批已完成，不派生批次 D。
+5. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R2 至 R6 均已完成；R6 关闭评审保留仍有独立证据责任的 Provider、Production Ops 与 Control Plane formal UI 门禁，不派生第六条清理链。
+6. [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1-plan.md)：领域、Gateway 认证、双数据库门禁、Web 一次性交接、调试台内存交接、吊销与浏览器连续验收均已完成。
 
 R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、[Evaluation Cases / Batch Regression Review](workflow-evaluation-cases-batch-regression-review-v1-plan.md)、[Baseline / Case Versioning](workflow-evaluation-baseline-case-versioning-v1-plan.md) 与 [Evaluation Suite / Release Review](workflow-evaluation-suite-release-review-v1-plan.md) 已于 2026-07-11 完成。Model Gateway Request History / Usage & Failure Review v1、User Workspace Application API Integration & Invocation v1、Application Configuration Draft & Review v1 和 Application Publish Governance & Promotion v1 已完成实现与验证；不恢复旧 storage adapter readiness 链，也不派生新的 Gateway / executor / run store gate-only readiness 链。
 

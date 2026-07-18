@@ -294,7 +294,7 @@ func TestWorkflowRAGReconciliationClosesStaleRunningWithoutExecution(t *testing.
 		fixture.runContext,
 		workflowRAGExecutionFixtureRequest(fixture, "official retrieval guidance", fixture.draft.DraftVersion),
 		fixture.draft, digest, plan, fixture.snapshot, workflowRAGLexicalProfile(), workflowRAGTestSelection(),
-		"run_reconcile0000001", time.Now().UTC().Add(-workflowExecutorDefaultMaxRuntime-time.Second),
+		"run_reconcile0000001", fixture.service.now().Add(-workflowExecutorDefaultMaxRuntime-time.Second),
 	)
 	if err := fixture.runStore.UpsertRun(fixture.runContext, &run); err != nil {
 		t.Fatalf("seed stale v3 run: %v", err)

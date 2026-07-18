@@ -106,6 +106,20 @@ func TestWorkflowRAGContractValidatorsRejectUnknownForbiddenAndVersionDrift(t *t
 	}
 }
 
+func TestWorkflowRAGEvaluationResourceContractsAcceptMetadataBoundShapes(t *testing.T) {
+	snapshot := workflowRAGQualityTestSnapshot(t, []WorkflowRAGFragmentInput{{FragmentRef: "contract_evidence", SourceType: "manual", SourceRef: "manual.contract", PageSlug: "contract/evidence", Title: "Contract evidence", IsOfficial: true, Content: "contract evaluation evidence"}})
+	dataset := workflowRAGQualityTestDataset(t, snapshot, []WorkflowRAGEvaluationSample{{SampleID: "contract_sample", QueryText: "contract evaluation evidence", Expectation: "evidence_required", ExpectedCitationRefs: []string{"contract_evidence"}, RequiredOfficialRefs: []string{"contract_evidence"}, TopK: 1, ReviewNote: "Contract evidence is required."}})
+	version := WorkflowRAGEvaluationDatasetVersion{SchemaVersion: workflowRAGEvaluationResourceSchemaVersion, DatasetKey: "contract_review", DisplayName: "Contract review", LifecycleState: workflowRAGEvaluationActive, CreatedAt: "2026-07-18T08:00:00Z", CreatedByActorRef: "subject_owner", RequestID: "request_contract_review", AuditRef: "audit_contract_review", Dataset: dataset}
+	assertWorkflowRAGContractValid(t, workflowRAGEvaluationResourceSchemaVersion, version)
+	quality, err := reviewWorkflowRAGApplicationDataset(snapshot, dataset, RankWorkflowRAGFragments)
+	if err != nil {
+		t.Fatalf("build contract quality review: %v", err)
+	}
+	ctx := WorkflowRAGSnapshotContext{TenantRef: snapshot.TenantRef, WorkspaceID: snapshot.WorkspaceID, ApplicationID: snapshot.ApplicationID, ActorRef: "subject_owner", RequestID: "request_contract_review", AuditRef: "audit_contract_review"}
+	review := buildWorkflowRAGCandidateReview(ctx, "wragr_aaaaaaaaaaaaaaaa", "2026-07-18T08:00:00Z", quality, quality, workflowRAGEvaluationActive, workflowRAGEvaluationActive)
+	assertWorkflowRAGContractValid(t, workflowRAGCandidateReviewSchemaVersion, review)
+}
+
 func assertWorkflowRAGContractValid(t *testing.T, contract string, document any) {
 	t.Helper()
 	payload, err := json.Marshal(document)

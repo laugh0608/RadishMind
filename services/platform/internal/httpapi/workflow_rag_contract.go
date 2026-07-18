@@ -188,6 +188,20 @@ func validateWorkflowRAGContractJSON(contract string, payload []byte) error {
 	case workflowRAGEvaluationDatasetSchemaVersion:
 		_, err := DecodeWorkflowRAGEvaluationDataset(payload)
 		return err
+	case workflowRAGEvaluationResourceSchemaVersion:
+		var version WorkflowRAGEvaluationDatasetVersion
+		if err := decodeWorkflowRAGStrictJSON(payload, &version); err != nil {
+			return err
+		}
+		ctx := WorkflowRAGSnapshotContext{TenantRef: version.Dataset.Snapshot.TenantRef, WorkspaceID: version.Dataset.Snapshot.WorkspaceID, ApplicationID: version.Dataset.Snapshot.ApplicationID}
+		return validateStoredWorkflowRAGEvaluationVersion(version, ctx)
+	case workflowRAGCandidateReviewSchemaVersion:
+		var review WorkflowRAGCandidateSnapshotReview
+		if err := decodeWorkflowRAGStrictJSON(payload, &review); err != nil {
+			return err
+		}
+		ctx := WorkflowRAGSnapshotContext{TenantRef: review.TenantRef, WorkspaceID: review.WorkspaceID, ApplicationID: review.ApplicationID, ActorRef: review.CreatedByActorRef, RequestID: review.RequestID, AuditRef: review.AuditRef}
+		return validateStoredWorkflowRAGCandidateReview(review, ctx)
 	case workflowRAGQualityReviewSchemaVersion:
 		_, err := DecodeWorkflowRAGQualityReview(payload)
 		return err

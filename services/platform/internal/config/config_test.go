@@ -333,6 +333,28 @@ func TestWorkflowRAGExecutionDevGateIsIndependentFromSnapshotAndExecutorGates(t 
 	}
 }
 
+func TestWorkflowRAGEvaluationDevGateIsIndependentAndRequiresVerifiedAuth(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_WORKFLOW_RAG_EVALUATION_DEV", "1")
+	if _, err := LoadFromEnv(); err == nil || !strings.Contains(err.Error(), "requires control plane read dev auth") {
+		t.Fatalf("workflow RAG evaluation gate accepted missing verified auth: %v", err)
+	}
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load workflow RAG evaluation gate: %v", err)
+	}
+	if cfg.WorkflowExecutorDevEnabled || cfg.WorkflowRAGExecutionDevEnabled || cfg.WorkflowRAGSnapshotDevEnabled || !cfg.WorkflowRAGEvaluationDevEnabled {
+		t.Fatalf("workflow RAG evaluation gate reused another gate: %#v", cfg.SanitizedSummary())
+	}
+	if cfg.FieldSources["workflow_rag_evaluation_dev"] != configSourceEnv || !cfg.SanitizedSummary().WorkflowRAGEvaluationDevEnabled {
+		t.Fatalf("workflow RAG evaluation gate source or summary is incomplete: %#v", cfg.SanitizedSummary())
+	}
+	if validateErr := ValidateServerStart(cfg); validateErr != nil {
+		t.Fatalf("workflow RAG evaluation gate rejected complete verified auth: %v", validateErr)
+	}
+}
+
 func TestLoadFromEnvRejectsInvalidConfigFileDuration(t *testing.T) {
 	clearPlatformEnv(t)
 	configPath := filepath.Join(t.TempDir(), "platform-config.json")
@@ -671,7 +693,7 @@ func TestSQLiteWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
 		t.Fatalf("unexpected workflow run SQLite requirements: %#v", summary.MissingRequiredFields)
 	}
 	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
-		err.Error() != "workflow run sqlite_dev store requires control plane read dev auth, saved workflow draft dev HTTP, and a workflow execution dev gate" {
+		err.Error() != "workflow run sqlite_dev store requires control plane read dev auth, an enabled workflow runtime product, and saved workflow draft dev HTTP for execution products" {
 		t.Fatalf("incomplete workflow run SQLite config was accepted: %v", err)
 	}
 	cfg.ControlPlaneReadDevAuthEnabled = true
@@ -689,6 +711,12 @@ func TestSQLiteWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
 	cfg.WorkflowRAGExecutionDevEnabled = true
 	if summary = cfg.SanitizedSummary(); len(summary.MissingRequiredFields) != 0 {
 		t.Fatalf("independent RAG execution gate did not satisfy workflow run SQLite requirements: %#v", summary.MissingRequiredFields)
+	}
+	cfg.WorkflowRAGExecutionDevEnabled = false
+	cfg.WorkflowSavedDraftDevHTTPEnabled = false
+	cfg.WorkflowRAGEvaluationDevEnabled = true
+	if err := validateBridgeRuntimeConfig(cfg); err != nil {
+		t.Fatalf("independent RAG evaluation gate did not enable the shared SQLite backend: %v", err)
 	}
 }
 
@@ -1208,6 +1236,7 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_WORKFLOW_EXECUTOR_DEV",
 		"RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV",
 		"RADISHMIND_WORKFLOW_RAG_EXECUTION_DEV",
+		"RADISHMIND_WORKFLOW_RAG_EVALUATION_DEV",
 		"RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV",
 		"RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV",
 		"RADISHMIND_GATEWAY_REQUEST_STORE",

@@ -286,6 +286,12 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryConfiguration,
 			defaultMessage:  "workflow RAG execution dev route is disabled",
 		},
+		"WORKFLOW_RAG_EVALUATION_DEV_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "workflow RAG evaluation dev route is disabled",
+		},
 		WorkflowRAGFailurePayloadInvalid: {
 			statusCode:      http.StatusBadRequest,
 			errorType:       "invalid_request_error",

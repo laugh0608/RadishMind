@@ -779,9 +779,138 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	}
 }
 
+func TestPostgresWorkflowRAGEvaluationDatasetIntegration(t *testing.T) {
+	databaseURL := postgresIntegrationDatabaseURL(t)
+	runtimeUser := strings.TrimSpace(os.Getenv("RADISHMIND_POSTGRES_INTEGRATION_RUNTIME_USER"))
+	if runtimeUser == "" {
+		t.Fatal("RADISHMIND_POSTGRES_INTEGRATION_RUNTIME_USER is required")
+	}
+	runtimeDatabaseURL := postgresIntegrationDatabaseURLForCredentials(t, runtimeUser, os.Getenv("RADISHMIND_POSTGRES_INTEGRATION_RUNTIME_PASSWORD"))
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	adminPool, err := workflowrunmigrations.OpenPool(ctx, databaseURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertPostgresIntegrationDatabaseIsDisposable(t, ctx, adminPool)
+	resetPostgresWorkflowRunSchema(t, ctx, adminPool)
+	preparePostgresIntegrationRuntimeRole(t, ctx, adminPool, runtimeUser)
+	t.Cleanup(func() {
+		cleanup, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cleanupCancel()
+		resetPostgresWorkflowRunSchema(t, cleanup, adminPool)
+		adminPool.Close()
+	})
+	if state, applyErr := workflowrunmigrations.Apply(ctx, adminPool); applyErr != nil || state.MigrationState != workflowrunmigrations.MigrationStateApplied {
+		t.Fatalf("apply workflow RAG evaluation migration: %#v %v", state, applyErr)
+	}
+	runtimePool, err := workflowrunmigrations.OpenPool(ctx, runtimeDatabaseURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctxValue := workflowRAGTestContext()
+	ctxValue.RequestContext = ctx
+	snapshots := newPostgresWorkflowRAGSnapshotRepository(runtimePool)
+	baseline := createWorkflowRAGEvaluationTestSnapshot(t, snapshots, ctxValue, "rags_ffffffffffffffff", "postgres_baseline", "public", []WorkflowRAGFragmentInput{{
+		FragmentRef: "official_guide", SourceType: "manual", SourceRef: "manual.postgres", PageSlug: "postgres/guide",
+		Title: "PostgreSQL guide", IsOfficial: true, Content: "approved postgres pressure guidance",
+	}})
+	candidate := createWorkflowRAGEvaluationTestSnapshot(t, snapshots, ctxValue, "rags_2222222222222222", "postgres_candidate", "public", []WorkflowRAGFragmentInput{{
+		FragmentRef: "candidate_note", SourceType: "wiki", SourceRef: "wiki.postgres", PageSlug: "postgres/note",
+		Title: "PostgreSQL note", Content: "unrelated postgres note",
+	}})
+	repository := newPostgresWorkflowRAGEvaluationDatasetRepository(runtimePool)
+	service := newWorkflowRAGEvaluationDatasetService(repository, snapshots)
+	now := time.Date(2026, 7, 18, 10, 0, 0, 0, time.UTC)
+	service.now = func() time.Time { return now }
+	service.newID = workflowRAGEvaluationTestIDGenerator()
+	created := service.Create(ctxValue, WorkflowRAGEvaluationDatasetCreateInput{
+		DatasetKey: "postgres_pressure_review", DisplayName: "PostgreSQL pressure review", ContentClassification: "synthetic_public",
+		BaselineSnapshot: workflowRAGEvaluationSnapshotBinding(baseline), Thresholds: workflowRAGEvaluationPerfectThresholds(),
+		ReviewSummary: "PostgreSQL baseline reviewed.", Samples: []WorkflowRAGEvaluationSample{{
+			SampleID: "postgres_pressure", QueryText: "approved postgres pressure guidance", Expectation: "evidence_required",
+			ExpectedCitationRefs: []string{"official_guide"}, RequiredOfficialRefs: []string{"official_guide"}, TopK: 1, ReviewNote: "Use official evidence.",
+		}},
+	})
+	if created.FailureCode != "" || created.Resource == nil || created.Version == nil {
+		t.Fatalf("create PostgreSQL evaluation dataset: %#v", created)
+	}
+	now = now.Add(time.Minute)
+	ctxValue.RequestID, ctxValue.AuditRef = "request_postgres_review", "audit_postgres_review"
+	reviewed := service.CreateCandidateReview(ctxValue, created.Resource.DatasetID, WorkflowRAGCandidateReviewInput{
+		DatasetVersion: 1, DatasetDigest: created.Version.Dataset.DatasetDigest, CandidateSnapshot: workflowRAGEvaluationSnapshotBinding(candidate),
+	})
+	if reviewed.FailureCode != "" || reviewed.Review == nil || reviewed.Review.Conclusion != "regressed" {
+		t.Fatalf("create PostgreSQL candidate review: %#v", reviewed)
+	}
+	now = now.Add(time.Minute)
+	ctxValue.RequestID, ctxValue.AuditRef = "request_postgres_version", "audit_postgres_version"
+	versioned := service.Version(ctxValue, created.Resource.DatasetID, WorkflowRAGEvaluationDatasetVersionInput{
+		ExpectedLatestVersion: 1, DisplayName: "PostgreSQL pressure review v2", ContentClassification: "synthetic_public",
+		BaselineSnapshot: workflowRAGEvaluationSnapshotBinding(baseline), Thresholds: workflowRAGEvaluationPerfectThresholds(),
+		ReviewSummary: "PostgreSQL second review.", Samples: created.Version.Dataset.Samples,
+	})
+	if versioned.FailureCode != "" || versioned.Version == nil || versioned.Version.Dataset.DatasetVersion != 2 {
+		t.Fatalf("version PostgreSQL evaluation dataset: %#v", versioned)
+	}
+	now = now.Add(time.Minute)
+	ctxValue.RequestID, ctxValue.AuditRef = "request_postgres_archive", "audit_postgres_archive"
+	archived := service.Archive(ctxValue, created.Resource.DatasetID, 2)
+	if archived.FailureCode != "" || archived.Resource == nil || archived.Resource.LifecycleState != workflowRAGEvaluationArchived {
+		t.Fatalf("archive PostgreSQL evaluation dataset: %#v", archived)
+	}
+	runtimePool.Close()
+
+	reopened, err := workflowrunmigrations.OpenPool(ctx, runtimeDatabaseURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	restarted := newWorkflowRAGEvaluationDatasetService(
+		newPostgresWorkflowRAGEvaluationDatasetRepository(reopened),
+		newPostgresWorkflowRAGSnapshotRepository(reopened),
+	)
+	restored := restarted.Read(ctxValue, created.Resource.DatasetID, 1)
+	if restored.FailureCode != "" || restored.Resource == nil || restored.Resource.LifecycleState != workflowRAGEvaluationArchived ||
+		restored.Version == nil || restored.Version.Dataset.Samples[0].QueryText != "approved postgres pressure guidance" {
+		t.Fatalf("PostgreSQL restart did not restore exact dataset version: %#v", restored)
+	}
+	restoredReview := restarted.ReadCandidateReview(ctxValue, created.Resource.DatasetID, reviewed.Review.ReviewID)
+	if restoredReview.FailureCode != "" || restoredReview.Review == nil || restoredReview.Review.Conclusion != "regressed" {
+		t.Fatalf("PostgreSQL restart did not restore candidate review: %#v", restoredReview)
+	}
+	otherScope := ctxValue
+	otherScope.ApplicationID = "app_other"
+	if denied := restarted.Read(otherScope, created.Resource.DatasetID, 1); denied.FailureCode != WorkflowRAGEvaluationFailureScopeDenied {
+		t.Fatalf("PostgreSQL evaluation store accepted cross-scope read: %#v", denied)
+	}
+	var versionCount, reviewCount, auditCount int
+	if err = reopened.QueryRow(ctx, `SELECT count(*) FROM workflow_rag_evaluation_dataset_versions`).Scan(&versionCount); err != nil || versionCount != 2 {
+		t.Fatalf("unexpected PostgreSQL evaluation version count: count=%d err=%v", versionCount, err)
+	}
+	if err = reopened.QueryRow(ctx, `SELECT count(*) FROM workflow_rag_candidate_snapshot_reviews`).Scan(&reviewCount); err != nil || reviewCount != 1 {
+		t.Fatalf("unexpected PostgreSQL candidate review count: count=%d err=%v", reviewCount, err)
+	}
+	if err = reopened.QueryRow(ctx, `SELECT count(*) FROM workflow_rag_evaluation_audits`).Scan(&auditCount); err != nil || auditCount != 4 {
+		t.Fatalf("unexpected PostgreSQL evaluation audit count: count=%d err=%v", auditCount, err)
+	}
+	if _, err = reopened.Exec(ctx, `UPDATE workflow_rag_evaluation_dataset_versions SET dataset_version=3 WHERE dataset_version=2`); err == nil {
+		t.Fatal("PostgreSQL runtime role mutated immutable evaluation dataset version")
+	}
+	if _, err = reopened.Exec(ctx, `DELETE FROM workflow_rag_candidate_snapshot_reviews`); err == nil {
+		t.Fatal("PostgreSQL runtime role deleted append-only candidate review")
+	}
+	if _, err = reopened.Exec(ctx, `UPDATE workflow_rag_evaluation_audits SET event_kind='dataset_created'`); err == nil {
+		t.Fatal("PostgreSQL runtime role mutated append-only evaluation audit")
+	}
+	reopened.Close()
+	if result := restarted.Read(ctxValue, created.Resource.DatasetID, 1); result.FailureCode != WorkflowRAGEvaluationFailureStoreUnavailable {
+		t.Fatalf("closed PostgreSQL evaluation store fell back: %#v", result)
+	}
+}
+
 func resetPostgresWorkflowRunSchema(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
-	if _, err := pool.Exec(ctx, `DROP TABLE IF EXISTS workflow_rag_execution_audits, workflow_rag_snapshot_fragments, workflow_rag_snapshot_versions, workflow_rag_snapshot_resources, workflow_http_tool_execution_attempts, workflow_http_tool_confirmation_decisions, workflow_http_tool_execution_audits, workflow_http_tool_action_plans, workflow_evaluation_suite_decisions, workflow_evaluation_suites, workflow_evaluation_case_revisions, workflow_evaluation_cases, workflow_run_records`); err != nil {
+	if _, err := pool.Exec(ctx, `DROP TABLE IF EXISTS workflow_rag_evaluation_audits, workflow_rag_candidate_snapshot_reviews, workflow_rag_evaluation_dataset_versions, workflow_rag_evaluation_dataset_resources, workflow_rag_execution_audits, workflow_rag_snapshot_fragments, workflow_rag_snapshot_versions, workflow_rag_snapshot_resources, workflow_http_tool_execution_attempts, workflow_http_tool_confirmation_decisions, workflow_http_tool_execution_audits, workflow_http_tool_action_plans, workflow_evaluation_suite_decisions, workflow_evaluation_suites, workflow_evaluation_case_revisions, workflow_evaluation_cases, workflow_run_records`); err != nil {
 		t.Fatalf("reset workflow run integration tables: %v", err)
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_workflow_rag_snapshot_append_only_mutation()`); err != nil {

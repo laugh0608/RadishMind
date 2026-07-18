@@ -350,9 +350,9 @@ function mapVersionInput(input: WorkflowRAGSnapshotWriteInput) {
 }
 
 export function buildWorkflowRAGRequestHeaders(
-  config: WorkflowRAGSnapshotConfig,
-  applicationId: string,
-  scopes: readonly WorkflowRAGScope[],
+	config: Pick<WorkflowRAGSnapshotConfig, "authMode" | "workspaceId" | "tenantRef" | "subjectRef">,
+	applicationId: string,
+	scopes: readonly string[],
   operation: string,
 ): Record<string, string> {
   const requestId = `workflow-rag-${operation}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;

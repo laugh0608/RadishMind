@@ -834,6 +834,21 @@ h4 {
   background: #f8fafc;
 }
 
+.workflow-rag-evaluation-panel {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  margin-top: 18px;
+  border: 1px solid #d7c9aa;
+  border-radius: 12px;
+  padding: 18px;
+  background: linear-gradient(145deg, #fffcf5, #f8fafc);
+}
+
+.workflow-rag-evaluation-panel.offline {
+  background: #f8fafc;
+}
+
 .workflow-rag-execution-panel {
   display: grid;
   gap: 14px;
@@ -974,7 +989,8 @@ h4 {
   background: #edf2f7;
 }
 
-.workflow-rag-snapshot-panel button {
+.workflow-rag-snapshot-panel button,
+.workflow-rag-evaluation-panel button {
   border: 1px solid #cbd5e1;
   border-radius: 7px;
   padding: 8px 11px;
@@ -986,7 +1002,8 @@ h4 {
   font-weight: 700;
 }
 
-.workflow-rag-snapshot-panel button:disabled {
+.workflow-rag-snapshot-panel button:disabled,
+.workflow-rag-evaluation-panel button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
@@ -1002,6 +1019,143 @@ h4 {
   border-color: #b43b31;
   background: #fff;
   color: #9a3026;
+}
+
+.workflow-rag-evaluation-panel .danger-action {
+  border-color: #b43b31;
+  background: #fff;
+  color: #9a3026;
+}
+
+.workflow-rag-evaluation-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.32fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+}
+
+.workflow-rag-evaluation-workspace,
+.workflow-rag-evaluation-fields,
+.workflow-rag-candidate-review,
+.workflow-rag-review-history {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.workflow-rag-evaluation-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid #e1d7c0;
+  border-radius: 9px;
+  padding: 14px;
+  background: #fff;
+}
+
+.workflow-rag-evaluation-fields label,
+.workflow-rag-candidate-review > label,
+.workflow-rag-thresholds label {
+  display: grid;
+  gap: 6px;
+}
+
+.workflow-rag-evaluation-fields .wide,
+.workflow-rag-thresholds {
+  grid-column: 1 / -1;
+}
+
+.workflow-rag-evaluation-fields input,
+.workflow-rag-evaluation-fields select,
+.workflow-rag-evaluation-fields textarea,
+.workflow-rag-candidate-review textarea {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 9px 10px;
+  background: #fff;
+  color: #17202a;
+  font: inherit;
+}
+
+.workflow-rag-evaluation-fields textarea,
+.workflow-rag-candidate-review textarea {
+  min-height: 160px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.workflow-rag-thresholds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  border: 1px solid #e1d7c0;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.workflow-rag-thresholds legend,
+.workflow-rag-evaluation-fields span,
+.workflow-rag-evaluation-fields small,
+.workflow-rag-candidate-review label span {
+  color: #607086;
+  font-size: 12px;
+}
+
+.workflow-rag-candidate-review,
+.workflow-rag-review-evidence {
+  border: 1px solid #d7c9aa;
+  border-radius: 9px;
+  padding: 14px;
+  background: #fffdf8;
+}
+
+.workflow-rag-review-history > button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+}
+
+.workflow-rag-review-history > button span {
+  display: grid;
+  gap: 4px;
+}
+
+.workflow-rag-review-history > button.selected {
+  border-color: #946f31;
+  box-shadow: 0 0 0 2px rgb(148 111 49 / 14%);
+}
+
+.workflow-rag-review-evidence {
+  display: grid;
+  gap: 10px;
+}
+
+.workflow-rag-review-evidence.failed {
+  border-color: #e7b7b1;
+  background: #fff7f6;
+}
+
+.workflow-rag-review-evidence > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.workflow-rag-review-evidence dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.workflow-rag-review-evidence dd {
+  margin: 3px 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 .workflow-rag-layout {
@@ -1108,6 +1262,10 @@ h4 {
   .workflow-rag-scope-grid,
   .workflow-rag-binding-grid,
   .workflow-rag-layout,
+  .workflow-rag-evaluation-layout,
+  .workflow-rag-evaluation-fields,
+  .workflow-rag-thresholds,
+  .workflow-rag-review-evidence dl,
   .workflow-rag-record dl {
     grid-template-columns: 1fr;
   }

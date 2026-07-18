@@ -553,6 +553,8 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/workflow-rag-snapshot.schema.json",
         REPO_ROOT / "contracts/workflow-rag-evaluation-dataset.schema.json",
         REPO_ROOT / "contracts/workflow-rag-quality-review.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-evaluation-dataset-resource.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-candidate-snapshot-review.schema.json",
         REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
         REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json",
         REPO_ROOT / "contracts/radishflow-export-snapshot.schema.json",

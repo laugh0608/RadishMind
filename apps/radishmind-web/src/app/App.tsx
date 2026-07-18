@@ -228,6 +228,7 @@ const ApplicationConfigurationDraftPanel = lazy(() => import("../features/contro
 const ApplicationPublishCandidatePanel = lazy(() => import("../features/control-plane-read/applicationPublishCandidatePanel"));
 const ApplicationCatalogPanel = lazy(() => import("../features/control-plane-read/applicationCatalogPanel").then((module) => ({ default: module.ApplicationCatalogPanel })));
 const WorkflowRAGSnapshotPanel = lazy(() => import("../features/control-plane-read/workflowRAGSnapshotPanel"));
+const WorkflowRAGEvaluationDatasetPanel = lazy(() => import("../features/control-plane-read/workflowRAGEvaluationDatasetPanel"));
 const WorkflowRAGExecutionPanel = lazy(() => import("../features/control-plane-read/workflowRAGExecutionPanel"));
 const APIKeyLifecyclePanel = lazy(() => import("../features/control-plane-read/apiKeyLifecyclePanel").then((module) => ({ default: module.APIKeyLifecyclePanel })));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
@@ -1743,6 +1744,15 @@ export function App() {
           <Suspense fallback={<div className="workflow-rag-snapshot-panel"><p>Loading application knowledge snapshots…</p></div>}>
             <WorkflowRAGSnapshotPanel
               key={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}
+              applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
+              applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
+              applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
+            />
+          </Suspense>
+
+          <Suspense fallback={<div className="workflow-rag-evaluation-panel"><p>Loading Workflow RAG evaluation datasets…</p></div>}>
+            <WorkflowRAGEvaluationDatasetPanel
+              key={`rag-evaluation-${applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}`}
               applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
               applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
               applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}

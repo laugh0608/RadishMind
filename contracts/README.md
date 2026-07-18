@@ -49,6 +49,10 @@
 33. `workflow-rag-answer.schema.json`
 34. `workflow-rag-execution-audit.schema.json`
 35. `workflow-run-record-v3.schema.json`
+36. `workflow-rag-evaluation-dataset.schema.json`
+37. `workflow-rag-quality-review.schema.json`
+38. `workflow-rag-evaluation-dataset-resource.schema.json`
+39. `workflow-rag-candidate-snapshot-review.schema.json`
 
 当前 TypeScript 消费契约：
 

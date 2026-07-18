@@ -518,6 +518,10 @@ func runConfiguredPostgresMigrationGate(
 func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
 	_, err := pool.Exec(ctx, `DROP TABLE IF EXISTS
+		workflow_rag_evaluation_audits,
+		workflow_rag_candidate_snapshot_reviews,
+		workflow_rag_evaluation_dataset_versions,
+		workflow_rag_evaluation_dataset_resources,
 		workflow_rag_execution_audits,
 		workflow_rag_snapshot_fragments,
 		workflow_rag_snapshot_versions,
@@ -581,6 +585,10 @@ func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgx
 		{"workflow_rag_snapshot_versions", "sanitized_snapshot_payload", "jsonb"},
 		{"workflow_rag_snapshot_fragments", "sanitized_fragment_payload", "jsonb"},
 		{"workflow_rag_execution_audits", "sanitized_audit_payload", "jsonb"},
+		{"workflow_rag_evaluation_dataset_resources", "sanitized_resource_payload", "jsonb"},
+		{"workflow_rag_evaluation_dataset_versions", "dataset_version_payload", "jsonb"},
+		{"workflow_rag_candidate_snapshot_reviews", "review_payload", "jsonb"},
+		{"workflow_rag_evaluation_audits", "audit_payload", "jsonb"},
 	}
 	for _, column := range columns {
 		var actual string
@@ -612,6 +620,9 @@ func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgx
 		{"workflow_rag_snapshot_resources_list_idx", "lifecycle_state, snapshot_key"},
 		{"workflow_rag_snapshot_versions_history_idx", "snapshot_version DESC"},
 		{"workflow_rag_execution_audits_history_idx", "occurred_at DESC, event_id"},
+		{"workflow_rag_evaluation_dataset_resources_list_idx", "lifecycle_state, dataset_key"},
+		{"workflow_rag_candidate_snapshot_reviews_history_idx", "created_at DESC, review_id DESC"},
+		{"workflow_rag_evaluation_audits_history_idx", "occurred_at DESC, event_id DESC"},
 	}
 	for _, index := range indexes {
 		var definition string

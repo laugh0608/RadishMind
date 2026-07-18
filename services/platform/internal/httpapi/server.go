@@ -36,30 +36,31 @@ type Server struct {
 	controlPlaneReadStore controlPlaneReadStore
 	controlPlaneReadRepo  ControlPlaneReadRepository
 
-	savedWorkflowDraftStore               savedWorkflowDraftStore
-	applicationDraftRepository            applicationConfigurationDraftRepository
-	applicationPublishCandidateRepository applicationPublishCandidateRepository
-	applicationCatalogRepository          applicationCatalogRepository
-	apiKeyRepository                      apiKeyRepository
-	workflowRunStore                      workflowRunStore
-	workflowRAGSnapshotRepository         workflowRAGSnapshotRepository
-	workflowHTTPToolActionStore           workflowHTTPToolActionStore
-	workflowHTTPToolExecutionStore        workflowHTTPToolExecutionStore
-	workflowHTTPToolExecutionTransport    *workflowHTTPToolTransport
-	workflowEvaluationStore               workflowEvaluationStore
-	workflowEvaluationSuiteStore          workflowEvaluationSuiteStore
-	gatewayRequestHistoryStore            gatewayRequestStore
-	gatewayRequestHistoryStoreMode        string
-	closeSavedWorkflowDraftStore          func()
-	closeApplicationDraftStore            func()
-	closeApplicationPublishStore          func()
-	closeApplicationCatalogStore          func()
-	closeAPIKeyStore                      func()
-	closeWorkflowRunStore                 func()
-	closeGatewayRequestStore              func()
-	localPersistenceRuntime               *sqlitedev.Runtime
-	closeControlPlaneReadRepository       func()
-	closeOnce                             sync.Once
+	savedWorkflowDraftStore                savedWorkflowDraftStore
+	applicationDraftRepository             applicationConfigurationDraftRepository
+	applicationPublishCandidateRepository  applicationPublishCandidateRepository
+	applicationCatalogRepository           applicationCatalogRepository
+	apiKeyRepository                       apiKeyRepository
+	workflowRunStore                       workflowRunStore
+	workflowRAGSnapshotRepository          workflowRAGSnapshotRepository
+	workflowRAGEvaluationDatasetRepository workflowRAGEvaluationDatasetRepository
+	workflowHTTPToolActionStore            workflowHTTPToolActionStore
+	workflowHTTPToolExecutionStore         workflowHTTPToolExecutionStore
+	workflowHTTPToolExecutionTransport     *workflowHTTPToolTransport
+	workflowEvaluationStore                workflowEvaluationStore
+	workflowEvaluationSuiteStore           workflowEvaluationSuiteStore
+	gatewayRequestHistoryStore             gatewayRequestStore
+	gatewayRequestHistoryStoreMode         string
+	closeSavedWorkflowDraftStore           func()
+	closeApplicationDraftStore             func()
+	closeApplicationPublishStore           func()
+	closeApplicationCatalogStore           func()
+	closeAPIKeyStore                       func()
+	closeWorkflowRunStore                  func()
+	closeGatewayRequestStore               func()
+	localPersistenceRuntime                *sqlitedev.Runtime
+	closeControlPlaneReadRepository        func()
+	closeOnce                              sync.Once
 }
 
 type errorDocument struct {
@@ -141,6 +142,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
 		return nil, err
 	}
+	workflowRAGEvaluationDatasetRepository := newWorkflowRAGEvaluationDatasetRepositoryForRunStore(workflowRunStore)
 	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
@@ -154,32 +156,33 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux := http.NewServeMux()
 	workflowHTTPToolActionStore := newWorkflowHTTPToolActionStoreForRunStore(workflowRunStore)
 	server := &Server{
-		options:                               options,
-		bridge:                                platformBridge,
-		config:                                runtimeConfig,
-		controlPlaneReadRepo:                  controlPlaneReadRepository,
-		savedWorkflowDraftStore:               savedWorkflowDraftStore,
-		applicationDraftRepository:            applicationDraftRepository,
-		applicationPublishCandidateRepository: applicationPublishRepository,
-		applicationCatalogRepository:          applicationCatalogRepository,
-		apiKeyRepository:                      apiKeyRepository,
-		workflowRunStore:                      workflowRunStore,
-		workflowRAGSnapshotRepository:         workflowRAGSnapshotRepository,
-		workflowHTTPToolActionStore:           workflowHTTPToolActionStore,
-		workflowHTTPToolExecutionStore:        newWorkflowHTTPToolExecutionStoreForRunStore(workflowRunStore, workflowHTTPToolActionStore),
-		workflowEvaluationStore:               newWorkflowEvaluationStoreForRunStore(workflowRunStore),
-		workflowEvaluationSuiteStore:          newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
-		gatewayRequestHistoryStore:            gatewayRequestStore,
-		gatewayRequestHistoryStoreMode:        gatewayRequestStoreMode,
-		closeSavedWorkflowDraftStore:          closeSavedWorkflowDraftStore,
-		closeApplicationDraftStore:            closeApplicationDraftStore,
-		closeApplicationPublishStore:          closeApplicationPublishStore,
-		closeApplicationCatalogStore:          closeApplicationCatalogStore,
-		closeAPIKeyStore:                      closeAPIKeyStore,
-		closeWorkflowRunStore:                 closeWorkflowRunStore,
-		closeGatewayRequestStore:              closeGatewayRequestStore,
-		localPersistenceRuntime:               localPersistenceRuntime,
-		closeControlPlaneReadRepository:       closeControlPlaneReadRepository,
+		options:                                options,
+		bridge:                                 platformBridge,
+		config:                                 runtimeConfig,
+		controlPlaneReadRepo:                   controlPlaneReadRepository,
+		savedWorkflowDraftStore:                savedWorkflowDraftStore,
+		applicationDraftRepository:             applicationDraftRepository,
+		applicationPublishCandidateRepository:  applicationPublishRepository,
+		applicationCatalogRepository:           applicationCatalogRepository,
+		apiKeyRepository:                       apiKeyRepository,
+		workflowRunStore:                       workflowRunStore,
+		workflowRAGSnapshotRepository:          workflowRAGSnapshotRepository,
+		workflowRAGEvaluationDatasetRepository: workflowRAGEvaluationDatasetRepository,
+		workflowHTTPToolActionStore:            workflowHTTPToolActionStore,
+		workflowHTTPToolExecutionStore:         newWorkflowHTTPToolExecutionStoreForRunStore(workflowRunStore, workflowHTTPToolActionStore),
+		workflowEvaluationStore:                newWorkflowEvaluationStoreForRunStore(workflowRunStore),
+		workflowEvaluationSuiteStore:           newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
+		gatewayRequestHistoryStore:             gatewayRequestStore,
+		gatewayRequestHistoryStoreMode:         gatewayRequestStoreMode,
+		closeSavedWorkflowDraftStore:           closeSavedWorkflowDraftStore,
+		closeApplicationDraftStore:             closeApplicationDraftStore,
+		closeApplicationPublishStore:           closeApplicationPublishStore,
+		closeApplicationCatalogStore:           closeApplicationCatalogStore,
+		closeAPIKeyStore:                       closeAPIKeyStore,
+		closeWorkflowRunStore:                  closeWorkflowRunStore,
+		closeGatewayRequestStore:               closeGatewayRequestStore,
+		localPersistenceRuntime:                localPersistenceRuntime,
+		closeControlPlaneReadRepository:        closeControlPlaneReadRepository,
 	}
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
@@ -227,6 +230,14 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(workflowRAGSnapshotReadRoute, server.handleReadWorkflowRAGSnapshot)
 	mux.HandleFunc(workflowRAGSnapshotVersionRoute, server.handleVersionWorkflowRAGSnapshot)
 	mux.HandleFunc(workflowRAGSnapshotArchiveRoute, server.handleArchiveWorkflowRAGSnapshot)
+	mux.HandleFunc(workflowRAGEvaluationDatasetCreateRoute, server.handleCreateWorkflowRAGEvaluationDataset)
+	mux.HandleFunc(workflowRAGEvaluationDatasetListRoute, server.handleListWorkflowRAGEvaluationDatasets)
+	mux.HandleFunc(workflowRAGEvaluationDatasetReadRoute, server.handleReadWorkflowRAGEvaluationDataset)
+	mux.HandleFunc(workflowRAGEvaluationDatasetVersionRoute, server.handleVersionWorkflowRAGEvaluationDataset)
+	mux.HandleFunc(workflowRAGEvaluationDatasetArchiveRoute, server.handleArchiveWorkflowRAGEvaluationDataset)
+	mux.HandleFunc(workflowRAGCandidateReviewCreateRoute, server.handleCreateWorkflowRAGCandidateReview)
+	mux.HandleFunc(workflowRAGCandidateReviewListRoute, server.handleListWorkflowRAGCandidateReviews)
+	mux.HandleFunc(workflowRAGCandidateReviewReadRoute, server.handleReadWorkflowRAGCandidateReview)
 	mux.HandleFunc(workflowHTTPToolPlanCreateRoute, server.handleCreateWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowHTTPToolPlanReadRoute, server.handleReadWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowHTTPToolDecisionRoute, server.handleDecideWorkflowHTTPToolActionPlan)
