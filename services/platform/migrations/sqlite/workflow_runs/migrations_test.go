@@ -9,9 +9,9 @@ import (
 	"radishmind.local/services/platform/internal/sqlitedev"
 )
 
-func TestWorkflowRunSQLiteMigrationsAreOrderedThroughRAGExecutionBatchB(t *testing.T) {
+func TestWorkflowRunSQLiteMigrationsAreOrderedThroughRAGEvaluationResources(t *testing.T) {
 	migrations := Migrations()
-	if len(migrations) != 5 {
+	if len(migrations) != 6 {
 		t.Fatalf("unexpected workflow run SQLite migration count: %d", len(migrations))
 	}
 	if migrations[0].ID != legacyMigrationID || migrations[0].StoreSchemaVersion != legacyRunStoreSchemaVersion {
@@ -26,8 +26,11 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughRAGExecutionBatchB(t *testi
 	if migrations[3].ID != ragSnapshotMigrationID || migrations[3].StoreSchemaVersion != ragSnapshotStoreSchemaVersion {
 		t.Fatalf("workflow RAG snapshot migration drifted: %#v", migrations[3])
 	}
-	if migrations[4].ID != MigrationID || migrations[4].StoreSchemaVersion != StoreSchemaVersion {
+	if migrations[4].ID != ragExecutionAuditMigrationID || migrations[4].StoreSchemaVersion != ragExecutionAuditSchemaVersion {
 		t.Fatalf("workflow RAG execution audit migration drifted: %#v", migrations[4])
+	}
+	if migrations[5].ID != MigrationID || migrations[5].StoreSchemaVersion != StoreSchemaVersion {
+		t.Fatalf("workflow evaluation resource migration drifted: %#v", migrations[5])
 	}
 	for _, required := range []string{
 		"CREATE TABLE workflow_http_tool_action_plans",
@@ -38,6 +41,18 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughRAGExecutionBatchB(t *testi
 	} {
 		if !strings.Contains(upSQLV2, required) {
 			t.Fatalf("SQLite HTTP tool action migration is missing %q", required)
+		}
+	}
+	for _, required := range []string{
+		"CREATE TABLE workflow_evaluation_cases",
+		"CREATE TABLE workflow_evaluation_case_revisions",
+		"CREATE TABLE workflow_evaluation_suites",
+		"CREATE TABLE workflow_evaluation_suite_decisions",
+		"workflow_evaluation_case_revisions_append_only_update",
+		"workflow_evaluation_suite_decisions_append_only_delete",
+	} {
+		if !strings.Contains(upSQLV6, required) {
+			t.Fatalf("SQLite workflow evaluation resource migration is missing %q", required)
 		}
 	}
 	for _, required := range []string{
@@ -134,7 +149,7 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		_ = upgradedRuntime.Close()
 		t.Fatalf("legacy workflow run changed during upgrade: count=%d err=%v", legacyRunCount, err)
 	}
-	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 5 {
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 6 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("unexpected workflow run migration markers: count=%d err=%v", migrationCount, err)
 	}
@@ -161,6 +176,17 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name LIKE 'workflow_rag_%_append_only_%'`).Scan(&ragTriggerCount); err != nil || ragTriggerCount != 6 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("workflow RAG snapshot append-only triggers are incomplete: count=%d err=%v", ragTriggerCount, err)
+	}
+	var evaluationTableCount, evaluationTriggerCount int
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN (
+		'workflow_evaluation_cases','workflow_evaluation_case_revisions','workflow_evaluation_suites','workflow_evaluation_suite_decisions'
+	)`).Scan(&evaluationTableCount); err != nil || evaluationTableCount != 4 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("workflow evaluation tables are incomplete: count=%d err=%v", evaluationTableCount, err)
+	}
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name LIKE 'workflow_evaluation_%_append_only_%'`).Scan(&evaluationTriggerCount); err != nil || evaluationTriggerCount != 4 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("workflow evaluation append-only triggers are incomplete: count=%d err=%v", evaluationTriggerCount, err)
 	}
 
 	insertSQLiteHTTPToolActionRecords(t, ctx, upgradedRuntime)

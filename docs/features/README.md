@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-18 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md) 确定性运行时也已完成；真实 Radish 联调已主动延后。[本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md)、[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md)、[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 与 [Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 均已关闭。RAG v1 不派生批次 D；下一实现任务必须先有独立功能设计，生产认证、工作区成员关系、正式晋级、生产 API 密钥、配额与计费仍关闭。
+2026-07-18 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md) 确定性运行时也已完成；真实 Radish 联调已主动延后。[本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md)、[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md)、[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](workflow/controlled-http-tool-human-confirmation-dev-test-v1.md)、[Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 与 [Workflow RAG Regression Review 与 Evaluation Profile v1](workflow/workflow-rag-regression-review-evaluation-profile-dev-test-v1.md) 均已关闭。RAG v1 不派生批次 D；下一产品设计优先评审“RAG 评测数据集与知识质量审查”，先定义人工维护 query / expected citation evidence 和离线质量指标，不直接进入生产认证、外部 connector、自动 baseline 或自动 release。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -43,7 +43,7 @@
 | [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口 | 应用目录与 API 密钥纵向专题已关闭；进入新功能前先更新设计 |
 | [管理控制面](admin-control-plane.md) | 租户、权限、模型服务配置、配额、凭据、审计和部署证据 | 进入真实管理端、OIDC 或数据库前先更新 |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
-| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；HTTP Tool v1 与 RAG Retrieval / 应用知识快照 v1 三批均已完成 | 下一项功能先完成独立设计；不得在 executor v0 原地放开 retrieval 或直接进入生产能力 |
+| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；HTTP Tool v1、RAG Retrieval / 应用知识快照 v1 与 RAG regression profile 均已完成 | 下一项优先设计 RAG 评测数据集与知识质量审查；不得在 executor v0 原地放开 retrieval、外部 connector 或生产能力 |
 | [图片生成 / 产物返回](image-generation-artifact-return.md) | 生图意图、产物元数据、响应合并和后续后端适配器 | 进入存储、读取、公开 URL 或后端适配器前先更新 |
 
 ## 细专题导航

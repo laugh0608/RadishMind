@@ -220,6 +220,42 @@ func TestWorkflowRAGExecutionFailsClosedWithoutRetryOrFallback(t *testing.T) {
 	}
 }
 
+func TestWorkflowRAGDraftDigestUsesImmutableDraftContent(t *testing.T) {
+	fixture := newWorkflowRAGExecutionFixture(t)
+	baseline, err := workflowRAGDraftDigest(fixture.draft)
+	if err != nil {
+		t.Fatalf("digest baseline draft: %v", err)
+	}
+
+	readProjection := fixture.draft
+	readProjection.RequestAuditMetadata = SavedWorkflowDraftAuditMetadata{
+		RequestID: "request_second_read", AuditRef: "audit_second_read", ActorRef: "actor_second_read",
+	}
+	readProjection.ValidationSummary.ValidForReview = !readProjection.ValidationSummary.ValidForReview
+	readProjection.BlockedCapabilitySummary = []SavedWorkflowDraftBlockedCapability{{
+		CapabilityID: "derived_read_policy", MissingPrerequisite: "review", Summary: "Derived read-time observation.",
+	}}
+	readProjection.SampleOrUnsavedDraftStatus = "read_projection_changed"
+	stable, err := workflowRAGDraftDigest(readProjection)
+	if err != nil {
+		t.Fatalf("digest second read projection: %v", err)
+	}
+	if stable != baseline {
+		t.Fatalf("read-time metadata changed immutable draft digest: %s != %s", stable, baseline)
+	}
+
+	changed := fixture.draft
+	changed.Nodes = append([]SavedWorkflowDraftNode(nil), fixture.draft.Nodes...)
+	changed.Nodes[0].Label = "Changed executable draft content"
+	changedDigest, err := workflowRAGDraftDigest(changed)
+	if err != nil {
+		t.Fatalf("digest changed draft: %v", err)
+	}
+	if changedDigest == baseline {
+		t.Fatalf("executable draft content did not change digest: %s", baseline)
+	}
+}
+
 func TestWorkflowRAGAnswerValidatorAcceptsOnlySelectedUniqueCitations(t *testing.T) {
 	selected := []WorkflowRAGRankedFragment{{FragmentRef: "official_guide"}, {FragmentRef: "internal_notes"}}
 	valid, failure := parseWorkflowRAGAnswer(mustWorkflowRAGAnswerJSON(t, workflowRAGTestAnswer("official_guide", "Supported claim")), selected)

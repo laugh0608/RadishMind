@@ -55,8 +55,11 @@ func TestWorkflowRunSQLiteStoreFactory(t *testing.T) {
 	if !ok || sqliteStore.database != runtime.DB() {
 		t.Fatalf("SQLite workflow run store did not reuse the shared database: %T", store)
 	}
-	if _, ok := newWorkflowEvaluationStoreForRunStore(store).(*memoryWorkflowEvaluationStore); !ok {
-		t.Fatalf("SQLite workflow run selection unexpectedly expanded evaluation persistence: %T", newWorkflowEvaluationStoreForRunStore(store))
+	if evaluationStore, ok := newWorkflowEvaluationStoreForRunStore(store).(*sqliteWorkflowEvaluationStore); !ok || evaluationStore.database != runtime.DB() {
+		t.Fatalf("SQLite evaluation case store did not share the workflow run database: %T", newWorkflowEvaluationStoreForRunStore(store))
+	}
+	if suiteStore, ok := newWorkflowEvaluationSuiteStoreForRunStore(store).(*sqliteWorkflowEvaluationSuiteStore); !ok || suiteStore.database != runtime.DB() {
+		t.Fatalf("SQLite evaluation suite store did not share the workflow run database: %T", newWorkflowEvaluationSuiteStoreForRunStore(store))
 	}
 	if actionStore, ok := newWorkflowHTTPToolActionStoreForRunStore(store).(*sqliteWorkflowHTTPToolActionStore); !ok || actionStore.database != runtime.DB() {
 		t.Fatalf("SQLite tool action store did not share the workflow run database: %T", actionStore)

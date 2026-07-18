@@ -84,10 +84,16 @@ func newWorkflowRunStoreFromConfigWithSQLiteRuntime(
 }
 
 func newWorkflowEvaluationStoreForRunStore(store workflowRunStore) workflowEvaluationStore {
-	if postgres, ok := store.(*postgresWorkflowRunStore); ok {
-		return newPostgresWorkflowEvaluationStore(postgres.pool)
+	switch typed := store.(type) {
+	case *memoryWorkflowRunStore:
+		return newMemoryWorkflowEvaluationStore(defaultWorkflowEvaluationCapacity)
+	case *sqliteWorkflowRunStore:
+		return newSQLiteWorkflowEvaluationStore(typed.database)
+	case *postgresWorkflowRunStore:
+		return newPostgresWorkflowEvaluationStore(typed.pool)
+	default:
+		return nil
 	}
-	return newMemoryWorkflowEvaluationStore(defaultWorkflowEvaluationCapacity)
 }
 
 func newWorkflowHTTPToolActionStoreForRunStore(store workflowRunStore) workflowHTTPToolActionStore {
@@ -124,10 +130,16 @@ func newWorkflowHTTPToolExecutionStoreForRunStore(
 }
 
 func newWorkflowEvaluationSuiteStoreForRunStore(store workflowRunStore) workflowEvaluationSuiteStore {
-	if postgres, ok := store.(*postgresWorkflowRunStore); ok {
-		return newPostgresWorkflowEvaluationSuiteStore(postgres.pool)
+	switch typed := store.(type) {
+	case *memoryWorkflowRunStore:
+		return newMemoryWorkflowEvaluationSuiteStore(defaultWorkflowEvaluationCapacity)
+	case *sqliteWorkflowRunStore:
+		return newSQLiteWorkflowEvaluationSuiteStore(typed.database)
+	case *postgresWorkflowRunStore:
+		return newPostgresWorkflowEvaluationSuiteStore(typed.pool)
+	default:
+		return nil
 	}
-	return newMemoryWorkflowEvaluationSuiteStore(defaultWorkflowEvaluationCapacity)
 }
 
 func newWorkflowRAGSnapshotRepositoryForRunStore(store workflowRunStore) (workflowRAGSnapshotRepository, error) {

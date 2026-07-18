@@ -121,7 +121,22 @@ func buildWorkflowRAGExecutionPlan(draft SavedWorkflowDraft, expectedVersion int
 }
 
 func workflowRAGDraftDigest(draft SavedWorkflowDraft) (string, error) {
-	payload, err := json.Marshal(draft)
+	immutable := struct {
+		DraftVersion int                       `json:"draft_version"`
+		Payload      SavedWorkflowDraftPayload `json:"payload"`
+	}{
+		DraftVersion: draft.DraftVersion,
+		Payload: SavedWorkflowDraftPayload{
+			DraftID: draft.DraftID, WorkspaceID: draft.WorkspaceID, ApplicationID: draft.ApplicationID,
+			SourceDefinitionID: draft.SourceDefinitionID, BaseDefinitionVersion: draft.BaseDefinitionVersion,
+			SchemaVersion: draft.SchemaVersion, DraftStatus: draft.DraftStatus, Name: draft.Name,
+			Description: draft.Description, Nodes: draft.Nodes, Edges: draft.Edges,
+			InputContract: draft.InputContract, OutputContract: draft.OutputContract,
+			ProviderRefs: draft.ProviderRefs, ToolRefs: draft.ToolRefs, RAGRefs: draft.RAGRefs,
+			RequestedCapabilities: draft.RequestedCapabilities, AdditionalFields: draft.AdditionalFields,
+		},
+	}
+	payload, err := json.Marshal(immutable)
 	if err != nil {
 		return "", err
 	}

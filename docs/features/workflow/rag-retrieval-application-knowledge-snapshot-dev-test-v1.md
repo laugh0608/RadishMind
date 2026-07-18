@@ -198,7 +198,7 @@ run v3 继续写入既有 workflow run store。snapshot 创建 / 新版本 / arc
 
 Run History summary 不返回 fragment 正文或原始 query。detail 可在 snapshot read 授权下按 run 绑定的 fragment refs 读取最多 512 字符的片段预览，并明确其来自不可变 snapshot repository，不从 run record 读取复制内容。
 
-首版 Run Comparison、Evaluation Cases、Baseline 和 Suite 对 v3 返回 `workflow_run_retrieval_profile_unsupported`；不得误报 store contract mismatch。实现批次必须先以确定性 ranking fixture、scope negative、引用 validator 和三种 store 行为测试建立评测基线，再决定后续独立的 RAG regression review 功能。
+本专题交付时，Run Comparison、Evaluation Cases、Baseline 和 Suite 对 v3 返回 `workflow_run_retrieval_profile_unsupported`，并以确定性 ranking fixture、scope negative、引用 validator 和三种 store 行为测试建立评测基线。2026-07-18 后续独立的 [Workflow RAG Regression Review 与 Evaluation Profile v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1.md) 已完成相同 immutable retrieval binding 的 Comparison v2 与 Evaluation / Baseline / Suite profile；该扩展不属于本专题批次 D，也不重新执行 retrieval / Gateway 或复制 query、fragment、answer。
 
 ## 失败码与审计
 

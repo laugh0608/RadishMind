@@ -63,7 +63,7 @@ func (s *postgresWorkflowEvaluationStore) ReviseCase(ctx WorkflowRunContext, exp
 		return WorkflowEvaluationCase{}, false, err
 	}
 	if currentVersion != expected {
-		current, decodeErr := decodePostgresWorkflowEvaluationCase(ctx, currentPayload)
+		current, decodeErr := decodeWorkflowEvaluationCase(ctx, currentPayload)
 		return current, false, decodeErr
 	}
 	if value.Version != expected+1 || value.PreviousVersion != expected {
@@ -96,7 +96,7 @@ func (s *postgresWorkflowEvaluationStore) ReadCase(ctx WorkflowRunContext, id st
 	if err != nil {
 		return WorkflowEvaluationCase{}, false, err
 	}
-	value, err := decodePostgresWorkflowEvaluationCase(ctx, payload)
+	value, err := decodeWorkflowEvaluationCase(ctx, payload)
 	return value, true, err
 }
 func (s *postgresWorkflowEvaluationStore) ReadRevision(ctx WorkflowRunContext, id string, version int) (WorkflowEvaluationCase, bool, error) {
@@ -111,7 +111,7 @@ func (s *postgresWorkflowEvaluationStore) ReadRevision(ctx WorkflowRunContext, i
 	if err != nil {
 		return WorkflowEvaluationCase{}, false, err
 	}
-	value, err := decodePostgresWorkflowEvaluationCase(ctx, payload)
+	value, err := decodeWorkflowEvaluationCase(ctx, payload)
 	return value, true, err
 }
 func (s *postgresWorkflowEvaluationStore) ListCases(ctx WorkflowRunContext, filter WorkflowEvaluationListFilter) (WorkflowEvaluationListPage, error) {
@@ -129,7 +129,7 @@ func (s *postgresWorkflowEvaluationStore) ListCases(ctx WorkflowRunContext, filt
 		if rows.Scan(&payload) != nil {
 			return WorkflowEvaluationListPage{}, errWorkflowEvaluationStoreContract
 		}
-		value, decodeErr := decodePostgresWorkflowEvaluationCase(ctx, payload)
+		value, decodeErr := decodeWorkflowEvaluationCase(ctx, payload)
 		if decodeErr != nil {
 			return WorkflowEvaluationListPage{}, decodeErr
 		}
@@ -159,7 +159,7 @@ func (s *postgresWorkflowEvaluationStore) ListRevisions(ctx WorkflowRunContext, 
 		if rows.Scan(&payload) != nil {
 			return WorkflowEvaluationRevisionListPage{}, errWorkflowEvaluationStoreContract
 		}
-		value, decodeErr := decodePostgresWorkflowEvaluationCase(ctx, payload)
+		value, decodeErr := decodeWorkflowEvaluationCase(ctx, payload)
 		if decodeErr != nil {
 			return WorkflowEvaluationRevisionListPage{}, decodeErr
 		}
@@ -174,7 +174,7 @@ func (s *postgresWorkflowEvaluationStore) ListRevisions(ctx WorkflowRunContext, 
 	}
 	return WorkflowEvaluationRevisionListPage{Revisions: values, HasMore: hasMore}, nil
 }
-func decodePostgresWorkflowEvaluationCase(ctx WorkflowRunContext, payload []byte) (WorkflowEvaluationCase, error) {
+func decodeWorkflowEvaluationCase(ctx WorkflowRunContext, payload []byte) (WorkflowEvaluationCase, error) {
 	var value WorkflowEvaluationCase
 	decoder := json.NewDecoder(strings.NewReader(string(payload)))
 	decoder.DisallowUnknownFields()

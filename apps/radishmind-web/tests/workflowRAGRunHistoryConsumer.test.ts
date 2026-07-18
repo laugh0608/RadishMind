@@ -3,6 +3,8 @@ import test from "node:test";
 
 import {
   EMPTY_WORKFLOW_RUN_HISTORY_FILTER,
+  isWorkflowRunComparisonCompatible,
+  isWorkflowRunComparisonEligible,
   listWorkflowRunHistory,
   readWorkflowRunHistoryDetail,
 } from "../src/features/control-plane-read/workflowRunHistoryConsumer.ts";
@@ -70,6 +72,24 @@ test("history rejects nested fragment bodies, unknown previews, and previews ove
     unknownRef.retrieval_fragment_previews[0].fragment_ref = "not_selected";
     globalThis.fetch = async () => jsonResponse(unknownRef);
     await assert.rejects(() => readWorkflowRunHistoryDetail(history.runs[0]!, "app_flow_copilot", live, true), /incompatible retrieval previews/u);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test("RAG comparison selection requires an exact immutable retrieval binding", async () => {
+  const originalFetch = globalThis.fetch;
+  const body = listEnvelope();
+  const compatible = structuredClone(body.runs[0]!);
+  compatible.run_id = "run_bbbbbbbbbbbbbbbb";
+  const differentQuery = structuredClone(body.runs[0]!);
+  differentQuery.run_id = "run_cccccccccccccccc";
+  differentQuery.query_digest = digestB;
+  body.runs.push(compatible, differentQuery);
+  globalThis.fetch = async () => jsonResponse(body);
+  try {
+    const history = await listWorkflowRunHistory("app_flow_copilot", live, EMPTY_WORKFLOW_RUN_HISTORY_FILTER);
+    assert.equal(isWorkflowRunComparisonEligible(history.runs[0]!), true);
+    assert.equal(isWorkflowRunComparisonCompatible(history.runs[0], history.runs[1]!), true);
+    assert.equal(isWorkflowRunComparisonCompatible(history.runs[0], history.runs[2]!), false);
   } finally { globalThis.fetch = originalFetch; }
 });
 

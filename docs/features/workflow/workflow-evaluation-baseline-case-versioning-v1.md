@@ -72,7 +72,7 @@ revision 请求必须携带正整数 `expected_version`。memory 与 PostgreSQL 
 - PostgreSQL：fresh、0001 / 0002 / 0003 pending、回填、rollback / reapply、并发 CAS、重启恢复、scope、运行角色和 no fallback。
 - Web：offline、current / history / revision / conflict / historical review、strict response 和零副作用。
 - 浏览器：创建 case、修订预期、提升 baseline、制造并发 conflict、审查旧 / 新版本并在服务重启后恢复。
-- 不实现自动 baseline、scheduled / batch execution、retry、replay / resume、delete、history rewrite、tool、RAG、confirmation commit、业务写回、production audit store 或 production enablement。
+- 本专题原始版本不实现 tool 或 RAG；后续 RAG 只由独立 profile 专题按 exact binding 接入。仍不实现自动 baseline、scheduled / batch execution、retry、replay / resume、delete、history rewrite、confirmation commit、业务写回、production audit store 或 production enablement。
 
 ## 完成结果
 
@@ -84,3 +84,5 @@ revision 请求必须携带正整数 `expected_version`。memory 与 PostgreSQL 
 - Go test / race / vet、Web 19 项测试 / build、PostgreSQL integration 和仓库 fast / full 门禁通过；浏览器、Platform/Web 与 PostgreSQL 容器 / 网络均已关闭。
 
 后续 [Workflow Evaluation Suite / Release Review v1](workflow-evaluation-suite-release-review-v1.md) 已完成：明确 case version 可组成不可变 suite，并提供聚合只读审查和人工 release decision evidence；仍不自动执行、部署、promote 或写回业务系统。
+
+2026-07-18 独立的 [Workflow RAG Regression Review 与 Evaluation Profile v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1.md) 已让相同 immutable retrieval binding 的 v3 case 支持完整 revision、baseline promotion 与历史 review；SQLite shared database 同步补齐 durable case / revision repository。所有版本仍只引用 run id，并在每次 create / revise / review 时由服务端重读验证，不复制检索正文或运行载荷。

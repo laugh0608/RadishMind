@@ -54,6 +54,7 @@ const (
 	WorkflowRunReviewStartNewRun           WorkflowRunReviewAction = "start_new_run"
 	WorkflowRunReviewToolPolicy            WorkflowRunReviewAction = "check_tool_policy"
 	WorkflowRunReviewToolOutcome           WorkflowRunReviewAction = "review_tool_outcome"
+	WorkflowRunReviewRetrievalEvidence     WorkflowRunReviewAction = "review_retrieval_evidence"
 )
 
 type WorkflowRunTerminalWriteState string
@@ -308,7 +309,8 @@ func validWorkflowRunReviewAction(value WorkflowRunReviewAction) bool {
 	switch value {
 	case WorkflowRunReviewDraft, WorkflowRunReviewGatewayCapacity,
 		WorkflowRunReviewProviderConfiguration, WorkflowRunReviewRunStore,
-		WorkflowRunReviewStartNewRun, WorkflowRunReviewToolPolicy, WorkflowRunReviewToolOutcome:
+		WorkflowRunReviewStartNewRun, WorkflowRunReviewToolPolicy, WorkflowRunReviewToolOutcome,
+		WorkflowRunReviewRetrievalEvidence:
 		return true
 	default:
 		return false

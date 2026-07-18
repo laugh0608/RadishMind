@@ -6,6 +6,8 @@ import { readWorkflowRAGSnapshotConfig } from "./workflowRAGSnapshotConsumer.ts"
 import {
   EMPTY_WORKFLOW_RUN_HISTORY_FILTER,
   initialWorkflowRunHistoryState,
+  isWorkflowRunComparisonCompatible,
+  isWorkflowRunComparisonEligible,
   listWorkflowRunHistory,
   readWorkflowRunHistoryDetail,
   type WorkflowRunHistoryFilter,
@@ -92,7 +94,9 @@ export default function WorkflowRunHistoryPanel({ applicationId, refreshKey = 0 
   const staleCount = history.runs.filter((run) => run.staleRunning).length;
   const gatewayCount = history.runs.filter((run) => run.failureBoundary === "gateway" || run.failureBoundary === "provider").length;
   const storeCount = history.runs.filter((run) => run.failureBoundary === "run_store").length;
-  const comparisonRuns = history.runs.filter((run) => run.schemaVersion !== "workflow_run_record.v3");
+  const comparisonRuns = history.runs.filter(isWorkflowRunComparisonEligible);
+  const comparisonBaseline = comparisonRuns.find((run) => run.runId === baselineRunId);
+  const comparisonCandidateRuns = comparisonRuns.filter((run) => isWorkflowRunComparisonCompatible(comparisonBaseline, run));
   const hasRetrievalRuns = history.runs.some((run) => run.schemaVersion === "workflow_run_record.v3");
   return (
     <section className="surface-band workspace-run-history" id="workspace-run-history" aria-labelledby="workspace-run-history-title">
@@ -133,11 +137,11 @@ export default function WorkflowRunHistoryPanel({ applicationId, refreshKey = 0 
             {history.runs.map((run) => <button type="button" className={`workflow-run-history-live-row ${selectedRunId === run.runId ? "is-selected" : ""}`} key={run.runId} onClick={() => void selectRun(run)}><span className="workflow-run-history-live-identity"><strong>{run.runId}</strong><small>{run.draftId} · version {run.draftVersion}</small></span><span><small>Status</small><strong>{run.status}{run.staleRunning ? " · stale" : ""}</strong><small>{run.schemaVersion}</small></span><span><small>Failure</small><strong>{run.failureBoundary || "none"}</strong><small>{run.retrievalFailureCategory || run.toolFailureCategory || run.gatewayFailureCategory || run.failureCode || "none"}</small></span><span><small>Controlled effects</small><strong>{run.schemaVersion === "workflow_run_record.v3" ? `${run.sideEffects.retrievalCalls} retrieval · ${run.sideEffects.providerCalls} provider` : `${run.sideEffects.toolCalls} tool · ${run.sideEffects.confirmationCalls} confirmation`}</strong><small>{run.schemaVersion === "workflow_run_record.v3" ? `${run.citationRefs.length} citation refs` : run.toolAttemptStatus || "no tool attempt"}</small></span></button>)}
           </div>
           <div className="workflow-run-comparison-selector" aria-label="Workflow run comparison selection">
-            <label>Baseline run<select value={baselineRunId} onChange={(event) => setBaselineRunId(event.target.value)}><option value="">Choose baseline</option>{comparisonRuns.map((run) => <option value={run.runId} key={`baseline-${run.runId}`}>{run.runId} · {run.status}</option>)}</select></label>
-            <label>Candidate run<select value={candidateRunId} onChange={(event) => setCandidateRunId(event.target.value)}><option value="">Choose candidate</option>{comparisonRuns.map((run) => <option value={run.runId} key={`candidate-${run.runId}`}>{run.runId} · {run.status}</option>)}</select></label>
+            <label>Baseline run<select value={baselineRunId} onChange={(event) => { setBaselineRunId(event.target.value); setCandidateRunId(""); setComparisonSelection(null); }}><option value="">Choose baseline</option>{comparisonRuns.map((run) => <option value={run.runId} key={`baseline-${run.runId}`}>{run.runId} · {run.status} · {run.schemaVersion === "workflow_run_record.v3" ? "RAG" : "standard"}</option>)}</select></label>
+            <label>Candidate run<select value={candidateRunId} onChange={(event) => setCandidateRunId(event.target.value)}><option value="">Choose compatible candidate</option>{comparisonCandidateRuns.map((run) => <option value={run.runId} key={`candidate-${run.runId}`}>{run.runId} · {run.status}</option>)}</select></label>
             <button type="button" disabled={!baselineRunId || !candidateRunId || baselineRunId === candidateRunId} onClick={() => setComparisonSelection({ baseline: baselineRunId, candidate: candidateRunId })}>Compare runs</button>
           </div>
-          {hasRetrievalRuns ? <p className="boundary-note"><code>workflow_run_retrieval_profile_unsupported</code> · Run Comparison、Evaluation Cases、Baseline 和 Suite 不接受 workflow_run_record.v3；RAG 运行只在普通 Run History 中审查。</p> : null}
+          {hasRetrievalRuns ? <p className="boundary-note"><code>workflow_rag_retrieval.v1</code> · RAG 比较和评测只接受 snapshot、profile、query 与 retrieval node 绑定完全一致的 v3 运行；HTTP Tool v2 继续返回 <code>workflow_run_side_effect_profile_unsupported</code>。</p> : null}
           {comparisonSelection ? <Suspense fallback={<p>Loading regression review…</p>}><WorkflowRunComparisonPanel applicationId={applicationId} baselineRunId={comparisonSelection.baseline} candidateRunId={comparisonSelection.candidate} config={config} /></Suspense> : null}
           <Suspense fallback={<p>Loading evaluation cases…</p>}><WorkflowEvaluationPanel applicationId={applicationId} runs={comparisonRuns} config={config} /></Suspense>
           <Suspense fallback={<p>Loading evaluation suites…</p>}><WorkflowEvaluationSuitePanel applicationId={applicationId} config={config} /></Suspense>

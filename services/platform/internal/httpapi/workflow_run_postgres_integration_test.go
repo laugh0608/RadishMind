@@ -381,6 +381,45 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if ragExecution.FailureCode != "" || ragExecution.Record == nil || ragExecution.Record.Status != WorkflowRunStatusSucceeded || ragExecutionBridge.handleCalls != 1 {
 		t.Fatalf("PostgreSQL workflow RAG execution failed: %#v calls=%d", ragExecution, ragExecutionBridge.handleCalls)
 	}
+	ragCandidateService, ragCandidateBridge, _, _, _ := workflowRAGExecutionStoreFixtureFromExisting(
+		t, store, ragRepository, ragExecutionDraft, "run_pgretrieval00002",
+	)
+	ragCandidate := ragCandidateService.Execute(ragRunContext, WorkflowRAGExecutionRequest{
+		DraftID: ragExecutionDraft.DraftID, DraftVersion: ragExecutionDraft.DraftVersion,
+		InputText: "official retrieval guidance", Model: "mock-rag",
+	})
+	if ragCandidate.FailureCode != "" || ragCandidate.Record == nil || ragCandidate.Record.Status != WorkflowRunStatusSucceeded || ragCandidateBridge.handleCalls != 1 {
+		t.Fatalf("PostgreSQL workflow RAG candidate execution failed: %#v calls=%d", ragCandidate, ragCandidateBridge.handleCalls)
+	}
+	ragComparison := newWorkflowExecutorService(nil, nil, store).CompareRuns(ragRunContext, ragExecution.Record.RunID, ragCandidate.Record.RunID)
+	if ragComparison.FailureCode != "" || ragComparison.Comparison == nil ||
+		ragComparison.Comparison.SchemaVersion != workflowRAGRunComparisonSchemaVersion ||
+		ragComparison.Comparison.Classification != WorkflowRunComparisonUnchanged || ragComparison.Comparison.Retrieval == nil {
+		t.Fatalf("PostgreSQL workflow RAG comparison failed: %#v", ragComparison)
+	}
+	ragEvaluationService := newWorkflowEvaluationService(evaluationStore, store)
+	ragEvaluationService.newCaseID = func() (string, error) { return "eval_pg_rag_restart", nil }
+	ragEvaluation := ragEvaluationService.Create(ragRunContext, WorkflowEvaluationCreateRequest{
+		Name: "PostgreSQL RAG regression review", BaselineRunID: ragExecution.Record.RunID,
+		Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: ragCandidate.Record.RunID, ExpectedClassification: WorkflowRunComparisonUnchanged}},
+	})
+	if ragEvaluation.FailureCode != "" || ragEvaluation.Case == nil {
+		t.Fatalf("create PostgreSQL RAG evaluation case: %#v", ragEvaluation)
+	}
+	ragReview := ragEvaluationService.Review(ragRunContext, ragEvaluation.Case.CaseID)
+	if ragReview.FailureCode != "" || ragReview.Review == nil || ragReview.Review.Outcome != "passed" ||
+		ragReview.Review.RunProfile != workflowRAGComparisonProfile {
+		t.Fatalf("review PostgreSQL RAG evaluation case: %#v", ragReview)
+	}
+	ragSuiteService := newWorkflowEvaluationSuiteService(suiteStore, ragEvaluationService)
+	ragSuiteService.newSuiteID = func() (string, error) { return "suite_pg_rag_restart", nil }
+	ragSuite := ragSuiteService.Create(ragRunContext, WorkflowEvaluationSuiteCreateRequest{
+		Name:     "PostgreSQL RAG regression suite",
+		CaseRefs: []WorkflowEvaluationSuiteCaseRef{{CaseID: ragEvaluation.Case.CaseID, Version: ragEvaluation.Case.Version}},
+	})
+	if ragSuite.FailureCode != "" || ragSuite.Suite == nil {
+		t.Fatalf("create PostgreSQL RAG evaluation suite: %#v", ragSuite)
+	}
 	ragPlan, ragPlanFailure := buildWorkflowRAGExecutionPlan(ragExecutionDraft, ragExecutionDraft.DraftVersion)
 	if ragPlanFailure != "" {
 		t.Fatalf("build PostgreSQL stale RAG plan: %s", ragPlanFailure)
@@ -444,7 +483,7 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 		t.Fatalf("PostgreSQL stale workflow RAG run was not closed: %#v found=%t err=%v", restoredRAGStale, ragStaleFound, ragStaleErr)
 	}
 	var ragExecutionAuditCount int
-	if err = reopened.QueryRow(ctx, `SELECT count(*) FROM workflow_rag_execution_audits WHERE snapshot_id=$1`, ragExecutionSnapshot.SnapshotID).Scan(&ragExecutionAuditCount); err != nil || ragExecutionAuditCount != 4 {
+	if err = reopened.QueryRow(ctx, `SELECT count(*) FROM workflow_rag_execution_audits WHERE snapshot_id=$1`, ragExecutionSnapshot.SnapshotID).Scan(&ragExecutionAuditCount); err != nil || ragExecutionAuditCount != 6 {
 		t.Fatalf("PostgreSQL workflow RAG execution audits did not survive restart: count=%d err=%v", ragExecutionAuditCount, err)
 	}
 	if recoveredAction, actionFound, actionErr := actionStore.ReadPlan(actionContext, actionPlan.PlanID); actionErr != nil || !actionFound || recoveredAction.Status != WorkflowHTTPToolActionStatusInvalidated || recoveredAction.RecordVersion != 3 {
@@ -499,6 +538,19 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if leaked := restartedSuiteService.Read(other, suite.Suite.SuiteID); leaked.FailureCode != WorkflowEvaluationSuiteFailureNotFound {
 		t.Fatalf("evaluation suite leaked scope: %#v", leaked)
 	}
+	restartedRAGEvaluationService := newWorkflowEvaluationService(newPostgresWorkflowEvaluationStore(reopened), store)
+	restartedRAGReview := restartedRAGEvaluationService.Review(ragRunContext, ragEvaluation.Case.CaseID)
+	if restartedRAGReview.FailureCode != "" || restartedRAGReview.Review == nil || restartedRAGReview.Review.Outcome != "passed" ||
+		restartedRAGReview.Review.RunProfile != workflowRAGComparisonProfile ||
+		restartedRAGReview.Review.Items[0].ComparisonSchemaVersion != workflowRAGRunComparisonSchemaVersion {
+		t.Fatalf("restart PostgreSQL RAG evaluation review failed: %#v", restartedRAGReview)
+	}
+	restartedRAGSuiteService := newWorkflowEvaluationSuiteService(newPostgresWorkflowEvaluationSuiteStore(reopened), restartedRAGEvaluationService)
+	restartedRAGSuiteReview := restartedRAGSuiteService.Review(ragRunContext, ragSuite.Suite.SuiteID)
+	if restartedRAGSuiteReview.FailureCode != "" || restartedRAGSuiteReview.Review == nil || restartedRAGSuiteReview.Review.Outcome != "passed" ||
+		len(restartedRAGSuiteReview.Review.Items) != 1 || restartedRAGSuiteReview.Review.Items[0].RunProfile != workflowRAGComparisonProfile {
+		t.Fatalf("restart PostgreSQL RAG evaluation suite review failed: %#v", restartedRAGSuiteReview)
+	}
 	running := workflowRunHistoryTestRecord(runContext, "run_pg_concurrent", "draft_pg", time.Now().UTC())
 	if err = store.UpsertRun(runContext, &running); err != nil {
 		t.Fatal(err)
@@ -532,6 +584,12 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	}
 
 	reopened.Close()
+	if result := restartedRAGEvaluationService.Review(ragRunContext, ragEvaluation.Case.CaseID); result.FailureCode != WorkflowEvaluationFailureStoreUnavailable {
+		t.Fatalf("closed PostgreSQL RAG evaluation store fell back: %#v", result)
+	}
+	if result := restartedRAGSuiteService.Read(ragRunContext, ragSuite.Suite.SuiteID); result.FailureCode != WorkflowEvaluationSuiteFailureStoreUnavailable {
+		t.Fatalf("closed PostgreSQL RAG evaluation suite store fell back: %#v", result)
+	}
 	noFallbackRAG, noFallbackBridge, _, _, _ := workflowRAGExecutionStoreFixtureFromExisting(
 		t, store, restartedRAGRepository, ragExecutionDraft, "run_pgragnofallback1",
 	)

@@ -15,6 +15,33 @@ function envelope(overrides: Record<string, unknown> = {}) {
   return { request_id: "request_compare", workspace_id: "workspace_demo", application_id: "app_demo", failure_code: null, failure_summary: "", audit_ref: "audit_compare", comparison: { schema_version: "workflow_run_comparison.v1", classification: "regression", comparison_state: "comparable", baseline: run("run_base", "succeeded"), candidate: run("run_candidate", "failed"), draft_changed: false, provider_changed: false, model_changed: false, status_changed: true, failure_changed: true, duration_delta_ms: 20, provider_call_delta: 0, nodes: [{ node_id: "node_model", node_type: "llm", change: "changed", baseline_status: "succeeded", candidate_status: "failed", baseline_duration_ms: 50, candidate_duration_ms: 70, duration_delta_ms: 20 }], findings: [{ code: "status_regressed", severity: "review_required" }], recommended_review_action: "check_gateway_capacity" }, ...overrides };
 }
 
+const digest = `sha256:${"a".repeat(64)}`;
+function ragEnvelope() {
+  const body = envelope();
+  body.comparison.schema_version = "workflow_run_comparison.v2" as "workflow_run_comparison.v1";
+  body.comparison.classification = "unchanged";
+  for (const value of [body.comparison.baseline, body.comparison.candidate]) {
+    value.schema_version = "workflow_run_record.v3";
+    (value.side_effects as Record<string, number>).retrieval_calls = 1;
+  }
+  return {
+    ...body,
+    comparison: {
+      ...body.comparison,
+      retrieval: {
+        run_profile: "workflow_rag_retrieval.v1", snapshot_id: "rags_aaaaaaaaaaaaaaaa", snapshot_version: 1,
+        snapshot_digest: digest, rag_ref: "workflow.rag.official.v1", profile_id: "workflow.rag.lexical-ngram-dev.v1",
+        profile_version: 1, profile_digest: digest, query_digest: digest, query_bytes: 27, retrieval_node_id: "node_retrieval",
+        baseline_attempt_status: "succeeded", candidate_attempt_status: "succeeded", baseline_candidate_count: 2,
+        candidate_candidate_count: 2, candidate_count_delta: 0, baseline_selected_count: 1, candidate_selected_count: 1,
+        baseline_citation_count: 1, candidate_citation_count: 1, context_bytes_delta: 0, latency_delta_ms: -2,
+        evidence_changed: false, ranking_changed: false, citation_changed: false, citation_added_refs: [], citation_removed_refs: [],
+        fragments: [{ fragment_ref: "official_guide", content_digest: digest, source_type: "manual", is_official: true, baseline_rank: 1, candidate_rank: 1, change: "unchanged" }],
+      },
+    },
+  };
+}
+
 test("workflow run comparison rejects offline and same-run selection without fetching", async () => {
   let calls = 0; const originalFetch = globalThis.fetch; globalThis.fetch = async () => { calls++; throw new Error("unexpected fetch"); };
   try {
@@ -48,5 +75,37 @@ test("workflow run comparison rejects forbidden fields and side effects", async 
 
   globalThis.fetch = async () => { const body = envelope(); (body.comparison.candidate.side_effects as { tool_calls: number }).tool_calls = 1; return new Response(JSON.stringify(body), { status: 200 }); };
   try { await assert.rejects(() => compareWorkflowRuns("app_demo", "run_base", "run_candidate", live), /forbidden side effect/); }
+  finally { globalThis.fetch = originalFetch; }
+});
+
+test("workflow run comparison maps metadata-only RAG v2 evidence", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify(ragEnvelope()), { status: 200 });
+  try {
+    const result = await compareWorkflowRuns("app_demo", "run_base", "run_candidate", live);
+    assert.equal(result.schemaVersion, "workflow_run_comparison.v2");
+    assert.equal(result.retrieval?.runProfile, "workflow_rag_retrieval.v1");
+    assert.equal(result.retrieval?.fragments[0]?.fragmentRef, "official_guide");
+    assert.equal(result.baseline.sideEffects.retrievalCalls, 1);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test("workflow run comparison rejects RAG leakage and unknown citation references", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => { const body = ragEnvelope(); (body.comparison.retrieval as Record<string, unknown>).raw_query = "private"; return new Response(JSON.stringify(body), { status: 200 }); };
+  try { await assert.rejects(() => compareWorkflowRuns("app_demo", "run_base", "run_candidate", live), /route failed/); }
+  finally { globalThis.fetch = originalFetch; }
+  globalThis.fetch = async () => { const body = ragEnvelope(); (body.comparison.retrieval as { citation_added_refs: string[] }).citation_added_refs = ["not_selected"]; return new Response(JSON.stringify(body), { status: 200 }); };
+  try { await assert.rejects(() => compareWorkflowRuns("app_demo", "run_base", "run_candidate", live), /route failed/); }
+  finally { globalThis.fetch = originalFetch; }
+});
+
+test("workflow run comparison rejects unknown fields and response scope drift", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => { const body = ragEnvelope(); (body.comparison.retrieval as Record<string, unknown>).extra = "unknown"; return new Response(JSON.stringify(body), { status: 200 }); };
+  try { await assert.rejects(() => compareWorkflowRuns("app_demo", "run_base", "run_candidate", live), /route failed/); }
+  finally { globalThis.fetch = originalFetch; }
+  globalThis.fetch = async () => new Response(JSON.stringify({ ...ragEnvelope(), application_id: "app_other" }), { status: 200 });
+  try { await assert.rejects(() => compareWorkflowRuns("app_demo", "run_base", "run_candidate", live), /scope drifted/); }
   finally { globalThis.fetch = originalFetch; }
 });

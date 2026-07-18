@@ -59,7 +59,7 @@ decision CAS 在单事务中锁定 suite、比较 current decision version、插
 - PostgreSQL：fresh、0001–0004 pending、rollback / reapply、并发 decision、重启恢复、scope、runtime role 和 no fallback。
 - Web：offline、create/list/review/decision/conflict/history、strict response 和 lazy build。
 - 浏览器：创建多 case-version suite、review、批准阻塞、needs_review / approved evidence、并发 conflict 和重启恢复。
-- 不实现 suite update/delete、自动 suite、定时/批量执行、真实 release/deploy、retry、replay/resume、tool、RAG、confirmation commit、业务写回或 production enablement。
+- 本专题原始版本不实现 tool 或 RAG；后续 RAG 只由独立 profile 专题以显式 run profile 接入。仍不实现 suite update/delete、自动 suite、定时/批量执行、真实 release/deploy、retry、replay/resume、confirmation commit、业务写回或 production enablement。
 
 ## 完成证据
 
@@ -68,3 +68,5 @@ decision CAS 在单事务中锁定 suite、比较 current decision version、插
 3. Web 以 13.78 KiB 独立 lazy chunk 接入 Run History，支持 case / suite 显式刷新、exact version 创建、聚合审查、decision 与历史证据；主入口保持 430.39 KiB，默认 offline 零请求。
 4. 真实浏览器完成 `Save executor draft → two runs → run history/detail → case → suite → mismatch review → needs_review v1`。详情显示原始 input / condition value 未保留，tool / confirmation / business write / replay 合计为 0。
 5. 本专题只完成开发 / 测试态 release review evidence，不授权发布或生产启用；下一产品任务需回到四个一级产品面重新排位，不从本文自动派生 production gate 链。
+
+2026-07-18 独立的 [Workflow RAG Regression Review 与 Evaluation Profile v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1.md) 已允许 suite 聚合普通 case 与 RAG case；每个 item 显式返回 `run_profile`，canonical review digest 将 profile 纳入签名。SQLite shared database 补齐 durable suite / decision repository，PostgreSQL 继续复用既有表；HTTP Tool v2 仍明确 unsupported，decision 仍不触发 release、执行或 baseline promotion。

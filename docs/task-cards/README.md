@@ -12,18 +12,18 @@
 
 ## 当前活跃任务
 
-当前唯一活跃实现入口是 [Workflow RAG Retrieval 与应用知识快照（开发/测试态）v1 实施任务卡](workflow-rag-retrieval-application-knowledge-snapshot-dev-test-v1-plan.md)。批次 B 已完成独立 retrieval execution、Gateway、citation、metadata-only run v3、三种 store 与 reconciliation；批次 C 为 `ready_for_implementation`，下一步只推进 Draft Designer / Web execution / Run History v3 消费与双数据库真实浏览器连续验收。
+当前没有活跃实现任务卡。[Workflow RAG Regression Review 与 Evaluation Profile v1 实施任务卡](workflow-rag-regression-review-evaluation-profile-dev-test-v1-plan.md) 已完成；下一顺位先在功能设计层评审“RAG 评测数据集与知识质量审查 v1”，设计通过后再决定是否创建实现任务卡。
 
 ## 最近关闭任务
 
-1. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R2 至 R6 均已完成；R6 关闭评审保留仍有独立证据责任的 Provider、Production Ops 与 Control Plane formal UI 门禁，不派生第六条清理链。
-2. [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1-plan.md)：领域、Gateway 认证、双数据库门禁、Web 一次性交接、调试台内存交接、吊销与浏览器连续验收均已完成。
-3. [本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1-plan.md)：S1、S2 与 S3 双数据库后端证据已完成；后续浏览器验收已随 API 密钥 Web 批次统一执行。
-4. [用户工作区应用目录与生命周期（开发/测试态）v1](application-catalog-lifecycle-dev-test-v1-plan.md)：核心生命周期、作用域 API、独立 PostgreSQL 开发测试态持久化、Web 管理和真实浏览器连续验收均已完成。
+1. [Workflow RAG Regression Review 与 Evaluation Profile v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1-plan.md)：Comparison v2、Evaluation / Baseline / Suite profile、SQLite durable resources、PostgreSQL 重启 / no-fallback 和 Web metadata-only 审查已完成。
+2. [Workflow RAG Retrieval 与应用知识快照 v1](workflow-rag-retrieval-application-knowledge-snapshot-dev-test-v1-plan.md)：A / B / C 三批已完成，不派生批次 D。
+3. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R2 至 R6 均已完成；R6 关闭评审保留仍有独立证据责任的 Provider、Production Ops 与 Control Plane formal UI 门禁，不派生第六条清理链。
+4. [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1-plan.md)：领域、Gateway 认证、双数据库门禁、Web 一次性交接、调试台内存交接、吊销与浏览器连续验收均已完成。
 
 R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、[Evaluation Cases / Batch Regression Review](workflow-evaluation-cases-batch-regression-review-v1-plan.md)、[Baseline / Case Versioning](workflow-evaluation-baseline-case-versioning-v1-plan.md) 与 [Evaluation Suite / Release Review](workflow-evaluation-suite-release-review-v1-plan.md) 已于 2026-07-11 完成。Model Gateway Request History / Usage & Failure Review v1、User Workspace Application API Integration & Invocation v1、Application Configuration Draft & Review v1 和 Application Publish Governance & Promotion v1 已完成实现与验证；不恢复旧 storage adapter readiness 链，也不派生新的 Gateway / executor / run store gate-only readiness 链。
 
-当前没有活跃的 Production Secret Backend / Storage Adapter readiness 任务卡。下方既有任务卡均按历史完成、冻结或外部阻塞证据读取，不表示当前排期；当前只执行受控 HTTP Tool 单卡内的依赖顺序，不恢复旧 readiness 链，也不为三个子批派生平行任务卡。
+当前没有活跃的 Production Secret Backend / Storage Adapter readiness 任务卡。下方既有任务卡均按历史完成、冻结或外部阻塞证据读取，不表示当前排期；不恢复旧 readiness 链，也不为已关闭专题派生平行任务卡。
 
 当前已冻结的应用面任务：
 
@@ -331,7 +331,7 @@ R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run
 使用原则：
 - 任务卡定义的是任务边界、最小输入、输出要求和评测口径，不等同于最终实现代码
 - 前置条件型任务卡定义的是当前不能继续前推的阻塞项、已有门禁和后续触发条件，不等同于已经完成上层接线
-- R6 已关闭；Workflow 受控 HTTP Tool 唯一高风险实现任务卡的三个批次已完成，RAG Retrieval 与应用知识快照批次 B 已完成且批次 C 为 `ready_for_implementation`，历史离线 surface 与 readiness 任务卡不恢复为当前顺位
+- R6 已关闭；Workflow 受控 HTTP Tool、RAG Retrieval 与应用知识快照、RAG Regression Review / Evaluation Profile 的实施任务卡均已完成，历史离线 surface 与 readiness 任务卡不恢复为当前顺位
 - 任务卡与 [跨项目集成契约](../radishmind-integration-contracts.md) 和 [真实契约文件](../../contracts/README.md) 保持一致
 - 若未来实现发现字段命名或结构需要调整，应先同步更新任务卡和契约，再改实现
 - 当前阶段优先保证“状态优先、结构化输出、显式风险分级，以及对会写回真相源的动作保留人工确认”

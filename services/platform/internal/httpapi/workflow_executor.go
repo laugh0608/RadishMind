@@ -77,6 +77,7 @@ const (
 	WorkflowRunFailureComparisonInvalid       WorkflowRunFailureCode = "workflow_run_comparison_invalid"
 	WorkflowRunFailureSideEffectUnsupported   WorkflowRunFailureCode = "workflow_run_side_effect_profile_unsupported"
 	WorkflowRunFailureRetrievalUnsupported    WorkflowRunFailureCode = "workflow_run_retrieval_profile_unsupported"
+	WorkflowRunFailureRetrievalIncompatible   WorkflowRunFailureCode = "workflow_run_retrieval_profile_incompatible"
 	WorkflowRunFailureToolPolicy              WorkflowRunFailureCode = "workflow_tool_policy_denied"
 	WorkflowRunFailureToolConfirmation        WorkflowRunFailureCode = "workflow_tool_confirmation_invalid"
 	WorkflowRunFailureToolTransport           WorkflowRunFailureCode = "workflow_tool_transport_failed"

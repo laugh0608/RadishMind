@@ -79,6 +79,26 @@ export type WorkflowRunHistoryState = {
   failureSummary: string;
 };
 
+export function isWorkflowRunComparisonEligible(run: WorkflowRunHistorySummary): boolean {
+  return run.schemaVersion !== "workflow_run_record.v2";
+}
+
+export function isWorkflowRunComparisonCompatible(
+  baseline: WorkflowRunHistorySummary | undefined,
+  candidate: WorkflowRunHistorySummary,
+): boolean {
+  if (!baseline || !isWorkflowRunComparisonEligible(baseline) || !isWorkflowRunComparisonEligible(candidate) || baseline.runId === candidate.runId) return false;
+  const baselineRetrieval = baseline.schemaVersion === "workflow_run_record.v3";
+  const candidateRetrieval = candidate.schemaVersion === "workflow_run_record.v3";
+  if (baselineRetrieval !== candidateRetrieval) return false;
+  if (!baselineRetrieval) return true;
+  return baseline.snapshotId === candidate.snapshotId && baseline.snapshotVersion === candidate.snapshotVersion &&
+    baseline.snapshotDigest === candidate.snapshotDigest && baseline.ragRef === candidate.ragRef &&
+    baseline.retrievalProfileId === candidate.retrievalProfileId && baseline.retrievalProfileVersion === candidate.retrievalProfileVersion &&
+    baseline.retrievalProfileDigest === candidate.retrievalProfileDigest && baseline.queryDigest === candidate.queryDigest &&
+    baseline.queryBytes === candidate.queryBytes && baseline.retrievalNodeId === candidate.retrievalNodeId;
+}
+
 type RunHistoryEnvelope = {
   request_id: string; workspace_id: string; application_id: string; runs: RunSummaryDocument[];
   next_cursor: string; has_more: boolean; failure_code: string | null; failure_summary: string; audit_ref: string;
