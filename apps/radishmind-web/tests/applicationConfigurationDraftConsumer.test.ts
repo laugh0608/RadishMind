@@ -107,6 +107,41 @@ test("Application draft list and restore reject response scope drift", async () 
   }
 });
 
+test("Application draft v2 restores and saves an exact ref-only RAG binding", async () => {
+  const originalFetch = globalThis.fetch;
+  const bindingDigest = `sha256:${"b".repeat(64)}`;
+  const draftDigest = `sha256:${"d".repeat(64)}`;
+  let calls = 0;
+  try {
+    globalThis.fetch = async (_input, init) => {
+      calls += 1;
+      if (calls === 1) return jsonResponse({
+        ...draftEnvelope({ version: 2 }),
+        draft: {
+          draft_id: "app-config-app-docs-assistant", workspace_id: "workspace_demo", application_id: "app_docs_assistant",
+          base_application_updated_at: baseline.updatedAt, schema_version: "application_configuration_draft.v2", display_name: baseline.displayName,
+          description: "Bound draft", application_kind: baseline.applicationKind, default_protocol: "responses", default_model: "profile:local-dev",
+          allowed_protocols: ["responses"], workflow_rag_binding_ref: { binding_id: "wragb_aaaaaaaaaaaaaaaa", binding_version: 1, binding_digest: bindingDigest },
+          draft_version: 2, draft_digest: draftDigest, validation_summary: { state: "valid", is_valid: true, findings: [] },
+          created_at: baseline.updatedAt, updated_at: baseline.updatedAt, created_by_actor_ref: "subject_demo_user", updated_by_actor_ref: "subject_demo_user",
+          request_id: "app-draft-read", audit_ref: "audit-app-draft-read",
+        },
+      });
+      const headers = new Headers(init?.headers);
+      assert.equal(headers.get("X-RadishMind-Dev-Read-Scopes"), "application_drafts:read,application_drafts:write,workflow_rag_promotions:bind");
+      const body = JSON.parse(String(init?.body));
+      assert.deepEqual(body.draft.workflow_rag_binding_ref, { binding_id: "wragb_aaaaaaaaaaaaaaaa", binding_version: 1, binding_digest: bindingDigest });
+      return jsonResponse(draftEnvelope({ version: 3 }));
+    };
+    const restored = await readApplicationConfigurationDraft(live, baseline.applicationId, "app-config-app-docs-assistant");
+    assert.equal(restored.draft?.schemaVersion, "application_configuration_draft.v2");
+    assert.equal(restored.draft?.draftDigest, draftDigest);
+    assert.equal(restored.draft?.workflowRAGBindingRef?.bindingId, "wragb_aaaaaaaaaaaaaaaa");
+    const saved = await saveApplicationConfigurationDraft(live, restored.draft!, 2);
+    assert.equal(saved.status, "saved");
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 test("Application switching creates isolated state and handoff keeps exact public fields", () => {
   const first = createApplicationConfigurationDraft(live, baseline);
   first.description = "Unsaved first application state";

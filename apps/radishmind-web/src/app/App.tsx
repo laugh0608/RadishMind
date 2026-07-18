@@ -229,6 +229,7 @@ const ApplicationPublishCandidatePanel = lazy(() => import("../features/control-
 const ApplicationCatalogPanel = lazy(() => import("../features/control-plane-read/applicationCatalogPanel").then((module) => ({ default: module.ApplicationCatalogPanel })));
 const WorkflowRAGSnapshotPanel = lazy(() => import("../features/control-plane-read/workflowRAGSnapshotPanel"));
 const WorkflowRAGEvaluationDatasetPanel = lazy(() => import("../features/control-plane-read/workflowRAGEvaluationDatasetPanel"));
+const WorkflowRAGPromotionPanel = lazy(() => import("../features/control-plane-read/workflowRAGPromotionPanel"));
 const WorkflowRAGExecutionPanel = lazy(() => import("../features/control-plane-read/workflowRAGExecutionPanel"));
 const APIKeyLifecyclePanel = lazy(() => import("../features/control-plane-read/apiKeyLifecyclePanel").then((module) => ({ default: module.APIKeyLifecyclePanel })));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
@@ -1753,6 +1754,15 @@ export function App() {
           <Suspense fallback={<div className="workflow-rag-evaluation-panel"><p>Loading Workflow RAG evaluation datasets…</p></div>}>
             <WorkflowRAGEvaluationDatasetPanel
               key={`rag-evaluation-${applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}`}
+              applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
+              applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
+              applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
+            />
+          </Suspense>
+
+          <Suspense fallback={<div className="workflow-rag-promotion-panel"><p>Loading Workflow RAG promotion and binding review…</p></div>}>
+            <WorkflowRAGPromotionPanel
+              key={`rag-promotion-${applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}`}
               applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
               applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
               applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}

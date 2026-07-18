@@ -151,6 +151,8 @@ schema 固定为 `application_publish_candidate.v1`，包含：
 - 浏览器控制台无错误 / 警告，URL 只保留稳定区段锚点，`localStorage` 与 `sessionStorage` 均为空。
 - 2026-07-14 已补齐 SQLite 开发持久化：发布候选通过共享 runtime 使用独立 migration 和 repository，保持不可变创建、稳定列表、只追加审查、审查 CAS、终态、草案漂移和晋级阻塞语义；selector 同时复验配置草案与候选 migration，真实文件覆盖跨组件重启、并发审查、关闭失败和敏感材料禁入。该能力不启用正式晋级，也不替代 PostgreSQL 专属验证。
 - 2026-07-15 的 API 密钥本地产品档会同时启用应用目录、配置草案和发布审查，以便同一应用完成配置、候选审查和调用验证；发布候选只保存脱敏 `request_id` 引用，不接收 API 密钥、`Authorization`、模型目录凭据或 Gateway 输入输出。
+- 2026-07-18 已完成 RAG binding 组合：未绑定候选继续使用 `application_publish_candidate.v1`，绑定候选使用 v2 且只复制草案中的 `binding_id / binding_version / binding_digest`。create、approve 与 read-time eligibility 均由服务端重读 exact draft / digest、不可变 binding 和全部知识权威来源；取消、漂移、归档或 store failure 映射为稳定 blocker。
+- 发布 Web 会在创建前展示草案的 exact binding，在详情和列表中展示 `RAG bound` 与动态 blocker。真实浏览器已验证 promotion approve、草案 attach、发布候选 create / approve 仍为三个独立动作；审查通过后继续保留正式存储库、生产认证、发布所有者和晋级运行时四项 blocker，没有发生正式应用变更。
 
 ## 停止线
 

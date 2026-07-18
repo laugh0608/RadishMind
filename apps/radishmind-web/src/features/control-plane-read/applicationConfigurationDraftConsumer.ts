@@ -7,7 +7,8 @@ import {
   type ApplicationModelCatalogState,
 } from "./applicationApiIntegrationConsumer.ts";
 
-const APPLICATION_DRAFT_SCHEMA_VERSION = "application_configuration_draft.v1";
+const APPLICATION_DRAFT_SCHEMA_VERSION_V1 = "application_configuration_draft.v1";
+const APPLICATION_DRAFT_SCHEMA_VERSION_V2 = "application_configuration_draft.v2";
 const DEV_SOURCE = "dev-application-draft-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const FORBIDDEN_DRAFT_RESPONSE_FIELDS = new Set([
@@ -30,18 +31,22 @@ export type ApplicationConfigurationBaseline = {
   updatedAt: string;
 };
 
+export type ApplicationDraftRAGBindingRef = { bindingId: string; bindingVersion: number; bindingDigest: string };
+
 export type ApplicationConfigurationDraft = {
   draftId: string;
   workspaceId: string;
   applicationId: string;
   baseApplicationUpdatedAt: string;
-  schemaVersion: typeof APPLICATION_DRAFT_SCHEMA_VERSION;
+  schemaVersion: typeof APPLICATION_DRAFT_SCHEMA_VERSION_V1 | typeof APPLICATION_DRAFT_SCHEMA_VERSION_V2;
   displayName: string;
   description: string;
   applicationKind: string;
   defaultProtocol: ApplicationApiProtocol;
   defaultModel: string;
   allowedProtocols: ApplicationApiProtocol[];
+  draftDigest: string;
+  workflowRAGBindingRef: ApplicationDraftRAGBindingRef | null;
 };
 
 export type ApplicationConfigurationDraftFinding = {
@@ -75,6 +80,8 @@ export type ApplicationConfigurationDraftSummary = {
   defaultProtocol: ApplicationApiProtocol;
   defaultModel: string;
   validationState: string;
+  draftDigest: string;
+  workflowRAGBindingRef: ApplicationDraftRAGBindingRef | null;
   updatedAt: string;
   updatedByActorRef: string;
 };
@@ -106,6 +113,8 @@ type DraftDocument = {
   default_model: string;
   allowed_protocols: string[];
   draft_version: number;
+  draft_digest: string;
+  workflow_rag_binding_ref?: BindingRefDocument;
   validation_summary: ValidationDocument;
   created_at: string;
   updated_at: string;
@@ -116,6 +125,7 @@ type DraftDocument = {
 };
 
 type ValidationDocument = { state: string; is_valid: boolean; findings: Array<{ code: string; field: string; summary: string }> };
+type BindingRefDocument = { binding_id: string; binding_version: number; binding_digest: string };
 type DraftEnvelope = {
   request_id: string;
   workspace_id: string;
@@ -132,7 +142,7 @@ type DraftListEnvelope = {
   application_id: string;
   draft_summaries: Array<{
     draft_id: string; application_id: string; draft_version: number; display_name: string; application_kind: string;
-    default_protocol: string; default_model: string; validation_state: string; updated_at: string; updated_by_actor_ref: string;
+    default_protocol: string; default_model: string; validation_state: string; draft_digest: string; workflow_rag_binding_ref?: BindingRefDocument; updated_at: string; updated_by_actor_ref: string;
   }>;
   failure_code: string | null;
   audit_ref: string;
@@ -158,13 +168,15 @@ export function createApplicationConfigurationDraft(
     workspaceId: config.workspaceId,
     applicationId: baseline.applicationId,
     baseApplicationUpdatedAt: baseline.updatedAt,
-    schemaVersion: APPLICATION_DRAFT_SCHEMA_VERSION,
+    schemaVersion: APPLICATION_DRAFT_SCHEMA_VERSION_V1,
     displayName: baseline.displayName,
     description: "",
     applicationKind: baseline.applicationKind,
     defaultProtocol: "responses",
     defaultModel: "",
     allowedProtocols: ["chat_completions", "responses", "messages"],
+    draftDigest: "",
+    workflowRAGBindingRef: null,
   };
 }
 
@@ -198,6 +210,8 @@ export function validateApplicationConfigurationDraft(
   const findings: ApplicationConfigurationDraftFinding[] = [];
   const add = (code: string, field: string, summary: string) => findings.push({ code, field, summary });
   if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u.test(draft.draftId) || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u.test(draft.applicationId)) add("application_draft_payload_invalid", "scope", "Draft and application identifiers must be stable safe values.");
+  if (draft.schemaVersion === APPLICATION_DRAFT_SCHEMA_VERSION_V1 && draft.workflowRAGBindingRef) add("application_draft_payload_invalid", "workflow_rag_binding_ref", "Application draft v1 cannot carry a RAG binding reference.");
+  if (draft.workflowRAGBindingRef && (!/^wragb_[a-z2-7]{16}$/u.test(draft.workflowRAGBindingRef.bindingId) || draft.workflowRAGBindingRef.bindingVersion !== 1 || !isDigest(draft.workflowRAGBindingRef.bindingDigest))) add("application_draft_payload_invalid", "workflow_rag_binding_ref", "Workflow RAG binding reference is invalid.");
   if (draft.displayName.trim().length < 2 || draft.displayName.trim().length > 120) add("application_draft_payload_invalid", "display_name", "Display name must contain 2 to 120 characters.");
   if (draft.description.trim().length > 1000) add("application_draft_payload_invalid", "description", "Description must not exceed 1000 characters.");
   if (!["workflow_copilot", "docs_qa", "agent", "prompt_application"].includes(draft.applicationKind)) add("application_draft_payload_invalid", "application_kind", "Application kind is unsupported.");
@@ -262,7 +276,7 @@ async function writeDraftRequest(config: ApplicationConfigurationDraftConfig, dr
   if (config.mode !== "dev_application_draft_http") return initialApplicationConfigurationDraftState(config);
   const requestId = createRequestId("app-draft-write");
   try {
-    const response = await fetch(`${config.baseUrl}${path}`, { method: "POST", headers: { ...draftHeaders(config, draft.applicationId, requestId, "write"), "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const response = await fetch(`${config.baseUrl}${path}`, { method: "POST", headers: { ...draftHeaders(config, draft.applicationId, requestId, draft.workflowRAGBindingRef ? "bind" : "write"), "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const document: unknown = await response.json();
     if (!response.ok || !isDraftEnvelope(document, config, draft.applicationId)) throw new Error("invalid application draft response");
     return operationStateFromEnvelope(document, successStatus);
@@ -277,16 +291,17 @@ function draftPayload(draft: ApplicationConfigurationDraft) {
     base_application_updated_at: draft.baseApplicationUpdatedAt, schema_version: draft.schemaVersion,
     display_name: draft.displayName, description: draft.description, application_kind: draft.applicationKind,
     default_protocol: draft.defaultProtocol, default_model: draft.defaultModel, allowed_protocols: draft.allowedProtocols,
+    workflow_rag_binding_ref: draft.workflowRAGBindingRef ? { binding_id: draft.workflowRAGBindingRef.bindingId, binding_version: draft.workflowRAGBindingRef.bindingVersion, binding_digest: draft.workflowRAGBindingRef.bindingDigest } : undefined,
   };
 }
 
-function draftHeaders(config: ApplicationConfigurationDraftConfig, applicationId: string, requestId: string, operation: "read" | "write"): HeadersInit {
+function draftHeaders(config: ApplicationConfigurationDraftConfig, applicationId: string, requestId: string, operation: "read" | "write" | "bind"): HeadersInit {
   return {
     Accept: "application/json", "X-Request-Id": requestId,
     "X-RadishMind-Dev-Read-Identity": "radishmind-web-application-draft",
     "X-RadishMind-Dev-Read-Tenant": config.tenantRef,
     "X-RadishMind-Dev-Read-Subject": config.subjectRef,
-    "X-RadishMind-Dev-Read-Scopes": operation === "write" ? "application_drafts:read,application_drafts:write" : "application_drafts:read",
+    "X-RadishMind-Dev-Read-Scopes": operation === "bind" ? "application_drafts:read,application_drafts:write,workflow_rag_promotions:bind" : operation === "write" ? "application_drafts:read,application_drafts:write" : "application_drafts:read",
     "X-RadishMind-Dev-Read-Audit": `audit_${requestId}_application_draft`,
     "X-RadishMind-Dev-Application-Draft-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Application-Draft-Application": applicationId,
@@ -309,11 +324,11 @@ function failedOperationState(failureCode: string): ApplicationConfigurationDraf
 }
 
 function mapDraft(document: DraftDocument): ApplicationConfigurationDraft {
-  return { draftId: document.draft_id, workspaceId: document.workspace_id, applicationId: document.application_id, baseApplicationUpdatedAt: document.base_application_updated_at, schemaVersion: APPLICATION_DRAFT_SCHEMA_VERSION, displayName: document.display_name, description: document.description, applicationKind: document.application_kind, defaultProtocol: document.default_protocol as ApplicationApiProtocol, defaultModel: document.default_model, allowedProtocols: document.allowed_protocols as ApplicationApiProtocol[] };
+  return { draftId: document.draft_id, workspaceId: document.workspace_id, applicationId: document.application_id, baseApplicationUpdatedAt: document.base_application_updated_at, schemaVersion: document.schema_version as ApplicationConfigurationDraft["schemaVersion"], displayName: document.display_name, description: document.description, applicationKind: document.application_kind, defaultProtocol: document.default_protocol as ApplicationApiProtocol, defaultModel: document.default_model, allowedProtocols: document.allowed_protocols as ApplicationApiProtocol[], draftDigest: document.draft_digest, workflowRAGBindingRef: document.workflow_rag_binding_ref ? mapBindingRef(document.workflow_rag_binding_ref) : null };
 }
 
 function mapDraftSummary(document: DraftListEnvelope["draft_summaries"][number]): ApplicationConfigurationDraftSummary {
-  return { draftId: document.draft_id, applicationId: document.application_id, draftVersion: document.draft_version, displayName: document.display_name, applicationKind: document.application_kind, defaultProtocol: document.default_protocol as ApplicationApiProtocol, defaultModel: document.default_model, validationState: document.validation_state, updatedAt: document.updated_at, updatedByActorRef: document.updated_by_actor_ref };
+  return { draftId: document.draft_id, applicationId: document.application_id, draftVersion: document.draft_version, displayName: document.display_name, applicationKind: document.application_kind, defaultProtocol: document.default_protocol as ApplicationApiProtocol, defaultModel: document.default_model, validationState: document.validation_state, draftDigest: document.draft_digest, workflowRAGBindingRef: document.workflow_rag_binding_ref ? mapBindingRef(document.workflow_rag_binding_ref) : null, updatedAt: document.updated_at, updatedByActorRef: document.updated_by_actor_ref };
 }
 
 function mapValidation(document: ValidationDocument): ApplicationConfigurationDraftValidation {
@@ -326,16 +341,20 @@ function isDraftEnvelope(value: unknown, config: ApplicationConfigurationDraftCo
 }
 
 function isDraftListEnvelope(value: unknown, config: ApplicationConfigurationDraftConfig, applicationId: string): value is DraftListEnvelope {
-  return isRecord(value) && !containsForbiddenDraftResponseField(value) && value.workspace_id === config.workspaceId && value.application_id === applicationId && typeof value.request_id === "string" && (value.failure_code === null || typeof value.failure_code === "string") && Array.isArray(value.draft_summaries) && value.draft_summaries.every((summary) => isRecord(summary) && summary.application_id === applicationId && typeof summary.draft_id === "string" && typeof summary.draft_version === "number" && typeof summary.display_name === "string" && typeof summary.default_protocol === "string" && typeof summary.default_model === "string");
+  return isRecord(value) && !containsForbiddenDraftResponseField(value) && value.workspace_id === config.workspaceId && value.application_id === applicationId && typeof value.request_id === "string" && (value.failure_code === null || typeof value.failure_code === "string") && Array.isArray(value.draft_summaries) && value.draft_summaries.every((summary) => isRecord(summary) && summary.application_id === applicationId && typeof summary.draft_id === "string" && typeof summary.draft_version === "number" && typeof summary.display_name === "string" && typeof summary.default_protocol === "string" && typeof summary.default_model === "string" && isDigest(summary.draft_digest) && (summary.workflow_rag_binding_ref === undefined || isBindingRefDocument(summary.workflow_rag_binding_ref)));
 }
 
 function isDraftDocument(value: unknown, config: ApplicationConfigurationDraftConfig, applicationId: string): value is DraftDocument {
-  return isRecord(value) && value.workspace_id === config.workspaceId && value.application_id === applicationId && value.schema_version === APPLICATION_DRAFT_SCHEMA_VERSION && typeof value.draft_id === "string" && typeof value.display_name === "string" && typeof value.description === "string" && typeof value.application_kind === "string" && typeof value.default_protocol === "string" && typeof value.default_model === "string" && Array.isArray(value.allowed_protocols) && value.allowed_protocols.every((protocol) => typeof protocol === "string") && typeof value.draft_version === "number" && isValidationDocument(value.validation_summary);
+  return isRecord(value) && value.workspace_id === config.workspaceId && value.application_id === applicationId && (value.schema_version === APPLICATION_DRAFT_SCHEMA_VERSION_V1 || value.schema_version === APPLICATION_DRAFT_SCHEMA_VERSION_V2) && (value.schema_version !== APPLICATION_DRAFT_SCHEMA_VERSION_V1 || value.workflow_rag_binding_ref === undefined) && typeof value.draft_id === "string" && typeof value.display_name === "string" && typeof value.description === "string" && typeof value.application_kind === "string" && typeof value.default_protocol === "string" && typeof value.default_model === "string" && Array.isArray(value.allowed_protocols) && value.allowed_protocols.every((protocol) => typeof protocol === "string") && typeof value.draft_version === "number" && isDigest(value.draft_digest) && (value.workflow_rag_binding_ref === undefined || isBindingRefDocument(value.workflow_rag_binding_ref)) && isValidationDocument(value.validation_summary);
 }
 
 function isValidationDocument(value: unknown): value is ValidationDocument {
   return isRecord(value) && (value.state === "valid" || value.state === "invalid") && typeof value.is_valid === "boolean" && Array.isArray(value.findings) && value.findings.every((finding) => isRecord(finding) && typeof finding.code === "string" && typeof finding.field === "string" && typeof finding.summary === "string");
 }
+
+function mapBindingRef(value: BindingRefDocument): ApplicationDraftRAGBindingRef { return { bindingId: value.binding_id, bindingVersion: value.binding_version, bindingDigest: value.binding_digest }; }
+function isBindingRefDocument(value: unknown): value is BindingRefDocument { return isRecord(value) && Object.keys(value).length === 3 && /^wragb_[a-z2-7]{16}$/u.test(String(value.binding_id)) && value.binding_version === 1 && isDigest(value.binding_digest); }
+function isDigest(value: unknown): value is string { return typeof value === "string" && /^sha256:[a-f0-9]{64}$/u.test(value); }
 
 function diff(field: ApplicationConfigurationDiff["field"], before: string, after: string): ApplicationConfigurationDiff { return { field, before, after, changed: before !== after }; }
 function createRequestId(prefix: string): string { return `${prefix}-${Date.now()}-${(globalThis.crypto?.randomUUID?.() ?? Math.random().toString(16).slice(2)).replaceAll("-", "").slice(0, 12)}`; }

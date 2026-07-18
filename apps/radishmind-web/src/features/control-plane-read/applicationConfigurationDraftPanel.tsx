@@ -25,8 +25,15 @@ import {
   type ApplicationModelCatalogReadyDetail,
 } from "./applicationApiIntegrationEvents.ts";
 import { requestModelGatewayPlaygroundHandoff } from "./modelGatewayPlaygroundEvents.ts";
+import {
+  initialWorkflowRAGPromotionListResult,
+  listWorkflowRAGPromotionCandidates,
+  readWorkflowRAGPromotionConfig,
+  type WorkflowRAGPromotionListResult,
+} from "./workflowRAGPromotionConsumer.ts";
 
 const config = readApplicationConfigurationDraftConfig();
+const promotionConfig = readWorkflowRAGPromotionConfig();
 const protocols: Array<{ id: ApplicationApiProtocol; label: string }> = [
   { id: "chat_completions", label: "Chat Completions" },
   { id: "responses", label: "Responses" },
@@ -38,6 +45,8 @@ export default function ApplicationConfigurationDraftPanel({ baseline, readOnly 
   const [operation, setOperation] = useState(() => initialApplicationConfigurationDraftState(config));
   const [catalog, setCatalog] = useState(() => initialApplicationDraftModelCatalog(config, baseline.applicationId));
   const [list, setList] = useState(() => initialApplicationConfigurationDraftListState(config));
+  const [bindings, setBindings] = useState<WorkflowRAGPromotionListResult>(() => initialWorkflowRAGPromotionListResult(promotionConfig));
+  const [selectedBindingCandidateId, setSelectedBindingCandidateId] = useState("");
   const catalogController = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -47,6 +56,8 @@ export default function ApplicationConfigurationDraftPanel({ baseline, readOnly 
     setOperation(initialApplicationConfigurationDraftState(config));
     setCatalog(initialApplicationDraftModelCatalog(config, baseline.applicationId));
     setList(initialApplicationConfigurationDraftListState(config));
+    setBindings(initialWorkflowRAGPromotionListResult(promotionConfig));
+    setSelectedBindingCandidateId("");
   }, [baseline.applicationId]);
 
   useEffect(() => () => catalogController.current?.abort(), []);
@@ -91,6 +102,9 @@ export default function ApplicationConfigurationDraftPanel({ baseline, readOnly 
   const currentValidation = useMemo(() => validateApplicationConfigurationDraft(draft, catalog.models), [catalog.models, draft]);
   const enabled = config.mode === "dev_application_draft_http";
   const mutationEnabled = enabled && !readOnly;
+  const bindingEnabled = mutationEnabled && promotionConfig.mode === "dev_workflow_rag_promotion_http";
+  const selectedBinding = bindings.summaries.find((item) => item.candidateId === selectedBindingCandidateId && item.bindingRef && item.eligibilityStatus === "eligible") ?? null;
+  const bindingSourceReady = Boolean(selectedBinding && operation.currentDraftVersion === selectedBinding.sourceDraft.draftVersion && draft.draftId === selectedBinding.sourceDraft.draftId && draft.draftDigest === selectedBinding.sourceDraft.draftDigest);
   const handoffReady = operation.validation.isValid && currentValidation.isValid && catalog.status === "ready";
 
   useEffect(() => {
@@ -156,6 +170,43 @@ export default function ApplicationConfigurationDraftPanel({ baseline, readOnly 
     if (restored.draft) setDraft(restored.draft);
   }
 
+  async function loadApprovedBindings() {
+    if (!bindingEnabled) return;
+    const next = await listWorkflowRAGPromotionCandidates(promotionConfig, baseline.applicationId);
+    setBindings(next);
+    const first = next.summaries.find((item) => item.candidateState === "approved" && item.eligibilityStatus === "eligible" && item.bindingRef);
+    setSelectedBindingCandidateId(first?.candidateId ?? "");
+  }
+
+  async function restoreBindingSource() {
+    if (!selectedBinding) return;
+    setOperation((current) => ({ ...current, status: "loading", summary: "Restoring the binding's exact source draft before attach or replace.", failureCode: "" }));
+    const restored = await readApplicationConfigurationDraft(config, baseline.applicationId, selectedBinding.sourceDraft.draftId);
+    if (!restored.draft || restored.state.currentDraftVersion !== selectedBinding.sourceDraft.draftVersion || restored.draft.draftDigest !== selectedBinding.sourceDraft.draftDigest) {
+      setOperation({ ...restored.state, status: "store_failure", failureCode: "workflow_rag_promotion_draft_changed", summary: "The exact source draft is no longer current; binding attach failed closed." });
+      return;
+    }
+    setDraft(restored.draft);
+    setOperation(restored.state);
+  }
+
+  async function attachBinding() {
+    if (!selectedBinding?.bindingRef || !bindingSourceReady) return;
+    const bindingDraft: ApplicationConfigurationDraft = {
+      ...draft,
+      schemaVersion: "application_configuration_draft.v2",
+      workflowRAGBindingRef: { ...selectedBinding.bindingRef },
+    };
+    setOperation((current) => ({ ...current, status: "saving", summary: "Attaching the approved immutable RAG binding as the only draft change.", failureCode: "" }));
+    const saved = await saveApplicationConfigurationDraft(config, bindingDraft, selectedBinding.sourceDraft.draftVersion);
+    setOperation(saved);
+    if (saved.status !== "saved") return;
+    const restored = await readApplicationConfigurationDraft(config, baseline.applicationId, bindingDraft.draftId);
+    setOperation(restored.state);
+    if (restored.draft) setDraft(restored.draft);
+    await refreshList();
+  }
+
   function continueAfterConflict() {
     if (operation.status !== "version_conflict") return;
     setOperation((current) => ({ ...current, status: "unsaved", failureCode: "", summary: `Local edits are preserved. The next save will compare against version ${current.currentDraftVersion}.` }));
@@ -218,6 +269,16 @@ export default function ApplicationConfigurationDraftPanel({ baseline, readOnly 
         <article className="application-draft-diff"><div className="application-api-card-heading"><div><p className="eyebrow">Configuration comparison</p><h5>Read model → draft</h5></div><span className="status-badge neutral">{differences.filter((item) => item.changed).length} changed</span></div>{differences.map((difference) => <div className={difference.changed ? "changed" : "unchanged"} key={difference.field}><strong>{difference.field}</strong><span>{difference.before}</span><span>→</span><span>{difference.after}</span></div>)}</article>
         <article className="application-draft-saved"><div className="application-api-card-heading"><div><p className="eyebrow">Saved dev/test drafts</p><h5>{list.summary}</h5></div><button type="button" onClick={() => void refreshList()} disabled={!enabled || list.status === "loading"}>Refresh</button></div>{list.failureCode ? <p className="failure-summary">{list.failureCode}</p> : null}{list.summaries.map((summary) => <button type="button" className="application-draft-summary" key={summary.draftId} onClick={() => void restoreDraft(summary.draftId)}><strong>{summary.displayName}</strong><span>v{summary.draftVersion} · {summary.defaultProtocol} · {summary.defaultModel}</span><small>{summary.updatedAt} · {summary.updatedByActorRef}</small></button>)}</article>
       </div>
+
+      <article className="application-draft-rag-binding">
+        <div className="application-api-card-heading"><div><p className="eyebrow">Workflow RAG binding</p><h5>Explicit attach or replace</h5></div><button type="button" onClick={() => void loadApprovedBindings()} disabled={!bindingEnabled}>Load approved bindings</button></div>
+        <label>Eligible immutable binding<select value={selectedBindingCandidateId} onChange={(event) => setSelectedBindingCandidateId(event.target.value)} disabled={!bindingEnabled || bindings.summaries.length === 0}><option value="">No approved binding selected</option>{bindings.summaries.map((item) => <option key={item.candidateId} value={item.candidateId} disabled={item.candidateState !== "approved" || item.eligibilityStatus !== "eligible" || !item.bindingRef}>{item.bindingRef?.bindingId ?? item.candidateId} · {item.candidateState} · {item.eligibilityStatus}</option>)}</select></label>
+        {selectedBinding ? <div className="application-draft-binding-evidence"><strong>Source draft {selectedBinding.sourceDraft.draftId} · v{selectedBinding.sourceDraft.draftVersion}</strong><code>{selectedBinding.sourceDraft.draftDigest}</code><code>{selectedBinding.bindingRef?.bindingDigest}</code></div> : <p className="boundary-note">Approve a promotion candidate first. Approval does not attach anything automatically.</p>}
+        {bindings.failureCode ? <p className="failure-summary">{bindings.failureCode}</p> : null}
+        <div className="application-draft-actions"><button type="button" onClick={() => void restoreBindingSource()} disabled={!selectedBinding}>Restore exact source draft</button><button type="button" onClick={() => void attachBinding()} disabled={!bindingSourceReady || !selectedBinding?.bindingRef}>Attach immutable binding</button></div>
+        {draft.workflowRAGBindingRef ? <p className="binding-status"><strong>Current draft binding</strong><code>{draft.workflowRAGBindingRef.bindingId} · v{draft.workflowRAGBindingRef.bindingVersion}</code><code>{draft.workflowRAGBindingRef.bindingDigest}</code></p> : null}
+        <p className="boundary-note">Attach creates a new draft version through existing CAS. It cannot carry configuration edits, and it does not create a publish candidate.</p>
+      </article>
 
       <p className="boundary-note">Drafts do not create, publish, delete, or update formal applications. Offline edits stay in memory; production authorization, API keys, quota, billing, provider credentials, fallback, and load balancing remain disabled.</p>
     </section>

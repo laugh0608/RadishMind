@@ -20,6 +20,7 @@ application_catalog_postgres_dev_test=0
 api_key_local_product=0
 workflow_http_tool_local_product=0
 workflow_rag_dev=0
+workflow_rag_promotion_local_product=0
 saved_draft_workspace_id="workspace_demo"
 saved_draft_application_id="app_flow_copilot"
 
@@ -60,6 +61,8 @@ Options:
   --workflow-http-tool-local-product
                            Enable the SQLite local-product Workflow HTTP Tool chain.
   --workflow-rag-dev       Enable the Workflow RAG snapshot, exact draft, retrieval execution, and Run History chain.
+  --workflow-rag-promotion-local-product
+                           Enable the SQLite evaluation, promotion, draft binding, and publish review chain without retrieval execution.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
   -h, --help              Show this help.
@@ -140,6 +143,10 @@ while [[ $# -gt 0 ]]; do
       workflow_rag_dev=1
       shift
       ;;
+    --workflow-rag-promotion-local-product)
+      workflow_rag_promotion_local_product=1
+      shift
+      ;;
     --verify-only)
       verify_only=1
       shift
@@ -217,6 +224,10 @@ if [[ "${workflow_rag_dev}" -eq 1 && "${mode}" != "dev-live" ]]; then
   echo "--workflow-rag-dev requires --mode dev-live" >&2
   exit 2
 fi
+if [[ "${workflow_rag_promotion_local_product}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--workflow-rag-promotion-local-product requires --mode dev-live" >&2
+  exit 2
+fi
 if [[ "${application_publish_dev}" -eq 1 && "${application_publish_postgres_dev_test}" -eq 1 ]]; then
   echo "Choose either --application-publish-dev or --application-publish-postgres-dev-test" >&2
   exit 2
@@ -239,6 +250,10 @@ if [[ "${api_key_local_product}" -eq 1 && "${explicit_component_mode}" -eq 1 ]];
 fi
 if [[ "${workflow_http_tool_local_product}" -eq 1 && "${explicit_component_mode}" -eq 1 ]]; then
   echo "--workflow-http-tool-local-product cannot be combined with explicit memory/PostgreSQL component modes" >&2
+  exit 2
+fi
+if [[ "${workflow_rag_promotion_local_product}" -eq 1 && "${explicit_component_mode}" -eq 1 ]]; then
+  echo "--workflow-rag-promotion-local-product cannot be combined with explicit memory/PostgreSQL component modes" >&2
   exit 2
 fi
 platform_profile="local-product"
@@ -836,6 +851,10 @@ if [[ "${verify_only}" -eq 0 ]]; then
         if [[ "${workflow_rag_dev}" -eq 1 ]]; then
           export RADISHMIND_WORKFLOW_RAG_EXECUTION_DEV="1"
         fi
+        if [[ "${workflow_rag_promotion_local_product}" -eq 1 ]]; then
+          export RADISHMIND_WORKFLOW_RAG_EVALUATION_DEV="1"
+          export RADISHMIND_WORKFLOW_RAG_PROMOTION_DEV="1"
+        fi
         if [[ "${api_key_local_product}" -eq 1 ]]; then
           export RADISHMIND_GATEWAY_AUTH_MODE="api_key_dev_test"
         fi
@@ -909,17 +928,17 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL="${backend_url%/}"
         export VITE_RADISHMIND_DEV_READ_TENANT_REF="${tenant_ref}"
         export VITE_RADISHMIND_DEV_READ_SUBJECT_REF="${subject_ref}"
-        if [[ "${application_draft_dev}" -eq 1 || "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 ]]; then
+        if [[ "${application_draft_dev}" -eq 1 || "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_rag_promotion_local_product}" -eq 1 ]]; then
           export VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE="dev-application-draft-http"
           export VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
-        if [[ "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 ]]; then
+        if [[ "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_rag_promotion_local_product}" -eq 1 ]]; then
           export VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE="dev-application-publish-http"
           export VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
-        if [[ "${application_catalog_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_http_tool_local_product}" -eq 1 || "${workflow_rag_dev}" -eq 1 ]]; then
+        if [[ "${application_catalog_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_http_tool_local_product}" -eq 1 || "${workflow_rag_dev}" -eq 1 || "${workflow_rag_promotion_local_product}" -eq 1 ]]; then
           export VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE="dev-application-catalog-http"
           export VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID="${saved_draft_workspace_id}"
@@ -948,6 +967,14 @@ if [[ "${verify_only}" -eq 0 ]]; then
             export VITE_RADISHMIND_WORKFLOW_RAG_SCOPES="workflow_rag_snapshots:read,workflow_rag_snapshots:write,workflow_rag_snapshots:archive"
           fi
         fi
+        if [[ "${workflow_rag_promotion_local_product}" -eq 1 ]]; then
+          export VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_SOURCE="dev-workflow-rag-evaluation-http"
+          export VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_SCOPES="workflow_rag_evaluation_datasets:read,workflow_rag_evaluation_datasets:read_content,workflow_rag_evaluation_datasets:write,workflow_rag_evaluation_datasets:review,workflow_rag_evaluation_datasets:archive,workflow_rag_snapshots:read"
+          export VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_SOURCE="dev-workflow-rag-promotion-http"
+          export VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_SCOPES="workflow_rag_promotions:read,workflow_rag_promotions:write,workflow_rag_promotions:review,workflow_rag_evaluation_datasets:read,workflow_rag_snapshots:read,application_drafts:read"
+        fi
         if [[ "${workflow_diagnostics_dev}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV="true"
         fi
@@ -974,6 +1001,12 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_WORKFLOW_RAG_BASE_URL
         unset VITE_RADISHMIND_WORKFLOW_RAG_WORKSPACE_ID
         unset VITE_RADISHMIND_WORKFLOW_RAG_SCOPES
+        unset VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_BASE_URL
+        unset VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_SCOPES
+        unset VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_BASE_URL
+        unset VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_SCOPES
         unset VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE
         unset VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL
         unset VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID
@@ -1080,6 +1113,9 @@ if [[ "${mode}" == "dev-live" ]]; then
   fi
   if [[ "${workflow_rag_dev}" -eq 1 ]]; then
     step "Workflow RAG Web chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; execution is synchronous, metadata-only, and dev/test only."
+  fi
+  if [[ "${workflow_rag_promotion_local_product}" -eq 1 ]]; then
+    step "Workflow RAG promotion SQLite local-product Web chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; approve, attach, and publish review remain separate actions."
   fi
 fi
 step "This is a dev-only launcher, not a production supervisor. Controlled execution is dev-only; production auth, secret resolution, unrestricted tools, automatic confirmation, writeback and replay remain disabled."

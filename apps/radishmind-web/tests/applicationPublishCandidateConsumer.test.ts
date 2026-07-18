@@ -43,7 +43,7 @@ test("candidate create sends only binding fields and exact application scope", a
   assert.deepEqual(captured?.body, { candidate_id: "candidate-app-flow-v1", draft_id: "app-config-app-flow", expected_draft_version: 3, evidence_request_ids: ["playground-request-0001"] });
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Application-Publish-Workspace"), "workspace_demo");
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Application-Publish-Application"), "app_flow_copilot");
-  assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_publish_candidates:write");
+  assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_publish_candidates:write,workflow_rag_promotions:read");
   assert.equal("configuration" in captured!.body, false);
 });
 
@@ -77,6 +77,19 @@ test("candidate list and detail reject scope drift and forbidden material", asyn
   globalThis.fetch = async () => jsonResponse(invalidDigest);
   const invalidList = await listApplicationPublishCandidates(devConfig, "app_flow_copilot");
   assert.equal(invalidList.failureCode, "publish_candidate_store_unavailable");
+});
+
+test("publish candidate v2 consumes the exact binding ref and dynamic blocker", async () => {
+  const bindingDigest = `sha256:${"b".repeat(64)}`;
+  const envelope = candidateEnvelope();
+  envelope.candidate.schema_version = "application_publish_candidate.v2";
+  envelope.candidate.configuration.workflow_rag_binding_ref = { binding_id: "wragb_aaaaaaaaaaaaaaaa", binding_version: 1, binding_digest: bindingDigest };
+  envelope.candidate.promotion_eligibility.blockers.unshift({ code: "workflow_rag_promotion_dataset_archived", summary: "Workflow RAG binding is no longer eligible." });
+  globalThis.fetch = async () => jsonResponse(envelope);
+  const result = await readApplicationPublishCandidate(devConfig, "app_flow_copilot", "candidate-app-flow-v1");
+  assert.equal(result.candidate?.schemaVersion, "application_publish_candidate.v2");
+  assert.equal(result.candidate?.configuration.workflowRAGBindingRef?.bindingDigest, bindingDigest);
+  assert.equal(result.candidate?.promotionEligibility.blockers.some((item) => item.code === "workflow_rag_promotion_dataset_archived"), true);
 });
 
 test("evidence and review validation reject secrets and normalize safe refs", () => {

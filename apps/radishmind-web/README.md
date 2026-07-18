@@ -22,6 +22,8 @@
 - API Key Lifecycle 使用独立的 `VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE=dev-api-key-lifecycle-http` 开关；默认仍显示离线脱敏摘要。显式启用后，`workspace-api-keys` 按当前活跃应用列出、签发、查看和 CAS 吊销开发测试态密钥，原始令牌只在签发成功视图出现一次，并可通过内存事件交给 Gateway Playground。该消费端不提供令牌恢复、浏览器持久化、生产授权、配额或计费。
 - Application Configuration Draft 使用独立的 `VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE=dev-application-draft-http` 开关；默认 offline 零请求且编辑状态只在当前组件内存。显式启用后可在当前 application scope 下校验、保存、列出和恢复配置草案，使用 expected-version 处理并发冲突，并把协议与模型继续交给 API Integration 或既有 Playground。草案不保存 secret、Gateway 测试输入输出，也不创建、发布或删除正式 application。
 - Application Publish Review 使用独立的 `VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE=dev-application-publish-http` 开关；默认 offline 零请求。显式启用后可从当前 application 的 saved valid draft 创建不可变 candidate、恢复 snapshot / digest、追加 review CAS、查看漂移和 promotion blocker，并复用 Integration / Playground / exact History handoff。approved 仍不执行正式 application mutation。
+- Workflow RAG Knowledge Promotion 使用 `VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_SOURCE=dev-workflow-rag-promotion-http` 与独立 scopes；默认 offline 零请求。strict consumer 只接收 metadata-only list、精确 evidence、append-only decision、immutable binding 和动态 eligibility，拒绝 scope / schema 漂移以及 query、fragment、prompt、模型响应、credential 或 secret。lazy panel 固定“人工 approve → 配置草案显式 attach → 发布候选重新校验”为三个独立动作，CAS 冲突保留人工理由并要求刷新当前 record。
+- Application Configuration Draft v2 与 Application Publish Candidate v2 都只携带 `binding_id / binding_version / binding_digest`。草案面板会先恢复 promotion candidate 的精确 source draft，再通过既有 CAS 创建绑定版本；发布面板展示 exact binding 和动态 blocker。application 切换会清空 promotion、binding 与 publish selection，不在三个资源之间复制知识正文或配置真相源。
 - 渲染 read route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、只读 `admin-audit-log`、普通离线 Admin Operations Review / Readiness、普通离线 Admin Provider/Profile & Deployment Evidence Review / Readiness、可显式连接开发测试目录的 `workspace-applications`、可显式连接生命周期 API 的 `workspace-api-keys`、只读 `workspace-usage-quota`、只读 `workspace-workflow-definitions`、只读 `workspace-run-history`、User Workspace Home、Model Gateway Overview、Model Gateway Route Evidence、Model Gateway Usage/Audit Evidence、Model Gateway Evidence Review / Readiness 和 workflow function surface 面板。
 - `admin-tenant-overview` 只消费 `tenant-summary-route` 的离线 view model，展示租户摘要、route metadata、request / audit ref 和状态预览。
 - `admin-audit-log` 只消费 `audit-summary-list-route` 的离线 view model，展示 audit ref、actor、event kind、resource、decision、failure code、trace id、recorded timestamp、route metadata、request / audit ref、cursor 和状态预览。
@@ -160,6 +162,18 @@ pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -ApplicationPublishPost
 ```
 
 launcher 会同时启用 application draft 与 publish candidate 的 dev HTTP / write gate，并检查两个 migration marker；`--application-publish-dev` / `-ApplicationPublishDev` 使用 memory dev。两种模式都不启用 promotion endpoint、production auth 或正式 application repository。
+
+Workflow RAG 知识晋级、配置绑定与发布重校验的 SQLite 本地产品档使用：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --workflow-rag-promotion-local-product
+```
+
+```powershell
+pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -WorkflowRAGPromotionLocalProduct
+```
+
+该档复用 workflow backend selector、shared SQLite database、snapshot / evaluation repositories、application draft repository 和 publish governance，同时打开 evaluation / promotion / draft / publish / catalog 的显式 dev-only Web source。它不启用 Workflow RAG execution、Gateway Playground、自动 baseline / promotion / release / publish、connector、后台任务、retry / replay、业务写回或生产能力；退出 launcher 会关闭本次启动的前后端进程。
 
 Application Catalog 的独立 PostgreSQL 开发测试模式可通过以下参数启用：
 

@@ -2,13 +2,13 @@
 
 更新时间：2026-07-18
 
-状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_d_ready_for_implementation`
+状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_completed`
 
 ## 目标与准入结论
 
 按 [功能设计](../features/workflow/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md)交付“精确 dataset / candidate review / snapshot / profile / source draft → 人工 decision → 不可变 RAG binding → 应用配置草案引用 → 发布治理重校验”的完整开发测试态链路。
 
-设计与边界评审已经通过，批次 A、批次 B 与批次 C 已完成并通过领域、HTTP、双数据库、并发与仓库门禁验证；批次 D 获得实现准入。本任务卡继续作为唯一实现入口，不派生第二张任务卡或同层 readiness 文档。
+设计与边界评审已经通过，批次 A 至批次 D 均已完成并通过领域、HTTP、Web、双数据库、并发、真实浏览器与仓库门禁验证。本任务卡作为唯一实现入口归档，不派生第二张任务卡或同层 readiness 文档。
 
 ## 前置基线
 
@@ -76,12 +76,24 @@
 
 ## 批次 D：Web、连续链与收口
 
-状态：`ready_for_implementation`。
+状态：`completed`；完成锚点为 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_d_completed`。
 
 - 新增默认 offline 的 strict promotion consumer 与 lazy panel，完成 list / detail / decision / CAS conflict。
 - 接入应用配置草案 binding selector / attach，以及发布审查 exact binding / dynamic blocker；批准、附加、发布审查保持三个显式步骤。
 - 覆盖 application switch、scope / schema drift、forbidden field、offline zero request、Web tests / build。
 - 完成 SQLite / PostgreSQL 连续链、重启、no-fallback、真实浏览器复验和敏感材料扫描，再同步阶段文档并关闭专题。
+
+### 批次 D 完成证据
+
+- Web 新增默认 offline 的 strict promotion consumer 与 lazy panel，覆盖候选 list / detail、精确 evidence、人工 `approve / reject / defer / cancel`、决定 CAS 冲突与理由保留；应用切换会清空候选、详情、来源选择和 binding 状态。
+- 应用配置草案面板只列出当前 eligible 的不可变 binding，先恢复候选精确 source draft，再通过既有 draft CAS 显式 attach / replace；发布治理只读取草案中的 ref，并在 create、approve 与 read-time 重新校验当前 binding 资格。
+- Web consumer 测试固定 offline / scope denial 零请求、strict scope / schema / forbidden field 拒绝、v1 / v2 兼容、ref-only request 与动态 blocker；129 项 Web 测试和 production build 通过。
+- SQLite shared database 连续链覆盖草案 v1、候选创建与批准、草案 v2 attach、发布候选 v2 创建与批准、promotion cancel 后动态 fail-closed、关闭 no-fallback 和重启恢复。
+- PostgreSQL 在同一 runtime pool 上覆盖同样连续链，并继续验证 migration / rollback / reapply、运行角色 DDL 拒绝、append-only、事务整笔回滚、并发 CAS 单一成功、重启恢复、损坏记录拒绝与 no-fallback；专项门禁通过后测试容器已关闭。
+- 真实浏览器验证精确 dataset / review / snapshot / profile / source draft evidence、人工 approve、不可变 binding、显式草案 attach、发布候选重新校验与人工审查。批准后没有自动修改草案或创建发布候选；发布审查后仍保留正式存储库、生产认证、发布 owner 与 promotion runtime 四项 blocker。
+- 浏览器切换到第二个应用后不再显示原应用 candidate、detail 或 binding。promotion create / decision、draft attach 与 publish governance 没有调用 Gateway、创建 workflow run 或触发 retrieval execution；候选审查前置仅复用既有离线 lexical review。
+
+专题完成锚点为 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_completed`。后续若要让已绑定配置进入新的运行时消费路径，必须先建立独立功能设计并重新评审执行、权限与生产停止线；不得从本任务卡自动打开 baseline、promotion、release、publish 或 production 能力。
 
 ## 验证矩阵
 

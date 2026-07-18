@@ -1998,7 +1998,8 @@ h4 {
 .application-draft-editor,
 .application-draft-review,
 .application-draft-diff,
-.application-draft-saved {
+.application-draft-saved,
+.application-draft-rag-binding {
   min-width: 0;
   padding: 16px;
   border: 1px solid #d8dee8;
@@ -2030,10 +2031,28 @@ h4 {
 .application-draft-editor,
 .application-draft-review,
 .application-draft-diff,
-.application-draft-saved {
+.application-draft-saved,
+.application-draft-rag-binding {
   display: grid;
   align-content: start;
   gap: 12px;
+}
+
+.application-draft-rag-binding label,
+.application-draft-binding-evidence,
+.application-draft-rag-binding .binding-status {
+  display: grid;
+  gap: 7px;
+}
+
+.application-draft-rag-binding select {
+  width: 100%;
+  min-width: 0;
+}
+
+.application-draft-binding-evidence code,
+.application-draft-rag-binding .binding-status code {
+  overflow-wrap: anywhere;
 }
 
 .application-draft-editor label {
@@ -5090,10 +5109,134 @@ dd {
   color: var(--muted);
 }
 
+.application-publish-binding {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid rgba(102, 196, 142, 0.28);
+  border-radius: 10px;
+  background: rgba(42, 118, 78, 0.12);
+}
+
+.application-publish-binding code {
+  overflow-wrap: anywhere;
+}
+
+.workflow-rag-promotion-panel {
+  margin-top: 24px;
+  padding: 24px;
+  border: 1px solid rgba(137, 174, 205, 0.26);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(19, 31, 42, 0.96), rgba(11, 20, 28, 0.98));
+}
+
+.workflow-rag-promotion-panel.offline {
+  opacity: 0.82;
+}
+
+.workflow-rag-promotion-scope,
+.workflow-rag-promotion-layout,
+.workflow-rag-promotion-detail {
+  display: grid;
+  gap: 16px;
+}
+
+.workflow-rag-promotion-scope {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 18px 0;
+}
+
+.workflow-rag-promotion-layout {
+  grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+}
+
+.workflow-rag-promotion-detail {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.workflow-rag-promotion-scope article,
+.workflow-rag-promotion-create,
+.workflow-rag-promotion-decision,
+.workflow-rag-promotion-detail > article,
+.workflow-rag-promotion-saved {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid rgba(151, 185, 213, 0.18);
+  border-radius: 18px;
+  background: rgba(7, 15, 22, 0.58);
+}
+
+.workflow-rag-promotion-create label,
+.workflow-rag-promotion-decision label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.workflow-rag-promotion-create select,
+.workflow-rag-promotion-decision select,
+.workflow-rag-promotion-decision textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(151, 185, 213, 0.26);
+  border-radius: 11px;
+  color: var(--text);
+  background: rgba(2, 9, 14, 0.76);
+  font: inherit;
+}
+
+.workflow-rag-promotion-saved {
+  margin-top: 16px;
+}
+
+.workflow-rag-promotion-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.workflow-rag-promotion-list button,
+.workflow-rag-decision-record,
+.workflow-rag-binding-card,
+.workflow-rag-evidence-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-start;
+  padding: 11px;
+  border: 1px solid rgba(151, 185, 213, 0.16);
+  border-radius: 11px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.026);
+}
+
+.workflow-rag-promotion-detail code,
+.workflow-rag-promotion-list code {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.workflow-rag-binding-card {
+  border-color: rgba(102, 196, 142, 0.3);
+  background: rgba(42, 118, 78, 0.12);
+}
+
 @media (max-width: 900px) {
   .application-publish-scope,
   .application-publish-layout,
   .application-publish-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-rag-promotion-scope,
+  .workflow-rag-promotion-layout,
+  .workflow-rag-promotion-detail {
     grid-template-columns: 1fr;
   }
 

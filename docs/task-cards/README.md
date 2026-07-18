@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前唯一活跃实现任务卡为 [Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1-plan.md)，状态为 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_d_ready_for_implementation`。批次 A / B / C 已完成 promotion contract、双数据库 durable store、application draft v2 ref-only binding、canonical digest 与 publish governance 重校验；下一步只进入批次 D 的 Web 接线、双数据库连续链和真实浏览器收口，不从该准入推导自动 promotion、release、publish 或生产能力。
+当前没有活跃实现任务卡。[Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1-plan.md)批次 A 至 D 已完成并归档，状态为 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_completed`。下一步先回到功能设计选择，不从已完成的 binding 链自动推导运行时 retrieval、promotion、release、publish 或生产能力。
 
 ## 最近关闭任务
 

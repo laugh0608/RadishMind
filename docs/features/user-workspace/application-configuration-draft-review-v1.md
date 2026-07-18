@@ -131,6 +131,13 @@ Web 49 项测试与生产构建、平台全量 Go 测试和 PostgreSQL 集成套
 
 相称验证包括 Web 单元测试、生产构建、Go 单元与集成测试、迁移往返、`git diff --check`、`./scripts/check-repo.sh --fast` 和完整 `./scripts/check-repo.sh`。
 
+## 与 Workflow RAG binding 的组合边界
+
+- 未绑定草案继续使用 `application_configuration_draft.v1`；绑定草案使用 v2，且只新增 `workflow_rag_binding_ref={binding_id,binding_version,binding_digest}` 与服务端 canonical `draft_digest`，不复制 dataset、snapshot、query、fragment、评测指标或配置正文真相源。
+- 首次 attach / replace 必须从已批准 promotion candidate 的精确 source draft 开始。服务端重读当前 binding 与全部权威知识来源，确认除 binding ref 外没有配置修改后，才通过既有 expected-version CAS 创建下一版草案。
+- Web 只列出当前 eligible 的不可变 binding，并把“恢复 source draft”和“attach binding”保留为两个显式动作；批准 promotion candidate 不自动修改草案，attach 也不创建发布候选。
+- memory、SQLite 与 PostgreSQL 继续复用本专题既有 repository 和 JSON payload 表，无新增草案 store、selector、DSN、pool 或 migration。双数据库连续链与真实浏览器已验证 v1 source draft → v2 binding draft、重启恢复与 no-fallback。
+
 ## 停止线
 
 - 不创建、发布、删除或直接更新正式应用。

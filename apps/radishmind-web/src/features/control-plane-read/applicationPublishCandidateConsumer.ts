@@ -1,6 +1,7 @@
 import type { ApplicationApiProtocol } from "./applicationApiIntegrationConsumer.ts";
 
-const APPLICATION_PUBLISH_SCHEMA_VERSION = "application_publish_candidate.v1";
+const APPLICATION_PUBLISH_SCHEMA_VERSION_V1 = "application_publish_candidate.v1";
+const APPLICATION_PUBLISH_SCHEMA_VERSION_V2 = "application_publish_candidate.v2";
 const DEV_SOURCE = "dev-application-publish-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const FORBIDDEN_RESPONSE_FIELDS = new Set([
@@ -23,7 +24,10 @@ export type ApplicationPublishConfiguration = {
   defaultProtocol: ApplicationApiProtocol;
   defaultModel: string;
   allowedProtocols: ApplicationApiProtocol[];
+  workflowRAGBindingRef: ApplicationPublishRAGBindingRef | null;
 };
+
+export type ApplicationPublishRAGBindingRef = { bindingId: string; bindingVersion: number; bindingDigest: string };
 
 export type ApplicationPublishReview = {
   reviewVersion: number;
@@ -46,7 +50,7 @@ export type ApplicationPromotionEligibility = {
 };
 
 export type ApplicationPublishCandidate = {
-  schemaVersion: typeof APPLICATION_PUBLISH_SCHEMA_VERSION;
+  schemaVersion: typeof APPLICATION_PUBLISH_SCHEMA_VERSION_V1 | typeof APPLICATION_PUBLISH_SCHEMA_VERSION_V2;
   candidateId: string;
   workspaceId: string;
   applicationId: string;
@@ -78,6 +82,7 @@ export type ApplicationPublishCandidateSummary = {
   reviewVersion: number;
   promotionStatus: "promotion_blocked";
   promotionBlockers: number;
+  workflowRAGBindingRef: ApplicationPublishRAGBindingRef | null;
   createdAt: string;
   updatedAt: string;
   updatedByActorRef: string;
@@ -120,7 +125,7 @@ type CandidateDocument = {
   base_application_updated_at: string;
   configuration: {
     display_name: string; description: string; application_kind: string; default_protocol: string;
-    default_model: string; allowed_protocols: string[];
+    default_model: string; allowed_protocols: string[]; workflow_rag_binding_ref?: BindingRefDocument;
   };
   evidence_request_ids: string[];
   candidate_state: string;
@@ -153,11 +158,14 @@ type CandidateListEnvelope = {
   candidate_summaries: Array<{
     candidate_id: string; application_id: string; draft_id: string; draft_version: number; draft_digest: string;
     candidate_state: string; review_version: number; promotion_status: string; promotion_blockers: number;
+    workflow_rag_binding_ref?: BindingRefDocument;
     created_at: string; updated_at: string; updated_by_actor_ref: string;
   }>;
   failure_code: string | null;
   audit_ref: string;
 };
+
+type BindingRefDocument = { binding_id: string; binding_version: number; binding_digest: string };
 
 export function readApplicationPublishCandidateConfig(): ApplicationPublishCandidateConfig {
   const env = import.meta.env as Record<string, string | undefined>;
@@ -314,7 +322,7 @@ function failedCandidateOperation(failureCode: string) {
 }
 
 function candidateHeaders(config: ApplicationPublishCandidateConfig, applicationId: string, requestId: string, operation: "read" | "write" | "review"): Record<string, string> {
-  const scope = operation === "read" ? "application_publish_candidates:read" : operation === "review" ? "application_publish_candidates:review" : "application_publish_candidates:write";
+  const scope = `${operation === "read" ? "application_publish_candidates:read" : operation === "review" ? "application_publish_candidates:review" : "application_publish_candidates:write"},workflow_rag_promotions:read`;
   return {
     Accept: "application/json", "X-Request-Id": requestId,
     "X-RadishMind-Dev-Read-Identity": "radishmind-web-application-publish-dev",
@@ -329,7 +337,7 @@ function candidateHeaders(config: ApplicationPublishCandidateConfig, application
 
 function mapCandidate(document: CandidateDocument): ApplicationPublishCandidate {
   return {
-    schemaVersion: APPLICATION_PUBLISH_SCHEMA_VERSION, candidateId: document.candidate_id,
+    schemaVersion: document.schema_version as ApplicationPublishCandidate["schemaVersion"], candidateId: document.candidate_id,
     workspaceId: document.workspace_id, applicationId: document.application_id, draftId: document.draft_id,
     draftVersion: document.draft_version, draftDigest: document.draft_digest,
     baseApplicationUpdatedAt: document.base_application_updated_at,
@@ -337,6 +345,7 @@ function mapCandidate(document: CandidateDocument): ApplicationPublishCandidate 
       displayName: document.configuration.display_name, description: document.configuration.description,
       applicationKind: document.configuration.application_kind, defaultProtocol: document.configuration.default_protocol as ApplicationApiProtocol,
       defaultModel: document.configuration.default_model, allowedProtocols: document.configuration.allowed_protocols as ApplicationApiProtocol[],
+      workflowRAGBindingRef: document.configuration.workflow_rag_binding_ref ? mapBindingRef(document.configuration.workflow_rag_binding_ref) : null,
     },
     evidenceRequestIds: [...document.evidence_request_ids], candidateState: document.candidate_state as ApplicationPublishCandidateState,
     reviewVersion: document.review_version,
@@ -353,6 +362,7 @@ function mapCandidateSummary(document: CandidateListEnvelope["candidate_summarie
     draftVersion: document.draft_version, draftDigest: document.draft_digest,
     candidateState: document.candidate_state as ApplicationPublishCandidateState, reviewVersion: document.review_version,
     promotionStatus: "promotion_blocked", promotionBlockers: document.promotion_blockers,
+    workflowRAGBindingRef: document.workflow_rag_binding_ref ? mapBindingRef(document.workflow_rag_binding_ref) : null,
     createdAt: document.created_at, updatedAt: document.updated_at, updatedByActorRef: document.updated_by_actor_ref,
   };
 }
@@ -373,11 +383,13 @@ function isCandidateListEnvelope(value: unknown, config: ApplicationPublishCandi
       isNonEmptyString(summary.draft_id) && Number.isInteger(summary.draft_version) && summary.draft_version > 0 && isDigest(summary.draft_digest) &&
       isCandidateState(summary.candidate_state) && Number.isInteger(summary.review_version) && summary.review_version >= 0 && summary.promotion_status === "promotion_blocked" &&
       Number.isInteger(summary.promotion_blockers) && summary.promotion_blockers >= 0 && isNonEmptyString(summary.created_at) &&
-      isNonEmptyString(summary.updated_at) && isNonEmptyString(summary.updated_by_actor_ref));
+      isNonEmptyString(summary.updated_at) && isNonEmptyString(summary.updated_by_actor_ref) && (summary.workflow_rag_binding_ref === undefined || isBindingRef(summary.workflow_rag_binding_ref)));
 }
 
 function isCandidateDocument(value: unknown, config: ApplicationPublishCandidateConfig, applicationId: string): value is CandidateDocument {
-  if (!isRecord(value) || value.schema_version !== APPLICATION_PUBLISH_SCHEMA_VERSION || value.workspace_id !== config.workspaceId || value.application_id !== applicationId ||
+  if (!isRecord(value) || (value.schema_version !== APPLICATION_PUBLISH_SCHEMA_VERSION_V1 && value.schema_version !== APPLICATION_PUBLISH_SCHEMA_VERSION_V2) || value.workspace_id !== config.workspaceId || value.application_id !== applicationId ||
+    (value.schema_version === APPLICATION_PUBLISH_SCHEMA_VERSION_V1 && value.configuration?.workflow_rag_binding_ref !== undefined) ||
+    (value.schema_version === APPLICATION_PUBLISH_SCHEMA_VERSION_V2 && !isBindingRef(value.configuration?.workflow_rag_binding_ref)) ||
     !isNonEmptyString(value.candidate_id) || !isNonEmptyString(value.draft_id) || !Number.isInteger(value.draft_version) || value.draft_version < 1 || !isDigest(value.draft_digest) ||
     !isCandidateState(value.candidate_state) || !Number.isInteger(value.review_version) || value.review_version < 0 || !Array.isArray(value.evidence_request_ids) ||
     !value.evidence_request_ids.every(isEvidenceRequestId) || !isRecord(value.configuration) || !isNonEmptyString(value.configuration.display_name) ||
@@ -393,6 +405,9 @@ function isCandidateDocument(value: unknown, config: ApplicationPublishCandidate
     isNonEmptyString(review.request_id) && isNonEmptyString(review.audit_ref)) &&
     value.promotion_eligibility.blockers.every((blocker) => isRecord(blocker) && isNonEmptyString(blocker.code) && isNonEmptyString(blocker.summary));
 }
+
+function mapBindingRef(value: BindingRefDocument): ApplicationPublishRAGBindingRef { return { bindingId: value.binding_id, bindingVersion: value.binding_version, bindingDigest: value.binding_digest }; }
+function isBindingRef(value: unknown): value is BindingRefDocument { return isRecord(value) && Object.keys(value).length === 3 && /^wragb_[a-z2-7]{16}$/u.test(String(value.binding_id)) && value.binding_version === 1 && isDigest(value.binding_digest); }
 
 function isCandidateState(value: unknown): value is ApplicationPublishCandidateState {
   return value === "pending_review" || value === "approved" || value === "rejected" || value === "changes_requested" || value === "withdrawn";

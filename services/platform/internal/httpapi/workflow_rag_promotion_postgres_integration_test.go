@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	applicationdraftmigrations "radishmind.local/services/platform/migrations/application_configuration_drafts"
+	applicationpublishmigrations "radishmind.local/services/platform/migrations/application_publish_candidates"
 	workflowrunmigrations "radishmind.local/services/platform/migrations/workflow_runs"
 )
 
@@ -29,11 +31,36 @@ func TestPostgresWorkflowRAGPromotionIntegration(t *testing.T) {
 	}
 	assertPostgresIntegrationDatabaseIsDisposable(t, databaseContext, adminPool)
 	resetPostgresWorkflowRunSchema(t, databaseContext, adminPool)
+	draftMigrationPool, err := applicationdraftmigrations.OpenPool(databaseContext, databaseURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	publishMigrationPool, err := applicationpublishmigrations.OpenPool(databaseContext, databaseURL)
+	if err != nil {
+		draftMigrationPool.Close()
+		t.Fatal(err)
+	}
+	if _, err = applicationpublishmigrations.RollbackForDevTest(databaseContext, publishMigrationPool); err != nil {
+		t.Fatalf("reset PostgreSQL publish candidates before continuous chain: %v", err)
+	}
+	if _, err = applicationdraftmigrations.RollbackForDevTest(databaseContext, draftMigrationPool); err != nil {
+		t.Fatalf("reset PostgreSQL application drafts before continuous chain: %v", err)
+	}
+	if state, applyErr := applicationdraftmigrations.Apply(databaseContext, draftMigrationPool); applyErr != nil || state.MigrationState != applicationdraftmigrations.MigrationStateApplied {
+		t.Fatalf("apply PostgreSQL application draft migration: state=%#v err=%v", state, applyErr)
+	}
+	if state, applyErr := applicationpublishmigrations.Apply(databaseContext, publishMigrationPool); applyErr != nil || state.MigrationState != applicationpublishmigrations.MigrationStateApplied {
+		t.Fatalf("apply PostgreSQL publish migration: state=%#v err=%v", state, applyErr)
+	}
 	preparePostgresIntegrationRuntimeRole(t, databaseContext, adminPool, runtimeUser)
 	t.Cleanup(func() {
 		cleanupContext, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cleanupCancel()
 		resetPostgresWorkflowRunSchema(t, cleanupContext, adminPool)
+		_, _ = applicationpublishmigrations.RollbackForDevTest(cleanupContext, publishMigrationPool)
+		_, _ = applicationdraftmigrations.RollbackForDevTest(cleanupContext, draftMigrationPool)
+		publishMigrationPool.Close()
+		draftMigrationPool.Close()
 		adminPool.Close()
 	})
 	migration, err := workflowrunmigrations.Apply(databaseContext, adminPool)
@@ -60,6 +87,18 @@ func TestPostgresWorkflowRAGPromotionIntegration(t *testing.T) {
 	fixture := newWorkflowRAGPromotionTestFixture(t)
 	fixture.ctx.RequestContext = databaseContext
 	fixture.service.repository = repository
+	draftRepository := newPostgresApplicationConfigurationDraftRepository(runtimePool)
+	fixture.service.draftRepository = draftRepository
+	draftContext := workflowRAGPromotionDraftContext(fixture.ctx)
+	draftContext.WriteEnabled = true
+	draftContext.BindingEnabled = true
+	createdDraft := newApplicationConfigurationDraftService(draftRepository).Save(draftContext, fixture.draft.ApplicationConfigurationDraftPayload, 0)
+	if createdDraft.Draft == nil {
+		t.Fatalf("create PostgreSQL promotion source draft: %#v", createdDraft)
+	}
+	fixture.draft = *createdDraft.Draft
+	fixture.createInput.DraftID = createdDraft.Draft.DraftID
+	fixture.createInput.ExpectedDraftVersion = createdDraft.Draft.DraftVersion
 	created := fixture.createCandidate(t)
 	fixture.advanceRequest("postgres_defer")
 	deferred := fixture.service.Decide(fixture.ctx, created.Candidate.CandidateID, WorkflowRAGPromotionDecisionInput{
@@ -69,12 +108,50 @@ func TestPostgresWorkflowRAGPromotionIntegration(t *testing.T) {
 	approved := fixture.service.Decide(fixture.ctx, created.Candidate.CandidateID, WorkflowRAGPromotionDecisionInput{
 		ExpectedRecordVersion: 2, Decision: workflowRAGPromotionDecisionApprove, Reason: "PostgreSQL 持久化人工批准",
 	})
+	if approved.FailureCode != "" || approved.Binding == nil {
+		t.Fatalf("approve PostgreSQL promotion before binding chain: %#v", approved)
+	}
+	draftService := newApplicationConfigurationDraftService(draftRepository)
+	draftService.validateBinding = func(ctx ApplicationConfigurationDraftContext, ref WorkflowRAGApplicationBindingRef) (WorkflowRAGApplicationBinding, string) {
+		return fixture.service.resolveEligibleBinding(workflowRAGPromotionContextFromDraft(ctx), ref, true)
+	}
+	boundPayload := createdDraft.Draft.ApplicationConfigurationDraftPayload
+	boundPayload.SchemaVersion = applicationConfigurationDraftSchemaVersionV2
+	boundPayload.WorkflowRAGBindingRef = cloneWorkflowRAGApplicationBindingRef(&approved.Binding.WorkflowRAGApplicationBindingRef)
+	attachedDraft := draftService.Save(draftContext, boundPayload, createdDraft.Draft.DraftVersion)
+	if attachedDraft.Draft == nil || attachedDraft.Draft.DraftVersion != 2 {
+		t.Fatalf("attach PostgreSQL promotion binding: %#v", attachedDraft)
+	}
+	publishContext := workflowRAGBindingPublishContext(fixture)
+	publishRepository := newPostgresApplicationPublishCandidateRepository(runtimePool)
+	publishService := newApplicationPublishCandidateService(draftRepository, publishRepository, func(ApplicationPublishContext) (ApplicationSummary, error) {
+		return fixture.application, fixture.applicationErr
+	})
+	publishService.validateBinding = func(ctx ApplicationPublishContext, ref WorkflowRAGApplicationBindingRef) (WorkflowRAGApplicationBinding, string) {
+		return fixture.service.resolveEligibleBinding(workflowRAGPromotionContextFromPublish(ctx), ref, false)
+	}
+	createdPublish := publishService.Create(publishContext, ApplicationPublishCreateInput{
+		CandidateID: "candidate-postgres-rag-continuous", DraftID: attachedDraft.Draft.DraftID, ExpectedDraftVersion: attachedDraft.Draft.DraftVersion,
+	})
+	if createdPublish.Candidate == nil || createdPublish.Candidate.SchemaVersion != applicationPublishCandidateSchemaVersionV2 {
+		t.Fatalf("create PostgreSQL bound publish candidate: %#v", createdPublish)
+	}
+	approvedPublish := publishService.Review(publishContext, createdPublish.Candidate.CandidateID, ApplicationPublishReviewInput{
+		ExpectedReviewVersion: 0, Decision: applicationPublishDecisionApprove, Reason: "发布治理重新校验 PostgreSQL 不可变绑定",
+	})
+	if approvedPublish.Candidate == nil || approvedPublish.Candidate.CandidateState != applicationPublishStateApproved {
+		t.Fatalf("approve PostgreSQL bound publish candidate: %#v", approvedPublish)
+	}
 	fixture.advanceRequest("postgres_cancel")
 	canceled := fixture.service.Decide(fixture.ctx, created.Candidate.CandidateID, WorkflowRAGPromotionDecisionInput{
 		ExpectedRecordVersion: 3, Decision: workflowRAGPromotionDecisionCancel, Reason: "PostgreSQL 持久化撤销资格",
 	})
 	if deferred.FailureCode != "" || approved.FailureCode != "" || approved.Binding == nil || canceled.FailureCode != "" || canceled.Candidate.RecordVersion != 4 {
 		t.Fatalf("PostgreSQL promotion lifecycle failed: deferred=%#v approved=%#v canceled=%#v", deferred, approved, canceled)
+	}
+	invalidatedPublish := publishService.Read(publishContext, createdPublish.Candidate.CandidateID)
+	if invalidatedPublish.Candidate == nil || !hasPromotionBlocker(invalidatedPublish.Candidate.PromotionEligibility, WorkflowRAGPromotionFailureBindingNotEligible) {
+		t.Fatalf("canceled PostgreSQL binding did not fail closed in publish governance: %#v", invalidatedPublish)
 	}
 	candidate, decisions, binding, audits, err := repository.Read(fixture.ctx, created.Candidate.CandidateID)
 	if err != nil || len(decisions) != 3 || binding == nil || len(audits) != 5 {
@@ -112,6 +189,16 @@ func TestPostgresWorkflowRAGPromotionIntegration(t *testing.T) {
 			}
 		})
 	}
+
+	independentDraftPayload := fixture.draft.ApplicationConfigurationDraftPayload
+	independentDraftPayload.DraftID = "app-config-postgres-promotion-independent"
+	independentDraft := newApplicationConfigurationDraftService(draftRepository).Save(draftContext, independentDraftPayload, 0)
+	if independentDraft.Draft == nil {
+		t.Fatalf("create PostgreSQL independent promotion source draft: %#v", independentDraft)
+	}
+	fixture.draft = *independentDraft.Draft
+	fixture.createInput.DraftID = independentDraft.Draft.DraftID
+	fixture.createInput.ExpectedDraftVersion = independentDraft.Draft.DraftVersion
 
 	rollbackCandidate := fixture.createCandidate(t)
 	if _, err = adminPool.Exec(databaseContext, `CREATE FUNCTION reject_workflow_rag_promotion_test_insert() RETURNS trigger
@@ -190,6 +277,23 @@ func TestPostgresWorkflowRAGPromotionIntegration(t *testing.T) {
 		t.Fatalf("recover PostgreSQL promotion after restart: candidate=%#v decisions=%d binding=%#v audits=%d err=%v", recovered, len(recoveredDecisions), recoveredBinding, len(recoveredAudits), err)
 	}
 	assertWorkflowRAGPromotionContracts(t, recovered, recoveredDecisions, *recoveredBinding, recoveredAudits)
+	restartedDraftRepository := newPostgresApplicationConfigurationDraftRepository(reopened)
+	restartedPromotionService := fixture.service
+	restartedPromotionService.repository = restartedRepository
+	restartedPromotionService.draftRepository = restartedDraftRepository
+	restartedPublishService := newApplicationPublishCandidateService(restartedDraftRepository, newPostgresApplicationPublishCandidateRepository(reopened), func(ApplicationPublishContext) (ApplicationSummary, error) {
+		return fixture.application, fixture.applicationErr
+	})
+	restartedPublishService.validateBinding = func(ctx ApplicationPublishContext, ref WorkflowRAGApplicationBindingRef) (WorkflowRAGApplicationBinding, string) {
+		return restartedPromotionService.resolveEligibleBinding(workflowRAGPromotionContextFromPublish(ctx), ref, false)
+	}
+	restoredDraft := newApplicationConfigurationDraftService(restartedDraftRepository).Read(draftContext, attachedDraft.Draft.DraftID)
+	restoredPublish := restartedPublishService.Read(publishContext, createdPublish.Candidate.CandidateID)
+	if restoredDraft.Draft == nil || restoredDraft.Draft.WorkflowRAGBindingRef == nil || restoredPublish.Candidate == nil ||
+		restoredPublish.Candidate.CandidateState != applicationPublishStateApproved || restoredPublish.Candidate.Configuration.WorkflowRAGBindingRef == nil ||
+		!hasPromotionBlocker(restoredPublish.Candidate.PromotionEligibility, WorkflowRAGPromotionFailureBindingNotEligible) {
+		t.Fatalf("recover PostgreSQL promotion binding publish chain after restart: draft=%#v publish=%#v", restoredDraft, restoredPublish)
+	}
 	if _, err = reopened.Exec(databaseContext, `UPDATE workflow_rag_knowledge_promotion_candidates SET sanitized_candidate_payload='{}'::jsonb WHERE candidate_id=$1`, candidate.CandidateID); err != nil {
 		t.Fatalf("inject PostgreSQL promotion payload corruption: %v", err)
 	}
