@@ -2,13 +2,13 @@
 
 更新时间：2026-07-18
 
-状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_b_ready_for_implementation`
+状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_c_ready_for_implementation`
 
 ## 目标与准入结论
 
 按 [功能设计](../features/workflow/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md)交付“精确 dataset / candidate review / snapshot / profile / source draft → 人工 decision → 不可变 RAG binding → 应用配置草案引用 → 发布治理重校验”的完整开发测试态链路。
 
-设计与边界评审已经通过，批次 A 已完成并通过领域、HTTP、并发与仓库门禁验证；批次 B 获得实现准入。本任务卡继续作为唯一实现入口，不派生第二张任务卡或同层 readiness 文档。
+设计与边界评审已经通过，批次 A 与批次 B 已完成并通过领域、HTTP、双数据库、并发与仓库门禁验证；批次 C 获得实现准入。本任务卡继续作为唯一实现入口，不派生第二张任务卡或同层 readiness 文档。
 
 ## 前置基线
 
@@ -41,16 +41,25 @@
 
 ## 批次 B：workflow durable store 与 migration
 
-状态：`ready_for_implementation`。
+状态：`completed`；完成锚点为 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_batch_b_completed`。
 
 - SQLite shared workflow database 追加 `0008_workflow_rag_knowledge_promotions`。
 - PostgreSQL workflow run migration family 在 `0010` 后追加 `0011_workflow_rag_knowledge_promotions`，marker 推进为 `workflow_run_store_v11`。
 - memory 共用 owner lock，SQLite / PostgreSQL 共用既有 database / pool 和单事务 CAS；禁止独立 DSN、pool、database file、selector 或 fallback。
 - 覆盖 migration fresh / pending / rollback / reapply、checksum、运行角色 DDL 拒绝、append-only、并发单一成功、重启恢复、损坏记录、事务回滚与 no-fallback。
 
+### 批次 B 完成证据
+
+- SQLite shared workflow database 已追加 `0008_workflow_rag_knowledge_promotions`，总迁移序列推进到 `workflow_run_store_sqlite_v8`；PostgreSQL 已追加 `0011_workflow_rag_knowledge_promotions`，marker 推进到 `workflow_run_store_v11`。
+- candidate current projection、append-only decision、immutable binding 与 append-only audit 共用既有 workflow database / pool；factory 对缺失 database / pool 和未知 backend fail closed，不存在独立 DSN、pool、selector 或 memory fallback。
+- candidate create 与 decision / binding / audit append 均在单事务中提交；decision 使用 `expected_record_version` CAS，注入式 decision insert 失败会回滚 candidate projection，不留下部分 binding 或 audit。
+- SQLite 与 PostgreSQL 均覆盖 exact scope、list、完整历史重建、append-only update / delete 拒绝、并发单一成功、进程重启恢复、损坏 JSON 拒绝、关闭 store no-fallback；PostgreSQL 运行角色仍无 DDL 权限。
+- PostgreSQL 证据链读取固定为只读 `REPEATABLE READ`，避免 candidate projection 与 append-only history 在并发提交点形成撕裂视图；20 次专项 CAS 压力复验和完整 PostgreSQL integration 均通过。
+- migration unit / configured product gate 已覆盖 fresh / pending / marker / checksum / rollback / reapply，既有聚合 SQLite runtime 迁移计数与 configured schema 断言已同步。
+
 ## 批次 C：应用配置 binding 与发布治理
 
-状态：等待批次 B。
+状态：`ready_for_implementation`。
 
 - 让 application draft v1 继续兼容读取，并以 `application_configuration_draft.v2` 保存 ref-only `workflow_rag_binding_ref`。
 - 抽取服务端唯一 canonical draft digest；promotion source draft、草案保存与 publish candidate 使用同一规范化边界。

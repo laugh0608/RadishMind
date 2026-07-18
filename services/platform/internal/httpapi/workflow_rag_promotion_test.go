@@ -257,10 +257,10 @@ func TestWorkflowRAGPromotionScopeSecretRollbackAndNoFallback(t *testing.T) {
 	}
 
 	if repository, err := newWorkflowRAGPromotionRepositoryForRunStore(&sqliteWorkflowRunStore{}); err == nil || repository != nil {
-		t.Fatalf("batch A silently fell back from SQLite: repository=%T err=%v", repository, err)
+		t.Fatalf("promotion repository accepted a missing shared SQLite database: repository=%T err=%v", repository, err)
 	}
 	if repository, err := newWorkflowRAGPromotionRepositoryForRunStore(&postgresWorkflowRunStore{}); err == nil || repository != nil {
-		t.Fatalf("batch A silently fell back from PostgreSQL: repository=%T err=%v", repository, err)
+		t.Fatalf("promotion repository accepted a missing workflow PostgreSQL pool: repository=%T err=%v", repository, err)
 	}
 }
 

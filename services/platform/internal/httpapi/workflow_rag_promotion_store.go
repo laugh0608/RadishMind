@@ -67,8 +67,16 @@ func newWorkflowRAGPromotionRepositoryForRunStore(store workflowRunStore) (workf
 	switch typed := store.(type) {
 	case *memoryWorkflowRunStore:
 		return newMemoryWorkflowRAGPromotionRepository(&typed.mu), nil
-	case *sqliteWorkflowRunStore, *postgresWorkflowRunStore:
-		return nil, fmt.Errorf("workflow RAG promotion durable repository requires batch B migrations")
+	case *sqliteWorkflowRunStore:
+		if typed.database == nil {
+			return nil, fmt.Errorf("workflow RAG promotion store requires the shared SQLite database")
+		}
+		return newSQLiteWorkflowRAGPromotionRepository(typed.database), nil
+	case *postgresWorkflowRunStore:
+		if typed.pool == nil {
+			return nil, fmt.Errorf("workflow RAG promotion store requires the workflow PostgreSQL pool")
+		}
+		return newPostgresWorkflowRAGPromotionRepository(typed.pool), nil
 	default:
 		return nil, fmt.Errorf("workflow RAG promotion repository requires a supported workflow run store")
 	}
@@ -78,11 +86,7 @@ func (repository *memoryWorkflowRAGPromotionRepository) Create(ctx WorkflowRAGPr
 	if !repository.available {
 		return errWorkflowRAGPromotionStore
 	}
-	if validateStoredWorkflowRAGPromotionCandidate(candidate, ctx) != nil || candidate.RecordVersion != 1 || candidate.CandidateState != workflowRAGPromotionStatePending || candidate.BindingRef != nil ||
-		validateStoredWorkflowRAGPromotionAudit(audit, ctx, true) != nil || audit.EventKind != "promotion_candidate_created" || audit.CandidateID != candidate.CandidateID || audit.CandidateDigest != candidate.CandidateDigest ||
-		audit.RecordVersion != 1 || audit.CandidateState != workflowRAGPromotionStatePending || audit.BindingRef != nil || audit.ActorRef != candidate.CreatedByActorRef ||
-		audit.OccurredAt != candidate.CreatedAt || audit.RequestID != candidate.RequestID || audit.AuditRef != candidate.AuditRef ||
-		candidate.UpdatedAt != candidate.CreatedAt || candidate.UpdatedByActorRef != candidate.CreatedByActorRef {
+	if validateWorkflowRAGPromotionCreate(ctx, candidate, audit) != nil {
 		return errWorkflowRAGPromotionStoreContract
 	}
 	repository.ownerLock.Lock()
@@ -105,6 +109,18 @@ func (repository *memoryWorkflowRAGPromotionRepository) Create(ctx WorkflowRAGPr
 	}
 	repository.entries[key] = entry
 	return nil
+}
+
+func validateWorkflowRAGPromotionCreate(ctx WorkflowRAGPromotionContext, candidate WorkflowRAGKnowledgePromotionCandidate, audit WorkflowRAGPromotionAudit) error {
+	if validateStoredWorkflowRAGPromotionCandidate(candidate, ctx) != nil || candidate.RecordVersion != 1 || candidate.CandidateState != workflowRAGPromotionStatePending || candidate.BindingRef != nil ||
+		validateStoredWorkflowRAGPromotionAudit(audit, ctx, true) != nil || audit.EventKind != "promotion_candidate_created" || audit.CandidateID != candidate.CandidateID || audit.CandidateDigest != candidate.CandidateDigest ||
+		audit.RecordVersion != 1 || audit.CandidateState != workflowRAGPromotionStatePending || audit.BindingRef != nil || audit.ActorRef != candidate.CreatedByActorRef ||
+		audit.OccurredAt != candidate.CreatedAt || audit.RequestID != candidate.RequestID || audit.AuditRef != candidate.AuditRef ||
+		candidate.UpdatedAt != candidate.CreatedAt || candidate.UpdatedByActorRef != candidate.CreatedByActorRef {
+		return errWorkflowRAGPromotionStoreContract
+	}
+	entry := workflowRAGPromotionMemoryEntry{candidate: candidate, decisions: []WorkflowRAGKnowledgePromotionDecision{}, audits: []WorkflowRAGPromotionAudit{audit}}
+	return validateWorkflowRAGPromotionMemoryEntry(entry)
 }
 
 func (repository *memoryWorkflowRAGPromotionRepository) Read(ctx WorkflowRAGPromotionContext, candidateID string) (WorkflowRAGKnowledgePromotionCandidate, []WorkflowRAGKnowledgePromotionDecision, *WorkflowRAGApplicationBinding, []WorkflowRAGPromotionAudit, error) {
@@ -168,17 +184,6 @@ func (repository *memoryWorkflowRAGPromotionRepository) AppendDecision(
 	if !repository.available {
 		return errWorkflowRAGPromotionStore
 	}
-	if validateStoredWorkflowRAGPromotionCandidate(updated, ctx) != nil || validateStoredWorkflowRAGPromotionDecision(decision) != nil || len(audits) < 1 || len(audits) > 2 {
-		return errWorkflowRAGPromotionStoreContract
-	}
-	for _, audit := range audits {
-		if validateStoredWorkflowRAGPromotionAudit(audit, ctx, true) != nil {
-			return errWorkflowRAGPromotionStoreContract
-		}
-	}
-	if binding != nil && validateStoredWorkflowRAGApplicationBinding(*binding) != nil {
-		return errWorkflowRAGPromotionStoreContract
-	}
 	repository.ownerLock.Lock()
 	defer repository.ownerLock.Unlock()
 	key := workflowRAGPromotionStoreKey(ctx, candidateID)
@@ -186,13 +191,45 @@ func (repository *memoryWorkflowRAGPromotionRepository) AppendDecision(
 	if err != nil {
 		return err
 	}
+	updatedEntry, err := validateWorkflowRAGPromotionAppend(ctx, entry, candidateID, expectedVersion, updated, decision, binding, audits)
+	if err != nil {
+		return err
+	}
+	repository.entries[key] = cloneWorkflowRAGPromotionMemoryEntry(updatedEntry)
+	return nil
+}
+
+func validateWorkflowRAGPromotionAppend(
+	ctx WorkflowRAGPromotionContext,
+	entry workflowRAGPromotionMemoryEntry,
+	candidateID string,
+	expectedVersion int,
+	updated WorkflowRAGKnowledgePromotionCandidate,
+	decision WorkflowRAGKnowledgePromotionDecision,
+	binding *WorkflowRAGApplicationBinding,
+	audits []WorkflowRAGPromotionAudit,
+) (workflowRAGPromotionMemoryEntry, error) {
+	if validateStoredWorkflowRAGPromotionCandidate(updated, ctx) != nil || validateStoredWorkflowRAGPromotionDecision(decision) != nil || len(audits) < 1 || len(audits) > 2 {
+		return workflowRAGPromotionMemoryEntry{}, errWorkflowRAGPromotionStoreContract
+	}
+	for _, audit := range audits {
+		if validateStoredWorkflowRAGPromotionAudit(audit, ctx, true) != nil {
+			return workflowRAGPromotionMemoryEntry{}, errWorkflowRAGPromotionStoreContract
+		}
+	}
+	if binding != nil && validateStoredWorkflowRAGApplicationBinding(*binding) != nil {
+		return workflowRAGPromotionMemoryEntry{}, errWorkflowRAGPromotionStoreContract
+	}
 	current := entry.candidate
+	if current.CandidateID != candidateID {
+		return workflowRAGPromotionMemoryEntry{}, errWorkflowRAGPromotionStoreContract
+	}
 	if current.RecordVersion != expectedVersion {
-		return workflowRAGPromotionConflictError{CurrentVersion: current.RecordVersion, CurrentState: current.CandidateState}
+		return workflowRAGPromotionMemoryEntry{}, workflowRAGPromotionConflictError{CurrentVersion: current.RecordVersion, CurrentState: current.CandidateState}
 	}
 	nextState, allowed := workflowRAGPromotionNextState(current.CandidateState, decision.Decision)
 	if !allowed {
-		return errWorkflowRAGPromotionTransition
+		return workflowRAGPromotionMemoryEntry{}, errWorkflowRAGPromotionTransition
 	}
 	if updated.CandidateID != current.CandidateID || updated.CandidateDigest != current.CandidateDigest || updated.TenantRef != current.TenantRef ||
 		updated.WorkspaceID != current.WorkspaceID || updated.ApplicationID != current.ApplicationID || updated.OwnerSubjectRef != current.OwnerSubjectRef ||
@@ -202,7 +239,7 @@ func (repository *memoryWorkflowRAGPromotionRepository) AppendDecision(
 		updated.RecordVersion != expectedVersion+1 || updated.CandidateState != nextState || decision.CandidateID != current.CandidateID ||
 		decision.CandidateDigest != current.CandidateDigest || decision.FromState != current.CandidateState || decision.ToState != nextState ||
 		decision.BeforeRecordVersion != expectedVersion || decision.AfterRecordVersion != expectedVersion+1 {
-		return errWorkflowRAGPromotionStoreContract
+		return workflowRAGPromotionMemoryEntry{}, errWorkflowRAGPromotionStoreContract
 	}
 	if decision.Decision == workflowRAGPromotionDecisionApprove {
 		if entry.binding != nil || binding == nil || updated.BindingRef == nil || *updated.BindingRef != binding.WorkflowRAGApplicationBindingRef ||
@@ -211,17 +248,17 @@ func (repository *memoryWorkflowRAGPromotionRepository) AppendDecision(
 			binding.OwnerSubjectRef != current.OwnerSubjectRef || binding.ApprovedDecisionID != decision.DecisionID ||
 			binding.ApprovedRecordVersion != decision.AfterRecordVersion || binding.IssuedAt != decision.OccurredAt ||
 			binding.IssuedByActorRef != decision.ActorRef || binding.RequestID != decision.RequestID || binding.AuditRef != decision.AuditRef || len(audits) != 2 {
-			return errWorkflowRAGPromotionStoreContract
+			return workflowRAGPromotionMemoryEntry{}, errWorkflowRAGPromotionStoreContract
 		}
 	} else if binding != nil || !workflowRAGPromotionBindingRefsEqual(updated.BindingRef, current.BindingRef) || len(audits) != 1 {
-		return errWorkflowRAGPromotionStoreContract
+		return workflowRAGPromotionMemoryEntry{}, errWorkflowRAGPromotionStoreContract
 	}
 	if audits[0].EventKind != "promotion_decision_"+decision.Decision || audits[0].CandidateID != updated.CandidateID || audits[0].RecordVersion != updated.RecordVersion || audits[0].CandidateState != updated.CandidateState ||
 		!workflowRAGPromotionBindingRefsEqual(audits[0].BindingRef, updated.BindingRef) {
-		return errWorkflowRAGPromotionStoreContract
+		return workflowRAGPromotionMemoryEntry{}, errWorkflowRAGPromotionStoreContract
 	}
 	if binding != nil && (audits[1].EventKind != "promotion_binding_issued" || !workflowRAGPromotionBindingRefsEqual(audits[1].BindingRef, updated.BindingRef)) {
-		return errWorkflowRAGPromotionStoreContract
+		return workflowRAGPromotionMemoryEntry{}, errWorkflowRAGPromotionStoreContract
 	}
 	entry.candidate = cloneWorkflowRAGPromotionCandidate(updated)
 	entry.decisions = append(entry.decisions, decision)
@@ -230,10 +267,9 @@ func (repository *memoryWorkflowRAGPromotionRepository) AppendDecision(
 	}
 	entry.audits = append(entry.audits, audits...)
 	if validateWorkflowRAGPromotionMemoryEntry(entry) != nil {
-		return errWorkflowRAGPromotionStoreContract
+		return workflowRAGPromotionMemoryEntry{}, errWorkflowRAGPromotionStoreContract
 	}
-	repository.entries[key] = cloneWorkflowRAGPromotionMemoryEntry(entry)
-	return nil
+	return entry, nil
 }
 
 func (repository *memoryWorkflowRAGPromotionRepository) readEntryLocked(ctx WorkflowRAGPromotionContext, candidateID string) (workflowRAGPromotionMemoryEntry, error) {

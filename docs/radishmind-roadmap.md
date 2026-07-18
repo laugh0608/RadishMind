@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：工作流审查、Gateway 请求审查、用户工作区应用接入 / 配置 / 发布 / 目录 / API 密钥，以及本地 SQLite 与 PostgreSQL 开发测试态证据链均已关闭。Workflow HTTP Tool、RAG Retrieval / 应用知识快照、RAG Regression Review / Evaluation Profile、synthetic-public 评测数据集与知识质量审查，以及应用作用域 durable dataset / candidate snapshot review 均已完成。“Workflow RAG 知识基线晋级与应用配置绑定审查 v1”批次 A 已完成 contract、服务端权威重读、memory store、人工 decision / CAS / immutable binding 和 strict API；下一步按唯一任务卡进入批次 B，只实现 shared SQLite `0008`、PostgreSQL `0011`、事务 CAS、重启恢复、损坏拒绝和 no-fallback。不自动派生平行任务卡，也不直接进入配置 attach、Web、connector、在线搜索、embedding / reranker、自动 baseline / release 或生产能力。
+1. 产品线：工作流审查、Gateway 请求审查、用户工作区应用接入 / 配置 / 发布 / 目录 / API 密钥，以及本地 SQLite 与 PostgreSQL 开发测试态证据链均已关闭。Workflow HTTP Tool、RAG Retrieval / 应用知识快照、RAG Regression Review / Evaluation Profile、synthetic-public 评测数据集与知识质量审查，以及应用作用域 durable dataset / candidate snapshot review 均已完成。“Workflow RAG 知识基线晋级与应用配置绑定审查 v1”批次 A / B 已完成 contract、服务端权威重读、人工 decision / immutable binding、strict API 与 shared SQLite / PostgreSQL durable store；下一步按唯一任务卡进入批次 C，实现 application draft v2 ref-only binding、canonical draft digest 与 application publish candidate v2 / publish governance 重校验。不自动派生平行任务卡，也不直接进入 Web、connector、在线搜索、embedding / reranker、自动 baseline / release 或生产能力。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；production secret backend、process supervisor、部署环境隔离、console production packaging、生产认证、生产 API key、quota 和 billing 继续为 `not_satisfied`。

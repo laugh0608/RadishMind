@@ -9,9 +9,9 @@ import (
 	"radishmind.local/services/platform/internal/sqlitedev"
 )
 
-func TestWorkflowRunSQLiteMigrationsAreOrderedThroughRAGEvaluationResources(t *testing.T) {
+func TestWorkflowRunSQLiteMigrationsAreOrderedThroughRAGKnowledgePromotions(t *testing.T) {
 	migrations := Migrations()
-	if len(migrations) != 7 {
+	if len(migrations) != 8 {
 		t.Fatalf("unexpected workflow run SQLite migration count: %d", len(migrations))
 	}
 	if migrations[0].ID != legacyMigrationID || migrations[0].StoreSchemaVersion != legacyRunStoreSchemaVersion {
@@ -32,8 +32,11 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughRAGEvaluationResources(t *t
 	if migrations[5].ID != evaluationResourcesMigrationID || migrations[5].StoreSchemaVersion != evaluationResourcesSchemaVersion {
 		t.Fatalf("workflow evaluation resource migration drifted: %#v", migrations[5])
 	}
-	if migrations[6].ID != MigrationID || migrations[6].StoreSchemaVersion != StoreSchemaVersion {
+	if migrations[6].ID != ragEvaluationMigrationID || migrations[6].StoreSchemaVersion != ragEvaluationSchemaVersion {
 		t.Fatalf("workflow RAG evaluation dataset migration drifted: %#v", migrations[6])
+	}
+	if migrations[7].ID != MigrationID || migrations[7].StoreSchemaVersion != StoreSchemaVersion {
+		t.Fatalf("workflow RAG knowledge promotion migration drifted: %#v", migrations[7])
 	}
 	for _, required := range []string{
 		"CREATE TABLE workflow_http_tool_action_plans",
@@ -44,6 +47,19 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughRAGEvaluationResources(t *t
 	} {
 		if !strings.Contains(upSQLV2, required) {
 			t.Fatalf("SQLite HTTP tool action migration is missing %q", required)
+		}
+	}
+	for _, required := range []string{
+		"CREATE TABLE workflow_rag_knowledge_promotion_candidates",
+		"CREATE TABLE workflow_rag_knowledge_promotion_decisions",
+		"CREATE TABLE workflow_rag_application_bindings",
+		"CREATE TABLE workflow_rag_knowledge_promotion_audits",
+		"workflow_rag_knowledge_promotion_decisions_append_only_update",
+		"workflow_rag_application_bindings_append_only_delete",
+		"workflow_rag_knowledge_promotion_audits_append_only_update",
+	} {
+		if !strings.Contains(upSQLV8, required) {
+			t.Fatalf("SQLite workflow RAG knowledge promotion migration is missing %q", required)
 		}
 	}
 	for _, required := range []string{
@@ -165,7 +181,7 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		_ = upgradedRuntime.Close()
 		t.Fatalf("legacy workflow run changed during upgrade: count=%d err=%v", legacyRunCount, err)
 	}
-	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 7 {
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 8 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("unexpected workflow run migration markers: count=%d err=%v", migrationCount, err)
 	}
@@ -189,9 +205,17 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		_ = upgradedRuntime.Close()
 		t.Fatalf("workflow RAG snapshot tables are incomplete: count=%d err=%v", ragTableCount, err)
 	}
-	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name LIKE 'workflow_rag_%_append_only_%'`).Scan(&ragTriggerCount); err != nil || ragTriggerCount != 12 {
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name LIKE 'workflow_rag_%_append_only_%'`).Scan(&ragTriggerCount); err != nil || ragTriggerCount != 18 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("workflow RAG snapshot append-only triggers are incomplete: count=%d err=%v", ragTriggerCount, err)
+	}
+	var promotionTableCount int
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN (
+		'workflow_rag_knowledge_promotion_candidates','workflow_rag_knowledge_promotion_decisions',
+		'workflow_rag_application_bindings','workflow_rag_knowledge_promotion_audits'
+	)`).Scan(&promotionTableCount); err != nil || promotionTableCount != 4 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("workflow RAG knowledge promotion tables are incomplete: count=%d err=%v", promotionTableCount, err)
 	}
 	var evaluationTableCount, evaluationTriggerCount int
 	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN (

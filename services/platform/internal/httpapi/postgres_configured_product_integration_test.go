@@ -518,6 +518,10 @@ func runConfiguredPostgresMigrationGate(
 func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
 	_, err := pool.Exec(ctx, `DROP TABLE IF EXISTS
+		workflow_rag_knowledge_promotion_audits,
+		workflow_rag_application_bindings,
+		workflow_rag_knowledge_promotion_decisions,
+		workflow_rag_knowledge_promotion_candidates,
 		workflow_rag_evaluation_audits,
 		workflow_rag_candidate_snapshot_reviews,
 		workflow_rag_evaluation_dataset_versions,
@@ -589,6 +593,10 @@ func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgx
 		{"workflow_rag_evaluation_dataset_versions", "dataset_version_payload", "jsonb"},
 		{"workflow_rag_candidate_snapshot_reviews", "review_payload", "jsonb"},
 		{"workflow_rag_evaluation_audits", "audit_payload", "jsonb"},
+		{"workflow_rag_knowledge_promotion_candidates", "sanitized_candidate_payload", "jsonb"},
+		{"workflow_rag_knowledge_promotion_decisions", "sanitized_decision_payload", "jsonb"},
+		{"workflow_rag_application_bindings", "sanitized_binding_payload", "jsonb"},
+		{"workflow_rag_knowledge_promotion_audits", "sanitized_audit_payload", "jsonb"},
 	}
 	for _, column := range columns {
 		var actual string
@@ -623,6 +631,9 @@ func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgx
 		{"workflow_rag_evaluation_dataset_resources_list_idx", "lifecycle_state, dataset_key"},
 		{"workflow_rag_candidate_snapshot_reviews_history_idx", "created_at DESC, review_id DESC"},
 		{"workflow_rag_evaluation_audits_history_idx", "occurred_at DESC, event_id DESC"},
+		{"workflow_rag_knowledge_promotion_candidates_list_idx", "created_at DESC, candidate_id DESC"},
+		{"workflow_rag_knowledge_promotion_decisions_history_idx", "after_record_version"},
+		{"workflow_rag_knowledge_promotion_audits_history_idx", "event_sequence"},
 	}
 	for _, index := range indexes {
 		var definition string

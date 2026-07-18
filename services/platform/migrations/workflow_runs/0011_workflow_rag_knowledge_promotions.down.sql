@@ -1,0 +1,7 @@
+DROP TRIGGER IF EXISTS workflow_rag_knowledge_promotion_audits_append_only ON workflow_rag_knowledge_promotion_audits;
+DROP TRIGGER IF EXISTS workflow_rag_application_bindings_append_only ON workflow_rag_application_bindings;
+DROP TRIGGER IF EXISTS workflow_rag_knowledge_promotion_decisions_append_only ON workflow_rag_knowledge_promotion_decisions;
+DROP TABLE IF EXISTS workflow_rag_knowledge_promotion_audits;
+DROP TABLE IF EXISTS workflow_rag_application_bindings;
+DROP TABLE IF EXISTS workflow_rag_knowledge_promotion_decisions;
+DROP TABLE IF EXISTS workflow_rag_knowledge_promotion_candidates;
