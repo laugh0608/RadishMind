@@ -80,6 +80,29 @@ type WorkflowRunSummary struct {
 	RetrievalContextBytes    int                               `json:"retrieval_context_bytes,omitempty"`
 	RetrievalFailureCategory string                            `json:"retrieval_failure_category,omitempty"`
 	RecommendedReviewAction  WorkflowRunReviewAction           `json:"recommended_review_action"`
+	retrievalAttemptPresent  bool
+}
+
+func (summary WorkflowRunSummary) MarshalJSON() ([]byte, error) {
+	type Alias WorkflowRunSummary
+	if !summary.retrievalAttemptPresent {
+		return json.Marshal(Alias(summary))
+	}
+	return json.Marshal(struct {
+		Alias
+		CandidateCount        int                              `json:"candidate_count"`
+		SelectedFragments     []workflowRAGRunSelectedFragment `json:"selected_fragments"`
+		CitationRefs          []string                         `json:"citation_refs"`
+		RetrievalLatencyMS    int                              `json:"retrieval_latency_ms"`
+		RetrievalContextBytes int                              `json:"retrieval_context_bytes"`
+	}{
+		Alias:                 Alias(summary),
+		CandidateCount:        summary.CandidateCount,
+		SelectedFragments:     append([]workflowRAGRunSelectedFragment{}, summary.SelectedFragments...),
+		CitationRefs:          append([]string{}, summary.CitationRefs...),
+		RetrievalLatencyMS:    summary.RetrievalLatencyMS,
+		RetrievalContextBytes: summary.RetrievalContextBytes,
+	})
 }
 
 type WorkflowRunListResult struct {
@@ -312,6 +335,7 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 		summary.SelectedFragments = append([]workflowRAGRunSelectedFragment(nil), record.RetrievalAttempt.SelectedFragments...)
 		summary.CitationRefs = cloneStringSlice(record.RetrievalAttempt.CitationRefs)
 		summary.RetrievalLatencyMS, summary.RetrievalContextBytes = record.RetrievalAttempt.RetrievalLatencyMS, record.RetrievalAttempt.ContextBytes
+		summary.retrievalAttemptPresent = true
 	}
 	return summary
 }

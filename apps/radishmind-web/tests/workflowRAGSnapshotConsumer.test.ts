@@ -64,7 +64,7 @@ test("create sends exact application scope and sanitized fragment input", async 
     assert.equal(captured?.url, "http://platform.test/v1/user-workspace/workflow-retrieval-snapshots");
     assert.equal(captured?.method, "POST");
     assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "workflow_rag_snapshots:write");
-    assert.equal(captured?.headers.get("X-RadishMind-Dev-Application"), "app_flow_copilot");
+    assert.equal(captured?.headers.get("X-RadishMind-Dev-Workflow-Application"), "app_flow_copilot");
     assert.deepEqual(captured?.body, {
       workspace_id: "workspace_demo",
       application_id: "app_flow_copilot",

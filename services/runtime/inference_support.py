@@ -907,7 +907,9 @@ def make_mock_docs_qa_response(copilot_request: dict[str, Any]) -> dict[str, Any
     artifacts = copilot_request.get("artifacts") or []
     primary = next((artifact for artifact in artifacts if artifact.get("role") == "primary"), artifacts[0] if artifacts else {})
     primary_text = artifact_content_text(primary)
-    summary = first_sentences(primary_text, max_sentences=1) or "当前没有足够文档内容可回答该问题。"
+    summary = workflow_rag_mock_answer(copilot_request, primary_text)
+    if summary is None:
+        summary = first_sentences(primary_text, max_sentences=1) or "当前没有足够文档内容可回答该问题。"
     answer_text = first_sentences(primary_text, max_sentences=2) or summary
     citations = build_citations(copilot_request)
     status, risk_level, issues = classify_docs_qa_request(copilot_request, primary_text)
@@ -934,6 +936,46 @@ def make_mock_docs_qa_response(copilot_request: dict[str, Any]) -> dict[str, Any
         "risk_level": risk_level,
         "requires_confirmation": False,
     }
+
+
+def workflow_rag_mock_answer(copilot_request: dict[str, Any], primary_text: str) -> str | None:
+    northbound = ((copilot_request.get("context") or {}).get("northbound") or {})
+    protocol = str(northbound.get("protocol") or "").strip()
+    request_kind = str(northbound.get("request_kind") or "").strip()
+    if protocol != "workflow-rag-retrieval-v1" or request_kind != protocol:
+        return None
+    evidence_marker = "仅可使用以下已召回证据回答："
+    output_marker = "输出且只输出 workflow_rag_answer.v1 JSON"
+    if evidence_marker not in primary_text:
+        return None
+    evidence_text = primary_text.split(evidence_marker, 1)[1].split(output_marker, 1)[0].strip()
+    try:
+        evidence = json.loads(evidence_text)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(evidence, list):
+        return None
+    selected = next(
+        (
+            item for item in evidence
+            if isinstance(item, dict) and re.fullmatch(r"[a-z][a-z0-9_]{2,63}", str(item.get("fragment_ref") or ""))
+        ),
+        None,
+    )
+    if selected is None:
+        return None
+    fragment_ref = str(selected["fragment_ref"])
+    answer = {
+        "schema_version": "workflow_rag_answer.v1",
+        "answer": "根据本次选中的应用知识证据，当前问题可以形成受快照版本约束的建议性回答。",
+        "citations": [{
+            "fragment_ref": fragment_ref,
+            "claim_summary": "该片段提供了本次建议性回答所依赖的应用知识证据。",
+        }],
+        "limitations": ["回答仅覆盖本次精确知识快照和已召回片段，不替代业务真相源。"],
+        "confidence": "high" if selected.get("is_official") is True else "medium",
+    }
+    return json.dumps(answer, ensure_ascii=False, separators=(",", ":"))
 
 
 def infer_stream_spec_placeholders(message: str) -> list[str]:

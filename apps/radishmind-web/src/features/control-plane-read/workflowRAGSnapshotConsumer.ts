@@ -41,6 +41,8 @@ export type WorkflowRAGSnapshotLifecycle = "active" | "archived";
 export type WorkflowRAGContentClassification = typeof CLASSIFICATIONS[number];
 export type WorkflowRAGSourceType = typeof SOURCE_TYPES[number];
 export type WorkflowRAGSnapshotScope = "workflow_rag_snapshots:read" | "workflow_rag_snapshots:write" | "workflow_rag_snapshots:archive";
+export type WorkflowRAGExecutionScope = "workflow_rag:execute" | "workflow_runs:execute" | "workflow_drafts:read";
+export type WorkflowRAGScope = WorkflowRAGSnapshotScope | WorkflowRAGExecutionScope;
 
 export type WorkflowRAGSnapshotConfig = {
   mode: WorkflowRAGSnapshotMode;
@@ -49,7 +51,7 @@ export type WorkflowRAGSnapshotConfig = {
   workspaceId: string;
   subjectRef: string;
   authMode: "dev_headers" | "signed_test_token" | "radish_oidc_integration_test";
-  scopes: ReadonlySet<WorkflowRAGSnapshotScope>;
+  scopes: ReadonlySet<WorkflowRAGScope>;
 };
 
 export type WorkflowRAGFragmentInput = {
@@ -203,7 +205,7 @@ export async function listWorkflowRAGSnapshots(config: WorkflowRAGSnapshotConfig
     query.set("cursor", cursor);
   }
   try {
-    const response = await fetch(`${config.baseUrl}${COLLECTION_PATH}?${query}`, { headers: requestHeaders(config, applicationId, "workflow_rag_snapshots:read", "list") });
+    const response = await fetch(`${config.baseUrl}${COLLECTION_PATH}?${query}`, { headers: buildWorkflowRAGRequestHeaders(config, applicationId, ["workflow_rag_snapshots:read"], "list") });
     const value: unknown = await response.json();
     if (!isListEnvelope(value, config, applicationId, lifecycle)) return failedListResult();
     if (value.failure_code) return { ...failedListResult(value.failure_code), status: value.failure_code === "workflow_rag_snapshot_scope_denied" ? "scope_denied" : "failed" };
@@ -231,7 +233,7 @@ export async function readWorkflowRAGSnapshot(config: WorkflowRAGSnapshotConfig,
   const query = new URLSearchParams({ workspace_id: config.workspaceId, application_id: applicationId, snapshot_version: String(version) });
   try {
     const response = await fetch(`${config.baseUrl}${COLLECTION_PATH}/${encodeURIComponent(snapshotId)}?${query}`, {
-      headers: requestHeaders(config, applicationId, "workflow_rag_snapshots:read", "read"),
+      headers: buildWorkflowRAGRequestHeaders(config, applicationId, ["workflow_rag_snapshots:read"], "read"),
     });
     const value: unknown = await response.json();
     return mapOperationEnvelope(value, config, applicationId, "loaded");
@@ -264,7 +266,7 @@ export async function archiveWorkflowRAGSnapshot(config: WorkflowRAGSnapshotConf
 async function writeSnapshot(config: WorkflowRAGSnapshotConfig, applicationId: string, path: string, operation: string, body: unknown, success: "created" | "versioned" | "archived") {
   try {
     const response = await fetch(`${config.baseUrl}${path}`, {
-      method: "POST", headers: { ...requestHeaders(config, applicationId, success === "archived" ? "workflow_rag_snapshots:archive" : "workflow_rag_snapshots:write", operation), "Content-Type": "application/json" },
+      method: "POST", headers: { ...buildWorkflowRAGRequestHeaders(config, applicationId, [success === "archived" ? "workflow_rag_snapshots:archive" : "workflow_rag_snapshots:write"], operation), "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
     const value: unknown = await response.json();
@@ -347,7 +349,12 @@ function mapVersionInput(input: WorkflowRAGSnapshotWriteInput) {
   return { display_name: createInput.display_name, content_classification: createInput.content_classification, fragments: createInput.fragments };
 }
 
-function requestHeaders(config: WorkflowRAGSnapshotConfig, applicationId: string, scope: WorkflowRAGSnapshotScope, operation: string): Record<string, string> {
+export function buildWorkflowRAGRequestHeaders(
+  config: WorkflowRAGSnapshotConfig,
+  applicationId: string,
+  scopes: readonly WorkflowRAGScope[],
+  operation: string,
+): Record<string, string> {
   const requestId = `workflow-rag-${operation}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   if (config.authMode !== "dev_headers") {
     const provider = config.authMode === "signed_test_token"
@@ -355,9 +362,9 @@ function requestHeaders(config: WorkflowRAGSnapshotConfig, applicationId: string
       : (globalThis as typeof globalThis & { __RADISHMIND_CONTROL_PLANE_OIDC_INTEGRATION_TOKEN__?: () => string }).__RADISHMIND_CONTROL_PLANE_OIDC_INTEGRATION_TOKEN__;
     const token = provider?.().trim() ?? "";
     if (!token) throw new Error("workflow RAG auth token is unavailable in browser memory");
-    return { Accept: "application/json", "X-Request-Id": requestId, Authorization: `Bearer ${token}`, "X-RadishMind-Dev-Workspace": config.workspaceId, "X-RadishMind-Dev-Application": applicationId };
+    return { Accept: "application/json", "X-Request-Id": requestId, Authorization: `Bearer ${token}`, "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId, "X-RadishMind-Dev-Workflow-Application": applicationId };
   }
-  return { Accept: "application/json", "X-Request-Id": requestId, "X-RadishMind-Dev-Read-Identity": "radishmind-web-workflow-rag-dev", "X-RadishMind-Dev-Read-Tenant": config.tenantRef, "X-RadishMind-Dev-Read-Subject": config.subjectRef, "X-RadishMind-Dev-Read-Scopes": scope, "X-RadishMind-Dev-Read-Audit": `audit-${requestId}`, "X-RadishMind-Dev-Workspace": config.workspaceId, "X-RadishMind-Dev-Application": applicationId };
+  return { Accept: "application/json", "X-Request-Id": requestId, "X-RadishMind-Dev-Read-Identity": "radishmind-web-workflow-rag-dev", "X-RadishMind-Dev-Read-Tenant": config.tenantRef, "X-RadishMind-Dev-Read-Subject": config.subjectRef, "X-RadishMind-Dev-Read-Scopes": scopes.join(","), "X-RadishMind-Dev-Read-Audit": `audit-${requestId}`, "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId, "X-RadishMind-Dev-Workflow-Application": applicationId };
 }
 
 function readBoundary(config: WorkflowRAGSnapshotConfig, applicationId: string): "offline" | "scope_denied" | "" {
@@ -378,7 +385,7 @@ function failedOperationResult(failureCode = "workflow_rag_store_unavailable"): 
 function failedListResult(failureCode = "workflow_rag_store_unavailable"): WorkflowRAGSnapshotListResult { return { status: "failed", records: [], nextCursor: "", failureCode, summary: "Knowledge snapshot list failed without fallback." }; }
 function containsForbiddenMaterial(value: unknown, forbidContent: boolean): boolean { if (typeof value === "string") return containsSecretMaterial(value); if (Array.isArray(value)) return value.some((item) => containsForbiddenMaterial(item, forbidContent)); if (!isRecord(value)) return false; return Object.entries(value).some(([key, nested]) => (forbidContent && key === "content") || FORBIDDEN_MATERIAL_KEYS.has(key.toLowerCase()) || containsForbiddenMaterial(nested, forbidContent)); }
 function containsSecretMaterial(value: string): boolean { return /authorization:|bearer\s|api[_-]?key\s*[:=]|x-radishmind-dev-|cookie:|password\s*=|secret\s*=|token\s*=|sk-[a-z0-9]|-----begin private key-----|(?:postgres(?:ql)?|mysql|mongodb):\/\//iu.test(value); }
-function isWorkflowRAGScope(value: string): value is WorkflowRAGSnapshotScope { return value === "workflow_rag_snapshots:read" || value === "workflow_rag_snapshots:write" || value === "workflow_rag_snapshots:archive"; }
+function isWorkflowRAGScope(value: string): value is WorkflowRAGScope { return value === "workflow_rag_snapshots:read" || value === "workflow_rag_snapshots:write" || value === "workflow_rag_snapshots:archive" || value === "workflow_rag:execute" || value === "workflow_runs:execute" || value === "workflow_drafts:read"; }
 function isRAGRef(value: unknown, key: unknown, version: unknown): boolean { return value === `workflow.rag.${String(key)}.v${String(version)}`; }
 function isReference(value: unknown): value is string { return typeof value === "string" && /^[A-Za-z0-9][A-Za-z0-9_.:/-]{2,159}$/u.test(value); }
 function isScopeIdentifier(value: unknown): value is string { return typeof value === "string" && SCOPE_ID_PATTERN.test(value); }

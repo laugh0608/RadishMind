@@ -213,7 +213,7 @@ export default function WorkflowRAGSnapshotPanel({
       <div className="workflow-rag-scope-grid">
         <article><span>Application</span><strong>{applicationName || applicationId}</strong><code>{applicationId}</code></article>
         <article><span>Repository scope</span><strong>{config.workspaceId}</strong><code>{config.tenantRef}</code></article>
-        <article><span>Profile</span><strong>lexical-ngram-dev.v1</strong><small>本批不注册 retrieval execution。</small></article>
+        <article><span>Profile</span><strong>lexical-ngram-dev.v1</strong><small>精确版本可绑定到独立 retrieval execution。</small></article>
         <article><span>Write boundary</span><strong>{canWrite ? "create / version enabled" : "read-only"}</strong><small>归档使用独立 archive scope。</small></article>
       </div>
 

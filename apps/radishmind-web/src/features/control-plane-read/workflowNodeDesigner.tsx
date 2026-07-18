@@ -105,10 +105,11 @@ type WorkflowNodeDesignerProps = {
 
 const LANE_X: Record<WorkflowDraftDesignerNode["lane"], number> = {
   context: 0,
-  model: 260,
-  policy: 520,
-  preview: 780,
-  output: 1040,
+  retrieval: 240,
+  model: 480,
+  policy: 720,
+  preview: 960,
+  output: 1200,
 };
 
 const EDGE_KIND_CLASS: Record<WorkflowNodeDesignerEdgeKind, string> = {

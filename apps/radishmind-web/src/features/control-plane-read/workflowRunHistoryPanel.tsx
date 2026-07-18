@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 
 import { readWorkflowExecutorConsumerConfig, startWorkflowDiagnosticDevRecord, type WorkflowRunDevFailureScenario } from "./workflowExecutorConsumer.ts";
 import type { WorkflowRunRecord } from "./workflowRunRecordConsumer.ts";
+import { readWorkflowRAGSnapshotConfig } from "./workflowRAGSnapshotConsumer.ts";
 import {
   EMPTY_WORKFLOW_RUN_HISTORY_FILTER,
   initialWorkflowRunHistoryState,
@@ -12,11 +13,12 @@ import {
 } from "./workflowRunHistoryConsumer.ts";
 
 const config = readWorkflowExecutorConsumerConfig();
+const ragConfig = readWorkflowRAGSnapshotConfig();
 const WorkflowRunComparisonPanel = lazy(() => import("./workflowRunComparisonPanel.tsx"));
 const WorkflowEvaluationPanel = lazy(() => import("./workflowEvaluationPanel.tsx"));
 const WorkflowEvaluationSuitePanel = lazy(() => import("./workflowEvaluationSuitePanel.tsx"));
 
-export default function WorkflowRunHistoryPanel({ applicationId }: { applicationId: string }) {
+export default function WorkflowRunHistoryPanel({ applicationId, refreshKey = 0 }: { applicationId: string; refreshKey?: number }) {
   const [filter, setFilter] = useState<WorkflowRunHistoryFilter>(EMPTY_WORKFLOW_RUN_HISTORY_FILTER);
   const [history, setHistory] = useState(() => initialWorkflowRunHistoryState(config));
   const [detail, setDetail] = useState<WorkflowRunRecord | null>(null);
@@ -27,9 +29,15 @@ export default function WorkflowRunHistoryPanel({ applicationId }: { application
   const [baselineRunId, setBaselineRunId] = useState("");
   const [candidateRunId, setCandidateRunId] = useState("");
   const [comparisonSelection, setComparisonSelection] = useState<{ baseline: string; candidate: string } | null>(null);
+  const [retrievalPreviewPending, setRetrievalPreviewPending] = useState(false);
 
   const load = useCallback(async (cursor = "", append = false) => {
     if (config.mode !== "dev_workflow_executor_http") return;
+    if (!append) {
+      setSelectedRunId("");
+      setDetail(null);
+      setRetrievalPreviewPending(false);
+    }
     setHistory((current) => ({ ...current, status: "loading", failureCode: "", failureSummary: "" }));
     try {
       const next = await listWorkflowRunHistory(applicationId, config, filter, cursor, append ? history.runs : []);
@@ -39,12 +47,21 @@ export default function WorkflowRunHistoryPanel({ applicationId }: { application
     }
   }, [applicationId, filter, history.runs]);
 
-  useEffect(() => { void load(); }, [applicationId]); // filters are applied explicitly to avoid request churn while typing
+  useEffect(() => { void load(); }, [applicationId, refreshKey]); // filters are applied explicitly to avoid request churn while typing
 
   async function selectRun(run: WorkflowRunHistorySummary) {
     setSelectedRunId(run.runId);
+    setRetrievalPreviewPending(false);
     try { setDetail(await readWorkflowRunHistoryDetail(run, applicationId, config)); }
     catch { setDetail(null); }
+  }
+
+  async function loadRetrievalPreviews() {
+    const run = history.runs.find((item) => item.runId === selectedRunId);
+    if (!run || run.schemaVersion !== "workflow_run_record.v3" || !ragConfig.scopes.has("workflow_rag_snapshots:read")) return;
+    setRetrievalPreviewPending(true);
+    try { setDetail(await readWorkflowRunHistoryDetail(run, applicationId, config, true)); }
+    finally { setRetrievalPreviewPending(false); }
   }
 
   async function generateDiagnosticRun() {
@@ -75,6 +92,8 @@ export default function WorkflowRunHistoryPanel({ applicationId }: { application
   const staleCount = history.runs.filter((run) => run.staleRunning).length;
   const gatewayCount = history.runs.filter((run) => run.failureBoundary === "gateway" || run.failureBoundary === "provider").length;
   const storeCount = history.runs.filter((run) => run.failureBoundary === "run_store").length;
+  const comparisonRuns = history.runs.filter((run) => run.schemaVersion !== "workflow_run_record.v3");
+  const hasRetrievalRuns = history.runs.some((run) => run.schemaVersion === "workflow_run_record.v3");
   return (
     <section className="surface-band workspace-run-history" id="workspace-run-history" aria-labelledby="workspace-run-history-title">
       <div className="section-heading">
@@ -97,7 +116,7 @@ export default function WorkflowRunHistoryPanel({ applicationId }: { application
               <label>Started from<input type="datetime-local" value={filter.startedFrom} onChange={(event) => setFilter({ ...filter, startedFrom: event.target.value })} /></label>
               <label>Started to<input type="datetime-local" value={filter.startedTo} onChange={(event) => setFilter({ ...filter, startedTo: event.target.value })} /></label>
               <label>Failure code<input value={filter.failureCode} onChange={(event) => setFilter({ ...filter, failureCode: event.target.value })} placeholder="workflow_run_…" /></label>
-              <label>Boundary<select value={filter.failureBoundary} onChange={(event) => setFilter({ ...filter, failureBoundary: event.target.value as WorkflowRunHistoryFilter["failureBoundary"] })}><option value="">All</option><option value="executor">Executor</option><option value="gateway">Gateway</option><option value="provider">Provider</option><option value="run_store">Run store</option><option value="request">Request</option><option value="draft_read">Draft read</option><option value="tool_policy">Tool policy</option><option value="tool_confirmation">Tool confirmation</option><option value="tool_transport">Tool transport</option><option value="tool_response">Tool response</option><option value="tool_store">Tool store</option></select></label>
+              <label>Boundary<select value={filter.failureBoundary} onChange={(event) => setFilter({ ...filter, failureBoundary: event.target.value as WorkflowRunHistoryFilter["failureBoundary"] })}><option value="">All</option><option value="executor">Executor</option><option value="gateway">Gateway</option><option value="provider">Provider</option><option value="run_store">Run store</option><option value="request">Request</option><option value="draft_read">Draft read</option><option value="tool_policy">Tool policy</option><option value="tool_confirmation">Tool confirmation</option><option value="tool_transport">Tool transport</option><option value="tool_response">Tool response</option><option value="tool_store">Tool store</option><option value="retrieval_policy">Retrieval policy</option><option value="retrieval_store">Retrieval store</option><option value="retrieval_rank">Retrieval rank</option><option value="retrieval_context">Retrieval context</option><option value="retrieval_citation">Retrieval citation</option><option value="provider_selection">Provider selection</option><option value="provider_call">Provider call</option></select></label>
               <label>Provider<input value={filter.provider} onChange={(event) => setFilter({ ...filter, provider: event.target.value })} placeholder="exact provider" /></label>
               <label>Model<input value={filter.model} onChange={(event) => setFilter({ ...filter, model: event.target.value })} placeholder="exact model" /></label>
               <label>Stale running<select value={filter.staleRunning} onChange={(event) => setFilter({ ...filter, staleRunning: event.target.value as WorkflowRunHistoryFilter["staleRunning"] })}><option value="">All</option><option value="true">Only stale</option><option value="false">Exclude stale</option></select></label>
@@ -111,20 +130,64 @@ export default function WorkflowRunHistoryPanel({ applicationId }: { application
           </div> : null}
           {history.failureCode ? <p className="failure-summary">{history.failureCode}: {history.failureSummary}</p> : null}
           <div className="workflow-run-history-live-list" aria-label="Real workflow run records">
-            {history.runs.map((run) => <button type="button" className={`workflow-run-history-live-row ${selectedRunId === run.runId ? "is-selected" : ""}`} key={run.runId} onClick={() => void selectRun(run)}><span className="workflow-run-history-live-identity"><strong>{run.runId}</strong><small>{run.draftId} · version {run.draftVersion}</small></span><span><small>Status</small><strong>{run.status}{run.staleRunning ? " · stale" : ""}</strong><small>{run.schemaVersion}</small></span><span><small>Failure</small><strong>{run.failureBoundary || "none"}</strong><small>{run.toolFailureCategory || run.gatewayFailureCategory || run.failureCode || "none"}</small></span><span><small>Controlled effects</small><strong>{run.sideEffects.toolCalls} tool · {run.sideEffects.confirmationCalls} confirmation</strong><small>{run.toolAttemptStatus || "no tool attempt"}</small></span></button>)}
+            {history.runs.map((run) => <button type="button" className={`workflow-run-history-live-row ${selectedRunId === run.runId ? "is-selected" : ""}`} key={run.runId} onClick={() => void selectRun(run)}><span className="workflow-run-history-live-identity"><strong>{run.runId}</strong><small>{run.draftId} · version {run.draftVersion}</small></span><span><small>Status</small><strong>{run.status}{run.staleRunning ? " · stale" : ""}</strong><small>{run.schemaVersion}</small></span><span><small>Failure</small><strong>{run.failureBoundary || "none"}</strong><small>{run.retrievalFailureCategory || run.toolFailureCategory || run.gatewayFailureCategory || run.failureCode || "none"}</small></span><span><small>Controlled effects</small><strong>{run.schemaVersion === "workflow_run_record.v3" ? `${run.sideEffects.retrievalCalls} retrieval · ${run.sideEffects.providerCalls} provider` : `${run.sideEffects.toolCalls} tool · ${run.sideEffects.confirmationCalls} confirmation`}</strong><small>{run.schemaVersion === "workflow_run_record.v3" ? `${run.citationRefs.length} citation refs` : run.toolAttemptStatus || "no tool attempt"}</small></span></button>)}
           </div>
           <div className="workflow-run-comparison-selector" aria-label="Workflow run comparison selection">
-            <label>Baseline run<select value={baselineRunId} onChange={(event) => setBaselineRunId(event.target.value)}><option value="">Choose baseline</option>{history.runs.map((run) => <option value={run.runId} key={`baseline-${run.runId}`}>{run.runId} · {run.status}</option>)}</select></label>
-            <label>Candidate run<select value={candidateRunId} onChange={(event) => setCandidateRunId(event.target.value)}><option value="">Choose candidate</option>{history.runs.map((run) => <option value={run.runId} key={`candidate-${run.runId}`}>{run.runId} · {run.status}</option>)}</select></label>
+            <label>Baseline run<select value={baselineRunId} onChange={(event) => setBaselineRunId(event.target.value)}><option value="">Choose baseline</option>{comparisonRuns.map((run) => <option value={run.runId} key={`baseline-${run.runId}`}>{run.runId} · {run.status}</option>)}</select></label>
+            <label>Candidate run<select value={candidateRunId} onChange={(event) => setCandidateRunId(event.target.value)}><option value="">Choose candidate</option>{comparisonRuns.map((run) => <option value={run.runId} key={`candidate-${run.runId}`}>{run.runId} · {run.status}</option>)}</select></label>
             <button type="button" disabled={!baselineRunId || !candidateRunId || baselineRunId === candidateRunId} onClick={() => setComparisonSelection({ baseline: baselineRunId, candidate: candidateRunId })}>Compare runs</button>
           </div>
+          {hasRetrievalRuns ? <p className="boundary-note"><code>workflow_run_retrieval_profile_unsupported</code> · Run Comparison、Evaluation Cases、Baseline 和 Suite 不接受 workflow_run_record.v3；RAG 运行只在普通 Run History 中审查。</p> : null}
           {comparisonSelection ? <Suspense fallback={<p>Loading regression review…</p>}><WorkflowRunComparisonPanel applicationId={applicationId} baselineRunId={comparisonSelection.baseline} candidateRunId={comparisonSelection.candidate} config={config} /></Suspense> : null}
-          <Suspense fallback={<p>Loading evaluation cases…</p>}><WorkflowEvaluationPanel applicationId={applicationId} runs={history.runs} config={config} /></Suspense>
+          <Suspense fallback={<p>Loading evaluation cases…</p>}><WorkflowEvaluationPanel applicationId={applicationId} runs={comparisonRuns} config={config} /></Suspense>
           <Suspense fallback={<p>Loading evaluation suites…</p>}><WorkflowEvaluationSuitePanel applicationId={applicationId} config={config} /></Suspense>
           {history.hasMore ? <button type="button" onClick={() => void load(history.nextCursor, true)} disabled={history.status === "loading"}>Load earlier runs</button> : null}
-          {detail ? <article className="workflow-run-detail"><div className="card-title-row"><div><p className="eyebrow">Real run detail</p><h4>{detail.runId}</h4></div><span className={`status-badge ${detail.status === "succeeded" ? "status-good" : detail.status === "outcome_unknown" ? "status-neutral" : "status-bad"}`}>{detail.status}</span></div><p>{detail.output || detail.failureSummary || "No advisory output recorded."}</p><dl className="tenant-meta"><div><dt>Input</dt><dd>{detail.inputBytes} bytes; raw text not retained</dd></div><div><dt>Provider calls</dt><dd>{detail.sideEffects.providerCalls}</dd></div><div><dt>Controlled effects</dt><dd>{detail.sideEffects.toolCalls} tool · {detail.sideEffects.confirmationCalls} confirmation</dd></div><div><dt>Forbidden writes</dt><dd>{forbiddenWrites}</dd></div>{detail.planId ? <div><dt>Plan / confirmation</dt><dd>{detail.planId} · {detail.confirmationId}</dd></div> : null}{detail.toolAttempt ? <div><dt>Tool attempt</dt><dd>{detail.toolAttempt.attemptId} · {detail.toolAttempt.status}</dd></div> : null}</dl>{detail.diagnostic ? <div className="workflow-run-diagnostic-review"><p className="eyebrow">Structured failure review</p><h5>{detail.diagnostic.failureBoundary || "No failure"} · {detail.diagnostic.toolFailureCategory !== "none" ? detail.diagnostic.toolFailureCategory : detail.diagnostic.gatewayFailureCategory}</h5><p>{detail.diagnostic.summary || "The run completed without a structured failure."}</p><dl className="tenant-meta"><div><dt>Failed node</dt><dd>{detail.diagnostic.failedNodeId || "none"}</dd></div><div><dt>Last completed</dt><dd>{detail.diagnostic.lastCompletedNodeId || "none"}</dd></div><div><dt>Review action</dt><dd>{detail.diagnostic.recommendedReviewAction || "none"}</dd></div><div><dt>Terminal write</dt><dd>{detail.diagnostic.terminalWriteState}</dd></div></dl></div> : <p className="boundary-note">Legacy workflow_run_record.v0: structured diagnostic unavailable.</p>}{detail.status === "outcome_unknown" ? <p className="failure-summary">The tool outcome is uncertain. Retry and resume are disabled; review the durable attempt metadata before creating a new plan.</p> : null}<div className="workflow-run-reference-actions"><button type="button" onClick={() => void copyReference("request", detail.requestId)}>Copy request id</button><button type="button" onClick={() => void copyReference("audit", detail.auditRef)}>Copy audit ref</button><span>{copiedRef ? `${copiedRef} copied` : "References are metadata only."}</span></div><div className="workflow-run-history-node-list">{detail.nodes.map((node) => <div className={`workflow-run-history-node-row ${detail.diagnostic?.failedNodeId === node.nodeId ? "is-failed" : ""} ${detail.diagnostic?.lastCompletedNodeId === node.nodeId ? "is-last-completed" : ""}`} key={node.nodeId}><span><strong>{node.label}</strong><small>{node.nodeType}</small></span><span><small>Status</small><strong>{node.status}</strong></span><span><small>Duration</small><strong>{node.durationMs} ms</strong></span><p>{node.outputPreview}</p></div>)}</div><p className="boundary-note">Business writes and replay remain locked at 0. Tool and confirmation counts are allowed only for workflow_run_record.v2.</p></article> : null}
+          {detail?.schemaVersion === "workflow_run_record.v3" ? (
+            <WorkflowRAGRunHistoryEvidence
+              detail={detail}
+              canReadPreviews={ragConfig.mode === "dev_workflow_rag_http" && ragConfig.scopes.has("workflow_rag_snapshots:read")}
+              previewPending={retrievalPreviewPending}
+              onLoadPreviews={loadRetrievalPreviews}
+            />
+          ) : null}
+          {detail ? <article className="workflow-run-detail"><div className="card-title-row"><div><p className="eyebrow">Real run detail</p><h4>{detail.runId}</h4></div><span className={`status-badge ${detail.status === "succeeded" ? "status-good" : detail.status === "outcome_unknown" ? "status-neutral" : "status-bad"}`}>{detail.status}</span></div><p>{detail.output || detail.failureSummary || "No advisory output retained in this metadata-only record."}</p><dl className="tenant-meta"><div><dt>Input</dt><dd>{detail.inputBytes} bytes; raw text not retained</dd></div><div><dt>Provider calls</dt><dd>{detail.sideEffects.providerCalls}</dd></div><div><dt>Controlled effects</dt><dd>{detail.schemaVersion === "workflow_run_record.v3" ? `${detail.sideEffects.retrievalCalls} retrieval · ${detail.sideEffects.providerCalls} provider` : `${detail.sideEffects.toolCalls} tool · ${detail.sideEffects.confirmationCalls} confirmation`}</dd></div><div><dt>Forbidden writes</dt><dd>{forbiddenWrites}</dd></div>{detail.planId ? <div><dt>Plan / confirmation</dt><dd>{detail.planId} · {detail.confirmationId}</dd></div> : null}{detail.toolAttempt ? <div><dt>Tool attempt</dt><dd>{detail.toolAttempt.attemptId} · {detail.toolAttempt.status}</dd></div> : null}</dl>{detail.diagnostic ? <div className="workflow-run-diagnostic-review"><p className="eyebrow">Structured failure review</p><h5>{detail.diagnostic.failureBoundary || "No failure"} · {detail.diagnostic.retrievalFailureCategory !== "none" ? detail.diagnostic.retrievalFailureCategory : detail.diagnostic.toolFailureCategory !== "none" ? detail.diagnostic.toolFailureCategory : detail.diagnostic.gatewayFailureCategory}</h5><p>{detail.diagnostic.summary || "The run completed without a structured failure."}</p><dl className="tenant-meta"><div><dt>Failed node</dt><dd>{detail.diagnostic.failedNodeId || "none"}</dd></div><div><dt>Last completed</dt><dd>{detail.diagnostic.lastCompletedNodeId || "none"}</dd></div><div><dt>Review action</dt><dd>{detail.diagnostic.recommendedReviewAction || "none"}</dd></div><div><dt>Terminal write</dt><dd>{detail.diagnostic.terminalWriteState}</dd></div></dl></div> : <p className="boundary-note">Legacy workflow_run_record.v0: structured diagnostic unavailable.</p>}{detail.status === "outcome_unknown" ? <p className="failure-summary">The tool outcome is uncertain. Retry and resume are disabled; review the durable attempt metadata before creating a new plan.</p> : null}<div className="workflow-run-reference-actions"><button type="button" onClick={() => void copyReference("request", detail.requestId)}>Copy request id</button><button type="button" onClick={() => void copyReference("audit", detail.auditRef)}>Copy audit ref</button><span>{copiedRef ? `${copiedRef} copied` : "References are metadata only."}</span></div><div className="workflow-run-history-node-list">{detail.nodes.map((node) => <div className={`workflow-run-history-node-row ${detail.diagnostic?.failedNodeId === node.nodeId ? "is-failed" : ""} ${detail.diagnostic?.lastCompletedNodeId === node.nodeId ? "is-last-completed" : ""}`} key={node.nodeId}><span><strong>{node.label}</strong><small>{node.nodeType}</small></span><span><small>Status</small><strong>{node.status}</strong></span><span><small>Duration</small><strong>{node.durationMs} ms</strong></span><p>{node.outputPreview}</p></div>)}</div><p className="boundary-note">Business writes and replay remain locked at 0. Tool and confirmation counts are allowed only for workflow_run_record.v2; retrieval and provider counts are bounded only for v3.</p></article> : null}
         </>
       )}
     </section>
+  );
+}
+
+function WorkflowRAGRunHistoryEvidence({
+  detail,
+  canReadPreviews,
+  previewPending,
+  onLoadPreviews,
+}: {
+  detail: WorkflowRunRecord;
+  canReadPreviews: boolean;
+  previewPending: boolean;
+  onLoadPreviews: () => Promise<void>;
+}) {
+  const snapshot = detail.ragSnapshot;
+  const attempt = detail.retrievalAttempt;
+  if (!snapshot || !attempt) return null;
+  return (
+    <article className="workflow-run-detail workflow-rag-run-history-evidence" aria-label="Workflow RAG run v3 evidence">
+      <div className="card-title-row"><div><p className="eyebrow">Metadata-only workflow_run_record.v3</p><h4>{snapshot.ragRef}</h4></div><span className="status-badge neutral">{attempt.status}</span></div>
+      <dl className="tenant-meta">
+        <div><dt>Draft</dt><dd>v{detail.draftVersion} · {detail.draftDigest}</dd></div>
+        <div><dt>Snapshot</dt><dd>{snapshot.snapshotId} · v{snapshot.snapshotVersion} · {snapshot.snapshotDigest}</dd></div>
+        <div><dt>Profile</dt><dd>{attempt.profileId} · v{attempt.profileVersion} · {attempt.profileDigest}</dd></div>
+        <div><dt>Query</dt><dd>{attempt.queryBytes} bytes · {attempt.queryDigest}</dd></div>
+        <div><dt>Retrieval</dt><dd>{attempt.candidateCount} candidates · {attempt.selectedFragments.length} selected · {attempt.retrievalLatencyMs} ms</dd></div>
+        <div><dt>Context</dt><dd>{attempt.contextBytes} bytes · {attempt.citationRefs.length} citation refs</dd></div>
+      </dl>
+      <div className="workflow-run-history-node-list">
+        {attempt.selectedFragments.map((fragment) => <div className="workflow-run-history-node-row" key={fragment.fragmentRef}><span><strong>#{fragment.rank} · {fragment.fragmentRef}</strong><small>{fragment.sourceType}{fragment.isOfficial ? " · official" : ""}</small></span><span><small>Digest</small><code>{fragment.contentDigest}</code></span><span><small>Cited</small><strong>{attempt.citationRefs.includes(fragment.fragmentRef) ? "yes" : "no"}</strong></span></div>)}
+      </div>
+      <div className="workflow-run-reference-actions"><button type="button" disabled={!canReadPreviews || previewPending} onClick={() => void onLoadPreviews()}>{previewPending ? "Loading previews…" : "Read authorized fragment previews"}</button><span>{canReadPreviews ? "Preview reads the exact immutable snapshot; maximum 512 characters per fragment." : "workflow_rag_snapshots:read is required; zero preview requests sent."}</span></div>
+      {detail.retrievalFragmentPreviews.map((preview) => <blockquote key={preview.fragmentRef}><strong>{preview.fragmentRef}</strong><p>{preview.preview}</p><small>{preview.truncated ? "truncated at 512 characters" : "complete authorized preview"}</small></blockquote>)}
+      <p className="boundary-note">原始 query、完整 fragment、prompt packet、credential、模型原始响应和 answer 均不来自 run record。</p>
+    </article>
   );
 }

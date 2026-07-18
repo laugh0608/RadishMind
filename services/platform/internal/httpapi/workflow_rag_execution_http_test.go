@@ -154,6 +154,11 @@ func TestWorkflowRAGRunHistoryV3ReadsMetadataAndAuthorizedRepositoryPreview(t *t
 	if strings.Contains(listResponse.Body.String(), "official retrieval guidance") {
 		t.Fatalf("ordinary history list leaked query or fragment body: %s", listResponse.Body.String())
 	}
+	for _, field := range []string{"candidate_count", "selected_fragments", "citation_refs", "retrieval_latency_ms", "retrieval_context_bytes"} {
+		if !strings.Contains(listResponse.Body.String(), `"`+field+`":`) {
+			t.Fatalf("ordinary v3 history list omitted zero-capable retrieval metadata %s: %s", field, listResponse.Body.String())
+		}
+	}
 
 	preview := httptest.NewRequest(http.MethodGet, detailURL+"&include_retrieval_fragment_previews=true", nil)
 	setSavedWorkflowDraftDevHeaders(preview, "workflow_runs:read,workflow_rag_snapshots:read")

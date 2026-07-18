@@ -228,6 +228,7 @@ const ApplicationConfigurationDraftPanel = lazy(() => import("../features/contro
 const ApplicationPublishCandidatePanel = lazy(() => import("../features/control-plane-read/applicationPublishCandidatePanel"));
 const ApplicationCatalogPanel = lazy(() => import("../features/control-plane-read/applicationCatalogPanel").then((module) => ({ default: module.ApplicationCatalogPanel })));
 const WorkflowRAGSnapshotPanel = lazy(() => import("../features/control-plane-read/workflowRAGSnapshotPanel"));
+const WorkflowRAGExecutionPanel = lazy(() => import("../features/control-plane-read/workflowRAGExecutionPanel"));
 const APIKeyLifecyclePanel = lazy(() => import("../features/control-plane-read/apiKeyLifecyclePanel").then((module) => ({ default: module.APIKeyLifecyclePanel })));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
 const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
@@ -257,6 +258,12 @@ const WORKFLOW_DRAFT_NODE_TYPE_OPTIONS: WorkflowDraftNodeTypeOption[] = [
     lane: "model",
     label: "Model",
     summary: "Adds advisory reasoning without direct execution.",
+  },
+  {
+    nodeType: "rag_retrieval",
+    lane: "retrieval",
+    label: "RAG Retrieval",
+    summary: "Binds one exact immutable application knowledge snapshot version.",
   },
   {
     nodeType: "condition",
@@ -317,6 +324,8 @@ export function App() {
   );
   const [workflowHTTPToolExecutionInput, setWorkflowHTTPToolExecutionInput] = useState("Review the approved resource and return a bounded advisory summary.");
   const [workflowHTTPToolExecutionModel, setWorkflowHTTPToolExecutionModel] = useState("");
+  const [workflowRAGOperationPending, setWorkflowRAGOperationPending] = useState(false);
+  const [workflowRunHistoryRefreshKey, setWorkflowRunHistoryRefreshKey] = useState(0);
   const workflowExecutorOperationPending =
     workflowExecutorState.status === "starting" || workflowExecutorState.status === "reading";
   const workflowHTTPToolActionOperationPending =
@@ -969,6 +978,14 @@ export function App() {
     setWorkflowExecutorInput(DEFAULT_WORKFLOW_EXECUTOR_INPUT);
     setWorkflowExecutorModel("");
     setWorkflowExecutorConditionValues({});
+  };
+  const handleCreateWorkflowRAGDraft = (createdDraft: WorkflowDraftDesignerDraft) => {
+    if (workflowRAGOperationPending) return;
+    setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
+    applyWorkflowSelectionPatch({ applicationRef: createdDraft.applicationRef, workflowDefinitionId: createdDraft.workflowDefinitionId, runId: null, draftId: createdDraft.draftId, scenarioId: null });
+    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
+    setWorkflowDraftEditDirty(true);
+    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
   };
   const refreshSavedWorkflowDraftList = (applicationRef: string) => {
     if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
@@ -1990,7 +2007,7 @@ export function App() {
             savedDraftConflictReviewSummary={savedDraftConflictReviewSummary}
             savedDraftConflictRestoreSummary={savedDraftConflictRestoreSummary}
             draftEditDirty={workflowDraftEditDirty}
-            executorOperationPending={workflowExecutorOperationPending || workflowHTTPToolOperationPending}
+            executorOperationPending={workflowExecutorOperationPending || workflowHTTPToolOperationPending || workflowRAGOperationPending}
             onSelectDraft={handleSelectWorkflowDraft}
             onUpdateDraftLabel={handleWorkflowDraftLabelChange}
             onUpdateDraftSummary={handleWorkflowDraftSummaryChange}
@@ -2040,6 +2057,21 @@ export function App() {
             onModelChange={setWorkflowHTTPToolExecutionModel}
             onExecute={handleRunApprovedHTTPToolActionPlan}
           />
+          <Suspense fallback={<section className="workflow-rag-execution-panel"><p>Loading Workflow RAG execution…</p></section>}>
+            <WorkflowRAGExecutionPanel
+              applicationRef={workflowScopedApplicationId}
+              draft={activeWorkflowDraft}
+              savedDraftState={savedDraftConsumerState}
+              draftEditDirty={workflowDraftEditDirty}
+              nextDraftNumber={workspaceCreatedDrafts.filter(
+                (draft) => draft.applicationRef === workflowScopedApplicationId && draft.executionProfile === "rag_retrieval_v1",
+              ).length + 1}
+              onCreateDraft={handleCreateWorkflowRAGDraft}
+              onBindRAGRef={handleWorkflowDraftNodeRagRefChange}
+              onPendingChange={setWorkflowRAGOperationPending}
+              onExecutionRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
+            />
+          </Suspense>
           <WorkflowExecutorPanel
             draft={activeWorkflowDraft}
             consumerState={workflowExecutorState}
@@ -2066,7 +2098,7 @@ export function App() {
         </section>
 
         <Suspense fallback={<section className="surface-band"><p>Loading run history…</p></section>}>
-          <WorkflowRunHistoryPanel applicationId={workflowScopedApplicationId} />
+          <WorkflowRunHistoryPanel applicationId={workflowScopedApplicationId} refreshKey={workflowRunHistoryRefreshKey} />
         </Suspense>
 
         <section hidden aria-hidden="true"

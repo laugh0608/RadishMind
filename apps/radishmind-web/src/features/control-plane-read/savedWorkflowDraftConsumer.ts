@@ -1,15 +1,15 @@
-import { CONTROL_PLANE_READ_ROUTES } from "../../../../../contracts/typescript/control-plane-read-api";
+import { CONTROL_PLANE_READ_ROUTES } from "../../../../../contracts/typescript/control-plane-read-api.ts";
 import type {
   WorkflowDraftDesignerDraft,
   WorkflowDraftDesignerLayout,
   WorkflowDraftDesignerLayoutPosition,
   WorkflowDraftDesignerNode,
-} from "./workflowDraftDesigner";
+} from "./workflowDraftDesigner.ts";
 import {
   nextWorkflowSavedDraftExpectedVersion,
   resolveWorkflowSavedDraftVersion,
   workflowSavedDraftConflictRequiresResolution,
-} from "./savedWorkflowDraftLifecycle";
+} from "./savedWorkflowDraftLifecycle.ts";
 import { workflowSavedDraftRequestedCapabilities } from "./workflowSavedDraftCapabilityPolicy.ts";
 
 export { nextWorkflowSavedDraftExpectedVersion, workflowSavedDraftConflictRequiresResolution };
@@ -224,11 +224,18 @@ type SavedWorkflowDraftPayload = {
 type SavedWorkflowDraftAdditionalFields = {
   designer_layout_v1?: SavedWorkflowDraftDesignerLayoutV1;
   executor_v0?: SavedWorkflowDraftExecutorV0Metadata;
+  rag_retrieval_v1?: SavedWorkflowDraftRAGRetrievalV1Metadata;
 } & Record<string, unknown>;
 
 type SavedWorkflowDraftExecutorV0Metadata = {
   version: typeof EXECUTOR_V0_METADATA_VERSION;
   side_effect_policy: "no_external_side_effects";
+};
+
+type SavedWorkflowDraftRAGRetrievalV1Metadata = {
+  version: 1;
+  execution_route: "retrieval_executions";
+  side_effect_policy: "retrieval_and_provider_once";
 };
 
 type SavedWorkflowDraftDesignerLayoutV1 = {
@@ -862,6 +869,13 @@ function toSavedWorkflowDraftAdditionalFields(
       side_effect_policy: "no_external_side_effects",
     };
   }
+  if (draft.executionProfile === "rag_retrieval_v1") {
+    additionalFields.rag_retrieval_v1 = {
+      version: 1,
+      execution_route: "retrieval_executions",
+      side_effect_policy: "retrieval_and_provider_once",
+    };
+  }
   return Object.keys(additionalFields).length > 0 ? additionalFields : undefined;
 }
 
@@ -913,6 +927,9 @@ function workflowDraftFromSavedWorkflowDraftDocument(
   const validationState = document.validation_summary?.validation_state || document.draft_status || "invalid_draft";
   const blockedCapabilities = document.blocked_capability_summary ?? [];
   const nodes = document.nodes.map(toWorkflowDraftDesignerNode);
+  const isRAGRetrievalV1 = isSavedWorkflowDraftRAGRetrievalV1Metadata(
+    document.additional_fields?.rag_retrieval_v1,
+  );
   return {
     draftId: document.draft_id,
     templateRef: document.source_definition_id || document.draft_id,
@@ -927,7 +944,9 @@ function workflowDraftFromSavedWorkflowDraftDocument(
       fromNodeId: edge.from_node_id,
       toNodeId: edge.to_node_id,
       edgeKind: "context",
-      conditionSummary: edge.condition_summary || "Saved draft edge restored from dev record.",
+      conditionSummary: isRAGRetrievalV1
+        ? edge.condition_summary
+        : edge.condition_summary || "Saved draft edge restored from dev record.",
     })),
     designerLayout: workflowDraftDesignerLayoutFromSavedDraftAdditionalFields(document.additional_fields, nodes),
     readiness: [
@@ -963,7 +982,9 @@ function workflowDraftFromSavedWorkflowDraftDocument(
     localOnlyInteraction: "inspect_only",
     executionProfile: isSavedWorkflowDraftExecutorV0Metadata(document.additional_fields?.executor_v0)
       ? "executor_v0"
-      : "review_only",
+      : isRAGRetrievalV1
+        ? "rag_retrieval_v1"
+        : "review_only",
   };
 }
 
@@ -974,6 +995,18 @@ function isSavedWorkflowDraftExecutorV0Metadata(value: unknown): value is SavedW
   const candidate = value as Partial<SavedWorkflowDraftExecutorV0Metadata>;
   return candidate.version === EXECUTOR_V0_METADATA_VERSION &&
     candidate.side_effect_policy === "no_external_side_effects";
+}
+
+function isSavedWorkflowDraftRAGRetrievalV1Metadata(
+  value: unknown,
+): value is SavedWorkflowDraftRAGRetrievalV1Metadata {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const candidate = value as Partial<SavedWorkflowDraftRAGRetrievalV1Metadata>;
+  return candidate.version === 1 &&
+    candidate.execution_route === "retrieval_executions" &&
+    candidate.side_effect_policy === "retrieval_and_provider_once";
 }
 
 function workflowDraftDesignerLayoutFromSavedDraftAdditionalFields(
@@ -1150,13 +1183,12 @@ function uniqueWorkflowDraftRefs(values: string[]): string[] {
 function toWorkflowDraftDesignerNodeType(nodeType: string): WorkflowDraftDesignerNode["nodeType"] {
   switch (nodeType) {
     case "prompt":
+    case "rag_retrieval":
     case "llm":
     case "http_tool":
     case "condition":
     case "output":
       return nodeType;
-    case "rag_retrieval":
-      return "prompt";
     default:
       return "prompt";
   }
@@ -1164,6 +1196,8 @@ function toWorkflowDraftDesignerNodeType(nodeType: string): WorkflowDraftDesigne
 
 function workflowDraftLaneForNodeType(nodeType: WorkflowDraftDesignerNode["nodeType"]): WorkflowDraftDesignerNode["lane"] {
   switch (nodeType) {
+    case "rag_retrieval":
+      return "retrieval";
     case "llm":
       return "model";
     case "condition":

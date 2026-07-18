@@ -2,7 +2,7 @@
 
 更新时间：2026-07-18
 
-状态：`workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_batch_b_completed`
+状态：`workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_completed`
 
 ## 设计结论
 
@@ -10,7 +10,7 @@
 
 首版必须同时覆盖知识资产生命周期、检索执行、引用约束、三种开发测试态 store 和 Web 连续链，不能把预置 fixture、请求内塞入的“已召回文本”或单纯打开 `allow_retrieval=true` 当成真实 RAG 完成。
 
-2026-07-18 批次 B 已完成独立 retrieval execution、Gateway 单次 handoff、结构化 answer / citation 校验、metadata-only run v3、Run History 后端读取、reconciliation 与三种 store 一致性。结构化回答只随本次 execution 响应返回，run、audit、日志和普通 history 不保存正文。下一步只进入批次 C 的 Draft Designer / Web execution / Run History v3 消费与双数据库真实浏览器连续验收，状态为 `ready_for_implementation`。
+2026-07-18 三个批次已全部完成。批次 C 把精确 `rag_ref` 绑定、Web 显式 execution、严格 v3 消费、授权 512 字符 preview 与 SQLite / PostgreSQL 真实浏览器创建、执行、归档、重启、恢复和 no-fallback 串成连续证据链；query、fragment 正文、prompt packet、credential、模型原始响应和 answer 正文仍未进入 run、audit、日志或普通 history。专题状态为 `workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_completed`，不继续派生批次 D，也不据此启用生产 RAG。
 
 ## 用户价值与适用范围
 
@@ -231,9 +231,9 @@ Run History summary 不返回 fragment 正文或原始 query。detail 可在 sna
 
 1. 批次 A：版本化 snapshot / fragment / profile / answer / audit / run v3 契约，snapshot 生命周期 API，确定性 lexical provider，memory / SQLite / PostgreSQL repository 与 Web snapshot 管理；本批不启动 Workflow retrieval run。
 2. 批次 B：独立 retrieval execution service / route、run v3、结构化 answer / citation validator、Gateway handoff、诊断、reconciliation 和三种 store 一致性；已完成。
-3. 批次 C：Draft Designer 精确 `rag_ref` 选择、显式 execution、Run History v3 Web 消费、SQLite / PostgreSQL 连续链、真实浏览器创建快照到重启恢复，以及正文 / query / credential 泄漏审计；当前为 `ready_for_implementation`。
+3. 批次 C：Draft Designer 精确 `rag_ref` 选择、显式 execution、Run History v3 Web 消费、SQLite / PostgreSQL 连续链、真实浏览器创建快照到重启恢复，以及正文 / query / credential 泄漏审计；已完成。
 
-只有三个批次全部通过，才能声明 `workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_completed`。每批优先扩 Go / TypeScript 行为测试和既有聚合门禁；只有现有证据无法承载新的 schema / 执行边界时才增加一个专项 contract checker，不派生 readiness 链。
+三个批次已经全部通过，完成锚点为 `workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_completed`。现有 Go / TypeScript 行为测试、PostgreSQL 专项门禁、真实浏览器双数据库证据和仓库聚合门禁承载完成证据，没有新增同层 checker 或第二张任务卡。
 
 ## 评审结论
 
@@ -253,4 +253,4 @@ Run History summary 不返回 fragment 正文或原始 query。detail 可在 sna
 - 不修改上游文档、Wiki、FAQ、论坛或业务真相源，不把 snapshot 当上游最新真相。
 - 不打开多 retrieval、并行、循环、agent loop、background run、replay、resume、writeback 或 publish。
 - 不把开发测试态 lexical relevance、SQLite / PostgreSQL store 或浏览器闭环写成 production RAG ready。
-- 批次 C 只承接 Web 纵向链和真实浏览器 / 双数据库连续验收，不在该批扩 crawler、online search、vector / embedding、复杂拓扑或生产能力。
+- 批次 C 已按 Web 纵向链和真实浏览器 / 双数据库连续验收边界关闭；后续不得借专题完成状态扩 crawler、online search、vector / embedding、复杂拓扑或生产能力。

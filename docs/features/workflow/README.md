@@ -12,7 +12,7 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
-| [Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) | 功能 / 检索执行专题 | `workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_batch_b_completed` | 独立 retrieval execution、Gateway、citation、metadata-only run v3、三种 store、history backend 与 reconciliation 已完成；批次 C 可进入 Web / 浏览器纵向验收 |
+| [Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) | 功能 / 检索执行专题 | `workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_completed` | 三批已通过；精确 Draft Designer 绑定、独立 execution、Run History v3、双数据库、浏览器重启与 no-fallback 已完成 |
 | [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) | 功能 / 高风险执行专题 | `workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed` | 三批已通过；execution route、Web、Run History v2、双数据库与浏览器重启链已完成 |
 | [Workflow 受控 HTTP Tool 与人工确认执行 v1 实施任务卡](../../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md) | 高风险实现批次 | `completed` | 保留三批实现与验证证据，不派生同层 readiness 链 |
 | [Workflow Evaluation Suite / Release Review v1](workflow-evaluation-suite-release-review-v1.md) | 功能专题 | `workflow_evaluation_suite_release_review_v1_completed` | 已完成 exact-case-version suite、聚合 review、digest-bound append-only decision、PostgreSQL 0005 和真实 Web 审查路径 |
@@ -161,7 +161,7 @@
 
 Saved Draft、Node Designer、executor v0、持久 Run History、Failure Review、Run Comparison、Evaluation Cases、Baseline / Case Versioning、Evaluation Suite / Release Review、Gateway Request History、Gateway Playground 与 API 密钥开发测试态认证均已完成。不继续在 Workflow 页面叠加同层只读审查能力。
 
-[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) 的三个批次已完成：版本化 definition / profile、durable action plan / confirmation、受控 transport、原子 claim、`workflow_run_record.v2`、memory / SQLite / PostgreSQL、diagnostics、`/executions`、Web 与真实浏览器重启链均已有证据。[Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 已完成后端执行批次 B；下一步只进入 Draft Designer / Web execution / Run History v3 消费和双数据库真实浏览器连续验收批次 C。
+[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) 的三个批次已完成：版本化 definition / profile、durable action plan / confirmation、受控 transport、原子 claim、`workflow_run_record.v2`、memory / SQLite / PostgreSQL、diagnostics、`/executions`、Web 与真实浏览器重启链均已有证据。[Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 的三个批次也已完成：精确 snapshot / `rag_ref`、独立单次 retrieval / Gateway、strict citation、metadata-only run v3、Web、双数据库浏览器重启与 no-fallback 均已有证据；本专题不派生批次 D。
 
 Production Secret Backend / Storage Adapter 的历史准入链继续从既有专题、任务索引和归档证据读取，不再提供当前开发顺位；生产 repository、生产认证、业务写回、自动确认、replay / resume 和 agent loop 继续关闭。
 

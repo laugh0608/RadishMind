@@ -1,7 +1,8 @@
 export type WorkflowRunSchemaVersion =
   | "workflow_run_record.v0"
   | "workflow_run_record.v1"
-  | "workflow_run_record.v2";
+  | "workflow_run_record.v2"
+  | "workflow_run_record.v3";
 
 export type WorkflowRunStatus = "running" | "succeeded" | "failed" | "canceled" | "outcome_unknown";
 
@@ -51,6 +52,13 @@ export type WorkflowRunDiagnostic = {
     | "tool_transport"
     | "tool_response"
     | "tool_store"
+    | "retrieval_policy"
+    | "retrieval_store"
+    | "retrieval_rank"
+    | "retrieval_context"
+    | "retrieval_citation"
+    | "provider_selection"
+    | "provider_call"
     | "";
   failureStage: string;
   failedNodeId: string;
@@ -77,6 +85,18 @@ export type WorkflowRunDiagnostic = {
     | "response_invalid"
     | "store"
     | "outcome_unknown";
+  retrievalFailureCategory:
+    | "none"
+    | "scope"
+    | "snapshot"
+    | "profile"
+    | "query"
+    | "budget"
+    | "no_evidence"
+    | "provider"
+    | "answer"
+    | "citation"
+    | "store";
   summary: string;
   recommendedReviewAction:
     | "review_draft"
@@ -90,6 +110,43 @@ export type WorkflowRunDiagnostic = {
   observedAt: string;
 };
 
+export type WorkflowRAGRunSnapshotBinding = {
+  snapshotId: string;
+  snapshotVersion: number;
+  snapshotDigest: string;
+  ragRef: string;
+};
+
+export type WorkflowRAGRunSelectedFragment = {
+  fragmentRef: string;
+  contentDigest: string;
+  rank: number;
+  sourceType: "document" | "wiki" | "faq" | "forum" | "manual";
+  isOfficial: boolean;
+  excerptTruncated: boolean;
+};
+
+export type WorkflowRAGRunRetrievalAttempt = {
+  nodeId: string;
+  status: "not_started" | "succeeded" | "failed";
+  profileId: "workflow.rag.lexical-ngram-dev.v1";
+  profileVersion: 1;
+  profileDigest: string;
+  queryDigest: string;
+  queryBytes: number;
+  candidateCount: number;
+  selectedFragments: WorkflowRAGRunSelectedFragment[];
+  retrievalLatencyMs: number;
+  contextBytes: number;
+  citationRefs: string[];
+};
+
+export type WorkflowRAGFragmentPreview = {
+  fragmentRef: string;
+  preview: string;
+  truncated: boolean;
+};
+
 export type WorkflowRunRecord = {
   schemaVersion: WorkflowRunSchemaVersion;
   recordVersion: number;
@@ -99,6 +156,7 @@ export type WorkflowRunRecord = {
   tenantRef: string;
   draftId: string;
   draftVersion: number;
+  draftDigest: string;
   workspaceId: string;
   applicationId: string;
   status: WorkflowRunStatus;
@@ -116,11 +174,15 @@ export type WorkflowRunRecord = {
   selectionSource: string;
   nodes: WorkflowRunNodeRecord[];
   toolAttempt: WorkflowHTTPToolExecutionAttempt | null;
+  ragSnapshot: WorkflowRAGRunSnapshotBinding | null;
+  retrievalAttempt: WorkflowRAGRunRetrievalAttempt | null;
+  retrievalFragmentPreviews: WorkflowRAGFragmentPreview[];
   output: string;
   requestId: string;
   auditRef: string;
   actorRef: string;
   sideEffects: {
+    retrievalCalls: number;
     providerCalls: number;
     toolCalls: number;
     confirmationCalls: number;
@@ -143,12 +205,20 @@ const FORBIDDEN_KEYS = new Set([
   "stderr", "stack", "stack_trace", "sql", "dns", "ip_address", "internal_error",
 ]);
 const TOOL_PROJECTION_KEYS = new Set(["resource_key", "title", "summary", "updated_at"]);
+const RAG_RECORD_KEYS = new Set([
+  "schema_version", "record_version", "run_id", "tenant_ref", "workspace_id", "application_id",
+  "draft_id", "draft_version", "draft_digest", "status", "failure_code", "failure_summary", "started_at",
+  "completed_at", "snapshot", "retrieval_attempt", "answer", "selected_provider", "selected_model",
+  "request_id", "audit_ref", "actor_ref", "side_effects", "diagnostic",
+]);
 
 export function parseWorkflowRunRecordDocument(value: unknown): WorkflowRunRecord | null {
   if (!isRecord(value) || containsForbiddenWorkflowRunField(value)) return null;
   const schemaVersion = value.schema_version;
   if (schemaVersion !== "workflow_run_record.v0" && schemaVersion !== "workflow_run_record.v1" &&
-    schemaVersion !== "workflow_run_record.v2") return null;
+    schemaVersion !== "workflow_run_record.v2" && schemaVersion !== "workflow_run_record.v3") return null;
+
+  if (schemaVersion === "workflow_run_record.v3") return parseRAGRunRecord(value);
 
   const common = parseCommonRecordFields(value, schemaVersion);
   if (!common) return null;
@@ -169,6 +239,9 @@ export function parseWorkflowRunRecordDocument(value: unknown): WorkflowRunRecor
     tenantRef: optionalString(value.tenant_ref),
     conditionNodeIds: isStringArray(value.condition_node_ids) ? [...value.condition_node_ids] : [],
     toolAttempt: null,
+    ragSnapshot: null,
+    retrievalAttempt: null,
+    retrievalFragmentPreviews: [],
     actorRef: optionalString(value.actor_ref),
     diagnostic,
   };
@@ -196,6 +269,9 @@ function parseToolRunRecord(
     tenantRef: value.tenant_ref,
     conditionNodeIds: [],
     toolAttempt,
+    ragSnapshot: null,
+    retrievalAttempt: null,
+    retrievalFragmentPreviews: [],
     actorRef: value.actor_ref,
     diagnostic,
   };
@@ -226,6 +302,7 @@ function parseCommonRecordFields(
     runId: value.run_id,
     draftId: value.draft_id,
     draftVersion: value.draft_version,
+    draftDigest: "",
     workspaceId: value.workspace_id,
     applicationId: value.application_id,
     status,
@@ -241,10 +318,155 @@ function parseCommonRecordFields(
     upstreamModel: value.upstream_model,
     selectionSource: value.selection_source,
     nodes: nodes as WorkflowRunNodeRecord[],
+    ragSnapshot: null,
+    retrievalAttempt: null,
+    retrievalFragmentPreviews: [],
     output: value.output,
     requestId: value.request_id,
     auditRef: value.audit_ref,
     sideEffects,
+  };
+}
+
+function parseRAGRunRecord(value: Record<string, unknown>): WorkflowRunRecord | null {
+  if (Object.keys(value).length !== RAG_RECORD_KEYS.size || Object.keys(value).some((key) => !RAG_RECORD_KEYS.has(key)) ||
+    !isPatternString(value.run_id, RUN_ID_PATTERN) || !isPositiveInteger(value.record_version) ||
+    !isPatternString(value.tenant_ref, REFERENCE_PATTERN) || !isPatternString(value.workspace_id, REFERENCE_PATTERN) ||
+    !isPatternString(value.application_id, REFERENCE_PATTERN) || !isPatternString(value.draft_id, REFERENCE_PATTERN) ||
+    !isPositiveInteger(value.draft_version) || !isPatternString(value.draft_digest, DIGEST_PATTERN) ||
+    !isRAGRunStatus(value.status) || nullableString(value.failure_code) === null || typeof value.failure_summary !== "string" ||
+    value.failure_summary.length > 256 || !isTimestamp(value.started_at) || nullableString(value.completed_at) === null ||
+    value.answer !== null || typeof value.selected_provider !== "string" || !value.selected_provider.trim() ||
+    typeof value.selected_model !== "string" || !value.selected_model.trim() ||
+    !isPatternString(value.request_id, REFERENCE_PATTERN) || !isPatternString(value.audit_ref, REFERENCE_PATTERN) ||
+    !isPatternString(value.actor_ref, REFERENCE_PATTERN)) return null;
+  const snapshot = parseRAGSnapshotBinding(value.snapshot);
+  const retrievalAttempt = parseRAGRetrievalAttempt(value.retrieval_attempt);
+  const sideEffects = parseRAGSideEffects(value.side_effects);
+  const diagnostic = parseRAGDiagnostic(value.diagnostic, value.status, value.started_at);
+  if (!snapshot || !retrievalAttempt || !sideEffects || !diagnostic) return null;
+  const completedAt = nullableString(value.completed_at)!;
+  const failureCode = nullableString(value.failure_code)!;
+  if ((value.status === "running" && (completedAt || failureCode)) ||
+    (value.status !== "running" && !completedAt) ||
+    (value.status === "succeeded" && (failureCode || retrievalAttempt.status !== "succeeded" ||
+      retrievalAttempt.citationRefs.length < 1 || sideEffects.retrievalCalls !== 1 || sideEffects.providerCalls !== 1)) ||
+    ((value.status === "failed" || value.status === "canceled") && !failureCode) ||
+    (retrievalAttempt.status === "not_started" ? sideEffects.retrievalCalls !== 0 : sideEffects.retrievalCalls !== 1)) return null;
+  return {
+    schemaVersion: "workflow_run_record.v3",
+    recordVersion: value.record_version,
+    runId: value.run_id,
+    planId: "",
+    confirmationId: "",
+    tenantRef: value.tenant_ref,
+    draftId: value.draft_id,
+    draftVersion: value.draft_version,
+    draftDigest: value.draft_digest,
+    workspaceId: value.workspace_id,
+    applicationId: value.application_id,
+    status: value.status,
+    failureCode,
+    failureSummary: value.failure_summary,
+    startedAt: value.started_at,
+    completedAt,
+    inputBytes: retrievalAttempt.queryBytes,
+    conditionNodeIds: [],
+    requestedModel: value.selected_model,
+    selectedProvider: value.selected_provider,
+    selectedProfile: retrievalAttempt.profileId,
+    selectedModel: value.selected_model,
+    upstreamModel: value.selected_model,
+    selectionSource: "workflow_rag_execution_v1",
+    nodes: [],
+    toolAttempt: null,
+    ragSnapshot: snapshot,
+    retrievalAttempt,
+    retrievalFragmentPreviews: [],
+    output: "",
+    requestId: value.request_id,
+    auditRef: value.audit_ref,
+    actorRef: value.actor_ref,
+    sideEffects,
+    diagnostic,
+  };
+}
+
+function parseRAGSnapshotBinding(value: unknown): WorkflowRAGRunSnapshotBinding | null {
+  if (!isRecord(value) || Object.keys(value).length !== 4 ||
+    !isPatternString(value.snapshot_id, /^rags_[a-z2-7]{16}$/u) || !isPositiveInteger(value.snapshot_version) ||
+    !isPatternString(value.snapshot_digest, DIGEST_PATTERN) ||
+    !isPatternString(value.rag_ref, /^workflow\.rag\.[a-z][a-z0-9_]{2,47}\.v[1-9][0-9]*$/u)) return null;
+  return { snapshotId: value.snapshot_id, snapshotVersion: value.snapshot_version, snapshotDigest: value.snapshot_digest, ragRef: value.rag_ref };
+}
+
+function parseRAGRetrievalAttempt(value: unknown): WorkflowRAGRunRetrievalAttempt | null {
+  if (!isRecord(value) || Object.keys(value).length !== 12 || !isPatternString(value.node_id, REFERENCE_PATTERN) ||
+    !isRAGAttemptStatus(value.status) || value.profile_id !== "workflow.rag.lexical-ngram-dev.v1" || value.profile_version !== 1 ||
+    !isPatternString(value.profile_digest, DIGEST_PATTERN) || !isPatternString(value.query_digest, DIGEST_PATTERN) ||
+    !isBoundedInteger(value.query_bytes, 0, 4096) || !isBoundedInteger(value.candidate_count, 0, 256) ||
+    !Array.isArray(value.selected_fragments) || value.selected_fragments.length > 8 ||
+    !isBoundedInteger(value.retrieval_latency_ms, 0, 2000) || !isBoundedInteger(value.context_bytes, 0, 32768) ||
+    !Array.isArray(value.citation_refs) || value.citation_refs.length > 8 ||
+    !value.citation_refs.every((ref) => typeof ref === "string")) return null;
+  const selectedFragments = value.selected_fragments.map(parseRAGSelectedFragment);
+  if (selectedFragments.some((fragment) => fragment === null) || selectedFragments.length > value.candidate_count) return null;
+  const selected = selectedFragments as WorkflowRAGRunSelectedFragment[];
+  const selectedRefs = new Set<string>();
+  for (let index = 0; index < selected.length; index += 1) {
+    const fragment = selected[index]!;
+    if (fragment.rank !== index + 1 || selectedRefs.has(fragment.fragmentRef)) return null;
+    selectedRefs.add(fragment.fragmentRef);
+  }
+  const citationRefs = value.citation_refs as string[];
+  if (new Set(citationRefs).size !== citationRefs.length || citationRefs.some((ref) => !selectedRefs.has(ref))) return null;
+  return {
+    nodeId: value.node_id,
+    status: value.status,
+    profileId: value.profile_id,
+    profileVersion: 1,
+    profileDigest: value.profile_digest,
+    queryDigest: value.query_digest,
+    queryBytes: value.query_bytes,
+    candidateCount: value.candidate_count,
+    selectedFragments: selected,
+    retrievalLatencyMs: value.retrieval_latency_ms,
+    contextBytes: value.context_bytes,
+    citationRefs: [...citationRefs],
+  };
+}
+
+function parseRAGSelectedFragment(value: unknown): WorkflowRAGRunSelectedFragment | null {
+  if (!isRecord(value) || Object.keys(value).length !== 6 ||
+    !isPatternString(value.fragment_ref, /^[a-z][a-z0-9_]{2,63}$/u) ||
+    !isPatternString(value.content_digest, DIGEST_PATTERN) || !isBoundedInteger(value.rank, 1, 8) ||
+    !isRAGSourceType(value.source_type) || typeof value.is_official !== "boolean" ||
+    typeof value.excerpt_truncated !== "boolean") return null;
+  return { fragmentRef: value.fragment_ref, contentDigest: value.content_digest, rank: value.rank, sourceType: value.source_type, isOfficial: value.is_official, excerptTruncated: value.excerpt_truncated };
+}
+
+function parseRAGSideEffects(value: unknown): WorkflowRunRecord["sideEffects"] | null {
+  if (!isRecord(value) || Object.keys(value).length !== 6 || !isBoundedInteger(value.retrieval_calls, 0, 1) ||
+    !isBoundedInteger(value.provider_calls, 0, 1) || value.tool_calls !== 0 || value.confirmation_calls !== 0 ||
+    value.business_writes !== 0 || value.replay_writes !== 0) return null;
+  return { retrievalCalls: value.retrieval_calls, providerCalls: value.provider_calls, toolCalls: 0, confirmationCalls: 0, businessWrites: 0, replayWrites: 0 };
+}
+
+function parseRAGDiagnostic(value: unknown, status: WorkflowRunStatus, observedAt: string): WorkflowRunDiagnostic | null {
+  if (!isRecord(value) || Object.keys(value).length !== 2 ||
+    !isRAGFailureBoundary(value.failure_boundary) || !isRAGFailureCategory(value.retrieval_failure_category)) return null;
+  return {
+    failureBoundary: value.failure_boundary === "none" ? "" : value.failure_boundary,
+    failureStage: "workflow_rag_execution",
+    failedNodeId: "",
+    lastCompletedNodeId: "",
+    terminalWriteState: status === "running" ? "pending" : "stored",
+    gatewayFailureCategory: "none",
+    toolFailureCategory: "none",
+    retrievalFailureCategory: value.retrieval_failure_category,
+    summary: "",
+    recommendedReviewAction: status === "failed" ? "start_new_run" : "",
+    observedAt,
   };
 }
 
@@ -322,6 +544,7 @@ function parseWorkflowRunDiagnostic(value: unknown, toolRecord: boolean): Workfl
     terminalWriteState: value.terminal_write_state,
     gatewayFailureCategory: value.gateway_failure_category,
     toolFailureCategory,
+    retrievalFailureCategory: "none",
     summary: value.summary,
     recommendedReviewAction: value.recommended_review_action,
     observedAt: value.observed_at,
@@ -333,6 +556,7 @@ function parseSideEffects(value: unknown): WorkflowRunRecord["sideEffects"] | nu
   const counts = [value.provider_calls, value.tool_calls, value.confirmation_calls, value.business_writes, value.replay_writes];
   if (!counts.every(isNonNegativeInteger)) return null;
   return {
+    retrievalCalls: 0,
     providerCalls: value.provider_calls as number,
     toolCalls: value.tool_calls as number,
     confirmationCalls: value.confirmation_calls as number,
@@ -412,7 +636,33 @@ function isToolAttemptStatus(value: unknown): value is WorkflowHTTPToolExecution
 }
 
 function isFailureBoundary(value: string): value is WorkflowRunDiagnostic["failureBoundary"] {
-  return ["", "draft_read", "executor", "gateway", "provider", "run_store", "request", "tool_policy", "tool_confirmation", "tool_transport", "tool_response", "tool_store"].includes(value);
+  return ["", "draft_read", "executor", "gateway", "provider", "run_store", "request", "tool_policy", "tool_confirmation", "tool_transport", "tool_response", "tool_store", "retrieval_policy", "retrieval_store", "retrieval_rank", "retrieval_context", "retrieval_citation", "provider_selection", "provider_call"].includes(value);
+}
+
+function isRAGRunStatus(value: unknown): value is Exclude<WorkflowRunStatus, "outcome_unknown"> {
+  return value === "running" || value === "succeeded" || value === "failed" || value === "canceled";
+}
+
+function isRAGAttemptStatus(value: unknown): value is WorkflowRAGRunRetrievalAttempt["status"] {
+  return value === "not_started" || value === "succeeded" || value === "failed";
+}
+
+function isRAGSourceType(value: unknown): value is WorkflowRAGRunSelectedFragment["sourceType"] {
+  return value === "document" || value === "wiki" || value === "faq" || value === "forum" || value === "manual";
+}
+
+function isRAGFailureBoundary(
+  value: unknown,
+): value is "none" | "retrieval_policy" | "retrieval_store" | "retrieval_rank" | "retrieval_context" | "retrieval_citation" | "provider_selection" | "provider_call" | "run_store" {
+  return ["none", "retrieval_policy", "retrieval_store", "retrieval_rank", "retrieval_context", "retrieval_citation", "provider_selection", "provider_call", "run_store"].includes(String(value));
+}
+
+function isRAGFailureCategory(value: unknown): value is WorkflowRunDiagnostic["retrievalFailureCategory"] {
+  return ["none", "scope", "snapshot", "profile", "query", "budget", "no_evidence", "provider", "answer", "citation", "store"].includes(String(value));
+}
+
+function isBoundedInteger(value: unknown, minimum: number, maximum: number): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= minimum && value <= maximum;
 }
 
 function isGatewayFailureCategory(value: unknown): value is WorkflowRunDiagnostic["gatewayFailureCategory"] {

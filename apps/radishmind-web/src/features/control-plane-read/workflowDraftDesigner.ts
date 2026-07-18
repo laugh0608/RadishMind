@@ -31,7 +31,7 @@ export type WorkflowDraftDesignerNode = {
   nodeId: string;
   label: string;
   nodeType: WorkflowDefinitionDetailNode["nodeType"];
-  lane: "context" | "model" | "policy" | "preview" | "output";
+  lane: "context" | "retrieval" | "model" | "policy" | "preview" | "output";
   readiness: "ready" | "review_required" | "blocked";
   inputSummary: string;
   outputSummary: string;
@@ -114,7 +114,7 @@ export type WorkflowDraftDesignerDraft = {
   blockedCapabilities: WorkflowDraftDesignerBlockedCapability[];
   routeMetadata: WorkflowDraftDesignerRouteMetadata;
   localOnlyInteraction: "inspect_only" | "local_edit";
-  executionProfile?: "review_only" | "executor_v0";
+  executionProfile?: "review_only" | "executor_v0" | "rag_retrieval_v1";
 };
 
 export type WorkflowDraftDesignerSource = {
@@ -552,6 +552,9 @@ function toLane(node: WorkflowDefinitionDetailNode): WorkflowDraftDesignerNode["
   }
   if (node.nodeType === "llm") {
     return "model";
+  }
+  if (node.nodeType === "rag_retrieval") {
+    return "retrieval";
   }
   if (node.nodeType === "condition") {
     return "policy";

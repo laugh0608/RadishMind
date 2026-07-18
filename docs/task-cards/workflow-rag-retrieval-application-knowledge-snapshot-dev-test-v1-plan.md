@@ -3,14 +3,14 @@
 更新时间：2026-07-18
 
 - 任务 ID：`workflow-rag-retrieval-application-knowledge-snapshot-dev-test-v1`
-- 状态：`workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_batch_b_completed`
+- 状态：`workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_completed`
 - 功能设计：[Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](../features/workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md)
 
 ## 准入结论
 
 2026-07-17 边界评审已确认功能设计中的五项决策：首版包含应用知识快照生命周期；只启用本地确定性 lexical profile；使用独立 retrieval execution 与 `workflow_run_record.v3`；fragment 正文只存 snapshot repository；全部实现由本卡按 A / B / C 三批承接。
 
-本卡是该功能唯一高风险实现入口。批次 A 与 B 已依次完成知识快照基础和独立 execution / Gateway / citation / run v3 后端；批次 C 已获得实施准入，只承接 Draft Designer、Web execution / Run History、双数据库连续链与真实浏览器重启验收。
+本卡是该功能唯一高风险实现入口。批次 A、B、C 已依次完成知识快照基础、独立 execution / Gateway / citation / run v3 后端，以及 Draft Designer、Web execution / Run History、双数据库连续链与真实浏览器重启验收；本卡关闭，不派生第二张任务卡或同层 checker。
 
 ## 不可变架构边界
 
@@ -112,13 +112,21 @@ POST /v1/user-workspace/workflow-retrieval-snapshots/{snapshot_id}/archive
 
 ## 批次 C：Web 纵向链与双数据库浏览器验收
 
-状态：`ready_for_implementation`。
+状态：`completed`。
 
 1. Draft Designer 选择精确 snapshot version，保存合法 `rag_ref`，与 offline placeholder 区分。
 2. Web 显式启动 retrieval execution，并在 Run History v3 展示 snapshot / retrieval / citation metadata。
 3. 完成 SQLite 创建快照 → 保存草案 → 执行 → 历史 → archive / new version → 重启恢复连续链。
 4. 基于已完成的 PostgreSQL v9 migration / 角色 / marker / 重启 / no-fallback 后端门禁，完成 Web 双数据库连续链与服务重启验收。
 5. 真实浏览器检查 list / run / storage / logs 不泄漏 query、fragment 正文、prompt packet、credential 或模型原始响应。
+
+### 批次 C 完成证据
+
+- Draft Designer 可在当前 Application Catalog scope 下创建唯一四节点草案，选择精确 snapshot version 并保存 `rag_ref`；Web 只提交 bounded query、model 与 temperature，结构化 answer 仅保留在本次响应状态。
+- Run History 严格消费完整 v3 metadata，展示 draft / snapshot / profile digest、query digest / bytes、selected fragment metadata、citation、延迟和诊断；授权 preview 从精确不可变 snapshot repository 读取且每段不超过 512 字符，v3 不进入 Comparison / Evaluation / Baseline / Suite。
+- SQLite 已通过创建 v1 / v2、草案保存、成功执行、历史、授权 preview、archive、服务重启恢复和 archive 后拒绝新 execution；PostgreSQL 已通过创建、执行、平台 / Web 重启恢复、数据库中断 no-fallback 与恢复读回同一 run。
+- 真实浏览器与 store / audit / 日志扫描确认原始 query、fragment 正文、prompt packet、credential 和模型原始响应不进入 metadata-only 面；重启前后 PostgreSQL 始终只有 1 条 run 与 3 条 audit，没有重新执行 retrieval 或 Gateway。
+- Web 112 项测试、生产构建、Gateway mock 契约、Platform 精准与全包 Go 测试、PostgreSQL 专项门禁均通过；executor v0、HTTP Tool v2、`allow_retrieval=false` 和旧 run record 行为保持不变。
 
 ## 主要实现落点
 
