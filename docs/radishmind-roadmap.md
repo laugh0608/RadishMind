@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：工作流审查、Gateway 请求审查、用户工作区应用接入 / 配置 / 发布 / 目录 / API 密钥、Workflow HTTP Tool、RAG 质量 / 晋级 / Application runtime 和应用运行观测首批均已完成。当前进入 [Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](features/workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md)批次 A，先建立 immutable candidate / definition version、人工 review / activation 与 memory 管理 API；durable store、run v5 与 Web 按后续批次推进。不直接进入 connector、在线搜索、embedding / reranker、自动 activation / release、schedule、replay、配额、计费或生产能力。
+1. 产品线：工作流审查、Gateway 请求审查、用户工作区应用接入 / 配置 / 发布 / 目录 / API 密钥、Workflow HTTP Tool、RAG 质量 / 晋级 / Application runtime 和应用运行观测首批均已完成。[Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](features/workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md)批次 A 已建立 immutable candidate / definition version、人工 review / activation、memory repository 与管理 API；当前进入批次 B，在共享 SQLite / PostgreSQL backend 中实现事务型 durable owner 与正式 read projection。run v5 与 Web 仍按后续批次推进，不直接进入 connector、在线搜索、embedding / reranker、自动 activation / release、schedule、replay、配额、计费或生产能力。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；production secret backend、process supervisor、部署环境隔离、console production packaging、生产认证、生产 API key、quota 和 billing 继续为 `not_satisfied`。

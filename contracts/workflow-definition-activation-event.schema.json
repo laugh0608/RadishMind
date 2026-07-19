@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-definition-activation-event.schema.json",
+  "title": "Workflow Definition Activation Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "event_id", "definition_id", "decision", "reason", "before_pointer_version", "after_pointer_version", "before_active_version", "after_active_version", "actor_ref", "created_at", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "workflow_definition_activation_event.v1"},
+    "event_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"},
+    "definition_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"},
+    "decision": {"enum": ["activate", "replace", "deactivate"]},
+    "reason": {"type": "string", "minLength": 4, "maxLength": 500},
+    "before_pointer_version": {"type": "integer", "minimum": 0},
+    "after_pointer_version": {"type": "integer", "minimum": 1},
+    "before_active_version": {"type": "integer", "minimum": 0},
+    "after_active_version": {"type": "integer", "minimum": 0},
+    "actor_ref": {"type": "string", "minLength": 1, "maxLength": 240},
+    "created_at": {"type": "string", "format": "date-time"},
+    "request_id": {"type": "string", "minLength": 1, "maxLength": 240},
+    "audit_ref": {"type": "string", "minLength": 1, "maxLength": 240}
+  }
+}

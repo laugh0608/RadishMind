@@ -92,6 +92,20 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 	}
 }
 
+func TestWorkflowDefinitionReleaseDevRequiresSavedDraftAuthorityGates(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.WorkflowDefinitionReleaseDevEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "saved workflow draft HTTP/write gates") {
+		t.Fatalf("expected workflow definition release prerequisite failure, got %v", err)
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	cfg.WorkflowSavedDraftDevHTTPEnabled = true
+	cfg.WorkflowSavedDraftDevWriteEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("complete workflow definition release dev gates should validate: %v", err)
+	}
+}
+
 func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	clearPlatformEnv(t)
 	configPath := filepath.Join(t.TempDir(), "platform-config.json")
@@ -128,6 +142,7 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE", "true")
+	t.Setenv("RADISHMIND_WORKFLOW_DEFINITION_RELEASE_DEV", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_EXECUTOR_DEV", "1")
 	t.Setenv("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV", "1")
 	t.Setenv("RADISHMIND_GATEWAY_REQUEST_STORE", "postgres_dev_test")
@@ -187,6 +202,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if !cfg.WorkflowSavedDraftDevWriteEnabled {
 		t.Fatalf("expected workflow saved draft dev write env override")
+	}
+	if !cfg.WorkflowDefinitionReleaseDevEnabled || cfg.FieldSources["workflow_definition_release_dev"] != configSourceEnv {
+		t.Fatalf("expected workflow definition release dev env override")
 	}
 	if !cfg.WorkflowExecutorDevEnabled {
 		t.Fatalf("expected workflow executor dev env override")

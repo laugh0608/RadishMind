@@ -120,6 +120,7 @@ type Config struct {
 	APIKeyDatabaseURL                    string
 	APIKeyDatabaseTimeout                time.Duration
 	GatewayAuthMode                      string
+	WorkflowDefinitionReleaseDevEnabled  bool
 	WorkflowExecutorDevEnabled           bool
 	WorkflowToolActionDevEnabled         bool
 	WorkflowHTTPToolExecutionDevEnabled  bool
@@ -183,6 +184,7 @@ type ConfigSummary struct {
 	APIKeyStoreMode                      string            `json:"api_key_store_mode"`
 	APIKeyDatabaseConfigured             bool              `json:"api_key_database_configured"`
 	GatewayAuthMode                      string            `json:"gateway_auth_mode"`
+	WorkflowDefinitionReleaseDevEnabled  bool              `json:"workflow_definition_release_dev_enabled"`
 	WorkflowExecutorDevEnabled           bool              `json:"workflow_executor_dev_enabled"`
 	WorkflowToolActionDevEnabled         bool              `json:"workflow_tool_action_dev_enabled"`
 	WorkflowHTTPToolExecutionDevEnabled  bool              `json:"workflow_http_tool_execution_dev_enabled"`
@@ -362,6 +364,7 @@ func defaultConfig() Config {
 			"api_key_database":                      configSourceDefault,
 			"api_key_database_timeout":              configSourceDefault,
 			"gateway_auth_mode":                     configSourceDefault,
+			"workflow_definition_release_dev":       configSourceDefault,
 			"workflow_executor_dev":                 configSourceDefault,
 			"workflow_tool_action_dev":              configSourceDefault,
 			"workflow_http_tool_execution_dev":      configSourceDefault,
@@ -777,6 +780,14 @@ func applyEnvOverrides(cfg *Config) error {
 	if value, ok := stringEnv("RADISHMIND_GATEWAY_AUTH_MODE"); ok {
 		applyStringValue(&cfg.GatewayAuthMode, value, cfg.FieldSources, "gateway_auth_mode", configSourceEnv)
 	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_DEFINITION_RELEASE_DEV"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_DEFINITION_RELEASE_DEV", value)
+		if err != nil {
+			return err
+		}
+		cfg.WorkflowDefinitionReleaseDevEnabled = parsed
+		cfg.FieldSources["workflow_definition_release_dev"] = configSourceEnv
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_EXECUTOR_DEV"); ok {
 		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_EXECUTOR_DEV", value)
 		if err != nil {
@@ -1150,6 +1161,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		APIKeyStoreMode:                      apiKeyStoreMode,
 		APIKeyDatabaseConfigured:             strings.TrimSpace(cfg.APIKeyDatabaseURL) != "",
 		GatewayAuthMode:                      gatewayAuthMode,
+		WorkflowDefinitionReleaseDevEnabled:  cfg.WorkflowDefinitionReleaseDevEnabled,
 		WorkflowExecutorDevEnabled:           cfg.WorkflowExecutorDevEnabled,
 		WorkflowToolActionDevEnabled:         cfg.WorkflowToolActionDevEnabled,
 		WorkflowHTTPToolExecutionDevEnabled:  cfg.WorkflowHTTPToolExecutionDevEnabled,
@@ -1536,6 +1548,9 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.WorkflowSavedDraftDevWriteEnabled && !cfg.WorkflowSavedDraftDevHTTPEnabled {
 		return fmt.Errorf("saved workflow draft dev write requires saved workflow draft dev HTTP")
+	}
+	if cfg.WorkflowDefinitionReleaseDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled || !cfg.WorkflowSavedDraftDevWriteEnabled) {
+		return fmt.Errorf("workflow definition release dev requires control plane auth and saved workflow draft HTTP/write gates")
 	}
 	switch strings.TrimSpace(cfg.WorkflowSavedDraftStoreMode) {
 	case "", "memory_dev", "repository_disabled", "repository":

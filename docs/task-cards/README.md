@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-1. [Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md)：设计与统一任务卡已冻结，当前只准入批次 A 的 strict contract、memory repository、人工 review / activation CAS 与管理 API；durable store、run v5、Web 和浏览器尚未开始。
+1. [Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md)：批次 A 的 strict contract、memory repository、人工 review / activation CAS 与管理 API 已完成，当前准入批次 B durable repository 与正式 read projection；run v5、Web 和浏览器尚未开始。
 
 ## 最近关闭任务
 

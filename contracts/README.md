@@ -62,6 +62,12 @@
 46. `workflow-rag-application-runtime-audit.schema.json`
 47. `workflow-rag-application-answer.schema.json`
 48. `workflow-run-record-v4.schema.json`
+49. `workflow-definition-release-candidate.schema.json`
+50. `workflow-definition-release-decision.schema.json`
+51. `workflow-definition-version.schema.json`
+52. `workflow-definition-activation.schema.json`
+53. `workflow-definition-activation-event.schema.json`
+54. `workflow-definition-release-audit.schema.json`
 
 当前 TypeScript 消费契约：
 

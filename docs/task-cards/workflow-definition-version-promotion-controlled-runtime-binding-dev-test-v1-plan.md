@@ -2,7 +2,7 @@
 
 更新时间：2026-07-19
 
-状态：`workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_batch_a_ready_for_implementation`
+状态：`workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_batch_b_ready_for_implementation`
 
 ## 目标与准入结论
 
@@ -20,7 +20,7 @@
 
 ## 批次 A：strict contract、memory repository 与人工审查 API
 
-状态：`ready_for_implementation`。
+状态：`completed`。
 
 ### 允许实现
 
@@ -29,7 +29,7 @@
 - 新增 application-scoped memory repository，candidate / review / version / activation 共用 owner lock。
 - candidate approve 在同一原子操作中追加 review 并物化一次 immutable version；reject 不物化 version。
 - activation `activate / replace / deactivate` 使用 expected pointer version，原子写 current projection、event 和 audit。
-- 注册默认关闭的 dev/test gate、五类 management scopes 和 candidate / version / activation 管理 API。
+- 注册默认关闭的 dev/test gate、四类 management scopes 和 candidate / version / activation 管理 API。
 
 ### 必须证明
 
@@ -50,7 +50,7 @@
 
 ## 批次 B：durable repository 与正式 read projection
 
-状态：`blocked_by_batch_a`。
+状态：`ready_for_implementation`。
 
 - 在 workflow shared SQLite / PostgreSQL migration family 中追加 candidate、decision、version、activation pointer、event 和 audit 表及 schema marker。
 - memory / SQLite / PostgreSQL 共用同一 domain contract，不新增 DSN、pool、database file、selector 或 fallback。

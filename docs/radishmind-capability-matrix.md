@@ -12,7 +12,7 @@
 
 如果你要推进具体产品能力，先读 [功能设计文档入口](features/README.md)。2026-06-14 起，长期功能设计不再默认塞进 task card；task card、fixture 和 checker 只服务具体实现批次、前置条件或高风险边界。
 
-2026-07-19 覆盖：Saved Draft PostgreSQL dev/test repository、R4 Gateway、Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation、Gateway Request History / Playground、Application API / Configuration / Publish Governance、Workflow HTTP Tool、RAG 质量 / 晋级 / Application runtime 和应用运行观测首批均已完成。当前已冻结 Workflow immutable candidate、definition version、人工 review / activation、definition-bound run v5 与四批实施边界，批次 A 进入 strict contract、memory repository 和管理 API 实现。真实 Radish integration、workspace membership、production workflow publish、schedule、replay、production API key、可信 reported usage、quota enforcement 和 billing 仍未进入当前实现批次。
+2026-07-19 覆盖：Saved Draft PostgreSQL dev/test repository、R4 Gateway、Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation、Gateway Request History / Playground、Application API / Configuration / Publish Governance、Workflow HTTP Tool、RAG 质量 / 晋级 / Application runtime 和应用运行观测首批均已完成。Workflow immutable candidate、definition version、人工 review / activation 的 strict contract、memory repository 与管理 API 已完成，当前进入共享 SQLite / PostgreSQL durable owner 和正式 read projection 批次 B；definition-bound run v5 与 Web 尚未开始。真实 Radish integration、workspace membership、production workflow publish、schedule、replay、production API key、可信 reported usage、quota enforcement 和 billing 仍未进入当前实现批次。
 
 `RadishFlow` / `Radish` 暂无稳定挂载点不阻塞 RadishMind 平台本体开发，也不等于可以细化假想接线或声明真实集成就绪。
 

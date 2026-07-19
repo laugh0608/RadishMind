@@ -42,6 +42,7 @@ type Server struct {
 	applicationCatalogRepository           applicationCatalogRepository
 	apiKeyRepository                       apiKeyRepository
 	workflowRunStore                       workflowRunStore
+	workflowDefinitionReleaseStore         *workflowDefinitionReleaseStore
 	workflowRAGSnapshotRepository          workflowRAGSnapshotRepository
 	workflowRAGEvaluationDatasetRepository workflowRAGEvaluationDatasetRepository
 	workflowRAGPromotionRepository         workflowRAGPromotionRepository
@@ -243,6 +244,14 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationPublishCandidateListRoute, server.handleListApplicationPublishCandidates)
 	mux.HandleFunc(applicationPublishCandidateReadRoute, server.handleReadApplicationPublishCandidate)
 	mux.HandleFunc(applicationPublishCandidateReviewRoute, server.handleReviewApplicationPublishCandidate)
+	mux.HandleFunc(workflowDefinitionCandidateCreateRoute, server.handleCreateWorkflowDefinitionCandidate)
+	mux.HandleFunc(workflowDefinitionCandidateListRoute, server.handleListWorkflowDefinitionCandidates)
+	mux.HandleFunc(workflowDefinitionCandidateReadRoute, server.handleReadWorkflowDefinitionCandidate)
+	mux.HandleFunc(workflowDefinitionCandidateDecisionRoute, server.handleDecideWorkflowDefinitionCandidate)
+	mux.HandleFunc(workflowDefinitionVersionListRoute, server.handleListWorkflowDefinitionVersions)
+	mux.HandleFunc(workflowDefinitionVersionReadRoute, server.handleReadWorkflowDefinitionVersion)
+	mux.HandleFunc(workflowDefinitionActivationReadRoute, server.handleReadWorkflowDefinitionActivation)
+	mux.HandleFunc(workflowDefinitionActivationDecisionRoute, server.handleDecideWorkflowDefinitionActivation)
 	mux.HandleFunc(workflowExecutorStartRoute, server.handleStartWorkflowRun)
 	mux.HandleFunc("POST "+workflowRAGExecutionRoute, server.handleWorkflowRAGExecution)
 	mux.HandleFunc(workflowRAGSnapshotCreateRoute, server.handleCreateWorkflowRAGSnapshot)

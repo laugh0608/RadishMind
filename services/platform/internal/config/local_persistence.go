@@ -6,6 +6,9 @@ import (
 )
 
 func ValidateServerStart(cfg Config) error {
+	if cfg.WorkflowDefinitionReleaseDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled || !cfg.WorkflowSavedDraftDevWriteEnabled) {
+		return errors.New("workflow definition release dev requires control plane auth and saved workflow draft HTTP/write gates")
+	}
 	if EffectiveLocalPersistenceMode(cfg) != "sqlite_dev" {
 		return nil
 	}
