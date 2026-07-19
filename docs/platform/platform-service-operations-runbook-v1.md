@@ -112,6 +112,7 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 
 - 聚合 `sqlite_dev`、共享数据库路径和七组件 store 投影见[本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1.md)。
 - 应用目录、API 密钥生命周期和 Gateway Bearer 开发测试态认证见[应用目录与 API 密钥开发测试指南](../features/user-workspace/application-catalog-api-key-dev-test-guide.md)。
+- Application RAG、Workflow Definition、Application Session、v4 / v5 历史与运行观测见[应用受控运行开发测试态指南](../features/user-workspace/application-controlled-runtime-dev-test-guide.md)。
 - Workflow 草案、运行、评测与执行 gate 见 [Workflow 专题](../features/workflow/README.md)。
 - Application Draft / Publish gate 见 [User Workspace 专题](../features/user-workspace/README.md)。
 - Control Plane auth / store / OIDC integration test 见 [Admin Control Plane 专题](../features/admin-control-plane/README.md)。
@@ -135,7 +136,7 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 - `GET /v1/tools/metadata`
 - `POST /v1/tools/actions`
 
-完整路由按服务 README 的六类入口导航到对应协议或功能专题。路由注册不表示默认启用；User Workspace、Workflow、Gateway history 与 Admin 路由必须满足各自 auth、scope、dev/test gate 和 store selector。
+完整路由按服务 README 的六类入口导航到对应协议或功能专题。路由注册不表示默认启用；User Workspace、Workflow、Application RAG、Gateway history 与 Admin 路由必须满足各自 auth、scope、dev/test gate 和 store selector。Application Session 每轮还会重读所选 profile 的 exact authority，不能用 session 中的旧摘要绕过 v5 / v4 owner。
 
 ## 本地 smoke 验证
 
@@ -173,7 +174,7 @@ curl -sS http://127.0.0.1:7000/v1/chat/completions \
 
 ## PostgreSQL 开发测试态验证
 
-兼容入口实际覆盖八组平台 migration 和七组件 repository：
+兼容入口覆盖平台各产品 migration，以及当前直至 `0015` 的 Workflow PostgreSQL 开发测试态 repository：
 
 ```bash
 ./scripts/run-workflow-saved-draft-postgres-dev-test.sh check

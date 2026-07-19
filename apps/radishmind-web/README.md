@@ -4,7 +4,7 @@
 
 - `Control Plane Read-Side`：`control-plane-read-shared-shell-v1`、`control-plane-read-admin-tenant-overview-v1`、`control-plane-read-admin-audit-log-v1`、普通离线 Admin Operations Review / Readiness、普通离线 Admin Provider/Profile & Deployment Evidence Review / Readiness、`control-plane-read-workspace-applications-v1`、`control-plane-read-workspace-api-keys-v1`、`control-plane-read-workspace-usage-quota-v1`、`control-plane-read-workspace-workflow-definitions-v1`、`control-plane-read-workspace-run-history-v1`、`control-plane-read-formal-ui-readiness-close-v1`、`control-plane-read-dev-live-consumer-v1` 和 `control-plane-read-auth-store-transition-preconditions-v1`。
 - `Model Gateway / API Distribution`：普通离线 Model Gateway Overview、Route Evidence、Usage/Audit Evidence 与 Evidence Review / Readiness，复用 shared read shell、API key summary、quota summary、run history、audit log、provider runtime、`gateway-api-key-quota-readiness` 和前三个网关 view model 证据，展示 northbound API compatibility surfaces、provider/profile inventory、route binding、selection cases、key scope、quota / cost snapshot、trace / failure、audit decision、readiness rollup、evidence checklist、route / usage / audit key risks 和 locked distribution capabilities。
-- `Workflow / Agent Runtime Function Surface`：既有 workflow detail / review / Draft Designer / Validation、`workflow-execution-plan-preview-offline-v1`、`workflow-runtime-readiness-inspector-offline-v1` 等完整运行时预览面板，以及显式 dev-only 的 Saved Draft consumer 与受控 Workflow Executor v0。
+- `Workflow / Agent Runtime Function Surface`：既有 workflow detail / review / Draft Designer / Validation、`workflow-execution-plan-preview-offline-v1`、`workflow-runtime-readiness-inspector-offline-v1` 等运行时预览面板，以及显式 dev-only 的 Saved Draft、HTTP Tool、Workflow RAG v3、Application RAG v4、Workflow Definition v5、Application Interaction Session、Run History / Comparison / Evaluation 与 Application Operations。
 
 当前边界：
 
@@ -16,7 +16,7 @@
 - Workflow Executor v0 独立使用 `VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http`；只有 active draft 是已保存、未修改且通过 bounded graph eligibility 的 executor v0 草案时，才能调用 Platform POST run，随后可用 GET scoped read 回读 record。服务端仍会重新读取并校验草案；Web 预检不构成执行授权。
 - Workflow RAG Snapshot / Execution 使用 `VITE_RADISHMIND_WORKFLOW_RAG_SOURCE=dev-workflow-rag-http` 与 `VITE_RADISHMIND_WORKFLOW_RAG_SCOPES`；默认 offline 零请求。显式启用后，知识快照面板管理应用作用域 immutable snapshot / `rag_ref`，execution 面板只允许从精确已保存且 eligible 的 RAG draft 发起一次 lexical retrieval 和一次 Gateway 调用，并把 metadata-only `workflow_run_record.v3` 交给 Run History / Comparison / Evaluation。输入、fragment 正文、prompt、完整回答和模型原始响应不写入历史。
 - Workflow RAG Evaluation Dataset 使用 `VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_SOURCE=dev-workflow-rag-evaluation-http` 与独立 scopes；strict consumer 覆盖 dataset create / version / archive、受权限保护的 exact content detail 和 baseline / candidate snapshot review。list、review、audit 与日志保持 metadata-only；candidate review 每个样本只复用现有 lexical ranker，不调用 Gateway、不创建 workflow run。
-- Workflow HTTP Tool action planning 独立使用 `VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE=dev-workflow-http-tool-http`，并通过 `VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS` 显式声明 plan / read / confirm 的可用授权；只有精确已保存、未修改且满足单工具线性拓扑的草案才能创建 action plan。批次 B 已完成服务端内部 execution runtime，但批次 C 尚未接入 execute grant 和 `/executions`；当前 Web 批准后仍保持网络请求、provider 调用和 Workflow run 创建为 0。
+- Workflow HTTP Tool 使用 `VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE=dev-workflow-http-tool-http`，并通过 `VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS` 显式声明 plan / read / confirm / execute 授权；只有精确已保存、未修改且满足单工具线性拓扑的草案才能创建 action plan。人工批准后仍需显式执行，服务端再次校验 draft、plan、decision、allowlist 与 budget，最多发送一次受策略约束的 HTTPS GET，并写入 metadata-only run v2；不自动 retry、redirect、replay 或写回业务数据。
 - Gateway Request History 独立使用 `VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE=dev-gateway-request-history-http`；默认 offline evidence 零请求。显式启用后，现有 Model Gateway Evidence Review 内的独立 lazy panel 读取 `/v1/model-gateway/requests` list / detail，展示 sanitized caller refs、route / protocol、selection、timing、usage availability 和稳定 failure，不回退旧 quota / cost 或 Workflow run fixture。后端必须同时启用 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 与 `RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV=1`。
 - Gateway Playground 使用 `VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE=dev-gateway-playground-http`；默认 offline 零请求。显式启用后可从 Web 调用 Chat Completions、Responses、Messages 的 unary / stream，用户可取消请求并按同一 request id 打开 sanitized history。输入输出只保留在组件内存，不写 URL 或浏览器 storage。
 - Application API Integration 复用同一 Gateway Playground 开关与 caller scope；从当前 Application Detail 主动加载 `/v1/models`，生成 Chat Completions、Responses、Messages 的 cURL / Python / TypeScript 环境变量占位示例，并把当前 application / protocol / model 交给既有 Playground。示例不展示真实 key、hash 或内部 dev caller headers，application 切换会清空旧目录与选择。
@@ -26,6 +26,10 @@
 - Application Publish Review 使用独立的 `VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE=dev-application-publish-http` 开关；默认 offline 零请求。显式启用后可从当前 application 的 saved valid draft 创建不可变 candidate、恢复 snapshot / digest、追加 review CAS、查看漂移和 promotion blocker，并复用 Integration / Playground / exact History handoff。approved 仍不执行正式 application mutation。
 - Workflow RAG Knowledge Promotion 使用 `VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_SOURCE=dev-workflow-rag-promotion-http` 与独立 scopes；默认 offline 零请求。strict consumer 只接收 metadata-only list、精确 evidence、append-only decision、immutable binding 和动态 eligibility，拒绝 scope / schema 漂移以及 query、fragment、prompt、模型响应、credential 或 secret。lazy panel 固定“人工 approve → 配置草案显式 attach → 发布候选重新校验”为三个独立动作，CAS 冲突保留人工理由并要求刷新当前 record。
 - Application Configuration Draft v2 与 Application Publish Candidate v2 都只携带 `binding_id / binding_version / binding_digest`。草案面板会先恢复 promotion candidate 的精确 source draft，再通过既有 CAS 创建绑定版本；发布面板展示 exact binding 和动态 blocker。application 切换会清空 promotion、binding 与 publish selection，不在三个资源之间复制知识正文或配置真相源。
+- Application RAG Runtime 使用 `VITE_RADISHMIND_WORKFLOW_RAG_APPLICATION_RUNTIME_SOURCE=dev-workflow-rag-application-runtime-http`。面板把 approved publish candidate、exact RAG binding、current assignment 与 application lifecycle 分开显示，`activate / replace / revoke` 均为人工 CAS；调用只接受 application API key Bearer，服务端在 provider 前重读完整 authority，并写 metadata-only run v4。
+- Workflow Definition Promotion 使用 `VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE=dev-workflow-definition-promotion-http`。面板按 immutable candidate、人工 review、definition version、人工 activation 与 v5 run 的顺序消费 strict contract；运行前服务端重读 activation pointer、definition digest、application lifecycle 与 profile eligibility。v5 复用 executor v0 的图计划、预算、取消、Gateway 与 diagnostics，不在 Web 复制执行算法。
+- Application Interaction Session 使用 `VITE_RADISHMIND_APPLICATION_SESSION_SOURCE=dev-application-session-http`。创建时显式选择 `workflow_definition_executor_v1` 或 `application_rag_invocation_v1`，每轮只委托一次既有 v5 / v4 服务。Active / Closed 过滤、turn metadata、run handoff 与重启恢复不重建 transcript；input、answer 与 transcript 只保留在当前组件内存。
+- Application Operations 在当前 application scope 内只读组合 Gateway Request History 与 Workflow Run History。两个来源分别维护 loading / ready / empty / failed 状态并允许 partial failure；合并时间线不推测跨来源关联，也不估算缺失 token、cost、quota 或 billing。
 - 渲染 read route catalog、共享状态组件、forbidden output guard、只读 `admin-tenant-overview`、只读 `admin-audit-log`、普通离线 Admin Operations Review / Readiness、普通离线 Admin Provider/Profile & Deployment Evidence Review / Readiness、可显式连接开发测试目录的 `workspace-applications`、可显式连接生命周期 API 的 `workspace-api-keys`、只读 `workspace-usage-quota`、只读 `workspace-workflow-definitions`、只读 `workspace-run-history`、User Workspace Home、Model Gateway Overview、Model Gateway Route Evidence、Model Gateway Usage/Audit Evidence、Model Gateway Evidence Review / Readiness 和 workflow function surface 面板。
 - `admin-tenant-overview` 只消费 `tenant-summary-route` 的离线 view model，展示租户摘要、route metadata、request / audit ref 和状态预览。
 - `admin-audit-log` 只消费 `audit-summary-list-route` 的离线 view model，展示 audit ref、actor、event kind、resource、decision、failure code、trace id、recorded timestamp、route metadata、request / audit ref、cursor 和状态预览。
@@ -52,7 +56,7 @@
 - Workflow Review Handoff 是普通离线只读审查交接摘要，复用 User Workspace Home、Workflow Review Workspace、Workflow Surface Overview、Scenario Inspector、Validation Inspector、Execution Plan Preview、Runtime Readiness、Blocked Action Preview 和 Confirmation Placeholder 的 view model，集中展示 active draft review record、review recipients、key findings、read-side evidence checklist、decision blockers 和 boundary locks。它不导出、不发送、不保存 handoff，不请求 live backend，不新增 Go route，不提交 confirmation decision，不解锁执行，不写回或 replay。
 - `control-plane-read-formal-ui-readiness-close-v1` 已用聚合 surface matrix / checker 固定七个只读页面的 route binding、状态预览、request / audit ref 和 forbidden output guard；后续普通只读展示页不再默认逐页新增专项门禁。
 - `workflow-function-surface-readiness-close-v1` 已用 workflow surface matrix / checker 固定当前 workflow 离线产品面的 builder、render anchor、CSS selector、关闭项和停止线；后续普通离线 workflow 展示，包括 Workflow Review Workspace、User Workspace Home 和 Workflow Review Handoff，优先复用该聚合 gate、`npm run build` 和 fast baseline。
-- 不请求生产后端，不接正式 `Radish` auth，不实现 quota enforcement、rate limit、cost record writes、production repository、validation result persistence、execution plan persistence、runtime readiness persistence、正式 publish、unrestricted workflow executor、confirmation decision、execution unlock、writeback、run replay 或 run resume。显式开发测试态例外包括 Application Catalog、API Key Lifecycle / Gateway Bearer、配置草案 / 发布审查、Saved Draft / Executor v0 和 Request History；这些能力都受独立 gate 与存储模式约束。
+- 不请求生产后端，不接正式 `Radish` auth，不实现 quota enforcement、rate limit、cost record writes、production repository、validation result persistence、execution plan persistence、runtime readiness persistence、正式 publish、unrestricted workflow executor、writeback、run replay 或 run resume。显式开发测试态例外包括 Application Catalog、API Key Lifecycle / Gateway Bearer、配置草案 / 发布审查、Saved Draft / Executor v0、HTTP Tool、Workflow RAG、Application RAG、Workflow Definition、Application Session 与 Request / Run History；这些能力都受独立 gate、作用域、服务端 authority reload 与存储模式约束。
 - `control-plane-read-dev-live-consumer-v1` 的基础七路 read consumer 仍只使用测试身份上下文；Application Catalog、API Key Lifecycle、Workflow 与 Gateway History 由各自严格消费端和显式 gate 承载。任何 dev-live 组合都不得解释为 production API consumer、正式 auth/db、production repository、quota 或完整 workflow runtime ready。
 - `control-plane-read-auth-store-transition-preconditions-v1` 只固定未来 auth middleware / read store repository 迁移前置条件；不得解释为 Radish auth ready、token validation ready、database ready、repository implementation ready 或 production admin console ready。
 - 不替代 `apps/radishmind-console/`；后者仍是本地 ops surface。
@@ -70,6 +74,9 @@
 - `adminProviderDeploymentReview.ts` / `adminProviderDeploymentReviewPanel.tsx` 只复用 Model Gateway Route Evidence、Model Gateway Evidence Review、Admin Operations Review、tenant overview 和 audit log，生成 provider/profile、model route、secret ref readiness、deployment status、operator risk 和 locked capability 摘要。
 - `savedWorkflowDraftConsumer.ts` 只在 `VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE=dev-saved-draft-http` 下连接 dev-only saved draft route，负责 sample / unsaved / validating / saving / reading / saved / version conflict / `conflict_local_continued` / failed，以及 saved draft list `sample` / `loading` / `ready` / `empty` / `list_failed` / `restore_failed` 状态映射；`savedWorkflowDraftLifecycle.ts` 负责 persisted base version、validate / failure version preservation 和 unresolved conflict blocking，冲突审查 summary 只派生 `savedMetadataState`、`restoreActionState`、`restoreUnavailableReason`、本地草案保留说明和 reviewer 下一步，默认 sample-only，不承担 production persistence。
 - `workflowExecutorConsumer.ts` 负责受控草案构建、bounded graph eligibility、dev HTTP request / response 映射与 record guard；`workflowExecutorPanel.tsx` 只负责运行输入、condition、状态、节点时间线、advisory output 和副作用计数展示，不持有执行授权或生产配置。
+- `workflowDefinitionPromotionConsumer.ts` / `workflowDefinitionPromotionPanel.tsx` 负责 definition candidate、review、version、activation 与 v5 run 的严格映射和人工动作；只向后端发送资源标识、CAS 与有界运行输入，不把 Web eligibility 当作权威。
+- `applicationInteractionSessionConsumer.ts` / `applicationInteractionSessionPanel.tsx` 负责 session / turn metadata、profile 选择、Active / Closed 过滤和 v4 / v5 run handoff；transcript、input 与 answer 不进入通用 workspace context 或浏览器持久化。
+- `applicationOperationsPanel.tsx` 只组合既有 Gateway Request History 与 Workflow Run History consumer 的当前窗口，不创建 correlation owner 或新的 usage ledger。
 - `workflowDraftDesigner.ts` 与 `App.tsx` 负责受控本地编辑、本地节点新增 / 移动 / 删除保护、边重建、节点属性编辑、active draft validate / save / read、版本冲突时保留本地草案，以及 saved dev draft restore 后进入 Draft Designer；`workflowUserWorkspaceHome.ts` / `workflowUserWorkspaceHomePanel.tsx` 负责从 Workspace Home 与 workflow definitions 派生本地草案，并展示 saved draft list / restore 入口。
 - `App.tsx` 只负责把这些 view model 接入分组导航和页面渲染；如果新增真实后端 route、持久化状态或执行能力，应先落契约、fixture、checker 和边界文档，而不是直接在 App 或 panel 中接线。
 
@@ -136,10 +143,10 @@ RADISHMIND_WORKFLOW_EXECUTOR_DEV=1
 VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http
 RADISHMIND_WORKFLOW_TOOL_ACTION_DEV=1
 VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE=dev-workflow-http-tool-http
-VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS=workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm
+VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS=workflow_drafts:read,workflow_runs:execute,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm,workflow_tool_actions:execute
 ```
 
-这些开关只服务本地开发态 Saved Draft、受控 executor v0 与 pre-run HTTP Tool action plan / confirmation；批次 C 完成前，批准不会执行网络请求，也不会创建 Workflow run。`--saved-draft-postgres-dev-test` 可显式使用 PostgreSQL dev/test repository。它们都不代表 production persistence、production auth 或 production API。
+这些开关只服务本地开发态 Saved Draft、受控 executor v0 与 HTTP Tool plan / confirmation / execution；HTTP Tool 只有获得 execute grant 且人工批准后才能最多发出一次受策略约束的 HTTPS GET，并创建 metadata-only run v2。`--saved-draft-postgres-dev-test` 可显式使用 PostgreSQL dev/test repository。它们都不代表 production persistence、production auth 或 production API。
 
 Workflow RAG 快照、精确 Saved Draft、retrieval execution、run v3 与回归审查使用：
 
@@ -188,6 +195,38 @@ pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -WorkflowRAGPromotionLo
 ```
 
 该档复用 workflow backend selector、shared SQLite database、snapshot / evaluation repositories、application draft repository 和 publish governance，同时打开 evaluation / promotion / draft / publish / catalog 的显式 dev-only Web source。它不启用 Workflow RAG execution、Gateway Playground、自动 baseline / promotion / release / publish、connector、后台任务、retry / replay、业务写回或生产能力；退出 launcher 会关闭本次启动的前后端进程。完整的“dataset → candidate review → promotion decision → binding attach → publish review”操作顺序见 [Workflow RAG 开发测试态使用与资源治理指南](../../docs/features/workflow/workflow-rag-dev-test-usage-governance-guide.md)。
+
+Application RAG assignment、Bearer invocation、run v4 与历史 / 评测连续链使用：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --workflow-rag-application-local-product
+```
+
+```powershell
+pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -WorkflowRAGApplicationLocalProduct
+```
+
+Workflow Definition candidate、人工 review / activation、v5 run 与只读消费者使用：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --workflow-definition-local-product
+```
+
+```powershell
+pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -WorkflowDefinitionLocalProduct
+```
+
+Application Interaction Session 的完整 SQLite 链使用：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --application-session-local-product
+```
+
+```powershell
+pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -ApplicationSessionLocalProduct
+```
+
+PostgreSQL 对应使用 `--workflow-definition-postgres-dev-test` / `-WorkflowDefinitionPostgresDevTest` 或 `--application-session-postgres-dev-test` / `-ApplicationSessionPostgresDevTest`。Session 档会同时启用两种 profile 所需的既有 v5 / v4 owner、Run History / Comparison / Evaluation 与 Application Operations，但不会自动创建 candidate、review、activation、publish、assignment 或 API key。资源准备、scope、恢复和失败语义见[应用受控运行开发测试态指南](../../docs/features/user-workspace/application-controlled-runtime-dev-test-guide.md)。
 
 Application Catalog 的独立 PostgreSQL 开发测试模式可通过以下参数启用：
 
