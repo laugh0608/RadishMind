@@ -1,6 +1,6 @@
 # 用户工作区细专题入口
 
-更新时间：2026-07-18
+更新时间：2026-07-19
 
 本目录承接用户工作区中跨应用、模型发现、接入、调用与审查的具体功能专题。产品面长期边界继续以 [用户工作区设计与开发文档](../user-workspace.md) 为准。
 
@@ -11,10 +11,11 @@
 - [应用 API 接入与调用 v1](application-api-integration-invocation-v1.md)：把选中应用、`/v1/models` 模型目录、三协议接入示例、现有 Gateway 调试台调用与脱敏请求历史审查串成连续的内部开发者路径。
 - [应用配置草案与审查 v1](application-configuration-draft-review-v1.md)：为当前应用建立独立配置草案、校验、开发测试态持久化、版本冲突、比较和 API 接入交接。
 - [应用发布治理与晋级审查 v1](application-publish-governance-promotion-v1.md)：已完成不可变候选版本、版本绑定、审查 CAS、漂移识别、阻塞式晋级资格判断，以及既有接入区、调试台和请求历史交接；不直接发布正式应用。
+- [应用运行观测与用量归因 v1](application-operations-observability-usage-attribution-v1.md)：已完成应用作用域 Gateway Request History 与 Workflow Run History 的独立来源覆盖、当前窗口归因摘要和合并时间线；不推测跨来源关联，不估算 token、成本、配额或计费。
 
 ## 下一步
 
-- API 密钥专题已经完成，不继续扩同层数据库、应用目录、页面、检查器或证据切片。[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](../workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)批次 A 已复用该生命周期实现显式 `application_rag:invoke` 开发测试态 scope；它不改变既有三协议 scope，也不启用 Web 交接、生产认证、成员关系、生产 API 密钥、配额或计费。
+- API 密钥、Application RAG runtime 与应用运行观测首批均已完成。下一次产品推进从正式功能设计中选择新的真实用户缺口；只有需要跨全部分页窗口的稳定统计、可信 reported usage 或正式 quota / billing owner 时，才评审服务端 summary，不继续扩同层 UI 汇总、检查器或证据切片。
 
 ## 目录停止线
 

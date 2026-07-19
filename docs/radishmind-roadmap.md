@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-07-18
+更新时间：2026-07-19
 
 ## 文档职责
 
@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：工作流审查、Gateway 请求审查、用户工作区应用接入 / 配置 / 发布 / 目录 / API 密钥，以及既有本地 SQLite 与 PostgreSQL 开发测试态证据链均已关闭。Workflow HTTP Tool、RAG Retrieval / 应用知识快照、RAG Regression Review / Evaluation Profile、synthetic-public 评测数据集与知识质量审查、应用作用域 durable dataset / candidate snapshot review、知识基线晋级与应用配置绑定，以及 [Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](features/workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)均已完成。当前没有在制产品实现批次；下一步从功能设计入口选择并评审新的真实用户流程，再决定单一实施任务，不直接进入 connector、在线搜索、embedding / reranker、自动 activation / baseline / release 或生产能力。
+1. 产品线：工作流审查、Gateway 请求审查、用户工作区应用接入 / 配置 / 发布 / 目录 / API 密钥，以及既有本地 SQLite 与 PostgreSQL 开发测试态证据链均已关闭。Workflow HTTP Tool、RAG Retrieval / 应用知识快照、RAG Regression Review / Evaluation Profile、synthetic-public 评测数据集与知识质量审查、应用作用域 durable dataset / candidate snapshot review、知识基线晋级与应用配置绑定、[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](features/workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)，以及 [应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)批次 A 均已完成。当前没有在制产品实现批次；下一步从功能设计入口选择并评审新的真实用户流程。应用观测只有在全分页稳定统计、可信 reported usage 或正式 quota / billing owner 成立时才评审服务端 summary；不直接进入 connector、在线搜索、embedding / reranker、自动 activation / baseline / release、配额、计费或生产能力。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；production secret backend、process supervisor、部署环境隔离、console production packaging、生产认证、生产 API key、quota 和 billing 继续为 `not_satisfied`。

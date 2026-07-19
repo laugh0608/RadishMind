@@ -5354,3 +5354,166 @@ dd {
     grid-template-columns: 1fr;
   }
 }
+.application-operations {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.application-operations-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.application-operations-coverage,
+.application-operations-metrics {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.application-operations-coverage article,
+.application-operations-metrics article,
+.application-operations-timeline article {
+  background: #ffffff;
+  border: 1px solid #d9e0e7;
+  border-radius: 1rem;
+  min-width: 0;
+  padding: 1rem;
+}
+
+.application-operations-coverage dl,
+.application-operations-timeline dl {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.8rem 0 0;
+}
+
+.application-operations-coverage dl div,
+.application-operations-timeline dl div {
+  display: grid;
+  gap: 0.2rem;
+  grid-template-columns: minmax(6rem, 0.35fr) minmax(0, 1fr);
+}
+
+.application-operations-coverage dd,
+.application-operations-timeline dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.application-operations-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.application-operations-metrics article {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.application-operations-metrics p,
+.application-operations-metrics span {
+  color: #5d6f84;
+  margin: 0;
+}
+
+.application-operations-metrics strong {
+  font-size: 1.05rem;
+}
+
+.application-operations-failure,
+.application-operations-stop-line {
+  background: #fff4f2;
+  border: 1px solid #f0b8b0;
+  border-radius: 0.8rem;
+  color: #9f2d20;
+  margin: 0;
+  padding: 0.85rem 1rem;
+}
+
+.application-operations-timeline-heading {
+  align-items: end;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.application-operations-timeline-heading h4,
+.application-operations-timeline-heading p {
+  margin-bottom: 0;
+}
+
+.application-operations-timeline-heading span {
+  color: #5d6f84;
+  font-size: 0.86rem;
+}
+
+.application-operations-timeline {
+  display: grid;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.application-operations-timeline li {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: 0.8rem minmax(0, 1fr);
+  padding-bottom: 0.9rem;
+  position: relative;
+}
+
+.application-operations-timeline li::before {
+  background: #d9e0e7;
+  content: "";
+  inset: 0.8rem auto -0.8rem 0.35rem;
+  position: absolute;
+  width: 1px;
+}
+
+.application-operations-timeline li:last-child::before {
+  display: none;
+}
+
+.application-operations-timeline-marker {
+  background: #2f6d4f;
+  border: 2px solid #f6f7f9;
+  border-radius: 50%;
+  height: 0.7rem;
+  margin-top: 0.7rem;
+  position: relative;
+  width: 0.7rem;
+  z-index: 1;
+}
+
+.application-operations-empty {
+  color: #5d6f84;
+  margin: 0;
+}
+
+@media (max-width: 960px) {
+  .application-operations-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .application-operations-actions,
+  .application-operations-timeline-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .application-operations-coverage,
+  .application-operations-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .application-operations-coverage dl div,
+  .application-operations-timeline dl div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

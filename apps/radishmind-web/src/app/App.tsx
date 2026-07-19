@@ -233,6 +233,7 @@ const WorkflowRAGPromotionPanel = lazy(() => import("../features/control-plane-r
 const WorkflowRAGExecutionPanel = lazy(() => import("../features/control-plane-read/workflowRAGExecutionPanel"));
 const APIKeyLifecyclePanel = lazy(() => import("../features/control-plane-read/apiKeyLifecyclePanel").then((module) => ({ default: module.APIKeyLifecyclePanel })));
 const ApplicationRAGInvocationPanel = lazy(() => import("../features/control-plane-read/workflowRAGApplicationRuntimePanel"));
+const ApplicationOperationsPanel = lazy(() => import("../features/control-plane-read/applicationOperationsPanel"));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
 const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
 
@@ -2128,6 +2129,16 @@ export function App() {
             ))}
           </div>
         </section>
+
+        <Suspense fallback={<section className="surface-band"><p>Loading application operations…</p></section>}>
+          <ApplicationOperationsPanel
+            key={`application-operations-${workflowScopedApplicationId}`}
+            applicationId={workflowScopedApplicationId}
+            applicationName={applicationCatalogLive
+              ? selectedApplicationCatalogRecord?.displayName ?? ""
+              : selectedApplication.displayName}
+          />
+        </Suspense>
 
         <Suspense fallback={<section className="surface-band"><p>Loading run history…</p></section>}>
           <WorkflowRunHistoryPanel applicationId={workflowScopedApplicationId} refreshKey={workflowRunHistoryRefreshKey} />
