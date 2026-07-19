@@ -126,10 +126,15 @@ export function initialWorkflowExecutorConsumerState(
 export function buildWorkflowExecutorV0Draft(
   source: WorkflowDraftDesignerDraft,
   draftNumber: number,
+  targetApplicationRef = source.applicationRef,
 ): WorkflowDraftDesignerDraft {
   const numberLabel = String(Math.max(1, draftNumber)).padStart(2, "0");
-  const applicationKey = safeWorkflowExecutorKey(source.applicationRef, 42);
+  const applicationRef = targetApplicationRef.trim() || source.applicationRef;
+  const applicationKey = safeWorkflowExecutorKey(applicationRef, 42);
   const draftId = `draft_${applicationKey}_executor_v0_${numberLabel}`;
+  const workflowDefinitionId = applicationRef === source.applicationRef
+    ? source.workflowDefinitionId
+    : `workflow_definition_${applicationKey}_executor_v0`;
   const providerRef = source.providerProfileRef.trim() || "provider:mock";
   const nodes: WorkflowDraftDesignerNode[] = [
     {
@@ -206,6 +211,8 @@ export function buildWorkflowExecutorV0Draft(
   return {
     ...source,
     draftId,
+    applicationRef,
+    workflowDefinitionId,
     templateRef: source.draftId,
     label: `${source.label} executor v0 ${numberLabel}`,
     summary:

@@ -23,6 +23,8 @@ export type ApplicationInteractionExecutionProfile =
   | "workflow_definition_executor_v1"
   | "application_rag_invocation_v1";
 
+export type ApplicationInteractionSessionState = "active" | "closed";
+
 export type ApplicationInteractionSessionConfig = {
   mode: "offline" | "dev_application_session_http";
   baseUrl: string;
@@ -250,12 +252,15 @@ export function initialApplicationInteractionSessionListResult(
 export async function listApplicationInteractionSessions(
   config: ApplicationInteractionSessionConfig,
   applicationId: string,
+  filter: { state: ApplicationInteractionSessionState } = { state: "active" },
   signal?: AbortSignal,
 ): Promise<ApplicationInteractionSessionListResult> {
   if (config.mode === "offline") return initialApplicationInteractionSessionListResult(config);
-  if (!validScope(config, applicationId)) return failedSessionList("application_session_payload_invalid");
+  if (!validScope(config, applicationId) || (filter.state !== "active" && filter.state !== "closed")) {
+    return failedSessionList("application_session_payload_invalid");
+  }
   const requestId = createRequestId("application-session-list");
-  const query = new URLSearchParams({ workspace_id: config.workspaceId, application_id: applicationId, limit: "100" });
+  const query = new URLSearchParams({ workspace_id: config.workspaceId, application_id: applicationId, state: filter.state, limit: "100" });
   try {
     const response = await fetch(`${config.baseUrl}/v1/user-workspace/application-sessions?${query}`, {
       headers: managementHeaders(config, applicationId, requestId, "application_sessions:read"), signal,

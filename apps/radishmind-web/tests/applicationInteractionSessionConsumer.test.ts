@@ -49,6 +49,7 @@ test("session list and create use exact application scope and explicit profile",
   assert.equal(requests[0]?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_sessions:read");
   assert.match(requests[0]?.url ?? "", /workspace_id=workspace_demo/u);
   assert.match(requests[0]?.url ?? "", /application_id=app_abcdefghijklmnop/u);
+  assert.match(requests[0]?.url ?? "", /state=active/u);
 
   const created = await createApplicationInteractionSession(config, {
     applicationId, executionProfile: "workflow_definition_executor_v1", definitionId: "definition_support_flow",
@@ -61,6 +62,18 @@ test("session list and create use exact application scope and explicit profile",
     execution_profile: "workflow_definition_executor_v1",
     definition_id: "definition_support_flow",
   });
+});
+
+test("session list reads closed recovery evidence only through an explicit state filter", async () => {
+  let requestedUrl = "";
+  globalThis.fetch = async (input) => {
+    requestedUrl = String(input);
+    return jsonResponse(sessionListEnvelope([{ ...workflowSession(), state: "closed", record_version: 3, closed_at: "2026-07-19T08:02:00Z" }]));
+  };
+  const listed = await listApplicationInteractionSessions(config, applicationId, { state: "closed" });
+  assert.equal(listed.sessions[0]?.state, "closed");
+  assert.equal(listed.sessions[0]?.recordVersion, 3);
+  assert.match(requestedUrl, /state=closed/u);
 });
 
 test("session consumer rejects schema, scope, and sensitive response drift", async () => {

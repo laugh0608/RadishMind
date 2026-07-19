@@ -124,6 +124,28 @@ test("Run History maps application RAG v4 execution authority without draft masq
   } finally { globalThis.fetch = originalFetch; }
 });
 
+test("application RAG v4 detail rejects authority snapshot scope drift", async () => {
+  const originalFetch = globalThis.fetch;
+  const record = applicationRAGRunRecord() as any;
+  record.authority.candidate_snapshot.application_id = "app_other";
+  let requestCount = 0;
+  globalThis.fetch = async () => {
+    requestCount += 1;
+    return requestCount === 1 ? jsonResponse(applicationRAGListEnvelope()) : jsonResponse({
+      request_id: "request_detail_v4", workspace_id: "workspace_demo", application_id: "app_flow_copilot",
+      run: record, failure_code: null, failure_summary: "", audit_ref: "audit_detail_v4",
+      retrieval_fragment_previews: [],
+    });
+  };
+  try {
+    const summary = (await listWorkflowRunHistory("app_flow_copilot", live, EMPTY_WORKFLOW_RUN_HISTORY_FILTER)).runs[0]!;
+    await assert.rejects(
+      () => readWorkflowRunHistoryDetail(summary, "app_flow_copilot", live),
+      /incompatible record/u,
+    );
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 test("application RAG comparison allows controlled assignment and snapshot change for the same input", async () => {
   const originalFetch = globalThis.fetch;
   const body = applicationRAGListEnvelope();
@@ -199,6 +221,7 @@ function applicationRAGListEnvelope() {
 
 function applicationRAGRunRecord() {
   const snapshot = { snapshot_id: "rags_abcdefghijklmnop", snapshot_version: 2, snapshot_digest: digestB, rag_ref: "workflow.rag.product_docs.v2" };
+  const scopedSnapshot = { tenant_ref: "tenant_demo", workspace_id: "workspace_demo", application_id: "app_flow_copilot", ...snapshot };
   return {
     schema_version: "workflow_run_record.v4", record_version: 2, run_id: "run_aaaaaaaaaaaaaaaa",
     tenant_ref: "tenant_demo", workspace_id: "workspace_demo", application_id: "app_flow_copilot",
@@ -212,8 +235,8 @@ function applicationRAGRunRecord() {
       draft_id: "application-draft-0001", draft_version: 2, draft_digest: digestB,
       binding_ref: { binding_id: "wragb_abcdefghijklmnop", binding_version: 1, binding_digest: digestC },
       dataset: { dataset_id: "wragd_abcdefghijklmnop", dataset_version: 3, dataset_digest: digestA },
-      candidate_review_id: "wragr_abcdefghijklmnop", baseline_snapshot: { ...snapshot, snapshot_id: "rags_bbbbbbbbbbbbbbbb", snapshot_digest: digestA },
-      candidate_snapshot: snapshot, effective_snapshot_role: "candidate",
+      candidate_review_id: "wragr_abcdefghijklmnop", baseline_snapshot: { ...scopedSnapshot, snapshot_id: "rags_bbbbbbbbbbbbbbbb", snapshot_digest: digestA },
+      candidate_snapshot: scopedSnapshot, effective_snapshot_role: "candidate",
       profile: { profile_id: "workflow.rag.lexical-ngram-dev.v1", profile_version: 1, profile_digest: digestC },
       configured_protocol: "responses", configured_model: "mock-rag",
     },

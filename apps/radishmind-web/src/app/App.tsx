@@ -965,10 +965,14 @@ export function App() {
     }
     const nextDraftNumber = workspaceCreatedDrafts.filter(
       (draft) =>
-        draft.applicationRef === activeWorkflowDraft.applicationRef &&
+        draft.applicationRef === workflowScopedApplicationId &&
         draft.executionProfile === "executor_v0",
     ).length + 1;
-    const createdDraft = buildWorkflowExecutorV0Draft(activeWorkflowDraft, nextDraftNumber);
+    const createdDraft = buildWorkflowExecutorV0Draft(
+      activeWorkflowDraft,
+      nextDraftNumber,
+      workflowScopedApplicationId,
+    );
     setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
     applyWorkflowSelectionPatch({
       applicationRef: createdDraft.applicationRef,

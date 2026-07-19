@@ -13,6 +13,7 @@ import {
   type ApplicationInteractionExecutionProfile,
   type ApplicationInteractionSession,
   type ApplicationInteractionSessionListResult,
+  type ApplicationInteractionSessionState,
   type ApplicationInteractionTurn,
 } from "./applicationInteractionSessionConsumer.ts";
 
@@ -54,6 +55,7 @@ export default function ApplicationInteractionSessionPanel({
   const [selectedSession, setSelectedSession] = useState<ApplicationInteractionSession | null>(null);
   const [turns, setTurns] = useState<ApplicationInteractionTurn[]>([]);
   const [profile, setProfile] = useState<ApplicationInteractionExecutionProfile>("workflow_definition_executor_v1");
+  const [sessionStateFilter, setSessionStateFilter] = useState<ApplicationInteractionSessionState>("active");
   const [definitionId, setDefinitionId] = useState(suggestedDefinitionId);
   const [input, setInput] = useState("");
   const [conditionValues, setConditionValues] = useState("{}");
@@ -75,6 +77,7 @@ export default function ApplicationInteractionSessionPanel({
     setSelectedSession(null);
     setTurns([]);
     setProfile("workflow_definition_executor_v1");
+    setSessionStateFilter("active");
     setDefinitionId(suggestedDefinitionId);
     setInput("");
     setConditionValues("{}");
@@ -87,7 +90,7 @@ export default function ApplicationInteractionSessionPanel({
     const controller = new AbortController();
     abortRef.current = controller;
     setPending("list");
-    void listApplicationInteractionSessions(config, applicationId, controller.signal).then((result) => {
+    void listApplicationInteractionSessions(config, applicationId, { state: "active" }, controller.signal).then((result) => {
       if (generationRef.current !== generation) return;
       abortRef.current = null;
       setPending("");
@@ -118,7 +121,7 @@ export default function ApplicationInteractionSessionPanel({
     setTurns([]);
     clearTransientInput();
     const controller = beginOperation("list");
-    const result = await listApplicationInteractionSessions(config, applicationId, controller.signal);
+    const result = await listApplicationInteractionSessions(config, applicationId, { state: sessionStateFilter }, controller.signal);
     if (generationRef.current !== generation) return;
     abortRef.current = null;
     setPending("");
@@ -264,6 +267,12 @@ export default function ApplicationInteractionSessionPanel({
       </div>
 
       <div className="application-interaction-create">
+        <label>Session state
+          <select value={sessionStateFilter} onChange={(event) => setSessionStateFilter(event.target.value as ApplicationInteractionSessionState)} disabled={Boolean(pending)}>
+            <option value="active">Active</option>
+            <option value="closed">Closed</option>
+          </select>
+        </label>
         <label>Execution profile
           <select value={profile} onChange={(event) => setProfile(event.target.value as ApplicationInteractionExecutionProfile)} disabled={Boolean(pending)}>
             <option value="workflow_definition_executor_v1">Workflow Definition v5</option>

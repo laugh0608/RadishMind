@@ -33,6 +33,16 @@ test("executor v0 draft builder produces a saved-draft-compatible bounded graph"
   );
 });
 
+test("executor v0 draft builder rebinds a fallback draft to the selected application", () => {
+  const draft = buildWorkflowExecutorV0Draft(sourceDraft(), 1, "app_new_workspace");
+
+  assert.equal(draft.draftId, "draft_app_new_workspace_executor_v0_01");
+  assert.equal(draft.applicationRef, "app_new_workspace");
+  assert.equal(draft.workflowDefinitionId, "workflow_definition_app_new_workspace_executor_v0");
+  assert.equal(draft.templateRef, sourceDraft().draftId);
+  assert.deepEqual(draft.nodes.map((node) => node.nodeType), ["prompt", "llm", "output"]);
+});
+
 test("executor eligibility requires the exact saved clean graph", () => {
   const draft = buildWorkflowExecutorV0Draft(sourceDraft(), 1);
   const savedState = {

@@ -552,7 +552,7 @@ function parseApplicationRAGRunRecord(value: Record<string, unknown>): WorkflowR
     value.selected_provider.includes("://") || typeof value.selected_model !== "string" || !value.selected_model.trim() ||
     value.selected_model.includes("://") || !isPatternString(value.request_id, REFERENCE_PATTERN) ||
     !isPatternString(value.audit_ref, REFERENCE_PATTERN) || !isPatternString(value.actor_ref, REFERENCE_PATTERN)) return null;
-  const authority = parseApplicationRAGAuthority(value.authority);
+  const authority = parseApplicationRAGAuthority(value.authority, value.tenant_ref, value.workspace_id, value.application_id);
   const snapshot = parseRAGSnapshotBinding(value.snapshot);
   const retrievalAttempt = parseRAGRetrievalAttempt(value.retrieval_attempt);
   const sideEffects = parseRAGSideEffects(value.side_effects);
@@ -617,7 +617,12 @@ function parseApplicationRAGRunRecord(value: Record<string, unknown>): WorkflowR
   };
 }
 
-function parseApplicationRAGAuthority(value: unknown): WorkflowRAGApplicationRunAuthority | null {
+function parseApplicationRAGAuthority(
+  value: unknown,
+  tenantRef: string,
+  workspaceId: string,
+  applicationId: string,
+): WorkflowRAGApplicationRunAuthority | null {
   const keys = new Set([
     "assignment_id", "assignment_version", "assignment_digest", "publish_candidate_id", "publish_review_version",
     "publish_candidate_state", "draft_id", "draft_version", "draft_digest", "binding_ref", "dataset",
@@ -640,8 +645,8 @@ function parseApplicationRAGAuthority(value: unknown): WorkflowRAGApplicationRun
     value.profile.profile_id !== "workflow.rag.lexical-ngram-dev.v1" || value.profile.profile_version !== 1 ||
     !isPatternString(value.profile.profile_digest, DIGEST_PATTERN) || typeof value.configured_protocol !== "string" ||
     value.configured_protocol.includes("://") || typeof value.configured_model !== "string" || value.configured_model.includes("://")) return null;
-  const baselineSnapshot = parseRAGSnapshotBinding(value.baseline_snapshot);
-  const candidateSnapshot = parseRAGSnapshotBinding(value.candidate_snapshot);
+  const baselineSnapshot = parseScopedRAGSnapshotBinding(value.baseline_snapshot, tenantRef, workspaceId, applicationId);
+  const candidateSnapshot = parseScopedRAGSnapshotBinding(value.candidate_snapshot, tenantRef, workspaceId, applicationId);
   if (!baselineSnapshot || !candidateSnapshot) return null;
   return {
     assignmentId: value.assignment_id,
@@ -668,6 +673,26 @@ function parseApplicationRAGAuthority(value: unknown): WorkflowRAGApplicationRun
     configuredProtocol: value.configured_protocol,
     configuredModel: value.configured_model,
   };
+}
+
+function parseScopedRAGSnapshotBinding(
+  value: unknown,
+  tenantRef: string,
+  workspaceId: string,
+  applicationId: string,
+): WorkflowRAGRunSnapshotBinding | null {
+  const keys = new Set([
+    "tenant_ref", "workspace_id", "application_id", "snapshot_id", "snapshot_version", "snapshot_digest", "rag_ref",
+  ]);
+  if (!isRecord(value) || Object.keys(value).length !== keys.size || Object.keys(value).some((key) => !keys.has(key)) ||
+    value.tenant_ref !== tenantRef || value.workspace_id !== workspaceId || value.application_id !== applicationId) return null;
+  const snapshot = parseRAGSnapshotBinding({
+    snapshot_id: value.snapshot_id,
+    snapshot_version: value.snapshot_version,
+    snapshot_digest: value.snapshot_digest,
+    rag_ref: value.rag_ref,
+  });
+  return snapshot;
 }
 
 function parseRAGSnapshotBinding(value: unknown): WorkflowRAGRunSnapshotBinding | null {
