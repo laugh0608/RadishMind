@@ -2,7 +2,7 @@
 
 更新时间：2026-07-19
 
-状态：`application_interaction_session_controlled_runtime_orchestration_dev_test_v1_batch_e_ready_for_implementation`
+状态：`application_interaction_session_controlled_runtime_orchestration_dev_test_v1_completed`
 
 ## 目标与准入结论
 
@@ -102,11 +102,18 @@
 
 ## 批次 E：连续链与专题收口
 
-状态：`pending`。
+状态：`completed`。
 
 - SQLite / PostgreSQL 连续链、重启、并发、漂移、取消、stale、no-fallback 与敏感扫描。
 - Web 测试 / build、Platform Go / race / vet、PostgreSQL integration、仓库 fast / full 和真实浏览器。
 - 同步功能专题、任务卡、入口、能力矩阵、current focus 和周志。
+
+完成证据：
+
+- Shell / PowerShell launcher 已增加 SQLite local-product 与 PostgreSQL dev/test 双 profile 会话档位，精确探测 session route，并复用既有 Definition、Application RAG、API key、Gateway 和数据库前置链。
+- SQLite 真实浏览器完成 v5 / v4 session turn、Run History detail、close、服务重启、显式 closed filter 和 metadata-only turn 恢复；控制台零错误，session / turn 表敏感内容与 forbidden key 扫描为零命中。
+- 连续验收修正了两个根因：fallback executor draft 现在重绑定当前 Application；v4 authority baseline / candidate snapshot 按真实完整作用域严格解析，作用域漂移拒绝。
+- 全部 Web 测试与 build、Platform 全量 Go、目标 race、vet、PostgreSQL integration、`git diff --check`、仓库 fast / full 通过；专题状态推进为完成，下一步回到正式功能设计选择。
 
 ## 总停止线
 
