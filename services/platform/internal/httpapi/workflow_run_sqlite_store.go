@@ -3,6 +3,7 @@ package httpapi
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	sqliteworkflowrunmigrations "radishmind.local/services/platform/migrations/sqlite/workflow_runs"
@@ -28,6 +29,10 @@ func (store *sqliteWorkflowRunStore) UpsertRun(
 	}
 	next := cloneWorkflowRunRecord(*record)
 	next.RecordVersion++
+	sourceKind, sourceID, sourceVersion, err := workflowRunStorageExecutionSource(next)
+	if err != nil {
+		return err
+	}
 	payload, startedAt, completedAt, err := encodeWorkflowRunStorageRecord(next)
 	if err != nil {
 		return err
@@ -53,8 +58,9 @@ func (store *sqliteWorkflowRunStore) UpsertRun(
 			runContext.WorkspaceID,
 			runContext.ApplicationID,
 			next.RunID,
-			next.DraftID,
-			next.DraftVersion,
+			sourceKind,
+			sourceID,
+			sourceVersion,
 			next.RecordVersion,
 			sqliteworkflowrunmigrations.RunRecordStoreSchemaVersion,
 			next.SchemaVersion,
@@ -74,8 +80,9 @@ func (store *sqliteWorkflowRunStore) UpsertRun(
 		row = store.database.QueryRowContext(
 			runContext.RequestContext,
 			sqliteWorkflowRunUpdateSQL,
-			next.DraftID,
-			next.DraftVersion,
+			sourceKind,
+			sourceID,
+			sourceVersion,
 			next.SchemaVersion,
 			next.Status,
 			completedAtUnixNano,
@@ -229,8 +236,9 @@ func scanSQLiteWorkflowRunRecord(
 	var workspaceID string
 	var applicationID string
 	var runID string
-	var draftID string
-	var draftVersion int
+	var sourceKind string
+	var sourceID string
+	var sourceVersion int
 	var recordVersion int
 	var storeSchemaVersion string
 	var schemaVersion string
@@ -250,8 +258,9 @@ func scanSQLiteWorkflowRunRecord(
 		&workspaceID,
 		&applicationID,
 		&runID,
-		&draftID,
-		&draftVersion,
+		&sourceKind,
+		&sourceID,
+		&sourceVersion,
 		&recordVersion,
 		&storeSchemaVersion,
 		&schemaVersion,
@@ -285,16 +294,24 @@ func scanSQLiteWorkflowRunRecord(
 	if err != nil {
 		return WorkflowRunRecord{}, errWorkflowRunStoreContract
 	}
-	if tenantRef != runContext.TenantRef || workspaceID != runContext.WorkspaceID ||
-		applicationID != runContext.ApplicationID || runID != record.RunID || draftID != record.DraftID ||
-		draftVersion != record.DraftVersion || recordVersion != record.RecordVersion ||
-		storeSchemaVersion != sqliteworkflowrunmigrations.RunRecordStoreSchemaVersion || schemaVersion != record.SchemaVersion ||
-		status != string(record.Status) || startedAtUnixNano != decodedStartedAtUnixNano ||
-		!sqliteWorkflowRunOptionalTimeMatches(completedAtUnixNano, decodedCompletedAtUnixNano) ||
-		actorRef != record.ActorRef || requestID != record.RequestID || auditRef != record.AuditRef ||
-		failureCode != string(record.FailureCode) || failureBoundary != string(workflowRunRecordFailureBoundary(record)) ||
-		selectedProvider != record.SelectedProvider || selectedModel != record.SelectedModel {
+	decodedSourceKind, decodedSourceID, decodedSourceVersion, err := workflowRunStorageExecutionSource(record)
+	if err != nil {
 		return WorkflowRunRecord{}, errWorkflowRunStoreContract
+	}
+	if tenantRef != runContext.TenantRef || workspaceID != runContext.WorkspaceID || applicationID != runContext.ApplicationID || runID != record.RunID {
+		return WorkflowRunRecord{}, fmt.Errorf("%w: scope projection", errWorkflowRunStoreContract)
+	}
+	if sourceKind != decodedSourceKind || sourceID != decodedSourceID || sourceVersion != decodedSourceVersion {
+		return WorkflowRunRecord{}, fmt.Errorf("%w: execution source projection", errWorkflowRunStoreContract)
+	}
+	if recordVersion != record.RecordVersion || storeSchemaVersion != sqliteworkflowrunmigrations.RunRecordStoreSchemaVersion || schemaVersion != record.SchemaVersion || status != string(record.Status) {
+		return WorkflowRunRecord{}, fmt.Errorf("%w: version projection", errWorkflowRunStoreContract)
+	}
+	if startedAtUnixNano != decodedStartedAtUnixNano || !sqliteWorkflowRunOptionalTimeMatches(completedAtUnixNano, decodedCompletedAtUnixNano) {
+		return WorkflowRunRecord{}, fmt.Errorf("%w: timestamp projection", errWorkflowRunStoreContract)
+	}
+	if actorRef != record.ActorRef || requestID != record.RequestID || auditRef != record.AuditRef || failureCode != string(record.FailureCode) || failureBoundary != string(workflowRunRecordFailureBoundary(record)) || selectedProvider != record.SelectedProvider || selectedModel != record.SelectedModel {
+		return WorkflowRunRecord{}, fmt.Errorf("%w: metadata projection", errWorkflowRunStoreContract)
 	}
 	return record, nil
 }
@@ -319,8 +336,9 @@ const sqliteWorkflowRunColumns = `
     workspace_id,
     application_id,
     run_id,
-    draft_id,
-    draft_version,
+    execution_source_kind,
+    execution_source_id,
+    execution_source_version,
     record_version,
     store_schema_version,
     schema_version,
@@ -338,17 +356,19 @@ const sqliteWorkflowRunColumns = `
 
 const sqliteWorkflowRunInsertSQL = `
 INSERT INTO workflow_run_records (
-    tenant_ref, workspace_id, application_id, run_id, draft_id, draft_version,
+    tenant_ref, workspace_id, application_id, run_id,
+    execution_source_kind, execution_source_id, execution_source_version,
     record_version, store_schema_version, schema_version, run_status,
     started_at_unix_nano, completed_at_unix_nano, actor_ref, request_id, audit_ref,
     failure_code, failure_boundary, selected_provider, selected_model, sanitized_run_record
-) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 ON CONFLICT (tenant_ref, workspace_id, application_id, run_id) DO NOTHING
 RETURNING ` + sqliteWorkflowRunColumns
 
 const sqliteWorkflowRunUpdateSQL = `
 UPDATE workflow_run_records
-   SET draft_id=?, draft_version=?, record_version=record_version+1, schema_version=?, run_status=?,
+   SET execution_source_kind=?, execution_source_id=?, execution_source_version=?,
+       record_version=record_version+1, schema_version=?, run_status=?,
        completed_at_unix_nano=?, actor_ref=?, request_id=?, audit_ref=?, failure_code=?,
        failure_boundary=?, selected_provider=?, selected_model=?, sanitized_run_record=?
  WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND run_id=?
@@ -365,7 +385,7 @@ SELECT ` + sqliteWorkflowRunColumns + `
   FROM workflow_run_records
  WHERE tenant_ref=? AND workspace_id=? AND application_id=?
    AND (?='' OR run_status=?)
-   AND (?='' OR draft_id=?)
+   AND (?='' OR (execution_source_kind='workflow_draft' AND execution_source_id=?))
    AND (?='' OR failure_code=?)
    AND (?='' OR failure_boundary=?)
    AND (?='' OR selected_provider=?)

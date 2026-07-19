@@ -43,6 +43,15 @@ type WorkflowRunSummary struct {
 	DraftID                  string                            `json:"draft_id"`
 	DraftVersion             int                               `json:"draft_version"`
 	DraftDigest              string                            `json:"draft_digest,omitempty"`
+	ExecutionKind            string                            `json:"execution_kind,omitempty"`
+	ExecutionSourceKind      string                            `json:"execution_source_kind,omitempty"`
+	ExecutionSourceID        string                            `json:"execution_source_id,omitempty"`
+	ExecutionSourceVersion   int                               `json:"execution_source_version,omitempty"`
+	RuntimeAssignmentID      string                            `json:"runtime_assignment_id,omitempty"`
+	RuntimeAssignmentVersion int                               `json:"runtime_assignment_version,omitempty"`
+	PublishCandidateID       string                            `json:"publish_candidate_id,omitempty"`
+	PublishReviewVersion     int                               `json:"publish_review_version,omitempty"`
+	EffectiveSnapshotRole    string                            `json:"effective_snapshot_role,omitempty"`
 	WorkspaceID              string                            `json:"workspace_id"`
 	ApplicationID            string                            `json:"application_id"`
 	Status                   WorkflowRunStatus                 `json:"status"`
@@ -312,6 +321,19 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 	}
 	if record.ToolAttempt != nil {
 		summary.ToolAttemptStatus = record.ToolAttempt.Status
+	}
+	if record.ExecutionSource != nil {
+		summary.ExecutionKind = record.ExecutionSource.Kind
+		summary.ExecutionSourceKind = record.ExecutionSource.SourceKind
+		summary.ExecutionSourceID = record.ExecutionSource.ID
+		summary.ExecutionSourceVersion = record.ExecutionSource.Version
+	}
+	if record.RAGApplication != nil {
+		summary.RuntimeAssignmentID = record.RAGApplication.AssignmentID
+		summary.RuntimeAssignmentVersion = record.RAGApplication.AssignmentVersion
+		summary.PublishCandidateID = record.RAGApplication.PublishCandidateID
+		summary.PublishReviewVersion = record.RAGApplication.PublishReviewVersion
+		summary.EffectiveSnapshotRole = record.RAGApplication.EffectiveSnapshotRole
 	}
 	if record.Diagnostic != nil {
 		summary.FailureBoundary = record.Diagnostic.FailureBoundary

@@ -281,7 +281,8 @@ func cloneWorkflowRunRecord(record WorkflowRunRecord) WorkflowRunRecord {
 	}
 	if record.RetrievalAttempt != nil {
 		attempt := *record.RetrievalAttempt
-		attempt.SelectedFragments = append([]workflowRAGRunSelectedFragment(nil), record.RetrievalAttempt.SelectedFragments...)
+		attempt.SelectedFragments = make([]workflowRAGRunSelectedFragment, len(record.RetrievalAttempt.SelectedFragments))
+		copy(attempt.SelectedFragments, record.RetrievalAttempt.SelectedFragments)
 		attempt.CitationRefs = cloneStringSlice(record.RetrievalAttempt.CitationRefs)
 		cloned.RetrievalAttempt = &attempt
 	}

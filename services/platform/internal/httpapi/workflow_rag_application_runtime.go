@@ -184,11 +184,22 @@ func newMemoryWorkflowRAGApplicationRuntimeRepository(ownerLock *sync.RWMutex) *
 }
 
 func newWorkflowRAGApplicationRuntimeRepositoryForRunStore(store workflowRunStore) (workflowRAGApplicationRuntimeRepository, error) {
-	memory, ok := store.(*memoryWorkflowRunStore)
-	if !ok {
-		return nil, errors.New("workflow RAG application runtime batch A requires memory_dev workflow run store")
+	switch typed := store.(type) {
+	case *memoryWorkflowRunStore:
+		return newMemoryWorkflowRAGApplicationRuntimeRepository(&typed.mu), nil
+	case *sqliteWorkflowRunStore:
+		if typed.database == nil {
+			return nil, errors.New("workflow RAG application runtime requires the shared SQLite database")
+		}
+		return newSQLiteWorkflowRAGApplicationRuntimeRepository(typed.database), nil
+	case *postgresWorkflowRunStore:
+		if typed.pool == nil {
+			return nil, errors.New("workflow RAG application runtime requires the workflow PostgreSQL pool")
+		}
+		return newPostgresWorkflowRAGApplicationRuntimeRepository(typed.pool), nil
+	default:
+		return nil, errors.New("workflow RAG application runtime requires a supported workflow runtime backend")
 	}
-	return newMemoryWorkflowRAGApplicationRuntimeRepository(&memory.mu), nil
 }
 
 func (repository *memoryWorkflowRAGApplicationRuntimeRepository) Read(ctx WorkflowRAGApplicationRuntimeContext) (WorkflowRAGApplicationRuntimeAssignment, []WorkflowRAGApplicationRuntimeEvent, []WorkflowRAGApplicationRuntimeAudit, error) {

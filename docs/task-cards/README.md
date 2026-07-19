@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1-plan.md)是当前唯一活跃实施任务卡，批次 A 已完成，状态为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_b_ready_for_implementation`。下一批只准入 SQLite / PostgreSQL durable assignment、run execution source migration 与 v4 evaluation；Web 和真实浏览器继续留在批次 C。
+[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1-plan.md)是当前唯一活跃实施任务卡，批次 B 已完成，状态为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_c_ready_for_implementation`。下一步只准入 Web / launcher / SQLite 与 PostgreSQL 连续链和真实浏览器批次 C。
 
 ## 最近关闭任务
 

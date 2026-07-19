@@ -37,6 +37,15 @@ func decodeWorkflowRunStorageRecord(
 	runContext WorkflowRunContext,
 	payload []byte,
 ) (WorkflowRunRecord, error) {
+	var envelope struct {
+		SchemaVersion string `json:"schema_version"`
+	}
+	if err := json.Unmarshal(payload, &envelope); err != nil {
+		return WorkflowRunRecord{}, errWorkflowRunStoreContract
+	}
+	if envelope.SchemaVersion == workflowRunRecordAppRAGSchemaVersion {
+		return decodeWorkflowRAGApplicationRunStorageRecord(runContext, payload)
+	}
 	var record WorkflowRunRecord
 	decoder := json.NewDecoder(strings.NewReader(string(payload)))
 	decoder.DisallowUnknownFields()
@@ -50,6 +59,58 @@ func decodeWorkflowRunStorageRecord(
 		return WorkflowRunRecord{}, errWorkflowRunStoreContract
 	}
 	return record, nil
+}
+
+func decodeWorkflowRAGApplicationRunStorageRecord(runContext WorkflowRunContext, payload []byte) (WorkflowRunRecord, error) {
+	var document workflowRAGApplicationRunRecordV4
+	decoder := json.NewDecoder(strings.NewReader(string(payload)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&document); err != nil || rejectTrailingWorkflowRunJSON(decoder) != nil || validateWorkflowRAGApplicationRunRecordV4(document) != nil {
+		return WorkflowRunRecord{}, errWorkflowRunStoreContract
+	}
+	record := WorkflowRunRecord{
+		SchemaVersion: document.SchemaVersion, RecordVersion: document.RecordVersion, RunID: document.RunID,
+		TenantRef: document.TenantRef, WorkspaceID: document.WorkspaceID, ApplicationID: document.ApplicationID,
+		ExecutionSource: &workflowRunExecutionSource{Kind: document.ExecutionKind, SourceKind: document.ExecutionSourceKind, ID: document.ExecutionSourceID, Version: document.ExecutionSourceVersion},
+		Status:          WorkflowRunStatus(document.Status), FailureCode: workflowRunFailureCodeFromPointer(document.FailureCode), FailureSummary: document.FailureSummary,
+		StartedAt: document.StartedAt, CompletedAt: workflowRunStringFromPointer(document.CompletedAt), InputBytes: document.InputBytes,
+		SelectedProvider: document.SelectedProvider, SelectedModel: document.SelectedModel,
+		RequestID: document.RequestID, AuditRef: document.AuditRef, ActorRef: document.ActorRef,
+		RAGSnapshot: &document.Snapshot, RetrievalAttempt: &document.RetrievalAttempt, RAGApplication: &document.Authority,
+		SideEffects: WorkflowRunSideEffects{RetrievalCalls: document.SideEffects.RetrievalCalls, ProviderCalls: document.SideEffects.ProviderCalls, ToolCalls: document.SideEffects.ToolCalls, ConfirmationCalls: document.SideEffects.ConfirmationCalls, BusinessWrites: document.SideEffects.BusinessWrites, ReplayWrites: document.SideEffects.ReplayWrites},
+		Diagnostic:  &WorkflowRunDiagnostic{FailureBoundary: WorkflowRunFailureBoundary(document.Diagnostic.FailureBoundary), RetrievalFailureCategory: document.Diagnostic.RetrievalFailureCategory},
+	}
+	if validateWorkflowRunStoreRecord(runContext, &record) != nil {
+		return WorkflowRunRecord{}, errWorkflowRunStoreContract
+	}
+	return record, nil
+}
+
+func workflowRunFailureCodeFromPointer(value *string) WorkflowRunFailureCode {
+	if value == nil {
+		return ""
+	}
+	return WorkflowRunFailureCode(*value)
+}
+
+func workflowRunStringFromPointer(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
+}
+
+func workflowRunStorageExecutionSource(record WorkflowRunRecord) (string, string, int, error) {
+	if record.SchemaVersion == workflowRunRecordAppRAGSchemaVersion {
+		if record.ExecutionSource == nil || record.ExecutionSource.SourceKind != workflowRAGApplicationExecutionSourceKind || strings.TrimSpace(record.ExecutionSource.ID) == "" || record.ExecutionSource.Version < 1 {
+			return "", "", 0, errWorkflowRunStoreContract
+		}
+		return record.ExecutionSource.SourceKind, record.ExecutionSource.ID, record.ExecutionSource.Version, nil
+	}
+	if !validWorkflowRunRecordSchema(record.SchemaVersion) || strings.TrimSpace(record.DraftID) == "" || record.DraftVersion < 1 {
+		return "", "", 0, errWorkflowRunStoreContract
+	}
+	return "workflow_draft", record.DraftID, record.DraftVersion, nil
 }
 
 func rejectTrailingWorkflowRunJSON(decoder *json.Decoder) error {

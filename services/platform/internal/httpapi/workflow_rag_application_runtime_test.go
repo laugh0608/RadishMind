@@ -103,9 +103,9 @@ func TestWorkflowRAGApplicationRuntimeConcurrentCASAllowsOneActivation(t *testin
 	}
 }
 
-func TestWorkflowRAGApplicationRuntimeBatchARejectsDurableStoreWithoutFallback(t *testing.T) {
-	if repository, err := newWorkflowRAGApplicationRuntimeRepositoryForRunStore(&sqliteWorkflowRunStore{}); err == nil || repository != nil {
-		t.Fatalf("batch A durable store unexpectedly fell back to a runtime repository: repository=%T err=%v", repository, err)
+func TestWorkflowRAGApplicationRuntimeRejectsUnsupportedStoreWithoutFallback(t *testing.T) {
+	if repository, err := newWorkflowRAGApplicationRuntimeRepositoryForRunStore(nil); err == nil || repository != nil {
+		t.Fatalf("unsupported store unexpectedly fell back to a runtime repository: repository=%T err=%v", repository, err)
 	}
 }
 

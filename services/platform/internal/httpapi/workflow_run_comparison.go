@@ -38,6 +38,10 @@ type WorkflowRunComparisonRun struct {
 	SchemaVersion          string                            `json:"schema_version"`
 	DraftID                string                            `json:"draft_id"`
 	DraftVersion           int                               `json:"draft_version"`
+	ExecutionKind          string                            `json:"execution_kind,omitempty"`
+	ExecutionSourceKind    string                            `json:"execution_source_kind,omitempty"`
+	ExecutionSourceID      string                            `json:"execution_source_id,omitempty"`
+	ExecutionSourceVersion int                               `json:"execution_source_version,omitempty"`
 	Status                 WorkflowRunStatus                 `json:"status"`
 	FailureCode            WorkflowRunFailureCode            `json:"failure_code"`
 	FailureBoundary        WorkflowRunFailureBoundary        `json:"failure_boundary"`
@@ -70,6 +74,7 @@ type WorkflowRunComparison struct {
 	Baseline                WorkflowRunComparisonRun            `json:"baseline"`
 	Candidate               WorkflowRunComparisonRun            `json:"candidate"`
 	DraftChanged            bool                                `json:"draft_changed"`
+	ExecutionSourceChanged  bool                                `json:"execution_source_changed"`
 	ProviderChanged         bool                                `json:"provider_changed"`
 	ModelChanged            bool                                `json:"model_changed"`
 	StatusChanged           bool                                `json:"status_changed"`
@@ -101,8 +106,8 @@ func (service workflowExecutorService) CompareRuns(runContext WorkflowRunContext
 	if result.FailureCode != "" {
 		return result
 	}
-	if baseline.SchemaVersion == workflowRunRecordRAGSchemaVersion || candidate.SchemaVersion == workflowRunRecordRAGSchemaVersion {
-		if baseline.SchemaVersion != workflowRunRecordRAGSchemaVersion || candidate.SchemaVersion != workflowRunRecordRAGSchemaVersion ||
+	if workflowRunRecordUsesRetrievalComparison(baseline) || workflowRunRecordUsesRetrievalComparison(candidate) {
+		if baseline.SchemaVersion != candidate.SchemaVersion ||
 			!workflowRAGRunsComparable(baseline, candidate) {
 			return workflowRunComparisonFailure(WorkflowRunFailureRetrievalIncompatible)
 		}
@@ -136,14 +141,15 @@ func buildWorkflowRunComparison(baseline, candidate WorkflowRunRecord, now time.
 	comparison := WorkflowRunComparison{
 		SchemaVersion: workflowRunComparisonSchemaVersion,
 		Baseline:      comparisonRun(b), Candidate: comparisonRun(c),
-		DraftChanged:      baseline.DraftID != candidate.DraftID || baseline.DraftVersion != candidate.DraftVersion || baseline.DraftDigest != candidate.DraftDigest,
-		ProviderChanged:   baseline.SelectedProvider != candidate.SelectedProvider || baseline.SelectedProfile != candidate.SelectedProfile,
-		ModelChanged:      baseline.SelectedModel != candidate.SelectedModel,
-		StatusChanged:     baseline.Status != candidate.Status,
-		FailureChanged:    baseline.FailureCode != candidate.FailureCode || diagnosticBoundary(baseline) != diagnosticBoundary(candidate) || diagnosticCategory(baseline) != diagnosticCategory(candidate),
-		DurationDeltaMS:   c.DurationMS - b.DurationMS,
-		ProviderCallDelta: candidate.SideEffects.ProviderCalls - baseline.SideEffects.ProviderCalls,
-		Nodes:             compareWorkflowRunNodes(baseline.Nodes, candidate.Nodes),
+		DraftChanged:           baseline.DraftID != candidate.DraftID || baseline.DraftVersion != candidate.DraftVersion || baseline.DraftDigest != candidate.DraftDigest,
+		ExecutionSourceChanged: workflowRunExecutionSourceChanged(baseline, candidate),
+		ProviderChanged:        baseline.SelectedProvider != candidate.SelectedProvider || baseline.SelectedProfile != candidate.SelectedProfile,
+		ModelChanged:           baseline.SelectedModel != candidate.SelectedModel,
+		StatusChanged:          baseline.Status != candidate.Status,
+		FailureChanged:         baseline.FailureCode != candidate.FailureCode || diagnosticBoundary(baseline) != diagnosticBoundary(candidate) || diagnosticCategory(baseline) != diagnosticCategory(candidate),
+		DurationDeltaMS:        c.DurationMS - b.DurationMS,
+		ProviderCallDelta:      candidate.SideEffects.ProviderCalls - baseline.SideEffects.ProviderCalls,
+		Nodes:                  compareWorkflowRunNodes(baseline.Nodes, candidate.Nodes),
 	}
 	comparison.ComparisonState = WorkflowRunComparisonComparable
 	if (baseline.Status == WorkflowRunStatusRunning && !b.StaleRunning) || (candidate.Status == WorkflowRunStatusRunning && !c.StaleRunning) {
@@ -158,7 +164,18 @@ func buildWorkflowRunComparison(baseline, candidate WorkflowRunRecord, now time.
 }
 
 func comparisonRun(summary WorkflowRunSummary) WorkflowRunComparisonRun {
-	return WorkflowRunComparisonRun{RunID: summary.RunID, SchemaVersion: summary.SchemaVersion, DraftID: summary.DraftID, DraftVersion: summary.DraftVersion, Status: summary.Status, FailureCode: summary.FailureCode, FailureBoundary: summary.FailureBoundary, GatewayFailureCategory: summary.GatewayFailureCategory, SelectedProvider: summary.SelectedProvider, SelectedProfile: summary.SelectedProfile, SelectedModel: summary.SelectedModel, DurationMS: summary.DurationMS, StaleRunning: summary.StaleRunning, RequestID: summary.RequestID, AuditRef: summary.AuditRef, SideEffects: summary.SideEffects}
+	return WorkflowRunComparisonRun{RunID: summary.RunID, SchemaVersion: summary.SchemaVersion, DraftID: summary.DraftID, DraftVersion: summary.DraftVersion, ExecutionKind: summary.ExecutionKind, ExecutionSourceKind: summary.ExecutionSourceKind, ExecutionSourceID: summary.ExecutionSourceID, ExecutionSourceVersion: summary.ExecutionSourceVersion, Status: summary.Status, FailureCode: summary.FailureCode, FailureBoundary: summary.FailureBoundary, GatewayFailureCategory: summary.GatewayFailureCategory, SelectedProvider: summary.SelectedProvider, SelectedProfile: summary.SelectedProfile, SelectedModel: summary.SelectedModel, DurationMS: summary.DurationMS, StaleRunning: summary.StaleRunning, RequestID: summary.RequestID, AuditRef: summary.AuditRef, SideEffects: summary.SideEffects}
+}
+
+func workflowRunRecordUsesRetrievalComparison(record WorkflowRunRecord) bool {
+	return record.SchemaVersion == workflowRunRecordRAGSchemaVersion || record.SchemaVersion == workflowRunRecordAppRAGSchemaVersion
+}
+
+func workflowRunExecutionSourceChanged(baseline, candidate WorkflowRunRecord) bool {
+	if baseline.ExecutionSource == nil || candidate.ExecutionSource == nil {
+		return baseline.ExecutionSource != candidate.ExecutionSource
+	}
+	return *baseline.ExecutionSource != *candidate.ExecutionSource
 }
 
 func classifyWorkflowRunComparison(value WorkflowRunComparison) WorkflowRunComparisonClassification {
@@ -177,7 +194,7 @@ func classifyWorkflowRunComparison(value WorkflowRunComparison) WorkflowRunCompa
 		return WorkflowRunComparisonRegression
 	}
 	durationChanged := value.DurationDeltaMS != 0 && value.Retrieval == nil
-	if value.DraftChanged || value.ProviderChanged || value.ModelChanged || value.StatusChanged || value.FailureChanged || durationChanged || value.ProviderCallDelta != 0 || nodesChanged(value.Nodes) || workflowRAGComparisonMateriallyChanged(value.Retrieval) {
+	if value.DraftChanged || value.ExecutionSourceChanged || value.ProviderChanged || value.ModelChanged || value.StatusChanged || value.FailureChanged || durationChanged || value.ProviderCallDelta != 0 || nodesChanged(value.Nodes) || workflowRAGComparisonMateriallyChanged(value.Retrieval) {
 		return WorkflowRunComparisonChanged
 	}
 	return WorkflowRunComparisonUnchanged

@@ -5,7 +5,10 @@ import (
 	"time"
 )
 
-const workflowRAGComparisonProfile = "workflow_rag_retrieval.v1"
+const (
+	workflowRAGComparisonProfile            = "workflow_rag_retrieval.v1"
+	workflowRAGApplicationComparisonProfile = "workflow_rag_application_invocation.v1"
+)
 
 type WorkflowRunRetrievalFragmentComparison struct {
 	FragmentRef   string `json:"fragment_ref"`
@@ -49,8 +52,12 @@ type WorkflowRunRetrievalComparison struct {
 }
 
 func workflowRAGRunsComparable(baseline, candidate WorkflowRunRecord) bool {
-	if baseline.SchemaVersion != workflowRunRecordRAGSchemaVersion || candidate.SchemaVersion != workflowRunRecordRAGSchemaVersion ||
+	if !workflowRunRecordUsesRetrievalComparison(baseline) || baseline.SchemaVersion != candidate.SchemaVersion ||
 		baseline.RAGSnapshot == nil || candidate.RAGSnapshot == nil || baseline.RetrievalAttempt == nil || candidate.RetrievalAttempt == nil {
+		return false
+	}
+	if baseline.SchemaVersion == workflowRunRecordAppRAGSchemaVersion &&
+		(baseline.RAGApplication == nil || candidate.RAGApplication == nil || baseline.ExecutionSource == nil || candidate.ExecutionSource == nil) {
 		return false
 	}
 	leftSnapshot, rightSnapshot := baseline.RAGSnapshot, candidate.RAGSnapshot
@@ -71,6 +78,9 @@ func buildWorkflowRAGRunComparison(baseline, candidate WorkflowRunRecord, now ti
 	comparison := buildWorkflowRunComparison(baseline, candidate, now)
 	comparison.SchemaVersion = workflowRAGRunComparisonSchemaVersion
 	retrieval := compareWorkflowRAGRetrievalAttempts(*baseline.RAGSnapshot, *baseline.RetrievalAttempt, *candidate.RetrievalAttempt)
+	if baseline.SchemaVersion == workflowRunRecordAppRAGSchemaVersion {
+		retrieval.RunProfile = workflowRAGApplicationComparisonProfile
+	}
 	comparison.Retrieval = &retrieval
 	comparison.Classification = classifyWorkflowRunComparison(comparison)
 	comparison.Findings = workflowRunComparisonFindings(comparison)

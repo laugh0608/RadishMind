@@ -101,6 +101,10 @@ func (store *postgresWorkflowHTTPToolExecutionStore) ClaimExecution(
 	}
 	claimedRun := cloneWorkflowRunRecord(*run)
 	claimedRun.RecordVersion = 1
+	sourceKind, sourceID, sourceVersion, err := workflowRunStorageExecutionSource(claimedRun)
+	if err != nil {
+		return errWorkflowHTTPToolExecutionContract
+	}
 	runPayload, startedAt, completedAt, err := encodeWorkflowRunStorageRecord(claimedRun)
 	if err != nil || completedAt != nil {
 		return errWorkflowHTTPToolExecutionContract
@@ -132,12 +136,12 @@ func (store *postgresWorkflowHTTPToolExecutionStore) ClaimExecution(
 		return errWorkflowHTTPToolExecutionConflict
 	}
 	_, err = tx.Exec(ctx.RequestContext, `INSERT INTO workflow_run_records (
-	 tenant_ref,workspace_id,application_id,run_id,draft_id,draft_version,record_version,schema_version,
+	 tenant_ref,workspace_id,application_id,run_id,execution_source_kind,execution_source_id,execution_source_version,record_version,schema_version,
 	 run_status,started_at,completed_at,actor_ref,request_id,audit_ref,failure_code,failure_boundary,
 	 selected_provider,selected_model,sanitized_run_record
-	) VALUES ($1,$2,$3,$4,$5,$6,1,$7,$8,$9,NULL,$10,$11,$12,$13,$14,$15,$16,$17)`,
-		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, claimedRun.RunID, claimedRun.DraftID,
-		claimedRun.DraftVersion, claimedRun.SchemaVersion, claimedRun.Status, startedAt, claimedRun.ActorRef,
+	) VALUES ($1,$2,$3,$4,$5,$6,$7,1,$8,$9,$10,NULL,$11,$12,$13,$14,$15,$16,$17,$18)`,
+		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, claimedRun.RunID, sourceKind, sourceID,
+		sourceVersion, claimedRun.SchemaVersion, claimedRun.Status, startedAt, claimedRun.ActorRef,
 		claimedRun.RequestID, claimedRun.AuditRef, claimedRun.FailureCode,
 		workflowRunRecordFailureBoundary(claimedRun), claimedRun.SelectedProvider, claimedRun.SelectedModel, runPayload)
 	if err != nil {
@@ -177,6 +181,10 @@ func (store *postgresWorkflowHTTPToolExecutionStore) CompleteExecution(
 	}
 	completedRun := cloneWorkflowRunRecord(*run)
 	completedRun.RecordVersion++
+	sourceKind, sourceID, sourceVersion, err := workflowRunStorageExecutionSource(completedRun)
+	if err != nil {
+		return errWorkflowHTTPToolExecutionContract
+	}
 	runPayload, _, runCompletedAt, err := encodeWorkflowRunStorageRecord(completedRun)
 	if err != nil || runCompletedAt == nil {
 		return errWorkflowHTTPToolExecutionContract
@@ -202,12 +210,12 @@ func (store *postgresWorkflowHTTPToolExecutionStore) CompleteExecution(
 		return errWorkflowHTTPToolExecutionConflict
 	}
 	result, err = tx.Exec(ctx.RequestContext, `UPDATE workflow_run_records SET
-	 draft_id=$1,draft_version=$2,record_version=record_version+1,schema_version=$3,run_status=$4,
-	 completed_at=$5,actor_ref=$6,request_id=$7,audit_ref=$8,failure_code=$9,failure_boundary=$10,
-	 selected_provider=$11,selected_model=$12,sanitized_run_record=$13
-	 WHERE tenant_ref=$14 AND workspace_id=$15 AND application_id=$16 AND run_id=$17
-	   AND record_version=$18 AND run_status='running'`,
-		completedRun.DraftID, completedRun.DraftVersion, completedRun.SchemaVersion, completedRun.Status,
+	 execution_source_kind=$1,execution_source_id=$2,execution_source_version=$3,record_version=record_version+1,schema_version=$4,run_status=$5,
+	 completed_at=$6,actor_ref=$7,request_id=$8,audit_ref=$9,failure_code=$10,failure_boundary=$11,
+	 selected_provider=$12,selected_model=$13,sanitized_run_record=$14
+	 WHERE tenant_ref=$15 AND workspace_id=$16 AND application_id=$17 AND run_id=$18
+	   AND record_version=$19 AND run_status='running'`,
+		sourceKind, sourceID, sourceVersion, completedRun.SchemaVersion, completedRun.Status,
 		runCompletedAt, completedRun.ActorRef, completedRun.RequestID, completedRun.AuditRef,
 		completedRun.FailureCode, workflowRunRecordFailureBoundary(completedRun), completedRun.SelectedProvider,
 		completedRun.SelectedModel, runPayload, ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID,

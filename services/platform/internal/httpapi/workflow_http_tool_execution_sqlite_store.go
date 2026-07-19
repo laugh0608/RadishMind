@@ -101,6 +101,10 @@ func (store *sqliteWorkflowHTTPToolExecutionStore) ClaimExecution(
 	}
 	claimedRun := cloneWorkflowRunRecord(*run)
 	claimedRun.RecordVersion = 1
+	sourceKind, sourceID, sourceVersion, err := workflowRunStorageExecutionSource(claimedRun)
+	if err != nil {
+		return errWorkflowHTTPToolExecutionContract
+	}
 	runPayload, startedAt, completedAt, err := encodeWorkflowRunStorageRecord(claimedRun)
 	if err != nil || completedAt != nil {
 		return errWorkflowHTTPToolExecutionContract
@@ -136,11 +140,11 @@ func (store *sqliteWorkflowHTTPToolExecutionStore) ClaimExecution(
 		return errWorkflowHTTPToolExecutionConflict
 	}
 	_, err = tx.ExecContext(ctx.RequestContext, `INSERT INTO workflow_run_records (
-	 tenant_ref,workspace_id,application_id,run_id,draft_id,draft_version,record_version,store_schema_version,
+	 tenant_ref,workspace_id,application_id,run_id,execution_source_kind,execution_source_id,execution_source_version,record_version,store_schema_version,
 	 schema_version,run_status,started_at_unix_nano,completed_at_unix_nano,actor_ref,request_id,audit_ref,
 	 failure_code,failure_boundary,selected_provider,selected_model,sanitized_run_record
-	) VALUES (?,?,?,?,?,?,1,?,?,?,?,NULL,?,?,?,?,?,?,?,?)`,
-		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, claimedRun.RunID, claimedRun.DraftID, claimedRun.DraftVersion,
+	) VALUES (?,?,?,?,?,?,?,1,?,?,?,?,NULL,?,?,?,?,?,?,?,?)`,
+		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, claimedRun.RunID, sourceKind, sourceID, sourceVersion,
 		sqliteworkflowrunmigrations.RunRecordStoreSchemaVersion, claimedRun.SchemaVersion, claimedRun.Status,
 		startedAtUnixNano, claimedRun.ActorRef, claimedRun.RequestID, claimedRun.AuditRef, claimedRun.FailureCode,
 		workflowRunRecordFailureBoundary(claimedRun), claimedRun.SelectedProvider, claimedRun.SelectedModel, string(runPayload))
@@ -181,6 +185,10 @@ func (store *sqliteWorkflowHTTPToolExecutionStore) CompleteExecution(
 	}
 	completedRun := cloneWorkflowRunRecord(*run)
 	completedRun.RecordVersion++
+	sourceKind, sourceID, sourceVersion, err := workflowRunStorageExecutionSource(completedRun)
+	if err != nil {
+		return errWorkflowHTTPToolExecutionContract
+	}
 	runPayload, startedAt, runCompletedAt, err := encodeWorkflowRunStorageRecord(completedRun)
 	if err != nil || runCompletedAt == nil {
 		return errWorkflowHTTPToolExecutionContract
@@ -214,12 +222,12 @@ func (store *sqliteWorkflowHTTPToolExecutionStore) CompleteExecution(
 		return errWorkflowHTTPToolExecutionConflict
 	}
 	result, err = tx.ExecContext(ctx.RequestContext, `UPDATE workflow_run_records SET
-	 draft_id=?,draft_version=?,record_version=record_version+1,schema_version=?,run_status=?,
+	 execution_source_kind=?,execution_source_id=?,execution_source_version=?,record_version=record_version+1,schema_version=?,run_status=?,
 	 completed_at_unix_nano=?,actor_ref=?,request_id=?,audit_ref=?,failure_code=?,failure_boundary=?,
 	 selected_provider=?,selected_model=?,sanitized_run_record=?
 	 WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND run_id=?
 	   AND record_version=? AND run_status='running' AND started_at_unix_nano=?`,
-		completedRun.DraftID, completedRun.DraftVersion, completedRun.SchemaVersion, completedRun.Status,
+		sourceKind, sourceID, sourceVersion, completedRun.SchemaVersion, completedRun.Status,
 		completedAtUnixNano, completedRun.ActorRef, completedRun.RequestID, completedRun.AuditRef,
 		completedRun.FailureCode, workflowRunRecordFailureBoundary(completedRun), completedRun.SelectedProvider,
 		completedRun.SelectedModel, string(runPayload), ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID,

@@ -335,8 +335,8 @@ func (s workflowEvaluationService) validateDefinition(ctx WorkflowRunContext, ra
 		if candidateCode != "" {
 			return "", "", nil, candidateCode
 		}
-		if (baselineRecord.SchemaVersion == workflowRunRecordRAGSchemaVersion || candidate.SchemaVersion == workflowRunRecordRAGSchemaVersion) &&
-			(baselineRecord.SchemaVersion != workflowRunRecordRAGSchemaVersion || candidate.SchemaVersion != workflowRunRecordRAGSchemaVersion || !workflowRAGRunsComparable(baselineRecord, candidate)) {
+		if (workflowRunRecordUsesRetrievalComparison(baselineRecord) || workflowRunRecordUsesRetrievalComparison(candidate)) &&
+			(baselineRecord.SchemaVersion != candidate.SchemaVersion || !workflowRAGRunsComparable(baselineRecord, candidate)) {
 			return "", "", nil, WorkflowEvaluationFailureRetrievalIncompatible
 		}
 	}

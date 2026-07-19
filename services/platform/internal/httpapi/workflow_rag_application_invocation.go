@@ -194,6 +194,26 @@ func (service workflowRAGApplicationInvocationService) completeFailure(runContex
 	return WorkflowRAGApplicationInvocationResult{Run: workflowRunRecordPointer(record), FailureCode: failure, FailureSummary: record.FailureSummary}
 }
 
+func (service workflowRAGApplicationInvocationService) ReconcileStale(runContext WorkflowRunContext) WorkflowRAGReconciliationResult {
+	stale := true
+	page, err := service.runStore.ListRuns(runContext, WorkflowRunListFilter{StaleRunning: &stale, Limit: workflowRunListMaxLimit})
+	if err != nil {
+		return WorkflowRAGReconciliationResult{FailureCode: WorkflowRAGApplicationFailureStoreUnavailable}
+	}
+	result := WorkflowRAGReconciliationResult{}
+	for _, candidate := range page.Records {
+		if candidate.SchemaVersion != workflowRunRecordAppRAGSchemaVersion || candidate.Status != WorkflowRunStatusRunning || candidate.RAGApplication == nil || candidate.RetrievalAttempt == nil {
+			continue
+		}
+		terminal := service.completeFailure(runContext, candidate, WorkflowRAGFailureInterrupted, WorkflowRunFailureBoundaryRunStore, "store")
+		if terminal.Run == nil || terminal.Run.Status != WorkflowRunStatusFailed || terminal.FailureCode != WorkflowRAGFailureInterrupted {
+			return WorkflowRAGReconciliationResult{Reconciled: result.Reconciled, FailureCode: WorkflowRAGApplicationFailureStoreUnavailable}
+		}
+		result.Reconciled++
+	}
+	return result
+}
+
 func (service workflowRAGApplicationInvocationService) callGateway(ctx context.Context, input string, authority workflowRAGApplicationAuthority, runID string, selection northboundSelection, ranking WorkflowRAGRankingResult) (string, WorkflowRunGatewayFailureCategory, string) {
 	promptNode := SavedWorkflowDraftNode{InputSummary: "请严格基于已批准应用知识证据回答用户问题。"}
 	packet, err := buildWorkflowRAGGatewayPacket(input, promptNode, ranking.Selected)
@@ -332,6 +352,8 @@ func workflowRAGApplicationFailureSummary(code string) string {
 		return "The application RAG retrieval budget was exceeded."
 	case WorkflowRAGApplicationFailureGatewayFailed:
 		return "Gateway could not complete the application RAG invocation."
+	case WorkflowRAGFailureInterrupted:
+		return "The application RAG invocation was interrupted and was not replayed."
 	case WorkflowRAGApplicationFailureAnswerInvalid, WorkflowRAGApplicationFailureCitationInvalid:
 		return "The application RAG answer or citations are invalid."
 	default:

@@ -2,7 +2,7 @@
 
 更新时间：2026-07-19
 
-状态：`workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_b_ready_for_implementation`
+状态：`workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_c_ready_for_implementation`
 
 ## 设计结论
 
@@ -10,7 +10,7 @@
 
 运行时固定使用 binding 中的 candidate snapshot 作为有效检索快照；baseline snapshot 只保留为晋级证据和回归比较来源，不参与本次检索。每次调用恰好执行一次既有确定性 lexical ranker 和一次既有 Gateway bridge 调用，返回结构化 advisory answer，并写入 metadata-only `workflow_run_record.v4`。输入、片段正文、prompt packet、完整回答和模型原始响应不持久化。
 
-本专题不会把发布候选 `approved` 改写为正式发布。runtime assignment 是独立、显式、可撤销的开发测试态运行选择，只引用权威发布候选和配置，不修改应用目录、配置草案、发布候选、promotion candidate、binding、dataset 或 snapshot。批次 A 已完成 strict contract、memory assignment、authority resolver、API key scope、独立调用 API 和 metadata-only run v4；当前只准入唯一任务卡的批次 B，不开始 Web、launcher 或真实浏览器接线。
+本专题不会把发布候选 `approved` 改写为正式发布。runtime assignment 是独立、显式、可撤销的开发测试态运行选择，只引用权威发布候选和配置，不修改应用目录、配置草案、发布候选、promotion candidate、binding、dataset 或 snapshot。批次 A 已完成 strict contract、memory assignment、authority resolver、API key scope、独立调用 API 和 metadata-only run v4；批次 B 已完成 durable store、run source migration、v4 evaluation 与真实 PostgreSQL 专项，当前准入 Web、launcher 与真实浏览器批次 C。
 
 ## 批次 A 实施结果
 
@@ -20,6 +20,14 @@
 - authority resolver 在激活和每次调用检查点重读 application、publish candidate v2、draft v2、immutable binding、promotion、dataset / review、两侧 snapshot 与 lexical profile；candidate snapshot 是唯一有效检索快照。
 - 成功调用恰好执行一次 lexical retrieval 和一次 Gateway，使用新的 application configuration execution source 写 memory `workflow_run_record.v4`；输入、fragment 正文、prompt、完整回答、模型原始响应、token 与 credential 不进入 run、assignment、event 或 audit。
 - 精准领域、HTTP、权限、隐私、漂移、CAS 与竞态测试、平台全包 Go 测试、vet 和仓库快速 / 完整门禁均通过。批次 A 未创建数据库 migration，非 memory workflow backend 在门禁开启时明确失败，不回退 memory。
+
+## 批次 B 当前结果
+
+- SQLite `0009` 与 PostgreSQL `0012` 已物化 assignment current projection、append-only event / audit，并把 run store 迁移到 `execution_source_kind / id / version`；v0–v3 回填为 `workflow_draft`，v4 使用 `application_configuration_draft`，旧 draft filter 不返回 v4。
+- SQLite assignment current projection、event、audit 与 run v4 共用既有数据库；PostgreSQL 实现复用既有 workflow pool。两种实现均无独立 DSN、pool、selector 或 memory fallback。
+- v4 已接入 Run History、Comparison、Evaluation、Baseline 与 Suite 的 `workflow_rag_application_invocation.v1` metadata-only 审查边界；stale running reconciliation 只写失败终态，不重放 retrieval 或 Gateway。
+- SQLite 已覆盖迁移升级、HTTP Tool 不回归、CAS、事务回滚、append-only、重启恢复、损坏拒绝和 no-fallback；平台 `go test ./...`、定向 race、`go vet` 与 PostgreSQL build-tag 编译通过。
+- 真实 PostgreSQL 专项已覆盖 migration / rollback / reapply、运行角色、事务、append-only、重启恢复和 no-fallback；首次真实运行发现 configured 产品链清理未先删除新 runtime 表，修正清理顺序后，完整 integration suite 与 `check` 配置闭环通过，容器和网络已关闭。
 
 ## 目标用户与完整路径
 
@@ -156,7 +164,7 @@ POST /v1/application-rag/invocations
 ## Store ownership 与迁移顺序
 
 - assignment、event、audit 与 v4 run 归现有 Workflow runtime owner，继续从 workflow backend selector 派生；memory 使用既有 owner lock，SQLite 使用 shared database，PostgreSQL 使用既有 workflow pool。
-- 规划 SQLite `0009_workflow_rag_application_invocations`，marker 推进为 `workflow_run_store_sqlite_v9`；规划 PostgreSQL `0012_workflow_rag_application_invocations`，marker 推进为 `workflow_run_store_v12`。
+- 已实现 SQLite `0009_workflow_rag_application_invocations`，marker 推进为 `workflow_run_store_sqlite_v9`；已实现并真实验证 PostgreSQL `0012_workflow_rag_application_invocations`，marker 推进为 `workflow_run_store_v12`。
 - application catalog、API key、application draft 与 publish candidate 继续使用各自现有 repository；实现只能通过 service / repository interface 重读，不在 workflow migration 中复制其表或正文。
 - 启用顺序为：v4 decoder / run store兼容 → workflow migration → assignment repository / authority resolver → API key scope / invocation route → Comparison / Evaluation → Web。任一 marker、pool、shared database 或依赖 repository 不兼容时服务启动失败，不回退 memory 或旧草案 execution。
 
@@ -177,7 +185,7 @@ POST /v1/application-rag/invocations
 2. 批次 B：SQLite `0009`、PostgreSQL `0012`、run source migration、事务 / append-only / restart / corruption / no-fallback，以及 v4 Run History、Comparison / Evaluation / Baseline / Suite 服务边界。
 3. 批次 C：Web activation / API key handoff / invocation / history / evaluation 接线、launcher、SQLite 与 PostgreSQL 连续链、真实浏览器、敏感材料扫描和专题收口。
 
-批次 A 已完成，状态推进为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_b_ready_for_implementation`。下一批只准入 durable store、run source migration 与 evaluation；不得跳过 assignment，让 publish approve 或 API key 签发直接打开 retrieval。
+批次 B 已完成，状态推进为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_c_ready_for_implementation`。下一批只准入 Web activation / invocation / history / evaluation、launcher、双数据库连续链与真实浏览器；仍不得跳过 assignment，让 publish approve 或 API key 签发直接打开 retrieval。
 
 ## 验证矩阵
 

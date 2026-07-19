@@ -255,7 +255,7 @@ PostgreSQL 使用独立 `api_key_records` 和 `api_key_schema_versions`，不复
 
 ## 与后续 Application RAG 调用的边界
 
-[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](../workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)批次 A 已实现显式 `application_rag:invoke` scope 和独立 invocation route。该 scope 复用本专题的随机令牌、不可逆摘要、有效期 / 吊销、active application 与可信调用上下文，但不会自动授予 `chat:invoke`、`responses:invoke`、`messages:invoke` 或任何管理权限；反向也不继承。当前只支持 application RAG memory runtime 证据，Web 一次性交接、durable assignment、配额、生产认证和生产 API key 仍未启用。
+[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](../workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)已实现显式 `application_rag:invoke` scope、独立 invocation route 与 SQLite / PostgreSQL durable assignment，`0012` 真实专项已通过。该 scope 复用本专题的随机令牌、不可逆摘要、有效期 / 吊销、active application 与可信调用上下文，但不会自动授予 `chat:invoke`、`responses:invoke`、`messages:invoke` 或任何管理权限；反向也不继承。Web 一次性交接、配额、生产认证和生产 API key 仍未启用。
 
 ## 停止线
 

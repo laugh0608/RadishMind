@@ -518,6 +518,9 @@ func runConfiguredPostgresMigrationGate(
 func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
 	_, err := pool.Exec(ctx, `DROP TABLE IF EXISTS
+		workflow_rag_application_runtime_audits,
+		workflow_rag_application_runtime_events,
+		workflow_rag_application_runtime_assignments,
 		workflow_rag_knowledge_promotion_audits,
 		workflow_rag_application_bindings,
 		workflow_rag_knowledge_promotion_decisions,

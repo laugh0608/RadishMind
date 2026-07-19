@@ -2,13 +2,13 @@
 
 更新时间：2026-07-19
 
-状态：`workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_b_ready_for_implementation`
+状态：`workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_c_ready_for_implementation`
 
 ## 目标与准入结论
 
 按[功能设计](../features/workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)交付“已批准 publish candidate v2 → 人工 runtime assignment → API key application scope → candidate snapshot retrieval → Gateway answer → metadata-only run v4 → regression review”的完整开发测试态路径。
 
-设计、资源职责、执行边界和生产停止线已通过评审，批次 A 也已完成 contract、memory runtime 与受控调用证据。本卡仍是唯一实现入口，当前只准入批次 B；不得提前实现 Web 或真实浏览器，也不得绕过 assignment 直接从 publish approve / binding approve 触发调用。
+设计、资源职责、执行边界和生产停止线已通过评审，批次 A 已完成 contract、memory runtime 与受控调用证据；批次 B 已完成 durable store、run source、v4 evaluation 与真实 PostgreSQL 专项。本卡仍是唯一实现入口，当前准入批次 C；不得绕过 assignment 直接从 publish approve / binding approve 触发调用。
 
 ## 前置基线
 
@@ -56,7 +56,7 @@
 
 ## 批次 B：durable store、run source 与 evaluation
 
-状态：`ready_for_implementation`。
+状态：`completed`。
 
 - SQLite shared workflow database 追加 `0009_workflow_rag_application_invocations`，marker 推进为 `workflow_run_store_sqlite_v9`。
 - PostgreSQL workflow migration family 在 `0011` 后追加 `0012_workflow_rag_application_invocations`，marker 推进为 `workflow_run_store_v12`。
@@ -65,11 +65,18 @@
 - Run History 接受 v4；Comparison / Evaluation / Baseline / Suite 增加 `workflow_rag_application_invocation.v1`，只消费 metadata-only run refs且不重新执行。
 - 覆盖 migration / rollback / reapply、checksum、运行角色、并发 CAS、事务回滚、重启、损坏记录、stale running reconciliation 和 no-fallback。
 
+当前证据：
+
+- SQLite `0009`、PostgreSQL `0012`、run execution source migration、shared database / pool repository、v4 history / comparison / evaluation 与 stale reconciliation 均已实现。
+- SQLite migration、CAS / transaction、append-only、restart、corruption、no-fallback、HTTP Tool 回归，平台全包 Go 测试、定向 race、`go vet` 和 PostgreSQL build-tag 编译均已通过。
+- 真实 PostgreSQL 首次运行发现 configured 产品链清理顺序未纳入新 runtime 表；修正后完整 integration suite 通过。
+- `./scripts/run-workflow-saved-draft-postgres-dev-test.sh check` 已通过 migration / rollback / reapply、运行角色、事务、append-only、restart、no-fallback、全部迁移恢复与 configured profile；`0012` marker / checksum 已复验。
+
 完成后推进为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_c_ready_for_implementation`。
 
 ## 批次 C：Web、连续链与专题收口
 
-状态：`blocked_by_batch_b`。
+状态：`ready_for_implementation`。
 
 - 发布候选详情增加 lazy assignment 管理，approve、activate / replace / revoke 保持独立动作并保留 CAS conflict reason。
 - API key 管理增加显式 `application_rag:invoke`，一次性 token 只通过内存交给 Application RAG Invocation 面板。
