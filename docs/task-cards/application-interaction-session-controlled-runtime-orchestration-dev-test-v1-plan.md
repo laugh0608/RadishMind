@@ -2,7 +2,7 @@
 
 更新时间：2026-07-19
 
-状态：`application_interaction_session_controlled_runtime_orchestration_dev_test_v1_batch_c_ready_for_implementation`
+状态：`application_interaction_session_controlled_runtime_orchestration_dev_test_v1_batch_d_ready_for_implementation`
 
 ## 目标与准入结论
 
@@ -65,13 +65,21 @@
 
 ## 批次 C：turn coordinator 与 v5 / v4 委托
 
-状态：`ready_for_implementation`。
+状态：`completed`。
 
 - 开放 strict turn route 与 `application_sessions:execute`。
 - 每回合 provider 前重读 exact authority；不信任 session snapshot 或客户端 authority。
 - Workflow profile 委托现有 definition execution service；Application RAG profile 委托现有 invocation service。
 - 原子记录 running / terminal metadata 和 run ref；answer 只出现在当前响应。
 - stale running 只转 `outcome_unknown`，不重放 provider。
+
+完成证据：
+
+- strict turn route 与 `application_sessions:execute` 已开放，RAG profile 不接受 workflow-only model / temperature / condition options，客户端不能提交 authority 字段。
+- reservation 后再次比较 exact authority；Workflow 只委托 definition service 并消费 v5，RAG 只委托 invocation service 并消费 v4，没有复制图执行、Gateway 或检索算法。
+- 首次成功响应可返回 transient `advisory_output` / answer；session / turn repository 只保存 digest / bytes、run ref 和失败 metadata，幂等 replay 不返回旧 answer。
+- 并发相同 client turn key 只产生一次 delegate / provider；authority drift、取消、run terminal pending、session terminal write failure 和 stale running 均有失败关闭测试。
+- Platform 全量、相关 race、`go vet`、PostgreSQL integration suite 与仓库 fast / full 已通过，状态推进至批次 D ready。
 
 完成后推进批次 D。
 

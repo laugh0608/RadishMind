@@ -6,7 +6,7 @@
 
 ## 当前专题
 
-- [应用交互会话与受控运行编排（开发 / 测试态）v1](application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)：当前在制专题；strict contract、显式 profile、exact authority resolver 与 memory / SQLite / PostgreSQL Session / Turn owner 已完成，下一批接入既有 v5 / v4 执行服务，之后再进入用户工作区交互面。
+- [应用交互会话与受控运行编排（开发 / 测试态）v1](application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)：当前在制专题；strict contract、三种 Session / Turn owner、exact authority reload、strict turn coordinator、既有 v5 / v4 单次委托、取消与 stale reconciliation 已完成，下一批进入用户工作区交互面。
 - [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1.md)：Gateway 认证、统一 `sqlite_dev` repository / 聚合 runtime、双数据库门禁、Web 一次性交接、真实浏览器连续路径、重启恢复与敏感信息复验均已完成，专题关闭。
 - [应用目录与生命周期（开发/测试态）v1](application-catalog-lifecycle-dev-test-v1.md)：核心生命周期、内存与 PostgreSQL 开发测试态存储、Web 管理、下游归档只读约束和真实浏览器连续验收均已完成。
 - [应用 API 接入与调用 v1](application-api-integration-invocation-v1.md)：把选中应用、`/v1/models` 模型目录、三协议接入示例、现有 Gateway 调试台调用与脱敏请求历史审查串成连续的内部开发者路径。
@@ -16,7 +16,7 @@
 
 ## 下一步
 
-- 当前从已完成的 strict contract、exact resolver 与三种 durable owner 进入 turn coordinator；Web 与连续链仍按后续批次推进。应用运行观测保持已关闭；只有需要跨全部分页窗口的稳定统计、可信 reported usage 或正式 quota / billing owner 时，才评审服务端 summary。
+- 当前从已完成的服务端 Session / Turn owner 与受控执行编排进入 Web 交互工作区；launcher、双数据库连续链与真实浏览器仍在后续收口批次。应用运行观测保持已关闭；只有需要跨全部分页窗口的稳定统计、可信 reported usage 或正式 quota / billing owner 时，才评审服务端 summary。
 
 ## 目录停止线
 

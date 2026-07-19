@@ -12,6 +12,7 @@ const (
 	applicationSessionReadRoute     = "GET /v1/user-workspace/application-sessions/{session_id}"
 	applicationSessionCloseRoute    = "POST /v1/user-workspace/application-sessions/{session_id}/close"
 	applicationSessionTurnListRoute = "GET /v1/user-workspace/application-sessions/{session_id}/turns"
+	applicationSessionTurnRoute     = "POST /v1/user-workspace/application-sessions/{session_id}/turns"
 )
 
 type applicationInteractionSessionCreateBody struct {
@@ -25,6 +26,17 @@ type applicationInteractionSessionCloseBody struct {
 	WorkspaceID     string `json:"workspace_id"`
 	ApplicationID   string `json:"application_id"`
 	ExpectedVersion int    `json:"expected_version"`
+}
+
+type applicationInteractionTurnBody struct {
+	WorkspaceID            string          `json:"workspace_id"`
+	ApplicationID          string          `json:"application_id"`
+	ExpectedSessionVersion int             `json:"expected_session_version"`
+	ClientTurnKey          string          `json:"client_turn_key"`
+	InputText              string          `json:"input_text"`
+	ConditionValues        map[string]bool `json:"condition_values"`
+	Model                  string          `json:"model"`
+	Temperature            *float64        `json:"temperature"`
 }
 
 type applicationInteractionSessionEnvelope struct {
@@ -60,6 +72,22 @@ type applicationInteractionTurnListEnvelope struct {
 	Items         []ApplicationInteractionTurn `json:"items"`
 	FailureCode   *string                      `json:"failure_code"`
 	AuditRef      string                       `json:"audit_ref"`
+}
+
+type applicationInteractionTurnEnvelope struct {
+	RequestID        string                         `json:"request_id"`
+	TenantRef        string                         `json:"tenant_ref"`
+	WorkspaceID      string                         `json:"workspace_id"`
+	ApplicationID    string                         `json:"application_id"`
+	SessionID        string                         `json:"session_id"`
+	Session          *ApplicationInteractionSession `json:"session"`
+	Turn             *ApplicationInteractionTurn    `json:"turn"`
+	AdvisoryOutput   string                         `json:"advisory_output,omitempty"`
+	Answer           *WorkflowRAGApplicationAnswer  `json:"answer,omitempty"`
+	FailureCode      *string                        `json:"failure_code"`
+	FailureSummary   string                         `json:"failure_summary"`
+	IdempotentReplay bool                           `json:"idempotent_replay"`
+	AuditRef         string                         `json:"audit_ref"`
 }
 
 func (server *Server) handleCreateApplicationInteractionSession(writer http.ResponseWriter, request *http.Request) {
@@ -167,8 +195,38 @@ func (server *Server) handleListApplicationInteractionTurns(writer http.Response
 		writeApplicationInteractionTurnListResult(writer, status, trace, ctx, request.PathValue("session_id"), []ApplicationInteractionTurn{}, failure)
 		return
 	}
+	if reconciled := server.applicationInteractionTurnCoordinator().ReconcileStale(ctx, request.PathValue("session_id")); reconciled.FailureCode != "" {
+		writeApplicationInteractionTurnListResult(writer, http.StatusOK, trace, ctx, request.PathValue("session_id"), []ApplicationInteractionTurn{}, reconciled.FailureCode)
+		return
+	}
 	turns, failure := server.applicationInteractionSessionService().ListTurns(ctx, request.PathValue("session_id"))
 	writeApplicationInteractionTurnListResult(writer, http.StatusOK, trace, ctx, request.PathValue("session_id"), turns, failure)
+}
+
+func (server *Server) handleExecuteApplicationInteractionTurn(writer http.ResponseWriter, request *http.Request) {
+	trace := newRequestTrace(request, applicationSessionTurnRoute)
+	if !server.allowApplicationInteractionSessionDev(writer, trace) {
+		return
+	}
+	var body applicationInteractionTurnBody
+	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
+		return
+	}
+	ctx, failure, status := applicationInteractionContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "turn-execute", "application_sessions:execute")
+	if failure != "" {
+		writeApplicationInteractionTurnResult(writer, status, trace, ctx, request.PathValue("session_id"), applicationInteractionTurnExecutionFailure(failure, "Application session turn scope is denied."))
+		return
+	}
+	ctx.WriteEnabled = true
+	result := server.applicationInteractionTurnCoordinator().Execute(ctx, request.PathValue("session_id"), ApplicationInteractionTurnExecutionInput{
+		ExpectedSessionVersion: body.ExpectedSessionVersion,
+		ClientTurnKey:          body.ClientTurnKey,
+		InputText:              body.InputText,
+		ConditionValues:        body.ConditionValues,
+		Model:                  body.Model,
+		Temperature:            body.Temperature,
+	})
+	writeApplicationInteractionTurnResult(writer, http.StatusOK, trace, ctx, request.PathValue("session_id"), result)
 }
 
 func (server *Server) applicationInteractionSessionService() applicationInteractionSessionService {
@@ -177,6 +235,20 @@ func (server *Server) applicationInteractionSessionService() applicationInteract
 
 func (server *Server) applicationInteractionAuthorityResolver() exactApplicationInteractionAuthorityResolver {
 	return newExactApplicationInteractionAuthorityResolver(server.applicationCatalogRepository, server.workflowDefinitionReleaseRepository, server.workflowRAGAppRuntimeRepository, server.workflowRAGApplicationAuthorityResolver())
+}
+
+func (server *Server) applicationInteractionTurnCoordinator() applicationInteractionTurnCoordinator {
+	resolver := server.applicationInteractionAuthorityResolver()
+	sessions := newApplicationInteractionSessionService(server.applicationInteractionSessionRepository, resolver)
+	var workflowDelegate applicationInteractionWorkflowDelegate
+	if server.config.WorkflowDefinitionReleaseDevEnabled && server.config.WorkflowExecutorDevEnabled {
+		workflowDelegate = server.workflowDefinitionExecutionService().StartRun
+	}
+	var ragDelegate applicationInteractionRAGDelegate
+	if server.config.WorkflowRAGAppInvocationDevEnabled {
+		ragDelegate = server.workflowRAGApplicationInvocationService().Invoke
+	}
+	return newApplicationInteractionTurnCoordinator(sessions, resolver, workflowDelegate, ragDelegate)
 }
 
 func (server *Server) allowApplicationInteractionSessionDev(writer http.ResponseWriter, trace requestTrace) bool {
@@ -228,4 +300,14 @@ func writeApplicationInteractionTurnListResult(writer http.ResponseWriter, statu
 		turns = []ApplicationInteractionTurn{}
 	}
 	writeObservedJSON(writer, status, trace, applicationInteractionTurnListEnvelope{RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, SessionID: strings.TrimSpace(sessionID), Items: turns, FailureCode: optionalApplicationDraftFailure(failure), AuditRef: ctx.AuditRef})
+}
+
+func writeApplicationInteractionTurnResult(writer http.ResponseWriter, status int, trace requestTrace, ctx ApplicationInteractionContext, sessionID string, result ApplicationInteractionTurnExecutionResult) {
+	writeObservedJSON(writer, status, trace, applicationInteractionTurnEnvelope{
+		RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
+		SessionID: strings.TrimSpace(sessionID), Session: result.Session, Turn: result.Turn,
+		AdvisoryOutput: result.AdvisoryOutput, Answer: result.Answer,
+		FailureCode: optionalApplicationDraftFailure(result.FailureCode), FailureSummary: result.FailureSummary,
+		IdempotentReplay: result.IdempotentReplay, AuditRef: ctx.AuditRef,
+	})
 }

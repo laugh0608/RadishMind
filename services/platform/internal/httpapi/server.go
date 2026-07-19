@@ -246,6 +246,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationSessionReadRoute, server.handleReadApplicationInteractionSession)
 	mux.HandleFunc(applicationSessionCloseRoute, server.handleCloseApplicationInteractionSession)
 	mux.HandleFunc(applicationSessionTurnListRoute, server.handleListApplicationInteractionTurns)
+	mux.HandleFunc(applicationSessionTurnRoute, server.handleExecuteApplicationInteractionTurn)
 	mux.HandleFunc(controlPlaneAPIKeySummaryListRoute, server.handleUserWorkspaceAPIKeySummaryList)
 	mux.HandleFunc(apiKeyCreateRoute, server.handleCreateAPIKey)
 	mux.HandleFunc(apiKeyReadRoute, server.handleReadAPIKey)
