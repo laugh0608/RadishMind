@@ -14,7 +14,7 @@
 
 ## 下一步
 
-- API 密钥专题已经完成，不继续扩同层数据库、应用目录、页面、检查器或证据切片。下一跨产品面专题为[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](../workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)：仅新增显式 `application_rag:invoke` 开发测试态 scope 和内存一次性交接，不改变既有三协议 scope，也不启用生产认证、成员关系、生产 API 密钥、配额或计费。
+- API 密钥专题已经完成，不继续扩同层数据库、应用目录、页面、检查器或证据切片。[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](../workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)批次 A 已复用该生命周期实现显式 `application_rag:invoke` 开发测试态 scope；它不改变既有三协议 scope，也不启用 Web 交接、生产认证、成员关系、生产 API 密钥、配额或计费。
 
 ## 目录停止线
 

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-rag-application-runtime-audit.schema.json",
+  "title": "WorkflowRAGApplicationRuntimeAuditV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "audit_event_id", "assignment_id", "assignment_digest", "record_version", "state", "decision", "tenant_ref", "workspace_id", "application_id", "owner_subject_ref", "actor_ref", "occurred_at", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": { "const": "workflow_rag_application_runtime_audit.v1" },
+    "audit_event_id": { "type": "string", "pattern": "^wragru_[a-z2-7]{16}$" },
+    "assignment_id": { "type": "string", "pattern": "^wragra_[a-z2-7]{16}$" },
+    "assignment_digest": { "$ref": "#/$defs/digest" },
+    "record_version": { "type": "integer", "minimum": 1 },
+    "state": { "enum": ["active", "revoked"] },
+    "decision": { "enum": ["activate", "replace", "revoke"] },
+    "tenant_ref": { "$ref": "#/$defs/ref" },
+    "workspace_id": { "$ref": "#/$defs/ref" },
+    "application_id": { "$ref": "#/$defs/ref" },
+    "owner_subject_ref": { "$ref": "#/$defs/ref" },
+    "actor_ref": { "$ref": "#/$defs/ref" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "request_id": { "$ref": "#/$defs/ref" },
+    "audit_ref": { "$ref": "#/$defs/ref" }
+  },
+  "$defs": { "ref": { "type": "string", "minLength": 3, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$" }, "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" } }
+}

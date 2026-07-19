@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约
 
-更新时间：2026-07-18
+更新时间：2026-07-19
 
 ## 文档目的
 
@@ -28,6 +28,11 @@
 - `contracts/radish-oidc-token-validation.schema.json`
 - `contracts/production-secret-audit-event.schema.json`
 - `contracts/production-secret-audit-storage-adapter.metadata-contract.json`
+- `contracts/workflow-rag-application-runtime-assignment.schema.json`
+- `contracts/workflow-rag-application-runtime-assignment-event.schema.json`
+- `contracts/workflow-rag-application-runtime-audit.schema.json`
+- `contracts/workflow-rag-application-answer.schema.json`
+- `contracts/workflow-run-record-v4.schema.json`
 
 ## 当前协议原则
 
@@ -50,6 +55,7 @@
 - [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 的三个批次已完成。[唯一实施任务卡](task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)保持通用 Tooling v1 blocked，以 Workflow-specific action plan / confirmation / audit 和 `workflow_run_record.v2` 版本化替代旧 run-bound confirmation 占位；开发 / 测试态 `/executions`、单次 allowlisted `GET`、SSRF 策略、原子 claim、outcome reconciliation 与 Web 执行链均已实现。该路由不是跨项目生产接入，不允许上层项目提供任意 URL、credential、业务写回或自动确认。
 - [Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](features/workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 已完成：应用知识快照作为显式提交的 RadishMind 运行资产，由精确版本、确定性 lexical profile、三种 store、独立 retrieval execution、Gateway 单次 handoff、metadata-only `workflow_run_record.v3`、Web 与双数据库浏览器纵向链承载；它不是上层业务真相，完整 answer 不进入 run / audit / 普通 history。`radish.docs.retrieval_context.v1` 继续保持 Session / Tooling contract-only，不启用 crawler、任意 URL、connector、向量数据库或 embedding provider。
 - Workflow RAG 质量与晋级链已经完成 synthetic-public 离线评测、应用作用域 durable dataset、baseline / candidate review、人工 promotion decision、不可变 binding、配置草案 v2 attach、发布候选 v2 重校验、SQLite / PostgreSQL 和 Web 连续链。dataset、review、promotion、binding、draft 与 publish candidate 之间只复制 exact ref / digest，不复制 query、fragment、指标、配置正文、prompt 或模型响应；approve 不自动 baseline、attach、release、publish 或执行。稳定操作与资源说明见 [Workflow RAG 开发测试态使用与资源治理指南](features/workflow/workflow-rag-dev-test-usage-governance-guide.md)。
+- [Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](features/workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)批次 A 已实现 memory current assignment、人工 `activate / replace / revoke`、API key `application_rag:invoke`、服务端完整 authority reload、candidate snapshot 的一次 lexical retrieval / Gateway 和 metadata-only `workflow_run_record.v4`。调用方只能提交有界输入；publish approve 与 API key 签发都不会自动激活。SQLite / PostgreSQL assignment、v4 evaluation、Web 和生产调用仍未实现。
 - `P3 Local Product Shell / Ops Surface` 已暴露只读 `GET /v1/platform/overview` 与 `GET /v1/platform/local-smoke`，并已有 overview / local-smoke console consumer smoke、`contracts/typescript/platform-overview-api.ts`、`contracts/typescript/platform-local-smoke-api.ts`、本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist；本地只读产品壳已达到 `local usable / read-only close`。它只聚合和消费服务状态、本地 readiness、model/profile inventory、session/tooling metadata、blocked action route 和停止线，不引入真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍是后续 hardening 缺口。
 - `Provider Runtime & Health v1` 已把 provider capability matrix、provider health smoke、provider selection policy、provider retry/fallback policy 和 docs refresh 五个切片接入 fast baseline。它固定 `/v1/models`、provider/profile selection、diagnostics selectable model ids、credential state、deployment mode、offline health smoke、no implicit fallback、`retry_policy=caller-managed` 与 `fallback_policy=disabled` 的说明口径；它不代表 optional live health、retry/fallback execution、production secret backend、tool executor、confirmation/writeback/replay 或 production readiness 已完成。
 - `Production Secret Reference` 已用 `contracts/production-secret-reference.schema.json` 固定 reference-only manifest：只允许 `ref:` 形式的 secret 引用和脱敏 readiness 字段，不保存 secret value，不启用 resolver，不调用云 API，也不声明 production secret backend ready。

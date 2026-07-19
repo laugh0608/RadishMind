@@ -1,8 +1,8 @@
 # Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1
 
-更新时间：2026-07-18
+更新时间：2026-07-19
 
-状态：`workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_ready_for_implementation`
+状态：`workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_b_ready_for_implementation`
 
 ## 设计结论
 
@@ -10,7 +10,16 @@
 
 运行时固定使用 binding 中的 candidate snapshot 作为有效检索快照；baseline snapshot 只保留为晋级证据和回归比较来源，不参与本次检索。每次调用恰好执行一次既有确定性 lexical ranker 和一次既有 Gateway bridge 调用，返回结构化 advisory answer，并写入 metadata-only `workflow_run_record.v4`。输入、片段正文、prompt packet、完整回答和模型原始响应不持久化。
 
-本专题不会把发布候选 `approved` 改写为正式发布。runtime assignment 是独立、显式、可撤销的开发测试态运行选择，只引用权威发布候选和配置，不修改应用目录、配置草案、发布候选、promotion candidate、binding、dataset 或 snapshot。设计与边界评审通过，只准入唯一任务卡的批次 A；本次不开始 Go、TypeScript、migration 或 API runtime 实现。
+本专题不会把发布候选 `approved` 改写为正式发布。runtime assignment 是独立、显式、可撤销的开发测试态运行选择，只引用权威发布候选和配置，不修改应用目录、配置草案、发布候选、promotion candidate、binding、dataset 或 snapshot。批次 A 已完成 strict contract、memory assignment、authority resolver、API key scope、独立调用 API 和 metadata-only run v4；当前只准入唯一任务卡的批次 B，不开始 Web、launcher 或真实浏览器接线。
+
+## 批次 A 实施结果
+
+- 已物化 assignment、event、audit、同步 answer 与 run v4 五份 strict JSON Schema；未知字段、非法状态、错误引用和非 metadata-only 记录均失败关闭。
+- memory assignment repository 与现有 workflow owner lock 共用临界区，current projection、event 与 audit 以单次 CAS 原子提交；并发激活只有一个成功，重复或无意义状态变化被拒绝。
+- 管理 API 已支持显式 `activate / replace / revoke`，调用 API 只接受 API key Bearer 与 `application_rag:invoke`；普通三协议调用 scope 不会隐式获得 RAG 权限，管理权限保持独立。
+- authority resolver 在激活和每次调用检查点重读 application、publish candidate v2、draft v2、immutable binding、promotion、dataset / review、两侧 snapshot 与 lexical profile；candidate snapshot 是唯一有效检索快照。
+- 成功调用恰好执行一次 lexical retrieval 和一次 Gateway，使用新的 application configuration execution source 写 memory `workflow_run_record.v4`；输入、fragment 正文、prompt、完整回答、模型原始响应、token 与 credential 不进入 run、assignment、event 或 audit。
+- 精准领域、HTTP、权限、隐私、漂移、CAS 与竞态测试、平台全包 Go 测试、vet 和仓库快速 / 完整门禁均通过。批次 A 未创建数据库 migration，非 memory workflow backend 在门禁开启时明确失败，不回退 memory。
 
 ## 目标用户与完整路径
 
@@ -168,7 +177,7 @@ POST /v1/application-rag/invocations
 2. 批次 B：SQLite `0009`、PostgreSQL `0012`、run source migration、事务 / append-only / restart / corruption / no-fallback，以及 v4 Run History、Comparison / Evaluation / Baseline / Suite 服务边界。
 3. 批次 C：Web activation / API key handoff / invocation / history / evaluation 接线、launcher、SQLite 与 PostgreSQL 连续链、真实浏览器、敏感材料扫描和专题收口。
 
-设计评审结论为通过，状态为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_ready_for_implementation`。只准入批次 A；不得跳过 assignment，让 publish approve 或 API key 签发直接打开 retrieval。
+批次 A 已完成，状态推进为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_b_ready_for_implementation`。下一批只准入 durable store、run source migration 与 evaluation；不得跳过 assignment，让 publish approve 或 API key 签发直接打开 retrieval。
 
 ## 验证矩阵
 

@@ -1,14 +1,14 @@
 # Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1 实施任务卡
 
-更新时间：2026-07-18
+更新时间：2026-07-19
 
-状态：`workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_a_ready_for_implementation`
+状态：`workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_b_ready_for_implementation`
 
 ## 目标与准入结论
 
 按[功能设计](../features/workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)交付“已批准 publish candidate v2 → 人工 runtime assignment → API key application scope → candidate snapshot retrieval → Gateway answer → metadata-only run v4 → regression review”的完整开发测试态路径。
 
-设计、资源职责、执行边界和生产停止线已通过评审。本卡是唯一实现入口，只准入批次 A；不得先写 migration、Web 或真实运行开关，也不得绕过 assignment 直接从 publish approve / binding approve 触发调用。
+设计、资源职责、执行边界和生产停止线已通过评审，批次 A 也已完成 contract、memory runtime 与受控调用证据。本卡仍是唯一实现入口，当前只准入批次 B；不得提前实现 Web 或真实浏览器，也不得绕过 assignment 直接从 publish approve / binding approve 触发调用。
 
 ## 前置基线
 
@@ -20,7 +20,7 @@
 
 ## 批次 A：contract、authority resolver 与 memory execution
 
-状态：`ready_for_implementation`。
+状态：`completed`；完成锚点为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_a_completed`。
 
 ### 允许实现
 
@@ -45,9 +45,18 @@
 
 完成后推进为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_b_ready_for_implementation`。
 
+### 批次 A 完成证据
+
+- 五份 strict JSON Schema、Go strict codec / validator 与未知字段负例已经物化；assignment digest 封印精确候选、草案和 binding 选择，run v4 使用独立 application configuration execution source。
+- memory assignment 与 workflow run store 共用 owner lock；current projection、event、audit 原子 CAS，竞态测试证明并发激活单一成功且无 partial write。
+- authority resolver 在 activation、running v4 创建前、retrieval 前和 provider 前重读全部权威资源；未批准 / 被取代候选、资源漂移、归档、撤销和 store failure 在相应副作用边界失败关闭。
+- 独立 gate、assignment GET / decision API、OIDC permission projection、API key `application_rag:invoke` 和 invocation route 已接入；客户端 authority 字段、开发身份头和普通三协议 scope 均不能越权。
+- 成功路径固定 candidate snapshot，恰好一次 lexical retrieval 和一次 Gateway；run v4 只保存 digest、refs、rank、citation、配置选择、诊断与副作用计数，answer、input、fragment、prompt、模型响应和 credential 不持久化。
+- `go test ./...`、定向 `go test -race`、`go vet`、JSON schema 语法检查、`git diff --check` 与快速 / 完整 `./scripts/check-repo.sh` 已通过；未创建 SQLite / PostgreSQL migration，未修改 Web / launcher，未运行真实 provider 或浏览器。
+
 ## 批次 B：durable store、run source 与 evaluation
 
-状态：`blocked_by_batch_a`。
+状态：`ready_for_implementation`。
 
 - SQLite shared workflow database 追加 `0009_workflow_rag_application_invocations`，marker 推进为 `workflow_run_store_sqlite_v9`。
 - PostgreSQL workflow migration family 在 `0011` 后追加 `0012_workflow_rag_application_invocations`，marker 推进为 `workflow_run_store_v12`。

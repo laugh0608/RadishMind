@@ -45,6 +45,7 @@ type Server struct {
 	workflowRAGSnapshotRepository          workflowRAGSnapshotRepository
 	workflowRAGEvaluationDatasetRepository workflowRAGEvaluationDatasetRepository
 	workflowRAGPromotionRepository         workflowRAGPromotionRepository
+	workflowRAGAppRuntimeRepository        workflowRAGApplicationRuntimeRepository
 	workflowHTTPToolActionStore            workflowHTTPToolActionStore
 	workflowHTTPToolExecutionStore         workflowHTTPToolExecutionStore
 	workflowHTTPToolExecutionTransport     *workflowHTTPToolTransport
@@ -152,6 +153,14 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 			return nil, err
 		}
 	}
+	var workflowRAGApplicationRuntimeRepository workflowRAGApplicationRuntimeRepository
+	if runtimeConfig.WorkflowRAGAppInvocationDevEnabled {
+		workflowRAGApplicationRuntimeRepository, err = newWorkflowRAGApplicationRuntimeRepositoryForRunStore(workflowRunStore)
+		if err != nil {
+			closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+			return nil, err
+		}
+	}
 	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
@@ -178,6 +187,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		workflowRAGSnapshotRepository:          workflowRAGSnapshotRepository,
 		workflowRAGEvaluationDatasetRepository: workflowRAGEvaluationDatasetRepository,
 		workflowRAGPromotionRepository:         workflowRAGPromotionRepository,
+		workflowRAGAppRuntimeRepository:        workflowRAGApplicationRuntimeRepository,
 		workflowHTTPToolActionStore:            workflowHTTPToolActionStore,
 		workflowHTTPToolExecutionStore:         newWorkflowHTTPToolExecutionStoreForRunStore(workflowRunStore, workflowHTTPToolActionStore),
 		workflowEvaluationStore:                newWorkflowEvaluationStoreForRunStore(workflowRunStore),
@@ -252,6 +262,9 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(workflowRAGPromotionCandidateListRoute, server.handleListWorkflowRAGPromotionCandidates)
 	mux.HandleFunc(workflowRAGPromotionCandidateReadRoute, server.handleReadWorkflowRAGPromotionCandidate)
 	mux.HandleFunc(workflowRAGPromotionDecisionRoute, server.handleDecideWorkflowRAGPromotionCandidate)
+	mux.HandleFunc(workflowRAGApplicationRuntimeAssignmentReadRoute, server.handleReadWorkflowRAGApplicationRuntimeAssignment)
+	mux.HandleFunc(workflowRAGApplicationRuntimeAssignmentDecisionRoute, server.handleDecideWorkflowRAGApplicationRuntimeAssignment)
+	mux.HandleFunc("POST "+workflowRAGApplicationInvocationRoute, server.handleWorkflowRAGApplicationInvocation)
 	mux.HandleFunc(workflowHTTPToolPlanCreateRoute, server.handleCreateWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowHTTPToolPlanReadRoute, server.handleReadWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowHTTPToolDecisionRoute, server.handleDecideWorkflowHTTPToolActionPlan)

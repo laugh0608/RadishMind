@@ -1,6 +1,6 @@
 # RadishMind 统一契约文件
 
-更新时间：2026-07-17
+更新时间：2026-07-19
 
 本目录承载 `RadishMind` 第一版真实契约文件。
 
@@ -57,6 +57,11 @@
 41. `workflow-rag-knowledge-promotion-decision.schema.json`
 42. `workflow-rag-application-binding.schema.json`
 43. `workflow-rag-knowledge-promotion-audit.schema.json`
+44. `workflow-rag-application-runtime-assignment.schema.json`
+45. `workflow-rag-application-runtime-assignment-event.schema.json`
+46. `workflow-rag-application-runtime-audit.schema.json`
+47. `workflow-rag-application-answer.schema.json`
+48. `workflow-run-record-v4.schema.json`
 
 当前 TypeScript 消费契约：
 
@@ -84,6 +89,7 @@
 - `workflow-rag-fragment.schema.json`、`workflow-rag-snapshot.schema.json`、`workflow-rag-execution-profile.schema.json`、`workflow-rag-answer.schema.json`、`workflow-rag-execution-audit.schema.json` 与 `workflow-run-record-v3.schema.json` 冻结应用知识快照、确定性 lexical profile、结构化 answer / citation、metadata-only audit 与 retrieval run v3。snapshot lifecycle、独立 retrieval execution、一次 Gateway handoff、memory / SQLite / PostgreSQL store、Run History / Comparison / Evaluation 和 Web 已实现；知识快照 list 不含正文，精确 detail 只在 snapshot read scope 下返回有界 fragment，run v3 不保存输入、正文、prompt、完整回答或模型原始响应。该实现仍不启用 crawler、embedding、vector database、reranker、业务写回或生产 RAG。
 - `workflow-rag-evaluation-dataset.schema.json` 与 `workflow-rag-quality-review.schema.json` 冻结可提交 synthetic-public 离线资产；`workflow-rag-evaluation-dataset-resource.schema.json` 与 `workflow-rag-candidate-snapshot-review.schema.json` 冻结应用作用域 durable dataset、不可变版本和 baseline / candidate review。离线 CLI 与 durable resource runtime 均复用同一 lexical ranker；candidate review 不调用 Gateway、不创建 workflow run，list / review / audit 不保存 query 或 fragment 正文。
 - 四份 promotion schema 冻结 exact dataset / candidate review / baseline 与 candidate snapshot / lexical profile / source draft binding、人工 decision CAS、不可变 application binding 和 metadata-only append-only audit。memory、SQLite `0008`、PostgreSQL `0011`、配置草案 v2 attach、发布候选 v2 重校验和 Web 连续链均已实现；promotion approve 只签发绑定资格，不自动修改 snapshot、dataset baseline、配置草案、发布候选或发布状态。契约与运行时均不保存 query、fragment、review note、配置正文、prompt、模型响应、credential 或 secret，也不代表生产 promotion 已启用。
+- 五份 application RAG runtime schema 冻结 ref-only current assignment、人工 `activate / replace / revoke` CAS、append-only event / audit、同步 advisory answer 与 metadata-only run v4。批次 A 只实现 memory owner lock 下的原子 assignment、服务端 authority reload、API key `application_rag:invoke`、candidate snapshot 的一次 lexical retrieval / Gateway 和独立调用 API；run v4 不伪造 workflow draft，也不保存输入、fragment 正文、prompt、完整回答、模型原始响应、token 或 credential。SQLite / PostgreSQL migration、Run History / Evaluation 扩展、Web 与生产能力仍由后续批次承接。
 - 当前 `typescript/platform-overview-api.ts` 用于冻结 `P3 Local Product Shell / Ops Surface` 的最小本地 console 消费视图：`PlatformOverviewResponse`、`PlatformOverviewConsoleViewModel` 与 `toPlatformOverviewConsoleViewModel`。它只消费 `GET /v1/platform/overview` 已聚合的只读 metadata，把 service status、model inventory、session/tooling surface 和 stop-lines 投影为 UI 可展示 view model，并固定 `canExecuteActions=false`、`canUseDurableStore=false`、`canWriteBusinessTruth=false` 与 `canReplayAutomatically=false`；`scripts/check-platform-overview-consumer-contract.py` 会把该消费契约与 `services/platform/internal/httpapi/platform_overview.go` 和 `scripts/run-platform-overview-consumer-smoke.py --check` 做静态/行为对齐，`apps/radishmind-console/` 则复用同一 contract 落地 React + Vite + TypeScript 只读 console 壳。`scripts/check-radishmind-console-behavior.py` 继续固定 ready、refresh stale overview、连接失败诊断和只读停止线；`scripts/check-radishmind-console-production-boundary.py` 固定 console 仍不是 production package；`scripts/check-p3-local-product-shell-short-close-checklist.py` 则固定 P3 short close 仍为 `not_ready`，避免把本地产品壳写成生产部署或真实执行能力。
 - 当前 `typescript/platform-local-smoke-api.ts` 用于冻结 `P3 Local Product Shell / Ops Surface` 的本地 readiness 摘要消费视图：`PlatformLocalSmokeResponse`、`PlatformLocalSmokeReadinessViewModel` 与 `toPlatformLocalSmokeReadinessViewModel`。它只消费 `GET /v1/platform/local-smoke` 已聚合的 healthz、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、本地 console CORS 和停止线状态，并固定 `canExecuteActions=false`、`canUseDurableStore=false`、`canWriteBusinessTruth=false` 与 `canReplayAutomatically=false`；`scripts/check-platform-local-smoke-contract.py` 会把该消费契约与 Go route 和 `scripts/run-platform-local-smoke.py --check` 做静态/行为对齐。`apps/radishmind-console/` 当前用该契约渲染 `Local Readiness` 面板，并在 overview 可读但 local-smoke readiness / contract 失败时显示 `platform_local_smoke` failure surface 和只读诊断。该契约不代表 production supervisor、executor、durable store、confirmation flow、业务写回或 replay ready。
 - 当前 `typescript/session-tooling-api.ts` 用于冻结最小上层消费视图：`SessionMetadataResponse`、`ToolingMetadataResponse`、`ToolActionBlockedResponse`、`toToolActionBlockedView` 与 `listToolActionOptions`。它只表达 metadata-only、contract-only 和 blocked action 展示语义，固定 `canExecute=false`、`executed=false`、`result_ref=null`、无 durable memory、无业务写回和无 replay side effect；`scripts/check-platform-session-tooling-consumer-contract.py` 会把该消费契约与 `services/platform/internal/httpapi/session_tooling_metadata.go` 中的路由、拒绝码和无副作用字段做静态对齐。

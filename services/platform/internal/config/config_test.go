@@ -377,6 +377,27 @@ func TestWorkflowRAGPromotionDevGateIsIndependentAndRequiresVerifiedAuth(t *test
 	}
 }
 
+func TestWorkflowRAGApplicationInvocationDevGateRequiresCompleteDevAuthorities(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_WORKFLOW_RAG_APPLICATION_INVOCATION_DEV", "1")
+	if _, err := LoadFromEnv(); err == nil || !strings.Contains(err.Error(), "workflow RAG application invocation dev requires") {
+		t.Fatalf("incomplete application RAG invocation dependencies were accepted: %v", err)
+	}
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_APPLICATION_DRAFT_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_RAG_PROMOTION_DEV", "1")
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load complete application RAG invocation gates: %v", err)
+	}
+	if !cfg.WorkflowRAGAppInvocationDevEnabled || cfg.FieldSources["workflow_rag_application_invocation_dev"] != configSourceEnv || !cfg.SanitizedSummary().WorkflowRAGAppInvocationDevEnabled {
+		t.Fatal("sanitized summary omitted the application RAG invocation gate")
+	}
+}
+
 func TestLoadFromEnvRejectsInvalidConfigFileDuration(t *testing.T) {
 	clearPlatformEnv(t)
 	configPath := filepath.Join(t.TempDir(), "platform-config.json")

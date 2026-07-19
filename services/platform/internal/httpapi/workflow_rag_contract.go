@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -185,6 +186,38 @@ func validateWorkflowRAGContractJSON(contract string, payload []byte) error {
 			return err
 		}
 		return validateWorkflowRAGRunRecordV3(record)
+	case workflowRunRecordAppRAGSchemaVersion:
+		var record workflowRAGApplicationRunRecordV4
+		if err := decodeWorkflowRAGStrictJSON(payload, &record); err != nil {
+			return err
+		}
+		return validateWorkflowRAGApplicationRunRecordV4(record)
+	case workflowRAGApplicationRuntimeAssignmentSchemaVersion:
+		var assignment WorkflowRAGApplicationRuntimeAssignment
+		if err := decodeWorkflowRAGStrictJSON(payload, &assignment); err != nil {
+			return err
+		}
+		ctx := WorkflowRAGApplicationRuntimeContext{RequestContext: context.Background(), RequestID: assignment.RequestID, TenantRef: assignment.TenantRef, WorkspaceID: assignment.WorkspaceID, ApplicationID: assignment.ApplicationID, ActorRef: assignment.UpdatedByActorRef, OwnerSubjectRef: assignment.OwnerSubjectRef, AuditRef: assignment.AuditRef}
+		return validateStoredWorkflowRAGApplicationAssignment(assignment, ctx)
+	case workflowRAGApplicationRuntimeEventSchemaVersion:
+		var event WorkflowRAGApplicationRuntimeEvent
+		if err := decodeWorkflowRAGStrictJSON(payload, &event); err != nil {
+			return err
+		}
+		return validateStoredWorkflowRAGApplicationEvent(event)
+	case workflowRAGApplicationRuntimeAuditSchemaVersion:
+		var audit WorkflowRAGApplicationRuntimeAudit
+		if err := decodeWorkflowRAGStrictJSON(payload, &audit); err != nil {
+			return err
+		}
+		ctx := WorkflowRAGApplicationRuntimeContext{RequestContext: context.Background(), RequestID: audit.RequestID, TenantRef: audit.TenantRef, WorkspaceID: audit.WorkspaceID, ApplicationID: audit.ApplicationID, ActorRef: audit.ActorRef, OwnerSubjectRef: audit.OwnerSubjectRef, AuditRef: audit.AuditRef}
+		return validateStoredWorkflowRAGApplicationAudit(audit, ctx)
+	case workflowRAGApplicationAnswerSchemaVersion:
+		var answer WorkflowRAGApplicationAnswer
+		if err := decodeWorkflowRAGStrictJSON(payload, &answer); err != nil {
+			return err
+		}
+		return validateWorkflowRAGApplicationAnswer(answer, nil)
 	case workflowRAGEvaluationDatasetSchemaVersion:
 		_, err := DecodeWorkflowRAGEvaluationDataset(payload)
 		return err

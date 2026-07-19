@@ -19,6 +19,7 @@ const (
 	workflowRunRecordLegacySchemaVersion = "workflow_run_record.v0"
 	workflowRunRecordToolSchemaVersion   = "workflow_run_record.v2"
 	workflowRunRecordRAGSchemaVersion    = "workflow_run_record.v3"
+	workflowRunRecordAppRAGSchemaVersion = "workflow_run_record.v4"
 	workflowExecutorProtocol             = "workflow-executor-v0"
 	workflowExecutorRoute                = "/v1/user-workspace/workflow-drafts/{draft_id}/runs"
 
@@ -132,42 +133,51 @@ type WorkflowRunNodeRecord struct {
 	FailureCode        WorkflowRunFailureCode `json:"failure_code"`
 }
 
+type workflowRunExecutionSource struct {
+	Kind       string
+	SourceKind string
+	ID         string
+	Version    int
+}
+
 type WorkflowRunRecord struct {
-	SchemaVersion    string                            `json:"schema_version"`
-	RecordVersion    int                               `json:"record_version"`
-	RunID            string                            `json:"run_id"`
-	PlanID           string                            `json:"plan_id,omitempty"`
-	ConfirmationID   string                            `json:"confirmation_id,omitempty"`
-	TenantRef        string                            `json:"tenant_ref,omitempty"`
-	DraftID          string                            `json:"draft_id"`
-	DraftVersion     int                               `json:"draft_version"`
-	DraftDigest      string                            `json:"draft_digest,omitempty"`
-	WorkspaceID      string                            `json:"workspace_id"`
-	ApplicationID    string                            `json:"application_id"`
-	Status           WorkflowRunStatus                 `json:"status"`
-	FailureCode      WorkflowRunFailureCode            `json:"failure_code"`
-	FailureSummary   string                            `json:"failure_summary"`
-	StartedAt        string                            `json:"started_at"`
-	CompletedAt      string                            `json:"completed_at"`
-	InputBytes       int                               `json:"input_bytes"`
-	ConditionNodeIDs []string                          `json:"condition_node_ids"`
-	RequestedModel   string                            `json:"requested_model"`
-	SelectedProvider string                            `json:"selected_provider"`
-	SelectedProfile  string                            `json:"selected_profile"`
-	SelectedModel    string                            `json:"selected_model"`
-	UpstreamModel    string                            `json:"upstream_model"`
-	SelectionSource  string                            `json:"selection_source"`
-	Nodes            []WorkflowRunNodeRecord           `json:"nodes"`
-	ToolAttempt      *WorkflowHTTPToolExecutionAttempt `json:"tool_attempt,omitempty"`
-	RAGSnapshot      *workflowRAGRunSnapshotBinding    `json:"snapshot,omitempty"`
-	RetrievalAttempt *workflowRAGRunRetrievalAttempt   `json:"retrieval_attempt,omitempty"`
-	RAGAnswer        *WorkflowRAGAnswer                `json:"answer,omitempty"`
-	Output           string                            `json:"output"`
-	RequestID        string                            `json:"request_id"`
-	AuditRef         string                            `json:"audit_ref"`
-	ActorRef         string                            `json:"actor_ref"`
-	SideEffects      WorkflowRunSideEffects            `json:"side_effects"`
-	Diagnostic       *WorkflowRunDiagnostic            `json:"diagnostic,omitempty"`
+	SchemaVersion    string                              `json:"schema_version"`
+	RecordVersion    int                                 `json:"record_version"`
+	RunID            string                              `json:"run_id"`
+	PlanID           string                              `json:"plan_id,omitempty"`
+	ConfirmationID   string                              `json:"confirmation_id,omitempty"`
+	TenantRef        string                              `json:"tenant_ref,omitempty"`
+	DraftID          string                              `json:"draft_id"`
+	DraftVersion     int                                 `json:"draft_version"`
+	DraftDigest      string                              `json:"draft_digest,omitempty"`
+	WorkspaceID      string                              `json:"workspace_id"`
+	ApplicationID    string                              `json:"application_id"`
+	ExecutionSource  *workflowRunExecutionSource         `json:"-"`
+	Status           WorkflowRunStatus                   `json:"status"`
+	FailureCode      WorkflowRunFailureCode              `json:"failure_code"`
+	FailureSummary   string                              `json:"failure_summary"`
+	StartedAt        string                              `json:"started_at"`
+	CompletedAt      string                              `json:"completed_at"`
+	InputBytes       int                                 `json:"input_bytes"`
+	ConditionNodeIDs []string                            `json:"condition_node_ids"`
+	RequestedModel   string                              `json:"requested_model"`
+	SelectedProvider string                              `json:"selected_provider"`
+	SelectedProfile  string                              `json:"selected_profile"`
+	SelectedModel    string                              `json:"selected_model"`
+	UpstreamModel    string                              `json:"upstream_model"`
+	SelectionSource  string                              `json:"selection_source"`
+	Nodes            []WorkflowRunNodeRecord             `json:"nodes"`
+	ToolAttempt      *WorkflowHTTPToolExecutionAttempt   `json:"tool_attempt,omitempty"`
+	RAGSnapshot      *workflowRAGRunSnapshotBinding      `json:"snapshot,omitempty"`
+	RetrievalAttempt *workflowRAGRunRetrievalAttempt     `json:"retrieval_attempt,omitempty"`
+	RAGAnswer        *WorkflowRAGAnswer                  `json:"answer,omitempty"`
+	RAGApplication   *workflowRAGApplicationRunAuthority `json:"-"`
+	Output           string                              `json:"output"`
+	RequestID        string                              `json:"request_id"`
+	AuditRef         string                              `json:"audit_ref"`
+	ActorRef         string                              `json:"actor_ref"`
+	SideEffects      WorkflowRunSideEffects              `json:"side_effects"`
+	Diagnostic       *WorkflowRunDiagnostic              `json:"diagnostic,omitempty"`
 }
 
 type WorkflowRunResult struct {

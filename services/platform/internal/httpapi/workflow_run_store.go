@@ -186,15 +186,20 @@ func workflowRunStoreListLimit(limit int) int {
 func validateWorkflowRunStoreRecord(runContext WorkflowRunContext, record *WorkflowRunRecord) error {
 	if record == nil || strings.TrimSpace(runContext.TenantRef) == "" ||
 		strings.TrimSpace(runContext.WorkspaceID) == "" || strings.TrimSpace(runContext.ApplicationID) == "" ||
-		!validWorkflowRunRecordSchema(record.SchemaVersion) || strings.TrimSpace(record.RunID) == "" ||
-		strings.TrimSpace(record.DraftID) == "" || record.DraftVersion <= 0 || record.RecordVersion < 0 ||
+		!validWorkflowRunRecordSchema(record.SchemaVersion) || strings.TrimSpace(record.RunID) == "" || record.RecordVersion < 0 ||
 		strings.TrimSpace(record.ActorRef) == "" || strings.TrimSpace(record.RequestID) == "" || strings.TrimSpace(record.AuditRef) == "" ||
 		record.WorkspaceID != runContext.WorkspaceID || record.ApplicationID != runContext.ApplicationID ||
 		!validWorkflowRunStatus(record.Status) || len([]byte(record.Output)) > workflowExecutorMaxOutputBytes ||
 		len([]rune(record.FailureSummary)) > 256 || workflowRunRecordContainsEndpoint(record) {
 		return errWorkflowRunStoreContract
 	}
-	if record.SchemaVersion == workflowRunRecordRAGSchemaVersion {
+	if record.SchemaVersion == workflowRunRecordAppRAGSchemaVersion {
+		if err := validateWorkflowRAGApplicationRunStoreRecord(runContext, record); err != nil {
+			return errWorkflowRunStoreContract
+		}
+	} else if strings.TrimSpace(record.DraftID) == "" || record.DraftVersion <= 0 {
+		return errWorkflowRunStoreContract
+	} else if record.SchemaVersion == workflowRunRecordRAGSchemaVersion {
 		if err := validateWorkflowRAGRunStoreRecord(runContext, record); err != nil {
 			return errWorkflowRunStoreContract
 		}
@@ -238,7 +243,8 @@ func workflowRunRecordContainsEndpoint(record *WorkflowRunRecord) bool {
 
 func validWorkflowRunRecordSchema(schemaVersion string) bool {
 	return schemaVersion == workflowRunRecordSchemaVersion || schemaVersion == workflowRunRecordLegacySchemaVersion ||
-		schemaVersion == workflowRunRecordToolSchemaVersion || schemaVersion == workflowRunRecordRAGSchemaVersion
+		schemaVersion == workflowRunRecordToolSchemaVersion || schemaVersion == workflowRunRecordRAGSchemaVersion ||
+		schemaVersion == workflowRunRecordAppRAGSchemaVersion
 }
 
 func validWorkflowRunStatus(status WorkflowRunStatus) bool {
@@ -284,6 +290,14 @@ func cloneWorkflowRunRecord(record WorkflowRunRecord) WorkflowRunRecord {
 		answer.Citations = append([]WorkflowRAGCitation(nil), record.RAGAnswer.Citations...)
 		answer.Limitations = cloneStringSlice(record.RAGAnswer.Limitations)
 		cloned.RAGAnswer = &answer
+	}
+	if record.ExecutionSource != nil {
+		source := *record.ExecutionSource
+		cloned.ExecutionSource = &source
+	}
+	if record.RAGApplication != nil {
+		authority := *record.RAGApplication
+		cloned.RAGApplication = &authority
 	}
 	cloned.Nodes = make([]WorkflowRunNodeRecord, 0, len(record.Nodes))
 	for _, node := range record.Nodes {
