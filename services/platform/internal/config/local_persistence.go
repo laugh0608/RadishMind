@@ -9,6 +9,9 @@ func ValidateServerStart(cfg Config) error {
 	if cfg.WorkflowDefinitionReleaseDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled || !cfg.WorkflowSavedDraftDevWriteEnabled) {
 		return errors.New("workflow definition release dev requires control plane auth and saved workflow draft HTTP/write gates")
 	}
+	if cfg.ApplicationSessionDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled || (!cfg.WorkflowDefinitionReleaseDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled)) {
+		return errors.New("application session dev requires control plane auth, application catalog HTTP, and at least one supported runtime authority")
+	}
 	if EffectiveLocalPersistenceMode(cfg) != "sqlite_dev" {
 		return nil
 	}

@@ -33,7 +33,7 @@ func newWorkflowRunStoreFromConfigWithSQLiteRuntime(
 	}
 	if mode == workflowRunStoreModeSQLiteDev {
 		if !cfg.ControlPlaneReadDevAuthEnabled ||
-			(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled && !cfg.WorkflowDefinitionReleaseDevEnabled) ||
+			(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled && !cfg.WorkflowDefinitionReleaseDevEnabled && !cfg.ApplicationSessionDevEnabled) ||
 			((cfg.WorkflowExecutorDevEnabled || cfg.WorkflowRAGExecutionDevEnabled) && !cfg.WorkflowSavedDraftDevHTTPEnabled) {
 			return nil, nil, errors.New("sqlite_dev workflow run store config is incomplete")
 		}
@@ -58,7 +58,7 @@ func newWorkflowRunStoreFromConfigWithSQLiteRuntime(
 		return nil, nil, fmt.Errorf("%s", WorkflowRunFailureStoreModeInvalid)
 	}
 	if !cfg.ControlPlaneReadDevAuthEnabled ||
-		(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled && !cfg.WorkflowDefinitionReleaseDevEnabled) ||
+		(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled && !cfg.WorkflowDefinitionReleaseDevEnabled && !cfg.ApplicationSessionDevEnabled) ||
 		((cfg.WorkflowExecutorDevEnabled || cfg.WorkflowRAGExecutionDevEnabled) && !cfg.WorkflowSavedDraftDevHTTPEnabled) || strings.TrimSpace(cfg.WorkflowRunDatabaseURL) == "" {
 		return nil, nil, errors.New("postgres_dev_test workflow run store config is incomplete")
 	}
@@ -95,6 +95,25 @@ func newWorkflowEvaluationStoreForRunStore(store workflowRunStore) workflowEvalu
 		return newPostgresWorkflowEvaluationStore(typed.pool)
 	default:
 		return nil
+	}
+}
+
+func newApplicationInteractionSessionRepositoryForRunStore(store workflowRunStore) (applicationInteractionSessionRepository, error) {
+	switch typed := store.(type) {
+	case *memoryWorkflowRunStore:
+		return newMemoryApplicationInteractionSessionRepository(), nil
+	case *sqliteWorkflowRunStore:
+		if typed.database == nil {
+			return nil, errors.New("application interaction session store requires the shared SQLite database")
+		}
+		return newSQLiteApplicationInteractionSessionRepository(typed.database), nil
+	case *postgresWorkflowRunStore:
+		if typed.pool == nil {
+			return nil, errors.New("application interaction session store requires the workflow PostgreSQL pool")
+		}
+		return newPostgresApplicationInteractionSessionRepository(typed.pool), nil
+	default:
+		return nil, errors.New("application interaction session store requires a supported workflow runtime backend")
 	}
 }
 

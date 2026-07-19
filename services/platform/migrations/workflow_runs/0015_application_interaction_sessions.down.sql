@@ -1,0 +1,8 @@
+DROP TRIGGER IF EXISTS application_interaction_turns_no_delete ON application_interaction_session_turns;
+DROP TRIGGER IF EXISTS application_interaction_sessions_no_delete ON application_interaction_sessions;
+DROP TRIGGER IF EXISTS application_interaction_turns_controlled_update ON application_interaction_session_turns;
+DROP TRIGGER IF EXISTS application_interaction_sessions_controlled_update ON application_interaction_sessions;
+DROP FUNCTION IF EXISTS enforce_application_interaction_turn_update();
+DROP FUNCTION IF EXISTS enforce_application_interaction_session_update();
+DROP TABLE IF EXISTS application_interaction_session_turns;
+DROP TABLE IF EXISTS application_interaction_sessions;

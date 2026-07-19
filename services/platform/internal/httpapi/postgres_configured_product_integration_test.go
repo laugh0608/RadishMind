@@ -518,6 +518,8 @@ func runConfiguredPostgresMigrationGate(
 func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
 	_, err := pool.Exec(ctx, `DROP TABLE IF EXISTS
+		application_interaction_session_turns,
+		application_interaction_sessions,
 		workflow_definition_release_audits,
 		workflow_definition_activation_events,
 		workflow_definition_activations,
@@ -570,6 +572,9 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_workflow_rag_snapshot_append_only_mutation()`); err != nil {
 		t.Fatalf("reset configured PostgreSQL RAG append-only guard: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS enforce_application_interaction_turn_update(), enforce_application_interaction_session_update()`); err != nil {
+		t.Fatalf("reset configured PostgreSQL application interaction guards: %v", err)
 	}
 }
 
@@ -764,6 +769,9 @@ func assertConfiguredPostgresRepositorySelection(t *testing.T, server *Server) {
 	}
 	if _, ok := server.workflowRunStore.(*postgresWorkflowRunStore); !ok {
 		t.Fatalf("configured workflow run store did not select PostgreSQL: %T", server.workflowRunStore)
+	}
+	if sessionStore, ok := server.applicationInteractionSessionRepository.(*postgresApplicationInteractionSessionRepository); !ok || sessionStore.pool != server.workflowRunStore.(*postgresWorkflowRunStore).pool {
+		t.Fatalf("configured application interaction sessions did not share the PostgreSQL pool: %T", server.applicationInteractionSessionRepository)
 	}
 	if actionStore, ok := server.workflowHTTPToolActionStore.(*postgresWorkflowHTTPToolActionStore); !ok || actionStore.pool != server.workflowRunStore.(*postgresWorkflowRunStore).pool {
 		t.Fatalf("configured workflow tool actions did not share the PostgreSQL pool: %T", server.workflowHTTPToolActionStore)

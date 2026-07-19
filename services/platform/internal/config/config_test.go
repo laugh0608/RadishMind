@@ -106,6 +106,25 @@ func TestWorkflowDefinitionReleaseDevRequiresSavedDraftAuthorityGates(t *testing
 	}
 }
 
+func TestApplicationSessionDevRequiresCatalogAndRuntimeAuthority(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.ApplicationSessionDevEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "application catalog HTTP") {
+		t.Fatalf("expected application session prerequisite failure, got %v", err)
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	cfg.ApplicationCatalogDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "supported runtime authority") {
+		t.Fatalf("expected application session authority failure, got %v", err)
+	}
+	cfg.WorkflowDefinitionReleaseDevEnabled = true
+	cfg.WorkflowSavedDraftDevHTTPEnabled = true
+	cfg.WorkflowSavedDraftDevWriteEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("complete application session development gates should validate: %v", err)
+	}
+}
+
 func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	clearPlatformEnv(t)
 	configPath := filepath.Join(t.TempDir(), "platform-config.json")
@@ -143,6 +162,7 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE", "true")
 	t.Setenv("RADISHMIND_WORKFLOW_DEFINITION_RELEASE_DEV", "1")
+	t.Setenv("RADISHMIND_APPLICATION_SESSION_DEV", "1")
 	t.Setenv("RADISHMIND_WORKFLOW_EXECUTOR_DEV", "1")
 	t.Setenv("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV", "1")
 	t.Setenv("RADISHMIND_GATEWAY_REQUEST_STORE", "postgres_dev_test")
@@ -205,6 +225,9 @@ func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	}
 	if !cfg.WorkflowDefinitionReleaseDevEnabled || cfg.FieldSources["workflow_definition_release_dev"] != configSourceEnv {
 		t.Fatalf("expected workflow definition release dev env override")
+	}
+	if !cfg.ApplicationSessionDevEnabled || cfg.FieldSources["application_session_dev"] != configSourceEnv {
+		t.Fatalf("expected application session dev env override")
 	}
 	if !cfg.WorkflowExecutorDevEnabled {
 		t.Fatalf("expected workflow executor dev env override")
@@ -1294,6 +1317,7 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_CONTROL_PLANE_READ_DATABASE_TIMEOUT",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE",
+		"RADISHMIND_APPLICATION_SESSION_DEV",
 		"RADISHMIND_WORKFLOW_EXECUTOR_DEV",
 		"RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV",
 		"RADISHMIND_WORKFLOW_RAG_EXECUTION_DEV",

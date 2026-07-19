@@ -33,7 +33,7 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 	if err := firstServer.localPersistenceRuntime.DB().QueryRowContext(
 		context.Background(),
 		"SELECT count(*) FROM radishmind_schema_migrations",
-	).Scan(&migrationCount); err != nil || migrationCount != 17 {
+	).Scan(&migrationCount); err != nil || migrationCount != 18 {
 		t.Fatalf("aggregate SQLite migration count drifted: count=%d err=%v", migrationCount, err)
 	}
 
@@ -523,6 +523,9 @@ func assertAggregateSQLiteRepositorySelection(t *testing.T, server *Server) {
 	}
 	if _, ok := server.workflowRunStore.(*sqliteWorkflowRunStore); !ok {
 		t.Fatalf("workflow run did not select SQLite: %T", server.workflowRunStore)
+	}
+	if sessionStore, ok := server.applicationInteractionSessionRepository.(*sqliteApplicationInteractionSessionRepository); !ok || sessionStore.database != server.localPersistenceRuntime.DB() {
+		t.Fatalf("application interaction sessions did not share the SQLite runtime: %T", server.applicationInteractionSessionRepository)
 	}
 	if actionStore, ok := server.workflowHTTPToolActionStore.(*sqliteWorkflowHTTPToolActionStore); !ok || actionStore.database != server.localPersistenceRuntime.DB() {
 		t.Fatalf("workflow tool actions did not share the SQLite runtime: %T", server.workflowHTTPToolActionStore)

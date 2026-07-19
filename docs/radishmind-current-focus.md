@@ -19,7 +19,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：当前没有在制实现任务。[Workflow 不可变版本晋级与受控运行绑定实施任务卡](task-cards/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md)A / B / C / D 已全部完成并归档。下一项必须先从[功能设计文档入口](features/README.md)选择新的真实用户流程、确认 owner、用户路径、验收环境和停止线，再决定是否需要 task card；不继续派生 definition readiness、同层 gate-only 切片或自动 activation / schedule / retry / replay 能力。`real_radish_integration_deferred` 不占用当前主线。
+1. 产品线：[应用交互会话与受控运行编排（开发 / 测试态）v1](features/user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)批次 A / B 已完成：strict Session / Turn contract、显式 profile、exact Application runtime authority resolver、memory / SQLite / PostgreSQL owner、双数据库 migration、provider 前 reservation、terminal evidence、CAS / 幂等、重启恢复与 no-fallback 均已落地。当前状态为批次 C ready，下一步接通 strict turn coordinator：每回合 provider 前重读 authority，并分别委托既有 Workflow Definition v5 与 Application RAG v4 执行服务；answer 只随当前响应返回，stale running 只转 `outcome_unknown`。Web、launcher 和真实浏览器留在批次 D。该专题不新增运行真相源、长期记忆、自动 activation / schedule / retry / replay 或 agent loop。`real_radish_integration_deferred` 不占用当前主线。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
@@ -61,7 +61,9 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 31. [应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)
 32. [Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](features/workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md)
 33. [Workflow 不可变版本晋级与受控运行绑定实施任务卡](task-cards/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md)
-34. [本周周志](devlogs/2026-W29.md)
+34. [应用交互会话与受控运行编排（开发 / 测试态）v1](features/user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)
+35. [应用交互会话与受控运行编排实施任务卡](task-cards/application-interaction-session-controlled-runtime-orchestration-dev-test-v1-plan.md)
+36. [本周周志](devlogs/2026-W29.md)
 
 ## 当前不要做
 

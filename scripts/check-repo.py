@@ -561,6 +561,9 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/workflow-rag-knowledge-promotion-decision.schema.json",
         REPO_ROOT / "contracts/workflow-rag-application-binding.schema.json",
         REPO_ROOT / "contracts/workflow-rag-knowledge-promotion-audit.schema.json",
+        REPO_ROOT / "contracts/application-runtime-authority.schema.json",
+        REPO_ROOT / "contracts/application-session.schema.json",
+        REPO_ROOT / "contracts/application-session-turn.schema.json",
         REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
         REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json",
         REPO_ROOT / "contracts/radishflow-export-snapshot.schema.json",
@@ -576,6 +579,90 @@ def check_contract_schemas() -> None:
     workflow_rag_snapshot_schema = load_json_file("contracts/workflow-rag-snapshot.schema.json")
     workflow_rag_dataset_schema = load_json_file("contracts/workflow-rag-evaluation-dataset.schema.json")
     workflow_rag_review_schema = load_json_file("contracts/workflow-rag-quality-review.schema.json")
+    application_authority_schema = load_json_file("contracts/application-runtime-authority.schema.json")
+    application_session_schema = load_json_file("contracts/application-session.schema.json")
+    application_turn_schema = load_json_file("contracts/application-session-turn.schema.json")
+    application_session_validation_schema = json.loads(json.dumps(application_session_schema))
+    application_turn_validation_schema = json.loads(json.dumps(application_turn_schema))
+    application_session_validation_schema["properties"]["authority"] = application_authority_schema
+    application_turn_validation_schema["properties"]["authority"] = application_authority_schema
+    digest = "sha256:" + "a" * 64
+    authority = {
+        "schema_version": "application_runtime_authority.v1",
+        "execution_profile": "workflow_definition_executor_v1",
+        "application_id": "app_aaaaaaaaaaaaaaaa",
+        "application_record_version": 1,
+        "application_lifecycle": "active",
+        "workflow_definition": {
+            "definition_id": "definition_contract",
+            "definition_version": 1,
+            "definition_digest": digest,
+            "activation_pointer_version": 1,
+            "candidate_id": "candidate_contract",
+            "candidate_review_version": 1,
+        },
+        "application_rag": None,
+        "authority_digest": digest,
+    }
+    session = {
+        "schema_version": "application_session.v1",
+        "session_id": "appsess_aaaaaaaaaaaaaaaa",
+        "tenant_ref": "tenant_demo",
+        "workspace_id": "workspace_demo",
+        "application_id": "app_aaaaaaaaaaaaaaaa",
+        "owner_subject_ref": "subject_demo",
+        "state": "active",
+        "record_version": 1,
+        "profile_binding": {"execution_profile": "workflow_definition_executor_v1", "definition_id": "definition_contract"},
+        "authority": authority,
+        "content_retention": "metadata_only",
+        "turn_count": 0,
+        "last_turn_id": None,
+        "created_at": "2026-07-19T10:00:00Z",
+        "updated_at": "2026-07-19T10:00:00Z",
+        "closed_at": None,
+        "created_by_actor_ref": "subject_demo",
+        "updated_by_actor_ref": "subject_demo",
+        "request_id": "request_contract",
+        "audit_ref": "audit_contract",
+    }
+    running_turn = {
+        "schema_version": "application_session_turn.v1",
+        "turn_id": "appturn_aaaaaaaaaaaaaaaa",
+        "session_id": session["session_id"],
+        "sequence": 1,
+        "client_turn_key": "client_turn_contract",
+        "tenant_ref": session["tenant_ref"],
+        "workspace_id": session["workspace_id"],
+        "application_id": session["application_id"],
+        "owner_subject_ref": session["owner_subject_ref"],
+        "execution_profile": "workflow_definition_executor_v1",
+        "authority": authority,
+        "status": "running",
+        "input_digest": digest,
+        "input_bytes": 24,
+        "run_ref": None,
+        "failure_code": "",
+        "failure_summary": "",
+        "started_at": "2026-07-19T10:01:00Z",
+        "completed_at": None,
+        "actor_ref": "subject_demo",
+        "request_id": "request_turn_contract",
+        "audit_ref": "audit_turn_contract",
+    }
+    jsonschema.Draft202012Validator(application_session_validation_schema).validate(session)
+    jsonschema.Draft202012Validator(application_turn_validation_schema).validate(running_turn)
+    succeeded_turn = json.loads(json.dumps(running_turn))
+    succeeded_turn.update({"status": "succeeded", "run_ref": {"run_id": "run_aaaaaaaaaaaaaaaa", "schema_version": "workflow_run_record.v5"}, "completed_at": "2026-07-19T10:01:01Z"})
+    jsonschema.Draft202012Validator(application_turn_validation_schema).validate(succeeded_turn)
+    leaked_session = json.loads(json.dumps(session))
+    leaked_session["input"] = "forbidden"
+    try:
+        jsonschema.Draft202012Validator(application_session_validation_schema).validate(leaked_session)
+    except jsonschema.ValidationError:
+        pass
+    else:
+        raise SystemExit("application session schema accepted a raw input field")
     workflow_rag_snapshot_validation_schema = json.loads(json.dumps(workflow_rag_snapshot_schema))
     workflow_rag_snapshot_validation_schema["properties"]["fragments"]["items"] = workflow_rag_fragment_schema
     workflow_rag_snapshot = load_json_file("datasets/eval/workflow-rag/snapshots/dev_core_v1.json")

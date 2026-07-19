@@ -9,9 +9,9 @@ import (
 	"radishmind.local/services/platform/internal/sqlitedev"
 )
 
-func TestWorkflowRunSQLiteMigrationsAreOrderedThroughDefinitionExecution(t *testing.T) {
+func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationInteractionSessions(t *testing.T) {
 	migrations := Migrations()
-	if len(migrations) != 11 {
+	if len(migrations) != 12 {
 		t.Fatalf("unexpected workflow run SQLite migration count: %d", len(migrations))
 	}
 	if migrations[0].ID != legacyMigrationID || migrations[0].StoreSchemaVersion != legacyRunStoreSchemaVersion {
@@ -44,8 +44,24 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughDefinitionExecution(t *test
 	if migrations[9].ID != definitionReleaseMigrationID || migrations[9].StoreSchemaVersion != definitionReleaseSchemaVersion {
 		t.Fatalf("workflow definition release migration drifted: %#v", migrations[9])
 	}
-	if migrations[10].ID != MigrationID || migrations[10].StoreSchemaVersion != StoreSchemaVersion {
+	if migrations[10].ID != definitionExecutionMigrationID || migrations[10].StoreSchemaVersion != definitionExecutionSchemaVersion {
 		t.Fatalf("workflow definition execution migration drifted: %#v", migrations[10])
+	}
+	if migrations[11].ID != MigrationID || migrations[11].StoreSchemaVersion != StoreSchemaVersion {
+		t.Fatalf("application interaction session migration drifted: %#v", migrations[11])
+	}
+	for _, required := range []string{
+		"CREATE TABLE application_interaction_sessions",
+		"CREATE TABLE application_interaction_session_turns",
+		"application_session.v1",
+		"application_session_turn.v1",
+		"metadata_only",
+		"application_interaction_sessions_controlled_update",
+		"application_interaction_turns_no_delete",
+	} {
+		if !strings.Contains(upSQLV12, required) {
+			t.Fatalf("SQLite application interaction session migration is missing %q", required)
+		}
 	}
 	for _, required := range []string{"workflow_run_record.v5", "workflow_definition", "workflow_runs_store_v5"} {
 		if !strings.Contains(upSQLV11, required) {
@@ -222,7 +238,7 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		_ = upgradedRuntime.Close()
 		t.Fatalf("legacy workflow run changed during upgrade: count=%d err=%v", legacyRunCount, err)
 	}
-	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 11 {
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 12 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("unexpected workflow run migration markers: count=%d err=%v", migrationCount, err)
 	}
@@ -254,6 +270,15 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name LIKE 'workflow_definition_%_append_only_%'`).Scan(&definitionReleaseTriggerCount); err != nil || definitionReleaseTriggerCount != 8 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("workflow definition release append-only triggers are incomplete: count=%d err=%v", definitionReleaseTriggerCount, err)
+	}
+	var applicationInteractionTableCount, applicationInteractionTriggerCount int
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN ('application_interaction_sessions','application_interaction_session_turns')`).Scan(&applicationInteractionTableCount); err != nil || applicationInteractionTableCount != 2 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("application interaction session tables are incomplete: count=%d err=%v", applicationInteractionTableCount, err)
+	}
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name LIKE 'application_interaction_%'`).Scan(&applicationInteractionTriggerCount); err != nil || applicationInteractionTriggerCount != 4 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("application interaction session triggers are incomplete: count=%d err=%v", applicationInteractionTriggerCount, err)
 	}
 	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN (
 		'workflow_http_tool_action_plans',
