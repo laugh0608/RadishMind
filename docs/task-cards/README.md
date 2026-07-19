@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃实施任务卡。下一项先更新或创建功能设计文档并完成范围评审，再按 API、schema、执行边界和风险决定是否需要任务卡。
+1. [Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md)：设计与统一任务卡已冻结，当前只准入批次 A 的 strict contract、memory repository、人工 review / activation CAS 与管理 API；durable store、run v5、Web 和浏览器尚未开始。
 
 ## 最近关闭任务
 

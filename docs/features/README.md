@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-19 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md) 确定性运行时也已完成；真实 Radish 联调已主动延后。[本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md)、[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md)、Workflow HTTP Tool、RAG Retrieval / 应用知识快照、RAG Regression Review、离线知识质量审查、[Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow/workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1.md)、[Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md)、[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)，以及 [应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)首批均已关闭。当前没有在制产品实现批次；下一步先选择并评审新的功能设计，不直接进入生产认证、外部 connector、自动 baseline、自动 release、配额或计费。
+2026-07-19 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md) 确定性运行时也已完成；真实 Radish 联调已主动延后。[本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md)、[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md)、Workflow HTTP Tool、RAG Retrieval / 应用知识快照、RAG Regression Review、离线知识质量审查、[Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow/workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1.md)、[Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md)、[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)，以及 [应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)首批均已关闭。[Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md)已完成设计与统一任务卡，当前进入批次 A；不直接进入生产认证、外部 connector、自动发布、调度、重放、配额或计费。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -43,7 +43,7 @@
 | [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口 | 应用目录、API 密钥与应用运行观测首批已关闭；进入新功能前先更新设计 |
 | [管理控制面](admin-control-plane.md) | 租户、权限、模型服务配置、配额、凭据、审计和部署证据 | 进入真实管理端、OIDC 或数据库前先更新 |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
-| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；HTTP Tool、RAG Retrieval、知识质量 / 晋级链和 application RAG durable invocation 均已形成可复验纵向切片 | 当前专题已关闭；下一步先评审新的真实用户流程，不从既有 executor v0 原地放开自动 activation、外部 connector、自动 promotion / release 或生产能力 |
+| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；HTTP Tool、RAG Retrieval、知识质量 / 晋级链和 application RAG durable invocation 均已形成可复验纵向切片 | 当前进入不可变 definition version 晋级与受控运行绑定批次 A；不从 executor v0 原地放开自动 activation、调度、重放或生产能力 |
 | [图片生成 / 产物返回](image-generation-artifact-return.md) | 生图意图、产物元数据、响应合并和后续后端适配器 | 进入存储、读取、公开 URL 或后端适配器前先更新 |
 
 ## 细专题导航
@@ -70,6 +70,8 @@
 | [Gateway Playground / Request Review Loop v1](gateway/gateway-playground-request-review-loop-v1.md) | 功能专题 | 三协议 unary / stream、取消、稳定失败和精确 history handoff 已完成；不持久化输入输出 |
 | [Workflow 细专题入口](workflow/README.md) | 功能专题目录 | 承接 workflow 具体功能、页面 / 界面和实现专题 |
 | [Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md) | 功能 / 高风险执行专题 | A / B / C 三批已完成 durable assignment、API key 调用、run v4、Web、双数据库连续链与真实浏览器复验；专题关闭 |
+| [Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md) | 功能 / 版本与执行权威专题 | 设计与统一任务卡已冻结，批次 A 实现 strict contract、memory repository、人工 review 与 activation 管理 API |
+| [Workflow 不可变版本晋级与受控运行绑定 v1 实施任务卡](../task-cards/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md) | 高风险实现批次 | 当前只准入批次 A；durable store、run v5 与 Web 分别由后续批次承接 |
 | [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) | 功能 / 高风险执行专题 | action plan、人工确认、单次 allowlisted GET、SSRF、原子 claim、run v2、三种 store、Web 与浏览器重启链已完成 |
 | [Workflow 受控 HTTP Tool 与人工确认执行 v1 实施任务卡](../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md) | 高风险实现批次 | 三批完成，状态为 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed` |
 | [Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) | 功能 / 检索执行专题 | 三批已完成；精确绑定、独立 execution、citation、metadata-only run v3、Web、三种 store、浏览器重启与 no-fallback 已通过 |
