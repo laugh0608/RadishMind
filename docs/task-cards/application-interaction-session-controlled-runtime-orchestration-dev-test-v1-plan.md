@@ -2,7 +2,7 @@
 
 更新时间：2026-07-19
 
-状态：`application_interaction_session_controlled_runtime_orchestration_dev_test_v1_batch_d_ready_for_implementation`
+状态：`application_interaction_session_controlled_runtime_orchestration_dev_test_v1_batch_e_ready_for_implementation`
 
 ## 目标与准入结论
 
@@ -85,11 +85,18 @@
 
 ## 批次 D：Web 产品路径
 
-状态：`pending`。
+状态：`completed`。
 
 - Application-scoped session / turn consumer、交互工作区、transient transcript、close 和 run handoff。
 - application switch / late response / cancel / offline / strict schema / secret guard。
 - 不把 transcript 写 URL、storage、日志或持久 repository。
+
+完成证据：
+
+- 默认 offline 的 strict consumer 已覆盖 session list / create / close、turn list / execute 与 read / write / execute scopes；严格拒绝 unknown field、schema / tenant / workspace / application / owner 漂移、敏感字段和错误 run schema。
+- Web 交互工作区已提供显式 Workflow Definition v5 / Application RAG v4 profile、会话选择、易失 transcript、Workflow 条件 / model / temperature、取消、metadata-only turn history 与 Run History handoff。
+- application / session switch、unmount 和 cancel 共同推进请求代际并 abort 旧请求；input、answer、transcript 和运行选项不会写 URL、浏览器存储、日志或 repository，迟到响应不能回填当前应用。
+- Application Interaction consumer 精准测试、全部 Web 单元测试、production build 与仓库 fast / full 已通过；本批没有启动 launcher 或真实浏览器。
 
 完成后推进批次 E。
 
