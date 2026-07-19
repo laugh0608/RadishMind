@@ -2,13 +2,13 @@
 
 更新时间：2026-07-19
 
-状态：`workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_c_ready_for_implementation`
+状态：`workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_completed`
 
 ## 目标与准入结论
 
 按[功能设计](../features/workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)交付“已批准 publish candidate v2 → 人工 runtime assignment → API key application scope → candidate snapshot retrieval → Gateway answer → metadata-only run v4 → regression review”的完整开发测试态路径。
 
-设计、资源职责、执行边界和生产停止线已通过评审，批次 A 已完成 contract、memory runtime 与受控调用证据；批次 B 已完成 durable store、run source、v4 evaluation 与真实 PostgreSQL 专项。本卡仍是唯一实现入口，当前准入批次 C；不得绕过 assignment 直接从 publish approve / binding approve 触发调用。
+设计、资源职责、执行边界和生产停止线已通过评审，批次 A 已完成 contract、memory runtime 与受控调用证据；批次 B 已完成 durable store、run source、v4 evaluation 与真实 PostgreSQL 专项；批次 C 已完成 Web、连续链和真实浏览器收口。本卡已经关闭，不得绕过 assignment 直接从 publish approve / binding approve 触发调用。
 
 ## 前置基线
 
@@ -76,7 +76,7 @@
 
 ## 批次 C：Web、连续链与专题收口
 
-状态：`ready_for_implementation`。
+状态：`completed`。
 
 - 发布候选详情增加 lazy assignment 管理，approve、activate / replace / revoke 保持独立动作并保留 CAS conflict reason。
 - API key 管理增加显式 `application_rag:invoke`，一次性 token 只通过内存交给 Application RAG Invocation 面板。
@@ -86,6 +86,14 @@
 - 同步 current focus、入口、路线图、能力矩阵与周志，关闭专题和本卡；不派生第二张任务卡。
 
 完成锚点为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_completed`。
+
+### 批次 C 完成证据
+
+- 发布候选 runtime assignment、API key scope / 一次性交接、Application RAG Invocation、v4 history / comparison / evaluation 已接入严格 Web consumer；默认 offline 零请求，应用切换清除全部易失状态。
+- Shell / PowerShell launcher 已提供单一 Application RAG 本地产品档；SQLite 与 PostgreSQL 连续链均覆盖 activation、两次调用、comparison、evaluation、revoke、拒绝和重启恢复。
+- mock provider 的 application RAG answer contract 与 Comparison v3 authority projection 已修正并补回归测试，v2 comparison 对外契约保持不变。
+- 真实浏览器验证成功调用、无证据失败、人工撤销阻断、应用切换隔离和 SQLite 重启恢复；浏览器 storage、console 和持久记录均未发现 token、原始输入或回答泄漏。
+- 专题按功能设计、current focus、入口、路线图、能力矩阵、架构、契约与周志统一关闭，不派生批次 D 或第二张任务卡。
 
 ## 验证矩阵
 

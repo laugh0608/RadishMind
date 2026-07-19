@@ -8,7 +8,7 @@ const API_KEY_ID_PATTERN = /^key_[a-z2-7]{16}$/u;
 const APPLICATION_ID_PATTERN = /^app_[a-z0-9]{16}$/u;
 const TOKEN_PATTERN = /^rmd_dev_key_[a-z2-7]{16}\.[A-Za-z0-9_-]{43}$/u;
 const SCOPE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$/u;
-const ALLOWED_SCOPES = ["models:read", "chat:invoke", "responses:invoke", "messages:invoke"] as const;
+const ALLOWED_SCOPES = ["models:read", "chat:invoke", "responses:invoke", "messages:invoke", "application_rag:invoke"] as const;
 const EFFECTIVE_STATES = ["active", "expired", "revoked"] as const;
 const RECORD_KEYS = [
   "schema_version", "api_key_id", "tenant_ref", "workspace_id", "application_id", "owner_subject_ref",

@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	workflowRunComparisonSchemaVersion    = "workflow_run_comparison.v1"
-	workflowRAGRunComparisonSchemaVersion = "workflow_run_comparison.v2"
+	workflowRunComparisonSchemaVersion       = "workflow_run_comparison.v1"
+	workflowRAGRunComparisonSchemaVersion    = "workflow_run_comparison.v2"
+	workflowRAGAppRunComparisonSchemaVersion = "workflow_run_comparison.v3"
 )
 
 type WorkflowRunComparisonClassification string
@@ -266,6 +267,9 @@ func workflowRunComparisonFindings(value WorkflowRunComparison) []WorkflowRunCom
 		add("nodes_changed", "review_required")
 	}
 	if value.Retrieval != nil {
+		if value.Retrieval.AuthorityChanged {
+			add("application_rag_authority_changed", "review_required")
+		}
 		if len(value.Retrieval.CitationRemovedRefs) > 0 {
 			add("retrieval_citations_removed", "review_required")
 		}

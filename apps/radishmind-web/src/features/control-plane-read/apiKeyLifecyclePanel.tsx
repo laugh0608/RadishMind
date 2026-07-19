@@ -13,6 +13,7 @@ import {
 } from "./apiKeyLifecycleConsumer.ts";
 import { requestAPIKeyModelGatewayPlaygroundHandoff } from "./modelGatewayPlaygroundEvents.ts";
 import { readModelGatewayPlaygroundConfig } from "./modelGatewayPlaygroundConsumer.ts";
+import { requestWorkflowRAGApplicationCredentialHandoff } from "./workflowRAGApplicationRuntimeEvents.ts";
 import type {
   WorkspaceApiKeyRow,
   WorkspaceApiKeysMetric,
@@ -27,6 +28,7 @@ const AVAILABLE_SCOPES: Array<{ scope: APIKeyScope; label: string }> = [
   { scope: "chat:invoke", label: "Chat Completions" },
   { scope: "responses:invoke", label: "Responses" },
   { scope: "messages:invoke", label: "Messages" },
+  { scope: "application_rag:invoke", label: "Application RAG invocation" },
 ];
 
 type IssuedCredential = {
@@ -188,6 +190,18 @@ export function APIKeyLifecyclePanel({
     window.location.hash = "model-gateway-playground";
   }
 
+  function handoffRAGCredential() {
+    if (!issuedCredential || !applicationId || !selectedRecord?.scopes.includes("application_rag:invoke")) return;
+    requestWorkflowRAGApplicationCredentialHandoff(
+      applicationId,
+      issuedCredential.apiKeyId,
+      issuedCredential.token,
+    );
+    setIssuedCredential(null);
+    setCopyStatus("");
+    window.location.hash = "application-rag-invocation";
+  }
+
   function toggleScope(scope: APIKeyScope) {
     setScopes((current) => current.includes(scope) ? current.filter((item) => item !== scope) : [...current, scope]);
   }
@@ -225,11 +239,12 @@ export function APIKeyLifecyclePanel({
             <div className="api-key-card-heading"><div><p className="eyebrow">One-time handoff</p><h4>{issuedCredential?.apiKeyId ?? "No pending credential"}</h4></div><span className={`status-badge ${issuedCredential ? "good" : "neutral"}`}>{issuedCredential ? "available once" : "cleared"}</span></div>
             {issuedCredential ? (
               <>
-                <p>This raw token cannot be loaded again. Copy it or hand it directly to the existing Playground before clearing.</p>
+                <p>This raw token cannot be loaded again. Copy it or hand it directly to an explicitly scoped invocation surface before clearing.</p>
                 <code className="api-key-one-time-token">{issuedCredential.token}</code>
                 <div className="api-key-one-time-actions">
                   <button type="button" onClick={() => void copyCredential()}>Copy token</button>
                   <button type="button" onClick={handoffCredential}>Use in Playground</button>
+                  {selectedRecord?.scopes.includes("application_rag:invoke") ? <button type="button" onClick={handoffRAGCredential}>Use in Application RAG</button> : null}
                   <button type="button" className="secondary-action" onClick={() => { setIssuedCredential(null); setCopyStatus(""); }}>Clear now</button>
                 </div>
                 {copyStatus ? <p className="boundary-note">{copyStatus}</p> : null}

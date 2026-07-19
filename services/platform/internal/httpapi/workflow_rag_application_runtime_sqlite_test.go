@@ -118,6 +118,16 @@ END`); err != nil {
 	if _, err = firstRuntime.DB().ExecContext(context.Background(), `DELETE FROM workflow_rag_application_runtime_audits WHERE audit_event_id=?`, stable.Audits[0].AuditEventID); err == nil {
 		t.Fatal("SQLite application runtime audit accepted a delete")
 	}
+	fixture.advanceRuntimeRequest("sqlite_revoke")
+	revoked := service.Decide(fixture.runtimeContext, WorkflowRAGApplicationRuntimeDecisionInput{ExpectedRecordVersion: 1, Decision: workflowRAGApplicationRuntimeDecisionRevoke, Reason: "连续链人工撤销后必须关闭调用"})
+	if revoked.FailureCode != "" || revoked.Assignment == nil || revoked.Assignment.RecordVersion != 2 || revoked.Assignment.State != workflowRAGApplicationRuntimeStateRevoked {
+		t.Fatalf("revoke SQLite application runtime assignment: %#v", revoked)
+	}
+	bridgeCalls = fixture.bridge.callCount()
+	blocked := invocation.Invoke(fixture.runtimeContext, WorkflowRAGApplicationInvocationInput{Input: "SQLite invocation after revoke"})
+	if blocked.FailureCode != WorkflowRAGApplicationFailureAssignmentRevoked || blocked.Run != nil || fixture.bridge.callCount() != bridgeCalls {
+		t.Fatalf("revoked SQLite assignment reached Gateway: result=%#v calls=%d/%d", blocked, fixture.bridge.callCount(), bridgeCalls)
+	}
 
 	if err = firstRuntime.Close(); err != nil {
 		t.Fatalf("close first SQLite application runtime: %v", err)
@@ -129,7 +139,7 @@ END`); err != nil {
 	t.Cleanup(func() { _ = secondRuntime.Close() })
 	restartedRepository := newSQLiteWorkflowRAGApplicationRuntimeRepository(secondRuntime.DB())
 	recoveredAssignment, recoveredEvents, recoveredAudits, err := restartedRepository.Read(fixture.runtimeContext)
-	if err != nil || recoveredAssignment.AssignmentID != stable.Assignment.AssignmentID || recoveredAssignment.RecordVersion != 1 || len(recoveredEvents) != 1 || len(recoveredAudits) != 1 {
+	if err != nil || recoveredAssignment.AssignmentID != stable.Assignment.AssignmentID || recoveredAssignment.RecordVersion != 2 || recoveredAssignment.State != workflowRAGApplicationRuntimeStateRevoked || len(recoveredEvents) != 2 || len(recoveredAudits) != 2 {
 		t.Fatalf("recover SQLite application runtime assignment: assignment=%#v events=%d audits=%d err=%v", recoveredAssignment, len(recoveredEvents), len(recoveredAudits), err)
 	}
 	restartedRunStore := newSQLiteWorkflowRunStore(secondRuntime.DB())

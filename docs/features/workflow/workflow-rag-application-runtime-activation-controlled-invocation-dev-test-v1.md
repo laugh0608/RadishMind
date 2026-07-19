@@ -2,7 +2,7 @@
 
 更新时间：2026-07-19
 
-状态：`workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_c_ready_for_implementation`
+状态：`workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_completed`
 
 ## 设计结论
 
@@ -10,7 +10,7 @@
 
 运行时固定使用 binding 中的 candidate snapshot 作为有效检索快照；baseline snapshot 只保留为晋级证据和回归比较来源，不参与本次检索。每次调用恰好执行一次既有确定性 lexical ranker 和一次既有 Gateway bridge 调用，返回结构化 advisory answer，并写入 metadata-only `workflow_run_record.v4`。输入、片段正文、prompt packet、完整回答和模型原始响应不持久化。
 
-本专题不会把发布候选 `approved` 改写为正式发布。runtime assignment 是独立、显式、可撤销的开发测试态运行选择，只引用权威发布候选和配置，不修改应用目录、配置草案、发布候选、promotion candidate、binding、dataset 或 snapshot。批次 A 已完成 strict contract、memory assignment、authority resolver、API key scope、独立调用 API 和 metadata-only run v4；批次 B 已完成 durable store、run source migration、v4 evaluation 与真实 PostgreSQL 专项，当前准入 Web、launcher 与真实浏览器批次 C。
+本专题不会把发布候选 `approved` 改写为正式发布。runtime assignment 是独立、显式、可撤销的开发测试态运行选择，只引用权威发布候选和配置，不修改应用目录、配置草案、发布候选、promotion candidate、binding、dataset 或 snapshot。批次 A 已完成 strict contract、memory assignment、authority resolver、API key scope、独立调用 API 和 metadata-only run v4；批次 B 已完成 durable store、run source migration、v4 evaluation 与真实 PostgreSQL 专项；批次 C 已完成 Web、launcher、双数据库连续链、真实浏览器与专题收口。
 
 ## 批次 A 实施结果
 
@@ -28,6 +28,14 @@
 - v4 已接入 Run History、Comparison、Evaluation、Baseline 与 Suite 的 `workflow_rag_application_invocation.v1` metadata-only 审查边界；stale running reconciliation 只写失败终态，不重放 retrieval 或 Gateway。
 - SQLite 已覆盖迁移升级、HTTP Tool 不回归、CAS、事务回滚、append-only、重启恢复、损坏拒绝和 no-fallback；平台 `go test ./...`、定向 race、`go vet` 与 PostgreSQL build-tag 编译通过。
 - 真实 PostgreSQL 专项已覆盖 migration / rollback / reapply、运行角色、事务、append-only、重启恢复和 no-fallback；首次真实运行发现 configured 产品链清理未先删除新 runtime 表，修正清理顺序后，完整 integration suite 与 `check` 配置闭环通过，容器和网络已关闭。
+
+## 批次 C 实施结果
+
+- Web 已接入发布候选侧 lazy assignment 管理、API key `application_rag:invoke` 签发、一次性内存交接、独立 Application RAG Invocation 面板，以及 v4 Run History、Comparison 和 Evaluation 审查。应用切换会清除 token、输入、回答、assignment、run handoff 和对比状态。
+- 跨平台 launcher 新增单一 `workflow-rag-application-local-product` / `WorkflowRAGApplicationLocalProduct` 产品档，统一开启 SQLite 应用、配置 / 发布、API key、runtime assignment、受控调用、运行历史和评测链；显式组件组合仍由 `configured` 档承接。
+- mock provider 已显式支持 `workflow-rag-application-invocation-v1` 结构化回答契约；Comparison v3 严格区分 application configuration execution source，并稳定返回 baseline / candidate authority、assignment 变化和零越权副作用。
+- SQLite 与 PostgreSQL 连续链均覆盖 approved candidate → activate → 两次相同输入调用 → comparison v3 → evaluation → revoke 后拒绝 → restart restore；未增加平行 database、pool、selector 或 fallback。
+- 真实浏览器以同一持久应用完成 activation、一次性交接、无证据失败、两次成功 v4、comparison、evaluation、revoke 后 `workflow_rag_runtime_assignment_revoked`、应用切换清理和 SQLite 重启恢复。新标签页 console 为零 error / warning，`localStorage` 与 `sessionStorage` 为空，原始 token、输入和回答未进入浏览器持久介质。
 
 ## 目标用户与完整路径
 
@@ -185,7 +193,7 @@ POST /v1/application-rag/invocations
 2. 批次 B：SQLite `0009`、PostgreSQL `0012`、run source migration、事务 / append-only / restart / corruption / no-fallback，以及 v4 Run History、Comparison / Evaluation / Baseline / Suite 服务边界。
 3. 批次 C：Web activation / API key handoff / invocation / history / evaluation 接线、launcher、SQLite 与 PostgreSQL 连续链、真实浏览器、敏感材料扫描和专题收口。
 
-批次 B 已完成，状态推进为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_c_ready_for_implementation`。下一批只准入 Web activation / invocation / history / evaluation、launcher、双数据库连续链与真实浏览器；仍不得跳过 assignment，让 publish approve 或 API key 签发直接打开 retrieval。
+批次 A、B、C 均已完成，专题状态为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_completed`。后续不派生批次 D 或同层 readiness / checker；下一项回到总体规划和功能设计入口选择新的真实用户流程。仍不得跳过 assignment，让 publish approve 或 API key 签发直接打开 retrieval。
 
 ## 验证矩阵
 

@@ -80,6 +80,41 @@ class GatewayTimingMetadataTest(unittest.TestCase):
         self.assertEqual(answer["confidence"], "high")
         self.assertNotIn("excerpt", response["summary"])
 
+    def test_mock_provider_returns_application_rag_answer_for_selected_evidence(self) -> None:
+        evidence = [{
+            "fragment_ref": "promotion_governance",
+            "rank": 1,
+            "source_type": "manual",
+            "is_official": True,
+            "excerpt": "Only the active assignment snapshot may support the answer.",
+            "excerpt_truncated": False,
+        }]
+        protocol = "workflow-rag-application-invocation-v1"
+        request_document = {
+            "schema_version": 1,
+            "project": "radish",
+            "task": "answer_docs_question",
+            "locale": "zh-CN",
+            "artifacts": [{
+                "kind": "text",
+                "role": "primary",
+                "name": "northbound_prompt",
+                "mime_type": "text/plain",
+                "content": "Prepare answer\n\n用户问题：\nWhat is supported?\n\n仅可使用以下已召回证据回答：\n"
+                    + json.dumps(evidence)
+                    + "\n\n输出且只输出 workflow_rag_application_answer.v1 JSON",
+            }],
+            "context": {"northbound": {"protocol": protocol, "request_kind": protocol}},
+        }
+
+        response = make_mock_docs_qa_response(request_document)
+        answer = json.loads(response["summary"])
+
+        self.assertEqual(answer["schema_version"], "workflow_rag_application_answer.v1")
+        self.assertEqual(answer["citations"][0]["fragment_ref"], "promotion_governance")
+        self.assertEqual(answer["confidence"], "high")
+        self.assertNotIn("excerpt", response["summary"])
+
 
 if __name__ == "__main__":
     unittest.main()

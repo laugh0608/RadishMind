@@ -19,6 +19,7 @@ param(
     [switch]$WorkflowHTTPToolLocalProduct,
     [switch]$WorkflowRAGDev,
     [switch]$WorkflowRAGPromotionLocalProduct,
+    [switch]$WorkflowRAGApplicationLocalProduct,
     [switch]$VerifyOnly,
     [switch]$ExitAfterProbe,
     [switch]$Help
@@ -55,6 +56,8 @@ Options:
   -WorkflowRAGDev       Enable the Workflow RAG snapshot, exact draft, retrieval execution, and Run History chain.
   -WorkflowRAGPromotionLocalProduct
                         Enable the SQLite evaluation, promotion, draft binding, and publish review chain without retrieval execution.
+  -WorkflowRAGApplicationLocalProduct
+                        Enable the SQLite application RAG assignment, API key, invocation, Run History, and evaluation chain.
   -VerifyOnly           Probe existing backend/frontend processes only.
   -ExitAfterProbe       Start missing local processes, probe, then stop spawned processes.
 "@
@@ -100,6 +103,9 @@ if ($WorkflowRAGDev -and $Mode -ne "dev-live") {
 if ($WorkflowRAGPromotionLocalProduct -and $Mode -ne "dev-live") {
     throw "-WorkflowRAGPromotionLocalProduct requires -Mode dev-live"
 }
+if ($WorkflowRAGApplicationLocalProduct -and $Mode -ne "dev-live") {
+    throw "-WorkflowRAGApplicationLocalProduct requires -Mode dev-live"
+}
 if ($ApplicationPublishDev -and $ApplicationPublishPostgresDevTest) {
     throw "Choose either -ApplicationPublishDev or -ApplicationPublishPostgresDevTest"
 }
@@ -118,9 +124,12 @@ if ($WorkflowHTTPToolLocalProduct -and $explicitComponentMode) {
 if ($WorkflowRAGPromotionLocalProduct -and $explicitComponentMode) {
     throw "-WorkflowRAGPromotionLocalProduct cannot be combined with explicit memory/PostgreSQL component modes"
 }
+if ($WorkflowRAGApplicationLocalProduct -and $explicitComponentMode) {
+    throw "-WorkflowRAGApplicationLocalProduct cannot be combined with explicit memory/PostgreSQL component modes"
+}
 $platformProfile = if ($explicitComponentMode) { "configured" } else { "local-product" }
 
-$savedDraftEnabled = $SavedDraftDev -or $SavedDraftPostgresDevTest -or $WorkflowHTTPToolLocalProduct -or $WorkflowRAGDev
+$savedDraftEnabled = $SavedDraftDev -or $SavedDraftPostgresDevTest -or $WorkflowHTTPToolLocalProduct -or $WorkflowRAGDev -or $WorkflowRAGApplicationLocalProduct
 $workflowRAGSnapshotEnabled = $platformProfile -eq "local-product" -or $savedDraftEnabled
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
@@ -684,11 +693,14 @@ try {
             if ($WorkflowRAGDev) {
                 $env:RADISHMIND_WORKFLOW_RAG_EXECUTION_DEV = "1"
             }
-            if ($WorkflowRAGPromotionLocalProduct) {
+            if ($WorkflowRAGPromotionLocalProduct -or $WorkflowRAGApplicationLocalProduct) {
                 $env:RADISHMIND_WORKFLOW_RAG_EVALUATION_DEV = "1"
                 $env:RADISHMIND_WORKFLOW_RAG_PROMOTION_DEV = "1"
             }
-            if ($APIKeyLocalProduct) {
+            if ($WorkflowRAGApplicationLocalProduct) {
+                $env:RADISHMIND_WORKFLOW_RAG_APPLICATION_INVOCATION_DEV = "1"
+            }
+            if ($APIKeyLocalProduct -or $WorkflowRAGApplicationLocalProduct) {
                 $env:RADISHMIND_GATEWAY_AUTH_MODE = "api_key_dev_test"
             }
             if ($ApplicationPublishPostgresDevTest) {
@@ -773,27 +785,27 @@ try {
                 $env:VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL = $BackendUrl.TrimEnd("/")
                 $env:VITE_RADISHMIND_DEV_READ_TENANT_REF = $TenantRef
                 $env:VITE_RADISHMIND_DEV_READ_SUBJECT_REF = $SubjectRef
-                if ($ApplicationDraftDev -or $ApplicationPublishDev -or $ApplicationPublishPostgresDevTest -or $APIKeyLocalProduct -or $WorkflowRAGPromotionLocalProduct) {
+                if ($ApplicationDraftDev -or $ApplicationPublishDev -or $ApplicationPublishPostgresDevTest -or $APIKeyLocalProduct -or $WorkflowRAGPromotionLocalProduct -or $WorkflowRAGApplicationLocalProduct) {
                     $env:VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE = "dev-application-draft-http"
                     $env:VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
-                if ($ApplicationPublishDev -or $ApplicationPublishPostgresDevTest -or $APIKeyLocalProduct -or $WorkflowRAGPromotionLocalProduct) {
+                if ($ApplicationPublishDev -or $ApplicationPublishPostgresDevTest -or $APIKeyLocalProduct -or $WorkflowRAGPromotionLocalProduct -or $WorkflowRAGApplicationLocalProduct) {
                     $env:VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE = "dev-application-publish-http"
                     $env:VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
-                if ($ApplicationCatalogPostgresDevTest -or $APIKeyLocalProduct -or $WorkflowHTTPToolLocalProduct -or $WorkflowRAGDev -or $WorkflowRAGPromotionLocalProduct) {
+                if ($ApplicationCatalogPostgresDevTest -or $APIKeyLocalProduct -or $WorkflowHTTPToolLocalProduct -or $WorkflowRAGDev -or $WorkflowRAGPromotionLocalProduct -or $WorkflowRAGApplicationLocalProduct) {
                     $env:VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE = "dev-application-catalog-http"
                     $env:VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
-                if ($APIKeyLocalProduct -or $WorkflowHTTPToolLocalProduct) {
+                if ($APIKeyLocalProduct -or $WorkflowHTTPToolLocalProduct -or $WorkflowRAGApplicationLocalProduct) {
                     $env:VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE = "dev-api-key-lifecycle-http"
                     $env:VITE_RADISHMIND_API_KEY_LIFECYCLE_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_API_KEY_LIFECYCLE_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
-                if ($APIKeyLocalProduct) {
+                if ($APIKeyLocalProduct -or $WorkflowRAGApplicationLocalProduct) {
                     $env:VITE_RADISHMIND_GATEWAY_AUTH_MODE = "api_key_dev_test"
                 }
                 if ($savedDraftEnabled) {
@@ -812,7 +824,7 @@ try {
                         "workflow_rag_snapshots:read,workflow_rag_snapshots:write,workflow_rag_snapshots:archive"
                     }
                 }
-                if ($WorkflowRAGPromotionLocalProduct) {
+                if ($WorkflowRAGPromotionLocalProduct -or $WorkflowRAGApplicationLocalProduct) {
                     $env:VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_SOURCE = "dev-workflow-rag-evaluation-http"
                     $env:VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_SCOPES = "workflow_rag_evaluation_datasets:read,workflow_rag_evaluation_datasets:read_content,workflow_rag_evaluation_datasets:write,workflow_rag_evaluation_datasets:review,workflow_rag_evaluation_datasets:archive,workflow_rag_snapshots:read"
@@ -820,10 +832,15 @@ try {
                     $env:VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_SCOPES = "workflow_rag_promotions:read,workflow_rag_promotions:write,workflow_rag_promotions:review,workflow_rag_evaluation_datasets:read,workflow_rag_snapshots:read,application_drafts:read"
                 }
+                if ($WorkflowRAGApplicationLocalProduct) {
+                    $env:VITE_RADISHMIND_WORKFLOW_RAG_APPLICATION_RUNTIME_SOURCE = "dev-workflow-rag-application-runtime-http"
+                    $env:VITE_RADISHMIND_WORKFLOW_RAG_APPLICATION_RUNTIME_BASE_URL = $BackendUrl.TrimEnd("/")
+                    $env:VITE_RADISHMIND_WORKFLOW_RAG_APPLICATION_RUNTIME_WORKSPACE_ID = $savedDraftWorkspaceId
+                }
                 if ($WorkflowDiagnosticsDev) {
                     $env:VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV = "true"
                 }
-                if ($GatewayRequestPostgresDevTest -or $APIKeyLocalProduct) {
+                if ($GatewayRequestPostgresDevTest -or $APIKeyLocalProduct -or $WorkflowRAGApplicationLocalProduct) {
                     $env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE = "dev-gateway-request-history-http"
                     $env:VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE = "dev-gateway-playground-http"
                     $env:VITE_RADISHMIND_GATEWAY_PLAYGROUND_BASE_URL = $BackendUrl.TrimEnd("/")
@@ -857,6 +874,9 @@ try {
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_BASE_URL -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_SCOPES -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_WORKFLOW_RAG_APPLICATION_RUNTIME_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_WORKFLOW_RAG_APPLICATION_RUNTIME_BASE_URL -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_WORKFLOW_RAG_APPLICATION_RUNTIME_WORKSPACE_ID -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL -ErrorAction SilentlyContinue
@@ -897,7 +917,7 @@ try {
         Wait-Until -Name "dev-live read routes" -Probe {
             Invoke-ControlPlaneReadRoutesProbe -BaseUrl $BackendUrl -Tenant $TenantRef -Subject $SubjectRef
         }
-        if ($APIKeyLocalProduct) {
+        if ($APIKeyLocalProduct -or $WorkflowRAGApplicationLocalProduct) {
             Wait-Until -Name "Gateway API key auth mode" -Probe { Invoke-GatewayAPIKeyModeProbe -BaseUrl $BackendUrl }
         }
         if ($savedDraftEnabled) {
@@ -955,6 +975,9 @@ try {
         }
         if ($WorkflowRAGPromotionLocalProduct) {
             Write-Step "Workflow RAG promotion SQLite local-product Web chain enabled for $savedDraftWorkspaceId/$savedDraftApplicationId; approve, attach, and publish review remain separate actions."
+        }
+        if ($WorkflowRAGApplicationLocalProduct) {
+            Write-Step "Workflow RAG application SQLite local-product Web chain enabled for $savedDraftWorkspaceId/$savedDraftApplicationId; assignment, API key handoff, invocation, history, and evaluation remain explicit dev/test actions."
         }
     }
     Write-Step "This is a dev-only launcher, not a production supervisor. Controlled execution is dev-only; production auth, secret resolution, unrestricted tools, automatic confirmation, writeback and replay remain disabled."

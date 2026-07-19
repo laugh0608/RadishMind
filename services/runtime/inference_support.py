@@ -942,10 +942,15 @@ def workflow_rag_mock_answer(copilot_request: dict[str, Any], primary_text: str)
     northbound = ((copilot_request.get("context") or {}).get("northbound") or {})
     protocol = str(northbound.get("protocol") or "").strip()
     request_kind = str(northbound.get("request_kind") or "").strip()
-    if protocol != "workflow-rag-retrieval-v1" or request_kind != protocol:
+    answer_schema_by_protocol = {
+        "workflow-rag-retrieval-v1": "workflow_rag_answer.v1",
+        "workflow-rag-application-invocation-v1": "workflow_rag_application_answer.v1",
+    }
+    answer_schema = answer_schema_by_protocol.get(protocol)
+    if answer_schema is None or request_kind != protocol:
         return None
     evidence_marker = "仅可使用以下已召回证据回答："
-    output_marker = "输出且只输出 workflow_rag_answer.v1 JSON"
+    output_marker = f"输出且只输出 {answer_schema} JSON"
     if evidence_marker not in primary_text:
         return None
     evidence_text = primary_text.split(evidence_marker, 1)[1].split(output_marker, 1)[0].strip()
@@ -966,7 +971,7 @@ def workflow_rag_mock_answer(copilot_request: dict[str, Any], primary_text: str)
         return None
     fragment_ref = str(selected["fragment_ref"])
     answer = {
-        "schema_version": "workflow_rag_answer.v1",
+        "schema_version": answer_schema,
         "answer": "根据本次选中的应用知识证据，当前问题可以形成受快照版本约束的建议性回答。",
         "citations": [{
             "fragment_ref": fragment_ref,

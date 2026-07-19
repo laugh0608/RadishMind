@@ -12,7 +12,7 @@ function run(runId: string, status: "succeeded" | "failed") {
 }
 
 function envelope(overrides: Record<string, unknown> = {}) {
-  return { request_id: "request_compare", workspace_id: "workspace_demo", application_id: "app_demo", failure_code: null, failure_summary: "", audit_ref: "audit_compare", comparison: { schema_version: "workflow_run_comparison.v1", classification: "regression", comparison_state: "comparable", baseline: run("run_base", "succeeded"), candidate: run("run_candidate", "failed"), draft_changed: false, provider_changed: false, model_changed: false, status_changed: true, failure_changed: true, duration_delta_ms: 20, provider_call_delta: 0, nodes: [{ node_id: "node_model", node_type: "llm", change: "changed", baseline_status: "succeeded", candidate_status: "failed", baseline_duration_ms: 50, candidate_duration_ms: 70, duration_delta_ms: 20 }], findings: [{ code: "status_regressed", severity: "review_required" }], recommended_review_action: "check_gateway_capacity" }, ...overrides };
+  return { request_id: "request_compare", workspace_id: "workspace_demo", application_id: "app_demo", failure_code: null, failure_summary: "", audit_ref: "audit_compare", comparison: { schema_version: "workflow_run_comparison.v1", classification: "regression", comparison_state: "comparable", baseline: run("run_base", "succeeded"), candidate: run("run_candidate", "failed"), draft_changed: false, execution_source_changed: false, provider_changed: false, model_changed: false, status_changed: true, failure_changed: true, duration_delta_ms: 20, provider_call_delta: 0, nodes: [{ node_id: "node_model", node_type: "llm", change: "changed", baseline_status: "succeeded", candidate_status: "failed", baseline_duration_ms: 50, candidate_duration_ms: 70, duration_delta_ms: 20 }], findings: [{ code: "status_regressed", severity: "review_required" }], recommended_review_action: "check_gateway_capacity" }, ...overrides };
 }
 
 const digest = `sha256:${"a".repeat(64)}`;
@@ -86,6 +86,42 @@ test("workflow run comparison maps metadata-only RAG v2 evidence", async () => {
     assert.equal(result.schemaVersion, "workflow_run_comparison.v2");
     assert.equal(result.retrieval?.runProfile, "workflow_rag_retrieval.v1");
     assert.equal(result.retrieval?.fragments[0]?.fragmentRef, "official_guide");
+    assert.equal(result.baseline.sideEffects.retrievalCalls, 1);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test("workflow run comparison maps the application RAG v4 review profile", async () => {
+  const originalFetch = globalThis.fetch;
+  const body = ragEnvelope();
+  for (const value of [body.comparison.baseline, body.comparison.candidate]) {
+    value.schema_version = "workflow_run_record.v4";
+    value.draft_id = "";
+    value.draft_version = 0;
+    Object.assign(value, { execution_kind: "application_rag_invocation", execution_source_kind: "application_configuration_draft", execution_source_id: "appdraft_aaaaaaaaaaaaaaaa", execution_source_version: 2 });
+  }
+  body.comparison.schema_version = "workflow_run_comparison.v3" as "workflow_run_comparison.v1";
+  body.comparison.retrieval.run_profile = "workflow_rag_application_invocation.v1";
+  body.comparison.retrieval.retrieval_node_id = "application_rag_retrieval";
+  const authority = (suffix: "a" | "b") => ({
+    assignment_id: `wragra_${suffix.repeat(16)}`, assignment_version: suffix === "a" ? 1 : 2, assignment_digest: digest,
+    publish_candidate_id: `candidate_${suffix}`, publish_review_version: 1, draft_id: "appdraft_aaaaaaaaaaaaaaaa", draft_version: 2, draft_digest: digest,
+    binding_ref: { binding_id: `wragb_${suffix.repeat(16)}`, binding_version: 1, binding_digest: digest },
+    snapshot_id: `rags_${suffix.repeat(16)}`, snapshot_version: suffix === "a" ? 1 : 2, snapshot_digest: digest,
+    rag_ref: "workflow.rag.official.v1", profile_id: "workflow.rag.lexical-ngram-dev.v1", profile_version: 1, profile_digest: digest,
+    configured_protocol: "responses", configured_model: "mock-rag",
+  });
+  const retrieval = body.comparison.retrieval as Record<string, unknown>;
+  for (const key of ["snapshot_id", "snapshot_version", "snapshot_digest", "rag_ref", "profile_id", "profile_version", "profile_digest"]) delete retrieval[key];
+  Object.assign(retrieval, { baseline_authority: authority("a"), candidate_authority: authority("b"), authority_changed: true });
+  globalThis.fetch = async () => new Response(JSON.stringify(body), { status: 200 });
+  try {
+    const result = await compareWorkflowRuns("app_demo", "run_base", "run_candidate", live);
+    assert.equal(result.retrieval?.runProfile, "workflow_rag_application_invocation.v1");
+    assert.equal(result.schemaVersion, "workflow_run_comparison.v3");
+    assert.equal(result.retrieval?.candidateAuthority?.snapshotVersion, 2);
+    assert.equal(result.retrieval?.authorityChanged, true);
+    assert.equal(result.baseline.schemaVersion, "workflow_run_record.v4");
+    assert.equal(result.baseline.executionSourceId, "appdraft_aaaaaaaaaaaaaaaa");
     assert.equal(result.baseline.sideEffects.retrievalCalls, 1);
   } finally { globalThis.fetch = originalFetch; }
 });

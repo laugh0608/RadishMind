@@ -31,6 +31,15 @@ export type WorkflowRunHistorySummary = {
   draftId: string;
   draftVersion: number;
   draftDigest: string;
+  executionKind: string;
+  executionSourceKind: string;
+  executionSourceId: string;
+  executionSourceVersion: number;
+  runtimeAssignmentId: string;
+  runtimeAssignmentVersion: number;
+  publishCandidateId: string;
+  publishReviewVersion: number;
+  effectiveSnapshotRole: string;
   status: WorkflowRunStatus;
   failureCode: string;
   startedAt: string;
@@ -88,6 +97,13 @@ export function isWorkflowRunComparisonCompatible(
   candidate: WorkflowRunHistorySummary,
 ): boolean {
   if (!baseline || !isWorkflowRunComparisonEligible(baseline) || !isWorkflowRunComparisonEligible(candidate) || baseline.runId === candidate.runId) return false;
+  const baselineApplicationRAG = baseline.schemaVersion === "workflow_run_record.v4";
+  const candidateApplicationRAG = candidate.schemaVersion === "workflow_run_record.v4";
+  if (baselineApplicationRAG !== candidateApplicationRAG) return false;
+  if (baselineApplicationRAG) {
+    return baseline.queryDigest === candidate.queryDigest && baseline.queryBytes === candidate.queryBytes &&
+      baseline.executionKind === candidate.executionKind && baseline.executionSourceKind === candidate.executionSourceKind;
+  }
   const baselineRetrieval = baseline.schemaVersion === "workflow_run_record.v3";
   const candidateRetrieval = candidate.schemaVersion === "workflow_run_record.v3";
   if (baselineRetrieval !== candidateRetrieval) return false;
@@ -108,6 +124,9 @@ type RunSummaryDocument = {
   plan_id?: string; confirmation_id?: string; tool_attempt_status?: string; draft_id: string;
   draft_version: number; workspace_id: string; application_id: string;
   draft_digest?: string;
+  execution_kind?: string; execution_source_kind?: string; execution_source_id?: string; execution_source_version?: number;
+  runtime_assignment_id?: string; runtime_assignment_version?: number; publish_candidate_id?: string;
+  publish_review_version?: number; effective_snapshot_role?: string;
   status: WorkflowRunStatus; failure_code: string;
   started_at: string; completed_at: string; duration_ms: number; selected_provider: string;
   selected_profile: string; selected_model: string; request_id: string; audit_ref: string; stale_running: boolean;
@@ -188,7 +207,7 @@ function workflowRunHistoryHeaders(config: WorkflowExecutorConsumerConfig, appli
 function toSummary(value: RunSummaryDocument): WorkflowRunHistorySummary {
   const sideEffects = value.side_effects;
   const toolRecord = value.schema_version === "workflow_run_record.v2";
-  const retrievalRecord = value.schema_version === "workflow_run_record.v3";
+  const retrievalRecord = value.schema_version === "workflow_run_record.v3" || value.schema_version === "workflow_run_record.v4";
   if (sideEffects.business_writes || sideEffects.replay_writes ||
     (toolRecord && (sideEffects.tool_calls !== 1 || sideEffects.confirmation_calls !== 1)) ||
     (!toolRecord && (sideEffects.tool_calls !== 0 || sideEffects.confirmation_calls !== 0)) ||
@@ -200,6 +219,11 @@ function toSummary(value: RunSummaryDocument): WorkflowRunHistorySummary {
     schemaVersion: value.schema_version, runId: value.run_id, planId: value.plan_id ?? "",
     confirmationId: value.confirmation_id ?? "", toolAttemptStatus: (value.tool_attempt_status ?? "") as WorkflowRunHistorySummary["toolAttemptStatus"],
     draftId: value.draft_id, draftVersion: value.draft_version, draftDigest: value.draft_digest ?? "", status: value.status, failureCode: value.failure_code,
+    executionKind: value.execution_kind ?? "", executionSourceKind: value.execution_source_kind ?? "",
+    executionSourceId: value.execution_source_id ?? "", executionSourceVersion: value.execution_source_version ?? 0,
+    runtimeAssignmentId: value.runtime_assignment_id ?? "", runtimeAssignmentVersion: value.runtime_assignment_version ?? 0,
+    publishCandidateId: value.publish_candidate_id ?? "", publishReviewVersion: value.publish_review_version ?? 0,
+    effectiveSnapshotRole: value.effective_snapshot_role ?? "",
     startedAt: value.started_at, completedAt: value.completed_at, durationMs: value.duration_ms,
     selectedProvider: value.selected_provider, selectedProfile: value.selected_profile, selectedModel: value.selected_model,
     requestId: value.request_id, auditRef: value.audit_ref, staleRunning: value.stale_running,
@@ -226,15 +250,26 @@ function isRunSummary(value: unknown): value is RunSummaryDocument {
   const item = value as Partial<RunSummaryDocument>;
   const raw = value as Record<string, unknown>;
   if (containsForbiddenHistoryField(raw)) return false;
-  const schemaValid = item.schema_version === "workflow_run_record.v0" || item.schema_version === "workflow_run_record.v1" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v3";
+  const schemaValid = item.schema_version === "workflow_run_record.v0" || item.schema_version === "workflow_run_record.v1" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4";
   const statusValid = ["running", "succeeded", "failed", "canceled", "outcome_unknown"].includes(item.status ?? "") &&
     (item.status !== "outcome_unknown" || item.schema_version === "workflow_run_record.v2");
   const toolMetadataValid = item.schema_version === "workflow_run_record.v2"
     ? typeof item.plan_id === "string" && typeof item.confirmation_id === "string" &&
       ["claimed", "succeeded", "failed", "outcome_unknown"].includes(item.tool_attempt_status ?? "")
     : [item.plan_id, item.confirmation_id, item.tool_attempt_status].every((field) => field === undefined || field === "");
-  const retrievalMetadataValid = item.schema_version === "workflow_run_record.v3" ? isRAGRunSummary(item) : true;
+  const retrievalMetadataValid = item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4" ? isRAGRunSummary(item) : true;
+  const executionMetadataValid = item.schema_version === "workflow_run_record.v4"
+    ? item.execution_kind === "application_rag_invocation" && item.execution_source_kind === "application_configuration_draft" &&
+      typeof item.execution_source_id === "string" && Number.isInteger(item.execution_source_version) &&
+      typeof item.runtime_assignment_id === "string" && Number.isInteger(item.runtime_assignment_version) &&
+      typeof item.publish_candidate_id === "string" && Number.isInteger(item.publish_review_version) && item.effective_snapshot_role === "candidate"
+    : (!item.execution_source_kind || (item.execution_source_kind === "workflow_draft" &&
+      item.execution_source_id === item.draft_id && item.execution_source_version === item.draft_version &&
+      typeof item.execution_kind === "string" && item.execution_kind.length > 0)) &&
+      [item.runtime_assignment_id, item.runtime_assignment_version, item.publish_candidate_id,
+        item.publish_review_version, item.effective_snapshot_role].every((field) => field === undefined || field === "" || field === 0);
   return schemaValid && statusValid && toolMetadataValid && retrievalMetadataValid && typeof item.record_version === "number" &&
+    executionMetadataValid &&
     typeof item.run_id === "string" && typeof item.draft_id === "string" && typeof item.draft_version === "number" &&
     typeof item.started_at === "string" && typeof item.side_effects === "object" &&
     [item.failure_boundary, item.failed_node_id, item.last_completed_node_id, item.gateway_failure_category,
@@ -258,7 +293,8 @@ function isRAGRunSummary(item: Partial<RunSummaryDocument>): boolean {
   const digest = /^sha256:[a-f0-9]{64}$/u;
   const ref = /^[a-z][a-z0-9_]{2,63}$/u;
   const selected = item.selected_fragments;
-  if (!digest.test(item.draft_digest ?? "") || !/^rags_[a-z2-7]{16}$/u.test(item.snapshot_id ?? "") ||
+  if ((item.schema_version === "workflow_run_record.v3" && !digest.test(item.draft_digest ?? "")) ||
+    !/^rags_[a-z2-7]{16}$/u.test(item.snapshot_id ?? "") ||
     !Number.isInteger(item.snapshot_version) || (item.snapshot_version ?? 0) < 1 || !digest.test(item.snapshot_digest ?? "") ||
     !/^workflow\.rag\.[a-z][a-z0-9_]{2,47}\.v[1-9][0-9]*$/u.test(item.rag_ref ?? "") ||
     typeof item.retrieval_node_id !== "string" || !["not_started", "succeeded", "failed"].includes(item.retrieval_attempt_status ?? "") ||

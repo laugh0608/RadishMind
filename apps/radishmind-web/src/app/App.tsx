@@ -232,6 +232,7 @@ const WorkflowRAGEvaluationDatasetPanel = lazy(() => import("../features/control
 const WorkflowRAGPromotionPanel = lazy(() => import("../features/control-plane-read/workflowRAGPromotionPanel"));
 const WorkflowRAGExecutionPanel = lazy(() => import("../features/control-plane-read/workflowRAGExecutionPanel"));
 const APIKeyLifecyclePanel = lazy(() => import("../features/control-plane-read/apiKeyLifecyclePanel").then((module) => ({ default: module.APIKeyLifecyclePanel })));
+const ApplicationRAGInvocationPanel = lazy(() => import("../features/control-plane-read/workflowRAGApplicationRuntimePanel"));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
 const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
 
@@ -1375,6 +1376,7 @@ export function App() {
             <a href="#workspace-workflow-definitions">Workflows</a>
             <a href="#workspace-run-history">Run History</a>
             <a href="#workspace-api-keys">API Keys</a>
+            <a href="#application-rag-invocation">Application RAG</a>
             <a href="#workspace-usage-quota">Usage Quota</a>
           </div>
           <div className="nav-link-group" aria-label="Model gateway sections">
@@ -1876,6 +1878,16 @@ export function App() {
             applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
             applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
             offlineView={workspaceApiKeys}
+          />
+        </Suspense>
+
+        <Suspense fallback={<section className="surface-band workflow-rag-application-invocation"><p>Loading Application RAG Invocation…</p></section>}>
+          <ApplicationRAGInvocationPanel
+            key={`application-rag-${applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}`}
+            applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
+            applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
+            applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
+            onRunRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
           />
         </Suspense>
 

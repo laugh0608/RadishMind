@@ -93,6 +93,57 @@ test("RAG comparison selection requires an exact immutable retrieval binding", a
   } finally { globalThis.fetch = originalFetch; }
 });
 
+test("Run History maps application RAG v4 execution authority without draft masquerading", async () => {
+  const originalFetch = globalThis.fetch;
+  const requests: string[] = [];
+  globalThis.fetch = async (input) => {
+    requests.push(String(input));
+    return requests.length === 1
+      ? jsonResponse(applicationRAGListEnvelope())
+      : jsonResponse({
+          request_id: "request_detail_v4", workspace_id: "workspace_demo", application_id: "app_flow_copilot",
+          run: applicationRAGRunRecord(), failure_code: null, failure_summary: "", audit_ref: "audit_detail_v4",
+          retrieval_fragment_previews: [],
+        });
+  };
+  try {
+    const history = await listWorkflowRunHistory("app_flow_copilot", live, EMPTY_WORKFLOW_RUN_HISTORY_FILTER);
+    const summary = history.runs[0]!;
+    assert.equal(summary.schemaVersion, "workflow_run_record.v4");
+    assert.equal(summary.draftId, "");
+    assert.equal(summary.executionSourceKind, "application_configuration_draft");
+    assert.equal(summary.runtimeAssignmentId, "wragra_abcdefghijklmnop");
+    assert.equal(summary.effectiveSnapshotRole, "candidate");
+    const detail = await readWorkflowRunHistoryDetail(summary, "app_flow_copilot", live);
+    assert.equal(detail?.schemaVersion, "workflow_run_record.v4");
+    assert.equal(detail?.draftId, "");
+    assert.equal(detail?.executionSourceId, "application-draft-0001");
+    assert.equal(detail?.ragApplicationAuthority?.publishCandidateId, "candidate-approved-0001");
+    assert.equal(detail?.ragApplicationAuthority?.candidateSnapshot.snapshotId, "rags_abcdefghijklmnop");
+    assert.equal(JSON.stringify(detail).includes("reviewed input"), false);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test("application RAG comparison allows controlled assignment and snapshot change for the same input", async () => {
+  const originalFetch = globalThis.fetch;
+  const body = applicationRAGListEnvelope();
+  const replacement = structuredClone(body.runs[0]!);
+  replacement.run_id = "run_bbbbbbbbbbbbbbbb";
+  replacement.runtime_assignment_id = "wragra_bbbbbbbbbbbbbbbb";
+  replacement.snapshot_id = "rags_bbbbbbbbbbbbbbbb";
+  replacement.snapshot_digest = digestC;
+  const differentInput = structuredClone(replacement);
+  differentInput.run_id = "run_cccccccccccccccc";
+  differentInput.query_digest = digestB;
+  body.runs.push(replacement, differentInput);
+  globalThis.fetch = async () => jsonResponse(body);
+  try {
+    const history = await listWorkflowRunHistory("app_flow_copilot", live, EMPTY_WORKFLOW_RUN_HISTORY_FILTER);
+    assert.equal(isWorkflowRunComparisonCompatible(history.runs[0], history.runs[1]!), true);
+    assert.equal(isWorkflowRunComparisonCompatible(history.runs[0], history.runs[2]!), false);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 function listEnvelope() {
   return {
     request_id: "request_history_v3", workspace_id: "workspace_demo", application_id: "app_flow_copilot",
@@ -114,6 +165,64 @@ function detailEnvelope(preview: string) {
   return {
     request_id: "request_detail_v3", workspace_id: "workspace_demo", application_id: "app_flow_copilot", run: runRecord(), failure_code: null, failure_summary: "", audit_ref: "audit_detail_v3",
     retrieval_fragment_previews: [{ fragment_ref: "official_guide", preview, truncated: false }],
+  };
+}
+
+function applicationRAGListEnvelope() {
+  return {
+    request_id: "request_history_v4", workspace_id: "workspace_demo", application_id: "app_flow_copilot",
+    runs: [{
+      schema_version: "workflow_run_record.v4", record_version: 2, run_id: "run_aaaaaaaaaaaaaaaa",
+      plan_id: "", confirmation_id: "", tool_attempt_status: "", draft_id: "", draft_version: 0,
+      execution_kind: "application_rag_invocation", execution_source_kind: "application_configuration_draft",
+      execution_source_id: "application-draft-0001", execution_source_version: 2,
+      runtime_assignment_id: "wragra_abcdefghijklmnop", runtime_assignment_version: 1,
+      publish_candidate_id: "candidate-approved-0001", publish_review_version: 1, effective_snapshot_role: "candidate",
+      workspace_id: "workspace_demo", application_id: "app_flow_copilot", status: "succeeded", failure_code: "",
+      started_at: "2026-07-19T08:00:00Z", completed_at: "2026-07-19T08:00:01Z", duration_ms: 1000,
+      selected_provider: "mock", selected_profile: "mock-profile", selected_model: "mock-rag",
+      request_id: "request_run_v4", audit_ref: "audit_run_v4", stale_running: false,
+      failure_boundary: "", failed_node_id: "", last_completed_node_id: "", gateway_failure_category: "none",
+      tool_failure_category: "none", recommended_review_action: "",
+      snapshot_id: "rags_abcdefghijklmnop", snapshot_version: 2, snapshot_digest: digestB, rag_ref: "workflow.rag.product_docs.v2",
+      retrieval_node_id: "application_rag_retrieval", retrieval_attempt_status: "succeeded",
+      retrieval_profile_id: "workflow.rag.lexical-ngram-dev.v1", retrieval_profile_version: 1,
+      retrieval_profile_digest: digestC, query_digest: digestA, query_bytes: 31, candidate_count: 1,
+      selected_fragments: [{ fragment_ref: "official_guide", content_digest: digestB, rank: 1, source_type: "manual", is_official: true, excerpt_truncated: false }],
+      citation_refs: ["official_guide"], retrieval_latency_ms: 2, retrieval_context_bytes: 92,
+      retrieval_failure_category: "none",
+      side_effects: { retrieval_calls: 1, provider_calls: 1, tool_calls: 0, confirmation_calls: 0, business_writes: 0, replay_writes: 0 },
+    }],
+    next_cursor: "", has_more: false, failure_code: null, failure_summary: "", audit_ref: "audit_history_v4",
+  };
+}
+
+function applicationRAGRunRecord() {
+  const snapshot = { snapshot_id: "rags_abcdefghijklmnop", snapshot_version: 2, snapshot_digest: digestB, rag_ref: "workflow.rag.product_docs.v2" };
+  return {
+    schema_version: "workflow_run_record.v4", record_version: 2, run_id: "run_aaaaaaaaaaaaaaaa",
+    tenant_ref: "tenant_demo", workspace_id: "workspace_demo", application_id: "app_flow_copilot",
+    execution_kind: "application_rag_invocation", execution_source_kind: "application_configuration_draft",
+    execution_source_id: "application-draft-0001", execution_source_version: 2, status: "succeeded",
+    failure_code: null, failure_summary: "", started_at: "2026-07-19T08:00:00Z", completed_at: "2026-07-19T08:00:01Z",
+    input_digest: digestA, input_bytes: 31,
+    authority: {
+      assignment_id: "wragra_abcdefghijklmnop", assignment_version: 1, assignment_digest: digestA,
+      publish_candidate_id: "candidate-approved-0001", publish_review_version: 1, publish_candidate_state: "approved",
+      draft_id: "application-draft-0001", draft_version: 2, draft_digest: digestB,
+      binding_ref: { binding_id: "wragb_abcdefghijklmnop", binding_version: 1, binding_digest: digestC },
+      dataset: { dataset_id: "wragd_abcdefghijklmnop", dataset_version: 3, dataset_digest: digestA },
+      candidate_review_id: "wragr_abcdefghijklmnop", baseline_snapshot: { ...snapshot, snapshot_id: "rags_bbbbbbbbbbbbbbbb", snapshot_digest: digestA },
+      candidate_snapshot: snapshot, effective_snapshot_role: "candidate",
+      profile: { profile_id: "workflow.rag.lexical-ngram-dev.v1", profile_version: 1, profile_digest: digestC },
+      configured_protocol: "responses", configured_model: "mock-rag",
+    },
+    snapshot,
+    retrieval_attempt: { node_id: "application_rag_retrieval", status: "succeeded", profile_id: "workflow.rag.lexical-ngram-dev.v1", profile_version: 1, profile_digest: digestC, query_digest: digestA, query_bytes: 31, candidate_count: 1, selected_fragments: [{ fragment_ref: "official_guide", content_digest: digestB, rank: 1, source_type: "manual", is_official: true, excerpt_truncated: false }], retrieval_latency_ms: 2, context_bytes: 92, citation_refs: ["official_guide"] },
+    answer: null, selected_provider: "mock", selected_model: "mock-rag", request_id: "request_run_v4",
+    audit_ref: "audit_run_v4", actor_ref: "subject_demo_user",
+    side_effects: { retrieval_calls: 1, provider_calls: 1, tool_calls: 0, confirmation_calls: 0, business_writes: 0, replay_writes: 0 },
+    diagnostic: { failure_boundary: "none", retrieval_failure_category: "none" },
   };
 }
 

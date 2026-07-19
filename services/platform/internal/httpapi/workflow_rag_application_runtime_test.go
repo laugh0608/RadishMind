@@ -182,6 +182,61 @@ func TestWorkflowRAGApplicationInvocationSucceedsOnceAndStoresV4MetadataOnly(t *
 	}
 }
 
+func TestWorkflowRAGApplicationRunComparisonAllowsReviewedAuthorityChange(t *testing.T) {
+	fixture := newWorkflowRAGApplicationRuntimeTestFixture(t)
+	activated := fixture.runtimeService.Decide(fixture.runtimeContext, WorkflowRAGApplicationRuntimeDecisionInput{ExpectedRecordVersion: 0, Decision: workflowRAGApplicationRuntimeDecisionActivate, PublishCandidateID: fixture.publishCandidate.CandidateID, Reason: "人工激活候选用于验证知识晋级比较"})
+	if activated.FailureCode != "" {
+		t.Fatalf("activate before comparison: %#v", activated)
+	}
+	service := newWorkflowRAGApplicationInvocationService(fixture.runtimeRepository, fixture.resolver, fixture.runStore, fixture.bridge)
+	service.resolveSelection = func(context.Context, string) northboundSelection { return workflowRAGTestSelection() }
+	service.newRunID = func() (string, error) { return "run_applicationragcompare01", nil }
+	service.now = func() time.Time { return fixture.now }
+	result := service.Invoke(fixture.runtimeContext, WorkflowRAGApplicationInvocationInput{Input: "same application input for reviewed knowledge promotion"})
+	if result.FailureCode != "" || result.Run == nil {
+		t.Fatalf("invoke comparison baseline: %#v", result)
+	}
+
+	baseline := cloneWorkflowRunRecord(*result.Run)
+	candidate := cloneWorkflowRunRecord(baseline)
+	candidate.RunID = "run_applicationragcompare02"
+	candidate.RAGApplication.AssignmentID = "wragra_bbbbbbbbbbbbbbbb"
+	candidate.RAGApplication.AssignmentVersion++
+	candidate.RAGApplication.AssignmentDigest = workflowRAGSHA256("replacement assignment")
+	candidate.RAGApplication.BindingRef = WorkflowRAGApplicationBindingRef{BindingID: "wragb_bbbbbbbbbbbbbbbb", BindingVersion: 1, BindingDigest: workflowRAGSHA256("replacement binding")}
+	candidate.RAGSnapshot.SnapshotID = "rags_bbbbbbbbbbbbbbbb"
+	candidate.RAGSnapshot.SnapshotVersion = 2
+	candidate.RAGSnapshot.SnapshotDigest = workflowRAGSHA256("promoted candidate snapshot")
+	candidate.RAGApplication.CandidateSnapshot.SnapshotID = candidate.RAGSnapshot.SnapshotID
+	candidate.RAGApplication.CandidateSnapshot.SnapshotVersion = candidate.RAGSnapshot.SnapshotVersion
+	candidate.RAGApplication.CandidateSnapshot.SnapshotDigest = candidate.RAGSnapshot.SnapshotDigest
+	candidate.RAGApplication.CandidateSnapshot.RAGRef = candidate.RAGSnapshot.RAGRef
+	if err := validateWorkflowRunStoreRecord(workflowRAGApplicationRunContext(fixture.runtimeContext), &candidate); err != nil {
+		t.Fatalf("candidate authority fixture is not a valid v4 record: %v", err)
+	}
+	if !workflowRAGRunsComparable(baseline, candidate) {
+		t.Fatal("v4 comparison rejected the same input and answer contract after reviewed authority replacement")
+	}
+	comparison := buildWorkflowRAGRunComparison(baseline, candidate, fixture.now.Add(time.Second))
+	if comparison.SchemaVersion != workflowRAGAppRunComparisonSchemaVersion || comparison.Retrieval == nil || !comparison.Retrieval.AuthorityChanged || comparison.Retrieval.BaselineAuthority == nil || comparison.Retrieval.CandidateAuthority == nil || comparison.Retrieval.CandidateAuthority.SnapshotID != candidate.RAGSnapshot.SnapshotID || comparison.Retrieval.SnapshotID != "" {
+		t.Fatalf("v4 authority comparison evidence drifted: %#v", comparison)
+	}
+	unchangedCandidate := cloneWorkflowRunRecord(baseline)
+	unchangedCandidate.RunID = "run_applicationragcompare03"
+	unchanged := buildWorkflowRAGRunComparison(baseline, unchangedCandidate, fixture.now.Add(time.Second))
+	payload, err := json.Marshal(unchanged)
+	if err != nil {
+		t.Fatalf("marshal unchanged v4 comparison: %v", err)
+	}
+	if !strings.Contains(string(payload), `"authority_changed":false`) {
+		t.Fatalf("v4 comparison omitted explicit unchanged authority projection: %s", payload)
+	}
+	candidate.RAGApplication.ConfiguredProtocol = "different-answer-contract"
+	if workflowRAGRunsComparable(baseline, candidate) {
+		t.Fatal("v4 comparison accepted different configured answer contracts")
+	}
+}
+
 func TestWorkflowRAGApplicationInvocationFailsBeforeSideEffectsOnAuthorityDrift(t *testing.T) {
 	fixture := newWorkflowRAGApplicationRuntimeTestFixture(t)
 	activated := fixture.runtimeService.Decide(fixture.runtimeContext, WorkflowRAGApplicationRuntimeDecisionInput{ExpectedRecordVersion: 0, Decision: workflowRAGApplicationRuntimeDecisionActivate, PublishCandidateID: fixture.publishCandidate.CandidateID, Reason: "激活后验证权威漂移失败关闭"})

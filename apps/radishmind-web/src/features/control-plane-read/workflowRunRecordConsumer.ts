@@ -2,7 +2,8 @@ export type WorkflowRunSchemaVersion =
   | "workflow_run_record.v0"
   | "workflow_run_record.v1"
   | "workflow_run_record.v2"
-  | "workflow_run_record.v3";
+  | "workflow_run_record.v3"
+  | "workflow_run_record.v4";
 
 export type WorkflowRunStatus = "running" | "succeeded" | "failed" | "canceled" | "outcome_unknown";
 
@@ -147,6 +148,32 @@ export type WorkflowRAGFragmentPreview = {
   truncated: boolean;
 };
 
+export type WorkflowRAGApplicationRunAuthority = {
+  assignmentId: string;
+  assignmentVersion: number;
+  assignmentDigest: string;
+  publishCandidateId: string;
+  publishReviewVersion: number;
+  draftId: string;
+  draftVersion: number;
+  draftDigest: string;
+  bindingId: string;
+  bindingVersion: number;
+  bindingDigest: string;
+  datasetId: string;
+  datasetVersion: number;
+  datasetDigest: string;
+  candidateReviewId: string;
+  baselineSnapshot: WorkflowRAGRunSnapshotBinding;
+  candidateSnapshot: WorkflowRAGRunSnapshotBinding;
+  effectiveSnapshotRole: "candidate";
+  profileId: "workflow.rag.lexical-ngram-dev.v1";
+  profileVersion: 1;
+  profileDigest: string;
+  configuredProtocol: string;
+  configuredModel: string;
+};
+
 export type WorkflowRunRecord = {
   schemaVersion: WorkflowRunSchemaVersion;
   recordVersion: number;
@@ -157,6 +184,10 @@ export type WorkflowRunRecord = {
   draftId: string;
   draftVersion: number;
   draftDigest: string;
+  executionKind: string;
+  executionSourceKind: string;
+  executionSourceId: string;
+  executionSourceVersion: number;
   workspaceId: string;
   applicationId: string;
   status: WorkflowRunStatus;
@@ -177,6 +208,7 @@ export type WorkflowRunRecord = {
   ragSnapshot: WorkflowRAGRunSnapshotBinding | null;
   retrievalAttempt: WorkflowRAGRunRetrievalAttempt | null;
   retrievalFragmentPreviews: WorkflowRAGFragmentPreview[];
+  ragApplicationAuthority: WorkflowRAGApplicationRunAuthority | null;
   output: string;
   requestId: string;
   auditRef: string;
@@ -211,14 +243,23 @@ const RAG_RECORD_KEYS = new Set([
   "completed_at", "snapshot", "retrieval_attempt", "answer", "selected_provider", "selected_model",
   "request_id", "audit_ref", "actor_ref", "side_effects", "diagnostic",
 ]);
+const APPLICATION_RAG_RECORD_KEYS = new Set([
+  "schema_version", "record_version", "run_id", "tenant_ref", "workspace_id", "application_id",
+  "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version", "status",
+  "failure_code", "failure_summary", "started_at", "completed_at", "input_digest", "input_bytes",
+  "authority", "snapshot", "retrieval_attempt", "answer", "selected_provider", "selected_model",
+  "request_id", "audit_ref", "actor_ref", "side_effects", "diagnostic",
+]);
 
 export function parseWorkflowRunRecordDocument(value: unknown): WorkflowRunRecord | null {
   if (!isRecord(value) || containsForbiddenWorkflowRunField(value)) return null;
   const schemaVersion = value.schema_version;
   if (schemaVersion !== "workflow_run_record.v0" && schemaVersion !== "workflow_run_record.v1" &&
-    schemaVersion !== "workflow_run_record.v2" && schemaVersion !== "workflow_run_record.v3") return null;
+    schemaVersion !== "workflow_run_record.v2" && schemaVersion !== "workflow_run_record.v3" &&
+    schemaVersion !== "workflow_run_record.v4") return null;
 
   if (schemaVersion === "workflow_run_record.v3") return parseRAGRunRecord(value);
+  if (schemaVersion === "workflow_run_record.v4") return parseApplicationRAGRunRecord(value);
 
   const common = parseCommonRecordFields(value, schemaVersion);
   if (!common) return null;
@@ -242,6 +283,7 @@ export function parseWorkflowRunRecordDocument(value: unknown): WorkflowRunRecor
     ragSnapshot: null,
     retrievalAttempt: null,
     retrievalFragmentPreviews: [],
+    ragApplicationAuthority: null,
     actorRef: optionalString(value.actor_ref),
     diagnostic,
   };
@@ -272,6 +314,7 @@ function parseToolRunRecord(
     ragSnapshot: null,
     retrievalAttempt: null,
     retrievalFragmentPreviews: [],
+    ragApplicationAuthority: null,
     actorRef: value.actor_ref,
     diagnostic,
   };
@@ -303,6 +346,10 @@ function parseCommonRecordFields(
     draftId: value.draft_id,
     draftVersion: value.draft_version,
     draftDigest: "",
+    executionKind: "workflow_execution",
+    executionSourceKind: "workflow_draft",
+    executionSourceId: value.draft_id,
+    executionSourceVersion: value.draft_version,
     workspaceId: value.workspace_id,
     applicationId: value.application_id,
     status,
@@ -321,6 +368,7 @@ function parseCommonRecordFields(
     ragSnapshot: null,
     retrievalAttempt: null,
     retrievalFragmentPreviews: [],
+    ragApplicationAuthority: null,
     output: value.output,
     requestId: value.request_id,
     auditRef: value.audit_ref,
@@ -363,6 +411,10 @@ function parseRAGRunRecord(value: Record<string, unknown>): WorkflowRunRecord | 
     draftId: value.draft_id,
     draftVersion: value.draft_version,
     draftDigest: value.draft_digest,
+    executionKind: "workflow_rag_execution",
+    executionSourceKind: "workflow_draft",
+    executionSourceId: value.draft_id,
+    executionSourceVersion: value.draft_version,
     workspaceId: value.workspace_id,
     applicationId: value.application_id,
     status: value.status,
@@ -383,12 +435,147 @@ function parseRAGRunRecord(value: Record<string, unknown>): WorkflowRunRecord | 
     ragSnapshot: snapshot,
     retrievalAttempt,
     retrievalFragmentPreviews: [],
+    ragApplicationAuthority: null,
     output: "",
     requestId: value.request_id,
     auditRef: value.audit_ref,
     actorRef: value.actor_ref,
     sideEffects,
     diagnostic,
+  };
+}
+
+function parseApplicationRAGRunRecord(value: Record<string, unknown>): WorkflowRunRecord | null {
+  if (Object.keys(value).length !== APPLICATION_RAG_RECORD_KEYS.size ||
+    Object.keys(value).some((key) => !APPLICATION_RAG_RECORD_KEYS.has(key)) ||
+    !isPatternString(value.run_id, /^run_[a-z0-9]{16,64}$/u) || !isPositiveInteger(value.record_version) ||
+    !isPatternString(value.tenant_ref, REFERENCE_PATTERN) || !isPatternString(value.workspace_id, REFERENCE_PATTERN) ||
+    !isPatternString(value.application_id, REFERENCE_PATTERN) || value.execution_kind !== "application_rag_invocation" ||
+    value.execution_source_kind !== "application_configuration_draft" ||
+    !isPatternString(value.execution_source_id, REFERENCE_PATTERN) || !isPositiveInteger(value.execution_source_version) ||
+    !isRAGRunStatus(value.status) || nullableString(value.failure_code) === null ||
+    typeof value.failure_summary !== "string" || value.failure_summary.length > 256 ||
+    !isTimestamp(value.started_at) || nullableString(value.completed_at) === null ||
+    !isPatternString(value.input_digest, DIGEST_PATTERN) || !isBoundedInteger(value.input_bytes, 1, 4096) ||
+    value.answer !== null || typeof value.selected_provider !== "string" || !value.selected_provider.trim() ||
+    value.selected_provider.includes("://") || typeof value.selected_model !== "string" || !value.selected_model.trim() ||
+    value.selected_model.includes("://") || !isPatternString(value.request_id, REFERENCE_PATTERN) ||
+    !isPatternString(value.audit_ref, REFERENCE_PATTERN) || !isPatternString(value.actor_ref, REFERENCE_PATTERN)) return null;
+  const authority = parseApplicationRAGAuthority(value.authority);
+  const snapshot = parseRAGSnapshotBinding(value.snapshot);
+  const retrievalAttempt = parseRAGRetrievalAttempt(value.retrieval_attempt);
+  const sideEffects = parseRAGSideEffects(value.side_effects);
+  const diagnostic = parseRAGDiagnostic(value.diagnostic, value.status, value.started_at);
+  if (!authority || !snapshot || !retrievalAttempt || !sideEffects || !diagnostic ||
+    value.execution_source_id !== authority.draftId || value.execution_source_version !== authority.draftVersion ||
+    snapshot.snapshotId !== authority.candidateSnapshot.snapshotId ||
+    snapshot.snapshotVersion !== authority.candidateSnapshot.snapshotVersion ||
+    snapshot.snapshotDigest !== authority.candidateSnapshot.snapshotDigest || snapshot.ragRef !== authority.candidateSnapshot.ragRef ||
+    retrievalAttempt.profileId !== authority.profileId || retrievalAttempt.profileVersion !== authority.profileVersion ||
+    retrievalAttempt.profileDigest !== authority.profileDigest || retrievalAttempt.queryDigest !== value.input_digest ||
+    retrievalAttempt.queryBytes !== value.input_bytes) return null;
+  const completedAt = nullableString(value.completed_at)!;
+  const failureCode = nullableString(value.failure_code)!;
+  if ((value.status === "running" && (completedAt || failureCode)) ||
+    (value.status !== "running" && !completedAt) ||
+    (value.status === "succeeded" && (failureCode || retrievalAttempt.status !== "succeeded" ||
+      retrievalAttempt.citationRefs.length < 1 || sideEffects.retrievalCalls !== 1 || sideEffects.providerCalls !== 1)) ||
+    ((value.status === "failed" || value.status === "canceled") && !failureCode) ||
+    (retrievalAttempt.status === "not_started" ? sideEffects.retrievalCalls !== 0 : sideEffects.retrievalCalls !== 1)) return null;
+  return {
+    schemaVersion: "workflow_run_record.v4",
+    recordVersion: value.record_version,
+    runId: value.run_id,
+    planId: "",
+    confirmationId: "",
+    tenantRef: value.tenant_ref,
+    draftId: "",
+    draftVersion: 0,
+    draftDigest: authority.draftDigest,
+    executionKind: value.execution_kind,
+    executionSourceKind: value.execution_source_kind,
+    executionSourceId: value.execution_source_id,
+    executionSourceVersion: value.execution_source_version,
+    workspaceId: value.workspace_id,
+    applicationId: value.application_id,
+    status: value.status,
+    failureCode,
+    failureSummary: value.failure_summary,
+    startedAt: value.started_at,
+    completedAt,
+    inputBytes: value.input_bytes,
+    conditionNodeIds: [],
+    requestedModel: authority.configuredModel,
+    selectedProvider: value.selected_provider,
+    selectedProfile: authority.profileId,
+    selectedModel: value.selected_model,
+    upstreamModel: value.selected_model,
+    selectionSource: "workflow_rag_application_invocation.v1",
+    nodes: [],
+    toolAttempt: null,
+    ragSnapshot: snapshot,
+    retrievalAttempt,
+    retrievalFragmentPreviews: [],
+    ragApplicationAuthority: authority,
+    output: "",
+    requestId: value.request_id,
+    auditRef: value.audit_ref,
+    actorRef: value.actor_ref,
+    sideEffects,
+    diagnostic,
+  };
+}
+
+function parseApplicationRAGAuthority(value: unknown): WorkflowRAGApplicationRunAuthority | null {
+  const keys = new Set([
+    "assignment_id", "assignment_version", "assignment_digest", "publish_candidate_id", "publish_review_version",
+    "publish_candidate_state", "draft_id", "draft_version", "draft_digest", "binding_ref", "dataset",
+    "candidate_review_id", "baseline_snapshot", "candidate_snapshot", "effective_snapshot_role", "profile",
+    "configured_protocol", "configured_model",
+  ]);
+  if (!isRecord(value) || Object.keys(value).length !== keys.size || Object.keys(value).some((key) => !keys.has(key)) ||
+    !isPatternString(value.assignment_id, /^wragra_[a-z2-7]{16}$/u) || !isPositiveInteger(value.assignment_version) ||
+    !isPatternString(value.assignment_digest, DIGEST_PATTERN) || !isPatternString(value.publish_candidate_id, REFERENCE_PATTERN) ||
+    !isPositiveInteger(value.publish_review_version) || value.publish_candidate_state !== "approved" ||
+    !isPatternString(value.draft_id, REFERENCE_PATTERN) || !isPositiveInteger(value.draft_version) ||
+    !isPatternString(value.draft_digest, DIGEST_PATTERN) || !isRecord(value.binding_ref) ||
+    Object.keys(value.binding_ref).length !== 3 || !isPatternString(value.binding_ref.binding_id, /^wragb_[a-z2-7]{16}$/u) ||
+    value.binding_ref.binding_version !== 1 || !isPatternString(value.binding_ref.binding_digest, DIGEST_PATTERN) ||
+    !isRecord(value.dataset) || Object.keys(value.dataset).length !== 3 ||
+    !isPatternString(value.dataset.dataset_id, /^wragd_[a-z2-7]{16}$/u) || !isPositiveInteger(value.dataset.dataset_version) ||
+    !isPatternString(value.dataset.dataset_digest, DIGEST_PATTERN) ||
+    !isPatternString(value.candidate_review_id, /^wragr_[a-z2-7]{16}$/u) || value.effective_snapshot_role !== "candidate" ||
+    !isRecord(value.profile) || Object.keys(value.profile).length !== 3 ||
+    value.profile.profile_id !== "workflow.rag.lexical-ngram-dev.v1" || value.profile.profile_version !== 1 ||
+    !isPatternString(value.profile.profile_digest, DIGEST_PATTERN) || typeof value.configured_protocol !== "string" ||
+    value.configured_protocol.includes("://") || typeof value.configured_model !== "string" || value.configured_model.includes("://")) return null;
+  const baselineSnapshot = parseRAGSnapshotBinding(value.baseline_snapshot);
+  const candidateSnapshot = parseRAGSnapshotBinding(value.candidate_snapshot);
+  if (!baselineSnapshot || !candidateSnapshot) return null;
+  return {
+    assignmentId: value.assignment_id,
+    assignmentVersion: value.assignment_version,
+    assignmentDigest: value.assignment_digest,
+    publishCandidateId: value.publish_candidate_id,
+    publishReviewVersion: value.publish_review_version,
+    draftId: value.draft_id,
+    draftVersion: value.draft_version,
+    draftDigest: value.draft_digest,
+    bindingId: value.binding_ref.binding_id,
+    bindingVersion: 1,
+    bindingDigest: value.binding_ref.binding_digest,
+    datasetId: value.dataset.dataset_id,
+    datasetVersion: value.dataset.dataset_version,
+    datasetDigest: value.dataset.dataset_digest,
+    candidateReviewId: value.candidate_review_id,
+    baselineSnapshot,
+    candidateSnapshot,
+    effectiveSnapshotRole: "candidate",
+    profileId: "workflow.rag.lexical-ngram-dev.v1",
+    profileVersion: 1,
+    profileDigest: value.profile.profile_digest,
+    configuredProtocol: value.configured_protocol,
+    configuredModel: value.configured_model,
   };
 }
 

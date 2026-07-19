@@ -21,10 +21,23 @@ export default function WorkflowRunComparisonPanel({ applicationId, baselineRunI
     <dl className="tenant-meta"><div><dt>Status</dt><dd>{comparison.baseline.status} → {comparison.candidate.status}</dd></div><div><dt>Duration delta</dt><dd>{comparison.durationDeltaMs} ms</dd></div><div><dt>Provider calls delta</dt><dd>{comparison.providerCallDelta}</dd></div><div><dt>Forbidden side effects</dt><dd>{forbidden}</dd></div></dl>
     <div className="workflow-run-comparison-findings">{comparison.findings.map((finding) => <span className={`status-badge ${finding.severity === "review_required" ? "status-warning" : "status-neutral"}`} key={finding.code}>{finding.code}</span>)}</div>
     {comparison.retrieval ? <section className="workflow-run-comparison-retrieval" aria-label="Retrieval evidence comparison">
-      <div className="card-title-row"><div><p className="eyebrow">{comparison.retrieval.runProfile}</p><h5>Immutable retrieval binding</h5></div><span className="status-badge status-neutral">metadata only</span></div>
+      <div className="card-title-row"><div><p className="eyebrow">{comparison.retrieval.runProfile}</p><h5>{comparison.retrieval.baselineAuthority ? "Application RAG authority comparison" : "Immutable retrieval binding"}</h5></div><span className="status-badge status-neutral">metadata only</span></div>
+      {comparison.retrieval.baselineAuthority && comparison.retrieval.candidateAuthority ? <div className="workflow-rag-authority-comparison">
+        {[{ label: "Baseline authority", value: comparison.retrieval.baselineAuthority }, { label: "Candidate authority", value: comparison.retrieval.candidateAuthority }].map(({ label, value }) => <section key={label}>
+          <h6>{label}</h6>
+          <dl className="tenant-meta">
+            <div><dt>Assignment</dt><dd>{value.assignmentId} · v{value.assignmentVersion}</dd></div>
+            <div><dt>Publish candidate</dt><dd>{value.publishCandidateId} · review v{value.publishReviewVersion}</dd></div>
+            <div><dt>Draft / binding</dt><dd>{value.draftId} · v{value.draftVersion} / {value.bindingId}</dd></div>
+            <div><dt>Snapshot</dt><dd>{value.snapshotId} · v{value.snapshotVersion}</dd></div>
+            <div><dt>Profile</dt><dd>{value.profileId} · v{value.profileVersion}</dd></div>
+            <div><dt>Configured contract</dt><dd>{value.configuredProtocol} · {value.configuredModel}</dd></div>
+          </dl>
+        </section>)}
+      </div> : null}
       <dl className="tenant-meta">
-        <div><dt>Snapshot</dt><dd>{comparison.retrieval.snapshotId} · v{comparison.retrieval.snapshotVersion}</dd></div>
-        <div><dt>Profile</dt><dd>{comparison.retrieval.profileId} · v{comparison.retrieval.profileVersion}</dd></div>
+        {!comparison.retrieval.baselineAuthority ? <div><dt>Snapshot</dt><dd>{comparison.retrieval.snapshotId} · v{comparison.retrieval.snapshotVersion}</dd></div> : null}
+        {!comparison.retrieval.baselineAuthority ? <div><dt>Profile</dt><dd>{comparison.retrieval.profileId} · v{comparison.retrieval.profileVersion}</dd></div> : null}
         <div><dt>Query</dt><dd>{comparison.retrieval.queryBytes} bytes · {comparison.retrieval.queryDigest}</dd></div>
         <div><dt>Attempt</dt><dd>{comparison.retrieval.baselineAttemptStatus} → {comparison.retrieval.candidateAttemptStatus}</dd></div>
         <div><dt>Candidates</dt><dd>{comparison.retrieval.baselineCandidateCount} → {comparison.retrieval.candidateCandidateCount} ({comparison.retrieval.candidateCountDelta >= 0 ? "+" : ""}{comparison.retrieval.candidateCountDelta})</dd></div>
@@ -37,7 +50,7 @@ export default function WorkflowRunComparisonPanel({ applicationId, baselineRunI
         {comparison.retrieval.citationAddedRefs.map((ref) => <span className="status-badge status-neutral" key={`added-${ref}`}>citation added · {ref}</span>)}
       </div>
       <div className="workflow-run-history-node-list">{comparison.retrieval.fragments.map((fragment) => <div className={`workflow-run-history-node-row ${fragment.change === "unchanged" ? "" : "is-failed"}`} key={fragment.fragmentRef}><span><strong>{fragment.fragmentRef}</strong><small>{fragment.sourceType}{fragment.isOfficial ? " · official" : ""}</small></span><span><small>Rank</small><strong>{fragment.baselineRank || "absent"} → {fragment.candidateRank || "absent"}</strong></span><span><small>Change</small><strong>{fragment.change}</strong></span><code>{fragment.contentDigest}</code></div>)}</div>
-      <p className="boundary-note">Snapshot {comparison.retrieval.snapshotDigest} · profile {comparison.retrieval.profileDigest}. Query、fragment 正文、prompt packet、answer 和模型原始响应均不在比较响应中。</p>
+      <p className="boundary-note">{comparison.retrieval.baselineAuthority ? "两侧 assignment、candidate、draft、binding、snapshot、profile 与配置契约均为独立 metadata authority。" : `Snapshot ${comparison.retrieval.snapshotDigest} · profile ${comparison.retrieval.profileDigest}.`} Query、fragment 正文、prompt packet、answer 和模型原始响应均不在比较响应中。</p>
     </section> : null}
     <div className="workflow-run-history-node-list">{comparison.nodes.map((node) => <div className={`workflow-run-history-node-row ${node.change === "changed" || node.change === "added" || node.change === "removed" ? "is-failed" : ""}`} key={node.nodeId}><span><strong>{node.nodeId}</strong><small>{node.nodeType} · {node.change}</small></span><span><small>Status</small><strong>{node.baselineStatus || "absent"} → {node.candidateStatus || "absent"}</strong></span><span><small>Duration delta</small><strong>{node.durationDeltaMs} ms</strong></span></div>)}</div>
     <p className="boundary-note">Review action: {comparison.recommendedReviewAction || "none"}. Comparison is read-only; replay and resume remain unavailable.</p>

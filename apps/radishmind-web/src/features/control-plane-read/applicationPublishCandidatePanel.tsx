@@ -24,6 +24,7 @@ import {
   type ApplicationPublishOperationState,
 } from "./applicationPublishCandidateConsumer.ts";
 import { requestGatewayRequestHistoryReview, requestModelGatewayPlaygroundHandoff } from "./modelGatewayPlaygroundEvents.ts";
+import { WorkflowRAGRuntimeAssignmentPanel } from "./workflowRAGApplicationRuntimePanel.tsx";
 
 const publishConfig = readApplicationPublishCandidateConfig();
 const draftConfig = readApplicationConfigurationDraftConfig();
@@ -162,7 +163,15 @@ export default function ApplicationPublishCandidatePanel({ baseline, readOnly = 
         </article>
       </div>}
 
-      {candidate ? <CandidateDetail candidate={candidate} baseline={baseline} readOnly={readOnly} onIntegration={openIntegration} onPlayground={openPlayground} onHistory={(requestId) => { requestGatewayRequestHistoryReview(requestId, candidate.applicationId); window.location.hash = "model-gateway-request-history"; }} /> : <p className="boundary-note">{readOnly ? "Open an existing candidate below to review its immutable snapshot and blockers." : "Create or open a candidate to review its immutable snapshot and blockers."}</p>}
+      {candidate ? <>
+        <CandidateDetail candidate={candidate} baseline={baseline} readOnly={readOnly} onIntegration={openIntegration} onPlayground={openPlayground} onHistory={(requestId) => { requestGatewayRequestHistoryReview(requestId, candidate.applicationId); window.location.hash = "model-gateway-request-history"; }} />
+        <WorkflowRAGRuntimeAssignmentPanel
+          applicationId={candidate.applicationId}
+          publishCandidateId={candidate.candidateId}
+          candidateApproved={candidate.candidateState === "approved"}
+          readOnly={readOnly}
+        />
+      </> : <p className="boundary-note">{readOnly ? "Open an existing candidate below to review its immutable snapshot and blockers." : "Create or open a candidate to review its immutable snapshot and blockers."}</p>}
 
       <article className="application-publish-saved">
         <div className="application-api-card-heading"><div><p className="eyebrow">Saved dev/test candidates</p><h5>{candidateList.summary}</h5></div><button type="button" onClick={() => void refreshCandidates()} disabled={!enabled || candidateList.status === "loading"}>Refresh candidates</button></div>

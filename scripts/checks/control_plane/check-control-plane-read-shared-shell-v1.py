@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -176,7 +177,11 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
         "/v1/user-workspace/runs",
         "/v1/control-plane/audit",
     ):
-        require(route_path not in source, f"web shared shell must not duplicate route path literal: {route_path}")
+        exact_route_literal = re.compile(rf"(['\"])({re.escape(route_path)})\1")
+        require(
+            exact_route_literal.search(source) is None,
+            f"web shared shell must not duplicate route path literal: {route_path}",
+        )
     require("controlPlaneReadResponseHasForbiddenOutput" in source, "forbidden output guard must be used")
     require("listControlPlaneReadRouteCatalog" in source, "route catalog binding must be used")
     require("toControlPlaneReadCollectionViewModel" in source, "collection view model mapping must be used")

@@ -71,6 +71,38 @@ func TestPostgresWorkflowRAGApplicationRuntimeRestartAndV4RunIntegration(t *test
 	if result.FailureCode != "" || result.Run == nil {
 		t.Fatalf("invoke PostgreSQL application RAG runtime: %#v", result)
 	}
+	invocation.newRunID = func() (string, error) { return "run_applicationragpostgres02", nil }
+	candidateResult := invocation.Invoke(fixture.runtimeContext, WorkflowRAGApplicationInvocationInput{Input: "PostgreSQL restart authority evidence"})
+	if candidateResult.FailureCode != "" || candidateResult.Run == nil {
+		t.Fatalf("invoke comparable PostgreSQL application RAG runtime: %#v", candidateResult)
+	}
+	historyService := workflowExecutorService{store: runStore}
+	comparison := historyService.CompareRuns(workflowRAGApplicationRunContext(fixture.runtimeContext), result.Run.RunID, candidateResult.Run.RunID)
+	if comparison.FailureCode != "" || comparison.Comparison == nil || comparison.Comparison.SchemaVersion != workflowRAGAppRunComparisonSchemaVersion || comparison.Comparison.Retrieval == nil || comparison.Comparison.Retrieval.RunProfile != workflowRAGApplicationComparisonProfile {
+		t.Fatalf("compare PostgreSQL application RAG v4 runs: %#v", comparison)
+	}
+	evaluationService := newWorkflowEvaluationService(newWorkflowEvaluationStoreForRunStore(runStore), runStore)
+	evaluation := evaluationService.Create(workflowRAGApplicationRunContext(fixture.runtimeContext), WorkflowEvaluationCreateRequest{
+		Name: "application RAG PostgreSQL metadata comparison", BaselineRunID: result.Run.RunID,
+		Expectations: []WorkflowEvaluationExpectation{{CandidateRunID: candidateResult.Run.RunID, ExpectedClassification: WorkflowRunComparisonUnchanged}},
+	})
+	if evaluation.FailureCode != "" || evaluation.Case == nil {
+		t.Fatalf("create PostgreSQL application RAG v4 evaluation: %#v", evaluation)
+	}
+	review := evaluationService.Review(workflowRAGApplicationRunContext(fixture.runtimeContext), evaluation.Case.CaseID)
+	if review.FailureCode != "" || review.Review == nil || review.Review.Outcome != "passed" || review.Review.Items[0].ComparisonSchemaVersion != workflowRAGAppRunComparisonSchemaVersion {
+		t.Fatalf("review PostgreSQL application RAG v4 evaluation: %#v", review)
+	}
+	fixture.advanceRuntimeRequest("postgres_revoke")
+	revoked := service.Decide(fixture.runtimeContext, WorkflowRAGApplicationRuntimeDecisionInput{ExpectedRecordVersion: 1, Decision: workflowRAGApplicationRuntimeDecisionRevoke, Reason: "连续链人工撤销后必须关闭调用"})
+	if revoked.FailureCode != "" || revoked.Assignment == nil || revoked.Assignment.RecordVersion != 2 {
+		t.Fatalf("revoke PostgreSQL application RAG runtime: %#v", revoked)
+	}
+	bridgeCalls := fixture.bridge.callCount()
+	blocked := invocation.Invoke(fixture.runtimeContext, WorkflowRAGApplicationInvocationInput{Input: "PostgreSQL invocation after revoke"})
+	if blocked.FailureCode != WorkflowRAGApplicationFailureAssignmentRevoked || blocked.Run != nil || fixture.bridge.callCount() != bridgeCalls {
+		t.Fatalf("revoked PostgreSQL assignment reached Gateway: result=%#v calls=%d/%d", blocked, fixture.bridge.callCount(), bridgeCalls)
+	}
 	if _, err = runtimePool.Exec(ctx, `UPDATE workflow_rag_application_runtime_events SET after_record_version=after_record_version WHERE event_id=$1`, activated.Events[0].EventID); err == nil {
 		t.Fatal("PostgreSQL application runtime event accepted an update")
 	}
@@ -86,7 +118,7 @@ func TestPostgresWorkflowRAGApplicationRuntimeRestartAndV4RunIntegration(t *test
 	defer reopened.Close()
 	restartedRepository := newPostgresWorkflowRAGApplicationRuntimeRepository(reopened)
 	recoveredAssignment, recoveredEvents, recoveredAudits, err := restartedRepository.Read(fixture.runtimeContext)
-	if err != nil || recoveredAssignment.AssignmentID != activated.Assignment.AssignmentID || len(recoveredEvents) != 1 || len(recoveredAudits) != 1 {
+	if err != nil || recoveredAssignment.AssignmentID != activated.Assignment.AssignmentID || recoveredAssignment.RecordVersion != 2 || recoveredAssignment.State != workflowRAGApplicationRuntimeStateRevoked || len(recoveredEvents) != 2 || len(recoveredAudits) != 2 {
 		t.Fatalf("recover PostgreSQL application runtime assignment: assignment=%#v events=%d audits=%d err=%v", recoveredAssignment, len(recoveredEvents), len(recoveredAudits), err)
 	}
 	recoveredRun, found, err := newPostgresWorkflowRunStore(reopened).ReadRun(workflowRAGApplicationRunContext(fixture.runtimeContext), result.Run.RunID)
