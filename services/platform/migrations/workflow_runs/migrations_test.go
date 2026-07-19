@@ -51,6 +51,14 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"CREATE TABLE workflow_rag_application_runtime_audits",
 		"workflow_rag_application_runtime_events_append_only",
 		"workflow_rag_application_runtime_audits_append_only",
+		"CREATE TABLE workflow_definition_release_candidates",
+		"CREATE TABLE workflow_definition_release_decisions",
+		"CREATE TABLE workflow_definition_versions",
+		"CREATE TABLE workflow_definition_activations",
+		"CREATE TABLE workflow_definition_activation_events",
+		"CREATE TABLE workflow_definition_release_audits",
+		"workflow_definition_release_decisions_append_only",
+		"workflow_definition_release_audits_append_only",
 	} {
 		if !strings.Contains(upSQL, required) {
 			t.Fatalf("workflow run up migration is missing %q", required)
@@ -73,6 +81,12 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"DROP TABLE IF EXISTS workflow_rag_application_runtime_audits",
 		"DROP TABLE IF EXISTS workflow_rag_application_runtime_events",
 		"DROP TABLE IF EXISTS workflow_rag_application_runtime_assignments",
+		"DROP TABLE IF EXISTS workflow_definition_release_audits",
+		"DROP TABLE IF EXISTS workflow_definition_activation_events",
+		"DROP TABLE IF EXISTS workflow_definition_activations",
+		"DROP TABLE IF EXISTS workflow_definition_versions",
+		"DROP TABLE IF EXISTS workflow_definition_release_decisions",
+		"DROP TABLE IF EXISTS workflow_definition_release_candidates",
 		"DROP TABLE IF EXISTS workflow_http_tool_confirmation_decisions",
 		"DROP TABLE IF EXISTS workflow_http_tool_execution_audits",
 		"DROP TABLE IF EXISTS workflow_http_tool_action_plans",
@@ -121,6 +135,7 @@ func TestWorkflowRunPendingMigrationPaths(t *testing.T) {
 		{name: "v9", migrationID: ragExecutionAuditMigrationID, requiredFragment: "CREATE TABLE workflow_rag_evaluation_dataset_resources", forbiddenFragment: "retrieval_started"},
 		{name: "v10", migrationID: ragEvaluationDatasetMigrationID, requiredFragment: "CREATE TABLE workflow_rag_knowledge_promotion_candidates", forbiddenFragment: "CREATE TABLE workflow_rag_evaluation_dataset_resources"},
 		{name: "v11", migrationID: ragKnowledgePromotionMigrationID, requiredFragment: "CREATE TABLE workflow_rag_application_runtime_assignments", forbiddenFragment: "CREATE TABLE workflow_rag_knowledge_promotion_candidates"},
+		{name: "v12", migrationID: applicationRuntimeMigrationID, requiredFragment: "CREATE TABLE workflow_definition_release_candidates", forbiddenFragment: "CREATE TABLE workflow_rag_application_runtime_assignments"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -176,6 +191,10 @@ func TestWorkflowRunPendingRollbackPathsDoNotDropUnappliedTables(t *testing.T) {
 	ragKnowledgePromotionRollback := rollbackSQLThrough(ragKnowledgePromotionMigrationID)
 	if !strings.Contains(ragKnowledgePromotionRollback, "workflow_rag_knowledge_promotion_candidates") || strings.Contains(ragKnowledgePromotionRollback, "workflow_rag_application_runtime_assignments") {
 		t.Fatalf("v11 rollback must remove applied promotion resources without removing unapplied v12: %s", ragKnowledgePromotionRollback)
+	}
+	applicationRuntimeRollback := rollbackSQLThrough(applicationRuntimeMigrationID)
+	if !strings.Contains(applicationRuntimeRollback, "workflow_rag_application_runtime_assignments") || strings.Contains(applicationRuntimeRollback, "workflow_definition_release_candidates") {
+		t.Fatalf("v12 rollback must remove applied application runtime resources without removing unapplied v13: %s", applicationRuntimeRollback)
 	}
 	if rollbackSQLThrough("0000_unknown") != "" {
 		t.Fatal("unknown pending rollback must fail closed")

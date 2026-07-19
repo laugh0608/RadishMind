@@ -2,13 +2,13 @@
 
 更新时间：2026-07-19
 
-状态：`workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_batch_b_ready_for_implementation`
+状态：`workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_batch_c_ready_for_implementation`
 
 ## 目标与准入结论
 
 按[功能设计](../features/workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md)交付“精确 Saved Draft → 不可变 candidate → 人工 review → definition version → 人工 activation → definition-bound run v5 → history / comparison / evaluation”的开发测试态产品路径。
 
-设计、资源 owner、权限、执行来源、兼容策略和生产停止线已经冻结，可以进入批次 A。不得给 Saved Draft 增加可变 publish 状态，不得复用 application publish candidate，不得把 definition id 写入旧 `draft_id`，也不得通过 activation 绕开 HTTP Tool / RAG 独立 authority。
+设计、资源 owner、权限、执行来源、兼容策略和生产停止线已经冻结，批次 A / B 已完成，可以进入批次 C。不得给 Saved Draft 增加可变 publish 状态，不得复用 application publish candidate，不得把 definition id 写入旧 `draft_id`，也不得通过 activation 绕开 HTTP Tool / RAG 独立 authority。
 
 ## 前置基线
 
@@ -50,7 +50,7 @@
 
 ## 批次 B：durable repository 与正式 read projection
 
-状态：`ready_for_implementation`。
+状态：`completed`。
 
 - 在 workflow shared SQLite / PostgreSQL migration family 中追加 candidate、decision、version、activation pointer、event 和 audit 表及 schema marker。
 - memory / SQLite / PostgreSQL 共用同一 domain contract，不新增 DSN、pool、database file、selector 或 fallback。
@@ -58,9 +58,11 @@
 - live Workflow Definition summary 从新 repository 投影；offline sample 继续显式隔离，禁止结果混合。
 - 双数据库语义与 HTTP API 完成后推进批次 C。
 
+完成证据：SQLite `0010` / marker v10、PostgreSQL `0013` / marker v13、共享 store selector、事务 CAS、append-only trigger、重启恢复、损坏拒绝、no-fallback、运行角色、rollback / reapply 与 live summary 均已复验；PostgreSQL advisory lock 对 scope key 使用固定 SHA-256 文本，避免 NUL 进入数据库 text 协议。
+
 ## 批次 C：definition-bound executor 与 run v5
 
-状态：`blocked_by_batch_b`。
+状态：`ready_for_implementation`。
 
 - 物化 `workflow_run_record.v5` 和 `workflow_definition_executor.v1` profile。
 - 执行前重读 activation pointer、definition version、digest、application lifecycle 和 profile eligibility。

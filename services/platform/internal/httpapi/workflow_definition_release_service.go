@@ -50,11 +50,11 @@ type WorkflowDefinitionReleaseResult struct {
 
 type workflowDefinitionReleaseService struct {
 	drafts savedWorkflowDraftService
-	store  *workflowDefinitionReleaseStore
+	store  workflowDefinitionReleaseRepository
 	now    func() time.Time
 }
 
-func newWorkflowDefinitionReleaseService(draftStore savedWorkflowDraftStore, store *workflowDefinitionReleaseStore) workflowDefinitionReleaseService {
+func newWorkflowDefinitionReleaseService(draftStore savedWorkflowDraftStore, store workflowDefinitionReleaseRepository) workflowDefinitionReleaseService {
 	return workflowDefinitionReleaseService{
 		drafts: newSavedWorkflowDraftService(draftStore),
 		store:  store,

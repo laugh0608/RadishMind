@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -38,6 +39,7 @@ var (
 )
 
 type WorkflowDefinitionReleaseContext struct {
+	RequestContext  context.Context
 	TenantRef       string
 	WorkspaceID     string
 	ApplicationID   string
@@ -45,6 +47,18 @@ type WorkflowDefinitionReleaseContext struct {
 	ActorRef        string
 	RequestID       string
 	AuditRef        string
+}
+
+type workflowDefinitionReleaseRepository interface {
+	CreateCandidate(WorkflowDefinitionReleaseContext, string, string, SavedWorkflowDraft, time.Time) (WorkflowDefinitionReleaseCandidate, error)
+	Review(WorkflowDefinitionReleaseContext, string, int, string, string, string, time.Time) (WorkflowDefinitionReleaseCandidate, *WorkflowDefinitionVersion, error)
+	DecideActivation(WorkflowDefinitionReleaseContext, string, int, string, int, string, time.Time) (WorkflowDefinitionActivation, error)
+	ReadCandidate(WorkflowDefinitionReleaseContext, string) (WorkflowDefinitionReleaseCandidate, error)
+	ListCandidates(WorkflowDefinitionReleaseContext) ([]WorkflowDefinitionReleaseCandidate, error)
+	ListVersions(WorkflowDefinitionReleaseContext, string) ([]WorkflowDefinitionVersion, error)
+	ReadVersion(WorkflowDefinitionReleaseContext, string, int) (WorkflowDefinitionVersion, error)
+	ReadActivation(WorkflowDefinitionReleaseContext, string) (WorkflowDefinitionActivation, error)
+	ListSummaries(ReadRepositoryContext, ListWorkflowDefinitionSummariesRequest) ListWorkflowDefinitionSummariesResult
 }
 
 type WorkflowDefinitionSnapshot struct {

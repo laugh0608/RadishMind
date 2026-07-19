@@ -1,9 +1,9 @@
 {
   "component": "workflow_runs",
-  "migration_id": "0012_workflow_rag_application_invocations",
-  "store_schema_version": "workflow_run_store_v12",
-  "up": ["0001_workflow_runs.up.sql", "0002_workflow_run_diagnostics.up.sql", "0003_workflow_evaluation_cases.up.sql", "0004_workflow_evaluation_case_revisions.up.sql", "0005_workflow_evaluation_suites.up.sql", "0006_workflow_http_tool_actions.up.sql", "0007_workflow_http_tool_execution.up.sql", "0008_workflow_rag_snapshots.up.sql", "0009_workflow_rag_execution_audits.up.sql", "0010_workflow_rag_evaluation_datasets.up.sql", "0011_workflow_rag_knowledge_promotions.up.sql", "0012_workflow_rag_application_invocations.up.sql"],
-  "down": ["0012_workflow_rag_application_invocations.down.sql", "0011_workflow_rag_knowledge_promotions.down.sql", "0010_workflow_rag_evaluation_datasets.down.sql", "0009_workflow_rag_execution_audits.down.sql", "0008_workflow_rag_snapshots.down.sql", "0007_workflow_http_tool_execution.down.sql", "0006_workflow_http_tool_actions.down.sql", "0005_workflow_evaluation_suites.down.sql", "0004_workflow_evaluation_case_revisions.down.sql", "0003_workflow_evaluation_cases.down.sql", "0002_workflow_run_diagnostics.down.sql", "0001_workflow_runs.down.sql"],
+  "migration_id": "0013_workflow_definition_releases",
+  "store_schema_version": "workflow_run_store_v13",
+  "up": ["0001_workflow_runs.up.sql", "0002_workflow_run_diagnostics.up.sql", "0003_workflow_evaluation_cases.up.sql", "0004_workflow_evaluation_case_revisions.up.sql", "0005_workflow_evaluation_suites.up.sql", "0006_workflow_http_tool_actions.up.sql", "0007_workflow_http_tool_execution.up.sql", "0008_workflow_rag_snapshots.up.sql", "0009_workflow_rag_execution_audits.up.sql", "0010_workflow_rag_evaluation_datasets.up.sql", "0011_workflow_rag_knowledge_promotions.up.sql", "0012_workflow_rag_application_invocations.up.sql", "0013_workflow_definition_releases.up.sql"],
+  "down": ["0013_workflow_definition_releases.down.sql", "0012_workflow_rag_application_invocations.down.sql", "0011_workflow_rag_knowledge_promotions.down.sql", "0010_workflow_rag_evaluation_datasets.down.sql", "0009_workflow_rag_execution_audits.down.sql", "0008_workflow_rag_snapshots.down.sql", "0007_workflow_http_tool_execution.down.sql", "0006_workflow_http_tool_actions.down.sql", "0005_workflow_evaluation_suites.down.sql", "0004_workflow_evaluation_case_revisions.down.sql", "0003_workflow_evaluation_cases.down.sql", "0002_workflow_run_diagnostics.down.sql", "0001_workflow_runs.down.sql"],
   "runtime_auto_migration": false,
   "development_test_only": true
 }

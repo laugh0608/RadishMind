@@ -9,9 +9,9 @@ import (
 	"radishmind.local/services/platform/internal/sqlitedev"
 )
 
-func TestWorkflowRunSQLiteMigrationsAreOrderedThroughRAGApplicationInvocations(t *testing.T) {
+func TestWorkflowRunSQLiteMigrationsAreOrderedThroughDefinitionReleases(t *testing.T) {
 	migrations := Migrations()
-	if len(migrations) != 9 {
+	if len(migrations) != 10 {
 		t.Fatalf("unexpected workflow run SQLite migration count: %d", len(migrations))
 	}
 	if migrations[0].ID != legacyMigrationID || migrations[0].StoreSchemaVersion != legacyRunStoreSchemaVersion {
@@ -38,8 +38,25 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughRAGApplicationInvocations(t
 	if migrations[7].ID != ragPromotionMigrationID || migrations[7].StoreSchemaVersion != ragPromotionSchemaVersion {
 		t.Fatalf("workflow RAG knowledge promotion migration drifted: %#v", migrations[7])
 	}
-	if migrations[8].ID != MigrationID || migrations[8].StoreSchemaVersion != StoreSchemaVersion {
+	if migrations[8].ID != applicationRuntimeMigrationID || migrations[8].StoreSchemaVersion != applicationRuntimeSchemaVersion {
 		t.Fatalf("workflow RAG application invocation migration drifted: %#v", migrations[8])
+	}
+	if migrations[9].ID != MigrationID || migrations[9].StoreSchemaVersion != StoreSchemaVersion {
+		t.Fatalf("workflow definition release migration drifted: %#v", migrations[9])
+	}
+	for _, required := range []string{
+		"CREATE TABLE workflow_definition_release_candidates",
+		"CREATE TABLE workflow_definition_release_decisions",
+		"CREATE TABLE workflow_definition_versions",
+		"CREATE TABLE workflow_definition_activations",
+		"CREATE TABLE workflow_definition_activation_events",
+		"CREATE TABLE workflow_definition_release_audits",
+		"workflow_definition_release_decisions_append_only_update",
+		"workflow_definition_release_audits_append_only_delete",
+	} {
+		if !strings.Contains(upSQLV10, required) {
+			t.Fatalf("SQLite workflow definition release migration is missing %q", required)
+		}
 	}
 	for _, required := range []string{
 		"execution_source_kind",
@@ -197,7 +214,7 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		_ = upgradedRuntime.Close()
 		t.Fatalf("legacy workflow run changed during upgrade: count=%d err=%v", legacyRunCount, err)
 	}
-	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 9 {
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 10 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("unexpected workflow run migration markers: count=%d err=%v", migrationCount, err)
 	}
@@ -217,6 +234,18 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name LIKE 'workflow_rag_application_runtime_%_append_only_%'`).Scan(&applicationRuntimeTriggerCount); err != nil || applicationRuntimeTriggerCount != 4 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("workflow RAG application runtime append-only triggers are incomplete: count=%d err=%v", applicationRuntimeTriggerCount, err)
+	}
+	var definitionReleaseTableCount, definitionReleaseTriggerCount int
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN (
+		'workflow_definition_release_candidates','workflow_definition_release_decisions','workflow_definition_versions',
+		'workflow_definition_activations','workflow_definition_activation_events','workflow_definition_release_audits'
+	)`).Scan(&definitionReleaseTableCount); err != nil || definitionReleaseTableCount != 6 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("workflow definition release tables are incomplete: count=%d err=%v", definitionReleaseTableCount, err)
+	}
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name LIKE 'workflow_definition_%_append_only_%'`).Scan(&definitionReleaseTriggerCount); err != nil || definitionReleaseTriggerCount != 8 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("workflow definition release append-only triggers are incomplete: count=%d err=%v", definitionReleaseTriggerCount, err)
 	}
 	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN (
 		'workflow_http_tool_action_plans',

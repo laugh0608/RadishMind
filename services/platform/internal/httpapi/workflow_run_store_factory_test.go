@@ -69,6 +69,11 @@ func TestWorkflowRunSQLiteStoreFactory(t *testing.T) {
 	} else if sqliteRepository, ok := runtimeRepository.(*sqliteWorkflowRAGApplicationRuntimeRepository); !ok || sqliteRepository.database != runtime.DB() {
 		t.Fatalf("SQLite application RAG runtime repository did not share the workflow run database: %T", runtimeRepository)
 	}
+	if definitionRepository, repositoryErr := newWorkflowDefinitionReleaseRepositoryForRunStore(store); repositoryErr != nil {
+		t.Fatalf("construct SQLite workflow definition release repository: %v", repositoryErr)
+	} else if sqliteRepository, ok := definitionRepository.(*sqliteWorkflowDefinitionReleaseRepository); !ok || sqliteRepository.database != runtime.DB() {
+		t.Fatalf("SQLite workflow definition release repository did not share the workflow run database: %T", definitionRepository)
+	}
 	closeStore()
 	if err := runtime.DB().PingContext(context.Background()); err != nil {
 		t.Fatalf("component close must not own the shared SQLite runtime: %v", err)
@@ -127,6 +132,19 @@ func TestWorkflowRunSQLiteStoreFactoryAcceptsIndependentRAGApplicationInvocation
 	store, closeStore, err := newWorkflowRunStoreFromConfigWithSQLiteRuntime(cfg, runtime)
 	if err != nil || store == nil || closeStore == nil {
 		t.Fatalf("independent application RAG invocation gate did not select SQLite run store: store=%#v close_set=%v err=%v", store, closeStore != nil, err)
+	}
+	closeStore()
+}
+
+func TestWorkflowRunSQLiteStoreFactoryAcceptsIndependentWorkflowDefinitionReleaseGate(t *testing.T) {
+	runtime := openWorkflowRunSQLiteRuntime(t, filepath.Join(t.TempDir(), "radishmind.db"))
+	cfg := sqliteWorkflowRunConfig()
+	cfg.WorkflowExecutorDevEnabled = false
+	cfg.WorkflowDefinitionReleaseDevEnabled = true
+
+	store, closeStore, err := newWorkflowRunStoreFromConfigWithSQLiteRuntime(cfg, runtime)
+	if err != nil || store == nil || closeStore == nil {
+		t.Fatalf("independent workflow definition release gate did not select SQLite run store: store=%#v close_set=%v err=%v", store, closeStore != nil, err)
 	}
 	closeStore()
 }

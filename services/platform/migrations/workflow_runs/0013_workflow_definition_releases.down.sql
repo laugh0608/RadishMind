@@ -1,0 +1,10 @@
+DROP TRIGGER IF EXISTS workflow_definition_release_audits_append_only ON workflow_definition_release_audits;
+DROP TRIGGER IF EXISTS workflow_definition_activation_events_append_only ON workflow_definition_activation_events;
+DROP TRIGGER IF EXISTS workflow_definition_versions_append_only ON workflow_definition_versions;
+DROP TRIGGER IF EXISTS workflow_definition_release_decisions_append_only ON workflow_definition_release_decisions;
+DROP TABLE IF EXISTS workflow_definition_release_audits;
+DROP TABLE IF EXISTS workflow_definition_activation_events;
+DROP TABLE IF EXISTS workflow_definition_activations;
+DROP TABLE IF EXISTS workflow_definition_versions;
+DROP TABLE IF EXISTS workflow_definition_release_decisions;
+DROP TABLE IF EXISTS workflow_definition_release_candidates;

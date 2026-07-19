@@ -219,19 +219,17 @@ func (server *Server) allowWorkflowDefinitionReleaseHTTP(writer http.ResponseWri
 }
 
 func (server *Server) workflowDefinitionReleaseService() workflowDefinitionReleaseService {
-	if server.workflowDefinitionReleaseStore == nil {
-		server.workflowDefinitionReleaseStore = newWorkflowDefinitionReleaseStore()
-	}
-	return newWorkflowDefinitionReleaseService(server.savedWorkflowDraftStore, server.workflowDefinitionReleaseStore)
+	return newWorkflowDefinitionReleaseService(server.savedWorkflowDraftStore, server.workflowDefinitionReleaseRepository)
 }
 
 func workflowDefinitionContextFromRequest(request *http.Request, trace requestTrace, workspaceID, applicationID, requiredScope, auditSuffix string) (WorkflowDefinitionReleaseContext, string) {
 	auth, ok := request.Context().Value(controlPlaneReadAuthContextKey{}).(controlPlaneReadAuthContext)
 	ctx := WorkflowDefinitionReleaseContext{
-		WorkspaceID:   strings.TrimSpace(workspaceID),
-		ApplicationID: strings.TrimSpace(applicationID),
-		RequestID:     trace.requestID,
-		AuditRef:      "audit_" + trace.requestID + "_workflow-definition-" + auditSuffix,
+		RequestContext: request.Context(),
+		WorkspaceID:    strings.TrimSpace(workspaceID),
+		ApplicationID:  strings.TrimSpace(applicationID),
+		RequestID:      trace.requestID,
+		AuditRef:       "audit_" + trace.requestID + "_workflow-definition-" + auditSuffix,
 	}
 	if !ok || strings.TrimSpace(auth.IdentityContext) == "" || strings.TrimSpace(auth.SubjectBinding) == "" || !controlPlaneReadHasScope(auth.ScopeGrants, requiredScope) {
 		return ctx, workflowDefinitionFailureScopeDenied

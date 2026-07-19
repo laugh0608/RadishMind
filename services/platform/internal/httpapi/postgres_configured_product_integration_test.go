@@ -518,6 +518,12 @@ func runConfiguredPostgresMigrationGate(
 func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
 	_, err := pool.Exec(ctx, `DROP TABLE IF EXISTS
+		workflow_definition_release_audits,
+		workflow_definition_activation_events,
+		workflow_definition_activations,
+		workflow_definition_versions,
+		workflow_definition_release_decisions,
+		workflow_definition_release_candidates,
 		workflow_rag_application_runtime_audits,
 		workflow_rag_application_runtime_events,
 		workflow_rag_application_runtime_assignments,
@@ -722,7 +728,7 @@ func configuredPostgresProductConfig(databaseURL string) config.Config {
 		APIKeyLifecycleDevHTTPEnabled:     true, APIKeyLifecycleDevWriteEnabled: true,
 		APIKeyStoreMode: "postgres_dev_test", APIKeyDatabaseURL: databaseURL, APIKeyDatabaseTimeout: time.Second,
 		GatewayAuthMode:            gatewayAPIKeyAuthenticationSource,
-		WorkflowExecutorDevEnabled: true, WorkflowRunStoreMode: "postgres_dev_test",
+		WorkflowExecutorDevEnabled: true, WorkflowDefinitionReleaseDevEnabled: true, WorkflowRunStoreMode: "postgres_dev_test",
 		WorkflowRunDatabaseURL: databaseURL, WorkflowRunDatabaseTimeout: time.Second,
 		GatewayRequestHistoryDevEnabled: true, GatewayRequestStoreMode: "postgres_dev_test",
 		GatewayRequestDatabaseURL: databaseURL, GatewayRequestDatabaseTimeout: time.Second,
@@ -764,6 +770,9 @@ func assertConfiguredPostgresRepositorySelection(t *testing.T, server *Server) {
 	}
 	if snapshotStore, ok := server.workflowRAGSnapshotRepository.(*postgresWorkflowRAGSnapshotRepository); !ok || snapshotStore.pool != server.workflowRunStore.(*postgresWorkflowRunStore).pool {
 		t.Fatalf("configured workflow RAG snapshots did not share the PostgreSQL pool: %T", server.workflowRAGSnapshotRepository)
+	}
+	if definitionRepository, ok := server.workflowDefinitionReleaseRepository.(*postgresWorkflowDefinitionReleaseRepository); !ok || definitionRepository.pool != server.workflowRunStore.(*postgresWorkflowRunStore).pool {
+		t.Fatalf("configured workflow definition release did not share the PostgreSQL pool: %T", server.workflowDefinitionReleaseRepository)
 	}
 }
 

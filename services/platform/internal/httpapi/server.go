@@ -42,7 +42,7 @@ type Server struct {
 	applicationCatalogRepository           applicationCatalogRepository
 	apiKeyRepository                       apiKeyRepository
 	workflowRunStore                       workflowRunStore
-	workflowDefinitionReleaseStore         *workflowDefinitionReleaseStore
+	workflowDefinitionReleaseRepository    workflowDefinitionReleaseRepository
 	workflowRAGSnapshotRepository          workflowRAGSnapshotRepository
 	workflowRAGEvaluationDatasetRepository workflowRAGEvaluationDatasetRepository
 	workflowRAGPromotionRepository         workflowRAGPromotionRepository
@@ -140,6 +140,15 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore)
 		return nil, err
 	}
+	var workflowDefinitionReleaseRepository workflowDefinitionReleaseRepository
+	if runtimeConfig.WorkflowDefinitionReleaseDevEnabled {
+		workflowDefinitionReleaseRepository, err = newWorkflowDefinitionReleaseRepositoryForRunStore(workflowRunStore)
+		if err != nil {
+			closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+			return nil, err
+		}
+		controlPlaneReadRepository = liveWorkflowDefinitionControlPlaneReadRepository{ControlPlaneReadRepository: controlPlaneReadRepository, definitions: workflowDefinitionReleaseRepository}
+	}
 	workflowRAGSnapshotRepository, err := newWorkflowRAGSnapshotRepositoryForRunStore(workflowRunStore)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
@@ -185,6 +194,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		applicationCatalogRepository:           applicationCatalogRepository,
 		apiKeyRepository:                       apiKeyRepository,
 		workflowRunStore:                       workflowRunStore,
+		workflowDefinitionReleaseRepository:    workflowDefinitionReleaseRepository,
 		workflowRAGSnapshotRepository:          workflowRAGSnapshotRepository,
 		workflowRAGEvaluationDatasetRepository: workflowRAGEvaluationDatasetRepository,
 		workflowRAGPromotionRepository:         workflowRAGPromotionRepository,
