@@ -74,7 +74,7 @@ func TestSQLiteWorkflowRAGApplicationRuntimeRestartTransactionAndV4RunSource(t *
 	if failure != "" {
 		t.Fatalf("load authority for stale SQLite v4 run: %s", failure)
 	}
-	stale := newWorkflowRAGApplicationRunRecord(fixture.runtimeContext, "stale metadata only", assignment, authority, workflowRAGTestSelection(), "run_applicationragstale001", time.Now().UTC().Add(-time.Hour))
+	stale := newWorkflowRAGApplicationRunRecord(fixture.runtimeContext, "stale metadata only", assignment, authority, workflowRAGTestSelection(), "run_applicationragstale001", fixture.now.Add(-time.Hour))
 	if err = runStore.UpsertRun(workflowRAGApplicationRunContext(fixture.runtimeContext), &stale); err != nil {
 		t.Fatalf("create stale SQLite application RAG v4 run: %v", err)
 	}

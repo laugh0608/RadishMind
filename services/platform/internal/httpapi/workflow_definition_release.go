@@ -627,7 +627,7 @@ func workflowDefinitionContractFromDraft(contract SavedWorkflowDraftContract) Wo
 func cloneWorkflowDefinitionCandidate(value WorkflowDefinitionReleaseCandidate) WorkflowDefinitionReleaseCandidate {
 	value.Snapshot = cloneWorkflowDefinitionSnapshot(value.Snapshot)
 	value.EligibilityBlockers = cloneStringSlice(value.EligibilityBlockers)
-	value.Reviews = append([]WorkflowDefinitionReview(nil), value.Reviews...)
+	value.Reviews = append(make([]WorkflowDefinitionReview, 0, len(value.Reviews)), value.Reviews...)
 	return value
 }
 

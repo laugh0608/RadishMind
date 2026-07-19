@@ -102,3 +102,35 @@ test("workflow run history maps v2 confirmation, attempt, and outcome evidence",
     assert.equal(run?.sideEffects.businessWrites, 0);
   } finally { globalThis.fetch = originalFetch; }
 });
+
+test("workflow run history maps v5 definition authority and exact source filters", async () => {
+  const originalFetch = globalThis.fetch;
+  const digest = `sha256:${"a".repeat(64)}`;
+  globalThis.fetch = async (input) => {
+    const url = new URL(String(input));
+    assert.equal(url.searchParams.get("execution_source_kind"), "workflow_definition");
+    assert.equal(url.searchParams.get("execution_source_id"), "definition_demo");
+    assert.equal(url.searchParams.get("execution_source_version"), "2");
+    return new Response(JSON.stringify({
+      request_id: "request_definition_history", workspace_id: "workspace_demo", application_id: "app_demo",
+      runs: [{ schema_version: "workflow_run_record.v5", record_version: 2, run_id: "run_definition_history",
+        draft_id: "", draft_version: 0, execution_kind: "workflow_definition_execution",
+        execution_source_kind: "workflow_definition", execution_source_id: "definition_demo", execution_source_version: 2,
+        execution_profile: "workflow_definition_executor_v1", definition_digest: digest, activation_pointer_version: 3,
+        source_draft_id: "draft_definition_source", source_draft_version: 4, source_draft_digest: digest,
+        workspace_id: "workspace_demo", application_id: "app_demo", status: "succeeded", failure_code: "",
+        started_at: "2026-07-19T10:00:00Z", completed_at: "2026-07-19T10:00:01Z", duration_ms: 1000,
+        selected_provider: "mock", selected_profile: "", selected_model: "mock", request_id: "request_run", audit_ref: "audit_run",
+        stale_running: false, side_effects: { retrieval_calls: 0, provider_calls: 1, tool_calls: 0, confirmation_calls: 0, business_writes: 0, replay_writes: 0 } }],
+      next_cursor: "", has_more: false, failure_code: null, failure_summary: "", audit_ref: "audit_definition_history",
+    }), { status: 200 });
+  };
+  try {
+    const result = await listWorkflowRunHistory("app_demo", live, { ...EMPTY_WORKFLOW_RUN_HISTORY_FILTER, executionSourceKind: "workflow_definition", executionSourceId: "definition_demo", executionSourceVersion: 2 });
+    const run = result.runs[0];
+    assert.equal(run?.schemaVersion, "workflow_run_record.v5");
+    assert.equal(run?.executionProfile, "workflow_definition_executor_v1");
+    assert.equal(run?.activationPointerVersion, 3);
+    assert.equal(run?.sourceDraftId, "draft_definition_source");
+  } finally { globalThis.fetch = originalFetch; }
+});

@@ -5237,6 +5237,119 @@ dd {
   background: linear-gradient(145deg, rgba(19, 31, 42, 0.96), rgba(11, 20, 28, 0.98));
 }
 
+.workflow-definition-promotion-panel {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(137, 174, 205, 0.26);
+  border-radius: 1rem;
+  background: linear-gradient(145deg, rgba(19, 31, 42, 0.96), rgba(11, 20, 28, 0.98));
+}
+
+.workflow-definition-promotion-panel.offline {
+  opacity: 0.82;
+}
+
+.workflow-definition-promotion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.workflow-definition-promotion-grid > article {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid rgba(137, 174, 205, 0.22);
+  border-radius: 0.85rem;
+  background: rgba(7, 15, 22, 0.58);
+}
+
+.workflow-definition-promotion-grid label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.84rem;
+}
+
+.workflow-definition-promotion-grid input,
+.workflow-definition-promotion-grid select,
+.workflow-definition-promotion-grid textarea {
+  width: 100%;
+}
+
+.workflow-definition-promotion-grid textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.workflow-definition-promotion-grid dl {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.workflow-definition-promotion-grid dl > div {
+  display: grid;
+  grid-template-columns: minmax(7rem, 0.35fr) minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+.workflow-definition-promotion-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.workflow-definition-list,
+.workflow-definition-evidence {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.workflow-definition-list button,
+.workflow-definition-evidence p,
+.workflow-definition-run-result {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(137, 174, 205, 0.22);
+  border-radius: 0.65rem;
+  text-align: left;
+}
+
+.workflow-definition-list button.selected {
+  border-color: #5fc4d1;
+  background: rgba(95, 196, 209, 0.12);
+}
+
+.workflow-definition-evidence p span {
+  color: #a9bbc9;
+}
+
+.workflow-definition-failure,
+.workflow-definition-notice {
+  padding: 0.75rem;
+  border-radius: 0.65rem;
+}
+
+.workflow-definition-failure {
+  border: 1px solid rgba(238, 123, 123, 0.5);
+  background: rgba(238, 123, 123, 0.1);
+}
+
+.workflow-definition-notice {
+  border: 1px solid rgba(95, 196, 209, 0.35);
+  background: rgba(95, 196, 209, 0.1);
+}
+
+@media (max-width: 900px) {
+  .workflow-definition-promotion-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .workflow-rag-promotion-panel.offline {
   opacity: 0.82;
 }

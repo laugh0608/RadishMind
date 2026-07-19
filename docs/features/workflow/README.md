@@ -12,8 +12,8 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
-| [Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md) | 功能 / 版本与执行权威专题 | `workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_batch_c_ready_for_implementation` | reviewed Saved Draft 已可通过三种 repository 晋级并人工 activation，正式 summary 已切换 live owner；当前准入 definition-bound executor 与 run v5 |
-| [Workflow 不可变版本晋级与受控运行绑定 v1 实施任务卡](../../task-cards/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md) | 高风险实现批次 | `batch_c_ready_for_implementation` | 批次 A / B 已完成 contract、durable store 与 live projection，后续统一承接 run v5 与 Web，不派生平行任务卡 |
+| [Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md) | 功能 / 版本与执行权威专题 | `workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_completed` | A 至 D 已完成不可变晋级、人工 activation、definition-bound run v5、Web、双数据库连续链与真实浏览器验收 |
+| [Workflow 不可变版本晋级与受控运行绑定 v1 实施任务卡](../../task-cards/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md) | 已归档高风险实现批次 | `completed` | A / B / C / D 全部完成，不派生平行任务卡 |
 | [Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md) | 功能 / 高风险执行专题 | `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_completed` | durable assignment、run v4、Web、双数据库连续链与真实浏览器均已完成 |
 | [Workflow RAG 应用运行时激活与受控调用 v1 实施任务卡](../../task-cards/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1-plan.md) | 已归档高风险实现批次 | `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_completed` | A / B / C 三批已完成，不派生批次 D |
 | [Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md) | 功能 / 晋级与配置治理专题 | `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_completed` | exact evidence、人工决定、双数据库、配置 binding、发布重校验、Web 与浏览器链均已完成 |

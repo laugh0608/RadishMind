@@ -10,6 +10,9 @@ import {
 export type WorkflowRunHistoryFilter = {
   status: "" | WorkflowRunStatus;
   draftId: string;
+  executionSourceKind: "" | "workflow_draft" | "application_configuration_draft" | "workflow_definition";
+  executionSourceId: string;
+  executionSourceVersion: number | "";
   startedFrom: string;
   startedTo: string;
   failureCode: string;
@@ -35,6 +38,12 @@ export type WorkflowRunHistorySummary = {
   executionSourceKind: string;
   executionSourceId: string;
   executionSourceVersion: number;
+  executionProfile: string;
+  definitionDigest: string;
+  activationPointerVersion: number;
+  sourceDraftId: string;
+  sourceDraftVersion: number;
+  sourceDraftDigest: string;
   runtimeAssignmentId: string;
   runtimeAssignmentVersion: number;
   publishCandidateId: string;
@@ -104,6 +113,11 @@ export function isWorkflowRunComparisonCompatible(
     return baseline.queryDigest === candidate.queryDigest && baseline.queryBytes === candidate.queryBytes &&
       baseline.executionKind === candidate.executionKind && baseline.executionSourceKind === candidate.executionSourceKind;
   }
+  const baselineDefinition = baseline.schemaVersion === "workflow_run_record.v5";
+  const candidateDefinition = candidate.schemaVersion === "workflow_run_record.v5";
+  if (baselineDefinition !== candidateDefinition) return false;
+  if (baselineDefinition) return baseline.executionSourceId === candidate.executionSourceId &&
+    baseline.executionProfile === "workflow_definition_executor_v1" && candidate.executionProfile === "workflow_definition_executor_v1";
   const baselineRetrieval = baseline.schemaVersion === "workflow_run_record.v3";
   const candidateRetrieval = candidate.schemaVersion === "workflow_run_record.v3";
   if (baselineRetrieval !== candidateRetrieval) return false;
@@ -125,6 +139,8 @@ type RunSummaryDocument = {
   draft_version: number; workspace_id: string; application_id: string;
   draft_digest?: string;
   execution_kind?: string; execution_source_kind?: string; execution_source_id?: string; execution_source_version?: number;
+  execution_profile?: string; definition_digest?: string; activation_pointer_version?: number;
+  source_draft_id?: string; source_draft_version?: number; source_draft_digest?: string;
   runtime_assignment_id?: string; runtime_assignment_version?: number; publish_candidate_id?: string;
   publish_review_version?: number; effective_snapshot_role?: string;
   status: WorkflowRunStatus; failure_code: string;
@@ -140,7 +156,7 @@ type RunSummaryDocument = {
   side_effects: { retrieval_calls?: number; provider_calls: number; tool_calls: number; confirmation_calls: number; business_writes: number; replay_writes: number };
 };
 
-export const EMPTY_WORKFLOW_RUN_HISTORY_FILTER: WorkflowRunHistoryFilter = { status: "", draftId: "", startedFrom: "", startedTo: "", failureCode: "", failureBoundary: "", provider: "", model: "", staleRunning: "" };
+export const EMPTY_WORKFLOW_RUN_HISTORY_FILTER: WorkflowRunHistoryFilter = { status: "", draftId: "", executionSourceKind: "", executionSourceId: "", executionSourceVersion: "", startedFrom: "", startedTo: "", failureCode: "", failureBoundary: "", provider: "", model: "", staleRunning: "" };
 
 export function initialWorkflowRunHistoryState(config: WorkflowExecutorConsumerConfig): WorkflowRunHistoryState {
   return config.mode === "dev_workflow_executor_http"
@@ -157,6 +173,9 @@ export async function listWorkflowRunHistory(
   if (cursor) query.set("cursor", cursor);
   if (filter.status) query.set("status", filter.status);
   if (filter.draftId.trim()) query.set("draft_id", filter.draftId.trim());
+  if (filter.executionSourceKind) query.set("execution_source_kind", filter.executionSourceKind);
+  if (filter.executionSourceId.trim()) query.set("execution_source_id", filter.executionSourceId.trim());
+  if (filter.executionSourceVersion !== "") query.set("execution_source_version", String(filter.executionSourceVersion));
   if (filter.startedFrom) query.set("started_from", new Date(filter.startedFrom).toISOString());
   if (filter.startedTo) query.set("started_to", new Date(filter.startedTo).toISOString());
   if (filter.failureCode.trim()) query.set("failure_code", filter.failureCode.trim());
@@ -221,6 +240,9 @@ function toSummary(value: RunSummaryDocument): WorkflowRunHistorySummary {
     draftId: value.draft_id, draftVersion: value.draft_version, draftDigest: value.draft_digest ?? "", status: value.status, failureCode: value.failure_code,
     executionKind: value.execution_kind ?? "", executionSourceKind: value.execution_source_kind ?? "",
     executionSourceId: value.execution_source_id ?? "", executionSourceVersion: value.execution_source_version ?? 0,
+    executionProfile: value.execution_profile ?? "", definitionDigest: value.definition_digest ?? "",
+    activationPointerVersion: value.activation_pointer_version ?? 0, sourceDraftId: value.source_draft_id ?? "",
+    sourceDraftVersion: value.source_draft_version ?? 0, sourceDraftDigest: value.source_draft_digest ?? "",
     runtimeAssignmentId: value.runtime_assignment_id ?? "", runtimeAssignmentVersion: value.runtime_assignment_version ?? 0,
     publishCandidateId: value.publish_candidate_id ?? "", publishReviewVersion: value.publish_review_version ?? 0,
     effectiveSnapshotRole: value.effective_snapshot_role ?? "",
@@ -250,7 +272,7 @@ function isRunSummary(value: unknown): value is RunSummaryDocument {
   const item = value as Partial<RunSummaryDocument>;
   const raw = value as Record<string, unknown>;
   if (containsForbiddenHistoryField(raw)) return false;
-  const schemaValid = item.schema_version === "workflow_run_record.v0" || item.schema_version === "workflow_run_record.v1" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4";
+  const schemaValid = item.schema_version === "workflow_run_record.v0" || item.schema_version === "workflow_run_record.v1" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4" || item.schema_version === "workflow_run_record.v5";
   const statusValid = ["running", "succeeded", "failed", "canceled", "outcome_unknown"].includes(item.status ?? "") &&
     (item.status !== "outcome_unknown" || item.schema_version === "workflow_run_record.v2");
   const toolMetadataValid = item.schema_version === "workflow_run_record.v2"
@@ -258,7 +280,14 @@ function isRunSummary(value: unknown): value is RunSummaryDocument {
       ["claimed", "succeeded", "failed", "outcome_unknown"].includes(item.tool_attempt_status ?? "")
     : [item.plan_id, item.confirmation_id, item.tool_attempt_status].every((field) => field === undefined || field === "");
   const retrievalMetadataValid = item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4" ? isRAGRunSummary(item) : true;
-  const executionMetadataValid = item.schema_version === "workflow_run_record.v4"
+  const executionMetadataValid = item.schema_version === "workflow_run_record.v5"
+    ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "workflow_definition_execution" &&
+      item.execution_source_kind === "workflow_definition" && typeof item.execution_source_id === "string" &&
+      Number.isInteger(item.execution_source_version) && item.execution_profile === "workflow_definition_executor_v1" &&
+      DIGEST_PATTERN.test(item.definition_digest ?? "") && Number.isInteger(item.activation_pointer_version) &&
+      typeof item.source_draft_id === "string" && Number.isInteger(item.source_draft_version) &&
+      DIGEST_PATTERN.test(item.source_draft_digest ?? "")
+    : item.schema_version === "workflow_run_record.v4"
     ? item.execution_kind === "application_rag_invocation" && item.execution_source_kind === "application_configuration_draft" &&
       typeof item.execution_source_id === "string" && Number.isInteger(item.execution_source_version) &&
       typeof item.runtime_assignment_id === "string" && Number.isInteger(item.runtime_assignment_version) &&
@@ -275,6 +304,8 @@ function isRunSummary(value: unknown): value is RunSummaryDocument {
     [item.failure_boundary, item.failed_node_id, item.last_completed_node_id, item.gateway_failure_category,
       item.tool_failure_category, item.recommended_review_action].every((field) => field === undefined || typeof field === "string");
 }
+
+const DIGEST_PATTERN = /^sha256:[a-f0-9]{64}$/u;
 
 function containsForbiddenHistoryField(value: unknown): boolean {
   if (Array.isArray(value)) return value.some(containsForbiddenHistoryField);

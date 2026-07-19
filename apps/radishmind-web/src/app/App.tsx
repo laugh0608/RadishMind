@@ -231,6 +231,7 @@ const WorkflowRAGSnapshotPanel = lazy(() => import("../features/control-plane-re
 const WorkflowRAGEvaluationDatasetPanel = lazy(() => import("../features/control-plane-read/workflowRAGEvaluationDatasetPanel"));
 const WorkflowRAGPromotionPanel = lazy(() => import("../features/control-plane-read/workflowRAGPromotionPanel"));
 const WorkflowRAGExecutionPanel = lazy(() => import("../features/control-plane-read/workflowRAGExecutionPanel"));
+const WorkflowDefinitionPromotionPanel = lazy(() => import("../features/control-plane-read/workflowDefinitionPromotionPanel"));
 const APIKeyLifecyclePanel = lazy(() => import("../features/control-plane-read/apiKeyLifecyclePanel").then((module) => ({ default: module.APIKeyLifecyclePanel })));
 const ApplicationRAGInvocationPanel = lazy(() => import("../features/control-plane-read/workflowRAGApplicationRuntimePanel"));
 const ApplicationOperationsPanel = lazy(() => import("../features/control-plane-read/applicationOperationsPanel"));
@@ -985,6 +986,14 @@ export function App() {
   };
   const handleCreateWorkflowRAGDraft = (createdDraft: WorkflowDraftDesignerDraft) => {
     if (workflowRAGOperationPending) return;
+    setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
+    applyWorkflowSelectionPatch({ applicationRef: createdDraft.applicationRef, workflowDefinitionId: createdDraft.workflowDefinitionId, runId: null, draftId: createdDraft.draftId, scenarioId: null });
+    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
+    setWorkflowDraftEditDirty(true);
+    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
+  };
+  const handleCreateDefinitionDerivedDraft = (createdDraft: WorkflowDraftDesignerDraft) => {
+    if (workflowExecutorOperationPending || workflowRAGOperationPending) return;
     setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
     applyWorkflowSelectionPatch({ applicationRef: createdDraft.applicationRef, workflowDefinitionId: createdDraft.workflowDefinitionId, runId: null, draftId: createdDraft.draftId, scenarioId: null });
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
@@ -2067,6 +2076,19 @@ export function App() {
             onSaveDraft={handleSaveWorkflowDraft}
             onReadDraft={handleReadWorkflowDraft}
           />
+          <Suspense fallback={<section className="workflow-definition-promotion-panel"><p>Loading workflow definition promotion…</p></section>}>
+            <WorkflowDefinitionPromotionPanel
+              key={`workflow-definition-promotion-${workflowScopedApplicationId}`}
+              applicationId={workflowScopedApplicationId}
+              activeDraft={activeWorkflowDraft}
+              savedDraftVersion={savedDraftConsumerState.currentDraftVersion ?? 0}
+              nextDerivedDraftNumber={workspaceCreatedDrafts.filter(
+                (draft) => draft.applicationRef === workflowScopedApplicationId && (draft.baseDefinitionVersion ?? 0) > 0,
+              ).length + 1}
+              onDerivedDraft={handleCreateDefinitionDerivedDraft}
+              onRunRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
+            />
+          </Suspense>
           <WorkflowHTTPToolActionPanel
             draft={activeWorkflowDraft}
             consumerState={workflowHTTPToolActionState}

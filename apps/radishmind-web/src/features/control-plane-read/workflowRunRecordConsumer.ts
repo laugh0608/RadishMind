@@ -3,7 +3,8 @@ export type WorkflowRunSchemaVersion =
   | "workflow_run_record.v1"
   | "workflow_run_record.v2"
   | "workflow_run_record.v3"
-  | "workflow_run_record.v4";
+  | "workflow_run_record.v4"
+  | "workflow_run_record.v5";
 
 export type WorkflowRunStatus = "running" | "succeeded" | "failed" | "canceled" | "outcome_unknown";
 
@@ -174,6 +175,20 @@ export type WorkflowRAGApplicationRunAuthority = {
   configuredModel: string;
 };
 
+export type WorkflowDefinitionRunAuthority = {
+  definitionId: string;
+  definitionVersion: number;
+  definitionDigest: string;
+  activationPointerVersion: number;
+  candidateId: string;
+  candidateReviewVersion: number;
+  sourceDraftId: string;
+  sourceDraftVersion: number;
+  sourceDraftDigest: string;
+  applicationRecordVersion: number;
+  applicationLifecycle: "active";
+};
+
 export type WorkflowRunRecord = {
   schemaVersion: WorkflowRunSchemaVersion;
   recordVersion: number;
@@ -188,6 +203,9 @@ export type WorkflowRunRecord = {
   executionSourceKind: string;
   executionSourceId: string;
   executionSourceVersion: number;
+  executionProfile?: string;
+  inputDigest?: string;
+  definitionAuthority?: WorkflowDefinitionRunAuthority | null;
   workspaceId: string;
   applicationId: string;
   status: WorkflowRunStatus;
@@ -250,16 +268,25 @@ const APPLICATION_RAG_RECORD_KEYS = new Set([
   "authority", "snapshot", "retrieval_attempt", "answer", "selected_provider", "selected_model",
   "request_id", "audit_ref", "actor_ref", "side_effects", "diagnostic",
 ]);
+const DEFINITION_RECORD_KEYS = new Set([
+  "schema_version", "record_version", "run_id", "draft_id", "draft_version", "workspace_id", "application_id",
+  "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version", "execution_profile",
+  "input_digest", "definition_authority", "status", "failure_code", "failure_summary", "started_at", "completed_at",
+  "input_bytes", "condition_node_ids", "requested_model", "selected_provider", "selected_profile", "selected_model",
+  "upstream_model", "selection_source", "nodes", "output", "request_id", "audit_ref", "actor_ref", "side_effects",
+  "diagnostic",
+]);
 
 export function parseWorkflowRunRecordDocument(value: unknown): WorkflowRunRecord | null {
   if (!isRecord(value) || containsForbiddenWorkflowRunField(value)) return null;
   const schemaVersion = value.schema_version;
   if (schemaVersion !== "workflow_run_record.v0" && schemaVersion !== "workflow_run_record.v1" &&
     schemaVersion !== "workflow_run_record.v2" && schemaVersion !== "workflow_run_record.v3" &&
-    schemaVersion !== "workflow_run_record.v4") return null;
+    schemaVersion !== "workflow_run_record.v4" && schemaVersion !== "workflow_run_record.v5") return null;
 
   if (schemaVersion === "workflow_run_record.v3") return parseRAGRunRecord(value);
   if (schemaVersion === "workflow_run_record.v4") return parseApplicationRAGRunRecord(value);
+  if (schemaVersion === "workflow_run_record.v5") return parseDefinitionRunRecord(value);
 
   const common = parseCommonRecordFields(value, schemaVersion);
   if (!common) return null;
@@ -287,6 +314,70 @@ export function parseWorkflowRunRecordDocument(value: unknown): WorkflowRunRecor
     actorRef: optionalString(value.actor_ref),
     diagnostic,
   };
+}
+
+function parseDefinitionRunRecord(value: Record<string, unknown>): WorkflowRunRecord | null {
+  if (Object.keys(value).length !== DEFINITION_RECORD_KEYS.size || Object.keys(value).some((key) => !DEFINITION_RECORD_KEYS.has(key)) ||
+    !isPatternString(value.run_id, /^run_[a-z0-9_]{8,64}$/u) || !isPositiveInteger(value.record_version) || value.draft_id !== "" ||
+    value.draft_version !== 0 || !isPatternString(value.workspace_id, REFERENCE_PATTERN) ||
+    !isPatternString(value.application_id, REFERENCE_PATTERN) || value.execution_kind !== "workflow_definition_execution" ||
+    value.execution_source_kind !== "workflow_definition" || !isPatternString(value.execution_source_id, REFERENCE_PATTERN) ||
+    !isPositiveInteger(value.execution_source_version) || value.execution_profile !== "workflow_definition_executor_v1" ||
+    !isPatternString(value.input_digest, DIGEST_PATTERN) || !isWorkflowRunStatus(value.status) || value.status === "outcome_unknown" ||
+    nullableString(value.failure_code) === null || typeof value.failure_summary !== "string" || value.failure_summary.length > 256 ||
+    !isTimestamp(value.started_at) || nullableString(value.completed_at) === null || !isBoundedInteger(value.input_bytes, 1, 8192) ||
+    !isStringArray(value.condition_node_ids) || typeof value.requested_model !== "string" ||
+    typeof value.selected_provider !== "string" || typeof value.selected_profile !== "string" ||
+    typeof value.selected_model !== "string" || typeof value.upstream_model !== "string" ||
+    typeof value.selection_source !== "string" || !Array.isArray(value.nodes) || value.nodes.length < 3 ||
+    value.nodes.length > 16 || typeof value.output !== "string" || value.output !== "" ||
+    !isPatternString(value.request_id, REFERENCE_PATTERN) || !isPatternString(value.audit_ref, REFERENCE_PATTERN) ||
+    !isPatternString(value.actor_ref, REFERENCE_PATTERN)) return null;
+  const nodes = value.nodes.map(parseWorkflowRunNode);
+  const sideEffects = parseSideEffects(value.side_effects);
+  const diagnostic = parseWorkflowRunDiagnostic(value.diagnostic, false);
+  const authority = parseDefinitionAuthority(value.definition_authority);
+  if (nodes.some((node) => !node || node.outputPreview !== "") || !sideEffects || !diagnostic || !authority ||
+    sideEffects.retrievalCalls !== 0 || sideEffects.toolCalls !== 0 || sideEffects.confirmationCalls !== 0 ||
+    sideEffects.businessWrites !== 0 || sideEffects.replayWrites !== 0 || sideEffects.providerCalls > 4 ||
+    authority.definitionId !== value.execution_source_id || authority.definitionVersion !== value.execution_source_version) return null;
+  const completedAt = nullableString(value.completed_at)!;
+  const failureCode = nullableString(value.failure_code)!;
+  if ((value.status === "running" && (completedAt || failureCode)) || (value.status !== "running" && !completedAt) ||
+    (value.status === "succeeded" && failureCode) || ((value.status === "failed" || value.status === "canceled") && !failureCode)) return null;
+  return {
+    schemaVersion: "workflow_run_record.v5", recordVersion: value.record_version, runId: value.run_id,
+    planId: "", confirmationId: "", tenantRef: "", draftId: "", draftVersion: 0, draftDigest: "",
+    executionKind: value.execution_kind, executionSourceKind: value.execution_source_kind,
+    executionSourceId: value.execution_source_id, executionSourceVersion: value.execution_source_version,
+    executionProfile: value.execution_profile, inputDigest: value.input_digest, definitionAuthority: authority,
+    workspaceId: value.workspace_id, applicationId: value.application_id, status: value.status,
+    failureCode, failureSummary: value.failure_summary, startedAt: value.started_at, completedAt,
+    inputBytes: value.input_bytes, conditionNodeIds: [...value.condition_node_ids], requestedModel: value.requested_model,
+    selectedProvider: value.selected_provider, selectedProfile: value.selected_profile, selectedModel: value.selected_model,
+    upstreamModel: value.upstream_model, selectionSource: value.selection_source,
+    nodes: nodes as WorkflowRunNodeRecord[], toolAttempt: null, ragSnapshot: null, retrievalAttempt: null,
+    retrievalFragmentPreviews: [], ragApplicationAuthority: null, output: "", requestId: value.request_id,
+    auditRef: value.audit_ref, actorRef: value.actor_ref, sideEffects, diagnostic,
+  };
+}
+
+function parseDefinitionAuthority(value: unknown): WorkflowDefinitionRunAuthority | null {
+  const keys = ["definition_id", "definition_version", "definition_digest", "activation_pointer_version", "candidate_id",
+    "candidate_review_version", "source_draft_id", "source_draft_version", "source_draft_digest",
+    "application_record_version", "application_lifecycle"];
+  if (!isRecord(value) || Object.keys(value).length !== keys.length || Object.keys(value).some((key) => !keys.includes(key)) ||
+    !isPatternString(value.definition_id, REFERENCE_PATTERN) || !isPositiveInteger(value.definition_version) ||
+    !isPatternString(value.definition_digest, DIGEST_PATTERN) || !isPositiveInteger(value.activation_pointer_version) ||
+    !isPatternString(value.candidate_id, REFERENCE_PATTERN) || !isPositiveInteger(value.candidate_review_version) ||
+    !isPatternString(value.source_draft_id, REFERENCE_PATTERN) || !isPositiveInteger(value.source_draft_version) ||
+    !isPatternString(value.source_draft_digest, DIGEST_PATTERN) || !isPositiveInteger(value.application_record_version) ||
+    value.application_lifecycle !== "active") return null;
+  return { definitionId: value.definition_id, definitionVersion: value.definition_version, definitionDigest: value.definition_digest,
+    activationPointerVersion: value.activation_pointer_version, candidateId: value.candidate_id,
+    candidateReviewVersion: value.candidate_review_version, sourceDraftId: value.source_draft_id,
+    sourceDraftVersion: value.source_draft_version, sourceDraftDigest: value.source_draft_digest,
+    applicationRecordVersion: value.application_record_version, applicationLifecycle: "active" };
 }
 
 function parseToolRunRecord(

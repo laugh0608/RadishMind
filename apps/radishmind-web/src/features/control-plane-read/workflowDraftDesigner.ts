@@ -104,6 +104,7 @@ export type WorkflowDraftDesignerDraft = {
   label: string;
   applicationRef: string;
   workflowDefinitionId: string;
+  baseDefinitionVersion?: number;
   providerProfileRef: string;
   summary: string;
   nodes: WorkflowDraftDesignerNode[];
@@ -219,10 +220,11 @@ export function buildWorkflowDraftDesignerViewModel(
       auditRef,
     );
   });
-  const localDrafts = (source.localDrafts ?? []).filter((draft) =>
-    workflowDefinitions.some(
-      (workflowDefinition) => workflowDefinition.workflowDefinitionId === draft.workflowDefinitionId,
-    ),
+  // A newly derived draft can precede the next read-side definition summary refresh.
+  // Local drafts are already explicit workspace state, so keep every scoped draft
+  // without requiring a possibly stale read-side definition summary.
+  const localDrafts = (source.localDrafts ?? []).filter(
+    (draft) => draft.applicationRef.trim() !== "" && draft.workflowDefinitionId.trim() !== "",
   );
   const drafts = [...baseDrafts, ...localDrafts];
   const forbiddenProjectionBlocked = controlPlaneReadResponseHasForbiddenOutput({

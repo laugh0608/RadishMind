@@ -145,3 +145,33 @@ test("workflow run comparison rejects unknown fields and response scope drift", 
   try { await assert.rejects(() => compareWorkflowRuns("app_demo", "run_base", "run_candidate", live), /scope drifted/); }
   finally { globalThis.fetch = originalFetch; }
 });
+
+test("workflow run comparison maps definition-bound v4 without execution", async () => {
+  const originalFetch = globalThis.fetch;
+  const definitionDigest = `sha256:${"d".repeat(64)}`;
+  const definitionRun = (runId: string, version: number) => ({
+    run_id: runId, schema_version: "workflow_run_record.v5", draft_id: "", draft_version: 0,
+    execution_kind: "workflow_definition_execution", execution_source_kind: "workflow_definition",
+    execution_source_id: "definition_demo", execution_source_version: version,
+    execution_profile: "workflow_definition_executor_v1", definition_digest: definitionDigest,
+    status: "succeeded", failure_code: "", failure_boundary: "", gateway_failure_category: "none",
+    selected_provider: "mock", selected_profile: "", selected_model: "mock", duration_ms: 100,
+    stale_running: false, request_id: `request_${runId}`, audit_ref: `audit_${runId}`,
+    side_effects: { provider_calls: 1, tool_calls: 0, confirmation_calls: 0, business_writes: 0, replay_writes: 0 },
+  });
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    request_id: "request_definition_compare", workspace_id: "workspace_demo", application_id: "app_demo",
+    comparison: { schema_version: "workflow_run_comparison.v4", run_profile: "workflow_definition_executor.v1",
+      classification: "unchanged", comparison_state: "comparable", baseline: definitionRun("run_definition_base", 1),
+      candidate: definitionRun("run_definition_candidate", 2), draft_changed: false, execution_source_changed: true,
+      provider_changed: false, model_changed: false, status_changed: false, failure_changed: false,
+      duration_delta_ms: 0, provider_call_delta: 0, nodes: [], findings: [], recommended_review_action: "" },
+    failure_code: null, failure_summary: "", audit_ref: "audit_definition_compare",
+  }), { status: 200 });
+  try {
+    const comparison = await compareWorkflowRuns("app_demo", "run_definition_base", "run_definition_candidate", live);
+    assert.equal(comparison.schemaVersion, "workflow_run_comparison.v4");
+    assert.equal(comparison.runProfile, "workflow_definition_executor.v1");
+    assert.equal(comparison.baseline.executionProfile, "workflow_definition_executor_v1");
+  } finally { globalThis.fetch = originalFetch; }
+});

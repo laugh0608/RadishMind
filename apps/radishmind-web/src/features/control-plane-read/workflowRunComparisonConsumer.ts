@@ -9,6 +9,8 @@ export type WorkflowRunComparisonRun = {
   executionSourceKind: string;
   executionSourceId: string;
   executionSourceVersion: number;
+  executionProfile: string;
+  definitionDigest: string;
   status: "running" | "succeeded" | "failed" | "canceled";
   failureCode: string;
   failureBoundary: string;
@@ -109,7 +111,8 @@ export type WorkflowRunRetrievalComparison = {
 };
 
 export type WorkflowRunComparison = {
-  schemaVersion: "workflow_run_comparison.v1" | "workflow_run_comparison.v2" | "workflow_run_comparison.v3";
+  schemaVersion: "workflow_run_comparison.v1" | "workflow_run_comparison.v2" | "workflow_run_comparison.v3" | "workflow_run_comparison.v4";
+  runProfile: "workflow_standard.v1" | "workflow_rag_retrieval.v1" | "workflow_rag_application_invocation.v1" | "workflow_definition_executor.v1";
   classification: "regression" | "improvement" | "changed" | "unchanged" | "inconclusive";
   comparisonState: "comparable" | "legacy_partial" | "running_inconclusive";
   baseline: WorkflowRunComparisonRun;
@@ -147,6 +150,8 @@ type ComparisonRunDocument = {
   execution_source_kind?: string;
   execution_source_id?: string;
   execution_source_version?: number;
+  execution_profile?: string;
+  definition_digest?: string;
   status: WorkflowRunComparisonRun["status"];
   failure_code: string;
   failure_boundary: string;
@@ -235,6 +240,7 @@ type RetrievalDocument = {
 
 type ComparisonDocument = {
   schema_version: WorkflowRunComparison["schemaVersion"];
+  run_profile?: WorkflowRunComparison["runProfile"];
   classification: WorkflowRunComparison["classification"];
   comparison_state: WorkflowRunComparison["comparisonState"];
   baseline: ComparisonRunDocument;
@@ -312,6 +318,8 @@ function mapRun(value: ComparisonRunDocument): WorkflowRunComparisonRun {
     executionSourceKind: value.execution_source_kind ?? "",
     executionSourceId: value.execution_source_id ?? "",
     executionSourceVersion: value.execution_source_version ?? 0,
+    executionProfile: value.execution_profile ?? "",
+    definitionDigest: value.definition_digest ?? "",
     status: value.status,
     failureCode: value.failure_code,
     failureBoundary: value.failure_boundary,
@@ -399,6 +407,7 @@ function mapRetrieval(value: RetrievalDocument): WorkflowRunRetrievalComparison 
 function mapComparison(value: ComparisonDocument): WorkflowRunComparison {
   return {
     schemaVersion: value.schema_version,
+    runProfile: value.run_profile ?? (value.schema_version === "workflow_run_comparison.v2" ? "workflow_rag_retrieval.v1" : value.schema_version === "workflow_run_comparison.v3" ? "workflow_rag_application_invocation.v1" : "workflow_standard.v1"),
     classification: value.classification,
     comparisonState: value.comparison_state,
     baseline: mapRun(value.baseline),
@@ -451,9 +460,12 @@ function hasForbiddenComparisonKey(value: unknown): boolean {
 function isComparisonDocument(value: unknown): value is ComparisonDocument {
   if (!value || typeof value !== "object") return false;
   const item = value as Partial<ComparisonDocument>;
-  const schemaValid = ["workflow_run_comparison.v1", "workflow_run_comparison.v2", "workflow_run_comparison.v3"].includes(item.schema_version ?? "");
+  const schemaValid = ["workflow_run_comparison.v1", "workflow_run_comparison.v2", "workflow_run_comparison.v3", "workflow_run_comparison.v4"].includes(item.schema_version ?? "");
   const baseKeys = ["schema_version", "classification", "comparison_state", "baseline", "candidate", "draft_changed", "execution_source_changed", "provider_changed", "model_changed", "status_changed", "failure_changed", "duration_delta_ms", "provider_call_delta", "nodes", "findings", "recommended_review_action"];
-  if (!schemaValid || !hasOnlyKeys(value as Record<string, unknown>, item.schema_version === "workflow_run_comparison.v1" ? baseKeys : [...baseKeys, "retrieval"])) return false;
+  const expectedKeys = item.schema_version === "workflow_run_comparison.v4" ? [...baseKeys, "run_profile"] :
+    item.schema_version === "workflow_run_comparison.v1" ? baseKeys : [...baseKeys, "retrieval"];
+  if (!schemaValid || !hasOnlyKeys(value as Record<string, unknown>, expectedKeys)) return false;
+  if (item.schema_version === "workflow_run_comparison.v4" && item.run_profile !== "workflow_definition_executor.v1") return false;
   const retrievalValid = item.schema_version === "workflow_run_comparison.v2" || item.schema_version === "workflow_run_comparison.v3"
     ? isRetrievalDocument(item.retrieval, item.schema_version) &&
       ((item.schema_version === "workflow_run_comparison.v2" && item.retrieval.run_profile === "workflow_rag_retrieval.v1" && item.baseline?.schema_version === "workflow_run_record.v3" && item.candidate?.schema_version === "workflow_run_record.v3") ||
@@ -473,8 +485,14 @@ function isComparisonRun(value: unknown): value is ComparisonRunDocument {
   const item = value as Partial<ComparisonRunDocument>;
   const baseKeys = ["run_id", "schema_version", "draft_id", "draft_version", "status", "failure_code", "failure_boundary", "gateway_failure_category", "selected_provider", "selected_profile", "selected_model", "duration_ms", "stale_running", "request_id", "audit_ref", "side_effects"];
   const isV4 = item.schema_version === "workflow_run_record.v4";
-  if (!hasOnlyKeys(value as Record<string, unknown>, isV4 ? [...baseKeys, "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version"] : baseKeys)) return false;
-  const sourceValid = isV4
+  const isV5 = item.schema_version === "workflow_run_record.v5";
+  if (!hasOnlyKeys(value as Record<string, unknown>, isV5 ? [...baseKeys, "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version", "execution_profile", "definition_digest"] : isV4 ? [...baseKeys, "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version"] : baseKeys)) return false;
+  const sourceValid = isV5
+    ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "workflow_definition_execution" &&
+      item.execution_source_kind === "workflow_definition" && typeof item.execution_source_id === "string" &&
+      item.execution_source_id.length > 0 && positiveInteger(item.execution_source_version) &&
+      item.execution_profile === "workflow_definition_executor_v1" && /^sha256:[a-f0-9]{64}$/u.test(item.definition_digest ?? "")
+    : isV4
     ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "application_rag_invocation" &&
       item.execution_source_kind === "application_configuration_draft" && typeof item.execution_source_id === "string" &&
       item.execution_source_id.length > 0 && positiveInteger(item.execution_source_version)

@@ -2,13 +2,13 @@
 
 更新时间：2026-07-19
 
-状态：`workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_batch_d_ready_for_implementation`
+状态：`workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_completed`
 
 ## 目标与准入结论
 
 按[功能设计](../features/workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md)交付“精确 Saved Draft → 不可变 candidate → 人工 review → definition version → 人工 activation → definition-bound run v5 → history / comparison / evaluation”的开发测试态产品路径。
 
-设计、资源 owner、权限、执行来源、兼容策略和生产停止线已经冻结，批次 A / B / C 已完成，可以进入批次 D。不得给 Saved Draft 增加可变 publish 状态，不得复用 application publish candidate，不得把 definition id 写入旧 `draft_id`，也不得通过 activation 绕开 HTTP Tool / RAG 独立 authority。
+设计、资源 owner、权限、执行来源、兼容策略和生产停止线已经冻结，批次 A / B / C / D 已完成，专题关闭。不得给 Saved Draft 增加可变 publish 状态，不得复用 application publish candidate，不得把 definition id 写入旧 `draft_id`，也不得通过 activation 绕开 HTTP Tool / RAG 独立 authority。
 
 ## 前置基线
 
@@ -76,7 +76,7 @@
 
 ## 批次 D：Web、连续链与专题收口
 
-状态：`ready_for_implementation`。
+状态：`completed`。
 
 - Draft Designer 接入 candidate 创建与 source definition provenance。
 - 新增 candidate review、version history、activation 管理与 definition-bound run 页面。
@@ -84,6 +84,8 @@
 - 应用切换清除全部易失状态；offline 零请求；strict consumer 拒绝 schema / scope / sensitive drift。
 - 完成 SQLite / PostgreSQL 连续链、重启、冲突、停用阻断、派生新草案和真实浏览器复验。
 - 同步正式文档和周志，关闭专题；不派生第二张任务卡。
+
+完成证据：严格 Web consumer、人工 candidate / review / activation、definition-bound run、v5 History / Comparison / Evaluation / Suite、派生草案 provenance、应用切换与迟到响应隔离均已实现；SQLite / PostgreSQL 连续链覆盖重启、CAS、停用阻断、metadata-only persistence 和 no-fallback。Web 151 项测试、production build、Platform 全包、相关 race、`go vet`、PostgreSQL integration、仓库 fast / full 与真实浏览器通过；浏览器和 SQLite 存储扫描未发现一次性 input / answer。
 
 ## 验证矩阵
 

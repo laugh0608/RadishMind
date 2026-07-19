@@ -180,12 +180,14 @@ func (service workflowDefinitionReleaseService) DecideActivation(ctx WorkflowDef
 
 func (service workflowDefinitionReleaseService) readExactDraft(ctx WorkflowDefinitionReleaseContext, draftID string, expectedVersion int) (SavedWorkflowDraft, string) {
 	draftContext := SavedWorkflowDraftContext{
+		RequestContext:  ctx.RequestContext,
 		RequestID:       ctx.RequestID,
 		TenantRef:       ctx.TenantRef,
 		WorkspaceID:     ctx.WorkspaceID,
 		ApplicationID:   ctx.ApplicationID,
 		ActorRef:        ctx.ActorRef,
 		OwnerSubjectRef: ctx.OwnerSubjectRef,
+		ScopeGrants:     []string{"workflow_drafts:read"},
 		AuditRef:        ctx.AuditRef,
 	}
 	result := service.drafts.ReadDraft(draftContext, ReadWorkflowDraftRequest{DraftID: draftID})
