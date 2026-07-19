@@ -12,18 +12,20 @@
 
 ## 当前活跃任务
 
-1. [Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md)：批次 A / B 的 strict contract、三种 repository、人工 review / activation CAS、管理 API、双数据库 migration 与 live projection 已完成，当前准入批次 C definition-bound executor 与 run v5；Web 和浏览器尚未开始。
+当前没有活跃实现任务卡。下一项先完成“应用开发工作区与发布准备审查 v1”功能设计和现有页面 / 状态所有权审计；只有设计确认需要新增 API、schema、执行边界或高风险写入时，才创建对应任务卡。
 
 ## 最近关闭任务
 
-1. [Workflow RAG 应用运行时激活与受控调用 v1](workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1-plan.md)：A / B / C 三批已完成，durable assignment、API key 受控调用、run v4、Web、双数据库与真实浏览器链均已关闭。
-2. [Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1-plan.md)：A / B / C / D 四批已完成，exact evidence、人工 decision、durable binding、应用配置 / 发布治理与 Web 连续链均已关闭。
-3. [Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1-plan.md)：契约、内存链、SQLite / PostgreSQL durable store、Web 与仓库收口三批均已完成。
-4. [Workflow RAG 评测数据集与知识质量审查 v1](workflow-rag-evaluation-dataset-knowledge-quality-review-v1-plan.md)：两份契约、共享 lexical evaluator、CLI、starter dataset 与 deterministic metadata-only report 已完成。
-5. [Workflow RAG Regression Review 与 Evaluation Profile v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1-plan.md)：Comparison v2、Evaluation / Baseline / Suite profile、SQLite durable resources、PostgreSQL 重启 / no-fallback 和 Web metadata-only 审查已完成。
-6. [Workflow RAG Retrieval 与应用知识快照 v1](workflow-rag-retrieval-application-knowledge-snapshot-dev-test-v1-plan.md)：A / B / C 三批已完成，不派生批次 D。
-7. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R2 至 R6 均已完成；R6 关闭评审保留仍有独立证据责任的 Provider、Production Ops 与 Control Plane formal UI 门禁，不派生第六条清理链。
-8. [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1-plan.md)：领域、Gateway 认证、双数据库门禁、Web 一次性交接、调试台内存交接、吊销与浏览器连续验收均已完成。
+1. [应用交互会话与受控运行编排 v1](application-interaction-session-controlled-runtime-orchestration-dev-test-v1-plan.md)：A 至 E 已完成 strict metadata、三种 repository、v5 / v4 委托、Web、双数据库连续链、重启恢复、浏览器和敏感扫描。
+2. [Workflow 不可变版本晋级与受控运行绑定 v1](workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md)：A 至 D 已完成 strict contract、三种 repository、人工 review / activation、run v5、Web、双数据库与真实浏览器链。
+3. [Workflow RAG 应用运行时激活与受控调用 v1](workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1-plan.md)：A / B / C 三批已完成，durable assignment、API key 受控调用、run v4、Web、双数据库与真实浏览器链均已关闭。
+4. [Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1-plan.md)：A / B / C / D 四批已完成，exact evidence、人工 decision、durable binding、应用配置 / 发布治理与 Web 连续链均已关闭。
+5. [Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1-plan.md)：契约、内存链、SQLite / PostgreSQL durable store、Web 与仓库收口三批均已完成。
+6. [Workflow RAG 评测数据集与知识质量审查 v1](workflow-rag-evaluation-dataset-knowledge-quality-review-v1-plan.md)：两份契约、共享 lexical evaluator、CLI、starter dataset 与 deterministic metadata-only report 已完成。
+7. [Workflow RAG Regression Review 与 Evaluation Profile v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1-plan.md)：Comparison v2、Evaluation / Baseline / Suite profile、SQLite durable resources、PostgreSQL 重启 / no-fallback 和 Web metadata-only 审查已完成。
+8. [Workflow RAG Retrieval 与应用知识快照 v1](workflow-rag-retrieval-application-knowledge-snapshot-dev-test-v1-plan.md)：A / B / C 三批已完成，不派生批次 D。
+9. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R2 至 R6 均已完成；R6 关闭评审保留仍有独立证据责任的 Provider、Production Ops 与 Control Plane formal UI 门禁，不派生第六条清理链。
+10. [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1-plan.md)：领域、Gateway 认证、双数据库门禁、Web 一次性交接、调试台内存交接、吊销与浏览器连续验收均已完成。
 
 R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、[Evaluation Cases / Batch Regression Review](workflow-evaluation-cases-batch-regression-review-v1-plan.md)、[Baseline / Case Versioning](workflow-evaluation-baseline-case-versioning-v1-plan.md) 与 [Evaluation Suite / Release Review](workflow-evaluation-suite-release-review-v1-plan.md) 已于 2026-07-11 完成。Model Gateway Request History / Usage & Failure Review v1、User Workspace Application API Integration & Invocation v1、Application Configuration Draft & Review v1 和 Application Publish Governance & Promotion v1 已完成实现与验证；不恢复旧 storage adapter readiness 链，也不派生新的 Gateway / executor / run store gate-only readiness 链。
 

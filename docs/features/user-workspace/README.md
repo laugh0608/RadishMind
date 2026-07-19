@@ -16,7 +16,8 @@
 
 ## 下一步
 
-- 当前回到用户工作区下一项正式功能设计选择；不从已关闭的 Application Interaction Session 派生长期记忆、自动 profile、重试 / fallback、schedule、replay / resume 或 agent loop。只有需要跨全部分页窗口的稳定统计、可信 reported usage 或正式 quota / billing owner 时，才评审服务端 summary。
+- 下一项先设计“应用开发工作区与发布准备审查 v1”：盘点并统一 Application、配置草案、Workflow Definition、RAG binding、Session、Run History、Comparison / Evaluation 和运行观测的入口、作用域、状态切换与证据交接，再决定实现拆分。该专题只编排既有权威资源和显式动作，不新增发布记录或执行算法。
+- 不从已关闭的 Application Interaction Session 派生长期记忆、自动 profile、重试 / fallback、schedule、replay / resume 或 agent loop。只有需要跨全部分页窗口的稳定统计、可信 reported usage 或正式 quota / billing owner 时，才评审服务端 summary。
 
 ## 目录停止线
 
