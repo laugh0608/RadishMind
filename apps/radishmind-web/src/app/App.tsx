@@ -233,6 +233,7 @@ const WorkflowRAGPromotionPanel = lazy(() => import("../features/control-plane-r
 const WorkflowRAGExecutionPanel = lazy(() => import("../features/control-plane-read/workflowRAGExecutionPanel"));
 const WorkflowDefinitionPromotionPanel = lazy(() => import("../features/control-plane-read/workflowDefinitionPromotionPanel"));
 const APIKeyLifecyclePanel = lazy(() => import("../features/control-plane-read/apiKeyLifecyclePanel").then((module) => ({ default: module.APIKeyLifecyclePanel })));
+const ApplicationInteractionSessionPanel = lazy(() => import("../features/control-plane-read/applicationInteractionSessionPanel"));
 const ApplicationRAGInvocationPanel = lazy(() => import("../features/control-plane-read/workflowRAGApplicationRuntimePanel"));
 const ApplicationOperationsPanel = lazy(() => import("../features/control-plane-read/applicationOperationsPanel"));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
@@ -1386,6 +1387,7 @@ export function App() {
             <a href="#workspace-workflow-definitions">Workflows</a>
             <a href="#workspace-run-history">Run History</a>
             <a href="#workspace-api-keys">API Keys</a>
+            <a href="#application-interaction-session">Application Interaction</a>
             <a href="#application-rag-invocation">Application RAG</a>
             <a href="#workspace-usage-quota">Usage Quota</a>
           </div>
@@ -1888,6 +1890,17 @@ export function App() {
             applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
             applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
             offlineView={workspaceApiKeys}
+          />
+        </Suspense>
+
+        <Suspense fallback={<section className="surface-band application-interaction-session"><p>Loading Application Interaction…</p></section>}>
+          <ApplicationInteractionSessionPanel
+            key={`application-interaction-${applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}`}
+            applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
+            applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
+            applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
+            suggestedDefinitionId={selectedWorkflowDefinitionId ?? ""}
+            onRunRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
           />
         </Suspense>
 

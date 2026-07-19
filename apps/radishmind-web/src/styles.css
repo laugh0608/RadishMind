@@ -5214,6 +5214,147 @@ dd {
   gap: 8px;
 }
 
+.application-interaction-session {
+  display: grid;
+  gap: 18px;
+}
+
+.application-interaction-scope,
+.application-interaction-create,
+.application-interaction-workflow-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+
+.application-interaction-scope article,
+.application-interaction-authority,
+.application-interaction-composer,
+.application-interaction-transcript article,
+.application-interaction-turn-history {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--panel) 94%, var(--accent) 6%);
+}
+
+.application-interaction-scope article,
+.application-interaction-create label,
+.application-interaction-composer > label,
+.application-interaction-workflow-options label,
+.application-interaction-authority > div,
+.application-interaction-message {
+  display: grid;
+  gap: 7px;
+}
+
+.application-interaction-scope span,
+.application-interaction-authority span,
+.application-interaction-message span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.application-interaction-scope code,
+.application-interaction-authority code,
+.application-interaction-turn-history code {
+  overflow-wrap: anywhere;
+}
+
+.application-interaction-create {
+  align-items: end;
+}
+
+.application-interaction-create input,
+.application-interaction-create select,
+.application-interaction-composer input,
+.application-interaction-composer textarea {
+  width: 100%;
+}
+
+.application-interaction-composer,
+.application-interaction-transcript,
+.application-interaction-turn-history,
+.application-interaction-authority {
+  display: grid;
+  gap: 14px;
+}
+
+.application-interaction-session-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 10px;
+}
+
+.application-interaction-session-list button,
+.application-interaction-turn-history li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+}
+
+.application-interaction-session-list button.selected {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--panel) 80%, var(--accent) 20%);
+}
+
+.application-interaction-session-list button span,
+.application-interaction-turn-history li span {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.application-interaction-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.application-interaction-message {
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.application-interaction-message p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.application-interaction-transcript ul,
+.application-interaction-turn-history ul {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.application-interaction-transcript li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.application-interaction-turn-history li {
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 720px) {
+  .application-interaction-session-list button,
+  .application-interaction-turn-history li {
+    flex-direction: column;
+  }
+}
+
 .workflow-rag-authority-comparison {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
