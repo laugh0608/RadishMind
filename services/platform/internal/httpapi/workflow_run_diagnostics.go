@@ -148,6 +148,10 @@ func workflowRunDiagnosticClassification(code WorkflowRunFailureCode, category W
 		return WorkflowRunFailureBoundaryToolStore, "outcome_reconciliation", WorkflowRunReviewToolOutcome
 	case WorkflowRunFailureCanceled:
 		return WorkflowRunFailureBoundaryRequest, "execution", WorkflowRunReviewStartNewRun
+	case WorkflowRunFailureDefinitionAuthority, WorkflowRunFailureDefinitionIncompatible:
+		return WorkflowRunFailureBoundaryExecutor, "definition_authority", WorkflowRunReviewDraft
+	case WorkflowRunFailureDefinitionInterrupted:
+		return WorkflowRunFailureBoundaryRunStore, "interrupted_execution", WorkflowRunReviewStartNewRun
 	case WorkflowRunFailureGatewayFailed:
 		if category == WorkflowRunGatewayFailureProviderFailed || category == WorkflowRunGatewayFailureOutputUnavailable {
 			return WorkflowRunFailureBoundaryProvider, "model_node", WorkflowRunReviewProviderConfiguration
@@ -202,6 +206,12 @@ func workflowRunDiagnosticSummary(code WorkflowRunFailureCode, category Workflow
 		return "Workflow tool state could not commit the required transition."
 	case WorkflowRunFailureToolOutcomeUnknown:
 		return "Workflow tool execution outcome requires manual review."
+	case WorkflowRunFailureDefinitionAuthority:
+		return "Active workflow definition authority changed before provider execution."
+	case WorkflowRunFailureDefinitionIncompatible:
+		return "Workflow definition execution profile is incompatible."
+	case WorkflowRunFailureDefinitionInterrupted:
+		return "Workflow definition execution was interrupted before terminal persistence."
 	default:
 		return "Workflow execution requires draft review."
 	}
@@ -257,7 +267,8 @@ func validWorkflowRunFailureCode(value WorkflowRunFailureCode) bool {
 		WorkflowRunFailureToolTimeout, WorkflowRunFailureToolResponseStatus,
 		WorkflowRunFailureToolResponseTooLarge, WorkflowRunFailureToolResponseInvalid,
 		WorkflowRunFailureToolStore, WorkflowRunFailureToolOutcomeUnknown,
-		WorkflowRunFailureRetrievalUnsupported:
+		WorkflowRunFailureRetrievalUnsupported, WorkflowRunFailureDefinitionAuthority,
+		WorkflowRunFailureDefinitionIncompatible, WorkflowRunFailureDefinitionInterrupted:
 		return true
 	default:
 		return false

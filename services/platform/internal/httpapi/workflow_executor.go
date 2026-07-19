@@ -15,13 +15,14 @@ import (
 )
 
 const (
-	workflowRunRecordSchemaVersion       = "workflow_run_record.v1"
-	workflowRunRecordLegacySchemaVersion = "workflow_run_record.v0"
-	workflowRunRecordToolSchemaVersion   = "workflow_run_record.v2"
-	workflowRunRecordRAGSchemaVersion    = "workflow_run_record.v3"
-	workflowRunRecordAppRAGSchemaVersion = "workflow_run_record.v4"
-	workflowExecutorProtocol             = "workflow-executor-v0"
-	workflowExecutorRoute                = "/v1/user-workspace/workflow-drafts/{draft_id}/runs"
+	workflowRunRecordSchemaVersion           = "workflow_run_record.v1"
+	workflowRunRecordLegacySchemaVersion     = "workflow_run_record.v0"
+	workflowRunRecordToolSchemaVersion       = "workflow_run_record.v2"
+	workflowRunRecordRAGSchemaVersion        = "workflow_run_record.v3"
+	workflowRunRecordAppRAGSchemaVersion     = "workflow_run_record.v4"
+	workflowRunRecordDefinitionSchemaVersion = "workflow_run_record.v5"
+	workflowExecutorProtocol                 = "workflow-executor-v0"
+	workflowExecutorRoute                    = "/v1/user-workspace/workflow-drafts/{draft_id}/runs"
 
 	workflowExecutorMaxNodes          = 16
 	workflowExecutorMaxEdges          = 32
@@ -88,6 +89,9 @@ const (
 	WorkflowRunFailureToolResponseInvalid     WorkflowRunFailureCode = "workflow_tool_response_invalid"
 	WorkflowRunFailureToolStore               WorkflowRunFailureCode = "workflow_tool_store_unavailable"
 	WorkflowRunFailureToolOutcomeUnknown      WorkflowRunFailureCode = "workflow_tool_outcome_unknown"
+	WorkflowRunFailureDefinitionAuthority     WorkflowRunFailureCode = "workflow_definition_execution_authority_drift"
+	WorkflowRunFailureDefinitionIncompatible  WorkflowRunFailureCode = "workflow_definition_execution_profile_incompatible"
+	WorkflowRunFailureDefinitionInterrupted   WorkflowRunFailureCode = "workflow_definition_execution_interrupted"
 )
 
 type WorkflowRunContext struct {
@@ -140,48 +144,70 @@ type workflowRunExecutionSource struct {
 	Version    int
 }
 
+type WorkflowDefinitionRunAuthority struct {
+	DefinitionID             string `json:"definition_id"`
+	DefinitionVersion        int    `json:"definition_version"`
+	DefinitionDigest         string `json:"definition_digest"`
+	ActivationPointerVersion int    `json:"activation_pointer_version"`
+	CandidateID              string `json:"candidate_id"`
+	CandidateReviewVersion   int    `json:"candidate_review_version"`
+	SourceDraftID            string `json:"source_draft_id"`
+	SourceDraftVersion       int    `json:"source_draft_version"`
+	SourceDraftDigest        string `json:"source_draft_digest"`
+	ApplicationRecordVersion int    `json:"application_record_version"`
+	ApplicationLifecycle     string `json:"application_lifecycle"`
+}
+
 type WorkflowRunRecord struct {
-	SchemaVersion    string                              `json:"schema_version"`
-	RecordVersion    int                                 `json:"record_version"`
-	RunID            string                              `json:"run_id"`
-	PlanID           string                              `json:"plan_id,omitempty"`
-	ConfirmationID   string                              `json:"confirmation_id,omitempty"`
-	TenantRef        string                              `json:"tenant_ref,omitempty"`
-	DraftID          string                              `json:"draft_id"`
-	DraftVersion     int                                 `json:"draft_version"`
-	DraftDigest      string                              `json:"draft_digest,omitempty"`
-	WorkspaceID      string                              `json:"workspace_id"`
-	ApplicationID    string                              `json:"application_id"`
-	ExecutionSource  *workflowRunExecutionSource         `json:"-"`
-	Status           WorkflowRunStatus                   `json:"status"`
-	FailureCode      WorkflowRunFailureCode              `json:"failure_code"`
-	FailureSummary   string                              `json:"failure_summary"`
-	StartedAt        string                              `json:"started_at"`
-	CompletedAt      string                              `json:"completed_at"`
-	InputBytes       int                                 `json:"input_bytes"`
-	ConditionNodeIDs []string                            `json:"condition_node_ids"`
-	RequestedModel   string                              `json:"requested_model"`
-	SelectedProvider string                              `json:"selected_provider"`
-	SelectedProfile  string                              `json:"selected_profile"`
-	SelectedModel    string                              `json:"selected_model"`
-	UpstreamModel    string                              `json:"upstream_model"`
-	SelectionSource  string                              `json:"selection_source"`
-	Nodes            []WorkflowRunNodeRecord             `json:"nodes"`
-	ToolAttempt      *WorkflowHTTPToolExecutionAttempt   `json:"tool_attempt,omitempty"`
-	RAGSnapshot      *workflowRAGRunSnapshotBinding      `json:"snapshot,omitempty"`
-	RetrievalAttempt *workflowRAGRunRetrievalAttempt     `json:"retrieval_attempt,omitempty"`
-	RAGAnswer        *WorkflowRAGAnswer                  `json:"answer,omitempty"`
-	RAGApplication   *workflowRAGApplicationRunAuthority `json:"-"`
-	Output           string                              `json:"output"`
-	RequestID        string                              `json:"request_id"`
-	AuditRef         string                              `json:"audit_ref"`
-	ActorRef         string                              `json:"actor_ref"`
-	SideEffects      WorkflowRunSideEffects              `json:"side_effects"`
-	Diagnostic       *WorkflowRunDiagnostic              `json:"diagnostic,omitempty"`
+	SchemaVersion          string                              `json:"schema_version"`
+	RecordVersion          int                                 `json:"record_version"`
+	RunID                  string                              `json:"run_id"`
+	PlanID                 string                              `json:"plan_id,omitempty"`
+	ConfirmationID         string                              `json:"confirmation_id,omitempty"`
+	TenantRef              string                              `json:"tenant_ref,omitempty"`
+	DraftID                string                              `json:"draft_id"`
+	DraftVersion           int                                 `json:"draft_version"`
+	DraftDigest            string                              `json:"draft_digest,omitempty"`
+	WorkspaceID            string                              `json:"workspace_id"`
+	ApplicationID          string                              `json:"application_id"`
+	ExecutionKind          string                              `json:"execution_kind,omitempty"`
+	ExecutionSourceKind    string                              `json:"execution_source_kind,omitempty"`
+	ExecutionSourceID      string                              `json:"execution_source_id,omitempty"`
+	ExecutionSourceVersion int                                 `json:"execution_source_version,omitempty"`
+	ExecutionProfile       string                              `json:"execution_profile,omitempty"`
+	InputDigest            string                              `json:"input_digest,omitempty"`
+	DefinitionAuthority    *WorkflowDefinitionRunAuthority     `json:"definition_authority,omitempty"`
+	ExecutionSource        *workflowRunExecutionSource         `json:"-"`
+	Status                 WorkflowRunStatus                   `json:"status"`
+	FailureCode            WorkflowRunFailureCode              `json:"failure_code"`
+	FailureSummary         string                              `json:"failure_summary"`
+	StartedAt              string                              `json:"started_at"`
+	CompletedAt            string                              `json:"completed_at"`
+	InputBytes             int                                 `json:"input_bytes"`
+	ConditionNodeIDs       []string                            `json:"condition_node_ids"`
+	RequestedModel         string                              `json:"requested_model"`
+	SelectedProvider       string                              `json:"selected_provider"`
+	SelectedProfile        string                              `json:"selected_profile"`
+	SelectedModel          string                              `json:"selected_model"`
+	UpstreamModel          string                              `json:"upstream_model"`
+	SelectionSource        string                              `json:"selection_source"`
+	Nodes                  []WorkflowRunNodeRecord             `json:"nodes"`
+	ToolAttempt            *WorkflowHTTPToolExecutionAttempt   `json:"tool_attempt,omitempty"`
+	RAGSnapshot            *workflowRAGRunSnapshotBinding      `json:"snapshot,omitempty"`
+	RetrievalAttempt       *workflowRAGRunRetrievalAttempt     `json:"retrieval_attempt,omitempty"`
+	RAGAnswer              *WorkflowRAGAnswer                  `json:"answer,omitempty"`
+	RAGApplication         *workflowRAGApplicationRunAuthority `json:"-"`
+	Output                 string                              `json:"output"`
+	RequestID              string                              `json:"request_id"`
+	AuditRef               string                              `json:"audit_ref"`
+	ActorRef               string                              `json:"actor_ref"`
+	SideEffects            WorkflowRunSideEffects              `json:"side_effects"`
+	Diagnostic             *WorkflowRunDiagnostic              `json:"diagnostic,omitempty"`
 }
 
 type WorkflowRunResult struct {
 	Record          *WorkflowRunRecord
+	AdvisoryOutput  string
 	RetrievalAnswer *WorkflowRAGAnswer
 	FailureCode     WorkflowRunFailureCode
 	FailureSummary  string
@@ -202,6 +228,7 @@ type workflowExecutorService struct {
 	envelopeOptions       func(northboundSelection, float64) bridge.EnvelopeOptions
 	newRunID              func() (string, error)
 	diagnosticsDevEnabled bool
+	beforeProviderCall    func(context.Context) (WorkflowRunFailureCode, string)
 }
 
 type workflowExecutionPlan struct {
@@ -390,7 +417,9 @@ func (service workflowExecutorService) executePlan(
 
 		nodeOutputs[nodeID] = output
 		record.Nodes[recordIndex].Status = WorkflowRunNodeStatusSucceeded
-		record.Nodes[recordIndex].OutputPreview = workflowRunNodeOutputPreview(node.NodeType, output)
+		if record.SchemaVersion != workflowRunRecordDefinitionSchemaVersion {
+			record.Nodes[recordIndex].OutputPreview = workflowRunNodeOutputPreview(node.NodeType, output)
+		}
 		if record.Diagnostic != nil {
 			record.Diagnostic.LastCompletedNodeID = nodeID
 			record.Diagnostic.ObservedAt = workflowRunTimestamp(time.Now())
@@ -412,7 +441,9 @@ func (service workflowExecutorService) executePlan(
 		return service.finishFailedRun(runContext, record, WorkflowRunFailureOutputUnavailable, "No active workflow path produced an output node result.", false)
 	}
 	record.Status = WorkflowRunStatusSucceeded
-	record.Output = finalOutput
+	if record.SchemaVersion != workflowRunRecordDefinitionSchemaVersion {
+		record.Output = finalOutput
+	}
 	record.CompletedAt = workflowRunTimestamp(time.Now())
 	record.FailureCode = ""
 	record.FailureSummary = ""
@@ -427,7 +458,11 @@ func (service workflowExecutorService) executePlan(
 		}
 		return WorkflowRunResult{Record: workflowRunRecordPointer(record), FailureCode: WorkflowRunFailureStoreUnavailable, FailureSummary: "Workflow run completed but its terminal record could not be stored."}
 	}
-	return WorkflowRunResult{Record: workflowRunRecordPointer(record)}
+	result := WorkflowRunResult{Record: workflowRunRecordPointer(record)}
+	if record.SchemaVersion == workflowRunRecordDefinitionSchemaVersion {
+		result.AdvisoryOutput = finalOutput
+	}
+	return result
 }
 
 func (service workflowExecutorService) executeNode(
@@ -461,6 +496,12 @@ func (service workflowExecutorService) executeNode(
 		}
 		return "false", "", ""
 	case "llm":
+		if service.beforeProviderCall != nil {
+			if code, summary := service.beforeProviderCall(executionContext); code != "" {
+				setWorkflowRunFailureDiagnostic(record, code, node.NodeID, WorkflowRunGatewayFailureNone)
+				return "", code, summary
+			}
+		}
 		packet, failureCode, failureSummary := buildWorkflowNodeInputPacket(
 			node,
 			plan.incoming[node.NodeID],
@@ -471,22 +512,35 @@ func (service workflowExecutorService) executeNode(
 		if failureCode != "" {
 			return "", failureCode, failureSummary
 		}
+		sourceFields := map[string]any{
+			"workflow_draft_id":      draft.DraftID,
+			"workflow_draft_version": draft.DraftVersion,
+		}
+		if record.SchemaVersion == workflowRunRecordDefinitionSchemaVersion && record.DefinitionAuthority != nil {
+			sourceFields = map[string]any{
+				"workflow_definition_id":      record.DefinitionAuthority.DefinitionID,
+				"workflow_definition_version": record.DefinitionAuthority.DefinitionVersion,
+				"workflow_definition_digest":  record.DefinitionAuthority.DefinitionDigest,
+			}
+		}
+		northboundFields := map[string]any{
+			"request_kind":          workflowExecutorProtocol,
+			"workflow_run_id":       record.RunID,
+			"workflow_node_id":      node.NodeID,
+			"allow_tool_calls":      false,
+			"allow_retrieval":       false,
+			"writes_business_truth": false,
+		}
+		for key, value := range sourceFields {
+			northboundFields[key] = value
+		}
 		canonicalRequest, err := buildNorthboundCanonicalRequest(northboundCanonicalRequestOptions{
-			requestID:  record.RunID + "-" + node.NodeID,
-			route:      workflowExecutorRoute,
-			protocol:   workflowExecutorProtocol,
-			locale:     "zh-CN",
-			promptText: packet,
-			northboundFields: map[string]any{
-				"request_kind":           workflowExecutorProtocol,
-				"workflow_run_id":        record.RunID,
-				"workflow_draft_id":      draft.DraftID,
-				"workflow_draft_version": draft.DraftVersion,
-				"workflow_node_id":       node.NodeID,
-				"allow_tool_calls":       false,
-				"allow_retrieval":        false,
-				"writes_business_truth":  false,
-			},
+			requestID:        record.RunID + "-" + node.NodeID,
+			route:            workflowExecutorRoute,
+			protocol:         workflowExecutorProtocol,
+			locale:           "zh-CN",
+			promptText:       packet,
+			northboundFields: northboundFields,
 		})
 		if err != nil {
 			return "", WorkflowRunFailureGatewayFailed, "Workflow model request could not be assembled."

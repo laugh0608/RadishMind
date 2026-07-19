@@ -29,6 +29,7 @@ type workflowRunEnvelope struct {
 	ApplicationID             string                       `json:"application_id"`
 	Run                       *WorkflowRunRecord           `json:"run"`
 	RetrievalAnswer           *WorkflowRAGAnswer           `json:"retrieval_answer,omitempty"`
+	AdvisoryOutput            string                       `json:"advisory_output,omitempty"`
 	FailureCode               *string                      `json:"failure_code"`
 	FailureSummary            string                       `json:"failure_summary"`
 	AuditRef                  string                       `json:"audit_ref"`
@@ -134,6 +135,12 @@ func (s *Server) handleReadWorkflowRun(writer http.ResponseWriter, request *http
 			return
 		}
 	}
+	if s.config.WorkflowDefinitionReleaseDevEnabled && s.config.WorkflowExecutorDevEnabled {
+		if reconciled := s.workflowDefinitionExecutionService().ReconcileStale(runContext); reconciled.FailureCode != "" {
+			writeWorkflowRunResult(writer, trace, runContext, reconciled)
+			return
+		}
+	}
 	result := s.workflowExecutorService().ReadRun(runContext, strings.TrimSpace(request.PathValue("run_id")))
 	previews := []WorkflowRAGFragmentPreview{}
 	if includePreviews && result.Record != nil {
@@ -169,6 +176,12 @@ func (s *Server) handleListWorkflowRuns(writer http.ResponseWriter, request *htt
 	if s.config.WorkflowRAGExecutionDevEnabled {
 		if reconciled := s.workflowRAGExecutionService().ReconcileStale(runContext); reconciled.FailureCode != "" {
 			writeWorkflowRunListResult(writer, trace, runContext, workflowRunListFailure(WorkflowRunFailureStoreUnavailable))
+			return
+		}
+	}
+	if s.config.WorkflowDefinitionReleaseDevEnabled && s.config.WorkflowExecutorDevEnabled {
+		if reconciled := s.workflowDefinitionExecutionService().ReconcileStale(runContext); reconciled.FailureCode != "" {
+			writeWorkflowRunListResult(writer, trace, runContext, workflowRunListFailure(reconciled.FailureCode))
 			return
 		}
 	}
@@ -295,6 +308,7 @@ func writeWorkflowRunResult(
 		ApplicationID:   runContext.ApplicationID,
 		Run:             result.Record,
 		RetrievalAnswer: result.RetrievalAnswer,
+		AdvisoryOutput:  result.AdvisoryOutput,
 		FailureCode:     workflowRunFailureCodePointer(result.FailureCode),
 		FailureSummary:  result.FailureSummary,
 		AuditRef:        runContext.AuditRef,

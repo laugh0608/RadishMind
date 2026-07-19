@@ -59,6 +59,8 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"CREATE TABLE workflow_definition_release_audits",
 		"workflow_definition_release_decisions_append_only",
 		"workflow_definition_release_audits_append_only",
+		"workflow_run_record.v5",
+		"workflow_definition",
 	} {
 		if !strings.Contains(upSQL, required) {
 			t.Fatalf("workflow run up migration is missing %q", required)

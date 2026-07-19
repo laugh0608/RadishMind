@@ -20,17 +20,20 @@ const (
 )
 
 type WorkflowRunListRequest struct {
-	Limit           int
-	Cursor          string
-	Status          WorkflowRunStatus
-	DraftID         string
-	StartedFrom     *time.Time
-	StartedTo       *time.Time
-	FailureCode     WorkflowRunFailureCode
-	FailureBoundary WorkflowRunFailureBoundary
-	Provider        string
-	Model           string
-	StaleRunning    *bool
+	Limit                  int
+	Cursor                 string
+	Status                 WorkflowRunStatus
+	DraftID                string
+	ExecutionSourceKind    string
+	ExecutionSourceID      string
+	ExecutionSourceVersion int
+	StartedFrom            *time.Time
+	StartedTo              *time.Time
+	FailureCode            WorkflowRunFailureCode
+	FailureBoundary        WorkflowRunFailureBoundary
+	Provider               string
+	Model                  string
+	StaleRunning           *bool
 }
 
 type WorkflowRunSummary struct {
@@ -47,6 +50,12 @@ type WorkflowRunSummary struct {
 	ExecutionSourceKind      string                            `json:"execution_source_kind,omitempty"`
 	ExecutionSourceID        string                            `json:"execution_source_id,omitempty"`
 	ExecutionSourceVersion   int                               `json:"execution_source_version,omitempty"`
+	ExecutionProfile         string                            `json:"execution_profile,omitempty"`
+	DefinitionDigest         string                            `json:"definition_digest,omitempty"`
+	ActivationPointerVersion int                               `json:"activation_pointer_version,omitempty"`
+	SourceDraftID            string                            `json:"source_draft_id,omitempty"`
+	SourceDraftVersion       int                               `json:"source_draft_version,omitempty"`
+	SourceDraftDigest        string                            `json:"source_draft_digest,omitempty"`
 	RuntimeAssignmentID      string                            `json:"runtime_assignment_id,omitempty"`
 	RuntimeAssignmentVersion int                               `json:"runtime_assignment_version,omitempty"`
 	PublishCandidateID       string                            `json:"publish_candidate_id,omitempty"`
@@ -173,7 +182,11 @@ func normalizeWorkflowRunListRequest(request WorkflowRunListRequest) (WorkflowRu
 		return WorkflowRunListFilter{}, WorkflowRunFailureFilterInvalid
 	}
 	draftID := strings.TrimSpace(request.DraftID)
-	if len([]rune(draftID)) > 160 {
+	sourceKind, sourceID := strings.TrimSpace(request.ExecutionSourceKind), strings.TrimSpace(request.ExecutionSourceID)
+	if len([]rune(draftID)) > 160 || len([]rune(sourceID)) > 160 ||
+		(sourceKind != "" && sourceKind != "workflow_draft" && sourceKind != workflowDefinitionExecutionSourceKind && sourceKind != workflowRAGApplicationExecutionSourceKind) ||
+		request.ExecutionSourceVersion < 0 || (request.ExecutionSourceVersion > 0 && (sourceKind == "" || sourceID == "")) ||
+		(draftID != "" && (sourceKind != "" || sourceID != "" || request.ExecutionSourceVersion != 0)) {
 		return WorkflowRunListFilter{}, WorkflowRunFailureFilterInvalid
 	}
 	provider, model := strings.TrimSpace(request.Provider), strings.TrimSpace(request.Model)
@@ -194,7 +207,7 @@ func normalizeWorkflowRunListRequest(request WorkflowRunListRequest) (WorkflowRu
 		return WorkflowRunListFilter{}, WorkflowRunFailureFilterInvalid
 	}
 	return WorkflowRunListFilter{
-		Status: request.Status, DraftID: draftID, StartedFrom: request.StartedFrom,
+		Status: request.Status, DraftID: draftID, ExecutionSourceKind: sourceKind, ExecutionSourceID: sourceID, ExecutionSourceVersion: request.ExecutionSourceVersion, StartedFrom: request.StartedFrom,
 		StartedTo: request.StartedTo, Limit: limit, FailureCode: request.FailureCode,
 		FailureBoundary: request.FailureBoundary, Provider: provider,
 		Model: model, StaleRunning: request.StaleRunning,
@@ -202,13 +215,20 @@ func normalizeWorkflowRunListRequest(request WorkflowRunListRequest) (WorkflowRu
 }
 
 func parseWorkflowRunListRequest(values map[string][]string) (WorkflowRunListRequest, WorkflowRunFailureCode) {
-	allowed := map[string]bool{"workspace_id": true, "application_id": true, "limit": true, "cursor": true, "status": true, "draft_id": true, "started_from": true, "started_to": true, "failure_code": true, "failure_boundary": true, "provider": true, "model": true, "stale_running": true}
+	allowed := map[string]bool{"workspace_id": true, "application_id": true, "limit": true, "cursor": true, "status": true, "draft_id": true, "execution_source_kind": true, "execution_source_id": true, "execution_source_version": true, "started_from": true, "started_to": true, "failure_code": true, "failure_boundary": true, "provider": true, "model": true, "stale_running": true}
 	for key, entries := range values {
 		if !allowed[key] || len(entries) != 1 {
 			return WorkflowRunListRequest{}, WorkflowRunFailureFilterInvalid
 		}
 	}
-	request := WorkflowRunListRequest{Cursor: strings.TrimSpace(firstQueryValue(values, "cursor")), Status: WorkflowRunStatus(strings.TrimSpace(firstQueryValue(values, "status"))), DraftID: strings.TrimSpace(firstQueryValue(values, "draft_id")), FailureCode: WorkflowRunFailureCode(strings.TrimSpace(firstQueryValue(values, "failure_code"))), FailureBoundary: WorkflowRunFailureBoundary(strings.TrimSpace(firstQueryValue(values, "failure_boundary"))), Provider: strings.TrimSpace(firstQueryValue(values, "provider")), Model: strings.TrimSpace(firstQueryValue(values, "model"))}
+	request := WorkflowRunListRequest{Cursor: strings.TrimSpace(firstQueryValue(values, "cursor")), Status: WorkflowRunStatus(strings.TrimSpace(firstQueryValue(values, "status"))), DraftID: strings.TrimSpace(firstQueryValue(values, "draft_id")), ExecutionSourceKind: strings.TrimSpace(firstQueryValue(values, "execution_source_kind")), ExecutionSourceID: strings.TrimSpace(firstQueryValue(values, "execution_source_id")), FailureCode: WorkflowRunFailureCode(strings.TrimSpace(firstQueryValue(values, "failure_code"))), FailureBoundary: WorkflowRunFailureBoundary(strings.TrimSpace(firstQueryValue(values, "failure_boundary"))), Provider: strings.TrimSpace(firstQueryValue(values, "provider")), Model: strings.TrimSpace(firstQueryValue(values, "model"))}
+	if raw := strings.TrimSpace(firstQueryValue(values, "execution_source_version")); raw != "" {
+		version, err := strconv.Atoi(raw)
+		if err != nil {
+			return WorkflowRunListRequest{}, WorkflowRunFailureFilterInvalid
+		}
+		request.ExecutionSourceVersion = version
+	}
 	if raw := strings.TrimSpace(firstQueryValue(values, "stale_running")); raw != "" {
 		if raw != "true" && raw != "false" {
 			return WorkflowRunListRequest{}, WorkflowRunFailureFilterInvalid
@@ -280,7 +300,7 @@ func decodeWorkflowRunCursor(value string, filter WorkflowRunListFilter) (decode
 }
 
 func workflowRunFilterDigest(filter WorkflowRunListFilter) string {
-	value := fmt.Sprintf("v2\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%d", filter.Status, filter.DraftID, filter.FailureCode, filter.FailureBoundary, filter.Provider, filter.Model, workflowRunFilterBool(filter.StaleRunning), workflowRunFilterTime(filter.StartedFrom)+"\n"+workflowRunFilterTime(filter.StartedTo), filter.Limit)
+	value := fmt.Sprintf("v3\n%s\n%s\n%s\n%s\n%d\n%s\n%s\n%s\n%s\n%s\n%s\n%d", filter.Status, filter.DraftID, filter.ExecutionSourceKind, filter.ExecutionSourceID, filter.ExecutionSourceVersion, filter.FailureCode, filter.FailureBoundary, filter.Provider, filter.Model, workflowRunFilterBool(filter.StaleRunning), workflowRunFilterTime(filter.StartedFrom)+"\n"+workflowRunFilterTime(filter.StartedTo), filter.Limit)
 	digest := sha256.Sum256([]byte(value))
 	return hex.EncodeToString(digest[:16])
 }
@@ -327,6 +347,14 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 		summary.ExecutionSourceKind = record.ExecutionSource.SourceKind
 		summary.ExecutionSourceID = record.ExecutionSource.ID
 		summary.ExecutionSourceVersion = record.ExecutionSource.Version
+	}
+	if record.DefinitionAuthority != nil {
+		summary.ExecutionProfile = record.ExecutionProfile
+		summary.DefinitionDigest = record.DefinitionAuthority.DefinitionDigest
+		summary.ActivationPointerVersion = record.DefinitionAuthority.ActivationPointerVersion
+		summary.SourceDraftID = record.DefinitionAuthority.SourceDraftID
+		summary.SourceDraftVersion = record.DefinitionAuthority.SourceDraftVersion
+		summary.SourceDraftDigest = record.DefinitionAuthority.SourceDraftDigest
 	}
 	if record.RAGApplication != nil {
 		summary.RuntimeAssignmentID = record.RAGApplication.AssignmentID

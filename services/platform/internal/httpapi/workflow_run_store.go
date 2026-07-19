@@ -17,18 +17,21 @@ var (
 )
 
 type WorkflowRunListFilter struct {
-	Status          WorkflowRunStatus
-	DraftID         string
-	FailureCode     WorkflowRunFailureCode
-	FailureBoundary WorkflowRunFailureBoundary
-	Provider        string
-	Model           string
-	StaleRunning    *bool
-	StartedFrom     *time.Time
-	StartedTo       *time.Time
-	BeforeTime      *time.Time
-	BeforeRunID     string
-	Limit           int
+	Status                 WorkflowRunStatus
+	DraftID                string
+	ExecutionSourceKind    string
+	ExecutionSourceID      string
+	ExecutionSourceVersion int
+	FailureCode            WorkflowRunFailureCode
+	FailureBoundary        WorkflowRunFailureBoundary
+	Provider               string
+	Model                  string
+	StaleRunning           *bool
+	StartedFrom            *time.Time
+	StartedTo              *time.Time
+	BeforeTime             *time.Time
+	BeforeRunID            string
+	Limit                  int
 }
 
 type WorkflowRunListPage struct {
@@ -140,6 +143,14 @@ func workflowRunMatchesFilter(record WorkflowRunRecord, filter WorkflowRunListFi
 	if filter.DraftID != "" && record.DraftID != filter.DraftID {
 		return false
 	}
+	if filter.ExecutionSourceKind != "" || filter.ExecutionSourceID != "" || filter.ExecutionSourceVersion != 0 {
+		sourceKind, sourceID, sourceVersion, err := workflowRunStorageExecutionSource(record)
+		if err != nil || (filter.ExecutionSourceKind != "" && sourceKind != filter.ExecutionSourceKind) ||
+			(filter.ExecutionSourceID != "" && sourceID != filter.ExecutionSourceID) ||
+			(filter.ExecutionSourceVersion != 0 && sourceVersion != filter.ExecutionSourceVersion) {
+			return false
+		}
+	}
 	if filter.FailureCode != "" && record.FailureCode != filter.FailureCode {
 		return false
 	}
@@ -197,6 +208,10 @@ func validateWorkflowRunStoreRecord(runContext WorkflowRunContext, record *Workf
 		if err := validateWorkflowRAGApplicationRunStoreRecord(runContext, record); err != nil {
 			return errWorkflowRunStoreContract
 		}
+	} else if record.SchemaVersion == workflowRunRecordDefinitionSchemaVersion {
+		if err := validateWorkflowDefinitionRunStoreRecord(runContext, record); err != nil {
+			return errWorkflowRunStoreContract
+		}
 	} else if strings.TrimSpace(record.DraftID) == "" || record.DraftVersion <= 0 {
 		return errWorkflowRunStoreContract
 	} else if record.SchemaVersion == workflowRunRecordRAGSchemaVersion {
@@ -244,7 +259,7 @@ func workflowRunRecordContainsEndpoint(record *WorkflowRunRecord) bool {
 func validWorkflowRunRecordSchema(schemaVersion string) bool {
 	return schemaVersion == workflowRunRecordSchemaVersion || schemaVersion == workflowRunRecordLegacySchemaVersion ||
 		schemaVersion == workflowRunRecordToolSchemaVersion || schemaVersion == workflowRunRecordRAGSchemaVersion ||
-		schemaVersion == workflowRunRecordAppRAGSchemaVersion
+		schemaVersion == workflowRunRecordAppRAGSchemaVersion || schemaVersion == workflowRunRecordDefinitionSchemaVersion
 }
 
 func validWorkflowRunStatus(status WorkflowRunStatus) bool {
@@ -295,6 +310,10 @@ func cloneWorkflowRunRecord(record WorkflowRunRecord) WorkflowRunRecord {
 	if record.ExecutionSource != nil {
 		source := *record.ExecutionSource
 		cloned.ExecutionSource = &source
+	}
+	if record.DefinitionAuthority != nil {
+		authority := *record.DefinitionAuthority
+		cloned.DefinitionAuthority = &authority
 	}
 	if record.RAGApplication != nil {
 		authority := *record.RAGApplication

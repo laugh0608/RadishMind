@@ -94,13 +94,15 @@ func (store *postgresWorkflowRunStore) ListRuns(runContext WorkflowRunContext, f
  WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3
 	AND ($4='' OR run_status=$4)
 	AND ($5='' OR (execution_source_kind='workflow_draft' AND execution_source_id=$5))
-	AND ($6='' OR failure_code=$6) AND ($7='' OR failure_boundary=$7)
-	AND ($8='' OR selected_provider=$8) AND ($9='' OR selected_model=$9)
-	AND ($10::boolean IS NULL OR (run_status='running' AND started_at < $11)=$10)
-	AND ($12::timestamptz IS NULL OR started_at >= $12) AND ($13::timestamptz IS NULL OR started_at <= $13)
-	AND ($14::timestamptz IS NULL OR (started_at,run_id) < ($14,$15))
- ORDER BY started_at DESC, run_id DESC LIMIT $16`,
+	AND ($6='' OR execution_source_kind=$6) AND ($7='' OR execution_source_id=$7) AND ($8=0 OR execution_source_version=$8)
+	AND ($9='' OR failure_code=$9) AND ($10='' OR failure_boundary=$10)
+	AND ($11='' OR selected_provider=$11) AND ($12='' OR selected_model=$12)
+	AND ($13::boolean IS NULL OR (run_status='running' AND started_at < $14)=$13)
+	AND ($15::timestamptz IS NULL OR started_at >= $15) AND ($16::timestamptz IS NULL OR started_at <= $16)
+	AND ($17::timestamptz IS NULL OR (started_at,run_id) < ($17,$18))
+ ORDER BY started_at DESC, run_id DESC LIMIT $19`,
 		runContext.TenantRef, runContext.WorkspaceID, runContext.ApplicationID, string(filter.Status), filter.DraftID,
+		filter.ExecutionSourceKind, filter.ExecutionSourceID, filter.ExecutionSourceVersion,
 		string(filter.FailureCode), string(filter.FailureBoundary), filter.Provider, filter.Model, filter.StaleRunning,
 		time.Now().UTC().Add(-workflowExecutorDefaultMaxRuntime), filter.StartedFrom, filter.StartedTo,
 		filter.BeforeTime, filter.BeforeRunID, limit+1)

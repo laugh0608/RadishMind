@@ -35,6 +35,26 @@ func TestSQLiteWorkflowRunStoreContracts(t *testing.T) {
 	})
 }
 
+func TestSQLiteWorkflowRunStorePersistsAndFiltersDefinitionV5(t *testing.T) {
+	runtime := openWorkflowRunSQLiteRuntime(t, filepath.Join(t.TempDir(), "definition-v5.db"))
+	store := newSQLiteWorkflowRunStore(runtime.DB())
+	runContext := workflowExecutorTestContext()
+	record := workflowDefinitionRunRecordForStoreTest(runContext, "run_definition_sqlite")
+	if err := store.UpsertRun(runContext, &record); err != nil {
+		t.Fatalf("create SQLite v5 run: %v", err)
+	}
+	record.Status = WorkflowRunStatusSucceeded
+	record.CompletedAt = workflowRunTimestamp(time.Now().UTC())
+	record.Diagnostic.TerminalWriteState = WorkflowRunTerminalWriteStored
+	if err := store.UpsertRun(runContext, &record); err != nil {
+		t.Fatalf("complete SQLite v5 run: %v", err)
+	}
+	page, err := store.ListRuns(runContext, WorkflowRunListFilter{ExecutionSourceKind: workflowDefinitionExecutionSourceKind, ExecutionSourceID: record.ExecutionSourceID, ExecutionSourceVersion: record.ExecutionSourceVersion, Limit: 10})
+	if err != nil || len(page.Records) != 1 || page.Records[0].DefinitionAuthority == nil || page.Records[0].SchemaVersion != workflowRunRecordDefinitionSchemaVersion {
+		t.Fatalf("SQLite v5 history/filter failed: %#v err=%v", page, err)
+	}
+}
+
 func TestSQLiteWorkflowRunStoreStableOrderingAndCompleteScopeIsolation(t *testing.T) {
 	runtime := openWorkflowRunSQLiteRuntime(t, filepath.Join(t.TempDir(), "radishmind.db"))
 	store := newSQLiteWorkflowRunStore(runtime.DB())

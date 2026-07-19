@@ -180,6 +180,12 @@ func (store *sqliteWorkflowRunStore) ListRuns(
 		string(filter.Status),
 		filter.DraftID,
 		filter.DraftID,
+		filter.ExecutionSourceKind,
+		filter.ExecutionSourceKind,
+		filter.ExecutionSourceID,
+		filter.ExecutionSourceID,
+		filter.ExecutionSourceVersion,
+		filter.ExecutionSourceVersion,
 		string(filter.FailureCode),
 		string(filter.FailureCode),
 		string(filter.FailureBoundary),
@@ -386,6 +392,9 @@ SELECT ` + sqliteWorkflowRunColumns + `
  WHERE tenant_ref=? AND workspace_id=? AND application_id=?
    AND (?='' OR run_status=?)
    AND (?='' OR (execution_source_kind='workflow_draft' AND execution_source_id=?))
+   AND (?='' OR execution_source_kind=?)
+   AND (?='' OR execution_source_id=?)
+   AND (?=0 OR execution_source_version=?)
    AND (?='' OR failure_code=?)
    AND (?='' OR failure_boundary=?)
    AND (?='' OR selected_provider=?)

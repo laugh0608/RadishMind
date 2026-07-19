@@ -16,8 +16,8 @@ import (
 
 const (
 	Component                                     = "workflow_runs"
-	MigrationID                                   = "0013_workflow_definition_releases"
-	StoreSchemaVersion                            = "workflow_run_store_v13"
+	MigrationID                                   = "0014_workflow_definition_execution"
+	StoreSchemaVersion                            = "workflow_run_store_v14"
 	legacyMigrationID                             = "0001_workflow_runs"
 	legacyStoreSchemaVersion                      = "workflow_run_store_v1"
 	diagnosticsMigrationID                        = "0002_workflow_run_diagnostics"
@@ -42,6 +42,8 @@ const (
 	ragKnowledgePromotionStoreSchemaVersion       = "workflow_run_store_v11"
 	applicationRuntimeMigrationID                 = "0012_workflow_rag_application_invocations"
 	applicationRuntimeStoreSchemaVersion          = "workflow_run_store_v12"
+	definitionReleaseMigrationID                  = "0013_workflow_definition_releases"
+	definitionReleaseStoreSchemaVersion           = "workflow_run_store_v13"
 	MigrationStateApplied                         = "applied"
 	MigrationStatePending                         = "pending"
 	MigrationStateNotApplied                      = "not_applied"
@@ -131,8 +133,14 @@ var upSQLV13 string
 //go:embed 0013_workflow_definition_releases.down.sql
 var downSQLV13 string
 
-var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13
-var downSQL = downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+//go:embed 0014_workflow_definition_execution.up.sql
+var upSQLV14 string
+
+//go:embed 0014_workflow_definition_execution.down.sql
+var downSQLV14 string
+
+var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13 + "\n" + upSQLV14
+var downSQL = downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 
 type State struct {
 	MigrationState, MigrationID, StoreSchemaVersion, MigrationChecksum string
@@ -198,6 +206,9 @@ func ragKnowledgePromotionChecksum() string {
 }
 func applicationRuntimeChecksum() string {
 	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9+"\n"+upSQLV10+"\n"+upSQLV11+"\n"+upSQLV12)))
+}
+func definitionReleaseChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9+"\n"+upSQLV10+"\n"+upSQLV11+"\n"+upSQLV12+"\n"+upSQLV13)))
 }
 
 func Inspect(ctx context.Context, pool *pgxpool.Pool) (State, error) {
@@ -321,6 +332,17 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 }
 
 func pendingMigrationSQL(appliedMigrationID string) string {
+	if appliedMigrationID == definitionReleaseMigrationID {
+		return upSQLV14
+	}
+	pending := pendingMigrationSQLThroughDefinitionRelease(appliedMigrationID)
+	if pending == "" {
+		return ""
+	}
+	return pending + "\n" + upSQLV14
+}
+
+func pendingMigrationSQLThroughDefinitionRelease(appliedMigrationID string) string {
 	switch appliedMigrationID {
 	case legacyMigrationID:
 		return upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13
@@ -377,6 +399,8 @@ func rollbackSQLThrough(appliedMigrationID string) string {
 		return downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 	case applicationRuntimeMigrationID:
 		return downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case definitionReleaseMigrationID:
+		return downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 	default:
 		return ""
 	}
@@ -425,6 +449,8 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 	} else if state.MigrationID == ragKnowledgePromotionMigrationID && state.StoreSchemaVersion == ragKnowledgePromotionStoreSchemaVersion && state.MigrationChecksum == ragKnowledgePromotionChecksum() && tableExists {
 		state.MigrationState = MigrationStatePending
 	} else if state.MigrationID == applicationRuntimeMigrationID && state.StoreSchemaVersion == applicationRuntimeStoreSchemaVersion && state.MigrationChecksum == applicationRuntimeChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == definitionReleaseMigrationID && state.StoreSchemaVersion == definitionReleaseStoreSchemaVersion && state.MigrationChecksum == definitionReleaseChecksum() && tableExists {
 		state.MigrationState = MigrationStatePending
 	} else {
 		var diagnosticColumnCount int

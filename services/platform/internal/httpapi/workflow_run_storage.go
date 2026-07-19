@@ -55,6 +55,9 @@ func decodeWorkflowRunStorageRecord(
 	if err := rejectTrailingWorkflowRunJSON(decoder); err != nil {
 		return WorkflowRunRecord{}, errWorkflowRunStoreContract
 	}
+	if record.SchemaVersion == workflowRunRecordDefinitionSchemaVersion {
+		record.ExecutionSource = &workflowRunExecutionSource{Kind: record.ExecutionKind, SourceKind: record.ExecutionSourceKind, ID: record.ExecutionSourceID, Version: record.ExecutionSourceVersion}
+	}
 	if err := validateWorkflowRunStoreRecord(runContext, &record); err != nil || record.RecordVersion <= 0 {
 		return WorkflowRunRecord{}, errWorkflowRunStoreContract
 	}
@@ -103,6 +106,12 @@ func workflowRunStringFromPointer(value *string) string {
 func workflowRunStorageExecutionSource(record WorkflowRunRecord) (string, string, int, error) {
 	if record.SchemaVersion == workflowRunRecordAppRAGSchemaVersion {
 		if record.ExecutionSource == nil || record.ExecutionSource.SourceKind != workflowRAGApplicationExecutionSourceKind || strings.TrimSpace(record.ExecutionSource.ID) == "" || record.ExecutionSource.Version < 1 {
+			return "", "", 0, errWorkflowRunStoreContract
+		}
+		return record.ExecutionSource.SourceKind, record.ExecutionSource.ID, record.ExecutionSource.Version, nil
+	}
+	if record.SchemaVersion == workflowRunRecordDefinitionSchemaVersion {
+		if record.ExecutionSource == nil || record.ExecutionSource.SourceKind != workflowDefinitionExecutionSourceKind || strings.TrimSpace(record.ExecutionSource.ID) == "" || record.ExecutionSource.Version < 1 {
 			return "", "", 0, errWorkflowRunStoreContract
 		}
 		return record.ExecutionSource.SourceKind, record.ExecutionSource.ID, record.ExecutionSource.Version, nil

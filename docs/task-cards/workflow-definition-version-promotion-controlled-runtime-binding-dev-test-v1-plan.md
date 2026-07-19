@@ -2,13 +2,13 @@
 
 更新时间：2026-07-19
 
-状态：`workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_batch_c_ready_for_implementation`
+状态：`workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_batch_d_ready_for_implementation`
 
 ## 目标与准入结论
 
 按[功能设计](../features/workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md)交付“精确 Saved Draft → 不可变 candidate → 人工 review → definition version → 人工 activation → definition-bound run v5 → history / comparison / evaluation”的开发测试态产品路径。
 
-设计、资源 owner、权限、执行来源、兼容策略和生产停止线已经冻结，批次 A / B 已完成，可以进入批次 C。不得给 Saved Draft 增加可变 publish 状态，不得复用 application publish candidate，不得把 definition id 写入旧 `draft_id`，也不得通过 activation 绕开 HTTP Tool / RAG 独立 authority。
+设计、资源 owner、权限、执行来源、兼容策略和生产停止线已经冻结，批次 A / B / C 已完成，可以进入批次 D。不得给 Saved Draft 增加可变 publish 状态，不得复用 application publish candidate，不得把 definition id 写入旧 `draft_id`，也不得通过 activation 绕开 HTTP Tool / RAG 独立 authority。
 
 ## 前置基线
 
@@ -62,7 +62,7 @@
 
 ## 批次 C：definition-bound executor 与 run v5
 
-状态：`ready_for_implementation`。
+状态：`completed`。
 
 - 物化 `workflow_run_record.v5` 和 `workflow_definition_executor.v1` profile。
 - 执行前重读 activation pointer、definition version、digest、application lifecycle 和 profile eligibility。
@@ -72,9 +72,11 @@
 - Comparison / Evaluation / Baseline / Suite 只读消费兼容 v5，不重新执行。
 - v0–v4、旧 draft execution、HTTP Tool、Workflow RAG 与 Application RAG 保持行为兼容。
 
+完成证据：`workflow_run_record.v5` strict contract、exact active authority resolver、provider 前 checkpoint、`workflow_definition_executor_v1`、memory / SQLite / PostgreSQL v5 persistence、SQLite `0011` / marker v11、PostgreSQL `0014` / marker v14、execution source filter、stale reconciliation、Comparison v4 与显式 `workflow_definition_executor.v1` Evaluation / Baseline / Suite 均已复验；评测消费只读且不增加 provider 调用。
+
 ## 批次 D：Web、连续链与专题收口
 
-状态：`blocked_by_batch_c`。
+状态：`ready_for_implementation`。
 
 - Draft Designer 接入 candidate 创建与 source definition provenance。
 - 新增 candidate review、version history、activation 管理与 definition-bound run 页面。

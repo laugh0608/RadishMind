@@ -9,9 +9,9 @@ import (
 	"radishmind.local/services/platform/internal/sqlitedev"
 )
 
-func TestWorkflowRunSQLiteMigrationsAreOrderedThroughDefinitionReleases(t *testing.T) {
+func TestWorkflowRunSQLiteMigrationsAreOrderedThroughDefinitionExecution(t *testing.T) {
 	migrations := Migrations()
-	if len(migrations) != 10 {
+	if len(migrations) != 11 {
 		t.Fatalf("unexpected workflow run SQLite migration count: %d", len(migrations))
 	}
 	if migrations[0].ID != legacyMigrationID || migrations[0].StoreSchemaVersion != legacyRunStoreSchemaVersion {
@@ -41,8 +41,16 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughDefinitionReleases(t *testi
 	if migrations[8].ID != applicationRuntimeMigrationID || migrations[8].StoreSchemaVersion != applicationRuntimeSchemaVersion {
 		t.Fatalf("workflow RAG application invocation migration drifted: %#v", migrations[8])
 	}
-	if migrations[9].ID != MigrationID || migrations[9].StoreSchemaVersion != StoreSchemaVersion {
+	if migrations[9].ID != definitionReleaseMigrationID || migrations[9].StoreSchemaVersion != definitionReleaseSchemaVersion {
 		t.Fatalf("workflow definition release migration drifted: %#v", migrations[9])
+	}
+	if migrations[10].ID != MigrationID || migrations[10].StoreSchemaVersion != StoreSchemaVersion {
+		t.Fatalf("workflow definition execution migration drifted: %#v", migrations[10])
+	}
+	for _, required := range []string{"workflow_run_record.v5", "workflow_definition", "workflow_runs_store_v5"} {
+		if !strings.Contains(upSQLV11, required) {
+			t.Fatalf("SQLite workflow definition execution migration is missing %q", required)
+		}
 	}
 	for _, required := range []string{
 		"CREATE TABLE workflow_definition_release_candidates",
@@ -214,7 +222,7 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		_ = upgradedRuntime.Close()
 		t.Fatalf("legacy workflow run changed during upgrade: count=%d err=%v", legacyRunCount, err)
 	}
-	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 10 {
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 11 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("unexpected workflow run migration markers: count=%d err=%v", migrationCount, err)
 	}

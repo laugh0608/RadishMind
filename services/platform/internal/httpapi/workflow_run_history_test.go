@@ -40,6 +40,10 @@ func runWorkflowRunHistoryScopeFilterAndCursor(t *testing.T, store workflowRunSt
 	if len(filtered.Runs) != 1 || filtered.Runs[0].RunID != "run_b" {
 		t.Fatalf("unexpected filter: %#v", filtered)
 	}
+	sourceFiltered := service.ListRuns(runContext, WorkflowRunListRequest{ExecutionSourceKind: "workflow_draft", ExecutionSourceID: "draft_a", ExecutionSourceVersion: 1})
+	if sourceFiltered.FailureCode != "" || len(sourceFiltered.Runs) != 3 {
+		t.Fatalf("legacy execution source filter drifted: %#v", sourceFiltered)
+	}
 	if changed := service.ListRuns(runContext, WorkflowRunListRequest{Limit: 3, Cursor: first.NextCursor}); changed.FailureCode != WorkflowRunFailureCursorInvalid {
 		t.Fatalf("cursor must bind filters: %#v", changed)
 	}
@@ -123,6 +127,16 @@ func TestWorkflowRunListFilterValidation(t *testing.T) {
 	result := service.ListRuns(WorkflowRunContext{RequestContext: context.Background()}, WorkflowRunListRequest{Limit: 101, StartedTo: &future})
 	if result.FailureCode != WorkflowRunFailureFilterInvalid {
 		t.Fatalf("invalid filter accepted: %#v", result)
+	}
+	parsed, code := parseWorkflowRunListRequest(map[string][]string{"execution_source_kind": {workflowDefinitionExecutionSourceKind}, "execution_source_id": {"definition_filter"}, "execution_source_version": {"2"}})
+	if code != "" || parsed.ExecutionSourceKind != workflowDefinitionExecutionSourceKind || parsed.ExecutionSourceID != "definition_filter" || parsed.ExecutionSourceVersion != 2 {
+		t.Fatalf("definition execution source query was not parsed strictly: request=%#v code=%s", parsed, code)
+	}
+	if _, code = parseWorkflowRunListRequest(map[string][]string{"execution_source_version": {"2"}}); code != "" {
+		t.Fatalf("valid integer source version should parse before normalization: %s", code)
+	}
+	if _, code = normalizeWorkflowRunListRequest(WorkflowRunListRequest{ExecutionSourceVersion: 2}); code != WorkflowRunFailureFilterInvalid {
+		t.Fatalf("source version without kind/id was accepted: %s", code)
 	}
 }
 

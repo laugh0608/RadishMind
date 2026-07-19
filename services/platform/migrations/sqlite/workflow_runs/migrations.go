@@ -8,9 +8,9 @@ import (
 
 const (
 	Component                        = "workflow_runs"
-	MigrationID                      = "0010_workflow_definition_releases"
-	StoreSchemaVersion               = "workflow_run_store_sqlite_v10"
-	RunRecordStoreSchemaVersion      = "workflow_runs_store_v4"
+	MigrationID                      = "0011_workflow_definition_execution"
+	StoreSchemaVersion               = "workflow_run_store_sqlite_v11"
+	RunRecordStoreSchemaVersion      = "workflow_runs_store_v5"
 	legacyMigrationID                = "0001_workflow_runs"
 	toolActionsMigrationID           = "0002_workflow_http_tool_actions"
 	toolExecutionMigrationID         = "0003_workflow_http_tool_execution"
@@ -29,6 +29,8 @@ const (
 	ragPromotionSchemaVersion        = "workflow_run_store_sqlite_v8"
 	applicationRuntimeMigrationID    = "0009_workflow_rag_application_invocations"
 	applicationRuntimeSchemaVersion  = "workflow_run_store_sqlite_v9"
+	definitionReleaseMigrationID     = "0010_workflow_definition_releases"
+	definitionReleaseSchemaVersion   = "workflow_run_store_sqlite_v10"
 )
 
 //go:embed 0001_workflow_runs.up.sql
@@ -60,6 +62,9 @@ var upSQLV9 string
 
 //go:embed 0010_workflow_definition_releases.up.sql
 var upSQLV10 string
+
+//go:embed 0011_workflow_definition_execution.up.sql
+var upSQLV11 string
 
 func Migrations() []sqlitedev.Migration {
 	return []sqlitedev.Migration{
@@ -102,6 +107,7 @@ func Migrations() []sqlitedev.Migration {
 		{Component: Component, ID: ragEvaluationMigrationID, StoreSchemaVersion: ragEvaluationSchemaVersion, UpSQL: upSQLV7},
 		{Component: Component, ID: ragPromotionMigrationID, StoreSchemaVersion: ragPromotionSchemaVersion, UpSQL: upSQLV8},
 		{Component: Component, ID: applicationRuntimeMigrationID, StoreSchemaVersion: applicationRuntimeSchemaVersion, UpSQL: upSQLV9},
-		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV10},
+		{Component: Component, ID: definitionReleaseMigrationID, StoreSchemaVersion: definitionReleaseSchemaVersion, UpSQL: upSQLV10},
+		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV11},
 	}
 }

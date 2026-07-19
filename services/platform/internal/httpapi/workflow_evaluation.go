@@ -26,17 +26,18 @@ const (
 type WorkflowEvaluationFailureCode string
 
 const (
-	WorkflowEvaluationFailureInvalid               WorkflowEvaluationFailureCode = "workflow_evaluation_invalid"
-	WorkflowEvaluationFailureRunNotEligible        WorkflowEvaluationFailureCode = "workflow_evaluation_run_not_eligible"
-	WorkflowEvaluationFailureNotFound              WorkflowEvaluationFailureCode = "workflow_evaluation_not_found"
-	WorkflowEvaluationFailureCursorInvalid         WorkflowEvaluationFailureCode = "workflow_evaluation_cursor_invalid"
-	WorkflowEvaluationFailureStoreUnavailable      WorkflowEvaluationFailureCode = "workflow_evaluation_store_unavailable"
-	WorkflowEvaluationFailureStoreContract         WorkflowEvaluationFailureCode = "workflow_evaluation_store_contract_mismatch"
-	WorkflowEvaluationFailureVersionConflict       WorkflowEvaluationFailureCode = "workflow_evaluation_version_conflict"
-	WorkflowEvaluationFailureRevisionCursor        WorkflowEvaluationFailureCode = "workflow_evaluation_revision_cursor_invalid"
-	WorkflowEvaluationFailureSideEffectProfile     WorkflowEvaluationFailureCode = "workflow_run_side_effect_profile_unsupported"
-	WorkflowEvaluationFailureRetrievalProfile      WorkflowEvaluationFailureCode = "workflow_run_retrieval_profile_unsupported"
-	WorkflowEvaluationFailureRetrievalIncompatible WorkflowEvaluationFailureCode = "workflow_run_retrieval_profile_incompatible"
+	WorkflowEvaluationFailureInvalid                WorkflowEvaluationFailureCode = "workflow_evaluation_invalid"
+	WorkflowEvaluationFailureRunNotEligible         WorkflowEvaluationFailureCode = "workflow_evaluation_run_not_eligible"
+	WorkflowEvaluationFailureNotFound               WorkflowEvaluationFailureCode = "workflow_evaluation_not_found"
+	WorkflowEvaluationFailureCursorInvalid          WorkflowEvaluationFailureCode = "workflow_evaluation_cursor_invalid"
+	WorkflowEvaluationFailureStoreUnavailable       WorkflowEvaluationFailureCode = "workflow_evaluation_store_unavailable"
+	WorkflowEvaluationFailureStoreContract          WorkflowEvaluationFailureCode = "workflow_evaluation_store_contract_mismatch"
+	WorkflowEvaluationFailureVersionConflict        WorkflowEvaluationFailureCode = "workflow_evaluation_version_conflict"
+	WorkflowEvaluationFailureRevisionCursor         WorkflowEvaluationFailureCode = "workflow_evaluation_revision_cursor_invalid"
+	WorkflowEvaluationFailureSideEffectProfile      WorkflowEvaluationFailureCode = "workflow_run_side_effect_profile_unsupported"
+	WorkflowEvaluationFailureRetrievalProfile       WorkflowEvaluationFailureCode = "workflow_run_retrieval_profile_unsupported"
+	WorkflowEvaluationFailureRetrievalIncompatible  WorkflowEvaluationFailureCode = "workflow_run_retrieval_profile_incompatible"
+	WorkflowEvaluationFailureDefinitionIncompatible WorkflowEvaluationFailureCode = "workflow_definition_execution_profile_incompatible"
 )
 
 type WorkflowEvaluationRevisionKind string
@@ -339,6 +340,9 @@ func (s workflowEvaluationService) validateDefinition(ctx WorkflowRunContext, ra
 			(baselineRecord.SchemaVersion != candidate.SchemaVersion || !workflowRAGRunsComparable(baselineRecord, candidate)) {
 			return "", "", nil, WorkflowEvaluationFailureRetrievalIncompatible
 		}
+		if (baselineRecord.SchemaVersion == workflowRunRecordDefinitionSchemaVersion || candidate.SchemaVersion == workflowRunRecordDefinitionSchemaVersion) && !workflowDefinitionRunsComparable(baselineRecord, candidate) {
+			return "", "", nil, WorkflowEvaluationFailureDefinitionIncompatible
+		}
 	}
 	return name, baseline, normalized, ""
 }
@@ -516,6 +520,9 @@ func (s workflowEvaluationService) ReviewVersion(ctx WorkflowRunContext, id stri
 					FailureSummary: "Workflow evaluation does not support controlled tool side-effect profiles.",
 				}
 			}
+			if result.FailureCode == WorkflowRunFailureDefinitionIncompatible {
+				return WorkflowEvaluationReviewResult{FailureCode: WorkflowEvaluationFailureDefinitionIncompatible, FailureSummary: "Workflow evaluation requires one compatible workflow definition lineage and profile."}
+			}
 			code := WorkflowEvaluationFailureStoreUnavailable
 			if result.FailureCode == WorkflowRunFailureStoreContractMismatch {
 				code = WorkflowEvaluationFailureStoreContract
@@ -525,7 +532,7 @@ func (s workflowEvaluationService) ReviewVersion(ctx WorkflowRunContext, id stri
 		item.ActualClassification = result.Comparison.Classification
 		item.ComparisonState = result.Comparison.ComparisonState
 		item.ComparisonSchemaVersion = result.Comparison.SchemaVersion
-		item.RunProfile = "workflow_standard.v1"
+		item.RunProfile = result.Comparison.RunProfile
 		if result.Comparison.Retrieval != nil {
 			item.RunProfile = result.Comparison.Retrieval.RunProfile
 		}

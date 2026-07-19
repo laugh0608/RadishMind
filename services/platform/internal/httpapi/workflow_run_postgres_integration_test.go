@@ -265,6 +265,20 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if err != nil || len(page.Records) != 2 || !page.HasMore || page.Records[0].RunID != "run_pg_c" {
 		t.Fatalf("unexpected PostgreSQL page: %#v %v", page, err)
 	}
+	definitionRun := workflowDefinitionRunRecordForStoreTest(runContext, "run_definition_postgres")
+	if err = store.UpsertRun(runContext, &definitionRun); err != nil {
+		t.Fatalf("create PostgreSQL v5 run: %v", err)
+	}
+	definitionRun.Status = WorkflowRunStatusSucceeded
+	definitionRun.CompletedAt = workflowRunTimestamp(time.Now().UTC())
+	definitionRun.Diagnostic.TerminalWriteState = WorkflowRunTerminalWriteStored
+	if err = store.UpsertRun(runContext, &definitionRun); err != nil {
+		t.Fatalf("complete PostgreSQL v5 run: %v", err)
+	}
+	definitionPage, definitionErr := store.ListRuns(runContext, WorkflowRunListFilter{ExecutionSourceKind: workflowDefinitionExecutionSourceKind, ExecutionSourceID: definitionRun.ExecutionSourceID, ExecutionSourceVersion: definitionRun.ExecutionSourceVersion, Limit: 10})
+	if definitionErr != nil || len(definitionPage.Records) != 1 || definitionPage.Records[0].DefinitionAuthority == nil {
+		t.Fatalf("PostgreSQL v5 history/filter failed: %#v err=%v", definitionPage, definitionErr)
+	}
 	legacy := workflowRunHistoryTestRecord(runContext, "run_pg_legacy", "draft_pg", base.Add(-time.Second))
 	legacy.SchemaVersion = workflowRunRecordLegacySchemaVersion
 	legacy.Diagnostic = nil
