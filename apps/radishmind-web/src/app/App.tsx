@@ -1817,6 +1817,7 @@ export function App() {
                     key={surfaceKey}
                     context={applicationDevelopmentWorkspaceContext}
                     activeStage={activeStage}
+                    surfaceKey={surfaceKey}
                     controls={controls}
                     offlineApiKeys={workspaceApiKeys}
                     suggestedDefinitionId={selectedWorkflowDefinitionId ?? ""}

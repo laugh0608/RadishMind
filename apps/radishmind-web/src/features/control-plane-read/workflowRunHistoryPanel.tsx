@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 
 import { readWorkflowExecutorConsumerConfig, startWorkflowDiagnosticDevRecord, type WorkflowRunDevFailureScenario } from "./workflowExecutorConsumer.ts";
 import type { WorkflowRunRecord } from "./workflowRunRecordConsumer.ts";
@@ -44,6 +44,8 @@ export default function WorkflowRunHistoryPanel({
   const [candidateRunId, setCandidateRunId] = useState("");
   const [comparisonSelection, setComparisonSelection] = useState<{ baseline: string; candidate: string } | null>(null);
   const [retrievalPreviewPending, setRetrievalPreviewPending] = useState(false);
+  const [handoffState, setHandoffState] = useState("");
+  const handledHandoffIdRef = useRef("");
 
   const load = useCallback(async (cursor = "", append = false) => {
     if (config.mode !== "dev_workflow_executor_http") return;
@@ -71,15 +73,29 @@ export default function WorkflowRunHistoryPanel({
   }
 
   useEffect(() => {
-    if (!handoffId || !handoffRunId || history.status === "loading") return;
-    const run = history.runs.find((item) => item.runId === handoffRunId);
-    if (run) {
-      void selectRun(run);
-    } else if (history.status === "ready" || history.status === "empty") {
-      setDiagnosticGenerationState(`Run handoff ${handoffRunId} is outside the current owner page. Refresh or adjust owner filters without replaying the run.`);
+    if (!handoffId || !handoffRunId || handledHandoffIdRef.current === handoffId) return;
+    handledHandoffIdRef.current = handoffId;
+    if (config.mode !== "dev_workflow_executor_http") {
+      setHandoffState(`Run ${handoffRunId} was not loaded because the Run History owner is offline. No request or replay was started.`);
+      onHandoffConsumed?.(handoffId);
+      return;
     }
-    onHandoffConsumed?.(handoffId);
-  }, [handoffId, handoffRunId, history.runs, history.status, onHandoffConsumed]);
+    setSelectedRunId(handoffRunId);
+    setRetrievalPreviewPending(false);
+    setHandoffState(`Loading exact run ${handoffRunId} from its owner.`);
+    void readWorkflowRunHistoryDetail({ runId: handoffRunId }, applicationId, config)
+      .then((record) => {
+        setDetail(record);
+        setHandoffState(record
+          ? `Exact run ${handoffRunId} was reloaded from Run History.`
+          : `Run ${handoffRunId} is unavailable in the current Application scope. No replay was started.`);
+      })
+      .catch(() => {
+        setDetail(null);
+        setHandoffState(`Run ${handoffRunId} could not be reloaded from its owner. No replay was started.`);
+      })
+      .finally(() => onHandoffConsumed?.(handoffId));
+  }, [applicationId, handoffId, handoffRunId, onHandoffConsumed]);
 
   async function loadRetrievalPreviews() {
     const run = history.runs.find((item) => item.runId === selectedRunId);
@@ -128,6 +144,7 @@ export default function WorkflowRunHistoryPanel({
         <div><p className="eyebrow">User Workspace</p><h3 id="workspace-run-history-title">Run history</h3></div>
         <span className={`status-badge ${config.mode === "dev_workflow_executor_http" ? "status-good" : "status-neutral"}`}>{config.mode === "dev_workflow_executor_http" ? "durable dev/test" : "offline sample"}</span>
       </div>
+      {handoffState ? <p className="boundary-note" role="status">{handoffState}</p> : null}
       {config.mode !== "dev_workflow_executor_http" ? (
         <article className="run-history-route"><p className="eyebrow">Offline mode</p><h4>No live run request</h4><p>Default offline mode keeps the historical sample surface visibly separate. Enable the explicit executor dev source to read `/v1/user-workspace/workflow-runs`.</p></article>
       ) : (

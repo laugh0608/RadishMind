@@ -194,6 +194,21 @@ export function initialApplicationConfigurationDraftListState(config: Applicatio
     : { status: "idle", summaries: [], failureCode: "", summary: "Load saved drafts for the selected application." };
 }
 
+export function findExactValidApplicationConfigurationDraft(
+  summaries: ApplicationConfigurationDraftSummary[],
+  applicationId: string,
+  draftId: string,
+): ApplicationConfigurationDraftSummary | null {
+  const normalizedApplicationId = applicationId.trim();
+  const normalizedDraftId = draftId.trim();
+  if (!normalizedApplicationId || !normalizedDraftId) return null;
+  return summaries.find((summary) =>
+    summary.applicationId === normalizedApplicationId &&
+    summary.draftId === normalizedDraftId &&
+    summary.validationState === "valid"
+  ) ?? null;
+}
+
 export function initialApplicationDraftModelCatalog(config: ApplicationConfigurationDraftConfig, applicationId: string): ApplicationModelCatalogState {
   const integration = readApplicationApiIntegrationConfig();
   return initialApplicationModelCatalogState(config.mode === "offline" ? { ...integration, mode: "offline" } : integration, applicationId);

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   compareApplicationConfigurationDraft,
   createApplicationConfigurationDraft,
+  findExactValidApplicationConfigurationDraft,
   initialApplicationConfigurationDraftListState,
   initialApplicationConfigurationDraftState,
   listApplicationConfigurationDrafts,
@@ -56,6 +57,35 @@ test("Application configuration validation covers model compatibility and secret
   validation = validateApplicationConfigurationDraft(draft, models.map((model) => ({ ...model, protocols: [...model.protocols] })));
   assert.equal(validation.findings.some((finding) => finding.code === "application_draft_secret_material_forbidden"), true);
   assert.equal(JSON.stringify(validation).includes("secret-value"), false);
+});
+
+test("publish handoff selects only the exact valid draft in the current application", () => {
+  const exact = {
+    draftId: "draft-exact",
+    applicationId: baseline.applicationId,
+    draftVersion: 2,
+    displayName: baseline.displayName,
+    applicationKind: baseline.applicationKind,
+    defaultProtocol: "responses" as const,
+    defaultModel: "profile:local-dev",
+    validationState: "valid",
+    draftDigest: `sha256:${"a".repeat(64)}`,
+    workflowRAGBindingRef: null,
+    updatedAt: baseline.updatedAt,
+    updatedByActorRef: "subject_demo_user",
+  };
+  const fallback = { ...exact, draftId: "draft-fallback", draftVersion: 3 };
+
+  assert.equal(
+    findExactValidApplicationConfigurationDraft([fallback, exact], baseline.applicationId, "draft-exact")?.draftId,
+    "draft-exact",
+  );
+  assert.equal(findExactValidApplicationConfigurationDraft([fallback], baseline.applicationId, "draft-exact"), null);
+  assert.equal(findExactValidApplicationConfigurationDraft([exact], "app_other", "draft-exact"), null);
+  assert.equal(
+    findExactValidApplicationConfigurationDraft([{ ...exact, validationState: "invalid" }], baseline.applicationId, "draft-exact"),
+    null,
+  );
 });
 
 test("Application draft save carries application scope and maps version conflict", async () => {

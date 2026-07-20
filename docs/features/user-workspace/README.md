@@ -6,7 +6,7 @@
 
 ## 当前专题
 
-- [应用开发工作区与发布准备审查 v1](application-development-workspace-release-readiness-review-v1.md)：批次 B 已完成；唯一 application context、workspace / route generation、五阶段单独挂载、通用脱敏 handoff、九项 owner contribution、七组来源和四态 readiness 投影已进入 Web。当前为 `batch_b_completed_batch_c_ready`。
+- [应用开发工作区与发布准备审查 v1](application-development-workspace-release-readiness-review-v1.md)：批次 C 的 route-scoped evidence、精确 Draft / Run owner 重读和自动验证已完成；真实浏览器连续路径与 URL / console / network 审计待完成。当前为 `batch_c_browser_validation_pending`。
 - [应用受控运行开发测试态指南](application-controlled-runtime-dev-test-guide.md)：说明 Application RAG、Workflow Definition、Application Interaction Session、v4 / v5 运行记录与 Application Operations 的启动、资源准备、作用域、恢复、失败语义和隐私边界。
 - [应用交互会话与受控运行编排（开发 / 测试态）v1](application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)：strict contract、三种 Session / Turn owner、exact authority reload、v5 / v4 单次委托、Web 易失交互工作区、双数据库 launcher 连续链、重启恢复、真实浏览器和敏感扫描均已完成，专题关闭。
 - [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1.md)：Gateway 认证、统一 `sqlite_dev` repository / 聚合 runtime、双数据库门禁、Web 一次性交接、真实浏览器连续路径、重启恢复与敏感信息复验均已完成，专题关闭。
@@ -18,7 +18,7 @@
 
 ## 下一步
 
-- 进入“应用开发工作区与发布准备审查 v1”批次 C：完成跨阶段连续链、归档只读、late response / cancel / offline / partial source failure、v4 / v5 handoff、Evaluation compatibility、一次性内容清理和真实浏览器隐私审计。不新增 API、schema、repository、发布记录或执行算法。
+- 完成“应用开发工作区与发布准备审查 v1”批次 C 的真实浏览器连续路径与 URL / console / network 审计，随后跑全量仓库门禁并关闭专题。不新增 API、schema、repository、发布记录或执行算法。
 - 不从已关闭的 Application Interaction Session 派生长期记忆、自动 profile、重试 / fallback、schedule、replay / resume 或 agent loop。只有需要跨全部分页窗口的稳定统计、可信 reported usage 或正式 quota / billing owner 时，才评审服务端 summary。
 
 ## 目录停止线

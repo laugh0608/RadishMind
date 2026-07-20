@@ -6,6 +6,7 @@ import {
   type ApplicationDevelopmentWorkspaceContext,
 } from "./applicationDevelopmentWorkspace.ts";
 import {
+  applicationDevelopmentRouteAcceptsResponse,
   initialApplicationDevelopmentRouteState,
   transitionApplicationDevelopmentRoute,
 } from "./applicationDevelopmentWorkspaceRoute.ts";
@@ -20,9 +21,11 @@ import {
   applyApplicationDevelopmentEvidence,
   buildApplicationDevelopmentReadinessViewModel,
   initialApplicationDevelopmentEvidenceState,
-  type ApplicationDevelopmentEvidenceInput,
 } from "./applicationDevelopmentReadiness.ts";
-import type { ApplicationDevelopmentWorkspaceControls } from "./applicationDevelopmentWorkspaceControls.ts";
+import type {
+  ApplicationDevelopmentEvidenceReport,
+  ApplicationDevelopmentWorkspaceControls,
+} from "./applicationDevelopmentWorkspaceControls.ts";
 
 export default function ApplicationDevelopmentWorkspacePanel({
   context,
@@ -36,6 +39,8 @@ export default function ApplicationDevelopmentWorkspacePanel({
   ) => ReactNode;
 }) {
   const [routeState, setRouteState] = useState(() => initialApplicationDevelopmentRouteState(context, ""));
+  const routeStateRef = useRef(routeState);
+  routeStateRef.current = routeState;
   const [handoffState, setHandoffState] = useState(() => initialApplicationDevelopmentHandoffState(context));
   const handoffStateRef = useRef(handoffState);
   const [evidenceState, setEvidenceState] = useState(() => initialApplicationDevelopmentEvidenceState(context));
@@ -66,8 +71,9 @@ export default function ApplicationDevelopmentWorkspacePanel({
     previousActiveStage.current = activeStage;
   }, [activeStage, context]);
 
-  const reportEvidence = useCallback((input: ApplicationDevelopmentEvidenceInput) => {
+  const reportEvidence = useCallback((input: ApplicationDevelopmentEvidenceReport) => {
     if (input.applicationId !== context.applicationId || input.workspaceGenerationKey !== context.generationKey) return;
+    if (!applicationDevelopmentRouteAcceptsResponse(input.surfaceKey, routeStateRef.current)) return;
     setEvidenceState((current) => applyApplicationDevelopmentEvidence(current, context, input));
   }, [context]);
 

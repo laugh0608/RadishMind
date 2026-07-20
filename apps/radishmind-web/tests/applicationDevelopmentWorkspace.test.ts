@@ -130,6 +130,8 @@ test("route transitions rotate only when stage or application scope changes", ()
   assert.equal(configure.activeStage, "configure_build");
   assert.equal(controlled.activeStage, "controlled_test");
   assert.notEqual(configure.surfaceKey, controlled.surfaceKey);
+  assert.equal(applicationDevelopmentRouteAcceptsResponse(configure.surfaceKey, controlled), false);
+  assert.equal(applicationDevelopmentRouteAcceptsResponse(controlled.surfaceKey, controlled), true);
   assert.equal(sameStage, controlled);
   assert.notEqual(revised.surfaceKey, controlled.surfaceKey);
 });

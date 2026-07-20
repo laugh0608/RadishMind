@@ -194,7 +194,7 @@ export async function listWorkflowRunHistory(
 }
 
 export async function readWorkflowRunHistoryDetail(
-  run: WorkflowRunHistorySummary,
+  run: Pick<WorkflowRunHistorySummary, "runId">,
   applicationId: string,
   config: WorkflowExecutorConsumerConfig,
   includeRetrievalFragmentPreviews = false,

@@ -19,7 +19,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：[应用开发工作区与发布准备审查 v1](features/user-workspace/application-development-workspace-release-readiness-review-v1.md)批次 B 已完成，当前为 `batch_b_completed_batch_c_ready`。唯一 application context、workspace / route generation、五阶段单 surface、feature-scoped 脱敏 handoff、九项 owner contribution、七个来源组和四态 Release Readiness 已进入 Web；Draft / Run 目标 owner 会重读精确引用，`partial_failure`、归档、漂移和 owner blocker 保守失败关闭。下一步进入批次 C，完成跨阶段连续链、归档只读、late response / cancel / offline / partial source failure、v4 / v5 handoff、Evaluation compatibility、一次性内容清理和真实浏览器隐私审计；不新增 API、schema、repository 或任务卡。`real_radish_integration_deferred` 不占用当前主线。
+1. 产品线：[应用开发工作区与发布准备审查 v1](features/user-workspace/application-development-workspace-release-readiness-review-v1.md)批次 C 的代码与自动验证已完成，当前为 `batch_c_browser_validation_pending`。route-scoped evidence 已拒绝跨阶段迟到回调，Draft handoff 不再回退其它草案，Run handoff 可按精确 `runId` 跨分页重读 v4 / v5 owner 详情；离线、缺失与读取失败保持无创建、无执行、无重放。下一步只完成 `http://127.0.0.1:4100` 真实浏览器连续路径与 URL / console / network 审计，再跑全量仓库门禁并关闭专题；不新增 API、schema、repository、fixture、checker 或任务卡。`real_radish_integration_deferred` 不占用当前主线。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。

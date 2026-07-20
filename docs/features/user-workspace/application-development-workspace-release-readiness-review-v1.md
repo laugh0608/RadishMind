@@ -2,7 +2,7 @@
 
 更新时间：2026-07-20
 
-状态：`application_development_workspace_release_readiness_review_v1_batch_b_completed_batch_c_ready`
+状态：`application_development_workspace_release_readiness_review_v1_batch_c_browser_validation_pending`
 
 ## 功能目标
 
@@ -214,6 +214,16 @@ readiness contribution 固定为九项：`application_lifecycle`、`configuratio
 - Application Workspace 精准测试增至 17 项；全部 Web 测试 `180 / 180`、`npm run build`、`git diff --check` 与仓库快速门禁通过。实现没有新增 API、schema、repository、发布记录、聚合 store、执行算法或专项 checker。
 
 下一步进入批次 C，完成跨阶段连续路径、归档只读、late response / cancel / offline / partial source failure、v4 / v5 run handoff、Evaluation compatibility、一次性内容清理和真实浏览器隐私审计；批次 C 不扩生产认证、正式发布或自动动作。
+
+2026-07-20 已完成批次 C 的代码与自动验证部分：
+
+- owner evidence report 增加当前 `surfaceKey`，workspace 通过 route state ref 校验最新 surface；同一 Application 跨阶段时保留已经接受的 contribution，但旧 surface 的迟到回调不能再覆盖当前状态。
+- Draft → Publish Review 目标 owner 只接受当前 Application 下精确且有效的 draft；目标不存在、无效、scope 不符或 owner 离线时不再回退到其它草案，并明确说明没有创建候选或审查。
+- Run → Run History 不再受当前分页窗口限制，目标 owner 使用精确 `runId` 读取详情；v4 / v5 继续由既有 strict parser 校验 application / workspace / authority。owner 离线、资源缺失或读取失败时明确说明没有请求或重放。
+- 一次性 handoff 在目标 owner 首次处理时立即锁定，开发模式的 React effect 重放不会造成重复 owner 读取；跨 route 的旧 handoff 完成回调也不能消费后续新引用。
+- 新增精确 draft 选择与分页外 v4 run 读取回归，Application Workspace 跨阶段旧 surface 拒绝断言已补齐；全部 Web 测试 `181 / 181`、`npm run build`、`git diff --check` 与仓库快速门禁通过。
+
+批次 C 还不能关闭。剩余唯一必做项是 `http://127.0.0.1:4100` 的真实浏览器连续路径与 URL / console / network 审计；浏览器存储边界同时以代码扫描和既有 consumer 证据复核，不提交新的 fixture 或 checker。完成后再补全量仓库门禁，并同步关闭专题、当前焦点、能力矩阵和周志。
 
 ## 验收方式
 

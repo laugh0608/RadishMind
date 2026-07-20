@@ -27,6 +27,7 @@ const WorkflowRunHistoryPanel = lazy(() => import("./workflowRunHistoryPanel.tsx
 type Props = {
   context: ApplicationDevelopmentWorkspaceContext;
   activeStage: ApplicationDevelopmentStageId | null;
+  surfaceKey: string;
   controls: ApplicationDevelopmentWorkspaceControls;
   offlineApiKeys: WorkspaceApiKeysViewModel;
   suggestedDefinitionId: string;
@@ -41,6 +42,7 @@ type Props = {
 export default function ApplicationDevelopmentWorkspaceSurface({
   context,
   activeStage,
+  surfaceKey,
   controls,
   offlineApiKeys,
   suggestedDefinitionId,
@@ -62,8 +64,9 @@ export default function ApplicationDevelopmentWorkspaceSurface({
       ...evidence,
       applicationId: context.applicationId,
       workspaceGenerationKey: context.generationKey,
+      surfaceKey,
     });
-  }, [context.applicationId, context.generationKey, controls.reportEvidence]);
+  }, [context.applicationId, context.generationKey, controls.reportEvidence, surfaceKey]);
   const handleRunRecorded = useCallback((_runId: string) => {
     onRunRecorded();
   }, [onRunRecorded]);
@@ -268,13 +271,13 @@ export default function ApplicationDevelopmentWorkspaceSurface({
             />
           </Suspense>
           <Suspense fallback={<StageFallback label="run history" />}>
-          <WorkflowRunHistoryPanel
+            <WorkflowRunHistoryPanel
               key={`${context.generationKey}:run-history`}
               applicationId={context.applicationId}
-            refreshKey={runHistoryRefreshKey}
-            handoffRunId={pendingRunHandoff?.refId}
-            handoffId={pendingRunHandoff?.handoffId}
-            onHandoffConsumed={consumeEvidenceHandoff}
+              refreshKey={runHistoryRefreshKey}
+              handoffRunId={pendingRunHandoff?.refId}
+              handoffId={pendingRunHandoff?.handoffId}
+              onHandoffConsumed={consumeEvidenceHandoff}
             />
           </Suspense>
         </StageSurface>

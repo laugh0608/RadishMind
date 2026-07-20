@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  findExactValidApplicationConfigurationDraft,
   initialApplicationConfigurationDraftListState,
   listApplicationConfigurationDrafts,
   readApplicationConfigurationDraftConfig,
@@ -54,6 +55,8 @@ export default function ApplicationPublishCandidatePanel({
   const [evidenceText, setEvidenceText] = useState("");
   const [decision, setDecision] = useState<ApplicationPublishDecision>("approve");
   const [reviewReason, setReviewReason] = useState("");
+  const [handoffState, setHandoffState] = useState("");
+  const handledHandoffIdRef = useRef("");
 
   useEffect(() => {
     setDraftList(initialApplicationConfigurationDraftListState(draftConfig));
@@ -65,6 +68,8 @@ export default function ApplicationPublishCandidatePanel({
     setEvidenceText("");
     setDecision("approve");
     setReviewReason("");
+    setHandoffState("");
+    handledHandoffIdRef.current = "";
   }, [baseline.applicationId]);
 
   const enabled = publishConfig.mode === "dev_application_publish_http" && draftConfig.mode === "dev_application_draft_http";
@@ -97,20 +102,34 @@ export default function ApplicationPublishCandidatePanel({
     if (readOnly && enabled) void refreshCandidates();
   }, [baseline.applicationId, readOnly]);
 
-  async function loadDrafts(preferredDraftId = "") {
-    if (!enabled) return;
+  async function loadDrafts(preferredDraftId = ""): Promise<string> {
+    if (!enabled) return "";
     setDraftList((current) => ({ ...current, status: "loading", summaries: [], failureCode: "", summary: "Loading saved valid application drafts." }));
     const next = await listApplicationConfigurationDrafts(draftConfig, baseline.applicationId);
     setDraftList(next);
-    const firstValid = next.summaries.find((summary) => summary.draftId === preferredDraftId && summary.validationState === "valid") ??
-      next.summaries.find((summary) => summary.validationState === "valid");
+    const firstValid = preferredDraftId
+      ? findExactValidApplicationConfigurationDraft(next.summaries, baseline.applicationId, preferredDraftId)
+      : next.summaries.find((summary) => summary.validationState === "valid");
     setSelectedDraftId(firstValid?.draftId ?? "");
+    return firstValid?.draftId ?? "";
   }
 
   useEffect(() => {
-    if (!handoffId || !handoffDraftId || !enabled) return;
-    void loadDrafts(handoffDraftId).finally(() => onHandoffConsumed?.(handoffId));
-  }, [handoffDraftId, handoffId]);
+    if (!handoffId || !handoffDraftId || handledHandoffIdRef.current === handoffId) return;
+    handledHandoffIdRef.current = handoffId;
+    if (!enabled) {
+      setHandoffState(`Draft ${handoffDraftId} was not loaded because the publish owner is offline. No candidate or review was created.`);
+      onHandoffConsumed?.(handoffId);
+      return;
+    }
+    setHandoffState(`Loading exact draft ${handoffDraftId} from the configuration owner.`);
+    void loadDrafts(handoffDraftId)
+      .then((selectedId) => setHandoffState(selectedId === handoffDraftId
+        ? `Exact draft ${handoffDraftId} was reloaded for candidate review.`
+        : `Draft ${handoffDraftId} is unavailable or invalid in the current Application scope. No fallback draft was selected.`))
+      .catch(() => setHandoffState(`Draft ${handoffDraftId} could not be reloaded from its owner. No fallback draft was selected.`))
+      .finally(() => onHandoffConsumed?.(handoffId));
+  }, [baseline.applicationId, enabled, handoffDraftId, handoffId, onHandoffConsumed]);
 
   async function refreshCandidates() {
     if (!enabled) return;
@@ -178,6 +197,7 @@ export default function ApplicationPublishCandidatePanel({
         <article><span>Baseline</span><strong>{baseline.updatedAt}</strong><p>Control Plane read truth remains immutable.</p></article>
         <article><span>Promotion</span><strong>disabled</strong><p>Candidate approval never mutates the formal application.</p></article>
       </div>
+      {handoffState ? <p className="boundary-note" role="status">{handoffState}</p> : null}
 
       {readOnly ? <p className="boundary-note">Archived application candidates and review decisions remain readable. Candidate creation, review decisions, and invocation handoffs are disabled.</p> : <div className="application-publish-layout">
         <article className="application-publish-create">
