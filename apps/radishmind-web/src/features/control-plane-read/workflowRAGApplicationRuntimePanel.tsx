@@ -14,6 +14,7 @@ import {
   WORKFLOW_RAG_APPLICATION_CREDENTIAL_HANDOFF_EVENT,
   type WorkflowRAGApplicationCredentialHandoffDetail,
 } from "./workflowRAGApplicationRuntimeEvents.ts";
+import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 
 const config = readWorkflowRAGApplicationRuntimeConfig();
 
@@ -22,11 +23,13 @@ export function WorkflowRAGRuntimeAssignmentPanel({
   publishCandidateId,
   candidateApproved,
   readOnly = false,
+  onEvidenceChange,
 }: {
   applicationId: string;
   publishCandidateId: string;
   candidateApproved: boolean;
   readOnly?: boolean;
+  onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
 }) {
   const [runtime, setRuntime] = useState<WorkflowRAGApplicationRuntimeResult>(() => initialWorkflowRAGApplicationRuntimeResult(config));
   const [reason, setReason] = useState("");
@@ -48,6 +51,22 @@ export function WorkflowRAGRuntimeAssignmentPanel({
   const validReason = reason.trim().length >= 4 && reason.trim().length <= 500;
   const decisionAllowed = candidateApproved && !readOnly && config.mode === "dev_workflow_rag_application_runtime_http" &&
     validReason && !(proposedDecision === "replace" && runtime.assignment?.publishCandidateId === publishCandidateId);
+
+  useEffect(() => {
+    if (!onEvidenceChange) return;
+    const assignment = runtime.assignment;
+    const ownerFailed = runtime.status === "failed" || runtime.status === "version_conflict";
+    const active = runtime.status === "ready" && assignment?.state === "active";
+    onEvidenceChange({
+      contributionId: "rag_assignment",
+      status: ownerFailed ? "blocked" : active ? "available" : "incomplete",
+      coverage: assignment || ownerFailed ? "complete" : "none",
+      evidenceRefs: assignment ? [{ kind: "assignment", id: assignment.assignmentId, version: assignment.recordVersion }] : [],
+      missingEvidence: active ? [] : ["Load and activate the exact Application RAG assignment."],
+      blockers: ownerFailed ? [{ code: runtime.failureCode || "rag_assignment_blocked", summary: runtime.summary }] : [],
+      failureCodes: ownerFailed && runtime.failureCode ? [runtime.failureCode] : [],
+    });
+  }, [onEvidenceChange, runtime]);
 
   async function loadAssignment(preserveReason = false) {
     const current = ++generation.current;
@@ -117,11 +136,15 @@ export default function ApplicationRAGInvocationPanel({
   applicationName,
   applicationActive,
   onRunRecorded,
+  onOpenRun,
+  onEvidenceChange,
 }: {
   applicationId: string;
   applicationName: string;
   applicationActive: boolean;
   onRunRecorded: (runId: string) => void;
+  onOpenRun?: (runId: string) => void;
+  onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
 }) {
   const [credential, setCredential] = useState<{ apiKeyId: string; token: string } | null>(null);
   const [input, setInput] = useState("");
@@ -136,6 +159,23 @@ export default function ApplicationRAGInvocationPanel({
     setResult(initialWorkflowRAGApplicationInvocationResult(config));
     setBusy(false);
   }, [applicationId]);
+
+  useEffect(() => {
+    if (!onEvidenceChange || !result.runId) return;
+    const succeeded = result.status === "succeeded" && result.runStatus === "succeeded";
+    onEvidenceChange({
+      contributionId: "controlled_run",
+      status: succeeded ? "available" : "blocked",
+      coverage: "complete",
+      evidenceRefs: [{ kind: "run", id: result.runId }],
+      missingEvidence: succeeded ? [] : ["Review the terminal Application RAG run failure before continuing."],
+      blockers: succeeded ? [] : [{
+        code: result.failureCode || `controlled_run_${result.runStatus || "failed"}`,
+        summary: result.failureSummary || result.summary,
+      }],
+      failureCodes: result.failureCode ? [result.failureCode] : [],
+    });
+  }, [onEvidenceChange, result]);
 
   useEffect(() => {
     function receiveCredential(event: Event) {
@@ -193,7 +233,7 @@ export default function ApplicationRAGInvocationPanel({
       <div className="workflow-rag-runtime-actions">
         <button type="button" onClick={() => void invoke()} disabled={!credential || !input.trim() || !applicationActive || busy || config.mode === "offline"}>{busy ? "Invoking…" : "Invoke active RAG assignment"}</button>
         <button type="button" className="secondary-action" onClick={() => { generation.current += 1; setCredential(null); setInput(""); setResult(initialWorkflowRAGApplicationInvocationResult(config)); }} disabled={!credential && !input && !result.answer}>Clear sensitive memory</button>
-        {result.runId ? <button type="button" className="secondary-action" onClick={() => { window.location.hash = "workspace-run-history"; }}>Open Run History</button> : null}
+        {result.runId ? <button type="button" className="secondary-action" onClick={() => onOpenRun?.(result.runId)}>Open Run History</button> : null}
       </div>
       {result.answer ? (
         <article className="workflow-rag-application-answer" aria-live="polite">

@@ -2,7 +2,7 @@
 
 更新时间：2026-07-20
 
-状态：`application_development_workspace_release_readiness_review_v1_batch_a_completed_batch_b_ready`
+状态：`application_development_workspace_release_readiness_review_v1_batch_b_completed_batch_c_ready`
 
 ## 功能目标
 
@@ -166,6 +166,17 @@ context 不保存领域对象、请求正文、响应正文、凭据、输入、
 - 建立来源分组、`partial_failure`、漂移 / 缺失 blocker 和四态发布准备 view model。
 - 不增加发布按钮、自动动作或聚合 store。
 
+批次 B 的实现所有权固定如下：
+
+- handoff state 与 readiness contribution state 由 `ApplicationDevelopmentWorkspacePanel` 持有，只在当前 application generation 内存活；stage surface 只消费控制器，不拥有跨阶段状态。
+- handoff 只保存 `applicationId`、workspace generation、来源 / 目标阶段、受限 `refKind`、短 `refId` 和目标锚点；API token、协议请求体、模型响应、输入输出与完整领域对象不得进入通用 handoff。
+- readiness 不重复请求 owner，也不读取面板内部可变对象；Configuration、Candidate、Workflow authority、RAG authority、Controlled test、Evaluation 与 Operations owner 只通过窄回调上报枚举状态、短引用、版本、coverage、既有 failure code 与脱敏 blocker。
+- 同一来源组可以包含多个 owner contribution；Configuration / Candidate 必须分别证明草案和候选，RAG authority 必须分别证明 binding 与 assignment，不能由后写入的单一摘要覆盖另一 owner。
+- Application 切换、revision / lifecycle 变化由 workspace generation 物理重建控制器；离开工作区清空 pending handoff 和 readiness contributions，返回后必须由 owner 重新上报。
+- 目标 owner 消费 handoff 后重新读取精确资源；handoff 不自动触发保存、review、activation、assignment、provider / tool 调用、运行或发布。
+
+readiness contribution 固定为九项：`application_lifecycle`、`configuration_draft`、`publish_candidate`、`workflow_definition`、`rag_binding`、`rag_assignment`、`controlled_run`、`evaluation_review`、`operations_coverage`。它们归入七个来源组，四态聚合保持保守：未选择 Application 为 `review_not_started`；任一 owner failure、漂移、生命周期 blocker 或 `partial_failure` 为 `review_blocked`；已有 Application 但必要 contribution 未齐为 `review_incomplete`；九项均有完整开发测试态 evidence 时才允许 `dev_test_evidence_reviewable`。
+
 ### 批次 C：连续链与专题收口
 
 - 覆盖 Application 切换、归档只读、route switch、late response、cancel、offline、partial source failure、v4 / v5 run handoff、Evaluation compatibility 和一次性内容清理。
@@ -191,7 +202,18 @@ context 不保存领域对象、请求正文、响应正文、凭据、输入、
 - 归档 Application 的配置、候选和 evidence 保持只读，Controlled Test 整段失败关闭；未知或未选择 Application 不挂载写入 / 运行 owner。
 - Application Workspace 精准测试增至 8 项，新增一次性 route handoff 测试；全部 Web 测试 `171 / 171`、`npm run build`、route / handoff / Workflow Definition 定向测试均通过。
 
-批次 A 已关闭，批次 B 可以开始。下一步建立通用 feature-scoped 脱敏 handoff refs、来源分组与四态 readiness view model；本批次的一次性 Application API handoff 只是维持现有跨阶段路径的窄边界，不提前等同于完整 Batch B handoff state。
+批次 A 已关闭，批次 B 也已完成。通用 feature-scoped 脱敏 handoff refs、九项 owner contribution、七个来源组与四态 readiness view model 已进入 Web；既有一次性 Application API token 交接仍保持在专用内存通道，不进入通用 handoff state。
+
+2026-07-20 已完成批次 B：
+
+- 新增 feature-scoped handoff controller，只允许当前 Application generation 内一个待消费的稳定短引用；新交接替换旧交接，离开工作区立即清空，作用域漂移、代际过期、非法引用和错误目标均失败关闭。
+- Configuration Draft、Publish Candidate、Workflow Definition、RAG Binding、RAG Assignment、Controlled Run、Evaluation 与 Operations owner 通过窄回调上报九项脱敏 contribution；工作区不重复请求 owner，不保存领域对象、输入输出或凭据。
+- Draft → Publish Review 与 Run → Run History 已改用通用 handoff；目标 owner 重新读取精确 draft / run，找不到时明确保留在 owner 视图，不信任来源提交的完整对象，也不自动触发审查或运行。
+- Release Readiness 已按 Application、Configuration / Candidate、Workflow authority、RAG authority、Controlled test、Evaluation、Operations 七组展示状态、coverage、精确引用、缺失项、blocker、failure code 和下一跳；九项证据全部完整时才输出 `dev_test_evidence_reviewable`。
+- Application 切换、revision / lifecycle 变化和离开工作区会重建或清空 evidence / handoff state；`partial_failure`、owner failure、归档、漂移或 blocker 保守聚合为 `review_blocked`，不会隐藏其它已加载证据。
+- Application Workspace 精准测试增至 17 项；全部 Web 测试 `180 / 180`、`npm run build`、`git diff --check` 与仓库快速门禁通过。实现没有新增 API、schema、repository、发布记录、聚合 store、执行算法或专项 checker。
+
+下一步进入批次 C，完成跨阶段连续路径、归档只读、late response / cancel / offline / partial source failure、v4 / v5 run handoff、Evaluation compatibility、一次性内容清理和真实浏览器隐私审计；批次 C 不扩生产认证、正式发布或自动动作。
 
 ## 验收方式
 
@@ -223,4 +245,4 @@ context 不保存领域对象、请求正文、响应正文、凭据、输入、
 
 ## 设计评审入口
 
-功能设计和现有页面 / 状态所有权审计已确认，批次 A 获准进入产品代码实现。若实现发现需要改变 API、schema、执行边界、生产声明或高风险写入，必须停止批次并先回到本专题修订设计与实施边界。
+功能设计、页面 / 状态所有权审计、批次 A 壳层和批次 B evidence handoff / readiness projection 均已确认。批次 C 只负责连续链、真实浏览器与隐私边界收口；若发现需要改变 API、schema、执行边界、生产声明或高风险写入，必须停止批次并先回到本专题修订设计与实施边界。

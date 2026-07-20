@@ -25,11 +25,26 @@ import {
 } from "./applicationPublishCandidateConsumer.ts";
 import { requestGatewayRequestHistoryReview, requestModelGatewayPlaygroundHandoff } from "./modelGatewayPlaygroundEvents.ts";
 import { WorkflowRAGRuntimeAssignmentPanel } from "./workflowRAGApplicationRuntimePanel.tsx";
+import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 
 const publishConfig = readApplicationPublishCandidateConfig();
 const draftConfig = readApplicationConfigurationDraftConfig();
 
-export default function ApplicationPublishCandidatePanel({ baseline, readOnly = false }: { baseline: ApplicationConfigurationBaseline; readOnly?: boolean }) {
+export default function ApplicationPublishCandidatePanel({
+  baseline,
+  readOnly = false,
+  onEvidenceChange,
+  handoffDraftId = "",
+  handoffId = "",
+  onHandoffConsumed,
+}: {
+  baseline: ApplicationConfigurationBaseline;
+  readOnly?: boolean;
+  onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
+  handoffDraftId?: string;
+  handoffId?: string;
+  onHandoffConsumed?: (handoffId: string) => void;
+}) {
   const [draftList, setDraftList] = useState<ApplicationConfigurationDraftListState>(() => initialApplicationConfigurationDraftListState(draftConfig));
   const [candidateList, setCandidateList] = useState<ApplicationPublishCandidateListState>(() => initialApplicationPublishListState(publishConfig));
   const [candidate, setCandidate] = useState<ApplicationPublishCandidate | null>(null);
@@ -60,17 +75,42 @@ export default function ApplicationPublishCandidatePanel({ baseline, readOnly = 
   const canReview = candidate?.candidateState === "pending_review" || candidate?.candidateState === "approved" && decision === "withdraw";
 
   useEffect(() => {
+    if (!onEvidenceChange) return;
+    const ownerFailed = operation.status === "failed" || operation.status === "scope_denied" || operation.status.endsWith("conflict");
+    const candidateReviewed = candidate?.candidateState === "approved";
+    const candidateBlocked = Boolean(candidate && candidate.promotionEligibility.blockers.length > 0);
+    const candidateRef = candidate ? [{ kind: "candidate" as const, id: candidate.candidateId, version: candidate.reviewVersion }] : [];
+    onEvidenceChange({
+      contributionId: "publish_candidate",
+      status: ownerFailed || candidateBlocked ? "blocked" : candidateReviewed ? "available" : "incomplete",
+      coverage: candidate ? "complete" : ownerFailed ? "complete" : "none",
+      evidenceRefs: candidateRef,
+      missingEvidence: candidateReviewed ? [] : ["Approve an immutable Application publish candidate through its owner."],
+      blockers: ownerFailed
+        ? [{ code: operation.failureCode || "application_publish_candidate_blocked", summary: operation.summary }]
+        : candidate?.promotionEligibility.blockers ?? [],
+      failureCodes: ownerFailed && operation.failureCode ? [operation.failureCode] : [],
+    });
+  }, [candidate, onEvidenceChange, operation]);
+
+  useEffect(() => {
     if (readOnly && enabled) void refreshCandidates();
   }, [baseline.applicationId, readOnly]);
 
-  async function loadDrafts() {
+  async function loadDrafts(preferredDraftId = "") {
     if (!enabled) return;
     setDraftList((current) => ({ ...current, status: "loading", summaries: [], failureCode: "", summary: "Loading saved valid application drafts." }));
     const next = await listApplicationConfigurationDrafts(draftConfig, baseline.applicationId);
     setDraftList(next);
-    const firstValid = next.summaries.find((summary) => summary.validationState === "valid");
+    const firstValid = next.summaries.find((summary) => summary.draftId === preferredDraftId && summary.validationState === "valid") ??
+      next.summaries.find((summary) => summary.validationState === "valid");
     setSelectedDraftId(firstValid?.draftId ?? "");
   }
+
+  useEffect(() => {
+    if (!handoffId || !handoffDraftId || !enabled) return;
+    void loadDrafts(handoffDraftId).finally(() => onHandoffConsumed?.(handoffId));
+  }, [handoffDraftId, handoffId]);
 
   async function refreshCandidates() {
     if (!enabled) return;
@@ -170,6 +210,7 @@ export default function ApplicationPublishCandidatePanel({ baseline, readOnly = 
           publishCandidateId={candidate.candidateId}
           candidateApproved={candidate.candidateState === "approved"}
           readOnly={readOnly}
+          onEvidenceChange={onEvidenceChange}
         />
       </> : <p className="boundary-note">{readOnly ? "Open an existing candidate below to review its immutable snapshot and blockers." : "Create or open a candidate to review its immutable snapshot and blockers."}</p>}
 

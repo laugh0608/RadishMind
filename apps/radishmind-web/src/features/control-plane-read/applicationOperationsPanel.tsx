@@ -6,6 +6,7 @@ import {
   type ApplicationOperationsState,
   type ApplicationOperationsTimelineEntry,
 } from "./applicationOperationsConsumer.ts";
+import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 import { readModelGatewayRequestHistoryConfig } from "./modelGatewayRequestHistoryConsumer.ts";
 import { readWorkflowExecutorConsumerConfig } from "./workflowExecutorConsumer.ts";
 
@@ -15,9 +16,11 @@ const workflowConfig = readWorkflowExecutorConsumerConfig();
 export default function ApplicationOperationsPanel({
   applicationId,
   applicationName,
+  onEvidenceChange,
 }: {
   applicationId: string;
   applicationName: string;
+  onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
 }) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [state, setState] = useState<ApplicationOperationsState>(() =>
@@ -38,6 +41,30 @@ export default function ApplicationOperationsPanel({
   const metrics = state.metrics;
   const refreshDisabled = state.status === "loading" || state.status === "offline" ||
     state.status === "application_unavailable";
+
+  useEffect(() => {
+    if (!onEvidenceChange) return;
+    const failureCodes = [state.gateway.failureCode, state.workflow.failureCode].filter(Boolean);
+    const blocked = state.status === "failed" || state.status === "application_unavailable";
+    const partialFailure = state.status === "partial_failure";
+    const available = state.status === "ready" && state.loadedWindowComplete;
+    const evidenceRefs = [
+      state.gateway.requestId ? { kind: "request" as const, id: state.gateway.requestId } : null,
+      state.workflow.requestId ? { kind: "request" as const, id: state.workflow.requestId } : null,
+    ].filter((ref): ref is { kind: "request"; id: string } => Boolean(ref));
+    onEvidenceChange({
+      contributionId: "operations_coverage",
+      status: blocked ? "blocked" : partialFailure ? "partial_failure" : available ? "available" : "incomplete",
+      coverage: available ? "complete" : evidenceRefs.length ? "partial" : blocked ? "complete" : "none",
+      evidenceRefs,
+      missingEvidence: available ? [] : [state.failureSummary || "Load complete Gateway and Workflow operations windows."],
+      blockers: blocked || partialFailure ? [{
+        code: failureCodes[0] || (partialFailure ? "application_operations_partial_failure" : "application_operations_unavailable"),
+        summary: state.failureSummary || "Application operations evidence is unavailable.",
+      }] : [],
+      failureCodes,
+    });
+  }, [onEvidenceChange, state]);
 
   return (
     <section className="surface-band application-operations" id="application-operations" aria-labelledby="application-operations-title">

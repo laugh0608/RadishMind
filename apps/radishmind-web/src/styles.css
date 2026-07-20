@@ -1812,6 +1812,96 @@ h4 {
   line-height: 1.5;
 }
 
+.application-development-readiness-boundary.review_blocked {
+  border-color: #e7b7b1;
+  background: #fff9f7;
+}
+
+.application-development-readiness-boundary.dev_test_evidence_reviewable {
+  border-color: #9fc9ad;
+  background: #f7fcf8;
+}
+
+.application-development-readiness-metrics,
+.application-development-readiness-sources {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.application-development-readiness-metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.application-development-readiness-metrics > div {
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #f2f6fa;
+}
+
+.application-development-readiness-metrics dt {
+  color: #5d6f84;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.application-development-readiness-metrics dd {
+  margin: 4px 0 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.application-development-readiness-sources {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.application-development-readiness-source {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  min-width: 0;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.application-development-readiness-source.blocked,
+.application-development-readiness-source.partial_failure {
+  border-color: #e7b7b1;
+  background: #fff9f7;
+}
+
+.application-development-readiness-source > div {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.application-development-readiness-source h5,
+.application-development-readiness-source p,
+.application-development-readiness-source ul {
+  margin: 0;
+}
+
+.application-development-readiness-source > code,
+.application-development-evidence-refs code {
+  overflow-wrap: anywhere;
+}
+
+.application-development-evidence-refs {
+  display: grid;
+  gap: 4px;
+  padding-left: 18px;
+}
+
+.application-development-readiness-source > a {
+  justify-self: start;
+  font-weight: 700;
+}
+
 .model-gateway-overview-hero > *,
 .model-gateway-route-evidence-hero > *,
 .model-gateway-usage-audit-evidence-hero > * {

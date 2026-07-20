@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import {
   type ApplicationDevelopmentStage,
@@ -9,6 +9,20 @@ import {
   initialApplicationDevelopmentRouteState,
   transitionApplicationDevelopmentRoute,
 } from "./applicationDevelopmentWorkspaceRoute.ts";
+import {
+  clearApplicationDevelopmentHandoff,
+  consumeApplicationDevelopmentHandoff,
+  initialApplicationDevelopmentHandoffState,
+  issueApplicationDevelopmentHandoff,
+  type ApplicationDevelopmentHandoffInput,
+} from "./applicationDevelopmentHandoff.ts";
+import {
+  applyApplicationDevelopmentEvidence,
+  buildApplicationDevelopmentReadinessViewModel,
+  initialApplicationDevelopmentEvidenceState,
+  type ApplicationDevelopmentEvidenceInput,
+} from "./applicationDevelopmentReadiness.ts";
+import type { ApplicationDevelopmentWorkspaceControls } from "./applicationDevelopmentWorkspaceControls.ts";
 
 export default function ApplicationDevelopmentWorkspacePanel({
   context,
@@ -18,9 +32,14 @@ export default function ApplicationDevelopmentWorkspacePanel({
   renderStageSurfaces?: (
     activeStage: ApplicationDevelopmentStageId | null,
     surfaceKey: string,
+    controls: ApplicationDevelopmentWorkspaceControls,
   ) => ReactNode;
 }) {
   const [routeState, setRouteState] = useState(() => initialApplicationDevelopmentRouteState(context, ""));
+  const [handoffState, setHandoffState] = useState(() => initialApplicationDevelopmentHandoffState(context));
+  const handoffStateRef = useRef(handoffState);
+  const [evidenceState, setEvidenceState] = useState(() => initialApplicationDevelopmentEvidenceState(context));
+  const previousActiveStage = useRef<ApplicationDevelopmentStageId | null>(routeState.activeStage);
 
   useEffect(() => {
     function synchronizeStage() {
@@ -32,6 +51,52 @@ export default function ApplicationDevelopmentWorkspacePanel({
   }, [context]);
 
   const activeStage = routeState.activeStage;
+  const readiness = useMemo(
+    () => buildApplicationDevelopmentReadinessViewModel(evidenceState),
+    [evidenceState],
+  );
+
+  useEffect(() => {
+    if (previousActiveStage.current !== null && activeStage === null) {
+      const clearedHandoff = clearApplicationDevelopmentHandoff(handoffStateRef.current, context);
+      handoffStateRef.current = clearedHandoff;
+      setHandoffState(clearedHandoff);
+      setEvidenceState(initialApplicationDevelopmentEvidenceState(context));
+    }
+    previousActiveStage.current = activeStage;
+  }, [activeStage, context]);
+
+  const reportEvidence = useCallback((input: ApplicationDevelopmentEvidenceInput) => {
+    if (input.applicationId !== context.applicationId || input.workspaceGenerationKey !== context.generationKey) return;
+    setEvidenceState((current) => applyApplicationDevelopmentEvidence(current, context, input));
+  }, [context]);
+
+  const issueHandoff = useCallback((input: ApplicationDevelopmentHandoffInput) => {
+    const next = issueApplicationDevelopmentHandoff(handoffStateRef.current, context, input);
+    handoffStateRef.current = next;
+    setHandoffState(next);
+    if (next.pending) window.location.hash = next.pending.targetAnchor;
+  }, [context]);
+
+  const consumeHandoff = useCallback((targetStage: ApplicationDevelopmentStageId, handoffId: string) => {
+    const consumed = consumeApplicationDevelopmentHandoff(
+      handoffStateRef.current,
+      context,
+      targetStage,
+      handoffId,
+    );
+    if (!consumed.handoff) return;
+    handoffStateRef.current = consumed.state;
+    setHandoffState(consumed.state);
+  }, [context]);
+
+  const controls = useMemo<ApplicationDevelopmentWorkspaceControls>(() => ({
+    readiness,
+    pendingHandoff: handoffState.pending,
+    reportEvidence,
+    issueHandoff,
+    consumeHandoff,
+  }), [consumeHandoff, handoffState.pending, issueHandoff, readiness, reportEvidence]);
 
   return (
     <section
@@ -72,16 +137,55 @@ export default function ApplicationDevelopmentWorkspacePanel({
         ))}
       </nav>
 
-      {renderStageSurfaces?.(activeStage, routeState.surfaceKey)}
+      {renderStageSurfaces?.(activeStage, routeState.surfaceKey, controls)}
 
-      <article className="application-development-readiness-boundary" id="application-development-workspace-readiness">
+      <article
+        className={`application-development-readiness-boundary ${readiness.status}`}
+        id="application-development-workspace-readiness"
+      >
         <div>
           <p className="eyebrow">Release readiness boundary</p>
-          <h4>Evidence review starts without a publish claim</h4>
+          <h4>Development and test evidence review</h4>
         </div>
-        <span className="status-badge neutral">review_not_started</span>
-        <p>
-          Batch A establishes the Application scope and navigation boundary. Source coverage, drift, and blockers remain with their existing owners; the read-only readiness projection follows in Batch B.
+        <span className={`status-badge ${readiness.status === "dev_test_evidence_reviewable" ? "good" : readiness.status === "review_blocked" ? "bad" : "neutral"}`}>
+          {readiness.status}
+        </span>
+        <p>{readiness.summary}</p>
+        <dl className="application-development-readiness-metrics" aria-label="Readiness evidence metrics">
+          <div><dt>Evidence refs</dt><dd>{readiness.evidenceCount}</dd></div>
+          <div><dt>Blockers</dt><dd>{readiness.blockerCount}</dd></div>
+          <div><dt>Missing</dt><dd>{readiness.missingCount}</dd></div>
+        </dl>
+        <div className="application-development-readiness-sources">
+          {readiness.sources.map((source) => (
+            <article key={source.sourceGroupId} className={`application-development-readiness-source ${source.status}`}>
+              <div>
+                <h5>{source.label}</h5>
+                <span className={`status-badge ${source.status === "available" ? "good" : source.status === "blocked" || source.status === "partial_failure" ? "bad" : "neutral"}`}>
+                  {source.status} · {source.coverage}
+                </span>
+              </div>
+              {source.evidenceRefs.length ? (
+                <ul className="application-development-evidence-refs">
+                  {source.evidenceRefs.map((ref) => (
+                    <li key={`${ref.kind}:${ref.id}:${ref.version ?? 0}`}>
+                      <code>{ref.kind}:{ref.id}{ref.version ? ` · v${ref.version}` : ""}</code>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {source.blockers.map((blocker) => (
+                <p className="failure-summary" key={blocker.code}><strong>{blocker.code}</strong> · {blocker.summary}</p>
+              ))}
+              {source.failureCodes.map((failureCode) => <code key={failureCode}>{failureCode}</code>)}
+              {source.missingEvidence.map((missing) => <p className="boundary-note" key={missing}>{missing}</p>)}
+              {source.status !== "available" ? <a href={`#${source.nextAnchor}`}>Open owning stage</a> : null}
+            </article>
+          ))}
+        </div>
+        <p className="boundary-note">
+          This projection is ephemeral and read-only. It cannot persist a release decision, publish an Application,
+          or satisfy production authorization.
         </p>
       </article>
     </section>

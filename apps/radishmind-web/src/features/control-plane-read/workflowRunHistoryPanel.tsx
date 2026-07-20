@@ -20,7 +20,19 @@ const WorkflowRunComparisonPanel = lazy(() => import("./workflowRunComparisonPan
 const WorkflowEvaluationPanel = lazy(() => import("./workflowEvaluationPanel.tsx"));
 const WorkflowEvaluationSuitePanel = lazy(() => import("./workflowEvaluationSuitePanel.tsx"));
 
-export default function WorkflowRunHistoryPanel({ applicationId, refreshKey = 0 }: { applicationId: string; refreshKey?: number }) {
+export default function WorkflowRunHistoryPanel({
+  applicationId,
+  refreshKey = 0,
+  handoffRunId = "",
+  handoffId = "",
+  onHandoffConsumed,
+}: {
+  applicationId: string;
+  refreshKey?: number;
+  handoffRunId?: string;
+  handoffId?: string;
+  onHandoffConsumed?: (handoffId: string) => void;
+}) {
   const [filter, setFilter] = useState<WorkflowRunHistoryFilter>(EMPTY_WORKFLOW_RUN_HISTORY_FILTER);
   const [history, setHistory] = useState(() => initialWorkflowRunHistoryState(config));
   const [detail, setDetail] = useState<WorkflowRunRecord | null>(null);
@@ -57,6 +69,17 @@ export default function WorkflowRunHistoryPanel({ applicationId, refreshKey = 0 
     try { setDetail(await readWorkflowRunHistoryDetail(run, applicationId, config)); }
     catch { setDetail(null); }
   }
+
+  useEffect(() => {
+    if (!handoffId || !handoffRunId || history.status === "loading") return;
+    const run = history.runs.find((item) => item.runId === handoffRunId);
+    if (run) {
+      void selectRun(run);
+    } else if (history.status === "ready" || history.status === "empty") {
+      setDiagnosticGenerationState(`Run handoff ${handoffRunId} is outside the current owner page. Refresh or adjust owner filters without replaying the run.`);
+    }
+    onHandoffConsumed?.(handoffId);
+  }, [handoffId, handoffRunId, history.runs, history.status, onHandoffConsumed]);
 
   async function loadRetrievalPreviews() {
     const run = history.runs.find((item) => item.runId === selectedRunId);

@@ -1811,12 +1811,13 @@ export function App() {
             <ApplicationDevelopmentWorkspacePanel
               key={applicationDevelopmentWorkspaceContext.generationKey}
               context={applicationDevelopmentWorkspaceContext}
-              renderStageSurfaces={(activeStage, surfaceKey) => (
+              renderStageSurfaces={(activeStage, surfaceKey, controls) => (
                 <Suspense fallback={<div className="application-development-stage-surfaces"><p>Loading Application Development stage surfaces…</p></div>}>
                   <ApplicationDevelopmentWorkspaceSurface
                     key={surfaceKey}
                     context={applicationDevelopmentWorkspaceContext}
                     activeStage={activeStage}
+                    controls={controls}
                     offlineApiKeys={workspaceApiKeys}
                     suggestedDefinitionId={selectedWorkflowDefinitionId ?? ""}
                     runHistoryRefreshKey={workflowRunHistoryRefreshKey}

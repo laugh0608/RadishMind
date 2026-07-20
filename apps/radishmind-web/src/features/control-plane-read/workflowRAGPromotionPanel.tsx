@@ -27,14 +27,20 @@ import {
   type WorkflowRAGPromotionListResult,
   type WorkflowRAGPromotionOperationResult,
 } from "./workflowRAGPromotionConsumer.ts";
+import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 
 const promotionConfig = readWorkflowRAGPromotionConfig();
 const evaluationConfig = readWorkflowRAGEvaluationConfig();
 const draftConfig = readApplicationConfigurationDraftConfig();
 
-type Props = { applicationId: string; applicationName: string; applicationActive: boolean };
+type Props = {
+  applicationId: string;
+  applicationName: string;
+  applicationActive: boolean;
+  onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
+};
 
-export default function WorkflowRAGPromotionPanel({ applicationId, applicationName, applicationActive }: Props) {
+export default function WorkflowRAGPromotionPanel({ applicationId, applicationName, applicationActive, onEvidenceChange }: Props) {
   const [datasets, setDatasets] = useState<WorkflowRAGEvaluationListResult>(() => emptyDatasets());
   const [reviews, setReviews] = useState<WorkflowRAGCandidateReviewListResult>(() => emptyReviews());
   const [drafts, setDrafts] = useState<ApplicationConfigurationDraftListState>(() => initialApplicationConfigurationDraftListState(draftConfig));
@@ -67,6 +73,27 @@ export default function WorkflowRAGPromotionPanel({ applicationId, applicationNa
   const eligibleReview = selectedReview && selectedDataset && selectedReview.datasetVersion === selectedDataset.latestVersion && selectedReview.datasetDigest === selectedDataset.latestDigest && selectedReview.candidateStatus === "passed" && (selectedReview.conclusion === "improved" || selectedReview.conclusion === "unchanged");
   const reasonFailure = useMemo(() => validateReason(reason), [reason]);
   const canDecide = Boolean(detail && workflowRAGPromotionDecisionAllowed(detail.candidate.candidateState, decision));
+
+  useEffect(() => {
+    if (!onEvidenceChange) return;
+    const summaryWithBinding = promotions.summaries.find((item) => item.bindingRef && item.candidateState === "approved");
+    const binding = detail?.binding ?? summaryWithBinding?.bindingRef ?? null;
+    const ownerFailed = operation.status === "failed" || operation.status === "scope_denied" || operation.status === "record_version_conflict" || promotions.status === "failed";
+    const blockers = detail?.eligibility.blockers ?? [];
+    const available = Boolean(binding && detail?.eligibility.eligible !== false);
+    const failureCode = operation.failureCode || promotions.failureCode;
+    onEvidenceChange({
+      contributionId: "rag_binding",
+      status: ownerFailed || blockers.length ? "blocked" : available ? "available" : "incomplete",
+      coverage: binding || ownerFailed ? "complete" : "none",
+      evidenceRefs: binding ? [{ kind: "binding", id: binding.bindingId, version: binding.bindingVersion }] : [],
+      missingEvidence: available ? [] : ["Approve an exact knowledge promotion candidate and immutable binding."],
+      blockers: ownerFailed
+        ? [{ code: failureCode || "rag_binding_owner_blocked", summary: operation.summary || promotions.summary }]
+        : blockers.map((code) => ({ code, summary: "The RAG binding owner reports a current authority or eligibility blocker." })),
+      failureCodes: ownerFailed && failureCode ? [failureCode] : [],
+    });
+  }, [detail, onEvidenceChange, operation, promotions]);
 
   async function loadSources() {
     if (!enabled) return;

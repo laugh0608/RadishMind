@@ -31,6 +31,7 @@ import {
   readWorkflowRAGPromotionConfig,
   type WorkflowRAGPromotionListResult,
 } from "./workflowRAGPromotionConsumer.ts";
+import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 
 const config = readApplicationConfigurationDraftConfig();
 const promotionConfig = readWorkflowRAGPromotionConfig();
@@ -40,7 +41,17 @@ const protocols: Array<{ id: ApplicationApiProtocol; label: string }> = [
   { id: "messages", label: "Messages" },
 ];
 
-export default function ApplicationConfigurationDraftPanel({ baseline, readOnly = false }: { baseline: ApplicationConfigurationBaseline; readOnly?: boolean }) {
+export default function ApplicationConfigurationDraftPanel({
+  baseline,
+  readOnly = false,
+  onEvidenceChange,
+  onOpenPublishReview,
+}: {
+  baseline: ApplicationConfigurationBaseline;
+  readOnly?: boolean;
+  onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
+  onOpenPublishReview?: (draftId: string) => void;
+}) {
   const [draft, setDraft] = useState(() => createApplicationConfigurationDraft(config, baseline));
   const [operation, setOperation] = useState(() => initialApplicationConfigurationDraftState(config));
   const [catalog, setCatalog] = useState(() => initialApplicationDraftModelCatalog(config, baseline.applicationId));
@@ -106,6 +117,26 @@ export default function ApplicationConfigurationDraftPanel({ baseline, readOnly 
   const selectedBinding = bindings.summaries.find((item) => item.candidateId === selectedBindingCandidateId && item.bindingRef && item.eligibilityStatus === "eligible") ?? null;
   const bindingSourceReady = Boolean(selectedBinding && operation.currentDraftVersion === selectedBinding.sourceDraft.draftVersion && draft.draftId === selectedBinding.sourceDraft.draftId && draft.draftDigest === selectedBinding.sourceDraft.draftDigest);
   const handoffReady = operation.validation.isValid && currentValidation.isValid && catalog.status === "ready";
+
+  useEffect(() => {
+    if (!onEvidenceChange) return;
+    const failed = operation.status === "version_conflict" || operation.status === "store_failure" || operation.status === "scope_denied";
+    const saved = (operation.status === "saved" || operation.status === "restored") && operation.validation.isValid;
+    onEvidenceChange({
+      contributionId: "configuration_draft",
+      status: failed ? "blocked" : saved ? "available" : "incomplete",
+      coverage: saved || failed ? "complete" : draft.draftId ? "partial" : "none",
+      evidenceRefs: draft.draftId && operation.currentDraftVersion > 0
+        ? [{ kind: "draft", id: draft.draftId, version: operation.currentDraftVersion }]
+        : [],
+      missingEvidence: saved ? [] : [failed ? "Resolve the current configuration owner failure." : "Save and validate the current Application configuration draft."],
+      blockers: failed ? [{
+        code: operation.failureCode || "application_configuration_blocked",
+        summary: operation.summary,
+      }] : [],
+      failureCodes: failed && operation.failureCode ? [operation.failureCode] : [],
+    });
+  }, [draft.draftId, onEvidenceChange, operation]);
 
   useEffect(() => {
     if (readOnly && enabled) void refreshList();
@@ -226,7 +257,8 @@ export default function ApplicationConfigurationDraftPanel({ baseline, readOnly 
 
   function openPublishReview() {
     if (readOnly || operation.status !== "saved" && operation.status !== "restored") return;
-    window.location.hash = "application-publish-review";
+    if (onOpenPublishReview) onOpenPublishReview(draft.draftId);
+    else window.location.hash = "application-publish-review";
   }
 
   return (

@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ReactNode } from "react";
+import { lazy, Suspense, useCallback, type ReactNode } from "react";
 
 import type { WorkspaceApiKeysViewModel } from "./workspaceApiKeys.ts";
 import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner.ts";
@@ -6,6 +6,8 @@ import type {
   ApplicationDevelopmentStageId,
   ApplicationDevelopmentWorkspaceContext,
 } from "./applicationDevelopmentWorkspace.ts";
+import type { ApplicationDevelopmentWorkspaceControls } from "./applicationDevelopmentWorkspaceControls.ts";
+import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 
 const APIKeyLifecyclePanel = lazy(() =>
   import("./apiKeyLifecyclePanel.tsx").then((module) => ({ default: module.APIKeyLifecyclePanel })),
@@ -25,6 +27,7 @@ const WorkflowRunHistoryPanel = lazy(() => import("./workflowRunHistoryPanel.tsx
 type Props = {
   context: ApplicationDevelopmentWorkspaceContext;
   activeStage: ApplicationDevelopmentStageId | null;
+  controls: ApplicationDevelopmentWorkspaceControls;
   offlineApiKeys: WorkspaceApiKeysViewModel;
   suggestedDefinitionId: string;
   runHistoryRefreshKey: number;
@@ -38,6 +41,7 @@ type Props = {
 export default function ApplicationDevelopmentWorkspaceSurface({
   context,
   activeStage,
+  controls,
   offlineApiKeys,
   suggestedDefinitionId,
   runHistoryRefreshKey,
@@ -53,6 +57,47 @@ export default function ApplicationDevelopmentWorkspaceSurface({
     applicationKind: context.applicationKind,
     updatedAt: context.updatedAt,
   };
+  const reportOwnerEvidence = useCallback((evidence: ApplicationDevelopmentOwnerEvidence) => {
+    controls.reportEvidence({
+      ...evidence,
+      applicationId: context.applicationId,
+      workspaceGenerationKey: context.generationKey,
+    });
+  }, [context.applicationId, context.generationKey, controls.reportEvidence]);
+  const handleRunRecorded = useCallback((_runId: string) => {
+    onRunRecorded();
+  }, [onRunRecorded]);
+  const openRunEvidence = useCallback((runId: string) => {
+    if (!activeStage || !runId) return;
+    controls.issueHandoff({
+      applicationId: context.applicationId,
+      sourceStage: activeStage,
+      refKind: "run",
+      refId: runId,
+    });
+  }, [activeStage, context.applicationId, controls.issueHandoff]);
+  const openPublishReview = useCallback((draftId: string) => {
+    controls.issueHandoff({
+      applicationId: context.applicationId,
+      sourceStage: "configure_build",
+      refKind: "draft",
+      refId: draftId,
+    });
+  }, [context.applicationId, controls.issueHandoff]);
+  const consumePromotionHandoff = useCallback((handoffId: string) => {
+    controls.consumeHandoff("human_promotion", handoffId);
+  }, [controls.consumeHandoff]);
+  const consumeEvidenceHandoff = useCallback((handoffId: string) => {
+    controls.consumeHandoff("evidence_review", handoffId);
+  }, [controls.consumeHandoff]);
+  const pendingRunHandoff = controls.pendingHandoff?.targetStage === "evidence_review" &&
+    controls.pendingHandoff.refKind === "run"
+    ? controls.pendingHandoff
+    : null;
+  const pendingDraftHandoff = controls.pendingHandoff?.targetStage === "human_promotion" &&
+    controls.pendingHandoff.refKind === "draft"
+    ? controls.pendingHandoff
+    : null;
 
   if (!activeStage) {
     return (
@@ -95,6 +140,8 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                 key={`${context.generationKey}:configuration:${context.status}`}
                 readOnly={context.status === "archived"}
                 baseline={baseline}
+                onEvidenceChange={reportOwnerEvidence}
+                onOpenPublishReview={openPublishReview}
               />
             </Suspense>
           )}
@@ -109,6 +156,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
               applicationId={context.applicationId}
               applicationName={context.displayName}
               applicationActive={context.applicationActive}
+              onEvidenceChange={reportOwnerEvidence}
             />
           </Suspense>
           {context.status === "unavailable" ? (
@@ -125,6 +173,10 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                 key={`${context.generationKey}:publish:${context.status}`}
                 readOnly={context.status === "archived"}
                 baseline={baseline}
+                onEvidenceChange={reportOwnerEvidence}
+                handoffDraftId={pendingDraftHandoff?.refId}
+                handoffId={pendingDraftHandoff?.handoffId}
+                onHandoffConsumed={consumePromotionHandoff}
               />
             </Suspense>
           )}
@@ -137,7 +189,9 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                 savedDraftVersion={savedDraftVersion}
                 nextDerivedDraftNumber={nextDerivedDraftNumber}
                 onDerivedDraft={onDerivedDraft}
-                onRunRecorded={onRunRecorded}
+                onRunRecorded={handleRunRecorded}
+                onOpenRun={openRunEvidence}
+                onEvidenceChange={reportOwnerEvidence}
               />
             </Suspense>
           ) : null}
@@ -171,7 +225,9 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                   applicationName={context.displayName}
                   applicationActive={context.applicationActive}
                   suggestedDefinitionId={suggestedDefinitionId}
-                  onRunRecorded={onRunRecorded}
+                  onRunRecorded={handleRunRecorded}
+                  onOpenRun={openRunEvidence}
+                  onEvidenceChange={reportOwnerEvidence}
                 />
               </Suspense>
               <Suspense fallback={<StageFallback label="Application RAG Invocation" />}>
@@ -180,7 +236,9 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                   applicationId={context.applicationId}
                   applicationName={context.displayName}
                   applicationActive={context.applicationActive}
-                  onRunRecorded={onRunRecorded}
+                  onRunRecorded={handleRunRecorded}
+                  onOpenRun={openRunEvidence}
+                  onEvidenceChange={reportOwnerEvidence}
                 />
               </Suspense>
             </>
@@ -198,6 +256,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
               applicationId={context.applicationId}
               applicationName={context.displayName}
               applicationActive={context.applicationActive}
+              onEvidenceChange={reportOwnerEvidence}
             />
           </Suspense>
           <Suspense fallback={<StageFallback label="application operations" />}>
@@ -205,13 +264,17 @@ export default function ApplicationDevelopmentWorkspaceSurface({
               key={`${context.generationKey}:operations`}
               applicationId={context.applicationId}
               applicationName={context.displayName}
+              onEvidenceChange={reportOwnerEvidence}
             />
           </Suspense>
           <Suspense fallback={<StageFallback label="run history" />}>
-            <WorkflowRunHistoryPanel
+          <WorkflowRunHistoryPanel
               key={`${context.generationKey}:run-history`}
               applicationId={context.applicationId}
-              refreshKey={runHistoryRefreshKey}
+            refreshKey={runHistoryRefreshKey}
+            handoffRunId={pendingRunHandoff?.refId}
+            handoffId={pendingRunHandoff?.handoffId}
+            onHandoffConsumed={consumeEvidenceHandoff}
             />
           </Suspense>
         </StageSurface>
@@ -220,8 +283,8 @@ export default function ApplicationDevelopmentWorkspaceSurface({
       {activeStage === "release_readiness" ? (
         <article className="application-development-stage-paused" role="status">
           <p className="eyebrow">Release readiness boundary</p>
-          <h4>No owner action is mounted for this stage</h4>
-          <p>Batch B will project source coverage and blockers here without creating a publish decision.</p>
+          <h4>{controls.readiness.status}</h4>
+          <p>{controls.readiness.summary} The source cards below remain the only readiness projection.</p>
         </article>
       ) : null}
     </div>
