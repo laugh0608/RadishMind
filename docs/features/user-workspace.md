@@ -17,6 +17,7 @@
 - [应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md) 批次 A 已完成：当前应用可并列审查 Gateway 请求与 Workflow 运行的首分页窗口，分别查看状态、usage availability、受控调用计数、来源覆盖和合并时间线；两类记录不自动关联，当前窗口不冒充全量 usage、成本、配额或计费。
 - [应用交互会话与受控运行编排（开发 / 测试态）v1](user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md) 已完成并关闭：同一应用可显式选择 Workflow Definition v5 或 Application RAG v4 profile 建立 metadata-only session / turn，完成双数据库持久化、易失 transcript、取消、关闭、重启恢复、Run History 交接、真实浏览器和敏感信息扫描；不会从持久 metadata 恢复正文。
 - [应用开发工作区与发布准备审查 v1](user-workspace/application-development-workspace-release-readiness-review-v1.md) 已完成并关闭：唯一 application context、workspace / route generation、五阶段单 surface、route-scoped evidence、精确 Draft / Run handoff、九项 owner contribution、七个来源组和四态 readiness 投影均已进入 Web；真实浏览器已验证 Application 切换、稳定 hash、离线零 owner 请求和零页面控制台告警，缺少权威 revision 时保守显示 `incomplete / partial`。
+- [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md) 正式设计已经确认：它补齐现有 `prompt_application` 的真实能力缺口，固定独立 Template Draft / immutable Version owner、受限确定性渲染、Configuration Draft ref binding、Publish Candidate v3 review、显式 runtime assignment、Application API / Session 单次 Gateway 委托和 metadata-only run lineage；尚未进入实现。
 - 工作区首页和工作流定义已支持创建本地工作流草案并进入草案设计器；草案保存复用仅开发的已保存草案消费端，不代表生产持久化已成立。
 - `User Workspace Saved Draft List v1` 已在工作区首页支持仅开发的已保存草案列表：显示当前应用下已保存草案的脱敏摘要、空结果 / 失败状态、刷新和恢复。默认内存、聚合 SQLite 与显式 PostgreSQL 开发测试态存储库均可承载该路径，但不代表生产持久化已成立。
 - 草案设计器已支持本地节点新增、移动、删除保护、属性编辑和边重建；校验检查器、执行计划预览和运行时准入检查器使用当前活跃草案，不代表工作流可正式发布或执行。
@@ -36,8 +37,8 @@
 
 ## 下一批开发方向
 
-1. 应用开发工作区专题已关闭，不继续派生同层 UI、readiness、fixture、checker 或任务卡；下一项产品开发先在 `docs/features/` 选择并确认新的长期功能设计。
-2. 后续功能继续复用该工作区的 owner 与 scope 边界，不创建新的应用发布记录、运行真相源、执行算法或聚合持久化；发布准备结论仍由现有 lifecycle、review、activation、assignment、evaluation 和 run evidence 推导，不能伪造“可发布”。
+1. 下一项产品开发固定为 Prompt Application 专题。先建立一个高风险实施任务卡并按 strict contract / renderer、双数据库持久化、配置与发布绑定、受控调用、Web 连续链五批推进；任务卡冻结前不创建实现资产。
+2. Prompt Application 继续复用应用开发工作区的 owner 与 scope 边界，不创建新的应用发布审批状态机、Gateway 算法或聚合运行真相源；模板正文只属于 Template owner，Application Configuration Draft、Publish Candidate、Session 和 Run Store 只保存必要引用或 metadata。
 3. 本地 SQLite、应用目录、API 密钥和 Application Interaction Session 专题均已完成并关闭；不继续扩同层页面、准入文档、检查器或证据链。应用运行观测只有在全分页统计、可信 reported usage 或 quota / billing owner 成立时才评审服务端 summary。
 4. 一次性令牌继续只保存在当前 Web 组件内存；刷新、路由离开、应用 / 身份切换、组件卸载和服务重启都不得恢复原始令牌。
 5. 不把开发测试态应用目录或 API 密钥解释为生产存储库与生产授权；OIDC 模式在成员关系契约未成立时继续失败关闭。后续专题不得隐式打开生产认证、成员关系适配器、正式晋级、生产 API 密钥、配额、计费、模型服务凭据或新的 Gateway 请求 / 响应 schema。
