@@ -11,7 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
-- 产品焦点：工作流审查链、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理、应用目录与 API 密钥开发测试态认证均已完成；Workflow HTTP Tool、RAG Retrieval / 应用知识快照、RAG Regression Review、离线 RAG 质量评测、应用作用域 durable dataset / candidate review、知识基线晋级与配置绑定、Application RAG runtime、应用运行观测首批、Workflow 不可变版本晋级，以及[应用交互会话与受控运行编排（开发 / 测试态）v1](features/user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)均已关闭。Application Interaction Session 已交付 strict metadata contract、三种 repository、exact authority、v5 / v4 单次委托、Web 易失交互、双数据库 launcher 连续链、重启恢复、真实浏览器和敏感扫描。真实 Radish 联调保持 `real_radish_integration_deferred`，外部 connector、在线搜索、embedding / reranker、自动 activation / release、schedule、replay、生产认证、正式晋级、生产密钥、配额和计费继续关闭。
+- 产品焦点：工作流审查链、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理、应用目录与 API 密钥开发测试态认证均已完成；Workflow HTTP Tool、RAG Retrieval / 应用知识快照、RAG Regression Review、离线 RAG 质量评测、应用作用域 durable dataset / candidate review、知识基线晋级与配置绑定、Application RAG runtime、应用运行观测首批、Workflow 不可变版本晋级、Application Interaction Session，以及[应用开发工作区与发布准备审查 v1](features/user-workspace/application-development-workspace-release-readiness-review-v1.md)均已关闭。应用开发工作区已交付唯一 context、五阶段单 surface、route-scoped evidence、精确 Draft / Run handoff、四态 readiness、离线失败关闭和真实浏览器隐私审计。真实 Radish 联调保持 `real_radish_integration_deferred`，外部 connector、在线搜索、embedding / reranker、自动 activation / release、schedule、replay、生产认证、正式晋级、生产密钥、配额和计费继续关闭。
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算`、`R6 文档与检查器收敛` 均已完成。R6 关闭评审确认活动 checker 从 `132` 项、`38,644` 行降至 `111` 项、`28,486` 行，分别下降约 `15.9%` 与 `26.3%`；Provider、Production Ops 和 Control Plane formal UI 因仍有独立证据责任继续活动，不再派生第六批或同层 readiness 链。
 - `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片。production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
@@ -19,7 +19,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：[应用开发工作区与发布准备审查 v1](features/user-workspace/application-development-workspace-release-readiness-review-v1.md)批次 C 的代码与自动验证已完成，当前为 `batch_c_browser_validation_pending`。route-scoped evidence 已拒绝跨阶段迟到回调，Draft handoff 不再回退其它草案，Run handoff 可按精确 `runId` 跨分页重读 v4 / v5 owner 详情；离线、缺失与读取失败保持无创建、无执行、无重放。下一步只完成 `http://127.0.0.1:4100` 真实浏览器连续路径与 URL / console / network 审计，再跑全量仓库门禁并关闭专题；不新增 API、schema、repository、fixture、checker 或任务卡。`real_radish_integration_deferred` 不占用当前主线。
+1. 产品线：[应用开发工作区与发布准备审查 v1](features/user-workspace/application-development-workspace-release-readiness-review-v1.md)已完成并关闭。真实浏览器已验证五阶段连续导航、Application 切换、稳定 hash、单 surface、离线零 owner 请求与零页面控制台告警；离线 Application 缺少权威 revision 时保持 `incomplete / partial`，不再伪造版本或中断页面。下一顺位不是继续扩同层 readiness，而是依据产品范围与路线图选择一个新的长期功能设计，先更新对应 `docs/features/` 专题再拆实现；在选题确认前不打开外部 connector、在线搜索、自动发布、调度、重放、生产认证、配额或计费。`real_radish_integration_deferred` 不占用当前主线。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。

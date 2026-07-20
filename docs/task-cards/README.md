@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃实现任务卡。[应用开发工作区与发布准备审查 v1](../features/user-workspace/application-development-workspace-release-readiness-review-v1.md)批次 B 已完成，批次 C 的连续链、边界状态和真实浏览器隐私审计仍直接按功能专题实施；当前不需要新增 API、schema、repository、执行边界或高风险写入，若后续边界变化，再创建唯一的高风险任务卡。
+当前没有活跃实现任务卡。[应用开发工作区与发布准备审查 v1](../features/user-workspace/application-development-workspace-release-readiness-review-v1.md)批次 A 至 C 已完成并关闭，没有新增 API、schema、repository、执行边界或高风险写入。下一项开发先确认功能设计；只有边界实际变化时才创建唯一的高风险任务卡。
 
 ## 最近关闭任务
 

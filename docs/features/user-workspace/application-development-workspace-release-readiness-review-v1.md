@@ -2,7 +2,7 @@
 
 更新时间：2026-07-20
 
-状态：`application_development_workspace_release_readiness_review_v1_batch_c_browser_validation_pending`
+状态：`application_development_workspace_release_readiness_review_v1_completed`
 
 ## 功能目标
 
@@ -213,7 +213,7 @@ readiness contribution 固定为九项：`application_lifecycle`、`configuratio
 - Application 切换、revision / lifecycle 变化和离开工作区会重建或清空 evidence / handoff state；`partial_failure`、owner failure、归档、漂移或 blocker 保守聚合为 `review_blocked`，不会隐藏其它已加载证据。
 - Application Workspace 精准测试增至 17 项；全部 Web 测试 `180 / 180`、`npm run build`、`git diff --check` 与仓库快速门禁通过。实现没有新增 API、schema、repository、发布记录、聚合 store、执行算法或专项 checker。
 
-下一步进入批次 C，完成跨阶段连续路径、归档只读、late response / cancel / offline / partial source failure、v4 / v5 run handoff、Evaluation compatibility、一次性内容清理和真实浏览器隐私审计；批次 C 不扩生产认证、正式发布或自动动作。
+批次 B 完成后随后进入批次 C，范围固定为跨阶段连续路径、归档只读、late response / cancel / offline / partial source failure、v4 / v5 run handoff、Evaluation compatibility、一次性内容清理和真实浏览器隐私审计；批次 C 不扩生产认证、正式发布或自动动作。
 
 2026-07-20 已完成批次 C 的代码与自动验证部分：
 
@@ -223,7 +223,13 @@ readiness contribution 固定为九项：`application_lifecycle`、`configuratio
 - 一次性 handoff 在目标 owner 首次处理时立即锁定，开发模式的 React effect 重放不会造成重复 owner 读取；跨 route 的旧 handoff 完成回调也不能消费后续新引用。
 - 新增精确 draft 选择与分页外 v4 run 读取回归，Application Workspace 跨阶段旧 surface 拒绝断言已补齐；全部 Web 测试 `181 / 181`、`npm run build`、`git diff --check` 与仓库快速门禁通过。
 
-批次 C 还不能关闭。剩余唯一必做项是 `http://127.0.0.1:4100` 的真实浏览器连续路径与 URL / console / network 审计；浏览器存储边界同时以代码扫描和既有 consumer 证据复核，不提交新的 fixture 或 checker。完成后再补全量仓库门禁，并同步关闭专题、当前焦点、能力矩阵和周志。
+2026-07-20 已完成批次 C 的真实浏览器与隐私边界收口：
+
+- 在 `http://127.0.0.1:4100` 依次进入 Configure / Build、Human Promotion、Controlled Test、Run / Evaluation Review 与 Release Readiness；前四阶段始终只挂载一个 owner surface，Release Readiness 只展示只读汇总，不挂载执行 owner。
+- 从 `app_flow_copilot` 切换到 `app_docs_assistant` 后，Application context、route generation 和 lifecycle evidence 均按新作用域重建；URL 只包含稳定阶段 hash，没有 application payload、input、answer、token 或完整资源引用。
+- 浏览器启动复验发现离线 Application 没有权威 `recordVersion` 时 lifecycle evidence 会携带非法版本 `0` 并中断 React 根节点。实现已按来源真实性修正：保留可浏览 Application 作用域，但把 lifecycle evidence 降为 `incomplete / partial`，保留无版本短引用并明确缺少权威 revision，不再伪造完整证据或抛错。
+- 完整页面加载与五阶段连续交互共观察到的请求仅为 Vite 页面、模块与动态 chunk；交互期没有 XHR、Fetch 或 `/v1/` owner 请求，控制台无页面 warning / error，网络无加载失败。浏览器存储不直接读取；代码扫描确认工作区只使用稳定 `location.hash`，不写 `localStorage`、`sessionStorage` 或 cookie，既有离线 consumer 测试继续固定零请求和一次性内存边界。
+- Application Workspace 回归增至 `18` 项，全部 Web 测试 `182 / 182`、`npm run build` 与全量 `./scripts/check-repo.sh` 通过。批次 C 和本专题至此关闭；没有新增 API、schema、repository、fixture、checker、任务卡、发布记录或执行算法。
 
 ## 验收方式
 

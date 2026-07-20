@@ -207,16 +207,26 @@ export function initialApplicationDevelopmentEvidenceState(
   ) as Record<ApplicationDevelopmentContributionId, ApplicationDevelopmentEvidenceContribution>;
 
   if (context.applicationId) {
+    const applicationRef: ApplicationDevelopmentEvidenceRef = context.recordVersion > 0
+      ? { kind: "application", id: context.applicationId, version: context.recordVersion }
+      : { kind: "application", id: context.applicationId };
+    const revisionMissing = context.recordVersion > 0
+      ? []
+      : ["Authoritative Application revision is unavailable."];
     contributions.application_lifecycle = context.status === "active"
-      ? contribution("application_lifecycle", "available", "complete", [
-        { kind: "application", id: context.applicationId, version: context.recordVersion },
-      ])
+      ? contribution(
+        "application_lifecycle",
+        context.recordVersion > 0 ? "available" : "incomplete",
+        context.recordVersion > 0 ? "complete" : "partial",
+        [applicationRef],
+        revisionMissing,
+      )
       : contribution(
         "application_lifecycle",
         "blocked",
-        "complete",
-        [{ kind: "application", id: context.applicationId, version: context.recordVersion }],
-        [],
+        context.recordVersion > 0 ? "complete" : "partial",
+        [applicationRef],
+        revisionMissing,
         [{ code: "application_archived", summary: "Archived Applications retain evidence but cannot enter controlled testing." }],
       );
   }

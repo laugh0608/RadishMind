@@ -250,6 +250,23 @@ test("readiness starts incomplete for an active Application and rolls up all sev
   assert.equal(view.canPublish, false);
 });
 
+test("offline Application without an authoritative revision stays reviewable but incomplete", () => {
+  const context = buildApplicationDevelopmentWorkspaceContext({
+    ...activeApplication,
+    recordVersion: 0,
+    source: "offline_read_model",
+  });
+  const view = buildApplicationDevelopmentReadinessViewModel(initialApplicationDevelopmentEvidenceState(context));
+  const application = view.sources.find((source) => source.sourceGroupId === "application");
+
+  assert.equal(context.status, "active");
+  assert.equal(view.status, "review_incomplete");
+  assert.equal(application?.status, "incomplete");
+  assert.equal(application?.coverage, "partial");
+  assert.deepEqual(application?.evidenceRefs, [{ kind: "application", id: "app_flow_copilot" }]);
+  assert.deepEqual(application?.missingEvidence, ["Authoritative Application revision is unavailable."]);
+});
+
 test("readiness distinguishes no selected Application from an archived lifecycle blocker", () => {
   const unavailable = buildApplicationDevelopmentWorkspaceContext({
     ...activeApplication,
