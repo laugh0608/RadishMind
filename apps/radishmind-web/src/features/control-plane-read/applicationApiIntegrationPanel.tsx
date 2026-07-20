@@ -13,6 +13,7 @@ import { requestModelGatewayPlaygroundHandoff } from "./modelGatewayPlaygroundEv
 import {
   APPLICATION_API_INTEGRATION_DRAFT_HANDOFF_EVENT,
   APPLICATION_MODEL_CATALOG_READY_EVENT,
+  consumePendingApplicationApiIntegrationDraftHandoff,
   createApplicationModelCatalogReadyDetail,
   type ApplicationApiIntegrationDraftHandoffDetail,
   type ApplicationModelCatalogReadyDetail,
@@ -71,13 +72,19 @@ export default function ApplicationApiIntegrationPanel({
   useEffect(() => () => activeCatalogController.current?.abort(), []);
 
   useEffect(() => {
-    function handleDraftHandoff(event: Event) {
-      const detail = (event as CustomEvent<ApplicationApiIntegrationDraftHandoffDetail>).detail;
+    function applyDraftHandoff(detail: ApplicationApiIntegrationDraftHandoffDetail | null | undefined) {
       if (!detail || detail.applicationId !== applicationId) return;
       setProtocol(detail.protocol);
       void loadModels(detail.model);
     }
+    function handleDraftHandoff(event: Event) {
+      const detail = (event as CustomEvent<ApplicationApiIntegrationDraftHandoffDetail>).detail;
+      if (!detail || detail.applicationId !== applicationId) return;
+      consumePendingApplicationApiIntegrationDraftHandoff(applicationId);
+      applyDraftHandoff(detail);
+    }
     window.addEventListener(APPLICATION_API_INTEGRATION_DRAFT_HANDOFF_EVENT, handleDraftHandoff);
+    applyDraftHandoff(consumePendingApplicationApiIntegrationDraftHandoff(applicationId));
     return () => window.removeEventListener(APPLICATION_API_INTEGRATION_DRAFT_HANDOFF_EVENT, handleDraftHandoff);
   }, [applicationId]);
 

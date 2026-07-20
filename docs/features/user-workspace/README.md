@@ -6,7 +6,7 @@
 
 ## 当前专题
 
-- [应用开发工作区与发布准备审查 v1](application-development-workspace-release-readiness-review-v1.md)：设计已确认，批次 A 壳层基础已完成；唯一 application context、revision generation、五阶段导航、生命周期失败关闭和发布准备停止线已进入 Web。批次 A 尚未关闭，不新增 API、schema、repository 或任务卡。
+- [应用开发工作区与发布准备审查 v1](application-development-workspace-release-readiness-review-v1.md)：批次 A 已完成；唯一 application context、workspace / route generation、五阶段导航、生命周期失败关闭、当前阶段单独挂载、一次性跨阶段 Application API handoff 和发布准备停止线已进入 Web。当前为 `batch_a_completed_batch_b_ready`。
 - [应用受控运行开发测试态指南](application-controlled-runtime-dev-test-guide.md)：说明 Application RAG、Workflow Definition、Application Interaction Session、v4 / v5 运行记录与 Application Operations 的启动、资源准备、作用域、恢复、失败语义和隐私边界。
 - [应用交互会话与受控运行编排（开发 / 测试态）v1](application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)：strict contract、三种 Session / Turn owner、exact authority reload、v5 / v4 单次委托、Web 易失交互工作区、双数据库 launcher 连续链、重启恢复、真实浏览器和敏感扫描均已完成，专题关闭。
 - [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1.md)：Gateway 认证、统一 `sqlite_dev` repository / 聚合 runtime、双数据库门禁、Web 一次性交接、真实浏览器连续路径、重启恢复与敏感信息复验均已完成，专题关闭。
@@ -18,7 +18,7 @@
 
 ## 下一步
 
-- 继续“应用开发工作区与发布准备审查 v1”批次 A：在已完成 context / generation / navigation 基础上收口阶段 surface 组合，并补 route switch、取消与迟到响应的组合级证据。完成前不进入批次 B，不新增 API、schema、repository、发布记录或执行算法。
+- 进入“应用开发工作区与发布准备审查 v1”批次 B：建立通用 feature-scoped 脱敏 handoff refs、来源分组、`partial_failure` / 漂移 / 缺失 blocker 与四态 readiness view model。不新增 API、schema、repository、发布记录或执行算法。
 - 不从已关闭的 Application Interaction Session 派生长期记忆、自动 profile、重试 / fallback、schedule、replay / resume 或 agent loop。只有需要跨全部分页窗口的稳定统计、可信 reported usage 或正式 quota / billing owner 时，才评审服务端 summary。
 
 ## 目录停止线

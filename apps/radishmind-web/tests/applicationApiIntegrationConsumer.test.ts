@@ -13,6 +13,8 @@ import {
 import {
   APPLICATION_API_INTEGRATION_DRAFT_HANDOFF_EVENT,
   APPLICATION_MODEL_CATALOG_READY_EVENT,
+  clearPendingApplicationApiIntegrationDraftHandoff,
+  consumePendingApplicationApiIntegrationDraftHandoff,
   createApplicationApiIntegrationDraftHandoffDetail,
   createApplicationModelCatalogReadyDetail,
   requestApplicationApiIntegrationDraftHandoff,
@@ -270,6 +272,7 @@ test("Application and Gateway handoff events dispatch their validated details", 
     );
     requestGatewayRequestHistoryReview(" playground-request-001 ", " app_docs_assistant ");
   } finally {
+    clearPendingApplicationApiIntegrationDraftHandoff();
     if (originalWindow) {
       Object.defineProperty(globalThis, "window", originalWindow);
     } else {
@@ -295,8 +298,39 @@ test("Application and Gateway handoff events dispatch their validated details", 
   });
 });
 
+test("Application API handoff survives one route mount and remains exact-scope one-time memory", () => {
+  const originalWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+  Object.defineProperty(globalThis, "window", { configurable: true, value: new EventTarget() });
+  clearPendingApplicationApiIntegrationDraftHandoff();
+  try {
+    requestApplicationApiIntegrationDraftHandoff("app_docs_assistant", "responses", "profile:local-dev");
+    assert.equal(consumePendingApplicationApiIntegrationDraftHandoff("app_flow_copilot"), null);
+    assert.deepEqual(consumePendingApplicationApiIntegrationDraftHandoff("app_docs_assistant"), {
+      applicationId: "app_docs_assistant",
+      protocol: "responses",
+      model: "profile:local-dev",
+    });
+    assert.equal(consumePendingApplicationApiIntegrationDraftHandoff("app_docs_assistant"), null);
+  } finally {
+    clearPendingApplicationApiIntegrationDraftHandoff();
+    if (originalWindow) {
+      Object.defineProperty(globalThis, "window", originalWindow);
+    } else {
+      Reflect.deleteProperty(globalThis, "window");
+    }
+  }
+});
+
 test("Application and Gateway handoffs reject ambiguous or unsafe scope", () => {
   const validModel = { id: "profile:local-dev", ownedBy: "radishmind", protocols: ["responses" as const] };
+  assert.throws(
+    () => createApplicationApiIntegrationDraftHandoffDetail("bad scope", "responses", "profile:local-dev"),
+    /scope is invalid/,
+  );
+  assert.throws(
+    () => createApplicationApiIntegrationDraftHandoffDetail("app_docs_assistant", "responses", "unsafe model"),
+    /selection is invalid/,
+  );
   assert.throws(() => createApplicationModelCatalogReadyDetail("bad scope", [validModel], validModel.id), /scope is invalid/);
   assert.throws(
     () => createApplicationModelCatalogReadyDetail("app_docs_assistant", [validModel, validModel], validModel.id),

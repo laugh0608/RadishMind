@@ -187,10 +187,10 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
   }
 
   if (config.mode === "offline") {
-    return <section className="workflow-definition-promotion-panel offline"><div className="section-heading compact-heading"><div><p className="eyebrow">Workflow Definition · Promotion</p><h4>不可变版本晋级未启用</h4></div><span className="status-badge neutral">offline · zero requests</span></div><p>启用统一本地产品档后才能创建 candidate、人工审查、激活和运行；离线模式不会发起请求。</p></section>;
+    return <section className="workflow-definition-promotion-panel offline" id="workflow-definition-promotion"><div className="section-heading compact-heading"><div><p className="eyebrow">Workflow Definition · Promotion</p><h4>不可变版本晋级未启用</h4></div><span className="status-badge neutral">offline · zero requests</span></div><p>启用统一本地产品档后才能创建 candidate、人工审查、激活和运行；离线模式不会发起请求。</p></section>;
   }
 
-  return <section className="workflow-definition-promotion-panel" aria-labelledby="workflow-definition-promotion-title">
+  return <section className="workflow-definition-promotion-panel" id="workflow-definition-promotion" aria-labelledby="workflow-definition-promotion-title">
     <div className="section-heading compact-heading"><div><p className="eyebrow">Workflow Definition · Controlled runtime</p><h4 id="workflow-definition-promotion-title">不可变版本晋级与精确运行</h4></div><span className={`status-badge ${activation?.state === "active" ? "status-good" : "status-neutral"}`}>{activation?.state ?? "inactive"}</span></div>
     <p className="boundary-note">Saved Draft 保持可编辑；candidate、version、activation 与 v5 run 各自保存精确证据。批准不自动激活，激活不自动执行。</p>
     {failure ? <p className="workflow-definition-failure" role="alert">{failure}</p> : null}

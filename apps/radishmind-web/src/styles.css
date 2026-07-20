@@ -1740,6 +1740,64 @@ h4 {
   cursor: not-allowed;
 }
 
+.application-development-stage-surfaces {
+  display: grid;
+  gap: 18px;
+}
+
+.application-development-stage-surface {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  border: 1px solid #d8dee8;
+  border-radius: 10px;
+  padding: 16px;
+  background: #fdfefe;
+}
+
+.application-development-stage-heading {
+  display: grid;
+  gap: 4px;
+  border-bottom: 1px solid #e3e8ef;
+  padding-bottom: 10px;
+}
+
+.application-development-stage-heading p,
+.application-development-stage-heading h4,
+.application-development-stage-fallback p {
+  margin: 0;
+}
+
+.application-development-stage-fallback {
+  border: 1px dashed #cbd7e6;
+  border-radius: 8px;
+  padding: 14px;
+  color: #5d6f84;
+  background: #f8fbff;
+}
+
+.application-development-stage-paused {
+  border: 1px dashed #cbd7e6;
+  border-radius: 10px;
+  padding: 16px;
+  color: #4e5f73;
+  background: #f8fbff;
+}
+
+.application-development-stage-paused p,
+.application-development-stage-paused h4 {
+  margin: 0;
+}
+
+.application-development-stage-paused h4 {
+  margin-top: 4px;
+}
+
+.application-development-stage-paused p:last-child {
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
 .application-development-readiness-boundary {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

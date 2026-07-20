@@ -183,6 +183,9 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     source = app_source_text()
     page_source = read_text("apps/radishmind-web/src/features/control-plane-read/workspaceApiKeys.ts")
     app_source = read_text("apps/radishmind-web/src/app/App.tsx")
+    workspace_surface_source = read_text(
+        "apps/radishmind-web/src/features/control-plane-read/applicationDevelopmentWorkspaceSurface.tsx"
+    )
     lifecycle_panel_source = read_text(
         "apps/radishmind-web/src/features/control-plane-read/apiKeyLifecyclePanel.tsx"
     )
@@ -204,11 +207,24 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     ):
         require(literal in source, f"workspace api keys missing source literal: {literal}")
     for literal in (
-        "APIKeyLifecyclePanel",
-        "offlineView={workspaceApiKeys}",
-        "applicationActive=",
+        "ApplicationDevelopmentWorkspaceSurface",
+        "offlineApiKeys={workspaceApiKeys}",
+        "context={applicationDevelopmentWorkspaceContext}",
     ):
-        require(literal in app_source, f"App.tsx missing workspace api keys rendering literal: {literal}")
+        require(
+            literal in app_source,
+            f"App.tsx missing application workspace ownership literal: {literal}",
+        )
+    for literal in (
+        "APIKeyLifecyclePanel",
+        'activeStage === "controlled_test"',
+        "applicationActive={context.applicationActive}",
+        "offlineView={offlineApiKeys}",
+    ):
+        require(
+            literal in workspace_surface_source,
+            f"application workspace surface missing API key lifecycle literal: {literal}",
+        )
     for literal in (
         "OfflineAPIKeySummary",
         "WorkspaceApiKeysViewModel",

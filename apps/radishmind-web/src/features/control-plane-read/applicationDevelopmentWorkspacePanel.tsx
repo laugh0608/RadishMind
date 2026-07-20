@@ -1,34 +1,45 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import {
-  applicationDevelopmentStageForHash,
   type ApplicationDevelopmentStage,
   type ApplicationDevelopmentStageId,
   type ApplicationDevelopmentWorkspaceContext,
 } from "./applicationDevelopmentWorkspace.ts";
+import {
+  initialApplicationDevelopmentRouteState,
+  transitionApplicationDevelopmentRoute,
+} from "./applicationDevelopmentWorkspaceRoute.ts";
 
 export default function ApplicationDevelopmentWorkspacePanel({
   context,
+  renderStageSurfaces,
 }: {
   context: ApplicationDevelopmentWorkspaceContext;
+  renderStageSurfaces?: (
+    activeStage: ApplicationDevelopmentStageId | null,
+    surfaceKey: string,
+  ) => ReactNode;
 }) {
-  const [activeStage, setActiveStage] = useState<ApplicationDevelopmentStageId>("configure_build");
+  const [routeState, setRouteState] = useState(() => initialApplicationDevelopmentRouteState(context, ""));
 
   useEffect(() => {
     function synchronizeStage() {
-      const nextStage = applicationDevelopmentStageForHash(window.location.hash);
-      if (nextStage) setActiveStage(nextStage);
+      setRouteState((current) => transitionApplicationDevelopmentRoute(current, context, window.location.hash));
     }
     synchronizeStage();
     window.addEventListener("hashchange", synchronizeStage);
     return () => window.removeEventListener("hashchange", synchronizeStage);
-  }, []);
+  }, [context]);
+
+  const activeStage = routeState.activeStage;
 
   return (
     <section
       className={`surface-band application-development-workspace ${context.status}`}
       id="application-development-workspace"
       aria-labelledby="application-development-workspace-title"
+      data-active-stage={activeStage ?? "inactive"}
+      data-route-generation={routeState.routeGeneration}
     >
       <div className="section-heading">
         <div>
@@ -56,10 +67,12 @@ export default function ApplicationDevelopmentWorkspacePanel({
             key={stage.stageId}
             stage={stage}
             active={stage.stageId === activeStage}
-            onNavigate={setActiveStage}
+            onNavigate={() => setRouteState((current) => transitionApplicationDevelopmentRoute(current, context, stage.anchor))}
           />
         ))}
       </nav>
+
+      {renderStageSurfaces?.(activeStage, routeState.surfaceKey)}
 
       <article className="application-development-readiness-boundary" id="application-development-workspace-readiness">
         <div>
@@ -82,7 +95,7 @@ function ApplicationDevelopmentStageLink({
 }: {
   stage: ApplicationDevelopmentStage;
   active: boolean;
-  onNavigate: (stageId: ApplicationDevelopmentStageId) => void;
+  onNavigate: () => void;
 }) {
   const blocked = stage.availability === "blocked";
   if (blocked) {
@@ -99,7 +112,7 @@ function ApplicationDevelopmentStageLink({
       className={`application-development-stage ${active ? "active" : ""}`}
       href={`#${stage.anchor}`}
       aria-current={active ? "step" : undefined}
-      onClick={() => onNavigate(stage.stageId)}
+      onClick={onNavigate}
     >
       <strong>{stage.label}</strong>
       <small>{stage.summary}</small>

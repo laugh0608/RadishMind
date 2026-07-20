@@ -40,7 +40,7 @@ export default function ApplicationOperationsPanel({
     state.status === "application_unavailable";
 
   return (
-    <section className="surface-band application-operations" aria-labelledby="application-operations-title">
+    <section className="surface-band application-operations" id="application-operations" aria-labelledby="application-operations-title">
       <div className="section-heading">
         <div>
           <p className="eyebrow">User Workspace · Application Operations</p>

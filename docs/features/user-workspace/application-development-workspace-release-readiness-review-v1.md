@@ -2,7 +2,7 @@
 
 更新时间：2026-07-20
 
-状态：`application_development_workspace_release_readiness_review_v1_batch_a_shell_foundation_completed`
+状态：`application_development_workspace_release_readiness_review_v1_batch_a_completed_batch_b_ready`
 
 ## 功能目标
 
@@ -183,7 +183,15 @@ context 不保存领域对象、请求正文、响应正文、凭据、输入、
 - `App.tsx` 中 Application 配置、候选、API 接入、API key、RAG、Session、Definition、Operations、Run History 与 Gateway Playground 已统一消费同一个 application context；Application、revision 或生命周期变化通过 generation key 重新挂载作用域组件，旧 transient state 不再跨 generation 复用。
 - 新增 5 个 context / generation / lifecycle / stage mapping 精准测试；全部 Web 测试 `167 / 167` 通过，`npm run build` 通过，新模块行覆盖率 `100%`。
 
-批次 A 尚未关闭。下一切片继续把阶段 surface 组合从根组件收口到 feature boundary，并补 route switch、取消与迟到响应的组合级证据；在这些行为成立前，不进入批次 B 的 handoff refs 与四态 readiness projection。
+随后已完成批次 A 剩余实现：
+
+- 新增 feature-owned stage surface，把 Configuration、Publish、Workflow Definition promotion、RAG、API Integration、API key、Session、Application RAG、Operations 与 Run History 从 `App.tsx` 的直接编排中收口；根组件只交付 application context 和必要的 owner props。
+- route model 统一识别现有面板与 handoff hash；当前只挂载一个阶段，离开工作区时卸载 stage surface，Application / revision / lifecycle 或跨阶段变化会形成新的 route / workspace generation，旧 surface key 不再接受迟到结果。
+- 跨阶段 Application API 选择改为严格校验、精确 application scope、一次消费的内存 handoff，避免目标阶段尚未挂载时丢失事件；不保存 token、input、answer 或完整领域对象。
+- 归档 Application 的配置、候选和 evidence 保持只读，Controlled Test 整段失败关闭；未知或未选择 Application 不挂载写入 / 运行 owner。
+- Application Workspace 精准测试增至 8 项，新增一次性 route handoff 测试；全部 Web 测试 `171 / 171`、`npm run build`、route / handoff / Workflow Definition 定向测试均通过。
+
+批次 A 已关闭，批次 B 可以开始。下一步建立通用 feature-scoped 脱敏 handoff refs、来源分组与四态 readiness view model；本批次的一次性 Application API handoff 只是维持现有跨阶段路径的窄边界，不提前等同于完整 Batch B handoff state。
 
 ## 验收方式
 
