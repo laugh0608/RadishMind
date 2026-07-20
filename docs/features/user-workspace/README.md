@@ -1,11 +1,12 @@
 # 用户工作区细专题入口
 
-更新时间：2026-07-19
+更新时间：2026-07-20
 
 本目录承接用户工作区中跨应用、模型发现、接入、调用与审查的具体功能专题。产品面长期边界继续以 [用户工作区设计与开发文档](../user-workspace.md) 为准。
 
 ## 当前专题
 
+- [应用开发工作区与发布准备审查 v1](application-development-workspace-release-readiness-review-v1.md)：页面 / 状态所有权审计和正式功能设计已确认，状态为 `design_approved_batch_a_ready`；批次 A 只重组既有 owner、application context、阶段导航、证据交接和只读发布准备投影，不新增 API、schema、repository 或任务卡。
 - [应用受控运行开发测试态指南](application-controlled-runtime-dev-test-guide.md)：说明 Application RAG、Workflow Definition、Application Interaction Session、v4 / v5 运行记录与 Application Operations 的启动、资源准备、作用域、恢复、失败语义和隐私边界。
 - [应用交互会话与受控运行编排（开发 / 测试态）v1](application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)：strict contract、三种 Session / Turn owner、exact authority reload、v5 / v4 单次委托、Web 易失交互工作区、双数据库 launcher 连续链、重启恢复、真实浏览器和敏感扫描均已完成，专题关闭。
 - [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1.md)：Gateway 认证、统一 `sqlite_dev` repository / 聚合 runtime、双数据库门禁、Web 一次性交接、真实浏览器连续路径、重启恢复与敏感信息复验均已完成，专题关闭。
@@ -17,7 +18,7 @@
 
 ## 下一步
 
-- 下一项先设计“应用开发工作区与发布准备审查 v1”：盘点并统一 Application、配置草案、Workflow Definition、RAG binding、Session、Run History、Comparison / Evaluation 和运行观测的入口、作用域、状态切换与证据交接，再决定实现拆分。该专题只编排既有权威资源和显式动作，不新增发布记录或执行算法。
+- 进入“应用开发工作区与发布准备审查 v1”批次 A，从 `App.tsx` 抽出唯一 application context、阶段导航、generation / 清理边界和既有面板组合。首批不新增 API、schema、repository、发布记录或执行算法。
 - 不从已关闭的 Application Interaction Session 派生长期记忆、自动 profile、重试 / fallback、schedule、replay / resume 或 agent loop。只有需要跨全部分页窗口的稳定统计、可信 reported usage 或正式 quota / billing owner 时，才评审服务端 summary。
 
 ## 目录停止线

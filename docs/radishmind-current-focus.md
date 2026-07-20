@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-07-19
+更新时间：2026-07-20
 
 ## 文档目的
 
@@ -19,7 +19,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：Application Interaction Session 批次 A 至 E 与专题均已完成，当前没有在制实现批次。下一项建议为“应用开发工作区与发布准备审查 v1”：先在用户工作区功能层审计现有 Application、配置草案、Workflow Definition、RAG binding、Session、Run History、Comparison / Evaluation 与运行观测的页面职责和状态所有权，再建立贯穿“选择应用 → 配置 / 构建 → 人工晋级 → 受控测试 → 运行 / 评测审查 → 发布准备判断”的正式功能设计；它只编排既有权威资源和显式动作，不新增发布真相源，不自动执行或晋级。设计冻结后再按 API / schema 风险判断是否需要任务卡。`real_radish_integration_deferred` 不占用当前主线。
+1. 产品线：[应用开发工作区与发布准备审查 v1](features/user-workspace/application-development-workspace-release-readiness-review-v1.md)已完成设计确认，当前为 `design_approved_batch_a_ready`。设计固定“选择应用 → 配置 / 构建 → 人工晋级 → 受控测试 → 运行 / 评测审查 → 发布准备判断”、唯一 application context、generation / 清理边界和只读发布准备投影；批次 A 从 `App.tsx` 抽出 Application Development Workspace 并复用既有 owner，不新增 API、schema、repository 或任务卡。`real_radish_integration_deferred` 不占用当前主线。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
@@ -63,7 +63,8 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 33. [Workflow 不可变版本晋级与受控运行绑定实施任务卡](task-cards/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md)
 34. [应用交互会话与受控运行编排（开发 / 测试态）v1](features/user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)
 35. [应用交互会话与受控运行编排实施任务卡](task-cards/application-interaction-session-controlled-runtime-orchestration-dev-test-v1-plan.md)
-36. [本周周志](devlogs/2026-W29.md)
+36. [应用开发工作区与发布准备审查 v1](features/user-workspace/application-development-workspace-release-readiness-review-v1.md)
+37. [本周周志](devlogs/2026-W30.md)
 
 ## 当前不要做
 
