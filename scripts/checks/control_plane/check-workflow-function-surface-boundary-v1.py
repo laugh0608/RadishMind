@@ -47,7 +47,7 @@ EXPECTED_SURFACE_STATUSES = {
     "workflow-definition-detail": "read_only_surface_defined",
     "run-detail": "read_only_surface_defined",
     "tool-action-preview": "blocked_preview_surface_defined",
-    "confirmation-placeholder": "placeholder_surface_defined",
+    "confirmation-placeholder": "superseded_archived_placeholder_surface",
 }
 EXPECTED_SURFACE_FIELDS = {
     "application-detail": {
@@ -143,38 +143,38 @@ EXPECTED_FORBIDDEN_ARTIFACTS = {
     "services/platform/internal/httpapi/workflow_durable_run_store.go",
 }
 EXPECTED_SIDE_EFFECT_COUNTERS = {
-    "runtime_api_added_count=0",
+    "legacy_placeholder_runtime_api_added_count=0",
     "executor_call_count=0",
     "tool_execution_count=0",
-    "confirmation_decision_count=0",
+    "legacy_run_bound_confirmation_decision_submission_count=0",
     "business_writeback_count=0",
     "replay_call_count=0",
-    "database_write_count=0",
+    "legacy_placeholder_database_write_count=0",
 }
 EXPECTED_FORBIDDEN_SIDE_EFFECTS = {
     "workflow_execution",
     "node_execution",
     "tool_execution",
-    "confirmation_decision",
+    "legacy_run_bound_confirmation_decision_submission",
     "business_writeback",
     "run_replay",
     "run_resume",
-    "database_write",
+    "legacy_placeholder_database_write",
     "secret_write",
 }
 EXPECTED_STOP_LINES = {
-    "no new runtime API",
+    "no new runtime API from archived placeholder",
     "no workflow builder",
     "no workflow definition mutation",
     "no workflow executor",
     "no node executor",
     "no tool executor",
-    "no confirmation decision",
+    "no legacy run-bound confirmation decision submission",
     "no business writeback",
     "no replay or resume",
     "no durable run store",
     "no materialized result reader",
-    "no database or production auth implementation",
+    "no production auth implementation from archived placeholder",
     "no production readiness claim",
 }
 
@@ -235,7 +235,7 @@ def assert_boundary_scope(fixture: dict[str, Any]) -> None:
         "production_api_consumer_allowed_now",
         "write_allowed_now",
         "executor_allowed_now",
-        "confirmation_decision_allowed_now",
+        "legacy_run_bound_confirmation_decision_allowed_now",
         "business_writeback_allowed_now",
         "replay_allowed_now",
     ):
@@ -252,10 +252,12 @@ def assert_surfaces(fixture: dict[str, Any]) -> None:
     for surface_id, expected_status in EXPECTED_SURFACE_STATUSES.items():
         surface = surfaces[surface_id]
         require(surface.get("status") == expected_status, f"{surface_id} status drifted")
-        require(
-            surface.get("source_policy") == "offline_fixture_or_future_fake_store_dev_path_only",
-            f"{surface_id} source policy drifted",
+        expected_source_policy = (
+            "archived_offline_fixture_only"
+            if surface_id == "confirmation-placeholder"
+            else "offline_fixture_or_future_fake_store_dev_path_only"
         )
+        require(surface.get("source_policy") == expected_source_policy, f"{surface_id} source policy drifted")
         missing_fields = sorted(EXPECTED_SURFACE_FIELDS[surface_id] - set(surface.get("required_fields") or []))
         require(not missing_fields, f"{surface_id} missing fields: {missing_fields}")
         require(surface.get("display_expectations"), f"{surface_id} must define display expectations")
@@ -270,6 +272,15 @@ def assert_surfaces(fixture: dict[str, Any]) -> None:
             "can_decide_confirmation",
         ):
             require(capabilities.get(field) is False, f"{surface_id} {field} must remain false")
+        if surface_id == "confirmation-placeholder":
+            require(surface.get("historical_read_allowed") is True, "legacy placeholder history must stay readable")
+            require(surface.get("new_submission_allowed") is False, "legacy placeholder must reject submissions")
+            require(surface.get("runtime_authoritative") is False, "legacy placeholder must not be authoritative")
+            require(
+                set(surface.get("superseded_by") or [])
+                == {"workflow_http_tool_action_plan.v1", "workflow_http_tool_confirmation_decision.v1"},
+                "legacy placeholder supersession targets drifted",
+            )
 
 
 def assert_draft_routes(fixture: dict[str, Any]) -> None:
@@ -282,7 +293,12 @@ def assert_draft_routes(fixture: dict[str, Any]) -> None:
     for route_id, route in routes.items():
         require(route.get("surface_id") in EXPECTED_SURFACE_STATUSES, f"{route_id} surface drifted")
         require(route.get("method") == "GET", f"{route_id} must remain GET-only draft")
-        require(route.get("contract_status") == "draft_only_no_api", f"{route_id} must remain draft-only")
+        expected_contract_status = (
+            "archived_legacy_read_only_no_api"
+            if route_id == "confirmation-placeholder-read-draft"
+            else "draft_only_no_api"
+        )
+        require(route.get("contract_status") == expected_contract_status, f"{route_id} contract status drifted")
         require(route.get("implemented_now") is False, f"{route_id} must not be implemented in this slice")
         require(str(route.get("path_template") or "").startswith("/v1/user-workspace/"), f"{route_id} path drifted")
 
@@ -301,6 +317,10 @@ def assert_risk_next_and_stop_lines(fixture: dict[str, Any]) -> None:
     )
     require(policy.get("requires_confirmation_must_be_visible") is True, "requires confirmation must remain visible")
     require(policy.get("policy_reason_must_be_visible") is True, "policy reason must remain visible")
+    require(
+        policy.get("confirmation_placeholder_default_state") == "superseded_archived",
+        "legacy confirmation placeholder default state drifted",
+    )
 
     next_slices = {
         str(row.get("id") or ""): row

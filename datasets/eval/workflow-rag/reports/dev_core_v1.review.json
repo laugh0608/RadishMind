@@ -1,0 +1,237 @@
+{
+  "schema_version": "workflow_rag_quality_review.v1",
+  "dataset": {
+    "dataset_id": "wragd_dev_core",
+    "dataset_version": 1,
+    "dataset_digest": "sha256:94390c66ae197a9ce993402128d3d4306f588b7bc7a03ad04733249b83973b48"
+  },
+  "snapshot": {
+    "tenant_ref": "tenant_eval",
+    "workspace_id": "workspace_eval",
+    "application_id": "app_workflow_rag_eval",
+    "snapshot_id": "rags_ffffffffffffffff",
+    "snapshot_version": 1,
+    "snapshot_digest": "sha256:267d014eea57e2e22cd041dfa6eef2b5c7cd702ffc05e9db98dffabdc1a27678",
+    "rag_ref": "workflow.rag.dev_core.v1"
+  },
+  "profile": {
+    "profile_id": "workflow.rag.lexical-ngram-dev.v1",
+    "profile_version": 1,
+    "profile_digest": "sha256:d205ebb97b079d69b8a0e92d6f87c54e5be4b4871841ab2f7622d7d4c91ee17c"
+  },
+  "status": "passed",
+  "sample_count": 7,
+  "thresholds": {
+    "hit_at_k": 1,
+    "expected_recall_at_k": 1,
+    "required_official_recall_at_k": 1,
+    "mean_reciprocal_rank": 1,
+    "no_evidence_accuracy": 1,
+    "sample_pass_rate": 1
+  },
+  "metrics": {
+    "hit_at_k": 1,
+    "expected_recall_at_k": 1,
+    "required_official_recall_at_k": 1,
+    "mean_reciprocal_rank": 1,
+    "no_evidence_accuracy": 1,
+    "sample_pass_rate": 1
+  },
+  "knowledge_summary": {
+    "fragment_count": 6,
+    "official_fragment_count": 3,
+    "expected_fragment_count": 6,
+    "source_type_distribution": [
+      {
+        "source_type": "document",
+        "count": 1
+      },
+      {
+        "source_type": "faq",
+        "count": 1
+      },
+      {
+        "source_type": "forum",
+        "count": 1
+      },
+      {
+        "source_type": "manual",
+        "count": 2
+      },
+      {
+        "source_type": "wiki",
+        "count": 1
+      }
+    ]
+  },
+  "samples": [
+    {
+      "sample_id": "official_boost",
+      "expectation": "evidence_required",
+      "query_digest": "sha256:e59e6687097b83be03ff8a66e6454e14bda63af4df70d5cfcb14ba5a9546a295",
+      "query_bytes": 40,
+      "top_k": 1,
+      "failure_code": "",
+      "selected": [
+        {
+          "fragment_ref": "official_retrieval_policy",
+          "rank": 1,
+          "content_digest": "sha256:5e886730b3753dfcab57cfee41b052e95e5ee507487a4173f20ddd4869bfa1ed",
+          "source_type": "manual",
+          "is_official": true
+        }
+      ],
+      "expected_ref_count": 1,
+      "expected_hit_count": 1,
+      "required_official_ref_count": 1,
+      "required_official_hit_count": 1,
+      "first_expected_rank": 1,
+      "passed": true
+    },
+    {
+      "sample_id": "supplemental_note",
+      "expectation": "evidence_required",
+      "query_digest": "sha256:22cb11ca5478d97275f0986a38022c4f3fafeb48d956d573b3c854396205eedc",
+      "query_bytes": 30,
+      "top_k": 1,
+      "failure_code": "",
+      "selected": [
+        {
+          "fragment_ref": "supplemental_retrieval_note",
+          "rank": 1,
+          "content_digest": "sha256:aa7b875471e18f2daab69854d5b37fed63b49862153c5c9bc3c057c5738f8777",
+          "source_type": "forum",
+          "is_official": false
+        }
+      ],
+      "expected_ref_count": 1,
+      "expected_hit_count": 1,
+      "required_official_ref_count": 0,
+      "required_official_hit_count": 0,
+      "first_expected_rank": 1,
+      "passed": true
+    },
+    {
+      "sample_id": "citation_policy",
+      "expectation": "evidence_required",
+      "query_digest": "sha256:ba100318c17a73073904443210ddce74e271e7fe0077f542632a21ba26e5c646",
+      "query_bytes": 58,
+      "top_k": 1,
+      "failure_code": "",
+      "selected": [
+        {
+          "fragment_ref": "official_citation_policy",
+          "rank": 1,
+          "content_digest": "sha256:81752546d5964c49e5bca2dd8393bfa04662d9715626a02c22f3287d5073e553",
+          "source_type": "manual",
+          "is_official": true
+        }
+      ],
+      "expected_ref_count": 1,
+      "expected_hit_count": 1,
+      "required_official_ref_count": 1,
+      "required_official_hit_count": 1,
+      "first_expected_rank": 1,
+      "passed": true
+    },
+    {
+      "sample_id": "cjk_official",
+      "expectation": "evidence_required",
+      "query_digest": "sha256:a5a6fa6e29a90e0935789f22ce78ea335adf61fb846054ee6cebcdd7384e487c",
+      "query_bytes": 37,
+      "top_k": 1,
+      "failure_code": "",
+      "selected": [
+        {
+          "fragment_ref": "official_chinese_guide",
+          "rank": 1,
+          "content_digest": "sha256:7043b8882df6fa502cc569b23980bc15bf2d1cf5106557f9227e605edb045d41",
+          "source_type": "wiki",
+          "is_official": true
+        }
+      ],
+      "expected_ref_count": 1,
+      "expected_hit_count": 1,
+      "required_official_ref_count": 1,
+      "required_official_hit_count": 1,
+      "first_expected_rank": 1,
+      "passed": true
+    },
+    {
+      "sample_id": "multiple_evidence",
+      "expectation": "evidence_required",
+      "query_digest": "sha256:e59e6687097b83be03ff8a66e6454e14bda63af4df70d5cfcb14ba5a9546a295",
+      "query_bytes": 40,
+      "top_k": 2,
+      "failure_code": "",
+      "selected": [
+        {
+          "fragment_ref": "official_retrieval_policy",
+          "rank": 1,
+          "content_digest": "sha256:5e886730b3753dfcab57cfee41b052e95e5ee507487a4173f20ddd4869bfa1ed",
+          "source_type": "manual",
+          "is_official": true
+        },
+        {
+          "fragment_ref": "supplemental_retrieval_note",
+          "rank": 2,
+          "content_digest": "sha256:aa7b875471e18f2daab69854d5b37fed63b49862153c5c9bc3c057c5738f8777",
+          "source_type": "forum",
+          "is_official": false
+        }
+      ],
+      "expected_ref_count": 2,
+      "expected_hit_count": 2,
+      "required_official_ref_count": 1,
+      "required_official_hit_count": 1,
+      "first_expected_rank": 1,
+      "passed": true
+    },
+    {
+      "sample_id": "stable_tie_break",
+      "expectation": "evidence_required",
+      "query_digest": "sha256:5accd80c4da223a506d045d5f8909f47f2e9ae7cc045a117dca12922cd83c8f5",
+      "query_bytes": 19,
+      "top_k": 2,
+      "failure_code": "",
+      "selected": [
+        {
+          "fragment_ref": "tie_alpha_evidence",
+          "rank": 1,
+          "content_digest": "sha256:d8ee0c65660bfb3461cc813484af879818a38d0134ac64d225bd272b007b2806",
+          "source_type": "faq",
+          "is_official": false
+        },
+        {
+          "fragment_ref": "tie_beta_evidence",
+          "rank": 2,
+          "content_digest": "sha256:54cf25f81e4943ea8d03237af87407374f0817e89e1dd1cab274f6763786e6df",
+          "source_type": "document",
+          "is_official": false
+        }
+      ],
+      "expected_ref_count": 2,
+      "expected_hit_count": 2,
+      "required_official_ref_count": 0,
+      "required_official_hit_count": 0,
+      "first_expected_rank": 1,
+      "passed": true
+    },
+    {
+      "sample_id": "no_evidence",
+      "expectation": "no_evidence",
+      "query_digest": "sha256:e81f90fbb3b8e3dc538764ad2b88550eaeb1e9157d04e85688ff86947e75e212",
+      "query_bytes": 23,
+      "top_k": 3,
+      "failure_code": "workflow_rag_no_evidence",
+      "selected": [],
+      "expected_ref_count": 0,
+      "expected_hit_count": 0,
+      "required_official_ref_count": 0,
+      "required_official_hit_count": 0,
+      "first_expected_rank": 0,
+      "passed": true
+    }
+  ],
+  "findings": []
+}

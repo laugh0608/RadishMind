@@ -7,7 +7,7 @@ import {
   type ControlPlaneReadCollectionViewModel,
   type ControlPlaneReadRouteId,
   type ControlPlaneReadSummaryItem,
-} from "../../../../../contracts/typescript/control-plane-read-api";
+} from "../../../../../contracts/typescript/control-plane-read-api.ts";
 
 const DEV_LIVE_SOURCE = "dev-live-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
@@ -16,12 +16,19 @@ const DEFAULT_SUBJECT_REF = "subject_demo_user";
 const DEFAULT_SCOPES = "tenant:read,applications:read,api_keys:read,usage:read,runs:read,audit:read";
 
 export type ControlPlaneReadDataSourceMode = "offline_fixture" | "dev_live_http";
+export type ControlPlaneReadAuthMode = "dev_headers" | "signed_test_token" | "radish_oidc_integration_test";
+export type ControlPlaneReadStoreMode = "fake_store_dev" | "postgres_dev_test";
 
 export type ControlPlaneReadDevLiveConfig = {
   mode: ControlPlaneReadDataSourceMode;
   baseUrl: string;
   tenantRef: string;
   subjectRef: string;
+  authMode?: ControlPlaneReadAuthMode;
+  storeMode?: ControlPlaneReadStoreMode;
+  applicationCatalogEnabled?: boolean;
+  apiKeyLifecycleEnabled?: boolean;
+  workspaceId?: string;
 };
 
 export type ControlPlaneReadDevLiveLoadState =
@@ -55,6 +62,11 @@ export function readControlPlaneReadDevLiveConfig(): ControlPlaneReadDevLiveConf
     baseUrl: normalizeBaseUrl(env.VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL ?? DEFAULT_BASE_URL),
     tenantRef: env.VITE_RADISHMIND_DEV_READ_TENANT_REF?.trim() || DEFAULT_TENANT_REF,
     subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || DEFAULT_SUBJECT_REF,
+    authMode: normalizeAuthMode(env.VITE_RADISHMIND_READ_AUTH_MODE),
+    storeMode: env.VITE_RADISHMIND_READ_STORE_MODE?.trim() === "postgres_dev_test" ? "postgres_dev_test" : "fake_store_dev",
+    applicationCatalogEnabled: env.VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE?.trim() === "dev-application-catalog-http",
+    apiKeyLifecycleEnabled: env.VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE?.trim() === "dev-api-key-lifecycle-http",
+    workspaceId: env.VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID?.trim() || "workspace_demo",
   };
 }
 
@@ -71,7 +83,11 @@ export function initialControlPlaneReadDevLiveLoadState(
   return {
     status: "loading",
     mode: "dev_live_http",
-    message: "Loading fake-store-backed read routes over dev HTTP.",
+    message: config.authMode === "radish_oidc_integration_test"
+      ? "Loading Admin reads while workspace operations remain membership-blocked."
+      : config.storeMode === "postgres_dev_test"
+      ? "Loading routed PostgreSQL and fake read operations over signed dev/test HTTP."
+      : "Loading fake-store-backed read routes over dev HTTP.",
   };
 }
 
@@ -104,11 +120,8 @@ async function fetchDevLiveEnvelope(routeId: ControlPlaneReadRouteId, config: Co
     headers: devLiveHeaders(routeId, config),
   });
   const body: unknown = await response.json();
-  if (!response.ok) {
-    throw new Error(`${routeId} returned HTTP ${response.status}`);
-  }
   if (!isControlPlaneReadEnvelope(body)) {
-    throw new Error(`${routeId} returned a non read-side envelope`);
+    throw new Error(`${routeId} returned HTTP ${response.status} with a non read-side envelope`);
   }
   return body as Parameters<typeof toControlPlaneReadCollectionViewModel>[1] & {
     items: ControlPlaneReadSummaryItem[];
@@ -118,10 +131,48 @@ async function fetchDevLiveEnvelope(routeId: ControlPlaneReadRouteId, config: Co
 function devLiveRouteUrl(routeId: ControlPlaneReadRouteId, config: ControlPlaneReadDevLiveConfig): string {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS[routeId];
   const path = route.path.replace("{tenant_ref}", encodeURIComponent(config.tenantRef));
+  if (routeId === "application-summary-list-route" && config.applicationCatalogEnabled) {
+    return `${config.baseUrl}${path}?workspace_id=${encodeURIComponent(config.workspaceId ?? "workspace_demo")}&lifecycle_state=active&limit=100`;
+  }
+  if (routeId === "api-key-summary-list-route" && config.apiKeyLifecycleEnabled) {
+    return `${config.baseUrl}${path}?workspace_id=${encodeURIComponent(config.workspaceId ?? "workspace_demo")}&limit=100`;
+  }
   return `${config.baseUrl}${path}`;
 }
 
 function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneReadDevLiveConfig): HeadersInit {
+  if (config.authMode === "radish_oidc_integration_test") {
+    const tokenProvider = (
+      globalThis as typeof globalThis & {
+        __RADISHMIND_CONTROL_PLANE_OIDC_INTEGRATION_TOKEN__?: () => string;
+      }
+    ).__RADISHMIND_CONTROL_PLANE_OIDC_INTEGRATION_TOKEN__;
+    const token = tokenProvider?.().trim() ?? "";
+    if (!token) {
+      throw new Error("OIDC integration token is unavailable in browser memory");
+    }
+    return {
+      Accept: "application/json",
+      "X-Request-Id": `dev-live-${routeId}`,
+      Authorization: `Bearer ${token}`,
+    };
+  }
+  if (config.authMode === "signed_test_token") {
+    const tokenProvider = (
+      globalThis as typeof globalThis & {
+        __RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__?: () => string;
+      }
+    ).__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__;
+    const token = tokenProvider?.().trim() ?? "";
+    if (!token) {
+      throw new Error("signed test token is unavailable in browser memory");
+    }
+    return {
+      Accept: "application/json",
+      "X-Request-Id": `dev-live-${routeId}`,
+      Authorization: `Bearer ${token}`,
+    };
+  }
   return {
     Accept: "application/json",
     "X-Request-Id": `dev-live-${routeId}`,
@@ -131,6 +182,14 @@ function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneRe
     "X-RadishMind-Dev-Read-Scopes": DEFAULT_SCOPES,
     "X-RadishMind-Dev-Read-Audit": "audit_dev_live_read_consumer",
   };
+}
+
+function normalizeAuthMode(value: string | undefined): ControlPlaneReadAuthMode {
+  const normalized = value?.trim();
+  if (normalized === "signed_test_token" || normalized === "radish_oidc_integration_test") {
+    return normalized;
+  }
+  return "dev_headers";
 }
 
 function normalizeBaseUrl(baseUrl: string): string {

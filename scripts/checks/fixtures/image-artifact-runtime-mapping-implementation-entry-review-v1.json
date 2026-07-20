@@ -439,15 +439,6 @@
   "required_doc_references": {
     "docs/contracts/image-generation.md": [
       "image-artifact-runtime-mapping-implementation-entry-review-v1",
-      "image_artifact_runtime_mapping_entry_review_defined",
-      "artifact store / binary reader boundary"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "image-artifact-runtime-mapping-implementation-entry-review-v1",
-      "image_artifact_runtime_mapping_entry_review_defined"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "image-artifact-runtime-mapping-implementation-entry-review-v1",
       "artifact store / binary reader boundary readiness"
     ],
     "docs/radishmind-capability-matrix.md": [

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-definition-version.schema.json",
+  "title": "Workflow Definition Version v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "definition_id", "version", "definition_digest", "candidate_id", "candidate_review_version", "source_draft_id", "source_draft_version", "source_draft_digest", "snapshot", "activation_eligible", "eligibility_blockers", "created_at", "created_by_actor_ref", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "workflow_definition_version.v1"},
+    "definition_id": {"$ref": "workflow-definition-release-candidate.schema.json#/$defs/id"},
+    "version": {"type": "integer", "minimum": 1},
+    "definition_digest": {"$ref": "workflow-definition-release-candidate.schema.json#/$defs/digest"},
+    "candidate_id": {"$ref": "workflow-definition-release-candidate.schema.json#/$defs/id"},
+    "candidate_review_version": {"type": "integer", "minimum": 1},
+    "source_draft_id": {"$ref": "workflow-definition-release-candidate.schema.json#/$defs/id"},
+    "source_draft_version": {"type": "integer", "minimum": 1},
+    "source_draft_digest": {"$ref": "workflow-definition-release-candidate.schema.json#/$defs/digest"},
+    "snapshot": {"$ref": "workflow-definition-release-candidate.schema.json#/$defs/snapshot"},
+    "activation_eligible": {"type": "boolean"},
+    "eligibility_blockers": {"type": "array", "maxItems": 100, "items": {"type": "string", "minLength": 1, "maxLength": 240}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "created_by_actor_ref": {"type": "string", "minLength": 1, "maxLength": 240},
+    "request_id": {"type": "string", "minLength": 1, "maxLength": 240},
+    "audit_ref": {"type": "string", "minLength": 1, "maxLength": 240}
+  }
+}

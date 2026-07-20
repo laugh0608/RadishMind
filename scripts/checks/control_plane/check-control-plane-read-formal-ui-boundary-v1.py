@@ -145,16 +145,7 @@ REQUIRED_DOC_REFERENCES = {
         "正式 UI 边界",
         "formal UI",
     ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-formal-ui-boundary-v1",
-        "control-plane-read-formal-ui-boundary-v1.json",
-        "check-control-plane-read-formal-ui-boundary-v1.py",
-    ],
     "docs/radishmind-architecture.md": [
-        "control-plane-read-formal-ui-boundary-v1",
-        "正式 UI 边界",
-    ],
-    "docs/radishmind-roadmap.md": [
         "control-plane-read-formal-ui-boundary-v1",
         "正式 UI 边界",
     ],
@@ -182,10 +173,6 @@ REQUIRED_DOC_REFERENCES = {
     "scripts/README.md": [
         "check-control-plane-read-formal-ui-boundary-v1.py",
         "control-plane-read-formal-ui-boundary-v1.json",
-    ],
-    "services/platform/README.md": [
-        "control-plane-read-formal-ui-boundary-v1",
-        "正式 UI 边界",
     ],
     "docs/devlogs/2026-W22.md": [
         "control-plane-read-formal-ui-boundary-v1",

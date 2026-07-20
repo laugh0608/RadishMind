@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -10,12 +11,14 @@ import (
 
 	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
+	"radishmind.local/services/platform/internal/sqlitedev"
 )
 
 const serviceName = "radishmind-platform"
 
 type Options struct {
 	BuildVersion string
+	TestOnly     bool
 }
 
 type bridgeClient interface {
@@ -33,13 +36,35 @@ type Server struct {
 	controlPlaneReadStore controlPlaneReadStore
 	controlPlaneReadRepo  ControlPlaneReadRepository
 
-	savedWorkflowDraftStore      savedWorkflowDraftStore
-	workflowRunStore             workflowRunStore
-	workflowEvaluationStore      workflowEvaluationStore
-	workflowEvaluationSuiteStore workflowEvaluationSuiteStore
-	closeSavedWorkflowDraftStore func()
-	closeWorkflowRunStore        func()
-	closeOnce                    sync.Once
+	savedWorkflowDraftStore                 savedWorkflowDraftStore
+	applicationDraftRepository              applicationConfigurationDraftRepository
+	applicationPublishCandidateRepository   applicationPublishCandidateRepository
+	applicationCatalogRepository            applicationCatalogRepository
+	applicationInteractionSessionRepository applicationInteractionSessionRepository
+	apiKeyRepository                        apiKeyRepository
+	workflowRunStore                        workflowRunStore
+	workflowDefinitionReleaseRepository     workflowDefinitionReleaseRepository
+	workflowRAGSnapshotRepository           workflowRAGSnapshotRepository
+	workflowRAGEvaluationDatasetRepository  workflowRAGEvaluationDatasetRepository
+	workflowRAGPromotionRepository          workflowRAGPromotionRepository
+	workflowRAGAppRuntimeRepository         workflowRAGApplicationRuntimeRepository
+	workflowHTTPToolActionStore             workflowHTTPToolActionStore
+	workflowHTTPToolExecutionStore          workflowHTTPToolExecutionStore
+	workflowHTTPToolExecutionTransport      *workflowHTTPToolTransport
+	workflowEvaluationStore                 workflowEvaluationStore
+	workflowEvaluationSuiteStore            workflowEvaluationSuiteStore
+	gatewayRequestHistoryStore              gatewayRequestStore
+	gatewayRequestHistoryStoreMode          string
+	closeSavedWorkflowDraftStore            func()
+	closeApplicationDraftStore              func()
+	closeApplicationPublishStore            func()
+	closeApplicationCatalogStore            func()
+	closeAPIKeyStore                        func()
+	closeWorkflowRunStore                   func()
+	closeGatewayRequestStore                func()
+	localPersistenceRuntime                 *sqlitedev.Runtime
+	closeControlPlaneReadRepository         func()
+	closeOnce                               sync.Once
 }
 
 type errorDocument struct {
@@ -65,34 +90,137 @@ func NewServer(cfg config.Config, options Options) *Server {
 }
 
 func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
-	savedWorkflowDraftStore, closeSavedWorkflowDraftStore, err := newSavedWorkflowDraftStoreFromConfig(cfg)
+	if err := config.ValidateServerStart(cfg); err != nil {
+		return nil, err
+	}
+	if cfg.WorkflowHTTPToolTestLoopbackEnabled && !options.TestOnly {
+		return nil, fmt.Errorf("workflow HTTP tool test loopback is restricted to explicit test servers")
+	}
+	runtimeConfig := config.EffectiveLocalPersistenceConfig(cfg)
+	authenticator, err := newControlPlaneReadAuthenticator(context.Background(), runtimeConfig)
 	if err != nil {
 		return nil, err
 	}
-	workflowRunStore, closeWorkflowRunStore, err := newWorkflowRunStoreFromConfig(cfg)
+	controlPlaneReadRepository, closeControlPlaneReadRepository, err := newControlPlaneReadRepositoryFromConfig(runtimeConfig)
 	if err != nil {
-		closeSavedWorkflowDraftStore()
 		return nil, err
 	}
-	platformBridge, err := newPlatformBridgeClient(cfg)
+	localPersistenceRuntime, err := openLocalPersistenceRuntime(runtimeConfig)
 	if err != nil {
-		closeWorkflowRunStore()
-		if closeSavedWorkflowDraftStore != nil {
-			closeSavedWorkflowDraftStore()
+		closeServerStartupResources(closeControlPlaneReadRepository)
+		return nil, err
+	}
+	closeLocalPersistenceRuntime := sqliteRuntimeCloser(localPersistenceRuntime)
+	savedWorkflowDraftStore, closeSavedWorkflowDraftStore, err := newSavedWorkflowDraftStoreFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime)
+		return nil, err
+	}
+	applicationDraftRepository, closeApplicationDraftStore, err := newApplicationConfigurationDraftRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore)
+		return nil, err
+	}
+	applicationPublishRepository, closeApplicationPublishStore, err := newApplicationPublishCandidateRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore)
+		return nil, err
+	}
+	applicationCatalogRepository, closeApplicationCatalogStore, err := newApplicationCatalogRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore)
+		return nil, err
+	}
+	apiKeyRepository, closeAPIKeyStore, err := newAPIKeyRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore)
+		return nil, err
+	}
+	workflowRunStore, closeWorkflowRunStore, err := newWorkflowRunStoreFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore)
+		return nil, err
+	}
+	applicationInteractionSessionRepository, err := newApplicationInteractionSessionRepositoryForRunStore(workflowRunStore)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
+	var workflowDefinitionReleaseRepository workflowDefinitionReleaseRepository
+	if runtimeConfig.WorkflowDefinitionReleaseDevEnabled {
+		workflowDefinitionReleaseRepository, err = newWorkflowDefinitionReleaseRepositoryForRunStore(workflowRunStore)
+		if err != nil {
+			closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+			return nil, err
 		}
+		controlPlaneReadRepository = liveWorkflowDefinitionControlPlaneReadRepository{ControlPlaneReadRepository: controlPlaneReadRepository, definitions: workflowDefinitionReleaseRepository}
+	}
+	workflowRAGSnapshotRepository, err := newWorkflowRAGSnapshotRepositoryForRunStore(workflowRunStore)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
+	workflowRAGEvaluationDatasetRepository := newWorkflowRAGEvaluationDatasetRepositoryForRunStore(workflowRunStore)
+	var workflowRAGPromotionRepository workflowRAGPromotionRepository
+	if runtimeConfig.WorkflowRAGPromotionDevEnabled {
+		workflowRAGPromotionRepository, err = newWorkflowRAGPromotionRepositoryForRunStore(workflowRunStore)
+		if err != nil {
+			closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+			return nil, err
+		}
+	}
+	var workflowRAGApplicationRuntimeRepository workflowRAGApplicationRuntimeRepository
+	if runtimeConfig.WorkflowRAGAppInvocationDevEnabled {
+		workflowRAGApplicationRuntimeRepository, err = newWorkflowRAGApplicationRuntimeRepositoryForRunStore(workflowRunStore)
+		if err != nil {
+			closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+			return nil, err
+		}
+	}
+	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
+	platformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore)
 		return nil, err
 	}
 	mux := http.NewServeMux()
+	workflowHTTPToolActionStore := newWorkflowHTTPToolActionStoreForRunStore(workflowRunStore)
 	server := &Server{
-		options:                      options,
-		bridge:                       platformBridge,
-		config:                       cfg,
-		savedWorkflowDraftStore:      savedWorkflowDraftStore,
-		workflowRunStore:             workflowRunStore,
-		workflowEvaluationStore:      newWorkflowEvaluationStoreForRunStore(workflowRunStore),
-		workflowEvaluationSuiteStore: newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
-		closeSavedWorkflowDraftStore: closeSavedWorkflowDraftStore,
-		closeWorkflowRunStore:        closeWorkflowRunStore,
+		options:                                 options,
+		bridge:                                  platformBridge,
+		config:                                  runtimeConfig,
+		controlPlaneReadRepo:                    controlPlaneReadRepository,
+		savedWorkflowDraftStore:                 savedWorkflowDraftStore,
+		applicationDraftRepository:              applicationDraftRepository,
+		applicationPublishCandidateRepository:   applicationPublishRepository,
+		applicationCatalogRepository:            applicationCatalogRepository,
+		applicationInteractionSessionRepository: applicationInteractionSessionRepository,
+		apiKeyRepository:                        apiKeyRepository,
+		workflowRunStore:                        workflowRunStore,
+		workflowDefinitionReleaseRepository:     workflowDefinitionReleaseRepository,
+		workflowRAGSnapshotRepository:           workflowRAGSnapshotRepository,
+		workflowRAGEvaluationDatasetRepository:  workflowRAGEvaluationDatasetRepository,
+		workflowRAGPromotionRepository:          workflowRAGPromotionRepository,
+		workflowRAGAppRuntimeRepository:         workflowRAGApplicationRuntimeRepository,
+		workflowHTTPToolActionStore:             workflowHTTPToolActionStore,
+		workflowHTTPToolExecutionStore:          newWorkflowHTTPToolExecutionStoreForRunStore(workflowRunStore, workflowHTTPToolActionStore),
+		workflowEvaluationStore:                 newWorkflowEvaluationStoreForRunStore(workflowRunStore),
+		workflowEvaluationSuiteStore:            newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
+		gatewayRequestHistoryStore:              gatewayRequestStore,
+		gatewayRequestHistoryStoreMode:          gatewayRequestStoreMode,
+		closeSavedWorkflowDraftStore:            closeSavedWorkflowDraftStore,
+		closeApplicationDraftStore:              closeApplicationDraftStore,
+		closeApplicationPublishStore:            closeApplicationPublishStore,
+		closeApplicationCatalogStore:            closeApplicationCatalogStore,
+		closeAPIKeyStore:                        closeAPIKeyStore,
+		closeWorkflowRunStore:                   closeWorkflowRunStore,
+		closeGatewayRequestStore:                closeGatewayRequestStore,
+		localPersistenceRuntime:                 localPersistenceRuntime,
+		closeControlPlaneReadRepository:         closeControlPlaneReadRepository,
 	}
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
@@ -109,7 +237,20 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc("POST /v1/tools/actions", server.handleToolAction)
 	mux.HandleFunc(controlPlaneTenantSummaryRoute, server.handleControlPlaneTenantSummary)
 	mux.HandleFunc(controlPlaneApplicationSummaryListRoute, server.handleUserWorkspaceApplicationSummaryList)
+	mux.HandleFunc(applicationCatalogCreateRoute, server.handleCreateApplicationCatalogRecord)
+	mux.HandleFunc(applicationCatalogReadRoute, server.handleReadApplicationCatalogRecord)
+	mux.HandleFunc(applicationCatalogUpdateRoute, server.handleUpdateApplicationCatalogRecord)
+	mux.HandleFunc(applicationCatalogArchiveRoute, server.handleArchiveApplicationCatalogRecord)
+	mux.HandleFunc(applicationSessionCreateRoute, server.handleCreateApplicationInteractionSession)
+	mux.HandleFunc(applicationSessionListRoute, server.handleListApplicationInteractionSessions)
+	mux.HandleFunc(applicationSessionReadRoute, server.handleReadApplicationInteractionSession)
+	mux.HandleFunc(applicationSessionCloseRoute, server.handleCloseApplicationInteractionSession)
+	mux.HandleFunc(applicationSessionTurnListRoute, server.handleListApplicationInteractionTurns)
+	mux.HandleFunc(applicationSessionTurnRoute, server.handleExecuteApplicationInteractionTurn)
 	mux.HandleFunc(controlPlaneAPIKeySummaryListRoute, server.handleUserWorkspaceAPIKeySummaryList)
+	mux.HandleFunc(apiKeyCreateRoute, server.handleCreateAPIKey)
+	mux.HandleFunc(apiKeyReadRoute, server.handleReadAPIKey)
+	mux.HandleFunc(apiKeyRevokeRoute, server.handleRevokeAPIKey)
 	mux.HandleFunc(controlPlaneQuotaSummaryRoute, server.handleUserWorkspaceQuotaSummary)
 	mux.HandleFunc(controlPlaneWorkflowDefinitionSummaryListRoute, server.handleUserWorkspaceWorkflowDefinitionSummaryList)
 	mux.HandleFunc(controlPlaneRunRecordSummaryListRoute, server.handleUserWorkspaceRunRecordSummaryList)
@@ -118,7 +259,49 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(savedWorkflowDraftListRoute, server.handleListWorkflowDrafts)
 	mux.HandleFunc(savedWorkflowDraftReadRoute, server.handleReadWorkflowDraft)
 	mux.HandleFunc(savedWorkflowDraftValidateRoute, server.handleValidateWorkflowDraft)
+	mux.HandleFunc(applicationDraftSaveRoute, server.handleSaveApplicationConfigurationDraft)
+	mux.HandleFunc(applicationDraftListRoute, server.handleListApplicationConfigurationDrafts)
+	mux.HandleFunc(applicationDraftReadRoute, server.handleReadApplicationConfigurationDraft)
+	mux.HandleFunc(applicationDraftValidateRoute, server.handleValidateApplicationConfigurationDraft)
+	mux.HandleFunc(applicationPublishCandidateCreateRoute, server.handleCreateApplicationPublishCandidate)
+	mux.HandleFunc(applicationPublishCandidateListRoute, server.handleListApplicationPublishCandidates)
+	mux.HandleFunc(applicationPublishCandidateReadRoute, server.handleReadApplicationPublishCandidate)
+	mux.HandleFunc(applicationPublishCandidateReviewRoute, server.handleReviewApplicationPublishCandidate)
+	mux.HandleFunc(workflowDefinitionCandidateCreateRoute, server.handleCreateWorkflowDefinitionCandidate)
+	mux.HandleFunc(workflowDefinitionCandidateListRoute, server.handleListWorkflowDefinitionCandidates)
+	mux.HandleFunc(workflowDefinitionCandidateReadRoute, server.handleReadWorkflowDefinitionCandidate)
+	mux.HandleFunc(workflowDefinitionCandidateDecisionRoute, server.handleDecideWorkflowDefinitionCandidate)
+	mux.HandleFunc(workflowDefinitionVersionListRoute, server.handleListWorkflowDefinitionVersions)
+	mux.HandleFunc(workflowDefinitionVersionReadRoute, server.handleReadWorkflowDefinitionVersion)
+	mux.HandleFunc(workflowDefinitionActivationReadRoute, server.handleReadWorkflowDefinitionActivation)
+	mux.HandleFunc(workflowDefinitionActivationDecisionRoute, server.handleDecideWorkflowDefinitionActivation)
+	mux.HandleFunc(workflowDefinitionRunCreateRoute, server.handleStartWorkflowDefinitionRun)
 	mux.HandleFunc(workflowExecutorStartRoute, server.handleStartWorkflowRun)
+	mux.HandleFunc("POST "+workflowRAGExecutionRoute, server.handleWorkflowRAGExecution)
+	mux.HandleFunc(workflowRAGSnapshotCreateRoute, server.handleCreateWorkflowRAGSnapshot)
+	mux.HandleFunc(workflowRAGSnapshotListRoute, server.handleListWorkflowRAGSnapshots)
+	mux.HandleFunc(workflowRAGSnapshotReadRoute, server.handleReadWorkflowRAGSnapshot)
+	mux.HandleFunc(workflowRAGSnapshotVersionRoute, server.handleVersionWorkflowRAGSnapshot)
+	mux.HandleFunc(workflowRAGSnapshotArchiveRoute, server.handleArchiveWorkflowRAGSnapshot)
+	mux.HandleFunc(workflowRAGEvaluationDatasetCreateRoute, server.handleCreateWorkflowRAGEvaluationDataset)
+	mux.HandleFunc(workflowRAGEvaluationDatasetListRoute, server.handleListWorkflowRAGEvaluationDatasets)
+	mux.HandleFunc(workflowRAGEvaluationDatasetReadRoute, server.handleReadWorkflowRAGEvaluationDataset)
+	mux.HandleFunc(workflowRAGEvaluationDatasetVersionRoute, server.handleVersionWorkflowRAGEvaluationDataset)
+	mux.HandleFunc(workflowRAGEvaluationDatasetArchiveRoute, server.handleArchiveWorkflowRAGEvaluationDataset)
+	mux.HandleFunc(workflowRAGCandidateReviewCreateRoute, server.handleCreateWorkflowRAGCandidateReview)
+	mux.HandleFunc(workflowRAGCandidateReviewListRoute, server.handleListWorkflowRAGCandidateReviews)
+	mux.HandleFunc(workflowRAGCandidateReviewReadRoute, server.handleReadWorkflowRAGCandidateReview)
+	mux.HandleFunc(workflowRAGPromotionCandidateCreateRoute, server.handleCreateWorkflowRAGPromotionCandidate)
+	mux.HandleFunc(workflowRAGPromotionCandidateListRoute, server.handleListWorkflowRAGPromotionCandidates)
+	mux.HandleFunc(workflowRAGPromotionCandidateReadRoute, server.handleReadWorkflowRAGPromotionCandidate)
+	mux.HandleFunc(workflowRAGPromotionDecisionRoute, server.handleDecideWorkflowRAGPromotionCandidate)
+	mux.HandleFunc(workflowRAGApplicationRuntimeAssignmentReadRoute, server.handleReadWorkflowRAGApplicationRuntimeAssignment)
+	mux.HandleFunc(workflowRAGApplicationRuntimeAssignmentDecisionRoute, server.handleDecideWorkflowRAGApplicationRuntimeAssignment)
+	mux.HandleFunc("POST "+workflowRAGApplicationInvocationRoute, server.handleWorkflowRAGApplicationInvocation)
+	mux.HandleFunc(workflowHTTPToolPlanCreateRoute, server.handleCreateWorkflowHTTPToolActionPlan)
+	mux.HandleFunc(workflowHTTPToolPlanReadRoute, server.handleReadWorkflowHTTPToolActionPlan)
+	mux.HandleFunc(workflowHTTPToolDecisionRoute, server.handleDecideWorkflowHTTPToolActionPlan)
+	mux.HandleFunc(workflowHTTPToolExecutionRoute, server.handleExecuteWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowRunListRoute, server.handleListWorkflowRuns)
 	mux.HandleFunc(workflowRunReadRoute, server.handleReadWorkflowRun)
 	mux.HandleFunc(workflowRunComparisonRoute, server.handleCompareWorkflowRuns)
@@ -135,12 +318,14 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(workflowEvaluationSuiteReviewRoute, server.handleReviewWorkflowEvaluationSuite)
 	mux.HandleFunc(workflowEvaluationDecisionCreateRoute, server.handleCreateWorkflowEvaluationDecision)
 	mux.HandleFunc(workflowEvaluationDecisionListRoute, server.handleListWorkflowEvaluationDecisions)
+	mux.HandleFunc(gatewayRequestListRoute, server.handleListGatewayRequests)
+	mux.HandleFunc(gatewayRequestReadRoute, server.handleReadGatewayRequest)
 
 	server.httpServer = &http.Server{
-		Addr:              cfg.ListenAddr,
-		Handler:           withLocalConsoleCORS(withControlPlaneReadDevAuth(mux, cfg.ControlPlaneReadDevAuthEnabled)),
-		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
-		WriteTimeout:      cfg.WriteTimeout,
+		Addr:              runtimeConfig.ListenAddr,
+		Handler:           withLocalConsoleCORS(withControlPlaneReadAuthenticator(mux, authenticator)),
+		ReadHeaderTimeout: runtimeConfig.ReadHeaderTimeout,
+		WriteTimeout:      runtimeConfig.WriteTimeout,
 	}
 	return server, nil
 }
@@ -204,11 +389,32 @@ func (s *Server) Close() {
 		if closer, ok := s.bridge.(interface{ Close() }); ok {
 			closer.Close()
 		}
-		if s.closeSavedWorkflowDraftStore != nil {
-			s.closeSavedWorkflowDraftStore()
+		if s.closeGatewayRequestStore != nil {
+			s.closeGatewayRequestStore()
 		}
 		if s.closeWorkflowRunStore != nil {
 			s.closeWorkflowRunStore()
+		}
+		if s.closeAPIKeyStore != nil {
+			s.closeAPIKeyStore()
+		}
+		if s.closeApplicationCatalogStore != nil {
+			s.closeApplicationCatalogStore()
+		}
+		if s.closeApplicationPublishStore != nil {
+			s.closeApplicationPublishStore()
+		}
+		if s.closeApplicationDraftStore != nil {
+			s.closeApplicationDraftStore()
+		}
+		if s.closeSavedWorkflowDraftStore != nil {
+			s.closeSavedWorkflowDraftStore()
+		}
+		if s.localPersistenceRuntime != nil {
+			_ = s.localPersistenceRuntime.Close()
+		}
+		if s.closeControlPlaneReadRepository != nil {
+			s.closeControlPlaneReadRepository()
 		}
 	})
 }
@@ -239,7 +445,7 @@ func applyLocalConsoleCORS(writer http.ResponseWriter, request *http.Request) bo
 	}
 	headers := writer.Header()
 	headers.Set("Access-Control-Allow-Origin", origin)
-	headers.Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	headers.Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
 	headers.Set("Access-Control-Allow-Headers", strings.Join(localConsoleAllowedHeaders(), ", "))
 	headers.Set("Vary", "Origin")
 	return true
@@ -261,6 +467,7 @@ func localConsoleAllowedOrigins() []string {
 func localConsoleAllowedHeaders() []string {
 	return []string{
 		"Accept",
+		"Authorization",
 		"Content-Type",
 		"X-Request-Id",
 		controlPlaneReadDevIdentityHeader,
@@ -270,6 +477,17 @@ func localConsoleAllowedHeaders() []string {
 		controlPlaneReadDevAuditHeader,
 		savedWorkflowDraftDevWorkspaceHeader,
 		savedWorkflowDraftDevApplicationHeader,
+		applicationDraftDevWorkspaceHeader,
+		applicationDraftDevApplicationHeader,
+		applicationPublishDevWorkspaceHeader,
+		applicationPublishDevApplicationHeader,
+		gatewayRequestDevTenantHeader,
+		gatewayRequestDevWorkspaceHeader,
+		gatewayRequestDevConsumerHeader,
+		gatewayRequestDevApplicationHeader,
+		gatewayRequestDevSubjectHeader,
+		gatewayRequestDevScopesHeader,
+		gatewayRequestDevAuditHeader,
 	}
 }
 

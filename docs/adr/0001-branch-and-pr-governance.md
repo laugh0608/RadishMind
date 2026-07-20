@@ -1,6 +1,6 @@
 # ADR 0001: Branch And PR Governance
 
-更新时间：2026-06-08
+更新时间：2026-07-12
 
 ## 状态
 
@@ -33,8 +33,18 @@ Accepted
 ### 合并策略
 
 - 默认开发流程为 `feature/*` / `docs/*` / `chore/*` / `experiment/*` -> `dev`
-- 阶段性稳定后，再通过 PR 将 `dev` 合并到 `master`
-- 仅在必须修复主线问题时，才允许 `hotfix/*` 直接向 `master` 发 PR
+- 阶段性稳定后，通过 PR 将 `dev` 合并到 `master`，形成受完整门禁保护的阶段晋级
+- 每次 `dev -> master` PR 合并后，必须在下一批开发继续前把最新 `master` 回同步到 `dev`，形成 `feature/* -> dev -> master -> dev` 闭环
+- 仅在必须修复主线问题时，才允许 `hotfix/*` 直接向 `master` 发 PR；hotfix 合并后同样必须回同步到 `dev`
+- `master -> dev` 只承担稳定主线和提交拓扑回灌，不表示允许在 `master` 上形成与 `dev` 并行的日常开发线
+
+### 回同步方式
+
+- 常态 `dev -> master` 阶段 PR 优先使用 `merge commit`；若合并期间 `dev` 未继续前进，PR 合并后的 `master` 应可直接 fast-forward 回 `dev`
+- 若阶段 PR 使用 `rebase merge`，或 PR 合并期间 `dev` 已出现后续提交，则使用普通 merge 将 `master` 合入 `dev`
+- 禁止通过 rebase、force push 或其它重写方式让共享 `dev` 追随 `master`
+- 纯历史回同步且文件树没有变化时，不重复已经在 `PR -> master` 上通过的完整门禁
+- 如回同步需要解决冲突或产生实际文件变化，应先在 `dev` 完成冲突审查和对应风险级别验证，再推送远端
 
 ### `master` 规则
 
@@ -42,6 +52,7 @@ Accepted
 - 必须通过 PR 合并
 - 必须通过仓库检查
 - 当前允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`
+- 常态 `dev -> master` 阶段 PR 优先使用 `merge commit`，降低合并后回同步 `dev` 的拓扑复杂度
 - 管理员仅可通过 PR 方式绕过规则
 - 允许在单人开发阶段保留管理员 PR 直过能力
 
@@ -49,7 +60,10 @@ Accepted
 
 - 允许作为当前阶段默认目标分支
 - 当前阶段不启用分支保护
-- 仍建议保留 CI 检查和 PR 习惯，但不作为强制规则
+- `push -> dev` 不自动触发 `PR Checks`
+- 目标为 `dev` 的 Pull Request 自动运行 `PR Checks`，为其他开发者提供合并前反馈；直接进入共享 `dev` 的连续开发仍按改动风险执行本地分层验证
+- `dev` 当前不启用 required checks 或 branch protection；完整强制门禁统一收口到 `pull_request -> master`
+- `master` PR 合并后必须接收 `master -> dev` 回同步；该回同步不依赖自动 CI 触发，发生实际内容变化时由操作者先补对应验证
 
 ## 需要在 GitHub 仓库设置中完成的动作
 
@@ -58,7 +72,7 @@ Accepted
 1. 创建远端 `dev` 分支
 2. 将默认分支切换为 `dev`，或至少把开发 PR 默认目标改为 `dev`
 3. 对 `master` 启用 branch protection / ruleset
-4. 要求 `master` 通过 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build` 与 `Platform Go Tests` 状态检查
+4. 要求 `master` 通过 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build` 与 `Platform Go Tests` 状态检查
 5. 对 `master` 开启 “Require a pull request before merging”
 6. 配置管理员仅通过 PR 绕过，不开放直接 push
 7. 仓库 Merge options 中启用 `Merge commits` 与 `Rebase merging`，关闭 `Squash merging`
@@ -71,11 +85,11 @@ Accepted
 - `AGENTS.md`
 - PR 模板
 - GitHub Actions PR 检查工作流
-  - `PR Checks` 当前在目标分支为 `dev` / `master` 的 Pull Request、`push -> dev` 和手动触发时自动运行
-  - 当前拆分为 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build` 与 `Platform Go Tests` 四个 job
-  - `master` required checks 当前按 job 名配置为 `Repo Hygiene` / `Repository Baseline` / `RadishMind Web Build` / `Platform Go Tests`
+  - `PR Checks` 在目标分支为 `dev` 或 `master` 的 Pull Request 上自动运行，并保留手动触发；普通 `dev` push 不触发
+  - 当前包含 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build`、`Platform Go Tests` 与 `Platform PostgreSQL Integration` 六个 job
+  - `master` required checks 当前按 job 名配置为 `Repo Hygiene` / `Repository Baseline` / `RadishMind Web Build` / `RadishMind Console Build` / `Platform Go Tests`
   - PR 页面可能展示 workflow 前缀或 `(pull_request)` 后缀，但它们不属于 ruleset 中需要手动配置的 check context
-  - 规范 tag push 与手动补跑改由独立的 `Release Checks` workflow 承担，并使用 `Release Repo Hygiene` / `Release Repository Baseline` / `Release RadishMind Web Build` / `Release Platform Go Tests` 独立 job 名，避免与 PR required check 名称漂移或混淆
+  - 规范 tag push 与手动补跑改由独立的 `Release Checks` workflow 承担，并使用 `Release Repo Hygiene` / `Release Repository Baseline` / `Release RadishMind Web Build` / `Release RadishMind Console Build` / `Release Platform Go Tests` 独立 job 名，避免与 PR required check 名称漂移或混淆
 - 文本编码与文件格式检查脚本
 - 仓库治理基线检查脚本
 - `master` ruleset 模板

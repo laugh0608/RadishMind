@@ -30,7 +30,6 @@ TASK_CARD = REPO_ROOT / "docs/task-cards/session-tooling-close-candidate-readine
 TASK_CARDS_README = REPO_ROOT / "docs/task-cards/README.md"
 CURRENT_FOCUS = REPO_ROOT / "docs/radishmind-current-focus.md"
 CAPABILITY_MATRIX = REPO_ROOT / "docs/radishmind-capability-matrix.md"
-ROADMAP = REPO_ROOT / "docs/radishmind-roadmap.md"
 DEVLOG = REPO_ROOT / "docs/devlogs/2026-W20.md"
 CONTRACTS_README = REPO_ROOT / "contracts/README.md"
 CHECK_REPO = REPO_ROOT / "scripts/check-repo.py"
@@ -493,7 +492,6 @@ def check_docs_and_consumers() -> None:
     task_cards_readme = TASK_CARDS_README.read_text(encoding="utf-8")
     current_focus = CURRENT_FOCUS.read_text(encoding="utf-8")
     capability_matrix = CAPABILITY_MATRIX.read_text(encoding="utf-8")
-    roadmap = ROADMAP.read_text(encoding="utf-8")
     devlog = DEVLOG.read_text(encoding="utf-8")
     contracts_readme = CONTRACTS_README.read_text(encoding="utf-8")
     fixture_name = ROLLUP.name
@@ -508,7 +506,6 @@ def check_docs_and_consumers() -> None:
         ("task card", task_card),
         ("current focus", current_focus),
         ("capability matrix", capability_matrix),
-        ("roadmap", roadmap),
         ("devlog", devlog),
         ("contracts README", contracts_readme),
     ):

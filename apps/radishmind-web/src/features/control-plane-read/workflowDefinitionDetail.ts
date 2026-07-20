@@ -9,7 +9,7 @@ import {
 export type WorkflowDefinitionDetailNode = {
   nodeId: string;
   label: string;
-  nodeType: "prompt" | "llm" | "http_tool" | "condition" | "output";
+  nodeType: "prompt" | "rag_retrieval" | "llm" | "http_tool" | "condition" | "output";
   inputSummary: string;
   outputSummary: string;
   riskLevel: "low" | "medium" | "high";
@@ -307,7 +307,7 @@ function buildDetailEdges(applicationRef: string): WorkflowDefinitionDetailEdge[
       edgeId: "edge_policy_to_confirmation_placeholder",
       fromNodeId: "node_policy_gate",
       toNodeId: "node_human_confirmation_placeholder",
-      conditionSummary: "High-risk actions expose a disabled confirmation placeholder.",
+      conditionSummary: "Historical high-risk actions expose an archived, read-only confirmation placeholder.",
     },
     {
       edgeId: "edge_preview_to_response",

@@ -67,6 +67,7 @@
     "contracts/typescript/control-plane-read-api.ts",
     "services/platform/internal/config/config.go",
     "services/platform/internal/httpapi/control_plane_read.go",
+    "services/platform/internal/httpapi/control_plane_read_auth.go",
     "services/platform/internal/httpapi/server.go",
     "services/platform/internal/httpapi/control_plane_read_test.go"
   ],
@@ -84,7 +85,7 @@
     "productionApiConsumer: false",
     "ControlPlaneReadDevAuthEnabled",
     "RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH",
-    "withControlPlaneReadDevAuth",
+    "withControlPlaneReadAuth",
     "controlPlaneReadDevAuthFromHeaders"
   ],
   "required_test_literals": [
@@ -95,7 +96,6 @@
   "forbidden_source_literals": [
     "CREATE TABLE",
     "database/sql",
-    "oidc",
     "oauth",
     "issue_api_key",
     "rotate_api_key",
@@ -133,14 +133,6 @@
   ],
   "required_doc_references": {
     "docs/contracts/control-plane-read-side.md": [
-      "control-plane-read-dev-live-consumer-v1",
-      "dev_live_http"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-dev-live-consumer-v1",
-      "dev-only live read consumer"
-    ],
-    "docs/radishmind-roadmap.md": [
       "control-plane-read-dev-live-consumer-v1",
       "dev-only live read consumer"
     ],

@@ -1,6 +1,6 @@
 # RadishMind 统一契约文件
 
-更新时间：2026-06-28
+更新时间：2026-07-19
 
 本目录承载 `RadishMind` 第一版真实契约文件。
 
@@ -37,6 +37,41 @@
 21. `production-secret-audit-event.schema.json`
 22. `production-secret-audit-storage-adapter.metadata-contract.json`
 23. `production-secret-audit-storage-adapter.table-schema.json`
+24. `workflow-http-tool-definition.schema.json`
+25. `workflow-http-tool-execution-profile.schema.json`
+26. `workflow-http-tool-action-plan.schema.json`
+27. `workflow-http-tool-confirmation-decision.schema.json`
+28. `workflow-http-tool-execution-audit.schema.json`
+29. `workflow-run-record-v2.schema.json`
+30. `workflow-rag-fragment.schema.json`
+31. `workflow-rag-snapshot.schema.json`
+32. `workflow-rag-execution-profile.schema.json`
+33. `workflow-rag-answer.schema.json`
+34. `workflow-rag-execution-audit.schema.json`
+35. `workflow-run-record-v3.schema.json`
+36. `workflow-rag-evaluation-dataset.schema.json`
+37. `workflow-rag-quality-review.schema.json`
+38. `workflow-rag-evaluation-dataset-resource.schema.json`
+39. `workflow-rag-candidate-snapshot-review.schema.json`
+40. `workflow-rag-knowledge-promotion-candidate.schema.json`
+41. `workflow-rag-knowledge-promotion-decision.schema.json`
+42. `workflow-rag-application-binding.schema.json`
+43. `workflow-rag-knowledge-promotion-audit.schema.json`
+44. `workflow-rag-application-runtime-assignment.schema.json`
+45. `workflow-rag-application-runtime-assignment-event.schema.json`
+46. `workflow-rag-application-runtime-audit.schema.json`
+47. `workflow-rag-application-answer.schema.json`
+48. `workflow-run-record-v4.schema.json`
+49. `workflow-definition-release-candidate.schema.json`
+50. `workflow-definition-release-decision.schema.json`
+51. `workflow-definition-version.schema.json`
+52. `workflow-definition-activation.schema.json`
+53. `workflow-definition-activation-event.schema.json`
+54. `workflow-definition-release-audit.schema.json`
+55. `workflow-run-record-v5.schema.json`
+56. `application-runtime-authority.schema.json`
+57. `application-session.schema.json`
+58. `application-session-turn.schema.json`
 
 当前 TypeScript 消费契约：
 
@@ -60,6 +95,13 @@
 - 当前 `production-secret-audit-event.schema.json` 用于冻结 future production secret backend audit store runtime 的 metadata-only audit event；`scripts/check-production-ops-secret-backend-audit-store-runtime-event-schema-artifact-v1.py` 会用 positive event、missing required、forbidden field、additionalProperties 和 event kind invalid 负例 fixture 校验 schema。该契约只描述 audit writer 未来可消费的 metadata reference / status / policy version 字段，不保存 secret value、credential payload、provider raw URL、raw request / response / audit / writer / event payload、schema payload、payload hash 或 secret-derived hash，也不实现 audit writer runtime、audit store runtime、delivery、idempotency、durable backend、repository mode 或 production API；字段分组、消费规则和验证方式见 [Production Secret Audit Event 契约](../docs/contracts/production-secret-audit-event.md)。
 - 当前 `production-secret-audit-storage-adapter.metadata-contract.json` 用于冻结 future production secret backend audit store storage adapter 的 metadata-only contract artifact；`scripts/check-production-ops-secret-backend-audit-store-storage-adapter-metadata-contract-artifact-materialization-v1.py` 会用 positive contract candidate、missing required、forbidden field、additionalProperties 和 writer compatibility fixture 校验 artifact。该契约只描述 storage adapter 未来可消费的 input / result envelope、record identity、failure taxonomy 和 writer output handoff；后续 review 已静态选择 `managed_database_append_only_table` product class，并定义 database policy 与 logical table schema boundary，但仍不选择具体 backend product / vendor，不保存 secret value、credential payload、provider raw URL、DSN、raw storage payload、payload hash、scanner output 或 recovery output，也不实现 storage adapter runtime、DB provider、audit store runtime、repository mode 或 production API；字段分组、消费规则和验证方式见 [Production Secret Audit Storage Adapter Metadata Contract 契约](../docs/contracts/production-secret-audit-storage-adapter-metadata-contract.md)。
 - 当前 `contracts/production-secret-audit-storage-adapter.table-schema.json` 用于冻结 future production secret backend audit store storage adapter 的 metadata-only logical table schema artifact；`scripts/check-production-ops-secret-backend-audit-store-storage-adapter-table-schema-artifact-materialization-v1.py` 会用 positive logical record、missing required、physical detail、secret material 和 additionalProperties 负例 fixture 校验 artifact。该契约状态为 `audit_store_storage_adapter_table_schema_artifact_materialized`，schema version 为 `audit-storage-adapter-table-schema-v1`，只描述 logical field groups 与 metadata contract compatibility；下一依赖为 `storage_adapter_offline_adapter_smoke_strategy_readiness`。它不保存 secret value、credential payload、provider raw URL、DSN、raw storage payload、payload hash、secret-derived hash、schema marker output 或 migration output，也不实现 SQL、DDL、物理表名、列名、列类型、schema marker runtime、migration runner、storage adapter runtime、DB provider、audit store runtime、repository mode 或 production API；字段分组、消费规则和验证方式见 [Production Secret Audit Storage Adapter Table Schema 契约](../docs/contracts/production-secret-audit-storage-adapter-table-schema.md)。
+- 当前五份 `workflow-http-tool-*.schema.json` 与 `workflow-run-record-v2.schema.json` 冻结 Workflow 首个受控 HTTP Tool 的版本化契约。definition 只登记 `workflow.http.reviewed-json-read.v1` 的公开参数与脱敏输出字段；execution profile 独占固定 HTTPS target、网络策略和预算；action plan 与 confirmation decision 是独立于 run 的 pre-run durable resource；execution audit 只保存稳定脱敏 metadata；run v2 只允许一个已 claim tool attempt、一个已消费 confirmation，并继续固定 `business_writes=0` 与 `replay_writes=0`。`scripts/checks/control_plane/check-workflow-definition-run-record-boundary.py` 会用 `scripts/checks/fixtures/workflow-http-tool-contracts-v1.json` 执行六份 schema 的正负聚合验证，同时确认旧 run-bound confirmation 与 `blocked_confirmation_required` 状态机只保留为 `superseded_archived` 历史读取证据、不能提交新决定。批次 B 已实现受控 transport、原子 claim 与 run v2 runtime；契约存在和内部 runtime 完成仍不代表 `/executions`、Web 执行链或 production capability 已启用。
+- `workflow-rag-fragment.schema.json`、`workflow-rag-snapshot.schema.json`、`workflow-rag-execution-profile.schema.json`、`workflow-rag-answer.schema.json`、`workflow-rag-execution-audit.schema.json` 与 `workflow-run-record-v3.schema.json` 冻结应用知识快照、确定性 lexical profile、结构化 answer / citation、metadata-only audit 与 retrieval run v3。snapshot lifecycle、独立 retrieval execution、一次 Gateway handoff、memory / SQLite / PostgreSQL store、Run History / Comparison / Evaluation 和 Web 已实现；知识快照 list 不含正文，精确 detail 只在 snapshot read scope 下返回有界 fragment，run v3 不保存输入、正文、prompt、完整回答或模型原始响应。该实现仍不启用 crawler、embedding、vector database、reranker、业务写回或生产 RAG。
+- `workflow-rag-evaluation-dataset.schema.json` 与 `workflow-rag-quality-review.schema.json` 冻结可提交 synthetic-public 离线资产；`workflow-rag-evaluation-dataset-resource.schema.json` 与 `workflow-rag-candidate-snapshot-review.schema.json` 冻结应用作用域 durable dataset、不可变版本和 baseline / candidate review。离线 CLI 与 durable resource runtime 均复用同一 lexical ranker；candidate review 不调用 Gateway、不创建 workflow run，list / review / audit 不保存 query 或 fragment 正文。
+- 四份 promotion schema 冻结 exact dataset / candidate review / baseline 与 candidate snapshot / lexical profile / source draft binding、人工 decision CAS、不可变 application binding 和 metadata-only append-only audit。memory、SQLite `0008`、PostgreSQL `0011`、配置草案 v2 attach、发布候选 v2 重校验和 Web 连续链均已实现；promotion approve 只签发绑定资格，不自动修改 snapshot、dataset baseline、配置草案、发布候选或发布状态。契约与运行时均不保存 query、fragment、review note、配置正文、prompt、模型响应、credential 或 secret，也不代表生产 promotion 已启用。
+- 五份 application RAG runtime schema 冻结 ref-only current assignment、人工 `activate / replace / revoke` CAS、append-only event / audit、同步 advisory answer 与 metadata-only run v4。memory、SQLite `0009`、PostgreSQL `0012`、服务端 authority reload、API key `application_rag:invoke`、candidate snapshot 的一次 lexical retrieval / Gateway、Run History / Evaluation、Web 与真实浏览器连续链均已实现；run v4 不伪造 workflow draft，也不保存输入、fragment 正文、prompt、完整回答、模型原始响应、token 或 credential。自动 activation、fallback / retry / replay / resume、业务写回与生产调用仍未启用。
+- `workflow-run-record-v5.schema.json` 冻结 definition-bound execution 的 metadata-only 运行证据：execution source 固定为 `workflow_definition`，profile 固定为 `workflow_definition_executor_v1`，source draft 只保留 provenance。exact activation pointer、definition version / digest、application lifecycle 与 profile eligibility 会在计划内 provider 调用前重新校验；v5 不持久化原始 input、answer、prompt、provider raw response、credential、token 或 header。Comparison / Evaluation / Baseline / Suite 仅以 `workflow_definition_executor.v1` profile 读取兼容 lineage，不触发重新执行；memory、SQLite `0011`、PostgreSQL `0014`、Web、launcher、双数据库连续链与真实浏览器验收均已实现。
+- `application-runtime-authority.schema.json`、`application-session.schema.json` 与 `application-session-turn.schema.json` 冻结 Application-scoped 交互会话的首版 metadata-only 契约：profile 只能显式选择 `workflow_definition_executor_v1` 或 `application_rag_invocation_v1`，authority 必须来自服务端 owner 重读；session / turn 只保存作用域、CAS、digest、状态和既有 run ref，不保存 transcript、原始 input、answer、prompt、provider raw response、credential、token、header 或 fragment 正文。memory、共享 SQLite `0012` 与 Workflow PostgreSQL `0015` repository 已实现 session / turn 持久化、受控状态迁移、重启、CAS、no-fallback、turn execution route 与既有 v5 / v4 单次委托；Web 易失 transcript、Active / Closed 过滤、launcher、双数据库连续链与真实浏览器验收已完成。既有 `conversation_session_record` 继续作为 northbound metadata governance 契约，两者不共用 repository。
 - 当前 `typescript/platform-overview-api.ts` 用于冻结 `P3 Local Product Shell / Ops Surface` 的最小本地 console 消费视图：`PlatformOverviewResponse`、`PlatformOverviewConsoleViewModel` 与 `toPlatformOverviewConsoleViewModel`。它只消费 `GET /v1/platform/overview` 已聚合的只读 metadata，把 service status、model inventory、session/tooling surface 和 stop-lines 投影为 UI 可展示 view model，并固定 `canExecuteActions=false`、`canUseDurableStore=false`、`canWriteBusinessTruth=false` 与 `canReplayAutomatically=false`；`scripts/check-platform-overview-consumer-contract.py` 会把该消费契约与 `services/platform/internal/httpapi/platform_overview.go` 和 `scripts/run-platform-overview-consumer-smoke.py --check` 做静态/行为对齐，`apps/radishmind-console/` 则复用同一 contract 落地 React + Vite + TypeScript 只读 console 壳。`scripts/check-radishmind-console-behavior.py` 继续固定 ready、refresh stale overview、连接失败诊断和只读停止线；`scripts/check-radishmind-console-production-boundary.py` 固定 console 仍不是 production package；`scripts/check-p3-local-product-shell-short-close-checklist.py` 则固定 P3 short close 仍为 `not_ready`，避免把本地产品壳写成生产部署或真实执行能力。
 - 当前 `typescript/platform-local-smoke-api.ts` 用于冻结 `P3 Local Product Shell / Ops Surface` 的本地 readiness 摘要消费视图：`PlatformLocalSmokeResponse`、`PlatformLocalSmokeReadinessViewModel` 与 `toPlatformLocalSmokeReadinessViewModel`。它只消费 `GET /v1/platform/local-smoke` 已聚合的 healthz、overview contract、model inventory、session/tooling metadata、blocked action no-side-effects、本地 console CORS 和停止线状态，并固定 `canExecuteActions=false`、`canUseDurableStore=false`、`canWriteBusinessTruth=false` 与 `canReplayAutomatically=false`；`scripts/check-platform-local-smoke-contract.py` 会把该消费契约与 Go route 和 `scripts/run-platform-local-smoke.py --check` 做静态/行为对齐。`apps/radishmind-console/` 当前用该契约渲染 `Local Readiness` 面板，并在 overview 可读但 local-smoke readiness / contract 失败时显示 `platform_local_smoke` failure surface 和只读诊断。该契约不代表 production supervisor、executor、durable store、confirmation flow、业务写回或 replay ready。
 - 当前 `typescript/session-tooling-api.ts` 用于冻结最小上层消费视图：`SessionMetadataResponse`、`ToolingMetadataResponse`、`ToolActionBlockedResponse`、`toToolActionBlockedView` 与 `listToolActionOptions`。它只表达 metadata-only、contract-only 和 blocked action 展示语义，固定 `canExecute=false`、`executed=false`、`result_ref=null`、无 durable memory、无业务写回和无 replay side effect；`scripts/check-platform-session-tooling-consumer-contract.py` 会把该消费契约与 `services/platform/internal/httpapi/session_tooling_metadata.go` 中的路由、拒绝码和无副作用字段做静态对齐。

@@ -478,10 +478,6 @@ REQUIRED_DOC_REFERENCES = {
         "production-ops-secret-backend-implementation-readiness.json",
         "production-secret-backend-implementation-v1-plan.md",
     ],
-    "docs/radishmind-roadmap.md": [
-        "production-secret-backend-implementation-readiness",
-        "production-ops-secret-backend-implementation-readiness.json",
-    ],
     "docs/radishmind-capability-matrix.md": [
         "production secret backend implementation readiness",
         "production-ops-secret-backend-implementation-readiness.json",
@@ -489,10 +485,6 @@ REQUIRED_DOC_REFERENCES = {
     "docs/task-cards/production-ops-hardening-v1-plan.md": [
         "Production Secret Backend Implementation",
         "production-secret-backend-implementation-readiness",
-        "production-ops-secret-backend-implementation-readiness.json",
-    ],
-    "services/platform/README.md": [
-        "Production secret backend implementation readiness",
         "production-ops-secret-backend-implementation-readiness.json",
     ],
     "scripts/README.md": [
@@ -3160,7 +3152,6 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "scripts/check-repo.py",
         "scripts/README.md",
         "docs/radishmind-current-focus.md",
-        "docs/radishmind-roadmap.md",
         "docs/radishmind-capability-matrix.md",
         "docs/task-cards/production-ops-hardening-v1-plan.md",
         "docs/task-cards/production-secret-backend-implementation-v1-plan.md",
@@ -3333,7 +3324,6 @@ def assert_validation_and_docs(fixture: dict[str, Any]) -> None:
         "docs/platform/production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.md",
         "docs/task-cards/production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1-plan.md",
         "scripts/checks/fixtures/production-secret-backend-resolver-backend-health-runtime-implementation-entry-review-v1.json",
-        "services/platform/README.md",
         "docs/devlogs/2026-W22.md",
         "docs/devlogs/2026-W25.md",
     }

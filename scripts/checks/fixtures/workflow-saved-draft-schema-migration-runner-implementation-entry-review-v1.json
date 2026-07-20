@@ -457,7 +457,7 @@
       ]
     },
     {
-      "path": "services/platform/README.md",
+      "path": "docs/features/workflow/README.md",
       "must_contain": [
         "workflow-saved-draft-schema-migration-runner-implementation-entry-review-v1",
         "draft_schema_migration_runner_implementation_entry_review_defined"

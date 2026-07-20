@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-run-record-v5.schema.json",
+  "title": "WorkflowRunRecordV5",
+  "description": "Metadata-only workflow definition execution record. Raw input, prompts, node outputs, answers, provider responses, credentials, tokens, and headers are never persisted.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "record_version", "run_id", "draft_id", "draft_version", "workspace_id", "application_id", "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version", "execution_profile", "input_digest", "definition_authority", "status", "failure_code", "failure_summary", "started_at", "completed_at", "input_bytes", "condition_node_ids", "requested_model", "selected_provider", "selected_profile", "selected_model", "upstream_model", "selection_source", "nodes", "output", "request_id", "audit_ref", "actor_ref", "side_effects", "diagnostic"],
+  "properties": {
+    "schema_version": {"const": "workflow_run_record.v5"},
+    "record_version": {"type": "integer", "minimum": 1},
+    "run_id": {"type": "string", "minLength": 3, "maxLength": 160},
+    "draft_id": {"const": ""},
+    "draft_version": {"const": 0},
+    "workspace_id": {"$ref": "#/$defs/ref"},
+    "application_id": {"$ref": "#/$defs/ref"},
+    "execution_kind": {"const": "workflow_definition_execution"},
+    "execution_source_kind": {"const": "workflow_definition"},
+    "execution_source_id": {"$ref": "#/$defs/ref"},
+    "execution_source_version": {"type": "integer", "minimum": 1},
+    "execution_profile": {"const": "workflow_definition_executor_v1"},
+    "input_digest": {"$ref": "#/$defs/digest"},
+    "definition_authority": {"$ref": "#/$defs/authority"},
+    "status": {"enum": ["running", "succeeded", "failed", "canceled"]},
+    "failure_code": {"type": "string", "maxLength": 120},
+    "failure_summary": {"type": "string", "maxLength": 256},
+    "started_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"type": "string", "maxLength": 64},
+    "input_bytes": {"type": "integer", "minimum": 1, "maximum": 8192},
+    "condition_node_ids": {"type": "array", "maxItems": 16, "uniqueItems": true, "items": {"$ref": "#/$defs/ref"}},
+    "requested_model": {"$ref": "#/$defs/safe"},
+    "selected_provider": {"$ref": "#/$defs/safe"},
+    "selected_profile": {"$ref": "#/$defs/safe"},
+    "selected_model": {"$ref": "#/$defs/safe"},
+    "upstream_model": {"$ref": "#/$defs/safe"},
+    "selection_source": {"$ref": "#/$defs/safe"},
+    "nodes": {"type": "array", "minItems": 3, "maxItems": 16, "items": {"$ref": "#/$defs/node"}},
+    "output": {"const": ""},
+    "request_id": {"$ref": "#/$defs/ref"},
+    "audit_ref": {"$ref": "#/$defs/ref"},
+    "actor_ref": {"$ref": "#/$defs/ref"},
+    "side_effects": {"$ref": "#/$defs/effects"},
+    "diagnostic": {"$ref": "#/$defs/diagnostic"}
+  },
+  "$defs": {
+    "ref": {"type": "string", "minLength": 1, "maxLength": 240, "not": {"pattern": "[\\r\\n]"}},
+    "safe": {"type": "string", "maxLength": 256, "not": {"pattern": "://"}},
+    "digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["definition_id", "definition_version", "definition_digest", "activation_pointer_version", "candidate_id", "candidate_review_version", "source_draft_id", "source_draft_version", "source_draft_digest", "application_record_version", "application_lifecycle"],
+      "properties": {
+        "definition_id": {"$ref": "#/$defs/ref"},
+        "definition_version": {"type": "integer", "minimum": 1},
+        "definition_digest": {"$ref": "#/$defs/digest"},
+        "activation_pointer_version": {"type": "integer", "minimum": 1},
+        "candidate_id": {"$ref": "#/$defs/ref"},
+        "candidate_review_version": {"type": "integer", "minimum": 1},
+        "source_draft_id": {"$ref": "#/$defs/ref"},
+        "source_draft_version": {"type": "integer", "minimum": 1},
+        "source_draft_digest": {"$ref": "#/$defs/digest"},
+        "application_record_version": {"type": "integer", "minimum": 1},
+        "application_lifecycle": {"const": "active"}
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_id", "node_type", "label", "status", "started_at", "completed_at", "duration_ms", "predecessor_node_ids", "provider_ref", "output_preview", "failure_code"],
+      "properties": {
+        "node_id": {"$ref": "#/$defs/ref"},
+        "node_type": {"enum": ["prompt", "llm", "condition", "output"]},
+        "label": {"$ref": "#/$defs/safe"},
+        "status": {"enum": ["pending", "running", "succeeded", "skipped", "failed"]},
+        "started_at": {"type": "string", "maxLength": 64},
+        "completed_at": {"type": "string", "maxLength": 64},
+        "duration_ms": {"type": "integer", "minimum": 0},
+        "predecessor_node_ids": {"type": "array", "maxItems": 16, "items": {"$ref": "#/$defs/ref"}},
+        "provider_ref": {"$ref": "#/$defs/safe"},
+        "output_preview": {"const": ""},
+        "failure_code": {"type": "string", "maxLength": 120}
+      }
+    },
+    "effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider_calls", "tool_calls", "confirmation_calls", "business_writes", "replay_writes"],
+      "properties": {
+        "retrieval_calls": {"const": 0},
+        "provider_calls": {"type": "integer", "minimum": 0, "maximum": 4},
+        "tool_calls": {"const": 0},
+        "confirmation_calls": {"const": 0},
+        "business_writes": {"const": 0},
+        "replay_writes": {"const": 0}
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["failure_boundary", "failure_stage", "failed_node_id", "last_completed_node_id", "terminal_write_state", "gateway_failure_category", "summary", "recommended_review_action", "observed_at"],
+      "properties": {
+        "failure_boundary": {"type": "string", "maxLength": 64},
+        "failure_stage": {"type": "string", "maxLength": 64},
+        "failed_node_id": {"type": "string", "maxLength": 160},
+        "last_completed_node_id": {"type": "string", "maxLength": 160},
+        "terminal_write_state": {"enum": ["pending", "stored"]},
+        "gateway_failure_category": {"enum": ["none", "queue_full", "timeout", "canceled", "worker_crash", "protocol", "provider_failed", "output_unavailable", "unavailable"]},
+        "tool_failure_category": {"type": "string", "maxLength": 64},
+        "retrieval_failure_category": {"type": "string", "maxLength": 64},
+        "summary": {"type": "string", "maxLength": 256},
+        "recommended_review_action": {"type": "string", "maxLength": 64},
+        "observed_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}

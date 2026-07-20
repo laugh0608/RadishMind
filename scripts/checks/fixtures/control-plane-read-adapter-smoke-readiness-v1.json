@@ -520,13 +520,9 @@
   "required_doc_references": {
     "docs/contracts/control-plane-read-side.md": [
       "control-plane-read-adapter-smoke-readiness-v1",
-      "adapter smoke readiness"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-adapter-smoke-readiness-v1",
       "adapter_smoke_readiness_defined"
     ],
-    "docs/radishmind-roadmap.md": [
+    "docs/radishmind-current-focus.md": [
       "control-plane-read-adapter-smoke-readiness-v1",
       "adapter_smoke_readiness_defined"
     ],
@@ -550,10 +546,6 @@
       "check-control-plane-read-adapter-smoke-readiness-v1.py",
       "control-plane-read-adapter-smoke-readiness-v1.json"
     ],
-    "services/platform/README.md": [
-      "control-plane-read-adapter-smoke-readiness-v1",
-      "adapter_smoke_readiness_defined"
-    ],
     "docs/devlogs/2026-W23.md": [
       "control-plane-read-adapter-smoke-readiness-v1",
       "adapter_smoke_readiness_defined"
@@ -572,10 +564,10 @@
   "required_consumers": [
     "scripts/check-repo.py",
     "scripts/README.md",
-    "services/platform/README.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-current-focus.md",
-    "docs/radishmind-roadmap.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-capability-matrix.md",
     "docs/radishmind-integration-contracts.md",
     "docs/task-cards/README.md",

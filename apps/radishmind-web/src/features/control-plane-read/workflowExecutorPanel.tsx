@@ -2,8 +2,8 @@ import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner";
 import type {
   WorkflowExecutorConsumerState,
   WorkflowExecutorEligibility,
-  WorkflowRunNodeRecord,
 } from "./workflowExecutorConsumer";
+import type { WorkflowRunNodeRecord } from "./workflowRunRecordConsumer.ts";
 
 export function WorkflowExecutorPanel({
   draft,

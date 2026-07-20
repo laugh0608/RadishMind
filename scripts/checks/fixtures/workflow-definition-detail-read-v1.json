@@ -168,10 +168,7 @@
   "required_doc_references": {
     "docs/task-cards/workflow-definition-detail-read-v1-plan.md": [
       "workflow-definition-detail-read-v1",
-      "workflow_definition_detail_read_defined",
-      "nodes",
-      "edges",
-      "blocked action preview"
+      "workflow_definition_detail_read_defined"
     ],
     "docs/task-cards/README.md": [
       "workflow-definition-detail-read-v1",
@@ -180,14 +177,6 @@
     "scripts/README.md": [
       "check-workflow-definition-detail-read-v1.py",
       "workflow-definition-detail-read-v1.json"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "workflow-definition-detail-read-v1",
-      "workflow_definition_detail_read_defined"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "workflow-definition-detail-read-v1",
-      "workflow_definition_detail_read_defined"
     ],
     "docs/radishmind-capability-matrix.md": [
       "workflow-definition-detail-read-v1",

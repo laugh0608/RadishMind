@@ -456,7 +456,7 @@
       ]
     },
     {
-      "path": "services/platform/README.md",
+      "path": "docs/features/workflow/README.md",
       "must_contain": [
         "workflow-saved-draft-repository-mode-runtime-boundary-review-v1",
         "draft_repository_mode_runtime_boundary_review_defined"

@@ -150,14 +150,6 @@
     ],
     "docs/contracts/control-plane-read-side.md": [
       "control-plane-read-workspace-usage-quota-v1",
-      "quota-summary-route"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-workspace-usage-quota-v1",
-      "workspace-usage-quota"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "control-plane-read-workspace-usage-quota-v1",
       "workspace-usage-quota"
     ],
     "docs/radishmind-capability-matrix.md": [
@@ -179,10 +171,6 @@
     "scripts/README.md": [
       "check-control-plane-read-workspace-usage-quota-v1.py",
       "control-plane-read-workspace-usage-quota-v1.json"
-    ],
-    "services/platform/README.md": [
-      "control-plane-read-workspace-usage-quota-v1",
-      "workspace-usage-quota"
     ],
     "docs/devlogs/2026-W22.md": [
       "control-plane-read-workspace-usage-quota-v1",

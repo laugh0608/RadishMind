@@ -1,0 +1,9 @@
+{
+  "component": "application_publish_candidates",
+  "migration_id": "0001_application_publish_candidates",
+  "store_schema_version": "application_publish_candidates_store_v1",
+  "up": "0001_application_publish_candidates.up.sql",
+  "down": "0001_application_publish_candidates.down.sql",
+  "manual_only": true,
+  "runtime_auto_migration": false
+}

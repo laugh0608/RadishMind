@@ -201,8 +201,6 @@ def assert_consumers(fixture: dict[str, Any]) -> None:
         "scripts/check-production-ops-docker-deployment-mode.py",
         "scripts/check-repo.py",
         "scripts/README.md",
-        "docs/radishmind-current-focus.md",
-        "docs/radishmind-roadmap.md",
         "docs/task-cards/production-ops-docker-deployment-v1-plan.md",
     }
     missing = sorted(expected - required_consumers)

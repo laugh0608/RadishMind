@@ -1,6 +1,6 @@
 # RadishMind 契约专题目录
 
-更新时间：2026-07-08
+更新时间：2026-07-12
 
 本目录承载 `docs/radishmind-integration-contracts.md` 拆出的稳定专题。入口文档只保留当前结论、索引和停止线；需要修改字段、任务上下文或长样例时，优先修改本目录下的对应专题页。
 
@@ -8,6 +8,7 @@
 
 - [服务/API 接入契约](service-api.md)
 - [Control Plane Read-Side 契约](control-plane-read-side.md)
+- [Control Plane 鉴权与只读运行时契约](control-plane-auth-read-runtime.md)
 - [Platform Overview UI View 契约](platform-overview-ui-view.md)
 - [Platform Local Smoke UI View 契约](platform-local-smoke-ui-view.md)
 - [会话记录契约](session.md)
@@ -29,9 +30,10 @@
 ## 维护规则
 
 - 本目录文档不替代 `contracts/` 下的 schema 真相源。
+- 当前 runtime 叠加层以 [服务/API 接入契约](service-api.md) 和 [Control Plane 鉴权与只读运行时契约](control-plane-auth-read-runtime.md) 为准：Gateway / Application / Workflow 本地产品 API 均由显式 dev/test gate 保护；Admin Tenant / Audit 可使用 PostgreSQL dev/test 与 deterministic OIDC，五条 workspace operation 在 OIDC integration 下保持 membership fail-closed。
 - Control Plane Read-Side 的 TypeScript consumer contract 由 `contracts/typescript/control-plane-read-api.ts` 与 `control-plane-read-consumer-contract-v1` checker 固定；正式 UI 边界由 `control-plane-read-formal-ui-boundary-v1` checker 固定；正式 UI 实现 readiness 由 `control-plane-read-formal-ui-implementation-readiness-v1` checker 固定；`apps/radishmind-web/` 的 shared shell、七个只读页面、formal UI readiness close、dev-only live consumer、RadishFlow / Radish Docs 产品样例一致性、User Workspace Home、Workflow Review Handoff、`workflowWorkspaceContext` 派生一致性、auth/store transition preconditions、repository contract smoke、repository implementation readiness、store selection readiness、schema migration readiness、repository contract types implementation、静态 contract smoke runner、repository interface readiness、`ControlPlaneReadRepository` interface + fake-store bridge、adapter implementation readiness refresh、selector enablement preconditions、schema migration implementation preconditions、repository adapter implementation plan、schema artifact manifest readiness 和 store selector smoke readiness 由对应 `control-plane-read-*-v1` / `workflow-*-v1` checker 或聚合 gate 固定。专题页只解释语义、停止线和推进顺序。
 - Image Generation / Artifact Return 的 schema、runtime mapper、response consumer 和 `coerce_response_document` metadata-only hook 统一解释在 [图片生成契约](image-generation.md)；该专题只说明 artifact metadata 如何进入现有 `CopilotResponse.citations`，不声明 artifact store、binary reader、public URL 或真实 backend ready。
-- Radish OIDC Token Validation 的 schema、positive / negative fixtures 和 artifact checker 统一解释在 [Radish OIDC Token Validation 契约](radish-oidc-token-validation.md)；该专题只说明 verified token context 的脱敏投影、forbidden raw-material 字段、消费规则和验证方式，不声明 OIDC middleware、token validator、membership adapter、repository mode 或 production API ready。
+- Radish OIDC Token Validation 的 schema、positive / negative fixtures 和 artifact checker 统一解释在 [Radish OIDC Token Validation 契约](radish-oidc-token-validation.md)；该专题说明 workspace verified token context 的脱敏投影、forbidden raw-material 字段、消费规则，以及它与当前仅服务 Tenant Summary / Audit 的 `radish_oidc_integration_test` runtime 的边界。当前 Admin verifier 已实现不等于 workspace membership、repository mode 或 production API ready。
 - Production Secret Audit Event 的 schema、positive / negative fixtures 和 artifact checker 统一解释在 [Production Secret Audit Event 契约](production-secret-audit-event.md)；该专题只说明 future audit writer 的 metadata-only event 输入，不声明 audit writer runtime、audit store runtime、delivery、idempotency、durable backend、repository mode 或 production API ready。
 - Production Secret Audit Storage Adapter Metadata Contract 的 contract artifact、positive / negative fixtures、writer compatibility smoke 和 artifact checker 统一解释在 [Production Secret Audit Storage Adapter Metadata Contract 契约](production-secret-audit-storage-adapter-metadata-contract.md)；该专题只说明 future storage adapter 的 metadata-only input / result envelope、record identity、failure taxonomy 和 writer output handoff。后续 review 已静态选择 `managed_database_append_only_table` product class、PostgreSQL-compatible 能力族、managed PostgreSQL-compatible provider candidate class、reference-only driver candidate、reference-only product profile 和 reference-only provider profile，并推进到 provider account / resource / endpoint review；但仍不声明具体 backend product / vendor、provider account、provider resource、database endpoint、storage adapter runtime、DB provider、audit store runtime、repository mode 或 production API ready。
 - Production Secret Audit Storage Adapter Table Schema 的 metadata-only logical schema artifact、positive / negative fixtures、metadata contract compatibility smoke、logical field group 阅读方式、artifact guard 和 no secret material scan 统一解释在 [Production Secret Audit Storage Adapter Table Schema 契约](production-secret-audit-storage-adapter-table-schema.md)；该专题只说明 future storage adapter 的 metadata-only logical field groups，不声明 SQL、DDL、物理表名、列名、列类型、schema marker runtime、migration runner、storage adapter runtime、DB provider、audit store runtime、repository mode 或 production API ready。

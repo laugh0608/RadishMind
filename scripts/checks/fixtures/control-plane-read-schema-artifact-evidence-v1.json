@@ -560,7 +560,7 @@
     ],
     "docs/contracts/control-plane-read-side.md": [
       "control-plane-read-schema-artifact-evidence-v1",
-      "schema artifact evidence"
+      "schema_artifact_evidence_defined"
     ],
     "docs/task-cards/README.md": [
       "control-plane-read-schema-artifact-evidence-v1",
@@ -573,10 +573,6 @@
     "scripts/README.md": [
       "check-control-plane-read-schema-artifact-evidence-v1.py",
       "control-plane-read-schema-artifact-evidence-v1.json"
-    ],
-    "services/platform/README.md": [
-      "control-plane-read-schema-artifact-evidence-v1",
-      "schema_artifact_evidence_defined"
     ],
     "docs/devlogs/2026-W24.md": [
       "control-plane-read-schema-artifact-evidence-v1",
@@ -591,7 +587,7 @@
   "required_consumers": [
     "scripts/check-repo.py",
     "scripts/README.md",
-    "services/platform/README.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-current-focus.md",
     "docs/radishmind-capability-matrix.md",
     "docs/radishmind-integration-contracts.md",

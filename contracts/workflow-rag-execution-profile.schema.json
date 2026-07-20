@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-rag-execution-profile.schema.json",
+  "title": "WorkflowRAGExecutionProfileV1",
+  "description": "Deterministic local lexical retrieval profile. Batch A exposes its pure ranking contract but no workflow execution route.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "profile_id", "profile_version", "algorithm", "normalization_policy",
+    "stopword_policy", "default_top_k", "max_top_k", "max_query_bytes", "max_fragment_bytes",
+    "max_excerpt_bytes", "max_context_bytes", "official_score_boost", "network_access",
+    "embedding_provider", "profile_digest"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow_rag_execution_profile.v1" },
+    "profile_id": { "const": "workflow.rag.lexical-ngram-dev.v1" },
+    "profile_version": { "const": 1 },
+    "algorithm": { "const": "bm25_like.v1" },
+    "normalization_policy": { "const": "unicode-lower-latin-word-cjk-bigram.v1" },
+    "stopword_policy": { "const": "none.v1" },
+    "default_top_k": { "const": 5 },
+    "max_top_k": { "const": 8 },
+    "max_query_bytes": { "const": 4096 },
+    "max_fragment_bytes": { "const": 8192 },
+    "max_excerpt_bytes": { "const": 4096 },
+    "max_context_bytes": { "const": 32768 },
+    "official_score_boost": { "const": 1.1 },
+    "network_access": { "const": false },
+    "embedding_provider": { "const": "none" },
+    "profile_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+  }
+}

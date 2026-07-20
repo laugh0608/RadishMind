@@ -33,8 +33,12 @@
 - `candidate-response-record.schema.json`
 - `candidate-record-batch.schema.json`
 - `recommended-negative-replay-summary.schema.json`
+- `../../contracts/workflow-rag-evaluation-dataset.schema.json`
+- `../../contracts/workflow-rag-quality-review.schema.json`
 
 当前 `Radish` 文档问答样本已新增 `retrieval_expectations`，用于把任务卡中的召回输入边界落成可执行检查。
+
+Workflow RAG 的 synthetic-public 离线质量资产位于 [`workflow-rag/`](workflow-rag/README.md)：dataset 人工维护 query 与 expected citation evidence，精确绑定不可变 snapshot / lexical profile；Go CLI 复用运行时 ranker 生成 metadata-only report。该目录不保存真实用户 query 或 `workspace_internal` 知识，也不调用 Gateway。
 
 ## 常用入口
 

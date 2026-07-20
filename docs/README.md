@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-07-11
+更新时间：2026-07-18
 
 ## 阅读原则
 
@@ -25,7 +25,7 @@
 ## 当前状态
 
 - 当前成熟度是“内部开发者预览”；整改与当前执行顺序以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 和 [当前推进焦点](radishmind-current-focus.md) 为准。
-- Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、受控 Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning 与 Evaluation Suite / Release Review 已于 2026-07-11 完成。下一产品设计建议转向 Model Gateway 的真实请求历史、用量与失败审查路径；第一工程主线继续完成 R5 可发现性能预算。旧 Production Secret Backend / Storage Adapter next dependency 只保留为历史 checker 锚点，不再作为当前开发任务。
+- Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、受控 Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning、Evaluation Suite / Release Review、Gateway Request History、Application API Integration、Configuration Draft、Publish Governance、Application Catalog 与 API 密钥开发测试态认证均已完成；七组件共享 SQLite runtime、默认 `local-product` 启动档、同一应用作用域 HTTP 连续链、真实 PostgreSQL 专项门禁、Web 一次性交接和浏览器重启复验也已关闭。R6 文档与活动门禁收敛已经通过关闭评审；[Workflow 受控 HTTP Tool 与人工确认执行（开发/测试态）v1](features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 的三个批次已完成。[Workflow RAG Retrieval 与应用知识快照（开发/测试态）v1](features/workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 已完成独立 retrieval execution / metadata-only run v3 后端批次 B，下一步进入 Web 与真实浏览器双数据库验收批次 C；旧 Production Secret Backend / Storage Adapter 下一依赖只保留为历史 checker 锚点，不再作为当前开发任务。
 - `RadishMind` 已正式从“模型实验 / 接入准备仓库”的狭义口径，收口为 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台。
 - 当前仓库主线不再只是等待其他项目真实接入；长期按四个一级产品面和五条工程主线组织。四个产品面是 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；`Image Generation / Artifact Return` 作为横切适配能力保留。五条工程主线是 `Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。
 - 当前项目的更强正式定义已经固定在 [战略定义](radishmind-strategy.md)：`RadishMind` 是 `AI Tools / Workflow / Model Gateway / Copilot Integration Platform`，核心价值是把 AI 应用构建、工作流运行、模型 API 分发、多模型接入和 Copilot 集成收口成可控产品能力。

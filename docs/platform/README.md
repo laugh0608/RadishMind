@@ -1,5 +1,5 @@
 # RadishMind 平台专题入口
-更新时间：2026-07-11
+更新时间：2026-07-14
 
 ## 文档目的
 
@@ -20,6 +20,8 @@
 
 | 专题 | 当前状态 | 现有事实源 | 下一步 |
 | --- | --- | --- | --- |
+| 平台服务运行手册 | 活动维护 | [平台服务运行手册 v1](platform-service-operations-runbook-v1.md)、`services/platform/internal/config/config.go`、`services/platform/internal/httpapi/server.go`、跨平台 wrapper | 配置、基础路由、启动、smoke 与故障边界统一在本专题维护；服务 README 只保留职责、路由分类和入口链接 |
+| 本地 SQLite 开发持久化 | `local_sqlite_dev_persistence_v1_s3_dual_database_gate_completed` | [本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1.md)、[单一实施任务卡](../task-cards/local-sqlite-dev-persistence-v1-plan.md)、共享 SQLite runtime / migration 测试、七组 SQLite repository、跨平台启动档、SQLite 连续链与 PostgreSQL 专项门禁 | S1、S2 与 S3 双数据库后端证据已完成；下游 API 密钥 Web 与浏览器连续验收也已完成，不再派生同层持久化批次 |
 | Auth / Store Transition | 准入证据已有；`Radish OIDC token / membership readiness` 已固定 `radish_oidc_token_membership_readiness_defined`，实现入口评审已固定 `radish_oidc_token_membership_implementation_entry_review_defined`，上游证据刷新已固定 `radish_oidc_token_membership_upstream_evidence_refresh_defined` | `docs/contracts/control-plane-read-side.md`、相关 control-plane read task cards、[Radish OIDC Token / Membership Readiness v1](../integrations/radish-oidc-token-membership-readiness-v1.md)、[Radish OIDC Token / Membership Implementation Entry Review v1](../integrations/radish-oidc-token-membership-implementation-entry-review-v1.md)、[Radish OIDC Token / Membership Upstream Evidence Refresh v1](../integrations/radish-oidc-token-membership-upstream-evidence-refresh-v1.md) | 后续应先重新评审 schema / middleware / membership / runtime smoke 是否可进入任务卡；不直接创建 auth middleware、token validator、membership adapter、repository mode 或 production API |
 | Repository Adapter / Store Selector | control-plane 准入证据已有；saved workflow draft selector 已按失败关闭的模式选择落地 | `control-plane-read-*repository*`、`*store-selector*` task cards、`docs/features/workflow/saved-workflow-draft-store-selector-implementation-v1.md` | 后续 repository adapter / database 仍需独立实现专题 |
 | Provider Runtime & Health | 接近收口 | [Provider Runtime & Health v1 任务卡](../task-cards/provider-runtime-health-v1-plan.md) | 不继续扩同层 provider 小切片 |

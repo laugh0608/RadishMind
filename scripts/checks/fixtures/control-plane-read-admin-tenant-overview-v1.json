@@ -123,14 +123,6 @@
     ],
     "docs/contracts/control-plane-read-side.md": [
       "control-plane-read-admin-tenant-overview-v1",
-      "tenant-summary-route"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-admin-tenant-overview-v1",
-      "admin-tenant-overview"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "control-plane-read-admin-tenant-overview-v1",
       "admin-tenant-overview"
     ],
     "docs/radishmind-capability-matrix.md": [
@@ -148,10 +140,6 @@
     "scripts/README.md": [
       "check-control-plane-read-admin-tenant-overview-v1.py",
       "control-plane-read-admin-tenant-overview-v1.json"
-    ],
-    "services/platform/README.md": [
-      "control-plane-read-admin-tenant-overview-v1",
-      "admin-tenant-overview"
     ],
     "docs/devlogs/2026-W22.md": [
       "control-plane-read-admin-tenant-overview-v1",

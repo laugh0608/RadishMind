@@ -89,24 +89,10 @@ REQUIRED_SCRIPT_LITERALS = {
 }
 
 REQUIRED_DOC_REFERENCES = {
-    "services/platform/README.md": [
-        "Startup / supervisor boundary",
-        "startup-supervisor-boundary",
-        "production-ops-startup-supervisor-boundary.json",
-        "process supervisor",
-    ],
     "docs/task-cards/production-ops-hardening-v1-plan.md": [
         "startup-supervisor-boundary",
         "production-ops-startup-supervisor-boundary.json",
         "check-production-ops-startup-supervisor-boundary.py",
-    ],
-    "docs/radishmind-current-focus.md": [
-        "startup-supervisor-boundary",
-        "production-ops-startup-supervisor-boundary.json",
-    ],
-    "docs/radishmind-roadmap.md": [
-        "startup-supervisor-boundary",
-        "production-ops-startup-supervisor-boundary.json",
     ],
     "scripts/README.md": [
         "check-production-ops-startup-supervisor-boundary.py",
@@ -198,8 +184,6 @@ def assert_evidence_and_consumers(document: dict[str, Any]) -> None:
         "scripts/check-repo.py",
         "scripts/check-p3-local-product-shell-short-close-checklist.py",
         "scripts/README.md",
-        "docs/radishmind-current-focus.md",
-        "docs/radishmind-roadmap.md",
     }
     missing_consumers = sorted(expected_consumers - consumers)
     require(not missing_consumers, f"missing startup/supervisor consumers: {missing_consumers}")

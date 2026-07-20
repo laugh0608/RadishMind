@@ -185,7 +185,10 @@ export function buildWorkflowWorkspaceContextViewModel(
     workflowBlockedActionPreview,
   );
   const workflowDraftDesigner = buildWorkflowDraftDesignerViewModel({
-    workflowDefinitions: source.workspaceWorkflowDefinitions.workflowDefinitions,
+    workflowDefinitions:
+      source.workspaceWorkflowDefinitions.workflowDefinitions.length > 0
+        ? source.workspaceWorkflowDefinitions.workflowDefinitions
+        : [selectedWorkflowDefinition],
     localDrafts: source.localWorkflowDrafts,
     tenantRef: source.workspaceWorkflowDefinitions.collection.tenantRef,
     detailSourcesByWorkflowDefinitionId: toDraftDesignerDetailSources(workflowDefinitionDetailsById),
@@ -389,7 +392,7 @@ function selectApplication(
   return (
     workspaceApplications.applications.find(
       (application) => application.applicationRef === targetApplicationRef,
-    ) ?? workspaceApplications.applications[0]!
+    ) ?? workspaceApplications.applications[0] ?? unavailableApplication(workspaceApplications)
   );
 }
 
@@ -400,9 +403,13 @@ function workflowDefinitionsForApplication(
   const filteredDefinitions = workspaceWorkflowDefinitions.workflowDefinitions.filter(
     (workflowDefinition) => workflowDefinition.applicationRef === selectedApplication.applicationRef,
   );
-  return filteredDefinitions.length > 0
-    ? filteredDefinitions
-    : workspaceWorkflowDefinitions.workflowDefinitions;
+  if (filteredDefinitions.length > 0) {
+    return filteredDefinitions;
+  }
+  if (workspaceWorkflowDefinitions.workflowDefinitions.length > 0) {
+    return workspaceWorkflowDefinitions.workflowDefinitions;
+  }
+  return [unavailableWorkflowDefinition(workspaceWorkflowDefinitions, selectedApplication)];
 }
 
 function selectWorkflowDefinition(
@@ -422,7 +429,7 @@ function selectWorkflowDefinition(
       (workflowDefinition) =>
         workflowDefinition.workflowDefinitionId === selectedApplication.latestWorkflowDefinitionRef,
     ) ??
-    workflowDefinitions[0]!
+    workflowDefinitions[0]
   );
 }
 
@@ -442,7 +449,13 @@ function runsForApplicationAndDefinition(
   const applicationRuns = workspaceRunHistory.runs.filter(
     (run) => run.applicationRef === selectedApplication.applicationRef,
   );
-  return applicationRuns.length > 0 ? applicationRuns : workspaceRunHistory.runs;
+  if (applicationRuns.length > 0) {
+    return applicationRuns;
+  }
+  if (workspaceRunHistory.runs.length > 0) {
+    return workspaceRunHistory.runs;
+  }
+  return [unavailableRun(workspaceRunHistory, selectedApplication, selectedWorkflowDefinition)];
 }
 
 function selectRun(
@@ -450,7 +463,55 @@ function selectRun(
   selectedRunId: string | null,
 ): WorkspaceRunRecordRow {
   const targetRunId = selectedRunId ?? runsForSelectedContext[0]?.runId;
-  return runsForSelectedContext.find((run) => run.runId === targetRunId) ?? runsForSelectedContext[0]!;
+  return runsForSelectedContext.find((run) => run.runId === targetRunId) ?? runsForSelectedContext[0];
+}
+
+function unavailableApplication(
+  workspaceApplications: WorkspaceApplicationsViewModel,
+): WorkspaceApplicationRow {
+  return {
+    applicationRef: "unavailable:application",
+    displayName: "Application unavailable",
+    applicationKind: "unavailable",
+    ownerSubjectRef: "subject:unavailable",
+    latestWorkflowDefinitionRef: "unavailable:workflow-definition",
+    lastRunStatus: workspaceApplications.collection.failureCode ?? "unavailable",
+    updatedAt: "unavailable",
+  };
+}
+
+function unavailableWorkflowDefinition(
+  workspaceWorkflowDefinitions: WorkspaceWorkflowDefinitionsViewModel,
+  selectedApplication: WorkspaceApplicationRow,
+): WorkspaceWorkflowDefinitionRow {
+  return {
+    workflowDefinitionId: selectedApplication.latestWorkflowDefinitionRef,
+    applicationRef: selectedApplication.applicationRef,
+    version: 0,
+    definitionStatus: workspaceWorkflowDefinitions.collection.failureCode ?? "unavailable",
+    nodeCount: 0,
+    riskLevel: "unknown",
+    requiresConfirmationCapable: false,
+    updatedAt: "unavailable",
+  };
+}
+
+function unavailableRun(
+  workspaceRunHistory: WorkspaceRunHistoryViewModel,
+  selectedApplication: WorkspaceApplicationRow,
+  selectedWorkflowDefinition: WorkspaceWorkflowDefinitionRow,
+): WorkspaceRunRecordRow {
+  return {
+    runId: "unavailable:run",
+    workflowDefinitionId: selectedWorkflowDefinition.workflowDefinitionId,
+    applicationRef: selectedApplication.applicationRef,
+    status: "unavailable",
+    failureCode: workspaceRunHistory.collection.failureCode ?? "unavailable",
+    estimatedCost: "unavailable",
+    traceId: "trace:unavailable",
+    startedAt: "unavailable",
+    completedAt: "unavailable",
+  };
 }
 
 function selectWorkflowDraft(

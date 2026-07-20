@@ -20,44 +20,107 @@ const (
 )
 
 type WorkflowRunListRequest struct {
-	Limit           int
-	Cursor          string
-	Status          WorkflowRunStatus
-	DraftID         string
-	StartedFrom     *time.Time
-	StartedTo       *time.Time
-	FailureCode     WorkflowRunFailureCode
-	FailureBoundary WorkflowRunFailureBoundary
-	Provider        string
-	Model           string
-	StaleRunning    *bool
+	Limit                  int
+	Cursor                 string
+	Status                 WorkflowRunStatus
+	DraftID                string
+	ExecutionSourceKind    string
+	ExecutionSourceID      string
+	ExecutionSourceVersion int
+	StartedFrom            *time.Time
+	StartedTo              *time.Time
+	FailureCode            WorkflowRunFailureCode
+	FailureBoundary        WorkflowRunFailureBoundary
+	Provider               string
+	Model                  string
+	StaleRunning           *bool
 }
 
 type WorkflowRunSummary struct {
-	SchemaVersion           string                            `json:"schema_version"`
-	RecordVersion           int                               `json:"record_version"`
-	RunID                   string                            `json:"run_id"`
-	DraftID                 string                            `json:"draft_id"`
-	DraftVersion            int                               `json:"draft_version"`
-	WorkspaceID             string                            `json:"workspace_id"`
-	ApplicationID           string                            `json:"application_id"`
-	Status                  WorkflowRunStatus                 `json:"status"`
-	FailureCode             WorkflowRunFailureCode            `json:"failure_code"`
-	StartedAt               string                            `json:"started_at"`
-	CompletedAt             string                            `json:"completed_at"`
-	DurationMS              int64                             `json:"duration_ms"`
-	SelectedProvider        string                            `json:"selected_provider"`
-	SelectedProfile         string                            `json:"selected_profile"`
-	SelectedModel           string                            `json:"selected_model"`
-	RequestID               string                            `json:"request_id"`
-	AuditRef                string                            `json:"audit_ref"`
-	SideEffects             WorkflowRunSideEffects            `json:"side_effects"`
-	StaleRunning            bool                              `json:"stale_running"`
-	FailureBoundary         WorkflowRunFailureBoundary        `json:"failure_boundary"`
-	FailedNodeID            string                            `json:"failed_node_id"`
-	LastCompletedNodeID     string                            `json:"last_completed_node_id"`
-	GatewayFailureCategory  WorkflowRunGatewayFailureCategory `json:"gateway_failure_category"`
-	RecommendedReviewAction WorkflowRunReviewAction           `json:"recommended_review_action"`
+	SchemaVersion            string                            `json:"schema_version"`
+	RecordVersion            int                               `json:"record_version"`
+	RunID                    string                            `json:"run_id"`
+	PlanID                   string                            `json:"plan_id"`
+	ConfirmationID           string                            `json:"confirmation_id"`
+	ToolAttemptStatus        WorkflowHTTPToolAttemptStatus     `json:"tool_attempt_status"`
+	DraftID                  string                            `json:"draft_id"`
+	DraftVersion             int                               `json:"draft_version"`
+	DraftDigest              string                            `json:"draft_digest,omitempty"`
+	ExecutionKind            string                            `json:"execution_kind,omitempty"`
+	ExecutionSourceKind      string                            `json:"execution_source_kind,omitempty"`
+	ExecutionSourceID        string                            `json:"execution_source_id,omitempty"`
+	ExecutionSourceVersion   int                               `json:"execution_source_version,omitempty"`
+	ExecutionProfile         string                            `json:"execution_profile,omitempty"`
+	DefinitionDigest         string                            `json:"definition_digest,omitempty"`
+	ActivationPointerVersion int                               `json:"activation_pointer_version,omitempty"`
+	SourceDraftID            string                            `json:"source_draft_id,omitempty"`
+	SourceDraftVersion       int                               `json:"source_draft_version,omitempty"`
+	SourceDraftDigest        string                            `json:"source_draft_digest,omitempty"`
+	RuntimeAssignmentID      string                            `json:"runtime_assignment_id,omitempty"`
+	RuntimeAssignmentVersion int                               `json:"runtime_assignment_version,omitempty"`
+	PublishCandidateID       string                            `json:"publish_candidate_id,omitempty"`
+	PublishReviewVersion     int                               `json:"publish_review_version,omitempty"`
+	EffectiveSnapshotRole    string                            `json:"effective_snapshot_role,omitempty"`
+	WorkspaceID              string                            `json:"workspace_id"`
+	ApplicationID            string                            `json:"application_id"`
+	Status                   WorkflowRunStatus                 `json:"status"`
+	FailureCode              WorkflowRunFailureCode            `json:"failure_code"`
+	StartedAt                string                            `json:"started_at"`
+	CompletedAt              string                            `json:"completed_at"`
+	DurationMS               int64                             `json:"duration_ms"`
+	SelectedProvider         string                            `json:"selected_provider"`
+	SelectedProfile          string                            `json:"selected_profile"`
+	SelectedModel            string                            `json:"selected_model"`
+	RequestID                string                            `json:"request_id"`
+	AuditRef                 string                            `json:"audit_ref"`
+	SideEffects              WorkflowRunSideEffects            `json:"side_effects"`
+	StaleRunning             bool                              `json:"stale_running"`
+	FailureBoundary          WorkflowRunFailureBoundary        `json:"failure_boundary"`
+	FailedNodeID             string                            `json:"failed_node_id"`
+	LastCompletedNodeID      string                            `json:"last_completed_node_id"`
+	GatewayFailureCategory   WorkflowRunGatewayFailureCategory `json:"gateway_failure_category"`
+	ToolFailureCategory      WorkflowHTTPToolFailureCategory   `json:"tool_failure_category"`
+	SnapshotID               string                            `json:"snapshot_id,omitempty"`
+	SnapshotVersion          int                               `json:"snapshot_version,omitempty"`
+	SnapshotDigest           string                            `json:"snapshot_digest,omitempty"`
+	RAGRef                   string                            `json:"rag_ref,omitempty"`
+	RetrievalNodeID          string                            `json:"retrieval_node_id,omitempty"`
+	RetrievalAttemptStatus   string                            `json:"retrieval_attempt_status,omitempty"`
+	RetrievalProfileID       string                            `json:"retrieval_profile_id,omitempty"`
+	RetrievalProfileVersion  int                               `json:"retrieval_profile_version,omitempty"`
+	RetrievalProfileDigest   string                            `json:"retrieval_profile_digest,omitempty"`
+	QueryDigest              string                            `json:"query_digest,omitempty"`
+	QueryBytes               int                               `json:"query_bytes,omitempty"`
+	CandidateCount           int                               `json:"candidate_count,omitempty"`
+	SelectedFragments        []workflowRAGRunSelectedFragment  `json:"selected_fragments,omitempty"`
+	CitationRefs             []string                          `json:"citation_refs,omitempty"`
+	RetrievalLatencyMS       int                               `json:"retrieval_latency_ms,omitempty"`
+	RetrievalContextBytes    int                               `json:"retrieval_context_bytes,omitempty"`
+	RetrievalFailureCategory string                            `json:"retrieval_failure_category,omitempty"`
+	RecommendedReviewAction  WorkflowRunReviewAction           `json:"recommended_review_action"`
+	retrievalAttemptPresent  bool
+}
+
+func (summary WorkflowRunSummary) MarshalJSON() ([]byte, error) {
+	type Alias WorkflowRunSummary
+	if !summary.retrievalAttemptPresent {
+		return json.Marshal(Alias(summary))
+	}
+	return json.Marshal(struct {
+		Alias
+		CandidateCount        int                              `json:"candidate_count"`
+		SelectedFragments     []workflowRAGRunSelectedFragment `json:"selected_fragments"`
+		CitationRefs          []string                         `json:"citation_refs"`
+		RetrievalLatencyMS    int                              `json:"retrieval_latency_ms"`
+		RetrievalContextBytes int                              `json:"retrieval_context_bytes"`
+	}{
+		Alias:                 Alias(summary),
+		CandidateCount:        summary.CandidateCount,
+		SelectedFragments:     append([]workflowRAGRunSelectedFragment{}, summary.SelectedFragments...),
+		CitationRefs:          append([]string{}, summary.CitationRefs...),
+		RetrievalLatencyMS:    summary.RetrievalLatencyMS,
+		RetrievalContextBytes: summary.RetrievalContextBytes,
+	})
 }
 
 type WorkflowRunListResult struct {
@@ -119,7 +182,11 @@ func normalizeWorkflowRunListRequest(request WorkflowRunListRequest) (WorkflowRu
 		return WorkflowRunListFilter{}, WorkflowRunFailureFilterInvalid
 	}
 	draftID := strings.TrimSpace(request.DraftID)
-	if len([]rune(draftID)) > 160 {
+	sourceKind, sourceID := strings.TrimSpace(request.ExecutionSourceKind), strings.TrimSpace(request.ExecutionSourceID)
+	if len([]rune(draftID)) > 160 || len([]rune(sourceID)) > 160 ||
+		(sourceKind != "" && sourceKind != "workflow_draft" && sourceKind != workflowDefinitionExecutionSourceKind && sourceKind != workflowRAGApplicationExecutionSourceKind) ||
+		request.ExecutionSourceVersion < 0 || (request.ExecutionSourceVersion > 0 && (sourceKind == "" || sourceID == "")) ||
+		(draftID != "" && (sourceKind != "" || sourceID != "" || request.ExecutionSourceVersion != 0)) {
 		return WorkflowRunListFilter{}, WorkflowRunFailureFilterInvalid
 	}
 	provider, model := strings.TrimSpace(request.Provider), strings.TrimSpace(request.Model)
@@ -140,7 +207,7 @@ func normalizeWorkflowRunListRequest(request WorkflowRunListRequest) (WorkflowRu
 		return WorkflowRunListFilter{}, WorkflowRunFailureFilterInvalid
 	}
 	return WorkflowRunListFilter{
-		Status: request.Status, DraftID: draftID, StartedFrom: request.StartedFrom,
+		Status: request.Status, DraftID: draftID, ExecutionSourceKind: sourceKind, ExecutionSourceID: sourceID, ExecutionSourceVersion: request.ExecutionSourceVersion, StartedFrom: request.StartedFrom,
 		StartedTo: request.StartedTo, Limit: limit, FailureCode: request.FailureCode,
 		FailureBoundary: request.FailureBoundary, Provider: provider,
 		Model: model, StaleRunning: request.StaleRunning,
@@ -148,13 +215,20 @@ func normalizeWorkflowRunListRequest(request WorkflowRunListRequest) (WorkflowRu
 }
 
 func parseWorkflowRunListRequest(values map[string][]string) (WorkflowRunListRequest, WorkflowRunFailureCode) {
-	allowed := map[string]bool{"workspace_id": true, "application_id": true, "limit": true, "cursor": true, "status": true, "draft_id": true, "started_from": true, "started_to": true, "failure_code": true, "failure_boundary": true, "provider": true, "model": true, "stale_running": true}
+	allowed := map[string]bool{"workspace_id": true, "application_id": true, "limit": true, "cursor": true, "status": true, "draft_id": true, "execution_source_kind": true, "execution_source_id": true, "execution_source_version": true, "started_from": true, "started_to": true, "failure_code": true, "failure_boundary": true, "provider": true, "model": true, "stale_running": true}
 	for key, entries := range values {
 		if !allowed[key] || len(entries) != 1 {
 			return WorkflowRunListRequest{}, WorkflowRunFailureFilterInvalid
 		}
 	}
-	request := WorkflowRunListRequest{Cursor: strings.TrimSpace(firstQueryValue(values, "cursor")), Status: WorkflowRunStatus(strings.TrimSpace(firstQueryValue(values, "status"))), DraftID: strings.TrimSpace(firstQueryValue(values, "draft_id")), FailureCode: WorkflowRunFailureCode(strings.TrimSpace(firstQueryValue(values, "failure_code"))), FailureBoundary: WorkflowRunFailureBoundary(strings.TrimSpace(firstQueryValue(values, "failure_boundary"))), Provider: strings.TrimSpace(firstQueryValue(values, "provider")), Model: strings.TrimSpace(firstQueryValue(values, "model"))}
+	request := WorkflowRunListRequest{Cursor: strings.TrimSpace(firstQueryValue(values, "cursor")), Status: WorkflowRunStatus(strings.TrimSpace(firstQueryValue(values, "status"))), DraftID: strings.TrimSpace(firstQueryValue(values, "draft_id")), ExecutionSourceKind: strings.TrimSpace(firstQueryValue(values, "execution_source_kind")), ExecutionSourceID: strings.TrimSpace(firstQueryValue(values, "execution_source_id")), FailureCode: WorkflowRunFailureCode(strings.TrimSpace(firstQueryValue(values, "failure_code"))), FailureBoundary: WorkflowRunFailureBoundary(strings.TrimSpace(firstQueryValue(values, "failure_boundary"))), Provider: strings.TrimSpace(firstQueryValue(values, "provider")), Model: strings.TrimSpace(firstQueryValue(values, "model"))}
+	if raw := strings.TrimSpace(firstQueryValue(values, "execution_source_version")); raw != "" {
+		version, err := strconv.Atoi(raw)
+		if err != nil {
+			return WorkflowRunListRequest{}, WorkflowRunFailureFilterInvalid
+		}
+		request.ExecutionSourceVersion = version
+	}
 	if raw := strings.TrimSpace(firstQueryValue(values, "stale_running")); raw != "" {
 		if raw != "true" && raw != "false" {
 			return WorkflowRunListRequest{}, WorkflowRunFailureFilterInvalid
@@ -226,7 +300,7 @@ func decodeWorkflowRunCursor(value string, filter WorkflowRunListFilter) (decode
 }
 
 func workflowRunFilterDigest(filter WorkflowRunListFilter) string {
-	value := fmt.Sprintf("v2\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%d", filter.Status, filter.DraftID, filter.FailureCode, filter.FailureBoundary, filter.Provider, filter.Model, workflowRunFilterBool(filter.StaleRunning), workflowRunFilterTime(filter.StartedFrom)+"\n"+workflowRunFilterTime(filter.StartedTo), filter.Limit)
+	value := fmt.Sprintf("v3\n%s\n%s\n%s\n%s\n%d\n%s\n%s\n%s\n%s\n%s\n%s\n%d", filter.Status, filter.DraftID, filter.ExecutionSourceKind, filter.ExecutionSourceID, filter.ExecutionSourceVersion, filter.FailureCode, filter.FailureBoundary, filter.Provider, filter.Model, workflowRunFilterBool(filter.StaleRunning), workflowRunFilterTime(filter.StartedFrom)+"\n"+workflowRunFilterTime(filter.StartedTo), filter.Limit)
 	digest := sha256.Sum256([]byte(value))
 	return hex.EncodeToString(digest[:16])
 }
@@ -256,7 +330,8 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 	}
 	summary := WorkflowRunSummary{
 		SchemaVersion: record.SchemaVersion, RecordVersion: record.RecordVersion, RunID: record.RunID,
-		DraftID: record.DraftID, DraftVersion: record.DraftVersion, WorkspaceID: record.WorkspaceID,
+		PlanID: record.PlanID, ConfirmationID: record.ConfirmationID,
+		DraftID: record.DraftID, DraftVersion: record.DraftVersion, DraftDigest: record.DraftDigest, WorkspaceID: record.WorkspaceID,
 		ApplicationID: record.ApplicationID, Status: record.Status, FailureCode: record.FailureCode,
 		StartedAt: record.StartedAt, CompletedAt: record.CompletedAt, DurationMS: duration,
 		SelectedProvider: record.SelectedProvider, SelectedProfile: record.SelectedProfile,
@@ -264,12 +339,53 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 		SideEffects:  record.SideEffects,
 		StaleRunning: record.Status == WorkflowRunStatusRunning && now.Sub(startedAt) > workflowExecutorDefaultMaxRuntime,
 	}
+	if record.ToolAttempt != nil {
+		summary.ToolAttemptStatus = record.ToolAttempt.Status
+	}
+	if record.ExecutionSource != nil {
+		summary.ExecutionKind = record.ExecutionSource.Kind
+		summary.ExecutionSourceKind = record.ExecutionSource.SourceKind
+		summary.ExecutionSourceID = record.ExecutionSource.ID
+		summary.ExecutionSourceVersion = record.ExecutionSource.Version
+	}
+	if record.DefinitionAuthority != nil {
+		summary.ExecutionProfile = record.ExecutionProfile
+		summary.DefinitionDigest = record.DefinitionAuthority.DefinitionDigest
+		summary.ActivationPointerVersion = record.DefinitionAuthority.ActivationPointerVersion
+		summary.SourceDraftID = record.DefinitionAuthority.SourceDraftID
+		summary.SourceDraftVersion = record.DefinitionAuthority.SourceDraftVersion
+		summary.SourceDraftDigest = record.DefinitionAuthority.SourceDraftDigest
+	}
+	if record.RAGApplication != nil {
+		summary.RuntimeAssignmentID = record.RAGApplication.AssignmentID
+		summary.RuntimeAssignmentVersion = record.RAGApplication.AssignmentVersion
+		summary.PublishCandidateID = record.RAGApplication.PublishCandidateID
+		summary.PublishReviewVersion = record.RAGApplication.PublishReviewVersion
+		summary.EffectiveSnapshotRole = record.RAGApplication.EffectiveSnapshotRole
+	}
 	if record.Diagnostic != nil {
 		summary.FailureBoundary = record.Diagnostic.FailureBoundary
 		summary.FailedNodeID = record.Diagnostic.FailedNodeID
 		summary.LastCompletedNodeID = record.Diagnostic.LastCompletedNodeID
 		summary.GatewayFailureCategory = record.Diagnostic.GatewayFailureCategory
+		summary.ToolFailureCategory = record.Diagnostic.ToolFailureCategory
+		summary.RetrievalFailureCategory = record.Diagnostic.RetrievalFailureCategory
 		summary.RecommendedReviewAction = record.Diagnostic.RecommendedReviewAction
+	}
+	if record.RAGSnapshot != nil {
+		summary.SnapshotID, summary.SnapshotVersion = record.RAGSnapshot.SnapshotID, record.RAGSnapshot.SnapshotVersion
+		summary.SnapshotDigest, summary.RAGRef = record.RAGSnapshot.SnapshotDigest, record.RAGSnapshot.RAGRef
+	}
+	if record.RetrievalAttempt != nil {
+		summary.RetrievalNodeID, summary.RetrievalAttemptStatus = record.RetrievalAttempt.NodeID, record.RetrievalAttempt.Status
+		summary.RetrievalProfileID, summary.RetrievalProfileVersion = record.RetrievalAttempt.ProfileID, record.RetrievalAttempt.ProfileVersion
+		summary.RetrievalProfileDigest = record.RetrievalAttempt.ProfileDigest
+		summary.QueryDigest, summary.QueryBytes = record.RetrievalAttempt.QueryDigest, record.RetrievalAttempt.QueryBytes
+		summary.CandidateCount = record.RetrievalAttempt.CandidateCount
+		summary.SelectedFragments = append([]workflowRAGRunSelectedFragment(nil), record.RetrievalAttempt.SelectedFragments...)
+		summary.CitationRefs = cloneStringSlice(record.RetrievalAttempt.CitationRefs)
+		summary.RetrievalLatencyMS, summary.RetrievalContextBytes = record.RetrievalAttempt.RetrievalLatencyMS, record.RetrievalAttempt.ContextBytes
+		summary.retrievalAttemptPresent = true
 	}
 	return summary
 }

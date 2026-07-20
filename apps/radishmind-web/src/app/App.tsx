@@ -18,6 +18,7 @@ import {
   initialControlPlaneReadDevLiveLoadState,
   loadControlPlaneReadDevLiveCollections,
   readControlPlaneReadDevLiveConfig,
+  type ControlPlaneReadDevLiveConfig,
   type ControlPlaneReadDevLiveLoadState,
 } from "../features/control-plane-read/devLiveReadConsumer";
 import {
@@ -47,6 +48,27 @@ import {
   type WorkflowExecutorConsumerState,
 } from "../features/control-plane-read/workflowExecutorConsumer";
 import { WorkflowExecutorPanel } from "../features/control-plane-read/workflowExecutorPanel";
+import {
+  createWorkflowHTTPToolActionPlan,
+  decideWorkflowHTTPToolActionPlan,
+  evaluateWorkflowHTTPToolActionEligibility,
+  initialWorkflowHTTPToolActionConsumerState,
+  readWorkflowHTTPToolActionConsumerConfig,
+  readWorkflowHTTPToolActionPlan,
+  readWorkflowHTTPToolActionPlanReference,
+  rememberWorkflowHTTPToolActionPlanReference,
+  workflowHTTPToolActionPermissions,
+  type WorkflowHTTPToolActionConsumerState,
+  type WorkflowHTTPToolHumanDecision,
+  type WorkflowHTTPToolPublicArguments,
+} from "../features/control-plane-read/workflowHTTPToolActionConsumer";
+import { WorkflowHTTPToolActionPanel } from "../features/control-plane-read/workflowHTTPToolActionPanel";
+import {
+  executeWorkflowHTTPToolActionPlan,
+  initialWorkflowHTTPToolExecutionState,
+  type WorkflowHTTPToolExecutionState,
+} from "../features/control-plane-read/workflowHTTPToolExecutionConsumer.ts";
+import { WorkflowHTTPToolExecutionPanel } from "../features/control-plane-read/workflowHTTPToolExecutionPanel.tsx";
 import { buildModelGatewayOverviewViewModel } from "../features/control-plane-read/modelGatewayOverview";
 import { ModelGatewayOverviewPanel } from "../features/control-plane-read/modelGatewayOverviewPanel";
 import { buildModelGatewayRouteEvidenceViewModel } from "../features/control-plane-read/modelGatewayRouteEvidence";
@@ -66,6 +88,11 @@ import {
   type WorkspaceApplicationsStatePreview,
 } from "../features/control-plane-read/workspaceApplications";
 import {
+  readApplicationCatalogConfig,
+  type ApplicationCatalogRecord,
+} from "../features/control-plane-read/applicationCatalogConsumer";
+import type { ApplicationCatalogSnapshot } from "../features/control-plane-read/applicationCatalogPanel";
+import {
   type WorkflowApplicationBlockedCapabilityPreview,
   type WorkflowApplicationDetailViewModel,
   type WorkflowApplicationRiskSummary,
@@ -73,9 +100,6 @@ import {
 } from "../features/control-plane-read/workflowApplicationDetail";
 import {
   buildWorkspaceApiKeysViewModel,
-  type WorkspaceApiKeyRow,
-  type WorkspaceApiKeysMetric,
-  type WorkspaceApiKeysStatePreview,
 } from "../features/control-plane-read/workspaceApiKeys";
 import {
   buildWorkspaceUsageQuotaViewModel,
@@ -189,12 +213,29 @@ import type {
 
 const shell = buildControlPlaneReadShellViewModel();
 const devLiveConfig = readControlPlaneReadDevLiveConfig();
+const applicationCatalogConfig = readApplicationCatalogConfig();
 const savedDraftConsumerConfig = readWorkflowSavedDraftConsumerConfig();
 const workflowExecutorConsumerConfig = readWorkflowExecutorConsumerConfig();
+const workflowHTTPToolActionConsumerConfig = readWorkflowHTTPToolActionConsumerConfig();
+const workflowHTTPToolPermissions = workflowHTTPToolActionPermissions(workflowHTTPToolActionConsumerConfig);
 const WorkflowRunHistoryPanel = lazy(() => import("../features/control-plane-read/workflowRunHistoryPanel"));
 const WorkflowNodeDesigner = lazy(() => import("../features/control-plane-read/workflowNodeDesigner").then((module) => ({ default: module.WorkflowNodeDesigner })));
 const AdminOperationsReviewPanel = lazy(() => import("../features/control-plane-read/adminOperationsReviewPanel").then((module) => ({ default: module.AdminOperationsReviewPanel })));
 const ModelGatewayEvidenceReviewPanel = lazy(() => import("../features/control-plane-read/modelGatewayEvidenceReviewPanel").then((module) => ({ default: module.ModelGatewayEvidenceReviewPanel })));
+const ModelGatewayPlaygroundPanel = lazy(() => import("../features/control-plane-read/modelGatewayPlaygroundPanel"));
+const ApplicationApiIntegrationPanel = lazy(() => import("../features/control-plane-read/applicationApiIntegrationPanel"));
+const ApplicationConfigurationDraftPanel = lazy(() => import("../features/control-plane-read/applicationConfigurationDraftPanel"));
+const ApplicationPublishCandidatePanel = lazy(() => import("../features/control-plane-read/applicationPublishCandidatePanel"));
+const ApplicationCatalogPanel = lazy(() => import("../features/control-plane-read/applicationCatalogPanel").then((module) => ({ default: module.ApplicationCatalogPanel })));
+const WorkflowRAGSnapshotPanel = lazy(() => import("../features/control-plane-read/workflowRAGSnapshotPanel"));
+const WorkflowRAGEvaluationDatasetPanel = lazy(() => import("../features/control-plane-read/workflowRAGEvaluationDatasetPanel"));
+const WorkflowRAGPromotionPanel = lazy(() => import("../features/control-plane-read/workflowRAGPromotionPanel"));
+const WorkflowRAGExecutionPanel = lazy(() => import("../features/control-plane-read/workflowRAGExecutionPanel"));
+const WorkflowDefinitionPromotionPanel = lazy(() => import("../features/control-plane-read/workflowDefinitionPromotionPanel"));
+const APIKeyLifecyclePanel = lazy(() => import("../features/control-plane-read/apiKeyLifecyclePanel").then((module) => ({ default: module.APIKeyLifecyclePanel })));
+const ApplicationInteractionSessionPanel = lazy(() => import("../features/control-plane-read/applicationInteractionSessionPanel"));
+const ApplicationRAGInvocationPanel = lazy(() => import("../features/control-plane-read/workflowRAGApplicationRuntimePanel"));
+const ApplicationOperationsPanel = lazy(() => import("../features/control-plane-read/applicationOperationsPanel"));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
 const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
 
@@ -225,6 +266,12 @@ const WORKFLOW_DRAFT_NODE_TYPE_OPTIONS: WorkflowDraftNodeTypeOption[] = [
     summary: "Adds advisory reasoning without direct execution.",
   },
   {
+    nodeType: "rag_retrieval",
+    lane: "retrieval",
+    label: "RAG Retrieval",
+    summary: "Binds one exact immutable application knowledge snapshot version.",
+  },
+  {
     nodeType: "condition",
     lane: "policy",
     label: "Policy",
@@ -249,6 +296,7 @@ export function App() {
     initialControlPlaneReadDevLiveLoadState(devLiveConfig),
   );
   const [selectedApplicationRef, setSelectedApplicationRef] = useState<string | null>(null);
+  const [applicationCatalogSnapshot, setApplicationCatalogSnapshot] = useState<ApplicationCatalogSnapshot | null>(null);
   const [selectedWorkflowDefinitionId, setSelectedWorkflowDefinitionId] = useState<string | null>(null);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [selectedWorkflowDraftId, setSelectedWorkflowDraftId] = useState<string | null>(null);
@@ -272,8 +320,26 @@ export function App() {
   const [workflowExecutorInput, setWorkflowExecutorInput] = useState(DEFAULT_WORKFLOW_EXECUTOR_INPUT);
   const [workflowExecutorModel, setWorkflowExecutorModel] = useState("");
   const [workflowExecutorConditionValues, setWorkflowExecutorConditionValues] = useState<Record<string, boolean>>({});
+  const [workflowHTTPToolActionState, setWorkflowHTTPToolActionState] = useState<WorkflowHTTPToolActionConsumerState>(() =>
+    initialWorkflowHTTPToolActionConsumerState(workflowHTTPToolActionConsumerConfig),
+  );
+  const [workflowHTTPToolResourceKey, setWorkflowHTTPToolResourceKey] = useState("");
+  const [workflowHTTPToolLocale, setWorkflowHTTPToolLocale] = useState("");
+  const [workflowHTTPToolExecutionState, setWorkflowHTTPToolExecutionState] = useState<WorkflowHTTPToolExecutionState>(() =>
+    initialWorkflowHTTPToolExecutionState(workflowHTTPToolActionConsumerConfig),
+  );
+  const [workflowHTTPToolExecutionInput, setWorkflowHTTPToolExecutionInput] = useState("Review the approved resource and return a bounded advisory summary.");
+  const [workflowHTTPToolExecutionModel, setWorkflowHTTPToolExecutionModel] = useState("");
+  const [workflowRAGOperationPending, setWorkflowRAGOperationPending] = useState(false);
+  const [workflowRunHistoryRefreshKey, setWorkflowRunHistoryRefreshKey] = useState(0);
   const workflowExecutorOperationPending =
     workflowExecutorState.status === "starting" || workflowExecutorState.status === "reading";
+  const workflowHTTPToolActionOperationPending =
+    workflowHTTPToolActionState.status === "creating" ||
+    workflowHTTPToolActionState.status === "reading" ||
+    workflowHTTPToolActionState.status === "deciding";
+  const workflowHTTPToolOperationPending = workflowHTTPToolActionOperationPending ||
+    workflowHTTPToolExecutionState.status === "executing";
 
   useEffect(() => {
     if (devLiveConfig.mode !== "dev_live_http") {
@@ -283,7 +349,9 @@ export function App() {
     setDevLiveState({
       status: "loading",
       mode: "dev_live_http",
-      message: "Loading fake-store-backed read routes over dev HTTP.",
+      message: devLiveConfig.storeMode === "postgres_dev_test"
+        ? "Loading routed PostgreSQL and fake read operations over signed dev/test HTTP."
+        : "Loading fake-store-backed read routes over dev HTTP.",
     });
     loadControlPlaneReadDevLiveCollections(devLiveConfig)
       .then((collections) => {
@@ -293,7 +361,9 @@ export function App() {
         setDevLiveState({
           status: "ready",
           mode: "dev_live_http",
-          message: "Dev live read consumer loaded fake-store-backed HTTP envelopes.",
+          message: devLiveConfig.storeMode === "postgres_dev_test"
+            ? "Dev live read consumer loaded signed-token envelopes from the routed PostgreSQL read repository."
+            : "Dev live read consumer loaded fake-store-backed HTTP envelopes.",
           collections,
         });
       })
@@ -323,8 +393,16 @@ export function App() {
     [liveCollections],
   );
   const workspaceApplications = useMemo(
-    () => buildWorkspaceApplicationsViewModel(liveCollections["application-summary-list-route"]),
-    [liveCollections],
+    () => buildWorkspaceApplicationsViewModel(
+      liveCollections["application-summary-list-route"],
+      applicationCatalogConfig.mode === "dev_application_catalog_http"
+        ? {
+            records: applicationCatalogSnapshot?.records ?? [],
+            summary: applicationCatalogSnapshot?.summary ?? "Loading the authoritative application catalog.",
+          }
+        : undefined,
+    ),
+    [applicationCatalogSnapshot, liveCollections],
   );
   const workspaceApiKeys = useMemo(
     () => buildWorkspaceApiKeysViewModel(liveCollections["api-key-summary-list-route"]),
@@ -469,6 +547,12 @@ export function App() {
     savedDraftConflictReviewSummary,
     workflowReviewHandoff,
   } = workflowWorkspaceContext;
+  const selectedApplicationCatalogRecord = applicationCatalogSnapshot?.records.find(
+    (record) => record.applicationId === selectedApplicationRef,
+  ) ?? null;
+  const applicationCatalogLive = applicationCatalogConfig.mode === "dev_application_catalog_http";
+  const canRenderSelectedApplicationActions = !applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active";
+  const workflowScopedApplicationId = selectedApplicationRef?.trim() || activeWorkflowDraft.applicationRef;
   const savedDraftConflictRestoreSummary = useMemo(
     () =>
       savedDraftListState.summaries.find(
@@ -488,6 +572,10 @@ export function App() {
   );
   const workflowExecutorEligibility = useMemo(
     () => evaluateWorkflowExecutorEligibility(activeWorkflowDraft, savedDraftConsumerState, workflowDraftEditDirty),
+    [activeWorkflowDraft, savedDraftConsumerState, workflowDraftEditDirty],
+  );
+  const workflowHTTPToolActionEligibility = useMemo(
+    () => evaluateWorkflowHTTPToolActionEligibility(activeWorkflowDraft, savedDraftConsumerState, workflowDraftEditDirty),
     [activeWorkflowDraft, savedDraftConsumerState, workflowDraftEditDirty],
   );
   const activeWorkflowExecutorConditionValues = useMemo(
@@ -524,6 +612,31 @@ export function App() {
     setWorkflowExecutorState(initialWorkflowExecutorConsumerState(workflowExecutorConsumerConfig));
     setWorkflowExecutorConditionValues({});
   }, [selectedWorkflowDraft.draftId]);
+
+  useEffect(() => {
+    setWorkflowHTTPToolActionState(initialWorkflowHTTPToolActionConsumerState(workflowHTTPToolActionConsumerConfig));
+    setWorkflowHTTPToolExecutionState(initialWorkflowHTTPToolExecutionState(workflowHTTPToolActionConsumerConfig));
+    setWorkflowHTTPToolResourceKey("");
+    setWorkflowHTTPToolLocale("");
+    if (workflowHTTPToolActionConsumerConfig.mode !== "dev_workflow_http_tool_http") return;
+    const reference = readWorkflowHTTPToolActionPlanReference();
+    if (!reference || reference.workspaceId !== workflowHTTPToolActionConsumerConfig.workspaceId ||
+      reference.applicationId !== selectedWorkflowDraft.applicationRef || reference.draftId !== selectedWorkflowDraft.draftId) return;
+
+    let canceled = false;
+    setWorkflowHTTPToolActionState((state) => ({
+      ...state,
+      status: "reading",
+      summary: "Reloading the durable action plan selected before the page refresh.",
+      failureCode: "",
+    }));
+    readWorkflowHTTPToolActionPlan(workflowHTTPToolActionConsumerConfig, reference).then((state) => {
+      if (!canceled) setWorkflowHTTPToolActionState(state);
+    });
+    return () => {
+      canceled = true;
+    };
+  }, [selectedWorkflowDraft.applicationRef, selectedWorkflowDraft.draftId]);
 
   const markWorkflowDraftLocallyEdited = () => {
     setWorkflowDraftEditDirty(true);
@@ -784,6 +897,16 @@ export function App() {
       }),
     );
   };
+  const handleSelectApplicationCatalogRecord = (record: ApplicationCatalogRecord) => {
+    if (workflowExecutorOperationPending) return;
+    applyWorkflowSelectionPatch({
+      applicationRef: record.applicationId,
+      workflowDefinitionId: null,
+      runId: null,
+      draftId: null,
+      scenarioId: null,
+    });
+  };
   const handleSelectWorkflowDefinition = (workflowDefinitionId: string) => {
     if (workflowExecutorOperationPending) {
       return;
@@ -842,10 +965,14 @@ export function App() {
     }
     const nextDraftNumber = workspaceCreatedDrafts.filter(
       (draft) =>
-        draft.applicationRef === activeWorkflowDraft.applicationRef &&
+        draft.applicationRef === workflowScopedApplicationId &&
         draft.executionProfile === "executor_v0",
     ).length + 1;
-    const createdDraft = buildWorkflowExecutorV0Draft(activeWorkflowDraft, nextDraftNumber);
+    const createdDraft = buildWorkflowExecutorV0Draft(
+      activeWorkflowDraft,
+      nextDraftNumber,
+      workflowScopedApplicationId,
+    );
     setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
     applyWorkflowSelectionPatch({
       applicationRef: createdDraft.applicationRef,
@@ -861,6 +988,22 @@ export function App() {
     setWorkflowExecutorInput(DEFAULT_WORKFLOW_EXECUTOR_INPUT);
     setWorkflowExecutorModel("");
     setWorkflowExecutorConditionValues({});
+  };
+  const handleCreateWorkflowRAGDraft = (createdDraft: WorkflowDraftDesignerDraft) => {
+    if (workflowRAGOperationPending) return;
+    setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
+    applyWorkflowSelectionPatch({ applicationRef: createdDraft.applicationRef, workflowDefinitionId: createdDraft.workflowDefinitionId, runId: null, draftId: createdDraft.draftId, scenarioId: null });
+    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
+    setWorkflowDraftEditDirty(true);
+    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
+  };
+  const handleCreateDefinitionDerivedDraft = (createdDraft: WorkflowDraftDesignerDraft) => {
+    if (workflowExecutorOperationPending || workflowRAGOperationPending) return;
+    setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
+    applyWorkflowSelectionPatch({ applicationRef: createdDraft.applicationRef, workflowDefinitionId: createdDraft.workflowDefinitionId, runId: null, draftId: createdDraft.draftId, scenarioId: null });
+    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
+    setWorkflowDraftEditDirty(true);
+    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
   };
   const refreshSavedWorkflowDraftList = (applicationRef: string) => {
     if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
@@ -893,13 +1036,13 @@ export function App() {
   };
   useEffect(() => {
     if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
-      setSavedDraftListState(initialWorkflowSavedDraftListState(savedDraftConsumerConfig, selectedApplication.applicationRef));
+      setSavedDraftListState(initialWorkflowSavedDraftListState(savedDraftConsumerConfig, workflowScopedApplicationId));
       return;
     }
-    refreshSavedWorkflowDraftList(selectedApplication.applicationRef);
-  }, [selectedApplication.applicationRef]);
+    refreshSavedWorkflowDraftList(workflowScopedApplicationId);
+  }, [workflowScopedApplicationId]);
   const handleRefreshSavedWorkflowDraftList = () => {
-    refreshSavedWorkflowDraftList(selectedApplication.applicationRef);
+    refreshSavedWorkflowDraftList(workflowScopedApplicationId);
   };
   const handleRestoreSavedWorkflowDraft = (summary: WorkflowSavedDraftSummary) => {
     if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
@@ -1147,6 +1290,88 @@ export function App() {
         }));
       });
   };
+  const handleCreateWorkflowHTTPToolActionPlan = (publicArguments: WorkflowHTTPToolPublicArguments) => {
+    if (workflowHTTPToolActionConsumerConfig.mode !== "dev_workflow_http_tool_http" ||
+      !workflowHTTPToolActionEligibility.eligible || workflowHTTPToolActionOperationPending) return;
+    setWorkflowHTTPToolActionState((state) => ({
+      ...state,
+      status: "creating",
+      summary: `Creating an immutable plan from saved draft ${activeWorkflowDraft.draftId} version ${workflowHTTPToolActionEligibility.draftVersion}.`,
+      failureCode: "",
+      confirmationDecision: null,
+    }));
+    createWorkflowHTTPToolActionPlan(workflowHTTPToolActionConsumerConfig, {
+      draftId: activeWorkflowDraft.draftId,
+      applicationId: activeWorkflowDraft.applicationRef,
+      draftVersion: workflowHTTPToolActionEligibility.draftVersion,
+      nodeId: workflowHTTPToolActionEligibility.nodeId,
+      publicArguments,
+    }).then((state) => {
+      if (state.actionPlan) rememberWorkflowHTTPToolActionPlanReference(state.actionPlan);
+      setWorkflowHTTPToolActionState(state);
+    });
+  };
+  const handleReloadWorkflowHTTPToolActionPlan = () => {
+    const plan = workflowHTTPToolActionState.actionPlan;
+    if (!plan || workflowHTTPToolActionOperationPending) return;
+    setWorkflowHTTPToolActionState((state) => ({
+      ...state,
+      status: "reading",
+      summary: `Reloading durable action plan ${plan.planId}.`,
+      failureCode: "",
+      confirmationDecision: null,
+    }));
+    readWorkflowHTTPToolActionPlan(workflowHTTPToolActionConsumerConfig, plan).then(setWorkflowHTTPToolActionState);
+  };
+  const handleWorkflowHTTPToolActionDecision = (decision: WorkflowHTTPToolHumanDecision) => {
+    const plan = workflowHTTPToolActionState.actionPlan;
+    if (!plan || workflowHTTPToolActionOperationPending) return;
+    setWorkflowHTTPToolActionState((state) => ({
+      ...state,
+      status: "deciding",
+      summary: `Recording ${decision} against durable plan version ${plan.recordVersion}.`,
+      failureCode: "",
+      confirmationDecision: null,
+    }));
+    decideWorkflowHTTPToolActionPlan(workflowHTTPToolActionConsumerConfig, plan, decision).then((state) => {
+      if (state.actionPlan) rememberWorkflowHTTPToolActionPlanReference(state.actionPlan);
+      setWorkflowHTTPToolActionState(state);
+    });
+  };
+
+  const handleRunApprovedHTTPToolActionPlan = () => {
+    const plan = workflowHTTPToolActionState.actionPlan;
+    if (!plan || plan.status !== "approved" || workflowHTTPToolOperationPending || !workflowHTTPToolPermissions.execute.available) return;
+    setWorkflowHTTPToolExecutionState((state) => ({
+      ...state,
+      status: "executing",
+      summary: `Claiming approved plan ${plan.planId} version ${plan.recordVersion} for its single execution attempt.`,
+      failureCode: "",
+      actionPlan: plan,
+      run: null,
+    }));
+    executeWorkflowHTTPToolActionPlan(workflowHTTPToolActionConsumerConfig, plan, {
+      inputText: workflowHTTPToolExecutionInput,
+      model: workflowHTTPToolExecutionModel,
+    }).then((state) => {
+      if (state.actionPlan) {
+        rememberWorkflowHTTPToolActionPlanReference(state.actionPlan);
+        setWorkflowHTTPToolActionState((current) => ({
+          ...current,
+          status: state.actionPlan?.status === "consumed" ? "ready" : current.status,
+          summary: state.actionPlan?.status === "consumed"
+            ? `Durable action plan ${state.actionPlan.planId} was consumed by its single execution attempt.`
+            : current.summary,
+          failureCode: state.failureCode,
+          requestId: state.requestId,
+          auditRef: state.auditRef,
+          actionPlan: state.actionPlan,
+          confirmationDecision: null,
+        }));
+      }
+      setWorkflowHTTPToolExecutionState(state);
+    });
+  };
 
   return (
     <main className="product-shell">
@@ -1161,13 +1386,18 @@ export function App() {
             <p className="nav-link-group-label">Workspace</p>
             <a href="#workflow-user-workspace-home">Workspace Home</a>
             <a href="#workspace-applications">Applications</a>
+            <a href="#application-api-integration">API Integration</a>
+            <a href="#application-publish-review">Publish Review</a>
             <a href="#workspace-workflow-definitions">Workflows</a>
             <a href="#workspace-run-history">Run History</a>
             <a href="#workspace-api-keys">API Keys</a>
+            <a href="#application-interaction-session">Application Interaction</a>
+            <a href="#application-rag-invocation">Application RAG</a>
             <a href="#workspace-usage-quota">Usage Quota</a>
           </div>
           <div className="nav-link-group" aria-label="Model gateway sections">
             <p className="nav-link-group-label">Model Gateway</p>
+            <a href="#model-gateway-playground">Playground</a>
             <a href="#model-gateway-overview">Gateway Overview</a>
             <a href="#model-gateway-route-evidence">Route Evidence</a>
             <a href="#model-gateway-usage-audit-evidence">Usage Evidence</a>
@@ -1177,6 +1407,7 @@ export function App() {
             <p className="nav-link-group-label">Workflow Review</p>
             <a href="#workflow-application-detail">Application Detail</a>
             <a href="#workflow-draft-designer">Draft Designer</a>
+            <a href="#workflow-http-tool-action-review">HTTP Tool Review</a>
             <a href="#workflow-executor-v0">Executor v0</a>
             <a href="#workflow-draft-validation-inspector">Draft Validation</a>
             <a href="#workflow-execution-plan-preview">Full-runtime Plan</a>
@@ -1217,7 +1448,12 @@ export function App() {
           </div>
           <div className="header-facts" aria-label="Read shell facts">
             <Fact label="Routes" value={String(shell.catalog.routes.length)} />
-            <Fact label="Database" value={shell.catalog.databaseBacked ? "attached" : "detached"} />
+            <Fact
+              label="Database"
+              value={devLiveConfig.mode === "dev_live_http" && devLiveConfig.storeMode === "postgres_dev_test"
+                ? "dev/test attached"
+                : shell.catalog.databaseBacked ? "attached" : "detached"}
+            />
             <Fact label="Writes" value={shell.catalog.allRoutesReadOnly ? "locked" : "enabled"} />
             <Fact label="Source" value={devLiveState.mode === "dev_live_http" ? devLiveState.status : "offline"} />
             <Fact label="Tenant page" value={tenantOverview.canRenderTenant ? "ready" : "blocked"} />
@@ -1239,8 +1475,12 @@ export function App() {
               value={workflowBlockedActionPreview.canRenderBlockedActionPreview ? "ready" : "blocked"}
             />
             <Fact
-              label="Confirm"
-              value={workflowConfirmationPlaceholder.canRenderConfirmationPlaceholder ? "ready" : "blocked"}
+              label="Legacy confirm"
+              value={workflowConfirmationPlaceholder.canRenderConfirmationPlaceholder ? "archived" : "blocked"}
+            />
+            <Fact
+              label="HTTP Tool plan"
+              value={workflowHTTPToolActionState.mode === "dev_workflow_http_tool_http" ? workflowHTTPToolActionState.status : "disabled"}
             />
             <Fact
               label="Draft"
@@ -1305,7 +1545,7 @@ export function App() {
           </div>
         </header>
 
-        <LiveReadSourceStatus state={devLiveState} baseUrl={devLiveConfig.baseUrl} />
+        <LiveReadSourceStatus state={devLiveState} config={devLiveConfig} />
         <WorkflowUserWorkspaceHomePanel
           home={workflowUserWorkspaceHome}
           createdDraftCountsByWorkflowDefinition={createdWorkspaceDraftCountsByDefinition}
@@ -1314,6 +1554,13 @@ export function App() {
           onRefreshSavedDrafts={handleRefreshSavedWorkflowDraftList}
           onRestoreSavedDraft={handleRestoreSavedWorkflowDraft}
         />
+        <Suspense fallback={<section className="surface-band"><p>Loading Gateway Playground…</p></section>}>
+          <ModelGatewayPlaygroundPanel
+            selectedApplicationId={applicationCatalogLive
+              ? selectedApplicationCatalogRecord?.applicationId ?? ""
+              : selectedApplication.applicationRef}
+          />
+        </Suspense>
         <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
         <ModelGatewayRouteEvidencePanel detail={modelGatewayRouteEvidence} />
         <ModelGatewayUsageAuditEvidencePanel evidence={modelGatewayUsageAuditEvidence} />
@@ -1505,18 +1752,133 @@ export function App() {
             </div>
           </div>
 
-          <div className="application-list" aria-label="Workspace applications">
-            {workspaceApplications.applications.map((application) => (
-              <ApplicationRow
-                key={application.applicationRef}
-                application={application}
-                selected={application.applicationRef === selectedApplication.applicationRef}
-                onSelectApplication={handleSelectApplication}
-              />
-            ))}
-          </div>
+          <Suspense fallback={<div className="application-catalog-panel"><p>Loading application catalog management…</p></div>}>
+            <ApplicationCatalogPanel
+              selectedApplicationId={selectedApplicationRef}
+              onSelectRecord={handleSelectApplicationCatalogRecord}
+              onSnapshotChange={setApplicationCatalogSnapshot}
+            />
+          </Suspense>
 
-          <WorkflowApplicationDetailPanel detail={workflowApplicationDetail} />
+          <Suspense fallback={<div className="workflow-rag-snapshot-panel"><p>Loading application knowledge snapshots…</p></div>}>
+            <WorkflowRAGSnapshotPanel
+              key={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}
+              applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
+              applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
+              applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
+            />
+          </Suspense>
+
+          <Suspense fallback={<div className="workflow-rag-evaluation-panel"><p>Loading Workflow RAG evaluation datasets…</p></div>}>
+            <WorkflowRAGEvaluationDatasetPanel
+              key={`rag-evaluation-${applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}`}
+              applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
+              applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
+              applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
+            />
+          </Suspense>
+
+          <Suspense fallback={<div className="workflow-rag-promotion-panel"><p>Loading Workflow RAG promotion and binding review…</p></div>}>
+            <WorkflowRAGPromotionPanel
+              key={`rag-promotion-${applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}`}
+              applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
+              applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
+              applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
+            />
+          </Suspense>
+
+          {!applicationCatalogLive ? (
+            <div className="application-list" aria-label="Workspace applications">
+              {workspaceApplications.applications.map((application) => (
+                <ApplicationRow
+                  key={application.applicationRef}
+                  application={application}
+                  selected={application.applicationRef === selectedApplication.applicationRef}
+                  onSelectApplication={handleSelectApplication}
+                />
+              ))}
+            </div>
+          ) : null}
+
+          {canRenderSelectedApplicationActions ? (
+            <>
+              <WorkflowApplicationDetailPanel detail={workflowApplicationDetail} />
+              <Suspense fallback={<div className="application-configuration-draft"><p>Loading Application Configuration Draft…</p></div>}>
+                <ApplicationConfigurationDraftPanel
+                  key={selectedApplication.applicationRef}
+                  baseline={{
+                    applicationId: selectedApplication.applicationRef,
+                    displayName: selectedApplication.displayName,
+                    applicationKind: selectedApplication.applicationKind,
+                    updatedAt: selectedApplication.updatedAt,
+                  }}
+                />
+              </Suspense>
+              <Suspense fallback={<div className="application-publish-workspace"><p>Loading Application Publish Review…</p></div>}>
+                <ApplicationPublishCandidatePanel
+                  key={selectedApplication.applicationRef}
+                  baseline={{
+                    applicationId: selectedApplication.applicationRef,
+                    displayName: selectedApplication.displayName,
+                    applicationKind: selectedApplication.applicationKind,
+                    updatedAt: selectedApplication.updatedAt,
+                  }}
+                />
+              </Suspense>
+              <Suspense fallback={<div className="application-api-integration"><p>Loading Application API Integration…</p></div>}>
+                <ApplicationApiIntegrationPanel
+                  key={selectedApplication.applicationRef}
+                  applicationId={selectedApplication.applicationRef}
+                  applicationName={selectedApplication.displayName}
+                />
+              </Suspense>
+            </>
+          ) : selectedApplicationCatalogRecord ? (
+            <>
+              <WorkflowApplicationDetailPanel detail={workflowApplicationDetail} />
+              <Suspense fallback={<div className="application-configuration-draft"><p>Loading archived configuration history…</p></div>}>
+                <ApplicationConfigurationDraftPanel
+                  key={selectedApplication.applicationRef}
+                  readOnly
+                  baseline={{
+                    applicationId: selectedApplication.applicationRef,
+                    displayName: selectedApplication.displayName,
+                    applicationKind: selectedApplication.applicationKind,
+                    updatedAt: selectedApplication.updatedAt,
+                  }}
+                />
+              </Suspense>
+              <Suspense fallback={<div className="application-publish-workspace"><p>Loading archived publish history…</p></div>}>
+                <ApplicationPublishCandidatePanel
+                  key={selectedApplication.applicationRef}
+                  readOnly
+                  baseline={{
+                    applicationId: selectedApplication.applicationRef,
+                    displayName: selectedApplication.displayName,
+                    applicationKind: selectedApplication.applicationKind,
+                    updatedAt: selectedApplication.updatedAt,
+                  }}
+                />
+              </Suspense>
+              <article className="application-catalog-downstream-blocked" role="status">
+                <p className="eyebrow">Lifecycle enforcement</p>
+                <h4>Archived application is read-only</h4>
+                <p>Configuration drafts and publish candidates remain readable in dedicated read-only sections. New saves, reviews, and API invocation handoffs are hidden; existing run and request evidence remains available.</p>
+                <nav aria-label="Archived application history links">
+                  <a href="#application-configuration-draft">Configuration history</a>
+                  <a href="#application-publish-review">Publish history</a>
+                  <a href="#workspace-run-history">Run history</a>
+                  <a href="#model-gateway-request-history">Request history</a>
+                </nav>
+              </article>
+            </>
+          ) : (
+            <article className="application-catalog-downstream-blocked" role="status">
+              <p className="eyebrow">Lifecycle enforcement</p>
+              <h4>Create or select an active application</h4>
+              <p>The authoritative catalog is empty. Create an application before opening configuration, publish, or invocation workflows.</p>
+            </article>
+          )}
 
           <div className="application-states" aria-label="Workspace application states">
             {workspaceApplications.statePreviews.map((state) => (
@@ -1525,66 +1887,36 @@ export function App() {
           </div>
         </section>
 
-        <section className="surface-band workspace-api-keys" id="workspace-api-keys" aria-labelledby="workspace-api-keys-title">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">User Workspace</p>
-              <h3 id="workspace-api-keys-title">API keys</h3>
-            </div>
-            <StatusBadge tone={workspaceApiKeys.canRenderApiKeys ? "good" : "bad"}>
-              {workspaceApiKeys.canRenderApiKeys ? "read-only ready" : "blocked"}
-            </StatusBadge>
-          </div>
+        <Suspense fallback={<section className="surface-band workspace-api-keys"><p>Loading API key lifecycle…</p></section>}>
+          <APIKeyLifecyclePanel
+            key={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}
+            applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
+            applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
+            applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
+            offlineView={workspaceApiKeys}
+          />
+        </Suspense>
 
-          <div className="api-keys-summary">
-            <article className="api-keys-route">
-              <div className="card-title-row">
-                <div>
-                  <p className="eyebrow">API Key Summary List Route</p>
-                  <h4>{workspaceApiKeys.routeId}</h4>
-                </div>
-                <StatusBadge tone="neutral">{workspaceApiKeys.requiredScope}</StatusBadge>
-              </div>
-              <p className="route-path">{workspaceApiKeys.routePath}</p>
-              <dl className="tenant-meta">
-                <div>
-                  <dt>Model</dt>
-                  <dd>{workspaceApiKeys.readModel}</dd>
-                </div>
-                <div>
-                  <dt>Request</dt>
-                  <dd>{workspaceApiKeys.requestId}</dd>
-                </div>
-                <div>
-                  <dt>Next cursor</dt>
-                  <dd>{workspaceApiKeys.nextCursor ?? "none"}</dd>
-                </div>
-                <div>
-                  <dt>Audit</dt>
-                  <dd>{workspaceApiKeys.auditRef}</dd>
-                </div>
-              </dl>
-            </article>
+        <Suspense fallback={<section className="surface-band application-interaction-session"><p>Loading Application Interaction…</p></section>}>
+          <ApplicationInteractionSessionPanel
+            key={`application-interaction-${applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}`}
+            applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
+            applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
+            applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
+            suggestedDefinitionId={selectedWorkflowDefinitionId ?? ""}
+            onRunRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
+          />
+        </Suspense>
 
-            <div className="api-keys-metrics" aria-label="Workspace API key metrics">
-              {workspaceApiKeys.metrics.map((metric) => (
-                <ApiKeyMetric key={metric.label} metric={metric} />
-              ))}
-            </div>
-          </div>
-
-          <div className="api-key-list" aria-label="Workspace API keys">
-            {workspaceApiKeys.apiKeys.map((apiKey) => (
-              <ApiKeyRow key={apiKey.apiKeyId} apiKey={apiKey} />
-            ))}
-          </div>
-
-          <div className="api-key-states" aria-label="Workspace API key states">
-            {workspaceApiKeys.statePreviews.map((state) => (
-              <ApiKeyStatePreview key={state.id} state={state} />
-            ))}
-          </div>
-        </section>
+        <Suspense fallback={<section className="surface-band workflow-rag-application-invocation"><p>Loading Application RAG Invocation…</p></section>}>
+          <ApplicationRAGInvocationPanel
+            key={`application-rag-${applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}`}
+            applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
+            applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
+            applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
+            onRunRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
+          />
+        </Suspense>
 
         <section
           className="surface-band workspace-usage-quota"
@@ -1734,7 +2066,7 @@ export function App() {
             savedDraftConflictReviewSummary={savedDraftConflictReviewSummary}
             savedDraftConflictRestoreSummary={savedDraftConflictRestoreSummary}
             draftEditDirty={workflowDraftEditDirty}
-            executorOperationPending={workflowExecutorOperationPending}
+            executorOperationPending={workflowExecutorOperationPending || workflowHTTPToolOperationPending || workflowRAGOperationPending}
             onSelectDraft={handleSelectWorkflowDraft}
             onUpdateDraftLabel={handleWorkflowDraftLabelChange}
             onUpdateDraftSummary={handleWorkflowDraftSummaryChange}
@@ -1761,6 +2093,57 @@ export function App() {
             onSaveDraft={handleSaveWorkflowDraft}
             onReadDraft={handleReadWorkflowDraft}
           />
+          <Suspense fallback={<section className="workflow-definition-promotion-panel"><p>Loading workflow definition promotion…</p></section>}>
+            <WorkflowDefinitionPromotionPanel
+              key={`workflow-definition-promotion-${workflowScopedApplicationId}`}
+              applicationId={workflowScopedApplicationId}
+              activeDraft={activeWorkflowDraft}
+              savedDraftVersion={savedDraftConsumerState.currentDraftVersion ?? 0}
+              nextDerivedDraftNumber={workspaceCreatedDrafts.filter(
+                (draft) => draft.applicationRef === workflowScopedApplicationId && (draft.baseDefinitionVersion ?? 0) > 0,
+              ).length + 1}
+              onDerivedDraft={handleCreateDefinitionDerivedDraft}
+              onRunRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
+            />
+          </Suspense>
+          <WorkflowHTTPToolActionPanel
+            draft={activeWorkflowDraft}
+            consumerState={workflowHTTPToolActionState}
+            eligibility={workflowHTTPToolActionEligibility}
+            permissions={workflowHTTPToolPermissions}
+            resourceKey={workflowHTTPToolResourceKey}
+            locale={workflowHTTPToolLocale}
+            onResourceKeyChange={setWorkflowHTTPToolResourceKey}
+            onLocaleChange={setWorkflowHTTPToolLocale}
+            onCreatePlan={handleCreateWorkflowHTTPToolActionPlan}
+            onReloadPlan={handleReloadWorkflowHTTPToolActionPlan}
+            onDecision={handleWorkflowHTTPToolActionDecision}
+          />
+          <WorkflowHTTPToolExecutionPanel
+            plan={workflowHTTPToolActionState.actionPlan}
+            state={workflowHTTPToolExecutionState}
+            permissions={workflowHTTPToolPermissions}
+            inputText={workflowHTTPToolExecutionInput}
+            model={workflowHTTPToolExecutionModel}
+            onInputTextChange={setWorkflowHTTPToolExecutionInput}
+            onModelChange={setWorkflowHTTPToolExecutionModel}
+            onExecute={handleRunApprovedHTTPToolActionPlan}
+          />
+          <Suspense fallback={<section className="workflow-rag-execution-panel"><p>Loading Workflow RAG execution…</p></section>}>
+            <WorkflowRAGExecutionPanel
+              applicationRef={workflowScopedApplicationId}
+              draft={activeWorkflowDraft}
+              savedDraftState={savedDraftConsumerState}
+              draftEditDirty={workflowDraftEditDirty}
+              nextDraftNumber={workspaceCreatedDrafts.filter(
+                (draft) => draft.applicationRef === workflowScopedApplicationId && draft.executionProfile === "rag_retrieval_v1",
+              ).length + 1}
+              onCreateDraft={handleCreateWorkflowRAGDraft}
+              onBindRAGRef={handleWorkflowDraftNodeRagRefChange}
+              onPendingChange={setWorkflowRAGOperationPending}
+              onExecutionRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
+            />
+          </Suspense>
           <WorkflowExecutorPanel
             draft={activeWorkflowDraft}
             consumerState={workflowExecutorState}
@@ -1786,8 +2169,18 @@ export function App() {
           </div>
         </section>
 
+        <Suspense fallback={<section className="surface-band"><p>Loading application operations…</p></section>}>
+          <ApplicationOperationsPanel
+            key={`application-operations-${workflowScopedApplicationId}`}
+            applicationId={workflowScopedApplicationId}
+            applicationName={applicationCatalogLive
+              ? selectedApplicationCatalogRecord?.displayName ?? ""
+              : selectedApplication.displayName}
+          />
+        </Suspense>
+
         <Suspense fallback={<section className="surface-band"><p>Loading run history…</p></section>}>
-          <WorkflowRunHistoryPanel applicationId={selectedApplication.applicationRef} />
+          <WorkflowRunHistoryPanel applicationId={workflowScopedApplicationId} refreshKey={workflowRunHistoryRefreshKey} />
         </Suspense>
 
         <section hidden aria-hidden="true"
@@ -2678,7 +3071,7 @@ function WorkflowBlockedActionPreviewPanel({ preview }: { preview: WorkflowBlock
         <article className="workflow-blocked-action-card">
           <span>Risk</span>
           <strong>{preview.riskLevel}</strong>
-          <p>{preview.requiresConfirmation ? "future human review required" : "read-only metadata"}</p>
+          <p>{preview.requiresConfirmation ? "archived confirmation metadata" : "read-only metadata"}</p>
         </article>
       </div>
 
@@ -2749,7 +3142,7 @@ function WorkflowConfirmationPlaceholderCard({
           <p className="eyebrow">{placeholder.confirmationPlaceholderId}</p>
           <h5>{placeholder.requiredActionRef}</h5>
         </div>
-        <StatusBadge tone="bad">{placeholder.humanReviewRequired ? "review required" : "read-only"}</StatusBadge>
+        <StatusBadge tone="neutral">archived legacy · read-only</StatusBadge>
       </div>
       <p>{placeholder.riskSummary}</p>
       <div className="workflow-confirmation-shape" aria-label="Workflow confirmation placeholder decision shape">
@@ -2784,12 +3177,10 @@ function WorkflowConfirmationPlaceholderPanel({
     >
       <div className="section-heading compact-heading">
         <div>
-          <p className="eyebrow">Confirmation Placeholder</p>
+          <p className="eyebrow">Archived Legacy Confirmation</p>
           <h4>{placeholder.confirmationPlaceholderId}</h4>
         </div>
-        <StatusBadge tone={placeholder.canRenderConfirmationPlaceholder ? "bad" : "neutral"}>
-          {placeholder.humanReviewRequired ? "human review required later" : "read-only"}
-        </StatusBadge>
+        <StatusBadge tone="neutral">{placeholder.legacyContractStatus}</StatusBadge>
       </div>
 
       <div className="workflow-confirmation-summary-grid" aria-label="Workflow confirmation placeholder summary">
@@ -2833,6 +3224,14 @@ function WorkflowConfirmationPlaceholderPanel({
           <div>
             <dt>Audit</dt>
             <dd>{placeholder.auditRef}</dd>
+          </div>
+          <div>
+            <dt>Legacy contract</dt>
+            <dd>{placeholder.legacyContractStatus} · historical read only</dd>
+          </div>
+          <div>
+            <dt>Superseded by</dt>
+            <dd>{placeholder.supersededBy.join(", ")}</dd>
           </div>
         </dl>
       </article>
@@ -2893,7 +3292,7 @@ function WorkflowConfirmationDecisionFieldCard({ field }: { field: WorkflowConfi
           <p className="eyebrow">{field.fieldId}</p>
           <h5>{field.label}</h5>
         </div>
-        <StatusBadge tone={field.required ? "bad" : "neutral"}>{field.required ? "required later" : "optional"}</StatusBadge>
+        <StatusBadge tone="neutral">{field.required ? "historical required field" : "historical optional field"}</StatusBadge>
       </div>
       <p>{field.source}</p>
     </article>
@@ -3169,7 +3568,7 @@ function WorkflowDefinitionBlockedActionPreviewCard({
         </div>
         <div>
           <dt>Confirmation</dt>
-          <dd>{preview.requiresConfirmation ? "required later" : "not required"}</dd>
+          <dd>{preview.requiresConfirmation ? "legacy requirement only" : "not required"}</dd>
         </div>
         <div>
           <dt>Audit</dt>
@@ -3813,21 +4212,7 @@ function canRemoveWorkflowDraftNode(draft: WorkflowDraftDesignerDraft, nodeId: s
   if (!hasWorkflowDraftLane(remainingNodes, "context") || !hasWorkflowDraftLane(remainingNodes, "model")) {
     return false;
   }
-  if (countWorkflowDraftLane(remainingNodes, "output") < 2) {
-    return false;
-  }
-  if (
-    node.lane === "policy" &&
-    countWorkflowDraftLane(draft.nodes, "policy") === 1 &&
-    hasWorkflowDraftLane(draft.nodes, "preview")
-  ) {
-    return false;
-  }
-  if (
-    node.lane === "preview" &&
-    countWorkflowDraftLane(draft.nodes, "preview") === 1 &&
-    hasWorkflowDraftLane(draft.nodes, "policy")
-  ) {
+  if (countWorkflowDraftLane(remainingNodes, "output") < 1) {
     return false;
   }
   return rebuildWorkflowDraftEdges(remainingNodes, draft.edges).length >= 3;
@@ -5077,64 +5462,6 @@ function UsageQuotaStatePreview({ state }: { state: WorkspaceUsageQuotaStatePrev
   );
 }
 
-function ApiKeyMetric({ metric }: { metric: WorkspaceApiKeysMetric }) {
-  return (
-    <article className="api-key-metric">
-      <span>{metric.label}</span>
-      <strong>{metric.value}</strong>
-      <p>{metric.detail}</p>
-    </article>
-  );
-}
-
-function ApiKeyRow({ apiKey }: { apiKey: WorkspaceApiKeyRow }) {
-  return (
-    <article className="api-key-row">
-      <div className="api-key-row-main">
-        <div>
-          <p className="eyebrow">{apiKey.ownerSubjectRef}</p>
-          <h4>{apiKey.apiKeyId}</h4>
-        </div>
-        <StatusBadge tone={apiKey.state === "active" ? "good" : "neutral"}>{apiKey.state}</StatusBadge>
-      </div>
-      <div className="api-key-scopes" aria-label="API key scopes">
-        {apiKey.scopes.map((scope) => (
-          <code key={scope}>{scope}</code>
-        ))}
-      </div>
-      <dl className="api-key-row-meta">
-        <div>
-          <dt>Created</dt>
-          <dd>{apiKey.createdAt}</dd>
-        </div>
-        <div>
-          <dt>Expires</dt>
-          <dd>{apiKey.expiresAt ?? "not set"}</dd>
-        </div>
-        <div>
-          <dt>Last used</dt>
-          <dd>{apiKey.lastUsedAt ?? "not recorded"}</dd>
-        </div>
-      </dl>
-    </article>
-  );
-}
-
-function ApiKeyStatePreview({ state }: { state: WorkspaceApiKeysStatePreview }) {
-  return (
-    <article className="api-key-state">
-      <div>
-        <strong>{state.label}</strong>
-        <span>{state.status}</span>
-      </div>
-      <p>{state.summary}</p>
-      <small>
-        items {state.itemCount} / failure {state.failureCode}
-      </small>
-    </article>
-  );
-}
-
 function WorkflowApplicationDetailPanel({ detail }: { detail: WorkflowApplicationDetailViewModel }) {
   return (
     <div
@@ -5384,7 +5711,7 @@ function Fact({ label, value }: { label: string; value: string }) {
   );
 }
 
-function LiveReadSourceStatus({ state, baseUrl }: { state: ControlPlaneReadDevLiveLoadState; baseUrl: string }) {
+function LiveReadSourceStatus({ state, config }: { state: ControlPlaneReadDevLiveLoadState; config: ControlPlaneReadDevLiveConfig }) {
   const tone = state.status === "failed" ? "bad" : state.status === "ready" ? "good" : "neutral";
   return (
     <section className="live-read-source" aria-label="Read data source">
@@ -5396,15 +5723,19 @@ function LiveReadSourceStatus({ state, baseUrl }: { state: ControlPlaneReadDevLi
       <dl>
         <div>
           <dt>Base URL</dt>
-          <dd>{state.mode === "dev_live_http" ? baseUrl : "not used"}</dd>
+          <dd>{state.mode === "dev_live_http" ? config.baseUrl : "not used"}</dd>
         </div>
         <div>
           <dt>Auth</dt>
-          <dd>{state.mode === "dev_live_http" ? "dev fake header" : "offline view model"}</dd>
+          <dd>{state.mode === "dev_live_http"
+            ? config.authMode === "signed_test_token" ? "signed test token" : "dev fake header"
+            : "offline view model"}</dd>
         </div>
         <div>
           <dt>Database</dt>
-          <dd>detached</dd>
+          <dd>{state.mode === "dev_live_http" && config.storeMode === "postgres_dev_test"
+            ? "PostgreSQL dev/test projection"
+            : "detached"}</dd>
         </div>
       </dl>
       <StatusBadge tone={tone}>{state.status}</StatusBadge>

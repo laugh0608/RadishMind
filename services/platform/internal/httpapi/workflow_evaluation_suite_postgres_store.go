@@ -43,7 +43,7 @@ func (s *postgresWorkflowEvaluationSuiteStore) ReadSuite(ctx WorkflowRunContext,
 	if err != nil {
 		return WorkflowEvaluationSuite{}, false, err
 	}
-	v, err := decodePostgresSuite(ctx, payload)
+	v, err := decodeWorkflowEvaluationSuite(ctx, payload)
 	return v, true, err
 }
 func (s *postgresWorkflowEvaluationSuiteStore) ListSuites(ctx WorkflowRunContext, f workflowEvaluationSuiteListFilter) (workflowEvaluationSuiteListPage, error) {
@@ -61,7 +61,7 @@ func (s *postgresWorkflowEvaluationSuiteStore) ListSuites(ctx WorkflowRunContext
 		if rows.Scan(&payload) != nil {
 			return workflowEvaluationSuiteListPage{}, errWorkflowEvaluationSuiteStoreContract
 		}
-		v, decodeErr := decodePostgresSuite(ctx, payload)
+		v, decodeErr := decodeWorkflowEvaluationSuite(ctx, payload)
 		if decodeErr != nil {
 			return workflowEvaluationSuiteListPage{}, decodeErr
 		}
@@ -98,7 +98,7 @@ func (s *postgresWorkflowEvaluationSuiteStore) AppendDecision(ctx WorkflowRunCon
 	if err != nil {
 		return WorkflowEvaluationSuite{}, false, err
 	}
-	suite, err := decodePostgresSuite(ctx, suitePayload)
+	suite, err := decodeWorkflowEvaluationSuite(ctx, suitePayload)
 	if err != nil {
 		return WorkflowEvaluationSuite{}, false, err
 	}
@@ -142,7 +142,7 @@ func (s *postgresWorkflowEvaluationSuiteStore) ListDecisions(ctx WorkflowRunCont
 		if rows.Scan(&version, &payload) != nil {
 			return workflowEvaluationDecisionListPage{}, errWorkflowEvaluationSuiteStoreContract
 		}
-		v, decodeErr := decodePostgresDecision(ctx, payload)
+		v, decodeErr := decodeWorkflowEvaluationDecision(ctx, payload)
 		if decodeErr != nil {
 			return workflowEvaluationDecisionListPage{}, decodeErr
 		}
@@ -160,7 +160,7 @@ func (s *postgresWorkflowEvaluationSuiteStore) ListDecisions(ctx WorkflowRunCont
 	}
 	return workflowEvaluationDecisionListPage{Decisions: values, HasMore: more}, nil
 }
-func decodePostgresSuite(ctx WorkflowRunContext, payload []byte) (WorkflowEvaluationSuite, error) {
+func decodeWorkflowEvaluationSuite(ctx WorkflowRunContext, payload []byte) (WorkflowEvaluationSuite, error) {
 	var v WorkflowEvaluationSuite
 	decoder := json.NewDecoder(strings.NewReader(string(payload)))
 	decoder.DisallowUnknownFields()
@@ -169,7 +169,7 @@ func decodePostgresSuite(ctx WorkflowRunContext, payload []byte) (WorkflowEvalua
 	}
 	return v, nil
 }
-func decodePostgresDecision(ctx WorkflowRunContext, payload []byte) (WorkflowEvaluationReleaseDecision, error) {
+func decodeWorkflowEvaluationDecision(ctx WorkflowRunContext, payload []byte) (WorkflowEvaluationReleaseDecision, error) {
 	var v WorkflowEvaluationReleaseDecision
 	decoder := json.NewDecoder(strings.NewReader(string(payload)))
 	decoder.DisallowUnknownFields()

@@ -197,10 +197,6 @@ REQUIRED_DOC_REFERENCES = {
         "rotation_audit_policy_readiness_defined",
         "不接生产后端",
     ],
-    "docs/radishmind-roadmap.md": [
-        "rotation-and-audit-policy",
-        "production-secret-backend-rotation-audit-policy-readiness-v1.json",
-    ],
     "docs/radishmind-capability-matrix.md": [
         "rotation-and-audit-policy",
         "production-secret-backend-rotation-audit-policy-readiness-v1.json",
@@ -220,10 +216,6 @@ REQUIRED_DOC_REFERENCES = {
     ],
     "scripts/README.md": [
         "check-production-ops-secret-backend-rotation-audit-policy-readiness-v1.py",
-        "production-secret-backend-rotation-audit-policy-readiness-v1.json",
-    ],
-    "services/platform/README.md": [
-        "Production secret backend rotation / audit policy readiness",
         "production-secret-backend-rotation-audit-policy-readiness-v1.json",
     ],
     "deploy/README.md": [

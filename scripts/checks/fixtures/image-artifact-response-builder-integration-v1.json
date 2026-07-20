@@ -227,15 +227,6 @@
   "required_doc_references": {
     "docs/contracts/image-generation.md": [
       "image-artifact-response-builder-integration-v1",
-      "image_artifact_response_builder_integration_task_card_defined",
-      "exact hook placement"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "image-artifact-response-builder-integration-v1",
-      "image_artifact_response_builder_integration_task_card_defined"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "image-artifact-response-builder-integration-v1",
       "response builder integration task card"
     ],
     "docs/radishmind-capability-matrix.md": [

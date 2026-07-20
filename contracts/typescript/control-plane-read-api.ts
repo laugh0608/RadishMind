@@ -59,6 +59,8 @@ export type ControlPlaneReadFailureCode =
   | "identity_context_missing"
   | "tenant_binding_missing"
   | "scope_denied"
+  | "identity_provider_unavailable"
+  | "workspace_membership_unavailable"
   | "tenant_not_found"
   | "quota_policy_missing"
   | "invalid_filter"

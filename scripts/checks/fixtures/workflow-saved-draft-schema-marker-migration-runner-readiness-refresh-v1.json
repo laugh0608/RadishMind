@@ -528,7 +528,7 @@
       ]
     },
     {
-      "path": "services/platform/README.md",
+      "path": "docs/features/workflow/README.md",
       "must_contain": [
         "workflow-saved-draft-schema-marker-migration-runner-readiness-refresh-v1",
         "draft_schema_marker_migration_runner_readiness_refresh_defined"

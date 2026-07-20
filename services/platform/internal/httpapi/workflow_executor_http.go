@@ -24,13 +24,16 @@ type workflowRunStartHTTPBody struct {
 }
 
 type workflowRunEnvelope struct {
-	RequestID      string             `json:"request_id"`
-	WorkspaceID    string             `json:"workspace_id"`
-	ApplicationID  string             `json:"application_id"`
-	Run            *WorkflowRunRecord `json:"run"`
-	FailureCode    *string            `json:"failure_code"`
-	FailureSummary string             `json:"failure_summary"`
-	AuditRef       string             `json:"audit_ref"`
+	RequestID                 string                       `json:"request_id"`
+	WorkspaceID               string                       `json:"workspace_id"`
+	ApplicationID             string                       `json:"application_id"`
+	Run                       *WorkflowRunRecord           `json:"run"`
+	RetrievalAnswer           *WorkflowRAGAnswer           `json:"retrieval_answer,omitempty"`
+	AdvisoryOutput            string                       `json:"advisory_output,omitempty"`
+	FailureCode               *string                      `json:"failure_code"`
+	FailureSummary            string                       `json:"failure_summary"`
+	AuditRef                  string                       `json:"audit_ref"`
+	RetrievalFragmentPreviews []WorkflowRAGFragmentPreview `json:"retrieval_fragment_previews,omitempty"`
 }
 
 type workflowRunListEnvelope struct {
@@ -93,30 +96,67 @@ func (s *Server) handleStartWorkflowRun(writer http.ResponseWriter, request *htt
 
 func (s *Server) handleReadWorkflowRun(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowRunReadRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowRunHistoryDev(writer, trace) {
 		return
 	}
-	workspaceID := strings.TrimSpace(request.URL.Query().Get("workspace_id"))
-	applicationID := strings.TrimSpace(request.URL.Query().Get("application_id"))
+	values := request.URL.Query()
+	for key, entries := range values {
+		if (key != "workspace_id" && key != "application_id" && key != "include_retrieval_fragment_previews") || len(entries) != 1 {
+			writeWorkflowRunResult(writer, trace, WorkflowRunContext{}, workflowRunFailure(WorkflowRunFailureInputInvalid, "Workflow run detail query is invalid."))
+			return
+		}
+	}
+	includePreviews := strings.TrimSpace(values.Get("include_retrieval_fragment_previews")) == "true"
+	if raw := strings.TrimSpace(values.Get("include_retrieval_fragment_previews")); raw != "" && raw != "true" && raw != "false" {
+		writeWorkflowRunResult(writer, trace, WorkflowRunContext{}, workflowRunFailure(WorkflowRunFailureInputInvalid, "Workflow run detail query is invalid."))
+		return
+	}
+	workspaceID := strings.TrimSpace(values.Get("workspace_id"))
+	applicationID := strings.TrimSpace(values.Get("application_id"))
+	requiredScopes := []string{"workflow_runs:read"}
+	if includePreviews {
+		requiredScopes = append(requiredScopes, "workflow_rag_snapshots:read")
+	}
 	runContext, failureCode := workflowRunContextFromRequest(
 		request,
 		trace,
 		workspaceID,
 		applicationID,
 		"read",
-		"workflow_runs:read",
+		requiredScopes...,
 	)
 	if failureCode != "" {
 		writeWorkflowRunResult(writer, trace, runContext, workflowRunFailure(failureCode, "Workflow run scope is denied."))
 		return
 	}
+	if s.config.WorkflowRAGExecutionDevEnabled {
+		if reconciled := s.workflowRAGExecutionService().ReconcileStale(runContext); reconciled.FailureCode != "" {
+			writeWorkflowRunResult(writer, trace, runContext, workflowRAGExecutionFailure(reconciled.FailureCode))
+			return
+		}
+	}
+	if s.config.WorkflowDefinitionReleaseDevEnabled && s.config.WorkflowExecutorDevEnabled {
+		if reconciled := s.workflowDefinitionExecutionService().ReconcileStale(runContext); reconciled.FailureCode != "" {
+			writeWorkflowRunResult(writer, trace, runContext, reconciled)
+			return
+		}
+	}
 	result := s.workflowExecutorService().ReadRun(runContext, strings.TrimSpace(request.PathValue("run_id")))
-	writeWorkflowRunResult(writer, trace, runContext, result)
+	previews := []WorkflowRAGFragmentPreview{}
+	if includePreviews && result.Record != nil {
+		var previewFailure string
+		previews, previewFailure = s.workflowRAGHistoryPreviews(runContext, *result.Record)
+		if previewFailure != "" {
+			writeWorkflowRunResult(writer, trace, runContext, workflowRAGExecutionFailure(previewFailure))
+			return
+		}
+	}
+	writeWorkflowRunHistoryResult(writer, trace, runContext, result, previews)
 }
 
 func (s *Server) handleListWorkflowRuns(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowRunListRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowRunHistoryDev(writer, trace) {
 		return
 	}
 	workspaceID := strings.TrimSpace(request.URL.Query().Get("workspace_id"))
@@ -133,12 +173,24 @@ func (s *Server) handleListWorkflowRuns(writer http.ResponseWriter, request *htt
 		writeWorkflowRunListResult(writer, trace, runContext, workflowRunListFailure(failureCode))
 		return
 	}
+	if s.config.WorkflowRAGExecutionDevEnabled {
+		if reconciled := s.workflowRAGExecutionService().ReconcileStale(runContext); reconciled.FailureCode != "" {
+			writeWorkflowRunListResult(writer, trace, runContext, workflowRunListFailure(WorkflowRunFailureStoreUnavailable))
+			return
+		}
+	}
+	if s.config.WorkflowDefinitionReleaseDevEnabled && s.config.WorkflowExecutorDevEnabled {
+		if reconciled := s.workflowDefinitionExecutionService().ReconcileStale(runContext); reconciled.FailureCode != "" {
+			writeWorkflowRunListResult(writer, trace, runContext, workflowRunListFailure(reconciled.FailureCode))
+			return
+		}
+	}
 	writeWorkflowRunListResult(writer, trace, runContext, s.workflowExecutorService().ListRuns(runContext, listRequest))
 }
 
 func (s *Server) handleCompareWorkflowRuns(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowRunComparisonRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowRunHistoryDev(writer, trace) {
 		return
 	}
 	values := request.URL.Query()
@@ -164,6 +216,14 @@ func (s *Server) allowWorkflowExecutorDev(writer http.ResponseWriter, trace requ
 		return true
 	}
 	s.writePlatformError(writer, trace, "WORKFLOW_EXECUTOR_DEV_DISABLED", "workflow executor dev route requires explicit opt-in")
+	return false
+}
+
+func (s *Server) allowWorkflowRunHistoryDev(writer http.ResponseWriter, trace requestTrace) bool {
+	if s.config.WorkflowExecutorDevEnabled || s.config.WorkflowRAGExecutionDevEnabled {
+		return true
+	}
+	s.writePlatformError(writer, trace, "WORKFLOW_EXECUTOR_DEV_DISABLED", "workflow run history requires an explicit workflow execution development gate")
 	return false
 }
 
@@ -243,13 +303,29 @@ func writeWorkflowRunResult(
 	result WorkflowRunResult,
 ) {
 	writeObservedJSON(writer, http.StatusOK, trace, workflowRunEnvelope{
-		RequestID:      trace.requestID,
-		WorkspaceID:    runContext.WorkspaceID,
-		ApplicationID:  runContext.ApplicationID,
-		Run:            result.Record,
-		FailureCode:    workflowRunFailureCodePointer(result.FailureCode),
-		FailureSummary: result.FailureSummary,
-		AuditRef:       runContext.AuditRef,
+		RequestID:       trace.requestID,
+		WorkspaceID:     runContext.WorkspaceID,
+		ApplicationID:   runContext.ApplicationID,
+		Run:             result.Record,
+		RetrievalAnswer: result.RetrievalAnswer,
+		AdvisoryOutput:  result.AdvisoryOutput,
+		FailureCode:     workflowRunFailureCodePointer(result.FailureCode),
+		FailureSummary:  result.FailureSummary,
+		AuditRef:        runContext.AuditRef,
+	})
+}
+
+func writeWorkflowRunHistoryResult(
+	writer http.ResponseWriter,
+	trace requestTrace,
+	runContext WorkflowRunContext,
+	result WorkflowRunResult,
+	previews []WorkflowRAGFragmentPreview,
+) {
+	writeObservedJSON(writer, http.StatusOK, trace, workflowRunEnvelope{
+		RequestID: trace.requestID, WorkspaceID: runContext.WorkspaceID, ApplicationID: runContext.ApplicationID,
+		Run: result.Record, FailureCode: workflowRunFailureCodePointer(result.FailureCode),
+		FailureSummary: result.FailureSummary, AuditRef: runContext.AuditRef, RetrievalFragmentPreviews: previews,
 	})
 }
 

@@ -4,6 +4,8 @@ import "context"
 
 const savedWorkflowDraftRepositoryStoreSchemaVersion = "saved_workflow_drafts_store_v1"
 
+const savedWorkflowDraftRepositoryListLimit = 200
+
 type SavedWorkflowDraftRepository interface {
 	SaveWorkflowDraftRecord(
 		ctx context.Context,

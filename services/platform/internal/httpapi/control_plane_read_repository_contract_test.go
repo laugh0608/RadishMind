@@ -60,7 +60,7 @@ func TestControlPlaneReadRepositoryRouteTypeContracts(t *testing.T) {
 	assertRouteTypeContract(t, byRoute, "quota-summary-route", "ReadQuotaSummary", "ReadQuotaSummaryRequest", "ReadQuotaSummaryResult", []string{"period"}, nil)
 	assertRouteTypeContract(t, byRoute, "workflow-definition-summary-list-route", "ListWorkflowDefinitionSummaries", "ListWorkflowDefinitionSummariesRequest", "ListWorkflowDefinitionSummariesResult", []string{"application_ref", "definition_status", "risk_level"}, []string{"updated_at_desc"})
 	assertRouteTypeContract(t, byRoute, "run-record-summary-list-route", "ListRunRecordSummaries", "ListRunRecordSummariesRequest", "ListRunRecordSummariesResult", []string{"application_ref", "workflow_definition_ref", "status", "failure_code"}, []string{"started_at_desc"})
-	assertRouteTypeContract(t, byRoute, "audit-summary-list-route", "ListAuditSummaries", "ListAuditSummariesRequest", "ListAuditSummariesResult", []string{"actor_subject_ref", "event_kind", "resource_kind", "decision", "failure_code"}, []string{"recorded_at_desc"})
+	assertRouteTypeContract(t, byRoute, "audit-summary-list-route", "ListAuditSummaries", "ListAuditSummariesRequest", "ListAuditSummariesResult", []string{"event_kind", "resource_ref", "actor_subject_ref", "failure_code"}, []string{"recorded_at_desc"})
 }
 
 func TestControlPlaneReadRepositoryFailureCodes(t *testing.T) {

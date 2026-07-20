@@ -138,7 +138,7 @@ function buildStatePreviews(
       id: "ready",
       label: "Ready",
       status: collection.statusLabel,
-      summary: "Tenant summary can render from the offline consumer view model.",
+      summary: "Tenant summary can render from the validated read consumer view model.",
       itemCount: collection.itemCount,
       failureCode: collection.failureCode ?? "none",
     },

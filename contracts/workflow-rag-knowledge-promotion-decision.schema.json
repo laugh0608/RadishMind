@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-rag-knowledge-promotion-decision.schema.json",
+  "title": "WorkflowRAGKnowledgePromotionDecisionV1",
+  "description": "Append-only sanitized human decision for one exact promotion candidate digest and CAS transition.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "decision_id", "candidate_id", "candidate_digest", "decision", "reason", "from_state", "to_state",
+    "before_record_version", "after_record_version", "actor_ref", "occurred_at", "request_id", "audit_ref"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow_rag_knowledge_promotion_decision.v1" },
+    "decision_id": { "type": "string", "pattern": "^wragpd_[a-z2-7]{16}$" },
+    "candidate_id": { "type": "string", "pattern": "^wragp_[a-z2-7]{16}$" },
+    "candidate_digest": { "$ref": "#/$defs/digest" },
+    "decision": { "enum": ["approve", "reject", "defer", "cancel"] },
+    "reason": { "type": "string", "minLength": 4, "maxLength": 500 },
+    "from_state": { "enum": ["pending", "deferred", "approved"] },
+    "to_state": { "enum": ["deferred", "approved", "rejected", "canceled"] },
+    "before_record_version": { "type": "integer", "minimum": 1 },
+    "after_record_version": { "type": "integer", "minimum": 2 },
+    "actor_ref": { "$ref": "#/$defs/reference" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "request_id": { "$ref": "#/$defs/reference" },
+    "audit_ref": { "$ref": "#/$defs/reference" }
+  },
+  "$defs": {
+    "reference": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{2,159}$" },
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+  }
+}

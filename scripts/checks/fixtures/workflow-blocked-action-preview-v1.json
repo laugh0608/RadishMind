@@ -186,9 +186,7 @@
   "required_doc_references": {
     "docs/task-cards/workflow-blocked-action-preview-v1-plan.md": [
       "workflow-blocked-action-preview-v1",
-      "workflow_blocked_action_preview_defined",
-      "missing prerequisites",
-      "confirmation placeholder"
+      "workflow_blocked_action_preview_defined"
     ],
     "docs/task-cards/README.md": [
       "workflow-blocked-action-preview-v1",
@@ -197,14 +195,6 @@
     "scripts/README.md": [
       "check-workflow-blocked-action-preview-v1.py",
       "workflow-blocked-action-preview-v1.json"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "workflow-blocked-action-preview-v1",
-      "workflow_blocked_action_preview_defined"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "workflow-blocked-action-preview-v1",
-      "workflow_blocked_action_preview_defined"
     ],
     "docs/radishmind-capability-matrix.md": [
       "workflow-blocked-action-preview-v1",

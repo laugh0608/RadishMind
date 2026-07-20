@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-rag-fragment.schema.json",
+  "title": "WorkflowRAGFragmentV1",
+  "description": "Authorized immutable knowledge snapshot fragment. Content is allowed only in the snapshot repository and exact snapshot detail surface.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "fragment_ref", "source_type", "source_ref", "page_slug", "title",
+    "is_official", "content", "content_classification", "content_bytes", "content_digest"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow_rag_fragment.v1" },
+    "fragment_ref": { "type": "string", "pattern": "^[a-z][a-z0-9_]{2,63}$" },
+    "source_type": { "enum": ["document", "wiki", "faq", "forum", "manual"] },
+    "source_ref": { "$ref": "#/$defs/reference" },
+    "page_slug": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[a-z0-9][a-z0-9._/-]*$" },
+    "title": { "type": "string", "maxLength": 160 },
+    "is_official": { "type": "boolean" },
+    "content": { "type": "string", "minLength": 1, "maxLength": 8192 },
+    "content_classification": { "$ref": "#/$defs/classification" },
+    "content_bytes": { "type": "integer", "minimum": 1, "maximum": 8192 },
+    "content_digest": { "$ref": "#/$defs/digest" }
+  },
+  "$defs": {
+    "reference": { "type": "string", "minLength": 3, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$", "not": { "pattern": "://" } },
+    "classification": { "enum": ["public", "workspace_internal"] },
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+  }
+}

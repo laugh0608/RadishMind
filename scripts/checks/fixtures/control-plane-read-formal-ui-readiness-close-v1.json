@@ -113,7 +113,7 @@
       "source_file": "apps/radishmind-web/src/features/control-plane-read/workspaceApiKeys.ts",
       "builder": "buildWorkspaceApiKeysViewModel",
       "render_anchor": "workspace-api-keys",
-      "summary_binding": "apiKeys",
+      "summary_binding": "workspaceApiKeys",
       "request_ref": "requestId",
       "audit_ref": "auditRef"
     },
@@ -257,14 +257,6 @@
       "surface matrix"
     ],
     "docs/contracts/control-plane-read-side.md": [
-      "control-plane-read-formal-ui-readiness-close-v1",
-      "formal_ui_readiness_closed"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-formal-ui-readiness-close-v1",
-      "surface matrix"
-    ],
-    "docs/radishmind-roadmap.md": [
       "control-plane-read-formal-ui-readiness-close-v1",
       "formal UI readiness close"
     ],

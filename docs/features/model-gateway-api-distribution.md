@@ -1,6 +1,6 @@
 # Model Gateway / API Distribution 设计与开发文档
 
-更新时间：2026-07-11
+更新时间：2026-07-14
 
 ## 功能定位
 
@@ -12,7 +12,12 @@
 - `apps/radishmind-web/` 已有 Model Gateway Overview、Route Evidence、Usage/Audit Evidence 和 Evidence Review / Readiness。
 - provider capability、health smoke、selection policy、retry/fallback policy 和 runtime docs 已进入仓库快速门禁。
 - Go Gateway 已默认使用受控 `stdio` worker pool，复用四个 Python worker；`process_per_request` 仅保留为显式回滚模式，凭证不进入 argv 或 worker 环境。
-- 当前不执行真实 API key 生命周期、quota enforcement、rate limit、billing、cost ledger、provider retry/fallback execution、production gateway 或 load balancing。
+- [Model Gateway Request History / Usage & Failure Review v1](gateway/model-gateway-request-history-usage-failure-review-v1.md) 已完成 `memory_dev`、PostgreSQL dev/test、分页详情、重启恢复和完整失败 / 取消终态证据。
+- [User Workspace Application API Integration & Invocation v1](user-workspace/application-api-integration-invocation-v1.md) 已复用 `/v1/models`、Playground 与 History，让当前选中 application 完成模型发现、接入示例、dev/test 调用和同 request id 审查；没有扩 Gateway API 或 schema。
+- [Application Configuration Draft & Review v1](user-workspace/application-configuration-draft-review-v1.md) 已把经过模型 / 协议校验的 application draft 配置交给既有 Integration / Playground；Gateway 仍只消费 application / protocol / model，不读取草案描述、不保存测试输入输出，也没有新增 northbound schema。
+- [Application Publish Governance & Promotion v1](user-workspace/application-publish-governance-promotion-v1.md) 只把 sanitized Gateway `request_id` 作为 candidate evidence reference，并复用既有 Integration / Playground / History handoff；Gateway 不读取 candidate、review 或 eligibility，也没有新增协议、schema、provider registry 或发布职责。
+- [用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已完成密钥领域、管理 API、五条 northbound 路由的显式 `api_key_dev_test` 认证、可信调用上下文、脱敏请求历史、最近使用更新、七组件 SQLite 本地产品链、真实 PostgreSQL 专项门禁、Web 一次性交接与浏览器连续验收，专题关闭。
+- 当前不执行生产 API 密钥生命周期、quota enforcement、rate limit、billing、cost ledger、provider retry/fallback execution、production gateway 或 load balancing。
 
 ## 当前开发目标
 
@@ -20,9 +25,9 @@ R4 第一批 [Gateway Python Bridge Runtime v1](gateway/python-bridge-runtime-v1
 
 [Gateway Bridge stdio Worker Pool v1 任务卡](../task-cards/gateway-bridge-stdio-worker-pool-v1-plan.md) 已在现有 `bridgeClient` 后完成有界 worker pool、版本化握手、排队、超时 / 取消、崩溃后重建、优雅退出和请求级 credential / stream 隔离。它没有改变 northbound request / response 语义，没有接真实 provider，也没有启用生产 secret、自动 retry/fallback 或新的公开 API。
 
-Workflow 产品链在 2026-07-11 已完成 durable dev/test 运行与 evaluation 审查。下一产品建议进入 `Model Gateway Request History / Usage & Failure Review v1`：先把现有 northbound route、selection metadata、`duration_ms` / `provider_duration_ms`、稳定错误和 request/audit ref 组织为可分页、可过滤、可重启恢复的开发 / 测试审查记录，再把真实 consumer 接入现有 Gateway Usage/Audit Evidence 与 Evidence Review。
+Workflow 产品链、Gateway Request History、[Gateway Playground / Request Review Loop v1](gateway/gateway-playground-request-review-loop-v1.md) 与 application-scoped API Integration 均已关闭。内部开发者现在可以从选中 application 读取模型目录、生成三协议接入示例、调用三个现有 northbound 协议、取消 stream、查看当前响应，并按同一 request id 与 application scope 进入 sanitized history detail。
 
-明日先写功能设计，不直接落 API 或 schema。设计必须明确 record 生命周期、tenant / workspace / application 或 API consumer scope、cursor、route / provider / profile / model / status / failure / time filters、retention、redaction、store failure、observability 和 Web 路径；若确认需要新 API 与 PostgreSQL schema，再创建单张实现任务卡并继续实施。记录不得包含 prompt、messages、response body、authorization header、credential、endpoint、provider raw envelope 或原始错误正文。
+该功能只增加 Web consumer / lazy panel 与 request-id handoff，复用现有 API、dev/test caller scope 和 history，不新增 schema、repository、provider contract 或生产授权。输入输出只存在于当前组件内存，Request History 继续只保存 sanitized operational metadata。
 
 ## 设计边界
 
@@ -40,6 +45,8 @@ Workflow 产品链在 2026-07-11 已完成 durable dev/test 运行与 evaluation
 3. 已比较受控 stdio worker pool、单 worker 多路复用与内部 HTTP 服务，选定受控 `stdio` worker pool。
 4. 已实现健康握手、并发上限、排队、超时 / 取消、崩溃恢复、优雅退出和 credential 隔离。
 5. 新实现相对 back-to-back process 基线的顺序 / 并发 bridge 自身 p95 开销下降 `93.5% / 94.4%`，已切换默认模式。
+6. Request History、Playground、Application API Integration、Application Configuration Draft / Review 与 Publish Governance 已完成 application → validated configuration → models / examples → request → response → history → immutable candidate / review 的开发测试路径。
+7. API 密钥 Gateway 认证、七组件 `sqlite_dev` 本地连续链、PostgreSQL migration / 角色 / 方言 / 并发门禁、Web 一次性交接和浏览器重启复验均已通过；不继续派生同层 Gateway 切片，也不提前打开 production distribution、配额或计费。
 
 ## 验收方式
 
@@ -55,4 +62,4 @@ Workflow 产品链在 2026-07-11 已完成 durable dev/test 运行与 evaluation
 - 不把 mock provider 性能解释为真实 provider SLA。
 - 不在本批启用 production API key、quota、billing、自动 fallback、load balancing 或 production deployment。
 - 不为基线与选型新增 readiness / refresh checker 链；现有单元测试、benchmark、Gateway smoke 和仓库门禁足以承载。
-- 下一批 request history / usage evidence 只服务开发 / 测试审查，不等于 production API key、quota enforcement、billing、cost ledger、自动 retry/fallback、load balancing 或 production gateway ready。
+- Playground 与 Request History 只服务开发 / 测试交互和审查，不等于 production API key、quota enforcement、billing、cost ledger、自动 retry/fallback、load balancing 或 production gateway ready。

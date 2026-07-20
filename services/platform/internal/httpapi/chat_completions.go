@@ -76,6 +76,9 @@ type openAIChatMessage struct {
 
 func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, "/v1/chat/completions")
+	if !s.prepareGatewayRequest(writer, request, &trace, northboundProtocolChatCompletions, "chat:invoke") {
+		return
+	}
 	var chatRequest chatCompletionRequest
 	if !s.decodeJSONRequestBody(writer, request, trace, &chatRequest, jsonRequestBodyOptions{
 		maxBytes: maxNorthboundJSONRequestBodyBytes,
@@ -98,6 +101,7 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 
 	selection := s.resolveNorthboundSelection(ctx, chatRequest.Model, chatRequest.RadishMind)
 	trace.applySelection(selection)
+	s.checkpointGatewayRequestTrace(&trace, chatRequest.Stream)
 	temperature := effectiveTemperature(chatRequest.Temperature, s.config.Temperature)
 
 	canonicalRequest, err := buildChatCanonicalRequest(chatRequest, locale, selection, trace.requestID)
@@ -109,7 +113,9 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 	if chatRequest.Stream {
 		if err := s.streamOpenAIChatCompletionResponse(ctx, writer, canonicalRequest, selection, temperature, trace); err != nil {
 			s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
+			return
 		}
+		s.finishGatewayRequestTrace(&trace, GatewayRequestStatusSucceeded, http.StatusOK, "", "")
 		return
 	}
 
@@ -123,9 +129,11 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 		return
 	}
 	if strings.EqualFold(envelope.Status, "failed") {
+		s.applyGatewayEnvelopeToTrace(&trace, envelope)
 		s.writePlatformError(writer, trace, gatewayErrorCode(envelope.Error), gatewayErrorMessage(envelope.Error))
 		return
 	}
+	s.applyGatewayEnvelopeToTrace(&trace, envelope)
 
 	openAIResponse, err := buildOpenAIChatCompletionResponse(envelope, selection.model)
 	if err != nil {
@@ -133,6 +141,7 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 		return
 	}
 	writeObservedJSON(writer, http.StatusOK, trace, openAIResponse)
+	s.finishGatewayRequestTrace(&trace, GatewayRequestStatusSucceeded, http.StatusOK, "", "")
 }
 
 func (s *Server) resolveKnownProvider(ctx context.Context, requestedModel string) string {

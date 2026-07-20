@@ -71,6 +71,9 @@ type anthropicStopDelta struct {
 
 func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, "/v1/messages")
+	if !s.prepareGatewayRequest(writer, request, &trace, northboundProtocolMessages, "messages:invoke") {
+		return
+	}
 	var messageRequest anthropicMessagesRequest
 	if !s.decodeJSONRequestBody(writer, request, trace, &messageRequest, jsonRequestBodyOptions{
 		maxBytes: maxNorthboundJSONRequestBodyBytes,
@@ -87,6 +90,7 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 
 	selection := s.resolveNorthboundSelection(ctx, messageRequest.Model, messageRequest.RadishMind)
 	trace.applySelection(selection)
+	s.checkpointGatewayRequestTrace(&trace, messageRequest.Stream)
 	promptText, northboundFields, err := buildMessagesPromptText(messageRequest, selection)
 	if err != nil {
 		s.writePlatformError(writer, trace, "INVALID_MESSAGES_REQUEST", err.Error())
@@ -111,6 +115,7 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 			s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 			return
 		}
+		s.finishGatewayRequestTrace(&trace, GatewayRequestStatusSucceeded, http.StatusOK, "", "")
 		return
 	}
 
@@ -124,9 +129,11 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 	if strings.EqualFold(envelope.Status, "failed") {
+		s.applyGatewayEnvelopeToTrace(&trace, envelope)
 		s.writePlatformError(writer, trace, gatewayErrorCode(envelope.Error), gatewayErrorMessage(envelope.Error))
 		return
 	}
+	s.applyGatewayEnvelopeToTrace(&trace, envelope)
 
 	responseDocument, err := buildAnthropicMessagesResponse(envelope, selection.model)
 	if err != nil {
@@ -134,6 +141,7 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 	writeObservedJSON(writer, http.StatusOK, trace, responseDocument)
+	s.finishGatewayRequestTrace(&trace, GatewayRequestStatusSucceeded, http.StatusOK, "", "")
 }
 
 func buildMessagesPromptText(request anthropicMessagesRequest, selection northboundSelection) (string, map[string]any, error) {

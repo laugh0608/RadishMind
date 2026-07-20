@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-rag-execution-audit.schema.json",
+  "title": "WorkflowRAGExecutionAuditV1",
+  "description": "Metadata-only snapshot lifecycle audit in batch A; retrieval execution event kinds remain reserved for batch B.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "event_id", "event_kind", "tenant_ref", "workspace_id", "application_id",
+    "snapshot_id", "snapshot_key", "snapshot_version", "snapshot_digest", "fragment_count",
+    "total_content_bytes", "actor_ref", "request_id", "audit_ref", "occurred_at"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow_rag_execution_audit.v1" },
+    "event_id": { "type": "string", "pattern": "^rage_[a-z2-7]{16}$" },
+    "event_kind": { "enum": ["snapshot_created", "snapshot_versioned", "snapshot_archived", "retrieval_started", "retrieval_succeeded", "retrieval_failed"] },
+    "tenant_ref": { "$ref": "#/$defs/reference" },
+    "workspace_id": { "$ref": "#/$defs/scoped_id" },
+    "application_id": { "$ref": "#/$defs/scoped_id" },
+    "snapshot_id": { "type": "string", "pattern": "^rags_[a-z2-7]{16}$" },
+    "snapshot_key": { "type": "string", "pattern": "^[a-z][a-z0-9_]{2,47}$" },
+    "snapshot_version": { "type": "integer", "minimum": 1 },
+    "snapshot_digest": { "$ref": "#/$defs/digest" },
+    "fragment_count": { "type": "integer", "minimum": 0, "maximum": 256 },
+    "total_content_bytes": { "type": "integer", "minimum": 0, "maximum": 1048576 },
+    "actor_ref": { "$ref": "#/$defs/reference" },
+    "request_id": { "$ref": "#/$defs/reference" },
+    "audit_ref": { "$ref": "#/$defs/reference" },
+    "occurred_at": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "reference": { "type": "string", "minLength": 3, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$" },
+    "scoped_id": { "type": "string", "minLength": 3, "maxLength": 120, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$" },
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+  }
+}

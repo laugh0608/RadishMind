@@ -295,7 +295,7 @@ func controlPlaneReadRepositoryContractSmokeCases() []ReadRepositoryContractSmok
 			RequiredScope:           "audit:read",
 			Operation:               "ListAuditSummaries",
 			ReadMode:                "future_repository_contract",
-			Request:                 readRepositoryContractSmokeRequest(readRepositoryInt(25), nil, readRepositorySmokeFilters("actor_subject_ref", "subject:demo", "event_kind", "read", "resource_kind", "application", "decision", "allow", "failure_code", ""), readRepositorySort("recorded_at_desc"), "audit_summary_projection"),
+			Request:                 readRepositoryContractSmokeRequest(readRepositoryInt(25), nil, readRepositorySmokeFilters("actor_subject_ref", "subject:demo", "event_kind", "read", "resource_ref", "application:demo", "failure_code", ""), readRepositorySort("recorded_at_desc"), "audit_summary_projection"),
 			ExpectedItemsKind:       "sanitized_summary_list",
 			DatabaseModeFailureCode: ReadRepositoryFailureDatabaseReadDisabled,
 		},

@@ -125,7 +125,14 @@
     },
     {
       "id": "confirmation-decision",
-      "status": "defined_not_implemented",
+      "status": "superseded_archived",
+      "historical_read_allowed": true,
+      "new_submission_allowed": false,
+      "runtime_authoritative": false,
+      "superseded_by": [
+        "workflow_http_tool_action_plan.v1",
+        "workflow_http_tool_confirmation_decision.v1"
+      ],
       "required_fields": [
         "confirmation_id",
         "run_id",
@@ -142,10 +149,15 @@
         "expired",
         "cancelled"
       ],
-      "boundary": "confirmation decisions are future audited inputs; this slice does not wire a confirmation flow or execute confirmed actions"
+      "boundary": "this run-bound decision shape remains readable only as archived historical evidence; new Workflow HTTP Tool confirmations use an independent pre-run action plan and append-only decision and cannot be submitted through this legacy shape"
     }
   ],
   "state_machine": {
+    "status": "superseded_archived",
+    "historical_read_allowed": true,
+    "new_transition_submission_allowed": false,
+    "runtime_authoritative": false,
+    "superseded_by": "workflow_http_tool_action_plan.v1",
     "allowed_states": [
       "created",
       "queued",
@@ -277,17 +289,23 @@
     "scripts/checks/fixtures/radish-oidc-client-preconditions.json",
     "scripts/checks/fixtures/gateway-api-key-quota-readiness.json",
     "docs/radishmind-product-scope.md",
-    "docs/radishmind-architecture.md"
+    "docs/radishmind-architecture.md",
+    "contracts/workflow-http-tool-definition.schema.json",
+    "contracts/workflow-http-tool-execution-profile.schema.json",
+    "contracts/workflow-http-tool-action-plan.schema.json",
+    "contracts/workflow-http-tool-confirmation-decision.schema.json",
+    "contracts/workflow-http-tool-execution-audit.schema.json",
+    "contracts/workflow-run-record-v2.schema.json",
+    "scripts/checks/fixtures/workflow-http-tool-contracts-v1.json"
   ],
   "required_consumers": [
     "scripts/checks/control_plane/check-workflow-definition-run-record-boundary.py",
     "scripts/check-repo.py",
     "scripts/README.md",
     "docs/README.md",
-    "docs/radishmind-current-focus.md",
     "docs/radishmind-product-scope.md",
     "docs/radishmind-architecture.md",
-    "docs/radishmind-roadmap.md",
+    "docs/features/workflow/README.md",
     "docs/radishmind-capability-matrix.md",
     "docs/task-cards/control-plane-user-workspace-workflow-v1-plan.md",
     "docs/devlogs/2026-W22.md"

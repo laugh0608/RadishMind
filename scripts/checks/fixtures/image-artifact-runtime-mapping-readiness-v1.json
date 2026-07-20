@@ -417,10 +417,6 @@
       "image_artifact_runtime_mapping_readiness_defined",
       "blocked / failed / pending_review"
     ],
-    "docs/radishmind-current-focus.md": [
-      "image-artifact-runtime-mapping-readiness-v1",
-      "image_artifact_runtime_mapping_readiness_defined"
-    ],
     "docs/radishmind-capability-matrix.md": [
       "image-artifact-runtime-mapping-readiness-v1",
       "artifact runtime mapping readiness"

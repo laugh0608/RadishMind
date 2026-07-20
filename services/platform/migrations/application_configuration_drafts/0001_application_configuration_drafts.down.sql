@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS application_configuration_drafts;
+DROP TABLE IF EXISTS application_configuration_draft_schema_versions;

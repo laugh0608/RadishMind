@@ -1,6 +1,6 @@
 # 文档语言治理 v1
 
-更新时间：2026-07-04
+更新时间：2026-07-13
 
 状态锚点：`doc_language_governance_topic_v1_defined`
 
@@ -46,6 +46,15 @@
 | `metadata-only` | 仅元数据 | 决策边界正文写“仅元数据”；状态锚点和文件名保留原文 |
 | `fail-closed` | 失败关闭 | 失败语义正文写“失败关闭”；fixture ID 保留原文 |
 | `dev-only` | 仅开发 | 环境边界正文写“仅开发”；配置键和专题名保留原文 |
+| `scope` | 作用域 | 正文说明租户、工作区、应用和所有者边界时写“作用域”；协议字段和类型名保留原文 |
+| `owner` | 所有者 | 正文说明资源归属时写“所有者”；`owner_subject_ref` 等字段保留原文 |
+| `repository` | 存储库 | 正文说明持久化职责时写“存储库”；接口名、模式名和路径保留原文 |
+| `handoff` | 交接 | 正文说明页面或能力之间的上下文传递时写“交接”；事件名和类型名保留原文 |
+| `candidate` | 候选版本 | 发布审查正文写“候选版本”；schema、状态值和字段名保留原文 |
+| `baseline` | 基线 | 正文说明比较基准时写“基线”；字段名和状态锚点保留原文 |
+| `drift` | 漂移 | 正文说明基线或版本变化时写“漂移”；错误码和字段名保留原文 |
+| `offline` | 离线 | 正文说明零请求模式时写“离线”；状态值 `offline` 保留原文 |
+| `production` | 生产环境 / 生产态 | 正文按语义写“生产环境”或“生产态”；配置键、模式名和状态锚点保留原文 |
 
 ## 第二批治理边界
 
@@ -62,6 +71,16 @@
 本批优先处理常读入口中的自然语言英文工程短语，处理范围包括 `docs/radishmind-current-focus.md`、`docs/features/README.md`、`docs/platform/README.md`、`scripts/README.md` 和 `docs/radishmind-code-standards.md`。处理原则是替换正文说明中的 `surface`、`backend`、`readiness`、`entry review`、`metadata-only`、`smoke`、`literal`、`future`、`fail-closed`、`dev-only` 等高频短语；状态锚点、文件名、fixture key、checker ID、命令、路径和协议字段继续保留原文。
 
 本批验收只证明优先入口已完成一轮定向中文化，不表示全仓历史文档已完成语言治理，也不要求重写长证据链、任务卡、脚本输出或机器检查依赖字面量。
+
+## 活跃产品链路治理记录 v2
+
+状态锚点：`doc_language_active_product_path_remediation_v2_defined`
+
+2026-07-13 将文档语言治理提前为一个有边界的 R6 批次，优先处理当前人工高频阅读链路：`docs/radishmind-current-focus.md`、`docs/features/README.md`、`docs/features/user-workspace.md`、`docs/features/user-workspace/README.md`，以及应用接入、配置草案和发布治理三个现行功能专题。
+
+本批把标题、目标、流程、职责表、状态说明、验收方式和停止线中的英文工程短语改为中文，字段、状态值、API 路由、schema、接口名、配置键、文件名与机器检查依赖文本继续保留原文。历史兼容索引只保留为机器证据，不纳入本批机械翻译范围。
+
+治理完成后，下一功能设计使用同一口径编写“用户工作区应用目录与生命周期（开发/测试态）v1”。本批不改变产品优先级、协议、schema、运行时行为或生产声明，也不派生新的同层检查器。
 
 ## 停止线
 

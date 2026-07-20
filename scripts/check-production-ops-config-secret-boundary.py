@@ -56,28 +56,11 @@ REQUIRED_BLOCKED_CONDITIONS = {
 }
 
 REQUIRED_DOC_REFERENCES = {
-    "services/platform/README.md": [
-        "Production config / secret boundary",
-        "production secret backend",
-        "local-smoke",
-        "production ready",
-        "RADISHMIND_PLATFORM_API_KEY",
-    ],
     "docs/task-cards/production-ops-hardening-v1-plan.md": [
         "config-secret-boundary",
         "governance boundary",
         "production-ops-config-secret-boundary.json",
         "check-production-ops-config-secret-boundary.py",
-    ],
-    "docs/radishmind-current-focus.md": [
-        "Production Ops Hardening v1",
-        "config-secret-boundary",
-        "production-ops-config-secret-boundary.json",
-    ],
-    "docs/radishmind-roadmap.md": [
-        "Production Ops Hardening v1",
-        "config-secret-boundary",
-        "production-ops-config-secret-boundary.json",
     ],
     "scripts/README.md": [
         "check-production-ops-config-secret-boundary.py",
@@ -194,8 +177,6 @@ def assert_evidence_and_consumers(document: dict[str, Any]) -> None:
         "scripts/check-repo.py",
         "scripts/check-p3-local-product-shell-short-close-checklist.py",
         "scripts/README.md",
-        "docs/radishmind-current-focus.md",
-        "docs/radishmind-roadmap.md",
     }
     missing_consumers = sorted(expected_consumers - consumers)
     require(not missing_consumers, f"missing production ops consumers: {missing_consumers}")

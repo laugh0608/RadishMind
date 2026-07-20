@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-http-tool-definition.schema.json",
+  "title": "WorkflowHttpToolDefinitionV1",
+  "description": "Versioned, environment-neutral definition for the first controlled Workflow HTTP read tool. Runtime targets and credentials are intentionally excluded.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "tool_id",
+    "tool_version",
+    "display_name",
+    "purpose",
+    "operation_kind",
+    "public_arguments_schema",
+    "output_schema",
+    "output_fields",
+    "requires_confirmation",
+    "risk_level",
+    "read_only",
+    "writes_business_truth",
+    "audit_ref"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "workflow_http_tool_definition.v1"
+    },
+    "tool_id": {
+      "$ref": "#/$defs/tool_id"
+    },
+    "tool_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "operation_kind": {
+      "const": "http_read"
+    },
+    "public_arguments_schema": {
+      "$ref": "#/$defs/public_arguments_schema"
+    },
+    "output_schema": {
+      "$ref": "#/$defs/output_schema"
+    },
+    "output_fields": {
+      "$ref": "#/$defs/output_fields"
+    },
+    "requires_confirmation": {
+      "const": true
+    },
+    "risk_level": {
+      "const": "medium"
+    },
+    "read_only": {
+      "const": true
+    },
+    "writes_business_truth": {
+      "const": false
+    },
+    "audit_ref": {
+      "$ref": "#/$defs/reference"
+    }
+  },
+  "$defs": {
+    "tool_id": {
+      "type": "string",
+      "pattern": "^workflow\\.http\\.[a-z0-9][a-z0-9._-]*\\.v[0-9]+$",
+      "maxLength": 120
+    },
+    "reference": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$"
+    },
+    "string_argument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "min_length",
+        "max_length"
+      ],
+      "properties": {
+        "type": {
+          "const": "string"
+        },
+        "min_length": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 160
+        },
+        "max_length": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 160
+        },
+        "pattern": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        }
+      }
+    },
+    "public_arguments_schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "additional_properties",
+        "max_properties",
+        "max_serialized_bytes",
+        "required",
+        "properties"
+      ],
+      "properties": {
+        "type": {
+          "const": "object"
+        },
+        "additional_properties": {
+          "const": false
+        },
+        "max_properties": {
+          "type": "integer",
+          "const": 2
+        },
+        "max_serialized_bytes": {
+          "type": "integer",
+          "const": 8192
+        },
+        "required": {
+          "type": "array",
+          "const": [
+            "resource_key"
+          ]
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "resource_key",
+            "locale"
+          ],
+          "properties": {
+            "resource_key": {
+              "$ref": "#/$defs/string_argument"
+            },
+            "locale": {
+              "$ref": "#/$defs/string_argument"
+            }
+          }
+        }
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "additionalProperties",
+        "required",
+        "properties"
+      ],
+      "properties": {
+        "type": {
+          "const": "object"
+        },
+        "additionalProperties": {
+          "const": false
+        },
+        "required": {
+          "const": [
+            "resource_key",
+            "title",
+            "summary",
+            "updated_at"
+          ]
+        },
+        "properties": {
+          "const": {
+            "resource_key": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            },
+            "summary": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    },
+    "output_fields": {
+      "type": "array",
+      "const": [
+        "resource_key",
+        "title",
+        "summary",
+        "updated_at"
+      ]
+    }
+  }
+}

@@ -99,7 +99,12 @@
 - 非特殊情况不直接在 `master` 上开发
 - `master` 只通过 Pull Request 合并
 - `master` 允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`
+- 分支拓扑固定为 `feature/* -> dev -> master -> dev`：`dev -> master` 是阶段晋级，`master -> dev` 是合并后的稳定主线回同步，不在 `master` 上开启平行开发线
+- 每次 `dev -> master` PR 合并后，都必须在下一批 `dev` 开发继续前将最新 `master` 回同步到 `dev`；直接进入 `master` 的 hotfix PR 也遵循同一规则
+- 常态阶段 PR 优先使用 `merge commit`，使未继续前进的 `dev` 可以 fast-forward 到 `master`；如使用 `rebase merge` 或 `dev` 已产生后续提交，则通过普通 merge 把 `master` 合入 `dev`，禁止 rebase / force push 共享 `dev` 历史
+- 纯历史回同步且文件树未变化时不重复完整门禁；如出现冲突解决或实际内容变化，应在推送 `dev` 前按风险补对应验证
 - 默认不要求保护 `dev`
+- 目标为 `dev` 或 `master` 的 Pull Request 自动运行 `PR Checks`；普通 `push -> dev` 不触发，`dev` 当前不要求 required checks
 - 管理员如需绕过规则，也应通过 PR 合并，而不是直接 push 到 `master`
 
 ## 仓库结构速记

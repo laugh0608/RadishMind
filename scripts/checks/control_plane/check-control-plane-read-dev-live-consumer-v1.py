@@ -122,6 +122,7 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
         "contracts/typescript/control-plane-read-api.ts",
         "services/platform/internal/config/config.go",
         "services/platform/internal/httpapi/control_plane_read.go",
+        "services/platform/internal/httpapi/control_plane_read_auth.go",
         "services/platform/internal/httpapi/server.go",
     ]
     source = "\n".join(read_text(path) for path in source_files)

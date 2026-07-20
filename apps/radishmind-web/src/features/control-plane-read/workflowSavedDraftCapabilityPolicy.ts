@@ -11,7 +11,7 @@ const REVIEW_ONLY_REQUESTED_CAPABILITIES = [
 export function workflowSavedDraftRequestedCapabilities(
   draft: WorkflowDraftDesignerDraft,
 ): string[] {
-  return draft.executionProfile === "executor_v0"
+  return draft.executionProfile === "executor_v0" || draft.executionProfile === "rag_retrieval_v1"
     ? []
     : [...REVIEW_ONLY_REQUESTED_CAPABILITIES];
 }

@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-rag-knowledge-promotion-candidate.schema.json",
+  "title": "WorkflowRAGKnowledgePromotionCandidateV1",
+  "description": "Application-scoped immutable authority binding plus the CAS-controlled current projection for one human-reviewed RAG promotion candidate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "candidate_id", "candidate_digest", "tenant_ref", "workspace_id", "application_id",
+    "owner_subject_ref", "evidence", "candidate_state", "record_version", "binding_ref", "created_at", "updated_at",
+    "created_by_actor_ref", "updated_by_actor_ref", "request_id", "audit_ref"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow_rag_knowledge_promotion_candidate.v1" },
+    "candidate_id": { "$ref": "#/$defs/candidate_id" },
+    "candidate_digest": { "$ref": "#/$defs/digest" },
+    "tenant_ref": { "$ref": "#/$defs/reference" },
+    "workspace_id": { "$ref": "#/$defs/scoped_id" },
+    "application_id": { "$ref": "#/$defs/scoped_id" },
+    "owner_subject_ref": { "$ref": "#/$defs/reference" },
+    "evidence": { "$ref": "#/$defs/evidence" },
+    "candidate_state": { "enum": ["pending", "deferred", "approved", "rejected", "canceled"] },
+    "record_version": { "type": "integer", "minimum": 1 },
+    "binding_ref": {
+      "oneOf": [
+        { "$ref": "#/$defs/binding_ref" },
+        { "type": "null" }
+      ]
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "created_by_actor_ref": { "$ref": "#/$defs/reference" },
+    "updated_by_actor_ref": { "$ref": "#/$defs/reference" },
+    "request_id": { "$ref": "#/$defs/reference" },
+    "audit_ref": { "$ref": "#/$defs/reference" }
+  },
+  "$defs": {
+    "reference": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{2,159}$" },
+    "scoped_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{2,119}$" },
+    "draft_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$" },
+    "candidate_id": { "type": "string", "pattern": "^wragp_[a-z2-7]{16}$" },
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "dataset_binding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["dataset_id", "dataset_version", "dataset_digest"],
+      "properties": {
+        "dataset_id": { "type": "string", "pattern": "^wragd_[a-z0-9_]{3,47}$" },
+        "dataset_version": { "type": "integer", "minimum": 1 },
+        "dataset_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "snapshot_binding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tenant_ref", "workspace_id", "application_id", "snapshot_id", "snapshot_version", "snapshot_digest", "rag_ref"],
+      "properties": {
+        "tenant_ref": { "$ref": "#/$defs/reference" },
+        "workspace_id": { "$ref": "#/$defs/scoped_id" },
+        "application_id": { "$ref": "#/$defs/scoped_id" },
+        "snapshot_id": { "type": "string", "pattern": "^rags_[a-z2-7]{16}$" },
+        "snapshot_version": { "type": "integer", "minimum": 1 },
+        "snapshot_digest": { "$ref": "#/$defs/digest" },
+        "rag_ref": { "type": "string", "pattern": "^workflow\\.rag\\.[a-z][a-z0-9_]{2,47}\\.v[1-9][0-9]*$" }
+      }
+    },
+    "profile_binding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["profile_id", "profile_version", "profile_digest"],
+      "properties": {
+        "profile_id": { "$ref": "#/$defs/reference" },
+        "profile_version": { "type": "integer", "minimum": 1 },
+        "profile_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "source_draft": {
+      "type": "object", "additionalProperties": false,
+      "required": ["draft_id", "draft_version", "draft_digest", "base_application_updated_at"],
+      "properties": {
+        "draft_id": { "$ref": "#/$defs/draft_id" },
+        "draft_version": { "type": "integer", "minimum": 1 },
+        "draft_digest": { "$ref": "#/$defs/digest" },
+        "base_application_updated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["dataset", "candidate_review_id", "baseline_snapshot", "candidate_snapshot", "profile", "source_draft"],
+      "properties": {
+        "dataset": { "$ref": "#/$defs/dataset_binding" },
+        "candidate_review_id": { "type": "string", "pattern": "^wragr_[a-z2-7]{16}$" },
+        "baseline_snapshot": { "$ref": "#/$defs/snapshot_binding" },
+        "candidate_snapshot": { "$ref": "#/$defs/snapshot_binding" },
+        "profile": { "$ref": "#/$defs/profile_binding" },
+        "source_draft": { "$ref": "#/$defs/source_draft" }
+      }
+    },
+    "binding_ref": {
+      "type": "object", "additionalProperties": false,
+      "required": ["binding_id", "binding_version", "binding_digest"],
+      "properties": {
+        "binding_id": { "type": "string", "pattern": "^wragb_[a-z2-7]{16}$" },
+        "binding_version": { "const": 1 },
+        "binding_digest": { "$ref": "#/$defs/digest" }
+      }
+    }
+  }
+}

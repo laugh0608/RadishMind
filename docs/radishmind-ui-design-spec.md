@@ -1,6 +1,6 @@
 # RadishMind UI 设计规范
 
-更新时间：2026-06-25
+更新时间：2026-07-19
 
 ## 文档目的
 
@@ -8,9 +8,9 @@
 
 [UI 设计参考](radishmind-ui-design-reference.md) 只提供灵感素材和外部产品观察；本文件定义 RadishMind 自己的视觉目标、语义 token、组件规则、状态表达、窄屏策略和设计稿治理要求。
 
-当前规范同时服务 `UI Design Topic / Pencil Draft`、`P3 Local Product Shell / Ops Surface` 和 Control Plane read-side product UI shell。它不声明正式 production console 已完成，也不把 executor、durable store、confirmation、业务写回或 replay 画成当前能力。
+当前规范同时服务 `UI Design Topic / Pencil Draft`、`P3 Local Product Shell / Ops Surface`、Control Plane read-side product UI shell，以及显式开发测试态的 Workflow / Application 受控运行面板。它不声明正式 production console 已完成，也不把开发测试态 executor、持久化、人工审查或会话编排画成 production、业务写回或 replay 能力。
 
-`control-plane-read-formal-ui-implementation-readiness-v1` 已把正式只读产品 UI 的落点固定为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍只是本地 ops surface。`apps/radishmind-web/` 已实现 read-only shell、route catalog binding、状态组件、forbidden output guard、`admin-tenant-overview`、`admin-audit-log`、普通离线 Admin Operations Review / Readiness、Admin Provider/Profile & Deployment Evidence Review / Readiness、`workspace-applications`、`workspace-api-keys`、`workspace-usage-quota`、`workspace-workflow-definitions`、`workspace-run-history`，以及 workflow application detail、definition detail、run detail、blocked action preview、confirmation placeholder、Draft Designer、offline validation inspector、execution plan preview、runtime readiness inspector、surface overview、context selection、scenario inspector、review workspace、User Workspace Home、Review Handoff、Model Gateway Overview、Route Evidence、Usage/Audit Evidence 和 Evidence Review / Readiness。Draft Designer 当前允许草案字段、本地节点结构和节点属性的受控本地编辑，并可在显式 dev-only 配置下进行 saved draft validate / save / read / list / restore；Workflow Review Handoff 可展示 active draft review record。上述能力仍不代表 production builder、durable persistence、publish、run、executor、confirmation decision、writeback 或 replay ready。后续继续 formal UI 时，应复用这些组件、`workflowWorkspaceContext` 和 `contracts/typescript/control-plane-read-api.ts`，不得把当前本地 console 直接改成 production admin console。
+`control-plane-read-formal-ui-implementation-readiness-v1` 已把正式产品 UI 的落点固定为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍只是本地 ops surface。Web 在原 read shell、Workflow review、Model Gateway 与 Application 管理面之外，已增加 Application RAG Runtime、Workflow Definition Promotion、Application Interaction Session、Application Operations，以及 v4 / v5 Run History / Detail / Comparison / Evaluation 消费面。Draft Designer、运行、晋级、会话和观测都通过独立显式 dev/test source 启用；默认离线模式仍为零请求。上述能力不代表 production builder、production persistence、正式发布、业务写回或 replay ready。后续继续 formal UI 时，应复用现有严格 consumer、共享 application scope 和运行记录视图，不得把当前本地 console 直接改成 production admin console。
 
 ## 设计定位
 
@@ -151,14 +151,14 @@ RadishMind UI 分成两个当前实现面：
 
 ### 按钮
 
-当前 P3 只允许低风险操作：
+只读证据面与本地 ops surface 只允许低风险操作：
 
 - refresh
 - retry
 - copy diagnostics（后续可选）
 - view details（后续可选）
 
-不得出现：
+在这些只读页面中不得出现：
 
 - execute
 - confirm write
@@ -166,7 +166,7 @@ RadishMind UI 分成两个当前实现面：
 - apply to upstream
 - run tool
 
-除非对应 confirmation / executor / storage / negative gate 已正式完成。
+显式开发测试态产品面只有在对应 authority、scope、store、negative gate 和服务端重校验均已完成时，才允许显示 save、review、activate、invoke、run、cancel、close 等与现有 API 一一对应的动作。按钮必须同时显示当前来源与开发测试态边界；客户端 eligibility 只用于解释，不能代替服务端授权。
 
 ## 状态矩阵
 
@@ -269,6 +269,14 @@ Control Plane read-side product UI 额外覆盖：
    - graph review finding 卡片是审查线索，不是任务执行控件；不得出现 apply、run、confirm、fix automatically、persist focus 或 export handoff 按钮。可点击或可聚焦的入口只能回到本地 UI 上的节点、连线或 inspector 视图，且不得保存 selection / validation focus
    - 窄屏下 graph finding 先显示分组标题和 target summary，再展开 metadata；长 node id、edge id、source check id、request id 和 audit ref 必须断行，不能挤压 severity / status 标签
    - RadishFlow Copilot 与 Radish Docs Assistant 的默认样例展示必须来自同一 read-side view model，不允许为两个产品分别硬编码不同信息架构或不同 stopping boundary
+
+12. `Application Controlled Runtime Panels`
+   - Application RAG Runtime Assignment 把 candidate、binding、application lifecycle 与 current assignment 分开显示；`activate / replace / revoke` 是独立人工 CAS，不把 publish approve 画成自动激活
+   - Workflow Definition Promotion 按 candidate、review、immutable version、activation、run v5 的权威顺序组织；run 按钮只能在当前 active pointer、definition digest、application lifecycle 与 profile eligibility 可解释时出现，服务端仍须在 provider 前重读
+   - Application Interaction Session 显式选择 `workflow_definition_executor_v1` 或 `application_rag_invocation_v1`，以 Active / Closed 区分可继续与只读历史；页面刷新或重启只恢复 session / turn metadata，不伪造 transcript 恢复
+   - Application Operations 独立展示 Gateway Request 与 Workflow Run 两个来源的 loading / ready / empty / failed 状态，允许部分失败；合并时间线不得推测跨来源 correlation，也不得估算缺失 token、cost、quota 或 billing
+   - Run History / Detail / Comparison / Evaluation 对 v4 与 v5 只读展示 execution source、profile、authority refs、digest、usage availability 与 diagnostics；不得重新执行，也不得展示原始 input、answer、prompt 或 provider response
+   - application、workspace、route 或 profile 切换时必须中止活动请求并清除易失 input、answer、transcript、一次性 credential 与冲突草稿；不得把这些内容写入 URL、browser storage、cookie 或通用 view model
 
 Control Plane read-side 页面必须继续使用紧凑工作台布局，不做营销首页，不做 hero，不把页面状态写成可执行能力。
 

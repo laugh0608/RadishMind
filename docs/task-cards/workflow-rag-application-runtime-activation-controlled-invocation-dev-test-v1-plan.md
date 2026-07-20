@@ -1,0 +1,111 @@
+# Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1 实施任务卡
+
+更新时间：2026-07-19
+
+状态：`workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_completed`
+
+## 目标与准入结论
+
+按[功能设计](../features/workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)交付“已批准 publish candidate v2 → 人工 runtime assignment → API key application scope → candidate snapshot retrieval → Gateway answer → metadata-only run v4 → regression review”的完整开发测试态路径。
+
+设计、资源职责、执行边界和生产停止线已通过评审，批次 A 已完成 contract、memory runtime 与受控调用证据；批次 B 已完成 durable store、run source、v4 evaluation 与真实 PostgreSQL 专项；批次 C 已完成 Web、连续链和真实浏览器收口。本卡已经关闭，不得绕过 assignment 直接从 publish approve / binding approve 触发调用。
+
+## 前置基线
+
+- `dev` 的实现准入基线为设计冻结提交 `f0c6912b`；其代码基线 `d7b4a24b` 已完成 promotion / binding、application draft v2、publish candidate v2、API key dev/test auth、RAG snapshot / retrieval / evaluation 和 memory / SQLite / PostgreSQL store 回归。
+- runtime assignment 必须精确引用已批准且未被取代的 `application_publish_candidate.v2`；服务端从候选重读 exact draft、binding 和全部 promotion authority。
+- 有效检索快照固定为 binding candidate snapshot，baseline snapshot 只作 evidence；调用方不能提交 model、protocol、resource ref、ranking 或 citation。
+- API key scope 固定新增 `application_rag:invoke`，调用 route 只接受 `api_key_dev_test`；管理 assignment 使用 verified actor 和独立 management scopes。
+- 所有 list / detail / event / audit / run / Gateway history / log 均 metadata-only，answer 只在同步响应中存在。
+
+## 批次 A：contract、authority resolver 与 memory execution
+
+状态：`completed`；完成锚点为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_a_completed`。
+
+### 允许实现
+
+- 物化 `workflow_rag_application_runtime_assignment.v1`、assignment event / audit、`workflow_run_record.v4` 和 `workflow_rag_application_answer.v1` strict contract。
+- 实现 application-scoped current assignment、`activate / replace / revoke`、`expected_record_version` CAS、append-only event / audit 和 memory owner lock 原子提交。
+- 实现服务端 authority resolver：application → publish candidate v2 → application draft v2 → immutable binding / promotion → dataset / candidate review → baseline + candidate snapshots → lexical profile。
+- 实现 candidate snapshot 固定选择、assignment / authority seal、retrieval 前和 provider 前重校验，以及一次 ranker / 一次 Gateway 的同步 service。
+- 新增独立 gate、assignment GET / decision API、API key `application_rag:invoke` scope 与 `POST /v1/application-rag/invocations`；调用 body 只接收有界 `input`。
+- memory run v4 使用新的 execution source，不伪造 workflow draft；answer 不进入 record。
+
+### 必须证明
+
+- 未批准 / 撤回 / 被取代 candidate、draft / binding / dataset / review / snapshot / profile 漂移、应用归档、assignment revoked、scope / API key / store failure 全部在副作用前失败关闭。
+- assignment CAS 并发单一成功；event / audit 与 current projection 无 partial write；replace / revoke 不修改任何来源资源。
+- 所有前置失败的 ranker、Gateway、run write计数符合设计；running record 后的失败写真实终态，不 retry / replay。
+- v0–v3、原 RAG execution、普通三协议 API key scope 和 publish production blockers 不回归。
+
+### 批次 A 停止线
+
+- 不创建 SQLite / PostgreSQL migration，不修改 Web / launcher，不执行真实 provider 或浏览器。
+- 不打开 stream / batch / background / retry / fallback / replay / writeback，不接 connector / embedding / vector / reranker 或生产认证。
+
+完成后推进为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_b_ready_for_implementation`。
+
+### 批次 A 完成证据
+
+- 五份 strict JSON Schema、Go strict codec / validator 与未知字段负例已经物化；assignment digest 封印精确候选、草案和 binding 选择，run v4 使用独立 application configuration execution source。
+- memory assignment 与 workflow run store 共用 owner lock；current projection、event、audit 原子 CAS，竞态测试证明并发激活单一成功且无 partial write。
+- authority resolver 在 activation、running v4 创建前、retrieval 前和 provider 前重读全部权威资源；未批准 / 被取代候选、资源漂移、归档、撤销和 store failure 在相应副作用边界失败关闭。
+- 独立 gate、assignment GET / decision API、OIDC permission projection、API key `application_rag:invoke` 和 invocation route 已接入；客户端 authority 字段、开发身份头和普通三协议 scope 均不能越权。
+- 成功路径固定 candidate snapshot，恰好一次 lexical retrieval 和一次 Gateway；run v4 只保存 digest、refs、rank、citation、配置选择、诊断与副作用计数，answer、input、fragment、prompt、模型响应和 credential 不持久化。
+- `go test ./...`、定向 `go test -race`、`go vet`、JSON schema 语法检查、`git diff --check` 与快速 / 完整 `./scripts/check-repo.sh` 已通过；未创建 SQLite / PostgreSQL migration，未修改 Web / launcher，未运行真实 provider 或浏览器。
+
+## 批次 B：durable store、run source 与 evaluation
+
+状态：`completed`。
+
+- SQLite shared workflow database 追加 `0009_workflow_rag_application_invocations`，marker 推进为 `workflow_run_store_sqlite_v9`。
+- PostgreSQL workflow migration family 在 `0011` 后追加 `0012_workflow_rag_application_invocations`，marker 推进为 `workflow_run_store_v12`。
+- 重构 run store source columns：历史 v0–v3 映射 `workflow_draft`，v4 映射 `application_configuration_draft`；旧 draft filter 不返回 v4。
+- assignment current projection、append-only event / audit 和 run v4 复用既有 database / pool；禁止独立 DSN、pool、database file、selector 或 fallback。
+- Run History 接受 v4；Comparison / Evaluation / Baseline / Suite 增加 `workflow_rag_application_invocation.v1`，只消费 metadata-only run refs且不重新执行。
+- 覆盖 migration / rollback / reapply、checksum、运行角色、并发 CAS、事务回滚、重启、损坏记录、stale running reconciliation 和 no-fallback。
+
+当前证据：
+
+- SQLite `0009`、PostgreSQL `0012`、run execution source migration、shared database / pool repository、v4 history / comparison / evaluation 与 stale reconciliation 均已实现。
+- SQLite migration、CAS / transaction、append-only、restart、corruption、no-fallback、HTTP Tool 回归，平台全包 Go 测试、定向 race、`go vet` 和 PostgreSQL build-tag 编译均已通过。
+- 真实 PostgreSQL 首次运行发现 configured 产品链清理顺序未纳入新 runtime 表；修正后完整 integration suite 通过。
+- `./scripts/run-workflow-saved-draft-postgres-dev-test.sh check` 已通过 migration / rollback / reapply、运行角色、事务、append-only、restart、no-fallback、全部迁移恢复与 configured profile；`0012` marker / checksum 已复验。
+
+完成后推进为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_batch_c_ready_for_implementation`。
+
+## 批次 C：Web、连续链与专题收口
+
+状态：`completed`。
+
+- 发布候选详情增加 lazy assignment 管理，approve、activate / replace / revoke 保持独立动作并保留 CAS conflict reason。
+- API key 管理增加显式 `application_rag:invoke`，一次性 token 只通过内存交给 Application RAG Invocation 面板。
+- 调用面板不允许选择 model / protocol / candidate / binding / snapshot，完成同步 answer、失败、Run History 与 v4 evaluation 交接。
+- 应用切换清空 token、input、answer、assignment、run 和 conflict；offline 零请求，strict schema / scope / forbidden field 失败关闭。
+- 完成 SQLite / PostgreSQL 连续链、重启 / corruption / no-fallback、真实浏览器成功 / 失败 / revoke / switch / recovery、URL / storage / console /敏感材料审计。
+- 同步 current focus、入口、路线图、能力矩阵与周志，关闭专题和本卡；不派生第二张任务卡。
+
+完成锚点为 `workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_completed`。
+
+### 批次 C 完成证据
+
+- 发布候选 runtime assignment、API key scope / 一次性交接、Application RAG Invocation、v4 history / comparison / evaluation 已接入严格 Web consumer；默认 offline 零请求，应用切换清除全部易失状态。
+- Shell / PowerShell launcher 已提供单一 Application RAG 本地产品档；SQLite 与 PostgreSQL 连续链均覆盖 activation、两次调用、comparison、evaluation、revoke、拒绝和重启恢复。
+- mock provider 的 application RAG answer contract 与 Comparison v3 authority projection 已修正并补回归测试，v2 comparison 对外契约保持不变。
+- 真实浏览器验证成功调用、无证据失败、人工撤销阻断、应用切换隔离和 SQLite 重启恢复；浏览器 storage、console 和持久记录均未发现 token、原始输入或回答泄漏。
+- 专题按功能设计、current focus、入口、路线图、能力矩阵、架构、契约与周志统一关闭，不派生批次 D 或第二张任务卡。
+
+## 验证矩阵
+
+- Go：contract、domain、HTTP、API key auth、authority reload、drift、CAS / race、execution checkpoint、answer / citation、memory / SQLite / PostgreSQL、migration、reconciliation、no-fallback、`go vet` 与全包回归。
+- Web：offline、assignment decisions、one-time token handoff、invocation、v4 history / comparison / evaluation、application switch、strict schema / secret guard 和 production build。
+- 连续链：publish candidate approved → assignment active → API key invoke → run v4 → evaluation → revoke blocked → replace → restart recovery。
+- 停止线计数：每次成功恰好一次 retrieval / provider；tool、confirmation、business write、replay 为 0；所有前置失败 retrieval / provider 为 0。
+- 仓库：每批 `git diff --check`、`./scripts/check-repo.sh --fast`；批次 B / C 按风险执行 PostgreSQL 专项和完整 `./scripts/check-repo.sh`。
+
+## 总停止线
+
+- 不自动 activate、baseline、promotion、release 或 publish；不修改任何来源资源。
+- 不把开发测试态 assignment、API key 或 v4 run 声明为正式应用、production RAG 或可信 SLA。
+- 不启用外部 connector、在线搜索、embedding、vector database、reranker、后台任务、retry、replay、resume、writeback、agent loop、production auth / secret / repository、quota 或 billing。
+- 不创建平行基础设施、第二张任务卡、同层 readiness / checker 文档链。

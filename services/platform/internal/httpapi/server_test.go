@@ -19,11 +19,14 @@ type fakeBridge struct {
 	providers    []bridge.ProviderDescription
 	inventory    bridge.ProviderInventory
 	envelope     bridge.GatewayEnvelope
+	handleErr    error
+	handleHook   func()
 	lastRequest  []byte
 	lastOptions  bridge.EnvelopeOptions
 	handleCalls  int
 	streamCalled bool
 	streamErr    error
+	streamHook   func()
 }
 
 type checkpointDeniedQueriesFixture struct {
@@ -38,6 +41,42 @@ type checkpointQueryCase struct {
 	ExpectedErrorCode string `json:"expected_error_code"`
 }
 
+func TestServerRejectsIncompleteSQLiteDevLocalPersistenceBeforeRuntimeConstruction(t *testing.T) {
+	_, err := NewServerWithError(config.Config{LocalPersistenceMode: "sqlite_dev"}, Options{BuildVersion: "sqlite-s1"})
+	if err == nil || err.Error() != "sqlite_dev local persistence requires a database path" {
+		t.Fatalf("sqlite_dev without a database path must fail before runtime construction, got %v", err)
+	}
+	_, err = NewServerWithError(config.Config{
+		LocalPersistenceMode:            "sqlite_dev",
+		SQLiteDevDatabasePath:           filepath.Join(t.TempDir(), "radishmind.db"),
+		ControlPlaneReadDatabaseTimeout: time.Second,
+	}, Options{BuildVersion: "sqlite-s2"})
+	if err == nil || err.Error() != "saved workflow draft sqlite_dev store requires complete development gates" {
+		t.Fatalf("sqlite_dev without development gates must fail before runtime construction, got %v", err)
+	}
+}
+
+func TestServerRestrictsWorkflowHTTPToolLoopbackGateToExplicitTestOption(t *testing.T) {
+	cfg := config.Config{
+		ControlPlaneReadDevAuthEnabled:      true,
+		WorkflowSavedDraftDevHTTPEnabled:    true,
+		WorkflowSavedDraftDevWriteEnabled:   true,
+		WorkflowExecutorDevEnabled:          true,
+		WorkflowToolActionDevEnabled:        true,
+		WorkflowHTTPToolExecutionDevEnabled: true,
+		WorkflowHTTPToolTestLoopbackEnabled: true,
+		Provider:                            "mock",
+	}
+	if _, err := NewServerWithError(cfg, Options{BuildVersion: "product-loopback-denied"}); err == nil || !strings.Contains(err.Error(), "restricted to explicit test servers") {
+		t.Fatalf("product server accepted test-only Workflow HTTP Tool loopback: %v", err)
+	}
+	server, err := NewServerWithError(cfg, Options{BuildVersion: "test-loopback-allowed", TestOnly: true})
+	if err != nil {
+		t.Fatalf("explicit test server rejected Workflow HTTP Tool loopback gate: %v", err)
+	}
+	server.Close()
+}
+
 func (f *fakeBridge) DescribeProviders(context.Context) ([]bridge.ProviderDescription, error) {
 	return f.providers, nil
 }
@@ -50,13 +89,19 @@ func (f *fakeBridge) HandleEnvelope(_ context.Context, canonicalRequest []byte, 
 	f.lastRequest = append(f.lastRequest[:0], canonicalRequest...)
 	f.lastOptions = options
 	f.handleCalls++
-	return f.envelope, nil
+	if f.handleHook != nil {
+		f.handleHook()
+	}
+	return f.envelope, f.handleErr
 }
 
 func (f *fakeBridge) StreamEnvelope(_ context.Context, canonicalRequest []byte, options bridge.EnvelopeOptions, handleEvent func(bridge.StreamEvent) error) error {
 	f.lastRequest = append(f.lastRequest[:0], canonicalRequest...)
 	f.lastOptions = options
 	f.streamCalled = true
+	if f.streamHook != nil {
+		f.streamHook()
+	}
 	if f.streamErr != nil {
 		return f.streamErr
 	}
@@ -148,7 +193,7 @@ func TestLocalConsoleCORS(t *testing.T) {
 		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "http://127.0.0.1:4000" {
 			t.Fatalf("unexpected allow origin: %q", got)
 		}
-		if got := rec.Header().Get("Access-Control-Allow-Methods"); got != "GET, POST, OPTIONS" {
+		if got := rec.Header().Get("Access-Control-Allow-Methods"); got != "GET, POST, PUT, OPTIONS" {
 			t.Fatalf("unexpected allow methods: %q", got)
 		}
 	})

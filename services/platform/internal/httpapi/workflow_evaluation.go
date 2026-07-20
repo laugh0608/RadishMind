@@ -26,14 +26,18 @@ const (
 type WorkflowEvaluationFailureCode string
 
 const (
-	WorkflowEvaluationFailureInvalid          WorkflowEvaluationFailureCode = "workflow_evaluation_invalid"
-	WorkflowEvaluationFailureRunNotEligible   WorkflowEvaluationFailureCode = "workflow_evaluation_run_not_eligible"
-	WorkflowEvaluationFailureNotFound         WorkflowEvaluationFailureCode = "workflow_evaluation_not_found"
-	WorkflowEvaluationFailureCursorInvalid    WorkflowEvaluationFailureCode = "workflow_evaluation_cursor_invalid"
-	WorkflowEvaluationFailureStoreUnavailable WorkflowEvaluationFailureCode = "workflow_evaluation_store_unavailable"
-	WorkflowEvaluationFailureStoreContract    WorkflowEvaluationFailureCode = "workflow_evaluation_store_contract_mismatch"
-	WorkflowEvaluationFailureVersionConflict  WorkflowEvaluationFailureCode = "workflow_evaluation_version_conflict"
-	WorkflowEvaluationFailureRevisionCursor   WorkflowEvaluationFailureCode = "workflow_evaluation_revision_cursor_invalid"
+	WorkflowEvaluationFailureInvalid                WorkflowEvaluationFailureCode = "workflow_evaluation_invalid"
+	WorkflowEvaluationFailureRunNotEligible         WorkflowEvaluationFailureCode = "workflow_evaluation_run_not_eligible"
+	WorkflowEvaluationFailureNotFound               WorkflowEvaluationFailureCode = "workflow_evaluation_not_found"
+	WorkflowEvaluationFailureCursorInvalid          WorkflowEvaluationFailureCode = "workflow_evaluation_cursor_invalid"
+	WorkflowEvaluationFailureStoreUnavailable       WorkflowEvaluationFailureCode = "workflow_evaluation_store_unavailable"
+	WorkflowEvaluationFailureStoreContract          WorkflowEvaluationFailureCode = "workflow_evaluation_store_contract_mismatch"
+	WorkflowEvaluationFailureVersionConflict        WorkflowEvaluationFailureCode = "workflow_evaluation_version_conflict"
+	WorkflowEvaluationFailureRevisionCursor         WorkflowEvaluationFailureCode = "workflow_evaluation_revision_cursor_invalid"
+	WorkflowEvaluationFailureSideEffectProfile      WorkflowEvaluationFailureCode = "workflow_run_side_effect_profile_unsupported"
+	WorkflowEvaluationFailureRetrievalProfile       WorkflowEvaluationFailureCode = "workflow_run_retrieval_profile_unsupported"
+	WorkflowEvaluationFailureRetrievalIncompatible  WorkflowEvaluationFailureCode = "workflow_run_retrieval_profile_incompatible"
+	WorkflowEvaluationFailureDefinitionIncompatible WorkflowEvaluationFailureCode = "workflow_definition_execution_profile_incompatible"
 )
 
 type WorkflowEvaluationRevisionKind string
@@ -256,6 +260,8 @@ type WorkflowEvaluationReviewItem struct {
 	ExpectedClassification  WorkflowRunComparisonClassification `json:"expected_classification"`
 	ActualClassification    WorkflowRunComparisonClassification `json:"actual_classification"`
 	ComparisonState         WorkflowRunComparisonState          `json:"comparison_state"`
+	ComparisonSchemaVersion string                              `json:"comparison_schema_version"`
+	RunProfile              string                              `json:"run_profile"`
 	Outcome                 string                              `json:"outcome"`
 	FindingCodes            []string                            `json:"finding_codes"`
 	RecommendedReviewAction WorkflowRunReviewAction             `json:"recommended_review_action"`
@@ -263,6 +269,7 @@ type WorkflowEvaluationReviewItem struct {
 type WorkflowEvaluationReview struct {
 	CaseID       string                         `json:"case_id"`
 	Version      int                            `json:"version"`
+	RunProfile   string                         `json:"run_profile"`
 	Outcome      string                         `json:"outcome"`
 	Matched      int                            `json:"matched"`
 	Mismatched   int                            `json:"mismatched"`
@@ -320,19 +327,41 @@ func (s workflowEvaluationService) validateDefinition(ctx WorkflowRunContext, ra
 		seen[id] = true
 		normalized = append(normalized, WorkflowEvaluationExpectation{CandidateRunID: id, ExpectedClassification: item.ExpectedClassification})
 	}
-	for id := range seen {
-		record, found, err := s.runStore.ReadRun(ctx, id)
-		if err != nil {
-			return "", "", nil, mapWorkflowEvaluationStoreError(err)
+	baselineRecord, code := s.readEligibleRun(ctx, baseline)
+	if code != "" {
+		return "", "", nil, code
+	}
+	for _, item := range normalized {
+		candidate, candidateCode := s.readEligibleRun(ctx, item.CandidateRunID)
+		if candidateCode != "" {
+			return "", "", nil, candidateCode
 		}
-		if !found {
-			return "", "", nil, WorkflowEvaluationFailureNotFound
+		if (workflowRunRecordUsesRetrievalComparison(baselineRecord) || workflowRunRecordUsesRetrievalComparison(candidate)) &&
+			(baselineRecord.SchemaVersion != candidate.SchemaVersion || !workflowRAGRunsComparable(baselineRecord, candidate)) {
+			return "", "", nil, WorkflowEvaluationFailureRetrievalIncompatible
 		}
-		if !workflowEvaluationRunEligible(record, s.now()) {
-			return "", "", nil, WorkflowEvaluationFailureRunNotEligible
+		if (baselineRecord.SchemaVersion == workflowRunRecordDefinitionSchemaVersion || candidate.SchemaVersion == workflowRunRecordDefinitionSchemaVersion) && !workflowDefinitionRunsComparable(baselineRecord, candidate) {
+			return "", "", nil, WorkflowEvaluationFailureDefinitionIncompatible
 		}
 	}
 	return name, baseline, normalized, ""
+}
+
+func (s workflowEvaluationService) readEligibleRun(ctx WorkflowRunContext, runID string) (WorkflowRunRecord, WorkflowEvaluationFailureCode) {
+	record, found, err := s.runStore.ReadRun(ctx, runID)
+	if err != nil {
+		return WorkflowRunRecord{}, mapWorkflowEvaluationStoreError(err)
+	}
+	if !found {
+		return WorkflowRunRecord{}, WorkflowEvaluationFailureNotFound
+	}
+	if workflowRunComparisonSideEffectProfileUnsupported(record) {
+		return WorkflowRunRecord{}, WorkflowEvaluationFailureSideEffectProfile
+	}
+	if !workflowEvaluationRunEligible(record, s.now()) {
+		return WorkflowRunRecord{}, WorkflowEvaluationFailureRunNotEligible
+	}
+	return record, ""
 }
 
 func (s workflowEvaluationService) Revise(ctx WorkflowRunContext, id string, request WorkflowEvaluationRevisionRequest) WorkflowEvaluationResult {
@@ -470,7 +499,7 @@ func (s workflowEvaluationService) ReviewVersion(ctx WorkflowRunContext, id stri
 	if read.FailureCode != "" {
 		return WorkflowEvaluationReviewResult{FailureCode: read.FailureCode, FailureSummary: read.FailureSummary}
 	}
-	review := WorkflowEvaluationReview{CaseID: read.Case.CaseID, Version: read.Case.Version, Items: make([]WorkflowEvaluationReviewItem, 0, len(read.Case.Expectations))}
+	review := WorkflowEvaluationReview{CaseID: read.Case.CaseID, Version: read.Case.Version, RunProfile: "unavailable", Items: make([]WorkflowEvaluationReviewItem, 0, len(read.Case.Expectations))}
 	comparisonService := newWorkflowExecutorService(nil, nil, s.runStore)
 	for _, expected := range read.Case.Expectations {
 		result := comparisonService.CompareRuns(ctx, read.Case.BaselineRunID, expected.CandidateRunID)
@@ -482,6 +511,18 @@ func (s workflowEvaluationService) ReviewVersion(ctx WorkflowRunContext, id stri
 			continue
 		}
 		if result.FailureCode != "" {
+			if result.FailureCode == WorkflowRunFailureRetrievalIncompatible {
+				return WorkflowEvaluationReviewResult{FailureCode: WorkflowEvaluationFailureRetrievalIncompatible, FailureSummary: "Workflow evaluation requires matching retrieval bindings."}
+			}
+			if result.FailureCode == WorkflowRunFailureSideEffectUnsupported {
+				return WorkflowEvaluationReviewResult{
+					FailureCode:    WorkflowEvaluationFailureSideEffectProfile,
+					FailureSummary: "Workflow evaluation does not support controlled tool side-effect profiles.",
+				}
+			}
+			if result.FailureCode == WorkflowRunFailureDefinitionIncompatible {
+				return WorkflowEvaluationReviewResult{FailureCode: WorkflowEvaluationFailureDefinitionIncompatible, FailureSummary: "Workflow evaluation requires one compatible workflow definition lineage and profile."}
+			}
 			code := WorkflowEvaluationFailureStoreUnavailable
 			if result.FailureCode == WorkflowRunFailureStoreContractMismatch {
 				code = WorkflowEvaluationFailureStoreContract
@@ -490,6 +531,14 @@ func (s workflowEvaluationService) ReviewVersion(ctx WorkflowRunContext, id stri
 		}
 		item.ActualClassification = result.Comparison.Classification
 		item.ComparisonState = result.Comparison.ComparisonState
+		item.ComparisonSchemaVersion = result.Comparison.SchemaVersion
+		item.RunProfile = result.Comparison.RunProfile
+		if result.Comparison.Retrieval != nil {
+			item.RunProfile = result.Comparison.Retrieval.RunProfile
+		}
+		if review.RunProfile == "unavailable" {
+			review.RunProfile = item.RunProfile
+		}
 		item.RecommendedReviewAction = result.Comparison.RecommendedReviewAction
 		for _, finding := range result.Comparison.Findings {
 			item.FindingCodes = append(item.FindingCodes, finding.Code)
@@ -714,6 +763,12 @@ func workflowEvaluationFailure(code WorkflowEvaluationFailureCode) WorkflowEvalu
 		summary = "Workflow evaluation storage is unavailable."
 	} else if code == WorkflowEvaluationFailureVersionConflict {
 		summary = "Workflow evaluation changed; review the current version before revising."
+	} else if code == WorkflowEvaluationFailureSideEffectProfile {
+		summary = "Workflow evaluation does not support controlled tool side-effect profiles."
+	} else if code == WorkflowEvaluationFailureRetrievalProfile {
+		summary = "Workflow evaluation does not support workflow retrieval profiles."
+	} else if code == WorkflowEvaluationFailureRetrievalIncompatible {
+		summary = "Workflow evaluation requires matching retrieval snapshot, profile, query, and node bindings."
 	}
 	return WorkflowEvaluationResult{FailureCode: code, FailureSummary: summary}
 }

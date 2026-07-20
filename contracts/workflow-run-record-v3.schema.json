@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-run-record-v3.schema.json",
+  "title": "WorkflowRunRecordV3",
+  "description": "Metadata-only run record for the batch B retrieval execution path. Structured answers are returned to the caller but are never persisted in this record.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "record_version", "run_id", "tenant_ref", "workspace_id", "application_id",
+    "draft_id", "draft_version", "draft_digest", "status", "failure_code", "failure_summary", "started_at", "completed_at",
+    "snapshot", "retrieval_attempt", "answer", "selected_provider", "selected_model", "request_id",
+    "audit_ref", "actor_ref", "side_effects", "diagnostic"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow_run_record.v3" },
+    "record_version": { "type": "integer", "minimum": 1 },
+    "run_id": { "type": "string", "pattern": "^run_[a-z0-9]{16,64}$" },
+    "tenant_ref": { "$ref": "#/$defs/reference" },
+    "workspace_id": { "$ref": "#/$defs/scoped_id" },
+    "application_id": { "$ref": "#/$defs/scoped_id" },
+    "draft_id": { "$ref": "#/$defs/scoped_id" },
+    "draft_version": { "type": "integer", "minimum": 1 },
+    "draft_digest": { "$ref": "#/$defs/digest" },
+    "status": { "enum": ["running", "succeeded", "failed", "canceled"] },
+    "failure_code": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^workflow_rag_[a-z_]{3,80}$" }
+      ]
+    },
+    "failure_summary": { "type": "string", "maxLength": 256 },
+    "started_at": { "type": "string", "format": "date-time" },
+    "completed_at": { "$ref": "#/$defs/nullable_timestamp" },
+    "snapshot": { "$ref": "#/$defs/snapshot_binding" },
+    "retrieval_attempt": { "$ref": "#/$defs/retrieval_attempt" },
+    "answer": { "type": "null" },
+    "selected_provider": { "$ref": "#/$defs/safe_string" },
+    "selected_model": { "$ref": "#/$defs/safe_string" },
+    "request_id": { "$ref": "#/$defs/reference" },
+    "audit_ref": { "$ref": "#/$defs/reference" },
+    "actor_ref": { "$ref": "#/$defs/reference" },
+    "side_effects": { "$ref": "#/$defs/side_effects" },
+    "diagnostic": { "$ref": "#/$defs/diagnostic" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "running" } }, "required": ["status"] },
+      "then": { "properties": { "completed_at": { "type": "null" }, "failure_code": { "type": "null" }, "answer": { "type": "null" } } },
+      "else": { "properties": { "completed_at": { "type": "string", "format": "date-time" } } }
+    }
+  ],
+  "$defs": {
+    "reference": { "type": "string", "minLength": 3, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$" },
+    "scoped_id": { "type": "string", "minLength": 3, "maxLength": 120, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$" },
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "safe_string": { "type": "string", "maxLength": 256, "not": { "pattern": "://" } },
+    "nullable_timestamp": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "format": "date-time" }
+      ]
+    },
+    "snapshot_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["snapshot_id", "snapshot_version", "snapshot_digest", "rag_ref"],
+      "properties": {
+        "snapshot_id": { "type": "string", "pattern": "^rags_[a-z2-7]{16}$" },
+        "snapshot_version": { "type": "integer", "minimum": 1 },
+        "snapshot_digest": { "$ref": "#/$defs/digest" },
+        "rag_ref": { "type": "string", "pattern": "^workflow\\.rag\\.[a-z][a-z0-9_]{2,47}\\.v[1-9][0-9]*$" }
+      }
+    },
+    "selected_fragment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fragment_ref", "content_digest", "rank", "source_type", "is_official", "excerpt_truncated"],
+      "properties": {
+        "fragment_ref": { "type": "string", "pattern": "^[a-z][a-z0-9_]{2,63}$" },
+        "content_digest": { "$ref": "#/$defs/digest" },
+        "rank": { "type": "integer", "minimum": 1, "maximum": 8 },
+        "source_type": { "enum": ["document", "wiki", "faq", "forum", "manual"] },
+        "is_official": { "type": "boolean" },
+        "excerpt_truncated": { "type": "boolean" }
+      }
+    },
+    "retrieval_attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_id", "status", "profile_id", "profile_version", "profile_digest", "query_digest",
+        "query_bytes", "candidate_count", "selected_fragments", "retrieval_latency_ms", "context_bytes", "citation_refs"
+      ],
+      "properties": {
+        "node_id": { "$ref": "#/$defs/scoped_id" },
+        "status": { "enum": ["not_started", "succeeded", "failed"] },
+        "profile_id": { "const": "workflow.rag.lexical-ngram-dev.v1" },
+        "profile_version": { "const": 1 },
+        "profile_digest": { "$ref": "#/$defs/digest" },
+        "query_digest": { "$ref": "#/$defs/digest" },
+        "query_bytes": { "type": "integer", "minimum": 0, "maximum": 4096 },
+        "candidate_count": { "type": "integer", "minimum": 0, "maximum": 256 },
+        "selected_fragments": { "type": "array", "maxItems": 8, "items": { "$ref": "#/$defs/selected_fragment" } },
+        "retrieval_latency_ms": { "type": "integer", "minimum": 0, "maximum": 2000 },
+        "context_bytes": { "type": "integer", "minimum": 0, "maximum": 32768 },
+        "citation_refs": { "type": "array", "maxItems": 8, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]{2,63}$" } }
+      }
+    },
+    "side_effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["retrieval_calls", "provider_calls", "tool_calls", "confirmation_calls", "business_writes", "replay_writes"],
+      "properties": {
+        "retrieval_calls": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "provider_calls": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "tool_calls": { "const": 0 },
+        "confirmation_calls": { "const": 0 },
+        "business_writes": { "const": 0 },
+        "replay_writes": { "const": 0 }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["failure_boundary", "retrieval_failure_category"],
+      "properties": {
+        "failure_boundary": {
+          "enum": ["none", "retrieval_policy", "retrieval_store", "retrieval_rank", "retrieval_context", "retrieval_citation", "provider_selection", "provider_call", "run_store"]
+        },
+        "retrieval_failure_category": {
+          "enum": ["none", "scope", "snapshot", "profile", "query", "budget", "no_evidence", "provider", "answer", "citation", "store"]
+        }
+      }
+    }
+  }
+}

@@ -504,10 +504,6 @@
       "control-plane-read-repository-adapter-implementation-plan-v1",
       "repository_adapter_implementation_plan_defined"
     ],
-    "docs/radishmind-roadmap.md": [
-      "control-plane-read-repository-adapter-implementation-plan-v1",
-      "repository adapter implementation plan"
-    ],
     "docs/radishmind-capability-matrix.md": [
       "control-plane-read-repository-adapter-implementation-plan-v1",
       "repository adapter implementation plan"
@@ -526,10 +522,6 @@
     "scripts/README.md": [
       "check-control-plane-read-repository-adapter-implementation-plan-v1.py",
       "control-plane-read-repository-adapter-implementation-plan-v1.json"
-    ],
-    "services/platform/README.md": [
-      "control-plane-read-repository-adapter-implementation-plan-v1",
-      "repository adapter implementation plan"
     ],
     "docs/devlogs/2026-W23.md": [
       "control-plane-read-repository-adapter-implementation-plan-v1",
@@ -552,10 +544,10 @@
     "services/platform/internal/httpapi/control_plane_read_repository_contract_smoke_runner.go",
     "scripts/check-repo.py",
     "scripts/README.md",
-    "services/platform/README.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-current-focus.md",
-    "docs/radishmind-roadmap.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-capability-matrix.md",
     "docs/radishmind-integration-contracts.md",
     "docs/task-cards/README.md",

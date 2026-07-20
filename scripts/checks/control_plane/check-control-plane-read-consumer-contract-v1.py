@@ -131,18 +131,9 @@ REQUIRED_DOC_REFERENCES = {
         "contracts/typescript/control-plane-read-api.ts",
         "run-control-plane-read-consumer-smoke.py",
     ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-consumer-contract-v1",
-        "control-plane-read-consumer-contract-v1.json",
-        "check-control-plane-read-consumer-contract-v1.py",
-    ],
     "docs/radishmind-architecture.md": [
         "control-plane-read-consumer-contract-v1",
         "contracts/typescript/control-plane-read-api.ts",
-    ],
-    "docs/radishmind-roadmap.md": [
-        "control-plane-read-consumer-contract-v1",
-        "上层消费契约",
     ],
     "docs/radishmind-capability-matrix.md": [
         "control-plane-read-consumer-contract-v1",
@@ -169,10 +160,6 @@ REQUIRED_DOC_REFERENCES = {
         "check-control-plane-read-consumer-contract-v1.py",
         "control-plane-read-consumer-contract-v1.json",
         "run-control-plane-read-consumer-smoke.py",
-    ],
-    "services/platform/README.md": [
-        "control-plane-read-consumer-contract-v1",
-        "contracts/typescript/control-plane-read-api.ts",
     ],
     "docs/devlogs/2026-W22.md": [
         "control-plane-read-consumer-contract-v1",

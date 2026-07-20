@@ -508,15 +508,6 @@
   "required_doc_references": {
     "docs/contracts/image-generation.md": [
       "image-artifact-runtime-mapper-implementation-entry-v1",
-      "image_artifact_runtime_mapper_implementation_entry_review_defined",
-      "runtime mapper implementation task card"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "image-artifact-runtime-mapper-implementation-entry-v1",
-      "image_artifact_runtime_mapper_implementation_entry_review_defined"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "image-artifact-runtime-mapper-implementation-entry-v1",
       "runtime mapper implementation task card"
     ],
     "docs/radishmind-capability-matrix.md": [

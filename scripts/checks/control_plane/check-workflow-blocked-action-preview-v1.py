@@ -279,7 +279,8 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
         "requiredDecisionShape",
         "humanReviewRequired: true",
         "decision: approve | reject",
-        "Confirmation submission is disabled",
+        "former run-bound confirmation placeholder is archived",
+        "legacy placeholder is permanently read-only",
     ):
         require(confirmation_literal in blocked_source, f"confirmation placeholder drifted: {confirmation_literal}")
 

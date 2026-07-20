@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-rag-application-binding.schema.json",
+  "title": "WorkflowRAGApplicationBindingV1",
+  "description": "Immutable reference-only application binding qualification issued by one valid human approval.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "binding_id", "binding_version", "binding_digest", "candidate_id", "candidate_digest",
+    "approved_decision_id", "approved_record_version", "tenant_ref", "workspace_id", "application_id", "owner_subject_ref",
+    "evidence", "issued_at", "issued_by_actor_ref", "request_id", "audit_ref"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow_rag_application_binding.v1" },
+    "binding_id": { "type": "string", "pattern": "^wragb_[a-z2-7]{16}$" },
+    "binding_version": { "const": 1 },
+    "binding_digest": { "$ref": "#/$defs/digest" },
+    "candidate_id": { "type": "string", "pattern": "^wragp_[a-z2-7]{16}$" },
+    "candidate_digest": { "$ref": "#/$defs/digest" },
+    "approved_decision_id": { "type": "string", "pattern": "^wragpd_[a-z2-7]{16}$" },
+    "approved_record_version": { "type": "integer", "minimum": 2 },
+    "tenant_ref": { "$ref": "#/$defs/reference" },
+    "workspace_id": { "$ref": "#/$defs/scoped_id" },
+    "application_id": { "$ref": "#/$defs/scoped_id" },
+    "owner_subject_ref": { "$ref": "#/$defs/reference" },
+    "evidence": { "$ref": "workflow-rag-knowledge-promotion-candidate.schema.json#/$defs/evidence" },
+    "issued_at": { "type": "string", "format": "date-time" },
+    "issued_by_actor_ref": { "$ref": "#/$defs/reference" },
+    "request_id": { "$ref": "#/$defs/reference" },
+    "audit_ref": { "$ref": "#/$defs/reference" }
+  },
+  "$defs": {
+    "reference": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{2,159}$" },
+    "scoped_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{2,119}$" },
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+  }
+}

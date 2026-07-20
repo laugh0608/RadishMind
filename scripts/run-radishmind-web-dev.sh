@@ -12,6 +12,20 @@ exit_after_probe=0
 saved_draft_dev=0
 saved_draft_postgres_dev_test=0
 workflow_diagnostics_dev=0
+gateway_request_postgres_dev_test=0
+application_draft_dev=0
+application_publish_dev=0
+application_publish_postgres_dev_test=0
+application_catalog_postgres_dev_test=0
+api_key_local_product=0
+workflow_http_tool_local_product=0
+workflow_rag_dev=0
+workflow_rag_promotion_local_product=0
+workflow_rag_application_local_product=0
+workflow_definition_local_product=0
+workflow_definition_postgres_dev_test=0
+application_session_local_product=0
+application_session_postgres_dev_test=0
 saved_draft_workspace_id="workspace_demo"
 saved_draft_application_id="app_flow_copilot"
 
@@ -39,6 +53,31 @@ Options:
                            Enable the explicit PostgreSQL dev/test Saved Draft path.
   --workflow-diagnostics-dev
                            Enable fixed mock Workflow failure scenarios; requires a Saved Draft dev mode.
+  --gateway-request-postgres-dev-test
+                           Enable durable dev/test Gateway Request History and the scoped Gateway Playground.
+  --application-draft-dev Enable the explicit memory-dev Application Configuration Draft path.
+  --application-publish-dev
+                           Enable memory-dev Application Draft and Publish Candidate review.
+  --application-publish-postgres-dev-test
+                           Enable PostgreSQL dev/test Application Draft and Publish Candidate review.
+  --application-catalog-postgres-dev-test
+                           Enable the PostgreSQL dev/test Application Catalog lifecycle UI.
+  --api-key-local-product  Enable the SQLite local-product Application/API key/Playground chain.
+  --workflow-http-tool-local-product
+                           Enable the SQLite local-product Workflow HTTP Tool chain.
+  --workflow-rag-dev       Enable the Workflow RAG snapshot, exact draft, retrieval execution, and Run History chain.
+  --workflow-rag-promotion-local-product
+                           Enable the SQLite evaluation, promotion, draft binding, and publish review chain without retrieval execution.
+  --workflow-rag-application-local-product
+                           Enable the SQLite application RAG assignment, API key, invocation, Run History, and evaluation chain.
+  --workflow-definition-local-product
+                           Enable the SQLite Saved Draft → candidate → review → activation → v5 run chain.
+  --workflow-definition-postgres-dev-test
+                           Enable the same chain with PostgreSQL dev/test repositories.
+  --application-session-local-product
+                           Enable the SQLite Application Session chain with Workflow Definition v5 and Application RAG v4 profiles.
+  --application-session-postgres-dev-test
+                           Enable the same dual-profile chain with PostgreSQL dev/test repositories.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
   -h, --help              Show this help.
@@ -87,6 +126,62 @@ while [[ $# -gt 0 ]]; do
       workflow_diagnostics_dev=1
       shift
       ;;
+    --gateway-request-postgres-dev-test)
+      gateway_request_postgres_dev_test=1
+      shift
+      ;;
+    --application-draft-dev)
+      application_draft_dev=1
+      shift
+      ;;
+    --application-publish-dev)
+      application_publish_dev=1
+      shift
+      ;;
+    --application-publish-postgres-dev-test)
+      application_publish_postgres_dev_test=1
+      shift
+      ;;
+    --application-catalog-postgres-dev-test)
+      application_catalog_postgres_dev_test=1
+      shift
+      ;;
+    --api-key-local-product)
+      api_key_local_product=1
+      shift
+      ;;
+    --workflow-http-tool-local-product)
+      workflow_http_tool_local_product=1
+      shift
+      ;;
+    --workflow-rag-dev)
+      workflow_rag_dev=1
+      shift
+      ;;
+    --workflow-rag-promotion-local-product)
+      workflow_rag_promotion_local_product=1
+      shift
+      ;;
+    --workflow-rag-application-local-product)
+      workflow_rag_application_local_product=1
+      shift
+      ;;
+    --workflow-definition-local-product)
+      workflow_definition_local_product=1
+      shift
+      ;;
+    --workflow-definition-postgres-dev-test)
+      workflow_definition_postgres_dev_test=1
+      shift
+      ;;
+    --application-session-local-product)
+      application_session_local_product=1
+      shift
+      ;;
+    --application-session-postgres-dev-test)
+      application_session_postgres_dev_test=1
+      shift
+      ;;
     --verify-only)
       verify_only=1
       shift
@@ -116,6 +211,32 @@ case "${mode}" in
     ;;
 esac
 
+if [[ "${application_session_local_product}" -eq 1 ]]; then
+  workflow_definition_local_product=1
+  workflow_rag_application_local_product=1
+fi
+if [[ "${application_session_postgres_dev_test}" -eq 1 ]]; then
+  workflow_definition_postgres_dev_test=1
+  application_publish_postgres_dev_test=1
+  gateway_request_postgres_dev_test=1
+fi
+if [[ "${workflow_definition_postgres_dev_test}" -eq 1 ]]; then
+  saved_draft_postgres_dev_test=1
+  application_catalog_postgres_dev_test=1
+fi
+workflow_definition_enabled=0
+if [[ "${workflow_definition_local_product}" -eq 1 || "${workflow_definition_postgres_dev_test}" -eq 1 ]]; then
+  workflow_definition_enabled=1
+fi
+application_session_enabled=0
+if [[ "${application_session_local_product}" -eq 1 || "${application_session_postgres_dev_test}" -eq 1 ]]; then
+  application_session_enabled=1
+fi
+workflow_rag_application_enabled=0
+if [[ "${workflow_rag_application_local_product}" -eq 1 || "${application_session_postgres_dev_test}" -eq 1 ]]; then
+  workflow_rag_application_enabled=1
+fi
+
 if [[ "${saved_draft_dev}" -eq 1 && "${mode}" != "dev-live" ]]; then
   echo "--saved-draft-dev requires --mode dev-live" >&2
   exit 2
@@ -132,10 +253,109 @@ if [[ "${workflow_diagnostics_dev}" -eq 1 && "${saved_draft_dev}" -eq 0 && "${sa
   echo "--workflow-diagnostics-dev requires --saved-draft-dev or --saved-draft-postgres-dev-test" >&2
   exit 2
 fi
+if [[ "${gateway_request_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--gateway-request-postgres-dev-test requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${application_draft_dev}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--application-draft-dev requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${application_publish_dev}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--application-publish-dev requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${application_publish_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--application-publish-postgres-dev-test requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${application_catalog_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--application-catalog-postgres-dev-test requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${api_key_local_product}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--api-key-local-product requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${workflow_http_tool_local_product}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--workflow-http-tool-local-product requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${workflow_rag_dev}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--workflow-rag-dev requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${workflow_rag_promotion_local_product}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--workflow-rag-promotion-local-product requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${workflow_rag_application_local_product}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--workflow-rag-application-local-product requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${workflow_definition_enabled}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "Workflow Definition local product requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${workflow_definition_local_product}" -eq 1 && "${workflow_definition_postgres_dev_test}" -eq 1 ]]; then
+  echo "Choose either --workflow-definition-local-product or --workflow-definition-postgres-dev-test" >&2
+  exit 2
+fi
+if [[ "${application_session_local_product}" -eq 1 && "${application_session_postgres_dev_test}" -eq 1 ]]; then
+  echo "Choose either --application-session-local-product or --application-session-postgres-dev-test" >&2
+  exit 2
+fi
+if [[ "${application_publish_dev}" -eq 1 && "${application_publish_postgres_dev_test}" -eq 1 ]]; then
+  echo "Choose either --application-publish-dev or --application-publish-postgres-dev-test" >&2
+  exit 2
+fi
+if [[ "${application_draft_dev}" -eq 1 && "${application_publish_postgres_dev_test}" -eq 1 ]]; then
+  echo "--application-draft-dev cannot be combined with --application-publish-postgres-dev-test" >&2
+  exit 2
+fi
+
+explicit_component_mode=0
+if [[ "${saved_draft_dev}" -eq 1 || "${saved_draft_postgres_dev_test}" -eq 1 ||
+  "${gateway_request_postgres_dev_test}" -eq 1 || "${application_draft_dev}" -eq 1 ||
+  "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 ||
+  "${application_catalog_postgres_dev_test}" -eq 1 ]]; then
+  explicit_component_mode=1
+fi
+if [[ "${api_key_local_product}" -eq 1 && "${explicit_component_mode}" -eq 1 ]]; then
+  echo "--api-key-local-product cannot be combined with explicit memory/PostgreSQL component modes" >&2
+  exit 2
+fi
+if [[ "${workflow_http_tool_local_product}" -eq 1 && "${explicit_component_mode}" -eq 1 ]]; then
+  echo "--workflow-http-tool-local-product cannot be combined with explicit memory/PostgreSQL component modes" >&2
+  exit 2
+fi
+if [[ "${workflow_rag_promotion_local_product}" -eq 1 && "${explicit_component_mode}" -eq 1 ]]; then
+  echo "--workflow-rag-promotion-local-product cannot be combined with explicit memory/PostgreSQL component modes" >&2
+  exit 2
+fi
+if [[ "${workflow_rag_application_local_product}" -eq 1 && "${explicit_component_mode}" -eq 1 ]]; then
+  echo "--workflow-rag-application-local-product cannot be combined with explicit memory/PostgreSQL component modes" >&2
+  exit 2
+fi
+if [[ "${workflow_definition_local_product}" -eq 1 && "${explicit_component_mode}" -eq 1 ]]; then
+  echo "--workflow-definition-local-product cannot be combined with explicit memory/PostgreSQL component modes" >&2
+  exit 2
+fi
+platform_profile="local-product"
+if [[ "${explicit_component_mode}" -eq 1 ]]; then
+  platform_profile="configured"
+fi
 
 saved_draft_enabled=0
-if [[ "${saved_draft_dev}" -eq 1 || "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
+if [[ "${saved_draft_dev}" -eq 1 || "${saved_draft_postgres_dev_test}" -eq 1 ||
+  "${workflow_http_tool_local_product}" -eq 1 || "${workflow_rag_dev}" -eq 1 ||
+  "${workflow_rag_application_enabled}" -eq 1 || "${workflow_definition_enabled}" -eq 1 ]]; then
   saved_draft_enabled=1
+fi
+
+workflow_rag_snapshot_enabled=0
+if [[ "${platform_profile}" == "local-product" || "${saved_draft_enabled}" -eq 1 ]]; then
+  workflow_rag_snapshot_enabled=1
 fi
 
 step() {
@@ -194,11 +414,41 @@ probe_saved_draft_postgres_migration() {
 		export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="postgres_dev_test"
     export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL="${database_url}"
+		export RADISHMIND_APPLICATION_DRAFT_DEV_HTTP="1"
+		export RADISHMIND_APPLICATION_DRAFT_DEV_WRITE="1"
+		export RADISHMIND_APPLICATION_DRAFT_STORE="postgres_dev_test"
+		export RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL="${database_url}"
 		export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
 		export RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL="${database_url}"
+		export RADISHMIND_GATEWAY_REQUEST_STORE="postgres_dev_test"
+		export RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL="${database_url}"
+		export RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV="1"
+		export RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP="1"
+		export RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE="1"
+		export RADISHMIND_APPLICATION_PUBLISH_STORE="postgres_dev_test"
+		export RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL="${database_url}"
+		export RADISHMIND_APPLICATION_CATALOG_DEV_HTTP="1"
+		export RADISHMIND_APPLICATION_CATALOG_DEV_WRITE="1"
+		export RADISHMIND_APPLICATION_CATALOG_STORE="postgres_dev_test"
+		export RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL="${database_url}"
+		export RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP="1"
+		export RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE="1"
+		export RADISHMIND_API_KEY_STORE="postgres_dev_test"
+		export RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL="${database_url}"
     cd "${platform_dir}"
-    go run ./cmd/radishmind-workflow-draft-migrate status >/dev/null
-		go run ./cmd/radishmind-workflow-run-migrate status >/dev/null
+		go run ./cmd/radishmind-workflow-draft-migrate status >/dev/null || return
+		go run ./cmd/radishmind-application-draft-migrate status >/dev/null || return
+		go run ./cmd/radishmind-workflow-run-migrate status >/dev/null || return
+		go run ./cmd/radishmind-gateway-request-migrate status >/dev/null || return
+		if [[ "${application_session_postgres_dev_test}" -eq 1 ]]; then
+			go run ./cmd/radishmind-api-key-migrate status >/dev/null || return
+		fi
+		if [[ "${application_publish_postgres_dev_test}" -eq 1 ]]; then
+			go run ./cmd/radishmind-application-publish-migrate status >/dev/null || return
+		fi
+		if [[ "${application_catalog_postgres_dev_test}" -eq 1 ]]; then
+			go run ./cmd/radishmind-application-catalog-migrate status >/dev/null || return
+		fi
   )
 }
 
@@ -296,7 +546,7 @@ probe_control_plane_read_routes() {
   local base_url="$1"
   local tenant="$2"
   local subject="$3"
-  "${python_bin}" - "$base_url" "$tenant" "$subject" <<'PY'
+  "${python_bin}" - "$base_url" "$tenant" "$subject" "${application_catalog_postgres_dev_test}" "${saved_draft_workspace_id}" "${platform_profile}" <<'PY'
 import json
 import sys
 from urllib.parse import quote
@@ -305,10 +555,19 @@ from urllib.request import Request, urlopen
 base_url = sys.argv[1].rstrip("/")
 tenant = sys.argv[2]
 subject = sys.argv[3]
+catalog_enabled = sys.argv[4] == "1"
+workspace_id = sys.argv[5]
+local_product = sys.argv[6] == "local-product"
+application_route = "/v1/user-workspace/applications"
+if catalog_enabled or local_product:
+    application_route += f"?workspace_id={quote(workspace_id)}&lifecycle_state=active&limit=1"
+api_key_route = "/v1/user-workspace/api-keys"
+if local_product or catalog_enabled:
+    api_key_route += f"?workspace_id={quote(workspace_id)}&limit=1"
 routes = [
     f"/v1/control-plane/tenants/{quote(tenant)}/summary",
-    "/v1/user-workspace/applications",
-    "/v1/user-workspace/api-keys",
+    application_route,
+    api_key_route,
     "/v1/user-workspace/usage/quota-summary",
     "/v1/user-workspace/workflow-definitions",
     "/v1/user-workspace/runs",
@@ -336,6 +595,27 @@ for path in routes:
         raise SystemExit(f"Route returned failure_code={document.get('failure_code')} from {url}")
     if not isinstance(document.get("items"), list):
         raise SystemExit(f"Route did not return items[] from {url}")
+PY
+}
+
+probe_gateway_api_key_mode() {
+  local base_url="$1"
+  "${python_bin}" - "$base_url" <<'PY'
+import json
+import sys
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
+
+url = sys.argv[1].rstrip("/") + "/v1/models"
+request = Request(url, headers={"Accept": "application/json", "X-Request-Id": "api-key-mode-probe"}, method="GET")
+try:
+    urlopen(request, timeout=5)
+except HTTPError as error:
+    document = json.loads(error.read().decode("utf-8"))
+    if error.code != 401 or document.get("error", {}).get("code") != "api_key_missing":
+        raise SystemExit(f"Gateway API key mode probe returned HTTP {error.code}: {document}")
+else:
+    raise SystemExit("Gateway accepted an unauthenticated model request; api_key_dev_test mode is not active")
 PY
 }
 
@@ -381,6 +661,76 @@ if document.get("failure_code") is not None:
     raise SystemExit(f"Saved Draft route returned failure_code={document.get('failure_code')} from {url}")
 if not isinstance(document.get("draft_summaries"), list):
     raise SystemExit(f"Saved Draft route did not return draft_summaries[] from {url}")
+PY
+}
+
+probe_workflow_definition_route() {
+  local base_url="$1"
+  local tenant="$2"
+  local subject="$3"
+  local workspace_id="$4"
+  local application_id="$5"
+  "${python_bin}" - "$base_url" "$tenant" "$subject" "$workspace_id" "$application_id" <<'PY'
+import json
+import sys
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+
+base_url, tenant, subject, workspace_id, application_id = sys.argv[1:]
+query = urlencode({"workspace_id": workspace_id, "application_id": application_id})
+url = f"{base_url.rstrip('/')}/v1/user-workspace/workflow-definition-candidates?{query}"
+request = Request(url, headers={
+    "Accept": "application/json",
+    "X-Request-Id": "dev-live-workflow-definition-probe",
+    "X-RadishMind-Dev-Read-Identity": "dev-live-workflow-definition-probe",
+    "X-RadishMind-Dev-Read-Tenant": tenant,
+    "X-RadishMind-Dev-Read-Subject": subject,
+    "X-RadishMind-Dev-Read-Scopes": "workflow_definitions:read",
+    "X-RadishMind-Dev-Read-Audit": "audit_dev_live_workflow_definition_probe",
+    "X-RadishMind-Dev-Workflow-Workspace": workspace_id,
+    "X-RadishMind-Dev-Workflow-Application": application_id,
+}, method="GET")
+with urlopen(request, timeout=5) as response:
+    if response.status < 200 or response.status >= 300:
+        raise SystemExit(f"Unexpected HTTP status {response.status} from {url}")
+    document = json.loads(response.read().decode("utf-8"))
+if document.get("failure_code") is not None or not isinstance(document.get("candidates"), list):
+    raise SystemExit("Workflow Definition route did not return a successful candidates[] envelope")
+PY
+}
+
+probe_application_session_route() {
+  local base_url="$1"
+  local tenant="$2"
+  local subject="$3"
+  local workspace_id="$4"
+  local application_id="$5"
+  "${python_bin}" - "$base_url" "$tenant" "$subject" "$workspace_id" "$application_id" <<'PY'
+import json
+import sys
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+
+base_url, tenant, subject, workspace_id, application_id = sys.argv[1:]
+query = urlencode({"workspace_id": workspace_id, "application_id": application_id, "limit": "1"})
+url = f"{base_url.rstrip('/')}/v1/user-workspace/application-sessions?{query}"
+request = Request(url, headers={
+    "Accept": "application/json",
+    "X-Request-Id": "dev-live-application-session-probe",
+    "X-RadishMind-Dev-Read-Identity": "dev-live-application-session-probe",
+    "X-RadishMind-Dev-Read-Tenant": tenant,
+    "X-RadishMind-Dev-Read-Subject": subject,
+    "X-RadishMind-Dev-Read-Scopes": "application_sessions:read",
+    "X-RadishMind-Dev-Read-Audit": "audit_dev_live_application_session_probe",
+    "X-RadishMind-Dev-Workflow-Workspace": workspace_id,
+    "X-RadishMind-Dev-Workflow-Application": application_id,
+}, method="GET")
+with urlopen(request, timeout=5) as response:
+    if response.status < 200 or response.status >= 300:
+        raise SystemExit(f"Unexpected HTTP status {response.status} from {url}")
+    document = json.loads(response.read().decode("utf-8"))
+if document.get("failure_code") is not None or not isinstance(document.get("items"), list):
+    raise SystemExit("Application Session route did not return a successful items[] envelope")
 PY
 }
 
@@ -440,6 +790,52 @@ with urlopen(list_request, timeout=5) as response:
     list_document = json.loads(response.read().decode("utf-8"))
 if list_document.get("failure_code") is not None or not isinstance(list_document.get("runs"), list):
     raise SystemExit("Workflow run history list probe did not return a successful runs[] envelope")
+PY
+}
+
+probe_workflow_rag_execution_route() {
+  local base_url="$1"
+  local tenant="$2"
+  local subject="$3"
+  local workspace_id="$4"
+  local application_id="$5"
+  "${python_bin}" - "$base_url" "$tenant" "$subject" "$workspace_id" "$application_id" <<'PY'
+import json
+import sys
+from urllib.request import Request, urlopen
+
+base_url, tenant, subject, workspace_id, application_id = sys.argv[1:]
+url = f"{base_url.rstrip('/')}/v1/user-workspace/workflow-drafts/draft_rag_probe_missing/retrieval-executions"
+request = Request(
+    url,
+    data=json.dumps({
+        "workspace_id": workspace_id,
+        "application_id": application_id,
+        "draft_version": 1,
+        "input_text": "workflow RAG execution gate probe",
+        "model": "",
+        "temperature": None,
+    }).encode("utf-8"),
+    headers={
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "X-Request-Id": "dev-live-workflow-rag-execution-probe",
+        "X-RadishMind-Dev-Read-Identity": "dev-live-workflow-rag-execution-probe",
+        "X-RadishMind-Dev-Read-Tenant": tenant,
+        "X-RadishMind-Dev-Read-Subject": subject,
+        "X-RadishMind-Dev-Read-Scopes": "workflow_rag:execute,workflow_runs:execute,workflow_drafts:read,workflow_rag_snapshots:read",
+        "X-RadishMind-Dev-Read-Audit": "audit_dev_live_workflow_rag_execution_probe",
+        "X-RadishMind-Dev-Workflow-Workspace": workspace_id,
+        "X-RadishMind-Dev-Workflow-Application": application_id,
+    },
+    method="POST",
+)
+with urlopen(request, timeout=5) as response:
+    document = json.loads(response.read().decode("utf-8"))
+    if response.status < 200 or response.status >= 300:
+        raise SystemExit(f"Unexpected HTTP status {response.status} from {url}")
+if document.get("failure_code") != "workflow_rag_draft_ineligible" or document.get("run") is not None:
+    raise SystemExit(f"Workflow RAG execution probe returned incompatible evidence: {document.get('failure_code')}")
 PY
 }
 
@@ -534,7 +930,9 @@ show_failure_help() {
     echo "- Port conflict: backend should answer on http://127.0.0.1:7000 and web on http://127.0.0.1:4100."
     echo "- macOS port 7000 conflict: AirPlay / Control Center may occupy it; retry with --backend-url http://127.0.0.1:7100."
     echo "- Dev-live auth: backend must be started with RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1 for fake-store-backed read routes."
-    echo "- Saved Draft mode: choose --saved-draft-dev or --saved-draft-postgres-dev-test so backend and web opt in together."
+    echo "- Workflow mode: choose --saved-draft-dev, --saved-draft-postgres-dev-test, or --workflow-http-tool-local-product so backend and web opt in together."
+    echo "- Gateway Request History: use --gateway-request-postgres-dev-test after running the PostgreSQL check entry."
+    echo "- API key local product: use --api-key-local-product by itself so SQLite lifecycle and api_key_dev_test auth stay aligned."
     echo "- PostgreSQL dev/test mode: start and migrate it with ./scripts/run-workflow-saved-draft-postgres-dev-test.sh check."
     echo "- CORS/preflight: platform should allow http://127.0.0.1:4100 and dev read headers in local development."
     echo "- Missing dependencies: run npm install in apps/radishmind-web if npm cannot start Vite."
@@ -585,14 +983,14 @@ if [[ "${mode}" == "dev-live" && ! -f "${platform_wrapper}" ]]; then
 fi
 
 saved_draft_database_url=""
-if [[ "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
+if [[ "${saved_draft_postgres_dev_test}" -eq 1 || "${gateway_request_postgres_dev_test}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${application_catalog_postgres_dev_test}" -eq 1 ]]; then
   require_command go
   saved_draft_database_url="$(build_saved_draft_database_url)"
   if ! probe_saved_draft_postgres_migration "${saved_draft_database_url}"; then
-    show_failure_help "Saved Draft PostgreSQL migration preflight failed"
+    show_failure_help "PostgreSQL dev/test migration preflight failed"
     exit 1
   fi
-  step "Saved Draft PostgreSQL migration preflight passed."
+  step "PostgreSQL dev/test migration preflight passed."
 fi
 
 if [[ "${verify_only}" -eq 0 ]]; then
@@ -610,15 +1008,67 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export RADISHMIND_PLATFORM_PROVIDER="${RADISHMIND_PLATFORM_PROVIDER:-mock}"
         export RADISHMIND_PLATFORM_MODEL="${RADISHMIND_PLATFORM_MODEL:-radishmind-local-dev}"
         export RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH="1"
+        if [[ "${workflow_rag_snapshot_enabled}" -eq 1 ]]; then
+          export RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV="1"
+        fi
+        if [[ "${workflow_rag_dev}" -eq 1 ]]; then
+          export RADISHMIND_WORKFLOW_RAG_EXECUTION_DEV="1"
+        fi
+        if [[ "${workflow_rag_promotion_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]]; then
+          export RADISHMIND_WORKFLOW_RAG_EVALUATION_DEV="1"
+          export RADISHMIND_WORKFLOW_RAG_PROMOTION_DEV="1"
+        fi
+        if [[ "${workflow_rag_application_enabled}" -eq 1 ]]; then
+          export RADISHMIND_WORKFLOW_RAG_APPLICATION_INVOCATION_DEV="1"
+          export RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP="1"
+          export RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE="1"
+        fi
+        if [[ "${application_session_enabled}" -eq 1 ]]; then
+          export RADISHMIND_APPLICATION_SESSION_DEV="1"
+        fi
+        if [[ "${workflow_definition_enabled}" -eq 1 ]]; then
+          export RADISHMIND_WORKFLOW_DEFINITION_RELEASE_DEV="1"
+          export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
+          export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
+          export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
+        fi
+        if [[ "${api_key_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]]; then
+          export RADISHMIND_GATEWAY_AUTH_MODE="api_key_dev_test"
+        fi
+        if [[ "${application_publish_postgres_dev_test}" -eq 1 ]]; then
+          export RADISHMIND_APPLICATION_DRAFT_DEV_HTTP="1"
+          export RADISHMIND_APPLICATION_DRAFT_DEV_WRITE="1"
+          export RADISHMIND_APPLICATION_DRAFT_STORE="postgres_dev_test"
+          export RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+          export RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP="1"
+          export RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE="1"
+          export RADISHMIND_APPLICATION_PUBLISH_STORE="postgres_dev_test"
+          export RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+        elif [[ "${application_publish_dev}" -eq 1 ]]; then
+          export RADISHMIND_APPLICATION_DRAFT_DEV_HTTP="1"
+          export RADISHMIND_APPLICATION_DRAFT_DEV_WRITE="1"
+          export RADISHMIND_APPLICATION_DRAFT_STORE="memory_dev"
+          export RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP="1"
+          export RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE="1"
+          export RADISHMIND_APPLICATION_PUBLISH_STORE="memory_dev"
+        elif [[ "${application_draft_dev}" -eq 1 ]]; then
+          export RADISHMIND_APPLICATION_DRAFT_DEV_HTTP="1"
+          export RADISHMIND_APPLICATION_DRAFT_DEV_WRITE="1"
+          export RADISHMIND_APPLICATION_DRAFT_STORE="memory_dev"
+        fi
         if [[ "${saved_draft_dev}" -eq 1 ]]; then
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
           export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
+          export RADISHMIND_WORKFLOW_TOOL_ACTION_DEV="1"
+          export RADISHMIND_WORKFLOW_HTTP_TOOL_EXECUTION_DEV="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="memory_dev"
         elif [[ "${saved_draft_postgres_dev_test}" -eq 1 ]]; then
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
           export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
+          export RADISHMIND_WORKFLOW_TOOL_ACTION_DEV="1"
+          export RADISHMIND_WORKFLOW_HTTP_TOOL_EXECUTION_DEV="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE="postgres_dev_test"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
 			export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
@@ -627,7 +1077,22 @@ if [[ "${verify_only}" -eq 0 ]]; then
         if [[ "${workflow_diagnostics_dev}" -eq 1 ]]; then
           export RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV="1"
         fi
-        exec "${platform_wrapper}" serve
+        if [[ "${gateway_request_postgres_dev_test}" -eq 1 ]]; then
+          export RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV="1"
+          export RADISHMIND_GATEWAY_REQUEST_STORE="postgres_dev_test"
+          export RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+        fi
+        if [[ "${application_catalog_postgres_dev_test}" -eq 1 ]]; then
+          export RADISHMIND_APPLICATION_CATALOG_DEV_HTTP="1"
+          export RADISHMIND_APPLICATION_CATALOG_DEV_WRITE="1"
+          export RADISHMIND_APPLICATION_CATALOG_STORE="postgres_dev_test"
+          export RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+        fi
+        if [[ "${application_session_postgres_dev_test}" -eq 1 ]]; then
+          export RADISHMIND_API_KEY_STORE="postgres_dev_test"
+          export RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+        fi
+        exec "${platform_wrapper}" --profile "${platform_profile}" serve
       ) >"${log_dir}/platform.out.log" 2>"${log_dir}/platform.err.log" &
       spawned_pids+=("$!")
     fi
@@ -644,18 +1109,132 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL="${backend_url%/}"
         export VITE_RADISHMIND_DEV_READ_TENANT_REF="${tenant_ref}"
         export VITE_RADISHMIND_DEV_READ_SUBJECT_REF="${subject_ref}"
+        if [[ "${application_draft_dev}" -eq 1 || "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_rag_promotion_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE="dev-application-draft-http"
+          export VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID="${saved_draft_workspace_id}"
+        fi
+        if [[ "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_rag_promotion_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE="dev-application-publish-http"
+          export VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID="${saved_draft_workspace_id}"
+        fi
+        if [[ "${application_catalog_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_http_tool_local_product}" -eq 1 || "${workflow_rag_dev}" -eq 1 || "${workflow_rag_promotion_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${workflow_definition_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE="dev-application-catalog-http"
+          export VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID="${saved_draft_workspace_id}"
+        fi
+        if [[ "${api_key_local_product}" -eq 1 || "${workflow_http_tool_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE="dev-api-key-lifecycle-http"
+          export VITE_RADISHMIND_API_KEY_LIFECYCLE_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_API_KEY_LIFECYCLE_WORKSPACE_ID="${saved_draft_workspace_id}"
+        fi
+        if [[ "${api_key_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_GATEWAY_AUTH_MODE="api_key_dev_test"
+        fi
         if [[ "${saved_draft_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE="dev-saved-draft-http"
           export VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE="dev-workflow-executor-http"
+          export VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE="dev-workflow-http-tool-http"
+          export VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS="workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm,workflow_tool_actions:execute,workflow_runs:execute"
+        fi
+        if [[ "${workflow_definition_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE="dev-workflow-definition-promotion-http"
+          export VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_WORKSPACE_ID="${saved_draft_workspace_id}"
+        fi
+        if [[ "${application_session_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_APPLICATION_SESSION_SOURCE="dev-application-session-http"
+          export VITE_RADISHMIND_APPLICATION_SESSION_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_APPLICATION_SESSION_WORKSPACE_ID="${saved_draft_workspace_id}"
+        fi
+        if [[ "${workflow_rag_snapshot_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_WORKFLOW_RAG_SOURCE="dev-workflow-rag-http"
+          export VITE_RADISHMIND_WORKFLOW_RAG_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_WORKFLOW_RAG_WORKSPACE_ID="${saved_draft_workspace_id}"
+          if [[ "${workflow_rag_dev}" -eq 1 ]]; then
+            export VITE_RADISHMIND_WORKFLOW_RAG_SCOPES="workflow_rag_snapshots:read,workflow_rag_snapshots:write,workflow_rag_snapshots:archive,workflow_rag:execute,workflow_runs:execute,workflow_drafts:read"
+          else
+            export VITE_RADISHMIND_WORKFLOW_RAG_SCOPES="workflow_rag_snapshots:read,workflow_rag_snapshots:write,workflow_rag_snapshots:archive"
+          fi
+        fi
+        if [[ "${workflow_rag_promotion_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_SOURCE="dev-workflow-rag-evaluation-http"
+          export VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_SCOPES="workflow_rag_evaluation_datasets:read,workflow_rag_evaluation_datasets:read_content,workflow_rag_evaluation_datasets:write,workflow_rag_evaluation_datasets:review,workflow_rag_evaluation_datasets:archive,workflow_rag_snapshots:read"
+          export VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_SOURCE="dev-workflow-rag-promotion-http"
+          export VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_SCOPES="workflow_rag_promotions:read,workflow_rag_promotions:write,workflow_rag_promotions:review,workflow_rag_evaluation_datasets:read,workflow_rag_snapshots:read,application_drafts:read"
+        fi
+        if [[ "${workflow_rag_application_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_WORKFLOW_RAG_APPLICATION_RUNTIME_SOURCE="dev-workflow-rag-application-runtime-http"
+          export VITE_RADISHMIND_WORKFLOW_RAG_APPLICATION_RUNTIME_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_WORKFLOW_RAG_APPLICATION_RUNTIME_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
         if [[ "${workflow_diagnostics_dev}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV="true"
+        fi
+        if [[ "${gateway_request_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE="dev-gateway-request-history-http"
+          export VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE="dev-gateway-playground-http"
+          export VITE_RADISHMIND_GATEWAY_PLAYGROUND_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_GATEWAY_PLAYGROUND_MODEL="${RADISHMIND_PLATFORM_MODEL:-radishmind-local-dev}"
+          export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_TENANT_REF="${tenant_ref}"
+          export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_WORKSPACE_ID="${saved_draft_workspace_id}"
+          export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_CONSUMER_REF="consumer_web_dev"
+          export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_APPLICATION_ID="${saved_draft_application_id}"
+          export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SUBJECT_REF="${subject_ref}"
         fi
       else
         unset VITE_RADISHMIND_READ_SOURCE
         unset VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL
         unset VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE
         unset VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS
+        unset VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_BASE_URL
+        unset VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_WORKSPACE_ID
+        unset VITE_RADISHMIND_APPLICATION_SESSION_SOURCE
+        unset VITE_RADISHMIND_APPLICATION_SESSION_BASE_URL
+        unset VITE_RADISHMIND_APPLICATION_SESSION_WORKSPACE_ID
+        unset VITE_RADISHMIND_WORKFLOW_RAG_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_RAG_BASE_URL
+        unset VITE_RADISHMIND_WORKFLOW_RAG_WORKSPACE_ID
+        unset VITE_RADISHMIND_WORKFLOW_RAG_SCOPES
+        unset VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_BASE_URL
+        unset VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_SCOPES
+        unset VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_BASE_URL
+        unset VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_SCOPES
+        unset VITE_RADISHMIND_WORKFLOW_RAG_APPLICATION_RUNTIME_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_RAG_APPLICATION_RUNTIME_BASE_URL
+        unset VITE_RADISHMIND_WORKFLOW_RAG_APPLICATION_RUNTIME_WORKSPACE_ID
+        unset VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE
+        unset VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL
+        unset VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID
+        unset VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE
+        unset VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL
+        unset VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID
+        unset VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE
+        unset VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL
+        unset VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID
+        unset VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE
+        unset VITE_RADISHMIND_API_KEY_LIFECYCLE_BASE_URL
+        unset VITE_RADISHMIND_API_KEY_LIFECYCLE_WORKSPACE_ID
+        unset VITE_RADISHMIND_GATEWAY_AUTH_MODE
+        unset VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE
+        unset VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE
+        unset VITE_RADISHMIND_GATEWAY_PLAYGROUND_BASE_URL
+        unset VITE_RADISHMIND_GATEWAY_PLAYGROUND_MODEL
+        unset VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_BASE_URL
+        unset VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_TENANT_REF
+        unset VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_WORKSPACE_ID
+        unset VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_CONSUMER_REF
+        unset VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_APPLICATION_ID
+        unset VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SUBJECT_REF
       fi
       exec npm run dev
     ) >"${log_dir}/web.out.log" 2>"${log_dir}/web.err.log" &
@@ -674,6 +1253,10 @@ if [[ "${mode}" == "dev-live" ]]; then
   fi
   if ! wait_until "dev-live read routes" probe_control_plane_read_routes "${backend_url}" "${tenant_ref}" "${subject_ref}"; then
     show_failure_help "dev-live read route probe failed"
+    exit 1
+  fi
+  if [[ "${api_key_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]] && ! wait_until "Gateway API key auth mode" probe_gateway_api_key_mode "${backend_url}"; then
+    show_failure_help "Gateway api_key_dev_test mode probe failed"
     exit 1
   fi
   if [[ "${saved_draft_enabled}" -eq 1 ]] && ! wait_until \
@@ -698,6 +1281,39 @@ if [[ "${mode}" == "dev-live" ]]; then
     show_failure_help "Workflow Executor dev route probe failed"
     exit 1
   fi
+  if [[ "${workflow_rag_dev}" -eq 1 ]] && ! wait_until \
+    "Workflow RAG execution dev route" \
+    probe_workflow_rag_execution_route \
+    "${backend_url}" \
+    "${tenant_ref}" \
+    "${subject_ref}" \
+    "${saved_draft_workspace_id}" \
+    "${saved_draft_application_id}"; then
+    show_failure_help "Workflow RAG execution dev route probe failed"
+    exit 1
+  fi
+  if [[ "${workflow_definition_enabled}" -eq 1 ]] && ! wait_until \
+    "Workflow Definition promotion dev route" \
+    probe_workflow_definition_route \
+    "${backend_url}" \
+    "${tenant_ref}" \
+    "${subject_ref}" \
+    "${saved_draft_workspace_id}" \
+    "${saved_draft_application_id}"; then
+    show_failure_help "Workflow Definition promotion dev route probe failed"
+    exit 1
+  fi
+  if [[ "${application_session_enabled}" -eq 1 ]] && ! wait_until \
+    "Application Session dev route" \
+    probe_application_session_route \
+    "${backend_url}" \
+    "${tenant_ref}" \
+    "${subject_ref}" \
+    "${saved_draft_workspace_id}" \
+    "${saved_draft_application_id}"; then
+    show_failure_help "Application Session dev route probe failed"
+    exit 1
+  fi
 fi
 
 if ! wait_until "frontend web" probe_page "${frontend_url}"; then
@@ -713,8 +1329,40 @@ if [[ "${mode}" == "dev-live" ]]; then
   elif [[ "${saved_draft_dev}" -eq 1 ]]; then
     step "Saved Draft memory-dev read/write mode passed for ${saved_draft_workspace_id}/${saved_draft_application_id}."
   fi
+  if [[ "${gateway_request_postgres_dev_test}" -eq 1 ]]; then
+    step "Gateway Playground and Request History PostgreSQL dev/test mode enabled for ${saved_draft_workspace_id}/consumer_web_dev/${saved_draft_application_id}."
+  fi
+  if [[ "${api_key_local_product}" -eq 1 ]]; then
+    step "API key SQLite local-product Web chain enabled for ${saved_draft_workspace_id}; raw credentials remain browser-memory only."
+  fi
+  if [[ "${workflow_http_tool_local_product}" -eq 1 ]]; then
+    step "Workflow HTTP Tool SQLite local-product Web chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; approve and execute remain separate actions."
+  fi
+  if [[ "${workflow_rag_dev}" -eq 1 ]]; then
+    step "Workflow RAG Web chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; execution is synchronous, metadata-only, and dev/test only."
+  fi
+  if [[ "${workflow_rag_promotion_local_product}" -eq 1 ]]; then
+    step "Workflow RAG promotion SQLite local-product Web chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; approve, attach, and publish review remain separate actions."
+  fi
+  if [[ "${workflow_rag_application_local_product}" -eq 1 ]]; then
+    step "Workflow RAG application SQLite local-product Web chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; assignment, API key handoff, invocation, history, and evaluation remain explicit dev/test actions."
+  fi
+  if [[ "${workflow_definition_enabled}" -eq 1 ]]; then
+    definition_store="SQLite"
+    if [[ "${workflow_definition_postgres_dev_test}" -eq 1 ]]; then
+      definition_store="PostgreSQL dev/test"
+    fi
+    step "Workflow Definition ${definition_store} product chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; review, activation, execution, comparison, and evaluation remain explicit actions."
+  fi
+  if [[ "${application_session_enabled}" -eq 1 ]]; then
+    session_store="SQLite"
+    if [[ "${application_session_postgres_dev_test}" -eq 1 ]]; then
+      session_store="PostgreSQL dev/test"
+    fi
+    step "Application Session ${session_store} dual-profile chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; input and answer content remain browser-memory only."
+  fi
 fi
-step "This is a dev-only launcher, not a production supervisor. Controlled executor v0 is dev-only; production auth, secret resolution, unrestricted tools, confirmation commit, writeback and replay remain disabled."
+step "This is a dev-only launcher, not a production supervisor. Controlled execution is dev-only; production auth, secret resolution, unrestricted tools, automatic confirmation, writeback and replay remain disabled."
 
 if [[ "${verify_only}" -eq 0 && "${exit_after_probe}" -eq 0 && "${#spawned_pids[@]}" -gt 0 ]]; then
   step "Press Ctrl+C to stop spawned local dev processes."

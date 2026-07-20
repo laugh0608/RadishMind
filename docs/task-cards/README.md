@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-07-11
+更新时间：2026-07-19
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,11 +12,24 @@
 
 ## 当前活跃任务
 
-1. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R5 / R6 作为随功能批次推进的工程约束，继续推进性能预算并收敛入口文档和历史 checker 耦合。
+当前没有活跃实现任务卡。下一项先完成“应用开发工作区与发布准备审查 v1”功能设计和现有页面 / 状态所有权审计；只有设计确认需要新增 API、schema、执行边界或高风险写入时，才创建对应任务卡。
 
-R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、[Evaluation Cases / Batch Regression Review](workflow-evaluation-cases-batch-regression-review-v1-plan.md)、[Baseline / Case Versioning](workflow-evaluation-baseline-case-versioning-v1-plan.md) 与 [Evaluation Suite / Release Review](workflow-evaluation-suite-release-review-v1-plan.md) 已于 2026-07-11 完成。下一产品顺位为 Model Gateway Request History / Usage & Failure Review v1，先完成对应功能设计；确认新增 API 与持久化 schema 且不存在架构冲突后，再创建一张实现任务卡。不恢复旧 storage adapter readiness 链，也不派生新的 Gateway / executor / run store gate-only readiness 链。
+## 最近关闭任务
 
-当前没有活跃的 Production Secret Backend / Storage Adapter readiness 任务卡。下方既有任务卡均按历史完成、冻结或外部阻塞证据读取，不表示当前排期；新增实现任务应先回到对应功能专题和整改总入口确认用户目标。
+1. [应用交互会话与受控运行编排 v1](application-interaction-session-controlled-runtime-orchestration-dev-test-v1-plan.md)：A 至 E 已完成 strict metadata、三种 repository、v5 / v4 委托、Web、双数据库连续链、重启恢复、浏览器和敏感扫描。
+2. [Workflow 不可变版本晋级与受控运行绑定 v1](workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md)：A 至 D 已完成 strict contract、三种 repository、人工 review / activation、run v5、Web、双数据库与真实浏览器链。
+3. [Workflow RAG 应用运行时激活与受控调用 v1](workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1-plan.md)：A / B / C 三批已完成，durable assignment、API key 受控调用、run v4、Web、双数据库与真实浏览器链均已关闭。
+4. [Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1-plan.md)：A / B / C / D 四批已完成，exact evidence、人工 decision、durable binding、应用配置 / 发布治理与 Web 连续链均已关闭。
+5. [Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1-plan.md)：契约、内存链、SQLite / PostgreSQL durable store、Web 与仓库收口三批均已完成。
+6. [Workflow RAG 评测数据集与知识质量审查 v1](workflow-rag-evaluation-dataset-knowledge-quality-review-v1-plan.md)：两份契约、共享 lexical evaluator、CLI、starter dataset 与 deterministic metadata-only report 已完成。
+7. [Workflow RAG Regression Review 与 Evaluation Profile v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1-plan.md)：Comparison v2、Evaluation / Baseline / Suite profile、SQLite durable resources、PostgreSQL 重启 / no-fallback 和 Web metadata-only 审查已完成。
+8. [Workflow RAG Retrieval 与应用知识快照 v1](workflow-rag-retrieval-application-knowledge-snapshot-dev-test-v1-plan.md)：A / B / C 三批已完成，不派生批次 D。
+9. [工程健康与产品化整改专题 v1](../platform/engineering-health-productization-remediation-v1.md)：R2 至 R6 均已完成；R6 关闭评审保留仍有独立证据责任的 Provider、Production Ops 与 Control Plane formal UI 门禁，不派生第六条清理链。
+10. [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1-plan.md)：领域、Gateway 认证、双数据库门禁、Web 一次性交接、调试台内存交接、吊销与浏览器连续验收均已完成。
+
+R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、[Evaluation Cases / Batch Regression Review](workflow-evaluation-cases-batch-regression-review-v1-plan.md)、[Baseline / Case Versioning](workflow-evaluation-baseline-case-versioning-v1-plan.md) 与 [Evaluation Suite / Release Review](workflow-evaluation-suite-release-review-v1-plan.md) 已于 2026-07-11 完成。Model Gateway Request History / Usage & Failure Review v1、User Workspace Application API Integration & Invocation v1、Application Configuration Draft & Review v1 和 Application Publish Governance & Promotion v1 已完成实现与验证；不恢复旧 storage adapter readiness 链，也不派生新的 Gateway / executor / run store gate-only readiness 链。
+
+当前没有活跃的 Production Secret Backend / Storage Adapter readiness 任务卡。下方既有任务卡均按历史完成、冻结或外部阻塞证据读取，不表示当前排期；不恢复旧 readiness 链，也不为已关闭专题派生平行任务卡。
 
 当前已冻结的应用面任务：
 
@@ -32,7 +45,7 @@ R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run
 
 1. [answer_docs_question](radish-answer-docs-question.md)
 
-## 跨项目
+## 跨项目（历史完成 / 冻结，默认不作为活跃任务）
 
 1. [接入前置条件总表](cross-project-integration-readiness.md)
 2. [`P2 Session & Tooling` 实现前置条件](session-tooling-implementation-preconditions.md)
@@ -55,7 +68,7 @@ R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run
 19. [`P2 Session & Tooling` short close entry checklist](session-tooling-short-close-entry-checklist.md)
 20. [`P2 Session & Tooling` upper-layer confirmation flow readiness](session-tooling-upper-layer-confirmation-flow-readiness.md)
 
-## Product Platform
+## Product Platform（历史任务索引）
 
 1. [`Control Plane / User Workspace / Workflow` v1 计划](control-plane-user-workspace-workflow-v1-plan.md)
 2. [`Control Plane Read Model` v1 计划](control-plane-read-model-v1-plan.md)（`control-plane-read-model-v1`）
@@ -193,6 +206,8 @@ R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run
 134. [`Production Secret Backend Audit Store Storage Adapter Runtime Implementation Entry Refresh After Concrete Managed Database Provider Selection Review` v1 任务卡](production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1-plan.md)（`production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1` / `audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined`）
 135. [`Production Secret Backend Audit Store Storage Adapter Provider Account / Resource / Endpoint Readiness` v1 任务卡](production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1-plan.md)（`production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1` / `audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined`）
 136. [`Production Secret Backend Audit Store Storage Adapter Provider Account / Resource / Endpoint Review` v1 任务卡](production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1-plan.md)（`production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1` / `audit_store_storage_adapter_provider_account_resource_endpoint_review_defined`）
+137. [`Application Configuration Draft & Review` v1 任务卡](application-configuration-draft-review-v1-plan.md)（`application-configuration-draft-review-v1` / `application_configuration_draft_review_v1_complete`）
+138. [`Application Publish Governance & Promotion` v1 任务卡](application-publish-governance-promotion-v1-plan.md)（`application-publish-governance-promotion-v1` / `application_publish_governance_promotion_v1_complete`）
 
 ## UI 设计专题
 
@@ -322,7 +337,7 @@ R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run
 使用原则：
 - 任务卡定义的是任务边界、最小输入、输出要求和评测口径，不等同于最终实现代码
 - 前置条件型任务卡定义的是当前不能继续前推的阻塞项、已有门禁和后续触发条件，不等同于已经完成上层接线
-- 当前平台主线已完成 `Production Ops Hardening v1` 静态边界收口，并把 `Provider Runtime & Health v1` 推进到 close candidate；没有 Docker 运行窗口时，下一步默认回到 `Workflow / Agent Runtime Function Surface v1` 和离线 workflow 产品功能，且 `workflow-definition-detail-read-v1`、`workflow-run-detail-read-v1`、`workflow-blocked-action-preview-v1`、`workflow-application-detail-read-v1`、`workflow-confirmation-placeholder-read-v1`、`workflow-draft-designer-offline-v1`、`workflow-draft-validation-inspector-offline-v1`、`workflow-execution-plan-preview-offline-v1` 与 `workflow-runtime-readiness-inspector-offline-v1` 已固定 definition / run / blocked action / application detail / confirmation placeholder / offline draft designer / offline validation inspector / offline execution plan preview / runtime readiness inspector surface；`workflow-function-surface-readiness-close-v1` 已把上述离线 workflow surface 收束为 `workflow_function_surface_readiness_closed`；任务卡不替代当前焦点、路线图和能力矩阵
+- R6 已关闭；Workflow 受控 HTTP Tool、RAG Retrieval 与应用知识快照、RAG Regression Review / Evaluation Profile 的实施任务卡均已完成，历史离线 surface 与 readiness 任务卡不恢复为当前顺位
 - 任务卡与 [跨项目集成契约](../radishmind-integration-contracts.md) 和 [真实契约文件](../../contracts/README.md) 保持一致
 - 若未来实现发现字段命名或结构需要调整，应先同步更新任务卡和契约，再改实现
 - 当前阶段优先保证“状态优先、结构化输出、显式风险分级，以及对会写回真相源的动作保留人工确认”

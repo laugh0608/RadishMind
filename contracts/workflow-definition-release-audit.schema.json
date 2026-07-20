@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-definition-release-audit.schema.json",
+  "title": "Workflow Definition Release Audit v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "audit_id", "resource_kind", "resource_id", "action", "actor_ref", "created_at", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "workflow_definition_release_audit.v1"},
+    "audit_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"},
+    "resource_kind": {"enum": ["candidate", "version", "activation"]},
+    "resource_id": {"type": "string", "minLength": 1, "maxLength": 240},
+    "action": {"enum": ["create", "review_approve", "review_reject", "materialize", "activate", "replace", "deactivate"]},
+    "actor_ref": {"type": "string", "minLength": 1, "maxLength": 240},
+    "created_at": {"type": "string", "format": "date-time"},
+    "request_id": {"type": "string", "minLength": 1, "maxLength": 240},
+    "audit_ref": {"type": "string", "minLength": 1, "maxLength": 240}
+  }
+}

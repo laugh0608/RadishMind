@@ -1,0 +1,99 @@
+{
+  "schema_version": "workflow_rag_evaluation_dataset.v1",
+  "dataset_id": "wragd_dev_core",
+  "dataset_version": 1,
+  "dataset_digest": "sha256:94390c66ae197a9ce993402128d3d4306f588b7bc7a03ad04733249b83973b48",
+  "content_classification": "synthetic_public",
+  "snapshot": {
+    "tenant_ref": "tenant_eval",
+    "workspace_id": "workspace_eval",
+    "application_id": "app_workflow_rag_eval",
+    "snapshot_id": "rags_ffffffffffffffff",
+    "snapshot_version": 1,
+    "snapshot_digest": "sha256:267d014eea57e2e22cd041dfa6eef2b5c7cd702ffc05e9db98dffabdc1a27678",
+    "rag_ref": "workflow.rag.dev_core.v1"
+  },
+  "profile": {
+    "profile_id": "workflow.rag.lexical-ngram-dev.v1",
+    "profile_version": 1,
+    "profile_digest": "sha256:d205ebb97b079d69b8a0e92d6f87c54e5be4b4871841ab2f7622d7d4c91ee17c"
+  },
+  "thresholds": {
+    "hit_at_k": 1,
+    "expected_recall_at_k": 1,
+    "required_official_recall_at_k": 1,
+    "mean_reciprocal_rank": 1,
+    "no_evidence_accuracy": 1,
+    "sample_pass_rate": 1
+  },
+  "review": {
+    "reviewer_ref": "subject_workflow_rag_reviewer",
+    "reviewed_at": "2026-07-18T09:15:00Z",
+    "review_summary": "Starter queries and expected citation evidence were manually reviewed against synthetic-public fragments."
+  },
+  "samples": [
+    {
+      "sample_id": "official_boost",
+      "query_text": "deterministic retrieval ranking evidence",
+      "expectation": "evidence_required",
+      "expected_citation_refs": ["official_retrieval_policy"],
+      "required_official_refs": ["official_retrieval_policy"],
+      "top_k": 1,
+      "review_note": "The official source must outrank the closely matching supplemental note."
+    },
+    {
+      "sample_id": "supplemental_note",
+      "query_text": "community troubleshooting note",
+      "expectation": "evidence_required",
+      "expected_citation_refs": ["supplemental_retrieval_note"],
+      "required_official_refs": [],
+      "top_k": 1,
+      "review_note": "The supplemental source owns the unique troubleshooting wording."
+    },
+    {
+      "sample_id": "citation_policy",
+      "query_text": "citation validation selected fragment duplicate references",
+      "expectation": "evidence_required",
+      "expected_citation_refs": ["official_citation_policy"],
+      "required_official_refs": ["official_citation_policy"],
+      "top_k": 1,
+      "review_note": "Citation validation requires the exact official policy fragment."
+    },
+    {
+      "sample_id": "cjk_official",
+      "query_text": "知识引用规则 明确证据片段",
+      "expectation": "evidence_required",
+      "expected_citation_refs": ["official_chinese_guide"],
+      "required_official_refs": ["official_chinese_guide"],
+      "top_k": 1,
+      "review_note": "The CJK bigram path must return the official Chinese guide."
+    },
+    {
+      "sample_id": "multiple_evidence",
+      "query_text": "deterministic retrieval ranking evidence",
+      "expectation": "evidence_required",
+      "expected_citation_refs": ["official_retrieval_policy", "supplemental_retrieval_note"],
+      "required_official_refs": ["official_retrieval_policy"],
+      "top_k": 2,
+      "review_note": "Both accepted retrieval sources must be available when the budget allows two fragments."
+    },
+    {
+      "sample_id": "stable_tie_break",
+      "query_text": "stable tie evidence",
+      "expectation": "evidence_required",
+      "expected_citation_refs": ["tie_alpha_evidence", "tie_beta_evidence"],
+      "required_official_refs": [],
+      "top_k": 2,
+      "review_note": "Equal lexical scores must use fragment_ref ordering while retaining both accepted fragments."
+    },
+    {
+      "sample_id": "no_evidence",
+      "query_text": "quantum orchard invoice",
+      "expectation": "no_evidence",
+      "expected_citation_refs": [],
+      "required_official_refs": [],
+      "top_k": 3,
+      "review_note": "No committed fragment discusses this unrelated synthetic topic."
+    }
+  ]
+}

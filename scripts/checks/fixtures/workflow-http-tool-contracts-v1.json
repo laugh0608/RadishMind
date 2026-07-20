@@ -1,0 +1,494 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_http_tool_contract_fixture_v1",
+  "tool_id": "workflow.http.reviewed-json-read.v1",
+  "positive": {
+    "definition": {
+      "schema_version": "workflow_http_tool_definition.v1",
+      "tool_id": "workflow.http.reviewed-json-read.v1",
+      "tool_version": 1,
+      "display_name": "Reviewed JSON Read",
+      "purpose": "Read one allowlisted JSON resource after an independent human confirmation.",
+      "operation_kind": "http_read",
+      "public_arguments_schema": {
+        "type": "object",
+        "additional_properties": false,
+        "max_properties": 2,
+        "max_serialized_bytes": 8192,
+        "required": [
+          "resource_key"
+        ],
+        "properties": {
+          "resource_key": {
+            "type": "string",
+            "min_length": 1,
+            "max_length": 160,
+          "pattern": "^(?![A-Za-z][A-Za-z0-9+.-]*://)[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+          },
+          "locale": {
+            "type": "string",
+            "min_length": 2,
+            "max_length": 35,
+            "pattern": "^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$"
+          }
+        }
+      },
+      "output_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "resource_key",
+          "title",
+          "summary",
+          "updated_at"
+        ],
+        "properties": {
+          "resource_key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "output_fields": [
+        "resource_key",
+        "title",
+        "summary",
+        "updated_at"
+      ],
+      "requires_confirmation": true,
+      "risk_level": "medium",
+      "read_only": true,
+      "writes_business_truth": false,
+      "audit_ref": "audit_workflow_http_tool_definition_v1"
+    },
+    "execution_profile": {
+      "schema_version": "workflow_http_tool_execution_profile.v1",
+      "profile_id": "workflow_http_profile_reviewed_json_read_dev_v1",
+      "profile_version": 1,
+      "tool_id": "workflow.http.reviewed-json-read.v1",
+      "definition_digest": "sha256:a3807ab3eed72b8f712ca4bf1f5cbc442fe961271779ff00ae19230ad3573294",
+      "environment": "development",
+      "enabled": true,
+      "method": "GET",
+      "target_policy_key": "reviewed_json_read_dev",
+      "target_policy": {
+        "scheme": "https",
+        "host": "api.dev.example.invalid",
+        "port": 443,
+        "path": "/v1/reviewed-resources",
+        "query_mappings": [
+          {
+            "argument_key": "resource_key",
+            "query_key": "resource_key"
+          },
+          {
+            "argument_key": "locale",
+            "query_key": "locale"
+          }
+        ]
+      },
+      "credential_policy": "none",
+      "timeout_ms": 5000,
+      "max_response_bytes": 65536,
+      "max_output_bytes": 16384,
+      "max_attempts": 1,
+      "network_policy": {
+        "follow_redirects": false,
+        "use_ambient_proxy": false,
+        "automatic_retry": false,
+        "fallback_enabled": false,
+        "cross_profile_connection_reuse": false,
+        "require_all_resolved_addresses_public": true,
+        "pin_validated_address": true,
+        "preserve_tls_server_name": true
+      },
+      "test_only_loopback": false,
+      "audit_ref": "audit_workflow_http_profile_v1"
+    },
+    "action_plan": {
+      "schema_version": "workflow_http_tool_action_plan.v1",
+      "plan_id": "wtap_0123456789abcdef",
+      "record_version": 1,
+      "tenant_ref": "tenant_demo",
+      "workspace_id": "workspace_demo",
+      "application_id": "application_demo",
+      "draft_id": "draft_demo",
+      "draft_version": 3,
+      "node_id": "node_http_tool",
+      "tool_id": "workflow.http.reviewed-json-read.v1",
+      "tool_version": 1,
+      "definition_digest": "sha256:a3807ab3eed72b8f712ca4bf1f5cbc442fe961271779ff00ae19230ad3573294",
+      "profile_id": "workflow_http_profile_reviewed_json_read_dev_v1",
+      "profile_version": 1,
+      "profile_digest": "sha256:ce8517a547848768de11a9fae6ad903134ee8c5cfcc5a4b87436c26129918001",
+      "method": "GET",
+      "target_policy_key": "reviewed_json_read_dev",
+      "public_arguments": {
+        "resource_key": "docs.release_notes",
+        "locale": "zh-CN"
+      },
+      "output_fields": [
+        "resource_key",
+        "title",
+        "summary",
+        "updated_at"
+      ],
+      "output_schema_digest": "sha256:b36f96fa9eb6f095782981e1177bbf8c96f02e807524ed32c12772771fab82be",
+      "credential_policy": "none",
+      "timeout_ms": 5000,
+      "max_response_bytes": 65536,
+      "max_output_bytes": 16384,
+      "planned_by_actor_ref": "subject_planner_demo",
+      "created_at": "2026-07-16T02:00:00Z",
+      "expires_at": "2026-07-16T02:15:00Z",
+      "tool_plan_digest": "sha256:68349ea201bdfdc3313d393d32579fe155173301fc7d076de3e3e75aab8a0526",
+      "status": "pending",
+      "last_decision_by_actor_ref": null,
+      "last_decision_at": null,
+      "audit_ref": "audit_workflow_http_plan_demo"
+    },
+    "confirmation_decision": {
+      "schema_version": "workflow_http_tool_confirmation_decision.v1",
+      "confirmation_id": "wtcd_0123456789abcdef",
+      "plan_id": "wtap_0123456789abcdef",
+      "tenant_ref": "tenant_demo",
+      "workspace_id": "workspace_demo",
+      "application_id": "application_demo",
+      "draft_id": "draft_demo",
+      "draft_version": 3,
+      "node_id": "node_http_tool",
+      "tool_id": "workflow.http.reviewed-json-read.v1",
+      "tool_version": 1,
+      "tool_plan_digest": "sha256:68349ea201bdfdc3313d393d32579fe155173301fc7d076de3e3e75aab8a0526",
+      "outcome": "approve",
+      "decided_by_actor_ref": "subject_reviewer_demo",
+      "actor_source": "human",
+      "decided_at": "2026-07-16T02:05:00Z",
+      "reason_code": "workflow_tool_confirmation_approve",
+      "expected_record_version": 1,
+      "resulting_record_version": 2,
+      "audit_ref": "audit_workflow_http_confirmation_demo"
+    },
+    "execution_audit": {
+      "schema_version": "workflow_http_tool_execution_audit.v1",
+      "event_id": "wtae_0123456789abcdef",
+      "event_kind": "confirmation_requested",
+      "occurred_at": "2026-07-16T02:00:00Z",
+      "tenant_ref": "tenant_demo",
+      "workspace_id": "workspace_demo",
+      "application_id": "application_demo",
+      "draft_id": "draft_demo",
+      "draft_version": 3,
+      "node_id": "node_http_tool",
+      "plan_id": "wtap_0123456789abcdef",
+      "confirmation_id": null,
+      "execution_attempt_id": null,
+      "run_id": null,
+      "tool_id": "workflow.http.reviewed-json-read.v1",
+      "tool_version": 1,
+      "definition_digest": "sha256:a3807ab3eed72b8f712ca4bf1f5cbc442fe961271779ff00ae19230ad3573294",
+      "profile_id": "workflow_http_profile_reviewed_json_read_dev_v1",
+      "profile_digest": "sha256:ce8517a547848768de11a9fae6ad903134ee8c5cfcc5a4b87436c26129918001",
+      "tool_plan_digest": "sha256:68349ea201bdfdc3313d393d32579fe155173301fc7d076de3e3e75aab8a0526",
+      "actor_ref": "subject_planner_demo",
+      "actor_source": "human",
+      "request_id": "request_workflow_http_plan_demo",
+      "audit_ref": "audit_workflow_http_plan_demo",
+      "failure_code": null,
+      "failure_boundary": null,
+      "attempt_status": "not_claimed",
+      "http_status_class": null,
+      "response_bytes": 0,
+      "duration_ms": 0,
+      "side_effects": {
+        "network_attempts": 0,
+        "tool_calls": 0,
+        "provider_calls": 0,
+        "business_writes": 0,
+        "replay_writes": 0
+      }
+    },
+    "run_record_v2": {
+      "schema_version": "workflow_run_record.v2",
+      "record_version": 1,
+      "run_id": "run_0123456789abcdef",
+      "plan_id": "wtap_0123456789abcdef",
+      "confirmation_id": "wtcd_0123456789abcdef",
+      "tenant_ref": "tenant_demo",
+      "workspace_id": "workspace_demo",
+      "application_id": "application_demo",
+      "draft_id": "draft_demo",
+      "draft_version": 3,
+      "status": "running",
+      "failure_code": null,
+      "failure_summary": "",
+      "started_at": "2026-07-16T02:06:00Z",
+      "completed_at": null,
+      "input_bytes": 128,
+      "requested_model": "model_demo",
+      "selected_provider": "provider_demo",
+      "selected_profile": "profile_demo",
+      "selected_model": "model_demo",
+      "upstream_model": "upstream_demo",
+      "selection_source": "dev_profile",
+      "nodes": [
+        {
+          "node_id": "node_prompt",
+          "node_type": "prompt",
+          "label": "Prompt",
+          "status": "succeeded",
+          "started_at": "2026-07-16T02:06:00Z",
+          "completed_at": "2026-07-16T02:06:00Z",
+          "duration_ms": 0,
+          "predecessor_node_ids": [],
+          "provider_ref": "",
+          "output_preview": "Prepared prompt packet.",
+          "failure_code": null
+        },
+        {
+          "node_id": "node_http_tool",
+          "node_type": "http_tool",
+          "label": "Reviewed JSON Read",
+          "status": "running",
+          "started_at": "2026-07-16T02:06:00Z",
+          "completed_at": null,
+          "duration_ms": 0,
+          "predecessor_node_ids": [
+            "node_prompt"
+          ],
+          "provider_ref": "",
+          "output_preview": "",
+          "failure_code": null
+        },
+        {
+          "node_id": "node_llm",
+          "node_type": "llm",
+          "label": "Summarize",
+          "status": "pending",
+          "started_at": null,
+          "completed_at": null,
+          "duration_ms": 0,
+          "predecessor_node_ids": [
+            "node_http_tool"
+          ],
+          "provider_ref": "provider_demo",
+          "output_preview": "",
+          "failure_code": null
+        },
+        {
+          "node_id": "node_output",
+          "node_type": "output",
+          "label": "Output",
+          "status": "pending",
+          "started_at": null,
+          "completed_at": null,
+          "duration_ms": 0,
+          "predecessor_node_ids": [
+            "node_llm"
+          ],
+          "provider_ref": "",
+          "output_preview": "",
+          "failure_code": null
+        }
+      ],
+      "tool_attempt": {
+        "attempt_id": "wtea_0123456789abcdef",
+        "node_id": "node_http_tool",
+        "tool_id": "workflow.http.reviewed-json-read.v1",
+        "definition_digest": "sha256:a3807ab3eed72b8f712ca4bf1f5cbc442fe961271779ff00ae19230ad3573294",
+        "profile_id": "workflow_http_profile_reviewed_json_read_dev_v1",
+        "profile_digest": "sha256:ce8517a547848768de11a9fae6ad903134ee8c5cfcc5a4b87436c26129918001",
+        "tool_plan_digest": "sha256:68349ea201bdfdc3313d393d32579fe155173301fc7d076de3e3e75aab8a0526",
+        "confirmation_id": "wtcd_0123456789abcdef",
+        "status": "claimed",
+        "claimed_at": "2026-07-16T02:06:00Z",
+        "completed_at": null,
+        "http_status_class": null,
+        "response_bytes": 0,
+        "duration_ms": 0,
+        "output_projection": {},
+        "failure_code": null
+      },
+      "output": "",
+      "request_id": "request_workflow_http_execute_demo",
+      "audit_ref": "audit_workflow_http_execute_demo",
+      "actor_ref": "subject_executor_demo",
+      "side_effects": {
+        "provider_calls": 0,
+        "tool_calls": 1,
+        "confirmation_calls": 1,
+        "business_writes": 0,
+        "replay_writes": 0
+      },
+      "diagnostic": {
+        "failure_boundary": null,
+        "failure_stage": "",
+        "failed_node_id": null,
+        "last_completed_node_id": "node_prompt",
+        "terminal_write_state": "pending",
+        "gateway_failure_category": "none",
+        "tool_failure_category": "none",
+        "summary": "",
+        "recommended_review_action": "",
+        "observed_at": "2026-07-16T02:06:00Z"
+      }
+    }
+  },
+  "negative_cases": [
+    {
+      "id": "definition_rejects_unversioned_tool_id",
+      "schema": "definition",
+      "mutation": "definition_unversioned_tool_id"
+    },
+    {
+      "id": "definition_requires_confirmation",
+      "schema": "definition",
+      "mutation": "definition_confirmation_false"
+    },
+    {
+      "id": "definition_rejects_runtime_target",
+      "schema": "definition",
+      "mutation": "definition_endpoint_added"
+    },
+    {
+      "id": "definition_rejects_output_schema_field_drift",
+      "schema": "definition",
+      "mutation": "definition_output_schema_field_added"
+    },
+    {
+      "id": "profile_get_only",
+      "schema": "execution_profile",
+      "mutation": "profile_method_post"
+    },
+    {
+      "id": "profile_rejects_definition_digest_drift",
+      "schema": "execution_profile",
+      "mutation": "profile_definition_digest_drift"
+    },
+    {
+      "id": "profile_credential_none",
+      "schema": "execution_profile",
+      "mutation": "profile_credential_bearer"
+    },
+    {
+      "id": "profile_redirect_disabled",
+      "schema": "execution_profile",
+      "mutation": "profile_redirect_enabled"
+    },
+    {
+      "id": "action_plan_rejects_unknown_argument",
+      "schema": "action_plan",
+      "mutation": "action_plan_url_argument"
+    },
+    {
+      "id": "action_plan_rejects_url_resource",
+      "schema": "action_plan",
+      "mutation": "action_plan_url_resource"
+    },
+    {
+      "id": "action_plan_rejects_endpoint_leak",
+      "schema": "action_plan",
+      "mutation": "action_plan_endpoint_added"
+    },
+    {
+      "id": "action_plan_rejects_definition_digest_drift",
+      "schema": "action_plan",
+      "mutation": "action_plan_definition_digest_drift"
+    },
+    {
+      "id": "action_plan_rejects_profile_digest_drift",
+      "schema": "action_plan",
+      "mutation": "action_plan_profile_digest_drift"
+    },
+    {
+      "id": "action_plan_rejects_output_schema_digest_drift",
+      "schema": "action_plan",
+      "mutation": "action_plan_output_schema_digest_drift"
+    },
+    {
+      "id": "action_plan_rejects_tool_plan_digest_drift",
+      "schema": "action_plan",
+      "mutation": "action_plan_tool_plan_digest_drift"
+    },
+    {
+      "id": "action_plan_requires_exact_tool_version",
+      "schema": "action_plan",
+      "mutation": "action_plan_tool_version_drift"
+    },
+    {
+      "id": "decision_is_pre_run_not_run_bound",
+      "schema": "confirmation_decision",
+      "mutation": "decision_run_id_added"
+    },
+    {
+      "id": "human_cannot_expire",
+      "schema": "confirmation_decision",
+      "mutation": "decision_human_expire"
+    },
+    {
+      "id": "decision_requires_resulting_version",
+      "schema": "confirmation_decision",
+      "mutation": "decision_resulting_version_removed"
+    },
+    {
+      "id": "decision_requires_tool_version",
+      "schema": "confirmation_decision",
+      "mutation": "decision_tool_version_removed"
+    },
+    {
+      "id": "audit_rejects_endpoint_leak",
+      "schema": "execution_audit",
+      "mutation": "audit_endpoint_added"
+    },
+    {
+      "id": "audit_business_writes_zero",
+      "schema": "execution_audit",
+      "mutation": "audit_business_write"
+    },
+    {
+      "id": "audit_rejects_raw_response",
+      "schema": "execution_audit",
+      "mutation": "audit_raw_response_added"
+    },
+    {
+      "id": "audit_requires_exact_tool_version",
+      "schema": "execution_audit",
+      "mutation": "audit_tool_version_drift"
+    },
+    {
+      "id": "run_v2_requires_one_tool_call",
+      "schema": "run_record_v2",
+      "mutation": "run_zero_tool_call"
+    },
+    {
+      "id": "run_v2_requires_one_consumed_confirmation",
+      "schema": "run_record_v2",
+      "mutation": "run_zero_confirmation_call"
+    },
+    {
+      "id": "run_v2_business_writes_zero",
+      "schema": "run_record_v2",
+      "mutation": "run_business_write"
+    },
+    {
+      "id": "run_v2_rejects_endpoint_projection",
+      "schema": "run_record_v2",
+      "mutation": "run_endpoint_projection"
+    }
+  ]
+}

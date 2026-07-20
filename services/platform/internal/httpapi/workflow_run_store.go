@@ -11,23 +11,27 @@ import (
 const defaultWorkflowRunStoreCapacity = 100
 
 var (
-	errWorkflowRunStoreContract = errors.New("workflow run store contract mismatch")
-	errWorkflowRunStoreConflict = errors.New("workflow run store record version conflict")
+	errWorkflowRunStoreContract    = errors.New("workflow run store contract mismatch")
+	errWorkflowRunStoreConflict    = errors.New("workflow run store record version conflict")
+	errWorkflowRunStoreUnavailable = errors.New("workflow run store unavailable")
 )
 
 type WorkflowRunListFilter struct {
-	Status          WorkflowRunStatus
-	DraftID         string
-	FailureCode     WorkflowRunFailureCode
-	FailureBoundary WorkflowRunFailureBoundary
-	Provider        string
-	Model           string
-	StaleRunning    *bool
-	StartedFrom     *time.Time
-	StartedTo       *time.Time
-	BeforeTime      *time.Time
-	BeforeRunID     string
-	Limit           int
+	Status                 WorkflowRunStatus
+	DraftID                string
+	ExecutionSourceKind    string
+	ExecutionSourceID      string
+	ExecutionSourceVersion int
+	FailureCode            WorkflowRunFailureCode
+	FailureBoundary        WorkflowRunFailureBoundary
+	Provider               string
+	Model                  string
+	StaleRunning           *bool
+	StartedFrom            *time.Time
+	StartedTo              *time.Time
+	BeforeTime             *time.Time
+	BeforeRunID            string
+	Limit                  int
 }
 
 type WorkflowRunListPage struct {
@@ -124,10 +128,7 @@ func (store *memoryWorkflowRunStore) ListRuns(
 		}
 		return records[left].StartedAt > records[right].StartedAt
 	})
-	limit := filter.Limit
-	if limit <= 0 {
-		limit = 25
-	}
+	limit := workflowRunStoreListLimit(filter.Limit)
 	hasMore := len(records) > limit
 	if hasMore {
 		records = records[:limit]
@@ -141,6 +142,14 @@ func workflowRunMatchesFilter(record WorkflowRunRecord, filter WorkflowRunListFi
 	}
 	if filter.DraftID != "" && record.DraftID != filter.DraftID {
 		return false
+	}
+	if filter.ExecutionSourceKind != "" || filter.ExecutionSourceID != "" || filter.ExecutionSourceVersion != 0 {
+		sourceKind, sourceID, sourceVersion, err := workflowRunStorageExecutionSource(record)
+		if err != nil || (filter.ExecutionSourceKind != "" && sourceKind != filter.ExecutionSourceKind) ||
+			(filter.ExecutionSourceID != "" && sourceID != filter.ExecutionSourceID) ||
+			(filter.ExecutionSourceVersion != 0 && sourceVersion != filter.ExecutionSourceVersion) {
+			return false
+		}
 	}
 	if filter.FailureCode != "" && record.FailureCode != filter.FailureCode {
 		return false
@@ -178,23 +187,49 @@ func workflowRunMatchesFilter(record WorkflowRunRecord, filter WorkflowRunListFi
 	return true
 }
 
+func workflowRunStoreListLimit(limit int) int {
+	if limit <= 0 {
+		return workflowRunListDefaultLimit
+	}
+	return limit
+}
+
 func validateWorkflowRunStoreRecord(runContext WorkflowRunContext, record *WorkflowRunRecord) error {
 	if record == nil || strings.TrimSpace(runContext.TenantRef) == "" ||
 		strings.TrimSpace(runContext.WorkspaceID) == "" || strings.TrimSpace(runContext.ApplicationID) == "" ||
-		!validWorkflowRunRecordSchema(record.SchemaVersion) || strings.TrimSpace(record.RunID) == "" ||
-		strings.TrimSpace(record.DraftID) == "" || record.DraftVersion <= 0 || record.RecordVersion < 0 ||
+		!validWorkflowRunRecordSchema(record.SchemaVersion) || strings.TrimSpace(record.RunID) == "" || record.RecordVersion < 0 ||
 		strings.TrimSpace(record.ActorRef) == "" || strings.TrimSpace(record.RequestID) == "" || strings.TrimSpace(record.AuditRef) == "" ||
 		record.WorkspaceID != runContext.WorkspaceID || record.ApplicationID != runContext.ApplicationID ||
-		!validWorkflowRunStatus(record.Status) || record.SideEffects.ToolCalls != 0 ||
-		record.SideEffects.ConfirmationCalls != 0 || record.SideEffects.BusinessWrites != 0 ||
-		record.SideEffects.ReplayWrites != 0 || len([]byte(record.Output)) > workflowExecutorMaxOutputBytes ||
+		!validWorkflowRunStatus(record.Status) || len([]byte(record.Output)) > workflowExecutorMaxOutputBytes ||
 		len([]rune(record.FailureSummary)) > 256 || workflowRunRecordContainsEndpoint(record) {
 		return errWorkflowRunStoreContract
 	}
-	if record.SchemaVersion == workflowRunRecordSchemaVersion && !validWorkflowRunDiagnostic(record.Diagnostic, isTerminalWorkflowRunStatus(record.Status)) {
+	if record.SchemaVersion == workflowRunRecordAppRAGSchemaVersion {
+		if err := validateWorkflowRAGApplicationRunStoreRecord(runContext, record); err != nil {
+			return errWorkflowRunStoreContract
+		}
+	} else if record.SchemaVersion == workflowRunRecordDefinitionSchemaVersion {
+		if err := validateWorkflowDefinitionRunStoreRecord(runContext, record); err != nil {
+			return errWorkflowRunStoreContract
+		}
+	} else if strings.TrimSpace(record.DraftID) == "" || record.DraftVersion <= 0 {
 		return errWorkflowRunStoreContract
-	}
-	if record.SchemaVersion == workflowRunRecordLegacySchemaVersion && record.Diagnostic != nil {
+	} else if record.SchemaVersion == workflowRunRecordRAGSchemaVersion {
+		if err := validateWorkflowRAGRunStoreRecord(runContext, record); err != nil {
+			return errWorkflowRunStoreContract
+		}
+	} else if record.SchemaVersion == workflowRunRecordToolSchemaVersion {
+		if err := validateWorkflowRunToolRecord(runContext, record); err != nil ||
+			!validWorkflowRunDiagnostic(record.Diagnostic, isTerminalWorkflowRunStatus(record.Status)) {
+			return errWorkflowRunStoreContract
+		}
+	} else if record.SideEffects.ToolCalls != 0 || record.SideEffects.ConfirmationCalls != 0 ||
+		record.SideEffects.BusinessWrites != 0 || record.SideEffects.ReplayWrites != 0 ||
+		record.PlanID != "" || record.ConfirmationID != "" || record.TenantRef != "" || record.ToolAttempt != nil {
+		return errWorkflowRunStoreContract
+	} else if record.SchemaVersion == workflowRunRecordSchemaVersion && !validWorkflowRunDiagnostic(record.Diagnostic, isTerminalWorkflowRunStatus(record.Status)) {
+		return errWorkflowRunStoreContract
+	} else if record.SchemaVersion == workflowRunRecordLegacySchemaVersion && record.Diagnostic != nil {
 		return errWorkflowRunStoreContract
 	}
 	for _, node := range record.Nodes {
@@ -222,7 +257,9 @@ func workflowRunRecordContainsEndpoint(record *WorkflowRunRecord) bool {
 }
 
 func validWorkflowRunRecordSchema(schemaVersion string) bool {
-	return schemaVersion == workflowRunRecordSchemaVersion || schemaVersion == workflowRunRecordLegacySchemaVersion
+	return schemaVersion == workflowRunRecordSchemaVersion || schemaVersion == workflowRunRecordLegacySchemaVersion ||
+		schemaVersion == workflowRunRecordToolSchemaVersion || schemaVersion == workflowRunRecordRAGSchemaVersion ||
+		schemaVersion == workflowRunRecordAppRAGSchemaVersion || schemaVersion == workflowRunRecordDefinitionSchemaVersion
 }
 
 func validWorkflowRunStatus(status WorkflowRunStatus) bool {
@@ -230,7 +267,8 @@ func validWorkflowRunStatus(status WorkflowRunStatus) bool {
 }
 
 func isTerminalWorkflowRunStatus(status WorkflowRunStatus) bool {
-	return status == WorkflowRunStatusSucceeded || status == WorkflowRunStatusFailed || status == WorkflowRunStatusCanceled
+	return status == WorkflowRunStatusSucceeded || status == WorkflowRunStatusFailed || status == WorkflowRunStatusCanceled ||
+		status == WorkflowRunStatusOutcomeUnknown
 }
 
 func workflowRunStoreKey(tenantRef string, workspaceID string, applicationID string, runID string) string {
@@ -244,6 +282,43 @@ func cloneWorkflowRunRecord(record WorkflowRunRecord) WorkflowRunRecord {
 		cloned.Diagnostic = &diagnostic
 	}
 	cloned.ConditionNodeIDs = cloneStringSlice(record.ConditionNodeIDs)
+	if record.ToolAttempt != nil {
+		attempt := *record.ToolAttempt
+		attempt.OutputProjection = make(map[string]any, len(record.ToolAttempt.OutputProjection))
+		for key, value := range record.ToolAttempt.OutputProjection {
+			attempt.OutputProjection[key] = value
+		}
+		cloned.ToolAttempt = &attempt
+	}
+	if record.RAGSnapshot != nil {
+		snapshot := *record.RAGSnapshot
+		cloned.RAGSnapshot = &snapshot
+	}
+	if record.RetrievalAttempt != nil {
+		attempt := *record.RetrievalAttempt
+		attempt.SelectedFragments = make([]workflowRAGRunSelectedFragment, len(record.RetrievalAttempt.SelectedFragments))
+		copy(attempt.SelectedFragments, record.RetrievalAttempt.SelectedFragments)
+		attempt.CitationRefs = cloneStringSlice(record.RetrievalAttempt.CitationRefs)
+		cloned.RetrievalAttempt = &attempt
+	}
+	if record.RAGAnswer != nil {
+		answer := *record.RAGAnswer
+		answer.Citations = append([]WorkflowRAGCitation(nil), record.RAGAnswer.Citations...)
+		answer.Limitations = cloneStringSlice(record.RAGAnswer.Limitations)
+		cloned.RAGAnswer = &answer
+	}
+	if record.ExecutionSource != nil {
+		source := *record.ExecutionSource
+		cloned.ExecutionSource = &source
+	}
+	if record.DefinitionAuthority != nil {
+		authority := *record.DefinitionAuthority
+		cloned.DefinitionAuthority = &authority
+	}
+	if record.RAGApplication != nil {
+		authority := *record.RAGApplication
+		cloned.RAGApplication = &authority
+	}
 	cloned.Nodes = make([]WorkflowRunNodeRecord, 0, len(record.Nodes))
 	for _, node := range record.Nodes {
 		clonedNode := node

@@ -1,0 +1,9 @@
+{
+  "component": "gateway_requests",
+  "migration_id": "0001_gateway_requests",
+  "store_schema_version": "gateway_request_store_v1",
+  "up": "0001_gateway_requests.up.sql",
+  "down": "0001_gateway_requests.down.sql",
+  "runtime_role": "SELECT, INSERT, UPDATE, DELETE only",
+  "retention_policy": "14 days and 50000 records per caller scope; maintenance remains explicit"
+}

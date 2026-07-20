@@ -94,6 +94,7 @@
     "apps/radishmind-web/src/features/control-plane-read/adminTenantOverview.ts",
     "apps/radishmind-web/src/features/control-plane-read/workspaceApplications.ts",
     "apps/radishmind-web/src/features/control-plane-read/workspaceApiKeys.ts",
+    "apps/radishmind-web/src/features/control-plane-read/apiKeyLifecyclePanel.tsx",
     "apps/radishmind-web/src/styles.css",
     "apps/radishmind-web/package.json"
   ],
@@ -137,14 +138,6 @@
     ],
     "docs/contracts/control-plane-read-side.md": [
       "control-plane-read-workspace-api-keys-v1",
-      "api-key-summary-list-route"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-workspace-api-keys-v1",
-      "workspace-api-keys"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "control-plane-read-workspace-api-keys-v1",
       "workspace-api-keys"
     ],
     "docs/radishmind-capability-matrix.md": [
@@ -162,10 +155,6 @@
     "scripts/README.md": [
       "check-control-plane-read-workspace-api-keys-v1.py",
       "control-plane-read-workspace-api-keys-v1.json"
-    ],
-    "services/platform/README.md": [
-      "control-plane-read-workspace-api-keys-v1",
-      "workspace-api-keys"
     ],
     "docs/devlogs/2026-W22.md": [
       "control-plane-read-workspace-api-keys-v1",

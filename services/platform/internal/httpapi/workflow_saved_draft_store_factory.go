@@ -8,15 +8,52 @@ import (
 	"time"
 
 	"radishmind.local/services/platform/internal/config"
+	"radishmind.local/services/platform/internal/sqlitedev"
+	sqliteworkflowdraftmigrations "radishmind.local/services/platform/migrations/sqlite/workflow_saved_drafts"
 	workflowdraftmigrations "radishmind.local/services/platform/migrations/workflow_saved_drafts"
 )
 
 func newSavedWorkflowDraftStoreFromConfig(
 	cfg config.Config,
 ) (savedWorkflowDraftStore, func(), error) {
+	return newSavedWorkflowDraftStoreFromConfigWithSQLiteRuntime(cfg, nil)
+}
+
+func newSavedWorkflowDraftStoreFromConfigWithSQLiteRuntime(
+	cfg config.Config,
+	sqliteRuntime *sqlitedev.Runtime,
+) (savedWorkflowDraftStore, func(), error) {
 	mode := strings.TrimSpace(cfg.WorkflowSavedDraftStoreMode)
 	if mode == "" {
 		mode = string(WorkflowSavedDraftStoreModeMemoryDev)
+	}
+	if mode == string(WorkflowSavedDraftStoreModeSQLiteDev) {
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled ||
+			!cfg.WorkflowSavedDraftDevWriteEnabled {
+			return nil, nil, errors.New("sqlite_dev saved workflow draft config is incomplete")
+		}
+		if sqliteRuntime == nil || sqliteRuntime.DB() == nil {
+			return nil, nil, errors.New("sqlite_dev saved workflow draft store requires the shared SQLite runtime")
+		}
+		timeout := cfg.WorkflowSavedDraftDatabaseTimeout
+		if timeout <= 0 {
+			timeout = 5 * time.Second
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		if err := sqliteRuntime.VerifyMigrations(ctx, sqliteworkflowdraftmigrations.Migrations()); err != nil {
+			return nil, nil, err
+		}
+		if sqliteworkflowdraftmigrations.StoreSchemaVersion != savedWorkflowDraftRepositoryStoreSchemaVersion {
+			return nil, nil, errors.New("saved workflow draft SQLite store schema version is incompatible")
+		}
+		selection := SelectWorkflowSavedDraftStore(mode, WorkflowSavedDraftStoreSelector{
+			SQLiteDevStore: newSQLiteSavedWorkflowDraftStore(sqliteRuntime.DB()),
+		})
+		if selection.FailureCode != "" {
+			return nil, nil, errors.New("sqlite_dev saved workflow draft store selection failed")
+		}
+		return selection.Store, func() {}, nil
 	}
 	if mode != string(WorkflowSavedDraftStoreModePostgresDevTest) {
 		selection := SelectWorkflowSavedDraftStore(mode, WorkflowSavedDraftStoreSelector{})

@@ -31,7 +31,7 @@ export type WorkflowDraftDesignerNode = {
   nodeId: string;
   label: string;
   nodeType: WorkflowDefinitionDetailNode["nodeType"];
-  lane: "context" | "model" | "policy" | "preview" | "output";
+  lane: "context" | "retrieval" | "model" | "policy" | "preview" | "output";
   readiness: "ready" | "review_required" | "blocked";
   inputSummary: string;
   outputSummary: string;
@@ -104,6 +104,7 @@ export type WorkflowDraftDesignerDraft = {
   label: string;
   applicationRef: string;
   workflowDefinitionId: string;
+  baseDefinitionVersion?: number;
   providerProfileRef: string;
   summary: string;
   nodes: WorkflowDraftDesignerNode[];
@@ -114,7 +115,7 @@ export type WorkflowDraftDesignerDraft = {
   blockedCapabilities: WorkflowDraftDesignerBlockedCapability[];
   routeMetadata: WorkflowDraftDesignerRouteMetadata;
   localOnlyInteraction: "inspect_only" | "local_edit";
-  executionProfile?: "review_only" | "executor_v0";
+  executionProfile?: "review_only" | "executor_v0" | "rag_retrieval_v1";
 };
 
 export type WorkflowDraftDesignerSource = {
@@ -219,10 +220,11 @@ export function buildWorkflowDraftDesignerViewModel(
       auditRef,
     );
   });
-  const localDrafts = (source.localDrafts ?? []).filter((draft) =>
-    workflowDefinitions.some(
-      (workflowDefinition) => workflowDefinition.workflowDefinitionId === draft.workflowDefinitionId,
-    ),
+  // A newly derived draft can precede the next read-side definition summary refresh.
+  // Local drafts are already explicit workspace state, so keep every scoped draft
+  // without requiring a possibly stale read-side definition summary.
+  const localDrafts = (source.localDrafts ?? []).filter(
+    (draft) => draft.applicationRef.trim() !== "" && draft.workflowDefinitionId.trim() !== "",
   );
   const drafts = [...baseDrafts, ...localDrafts];
   const forbiddenProjectionBlocked = controlPlaneReadResponseHasForbiddenOutput({
@@ -552,6 +554,9 @@ function toLane(node: WorkflowDefinitionDetailNode): WorkflowDraftDesignerNode["
   }
   if (node.nodeType === "llm") {
     return "model";
+  }
+  if (node.nodeType === "rag_retrieval") {
+    return "retrieval";
   }
   if (node.nodeType === "condition") {
     return "policy";

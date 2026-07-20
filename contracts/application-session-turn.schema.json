@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/application-session-turn.schema.json",
+  "title": "Application Session Turn v1",
+  "description": "Controlled running-to-terminal metadata for one application interaction turn. Natural-language request and response content is never persisted.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "turn_id", "session_id", "sequence", "client_turn_key", "tenant_ref", "workspace_id", "application_id", "owner_subject_ref", "execution_profile", "authority", "status", "input_digest", "input_bytes", "run_ref", "failure_code", "failure_summary", "started_at", "completed_at", "actor_ref", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "application_session_turn.v1"},
+    "turn_id": {"type": "string", "pattern": "^appturn_[a-z2-7]{16}$"},
+    "session_id": {"type": "string", "pattern": "^appsess_[a-z2-7]{16}$"},
+    "sequence": {"type": "integer", "minimum": 1},
+    "client_turn_key": {"$ref": "#/$defs/ref"},
+    "tenant_ref": {"$ref": "#/$defs/ref"},
+    "workspace_id": {"$ref": "#/$defs/ref"},
+    "application_id": {"$ref": "#/$defs/ref"},
+    "owner_subject_ref": {"$ref": "#/$defs/ref"},
+    "execution_profile": {"enum": ["workflow_definition_executor_v1", "application_rag_invocation_v1"]},
+    "authority": {"$ref": "application-runtime-authority.schema.json"},
+    "status": {"enum": ["running", "succeeded", "failed", "canceled", "outcome_unknown"]},
+    "input_digest": {"$ref": "#/$defs/digest"},
+    "input_bytes": {"type": "integer", "minimum": 1, "maximum": 8192},
+    "run_ref": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/run_ref"}]},
+    "failure_code": {"type": "string", "maxLength": 160},
+    "failure_summary": {"type": "string", "maxLength": 256},
+    "started_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"oneOf": [{"type": "null"}, {"type": "string", "format": "date-time"}]},
+    "actor_ref": {"$ref": "#/$defs/ref"},
+    "request_id": {"$ref": "#/$defs/ref"},
+    "audit_ref": {"$ref": "#/$defs/ref"}
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "running"}}}, "then": {"properties": {"run_ref": {"type": "null"}, "failure_code": {"const": ""}, "failure_summary": {"const": ""}, "completed_at": {"type": "null"}}}},
+    {"if": {"not": {"properties": {"status": {"const": "running"}}}}, "then": {"properties": {"completed_at": {"type": "string", "format": "date-time"}}}},
+    {"if": {"properties": {"status": {"const": "succeeded"}}}, "then": {"properties": {"run_ref": {"$ref": "#/$defs/run_ref"}, "failure_code": {"const": ""}, "failure_summary": {"const": ""}}}},
+    {"if": {"properties": {"status": {"enum": ["failed", "canceled", "outcome_unknown"]}}}, "then": {"properties": {"failure_code": {"type": "string", "minLength": 1, "maxLength": 160}}}},
+    {"if": {"properties": {"execution_profile": {"const": "workflow_definition_executor_v1"}, "run_ref": {"type": "object"}}}, "then": {"properties": {"run_ref": {"properties": {"schema_version": {"const": "workflow_run_record.v5"}}}}}},
+    {"if": {"properties": {"execution_profile": {"const": "application_rag_invocation_v1"}, "run_ref": {"type": "object"}}}, "then": {"properties": {"run_ref": {"properties": {"schema_version": {"const": "workflow_run_record.v4"}}}}}}
+  ],
+  "$defs": {
+    "ref": {"type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"},
+    "digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "run_ref": {"type": "object", "additionalProperties": false, "required": ["run_id", "schema_version"], "properties": {"run_id": {"type": "string", "pattern": "^run_[a-z0-9]{16,64}$"}, "schema_version": {"enum": ["workflow_run_record.v4", "workflow_run_record.v5"]}}}
+  }
+}

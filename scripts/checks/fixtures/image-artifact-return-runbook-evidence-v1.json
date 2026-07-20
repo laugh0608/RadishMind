@@ -295,9 +295,8 @@
   ],
   "required_doc_references": {
     "docs/contracts/image-generation.md": [
-      "image-artifact-return-runbook-evidence-v1",
       "image_artifact_return_runbook_evidence_defined",
-      "metadata reference"
+      "image safety runbook"
     ],
     "docs/radishmind-capability-matrix.md": [
       "image_artifact_return_runbook_evidence_defined",
@@ -319,17 +318,9 @@
       "image-artifact-return-runbook-evidence-v1",
       "metadata reference"
     ],
-    "docs/radishmind-roadmap.md": [
-      "image_artifact_return_runbook_evidence_defined",
-      "image safety runbook"
-    ],
     "docs/radishmind-architecture.md": [
       "image_artifact_return_runbook_evidence_defined",
       "metadata reference"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "image-artifact-return-runbook-evidence-v1",
-      "image_artifact_return_runbook_evidence_defined"
     ],
     "docs/devlogs/2026-W24.md": [
       "image-artifact-return-runbook-evidence-v1",

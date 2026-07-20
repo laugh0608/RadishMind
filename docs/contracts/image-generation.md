@@ -1,12 +1,12 @@
 # RadishMind 图片生成契约
 
-更新时间：2026-06-14
+更新时间：2026-07-15
 
 ## `RadishMind-Image Adapter` 第一版仓库级契约
 
 图片生成能力通过独立 adapter / backend 提供。`RadishMind-Core` 只负责生成结构化意图、约束、风险确认和审查信息，不直接生成图片像素。
 
-第一版 image generation intent 已落成仓库级可回归契约：
+第一版 image generation intent 已落成仓库级可回归契约。fast / full 当前只执行基础协议、评测 manifest 和三项 runtime 行为检查：
 
 - Schema：`contracts/image-generation-intent.schema.json`
 - Backend request schema：`contracts/image-generation-backend-request.schema.json`
@@ -17,44 +17,14 @@
 - Smoke：`scripts/check-image-generation-intent-contract.py`
 - 最小评测 manifest：`scripts/checks/fixtures/image-generation-eval-manifest-v0.json`
 - 评测 manifest smoke：`scripts/check-image-generation-eval-manifest.py`
-- Handshake / safety gate fixture：`scripts/checks/fixtures/image-adapter-handshake-safety-gate-v1.json`
-- Handshake / safety gate smoke：`scripts/check-image-adapter-handshake-safety-gate-v1.py`
-- Artifact return runbook fixture：`scripts/checks/fixtures/image-artifact-return-runbook-evidence-v1.json`
-- Artifact return runbook smoke：`scripts/check-image-artifact-return-runbook-evidence-v1.py`
-- Safety runbook fixture：`scripts/checks/fixtures/image-safety-runbook-evidence-v1.json`
-- Safety runbook smoke：`scripts/check-image-safety-runbook-evidence-v1.py`
-- Backend adapter readiness fixture：`scripts/checks/fixtures/image-backend-adapter-readiness-evidence-v1.json`
-- Backend adapter readiness smoke：`scripts/check-image-backend-adapter-readiness-evidence-v1.py`
-- Artifact runtime mapping readiness fixture：`scripts/checks/fixtures/image-artifact-runtime-mapping-readiness-v1.json`
-- Artifact runtime mapping readiness smoke：`scripts/check-image-artifact-runtime-mapping-readiness-v1.py`
-- Artifact runtime mapping implementation entry review fixture：`scripts/checks/fixtures/image-artifact-runtime-mapping-implementation-entry-review-v1.json`
-- Artifact runtime mapping implementation entry review smoke：`scripts/check-image-artifact-runtime-mapping-implementation-entry-review-v1.py`
-- Artifact store / binary reader boundary readiness fixture：`scripts/checks/fixtures/image-artifact-store-binary-reader-boundary-readiness-v1.json`
-- Artifact store / binary reader boundary readiness smoke：`scripts/check-image-artifact-store-binary-reader-boundary-readiness-v1.py`
-- Artifact runtime mapper implementation plan fixture：`scripts/checks/fixtures/image-artifact-runtime-mapper-implementation-plan-v1.json`
-- Artifact runtime mapper implementation plan smoke：`scripts/check-image-artifact-runtime-mapper-implementation-plan-v1.py`
-- Artifact runtime mapper implementation entry fixture：`scripts/checks/fixtures/image-artifact-runtime-mapper-implementation-entry-v1.json`
-- Artifact runtime mapper implementation entry smoke：`scripts/check-image-artifact-runtime-mapper-implementation-entry-v1.py`
-- Artifact runtime mapper implementation fixture：`scripts/checks/fixtures/image-artifact-runtime-mapper-implementation-v1.json`
-- Artifact runtime mapper implementation smoke：`scripts/check-image-artifact-runtime-mapper-implementation-v1.py`
 - Artifact runtime mapper runtime implementation fixture：`scripts/checks/fixtures/image-artifact-runtime-mapper-runtime-implementation-v1.json`
 - Artifact runtime mapper runtime implementation smoke：`scripts/check-image-artifact-runtime-mapper-runtime-implementation-v1.py`
-- Artifact runtime mapper response consumer integration review fixture：`scripts/checks/fixtures/image-artifact-runtime-mapper-response-consumer-integration-review-v1.json`
-- Artifact runtime mapper response consumer integration review smoke：`scripts/check-image-artifact-runtime-mapper-response-consumer-integration-review-v1.py`
-- Artifact response consumer implementation readiness fixture：`scripts/checks/fixtures/image-artifact-response-consumer-implementation-readiness-v1.json`
-- Artifact response consumer implementation readiness smoke：`scripts/check-image-artifact-response-consumer-implementation-readiness-v1.py`
-- Artifact response consumer implementation fixture：`scripts/checks/fixtures/image-artifact-response-consumer-implementation-v1.json`
-- Artifact response consumer implementation smoke：`scripts/check-image-artifact-response-consumer-implementation-v1.py`
 - Artifact response consumer runtime implementation fixture：`scripts/checks/fixtures/image-artifact-response-consumer-runtime-implementation-v1.json`
 - Artifact response consumer runtime implementation smoke：`scripts/check-image-artifact-response-consumer-runtime-implementation-v1.py`
-- Artifact response builder integration entry review fixture：`scripts/checks/fixtures/image-artifact-response-builder-integration-entry-review-v1.json`
-- Artifact response builder integration entry review smoke：`scripts/check-image-artifact-response-builder-integration-entry-review-v1.py`
-- Artifact response builder integration fixture：`scripts/checks/fixtures/image-artifact-response-builder-integration-v1.json`
-- Artifact response builder integration smoke：`scripts/check-image-artifact-response-builder-integration-v1.py`
-- Artifact response builder runtime integration entry review fixture：`scripts/checks/fixtures/image-artifact-response-builder-runtime-integration-entry-review-v1.json`
-- Artifact response builder runtime integration entry review smoke：`scripts/check-image-artifact-response-builder-runtime-integration-entry-review-v1.py`
 - Artifact response builder runtime integration implementation fixture：`scripts/checks/fixtures/image-artifact-response-builder-runtime-integration-implementation-v1.json`
 - Artifact response builder runtime integration implementation smoke：`scripts/check-image-artifact-response-builder-runtime-integration-implementation-v1.py`
+
+Handshake、runbook、backend readiness、mapping readiness / entry review / task card、consumer readiness / task card 和 builder entry review / task card 已被上述 runtime 实现消费，现作为下文历史可复验证据与 `scripts/check-repo.py` 非执行目录保留。它们不再进入每次 fast / full，也不表示 artifact store、binary reader、public delivery、真实生图 backend 或 production 能力成立。
 
 当前实现读法：
 

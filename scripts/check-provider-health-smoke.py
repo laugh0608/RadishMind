@@ -54,27 +54,16 @@ EXPECTED_REQUIRED_CONSUMERS = {
     "scripts/check-provider-health-smoke.py",
     "scripts/check-repo.py",
     "scripts/README.md",
-    "docs/radishmind-current-focus.md",
     "docs/radishmind-capability-matrix.md",
-    "docs/radishmind-roadmap.md",
     "docs/radishmind-architecture.md",
     "docs/task-cards/provider-runtime-health-v1-plan.md",
     "docs/devlogs/2026-W22.md",
 }
 REQUIRED_DOC_REFERENCES = {
-    "docs/radishmind-current-focus.md": [
-        "provider-health-smoke-v1",
-        "provider-health-smoke-v1.json",
-        "check-provider-health-smoke.py",
-    ],
     "docs/radishmind-capability-matrix.md": [
         "provider health smoke",
         "provider-health-smoke-v1.json",
         "check-provider-health-smoke.py",
-    ],
-    "docs/radishmind-roadmap.md": [
-        "provider-health-smoke-v1",
-        "provider-health-smoke-v1.json",
     ],
     "docs/radishmind-architecture.md": [
         "provider-health-smoke-v1.json",

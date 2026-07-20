@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-rag-application-runtime-assignment-event.schema.json",
+  "title": "WorkflowRAGApplicationRuntimeAssignmentEventV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "event_id", "assignment_id", "decision", "reason", "from_state", "to_state", "before_record_version", "after_record_version", "publish_candidate_id", "actor_ref", "occurred_at", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": { "const": "workflow_rag_application_runtime_assignment_event.v1" },
+    "event_id": { "type": "string", "pattern": "^wragre_[a-z2-7]{16}$" },
+    "assignment_id": { "type": "string", "pattern": "^wragra_[a-z2-7]{16}$" },
+    "decision": { "enum": ["activate", "replace", "revoke"] },
+    "reason": { "type": "string", "minLength": 4, "maxLength": 500 },
+    "from_state": { "enum": ["none", "active", "revoked"] },
+    "to_state": { "enum": ["active", "revoked"] },
+    "before_record_version": { "type": "integer", "minimum": 0 },
+    "after_record_version": { "type": "integer", "minimum": 1 },
+    "publish_candidate_id": { "$ref": "#/$defs/ref" },
+    "actor_ref": { "$ref": "#/$defs/ref" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "request_id": { "$ref": "#/$defs/ref" },
+    "audit_ref": { "$ref": "#/$defs/ref" }
+  },
+  "$defs": { "ref": { "type": "string", "minLength": 3, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$" } }
+}

@@ -16,6 +16,8 @@
       "第二批治理边界",
       "优先入口治理记录 v1",
       "doc_language_priority_documents_remediation_v1_defined",
+      "活跃产品链路治理记录 v2",
+      "doc_language_active_product_path_remediation_v2_defined",
       "不做全仓机械翻译",
       "不重命名状态锚点"
     ]
@@ -44,6 +46,11 @@
     "docs/document-language-governance-v1.md",
     "docs/radishmind-current-focus.md",
     "docs/features/README.md",
+    "docs/features/user-workspace.md",
+    "docs/features/user-workspace/README.md",
+    "docs/features/user-workspace/application-api-integration-invocation-v1.md",
+    "docs/features/user-workspace/application-configuration-draft-review-v1.md",
+    "docs/features/user-workspace/application-publish-governance-promotion-v1.md",
     "docs/platform/README.md",
     "docs/radishmind-code-standards.md",
     "scripts/README.md"
@@ -88,6 +95,8 @@
         "第二批治理边界",
         "优先入口治理记录 v1",
         "doc_language_priority_documents_remediation_v1_defined",
+        "活跃产品链路治理记录 v2",
+        "doc_language_active_product_path_remediation_v2_defined",
         "不做全仓机械翻译",
         "不重命名状态锚点"
       ]
@@ -213,26 +222,62 @@
       "term_id": "dev-only",
       "preferred_zh": "仅开发",
       "usage_boundary": "环境边界正文写中文，配置键和专题名保留原文"
+    },
+    {
+      "term_id": "scope",
+      "preferred_zh": "作用域",
+      "usage_boundary": "协议字段和类型名保留原文，正文说明用中文"
+    },
+    {
+      "term_id": "owner",
+      "preferred_zh": "所有者",
+      "usage_boundary": "字段名保留原文，正文说明用中文"
+    },
+    {
+      "term_id": "repository",
+      "preferred_zh": "存储库",
+      "usage_boundary": "接口名、模式名和路径保留原文，正文说明用中文"
+    },
+    {
+      "term_id": "handoff",
+      "preferred_zh": "交接",
+      "usage_boundary": "事件名和类型名保留原文，正文说明用中文"
+    },
+    {
+      "term_id": "candidate",
+      "preferred_zh": "候选版本",
+      "usage_boundary": "schema、状态值和字段名保留原文，正文说明用中文"
+    },
+    {
+      "term_id": "baseline",
+      "preferred_zh": "基线",
+      "usage_boundary": "字段名和状态锚点保留原文，正文说明用中文"
+    },
+    {
+      "term_id": "drift",
+      "preferred_zh": "漂移",
+      "usage_boundary": "错误码和字段名保留原文，正文说明用中文"
+    },
+    {
+      "term_id": "offline",
+      "preferred_zh": "离线",
+      "usage_boundary": "状态值保留原文，正文说明用中文"
+    },
+    {
+      "term_id": "production",
+      "preferred_zh": "生产环境 / 生产态",
+      "usage_boundary": "配置键、模式名和状态锚点保留原文，正文说明用中文"
     }
   ],
   "priority_remediation_batch": {
     "status": "doc_language_priority_documents_remediation_v1_defined",
     "target_documents": [
-      "docs/radishmind-current-focus.md",
       "docs/features/README.md",
       "docs/platform/README.md",
       "scripts/README.md",
       "docs/radishmind-code-standards.md"
     ],
     "document_snippets": [
-      {
-        "path": "docs/radishmind-current-focus.md",
-        "snippets": [
-          "仅元数据 / 静态产品类别 / 逻辑 schema / 产物 / 冒烟验证策略 / 运行时扫描边界 / 入口复评 / 数据库选择评审",
-          "公开生产 API 停止线",
-          "普通离线证据界面"
-        ]
-      },
       {
         "path": "docs/features/README.md",
         "snippets": [
@@ -268,6 +313,48 @@
           "只读证据组织",
           "专项门禁"
         ]
+      }
+    ]
+  },
+  "active_product_path_remediation_batch": {
+    "status": "doc_language_active_product_path_remediation_v2_defined",
+    "target_documents": [
+      "docs/radishmind-current-focus.md",
+      "docs/features/README.md",
+      "docs/features/user-workspace.md",
+      "docs/features/user-workspace/README.md",
+      "docs/features/user-workspace/application-api-integration-invocation-v1.md",
+      "docs/features/user-workspace/application-configuration-draft-review-v1.md",
+      "docs/features/user-workspace/application-publish-governance-promotion-v1.md"
+    ],
+    "document_snippets": [
+      {
+        "path": "docs/radishmind-current-focus.md",
+        "snippets": ["R6 文档与检查器收敛", "用户工作区应用目录与生命周期（开发/测试态）v1"]
+      },
+      {
+        "path": "docs/features/README.md",
+        "snippets": ["应用 API 接入与调用 v1", "应用发布治理与晋级审查 v1"]
+      },
+      {
+        "path": "docs/features/user-workspace.md",
+        "snippets": ["应用目录未启用时，历史只读列表仍来自预置假数据存储库", "只读侧与后续写入 / 执行侧"]
+      },
+      {
+        "path": "docs/features/user-workspace/README.md",
+        "snippets": ["用户工作区细专题入口", "失败关闭"]
+      },
+      {
+        "path": "docs/features/user-workspace/application-api-integration-invocation-v1.md",
+        "snippets": ["用户工作区应用 API 接入与调用 v1", "调试台与请求历史交接"]
+      },
+      {
+        "path": "docs/features/user-workspace/application-configuration-draft-review-v1.md",
+        "snippets": ["用户工作区应用配置草案与审查 v1", "应用作用域与身份"]
+      },
+      {
+        "path": "docs/features/user-workspace/application-publish-governance-promotion-v1.md",
+        "snippets": ["用户工作区应用发布治理与晋级审查 v1", "候选版本模型与不可变边界"]
       }
     ]
   },

@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/application-runtime-authority.schema.json",
+  "title": "Application Runtime Authority v1",
+  "description": "Metadata-only exact authority for one explicit application interaction profile.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "execution_profile", "application_id", "application_record_version", "application_lifecycle", "workflow_definition", "application_rag", "authority_digest"],
+  "properties": {
+    "schema_version": {"const": "application_runtime_authority.v1"},
+    "execution_profile": {"enum": ["workflow_definition_executor_v1", "application_rag_invocation_v1"]},
+    "application_id": {"$ref": "#/$defs/ref"},
+    "application_record_version": {"type": "integer", "minimum": 1},
+    "application_lifecycle": {"const": "active"},
+    "workflow_definition": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/workflow_definition"}]},
+    "application_rag": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/application_rag"}]},
+    "authority_digest": {"$ref": "#/$defs/digest"}
+  },
+  "allOf": [
+    {"if": {"properties": {"execution_profile": {"const": "workflow_definition_executor_v1"}}}, "then": {"properties": {"workflow_definition": {"$ref": "#/$defs/workflow_definition"}, "application_rag": {"type": "null"}}}},
+    {"if": {"properties": {"execution_profile": {"const": "application_rag_invocation_v1"}}}, "then": {"properties": {"workflow_definition": {"type": "null"}, "application_rag": {"$ref": "#/$defs/application_rag"}}}}
+  ],
+  "$defs": {
+    "ref": {"type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"},
+    "digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "binding_ref": {"type": "object", "additionalProperties": false, "required": ["binding_id", "binding_version", "binding_digest"], "properties": {"binding_id": {"type": "string", "pattern": "^wragb_[a-z2-7]{16}$"}, "binding_version": {"const": 1}, "binding_digest": {"$ref": "#/$defs/digest"}}},
+    "workflow_definition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["definition_id", "definition_version", "definition_digest", "activation_pointer_version", "candidate_id", "candidate_review_version"],
+      "properties": {
+        "definition_id": {"$ref": "#/$defs/ref"},
+        "definition_version": {"type": "integer", "minimum": 1},
+        "definition_digest": {"$ref": "#/$defs/digest"},
+        "activation_pointer_version": {"type": "integer", "minimum": 1},
+        "candidate_id": {"$ref": "#/$defs/ref"},
+        "candidate_review_version": {"type": "integer", "minimum": 1}
+      }
+    },
+    "application_rag": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assignment_id", "assignment_version", "assignment_digest", "publish_candidate_id", "publish_review_version", "draft_id", "draft_version", "draft_digest", "binding_ref", "snapshot_id", "snapshot_version", "snapshot_digest", "retrieval_profile_id", "retrieval_profile_version", "retrieval_profile_digest"],
+      "properties": {
+        "assignment_id": {"type": "string", "pattern": "^wragra_[a-z2-7]{16}$"},
+        "assignment_version": {"type": "integer", "minimum": 1},
+        "assignment_digest": {"$ref": "#/$defs/digest"},
+        "publish_candidate_id": {"$ref": "#/$defs/ref"},
+        "publish_review_version": {"type": "integer", "minimum": 1},
+        "draft_id": {"$ref": "#/$defs/ref"},
+        "draft_version": {"type": "integer", "minimum": 1},
+        "draft_digest": {"$ref": "#/$defs/digest"},
+        "binding_ref": {"$ref": "#/$defs/binding_ref"},
+        "snapshot_id": {"type": "string", "pattern": "^rags_[a-z2-7]{16}$"},
+        "snapshot_version": {"type": "integer", "minimum": 1},
+        "snapshot_digest": {"$ref": "#/$defs/digest"},
+        "retrieval_profile_id": {"$ref": "#/$defs/ref"},
+        "retrieval_profile_version": {"type": "integer", "minimum": 1},
+        "retrieval_profile_digest": {"$ref": "#/$defs/digest"}
+      }
+    }
+  }
+}

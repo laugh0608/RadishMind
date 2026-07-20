@@ -15,22 +15,42 @@ import (
 )
 
 const (
-	Component                              = "workflow_runs"
-	MigrationID                            = "0005_workflow_evaluation_suites"
-	StoreSchemaVersion                     = "workflow_run_store_v5"
-	legacyMigrationID                      = "0001_workflow_runs"
-	legacyStoreSchemaVersion               = "workflow_run_store_v1"
-	diagnosticsMigrationID                 = "0002_workflow_run_diagnostics"
-	diagnosticsStoreSchemaVersion          = "workflow_run_store_v2"
-	evaluationMigrationID                  = "0003_workflow_evaluation_cases"
-	evaluationStoreSchemaVersion           = "workflow_run_store_v3"
-	caseVersioningMigrationID              = "0004_workflow_evaluation_case_revisions"
-	caseVersioningStoreSchemaVersion       = "workflow_run_store_v4"
-	MigrationStateApplied                  = "applied"
-	MigrationStatePending                  = "pending"
-	MigrationStateNotApplied               = "not_applied"
-	MigrationStateMismatch                 = "mismatch"
-	migrationAdvisoryLockKey         int64 = 0x524d52554e533031
+	Component                                     = "workflow_runs"
+	MigrationID                                   = "0015_application_interaction_sessions"
+	StoreSchemaVersion                            = "workflow_run_store_v15"
+	legacyMigrationID                             = "0001_workflow_runs"
+	legacyStoreSchemaVersion                      = "workflow_run_store_v1"
+	diagnosticsMigrationID                        = "0002_workflow_run_diagnostics"
+	diagnosticsStoreSchemaVersion                 = "workflow_run_store_v2"
+	evaluationMigrationID                         = "0003_workflow_evaluation_cases"
+	evaluationStoreSchemaVersion                  = "workflow_run_store_v3"
+	caseVersioningMigrationID                     = "0004_workflow_evaluation_case_revisions"
+	caseVersioningStoreSchemaVersion              = "workflow_run_store_v4"
+	evaluationSuiteMigrationID                    = "0005_workflow_evaluation_suites"
+	evaluationSuiteStoreSchemaVersion             = "workflow_run_store_v5"
+	toolActionsMigrationID                        = "0006_workflow_http_tool_actions"
+	toolActionsStoreSchemaVersion                 = "workflow_run_store_v6"
+	toolExecutionMigrationID                      = "0007_workflow_http_tool_execution"
+	toolExecutionStoreSchemaVersion               = "workflow_run_store_v7"
+	ragSnapshotMigrationID                        = "0008_workflow_rag_snapshots"
+	ragSnapshotStoreSchemaVersion                 = "workflow_run_store_v8"
+	ragExecutionAuditMigrationID                  = "0009_workflow_rag_execution_audits"
+	ragExecutionAuditStoreSchemaVersion           = "workflow_run_store_v9"
+	ragEvaluationDatasetMigrationID               = "0010_workflow_rag_evaluation_datasets"
+	ragEvaluationDatasetStoreSchemaVersion        = "workflow_run_store_v10"
+	ragKnowledgePromotionMigrationID              = "0011_workflow_rag_knowledge_promotions"
+	ragKnowledgePromotionStoreSchemaVersion       = "workflow_run_store_v11"
+	applicationRuntimeMigrationID                 = "0012_workflow_rag_application_invocations"
+	applicationRuntimeStoreSchemaVersion          = "workflow_run_store_v12"
+	definitionReleaseMigrationID                  = "0013_workflow_definition_releases"
+	definitionReleaseStoreSchemaVersion           = "workflow_run_store_v13"
+	definitionExecutionMigrationID                = "0014_workflow_definition_execution"
+	definitionExecutionStoreSchemaVersion         = "workflow_run_store_v14"
+	MigrationStateApplied                         = "applied"
+	MigrationStatePending                         = "pending"
+	MigrationStateNotApplied                      = "not_applied"
+	MigrationStateMismatch                        = "mismatch"
+	migrationAdvisoryLockKey                int64 = 0x524d52554e533031
 )
 
 const markerSQL = `CREATE TABLE IF NOT EXISTS workflow_run_schema_versions (
@@ -67,8 +87,68 @@ var upSQLV5 string
 //go:embed 0005_workflow_evaluation_suites.down.sql
 var downSQLV5 string
 
-var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5
-var downSQL = downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+//go:embed 0006_workflow_http_tool_actions.up.sql
+var upSQLV6 string
+
+//go:embed 0006_workflow_http_tool_actions.down.sql
+var downSQLV6 string
+
+//go:embed 0007_workflow_http_tool_execution.up.sql
+var upSQLV7 string
+
+//go:embed 0007_workflow_http_tool_execution.down.sql
+var downSQLV7 string
+
+//go:embed 0008_workflow_rag_snapshots.up.sql
+var upSQLV8 string
+
+//go:embed 0008_workflow_rag_snapshots.down.sql
+var downSQLV8 string
+
+//go:embed 0009_workflow_rag_execution_audits.up.sql
+var upSQLV9 string
+
+//go:embed 0009_workflow_rag_execution_audits.down.sql
+var downSQLV9 string
+
+//go:embed 0010_workflow_rag_evaluation_datasets.up.sql
+var upSQLV10 string
+
+//go:embed 0010_workflow_rag_evaluation_datasets.down.sql
+var downSQLV10 string
+
+//go:embed 0011_workflow_rag_knowledge_promotions.up.sql
+var upSQLV11 string
+
+//go:embed 0011_workflow_rag_knowledge_promotions.down.sql
+var downSQLV11 string
+
+//go:embed 0012_workflow_rag_application_invocations.up.sql
+var upSQLV12 string
+
+//go:embed 0012_workflow_rag_application_invocations.down.sql
+var downSQLV12 string
+
+//go:embed 0013_workflow_definition_releases.up.sql
+var upSQLV13 string
+
+//go:embed 0013_workflow_definition_releases.down.sql
+var downSQLV13 string
+
+//go:embed 0014_workflow_definition_execution.up.sql
+var upSQLV14 string
+
+//go:embed 0014_workflow_definition_execution.down.sql
+var downSQLV14 string
+
+//go:embed 0015_application_interaction_sessions.up.sql
+var upSQLV15 string
+
+//go:embed 0015_application_interaction_sessions.down.sql
+var downSQLV15 string
+
+var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13 + "\n" + upSQLV14 + "\n" + upSQLV15
+var downSQL = downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 
 type State struct {
 	MigrationState, MigrationID, StoreSchemaVersion, MigrationChecksum string
@@ -110,6 +190,37 @@ func evaluationChecksum() string {
 }
 func caseVersioningChecksum() string {
 	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4)))
+}
+func evaluationSuiteChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5)))
+}
+func toolActionsChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6)))
+}
+func toolExecutionChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7)))
+}
+func ragSnapshotChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8)))
+}
+func ragExecutionAuditChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9)))
+}
+func ragEvaluationDatasetChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9+"\n"+upSQLV10)))
+}
+func ragKnowledgePromotionChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9+"\n"+upSQLV10+"\n"+upSQLV11)))
+}
+func applicationRuntimeChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9+"\n"+upSQLV10+"\n"+upSQLV11+"\n"+upSQLV12)))
+}
+func definitionReleaseChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9+"\n"+upSQLV10+"\n"+upSQLV11+"\n"+upSQLV12+"\n"+upSQLV13)))
+}
+
+func definitionExecutionChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9+"\n"+upSQLV10+"\n"+upSQLV11+"\n"+upSQLV12+"\n"+upSQLV13+"\n"+upSQLV14)))
 }
 
 func Inspect(ctx context.Context, pool *pgxpool.Pool) (State, error) {
@@ -158,13 +269,9 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 		return State{}, errors.New("workflow run migration marker mismatch")
 	}
 	if state.MigrationState == MigrationStatePending {
-		pendingSQL := upSQLV5
-		if state.MigrationID == legacyMigrationID {
-			pendingSQL = upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5
-		} else if state.MigrationID == diagnosticsMigrationID {
-			pendingSQL = upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5
-		} else if state.MigrationID == evaluationMigrationID {
-			pendingSQL = upSQLV4 + "\n" + upSQLV5
+		pendingSQL := pendingMigrationSQL(state.MigrationID)
+		if pendingSQL == "" {
+			return State{}, errors.New("workflow run pending migration is unsupported")
 		}
 		if _, err = tx.Exec(ctx, pendingSQL); err != nil {
 			return State{}, safeDatabaseError("apply workflow run pending migrations", err)
@@ -191,7 +298,20 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 	if pool == nil {
 		return State{}, errors.New("workflow run PostgreSQL pool is missing")
 	}
-	tx, err := pool.Begin(ctx)
+	conn, err := pool.Acquire(ctx)
+	if err != nil {
+		return State{}, safeDatabaseError("acquire workflow run rollback connection", err)
+	}
+	defer conn.Release()
+	if _, err = conn.Exec(ctx, "SELECT pg_advisory_lock($1)", migrationAdvisoryLockKey); err != nil {
+		return State{}, safeDatabaseError("lock workflow run rollback", err)
+	}
+	defer func() {
+		unlock, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		_, _ = conn.Exec(unlock, "SELECT pg_advisory_unlock($1)", migrationAdvisoryLockKey)
+	}()
+	tx, err := conn.Begin(ctx)
 	if err != nil {
 		return State{}, safeDatabaseError("begin workflow run rollback", err)
 	}
@@ -209,13 +329,9 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 	}
 	rollbackSQL := downSQL
 	if state.MigrationState == MigrationStatePending {
-		rollbackSQL = downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
-		if state.MigrationID == legacyMigrationID {
-			rollbackSQL = downSQLV1
-		} else if state.MigrationID == diagnosticsMigrationID {
-			rollbackSQL = downSQLV2 + "\n" + downSQLV1
-		} else if state.MigrationID == evaluationMigrationID {
-			rollbackSQL = downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+		rollbackSQL = rollbackSQLThrough(state.MigrationID)
+		if rollbackSQL == "" {
+			return State{}, errors.New("workflow run pending rollback is unsupported")
 		}
 	}
 	if _, err = tx.Exec(ctx, rollbackSQL); err != nil {
@@ -225,6 +341,86 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 		return State{}, safeDatabaseError("commit workflow run rollback", err)
 	}
 	return State{MigrationState: MigrationStateNotApplied}, nil
+}
+
+func pendingMigrationSQL(appliedMigrationID string) string {
+	if appliedMigrationID == definitionExecutionMigrationID {
+		return upSQLV15
+	}
+	if appliedMigrationID == definitionReleaseMigrationID {
+		return upSQLV14 + "\n" + upSQLV15
+	}
+	pending := pendingMigrationSQLThroughDefinitionRelease(appliedMigrationID)
+	if pending == "" {
+		return ""
+	}
+	return pending + "\n" + upSQLV14 + "\n" + upSQLV15
+}
+
+func pendingMigrationSQLThroughDefinitionRelease(appliedMigrationID string) string {
+	switch appliedMigrationID {
+	case legacyMigrationID:
+		return upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13
+	case diagnosticsMigrationID:
+		return upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13
+	case evaluationMigrationID:
+		return upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13
+	case caseVersioningMigrationID:
+		return upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13
+	case evaluationSuiteMigrationID:
+		return upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13
+	case toolActionsMigrationID:
+		return upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13
+	case toolExecutionMigrationID:
+		return upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13
+	case ragSnapshotMigrationID:
+		return upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13
+	case ragExecutionAuditMigrationID:
+		return upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13
+	case ragEvaluationDatasetMigrationID:
+		return upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13
+	case ragKnowledgePromotionMigrationID:
+		return upSQLV12 + "\n" + upSQLV13
+	case applicationRuntimeMigrationID:
+		return upSQLV13
+	default:
+		return ""
+	}
+}
+
+func rollbackSQLThrough(appliedMigrationID string) string {
+	switch appliedMigrationID {
+	case legacyMigrationID:
+		return downSQLV1
+	case diagnosticsMigrationID:
+		return downSQLV2 + "\n" + downSQLV1
+	case evaluationMigrationID:
+		return downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case caseVersioningMigrationID:
+		return downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case evaluationSuiteMigrationID:
+		return downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case toolActionsMigrationID:
+		return downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case toolExecutionMigrationID:
+		return downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case ragSnapshotMigrationID:
+		return downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case ragExecutionAuditMigrationID:
+		return downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case ragEvaluationDatasetMigrationID:
+		return downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case ragKnowledgePromotionMigrationID:
+		return downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case applicationRuntimeMigrationID:
+		return downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case definitionReleaseMigrationID:
+		return downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case definitionExecutionMigrationID:
+		return downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	default:
+		return ""
+	}
 }
 
 func inspect(ctx context.Context, query rowQuerier) (State, error) {
@@ -255,6 +451,26 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 		state.MigrationState = MigrationStatePending
 	} else if state.MigrationID == caseVersioningMigrationID && state.StoreSchemaVersion == caseVersioningStoreSchemaVersion && state.MigrationChecksum == caseVersioningChecksum() && tableExists {
 		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == evaluationSuiteMigrationID && state.StoreSchemaVersion == evaluationSuiteStoreSchemaVersion && state.MigrationChecksum == evaluationSuiteChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == toolActionsMigrationID && state.StoreSchemaVersion == toolActionsStoreSchemaVersion && state.MigrationChecksum == toolActionsChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == toolExecutionMigrationID && state.StoreSchemaVersion == toolExecutionStoreSchemaVersion && state.MigrationChecksum == toolExecutionChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == ragSnapshotMigrationID && state.StoreSchemaVersion == ragSnapshotStoreSchemaVersion && state.MigrationChecksum == ragSnapshotChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == ragExecutionAuditMigrationID && state.StoreSchemaVersion == ragExecutionAuditStoreSchemaVersion && state.MigrationChecksum == ragExecutionAuditChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == ragEvaluationDatasetMigrationID && state.StoreSchemaVersion == ragEvaluationDatasetStoreSchemaVersion && state.MigrationChecksum == ragEvaluationDatasetChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == ragKnowledgePromotionMigrationID && state.StoreSchemaVersion == ragKnowledgePromotionStoreSchemaVersion && state.MigrationChecksum == ragKnowledgePromotionChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == applicationRuntimeMigrationID && state.StoreSchemaVersion == applicationRuntimeStoreSchemaVersion && state.MigrationChecksum == applicationRuntimeChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == definitionReleaseMigrationID && state.StoreSchemaVersion == definitionReleaseStoreSchemaVersion && state.MigrationChecksum == definitionReleaseChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == definitionExecutionMigrationID && state.StoreSchemaVersion == definitionExecutionStoreSchemaVersion && state.MigrationChecksum == definitionExecutionChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
 	} else {
 		var diagnosticColumnCount int
 		if err = query.QueryRow(ctx, `SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name='workflow_run_records' AND column_name IN ('failure_code','failure_boundary','selected_provider','selected_model')`).Scan(&diagnosticColumnCount); err != nil {
@@ -279,7 +495,190 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_evaluation_suite_decisions') IS NOT NULL").Scan(&decisionTableExists); err != nil {
 			return State{}, safeDatabaseError("inspect workflow evaluation suite decision table", err)
 		}
-		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 || !evaluationTableExists || !revisionTableExists || currentVersionColumnCount != 1 || !suiteTableExists || !decisionTableExists {
+		var actionPlanTableExists, confirmationDecisionTableExists, executionAuditTableExists, executionAttemptTableExists bool
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_http_tool_action_plans') IS NOT NULL").Scan(&actionPlanTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow HTTP tool action plan table", err)
+		}
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_http_tool_confirmation_decisions') IS NOT NULL").Scan(&confirmationDecisionTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow HTTP tool confirmation decision table", err)
+		}
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_http_tool_execution_audits') IS NOT NULL").Scan(&executionAuditTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow HTTP tool execution audit table", err)
+		}
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_http_tool_execution_attempts') IS NOT NULL").Scan(&executionAttemptTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow HTTP tool execution attempt table", err)
+		}
+		var appendOnlyTriggerCount int
+		if err = query.QueryRow(ctx, `SELECT count(*)
+			FROM pg_trigger trigger
+			JOIN pg_class relation ON relation.oid=trigger.tgrelid
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE NOT trigger.tgisinternal AND namespace.nspname='public'
+			AND trigger.tgname IN (
+				'workflow_http_tool_confirmation_decisions_append_only',
+				'workflow_http_tool_execution_audits_append_only'
+			)`).Scan(&appendOnlyTriggerCount); err != nil {
+			return State{}, safeDatabaseError("inspect workflow HTTP tool append-only triggers", err)
+		}
+		var ragResourceTableExists, ragVersionTableExists, ragFragmentTableExists, ragAuditTableExists bool
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_rag_snapshot_resources') IS NOT NULL").Scan(&ragResourceTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG snapshot resource table", err)
+		}
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_rag_snapshot_versions') IS NOT NULL").Scan(&ragVersionTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG snapshot version table", err)
+		}
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_rag_snapshot_fragments') IS NOT NULL").Scan(&ragFragmentTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG snapshot fragment table", err)
+		}
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_rag_execution_audits') IS NOT NULL").Scan(&ragAuditTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG audit table", err)
+		}
+		var ragAppendOnlyTriggerCount int
+		if err = query.QueryRow(ctx, `SELECT count(*)
+			FROM pg_trigger trigger
+			JOIN pg_class relation ON relation.oid=trigger.tgrelid
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE NOT trigger.tgisinternal AND namespace.nspname='public'
+			AND trigger.tgname IN (
+				'workflow_rag_snapshot_versions_append_only',
+				'workflow_rag_snapshot_fragments_append_only',
+				'workflow_rag_execution_audits_append_only'
+			)`).Scan(&ragAppendOnlyTriggerCount); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG append-only triggers", err)
+		}
+		var ragExecutionEventConstraintCount int
+		if err = query.QueryRow(ctx, `SELECT count(*)
+			FROM pg_constraint constraint_record
+			JOIN pg_class relation ON relation.oid=constraint_record.conrelid
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE namespace.nspname='public' AND relation.relname='workflow_rag_execution_audits'
+			AND constraint_record.conname='workflow_rag_execution_audits_event_kind_check'
+			AND pg_get_constraintdef(constraint_record.oid) LIKE '%retrieval_started%'
+			AND pg_get_constraintdef(constraint_record.oid) LIKE '%retrieval_succeeded%'
+			AND pg_get_constraintdef(constraint_record.oid) LIKE '%retrieval_failed%'`).Scan(&ragExecutionEventConstraintCount); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG execution audit constraint", err)
+		}
+		var ragEvaluationResourceTableExists, ragEvaluationVersionTableExists, ragCandidateReviewTableExists, ragEvaluationAuditTableExists bool
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_rag_evaluation_dataset_resources') IS NOT NULL").Scan(&ragEvaluationResourceTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG evaluation resource table", err)
+		}
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_rag_evaluation_dataset_versions') IS NOT NULL").Scan(&ragEvaluationVersionTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG evaluation version table", err)
+		}
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_rag_candidate_snapshot_reviews') IS NOT NULL").Scan(&ragCandidateReviewTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG candidate review table", err)
+		}
+		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_rag_evaluation_audits') IS NOT NULL").Scan(&ragEvaluationAuditTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG evaluation audit table", err)
+		}
+		var ragEvaluationAppendOnlyTriggerCount int
+		if err = query.QueryRow(ctx, `SELECT count(*)
+			FROM pg_trigger trigger
+			JOIN pg_class relation ON relation.oid=trigger.tgrelid
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE NOT trigger.tgisinternal AND namespace.nspname='public'
+			AND trigger.tgname IN (
+				'workflow_rag_evaluation_dataset_versions_append_only',
+				'workflow_rag_candidate_snapshot_reviews_append_only',
+				'workflow_rag_evaluation_audits_append_only'
+			)`).Scan(&ragEvaluationAppendOnlyTriggerCount); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG evaluation append-only triggers", err)
+		}
+		var ragPromotionTableCount int
+		if err = query.QueryRow(ctx, `SELECT count(*) FROM pg_class relation
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE namespace.nspname='public' AND relation.relkind='r' AND relation.relname IN (
+				'workflow_rag_knowledge_promotion_candidates',
+				'workflow_rag_knowledge_promotion_decisions',
+				'workflow_rag_application_bindings',
+				'workflow_rag_knowledge_promotion_audits'
+			)`).Scan(&ragPromotionTableCount); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG promotion tables", err)
+		}
+		var ragPromotionAppendOnlyTriggerCount int
+		if err = query.QueryRow(ctx, `SELECT count(*)
+			FROM pg_trigger trigger
+			JOIN pg_class relation ON relation.oid=trigger.tgrelid
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE NOT trigger.tgisinternal AND namespace.nspname='public'
+			AND trigger.tgname IN (
+				'workflow_rag_knowledge_promotion_decisions_append_only',
+				'workflow_rag_application_bindings_append_only',
+				'workflow_rag_knowledge_promotion_audits_append_only'
+			)`).Scan(&ragPromotionAppendOnlyTriggerCount); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG promotion append-only triggers", err)
+		}
+		var executionSourceColumnCount, legacyDraftColumnCount int
+		if err = query.QueryRow(ctx, `SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name='workflow_run_records' AND column_name IN ('execution_source_kind','execution_source_id','execution_source_version')`).Scan(&executionSourceColumnCount); err != nil {
+			return State{}, safeDatabaseError("inspect workflow run execution source columns", err)
+		}
+		if err = query.QueryRow(ctx, `SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name='workflow_run_records' AND column_name IN ('draft_id','draft_version')`).Scan(&legacyDraftColumnCount); err != nil {
+			return State{}, safeDatabaseError("inspect workflow run legacy draft columns", err)
+		}
+		var applicationRuntimeTableCount, applicationRuntimeTriggerCount int
+		if err = query.QueryRow(ctx, `SELECT count(*) FROM pg_class relation
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE namespace.nspname='public' AND relation.relkind='r' AND relation.relname IN (
+				'workflow_rag_application_runtime_assignments',
+				'workflow_rag_application_runtime_events',
+				'workflow_rag_application_runtime_audits'
+			)`).Scan(&applicationRuntimeTableCount); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG application runtime tables", err)
+		}
+		if err = query.QueryRow(ctx, `SELECT count(*) FROM pg_trigger trigger
+			JOIN pg_class relation ON relation.oid=trigger.tgrelid
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE NOT trigger.tgisinternal AND namespace.nspname='public'
+			AND trigger.tgname IN (
+				'workflow_rag_application_runtime_events_append_only',
+				'workflow_rag_application_runtime_audits_append_only'
+			)`).Scan(&applicationRuntimeTriggerCount); err != nil {
+			return State{}, safeDatabaseError("inspect workflow RAG application runtime append-only triggers", err)
+		}
+		var definitionReleaseTableCount, definitionReleaseTriggerCount int
+		if err = query.QueryRow(ctx, `SELECT count(*) FROM pg_class relation
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE namespace.nspname='public' AND relation.relkind='r' AND relation.relname IN (
+				'workflow_definition_release_candidates',
+				'workflow_definition_release_decisions',
+				'workflow_definition_versions',
+				'workflow_definition_activations',
+				'workflow_definition_activation_events',
+				'workflow_definition_release_audits'
+			)`).Scan(&definitionReleaseTableCount); err != nil {
+			return State{}, safeDatabaseError("inspect workflow definition release tables", err)
+		}
+		if err = query.QueryRow(ctx, `SELECT count(*) FROM pg_trigger trigger
+			JOIN pg_class relation ON relation.oid=trigger.tgrelid
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE NOT trigger.tgisinternal AND namespace.nspname='public'
+			AND trigger.tgname IN (
+				'workflow_definition_release_decisions_append_only',
+				'workflow_definition_versions_append_only',
+				'workflow_definition_activation_events_append_only',
+				'workflow_definition_release_audits_append_only'
+			)`).Scan(&definitionReleaseTriggerCount); err != nil {
+			return State{}, safeDatabaseError("inspect workflow definition release append-only triggers", err)
+		}
+		var applicationInteractionTableCount, applicationInteractionTriggerCount int
+		if err = query.QueryRow(ctx, `SELECT count(*) FROM pg_class relation
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE namespace.nspname='public' AND relation.relkind='r' AND relation.relname IN (
+				'application_interaction_sessions','application_interaction_session_turns'
+			)`).Scan(&applicationInteractionTableCount); err != nil {
+			return State{}, safeDatabaseError("inspect application interaction session tables", err)
+		}
+		if err = query.QueryRow(ctx, `SELECT count(*) FROM pg_trigger trigger
+			JOIN pg_class relation ON relation.oid=trigger.tgrelid
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE NOT trigger.tgisinternal AND namespace.nspname='public'
+			AND trigger.tgname IN (
+				'application_interaction_sessions_controlled_update','application_interaction_turns_controlled_update',
+				'application_interaction_sessions_no_delete','application_interaction_turns_no_delete'
+			)`).Scan(&applicationInteractionTriggerCount); err != nil {
+			return State{}, safeDatabaseError("inspect application interaction session triggers", err)
+		}
+		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 || !evaluationTableExists || !revisionTableExists || currentVersionColumnCount != 1 || !suiteTableExists || !decisionTableExists || !actionPlanTableExists || !confirmationDecisionTableExists || !executionAuditTableExists || !executionAttemptTableExists || appendOnlyTriggerCount != 2 || !ragResourceTableExists || !ragVersionTableExists || !ragFragmentTableExists || !ragAuditTableExists || ragAppendOnlyTriggerCount != 3 || ragExecutionEventConstraintCount != 1 || !ragEvaluationResourceTableExists || !ragEvaluationVersionTableExists || !ragCandidateReviewTableExists || !ragEvaluationAuditTableExists || ragEvaluationAppendOnlyTriggerCount != 3 || ragPromotionTableCount != 4 || ragPromotionAppendOnlyTriggerCount != 3 || executionSourceColumnCount != 3 || legacyDraftColumnCount != 0 || applicationRuntimeTableCount != 3 || applicationRuntimeTriggerCount != 2 || definitionReleaseTableCount != 6 || definitionReleaseTriggerCount != 4 || applicationInteractionTableCount != 2 || applicationInteractionTriggerCount != 4 {
 			state.MigrationState = MigrationStateMismatch
 		} else {
 			state.MigrationState = MigrationStateApplied

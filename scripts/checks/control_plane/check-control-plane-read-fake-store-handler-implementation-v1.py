@@ -119,20 +119,10 @@ REQUIRED_DOC_REFERENCES = {
         "application-summary-list-route",
         "audit-summary-list-route",
     ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-fake-store-handler-implementation-v1",
-        "fake-store-backed read handler implementation",
-        "不直接实现数据库、OIDC、executor、confirmation、writeback 或 replay",
-    ],
     "docs/radishmind-architecture.md": [
         "control-plane-read-fake-store-handler-implementation-v1",
         "services/platform/internal/httpapi",
         "fake store",
-    ],
-    "docs/radishmind-roadmap.md": [
-        "control-plane-read-fake-store-handler-implementation-v1",
-        "fake-store-backed read handler implementation",
-        "不默认进入数据库",
     ],
     "docs/radishmind-capability-matrix.md": [
         "control-plane-read-fake-store-handler-implementation-v1",
@@ -152,11 +142,6 @@ REQUIRED_DOC_REFERENCES = {
         "check-control-plane-read-fake-store-handler-implementation-v1.py",
         "control-plane-read-fake-store-handler-implementation-v1.json",
         "fake-store-backed read handler implementation",
-    ],
-    "services/platform/README.md": [
-        "control-plane-read-fake-store-handler-implementation-v1",
-        "/v1/user-workspace/applications",
-        "/v1/control-plane/audit",
     ],
     "docs/devlogs/2026-W22.md": [
         "control-plane-read-fake-store-handler-implementation-v1",
@@ -281,6 +266,7 @@ def assert_go_files_and_routes(fixture: dict[str, Any]) -> None:
         require((REPO_ROOT / str(relative_path)).is_file(), f"missing Go file: {relative_path}")
 
     handler_go = read("services/platform/internal/httpapi/control_plane_read.go")
+    auth_go = read("services/platform/internal/httpapi/control_plane_read_auth.go")
     fake_store_go = read("services/platform/internal/httpapi/control_plane_read_fake_store.go")
     test_go = read("services/platform/internal/httpapi/control_plane_read_test.go")
     server_go = read("services/platform/internal/httpapi/server.go")
@@ -298,10 +284,14 @@ def assert_go_files_and_routes(fixture: dict[str, Any]) -> None:
         "authorizeControlPlaneReadRequest",
         "forbiddenControlPlaneReadQueryParameter",
         "controlPlaneReadFiltersFromQuery",
-        "withControlPlaneReadFakeAuthContext",
         "controlPlaneReadEnvelope",
     ):
         require(literal in handler_go, f"handler file missing {literal}")
+
+    require(
+        "withControlPlaneReadFakeAuthContext" in auth_go,
+        "auth boundary missing withControlPlaneReadFakeAuthContext",
+    )
 
     for literal in (
         "newControlPlaneReadFakeStore",
@@ -328,13 +318,19 @@ def assert_go_files_and_routes(fixture: dict[str, Any]) -> None:
     for forbidden in (
         "database/sql",
         "gorm",
-        "OIDC",
         "api key generation",
         "workflow executor",
         "business_writeback_payload",
         "full_prompt_dump_with_secret",
     ):
         require(forbidden not in handler_go + fake_store_go, f"implementation must not include forbidden dependency: {forbidden}")
+
+    require("OIDC" not in fake_store_go, "fake repository must not depend on OIDC")
+    for forbidden_auth_implementation in ("oidcTokenVerifier", "fetchDiscovery", "refreshKeys"):
+        require(
+            forbidden_auth_implementation not in handler_go + fake_store_go,
+            f"read handler or fake repository must not implement auth transport: {forbidden_auth_implementation}",
+        )
 
     route_registration = fixture.get("route_registration") or {}
     require(route_registration.get("file") == "services/platform/internal/httpapi/server.go", "route registration file drifted")
@@ -412,9 +408,9 @@ def assert_policy_and_docs(fixture: dict[str, Any]) -> None:
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     require(
-        'run_python_script("checks/control_plane/check-control-plane-read-fake-store-handler-implementation-v1.py", [])'
+        '"check-control-plane-read-fake-store-handler-implementation-v1.py"'
         in check_repo,
-        "check-repo.py must run control plane read fake-store handler implementation check",
+        "check-repo.py must catalog control plane read fake-store handler implementation check",
     )
 
     for relative_path, required_literals in REQUIRED_DOC_REFERENCES.items():

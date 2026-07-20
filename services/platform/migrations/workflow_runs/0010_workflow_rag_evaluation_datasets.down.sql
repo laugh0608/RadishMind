@@ -1,0 +1,7 @@
+DROP TRIGGER IF EXISTS workflow_rag_evaluation_audits_append_only ON workflow_rag_evaluation_audits;
+DROP TRIGGER IF EXISTS workflow_rag_candidate_snapshot_reviews_append_only ON workflow_rag_candidate_snapshot_reviews;
+DROP TRIGGER IF EXISTS workflow_rag_evaluation_dataset_versions_append_only ON workflow_rag_evaluation_dataset_versions;
+DROP TABLE IF EXISTS workflow_rag_evaluation_audits;
+DROP TABLE IF EXISTS workflow_rag_candidate_snapshot_reviews;
+DROP TABLE IF EXISTS workflow_rag_evaluation_dataset_versions;
+DROP TABLE IF EXISTS workflow_rag_evaluation_dataset_resources;

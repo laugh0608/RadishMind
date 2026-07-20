@@ -26,9 +26,14 @@ def platform_temp_dir() -> Path:
     return Path(os.getenv("TMPDIR") or os.getenv("TEMP") or os.getenv("TMP") or "/tmp")
 
 
-def run_platform_wrapper(args: list[str], *, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
+def run_platform_wrapper(
+    args: list[str],
+    *,
+    env: dict[str, str],
+    profile: str | None = None,
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        platform_wrapper_args(args),
+        platform_wrapper_args(args, profile=profile),
         cwd=REPO_ROOT,
         env=env,
         capture_output=True,
@@ -36,12 +41,14 @@ def run_platform_wrapper(args: list[str], *, env: dict[str, str]) -> subprocess.
     )
 
 
-def platform_wrapper_args(args: list[str]) -> list[str]:
+def platform_wrapper_args(args: list[str], *, profile: str | None = None) -> list[str]:
     if platform.system().lower().startswith("win"):
         command = args[0] if args else "serve"
         remaining_args = args[1:] if len(args) > 1 else []
-        return ["pwsh", str(PLATFORM_WRAPPER_PS1), "-Command", command, *remaining_args]
-    return [str(PLATFORM_WRAPPER_SH), *args]
+        profile_args = ["-Profile", profile] if profile else []
+        return ["pwsh", str(PLATFORM_WRAPPER_PS1), *profile_args, "-Command", command, *remaining_args]
+    profile_args = ["--profile", profile] if profile else []
+    return [str(PLATFORM_WRAPPER_SH), *profile_args, *args]
 
 
 def require(condition: bool, message: str) -> None:
@@ -134,6 +141,91 @@ def check_wrapper_rejects_unknown_command() -> None:
     require("unsupported platform service command" in result.stderr, "wrapper failure should explain unsupported command")
 
 
+def check_local_product_profile() -> None:
+    with tempfile.TemporaryDirectory(prefix="radishmind-local-product-profile-") as temp_dir:
+        database_path = Path(temp_dir) / "radishmind.db"
+        env = base_env()
+        env.update(
+            {
+                "RADISHMIND_PLATFORM_PROVIDER": "mock",
+                "RADISHMIND_PLATFORM_MODEL": "radishmind-local-dev",
+                "RADISHMIND_SQLITE_DEV_DATABASE_PATH": str(database_path),
+            }
+        )
+        summary_result = run_platform_wrapper(["config-summary"], env=env)
+        require(summary_result.returncode == 0, f"local-product config-summary should pass: {summary_result.stderr}")
+        summary = parse_json_output(summary_result)
+        require(summary.get("local_persistence_mode") == "sqlite_dev", "local-product must select sqlite_dev")
+        require(summary.get("sqlite_dev_database_configured") is True, "local-product must configure the SQLite database")
+        require(
+            summary.get("local_persistence_components_consistent") is True,
+            "local-product component stores must be consistent",
+        )
+        for field in (
+            "workflow_saved_draft_store_mode",
+            "application_draft_store_mode",
+            "application_publish_store_mode",
+            "application_catalog_store_mode",
+            "api_key_store_mode",
+            "workflow_run_store_mode",
+            "gateway_request_store_mode",
+        ):
+            require(summary.get(field) == "sqlite_dev", f"local-product did not project {field}")
+        for field in (
+            "control_plane_read_dev_auth_enabled",
+            "workflow_saved_draft_dev_http_enabled",
+            "workflow_saved_draft_dev_write_enabled",
+            "application_draft_dev_http_enabled",
+            "application_draft_dev_write_enabled",
+            "application_publish_dev_http_enabled",
+            "application_publish_dev_write_enabled",
+            "application_catalog_dev_http_enabled",
+            "application_catalog_dev_write_enabled",
+            "api_key_lifecycle_dev_http_enabled",
+            "api_key_lifecycle_dev_write_enabled",
+            "gateway_request_history_dev_enabled",
+            "workflow_executor_dev_enabled",
+        ):
+            require(summary.get(field) is True, f"local-product did not enable {field}")
+        require(str(database_path) not in json.dumps(summary), "local-product config-summary leaked the SQLite path")
+        require(not database_path.exists(), "config-summary must not create the SQLite database")
+
+        check_result = run_platform_wrapper(["config-check"], env=env)
+        require(check_result.returncode == 0, f"local-product config-check should pass: {check_result.stderr}")
+        require(not database_path.exists(), "config-check must not create the SQLite database")
+
+        configured_result = run_platform_wrapper(["config-summary"], env=env, profile="configured")
+        require(configured_result.returncode == 0, f"configured config-summary should pass: {configured_result.stderr}")
+        configured_summary = parse_json_output(configured_result)
+        require(configured_summary.get("local_persistence_mode") == "memory_dev", "configured profile must preserve default memory_dev")
+        require(configured_summary.get("local_persistence_configured") is False, "configured profile must not inject aggregate persistence")
+        require(not database_path.exists(), "configured config-summary must not create the SQLite database")
+
+
+def check_local_product_profile_rejects_conflicts() -> None:
+    env = base_env()
+    env.update(
+        {
+            "RADISHMIND_PLATFORM_PROVIDER": "mock",
+            "RADISHMIND_PLATFORM_MODEL": "radishmind-local-dev",
+            "RADISHMIND_APPLICATION_CATALOG_STORE": "memory_dev",
+        }
+    )
+    component_conflict = run_platform_wrapper(["config-check"], env=env)
+    require(component_conflict.returncode != 0, "local-product must reject an explicit component store")
+    require("conflicts with an explicit component store mode" in component_conflict.stderr, "component conflict should be explicit")
+
+    env = base_env()
+    env["RADISHMIND_LOCAL_PERSISTENCE_MODE"] = "memory_dev"
+    aggregate_conflict = run_platform_wrapper(["config-summary"], env=env)
+    require(aggregate_conflict.returncode == 2, "local-product must reject a non-SQLite aggregate mode")
+    require("use --profile configured" in aggregate_conflict.stderr or "use -Profile configured" in aggregate_conflict.stderr, "aggregate conflict should point to configured profile")
+
+    unknown_profile = run_platform_wrapper(["config-summary"], env=base_env(), profile="unknown")
+    require(unknown_profile.returncode == 2, "unknown startup profile must return exit code 2")
+    require("unsupported platform startup profile" in unknown_profile.stderr, "unknown profile failure should be explicit")
+
+
 def check_wrapper_sets_python_bridge_default() -> None:
     sh_content = PLATFORM_WRAPPER_SH.read_text(encoding="utf-8")
     ps1_content = PLATFORM_WRAPPER_PS1.read_text(encoding="utf-8")
@@ -143,6 +235,9 @@ def check_wrapper_sets_python_bridge_default() -> None:
             f"{name} wrapper must set RADISHMIND_PLATFORM_PYTHON_BIN default",
         )
         require(".venv" in content, f"{name} wrapper must prefer repository .venv Python")
+        require("local-product" in content and "configured" in content, f"{name} wrapper must expose both startup profiles")
+        require("RADISHMIND_LOCAL_PERSISTENCE_MODE" in content, f"{name} wrapper must set aggregate local persistence")
+        require("RADISHMIND_SQLITE_DEV_DATABASE_PATH" in content, f"{name} wrapper must set the controlled SQLite path")
 
 
 def main() -> int:
@@ -150,6 +245,8 @@ def main() -> int:
     check_env_override()
     check_invalid_deployment_config()
     check_wrapper_rejects_unknown_command()
+    check_local_product_profile()
+    check_local_product_profile_rejects_conflicts()
     check_wrapper_sets_python_bridge_default()
     print("platform deployment smoke checks passed.")
     return 0

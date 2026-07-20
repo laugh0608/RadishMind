@@ -158,11 +158,6 @@
     "do not add API key lifecycle quota enforcement billing rate limiting or production ready claims"
   ],
   "required_doc_references": {
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-product-sample-consistency-v1",
-      "response fixture",
-      "Go fake store"
-    ],
     "docs/devlogs/2026-W24.md": [
       "control-plane-read-product-sample-consistency-v1",
       "RadishFlow Copilot",

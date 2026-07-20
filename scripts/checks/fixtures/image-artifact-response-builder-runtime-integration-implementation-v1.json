@@ -323,15 +323,6 @@
   "required_doc_references": {
     "docs/contracts/image-generation.md": [
       "image-artifact-response-builder-runtime-integration-implementation-v1",
-      "image_artifact_response_builder_runtime_integration_implemented",
-      "multiple metadata"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "image-artifact-response-builder-runtime-integration-implementation-v1",
-      "image_artifact_response_builder_runtime_integration_implemented"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "image-artifact-response-builder-runtime-integration-implementation-v1",
       "image_artifact_response_builder_runtime_integration_implemented"
     ],
     "docs/radishmind-capability-matrix.md": [

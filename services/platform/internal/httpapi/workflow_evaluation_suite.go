@@ -24,15 +24,18 @@ const (
 type WorkflowEvaluationSuiteFailureCode string
 
 const (
-	WorkflowEvaluationSuiteFailureInvalid          WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_invalid"
-	WorkflowEvaluationSuiteFailureNotFound         WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_not_found"
-	WorkflowEvaluationSuiteFailureCaseNotEligible  WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_case_not_eligible"
-	WorkflowEvaluationSuiteFailureCursor           WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_cursor_invalid"
-	WorkflowEvaluationSuiteFailureReviewChanged    WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_review_changed"
-	WorkflowEvaluationSuiteFailureDecisionConflict WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_decision_conflict"
-	WorkflowEvaluationSuiteFailureApprovalBlocked  WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_approval_blocked"
-	WorkflowEvaluationSuiteFailureStoreUnavailable WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_store_unavailable"
-	WorkflowEvaluationSuiteFailureStoreContract    WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_store_contract_mismatch"
+	WorkflowEvaluationSuiteFailureInvalid                WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_invalid"
+	WorkflowEvaluationSuiteFailureNotFound               WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_not_found"
+	WorkflowEvaluationSuiteFailureCaseNotEligible        WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_case_not_eligible"
+	WorkflowEvaluationSuiteFailureCursor                 WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_cursor_invalid"
+	WorkflowEvaluationSuiteFailureReviewChanged          WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_review_changed"
+	WorkflowEvaluationSuiteFailureDecisionConflict       WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_decision_conflict"
+	WorkflowEvaluationSuiteFailureApprovalBlocked        WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_approval_blocked"
+	WorkflowEvaluationSuiteFailureStoreUnavailable       WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_store_unavailable"
+	WorkflowEvaluationSuiteFailureStoreContract          WorkflowEvaluationSuiteFailureCode = "workflow_evaluation_suite_store_contract_mismatch"
+	WorkflowEvaluationSuiteFailureRetrievalProfile       WorkflowEvaluationSuiteFailureCode = "workflow_run_retrieval_profile_unsupported"
+	WorkflowEvaluationSuiteFailureRetrievalIncompatible  WorkflowEvaluationSuiteFailureCode = "workflow_run_retrieval_profile_incompatible"
+	WorkflowEvaluationSuiteFailureDefinitionIncompatible WorkflowEvaluationSuiteFailureCode = "workflow_definition_execution_profile_incompatible"
 )
 
 type WorkflowEvaluationSuiteCaseRef struct {
@@ -80,6 +83,7 @@ type WorkflowEvaluationSuiteReviewItem struct {
 	Inconclusive int    `json:"inconclusive"`
 	Unavailable  int    `json:"unavailable"`
 	AuditRef     string `json:"audit_ref"`
+	RunProfile   string `json:"run_profile"`
 }
 type WorkflowEvaluationSuiteReview struct {
 	SuiteID      string                              `json:"suite_id"`
@@ -295,7 +299,8 @@ func (s workflowEvaluationSuiteService) Create(ctx WorkflowRunContext, r Workflo
 			return suiteFailure(WorkflowEvaluationSuiteFailureInvalid)
 		}
 		seen[key] = true
-		if read := s.evaluation.ReadRevision(ctx, refs[i].CaseID, refs[i].Version); read.FailureCode != "" {
+		read := s.evaluation.ReadRevision(ctx, refs[i].CaseID, refs[i].Version)
+		if read.FailureCode != "" {
 			if read.FailureCode == WorkflowEvaluationFailureNotFound {
 				return suiteFailure(WorkflowEvaluationSuiteFailureCaseNotEligible)
 			}
@@ -359,6 +364,7 @@ func (s workflowEvaluationSuiteService) Review(ctx WorkflowRunContext, id string
 			return suiteReviewFailure(mapSuiteEvaluationFailure(result.FailureCode))
 		}
 		item.Outcome = result.Review.Outcome
+		item.RunProfile = result.Review.RunProfile
 		item.Matched = result.Review.Matched
 		item.Mismatched = result.Review.Mismatched
 		item.Inconclusive = result.Review.Inconclusive
@@ -611,6 +617,10 @@ func suiteFailure(code WorkflowEvaluationSuiteFailureCode) WorkflowEvaluationSui
 		summary = "Workflow evaluation suite approval requires a fully passed review."
 	case WorkflowEvaluationSuiteFailureStoreUnavailable, WorkflowEvaluationSuiteFailureStoreContract:
 		summary = "Workflow evaluation suite storage is unavailable."
+	case WorkflowEvaluationSuiteFailureRetrievalProfile:
+		summary = "Workflow evaluation suite does not support workflow retrieval profiles."
+	case WorkflowEvaluationSuiteFailureRetrievalIncompatible:
+		summary = "Workflow evaluation suite contains incompatible retrieval bindings."
 	}
 	return WorkflowEvaluationSuiteResult{FailureCode: code, FailureSummary: summary}
 }
@@ -641,6 +651,15 @@ func mapSuiteEvaluationFailure(code WorkflowEvaluationFailureCode) WorkflowEvalu
 	}
 	if code == WorkflowEvaluationFailureStoreUnavailable {
 		return WorkflowEvaluationSuiteFailureStoreUnavailable
+	}
+	if code == WorkflowEvaluationFailureRetrievalProfile {
+		return WorkflowEvaluationSuiteFailureRetrievalProfile
+	}
+	if code == WorkflowEvaluationFailureRetrievalIncompatible {
+		return WorkflowEvaluationSuiteFailureRetrievalIncompatible
+	}
+	if code == WorkflowEvaluationFailureDefinitionIncompatible {
+		return WorkflowEvaluationSuiteFailureDefinitionIncompatible
 	}
 	return WorkflowEvaluationSuiteFailureCaseNotEligible
 }

@@ -224,9 +224,7 @@
   "required_doc_references": {
     "docs/task-cards/workflow-draft-validation-inspector-offline-v1-plan.md": [
       "workflow-draft-validation-inspector-offline-v1",
-      "workflow_draft_validation_inspector_offline_defined",
-      "offline validation inspector",
-      "structural checks"
+      "workflow_draft_validation_inspector_offline_defined"
     ],
     "docs/task-cards/README.md": [
       "workflow-draft-validation-inspector-offline-v1",
@@ -235,14 +233,6 @@
     "scripts/README.md": [
       "check-workflow-draft-validation-inspector-offline-v1.py",
       "workflow-draft-validation-inspector-offline-v1.json"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "workflow-draft-validation-inspector-offline-v1",
-      "workflow_draft_validation_inspector_offline_defined"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "workflow-draft-validation-inspector-offline-v1",
-      "workflow_draft_validation_inspector_offline_defined"
     ],
     "docs/radishmind-capability-matrix.md": [
       "workflow-draft-validation-inspector-offline-v1",

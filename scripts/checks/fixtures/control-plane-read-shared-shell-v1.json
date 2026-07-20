@@ -130,14 +130,6 @@
     ],
     "docs/contracts/control-plane-read-side.md": [
       "control-plane-read-shared-shell-v1",
-      "shared-read-shell"
-    ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-shared-shell-v1",
-      "apps/radishmind-web/"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "control-plane-read-shared-shell-v1",
       "apps/radishmind-web/"
     ],
     "docs/radishmind-capability-matrix.md": [
@@ -155,10 +147,6 @@
     "scripts/README.md": [
       "check-control-plane-read-shared-shell-v1.py",
       "control-plane-read-shared-shell-v1.json"
-    ],
-    "services/platform/README.md": [
-      "control-plane-read-shared-shell-v1",
-      "apps/radishmind-web/"
     ],
     "docs/devlogs/2026-W22.md": [
       "control-plane-read-shared-shell-v1",

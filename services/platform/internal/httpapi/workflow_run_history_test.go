@@ -8,7 +8,11 @@ import (
 )
 
 func TestMemoryWorkflowRunHistoryScopeFilterAndCursor(t *testing.T) {
-	store := newMemoryWorkflowRunStore(20)
+	runWorkflowRunHistoryScopeFilterAndCursor(t, newMemoryWorkflowRunStore(20))
+}
+
+func runWorkflowRunHistoryScopeFilterAndCursor(t *testing.T, store workflowRunStore) {
+	t.Helper()
 	runContext := workflowExecutorTestContext()
 	base := time.Date(2026, 7, 11, 10, 0, 0, 0, time.UTC)
 	for index, status := range []WorkflowRunStatus{WorkflowRunStatusSucceeded, WorkflowRunStatusFailed, WorkflowRunStatusSucceeded} {
@@ -36,6 +40,10 @@ func TestMemoryWorkflowRunHistoryScopeFilterAndCursor(t *testing.T) {
 	if len(filtered.Runs) != 1 || filtered.Runs[0].RunID != "run_b" {
 		t.Fatalf("unexpected filter: %#v", filtered)
 	}
+	sourceFiltered := service.ListRuns(runContext, WorkflowRunListRequest{ExecutionSourceKind: "workflow_draft", ExecutionSourceID: "draft_a", ExecutionSourceVersion: 1})
+	if sourceFiltered.FailureCode != "" || len(sourceFiltered.Runs) != 3 {
+		t.Fatalf("legacy execution source filter drifted: %#v", sourceFiltered)
+	}
 	if changed := service.ListRuns(runContext, WorkflowRunListRequest{Limit: 3, Cursor: first.NextCursor}); changed.FailureCode != WorkflowRunFailureCursorInvalid {
 		t.Fatalf("cursor must bind filters: %#v", changed)
 	}
@@ -47,7 +55,11 @@ func TestMemoryWorkflowRunHistoryScopeFilterAndCursor(t *testing.T) {
 }
 
 func TestMemoryWorkflowRunStoreRejectsConcurrentOldVersionAndTerminalRewrite(t *testing.T) {
-	store := newMemoryWorkflowRunStore(10)
+	runWorkflowRunStoreRejectsConcurrentOldVersionAndTerminalRewrite(t, newMemoryWorkflowRunStore(10))
+}
+
+func runWorkflowRunStoreRejectsConcurrentOldVersionAndTerminalRewrite(t *testing.T, store workflowRunStore) {
+	t.Helper()
 	runContext := workflowExecutorTestContext()
 	record := workflowRunHistoryTestRecord(runContext, "run_concurrent", "draft_a", time.Now().UTC())
 	if err := store.UpsertRun(runContext, &record); err != nil {
@@ -87,7 +99,11 @@ func TestMemoryWorkflowRunStoreRejectsConcurrentOldVersionAndTerminalRewrite(t *
 }
 
 func TestWorkflowRunStoreRejectsForbiddenSideEffects(t *testing.T) {
-	store := newMemoryWorkflowRunStore(10)
+	runWorkflowRunStoreRejectsForbiddenSideEffects(t, newMemoryWorkflowRunStore(10))
+}
+
+func runWorkflowRunStoreRejectsForbiddenSideEffects(t *testing.T, store workflowRunStore) {
+	t.Helper()
 	runContext := workflowExecutorTestContext()
 	record := workflowRunHistoryTestRecord(runContext, "run_forbidden", "draft_a", time.Now().UTC())
 	record.SideEffects.ToolCalls = 1
@@ -112,10 +128,24 @@ func TestWorkflowRunListFilterValidation(t *testing.T) {
 	if result.FailureCode != WorkflowRunFailureFilterInvalid {
 		t.Fatalf("invalid filter accepted: %#v", result)
 	}
+	parsed, code := parseWorkflowRunListRequest(map[string][]string{"execution_source_kind": {workflowDefinitionExecutionSourceKind}, "execution_source_id": {"definition_filter"}, "execution_source_version": {"2"}})
+	if code != "" || parsed.ExecutionSourceKind != workflowDefinitionExecutionSourceKind || parsed.ExecutionSourceID != "definition_filter" || parsed.ExecutionSourceVersion != 2 {
+		t.Fatalf("definition execution source query was not parsed strictly: request=%#v code=%s", parsed, code)
+	}
+	if _, code = parseWorkflowRunListRequest(map[string][]string{"execution_source_version": {"2"}}); code != "" {
+		t.Fatalf("valid integer source version should parse before normalization: %s", code)
+	}
+	if _, code = normalizeWorkflowRunListRequest(WorkflowRunListRequest{ExecutionSourceVersion: 2}); code != WorkflowRunFailureFilterInvalid {
+		t.Fatalf("source version without kind/id was accepted: %s", code)
+	}
 }
 
 func TestWorkflowRunDiagnosticFiltersAndCursorBinding(t *testing.T) {
-	store := newMemoryWorkflowRunStore(10)
+	runWorkflowRunDiagnosticFiltersAndCursorBinding(t, newMemoryWorkflowRunStore(10))
+}
+
+func runWorkflowRunDiagnosticFiltersAndCursorBinding(t *testing.T, store workflowRunStore) {
+	t.Helper()
 	runContext := workflowExecutorTestContext()
 	stale := workflowRunHistoryTestRecord(runContext, "run_stale", "draft_a", time.Now().UTC().Add(-time.Minute))
 	stale.SelectedProvider = "mock"

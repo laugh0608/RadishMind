@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-rag-application-runtime-assignment.schema.json",
+  "title": "WorkflowRAGApplicationRuntimeAssignmentV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "assignment_id", "record_version", "assignment_digest", "tenant_ref", "workspace_id", "application_id", "owner_subject_ref", "state", "publish_candidate_id", "publish_review_version", "publish_candidate_state", "draft_id", "draft_version", "draft_digest", "binding_ref", "created_at", "updated_at", "created_by_actor_ref", "updated_by_actor_ref", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": { "const": "workflow_rag_application_runtime_assignment.v1" },
+    "assignment_id": { "type": "string", "pattern": "^wragra_[a-z2-7]{16}$" },
+    "record_version": { "type": "integer", "minimum": 1 },
+    "assignment_digest": { "$ref": "#/$defs/digest" },
+    "tenant_ref": { "$ref": "#/$defs/ref" },
+    "workspace_id": { "$ref": "#/$defs/ref" },
+    "application_id": { "$ref": "#/$defs/ref" },
+    "owner_subject_ref": { "$ref": "#/$defs/ref" },
+    "state": { "enum": ["active", "revoked"] },
+    "publish_candidate_id": { "$ref": "#/$defs/ref" },
+    "publish_review_version": { "type": "integer", "minimum": 1 },
+    "publish_candidate_state": { "const": "approved" },
+    "draft_id": { "$ref": "#/$defs/ref" },
+    "draft_version": { "type": "integer", "minimum": 1 },
+    "draft_digest": { "$ref": "#/$defs/digest" },
+    "binding_ref": { "$ref": "#/$defs/binding" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "created_by_actor_ref": { "$ref": "#/$defs/ref" },
+    "updated_by_actor_ref": { "$ref": "#/$defs/ref" },
+    "request_id": { "$ref": "#/$defs/ref" },
+    "audit_ref": { "$ref": "#/$defs/ref" }
+  },
+  "$defs": {
+    "ref": { "type": "string", "minLength": 3, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$" },
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "binding": { "type": "object", "additionalProperties": false, "required": ["binding_id", "binding_version", "binding_digest"], "properties": { "binding_id": { "type": "string", "pattern": "^wragb_[a-z2-7]{16}$" }, "binding_version": { "const": 1 }, "binding_digest": { "$ref": "#/$defs/digest" } } }
+  }
+}

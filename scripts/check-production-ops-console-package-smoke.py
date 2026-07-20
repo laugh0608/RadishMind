@@ -64,23 +64,10 @@ REQUIRED_DOC_REFERENCES = {
         "不是 production package",
         "不生成、提交或发布 production package",
     ],
-    "services/platform/README.md": [
-        "Console package smoke boundary",
-        "console-production-package-smoke",
-        "production-ops-console-package-smoke.json",
-    ],
     "docs/task-cards/production-ops-hardening-v1-plan.md": [
         "console-production-package-smoke",
         "production-ops-console-package-smoke.json",
         "check-production-ops-console-package-smoke.py",
-    ],
-    "docs/radishmind-current-focus.md": [
-        "console-production-package-smoke",
-        "production-ops-console-package-smoke.json",
-    ],
-    "docs/radishmind-roadmap.md": [
-        "console-production-package-smoke",
-        "production-ops-console-package-smoke.json",
     ],
     "scripts/README.md": [
         "check-production-ops-console-package-smoke.py",
@@ -231,8 +218,6 @@ def assert_evidence_and_consumers(document: dict[str, Any]) -> None:
         "scripts/check-repo.py",
         "scripts/check-p3-local-product-shell-short-close-checklist.py",
         "scripts/README.md",
-        "docs/radishmind-current-focus.md",
-        "docs/radishmind-roadmap.md",
     }
     missing_consumers = sorted(expected_consumers - consumers)
     require(not missing_consumers, f"missing console package smoke consumers: {missing_consumers}")

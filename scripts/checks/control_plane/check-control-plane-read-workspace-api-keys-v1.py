@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -182,6 +183,9 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     source = app_source_text()
     page_source = read_text("apps/radishmind-web/src/features/control-plane-read/workspaceApiKeys.ts")
     app_source = read_text("apps/radishmind-web/src/app/App.tsx")
+    lifecycle_panel_source = read_text(
+        "apps/radishmind-web/src/features/control-plane-read/apiKeyLifecyclePanel.tsx"
+    )
     for symbol in EXPECTED_CONTRACT_SYMBOLS:
         require(symbol in page_source, f"workspace api keys missing contract symbol: {symbol}")
     for state in EXPECTED_REQUIRED_STATES:
@@ -200,13 +204,24 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     ):
         require(literal in source, f"workspace api keys missing source literal: {literal}")
     for literal in (
-        "API Keys",
-        "workspaceApiKeys.canRenderApiKeys",
-        "ApiKeyRow",
-        "ApiKeyStatePreview",
-        "ApiKeyMetric",
+        "APIKeyLifecyclePanel",
+        "offlineView={workspaceApiKeys}",
+        "applicationActive=",
     ):
         require(literal in app_source, f"App.tsx missing workspace api keys rendering literal: {literal}")
+    for literal in (
+        "OfflineAPIKeySummary",
+        "WorkspaceApiKeysViewModel",
+        "view.canRenderApiKeys",
+        'id="workspace-api-keys"',
+        "OfflineRow",
+        "OfflineState",
+        "OfflineMetric",
+    ):
+        require(
+            literal in lifecycle_panel_source,
+            f"API key lifecycle panel missing offline compatibility literal: {literal}",
+        )
     for forbidden_literal in fixture.get("forbidden_source_literals") or []:
         require(str(forbidden_literal) not in source, f"web source contains forbidden literal: {forbidden_literal}")
     for sensitive_literal in fixture.get("forbidden_sensitive_projection_literals") or []:
@@ -220,7 +235,11 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
         "/v1/user-workspace/runs",
         "/v1/control-plane/audit",
     ):
-        require(route_path not in source, f"web source must not duplicate route path literal: {route_path}")
+        exact_route_literal = re.compile(rf"(['\\\"])({re.escape(route_path)})\\1")
+        require(
+            exact_route_literal.search(source) is None,
+            f"web source must not duplicate route path literal: {route_path}",
+        )
 
 
 def assert_docs_and_fast_baseline(fixture: dict[str, Any]) -> None:

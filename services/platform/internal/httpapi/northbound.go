@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	northboundProtocolModels          = "openai-models"
 	northboundProtocolChatCompletions = "openai-chat-completions"
 	northboundProtocolResponses       = "openai-responses"
 	northboundProtocolMessages        = "anthropic-messages"

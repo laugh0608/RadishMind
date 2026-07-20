@@ -10,7 +10,6 @@ DEV_ENTRY_SH = REPO_ROOT / "scripts/run-radishmind-console-dev.sh"
 CHECK_REPO = REPO_ROOT / "scripts/check-repo.py"
 SCRIPTS_README = REPO_ROOT / "scripts/README.md"
 CONSOLE_README = REPO_ROOT / "apps/radishmind-console/README.md"
-PLATFORM_README = REPO_ROOT / "services/platform/README.md"
 CURRENT_FOCUS = REPO_ROOT / "docs/radishmind-current-focus.md"
 P3_CHECKLIST = REPO_ROOT / "scripts/checks/fixtures/p3-local-product-shell-short-close-checklist.json"
 
@@ -117,7 +116,7 @@ def main() -> int:
             else:
                 require(literal not in script, f"{script_path.relative_to(REPO_ROOT).as_posix()} contains forbidden production literal: {literal}")
 
-    for doc_path in (SCRIPTS_README, CONSOLE_README, PLATFORM_README):
+    for doc_path in (SCRIPTS_README, CONSOLE_README):
         require_all(doc_path.read_text(encoding="utf-8"), REQUIRED_DOC_LITERALS, doc_path)
     require_all(CURRENT_FOCUS.read_text(encoding="utf-8"), REQUIRED_CURRENT_FOCUS_LITERALS, CURRENT_FOCUS)
 

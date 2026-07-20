@@ -1,0 +1,9 @@
+{
+  "component": "application_catalog_records",
+  "migration_id": "0001_application_catalog_records",
+  "store_schema_version": "application_catalog_records_store_v1",
+  "up": "0001_application_catalog_records.up.sql",
+  "down": "0001_application_catalog_records.down.sql",
+  "manual_only": true,
+  "runtime_auto_migration": false
+}

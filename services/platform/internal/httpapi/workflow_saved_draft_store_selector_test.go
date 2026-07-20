@@ -74,6 +74,28 @@ func TestSelectWorkflowSavedDraftStore(t *testing.T) {
 		}
 	})
 
+	t.Run("sqlite dev mode requires an explicitly constructed store", func(t *testing.T) {
+		disabled := SelectWorkflowSavedDraftStore("sqlite_dev", WorkflowSavedDraftStoreSelector{})
+		if disabled.Mode != WorkflowSavedDraftStoreModeSQLiteDev ||
+			disabled.FailureCode != SavedWorkflowDraftFailureStoreUnavailable {
+			t.Fatalf("missing SQLite dev store must fail closed: %#v", disabled)
+		}
+		assertSavedWorkflowDraftStoreSelectionFailure(
+			t,
+			disabled.Store,
+			SavedWorkflowDraftFailureStoreUnavailable,
+		)
+
+		injectedStore := newMemorySavedWorkflowDraftStore()
+		selected := SelectWorkflowSavedDraftStore(" sqlite_dev ", WorkflowSavedDraftStoreSelector{
+			SQLiteDevStore: injectedStore,
+		})
+		if selected.Mode != WorkflowSavedDraftStoreModeSQLiteDev ||
+			selected.Store != injectedStore || selected.FailureCode != "" {
+			t.Fatalf("explicit SQLite dev store should be selected: %#v", selected)
+		}
+	})
+
 	t.Run("unknown mode fails closed without memory fallback", func(t *testing.T) {
 		selection := SelectWorkflowSavedDraftStore("future_backend", WorkflowSavedDraftStoreSelector{})
 		if selection.Store == nil ||

@@ -1,13 +1,16 @@
 package httpapi
 
+import "context"
+
 type ReadRepositoryContext struct {
-	RequestID   string
-	TenantRef   string
-	SubjectRef  string
-	ScopeGrants []string
-	AuditRef    string
-	IssuerRef   string
-	SessionRef  string
+	RequestContext context.Context
+	RequestID      string
+	TenantRef      string
+	SubjectRef     string
+	ScopeGrants    []string
+	AuditRef       string
+	IssuerRef      string
+	SessionRef     string
 }
 
 type ReadRepositoryFilters map[string]string
@@ -247,7 +250,7 @@ func controlPlaneReadRepositoryRouteTypeContracts() []ReadRepositoryRouteTypeCon
 			ResultType:     "ListAuditSummariesResult",
 			SummaryType:    "AuditSummary",
 			ProjectionType: "AuditSummaryProjection",
-			AllowedFilters: []string{"actor_subject_ref", "event_kind", "resource_kind", "decision", "failure_code"},
+			AllowedFilters: []string{"event_kind", "resource_ref", "actor_subject_ref", "failure_code"},
 			AllowedSort:    []string{"recorded_at_desc"},
 		},
 	}

@@ -233,9 +233,7 @@
   "required_doc_references": {
     "docs/task-cards/workflow-draft-designer-offline-v1-plan.md": [
       "workflow-draft-designer-offline-v1",
-      "workflow_draft_designer_offline_defined",
-      "offline draft designer",
-      "local template switch"
+      "不阻塞 RadishMind"
     ],
     "docs/task-cards/README.md": [
       "workflow-draft-designer-offline-v1",
@@ -245,18 +243,9 @@
       "check-workflow-draft-designer-offline-v1.py",
       "workflow-draft-designer-offline-v1.json"
     ],
-    "docs/radishmind-current-focus.md": [
-      "workflow-draft-designer-offline-v1",
-      "RadishFlow",
-      "不阻塞"
-    ],
     "docs/radishmind-product-scope.md": [
       "RadishFlow",
       "不应拖慢 RadishMind"
-    ],
-    "docs/radishmind-roadmap.md": [
-      "workflow-draft-designer-offline-v1",
-      "不阻塞 RadishMind"
     ],
     "docs/radishmind-capability-matrix.md": [
       "workflow-draft-designer-offline-v1",

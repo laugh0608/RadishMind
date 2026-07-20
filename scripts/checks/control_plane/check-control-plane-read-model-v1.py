@@ -76,11 +76,6 @@ REQUIRED_DOC_REFERENCES = {
         "read model",
         "不创建数据库 schema",
     ],
-    "docs/radishmind-current-focus.md": [
-        "control-plane-read-model-v1",
-        "control-plane-read-model-v1.json",
-        "check-control-plane-read-model-v1.py",
-    ],
     "docs/radishmind-product-scope.md": [
         "control-plane-read-model-v1",
         "tenant summary",
@@ -90,11 +85,6 @@ REQUIRED_DOC_REFERENCES = {
         "control-plane-read-model-v1",
         "read model",
         "tenant-scoped",
-    ],
-    "docs/radishmind-roadmap.md": [
-        "control-plane-read-model-v1",
-        "control-plane-read-model-v1.json",
-        "check-control-plane-read-model-v1.py",
     ],
     "docs/radishmind-capability-matrix.md": [
         "control-plane-read-model-v1",
@@ -267,8 +257,8 @@ def assert_evidence_and_docs(fixture: dict[str, Any]) -> None:
 
     check_repo = CHECK_REPO_PATH.read_text(encoding="utf-8")
     require(
-        'run_python_script("checks/control_plane/check-control-plane-read-model-v1.py", [])' in check_repo,
-        "check-repo.py must run control plane read model check",
+        '"check-control-plane-read-model-v1.py"' in check_repo,
+        "check-repo.py must catalog control plane read model check",
     )
 
     for relative_path, required_literals in REQUIRED_DOC_REFERENCES.items():

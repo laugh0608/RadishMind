@@ -268,8 +268,7 @@
         "filters": {
           "actor_subject_ref": "subject:demo",
           "event_kind": "read",
-          "resource_kind": "application",
-          "decision": "allow",
+          "resource_ref": "application:demo",
           "failure_code": null
         },
         "sort": "recorded_at_desc",
@@ -365,10 +364,6 @@
       "control-plane-read-repository-contract-smoke-v1",
       "repository_contract_smoke_defined"
     ],
-    "docs/radishmind-roadmap.md": [
-      "control-plane-read-repository-contract-smoke-v1",
-      "repository contract smoke"
-    ],
     "docs/radishmind-capability-matrix.md": [
       "control-plane-read-repository-contract-smoke-v1",
       "repository contract smoke"
@@ -384,10 +379,6 @@
     "scripts/README.md": [
       "check-control-plane-read-repository-contract-smoke-v1.py",
       "control-plane-read-repository-contract-smoke-v1.json"
-    ],
-    "services/platform/README.md": [
-      "control-plane-read-repository-contract-smoke-v1",
-      "repository contract smoke"
     ],
     "docs/devlogs/2026-W23.md": [
       "control-plane-read-repository-contract-smoke-v1",
@@ -411,11 +402,11 @@
     "scripts/README.md",
     "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-current-focus.md",
-    "docs/radishmind-roadmap.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-capability-matrix.md",
     "docs/task-cards/README.md",
     "docs/task-cards/control-plane-read-repository-contract-smoke-v1-plan.md",
-    "services/platform/README.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/devlogs/2026-W23.md"
   ]
 }

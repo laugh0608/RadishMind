@@ -195,13 +195,9 @@
     ],
     "docs/contracts/control-plane-read-side.md": [
       "control-plane-durable-read-foundation-v1",
-      "durable_read_foundation_implemented"
+      "ControlPlaneReadRepository"
     ],
     "docs/radishmind-current-focus.md": [
-      "control-plane-durable-read-foundation-v1",
-      "durable_read_foundation_implemented"
-    ],
-    "docs/radishmind-roadmap.md": [
       "control-plane-durable-read-foundation-v1",
       "durable_read_foundation_implemented"
     ],
@@ -216,10 +212,6 @@
     "scripts/README.md": [
       "check-control-plane-durable-read-foundation-v1.py",
       "control-plane-durable-read-foundation-v1.json"
-    ],
-    "services/platform/README.md": [
-      "control-plane-durable-read-foundation-v1",
-      "ControlPlaneReadRepository"
     ],
     "docs/devlogs/2026-W24.md": [
       "control-plane-durable-read-foundation-v1",
@@ -239,11 +231,11 @@
     "scripts/README.md",
     "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-current-focus.md",
-    "docs/radishmind-roadmap.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-capability-matrix.md",
     "docs/radishmind-integration-contracts.md",
     "docs/task-cards/README.md",
-    "services/platform/README.md",
+    "docs/contracts/control-plane-read-side.md",
     "docs/devlogs/2026-W24.md"
   ]
 }

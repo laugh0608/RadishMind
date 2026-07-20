@@ -66,6 +66,88 @@ RADISH_CANDIDATE_RECORDS_ROOT = Path("datasets/eval/candidate-records/radish")
 RADISHFLOW_CANDIDATE_RECORDS_MAX_PATH_LENGTH = 120
 RADISHFLOW_CANDIDATE_RECORDS_ROOT = Path("datasets/eval/candidate-records/radishflow")
 RADISHFLOW_ALLOWED_ROOT_ENTRIES = {"README.md", "batches", "dry-run-check"}
+# Historical checks stay listed so their manual self-check can confirm catalog membership
+# without treating them as active run_python_script registrations.
+RETIRED_SESSION_TOOLING_CHECKS = (
+    "check-session-tooling-promotion-gates.py", "check-session-tooling-negative-consumption.py",
+    "check-session-recovery-route-smoke-coverage.py", "check-session-tooling-readiness-summary.py",
+    "check-session-tooling-implementation-preconditions.py", "check-session-tooling-negative-regression-skeleton.py",
+    "check-session-tooling-negative-regression-suite-readiness.py", "check-session-tooling-deny-by-default-implementation-gates.py",
+    "check-session-tooling-negative-coverage-rollup.py", "check-session-tooling-route-negative-coverage-matrix.py",
+    "check-session-tooling-route-smoke-readiness-rollup.py", "check-session-tooling-foundation-status-summary.py",
+    "check-session-tooling-close-candidate-readiness-rollup.py", "check-session-tooling-short-close-readiness-delta.py",
+    "check-session-tooling-readiness-consistency-rollup.py", "check-session-tooling-executor-storage-confirmation-enablement-plan.py",
+    "check-session-tooling-stop-line-manifest.py", "check-session-tooling-upper-layer-confirmation-flow-readiness.py",
+    "check-session-tooling-short-close-entry-checklist.py", "check-session-tooling-confirmation-flow-design.py",
+    "check-session-tooling-independent-audit-records.py", "check-session-tooling-result-materialization-policy.py",
+    "check-session-tooling-executor-boundary.py", "check-session-tooling-storage-backend-design.py",
+)
+
+# Image Path 的历史准入链继续保留为手动复验资产。目录顺序保持原始
+# contract -> readiness -> implementation -> runtime 消费关系，使历史 checker
+# 仍能确认前后序，但只有实际契约与 runtime 行为检查进入 fast/full。
+IMAGE_PATH_CHECK_CATALOG = (
+    "check-image-generation-intent-contract.py",
+    "check-image-generation-eval-manifest.py",
+    "check-image-adapter-handshake-safety-gate-v1.py",
+    "check-image-artifact-return-runbook-evidence-v1.py",
+    "check-image-safety-runbook-evidence-v1.py",
+    "check-image-backend-adapter-readiness-evidence-v1.py",
+    "check-image-artifact-runtime-mapping-readiness-v1.py",
+    "check-image-artifact-runtime-mapping-implementation-entry-review-v1.py",
+    "check-image-artifact-store-binary-reader-boundary-readiness-v1.py",
+    "check-image-artifact-runtime-mapper-implementation-plan-v1.py",
+    "check-image-artifact-runtime-mapper-implementation-entry-v1.py",
+    "check-image-artifact-runtime-mapper-implementation-v1.py",
+    "check-image-artifact-runtime-mapper-runtime-implementation-v1.py",
+    "check-image-artifact-runtime-mapper-response-consumer-integration-review-v1.py",
+    "check-image-artifact-response-consumer-implementation-readiness-v1.py",
+    "check-image-artifact-response-consumer-implementation-v1.py",
+    "check-image-artifact-response-consumer-runtime-implementation-v1.py",
+    "check-image-artifact-response-builder-integration-entry-review-v1.py",
+    "check-image-artifact-response-builder-integration-v1.py",
+    "check-image-artifact-response-builder-runtime-integration-entry-review-v1.py",
+    "check-image-artifact-response-builder-runtime-integration-implementation-v1.py",
+)
+RETIRED_IMAGE_PATH_CHECKS = (
+    IMAGE_PATH_CHECK_CATALOG[2:12]
+    + IMAGE_PATH_CHECK_CATALOG[13:16]
+    + IMAGE_PATH_CHECK_CATALOG[17:20]
+)
+
+# Control Plane Read 的早期设计 / 准入链继续保留为手动复验资产。
+# 当前活动基线只执行跨 Go / TypeScript 样例一致性、消费契约、已实现
+# Web 只读页面与 dev-live consumer；Go 路由、鉴权和 fake store 行为由
+# services/platform/internal/httpapi 的行为测试承接。
+CONTROL_PLANE_READ_CHECK_CATALOG = (
+    "check-control-plane-read-model-v1.py",
+    "check-control-plane-read-route-contract-v1.py",
+    "check-control-plane-read-response-fixtures-v1.py",
+    "check-control-plane-read-product-sample-consistency-v1.py",
+    "check-control-plane-read-negative-contract-v1.py",
+    "check-control-plane-read-implementation-preconditions-v1.py",
+    "check-control-plane-read-fake-store-handler-plan-v1.py",
+    "check-control-plane-read-fake-store-handler-implementation-v1.py",
+    "check-control-plane-read-auth-db-preconditions-v1.py",
+    "check-control-plane-read-consumer-contract-v1.py",
+    "check-control-plane-read-formal-ui-boundary-v1.py",
+    "check-control-plane-read-formal-ui-implementation-readiness-v1.py",
+    "check-control-plane-read-shared-shell-v1.py",
+    "check-control-plane-read-admin-tenant-overview-v1.py",
+    "check-control-plane-read-workspace-applications-v1.py",
+    "check-control-plane-read-workspace-api-keys-v1.py",
+    "check-control-plane-read-workspace-usage-quota-v1.py",
+    "check-control-plane-read-workspace-workflow-definitions-v1.py",
+    "check-control-plane-read-workspace-run-history-v1.py",
+    "check-control-plane-read-admin-audit-log-v1.py",
+    "check-control-plane-read-formal-ui-readiness-close-v1.py",
+    "check-control-plane-read-dev-live-consumer-v1.py",
+)
+RETIRED_CONTROL_PLANE_READ_CHECKS = (
+    CONTROL_PLANE_READ_CHECK_CATALOG[:3]
+    + CONTROL_PLANE_READ_CHECK_CATALOG[4:9]
+)
+
 
 def run_python_script(script_name: str, args: list[str]) -> None:
     result = subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / script_name), *args], cwd=REPO_ROOT)
@@ -340,13 +422,33 @@ def check_path_budget() -> None:
 
 
 def check_content_baseline() -> None:
-    agents_content = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
-    if "当前常态开发分支为 `dev`" not in agents_content:
-        raise SystemExit("AGENTS.md does not mention dev as the default development branch")
+    for collaboration_filename in ("AGENTS.md", "CLAUDE.md"):
+        collaboration_content = (REPO_ROOT / collaboration_filename).read_text(encoding="utf-8")
+        for expected_content in (
+            "当前常态开发分支为 `dev`",
+            "`feature/* -> dev -> master -> dev`",
+            "每次 `dev -> master` PR 合并后",
+            "`master -> dev` 是合并后的稳定主线回同步",
+        ):
+            if expected_content not in collaboration_content:
+                raise SystemExit(
+                    f"{collaboration_filename} is missing branch topology governance: {expected_content}"
+                )
 
     pr_template_content = (REPO_ROOT / ".github/PULL_REQUEST_TEMPLATE.md").read_text(encoding="utf-8")
     if "默认目标分支为 `dev`" not in pr_template_content:
         raise SystemExit("PULL_REQUEST_TEMPLATE.md does not mention dev as the default target branch")
+    if "合并后的 `master -> dev` 回同步责任与预期方式" not in pr_template_content:
+        raise SystemExit("PULL_REQUEST_TEMPLATE.md does not require master-to-dev synchronization handoff")
+
+    topology_documents = {
+        ".github/rulesets/README.md": "PR 合并后必须完成 `master -> dev` 回同步",
+        "docs/adr/0001-branch-and-pr-governance.md": "`feature/* -> dev -> master -> dev` 闭环",
+    }
+    for relative_path, expected_content in topology_documents.items():
+        document_content = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        if expected_content not in document_content:
+            raise SystemExit(f"{relative_path} is missing branch topology governance: {expected_content}")
 
     ruleset = json.loads((REPO_ROOT / ".github/rulesets/master-protection.json").read_text(encoding="utf-8"))
     include_refs = (((ruleset.get("conditions") or {}).get("ref_name") or {}).get("include") or [])
@@ -365,6 +467,7 @@ def check_content_baseline() -> None:
         "Repo Hygiene",
         "Repository Baseline",
         "RadishMind Web Build",
+        "RadishMind Console Build",
         "Platform Go Tests",
     }
     missing_contexts = sorted(required_contexts - set(contexts))
@@ -372,19 +475,40 @@ def check_content_baseline() -> None:
         raise SystemExit(f"master-protection.json is missing required checks: {missing_contexts}")
 
     pr_workflow = (REPO_ROOT / ".github/workflows/pr-check.yml").read_text(encoding="utf-8")
+    expected_pr_trigger = """on:
+  pull_request:
+    branches:
+      - dev
+      - master
+  workflow_dispatch:
+"""
+    if expected_pr_trigger not in pr_workflow:
+        raise SystemExit(
+            ".github/workflows/pr-check.yml must only auto-trigger for pull requests targeting dev or master"
+        )
+    for unexpected_pattern in ("  push:\n",):
+        if unexpected_pattern in pr_workflow:
+            raise SystemExit(
+                ".github/workflows/pr-check.yml must not auto-trigger for branch pushes"
+            )
+
     for pattern in (
         "name: PR Checks",
         "pull_request:",
-        "push:",
         "- dev",
         "- master",
+        "workflow_dispatch:",
         "name: Repo Hygiene",
         "name: Repository Baseline",
         "name: RadishMind Web Build",
+        "name: RadishMind Console Build",
         "name: Platform Go Tests",
         "npm ci",
+        "npm run test:coverage",
         "npm run build",
-        "go test ./...",
+        "python3 scripts/checks/platform/check_platform_core_coverage.py",
+        "go test -race ./...",
+        "go vet ./...",
     ):
         if pattern not in pr_workflow:
             raise SystemExit(f".github/workflows/pr-check.yml is missing expected content: {pattern}")
@@ -398,10 +522,14 @@ def check_content_baseline() -> None:
         "name: Release Repo Hygiene",
         "name: Release Repository Baseline",
         "name: Release RadishMind Web Build",
+        "name: Release RadishMind Console Build",
         "name: Release Platform Go Tests",
         "npm ci",
+        "npm run test:coverage",
         "npm run build",
-        "go test ./...",
+        "python3 scripts/checks/platform/check_platform_core_coverage.py",
+        "go test -race ./...",
+        "go vet ./...",
     ):
         if pattern not in release_workflow:
             raise SystemExit(f".github/workflows/release-check.yml is missing expected content: {pattern}")
@@ -423,6 +551,19 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/image-generation-backend-request.schema.json",
         REPO_ROOT / "contracts/image-generation-artifact.schema.json",
         REPO_ROOT / "contracts/radishmind-core-offline-eval-run.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-fragment.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-snapshot.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-evaluation-dataset.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-quality-review.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-evaluation-dataset-resource.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-candidate-snapshot-review.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-knowledge-promotion-candidate.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-knowledge-promotion-decision.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-application-binding.schema.json",
+        REPO_ROOT / "contracts/workflow-rag-knowledge-promotion-audit.schema.json",
+        REPO_ROOT / "contracts/application-runtime-authority.schema.json",
+        REPO_ROOT / "contracts/application-session.schema.json",
+        REPO_ROOT / "contracts/application-session-turn.schema.json",
         REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
         REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json",
         REPO_ROOT / "contracts/radishflow-export-snapshot.schema.json",
@@ -433,6 +574,111 @@ def check_contract_schemas() -> None:
     for schema_path in contract_schema_paths:
         document = json.loads(schema_path.read_text(encoding="utf-8"))
         jsonschema.Draft202012Validator.check_schema(document)
+
+    workflow_rag_fragment_schema = load_json_file("contracts/workflow-rag-fragment.schema.json")
+    workflow_rag_snapshot_schema = load_json_file("contracts/workflow-rag-snapshot.schema.json")
+    workflow_rag_dataset_schema = load_json_file("contracts/workflow-rag-evaluation-dataset.schema.json")
+    workflow_rag_review_schema = load_json_file("contracts/workflow-rag-quality-review.schema.json")
+    application_authority_schema = load_json_file("contracts/application-runtime-authority.schema.json")
+    application_session_schema = load_json_file("contracts/application-session.schema.json")
+    application_turn_schema = load_json_file("contracts/application-session-turn.schema.json")
+    application_session_validation_schema = json.loads(json.dumps(application_session_schema))
+    application_turn_validation_schema = json.loads(json.dumps(application_turn_schema))
+    application_session_validation_schema["properties"]["authority"] = application_authority_schema
+    application_turn_validation_schema["properties"]["authority"] = application_authority_schema
+    digest = "sha256:" + "a" * 64
+    authority = {
+        "schema_version": "application_runtime_authority.v1",
+        "execution_profile": "workflow_definition_executor_v1",
+        "application_id": "app_aaaaaaaaaaaaaaaa",
+        "application_record_version": 1,
+        "application_lifecycle": "active",
+        "workflow_definition": {
+            "definition_id": "definition_contract",
+            "definition_version": 1,
+            "definition_digest": digest,
+            "activation_pointer_version": 1,
+            "candidate_id": "candidate_contract",
+            "candidate_review_version": 1,
+        },
+        "application_rag": None,
+        "authority_digest": digest,
+    }
+    session = {
+        "schema_version": "application_session.v1",
+        "session_id": "appsess_aaaaaaaaaaaaaaaa",
+        "tenant_ref": "tenant_demo",
+        "workspace_id": "workspace_demo",
+        "application_id": "app_aaaaaaaaaaaaaaaa",
+        "owner_subject_ref": "subject_demo",
+        "state": "active",
+        "record_version": 1,
+        "profile_binding": {"execution_profile": "workflow_definition_executor_v1", "definition_id": "definition_contract"},
+        "authority": authority,
+        "content_retention": "metadata_only",
+        "turn_count": 0,
+        "last_turn_id": None,
+        "created_at": "2026-07-19T10:00:00Z",
+        "updated_at": "2026-07-19T10:00:00Z",
+        "closed_at": None,
+        "created_by_actor_ref": "subject_demo",
+        "updated_by_actor_ref": "subject_demo",
+        "request_id": "request_contract",
+        "audit_ref": "audit_contract",
+    }
+    running_turn = {
+        "schema_version": "application_session_turn.v1",
+        "turn_id": "appturn_aaaaaaaaaaaaaaaa",
+        "session_id": session["session_id"],
+        "sequence": 1,
+        "client_turn_key": "client_turn_contract",
+        "tenant_ref": session["tenant_ref"],
+        "workspace_id": session["workspace_id"],
+        "application_id": session["application_id"],
+        "owner_subject_ref": session["owner_subject_ref"],
+        "execution_profile": "workflow_definition_executor_v1",
+        "authority": authority,
+        "status": "running",
+        "input_digest": digest,
+        "input_bytes": 24,
+        "run_ref": None,
+        "failure_code": "",
+        "failure_summary": "",
+        "started_at": "2026-07-19T10:01:00Z",
+        "completed_at": None,
+        "actor_ref": "subject_demo",
+        "request_id": "request_turn_contract",
+        "audit_ref": "audit_turn_contract",
+    }
+    jsonschema.Draft202012Validator(application_session_validation_schema).validate(session)
+    jsonschema.Draft202012Validator(application_turn_validation_schema).validate(running_turn)
+    succeeded_turn = json.loads(json.dumps(running_turn))
+    succeeded_turn.update({"status": "succeeded", "run_ref": {"run_id": "run_aaaaaaaaaaaaaaaa", "schema_version": "workflow_run_record.v5"}, "completed_at": "2026-07-19T10:01:01Z"})
+    jsonschema.Draft202012Validator(application_turn_validation_schema).validate(succeeded_turn)
+    leaked_session = json.loads(json.dumps(session))
+    leaked_session["input"] = "forbidden"
+    try:
+        jsonschema.Draft202012Validator(application_session_validation_schema).validate(leaked_session)
+    except jsonschema.ValidationError:
+        pass
+    else:
+        raise SystemExit("application session schema accepted a raw input field")
+    workflow_rag_snapshot_validation_schema = json.loads(json.dumps(workflow_rag_snapshot_schema))
+    workflow_rag_snapshot_validation_schema["properties"]["fragments"]["items"] = workflow_rag_fragment_schema
+    workflow_rag_snapshot = load_json_file("datasets/eval/workflow-rag/snapshots/dev_core_v1.json")
+    workflow_rag_dataset = load_json_file("datasets/eval/workflow-rag/datasets/dev_core_v1.json")
+    workflow_rag_review = load_json_file("datasets/eval/workflow-rag/reports/dev_core_v1.review.json")
+    jsonschema.Draft202012Validator(workflow_rag_snapshot_validation_schema).validate(workflow_rag_snapshot)
+    jsonschema.Draft202012Validator(workflow_rag_dataset_schema).validate(workflow_rag_dataset)
+    jsonschema.Draft202012Validator(workflow_rag_review_schema).validate(workflow_rag_review)
+    workflow_rag_review_text = json.dumps(workflow_rag_review, ensure_ascii=False, sort_keys=True)
+    forbidden_report_values = [
+        *(sample["query_text"] for sample in workflow_rag_dataset["samples"]),
+        *(sample["review_note"] for sample in workflow_rag_dataset["samples"]),
+        *(fragment["content"] for fragment in workflow_rag_snapshot["fragments"]),
+    ]
+    if any(value in workflow_rag_review_text for value in forbidden_report_values):
+        raise SystemExit("Workflow RAG quality review must remain metadata-only")
 
     ghost_candidate_schema = json.loads(
         (REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json").read_text(encoding="utf-8")
@@ -1099,6 +1345,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-radishmind-core-candidate-answer-scaffold.py", [])
     run_python_script("check-radishmind-core-candidate-prompt-budget.py", [])
     run_python_unittest("services/gateway/tests")
+    run_python_unittest("scripts/checks/platform/tests")
     run_python_script("check-runtime-provider-dispatch.py", [])
     run_python_script("check-provider-capability-matrix.py", [])
     run_python_script("check-provider-health-smoke.py", [])
@@ -1110,15 +1357,7 @@ def check_fast_baseline() -> None:
     run_python_script("checks/control_plane/check-radish-oidc-client-preconditions.py", [])
     run_python_script("checks/control_plane/check-gateway-api-key-quota-readiness.py", [])
     run_python_script("checks/control_plane/check-workflow-definition-run-record-boundary.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-model-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-route-contract-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-response-fixtures-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-product-sample-consistency-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-negative-contract-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-implementation-preconditions-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-fake-store-handler-plan-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-fake-store-handler-implementation-v1.py", [])
-    run_python_script("checks/control_plane/check-control-plane-read-auth-db-preconditions-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-consumer-contract-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-formal-ui-boundary-v1.py", [])
     run_python_script("checks/control_plane/check-control-plane-read-formal-ui-implementation-readiness-v1.py", [])
@@ -1250,55 +1489,15 @@ def check_fast_baseline() -> None:
     run_python_script("check-session-record-contract.py", [])
     run_python_script("check-tooling-framework-contract.py", [])
     run_python_script("check-session-recovery-checkpoint-contract.py", [])
-    run_python_script("check-session-tooling-promotion-gates.py", [])
-    run_python_script("check-session-tooling-negative-consumption.py", [])
-    run_python_script("check-session-recovery-route-smoke-coverage.py", [])
-    run_python_script("check-session-tooling-readiness-summary.py", [])
-    run_python_script("check-session-tooling-implementation-preconditions.py", [])
-    run_python_script("check-session-tooling-negative-regression-skeleton.py", [])
     run_python_script("check-session-tooling-negative-regression-suite.py", [])
-    run_python_script("check-session-tooling-negative-regression-suite-readiness.py", [])
-    run_python_script("check-session-tooling-deny-by-default-implementation-gates.py", [])
-    run_python_script("check-session-tooling-negative-coverage-rollup.py", [])
-    run_python_script("check-session-tooling-route-negative-coverage-matrix.py", [])
-    run_python_script("check-session-tooling-route-smoke-readiness-rollup.py", [])
-    run_python_script("check-session-tooling-foundation-status-summary.py", [])
-    run_python_script("check-session-tooling-close-candidate-readiness-rollup.py", [])
-    run_python_script("check-session-tooling-short-close-readiness-delta.py", [])
-    run_python_script("check-session-tooling-readiness-consistency-rollup.py", [])
-    run_python_script("check-session-tooling-executor-storage-confirmation-enablement-plan.py", [])
-    run_python_script("check-session-tooling-stop-line-manifest.py", [])
-    run_python_script("check-session-tooling-upper-layer-confirmation-flow-readiness.py", [])
-    run_python_script("check-session-tooling-short-close-entry-checklist.py", [])
-    run_python_script("check-session-tooling-confirmation-flow-design.py", [])
-    run_python_script("check-session-tooling-independent-audit-records.py", [])
-    run_python_script("check-session-tooling-result-materialization-policy.py", [])
-    run_python_script("check-session-tooling-executor-boundary.py", [])
-    run_python_script("check-session-tooling-storage-backend-design.py", [])
     run_python_script("check-copilot-training-sample-contract.py", [])
     run_python_script("check-copilot-training-dataset-governance.py", [])
     run_python_script("check-radishmind-core-model-adaptation-v1-governance-review.py", [])
     run_python_script("check-radishmind-core-model-adaptation-v1-preflight-result.py", [])
     run_python_script("check-image-generation-intent-contract.py", [])
     run_python_script("check-image-generation-eval-manifest.py", [])
-    run_python_script("check-image-adapter-handshake-safety-gate-v1.py", [])
-    run_python_script("check-image-artifact-return-runbook-evidence-v1.py", [])
-    run_python_script("check-image-safety-runbook-evidence-v1.py", [])
-    run_python_script("check-image-backend-adapter-readiness-evidence-v1.py", [])
-    run_python_script("check-image-artifact-runtime-mapping-readiness-v1.py", [])
-    run_python_script("check-image-artifact-runtime-mapping-implementation-entry-review-v1.py", [])
-    run_python_script("check-image-artifact-store-binary-reader-boundary-readiness-v1.py", [])
-    run_python_script("check-image-artifact-runtime-mapper-implementation-plan-v1.py", [])
-    run_python_script("check-image-artifact-runtime-mapper-implementation-entry-v1.py", [])
-    run_python_script("check-image-artifact-runtime-mapper-implementation-v1.py", [])
     run_python_script("check-image-artifact-runtime-mapper-runtime-implementation-v1.py", [])
-    run_python_script("check-image-artifact-runtime-mapper-response-consumer-integration-review-v1.py", [])
-    run_python_script("check-image-artifact-response-consumer-implementation-readiness-v1.py", [])
-    run_python_script("check-image-artifact-response-consumer-implementation-v1.py", [])
     run_python_script("check-image-artifact-response-consumer-runtime-implementation-v1.py", [])
-    run_python_script("check-image-artifact-response-builder-integration-entry-review-v1.py", [])
-    run_python_script("check-image-artifact-response-builder-integration-v1.py", [])
-    run_python_script("check-image-artifact-response-builder-runtime-integration-entry-review-v1.py", [])
     run_python_script("check-image-artifact-response-builder-runtime-integration-implementation-v1.py", [])
     check_path_budget()
     check_required_files()

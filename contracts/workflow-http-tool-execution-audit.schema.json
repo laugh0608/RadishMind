@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-http-tool-execution-audit.schema.json",
+  "title": "WorkflowHttpToolExecutionAuditV1",
+  "description": "Sanitized Workflow-scoped confirmation and tool execution audit. Endpoint, arguments, headers, credentials, raw bodies, DNS data and internal errors are forbidden by shape.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "event_kind",
+    "occurred_at",
+    "tenant_ref",
+    "workspace_id",
+    "application_id",
+    "draft_id",
+    "draft_version",
+    "node_id",
+    "plan_id",
+    "confirmation_id",
+    "execution_attempt_id",
+    "run_id",
+    "tool_id",
+    "tool_version",
+    "definition_digest",
+    "profile_id",
+    "profile_digest",
+    "tool_plan_digest",
+    "actor_ref",
+    "actor_source",
+    "request_id",
+    "audit_ref",
+    "failure_code",
+    "failure_boundary",
+    "attempt_status",
+    "http_status_class",
+    "response_bytes",
+    "duration_ms",
+    "side_effects"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "workflow_http_tool_execution_audit.v1"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^wtae_[a-z0-9]{16,64}$"
+    },
+    "event_kind": {
+      "enum": [
+        "confirmation_requested",
+        "confirmation_recorded",
+        "confirmation_rejected",
+        "confirmation_deferred",
+        "confirmation_canceled",
+        "confirmation_expired",
+        "confirmation_invalidated",
+        "tool_execution_started",
+        "tool_execution_succeeded",
+        "tool_execution_failed",
+        "tool_execution_outcome_unknown"
+      ]
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tenant_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "workspace_id": {
+      "$ref": "#/$defs/scoped_id"
+    },
+    "application_id": {
+      "$ref": "#/$defs/scoped_id"
+    },
+    "draft_id": {
+      "$ref": "#/$defs/scoped_id"
+    },
+    "draft_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "node_id": {
+      "$ref": "#/$defs/scoped_id"
+    },
+    "plan_id": {
+      "type": "string",
+      "pattern": "^wtap_[a-z0-9]{16,64}$"
+    },
+    "confirmation_id": {
+      "$ref": "#/$defs/nullable_id"
+    },
+    "execution_attempt_id": {
+      "$ref": "#/$defs/nullable_id"
+    },
+    "run_id": {
+      "$ref": "#/$defs/nullable_id"
+    },
+    "tool_id": {
+      "$ref": "#/$defs/tool_id"
+    },
+    "tool_version": {
+      "const": 1
+    },
+    "definition_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "profile_id": {
+      "type": "string",
+      "pattern": "^workflow_http_profile_[a-z0-9_]{1,80}$"
+    },
+    "profile_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "tool_plan_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "actor_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "actor_source": {
+      "enum": [
+        "human",
+        "system"
+      ]
+    },
+    "request_id": {
+      "$ref": "#/$defs/reference"
+    },
+    "audit_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "failure_code": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^workflow_tool_[a-z_]{3,80}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "failure_boundary": {
+      "oneOf": [
+        {
+          "enum": [
+            "tool_policy",
+            "tool_confirmation",
+            "tool_transport",
+            "tool_response",
+            "tool_store"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "attempt_status": {
+      "enum": [
+        "not_claimed",
+        "claimed",
+        "succeeded",
+        "failed",
+        "outcome_unknown"
+      ]
+    },
+    "http_status_class": {
+      "oneOf": [
+        {
+          "enum": [
+            "2xx",
+            "3xx",
+            "4xx",
+            "5xx"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "response_bytes": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 65536
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 30000
+    },
+    "side_effects": {
+      "$ref": "#/$defs/side_effects"
+    }
+  },
+  "$defs": {
+    "tool_id": {
+      "type": "string",
+      "pattern": "^workflow\\.http\\.[a-z0-9][a-z0-9._-]*\\.v[0-9]+$",
+      "maxLength": 120
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "reference": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$"
+    },
+    "scoped_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 120,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$"
+    },
+    "nullable_id": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 120,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "side_effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "network_attempts",
+        "tool_calls",
+        "provider_calls",
+        "business_writes",
+        "replay_writes"
+      ],
+      "properties": {
+        "network_attempts": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "tool_calls": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "provider_calls": {
+          "type": "integer",
+          "const": 0
+        },
+        "business_writes": {
+          "type": "integer",
+          "const": 0
+        },
+        "replay_writes": {
+          "type": "integer",
+          "const": 0
+        }
+      }
+    }
+  }
+}

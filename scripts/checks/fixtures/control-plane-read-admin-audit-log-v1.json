@@ -149,10 +149,6 @@
       "control-plane-read-admin-audit-log-v1",
       "audit-summary-list-route"
     ],
-    "docs/radishmind-current-focus.md": [
-      "control-plane-read-admin-audit-log-v1",
-      "admin-audit-log"
-    ],
     "docs/radishmind-capability-matrix.md": [
       "control-plane-read-admin-audit-log-v1",
       "admin-audit-log"

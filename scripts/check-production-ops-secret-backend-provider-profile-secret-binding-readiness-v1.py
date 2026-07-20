@@ -143,10 +143,6 @@ REQUIRED_DOC_REFERENCES = {
         "provider_profile_secret_binding_readiness_defined",
         "不接生产后端",
     ],
-    "docs/radishmind-roadmap.md": [
-        "provider-profile-secret-binding",
-        "production-secret-backend-provider-profile-secret-binding-readiness-v1.json",
-    ],
     "docs/radishmind-capability-matrix.md": [
         "provider-profile-secret-binding",
         "production-secret-backend-provider-profile-secret-binding-readiness-v1.json",
@@ -166,10 +162,6 @@ REQUIRED_DOC_REFERENCES = {
     ],
     "scripts/README.md": [
         "check-production-ops-secret-backend-provider-profile-secret-binding-readiness-v1.py",
-        "production-secret-backend-provider-profile-secret-binding-readiness-v1.json",
-    ],
-    "services/platform/README.md": [
-        "Production secret backend provider profile secret binding readiness",
         "production-secret-backend-provider-profile-secret-binding-readiness-v1.json",
     ],
     "deploy/README.md": [

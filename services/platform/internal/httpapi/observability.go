@@ -18,16 +18,19 @@ const (
 	errorBoundaryPythonBridge       = "python_bridge"
 	errorBoundaryPlatformResponse   = "platform_response"
 	errorBoundarySouthboundProvider = "southbound_provider"
+	errorBoundaryGatewayAuth        = "gateway_authentication"
 	errorBoundaryConfiguration      = "configuration"
 	errorBoundaryUnknown            = "unknown"
 )
 
 type requestTrace struct {
-	requestID    string
-	route        string
-	startedAt    time.Time
-	selection    northboundSelection
-	hasSelection bool
+	requestID             string
+	route                 string
+	startedAt             time.Time
+	selection             northboundSelection
+	hasSelection          bool
+	gatewayRequestContext GatewayRequestContext
+	gatewayRequest        *GatewayRequestRecord
 }
 
 type platformErrorDefinition struct {
@@ -105,6 +108,11 @@ func (s *Server) writePlatformError(writer http.ResponseWriter, trace requestTra
 		},
 	})
 	logRequestTrace(trace, definition.statusCode, strings.TrimSpace(code), definition.failureBoundary)
+	status := GatewayRequestStatusFailed
+	if strings.TrimSpace(code) == bridge.ErrorCodeWorkerCanceled {
+		status = GatewayRequestStatusCanceled
+	}
+	s.finishGatewayRequestTrace(&trace, status, definition.statusCode, strings.TrimSpace(code), definition.failureBoundary)
 }
 
 func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
@@ -218,11 +226,89 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryConfiguration,
 			defaultMessage:  "saved workflow draft dev HTTP route is disabled",
 		},
+		"API_KEY_LIFECYCLE_DEV_HTTP_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "API key lifecycle dev HTTP route is disabled",
+		},
+		APIKeyFailureMissing: {
+			statusCode: http.StatusUnauthorized, errorType: "authentication_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "API key is required",
+		},
+		APIKeyFailureInvalid: {
+			statusCode: http.StatusUnauthorized, errorType: "authentication_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "API key is invalid",
+		},
+		APIKeyFailureCredentialConflict: {
+			statusCode: http.StatusBadRequest, errorType: "invalid_request_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "conflicting Gateway credentials are not allowed",
+		},
+		APIKeyFailureRevoked: {
+			statusCode: http.StatusForbidden, errorType: "authentication_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "API key is revoked",
+		},
+		APIKeyFailureExpired: {
+			statusCode: http.StatusForbidden, errorType: "authentication_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "API key is expired",
+		},
+		APIKeyFailureScopeDenied: {
+			statusCode: http.StatusForbidden, errorType: "permission_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "API key scope is denied",
+		},
+		APIKeyFailureApplicationUnavailable: {
+			statusCode: http.StatusForbidden, errorType: "authentication_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "API key application is unavailable",
+		},
+		APIKeyFailureStoreUnavailable: {
+			statusCode: http.StatusServiceUnavailable, errorType: "service_unavailable_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "API key store is unavailable",
+		},
+		string(GatewayRequestHistoryFailureStore): {
+			statusCode: http.StatusServiceUnavailable, errorType: "service_unavailable_error",
+			failureBoundary: errorBoundaryGatewayAuth, defaultMessage: "Gateway request history store is unavailable",
+		},
 		"WORKFLOW_EXECUTOR_DEV_DISABLED": {
 			statusCode:      http.StatusForbidden,
 			errorType:       "invalid_request_error",
 			failureBoundary: errorBoundaryConfiguration,
 			defaultMessage:  "workflow executor dev route is disabled",
+		},
+		"WORKFLOW_RAG_SNAPSHOT_DEV_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "workflow RAG snapshot dev route is disabled",
+		},
+		"WORKFLOW_RAG_EXECUTION_DEV_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "workflow RAG execution dev route is disabled",
+		},
+		"WORKFLOW_RAG_EVALUATION_DEV_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "workflow RAG evaluation dev route is disabled",
+		},
+		"WORKFLOW_RAG_PROMOTION_DEV_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "workflow RAG promotion dev route is disabled",
+		},
+		WorkflowRAGFailurePayloadInvalid: {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "workflow RAG snapshot request is invalid",
+		},
+		"GATEWAY_REQUEST_HISTORY_DEV_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "gateway request history dev route is disabled",
 		},
 		"CONFIG_REQUIRED_FIELDS_MISSING": {
 			statusCode:      http.StatusServiceUnavailable,

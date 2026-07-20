@@ -455,7 +455,7 @@
       "product-surface-usage-gap-triage-v1",
       "product_surface_usage_gap_triage_defined"
     ],
-    "docs/radishmind-roadmap.md": [
+    "docs/radishmind-product-scope.md": [
       "product-surface-usage-gap-triage-v1",
       "product_surface_usage_gap_triage_defined"
     ],
@@ -503,7 +503,7 @@
     "apps/radishmind-web/README.md",
     "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-current-focus.md",
-    "docs/radishmind-roadmap.md",
+    "docs/radishmind-product-scope.md",
     "docs/radishmind-capability-matrix.md",
     "docs/radishmind-integration-contracts.md",
     "docs/task-cards/README.md",

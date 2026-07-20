@@ -24,10 +24,10 @@ Usage: pwsh ./scripts/run-workflow-saved-draft-postgres-dev-test.ps1 [-Action AC
 
 Actions:
   up       Start the local PostgreSQL 17 dev/test container and wait for health.
-  status   Inspect the saved draft migration marker without changing the database.
-  migrate  Apply the reviewed saved draft migration through the one-time runner.
-  test     Run the destructive integration suite against a database whose name contains "test".
-  check    Start PostgreSQL, run integration tests, then leave the schema migrated and ready.
+  status   Inspect all platform PostgreSQL migration markers without changing the database.
+  migrate  Apply all reviewed platform migrations through their one-time runners.
+  test     Run the destructive platform integration suite against a database whose name contains "test".
+  check    Start PostgreSQL, run the integration suite, migrate all schemas, and verify the configured profile.
   down     Stop the local container while preserving its named volume.
 
 The platform runtime connection comes from PGHOST, PGPORT, PGUSER, PGDATABASE,
@@ -40,7 +40,7 @@ DDL. The script assembles both database URLs in memory and never prints them.
 
 function Write-Step {
     param([string]$Message)
-    Write-Host "[saved-draft-postgres-dev-test] $Message"
+    Write-Host "[platform-postgres-dev-test] $Message"
 }
 
 function Get-RequiredCommand {
@@ -97,26 +97,90 @@ function Set-DatabaseComponentEnvironment {
 function Invoke-Migration {
     param([ValidateSet("status", "up")][string]$MigrationAction)
     $go = Get-RequiredCommand -Name "go"
+    Remove-Item Env:RADISHMIND_LOCAL_PERSISTENCE_MODE -ErrorAction SilentlyContinue
+    Remove-Item Env:RADISHMIND_SQLITE_DEV_DATABASE_PATH -ErrorAction SilentlyContinue
     Set-DatabaseComponentEnvironment -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
     $env:RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH = "1"
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP = "1"
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE = "1"
     $env:RADISHMIND_WORKFLOW_EXECUTOR_DEV = "1"
+    $env:RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV = "1"
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE = "postgres_dev_test"
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
     $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
+    $env:RADISHMIND_APPLICATION_DRAFT_DEV_HTTP = "1"
+    $env:RADISHMIND_APPLICATION_DRAFT_DEV_WRITE = "1"
+    $env:RADISHMIND_APPLICATION_DRAFT_STORE = "postgres_dev_test"
+    $env:RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
+    $env:RADISHMIND_APPLICATION_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
+    $env:RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP = "1"
+    $env:RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE = "1"
+    $env:RADISHMIND_APPLICATION_PUBLISH_STORE = "postgres_dev_test"
+    $env:RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
+    $env:RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
+    $env:RADISHMIND_APPLICATION_CATALOG_DEV_HTTP = "1"
+    $env:RADISHMIND_APPLICATION_CATALOG_DEV_WRITE = "1"
+    $env:RADISHMIND_APPLICATION_CATALOG_STORE = "postgres_dev_test"
+    $env:RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
+    $env:RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
+    $env:RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP = "1"
+    $env:RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE = "1"
+    $env:RADISHMIND_API_KEY_STORE = "postgres_dev_test"
+    $env:RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
+    $env:RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
+    $env:RADISHMIND_GATEWAY_AUTH_MODE = "api_key_dev_test"
     $env:RADISHMIND_WORKFLOW_RUN_STORE = "postgres_dev_test"
     $env:RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
     $env:RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
+    $env:RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV = "1"
+    $env:RADISHMIND_GATEWAY_REQUEST_STORE = "postgres_dev_test"
+    $env:RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
+    $env:RADISHMIND_GATEWAY_REQUEST_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
     Push-Location $platformDir
     try {
         & $go run ./cmd/radishmind-workflow-draft-migrate $MigrationAction
         if ($LASTEXITCODE -ne 0) {
             throw "saved draft migration runner failed with exit code $LASTEXITCODE"
         }
+        & $go run ./cmd/radishmind-application-draft-migrate $MigrationAction
+        if ($LASTEXITCODE -ne 0) {
+            throw "application draft migration runner failed with exit code $LASTEXITCODE"
+        }
+        & $go run ./cmd/radishmind-application-publish-migrate $MigrationAction
+        if ($LASTEXITCODE -ne 0) {
+            throw "application publish migration runner failed with exit code $LASTEXITCODE"
+        }
+        & $go run ./cmd/radishmind-application-catalog-migrate $MigrationAction
+        if ($LASTEXITCODE -ne 0) {
+            throw "application catalog migration runner failed with exit code $LASTEXITCODE"
+        }
+        & $go run ./cmd/radishmind-api-key-migrate $MigrationAction
+        if ($LASTEXITCODE -ne 0) {
+            throw "API key migration runner failed with exit code $LASTEXITCODE"
+        }
         & $go run ./cmd/radishmind-workflow-run-migrate $MigrationAction
         if ($LASTEXITCODE -ne 0) {
             throw "workflow run migration runner failed with exit code $LASTEXITCODE"
+        }
+        & $go run ./cmd/radishmind-gateway-request-migrate $MigrationAction
+        if ($LASTEXITCODE -ne 0) {
+            throw "Gateway request migration runner failed with exit code $LASTEXITCODE"
+        }
+        $env:RADISHMIND_CONTROL_PLANE_READ_STORE = "postgres_dev_test"
+        $env:RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
+        $env:RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
+        & $go run ./cmd/radishmind-control-plane-read-migrate $MigrationAction
+        if ($LASTEXITCODE -ne 0) {
+            throw "Control Plane Admin read migration runner failed with exit code $LASTEXITCODE"
+        }
+        Remove-Item Env:RADISHMIND_CONTROL_PLANE_READ_STORE -ErrorAction SilentlyContinue
+        Remove-Item Env:RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_DATABASE_URL -ErrorAction SilentlyContinue
+        Remove-Item Env:RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_MIGRATION_DATABASE_URL -ErrorAction SilentlyContinue
+        if ($MigrationAction -eq "up") {
+            & (Join-Path $repoRoot "scripts/run-platform-service.ps1") -Profile "configured" -Command "config-check" | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                throw "configured platform profile check failed with exit code $LASTEXITCODE"
+            }
         }
     }
     finally {
@@ -148,23 +212,23 @@ switch ($Action) {
         Invoke-Compose -Arguments @("up", "-d", "--wait")
     }
     "status" {
-        Write-Step "Inspecting the saved draft schema marker."
+        Write-Step "Inspecting all platform PostgreSQL schema markers."
         Invoke-Migration -MigrationAction "status"
     }
     "migrate" {
-        Write-Step "Applying the reviewed saved draft migration."
+        Write-Step "Applying all reviewed platform PostgreSQL migrations."
         Invoke-Migration -MigrationAction "up"
     }
     "test" {
-        Write-Step "Running the PostgreSQL repository integration suite."
+        Write-Step "Running the platform PostgreSQL integration suite."
         Invoke-IntegrationTest
     }
     "check" {
         Write-Step "Starting loopback-only PostgreSQL dev/test service."
         Invoke-Compose -Arguments @("up", "-d", "--wait")
-        Write-Step "Running the PostgreSQL repository integration suite."
+        Write-Step "Running the platform PostgreSQL integration suite."
         Invoke-IntegrationTest
-        Write-Step "Restoring the reviewed migrated schema for interactive development."
+        Write-Step "Restoring all reviewed schemas and verifying the configured platform startup profile."
         Invoke-Migration -MigrationAction "up"
     }
     "down" {

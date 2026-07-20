@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-definition-activation.schema.json",
+  "title": "Workflow Definition Activation Pointer v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "definition_id", "pointer_version", "state", "active_version", "active_definition_digest", "events", "updated_at", "updated_by_actor_ref", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "workflow_definition_activation.v1"},
+    "definition_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"},
+    "pointer_version": {"type": "integer", "minimum": 0},
+    "state": {"enum": ["active", "inactive"]},
+    "active_version": {"type": "integer", "minimum": 0},
+    "active_definition_digest": {"type": "string", "pattern": "^(|sha256:[0-9a-f]{64})$"},
+    "events": {"type": "array", "maxItems": 1000, "items": {"$ref": "workflow-definition-activation-event.schema.json"}},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "updated_by_actor_ref": {"type": "string", "maxLength": 240},
+    "request_id": {"type": "string", "maxLength": 240},
+    "audit_ref": {"type": "string", "maxLength": 240}
+  }
+}
