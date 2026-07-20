@@ -1345,6 +1345,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-radishmind-core-candidate-answer-scaffold.py", [])
     run_python_script("check-radishmind-core-candidate-prompt-budget.py", [])
     run_python_unittest("services/gateway/tests")
+    run_python_unittest("scripts/checks/platform/tests")
     run_python_script("check-runtime-provider-dispatch.py", [])
     run_python_script("check-provider-capability-matrix.py", [])
     run_python_script("check-provider-health-smoke.py", [])

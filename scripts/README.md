@@ -1,6 +1,6 @@
 # scripts/ 目录说明
 
-更新时间：2026-07-15
+更新时间：2026-07-20
 
 ## 目录目标
 
@@ -20,7 +20,7 @@
   - 活动功能检查应从各自 schema、fixture、实现、专题、路线图、任务卡、脚本说明和周志读取证据，不要求 `docs/radishmind-current-focus.md` 重复列出功能 slice、fixture 或 checker 名称；当前焦点只保留语言、体量、console 开发边界和生产停止线四类合理检查职责
   - 当前还提供 `check-doc-language-policy-v1.py`，用于固定文档正文中文优先、必要英文标识符保留原文、历史英文工程短语逐批收口、[文档语言治理 v1](../docs/document-language-governance-v1.md) 专题引用和优先入口文档提示；该检查不做全仓机械翻译，也不改写状态锚点、fixture key、路径或机器检查依赖的字面量 literal
   - GitHub Actions 当前把 PR / release 检查对称拆为 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build`、`Platform Go Tests` 与 `Platform PostgreSQL Integration`：仓库治理走聚合入口，Web 执行覆盖率预算与构建，Console 执行构建，Go 平台执行核心包覆盖率预算、race 和 vet，PostgreSQL job 使用临时 service 执行八组平台 migration、七组件 repository 与关联 Control Plane read 集成测试并报告独立覆盖率
-  - `scripts/checks/platform/check_platform_core_coverage.py` 是 Platform 核心包的集中覆盖率入口，分别约束 `bridge`、`config`、`diagnostics`、`httpapi`、`secretbackend` 与 `sqlitedev`；命令包装器、嵌入式 migration 资产和 PostgreSQL 专属执行代码不与核心运行时共用总阈值
+  - `scripts/checks/platform/check_platform_core_coverage.py` 是 Platform 核心包的集中覆盖率入口，分别约束 `bridge`、`config`、`diagnostics`、`httpapi`、`secretbackend` 与 `sqlitedev`；入口从 Go coverage profile 计算语句覆盖率，命令包装器和嵌入式 migration 资产不进入核心包预算，`httpapi` 中名称带独立 `_postgres` token 的 PostgreSQL 专属实现从核心单元覆盖率分母中精确排除并报告排除规模，对应 repository 行为继续由独立 PostgreSQL integration job 验收
   - `Release Checks` 只复用同级预发布验证 job，不发布镜像、不部署、不访问 live backend、不写入 secret，也不声明 production ready
   - 当前还提供 `run-platform-service.sh` 与 `run-platform-service.ps1`，作为本地 Go platform service wrapper；支持 `serve`、`config-summary`、`config-check` 与 `diagnostics`，并统一处理 repo root、`services/platform` 工作目录、默认 `GOCACHE` 和默认本地配置文件。默认 `local-product` 档选择单一共享 SQLite 文件和七组件开发门禁；显式 `configured` 档不注入 store 或门禁，只承接调用方配置，供 PostgreSQL 专项验收与故障注入使用。配置检查不会创建 SQLite 文件，只有 `serve` 进入 migration 与 shared runtime 生命周期
   - 当前还提供 `run-platform-overview-consumer-smoke.py`，用于把 `GET /v1/platform/overview` 转成未来本地 console 可展示的 overview 视图模型；默认使用离线 fixture 模式，可选 `--base-url` 连接正在运行的平台服务，不启动 executor、durable store、confirmation、replay 或业务写回

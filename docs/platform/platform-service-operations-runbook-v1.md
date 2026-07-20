@@ -1,6 +1,6 @@
 # 平台服务运行手册 v1
 
-更新时间：2026-07-15
+更新时间：2026-07-20
 
 ## 文档职责
 
@@ -27,7 +27,7 @@ GOCACHE=/tmp/radishmind-go-build-cache go vet ./...
 cd ../..
 ```
 
-集中覆盖率入口会以 `go test -count=1 -cover ./...` 读取核心包结果，并分别约束 `internal/bridge` `75%`、`internal/config` `80%`、`internal/diagnostics` `85%`、`internal/httpapi` `70%`、`internal/secretbackend` `80%`、`internal/sqlitedev` `75%`。命令包装器、嵌入式 migration 资产和 PostgreSQL 专属代码不与核心运行时共用单一总阈值；PostgreSQL repository 由后文独立集成入口覆盖。PR 与 release workflow 均执行覆盖率预算、race 和 vet。
+集中覆盖率入口会以 `go test -count=1 -covermode=count -coverprofile=<temp> ./...` 生成语句覆盖率 profile，并分别约束 `internal/bridge` `75%`、`internal/config` `80%`、`internal/diagnostics` `85%`、`internal/httpapi` `70%`、`internal/secretbackend` `80%`、`internal/sqlitedev` `75%`。命令包装器和嵌入式 migration 资产不进入核心包预算；`internal/httpapi` 中名称带独立 `_postgres` token 的 PostgreSQL 专属实现会从核心单元覆盖率分母中精确排除，并在结果中报告排除语句数与文件数。对应 repository 行为仍由后文独立 PostgreSQL integration job 覆盖，不允许通过降低核心阈值或扩大文件匹配范围绕过。PR 与 release workflow 均执行覆盖率预算、race 和 vet。
 
 从仓库根目录直接启动最小 mock 服务：
 
