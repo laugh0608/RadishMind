@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃实现任务卡。[应用开发工作区与发布准备审查 v1](../features/user-workspace/application-development-workspace-release-readiness-review-v1.md)已完成设计确认，首批 Web 组合不需要新增 API、schema、repository、执行边界或高风险写入，因此当前直接按功能专题实施批次 A；若后续边界变化，再创建唯一的高风险任务卡。
+当前没有活跃实现任务卡。[应用开发工作区与发布准备审查 v1](../features/user-workspace/application-development-workspace-release-readiness-review-v1.md)已完成设计确认和批次 A 壳层基础，剩余阶段 surface 与切换清理仍直接按功能专题实施；当前不需要新增 API、schema、repository、执行边界或高风险写入，若后续边界变化，再创建唯一的高风险任务卡。
 
 ## 最近关闭任务
 

@@ -1656,6 +1656,104 @@ h4 {
   background: #fff9f7;
 }
 
+.application-development-workspace {
+  border: 1px solid #cbd7e6;
+  border-radius: 12px;
+  padding: 20px;
+  background: #f8fbff;
+}
+
+.application-development-workspace.archived {
+  background: #fbfaf7;
+}
+
+.application-development-workspace.unavailable {
+  border-color: #e7b7b1;
+  background: #fff9f7;
+}
+
+.application-development-summary {
+  max-width: 840px;
+  margin: 8px 0 0;
+  color: #4e5f73;
+  line-height: 1.5;
+}
+
+.application-development-context,
+.application-development-stages {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.application-development-context > div,
+.application-development-stage,
+.application-development-readiness-boundary {
+  min-width: 0;
+  border: 1px solid #d8dee8;
+  border-radius: 9px;
+  padding: 14px;
+  background: #ffffff;
+}
+
+.application-development-context dt,
+.application-development-stage code {
+  color: #5d6f84;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.application-development-context dd {
+  overflow-wrap: anywhere;
+  margin: 6px 0;
+  font-weight: 700;
+}
+
+.application-development-context code,
+.application-development-stage code {
+  overflow-wrap: anywhere;
+}
+
+.application-development-stage {
+  display: grid;
+  gap: 8px;
+  color: #26384d;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.application-development-stage:hover,
+.application-development-stage.active {
+  border-color: #4d78a8;
+  box-shadow: 0 0 0 2px rgb(77 120 168 / 12%);
+}
+
+.application-development-stage small {
+  color: #5d6f84;
+  line-height: 1.45;
+}
+
+.application-development-stage.blocked {
+  border-color: #e1d8d5;
+  background: #f4f1f0;
+  color: #7a6f6a;
+  cursor: not-allowed;
+}
+
+.application-development-readiness-boundary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 16px;
+  align-items: start;
+}
+
+.application-development-readiness-boundary p:last-child {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #4e5f73;
+  line-height: 1.5;
+}
+
 .model-gateway-overview-hero > *,
 .model-gateway-route-evidence-hero > *,
 .model-gateway-usage-audit-evidence-hero > * {

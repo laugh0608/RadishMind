@@ -19,7 +19,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：[应用开发工作区与发布准备审查 v1](features/user-workspace/application-development-workspace-release-readiness-review-v1.md)已完成设计确认，当前为 `design_approved_batch_a_ready`。设计固定“选择应用 → 配置 / 构建 → 人工晋级 → 受控测试 → 运行 / 评测审查 → 发布准备判断”、唯一 application context、generation / 清理边界和只读发布准备投影；批次 A 从 `App.tsx` 抽出 Application Development Workspace 并复用既有 owner，不新增 API、schema、repository 或任务卡。`real_radish_integration_deferred` 不占用当前主线。
+1. 产品线：[应用开发工作区与发布准备审查 v1](features/user-workspace/application-development-workspace-release-readiness-review-v1.md)已完成设计确认和批次 A 壳层基础切片，当前为 `batch_a_shell_foundation_completed`。唯一 application context、active / archived / unavailable 失败关闭、revision generation、五阶段导航和 `review_not_started` 停止线已进入 Web，现有 Application / Workflow / RAG / Session / Operations / Run History 与 Gateway Playground 已统一消费该 context。下一切片继续在批次 A 内收口阶段 surface 组合，并补 route switch、取消和迟到响应的组合级证据；暂不进入批次 B，也不新增 API、schema、repository 或任务卡。`real_radish_integration_deferred` 不占用当前主线。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。

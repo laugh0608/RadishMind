@@ -2,7 +2,7 @@
 
 更新时间：2026-07-20
 
-状态：`application_development_workspace_release_readiness_review_v1_design_approved_batch_a_ready`
+状态：`application_development_workspace_release_readiness_review_v1_batch_a_shell_foundation_completed`
 
 ## 功能目标
 
@@ -173,6 +173,17 @@ context 不保存领域对象、请求正文、响应正文、凭据、输入、
 - 根据实际行为证据更新功能专题、当前焦点、能力矩阵和周志后关闭专题。
 
 若任何批次发现必须新增 API、schema、repository、执行边界或高风险写入，应停止当前批次，先更新本设计并创建唯一的高风险任务卡；不得把新边界隐藏在普通 UI 重组中。
+
+## 当前实现进度
+
+2026-07-20 已完成批次 A 的壳层基础切片：
+
+- 新增纯 TypeScript application context builder，统一校验 Application 作用域、active / archived / unavailable 生命周期、revision generation 和五阶段可用性；缺少 Application 或生命周期未知时失败关闭。
+- 新增独立 `ApplicationDevelopmentWorkspacePanel`，交付 Application Context Header、五阶段锚点导航、归档只读 / 受控测试阻塞语义和显式 `review_not_started` 发布准备停止线。
+- `App.tsx` 中 Application 配置、候选、API 接入、API key、RAG、Session、Definition、Operations、Run History 与 Gateway Playground 已统一消费同一个 application context；Application、revision 或生命周期变化通过 generation key 重新挂载作用域组件，旧 transient state 不再跨 generation 复用。
+- 新增 5 个 context / generation / lifecycle / stage mapping 精准测试；全部 Web 测试 `167 / 167` 通过，`npm run build` 通过，新模块行覆盖率 `100%`。
+
+批次 A 尚未关闭。下一切片继续把阶段 surface 组合从根组件收口到 feature boundary，并补 route switch、取消与迟到响应的组合级证据；在这些行为成立前，不进入批次 B 的 handoff refs 与四态 readiness projection。
 
 ## 验收方式
 
