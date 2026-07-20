@@ -1,6 +1,6 @@
 # RadishMind UI 设计规范
 
-更新时间：2026-07-19
+更新时间：2026-07-20
 
 ## 文档目的
 
@@ -10,7 +10,7 @@
 
 当前规范同时服务 `UI Design Topic / Pencil Draft`、`P3 Local Product Shell / Ops Surface`、Control Plane read-side product UI shell，以及显式开发测试态的 Workflow / Application 受控运行面板。它不声明正式 production console 已完成，也不把开发测试态 executor、持久化、人工审查或会话编排画成 production、业务写回或 replay 能力。
 
-`control-plane-read-formal-ui-implementation-readiness-v1` 已把正式产品 UI 的落点固定为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍只是本地 ops surface。Web 在原 read shell、Workflow review、Model Gateway 与 Application 管理面之外，已增加 Application RAG Runtime、Workflow Definition Promotion、Application Interaction Session、Application Operations，以及 v4 / v5 Run History / Detail / Comparison / Evaluation 消费面。Draft Designer、运行、晋级、会话和观测都通过独立显式 dev/test source 启用；默认离线模式仍为零请求。上述能力不代表 production builder、production persistence、正式发布、业务写回或 replay ready。后续继续 formal UI 时，应复用现有严格 consumer、共享 application scope 和运行记录视图，不得把当前本地 console 直接改成 production admin console。
+`control-plane-read-formal-ui-implementation-readiness-v1` 已把正式产品 UI 的落点固定为 `apps/radishmind-web/`，当前 `apps/radishmind-console/` 仍只是本地 ops surface。Web 在原 read shell、Workflow review、Model Gateway 与 Application 管理面之外，已增加 Application RAG Runtime、Workflow Definition Promotion、Application Interaction Session、Application Operations，以及 v4 / v5 Run History / Detail / Comparison / Evaluation 消费面；这些 owner 现在又由 Application Development Workspace 按唯一 context、五阶段单 surface、精确 handoff 和四态 readiness 组织。Draft Designer、运行、晋级、会话和观测都通过独立显式 dev/test source 启用；默认离线模式仍为零请求。上述能力不代表 production builder、production persistence、正式发布、业务写回或 replay ready。后续继续 formal UI 时，应复用现有严格 consumer、共享 application scope 和运行记录视图，不得把当前本地 console 直接改成 production admin console。
 
 ## 设计定位
 
@@ -277,6 +277,14 @@ Control Plane read-side product UI 额外覆盖：
    - Application Operations 独立展示 Gateway Request 与 Workflow Run 两个来源的 loading / ready / empty / failed 状态，允许部分失败；合并时间线不得推测跨来源 correlation，也不得估算缺失 token、cost、quota 或 billing
    - Run History / Detail / Comparison / Evaluation 对 v4 与 v5 只读展示 execution source、profile、authority refs、digest、usage availability 与 diagnostics；不得重新执行，也不得展示原始 input、answer、prompt 或 provider response
    - application、workspace、route 或 profile 切换时必须中止活动请求并清除易失 input、answer、transcript、一次性 credential 与冲突草稿；不得把这些内容写入 URL、browser storage、cookie 或通用 view model
+
+13. `Application Development Workspace`
+   - 选中 Application 后固定显示 Application Context Header，以及 Configure / Build、Human Promotion、Controlled Test、Run / Evaluation Review、Release Readiness 五阶段；Application 选择仍由上层 Applications 入口承担
+   - 当前只挂载一个 feature-owned stage surface；Application、revision、lifecycle 或阶段变化必须更新 workspace / route generation 与 `surfaceKey`，旧 surface 的迟到回调不得覆盖当前 evidence 或选择
+   - 跨阶段 handoff 只允许当前 Application generation 内的稳定短引用；目标 owner 必须重读精确 draft、candidate、definition、binding、assignment、session、run、request 或 evaluation，不接收来源完整对象，不自动执行保存、审查、activation、assignment、provider 调用或发布
+   - Release Readiness 只读聚合九项 owner contribution 与七个来源组，状态固定为 `review_not_started`、`review_incomplete`、`review_blocked`、`dev_test_evidence_reviewable`；不得提供 production ready、publish ready、持久化 readiness 或发布按钮
+   - active Application 的阶段可操作，archived Application 除 Controlled Test 外保持只读，unavailable Application 全部阻塞；离线来源缺少权威 revision 时必须显示 `incomplete / partial`，不得伪造版本或中断页面
+   - 窄屏按 Context Header、Stage Navigation、当前 Surface、Evidence / Readiness 的顺序单列排列；稳定 URL 只保留阶段 hash，不携带 Application payload、input、answer、token、review reason 或完整资源引用
 
 Control Plane read-side 页面必须继续使用紧凑工作台布局，不做营销首页，不做 hero，不把页面状态写成可执行能力。
 
