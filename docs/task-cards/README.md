@@ -12,7 +12,9 @@
 
 ## 当前活跃任务
 
-当前没有活跃实现任务卡。[应用开发工作区与发布准备审查 v1](../features/user-workspace/application-development-workspace-release-readiness-review-v1.md)批次 A 至 C 已完成并关闭，没有新增 API、schema、repository、执行边界或高风险写入。下一项开发先确认功能设计；只有边界实际变化时才创建唯一的高风险任务卡。
+1. [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1-plan.md)：唯一高风险实施任务卡已经建立，当前进入批次 A 的 strict contract、受限确定性渲染器与 memory Template owner；批次 A 通过前数据库、发布绑定运行实现、provider 调用、Session Prompt profile 和 Web 全链保持关闭。
+
+[应用开发工作区与发布准备审查 v1](../features/user-workspace/application-development-workspace-release-readiness-review-v1.md)批次 A 至 C 已完成并关闭，不再派生同层任务卡。
 
 ## 最近关闭任务
 

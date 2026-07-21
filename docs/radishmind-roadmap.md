@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-07-20
+更新时间：2026-07-21
 
 ## 文档职责
 
@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：工作流审查、Gateway 请求审查、用户工作区应用接入 / 配置 / 发布 / 目录 / API 密钥、Workflow HTTP Tool、RAG 质量 / 晋级 / Application runtime、应用运行观测首批、[Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](features/workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md)、Application Interaction Session 和[应用开发工作区与发布准备审查 v1](features/user-workspace/application-development-workspace-release-readiness-review-v1.md)均已完成。下一长期能力[提示词应用模板版本审查与受控调用（开发 / 测试态）v1](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)已经确认；下一步先建一个高风险实施任务卡，从 strict contract、受限渲染和 memory owner 开始，不并行打开数据库、发布绑定、provider 调用与 Web 全链，也不进入 connector、在线搜索、自动 activation / release、schedule、replay、配额、计费或生产能力。
+1. 产品线：工作流审查、Gateway 请求审查、用户工作区应用接入 / 配置 / 发布 / 目录 / API 密钥、Workflow HTTP Tool、RAG 质量 / 晋级 / Application runtime、应用运行观测首批、[Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](features/workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md)、Application Interaction Session 和[应用开发工作区与发布准备审查 v1](features/user-workspace/application-development-workspace-release-readiness-review-v1.md)均已完成。[提示词应用模板版本审查与受控调用（开发 / 测试态）v1](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)已经进入批次 A；唯一任务卡和 A1 受限模板领域内核已完成，下一步为 A2 strict Template Draft / Version schema、memory owner 与默认关闭 API。批次 A 通过前不并行打开数据库、发布绑定运行实现、provider 调用与 Web 全链，也不进入 connector、在线搜索、自动 activation / release、schedule、replay、配额、计费或生产能力。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；production secret backend、process supervisor、部署环境隔离、console production packaging、生产认证、生产 API key、quota 和 billing 继续为 `not_satisfied`。

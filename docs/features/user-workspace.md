@@ -1,6 +1,6 @@
 # 用户工作区设计与开发文档
 
-更新时间：2026-07-20
+更新时间：2026-07-21
 
 ## 功能定位
 
@@ -17,7 +17,7 @@
 - [应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md) 批次 A 已完成：当前应用可并列审查 Gateway 请求与 Workflow 运行的首分页窗口，分别查看状态、usage availability、受控调用计数、来源覆盖和合并时间线；两类记录不自动关联，当前窗口不冒充全量 usage、成本、配额或计费。
 - [应用交互会话与受控运行编排（开发 / 测试态）v1](user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md) 已完成并关闭：同一应用可显式选择 Workflow Definition v5 或 Application RAG v4 profile 建立 metadata-only session / turn，完成双数据库持久化、易失 transcript、取消、关闭、重启恢复、Run History 交接、真实浏览器和敏感信息扫描；不会从持久 metadata 恢复正文。
 - [应用开发工作区与发布准备审查 v1](user-workspace/application-development-workspace-release-readiness-review-v1.md) 已完成并关闭：唯一 application context、workspace / route generation、五阶段单 surface、route-scoped evidence、精确 Draft / Run handoff、九项 owner contribution、七个来源组和四态 readiness 投影均已进入 Web；真实浏览器已验证 Application 切换、稳定 hash、离线零 owner 请求和零页面控制台告警，缺少权威 revision 时保守显示 `incomplete / partial`。
-- [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md) 正式设计已经确认：它补齐现有 `prompt_application` 的真实能力缺口，固定独立 Template Draft / immutable Version owner、受限确定性渲染、Configuration Draft ref binding、Publish Candidate v3 review、显式 runtime assignment、Application API / Session 单次 Gateway 委托和 metadata-only run lineage；尚未进入实现。
+- [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md) 已进入批次 A：唯一任务卡已冻结 Template Draft / Version、Configuration Draft v3、Publish Candidate v3、authority / Session / Turn v2、run v6、API、scope 和 migration 顺序；A1 受限 parser、确定性 renderer、变量与输出契约校验、预算和敏感材料守卫已经完成，HTTP、repository、migration、provider 与 Web 仍关闭。
 - 工作区首页和工作流定义已支持创建本地工作流草案并进入草案设计器；草案保存复用仅开发的已保存草案消费端，不代表生产持久化已成立。
 - `User Workspace Saved Draft List v1` 已在工作区首页支持仅开发的已保存草案列表：显示当前应用下已保存草案的脱敏摘要、空结果 / 失败状态、刷新和恢复。默认内存、聚合 SQLite 与显式 PostgreSQL 开发测试态存储库均可承载该路径，但不代表生产持久化已成立。
 - 草案设计器已支持本地节点新增、移动、删除保护、属性编辑和边重建；校验检查器、执行计划预览和运行时准入检查器使用当前活跃草案，不代表工作流可正式发布或执行。
@@ -37,7 +37,7 @@
 
 ## 下一批开发方向
 
-1. 下一项产品开发固定为 Prompt Application 专题。先建立一个高风险实施任务卡并按 strict contract / renderer、双数据库持久化、配置与发布绑定、受控调用、Web 连续链五批推进；任务卡冻结前不创建实现资产。
+1. 当前产品开发固定为 Prompt Application 专题。唯一高风险实施任务卡和 A1 领域内核已经完成；下一步推进 A2 strict Template Draft / Version schema、memory owner 与默认关闭 API，A 批通过前不进入双数据库、配置与发布运行绑定、受控调用或 Web 连续链。
 2. Prompt Application 继续复用应用开发工作区的 owner 与 scope 边界，不创建新的应用发布审批状态机、Gateway 算法或聚合运行真相源；模板正文只属于 Template owner，Application Configuration Draft、Publish Candidate、Session 和 Run Store 只保存必要引用或 metadata。
 3. 本地 SQLite、应用目录、API 密钥和 Application Interaction Session 专题均已完成并关闭；不继续扩同层页面、准入文档、检查器或证据链。应用运行观测只有在全分页统计、可信 reported usage 或 quota / billing owner 成立时才评审服务端 summary。
 4. 一次性令牌继续只保存在当前 Web 组件内存；刷新、路由离开、应用 / 身份切换、组件卸载和服务重启都不得恢复原始令牌。

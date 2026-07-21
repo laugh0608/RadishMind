@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-07-20
+更新时间：2026-07-21
 
 ## 文档目的
 
@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-20 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md)开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md)确定性运行时也已完成；真实 Radish 联调已主动延后。[本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md)、[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md)、Workflow HTTP Tool、RAG Retrieval / 应用知识快照、RAG Regression Review、离线知识质量审查、[Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow/workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1.md)、[Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md)、[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)、[应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)首批、[Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md)、[应用交互会话与受控运行编排（开发 / 测试态）v1](user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)，以及[应用开发工作区与发布准备审查 v1](user-workspace/application-development-workspace-release-readiness-review-v1.md)均已关闭。下一长期功能已确认为[提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)；下一步先建立实施任务卡，冻结前不创建 schema、API、repository、execution profile 或 Web 调用链，也不进入生产认证、外部 connector、自动发布、调度、重放、长期记忆、配额或计费。
+2026-07-21 当前执行口径：工作流草案审查闭环、已保存草案 PostgreSQL 开发测试态存储库、R4 Gateway、执行器 v0、持久运行历史、失败审查、运行比较、评测用例、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理，以及“用户工作区应用目录与生命周期（开发/测试态）v1”均已完成。管理端的已验证身份、负向认证、[租户 / 审计 PostgreSQL 只读存储库 v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md)开发测试态运行时，以及 [Radish OIDC 集成测试 v1](admin-control-plane/radish-oidc-integration-test-v1.md)确定性运行时也已完成；真实 Radish 联调已主动延后。[本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md)、[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md)、Workflow HTTP Tool、RAG Retrieval / 应用知识快照、RAG Regression Review、离线知识质量审查、[Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow/workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1.md)、[Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow/workflow-rag-knowledge-baseline-promotion-application-binding-review-v1.md)、[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)、[应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)首批、[Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md)、[应用交互会话与受控运行编排（开发 / 测试态）v1](user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)，以及[应用开发工作区与发布准备审查 v1](user-workspace/application-development-workspace-release-readiness-review-v1.md)均已关闭。[提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)已进入批次 A，唯一任务卡和 A1 领域内核已经完成；下一步为 A2 strict Template Draft / Version schema、memory owner 与默认关闭 API，数据库、配置 / 发布运行绑定、provider、Session Prompt profile 和 Web 继续关闭，也不进入生产认证、外部 connector、自动发布、调度、重放、长期记忆、配额或计费。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -40,7 +40,7 @@
 
 | 功能文档 | 当前作用 | 下一步默认入口 |
 | --- | --- | --- |
-| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；Application Interaction Session 与应用开发工作区均已完成真实浏览器收口，Prompt Application 模板版本、发布绑定和受控调用设计已经确认 | 建立单一实施任务卡并进入 strict contract / renderer 批次 |
+| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；Application Interaction Session 与应用开发工作区均已完成真实浏览器收口，Prompt Application 已进入批次 A | 推进 A2 strict Template Draft / Version schema、memory owner 与默认关闭 API |
 | [管理控制面](admin-control-plane.md) | 租户、权限、模型服务配置、配额、凭据、审计和部署证据 | 进入真实管理端、OIDC 或数据库前先更新 |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
 | [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；HTTP Tool、RAG Retrieval、知识质量 / 晋级链、Application RAG durable invocation 和 immutable definition-bound execution 均已有可复验证据 | 作为应用开发工作区的既有权威能力来源，不从 executor 或 activation 原地扩自动执行、调度、重放或生产能力 |
@@ -59,7 +59,7 @@
 | [应用发布治理与晋级审查 v1](user-workspace/application-publish-governance-promotion-v1.md) | 功能 / 治理专题 | 已完成不可变候选版本、服务端草案重读、审查 CAS、漂移识别、阻塞式晋级资格判断，以及接入区 / 调试台 / 请求历史交接；不执行正式发布 |
 | [应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md) | 功能 / 可观察性专题 | 已完成 Gateway 请求与 Workflow 运行的独立来源覆盖、当前窗口归因摘要和合并时间线；不推测关联或估算 token / cost / quota / billing |
 | [应用交互会话与受控运行编排（开发 / 测试态）v1](user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md) | 功能 / 受控执行专题 | strict contract、三种 repository、v5 / v4 委托、Web 易失交互工作区、双数据库连续链与浏览器重启恢复已完成，专题关闭 |
-| [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md) | 功能 / 源码版本与受控执行专题 | 设计已确认；固定独立 Template owner、受限渲染、ref-only 配置 / 发布绑定、显式 assignment、单次 Gateway 委托和 metadata-only run 边界 |
+| [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md) | 功能 / 源码版本与受控执行专题 | 唯一任务卡与 A1 领域内核已完成；下一步为 A2 strict schema、memory owner 与默认关闭 API |
 | [Admin Control Plane 细专题入口](admin-control-plane/README.md) | 功能专题目录 | 承接 authenticated read、permission binding、repository transition 与后续管理端真实使用路径 |
 | [Admin Control Plane Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) | 功能 / 平台协同专题 | verified identity、tenant / audit PostgreSQL dev/test repository 与 deterministic OIDC boundary 均已完成；真实 Radish 联调 deferred |
 | [Admin Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) | 功能 / 平台协同专题 | schema / migration、manual CLI、read-only role、selector、cursor、真实 PostgreSQL、HTTP/Web 与 browser validation 已完成 |
