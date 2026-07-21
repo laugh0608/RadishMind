@@ -137,6 +137,24 @@ func (server *Server) applicationPublishCandidateService() applicationPublishCan
 	service.validateBinding = func(publishContext ApplicationPublishContext, ref WorkflowRAGApplicationBindingRef) (WorkflowRAGApplicationBinding, string) {
 		return server.workflowRAGPromotionService().resolveEligibleBinding(workflowRAGPromotionContextFromPublish(publishContext), ref, false)
 	}
+	service.readPromptTemplateVersion = func(publishContext ApplicationPublishContext, ref PromptApplicationTemplateRef) (PromptApplicationTemplateVersion, string) {
+		if server.promptApplicationTemplateRepository == nil {
+			return PromptApplicationTemplateVersion{}, PromptApplicationTemplateFailureStoreUnavailable
+		}
+		templateContext := PromptApplicationTemplateContext{
+			RequestContext: publishContext.RequestContext, RequestID: publishContext.RequestID, TenantRef: publishContext.TenantRef,
+			WorkspaceID: publishContext.WorkspaceID, ApplicationID: publishContext.ApplicationID, ActorRef: publishContext.ActorRef,
+			OwnerSubjectRef: publishContext.OwnerSubjectRef, AuditRef: publishContext.AuditRef,
+		}
+		version, err := server.promptApplicationTemplateRepository.ReadVersion(templateContext, ref.TemplateID, ref.TemplateVersion)
+		if err != nil {
+			return PromptApplicationTemplateVersion{}, promptApplicationTemplateRepositoryFailure(err, PromptApplicationTemplateValidation{}).FailureCode
+		}
+		if validateStoredPromptApplicationTemplateVersion(templateContext, version) != nil {
+			return PromptApplicationTemplateVersion{}, PromptApplicationTemplateFailureStoreContract
+		}
+		return version, ""
+	}
 	return service
 }
 
@@ -191,6 +209,7 @@ func applicationPublishContextFromRequest(request *http.Request, trace requestTr
 	requestContext.ActorRef = strings.TrimSpace(auth.SubjectBinding)
 	requestContext.OwnerSubjectRef = requestContext.ActorRef
 	requestContext.RAGPromotionReadEnabled = controlPlaneReadHasScope(auth.ScopeGrants, "workflow_rag_promotions:read")
+	requestContext.PromptTemplateSourceReadEnabled = controlPlaneReadHasScope(auth.ScopeGrants, "prompt_application_templates:read_source")
 	if requestContext.TenantRef == "" || requestContext.WorkspaceID == "" || requestContext.ApplicationID == "" ||
 		strings.TrimSpace(request.Header.Get(applicationPublishDevWorkspaceHeader)) != requestContext.WorkspaceID ||
 		strings.TrimSpace(request.Header.Get(applicationPublishDevApplicationHeader)) != requestContext.ApplicationID {

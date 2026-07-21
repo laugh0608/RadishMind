@@ -762,6 +762,7 @@ func configuredPostgresProductConfig(databaseURL string) config.Config {
 		ApplicationCatalogStoreMode: "postgres_dev_test", ApplicationCatalogDatabaseURL: databaseURL,
 		ApplicationCatalogDatabaseTimeout: time.Second,
 		PromptTemplateDevHTTPEnabled:      true, PromptTemplateDevWriteEnabled: true,
+		PromptApplicationRuntimeDevHTTPEnabled: true, PromptApplicationRuntimeDevWriteEnabled: true,
 		PromptTemplateStoreMode: "postgres_dev_test", PromptTemplateDatabaseURL: databaseURL,
 		PromptTemplateDatabaseTimeout: time.Second,
 		APIKeyLifecycleDevHTTPEnabled: true, APIKeyLifecycleDevWriteEnabled: true,
@@ -798,6 +799,9 @@ func assertConfiguredPostgresRepositorySelection(t *testing.T, server *Server) {
 	}
 	if _, ok := server.promptApplicationTemplateRepository.(*postgresPromptApplicationTemplateRepository); !ok {
 		t.Fatalf("configured prompt application template store did not select PostgreSQL: %T", server.promptApplicationTemplateRepository)
+	}
+	if runtimeStore, ok := server.promptApplicationRuntimeRepository.(*postgresPromptApplicationRuntimeRepository); !ok || runtimeStore.pool != server.workflowRunStore.(*postgresWorkflowRunStore).pool {
+		t.Fatalf("configured Prompt application runtime did not share the PostgreSQL pool: %T", server.promptApplicationRuntimeRepository)
 	}
 	if _, ok := server.apiKeyRepository.(*postgresAPIKeyRepository); !ok {
 		t.Fatalf("configured API key store did not select PostgreSQL: %T", server.apiKeyRepository)

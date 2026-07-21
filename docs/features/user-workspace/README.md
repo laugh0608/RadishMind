@@ -19,7 +19,7 @@
 
 ## 下一步
 
-- 批次 B 已完成：Template owner 独立 SQLite / PostgreSQL `0001`、shared Workflow runtime SQLite `0013` / PostgreSQL `0016`、双数据库 repository、聚合 SQLite runtime 和真实 PostgreSQL 门禁均已通过；下一步进入批次 C 运行绑定。
+- 批次 C 已完成：Configuration Draft v3、Publish Candidate v3 与 Prompt Runtime Assignment 已接入 memory / SQLite / PostgreSQL 统一语义，真实 PostgreSQL 门禁已通过；下一步进入批次 D 受控调用、Session、Run 与 Evaluation。
 - 不继续扩“应用开发工作区与发布准备审查 v1”的同层切片；Prompt Application 复用现有 workspace context、发布审查、Gateway、Session、Run History 和 Evaluation，不另建聚合发布真相源或执行算法。
 - 不从已关闭的 Application Interaction Session 派生长期记忆、自动 profile、重试 / fallback、schedule、replay / resume 或 agent loop。只有需要跨全部分页窗口的稳定统计、可信 reported usage 或正式 quota / billing owner 时，才评审服务端 summary。
 

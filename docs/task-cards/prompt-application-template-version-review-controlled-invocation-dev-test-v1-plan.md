@@ -2,7 +2,7 @@
 
 更新时间：2026-07-21
 
-状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_b_completed_batch_c_ready`
+状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_c_completed_batch_d_ready`
 
 ## 目标与准入结论
 
@@ -10,7 +10,7 @@
 
 本任务卡是该专题唯一实施入口。Template owner、配置绑定、发布候选、运行时 assignment、Gateway、Session、Run 与 Evaluation 保持独立职责；模板正文不得复制到配置、候选、assignment、Session、Run、Gateway Request History 或 Operations。
 
-准入结论：功能设计、批次 A 与批次 B 均已完成；SQLite 真实文件证据和显式 PostgreSQL 开发测试环境的角色 / migration / repository 门禁已通过。批次 C 现可进入配置、发布审查与 runtime assignment；provider 调用、Session Prompt profile 和 Web 全链继续关闭。
+准入结论：功能设计、批次 A、批次 B 与批次 C 均已完成；SQLite 真实文件证据和显式 PostgreSQL 开发测试环境的角色 / migration / repository 门禁已通过。批次 D 现可进入受控调用、Session、Run 与 Evaluation；Web 全链继续关闭。
 
 ## 实现基线与现有兼容边界
 
@@ -205,15 +205,22 @@ assignment 权限固定为 `prompt_application_runtime:read` 与 `prompt_applica
 
 ## 批次 C：配置、发布审查与 runtime assignment
 
-状态：`blocked_by_batch_b`。
+状态：`completed`。
 
 - 实现 Configuration Draft v3 ref-only binding、Publish Candidate v3 exact reload 与既有 review 状态机组合。
 - 实现 assignment activate / replace / revoke、事件 CAS、read-time eligibility 与 drift / supersede 失败关闭。
 - Candidate approve 不自动创建、替换或恢复 assignment。
 
+实现记录：
+
+- Configuration Draft owner 已启用 v3 strict payload 和独立 ref-only binding 路由；服务端从精确 Template Version 生成 digest，并以既有草案 expected-version CAS 写入下一版本，拒绝跨作用域、错误 application kind、RAG / Prompt 双 binding 和客户端伪造 digest。
+- Publish Candidate owner 已启用 v3，并继续复用既有 create / read / list / review 状态机；创建、批准和 read-time eligibility 都重读精确 Template Version，源码读取权限与 review 权限保持分离，漂移和 supersede 失败关闭。
+- Prompt Application Runtime Assignment 已建立 memory / SQLite / PostgreSQL 统一语义，支持 `activate | replace | revoke`、expected-version CAS、只追加事件和读取时 exact authority 重验；批准候选不会自动创建 assignment，已吊销 assignment 不允许原地恢复。
+- 默认关闭的 HTTP / write capability、独立 `prompt_application_runtime:read | write` 权限和聚合 store 选择已接入；SQLite 重启 / CAS、真实 PostgreSQL migration / repository / configured startup、完整 HTTP API 与 Go vet 已通过。
+
 ## 批次 D：受控调用、Session、Run 与 Evaluation
 
-状态：`blocked_by_batch_c`。
+状态：`ready`。
 
 - 实现 `prompt_application_invocation_v1` 唯一 invocation service 与 provider 前 exact authority checkpoint。
 - API key 与 v2 Session 只委托同一 service；每次成功 invocation 恰好一次计划内 Gateway 调用。

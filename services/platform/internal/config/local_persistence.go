@@ -12,6 +12,12 @@ func ValidateServerStart(cfg Config) error {
 	if cfg.PromptTemplateDevWriteEnabled && !cfg.PromptTemplateDevHTTPEnabled {
 		return errors.New("prompt application template dev write requires its HTTP gate")
 	}
+	if cfg.PromptApplicationRuntimeDevHTTPEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationDraftDevHTTPEnabled || !cfg.ApplicationPublishDevHTTPEnabled || !cfg.PromptTemplateDevHTTPEnabled) {
+		return errors.New("prompt application runtime dev HTTP requires auth, draft, publish, and template HTTP gates")
+	}
+	if cfg.PromptApplicationRuntimeDevWriteEnabled && !cfg.PromptApplicationRuntimeDevHTTPEnabled {
+		return errors.New("prompt application runtime dev write requires its HTTP gate")
+	}
 	if cfg.WorkflowDefinitionReleaseDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled || !cfg.WorkflowSavedDraftDevWriteEnabled) {
 		return errors.New("workflow definition release dev requires control plane auth and saved workflow draft HTTP/write gates")
 	}

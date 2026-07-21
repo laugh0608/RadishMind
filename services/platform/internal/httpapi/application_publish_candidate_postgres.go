@@ -144,9 +144,11 @@ func scanApplicationPublishCandidate(row applicationPublishCandidateRow) (Applic
 	var candidate ApplicationPublishCandidate
 	if err := json.Unmarshal(payload, &candidate); err != nil || strings.TrimSpace(candidate.CandidateID) == "" ||
 		!applicationPublishCandidateSchemaSupported(candidate.SchemaVersion) || candidate.DraftVersion < 1 || candidate.ReviewVersion < 0 ||
-		(candidate.SchemaVersion == applicationPublishCandidateSchemaVersionV1 && candidate.Configuration.WorkflowRAGBindingRef != nil) ||
-		(candidate.SchemaVersion == applicationPublishCandidateSchemaVersionV2 && candidate.Configuration.WorkflowRAGBindingRef == nil) ||
-		(candidate.Configuration.WorkflowRAGBindingRef != nil && !validWorkflowRAGApplicationBindingRef(*candidate.Configuration.WorkflowRAGBindingRef)) {
+		(candidate.SchemaVersion == applicationPublishCandidateSchemaVersionV1 && (candidate.Configuration.WorkflowRAGBindingRef != nil || candidate.Configuration.PromptTemplateRef != nil)) ||
+		(candidate.SchemaVersion == applicationPublishCandidateSchemaVersionV2 && (candidate.Configuration.WorkflowRAGBindingRef == nil || candidate.Configuration.PromptTemplateRef != nil)) ||
+		(candidate.SchemaVersion == applicationPublishCandidateSchemaVersionV3 && (candidate.Configuration.WorkflowRAGBindingRef != nil || candidate.Configuration.PromptTemplateRef == nil || candidate.Configuration.ApplicationKind != "prompt_application")) ||
+		(candidate.Configuration.WorkflowRAGBindingRef != nil && !validWorkflowRAGApplicationBindingRef(*candidate.Configuration.WorkflowRAGBindingRef)) ||
+		(candidate.Configuration.PromptTemplateRef != nil && !validPromptApplicationTemplateRef(*candidate.Configuration.PromptTemplateRef)) {
 		return ApplicationPublishCandidate{}, errors.New("stored application publish candidate contract mismatch")
 	}
 	digest, err := applicationConfigurationCanonicalDigest(candidate.Configuration)
@@ -163,7 +165,7 @@ func scanApplicationPublishCandidate(row applicationPublishCandidateRow) (Applic
 }
 
 func applicationPublishCandidateSchemaSupported(schemaVersion string) bool {
-	return schemaVersion == applicationPublishCandidateSchemaVersionV1 || schemaVersion == applicationPublishCandidateSchemaVersionV2
+	return schemaVersion == applicationPublishCandidateSchemaVersionV1 || schemaVersion == applicationPublishCandidateSchemaVersionV2 || schemaVersion == applicationPublishCandidateSchemaVersionV3
 }
 
 func applicationPublishDatabaseContext(requestContext ApplicationPublishContext) context.Context {

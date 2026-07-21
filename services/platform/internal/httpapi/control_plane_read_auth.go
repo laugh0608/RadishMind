@@ -58,6 +58,8 @@ var promptApplicationTemplatePermissionGrants = map[string]string{
 	"radishmind.prompt-application-templates.write":       "prompt_application_templates:write",
 	"radishmind.prompt-application-templates.version":     "prompt_application_templates:version",
 	"radishmind.prompt-application-templates.bind":        "prompt_application_templates:bind",
+	"radishmind.prompt-application-runtime.read":          "prompt_application_runtime:read",
+	"radishmind.prompt-application-runtime.write":         "prompt_application_runtime:write",
 }
 
 var controlPlaneReadAuthReferencePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$`)

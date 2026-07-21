@@ -94,14 +94,17 @@ func TestPromptApplicationVNextContractsRemainMetadataOnly(t *testing.T) {
 	}
 }
 
-func TestPromptApplicationVNextContractsDoNotActivateExistingOwners(t *testing.T) {
+func TestPromptApplicationBatchCActivatesConfigurationAndPublishOwnersOnly(t *testing.T) {
 	for _, schemaVersion := range []string{applicationConfigurationDraftSchemaVersionV1, applicationConfigurationDraftSchemaVersionV2} {
 		if !applicationConfigurationDraftSchemaSupported(schemaVersion) {
 			t.Fatalf("existing configuration schema %s lost compatibility", schemaVersion)
 		}
 	}
-	if applicationConfigurationDraftSchemaSupported(promptApplicationConfigurationDraftV3Schema) {
-		t.Fatal("A3 contract must not activate v3 in the configuration owner")
+	if !applicationConfigurationDraftSchemaSupported(promptApplicationConfigurationDraftV3Schema) {
+		t.Fatal("Batch C must activate v3 in the configuration owner")
+	}
+	if !applicationPublishCandidateSchemaSupported(promptApplicationPublishCandidateV3Schema) {
+		t.Fatal("Batch C must activate v3 in the existing publish candidate owner")
 	}
 	for _, schemaVersion := range []string{workflowRunRecordLegacySchemaVersion, workflowRunRecordSchemaVersion, workflowRunRecordToolSchemaVersion, workflowRunRecordRAGSchemaVersion, workflowRunRecordAppRAGSchemaVersion, workflowRunRecordDefinitionSchemaVersion} {
 		if !validWorkflowRunRecordSchema(schemaVersion) {
@@ -109,7 +112,7 @@ func TestPromptApplicationVNextContractsDoNotActivateExistingOwners(t *testing.T
 		}
 	}
 	if validWorkflowRunRecordSchema(promptApplicationRunV6Schema) {
-		t.Fatal("A3 contract must not activate v6 in the run owner")
+		t.Fatal("Batch C must not activate v6 in the run owner before controlled invocation")
 	}
 }
 

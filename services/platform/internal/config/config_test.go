@@ -177,6 +177,46 @@ func TestPromptApplicationTemplateDevGatesRemainExplicitAndIndependent(t *testin
 	}
 }
 
+func TestPromptApplicationRuntimeDevGatesRequireCompleteAuthorityChain(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.PromptApplicationRuntimeDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "requires auth, draft, publish, and template HTTP gates") {
+		t.Fatalf("Prompt runtime HTTP accepted an incomplete authority chain: %v", err)
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	cfg.ApplicationDraftDevHTTPEnabled = true
+	cfg.ApplicationPublishDevHTTPEnabled = true
+	cfg.PromptTemplateDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("complete Prompt runtime read gates rejected: %v", err)
+	}
+	cfg.PromptApplicationRuntimeDevHTTPEnabled = false
+	cfg.PromptApplicationRuntimeDevWriteEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "dev write requires its HTTP gate") {
+		t.Fatalf("Prompt runtime write accepted a missing HTTP gate: %v", err)
+	}
+	cfg.PromptApplicationRuntimeDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("complete Prompt runtime write gates rejected: %v", err)
+	}
+
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_APPLICATION_DRAFT_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_WRITE", "true")
+	loaded, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load Prompt runtime gates: %v", err)
+	}
+	if !loaded.PromptApplicationRuntimeDevHTTPEnabled || !loaded.PromptApplicationRuntimeDevWriteEnabled ||
+		!loaded.SanitizedSummary().PromptApplicationRuntimeDevHTTPEnabled || !loaded.SanitizedSummary().PromptApplicationRuntimeDevWriteEnabled {
+		t.Fatalf("Prompt runtime gate summary is incomplete: %#v", loaded.SanitizedSummary())
+	}
+}
+
 func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	clearPlatformEnv(t)
 	configPath := filepath.Join(t.TempDir(), "platform-config.json")
@@ -1398,6 +1438,8 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DATABASE_TIMEOUT",
+		"RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_HTTP",
+		"RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_WRITE",
 		"RADISHMIND_APPLICATION_DRAFT_STORE",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",

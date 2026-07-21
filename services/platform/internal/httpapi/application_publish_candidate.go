@@ -15,6 +15,7 @@ import (
 const (
 	applicationPublishCandidateSchemaVersionV1 = "application_publish_candidate.v1"
 	applicationPublishCandidateSchemaVersionV2 = "application_publish_candidate.v2"
+	applicationPublishCandidateSchemaVersionV3 = "application_publish_candidate.v3"
 	applicationPublishCandidateSchemaVersion   = applicationPublishCandidateSchemaVersionV1
 )
 
@@ -74,16 +75,17 @@ func (err applicationPublishReviewConflictError) Is(target error) bool {
 }
 
 type ApplicationPublishContext struct {
-	RequestContext          context.Context
-	RequestID               string
-	TenantRef               string
-	WorkspaceID             string
-	ApplicationID           string
-	ActorRef                string
-	OwnerSubjectRef         string
-	AuditRef                string
-	WriteEnabled            bool
-	RAGPromotionReadEnabled bool
+	RequestContext                  context.Context
+	RequestID                       string
+	TenantRef                       string
+	WorkspaceID                     string
+	ApplicationID                   string
+	ActorRef                        string
+	OwnerSubjectRef                 string
+	AuditRef                        string
+	WriteEnabled                    bool
+	RAGPromotionReadEnabled         bool
+	PromptTemplateSourceReadEnabled bool
 }
 
 type ApplicationPublishConfigurationSnapshot struct {
@@ -94,6 +96,7 @@ type ApplicationPublishConfigurationSnapshot struct {
 	DefaultModel          string                            `json:"default_model"`
 	AllowedProtocols      []string                          `json:"allowed_protocols"`
 	WorkflowRAGBindingRef *WorkflowRAGApplicationBindingRef `json:"workflow_rag_binding_ref,omitempty"`
+	PromptTemplateRef     *PromptApplicationTemplateRef     `json:"prompt_template_ref,omitempty"`
 }
 
 type ApplicationPublishReviewRecord struct {
@@ -152,6 +155,7 @@ type ApplicationPublishCandidateSummary struct {
 	PromotionStatus       string                            `json:"promotion_status"`
 	PromotionBlockers     int                               `json:"promotion_blockers"`
 	WorkflowRAGBindingRef *WorkflowRAGApplicationBindingRef `json:"workflow_rag_binding_ref,omitempty"`
+	PromptTemplateRef     *PromptApplicationTemplateRef     `json:"prompt_template_ref,omitempty"`
 	CreatedAt             string                            `json:"created_at"`
 	UpdatedAt             string                            `json:"updated_at"`
 	UpdatedByActorRef     string                            `json:"updated_by_actor_ref"`
@@ -194,11 +198,12 @@ type memoryApplicationPublishCandidateRepository struct {
 type applicationPublishBaselineReader func(ApplicationPublishContext) (ApplicationSummary, error)
 
 type applicationPublishCandidateService struct {
-	draftRepository     applicationConfigurationDraftRepository
-	candidateRepository applicationPublishCandidateRepository
-	readBaseline        applicationPublishBaselineReader
-	validateBinding     func(ApplicationPublishContext, WorkflowRAGApplicationBindingRef) (WorkflowRAGApplicationBinding, string)
-	now                 func() time.Time
+	draftRepository           applicationConfigurationDraftRepository
+	candidateRepository       applicationPublishCandidateRepository
+	readBaseline              applicationPublishBaselineReader
+	validateBinding           func(ApplicationPublishContext, WorkflowRAGApplicationBindingRef) (WorkflowRAGApplicationBinding, string)
+	readPromptTemplateVersion func(ApplicationPublishContext, PromptApplicationTemplateRef) (PromptApplicationTemplateVersion, string)
+	now                       func() time.Time
 }
 
 func newMemoryApplicationPublishCandidateRepository() *memoryApplicationPublishCandidateRepository {
@@ -267,10 +272,20 @@ func (service applicationPublishCandidateService) Create(requestContext Applicat
 			return ApplicationPublishResult{FailureCode: applicationPublishBindingMutationFailure(failureCode)}
 		}
 	}
+	if snapshot.PromptTemplateRef != nil {
+		if !requestContext.PromptTemplateSourceReadEnabled {
+			return ApplicationPublishResult{FailureCode: ApplicationPublishFailureScopeDenied}
+		}
+		if _, failureCode := service.resolvePromptTemplate(requestContext, *snapshot.PromptTemplateRef); failureCode != "" {
+			return ApplicationPublishResult{FailureCode: applicationPublishPromptTemplateFailure(failureCode)}
+		}
+	}
 	now := service.now().Format(time.RFC3339Nano)
 	schemaVersion := applicationPublishCandidateSchemaVersionV1
 	if snapshot.WorkflowRAGBindingRef != nil {
 		schemaVersion = applicationPublishCandidateSchemaVersionV2
+	} else if snapshot.PromptTemplateRef != nil {
+		schemaVersion = applicationPublishCandidateSchemaVersionV3
 	}
 	candidate := ApplicationPublishCandidate{
 		SchemaVersion: schemaVersion, CandidateID: input.CandidateID,
@@ -398,6 +413,13 @@ func (service applicationPublishCandidateService) decorateFromCandidates(request
 			blockers = append(blockers, applicationPublishBindingBlocker(failureCode))
 		}
 	}
+	if candidate.Configuration.PromptTemplateRef != nil {
+		if !requestContext.PromptTemplateSourceReadEnabled {
+			blockers = append(blockers, ApplicationPromotionBlocker{Code: ApplicationPublishFailureScopeDenied, Summary: "Prompt template source review permission is required."})
+		} else if _, failureCode := service.resolvePromptTemplate(requestContext, *candidate.Configuration.PromptTemplateRef); failureCode != "" {
+			blockers = append(blockers, applicationPublishPromptTemplateBlocker(failureCode))
+		}
+	}
 	if applicationPublishCandidateIsSuperseded(candidate, candidates) {
 		blockers = append(blockers, ApplicationPromotionBlocker{Code: "publish_candidate_superseded", Summary: "A newer candidate exists for the bound draft."})
 	}
@@ -474,6 +496,9 @@ func (service applicationPublishCandidateService) validateApproval(requestContex
 	if !workflowRAGPromotionBindingRefsEqual(draft.WorkflowRAGBindingRef, candidate.Configuration.WorkflowRAGBindingRef) {
 		return ApplicationPublishFailureBindingNotEligible
 	}
+	if !promptApplicationTemplateRefsEqual(draft.PromptTemplateRef, candidate.Configuration.PromptTemplateRef) {
+		return ApplicationDraftFailureTemplateBinding
+	}
 	if candidate.Configuration.WorkflowRAGBindingRef != nil {
 		if !requestContext.RAGPromotionReadEnabled {
 			return ApplicationPublishFailureScopeDenied
@@ -482,7 +507,50 @@ func (service applicationPublishCandidateService) validateApproval(requestContex
 			return applicationPublishBindingMutationFailure(failureCode)
 		}
 	}
+	if candidate.Configuration.PromptTemplateRef != nil {
+		if !requestContext.PromptTemplateSourceReadEnabled {
+			return ApplicationPublishFailureScopeDenied
+		}
+		if _, failureCode := service.resolvePromptTemplate(requestContext, *candidate.Configuration.PromptTemplateRef); failureCode != "" {
+			return applicationPublishPromptTemplateFailure(failureCode)
+		}
+	}
 	return ""
+}
+
+func (service applicationPublishCandidateService) resolvePromptTemplate(requestContext ApplicationPublishContext, ref PromptApplicationTemplateRef) (PromptApplicationTemplateVersion, string) {
+	if service.readPromptTemplateVersion == nil {
+		return PromptApplicationTemplateVersion{}, PromptApplicationTemplateFailureStoreUnavailable
+	}
+	version, failureCode := service.readPromptTemplateVersion(requestContext, ref)
+	if failureCode != "" {
+		return PromptApplicationTemplateVersion{}, failureCode
+	}
+	if version.TemplateID != ref.TemplateID || version.TemplateVersion != ref.TemplateVersion || version.TemplateDigest != ref.TemplateDigest ||
+		version.ApplicationID != requestContext.ApplicationID || version.WorkspaceID != requestContext.WorkspaceID || version.OwnerSubjectRef != requestContext.OwnerSubjectRef {
+		return PromptApplicationTemplateVersion{}, ApplicationDraftFailureTemplateBinding
+	}
+	return version, ""
+}
+
+func applicationPublishPromptTemplateFailure(failureCode string) string {
+	switch failureCode {
+	case PromptApplicationTemplateFailureStoreUnavailable, PromptApplicationTemplateFailureStoreContract:
+		return ApplicationPublishFailureStoreUnavailable
+	case PromptApplicationTemplateFailureScopeDenied:
+		return ApplicationPublishFailureScopeDenied
+	default:
+		return ApplicationDraftFailureTemplateBinding
+	}
+}
+
+func applicationPublishPromptTemplateBlocker(failureCode string) ApplicationPromotionBlocker {
+	summary := "Prompt template version is no longer eligible."
+	code := applicationPublishPromptTemplateFailure(failureCode)
+	if code == ApplicationPublishFailureStoreUnavailable {
+		summary = "Prompt template authority is unavailable."
+	}
+	return ApplicationPromotionBlocker{Code: code, Summary: summary}
 }
 
 func applicationPublishBindingMutationFailure(failureCode string) string {
@@ -510,6 +578,7 @@ func applicationPublishSnapshotFromDraft(draft ApplicationConfigurationDraft) Ap
 		ApplicationKind: strings.TrimSpace(draft.ApplicationKind), DefaultProtocol: strings.TrimSpace(draft.DefaultProtocol),
 		DefaultModel: strings.TrimSpace(draft.DefaultModel), AllowedProtocols: normalizeApplicationDraftProtocols(draft.AllowedProtocols),
 		WorkflowRAGBindingRef: cloneWorkflowRAGApplicationBindingRef(draft.WorkflowRAGBindingRef),
+		PromptTemplateRef:     clonePromptApplicationTemplateRef(draft.PromptTemplateRef),
 	}
 }
 
@@ -685,6 +754,7 @@ func applicationPublishCandidateSummary(candidate ApplicationPublishCandidate) A
 		PromotionBlockers: len(candidate.PromotionEligibility.Blockers), CreatedAt: candidate.CreatedAt,
 		UpdatedAt: candidate.UpdatedAt, UpdatedByActorRef: candidate.UpdatedByActorRef,
 		WorkflowRAGBindingRef: cloneWorkflowRAGApplicationBindingRef(candidate.Configuration.WorkflowRAGBindingRef),
+		PromptTemplateRef:     clonePromptApplicationTemplateRef(candidate.Configuration.PromptTemplateRef),
 	}
 }
 
@@ -700,6 +770,7 @@ func sortApplicationPublishCandidates(candidates []ApplicationPublishCandidate) 
 func cloneApplicationPublishCandidate(candidate ApplicationPublishCandidate) ApplicationPublishCandidate {
 	candidate.Configuration.AllowedProtocols = append([]string(nil), candidate.Configuration.AllowedProtocols...)
 	candidate.Configuration.WorkflowRAGBindingRef = cloneWorkflowRAGApplicationBindingRef(candidate.Configuration.WorkflowRAGBindingRef)
+	candidate.Configuration.PromptTemplateRef = clonePromptApplicationTemplateRef(candidate.Configuration.PromptTemplateRef)
 	candidate.EvidenceRequestIDs = append([]string(nil), candidate.EvidenceRequestIDs...)
 	candidate.Reviews = append([]ApplicationPublishReviewRecord(nil), candidate.Reviews...)
 	candidate.PromotionEligibility.Blockers = append([]ApplicationPromotionBlocker(nil), candidate.PromotionEligibility.Blockers...)

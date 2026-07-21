@@ -162,13 +162,16 @@ func scanApplicationConfigurationDraft(row applicationConfigurationDraftRow) (Ap
 	}
 	var draft ApplicationConfigurationDraft
 	if err := json.Unmarshal(payload, &draft); err != nil || strings.TrimSpace(draft.DraftID) == "" || draft.DraftVersion < 1 || !applicationConfigurationDraftSchemaSupported(draft.SchemaVersion) ||
-		(draft.SchemaVersion == applicationConfigurationDraftSchemaVersionV1 && draft.WorkflowRAGBindingRef != nil) ||
-		(draft.WorkflowRAGBindingRef != nil && !validWorkflowRAGApplicationBindingRef(*draft.WorkflowRAGBindingRef)) {
+		(draft.SchemaVersion == applicationConfigurationDraftSchemaVersionV1 && (draft.WorkflowRAGBindingRef != nil || draft.PromptTemplateRef != nil)) ||
+		(draft.SchemaVersion == applicationConfigurationDraftSchemaVersionV2 && draft.PromptTemplateRef != nil) ||
+		(draft.SchemaVersion == applicationConfigurationDraftSchemaVersionV3 && (draft.ApplicationKind != "prompt_application" || draft.WorkflowRAGBindingRef != nil || draft.PromptTemplateRef == nil)) ||
+		(draft.WorkflowRAGBindingRef != nil && !validWorkflowRAGApplicationBindingRef(*draft.WorkflowRAGBindingRef)) ||
+		(draft.PromptTemplateRef != nil && !validPromptApplicationTemplateRef(*draft.PromptTemplateRef)) {
 		return ApplicationConfigurationDraft{}, errors.New("stored application draft contract mismatch")
 	}
 	draft.ApplicationConfigurationDraftPayload = normalizeApplicationConfigurationDraftPayload(draft.ApplicationConfigurationDraftPayload)
 	digest, err := applicationConfigurationCanonicalDigest(applicationPublishSnapshotFromDraft(draft))
-	if err != nil || draft.DraftDigest != "" && draft.DraftDigest != digest || draft.SchemaVersion == applicationConfigurationDraftSchemaVersionV2 && draft.DraftDigest == "" {
+	if err != nil || draft.DraftDigest != "" && draft.DraftDigest != digest || draft.SchemaVersion != applicationConfigurationDraftSchemaVersionV1 && draft.DraftDigest == "" {
 		return ApplicationConfigurationDraft{}, errors.New("stored application draft contract mismatch")
 	}
 	draft.DraftDigest = digest
