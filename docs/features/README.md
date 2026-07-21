@@ -40,7 +40,7 @@
 
 | 功能文档 | 当前作用 | 下一步默认入口 |
 | --- | --- | --- |
-| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；Application Interaction Session 与应用开发工作区均已完成真实浏览器收口，Prompt Application 批次 B 已实现 | 执行批次 B 真实 PostgreSQL 门禁 |
+| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；Application Interaction Session 与应用开发工作区均已完成真实浏览器收口，Prompt Application 批次 C 已完成 | 进入批次 D 的受控调用、Session、Run 与 Evaluation |
 | [管理控制面](admin-control-plane.md) | 租户、权限、模型服务配置、配额、凭据、审计和部署证据 | 进入真实管理端、OIDC 或数据库前先更新 |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
 | [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；HTTP Tool、RAG Retrieval、知识质量 / 晋级链、Application RAG durable invocation 和 immutable definition-bound execution 均已有可复验证据 | 作为应用开发工作区的既有权威能力来源，不从 executor 或 activation 原地扩自动执行、调度、重放或生产能力 |
@@ -50,7 +50,7 @@
 
 | 专题 | 类型 | 当前用途 |
 | --- | --- | --- |
-| [本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md) | 平台 / 本地持久化专题 | 七组件 repository、聚合 runtime、跨平台启动档、SQLite 连续链和 PostgreSQL 专项门禁已完成 |
+| [本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md) | 平台 / 本地持久化专题 | 八组件 repository、聚合 runtime、跨平台启动档、SQLite 连续链和 PostgreSQL 专项门禁已完成 |
 | [用户工作区细专题入口](user-workspace/README.md) | 功能专题目录 | 承接应用、模型发现、API 接入、调用与审查的连续用户路径 |
 | [API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) | 功能 / 认证专题 | 双数据库、Web 一次性交接、浏览器连续验收、敏感信息扫描和重启恢复已完成，专题关闭 |
 | [应用目录与生命周期（开发/测试态）v1](user-workspace/application-catalog-lifecycle-dev-test-v1.md) | 功能 / 生命周期专题 | 核心生命周期、PostgreSQL 持久化、Web 管理和真实浏览器连续验收已完成 |

@@ -6,7 +6,7 @@
 
 ## 当前专题
 
-- [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)：批次 A 与批次 B 已完成，受限模板内核、strict schema、双数据库 owner、shared Workflow 未来投影及真实 PostgreSQL 门禁均已通过；下一步进入配置、发布审查与 runtime assignment，模板源码继续只属于独立 owner。
+- [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)：批次 A 至批次 C 已完成，受限模板内核、双数据库 Template owner、Configuration Draft v3、Publish Candidate v3、三态 Runtime Assignment 及真实 PostgreSQL 门禁均已通过；下一步进入批次 D，模板源码继续只属于独立 owner。
 - [应用开发工作区与发布准备审查 v1](application-development-workspace-release-readiness-review-v1.md)：批次 A 至 C 已完成并关闭；route-scoped evidence、精确 Draft / Run owner 重读、离线 revision 失败关闭、真实浏览器连续路径与 URL / console / network 隐私审计均有可复验证据。
 - [应用受控运行开发测试态指南](application-controlled-runtime-dev-test-guide.md)：说明 Application RAG、Workflow Definition、Application Interaction Session、v4 / v5 运行记录与 Application Operations 的启动、资源准备、作用域、恢复、失败语义和隐私边界。
 - [应用交互会话与受控运行编排（开发 / 测试态）v1](application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)：strict contract、三种 Session / Turn owner、exact authority reload、v5 / v4 单次委托、Web 易失交互工作区、双数据库 launcher 连续链、重启恢复、真实浏览器和敏感扫描均已完成，专题关闭。

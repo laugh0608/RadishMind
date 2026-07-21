@@ -38,6 +38,8 @@ S3 本地产品档已完成：Shell / PowerShell wrapper 默认使用 `local-pro
 
 2026-07-21 Prompt Application 批次 B 沿用同一聚合边界加入第八个组件 `prompt_application_templates`：本地产品档将其投影为 `sqlite_dev`，共享 runtime 应用独立 `0001` migration 并注入 Template repository。模板源码只进入该 owner；运行变量、渲染消息、输出和 provider raw response 仍不得进入 SQLite。原七组件 S1–S3 的历史完成事实不改写，新增组件已补齐 marker / checksum、重启、CAS、corruption、no-fallback 与敏感材料扫描。
 
+Prompt Application 批次 C 的 Runtime Assignment 不新增第九个数据库组件、DSN 或连接池，而是启用批次 B 已在共享 Workflow Run Store 中物化的 assignment / event 投影。Configuration Draft v3 与 Publish Candidate v3 继续使用各自既有 JSON payload owner；本地产品档仍由同一个聚合 SQLite runtime 统一迁移、注入和关闭。
+
 Driver 评审证据以 [`modernc.org/sqlite` 官方 package 页面](https://pkg.go.dev/modernc.org/sqlite)、[`v1.53.0` 模块声明](https://gitlab.com/cznic/sqlite/-/raw/v1.53.0/go.mod)和[许可证原文](https://gitlab.com/cznic/sqlite/-/raw/v1.53.0/LICENSE)为准。`github.com/mattn/go-sqlite3` 因明确要求 CGO 与 GCC，且 Windows / 交叉编译需要额外工具链，本阶段不采用；该结论只服务当前本地开发 runtime，不构成永久排除其它 driver 的平台政策。
 
 具体实现统一由[本地 SQLite 开发持久化 v1 实施任务卡](../task-cards/local-sqlite-dev-persistence-v1-plan.md)承接，不再为 driver、单个 repository 或 migration 派生同层任务卡与检查器。

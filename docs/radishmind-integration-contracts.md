@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约
 
-更新时间：2026-07-19
+更新时间：2026-07-21
 
 ## 文档目的
 
@@ -40,6 +40,16 @@
 - `contracts/workflow-definition-activation-event.schema.json`
 - `contracts/workflow-definition-release-audit.schema.json`
 - `contracts/workflow-run-record-v5.schema.json`
+- `contracts/prompt-application-template-draft.schema.json`
+- `contracts/prompt-application-template-version.schema.json`
+- `contracts/application-configuration-draft-v3.schema.json`
+- `contracts/application-publish-candidate-v3.schema.json`
+- `contracts/prompt-application-runtime-assignment.schema.json`
+- `contracts/prompt-application-runtime-assignment-event.schema.json`
+- `contracts/application-runtime-authority-v2.schema.json`
+- `contracts/application-session-v2.schema.json`
+- `contracts/application-session-turn-v2.schema.json`
+- `contracts/workflow-run-record-v6.schema.json`
 
 ## 当前协议原则
 
@@ -51,7 +61,7 @@
 - 上层项目只消费建议、解释、候选动作和审计信息，最终业务真相源仍由上层维护。
 - 用户端、管理端、模型网关和 workflow runtime 都必须复用同一套 canonical contract，不为每个产品面另起一套私有协议。
 - 管理身份与模型调用凭证必须分层：Application Catalog 与 API Key Lifecycle 使用受验证的 control-plane identity、workspace binding 和管理作用域；五条模型网关 northbound route 可在显式 `api_key_dev_test` 下使用 Bearer 密钥，并仅从密钥记录恢复租户、工作区、应用、所有者和调用作用域。管理 API 不接受 RadishMind API 密钥，Gateway API key 模式不接受开发身份头覆盖，所有失败都必须在 bridge / provider 前结束。
-- RadishMind 自有开发测试数据使用统一三层持久化契约：`memory_dev` 负责快速进程内测试，聚合 `sqlite_dev` 负责单一应用作用域的本地连续开发，显式 `postgres_dev_test` 负责 migration、角色、方言和并发同构验证。应用目录、配置草案、发布候选、API 密钥、Gateway 请求历史、工作流草案和工作流运行在三种实现中保持相同作用域、版本保护、稳定分页、敏感材料禁入与 no-fallback；SQLite 只通过聚合模式启用，PostgreSQL migration / runtime 角色必须隔离。本文后续历史段落中关于这些七组数据“仍无数据库、repository 或 durable persistence”的旧阶段描述不再代表当前实现；production repository、Radish 身份 / membership、生产密钥、配额和计费停止线仍然有效。
+- RadishMind 自有开发测试数据使用统一三层持久化契约：`memory_dev` 负责快速进程内测试，聚合 `sqlite_dev` 负责单一应用作用域的本地连续开发，显式 `postgres_dev_test` 负责 migration、角色、方言和并发同构验证。应用目录、配置草案、发布候选、API 密钥、Gateway 请求历史、工作流草案、工作流运行和 Prompt Template owner 在三种实现中保持相同作用域、版本保护、稳定分页、敏感材料禁入与 no-fallback；Prompt Runtime Assignment / Event 复用共享 Workflow Run Store 的 metadata-only 投影，不新增数据库组件。SQLite 只通过聚合模式启用，PostgreSQL migration / runtime 角色必须隔离。本文后续历史段落中关于这些八组数据“仍无数据库、repository 或 durable persistence”的旧阶段描述不再代表当前实现；production repository、Radish 身份 / membership、生产密钥、配额和计费停止线仍然有效。
 - Admin authenticated read 只消费 Radish 的 verified identity、tenant 和审查后的 permission projection；RadishMind 不解析分散 claim、不读取 Radish 业务数据库，也不复制 user / tenant / role 真相源。workspace / application membership 属于 RadishMind 资源绑定，不能由 `radish-api` scope 或角色名称隐式推导。
 - 当前 `signed_test_token` 只用于本仓库 dev/test：固定 `RS256`、显式 issuer / audience / test public key 和版本化 permission allowlist，输出 sanitized verified context；它不是 Radish OIDC client、JWKS 联调、production token 或 workspace membership 替代品。
 - `Radish OIDC Integration Test v1` 已为 tenant / audit 两条 Admin operation 实现 deterministic issuer / discovery / JWKS / JWT verifier、版本化 permission projection、zero-query auth boundary 和 Web 内存 token consumer；五条 workspace operation 在 membership adapter 前统一返回 `workspace_membership_unavailable`，不读取 fake repository。真实 Radish 联调为 `real_radish_integration_deferred`：未来由 Radish 注册 RadishMind application/client 与 resource audience，真实 issuer、audience、claim 与 permission mapping 仍必须来自 reviewed upstream evidence。RadishMind 只拥有自己的接入 profile 和 route mapping，不自建 issuer、账号或角色真相源；该模式不构成 browser login 或 production auth。
@@ -65,6 +75,7 @@
 - [Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](features/workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)已实现 memory / SQLite / PostgreSQL current assignment、人工 `activate / replace / revoke`、API key `application_rag:invoke`、服务端完整 authority reload、candidate snapshot 的一次 lexical retrieval / Gateway、metadata-only `workflow_run_record.v4`、run execution source migration、v4 evaluation、Web 一次性交接与真实浏览器连续链；PostgreSQL `0012` migration / runtime 专项已真实通过。调用方只能提交有界输入；publish approve 与 API key 签发都不会自动激活。生产调用仍未实现。
 - [Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](features/workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md)批次 A / B / C / D 已完成 strict release contract、memory / SQLite / PostgreSQL repository、人工 review / activation CAS、live summary projection、exact active authority resolver、`workflow_definition_executor_v1`、metadata-only `workflow_run_record.v5`、Web、launcher、双数据库连续链与真实浏览器验收。v5 使用独立 `workflow_definition` execution source，三种 run store、History / Detail / Comparison / Evaluation / Baseline / Suite 均显式只读识别且不重新执行；默认开发 gate 仍关闭，production route 尚未实现。
 - [应用交互会话与受控运行编排（开发 / 测试态）v1](features/user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)固定 `application_session.v1 + application_session_turn.v1 + application_runtime_authority.v1`：session 显式选择 `workflow_definition_executor_v1` 或 `application_rag_invocation_v1`，每轮在 provider 调用前由服务端重读 application lifecycle、profile eligibility 与对应 v5 / v4 authority，再只委托一次既有执行服务。`client_turn_key` 提供 owner 内幂等，已存在结果不重放 provider；取消、终态写入不确定性与 stale reconciliation 只更新 metadata-only 状态。memory、SQLite、PostgreSQL、Web Active / Closed 过滤与重启恢复均只保存 session / turn / run refs、digest、状态、版本和时间，不保存 transcript、原始 input、answer、prompt、provider raw response、credential、token、header 或 fragment 正文。既有 `conversation_session_record` 不与 Application Session 共用 repository。
+- [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)已完成批次 A 至批次 C：受限模板解析与输出契约、Template memory / SQLite / PostgreSQL owner、Configuration Draft v3 精确绑定、Publish Candidate v3 人工审查和 Prompt Runtime Assignment 均已实现。配置 binding、候选 review 与 assignment `activate / replace / revoke` 是三个独立动作；服务端重读 exact draft / template / candidate，模板正文只进入 Template owner，批准不自动激活。`application_runtime_authority.v2`、Session / Turn v2、`workflow_run_record.v6` 与 `prompt_application_invocation_v1` 仍未启用，下一批必须在 provider 副作用前重读完整 authority，并只委托一次既有 Gateway。
 - [应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)是只读组合投影：在当前 application scope 内分别读取 Gateway Request History 与 Workflow Run History 的当前分页窗口，允许部分来源失败并保持来源状态；它不推测跨来源关联，不估算缺失 token、成本、quota 或 billing，也不创建新的运行或审计真相源。
 - `P3 Local Product Shell / Ops Surface` 已暴露只读 `GET /v1/platform/overview` 与 `GET /v1/platform/local-smoke`，并已有 overview / local-smoke console consumer smoke、`contracts/typescript/platform-overview-api.ts`、`contracts/typescript/platform-local-smoke-api.ts`、本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist；本地只读产品壳已达到 `local usable / read-only close`。它只聚合和消费服务状态、本地 readiness、model/profile inventory、session/tooling metadata、blocked action route 和停止线，不引入真实 executor、durable store、confirmation 接线、长期记忆、业务写回或 replay；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍是后续 hardening 缺口。
 - `Provider Runtime & Health v1` 已把 provider capability matrix、provider health smoke、provider selection policy、provider retry/fallback policy 和 docs refresh 五个切片接入 fast baseline。它固定 `/v1/models`、provider/profile selection、diagnostics selectable model ids、credential state、deployment mode、offline health smoke、no implicit fallback、`retry_policy=caller-managed` 与 `fallback_policy=disabled` 的说明口径；它不代表 optional live health、retry/fallback execution、production secret backend、tool executor、confirmation/writeback/replay 或 production readiness 已完成。

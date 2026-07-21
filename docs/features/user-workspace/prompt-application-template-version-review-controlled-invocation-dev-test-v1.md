@@ -10,15 +10,15 @@
 
 这不是为现有应用配置页增加一个自由文本输入框。提示词模板是可执行的应用源码，必须拥有独立领域、版本、摘要、权限、持久化和隐私边界；应用配置、发布候选、运行时 assignment、Gateway、Session、Run History 与 Evaluation 继续各自承担已有职责。
 
-## 现状与问题
+## 专题启动前的现状与问题
 
-- Application Catalog 与 Application Configuration Draft 已允许 `prompt_application`，但当前没有应用作用域的模板草案、模板版本、变量契约或运行时 authority。
+- Application Catalog 与 Application Configuration Draft 已允许 `prompt_application`，但专题启动前没有应用作用域的模板草案、模板版本、变量契约或运行时 authority。
 - Application Configuration Draft 明确不保存提示词、消息、用户输入或模型输出；把模板正文直接加入该 owner 会破坏现有脱敏配置边界。
 - Workflow Definition 支持 `prompt` 节点，但当前不可变定义保存的是节点结构、输入 / 输出摘要与引用，不是提示词源码真相源；不能把摘要字段解释为可执行模板正文。
 - Application Interaction Session 当前只支持 `workflow_definition_executor_v1` 与 `application_rag_invocation_v1`，没有 Prompt Application profile。
 - 仓库 `prompts/` 保存的是 RadishMind 自身的静态任务提示词，不属于用户应用资源，也不提供多租户、版本、审查或运行时绑定。
 
-因此，`prompt_application` 目前只是目录与配置允许值，并没有与产品声明相匹配的真实用户路径。
+因此，专题启动时 `prompt_application` 只是目录与配置允许值，并没有与产品声明相匹配的真实用户路径；批次 A 至批次 C 已依次补齐模板领域、持久化、配置 / 发布审查和显式 assignment，受控调用与产品界面仍由后续批次承接。
 
 ## 目标用户与主要任务
 

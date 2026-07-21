@@ -1,6 +1,6 @@
 # 平台服务运行手册 v1
 
-更新时间：2026-07-20
+更新时间：2026-07-21
 
 ## 文档职责
 
@@ -60,7 +60,7 @@ pwsh ./scripts/run-platform-service.ps1 -Command diagnostics
 pwsh ./scripts/run-platform-service.ps1 -Command serve
 ```
 
-wrapper 默认使用 `local-product` 档：选择聚合 `sqlite_dev`、共享 SQLite 文件和七组件开发 gate。`configured` 档不注入 store、数据库连接或开发 gate，只消费调用方显式配置，供 PostgreSQL 集成和故障注入使用：
+wrapper 默认使用 `local-product` 档：选择聚合 `sqlite_dev`、共享 SQLite 文件和八组件开发 gate。Prompt Runtime Assignment / Event 复用 Workflow Run Store 投影，不增加数据库组件。`configured` 档不注入 store、数据库连接或开发 gate，只消费调用方显式配置，供 PostgreSQL 集成和故障注入使用：
 
 ```bash
 ./scripts/run-platform-service.sh --profile configured config-check
@@ -110,11 +110,12 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 
 产品组件配置按职责维护：
 
-- 聚合 `sqlite_dev`、共享数据库路径和七组件 store 投影见[本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1.md)。
+- 聚合 `sqlite_dev`、共享数据库路径和八组件 store 投影见[本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1.md)。
 - 应用目录、API 密钥生命周期和 Gateway Bearer 开发测试态认证见[应用目录与 API 密钥开发测试指南](../features/user-workspace/application-catalog-api-key-dev-test-guide.md)。
 - Application RAG、Workflow Definition、Application Session、v4 / v5 历史与运行观测见[应用受控运行开发测试态指南](../features/user-workspace/application-controlled-runtime-dev-test-guide.md)。
 - Workflow 草案、运行、评测与执行 gate 见 [Workflow 专题](../features/workflow/README.md)。
 - Application Draft / Publish gate 见 [User Workspace 专题](../features/user-workspace/README.md)。
+- Prompt Template、Configuration Draft v3、Publish Candidate v3 与 Runtime Assignment gate 见 [Prompt Application 功能专题](../features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)。
 - Control Plane auth / store / OIDC integration test 见 [Admin Control Plane 专题](../features/admin-control-plane/README.md)。
 
 所有未知 selector、保留 production 值和不完整数据库配置都在启动前失败关闭。组件显式 `*_STORE` 与聚合 `RADISHMIND_LOCAL_PERSISTENCE_MODE=sqlite_dev` 不得同时设置；数据库、migration、marker、checksum 或查询失败不得回退 `memory_dev`。
@@ -174,7 +175,7 @@ curl -sS http://127.0.0.1:7000/v1/chat/completions \
 
 ## PostgreSQL 开发测试态验证
 
-兼容入口覆盖平台各产品 migration，以及当前直至 `0015` 的 Workflow PostgreSQL 开发测试态 repository：
+兼容入口覆盖平台各产品 migration、独立 Prompt Template `0001`，以及当前直至 `0016` 的 Workflow PostgreSQL 开发测试态 repository：
 
 ```bash
 ./scripts/run-workflow-saved-draft-postgres-dev-test.sh check
