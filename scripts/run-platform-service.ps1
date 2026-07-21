@@ -41,6 +41,8 @@ switch ($Profile) {
         Set-DefaultEnvironmentValue -Name "RADISHMIND_APPLICATION_PUBLISH_DEV_WRITE" -Value "1"
         Set-DefaultEnvironmentValue -Name "RADISHMIND_APPLICATION_CATALOG_DEV_HTTP" -Value "1"
         Set-DefaultEnvironmentValue -Name "RADISHMIND_APPLICATION_CATALOG_DEV_WRITE" -Value "1"
+        Set-DefaultEnvironmentValue -Name "RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP" -Value "1"
+        Set-DefaultEnvironmentValue -Name "RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE" -Value "1"
         Set-DefaultEnvironmentValue -Name "RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP" -Value "1"
         Set-DefaultEnvironmentValue -Name "RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE" -Value "1"
         Set-DefaultEnvironmentValue -Name "RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV" -Value "1"

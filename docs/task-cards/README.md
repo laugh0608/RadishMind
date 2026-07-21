@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-1. [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1-plan.md)：A1 受限模板内核与 A2 strict schema、memory Template owner、默认关闭 API 已完成，下一步推进 A3 后续版本 contract 占位；批次 A 通过前数据库、发布绑定运行实现、provider 调用、Session Prompt profile 和 Web 全链保持关闭。
+1. [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1-plan.md)：批次 A 与批次 B 已完成，SQLite / PostgreSQL 证据均已通过；下一步进入批次 C 的配置、发布审查与 runtime assignment，provider、Session Prompt profile 和 Web 全链保持关闭。
 
 [应用开发工作区与发布准备审查 v1](../features/user-workspace/application-development-workspace-release-readiness-review-v1.md)批次 A 至 C 已完成并关闭，不再派生同层任务卡。
 

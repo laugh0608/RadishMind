@@ -65,6 +65,12 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"CREATE TABLE application_interaction_session_turns",
 		"application_interaction_sessions_controlled_update",
 		"application_interaction_turns_no_delete",
+		"CREATE TABLE prompt_application_runtime_assignments",
+		"CREATE TABLE prompt_application_runtime_assignment_events",
+		"CREATE TABLE prompt_application_sessions",
+		"CREATE TABLE prompt_application_session_turns",
+		"CREATE TABLE prompt_application_run_records",
+		"workflow_run_record.v6",
 	} {
 		if !strings.Contains(upSQL, required) {
 			t.Fatalf("workflow run up migration is missing %q", required)
@@ -95,6 +101,8 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"DROP TABLE IF EXISTS workflow_definition_release_candidates",
 		"DROP TABLE IF EXISTS application_interaction_session_turns",
 		"DROP TABLE IF EXISTS application_interaction_sessions",
+		"DROP TABLE IF EXISTS prompt_application_run_records",
+		"DROP TABLE IF EXISTS prompt_application_runtime_assignments",
 		"DROP TABLE IF EXISTS workflow_http_tool_confirmation_decisions",
 		"DROP TABLE IF EXISTS workflow_http_tool_execution_audits",
 		"DROP TABLE IF EXISTS workflow_http_tool_action_plans",
@@ -146,6 +154,7 @@ func TestWorkflowRunPendingMigrationPaths(t *testing.T) {
 		{name: "v12", migrationID: applicationRuntimeMigrationID, requiredFragment: "CREATE TABLE workflow_definition_release_candidates", forbiddenFragment: "CREATE TABLE workflow_rag_application_runtime_assignments"},
 		{name: "v13", migrationID: definitionReleaseMigrationID, requiredFragment: "workflow_run_record.v5", forbiddenFragment: "CREATE TABLE workflow_definition_release_candidates"},
 		{name: "v14", migrationID: definitionExecutionMigrationID, requiredFragment: "CREATE TABLE application_interaction_sessions", forbiddenFragment: "workflow_run_record.v5"},
+		{name: "v15", migrationID: applicationSessionMigrationID, requiredFragment: "CREATE TABLE prompt_application_runtime_assignments", forbiddenFragment: "CREATE TABLE application_interaction_sessions"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -213,6 +222,10 @@ func TestWorkflowRunPendingRollbackPathsDoNotDropUnappliedTables(t *testing.T) {
 	definitionExecutionRollback := rollbackSQLThrough(definitionExecutionMigrationID)
 	if !strings.Contains(definitionExecutionRollback, "workflow_run_record.v5") || strings.Contains(definitionExecutionRollback, "application_interaction_sessions") {
 		t.Fatalf("v14 rollback must remove applied definition execution resources without removing unapplied v15: %s", definitionExecutionRollback)
+	}
+	applicationSessionRollback := rollbackSQLThrough(applicationSessionMigrationID)
+	if !strings.Contains(applicationSessionRollback, "application_interaction_sessions") || strings.Contains(applicationSessionRollback, "prompt_application_run_records") {
+		t.Fatalf("v15 rollback must remove applied sessions without removing unapplied v16: %s", applicationSessionRollback)
 	}
 	if rollbackSQLThrough("0000_unknown") != "" {
 		t.Fatal("unknown pending rollback must fail closed")

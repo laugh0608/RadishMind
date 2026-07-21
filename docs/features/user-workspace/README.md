@@ -6,7 +6,7 @@
 
 ## 当前专题
 
-- [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)：A1 受限模板内核和 A2 strict schema、memory owner、默认关闭 API 已完成；模板源码只属于独立 owner，既有 Application Publish Candidate 仍承担后续唯一人工审查。
+- [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)：批次 A 与批次 B 已完成，受限模板内核、strict schema、双数据库 owner、shared Workflow 未来投影及真实 PostgreSQL 门禁均已通过；下一步进入配置、发布审查与 runtime assignment，模板源码继续只属于独立 owner。
 - [应用开发工作区与发布准备审查 v1](application-development-workspace-release-readiness-review-v1.md)：批次 A 至 C 已完成并关闭；route-scoped evidence、精确 Draft / Run owner 重读、离线 revision 失败关闭、真实浏览器连续路径与 URL / console / network 隐私审计均有可复验证据。
 - [应用受控运行开发测试态指南](application-controlled-runtime-dev-test-guide.md)：说明 Application RAG、Workflow Definition、Application Interaction Session、v4 / v5 运行记录与 Application Operations 的启动、资源准备、作用域、恢复、失败语义和隐私边界。
 - [应用交互会话与受控运行编排（开发 / 测试态）v1](application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)：strict contract、三种 Session / Turn owner、exact authority reload、v5 / v4 单次委托、Web 易失交互工作区、双数据库 launcher 连续链、重启恢复、真实浏览器和敏感扫描均已完成，专题关闭。
@@ -19,7 +19,7 @@
 
 ## 下一步
 
-- 按唯一任务卡推进 A3：只建立 Configuration Draft v3、Publish Candidate v3、assignment / event v1、authority / Session / Turn v2 与 run v6 strict contract 和 codec 测试，不接运行 owner。
+- 批次 B 已完成：Template owner 独立 SQLite / PostgreSQL `0001`、shared Workflow runtime SQLite `0013` / PostgreSQL `0016`、双数据库 repository、聚合 SQLite runtime 和真实 PostgreSQL 门禁均已通过；下一步进入批次 C 运行绑定。
 - 不继续扩“应用开发工作区与发布准备审查 v1”的同层切片；Prompt Application 复用现有 workspace context、发布审查、Gateway、Session、Run History 和 Evaluation，不另建聚合发布真相源或执行算法。
 - 不从已关闭的 Application Interaction Session 派生长期记忆、自动 profile、重试 / fallback、schedule、replay / resume 或 agent loop。只有需要跨全部分页窗口的稳定统计、可信 reported usage 或正式 quota / billing owner 时，才评审服务端 summary。
 

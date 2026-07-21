@@ -8,8 +8,8 @@ import (
 
 const (
 	Component                        = "workflow_runs"
-	MigrationID                      = "0012_application_interaction_sessions"
-	StoreSchemaVersion               = "workflow_run_store_sqlite_v12"
+	MigrationID                      = "0013_prompt_application_runtime_projections"
+	StoreSchemaVersion               = "workflow_run_store_sqlite_v13"
 	RunRecordStoreSchemaVersion      = "workflow_runs_store_v5"
 	legacyMigrationID                = "0001_workflow_runs"
 	toolActionsMigrationID           = "0002_workflow_http_tool_actions"
@@ -33,6 +33,8 @@ const (
 	definitionReleaseSchemaVersion   = "workflow_run_store_sqlite_v10"
 	definitionExecutionMigrationID   = "0011_workflow_definition_execution"
 	definitionExecutionSchemaVersion = "workflow_run_store_sqlite_v11"
+	applicationSessionMigrationID    = "0012_application_interaction_sessions"
+	applicationSessionSchemaVersion  = "workflow_run_store_sqlite_v12"
 )
 
 //go:embed 0001_workflow_runs.up.sql
@@ -70,6 +72,9 @@ var upSQLV11 string
 
 //go:embed 0012_application_interaction_sessions.up.sql
 var upSQLV12 string
+
+//go:embed 0013_prompt_application_runtime_projections.up.sql
+var upSQLV13 string
 
 func Migrations() []sqlitedev.Migration {
 	return []sqlitedev.Migration{
@@ -114,6 +119,7 @@ func Migrations() []sqlitedev.Migration {
 		{Component: Component, ID: applicationRuntimeMigrationID, StoreSchemaVersion: applicationRuntimeSchemaVersion, UpSQL: upSQLV9},
 		{Component: Component, ID: definitionReleaseMigrationID, StoreSchemaVersion: definitionReleaseSchemaVersion, UpSQL: upSQLV10},
 		{Component: Component, ID: definitionExecutionMigrationID, StoreSchemaVersion: definitionExecutionSchemaVersion, UpSQL: upSQLV11},
-		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV12},
+		{Component: Component, ID: applicationSessionMigrationID, StoreSchemaVersion: applicationSessionSchemaVersion, UpSQL: upSQLV12},
+		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV13},
 	}
 }

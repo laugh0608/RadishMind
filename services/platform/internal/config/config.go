@@ -25,6 +25,7 @@ const (
 	defaultApplicationDraftDBTimeout   = 5 * time.Second
 	defaultApplicationPublishDBTimeout = 5 * time.Second
 	defaultApplicationCatalogDBTimeout = 5 * time.Second
+	defaultPromptTemplateDBTimeout     = 5 * time.Second
 	defaultAPIKeyDBTimeout             = 5 * time.Second
 	defaultRunDBTimeout                = 5 * time.Second
 	defaultGatewayRequestDBTimeout     = 5 * time.Second
@@ -35,6 +36,7 @@ const (
 	defaultApplicationDraftStoreMode   = "memory_dev"
 	defaultApplicationPublishStoreMode = "memory_dev"
 	defaultApplicationCatalogStoreMode = "memory_dev"
+	defaultPromptTemplateStoreMode     = "memory_dev"
 	defaultAPIKeyStoreMode             = "memory_dev"
 	defaultGatewayAuthMode             = "dev_headers"
 	defaultRunStoreMode                = "memory_dev"
@@ -103,6 +105,9 @@ type Config struct {
 	ApplicationDraftDevWriteEnabled      bool
 	PromptTemplateDevHTTPEnabled         bool
 	PromptTemplateDevWriteEnabled        bool
+	PromptTemplateStoreMode              string
+	PromptTemplateDatabaseURL            string
+	PromptTemplateDatabaseTimeout        time.Duration
 	ApplicationDraftStoreMode            string
 	ApplicationDraftDatabaseURL          string
 	ApplicationDraftDatabaseTimeout      time.Duration
@@ -174,6 +179,8 @@ type ConfigSummary struct {
 	ApplicationDraftDevWriteEnabled      bool              `json:"application_draft_dev_write_enabled"`
 	PromptTemplateDevHTTPEnabled         bool              `json:"prompt_application_template_dev_http_enabled"`
 	PromptTemplateDevWriteEnabled        bool              `json:"prompt_application_template_dev_write_enabled"`
+	PromptTemplateStoreMode              string            `json:"prompt_application_template_store_mode"`
+	PromptTemplateDatabaseConfigured     bool              `json:"prompt_application_template_database_configured"`
 	ApplicationDraftStoreMode            string            `json:"application_draft_store_mode"`
 	ApplicationDraftDatabaseConfigured   bool              `json:"application_draft_database_configured"`
 	ApplicationPublishDevHTTPEnabled     bool              `json:"application_publish_dev_http_enabled"`
@@ -327,6 +334,8 @@ func defaultConfig() Config {
 		ApplicationPublishDatabaseTimeout:    defaultApplicationPublishDBTimeout,
 		ApplicationCatalogStoreMode:          defaultApplicationCatalogStoreMode,
 		ApplicationCatalogDatabaseTimeout:    defaultApplicationCatalogDBTimeout,
+		PromptTemplateStoreMode:              defaultPromptTemplateStoreMode,
+		PromptTemplateDatabaseTimeout:        defaultPromptTemplateDBTimeout,
 		APIKeyStoreMode:                      defaultAPIKeyStoreMode,
 		APIKeyDatabaseTimeout:                defaultAPIKeyDBTimeout,
 		GatewayAuthMode:                      defaultGatewayAuthMode,
@@ -336,74 +345,77 @@ func defaultConfig() Config {
 		GatewayRequestDatabaseTimeout:        defaultGatewayRequestDBTimeout,
 		SQLiteDevDatabasePath:                defaultSQLiteDevDatabasePath,
 		FieldSources: map[string]string{
-			"listen_addr":                           configSourceDefault,
-			"read_header_timeout":                   configSourceDefault,
-			"write_timeout":                         configSourceDefault,
-			"bridge_timeout":                        configSourceDefault,
-			"bridge_mode":                           configSourceDefault,
-			"bridge_worker_count":                   configSourceDefault,
-			"bridge_queue_capacity":                 configSourceDefault,
-			"bridge_handshake_timeout":              configSourceDefault,
-			"control_plane_read_dev_auth":           configSourceDefault,
-			"control_plane_read_auth_mode":          configSourceDefault,
-			"control_plane_read_store":              configSourceDefault,
-			"control_plane_read_database":           configSourceDefault,
-			"control_plane_read_database_timeout":   configSourceDefault,
-			"workflow_saved_draft_dev_http":         configSourceDefault,
-			"workflow_saved_draft_dev_write":        configSourceDefault,
-			"application_draft_dev_http":            configSourceDefault,
-			"application_draft_dev_write":           configSourceDefault,
-			"prompt_application_template_dev_http":  configSourceDefault,
-			"prompt_application_template_dev_write": configSourceDefault,
-			"application_draft_store":               configSourceDefault,
-			"application_draft_database":            configSourceDefault,
-			"application_draft_database_timeout":    configSourceDefault,
-			"application_publish_dev_http":          configSourceDefault,
-			"application_publish_dev_write":         configSourceDefault,
-			"application_publish_store":             configSourceDefault,
-			"application_publish_database":          configSourceDefault,
-			"application_publish_database_timeout":  configSourceDefault,
-			"application_catalog_dev_http":          configSourceDefault,
-			"application_catalog_dev_write":         configSourceDefault,
-			"application_catalog_store":             configSourceDefault,
-			"application_catalog_database":          configSourceDefault,
-			"application_catalog_database_timeout":  configSourceDefault,
-			"api_key_store":                         configSourceDefault,
-			"api_key_database":                      configSourceDefault,
-			"api_key_database_timeout":              configSourceDefault,
-			"gateway_auth_mode":                     configSourceDefault,
-			"workflow_definition_release_dev":       configSourceDefault,
-			"application_session_dev":               configSourceDefault,
-			"workflow_executor_dev":                 configSourceDefault,
-			"workflow_tool_action_dev":              configSourceDefault,
-			"workflow_http_tool_execution_dev":      configSourceDefault,
-			"workflow_rag_snapshot_dev":             configSourceDefault,
-			"workflow_rag_execution_dev":            configSourceDefault,
-			"workflow_rag_evaluation_dev":           configSourceDefault,
-			"workflow_rag_promotion_dev":            configSourceDefault,
-			"workflow_http_tool_test_loopback":      configSourceDefault,
-			"workflow_diagnostics_dev":              configSourceDefault,
-			"gateway_request_history_dev":           configSourceDefault,
-			"gateway_request_store":                 configSourceDefault,
-			"gateway_request_database":              configSourceDefault,
-			"gateway_request_database_timeout":      configSourceDefault,
-			"local_persistence_mode":                configSourceDefault,
-			"sqlite_dev_database_path":              configSourceDefault,
-			"workflow_saved_draft_store":            configSourceDefault,
-			"workflow_saved_draft_database":         configSourceDefault,
-			"workflow_saved_draft_database_timeout": configSourceDefault,
-			"workflow_run_store":                    configSourceDefault,
-			"workflow_run_database":                 configSourceDefault,
-			"workflow_run_database_timeout":         configSourceDefault,
-			"python_binary":                         configSourceDefault,
-			"bridge_script":                         configSourceDefault,
-			"provider":                              configSourceDefault,
-			"profile":                               configSourceDefault,
-			"model":                                 configSourceDefault,
-			"base_url":                              configSourceDefault,
-			"credential":                            configSourceDefault,
-			"temperature":                           configSourceDefault,
-			"config_file":                           configSourceDefault,
+			"listen_addr":                                  configSourceDefault,
+			"read_header_timeout":                          configSourceDefault,
+			"write_timeout":                                configSourceDefault,
+			"bridge_timeout":                               configSourceDefault,
+			"bridge_mode":                                  configSourceDefault,
+			"bridge_worker_count":                          configSourceDefault,
+			"bridge_queue_capacity":                        configSourceDefault,
+			"bridge_handshake_timeout":                     configSourceDefault,
+			"control_plane_read_dev_auth":                  configSourceDefault,
+			"control_plane_read_auth_mode":                 configSourceDefault,
+			"control_plane_read_store":                     configSourceDefault,
+			"control_plane_read_database":                  configSourceDefault,
+			"control_plane_read_database_timeout":          configSourceDefault,
+			"workflow_saved_draft_dev_http":                configSourceDefault,
+			"workflow_saved_draft_dev_write":               configSourceDefault,
+			"application_draft_dev_http":                   configSourceDefault,
+			"application_draft_dev_write":                  configSourceDefault,
+			"prompt_application_template_dev_http":         configSourceDefault,
+			"prompt_application_template_dev_write":        configSourceDefault,
+			"prompt_application_template_store":            configSourceDefault,
+			"prompt_application_template_database":         configSourceDefault,
+			"prompt_application_template_database_timeout": configSourceDefault,
+			"application_draft_store":                      configSourceDefault,
+			"application_draft_database":                   configSourceDefault,
+			"application_draft_database_timeout":           configSourceDefault,
+			"application_publish_dev_http":                 configSourceDefault,
+			"application_publish_dev_write":                configSourceDefault,
+			"application_publish_store":                    configSourceDefault,
+			"application_publish_database":                 configSourceDefault,
+			"application_publish_database_timeout":         configSourceDefault,
+			"application_catalog_dev_http":                 configSourceDefault,
+			"application_catalog_dev_write":                configSourceDefault,
+			"application_catalog_store":                    configSourceDefault,
+			"application_catalog_database":                 configSourceDefault,
+			"application_catalog_database_timeout":         configSourceDefault,
+			"api_key_store":                                configSourceDefault,
+			"api_key_database":                             configSourceDefault,
+			"api_key_database_timeout":                     configSourceDefault,
+			"gateway_auth_mode":                            configSourceDefault,
+			"workflow_definition_release_dev":              configSourceDefault,
+			"application_session_dev":                      configSourceDefault,
+			"workflow_executor_dev":                        configSourceDefault,
+			"workflow_tool_action_dev":                     configSourceDefault,
+			"workflow_http_tool_execution_dev":             configSourceDefault,
+			"workflow_rag_snapshot_dev":                    configSourceDefault,
+			"workflow_rag_execution_dev":                   configSourceDefault,
+			"workflow_rag_evaluation_dev":                  configSourceDefault,
+			"workflow_rag_promotion_dev":                   configSourceDefault,
+			"workflow_http_tool_test_loopback":             configSourceDefault,
+			"workflow_diagnostics_dev":                     configSourceDefault,
+			"gateway_request_history_dev":                  configSourceDefault,
+			"gateway_request_store":                        configSourceDefault,
+			"gateway_request_database":                     configSourceDefault,
+			"gateway_request_database_timeout":             configSourceDefault,
+			"local_persistence_mode":                       configSourceDefault,
+			"sqlite_dev_database_path":                     configSourceDefault,
+			"workflow_saved_draft_store":                   configSourceDefault,
+			"workflow_saved_draft_database":                configSourceDefault,
+			"workflow_saved_draft_database_timeout":        configSourceDefault,
+			"workflow_run_store":                           configSourceDefault,
+			"workflow_run_database":                        configSourceDefault,
+			"workflow_run_database_timeout":                configSourceDefault,
+			"python_binary":                                configSourceDefault,
+			"bridge_script":                                configSourceDefault,
+			"provider":                                     configSourceDefault,
+			"profile":                                      configSourceDefault,
+			"model":                                        configSourceDefault,
+			"base_url":                                     configSourceDefault,
+			"credential":                                   configSourceDefault,
+			"temperature":                                  configSourceDefault,
+			"config_file":                                  configSourceDefault,
 		},
 	}
 }
@@ -701,6 +713,19 @@ func applyEnvOverrides(cfg *Config) error {
 		}
 		cfg.PromptTemplateDevWriteEnabled = parsed
 		cfg.FieldSources["prompt_application_template_dev_write"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE"); ok {
+		applyStringValue(&cfg.PromptTemplateStoreMode, value, cfg.FieldSources, "prompt_application_template_store", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL"); ok {
+		applyStringValue(&cfg.PromptTemplateDatabaseURL, value, cfg.FieldSources, "prompt_application_template_database", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DATABASE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DATABASE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.PromptTemplateDatabaseTimeout, parsed, cfg.FieldSources, "prompt_application_template_database_timeout", configSourceEnv)
 	}
 	if value, ok := stringEnv("RADISHMIND_APPLICATION_DRAFT_STORE"); ok {
 		applyStringValue(&cfg.ApplicationDraftStoreMode, value, cfg.FieldSources, "application_draft_store", configSourceEnv)
@@ -1016,6 +1041,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if applicationCatalogStoreMode == "" {
 		applicationCatalogStoreMode = defaultApplicationCatalogStoreMode
 	}
+	promptTemplateStoreMode := strings.TrimSpace(cfg.PromptTemplateStoreMode)
+	if promptTemplateStoreMode == "" {
+		promptTemplateStoreMode = defaultPromptTemplateStoreMode
+	}
 	apiKeyStoreMode := strings.TrimSpace(cfg.APIKeyStoreMode)
 	if apiKeyStoreMode == "" {
 		apiKeyStoreMode = defaultAPIKeyStoreMode
@@ -1063,6 +1092,17 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	}
 	if cfg.PromptTemplateDevWriteEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_template_dev_http")
+	}
+	if promptTemplateStoreMode == "postgres_dev_test" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_template_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_template_dev_write")
+		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_template_database")
+	}
+	if promptTemplateStoreMode == "sqlite_dev" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_template_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_template_dev_write")
 	}
 	if applicationPublishStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
@@ -1187,6 +1227,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		ApplicationDraftDevWriteEnabled:      cfg.ApplicationDraftDevWriteEnabled,
 		PromptTemplateDevHTTPEnabled:         cfg.PromptTemplateDevHTTPEnabled,
 		PromptTemplateDevWriteEnabled:        cfg.PromptTemplateDevWriteEnabled,
+		PromptTemplateStoreMode:              promptTemplateStoreMode,
+		PromptTemplateDatabaseConfigured:     strings.TrimSpace(cfg.PromptTemplateDatabaseURL) != "",
 		ApplicationDraftStoreMode:            applicationDraftStoreMode,
 		ApplicationDraftDatabaseConfigured:   strings.TrimSpace(cfg.ApplicationDraftDatabaseURL) != "",
 		ApplicationPublishDevHTTPEnabled:     cfg.ApplicationPublishDevHTTPEnabled,
@@ -1244,6 +1286,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"application_draft_database":           cfg.ApplicationDraftDatabaseTimeout.String(),
 			"application_publish_database":         cfg.ApplicationPublishDatabaseTimeout.String(),
 			"application_catalog_database":         cfg.ApplicationCatalogDatabaseTimeout.String(),
+			"prompt_application_template_database": cfg.PromptTemplateDatabaseTimeout.String(),
 			"api_key_database":                     cfg.APIKeyDatabaseTimeout.String(),
 			"workflow_run_database":                cfg.WorkflowRunDatabaseTimeout.String(),
 		},
@@ -1268,6 +1311,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL",
+			"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL",
+			"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
@@ -1383,6 +1428,14 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			}
 		case "prompt_application_template_dev_http":
 			if !cfg.PromptTemplateDevHTTPEnabled {
+				missing = append(missing, field)
+			}
+		case "prompt_application_template_dev_write":
+			if !cfg.PromptTemplateDevWriteEnabled {
+				missing = append(missing, field)
+			}
+		case "prompt_application_template_database":
+			if strings.TrimSpace(cfg.PromptTemplateDatabaseURL) == "" {
 				missing = append(missing, field)
 			}
 		case "application_draft_database":
@@ -1666,6 +1719,22 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.PromptTemplateDevWriteEnabled && !cfg.PromptTemplateDevHTTPEnabled {
 		return fmt.Errorf("prompt application template dev write requires its HTTP gate")
+	}
+	switch strings.TrimSpace(cfg.PromptTemplateStoreMode) {
+	case "", "memory_dev":
+	case "sqlite_dev":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.PromptTemplateDevHTTPEnabled || !cfg.PromptTemplateDevWriteEnabled {
+			return fmt.Errorf("prompt application template sqlite_dev store requires complete development gates")
+		}
+	case "postgres_dev_test":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.PromptTemplateDevHTTPEnabled || !cfg.PromptTemplateDevWriteEnabled || strings.TrimSpace(cfg.PromptTemplateDatabaseURL) == "" {
+			return fmt.Errorf("prompt application template postgres_dev_test store requires complete development gates and a database URL")
+		}
+	default:
+		return fmt.Errorf("prompt application template store must be memory_dev, sqlite_dev, or postgres_dev_test")
+	}
+	if cfg.PromptTemplateDatabaseTimeout <= 0 {
+		return fmt.Errorf("prompt application template database timeout must be positive")
 	}
 	if cfg.ApplicationPublishDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return fmt.Errorf("application publish dev HTTP requires control plane read dev auth")

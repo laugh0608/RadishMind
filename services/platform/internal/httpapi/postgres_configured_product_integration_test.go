@@ -25,6 +25,7 @@ import (
 	applicationdraftmigrations "radishmind.local/services/platform/migrations/application_configuration_drafts"
 	applicationpublishmigrations "radishmind.local/services/platform/migrations/application_publish_candidates"
 	gatewayrequestmigrations "radishmind.local/services/platform/migrations/gateway_requests"
+	promptapplicationtemplatemigrations "radishmind.local/services/platform/migrations/prompt_application_templates"
 	workflowrunmigrations "radishmind.local/services/platform/migrations/workflow_runs"
 	workflowdraftmigrations "radishmind.local/services/platform/migrations/workflow_saved_drafts"
 )
@@ -348,6 +349,7 @@ func configuredPostgresMigrationGates(pool *pgxpool.Pool) []postgresMigrationGat
 		postgresMigrationGateForApplicationDrafts(pool),
 		postgresMigrationGateForApplicationPublish(pool),
 		postgresMigrationGateForGatewayRequests(pool),
+		postgresMigrationGateForPromptApplicationTemplates(pool),
 		postgresMigrationGateForWorkflowDrafts(pool),
 		postgresMigrationGateForWorkflowRuns(pool),
 	}
@@ -419,6 +421,20 @@ func postgresMigrationGateForGatewayRequests(pool *pgxpool.Pool) postgresMigrati
 			return state.MigrationState, err
 		}, rollback: func(ctx context.Context) (string, error) {
 			state, err := gatewayrequestmigrations.RollbackForDevTest(ctx, pool)
+			return state.MigrationState, err
+		}}
+}
+
+func postgresMigrationGateForPromptApplicationTemplates(pool *pgxpool.Pool) postgresMigrationGate {
+	return postgresMigrationGate{name: "prompt_application_templates", table: "prompt_application_template_drafts",
+		apply: func(ctx context.Context) (string, string, error) {
+			state, err := promptapplicationtemplatemigrations.Apply(ctx, pool)
+			return state.MigrationState, state.MigrationChecksum, err
+		}, inspect: func(ctx context.Context) (string, error) {
+			state, err := promptapplicationtemplatemigrations.Inspect(ctx, pool)
+			return state.MigrationState, err
+		}, rollback: func(ctx context.Context) (string, error) {
+			state, err := promptapplicationtemplatemigrations.RollbackForDevTest(ctx, pool)
 			return state.MigrationState, err
 		}}
 }
@@ -518,6 +534,13 @@ func runConfiguredPostgresMigrationGate(
 func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
 	_, err := pool.Exec(ctx, `DROP TABLE IF EXISTS
+		prompt_application_run_records,
+		prompt_application_session_turns,
+		prompt_application_sessions,
+		prompt_application_runtime_assignment_events,
+		prompt_application_runtime_assignments,
+		prompt_application_template_versions,
+		prompt_application_template_drafts,
 		application_interaction_session_turns,
 		application_interaction_sessions,
 		workflow_definition_release_audits,
@@ -557,6 +580,7 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 		application_catalog_records,
 		saved_workflow_drafts,
 		workflow_run_schema_versions,
+		prompt_application_template_schema_versions,
 		gateway_request_schema_versions,
 		api_key_schema_versions,
 		application_publish_candidate_schema_versions,
@@ -576,6 +600,9 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS enforce_application_interaction_turn_update(), enforce_application_interaction_session_update()`); err != nil {
 		t.Fatalf("reset configured PostgreSQL application interaction guards: %v", err)
 	}
+	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_prompt_application_runtime_mutation(), enforce_prompt_application_run_update(), enforce_prompt_application_turn_update(), enforce_prompt_application_session_update(), enforce_prompt_application_assignment_update(), reject_prompt_application_template_mutation(), enforce_prompt_application_template_draft_update()`); err != nil {
+		t.Fatalf("reset configured PostgreSQL prompt application guards: %v", err)
+	}
 }
 
 func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
@@ -590,6 +617,8 @@ func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgx
 		{"application_catalog_records", "updated_at", "timestamp with time zone"},
 		{"application_configuration_drafts", "sanitized_draft_payload", "jsonb"},
 		{"application_publish_candidates", "sanitized_candidate_payload", "jsonb"},
+		{"prompt_application_template_drafts", "sanitized_draft_payload", "jsonb"},
+		{"prompt_application_template_versions", "immutable_version_payload", "jsonb"},
 		{"gateway_request_records", "sanitized_request_record", "jsonb"},
 		{"gateway_request_records", "started_at", "timestamp with time zone"},
 		{"saved_workflow_drafts", "sanitized_draft_payload", "jsonb"},
@@ -634,6 +663,8 @@ func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgx
 		{"application_catalog_records_owner_kind_list_idx", "updated_at DESC, application_id DESC"},
 		{"application_configuration_drafts_scope_list_idx", "updated_at DESC, draft_id"},
 		{"application_publish_candidates_scope_list_idx", "created_at DESC, candidate_id DESC"},
+		{"prompt_application_template_drafts_scope_idx", "updated_at DESC, template_id"},
+		{"prompt_application_template_versions_scope_idx", "template_version DESC"},
 		{"gateway_request_records_history_idx", "started_at DESC, request_id DESC"},
 		{"gateway_request_records_selection_idx", "started_at DESC, request_id DESC"},
 		{"saved_workflow_drafts_owner_list_idx", "updated_at DESC, draft_id"},
@@ -730,7 +761,10 @@ func configuredPostgresProductConfig(databaseURL string) config.Config {
 		ApplicationCatalogDevHTTPEnabled:  true, ApplicationCatalogDevWriteEnabled: true,
 		ApplicationCatalogStoreMode: "postgres_dev_test", ApplicationCatalogDatabaseURL: databaseURL,
 		ApplicationCatalogDatabaseTimeout: time.Second,
-		APIKeyLifecycleDevHTTPEnabled:     true, APIKeyLifecycleDevWriteEnabled: true,
+		PromptTemplateDevHTTPEnabled:      true, PromptTemplateDevWriteEnabled: true,
+		PromptTemplateStoreMode: "postgres_dev_test", PromptTemplateDatabaseURL: databaseURL,
+		PromptTemplateDatabaseTimeout: time.Second,
+		APIKeyLifecycleDevHTTPEnabled: true, APIKeyLifecycleDevWriteEnabled: true,
 		APIKeyStoreMode: "postgres_dev_test", APIKeyDatabaseURL: databaseURL, APIKeyDatabaseTimeout: time.Second,
 		GatewayAuthMode:            gatewayAPIKeyAuthenticationSource,
 		WorkflowExecutorDevEnabled: true, WorkflowDefinitionReleaseDevEnabled: true, WorkflowRunStoreMode: "postgres_dev_test",
@@ -749,6 +783,7 @@ func assertConfiguredPostgresRepositorySelection(t *testing.T, server *Server) {
 		"application_catalog": server.config.ApplicationCatalogStoreMode,
 		"application_draft":   server.config.ApplicationDraftStoreMode,
 		"application_publish": server.config.ApplicationPublishStoreMode,
+		"prompt_template":     server.config.PromptTemplateStoreMode,
 		"api_key":             server.config.APIKeyStoreMode,
 		"gateway_request":     server.config.GatewayRequestStoreMode,
 		"workflow_draft":      server.config.WorkflowSavedDraftStoreMode,
@@ -760,6 +795,9 @@ func assertConfiguredPostgresRepositorySelection(t *testing.T, server *Server) {
 	}
 	if _, ok := server.applicationCatalogRepository.(*postgresApplicationCatalogRepository); !ok {
 		t.Fatalf("configured application catalog did not select PostgreSQL: %T", server.applicationCatalogRepository)
+	}
+	if _, ok := server.promptApplicationTemplateRepository.(*postgresPromptApplicationTemplateRepository); !ok {
+		t.Fatalf("configured prompt application template store did not select PostgreSQL: %T", server.promptApplicationTemplateRepository)
 	}
 	if _, ok := server.apiKeyRepository.(*postgresAPIKeyRepository); !ok {
 		t.Fatalf("configured API key store did not select PostgreSQL: %T", server.apiKeyRepository)

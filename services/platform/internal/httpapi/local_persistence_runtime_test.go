@@ -33,7 +33,7 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 	if err := firstServer.localPersistenceRuntime.DB().QueryRowContext(
 		context.Background(),
 		"SELECT count(*) FROM radishmind_schema_migrations",
-	).Scan(&migrationCount); err != nil || migrationCount != 18 {
+	).Scan(&migrationCount); err != nil || migrationCount != 20 {
 		t.Fatalf("aggregate SQLite migration count drifted: count=%d err=%v", migrationCount, err)
 	}
 
@@ -53,6 +53,13 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 	)
 	if draftResult.FailureCode != "" || draftResult.Draft == nil {
 		t.Fatalf("save aggregate SQLite application draft: %#v", draftResult)
+	}
+	promptContext := validPromptApplicationTemplateContext()
+	promptResult := newPromptApplicationTemplateService(firstServer.promptApplicationTemplateRepository).SaveDraft(
+		promptContext, validPromptApplicationTemplateDraftInput(), 0,
+	)
+	if promptResult.FailureCode != "" || promptResult.Draft == nil {
+		t.Fatalf("save aggregate SQLite prompt application template: %#v", promptResult)
 	}
 
 	publishContext := validApplicationPublishContext()
@@ -121,6 +128,10 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 	restoredDraft := newApplicationConfigurationDraftService(secondServer.applicationDraftRepository).Read(draftContext, draftResult.Draft.DraftID)
 	if restoredDraft.FailureCode != "" || restoredDraft.Draft == nil || restoredDraft.Draft.DraftVersion != 1 {
 		t.Fatalf("restore aggregate SQLite application draft: %#v", restoredDraft)
+	}
+	restoredPrompt := newPromptApplicationTemplateService(secondServer.promptApplicationTemplateRepository).ReadDraft(promptContext, promptResult.Draft.TemplateID)
+	if restoredPrompt.FailureCode != "" || restoredPrompt.Draft == nil || restoredPrompt.Draft.DraftVersion != 1 {
+		t.Fatalf("restore aggregate SQLite prompt application template: %#v", restoredPrompt)
 	}
 	restoredPublish := newApplicationPublishCandidateService(
 		secondServer.applicationDraftRepository,
@@ -512,6 +523,9 @@ func assertAggregateSQLiteRepositorySelection(t *testing.T, server *Server) {
 	if _, ok := server.applicationPublishCandidateRepository.(*sqliteApplicationPublishCandidateRepository); !ok {
 		t.Fatalf("application publish did not select SQLite: %T", server.applicationPublishCandidateRepository)
 	}
+	if promptStore, ok := server.promptApplicationTemplateRepository.(*sqlitePromptApplicationTemplateRepository); !ok || promptStore.database != server.localPersistenceRuntime.DB() {
+		t.Fatalf("prompt application templates did not share the SQLite runtime: %T", server.promptApplicationTemplateRepository)
+	}
 	if _, ok := server.apiKeyRepository.(*sqliteAPIKeyRepository); !ok {
 		t.Fatalf("API key did not select SQLite: %T", server.apiKeyRepository)
 	}
@@ -540,6 +554,7 @@ func assertAggregateSQLiteRepositorySelection(t *testing.T, server *Server) {
 		"application_catalog": server.config.ApplicationCatalogStoreMode,
 		"application_draft":   server.config.ApplicationDraftStoreMode,
 		"application_publish": server.config.ApplicationPublishStoreMode,
+		"prompt_template":     server.config.PromptTemplateStoreMode,
 		"api_key":             server.config.APIKeyStoreMode,
 		"gateway_request":     server.config.GatewayRequestStoreMode,
 		"workflow_draft":      server.config.WorkflowSavedDraftStoreMode,
@@ -579,6 +594,9 @@ func aggregateSQLiteDevServerConfig(databasePath string) config.Config {
 		ApplicationCatalogDevHTTPEnabled:  true,
 		ApplicationCatalogDevWriteEnabled: true,
 		ApplicationCatalogDatabaseTimeout: time.Second,
+		PromptTemplateDevHTTPEnabled:      true,
+		PromptTemplateDevWriteEnabled:     true,
+		PromptTemplateDatabaseTimeout:     time.Second,
 		APIKeyLifecycleDevHTTPEnabled:     true,
 		APIKeyLifecycleDevWriteEnabled:    true,
 		APIKeyDatabaseTimeout:             time.Second,

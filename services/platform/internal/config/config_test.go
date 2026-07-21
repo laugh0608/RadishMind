@@ -79,6 +79,8 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 		"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
@@ -144,20 +146,33 @@ func TestPromptApplicationTemplateDevGatesRemainExplicitAndIndependent(t *testin
 	if err := ValidateServerStart(cfg); err != nil {
 		t.Fatalf("complete prompt template development gates rejected: %v", err)
 	}
+	cfg.PromptTemplateStoreMode = "postgres_dev_test"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil || !strings.Contains(err.Error(), "database URL") {
+		t.Fatalf("prompt template PostgreSQL store accepted a missing database URL: %v", err)
+	}
+	cfg.PromptTemplateDatabaseURL = "postgresql://prompt-template.invalid/secret"
+	if err := validateBridgeRuntimeConfig(cfg); err != nil {
+		t.Fatalf("complete prompt template PostgreSQL store config rejected: %v", err)
+	}
 
 	clearPlatformEnv(t)
 	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
 	t.Setenv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP", "1")
 	t.Setenv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE", "true")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE", "postgres_dev_test")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL", "postgresql://prompt-template.invalid/secret")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DATABASE_TIMEOUT", "12s")
 	loaded, err := LoadFromEnv()
 	if err != nil {
 		t.Fatalf("load prompt template development gates: %v", err)
 	}
-	if !loaded.PromptTemplateDevHTTPEnabled || !loaded.PromptTemplateDevWriteEnabled ||
+	if !loaded.PromptTemplateDevHTTPEnabled || !loaded.PromptTemplateDevWriteEnabled || loaded.PromptTemplateStoreMode != "postgres_dev_test" ||
+		loaded.PromptTemplateDatabaseTimeout != 12*time.Second ||
 		loaded.FieldSources["prompt_application_template_dev_http"] != configSourceEnv ||
 		loaded.FieldSources["prompt_application_template_dev_write"] != configSourceEnv ||
 		!loaded.SanitizedSummary().PromptTemplateDevHTTPEnabled ||
-		!loaded.SanitizedSummary().PromptTemplateDevWriteEnabled {
+		!loaded.SanitizedSummary().PromptTemplateDevWriteEnabled || !loaded.SanitizedSummary().PromptTemplateDatabaseConfigured ||
+		loaded.SanitizedSummary().PromptTemplateStoreMode != "postgres_dev_test" {
 		t.Fatalf("prompt template gate source or summary is incomplete: %#v", loaded.SanitizedSummary())
 	}
 }
@@ -1097,7 +1112,7 @@ func TestSQLiteDevLocalPersistenceProjectsEffectiveStoresAndRequiresDevelopmentG
 		!summary.SQLiteDevDatabaseConfigured || !summary.LocalPersistenceComponentsConsistent ||
 		summary.SQLiteDevSchemaStatus != "startup_migrations_configured" ||
 		summary.ApplicationCatalogStoreMode != "sqlite_dev" || summary.ApplicationDraftStoreMode != "sqlite_dev" ||
-		summary.ApplicationPublishStoreMode != "sqlite_dev" || summary.APIKeyStoreMode != "sqlite_dev" ||
+		summary.ApplicationPublishStoreMode != "sqlite_dev" || summary.PromptTemplateStoreMode != "sqlite_dev" || summary.APIKeyStoreMode != "sqlite_dev" ||
 		summary.GatewayRequestStoreMode != "sqlite_dev" || summary.WorkflowSavedDraftStoreMode != "sqlite_dev" ||
 		summary.WorkflowRunStoreMode != "sqlite_dev" {
 		t.Fatalf("unexpected sqlite_dev sanitized summary: %#v", summary)
@@ -1108,6 +1123,8 @@ func TestSQLiteDevLocalPersistenceProjectsEffectiveStoresAndRequiresDevelopmentG
 		"workflow_saved_draft_dev_write",
 		"application_draft_dev_http",
 		"application_draft_dev_write",
+		"prompt_application_template_dev_http",
+		"prompt_application_template_dev_write",
 		"application_publish_dev_http",
 		"application_publish_dev_write",
 		"application_catalog_dev_http",
@@ -1135,6 +1152,8 @@ func TestSQLiteDevLocalPersistenceProjectsEffectiveStoresAndRequiresDevelopmentG
 	cfg.WorkflowSavedDraftDevWriteEnabled = true
 	cfg.ApplicationDraftDevHTTPEnabled = true
 	cfg.ApplicationDraftDevWriteEnabled = true
+	cfg.PromptTemplateDevHTTPEnabled = true
+	cfg.PromptTemplateDevWriteEnabled = true
 	cfg.ApplicationPublishDevHTTPEnabled = true
 	cfg.ApplicationPublishDevWriteEnabled = true
 	cfg.ApplicationCatalogDevHTTPEnabled = true
@@ -1376,6 +1395,9 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_APPLICATION_DRAFT_DEV_WRITE",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE",
+		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE",
+		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DATABASE_TIMEOUT",
 		"RADISHMIND_APPLICATION_DRAFT_STORE",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",

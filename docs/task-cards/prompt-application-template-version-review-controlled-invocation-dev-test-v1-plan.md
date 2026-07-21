@@ -2,7 +2,7 @@
 
 更新时间：2026-07-21
 
-状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_a_in_progress`
+状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_b_completed_batch_c_ready`
 
 ## 目标与准入结论
 
@@ -10,7 +10,7 @@
 
 本任务卡是该专题唯一实施入口。Template owner、配置绑定、发布候选、运行时 assignment、Gateway、Session、Run 与 Evaluation 保持独立职责；模板正文不得复制到配置、候选、assignment、Session、Run、Gateway Request History 或 Operations。
 
-准入结论：功能设计已确认，可以进入批次 A；批次 A 的 strict contract、确定性渲染器与 memory Template owner 通过前，数据库、发布绑定运行实现、provider 调用、Session Prompt profile 和 Web 全链保持关闭。
+准入结论：功能设计、批次 A 与批次 B 均已完成；SQLite 真实文件证据和显式 PostgreSQL 开发测试环境的角色 / migration / repository 门禁已通过。批次 C 现可进入配置、发布审查与 runtime assignment；provider 调用、Session Prompt profile 和 Web 全链继续关闭。
 
 ## 实现基线与现有兼容边界
 
@@ -20,7 +20,7 @@
 - Application Session、Turn 与 Runtime Authority 当前分别为 `application_session.v1`、`application_session_turn.v1`、`application_runtime_authority.v1`，只允许 Workflow Definition v5 与 Application RAG v4 profile。
 - Workflow Run Store 当前兼容 `workflow_run_record.v0` 至 `.v5`；新 Prompt lineage 不修改既有版本。
 - API key 当前允许 `models:read`、三种通用协议调用和 `application_rag:invoke`；Prompt 调用必须使用新增独立 scope。
-- SQLite Workflow migration marker 当前为 v12，PostgreSQL Workflow marker 为 v15；配置草案与发布候选使用独立现有 migration family。
+- 批次 B 实施前 SQLite Workflow migration marker 为 v12、PostgreSQL Workflow marker 为 v15；本批已分别前滚至 v13 / v16，配置草案与发布候选仍使用独立现有 migration family。
 
 ## 冻结的 contract 与版本
 
@@ -115,7 +115,7 @@ assignment 权限固定为 `prompt_application_runtime:read` 与 `prompt_applica
 
 ## 批次 A：strict contract、确定性渲染器与 memory owner
 
-状态：`in_progress`。
+状态：`completed`。
 
 ### A1：受限模板领域内核
 
@@ -155,23 +155,53 @@ assignment 权限固定为 `prompt_application_runtime:read` 与 `prompt_applica
 
 ### A3：后续版本 contract 占位边界
 
-状态：`next`。
+状态：`completed`。
 
 - 只创建配置 v3、候选 v3、assignment v1 / event v1、authority v2、Session / Turn v2、run v6 strict schema 与 codec 测试。
 - 本子批不得接入配置保存、候选 review、assignment repository、Session coordinator、Run Store 或 provider。
 
 完成条件：JSON Schema、Go codec 与后续 TypeScript strict consumer 共享字段表；v1/v2/v0–v5 兼容用例保持通过。
 
+共享字段表：
+
+| 契约 | 身份与作用域 | 精确 lineage / 状态 | 明确禁止持久化 |
+| --- | --- | --- | --- |
+| Configuration Draft v3 | `draft_id / workspace_id / application_id` | application base revision、公开协议 / 模型策略、`prompt_template_ref`、draft version / digest | 模板源码、RAG binding、credential、运行输入输出 |
+| Publish Candidate v3 | candidate / application / draft identity | 精确 draft 与 template ref、既有 review 序列、promotion eligibility | 模板源码、第二套审批状态机、provider 材料 |
+| Runtime Assignment v1 | tenant / workspace / application / owner | candidate / review、draft、template 精确引用、CAS version / digest、active / revoked | 配置快照、模板源码、自动调用结果 |
+| Assignment Event v1 | assignment 与完整 application scope | append-only sequence、expected / resulting version、activate / replace / revoke | 可变当前状态、模板 / 配置正文、provider 调用 |
+| Runtime Authority v2 | application identity / record version / lifecycle | assignment、candidate / review、draft、template、协议 / 模型资格摘要与整体 digest | v1 Workflow / RAG 分支、源码、变量、credential |
+| Session v2 | session 与完整 application scope | Prompt profile、authority v2、CAS、active / closed、turn summary | transcript、变量值、input / output、run body |
+| Turn v2 | turn / session / sequence 与完整 scope | authority v2、input digest / bytes、终态、仅引用 run v6 | 原始 input、rendered messages、answer、provider response |
+| Run v6 | run 与完整 application scope | exact authority / template lineage、变量名摘要、Gateway selection、usage、终态诊断 | 变量值、模板、rendered messages、输出、raw response、credential |
+
+后续 TypeScript strict consumer 必须逐列复用上述字段组和版本常量，不得以可选字段把 v1 / v2 / v0–v5 原地放宽。
+
+完成证据：
+
+- 新增 8 份 Draft 2020-12 strict schema，并接入既有仓库级 schema 元校验；所有对象关闭 `additionalProperties`，Prompt lineage 只保存精确引用与 digest。
+- Go contract-only codec 对 8 个版本执行未知字段、尾随 JSON、精确 ID、作用域、审查序列、时间顺序、authority digest、终态与 metadata-only 语义校验，但未注册到任何现有 runtime owner。
+- 负向测试拒绝旧版本伪装、Workflow profile、v1 Session / Turn、v5 run ref、模板 / 变量 / output / provider 敏感字段；兼容测试确认 Configuration v1 / v2 与 Run v0–v5 owner 仍保持原版本集合，v3 / v6 未被提前激活。
+- 完整 `internal/httpapi`、Go vet、schema 元校验、仓库门禁与差异卫生通过后，批次 A 关闭；本批没有 migration、repository、配置保存、候选 review、Session coordinator、Run Store、provider 或 Web 接线。
+
 批次 A 总门禁：Platform 相邻单元测试、contract 校验、`go test ./internal/httpapi`、`git diff --check` 与 `./scripts/check-repo.sh --fast`。A1–A3 均完成前不得进入批次 B。
 
 ## 批次 B：SQLite / PostgreSQL 开发测试态持久化
 
-状态：`blocked_by_batch_a`。
+状态：`completed`。
 
 - 新增独立 `prompt_application_templates` migration family：SQLite / PostgreSQL 均从 `0001` 开始，承载 Draft 与 immutable Version owner。
 - Workflow shared runtime 下一 migration 固定为 SQLite `0013`、PostgreSQL `0016`，承载 Prompt assignment、v2 Session / Turn 与 v6 run 所需投影。
 - Configuration Draft v3 与 Publish Candidate v3 继续使用既有 payload 表和独立 owner，不因 JSON schema 升级新增平行表。
 - 完成 migration / rollback / reapply、marker / checksum、运行角色、重启、并发、corruption、no-fallback 和数据库敏感材料扫描。
+
+实现记录：
+
+- Template owner 已建立独立 SQLite / PostgreSQL `0001` migration family、严格 Draft / immutable Version 表、受控草案更新与版本不可变触发器；PostgreSQL 提供 `status | up` 手动 migration CLI。
+- shared Workflow runtime 已前滚至 SQLite `0013` / PostgreSQL `0016`，只物化 assignment、v2 Session / Turn 与 v6 run 的未来投影；没有创建领域 service、配置 binding、assignment 行为或 invocation owner。
+- Template repository 已覆盖 SQLite 真实文件重启、8 路 CAS、scope、不可变触发器、digest corruption、marker mismatch、关闭 no-fallback 和敏感材料扫描；聚合本地产品 runtime 已扩为八组件并保持单一 SQLite 生命周期。
+- 统一 PostgreSQL dev/test Shell / PowerShell 门禁已纳入 Template store 配置、独立 migration identity 与手动 runner；完整仓库门禁已通过。
+- PostgreSQL integration test 已覆盖 up / repeat / rollback / reapply、checksum mismatch、运行角色 DDL 拒绝、service reconstruction、8 路 CAS、scope、不可变触发器、digest corruption、关闭 no-fallback 与敏感材料扫描；真实 dev/test `check` 已通过。首次执行暴露的 Workflow v16 relation 残留来自共享 schema reset 未纳入新投影表与 guard，补齐完整 reset 和聚合 configured gate 后复验通过。
 
 ## 批次 C：配置、发布审查与 runtime assignment
 

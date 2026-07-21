@@ -60,6 +60,7 @@ type Server struct {
 	closeApplicationDraftStore              func()
 	closeApplicationPublishStore            func()
 	closeApplicationCatalogStore            func()
+	closePromptApplicationTemplateStore     func()
 	closeAPIKeyStore                        func()
 	closeWorkflowRunStore                   func()
 	closeGatewayRequestStore                func()
@@ -183,9 +184,14 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
 		return nil, err
 	}
-	platformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	promptApplicationTemplateRepository, closePromptApplicationTemplateStore, err := newPromptApplicationTemplateRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore)
+		return nil, err
+	}
+	platformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore)
 		return nil, err
 	}
 	mux := http.NewServeMux()
@@ -199,7 +205,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		applicationDraftRepository:              applicationDraftRepository,
 		applicationPublishCandidateRepository:   applicationPublishRepository,
 		applicationCatalogRepository:            applicationCatalogRepository,
-		promptApplicationTemplateRepository:     newMemoryPromptApplicationTemplateRepository(),
+		promptApplicationTemplateRepository:     promptApplicationTemplateRepository,
 		applicationInteractionSessionRepository: applicationInteractionSessionRepository,
 		apiKeyRepository:                        apiKeyRepository,
 		workflowRunStore:                        workflowRunStore,
@@ -218,6 +224,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeApplicationDraftStore:              closeApplicationDraftStore,
 		closeApplicationPublishStore:            closeApplicationPublishStore,
 		closeApplicationCatalogStore:            closeApplicationCatalogStore,
+		closePromptApplicationTemplateStore:     closePromptApplicationTemplateStore,
 		closeAPIKeyStore:                        closeAPIKeyStore,
 		closeWorkflowRunStore:                   closeWorkflowRunStore,
 		closeGatewayRequestStore:                closeGatewayRequestStore,
@@ -409,6 +416,9 @@ func (s *Server) Close() {
 		}
 		if s.closeApplicationCatalogStore != nil {
 			s.closeApplicationCatalogStore()
+		}
+		if s.closePromptApplicationTemplateStore != nil {
+			s.closePromptApplicationTemplateStore()
 		}
 		if s.closeApplicationPublishStore != nil {
 			s.closeApplicationPublishStore()
