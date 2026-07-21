@@ -1,6 +1,6 @@
 # RadishMind 服务/API 接入契约
 
-更新时间：2026-07-14
+更新时间：2026-07-21
 
 ## 协议兼容边界
 
@@ -18,7 +18,7 @@
 当前目标口径应固定为：
 
 - 北向兼容：native Copilot API、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/models/{id}`、`/v1/platform/overview`、`/v1/platform/local-smoke`、`/v1/session/metadata`、`/v1/session/recovery/checkpoints/{checkpoint_id}`、`/v1/tools/metadata`、`/v1/tools/actions`，以及 Control Plane Read-Side 的七条 read-only route
-- 本地产品 API：Workflow Draft / Run / Evaluation、Application Catalog、Application Configuration Draft / Publish Candidate、API Key Lifecycle、Gateway Request History；这些路由只在各自显式 dev/test gate 下开放，不属于公开 production northbound compatibility surface
+- 本地产品 API：Workflow Draft / Run / Evaluation、Application Catalog、Application Configuration Draft / Publish Candidate、Prompt Application Template / Runtime Assignment、API Key Lifecycle、Gateway Request History；这些路由只在各自显式 dev/test gate 下开放，不属于公开 production northbound compatibility surface
 - 南向兼容：`RadishMind-Core`、`local_transformers / HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native、Anthropic messages
 
 control plane / user workspace 的 read-only route contract 已单独收口到 [Control Plane Read-Side 契约](control-plane-read-side.md)。当前七条 read-only route 均已注册到 `services/platform/` HTTP surface，并统一经过 shared verified identity 与 route authorization。`fake_store_dev` 保留给显式开发测试路径；`postgres_dev_test` 只路由 Tenant Summary 与 Audit，五条 workspace operation 在 signed test 模式保留 fake binding。`radish_oidc_integration_test` 只允许 `postgres_dev_test`，只开放 Tenant Summary / Audit，workspace operation 统一 fail closed 为 `workspace_membership_unavailable`。
@@ -149,10 +149,11 @@ HTTP JSON 现在由 `Go` 平台服务层承接，默认通过四个受控 `stdio
 
 - Workflow：saved draft save / list / read / validate、bounded run start / list / read / comparison、evaluation case / revision / suite / decision。
 - Application：application catalog create / list / read / update / archive、configuration draft validate / save / list / read，以及 immutable publish candidate create / list / read / append-only review。
+- Prompt Application：template validate / save / list / source read / immutable version，以及 Configuration Draft v3 binding、Publish Candidate v3 exact template review、runtime assignment read / events / `activate | replace | revoke`。精确路由、scope、请求示例和失败处理见 [Prompt Application 开发测试态使用指南](../features/user-workspace/prompt-application-dev-test-usage-guide.md)；invocation、Session v2、Run v6 与 Web 当前不属于已开放 API。
 - API 密钥：绑定 active application 的 list / create / read / revoke；原始令牌只在 create 响应的 `credential.token` 返回一次，后续响应不得返回令牌或摘要。
 - Model Gateway：`GET /v1/model-gateway/requests` 与 `GET /v1/model-gateway/requests/{request_id}`；开发身份头模式要求完整 caller scope，`api_key_dev_test` 模式则从 Bearer 密钥恢复可信调用方上下文并记录 sanitized history。
 
-Application Catalog、API Key、Application Draft、Publish Candidate、Workflow Draft / Run 和 Gateway Request 共享三层开发测试存储契约：`memory_dev` 用于进程内测试；聚合 `sqlite_dev` 用于本地产品启动，由平台在单一共享文件上应用七组 migration 并统一管理连接生命周期；显式 `postgres_dev_test` 用于数据库同构验证，要求各自 migration marker / checksum、runtime DML role 和 startup preflight。`sqlite_dev` 不能通过单个组件 `*_STORE` 独立启用，聚合模式与任何显式 component store 同时存在时必须拒绝启动。任一数据库、连接、marker、checksum 或查询失败都不得回退内存。
+Application Catalog、API Key、Application Draft、Publish Candidate、Prompt Application Template、Workflow Draft / Run 和 Gateway Request 共享三层开发测试存储契约：`memory_dev` 用于进程内测试；聚合 `sqlite_dev` 用于本地产品启动，由平台在单一共享文件上应用八组 migration 并统一管理连接生命周期；显式 `postgres_dev_test` 用于数据库同构验证，要求各自 migration marker / checksum、runtime DML role 和 startup preflight。Prompt Runtime Assignment / Event 使用共享 Workflow Run Store 投影，不新增第九个组件。`sqlite_dev` 不能通过单个组件 `*_STORE` 独立启用，聚合模式与任何显式 component store 同时存在时必须拒绝启动。任一数据库、连接、marker、checksum 或查询失败都不得回退内存。
 
 本地 wrapper 默认使用 `local-product` 档并注入聚合 SQLite 与必要开发门禁；`configured` 档不注入持久化配置，只消费调用方显式环境，供 PostgreSQL 集成和故障注入使用。`config-summary`、`config-check` 与 `diagnostics` 不创建数据库或执行 migration，只有 `serve` 进入 repository 和 shared runtime 生命周期。Application candidate create 必须由服务端重新读取 saved valid draft 并计算 digest；review 只追加决定，不修改 candidate snapshot。Gateway history 不持久化 prompt、message、模型正文、Authorization、API key、令牌摘要或 provider raw payload。
 

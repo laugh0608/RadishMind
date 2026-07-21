@@ -115,7 +115,7 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 - Application RAG、Workflow Definition、Application Session、v4 / v5 历史与运行观测见[应用受控运行开发测试态指南](../features/user-workspace/application-controlled-runtime-dev-test-guide.md)。
 - Workflow 草案、运行、评测与执行 gate 见 [Workflow 专题](../features/workflow/README.md)。
 - Application Draft / Publish gate 见 [User Workspace 专题](../features/user-workspace/README.md)。
-- Prompt Template、Configuration Draft v3、Publish Candidate v3 与 Runtime Assignment gate 见 [Prompt Application 功能专题](../features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)。
+- Prompt Template、Configuration Draft v3、Publish Candidate v3 与 Runtime Assignment 的配置、路由、权限、CAS 和故障处理见 [Prompt Application 开发测试态使用指南](../features/user-workspace/prompt-application-dev-test-usage-guide.md)；长期领域边界见 [Prompt Application 功能专题](../features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)。
 - Control Plane auth / store / OIDC integration test 见 [Admin Control Plane 专题](../features/admin-control-plane/README.md)。
 
 所有未知 selector、保留 production 值和不完整数据库配置都在启动前失败关闭。组件显式 `*_STORE` 与聚合 `RADISHMIND_LOCAL_PERSISTENCE_MODE=sqlite_dev` 不得同时设置；数据库、migration、marker、checksum 或查询失败不得回退 `memory_dev`。
