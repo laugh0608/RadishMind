@@ -564,6 +564,8 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/application-runtime-authority.schema.json",
         REPO_ROOT / "contracts/application-session.schema.json",
         REPO_ROOT / "contracts/application-session-turn.schema.json",
+        REPO_ROOT / "contracts/prompt-application-template-draft.schema.json",
+        REPO_ROOT / "contracts/prompt-application-template-version.schema.json",
         REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
         REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json",
         REPO_ROOT / "contracts/radishflow-export-snapshot.schema.json",

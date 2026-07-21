@@ -52,6 +52,14 @@ var controlPlaneReadPermissionGrants = map[string]string{
 	"radishmind.application-sessions.execute":   "application_sessions:execute",
 }
 
+var promptApplicationTemplatePermissionGrants = map[string]string{
+	"radishmind.prompt-application-templates.read":        "prompt_application_templates:read",
+	"radishmind.prompt-application-templates.read-source": "prompt_application_templates:read_source",
+	"radishmind.prompt-application-templates.write":       "prompt_application_templates:write",
+	"radishmind.prompt-application-templates.version":     "prompt_application_templates:version",
+	"radishmind.prompt-application-templates.bind":        "prompt_application_templates:bind",
+}
+
 var controlPlaneReadAuthReferencePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$`)
 
 type VerifiedControlPlaneIdentity struct {
@@ -419,6 +427,9 @@ func projectControlPlaneReadPermissions(permissions []string) []string {
 	seen := map[string]bool{}
 	for _, permission := range permissions {
 		grant, ok := controlPlaneReadPermissionGrants[strings.TrimSpace(permission)]
+		if !ok {
+			grant, ok = promptApplicationTemplatePermissionGrants[strings.TrimSpace(permission)]
+		}
 		if ok && !seen[grant] {
 			seen[grant] = true
 			grants = append(grants, grant)

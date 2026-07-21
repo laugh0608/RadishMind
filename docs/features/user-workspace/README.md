@@ -1,12 +1,12 @@
 # 用户工作区细专题入口
 
-更新时间：2026-07-20
+更新时间：2026-07-21
 
 本目录承接用户工作区中跨应用、模型发现、接入、调用与审查的具体功能专题。产品面长期边界继续以 [用户工作区设计与开发文档](../user-workspace.md) 为准。
 
 ## 当前专题
 
-- [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)：下一长期功能设计已经确认；模板源码使用独立 owner，既有 Application Publish Candidate 承担唯一人工审查，批准后仍需显式 assignment，运行只委托一次 Gateway 并保存 metadata-only evidence。
+- [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)：A1 受限模板内核和 A2 strict schema、memory owner、默认关闭 API 已完成；模板源码只属于独立 owner，既有 Application Publish Candidate 仍承担后续唯一人工审查。
 - [应用开发工作区与发布准备审查 v1](application-development-workspace-release-readiness-review-v1.md)：批次 A 至 C 已完成并关闭；route-scoped evidence、精确 Draft / Run owner 重读、离线 revision 失败关闭、真实浏览器连续路径与 URL / console / network 隐私审计均有可复验证据。
 - [应用受控运行开发测试态指南](application-controlled-runtime-dev-test-guide.md)：说明 Application RAG、Workflow Definition、Application Interaction Session、v4 / v5 运行记录与 Application Operations 的启动、资源准备、作用域、恢复、失败语义和隐私边界。
 - [应用交互会话与受控运行编排（开发 / 测试态）v1](application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)：strict contract、三种 Session / Turn owner、exact authority reload、v5 / v4 单次委托、Web 易失交互工作区、双数据库 launcher 连续链、重启恢复、真实浏览器和敏感扫描均已完成，专题关闭。
@@ -19,7 +19,7 @@
 
 ## 下一步
 
-- 建立“提示词应用模板版本审查与受控调用（开发 / 测试态）v1”单一高风险实施任务卡，冻结批次 A 至 E 的 schema / API、迁移、兼容矩阵和停止条件，再从 strict contract、确定性渲染器与 memory owner 开始。
+- 按唯一任务卡推进 A3：只建立 Configuration Draft v3、Publish Candidate v3、assignment / event v1、authority / Session / Turn v2 与 run v6 strict contract 和 codec 测试，不接运行 owner。
 - 不继续扩“应用开发工作区与发布准备审查 v1”的同层切片；Prompt Application 复用现有 workspace context、发布审查、Gateway、Session、Run History 和 Evaluation，不另建聚合发布真相源或执行算法。
 - 不从已关闭的 Application Interaction Session 派生长期记忆、自动 profile、重试 / fallback、schedule、replay / resume 或 agent loop。只有需要跨全部分页窗口的稳定统计、可信 reported usage 或正式 quota / billing owner 时，才评审服务端 summary。
 

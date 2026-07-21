@@ -226,6 +226,18 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryConfiguration,
 			defaultMessage:  "saved workflow draft dev HTTP route is disabled",
 		},
+		"PROMPT_APPLICATION_TEMPLATE_DEV_HTTP_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "prompt application template dev HTTP route is disabled",
+		},
+		PromptApplicationTemplateFailurePayloadInvalid: {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "prompt application template request is invalid",
+		},
 		"API_KEY_LIFECYCLE_DEV_HTTP_DISABLED": {
 			statusCode:      http.StatusForbidden,
 			errorType:       "invalid_request_error",

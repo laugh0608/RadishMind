@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/prompt-application-template-version.schema.json",
+  "title": "PromptApplicationTemplateVersionV1",
+  "description": "从精确有效草案创建的不可变 Prompt Application 模板版本。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "template_id", "template_version", "source_draft_version", "tenant_ref", "workspace_id", "application_id", "owner_subject_ref", "template_name", "description", "messages", "variables", "output_contract", "template_digest", "created_at", "created_by_actor_ref", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "prompt_application_template_version.v1"},
+    "template_id": {"$ref": "prompt-application-template-draft.schema.json#/$defs/templateId"},
+    "template_version": {"type": "integer", "minimum": 1},
+    "source_draft_version": {"type": "integer", "minimum": 1},
+    "tenant_ref": {"$ref": "prompt-application-template-draft.schema.json#/$defs/ref"},
+    "workspace_id": {"$ref": "prompt-application-template-draft.schema.json#/$defs/ref"},
+    "application_id": {"$ref": "prompt-application-template-draft.schema.json#/$defs/applicationId"},
+    "owner_subject_ref": {"$ref": "prompt-application-template-draft.schema.json#/$defs/ref"},
+    "template_name": {"type": "string", "minLength": 2, "maxLength": 80},
+    "description": {"type": "string", "maxLength": 512},
+    "messages": {"$ref": "prompt-application-template-draft.schema.json#/$defs/messages"},
+    "variables": {"$ref": "prompt-application-template-draft.schema.json#/$defs/variables"},
+    "output_contract": {"$ref": "prompt-application-template-draft.schema.json#/$defs/outputContract"},
+    "template_digest": {"$ref": "prompt-application-template-draft.schema.json#/$defs/digest"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "created_by_actor_ref": {"$ref": "prompt-application-template-draft.schema.json#/$defs/ref"},
+    "request_id": {"$ref": "prompt-application-template-draft.schema.json#/$defs/ref"},
+    "audit_ref": {"$ref": "prompt-application-template-draft.schema.json#/$defs/ref"}
+  }
+}

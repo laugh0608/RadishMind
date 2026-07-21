@@ -101,6 +101,8 @@ type Config struct {
 	WorkflowSavedDraftDevWriteEnabled    bool
 	ApplicationDraftDevHTTPEnabled       bool
 	ApplicationDraftDevWriteEnabled      bool
+	PromptTemplateDevHTTPEnabled         bool
+	PromptTemplateDevWriteEnabled        bool
 	ApplicationDraftStoreMode            string
 	ApplicationDraftDatabaseURL          string
 	ApplicationDraftDatabaseTimeout      time.Duration
@@ -170,6 +172,8 @@ type ConfigSummary struct {
 	WorkflowSavedDraftDevWriteEnabled    bool              `json:"workflow_saved_draft_dev_write_enabled"`
 	ApplicationDraftDevHTTPEnabled       bool              `json:"application_draft_dev_http_enabled"`
 	ApplicationDraftDevWriteEnabled      bool              `json:"application_draft_dev_write_enabled"`
+	PromptTemplateDevHTTPEnabled         bool              `json:"prompt_application_template_dev_http_enabled"`
+	PromptTemplateDevWriteEnabled        bool              `json:"prompt_application_template_dev_write_enabled"`
 	ApplicationDraftStoreMode            string            `json:"application_draft_store_mode"`
 	ApplicationDraftDatabaseConfigured   bool              `json:"application_draft_database_configured"`
 	ApplicationPublishDevHTTPEnabled     bool              `json:"application_publish_dev_http_enabled"`
@@ -349,6 +353,8 @@ func defaultConfig() Config {
 			"workflow_saved_draft_dev_write":        configSourceDefault,
 			"application_draft_dev_http":            configSourceDefault,
 			"application_draft_dev_write":           configSourceDefault,
+			"prompt_application_template_dev_http":  configSourceDefault,
+			"prompt_application_template_dev_write": configSourceDefault,
 			"application_draft_store":               configSourceDefault,
 			"application_draft_database":            configSourceDefault,
 			"application_draft_database_timeout":    configSourceDefault,
@@ -679,6 +685,22 @@ func applyEnvOverrides(cfg *Config) error {
 		}
 		cfg.ApplicationDraftDevWriteEnabled = parsed
 		cfg.FieldSources["application_draft_dev_write"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP", value)
+		if err != nil {
+			return err
+		}
+		cfg.PromptTemplateDevHTTPEnabled = parsed
+		cfg.FieldSources["prompt_application_template_dev_http"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE", value)
+		if err != nil {
+			return err
+		}
+		cfg.PromptTemplateDevWriteEnabled = parsed
+		cfg.FieldSources["prompt_application_template_dev_write"] = configSourceEnv
 	}
 	if value, ok := stringEnv("RADISHMIND_APPLICATION_DRAFT_STORE"); ok {
 		applyStringValue(&cfg.ApplicationDraftStoreMode, value, cfg.FieldSources, "application_draft_store", configSourceEnv)
@@ -1036,6 +1058,12 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_http")
 		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_write")
 	}
+	if cfg.PromptTemplateDevHTTPEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+	}
+	if cfg.PromptTemplateDevWriteEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_template_dev_http")
+	}
 	if applicationPublishStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_http")
@@ -1157,6 +1185,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		WorkflowSavedDraftDevWriteEnabled:    cfg.WorkflowSavedDraftDevWriteEnabled,
 		ApplicationDraftDevHTTPEnabled:       cfg.ApplicationDraftDevHTTPEnabled,
 		ApplicationDraftDevWriteEnabled:      cfg.ApplicationDraftDevWriteEnabled,
+		PromptTemplateDevHTTPEnabled:         cfg.PromptTemplateDevHTTPEnabled,
+		PromptTemplateDevWriteEnabled:        cfg.PromptTemplateDevWriteEnabled,
 		ApplicationDraftStoreMode:            applicationDraftStoreMode,
 		ApplicationDraftDatabaseConfigured:   strings.TrimSpace(cfg.ApplicationDraftDatabaseURL) != "",
 		ApplicationPublishDevHTTPEnabled:     cfg.ApplicationPublishDevHTTPEnabled,
@@ -1349,6 +1379,10 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			}
 		case "application_draft_dev_write":
 			if !cfg.ApplicationDraftDevWriteEnabled {
+				missing = append(missing, field)
+			}
+		case "prompt_application_template_dev_http":
+			if !cfg.PromptTemplateDevHTTPEnabled {
 				missing = append(missing, field)
 			}
 		case "application_draft_database":
@@ -1626,6 +1660,12 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.ApplicationDraftDatabaseTimeout <= 0 {
 		return fmt.Errorf("application draft database timeout must be positive")
+	}
+	if cfg.PromptTemplateDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return fmt.Errorf("prompt application template dev HTTP requires control plane read dev auth")
+	}
+	if cfg.PromptTemplateDevWriteEnabled && !cfg.PromptTemplateDevHTTPEnabled {
+		return fmt.Errorf("prompt application template dev write requires its HTTP gate")
 	}
 	if cfg.ApplicationPublishDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return fmt.Errorf("application publish dev HTTP requires control plane read dev auth")

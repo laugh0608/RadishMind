@@ -40,6 +40,7 @@ type Server struct {
 	applicationDraftRepository              applicationConfigurationDraftRepository
 	applicationPublishCandidateRepository   applicationPublishCandidateRepository
 	applicationCatalogRepository            applicationCatalogRepository
+	promptApplicationTemplateRepository     promptApplicationTemplateRepository
 	applicationInteractionSessionRepository applicationInteractionSessionRepository
 	apiKeyRepository                        apiKeyRepository
 	workflowRunStore                        workflowRunStore
@@ -198,6 +199,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		applicationDraftRepository:              applicationDraftRepository,
 		applicationPublishCandidateRepository:   applicationPublishRepository,
 		applicationCatalogRepository:            applicationCatalogRepository,
+		promptApplicationTemplateRepository:     newMemoryPromptApplicationTemplateRepository(),
 		applicationInteractionSessionRepository: applicationInteractionSessionRepository,
 		apiKeyRepository:                        apiKeyRepository,
 		workflowRunStore:                        workflowRunStore,
@@ -263,6 +265,13 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationDraftListRoute, server.handleListApplicationConfigurationDrafts)
 	mux.HandleFunc(applicationDraftReadRoute, server.handleReadApplicationConfigurationDraft)
 	mux.HandleFunc(applicationDraftValidateRoute, server.handleValidateApplicationConfigurationDraft)
+	mux.HandleFunc(promptApplicationTemplateValidateRoute, server.handleValidatePromptApplicationTemplate)
+	mux.HandleFunc(promptApplicationTemplateSaveRoute, server.handleSavePromptApplicationTemplate)
+	mux.HandleFunc(promptApplicationTemplateListRoute, server.handleListPromptApplicationTemplates)
+	mux.HandleFunc(promptApplicationTemplateReadRoute, server.handleReadPromptApplicationTemplate)
+	mux.HandleFunc(promptApplicationTemplateVersionCreateRoute, server.handleCreatePromptApplicationTemplateVersion)
+	mux.HandleFunc(promptApplicationTemplateVersionListRoute, server.handleListPromptApplicationTemplateVersions)
+	mux.HandleFunc(promptApplicationTemplateVersionReadRoute, server.handleReadPromptApplicationTemplateVersion)
 	mux.HandleFunc(applicationPublishCandidateCreateRoute, server.handleCreateApplicationPublishCandidate)
 	mux.HandleFunc(applicationPublishCandidateListRoute, server.handleListApplicationPublishCandidates)
 	mux.HandleFunc(applicationPublishCandidateReadRoute, server.handleReadApplicationPublishCandidate)
@@ -479,6 +488,8 @@ func localConsoleAllowedHeaders() []string {
 		savedWorkflowDraftDevApplicationHeader,
 		applicationDraftDevWorkspaceHeader,
 		applicationDraftDevApplicationHeader,
+		promptApplicationTemplateDevWorkspaceHeader,
+		promptApplicationTemplateDevApplicationHeader,
 		applicationPublishDevWorkspaceHeader,
 		applicationPublishDevApplicationHeader,
 		gatewayRequestDevTenantHeader,

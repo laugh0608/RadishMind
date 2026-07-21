@@ -136,6 +136,8 @@ assignment 权限固定为 `prompt_application_runtime:read` 与 `prompt_applica
 
 ### A2：strict schema、memory Template owner 与 API
 
+状态：`completed`。
+
 - 新增 Template Draft / Version strict JSON Schema 与 Go domain validation。
 - memory repository 实现 application / tenant / workspace / owner scope、CAS、不可变版本、稳定排序和故障注入。
 - Template API 默认关闭，read summary 与 read source 权限严格分离。
@@ -143,7 +145,17 @@ assignment 权限固定为 `prompt_application_runtime:read` 与 `prompt_applica
 
 完成条件：非 Template 路由零写入，所有失败路径零 provider 调用；不存在内存 fallback、正文跨 owner 复制或未知字段兼容。
 
+完成证据：
+
+- 新增 `prompt_application_template_draft.v1` 与 `prompt_application_template_version.v1` Draft 2020-12 strict schema，并接入既有仓库级 schema 元校验；Go strict codec 同时拒绝未知字段与 credential-bearing 扩展字段。
+- memory Template owner 按 tenant / workspace / application / owner 隔离，支持草案 expected-version CAS、稳定摘要排序、精确草案版本重读、不可变版本和显式 unavailable 故障；corruption、digest drift 与 no-fallback 均失败关闭。
+- 七条 Template API 使用独立默认关闭 HTTP / write gate；validate 零写入，摘要读取、草案 / 版本源码读取、写入和版本创建分别使用 `read`、`read_source`、`write` 与 `version` 权限。
+- save / version create 在写入前重读 Application Catalog active record 并要求 `application_kind=prompt_application`；列表和版本列表不返回 messages、content 或变量值。
+- 定向单元测试、定向 race、完整 `internal/config`、完整 `internal/httpapi`、`go vet` 和 schema 元校验均已通过；所有 Template HTTP 路径与失败用例的 Gateway 调用计数保持为零。
+
 ### A3：后续版本 contract 占位边界
+
+状态：`next`。
 
 - 只创建配置 v3、候选 v3、assignment v1 / event v1、authority v2、Session / Turn v2、run v6 strict schema 与 codec 测试。
 - 本子批不得接入配置保存、候选 review、assignment repository、Session coordinator、Run Store 或 provider。

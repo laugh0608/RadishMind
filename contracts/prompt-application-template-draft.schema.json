@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/prompt-application-template-draft.schema.json",
+  "title": "PromptApplicationTemplateDraftV1",
+  "description": "Prompt Application 模板 owner 保存的规范化草案；模板源码不得复制到其它 owner。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "template_id", "workspace_id", "application_id", "template_name", "description", "messages", "variables", "output_contract", "tenant_ref", "owner_subject_ref", "draft_version", "template_digest", "validation_summary", "created_at", "updated_at", "created_by_actor_ref", "updated_by_actor_ref", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "prompt_application_template_draft.v1"},
+    "template_id": {"$ref": "#/$defs/templateId"},
+    "workspace_id": {"$ref": "#/$defs/ref"},
+    "application_id": {"$ref": "#/$defs/applicationId"},
+    "template_name": {"type": "string", "minLength": 2, "maxLength": 80},
+    "description": {"type": "string", "maxLength": 512},
+    "messages": {"$ref": "#/$defs/messages"},
+    "variables": {"$ref": "#/$defs/variables"},
+    "output_contract": {"$ref": "#/$defs/outputContract"},
+    "tenant_ref": {"$ref": "#/$defs/ref"},
+    "owner_subject_ref": {"$ref": "#/$defs/ref"},
+    "draft_version": {"type": "integer", "minimum": 1},
+    "template_digest": {"$ref": "#/$defs/digest"},
+    "validation_summary": {"$ref": "#/$defs/validationSummary"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "created_by_actor_ref": {"$ref": "#/$defs/ref"},
+    "updated_by_actor_ref": {"$ref": "#/$defs/ref"},
+    "request_id": {"$ref": "#/$defs/ref"},
+    "audit_ref": {"$ref": "#/$defs/ref"}
+  },
+  "$defs": {
+    "ref": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$"},
+    "applicationId": {"type": "string", "pattern": "^app_[a-z2-7]{16}$"},
+    "templateId": {"type": "string", "pattern": "^ptpl_[a-z2-7]{16}$"},
+    "digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "messages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "content"],
+        "properties": {
+          "role": {"enum": ["system", "developer", "user"]},
+          "content": {"type": "string", "minLength": 1, "maxLength": 16384}
+        }
+      }
+    },
+    "variables": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {"$ref": "#/$defs/variable"}
+    },
+    "variable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type", "required", "description"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"},
+        "type": {"enum": ["string", "integer", "number", "boolean", "string_list"]},
+        "required": {"type": "boolean"},
+        "description": {"type": "string", "maxLength": 512},
+        "default_value": {
+          "oneOf": [
+            {"type": "string", "maxLength": 16384},
+            {"type": "integer"},
+            {"type": "number"},
+            {"type": "boolean"},
+            {"type": "array", "maxItems": 128, "items": {"type": "string", "maxLength": 16384}}
+          ]
+        }
+      },
+      "allOf": [
+        {"if": {"properties": {"required": {"const": true}}, "required": ["required"]}, "then": {"not": {"required": ["default_value"]}}},
+        {"if": {"properties": {"type": {"const": "string"}}, "required": ["type"]}, "then": {"properties": {"default_value": {"type": "string"}}}},
+        {"if": {"properties": {"type": {"const": "integer"}}, "required": ["type"]}, "then": {"properties": {"default_value": {"type": "integer"}}}},
+        {"if": {"properties": {"type": {"const": "number"}}, "required": ["type"]}, "then": {"properties": {"default_value": {"type": "number"}}}},
+        {"if": {"properties": {"type": {"const": "boolean"}}, "required": ["type"]}, "then": {"properties": {"default_value": {"type": "boolean"}}}},
+        {"if": {"properties": {"type": {"const": "string_list"}}, "required": ["type"]}, "then": {"properties": {"default_value": {"type": "array", "maxItems": 128, "items": {"type": "string", "maxLength": 16384}}}}}
+      ]
+    },
+    "outputContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "allow_empty", "max_bytes"],
+      "properties": {
+        "kind": {"enum": ["text", "json_object"]},
+        "allow_empty": {"type": "boolean"},
+        "max_bytes": {"type": "integer", "minimum": 1, "maximum": 65536},
+        "json_schema": {"$ref": "#/$defs/jsonSchema"}
+      },
+      "allOf": [
+        {"if": {"properties": {"kind": {"const": "text"}}, "required": ["kind"]}, "then": {"not": {"required": ["json_schema"]}}},
+        {"if": {"properties": {"kind": {"const": "json_object"}}, "required": ["kind"]}, "then": {"required": ["json_schema"]}}
+      ]
+    },
+    "jsonSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "additionalProperties"],
+      "properties": {
+        "type": {"enum": ["object", "array", "string", "integer", "number", "boolean"]},
+        "properties": {"type": "object", "additionalProperties": {"$ref": "#/$defs/jsonSchema"}},
+        "required": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 64}},
+        "additionalProperties": {"type": "boolean"},
+        "items": {"$ref": "#/$defs/jsonSchema"}
+      }
+    },
+    "validationSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "is_valid", "findings"],
+      "properties": {
+        "state": {"const": "valid"},
+        "is_valid": {"const": true},
+        "findings": {"type": "array", "maxItems": 0}
+      }
+    }
+  }
+}

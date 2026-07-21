@@ -125,6 +125,43 @@ func TestApplicationSessionDevRequiresCatalogAndRuntimeAuthority(t *testing.T) {
 	}
 }
 
+func TestPromptApplicationTemplateDevGatesRemainExplicitAndIndependent(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.PromptTemplateDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "prompt application template dev HTTP requires control plane read dev auth") {
+		t.Fatalf("prompt template HTTP accepted missing verified auth: %v", err)
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("prompt template read/validate gate rejected complete auth: %v", err)
+	}
+	cfg.PromptTemplateDevHTTPEnabled = false
+	cfg.PromptTemplateDevWriteEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "prompt application template dev write requires its HTTP gate") {
+		t.Fatalf("prompt template write accepted missing HTTP gate: %v", err)
+	}
+	cfg.PromptTemplateDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("complete prompt template development gates rejected: %v", err)
+	}
+
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE", "true")
+	loaded, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load prompt template development gates: %v", err)
+	}
+	if !loaded.PromptTemplateDevHTTPEnabled || !loaded.PromptTemplateDevWriteEnabled ||
+		loaded.FieldSources["prompt_application_template_dev_http"] != configSourceEnv ||
+		loaded.FieldSources["prompt_application_template_dev_write"] != configSourceEnv ||
+		!loaded.SanitizedSummary().PromptTemplateDevHTTPEnabled ||
+		!loaded.SanitizedSummary().PromptTemplateDevWriteEnabled {
+		t.Fatalf("prompt template gate source or summary is incomplete: %#v", loaded.SanitizedSummary())
+	}
+}
+
 func TestLoadFromEnvAppliesConfigFileThenEnvOverride(t *testing.T) {
 	clearPlatformEnv(t)
 	configPath := filepath.Join(t.TempDir(), "platform-config.json")
@@ -1337,6 +1374,8 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_TIMEOUT",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_HTTP",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_WRITE",
+		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP",
+		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE",
 		"RADISHMIND_APPLICATION_DRAFT_STORE",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",

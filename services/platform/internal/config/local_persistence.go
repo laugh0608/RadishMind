@@ -6,6 +6,12 @@ import (
 )
 
 func ValidateServerStart(cfg Config) error {
+	if cfg.PromptTemplateDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return errors.New("prompt application template dev HTTP requires control plane read dev auth")
+	}
+	if cfg.PromptTemplateDevWriteEnabled && !cfg.PromptTemplateDevHTTPEnabled {
+		return errors.New("prompt application template dev write requires its HTTP gate")
+	}
 	if cfg.WorkflowDefinitionReleaseDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled || !cfg.WorkflowSavedDraftDevWriteEnabled) {
 		return errors.New("workflow definition release dev requires control plane auth and saved workflow draft HTTP/write gates")
 	}

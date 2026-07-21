@@ -159,6 +159,39 @@ func ValidatePromptApplicationTemplateSource(source PromptApplicationTemplateSou
 	return findings
 }
 
+func NormalizePromptApplicationTemplateSource(source PromptApplicationTemplateSource) (PromptApplicationTemplateSource, error) {
+	if findings := ValidatePromptApplicationTemplateSource(source); len(findings) != 0 {
+		return PromptApplicationTemplateSource{}, errors.New(findings[0].Code)
+	}
+	normalized := PromptApplicationTemplateSource{
+		Messages:  make([]PromptApplicationTemplateMessage, 0, len(source.Messages)),
+		Variables: make([]PromptApplicationTemplateVariable, 0, len(source.Variables)),
+		OutputContract: PromptApplicationOutputContract{
+			Kind:       strings.TrimSpace(source.OutputContract.Kind),
+			AllowEmpty: source.OutputContract.AllowEmpty,
+			MaxBytes:   normalizedPromptApplicationOutputMaxBytes(source.OutputContract.MaxBytes),
+			JSONSchema: normalizePromptApplicationJSONSchema(source.OutputContract.JSONSchema),
+		},
+	}
+	for _, message := range source.Messages {
+		normalized.Messages = append(normalized.Messages, PromptApplicationTemplateMessage{Role: strings.TrimSpace(message.Role), Content: message.Content})
+	}
+	for _, variable := range source.Variables {
+		value, err := normalizePromptApplicationDefaultValue(variable.Type, variable.DefaultValue)
+		if err != nil {
+			return PromptApplicationTemplateSource{}, err
+		}
+		normalized.Variables = append(normalized.Variables, PromptApplicationTemplateVariable{
+			Name: strings.TrimSpace(variable.Name), Type: strings.TrimSpace(variable.Type), Required: variable.Required,
+			Description: strings.TrimSpace(variable.Description), DefaultValue: value,
+		})
+	}
+	sort.Slice(normalized.Variables, func(left, right int) bool {
+		return normalized.Variables[left].Name < normalized.Variables[right].Name
+	})
+	return normalized, nil
+}
+
 func RenderPromptApplicationTemplate(source PromptApplicationTemplateSource, input map[string]any) PromptApplicationTemplateRenderResult {
 	findings := ValidatePromptApplicationTemplateSource(source)
 	if len(findings) != 0 {
@@ -504,6 +537,17 @@ func canonicalPromptApplicationInteger(value any) (string, error) {
 		return strconv.FormatUint(uint64(number), 10), nil
 	case uint64:
 		return strconv.FormatUint(number, 10), nil
+	case float32:
+		value := float64(number)
+		if math.IsNaN(value) || math.IsInf(value, 0) || math.Trunc(value) != value {
+			return "", errors.New("number is not an integer")
+		}
+		return strconv.FormatFloat(value, 'f', -1, 32), nil
+	case float64:
+		if math.IsNaN(number) || math.IsInf(number, 0) || math.Trunc(number) != number {
+			return "", errors.New("number is not an integer")
+		}
+		return strconv.FormatFloat(number, 'f', -1, 64), nil
 	case json.Number:
 		if !promptApplicationJSONNumberIsInteger(number) {
 			return "", errors.New("number is not an integer")
@@ -614,6 +658,52 @@ func normalizedPromptApplicationOutputMaxBytes(maxBytes int) int {
 		return promptApplicationOutputMaximumBytes
 	}
 	return maxBytes
+}
+
+func normalizePromptApplicationDefaultValue(variableType string, value any) (any, error) {
+	if value == nil {
+		return nil, nil
+	}
+	canonical, err := canonicalPromptApplicationVariableValue(strings.TrimSpace(variableType), value)
+	if err != nil {
+		return nil, err
+	}
+	switch strings.TrimSpace(variableType) {
+	case promptApplicationVariableString:
+		return canonical, nil
+	case promptApplicationVariableInteger, promptApplicationVariableNumber:
+		return json.Number(canonical), nil
+	case promptApplicationVariableBoolean:
+		return strconv.ParseBool(canonical)
+	case promptApplicationVariableStringList:
+		var items []string
+		if err := json.Unmarshal([]byte(canonical), &items); err != nil {
+			return nil, err
+		}
+		return items, nil
+	default:
+		return nil, errors.New("unsupported variable type")
+	}
+}
+
+func normalizePromptApplicationJSONSchema(schema *PromptApplicationJSONSchema) *PromptApplicationJSONSchema {
+	if schema == nil {
+		return nil
+	}
+	normalized := &PromptApplicationJSONSchema{
+		Type: strings.TrimSpace(schema.Type), AdditionalProperties: schema.AdditionalProperties,
+		Properties: make(map[string]PromptApplicationJSONSchema, len(schema.Properties)),
+		Required:   append([]string{}, schema.Required...),
+	}
+	sort.Strings(normalized.Required)
+	for name, property := range schema.Properties {
+		propertyCopy := normalizePromptApplicationJSONSchema(&property)
+		if propertyCopy != nil {
+			normalized.Properties[name] = *propertyCopy
+		}
+	}
+	normalized.Items = normalizePromptApplicationJSONSchema(schema.Items)
+	return normalized
 }
 
 func supportedPromptApplicationVariableType(variableType string) bool {
