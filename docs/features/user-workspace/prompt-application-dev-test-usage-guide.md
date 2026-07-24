@@ -1,12 +1,12 @@
 # Prompt Application 开发测试态使用指南
 
-更新时间：2026-07-21
+更新时间：2026-07-24
 
 ## 适用范围
 
-本文说明如何在 RadishMind Platform 的开发测试态创建 Prompt Application 模板、生成不可变版本、绑定应用配置、审查发布候选，以及显式管理当前 Runtime Assignment。设计边界与字段职责见[提示词应用模板版本审查与受控调用专题](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)，schema 真相源位于 `contracts/`，HTTP 实现真相源位于 `services/platform/internal/httpapi/`。
+本文说明如何在 RadishMind Platform 的开发测试态创建 Prompt Application 模板、生成不可变版本、绑定应用配置、审查发布候选、显式管理当前 Runtime Assignment，并通过 API key 或 Application Interaction Session 发起受控调用。设计边界与字段职责见[提示词应用模板版本审查与受控调用专题](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)，schema 真相源位于 `contracts/`，HTTP 实现真相源位于 `services/platform/internal/httpapi/`。
 
-当前已提供模板与 assignment 管理能力，但尚未开放 Prompt Application invocation、Application Session v2、Run v6 或 Web。Runtime Assignment 的 `active` 只表示某个已批准候选被显式选为当前运行 authority，不表示 provider 已被调用，也不构成生产发布。
+当前已提供模板与 assignment 管理、Prompt Application invocation、Application Session / Turn v2、Run v6 与 History / Comparison / Evaluation / Operations metadata 消费。Prompt Web 工作区仍未开放；新增 Run / Session PostgreSQL 行为用例尚待真实 Docker 数据库复验。Runtime Assignment 的 `active` 只表示某个已批准候选被显式选为当前运行 authority，不表示 provider 已被调用，也不构成生产发布。
 
 ## 资源与操作顺序
 
@@ -17,8 +17,10 @@
 3. Application Configuration Draft owner 通过专用 binding 路由重读该模板版本，生成 `application_configuration_draft.v3`。
 4. Application Publish Candidate owner 从精确配置草案生成 `application_publish_candidate.v3`，审查人读取模板源码并显式批准。
 5. Prompt Runtime Assignment owner 通过 `activate` 或 `replace` 绑定当前 approved candidate；撤销使用 `revoke`。
+6. 调用方使用独立 API key scope，或创建显式 Prompt profile 的 Application Session，提交变量和幂等键。
+7. 用户通过 Run History、Comparison、Evaluation 与 Operations 复验 metadata-only 证据；完整输出只存在于首次同步响应中。
 
-这些步骤不能合并为自动动作。模板版本创建不会修改配置草案，配置绑定不会创建候选，候选批准不会创建 assignment，assignment 决策不会调用 Gateway 或 provider。
+这些步骤不能合并为自动动作。模板版本创建不会修改配置草案，配置绑定不会创建候选，候选批准不会创建 assignment，assignment 决策不会调用 Gateway 或 provider，历史 / 评测读取不会重新执行。
 
 ## 启动与存储模式
 
@@ -110,6 +112,8 @@ Configuration Draft binding 与 Publish Candidate 继续使用各自既有的 Ap
 | `prompt_application_templates:bind` | 与 `application_drafts:write` 组合，允许配置 owner 绑定模板版本 |
 | `prompt_application_runtime:read` | 读取当前 assignment 或只追加事件 |
 | `prompt_application_runtime:write` | 执行 `activate | replace | revoke` 决策 |
+| `prompt_application:invoke` | API key 专用调用 scope，只能调用 key 所属当前应用 |
+| `application_sessions:read | write | execute` | 管理 Session v2 并通过 Prompt profile 委托同一 invocation service |
 
 上游权限采用 `radishmind.prompt-application-templates.*` 与 `radishmind.prompt-application-runtime.*`，服务端只投影到上表的本地 scope，不隐式授予 Application Catalog、Publish Review 或更宽的写权限。
 
@@ -219,6 +223,59 @@ Publish Candidate 继续复用 `/v1/user-workspace/application-publish-candidate
 
 读取 assignment 不是简单返回缓存指针。服务端会重新检查当前 candidate 是否仍为 approved、是否被更新候选取代、精确 draft / template ref 与 digest 是否一致，以及应用类型、生命周期与作用域是否仍有效。任何漂移返回稳定失败码，不回退旧 candidate、旧模板版本或内存 fixture。
 
+## 受控调用与 Session v2
+
+API key 调用使用：
+
+```text
+POST /v1/prompt-applications/invocations
+Authorization: Bearer <APPLICATION_API_KEY>
+```
+
+该 key 必须属于目标应用、处于有效状态且显式包含 `prompt_application:invoke`。应用、tenant 和 workspace scope 全部从可信 key 上下文解析，不接受 body 覆盖。请求只允许：
+
+```json
+{
+  "variables": {
+    "question": "如何审查本次发布？",
+    "tone": "清晰"
+  },
+  "client_invocation_key": "prompt-guide-001"
+}
+```
+
+服务端会重读当前 exact authority、确定性渲染、执行一次既有 Gateway 调用并校验输出契约。首次成功响应同时返回 `output` 与 `workflow_run_record.v6`；终态幂等重试只返回 metadata，不恢复或重放 output。相同 `client_invocation_key` 携带不同变量会失败，并发重复在首个调用运行中返回 `prompt_invocation_duplicate_running`。
+
+Session 路径先创建显式 profile：
+
+```json
+{
+  "workspace_id": "workspace_demo",
+  "application_id": "app_aaaaaaaaaaaaaaaa",
+  "execution_profile": "prompt_application_invocation_v1"
+}
+```
+
+随后向 `POST /v1/user-workspace/application-sessions/{session_id}/turns` 提交：
+
+```json
+{
+  "workspace_id": "workspace_demo",
+  "application_id": "app_aaaaaaaaaaaaaaaa",
+  "expected_session_version": 1,
+  "client_turn_key": "prompt-session-turn-001",
+  "input_text": "",
+  "condition_values": {},
+  "model": "",
+  "variables": {
+    "question": "如何审查本次发布？",
+    "tone": "清晰"
+  }
+}
+```
+
+Prompt profile 只消费 `variables`，不接受调用方用 `model`、模板、版本或 authority 改写服务端决策。Session / Turn v2 只保存 authority、input digest / bytes、变量名摘要、状态和 Run v6 引用，不保存 transcript、变量值或 `prompt_output`。
+
 ## 常见失败与处理
 
 | failure code | 含义与处理 |
@@ -237,15 +294,21 @@ Publish Candidate 继续复用 `/v1/user-workspace/application-publish-candidate
 | `prompt_runtime_candidate_ineligible` | candidate 不存在、未批准、类型错误、被取代或其 exact authority 不可用 |
 | `prompt_runtime_authority_changed` | assignment 指向的 application / candidate / draft / template 已漂移；必须显式审查并 replace / revoke |
 | `prompt_runtime_transition_invalid` | action 与当前状态不兼容；revoked assignment 不能再次 activate 或 replace |
+| `prompt_invocation_input_invalid` | 检查变量契约、预算、未知字段和 `client_invocation_key`；不要提交 provider 或 authority 字段 |
+| `prompt_invocation_duplicate_running` | 同一幂等键仍在运行；只读取运行 metadata，不发起新调用 |
+| `prompt_invocation_canceled` | 请求已取消；终态不 replay |
+| `prompt_invocation_outcome_unknown` | provider 或终态写入结果不确定；禁止自动重试或改键绕过 |
+| `prompt_invocation_output_contract_failed` | provider 响应未满足模板输出契约；Run 只保留脱敏诊断 |
 
 ## 隐私与验证边界
 
 - Template owner 可以保存模板源码与安全默认值，但不得保存 provider credential、运行变量、渲染消息或模型输出。
 - 草案 / 版本 list 只返回摘要；源码 detail 必须使用独立 `read_source` 权限。
 - Configuration Draft、Publish Candidate、Runtime Assignment 和 Event 只保存精确 ref / digest，不复制模板正文。
-- assignment 路由不调用 Gateway、provider、工具或业务写入；provider 副作用计数应保持零。
+- assignment、History、Comparison、Evaluation 和 Operations 路由不调用 Gateway、provider、工具或业务写入；只有 invocation service 允许一次计划内 Gateway 调用。
+- Run v6、Session v2 和 Turn v2 不保存变量值、rendered messages、完整 output 或 provider raw response；终态重试只返回 metadata。
 - 日志、错误、fixture 和 committed 文档不得出现 token、Authorization、cookie、DSN、provider raw URL / response 或真实用户输入。
-- 当前能力仅用于开发测试。Prompt invocation、输出契约运行时校验、Session v2、Run v6、Evaluation 和 Web 仍应在对应实现启用后再加入本指南的可操作路径。
+- 当前能力仅用于开发测试。Prompt Web、生产认证、生产 repository、retry / fallback、replay / resume、schedule、quota 和 billing 仍未启用。
 
 提交相关修改前至少执行：
 

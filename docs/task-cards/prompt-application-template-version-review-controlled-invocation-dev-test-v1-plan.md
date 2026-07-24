@@ -1,8 +1,8 @@
 # 提示词应用模板版本审查与受控调用（开发 / 测试态）v1 实施任务卡
 
-更新时间：2026-07-21
+更新时间：2026-07-24
 
-状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_c_completed_batch_d_ready`
+状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_d_implementation_completed_postgres_verification_pending`
 
 ## 目标与准入结论
 
@@ -10,7 +10,7 @@
 
 本任务卡是该专题唯一实施入口。Template owner、配置绑定、发布候选、运行时 assignment、Gateway、Session、Run 与 Evaluation 保持独立职责；模板正文不得复制到配置、候选、assignment、Session、Run、Gateway Request History 或 Operations。
 
-准入结论：功能设计、批次 A、批次 B 与批次 C 均已完成；SQLite 真实文件证据和显式 PostgreSQL 开发测试环境的角色 / migration / repository 门禁已通过。批次 D 现可进入受控调用、Session、Run 与 Evaluation；Web 全链继续关闭。
+准入结论：功能设计、批次 A、批次 B 与批次 C 均已完成。批次 D 的受控调用、Session、Run、Evaluation 和 memory / SQLite 证据已经实现，新增 PostgreSQL 行为用例已通过 build-tag 编译；真实 PostgreSQL 复验因本机 Docker daemon 未运行而待执行。该门禁通过前批次 D 不关闭，Web 全链继续关闭。
 
 ## 实现基线与现有兼容边界
 
@@ -220,15 +220,23 @@ assignment 权限固定为 `prompt_application_runtime:read` 与 `prompt_applica
 
 ## 批次 D：受控调用、Session、Run 与 Evaluation
 
-状态：`ready`。
+状态：`implementation_completed_postgres_verification_pending`。
 
 - 实现 `prompt_application_invocation_v1` 唯一 invocation service 与 provider 前 exact authority checkpoint。
 - API key 与 v2 Session 只委托同一 service；每次成功 invocation 恰好一次计划内 Gateway 调用。
 - v6 Run / History / Comparison / Evaluation / Operations 只保存 metadata；取消、幂等与 `outcome_unknown` 不 replay。
 
+完成证据：
+
+- exact authority 在运行预留前解析，并在 Gateway 前重新读取完整 owner 链；authority drift、输入冲突和不合格 selection 均在 provider 副作用前失败关闭。
+- API key `prompt_application:invoke` 与 Session / Turn v2 共用唯一 invocation service；并发重复、终态重试、取消、超时和终态写入不确定均保持最多一次 Gateway 调用且不 replay 输出。
+- `workflow_run_record.v6`、History / Detail / Comparison v5、Evaluation 和 Operations 只消费 metadata；严格 Go / TypeScript consumer 不把 v6 字段作为 v0–v5 可选扩展。
+- memory / SQLite 重启、CAS、敏感扫描、完整 Platform HTTP API、Web consumer test / build 已通过；PostgreSQL Run / Session 重启、约束和隐私用例已实现并通过编译。
+- 2026-07-24 真实 PostgreSQL `check` 在启动临时数据库前因 Docker daemon 未运行失败；该项是批次 D 当前唯一环境门禁。
+
 ## 批次 E：Web、双数据库连续链与专题关闭
 
-状态：`blocked_by_batch_d`。
+状态：`blocked_by_batch_d_postgres_verification`。
 
 - 完成 Template 创作、版本、binding、候选源码审查、assignment、受控测试与 Run / Evaluation handoff。
 - SQLite / PostgreSQL launcher profile、重启恢复和真实浏览器连续链必须分别验收。

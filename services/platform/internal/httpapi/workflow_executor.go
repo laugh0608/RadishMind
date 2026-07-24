@@ -21,6 +21,7 @@ const (
 	workflowRunRecordRAGSchemaVersion        = "workflow_run_record.v3"
 	workflowRunRecordAppRAGSchemaVersion     = "workflow_run_record.v4"
 	workflowRunRecordDefinitionSchemaVersion = "workflow_run_record.v5"
+	workflowRunRecordPromptSchemaVersion     = "workflow_run_record.v6"
 	workflowExecutorProtocol                 = "workflow-executor-v0"
 	workflowExecutorRoute                    = "/v1/user-workspace/workflow-drafts/{draft_id}/runs"
 
@@ -92,6 +93,7 @@ const (
 	WorkflowRunFailureDefinitionAuthority     WorkflowRunFailureCode = "workflow_definition_execution_authority_drift"
 	WorkflowRunFailureDefinitionIncompatible  WorkflowRunFailureCode = "workflow_definition_execution_profile_incompatible"
 	WorkflowRunFailureDefinitionInterrupted   WorkflowRunFailureCode = "workflow_definition_execution_interrupted"
+	WorkflowRunFailurePromptIncompatible      WorkflowRunFailureCode = "prompt_application_execution_profile_incompatible"
 )
 
 type WorkflowRunContext struct {
@@ -159,50 +161,57 @@ type WorkflowDefinitionRunAuthority struct {
 }
 
 type WorkflowRunRecord struct {
-	SchemaVersion          string                              `json:"schema_version"`
-	RecordVersion          int                                 `json:"record_version"`
-	RunID                  string                              `json:"run_id"`
-	PlanID                 string                              `json:"plan_id,omitempty"`
-	ConfirmationID         string                              `json:"confirmation_id,omitempty"`
-	TenantRef              string                              `json:"tenant_ref,omitempty"`
-	DraftID                string                              `json:"draft_id"`
-	DraftVersion           int                                 `json:"draft_version"`
-	DraftDigest            string                              `json:"draft_digest,omitempty"`
-	WorkspaceID            string                              `json:"workspace_id"`
-	ApplicationID          string                              `json:"application_id"`
-	ExecutionKind          string                              `json:"execution_kind,omitempty"`
-	ExecutionSourceKind    string                              `json:"execution_source_kind,omitempty"`
-	ExecutionSourceID      string                              `json:"execution_source_id,omitempty"`
-	ExecutionSourceVersion int                                 `json:"execution_source_version,omitempty"`
-	ExecutionProfile       string                              `json:"execution_profile,omitempty"`
-	InputDigest            string                              `json:"input_digest,omitempty"`
-	DefinitionAuthority    *WorkflowDefinitionRunAuthority     `json:"definition_authority,omitempty"`
-	ExecutionSource        *workflowRunExecutionSource         `json:"-"`
-	Status                 WorkflowRunStatus                   `json:"status"`
-	FailureCode            WorkflowRunFailureCode              `json:"failure_code"`
-	FailureSummary         string                              `json:"failure_summary"`
-	StartedAt              string                              `json:"started_at"`
-	CompletedAt            string                              `json:"completed_at"`
-	InputBytes             int                                 `json:"input_bytes"`
-	ConditionNodeIDs       []string                            `json:"condition_node_ids"`
-	RequestedModel         string                              `json:"requested_model"`
-	SelectedProvider       string                              `json:"selected_provider"`
-	SelectedProfile        string                              `json:"selected_profile"`
-	SelectedModel          string                              `json:"selected_model"`
-	UpstreamModel          string                              `json:"upstream_model"`
-	SelectionSource        string                              `json:"selection_source"`
-	Nodes                  []WorkflowRunNodeRecord             `json:"nodes"`
-	ToolAttempt            *WorkflowHTTPToolExecutionAttempt   `json:"tool_attempt,omitempty"`
-	RAGSnapshot            *workflowRAGRunSnapshotBinding      `json:"snapshot,omitempty"`
-	RetrievalAttempt       *workflowRAGRunRetrievalAttempt     `json:"retrieval_attempt,omitempty"`
-	RAGAnswer              *WorkflowRAGAnswer                  `json:"answer,omitempty"`
-	RAGApplication         *workflowRAGApplicationRunAuthority `json:"-"`
-	Output                 string                              `json:"output"`
-	RequestID              string                              `json:"request_id"`
-	AuditRef               string                              `json:"audit_ref"`
-	ActorRef               string                              `json:"actor_ref"`
-	SideEffects            WorkflowRunSideEffects              `json:"side_effects"`
-	Diagnostic             *WorkflowRunDiagnostic              `json:"diagnostic,omitempty"`
+	SchemaVersion          string                               `json:"schema_version"`
+	RecordVersion          int                                  `json:"record_version"`
+	RunID                  string                               `json:"run_id"`
+	PlanID                 string                               `json:"plan_id,omitempty"`
+	ConfirmationID         string                               `json:"confirmation_id,omitempty"`
+	TenantRef              string                               `json:"tenant_ref,omitempty"`
+	DraftID                string                               `json:"draft_id"`
+	DraftVersion           int                                  `json:"draft_version"`
+	DraftDigest            string                               `json:"draft_digest,omitempty"`
+	WorkspaceID            string                               `json:"workspace_id"`
+	ApplicationID          string                               `json:"application_id"`
+	ExecutionKind          string                               `json:"execution_kind,omitempty"`
+	ExecutionSourceKind    string                               `json:"execution_source_kind,omitempty"`
+	ExecutionSourceID      string                               `json:"execution_source_id,omitempty"`
+	ExecutionSourceVersion int                                  `json:"execution_source_version,omitempty"`
+	ExecutionProfile       string                               `json:"execution_profile,omitempty"`
+	InputDigest            string                               `json:"input_digest,omitempty"`
+	DefinitionAuthority    *WorkflowDefinitionRunAuthority      `json:"definition_authority,omitempty"`
+	ExecutionSource        *workflowRunExecutionSource          `json:"-"`
+	Status                 WorkflowRunStatus                    `json:"status"`
+	FailureCode            WorkflowRunFailureCode               `json:"failure_code"`
+	FailureSummary         string                               `json:"failure_summary"`
+	StartedAt              string                               `json:"started_at"`
+	CompletedAt            string                               `json:"completed_at"`
+	InputBytes             int                                  `json:"input_bytes"`
+	ConditionNodeIDs       []string                             `json:"condition_node_ids"`
+	RequestedModel         string                               `json:"requested_model"`
+	SelectedProvider       string                               `json:"selected_provider"`
+	SelectedProfile        string                               `json:"selected_profile"`
+	SelectedModel          string                               `json:"selected_model"`
+	UpstreamModel          string                               `json:"upstream_model"`
+	SelectionSource        string                               `json:"selection_source"`
+	Nodes                  []WorkflowRunNodeRecord              `json:"nodes"`
+	ToolAttempt            *WorkflowHTTPToolExecutionAttempt    `json:"tool_attempt,omitempty"`
+	RAGSnapshot            *workflowRAGRunSnapshotBinding       `json:"snapshot,omitempty"`
+	RetrievalAttempt       *workflowRAGRunRetrievalAttempt      `json:"retrieval_attempt,omitempty"`
+	RAGAnswer              *WorkflowRAGAnswer                   `json:"answer,omitempty"`
+	RAGApplication         *workflowRAGApplicationRunAuthority  `json:"-"`
+	PromptApplication      *PromptApplicationRuntimeAuthorityV2 `json:"-"`
+	VariableNames          []string                             `json:"-"`
+	VariableNamesDigest    string                               `json:"-"`
+	RequestedProtocol      string                               `json:"-"`
+	SelectedProtocol       string                               `json:"-"`
+	PromptUsage            PromptApplicationRunUsageV6          `json:"-"`
+	PromptDiagnostic       *PromptApplicationRunDiagnosticV6    `json:"-"`
+	Output                 string                               `json:"output"`
+	RequestID              string                               `json:"request_id"`
+	AuditRef               string                               `json:"audit_ref"`
+	ActorRef               string                               `json:"actor_ref"`
+	SideEffects            WorkflowRunSideEffects               `json:"side_effects"`
+	Diagnostic             *WorkflowRunDiagnostic               `json:"diagnostic,omitempty"`
 }
 
 type WorkflowRunResult struct {

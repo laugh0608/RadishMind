@@ -61,6 +61,15 @@ type WorkflowRunSummary struct {
 	PublishCandidateID       string                            `json:"publish_candidate_id,omitempty"`
 	PublishReviewVersion     int                               `json:"publish_review_version,omitempty"`
 	EffectiveSnapshotRole    string                            `json:"effective_snapshot_role,omitempty"`
+	AuthorityDigest          string                            `json:"authority_digest,omitempty"`
+	PromptTemplateDigest     string                            `json:"prompt_template_digest,omitempty"`
+	VariableNamesDigest      string                            `json:"variable_names_digest,omitempty"`
+	RequestedProtocol        string                            `json:"requested_protocol,omitempty"`
+	SelectedProtocol         string                            `json:"selected_protocol,omitempty"`
+	UsageState               string                            `json:"usage_state,omitempty"`
+	InputTokens              int                               `json:"input_tokens,omitempty"`
+	OutputTokens             int                               `json:"output_tokens,omitempty"`
+	TotalTokens              int                               `json:"total_tokens,omitempty"`
 	WorkspaceID              string                            `json:"workspace_id"`
 	ApplicationID            string                            `json:"application_id"`
 	Status                   WorkflowRunStatus                 `json:"status"`
@@ -184,7 +193,7 @@ func normalizeWorkflowRunListRequest(request WorkflowRunListRequest) (WorkflowRu
 	draftID := strings.TrimSpace(request.DraftID)
 	sourceKind, sourceID := strings.TrimSpace(request.ExecutionSourceKind), strings.TrimSpace(request.ExecutionSourceID)
 	if len([]rune(draftID)) > 160 || len([]rune(sourceID)) > 160 ||
-		(sourceKind != "" && sourceKind != "workflow_draft" && sourceKind != workflowDefinitionExecutionSourceKind && sourceKind != workflowRAGApplicationExecutionSourceKind) ||
+		(sourceKind != "" && sourceKind != "workflow_draft" && sourceKind != workflowDefinitionExecutionSourceKind && sourceKind != workflowRAGApplicationExecutionSourceKind && sourceKind != promptApplicationExecutionSourceKind) ||
 		request.ExecutionSourceVersion < 0 || (request.ExecutionSourceVersion > 0 && (sourceKind == "" || sourceID == "")) ||
 		(draftID != "" && (sourceKind != "" || sourceID != "" || request.ExecutionSourceVersion != 0)) {
 		return WorkflowRunListFilter{}, WorkflowRunFailureFilterInvalid
@@ -347,6 +356,7 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 		summary.ExecutionSourceKind = record.ExecutionSource.SourceKind
 		summary.ExecutionSourceID = record.ExecutionSource.ID
 		summary.ExecutionSourceVersion = record.ExecutionSource.Version
+		summary.ExecutionProfile = record.ExecutionProfile
 	}
 	if record.DefinitionAuthority != nil {
 		summary.ExecutionProfile = record.ExecutionProfile
@@ -363,6 +373,22 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 		summary.PublishReviewVersion = record.RAGApplication.PublishReviewVersion
 		summary.EffectiveSnapshotRole = record.RAGApplication.EffectiveSnapshotRole
 	}
+	if record.PromptApplication != nil {
+		authority := record.PromptApplication
+		summary.RuntimeAssignmentID = authority.PromptApplication.AssignmentID
+		summary.RuntimeAssignmentVersion = authority.PromptApplication.AssignmentVersion
+		summary.PublishCandidateID = authority.PromptApplication.PublishCandidateID
+		summary.PublishReviewVersion = authority.PromptApplication.PublishReviewVersion
+		summary.AuthorityDigest = authority.AuthorityDigest
+		summary.PromptTemplateDigest = authority.PromptApplication.PromptTemplateRef.TemplateDigest
+		summary.VariableNamesDigest = record.VariableNamesDigest
+		summary.RequestedProtocol = record.RequestedProtocol
+		summary.SelectedProtocol = record.SelectedProtocol
+		summary.UsageState = record.PromptUsage.State
+		summary.InputTokens = record.PromptUsage.InputTokens
+		summary.OutputTokens = record.PromptUsage.OutputTokens
+		summary.TotalTokens = record.PromptUsage.TotalTokens
+	}
 	if record.Diagnostic != nil {
 		summary.FailureBoundary = record.Diagnostic.FailureBoundary
 		summary.FailedNodeID = record.Diagnostic.FailedNodeID
@@ -371,6 +397,11 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 		summary.ToolFailureCategory = record.Diagnostic.ToolFailureCategory
 		summary.RetrievalFailureCategory = record.Diagnostic.RetrievalFailureCategory
 		summary.RecommendedReviewAction = record.Diagnostic.RecommendedReviewAction
+	}
+	if record.PromptDiagnostic != nil {
+		summary.FailureBoundary = WorkflowRunFailureBoundary(record.PromptDiagnostic.FailureBoundary)
+		summary.GatewayFailureCategory = WorkflowRunGatewayFailureCategory(record.PromptDiagnostic.GatewayFailureCategory)
+		summary.RecommendedReviewAction = WorkflowRunReviewAction(record.PromptDiagnostic.RecommendedReviewAction)
 	}
 	if record.RAGSnapshot != nil {
 		summary.SnapshotID, summary.SnapshotVersion = record.RAGSnapshot.SnapshotID, record.RAGSnapshot.SnapshotVersion

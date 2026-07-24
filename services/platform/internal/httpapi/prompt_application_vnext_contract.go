@@ -20,7 +20,7 @@ const (
 	promptApplicationRuntimeAuthorityV2Schema     = "application_runtime_authority.v2"
 	promptApplicationSessionV2Schema              = "application_session.v2"
 	promptApplicationSessionTurnV2Schema          = "application_session_turn.v2"
-	promptApplicationRunV6Schema                  = "workflow_run_record.v6"
+	promptApplicationRunV6Schema                  = workflowRunRecordPromptSchemaVersion
 	promptApplicationInvocationProfile            = "prompt_application_invocation_v1"
 )
 

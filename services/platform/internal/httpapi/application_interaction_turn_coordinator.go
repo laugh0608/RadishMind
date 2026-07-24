@@ -23,6 +23,7 @@ type ApplicationInteractionTurnExecutionInput struct {
 	ConditionValues        map[string]bool
 	Model                  string
 	Temperature            *float64
+	PromptVariables        map[string]any
 }
 
 type ApplicationInteractionTurnExecutionResult struct {
@@ -30,6 +31,7 @@ type ApplicationInteractionTurnExecutionResult struct {
 	Turn             *ApplicationInteractionTurn
 	AdvisoryOutput   string
 	Answer           *WorkflowRAGApplicationAnswer
+	PromptOutput     string
 	FailureCode      string
 	FailureSummary   string
 	IdempotentReplay bool
@@ -42,12 +44,14 @@ type ApplicationInteractionReconciliationResult struct {
 
 type applicationInteractionWorkflowDelegate func(WorkflowRunContext, WorkflowDefinitionRunRequest) WorkflowRunResult
 type applicationInteractionRAGDelegate func(WorkflowRAGApplicationRuntimeContext, WorkflowRAGApplicationInvocationInput) WorkflowRAGApplicationInvocationResult
+type applicationInteractionPromptDelegate func(PromptApplicationRuntimeContext, PromptApplicationInvocationInput) PromptApplicationInvocationResult
 
 type applicationInteractionTurnCoordinator struct {
 	sessions        applicationInteractionSessionService
 	resolver        applicationInteractionAuthorityResolver
 	executeWorkflow applicationInteractionWorkflowDelegate
 	invokeRAG       applicationInteractionRAGDelegate
+	invokePrompt    applicationInteractionPromptDelegate
 	now             func() time.Time
 	staleAfter      time.Duration
 }
@@ -57,9 +61,14 @@ func newApplicationInteractionTurnCoordinator(
 	resolver applicationInteractionAuthorityResolver,
 	executeWorkflow applicationInteractionWorkflowDelegate,
 	invokeRAG applicationInteractionRAGDelegate,
+	invokePrompt ...applicationInteractionPromptDelegate,
 ) applicationInteractionTurnCoordinator {
+	var promptDelegate applicationInteractionPromptDelegate
+	if len(invokePrompt) != 0 {
+		promptDelegate = invokePrompt[0]
+	}
 	return applicationInteractionTurnCoordinator{
-		sessions: sessions, resolver: resolver, executeWorkflow: executeWorkflow, invokeRAG: invokeRAG,
+		sessions: sessions, resolver: resolver, executeWorkflow: executeWorkflow, invokeRAG: invokeRAG, invokePrompt: promptDelegate,
 		now: func() time.Time { return time.Now().UTC() }, staleAfter: workflowExecutorDefaultMaxRuntime,
 	}
 }
@@ -85,15 +94,20 @@ func (coordinator applicationInteractionTurnCoordinator) Execute(
 		return applicationInteractionTurnExecutionFailure(failure, summary)
 	}
 	if (current.Session.ProfileBinding.ExecutionProfile == applicationInteractionProfileWorkflow && coordinator.executeWorkflow == nil) ||
-		(current.Session.ProfileBinding.ExecutionProfile == applicationInteractionProfileRAG && coordinator.invokeRAG == nil) {
+		(current.Session.ProfileBinding.ExecutionProfile == applicationInteractionProfileRAG && coordinator.invokeRAG == nil) ||
+		(current.Session.ProfileBinding.ExecutionProfile == applicationInteractionProfilePrompt && coordinator.invokePrompt == nil) {
 		return applicationInteractionTurnExecutionFailure(ApplicationInteractionFailureExecutionUnavailable, "The selected application session execution profile is unavailable.")
 	}
 	startedAt := coordinator.currentTime()
+	inputDigest, inputBytes, digestErr := applicationInteractionInputMetadata(*current.Session, normalized)
+	if digestErr != nil {
+		return applicationInteractionTurnExecutionFailure(ApplicationInteractionFailurePayloadInvalid, "Application session turn input is invalid.")
+	}
 	reserved := coordinator.sessions.ReserveTurn(ctx, sessionID, ApplicationInteractionTurnReservationInput{
 		ExpectedSessionVersion: normalized.ExpectedSessionVersion,
 		ClientTurnKey:          normalized.ClientTurnKey,
-		InputDigest:            workflowDefinitionInputDigest(normalized.InputText),
-		InputBytes:             len([]byte(normalized.InputText)),
+		InputDigest:            inputDigest,
+		InputBytes:             inputBytes,
 		StartedAt:              startedAt,
 	})
 	if reserved.FailureCode != "" || reserved.Turn == nil || reserved.Session == nil {
@@ -115,6 +129,9 @@ func (coordinator applicationInteractionTurnCoordinator) Execute(
 	}
 	if reserved.Turn.ExecutionProfile == applicationInteractionProfileWorkflow {
 		return coordinator.executeWorkflowTurn(ctx, *reserved.Turn, normalized)
+	}
+	if reserved.Turn.ExecutionProfile == applicationInteractionProfilePrompt {
+		return coordinator.executePromptTurn(ctx, *reserved.Turn, normalized)
 	}
 	return coordinator.executeRAGTurn(ctx, *reserved.Turn, normalized)
 }
@@ -170,6 +187,36 @@ func (coordinator applicationInteractionTurnCoordinator) executeRAGTurn(
 	response.FailureCode, response.FailureSummary = failureCode, failureSummary
 	if completed.Turn != nil && completed.Turn.Status == string(WorkflowRunStatusSucceeded) {
 		response.Answer = result.Answer
+		response.FailureCode, response.FailureSummary = "", ""
+	}
+	return response
+}
+
+func (coordinator applicationInteractionTurnCoordinator) executePromptTurn(
+	ctx ApplicationInteractionContext,
+	turn ApplicationInteractionTurn,
+	input ApplicationInteractionTurnExecutionInput,
+) ApplicationInteractionTurnExecutionResult {
+	runtimeContext := PromptApplicationRuntimeContext{
+		RequestContext: ctx.RequestContext, RequestID: ctx.RequestID, TenantRef: ctx.TenantRef,
+		WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, ActorRef: ctx.ActorRef,
+		OwnerSubjectRef: ctx.OwnerSubjectRef, AuditRef: ctx.AuditRef,
+	}
+	result := coordinator.invokePrompt(runtimeContext, PromptApplicationInvocationInput{
+		Variables: input.PromptVariables, ClientInvocationKey: turn.SessionID + ":" + turn.ClientTurnKey,
+	})
+	status, failureCode, failureSummary, runRef := applicationInteractionPromptTerminal(ctx.RequestContext, result)
+	completed := coordinator.sessions.CompleteTurn(ctx, turn.SessionID, turn.TurnID, ApplicationInteractionTurnCompletionInput{
+		Status: status, RunRef: runRef, FailureCode: failureCode, FailureSummary: failureSummary, CompletedAt: coordinator.currentTime(),
+	})
+	response := applicationInteractionTurnExecutionFromSessionResult(completed)
+	if completed.FailureCode != "" {
+		response.FailureSummary = "Application session turn terminal evidence could not be stored."
+		return response
+	}
+	response.FailureCode, response.FailureSummary = failureCode, failureSummary
+	if completed.Turn != nil && completed.Turn.Status == string(WorkflowRunStatusSucceeded) {
+		response.PromptOutput = result.Output
 		response.FailureCode, response.FailureSummary = "", ""
 	}
 	return response
@@ -242,11 +289,11 @@ func normalizeApplicationInteractionTurnExecutionInput(
 	input.ClientTurnKey = strings.TrimSpace(input.ClientTurnKey)
 	input.InputText = strings.TrimSpace(input.InputText)
 	input.Model = strings.TrimSpace(input.Model)
-	if input.InputText == "" || !utf8Safe(input.InputText) {
-		return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailurePayloadInvalid, "Application session turn input is invalid."
-	}
 	switch session.ProfileBinding.ExecutionProfile {
 	case applicationInteractionProfileWorkflow:
+		if input.InputText == "" || !utf8Safe(input.InputText) || input.PromptVariables != nil {
+			return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailurePayloadInvalid, "Application session turn input is invalid."
+		}
 		authority := session.Authority.WorkflowDefinition
 		if authority == nil {
 			return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailureDelegatedRunContract, "Workflow definition authority is invalid."
@@ -261,16 +308,35 @@ func normalizeApplicationInteractionTurnExecutionInput(
 		}
 		input.InputText, input.ConditionValues, input.Model, input.Temperature = normalized.InputText, normalized.ConditionValues, normalized.Model, normalized.Temperature
 	case applicationInteractionProfileRAG:
-		if len([]byte(input.InputText)) > workflowRAGApplicationInvocationMaxBytes || len(input.ConditionValues) != 0 || input.Model != "" || input.Temperature != nil {
+		if input.InputText == "" || !utf8Safe(input.InputText) || input.PromptVariables != nil ||
+			len([]byte(input.InputText)) > workflowRAGApplicationInvocationMaxBytes || len(input.ConditionValues) != 0 || input.Model != "" || input.Temperature != nil {
 			return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailurePayloadInvalid, "Application RAG session turns do not accept workflow execution options."
 		}
 		if workflowRAGContainsForbiddenMaterial(input.InputText) || applicationDraftStringContainsSecret(input.InputText) {
 			return ApplicationInteractionTurnExecutionInput{}, WorkflowRAGApplicationFailureSecretForbidden, workflowRAGApplicationFailureSummary(WorkflowRAGApplicationFailureSecretForbidden)
 		}
+	case applicationInteractionProfilePrompt:
+		if input.InputText != "" || input.PromptVariables == nil || len(input.ConditionValues) != 0 || input.Model != "" || input.Temperature != nil {
+			return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailurePayloadInvalid, "Prompt application session turns only accept variables."
+		}
+		if _, _, err := canonicalPromptApplicationInvocationInput(input.PromptVariables); err != nil {
+			return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailurePayloadInvalid, "Prompt application session variables are invalid."
+		}
 	default:
 		return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailureExecutionUnavailable, "The selected application session execution profile is unavailable."
 	}
 	return input, "", ""
+}
+
+func applicationInteractionInputMetadata(session ApplicationInteractionSession, input ApplicationInteractionTurnExecutionInput) (string, int, error) {
+	if session.ProfileBinding.ExecutionProfile != applicationInteractionProfilePrompt {
+		return workflowDefinitionInputDigest(input.InputText), len([]byte(input.InputText)), nil
+	}
+	payload, _, err := canonicalPromptApplicationInvocationInput(input.PromptVariables)
+	if err != nil {
+		return "", 0, err
+	}
+	return workflowRAGSHA256(string(payload)), len(payload), nil
 }
 
 func applicationInteractionWorkflowTerminal(result WorkflowRunResult) (string, string, string, *ApplicationInteractionRunRef) {
@@ -321,6 +387,35 @@ func applicationInteractionRAGTerminal(ctx context.Context, result WorkflowRAGAp
 		failureSummary = "Delegated application RAG execution failed."
 	}
 	return string(WorkflowRunStatusFailed), failureCode, failureSummary, ref
+}
+
+func applicationInteractionPromptTerminal(ctx context.Context, result PromptApplicationInvocationResult) (string, string, string, *ApplicationInteractionRunRef) {
+	ref, valid := applicationInteractionDelegatedRunRef(applicationInteractionProfilePrompt, result.Run)
+	if result.Run != nil && !valid {
+		return string(WorkflowRunStatusFailed), ApplicationInteractionFailureDelegatedRunContract, "Delegated Prompt application run metadata is invalid.", nil
+	}
+	if result.Run != nil && result.Run.Status == WorkflowRunStatusRunning {
+		return string(WorkflowRunStatusOutcomeUnknown), ApplicationInteractionFailureRunOutcomeUnknown, "Delegated Prompt application run terminal evidence is unavailable.", ref
+	}
+	if result.Run != nil && result.Run.Status == WorkflowRunStatusSucceeded && result.FailureCode == "" && result.Output != "" {
+		return string(WorkflowRunStatusSucceeded), "", "", ref
+	}
+	if (ctx != nil && ctx.Err() != nil) || result.Run != nil && result.Run.Status == WorkflowRunStatusCanceled {
+		return string(WorkflowRunStatusCanceled), ApplicationInteractionFailureTurnCanceled, "Application session turn was canceled.", ref
+	}
+	failureCode := strings.TrimSpace(result.FailureCode)
+	if failureCode == "" {
+		failureCode = ApplicationInteractionFailureDelegatedRunContract
+	}
+	failureSummary := strings.TrimSpace(result.FailureSummary)
+	if failureSummary == "" {
+		failureSummary = "Delegated Prompt application execution failed."
+	}
+	status := string(WorkflowRunStatusFailed)
+	if result.Run != nil && result.Run.Status == WorkflowRunStatusOutcomeUnknown {
+		status = string(WorkflowRunStatusOutcomeUnknown)
+	}
+	return status, failureCode, failureSummary, ref
 }
 
 func applicationInteractionDelegatedRunRef(profile string, record *WorkflowRunRecord) (*ApplicationInteractionRunRef, bool) {

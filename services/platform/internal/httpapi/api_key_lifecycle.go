@@ -63,11 +63,12 @@ var (
 )
 
 var apiKeyAllowedScopes = map[string]struct{}{
-	"models:read":            {},
-	"chat:invoke":            {},
-	"responses:invoke":       {},
-	"messages:invoke":        {},
-	"application_rag:invoke": {},
+	"models:read":               {},
+	"chat:invoke":               {},
+	"responses:invoke":          {},
+	"messages:invoke":           {},
+	"application_rag:invoke":    {},
+	"prompt_application:invoke": {},
 }
 
 type apiKeyVersionConflictError struct {

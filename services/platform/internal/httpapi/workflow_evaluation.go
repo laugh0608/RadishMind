@@ -38,6 +38,7 @@ const (
 	WorkflowEvaluationFailureRetrievalProfile       WorkflowEvaluationFailureCode = "workflow_run_retrieval_profile_unsupported"
 	WorkflowEvaluationFailureRetrievalIncompatible  WorkflowEvaluationFailureCode = "workflow_run_retrieval_profile_incompatible"
 	WorkflowEvaluationFailureDefinitionIncompatible WorkflowEvaluationFailureCode = "workflow_definition_execution_profile_incompatible"
+	WorkflowEvaluationFailurePromptIncompatible     WorkflowEvaluationFailureCode = "prompt_application_execution_profile_incompatible"
 )
 
 type WorkflowEvaluationRevisionKind string
@@ -343,6 +344,9 @@ func (s workflowEvaluationService) validateDefinition(ctx WorkflowRunContext, ra
 		if (baselineRecord.SchemaVersion == workflowRunRecordDefinitionSchemaVersion || candidate.SchemaVersion == workflowRunRecordDefinitionSchemaVersion) && !workflowDefinitionRunsComparable(baselineRecord, candidate) {
 			return "", "", nil, WorkflowEvaluationFailureDefinitionIncompatible
 		}
+		if (baselineRecord.SchemaVersion == workflowRunRecordPromptSchemaVersion || candidate.SchemaVersion == workflowRunRecordPromptSchemaVersion) && !promptApplicationRunsComparable(baselineRecord, candidate) {
+			return "", "", nil, WorkflowEvaluationFailurePromptIncompatible
+		}
 	}
 	return name, baseline, normalized, ""
 }
@@ -522,6 +526,9 @@ func (s workflowEvaluationService) ReviewVersion(ctx WorkflowRunContext, id stri
 			}
 			if result.FailureCode == WorkflowRunFailureDefinitionIncompatible {
 				return WorkflowEvaluationReviewResult{FailureCode: WorkflowEvaluationFailureDefinitionIncompatible, FailureSummary: "Workflow evaluation requires one compatible workflow definition lineage and profile."}
+			}
+			if result.FailureCode == WorkflowRunFailurePromptIncompatible {
+				return WorkflowEvaluationReviewResult{FailureCode: WorkflowEvaluationFailurePromptIncompatible, FailureSummary: "Workflow evaluation requires one compatible Prompt Application template lineage and profile."}
 			}
 			code := WorkflowEvaluationFailureStoreUnavailable
 			if result.FailureCode == WorkflowRunFailureStoreContractMismatch {
@@ -769,6 +776,8 @@ func workflowEvaluationFailure(code WorkflowEvaluationFailureCode) WorkflowEvalu
 		summary = "Workflow evaluation does not support workflow retrieval profiles."
 	} else if code == WorkflowEvaluationFailureRetrievalIncompatible {
 		summary = "Workflow evaluation requires matching retrieval snapshot, profile, query, and node bindings."
+	} else if code == WorkflowEvaluationFailurePromptIncompatible {
+		summary = "Workflow evaluation requires one compatible Prompt Application template lineage and execution profile."
 	}
 	return WorkflowEvaluationResult{FailureCode: code, FailureSummary: summary}
 }

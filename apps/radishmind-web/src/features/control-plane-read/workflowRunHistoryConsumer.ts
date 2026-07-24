@@ -10,7 +10,7 @@ import {
 export type WorkflowRunHistoryFilter = {
   status: "" | WorkflowRunStatus;
   draftId: string;
-  executionSourceKind: "" | "workflow_draft" | "application_configuration_draft" | "workflow_definition";
+  executionSourceKind: "" | "workflow_draft" | "application_configuration_draft" | "workflow_definition" | "prompt_application_template";
   executionSourceId: string;
   executionSourceVersion: number | "";
   startedFrom: string;
@@ -49,6 +49,15 @@ export type WorkflowRunHistorySummary = {
   publishCandidateId: string;
   publishReviewVersion: number;
   effectiveSnapshotRole: string;
+  authorityDigest: string;
+  promptTemplateDigest: string;
+  variableNamesDigest: string;
+  requestedProtocol: string;
+  selectedProtocol: string;
+  usageState: string;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
   status: WorkflowRunStatus;
   failureCode: string;
   startedAt: string;
@@ -118,6 +127,12 @@ export function isWorkflowRunComparisonCompatible(
   if (baselineDefinition !== candidateDefinition) return false;
   if (baselineDefinition) return baseline.executionSourceId === candidate.executionSourceId &&
     baseline.executionProfile === "workflow_definition_executor_v1" && candidate.executionProfile === "workflow_definition_executor_v1";
+  const baselinePrompt = baseline.schemaVersion === "workflow_run_record.v6";
+  const candidatePrompt = candidate.schemaVersion === "workflow_run_record.v6";
+  if (baselinePrompt !== candidatePrompt) return false;
+  if (baselinePrompt) return baseline.executionSourceId === candidate.executionSourceId &&
+    baseline.executionProfile === "prompt_application_invocation_v1" &&
+    candidate.executionProfile === "prompt_application_invocation_v1";
   const baselineRetrieval = baseline.schemaVersion === "workflow_run_record.v3";
   const candidateRetrieval = candidate.schemaVersion === "workflow_run_record.v3";
   if (baselineRetrieval !== candidateRetrieval) return false;
@@ -143,6 +158,9 @@ type RunSummaryDocument = {
   source_draft_id?: string; source_draft_version?: number; source_draft_digest?: string;
   runtime_assignment_id?: string; runtime_assignment_version?: number; publish_candidate_id?: string;
   publish_review_version?: number; effective_snapshot_role?: string;
+  authority_digest?: string; prompt_template_digest?: string; variable_names_digest?: string;
+  requested_protocol?: string; selected_protocol?: string; usage_state?: string;
+  input_tokens?: number; output_tokens?: number; total_tokens?: number;
   status: WorkflowRunStatus; failure_code: string;
   started_at: string; completed_at: string; duration_ms: number; selected_provider: string;
   selected_profile: string; selected_model: string; request_id: string; audit_ref: string; stale_running: boolean;
@@ -246,6 +264,10 @@ function toSummary(value: RunSummaryDocument): WorkflowRunHistorySummary {
     runtimeAssignmentId: value.runtime_assignment_id ?? "", runtimeAssignmentVersion: value.runtime_assignment_version ?? 0,
     publishCandidateId: value.publish_candidate_id ?? "", publishReviewVersion: value.publish_review_version ?? 0,
     effectiveSnapshotRole: value.effective_snapshot_role ?? "",
+    authorityDigest: value.authority_digest ?? "", promptTemplateDigest: value.prompt_template_digest ?? "",
+    variableNamesDigest: value.variable_names_digest ?? "", requestedProtocol: value.requested_protocol ?? "",
+    selectedProtocol: value.selected_protocol ?? "", usageState: value.usage_state ?? "",
+    inputTokens: value.input_tokens ?? 0, outputTokens: value.output_tokens ?? 0, totalTokens: value.total_tokens ?? 0,
     startedAt: value.started_at, completedAt: value.completed_at, durationMs: value.duration_ms,
     selectedProvider: value.selected_provider, selectedProfile: value.selected_profile, selectedModel: value.selected_model,
     requestId: value.request_id, auditRef: value.audit_ref, staleRunning: value.stale_running,
@@ -272,15 +294,25 @@ function isRunSummary(value: unknown): value is RunSummaryDocument {
   const item = value as Partial<RunSummaryDocument>;
   const raw = value as Record<string, unknown>;
   if (containsForbiddenHistoryField(raw)) return false;
-  const schemaValid = item.schema_version === "workflow_run_record.v0" || item.schema_version === "workflow_run_record.v1" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4" || item.schema_version === "workflow_run_record.v5";
+  const schemaValid = item.schema_version === "workflow_run_record.v0" || item.schema_version === "workflow_run_record.v1" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4" || item.schema_version === "workflow_run_record.v5" || item.schema_version === "workflow_run_record.v6";
   const statusValid = ["running", "succeeded", "failed", "canceled", "outcome_unknown"].includes(item.status ?? "") &&
-    (item.status !== "outcome_unknown" || item.schema_version === "workflow_run_record.v2");
+    (item.status !== "outcome_unknown" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v6");
   const toolMetadataValid = item.schema_version === "workflow_run_record.v2"
     ? typeof item.plan_id === "string" && typeof item.confirmation_id === "string" &&
       ["claimed", "succeeded", "failed", "outcome_unknown"].includes(item.tool_attempt_status ?? "")
     : [item.plan_id, item.confirmation_id, item.tool_attempt_status].every((field) => field === undefined || field === "");
   const retrievalMetadataValid = item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4" ? isRAGRunSummary(item) : true;
-  const executionMetadataValid = item.schema_version === "workflow_run_record.v5"
+  const executionMetadataValid = item.schema_version === "workflow_run_record.v6"
+    ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "prompt_application_invocation" &&
+      item.execution_source_kind === "prompt_application_template" && typeof item.execution_source_id === "string" &&
+      Number.isInteger(item.execution_source_version) && item.execution_profile === "prompt_application_invocation_v1" &&
+      DIGEST_PATTERN.test(item.authority_digest ?? "") && DIGEST_PATTERN.test(item.prompt_template_digest ?? "") &&
+      DIGEST_PATTERN.test(item.variable_names_digest ?? "") && typeof item.requested_protocol === "string" &&
+      typeof item.selected_protocol === "string" && ["unavailable", "provider_reported"].includes(item.usage_state ?? "") &&
+      [item.input_tokens, item.output_tokens, item.total_tokens].every((value) => value === undefined || Number.isInteger(value)) &&
+      typeof item.runtime_assignment_id === "string" && Number.isInteger(item.runtime_assignment_version) &&
+      typeof item.publish_candidate_id === "string" && Number.isInteger(item.publish_review_version)
+    : item.schema_version === "workflow_run_record.v5"
     ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "workflow_definition_execution" &&
       item.execution_source_kind === "workflow_definition" && typeof item.execution_source_id === "string" &&
       Number.isInteger(item.execution_source_version) && item.execution_profile === "workflow_definition_executor_v1" &&

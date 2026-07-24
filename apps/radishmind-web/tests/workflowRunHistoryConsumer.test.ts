@@ -7,6 +7,7 @@ import {
   listWorkflowRunHistory,
 } from "../src/features/control-plane-read/workflowRunHistoryConsumer.ts";
 import type { WorkflowExecutorConsumerConfig } from "../src/features/control-plane-read/workflowExecutorConsumer.ts";
+import { parseWorkflowRunRecordDocument } from "../src/features/control-plane-read/workflowRunRecordConsumer.ts";
 
 const offline: WorkflowExecutorConsumerConfig = { mode: "disabled", baseUrl: "http://127.0.0.1:7000", workspaceId: "workspace_demo", tenantRef: "tenant_demo", subjectRef: "subject_demo" };
 const live: WorkflowExecutorConsumerConfig = { ...offline, mode: "dev_workflow_executor_http" };
@@ -134,3 +135,86 @@ test("workflow run history maps v5 definition authority and exact source filters
     assert.equal(run?.sourceDraftId, "draft_definition_source");
   } finally { globalThis.fetch = originalFetch; }
 });
+
+test("workflow run history and detail recognize strict metadata-only v6", async () => {
+  const originalFetch = globalThis.fetch;
+  const digest = `sha256:${"b".repeat(64)}`;
+  globalThis.fetch = async (input) => {
+    const url = new URL(String(input));
+    assert.equal(url.searchParams.get("execution_source_kind"), "prompt_application_template");
+    return new Response(JSON.stringify({
+      request_id: "request_prompt_history", workspace_id: "workspace_demo", application_id: "app_demo",
+      runs: [{ schema_version: "workflow_run_record.v6", record_version: 2, run_id: "run_abcdefghijklmnop",
+        draft_id: "", draft_version: 0, execution_kind: "prompt_application_invocation",
+        execution_source_kind: "prompt_application_template", execution_source_id: "ptpl_abcdefghijklmnop",
+        execution_source_version: 1, execution_profile: "prompt_application_invocation_v1",
+        runtime_assignment_id: "ptra_abcdefghijklmnop", runtime_assignment_version: 1,
+        publish_candidate_id: "candidate_prompt_demo", publish_review_version: 1,
+        authority_digest: digest, prompt_template_digest: digest, variable_names_digest: digest,
+        requested_protocol: "openai_chat_completions", selected_protocol: "openai_chat_completions",
+        usage_state: "provider_reported", input_tokens: 5, output_tokens: 7, total_tokens: 12,
+        workspace_id: "workspace_demo", application_id: "app_demo", status: "succeeded", failure_code: "",
+        started_at: "2026-07-24T10:00:00Z", completed_at: "2026-07-24T10:00:01Z", duration_ms: 1000,
+        selected_provider: "mock", selected_profile: "default", selected_model: "profile:local-dev",
+        request_id: "request_prompt_run", audit_ref: "audit_prompt_run", stale_running: false,
+        side_effects: { provider_calls: 1, tool_calls: 0, confirmation_calls: 0, business_writes: 0, replay_writes: 0 } }],
+      next_cursor: "", has_more: false, failure_code: null, failure_summary: "", audit_ref: "audit_prompt_history",
+    }), { status: 200 });
+  };
+  try {
+    const result = await listWorkflowRunHistory("app_demo", live, {
+      ...EMPTY_WORKFLOW_RUN_HISTORY_FILTER,
+      executionSourceKind: "prompt_application_template",
+      executionSourceId: "ptpl_abcdefghijklmnop",
+      executionSourceVersion: 1,
+    });
+    const run = result.runs[0];
+    assert.equal(run?.schemaVersion, "workflow_run_record.v6");
+    assert.equal(run?.executionProfile, "prompt_application_invocation_v1");
+    assert.equal(run?.authorityDigest, digest);
+    assert.equal(run?.usageState, "provider_reported");
+    assert.equal(run?.totalTokens, 12);
+  } finally { globalThis.fetch = originalFetch; }
+
+  const detail = promptRunV6Document(digest);
+  const parsed = parseWorkflowRunRecordDocument(detail);
+  assert.equal(parsed?.schemaVersion, "workflow_run_record.v6");
+  assert.equal(parsed?.variableNamesDigest, digest);
+  assert.equal(parsed?.promptUsage?.totalTokens, 12);
+  assert.equal(parsed?.output, "");
+  assert.equal(parseWorkflowRunRecordDocument({ ...detail, rendered_messages: [] }), null);
+});
+
+function promptRunV6Document(digest: string) {
+  return {
+    schema_version: "workflow_run_record.v6", record_version: 2, run_id: "run_abcdefghijklmnop",
+    tenant_ref: "tenant_demo", workspace_id: "workspace_demo", application_id: "app_demo",
+    execution_kind: "prompt_application_invocation", execution_source_kind: "prompt_application_template",
+    execution_source_id: "ptpl_abcdefghijklmnop", execution_source_version: 1,
+    execution_profile: "prompt_application_invocation_v1",
+    authority: {
+      schema_version: "application_runtime_authority.v2", execution_profile: "prompt_application_invocation_v1",
+      application_id: "app_demo", application_record_version: 1, application_lifecycle: "active",
+      prompt_application: {
+        assignment_id: "ptra_abcdefghijklmnop", assignment_version: 1, assignment_digest: digest,
+        publish_candidate_id: "candidate_prompt_demo", publish_review_version: 1,
+        draft_id: "draft_prompt_demo", draft_version: 2, draft_digest: digest,
+        prompt_template_ref: { template_id: "ptpl_abcdefghijklmnop", template_version: 1, template_digest: digest },
+        default_protocol: "openai_chat_completions", default_model: "profile:local-dev",
+        protocol_policy_digest: digest, model_eligibility_digest: digest,
+      },
+      authority_digest: digest,
+    },
+    input_digest: digest, input_bytes: 64, variable_names: ["question", "tone"], variable_names_digest: digest,
+    requested_protocol: "openai_chat_completions", selected_protocol: "openai_chat_completions",
+    requested_model: "profile:local-dev", selected_provider: "mock", selected_profile: "default",
+    selected_model: "profile:local-dev", upstream_model: "profile:local-dev", selection_source: "test_selection",
+    status: "succeeded", failure_code: "", failure_summary: "", started_at: "2026-07-24T10:00:00Z",
+    completed_at: "2026-07-24T10:00:01Z", output: "",
+    usage: { state: "provider_reported", input_tokens: 5, output_tokens: 7, total_tokens: 12 },
+    side_effects: { provider_calls: 1, tool_calls: 0, confirmation_calls: 0, business_writes: 0, replay_writes: 0 },
+    diagnostic: { failure_boundary: "", failure_stage: "", terminal_write_state: "stored",
+      gateway_failure_category: "none", summary: "", recommended_review_action: "", observed_at: "2026-07-24T10:00:01Z" },
+    request_id: "request_prompt_run", audit_ref: "audit_prompt_run", actor_ref: "subject_demo",
+  };
+}

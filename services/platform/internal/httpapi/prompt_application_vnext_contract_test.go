@@ -111,8 +111,8 @@ func TestPromptApplicationBatchCActivatesConfigurationAndPublishOwnersOnly(t *te
 			t.Fatalf("existing run schema %s lost compatibility", schemaVersion)
 		}
 	}
-	if validWorkflowRunRecordSchema(promptApplicationRunV6Schema) {
-		t.Fatal("Batch C must not activate v6 in the run owner before controlled invocation")
+	if !validWorkflowRunRecordSchema(promptApplicationRunV6Schema) {
+		t.Fatal("Batch D must activate v6 without removing v0-v5 compatibility")
 	}
 }
 

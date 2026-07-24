@@ -81,6 +81,18 @@ type ApplicationInteractionSession struct {
 	AuditRef          string                                  `json:"audit_ref"`
 }
 
+func (session ApplicationInteractionSession) MarshalJSON() ([]byte, error) {
+	if session.SchemaVersion == promptApplicationSessionV2Schema {
+		document, err := promptApplicationSessionContractFromInteraction(session)
+		if err != nil {
+			return nil, err
+		}
+		return json.Marshal(document)
+	}
+	type alias ApplicationInteractionSession
+	return json.Marshal(alias(session))
+}
+
 type ApplicationInteractionRunRef struct {
 	RunID         string `json:"run_id"`
 	SchemaVersion string `json:"schema_version"`
@@ -109,6 +121,18 @@ type ApplicationInteractionTurn struct {
 	ActorRef         string                                  `json:"actor_ref"`
 	RequestID        string                                  `json:"request_id"`
 	AuditRef         string                                  `json:"audit_ref"`
+}
+
+func (turn ApplicationInteractionTurn) MarshalJSON() ([]byte, error) {
+	if turn.SchemaVersion == promptApplicationSessionTurnV2Schema {
+		document, err := promptApplicationTurnContractFromInteraction(turn)
+		if err != nil {
+			return nil, err
+		}
+		return json.Marshal(document)
+	}
+	type alias ApplicationInteractionTurn
+	return json.Marshal(alias(turn))
 }
 
 type ApplicationInteractionSessionCreateInput struct {
@@ -239,7 +263,11 @@ func (service applicationInteractionSessionService) Create(ctx ApplicationIntera
 		return applicationInteractionSessionFailure(ApplicationInteractionFailureStoreUnavailable)
 	}
 	now := service.now().UTC().Format(time.RFC3339Nano)
-	session := ApplicationInteractionSession{SchemaVersion: applicationSessionSchemaVersion, SessionID: sessionID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, OwnerSubjectRef: ctx.OwnerSubjectRef, State: applicationSessionStateActive, RecordVersion: 1, ProfileBinding: normalizeApplicationInteractionProfileBinding(input.ProfileBinding), Authority: authority, ContentRetention: applicationSessionRetentionPolicy, TurnCount: 0, CreatedAt: now, UpdatedAt: now, CreatedByActorRef: ctx.ActorRef, UpdatedByActorRef: ctx.ActorRef, RequestID: ctx.RequestID, AuditRef: ctx.AuditRef}
+	schemaVersion := applicationSessionSchemaVersion
+	if input.ProfileBinding.ExecutionProfile == applicationInteractionProfilePrompt {
+		schemaVersion = promptApplicationSessionV2Schema
+	}
+	session := ApplicationInteractionSession{SchemaVersion: schemaVersion, SessionID: sessionID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, OwnerSubjectRef: ctx.OwnerSubjectRef, State: applicationSessionStateActive, RecordVersion: 1, ProfileBinding: normalizeApplicationInteractionProfileBinding(input.ProfileBinding), Authority: authority, ContentRetention: applicationSessionRetentionPolicy, TurnCount: 0, CreatedAt: now, UpdatedAt: now, CreatedByActorRef: ctx.ActorRef, UpdatedByActorRef: ctx.ActorRef, RequestID: ctx.RequestID, AuditRef: ctx.AuditRef}
 	created, err := service.repository.Create(ctx, session)
 	if err != nil {
 		return applicationInteractionRepositoryFailure(err)
@@ -267,7 +295,7 @@ func (service applicationInteractionSessionService) List(ctx ApplicationInteract
 		state = applicationSessionStateActive
 	}
 	profile := strings.TrimSpace(input.ExecutionProfile)
-	if (state != applicationSessionStateActive && state != applicationSessionStateClosed) || (profile != "" && profile != applicationInteractionProfileWorkflow && profile != applicationInteractionProfileRAG) {
+	if (state != applicationSessionStateActive && state != applicationSessionStateClosed) || (profile != "" && profile != applicationInteractionProfileWorkflow && profile != applicationInteractionProfileRAG && profile != applicationInteractionProfilePrompt) {
 		return ApplicationInteractionSessionListResult{Sessions: []ApplicationInteractionSession{}, FailureCode: ApplicationInteractionFailurePayloadInvalid}
 	}
 	limit := input.Limit
@@ -384,7 +412,11 @@ func (service applicationInteractionSessionService) ReserveTurn(ctx ApplicationI
 	updated.LastTurnID = &turnID
 	updated.UpdatedAt = input.StartedAt.UTC().Format(time.RFC3339Nano)
 	updated.UpdatedByActorRef, updated.RequestID, updated.AuditRef = ctx.ActorRef, ctx.RequestID, ctx.AuditRef
-	turn := ApplicationInteractionTurn{SchemaVersion: applicationSessionTurnSchemaVersion, TurnID: turnID, SessionID: current.SessionID, Sequence: current.TurnCount + 1, ClientTurnKey: strings.TrimSpace(input.ClientTurnKey), TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, OwnerSubjectRef: ctx.OwnerSubjectRef, ExecutionProfile: current.ProfileBinding.ExecutionProfile, Authority: authority, Status: string(WorkflowRunStatusRunning), InputDigest: strings.TrimSpace(input.InputDigest), InputBytes: input.InputBytes, StartedAt: input.StartedAt.UTC().Format(time.RFC3339Nano), ActorRef: ctx.ActorRef, RequestID: ctx.RequestID, AuditRef: ctx.AuditRef}
+	turnSchemaVersion := applicationSessionTurnSchemaVersion
+	if current.ProfileBinding.ExecutionProfile == applicationInteractionProfilePrompt {
+		turnSchemaVersion = promptApplicationSessionTurnV2Schema
+	}
+	turn := ApplicationInteractionTurn{SchemaVersion: turnSchemaVersion, TurnID: turnID, SessionID: current.SessionID, Sequence: current.TurnCount + 1, ClientTurnKey: strings.TrimSpace(input.ClientTurnKey), TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, OwnerSubjectRef: ctx.OwnerSubjectRef, ExecutionProfile: current.ProfileBinding.ExecutionProfile, Authority: authority, Status: string(WorkflowRunStatusRunning), InputDigest: strings.TrimSpace(input.InputDigest), InputBytes: input.InputBytes, StartedAt: input.StartedAt.UTC().Format(time.RFC3339Nano), ActorRef: ctx.ActorRef, RequestID: ctx.RequestID, AuditRef: ctx.AuditRef}
 	storedSession, storedTurn, replay, err := service.repository.ReserveTurn(ctx, input.ExpectedSessionVersion, updated, turn)
 	if err != nil {
 		return applicationInteractionRepositoryFailure(err)
@@ -691,6 +723,13 @@ func validateApplicationInteractionTurnCompletionInput(input ApplicationInteract
 }
 
 func validateStoredApplicationInteractionSession(ctx ApplicationInteractionContext, session ApplicationInteractionSession) error {
+	if session.SchemaVersion == promptApplicationSessionV2Schema {
+		contract, err := promptApplicationSessionContractFromInteraction(session)
+		if err != nil || validatePromptApplicationSessionV2(contract) != nil {
+			return errApplicationSessionContract
+		}
+		return nil
+	}
 	if session.SchemaVersion != applicationSessionSchemaVersion || !applicationSessionIDPattern.MatchString(session.SessionID) || session.TenantRef != ctx.TenantRef || session.WorkspaceID != ctx.WorkspaceID || session.ApplicationID != ctx.ApplicationID || session.OwnerSubjectRef != ctx.OwnerSubjectRef || (session.State != applicationSessionStateActive && session.State != applicationSessionStateClosed) || session.RecordVersion < 1 || session.ContentRetention != applicationSessionRetentionPolicy || session.TurnCount < 0 || validateApplicationInteractionProfileBinding(session.ProfileBinding) != nil || validateApplicationInteractionAuthority(session.Authority) != nil || session.ProfileBinding.ExecutionProfile != session.Authority.ExecutionProfile || session.ProfileBinding.DefinitionID != applicationInteractionAuthorityDefinitionID(session.Authority) || parseApplicationInteractionTimestamp(session.CreatedAt) == nil || parseApplicationInteractionTimestamp(session.UpdatedAt) == nil || strings.TrimSpace(session.CreatedByActorRef) == "" || strings.TrimSpace(session.UpdatedByActorRef) == "" || strings.TrimSpace(session.RequestID) == "" || strings.TrimSpace(session.AuditRef) == "" {
 		return errApplicationSessionContract
 	}
@@ -701,6 +740,13 @@ func validateStoredApplicationInteractionSession(ctx ApplicationInteractionConte
 }
 
 func validateStoredApplicationInteractionTurn(ctx ApplicationInteractionContext, turn ApplicationInteractionTurn) error {
+	if turn.SchemaVersion == promptApplicationSessionTurnV2Schema {
+		contract, err := promptApplicationTurnContractFromInteraction(turn)
+		if err != nil || validatePromptApplicationSessionTurnV2(contract) != nil {
+			return errApplicationSessionContract
+		}
+		return nil
+	}
 	if turn.SchemaVersion != applicationSessionTurnSchemaVersion || !applicationTurnIDPattern.MatchString(turn.TurnID) || !applicationSessionIDPattern.MatchString(turn.SessionID) || turn.Sequence < 1 || !applicationDraftIdentifierPattern.MatchString(turn.ClientTurnKey) || turn.TenantRef != ctx.TenantRef || turn.WorkspaceID != ctx.WorkspaceID || turn.ApplicationID != ctx.ApplicationID || turn.OwnerSubjectRef != ctx.OwnerSubjectRef || turn.ExecutionProfile != turn.Authority.ExecutionProfile || validateApplicationInteractionAuthority(turn.Authority) != nil || !workflowRAGDigestPattern.MatchString(turn.InputDigest) || turn.InputBytes < 1 || turn.InputBytes > workflowExecutorMaxInputBytes || parseApplicationInteractionTimestamp(turn.StartedAt) == nil || strings.TrimSpace(turn.ActorRef) == "" || strings.TrimSpace(turn.RequestID) == "" || strings.TrimSpace(turn.AuditRef) == "" || len(turn.FailureSummary) > 256 {
 		return errApplicationSessionContract
 	}
@@ -732,7 +778,9 @@ func validateApplicationInteractionRunRef(profile string, ref *ApplicationIntera
 	if !workflowRAGRunIDPattern.MatchString(strings.TrimSpace(ref.RunID)) {
 		return errApplicationSessionContract
 	}
-	if profile == applicationInteractionProfileWorkflow && ref.SchemaVersion != workflowRunRecordDefinitionSchemaVersion || profile == applicationInteractionProfileRAG && ref.SchemaVersion != workflowRunRecordAppRAGSchemaVersion {
+	if profile == applicationInteractionProfileWorkflow && ref.SchemaVersion != workflowRunRecordDefinitionSchemaVersion ||
+		profile == applicationInteractionProfileRAG && ref.SchemaVersion != workflowRunRecordAppRAGSchemaVersion ||
+		profile == applicationInteractionProfilePrompt && ref.SchemaVersion != workflowRunRecordPromptSchemaVersion {
 		return errApplicationSessionContract
 	}
 	return nil
@@ -843,6 +891,9 @@ func validateApplicationInteractionContractJSON(contract string, payload []byte)
 		}
 		ctx := ApplicationInteractionContext{TenantRef: turn.TenantRef, WorkspaceID: turn.WorkspaceID, ApplicationID: turn.ApplicationID, OwnerSubjectRef: turn.OwnerSubjectRef}
 		return validateStoredApplicationInteractionTurn(ctx, turn)
+	case promptApplicationSessionV2Schema, promptApplicationSessionTurnV2Schema:
+		_, err := decodePromptApplicationVNextContract(contract, payload)
+		return err
 	default:
 		return errApplicationSessionContract
 	}
@@ -911,6 +962,10 @@ func cloneApplicationInteractionAuthority(value ApplicationInteractionAuthorityS
 	if value.ApplicationRAG != nil {
 		rag := *value.ApplicationRAG
 		copy.ApplicationRAG = &rag
+	}
+	if value.PromptApplication != nil {
+		prompt := *value.PromptApplication
+		copy.PromptApplication = &prompt
 	}
 	return copy
 }

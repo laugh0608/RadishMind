@@ -1,8 +1,8 @@
 # 提示词应用模板版本审查与受控调用（开发 / 测试态）v1
 
-更新时间：2026-07-21
+更新时间：2026-07-24
 
-状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_c_completed_batch_d_ready`
+状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_d_implementation_completed_postgres_verification_pending`
 
 ## 功能定位
 
@@ -15,10 +15,10 @@
 - Application Catalog 与 Application Configuration Draft 已允许 `prompt_application`，但专题启动前没有应用作用域的模板草案、模板版本、变量契约或运行时 authority。
 - Application Configuration Draft 明确不保存提示词、消息、用户输入或模型输出；把模板正文直接加入该 owner 会破坏现有脱敏配置边界。
 - Workflow Definition 支持 `prompt` 节点，但当前不可变定义保存的是节点结构、输入 / 输出摘要与引用，不是提示词源码真相源；不能把摘要字段解释为可执行模板正文。
-- Application Interaction Session 当前只支持 `workflow_definition_executor_v1` 与 `application_rag_invocation_v1`，没有 Prompt Application profile。
+- Application Interaction Session 在专题启动时只支持 `workflow_definition_executor_v1` 与 `application_rag_invocation_v1`；批次 D 已新增独立 v2 Prompt profile，既有 v1 session 语义未放宽。
 - 仓库 `prompts/` 保存的是 RadishMind 自身的静态任务提示词，不属于用户应用资源，也不提供多租户、版本、审查或运行时绑定。
 
-因此，专题启动时 `prompt_application` 只是目录与配置允许值，并没有与产品声明相匹配的真实用户路径；批次 A 至批次 C 已依次补齐模板领域、持久化、配置 / 发布审查和显式 assignment，受控调用与产品界面仍由后续批次承接。
+因此，专题启动时 `prompt_application` 只是目录与配置允许值，并没有与产品声明相匹配的真实用户路径；批次 A 至批次 C 已依次补齐模板领域、持久化、配置 / 发布审查和显式 assignment，批次 D 已补齐受控调用与 metadata-only 审查链，产品界面由批次 E 承接。
 
 ## 目标用户与主要任务
 
@@ -199,10 +199,10 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 - Configuration binding：从精确 draft + template version 生成下一版配置草案；
 - Publish Candidate v3：复用既有 create / read / list / review 路由与状态机；
 - Runtime Assignment：read current、list events、activate / replace / revoke；
-- Invocation：API key 单次调用与 Application Session profile 委托，当前尚未开放；
-- Run / Evaluation：复用既有历史、详情、比较和评测入口，按新 lineage 显式识别，当前尚未开放 v6。
+- Invocation：API key 单次调用与 Application Session v2 profile 只委托唯一 invocation service；
+- Run / Evaluation：复用既有历史、详情、比较和评测入口，按 v6 lineage 显式识别且不重新执行。
 
-权限已经区分模板摘要读取、源码读取、写入、版本创建、配置绑定、assignment 读取与管理；发布候选继续使用既有 write / review scope。`memory_dev`、聚合 `sqlite_dev` 与 `postgres_dev_test` 共享作用域、CAS、不可变版本、排序、失败和 no-fallback 语义；Runtime Assignment / Event 复用 Workflow Run Store 投影。production repository、production auth、invocation 权限和正式发布继续关闭。
+权限已经区分模板摘要读取、源码读取、写入、版本创建、配置绑定、assignment 读取与管理，以及独立 API key `prompt_application:invoke`；发布候选继续使用既有 write / review scope。`memory_dev`、聚合 `sqlite_dev` 与 `postgres_dev_test` 共享作用域、CAS、不可变版本、排序、失败和 no-fallback 语义；Runtime Assignment / Event、Session / Turn v2 与 Run v6 使用共享 Workflow runtime 下的独立 Prompt 投影。production repository、production auth 和正式发布继续关闭。
 
 ## 稳定失败语义
 
@@ -246,16 +246,29 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 - Configuration Draft v3 已通过独立 binding 路由从服务端重读精确 Template Version 并计算 digest；浏览器不能直接写入或伪造 binding，v1 / v2 语义保持不变。
 - Publish Candidate v3 已复用既有候选创建与人工 review 状态机，并在创建、批准和资格读取时重读精确配置与模板；template 漂移、candidate supersede 和源码权限缺失均失败关闭。
 - Prompt Application Runtime Assignment 已实现 memory / SQLite / PostgreSQL 三态 repository、`activate | replace | revoke`、expected-version CAS、只追加事件和读取时 authority 重验；candidate approve 不产生 assignment。
-- 相邻测试、完整 Platform HTTP API、Go vet、SQLite 重启与 CAS、真实 PostgreSQL migration / repository / 配置启动门禁均已通过；provider 调用、Session Prompt profile、Run v6 owner 和 Web 仍未启用。
+- 相邻测试、完整 Platform HTTP API、Go vet、SQLite 重启与 CAS、真实 PostgreSQL migration / repository / 配置启动门禁均已通过；该结论是批次 C 的完成证据，不包含批次 D 后续新增的 Prompt Run / Session 行为用例。
 
 ### 批次 D：受控调用、Session、Run 与 Evaluation
+
+状态：`implementation_completed_postgres_verification_pending`。
 
 - 实现 `prompt_application_invocation_v1` exact authority resolver 和 provider 前 checkpoint。
 - API key 与 Application Session 委托唯一 invocation service，单次调用既有 Gateway。
 - 接入新的 metadata-only run lineage、History / Detail / Comparison / Evaluation / Operations，并保持旧 lineage 兼容。
 - 覆盖幂等、并发、取消、漂移、终态不确定、输出契约失败和零自动重放。
 
+实现记录：
+
+- 唯一 invocation service 在运行预留前解析完整 authority，并在计划内 Gateway 调用前再次重读 Application Catalog、当前 assignment、approved candidate v3、Configuration Draft v3、immutable Template Version 和协议 / 模型资格；漂移在 provider 副作用前失败关闭。
+- `POST /v1/prompt-applications/invocations` 只接受 API key `prompt_application:invoke`、有界 `variables` 和 `client_invocation_key`；客户端不能提交模板、authority、provider、credential 或重试策略。成功路径只调用一次既有 Gateway。
+- Application Session / Turn v2 使用 `prompt_application_invocation_v1` profile，只委托同一 invocation service；Run v6、Session 和 Turn 持久化均为 metadata-only，终态幂等返回不重放输出或 provider。
+- History / Detail / Comparison / Evaluation / Operations 已严格识别 v6 lineage；TypeScript Run / History / Comparison consumer 同步支持新版本，但没有启用 Prompt Web 工作区或 API key 创建入口。
+- memory / SQLite 覆盖 exact authority、并发重复、取消、超时、输出契约、终态写入不确定、重启恢复和敏感扫描；PostgreSQL 行为用例已覆盖 Run / Session 重启、数据库约束与敏感扫描，并通过 build-tag 编译。
+- 2026-07-24 执行真实 PostgreSQL `check` 时，本机 Docker daemon 未运行，脚本在创建临时数据库前退出。该环境门禁通过前不把批次 D 标记为 completed，也不开放批次 E。
+
 ### 批次 E：Web 工作区、双数据库连续链与浏览器验收
+
+状态：`blocked_by_batch_d_postgres_verification`。
 
 - 完成模板创作、版本、binding、发布审查、assignment、受控测试和运行 / 评测交接。
 - 完成 SQLite / PostgreSQL launcher profile、服务重启恢复和连续用户路径。
@@ -287,4 +300,4 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 
 ## 下一步
 
-[唯一实施任务卡](../../task-cards/prompt-application-template-version-review-controlled-invocation-dev-test-v1-plan.md)已于 2026-07-21 冻结批次 A 至 E 的 schema / API 版本、迁移顺序、兼容矩阵、专项验证和停止条件。A1–A3、批次 B 与批次 C 均已完成：Template 双数据库 owner、Configuration Draft v3 精确绑定、Publish Candidate v3 人工审查、三态 Runtime Assignment、SQLite 重启证据与真实 PostgreSQL 门禁均已通过。下一步只进入批次 D 的受控调用、Session、Run 与 Evaluation；provider 必须由唯一 invocation service 在 exact authority checkpoint 后单次委托，Web 全链继续关闭。
+[唯一实施任务卡](../../task-cards/prompt-application-template-version-review-controlled-invocation-dev-test-v1-plan.md)已于 2026-07-21 冻结批次 A 至 E 的 schema / API 版本、迁移顺序、兼容矩阵、专项验证和停止条件。A1–A3、批次 B 与批次 C 均已完成；批次 D 的受控调用、Session、Run 与 Evaluation 实现及 memory / SQLite 证据已完成，PostgreSQL 行为用例也已通过编译。下一步只复验真实 PostgreSQL Run / Session 链；通过后才能把批次 D 标记为 completed 并开放批次 E，Web 全链在此之前继续关闭。

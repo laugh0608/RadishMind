@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"encoding/json"
 	"strings"
 	"time"
 )
@@ -10,6 +11,7 @@ const (
 	workflowRAGRunComparisonSchemaVersion        = "workflow_run_comparison.v2"
 	workflowRAGAppRunComparisonSchemaVersion     = "workflow_run_comparison.v3"
 	workflowDefinitionRunComparisonSchemaVersion = "workflow_run_comparison.v4"
+	promptApplicationRunComparisonSchemaVersion  = "workflow_run_comparison.v5"
 )
 
 type WorkflowRunComparisonClassification string
@@ -46,6 +48,14 @@ type WorkflowRunComparisonRun struct {
 	ExecutionSourceVersion int                               `json:"execution_source_version,omitempty"`
 	ExecutionProfile       string                            `json:"execution_profile,omitempty"`
 	DefinitionDigest       string                            `json:"definition_digest,omitempty"`
+	AuthorityDigest        string                            `json:"authority_digest,omitempty"`
+	VariableNamesDigest    string                            `json:"variable_names_digest,omitempty"`
+	RequestedProtocol      string                            `json:"requested_protocol,omitempty"`
+	SelectedProtocol       string                            `json:"selected_protocol,omitempty"`
+	UsageState             string                            `json:"usage_state,omitempty"`
+	InputTokens            int                               `json:"input_tokens,omitempty"`
+	OutputTokens           int                               `json:"output_tokens,omitempty"`
+	TotalTokens            int                               `json:"total_tokens,omitempty"`
 	Status                 WorkflowRunStatus                 `json:"status"`
 	FailureCode            WorkflowRunFailureCode            `json:"failure_code"`
 	FailureBoundary        WorkflowRunFailureBoundary        `json:"failure_boundary"`
@@ -84,12 +94,33 @@ type WorkflowRunComparison struct {
 	ModelChanged            bool                                `json:"model_changed"`
 	StatusChanged           bool                                `json:"status_changed"`
 	FailureChanged          bool                                `json:"failure_changed"`
+	AuthorityChanged        bool                                `json:"authority_changed,omitempty"`
+	VariableContractChanged bool                                `json:"variable_contract_changed,omitempty"`
+	ProtocolChanged         bool                                `json:"protocol_changed,omitempty"`
 	DurationDeltaMS         int64                               `json:"duration_delta_ms"`
 	ProviderCallDelta       int                                 `json:"provider_call_delta"`
 	Nodes                   []WorkflowRunNodeComparison         `json:"nodes"`
 	Retrieval               *WorkflowRunRetrievalComparison     `json:"retrieval,omitempty"`
 	Findings                []WorkflowRunComparisonFinding      `json:"findings"`
 	RecommendedReviewAction WorkflowRunReviewAction             `json:"recommended_review_action"`
+}
+
+func (comparison WorkflowRunComparison) MarshalJSON() ([]byte, error) {
+	type alias WorkflowRunComparison
+	if comparison.SchemaVersion != promptApplicationRunComparisonSchemaVersion {
+		return json.Marshal(alias(comparison))
+	}
+	return json.Marshal(struct {
+		alias
+		AuthorityChanged        bool `json:"authority_changed"`
+		VariableContractChanged bool `json:"variable_contract_changed"`
+		ProtocolChanged         bool `json:"protocol_changed"`
+	}{
+		alias:                   alias(comparison),
+		AuthorityChanged:        comparison.AuthorityChanged,
+		VariableContractChanged: comparison.VariableContractChanged,
+		ProtocolChanged:         comparison.ProtocolChanged,
+	})
 }
 
 type WorkflowRunComparisonResult struct {
@@ -118,6 +149,15 @@ func (service workflowExecutorService) CompareRuns(runContext WorkflowRunContext
 		comparison := buildWorkflowRunComparison(baseline, candidate, time.Now().UTC())
 		comparison.SchemaVersion = workflowDefinitionRunComparisonSchemaVersion
 		comparison.RunProfile = workflowDefinitionEvaluationProfile
+		return WorkflowRunComparisonResult{Comparison: &comparison}
+	}
+	if baseline.SchemaVersion == workflowRunRecordPromptSchemaVersion || candidate.SchemaVersion == workflowRunRecordPromptSchemaVersion {
+		if !promptApplicationRunsComparable(baseline, candidate) {
+			return workflowRunComparisonFailure(WorkflowRunFailurePromptIncompatible)
+		}
+		comparison := buildWorkflowRunComparison(baseline, candidate, time.Now().UTC())
+		comparison.SchemaVersion = promptApplicationRunComparisonSchemaVersion
+		comparison.RunProfile = promptApplicationInvocationProfile
 		return WorkflowRunComparisonResult{Comparison: &comparison}
 	}
 	if workflowRunRecordUsesRetrievalComparison(baseline) || workflowRunRecordUsesRetrievalComparison(candidate) {
@@ -156,15 +196,18 @@ func buildWorkflowRunComparison(baseline, candidate WorkflowRunRecord, now time.
 		SchemaVersion: workflowRunComparisonSchemaVersion,
 		RunProfile:    "workflow_standard.v1",
 		Baseline:      comparisonRun(b), Candidate: comparisonRun(c),
-		DraftChanged:           baseline.DraftID != candidate.DraftID || baseline.DraftVersion != candidate.DraftVersion || baseline.DraftDigest != candidate.DraftDigest,
-		ExecutionSourceChanged: workflowRunExecutionSourceChanged(baseline, candidate),
-		ProviderChanged:        baseline.SelectedProvider != candidate.SelectedProvider || baseline.SelectedProfile != candidate.SelectedProfile,
-		ModelChanged:           baseline.SelectedModel != candidate.SelectedModel,
-		StatusChanged:          baseline.Status != candidate.Status,
-		FailureChanged:         baseline.FailureCode != candidate.FailureCode || diagnosticBoundary(baseline) != diagnosticBoundary(candidate) || diagnosticCategory(baseline) != diagnosticCategory(candidate),
-		DurationDeltaMS:        c.DurationMS - b.DurationMS,
-		ProviderCallDelta:      candidate.SideEffects.ProviderCalls - baseline.SideEffects.ProviderCalls,
-		Nodes:                  compareWorkflowRunNodes(baseline.Nodes, candidate.Nodes),
+		DraftChanged:            baseline.DraftID != candidate.DraftID || baseline.DraftVersion != candidate.DraftVersion || baseline.DraftDigest != candidate.DraftDigest,
+		ExecutionSourceChanged:  workflowRunExecutionSourceChanged(baseline, candidate),
+		ProviderChanged:         baseline.SelectedProvider != candidate.SelectedProvider || baseline.SelectedProfile != candidate.SelectedProfile,
+		ModelChanged:            baseline.SelectedModel != candidate.SelectedModel,
+		StatusChanged:           baseline.Status != candidate.Status,
+		FailureChanged:          baseline.FailureCode != candidate.FailureCode || diagnosticBoundary(baseline) != diagnosticBoundary(candidate) || diagnosticCategory(baseline) != diagnosticCategory(candidate),
+		AuthorityChanged:        b.AuthorityDigest != c.AuthorityDigest,
+		VariableContractChanged: b.VariableNamesDigest != c.VariableNamesDigest,
+		ProtocolChanged:         b.RequestedProtocol != c.RequestedProtocol || b.SelectedProtocol != c.SelectedProtocol,
+		DurationDeltaMS:         c.DurationMS - b.DurationMS,
+		ProviderCallDelta:       candidate.SideEffects.ProviderCalls - baseline.SideEffects.ProviderCalls,
+		Nodes:                   compareWorkflowRunNodes(baseline.Nodes, candidate.Nodes),
 	}
 	comparison.ComparisonState = WorkflowRunComparisonComparable
 	if (baseline.Status == WorkflowRunStatusRunning && !b.StaleRunning) || (candidate.Status == WorkflowRunStatusRunning && !c.StaleRunning) {
@@ -186,8 +229,19 @@ func workflowDefinitionRunsComparable(baseline, candidate WorkflowRunRecord) boo
 		baseline.ExecutionSource.ID == candidate.ExecutionSource.ID
 }
 
+func promptApplicationRunsComparable(baseline, candidate WorkflowRunRecord) bool {
+	return baseline.SchemaVersion == workflowRunRecordPromptSchemaVersion &&
+		candidate.SchemaVersion == workflowRunRecordPromptSchemaVersion &&
+		baseline.ExecutionProfile == promptApplicationInvocationProfile &&
+		candidate.ExecutionProfile == promptApplicationInvocationProfile &&
+		baseline.ExecutionSource != nil && candidate.ExecutionSource != nil &&
+		baseline.ExecutionSource.SourceKind == promptApplicationExecutionSourceKind &&
+		candidate.ExecutionSource.SourceKind == promptApplicationExecutionSourceKind &&
+		baseline.ExecutionSource.ID == candidate.ExecutionSource.ID
+}
+
 func comparisonRun(summary WorkflowRunSummary) WorkflowRunComparisonRun {
-	return WorkflowRunComparisonRun{RunID: summary.RunID, SchemaVersion: summary.SchemaVersion, DraftID: summary.DraftID, DraftVersion: summary.DraftVersion, ExecutionKind: summary.ExecutionKind, ExecutionSourceKind: summary.ExecutionSourceKind, ExecutionSourceID: summary.ExecutionSourceID, ExecutionSourceVersion: summary.ExecutionSourceVersion, ExecutionProfile: summary.ExecutionProfile, DefinitionDigest: summary.DefinitionDigest, Status: summary.Status, FailureCode: summary.FailureCode, FailureBoundary: summary.FailureBoundary, GatewayFailureCategory: summary.GatewayFailureCategory, SelectedProvider: summary.SelectedProvider, SelectedProfile: summary.SelectedProfile, SelectedModel: summary.SelectedModel, DurationMS: summary.DurationMS, StaleRunning: summary.StaleRunning, RequestID: summary.RequestID, AuditRef: summary.AuditRef, SideEffects: summary.SideEffects}
+	return WorkflowRunComparisonRun{RunID: summary.RunID, SchemaVersion: summary.SchemaVersion, DraftID: summary.DraftID, DraftVersion: summary.DraftVersion, ExecutionKind: summary.ExecutionKind, ExecutionSourceKind: summary.ExecutionSourceKind, ExecutionSourceID: summary.ExecutionSourceID, ExecutionSourceVersion: summary.ExecutionSourceVersion, ExecutionProfile: summary.ExecutionProfile, DefinitionDigest: summary.DefinitionDigest, AuthorityDigest: summary.AuthorityDigest, VariableNamesDigest: summary.VariableNamesDigest, RequestedProtocol: summary.RequestedProtocol, SelectedProtocol: summary.SelectedProtocol, UsageState: summary.UsageState, InputTokens: summary.InputTokens, OutputTokens: summary.OutputTokens, TotalTokens: summary.TotalTokens, Status: summary.Status, FailureCode: summary.FailureCode, FailureBoundary: summary.FailureBoundary, GatewayFailureCategory: summary.GatewayFailureCategory, SelectedProvider: summary.SelectedProvider, SelectedProfile: summary.SelectedProfile, SelectedModel: summary.SelectedModel, DurationMS: summary.DurationMS, StaleRunning: summary.StaleRunning, RequestID: summary.RequestID, AuditRef: summary.AuditRef, SideEffects: summary.SideEffects}
 }
 
 func workflowRunRecordUsesRetrievalComparison(record WorkflowRunRecord) bool {
@@ -217,7 +271,7 @@ func classifyWorkflowRunComparison(value WorkflowRunComparison) WorkflowRunCompa
 		return WorkflowRunComparisonRegression
 	}
 	durationChanged := value.DurationDeltaMS != 0 && value.Retrieval == nil
-	if value.DraftChanged || value.ExecutionSourceChanged || value.ProviderChanged || value.ModelChanged || value.StatusChanged || value.FailureChanged || durationChanged || value.ProviderCallDelta != 0 || nodesChanged(value.Nodes) || workflowRAGComparisonMateriallyChanged(value.Retrieval) {
+	if value.DraftChanged || value.ExecutionSourceChanged || value.ProviderChanged || value.ModelChanged || value.StatusChanged || value.FailureChanged || value.AuthorityChanged || value.VariableContractChanged || value.ProtocolChanged || durationChanged || value.ProviderCallDelta != 0 || nodesChanged(value.Nodes) || workflowRAGComparisonMateriallyChanged(value.Retrieval) {
 		return WorkflowRunComparisonChanged
 	}
 	return WorkflowRunComparisonUnchanged
@@ -285,6 +339,15 @@ func workflowRunComparisonFindings(value WorkflowRunComparison) []WorkflowRunCom
 	if value.FailureChanged {
 		add("failure_changed", "review_required")
 	}
+	if value.AuthorityChanged {
+		add("prompt_application_authority_changed", "review_required")
+	}
+	if value.VariableContractChanged {
+		add("prompt_application_variable_contract_changed", "review_required")
+	}
+	if value.ProtocolChanged {
+		add("prompt_application_protocol_changed", "review_required")
+	}
 	if nodesChanged(value.Nodes) {
 		add("nodes_changed", "review_required")
 	}
@@ -337,6 +400,9 @@ func comparisonReviewAction(value WorkflowRunComparison, candidate WorkflowRunRe
 	if candidate.Diagnostic != nil && candidate.Diagnostic.RecommendedReviewAction != "" {
 		return candidate.Diagnostic.RecommendedReviewAction
 	}
+	if candidate.PromptDiagnostic != nil && candidate.PromptDiagnostic.RecommendedReviewAction != "" {
+		return WorkflowRunReviewAction(candidate.PromptDiagnostic.RecommendedReviewAction)
+	}
 	if value.DraftChanged || nodesChanged(value.Nodes) {
 		return WorkflowRunReviewDraft
 	}
@@ -355,11 +421,17 @@ func diagnosticBoundary(record WorkflowRunRecord) WorkflowRunFailureBoundary {
 	if record.Diagnostic != nil {
 		return record.Diagnostic.FailureBoundary
 	}
+	if record.PromptDiagnostic != nil {
+		return WorkflowRunFailureBoundary(record.PromptDiagnostic.FailureBoundary)
+	}
 	return ""
 }
 func diagnosticCategory(record WorkflowRunRecord) WorkflowRunGatewayFailureCategory {
 	if record.Diagnostic != nil {
 		return record.Diagnostic.GatewayFailureCategory
+	}
+	if record.PromptDiagnostic != nil {
+		return WorkflowRunGatewayFailureCategory(record.PromptDiagnostic.GatewayFailureCategory)
 	}
 	return ""
 }
@@ -388,6 +460,9 @@ func workflowRunComparisonFailure(code WorkflowRunFailureCode) WorkflowRunCompar
 	}
 	if code == WorkflowRunFailureRetrievalIncompatible {
 		summary = "Workflow run comparison requires matching retrieval snapshot, profile, query, and node bindings."
+	}
+	if code == WorkflowRunFailurePromptIncompatible {
+		summary = "Workflow run comparison requires one compatible Prompt Application template lineage and execution profile."
 	}
 	return WorkflowRunComparisonResult{FailureCode: code, FailureSummary: summary}
 }

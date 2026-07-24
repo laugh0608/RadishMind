@@ -67,7 +67,7 @@ type workflowEvaluationRevisionListEnvelope struct {
 
 func (s *Server) handleCreateWorkflowEvaluation(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowEvaluationCreateRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowEvaluationDev(writer, trace) {
 		return
 	}
 	var body workflowEvaluationCreateHTTPBody
@@ -84,7 +84,7 @@ func (s *Server) handleCreateWorkflowEvaluation(writer http.ResponseWriter, requ
 }
 func (s *Server) handleReadWorkflowEvaluation(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowEvaluationReadRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowEvaluationDev(writer, trace) {
 		return
 	}
 	ctx, failureCode := workflowEvaluationContextFromQuery(request, trace, "evaluation-read")
@@ -96,7 +96,7 @@ func (s *Server) handleReadWorkflowEvaluation(writer http.ResponseWriter, reques
 }
 func (s *Server) handleReviewWorkflowEvaluation(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowEvaluationReviewRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowEvaluationDev(writer, trace) {
 		return
 	}
 	ctx, version, failureCode := workflowEvaluationReviewContextFromQuery(request, trace)
@@ -109,7 +109,7 @@ func (s *Server) handleReviewWorkflowEvaluation(writer http.ResponseWriter, requ
 }
 func (s *Server) handleCreateWorkflowEvaluationRevision(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowEvaluationRevisionCreateRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowEvaluationDev(writer, trace) {
 		return
 	}
 	var body workflowEvaluationRevisionHTTPBody
@@ -126,7 +126,7 @@ func (s *Server) handleCreateWorkflowEvaluationRevision(writer http.ResponseWrit
 }
 func (s *Server) handleListWorkflowEvaluationRevisions(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowEvaluationRevisionListRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowEvaluationDev(writer, trace) {
 		return
 	}
 	ctx, limit, cursor, code := workflowEvaluationRevisionListContext(request, trace)
@@ -138,7 +138,7 @@ func (s *Server) handleListWorkflowEvaluationRevisions(writer http.ResponseWrite
 }
 func (s *Server) handleReadWorkflowEvaluationRevision(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowEvaluationRevisionReadRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowEvaluationDev(writer, trace) {
 		return
 	}
 	ctx, code := workflowEvaluationContextFromQuery(request, trace, "evaluation-revision-read")
@@ -154,7 +154,7 @@ func (s *Server) handleReadWorkflowEvaluationRevision(writer http.ResponseWriter
 }
 func (s *Server) handleListWorkflowEvaluations(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowEvaluationListRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowEvaluationDev(writer, trace) {
 		return
 	}
 	values := request.URL.Query()

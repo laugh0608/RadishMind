@@ -175,3 +175,38 @@ test("workflow run comparison maps definition-bound v4 without execution", async
     assert.equal(comparison.baseline.executionProfile, "workflow_definition_executor_v1");
   } finally { globalThis.fetch = originalFetch; }
 });
+
+test("workflow run comparison maps Prompt Application v5 without content", async () => {
+  const originalFetch = globalThis.fetch;
+  const promptDigest = `sha256:${"e".repeat(64)}`;
+  const promptRun = (runId: string) => ({
+    run_id: runId, schema_version: "workflow_run_record.v6", draft_id: "", draft_version: 0,
+    execution_kind: "prompt_application_invocation", execution_source_kind: "prompt_application_template",
+    execution_source_id: "ptpl_abcdefghijklmnop", execution_source_version: 1,
+    execution_profile: "prompt_application_invocation_v1", authority_digest: promptDigest,
+    variable_names_digest: promptDigest, requested_protocol: "openai_chat_completions",
+    selected_protocol: "openai_chat_completions", usage_state: "unavailable",
+    status: "succeeded", failure_code: "", failure_boundary: "", gateway_failure_category: "none",
+    selected_provider: "mock", selected_profile: "default", selected_model: "profile:local-dev", duration_ms: 100,
+    stale_running: false, request_id: `request_${runId}`, audit_ref: `audit_${runId}`,
+    side_effects: { provider_calls: 1, tool_calls: 0, confirmation_calls: 0, business_writes: 0, replay_writes: 0 },
+  });
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    request_id: "request_prompt_compare", workspace_id: "workspace_demo", application_id: "app_demo",
+    comparison: { schema_version: "workflow_run_comparison.v5", run_profile: "prompt_application_invocation_v1",
+      classification: "unchanged", comparison_state: "comparable", baseline: promptRun("run_prompt_base"),
+      candidate: promptRun("run_prompt_candidate"), draft_changed: false, execution_source_changed: false,
+      provider_changed: false, model_changed: false, status_changed: false, failure_changed: false,
+      authority_changed: false, variable_contract_changed: false, protocol_changed: false,
+      duration_delta_ms: 0, provider_call_delta: 0, nodes: [], findings: [{ code: "no_material_change", severity: "info" }],
+      recommended_review_action: "" },
+    failure_code: null, failure_summary: "", audit_ref: "audit_prompt_compare",
+  }), { status: 200 });
+  try {
+    const comparison = await compareWorkflowRuns("app_demo", "run_prompt_base", "run_prompt_candidate", live);
+    assert.equal(comparison.schemaVersion, "workflow_run_comparison.v5");
+    assert.equal(comparison.runProfile, "prompt_application_invocation_v1");
+    assert.equal(comparison.baseline.authorityDigest, promptDigest);
+    assert.equal(comparison.protocolChanged, false);
+  } finally { globalThis.fetch = originalFetch; }
+});
