@@ -1,8 +1,8 @@
 # 提示词应用模板版本审查与受控调用（开发 / 测试态）v1
 
-更新时间：2026-07-24
+更新时间：2026-07-25
 
-状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_d_implementation_completed_postgres_verification_pending`
+状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_d_completed_batch_e_ready`
 
 ## 功能定位
 
@@ -250,7 +250,7 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 
 ### 批次 D：受控调用、Session、Run 与 Evaluation
 
-状态：`implementation_completed_postgres_verification_pending`。
+状态：`completed`；完成锚点为 `prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_d_completed`。
 
 - 实现 `prompt_application_invocation_v1` exact authority resolver 和 provider 前 checkpoint。
 - API key 与 Application Session 委托唯一 invocation service，单次调用既有 Gateway。
@@ -264,11 +264,12 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 - Application Session / Turn v2 使用 `prompt_application_invocation_v1` profile，只委托同一 invocation service；Run v6、Session 和 Turn 持久化均为 metadata-only，终态幂等返回不重放输出或 provider。
 - History / Detail / Comparison / Evaluation / Operations 已严格识别 v6 lineage；TypeScript Run / History / Comparison consumer 同步支持新版本，但没有启用 Prompt Web 工作区或 API key 创建入口。
 - memory / SQLite 覆盖 exact authority、并发重复、取消、超时、输出契约、终态写入不确定、重启恢复和敏感扫描；PostgreSQL 行为用例已覆盖 Run / Session 重启、数据库约束与敏感扫描，并通过 build-tag 编译。
-- 2026-07-24 执行真实 PostgreSQL `check` 时，本机 Docker daemon 未运行，脚本在创建临时数据库前退出。该环境门禁通过前不把批次 D 标记为 completed，也不开放批次 E。
+- 2026-07-24 首次执行真实 PostgreSQL `check` 时，本机 Docker daemon 未运行，脚本在创建临时数据库前退出；该历史环境阻塞未被误写为通过。
+- 2026-07-25 重新执行 `./scripts/run-workflow-saved-draft-postgres-dev-test.sh check` 已通过：新增 Prompt Run / Session 行为用例完成真实 PostgreSQL 重启、约束和敏感扫描，随后全部受审 schema 恢复与 configured platform startup profile 验证也通过。批次 D 据此正式关闭并开放批次 E。
 
 ### 批次 E：Web 工作区、双数据库连续链与浏览器验收
 
-状态：`blocked_by_batch_d_postgres_verification`。
+状态：`ready_for_implementation`。
 
 - 完成模板创作、版本、binding、发布审查、assignment、受控测试和运行 / 评测交接。
 - 完成 SQLite / PostgreSQL launcher profile、服务重启恢复和连续用户路径。
@@ -300,4 +301,4 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 
 ## 下一步
 
-[唯一实施任务卡](../../task-cards/prompt-application-template-version-review-controlled-invocation-dev-test-v1-plan.md)已于 2026-07-21 冻结批次 A 至 E 的 schema / API 版本、迁移顺序、兼容矩阵、专项验证和停止条件。A1–A3、批次 B 与批次 C 均已完成；批次 D 的受控调用、Session、Run 与 Evaluation 实现及 memory / SQLite 证据已完成，PostgreSQL 行为用例也已通过编译。下一步只复验真实 PostgreSQL Run / Session 链；通过后才能把批次 D 标记为 completed 并开放批次 E，Web 全链在此之前继续关闭。
+[唯一实施任务卡](../../task-cards/prompt-application-template-version-review-controlled-invocation-dev-test-v1-plan.md)已于 2026-07-21 冻结批次 A 至 E 的 schema / API 版本、迁移顺序、兼容矩阵、专项验证和停止条件。A1–A3、批次 B、批次 C 与批次 D 均已完成；批次 D 的受控调用、Session、Run、Evaluation 及 memory / SQLite / PostgreSQL 证据链已经闭合。下一步进入批次 E，只完成 Web 工作区、双数据库连续链和真实浏览器验收。

@@ -1,12 +1,12 @@
 # Prompt Application 开发测试态使用指南
 
-更新时间：2026-07-24
+更新时间：2026-07-25
 
 ## 适用范围
 
 本文说明如何在 RadishMind Platform 的开发测试态创建 Prompt Application 模板、生成不可变版本、绑定应用配置、审查发布候选、显式管理当前 Runtime Assignment，并通过 API key 或 Application Interaction Session 发起受控调用。设计边界与字段职责见[提示词应用模板版本审查与受控调用专题](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)，schema 真相源位于 `contracts/`，HTTP 实现真相源位于 `services/platform/internal/httpapi/`。
 
-当前已提供模板与 assignment 管理、Prompt Application invocation、Application Session / Turn v2、Run v6 与 History / Comparison / Evaluation / Operations metadata 消费。Prompt Web 工作区仍未开放；新增 Run / Session PostgreSQL 行为用例尚待真实 Docker 数据库复验。Runtime Assignment 的 `active` 只表示某个已批准候选被显式选为当前运行 authority，不表示 provider 已被调用，也不构成生产发布。
+当前已提供模板与 assignment 管理、Prompt Application invocation、Application Session / Turn v2、Run v6 与 History / Comparison / Evaluation / Operations metadata 消费，且 Run / Session 的 memory、SQLite 与真实 PostgreSQL 行为门禁均已通过。Prompt Web 工作区由下一批实现；在此之前继续通过 HTTP API 使用。Runtime Assignment 的 `active` 只表示某个已批准候选被显式选为当前运行 authority，不表示 provider 已被调用，也不构成生产发布。
 
 ## 资源与操作顺序
 
