@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_a_completed_batch_b_review_required`
+状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_b_completed_batch_c_review_required`
 
 ## 功能定位
 
@@ -12,7 +12,8 @@
 
 - Image Path 已完成 adapter handshake / safety gate、artifact return runbook、安全 runbook、backend adapter readiness、artifact runtime mapping readiness、store / binary reader boundary readiness、metadata-only runtime mapper、response consumer 和 `coerce_response_document` metadata-only response builder runtime integration。
 - runtime integration 只从 request artifact metadata 发现 `image_generation_artifact`，通过 mapper / consumer 合并到现有 `CopilotResponse.citations` artifact citation。
-- 当前不改 `CopilotResponse` schema，不读取 artifact 二进制，不创建 artifact store、binary reader、public URL resolver、backend adapter，不调用真实生图 backend，不生成或上传图片。
+- 批次 A 已完成受控调用纯领域 runtime；批次 B 已完成本机私有 content-addressed store、不可变 artifact ref、metadata-only lookup 与显式授权 binary reader。
+- 当前仍不改 `CopilotResponse` schema，不创建 public URL resolver、backend adapter，不调用真实生图 backend，不生成或上传图片。
 
 2026-07-25 已选择下一实现方向为“开发测试态 Image Adapter 受控调用”，不再继续派生 metadata-only readiness 链。首批只实现独立 Python 领域运行时：
 
@@ -33,10 +34,19 @@
 ## 下一批开发方向
 
 1. [Image Adapter 受控调用与 artifact 返回（开发 / 测试态）v1 实施任务卡](../task-cards/image-adapter-controlled-invocation-artifact-return-dev-test-v1-plan.md)批次 A 已完成。
-2. 批次 B 进入实现前，必须在同一功能文档内选择并冻结一个 owner 方向：具体 backend client、profile / credential 配置，或 artifact store / reader；三者不能并行打开。
-3. HTTP、Gateway、应用配置、API key、Session、Run History 与 Web 仍不因批次 A 自动进入范围。
+2. 批次 B 的 `local_private_artifact_storage` owner 已完成：二进制容器观察与私有存储按稳定职责拆分，仍属于同一边界。
+3. 批次 C 进入实现前，只评审具体 backend client 或 profile / credential 配置中的一个方向；HTTP、Gateway、应用配置、API key、Session、Run History 与 Web 仍不进入范围。
 4. 生产 backend call 仍需要独立 credential/profile resolver、endpoint/model-dir、moderation、安全复核、运行配置和发布声明，不能由开发测试态注入协议代替。
 5. 普通 metadata mapping 文案和 runbook 调整继续复用现有测试与仓库基线，不恢复同层 checker 链。
+
+### 批次 B 固定边界
+
+- store root 只能由调用侧显式注入绝对本机路径；模块不读取环境变量，不选择 production object store。
+- blob 以 sha256 和 canonical format 形成 content-addressed 相对路径；artifact ref 单独绑定 `artifact_id / artifact:// URI / digest / MIME / dimensions / format / size`，两者均不可变。
+- 写入前严格校验既有 artifact schema、安全状态、provenance、canonical URI、payload 大小、sha256、MIME 与 dimensions；不接受 base64、provider raw payload、public URL 或 signed URL。
+- lookup 只返回内部 storage handle 和已验证 metadata，不读取图片二进制；binary reader 默认拒绝，只有显式 `allow_binary_read=true` 才能打开一次内部流。
+- reader 每次读取都重新计算 sha256，并重新识别 MIME 与 dimensions；校验通过后只把临时 stream 交给一次内部 consumer，不在 result、日志、引用或响应中返回 bytes。
+- 本批不提供 delete / overwrite、upload、public URL resolver、retry / fallback、后台服务、repository selector、migration 或生产存储声明。
 
 ## 验收方式
 
@@ -53,3 +63,11 @@
 4. 注入式 client 最多调用一次；timeout、unavailable 与未知异常不 retry / fallback，也不把异常原文、endpoint 或 credential 投影到结果。
 5. 成功返回必须同时提供 schema-valid artifact metadata 与 transport 观察到的 sha256 / MIME / dimensions；adapter 重验 canonical URI、lineage、generation、title / purpose、safety 和 provenance 后才生成既有 artifact citation / metadata reference。
 6. 11 项相邻单元测试已纳入 `services/runtime/tests` 和快速仓库入口；store lookup、binary read、upload、public URL、production storage、executor、confirmation、writeback 与 replay 均保持 0。
+
+## 批次 B 完成结果
+
+1. `services/runtime/image_artifact_binary_inspection.py` 使用标准库确定性观察 PNG / JPEG / WebP 容器、sha256、MIME、dimensions、format 与 size，不加载图片模型或第三方解码器。
+2. `services/runtime/image_artifact_private_storage.py` 实现调用侧绝对路径注入、私有目录 / 文件权限、content-addressed blob、不可变 artifact ref、原子 no-overwrite 写入和 metadata-only lookup。
+3. store 写入前复用 strict artifact schema 与既有 mapper，精确重验 canonical URI、低风险安全状态、provenance、hash、MIME、dimensions 和 format；相同 artifact 幂等，绑定漂移失败关闭。
+4. binary reader 默认拒绝；显式授权后只读取一次，在 consumer 前再次重验容器、hash、MIME、dimensions、format 和 size。consumer 最多调用一次，result 不返回 bytes、绝对路径、base64 或 URL。
+5. 15 项 storage 相邻测试覆盖三种格式、真实临时目录、并发幂等、payload / metadata 边界、ref / blob / symlink 篡改、读取授权、consumer 异常脱敏和零外部副作用；runtime 测试总数为 26。

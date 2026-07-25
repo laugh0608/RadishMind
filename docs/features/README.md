@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-25 当前执行口径：既有 Workflow、Gateway、用户工作区、RAG、Session、应用开发工作区、Prompt Application、Agent / Copilot 受控建议及 Prompt / Agent 回归评测均已完成并稳定维护。当前转入 [图片生成 / 产物返回](image-generation-artifact-return.md)，批次 A 已实现 strict intent 校验、确定性 backend request 编译、低风险安全门禁、注入式单次 backend handoff、artifact transport observation 校验和既有 citation / metadata reference 合并，状态为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_a_completed_batch_b_review_required`。下一步只先评审批次 B 的真实 backend client、profile / credential 配置和 artifact store / reader 职责边界；不直接打开 HTTP / Gateway、真实 provider、图片生成、上传、公开 URL 或 Web。
+2026-07-25 当前执行口径：既有 Workflow、Gateway、用户工作区、RAG、Session、应用开发工作区、Prompt / Agent 与回归评测均已完成并稳定维护。当前 [图片生成 / 产物返回](image-generation-artifact-return.md)批次 A / B 已实现受控 adapter handoff、本机私有 content-addressed store、不可变 artifact ref、metadata-only lookup 和显式授权 binary reader，状态为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_b_completed_batch_c_review_required`。下一步只先评审批次 C 的具体 backend client 或 profile / credential 配置单一方向；不直接打开 HTTP / Gateway、真实图片生成、上传、公开 URL 或 Web。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -44,7 +44,7 @@
 | [管理控制面](admin-control-plane.md) | 租户、权限、模型服务配置、配额、凭据、审计和部署证据 | 进入真实管理端、OIDC 或数据库前先更新 |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
 | [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；HTTP Tool、RAG Retrieval、知识质量 / 晋级链、Application RAG durable invocation 和 immutable definition-bound execution 均已有可复验证据 | 作为应用开发工作区的既有权威能力来源，不从 executor 或 activation 原地扩自动执行、调度、重放或生产能力 |
-| [图片生成 / 产物返回](image-generation-artifact-return.md) | 批次 A 已完成 strict intent 到受控 adapter handoff、artifact transport observation 校验及既有响应引用合并 | 先评审批次 B 的真实 client、配置和 store / reader 边界，不直接实现 |
+| [图片生成 / 产物返回](image-generation-artifact-return.md) | 批次 A / B 已完成受控 adapter handoff、本机私有 storage、不可变 ref 与显式 binary reader | 先评审批次 C 的具体 client 或 profile / credential 配置单一方向 |
 
 ## 细专题导航
 

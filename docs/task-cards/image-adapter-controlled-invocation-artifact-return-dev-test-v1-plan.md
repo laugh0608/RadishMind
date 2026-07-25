@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_a_completed_batch_b_review_required`
+状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_b_completed_batch_c_review_required`
 
 对应功能文档：[Image Generation / Artifact Return 设计与开发文档](../features/image-generation-artifact-return.md)
 
@@ -92,3 +92,62 @@
 - 11 项相邻测试覆盖确定性、UTF-8 边界、尺寸 / 像素 / count、参数与集合预算、未知字段、标识符 / locale、confirmation、medium / high risk、profile mismatch、timeout / unavailable、artifact schema / lineage / safety / provenance 和 hash / MIME / dimensions 漂移。
 - `services/runtime/tests` 已进入现有 `check-repo` Python unittest 入口；没有新增一次性 checker。
 - 本批没有创建 backend client、credential / endpoint / model-dir resolver、HTTP、Gateway、store、binary reader、public URL、Web 或生产能力。
+
+## 批次 B：本机私有 artifact storage
+
+### 单一方向
+
+批次 B 只打开 `local_private_artifact_storage` owner，并按稳定职责拆出 binary inspection 与 private storage 两个模块，实现 content-addressed blob、不可变 artifact ref、metadata-only lookup 与显式授权 binary reader。它不改变 Batch A 的 backend client envelope，也不并行打开真实 backend、profile / credential 配置、HTTP / Gateway 或 Web。
+
+### 允许
+
+- 新增 `services/runtime/image_artifact_binary_inspection.py` 与 `services/runtime/image_artifact_private_storage.py`。
+- 扩展 `services/runtime/tests`，使用临时目录验证真实本机文件写入、lookup、读取与篡改失败关闭。
+- 复用 `image-generation-artifact.schema.json` 与既有 artifact mapper，不新增第二套 artifact contract。
+
+### 固定存储与读取规则
+
+1. store root 必须由调用侧显式注入绝对路径；不读取环境变量，不自动选择存储实现。
+2. payload 只接受有界 bytes-like 输入，不接受 base64 字符串或 provider response envelope。
+3. 写入前重算 sha256，并从二进制容器识别 PNG / JPEG / WebP MIME 与 dimensions；所有值必须与 strict artifact metadata 精确一致。
+4. blob 使用 sha256 content-addressed 相对路径；artifact ref 使用 `artifact_id` 独立绑定 blob、URI、digest、MIME、dimensions、format 与 size。
+5. blob 与 ref 均不可覆盖；相同内容 / 相同 ref 幂等成功，任何既有内容或绑定漂移失败关闭。
+6. lookup 只读取 ref metadata 和文件状态，不读取 blob 内容，不返回绝对路径或公开 URL。
+7. binary reader 默认拒绝；显式授权后只读取一次，并在内部 consumer 执行前重新校验 hash / MIME / dimensions。
+8. consumer 最多调用一次；reader result 不携带 bytes、base64、文件路径、provider raw payload、public URL 或 signed URL。
+
+### 稳定失败语义
+
+- `image_artifact_private_store_root_invalid`
+- `image_artifact_binary_invalid`
+- `image_artifact_binary_too_large`
+- `image_artifact_store_unavailable`
+- `image_artifact_store_conflict`
+- `image_artifact_store_integrity_failure`
+- `image_artifact_store_reference_missing`
+- `image_artifact_binary_read_forbidden`
+- `image_artifact_binary_reader_unavailable`
+- `image_artifact_binary_consumer_failed`
+- 既有 mapper 的 metadata、hash、MIME、dimensions、安全与 provenance 失败码继续复用。
+
+### 非目标
+
+- 不实现 delete / overwrite、artifact upload、public / signed URL、production object store 或跨主机复制。
+- 不接真实生图 backend、credential / endpoint / model-dir resolver、moderation provider 或模型下载。
+- 不新增 schema、API、API key、repository selector、migration、Session、Run、Gateway、Web 或浏览器链。
+- 不把本机私有 store 写成 production storage 或图片生成能力。
+
+### 验收
+
+- 覆盖 PNG / JPEG / WebP header observation、原子不可变写入、幂等、ref lookup、默认拒绝读取和显式内部消费。
+- 覆盖 payload/type/size、schema、URI、safety、provenance、hash、MIME、dimensions、format、ref、symlink 与磁盘篡改负向路径。
+- 覆盖 consumer 异常脱敏、零 retry / fallback / upload / public URL / production write / backend 调用。
+- 通过相邻 Python 单元测试、既有三项 Image runtime 检查、fast / full 仓库门禁与差异卫生检查。
+
+### 完成记录
+
+- PNG / JPEG / WebP 容器观察已独立收口，使用 sha256 与容器 header 生成稳定 observation，并拒绝 CRC、marker、RIFF size、dimensions 或格式漂移。
+- 私有 store 已实现 content-addressed blob 与 artifact ref 两级不可变写入；相同 artifact 幂等，并发相同写入收敛，artifact id 重绑定、symlink、ref 或 blob 篡改失败关闭。
+- metadata-only lookup 不读取 blob，不返回绝对路径；显式 binary reader 每次读取都重新验证，内部 stream 在 consumer 返回后关闭。
+- 15 项 storage 测试与既有 11 项 adapter 测试共 26 项，均由 `services/runtime/tests` 聚合入口执行。
+- 状态推进为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_b_completed_batch_c_review_required`；下一批不得同时打开具体 backend client 与 profile / credential 配置。
