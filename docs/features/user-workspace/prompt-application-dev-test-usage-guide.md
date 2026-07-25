@@ -6,7 +6,7 @@
 
 本文说明如何在 RadishMind Platform 的开发测试态创建 Prompt Application 模板、生成不可变版本、绑定应用配置、审查发布候选、显式管理当前 Runtime Assignment，并通过 API key 或 Application Interaction Session 发起受控调用。设计边界与字段职责见[提示词应用模板版本审查与受控调用专题](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)，schema 真相源位于 `contracts/`，HTTP 实现真相源位于 `services/platform/internal/httpapi/`。
 
-当前已提供模板与 assignment 管理、Prompt Application invocation、Application Session / Turn v2、Run v6 与 History / Comparison / Evaluation / Operations metadata 消费，且 Run / Session 的 memory、SQLite 与真实 PostgreSQL 行为门禁均已通过。Prompt Web 工作区由下一批实现；在此之前继续通过 HTTP API 使用。Runtime Assignment 的 `active` 只表示某个已批准候选被显式选为当前运行 authority，不表示 provider 已被调用，也不构成生产发布。
+当前已提供模板与 assignment 管理、Prompt Application invocation、Application Session / Turn v2、Run v6、History / Comparison / Evaluation / Operations metadata 消费，以及 Application Development Workspace 下的 Prompt Web 工作区。Run / Session 的 memory、SQLite 与真实 PostgreSQL 行为门禁均已通过；Web 单一连续浏览器链仍在批次 E 收口中。Runtime Assignment 的 `active` 只表示某个已批准候选被显式选为当前运行 authority，不表示 provider 已被调用，也不构成生产发布。
 
 ## 资源与操作顺序
 
@@ -24,23 +24,29 @@
 
 ## 启动与存储模式
 
-本地连续开发优先使用 wrapper 的 `local-product` 档：
+Prompt Web 与 Platform 的完整 SQLite 链优先使用：
 
 ```bash
-./scripts/run-platform-service.sh config-check
-./scripts/run-platform-service.sh diagnostics
-./scripts/run-platform-service.sh serve
+./scripts/run-radishmind-web-dev.sh --mode dev-live --prompt-application-local-product
 ```
 
 Windows / PowerShell 使用：
 
 ```powershell
-pwsh ./scripts/run-platform-service.ps1 -Command config-check
-pwsh ./scripts/run-platform-service.ps1 -Command diagnostics
-pwsh ./scripts/run-platform-service.ps1 -Command serve
+pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -PromptApplicationLocalProduct
 ```
 
-该档自动选择聚合 `sqlite_dev`，将 Prompt Template 作为第八个独立持久化组件，并在共享 Workflow Run Store 中保存 Runtime Assignment / Event 投影。它不会建立第九个数据库组件。
+PostgreSQL 开发测试档使用：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --prompt-application-postgres-dev-test
+```
+
+```powershell
+pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -PromptApplicationPostgresDevTest
+```
+
+SQLite 档自动选择聚合 `sqlite_dev`，将 Prompt Template 作为第八个独立持久化组件，并在共享 Workflow Run Store 中保存 Runtime Assignment / Event、Session / Turn v2 与 Run v6 投影；PostgreSQL 档使用 `configured` profile，在启动前检查 Application Catalog、Configuration Draft、Publish Candidate、API Key、Gateway Request、Prompt Template 和共享 Workflow Run migration marker，不自动执行迁移。两档都会开启对应 strict Web consumer，但不会自动创建应用、模板、candidate、review、assignment、API key 或 invocation。
 
 显式 `configured` 档支持以下 Template store：
 
@@ -308,7 +314,7 @@ Prompt profile 只消费 `variables`，不接受调用方用 `model`、模板、
 - assignment、History、Comparison、Evaluation 和 Operations 路由不调用 Gateway、provider、工具或业务写入；只有 invocation service 允许一次计划内 Gateway 调用。
 - Run v6、Session v2 和 Turn v2 不保存变量值、rendered messages、完整 output 或 provider raw response；终态重试只返回 metadata。
 - 日志、错误、fixture 和 committed 文档不得出现 token、Authorization、cookie、DSN、provider raw URL / response 或真实用户输入。
-- 当前能力仅用于开发测试。Prompt Web、生产认证、生产 repository、retry / fallback、replay / resume、schedule、quota 和 billing 仍未启用。
+- 当前能力仅用于开发测试。Prompt Web 已进入批次 E 验收，但生产认证、生产 repository、retry / fallback、replay / resume、schedule、quota 和 billing 仍未启用。
 
 提交相关修改前至少执行：
 

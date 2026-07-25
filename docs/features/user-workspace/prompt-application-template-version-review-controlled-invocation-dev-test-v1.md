@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_d_completed_batch_e_ready`
+状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_e_web_dual_database_completed_browser_continuous_chain_pending`
 
 ## 功能定位
 
@@ -269,12 +269,21 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 
 ### 批次 E：Web 工作区、双数据库连续链与浏览器验收
 
-状态：`ready_for_implementation`。
+状态：`web_and_dual_database_profiles_completed_browser_continuous_chain_pending`。
 
 - 完成模板创作、版本、binding、发布审查、assignment、受控测试和运行 / 评测交接。
 - 完成 SQLite / PostgreSQL launcher profile、服务重启恢复和连续用户路径。
 - 真实浏览器验证应用切换、冲突、漂移、批准但未激活、显式激活、调用、取消、Run / Evaluation handoff、URL / storage / console / network 和敏感扫描。
 - 同步功能专题、任务卡、能力矩阵、current focus、集成契约和周志后关闭专题。
+
+当前实现与证据：
+
+- Application Development Workspace 已按 `prompt_application` 类型挂载独立 Template、Runtime Assignment、Prompt Invocation 与 Session v2 surface；Workflow / RAG owner 在该类型下不再挂载，readiness 新增 Prompt authority 并把不适用 owner 显式收口。
+- Template surface 已覆盖确定性本地校验 / 预览、草案 CAS 保存 / 恢复、不可变版本创建 / 精确源码读取和 Configuration Draft v3 binding；Publish Review 已严格消费 v3 candidate，并允许审查人从精确 template ref 重读源码与核对 digest。
+- Runtime Assignment surface 已覆盖当前 authority、只追加事件及 `activate | replace | revoke`；Controlled Test 已覆盖 API key `prompt_application:invoke` 签发、一次性 Playground 交接、单次 Prompt invocation、Session / Turn v2 和 Run handoff。公开模型目录只按精确 Application scope 保留为最近一次已验证快照，以兼容开发态 `React.StrictMode` 副作用重放；Bearer credential 仍保持一次性内存边界。
+- Shell / PowerShell launcher 已新增 `--prompt-application-local-product` / `-PromptApplicationLocalProduct` 和 `--prompt-application-postgres-dev-test` / `-PromptApplicationPostgresDevTest`。SQLite 本地产品档与 PostgreSQL 开发测试档均已通过 migration preflight、Platform / Web 启动和 `--exit-after-probe` 探针，配置启动允许 Prompt runtime 单独满足 Session 与共享 Run Store 的依赖，不要求无关 Workflow Definition / RAG runtime 同时开启。
+- Web strict consumer 单元测试共 203 项通过，生产构建通过；真实浏览器已分段确认 Prompt 专属五阶段工作区、模板草案保存、不可变版本创建、API key scope、一次性交接、模型目录与无控制台错误。
+- 尚未在单一真实浏览器连续会话中完成“精确版本 binding → candidate v3 源码审查 → approve 但未激活 → 显式 assignment → invocation / Session → Run / Evaluation handoff”，因此批次 E 与专题仍未关闭；后续只补这一条连续验收及其冲突、漂移、取消和 transient 数据清理证据，不再扩功能范围。
 
 ## 验收方式
 
@@ -301,4 +310,4 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 
 ## 下一步
 
-[唯一实施任务卡](../../task-cards/prompt-application-template-version-review-controlled-invocation-dev-test-v1-plan.md)已于 2026-07-21 冻结批次 A 至 E 的 schema / API 版本、迁移顺序、兼容矩阵、专项验证和停止条件。A1–A3、批次 B、批次 C 与批次 D 均已完成；批次 D 的受控调用、Session、Run、Evaluation 及 memory / SQLite / PostgreSQL 证据链已经闭合。下一步进入批次 E，只完成 Web 工作区、双数据库连续链和真实浏览器验收。
+[唯一实施任务卡](../../task-cards/prompt-application-template-version-review-controlled-invocation-dev-test-v1-plan.md)已于 2026-07-21 冻结批次 A 至 E 的 schema / API 版本、迁移顺序、兼容矩阵、专项验证和停止条件。A1–A3、批次 B、批次 C 与批次 D 均已完成；批次 E 的 Web owner surfaces、严格消费端、SQLite / PostgreSQL launcher 与启动探针也已完成。下一步只执行真实浏览器单一连续链与负向验收，证据齐全后关闭批次 E 和专题。

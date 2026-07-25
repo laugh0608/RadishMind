@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_d_completed_batch_e_ready`
+状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_e_web_dual_database_completed_browser_continuous_chain_pending`
 
 ## 目标与准入结论
 
@@ -10,7 +10,7 @@
 
 本任务卡是该专题唯一实施入口。Template owner、配置绑定、发布候选、运行时 assignment、Gateway、Session、Run 与 Evaluation 保持独立职责；模板正文不得复制到配置、候选、assignment、Session、Run、Gateway Request History 或 Operations。
 
-准入结论：功能设计、批次 A、批次 B、批次 C 与批次 D 均已完成。批次 D 的受控调用、Session、Run、Evaluation 和 memory / SQLite / PostgreSQL 证据已通过；批次 E 的 Web、双数据库连续链和真实浏览器验收现已就绪。
+准入结论：功能设计、批次 A、批次 B、批次 C 与批次 D 均已完成。批次 E 的 Web owner surfaces、严格消费端、SQLite / PostgreSQL launcher 和启动探针已完成；当前只剩真实浏览器单一连续链与负向验收，证据齐全前不关闭专题。
 
 ## 实现基线与现有兼容边界
 
@@ -237,12 +237,19 @@ assignment 权限固定为 `prompt_application_runtime:read` 与 `prompt_applica
 
 ## 批次 E：Web、双数据库连续链与专题关闭
 
-状态：`ready_for_implementation`。
+状态：`web_and_dual_database_profiles_completed_browser_continuous_chain_pending`。
 
 - 完成 Template 创作、版本、binding、候选源码审查、assignment、受控测试与 Run / Evaluation handoff。
 - SQLite / PostgreSQL launcher profile、重启恢复和真实浏览器连续链必须分别验收。
 - 浏览器审查覆盖 application / identity / lifecycle drift、CAS 冲突、批准未激活、显式激活、取消、URL / storage / console / network 与敏感扫描。
 - 同步功能专题、任务卡、能力矩阵、current focus、集成契约和周志，执行全量仓库门禁后关闭专题。
+
+实现记录：
+
+- Web 已按应用类型挂载 Prompt Template、Configuration Draft v3 binding、Publish Candidate v3 源码审查、Runtime Assignment、Prompt Invocation、Session v2 与 Run / Evaluation handoff；Prompt 类型不再挂载无关 Workflow / RAG surface。
+- strict TypeScript consumer 与面板状态覆盖 exact scope、CAS、digest、schema version、forbidden-field scan、迟到请求、应用切换和 transient output 清理；公开模型目录保留为精确 Application scope 的最近验证快照，避免开发态 `React.StrictMode` 重放丢失，API key credential 仍只进行一次性内存交接。
+- Shell / PowerShell launcher 已新增 SQLite / PostgreSQL Prompt 完整产品档；两档均通过 migration preflight、Platform / Web 启动与退出探针，Web 203 项测试和生产构建通过。
+- 真实浏览器已分段确认 Prompt 专属工作区、模板草案 / 不可变版本、API key scope、Playground 模型目录和 console clean；单一连续会话中的 binding、candidate review、未自动激活、assignment、invocation / Session 与 Run / Evaluation handoff 尚待完成。
 
 ## 兼容矩阵
 

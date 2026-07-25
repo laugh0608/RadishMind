@@ -11,7 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
-- 产品焦点：工作流审查链、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理、应用目录与 API 密钥开发测试态认证均已完成；Workflow HTTP Tool、RAG Retrieval / 应用知识快照、RAG Regression Review、离线 RAG 质量评测、应用作用域 durable dataset / candidate review、知识基线晋级与配置绑定、Application RAG runtime、应用运行观测首批、Workflow 不可变版本晋级、Application Interaction Session，以及[应用开发工作区与发布准备审查 v1](features/user-workspace/application-development-workspace-release-readiness-review-v1.md)均已关闭。下一长期功能[提示词应用模板版本审查与受控调用（开发 / 测试态）v1](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)的批次 D 已完成：唯一 Prompt invocation service、provider 前 exact authority checkpoint、API key `prompt_application:invoke`、Session / Turn v2、metadata-only Run v6，以及 History / Comparison / Evaluation / Operations 消费链均已接通；2026-07-25 真实 PostgreSQL 门禁进一步确认 Run / Session 重启、数据库约束、敏感扫描、全部受审 schema 恢复与配置启动均通过。当前开放批次 E，只推进 Web 工作区、SQLite / PostgreSQL 连续链和真实浏览器验收。真实 Radish 联调保持 `real_radish_integration_deferred`，外部 connector、在线搜索、embedding / reranker、自动 activation / release、schedule、replay、生产认证、正式晋级、生产密钥、配额和计费继续关闭。
+- 产品焦点：工作流审查链、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理、应用目录与 API 密钥开发测试态认证均已完成；Workflow HTTP Tool、RAG Retrieval / 应用知识快照、RAG Regression Review、离线 RAG 质量评测、应用作用域 durable dataset / candidate review、知识基线晋级与配置绑定、Application RAG runtime、应用运行观测首批、Workflow 不可变版本晋级、Application Interaction Session，以及[应用开发工作区与发布准备审查 v1](features/user-workspace/application-development-workspace-release-readiness-review-v1.md)均已关闭。下一长期功能[提示词应用模板版本审查与受控调用（开发 / 测试态）v1](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)的批次 E 已完成 Web owner surfaces、严格消费端、SQLite / PostgreSQL launcher 与启动探针：Template 创作 / 版本、Configuration Draft v3 binding、Publish Candidate v3 源码审查、Runtime Assignment、API key / Session 受控调用和 Run / Evaluation handoff 均已接入 Application Development Workspace。真实浏览器已分段确认 Prompt 专属工作区、草案与不可变版本、API key scope、一次性交接和模型目录；当前只剩单一连续会话中的 binding → candidate review → assignment → invocation / Session → Run / Evaluation 及负向验收，完成前不关闭专题。真实 Radish 联调保持 `real_radish_integration_deferred`，外部 connector、在线搜索、embedding / reranker、自动 activation / release、schedule、replay、生产认证、正式晋级、生产密钥、配额和计费继续关闭。
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算`、`R6 文档与检查器收敛` 均已完成。R6 关闭评审确认活动 checker 从 `132` 项、`38,644` 行降至 `111` 项、`28,486` 行，分别下降约 `15.9%` 与 `26.3%`；Provider、Production Ops 和 Control Plane formal UI 因仍有独立证据责任继续活动，不再派生第六批或同层 readiness 链。
 - `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片。production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
@@ -19,7 +19,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：[提示词应用模板版本审查与受控调用（开发 / 测试态）v1](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)状态为 `batch_d_completed_batch_e_ready`。代码、严格契约、memory / SQLite / PostgreSQL 重启、并发幂等、API key、Session v2、Run v6、数据库约束、敏感扫描和下游审查消费均已通过。下一步进入批次 E，只完成 Template 创作、版本、binding、候选审查、assignment、受控测试、Run / Evaluation handoff 的 Web 工作区，以及 SQLite / PostgreSQL launcher、服务重启和真实浏览器连续链。`real_radish_integration_deferred` 不占用当前主线。
+1. 产品线：[提示词应用模板版本审查与受控调用（开发 / 测试态）v1](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)状态为 `batch_e_web_dual_database_completed_browser_continuous_chain_pending`。代码、严格契约、memory / SQLite / PostgreSQL、Web 203 项测试、生产构建和两种 launcher 启动探针均已通过。下一步不再扩功能，只从现有 Prompt Application 资源继续完成真实浏览器单一连续链、CAS / drift / cancel 与 transient 清理验收，再运行最终全量门禁并关闭专题。`real_radish_integration_deferred` 不占用当前主线。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
@@ -73,7 +73,7 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 - 不继续为普通只读展示页、evidence review、文案和布局逐项新增 task card / fixture / checker。
 - 不把 task card 当成功能长期设计文档。
 - 不在没有对应专题文档更新的情况下启动新的大功能或高风险实现。
-- Prompt Application 批次 D 的实现已完成，但在真实 PostgreSQL 行为门禁通过前不进入批次 E Web；不增加 provider retry / fallback、自动 activation / release、replay、agent loop 或生产能力声明。
+- Prompt Application 批次 E 的 Web 与双数据库档已实现，但在真实浏览器单一连续链和负向证据齐全前不关闭专题；不增加 provider retry / fallback、自动 activation / release、replay、agent loop 或生产能力声明。
 - 不把 Image Path 仅元数据接线解释为 artifact store、public delivery 或真实后端已就绪。
 - 不把 durable read foundation 解释为 repository adapter、真实数据库、OIDC、production API consumer 或完整 read-side API ready。
 - 不把 Workflow / Gateway / Admin 的普通离线证据界面写成生产能力已就绪。
