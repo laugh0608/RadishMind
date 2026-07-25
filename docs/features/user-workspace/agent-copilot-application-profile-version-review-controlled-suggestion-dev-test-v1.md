@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_a2_policy_compiler_completed_batch_a3_ready`
+状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_a_completed_batch_b_ready`
 
 ## 功能定位
 
@@ -17,7 +17,7 @@
 - 仓库已经具备 canonical `CopilotRequest / CopilotResponse`、Gateway、应用目录、配置草案、发布审查、API key、Application Interaction Session、Run History、Comparison、Evaluation 和双数据库开发测试态持久化基础。新专题应组合这些 owner，不复制协议适配、会话、运行记录或评测算法。
 - 产品范围与路线图已经长期承诺 Agent / Copilot 应用。本轮选择该方向，优先补齐用户可识别的应用能力，不转向缺少可信 usage 的计费、不提前接真实 OIDC，也不在 backend / artifact store 尚未成立时扩图片生成运行时。
 
-因此，功能设计先固定长期边界，再由[唯一实施任务卡](../../task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)冻结版本、API、权限、失败语义、兼容矩阵和分批验证。批次 A2 已在 A1 strict contracts 之上完成 canonical normalization、纯函数 policy compiler、稳定 digest、预算、安全确认与敏感材料守卫；新版本仍未注册到既有 runtime，下一步只进入 A3 memory Profile owner 与默认关闭 API，迁移和运行能力继续关闭。
+因此，功能设计先固定长期边界，再由[唯一实施任务卡](../../task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)冻结版本、API、权限、失败语义、兼容矩阵和分批验证。批次 A 已完成 strict contracts、canonical policy compiler、memory Profile owner 与默认关闭 API；Profile Version 之外的新版本仍未注册到既有 runtime。下一步只进入批次 B SQLite / PostgreSQL 开发测试态持久化，配置绑定与运行能力继续关闭。
 
 ## 目标用户与主要任务
 
@@ -156,8 +156,9 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 - A2 已完成 Profile canonical normalization；task、context field、artifact kind / role 和 action kind 直接投影 canonical `CopilotRequest / CopilotResponse` 并由相邻 schema 对照测试防止形成第二套 registry。
 - A2 已完成纯函数 policy compiler，输出规范化 source、稳定 `profile_digest / policy_digest / allowed_tasks_digest`；Profile Draft / Version codec 会复算 digest 并拒绝非 canonical source 或 digest drift。
 - A2 已完成 UTF-8 source / locale 与策略数值预算、原始条目数量、project / task / context 可满足性、固定 advisory / confirmation / tool hints、敏感字段和配置形态守卫。
-- A3 待实现 memory Draft / Version repository、CAS、不可变版本、stable list、corruption / unavailable、默认关闭 API 与 `read / read_source` 权限分离。
-- 批次 A 未完成前不打开 Gateway / provider 调用。
+- A3 已完成 tenant / workspace / application / owner 作用域的 memory Draft / Version repository、原子 CAS、不可变版本、稳定列表、损坏 / 不可用失败关闭，以及默认关闭 API。
+- A3 的 validate 零写入；save / version create 只写 Profile owner，并在写入前重读 active `agent` Application Catalog。摘要读取与完整 source 读取分别要求 `agent_copilot_profiles:read` 和 `agent_copilot_profiles:read_source`。
+- 批次 A 已完成；Configuration / Candidate v4、Assignment、Session、Run、`agent_copilot:invoke` 与 Gateway / provider 调用仍未注册。
 
 ### 批次 B：SQLite / PostgreSQL 开发测试态持久化
 
@@ -197,7 +198,7 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 
 ## 当前下一步
 
-下一步直接进入批次 A3：实现 memory Profile Draft / immutable Version repository、作用域、CAS、stable list、corruption / unavailable、默认关闭 API 与 `read / read_source` 权限分离。A3 通过前不进入数据库、配置绑定、发布审查、assignment、Session、Run、provider 或 Web。
+下一步直接进入批次 B：为 Profile Draft / immutable Version 与后续 Runtime Assignment 建立 SQLite / PostgreSQL 开发测试态持久化，复用共享本地产品 runtime、迁移入口、连接池和 no-fallback 规则。批次 B 只处理 durable owner、迁移 / 回滚 / 重放、运行角色、CAS、并发、重启恢复、损坏失败和敏感内容扫描；不注册 Configuration / Candidate v4、assignment runtime、Session、Run、`agent_copilot:invoke`、provider、Gateway 调用或 Web。
 
 ## 停止线
 

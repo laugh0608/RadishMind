@@ -105,6 +105,8 @@ type Config struct {
 	ApplicationDraftDevWriteEnabled         bool
 	PromptTemplateDevHTTPEnabled            bool
 	PromptTemplateDevWriteEnabled           bool
+	AgentCopilotProfileDevHTTPEnabled       bool
+	AgentCopilotProfileDevWriteEnabled      bool
 	PromptTemplateStoreMode                 string
 	PromptTemplateDatabaseURL               string
 	PromptTemplateDatabaseTimeout           time.Duration
@@ -181,6 +183,8 @@ type ConfigSummary struct {
 	ApplicationDraftDevWriteEnabled         bool              `json:"application_draft_dev_write_enabled"`
 	PromptTemplateDevHTTPEnabled            bool              `json:"prompt_application_template_dev_http_enabled"`
 	PromptTemplateDevWriteEnabled           bool              `json:"prompt_application_template_dev_write_enabled"`
+	AgentCopilotProfileDevHTTPEnabled       bool              `json:"agent_copilot_profile_dev_http_enabled"`
+	AgentCopilotProfileDevWriteEnabled      bool              `json:"agent_copilot_profile_dev_write_enabled"`
 	PromptTemplateStoreMode                 string            `json:"prompt_application_template_store_mode"`
 	PromptTemplateDatabaseConfigured        bool              `json:"prompt_application_template_database_configured"`
 	PromptApplicationRuntimeDevHTTPEnabled  bool              `json:"prompt_application_runtime_dev_http_enabled"`
@@ -718,6 +722,22 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.PromptTemplateDevWriteEnabled = parsed
 		cfg.FieldSources["prompt_application_template_dev_write"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_HTTP"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_HTTP", value)
+		if err != nil {
+			return err
+		}
+		cfg.AgentCopilotProfileDevHTTPEnabled = parsed
+		cfg.FieldSources["agent_copilot_profile_dev_http"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_WRITE"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_WRITE", value)
+		if err != nil {
+			return err
+		}
+		cfg.AgentCopilotProfileDevWriteEnabled = parsed
+		cfg.FieldSources["agent_copilot_profile_dev_write"] = configSourceEnv
+	}
 	if value, ok := stringEnv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE"); ok {
 		applyStringValue(&cfg.PromptTemplateStoreMode, value, cfg.FieldSources, "prompt_application_template_store", configSourceEnv)
 	}
@@ -1113,6 +1133,12 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if cfg.PromptTemplateDevWriteEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_template_dev_http")
 	}
+	if cfg.AgentCopilotProfileDevHTTPEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+	}
+	if cfg.AgentCopilotProfileDevWriteEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_dev_http")
+	}
 	if cfg.PromptApplicationRuntimeDevHTTPEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_http")
@@ -1258,6 +1284,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		ApplicationDraftDevWriteEnabled:         cfg.ApplicationDraftDevWriteEnabled,
 		PromptTemplateDevHTTPEnabled:            cfg.PromptTemplateDevHTTPEnabled,
 		PromptTemplateDevWriteEnabled:           cfg.PromptTemplateDevWriteEnabled,
+		AgentCopilotProfileDevHTTPEnabled:       cfg.AgentCopilotProfileDevHTTPEnabled,
+		AgentCopilotProfileDevWriteEnabled:      cfg.AgentCopilotProfileDevWriteEnabled,
 		PromptTemplateStoreMode:                 promptTemplateStoreMode,
 		PromptTemplateDatabaseConfigured:        strings.TrimSpace(cfg.PromptTemplateDatabaseURL) != "",
 		PromptApplicationRuntimeDevHTTPEnabled:  cfg.PromptApplicationRuntimeDevHTTPEnabled,
@@ -1753,6 +1781,12 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.PromptTemplateDevWriteEnabled && !cfg.PromptTemplateDevHTTPEnabled {
 		return fmt.Errorf("prompt application template dev write requires its HTTP gate")
+	}
+	if cfg.AgentCopilotProfileDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return fmt.Errorf("agent copilot profile dev HTTP requires control plane read dev auth")
+	}
+	if cfg.AgentCopilotProfileDevWriteEnabled && !cfg.AgentCopilotProfileDevHTTPEnabled {
+		return fmt.Errorf("agent copilot profile dev write requires its HTTP gate")
 	}
 	switch strings.TrimSpace(cfg.PromptTemplateStoreMode) {
 	case "", "memory_dev":

@@ -12,6 +12,12 @@ func ValidateServerStart(cfg Config) error {
 	if cfg.PromptTemplateDevWriteEnabled && !cfg.PromptTemplateDevHTTPEnabled {
 		return errors.New("prompt application template dev write requires its HTTP gate")
 	}
+	if cfg.AgentCopilotProfileDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return errors.New("agent copilot profile dev HTTP requires control plane read dev auth")
+	}
+	if cfg.AgentCopilotProfileDevWriteEnabled && !cfg.AgentCopilotProfileDevHTTPEnabled {
+		return errors.New("agent copilot profile dev write requires its HTTP gate")
+	}
 	if cfg.PromptApplicationRuntimeDevHTTPEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationDraftDevHTTPEnabled || !cfg.ApplicationPublishDevHTTPEnabled || !cfg.PromptTemplateDevHTTPEnabled) {
 		return errors.New("prompt application runtime dev HTTP requires auth, draft, publish, and template HTTP gates")
 	}

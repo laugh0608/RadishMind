@@ -41,6 +41,7 @@ type Server struct {
 	applicationPublishCandidateRepository   applicationPublishCandidateRepository
 	applicationCatalogRepository            applicationCatalogRepository
 	promptApplicationTemplateRepository     promptApplicationTemplateRepository
+	agentCopilotProfileRepository           agentCopilotProfileRepository
 	applicationInteractionSessionRepository applicationInteractionSessionRepository
 	applicationSessionRepository            applicationInteractionSessionRepository
 	apiKeyRepository                        apiKeyRepository
@@ -226,6 +227,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		applicationPublishCandidateRepository:   applicationPublishRepository,
 		applicationCatalogRepository:            applicationCatalogRepository,
 		promptApplicationTemplateRepository:     promptApplicationTemplateRepository,
+		agentCopilotProfileRepository:           newMemoryAgentCopilotProfileRepository(),
 		applicationInteractionSessionRepository: applicationInteractionSessionRepository,
 		applicationSessionRepository:            combinedApplicationSessionRepository,
 		apiKeyRepository:                        apiKeyRepository,
@@ -306,6 +308,13 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(promptApplicationTemplateVersionCreateRoute, server.handleCreatePromptApplicationTemplateVersion)
 	mux.HandleFunc(promptApplicationTemplateVersionListRoute, server.handleListPromptApplicationTemplateVersions)
 	mux.HandleFunc(promptApplicationTemplateVersionReadRoute, server.handleReadPromptApplicationTemplateVersion)
+	mux.HandleFunc(agentCopilotProfileValidateRoute, server.handleValidateAgentCopilotProfile)
+	mux.HandleFunc(agentCopilotProfileSaveRoute, server.handleSaveAgentCopilotProfile)
+	mux.HandleFunc(agentCopilotProfileListRoute, server.handleListAgentCopilotProfiles)
+	mux.HandleFunc(agentCopilotProfileReadRoute, server.handleReadAgentCopilotProfile)
+	mux.HandleFunc(agentCopilotProfileVersionCreateRoute, server.handleCreateAgentCopilotProfileVersion)
+	mux.HandleFunc(agentCopilotProfileVersionListRoute, server.handleListAgentCopilotProfileVersions)
+	mux.HandleFunc(agentCopilotProfileVersionReadRoute, server.handleReadAgentCopilotProfileVersion)
 	mux.HandleFunc(applicationPublishCandidateCreateRoute, server.handleCreateApplicationPublishCandidate)
 	mux.HandleFunc(applicationPublishCandidateListRoute, server.handleListApplicationPublishCandidates)
 	mux.HandleFunc(applicationPublishCandidateReadRoute, server.handleReadApplicationPublishCandidate)
@@ -528,6 +537,8 @@ func localConsoleAllowedHeaders() []string {
 		applicationDraftDevApplicationHeader,
 		promptApplicationTemplateDevWorkspaceHeader,
 		promptApplicationTemplateDevApplicationHeader,
+		agentCopilotProfileDevWorkspaceHeader,
+		agentCopilotProfileDevApplicationHeader,
 		promptApplicationRuntimeWorkspaceHeader,
 		promptApplicationRuntimeApplicationHeader,
 		applicationPublishDevWorkspaceHeader,

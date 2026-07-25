@@ -6,7 +6,7 @@
 
 ## 当前专题
 
-- [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md)：A1 的 10 份 strict schema、独立 Go contract-only codec 与兼容防漂移测试已完成；下一步进入 A2 policy compiler。
+- [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md)：批次 A 的 strict contracts、canonical policy compiler、memory Draft / immutable Version owner、默认关闭 API 与权限分离已完成；下一步进入批次 B SQLite / PostgreSQL durable owner。
 - [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)：批次 A 至 E 均已完成，受限模板、双数据库 Template owner、Configuration Draft v3、Publish Candidate v3、显式 Runtime Assignment、受控 invocation、Session / Turn v2、Run v6、Web 与真实浏览器验收均有可复验证据，专题关闭。
 - [Prompt Application 开发测试态使用指南](prompt-application-dev-test-usage-guide.md)：说明完整 Template → Configuration → Candidate Review → Assignment → Invocation / Session → Run Review 顺序，以及启动配置、身份权限、CAS、持久化与故障处理；所有能力仅限开发测试态。
 - [应用开发工作区与发布准备审查 v1](application-development-workspace-release-readiness-review-v1.md)：批次 A 至 C 已完成并关闭；route-scoped evidence、精确 Draft / Run owner 重读、离线 revision 失败关闭、真实浏览器连续路径与 URL / console / network 隐私审计均有可复验证据。
@@ -21,7 +21,7 @@
 
 ## 下一步
 
-- Agent / Copilot A1 已完成；下一步只进入 A2 纯函数 normalization / policy compiler。A1–A3 通过前不进入数据库、配置、候选、assignment、Session、Run、provider 或 Web。
+- Agent / Copilot 批次 A 已完成；下一步只进入批次 B SQLite / PostgreSQL durable owner。批次 B 完成前不进入配置绑定、候选、assignment runtime、Session、Run、provider、Gateway 调用或 Web。
 - Prompt Application 批次 A 至 E 已完成并关闭：memory / SQLite / PostgreSQL 语义、Web、双数据库连续链、服务重启、CAS / drift / cancel 和敏感信息复验均已通过。
 - 不继续扩“应用开发工作区与发布准备审查 v1”或 Prompt Application 的同层切片。Agent / Copilot 继续复用现有 workspace context、发布审查、Gateway、Session、Run History 和 Evaluation，不另建聚合发布真相源或自治执行器。
 - 不从已关闭的 Application Interaction Session 派生长期记忆、自动 profile、重试 / fallback、schedule、replay / resume 或 agent loop。只有需要跨全部分页窗口的稳定统计、可信 reported usage 或正式 quota / billing owner 时，才评审服务端 summary。

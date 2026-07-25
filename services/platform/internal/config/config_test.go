@@ -189,6 +189,43 @@ func TestPromptApplicationTemplateDevGatesRemainExplicitAndIndependent(t *testin
 	}
 }
 
+func TestAgentCopilotProfileDevGatesRemainExplicitAndIndependent(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.AgentCopilotProfileDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "agent copilot profile dev HTTP requires control plane read dev auth") {
+		t.Fatalf("profile HTTP accepted missing verified auth: %v", err)
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("profile read/validate gate rejected complete auth: %v", err)
+	}
+	cfg.AgentCopilotProfileDevHTTPEnabled = false
+	cfg.AgentCopilotProfileDevWriteEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "agent copilot profile dev write requires its HTTP gate") {
+		t.Fatalf("profile write accepted missing HTTP gate: %v", err)
+	}
+	cfg.AgentCopilotProfileDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("complete profile development gates rejected: %v", err)
+	}
+
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_WRITE", "true")
+	loaded, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load profile development gates: %v", err)
+	}
+	summary := loaded.SanitizedSummary()
+	if !loaded.AgentCopilotProfileDevHTTPEnabled || !loaded.AgentCopilotProfileDevWriteEnabled ||
+		loaded.FieldSources["agent_copilot_profile_dev_http"] != configSourceEnv ||
+		loaded.FieldSources["agent_copilot_profile_dev_write"] != configSourceEnv ||
+		!summary.AgentCopilotProfileDevHTTPEnabled || !summary.AgentCopilotProfileDevWriteEnabled {
+		t.Fatalf("profile gate source or summary is incomplete: %#v", summary)
+	}
+}
+
 func TestPromptApplicationRuntimeDevGatesRequireCompleteAuthorityChain(t *testing.T) {
 	cfg := defaultConfig()
 	cfg.PromptApplicationRuntimeDevHTTPEnabled = true
@@ -1471,6 +1508,8 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_APPLICATION_DRAFT_DEV_WRITE",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_HTTP",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_WRITE",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DATABASE_TIMEOUT",
