@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_b_completed_batch_c_review_required`
+状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_c_completed_batch_d_review_required`
 
 对应功能文档：[Image Generation / Artifact Return 设计与开发文档](../features/image-generation-artifact-return.md)
 
@@ -151,3 +151,51 @@
 - metadata-only lookup 不读取 blob，不返回绝对路径；显式 binary reader 每次读取都重新验证，内部 stream 在 consumer 返回后关闭。
 - 15 项 storage 测试与既有 11 项 adapter 测试共 26 项，均由 `services/runtime/tests` 聚合入口执行。
 - 状态推进为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_b_completed_batch_c_review_required`；下一批不得同时打开具体 backend client 与 profile / credential 配置。
+
+## 批次 C：reference-only backend profile 配置
+
+### 单一方向
+
+批次 C 只打开 `image_backend_profile_configuration` owner。配置 source 负责 profile identity、开发测试环境、backend identity、runtime reference、credential policy 与 timeout；具体 backend client、reference resolver、HTTP / Gateway / Web 和生产配置继续关闭。
+
+### 允许
+
+- 新增 `contracts/image-backend-profile-source.schema.json` 和一个基础 fixture。
+- 新增 `services/runtime/image_backend_profile_configuration.py` 与相邻单元测试。
+- 将批次 A 的 `ImageBackendProfile` 收口为 profile compiler 产物，并让 adapter 从 profile 读取 timeout。
+- 复用既有 `image_generation_backend_request` 的 backend 字段，不创建第二套 backend request。
+
+### 固定配置规则
+
+1. source 必须通过 strict schema、有效 UTF-8 和 `16 KiB` canonical JSON byte budget。
+2. 环境只允许 `development | test`；production、staging 与未知环境失败关闭。
+3. `remote_https` 必须绑定同环境 `endpoint_ref`、`credential_requirement=required` 与 `secret_ref`，且 `model_dir_ref=null`。
+4. `local_model` 必须绑定同环境 `model_dir_ref`、`credential_requirement=not_required`，且 `endpoint_ref / secret_ref=null`。
+5. 所有引用必须采用 `ref:radishmind/<environment>/image-backends/<kind>/<key>`；跨环境、错 kind、路径穿越、raw URL 与绝对路径均拒绝。
+6. profile source 禁止 credential value、token、authorization / headers、cookie、endpoint URL、DSN、model path、环境变量、自由 system prompt、provider config 与 runtime config。
+7. profile compiler 生成确定性 `profile_digest`；源字段顺序不影响 digest，identity / binding / limit 任一变化都会改变 digest。
+8. adapter 只接受可重算 digest 的 enabled profile；profile timeout 是 client 调用的唯一 timeout source。
+
+### 稳定失败语义
+
+- `image_backend_profile_source_invalid`
+- `image_backend_profile_source_budget_exceeded`
+- `image_backend_profile_sensitive_material_rejected`
+- `image_backend_profile_environment_forbidden`
+- `image_backend_profile_binding_invalid`
+- `image_backend_profile_digest_drift`
+- adapter 侧新增 `image_backend_profile_invalid`，并继续复用 missing / mismatch 失败码。
+
+### 非目标
+
+- 不实现 endpoint / credential / model-dir reference resolver，不读取 secret、环境变量或本机模型目录。
+- 不创建具体 backend client，不连接网络，不加载模型，不生成图片。
+- 不新增 repository、selector、migration、应用配置、API key、HTTP、Gateway、Session、Run 或 Web。
+- 不启用 production environment、retry、fallback、public URL、upload 或 production storage。
+
+### 验收与完成记录
+
+- 10 项 profile 配置测试覆盖确定性、远程 / 本机模式、strict schema、环境门禁、敏感材料、互斥绑定、引用作用域、timeout / source byte budget、digest drift 与输入不变性。
+- 批次 A 相邻测试更新为编译 profile，新增 digest drift 调用前拒绝；12 项 adapter 测试全部通过。
+- 15 项 storage 测试继续通过，`services/runtime/tests` 总数为 37；五项既有 Image 检查保持兼容。
+- 状态推进为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_c_completed_batch_d_review_required`；批次 D 只允许先评审一个具体 backend client。

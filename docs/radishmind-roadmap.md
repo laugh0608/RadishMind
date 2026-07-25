@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：既有 Workflow、Gateway、用户工作区、RAG、Application Session、Prompt / Agent 与回归评测专题均已完成并保持稳定。[图片生成 / 产物返回](features/image-generation-artifact-return.md)批次 A / B 已实现受控 adapter handoff、本机私有 content-addressed store、不可变 artifact ref、metadata-only lookup 和显式授权 binary reader。下一顺位只先评审批次 C 的具体 backend client 或 profile / credential 配置单一方向；真实图片生成、上传、公开 URL、HTTP / Gateway、Web 与生产能力继续关闭。
+1. 产品线：既有 Workflow、Gateway、用户工作区、RAG、Application Session、Prompt / Agent 与回归评测专题均已完成并保持稳定。[图片生成 / 产物返回](features/image-generation-artifact-return.md)批次 A / B / C 已实现受控 adapter handoff、本机私有 artifact storage 与 reference-only backend profile 编译。下一顺位只先评审批次 D 的一个具体 backend client；真实 reference resolver、图片生成、上传、公开 URL、HTTP / Gateway、Web 与生产能力继续关闭。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；production secret backend、process supervisor、部署环境隔离、console production packaging、生产认证、生产 API key、quota 和 billing 继续为 `not_satisfied`。

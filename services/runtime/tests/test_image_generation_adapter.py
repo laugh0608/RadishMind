@@ -5,6 +5,7 @@ import json
 import sys
 import unittest
 from collections.abc import Callable, Mapping
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -13,10 +14,15 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from services.runtime.image_backend_profile_configuration import (  # noqa: E402
+    ImageBackendProfile,
+    compile_image_backend_profile,
+)
 from services.runtime.image_generation_adapter import (  # noqa: E402
     FAILURE_BACKEND_ARTIFACT_HASH,
     FAILURE_BACKEND_ARTIFACT_LINEAGE,
     FAILURE_BACKEND_INVALID_ARTIFACT,
+    FAILURE_BACKEND_PROFILE_INVALID,
     FAILURE_BACKEND_PROFILE_MISMATCH,
     FAILURE_BACKEND_RESPONSE_UNTRUSTED,
     FAILURE_BACKEND_SAFETY_BLOCKED,
@@ -28,7 +34,6 @@ from services.runtime.image_generation_adapter import (  # noqa: E402
     FAILURE_INTENT_REQUIRES_CONFIRMATION,
     FAILURE_INTENT_SENSITIVE_MATERIAL,
     ImageBackendInvocationResult,
-    ImageBackendProfile,
     adapter_side_effect_counters,
     compile_image_backend_request,
     invoke_image_generation,
@@ -36,11 +41,7 @@ from services.runtime.image_generation_adapter import (  # noqa: E402
 
 
 INTENT_FIXTURE = REPO_ROOT / "scripts/checks/fixtures/image-generation-intent-basic.json"
-PROFILE = ImageBackendProfile(
-    backend_id="sd15",
-    model="sd15-local-or-service",
-    adapter_profile="diagram-default",
-)
+PROFILE_FIXTURE = REPO_ROOT / "scripts/checks/fixtures/image-backend-profile-source-basic.json"
 BACKEND_REQUEST_ID = "image-backend-request-runtime-001"
 OBSERVED_SHA256 = "a" * 64
 
@@ -69,6 +70,21 @@ class RecordingClient:
 
 def load_intent() -> dict[str, Any]:
     return json.loads(INTENT_FIXTURE.read_text(encoding="utf-8"))
+
+
+def load_profile(
+    update: Callable[[dict[str, Any]], None] | None = None,
+) -> ImageBackendProfile:
+    source = json.loads(PROFILE_FIXTURE.read_text(encoding="utf-8"))
+    if update is not None:
+        update(source)
+    result = compile_image_backend_profile(source)
+    if not result.ok or result.profile is None:
+        raise AssertionError(result.failure_message)
+    return result.profile
+
+
+PROFILE = load_profile()
 
 
 def artifact_for_request(
@@ -138,14 +154,12 @@ def invoke(
     *,
     profile: ImageBackendProfile | None = PROFILE,
     backend_request_id: str = BACKEND_REQUEST_ID,
-    timeout_seconds: float = 30,
 ):
     return invoke_image_generation(
         intent,
         profile=profile,
         client=client,
         backend_request_id=backend_request_id,
-        timeout_seconds=timeout_seconds,
     )
 
 
@@ -273,11 +287,6 @@ class ImageGenerationAdapterTest(unittest.TestCase):
                     self.assertEqual(result.failure_code, FAILURE_INTENT_BUDGET_EXCEEDED)
                     self.assertEqual(client.calls, [])
 
-        non_finite_timeout_client = RecordingClient()
-        non_finite_timeout = invoke(load_intent(), non_finite_timeout_client, timeout_seconds=float("nan"))
-        self.assertEqual(non_finite_timeout.failure_code, FAILURE_INTENT_BUDGET_EXCEEDED)
-        self.assertEqual(non_finite_timeout_client.calls, [])
-
     def test_sensitive_material_is_rejected_before_call(self) -> None:
         samples = (
             "Authorization: Bearer secret-token-value",
@@ -306,13 +315,34 @@ class ImageGenerationAdapterTest(unittest.TestCase):
 
     def test_profile_mismatch_does_not_fallback(self) -> None:
         client = RecordingClient()
-        profile = ImageBackendProfile("other-backend", "other-model", "other-profile")
+        profile = load_profile(
+            lambda source: source["backend"].update(
+                {
+                    "id": "other-backend",
+                    "model": "other-model",
+                    "adapter_profile": "other-profile",
+                }
+            )
+        )
 
         result = invoke(load_intent(), client, profile=profile)
 
         self.assertEqual(result.failure_code, FAILURE_BACKEND_PROFILE_MISMATCH)
         self.assertEqual(client.calls, [])
         self.assertEqual(adapter_side_effect_counters(result)["fallback_count"], 0)
+
+    def test_profile_digest_drift_is_rejected_before_backend_call(self) -> None:
+        client = RecordingClient()
+        drifted = replace(PROFILE, profile_digest="sha256:" + "f" * 64)
+
+        result = invoke(load_intent(), client, profile=drifted)
+
+        self.assertEqual(result.failure_code, FAILURE_BACKEND_PROFILE_INVALID)
+        self.assertEqual(client.calls, [])
+
+        wrong_type = invoke(load_intent(), client, profile={})  # type: ignore[arg-type]
+        self.assertEqual(wrong_type.failure_code, FAILURE_BACKEND_PROFILE_INVALID)
+        self.assertEqual(client.calls, [])
 
     def test_timeout_unavailable_and_untrusted_errors_call_once_without_retry(self) -> None:
         cases = (

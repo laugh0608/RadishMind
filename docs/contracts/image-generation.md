@@ -25,11 +25,14 @@
 - Artifact response builder runtime integration implementation smoke：`scripts/check-image-artifact-response-builder-runtime-integration-implementation-v1.py`
 - Image Adapter 纯领域 runtime：`services/runtime/image_generation_adapter.py`
 - Image Adapter 相邻单元测试：`services/runtime/tests/test_image_generation_adapter.py`
+- Backend profile source schema：`contracts/image-backend-profile-source.schema.json`
+- Backend profile compiler：`services/runtime/image_backend_profile_configuration.py`
+- Backend profile 相邻单元测试：`services/runtime/tests/test_image_backend_profile_configuration.py`
 - 图片二进制检查：`services/runtime/image_artifact_binary_inspection.py`
 - 本机私有 artifact store / reader：`services/runtime/image_artifact_private_storage.py`
 - Store / reader 相邻单元测试：`services/runtime/tests/test_image_artifact_private_storage.py`
 
-批次 A 已把 strict intent 校验、确定性 backend request 编译、低风险安全门禁、注入式 client 单次调用、artifact transport observation 校验和既有 mapper 引用生成串成开发测试态纯领域链路。批次 B 又建立单一 `local_private_artifact_storage` owner：只接受通过 canonical metadata 与二进制 observation 双重校验的 PNG / JPEG / WebP，以 sha256 content-addressed blob 和不可变 artifact ref 持久化，lookup 保持 metadata-only，binary reader 默认拒绝且只在显式授权后向一个内部 consumer 交付一次有界 stream。失败结果不会返回已编译 prompt、不可信 artifact metadata、bytes、绝对路径或 storage ref。当前仍不提供具体 backend client、profile / credential / endpoint / model-dir resolver、production object store、public delivery、HTTP / Gateway、Web 或生产能力；批次 C 进入实现前只允许在具体 backend client 与 profile / credential 配置中评审一个单一方向。
+批次 A 已把 strict intent、低风险门禁、注入式 client 单次调用、artifact observation 和既有 mapper 串成纯领域链路；批次 B 建立本机私有 content-addressed storage 与显式 reader；批次 C 又把 profile 收口为 strict reference-only source 的确定性编译产物。远程 profile 只保存同环境 endpoint / secret refs，本机 profile 只保存 model-dir ref，编译稳定 `profile_digest` 并拥有 timeout；真实 URL、密钥、header、DSN、绝对路径、环境变量、自由 system prompt 和 provider/runtime 配置全部拒绝。当前仍不提供具体 backend client、reference resolver、production storage、public delivery、HTTP / Gateway、Web 或生产能力；批次 D 只先评审一个具体 backend client。
 
 Handshake、runbook、backend readiness、mapping readiness / entry review / task card、consumer readiness / task card 和 builder entry review / task card 已被上述 runtime 实现消费，现作为下文历史可复验证据与 `scripts/check-repo.py` 非执行目录保留。它们不再进入每次 fast / full，也不表示 artifact store、binary reader、public delivery、真实生图 backend 或 production 能力成立。
 
@@ -251,7 +254,7 @@ Handshake、runbook、backend readiness、mapping readiness / entry review / tas
 准入证据要求：
 
 - backend adapter 必须消费 `image_generation_backend_request` 的 backend id、model、adapter profile、prompt、output、parameters、safety gate 和 trace，不得绕过 `image-safety-runbook-evidence-v1`。
-- profile / credential / model dir / endpoint / timeout budget 当前都只是 implementation gate；缺失时必须映射到 fail-closed failure code，不能自动降级为可调用 backend。
+- profile / credential / model dir / endpoint / timeout 已由批次 C 固定为 reference-only 编译边界；引用缺失、跨环境、错 kind、互斥关系或 digest 漂移必须 fail closed，不能自动降级为可调用 backend。
 - backend response 未来只能进入 `image_generation_artifact` metadata；必须校验 `artifact://` URI、hash、backend/model、provenance 和 safety review，不接收 pixel payload、provider raw response 或 public URL。
 - 失败分类固定为 `image_backend_profile_missing`、`image_backend_credential_missing`、`image_backend_model_dir_missing`、`image_backend_endpoint_unavailable`、`image_backend_timeout`、`image_backend_safety_gate_blocked`、`image_backend_invalid_artifact_metadata`、`image_backend_artifact_hash_mismatch` 和 `image_backend_response_untrusted`；这些失败不触发 retry loop、fallback execution 或 success artifact reference。
 
@@ -276,7 +279,7 @@ Handshake、runbook、backend readiness、mapping readiness / entry review / tas
 - checker 必须跨读 runtime mapping readiness、artifact return runbook、safety runbook 和 backend adapter readiness，确认这些证据不会被提升为 runtime mapper implementation ready。
 - 在该 entry review 历史切片内，runtime mapper、artifact store、binary reader、public URL resolver 和 backend adapter implementation 五类候选均保持 `blocked`；后续实施已按独立任务边界放宽 metadata-only mapper / consumer / response builder，并在 Image Adapter 批次 B 放宽本机私有 store / reader，历史结论不应再解读为当前实现不存在。
 - 当前仍不改 `CopilotResponse` schema，不创建 public URL，不调用真实 backend，不生成或上传图片，也不进入 executor、confirmation、writeback 或 replay。
-- 后续 metadata-only mapper / consumer / response builder、受控调用批次 A 和本机私有 artifact storage 批次 B 均已完成。下一步只评审批次 C 的具体 backend client 或 profile / credential 配置单一方向，不恢复同层 mapping readiness 链。
+- 后续 metadata-only mapper / consumer / response builder、受控调用批次 A、本机私有 artifact storage 批次 B 和 reference-only profile 批次 C 均已完成。下一步只评审批次 D 的一个具体 backend client，不恢复同层 mapping readiness 链。
 
 ### Artifact store / binary reader boundary readiness
 

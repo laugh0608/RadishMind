@@ -12,6 +12,10 @@ from typing import Any, Protocol
 
 import jsonschema
 
+from .image_backend_profile_configuration import (
+    ImageBackendProfile,
+    compiled_profile_is_valid,
+)
 from .image_artifact_runtime_mapper import (
     FAILURE_HASH_MISMATCH,
     ImageArtifactMappingResult,
@@ -30,6 +34,7 @@ FAILURE_INTENT_SENSITIVE_MATERIAL = "image_intent_sensitive_material_rejected"
 FAILURE_INTENT_REQUIRES_CONFIRMATION = "image_intent_requires_confirmation"
 FAILURE_INTENT_HIGH_RISK = "image_intent_high_risk"
 FAILURE_BACKEND_PROFILE_MISSING = "image_backend_profile_missing"
+FAILURE_BACKEND_PROFILE_INVALID = "image_backend_profile_invalid"
 FAILURE_BACKEND_PROFILE_MISMATCH = "image_backend_profile_mismatch"
 FAILURE_BACKEND_SAFETY_BLOCKED = "image_backend_safety_gate_blocked"
 FAILURE_BACKEND_TIMEOUT = "image_backend_timeout"
@@ -53,10 +58,8 @@ MAX_TRACE_IDS = 16
 MAX_IDENTIFIER_BYTES = 128
 MAX_LIST_ITEM_BYTES = 512
 MAX_ARTIFACT_TITLE_BYTES = 160
-MAX_TIMEOUT_SECONDS = 300.0
 
 IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
-PROFILE_VALUE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$")
 LOCALE_RE = re.compile(r"^[a-z]{2,3}(?:-[A-Z]{2})?$")
 SHA256_RE = re.compile(r"^[a-f0-9]{64}$")
 SENSITIVE_PATTERNS = (
@@ -88,14 +91,6 @@ ZERO_SIDE_EFFECTS = {
     "business_writeback_count": 0,
     "replay_call_count": 0,
 }
-
-
-@dataclass(frozen=True)
-class ImageBackendProfile:
-    backend_id: str
-    model: str
-    adapter_profile: str
-    enabled: bool = True
 
 
 @dataclass(frozen=True)
@@ -142,7 +137,6 @@ def invoke_image_generation(
     profile: ImageBackendProfile | None,
     client: ImageBackendClient,
     backend_request_id: str,
-    timeout_seconds: float,
 ) -> ImageGenerationAdapterResult:
     intent = copy_mapping(intent_document)
     if intent is None:
@@ -154,11 +148,11 @@ def invoke_image_generation(
     if not contains_only_valid_utf8(intent):
         return fail(FAILURE_INTENT_INVALID, "image intent must contain valid UTF-8 text")
 
-    failure = validate_intent_budget(intent, backend_request_id, timeout_seconds)
+    failure = validate_intent_budget(intent, backend_request_id)
     if failure:
         return failure
-    if contains_sensitive_material(intent) or (profile is not None and contains_sensitive_material(profile_document(profile))):
-        return fail(FAILURE_INTENT_SENSITIVE_MATERIAL, "image intent or profile contains sensitive material")
+    if contains_sensitive_material(intent):
+        return fail(FAILURE_INTENT_SENSITIVE_MATERIAL, "image intent contains sensitive material")
 
     safety = mapping_at(intent, "safety")
     if safety["requires_confirmation"] is True:
@@ -168,7 +162,11 @@ def invoke_image_generation(
     if safety["risk_level"] != "low":
         return fail(FAILURE_BACKEND_SAFETY_BLOCKED, "image intent did not pass the low-risk backend safety gate")
 
-    if profile is None or not profile.enabled or not profile_is_valid(profile):
+    if profile is None:
+        return fail(FAILURE_BACKEND_PROFILE_MISSING, "an enabled image backend profile is required")
+    if not isinstance(profile, ImageBackendProfile) or not profile_is_valid(profile):
+        return fail(FAILURE_BACKEND_PROFILE_INVALID, "image backend profile failed canonical validation")
+    if not profile.enabled:
         return fail(FAILURE_BACKEND_PROFILE_MISSING, "an enabled image backend profile is required")
     preferred_backend = mapping_at(intent, "backend")["preferred"]
     if preferred_backend != profile.backend_id:
@@ -180,7 +178,10 @@ def invoke_image_generation(
         return fail(FAILURE_INTENT_INVALID, "compiled backend request did not satisfy the canonical contract")
 
     try:
-        backend_result = client.invoke(copy.deepcopy(backend_request), float(timeout_seconds))
+        backend_result = client.invoke(
+            copy.deepcopy(backend_request),
+            profile.timeout_seconds,
+        )
     except TimeoutError:
         return fail_after_call(
             FAILURE_BACKEND_TIMEOUT,
@@ -339,16 +340,10 @@ def validate_backend_result(
 def validate_intent_budget(
     intent: dict[str, Any],
     backend_request_id: str,
-    timeout_seconds: float,
 ) -> ImageGenerationAdapterResult | None:
     for identifier in (intent.get("intent_id"), intent.get("source_request_id"), backend_request_id):
         if not valid_identifier(identifier):
             return fail(FAILURE_INTENT_INVALID, "image intent and backend request identifiers must be canonical")
-    if not isinstance(timeout_seconds, (int, float)) or isinstance(timeout_seconds, bool):
-        return fail(FAILURE_INTENT_INVALID, "image backend timeout must be numeric")
-    if not math.isfinite(float(timeout_seconds)) or timeout_seconds <= 0 or timeout_seconds > MAX_TIMEOUT_SECONDS:
-        return fail(FAILURE_INTENT_BUDGET_EXCEEDED, "image backend timeout exceeds the development budget")
-
     prompt = mapping_at(intent, "prompt")
     if not LOCALE_RE.fullmatch(prompt["locale"]):
         return fail(FAILURE_INTENT_INVALID, "image prompt locale must use canonical language or language-region form")
@@ -472,23 +467,11 @@ def observed_result_is_valid(result: ImageBackendInvocationResult) -> bool:
 
 
 def profile_is_valid(profile: ImageBackendProfile) -> bool:
-    return isinstance(profile.enabled, bool) and all(
-        valid_profile_value(value) for value in (profile.backend_id, profile.model, profile.adapter_profile)
-    )
+    return compiled_profile_is_valid(profile)
 
 
 def valid_identifier(value: Any) -> bool:
     return isinstance(value, str) and utf8_size(value) <= MAX_IDENTIFIER_BYTES and bool(IDENTIFIER_RE.fullmatch(value))
-
-
-def valid_profile_value(value: Any) -> bool:
-    return (
-        isinstance(value, str)
-        and utf8_size(value) <= MAX_IDENTIFIER_BYTES
-        and bool(PROFILE_VALUE_RE.fullmatch(value))
-        and "://" not in value
-        and ".." not in value
-    )
 
 
 def contains_sensitive_material(value: Any) -> bool:
@@ -512,14 +495,6 @@ def contains_only_valid_utf8(value: Any) -> bool:
         except UnicodeEncodeError:
             return False
     return True
-
-
-def profile_document(profile: ImageBackendProfile) -> dict[str, Any]:
-    return {
-        "backend_id": profile.backend_id,
-        "model": profile.model,
-        "adapter_profile": profile.adapter_profile,
-    }
 
 
 def canonical_strings(values: list[str]) -> list[str]:

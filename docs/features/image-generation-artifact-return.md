@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_b_completed_batch_c_review_required`
+状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_c_completed_batch_d_review_required`
 
 ## 功能定位
 
@@ -12,8 +12,8 @@
 
 - Image Path 已完成 adapter handshake / safety gate、artifact return runbook、安全 runbook、backend adapter readiness、artifact runtime mapping readiness、store / binary reader boundary readiness、metadata-only runtime mapper、response consumer 和 `coerce_response_document` metadata-only response builder runtime integration。
 - runtime integration 只从 request artifact metadata 发现 `image_generation_artifact`，通过 mapper / consumer 合并到现有 `CopilotResponse.citations` artifact citation。
-- 批次 A 已完成受控调用纯领域 runtime；批次 B 已完成本机私有 content-addressed store、不可变 artifact ref、metadata-only lookup 与显式授权 binary reader。
-- 当前仍不改 `CopilotResponse` schema，不创建 public URL resolver、backend adapter，不调用真实生图 backend，不生成或上传图片。
+- 批次 A 已完成受控调用纯领域 runtime；批次 B 已完成本机私有 content-addressed store、不可变 artifact ref、metadata-only lookup 与显式授权 binary reader；批次 C 已完成开发测试态 reference-only backend profile 配置编译。
+- 当前仍不改 `CopilotResponse` schema，不创建 public URL resolver 或具体 backend client，不解析 endpoint / credential / model-dir 引用，不调用真实生图 backend，不生成或上传图片。
 
 2026-07-25 已选择下一实现方向为“开发测试态 Image Adapter 受控调用”，不再继续派生 metadata-only readiness 链。首批只实现独立 Python 领域运行时：
 
@@ -35,9 +35,10 @@
 
 1. [Image Adapter 受控调用与 artifact 返回（开发 / 测试态）v1 实施任务卡](../task-cards/image-adapter-controlled-invocation-artifact-return-dev-test-v1-plan.md)批次 A 已完成。
 2. 批次 B 的 `local_private_artifact_storage` owner 已完成：二进制容器观察与私有存储按稳定职责拆分，仍属于同一边界。
-3. 批次 C 进入实现前，只评审具体 backend client 或 profile / credential 配置中的一个方向；HTTP、Gateway、应用配置、API key、Session、Run History 与 Web 仍不进入范围。
-4. 生产 backend call 仍需要独立 credential/profile resolver、endpoint/model-dir、moderation、安全复核、运行配置和发布声明，不能由开发测试态注入协议代替。
-5. 普通 metadata mapping 文案和 runbook 调整继续复用现有测试与仓库基线，不恢复同层 checker 链。
+3. 批次 C 已选择 profile / credential 配置单一方向：strict source 只承载 reference-only endpoint / credential / model-dir，编译稳定 `profile_digest`，并成为批次 A 的 profile 与 timeout owner。
+4. 批次 D 进入实现前只评审一个具体 backend client；HTTP、Gateway、应用配置、API key、Session、Run History 与 Web 仍不进入范围。
+5. 生产 backend call 仍需要独立 credential resolver、endpoint/model-dir resolver、moderation、安全复核、运行配置和发布声明，不能由开发测试态 reference-only profile 代替。
+6. 普通 metadata mapping 文案和 runbook 调整继续复用现有测试与仓库基线，不恢复同层 checker 链。
 
 ### 批次 B 固定边界
 
@@ -48,12 +49,22 @@
 - reader 每次读取都重新计算 sha256，并重新识别 MIME 与 dimensions；校验通过后只把临时 stream 交给一次内部 consumer，不在 result、日志、引用或响应中返回 bytes。
 - 本批不提供 delete / overwrite、upload、public URL resolver、retry / fallback、后台服务、repository selector、migration 或生产存储声明。
 
+### 批次 C 固定边界
+
+- `image-backend-profile-source.schema.json` 只允许 `development | test`，不接受 production / staging、未知字段或第二套 backend request 配置。
+- `remote_https` 只能绑定同环境 `endpoint_ref + secret_ref`；`local_model` 只能绑定同环境 `model_dir_ref` 且 credential 为 `not_required`。两种模式严格互斥。
+- endpoint、credential 与 model-dir 均使用 `ref:radishmind/<environment>/image-backends/...` 引用；真实 URL、密钥、header、DSN、绝对路径、环境变量、自由 system prompt、provider / runtime 配置全部拒绝。
+- 编译产物固定 profile identity、backend/model/adapter profile、runtime binding、credential policy、timeout 与稳定 `profile_digest`。相同 source 映射顺序不影响 digest，任何字段漂移都会改变或破坏 digest。
+- `invoke_image_generation` 只接受 digest 可重算的编译 profile，并从 profile 读取 timeout；profile 缺失、disabled、digest 漂移或 backend preference mismatch 都在 client 调用前失败关闭。
+- 本批不解析任何 reference，不读取 secret / 环境变量 / 文件系统，不连接 endpoint，不创建具体 backend client，也不启用 retry / fallback。
+
 ## 验收方式
 
 - metadata-only runtime：runtime unit tests、image artifact checker、fast baseline。
 - store / reader：hash / mime / dimensions revalidation、binary leak negative tests、no side effects checks。
 - backend adapter：credential boundary、safety gate、timeout/failure taxonomy、no upload by default 和全量仓库验证。
-- 受控调用批次 A：Python 相邻单元测试覆盖纯编译、单次调用、预算、安全、敏感材料、profile drift、timeout、artifact 观察值与 provenance；随后运行 fast / full 仓库门禁。
+- 受控调用批次 A：Python 相邻单元测试覆盖纯编译、单次调用、预算、安全、敏感材料、profile drift、artifact 观察值与 provenance；timeout 从批次 C 编译 profile 读取。
+- Profile 配置批次 C：strict schema、确定性 digest、开发测试环境、远程 / 本机互斥绑定、引用作用域、UTF-8 / source byte / timeout budget、敏感材料和 digest drift 负向测试。
 
 ## 批次 A 完成结果
 
@@ -71,3 +82,11 @@
 3. store 写入前复用 strict artifact schema 与既有 mapper，精确重验 canonical URI、低风险安全状态、provenance、hash、MIME、dimensions 和 format；相同 artifact 幂等，绑定漂移失败关闭。
 4. binary reader 默认拒绝；显式授权后只读取一次，在 consumer 前再次重验容器、hash、MIME、dimensions、format 和 size。consumer 最多调用一次，result 不返回 bytes、绝对路径、base64 或 URL。
 5. 15 项 storage 相邻测试覆盖三种格式、真实临时目录、并发幂等、payload / metadata 边界、ref / blob / symlink 篡改、读取授权、consumer 异常脱敏和零外部副作用；runtime 测试总数为 26。
+
+## 批次 C 完成结果
+
+1. 新增 `image-backend-profile-source.schema.json` 与 reference-only 基础 fixture，固定 profile identity、环境、backend、runtime、credential policy 和 timeout source。
+2. `services/runtime/image_backend_profile_configuration.py` 纯函数编译远程 / 本机两种互斥配置，生成稳定 `sha256:` profile digest；不解析 reference 或读取任何外部配置。
+3. 批次 A 的 `ImageBackendProfile` 已收口为编译产物，timeout 不再由调用点独立注入；disabled、digest drift、非法引用或 backend mismatch 均在 backend side effect 前拒绝。
+4. 10 项 profile 配置测试与 12 项 adapter、15 项 storage 测试共同形成 37 项 runtime 测试；既有 Image contract / mapper / consumer / builder 检查继续兼容。
+5. 状态推进为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_c_completed_batch_d_review_required`。下一步只评审一个具体 backend client，不打开 HTTP / Gateway / Web 或 production capability。
