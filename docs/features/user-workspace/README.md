@@ -1,11 +1,12 @@
 # 用户工作区细专题入口
 
-更新时间：2026-07-21
+更新时间：2026-07-25
 
 本目录承接用户工作区中跨应用、模型发现、接入、调用与审查的具体功能专题。产品面长期边界继续以 [用户工作区设计与开发文档](../user-workspace.md) 为准。
 
 ## 当前专题
 
+- [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md)：设计已定义，固定 Profile Draft / immutable Version、ref-only Configuration binding、Publish Candidate 人工审查、显式 Runtime Assignment、API key / Session 单次受控建议、metadata-only Run / Evaluation 和五批实施顺序；下一步是唯一高风险任务卡与兼容审计。
 - [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)：批次 A 至 E 均已完成，受限模板、双数据库 Template owner、Configuration Draft v3、Publish Candidate v3、显式 Runtime Assignment、受控 invocation、Session / Turn v2、Run v6、Web 与真实浏览器验收均有可复验证据，专题关闭。
 - [Prompt Application 开发测试态使用指南](prompt-application-dev-test-usage-guide.md)：说明完整 Template → Configuration → Candidate Review → Assignment → Invocation / Session → Run Review 顺序，以及启动配置、身份权限、CAS、持久化与故障处理；所有能力仅限开发测试态。
 - [应用开发工作区与发布准备审查 v1](application-development-workspace-release-readiness-review-v1.md)：批次 A 至 C 已完成并关闭；route-scoped evidence、精确 Draft / Run owner 重读、离线 revision 失败关闭、真实浏览器连续路径与 URL / console / network 隐私审计均有可复验证据。
@@ -20,8 +21,9 @@
 
 ## 下一步
 
+- 先为 Agent / Copilot 专题建立一个高风险实施任务卡，完成配置、候选、Session、Run、API key 与 application kind surface routing 兼容矩阵；任务卡评审前不新增 schema、API、迁移或 Web surface。
 - Prompt Application 批次 A 至 E 已完成并关闭：memory / SQLite / PostgreSQL 语义、Web、双数据库连续链、服务重启、CAS / drift / cancel 和敏感信息复验均已通过。
-- 不继续扩“应用开发工作区与发布准备审查 v1”或 Prompt Application 的同层切片；下一产品能力先更新对应功能设计文档。Prompt Application 继续复用现有 workspace context、发布审查、Gateway、Session、Run History 和 Evaluation，不另建聚合发布真相源或执行算法。
+- 不继续扩“应用开发工作区与发布准备审查 v1”或 Prompt Application 的同层切片。Agent / Copilot 继续复用现有 workspace context、发布审查、Gateway、Session、Run History 和 Evaluation，不另建聚合发布真相源或自治执行器。
 - 不从已关闭的 Application Interaction Session 派生长期记忆、自动 profile、重试 / fallback、schedule、replay / resume 或 agent loop。只有需要跨全部分页窗口的稳定统计、可信 reported usage 或正式 quota / billing owner 时，才评审服务端 summary。
 
 ## 目录停止线
