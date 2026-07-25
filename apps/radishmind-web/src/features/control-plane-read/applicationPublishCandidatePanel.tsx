@@ -92,7 +92,13 @@ export default function ApplicationPublishCandidatePanel({
     const ownerFailed = operation.status === "failed" || operation.status === "scope_denied" || operation.status.endsWith("conflict");
     const candidateReviewed = candidate?.candidateState === "approved";
     const candidateBlocked = Boolean(candidate && candidate.promotionEligibility.blockers.length > 0);
-    const candidateRef = candidate ? [{ kind: "candidate" as const, id: candidate.candidateId, version: candidate.reviewVersion }] : [];
+    const candidateRef = candidate
+      ? [{
+        kind: "candidate" as const,
+        id: candidate.candidateId,
+        ...(candidate.reviewVersion > 0 ? { version: candidate.reviewVersion } : {}),
+      }]
+      : [];
     onEvidenceChange({
       contributionId: "publish_candidate",
       status: ownerFailed || candidateBlocked ? "blocked" : candidateReviewed ? "available" : "incomplete",

@@ -5,12 +5,46 @@ import {
   EMPTY_WORKFLOW_RUN_HISTORY_FILTER,
   initialWorkflowRunHistoryState,
   listWorkflowRunHistory,
+  resolveWorkflowRunHistoryConfig,
 } from "../src/features/control-plane-read/workflowRunHistoryConsumer.ts";
 import type { WorkflowExecutorConsumerConfig } from "../src/features/control-plane-read/workflowExecutorConsumer.ts";
 import { parseWorkflowRunRecordDocument } from "../src/features/control-plane-read/workflowRunRecordConsumer.ts";
 
 const offline: WorkflowExecutorConsumerConfig = { mode: "disabled", baseUrl: "http://127.0.0.1:7000", workspaceId: "workspace_demo", tenantRef: "tenant_demo", subjectRef: "subject_demo" };
 const live: WorkflowExecutorConsumerConfig = { ...offline, mode: "dev_workflow_executor_http" };
+
+test("workflow run history uses an independent read capability and keeps executor compatibility", () => {
+  assert.deepEqual(
+    resolveWorkflowRunHistoryConfig({
+      VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_SOURCE: "dev-workflow-run-history-http",
+      VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_BASE_URL: "http://127.0.0.1:7100/",
+      VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_WORKSPACE_ID: "workspace_prompt",
+      VITE_RADISHMIND_DEV_READ_TENANT_REF: "tenant_prompt",
+      VITE_RADISHMIND_DEV_READ_SUBJECT_REF: "subject_prompt",
+    }),
+    {
+      mode: "dev_workflow_executor_http",
+      baseUrl: "http://127.0.0.1:7100",
+      workspaceId: "workspace_prompt",
+      tenantRef: "tenant_prompt",
+      subjectRef: "subject_prompt",
+      diagnosticsDevEnabled: false,
+    },
+  );
+  assert.equal(
+    resolveWorkflowRunHistoryConfig({
+      VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE: "dev-workflow-executor-http",
+    }).mode,
+    "dev_workflow_executor_http",
+  );
+  assert.equal(
+    resolveWorkflowRunHistoryConfig({
+      VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_SOURCE: "disabled",
+      VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE: "dev-workflow-executor-http",
+    }).mode,
+    "disabled",
+  );
+});
 
 test("workflow run history stays offline by default without fetching", async () => {
   let called = false;
@@ -179,6 +213,9 @@ test("workflow run history and detail recognize strict metadata-only v6", async 
   const detail = promptRunV6Document(digest);
   const parsed = parseWorkflowRunRecordDocument(detail);
   assert.equal(parsed?.schemaVersion, "workflow_run_record.v6");
+  assert.equal(parsed?.promptApplicationAuthority?.assignmentId, "ptra_abcdefghijklmnop");
+  assert.equal(parsed?.promptApplicationAuthority?.templateId, "ptpl_abcdefghijklmnop");
+  assert.equal(parsed?.promptApplicationAuthority?.templateVersion, 1);
   assert.equal(parsed?.variableNamesDigest, digest);
   assert.equal(parsed?.promptUsage?.totalTokens, 12);
   assert.equal(parsed?.output, "");

@@ -253,6 +253,36 @@ func TestLocalConsoleCORS(t *testing.T) {
 		}
 	})
 
+	t.Run("allows Prompt Runtime assignment preflight headers", func(t *testing.T) {
+		req := httptest.NewRequest(
+			http.MethodOptions,
+			"/v1/user-workspace/applications/app_prompt/prompt-runtime-assignment/events?workspace_id=workspace_demo",
+			nil,
+		)
+		req.Header.Set("Origin", "http://127.0.0.1:4100")
+		req.Header.Set("Access-Control-Request-Method", http.MethodGet)
+		req.Header.Set(
+			"Access-Control-Request-Headers",
+			promptApplicationRuntimeWorkspaceHeader+", "+promptApplicationRuntimeApplicationHeader,
+		)
+		rec := httptest.NewRecorder()
+
+		routeServer.httpServer.Handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusNoContent {
+			t.Fatalf("unexpected status: %d body=%s", rec.Code, rec.Body.String())
+		}
+		allowedHeaders := rec.Header().Get("Access-Control-Allow-Headers")
+		for _, header := range []string{
+			promptApplicationRuntimeWorkspaceHeader,
+			promptApplicationRuntimeApplicationHeader,
+		} {
+			if !strings.Contains(allowedHeaders, header) {
+				t.Fatalf("Prompt Runtime preflight is missing %s: %s", header, allowedHeaders)
+			}
+		}
+	})
+
 	t.Run("does not allow arbitrary origin", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 		req.Header.Set("Origin", "https://example.com")

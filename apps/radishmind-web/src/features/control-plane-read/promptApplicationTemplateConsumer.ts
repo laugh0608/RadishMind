@@ -175,6 +175,19 @@ export type PromptTemplatePreview = {
 
 type Document = Record<string, unknown>;
 
+export function mergePromptTemplateValidationOperation(
+  current: PromptTemplateOperation,
+  validation: PromptTemplateOperation,
+): PromptTemplateOperation {
+  return {
+    ...validation,
+    draft: current.draft,
+    version: current.version,
+    currentDraftVersion: current.currentDraftVersion,
+    currentTemplateVersion: current.currentTemplateVersion,
+  };
+}
+
 export function readPromptTemplateConfig(): PromptTemplateConfig {
   const env = import.meta.env as Record<string, string | undefined>;
   return {

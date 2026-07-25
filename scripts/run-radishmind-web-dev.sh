@@ -1197,6 +1197,11 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export VITE_RADISHMIND_PROMPT_APPLICATION_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_PROMPT_APPLICATION_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
+        if [[ "${saved_draft_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_SOURCE="dev-workflow-run-history-http"
+          export VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_WORKSPACE_ID="${saved_draft_workspace_id}"
+        fi
         if [[ "${saved_draft_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE="dev-saved-draft-http"
           export VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE="dev-workflow-executor-http"
@@ -1256,6 +1261,9 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL
         unset VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE
         unset VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_BASE_URL
+        unset VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_WORKSPACE_ID
         unset VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE
         unset VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS
         unset VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE

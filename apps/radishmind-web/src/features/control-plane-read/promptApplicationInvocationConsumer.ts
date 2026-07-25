@@ -189,8 +189,8 @@ function isPromptRun(value: unknown, envelope: Document): value is Document {
   if (!isRecord(value) || !hasExactKeys(value, RUN_KEYS) ||
     value.schema_version !== "workflow_run_record.v6" || !integer(value.record_version, 1) ||
     value.tenant_ref !== envelope.tenant_ref || value.workspace_id !== envelope.workspace_id ||
-    value.application_id !== envelope.application_id || value.execution_kind !== "prompt_application" ||
-    value.execution_source_kind !== "prompt_application_runtime_assignment" ||
+    value.application_id !== envelope.application_id || value.execution_kind !== "prompt_application_invocation" ||
+    value.execution_source_kind !== "prompt_application_template" ||
     value.execution_profile !== "prompt_application_invocation_v1" ||
     !isReference(value.run_id) || !isReference(value.execution_source_id) ||
     !integer(value.execution_source_version, 1) || !isDigest(value.input_digest) ||

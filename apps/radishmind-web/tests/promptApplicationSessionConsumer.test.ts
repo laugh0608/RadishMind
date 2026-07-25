@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   createPromptApplicationSession,
   executePromptApplicationSessionTurn,
+  listPromptApplicationSessions,
   type PromptApplicationSessionConfig,
 } from "../src/features/control-plane-read/promptApplicationSessionConsumer.ts";
 
@@ -57,6 +58,83 @@ test("Prompt Session v2 creates explicit profile and sends transient variables o
     variables: { question: "如何审查？", tone: "清晰" },
   });
   assert.equal(requests[1]?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_sessions:execute");
+});
+
+test("Prompt Session v2 lists only strict metadata records for stage recovery", async () => {
+  let requestUrl = "";
+  let requestHeaders = new Headers();
+  globalThis.fetch = async (input, init) => {
+    requestUrl = String(input);
+    requestHeaders = new Headers(init?.headers);
+    return jsonResponse({
+      request_id: "prompt-session-list-request",
+      tenant_ref: "tenant_demo",
+      workspace_id: "workspace_demo",
+      application_id: applicationId,
+      items: [{ ...sessionDocument(), record_version: 2, turn_count: 1, last_turn_id: "appturn_aaaaaaaaaaaaaaaa" }],
+      next_cursor: null,
+      failure_code: null,
+      audit_ref: "audit-prompt-session-list",
+    });
+  };
+  const listed = await listPromptApplicationSessions(config, applicationId);
+  assert.equal(listed.status, "ready");
+  assert.equal(listed.sessions[0]?.recordVersion, 2);
+  assert.equal(listed.sessions[0]?.turnCount, 1);
+  const url = new URL(requestUrl);
+  assert.equal(url.searchParams.get("execution_profile"), "prompt_application_invocation_v1");
+  assert.equal(url.searchParams.get("state"), "active");
+  assert.equal(requestHeaders.get("X-RadishMind-Dev-Read-Scopes"), "application_sessions:read");
+
+  globalThis.fetch = async () => jsonResponse({
+    request_id: "prompt-session-list-failure",
+    tenant_ref: "tenant_demo",
+    workspace_id: "workspace_demo",
+    application_id: applicationId,
+    items: [],
+    next_cursor: null,
+    failure_code: "application_session_store_unavailable",
+    audit_ref: "audit-prompt-session-list-failure",
+  }, 503);
+  assert.equal(
+    (await listPromptApplicationSessions(config, applicationId)).failureCode,
+    "application_session_store_unavailable",
+  );
+});
+
+test("Prompt Session v2 list rejects transcript material", async () => {
+  globalThis.fetch = async () => jsonResponse({
+    request_id: "prompt-session-list-request",
+    tenant_ref: "tenant_demo",
+    workspace_id: "workspace_demo",
+    application_id: applicationId,
+    items: [{ ...sessionDocument(), variables: { question: "不应持久化" } }],
+    next_cursor: null,
+    failure_code: null,
+    audit_ref: "audit-prompt-session-list",
+  });
+  assert.equal(
+    (await listPromptApplicationSessions(config, applicationId)).failureCode,
+    "application_session_response_invalid",
+  );
+});
+
+test("Prompt Session v2 list rejects unknown envelope fields", async () => {
+  globalThis.fetch = async () => jsonResponse({
+    request_id: "prompt-session-list-request",
+    tenant_ref: "tenant_demo",
+    workspace_id: "workspace_demo",
+    application_id: applicationId,
+    items: [sessionDocument()],
+    next_cursor: null,
+    failure_code: null,
+    audit_ref: "audit-prompt-session-list",
+    unexpected_projection: "must fail closed",
+  });
+  assert.equal(
+    (await listPromptApplicationSessions(config, applicationId)).failureCode,
+    "application_session_response_invalid",
+  );
 });
 
 test("Prompt Session v2 rejects v1 schema and replay output", async () => {
@@ -215,6 +293,6 @@ function mapFixtureSession() {
   };
 }
 
-function jsonResponse(body: unknown): Response {
-  return new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } });
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 }

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   createPromptTemplateDraftInput,
   listPromptTemplateDrafts,
+  mergePromptTemplateValidationOperation,
   readPromptTemplateVersion,
   renderPromptTemplatePreview,
   savePromptTemplateDraft,
@@ -89,6 +90,30 @@ test("Prompt Template save sends exact source and CAS scope", async () => {
   assert.equal("template_digest" in captured!.body.template, false);
 });
 
+test("Prompt Template validation preserves the persisted CAS lineage", () => {
+  const current = {
+    ...emptyOperation(),
+    status: "saved" as const,
+    currentDraftVersion: 3,
+    currentTemplateVersion: 2,
+    draft: {} as never,
+    version: {} as never,
+  };
+  const validation = {
+    ...emptyOperation(),
+    status: "valid" as const,
+    summary: "validated",
+  };
+
+  const merged = mergePromptTemplateValidationOperation(current, validation);
+  assert.equal(merged.status, "valid");
+  assert.equal(merged.summary, "validated");
+  assert.equal(merged.currentDraftVersion, 3);
+  assert.equal(merged.currentTemplateVersion, 2);
+  assert.equal(merged.draft, current.draft);
+  assert.equal(merged.version, current.version);
+});
+
 test("Prompt Template version source requires read_source and rejects response drift", async () => {
   let scopes = "";
   globalThis.fetch = async (_url, init) => {
@@ -119,6 +144,19 @@ function emptyEnvelope() {
     current_template_version: 0,
     validation_summary: { state: "valid", is_valid: true, findings: [] },
     audit_ref: "audit-prompt-template-request",
+  };
+}
+
+function emptyOperation() {
+  return {
+    status: "idle" as const,
+    draft: null,
+    version: null,
+    validation: { state: "valid" as const, isValid: true, findings: [] },
+    failureCode: "",
+    currentDraftVersion: 0,
+    currentTemplateVersion: 0,
+    summary: "",
   };
 }
 

@@ -528,6 +528,8 @@ func localConsoleAllowedHeaders() []string {
 		applicationDraftDevApplicationHeader,
 		promptApplicationTemplateDevWorkspaceHeader,
 		promptApplicationTemplateDevApplicationHeader,
+		promptApplicationRuntimeWorkspaceHeader,
+		promptApplicationRuntimeApplicationHeader,
 		applicationPublishDevWorkspaceHeader,
 		applicationPublishDevApplicationHeader,
 		gatewayRequestDevTenantHeader,

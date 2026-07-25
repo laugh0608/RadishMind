@@ -399,6 +399,30 @@ test("readiness rejects evidence from another application or route generation", 
   );
 });
 
+test("a pending publish candidate contributes an unversioned evidence ref before its first review", () => {
+  const context = buildApplicationDevelopmentWorkspaceContext({
+    ...activeApplication,
+    applicationKind: "prompt_application",
+  });
+  const initial = initialApplicationDevelopmentEvidenceState(context);
+  const state = applyApplicationDevelopmentEvidence(initial, context, {
+    applicationId: context.applicationId,
+    workspaceGenerationKey: context.generationKey,
+    contributionId: "publish_candidate",
+    status: "incomplete",
+    coverage: "complete",
+    evidenceRefs: [{ kind: "candidate", id: "publish-app_demo-pending" }],
+    missingEvidence: ["Approve the immutable candidate."],
+    blockers: [],
+    failureCodes: [],
+  });
+
+  assert.deepEqual(
+    state.contributions.publish_candidate.evidenceRefs,
+    [{ kind: "candidate", id: "publish-app_demo-pending" }],
+  );
+});
+
 function evidenceInput(
   context: ReturnType<typeof buildApplicationDevelopmentWorkspaceContext>,
   contributionId: ApplicationDevelopmentContributionId,

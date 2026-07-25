@@ -196,6 +196,28 @@ export type WorkflowDefinitionRunAuthority = {
   applicationLifecycle: "active";
 };
 
+export type PromptApplicationRunAuthority = {
+  applicationId: string;
+  applicationRecordVersion: number;
+  applicationLifecycle: "active";
+  authorityDigest: string;
+  assignmentId: string;
+  assignmentVersion: number;
+  assignmentDigest: string;
+  publishCandidateId: string;
+  publishReviewVersion: number;
+  draftId: string;
+  draftVersion: number;
+  draftDigest: string;
+  templateId: string;
+  templateVersion: number;
+  templateDigest: string;
+  defaultProtocol: string;
+  defaultModel: string;
+  protocolPolicyDigest: string;
+  modelEligibilityDigest: string;
+};
+
 export type WorkflowRunRecord = {
   schemaVersion: WorkflowRunSchemaVersion;
   recordVersion: number;
@@ -213,7 +235,7 @@ export type WorkflowRunRecord = {
   executionProfile?: string;
   inputDigest?: string;
   definitionAuthority?: WorkflowDefinitionRunAuthority | null;
-  promptApplicationAuthority?: Record<string, unknown> | null;
+  promptApplicationAuthority?: PromptApplicationRunAuthority | null;
   variableNames?: string[];
   variableNamesDigest?: string;
   requestedProtocol?: string;
@@ -403,7 +425,7 @@ function parsePromptApplicationAuthority(
   applicationId: unknown,
   templateId: unknown,
   templateVersion: unknown,
-): Record<string, unknown> | null {
+): PromptApplicationRunAuthority | null {
   const authorityKeys = ["schema_version", "execution_profile", "application_id", "application_record_version",
     "application_lifecycle", "prompt_application", "authority_digest"];
   if (!hasExactKeys(value, authorityKeys)) return null;
@@ -427,7 +449,27 @@ function parsePromptApplicationAuthority(
   const template = prompt.prompt_template_ref as Record<string, unknown>;
   if (template.template_id !== templateId || template.template_version !== templateVersion ||
     !isPatternString(template.template_digest, DIGEST_PATTERN)) return null;
-  return { ...authority, prompt_application: { ...prompt, prompt_template_ref: { ...template } } };
+  return {
+    applicationId: authority.application_id as string,
+    applicationRecordVersion: authority.application_record_version as number,
+    applicationLifecycle: "active",
+    authorityDigest: authority.authority_digest as string,
+    assignmentId: prompt.assignment_id as string,
+    assignmentVersion: prompt.assignment_version as number,
+    assignmentDigest: prompt.assignment_digest as string,
+    publishCandidateId: prompt.publish_candidate_id as string,
+    publishReviewVersion: prompt.publish_review_version as number,
+    draftId: prompt.draft_id as string,
+    draftVersion: prompt.draft_version as number,
+    draftDigest: prompt.draft_digest as string,
+    templateId: template.template_id as string,
+    templateVersion: template.template_version as number,
+    templateDigest: template.template_digest as string,
+    defaultProtocol: prompt.default_protocol as string,
+    defaultModel: prompt.default_model as string,
+    protocolPolicyDigest: prompt.protocol_policy_digest as string,
+    modelEligibilityDigest: prompt.model_eligibility_digest as string,
+  };
 }
 
 function parsePromptApplicationUsage(

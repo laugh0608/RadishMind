@@ -12,6 +12,7 @@ import {
   createPromptTemplateVersion,
   listPromptTemplateDrafts,
   listPromptTemplateVersions,
+  mergePromptTemplateValidationOperation,
   readPromptTemplateConfig,
   readPromptTemplateDraft,
   readPromptTemplateVersion,
@@ -61,6 +62,7 @@ export default function PromptApplicationTemplatePanel({
   );
   const [selectedDraftId, setSelectedDraftId] = useState("");
   const [selectedTemplateVersion, setSelectedTemplateVersion] = useState(0);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(true);
   const [bindingStatus, setBindingStatus] = useState("");
   const [bindingFailure, setBindingFailure] = useState("");
 
@@ -74,6 +76,7 @@ export default function PromptApplicationTemplatePanel({
     setApplicationDrafts(initialApplicationConfigurationDraftListState(draftConfig));
     setSelectedDraftId("");
     setSelectedTemplateVersion(0);
+    setHasUnsavedChanges(true);
     setBindingStatus("");
     setBindingFailure("");
   }, [applicationId]);
@@ -110,6 +113,7 @@ export default function PromptApplicationTemplatePanel({
 
   function edit(patch: Partial<PromptTemplateDraftInput>) {
     setInput((current) => ({ ...current, ...patch }));
+    setHasUnsavedChanges(true);
     setOperation((current) => ({ ...current, status: templateConfig.mode === "offline" ? "offline" : "idle", failureCode: "", summary: "模板包含未保存的内存编辑。" }));
     setPreview(null);
   }
@@ -126,7 +130,8 @@ export default function PromptApplicationTemplatePanel({
       return;
     }
     setOperation((current) => ({ ...current, status: "idle", failureCode: "", summary: "正在执行服务端确定性校验。" }));
-    setOperation(await validatePromptTemplateRemote(templateConfig, input));
+    const result = await validatePromptTemplateRemote(templateConfig, input);
+    setOperation((current) => mergePromptTemplateValidationOperation(current, result));
   }
 
   async function saveDraft() {
@@ -135,6 +140,7 @@ export default function PromptApplicationTemplatePanel({
     setOperation(result);
     if (result.draft) {
       setInput(draftToInput(result.draft));
+      setHasUnsavedChanges(false);
       await refreshDrafts();
     }
   }
@@ -150,12 +156,13 @@ export default function PromptApplicationTemplatePanel({
     setOperation(result);
     if (result.draft) {
       setInput(draftToInput(result.draft));
+      setHasUnsavedChanges(false);
       await refreshVersions(templateId);
     }
   }
 
   async function createVersion() {
-    if (!enabled || !operation.draft || operation.currentDraftVersion < 1) return;
+    if (!enabled || hasUnsavedChanges || !operation.draft || operation.currentDraftVersion < 1) return;
     const result = await createPromptTemplateVersion(
       templateConfig,
       applicationId,
@@ -307,7 +314,7 @@ export default function PromptApplicationTemplatePanel({
           <div className="application-draft-actions">
             <button type="button" onClick={() => void validateRemote()} disabled={!applicationActive}>Validate</button>
             <button type="button" onClick={() => void saveDraft()} disabled={!enabled || !localValidation.isValid}>Save with CAS</button>
-            <button type="button" onClick={() => void createVersion()} disabled={!enabled || !operation.draft || operation.currentDraftVersion < 1}>Create immutable version</button>
+            <button type="button" onClick={() => void createVersion()} disabled={!enabled || hasUnsavedChanges || !operation.draft || operation.currentDraftVersion < 1}>Create immutable version</button>
           </div>
         </article>
 

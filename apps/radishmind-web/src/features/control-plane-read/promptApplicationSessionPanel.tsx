@@ -5,7 +5,9 @@ import {
   createPromptApplicationSession,
   executePromptApplicationSessionTurn,
   initialPromptApplicationSessionResult,
+  listPromptApplicationSessions,
   readPromptApplicationSessionConfig,
+  type PromptApplicationSession,
   type PromptApplicationSessionResult,
 } from "./promptApplicationSessionConsumer.ts";
 
@@ -25,12 +27,28 @@ export default function PromptApplicationSessionPanel({
   );
   const [variablesText, setVariablesText] = useState('{"question":"请给出发布审查清单","tone":"简洁"}');
   const [clientTurnKey, setClientTurnKey] = useState(() => newClientTurnKey());
+  const [sessions, setSessions] = useState<PromptApplicationSession[]>([]);
+  const [listSummary, setListSummary] = useState("");
   const variables = useMemo(() => parsePromptApplicationVariables(variablesText), [variablesText]);
 
   useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
     setResult(initialPromptApplicationSessionResult(config));
+    setSessions([]);
+    setListSummary("");
     setVariablesText('{"question":"请给出发布审查清单","tone":"简洁"}');
     setClientTurnKey(newClientTurnKey());
+    void listPromptApplicationSessions(config, applicationId, controller.signal).then((listed) => {
+      if (!active) return;
+      setSessions(listed.sessions);
+      setListSummary(listed.summary);
+      if (listed.sessions[0]) selectSession(listed.sessions[0], listed.summary);
+    });
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [applicationId]);
 
   async function createSession() {
@@ -39,7 +57,11 @@ export default function PromptApplicationSessionPanel({
       status: "ready",
       summary: "正在从当前 exact runtime authority 创建 Prompt Session v2。",
     });
-    setResult(await createPromptApplicationSession(config, applicationId));
+    const next = await createPromptApplicationSession(config, applicationId);
+    setResult(next);
+    if (next.session) {
+      setSessions((current) => [next.session!, ...current.filter((item) => item.sessionId !== next.session!.sessionId)]);
+    }
   }
 
   async function executeTurn() {
@@ -51,7 +73,21 @@ export default function PromptApplicationSessionPanel({
       clientTurnKey,
     );
     setResult(next);
+    if (next.session) {
+      setSessions((current) => current.map((item) => item.sessionId === next.session!.sessionId ? next.session! : item));
+    }
     if (next.turn?.runId) onRunRecorded?.(next.turn.runId);
+  }
+
+  function selectSession(session: PromptApplicationSession, summary = "已恢复 metadata-only Session；未恢复变量值或 prompt_output。") {
+    setResult({
+      ...initialPromptApplicationSessionResult(config),
+      status: "ready",
+      session,
+      summary,
+    });
+    setVariablesText('{"question":"请给出发布审查清单","tone":"简洁"}');
+    setClientTurnKey(newClientTurnKey());
   }
 
   return (
@@ -73,6 +109,20 @@ export default function PromptApplicationSessionPanel({
           <button type="button" onClick={() => void createSession()} disabled={config.mode === "offline"}>
             Create Session v2
           </button>
+          <div className="application-publish-list" aria-label="Active Prompt Session v2 records">
+            {sessions.map((session) => (
+              <button
+                type="button"
+                key={session.sessionId}
+                className={result.session?.sessionId === session.sessionId ? "is-selected" : ""}
+                onClick={() => selectSession(session)}
+              >
+                <strong>{session.sessionId}</strong>
+                <small>record v{session.recordVersion} · {session.turnCount} turn(s)</small>
+              </button>
+            ))}
+          </div>
+          <p className="boundary-note">{listSummary}</p>
         </article>
         <article className="application-publish-review">
           <label>Turn variables<textarea rows={6} value={variablesText} onChange={(event) => setVariablesText(event.target.value)} /></label>

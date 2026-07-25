@@ -7,6 +7,46 @@ import {
   type WorkflowRunStatus,
 } from "./workflowRunRecordConsumer.ts";
 
+const DEV_RUN_HISTORY_SOURCE = "dev-workflow-run-history-http";
+const LEGACY_DEV_EXECUTOR_SOURCE = "dev-workflow-executor-http";
+const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
+const DEFAULT_WORKSPACE_ID = "workspace_demo";
+const DEFAULT_TENANT_REF = "tenant_demo";
+const DEFAULT_SUBJECT_REF = "subject_demo_user";
+
+export function readWorkflowRunHistoryConfig(): WorkflowExecutorConsumerConfig {
+  return resolveWorkflowRunHistoryConfig(import.meta.env as Record<string, string | undefined>);
+}
+
+export function resolveWorkflowRunHistoryConfig(
+  env: Record<string, string | undefined>,
+): WorkflowExecutorConsumerConfig {
+  const source = env.VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_SOURCE?.trim();
+  const legacyExecutorSource = env.VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE?.trim();
+  return {
+    mode:
+      source === DEV_RUN_HISTORY_SOURCE ||
+      (!source && legacyExecutorSource === LEGACY_DEV_EXECUTOR_SOURCE)
+        ? "dev_workflow_executor_http"
+        : "disabled",
+    baseUrl: normalizeBaseUrl(
+      env.VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_BASE_URL ??
+        env.VITE_RADISHMIND_WORKFLOW_EXECUTOR_BASE_URL ??
+        env.VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_BASE_URL ??
+        env.VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL ??
+        DEFAULT_BASE_URL,
+    ),
+    workspaceId:
+      env.VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_WORKSPACE_ID?.trim() ||
+      env.VITE_RADISHMIND_WORKFLOW_EXECUTOR_WORKSPACE_ID?.trim() ||
+      env.VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_WORKSPACE_ID?.trim() ||
+      DEFAULT_WORKSPACE_ID,
+    tenantRef: env.VITE_RADISHMIND_DEV_READ_TENANT_REF?.trim() || DEFAULT_TENANT_REF,
+    subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || DEFAULT_SUBJECT_REF,
+    diagnosticsDevEnabled: env.VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV?.trim() === "true",
+  };
+}
+
 export type WorkflowRunHistoryFilter = {
   status: "" | WorkflowRunStatus;
   draftId: string;
@@ -239,6 +279,10 @@ export async function readWorkflowRunHistoryDetail(
 
 function workflowRunHistoryHeaders(config: WorkflowExecutorConsumerConfig, applicationId: string, includeRetrievalFragmentPreviews = false): HeadersInit {
   return { Accept: "application/json", "X-Request-Id": `dev-workflow-run-history-${applicationId}`, "X-RadishMind-Dev-Read-Identity": "dev-workflow-run-history-consumer", "X-RadishMind-Dev-Read-Tenant": config.tenantRef, "X-RadishMind-Dev-Read-Subject": config.subjectRef, "X-RadishMind-Dev-Read-Scopes": includeRetrievalFragmentPreviews ? "workflow_runs:read,workflow_rag_snapshots:read" : "workflow_runs:read", "X-RadishMind-Dev-Read-Audit": "audit_dev_workflow_run_history_consumer", "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId, "X-RadishMind-Dev-Workflow-Application": applicationId };
+}
+
+function normalizeBaseUrl(value: string): string {
+  return value.trim().replace(/\/+$/u, "");
 }
 
 function toSummary(value: RunSummaryDocument): WorkflowRunHistorySummary {

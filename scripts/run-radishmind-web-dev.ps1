@@ -987,6 +987,11 @@ try {
                     $env:VITE_RADISHMIND_PROMPT_APPLICATION_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_PROMPT_APPLICATION_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
+                if ($savedDraftEnabled -or $promptApplicationEnabled) {
+                    $env:VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_SOURCE = "dev-workflow-run-history-http"
+                    $env:VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_BASE_URL = $BackendUrl.TrimEnd("/")
+                    $env:VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_WORKSPACE_ID = $savedDraftWorkspaceId
+                }
                 if ($savedDraftEnabled) {
                     $env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE = "dev-saved-draft-http"
                     $env:VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE = "dev-workflow-executor-http"
@@ -1051,6 +1056,9 @@ try {
                 Remove-Item Env:VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_BASE_URL -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_WORKSPACE_ID -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE -ErrorAction SilentlyContinue

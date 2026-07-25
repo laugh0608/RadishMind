@@ -52,6 +52,13 @@ export type PromptApplicationSessionResult = {
   summary: string;
 };
 
+export type PromptApplicationSessionListResult = {
+  status: "offline" | "ready" | "failed";
+  sessions: PromptApplicationSession[];
+  failureCode: string;
+  summary: string;
+};
+
 export function readPromptApplicationSessionConfig(): PromptApplicationSessionConfig {
   const env = import.meta.env as Record<string, string | undefined>;
   return {
@@ -84,6 +91,57 @@ export function initialPromptApplicationSessionResult(
       ? "Prompt Session v2 owner is offline."
       : "Create a Prompt Application Session v2 from the current exact runtime authority.",
   };
+}
+
+export async function listPromptApplicationSessions(
+  config: PromptApplicationSessionConfig,
+  applicationId: string,
+  signal?: AbortSignal,
+): Promise<PromptApplicationSessionListResult> {
+  if (config.mode === "offline") {
+    return {
+      status: "offline",
+      sessions: [],
+      failureCode: "application_session_http_disabled",
+      summary: "Prompt Session v2 owner is offline.",
+    };
+  }
+  const requestId = createRequestId("prompt-session-list");
+  const query = new URLSearchParams({
+    workspace_id: config.workspaceId,
+    application_id: applicationId,
+    execution_profile: "prompt_application_invocation_v1",
+    state: "active",
+    limit: "100",
+  });
+  try {
+    const response = await fetch(
+      `${config.baseUrl}/v1/user-workspace/application-sessions?${query}`,
+      {
+        headers: sessionHeaders(config, applicationId, requestId, "application_sessions:read"),
+        signal,
+      },
+    );
+    const value: unknown = await response.json();
+    if (!isSessionListEnvelope(value, config, applicationId)) {
+      return failedList("application_session_response_invalid");
+    }
+    const failureCode = nullableString(value.failure_code);
+    if (!response.ok || failureCode) {
+      return failedList(failureCode || "application_session_store_unavailable");
+    }
+    const sessions = value.items.map((item) => mapSession(item as Document));
+    return {
+      status: "ready",
+      sessions,
+      failureCode: "",
+      summary: `Loaded ${sessions.length} active Prompt Session v2 metadata record(s).`,
+    };
+  } catch (error) {
+    return failedList(error instanceof DOMException && error.name === "AbortError"
+      ? "application_session_request_canceled"
+      : "application_session_store_unavailable");
+  }
 }
 
 export async function createPromptApplicationSession(
@@ -140,15 +198,8 @@ async function requestSession(
     const response = await fetch(`${config.baseUrl}${path}`, {
       method: "POST",
       headers: {
-        Accept: "application/json",
         "Content-Type": "application/json",
-        "X-Request-Id": requestId,
-        "X-RadishMind-Dev-Read-Identity": `prompt-application-session-web:${config.subjectRef}`,
-        "X-RadishMind-Dev-Read-Tenant": config.tenantRef,
-        "X-RadishMind-Dev-Read-Subject": config.subjectRef,
-        "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
-        "X-RadishMind-Dev-Workflow-Application": applicationId,
-        "X-RadishMind-Dev-Read-Scopes": scope,
+        ...sessionHeaders(config, applicationId, requestId, scope),
       },
       body: JSON.stringify(body),
     });
@@ -180,6 +231,28 @@ async function requestSession(
   }
 }
 
+function isSessionListEnvelope(
+  value: unknown,
+  config: PromptApplicationSessionConfig,
+  applicationId: string,
+): value is Document & { items: Document[] } {
+  return isRecord(value) && hasExactKeys(value, [
+    "request_id",
+    "tenant_ref",
+    "workspace_id",
+    "application_id",
+    "items",
+    "next_cursor",
+    "failure_code",
+    "audit_ref",
+  ]) && value.tenant_ref === config.tenantRef &&
+    value.workspace_id === config.workspaceId && value.application_id === applicationId &&
+    Array.isArray(value.items) && value.items.every((item) => isSession(item, config, applicationId)) &&
+    (value.next_cursor === null || typeof value.next_cursor === "string") &&
+    (value.failure_code === null || typeof value.failure_code === "string") &&
+    typeof value.audit_ref === "string" && !containsForbiddenSessionResponse(value);
+}
+
 function isSessionEnvelope(
   value: unknown,
   config: PromptApplicationSessionConfig,
@@ -207,6 +280,10 @@ function containsForbiddenSessionResponse(value: unknown): boolean {
   return Object.entries(value).some(([key, nested]) =>
     FORBIDDEN_SESSION_RESPONSE_KEYS.has(key) || containsForbiddenSessionResponse(nested)
   );
+}
+
+function hasExactKeys(value: Document, keys: string[]): boolean {
+  return Object.keys(value).length === keys.length && keys.every((key) => Object.hasOwn(value, key));
 }
 
 function isSession(value: unknown, config: PromptApplicationSessionConfig, applicationId: string): value is Document {
@@ -284,6 +361,33 @@ function failed(failureCode: string): PromptApplicationSessionResult {
     failureSummary: "",
     idempotentReplay: false,
     summary: `Prompt Session v2 不可用：${failureCode}。`,
+  };
+}
+
+function failedList(failureCode: string): PromptApplicationSessionListResult {
+  return {
+    status: "failed",
+    sessions: [],
+    failureCode,
+    summary: `Prompt Session v2 列表不可用：${failureCode}。`,
+  };
+}
+
+function sessionHeaders(
+  config: PromptApplicationSessionConfig,
+  applicationId: string,
+  requestId: string,
+  scope: string,
+): HeadersInit {
+  return {
+    Accept: "application/json",
+    "X-Request-Id": requestId,
+    "X-RadishMind-Dev-Read-Identity": `prompt-application-session-web:${config.subjectRef}`,
+    "X-RadishMind-Dev-Read-Tenant": config.tenantRef,
+    "X-RadishMind-Dev-Read-Subject": config.subjectRef,
+    "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Workflow-Application": applicationId,
+    "X-RadishMind-Dev-Read-Scopes": scope,
   };
 }
 
