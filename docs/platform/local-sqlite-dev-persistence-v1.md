@@ -40,6 +40,8 @@ S3 本地产品档已完成：Shell / PowerShell wrapper 默认使用 `local-pro
 
 Prompt Application 批次 C 的 Runtime Assignment 不新增第九个数据库组件、DSN 或连接池，而是启用批次 B 已在共享 Workflow Run Store 中物化的 assignment / event 投影。Configuration Draft v3 与 Publish Candidate v3 继续使用各自既有 JSON payload owner；本地产品档仍由同一个聚合 SQLite runtime 统一迁移、注入和关闭。
 
+Agent / Copilot Profile owner 沿用同一聚合边界成为第九个组件 `agent_copilot_profiles`：本地产品档应用独立 SQLite `0001_agent_copilot_profiles` migration，并注入 Profile Draft / immutable Version repository。Agent Runtime Assignment / Event、Session / Turn v3 和 Run v7 复用共享 Workflow Run Store 中的 `0014` / `0015` 投影，不新增第十个组件、DSN 或连接池。
+
 Driver 评审证据以 [`modernc.org/sqlite` 官方 package 页面](https://pkg.go.dev/modernc.org/sqlite)、[`v1.53.0` 模块声明](https://gitlab.com/cznic/sqlite/-/raw/v1.53.0/go.mod)和[许可证原文](https://gitlab.com/cznic/sqlite/-/raw/v1.53.0/LICENSE)为准。`github.com/mattn/go-sqlite3` 因明确要求 CGO 与 GCC，且 Windows / 交叉编译需要额外工具链，本阶段不采用；该结论只服务当前本地开发 runtime，不构成永久排除其它 driver 的平台政策。
 
 具体实现统一由[本地 SQLite 开发持久化 v1 实施任务卡](../task-cards/local-sqlite-dev-persistence-v1-plan.md)承接，不再为 driver、单个 repository 或 migration 派生同层任务卡与检查器。
@@ -52,7 +54,7 @@ Driver 评审证据以 [`modernc.org/sqlite` 官方 package 页面](https://pkg.
 
 ## 数据范围
 
-当前聚合档覆盖 RadishMind 自身拥有的八组开发运行数据：
+当前聚合档覆盖 RadishMind 自身拥有的九组开发运行数据：
 
 1. 已保存工作流草案 `workflow_saved_drafts`；
 2. 应用配置草案 `application_configuration_drafts`；
@@ -62,15 +64,16 @@ Driver 评审证据以 [`modernc.org/sqlite` 官方 package 页面](https://pkg.
 6. 工作流运行记录 `workflow_runs`；
 7. Gateway 脱敏请求历史 `gateway_requests`。
 8. Prompt Application 模板草案与不可变版本 `prompt_application_templates`。
+9. Agent / Copilot Profile 草案与不可变版本 `agent_copilot_profiles`。
 
-这些组件必须在同一个本地启动档中整体选择 `sqlite_dev`，不允许正式入口长期混用 SQLite、内存和 PostgreSQL。组件级 selector 仍可供单元测试和专项故障注入使用，但用户不需要逐项设置八个环境变量。
+这些组件必须在同一个本地启动档中整体选择 `sqlite_dev`，不允许正式入口长期混用 SQLite、内存和 PostgreSQL。组件级 selector 仍可供单元测试和专项故障注入使用，但用户不需要逐项设置九个环境变量。
 
 以下数据不进入本地 SQLite：
 
 - Radish 身份、成员关系、租户和上层业务真相；
 - Control Plane Tenant / Audit 的外部只读投影；
 - provider credential、生产 secret、DSN、OIDC token、cookie 或 Authorization；
-- 模型权重、数据集、图片二进制、运行变量、渲染提示词、模型输出或响应正文；Template owner 中受限且通过敏感守卫的模板源码除外；
+- 模型权重、数据集、图片二进制、运行变量、渲染提示词、模型输出或响应正文；Template 与 Agent Profile owner 中受限且通过敏感守卫的结构化源码除外；
 - 生产审计账本、配额、计费和成本台账。
 
 Control Plane Read 继续使用 `fake_store_dev` 或显式 `postgres_dev_test`。本专题不新增 SQLite 身份真相，也不把测试投影持久化成正式数据。
@@ -91,7 +94,7 @@ var/sqlite-dev/radishmind.db
 - 设置本地文件权限；
 - 打开连接、启用 foreign keys、WAL 和受控 busy timeout；
 - 顺序应用已评审的本地 schema migration；
-- 向八个 repository 注入共享数据库句柄；
+- 向九个 repository 注入共享数据库句柄；
 - 在服务关闭时完成 checkpoint 和连接回收。
 
 聚合启动采用单一所有权：组件 factory 在 `sqlite_dev` 下只验证共享 runtime 和自己的 migration marker，不创建也不关闭私有数据库连接；`Server` 是共享 runtime 的唯一生命周期所有者。启动阶段任一 migration、marker、repository 或 bridge 失败都必须关闭已经打开的资源并返回原始失败，不留下仍持有数据库文件的半启动服务。
@@ -100,7 +103,7 @@ SQLite 不是独立服务，不增加后台守护进程。正式本地启动入�
 
 ## Schema 与迁移边界
 
-八个组件继续拥有各自的表、索引、schema 版本和迁移记录。共享 SQLite runtime 只负责连接与编排，不把领域表合并成通用键值表，也不引入无法审查的自动建表反射。
+九个组件继续拥有各自的表、索引、schema 版本和迁移记录。共享 SQLite runtime 只负责连接与编排，不把领域表合并成通用键值表，也不引入无法审查的自动建表反射。
 
 SQLite migration 与 PostgreSQL migration 使用同一领域版本目标，但允许物理 SQL 不同：
 
@@ -153,14 +156,14 @@ RADISHMIND_SQLITE_DEV_DATABASE_PATH=var/sqlite-dev/radishmind.db
 
 跨平台 wrapper 固定提供两个启动档：
 
-- `local-product` 是默认档，注入聚合 `sqlite_dev`、仓库根 `var/sqlite-dev/radishmind.db` 的受控路径、八组件所需开发门禁；调用方显式提供数据库路径时保留该覆盖，但不得同时提供组件 `*_STORE` 形成第二配置源；
+- `local-product` 是默认档，注入聚合 `sqlite_dev`、仓库根 `var/sqlite-dev/radishmind.db` 的受控路径、九组件所需开发门禁；调用方显式提供数据库路径时保留该覆盖，但不得同时提供组件 `*_STORE` 形成第二配置源；
 - `configured` 不注入聚合持久化模式和组件门禁，只承接调用方的文件 / 环境配置，用于 PostgreSQL 专项验收、组件故障注入和历史兼容诊断；它不代表生产启动档。
 
 `config-summary` 与 `config-check` 在两个启动档下都只加载和校验配置，不创建数据库文件或应用 migration。只有 `serve` 进入 `Server` 生命周期后才打开 SQLite。未知启动档必须返回退出码 `2`；Shell 与 PowerShell 的默认值、命令集合、错误语义和受控路径必须一致。
 
 配置摘要新增本地持久化模式、数据库文件是否配置、schema 状态和组件选择一致性，不输出数据库内容、API 密钥摘要或用户不需要的绝对路径。
 
-聚合 `sqlite_dev` 的有效配置必须把八个组件 store mode 全部投影为 `sqlite_dev`，并复用现有 dev-only HTTP / write / executor / history gates；摘要按这组有效配置报告所需门禁。用户若显式设置任一组件 `*_STORE`，即使值同为 `sqlite_dev`，也视为与聚合档冲突并停止启动，避免形成两个配置真相源。
+聚合 `sqlite_dev` 的有效配置必须把九个组件 store mode 全部投影为 `sqlite_dev`，并复用现有 dev-only HTTP / write / executor / history gates；摘要按这组有效配置报告所需门禁。用户若显式设置任一组件 `*_STORE`，即使值同为 `sqlite_dev`，也视为与聚合档冲突并停止启动，避免形成两个配置真相源。
 
 ## 验证矩阵
 
@@ -170,7 +173,7 @@ RADISHMIND_SQLITE_DEV_DATABASE_PATH=var/sqlite-dev/radishmind.db
 - SQLite repository 测试使用临时目录和真实 SQLite 文件，不依赖 Docker；
 - 每个组件执行 create / read / list / update 或终态操作、重开连接恢复、分页和 no-fallback；
 - API 密钥增加摘要不出公开投影、认证 / 吊销并发和 WAL 敏感信息扫描；
-- 聚合本地启动档验证八个组件没有混用 store mode。
+- 聚合本地启动档验证九个组件没有混用 store mode。
 
 ### 跨模式契约
 

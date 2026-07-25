@@ -50,7 +50,7 @@
 
 | 专题 | 类型 | 当前用途 |
 | --- | --- | --- |
-| [本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md) | 平台 / 本地持久化专题 | 八组件 repository、聚合 runtime、跨平台启动档、SQLite 连续链和 PostgreSQL 专项门禁已完成 |
+| [本地 SQLite 开发持久化 v1](../platform/local-sqlite-dev-persistence-v1.md) | 平台 / 本地持久化专题 | 九组件 repository、聚合 runtime、跨平台启动档、SQLite 连续链和 PostgreSQL 专项门禁已完成 |
 | [用户工作区细专题入口](user-workspace/README.md) | 功能专题目录 | 承接应用、模型发现、API 接入、调用与审查的连续用户路径 |
 | [API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) | 功能 / 认证专题 | 双数据库、Web 一次性交接、浏览器连续验收、敏感信息扫描和重启恢复已完成，专题关闭 |
 | [应用目录与生命周期（开发/测试态）v1](user-workspace/application-catalog-lifecycle-dev-test-v1.md) | 功能 / 生命周期专题 | 核心生命周期、PostgreSQL 持久化、Web 管理和真实浏览器连续验收已完成 |

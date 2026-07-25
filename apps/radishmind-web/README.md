@@ -3,7 +3,7 @@
 `apps/radishmind-web/` 是正式产品 UI 的首个落点。当前承载四组离线优先 / dev-only product surface：
 
 - `Control Plane Read-Side`：`control-plane-read-shared-shell-v1`、`control-plane-read-admin-tenant-overview-v1`、`control-plane-read-admin-audit-log-v1`、普通离线 Admin Operations Review / Readiness、普通离线 Admin Provider/Profile & Deployment Evidence Review / Readiness、`control-plane-read-workspace-applications-v1`、`control-plane-read-workspace-api-keys-v1`、`control-plane-read-workspace-usage-quota-v1`、`control-plane-read-workspace-workflow-definitions-v1`、`control-plane-read-workspace-run-history-v1`、`control-plane-read-formal-ui-readiness-close-v1`、`control-plane-read-dev-live-consumer-v1` 和 `control-plane-read-auth-store-transition-preconditions-v1`。
-- `User Workspace / Application Development`：Application Catalog、Configuration Draft、Publish Review、API Key、Application API、Workflow Definition / RAG promotion、Application RAG、Application Interaction Session、Prompt Application、Application Operations 与 Run / Evaluation Review 已按唯一 Application context 收口为五阶段 Application Development Workspace；当前阶段只挂载一个 feature-owned surface，Release Readiness 只做四态只读投影。
+- `User Workspace / Application Development`：Application Catalog、Configuration Draft、Publish Review、API Key、Application API、Workflow Definition / RAG promotion、Application RAG、Application Interaction Session、Prompt Application、Agent / Copilot、Application Operations 与 Run / Evaluation Review 已按唯一 Application context 收口为五阶段 Application Development Workspace；当前阶段只挂载一个 feature-owned surface，Release Readiness 只做四态只读投影。
 - `Model Gateway / API Distribution`：普通离线 Model Gateway Overview、Route Evidence、Usage/Audit Evidence 与 Evidence Review / Readiness，复用 shared read shell、API key summary、quota summary、run history、audit log、provider runtime、`gateway-api-key-quota-readiness` 和前三个网关 view model 证据，展示 northbound API compatibility surfaces、provider/profile inventory、route binding、selection cases、key scope、quota / cost snapshot、trace / failure、audit decision、readiness rollup、evidence checklist、route / usage / audit key risks 和 locked distribution capabilities。
 - `Workflow / Agent Runtime Function Surface`：既有 workflow detail / review / Draft Designer / Validation、`workflow-execution-plan-preview-offline-v1`、`workflow-runtime-readiness-inspector-offline-v1` 等运行时预览面板，以及显式 dev-only 的 Saved Draft、HTTP Tool、Workflow RAG v3、Application RAG v4、Workflow Definition v5、Application Interaction Session、Run History / Comparison / Evaluation 与 Application Operations。
 
@@ -31,6 +31,7 @@
 - Workflow Definition Promotion 使用 `VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE=dev-workflow-definition-promotion-http`。面板按 immutable candidate、人工 review、definition version、人工 activation 与 v5 run 的顺序消费 strict contract；运行前服务端重读 activation pointer、definition digest、application lifecycle 与 profile eligibility。v5 复用 executor v0 的图计划、预算、取消、Gateway 与 diagnostics，不在 Web 复制执行算法。
 - Application Interaction Session 使用 `VITE_RADISHMIND_APPLICATION_SESSION_SOURCE=dev-application-session-http`。创建时显式选择 `workflow_definition_executor_v1` 或 `application_rag_invocation_v1`，每轮只委托一次既有 v5 / v4 服务。Active / Closed 过滤、turn metadata、run handoff 与重启恢复不重建 transcript；input、answer 与 transcript 只保留在当前组件内存。
 - Prompt Application 使用 `VITE_RADISHMIND_PROMPT_APPLICATION_SOURCE=dev-prompt-application-http`。仅在当前应用类型为 `prompt_application` 时挂载 Template 创作 / 版本、Configuration Draft v3 binding、Publish Candidate v3 源码审查、Runtime Assignment、Prompt Invocation 与 Session / Turn v2 surface；Workflow / RAG authority surface 在该类型下不挂载。模板源码只由 Template owner 读取，配置、候选、assignment、Session 与 Run 只消费精确 ref / digest。受控调用只提交有界变量，成功输出只在当前组件内存；Run v6 与下游审查保持 metadata-only。
+- Agent / Copilot 使用 `VITE_RADISHMIND_AGENT_COPILOT_SOURCE=dev-agent-copilot-http`。仅在当前应用类型为 `agent` 时挂载 Profile 创作 / 版本、Configuration Draft v4 binding、Publish Candidate v4 源码审查、Runtime Assignment、一次受控建议与 Session / Turn v3 surface；Workflow RAG 与 Prompt owner 在该类型下不挂载。Profile source 由专属 owner 读取，配置、候选、assignment、Session 与 Run 只消费精确 ref / digest；完整 `CopilotResponse` 只保留在当前组件内存，Run v7 与下游审查保持 metadata-only。
 - Application Operations 在当前 application scope 内只读组合 Gateway Request History 与 Workflow Run History。两个来源分别维护 loading / ready / empty / failed 状态并允许 partial failure；合并时间线不推测跨来源关联，也不估算缺失 token、cost、quota 或 billing。
 - Application Development Workspace 统一提供 Configure / Build、Human Promotion、Controlled Test、Run / Evaluation Review 与 Release Readiness 五阶段。Application、revision、lifecycle 或阶段变化会生成新的 workspace / route generation 和 `surfaceKey`；非当前阶段 owner 不挂载，旧 surface 的迟到回调不能覆盖当前状态。跨阶段 handoff 只保存当前 Application generation 内的稳定短引用，目标 owner 必须重新读取精确 draft / run；不会自动保存、审查、activation、assignment、调用或发布。
 - Release Readiness 只从九项 owner contribution 聚合 Application、Configuration / Candidate、Workflow authority、RAG authority、Controlled test、Evaluation 和 Operations 七个来源组，状态固定为 `review_not_started | review_incomplete | review_blocked | dev_test_evidence_reviewable`。该投影不可持久化、不可发布；离线 Application 缺少权威 revision 时保留可浏览短引用并降为 `incomplete / partial`，不伪造完整证据。
@@ -246,6 +247,14 @@ pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -PromptApplicationLocal
 
 PostgreSQL 对应使用 `--prompt-application-postgres-dev-test` / `-PromptApplicationPostgresDevTest`。两档都会启用 Application Catalog、Configuration Draft v3、Publish Candidate v3、Prompt Template / Runtime、API Key、Gateway Playground / History、Session v2、Run History / Comparison / Evaluation 与 Operations，并保持模板版本、binding、候选审查、assignment 和 invocation 为独立显式动作；PostgreSQL 档启动前检查全部相关 migration marker，不自动迁移。完整顺序、scope 与排障见[Prompt Application 开发测试态使用指南](../../docs/features/user-workspace/prompt-application-dev-test-usage-guide.md)。
 
+Agent / Copilot 的完整 SQLite 链使用：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --agent-copilot-local-product
+```
+
+PostgreSQL 对应使用 `--agent-copilot-postgres-dev-test`。两档都会启用 Application Catalog、Configuration Draft v4、Publish Candidate v4、Agent Profile / Runtime、API Key、Gateway Playground / History、Session v3、Run History / Comparison / Evaluation 与 Operations，并保持 Profile Version、binding、候选审查、assignment 和 invocation 为独立显式动作。当前 PowerShell Web wrapper 尚未提供对应 Agent 产品档参数；完整顺序、scope、手动配置选择与排障见[Agent / Copilot 开发测试态使用指南](../../docs/features/user-workspace/agent-copilot-dev-test-usage-guide.md)。
+
 Application Catalog 的独立 PostgreSQL 开发测试模式可通过以下参数启用：
 
 ```bash
@@ -268,7 +277,7 @@ API 密钥一次性交接与 Gateway 开发测试态认证使用独立的本地�
 pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -APIKeyLocalProduct -BackendUrl http://127.0.0.1:7100
 ```
 
-该参数必须单独使用。launcher 通过默认 `local-product` 平台档选择八组件共享 `sqlite_dev`，显式启用 Application Catalog、Configuration Draft、Publish Review、API Key Lifecycle、Gateway Playground 与 Request History 的 Web consumer，并把 Gateway 认证固定为 `api_key_dev_test`。页面支持应用作用域列表、签发、一次性令牌复制 / 清除、内存交接、模型目录、单次 / 流式 / 取消调用、脱敏历史和吊销；Playground 成功读取的模型目录可作为严格校验、精确 Application scope 的最近验证 metadata 快照复用于同应用配置，Bearer 凭据不会传播到配置面板。原始令牌只存在于签发响应与当前 React 组件内存，离开 Playground 路由即清除，不进入 URL、浏览器存储、cookie、日志或后续响应。
+该参数必须单独使用。launcher 通过默认 `local-product` 平台档选择九组件共享 `sqlite_dev`，显式启用 Application Catalog、Configuration Draft、Publish Review、API Key Lifecycle、Gateway Playground 与 Request History 的 Web consumer，并把 Gateway 认证固定为 `api_key_dev_test`。页面支持应用作用域列表、签发、一次性令牌复制 / 清除、内存交接、模型目录、单次 / 流式 / 取消调用、脱敏历史和吊销；Playground 成功读取的模型目录可作为严格校验、精确 Application scope 的最近验证 metadata 快照复用于同应用配置，Bearer 凭据不会传播到配置面板。原始令牌只存在于签发响应与当前 React 组件内存，离开 Playground 路由即清除，不进入 URL、浏览器存储、cookie、日志或后续响应。
 
 该模式只属于内部开发者预览，不启用生产 API 密钥、正式成员关系、配额、限流、计费、provider credential 或公开生产 Gateway。完整 HTTP 边界与手工排障仍见[应用目录与 API 密钥开发测试指南](../../docs/features/user-workspace/application-catalog-api-key-dev-test-guide.md)。
 

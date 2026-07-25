@@ -60,7 +60,7 @@ pwsh ./scripts/run-platform-service.ps1 -Command diagnostics
 pwsh ./scripts/run-platform-service.ps1 -Command serve
 ```
 
-wrapper 默认使用 `local-product` 档：选择聚合 `sqlite_dev`、共享 SQLite 文件和八组件开发 gate。Prompt Runtime Assignment / Event 复用 Workflow Run Store 投影，不增加数据库组件。`configured` 档不注入 store、数据库连接或开发 gate，只消费调用方显式配置，供 PostgreSQL 集成和故障注入使用：
+wrapper 默认使用 `local-product` 档：选择聚合 `sqlite_dev`、共享 SQLite 文件和九组件开发 gate。Prompt 与 Agent Runtime Assignment / Event、Session / Turn 和 Run 复用 Workflow Run Store 投影，不增加第十个数据库组件。`configured` 档不注入 store、数据库连接或开发 gate，只消费调用方显式配置，供 PostgreSQL 集成和故障注入使用：
 
 ```bash
 ./scripts/run-platform-service.sh --profile configured config-check
@@ -110,7 +110,7 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 
 产品组件配置按职责维护：
 
-- 聚合 `sqlite_dev`、共享数据库路径和八组件 store 投影见[本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1.md)。
+- 聚合 `sqlite_dev`、共享数据库路径和九组件 store 投影见[本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1.md)。
 - 应用目录、API 密钥生命周期和 Gateway Bearer 开发测试态认证见[应用目录与 API 密钥开发测试指南](../features/user-workspace/application-catalog-api-key-dev-test-guide.md)。
 - Application RAG、Workflow Definition、Application Session、v4 / v5 历史与运行观测见[应用受控运行开发测试态指南](../features/user-workspace/application-controlled-runtime-dev-test-guide.md)。
 - Workflow 草案、运行、评测与执行 gate 见 [Workflow 专题](../features/workflow/README.md)。

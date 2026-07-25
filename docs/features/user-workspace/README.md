@@ -8,6 +8,7 @@
 
 - [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md)：Prompt v6 / Agent v7 已严格接入既有 Comparison、Evaluation Case、Suite 与人工 decision；SQLite Agent case → suite → `approved v1` 和隐私复验均已完成，专题关闭。
 - [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md)：批次 A 至批次 E 已完成；Profile、发布与 assignment、唯一受控建议、Session / Run、类型专属 Web 与双数据库真实验收形成闭环，专题关闭。
+- [Agent / Copilot 开发测试态使用指南](agent-copilot-dev-test-usage-guide.md)：说明 Profile → Configuration v4 → Candidate v4 → Assignment → API key / Session v3 → Run v7 的操作顺序、启动配置、身份权限、CAS、持久化、隐私和排障边界。
 - [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)：批次 A 至 E 均已完成，受限模板、双数据库 Template owner、Configuration Draft v3、Publish Candidate v3、显式 Runtime Assignment、受控 invocation、Session / Turn v2、Run v6、Web 与真实浏览器验收均有可复验证据，专题关闭。
 - [Prompt Application 开发测试态使用指南](prompt-application-dev-test-usage-guide.md)：说明完整 Template → Configuration → Candidate Review → Assignment → Invocation / Session → Run Review 顺序，以及启动配置、身份权限、CAS、持久化与故障处理；所有能力仅限开发测试态。
 - [应用开发工作区与发布准备审查 v1](application-development-workspace-release-readiness-review-v1.md)：批次 A 至 C 已完成并关闭；route-scoped evidence、精确 Draft / Run owner 重读、离线 revision 失败关闭、真实浏览器连续路径与 URL / console / network 隐私审计均有可复验证据。

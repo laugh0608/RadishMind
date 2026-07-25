@@ -46,7 +46,7 @@ PostgreSQL 开发测试档使用：
 pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -PromptApplicationPostgresDevTest
 ```
 
-SQLite 档自动选择聚合 `sqlite_dev`，将 Prompt Template 作为第八个独立持久化组件，并在共享 Workflow Run Store 中保存 Runtime Assignment / Event、Session / Turn v2 与 Run v6 投影；PostgreSQL 档使用 `configured` profile，在启动前检查 Application Catalog、Configuration Draft、Publish Candidate、API Key、Gateway Request、Prompt Template 和共享 Workflow Run migration marker，不自动执行迁移。两档都会开启对应 strict Web consumer，但不会自动创建应用、模板、candidate、review、assignment、API key 或 invocation。
+SQLite 档自动选择聚合 `sqlite_dev`；Prompt Template 是第八个独立持久化组件，当前聚合 runtime 还包含第九个 Agent / Copilot Profile owner。Prompt Runtime Assignment / Event、Session / Turn v2 与 Run v6 投影保存在共享 Workflow Run Store；PostgreSQL 档使用 `configured` profile，在启动前检查 Application Catalog、Configuration Draft、Publish Candidate、API Key、Gateway Request、Prompt Template、Agent Profile 和共享 Workflow Run migration marker，不自动执行迁移。两档都会开启对应 strict Web consumer，但不会自动创建应用、模板、candidate、review、assignment、API key 或 invocation。
 
 显式 `configured` 档支持以下 Template store：
 

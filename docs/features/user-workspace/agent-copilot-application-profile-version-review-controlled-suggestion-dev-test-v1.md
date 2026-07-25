@@ -61,7 +61,7 @@ Copilot Profile Draft 首版在逻辑上需要表达：
 - `artifact_policy`：允许的 artifact kind / role、数量、大小与引用边界；
 - `response_policy`：允许的 answer、issue、citation 与 proposed action 类型；
 - `risk_policy`：哪些任务或候选动作必须 `requires_confirmation`，以及何时禁止返回可执行形态；
-- `read_only_tool_hints_policy`：只允许表达 canonical request 中的提示，不授予工具执行权限；
+- `tool_hints_policy`：三个 canonical hint 必须全部为 `false`，不授予检索、工具调用或图片推理执行权限；
 - 描述、版本、校验状态和脱敏审计引用。
 
 首版不把 provider / profile / model credential、自由形式系统提示词、运行输入、artifact content、完整 context 或业务权限写入 Copilot Profile。协议与默认模型继续属于 Application Configuration Draft；运行输入仍由每次调用提供并按 Profile 与 canonical contract 校验。
@@ -85,13 +85,13 @@ Profile 不创建第二份开放式 task 注册表。首版只能消费 `copilot
 
 ### Ref-only 配置绑定
 
-后续 Application Configuration Draft 新 schema 版本只允许 `application_kind=agent` 携带精确 Copilot Profile Version 引用。绑定操作必须由服务端重读 Profile Version、校验应用作用域并计算 / 核对摘要，再通过既有 expected-version CAS 生成下一版配置草案。
+Application Configuration Draft v4 只允许 `application_kind=agent` 携带精确 Copilot Profile Version 引用。绑定操作由服务端重读 Profile Version、校验应用作用域并计算 / 核对摘要，再通过既有 expected-version CAS 生成下一版配置草案。
 
 客户端不能提交 Profile source 或伪造 digest。`prompt_application` 的 v3 binding、Workflow RAG v2 binding 与未绑定 v1 草案继续保持原语义；新版本不能让一个配置同时携带多个互斥可执行源码引用。
 
 ### 发布候选审查
 
-后续 Publish Candidate schema 版本复用既有创建、读取、列表、人工 review、supersede 与 eligibility 状态机，只增加 Agent / Copilot 的精确 Profile 引用。创建、审查与 eligibility 读取至少重读：
+Publish Candidate v4 复用既有创建、读取、列表、人工 review、supersede 与 eligibility 状态机，只增加 Agent / Copilot 的精确 Profile 引用。创建、审查与 eligibility 读取至少重读：
 
 1. Application Catalog 当前记录、`agent` 类型、生命周期与 revision；
 2. 精确 Application Configuration Draft 版本、digest 与 Profile binding；
@@ -109,11 +109,11 @@ Agent / Copilot Runtime Assignment 是当前运行 authority 的 ref-only 指针
 
 ## 受控建议调用
 
-后续 implementation 必须建立一个明确命名且唯一的 Agent / Copilot execution profile。Application API key 与 Application Interaction Session 都委托同一个 invocation service：
+当前实现只有一个明确命名的 Agent / Copilot execution profile：`agent_copilot_suggestion_v1`。Application API key 与 Application Interaction Session 都委托同一个 invocation service：
 
-- 调用者提交 application scope、canonical task、locale、artifacts、context、tool hints、安全输入和 client invocation key；不能提交 Profile、assignment、candidate、provider、credential 或重试策略；
+- 调用者提交 application scope、canonical task、locale、artifacts、context 和 client invocation key；不能提交 Profile、assignment、candidate、provider、credential、tool hint、安全模式或重试策略；
 - 服务端在运行预留前解析完整 authority，并在计划内 Gateway 调用前再次重读 Application、assignment、candidate、Configuration Draft、Profile Version 与模型资格；
-- 请求经 Profile policy 收窄后构造成 `CopilotRequest`，响应必须通过 `CopilotResponse` 校验；
+- 请求经 Profile policy 收窄后构造成 `CopilotRequest`；服务端固定 `safety.mode=advisory`、候选动作确认规则和三个值均为 `false` 的 canonical tool hint，响应必须通过 `CopilotResponse` 校验；
 - 每次调用只允许一次计划内 Gateway / provider 副作用；同步或并发幂等重试只读取已有 running / terminal evidence；
 - 输出不符合 canonical contract 时直接失败，不自动修复、不追加第二次 provider 调用，也不降级为未校验文本；
 - 取消映射为明确 canceled 终态；provider 结果不确定或终态写入失败映射为 `outcome_unknown`，不得自动 replay。
@@ -137,7 +137,7 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 
 ## 兼容审计
 
-后续任务卡在冻结新 schema 或路由前，必须先形成兼容矩阵并用相邻测试证明：
+实施前兼容矩阵已经冻结，当前相邻测试持续证明：
 
 - Application Catalog 既有 `workflow_copilot | docs_qa | agent | prompt_application` 读取、筛选、更新与归档语义不变；
 - Application Configuration Draft v1 / v2 / v3 继续按未绑定、Workflow RAG binding、Prompt Template binding 的原语义读取和校验；
