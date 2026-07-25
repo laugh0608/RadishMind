@@ -112,7 +112,18 @@ test("existing panel and handoff anchors resolve to their owning stages", () => 
   assert.equal(applicationDevelopmentStageForHash("#workflow-rag-evaluation-panel"), "evidence_review");
   assert.equal(applicationDevelopmentStageForHash("#application-operations"), "evidence_review");
   assert.equal(applicationDevelopmentStageForHash("#model-gateway-request-history"), "evidence_review");
+  assert.equal(applicationDevelopmentStageForHash("#prompt-application-template-workspace"), "configure_build");
+  assert.equal(applicationDevelopmentStageForHash("#prompt-application-runtime-assignment"), "human_promotion");
+  assert.equal(applicationDevelopmentStageForHash("#prompt-application-invocation"), "controlled_test");
   assert.equal(applicationDevelopmentStageForHash("#admin-audit-log"), null);
+});
+
+test("controlled test stage describes every supported runtime profile", () => {
+  const context = buildApplicationDevelopmentWorkspaceContext({
+    ...activeApplication,
+    applicationKind: "prompt_application",
+  });
+  assert.match(context.stages.find((stage) => stage.stageId === "controlled_test")?.summary ?? "", /Prompt Application v6/u);
 });
 
 test("route transitions rotate only when stage or application scope changes", () => {
@@ -238,13 +249,13 @@ test("new handoffs replace older refs and workspace leave clears the pending sel
   assert.equal(clearApplicationDevelopmentHandoff(second, context).pending, null);
 });
 
-test("readiness starts incomplete for an active Application and rolls up all seven source groups", () => {
+test("readiness starts incomplete for an active Application and rolls up all eight source groups", () => {
   const context = buildApplicationDevelopmentWorkspaceContext(activeApplication);
   const state = initialApplicationDevelopmentEvidenceState(context);
   const view = buildApplicationDevelopmentReadinessViewModel(state);
 
   assert.equal(view.status, "review_incomplete");
-  assert.equal(view.sources.length, 7);
+  assert.equal(view.sources.length, 8);
   assert.equal(view.sources.find((source) => source.sourceGroupId === "application")?.status, "available");
   assert.equal(view.canPersistReadiness, false);
   assert.equal(view.canPublish, false);
@@ -308,7 +319,10 @@ test("multi-owner groups stay incomplete until every contribution is available",
 test("readiness becomes reviewable only when every required owner contribution is complete", () => {
   const context = buildApplicationDevelopmentWorkspaceContext(activeApplication);
   const remaining = APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS.filter(
-    (contributionId) => contributionId !== "application_lifecycle",
+    (contributionId) =>
+      contributionId !== "application_lifecycle" &&
+      contributionId !== "prompt_template" &&
+      contributionId !== "prompt_assignment",
   );
   const completed = remaining.reduce(
     (state, contributionId, index) => applyApplicationDevelopmentEvidence(
@@ -323,6 +337,24 @@ test("readiness becomes reviewable only when every required owner contribution i
   assert.equal(view.status, "dev_test_evidence_reviewable");
   assert.equal(view.sources.every((source) => source.status === "available"), true);
   assert.equal(view.evidenceCount, 9);
+});
+
+test("Prompt Application readiness treats Workflow and RAG owners as not applicable", () => {
+  const context = buildApplicationDevelopmentWorkspaceContext({
+    ...activeApplication,
+    applicationKind: "prompt_application",
+  });
+  const view = buildApplicationDevelopmentReadinessViewModel(
+    initialApplicationDevelopmentEvidenceState(context),
+  );
+  const workflow = view.sources.find((source) => source.sourceGroupId === "workflow_authority");
+  const rag = view.sources.find((source) => source.sourceGroupId === "rag_authority");
+  const prompt = view.sources.find((source) => source.sourceGroupId === "prompt_authority");
+
+  assert.equal(workflow?.status, "available");
+  assert.equal(rag?.status, "available");
+  assert.equal(prompt?.status, "not_started");
+  assert.equal(prompt?.missingEvidence.length, 2);
 });
 
 test("owner failure and partial coverage block readiness without hiding other evidence", () => {

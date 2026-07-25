@@ -56,23 +56,23 @@ const STAGE_DEFINITIONS: ReadonlyArray<ApplicationDevelopmentStageDefinition> = 
   {
     stageId: "configure_build",
     label: "Configure / Build",
-    summary: "Review configuration drafts, Workflow definitions, and RAG resources.",
+    summary: "Review configuration drafts and the application kind's exact source authority.",
     anchor: "application-configuration-draft",
-    aliases: ["workflow-rag-snapshot-panel", "workspace-workflow-definitions"],
+    aliases: ["workflow-rag-snapshot-panel", "workspace-workflow-definitions", "prompt-application-template-workspace"],
   },
   {
     stageId: "human_promotion",
     label: "Human Promotion",
     summary: "Review immutable candidates, activation, assignment, drift, and blockers.",
     anchor: "application-publish-review",
-    aliases: ["workflow-rag-promotion-review", "workflow-definition-promotion"],
+    aliases: ["workflow-rag-promotion-review", "workflow-definition-promotion", "prompt-application-runtime-assignment"],
   },
   {
     stageId: "controlled_test",
     label: "Controlled Test",
-    summary: "Run an explicit Workflow Definition v5 or Application RAG v4 profile.",
+    summary: "Run an explicit Workflow Definition v5, Application RAG v4, or Prompt Application v6 profile.",
     anchor: "application-interaction-session",
-    aliases: ["application-api-integration", "workspace-api-keys", "application-rag-invocation", "model-gateway-playground"],
+    aliases: ["application-api-integration", "workspace-api-keys", "application-rag-invocation", "prompt-application-invocation", "model-gateway-playground"],
   },
   {
     stageId: "evidence_review",

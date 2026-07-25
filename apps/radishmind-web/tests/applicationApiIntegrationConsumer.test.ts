@@ -14,11 +14,13 @@ import {
   APPLICATION_API_INTEGRATION_DRAFT_HANDOFF_EVENT,
   APPLICATION_MODEL_CATALOG_READY_EVENT,
   clearPendingApplicationApiIntegrationDraftHandoff,
+  clearLatestApplicationModelCatalogReady,
   consumePendingApplicationApiIntegrationDraftHandoff,
   createApplicationApiIntegrationDraftHandoffDetail,
   createApplicationModelCatalogReadyDetail,
   requestApplicationApiIntegrationDraftHandoff,
   requestApplicationModelCatalogReady,
+  readLatestApplicationModelCatalogReady,
 } from "../src/features/control-plane-read/applicationApiIntegrationEvents.ts";
 import {
   MODEL_GATEWAY_PLAYGROUND_HANDOFF_EVENT,
@@ -273,6 +275,7 @@ test("Application and Gateway handoff events dispatch their validated details", 
     requestGatewayRequestHistoryReview(" playground-request-001 ", " app_docs_assistant ");
   } finally {
     clearPendingApplicationApiIntegrationDraftHandoff();
+    clearLatestApplicationModelCatalogReady();
     if (originalWindow) {
       Object.defineProperty(globalThis, "window", originalWindow);
     } else {
@@ -296,6 +299,37 @@ test("Application and Gateway handoff events dispatch their validated details", 
     requestId: "playground-request-001",
     applicationId: "app_docs_assistant",
   });
+});
+
+test("validated model catalog survives StrictMode effect replay as exact-scope public metadata", () => {
+  const originalWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+  Object.defineProperty(globalThis, "window", { configurable: true, value: new EventTarget() });
+  clearLatestApplicationModelCatalogReady();
+  try {
+    requestApplicationModelCatalogReady(
+      "app_docs_assistant",
+      [{ id: "profile:local-dev", ownedBy: "radishmind", protocols: ["responses"] }],
+      "profile:local-dev",
+    );
+    assert.equal(readLatestApplicationModelCatalogReady("app_flow_copilot"), null);
+    assert.deepEqual(readLatestApplicationModelCatalogReady("app_docs_assistant"), {
+      applicationId: "app_docs_assistant",
+      models: [{ id: "profile:local-dev", ownedBy: "radishmind", protocols: ["responses"] }],
+      selectedModel: "profile:local-dev",
+    });
+    assert.deepEqual(readLatestApplicationModelCatalogReady("app_docs_assistant"), {
+      applicationId: "app_docs_assistant",
+      models: [{ id: "profile:local-dev", ownedBy: "radishmind", protocols: ["responses"] }],
+      selectedModel: "profile:local-dev",
+    });
+  } finally {
+    clearLatestApplicationModelCatalogReady();
+    if (originalWindow) {
+      Object.defineProperty(globalThis, "window", originalWindow);
+    } else {
+      Reflect.deleteProperty(globalThis, "window");
+    }
+  }
 });
 
 test("Application API handoff survives one route mount and remains exact-scope one-time memory", () => {

@@ -5369,6 +5369,180 @@ dd {
   overflow-wrap: anywhere;
 }
 
+.prompt-application-template-panel,
+.prompt-application-runtime-panel,
+.prompt-application-invocation-panel,
+.prompt-application-session-panel {
+  margin-top: 24px;
+  padding: 24px;
+  border: 1px solid rgba(143, 176, 154, 0.24);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(20, 36, 30, 0.94), rgba(12, 22, 20, 0.96));
+}
+
+.prompt-template-scope,
+.prompt-template-layout,
+.prompt-template-lower-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.prompt-template-scope {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 18px 0;
+}
+
+.prompt-template-scope article,
+.prompt-template-editor,
+.prompt-template-review,
+.prompt-template-lower-grid > article,
+.prompt-template-binding,
+.prompt-template-version-detail {
+  padding: 18px;
+  border: 1px solid rgba(160, 190, 169, 0.18);
+  border-radius: 18px;
+  background: rgba(7, 17, 14, 0.54);
+}
+
+.prompt-template-scope article,
+.prompt-template-editor,
+.prompt-template-review,
+.prompt-template-lower-grid > article,
+.prompt-template-binding {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.prompt-template-scope span,
+.prompt-template-scope p {
+  color: var(--muted);
+}
+
+.prompt-template-layout {
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+}
+
+.prompt-template-lower-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.prompt-template-binding {
+  margin-top: 16px;
+}
+
+.prompt-template-editor label,
+.prompt-template-review label,
+.prompt-template-binding label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.prompt-template-editor input,
+.prompt-template-editor select,
+.prompt-template-editor textarea,
+.prompt-template-review textarea,
+.prompt-template-binding select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(160, 190, 169, 0.26);
+  border-radius: 11px;
+  color: var(--text);
+  background: rgba(2, 10, 8, 0.72);
+  font: inherit;
+}
+
+.prompt-template-editor fieldset {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid rgba(160, 190, 169, 0.2);
+  border-radius: 14px;
+}
+
+.prompt-template-message,
+.prompt-template-variable {
+  display: grid;
+  gap: 8px;
+  align-items: start;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.prompt-template-message {
+  grid-template-columns: minmax(110px, 0.25fr) minmax(0, 1fr) auto;
+}
+
+.prompt-template-variable {
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+}
+
+.prompt-template-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-start;
+  padding: 11px;
+  border: 1px solid rgba(160, 190, 169, 0.16);
+  border-radius: 11px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.prompt-template-summary.selected {
+  border-color: rgba(102, 196, 142, 0.52);
+  background: rgba(42, 118, 78, 0.14);
+}
+
+.prompt-template-summary small,
+.prompt-template-preview code {
+  color: var(--muted);
+}
+
+.prompt-template-preview {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(42, 118, 78, 0.1);
+}
+
+.prompt-template-preview pre,
+.prompt-application-invocation-panel pre,
+.prompt-application-session-panel pre {
+  overflow: auto;
+  max-height: 320px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.prompt-template-source-review .application-api-card-heading {
+  align-items: center;
+}
+
+.prompt-template-source-review .application-api-card-heading > div,
+.prompt-template-source {
+  display: grid;
+  gap: 8px;
+}
+
+.prompt-template-source > div {
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(2, 10, 8, 0.58);
+}
+
+.prompt-template-source pre {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .workflow-rag-runtime-assignment,
 .workflow-rag-application-invocation,
 .workflow-rag-application-answer {
@@ -5836,7 +6010,10 @@ dd {
 @media (max-width: 900px) {
   .application-publish-scope,
   .application-publish-layout,
-  .application-publish-detail {
+  .application-publish-detail,
+  .prompt-template-scope,
+  .prompt-template-layout,
+  .prompt-template-lower-grid {
     grid-template-columns: 1fr;
   }
 
@@ -5851,6 +6028,11 @@ dd {
   }
 
   .workflow-rag-authority-comparison {
+    grid-template-columns: 1fr;
+  }
+
+  .prompt-template-message,
+  .prompt-template-variable {
     grid-template-columns: 1fr;
   }
 }

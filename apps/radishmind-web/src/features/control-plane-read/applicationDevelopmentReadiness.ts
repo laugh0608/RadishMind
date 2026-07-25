@@ -8,6 +8,7 @@ export const APPLICATION_DEVELOPMENT_SOURCE_GROUP_IDS = [
   "configuration_candidate",
   "workflow_authority",
   "rag_authority",
+  "prompt_authority",
   "controlled_test",
   "evaluation",
   "operations",
@@ -20,6 +21,8 @@ export const APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS = [
   "workflow_definition",
   "rag_binding",
   "rag_assignment",
+  "prompt_template",
+  "prompt_assignment",
   "controlled_run",
   "evaluation_review",
   "operations_coverage",
@@ -49,6 +52,7 @@ export type ApplicationDevelopmentEvidenceRef = {
     | "candidate"
     | "definition"
     | "binding"
+    | "template"
     | "assignment"
     | "session"
     | "run"
@@ -166,9 +170,21 @@ const CONTRIBUTIONS: Record<ApplicationDevelopmentContributionId, ContributionDe
     nextStage: "controlled_test",
     nextAnchor: "application-rag-invocation",
   },
+  prompt_template: {
+    sourceGroupId: "prompt_authority",
+    missingLabel: "Create and bind an immutable Prompt Template version.",
+    nextStage: "configure_build",
+    nextAnchor: "prompt-application-template-workspace",
+  },
+  prompt_assignment: {
+    sourceGroupId: "prompt_authority",
+    missingLabel: "Activate an approved Prompt Application candidate.",
+    nextStage: "human_promotion",
+    nextAnchor: "application-publish-review",
+  },
   controlled_run: {
     sourceGroupId: "controlled_test",
-    missingLabel: "Record a reviewable v4 or v5 controlled run.",
+    missingLabel: "Record a reviewable v4, v5, or v6 controlled run.",
     nextStage: "controlled_test",
     nextAnchor: "application-interaction-session",
   },
@@ -191,6 +207,7 @@ const SOURCE_LABELS: Record<ApplicationDevelopmentSourceGroupId, string> = {
   configuration_candidate: "Configuration / Candidate",
   workflow_authority: "Workflow authority",
   rag_authority: "RAG authority",
+  prompt_authority: "Prompt authority",
   controlled_test: "Controlled test",
   evaluation: "Evaluation",
   operations: "Operations",
@@ -229,6 +246,15 @@ export function initialApplicationDevelopmentEvidenceState(
         revisionMissing,
         [{ code: "application_archived", summary: "Archived Applications retain evidence but cannot enter controlled testing." }],
       );
+
+    if (context.applicationKind === "prompt_application") {
+      contributions.workflow_definition = notApplicableContribution("workflow_definition");
+      contributions.rag_binding = notApplicableContribution("rag_binding");
+      contributions.rag_assignment = notApplicableContribution("rag_assignment");
+    } else {
+      contributions.prompt_template = notApplicableContribution("prompt_template");
+      contributions.prompt_assignment = notApplicableContribution("prompt_assignment");
+    }
   }
 
   return {
@@ -236,6 +262,12 @@ export function initialApplicationDevelopmentEvidenceState(
     workspaceGenerationKey: context.generationKey,
     contributions,
   };
+}
+
+function notApplicableContribution(
+  contributionId: ApplicationDevelopmentContributionId,
+): ApplicationDevelopmentEvidenceContribution {
+  return contribution(contributionId, "available", "complete");
 }
 
 export function applyApplicationDevelopmentEvidence(

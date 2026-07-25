@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  bindApplicationConfigurationDraftPromptTemplate,
   compareApplicationConfigurationDraft,
   createApplicationConfigurationDraft,
   findExactValidApplicationConfigurationDraft,
@@ -170,6 +171,82 @@ test("Application draft v2 restores and saves an exact ref-only RAG binding", as
     const saved = await saveApplicationConfigurationDraft(live, restored.draft!, 2);
     assert.equal(saved.status, "saved");
   } finally { globalThis.fetch = originalFetch; }
+});
+
+test("Application draft Prompt binding sends ref inputs and restores v3 exact digest", async () => {
+  const promptBaseline = {
+    applicationId: "app_aaaaaaaaaaaaaaaa",
+    displayName: "Prompt Support",
+    applicationKind: "prompt_application",
+    updatedAt: "2026-07-25T10:00:00Z",
+  };
+  const templateDigest = `sha256:${"e".repeat(64)}`;
+  let captured: { url: string; headers: Headers; body: any } | undefined;
+  globalThis.fetch = async (input, init) => {
+    captured = {
+      url: String(input),
+      headers: new Headers(init?.headers),
+      body: JSON.parse(String(init?.body)),
+    };
+    return jsonResponse({
+      request_id: "prompt-bind-request",
+      workspace_id: "workspace_demo",
+      application_id: promptBaseline.applicationId,
+      draft: {
+        draft_id: "app-config-prompt",
+        workspace_id: "workspace_demo",
+        application_id: promptBaseline.applicationId,
+        base_application_updated_at: promptBaseline.updatedAt,
+        schema_version: "application_configuration_draft.v3",
+        display_name: promptBaseline.displayName,
+        description: "Bound Prompt Application",
+        application_kind: "prompt_application",
+        default_protocol: "responses",
+        default_model: "profile:local-dev",
+        allowed_protocols: ["responses"],
+        prompt_template_ref: {
+          template_id: "ptpl_aaaaaaaaaaaaaaaa",
+          template_version: 2,
+          template_digest: templateDigest,
+        },
+        draft_version: 2,
+        draft_digest: `sha256:${"f".repeat(64)}`,
+        validation_summary: { state: "valid", is_valid: true, findings: [] },
+        created_at: promptBaseline.updatedAt,
+        updated_at: promptBaseline.updatedAt,
+        created_by_actor_ref: "subject_demo_user",
+        updated_by_actor_ref: "subject_demo_user",
+        request_id: "prompt-bind-request",
+        audit_ref: "audit-prompt-bind-request",
+      },
+      failure_code: null,
+      current_draft_version: 2,
+      validation_summary: { state: "valid", is_valid: true, findings: [] },
+      audit_ref: "audit-prompt-bind-request",
+    });
+  };
+
+  const result = await bindApplicationConfigurationDraftPromptTemplate(
+    live,
+    promptBaseline.applicationId,
+    "app-config-prompt",
+    1,
+    "ptpl_aaaaaaaaaaaaaaaa",
+    2,
+  );
+  assert.equal(captured?.url.endsWith("/application-configuration-drafts/app-config-prompt/prompt-template-binding"), true);
+  assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_drafts:read,application_drafts:write,prompt_application_templates:bind");
+  assert.deepEqual(captured?.body, {
+    workspace_id: "workspace_demo",
+    application_id: promptBaseline.applicationId,
+    expected_draft_version: 1,
+    template_id: "ptpl_aaaaaaaaaaaaaaaa",
+    template_version: 2,
+  });
+  assert.equal(result.state.status, "saved");
+  assert.equal(result.draft?.schemaVersion, "application_configuration_draft.v3");
+  assert.equal(result.draft?.promptTemplateRef?.templateDigest, templateDigest);
+  assert.equal(result.draft?.workflowRAGBindingRef, null);
 });
 
 test("Application switching creates isolated state and handoff keeps exact public fields", () => {

@@ -20,6 +20,7 @@ import {
 import type { ApplicationApiProtocol } from "./applicationApiIntegrationConsumer.ts";
 import {
   APPLICATION_MODEL_CATALOG_READY_EVENT,
+  readLatestApplicationModelCatalogReady,
   createApplicationModelCatalogReadyDetail,
   requestApplicationApiIntegrationDraftHandoff,
   type ApplicationModelCatalogReadyDetail,
@@ -74,6 +75,27 @@ export default function ApplicationConfigurationDraftPanel({
   useEffect(() => () => catalogController.current?.abort(), []);
 
   useEffect(() => {
+    function applyValidatedCatalog(detail: ApplicationModelCatalogReadyDetail) {
+      if (detail.applicationId !== baseline.applicationId) return;
+      catalogController.current?.abort();
+      catalogController.current = null;
+      setCatalog({
+        status: "ready",
+        applicationId: detail.applicationId,
+        models: detail.models,
+        selectedModel: detail.selectedModel,
+        failureCode: "",
+        summary: `Reused ${detail.models.length} models validated by the Gateway Playground.`,
+      });
+      setDraft((current) => ({ ...current, defaultModel: detail.selectedModel }));
+      setOperation((current) => ({
+        ...current,
+        status: "unsaved",
+        summary: "The Playground model catalog is ready for configuration validation.",
+        failureCode: "",
+        validation: { state: "invalid", isValid: false, findings: [] },
+      }));
+    }
     function receiveValidatedCatalog(event: Event) {
       const detail = (event as CustomEvent<ApplicationModelCatalogReadyDetail>).detail;
       try {
@@ -82,29 +104,13 @@ export default function ApplicationConfigurationDraftPanel({
           detail?.models ?? [],
           detail?.selectedModel ?? "",
         );
-        if (normalized.applicationId !== baseline.applicationId) return;
-        catalogController.current?.abort();
-        catalogController.current = null;
-        setCatalog({
-          status: "ready",
-          applicationId: normalized.applicationId,
-          models: normalized.models,
-          selectedModel: normalized.selectedModel,
-          failureCode: "",
-          summary: `Reused ${normalized.models.length} models validated by the Gateway Playground.`,
-        });
-        setDraft((current) => ({ ...current, defaultModel: normalized.selectedModel }));
-        setOperation((current) => ({
-          ...current,
-          status: "unsaved",
-          summary: "The Playground model catalog is ready for configuration validation.",
-          failureCode: "",
-          validation: { state: "invalid", isValid: false, findings: [] },
-        }));
+        applyValidatedCatalog(normalized);
       } catch {
         return;
       }
     }
+    const latest = readLatestApplicationModelCatalogReady(baseline.applicationId);
+    if (latest) applyValidatedCatalog(latest);
     window.addEventListener(APPLICATION_MODEL_CATALOG_READY_EVENT, receiveValidatedCatalog);
     return () => window.removeEventListener(APPLICATION_MODEL_CATALOG_READY_EVENT, receiveValidatedCatalog);
   }, [baseline.applicationId]);
@@ -302,7 +308,7 @@ export default function ApplicationConfigurationDraftPanel({
         <article className="application-draft-saved"><div className="application-api-card-heading"><div><p className="eyebrow">Saved dev/test drafts</p><h5>{list.summary}</h5></div><button type="button" onClick={() => void refreshList()} disabled={!enabled || list.status === "loading"}>Refresh</button></div>{list.failureCode ? <p className="failure-summary">{list.failureCode}</p> : null}{list.summaries.map((summary) => <button type="button" className="application-draft-summary" key={summary.draftId} onClick={() => void restoreDraft(summary.draftId)}><strong>{summary.displayName}</strong><span>v{summary.draftVersion} · {summary.defaultProtocol} · {summary.defaultModel}</span><small>{summary.updatedAt} · {summary.updatedByActorRef}</small></button>)}</article>
       </div>
 
-      <article className="application-draft-rag-binding">
+      {baseline.applicationKind !== "prompt_application" ? <article className="application-draft-rag-binding">
         <div className="application-api-card-heading"><div><p className="eyebrow">Workflow RAG binding</p><h5>Explicit attach or replace</h5></div><button type="button" onClick={() => void loadApprovedBindings()} disabled={!bindingEnabled}>Load approved bindings</button></div>
         <label>Eligible immutable binding<select value={selectedBindingCandidateId} onChange={(event) => setSelectedBindingCandidateId(event.target.value)} disabled={!bindingEnabled || bindings.summaries.length === 0}><option value="">No approved binding selected</option>{bindings.summaries.map((item) => <option key={item.candidateId} value={item.candidateId} disabled={item.candidateState !== "approved" || item.eligibilityStatus !== "eligible" || !item.bindingRef}>{item.bindingRef?.bindingId ?? item.candidateId} · {item.candidateState} · {item.eligibilityStatus}</option>)}</select></label>
         {selectedBinding ? <div className="application-draft-binding-evidence"><strong>Source draft {selectedBinding.sourceDraft.draftId} · v{selectedBinding.sourceDraft.draftVersion}</strong><code>{selectedBinding.sourceDraft.draftDigest}</code><code>{selectedBinding.bindingRef?.bindingDigest}</code></div> : <p className="boundary-note">Approve a promotion candidate first. Approval does not attach anything automatically.</p>}
@@ -310,7 +316,7 @@ export default function ApplicationConfigurationDraftPanel({
         <div className="application-draft-actions"><button type="button" onClick={() => void restoreBindingSource()} disabled={!selectedBinding}>Restore exact source draft</button><button type="button" onClick={() => void attachBinding()} disabled={!bindingSourceReady || !selectedBinding?.bindingRef}>Attach immutable binding</button></div>
         {draft.workflowRAGBindingRef ? <p className="binding-status"><strong>Current draft binding</strong><code>{draft.workflowRAGBindingRef.bindingId} · v{draft.workflowRAGBindingRef.bindingVersion}</code><code>{draft.workflowRAGBindingRef.bindingDigest}</code></p> : null}
         <p className="boundary-note">Attach creates a new draft version through existing CAS. It cannot carry configuration edits, and it does not create a publish candidate.</p>
-      </article>
+      </article> : null}
 
       <p className="boundary-note">Drafts do not create, publish, delete, or update formal applications. Offline edits stay in memory; production authorization, API keys, quota, billing, provider credentials, fallback, and load balancing remain disabled.</p>
     </section>

@@ -125,6 +125,18 @@ func TestApplicationSessionDevRequiresCatalogAndRuntimeAuthority(t *testing.T) {
 	if err := ValidateServerStart(cfg); err != nil {
 		t.Fatalf("complete application session development gates should validate: %v", err)
 	}
+
+	promptCfg := defaultConfig()
+	promptCfg.ApplicationSessionDevEnabled = true
+	promptCfg.ControlPlaneReadDevAuthEnabled = true
+	promptCfg.ApplicationCatalogDevHTTPEnabled = true
+	promptCfg.ApplicationDraftDevHTTPEnabled = true
+	promptCfg.ApplicationPublishDevHTTPEnabled = true
+	promptCfg.PromptTemplateDevHTTPEnabled = true
+	promptCfg.PromptApplicationRuntimeDevHTTPEnabled = true
+	if err := ValidateServerStart(promptCfg); err != nil {
+		t.Fatalf("Prompt runtime authority should satisfy application session development gates: %v", err)
+	}
 }
 
 func TestPromptApplicationTemplateDevGatesRemainExplicitAndIndependent(t *testing.T) {
@@ -857,6 +869,21 @@ func TestPostgresWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
 		summary.WorkflowRunStoreMode != "postgres_dev_test" {
 		t.Fatalf("workflow run PostgreSQL config should be ready and sanitized: %#v", summary)
 	}
+
+	promptCfg := defaultConfig()
+	promptCfg.WorkflowRunStoreMode = "postgres_dev_test"
+	promptCfg.WorkflowRunDatabaseURL = "postgresql://runtime.invalid/secret"
+	promptCfg.ControlPlaneReadDevAuthEnabled = true
+	promptCfg.ApplicationDraftDevHTTPEnabled = true
+	promptCfg.ApplicationPublishDevHTTPEnabled = true
+	promptCfg.PromptTemplateDevHTTPEnabled = true
+	promptCfg.PromptApplicationRuntimeDevHTTPEnabled = true
+	if err := validateBridgeRuntimeConfig(promptCfg); err != nil {
+		t.Fatalf("Prompt runtime should enable the shared PostgreSQL run store: %v", err)
+	}
+	if missing := promptCfg.SanitizedSummary().MissingRequiredFields; len(missing) != 0 {
+		t.Fatalf("Prompt runtime should satisfy workflow run requirements: %#v", missing)
+	}
 }
 
 func TestSQLiteWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
@@ -893,6 +920,15 @@ func TestSQLiteWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
 	cfg.WorkflowRAGEvaluationDevEnabled = true
 	if err := validateBridgeRuntimeConfig(cfg); err != nil {
 		t.Fatalf("independent RAG evaluation gate did not enable the shared SQLite backend: %v", err)
+	}
+
+	cfg.WorkflowRAGEvaluationDevEnabled = false
+	cfg.ApplicationDraftDevHTTPEnabled = true
+	cfg.ApplicationPublishDevHTTPEnabled = true
+	cfg.PromptTemplateDevHTTPEnabled = true
+	cfg.PromptApplicationRuntimeDevHTTPEnabled = true
+	if err := validateBridgeRuntimeConfig(cfg); err != nil {
+		t.Fatalf("Prompt runtime did not enable the shared SQLite run backend: %v", err)
 	}
 }
 

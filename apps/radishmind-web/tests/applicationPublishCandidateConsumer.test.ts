@@ -43,7 +43,7 @@ test("candidate create sends only binding fields and exact application scope", a
   assert.deepEqual(captured?.body, { candidate_id: "candidate-app-flow-v1", draft_id: "app-config-app-flow", expected_draft_version: 3, evidence_request_ids: ["playground-request-0001"] });
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Application-Publish-Workspace"), "workspace_demo");
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Application-Publish-Application"), "app_flow_copilot");
-  assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_publish_candidates:write,workflow_rag_promotions:read");
+  assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_publish_candidates:write,workflow_rag_promotions:read,prompt_application_templates:read_source");
   assert.equal("configuration" in captured!.body, false);
 });
 
@@ -90,6 +90,48 @@ test("publish candidate v2 consumes the exact binding ref and dynamic blocker", 
   assert.equal(result.candidate?.schemaVersion, "application_publish_candidate.v2");
   assert.equal(result.candidate?.configuration.workflowRAGBindingRef?.bindingDigest, bindingDigest);
   assert.equal(result.candidate?.promotionEligibility.blockers.some((item) => item.code === "workflow_rag_promotion_dataset_archived"), true);
+});
+
+test("publish candidate v3 consumes an exact Prompt Template ref and eligible state", async () => {
+  const templateDigest = `sha256:${"c".repeat(64)}`;
+  const envelope = candidateEnvelope();
+  envelope.candidate.schema_version = "application_publish_candidate.v3";
+  envelope.candidate.configuration.application_kind = "prompt_application";
+  envelope.candidate.configuration.prompt_template_ref = {
+    template_id: "ptpl_aaaaaaaaaaaaaaaa",
+    template_version: 2,
+    template_digest: templateDigest,
+  };
+  envelope.candidate.candidate_state = "approved";
+  envelope.current_candidate_state = "approved";
+  envelope.candidate.review_version = 1;
+  envelope.current_review_version = 1;
+  envelope.candidate.reviews = [{
+    review_version: 1,
+    decision: "approve",
+    reason: "Exact Prompt source reviewed.",
+    state: "approved",
+    reviewed_at: "2026-07-25T10:00:00Z",
+    reviewer_ref: "subject_demo_user",
+    request_id: "prompt-review-request",
+    audit_ref: "audit-prompt-review-request",
+  }];
+  envelope.candidate.promotion_eligibility = {
+    eligible: true,
+    status: "eligible_for_promotion",
+    blockers: [],
+  };
+  globalThis.fetch = async () => jsonResponse(envelope);
+
+  const result = await readApplicationPublishCandidate(
+    devConfig,
+    "app_flow_copilot",
+    "candidate-app-flow-v1",
+  );
+  assert.equal(result.candidate?.schemaVersion, "application_publish_candidate.v3");
+  assert.equal(result.candidate?.configuration.promptTemplateRef?.templateDigest, templateDigest);
+  assert.equal(result.candidate?.promotionEligibility.eligible, true);
+  assert.equal(result.candidate?.promotionEligibility.status, "eligible_for_promotion");
 });
 
 test("evidence and review validation reject secrets and normalize safe refs", () => {

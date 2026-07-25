@@ -26,6 +26,8 @@ workflow_definition_local_product=0
 workflow_definition_postgres_dev_test=0
 application_session_local_product=0
 application_session_postgres_dev_test=0
+prompt_application_local_product=0
+prompt_application_postgres_dev_test=0
 saved_draft_workspace_id="workspace_demo"
 saved_draft_application_id="app_flow_copilot"
 
@@ -78,6 +80,10 @@ Options:
                            Enable the SQLite Application Session chain with Workflow Definition v5 and Application RAG v4 profiles.
   --application-session-postgres-dev-test
                            Enable the same dual-profile chain with PostgreSQL dev/test repositories.
+  --prompt-application-local-product
+                           Enable the SQLite Prompt Template → publish → runtime → invocation chain.
+  --prompt-application-postgres-dev-test
+                           Enable the same Prompt Application chain with PostgreSQL dev/test repositories.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
   -h, --help              Show this help.
@@ -182,6 +188,14 @@ while [[ $# -gt 0 ]]; do
       application_session_postgres_dev_test=1
       shift
       ;;
+    --prompt-application-local-product)
+      prompt_application_local_product=1
+      shift
+      ;;
+    --prompt-application-postgres-dev-test)
+      prompt_application_postgres_dev_test=1
+      shift
+      ;;
     --verify-only)
       verify_only=1
       shift
@@ -220,6 +234,11 @@ if [[ "${application_session_postgres_dev_test}" -eq 1 ]]; then
   application_publish_postgres_dev_test=1
   gateway_request_postgres_dev_test=1
 fi
+if [[ "${prompt_application_postgres_dev_test}" -eq 1 ]]; then
+  application_publish_postgres_dev_test=1
+  application_catalog_postgres_dev_test=1
+  gateway_request_postgres_dev_test=1
+fi
 if [[ "${workflow_definition_postgres_dev_test}" -eq 1 ]]; then
   saved_draft_postgres_dev_test=1
   application_catalog_postgres_dev_test=1
@@ -229,8 +248,13 @@ if [[ "${workflow_definition_local_product}" -eq 1 || "${workflow_definition_pos
   workflow_definition_enabled=1
 fi
 application_session_enabled=0
-if [[ "${application_session_local_product}" -eq 1 || "${application_session_postgres_dev_test}" -eq 1 ]]; then
+if [[ "${application_session_local_product}" -eq 1 || "${application_session_postgres_dev_test}" -eq 1 ||
+  "${prompt_application_local_product}" -eq 1 || "${prompt_application_postgres_dev_test}" -eq 1 ]]; then
   application_session_enabled=1
+fi
+prompt_application_enabled=0
+if [[ "${prompt_application_local_product}" -eq 1 || "${prompt_application_postgres_dev_test}" -eq 1 ]]; then
+  prompt_application_enabled=1
 fi
 workflow_rag_application_enabled=0
 if [[ "${workflow_rag_application_local_product}" -eq 1 || "${application_session_postgres_dev_test}" -eq 1 ]]; then
@@ -305,6 +329,14 @@ if [[ "${application_session_local_product}" -eq 1 && "${application_session_pos
   echo "Choose either --application-session-local-product or --application-session-postgres-dev-test" >&2
   exit 2
 fi
+if [[ "${prompt_application_enabled}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "Prompt Application product mode requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${prompt_application_local_product}" -eq 1 && "${prompt_application_postgres_dev_test}" -eq 1 ]]; then
+  echo "Choose either --prompt-application-local-product or --prompt-application-postgres-dev-test" >&2
+  exit 2
+fi
 if [[ "${application_publish_dev}" -eq 1 && "${application_publish_postgres_dev_test}" -eq 1 ]]; then
   echo "Choose either --application-publish-dev or --application-publish-postgres-dev-test" >&2
   exit 2
@@ -339,6 +371,10 @@ if [[ "${workflow_rag_application_local_product}" -eq 1 && "${explicit_component
 fi
 if [[ "${workflow_definition_local_product}" -eq 1 && "${explicit_component_mode}" -eq 1 ]]; then
   echo "--workflow-definition-local-product cannot be combined with explicit memory/PostgreSQL component modes" >&2
+  exit 2
+fi
+if [[ "${prompt_application_local_product}" -eq 1 && "${explicit_component_mode}" -eq 1 ]]; then
+  echo "--prompt-application-local-product cannot be combined with explicit memory/PostgreSQL component modes" >&2
   exit 2
 fi
 platform_profile="local-product"
@@ -435,12 +471,17 @@ probe_saved_draft_postgres_migration() {
 		export RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE="1"
 		export RADISHMIND_API_KEY_STORE="postgres_dev_test"
 		export RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL="${database_url}"
+		export RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP="1"
+		export RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE="1"
+		export RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE="postgres_dev_test"
+		export RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL="${database_url}"
+		export RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_MIGRATION_DATABASE_URL="${database_url}"
     cd "${platform_dir}"
 		go run ./cmd/radishmind-workflow-draft-migrate status >/dev/null || return
 		go run ./cmd/radishmind-application-draft-migrate status >/dev/null || return
 		go run ./cmd/radishmind-workflow-run-migrate status >/dev/null || return
 		go run ./cmd/radishmind-gateway-request-migrate status >/dev/null || return
-		if [[ "${application_session_postgres_dev_test}" -eq 1 ]]; then
+		if [[ "${application_session_postgres_dev_test}" -eq 1 || "${prompt_application_postgres_dev_test}" -eq 1 ]]; then
 			go run ./cmd/radishmind-api-key-migrate status >/dev/null || return
 		fi
 		if [[ "${application_publish_postgres_dev_test}" -eq 1 ]]; then
@@ -448,6 +489,9 @@ probe_saved_draft_postgres_migration() {
 		fi
 		if [[ "${application_catalog_postgres_dev_test}" -eq 1 ]]; then
 			go run ./cmd/radishmind-application-catalog-migrate status >/dev/null || return
+		fi
+		if [[ "${prompt_application_postgres_dev_test}" -eq 1 ]]; then
+			go run ./cmd/radishmind-prompt-application-template-migrate status >/dev/null || return
 		fi
   )
 }
@@ -983,7 +1027,7 @@ if [[ "${mode}" == "dev-live" && ! -f "${platform_wrapper}" ]]; then
 fi
 
 saved_draft_database_url=""
-if [[ "${saved_draft_postgres_dev_test}" -eq 1 || "${gateway_request_postgres_dev_test}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${application_catalog_postgres_dev_test}" -eq 1 ]]; then
+if [[ "${saved_draft_postgres_dev_test}" -eq 1 || "${gateway_request_postgres_dev_test}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${application_catalog_postgres_dev_test}" -eq 1 || "${prompt_application_postgres_dev_test}" -eq 1 ]]; then
   require_command go
   saved_draft_database_url="$(build_saved_draft_database_url)"
   if ! probe_saved_draft_postgres_migration "${saved_draft_database_url}"; then
@@ -1026,13 +1070,21 @@ if [[ "${verify_only}" -eq 0 ]]; then
         if [[ "${application_session_enabled}" -eq 1 ]]; then
           export RADISHMIND_APPLICATION_SESSION_DEV="1"
         fi
+        if [[ "${prompt_application_enabled}" -eq 1 ]]; then
+          export RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP="1"
+          export RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE="1"
+          export RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_HTTP="1"
+          export RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_WRITE="1"
+          export RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP="1"
+          export RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE="1"
+        fi
         if [[ "${workflow_definition_enabled}" -eq 1 ]]; then
           export RADISHMIND_WORKFLOW_DEFINITION_RELEASE_DEV="1"
           export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
         fi
-        if [[ "${api_key_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]]; then
+        if [[ "${api_key_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 ]]; then
           export RADISHMIND_GATEWAY_AUTH_MODE="api_key_dev_test"
         fi
         if [[ "${application_publish_postgres_dev_test}" -eq 1 ]]; then
@@ -1092,6 +1144,14 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export RADISHMIND_API_KEY_STORE="postgres_dev_test"
           export RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
         fi
+        if [[ "${prompt_application_postgres_dev_test}" -eq 1 ]]; then
+          export RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE="postgres_dev_test"
+          export RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+          export RADISHMIND_WORKFLOW_RUN_STORE="postgres_dev_test"
+          export RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+          export RADISHMIND_API_KEY_STORE="postgres_dev_test"
+          export RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+        fi
         exec "${platform_wrapper}" --profile "${platform_profile}" serve
       ) >"${log_dir}/platform.out.log" 2>"${log_dir}/platform.err.log" &
       spawned_pids+=("$!")
@@ -1109,28 +1169,33 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL="${backend_url%/}"
         export VITE_RADISHMIND_DEV_READ_TENANT_REF="${tenant_ref}"
         export VITE_RADISHMIND_DEV_READ_SUBJECT_REF="${subject_ref}"
-        if [[ "${application_draft_dev}" -eq 1 || "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_rag_promotion_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]]; then
+        if [[ "${application_draft_dev}" -eq 1 || "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_rag_promotion_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE="dev-application-draft-http"
           export VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
-        if [[ "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_rag_promotion_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]]; then
+        if [[ "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_rag_promotion_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE="dev-application-publish-http"
           export VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
-        if [[ "${application_catalog_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_http_tool_local_product}" -eq 1 || "${workflow_rag_dev}" -eq 1 || "${workflow_rag_promotion_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${workflow_definition_enabled}" -eq 1 ]]; then
+        if [[ "${application_catalog_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_http_tool_local_product}" -eq 1 || "${workflow_rag_dev}" -eq 1 || "${workflow_rag_promotion_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${workflow_definition_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE="dev-application-catalog-http"
           export VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
-        if [[ "${api_key_local_product}" -eq 1 || "${workflow_http_tool_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]]; then
+        if [[ "${api_key_local_product}" -eq 1 || "${workflow_http_tool_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE="dev-api-key-lifecycle-http"
           export VITE_RADISHMIND_API_KEY_LIFECYCLE_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_API_KEY_LIFECYCLE_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
-        if [[ "${api_key_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]]; then
+        if [[ "${api_key_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_GATEWAY_AUTH_MODE="api_key_dev_test"
+        fi
+        if [[ "${prompt_application_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_PROMPT_APPLICATION_SOURCE="dev-prompt-application-http"
+          export VITE_RADISHMIND_PROMPT_APPLICATION_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_PROMPT_APPLICATION_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
         if [[ "${saved_draft_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE="dev-saved-draft-http"
@@ -1174,7 +1239,7 @@ if [[ "${verify_only}" -eq 0 ]]; then
         if [[ "${workflow_diagnostics_dev}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV="true"
         fi
-        if [[ "${gateway_request_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]]; then
+        if [[ "${gateway_request_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE="dev-gateway-request-history-http"
           export VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE="dev-gateway-playground-http"
           export VITE_RADISHMIND_GATEWAY_PLAYGROUND_BASE_URL="${backend_url%/}"
@@ -1199,6 +1264,9 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_APPLICATION_SESSION_SOURCE
         unset VITE_RADISHMIND_APPLICATION_SESSION_BASE_URL
         unset VITE_RADISHMIND_APPLICATION_SESSION_WORKSPACE_ID
+        unset VITE_RADISHMIND_PROMPT_APPLICATION_SOURCE
+        unset VITE_RADISHMIND_PROMPT_APPLICATION_BASE_URL
+        unset VITE_RADISHMIND_PROMPT_APPLICATION_WORKSPACE_ID
         unset VITE_RADISHMIND_WORKFLOW_RAG_SOURCE
         unset VITE_RADISHMIND_WORKFLOW_RAG_BASE_URL
         unset VITE_RADISHMIND_WORKFLOW_RAG_WORKSPACE_ID
@@ -1255,7 +1323,7 @@ if [[ "${mode}" == "dev-live" ]]; then
     show_failure_help "dev-live read route probe failed"
     exit 1
   fi
-  if [[ "${api_key_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 ]] && ! wait_until "Gateway API key auth mode" probe_gateway_api_key_mode "${backend_url}"; then
+  if [[ "${api_key_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 ]] && ! wait_until "Gateway API key auth mode" probe_gateway_api_key_mode "${backend_url}"; then
     show_failure_help "Gateway api_key_dev_test mode probe failed"
     exit 1
   fi
@@ -1356,10 +1424,17 @@ if [[ "${mode}" == "dev-live" ]]; then
   fi
   if [[ "${application_session_enabled}" -eq 1 ]]; then
     session_store="SQLite"
-    if [[ "${application_session_postgres_dev_test}" -eq 1 ]]; then
+    if [[ "${application_session_postgres_dev_test}" -eq 1 || "${prompt_application_postgres_dev_test}" -eq 1 ]]; then
       session_store="PostgreSQL dev/test"
     fi
     step "Application Session ${session_store} dual-profile chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; input and answer content remain browser-memory only."
+  fi
+  if [[ "${prompt_application_enabled}" -eq 1 ]]; then
+    prompt_store="SQLite"
+    if [[ "${prompt_application_postgres_dev_test}" -eq 1 ]]; then
+      prompt_store="PostgreSQL dev/test"
+    fi
+    step "Prompt Application ${prompt_store} product chain enabled for ${saved_draft_workspace_id}; template source, v3 publish, runtime assignment, one-time credential invocation, and Run v6 evidence remain explicit actions."
   fi
 fi
 step "This is a dev-only launcher, not a production supervisor. Controlled execution is dev-only; production auth, secret resolution, unrestricted tools, automatic confirmation, writeback and replay remain disabled."

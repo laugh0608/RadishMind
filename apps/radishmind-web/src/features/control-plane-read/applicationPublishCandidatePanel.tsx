@@ -23,13 +23,21 @@ import {
   type ApplicationPublishCandidateListState,
   type ApplicationPublishDecision,
   type ApplicationPublishOperationState,
+  type ApplicationPublishPromptTemplateRef,
 } from "./applicationPublishCandidateConsumer.ts";
 import { requestGatewayRequestHistoryReview, requestModelGatewayPlaygroundHandoff } from "./modelGatewayPlaygroundEvents.ts";
+import PromptApplicationRuntimePanel from "./promptApplicationRuntimePanel.tsx";
+import {
+  readPromptTemplateConfig,
+  readPromptTemplateVersion,
+  type PromptTemplateVersion,
+} from "./promptApplicationTemplateConsumer.ts";
 import { WorkflowRAGRuntimeAssignmentPanel } from "./workflowRAGApplicationRuntimePanel.tsx";
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 
 const publishConfig = readApplicationPublishCandidateConfig();
 const draftConfig = readApplicationConfigurationDraftConfig();
+const promptTemplateConfig = readPromptTemplateConfig();
 
 export default function ApplicationPublishCandidatePanel({
   baseline,
@@ -202,8 +210,10 @@ export default function ApplicationPublishCandidatePanel({
       {readOnly ? <p className="boundary-note">Archived application candidates and review decisions remain readable. Candidate creation, review decisions, and invocation handoffs are disabled.</p> : <div className="application-publish-layout">
         <article className="application-publish-create">
           <div className="application-api-card-heading"><div><p className="eyebrow">Candidate source</p><h5>Bind an exact saved draft version</h5></div><button type="button" onClick={() => void loadDrafts()} disabled={!enabled || draftList.status === "loading"}>Load saved drafts</button></div>
-          <label>Saved valid draft<select value={selectedDraftId} onChange={(event) => setSelectedDraftId(event.target.value)} disabled={!enabled || draftList.summaries.length === 0}><option value="">No saved valid draft selected</option>{draftList.summaries.map((summary) => <option key={summary.draftId} value={summary.draftId} disabled={summary.validationState !== "valid"}>{summary.draftId} · v{summary.draftVersion} · {summary.validationState}{summary.workflowRAGBindingRef ? " · RAG bound" : ""}</option>)}</select></label>
-          {selectedDraft?.workflowRAGBindingRef ? <div className="application-publish-binding"><strong>Exact draft binding</strong><code>{selectedDraft.workflowRAGBindingRef.bindingId} · v{selectedDraft.workflowRAGBindingRef.bindingVersion}</code><code>{selectedDraft.workflowRAGBindingRef.bindingDigest}</code></div> : <p className="boundary-note">This draft has no approved RAG binding reference.</p>}
+          <label>Saved valid draft<select value={selectedDraftId} onChange={(event) => setSelectedDraftId(event.target.value)} disabled={!enabled || draftList.summaries.length === 0}><option value="">No saved valid draft selected</option>{draftList.summaries.map((summary) => <option key={summary.draftId} value={summary.draftId} disabled={summary.validationState !== "valid"}>{summary.draftId} · v{summary.draftVersion} · {summary.validationState}{summary.workflowRAGBindingRef ? " · RAG bound" : ""}{summary.promptTemplateRef ? ` · Template v${summary.promptTemplateRef.templateVersion}` : ""}</option>)}</select></label>
+          {selectedDraft?.workflowRAGBindingRef ? <div className="application-publish-binding"><strong>Exact draft binding</strong><code>{selectedDraft.workflowRAGBindingRef.bindingId} · v{selectedDraft.workflowRAGBindingRef.bindingVersion}</code><code>{selectedDraft.workflowRAGBindingRef.bindingDigest}</code></div> : null}
+          {selectedDraft?.promptTemplateRef ? <div className="application-publish-binding"><strong>Exact Prompt Template ref</strong><code>{selectedDraft.promptTemplateRef.templateId} · v{selectedDraft.promptTemplateRef.templateVersion}</code><code>{selectedDraft.promptTemplateRef.templateDigest}</code></div> : null}
+          {!selectedDraft?.workflowRAGBindingRef && !selectedDraft?.promptTemplateRef ? <p className="boundary-note">This draft has no approved RAG binding or Prompt Template reference.</p> : null}
           <label>Candidate id<input value={candidateId} onChange={(event) => setCandidateId(event.target.value)} maxLength={160} /></label>
           <label>Sanitized Request History refs<textarea value={evidenceText} onChange={(event) => setEvidenceText(event.target.value)} rows={4} placeholder="One request_id per line; no prompts, responses, headers, or credentials." /></label>
           {evidence.failureCode ? <p className="failure-summary">{evidence.failureCode}</p> : <p className="boundary-note">{evidence.requestIds.length} normalized history reference(s); payloads stay in Request History.</p>}
@@ -225,19 +235,29 @@ export default function ApplicationPublishCandidatePanel({
 
       {candidate ? <>
         <CandidateDetail candidate={candidate} baseline={baseline} readOnly={readOnly} onIntegration={openIntegration} onPlayground={openPlayground} onHistory={(requestId) => { requestGatewayRequestHistoryReview(requestId, candidate.applicationId); window.location.hash = "model-gateway-request-history"; }} />
-        <WorkflowRAGRuntimeAssignmentPanel
-          applicationId={candidate.applicationId}
-          publishCandidateId={candidate.candidateId}
-          candidateApproved={candidate.candidateState === "approved"}
-          readOnly={readOnly}
-          onEvidenceChange={onEvidenceChange}
-        />
+        {candidate.schemaVersion === "application_publish_candidate.v3" ? (
+          <PromptApplicationRuntimePanel
+            applicationId={candidate.applicationId}
+            publishCandidateId={candidate.candidateId}
+            candidateApproved={candidate.candidateState === "approved"}
+            readOnly={readOnly}
+            onEvidenceChange={onEvidenceChange}
+          />
+        ) : (
+          <WorkflowRAGRuntimeAssignmentPanel
+            applicationId={candidate.applicationId}
+            publishCandidateId={candidate.candidateId}
+            candidateApproved={candidate.candidateState === "approved"}
+            readOnly={readOnly}
+            onEvidenceChange={onEvidenceChange}
+          />
+        )}
       </> : <p className="boundary-note">{readOnly ? "Open an existing candidate below to review its immutable snapshot and blockers." : "Create or open a candidate to review its immutable snapshot and blockers."}</p>}
 
       <article className="application-publish-saved">
         <div className="application-api-card-heading"><div><p className="eyebrow">Saved dev/test candidates</p><h5>{candidateList.summary}</h5></div><button type="button" onClick={() => void refreshCandidates()} disabled={!enabled || candidateList.status === "loading"}>Refresh candidates</button></div>
         {candidateList.failureCode ? <p className="failure-summary">{candidateList.failureCode}</p> : null}
-        <div className="application-publish-candidate-list">{candidateList.summaries.map((summary) => <button type="button" key={summary.candidateId} onClick={() => void openCandidate(summary.candidateId)}><strong>{summary.candidateId}</strong><span>{summary.candidateState} · review v{summary.reviewVersion}{summary.workflowRAGBindingRef ? " · RAG bound" : ""}</span><small>draft v{summary.draftVersion} · {summary.promotionBlockers} blocker(s)</small></button>)}</div>
+        <div className="application-publish-candidate-list">{candidateList.summaries.map((summary) => <button type="button" key={summary.candidateId} onClick={() => void openCandidate(summary.candidateId)}><strong>{summary.candidateId}</strong><span>{summary.candidateState} · review v{summary.reviewVersion}{summary.workflowRAGBindingRef ? " · RAG bound" : ""}{summary.promptTemplateRef ? ` · Template v${summary.promptTemplateRef.templateVersion}` : ""}</span><small>draft v{summary.draftVersion} · {summary.promotionBlockers} blocker(s)</small></button>)}</div>
       </article>
 
       <p className="boundary-note">Offline mode performs no requests. Production auth, formal application repository, publish owner, promotion runtime, API key lifecycle, quota, billing, fallback, load balancing, Workflow tool, confirmation, writeback, replay, and resume remain disabled.</p>
@@ -253,11 +273,76 @@ function CandidateDetail({ candidate, baseline, readOnly, onIntegration, onPlayg
     { field: "default_model", before: "not configured in read model", after: candidate.configuration.defaultModel },
   ];
   return <div className="application-publish-detail">
-    <article className="application-publish-snapshot"><div className="application-api-card-heading"><div><p className="eyebrow">Immutable snapshot</p><h5>{candidate.draftId} · v{candidate.draftVersion}</h5></div><span className="status-badge neutral">{candidate.schemaVersion}</span></div><code className="application-publish-digest">{candidate.draftDigest}</code>{candidate.configuration.workflowRAGBindingRef ? <div className="application-publish-binding"><strong>Exact immutable RAG binding</strong><code>{candidate.configuration.workflowRAGBindingRef.bindingId} · v{candidate.configuration.workflowRAGBindingRef.bindingVersion}</code><code>{candidate.configuration.workflowRAGBindingRef.bindingDigest}</code></div> : <p className="boundary-note">No RAG binding was present in this candidate snapshot.</p>}<p>{candidate.configuration.description || "No public description."}</p><div className="application-publish-comparison">{comparison.map((item) => <div className={item.before === item.after ? "unchanged" : "changed"} key={item.field}><strong>{item.field}</strong><span>{item.before}</span><span>→</span><span>{item.after}</span></div>)}</div>{!readOnly ? <div className="application-draft-handoff"><button type="button" onClick={onIntegration}>Open API Integration</button><button type="button" onClick={onPlayground}>Test in Playground</button></div> : null}</article>
-    <article className="application-publish-eligibility"><div className="application-api-card-heading"><div><p className="eyebrow">Promotion eligibility</p><h5>{candidate.promotionEligibility.status}</h5></div><span className="status-badge bad">{candidate.promotionEligibility.blockers.length} blockers</span></div><ul>{candidate.promotionEligibility.blockers.map((blocker) => <li key={blocker.code}><strong>{blocker.code}</strong><p>{blocker.summary}</p></li>)}</ul></article>
+    <article className="application-publish-snapshot"><div className="application-api-card-heading"><div><p className="eyebrow">Immutable snapshot</p><h5>{candidate.draftId} · v{candidate.draftVersion}</h5></div><span className="status-badge neutral">{candidate.schemaVersion}</span></div><code className="application-publish-digest">{candidate.draftDigest}</code>{candidate.configuration.workflowRAGBindingRef ? <div className="application-publish-binding"><strong>Exact immutable RAG binding</strong><code>{candidate.configuration.workflowRAGBindingRef.bindingId} · v{candidate.configuration.workflowRAGBindingRef.bindingVersion}</code><code>{candidate.configuration.workflowRAGBindingRef.bindingDigest}</code></div> : null}{candidate.configuration.promptTemplateRef ? <PromptTemplateSourceReview applicationId={candidate.applicationId} templateRef={candidate.configuration.promptTemplateRef} /> : null}{!candidate.configuration.workflowRAGBindingRef && !candidate.configuration.promptTemplateRef ? <p className="boundary-note">No RAG binding or Prompt Template ref was present in this candidate snapshot.</p> : null}<p>{candidate.configuration.description || "No public description."}</p><div className="application-publish-comparison">{comparison.map((item) => <div className={item.before === item.after ? "unchanged" : "changed"} key={item.field}><strong>{item.field}</strong><span>{item.before}</span><span>→</span><span>{item.after}</span></div>)}</div>{!readOnly ? <div className="application-draft-handoff"><button type="button" onClick={onIntegration}>Open API Integration</button><button type="button" onClick={onPlayground}>Test in Playground</button></div> : null}</article>
+    <article className="application-publish-eligibility"><div className="application-api-card-heading"><div><p className="eyebrow">Promotion eligibility</p><h5>{candidate.promotionEligibility.status}</h5></div><span className={`status-badge ${candidate.promotionEligibility.eligible ? "good" : "bad"}`}>{candidate.promotionEligibility.blockers.length} blockers</span></div>{candidate.promotionEligibility.blockers.length ? <ul>{candidate.promotionEligibility.blockers.map((blocker) => <li key={blocker.code}><strong>{blocker.code}</strong><p>{blocker.summary}</p></li>)}</ul> : <p className="boundary-note">Candidate is eligible for an explicit runtime assignment decision.</p>}</article>
     <article className="application-publish-evidence"><div className="application-api-card-heading"><div><p className="eyebrow">Request History references</p><h5>{candidate.evidenceRequestIds.length} sanitized refs</h5></div></div>{candidate.evidenceRequestIds.length ? candidate.evidenceRequestIds.map((requestId) => <button type="button" key={requestId} onClick={() => onHistory(requestId)}><code>{requestId}</code><span>Open exact history detail</span></button>) : <p className="boundary-note">No Gateway request references were attached.</p>}</article>
     <article className="application-publish-review-log"><div className="application-api-card-heading"><div><p className="eyebrow">Append-only review log</p><h5>{candidate.reviews.length} decisions</h5></div></div>{candidate.reviews.length ? candidate.reviews.map((review) => <div key={review.reviewVersion}><strong>v{review.reviewVersion} · {review.decision}</strong><span>{review.reviewerRef} · {review.reviewedAt}</span><p>{review.reason}</p></div>) : <p className="boundary-note">No review decision has been recorded.</p>}</article>
   </div>;
+}
+
+function PromptTemplateSourceReview({
+  applicationId,
+  templateRef,
+}: {
+  applicationId: string;
+  templateRef: ApplicationPublishPromptTemplateRef;
+}) {
+  const [source, setSource] = useState<PromptTemplateVersion | null>(null);
+  const [status, setStatus] = useState<"idle" | "loading" | "verified" | "failed">("idle");
+  const [failureCode, setFailureCode] = useState("");
+
+  useEffect(() => {
+    setSource(null);
+    setStatus("idle");
+    setFailureCode("");
+  }, [applicationId, templateRef.templateId, templateRef.templateVersion, templateRef.templateDigest]);
+
+  async function reviewExactSource() {
+    setStatus("loading");
+    setFailureCode("");
+    const result = await readPromptTemplateVersion(
+      promptTemplateConfig,
+      applicationId,
+      templateRef.templateId,
+      templateRef.templateVersion,
+    );
+    if (!result.version || result.version.templateDigest !== templateRef.templateDigest) {
+      setSource(null);
+      setStatus("failed");
+      setFailureCode(result.failureCode || "prompt_template_candidate_ref_mismatch");
+      return;
+    }
+    setSource(result.version);
+    setStatus("verified");
+  }
+
+  return (
+    <div className="application-publish-binding prompt-template-source-review">
+      <div className="application-api-card-heading">
+        <div><strong>Exact immutable Prompt Template</strong><code>{templateRef.templateId} · v{templateRef.templateVersion}</code></div>
+        <button type="button" onClick={() => void reviewExactSource()} disabled={status === "loading"}>
+          {status === "loading" ? "Reading source…" : "Read exact source"}
+        </button>
+      </div>
+      <code>{templateRef.templateDigest}</code>
+      {failureCode ? <p className="failure-summary">{failureCode}</p> : null}
+      {source ? (
+        <div className="prompt-template-source">
+          <strong>{source.templateName}</strong>
+          <p>{source.description || "No template description."}</p>
+          {source.messages.map((message, index) => (
+            <div key={`${message.role}-${index}`}>
+              <code>{message.role}</code>
+              <pre>{message.content}</pre>
+            </div>
+          ))}
+          <small>
+            variables: {source.variables.map((variable) => `${variable.name}:${variable.type}${variable.required ? "!" : ""}`).join(", ") || "none"}
+          </small>
+        </div>
+      ) : <p className="boundary-note">审查前从 Template owner 读取 exact version；候选内的 digest 不替代源码读取。</p>}
+    </div>
+  );
 }
 
 function newCandidateId(applicationId: string): string {

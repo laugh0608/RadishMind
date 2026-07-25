@@ -19,6 +19,7 @@ export type ApplicationModelCatalogReadyDetail = {
 };
 
 let pendingDraftHandoff: ApplicationApiIntegrationDraftHandoffDetail | null = null;
+let latestModelCatalog: ApplicationModelCatalogReadyDetail | null = null;
 
 export function createApplicationApiIntegrationDraftHandoffDetail(
   applicationId: string,
@@ -94,7 +95,23 @@ export function requestApplicationModelCatalogReady(
   models: ApplicationModelCatalogItem[],
   selectedModel: string,
 ): void {
+  latestModelCatalog = createApplicationModelCatalogReadyDetail(applicationId, models, selectedModel);
   window.dispatchEvent(new CustomEvent<ApplicationModelCatalogReadyDetail>(APPLICATION_MODEL_CATALOG_READY_EVENT, {
-    detail: createApplicationModelCatalogReadyDetail(applicationId, models, selectedModel),
+    detail: latestModelCatalog,
   }));
+}
+
+export function readLatestApplicationModelCatalogReady(
+  applicationId: string,
+): ApplicationModelCatalogReadyDetail | null {
+  const normalizedApplicationId = applicationId.trim();
+  if (!latestModelCatalog || latestModelCatalog.applicationId !== normalizedApplicationId) return null;
+  return {
+    ...latestModelCatalog,
+    models: latestModelCatalog.models.map((model) => ({ ...model, protocols: [...model.protocols] })),
+  };
+}
+
+export function clearLatestApplicationModelCatalogReady(): void {
+  latestModelCatalog = null;
 }
