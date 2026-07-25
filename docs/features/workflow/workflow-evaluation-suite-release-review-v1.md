@@ -1,6 +1,6 @@
 # Workflow Evaluation Suite / Release Review v1
 
-更新时间：2026-07-11
+更新时间：2026-07-25
 
 状态：`workflow_evaluation_suite_release_review_v1_completed`
 
@@ -70,3 +70,5 @@ decision CAS 在单事务中锁定 suite、比较 current decision version、插
 5. 本专题只完成开发 / 测试态 release review evidence，不授权发布或生产启用；下一产品任务需回到四个一级产品面重新排位，不从本文自动派生 production gate 链。
 
 2026-07-18 独立的 [Workflow RAG Regression Review 与 Evaluation Profile v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1.md) 已允许 suite 聚合普通 case 与 RAG case；每个 item 显式返回 `run_profile`，canonical review digest 将 profile 纳入签名。SQLite shared database 补齐 durable suite / decision repository，PostgreSQL 继续复用既有表；HTTP Tool v2 仍明确 unsupported，decision 仍不触发 release、执行或 baseline promotion。
+
+2026-07-25 [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](../user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md) 已允许 suite strict consumer 读取 `prompt_application_invocation_v1` 与 `agent_copilot_suggestion_v1` item。SQLite 真实浏览器完成 Agent exact case version → suite review `passed` → `approved v1`；decision 仍只是 append-only evidence，不触发 candidate、assignment、release、deploy 或 provider 调用。

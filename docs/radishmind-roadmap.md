@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：既有 Workflow、Gateway、用户工作区、RAG、Application Session、应用开发工作区、Prompt Application 与[Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](features/user-workspace/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md)均已完成并保持稳定。Agent 专题已完成批次 A 至批次 E，Profile、Configuration / Candidate v4、Assignment、Session / Turn v3、Run v7、类型专属 Web 与双数据库真实验收已经闭环。下一顺位先回到功能设计入口选择新的产品能力；agent loop、工具执行、业务写回、connector、在线搜索、自动 activation / release、schedule、replay、配额、计费或生产能力继续关闭。
+1. 产品线：既有 Workflow、Gateway、用户工作区、RAG、Application Session、应用开发工作区、Prompt Application、Agent / Copilot 受控建议与[Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](features/user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md)均已完成并保持稳定。Prompt v6 / Agent v7 已严格接入既有 Comparison、Evaluation Case、Suite 与人工 decision；SQLite Agent case → suite → `approved v1` 真实链闭环，评测决定不会自动发布。下一顺位先回到功能设计入口选择新的产品能力；agent loop、工具执行、业务写回、connector、在线搜索、自动 activation / release、schedule、replay、配额、计费或生产能力继续关闭。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；production secret backend、process supervisor、部署环境隔离、console production packaging、生产认证、生产 API key、quota 和 billing 继续为 `not_satisfied`。

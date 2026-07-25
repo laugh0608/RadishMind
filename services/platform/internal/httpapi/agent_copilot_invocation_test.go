@@ -366,7 +366,8 @@ func TestAgentCopilotRunFeedsHistoryComparisonEvaluationAndOperationsMetadata(t 
 		comparison.Comparison.Classification != WorkflowRunComparisonUnchanged {
 		t.Fatalf("Agent Copilot comparison did not recognize v7 lineage: %#v", comparison)
 	}
-	evaluations := newWorkflowEvaluationService(newMemoryWorkflowEvaluationStore(10), fixture.runStore)
+	evaluationStore := newMemoryWorkflowEvaluationStore(10)
+	evaluations := newWorkflowEvaluationService(evaluationStore, fixture.runStore)
 	created := evaluations.Create(runContext, WorkflowEvaluationCreateRequest{
 		Name: "Agent Copilot metadata regression", BaselineRunID: first.Run.RunID,
 		Expectations: []WorkflowEvaluationExpectation{{
@@ -380,6 +381,70 @@ func TestAgentCopilotRunFeedsHistoryComparisonEvaluationAndOperationsMetadata(t 
 	if review.FailureCode != "" || review.Review == nil || review.Review.Outcome != "passed" ||
 		review.Review.RunProfile != agentCopilotSuggestionProfile {
 		t.Fatalf("Agent Copilot evaluation review drifted: %#v", review)
+	}
+	suites := newWorkflowEvaluationSuiteService(newMemoryWorkflowEvaluationSuiteStore(10), evaluations)
+	suites.newSuiteID = func() (string, error) { return "suite_agentmetadata01", nil }
+	suites.newDecisionID = func() (string, error) { return "decision_agentmetadata01", nil }
+	suite := suites.Create(runContext, WorkflowEvaluationSuiteCreateRequest{
+		Name: "Agent Copilot release review",
+		CaseRefs: []WorkflowEvaluationSuiteCaseRef{{
+			CaseID: created.Case.CaseID, Version: created.Case.Version,
+		}},
+	})
+	if suite.FailureCode != "" || suite.Suite == nil {
+		t.Fatalf("Agent Copilot suite creation drifted: %#v", suite)
+	}
+	suiteReview := suites.Review(runContext, suite.Suite.SuiteID)
+	if suiteReview.FailureCode != "" || suiteReview.Review == nil ||
+		suiteReview.Review.Outcome != "passed" || len(suiteReview.Review.Items) != 1 ||
+		suiteReview.Review.Items[0].RunProfile != agentCopilotSuggestionProfile {
+		t.Fatalf("Agent Copilot suite review drifted: %#v", suiteReview)
+	}
+	decision := suites.Decide(runContext, suite.Suite.SuiteID, WorkflowEvaluationDecisionRequest{
+		ExpectedDecisionVersion: 0, Decision: "approved", ReviewDigest: suiteReview.Review.ReviewDigest,
+	})
+	if decision.FailureCode != "" || decision.Decision == nil || decision.Decision.Decision != "approved" {
+		t.Fatalf("Agent Copilot suite decision drifted: %#v", decision)
+	}
+	incompatibleRun := *second.Run
+	incompatibleRun.RunID = "run_agenttaskdrift0001"
+	incompatibleRun.AgentTask = "suggest_flowsheet_edits"
+	incompatibleRun.RequestID = "request_agent_task_drift"
+	incompatibleRun.AuditRef = "audit_agent_task_drift"
+	if err := validateWorkflowRunStoreRecord(runContext, &incompatibleRun); err != nil {
+		t.Fatalf("incompatible Agent task fixture is invalid: %v", err)
+	}
+	memoryRunStore, ok := fixture.runStore.(*memoryWorkflowRunStore)
+	if !ok {
+		t.Fatalf("expected memory run store, got %T", fixture.runStore)
+	}
+	incompatibleKey := workflowRunStoreKey(runContext.TenantRef, runContext.WorkspaceID, runContext.ApplicationID, incompatibleRun.RunID)
+	memoryRunStore.mu.Lock()
+	memoryRunStore.records[incompatibleKey] = cloneWorkflowRunRecord(incompatibleRun)
+	memoryRunStore.order = append(memoryRunStore.order, incompatibleKey)
+	memoryRunStore.mu.Unlock()
+	incompatibleCreate := evaluations.Create(runContext, WorkflowEvaluationCreateRequest{
+		Name: "Agent task drift", BaselineRunID: first.Run.RunID,
+		Expectations: []WorkflowEvaluationExpectation{{
+			CandidateRunID: incompatibleRun.RunID, ExpectedClassification: WorkflowRunComparisonChanged,
+		}},
+	})
+	if incompatibleCreate.FailureCode != WorkflowEvaluationFailureAgentCopilotIncompatible {
+		t.Fatalf("Agent task drift was accepted: %#v", incompatibleCreate)
+	}
+	incompatibleCase := *created.Case
+	incompatibleCase.CaseID = "eval_agent_task_drift"
+	incompatibleCase.Name = "Agent task drift review"
+	incompatibleCase.Expectations = []WorkflowEvaluationExpectation{{
+		CandidateRunID: incompatibleRun.RunID, ExpectedClassification: WorkflowRunComparisonChanged,
+	}}
+	if err := evaluationStore.CreateCase(runContext, incompatibleCase); err != nil {
+		t.Fatalf("seed incompatible evaluation case: %v", err)
+	}
+	incompatibleReview := evaluations.Review(runContext, incompatibleCase.CaseID)
+	if incompatibleReview.FailureCode != WorkflowEvaluationFailureAgentCopilotIncompatible ||
+		!strings.Contains(incompatibleReview.FailureSummary, "profile, project, and task") {
+		t.Fatalf("Agent review incompatibility was not mapped: %#v", incompatibleReview)
 	}
 	payload, err := json.Marshal(first.Run)
 	if err != nil {

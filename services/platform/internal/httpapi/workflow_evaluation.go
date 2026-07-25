@@ -534,6 +534,9 @@ func (s workflowEvaluationService) ReviewVersion(ctx WorkflowRunContext, id stri
 			if result.FailureCode == WorkflowRunFailurePromptIncompatible {
 				return WorkflowEvaluationReviewResult{FailureCode: WorkflowEvaluationFailurePromptIncompatible, FailureSummary: "Workflow evaluation requires one compatible Prompt Application template lineage and profile."}
 			}
+			if result.FailureCode == WorkflowRunFailureAgentCopilotIncompatible {
+				return WorkflowEvaluationReviewResult{FailureCode: WorkflowEvaluationFailureAgentCopilotIncompatible, FailureSummary: "Workflow evaluation requires one compatible Agent Copilot profile, project, and task lineage."}
+			}
 			code := WorkflowEvaluationFailureStoreUnavailable
 			if result.FailureCode == WorkflowRunFailureStoreContractMismatch {
 				code = WorkflowEvaluationFailureStoreContract
@@ -782,6 +785,8 @@ func workflowEvaluationFailure(code WorkflowEvaluationFailureCode) WorkflowEvalu
 		summary = "Workflow evaluation requires matching retrieval snapshot, profile, query, and node bindings."
 	} else if code == WorkflowEvaluationFailurePromptIncompatible {
 		summary = "Workflow evaluation requires one compatible Prompt Application template lineage and execution profile."
+	} else if code == WorkflowEvaluationFailureAgentCopilotIncompatible {
+		summary = "Workflow evaluation requires one compatible Agent Copilot profile, project, task, and execution profile."
 	}
 	return WorkflowEvaluationResult{FailureCode: code, FailureSummary: summary}
 }

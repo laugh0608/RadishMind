@@ -12,16 +12,18 @@
 
 ## 当前活跃任务
 
-1. [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)：批次 A 至批次 E 已完成，状态为 `agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_completed`；任务卡关闭，不再派生同层续批。
+当前没有活跃 implementation task card。下一条产品能力必须先从功能设计入口完成专题选择与边界冻结。
 
 [应用开发工作区与发布准备审查 v1](../features/user-workspace/application-development-workspace-release-readiness-review-v1.md)批次 A 至 C 已完成并关闭，不再派生同层任务卡。
 
 ## 最近关闭任务
 
-1. [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1-plan.md)：批次 A 至 E、Web、双数据库连续链、服务重启、负向与隐私验收均已完成，任务卡归档。
-2. [应用交互会话与受控运行编排 v1](application-interaction-session-controlled-runtime-orchestration-dev-test-v1-plan.md)：A 至 E 已完成 strict metadata、三种 repository、v5 / v4 委托、Web、双数据库连续链、重启恢复、浏览器和敏感扫描。
-3. [Workflow 不可变版本晋级与受控运行绑定 v1](workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md)：A 至 D 已完成 strict contract、三种 repository、人工 review / activation、run v5、Web、双数据库与真实浏览器链。
-4. [Workflow RAG 应用运行时激活与受控调用 v1](workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1-plan.md)：A / B / C 三批已完成，durable assignment、API key 受控调用、run v4、Web、双数据库与真实浏览器链均已关闭。
+1. [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](prompt-agent-application-regression-evaluation-release-review-dev-test-v1-plan.md)：Comparison v5 / v6、Case / Suite strict consumer、Agent 不兼容失败映射和 SQLite case → suite → `approved v1` 已完成，任务卡关闭。
+2. [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)：批次 A 至批次 E 已完成，状态为 `agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_completed`；任务卡关闭，不再派生同层续批。
+3. [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1-plan.md)：批次 A 至 E、Web、双数据库连续链、服务重启、负向与隐私验收均已完成，任务卡归档。
+4. [应用交互会话与受控运行编排 v1](application-interaction-session-controlled-runtime-orchestration-dev-test-v1-plan.md)：A 至 E 已完成 strict metadata、三种 repository、v5 / v4 委托、Web、双数据库连续链、重启恢复、浏览器和敏感扫描。
+5. [Workflow 不可变版本晋级与受控运行绑定 v1](workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md)：A 至 D 已完成 strict contract、三种 repository、人工 review / activation、run v5、Web、双数据库与真实浏览器链。
+6. [Workflow RAG 应用运行时激活与受控调用 v1](workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1-plan.md)：A / B / C 三批已完成，durable assignment、API key 受控调用、run v4、Web、双数据库与真实浏览器链均已关闭。
 5. [Workflow RAG 知识基线晋级与应用配置绑定审查 v1](workflow-rag-knowledge-baseline-promotion-application-binding-review-v1-plan.md)：A / B / C / D 四批已完成，exact evidence、人工 decision、durable binding、应用配置 / 发布治理与 Web 连续链均已关闭。
 6. [Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1-plan.md)：契约、内存链、SQLite / PostgreSQL durable store、Web 与仓库收口三批均已完成。
 7. [Workflow RAG 评测数据集与知识质量审查 v1](workflow-rag-evaluation-dataset-knowledge-quality-review-v1-plan.md)：两份契约、共享 lexical evaluator、CLI、starter dataset 与 deterministic metadata-only report 已完成。
