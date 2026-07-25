@@ -123,22 +123,22 @@ func TestAgentCopilotContractsRemainMetadataOnly(t *testing.T) {
 	}
 }
 
-func TestAgentCopilotBatchA1DoesNotRegisterRuntimeVersions(t *testing.T) {
+func TestAgentCopilotBatchCRegistersOnlyReviewedRuntimeProjections(t *testing.T) {
 	for _, schemaVersion := range []string{applicationConfigurationDraftSchemaVersionV1, applicationConfigurationDraftSchemaVersionV2, promptApplicationConfigurationDraftV3Schema} {
 		if !applicationConfigurationDraftSchemaSupported(schemaVersion) {
 			t.Fatalf("existing configuration schema %s lost compatibility", schemaVersion)
 		}
 	}
-	if applicationConfigurationDraftSchemaSupported(agentCopilotConfigurationDraftV4Schema) {
-		t.Fatal("Batch A1 must not register application configuration v4")
+	if !applicationConfigurationDraftSchemaSupported(agentCopilotConfigurationDraftV4Schema) {
+		t.Fatal("Batch C must register application configuration v4")
 	}
 	for _, schemaVersion := range []string{applicationPublishCandidateSchemaVersionV1, applicationPublishCandidateSchemaVersionV2, promptApplicationPublishCandidateV3Schema} {
 		if !applicationPublishCandidateSchemaSupported(schemaVersion) {
 			t.Fatalf("existing publish candidate schema %s lost compatibility", schemaVersion)
 		}
 	}
-	if applicationPublishCandidateSchemaSupported(agentCopilotPublishCandidateV4Schema) {
-		t.Fatal("Batch A1 must not register application publish candidate v4")
+	if !applicationPublishCandidateSchemaSupported(agentCopilotPublishCandidateV4Schema) {
+		t.Fatal("Batch C must register application publish candidate v4")
 	}
 	for _, schemaVersion := range []string{
 		workflowRunRecordLegacySchemaVersion,
@@ -154,10 +154,10 @@ func TestAgentCopilotBatchA1DoesNotRegisterRuntimeVersions(t *testing.T) {
 		}
 	}
 	if validWorkflowRunRecordSchema(agentCopilotRunV7Schema) {
-		t.Fatal("Batch A1 must not register workflow run v7")
+		t.Fatal("Batch C must not register workflow run v7")
 	}
 	if _, exists := apiKeyAllowedScopes["agent_copilot:invoke"]; exists {
-		t.Fatal("Batch A1 must not expose agent_copilot:invoke")
+		t.Fatal("Batch C must not expose agent_copilot:invoke")
 	}
 }
 

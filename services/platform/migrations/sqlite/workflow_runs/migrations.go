@@ -8,8 +8,8 @@ import (
 
 const (
 	Component                        = "workflow_runs"
-	MigrationID                      = "0013_prompt_application_runtime_projections"
-	StoreSchemaVersion               = "workflow_run_store_sqlite_v13"
+	MigrationID                      = "0014_agent_copilot_runtime_assignments"
+	StoreSchemaVersion               = "workflow_run_store_sqlite_v14"
 	RunRecordStoreSchemaVersion      = "workflow_runs_store_v5"
 	legacyMigrationID                = "0001_workflow_runs"
 	toolActionsMigrationID           = "0002_workflow_http_tool_actions"
@@ -35,6 +35,8 @@ const (
 	definitionExecutionSchemaVersion = "workflow_run_store_sqlite_v11"
 	applicationSessionMigrationID    = "0012_application_interaction_sessions"
 	applicationSessionSchemaVersion  = "workflow_run_store_sqlite_v12"
+	promptRuntimeMigrationID         = "0013_prompt_application_runtime_projections"
+	promptRuntimeSchemaVersion       = "workflow_run_store_sqlite_v13"
 )
 
 //go:embed 0001_workflow_runs.up.sql
@@ -75,6 +77,9 @@ var upSQLV12 string
 
 //go:embed 0013_prompt_application_runtime_projections.up.sql
 var upSQLV13 string
+
+//go:embed 0014_agent_copilot_runtime_assignments.up.sql
+var upSQLV14 string
 
 func Migrations() []sqlitedev.Migration {
 	return []sqlitedev.Migration{
@@ -120,6 +125,7 @@ func Migrations() []sqlitedev.Migration {
 		{Component: Component, ID: definitionReleaseMigrationID, StoreSchemaVersion: definitionReleaseSchemaVersion, UpSQL: upSQLV10},
 		{Component: Component, ID: definitionExecutionMigrationID, StoreSchemaVersion: definitionExecutionSchemaVersion, UpSQL: upSQLV11},
 		{Component: Component, ID: applicationSessionMigrationID, StoreSchemaVersion: applicationSessionSchemaVersion, UpSQL: upSQLV12},
-		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV13},
+		{Component: Component, ID: promptRuntimeMigrationID, StoreSchemaVersion: promptRuntimeSchemaVersion, UpSQL: upSQLV13},
+		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV14},
 	}
 }

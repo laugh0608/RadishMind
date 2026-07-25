@@ -534,6 +534,8 @@ func runConfiguredPostgresMigrationGate(
 func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
 	_, err := pool.Exec(ctx, `DROP TABLE IF EXISTS
+		agent_copilot_runtime_assignment_events,
+		agent_copilot_runtime_assignments,
 		prompt_application_run_records,
 		prompt_application_session_turns,
 		prompt_application_sessions,
@@ -590,6 +592,9 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 		CASCADE`)
 	if err != nil {
 		t.Fatalf("reset configured PostgreSQL schemas: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_agent_copilot_assignment_mutation(), enforce_agent_copilot_assignment_update()`); err != nil {
+		t.Fatalf("reset Agent Copilot assignment guards: %v", err)
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_workflow_http_tool_append_only_mutation()`); err != nil {
 		t.Fatalf("reset configured PostgreSQL append-only guard: %v", err)
@@ -802,6 +807,9 @@ func assertConfiguredPostgresRepositorySelection(t *testing.T, server *Server) {
 	}
 	if runtimeStore, ok := server.promptApplicationRuntimeRepository.(*postgresPromptApplicationRuntimeRepository); !ok || runtimeStore.pool != server.workflowRunStore.(*postgresWorkflowRunStore).pool {
 		t.Fatalf("configured Prompt application runtime did not share the PostgreSQL pool: %T", server.promptApplicationRuntimeRepository)
+	}
+	if runtimeStore, ok := server.agentCopilotRuntimeRepository.(*postgresAgentCopilotRuntimeRepository); !ok || runtimeStore.pool != server.workflowRunStore.(*postgresWorkflowRunStore).pool {
+		t.Fatalf("configured Agent Copilot runtime did not share the PostgreSQL pool: %T", server.agentCopilotRuntimeRepository)
 	}
 	if _, ok := server.apiKeyRepository.(*postgresAPIKeyRepository); !ok {
 		t.Fatalf("configured API key store did not select PostgreSQL: %T", server.apiKeyRepository)

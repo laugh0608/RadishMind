@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_b_completed_batch_c_ready`
+状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_c_completed_batch_d_ready`
 
 ## 功能定位
 
@@ -12,12 +12,12 @@
 
 ## 现状、根因与本轮决策
 
-- 专题启动前，Application Catalog 和 Application Configuration Draft 已允许 `application_kind=agent`，但没有 Agent 专属的应用档案 owner、不可变版本、发布候选引用、运行时 assignment 或 invocation service；当前 Profile owner 已完成，后四项仍未注册。
+- 专题启动前，Application Catalog 和 Application Configuration Draft 已允许 `application_kind=agent`，但没有 Agent 专属的应用档案 owner、不可变版本、发布候选引用、运行时 assignment 或 invocation service；当前 Profile、配置、发布审查与 assignment owner 已完成，invocation / Session / Run 链仍未注册。
 - Application Development Workspace 目前只区分 `prompt_application` 与“非 Prompt”；`agent` 因而继承 Workflow RAG 的配置和晋级界面。这不是 Agent 能力复用，而是应用类型与产品界面语义不一致。
 - 仓库已经具备 canonical `CopilotRequest / CopilotResponse`、Gateway、应用目录、配置草案、发布审查、API key、Application Interaction Session、Run History、Comparison、Evaluation 和双数据库开发测试态持久化基础。新专题应组合这些 owner，不复制协议适配、会话、运行记录或评测算法。
 - 产品范围与路线图已经长期承诺 Agent / Copilot 应用。本轮选择该方向，优先补齐用户可识别的应用能力，不转向缺少可信 usage 的计费、不提前接真实 OIDC，也不在 backend / artifact store 尚未成立时扩图片生成运行时。
 
-因此，功能设计先固定长期边界，再由[唯一实施任务卡](../../task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)冻结版本、API、权限、失败语义、兼容矩阵和分批验证。批次 A 与批次 B 已完成 strict contracts、canonical policy compiler，以及 memory / SQLite / PostgreSQL Profile owner；Profile Version 之外的新版本仍未注册到既有 runtime。下一步只进入批次 C 配置绑定、发布审查与显式 assignment，调用能力继续关闭。
+因此，功能设计先固定长期边界，再由[唯一实施任务卡](../../task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)冻结版本、API、权限、失败语义、兼容矩阵和分批验证。批次 A 至批次 C 已完成 strict contracts、canonical policy compiler、三种 Profile owner、Configuration / Candidate v4 和显式 assignment；candidate approve 不自动激活，assignment 读取持续重验 exact authority。下一步只进入批次 D 单次受控建议、Session / Turn v3、Run v7 与审查链，Web 继续关闭。
 
 ## 目标用户与主要任务
 
@@ -158,7 +158,7 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 - A2 已完成 UTF-8 source / locale 与策略数值预算、原始条目数量、project / task / context 可满足性、固定 advisory / confirmation / tool hints、敏感字段和配置形态守卫。
 - A3 已完成 tenant / workspace / application / owner 作用域的 memory Draft / Version repository、原子 CAS、不可变版本、稳定列表、损坏 / 不可用失败关闭，以及默认关闭 API。
 - A3 的 validate 零写入；save / version create 只写 Profile owner，并在写入前重读 active `agent` Application Catalog。摘要读取与完整 source 读取分别要求 `agent_copilot_profiles:read` 和 `agent_copilot_profiles:read_source`。
-- 批次 A 已完成；Configuration / Candidate v4、Assignment、Session、Run、`agent_copilot:invoke` 与 Gateway / provider 调用仍未注册。
+- 批次 A 关闭时，Configuration / Candidate v4、Assignment、Session、Run、`agent_copilot:invoke` 与 Gateway / provider 调用均未注册；后续注册状态以对应批次记录和本文“当前下一步”为准。
 
 ### 批次 B：SQLite / PostgreSQL 开发测试态持久化
 
@@ -170,9 +170,11 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 
 ### 批次 C：配置绑定、发布审查与显式 assignment
 
-- 实现 ref-only Configuration Draft binding 与新的 Publish Candidate 版本。
-- 复用既有人工审查状态机，补 exact Profile reload、结构化源码审查、漂移、supersede 与 eligibility。
-- 实现 assignment 的 `activate | replace | revoke`、事件、CAS 和 read-time eligibility；candidate approve 不自动激活。
+- 状态：`completed`。
+- Configuration Draft v4 已启用独立 Profile binding，写入只保存 exact `profile_id / profile_version / profile_digest / policy_digest`，与 RAG / Prompt binding 严格互斥；绑定要求 draft write 与 `agent_copilot_profiles:bind`。
+- Publish Candidate v4 复用唯一 create / read / list / review / supersede 状态机；创建、审查和运行资格读取均重读精确 Profile Version，源码审查额外要求 `agent_copilot_profiles:read_source`，digest drift 与 supersede 失败关闭。
+- Runtime Assignment memory / SQLite / PostgreSQL owner 支持 `activate | replace | revoke`、expected-version CAS、只追加事件和 read-time exact authority 重验；candidate approve 不自动激活，已撤销 assignment 不原地恢复。
+- SQLite / PostgreSQL 共享 Workflow runtime 前滚到 `0014_agent_copilot_runtime_assignments` / `0017_agent_copilot_runtime_assignments`；真实 PostgreSQL 已覆盖迁移、受限角色、并发 CAS、重启、损坏守卫和敏感材料扫描。
 
 ### 批次 D：API key、Session、单次调用与审查链
 
@@ -200,7 +202,7 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 
 ## 当前下一步
 
-下一步直接进入批次 C：启用 Configuration Draft v4 的 ref-only Profile binding、Publish Candidate v4 exact reload 与既有人工 review 状态机，并实现 Runtime Assignment `activate | replace | revoke`、事件 CAS、read-time eligibility、drift / supersede。candidate approve 不自动激活；本批不注册 Session、Run、`agent_copilot:invoke`、provider、Gateway 调用或 Web。
+下一步直接进入批次 D：先沿既有 Application RAG v4、Prompt Application v6、Application Session 和 Workflow Run Store 的 owner 边界实现唯一 `agent_copilot_suggestion_v1` service，再注册独立 API key `agent_copilot:invoke`、Authority / Session / Turn v3、Run v7 与 metadata-only History / Comparison / Evaluation / Operations 消费。provider 前必须重验 exact authority，每次成功调用恰好一次计划内 Gateway 副作用；批次 D 完成前不进入 Web。
 
 ## 停止线
 

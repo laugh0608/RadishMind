@@ -132,6 +132,8 @@ function Invoke-Migration {
     $env:RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
     $env:RADISHMIND_AGENT_COPILOT_PROFILE_DEV_HTTP = "1"
     $env:RADISHMIND_AGENT_COPILOT_PROFILE_DEV_WRITE = "1"
+    $env:RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_HTTP = "1"
+    $env:RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_WRITE = "1"
     $env:RADISHMIND_AGENT_COPILOT_PROFILE_STORE = "postgres_dev_test"
     $env:RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
     $env:RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword

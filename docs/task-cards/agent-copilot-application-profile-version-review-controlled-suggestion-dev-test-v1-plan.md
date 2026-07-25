@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_b_completed_batch_c_ready`
+状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_c_completed_batch_d_ready`
 
 ## 目标与准入结论
 
@@ -14,10 +14,10 @@
 
 ## 实现基线与兼容审计
 
-- 任务卡与兼容审计基线为 `c472a2ad`；A2 实现基线为 `9cad03c8`，A3 实现基线为 `e5f4f20b`，批次 B 实现基线为 `a4f8d92d`，分支为 `dev`，各批开始实施时工作区干净。
+- 任务卡与兼容审计基线为 `c472a2ad`；A2 实现基线为 `9cad03c8`，A3 实现基线为 `e5f4f20b`，批次 B 实现基线为 `a4f8d92d`，批次 C 实现基线为 `bb4b6417`，分支为 `dev`，各批开始实施时工作区干净。
 - Application Catalog 已允许 `workflow_copilot | docs_qa | agent | prompt_application`；本专题不增加 kind、不改 ID、生命周期、列表筛选、CAS 或归档语义。
-- Application Configuration Draft 当前严格支持 v1 未绑定、v2 Workflow RAG binding、v3 Prompt Template binding；v4 只允许 `application_kind=agent` 和一个 Agent / Copilot Profile ref。
-- Application Publish Candidate 当前严格支持 v1 / v2 / v3 并共享唯一 review / supersede 状态机；v4 只增加 Agent Profile 精确引用，不建立平行审批。
+- Application Configuration Draft 当前严格支持 v1 未绑定、v2 Workflow RAG binding、v3 Prompt Template binding、v4 Agent Profile binding；v4 只允许 `application_kind=agent` 和一个 Agent / Copilot Profile ref。
+- Application Publish Candidate 当前严格支持 v1 / v2 / v3 / v4 并共享唯一 review / supersede 状态机；v4 只增加 Agent Profile 精确引用，不建立平行审批。
 - Runtime Authority v1 只允许 Workflow Definition / Application RAG，v2 只允许 Prompt Application；Agent 使用独立 v3，不修改 v1 / v2。
 - Application Session / Turn v1 只承载 Workflow Definition / Application RAG，v2 只承载 Prompt Application；Agent 使用独立 v3。
 - Workflow Run Store 与消费端当前严格识别 v0–v6；Agent 使用 v7，旧 lineage、比较和评测规则不原地放宽。
@@ -205,8 +205,13 @@ Profile owner 至少固定：
 
 ### 批次 C：配置、发布审查与显式 assignment
 
-- 启用 Configuration v4 ref-only binding、Publish Candidate v4 exact reload 与既有 review 状态机。
-- 实现 assignment `activate | replace | revoke`、事件 CAS、read-time eligibility、drift / supersede；approve 不自动激活。
+状态：`completed`。
+
+- Configuration v4 已通过专用 binding 路由启用 ref-only Profile Version 引用，与 v1–v3 严格分支兼容；写入与读取重验 application / owner scope 和 exact Profile digest。
+- Publish Candidate v4 已接入既有 create / read / list / review / supersede 状态机；Profile source 审查权限独立，创建、review 和 eligibility 均精确重读，approve 不自动激活。
+- assignment memory / SQLite / PostgreSQL owner 已实现 `activate | replace | revoke`、事件 CAS、read-time eligibility、drift / supersede；运行时读写使用独立 capability 和默认关闭 dev gates。
+- shared Workflow runtime migration 前滚到 SQLite `0014` 与 PostgreSQL `0017`，assignment / event 只保存 metadata lineage；真实 PostgreSQL configured suite 验证受限角色、并发单写者、重启恢复、损坏失败和敏感材料不落库。
+- 本批未注册 Authority / Session / Turn v3、Run v7、`agent_copilot:invoke`、provider / Gateway 调用或 Web。
 
 ### 批次 D：单次受控建议、Session、Run 与 Evaluation
 
@@ -221,7 +226,7 @@ Profile owner 至少固定：
 
 ## 当前下一步
 
-直接进入批次 C：启用 Configuration v4 ref-only Profile binding、Publish Candidate v4 exact reload 与既有人工 review 状态机，并实现 assignment `activate | replace | revoke`、事件 CAS、read-time eligibility、drift / supersede。candidate approve 不自动激活；批次 C 完成前不进入 Session、Run、`agent_copilot:invoke`、provider、Gateway 调用或 Web。
+直接进入批次 D：实现唯一 `agent_copilot_suggestion_v1` service 与 provider 前 exact authority checkpoint；API key 与 Session v3 只委托该 service，Run v7、History、Comparison、Evaluation 与 Operations 只消费 metadata。专项验证必须覆盖权限、幂等、取消、assignment revoke / replace、candidate supersede、authority drift、canonical response 失败、`outcome_unknown` 和成功调用恰好一次计划内 Gateway 副作用；批次 D 完成前不进入 Web。
 
 ## 停止线
 

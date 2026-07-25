@@ -244,6 +244,12 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryConfiguration,
 			defaultMessage:  "agent copilot profile dev HTTP route is disabled",
 		},
+		"AGENT_COPILOT_RUNTIME_DEV_HTTP_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "agent copilot runtime dev HTTP route is disabled",
+		},
 		AgentCopilotProfileFailurePayloadInvalid: {
 			statusCode:      http.StatusBadRequest,
 			errorType:       "invalid_request_error",

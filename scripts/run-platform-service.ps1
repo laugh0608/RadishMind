@@ -45,6 +45,8 @@ switch ($Profile) {
         Set-DefaultEnvironmentValue -Name "RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE" -Value "1"
         Set-DefaultEnvironmentValue -Name "RADISHMIND_AGENT_COPILOT_PROFILE_DEV_HTTP" -Value "1"
         Set-DefaultEnvironmentValue -Name "RADISHMIND_AGENT_COPILOT_PROFILE_DEV_WRITE" -Value "1"
+        Set-DefaultEnvironmentValue -Name "RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_HTTP" -Value "1"
+        Set-DefaultEnvironmentValue -Name "RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_WRITE" -Value "1"
         Set-DefaultEnvironmentValue -Name "RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_HTTP" -Value "1"
         Set-DefaultEnvironmentValue -Name "RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_WRITE" -Value "1"
         Set-DefaultEnvironmentValue -Name "RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP" -Value "1"

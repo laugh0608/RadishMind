@@ -155,6 +155,24 @@ func (server *Server) applicationPublishCandidateService() applicationPublishCan
 		}
 		return version, ""
 	}
+	service.readAgentProfileVersion = func(publishContext ApplicationPublishContext, ref AgentCopilotProfileRef) (AgentCopilotProfileVersionV1, string) {
+		if server.agentCopilotProfileRepository == nil {
+			return AgentCopilotProfileVersionV1{}, AgentCopilotProfileFailureStoreUnavailable
+		}
+		profileContext := AgentCopilotProfileContext{
+			RequestContext: publishContext.RequestContext, RequestID: publishContext.RequestID, TenantRef: publishContext.TenantRef,
+			WorkspaceID: publishContext.WorkspaceID, ApplicationID: publishContext.ApplicationID, ActorRef: publishContext.ActorRef,
+			OwnerSubjectRef: publishContext.OwnerSubjectRef, AuditRef: publishContext.AuditRef,
+		}
+		version, err := server.agentCopilotProfileRepository.ReadVersion(profileContext, ref.ProfileID, ref.ProfileVersion)
+		if err != nil {
+			return AgentCopilotProfileVersionV1{}, agentCopilotProfileRepositoryFailure(err, ApplicationConfigurationDraftValidation{}).FailureCode
+		}
+		if validateStoredAgentCopilotProfileVersion(profileContext, version) != nil {
+			return AgentCopilotProfileVersionV1{}, AgentCopilotProfileFailureDigestDrift
+		}
+		return version, ""
+	}
 	return service
 }
 
@@ -210,6 +228,7 @@ func applicationPublishContextFromRequest(request *http.Request, trace requestTr
 	requestContext.OwnerSubjectRef = requestContext.ActorRef
 	requestContext.RAGPromotionReadEnabled = controlPlaneReadHasScope(auth.ScopeGrants, "workflow_rag_promotions:read")
 	requestContext.PromptTemplateSourceReadEnabled = controlPlaneReadHasScope(auth.ScopeGrants, "prompt_application_templates:read_source")
+	requestContext.AgentProfileSourceReadEnabled = controlPlaneReadHasScope(auth.ScopeGrants, "agent_copilot_profiles:read_source")
 	if requestContext.TenantRef == "" || requestContext.WorkspaceID == "" || requestContext.ApplicationID == "" ||
 		strings.TrimSpace(request.Header.Get(applicationPublishDevWorkspaceHeader)) != requestContext.WorkspaceID ||
 		strings.TrimSpace(request.Header.Get(applicationPublishDevApplicationHeader)) != requestContext.ApplicationID {

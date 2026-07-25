@@ -248,7 +248,7 @@ func scanStoredAgentCopilotProfileDraft(ctx AgentCopilotProfileContext, row agen
 		return AgentCopilotProfileDraftV1{}, err
 	}
 	var draft AgentCopilotProfileDraftV1
-	if strictAgentCopilotProfileJSON(payload, &draft) != nil {
+	if decodeStrictStoredJSON(payload, &draft) != nil {
 		return AgentCopilotProfileDraftV1{}, errAgentCopilotProfileOwner
 	}
 	if err := validateStoredAgentCopilotProfileDraft(ctx, draft); err != nil {
@@ -263,7 +263,7 @@ func scanStoredAgentCopilotProfileVersion(ctx AgentCopilotProfileContext, row ag
 		return AgentCopilotProfileVersionV1{}, err
 	}
 	var version AgentCopilotProfileVersionV1
-	if strictAgentCopilotProfileJSON(payload, &version) != nil {
+	if decodeStrictStoredJSON(payload, &version) != nil {
 		return AgentCopilotProfileVersionV1{}, errAgentCopilotProfileOwner
 	}
 	if err := validateStoredAgentCopilotProfileVersion(ctx, version); err != nil {
@@ -272,7 +272,7 @@ func scanStoredAgentCopilotProfileVersion(ctx AgentCopilotProfileContext, row ag
 	return cloneAgentCopilotProfileVersion(version), nil
 }
 
-func strictAgentCopilotProfileJSON(payload []byte, target any) error {
+func decodeStrictStoredJSON(payload []byte, target any) error {
 	decoder := json.NewDecoder(bytes.NewReader(payload))
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(target); err != nil || decoder.Decode(&struct{}{}) != io.EOF {

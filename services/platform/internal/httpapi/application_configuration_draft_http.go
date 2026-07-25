@@ -11,6 +11,7 @@ const (
 	applicationDraftReadRoute                  = "GET /v1/user-workspace/application-drafts/{draft_id}"
 	applicationDraftValidateRoute              = "POST /v1/user-workspace/application-drafts/validate"
 	applicationDraftPromptTemplateBindingRoute = "POST /v1/user-workspace/application-configuration-drafts/{draft_id}/prompt-template-binding"
+	applicationDraftAgentProfileBindingRoute   = "POST /v1/user-workspace/application-configuration-drafts/{draft_id}/agent-copilot-profile-binding"
 
 	applicationDraftDevWorkspaceHeader   = "X-RadishMind-Dev-Application-Draft-Workspace"
 	applicationDraftDevApplicationHeader = "X-RadishMind-Dev-Application-Draft-Application"
@@ -31,6 +32,14 @@ type applicationConfigurationDraftPromptTemplateBindingBody struct {
 	ExpectedDraftVersion int    `json:"expected_draft_version"`
 	TemplateID           string `json:"template_id"`
 	TemplateVersion      int    `json:"template_version"`
+}
+
+type applicationConfigurationDraftAgentProfileBindingBody struct {
+	WorkspaceID          string `json:"workspace_id"`
+	ApplicationID        string `json:"application_id"`
+	ExpectedDraftVersion int    `json:"expected_draft_version"`
+	ProfileID            string `json:"profile_id"`
+	ProfileVersion       int    `json:"profile_version"`
 }
 
 type applicationConfigurationDraftEnvelope struct {
@@ -108,6 +117,35 @@ func (server *Server) handleBindApplicationConfigurationDraftPromptTemplate(writ
 	writeApplicationConfigurationDraftResult(writer, trace, requestContext, result)
 }
 
+func (server *Server) handleBindApplicationConfigurationDraftAgentProfile(writer http.ResponseWriter, request *http.Request) {
+	trace := newRequestTrace(request, applicationDraftAgentProfileBindingRoute)
+	if !server.allowApplicationDraftDevHTTP(writer, request, trace) {
+		return
+	}
+	var body applicationConfigurationDraftAgentProfileBindingBody
+	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
+		return
+	}
+	requestContext, failureCode := applicationConfigurationDraftContextFromRequest(
+		request, trace, body.WorkspaceID, body.ApplicationID, "application_drafts:write",
+		server.config.ApplicationDraftDevWriteEnabled, "agent-copilot-profile-binding",
+	)
+	if failureCode != "" {
+		writeApplicationConfigurationDraftResult(writer, trace, requestContext, ApplicationConfigurationDraftResult{FailureCode: failureCode})
+		return
+	}
+	result := server.applicationConfigurationDraftService().BindAgentCopilotProfile(
+		requestContext,
+		request.PathValue("draft_id"),
+		AgentCopilotProfileBindingInput{
+			ExpectedDraftVersion: body.ExpectedDraftVersion,
+			ProfileID:            body.ProfileID,
+			ProfileVersion:       body.ProfileVersion,
+		},
+	)
+	writeApplicationConfigurationDraftResult(writer, trace, requestContext, result)
+}
+
 func (server *Server) handleReadApplicationConfigurationDraft(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, applicationDraftReadRoute)
 	if !server.allowApplicationDraftDevHTTP(writer, request, trace) {
@@ -174,6 +212,24 @@ func (server *Server) applicationConfigurationDraftService() applicationConfigur
 		}
 		return version, ""
 	}
+	service.readAgentProfileVersion = func(draftContext ApplicationConfigurationDraftContext, profileID string, profileVersion int) (AgentCopilotProfileVersionV1, string) {
+		if server.agentCopilotProfileRepository == nil {
+			return AgentCopilotProfileVersionV1{}, AgentCopilotProfileFailureStoreUnavailable
+		}
+		profileContext := AgentCopilotProfileContext{
+			RequestContext: draftContext.RequestContext, RequestID: draftContext.RequestID, TenantRef: draftContext.TenantRef,
+			WorkspaceID: draftContext.WorkspaceID, ApplicationID: draftContext.ApplicationID, ActorRef: draftContext.ActorRef,
+			OwnerSubjectRef: draftContext.OwnerSubjectRef, AuditRef: draftContext.AuditRef,
+		}
+		version, err := server.agentCopilotProfileRepository.ReadVersion(profileContext, profileID, profileVersion)
+		if err != nil {
+			return AgentCopilotProfileVersionV1{}, agentCopilotProfileRepositoryFailure(err, ApplicationConfigurationDraftValidation{}).FailureCode
+		}
+		if validateStoredAgentCopilotProfileVersion(profileContext, version) != nil {
+			return AgentCopilotProfileVersionV1{}, AgentCopilotProfileFailureDigestDrift
+		}
+		return version, ""
+	}
 	if server.config.ApplicationCatalogDevHTTPEnabled {
 		service.requireActive = func(draftContext ApplicationConfigurationDraftContext) string {
 			catalogContext := ApplicationCatalogContext{
@@ -210,6 +266,7 @@ func applicationConfigurationDraftContextFromRequest(
 	requestContext.OwnerSubjectRef = requestContext.ActorRef
 	requestContext.BindingEnabled = controlPlaneReadHasScope(auth.ScopeGrants, "workflow_rag_promotions:bind")
 	requestContext.TemplateBindingEnabled = controlPlaneReadHasScope(auth.ScopeGrants, "prompt_application_templates:bind")
+	requestContext.ProfileBindingEnabled = controlPlaneReadHasScope(auth.ScopeGrants, "agent_copilot_profiles:bind")
 	headerWorkspaceID := strings.TrimSpace(request.Header.Get(applicationDraftDevWorkspaceHeader))
 	headerApplicationID := strings.TrimSpace(request.Header.Get(applicationDraftDevApplicationHeader))
 	if requestContext.TenantRef == "" || requestContext.WorkspaceID == "" || requestContext.ApplicationID == "" ||

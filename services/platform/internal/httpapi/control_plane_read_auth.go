@@ -62,12 +62,14 @@ var promptApplicationTemplatePermissionGrants = map[string]string{
 	"radishmind.prompt-application-runtime.write":         "prompt_application_runtime:write",
 }
 
-var agentCopilotProfilePermissionGrants = map[string]string{
+var agentCopilotPermissionGrants = map[string]string{
 	"radishmind.agent-copilot-profiles.read":        "agent_copilot_profiles:read",
 	"radishmind.agent-copilot-profiles.read-source": "agent_copilot_profiles:read_source",
 	"radishmind.agent-copilot-profiles.write":       "agent_copilot_profiles:write",
 	"radishmind.agent-copilot-profiles.version":     "agent_copilot_profiles:version",
 	"radishmind.agent-copilot-profiles.bind":        "agent_copilot_profiles:bind",
+	"radishmind.agent-copilot-runtime.read":         "agent_copilot_runtime:read",
+	"radishmind.agent-copilot-runtime.write":        "agent_copilot_runtime:write",
 }
 
 var controlPlaneReadAuthReferencePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$`)
@@ -441,7 +443,7 @@ func projectControlPlaneReadPermissions(permissions []string) []string {
 			grant, ok = promptApplicationTemplatePermissionGrants[strings.TrimSpace(permission)]
 		}
 		if !ok {
-			grant, ok = agentCopilotProfilePermissionGrants[strings.TrimSpace(permission)]
+			grant, ok = agentCopilotPermissionGrants[strings.TrimSpace(permission)]
 		}
 		if ok && !seen[grant] {
 			seen[grant] = true

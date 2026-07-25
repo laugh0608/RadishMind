@@ -53,6 +53,7 @@ type Server struct {
 	workflowRAGPromotionRepository          workflowRAGPromotionRepository
 	workflowRAGAppRuntimeRepository         workflowRAGApplicationRuntimeRepository
 	promptApplicationRuntimeRepository      promptApplicationRuntimeRepository
+	agentCopilotRuntimeRepository           agentCopilotRuntimeRepository
 	workflowHTTPToolActionStore             workflowHTTPToolActionStore
 	workflowHTTPToolExecutionStore          workflowHTTPToolExecutionStore
 	workflowHTTPToolExecutionTransport      *workflowHTTPToolTransport
@@ -195,6 +196,11 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
 		return nil, err
 	}
+	agentCopilotRuntimeRepository, err := newAgentCopilotRuntimeRepositoryForRunStore(workflowRunStore)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
 	promptApplicationRunStore, err := newPromptApplicationRunStoreForWorkflowRunStore(workflowRunStore)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
@@ -245,6 +251,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		workflowRAGPromotionRepository:          workflowRAGPromotionRepository,
 		workflowRAGAppRuntimeRepository:         workflowRAGApplicationRuntimeRepository,
 		promptApplicationRuntimeRepository:      promptApplicationRuntimeRepository,
+		agentCopilotRuntimeRepository:           agentCopilotRuntimeRepository,
 		workflowHTTPToolActionStore:             workflowHTTPToolActionStore,
 		workflowHTTPToolExecutionStore:          newWorkflowHTTPToolExecutionStoreForRunStore(workflowRunStore, workflowHTTPToolActionStore),
 		workflowEvaluationStore:                 newWorkflowEvaluationStoreForRunStore(workflowRunStore),
@@ -305,9 +312,13 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationDraftReadRoute, server.handleReadApplicationConfigurationDraft)
 	mux.HandleFunc(applicationDraftValidateRoute, server.handleValidateApplicationConfigurationDraft)
 	mux.HandleFunc(applicationDraftPromptTemplateBindingRoute, server.handleBindApplicationConfigurationDraftPromptTemplate)
+	mux.HandleFunc(applicationDraftAgentProfileBindingRoute, server.handleBindApplicationConfigurationDraftAgentProfile)
 	mux.HandleFunc(promptApplicationRuntimeReadRoute, server.handleReadPromptApplicationRuntimeAssignment)
 	mux.HandleFunc(promptApplicationRuntimeEventsRoute, server.handleReadPromptApplicationRuntimeEvents)
 	mux.HandleFunc(promptApplicationRuntimeDecisionRoute, server.handleDecidePromptApplicationRuntimeAssignment)
+	mux.HandleFunc(agentCopilotRuntimeReadRoute, server.handleReadAgentCopilotRuntimeAssignment)
+	mux.HandleFunc(agentCopilotRuntimeEventsRoute, server.handleReadAgentCopilotRuntimeEvents)
+	mux.HandleFunc(agentCopilotRuntimeDecisionRoute, server.handleDecideAgentCopilotRuntimeAssignment)
 	mux.HandleFunc(promptApplicationTemplateValidateRoute, server.handleValidatePromptApplicationTemplate)
 	mux.HandleFunc(promptApplicationTemplateSaveRoute, server.handleSavePromptApplicationTemplate)
 	mux.HandleFunc(promptApplicationTemplateListRoute, server.handleListPromptApplicationTemplates)

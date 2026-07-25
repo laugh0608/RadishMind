@@ -112,6 +112,8 @@ type Config struct {
 	AgentCopilotProfileStoreMode            string
 	AgentCopilotProfileDatabaseURL          string
 	AgentCopilotProfileDatabaseTimeout      time.Duration
+	AgentCopilotRuntimeDevHTTPEnabled       bool
+	AgentCopilotRuntimeDevWriteEnabled      bool
 	PromptTemplateStoreMode                 string
 	PromptTemplateDatabaseURL               string
 	PromptTemplateDatabaseTimeout           time.Duration
@@ -192,6 +194,8 @@ type ConfigSummary struct {
 	AgentCopilotProfileDevWriteEnabled      bool              `json:"agent_copilot_profile_dev_write_enabled"`
 	AgentCopilotProfileStoreMode            string            `json:"agent_copilot_profile_store_mode"`
 	AgentCopilotProfileDatabaseConfigured   bool              `json:"agent_copilot_profile_database_configured"`
+	AgentCopilotRuntimeDevHTTPEnabled       bool              `json:"agent_copilot_runtime_dev_http_enabled"`
+	AgentCopilotRuntimeDevWriteEnabled      bool              `json:"agent_copilot_runtime_dev_write_enabled"`
 	PromptTemplateStoreMode                 string            `json:"prompt_application_template_store_mode"`
 	PromptTemplateDatabaseConfigured        bool              `json:"prompt_application_template_database_configured"`
 	PromptApplicationRuntimeDevHTTPEnabled  bool              `json:"prompt_application_runtime_dev_http_enabled"`
@@ -389,6 +393,8 @@ func defaultConfig() Config {
 			"agent_copilot_profile_store":                  configSourceDefault,
 			"agent_copilot_profile_database":               configSourceDefault,
 			"agent_copilot_profile_database_timeout":       configSourceDefault,
+			"agent_copilot_runtime_dev_http":               configSourceDefault,
+			"agent_copilot_runtime_dev_write":              configSourceDefault,
 			"application_draft_store":                      configSourceDefault,
 			"application_draft_database":                   configSourceDefault,
 			"application_draft_database_timeout":           configSourceDefault,
@@ -751,6 +757,22 @@ func applyEnvOverrides(cfg *Config) error {
 		}
 		cfg.AgentCopilotProfileDevWriteEnabled = parsed
 		cfg.FieldSources["agent_copilot_profile_dev_write"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_HTTP"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_HTTP", value)
+		if err != nil {
+			return err
+		}
+		cfg.AgentCopilotRuntimeDevHTTPEnabled = parsed
+		cfg.FieldSources["agent_copilot_runtime_dev_http"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_WRITE"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_WRITE", value)
+		if err != nil {
+			return err
+		}
+		cfg.AgentCopilotRuntimeDevWriteEnabled = parsed
+		cfg.FieldSources["agent_copilot_runtime_dev_write"] = configSourceEnv
 	}
 	if value, ok := stringEnv("RADISHMIND_AGENT_COPILOT_PROFILE_STORE"); ok {
 		applyStringValue(&cfg.AgentCopilotProfileStoreMode, value, cfg.FieldSources, "agent_copilot_profile_store", configSourceEnv)
@@ -1170,6 +1192,12 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if cfg.AgentCopilotProfileDevWriteEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_dev_http")
 	}
+	if cfg.AgentCopilotRuntimeDevHTTPEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+	}
+	if cfg.AgentCopilotRuntimeDevWriteEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_runtime_dev_http")
+	}
 	if agentCopilotProfileStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_dev_http")
@@ -1330,6 +1358,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		AgentCopilotProfileDevWriteEnabled:      cfg.AgentCopilotProfileDevWriteEnabled,
 		AgentCopilotProfileStoreMode:            agentCopilotProfileStoreMode,
 		AgentCopilotProfileDatabaseConfigured:   strings.TrimSpace(cfg.AgentCopilotProfileDatabaseURL) != "",
+		AgentCopilotRuntimeDevHTTPEnabled:       cfg.AgentCopilotRuntimeDevHTTPEnabled,
+		AgentCopilotRuntimeDevWriteEnabled:      cfg.AgentCopilotRuntimeDevWriteEnabled,
 		PromptTemplateStoreMode:                 promptTemplateStoreMode,
 		PromptTemplateDatabaseConfigured:        strings.TrimSpace(cfg.PromptTemplateDatabaseURL) != "",
 		PromptApplicationRuntimeDevHTTPEnabled:  cfg.PromptApplicationRuntimeDevHTTPEnabled,
@@ -1556,6 +1586,10 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			}
 		case "agent_copilot_profile_database":
 			if strings.TrimSpace(cfg.AgentCopilotProfileDatabaseURL) == "" {
+				missing = append(missing, field)
+			}
+		case "agent_copilot_runtime_dev_http":
+			if !cfg.AgentCopilotRuntimeDevHTTPEnabled {
 				missing = append(missing, field)
 			}
 		case "application_draft_database":
@@ -1846,6 +1880,12 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.AgentCopilotProfileDevWriteEnabled && !cfg.AgentCopilotProfileDevHTTPEnabled {
 		return fmt.Errorf("agent copilot profile dev write requires its HTTP gate")
+	}
+	if cfg.AgentCopilotRuntimeDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return fmt.Errorf("agent copilot runtime dev HTTP requires control plane read dev auth")
+	}
+	if cfg.AgentCopilotRuntimeDevWriteEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled {
+		return fmt.Errorf("agent copilot runtime dev write requires its HTTP gate")
 	}
 	switch strings.TrimSpace(cfg.AgentCopilotProfileStoreMode) {
 	case "", "memory_dev":

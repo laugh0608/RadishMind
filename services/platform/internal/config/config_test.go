@@ -210,25 +210,50 @@ func TestAgentCopilotProfileDevGatesRemainExplicitAndIndependent(t *testing.T) {
 	if err := ValidateServerStart(cfg); err != nil {
 		t.Fatalf("complete profile development gates rejected: %v", err)
 	}
+	cfg.ApplicationCatalogDevHTTPEnabled = true
+	cfg.ApplicationDraftDevHTTPEnabled = true
+	cfg.ApplicationPublishDevHTTPEnabled = true
+	cfg.AgentCopilotRuntimeDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("Agent Copilot runtime read gate rejected complete auth: %v", err)
+	}
+	cfg.AgentCopilotRuntimeDevHTTPEnabled = false
+	cfg.AgentCopilotRuntimeDevWriteEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "agent copilot runtime dev write requires its HTTP gate") {
+		t.Fatalf("Agent Copilot runtime write accepted missing HTTP gate: %v", err)
+	}
+	cfg.AgentCopilotRuntimeDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("complete Agent Copilot runtime gates rejected: %v", err)
+	}
 
 	clearPlatformEnv(t)
 	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_APPLICATION_DRAFT_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP", "1")
 	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_HTTP", "1")
 	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_WRITE", "true")
 	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_STORE", "postgres_dev_test")
 	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL", "postgresql://profile.invalid/secret")
 	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_DATABASE_TIMEOUT", "13s")
+	t.Setenv("RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_WRITE", "true")
 	loaded, err := LoadFromEnv()
 	if err != nil {
 		t.Fatalf("load profile development gates: %v", err)
 	}
 	summary := loaded.SanitizedSummary()
 	if !loaded.AgentCopilotProfileDevHTTPEnabled || !loaded.AgentCopilotProfileDevWriteEnabled ||
+		!loaded.AgentCopilotRuntimeDevHTTPEnabled || !loaded.AgentCopilotRuntimeDevWriteEnabled ||
 		loaded.AgentCopilotProfileStoreMode != "postgres_dev_test" || loaded.AgentCopilotProfileDatabaseTimeout != 13*time.Second ||
 		loaded.FieldSources["agent_copilot_profile_dev_http"] != configSourceEnv ||
 		loaded.FieldSources["agent_copilot_profile_dev_write"] != configSourceEnv ||
+		loaded.FieldSources["agent_copilot_runtime_dev_http"] != configSourceEnv ||
+		loaded.FieldSources["agent_copilot_runtime_dev_write"] != configSourceEnv ||
 		loaded.FieldSources["agent_copilot_profile_store"] != configSourceEnv ||
 		!summary.AgentCopilotProfileDevHTTPEnabled || !summary.AgentCopilotProfileDevWriteEnabled ||
+		!summary.AgentCopilotRuntimeDevHTTPEnabled || !summary.AgentCopilotRuntimeDevWriteEnabled ||
 		summary.AgentCopilotProfileStoreMode != "postgres_dev_test" || !summary.AgentCopilotProfileDatabaseConfigured {
 		t.Fatalf("profile gate source or summary is incomplete: %#v", summary)
 	}
@@ -1284,6 +1309,8 @@ func TestSQLiteDevLocalPersistenceProjectsEffectiveStoresAndRequiresDevelopmentG
 	cfg.PromptTemplateDevWriteEnabled = true
 	cfg.AgentCopilotProfileDevHTTPEnabled = true
 	cfg.AgentCopilotProfileDevWriteEnabled = true
+	cfg.AgentCopilotRuntimeDevHTTPEnabled = true
+	cfg.AgentCopilotRuntimeDevWriteEnabled = true
 	cfg.ApplicationPublishDevHTTPEnabled = true
 	cfg.ApplicationPublishDevWriteEnabled = true
 	cfg.ApplicationCatalogDevHTTPEnabled = true
@@ -1531,6 +1558,8 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DATABASE_TIMEOUT",
+		"RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_HTTP",
+		"RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_WRITE",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DATABASE_TIMEOUT",

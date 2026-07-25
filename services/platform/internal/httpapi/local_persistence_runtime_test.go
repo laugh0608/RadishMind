@@ -33,7 +33,7 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 	if err := firstServer.localPersistenceRuntime.DB().QueryRowContext(
 		context.Background(),
 		"SELECT count(*) FROM radishmind_schema_migrations",
-	).Scan(&migrationCount); err != nil || migrationCount != 21 {
+	).Scan(&migrationCount); err != nil || migrationCount != 22 {
 		t.Fatalf("aggregate SQLite migration count drifted: count=%d err=%v", migrationCount, err)
 	}
 
@@ -542,6 +542,9 @@ func assertAggregateSQLiteRepositorySelection(t *testing.T, server *Server) {
 	}
 	if runtimeStore, ok := server.promptApplicationRuntimeRepository.(*sqlitePromptApplicationRuntimeRepository); !ok || runtimeStore.database != server.localPersistenceRuntime.DB() {
 		t.Fatalf("Prompt application runtime did not share the SQLite runtime: %T", server.promptApplicationRuntimeRepository)
+	}
+	if runtimeStore, ok := server.agentCopilotRuntimeRepository.(*sqliteAgentCopilotRuntimeRepository); !ok || runtimeStore.database != server.localPersistenceRuntime.DB() {
+		t.Fatalf("Agent Copilot runtime did not share the SQLite runtime: %T", server.agentCopilotRuntimeRepository)
 	}
 	if _, ok := server.apiKeyRepository.(*sqliteAPIKeyRepository); !ok {
 		t.Fatalf("API key did not select SQLite: %T", server.apiKeyRepository)

@@ -161,12 +161,14 @@ func scanApplicationConfigurationDraft(row applicationConfigurationDraftRow) (Ap
 		return ApplicationConfigurationDraft{}, err
 	}
 	var draft ApplicationConfigurationDraft
-	if err := json.Unmarshal(payload, &draft); err != nil || strings.TrimSpace(draft.DraftID) == "" || draft.DraftVersion < 1 || !applicationConfigurationDraftSchemaSupported(draft.SchemaVersion) ||
-		(draft.SchemaVersion == applicationConfigurationDraftSchemaVersionV1 && (draft.WorkflowRAGBindingRef != nil || draft.PromptTemplateRef != nil)) ||
-		(draft.SchemaVersion == applicationConfigurationDraftSchemaVersionV2 && draft.PromptTemplateRef != nil) ||
-		(draft.SchemaVersion == applicationConfigurationDraftSchemaVersionV3 && (draft.ApplicationKind != "prompt_application" || draft.WorkflowRAGBindingRef != nil || draft.PromptTemplateRef == nil)) ||
+	if err := decodeStrictStoredJSON(payload, &draft); err != nil || strings.TrimSpace(draft.DraftID) == "" || draft.DraftVersion < 1 || !applicationConfigurationDraftSchemaSupported(draft.SchemaVersion) ||
+		(draft.SchemaVersion == applicationConfigurationDraftSchemaVersionV1 && (draft.WorkflowRAGBindingRef != nil || draft.PromptTemplateRef != nil || draft.AgentCopilotProfileRef != nil)) ||
+		(draft.SchemaVersion == applicationConfigurationDraftSchemaVersionV2 && (draft.PromptTemplateRef != nil || draft.AgentCopilotProfileRef != nil)) ||
+		(draft.SchemaVersion == applicationConfigurationDraftSchemaVersionV3 && (draft.ApplicationKind != "prompt_application" || draft.WorkflowRAGBindingRef != nil || draft.PromptTemplateRef == nil || draft.AgentCopilotProfileRef != nil)) ||
+		(draft.SchemaVersion == applicationConfigurationDraftSchemaVersionV4 && (draft.ApplicationKind != "agent" || draft.WorkflowRAGBindingRef != nil || draft.PromptTemplateRef != nil || draft.AgentCopilotProfileRef == nil)) ||
 		(draft.WorkflowRAGBindingRef != nil && !validWorkflowRAGApplicationBindingRef(*draft.WorkflowRAGBindingRef)) ||
-		(draft.PromptTemplateRef != nil && !validPromptApplicationTemplateRef(*draft.PromptTemplateRef)) {
+		(draft.PromptTemplateRef != nil && !validPromptApplicationTemplateRef(*draft.PromptTemplateRef)) ||
+		(draft.AgentCopilotProfileRef != nil && !validAgentCopilotProfileRef(*draft.AgentCopilotProfileRef)) {
 		return ApplicationConfigurationDraft{}, errors.New("stored application draft contract mismatch")
 	}
 	draft.ApplicationConfigurationDraftPayload = normalizeApplicationConfigurationDraftPayload(draft.ApplicationConfigurationDraftPayload)
