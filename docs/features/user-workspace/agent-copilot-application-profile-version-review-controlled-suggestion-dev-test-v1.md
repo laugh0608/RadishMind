@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_design_defined_task_card_pending`
+状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_task_card_defined_batch_a_ready`
 
 ## 功能定位
 
@@ -17,7 +17,7 @@
 - 仓库已经具备 canonical `CopilotRequest / CopilotResponse`、Gateway、应用目录、配置草案、发布审查、API key、Application Interaction Session、Run History、Comparison、Evaluation 和双数据库开发测试态持久化基础。新专题应组合这些 owner，不复制协议适配、会话、运行记录或评测算法。
 - 产品范围与路线图已经长期承诺 Agent / Copilot 应用。本轮选择该方向，优先补齐用户可识别的应用能力，不转向缺少可信 usage 的计费、不提前接真实 OIDC，也不在 backend / artifact store 尚未成立时扩图片生成运行时。
 
-因此，本轮先固定功能设计、兼容审计范围、实施批次和停止线。具体 schema、API、权限键、迁移和运行代码由后续唯一实施任务卡承接，不在设计阶段提前冻结。
+因此，功能设计先固定长期边界，再由[唯一实施任务卡](../../task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)冻结版本、API、权限、失败语义、兼容矩阵和分批验证。当前任务卡已定义，可以进入批次 A；尚未新增 schema、API、迁移或运行代码。
 
 ## 目标用户与主要任务
 
@@ -152,7 +152,7 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 
 ### 批次 A：高风险任务卡、兼容矩阵与 memory owner
 
-- 新增一个唯一实施任务卡，固定 schema 版本、API、权限、失败码、幂等、双检查点 authority 和验证矩阵。
+- 唯一实施任务卡已经定义，固定 schema 版本、API、权限、失败码、幂等、双检查点 authority 和验证矩阵。
 - 完成应用类型路由、Configuration Draft v1–v3、Publish Candidate v1–v3、Session v1 / v2、Run v0–v6、API key scope 与 canonical contract 的兼容审计。
 - 实现 Profile 校验器、memory Draft / Version repository、CAS、不可变版本和敏感材料守卫。
 - 批次 A 未完成前不打开 Gateway / provider 调用。
@@ -195,7 +195,7 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 
 ## 当前下一步
 
-下一步只进入批次 A：先新增唯一高风险实施任务卡并完成兼容审计，再冻结 strict contracts、路由、权限和 memory owner。任务卡评审前不修改 schema、API、数据库迁移、Application Session、Run lineage 或 Web surface。
+下一步直接进入批次 A1：先实现 10 份 strict schema、Go contract-only codec 和兼容矩阵测试；A1 通过后再实现 policy compiler 与 memory Profile owner。A1–A3 全部通过前不进入数据库、配置绑定、发布审查、assignment、Session、Run、provider 或 Web。
 
 ## 停止线
 
