@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_task_card_defined_batch_a_ready`
+状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_a1_strict_contracts_completed_batch_a2_ready`
 
 ## 功能定位
 
@@ -17,7 +17,7 @@
 - 仓库已经具备 canonical `CopilotRequest / CopilotResponse`、Gateway、应用目录、配置草案、发布审查、API key、Application Interaction Session、Run History、Comparison、Evaluation 和双数据库开发测试态持久化基础。新专题应组合这些 owner，不复制协议适配、会话、运行记录或评测算法。
 - 产品范围与路线图已经长期承诺 Agent / Copilot 应用。本轮选择该方向，优先补齐用户可识别的应用能力，不转向缺少可信 usage 的计费、不提前接真实 OIDC，也不在 backend / artifact store 尚未成立时扩图片生成运行时。
 
-因此，功能设计先固定长期边界，再由[唯一实施任务卡](../../task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)冻结版本、API、权限、失败语义、兼容矩阵和分批验证。当前任务卡已定义，可以进入批次 A；尚未新增 schema、API、迁移或运行代码。
+因此，功能设计先固定长期边界，再由[唯一实施任务卡](../../task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)冻结版本、API、权限、失败语义、兼容矩阵和分批验证。批次 A1 已完成 10 份 strict schema、独立 Go contract-only codec 与兼容防漂移测试；新版本尚未注册到既有 runtime，下一步进入 A2 policy compiler，API、迁移和运行能力仍未启用。
 
 ## 目标用户与主要任务
 

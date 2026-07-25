@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_task_card_defined_batch_a_ready`
+状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_a1_strict_contracts_completed_batch_a2_ready`
 
 ## 目标与准入结论
 
@@ -178,9 +178,9 @@ Profile owner 至少固定：
 
 ### 批次 A：strict contract、policy compiler 与 memory Profile owner
 
-状态：`ready`。
+状态：`in_progress`；A1 已完成，A2 待开始。
 
-1. A1：新增 Profile Draft / Version、Configuration v4、Candidate v4、Assignment / Event、Authority v3、Session / Turn v3 与 Run v7 strict schema 和 Go contract-only codec；先落兼容矩阵测试，不注册后续 runtime。
+1. A1（已完成）：新增 Profile Draft / Version、Configuration v4、Candidate v4、Assignment / Event、Authority v3、Session / Turn v3 与 Run v7 共 10 份 strict schema 和独立 Go contract-only codec；兼容矩阵测试确认旧版本保持可用，新版本仍未注册到既有 runtime。
 2. A2：实现 Profile canonical normalization、project / task 校验、policy compiler、预算、safety / confirmation invariant、secret guard 和相邻单元测试。
 3. A3：实现 memory Draft / Version repository、作用域、CAS、不可变版本、stable list、corruption / unavailable、默认关闭 API 与 read / read_source 权限分离。
 
@@ -217,7 +217,7 @@ Profile owner 至少固定：
 
 ## 当前下一步
 
-直接进入批次 A1：先创建 10 份 strict schema、Go contract-only codec 与兼容矩阵测试。A1 通过前不实现 Profile repository / API；A1–A3 全部通过前不进入数据库、配置绑定、发布审查、assignment、Session、Run、provider 或 Web。
+直接进入批次 A2：实现 Profile canonical normalization、project / task / context field 校验、policy compiler、预算、safety / confirmation invariant、secret guard 与相邻单元测试。A2 不实现 Profile repository / API；A1–A3 全部通过前不进入数据库、配置绑定、发布审查、assignment、Session、Run、provider 或 Web。
 
 ## 停止线
 

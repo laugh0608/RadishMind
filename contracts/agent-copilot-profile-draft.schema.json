@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/agent-copilot-profile-draft.schema.json",
+  "title": "AgentCopilotProfileDraftV1",
+  "description": "Agent / Copilot 受控建议 profile 草稿；只保存结构化策略，不接收自由 system prompt、provider、model、credential 或 runtime 配置。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile_id", "tenant_ref", "workspace_id", "application_id", "owner_subject_ref", "profile_name", "description", "project", "allowed_tasks", "default_locale", "allowed_locales", "context_policy", "artifact_policy", "response_policy", "risk_policy", "tool_hints_policy", "draft_version", "profile_digest", "policy_digest", "validation_summary", "created_at", "updated_at", "created_by_actor_ref", "updated_by_actor_ref", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "agent_copilot_profile_draft.v1"},
+    "profile_id": {"$ref": "#/$defs/profileId"},
+    "tenant_ref": {"$ref": "#/$defs/ref"},
+    "workspace_id": {"$ref": "#/$defs/ref"},
+    "application_id": {"$ref": "#/$defs/applicationId"},
+    "owner_subject_ref": {"$ref": "#/$defs/ref"},
+    "profile_name": {"type": "string", "minLength": 2, "maxLength": 80},
+    "description": {"type": "string", "maxLength": 512},
+    "project": {"enum": ["radishflow", "radish"]},
+    "allowed_tasks": {"type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true, "items": {"$ref": "#/$defs/task"}},
+    "default_locale": {"$ref": "#/$defs/locale"},
+    "allowed_locales": {"type": "array", "minItems": 1, "maxItems": 8, "uniqueItems": true, "items": {"$ref": "#/$defs/locale"}},
+    "context_policy": {"$ref": "#/$defs/contextPolicy"},
+    "artifact_policy": {"$ref": "#/$defs/artifactPolicy"},
+    "response_policy": {"$ref": "#/$defs/responsePolicy"},
+    "risk_policy": {"$ref": "#/$defs/riskPolicy"},
+    "tool_hints_policy": {"$ref": "#/$defs/toolHintsPolicy"},
+    "draft_version": {"type": "integer", "minimum": 1},
+    "profile_digest": {"$ref": "#/$defs/digest"},
+    "policy_digest": {"$ref": "#/$defs/digest"},
+    "validation_summary": {"$ref": "#/$defs/validSummary"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "created_by_actor_ref": {"$ref": "#/$defs/ref"},
+    "updated_by_actor_ref": {"$ref": "#/$defs/ref"},
+    "request_id": {"$ref": "#/$defs/ref"},
+    "audit_ref": {"$ref": "#/$defs/ref"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"project": {"const": "radishflow"}}, "required": ["project"]},
+      "then": {
+        "properties": {
+          "allowed_tasks": {"items": {"enum": ["explain_diagnostics", "suggest_flowsheet_edits", "suggest_ghost_completion", "summarize_selection", "explain_control_plane_state", "inspect_canvas_snapshot"]}},
+          "context_policy": {"properties": {"allowed_fields": {"items": {"enum": ["document_revision", "selected_unit_ids", "selected_unit", "selected_stream_ids", "diagnostic_summary", "diagnostics", "solve_session", "latest_snapshot", "unconnected_ports", "missing_canonical_ports", "nearby_nodes", "cursor_context", "legal_candidate_completions", "naming_hints", "topology_pattern_hints", "control_plane_state"]}}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"project": {"const": "radish"}}, "required": ["project"]},
+      "then": {
+        "properties": {
+          "allowed_tasks": {"items": {"enum": ["answer_docs_question", "summarize_doc_or_thread", "suggest_forum_metadata", "explain_console_capability", "interpret_attachment"]}},
+          "context_policy": {"properties": {"allowed_fields": {"items": {"enum": ["current_app", "route", "resource", "viewer", "attachment_refs", "search_scope"]}}}}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "ref": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$"},
+    "applicationId": {"type": "string", "pattern": "^app_[a-z2-7]{16}$"},
+    "profileId": {"type": "string", "pattern": "^acpf_[a-z2-7]{16}$"},
+    "digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "locale": {"type": "string", "minLength": 2, "maxLength": 32, "pattern": "^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$"},
+    "task": {"enum": ["explain_diagnostics", "suggest_flowsheet_edits", "suggest_ghost_completion", "summarize_selection", "explain_control_plane_state", "inspect_canvas_snapshot", "answer_docs_question", "summarize_doc_or_thread", "suggest_forum_metadata", "explain_console_capability", "interpret_attachment"]},
+    "contextPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed_fields", "max_bytes", "require_task_context"],
+      "properties": {
+        "allowed_fields": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["document_revision", "selected_unit_ids", "selected_unit", "selected_stream_ids", "diagnostic_summary", "diagnostics", "solve_session", "latest_snapshot", "unconnected_ports", "missing_canonical_ports", "nearby_nodes", "cursor_context", "legal_candidate_completions", "naming_hints", "topology_pattern_hints", "control_plane_state", "current_app", "route", "resource", "viewer", "attachment_refs", "search_scope"]
+          }
+        },
+        "max_bytes": {"type": "integer", "minimum": 1, "maximum": 131072},
+        "require_task_context": {"type": "boolean"}
+      }
+    },
+    "artifactPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed_kinds", "allowed_roles", "max_count", "max_item_bytes", "max_total_bytes"],
+      "properties": {
+        "allowed_kinds": {"type": "array", "minItems": 1, "maxItems": 5, "uniqueItems": true, "items": {"enum": ["json", "markdown", "text", "image", "attachment_ref"]}},
+        "allowed_roles": {"type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": {"enum": ["primary", "supporting", "reference"]}},
+        "max_count": {"type": "integer", "minimum": 0, "maximum": 16},
+        "max_item_bytes": {"type": "integer", "minimum": 1, "maximum": 131072},
+        "max_total_bytes": {"type": "integer", "minimum": 1, "maximum": 262144}
+      }
+    },
+    "responsePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed_action_kinds", "max_answers", "max_issues", "max_actions", "max_citations", "max_visible_text_bytes"],
+      "properties": {
+        "allowed_action_kinds": {"type": "array", "maxItems": 4, "uniqueItems": true, "items": {"enum": ["candidate_edit", "candidate_operation", "read_only_check", "ghost_completion"]}},
+        "max_answers": {"type": "integer", "minimum": 0, "maximum": 64},
+        "max_issues": {"type": "integer", "minimum": 0, "maximum": 64},
+        "max_actions": {"type": "integer", "minimum": 0, "maximum": 64},
+        "max_citations": {"type": "integer", "minimum": 0, "maximum": 64},
+        "max_visible_text_bytes": {"type": "integer", "minimum": 1, "maximum": 16384}
+      }
+    },
+    "riskPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "requires_confirmation_for_actions", "confirmation_action_kinds"],
+      "properties": {
+        "mode": {"const": "advisory"},
+        "requires_confirmation_for_actions": {"const": true},
+        "confirmation_action_kinds": {"type": "array", "minItems": 3, "maxItems": 3, "uniqueItems": true, "items": {"enum": ["candidate_edit", "candidate_operation", "ghost_completion"]}}
+      }
+    },
+    "toolHintsPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allow_retrieval", "allow_tool_calls", "allow_image_reasoning"],
+      "properties": {
+        "allow_retrieval": {"const": false},
+        "allow_tool_calls": {"const": false},
+        "allow_image_reasoning": {"const": false}
+      }
+    },
+    "validSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "is_valid", "findings"],
+      "properties": {
+        "state": {"const": "valid"},
+        "is_valid": {"const": true},
+        "findings": {"type": "array", "maxItems": 0}
+      }
+    },
+    "profileRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "profile_version", "profile_digest", "policy_digest"],
+      "properties": {
+        "profile_id": {"$ref": "#/$defs/profileId"},
+        "profile_version": {"type": "integer", "minimum": 1},
+        "profile_digest": {"$ref": "#/$defs/digest"},
+        "policy_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "publicConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["display_name", "description", "application_kind", "default_protocol", "default_model", "allowed_protocols", "agent_copilot_profile_ref"],
+      "properties": {
+        "display_name": {"type": "string", "minLength": 2, "maxLength": 120},
+        "description": {"type": "string", "maxLength": 1000},
+        "application_kind": {"const": "agent"},
+        "default_protocol": {"$ref": "#/$defs/protocol"},
+        "default_model": {"$ref": "#/$defs/ref"},
+        "allowed_protocols": {"type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": {"$ref": "#/$defs/protocol"}},
+        "agent_copilot_profile_ref": {"$ref": "#/$defs/profileRef"}
+      }
+    },
+    "protocol": {"enum": ["chat_completions", "responses", "messages"]}
+  }
+}

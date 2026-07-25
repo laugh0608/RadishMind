@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-1. [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)：唯一实施任务卡与兼容矩阵已定义，状态为 `agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_task_card_defined_batch_a_ready`；下一步进入 A1 strict schema、contract-only codec 与兼容测试。
+1. [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)：A1 strict schema、独立 contract-only codec 与兼容防漂移测试已完成，状态为 `agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_a1_strict_contracts_completed_batch_a2_ready`；下一步进入 A2 policy compiler。
 
 [应用开发工作区与发布准备审查 v1](../features/user-workspace/application-development-workspace-release-readiness-review-v1.md)批次 A 至 C 已完成并关闭，不再派生同层任务卡。
 

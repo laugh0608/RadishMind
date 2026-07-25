@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/application-configuration-draft-v4.schema.json",
+  "title": "ApplicationConfigurationDraftV4",
+  "description": "Agent / Copilot 应用配置草稿；只引用不可变 profile 版本，不复制 profile 源码。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "draft_id", "workspace_id", "application_id", "base_application_updated_at", "display_name", "description", "application_kind", "default_protocol", "default_model", "allowed_protocols", "agent_copilot_profile_ref", "draft_version", "draft_digest", "validation_summary", "created_at", "updated_at", "created_by_actor_ref", "updated_by_actor_ref", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "application_configuration_draft.v4"},
+    "draft_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "workspace_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "application_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/applicationId"},
+    "base_application_updated_at": {"type": "string", "format": "date-time"},
+    "display_name": {"type": "string", "minLength": 2, "maxLength": 120},
+    "description": {"type": "string", "maxLength": 1000},
+    "application_kind": {"const": "agent"},
+    "default_protocol": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/protocol"},
+    "default_model": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "allowed_protocols": {"type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/protocol"}},
+    "agent_copilot_profile_ref": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/profileRef"},
+    "draft_version": {"type": "integer", "minimum": 1},
+    "draft_digest": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/digest"},
+    "validation_summary": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/validSummary"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "created_by_actor_ref": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "updated_by_actor_ref": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "request_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "audit_ref": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"}
+  }
+}

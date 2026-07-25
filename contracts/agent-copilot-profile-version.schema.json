@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/agent-copilot-profile-version.schema.json",
+  "title": "AgentCopilotProfileVersionV1",
+  "description": "由已验证草稿发布的不可变 Agent / Copilot profile 版本。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile_id", "profile_version", "source_draft_version", "tenant_ref", "workspace_id", "application_id", "owner_subject_ref", "profile_name", "description", "project", "allowed_tasks", "default_locale", "allowed_locales", "context_policy", "artifact_policy", "response_policy", "risk_policy", "tool_hints_policy", "profile_digest", "policy_digest", "published_at", "published_by_actor_ref", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "agent_copilot_profile_version.v1"},
+    "profile_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/profileId"},
+    "profile_version": {"type": "integer", "minimum": 1},
+    "source_draft_version": {"type": "integer", "minimum": 1},
+    "tenant_ref": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "workspace_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "application_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/applicationId"},
+    "owner_subject_ref": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "profile_name": {"type": "string", "minLength": 2, "maxLength": 80},
+    "description": {"type": "string", "maxLength": 512},
+    "project": {"enum": ["radishflow", "radish"]},
+    "allowed_tasks": {"type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true, "items": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/task"}},
+    "default_locale": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/locale"},
+    "allowed_locales": {"type": "array", "minItems": 1, "maxItems": 8, "uniqueItems": true, "items": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/locale"}},
+    "context_policy": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/contextPolicy"},
+    "artifact_policy": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/artifactPolicy"},
+    "response_policy": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/responsePolicy"},
+    "risk_policy": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/riskPolicy"},
+    "tool_hints_policy": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/toolHintsPolicy"},
+    "profile_digest": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/digest"},
+    "policy_digest": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/digest"},
+    "published_at": {"type": "string", "format": "date-time"},
+    "published_by_actor_ref": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "request_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "audit_ref": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"project": {"const": "radishflow"}}, "required": ["project"]},
+      "then": {
+        "properties": {
+          "allowed_tasks": {"items": {"enum": ["explain_diagnostics", "suggest_flowsheet_edits", "suggest_ghost_completion", "summarize_selection", "explain_control_plane_state", "inspect_canvas_snapshot"]}},
+          "context_policy": {"properties": {"allowed_fields": {"items": {"enum": ["document_revision", "selected_unit_ids", "selected_unit", "selected_stream_ids", "diagnostic_summary", "diagnostics", "solve_session", "latest_snapshot", "unconnected_ports", "missing_canonical_ports", "nearby_nodes", "cursor_context", "legal_candidate_completions", "naming_hints", "topology_pattern_hints", "control_plane_state"]}}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"project": {"const": "radish"}}, "required": ["project"]},
+      "then": {
+        "properties": {
+          "allowed_tasks": {"items": {"enum": ["answer_docs_question", "summarize_doc_or_thread", "suggest_forum_metadata", "explain_console_capability", "interpret_attachment"]}},
+          "context_policy": {"properties": {"allowed_fields": {"items": {"enum": ["current_app", "route", "resource", "viewer", "attachment_refs", "search_scope"]}}}}
+        }
+      }
+    }
+  ]
+}

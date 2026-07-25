@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/application-runtime-authority-v3.schema.json",
+  "title": "ApplicationRuntimeAuthorityV3",
+  "description": "只用于 agent_copilot_suggestion_v1 的 exact metadata authority；既有 Workflow、RAG 与 Prompt Application authority 版本保持不变。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "execution_profile", "application_id", "application_record_version", "application_lifecycle", "agent_copilot", "authority_digest"],
+  "properties": {
+    "schema_version": {"const": "application_runtime_authority.v3"},
+    "execution_profile": {"const": "agent_copilot_suggestion_v1"},
+    "application_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/applicationId"},
+    "application_record_version": {"type": "integer", "minimum": 1},
+    "application_lifecycle": {"const": "active"},
+    "agent_copilot": {"$ref": "#/$defs/agentCopilotAuthority"},
+    "authority_digest": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/digest"}
+  },
+  "$defs": {
+    "agentCopilotAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assignment_id", "assignment_version", "assignment_digest", "publish_candidate_id", "publish_review_version", "draft_id", "draft_version", "draft_digest", "agent_copilot_profile_ref", "project", "allowed_tasks_digest", "default_protocol", "default_model", "protocol_policy_digest", "model_eligibility_digest"],
+      "properties": {
+        "assignment_id": {"$ref": "agent-copilot-runtime-assignment.schema.json#/$defs/assignmentId"},
+        "assignment_version": {"type": "integer", "minimum": 1},
+        "assignment_digest": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/digest"},
+        "publish_candidate_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+        "publish_review_version": {"type": "integer", "minimum": 1},
+        "draft_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+        "draft_version": {"type": "integer", "minimum": 1},
+        "draft_digest": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/digest"},
+        "agent_copilot_profile_ref": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/profileRef"},
+        "project": {"enum": ["radishflow", "radish"]},
+        "allowed_tasks_digest": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/digest"},
+        "default_protocol": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/protocol"},
+        "default_model": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+        "protocol_policy_digest": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/digest"},
+        "model_eligibility_digest": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/digest"}
+      }
+    }
+  }
+}
