@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_c_completed_batch_d_ready`
+状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_d_completed_batch_e_ready`
 
 ## 目标与准入结论
 
@@ -215,9 +215,11 @@ Profile owner 至少固定：
 
 ### 批次 D：单次受控建议、Session、Run 与 Evaluation
 
-- 实现唯一 `agent_copilot_suggestion_v1` invocation service 与 provider 前 exact authority checkpoint。
-- API key 与 Session v3 只委托同一 service；每次成功 invocation 恰好一次计划内 Gateway 调用。
-- Run v7、History、Comparison、Evaluation 与 Operations 只保存 metadata；取消、幂等与 `outcome_unknown` 不 replay。
+- 状态：`completed`。
+- 唯一 `agent_copilot_suggestion_v1` invocation service 已实现运行预留前与 Gateway 前双 authority checkpoint；canonical request / response、Profile policy、动作确认与引用完整性均失败关闭。
+- API key `agent_copilot:invoke` 与 Session / Turn v3 只委托同一 service；成功 invocation 恰好一次 Gateway 调用，并发重复、取消、provider 不确定与终态重试均不 retry / replay。
+- Run v7、History、Detail、Comparison v6、Evaluation 与 Operations 只保存和消费 metadata；跨 Profile、project 或 task lineage 拒绝比较和评测。
+- SQLite `0015` 与 PostgreSQL `0018` 已完成独立 Session / Turn / Run 投影；相邻与真实 PostgreSQL 验证覆盖重启、受限角色、append-only、no-fallback、敏感内容不落盘和旧版本兼容。
 
 ### 批次 E：类型专属 Web 与双数据库真实验收
 
@@ -226,7 +228,7 @@ Profile owner 至少固定：
 
 ## 当前下一步
 
-直接进入批次 D：实现唯一 `agent_copilot_suggestion_v1` service 与 provider 前 exact authority checkpoint；API key 与 Session v3 只委托该 service，Run v7、History、Comparison、Evaluation 与 Operations 只消费 metadata。专项验证必须覆盖权限、幂等、取消、assignment revoke / replace、candidate supersede、authority drift、canonical response 失败、`outcome_unknown` 和成功调用恰好一次计划内 Gateway 副作用；批次 D 完成前不进入 Web。
+直接进入批次 E：以显式 application kind routing 为根边界，为 `agent` 建立 Profile、binding、candidate review、assignment、controlled test、Session v3 与 Run / Evaluation handoff Web surface；随后完成 SQLite / PostgreSQL launcher、服务重启和真实浏览器连续链。专项验证继续覆盖 CAS、authority drift、取消、迟到响应、credential 一次性交接、URL / storage / network / database 隐私和旧 application kind surface 不漂移。
 
 ## 停止线
 

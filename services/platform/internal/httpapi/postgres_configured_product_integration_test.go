@@ -534,6 +534,9 @@ func runConfiguredPostgresMigrationGate(
 func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
 	_, err := pool.Exec(ctx, `DROP TABLE IF EXISTS
+		agent_copilot_run_records,
+		agent_copilot_session_turns,
+		agent_copilot_sessions,
 		agent_copilot_runtime_assignment_events,
 		agent_copilot_runtime_assignments,
 		prompt_application_run_records,
@@ -592,6 +595,9 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 		CASCADE`)
 	if err != nil {
 		t.Fatalf("reset configured PostgreSQL schemas: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_agent_copilot_invocation_projection_mutation(), enforce_agent_copilot_run_update(), enforce_agent_copilot_turn_update(), enforce_agent_copilot_session_update()`); err != nil {
+		t.Fatalf("reset configured PostgreSQL Agent Copilot invocation guards: %v", err)
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_agent_copilot_assignment_mutation(), enforce_agent_copilot_assignment_update()`); err != nil {
 		t.Fatalf("reset Agent Copilot assignment guards: %v", err)

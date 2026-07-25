@@ -12,6 +12,7 @@ const (
 	workflowRAGAppRunComparisonSchemaVersion     = "workflow_run_comparison.v3"
 	workflowDefinitionRunComparisonSchemaVersion = "workflow_run_comparison.v4"
 	promptApplicationRunComparisonSchemaVersion  = "workflow_run_comparison.v5"
+	agentCopilotRunComparisonSchemaVersion       = "workflow_run_comparison.v6"
 )
 
 type WorkflowRunComparisonClassification string
@@ -49,6 +50,17 @@ type WorkflowRunComparisonRun struct {
 	ExecutionProfile       string                            `json:"execution_profile,omitempty"`
 	DefinitionDigest       string                            `json:"definition_digest,omitempty"`
 	AuthorityDigest        string                            `json:"authority_digest,omitempty"`
+	ProfileDigest          string                            `json:"profile_digest,omitempty"`
+	PolicyDigest           string                            `json:"policy_digest,omitempty"`
+	AllowedTasksDigest     string                            `json:"allowed_tasks_digest,omitempty"`
+	Project                string                            `json:"project,omitempty"`
+	Task                   string                            `json:"task,omitempty"`
+	Locale                 string                            `json:"locale,omitempty"`
+	ResponseStatus         string                            `json:"response_status,omitempty"`
+	ResponseDigest         string                            `json:"response_digest,omitempty"`
+	ActionCount            int                               `json:"action_count,omitempty"`
+	RiskLevel              string                            `json:"risk_level,omitempty"`
+	RequiresConfirmation   bool                              `json:"requires_confirmation,omitempty"`
 	VariableNamesDigest    string                            `json:"variable_names_digest,omitempty"`
 	RequestedProtocol      string                            `json:"requested_protocol,omitempty"`
 	SelectedProtocol       string                            `json:"selected_protocol,omitempty"`
@@ -107,7 +119,8 @@ type WorkflowRunComparison struct {
 
 func (comparison WorkflowRunComparison) MarshalJSON() ([]byte, error) {
 	type alias WorkflowRunComparison
-	if comparison.SchemaVersion != promptApplicationRunComparisonSchemaVersion {
+	if comparison.SchemaVersion != promptApplicationRunComparisonSchemaVersion &&
+		comparison.SchemaVersion != agentCopilotRunComparisonSchemaVersion {
 		return json.Marshal(alias(comparison))
 	}
 	return json.Marshal(struct {
@@ -158,6 +171,15 @@ func (service workflowExecutorService) CompareRuns(runContext WorkflowRunContext
 		comparison := buildWorkflowRunComparison(baseline, candidate, time.Now().UTC())
 		comparison.SchemaVersion = promptApplicationRunComparisonSchemaVersion
 		comparison.RunProfile = promptApplicationInvocationProfile
+		return WorkflowRunComparisonResult{Comparison: &comparison}
+	}
+	if baseline.SchemaVersion == agentCopilotRunV7Schema || candidate.SchemaVersion == agentCopilotRunV7Schema {
+		if !agentCopilotRunsComparable(baseline, candidate) {
+			return workflowRunComparisonFailure(WorkflowRunFailureAgentCopilotIncompatible)
+		}
+		comparison := buildWorkflowRunComparison(baseline, candidate, time.Now().UTC())
+		comparison.SchemaVersion = agentCopilotRunComparisonSchemaVersion
+		comparison.RunProfile = agentCopilotSuggestionProfile
 		return WorkflowRunComparisonResult{Comparison: &comparison}
 	}
 	if workflowRunRecordUsesRetrievalComparison(baseline) || workflowRunRecordUsesRetrievalComparison(candidate) {
@@ -240,8 +262,21 @@ func promptApplicationRunsComparable(baseline, candidate WorkflowRunRecord) bool
 		baseline.ExecutionSource.ID == candidate.ExecutionSource.ID
 }
 
+func agentCopilotRunsComparable(baseline, candidate WorkflowRunRecord) bool {
+	return baseline.SchemaVersion == agentCopilotRunV7Schema &&
+		candidate.SchemaVersion == agentCopilotRunV7Schema &&
+		baseline.ExecutionProfile == agentCopilotSuggestionProfile &&
+		candidate.ExecutionProfile == agentCopilotSuggestionProfile &&
+		baseline.ExecutionSource != nil && candidate.ExecutionSource != nil &&
+		baseline.ExecutionSource.SourceKind == agentCopilotExecutionSourceKind &&
+		candidate.ExecutionSource.SourceKind == agentCopilotExecutionSourceKind &&
+		baseline.ExecutionSource.ID == candidate.ExecutionSource.ID &&
+		baseline.AgentProject == candidate.AgentProject &&
+		baseline.AgentTask == candidate.AgentTask
+}
+
 func comparisonRun(summary WorkflowRunSummary) WorkflowRunComparisonRun {
-	return WorkflowRunComparisonRun{RunID: summary.RunID, SchemaVersion: summary.SchemaVersion, DraftID: summary.DraftID, DraftVersion: summary.DraftVersion, ExecutionKind: summary.ExecutionKind, ExecutionSourceKind: summary.ExecutionSourceKind, ExecutionSourceID: summary.ExecutionSourceID, ExecutionSourceVersion: summary.ExecutionSourceVersion, ExecutionProfile: summary.ExecutionProfile, DefinitionDigest: summary.DefinitionDigest, AuthorityDigest: summary.AuthorityDigest, VariableNamesDigest: summary.VariableNamesDigest, RequestedProtocol: summary.RequestedProtocol, SelectedProtocol: summary.SelectedProtocol, UsageState: summary.UsageState, InputTokens: summary.InputTokens, OutputTokens: summary.OutputTokens, TotalTokens: summary.TotalTokens, Status: summary.Status, FailureCode: summary.FailureCode, FailureBoundary: summary.FailureBoundary, GatewayFailureCategory: summary.GatewayFailureCategory, SelectedProvider: summary.SelectedProvider, SelectedProfile: summary.SelectedProfile, SelectedModel: summary.SelectedModel, DurationMS: summary.DurationMS, StaleRunning: summary.StaleRunning, RequestID: summary.RequestID, AuditRef: summary.AuditRef, SideEffects: summary.SideEffects}
+	return WorkflowRunComparisonRun{RunID: summary.RunID, SchemaVersion: summary.SchemaVersion, DraftID: summary.DraftID, DraftVersion: summary.DraftVersion, ExecutionKind: summary.ExecutionKind, ExecutionSourceKind: summary.ExecutionSourceKind, ExecutionSourceID: summary.ExecutionSourceID, ExecutionSourceVersion: summary.ExecutionSourceVersion, ExecutionProfile: summary.ExecutionProfile, DefinitionDigest: summary.DefinitionDigest, AuthorityDigest: summary.AuthorityDigest, ProfileDigest: summary.ProfileDigest, PolicyDigest: summary.PolicyDigest, AllowedTasksDigest: summary.AllowedTasksDigest, Project: summary.Project, Task: summary.Task, Locale: summary.Locale, ResponseStatus: summary.ResponseStatus, ResponseDigest: summary.ResponseDigest, ActionCount: summary.ActionCount, RiskLevel: summary.RiskLevel, RequiresConfirmation: summary.RequiresConfirmation, VariableNamesDigest: summary.VariableNamesDigest, RequestedProtocol: summary.RequestedProtocol, SelectedProtocol: summary.SelectedProtocol, UsageState: summary.UsageState, InputTokens: summary.InputTokens, OutputTokens: summary.OutputTokens, TotalTokens: summary.TotalTokens, Status: summary.Status, FailureCode: summary.FailureCode, FailureBoundary: summary.FailureBoundary, GatewayFailureCategory: summary.GatewayFailureCategory, SelectedProvider: summary.SelectedProvider, SelectedProfile: summary.SelectedProfile, SelectedModel: summary.SelectedModel, DurationMS: summary.DurationMS, StaleRunning: summary.StaleRunning, RequestID: summary.RequestID, AuditRef: summary.AuditRef, SideEffects: summary.SideEffects}
 }
 
 func workflowRunRecordUsesRetrievalComparison(record WorkflowRunRecord) bool {
@@ -463,6 +498,9 @@ func workflowRunComparisonFailure(code WorkflowRunFailureCode) WorkflowRunCompar
 	}
 	if code == WorkflowRunFailurePromptIncompatible {
 		summary = "Workflow run comparison requires one compatible Prompt Application template lineage and execution profile."
+	}
+	if code == WorkflowRunFailureAgentCopilotIncompatible {
+		summary = "Workflow run comparison requires one compatible Agent Copilot profile, project, task lineage, and execution profile."
 	}
 	return WorkflowRunComparisonResult{FailureCode: code, FailureSummary: summary}
 }

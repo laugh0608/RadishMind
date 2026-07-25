@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"strings"
 	"time"
@@ -24,6 +25,11 @@ type ApplicationInteractionTurnExecutionInput struct {
 	Model                  string
 	Temperature            *float64
 	PromptVariables        map[string]any
+	AgentTask              string
+	AgentLocale            string
+	AgentConversationID    string
+	AgentArtifacts         []AgentCopilotArtifact
+	AgentContext           map[string]any
 }
 
 type ApplicationInteractionTurnExecutionResult struct {
@@ -32,6 +38,7 @@ type ApplicationInteractionTurnExecutionResult struct {
 	AdvisoryOutput   string
 	Answer           *WorkflowRAGApplicationAnswer
 	PromptOutput     string
+	AgentResponse    *AgentCopilotResponse
 	FailureCode      string
 	FailureSummary   string
 	IdempotentReplay bool
@@ -45,6 +52,7 @@ type ApplicationInteractionReconciliationResult struct {
 type applicationInteractionWorkflowDelegate func(WorkflowRunContext, WorkflowDefinitionRunRequest) WorkflowRunResult
 type applicationInteractionRAGDelegate func(WorkflowRAGApplicationRuntimeContext, WorkflowRAGApplicationInvocationInput) WorkflowRAGApplicationInvocationResult
 type applicationInteractionPromptDelegate func(PromptApplicationRuntimeContext, PromptApplicationInvocationInput) PromptApplicationInvocationResult
+type applicationInteractionAgentCopilotDelegate func(AgentCopilotRuntimeContext, AgentCopilotInvocationInput) AgentCopilotInvocationResult
 
 type applicationInteractionTurnCoordinator struct {
 	sessions        applicationInteractionSessionService
@@ -52,6 +60,7 @@ type applicationInteractionTurnCoordinator struct {
 	executeWorkflow applicationInteractionWorkflowDelegate
 	invokeRAG       applicationInteractionRAGDelegate
 	invokePrompt    applicationInteractionPromptDelegate
+	invokeAgent     applicationInteractionAgentCopilotDelegate
 	now             func() time.Time
 	staleAfter      time.Duration
 }
@@ -71,6 +80,11 @@ func newApplicationInteractionTurnCoordinator(
 		sessions: sessions, resolver: resolver, executeWorkflow: executeWorkflow, invokeRAG: invokeRAG, invokePrompt: promptDelegate,
 		now: func() time.Time { return time.Now().UTC() }, staleAfter: workflowExecutorDefaultMaxRuntime,
 	}
+}
+
+func (coordinator applicationInteractionTurnCoordinator) withAgentCopilot(delegate applicationInteractionAgentCopilotDelegate) applicationInteractionTurnCoordinator {
+	coordinator.invokeAgent = delegate
+	return coordinator
 }
 
 func (coordinator applicationInteractionTurnCoordinator) Execute(
@@ -95,7 +109,8 @@ func (coordinator applicationInteractionTurnCoordinator) Execute(
 	}
 	if (current.Session.ProfileBinding.ExecutionProfile == applicationInteractionProfileWorkflow && coordinator.executeWorkflow == nil) ||
 		(current.Session.ProfileBinding.ExecutionProfile == applicationInteractionProfileRAG && coordinator.invokeRAG == nil) ||
-		(current.Session.ProfileBinding.ExecutionProfile == applicationInteractionProfilePrompt && coordinator.invokePrompt == nil) {
+		(current.Session.ProfileBinding.ExecutionProfile == applicationInteractionProfilePrompt && coordinator.invokePrompt == nil) ||
+		(current.Session.ProfileBinding.ExecutionProfile == applicationInteractionProfileAgentCopilot && coordinator.invokeAgent == nil) {
 		return applicationInteractionTurnExecutionFailure(ApplicationInteractionFailureExecutionUnavailable, "The selected application session execution profile is unavailable.")
 	}
 	startedAt := coordinator.currentTime()
@@ -133,7 +148,40 @@ func (coordinator applicationInteractionTurnCoordinator) Execute(
 	if reserved.Turn.ExecutionProfile == applicationInteractionProfilePrompt {
 		return coordinator.executePromptTurn(ctx, *reserved.Turn, normalized)
 	}
+	if reserved.Turn.ExecutionProfile == applicationInteractionProfileAgentCopilot {
+		return coordinator.executeAgentCopilotTurn(ctx, *reserved.Turn, normalized)
+	}
 	return coordinator.executeRAGTurn(ctx, *reserved.Turn, normalized)
+}
+
+func (coordinator applicationInteractionTurnCoordinator) executeAgentCopilotTurn(
+	ctx ApplicationInteractionContext,
+	turn ApplicationInteractionTurn,
+	input ApplicationInteractionTurnExecutionInput,
+) ApplicationInteractionTurnExecutionResult {
+	result := coordinator.invokeAgent(AgentCopilotRuntimeContext{
+		RequestContext: ctx.RequestContext, RequestID: ctx.RequestID, TenantRef: ctx.TenantRef,
+		WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, ActorRef: ctx.ActorRef,
+		OwnerSubjectRef: ctx.OwnerSubjectRef, AuditRef: ctx.AuditRef,
+	}, AgentCopilotInvocationInput{
+		Task: input.AgentTask, Locale: input.AgentLocale, ConversationID: input.AgentConversationID,
+		Artifacts: input.AgentArtifacts, Context: input.AgentContext,
+		ClientInvocationKey: turn.SessionID + ":" + turn.ClientTurnKey,
+	})
+	status, failureCode, failureSummary, runRef := applicationInteractionAgentCopilotTerminal(ctx.RequestContext, result)
+	completed := coordinator.sessions.CompleteTurn(ctx, turn.SessionID, turn.TurnID, ApplicationInteractionTurnCompletionInput{
+		Status: status, RunRef: runRef, FailureCode: failureCode, FailureSummary: failureSummary, CompletedAt: coordinator.currentTime(),
+	})
+	response := applicationInteractionTurnExecutionFromSessionResult(completed)
+	if completed.FailureCode != "" {
+		response.FailureSummary = "Application session turn terminal evidence could not be stored."
+		return response
+	}
+	response.FailureCode, response.FailureSummary = failureCode, failureSummary
+	if completed.Turn != nil && completed.Turn.Status == string(WorkflowRunStatusSucceeded) {
+		response.AgentResponse, response.FailureCode, response.FailureSummary = result.Response, "", ""
+	}
+	return response
 }
 
 func (coordinator applicationInteractionTurnCoordinator) executeWorkflowTurn(
@@ -322,6 +370,14 @@ func normalizeApplicationInteractionTurnExecutionInput(
 		if _, _, err := canonicalPromptApplicationInvocationInput(input.PromptVariables); err != nil {
 			return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailurePayloadInvalid, "Prompt application session variables are invalid."
 		}
+	case applicationInteractionProfileAgentCopilot:
+		if input.InputText != "" || input.PromptVariables != nil || len(input.ConditionValues) != 0 ||
+			input.Model != "" || input.Temperature != nil || strings.TrimSpace(input.AgentTask) == "" ||
+			strings.TrimSpace(input.AgentLocale) == "" || input.AgentContext == nil {
+			return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailurePayloadInvalid, "Agent Copilot session turns only accept canonical request data."
+		}
+		input.AgentTask, input.AgentLocale = strings.TrimSpace(input.AgentTask), strings.TrimSpace(input.AgentLocale)
+		input.AgentConversationID = strings.TrimSpace(input.AgentConversationID)
 	default:
 		return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailureExecutionUnavailable, "The selected application session execution profile is unavailable."
 	}
@@ -330,6 +386,22 @@ func normalizeApplicationInteractionTurnExecutionInput(
 
 func applicationInteractionInputMetadata(session ApplicationInteractionSession, input ApplicationInteractionTurnExecutionInput) (string, int, error) {
 	if session.ProfileBinding.ExecutionProfile != applicationInteractionProfilePrompt {
+		if session.ProfileBinding.ExecutionProfile == applicationInteractionProfileAgentCopilot {
+			payload, err := json.Marshal(struct {
+				Task           string                 `json:"task"`
+				Locale         string                 `json:"locale"`
+				ConversationID string                 `json:"conversation_id,omitempty"`
+				Artifacts      []AgentCopilotArtifact `json:"artifacts"`
+				Context        map[string]any         `json:"context"`
+			}{
+				Task: input.AgentTask, Locale: input.AgentLocale, ConversationID: input.AgentConversationID,
+				Artifacts: input.AgentArtifacts, Context: input.AgentContext,
+			})
+			if err != nil || len(payload) > agentCopilotMaximumInvocationBytes {
+				return "", 0, errApplicationSessionContract
+			}
+			return workflowRAGSHA256(string(payload)), len(payload), nil
+		}
 		return workflowDefinitionInputDigest(input.InputText), len([]byte(input.InputText)), nil
 	}
 	payload, _, err := canonicalPromptApplicationInvocationInput(input.PromptVariables)
@@ -337,6 +409,35 @@ func applicationInteractionInputMetadata(session ApplicationInteractionSession, 
 		return "", 0, err
 	}
 	return workflowRAGSHA256(string(payload)), len(payload), nil
+}
+
+func applicationInteractionAgentCopilotTerminal(ctx context.Context, result AgentCopilotInvocationResult) (string, string, string, *ApplicationInteractionRunRef) {
+	ref, valid := applicationInteractionDelegatedRunRef(applicationInteractionProfileAgentCopilot, result.Run)
+	if result.Run != nil && !valid {
+		return string(WorkflowRunStatusFailed), ApplicationInteractionFailureDelegatedRunContract, "Delegated Agent Copilot run metadata is invalid.", nil
+	}
+	if result.Run != nil && result.Run.Status == WorkflowRunStatusRunning {
+		return string(WorkflowRunStatusOutcomeUnknown), ApplicationInteractionFailureRunOutcomeUnknown, "Delegated Agent Copilot run terminal evidence is unavailable.", ref
+	}
+	if result.Run != nil && result.Run.Status == WorkflowRunStatusSucceeded && result.FailureCode == "" && result.Response != nil {
+		return string(WorkflowRunStatusSucceeded), "", "", ref
+	}
+	if (ctx != nil && ctx.Err() != nil) || result.Run != nil && result.Run.Status == WorkflowRunStatusCanceled {
+		return string(WorkflowRunStatusCanceled), ApplicationInteractionFailureTurnCanceled, "Application session turn was canceled.", ref
+	}
+	failureCode := strings.TrimSpace(result.FailureCode)
+	if failureCode == "" {
+		failureCode = ApplicationInteractionFailureDelegatedRunContract
+	}
+	failureSummary := strings.TrimSpace(result.FailureSummary)
+	if failureSummary == "" {
+		failureSummary = "Delegated Agent Copilot execution failed."
+	}
+	status := string(WorkflowRunStatusFailed)
+	if result.Run != nil && result.Run.Status == WorkflowRunStatusOutcomeUnknown {
+		status = string(WorkflowRunStatusOutcomeUnknown)
+	}
+	return status, failureCode, failureSummary, ref
 }
 
 func applicationInteractionWorkflowTerminal(result WorkflowRunResult) (string, string, string, *ApplicationInteractionRunRef) {

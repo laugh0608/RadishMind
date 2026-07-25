@@ -123,7 +123,7 @@ func TestAgentCopilotContractsRemainMetadataOnly(t *testing.T) {
 	}
 }
 
-func TestAgentCopilotBatchCRegistersOnlyReviewedRuntimeProjections(t *testing.T) {
+func TestAgentCopilotBatchDRegistersReviewedInvocationContracts(t *testing.T) {
 	for _, schemaVersion := range []string{applicationConfigurationDraftSchemaVersionV1, applicationConfigurationDraftSchemaVersionV2, promptApplicationConfigurationDraftV3Schema} {
 		if !applicationConfigurationDraftSchemaSupported(schemaVersion) {
 			t.Fatalf("existing configuration schema %s lost compatibility", schemaVersion)
@@ -153,11 +153,11 @@ func TestAgentCopilotBatchCRegistersOnlyReviewedRuntimeProjections(t *testing.T)
 			t.Fatalf("existing run schema %s lost compatibility", schemaVersion)
 		}
 	}
-	if validWorkflowRunRecordSchema(agentCopilotRunV7Schema) {
-		t.Fatal("Batch C must not register workflow run v7")
+	if !validWorkflowRunRecordSchema(agentCopilotRunV7Schema) {
+		t.Fatal("Batch D must register workflow run v7")
 	}
-	if _, exists := apiKeyAllowedScopes["agent_copilot:invoke"]; exists {
-		t.Fatal("Batch C must not expose agent_copilot:invoke")
+	if _, exists := apiKeyAllowedScopes[agentCopilotInvokeScope]; !exists {
+		t.Fatal("Batch D must expose agent_copilot:invoke")
 	}
 }
 

@@ -30,6 +30,12 @@ func encodeApplicationInteractionSession(session ApplicationInteractionSession) 
 			return nil, errApplicationSessionContract
 		}
 		payload, err = json.Marshal(contract)
+	} else if session.SchemaVersion == agentCopilotSessionV3Schema {
+		contract, convertErr := agentCopilotSessionContractFromInteraction(session)
+		if convertErr != nil {
+			return nil, errApplicationSessionContract
+		}
+		payload, err = json.Marshal(contract)
 	} else {
 		payload, err = json.Marshal(session)
 	}
@@ -56,6 +62,21 @@ func decodeApplicationInteractionSession(ctx ApplicationInteractionContext, payl
 			return ApplicationInteractionSession{}, errApplicationSessionContract
 		}
 		session := applicationInteractionSessionFromPromptContract(*contract)
+		if validateStoredApplicationInteractionSession(ctx, session) != nil {
+			return ApplicationInteractionSession{}, errApplicationSessionContract
+		}
+		return session, nil
+	}
+	if envelope.SchemaVersion == agentCopilotSessionV3Schema {
+		value, err := decodeAgentCopilotContract(agentCopilotSessionV3Schema, payload)
+		if err != nil {
+			return ApplicationInteractionSession{}, errApplicationSessionContract
+		}
+		contract, ok := value.(*AgentCopilotSessionV3)
+		if !ok {
+			return ApplicationInteractionSession{}, errApplicationSessionContract
+		}
+		session := applicationInteractionSessionFromAgentCopilotContract(*contract)
 		if validateStoredApplicationInteractionSession(ctx, session) != nil {
 			return ApplicationInteractionSession{}, errApplicationSessionContract
 		}
@@ -90,6 +111,12 @@ func encodeApplicationInteractionTurn(turn ApplicationInteractionTurn) ([]byte, 
 			return nil, errApplicationSessionContract
 		}
 		payload, err = json.Marshal(contract)
+	} else if turn.SchemaVersion == agentCopilotSessionTurnV3Schema {
+		contract, convertErr := agentCopilotTurnContractFromInteraction(turn)
+		if convertErr != nil {
+			return nil, errApplicationSessionContract
+		}
+		payload, err = json.Marshal(contract)
 	} else {
 		payload, err = json.Marshal(turn)
 	}
@@ -116,6 +143,21 @@ func decodeApplicationInteractionTurn(ctx ApplicationInteractionContext, payload
 			return ApplicationInteractionTurn{}, errApplicationSessionContract
 		}
 		turn := applicationInteractionTurnFromPromptContract(*contract)
+		if validateStoredApplicationInteractionTurn(ctx, turn) != nil {
+			return ApplicationInteractionTurn{}, errApplicationSessionContract
+		}
+		return turn, nil
+	}
+	if envelope.SchemaVersion == agentCopilotSessionTurnV3Schema {
+		value, err := decodeAgentCopilotContract(agentCopilotSessionTurnV3Schema, payload)
+		if err != nil {
+			return ApplicationInteractionTurn{}, errApplicationSessionContract
+		}
+		contract, ok := value.(*AgentCopilotSessionTurnV3)
+		if !ok {
+			return ApplicationInteractionTurn{}, errApplicationSessionContract
+		}
+		turn := applicationInteractionTurnFromAgentCopilotContract(*contract)
 		if validateStoredApplicationInteractionTurn(ctx, turn) != nil {
 			return ApplicationInteractionTurn{}, errApplicationSessionContract
 		}
@@ -199,6 +241,76 @@ func applicationInteractionTurnFromPromptContract(contract PromptApplicationSess
 		WorkspaceID: contract.WorkspaceID, ApplicationID: contract.ApplicationID,
 		OwnerSubjectRef: contract.OwnerSubjectRef, ExecutionProfile: contract.ExecutionProfile,
 		Authority: applicationInteractionAuthorityFromPrompt(contract.Authority), Status: contract.Status,
+		InputDigest: contract.InputDigest, InputBytes: contract.InputBytes, RunRef: runRef,
+		FailureCode: contract.FailureCode, FailureSummary: contract.FailureSummary,
+		StartedAt: contract.StartedAt, CompletedAt: contract.CompletedAt, ActorRef: contract.ActorRef,
+		RequestID: contract.RequestID, AuditRef: contract.AuditRef,
+	}
+}
+
+func agentCopilotSessionContractFromInteraction(session ApplicationInteractionSession) (AgentCopilotSessionV3, error) {
+	authority, err := agentCopilotAuthorityFromApplicationInteraction(session.Authority)
+	if err != nil {
+		return AgentCopilotSessionV3{}, err
+	}
+	return AgentCopilotSessionV3{
+		SchemaVersion: session.SchemaVersion, SessionID: session.SessionID, TenantRef: session.TenantRef,
+		WorkspaceID: session.WorkspaceID, ApplicationID: session.ApplicationID, OwnerSubjectRef: session.OwnerSubjectRef,
+		State: session.State, RecordVersion: session.RecordVersion,
+		ProfileBinding: PromptApplicationSessionProfileBindingV2{ExecutionProfile: session.ProfileBinding.ExecutionProfile},
+		Authority:      authority, ContentRetention: session.ContentRetention, TurnCount: session.TurnCount,
+		LastTurnID: session.LastTurnID, CreatedAt: session.CreatedAt, UpdatedAt: session.UpdatedAt,
+		ClosedAt: session.ClosedAt, CreatedByActorRef: session.CreatedByActorRef,
+		UpdatedByActorRef: session.UpdatedByActorRef, RequestID: session.RequestID, AuditRef: session.AuditRef,
+	}, nil
+}
+
+func applicationInteractionSessionFromAgentCopilotContract(contract AgentCopilotSessionV3) ApplicationInteractionSession {
+	return ApplicationInteractionSession{
+		SchemaVersion: contract.SchemaVersion, SessionID: contract.SessionID, TenantRef: contract.TenantRef,
+		WorkspaceID: contract.WorkspaceID, ApplicationID: contract.ApplicationID, OwnerSubjectRef: contract.OwnerSubjectRef,
+		State: contract.State, RecordVersion: contract.RecordVersion,
+		ProfileBinding:   ApplicationInteractionProfileBinding{ExecutionProfile: contract.ProfileBinding.ExecutionProfile},
+		Authority:        applicationInteractionAuthorityFromAgentCopilot(contract.Authority),
+		ContentRetention: contract.ContentRetention, TurnCount: contract.TurnCount,
+		LastTurnID: contract.LastTurnID, CreatedAt: contract.CreatedAt, UpdatedAt: contract.UpdatedAt,
+		ClosedAt: contract.ClosedAt, CreatedByActorRef: contract.CreatedByActorRef,
+		UpdatedByActorRef: contract.UpdatedByActorRef, RequestID: contract.RequestID, AuditRef: contract.AuditRef,
+	}
+}
+
+func agentCopilotTurnContractFromInteraction(turn ApplicationInteractionTurn) (AgentCopilotSessionTurnV3, error) {
+	authority, err := agentCopilotAuthorityFromApplicationInteraction(turn.Authority)
+	if err != nil {
+		return AgentCopilotSessionTurnV3{}, err
+	}
+	var runRef *AgentCopilotRunRefV7
+	if turn.RunRef != nil {
+		runRef = &AgentCopilotRunRefV7{RunID: turn.RunRef.RunID, SchemaVersion: turn.RunRef.SchemaVersion}
+	}
+	return AgentCopilotSessionTurnV3{
+		SchemaVersion: turn.SchemaVersion, TurnID: turn.TurnID, SessionID: turn.SessionID, Sequence: turn.Sequence,
+		ClientTurnKey: turn.ClientTurnKey, TenantRef: turn.TenantRef, WorkspaceID: turn.WorkspaceID,
+		ApplicationID: turn.ApplicationID, OwnerSubjectRef: turn.OwnerSubjectRef,
+		ExecutionProfile: turn.ExecutionProfile, Authority: authority, Status: turn.Status,
+		InputDigest: turn.InputDigest, InputBytes: turn.InputBytes, RunRef: runRef,
+		FailureCode: turn.FailureCode, FailureSummary: turn.FailureSummary,
+		StartedAt: turn.StartedAt, CompletedAt: turn.CompletedAt, ActorRef: turn.ActorRef,
+		RequestID: turn.RequestID, AuditRef: turn.AuditRef,
+	}, nil
+}
+
+func applicationInteractionTurnFromAgentCopilotContract(contract AgentCopilotSessionTurnV3) ApplicationInteractionTurn {
+	var runRef *ApplicationInteractionRunRef
+	if contract.RunRef != nil {
+		runRef = &ApplicationInteractionRunRef{RunID: contract.RunRef.RunID, SchemaVersion: contract.RunRef.SchemaVersion}
+	}
+	return ApplicationInteractionTurn{
+		SchemaVersion: contract.SchemaVersion, TurnID: contract.TurnID, SessionID: contract.SessionID,
+		Sequence: contract.Sequence, ClientTurnKey: contract.ClientTurnKey, TenantRef: contract.TenantRef,
+		WorkspaceID: contract.WorkspaceID, ApplicationID: contract.ApplicationID,
+		OwnerSubjectRef: contract.OwnerSubjectRef, ExecutionProfile: contract.ExecutionProfile,
+		Authority: applicationInteractionAuthorityFromAgentCopilot(contract.Authority), Status: contract.Status,
 		InputDigest: contract.InputDigest, InputBytes: contract.InputBytes, RunRef: runRef,
 		FailureCode: contract.FailureCode, FailureSummary: contract.FailureSummary,
 		StartedAt: contract.StartedAt, CompletedAt: contract.CompletedAt, ActorRef: contract.ActorRef,

@@ -26,19 +26,20 @@ const (
 type WorkflowEvaluationFailureCode string
 
 const (
-	WorkflowEvaluationFailureInvalid                WorkflowEvaluationFailureCode = "workflow_evaluation_invalid"
-	WorkflowEvaluationFailureRunNotEligible         WorkflowEvaluationFailureCode = "workflow_evaluation_run_not_eligible"
-	WorkflowEvaluationFailureNotFound               WorkflowEvaluationFailureCode = "workflow_evaluation_not_found"
-	WorkflowEvaluationFailureCursorInvalid          WorkflowEvaluationFailureCode = "workflow_evaluation_cursor_invalid"
-	WorkflowEvaluationFailureStoreUnavailable       WorkflowEvaluationFailureCode = "workflow_evaluation_store_unavailable"
-	WorkflowEvaluationFailureStoreContract          WorkflowEvaluationFailureCode = "workflow_evaluation_store_contract_mismatch"
-	WorkflowEvaluationFailureVersionConflict        WorkflowEvaluationFailureCode = "workflow_evaluation_version_conflict"
-	WorkflowEvaluationFailureRevisionCursor         WorkflowEvaluationFailureCode = "workflow_evaluation_revision_cursor_invalid"
-	WorkflowEvaluationFailureSideEffectProfile      WorkflowEvaluationFailureCode = "workflow_run_side_effect_profile_unsupported"
-	WorkflowEvaluationFailureRetrievalProfile       WorkflowEvaluationFailureCode = "workflow_run_retrieval_profile_unsupported"
-	WorkflowEvaluationFailureRetrievalIncompatible  WorkflowEvaluationFailureCode = "workflow_run_retrieval_profile_incompatible"
-	WorkflowEvaluationFailureDefinitionIncompatible WorkflowEvaluationFailureCode = "workflow_definition_execution_profile_incompatible"
-	WorkflowEvaluationFailurePromptIncompatible     WorkflowEvaluationFailureCode = "prompt_application_execution_profile_incompatible"
+	WorkflowEvaluationFailureInvalid                  WorkflowEvaluationFailureCode = "workflow_evaluation_invalid"
+	WorkflowEvaluationFailureRunNotEligible           WorkflowEvaluationFailureCode = "workflow_evaluation_run_not_eligible"
+	WorkflowEvaluationFailureNotFound                 WorkflowEvaluationFailureCode = "workflow_evaluation_not_found"
+	WorkflowEvaluationFailureCursorInvalid            WorkflowEvaluationFailureCode = "workflow_evaluation_cursor_invalid"
+	WorkflowEvaluationFailureStoreUnavailable         WorkflowEvaluationFailureCode = "workflow_evaluation_store_unavailable"
+	WorkflowEvaluationFailureStoreContract            WorkflowEvaluationFailureCode = "workflow_evaluation_store_contract_mismatch"
+	WorkflowEvaluationFailureVersionConflict          WorkflowEvaluationFailureCode = "workflow_evaluation_version_conflict"
+	WorkflowEvaluationFailureRevisionCursor           WorkflowEvaluationFailureCode = "workflow_evaluation_revision_cursor_invalid"
+	WorkflowEvaluationFailureSideEffectProfile        WorkflowEvaluationFailureCode = "workflow_run_side_effect_profile_unsupported"
+	WorkflowEvaluationFailureRetrievalProfile         WorkflowEvaluationFailureCode = "workflow_run_retrieval_profile_unsupported"
+	WorkflowEvaluationFailureRetrievalIncompatible    WorkflowEvaluationFailureCode = "workflow_run_retrieval_profile_incompatible"
+	WorkflowEvaluationFailureDefinitionIncompatible   WorkflowEvaluationFailureCode = "workflow_definition_execution_profile_incompatible"
+	WorkflowEvaluationFailurePromptIncompatible       WorkflowEvaluationFailureCode = "prompt_application_execution_profile_incompatible"
+	WorkflowEvaluationFailureAgentCopilotIncompatible WorkflowEvaluationFailureCode = "agent_copilot_execution_profile_incompatible"
 )
 
 type WorkflowEvaluationRevisionKind string
@@ -346,6 +347,9 @@ func (s workflowEvaluationService) validateDefinition(ctx WorkflowRunContext, ra
 		}
 		if (baselineRecord.SchemaVersion == workflowRunRecordPromptSchemaVersion || candidate.SchemaVersion == workflowRunRecordPromptSchemaVersion) && !promptApplicationRunsComparable(baselineRecord, candidate) {
 			return "", "", nil, WorkflowEvaluationFailurePromptIncompatible
+		}
+		if (baselineRecord.SchemaVersion == agentCopilotRunV7Schema || candidate.SchemaVersion == agentCopilotRunV7Schema) && !agentCopilotRunsComparable(baselineRecord, candidate) {
+			return "", "", nil, WorkflowEvaluationFailureAgentCopilotIncompatible
 		}
 	}
 	return name, baseline, normalized, ""

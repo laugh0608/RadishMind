@@ -272,11 +272,18 @@ func validWorkflowRunFailureCode(value WorkflowRunFailureCode) bool {
 		WorkflowRunFailureToolStore, WorkflowRunFailureToolOutcomeUnknown,
 		WorkflowRunFailureRetrievalUnsupported, WorkflowRunFailureDefinitionAuthority,
 		WorkflowRunFailureDefinitionIncompatible, WorkflowRunFailureDefinitionInterrupted,
-		WorkflowRunFailurePromptIncompatible,
+		WorkflowRunFailurePromptIncompatible, WorkflowRunFailureAgentCopilotIncompatible,
 		WorkflowRunFailureCode(PromptApplicationRuntimeFailureAuthorityChanged),
 		WorkflowRunFailureCode(PromptApplicationInvocationFailureCanceled),
 		WorkflowRunFailureCode(PromptApplicationInvocationFailureOutcomeUnknown),
 		WorkflowRunFailureCode(PromptApplicationInvocationFailureOutputContract):
+		return true
+	case WorkflowRunFailureCode(AgentCopilotRuntimeFailureAuthorityChanged),
+		WorkflowRunFailureCode(AgentCopilotInvocationFailureInputInvalid),
+		WorkflowRunFailureCode(AgentCopilotInvocationFailureDuplicateRunning),
+		WorkflowRunFailureCode(AgentCopilotInvocationFailureCanceled),
+		WorkflowRunFailureCode(AgentCopilotInvocationFailureOutcomeUnknown),
+		WorkflowRunFailureCode(AgentCopilotInvocationFailureResponseContract):
 		return true
 	default:
 		return false

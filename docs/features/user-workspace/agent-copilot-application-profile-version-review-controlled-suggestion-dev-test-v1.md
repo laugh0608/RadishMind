@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_c_completed_batch_d_ready`
+状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_d_completed_batch_e_ready`
 
 ## 功能定位
 
@@ -12,12 +12,12 @@
 
 ## 现状、根因与本轮决策
 
-- 专题启动前，Application Catalog 和 Application Configuration Draft 已允许 `application_kind=agent`，但没有 Agent 专属的应用档案 owner、不可变版本、发布候选引用、运行时 assignment 或 invocation service；当前 Profile、配置、发布审查与 assignment owner 已完成，invocation / Session / Run 链仍未注册。
+- 专题启动前，Application Catalog 和 Application Configuration Draft 已允许 `application_kind=agent`，但没有 Agent 专属的应用档案 owner、不可变版本、发布候选引用、运行时 assignment 或 invocation service；当前批次 A 至批次 D 已补齐 Profile、配置、发布审查、assignment、单次 invocation、Session / Turn v3、Run v7 与 metadata-only 审查链，类型专属 Web 仍待批次 E 实现。
 - Application Development Workspace 目前只区分 `prompt_application` 与“非 Prompt”；`agent` 因而继承 Workflow RAG 的配置和晋级界面。这不是 Agent 能力复用，而是应用类型与产品界面语义不一致。
 - 仓库已经具备 canonical `CopilotRequest / CopilotResponse`、Gateway、应用目录、配置草案、发布审查、API key、Application Interaction Session、Run History、Comparison、Evaluation 和双数据库开发测试态持久化基础。新专题应组合这些 owner，不复制协议适配、会话、运行记录或评测算法。
 - 产品范围与路线图已经长期承诺 Agent / Copilot 应用。本轮选择该方向，优先补齐用户可识别的应用能力，不转向缺少可信 usage 的计费、不提前接真实 OIDC，也不在 backend / artifact store 尚未成立时扩图片生成运行时。
 
-因此，功能设计先固定长期边界，再由[唯一实施任务卡](../../task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)冻结版本、API、权限、失败语义、兼容矩阵和分批验证。批次 A 至批次 C 已完成 strict contracts、canonical policy compiler、三种 Profile owner、Configuration / Candidate v4 和显式 assignment；candidate approve 不自动激活，assignment 读取持续重验 exact authority。下一步只进入批次 D 单次受控建议、Session / Turn v3、Run v7 与审查链，Web 继续关闭。
+因此，功能设计先固定长期边界，再由[唯一实施任务卡](../../task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)冻结版本、API、权限、失败语义、兼容矩阵和分批验证。批次 A 至批次 D 已完成 strict contracts、canonical policy compiler、三种 Profile owner、Configuration / Candidate v4、显式 assignment、唯一受控建议 service、Session / Turn v3、Run v7 与 metadata-only 审查链；candidate approve 不自动激活，调用在 provider 前持续重验 exact authority。下一步只进入批次 E 类型专属 Web 与双数据库真实浏览器连续验收。
 
 ## 目标用户与主要任务
 
@@ -178,10 +178,12 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 
 ### 批次 D：API key、Session、单次调用与审查链
 
-- 实现唯一 invocation service、运行预留前 authority 解析和 Gateway 前 exact authority checkpoint。
-- 新增独立 API key capability；Application Session 使用新 profile 但只委托同一 invocation service。
-- 启用新的 metadata-only run lineage，并让 History、Detail、Comparison、Evaluation 与 Operations 显式识别。
-- 覆盖并发幂等、取消、authority drift、assignment revoke / replace、candidate supersede、canonical response failure、`outcome_unknown` 和恰好一次计划内 Gateway 副作用。
+- 状态：`completed`。
+- 唯一 `agent_copilot_suggestion_v1` service 已完成运行预留前 authority 解析和 Gateway 前 exact authority checkpoint；输入按 Profile policy 收窄为 canonical `CopilotRequest`，响应严格校验 canonical `CopilotResponse`、引用关系、UTF-8 byte budget 与候选动作确认。
+- API key `agent_copilot:invoke` 已独立注册，既有 scope 不隐式继承；Application Session / Turn v3 只委托同一 service。并发重复只读取 running / terminal evidence，不恢复回答或触发 retry / replay。
+- `workflow_run_record.v7` 与独立 Agent Session / Turn / Run 投影已启用；History、Detail、`workflow_run_comparison.v6`、Evaluation 与 Operations 显式识别同一 Profile / project / task lineage且只消费 metadata。
+- SQLite / PostgreSQL 共享 Workflow runtime 前滚到 `0015_agent_copilot_invocation_projections` / `0018_agent_copilot_invocation_projections`；真实 PostgreSQL 已验证受限运行角色、重启恢复、append-only、运行正文不落盘和 configured startup。
+- 相邻测试覆盖权限、严格 body、并发幂等、取消、transport 不确定、authority drift、canonical response / confirmation / citation 失败、成功调用恰好一次 Gateway 副作用，以及旧 Session / Run / API key 行为不漂移。
 
 ### 批次 E：类型专属 Web 与双数据库连续验收
 
@@ -202,7 +204,7 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 
 ## 当前下一步
 
-下一步直接进入批次 D：先沿既有 Application RAG v4、Prompt Application v6、Application Session 和 Workflow Run Store 的 owner 边界实现唯一 `agent_copilot_suggestion_v1` service，再注册独立 API key `agent_copilot:invoke`、Authority / Session / Turn v3、Run v7 与 metadata-only History / Comparison / Evaluation / Operations 消费。provider 前必须重验 exact authority，每次成功调用恰好一次计划内 Gateway 副作用；批次 D 完成前不进入 Web。
+下一步直接进入批次 E：把 Application Development Workspace 从 Prompt / 非 Prompt 二分改为显式 application kind routing，为 `agent` 挂载 Profile、版本、binding、候选源码审查、assignment、受控测试、Session v3 和 Run / Evaluation handoff。随后补齐 SQLite / PostgreSQL launcher 与两条真实浏览器连续链，验证服务重启、CAS、authority drift、取消、迟到响应和 transient 清理；不扩 agent loop、工具执行、retry / replay 或生产能力。
 
 ## 停止线
 

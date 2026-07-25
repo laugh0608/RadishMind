@@ -63,6 +63,20 @@ type WorkflowRunSummary struct {
 	EffectiveSnapshotRole    string                            `json:"effective_snapshot_role,omitempty"`
 	AuthorityDigest          string                            `json:"authority_digest,omitempty"`
 	PromptTemplateDigest     string                            `json:"prompt_template_digest,omitempty"`
+	ProfileDigest            string                            `json:"profile_digest,omitempty"`
+	PolicyDigest             string                            `json:"policy_digest,omitempty"`
+	AllowedTasksDigest       string                            `json:"allowed_tasks_digest,omitempty"`
+	Project                  string                            `json:"project,omitempty"`
+	Task                     string                            `json:"task,omitempty"`
+	Locale                   string                            `json:"locale,omitempty"`
+	ResponseStatus           string                            `json:"response_status,omitempty"`
+	ResponseDigest           string                            `json:"response_digest,omitempty"`
+	AnswerCount              int                               `json:"answer_count,omitempty"`
+	IssueCount               int                               `json:"issue_count,omitempty"`
+	ActionCount              int                               `json:"action_count,omitempty"`
+	CitationCount            int                               `json:"citation_count,omitempty"`
+	RiskLevel                string                            `json:"risk_level,omitempty"`
+	RequiresConfirmation     bool                              `json:"requires_confirmation,omitempty"`
 	VariableNamesDigest      string                            `json:"variable_names_digest,omitempty"`
 	RequestedProtocol        string                            `json:"requested_protocol,omitempty"`
 	SelectedProtocol         string                            `json:"selected_protocol,omitempty"`
@@ -193,7 +207,7 @@ func normalizeWorkflowRunListRequest(request WorkflowRunListRequest) (WorkflowRu
 	draftID := strings.TrimSpace(request.DraftID)
 	sourceKind, sourceID := strings.TrimSpace(request.ExecutionSourceKind), strings.TrimSpace(request.ExecutionSourceID)
 	if len([]rune(draftID)) > 160 || len([]rune(sourceID)) > 160 ||
-		(sourceKind != "" && sourceKind != "workflow_draft" && sourceKind != workflowDefinitionExecutionSourceKind && sourceKind != workflowRAGApplicationExecutionSourceKind && sourceKind != promptApplicationExecutionSourceKind) ||
+		(sourceKind != "" && sourceKind != "workflow_draft" && sourceKind != workflowDefinitionExecutionSourceKind && sourceKind != workflowRAGApplicationExecutionSourceKind && sourceKind != promptApplicationExecutionSourceKind && sourceKind != agentCopilotExecutionSourceKind) ||
 		request.ExecutionSourceVersion < 0 || (request.ExecutionSourceVersion > 0 && (sourceKind == "" || sourceID == "")) ||
 		(draftID != "" && (sourceKind != "" || sourceID != "" || request.ExecutionSourceVersion != 0)) {
 		return WorkflowRunListFilter{}, WorkflowRunFailureFilterInvalid
@@ -382,6 +396,35 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 		summary.AuthorityDigest = authority.AuthorityDigest
 		summary.PromptTemplateDigest = authority.PromptApplication.PromptTemplateRef.TemplateDigest
 		summary.VariableNamesDigest = record.VariableNamesDigest
+		summary.RequestedProtocol = record.RequestedProtocol
+		summary.SelectedProtocol = record.SelectedProtocol
+		summary.UsageState = record.PromptUsage.State
+		summary.InputTokens = record.PromptUsage.InputTokens
+		summary.OutputTokens = record.PromptUsage.OutputTokens
+		summary.TotalTokens = record.PromptUsage.TotalTokens
+	}
+	if record.AgentCopilotAuthority != nil {
+		authority := record.AgentCopilotAuthority
+		ref := authority.AgentCopilot.AgentCopilotProfileRef
+		summary.RuntimeAssignmentID = authority.AgentCopilot.AssignmentID
+		summary.RuntimeAssignmentVersion = authority.AgentCopilot.AssignmentVersion
+		summary.PublishCandidateID = authority.AgentCopilot.PublishCandidateID
+		summary.PublishReviewVersion = authority.AgentCopilot.PublishReviewVersion
+		summary.AuthorityDigest = authority.AuthorityDigest
+		summary.ProfileDigest = ref.ProfileDigest
+		summary.PolicyDigest = ref.PolicyDigest
+		summary.AllowedTasksDigest = authority.AgentCopilot.AllowedTasksDigest
+		summary.Project = record.AgentProject
+		summary.Task = record.AgentTask
+		summary.Locale = record.AgentLocale
+		summary.ResponseStatus = record.AgentResponseStatus
+		summary.ResponseDigest = record.AgentResponseDigest
+		summary.AnswerCount = record.AgentAnswerCount
+		summary.IssueCount = record.AgentIssueCount
+		summary.ActionCount = record.AgentActionCount
+		summary.CitationCount = record.AgentCitationCount
+		summary.RiskLevel = record.AgentRiskLevel
+		summary.RequiresConfirmation = record.AgentRequiresConfirmation
 		summary.RequestedProtocol = record.RequestedProtocol
 		summary.SelectedProtocol = record.SelectedProtocol
 		summary.UsageState = record.PromptUsage.State

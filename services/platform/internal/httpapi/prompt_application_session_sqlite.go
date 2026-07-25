@@ -4,16 +4,27 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 )
 
-type sqlitePromptApplicationSessionRepository struct{ database *sql.DB }
+type sqlitePromptApplicationSessionRepository struct {
+	database      *sql.DB
+	sessionTable  string
+	turnTable     string
+	sessionSchema string
+	profile       string
+}
 
 func newSQLitePromptApplicationSessionRepository(database *sql.DB) *sqlitePromptApplicationSessionRepository {
-	return &sqlitePromptApplicationSessionRepository{database: database}
+	return &sqlitePromptApplicationSessionRepository{
+		database: database, sessionTable: "prompt_application_sessions",
+		turnTable: "prompt_application_session_turns", sessionSchema: promptApplicationSessionV2Schema,
+		profile: applicationInteractionProfilePrompt,
+	}
 }
 
 func (repository *sqlitePromptApplicationSessionRepository) Create(ctx ApplicationInteractionContext, session ApplicationInteractionSession) (ApplicationInteractionSession, error) {
-	if repository == nil || repository.database == nil || session.SchemaVersion != promptApplicationSessionV2Schema {
+	if repository == nil || repository.database == nil || session.SchemaVersion != repository.expectedSessionSchema() {
 		return ApplicationInteractionSession{}, errApplicationSessionStore
 	}
 	payload, err := encodeApplicationInteractionSession(session)
@@ -24,9 +35,9 @@ func (repository *sqlitePromptApplicationSessionRepository) Create(ctx Applicati
 	if err != nil {
 		return ApplicationInteractionSession{}, err
 	}
-	result, err := repository.database.ExecContext(applicationInteractionRequestContext(ctx), `INSERT INTO prompt_application_sessions
+	result, err := repository.database.ExecContext(applicationInteractionRequestContext(ctx), repository.statement(`INSERT INTO prompt_application_sessions
 (tenant_ref,workspace_id,application_id,owner_subject_ref,session_id,session_state,record_version,updated_at_unix_nano,authority_digest,sanitized_session_payload)
-VALUES (?,?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING`,
+VALUES (?,?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING`),
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, session.SessionID,
 		session.State, session.RecordVersion, updatedAt.UnixNano(), session.Authority.AuthorityDigest, string(payload))
 	if err != nil {
@@ -43,8 +54,8 @@ func (repository *sqlitePromptApplicationSessionRepository) Read(ctx Application
 	if repository == nil || repository.database == nil {
 		return ApplicationInteractionSession{}, errApplicationSessionStore
 	}
-	return readSQLitePromptApplicationSession(repository.database.QueryRowContext(applicationInteractionRequestContext(ctx), `SELECT session_state,record_version,updated_at_unix_nano,authority_digest,sanitized_session_payload
-FROM prompt_application_sessions WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=?`,
+	return readSQLitePromptApplicationSession(repository.database.QueryRowContext(applicationInteractionRequestContext(ctx), repository.statement(`SELECT session_state,record_version,updated_at_unix_nano,authority_digest,sanitized_session_payload
+FROM prompt_application_sessions WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=?`),
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, sessionID), ctx)
 }
 
@@ -52,11 +63,11 @@ func (repository *sqlitePromptApplicationSessionRepository) List(ctx Application
 	if repository == nil || repository.database == nil {
 		return nil, errApplicationSessionStore
 	}
-	if query.ExecutionProfile != "" && query.ExecutionProfile != applicationInteractionProfilePrompt {
+	if query.ExecutionProfile != "" && query.ExecutionProfile != repository.expectedProfile() {
 		return []ApplicationInteractionSession{}, nil
 	}
-	statement := `SELECT session_state,record_version,updated_at_unix_nano,authority_digest,sanitized_session_payload FROM prompt_application_sessions
-WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=?`
+	statement := repository.statement(`SELECT session_state,record_version,updated_at_unix_nano,authority_digest,sanitized_session_payload FROM prompt_application_sessions
+WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=?`)
 	args := []any{ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef}
 	if query.State != "" {
 		statement += " AND session_state=?"
@@ -94,8 +105,8 @@ WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref
 func (repository *sqlitePromptApplicationSessionRepository) Close(ctx ApplicationInteractionContext, sessionID string, expectedVersion int, updated ApplicationInteractionSession) (ApplicationInteractionSession, error) {
 	var output ApplicationInteractionSession
 	err := repository.mutate(ctx, func(connection *sql.Conn) error {
-		current, err := readSQLitePromptApplicationSession(connection.QueryRowContext(applicationInteractionRequestContext(ctx), `SELECT session_state,record_version,updated_at_unix_nano,authority_digest,sanitized_session_payload
-FROM prompt_application_sessions WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=?`,
+		current, err := readSQLitePromptApplicationSession(connection.QueryRowContext(applicationInteractionRequestContext(ctx), repository.statement(`SELECT session_state,record_version,updated_at_unix_nano,authority_digest,sanitized_session_payload
+FROM prompt_application_sessions WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=?`),
 			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, sessionID), ctx)
 		if err != nil {
 			return err
@@ -114,9 +125,9 @@ FROM prompt_application_sessions WHERE tenant_ref=? AND workspace_id=? AND appli
 			return err
 		}
 		updatedAt, _ := applicationInteractionTimestamp(updated.UpdatedAt)
-		result, err := connection.ExecContext(applicationInteractionRequestContext(ctx), `UPDATE prompt_application_sessions SET
+		result, err := connection.ExecContext(applicationInteractionRequestContext(ctx), repository.statement(`UPDATE prompt_application_sessions SET
 session_state=?,record_version=?,updated_at_unix_nano=?,sanitized_session_payload=?
-WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=? AND record_version=? AND session_state='active'`,
+WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=? AND record_version=? AND session_state='active'`),
 			updated.State, updated.RecordVersion, updatedAt.UnixNano(), string(payload), ctx.TenantRef, ctx.WorkspaceID,
 			ctx.ApplicationID, ctx.OwnerSubjectRef, sessionID, expectedVersion)
 		if err != nil {
@@ -137,14 +148,14 @@ func (repository *sqlitePromptApplicationSessionRepository) ReserveTurn(ctx Appl
 	var outputTurn ApplicationInteractionTurn
 	var replay bool
 	err := repository.mutate(ctx, func(connection *sql.Conn) error {
-		current, err := readSQLitePromptApplicationSession(connection.QueryRowContext(applicationInteractionRequestContext(ctx), `SELECT session_state,record_version,updated_at_unix_nano,authority_digest,sanitized_session_payload
-FROM prompt_application_sessions WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=?`,
+		current, err := readSQLitePromptApplicationSession(connection.QueryRowContext(applicationInteractionRequestContext(ctx), repository.statement(`SELECT session_state,record_version,updated_at_unix_nano,authority_digest,sanitized_session_payload
+FROM prompt_application_sessions WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=?`),
 			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, updated.SessionID), ctx)
 		if err != nil {
 			return err
 		}
-		existing, err := readSQLiteApplicationInteractionTurn(connection.QueryRowContext(applicationInteractionRequestContext(ctx), `SELECT turn_sequence,client_turn_key,turn_status,started_at_unix_nano,completed_at_unix_nano,sanitized_turn_payload
-FROM prompt_application_session_turns WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=? AND client_turn_key=?`,
+		existing, err := readSQLiteApplicationInteractionTurn(connection.QueryRowContext(applicationInteractionRequestContext(ctx), repository.statement(`SELECT turn_sequence,client_turn_key,turn_status,started_at_unix_nano,completed_at_unix_nano,sanitized_turn_payload
+FROM prompt_application_session_turns WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=? AND client_turn_key=?`),
 			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, updated.SessionID, turn.ClientTurnKey), ctx)
 		if err == nil {
 			if !applicationInteractionTurnReservationsEqual(existing, turn) {
@@ -175,9 +186,9 @@ FROM prompt_application_session_turns WHERE tenant_ref=? AND workspace_id=? AND 
 		}
 		updatedAt, _ := applicationInteractionTimestamp(updated.UpdatedAt)
 		startedAt, _ := applicationInteractionTimestamp(turn.StartedAt)
-		result, err := connection.ExecContext(applicationInteractionRequestContext(ctx), `UPDATE prompt_application_sessions SET
+		result, err := connection.ExecContext(applicationInteractionRequestContext(ctx), repository.statement(`UPDATE prompt_application_sessions SET
 record_version=?,updated_at_unix_nano=?,sanitized_session_payload=? WHERE tenant_ref=? AND workspace_id=? AND application_id=?
-AND owner_subject_ref=? AND session_id=? AND record_version=? AND session_state='active'`,
+AND owner_subject_ref=? AND session_id=? AND record_version=? AND session_state='active'`),
 			updated.RecordVersion, updatedAt.UnixNano(), string(sessionPayload), ctx.TenantRef, ctx.WorkspaceID,
 			ctx.ApplicationID, ctx.OwnerSubjectRef, updated.SessionID, expectedVersion)
 		if err != nil {
@@ -187,9 +198,9 @@ AND owner_subject_ref=? AND session_id=? AND record_version=? AND session_state=
 		if affected != 1 {
 			return errApplicationSessionVersionConflict
 		}
-		_, err = connection.ExecContext(applicationInteractionRequestContext(ctx), `INSERT INTO prompt_application_session_turns
+		_, err = connection.ExecContext(applicationInteractionRequestContext(ctx), repository.statement(`INSERT INTO prompt_application_session_turns
 (tenant_ref,workspace_id,application_id,owner_subject_ref,session_id,turn_id,turn_sequence,client_turn_key,turn_status,started_at_unix_nano,completed_at_unix_nano,sanitized_turn_payload)
-VALUES (?,?,?,?,?,?,?,?,?,?,NULL,?)`, ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef,
+VALUES (?,?,?,?,?,?,?,?,?,?,NULL,?)`), ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef,
 			turn.SessionID, turn.TurnID, turn.Sequence, turn.ClientTurnKey, turn.Status, startedAt.UnixNano(), string(turnPayload))
 		if err != nil {
 			return errApplicationSessionStore
@@ -204,8 +215,8 @@ func (repository *sqlitePromptApplicationSessionRepository) ReadTurn(ctx Applica
 	if repository == nil || repository.database == nil {
 		return ApplicationInteractionTurn{}, errApplicationSessionStore
 	}
-	return readSQLiteApplicationInteractionTurn(repository.database.QueryRowContext(applicationInteractionRequestContext(ctx), `SELECT turn_sequence,client_turn_key,turn_status,started_at_unix_nano,completed_at_unix_nano,sanitized_turn_payload
-FROM prompt_application_session_turns WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=? AND turn_id=?`,
+	return readSQLiteApplicationInteractionTurn(repository.database.QueryRowContext(applicationInteractionRequestContext(ctx), repository.statement(`SELECT turn_sequence,client_turn_key,turn_status,started_at_unix_nano,completed_at_unix_nano,sanitized_turn_payload
+FROM prompt_application_session_turns WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=? AND turn_id=?`),
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, sessionID, turnID), ctx)
 }
 
@@ -213,8 +224,8 @@ func (repository *sqlitePromptApplicationSessionRepository) ReadTurnByClientKey(
 	if repository == nil || repository.database == nil {
 		return ApplicationInteractionTurn{}, errApplicationSessionStore
 	}
-	return readSQLiteApplicationInteractionTurn(repository.database.QueryRowContext(applicationInteractionRequestContext(ctx), `SELECT turn_sequence,client_turn_key,turn_status,started_at_unix_nano,completed_at_unix_nano,sanitized_turn_payload
-FROM prompt_application_session_turns WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=? AND client_turn_key=?`,
+	return readSQLiteApplicationInteractionTurn(repository.database.QueryRowContext(applicationInteractionRequestContext(ctx), repository.statement(`SELECT turn_sequence,client_turn_key,turn_status,started_at_unix_nano,completed_at_unix_nano,sanitized_turn_payload
+FROM prompt_application_session_turns WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=? AND client_turn_key=?`),
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, sessionID, clientKey), ctx)
 }
 
@@ -223,14 +234,14 @@ func (repository *sqlitePromptApplicationSessionRepository) CompleteTurn(ctx App
 	var outputTurn ApplicationInteractionTurn
 	var replay bool
 	err := repository.mutate(ctx, func(connection *sql.Conn) error {
-		current, err := readSQLiteApplicationInteractionTurn(connection.QueryRowContext(applicationInteractionRequestContext(ctx), `SELECT turn_sequence,client_turn_key,turn_status,started_at_unix_nano,completed_at_unix_nano,sanitized_turn_payload
-FROM prompt_application_session_turns WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=? AND turn_id=?`,
+		current, err := readSQLiteApplicationInteractionTurn(connection.QueryRowContext(applicationInteractionRequestContext(ctx), repository.statement(`SELECT turn_sequence,client_turn_key,turn_status,started_at_unix_nano,completed_at_unix_nano,sanitized_turn_payload
+FROM prompt_application_session_turns WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=? AND turn_id=?`),
 			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, terminal.SessionID, terminal.TurnID), ctx)
 		if err != nil {
 			return err
 		}
-		session, err := readSQLitePromptApplicationSession(connection.QueryRowContext(applicationInteractionRequestContext(ctx), `SELECT session_state,record_version,updated_at_unix_nano,authority_digest,sanitized_session_payload
-FROM prompt_application_sessions WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=?`,
+		session, err := readSQLitePromptApplicationSession(connection.QueryRowContext(applicationInteractionRequestContext(ctx), repository.statement(`SELECT session_state,record_version,updated_at_unix_nano,authority_digest,sanitized_session_payload
+FROM prompt_application_sessions WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=?`),
 			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, terminal.SessionID), ctx)
 		if err != nil {
 			return err
@@ -253,9 +264,9 @@ FROM prompt_application_sessions WHERE tenant_ref=? AND workspace_id=? AND appli
 		if err != nil || completedAt == nil {
 			return errApplicationSessionContract
 		}
-		result, err := connection.ExecContext(applicationInteractionRequestContext(ctx), `UPDATE prompt_application_session_turns SET
+		result, err := connection.ExecContext(applicationInteractionRequestContext(ctx), repository.statement(`UPDATE prompt_application_session_turns SET
 turn_status=?,completed_at_unix_nano=?,sanitized_turn_payload=? WHERE tenant_ref=? AND workspace_id=? AND application_id=?
-AND owner_subject_ref=? AND session_id=? AND turn_id=? AND turn_status='running'`,
+AND owner_subject_ref=? AND session_id=? AND turn_id=? AND turn_status='running'`),
 			terminal.Status, completedAt.UnixNano(), string(payload), ctx.TenantRef, ctx.WorkspaceID,
 			ctx.ApplicationID, ctx.OwnerSubjectRef, terminal.SessionID, terminal.TurnID)
 		if err != nil {
@@ -275,8 +286,8 @@ func (repository *sqlitePromptApplicationSessionRepository) ListTurns(ctx Applic
 	if _, err := repository.Read(ctx, sessionID); err != nil {
 		return nil, err
 	}
-	rows, err := repository.database.QueryContext(applicationInteractionRequestContext(ctx), `SELECT turn_sequence,client_turn_key,turn_status,started_at_unix_nano,completed_at_unix_nano,sanitized_turn_payload
-FROM prompt_application_session_turns WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=? ORDER BY turn_sequence`,
+	rows, err := repository.database.QueryContext(applicationInteractionRequestContext(ctx), repository.statement(`SELECT turn_sequence,client_turn_key,turn_status,started_at_unix_nano,completed_at_unix_nano,sanitized_turn_payload
+FROM prompt_application_session_turns WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND session_id=? ORDER BY turn_sequence`),
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, sessionID)
 	if err != nil {
 		return nil, errApplicationSessionStore
@@ -294,6 +305,32 @@ FROM prompt_application_session_turns WHERE tenant_ref=? AND workspace_id=? AND 
 		return nil, errApplicationSessionStore
 	}
 	return result, nil
+}
+
+func (repository *sqlitePromptApplicationSessionRepository) expectedSessionSchema() string {
+	if repository.sessionSchema != "" {
+		return repository.sessionSchema
+	}
+	return promptApplicationSessionV2Schema
+}
+
+func (repository *sqlitePromptApplicationSessionRepository) expectedProfile() string {
+	if repository.profile != "" {
+		return repository.profile
+	}
+	return applicationInteractionProfilePrompt
+}
+
+func (repository *sqlitePromptApplicationSessionRepository) statement(query string) string {
+	sessionTable, turnTable := repository.sessionTable, repository.turnTable
+	if sessionTable == "" {
+		sessionTable = "prompt_application_sessions"
+	}
+	if turnTable == "" {
+		turnTable = "prompt_application_session_turns"
+	}
+	query = strings.ReplaceAll(query, "prompt_application_session_turns", turnTable)
+	return strings.ReplaceAll(query, "prompt_application_sessions", sessionTable)
 }
 
 func (repository *sqlitePromptApplicationSessionRepository) mutate(ctx ApplicationInteractionContext, operation func(*sql.Conn) error) error {

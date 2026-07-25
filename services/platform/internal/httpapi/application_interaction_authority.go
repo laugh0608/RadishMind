@@ -13,6 +13,7 @@ const (
 	applicationInteractionProfileWorkflow        = workflowDefinitionExecutorProfile
 	applicationInteractionProfileRAG             = "application_rag_invocation_v1"
 	applicationInteractionProfilePrompt          = promptApplicationInvocationProfile
+	applicationInteractionProfileAgentCopilot    = agentCopilotSuggestionProfile
 )
 
 const (
@@ -67,6 +68,7 @@ type ApplicationInteractionAuthoritySnapshot struct {
 	WorkflowDefinition       *ApplicationInteractionWorkflowAuthority `json:"workflow_definition"`
 	ApplicationRAG           *ApplicationInteractionRAGAuthority      `json:"application_rag"`
 	PromptApplication        *PromptApplicationAuthorityV2            `json:"-"`
+	AgentCopilot             *AgentCopilotAuthorityV3                 `json:"-"`
 	AuthorityDigest          string                                   `json:"authority_digest"`
 }
 
@@ -80,6 +82,7 @@ type exactApplicationInteractionAuthorityResolver struct {
 	ragRuntime           workflowRAGApplicationRuntimeRepository
 	ragAuthorityResolver workflowRAGApplicationAuthorityResolver
 	resolvePrompt        func(PromptApplicationRuntimeContext) (PromptApplicationRuntimeAuthorityV2, string)
+	resolveAgentCopilot  func(AgentCopilotRuntimeContext) (AgentCopilotRuntimeAuthorityV3, string)
 }
 
 func newExactApplicationInteractionAuthorityResolver(applications applicationCatalogRepository, definitions workflowDefinitionReleaseRepository, ragRuntime workflowRAGApplicationRuntimeRepository, ragResolver workflowRAGApplicationAuthorityResolver) exactApplicationInteractionAuthorityResolver {
@@ -117,6 +120,12 @@ func (resolver exactApplicationInteractionAuthorityResolver) Resolve(ctx Applica
 		if failure == "" {
 			snapshot = applicationInteractionAuthorityFromPrompt(prompt)
 		}
+	case applicationInteractionProfileAgentCopilot:
+		var authority AgentCopilotRuntimeAuthorityV3
+		authority, failure = resolver.resolveAgentCopilotAuthority(ctx)
+		if failure == "" {
+			snapshot = applicationInteractionAuthorityFromAgentCopilot(authority)
+		}
 	default:
 		failure = ApplicationInteractionFailureProfileIneligible
 	}
@@ -132,6 +141,28 @@ func (resolver exactApplicationInteractionAuthorityResolver) Resolve(ctx Applica
 		return ApplicationInteractionAuthoritySnapshot{}, ApplicationInteractionFailureStoreUnavailable
 	}
 	return snapshot, ""
+}
+
+func (resolver exactApplicationInteractionAuthorityResolver) resolveAgentCopilotAuthority(ctx ApplicationInteractionContext) (AgentCopilotRuntimeAuthorityV3, string) {
+	if resolver.resolveAgentCopilot == nil {
+		return AgentCopilotRuntimeAuthorityV3{}, ApplicationInteractionFailureAuthorityMissing
+	}
+	authority, failure := resolver.resolveAgentCopilot(AgentCopilotRuntimeContext{
+		RequestContext: ctx.RequestContext, RequestID: ctx.RequestID, TenantRef: ctx.TenantRef,
+		WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, ActorRef: ctx.ActorRef,
+		OwnerSubjectRef: ctx.OwnerSubjectRef, AuditRef: ctx.AuditRef,
+	})
+	if failure == "" {
+		return authority, ""
+	}
+	switch failure {
+	case AgentCopilotRuntimeFailureNotFound:
+		return AgentCopilotRuntimeAuthorityV3{}, ApplicationInteractionFailureAuthorityMissing
+	case AgentCopilotRuntimeFailureStoreUnavailable:
+		return AgentCopilotRuntimeAuthorityV3{}, ApplicationInteractionFailureStoreUnavailable
+	default:
+		return AgentCopilotRuntimeAuthorityV3{}, ApplicationInteractionFailureAuthorityChanged
+	}
 }
 
 func (resolver exactApplicationInteractionAuthorityResolver) resolvePromptAuthority(ctx ApplicationInteractionContext) (PromptApplicationRuntimeAuthorityV2, string) {
@@ -223,7 +254,7 @@ func validateApplicationInteractionProfileBinding(binding ApplicationInteraction
 		if binding.DefinitionID != "" {
 			return errWorkflowRunStoreContract
 		}
-	case applicationInteractionProfilePrompt:
+	case applicationInteractionProfilePrompt, applicationInteractionProfileAgentCopilot:
 		if binding.DefinitionID != "" {
 			return errWorkflowRunStoreContract
 		}
@@ -241,6 +272,13 @@ func applicationInteractionAuthorityDigest(snapshot ApplicationInteractionAuthor
 		}
 		return promptApplicationRuntimeAuthorityV2Digest(authority)
 	}
+	if snapshot.ExecutionProfile == applicationInteractionProfileAgentCopilot {
+		authority, err := agentCopilotAuthorityFromApplicationInteraction(snapshot)
+		if err != nil {
+			return "", err
+		}
+		return agentCopilotAuthorityDigest(authority)
+	}
 	snapshot.AuthorityDigest = ""
 	payload, err := json.Marshal(snapshot)
 	if err != nil {
@@ -254,6 +292,13 @@ func validateApplicationInteractionAuthority(snapshot ApplicationInteractionAuth
 	if snapshot.ExecutionProfile == applicationInteractionProfilePrompt {
 		authority, err := promptAuthorityFromApplicationInteraction(snapshot)
 		if err != nil || validatePromptApplicationRuntimeAuthorityV2(authority) != nil {
+			return errWorkflowRunStoreContract
+		}
+		return nil
+	}
+	if snapshot.ExecutionProfile == applicationInteractionProfileAgentCopilot {
+		authority, err := agentCopilotAuthorityFromApplicationInteraction(snapshot)
+		if err != nil || validateAgentCopilotRuntimeAuthority(authority) != nil {
 			return errWorkflowRunStoreContract
 		}
 		return nil
@@ -303,6 +348,30 @@ func promptAuthorityFromApplicationInteraction(snapshot ApplicationInteractionAu
 		SchemaVersion: snapshot.SchemaVersion, ExecutionProfile: snapshot.ExecutionProfile,
 		ApplicationID: snapshot.ApplicationID, ApplicationRecordVersion: snapshot.ApplicationRecordVersion,
 		ApplicationLifecycle: snapshot.ApplicationLifecycle, PromptApplication: *snapshot.PromptApplication,
+		AuthorityDigest: snapshot.AuthorityDigest,
+	}, nil
+}
+
+func applicationInteractionAuthorityFromAgentCopilot(authority AgentCopilotRuntimeAuthorityV3) ApplicationInteractionAuthoritySnapshot {
+	agent := authority.AgentCopilot
+	return ApplicationInteractionAuthoritySnapshot{
+		SchemaVersion: authority.SchemaVersion, ExecutionProfile: authority.ExecutionProfile,
+		ApplicationID: authority.ApplicationID, ApplicationRecordVersion: authority.ApplicationRecordVersion,
+		ApplicationLifecycle: authority.ApplicationLifecycle, AgentCopilot: &agent,
+		AuthorityDigest: authority.AuthorityDigest,
+	}
+}
+
+func agentCopilotAuthorityFromApplicationInteraction(snapshot ApplicationInteractionAuthoritySnapshot) (AgentCopilotRuntimeAuthorityV3, error) {
+	if snapshot.SchemaVersion != agentCopilotRuntimeAuthorityV3Schema ||
+		snapshot.ExecutionProfile != agentCopilotSuggestionProfile || snapshot.AgentCopilot == nil ||
+		snapshot.WorkflowDefinition != nil || snapshot.ApplicationRAG != nil || snapshot.PromptApplication != nil {
+		return AgentCopilotRuntimeAuthorityV3{}, errWorkflowRunStoreContract
+	}
+	return AgentCopilotRuntimeAuthorityV3{
+		SchemaVersion: snapshot.SchemaVersion, ExecutionProfile: snapshot.ExecutionProfile,
+		ApplicationID: snapshot.ApplicationID, ApplicationRecordVersion: snapshot.ApplicationRecordVersion,
+		ApplicationLifecycle: snapshot.ApplicationLifecycle, AgentCopilot: *snapshot.AgentCopilot,
 		AuthorityDigest: snapshot.AuthorityDigest,
 	}, nil
 }

@@ -1,0 +1,13 @@
+DROP TRIGGER IF EXISTS agent_copilot_runs_no_delete ON agent_copilot_run_records;
+DROP TRIGGER IF EXISTS agent_copilot_turns_no_delete ON agent_copilot_session_turns;
+DROP TRIGGER IF EXISTS agent_copilot_sessions_no_delete ON agent_copilot_sessions;
+DROP TRIGGER IF EXISTS agent_copilot_runs_controlled_update ON agent_copilot_run_records;
+DROP TRIGGER IF EXISTS agent_copilot_turns_controlled_update ON agent_copilot_session_turns;
+DROP TRIGGER IF EXISTS agent_copilot_sessions_controlled_update ON agent_copilot_sessions;
+DROP FUNCTION IF EXISTS reject_agent_copilot_invocation_projection_mutation();
+DROP FUNCTION IF EXISTS enforce_agent_copilot_run_update();
+DROP FUNCTION IF EXISTS enforce_agent_copilot_turn_update();
+DROP FUNCTION IF EXISTS enforce_agent_copilot_session_update();
+DROP TABLE IF EXISTS agent_copilot_run_records;
+DROP TABLE IF EXISTS agent_copilot_session_turns;
+DROP TABLE IF EXISTS agent_copilot_sessions;

@@ -220,7 +220,8 @@ func (s *Server) allowWorkflowExecutorDev(writer http.ResponseWriter, trace requ
 }
 
 func (s *Server) allowWorkflowRunHistoryDev(writer http.ResponseWriter, trace requestTrace) bool {
-	if s.config.WorkflowExecutorDevEnabled || s.config.WorkflowRAGExecutionDevEnabled || s.config.PromptApplicationRuntimeDevHTTPEnabled {
+	if s.config.WorkflowExecutorDevEnabled || s.config.WorkflowRAGExecutionDevEnabled ||
+		s.config.PromptApplicationRuntimeDevHTTPEnabled || s.config.AgentCopilotRuntimeDevHTTPEnabled {
 		return true
 	}
 	s.writePlatformError(writer, trace, "WORKFLOW_EXECUTOR_DEV_DISABLED", "workflow run history requires an explicit workflow execution development gate")
@@ -228,7 +229,8 @@ func (s *Server) allowWorkflowRunHistoryDev(writer http.ResponseWriter, trace re
 }
 
 func (s *Server) allowWorkflowEvaluationDev(writer http.ResponseWriter, trace requestTrace) bool {
-	if s.config.WorkflowExecutorDevEnabled || s.config.PromptApplicationRuntimeDevHTTPEnabled {
+	if s.config.WorkflowExecutorDevEnabled || s.config.PromptApplicationRuntimeDevHTTPEnabled ||
+		s.config.AgentCopilotRuntimeDevHTTPEnabled {
 		return true
 	}
 	s.writePlatformError(writer, trace, "WORKFLOW_EVALUATION_DEV_DISABLED", "workflow evaluation requires an explicit development gate")

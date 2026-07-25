@@ -13,6 +13,8 @@ func encodeWorkflowRunStorageRecord(record WorkflowRunRecord) ([]byte, time.Time
 	var err error
 	if record.SchemaVersion == workflowRunRecordPromptSchemaVersion {
 		payload, err = encodePromptApplicationRunStorageRecord(record)
+	} else if record.SchemaVersion == agentCopilotRunV7Schema {
+		payload, err = encodeAgentCopilotRunStorageRecord(record)
 	} else {
 		payload, err = json.Marshal(record)
 	}
@@ -54,6 +56,9 @@ func decodeWorkflowRunStorageRecord(
 	}
 	if envelope.SchemaVersion == workflowRunRecordPromptSchemaVersion {
 		return decodePromptApplicationRunStorageRecord(runContext, payload)
+	}
+	if envelope.SchemaVersion == agentCopilotRunV7Schema {
+		return decodeAgentCopilotRunStorageRecord(runContext, payload)
 	}
 	var record WorkflowRunRecord
 	decoder := json.NewDecoder(strings.NewReader(string(payload)))
@@ -116,6 +121,13 @@ func workflowRunStorageExecutionSource(record WorkflowRunRecord) (string, string
 	if record.SchemaVersion == workflowRunRecordPromptSchemaVersion {
 		if record.ExecutionSource == nil || record.ExecutionSource.SourceKind != promptApplicationExecutionSourceKind ||
 			!promptApplicationTemplateIDPattern.MatchString(record.ExecutionSource.ID) || record.ExecutionSource.Version < 1 {
+			return "", "", 0, errWorkflowRunStoreContract
+		}
+		return record.ExecutionSource.SourceKind, record.ExecutionSource.ID, record.ExecutionSource.Version, nil
+	}
+	if record.SchemaVersion == agentCopilotRunV7Schema {
+		if record.ExecutionSource == nil || record.ExecutionSource.SourceKind != agentCopilotExecutionSourceKind ||
+			!agentCopilotProfileIDPattern.MatchString(record.ExecutionSource.ID) || record.ExecutionSource.Version < 1 {
 			return "", "", 0, errWorkflowRunStoreContract
 		}
 		return record.ExecutionSource.SourceKind, record.ExecutionSource.ID, record.ExecutionSource.Version, nil

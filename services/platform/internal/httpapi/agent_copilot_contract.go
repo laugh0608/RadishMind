@@ -23,6 +23,7 @@ const (
 	agentCopilotSessionTurnV3Schema            = "application_session_turn.v3"
 	agentCopilotRunV7Schema                    = "workflow_run_record.v7"
 	agentCopilotSuggestionProfile              = "agent_copilot_suggestion_v1"
+	agentCopilotExecutionSourceKind            = "agent_copilot_profile"
 	agentCopilotMaximumProfileSourceBytes      = 64 * 1024
 	agentCopilotMaximumInvocationBytes         = 512 * 1024
 	agentCopilotMaximumContextBytes            = 128 * 1024
@@ -579,7 +580,7 @@ func validateAgentCopilotRun(value AgentCopilotRunRecordV7) error {
 	ref := value.Authority.AgentCopilot.AgentCopilotProfileRef
 	if value.SchemaVersion != agentCopilotRunV7Schema || value.RecordVersion < 1 || !workflowHTTPToolRunIDPattern.MatchString(value.RunID) ||
 		!validAgentCopilotScope(value.TenantRef, value.WorkspaceID, value.ApplicationID, value.ActorRef) || value.ExecutionKind != "agent_copilot_suggestion" ||
-		value.ExecutionSourceKind != "agent_copilot_profile" || !agentCopilotProfileIDPattern.MatchString(value.ExecutionSourceID) || value.ExecutionSourceVersion < 1 || value.ExecutionProfile != agentCopilotSuggestionProfile ||
+		value.ExecutionSourceKind != agentCopilotExecutionSourceKind || !agentCopilotProfileIDPattern.MatchString(value.ExecutionSourceID) || value.ExecutionSourceVersion < 1 || value.ExecutionProfile != agentCopilotSuggestionProfile ||
 		validateAgentCopilotRuntimeAuthority(value.Authority) != nil || value.Authority.ApplicationID != value.ApplicationID || value.ExecutionSourceID != ref.ProfileID || value.ExecutionSourceVersion != ref.ProfileVersion ||
 		value.Project != value.Authority.AgentCopilot.Project || !validAgentCopilotProjectTask(value.Project, value.Task) || !agentCopilotLocalePattern.MatchString(value.Locale) ||
 		!workflowRAGDigestPattern.MatchString(value.InputDigest) || value.InputBytes < 1 || value.InputBytes > agentCopilotMaximumInvocationBytes ||

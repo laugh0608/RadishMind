@@ -159,7 +159,14 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
 		return nil, err
 	}
-	combinedApplicationSessionRepository := newCombinedApplicationInteractionSessionRepository(applicationInteractionSessionRepository, promptApplicationSessionRepository)
+	agentCopilotSessionRepository, err := newAgentCopilotSessionRepositoryForLegacy(applicationInteractionSessionRepository)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
+	combinedApplicationSessionRepository := newCombinedApplicationInteractionSessionRepositoryWithAgent(
+		applicationInteractionSessionRepository, promptApplicationSessionRepository, agentCopilotSessionRepository,
+	)
 	var workflowDefinitionReleaseRepository workflowDefinitionReleaseRepository
 	if runtimeConfig.WorkflowDefinitionReleaseDevEnabled {
 		workflowDefinitionReleaseRepository, err = newWorkflowDefinitionReleaseRepositoryForRunStore(workflowRunStore)
@@ -206,7 +213,12 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
 		return nil, err
 	}
-	combinedRunStore := newCombinedWorkflowRunStore(workflowRunStore, promptApplicationRunStore)
+	agentCopilotRunStore, err := newAgentCopilotRunStoreForWorkflowRunStore(workflowRunStore)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
+	combinedRunStore := newCombinedWorkflowRunStoreWithAgent(workflowRunStore, promptApplicationRunStore, agentCopilotRunStore)
 	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
@@ -369,6 +381,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(workflowRAGApplicationRuntimeAssignmentDecisionRoute, server.handleDecideWorkflowRAGApplicationRuntimeAssignment)
 	mux.HandleFunc("POST "+workflowRAGApplicationInvocationRoute, server.handleWorkflowRAGApplicationInvocation)
 	mux.HandleFunc("POST "+promptApplicationInvocationRoute, server.handlePromptApplicationInvocation)
+	mux.HandleFunc("POST "+agentCopilotInvocationRoute, server.handleAgentCopilotInvocation)
 	mux.HandleFunc(workflowHTTPToolPlanCreateRoute, server.handleCreateWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowHTTPToolPlanReadRoute, server.handleReadWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowHTTPToolDecisionRoute, server.handleDecideWorkflowHTTPToolActionPlan)

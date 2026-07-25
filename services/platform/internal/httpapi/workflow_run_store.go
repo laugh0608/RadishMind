@@ -212,6 +212,10 @@ func validateWorkflowRunStoreRecord(runContext WorkflowRunContext, record *Workf
 		if err := validatePromptApplicationWorkflowRunRecord(runContext, record); err != nil {
 			return errWorkflowRunStoreContract
 		}
+	} else if record.SchemaVersion == agentCopilotRunV7Schema {
+		if err := validateAgentCopilotWorkflowRunRecord(runContext, record); err != nil {
+			return errWorkflowRunStoreContract
+		}
 	} else if record.SchemaVersion == workflowRunRecordDefinitionSchemaVersion {
 		if err := validateWorkflowDefinitionRunStoreRecord(runContext, record); err != nil {
 			return errWorkflowRunStoreContract
@@ -264,7 +268,7 @@ func validWorkflowRunRecordSchema(schemaVersion string) bool {
 	return schemaVersion == workflowRunRecordSchemaVersion || schemaVersion == workflowRunRecordLegacySchemaVersion ||
 		schemaVersion == workflowRunRecordToolSchemaVersion || schemaVersion == workflowRunRecordRAGSchemaVersion ||
 		schemaVersion == workflowRunRecordAppRAGSchemaVersion || schemaVersion == workflowRunRecordDefinitionSchemaVersion ||
-		schemaVersion == workflowRunRecordPromptSchemaVersion
+		schemaVersion == workflowRunRecordPromptSchemaVersion || schemaVersion == agentCopilotRunV7Schema
 }
 
 func validWorkflowRunStatus(status WorkflowRunStatus) bool {
@@ -327,6 +331,10 @@ func cloneWorkflowRunRecord(record WorkflowRunRecord) WorkflowRunRecord {
 	if record.PromptApplication != nil {
 		authority := *record.PromptApplication
 		cloned.PromptApplication = &authority
+	}
+	if record.AgentCopilotAuthority != nil {
+		authority := *record.AgentCopilotAuthority
+		cloned.AgentCopilotAuthority = &authority
 	}
 	cloned.VariableNames = append([]string(nil), record.VariableNames...)
 	if record.PromptDiagnostic != nil {

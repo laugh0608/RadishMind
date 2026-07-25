@@ -3,20 +3,31 @@ package httpapi
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type postgresPromptApplicationSessionRepository struct{ pool *pgxpool.Pool }
+type postgresPromptApplicationSessionRepository struct {
+	pool          *pgxpool.Pool
+	sessionTable  string
+	turnTable     string
+	sessionSchema string
+	profile       string
+}
 
 func newPostgresPromptApplicationSessionRepository(pool *pgxpool.Pool) *postgresPromptApplicationSessionRepository {
-	return &postgresPromptApplicationSessionRepository{pool: pool}
+	return &postgresPromptApplicationSessionRepository{
+		pool: pool, sessionTable: "prompt_application_sessions",
+		turnTable: "prompt_application_session_turns", sessionSchema: promptApplicationSessionV2Schema,
+		profile: applicationInteractionProfilePrompt,
+	}
 }
 
 func (repository *postgresPromptApplicationSessionRepository) Create(ctx ApplicationInteractionContext, session ApplicationInteractionSession) (ApplicationInteractionSession, error) {
-	if repository == nil || repository.pool == nil || session.SchemaVersion != promptApplicationSessionV2Schema {
+	if repository == nil || repository.pool == nil || session.SchemaVersion != repository.expectedSessionSchema() {
 		return ApplicationInteractionSession{}, errApplicationSessionStore
 	}
 	payload, err := encodeApplicationInteractionSession(session)
@@ -27,9 +38,9 @@ func (repository *postgresPromptApplicationSessionRepository) Create(ctx Applica
 	if err != nil {
 		return ApplicationInteractionSession{}, err
 	}
-	command, err := repository.pool.Exec(applicationInteractionRequestContext(ctx), `INSERT INTO prompt_application_sessions
+	command, err := repository.pool.Exec(applicationInteractionRequestContext(ctx), repository.statement(`INSERT INTO prompt_application_sessions
 (tenant_ref,workspace_id,application_id,owner_subject_ref,session_id,session_state,record_version,updated_at,authority_digest,sanitized_session_payload)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT DO NOTHING`,
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT DO NOTHING`),
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, session.SessionID,
 		session.State, session.RecordVersion, updatedAt, session.Authority.AuthorityDigest, payload)
 	if err != nil {
@@ -45,9 +56,9 @@ func (repository *postgresPromptApplicationSessionRepository) Read(ctx Applicati
 	if repository == nil || repository.pool == nil {
 		return ApplicationInteractionSession{}, errApplicationSessionStore
 	}
-	return readPostgresPromptApplicationSession(repository.pool.QueryRow(applicationInteractionRequestContext(ctx), `SELECT
+	return readPostgresPromptApplicationSession(repository.pool.QueryRow(applicationInteractionRequestContext(ctx), repository.statement(`SELECT
 session_state,record_version,updated_at,authority_digest,sanitized_session_payload FROM prompt_application_sessions
-WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5`,
+WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5`),
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, sessionID), ctx)
 }
 
@@ -55,7 +66,7 @@ func (repository *postgresPromptApplicationSessionRepository) List(ctx Applicati
 	if repository == nil || repository.pool == nil {
 		return nil, errApplicationSessionStore
 	}
-	if query.ExecutionProfile != "" && query.ExecutionProfile != applicationInteractionProfilePrompt {
+	if query.ExecutionProfile != "" && query.ExecutionProfile != repository.expectedProfile() {
 		return []ApplicationInteractionSession{}, nil
 	}
 	var after any
@@ -66,11 +77,11 @@ func (repository *postgresPromptApplicationSessionRepository) List(ctx Applicati
 		}
 		after = parsed
 	}
-	rows, err := repository.pool.Query(applicationInteractionRequestContext(ctx), `SELECT
+	rows, err := repository.pool.Query(applicationInteractionRequestContext(ctx), repository.statement(`SELECT
 session_state,record_version,updated_at,authority_digest,sanitized_session_payload FROM prompt_application_sessions
 WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4
 AND ($5='' OR session_state=$5) AND ($6::timestamptz IS NULL OR updated_at<$6 OR (updated_at=$6 AND session_id<$7))
-ORDER BY updated_at DESC,session_id DESC LIMIT $8`,
+ORDER BY updated_at DESC,session_id DESC LIMIT $8`),
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef,
 		query.State, after, query.AfterSessionID, query.Limit)
 	if err != nil {
@@ -94,9 +105,9 @@ ORDER BY updated_at DESC,session_id DESC LIMIT $8`,
 func (repository *postgresPromptApplicationSessionRepository) Close(ctx ApplicationInteractionContext, sessionID string, expectedVersion int, updated ApplicationInteractionSession) (ApplicationInteractionSession, error) {
 	var output ApplicationInteractionSession
 	err := repository.mutate(ctx, func(tx pgx.Tx) error {
-		current, err := readPostgresPromptApplicationSession(tx.QueryRow(applicationInteractionRequestContext(ctx), `SELECT
+		current, err := readPostgresPromptApplicationSession(tx.QueryRow(applicationInteractionRequestContext(ctx), repository.statement(`SELECT
 session_state,record_version,updated_at,authority_digest,sanitized_session_payload FROM prompt_application_sessions
-WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5 FOR UPDATE`,
+WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5 FOR UPDATE`),
 			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, sessionID), ctx)
 		if err != nil {
 			return err
@@ -115,9 +126,9 @@ WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_
 			return err
 		}
 		updatedAt, _ := applicationInteractionTimestamp(updated.UpdatedAt)
-		command, err := tx.Exec(applicationInteractionRequestContext(ctx), `UPDATE prompt_application_sessions SET
+		command, err := tx.Exec(applicationInteractionRequestContext(ctx), repository.statement(`UPDATE prompt_application_sessions SET
 session_state=$1,record_version=$2,updated_at=$3,sanitized_session_payload=$4 WHERE tenant_ref=$5 AND workspace_id=$6
-AND application_id=$7 AND owner_subject_ref=$8 AND session_id=$9 AND record_version=$10 AND session_state='active'`,
+AND application_id=$7 AND owner_subject_ref=$8 AND session_id=$9 AND record_version=$10 AND session_state='active'`),
 			updated.State, updated.RecordVersion, updatedAt, payload, ctx.TenantRef, ctx.WorkspaceID,
 			ctx.ApplicationID, ctx.OwnerSubjectRef, sessionID, expectedVersion)
 		if err != nil {
@@ -137,16 +148,16 @@ func (repository *postgresPromptApplicationSessionRepository) ReserveTurn(ctx Ap
 	var outputTurn ApplicationInteractionTurn
 	var replay bool
 	err := repository.mutate(ctx, func(tx pgx.Tx) error {
-		current, err := readPostgresPromptApplicationSession(tx.QueryRow(applicationInteractionRequestContext(ctx), `SELECT
+		current, err := readPostgresPromptApplicationSession(tx.QueryRow(applicationInteractionRequestContext(ctx), repository.statement(`SELECT
 session_state,record_version,updated_at,authority_digest,sanitized_session_payload FROM prompt_application_sessions
-WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5 FOR UPDATE`,
+WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5 FOR UPDATE`),
 			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, updated.SessionID), ctx)
 		if err != nil {
 			return err
 		}
-		existing, err := readPostgresApplicationInteractionTurn(tx.QueryRow(applicationInteractionRequestContext(ctx), `SELECT
+		existing, err := readPostgresApplicationInteractionTurn(tx.QueryRow(applicationInteractionRequestContext(ctx), repository.statement(`SELECT
 turn_sequence,client_turn_key,turn_status,started_at,completed_at,sanitized_turn_payload FROM prompt_application_session_turns
-WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5 AND client_turn_key=$6`,
+WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5 AND client_turn_key=$6`),
 			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, updated.SessionID, turn.ClientTurnKey), ctx)
 		if err == nil {
 			if !applicationInteractionTurnReservationsEqual(existing, turn) {
@@ -177,9 +188,9 @@ WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_
 		}
 		updatedAt, _ := applicationInteractionTimestamp(updated.UpdatedAt)
 		startedAt, _ := applicationInteractionTimestamp(turn.StartedAt)
-		command, err := tx.Exec(applicationInteractionRequestContext(ctx), `UPDATE prompt_application_sessions SET
+		command, err := tx.Exec(applicationInteractionRequestContext(ctx), repository.statement(`UPDATE prompt_application_sessions SET
 record_version=$1,updated_at=$2,sanitized_session_payload=$3 WHERE tenant_ref=$4 AND workspace_id=$5
-AND application_id=$6 AND owner_subject_ref=$7 AND session_id=$8 AND record_version=$9 AND session_state='active'`,
+AND application_id=$6 AND owner_subject_ref=$7 AND session_id=$8 AND record_version=$9 AND session_state='active'`),
 			updated.RecordVersion, updatedAt, sessionPayload, ctx.TenantRef, ctx.WorkspaceID,
 			ctx.ApplicationID, ctx.OwnerSubjectRef, updated.SessionID, expectedVersion)
 		if err != nil {
@@ -188,9 +199,9 @@ AND application_id=$6 AND owner_subject_ref=$7 AND session_id=$8 AND record_vers
 		if command.RowsAffected() != 1 {
 			return errApplicationSessionVersionConflict
 		}
-		_, err = tx.Exec(applicationInteractionRequestContext(ctx), `INSERT INTO prompt_application_session_turns
+		_, err = tx.Exec(applicationInteractionRequestContext(ctx), repository.statement(`INSERT INTO prompt_application_session_turns
 (tenant_ref,workspace_id,application_id,owner_subject_ref,session_id,turn_id,turn_sequence,client_turn_key,turn_status,started_at,completed_at,sanitized_turn_payload)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,NULL,$11)`,
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,NULL,$11)`),
 			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, turn.SessionID,
 			turn.TurnID, turn.Sequence, turn.ClientTurnKey, turn.Status, startedAt, turnPayload)
 		if err != nil {
@@ -206,9 +217,9 @@ func (repository *postgresPromptApplicationSessionRepository) ReadTurn(ctx Appli
 	if repository == nil || repository.pool == nil {
 		return ApplicationInteractionTurn{}, errApplicationSessionStore
 	}
-	return readPostgresApplicationInteractionTurn(repository.pool.QueryRow(applicationInteractionRequestContext(ctx), `SELECT
+	return readPostgresApplicationInteractionTurn(repository.pool.QueryRow(applicationInteractionRequestContext(ctx), repository.statement(`SELECT
 turn_sequence,client_turn_key,turn_status,started_at,completed_at,sanitized_turn_payload FROM prompt_application_session_turns
-WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5 AND turn_id=$6`,
+WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5 AND turn_id=$6`),
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, sessionID, turnID), ctx)
 }
 
@@ -216,9 +227,9 @@ func (repository *postgresPromptApplicationSessionRepository) ReadTurnByClientKe
 	if repository == nil || repository.pool == nil {
 		return ApplicationInteractionTurn{}, errApplicationSessionStore
 	}
-	return readPostgresApplicationInteractionTurn(repository.pool.QueryRow(applicationInteractionRequestContext(ctx), `SELECT
+	return readPostgresApplicationInteractionTurn(repository.pool.QueryRow(applicationInteractionRequestContext(ctx), repository.statement(`SELECT
 turn_sequence,client_turn_key,turn_status,started_at,completed_at,sanitized_turn_payload FROM prompt_application_session_turns
-WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5 AND client_turn_key=$6`,
+WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5 AND client_turn_key=$6`),
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, sessionID, clientKey), ctx)
 }
 
@@ -227,16 +238,16 @@ func (repository *postgresPromptApplicationSessionRepository) CompleteTurn(ctx A
 	var outputTurn ApplicationInteractionTurn
 	var replay bool
 	err := repository.mutate(ctx, func(tx pgx.Tx) error {
-		current, err := readPostgresApplicationInteractionTurn(tx.QueryRow(applicationInteractionRequestContext(ctx), `SELECT
+		current, err := readPostgresApplicationInteractionTurn(tx.QueryRow(applicationInteractionRequestContext(ctx), repository.statement(`SELECT
 turn_sequence,client_turn_key,turn_status,started_at,completed_at,sanitized_turn_payload FROM prompt_application_session_turns
-WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5 AND turn_id=$6 FOR UPDATE`,
+WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5 AND turn_id=$6 FOR UPDATE`),
 			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, terminal.SessionID, terminal.TurnID), ctx)
 		if err != nil {
 			return err
 		}
-		session, err := readPostgresPromptApplicationSession(tx.QueryRow(applicationInteractionRequestContext(ctx), `SELECT
+		session, err := readPostgresPromptApplicationSession(tx.QueryRow(applicationInteractionRequestContext(ctx), repository.statement(`SELECT
 session_state,record_version,updated_at,authority_digest,sanitized_session_payload FROM prompt_application_sessions
-WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5`,
+WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5`),
 			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, terminal.SessionID), ctx)
 		if err != nil {
 			return err
@@ -259,9 +270,9 @@ WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_
 		if err != nil || completedAt == nil {
 			return errApplicationSessionContract
 		}
-		command, err := tx.Exec(applicationInteractionRequestContext(ctx), `UPDATE prompt_application_session_turns SET
+		command, err := tx.Exec(applicationInteractionRequestContext(ctx), repository.statement(`UPDATE prompt_application_session_turns SET
 turn_status=$1,completed_at=$2,sanitized_turn_payload=$3 WHERE tenant_ref=$4 AND workspace_id=$5 AND application_id=$6
-AND owner_subject_ref=$7 AND session_id=$8 AND turn_id=$9 AND turn_status='running'`,
+AND owner_subject_ref=$7 AND session_id=$8 AND turn_id=$9 AND turn_status='running'`),
 			terminal.Status, completedAt, payload, ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID,
 			ctx.OwnerSubjectRef, terminal.SessionID, terminal.TurnID)
 		if err != nil {
@@ -280,9 +291,9 @@ func (repository *postgresPromptApplicationSessionRepository) ListTurns(ctx Appl
 	if _, err := repository.Read(ctx, sessionID); err != nil {
 		return nil, err
 	}
-	rows, err := repository.pool.Query(applicationInteractionRequestContext(ctx), `SELECT
+	rows, err := repository.pool.Query(applicationInteractionRequestContext(ctx), repository.statement(`SELECT
 turn_sequence,client_turn_key,turn_status,started_at,completed_at,sanitized_turn_payload FROM prompt_application_session_turns
-WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5 ORDER BY turn_sequence`,
+WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND session_id=$5 ORDER BY turn_sequence`),
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, sessionID)
 	if err != nil {
 		return nil, errApplicationSessionStore
@@ -319,6 +330,32 @@ func (repository *postgresPromptApplicationSessionRepository) mutate(ctx Applica
 		return errApplicationSessionStore
 	}
 	return nil
+}
+
+func (repository *postgresPromptApplicationSessionRepository) expectedSessionSchema() string {
+	if repository.sessionSchema != "" {
+		return repository.sessionSchema
+	}
+	return promptApplicationSessionV2Schema
+}
+
+func (repository *postgresPromptApplicationSessionRepository) expectedProfile() string {
+	if repository.profile != "" {
+		return repository.profile
+	}
+	return applicationInteractionProfilePrompt
+}
+
+func (repository *postgresPromptApplicationSessionRepository) statement(query string) string {
+	sessionTable, turnTable := repository.sessionTable, repository.turnTable
+	if sessionTable == "" {
+		sessionTable = "prompt_application_sessions"
+	}
+	if turnTable == "" {
+		turnTable = "prompt_application_session_turns"
+	}
+	query = strings.ReplaceAll(query, "prompt_application_session_turns", turnTable)
+	return strings.ReplaceAll(query, "prompt_application_sessions", sessionTable)
 }
 
 func readPostgresPromptApplicationSession(row postgresApplicationInteractionSessionRow, ctx ApplicationInteractionContext) (ApplicationInteractionSession, error) {

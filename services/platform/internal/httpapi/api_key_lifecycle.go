@@ -69,6 +69,7 @@ var apiKeyAllowedScopes = map[string]struct{}{
 	"messages:invoke":           {},
 	"application_rag:invoke":    {},
 	"prompt_application:invoke": {},
+	agentCopilotInvokeScope:     {},
 }
 
 type apiKeyVersionConflictError struct {

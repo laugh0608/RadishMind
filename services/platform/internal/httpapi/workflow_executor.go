@@ -60,40 +60,41 @@ const (
 type WorkflowRunFailureCode string
 
 const (
-	WorkflowRunFailureScopeDenied             WorkflowRunFailureCode = "workflow_run_scope_denied"
-	WorkflowRunFailureDraftNotFound           WorkflowRunFailureCode = "workflow_run_draft_not_found"
-	WorkflowRunFailureDraftVersionUnavailable WorkflowRunFailureCode = "workflow_run_draft_version_unavailable"
-	WorkflowRunFailureDraftNotEligible        WorkflowRunFailureCode = "workflow_run_draft_not_eligible"
-	WorkflowRunFailureInputInvalid            WorkflowRunFailureCode = "workflow_run_input_invalid"
-	WorkflowRunFailureGraphInvalid            WorkflowRunFailureCode = "workflow_run_graph_invalid"
-	WorkflowRunFailureBudgetExceeded          WorkflowRunFailureCode = "workflow_run_budget_exceeded"
-	WorkflowRunFailureGatewayFailed           WorkflowRunFailureCode = "workflow_run_gateway_failed"
-	WorkflowRunFailureOutputUnavailable       WorkflowRunFailureCode = "workflow_run_output_unavailable"
-	WorkflowRunFailureCanceled                WorkflowRunFailureCode = "workflow_run_canceled"
-	WorkflowRunFailureRecordNotFound          WorkflowRunFailureCode = "workflow_run_record_not_found"
-	WorkflowRunFailureStoreUnavailable        WorkflowRunFailureCode = "workflow_run_store_unavailable"
-	WorkflowRunFailureStoreContractMismatch   WorkflowRunFailureCode = "workflow_run_store_contract_mismatch"
-	WorkflowRunFailureFilterInvalid           WorkflowRunFailureCode = "workflow_run_filter_invalid"
-	WorkflowRunFailureCursorInvalid           WorkflowRunFailureCode = "workflow_run_cursor_invalid"
-	WorkflowRunFailureStoreModeInvalid        WorkflowRunFailureCode = "workflow_run_store_mode_invalid"
-	WorkflowRunFailureStoreModeDisabled       WorkflowRunFailureCode = "workflow_run_store_mode_disabled"
-	WorkflowRunFailureComparisonInvalid       WorkflowRunFailureCode = "workflow_run_comparison_invalid"
-	WorkflowRunFailureSideEffectUnsupported   WorkflowRunFailureCode = "workflow_run_side_effect_profile_unsupported"
-	WorkflowRunFailureRetrievalUnsupported    WorkflowRunFailureCode = "workflow_run_retrieval_profile_unsupported"
-	WorkflowRunFailureRetrievalIncompatible   WorkflowRunFailureCode = "workflow_run_retrieval_profile_incompatible"
-	WorkflowRunFailureToolPolicy              WorkflowRunFailureCode = "workflow_tool_policy_denied"
-	WorkflowRunFailureToolConfirmation        WorkflowRunFailureCode = "workflow_tool_confirmation_invalid"
-	WorkflowRunFailureToolTransport           WorkflowRunFailureCode = "workflow_tool_transport_failed"
-	WorkflowRunFailureToolTimeout             WorkflowRunFailureCode = "workflow_tool_timeout"
-	WorkflowRunFailureToolResponseStatus      WorkflowRunFailureCode = "workflow_tool_response_status_invalid"
-	WorkflowRunFailureToolResponseTooLarge    WorkflowRunFailureCode = "workflow_tool_response_too_large"
-	WorkflowRunFailureToolResponseInvalid     WorkflowRunFailureCode = "workflow_tool_response_invalid"
-	WorkflowRunFailureToolStore               WorkflowRunFailureCode = "workflow_tool_store_unavailable"
-	WorkflowRunFailureToolOutcomeUnknown      WorkflowRunFailureCode = "workflow_tool_outcome_unknown"
-	WorkflowRunFailureDefinitionAuthority     WorkflowRunFailureCode = "workflow_definition_execution_authority_drift"
-	WorkflowRunFailureDefinitionIncompatible  WorkflowRunFailureCode = "workflow_definition_execution_profile_incompatible"
-	WorkflowRunFailureDefinitionInterrupted   WorkflowRunFailureCode = "workflow_definition_execution_interrupted"
-	WorkflowRunFailurePromptIncompatible      WorkflowRunFailureCode = "prompt_application_execution_profile_incompatible"
+	WorkflowRunFailureScopeDenied              WorkflowRunFailureCode = "workflow_run_scope_denied"
+	WorkflowRunFailureDraftNotFound            WorkflowRunFailureCode = "workflow_run_draft_not_found"
+	WorkflowRunFailureDraftVersionUnavailable  WorkflowRunFailureCode = "workflow_run_draft_version_unavailable"
+	WorkflowRunFailureDraftNotEligible         WorkflowRunFailureCode = "workflow_run_draft_not_eligible"
+	WorkflowRunFailureInputInvalid             WorkflowRunFailureCode = "workflow_run_input_invalid"
+	WorkflowRunFailureGraphInvalid             WorkflowRunFailureCode = "workflow_run_graph_invalid"
+	WorkflowRunFailureBudgetExceeded           WorkflowRunFailureCode = "workflow_run_budget_exceeded"
+	WorkflowRunFailureGatewayFailed            WorkflowRunFailureCode = "workflow_run_gateway_failed"
+	WorkflowRunFailureOutputUnavailable        WorkflowRunFailureCode = "workflow_run_output_unavailable"
+	WorkflowRunFailureCanceled                 WorkflowRunFailureCode = "workflow_run_canceled"
+	WorkflowRunFailureRecordNotFound           WorkflowRunFailureCode = "workflow_run_record_not_found"
+	WorkflowRunFailureStoreUnavailable         WorkflowRunFailureCode = "workflow_run_store_unavailable"
+	WorkflowRunFailureStoreContractMismatch    WorkflowRunFailureCode = "workflow_run_store_contract_mismatch"
+	WorkflowRunFailureFilterInvalid            WorkflowRunFailureCode = "workflow_run_filter_invalid"
+	WorkflowRunFailureCursorInvalid            WorkflowRunFailureCode = "workflow_run_cursor_invalid"
+	WorkflowRunFailureStoreModeInvalid         WorkflowRunFailureCode = "workflow_run_store_mode_invalid"
+	WorkflowRunFailureStoreModeDisabled        WorkflowRunFailureCode = "workflow_run_store_mode_disabled"
+	WorkflowRunFailureComparisonInvalid        WorkflowRunFailureCode = "workflow_run_comparison_invalid"
+	WorkflowRunFailureSideEffectUnsupported    WorkflowRunFailureCode = "workflow_run_side_effect_profile_unsupported"
+	WorkflowRunFailureRetrievalUnsupported     WorkflowRunFailureCode = "workflow_run_retrieval_profile_unsupported"
+	WorkflowRunFailureRetrievalIncompatible    WorkflowRunFailureCode = "workflow_run_retrieval_profile_incompatible"
+	WorkflowRunFailureToolPolicy               WorkflowRunFailureCode = "workflow_tool_policy_denied"
+	WorkflowRunFailureToolConfirmation         WorkflowRunFailureCode = "workflow_tool_confirmation_invalid"
+	WorkflowRunFailureToolTransport            WorkflowRunFailureCode = "workflow_tool_transport_failed"
+	WorkflowRunFailureToolTimeout              WorkflowRunFailureCode = "workflow_tool_timeout"
+	WorkflowRunFailureToolResponseStatus       WorkflowRunFailureCode = "workflow_tool_response_status_invalid"
+	WorkflowRunFailureToolResponseTooLarge     WorkflowRunFailureCode = "workflow_tool_response_too_large"
+	WorkflowRunFailureToolResponseInvalid      WorkflowRunFailureCode = "workflow_tool_response_invalid"
+	WorkflowRunFailureToolStore                WorkflowRunFailureCode = "workflow_tool_store_unavailable"
+	WorkflowRunFailureToolOutcomeUnknown       WorkflowRunFailureCode = "workflow_tool_outcome_unknown"
+	WorkflowRunFailureDefinitionAuthority      WorkflowRunFailureCode = "workflow_definition_execution_authority_drift"
+	WorkflowRunFailureDefinitionIncompatible   WorkflowRunFailureCode = "workflow_definition_execution_profile_incompatible"
+	WorkflowRunFailureDefinitionInterrupted    WorkflowRunFailureCode = "workflow_definition_execution_interrupted"
+	WorkflowRunFailurePromptIncompatible       WorkflowRunFailureCode = "prompt_application_execution_profile_incompatible"
+	WorkflowRunFailureAgentCopilotIncompatible WorkflowRunFailureCode = "agent_copilot_execution_profile_incompatible"
 )
 
 type WorkflowRunContext struct {
@@ -161,57 +162,72 @@ type WorkflowDefinitionRunAuthority struct {
 }
 
 type WorkflowRunRecord struct {
-	SchemaVersion          string                               `json:"schema_version"`
-	RecordVersion          int                                  `json:"record_version"`
-	RunID                  string                               `json:"run_id"`
-	PlanID                 string                               `json:"plan_id,omitempty"`
-	ConfirmationID         string                               `json:"confirmation_id,omitempty"`
-	TenantRef              string                               `json:"tenant_ref,omitempty"`
-	DraftID                string                               `json:"draft_id"`
-	DraftVersion           int                                  `json:"draft_version"`
-	DraftDigest            string                               `json:"draft_digest,omitempty"`
-	WorkspaceID            string                               `json:"workspace_id"`
-	ApplicationID          string                               `json:"application_id"`
-	ExecutionKind          string                               `json:"execution_kind,omitempty"`
-	ExecutionSourceKind    string                               `json:"execution_source_kind,omitempty"`
-	ExecutionSourceID      string                               `json:"execution_source_id,omitempty"`
-	ExecutionSourceVersion int                                  `json:"execution_source_version,omitempty"`
-	ExecutionProfile       string                               `json:"execution_profile,omitempty"`
-	InputDigest            string                               `json:"input_digest,omitempty"`
-	DefinitionAuthority    *WorkflowDefinitionRunAuthority      `json:"definition_authority,omitempty"`
-	ExecutionSource        *workflowRunExecutionSource          `json:"-"`
-	Status                 WorkflowRunStatus                    `json:"status"`
-	FailureCode            WorkflowRunFailureCode               `json:"failure_code"`
-	FailureSummary         string                               `json:"failure_summary"`
-	StartedAt              string                               `json:"started_at"`
-	CompletedAt            string                               `json:"completed_at"`
-	InputBytes             int                                  `json:"input_bytes"`
-	ConditionNodeIDs       []string                             `json:"condition_node_ids"`
-	RequestedModel         string                               `json:"requested_model"`
-	SelectedProvider       string                               `json:"selected_provider"`
-	SelectedProfile        string                               `json:"selected_profile"`
-	SelectedModel          string                               `json:"selected_model"`
-	UpstreamModel          string                               `json:"upstream_model"`
-	SelectionSource        string                               `json:"selection_source"`
-	Nodes                  []WorkflowRunNodeRecord              `json:"nodes"`
-	ToolAttempt            *WorkflowHTTPToolExecutionAttempt    `json:"tool_attempt,omitempty"`
-	RAGSnapshot            *workflowRAGRunSnapshotBinding       `json:"snapshot,omitempty"`
-	RetrievalAttempt       *workflowRAGRunRetrievalAttempt      `json:"retrieval_attempt,omitempty"`
-	RAGAnswer              *WorkflowRAGAnswer                   `json:"answer,omitempty"`
-	RAGApplication         *workflowRAGApplicationRunAuthority  `json:"-"`
-	PromptApplication      *PromptApplicationRuntimeAuthorityV2 `json:"-"`
-	VariableNames          []string                             `json:"-"`
-	VariableNamesDigest    string                               `json:"-"`
-	RequestedProtocol      string                               `json:"-"`
-	SelectedProtocol       string                               `json:"-"`
-	PromptUsage            PromptApplicationRunUsageV6          `json:"-"`
-	PromptDiagnostic       *PromptApplicationRunDiagnosticV6    `json:"-"`
-	Output                 string                               `json:"output"`
-	RequestID              string                               `json:"request_id"`
-	AuditRef               string                               `json:"audit_ref"`
-	ActorRef               string                               `json:"actor_ref"`
-	SideEffects            WorkflowRunSideEffects               `json:"side_effects"`
-	Diagnostic             *WorkflowRunDiagnostic               `json:"diagnostic,omitempty"`
+	SchemaVersion             string                               `json:"schema_version"`
+	RecordVersion             int                                  `json:"record_version"`
+	RunID                     string                               `json:"run_id"`
+	PlanID                    string                               `json:"plan_id,omitempty"`
+	ConfirmationID            string                               `json:"confirmation_id,omitempty"`
+	TenantRef                 string                               `json:"tenant_ref,omitempty"`
+	DraftID                   string                               `json:"draft_id"`
+	DraftVersion              int                                  `json:"draft_version"`
+	DraftDigest               string                               `json:"draft_digest,omitempty"`
+	WorkspaceID               string                               `json:"workspace_id"`
+	ApplicationID             string                               `json:"application_id"`
+	ExecutionKind             string                               `json:"execution_kind,omitempty"`
+	ExecutionSourceKind       string                               `json:"execution_source_kind,omitempty"`
+	ExecutionSourceID         string                               `json:"execution_source_id,omitempty"`
+	ExecutionSourceVersion    int                                  `json:"execution_source_version,omitempty"`
+	ExecutionProfile          string                               `json:"execution_profile,omitempty"`
+	InputDigest               string                               `json:"input_digest,omitempty"`
+	DefinitionAuthority       *WorkflowDefinitionRunAuthority      `json:"definition_authority,omitempty"`
+	ExecutionSource           *workflowRunExecutionSource          `json:"-"`
+	Status                    WorkflowRunStatus                    `json:"status"`
+	FailureCode               WorkflowRunFailureCode               `json:"failure_code"`
+	FailureSummary            string                               `json:"failure_summary"`
+	StartedAt                 string                               `json:"started_at"`
+	CompletedAt               string                               `json:"completed_at"`
+	InputBytes                int                                  `json:"input_bytes"`
+	ConditionNodeIDs          []string                             `json:"condition_node_ids"`
+	RequestedModel            string                               `json:"requested_model"`
+	SelectedProvider          string                               `json:"selected_provider"`
+	SelectedProfile           string                               `json:"selected_profile"`
+	SelectedModel             string                               `json:"selected_model"`
+	UpstreamModel             string                               `json:"upstream_model"`
+	SelectionSource           string                               `json:"selection_source"`
+	Nodes                     []WorkflowRunNodeRecord              `json:"nodes"`
+	ToolAttempt               *WorkflowHTTPToolExecutionAttempt    `json:"tool_attempt,omitempty"`
+	RAGSnapshot               *workflowRAGRunSnapshotBinding       `json:"snapshot,omitempty"`
+	RetrievalAttempt          *workflowRAGRunRetrievalAttempt      `json:"retrieval_attempt,omitempty"`
+	RAGAnswer                 *WorkflowRAGAnswer                   `json:"answer,omitempty"`
+	RAGApplication            *workflowRAGApplicationRunAuthority  `json:"-"`
+	PromptApplication         *PromptApplicationRuntimeAuthorityV2 `json:"-"`
+	AgentCopilotAuthority     *AgentCopilotRuntimeAuthorityV3      `json:"-"`
+	VariableNames             []string                             `json:"-"`
+	VariableNamesDigest       string                               `json:"-"`
+	RequestedProtocol         string                               `json:"-"`
+	SelectedProtocol          string                               `json:"-"`
+	PromptUsage               PromptApplicationRunUsageV6          `json:"-"`
+	PromptDiagnostic          *PromptApplicationRunDiagnosticV6    `json:"-"`
+	AgentProject              string                               `json:"-"`
+	AgentTask                 string                               `json:"-"`
+	AgentLocale               string                               `json:"-"`
+	AgentContextBytes         int                                  `json:"-"`
+	AgentArtifactCount        int                                  `json:"-"`
+	AgentArtifactBytes        int                                  `json:"-"`
+	AgentResponseStatus       string                               `json:"-"`
+	AgentResponseDigest       string                               `json:"-"`
+	AgentAnswerCount          int                                  `json:"-"`
+	AgentIssueCount           int                                  `json:"-"`
+	AgentActionCount          int                                  `json:"-"`
+	AgentCitationCount        int                                  `json:"-"`
+	AgentRiskLevel            string                               `json:"-"`
+	AgentRequiresConfirmation bool                                 `json:"-"`
+	Output                    string                               `json:"output"`
+	RequestID                 string                               `json:"request_id"`
+	AuditRef                  string                               `json:"audit_ref"`
+	ActorRef                  string                               `json:"actor_ref"`
+	SideEffects               WorkflowRunSideEffects               `json:"side_effects"`
+	Diagnostic                *WorkflowRunDiagnostic               `json:"diagnostic,omitempty"`
 }
 
 type WorkflowRunResult struct {

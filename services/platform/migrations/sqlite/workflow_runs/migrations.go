@@ -8,8 +8,8 @@ import (
 
 const (
 	Component                        = "workflow_runs"
-	MigrationID                      = "0014_agent_copilot_runtime_assignments"
-	StoreSchemaVersion               = "workflow_run_store_sqlite_v14"
+	MigrationID                      = "0015_agent_copilot_invocation_projections"
+	StoreSchemaVersion               = "workflow_run_store_sqlite_v15"
 	RunRecordStoreSchemaVersion      = "workflow_runs_store_v5"
 	legacyMigrationID                = "0001_workflow_runs"
 	toolActionsMigrationID           = "0002_workflow_http_tool_actions"
@@ -37,6 +37,8 @@ const (
 	applicationSessionSchemaVersion  = "workflow_run_store_sqlite_v12"
 	promptRuntimeMigrationID         = "0013_prompt_application_runtime_projections"
 	promptRuntimeSchemaVersion       = "workflow_run_store_sqlite_v13"
+	agentRuntimeMigrationID          = "0014_agent_copilot_runtime_assignments"
+	agentRuntimeSchemaVersion        = "workflow_run_store_sqlite_v14"
 )
 
 //go:embed 0001_workflow_runs.up.sql
@@ -80,6 +82,9 @@ var upSQLV13 string
 
 //go:embed 0014_agent_copilot_runtime_assignments.up.sql
 var upSQLV14 string
+
+//go:embed 0015_agent_copilot_invocation_projections.up.sql
+var upSQLV15 string
 
 func Migrations() []sqlitedev.Migration {
 	return []sqlitedev.Migration{
@@ -126,6 +131,7 @@ func Migrations() []sqlitedev.Migration {
 		{Component: Component, ID: definitionExecutionMigrationID, StoreSchemaVersion: definitionExecutionSchemaVersion, UpSQL: upSQLV11},
 		{Component: Component, ID: applicationSessionMigrationID, StoreSchemaVersion: applicationSessionSchemaVersion, UpSQL: upSQLV12},
 		{Component: Component, ID: promptRuntimeMigrationID, StoreSchemaVersion: promptRuntimeSchemaVersion, UpSQL: upSQLV13},
-		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV14},
+		{Component: Component, ID: agentRuntimeMigrationID, StoreSchemaVersion: agentRuntimeSchemaVersion, UpSQL: upSQLV14},
+		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV15},
 	}
 }
