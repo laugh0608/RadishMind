@@ -6,8 +6,8 @@
 
 ## 当前专题
 
-- [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)：批次 A 至批次 C 已完成，受限模板内核、双数据库 Template owner、Configuration Draft v3、Publish Candidate v3、三态 Runtime Assignment 及真实 PostgreSQL 门禁均已通过；下一步进入批次 D，模板源码继续只属于独立 owner。
-- [Prompt Application 开发测试态使用指南](prompt-application-dev-test-usage-guide.md)：说明 Template、Configuration Draft v3、Publish Candidate v3 与 Runtime Assignment 的启动配置、身份与权限、HTTP 路由、CAS 操作顺序、持久化验证和故障处理；未实现的 invocation / Session v2 / Run v6 不作为可操作能力。
+- [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)：批次 A 至 E 均已完成，受限模板、双数据库 Template owner、Configuration Draft v3、Publish Candidate v3、显式 Runtime Assignment、受控 invocation、Session / Turn v2、Run v6、Web 与真实浏览器验收均有可复验证据，专题关闭。
+- [Prompt Application 开发测试态使用指南](prompt-application-dev-test-usage-guide.md)：说明完整 Template → Configuration → Candidate Review → Assignment → Invocation / Session → Run Review 顺序，以及启动配置、身份权限、CAS、持久化与故障处理；所有能力仅限开发测试态。
 - [应用开发工作区与发布准备审查 v1](application-development-workspace-release-readiness-review-v1.md)：批次 A 至 C 已完成并关闭；route-scoped evidence、精确 Draft / Run owner 重读、离线 revision 失败关闭、真实浏览器连续路径与 URL / console / network 隐私审计均有可复验证据。
 - [应用受控运行开发测试态指南](application-controlled-runtime-dev-test-guide.md)：说明 Application RAG、Workflow Definition、Application Interaction Session、v4 / v5 运行记录与 Application Operations 的启动、资源准备、作用域、恢复、失败语义和隐私边界。
 - [应用交互会话与受控运行编排（开发 / 测试态）v1](application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)：strict contract、三种 Session / Turn owner、exact authority reload、v5 / v4 单次委托、Web 易失交互工作区、双数据库 launcher 连续链、重启恢复、真实浏览器和敏感扫描均已完成，专题关闭。
@@ -20,8 +20,8 @@
 
 ## 下一步
 
-- 批次 C 已完成：Configuration Draft v3、Publish Candidate v3 与 Prompt Runtime Assignment 已接入 memory / SQLite / PostgreSQL 统一语义，真实 PostgreSQL 门禁已通过；下一步进入批次 D 受控调用、Session、Run 与 Evaluation。
-- 不继续扩“应用开发工作区与发布准备审查 v1”的同层切片；Prompt Application 复用现有 workspace context、发布审查、Gateway、Session、Run History 和 Evaluation，不另建聚合发布真相源或执行算法。
+- Prompt Application 批次 A 至 E 已完成并关闭：memory / SQLite / PostgreSQL 语义、Web、双数据库连续链、服务重启、CAS / drift / cancel 和敏感信息复验均已通过。
+- 不继续扩“应用开发工作区与发布准备审查 v1”或 Prompt Application 的同层切片；下一产品能力先更新对应功能设计文档。Prompt Application 继续复用现有 workspace context、发布审查、Gateway、Session、Run History 和 Evaluation，不另建聚合发布真相源或执行算法。
 - 不从已关闭的 Application Interaction Session 派生长期记忆、自动 profile、重试 / fallback、schedule、replay / resume 或 agent loop。只有需要跨全部分页窗口的稳定统计、可信 reported usage 或正式 quota / billing owner 时，才评审服务端 summary。
 
 ## 目录停止线

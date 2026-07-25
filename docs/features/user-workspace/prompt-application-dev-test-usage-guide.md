@@ -6,7 +6,7 @@
 
 本文说明如何在 RadishMind Platform 的开发测试态创建 Prompt Application 模板、生成不可变版本、绑定应用配置、审查发布候选、显式管理当前 Runtime Assignment，并通过 API key 或 Application Interaction Session 发起受控调用。设计边界与字段职责见[提示词应用模板版本审查与受控调用专题](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)，schema 真相源位于 `contracts/`，HTTP 实现真相源位于 `services/platform/internal/httpapi/`。
 
-当前已提供模板与 assignment 管理、Prompt Application invocation、Application Session / Turn v2、Run v6、History / Comparison / Evaluation / Operations metadata 消费，以及 Application Development Workspace 下的 Prompt Web 工作区。Run / Session 的 memory、SQLite 与真实 PostgreSQL 行为门禁均已通过；Web 单一连续浏览器链仍在批次 E 收口中。Runtime Assignment 的 `active` 只表示某个已批准候选被显式选为当前运行 authority，不表示 provider 已被调用，也不构成生产发布。
+当前已提供模板与 assignment 管理、Prompt Application invocation、Application Session / Turn v2、Run v6、History / Comparison / Evaluation / Operations metadata 消费，以及 Application Development Workspace 下的 Prompt Web 工作区。Run / Session 的 memory、SQLite 与真实 PostgreSQL 行为门禁，以及两种数据库的真实浏览器连续链、服务重启、CAS / authority drift / cancel 和 transient 清理验收均已通过。Runtime Assignment 的 `active` 只表示某个已批准候选被显式选为当前运行 authority，不表示 provider 已被调用，也不构成生产发布。
 
 ## 资源与操作顺序
 
@@ -314,7 +314,7 @@ Prompt profile 只消费 `variables`，不接受调用方用 `model`、模板、
 - assignment、History、Comparison、Evaluation 和 Operations 路由不调用 Gateway、provider、工具或业务写入；只有 invocation service 允许一次计划内 Gateway 调用。
 - Run v6、Session v2 和 Turn v2 不保存变量值、rendered messages、完整 output 或 provider raw response；终态重试只返回 metadata。
 - 日志、错误、fixture 和 committed 文档不得出现 token、Authorization、cookie、DSN、provider raw URL / response 或真实用户输入。
-- 当前能力仅用于开发测试。Prompt Web 已进入批次 E 验收，但生产认证、生产 repository、retry / fallback、replay / resume、schedule、quota 和 billing 仍未启用。
+- 当前能力仅用于开发测试。Prompt Web 批次 E 已完成并关闭，但生产认证、生产 repository、retry / fallback、replay / resume、schedule、quota 和 billing 仍未启用。
 
 提交相关修改前至少执行：
 

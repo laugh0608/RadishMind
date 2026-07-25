@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-1. [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1-plan.md)：批次 A 至批次 C 已完成，配置、发布审查、三态 Runtime Assignment 与 PostgreSQL 证据均已通过；下一步进入批次 D 的受控调用、Session、Run 与 Evaluation，Web 全链保持关闭。
+1. [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1-plan.md)：批次 A 至 E、Web、双数据库连续链、服务重启、负向与隐私验收均已完成，任务卡归档。
 
 [应用开发工作区与发布准备审查 v1](../features/user-workspace/application-development-workspace-release-readiness-review-v1.md)批次 A 至 C 已完成并关闭，不再派生同层任务卡。
 
