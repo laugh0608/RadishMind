@@ -49,6 +49,15 @@ func TestAgentCopilotContractsRejectPolicyAndVersionDrift(t *testing.T) {
 		{name: "confirmation disabled", schemaVersion: agentCopilotProfileVersionSchema, mutate: func(value map[string]any) {
 			value["risk_policy"].(map[string]any)["requires_confirmation_for_actions"] = false
 		}},
+		{name: "non canonical task order", schemaVersion: agentCopilotProfileDraftSchema, mutate: func(value map[string]any) {
+			value["allowed_tasks"] = []any{"suggest_flowsheet_edits", "explain_diagnostics"}
+		}},
+		{name: "duplicate task source", schemaVersion: agentCopilotProfileDraftSchema, mutate: func(value map[string]any) {
+			value["allowed_tasks"] = []any{"explain_diagnostics", "explain_diagnostics"}
+		}},
+		{name: "profile digest drift", schemaVersion: agentCopilotProfileVersionSchema, mutate: func(value map[string]any) {
+			value["profile_digest"] = agentCopilotContractTestDigest
+		}},
 		{name: "configuration v3", schemaVersion: agentCopilotConfigurationDraftV4Schema, mutate: func(value map[string]any) {
 			value["schema_version"] = promptApplicationConfigurationDraftV3Schema
 		}},
@@ -177,9 +186,14 @@ func agentCopilotContractFixtures(t *testing.T) map[string]any {
 		},
 		ToolHintsPolicy: AgentCopilotToolHintsPolicy{},
 	}
+	compiled, findings := CompileAgentCopilotProfileSource(source)
+	if len(findings) != 0 {
+		t.Fatalf("compile agent copilot contract fixture: %#v", findings)
+	}
+	source = compiled.Source
 	profileRef := AgentCopilotProfileRef{
 		ProfileID: "acpf_aaaaaaaaaaaaaaaa", ProfileVersion: 2,
-		ProfileDigest: agentCopilotContractTestDigest, PolicyDigest: agentCopilotContractTestDigest,
+		ProfileDigest: compiled.ProfileDigest, PolicyDigest: compiled.PolicyDigest,
 	}
 	draft := AgentCopilotProfileDraftV1{
 		SchemaVersion: agentCopilotProfileDraftSchema, ProfileID: profileRef.ProfileID, TenantRef: "tenant:1", WorkspaceID: "workspace_1",

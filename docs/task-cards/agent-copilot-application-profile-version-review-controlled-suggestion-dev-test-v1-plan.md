@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_a1_strict_contracts_completed_batch_a2_ready`
+状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_a2_policy_compiler_completed_batch_a3_ready`
 
 ## 目标与准入结论
 
@@ -14,7 +14,7 @@
 
 ## 实现基线与兼容审计
 
-- 实现基线为 `c472a2ad`，分支为 `dev`，开始审计时工作区干净。
+- 任务卡与兼容审计基线为 `c472a2ad`；A2 实现基线为 `9cad03c8`，分支为 `dev`，开始实施时工作区干净。
 - Application Catalog 已允许 `workflow_copilot | docs_qa | agent | prompt_application`；本专题不增加 kind、不改 ID、生命周期、列表筛选、CAS 或归档语义。
 - Application Configuration Draft 当前严格支持 v1 未绑定、v2 Workflow RAG binding、v3 Prompt Template binding；v4 只允许 `application_kind=agent` 和一个 Agent / Copilot Profile ref。
 - Application Publish Candidate 当前严格支持 v1 / v2 / v3 并共享唯一 review / supersede 状态机；v4 只增加 Agent Profile 精确引用，不建立平行审批。
@@ -178,10 +178,10 @@ Profile owner 至少固定：
 
 ### 批次 A：strict contract、policy compiler 与 memory Profile owner
 
-状态：`in_progress`；A1 已完成，A2 待开始。
+状态：`in_progress`；A1、A2 已完成，A3 ready。
 
 1. A1（已完成）：新增 Profile Draft / Version、Configuration v4、Candidate v4、Assignment / Event、Authority v3、Session / Turn v3 与 Run v7 共 10 份 strict schema 和独立 Go contract-only codec；兼容矩阵测试确认旧版本保持可用，新版本仍未注册到既有 runtime。
-2. A2：实现 Profile canonical normalization、project / task 校验、policy compiler、预算、safety / confirmation invariant、secret guard 和相邻单元测试。
+2. A2（已完成）：实现 Profile canonical normalization、project / task / context 可满足性校验、locale 与 canonical enum 规范顺序、纯函数 policy compiler、`profile_digest / policy_digest / allowed_tasks_digest`、UTF-8 与条目预算、固定 advisory / confirmation / tool hints、敏感材料守卫和相邻单元测试；schema 投影对照测试防止形成第二套 task / context / artifact / action registry。
 3. A3：实现 memory Draft / Version repository、作用域、CAS、不可变版本、stable list、corruption / unavailable、默认关闭 API 与 read / read_source 权限分离。
 
 批次 A 完成条件：
@@ -217,7 +217,7 @@ Profile owner 至少固定：
 
 ## 当前下一步
 
-直接进入批次 A2：实现 Profile canonical normalization、project / task / context field 校验、policy compiler、预算、safety / confirmation invariant、secret guard 与相邻单元测试。A2 不实现 Profile repository / API；A1–A3 全部通过前不进入数据库、配置绑定、发布审查、assignment、Session、Run、provider 或 Web。
+直接进入批次 A3：实现 memory Draft / immutable Version repository、作用域、CAS、stable list、corruption / unavailable、默认关闭 API 与 `read / read_source` 权限分离。A3 完成前不进入数据库、配置绑定、发布审查、assignment、Session、Run、provider 或 Web。
 
 ## 停止线
 

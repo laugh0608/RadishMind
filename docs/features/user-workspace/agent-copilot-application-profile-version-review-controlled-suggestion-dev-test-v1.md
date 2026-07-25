@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_a1_strict_contracts_completed_batch_a2_ready`
+状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_a2_policy_compiler_completed_batch_a3_ready`
 
 ## 功能定位
 
@@ -17,7 +17,7 @@
 - 仓库已经具备 canonical `CopilotRequest / CopilotResponse`、Gateway、应用目录、配置草案、发布审查、API key、Application Interaction Session、Run History、Comparison、Evaluation 和双数据库开发测试态持久化基础。新专题应组合这些 owner，不复制协议适配、会话、运行记录或评测算法。
 - 产品范围与路线图已经长期承诺 Agent / Copilot 应用。本轮选择该方向，优先补齐用户可识别的应用能力，不转向缺少可信 usage 的计费、不提前接真实 OIDC，也不在 backend / artifact store 尚未成立时扩图片生成运行时。
 
-因此，功能设计先固定长期边界，再由[唯一实施任务卡](../../task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)冻结版本、API、权限、失败语义、兼容矩阵和分批验证。批次 A1 已完成 10 份 strict schema、独立 Go contract-only codec 与兼容防漂移测试；新版本尚未注册到既有 runtime，下一步进入 A2 policy compiler，API、迁移和运行能力仍未启用。
+因此，功能设计先固定长期边界，再由[唯一实施任务卡](../../task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)冻结版本、API、权限、失败语义、兼容矩阵和分批验证。批次 A2 已在 A1 strict contracts 之上完成 canonical normalization、纯函数 policy compiler、稳定 digest、预算、安全确认与敏感材料守卫；新版本仍未注册到既有 runtime，下一步只进入 A3 memory Profile owner 与默认关闭 API，迁移和运行能力继续关闭。
 
 ## 目标用户与主要任务
 
@@ -152,9 +152,11 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 
 ### 批次 A：高风险任务卡、兼容矩阵与 memory owner
 
-- 唯一实施任务卡已经定义，固定 schema 版本、API、权限、失败码、幂等、双检查点 authority 和验证矩阵。
-- 完成应用类型路由、Configuration Draft v1–v3、Publish Candidate v1–v3、Session v1 / v2、Run v0–v6、API key scope 与 canonical contract 的兼容审计。
-- 实现 Profile 校验器、memory Draft / Version repository、CAS、不可变版本和敏感材料守卫。
+- A1 已完成唯一实施任务卡、兼容审计、10 份 strict schema、独立 Go contract-only codec 与旧版本防漂移测试。
+- A2 已完成 Profile canonical normalization；task、context field、artifact kind / role 和 action kind 直接投影 canonical `CopilotRequest / CopilotResponse` 并由相邻 schema 对照测试防止形成第二套 registry。
+- A2 已完成纯函数 policy compiler，输出规范化 source、稳定 `profile_digest / policy_digest / allowed_tasks_digest`；Profile Draft / Version codec 会复算 digest 并拒绝非 canonical source 或 digest drift。
+- A2 已完成 UTF-8 source / locale 与策略数值预算、原始条目数量、project / task / context 可满足性、固定 advisory / confirmation / tool hints、敏感字段和配置形态守卫。
+- A3 待实现 memory Draft / Version repository、CAS、不可变版本、stable list、corruption / unavailable、默认关闭 API 与 `read / read_source` 权限分离。
 - 批次 A 未完成前不打开 Gateway / provider 调用。
 
 ### 批次 B：SQLite / PostgreSQL 开发测试态持久化
@@ -195,7 +197,7 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 
 ## 当前下一步
 
-下一步直接进入批次 A1：先实现 10 份 strict schema、Go contract-only codec 和兼容矩阵测试；A1 通过后再实现 policy compiler 与 memory Profile owner。A1–A3 全部通过前不进入数据库、配置绑定、发布审查、assignment、Session、Run、provider 或 Web。
+下一步直接进入批次 A3：实现 memory Profile Draft / immutable Version repository、作用域、CAS、stable list、corruption / unavailable、默认关闭 API 与 `read / read_source` 权限分离。A3 通过前不进入数据库、配置绑定、发布审查、assignment、Session、Run、provider 或 Web。
 
 ## 停止线
 

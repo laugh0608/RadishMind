@@ -443,10 +443,10 @@ func validateAgentCopilotContract(value any) error {
 }
 
 func validateAgentCopilotProfileDraft(value AgentCopilotProfileDraftV1) error {
-	sourceBytes, _ := json.Marshal(value.AgentCopilotProfileSource)
+	compiled, findings := CompileAgentCopilotProfileSource(value.AgentCopilotProfileSource)
 	if value.SchemaVersion != agentCopilotProfileDraftSchema || !validAgentCopilotScope(value.TenantRef, value.WorkspaceID, value.ApplicationID, value.OwnerSubjectRef) ||
-		!agentCopilotProfileIDPattern.MatchString(value.ProfileID) || len(sourceBytes) > agentCopilotMaximumProfileSourceBytes || !validAgentCopilotProfileSource(value.AgentCopilotProfileSource) ||
-		value.DraftVersion < 1 || !validAgentCopilotDigestPair(value.ProfileDigest, value.PolicyDigest) ||
+		!agentCopilotProfileIDPattern.MatchString(value.ProfileID) || len(findings) != 0 || !agentCopilotProfileSourceIsCanonical(value.AgentCopilotProfileSource, compiled.Source) ||
+		value.DraftVersion < 1 || value.ProfileDigest != compiled.ProfileDigest || value.PolicyDigest != compiled.PolicyDigest ||
 		value.ValidationSummary.State != applicationDraftValidationValid || !value.ValidationSummary.IsValid || len(value.ValidationSummary.Findings) != 0 ||
 		!validPromptApplicationTimestampOrder(value.CreatedAt, value.UpdatedAt) || !validPromptApplicationAuditRefs(value.CreatedByActorRef, value.UpdatedByActorRef, value.RequestID, value.AuditRef) {
 		return errAgentCopilotContract
@@ -455,10 +455,11 @@ func validateAgentCopilotProfileDraft(value AgentCopilotProfileDraftV1) error {
 }
 
 func validateAgentCopilotProfileVersion(value AgentCopilotProfileVersionV1) error {
-	sourceBytes, _ := json.Marshal(value.AgentCopilotProfileSource)
+	compiled, findings := CompileAgentCopilotProfileSource(value.AgentCopilotProfileSource)
 	if value.SchemaVersion != agentCopilotProfileVersionSchema || !validAgentCopilotScope(value.TenantRef, value.WorkspaceID, value.ApplicationID, value.OwnerSubjectRef) ||
 		!agentCopilotProfileIDPattern.MatchString(value.ProfileID) || value.ProfileVersion < 1 || value.SourceDraftVersion < 1 ||
-		len(sourceBytes) > agentCopilotMaximumProfileSourceBytes || !validAgentCopilotProfileSource(value.AgentCopilotProfileSource) || !validAgentCopilotDigestPair(value.ProfileDigest, value.PolicyDigest) ||
+		len(findings) != 0 || !agentCopilotProfileSourceIsCanonical(value.AgentCopilotProfileSource, compiled.Source) ||
+		value.ProfileDigest != compiled.ProfileDigest || value.PolicyDigest != compiled.PolicyDigest ||
 		parsePromptApplicationTemplateTimestamp(value.PublishedAt) == nil || !validPromptApplicationAuditRefs(value.PublishedByActorRef, value.PublishedByActorRef, value.RequestID, value.AuditRef) {
 		return errAgentCopilotContract
 	}
@@ -601,88 +602,8 @@ func validateAgentCopilotRun(value AgentCopilotRunRecordV7) error {
 	return nil
 }
 
-func validAgentCopilotProfileSource(value AgentCopilotProfileSource) bool {
-	if len(strings.TrimSpace(value.ProfileName)) < 2 || len(value.ProfileName) > 80 || len(value.Description) > 512 ||
-		applicationDraftStringContainsSecret(value.ProfileName) || applicationDraftStringContainsSecret(value.Description) ||
-		!validAgentCopilotProjectTasks(value.Project, value.AllowedTasks) || !agentCopilotLocalePattern.MatchString(value.DefaultLocale) ||
-		!validUniqueAgentCopilotValues(value.AllowedLocales, 8, func(locale string) bool { return agentCopilotLocalePattern.MatchString(locale) }) ||
-		!agentCopilotContainsString(value.AllowedLocales, value.DefaultLocale) || !validAgentCopilotContextFields(value.Project, value.ContextPolicy.AllowedFields) ||
-		value.ContextPolicy.MaxBytes < 1 || value.ContextPolicy.MaxBytes > agentCopilotMaximumContextBytes ||
-		!validUniqueAgentCopilotValues(value.ArtifactPolicy.AllowedKinds, 5, isAgentCopilotArtifactKind) ||
-		!validUniqueAgentCopilotValues(value.ArtifactPolicy.AllowedRoles, 3, isAgentCopilotArtifactRole) ||
-		value.ArtifactPolicy.MaxCount < 0 || value.ArtifactPolicy.MaxCount > 16 || value.ArtifactPolicy.MaxItemBytes < 1 || value.ArtifactPolicy.MaxItemBytes > agentCopilotMaximumArtifactItemBytes ||
-		value.ArtifactPolicy.MaxTotalBytes < 1 || value.ArtifactPolicy.MaxTotalBytes > agentCopilotMaximumArtifactTotalBytes || value.ArtifactPolicy.MaxItemBytes > value.ArtifactPolicy.MaxTotalBytes ||
-		!validAgentCopilotResponsePolicy(value.ResponsePolicy) || value.RiskPolicy.Mode != "advisory" || !value.RiskPolicy.RequiresConfirmationForActions ||
-		!sameStringSet(value.RiskPolicy.ConfirmationActionKinds, []string{"candidate_edit", "candidate_operation", "ghost_completion"}) ||
-		value.ToolHintsPolicy.AllowRetrieval || value.ToolHintsPolicy.AllowToolCalls || value.ToolHintsPolicy.AllowImageReasoning {
-		return false
-	}
-	return true
-}
-
-func validAgentCopilotResponsePolicy(value AgentCopilotResponsePolicy) bool {
-	return validUniqueAgentCopilotValuesAllowEmpty(value.AllowedActionKinds, 4, isAgentCopilotActionKind) &&
-		value.MaxAnswers >= 0 && value.MaxAnswers <= 64 && value.MaxIssues >= 0 && value.MaxIssues <= 64 &&
-		value.MaxActions >= 0 && value.MaxActions <= 64 && value.MaxCitations >= 0 && value.MaxCitations <= 64 &&
-		value.MaxVisibleTextBytes >= 1 && value.MaxVisibleTextBytes <= agentCopilotMaximumVisibleResponseTextByte
-}
-
-func validAgentCopilotProjectTasks(project string, tasks []string) bool {
-	return validUniqueAgentCopilotValues(tasks, 16, func(task string) bool { return validAgentCopilotProjectTask(project, task) })
-}
-
-func validAgentCopilotContextFields(project string, fields []string) bool {
-	return validUniqueAgentCopilotValues(fields, 16, func(field string) bool {
-		switch project {
-		case "radishflow":
-			return agentCopilotContainsString([]string{"document_revision", "selected_unit_ids", "selected_unit", "selected_stream_ids", "diagnostic_summary", "diagnostics", "solve_session", "latest_snapshot", "unconnected_ports", "missing_canonical_ports", "nearby_nodes", "cursor_context", "legal_candidate_completions", "naming_hints", "topology_pattern_hints", "control_plane_state"}, field)
-		case "radish":
-			return agentCopilotContainsString([]string{"current_app", "route", "resource", "viewer", "attachment_refs", "search_scope"}, field)
-		default:
-			return false
-		}
-	})
-}
-
 func validAgentCopilotProjectTask(project, task string) bool {
-	switch project {
-	case "radishflow":
-		return agentCopilotContainsString([]string{"explain_diagnostics", "suggest_flowsheet_edits", "suggest_ghost_completion", "summarize_selection", "explain_control_plane_state", "inspect_canvas_snapshot"}, task)
-	case "radish":
-		return agentCopilotContainsString([]string{"answer_docs_question", "summarize_doc_or_thread", "suggest_forum_metadata", "explain_console_capability", "interpret_attachment"}, task)
-	default:
-		return false
-	}
-}
-
-func validUniqueAgentCopilotValues(values []string, maximum int, predicate func(string) bool) bool {
-	return len(values) > 0 && validUniqueAgentCopilotValuesAllowEmpty(values, maximum, predicate)
-}
-
-func validUniqueAgentCopilotValuesAllowEmpty(values []string, maximum int, predicate func(string) bool) bool {
-	if len(values) > maximum {
-		return false
-	}
-	seen := map[string]bool{}
-	for _, value := range values {
-		if seen[value] || !predicate(value) {
-			return false
-		}
-		seen[value] = true
-	}
-	return true
-}
-
-func isAgentCopilotArtifactKind(value string) bool {
-	return agentCopilotContainsString([]string{"json", "markdown", "text", "image", "attachment_ref"}, value)
-}
-
-func isAgentCopilotArtifactRole(value string) bool {
-	return agentCopilotContainsString([]string{"primary", "supporting", "reference"}, value)
-}
-
-func isAgentCopilotActionKind(value string) bool {
-	return agentCopilotContainsString([]string{"candidate_edit", "candidate_operation", "read_only_check", "ghost_completion"}, value)
+	return agentCopilotContainsString(agentCopilotCanonicalTasks(project), task)
 }
 
 func agentCopilotContainsString(values []string, expected string) bool {
@@ -692,18 +613,6 @@ func agentCopilotContainsString(values []string, expected string) bool {
 		}
 	}
 	return false
-}
-
-func sameStringSet(left, right []string) bool {
-	if len(left) != len(right) {
-		return false
-	}
-	for _, value := range left {
-		if !agentCopilotContainsString(right, value) {
-			return false
-		}
-	}
-	return true
 }
 
 func validAgentCopilotProfileRef(value AgentCopilotProfileRef) bool {
