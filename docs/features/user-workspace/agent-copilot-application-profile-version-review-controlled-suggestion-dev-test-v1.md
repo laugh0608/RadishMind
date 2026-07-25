@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_a_completed_batch_b_ready`
+状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_b_completed_batch_c_ready`
 
 ## 功能定位
 
@@ -12,12 +12,12 @@
 
 ## 现状、根因与本轮决策
 
-- Application Catalog 和 Application Configuration Draft 已允许 `application_kind=agent`，但当前没有 Agent 专属的应用档案 owner、不可变版本、发布候选引用、运行时 assignment 或 invocation service。
+- 专题启动前，Application Catalog 和 Application Configuration Draft 已允许 `application_kind=agent`，但没有 Agent 专属的应用档案 owner、不可变版本、发布候选引用、运行时 assignment 或 invocation service；当前 Profile owner 已完成，后四项仍未注册。
 - Application Development Workspace 目前只区分 `prompt_application` 与“非 Prompt”；`agent` 因而继承 Workflow RAG 的配置和晋级界面。这不是 Agent 能力复用，而是应用类型与产品界面语义不一致。
 - 仓库已经具备 canonical `CopilotRequest / CopilotResponse`、Gateway、应用目录、配置草案、发布审查、API key、Application Interaction Session、Run History、Comparison、Evaluation 和双数据库开发测试态持久化基础。新专题应组合这些 owner，不复制协议适配、会话、运行记录或评测算法。
 - 产品范围与路线图已经长期承诺 Agent / Copilot 应用。本轮选择该方向，优先补齐用户可识别的应用能力，不转向缺少可信 usage 的计费、不提前接真实 OIDC，也不在 backend / artifact store 尚未成立时扩图片生成运行时。
 
-因此，功能设计先固定长期边界，再由[唯一实施任务卡](../../task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)冻结版本、API、权限、失败语义、兼容矩阵和分批验证。批次 A 已完成 strict contracts、canonical policy compiler、memory Profile owner 与默认关闭 API；Profile Version 之外的新版本仍未注册到既有 runtime。下一步只进入批次 B SQLite / PostgreSQL 开发测试态持久化，配置绑定与运行能力继续关闭。
+因此，功能设计先固定长期边界，再由[唯一实施任务卡](../../task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)冻结版本、API、权限、失败语义、兼容矩阵和分批验证。批次 A 与批次 B 已完成 strict contracts、canonical policy compiler，以及 memory / SQLite / PostgreSQL Profile owner；Profile Version 之外的新版本仍未注册到既有 runtime。下一步只进入批次 C 配置绑定、发布审查与显式 assignment，调用能力继续关闭。
 
 ## 目标用户与主要任务
 
@@ -162,9 +162,11 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 
 ### 批次 B：SQLite / PostgreSQL 开发测试态持久化
 
-- 复用共享本地产品 runtime、迁移入口、连接池和 no-fallback 规则，不创建新的 DSN / pool 管理层。
-- 完成 SQLite / PostgreSQL Profile Draft / Version 与 Runtime Assignment repository、迁移 / 回滚 / 重放、运行角色、CAS、并发、重启恢复和损坏失败。
-- 通过数据库扫描证明运行 context、artifact content、完整响应与 credential-like 材料不进入 durable owner。
+- 状态：`completed`。
+- Profile owner 已使用独立 SQLite / PostgreSQL `0001_agent_copilot_profiles` migration family；SQLite 复用聚合本地产品 runtime，PostgreSQL 复用既有 migration / pool 模式，没有新增 DSN / pool 管理层。
+- memory / SQLite / PostgreSQL 已统一 Draft CAS、immutable Version、作用域、稳定列表、digest 重算、损坏失败和 no-fallback 语义；显式 `memory_dev | sqlite_dev | postgres_dev_test` 配置、启动 marker 校验和关闭链路已接通。
+- 相邻与真实 PostgreSQL 门禁覆盖 migration / rollback / reapply、marker / checksum、受限运行角色、并发单写者、服务重建、跨作用域隔离、不可变触发器、损坏数据与数据库敏感材料扫描。
+- Assignment、Session / Turn v3 与 Run v7 未在本批实现；它们继续按任务卡在后续批次复用共享 Workflow runtime migration。
 
 ### 批次 C：配置绑定、发布审查与显式 assignment
 
@@ -198,7 +200,7 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 
 ## 当前下一步
 
-下一步直接进入批次 B：为 Profile Draft / immutable Version 与后续 Runtime Assignment 建立 SQLite / PostgreSQL 开发测试态持久化，复用共享本地产品 runtime、迁移入口、连接池和 no-fallback 规则。批次 B 只处理 durable owner、迁移 / 回滚 / 重放、运行角色、CAS、并发、重启恢复、损坏失败和敏感内容扫描；不注册 Configuration / Candidate v4、assignment runtime、Session、Run、`agent_copilot:invoke`、provider、Gateway 调用或 Web。
+下一步直接进入批次 C：启用 Configuration Draft v4 的 ref-only Profile binding、Publish Candidate v4 exact reload 与既有人工 review 状态机，并实现 Runtime Assignment `activate | replace | revoke`、事件 CAS、read-time eligibility、drift / supersede。candidate approve 不自动激活；本批不注册 Session、Run、`agent_copilot:invoke`、provider、Gateway 调用或 Web。
 
 ## 停止线
 

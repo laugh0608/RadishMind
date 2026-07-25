@@ -65,6 +65,7 @@ type Server struct {
 	closeApplicationPublishStore            func()
 	closeApplicationCatalogStore            func()
 	closePromptApplicationTemplateStore     func()
+	closeAgentCopilotProfileStore           func()
 	closeAPIKeyStore                        func()
 	closeWorkflowRunStore                   func()
 	closeGatewayRequestStore                func()
@@ -210,9 +211,14 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore)
 		return nil, err
 	}
-	platformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	agentCopilotProfileRepository, closeAgentCopilotProfileStore, err := newAgentCopilotProfileRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore)
+		return nil, err
+	}
+	platformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore)
 		return nil, err
 	}
 	mux := http.NewServeMux()
@@ -227,7 +233,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		applicationPublishCandidateRepository:   applicationPublishRepository,
 		applicationCatalogRepository:            applicationCatalogRepository,
 		promptApplicationTemplateRepository:     promptApplicationTemplateRepository,
-		agentCopilotProfileRepository:           newMemoryAgentCopilotProfileRepository(),
+		agentCopilotProfileRepository:           agentCopilotProfileRepository,
 		applicationInteractionSessionRepository: applicationInteractionSessionRepository,
 		applicationSessionRepository:            combinedApplicationSessionRepository,
 		apiKeyRepository:                        apiKeyRepository,
@@ -250,6 +256,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeApplicationPublishStore:            closeApplicationPublishStore,
 		closeApplicationCatalogStore:            closeApplicationCatalogStore,
 		closePromptApplicationTemplateStore:     closePromptApplicationTemplateStore,
+		closeAgentCopilotProfileStore:           closeAgentCopilotProfileStore,
 		closeAPIKeyStore:                        closeAPIKeyStore,
 		closeWorkflowRunStore:                   closeWorkflowRunStore,
 		closeGatewayRequestStore:                closeGatewayRequestStore,
@@ -453,6 +460,9 @@ func (s *Server) Close() {
 		}
 		if s.closeApplicationCatalogStore != nil {
 			s.closeApplicationCatalogStore()
+		}
+		if s.closeAgentCopilotProfileStore != nil {
+			s.closeAgentCopilotProfileStore()
 		}
 		if s.closePromptApplicationTemplateStore != nil {
 			s.closePromptApplicationTemplateStore()

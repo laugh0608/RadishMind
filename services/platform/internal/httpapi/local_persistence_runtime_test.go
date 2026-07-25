@@ -33,7 +33,7 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 	if err := firstServer.localPersistenceRuntime.DB().QueryRowContext(
 		context.Background(),
 		"SELECT count(*) FROM radishmind_schema_migrations",
-	).Scan(&migrationCount); err != nil || migrationCount != 20 {
+	).Scan(&migrationCount); err != nil || migrationCount != 21 {
 		t.Fatalf("aggregate SQLite migration count drifted: count=%d err=%v", migrationCount, err)
 	}
 
@@ -60,6 +60,13 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 	)
 	if promptResult.FailureCode != "" || promptResult.Draft == nil {
 		t.Fatalf("save aggregate SQLite prompt application template: %#v", promptResult)
+	}
+	profileContext := agentCopilotProfileTestContext("tenant:one", "workspace_one", "app_aaaaaaaaaaaaaaaa", "subject:owner")
+	profileResult := newAgentCopilotProfileService(firstServer.agentCopilotProfileRepository).SaveDraft(
+		profileContext, agentCopilotProfileTestInput("acpf_aaaaaaaaaaaaaaaa"), 0,
+	)
+	if profileResult.FailureCode != "" || profileResult.Draft == nil {
+		t.Fatalf("save aggregate SQLite agent copilot profile: %#v", profileResult)
 	}
 
 	publishContext := validApplicationPublishContext()
@@ -132,6 +139,10 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 	restoredPrompt := newPromptApplicationTemplateService(secondServer.promptApplicationTemplateRepository).ReadDraft(promptContext, promptResult.Draft.TemplateID)
 	if restoredPrompt.FailureCode != "" || restoredPrompt.Draft == nil || restoredPrompt.Draft.DraftVersion != 1 {
 		t.Fatalf("restore aggregate SQLite prompt application template: %#v", restoredPrompt)
+	}
+	restoredProfile := newAgentCopilotProfileService(secondServer.agentCopilotProfileRepository).ReadDraft(profileContext, profileResult.Draft.ProfileID)
+	if restoredProfile.FailureCode != "" || restoredProfile.Draft == nil || restoredProfile.Draft.DraftVersion != 1 {
+		t.Fatalf("restore aggregate SQLite agent copilot profile: %#v", restoredProfile)
 	}
 	restoredPublish := newApplicationPublishCandidateService(
 		secondServer.applicationDraftRepository,
@@ -526,6 +537,9 @@ func assertAggregateSQLiteRepositorySelection(t *testing.T, server *Server) {
 	if promptStore, ok := server.promptApplicationTemplateRepository.(*sqlitePromptApplicationTemplateRepository); !ok || promptStore.database != server.localPersistenceRuntime.DB() {
 		t.Fatalf("prompt application templates did not share the SQLite runtime: %T", server.promptApplicationTemplateRepository)
 	}
+	if profileStore, ok := server.agentCopilotProfileRepository.(*sqliteAgentCopilotProfileRepository); !ok || profileStore.database != server.localPersistenceRuntime.DB() {
+		t.Fatalf("agent copilot profiles did not share the SQLite runtime: %T", server.agentCopilotProfileRepository)
+	}
 	if runtimeStore, ok := server.promptApplicationRuntimeRepository.(*sqlitePromptApplicationRuntimeRepository); !ok || runtimeStore.database != server.localPersistenceRuntime.DB() {
 		t.Fatalf("Prompt application runtime did not share the SQLite runtime: %T", server.promptApplicationRuntimeRepository)
 	}
@@ -558,6 +572,7 @@ func assertAggregateSQLiteRepositorySelection(t *testing.T, server *Server) {
 		"application_draft":   server.config.ApplicationDraftStoreMode,
 		"application_publish": server.config.ApplicationPublishStoreMode,
 		"prompt_template":     server.config.PromptTemplateStoreMode,
+		"agent_profile":       server.config.AgentCopilotProfileStoreMode,
 		"api_key":             server.config.APIKeyStoreMode,
 		"gateway_request":     server.config.GatewayRequestStoreMode,
 		"workflow_draft":      server.config.WorkflowSavedDraftStoreMode,
@@ -602,6 +617,9 @@ func aggregateSQLiteDevServerConfig(databasePath string) config.Config {
 		PromptApplicationRuntimeDevHTTPEnabled:  true,
 		PromptApplicationRuntimeDevWriteEnabled: true,
 		PromptTemplateDatabaseTimeout:           time.Second,
+		AgentCopilotProfileDevHTTPEnabled:       true,
+		AgentCopilotProfileDevWriteEnabled:      true,
+		AgentCopilotProfileDatabaseTimeout:      time.Second,
 		APIKeyLifecycleDevHTTPEnabled:           true,
 		APIKeyLifecycleDevWriteEnabled:          true,
 		APIKeyDatabaseTimeout:                   time.Second,

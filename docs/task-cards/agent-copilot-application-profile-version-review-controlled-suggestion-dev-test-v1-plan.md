@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_a_completed_batch_b_ready`
+状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_b_completed_batch_c_ready`
 
 ## 目标与准入结论
 
@@ -14,7 +14,7 @@
 
 ## 实现基线与兼容审计
 
-- 任务卡与兼容审计基线为 `c472a2ad`；A2 实现基线为 `9cad03c8`，A3 实现基线为 `e5f4f20b`，分支为 `dev`，各批开始实施时工作区干净。
+- 任务卡与兼容审计基线为 `c472a2ad`；A2 实现基线为 `9cad03c8`，A3 实现基线为 `e5f4f20b`，批次 B 实现基线为 `a4f8d92d`，分支为 `dev`，各批开始实施时工作区干净。
 - Application Catalog 已允许 `workflow_copilot | docs_qa | agent | prompt_application`；本专题不增加 kind、不改 ID、生命周期、列表筛选、CAS 或归档语义。
 - Application Configuration Draft 当前严格支持 v1 未绑定、v2 Workflow RAG binding、v3 Prompt Template binding；v4 只允许 `application_kind=agent` 和一个 Agent / Copilot Profile ref。
 - Application Publish Candidate 当前严格支持 v1 / v2 / v3 并共享唯一 review / supersede 状态机；v4 只增加 Agent Profile 精确引用，不建立平行审批。
@@ -196,8 +196,12 @@ Profile owner 至少固定：
 
 ### 批次 B：SQLite / PostgreSQL 开发测试态持久化
 
-- Profile owner 使用独立 migration family；assignment、Session / Turn v3 与 run v7 复用共享 Workflow runtime 的后续 migration。
-- 完成 migration / rollback / reapply、marker / checksum、运行角色、重启、并发、corruption、no-fallback 和数据库敏感内容扫描。
+状态：`completed`。
+
+- Profile owner 使用独立 SQLite / PostgreSQL `0001_agent_copilot_profiles` migration family；assignment、Session / Turn v3 与 run v7 仍留待后续复用共享 Workflow runtime migration。
+- SQLite repository 复用聚合本地产品 runtime；PostgreSQL repository 复用既有 migration / pool 模式。显式 store factory 只接受 `memory_dev | sqlite_dev | postgres_dev_test`，启动时核验完整 gates 与 marker，缺失、错配或连接失败不回退 memory。
+- Draft / immutable Version 在三种 owner 上统一 tenant / workspace / application / owner scope、CAS、创建 metadata 保持、稳定列表、同一 source draft 单次版本化、digest 重算与损坏失败语义。
+- 验证覆盖 SQLite 重启与聚合 Server 重启、并发单写者、不可变触发器、checksum mismatch、跨作用域隔离和敏感材料不落库；真实 PostgreSQL 覆盖 migration 幂等、受限运行角色、CAS、服务重建、corruption、marker mismatch、rollback / reapply 和 configured startup。
 
 ### 批次 C：配置、发布审查与显式 assignment
 
@@ -217,7 +221,7 @@ Profile owner 至少固定：
 
 ## 当前下一步
 
-直接进入批次 B：实现 SQLite / PostgreSQL Profile Draft / immutable Version durable owner，并为后续 Runtime Assignment 固定同类持久化基线。只复用共享本地产品 runtime、迁移入口、连接池和 no-fallback 规则，覆盖迁移 / 回滚 / 重放、运行角色、CAS、并发、重启恢复、损坏失败与数据库敏感内容扫描；批次 B 完成前不进入配置绑定、发布审查、assignment runtime、Session、Run、provider、Gateway 调用或 Web。
+直接进入批次 C：启用 Configuration v4 ref-only Profile binding、Publish Candidate v4 exact reload 与既有人工 review 状态机，并实现 assignment `activate | replace | revoke`、事件 CAS、read-time eligibility、drift / supersede。candidate approve 不自动激活；批次 C 完成前不进入 Session、Run、`agent_copilot:invoke`、provider、Gateway 调用或 Web。
 
 ## 停止线
 

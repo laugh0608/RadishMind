@@ -6,6 +6,7 @@ import (
 
 	"radishmind.local/services/platform/internal/config"
 	"radishmind.local/services/platform/internal/sqlitedev"
+	sqliteagentcopilotprofilemigrations "radishmind.local/services/platform/migrations/sqlite/agent_copilot_profiles"
 	sqliteapikeymigrations "radishmind.local/services/platform/migrations/sqlite/api_key_records"
 	sqliteapplicationcatalogmigrations "radishmind.local/services/platform/migrations/sqlite/application_catalog_records"
 	sqliteapplicationdraftmigrations "radishmind.local/services/platform/migrations/sqlite/application_configuration_drafts"
@@ -31,8 +32,9 @@ func openLocalPersistenceRuntime(cfg config.Config) (*sqlitedev.Runtime, error) 
 }
 
 func localPersistenceSQLiteMigrations() []sqlitedev.Migration {
-	migrations := make([]sqlitedev.Migration, 0, 8)
+	migrations := make([]sqlitedev.Migration, 0, 9)
 	migrations = append(migrations, sqliteapplicationcatalogmigrations.Migrations()...)
+	migrations = append(migrations, sqliteagentcopilotprofilemigrations.Migrations()...)
 	migrations = append(migrations, sqliteapplicationdraftmigrations.Migrations()...)
 	migrations = append(migrations, sqliteapplicationpublishmigrations.Migrations()...)
 	migrations = append(migrations, sqliteapikeymigrations.Migrations()...)

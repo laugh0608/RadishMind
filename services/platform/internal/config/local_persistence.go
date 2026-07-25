@@ -53,6 +53,7 @@ func EffectiveLocalPersistenceConfig(cfg Config) Config {
 	cfg.ApplicationDraftStoreMode = "sqlite_dev"
 	cfg.ApplicationPublishStoreMode = "sqlite_dev"
 	cfg.PromptTemplateStoreMode = "sqlite_dev"
+	cfg.AgentCopilotProfileStoreMode = "sqlite_dev"
 	cfg.APIKeyStoreMode = "sqlite_dev"
 	cfg.GatewayRequestStoreMode = "sqlite_dev"
 	cfg.WorkflowSavedDraftStoreMode = "sqlite_dev"
@@ -88,6 +89,7 @@ func localPersistenceComponentsConsistent(cfg Config) bool {
 		{name: "application_draft_store", mode: cfg.ApplicationDraftStoreMode},
 		{name: "application_publish_store", mode: cfg.ApplicationPublishStoreMode},
 		{name: "prompt_application_template_store", mode: cfg.PromptTemplateStoreMode},
+		{name: "agent_copilot_profile_store", mode: cfg.AgentCopilotProfileStoreMode},
 		{name: "api_key_store", mode: cfg.APIKeyStoreMode},
 		{name: "gateway_request_store", mode: cfg.GatewayRequestStoreMode},
 		{name: "workflow_saved_draft_store", mode: cfg.WorkflowSavedDraftStoreMode},

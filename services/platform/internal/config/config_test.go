@@ -81,6 +81,8 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 		"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
@@ -213,16 +215,26 @@ func TestAgentCopilotProfileDevGatesRemainExplicitAndIndependent(t *testing.T) {
 	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
 	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_HTTP", "1")
 	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_WRITE", "true")
+	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_STORE", "postgres_dev_test")
+	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL", "postgresql://profile.invalid/secret")
+	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_DATABASE_TIMEOUT", "13s")
 	loaded, err := LoadFromEnv()
 	if err != nil {
 		t.Fatalf("load profile development gates: %v", err)
 	}
 	summary := loaded.SanitizedSummary()
 	if !loaded.AgentCopilotProfileDevHTTPEnabled || !loaded.AgentCopilotProfileDevWriteEnabled ||
+		loaded.AgentCopilotProfileStoreMode != "postgres_dev_test" || loaded.AgentCopilotProfileDatabaseTimeout != 13*time.Second ||
 		loaded.FieldSources["agent_copilot_profile_dev_http"] != configSourceEnv ||
 		loaded.FieldSources["agent_copilot_profile_dev_write"] != configSourceEnv ||
-		!summary.AgentCopilotProfileDevHTTPEnabled || !summary.AgentCopilotProfileDevWriteEnabled {
+		loaded.FieldSources["agent_copilot_profile_store"] != configSourceEnv ||
+		!summary.AgentCopilotProfileDevHTTPEnabled || !summary.AgentCopilotProfileDevWriteEnabled ||
+		summary.AgentCopilotProfileStoreMode != "postgres_dev_test" || !summary.AgentCopilotProfileDatabaseConfigured {
 		t.Fatalf("profile gate source or summary is incomplete: %#v", summary)
+	}
+	encoded, err := json.Marshal(summary)
+	if err != nil || strings.Contains(string(encoded), "profile.invalid") || strings.Contains(string(encoded), "postgresql://") {
+		t.Fatalf("profile database configuration leaked from summary: encoded=%s err=%v", encoded, err)
 	}
 }
 
@@ -1225,7 +1237,8 @@ func TestSQLiteDevLocalPersistenceProjectsEffectiveStoresAndRequiresDevelopmentG
 		!summary.SQLiteDevDatabaseConfigured || !summary.LocalPersistenceComponentsConsistent ||
 		summary.SQLiteDevSchemaStatus != "startup_migrations_configured" ||
 		summary.ApplicationCatalogStoreMode != "sqlite_dev" || summary.ApplicationDraftStoreMode != "sqlite_dev" ||
-		summary.ApplicationPublishStoreMode != "sqlite_dev" || summary.PromptTemplateStoreMode != "sqlite_dev" || summary.APIKeyStoreMode != "sqlite_dev" ||
+		summary.ApplicationPublishStoreMode != "sqlite_dev" || summary.PromptTemplateStoreMode != "sqlite_dev" ||
+		summary.AgentCopilotProfileStoreMode != "sqlite_dev" || summary.APIKeyStoreMode != "sqlite_dev" ||
 		summary.GatewayRequestStoreMode != "sqlite_dev" || summary.WorkflowSavedDraftStoreMode != "sqlite_dev" ||
 		summary.WorkflowRunStoreMode != "sqlite_dev" {
 		t.Fatalf("unexpected sqlite_dev sanitized summary: %#v", summary)
@@ -1236,6 +1249,8 @@ func TestSQLiteDevLocalPersistenceProjectsEffectiveStoresAndRequiresDevelopmentG
 		"workflow_saved_draft_dev_write",
 		"application_draft_dev_http",
 		"application_draft_dev_write",
+		"agent_copilot_profile_dev_http",
+		"agent_copilot_profile_dev_write",
 		"prompt_application_template_dev_http",
 		"prompt_application_template_dev_write",
 		"application_publish_dev_http",
@@ -1267,6 +1282,8 @@ func TestSQLiteDevLocalPersistenceProjectsEffectiveStoresAndRequiresDevelopmentG
 	cfg.ApplicationDraftDevWriteEnabled = true
 	cfg.PromptTemplateDevHTTPEnabled = true
 	cfg.PromptTemplateDevWriteEnabled = true
+	cfg.AgentCopilotProfileDevHTTPEnabled = true
+	cfg.AgentCopilotProfileDevWriteEnabled = true
 	cfg.ApplicationPublishDevHTTPEnabled = true
 	cfg.ApplicationPublishDevWriteEnabled = true
 	cfg.ApplicationCatalogDevHTTPEnabled = true
@@ -1510,6 +1527,10 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE",
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_HTTP",
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_WRITE",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_STORE",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_DATABASE_TIMEOUT",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DATABASE_TIMEOUT",

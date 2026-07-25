@@ -13,47 +13,49 @@ import (
 )
 
 const (
-	defaultListenAddr                  = ":7000"
-	defaultReadHeaderTimeout           = 5 * time.Second
-	defaultWriteTimeout                = 30 * time.Second
-	defaultBridgeTimeout               = 30 * time.Second
-	defaultBridgeMode                  = "stdio_pool"
-	defaultBridgeWorkerCount           = 4
-	defaultBridgeQueueSize             = 64
-	defaultBridgeHandshake             = 5 * time.Second
-	defaultDraftDBTimeout              = 5 * time.Second
-	defaultApplicationDraftDBTimeout   = 5 * time.Second
-	defaultApplicationPublishDBTimeout = 5 * time.Second
-	defaultApplicationCatalogDBTimeout = 5 * time.Second
-	defaultPromptTemplateDBTimeout     = 5 * time.Second
-	defaultAPIKeyDBTimeout             = 5 * time.Second
-	defaultRunDBTimeout                = 5 * time.Second
-	defaultGatewayRequestDBTimeout     = 5 * time.Second
-	defaultPythonBinary                = "python3"
-	defaultBridgeScript                = "scripts/run-platform-bridge.py"
-	defaultProvider                    = "mock"
-	defaultDraftStoreMode              = "memory_dev"
-	defaultApplicationDraftStoreMode   = "memory_dev"
-	defaultApplicationPublishStoreMode = "memory_dev"
-	defaultApplicationCatalogStoreMode = "memory_dev"
-	defaultPromptTemplateStoreMode     = "memory_dev"
-	defaultAPIKeyStoreMode             = "memory_dev"
-	defaultGatewayAuthMode             = "dev_headers"
-	defaultRunStoreMode                = "memory_dev"
-	defaultGatewayRequestStoreMode     = "memory_dev"
-	defaultLocalPersistenceMode        = "memory_dev"
-	defaultSQLiteDevDatabasePath       = "var/sqlite-dev/radishmind.db"
-	defaultControlPlaneReadAuthMode    = ""
-	defaultControlPlaneReadStoreMode   = "fake_store_dev"
-	defaultControlPlaneReadDBTimeout   = 5 * time.Second
-	defaultOIDCDiscoveryTimeout        = 3 * time.Second
-	defaultOIDCJWKSMaxAge              = 5 * time.Minute
-	defaultOIDCJWKSHardExpiry          = 15 * time.Minute
-	defaultOIDCRotationOverlap         = 5 * time.Minute
-	defaultOIDCClockSkew               = 30 * time.Second
-	defaultOIDCMaxTokenLifetime        = 10 * time.Minute
-	defaultOIDCMaxResponseBytes        = 256 * 1024
-	defaultOIDCMaxKeys                 = 32
+	defaultListenAddr                   = ":7000"
+	defaultReadHeaderTimeout            = 5 * time.Second
+	defaultWriteTimeout                 = 30 * time.Second
+	defaultBridgeTimeout                = 30 * time.Second
+	defaultBridgeMode                   = "stdio_pool"
+	defaultBridgeWorkerCount            = 4
+	defaultBridgeQueueSize              = 64
+	defaultBridgeHandshake              = 5 * time.Second
+	defaultDraftDBTimeout               = 5 * time.Second
+	defaultApplicationDraftDBTimeout    = 5 * time.Second
+	defaultApplicationPublishDBTimeout  = 5 * time.Second
+	defaultApplicationCatalogDBTimeout  = 5 * time.Second
+	defaultPromptTemplateDBTimeout      = 5 * time.Second
+	defaultAgentCopilotProfileDBTimeout = 5 * time.Second
+	defaultAPIKeyDBTimeout              = 5 * time.Second
+	defaultRunDBTimeout                 = 5 * time.Second
+	defaultGatewayRequestDBTimeout      = 5 * time.Second
+	defaultPythonBinary                 = "python3"
+	defaultBridgeScript                 = "scripts/run-platform-bridge.py"
+	defaultProvider                     = "mock"
+	defaultDraftStoreMode               = "memory_dev"
+	defaultApplicationDraftStoreMode    = "memory_dev"
+	defaultApplicationPublishStoreMode  = "memory_dev"
+	defaultApplicationCatalogStoreMode  = "memory_dev"
+	defaultPromptTemplateStoreMode      = "memory_dev"
+	defaultAgentCopilotProfileStoreMode = "memory_dev"
+	defaultAPIKeyStoreMode              = "memory_dev"
+	defaultGatewayAuthMode              = "dev_headers"
+	defaultRunStoreMode                 = "memory_dev"
+	defaultGatewayRequestStoreMode      = "memory_dev"
+	defaultLocalPersistenceMode         = "memory_dev"
+	defaultSQLiteDevDatabasePath        = "var/sqlite-dev/radishmind.db"
+	defaultControlPlaneReadAuthMode     = ""
+	defaultControlPlaneReadStoreMode    = "fake_store_dev"
+	defaultControlPlaneReadDBTimeout    = 5 * time.Second
+	defaultOIDCDiscoveryTimeout         = 3 * time.Second
+	defaultOIDCJWKSMaxAge               = 5 * time.Minute
+	defaultOIDCJWKSHardExpiry           = 15 * time.Minute
+	defaultOIDCRotationOverlap          = 5 * time.Minute
+	defaultOIDCClockSkew                = 30 * time.Second
+	defaultOIDCMaxTokenLifetime         = 10 * time.Minute
+	defaultOIDCMaxResponseBytes         = 256 * 1024
+	defaultOIDCMaxKeys                  = 32
 )
 
 const (
@@ -107,6 +109,9 @@ type Config struct {
 	PromptTemplateDevWriteEnabled           bool
 	AgentCopilotProfileDevHTTPEnabled       bool
 	AgentCopilotProfileDevWriteEnabled      bool
+	AgentCopilotProfileStoreMode            string
+	AgentCopilotProfileDatabaseURL          string
+	AgentCopilotProfileDatabaseTimeout      time.Duration
 	PromptTemplateStoreMode                 string
 	PromptTemplateDatabaseURL               string
 	PromptTemplateDatabaseTimeout           time.Duration
@@ -185,6 +190,8 @@ type ConfigSummary struct {
 	PromptTemplateDevWriteEnabled           bool              `json:"prompt_application_template_dev_write_enabled"`
 	AgentCopilotProfileDevHTTPEnabled       bool              `json:"agent_copilot_profile_dev_http_enabled"`
 	AgentCopilotProfileDevWriteEnabled      bool              `json:"agent_copilot_profile_dev_write_enabled"`
+	AgentCopilotProfileStoreMode            string            `json:"agent_copilot_profile_store_mode"`
+	AgentCopilotProfileDatabaseConfigured   bool              `json:"agent_copilot_profile_database_configured"`
 	PromptTemplateStoreMode                 string            `json:"prompt_application_template_store_mode"`
 	PromptTemplateDatabaseConfigured        bool              `json:"prompt_application_template_database_configured"`
 	PromptApplicationRuntimeDevHTTPEnabled  bool              `json:"prompt_application_runtime_dev_http_enabled"`
@@ -344,6 +351,8 @@ func defaultConfig() Config {
 		ApplicationCatalogDatabaseTimeout:    defaultApplicationCatalogDBTimeout,
 		PromptTemplateStoreMode:              defaultPromptTemplateStoreMode,
 		PromptTemplateDatabaseTimeout:        defaultPromptTemplateDBTimeout,
+		AgentCopilotProfileStoreMode:         defaultAgentCopilotProfileStoreMode,
+		AgentCopilotProfileDatabaseTimeout:   defaultAgentCopilotProfileDBTimeout,
 		APIKeyStoreMode:                      defaultAPIKeyStoreMode,
 		APIKeyDatabaseTimeout:                defaultAPIKeyDBTimeout,
 		GatewayAuthMode:                      defaultGatewayAuthMode,
@@ -375,6 +384,11 @@ func defaultConfig() Config {
 			"prompt_application_template_store":            configSourceDefault,
 			"prompt_application_template_database":         configSourceDefault,
 			"prompt_application_template_database_timeout": configSourceDefault,
+			"agent_copilot_profile_dev_http":               configSourceDefault,
+			"agent_copilot_profile_dev_write":              configSourceDefault,
+			"agent_copilot_profile_store":                  configSourceDefault,
+			"agent_copilot_profile_database":               configSourceDefault,
+			"agent_copilot_profile_database_timeout":       configSourceDefault,
 			"application_draft_store":                      configSourceDefault,
 			"application_draft_database":                   configSourceDefault,
 			"application_draft_database_timeout":           configSourceDefault,
@@ -738,6 +752,19 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.AgentCopilotProfileDevWriteEnabled = parsed
 		cfg.FieldSources["agent_copilot_profile_dev_write"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_AGENT_COPILOT_PROFILE_STORE"); ok {
+		applyStringValue(&cfg.AgentCopilotProfileStoreMode, value, cfg.FieldSources, "agent_copilot_profile_store", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL"); ok {
+		applyStringValue(&cfg.AgentCopilotProfileDatabaseURL, value, cfg.FieldSources, "agent_copilot_profile_database", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_AGENT_COPILOT_PROFILE_DATABASE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_AGENT_COPILOT_PROFILE_DATABASE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.AgentCopilotProfileDatabaseTimeout, parsed, cfg.FieldSources, "agent_copilot_profile_database_timeout", configSourceEnv)
+	}
 	if value, ok := stringEnv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE"); ok {
 		applyStringValue(&cfg.PromptTemplateStoreMode, value, cfg.FieldSources, "prompt_application_template_store", configSourceEnv)
 	}
@@ -1085,6 +1112,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if promptTemplateStoreMode == "" {
 		promptTemplateStoreMode = defaultPromptTemplateStoreMode
 	}
+	agentCopilotProfileStoreMode := strings.TrimSpace(cfg.AgentCopilotProfileStoreMode)
+	if agentCopilotProfileStoreMode == "" {
+		agentCopilotProfileStoreMode = defaultAgentCopilotProfileStoreMode
+	}
 	apiKeyStoreMode := strings.TrimSpace(cfg.APIKeyStoreMode)
 	if apiKeyStoreMode == "" {
 		apiKeyStoreMode = defaultAPIKeyStoreMode
@@ -1138,6 +1169,17 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	}
 	if cfg.AgentCopilotProfileDevWriteEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_dev_http")
+	}
+	if agentCopilotProfileStoreMode == "postgres_dev_test" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_dev_write")
+		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_database")
+	}
+	if agentCopilotProfileStoreMode == "sqlite_dev" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_dev_write")
 	}
 	if cfg.PromptApplicationRuntimeDevHTTPEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
@@ -1286,6 +1328,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		PromptTemplateDevWriteEnabled:           cfg.PromptTemplateDevWriteEnabled,
 		AgentCopilotProfileDevHTTPEnabled:       cfg.AgentCopilotProfileDevHTTPEnabled,
 		AgentCopilotProfileDevWriteEnabled:      cfg.AgentCopilotProfileDevWriteEnabled,
+		AgentCopilotProfileStoreMode:            agentCopilotProfileStoreMode,
+		AgentCopilotProfileDatabaseConfigured:   strings.TrimSpace(cfg.AgentCopilotProfileDatabaseURL) != "",
 		PromptTemplateStoreMode:                 promptTemplateStoreMode,
 		PromptTemplateDatabaseConfigured:        strings.TrimSpace(cfg.PromptTemplateDatabaseURL) != "",
 		PromptApplicationRuntimeDevHTTPEnabled:  cfg.PromptApplicationRuntimeDevHTTPEnabled,
@@ -1348,6 +1392,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"application_publish_database":         cfg.ApplicationPublishDatabaseTimeout.String(),
 			"application_catalog_database":         cfg.ApplicationCatalogDatabaseTimeout.String(),
 			"prompt_application_template_database": cfg.PromptTemplateDatabaseTimeout.String(),
+			"agent_copilot_profile_database":       cfg.AgentCopilotProfileDatabaseTimeout.String(),
 			"api_key_database":                     cfg.APIKeyDatabaseTimeout.String(),
 			"workflow_run_database":                cfg.WorkflowRunDatabaseTimeout.String(),
 		},
@@ -1374,6 +1419,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_MIGRATION_DATABASE_URL",
+			"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL",
+			"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
@@ -1497,6 +1544,18 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			}
 		case "prompt_application_template_database":
 			if strings.TrimSpace(cfg.PromptTemplateDatabaseURL) == "" {
+				missing = append(missing, field)
+			}
+		case "agent_copilot_profile_dev_http":
+			if !cfg.AgentCopilotProfileDevHTTPEnabled {
+				missing = append(missing, field)
+			}
+		case "agent_copilot_profile_dev_write":
+			if !cfg.AgentCopilotProfileDevWriteEnabled {
+				missing = append(missing, field)
+			}
+		case "agent_copilot_profile_database":
+			if strings.TrimSpace(cfg.AgentCopilotProfileDatabaseURL) == "" {
 				missing = append(missing, field)
 			}
 		case "application_draft_database":
@@ -1787,6 +1846,22 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.AgentCopilotProfileDevWriteEnabled && !cfg.AgentCopilotProfileDevHTTPEnabled {
 		return fmt.Errorf("agent copilot profile dev write requires its HTTP gate")
+	}
+	switch strings.TrimSpace(cfg.AgentCopilotProfileStoreMode) {
+	case "", "memory_dev":
+	case "sqlite_dev":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.AgentCopilotProfileDevHTTPEnabled || !cfg.AgentCopilotProfileDevWriteEnabled {
+			return fmt.Errorf("agent copilot profile sqlite_dev store requires complete development gates")
+		}
+	case "postgres_dev_test":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.AgentCopilotProfileDevHTTPEnabled || !cfg.AgentCopilotProfileDevWriteEnabled || strings.TrimSpace(cfg.AgentCopilotProfileDatabaseURL) == "" {
+			return fmt.Errorf("agent copilot profile postgres_dev_test store requires complete development gates and a database URL")
+		}
+	default:
+		return fmt.Errorf("agent copilot profile store must be memory_dev, sqlite_dev, or postgres_dev_test")
+	}
+	if cfg.AgentCopilotProfileDatabaseTimeout <= 0 {
+		return fmt.Errorf("agent copilot profile database timeout must be positive")
 	}
 	switch strings.TrimSpace(cfg.PromptTemplateStoreMode) {
 	case "", "memory_dev":
