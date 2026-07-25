@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_d_completed_batch_e_ready`
+状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_completed`
 
 ## 目标与准入结论
 
@@ -223,12 +223,16 @@ Profile owner 至少固定：
 
 ### 批次 E：类型专属 Web 与双数据库真实验收
 
-- 显式 kind routing 挂载 Profile、binding、candidate review、assignment、controlled test、Session 与 Run / Evaluation handoff。
-- SQLite / PostgreSQL 各完成连续浏览器链、重启、CAS、authority drift、取消、迟到响应、URL / storage / network / database 隐私复验。
+- 状态：`completed`。
+- Application Development Workspace 已改为显式 kind routing；Agent 专属 Profile、binding、candidate source review、assignment、controlled test、Session v3 与 Run / Evaluation handoff 已挂载，未知 kind 失败关闭。
+- Configuration v4、Candidate v4、API key `agent_copilot:invoke`、Run v7 与 Comparison v6 Web consumer 均有相邻确定性和旧版本兼容测试；Agent 不再挂载 Workflow RAG 或 Prompt Application owner。
+- SQLite 本地产品与 PostgreSQL 开发测试态 launcher 已接入完整 owner、迁移、preflight、CORS 与路由探针；两种模式均通过连续链路验证，真实 PostgreSQL 浏览器完成端到端成功调用和 durable Run v7 精确回读。
+- Gateway 边界已统一为 canonical `CopilotRequest` 直入、canonical `CopilotResponse` 直出；`partial` 是合法成功状态，不再使用 `structured_answer` 私有包装或通用 northbound 改写。
+- CAS、authority drift、取消、迟到响应、credential 一次性交接、URL / browser storage / network / database 隐私与旧 application kind surface 防漂移均由相邻单元 / 集成测试、双数据库门禁和浏览器验收形成可复验证据。
 
 ## 当前下一步
 
-直接进入批次 E：以显式 application kind routing 为根边界，为 `agent` 建立 Profile、binding、candidate review、assignment、controlled test、Session v3 与 Run / Evaluation handoff Web surface；随后完成 SQLite / PostgreSQL launcher、服务重启和真实浏览器连续链。专项验证继续覆盖 CAS、authority drift、取消、迟到响应、credential 一次性交接、URL / storage / network / database 隐私和旧 application kind surface 不漂移。
+本任务卡已完成并关闭。下一步先从 `docs/features/README.md` 选择下一条产品功能并完成设计，不继续扩展本卡或创建同层 gate-only 续批；本卡停止线保持有效。
 
 ## 停止线
 

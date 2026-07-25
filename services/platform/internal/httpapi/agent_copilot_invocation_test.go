@@ -40,9 +40,10 @@ func TestAgentCopilotInvocationUsesCanonicalContractAndCallsGatewayOnce(t *testi
 		t.Fatalf("Agent Copilot v7 metadata contract drifted: document=%#v err=%v", document, err)
 	}
 	request := string(fixture.bridge.lastRequest())
-	if !strings.Contains(request, `\"project\":\"radishflow\"`) ||
-		!strings.Contains(request, `\"mode\":\"advisory\"`) ||
-		!strings.Contains(request, `\"allow_tool_calls\":false`) ||
+	if !strings.Contains(request, `"project":"radishflow"`) ||
+		!strings.Contains(request, `"mode":"advisory"`) ||
+		!strings.Contains(request, `"allow_tool_calls":false`) ||
+		strings.Contains(request, `"northbound"`) ||
 		strings.Contains(request, input.ClientInvocationKey) {
 		t.Fatalf("Gateway packet is not canonical or leaks the idempotency key: %s", request)
 	}
@@ -54,6 +55,33 @@ func TestAgentCopilotInvocationUsesCanonicalContractAndCallsGatewayOnce(t *testi
 	conflict.Context = map[string]any{"selected_unit_ids": []any{"unit-2"}}
 	if result := fixture.service.Invoke(fixture.ctx, conflict); result.FailureCode != AgentCopilotInvocationFailureInputInvalid || fixture.bridge.callCount() != 1 {
 		t.Fatalf("same idempotency key accepted different canonical input: %#v", result)
+	}
+}
+
+func TestAgentCopilotInvocationAcceptsCanonicalPartialGatewayResponse(t *testing.T) {
+	fixture := newAgentCopilotInvocationFixture(t)
+	fixture.bridge.handle = func(context.Context, []byte, bridge.EnvelopeOptions) (bridge.GatewayEnvelope, error) {
+		return agentCopilotGatewayEnvelope(map[string]any{
+			"schema_version": 1, "status": "partial", "project": "radishflow", "task": "explain_diagnostics",
+			"summary": "A constrained candidate edit is available.", "answers": []any{},
+			"issues": []any{map[string]any{"code": "not_converged", "message": "The selected unit did not converge.", "severity": "warning"}},
+			"proposed_actions": []any{map[string]any{
+				"kind": "candidate_edit", "title": "Review a constrained edit", "rationale": "Address the diagnostic.",
+				"risk_level": "medium", "requires_confirmation": true,
+			}},
+			"citations": []any{}, "confidence": 0.7, "risk_level": "medium", "requires_confirmation": true,
+		}), nil
+	}
+
+	result := fixture.service.Invoke(fixture.ctx, validAgentCopilotInvocationInput())
+	if result.Run == nil {
+		t.Fatalf("canonical partial response did not create a Run: %#v", result)
+	}
+	document, err := agentCopilotRunDocument(*result.Run)
+	if result.FailureCode != "" || result.Response == nil ||
+		err != nil || result.Run.Status != WorkflowRunStatusSucceeded || document.ResponseStatus != "partial" ||
+		result.Response.Status != "partial" || fixture.bridge.callCount() != 1 {
+		t.Fatalf("canonical partial response did not complete: result=%#v run=%#v calls=%d", result, result.Run, fixture.bridge.callCount())
 	}
 }
 
@@ -634,7 +662,8 @@ func successfulAgentCopilotGatewayEnvelope() bridge.GatewayEnvelope {
 
 func agentCopilotGatewayEnvelope(response map[string]any) bridge.GatewayEnvelope {
 	payload, _ := json.Marshal(response)
-	var structured map[string]any
-	_ = json.Unmarshal(payload, &structured)
-	return bridge.GatewayEnvelope{Status: "ok", Response: map[string]any{"structured_answer": structured}}
+	var canonical map[string]any
+	_ = json.Unmarshal(payload, &canonical)
+	status, _ := canonical["status"].(string)
+	return bridge.GatewayEnvelope{Status: status, Response: canonical}
 }

@@ -210,3 +210,43 @@ test("workflow run comparison maps Prompt Application v5 without content", async
     assert.equal(comparison.protocolChanged, false);
   } finally { globalThis.fetch = originalFetch; }
 });
+
+test("workflow run comparison maps Agent Copilot v6 metadata without transient content", async () => {
+  const originalFetch = globalThis.fetch;
+  const agentDigest = `sha256:${"f".repeat(64)}`;
+  const agentRun = (runId: string) => ({
+    run_id: runId, schema_version: "workflow_run_record.v7", draft_id: "", draft_version: 0,
+    execution_kind: "agent_copilot_suggestion", execution_source_kind: "agent_copilot_profile",
+    execution_source_id: "acpf_aaaaaaaaaaaaaaaa", execution_source_version: 1,
+    execution_profile: "agent_copilot_suggestion_v1", authority_digest: agentDigest,
+    profile_digest: agentDigest, policy_digest: agentDigest, allowed_tasks_digest: agentDigest,
+    project: "radishflow", task: "suggest_flowsheet_edits", locale: "zh-CN",
+    response_status: "ok", response_digest: agentDigest, action_count: 1,
+    risk_level: "medium", requires_confirmation: true,
+    requested_protocol: "openai_chat_completions", selected_protocol: "openai_chat_completions",
+    usage_state: "unavailable",
+    status: "succeeded", failure_code: "", failure_boundary: "", gateway_failure_category: "none",
+    selected_provider: "mock", selected_profile: "default", selected_model: "profile:local-dev", duration_ms: 100,
+    stale_running: false, request_id: `request_${runId}`, audit_ref: `audit_${runId}`,
+    side_effects: { provider_calls: 1, tool_calls: 0, confirmation_calls: 0, business_writes: 0, replay_writes: 0 },
+  });
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    request_id: "request_agent_compare", workspace_id: "workspace_demo", application_id: "app_demo",
+    comparison: { schema_version: "workflow_run_comparison.v6", run_profile: "agent_copilot_suggestion_v1",
+      classification: "unchanged", comparison_state: "comparable", baseline: agentRun("run_agent_base"),
+      candidate: agentRun("run_agent_candidate"), draft_changed: false, execution_source_changed: false,
+      provider_changed: false, model_changed: false, status_changed: false, failure_changed: false,
+      authority_changed: false, variable_contract_changed: false, protocol_changed: false,
+      duration_delta_ms: 0, provider_call_delta: 0, nodes: [], findings: [{ code: "no_material_change", severity: "info" }],
+      recommended_review_action: "" },
+    failure_code: null, failure_summary: "", audit_ref: "audit_agent_compare",
+  }), { status: 200 });
+  try {
+    const comparison = await compareWorkflowRuns("app_demo", "run_agent_base", "run_agent_candidate", live);
+    assert.equal(comparison.schemaVersion, "workflow_run_comparison.v6");
+    assert.equal(comparison.runProfile, "agent_copilot_suggestion_v1");
+    assert.equal(comparison.baseline.profileDigest, agentDigest);
+    assert.equal(comparison.baseline.task, "suggest_flowsheet_edits");
+    assert.equal(comparison.baseline.requiresConfirmation, true);
+  } finally { globalThis.fetch = originalFetch; }
+});

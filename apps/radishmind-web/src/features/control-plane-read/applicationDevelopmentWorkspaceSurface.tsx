@@ -19,6 +19,9 @@ const ApplicationPublishCandidatePanel = lazy(() => import("./applicationPublish
 const PromptApplicationTemplatePanel = lazy(() => import("./promptApplicationTemplatePanel.tsx"));
 const PromptApplicationInvocationPanel = lazy(() => import("./promptApplicationInvocationPanel.tsx"));
 const PromptApplicationSessionPanel = lazy(() => import("./promptApplicationSessionPanel.tsx"));
+const AgentCopilotProfilePanel = lazy(() => import("./agentCopilotProfilePanel.tsx"));
+const AgentCopilotRuntimePanel = lazy(() => import("./agentCopilotRuntimePanel.tsx"));
+const AgentCopilotSessionPanel = lazy(() => import("./agentCopilotSessionPanel.tsx"));
 const ApplicationRAGInvocationPanel = lazy(() => import("./workflowRAGApplicationRuntimePanel.tsx"));
 const ApplicationOperationsPanel = lazy(() => import("./applicationOperationsPanel.tsx"));
 const WorkflowRAGEvaluationDatasetPanel = lazy(() => import("./workflowRAGEvaluationDatasetPanel.tsx"));
@@ -122,7 +125,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
     <div className="application-development-stage-surfaces">
       {activeStage === "configure_build" ? (
         <StageSurface stage="configure_build" title="Configure and build">
-          {context.applicationKind === "prompt_application" ? (
+          {context.surfaceKind === "prompt_application" ? (
             <Suspense fallback={<StageFallback label="Prompt Application template workspace" />}>
               <PromptApplicationTemplatePanel
                 key={`${context.generationKey}:prompt-template`}
@@ -135,7 +138,20 @@ export default function ApplicationDevelopmentWorkspaceSurface({
               />
             </Suspense>
           ) : null}
-          {context.applicationKind !== "prompt_application" ? (
+          {context.surfaceKind === "agent_copilot" ? (
+            <Suspense fallback={<StageFallback label="Agent Copilot Profile workspace" />}>
+              <AgentCopilotProfilePanel
+                key={`${context.generationKey}:agent-profile`}
+                applicationId={context.applicationId}
+                applicationName={context.displayName}
+                applicationKind={context.applicationKind}
+                applicationActive={context.applicationActive}
+                onOpenPublishReview={openPublishReview}
+                onEvidenceChange={reportOwnerEvidence}
+              />
+            </Suspense>
+          ) : null}
+          {context.surfaceKind === "workflow_rag" ? (
             <Suspense fallback={<StageFallback label="application knowledge snapshots" />}>
               <WorkflowRAGSnapshotPanel
                 key={`${context.generationKey}:rag-snapshot`}
@@ -171,7 +187,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
 
       {activeStage === "human_promotion" ? (
         <StageSurface stage="human_promotion" title="Human promotion">
-          {context.applicationKind !== "prompt_application" ? (
+          {context.surfaceKind === "workflow_rag" ? (
             <Suspense fallback={<StageFallback label="Workflow RAG promotion and binding review" />}>
               <WorkflowRAGPromotionPanel
                 key={`${context.generationKey}:rag-promotion`}
@@ -203,7 +219,18 @@ export default function ApplicationDevelopmentWorkspaceSurface({
               />
             </Suspense>
           )}
-          {context.applicationActive && context.applicationKind !== "prompt_application" ? (
+          {context.applicationActive && context.surfaceKind === "agent_copilot" ? (
+            <Suspense fallback={<StageFallback label="Agent Copilot runtime assignment" />}>
+              <AgentCopilotRuntimePanel
+                key={`${context.generationKey}:agent-runtime`}
+                applicationId={context.applicationId}
+                applicationName={context.displayName}
+                applicationActive={context.applicationActive}
+                onEvidenceChange={reportOwnerEvidence}
+              />
+            </Suspense>
+          ) : null}
+          {context.applicationActive && context.surfaceKind === "workflow_rag" ? (
             <Suspense fallback={<StageFallback label="Workflow Definition promotion" />}>
               <WorkflowDefinitionPromotionPanel
                 key={`${context.generationKey}:workflow-definition-promotion`}
@@ -241,7 +268,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                   offlineView={offlineApiKeys}
                 />
               </Suspense>
-              {context.applicationKind === "prompt_application" ? (
+              {context.surfaceKind === "prompt_application" ? (
                 <Suspense fallback={<StageFallback label="Prompt Application Session v2" />}>
                   <PromptApplicationSessionPanel
                     key={`${context.generationKey}:prompt-session`}
@@ -250,7 +277,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                     onOpenRun={openRunEvidence}
                   />
                 </Suspense>
-              ) : (
+              ) : context.surfaceKind === "workflow_rag" ? (
                 <Suspense fallback={<StageFallback label="Application Interaction" />}>
                   <ApplicationInteractionSessionPanel
                     key={`${context.generationKey}:interaction`}
@@ -263,8 +290,20 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                     onEvidenceChange={reportOwnerEvidence}
                   />
                 </Suspense>
-              )}
-              {context.applicationKind === "prompt_application" ? (
+              ) : null}
+              {context.surfaceKind === "agent_copilot" ? (
+                <Suspense fallback={<StageFallback label="Agent Copilot Session v3" />}>
+                  <AgentCopilotSessionPanel
+                    key={`${context.generationKey}:agent-session`}
+                    applicationId={context.applicationId}
+                    applicationName={context.displayName}
+                    onRunRecorded={handleRunRecorded}
+                    onOpenRun={openRunEvidence}
+                    onEvidenceChange={reportOwnerEvidence}
+                  />
+                </Suspense>
+              ) : null}
+              {context.surfaceKind === "prompt_application" ? (
                 <Suspense fallback={<StageFallback label="Prompt Application controlled invocation" />}>
                   <PromptApplicationInvocationPanel
                     key={`${context.generationKey}:prompt-invocation`}
@@ -276,7 +315,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                   />
                 </Suspense>
               ) : null}
-              {context.applicationKind !== "prompt_application" ? (
+              {context.surfaceKind === "workflow_rag" ? (
                 <Suspense fallback={<StageFallback label="Application RAG Invocation" />}>
                   <ApplicationRAGInvocationPanel
                     key={`${context.generationKey}:rag-invocation`}
@@ -298,15 +337,17 @@ export default function ApplicationDevelopmentWorkspaceSurface({
 
       {activeStage === "evidence_review" ? (
         <StageSurface stage="evidence_review" title="Run and evaluation review">
-          <Suspense fallback={<StageFallback label="Workflow RAG evaluation datasets" />}>
-            <WorkflowRAGEvaluationDatasetPanel
-              key={`${context.generationKey}:rag-evaluation`}
-              applicationId={context.applicationId}
-              applicationName={context.displayName}
-              applicationActive={context.applicationActive}
-              onEvidenceChange={reportOwnerEvidence}
-            />
-          </Suspense>
+          {context.surfaceKind === "workflow_rag" ? (
+            <Suspense fallback={<StageFallback label="Workflow RAG evaluation datasets" />}>
+              <WorkflowRAGEvaluationDatasetPanel
+                key={`${context.generationKey}:rag-evaluation`}
+                applicationId={context.applicationId}
+                applicationName={context.displayName}
+                applicationActive={context.applicationActive}
+                onEvidenceChange={reportOwnerEvidence}
+              />
+            </Suspense>
+          ) : null}
           <Suspense fallback={<StageFallback label="application operations" />}>
             <ApplicationOperationsPanel
               key={`${context.generationKey}:operations`}

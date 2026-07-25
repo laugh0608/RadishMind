@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_batch_d_completed_batch_e_ready`
+状态：`agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_completed`
 
 ## 功能定位
 
@@ -12,12 +12,12 @@
 
 ## 现状、根因与本轮决策
 
-- 专题启动前，Application Catalog 和 Application Configuration Draft 已允许 `application_kind=agent`，但没有 Agent 专属的应用档案 owner、不可变版本、发布候选引用、运行时 assignment 或 invocation service；当前批次 A 至批次 D 已补齐 Profile、配置、发布审查、assignment、单次 invocation、Session / Turn v3、Run v7 与 metadata-only 审查链，类型专属 Web 仍待批次 E 实现。
-- Application Development Workspace 目前只区分 `prompt_application` 与“非 Prompt”；`agent` 因而继承 Workflow RAG 的配置和晋级界面。这不是 Agent 能力复用，而是应用类型与产品界面语义不一致。
+- 专题启动前，Application Catalog 和 Application Configuration Draft 已允许 `application_kind=agent`，但没有 Agent 专属的应用档案 owner、不可变版本、发布候选引用、运行时 assignment 或 invocation service；批次 A 至批次 E 已补齐 Profile、配置、发布审查、assignment、单次 invocation、Session / Turn v3、Run v7、metadata-only 审查链与类型专属 Web。
+- Application Development Workspace 原先只区分 `prompt_application` 与“非 Prompt”，使 `agent` 错误继承 Workflow RAG 界面；批次 E 已改为显式 application kind routing，未知 kind 失败关闭，Agent 不再挂载不适用的 RAG / Prompt owner。
 - 仓库已经具备 canonical `CopilotRequest / CopilotResponse`、Gateway、应用目录、配置草案、发布审查、API key、Application Interaction Session、Run History、Comparison、Evaluation 和双数据库开发测试态持久化基础。新专题应组合这些 owner，不复制协议适配、会话、运行记录或评测算法。
 - 产品范围与路线图已经长期承诺 Agent / Copilot 应用。本轮选择该方向，优先补齐用户可识别的应用能力，不转向缺少可信 usage 的计费、不提前接真实 OIDC，也不在 backend / artifact store 尚未成立时扩图片生成运行时。
 
-因此，功能设计先固定长期边界，再由[唯一实施任务卡](../../task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)冻结版本、API、权限、失败语义、兼容矩阵和分批验证。批次 A 至批次 D 已完成 strict contracts、canonical policy compiler、三种 Profile owner、Configuration / Candidate v4、显式 assignment、唯一受控建议 service、Session / Turn v3、Run v7 与 metadata-only 审查链；candidate approve 不自动激活，调用在 provider 前持续重验 exact authority。下一步只进入批次 E 类型专属 Web 与双数据库真实浏览器连续验收。
+因此，功能设计先固定长期边界，再由[唯一实施任务卡](../../task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)冻结版本、API、权限、失败语义、兼容矩阵和分批验证。批次 A 至批次 E 已完成 strict contracts、canonical policy compiler、三种 Profile owner、Configuration / Candidate v4、显式 assignment、唯一受控建议 service、Session / Turn v3、Run v7、metadata-only 审查链、类型专属 Web 与双数据库 launcher；candidate approve 不自动激活，调用在 provider 前持续重验 exact authority。专题现已关闭，不再派生同层实现批次。
 
 ## 目标用户与主要任务
 
@@ -187,10 +187,13 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 
 ### 批次 E：类型专属 Web 与双数据库连续验收
 
-- 为 `agent` 建立独立 Profile、版本、binding、候选审查、assignment、受控测试、Session 和 Run / Evaluation handoff。
-- 把 Application Development Workspace 从 Prompt / 非 Prompt 二分改为显式 application kind surface routing，不让不适用 owner 伪装成可用。
-- 使用 SQLite 与 PostgreSQL 各完成一条连续真实浏览器链，并验证服务重启、CAS、authority drift、取消、迟到响应和 transient 清理。
-- 复验 URL、浏览器存储、console、network、SQLite 和 PostgreSQL 中不存在 credential、原始输入、artifact content、完整回答或 transcript 泄漏。
+- 状态：`completed`。
+- Application Development Workspace 已按 `workflow_rag | prompt_application | agent_copilot | unsupported` 显式路由；`agent` 独立挂载 Profile / Version、Configuration v4 binding、Candidate v4 source review、Runtime Assignment、Session v3 受控建议与 Run / Evaluation handoff，未知 kind 失败关闭。
+- Web consumer 已严格识别 Configuration v4、Candidate v4、Run v7、Comparison v6 与 `agent_copilot:invoke`；既有 Workflow RAG、Prompt Application 和旧 schema 继续沿原 owner 读取，Agent 不再显示互斥的 RAG / Prompt 配置。
+- `run-radishmind-web-dev.sh` 已提供显式 SQLite 本地产品与 PostgreSQL 开发测试态 Agent launcher，统一启用所需 Profile、配置、候选、assignment、API key、Session / Turn、Run 与 Gateway owner，并执行迁移、启动前检查和路由探针。
+- 真实 PostgreSQL 浏览器链已完成 `agent` 应用 → API key 一次性交接 → Profile Draft / immutable Version → Configuration v4 binding → Candidate v4 review → assignment activation → Session v3 → 单次 `suggest_flowsheet_edits` → 成功 Run v7 回读。响应为 `partial`，候选动作为 `candidate_edit` 且保持 `requires_confirmation=true`；成功 Run 为 `run_cac55bdec8948afa6674f745a240c4f28840077d188cf3eba9bebbaf276a19ed`。
+- 真实链路暴露并根治三处组合偏差：Agent runtime 未计入 Session / Run 配置 authority、runtime headers 未进入 CORS allowlist，以及 Agent canonical `CopilotRequest / CopilotResponse` 被通用 northbound 包装改写。当前请求与响应直接复用 canonical contract，不再依赖 `structured_answer` 私有包装。
+- SQLite / PostgreSQL launcher、迁移、重启恢复、CAS、authority drift、取消、迟到响应、append-only、数据库敏感材料扫描由相邻测试与开发测试态门禁承载；真实浏览器额外确认 stage 卸载后回答清空、URL 无敏感材料、`localStorage` / `sessionStorage` 为空且 console 0 error。
 
 ## 验收标准
 
@@ -204,7 +207,7 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 
 ## 当前下一步
 
-下一步直接进入批次 E：把 Application Development Workspace 从 Prompt / 非 Prompt 二分改为显式 application kind routing，为 `agent` 挂载 Profile、版本、binding、候选源码审查、assignment、受控测试、Session v3 和 Run / Evaluation handoff。随后补齐 SQLite / PostgreSQL launcher 与两条真实浏览器连续链，验证服务重启、CAS、authority drift、取消、迟到响应和 transient 清理；不扩 agent loop、工具执行、retry / replay 或生产能力。
+本专题已完成并关闭。下一步回到功能设计入口，根据真实用户价值选择下一条产品能力并先更新对应 `docs/features/` 设计；不在本专题继续派生同层 readiness、refresh 或 gate-only 批次。真实 Radish 联调仍为 `real_radish_integration_deferred`，自治 agent loop、工具执行、retry / replay 与生产能力继续留在停止线外。
 
 ## 停止线
 

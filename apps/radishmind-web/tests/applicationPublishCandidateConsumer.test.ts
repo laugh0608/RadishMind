@@ -43,7 +43,7 @@ test("candidate create sends only binding fields and exact application scope", a
   assert.deepEqual(captured?.body, { candidate_id: "candidate-app-flow-v1", draft_id: "app-config-app-flow", expected_draft_version: 3, evidence_request_ids: ["playground-request-0001"] });
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Application-Publish-Workspace"), "workspace_demo");
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Application-Publish-Application"), "app_flow_copilot");
-  assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_publish_candidates:write,workflow_rag_promotions:read,prompt_application_templates:read_source");
+  assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_publish_candidates:write,workflow_rag_promotions:read,prompt_application_templates:read_source,agent_copilot_profiles:read_source");
   assert.equal("configuration" in captured!.body, false);
 });
 
@@ -132,6 +132,44 @@ test("publish candidate v3 consumes an exact Prompt Template ref and eligible st
   assert.equal(result.candidate?.configuration.promptTemplateRef?.templateDigest, templateDigest);
   assert.equal(result.candidate?.promotionEligibility.eligible, true);
   assert.equal(result.candidate?.promotionEligibility.status, "eligible_for_promotion");
+});
+
+test("publish candidate v4 consumes only the exact Agent Profile lineage", async () => {
+  const profileDigest = `sha256:${"d".repeat(64)}`;
+  const policyDigest = `sha256:${"e".repeat(64)}`;
+  const envelope = candidateEnvelope();
+  envelope.candidate.schema_version = "application_publish_candidate.v4";
+  envelope.candidate.configuration.application_kind = "agent";
+  envelope.candidate.configuration.agent_copilot_profile_ref = {
+    profile_id: "acpf_aaaaaaaaaaaaaaaa",
+    profile_version: 4,
+    profile_digest: profileDigest,
+    policy_digest: policyDigest,
+  };
+  globalThis.fetch = async () => jsonResponse(envelope);
+
+  const result = await readApplicationPublishCandidate(
+    devConfig,
+    "app_flow_copilot",
+    "candidate-app-flow-v1",
+  );
+  assert.equal(result.candidate?.schemaVersion, "application_publish_candidate.v4");
+  assert.equal(result.candidate?.configuration.agentCopilotProfileRef?.profileDigest, profileDigest);
+  assert.equal(result.candidate?.configuration.agentCopilotProfileRef?.policyDigest, policyDigest);
+  assert.equal(result.candidate?.configuration.promptTemplateRef, null);
+  assert.equal(result.candidate?.configuration.workflowRAGBindingRef, null);
+
+  envelope.candidate.configuration.prompt_template_ref = {
+    template_id: "ptpl_aaaaaaaaaaaaaaaa",
+    template_version: 1,
+    template_digest: `sha256:${"f".repeat(64)}`,
+  };
+  const rejected = await readApplicationPublishCandidate(
+    devConfig,
+    "app_flow_copilot",
+    "candidate-app-flow-v1",
+  );
+  assert.equal(rejected.state.failureCode, "publish_candidate_store_unavailable");
 });
 
 test("evidence and review validation reject secrets and normalize safe refs", () => {

@@ -139,6 +139,18 @@ func TestApplicationSessionDevRequiresCatalogAndRuntimeAuthority(t *testing.T) {
 	if err := ValidateServerStart(promptCfg); err != nil {
 		t.Fatalf("Prompt runtime authority should satisfy application session development gates: %v", err)
 	}
+
+	agentCfg := defaultConfig()
+	agentCfg.ApplicationSessionDevEnabled = true
+	agentCfg.ControlPlaneReadDevAuthEnabled = true
+	agentCfg.ApplicationCatalogDevHTTPEnabled = true
+	agentCfg.ApplicationDraftDevHTTPEnabled = true
+	agentCfg.ApplicationPublishDevHTTPEnabled = true
+	agentCfg.AgentCopilotProfileDevHTTPEnabled = true
+	agentCfg.AgentCopilotRuntimeDevHTTPEnabled = true
+	if err := ValidateServerStart(agentCfg); err != nil {
+		t.Fatalf("Agent runtime authority should satisfy application session development gates: %v", err)
+	}
 }
 
 func TestPromptApplicationTemplateDevGatesRemainExplicitAndIndependent(t *testing.T) {

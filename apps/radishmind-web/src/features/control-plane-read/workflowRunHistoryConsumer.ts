@@ -50,7 +50,7 @@ export function resolveWorkflowRunHistoryConfig(
 export type WorkflowRunHistoryFilter = {
   status: "" | WorkflowRunStatus;
   draftId: string;
-  executionSourceKind: "" | "workflow_draft" | "application_configuration_draft" | "workflow_definition" | "prompt_application_template";
+  executionSourceKind: "" | "workflow_draft" | "application_configuration_draft" | "workflow_definition" | "prompt_application_template" | "agent_copilot_profile";
   executionSourceId: string;
   executionSourceVersion: number | "";
   startedFrom: string;
@@ -91,6 +91,20 @@ export type WorkflowRunHistorySummary = {
   effectiveSnapshotRole: string;
   authorityDigest: string;
   promptTemplateDigest: string;
+  profileDigest: string;
+  policyDigest: string;
+  allowedTasksDigest: string;
+  project: string;
+  task: string;
+  locale: string;
+  responseStatus: string;
+  responseDigest: string;
+  answerCount: number;
+  issueCount: number;
+  actionCount: number;
+  citationCount: number;
+  riskLevel: string;
+  requiresConfirmation: boolean;
   variableNamesDigest: string;
   requestedProtocol: string;
   selectedProtocol: string;
@@ -173,6 +187,13 @@ export function isWorkflowRunComparisonCompatible(
   if (baselinePrompt) return baseline.executionSourceId === candidate.executionSourceId &&
     baseline.executionProfile === "prompt_application_invocation_v1" &&
     candidate.executionProfile === "prompt_application_invocation_v1";
+  const baselineAgent = baseline.schemaVersion === "workflow_run_record.v7";
+  const candidateAgent = candidate.schemaVersion === "workflow_run_record.v7";
+  if (baselineAgent !== candidateAgent) return false;
+  if (baselineAgent) return baseline.executionSourceId === candidate.executionSourceId &&
+    baseline.executionProfile === "agent_copilot_suggestion_v1" &&
+    candidate.executionProfile === "agent_copilot_suggestion_v1" &&
+    baseline.project === candidate.project && baseline.task === candidate.task;
   const baselineRetrieval = baseline.schemaVersion === "workflow_run_record.v3";
   const candidateRetrieval = candidate.schemaVersion === "workflow_run_record.v3";
   if (baselineRetrieval !== candidateRetrieval) return false;
@@ -199,6 +220,10 @@ type RunSummaryDocument = {
   runtime_assignment_id?: string; runtime_assignment_version?: number; publish_candidate_id?: string;
   publish_review_version?: number; effective_snapshot_role?: string;
   authority_digest?: string; prompt_template_digest?: string; variable_names_digest?: string;
+  profile_digest?: string; policy_digest?: string; allowed_tasks_digest?: string;
+  project?: string; task?: string; locale?: string; response_status?: string; response_digest?: string;
+  answer_count?: number; issue_count?: number; action_count?: number; citation_count?: number;
+  risk_level?: string; requires_confirmation?: boolean;
   requested_protocol?: string; selected_protocol?: string; usage_state?: string;
   input_tokens?: number; output_tokens?: number; total_tokens?: number;
   status: WorkflowRunStatus; failure_code: string;
@@ -309,6 +334,13 @@ function toSummary(value: RunSummaryDocument): WorkflowRunHistorySummary {
     publishCandidateId: value.publish_candidate_id ?? "", publishReviewVersion: value.publish_review_version ?? 0,
     effectiveSnapshotRole: value.effective_snapshot_role ?? "",
     authorityDigest: value.authority_digest ?? "", promptTemplateDigest: value.prompt_template_digest ?? "",
+    profileDigest: value.profile_digest ?? "", policyDigest: value.policy_digest ?? "",
+    allowedTasksDigest: value.allowed_tasks_digest ?? "", project: value.project ?? "", task: value.task ?? "",
+    locale: value.locale ?? "", responseStatus: value.response_status ?? "",
+    responseDigest: value.response_digest ?? "", answerCount: value.answer_count ?? 0,
+    issueCount: value.issue_count ?? 0, actionCount: value.action_count ?? 0,
+    citationCount: value.citation_count ?? 0, riskLevel: value.risk_level ?? "",
+    requiresConfirmation: value.requires_confirmation ?? false,
     variableNamesDigest: value.variable_names_digest ?? "", requestedProtocol: value.requested_protocol ?? "",
     selectedProtocol: value.selected_protocol ?? "", usageState: value.usage_state ?? "",
     inputTokens: value.input_tokens ?? 0, outputTokens: value.output_tokens ?? 0, totalTokens: value.total_tokens ?? 0,
@@ -338,15 +370,31 @@ function isRunSummary(value: unknown): value is RunSummaryDocument {
   const item = value as Partial<RunSummaryDocument>;
   const raw = value as Record<string, unknown>;
   if (containsForbiddenHistoryField(raw)) return false;
-  const schemaValid = item.schema_version === "workflow_run_record.v0" || item.schema_version === "workflow_run_record.v1" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4" || item.schema_version === "workflow_run_record.v5" || item.schema_version === "workflow_run_record.v6";
+  const schemaValid = item.schema_version === "workflow_run_record.v0" || item.schema_version === "workflow_run_record.v1" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4" || item.schema_version === "workflow_run_record.v5" || item.schema_version === "workflow_run_record.v6" || item.schema_version === "workflow_run_record.v7";
   const statusValid = ["running", "succeeded", "failed", "canceled", "outcome_unknown"].includes(item.status ?? "") &&
-    (item.status !== "outcome_unknown" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v6");
+    (item.status !== "outcome_unknown" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v6" || item.schema_version === "workflow_run_record.v7");
   const toolMetadataValid = item.schema_version === "workflow_run_record.v2"
     ? typeof item.plan_id === "string" && typeof item.confirmation_id === "string" &&
       ["claimed", "succeeded", "failed", "outcome_unknown"].includes(item.tool_attempt_status ?? "")
     : [item.plan_id, item.confirmation_id, item.tool_attempt_status].every((field) => field === undefined || field === "");
   const retrievalMetadataValid = item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4" ? isRAGRunSummary(item) : true;
-  const executionMetadataValid = item.schema_version === "workflow_run_record.v6"
+  const executionMetadataValid = item.schema_version === "workflow_run_record.v7"
+    ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "agent_copilot_suggestion" &&
+      item.execution_source_kind === "agent_copilot_profile" && /^acpf_[a-z2-7]{16}$/u.test(item.execution_source_id ?? "") &&
+      Number.isInteger(item.execution_source_version) && item.execution_profile === "agent_copilot_suggestion_v1" &&
+      [item.authority_digest, item.profile_digest, item.policy_digest, item.allowed_tasks_digest]
+        .every((value) => DIGEST_PATTERN.test(value ?? "")) &&
+      (item.project === "radishflow" || item.project === "radish") &&
+      typeof item.task === "string" && typeof item.locale === "string" &&
+      ["unavailable", "ok", "partial", "failed"].includes(item.response_status ?? "") &&
+      (item.response_digest === "" || item.response_digest === undefined || DIGEST_PATTERN.test(item.response_digest)) &&
+      [item.answer_count, item.issue_count, item.action_count, item.citation_count]
+        .every((value) => value === undefined || Number.isInteger(value)) &&
+      (item.risk_level === "low" || item.risk_level === "medium" || item.risk_level === "high") &&
+      (item.requires_confirmation === undefined || typeof item.requires_confirmation === "boolean") &&
+      typeof item.runtime_assignment_id === "string" && Number.isInteger(item.runtime_assignment_version) &&
+      typeof item.publish_candidate_id === "string" && Number.isInteger(item.publish_review_version)
+    : item.schema_version === "workflow_run_record.v6"
     ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "prompt_application_invocation" &&
       item.execution_source_kind === "prompt_application_template" && typeof item.execution_source_id === "string" &&
       Number.isInteger(item.execution_source_version) && item.execution_profile === "prompt_application_invocation_v1" &&

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  bindApplicationConfigurationDraftAgentCopilotProfile,
   bindApplicationConfigurationDraftPromptTemplate,
   compareApplicationConfigurationDraft,
   createApplicationConfigurationDraft,
@@ -247,6 +248,90 @@ test("Application draft Prompt binding sends ref inputs and restores v3 exact di
   assert.equal(result.draft?.schemaVersion, "application_configuration_draft.v3");
   assert.equal(result.draft?.promptTemplateRef?.templateDigest, templateDigest);
   assert.equal(result.draft?.workflowRAGBindingRef, null);
+});
+
+test("Application draft Agent binding sends exact Profile identity and restores v4 digests", async () => {
+  const agentBaseline = {
+    applicationId: "app_aaaaaaaaaaaaaaaa",
+    displayName: "Agent Copilot",
+    applicationKind: "agent",
+    updatedAt: "2026-07-25T11:00:00Z",
+  };
+  const profileDigest = `sha256:${"1".repeat(64)}`;
+  const policyDigest = `sha256:${"2".repeat(64)}`;
+  let captured: { url: string; headers: Headers; body: any } | undefined;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input, init) => {
+    captured = {
+      url: String(input),
+      headers: new Headers(init?.headers),
+      body: JSON.parse(String(init?.body)),
+    };
+    return jsonResponse({
+      request_id: "agent-bind-request",
+      workspace_id: "workspace_demo",
+      application_id: agentBaseline.applicationId,
+      draft: {
+        draft_id: "app-config-agent",
+        workspace_id: "workspace_demo",
+        application_id: agentBaseline.applicationId,
+        base_application_updated_at: agentBaseline.updatedAt,
+        schema_version: "application_configuration_draft.v4",
+        display_name: agentBaseline.displayName,
+        description: "Bound Agent Copilot",
+        application_kind: "agent",
+        default_protocol: "responses",
+        default_model: "profile:local-dev",
+        allowed_protocols: ["responses"],
+        agent_copilot_profile_ref: {
+          profile_id: "acpf_aaaaaaaaaaaaaaaa",
+          profile_version: 3,
+          profile_digest: profileDigest,
+          policy_digest: policyDigest,
+        },
+        draft_version: 2,
+        draft_digest: `sha256:${"3".repeat(64)}`,
+        validation_summary: { state: "valid", is_valid: true, findings: [] },
+        created_at: agentBaseline.updatedAt,
+        updated_at: agentBaseline.updatedAt,
+        created_by_actor_ref: "subject_demo_user",
+        updated_by_actor_ref: "subject_demo_user",
+        request_id: "agent-bind-request",
+        audit_ref: "audit-agent-bind-request",
+      },
+      failure_code: null,
+      current_draft_version: 2,
+      validation_summary: { state: "valid", is_valid: true, findings: [] },
+      audit_ref: "audit-agent-bind-request",
+    });
+  };
+  try {
+    const result = await bindApplicationConfigurationDraftAgentCopilotProfile(
+      live,
+      agentBaseline.applicationId,
+      "app-config-agent",
+      1,
+      "acpf_aaaaaaaaaaaaaaaa",
+      3,
+    );
+    assert.equal(captured?.url.endsWith("/application-configuration-drafts/app-config-agent/agent-copilot-profile-binding"), true);
+    assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_drafts:read,application_drafts:write,agent_copilot_profiles:bind");
+    assert.deepEqual(captured?.body, {
+      workspace_id: "workspace_demo",
+      application_id: agentBaseline.applicationId,
+      expected_draft_version: 1,
+      profile_id: "acpf_aaaaaaaaaaaaaaaa",
+      profile_version: 3,
+    });
+    assert.equal(result.state.status, "saved");
+    assert.equal(result.draft?.schemaVersion, "application_configuration_draft.v4");
+    assert.equal(result.draft?.agentCopilotProfileRef?.profileDigest, profileDigest);
+    assert.equal(result.draft?.agentCopilotProfileRef?.policyDigest, policyDigest);
+    assert.equal(result.draft?.promptTemplateRef, null);
+    assert.equal(result.draft?.workflowRAGBindingRef, null);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("Application switching creates isolated state and handoff keeps exact public fields", () => {

@@ -18,7 +18,7 @@
 - [应用交互会话与受控运行编排（开发 / 测试态）v1](user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md) 已完成并关闭：同一应用可显式选择 Workflow Definition v5 或 Application RAG v4 profile 建立 metadata-only session / turn，完成双数据库持久化、易失 transcript、取消、关闭、重启恢复、Run History 交接、真实浏览器和敏感信息扫描；不会从持久 metadata 恢复正文。
 - [应用开发工作区与发布准备审查 v1](user-workspace/application-development-workspace-release-readiness-review-v1.md) 已完成并关闭：唯一 application context、workspace / route generation、五阶段单 surface、route-scoped evidence、精确 Draft / Run handoff、九项 owner contribution、七个来源组和四态 readiness 投影均已进入 Web；真实浏览器已验证 Application 切换、稳定 hash、离线零 owner 请求和零页面控制台告警，缺少权威 revision 时保守显示 `incomplete / partial`。
 - [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md) 已完成并关闭：受限模板、不可变版本、Configuration Draft v3、Publish Candidate v3、Runtime Assignment、API key / Session v2、Run v6 与下游审查链均已接入；SQLite / PostgreSQL 连续链、重启恢复、CAS / authority drift / cancel 负向验收和浏览器隐私复验均已通过。
-- [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](user-workspace/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md) 已完成批次 A：10 份 strict schema、独立 contract-only codec、canonical policy compiler、memory Draft / immutable Version owner、默认关闭 API 与权限分离已经落地。现有 runtime 仍不识别 Configuration / Candidate v4、Assignment、Session / Turn v3 和 Run v7，`agent_copilot:invoke` 也未注册；下一步进入批次 B 双数据库 durable owner。
+- [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](user-workspace/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md) 已完成批次 A 至批次 E：strict contracts、policy compiler、三种 Profile owner、Configuration / Candidate v4、assignment、`agent_copilot:invoke`、Session / Turn v3、Run v7、类型专属 Web 与双数据库真实验收均已落地，专题关闭。
 - 工作区首页和工作流定义已支持创建本地工作流草案并进入草案设计器；草案保存复用仅开发的已保存草案消费端，不代表生产持久化已成立。
 - `User Workspace Saved Draft List v1` 已在工作区首页支持仅开发的已保存草案列表：显示当前应用下已保存草案的脱敏摘要、空结果 / 失败状态、刷新和恢复。默认内存、聚合 SQLite 与显式 PostgreSQL 开发测试态存储库均可承载该路径，但不代表生产持久化已成立。
 - 草案设计器已支持本地节点新增、移动、删除保护、属性编辑和边重建；校验检查器、执行计划预览和运行时准入检查器使用当前活跃草案，不代表工作流可正式发布或执行。
@@ -38,7 +38,7 @@
 
 ## 下一批开发方向
 
-1. Agent / Copilot 受控建议专题已经完成批次 A strict contracts、policy compiler 与 memory owner。下一步进入批次 B：实现 SQLite / PostgreSQL Profile durable owner、迁移 / 回滚 / 重放、运行角色、CAS、并发、重启恢复、损坏失败和数据库敏感内容扫描。
+1. Agent / Copilot 受控建议专题已经完成并关闭。下一步先从功能设计入口选择新的用户工作区产品能力，不继续扩展本专题或派生同层门禁切片。
 2. Agent / Copilot 复用 canonical `CopilotRequest / CopilotResponse`、既有 Gateway、发布审查、Session、Run History 和 Evaluation；不复制 Gateway / Session / Run 算法，不以 agent loop、工具执行或业务写回代替首版单次受控建议。Prompt Application 继续保持已关闭状态。
 3. 本地 SQLite、应用目录、API 密钥和 Application Interaction Session 专题均已完成并关闭；不继续扩同层页面、准入文档、检查器或证据链。应用运行观测只有在全分页统计、可信 reported usage 或 quota / billing owner 成立时才评审服务端 summary。
 4. 一次性令牌继续只保存在当前 Web 组件内存；刷新、路由离开、应用 / 身份切换、组件卸载和服务重启都不得恢复原始令牌。

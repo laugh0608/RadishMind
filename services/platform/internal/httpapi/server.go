@@ -573,6 +573,8 @@ func localConsoleAllowedHeaders() []string {
 		promptApplicationTemplateDevApplicationHeader,
 		agentCopilotProfileDevWorkspaceHeader,
 		agentCopilotProfileDevApplicationHeader,
+		agentCopilotRuntimeWorkspaceHeader,
+		agentCopilotRuntimeApplicationHeader,
 		promptApplicationRuntimeWorkspaceHeader,
 		promptApplicationRuntimeApplicationHeader,
 		applicationPublishDevWorkspaceHeader,

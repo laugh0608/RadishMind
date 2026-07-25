@@ -9,6 +9,11 @@ export const APPLICATION_DEVELOPMENT_STAGE_IDS = [
 export type ApplicationDevelopmentStageId = typeof APPLICATION_DEVELOPMENT_STAGE_IDS[number];
 export type ApplicationDevelopmentWorkspaceStatus = "active" | "archived" | "unavailable";
 export type ApplicationDevelopmentStageAvailability = "available" | "read_only" | "blocked";
+export type ApplicationDevelopmentSurfaceKind =
+  | "workflow_rag"
+  | "prompt_application"
+  | "agent_copilot"
+  | "unsupported";
 
 export type ApplicationDevelopmentWorkspaceInput = {
   applicationId: string;
@@ -35,6 +40,7 @@ export type ApplicationDevelopmentWorkspaceContext = {
   applicationId: string;
   displayName: string;
   applicationKind: string;
+  surfaceKind: ApplicationDevelopmentSurfaceKind;
   lifecycleState: "active" | "archived" | "unavailable";
   recordVersion: number;
   updatedAt: string;
@@ -58,21 +64,39 @@ const STAGE_DEFINITIONS: ReadonlyArray<ApplicationDevelopmentStageDefinition> = 
     label: "Configure / Build",
     summary: "Review configuration drafts and the application kind's exact source authority.",
     anchor: "application-configuration-draft",
-    aliases: ["workflow-rag-snapshot-panel", "workspace-workflow-definitions", "prompt-application-template-workspace"],
+    aliases: [
+      "workflow-rag-snapshot-panel",
+      "workspace-workflow-definitions",
+      "prompt-application-template-workspace",
+      "agent-copilot-profile-workspace",
+    ],
   },
   {
     stageId: "human_promotion",
     label: "Human Promotion",
     summary: "Review immutable candidates, activation, assignment, drift, and blockers.",
     anchor: "application-publish-review",
-    aliases: ["workflow-rag-promotion-review", "workflow-definition-promotion", "prompt-application-runtime-assignment"],
+    aliases: [
+      "workflow-rag-promotion-review",
+      "workflow-definition-promotion",
+      "prompt-application-runtime-assignment",
+      "agent-copilot-runtime-assignment",
+    ],
   },
   {
     stageId: "controlled_test",
     label: "Controlled Test",
-    summary: "Run an explicit Workflow Definition v5, Application RAG v4, or Prompt Application v6 profile.",
+    summary: "Run the selected kind's exact Workflow v5, RAG v4, Prompt Application v6, or Agent Copilot v7 profile.",
     anchor: "application-interaction-session",
-    aliases: ["application-api-integration", "workspace-api-keys", "application-rag-invocation", "prompt-application-invocation", "model-gateway-playground"],
+    aliases: [
+      "application-api-integration",
+      "workspace-api-keys",
+      "application-rag-invocation",
+      "prompt-application-invocation",
+      "agent-copilot-invocation",
+      "agent-copilot-session",
+      "model-gateway-playground",
+    ],
   },
   {
     stageId: "evidence_review",
@@ -95,7 +119,9 @@ export function buildApplicationDevelopmentWorkspaceContext(
 ): ApplicationDevelopmentWorkspaceContext {
   const applicationId = input.applicationId.trim();
   const displayName = input.displayName.trim();
-  const applicationAvailable = SCOPE_REF_PATTERN.test(applicationId) && displayName.length > 0;
+  const surfaceKind = applicationDevelopmentSurfaceKind(input.applicationKind);
+  const applicationAvailable = SCOPE_REF_PATTERN.test(applicationId) && displayName.length > 0 &&
+    surfaceKind !== "unsupported";
   const lifecycleKnown = input.lifecycleState === "active" || input.lifecycleState === "archived";
   const status: ApplicationDevelopmentWorkspaceStatus = !applicationAvailable || !lifecycleKnown
     ? "unavailable"
@@ -114,6 +140,7 @@ export function buildApplicationDevelopmentWorkspaceContext(
     applicationId: scopeAvailable ? applicationId : "",
     displayName: scopeAvailable ? displayName : "No selected application",
     applicationKind: scopeAvailable ? input.applicationKind.trim() || "not_available" : "not_available",
+    surfaceKind: scopeAvailable ? surfaceKind : "unsupported",
     lifecycleState,
     recordVersion,
     updatedAt,
@@ -135,6 +162,20 @@ export function buildApplicationDevelopmentWorkspaceContext(
       availability: stageAvailability(stage.stageId, status),
     })),
   };
+}
+
+export function applicationDevelopmentSurfaceKind(applicationKind: string): ApplicationDevelopmentSurfaceKind {
+  switch (applicationKind.trim()) {
+    case "workflow_copilot":
+    case "docs_qa":
+      return "workflow_rag";
+    case "prompt_application":
+      return "prompt_application";
+    case "agent":
+      return "agent_copilot";
+    default:
+      return "unsupported";
+  }
 }
 
 export function applicationDevelopmentStageForHash(hash: string): ApplicationDevelopmentStageId | null {

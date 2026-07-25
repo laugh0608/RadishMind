@@ -17,7 +17,6 @@ import (
 const (
 	agentCopilotInvocationRoute      = "/v1/agent-copilot/invocations"
 	agentCopilotInvokeScope          = "agent_copilot:invoke"
-	agentCopilotInvocationProtocol   = "agent-copilot-invocation-v1"
 	agentCopilotInvocationMaxRuntime = 30 * time.Second
 	agentCopilotMaximumResponseBytes = 256 * 1024
 
@@ -461,19 +460,10 @@ func validAgentCopilotVisibleText(value string, maximum int) bool {
 }
 
 func (service agentCopilotInvocationService) callGateway(ctx context.Context, runID string, authority agentCopilotInvocationAuthority, requestPayload []byte) ([]byte, string, string) {
-	canonicalRequest, err := buildNorthboundCanonicalRequest(northboundCanonicalRequestOptions{
-		requestID: runID, route: agentCopilotInvocationRoute, protocol: agentCopilotInvocationProtocol,
-		locale: authority.Resolved.Profile.DefaultLocale, promptText: string(requestPayload),
-		northboundFields: map[string]any{
-			"request_kind": agentCopilotInvocationProtocol, "workflow_run_id": runID,
-			"application_id": authority.Snapshot.ApplicationID, "allow_tool_calls": false,
-			"allow_retrieval": false, "allow_image_reasoning": false, "writes_business_truth": false,
-		},
-	})
-	if err != nil {
+	if strings.TrimSpace(runID) == "" || len(requestPayload) == 0 {
 		return nil, "protocol", AgentCopilotInvocationFailureOutcomeUnknown
 	}
-	envelope, err := service.bridge.HandleEnvelope(ctx, canonicalRequest, service.gatewayOptions(authority.Selection))
+	envelope, err := service.bridge.HandleEnvelope(ctx, requestPayload, service.gatewayOptions(authority.Selection))
 	if err != nil {
 		if errors.Is(ctx.Err(), context.Canceled) {
 			return nil, "canceled", AgentCopilotInvocationFailureCanceled
@@ -483,21 +473,15 @@ func (service agentCopilotInvocationService) callGateway(ctx context.Context, ru
 		}
 		return nil, "unavailable", AgentCopilotInvocationFailureOutcomeUnknown
 	}
-	if !strings.EqualFold(strings.TrimSpace(envelope.Status), "ok") || envelope.Error != nil || envelope.Response == nil {
+	gatewayStatus := strings.ToLower(strings.TrimSpace(envelope.Status))
+	if (gatewayStatus != "ok" && gatewayStatus != "partial") || envelope.Error != nil || envelope.Response == nil {
 		return nil, "provider_failed", AgentCopilotInvocationFailureOutcomeUnknown
 	}
-	if structured, ok := envelope.Response["structured_answer"]; ok {
-		payload, marshalErr := json.Marshal(structured)
-		if marshalErr != nil {
-			return nil, "output_unavailable", AgentCopilotInvocationFailureResponseContract
-		}
-		return payload, "none", ""
-	}
-	output := strings.TrimSpace(buildNorthboundResponseContent(envelope))
-	if output == "" {
+	payload, marshalErr := json.Marshal(envelope.Response)
+	if marshalErr != nil {
 		return nil, "output_unavailable", AgentCopilotInvocationFailureResponseContract
 	}
-	return []byte(output), "none", ""
+	return payload, "none", ""
 }
 
 func (service agentCopilotInvocationService) complete(

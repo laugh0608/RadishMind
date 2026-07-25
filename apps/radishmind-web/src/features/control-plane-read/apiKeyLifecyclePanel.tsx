@@ -31,6 +31,7 @@ const AVAILABLE_SCOPES: Array<{ scope: APIKeyScope; label: string }> = [
   { scope: "messages:invoke", label: "Messages" },
   { scope: "application_rag:invoke", label: "Application RAG invocation" },
   { scope: "prompt_application:invoke", label: "Prompt Application invocation" },
+  { scope: "agent_copilot:invoke", label: "Agent Copilot invocation" },
 ];
 
 type IssuedCredential = {

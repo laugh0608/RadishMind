@@ -43,6 +43,7 @@ test("application development context keeps one exact active scope", () => {
   assert.equal(context.status, "active");
   assert.equal(context.applicationId, "app_flow_copilot");
   assert.equal(context.applicationActive, true);
+  assert.equal(context.surfaceKind, "workflow_rag");
   assert.equal(context.stages.length, 5);
   assert.equal(context.stages.every((stage) => stage.availability === "available"), true);
   assert.match(context.generationKey, /app_flow_copilot:active:3/u);
@@ -94,6 +95,16 @@ test("unknown lifecycle fails closed even when an application reference is prese
   assert.equal(context.stages.every((stage) => stage.availability === "blocked"), true);
 });
 
+test("application kind routing is explicit and unknown kinds fail closed", () => {
+  const agent = buildApplicationDevelopmentWorkspaceContext({ ...activeApplication, applicationKind: "agent" });
+  const prompt = buildApplicationDevelopmentWorkspaceContext({ ...activeApplication, applicationKind: "prompt_application" });
+  const unsupported = buildApplicationDevelopmentWorkspaceContext({ ...activeApplication, applicationKind: "unknown_kind" });
+  assert.equal(agent.surfaceKind, "agent_copilot");
+  assert.equal(prompt.surfaceKind, "prompt_application");
+  assert.equal(unsupported.status, "unavailable");
+  assert.equal(unsupported.surfaceKind, "unsupported");
+});
+
 test("stage anchors resolve only known application development destinations", () => {
   assert.equal(applicationDevelopmentStageForHash("#application-configuration-draft"), "configure_build");
   assert.equal(applicationDevelopmentStageForHash("application-publish-review"), "human_promotion");
@@ -115,6 +126,9 @@ test("existing panel and handoff anchors resolve to their owning stages", () => 
   assert.equal(applicationDevelopmentStageForHash("#prompt-application-template-workspace"), "configure_build");
   assert.equal(applicationDevelopmentStageForHash("#prompt-application-runtime-assignment"), "human_promotion");
   assert.equal(applicationDevelopmentStageForHash("#prompt-application-invocation"), "controlled_test");
+  assert.equal(applicationDevelopmentStageForHash("#agent-copilot-profile-workspace"), "configure_build");
+  assert.equal(applicationDevelopmentStageForHash("#agent-copilot-runtime-assignment"), "human_promotion");
+  assert.equal(applicationDevelopmentStageForHash("#agent-copilot-invocation"), "controlled_test");
   assert.equal(applicationDevelopmentStageForHash("#admin-audit-log"), null);
 });
 
@@ -249,13 +263,13 @@ test("new handoffs replace older refs and workspace leave clears the pending sel
   assert.equal(clearApplicationDevelopmentHandoff(second, context).pending, null);
 });
 
-test("readiness starts incomplete for an active Application and rolls up all eight source groups", () => {
+test("readiness starts incomplete for an active Application and rolls up all nine source groups", () => {
   const context = buildApplicationDevelopmentWorkspaceContext(activeApplication);
   const state = initialApplicationDevelopmentEvidenceState(context);
   const view = buildApplicationDevelopmentReadinessViewModel(state);
 
   assert.equal(view.status, "review_incomplete");
-  assert.equal(view.sources.length, 8);
+  assert.equal(view.sources.length, 9);
   assert.equal(view.sources.find((source) => source.sourceGroupId === "application")?.status, "available");
   assert.equal(view.canPersistReadiness, false);
   assert.equal(view.canPublish, false);
@@ -322,7 +336,9 @@ test("readiness becomes reviewable only when every required owner contribution i
     (contributionId) =>
       contributionId !== "application_lifecycle" &&
       contributionId !== "prompt_template" &&
-      contributionId !== "prompt_assignment",
+      contributionId !== "prompt_assignment" &&
+      contributionId !== "agent_profile" &&
+      contributionId !== "agent_assignment",
   );
   const completed = remaining.reduce(
     (state, contributionId, index) => applyApplicationDevelopmentEvidence(
@@ -350,11 +366,29 @@ test("Prompt Application readiness treats Workflow and RAG owners as not applica
   const workflow = view.sources.find((source) => source.sourceGroupId === "workflow_authority");
   const rag = view.sources.find((source) => source.sourceGroupId === "rag_authority");
   const prompt = view.sources.find((source) => source.sourceGroupId === "prompt_authority");
+  const agent = view.sources.find((source) => source.sourceGroupId === "agent_authority");
 
   assert.equal(workflow?.status, "available");
   assert.equal(rag?.status, "available");
   assert.equal(prompt?.status, "not_started");
   assert.equal(prompt?.missingEvidence.length, 2);
+  assert.equal(agent?.status, "available");
+});
+
+test("Agent readiness requires Profile and assignment while other authority kinds are not applicable", () => {
+  const context = buildApplicationDevelopmentWorkspaceContext({
+    ...activeApplication,
+    applicationKind: "agent",
+  });
+  const view = buildApplicationDevelopmentReadinessViewModel(
+    initialApplicationDevelopmentEvidenceState(context),
+  );
+  assert.equal(view.sources.find((source) => source.sourceGroupId === "workflow_authority")?.status, "available");
+  assert.equal(view.sources.find((source) => source.sourceGroupId === "rag_authority")?.status, "available");
+  assert.equal(view.sources.find((source) => source.sourceGroupId === "prompt_authority")?.status, "available");
+  const agent = view.sources.find((source) => source.sourceGroupId === "agent_authority");
+  assert.equal(agent?.status, "not_started");
+  assert.equal(agent?.missingEvidence.length, 2);
 });
 
 test("owner failure and partial coverage block readiness without hiding other evidence", () => {

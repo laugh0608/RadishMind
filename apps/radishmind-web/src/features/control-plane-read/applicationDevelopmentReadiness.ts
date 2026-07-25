@@ -9,6 +9,7 @@ export const APPLICATION_DEVELOPMENT_SOURCE_GROUP_IDS = [
   "workflow_authority",
   "rag_authority",
   "prompt_authority",
+  "agent_authority",
   "controlled_test",
   "evaluation",
   "operations",
@@ -23,6 +24,8 @@ export const APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS = [
   "rag_assignment",
   "prompt_template",
   "prompt_assignment",
+  "agent_profile",
+  "agent_assignment",
   "controlled_run",
   "evaluation_review",
   "operations_coverage",
@@ -53,6 +56,7 @@ export type ApplicationDevelopmentEvidenceRef = {
     | "definition"
     | "binding"
     | "template"
+    | "profile"
     | "assignment"
     | "session"
     | "run"
@@ -182,9 +186,21 @@ const CONTRIBUTIONS: Record<ApplicationDevelopmentContributionId, ContributionDe
     nextStage: "human_promotion",
     nextAnchor: "application-publish-review",
   },
+  agent_profile: {
+    sourceGroupId: "agent_authority",
+    missingLabel: "Create and bind an immutable Agent Copilot Profile version.",
+    nextStage: "configure_build",
+    nextAnchor: "agent-copilot-profile-workspace",
+  },
+  agent_assignment: {
+    sourceGroupId: "agent_authority",
+    missingLabel: "Activate an approved Agent Copilot candidate.",
+    nextStage: "human_promotion",
+    nextAnchor: "agent-copilot-runtime-assignment",
+  },
   controlled_run: {
     sourceGroupId: "controlled_test",
-    missingLabel: "Record a reviewable v4, v5, or v6 controlled run.",
+    missingLabel: "Record a reviewable v4, v5, v6, or v7 controlled run.",
     nextStage: "controlled_test",
     nextAnchor: "application-interaction-session",
   },
@@ -208,6 +224,7 @@ const SOURCE_LABELS: Record<ApplicationDevelopmentSourceGroupId, string> = {
   workflow_authority: "Workflow authority",
   rag_authority: "RAG authority",
   prompt_authority: "Prompt authority",
+  agent_authority: "Agent Copilot authority",
   controlled_test: "Controlled test",
   evaluation: "Evaluation",
   operations: "Operations",
@@ -247,13 +264,23 @@ export function initialApplicationDevelopmentEvidenceState(
         [{ code: "application_archived", summary: "Archived Applications retain evidence but cannot enter controlled testing." }],
       );
 
-    if (context.applicationKind === "prompt_application") {
+    if (context.surfaceKind === "prompt_application") {
       contributions.workflow_definition = notApplicableContribution("workflow_definition");
       contributions.rag_binding = notApplicableContribution("rag_binding");
       contributions.rag_assignment = notApplicableContribution("rag_assignment");
+      contributions.agent_profile = notApplicableContribution("agent_profile");
+      contributions.agent_assignment = notApplicableContribution("agent_assignment");
+    } else if (context.surfaceKind === "agent_copilot") {
+      contributions.workflow_definition = notApplicableContribution("workflow_definition");
+      contributions.rag_binding = notApplicableContribution("rag_binding");
+      contributions.rag_assignment = notApplicableContribution("rag_assignment");
+      contributions.prompt_template = notApplicableContribution("prompt_template");
+      contributions.prompt_assignment = notApplicableContribution("prompt_assignment");
     } else {
       contributions.prompt_template = notApplicableContribution("prompt_template");
       contributions.prompt_assignment = notApplicableContribution("prompt_assignment");
+      contributions.agent_profile = notApplicableContribution("agent_profile");
+      contributions.agent_assignment = notApplicableContribution("agent_assignment");
     }
   }
 

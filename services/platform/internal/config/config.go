@@ -1320,7 +1320,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if workflowRunStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		if !cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled &&
-			!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled && !cfg.PromptApplicationRuntimeDevHTTPEnabled {
+			!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&
+			!cfg.PromptApplicationRuntimeDevHTTPEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled {
 			requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
 		}
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_run_database")
@@ -1328,7 +1329,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if workflowRunStoreMode == "sqlite_dev" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		if !cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled &&
-			!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled && !cfg.PromptApplicationRuntimeDevHTTPEnabled {
+			!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&
+			!cfg.PromptApplicationRuntimeDevHTTPEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled {
 			requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
 		}
 	}
@@ -1806,7 +1808,8 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 		return fmt.Errorf("workflow definition release dev requires control plane auth and saved workflow draft HTTP/write gates")
 	}
 	if cfg.ApplicationSessionDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled ||
-		(!cfg.WorkflowDefinitionReleaseDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled && !cfg.PromptApplicationRuntimeDevHTTPEnabled)) {
+		(!cfg.WorkflowDefinitionReleaseDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&
+			!cfg.PromptApplicationRuntimeDevHTTPEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled)) {
 		return fmt.Errorf("application session dev requires control plane auth, application catalog HTTP, and at least one supported runtime authority")
 	}
 	switch strings.TrimSpace(cfg.WorkflowSavedDraftStoreMode) {
@@ -2054,14 +2057,16 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	case "sqlite_dev":
 		if !cfg.ControlPlaneReadDevAuthEnabled ||
 			(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled &&
-				!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled && !cfg.PromptApplicationRuntimeDevHTTPEnabled) ||
+				!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&
+				!cfg.PromptApplicationRuntimeDevHTTPEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled) ||
 			((cfg.WorkflowExecutorDevEnabled || cfg.WorkflowRAGExecutionDevEnabled) && !cfg.WorkflowSavedDraftDevHTTPEnabled) {
 			return fmt.Errorf("workflow run sqlite_dev store requires control plane read dev auth, an enabled workflow runtime product, and saved workflow draft dev HTTP for execution products")
 		}
 	case "postgres_dev_test":
 		if !cfg.ControlPlaneReadDevAuthEnabled ||
 			(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled &&
-				!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled && !cfg.PromptApplicationRuntimeDevHTTPEnabled) ||
+				!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&
+				!cfg.PromptApplicationRuntimeDevHTTPEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled) ||
 			((cfg.WorkflowExecutorDevEnabled || cfg.WorkflowRAGExecutionDevEnabled) && !cfg.WorkflowSavedDraftDevHTTPEnabled) || strings.TrimSpace(cfg.WorkflowRunDatabaseURL) == "" {
 			return fmt.Errorf("workflow run postgres_dev_test store requires complete development gates and a database URL")
 		}

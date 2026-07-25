@@ -10,6 +10,7 @@ import {
 const APPLICATION_DRAFT_SCHEMA_VERSION_V1 = "application_configuration_draft.v1";
 const APPLICATION_DRAFT_SCHEMA_VERSION_V2 = "application_configuration_draft.v2";
 const APPLICATION_DRAFT_SCHEMA_VERSION_V3 = "application_configuration_draft.v3";
+const APPLICATION_DRAFT_SCHEMA_VERSION_V4 = "application_configuration_draft.v4";
 const DEV_SOURCE = "dev-application-draft-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const FORBIDDEN_DRAFT_RESPONSE_FIELDS = new Set([
@@ -34,13 +35,23 @@ export type ApplicationConfigurationBaseline = {
 
 export type ApplicationDraftRAGBindingRef = { bindingId: string; bindingVersion: number; bindingDigest: string };
 export type ApplicationDraftPromptTemplateRef = { templateId: string; templateVersion: number; templateDigest: string };
+export type ApplicationDraftAgentCopilotProfileRef = {
+  profileId: string;
+  profileVersion: number;
+  profileDigest: string;
+  policyDigest: string;
+};
 
 export type ApplicationConfigurationDraft = {
   draftId: string;
   workspaceId: string;
   applicationId: string;
   baseApplicationUpdatedAt: string;
-  schemaVersion: typeof APPLICATION_DRAFT_SCHEMA_VERSION_V1 | typeof APPLICATION_DRAFT_SCHEMA_VERSION_V2 | typeof APPLICATION_DRAFT_SCHEMA_VERSION_V3;
+  schemaVersion:
+    | typeof APPLICATION_DRAFT_SCHEMA_VERSION_V1
+    | typeof APPLICATION_DRAFT_SCHEMA_VERSION_V2
+    | typeof APPLICATION_DRAFT_SCHEMA_VERSION_V3
+    | typeof APPLICATION_DRAFT_SCHEMA_VERSION_V4;
   displayName: string;
   description: string;
   applicationKind: string;
@@ -50,6 +61,7 @@ export type ApplicationConfigurationDraft = {
   draftDigest: string;
   workflowRAGBindingRef: ApplicationDraftRAGBindingRef | null;
   promptTemplateRef: ApplicationDraftPromptTemplateRef | null;
+  agentCopilotProfileRef: ApplicationDraftAgentCopilotProfileRef | null;
 };
 
 export type ApplicationConfigurationDraftFinding = {
@@ -86,6 +98,7 @@ export type ApplicationConfigurationDraftSummary = {
   draftDigest: string;
   workflowRAGBindingRef: ApplicationDraftRAGBindingRef | null;
   promptTemplateRef: ApplicationDraftPromptTemplateRef | null;
+  agentCopilotProfileRef: ApplicationDraftAgentCopilotProfileRef | null;
   updatedAt: string;
   updatedByActorRef: string;
 };
@@ -120,6 +133,7 @@ type DraftDocument = {
   draft_digest: string;
   workflow_rag_binding_ref?: BindingRefDocument;
   prompt_template_ref?: PromptTemplateRefDocument;
+  agent_copilot_profile_ref?: AgentCopilotProfileRefDocument;
   validation_summary: ValidationDocument;
   created_at: string;
   updated_at: string;
@@ -132,6 +146,7 @@ type DraftDocument = {
 type ValidationDocument = { state: string; is_valid: boolean; findings: Array<{ code: string; field: string; summary: string }> };
 type BindingRefDocument = { binding_id: string; binding_version: number; binding_digest: string };
 type PromptTemplateRefDocument = { template_id: string; template_version: number; template_digest: string };
+type AgentCopilotProfileRefDocument = { profile_id: string; profile_version: number; profile_digest: string; policy_digest: string };
 type DraftEnvelope = {
   request_id: string;
   workspace_id: string;
@@ -148,7 +163,7 @@ type DraftListEnvelope = {
   application_id: string;
   draft_summaries: Array<{
     draft_id: string; application_id: string; draft_version: number; display_name: string; application_kind: string;
-    default_protocol: string; default_model: string; validation_state: string; draft_digest: string; workflow_rag_binding_ref?: BindingRefDocument; prompt_template_ref?: PromptTemplateRefDocument; updated_at: string; updated_by_actor_ref: string;
+    default_protocol: string; default_model: string; validation_state: string; draft_digest: string; workflow_rag_binding_ref?: BindingRefDocument; prompt_template_ref?: PromptTemplateRefDocument; agent_copilot_profile_ref?: AgentCopilotProfileRefDocument; updated_at: string; updated_by_actor_ref: string;
   }>;
   failure_code: string | null;
   audit_ref: string;
@@ -184,6 +199,7 @@ export function createApplicationConfigurationDraft(
     draftDigest: "",
     workflowRAGBindingRef: null,
     promptTemplateRef: null,
+    agentCopilotProfileRef: null,
   };
 }
 
@@ -232,12 +248,13 @@ export function validateApplicationConfigurationDraft(
   const findings: ApplicationConfigurationDraftFinding[] = [];
   const add = (code: string, field: string, summary: string) => findings.push({ code, field, summary });
   if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u.test(draft.draftId) || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u.test(draft.applicationId)) add("application_draft_payload_invalid", "scope", "Draft and application identifiers must be stable safe values.");
-  if (draft.schemaVersion === APPLICATION_DRAFT_SCHEMA_VERSION_V1 && draft.workflowRAGBindingRef) add("application_draft_payload_invalid", "workflow_rag_binding_ref", "Application draft v1 cannot carry a RAG binding reference.");
-  if (draft.schemaVersion === APPLICATION_DRAFT_SCHEMA_VERSION_V1 && draft.promptTemplateRef) add("application_draft_payload_invalid", "prompt_template_ref", "Application draft v1 cannot carry a Prompt Template reference.");
-  if (draft.schemaVersion === APPLICATION_DRAFT_SCHEMA_VERSION_V2 && (!draft.workflowRAGBindingRef || draft.promptTemplateRef)) add("application_draft_payload_invalid", "binding", "Application draft v2 must carry only a Workflow RAG binding.");
-  if (draft.schemaVersion === APPLICATION_DRAFT_SCHEMA_VERSION_V3 && (draft.workflowRAGBindingRef || !draft.promptTemplateRef || draft.applicationKind !== "prompt_application")) add("application_draft_payload_invalid", "prompt_template_ref", "Application draft v3 must carry exactly one Prompt Template reference for a Prompt Application.");
+  if (draft.schemaVersion === APPLICATION_DRAFT_SCHEMA_VERSION_V1 && (draft.workflowRAGBindingRef || draft.promptTemplateRef || draft.agentCopilotProfileRef)) add("application_draft_payload_invalid", "schema_version", "Application draft v1 cannot carry an execution source reference.");
+  if (draft.schemaVersion === APPLICATION_DRAFT_SCHEMA_VERSION_V2 && (!draft.workflowRAGBindingRef || draft.promptTemplateRef || draft.agentCopilotProfileRef)) add("application_draft_payload_invalid", "binding", "Application draft v2 must carry only a Workflow RAG binding.");
+  if (draft.schemaVersion === APPLICATION_DRAFT_SCHEMA_VERSION_V3 && (draft.workflowRAGBindingRef || !draft.promptTemplateRef || draft.agentCopilotProfileRef || draft.applicationKind !== "prompt_application")) add("application_draft_payload_invalid", "prompt_template_ref", "Application draft v3 must carry exactly one Prompt Template reference for a Prompt Application.");
+  if (draft.schemaVersion === APPLICATION_DRAFT_SCHEMA_VERSION_V4 && (draft.workflowRAGBindingRef || draft.promptTemplateRef || !draft.agentCopilotProfileRef || draft.applicationKind !== "agent")) add("application_draft_payload_invalid", "agent_copilot_profile_ref", "Application draft v4 must carry exactly one Agent Copilot Profile reference for an Agent application.");
   if (draft.workflowRAGBindingRef && (!/^wragb_[a-z2-7]{16}$/u.test(draft.workflowRAGBindingRef.bindingId) || draft.workflowRAGBindingRef.bindingVersion !== 1 || !isDigest(draft.workflowRAGBindingRef.bindingDigest))) add("application_draft_payload_invalid", "workflow_rag_binding_ref", "Workflow RAG binding reference is invalid.");
   if (draft.promptTemplateRef && (!/^ptpl_[a-z2-7]{16}$/u.test(draft.promptTemplateRef.templateId) || !Number.isInteger(draft.promptTemplateRef.templateVersion) || draft.promptTemplateRef.templateVersion < 1 || !isDigest(draft.promptTemplateRef.templateDigest))) add("application_draft_payload_invalid", "prompt_template_ref", "Prompt Template reference is invalid.");
+  if (draft.agentCopilotProfileRef && (!/^acpf_[a-z2-7]{16}$/u.test(draft.agentCopilotProfileRef.profileId) || !Number.isInteger(draft.agentCopilotProfileRef.profileVersion) || draft.agentCopilotProfileRef.profileVersion < 1 || !isDigest(draft.agentCopilotProfileRef.profileDigest) || !isDigest(draft.agentCopilotProfileRef.policyDigest))) add("application_draft_payload_invalid", "agent_copilot_profile_ref", "Agent Copilot Profile reference is invalid.");
   if (draft.displayName.trim().length < 2 || draft.displayName.trim().length > 120) add("application_draft_payload_invalid", "display_name", "Display name must contain 2 to 120 characters.");
   if (draft.description.trim().length > 1000) add("application_draft_payload_invalid", "description", "Description must not exceed 1000 characters.");
   if (!["workflow_copilot", "docs_qa", "agent", "prompt_application"].includes(draft.applicationKind)) add("application_draft_payload_invalid", "application_kind", "Application kind is unsupported.");
@@ -339,6 +356,47 @@ export async function bindApplicationConfigurationDraftPromptTemplate(
   }
 }
 
+export async function bindApplicationConfigurationDraftAgentCopilotProfile(
+  config: ApplicationConfigurationDraftConfig,
+  applicationId: string,
+  draftId: string,
+  expectedDraftVersion: number,
+  profileId: string,
+  profileVersion: number,
+): Promise<{ draft: ApplicationConfigurationDraft | null; state: ApplicationConfigurationDraftOperationState }> {
+  if (config.mode !== "dev_application_draft_http") {
+    return { draft: null, state: initialApplicationConfigurationDraftState(config) };
+  }
+  const requestId = createRequestId("app-draft-agent-bind");
+  try {
+    const response = await fetch(
+      `${config.baseUrl}/v1/user-workspace/application-configuration-drafts/${encodeURIComponent(draftId)}/agent-copilot-profile-binding`,
+      {
+        method: "POST",
+        headers: {
+          ...draftHeaders(config, applicationId, requestId, "agent-bind"),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          workspace_id: config.workspaceId,
+          application_id: applicationId,
+          expected_draft_version: expectedDraftVersion,
+          profile_id: profileId,
+          profile_version: profileVersion,
+        }),
+      },
+    );
+    const document: unknown = await response.json();
+    if (!response.ok || !isDraftEnvelope(document, config, applicationId)) throw new Error("invalid Agent Profile binding response");
+    return {
+      draft: document.draft ? mapDraft(document.draft) : null,
+      state: operationStateFromEnvelope(document, "saved"),
+    };
+  } catch {
+    return { draft: null, state: failedOperationState("application_draft_store_unavailable") };
+  }
+}
+
 async function writeDraftRequest(config: ApplicationConfigurationDraftConfig, draft: ApplicationConfigurationDraft, path: string, body: unknown, successStatus: "valid" | "saved"): Promise<ApplicationConfigurationDraftOperationState> {
   if (config.mode !== "dev_application_draft_http") return initialApplicationConfigurationDraftState(config);
   const requestId = createRequestId("app-draft-write");
@@ -360,14 +418,22 @@ function draftPayload(draft: ApplicationConfigurationDraft) {
     default_protocol: draft.defaultProtocol, default_model: draft.defaultModel, allowed_protocols: draft.allowedProtocols,
     workflow_rag_binding_ref: draft.workflowRAGBindingRef ? { binding_id: draft.workflowRAGBindingRef.bindingId, binding_version: draft.workflowRAGBindingRef.bindingVersion, binding_digest: draft.workflowRAGBindingRef.bindingDigest } : undefined,
     prompt_template_ref: draft.promptTemplateRef ? { template_id: draft.promptTemplateRef.templateId, template_version: draft.promptTemplateRef.templateVersion, template_digest: draft.promptTemplateRef.templateDigest } : undefined,
+    agent_copilot_profile_ref: draft.agentCopilotProfileRef ? {
+      profile_id: draft.agentCopilotProfileRef.profileId,
+      profile_version: draft.agentCopilotProfileRef.profileVersion,
+      profile_digest: draft.agentCopilotProfileRef.profileDigest,
+      policy_digest: draft.agentCopilotProfileRef.policyDigest,
+    } : undefined,
   };
 }
 
-function draftHeaders(config: ApplicationConfigurationDraftConfig, applicationId: string, requestId: string, operation: "read" | "write" | "bind" | "prompt-bind"): HeadersInit {
+function draftHeaders(config: ApplicationConfigurationDraftConfig, applicationId: string, requestId: string, operation: "read" | "write" | "bind" | "prompt-bind" | "agent-bind"): HeadersInit {
   const scopes = operation === "bind"
     ? "application_drafts:read,application_drafts:write,workflow_rag_promotions:bind"
     : operation === "prompt-bind"
       ? "application_drafts:read,application_drafts:write,prompt_application_templates:bind"
+      : operation === "agent-bind"
+        ? "application_drafts:read,application_drafts:write,agent_copilot_profiles:bind"
       : operation === "write"
         ? "application_drafts:read,application_drafts:write"
         : "application_drafts:read";
@@ -399,11 +465,11 @@ function failedOperationState(failureCode: string): ApplicationConfigurationDraf
 }
 
 function mapDraft(document: DraftDocument): ApplicationConfigurationDraft {
-  return { draftId: document.draft_id, workspaceId: document.workspace_id, applicationId: document.application_id, baseApplicationUpdatedAt: document.base_application_updated_at, schemaVersion: document.schema_version as ApplicationConfigurationDraft["schemaVersion"], displayName: document.display_name, description: document.description, applicationKind: document.application_kind, defaultProtocol: document.default_protocol as ApplicationApiProtocol, defaultModel: document.default_model, allowedProtocols: document.allowed_protocols as ApplicationApiProtocol[], draftDigest: document.draft_digest, workflowRAGBindingRef: document.workflow_rag_binding_ref ? mapBindingRef(document.workflow_rag_binding_ref) : null, promptTemplateRef: document.prompt_template_ref ? mapPromptTemplateRef(document.prompt_template_ref) : null };
+  return { draftId: document.draft_id, workspaceId: document.workspace_id, applicationId: document.application_id, baseApplicationUpdatedAt: document.base_application_updated_at, schemaVersion: document.schema_version as ApplicationConfigurationDraft["schemaVersion"], displayName: document.display_name, description: document.description, applicationKind: document.application_kind, defaultProtocol: document.default_protocol as ApplicationApiProtocol, defaultModel: document.default_model, allowedProtocols: document.allowed_protocols as ApplicationApiProtocol[], draftDigest: document.draft_digest, workflowRAGBindingRef: document.workflow_rag_binding_ref ? mapBindingRef(document.workflow_rag_binding_ref) : null, promptTemplateRef: document.prompt_template_ref ? mapPromptTemplateRef(document.prompt_template_ref) : null, agentCopilotProfileRef: document.agent_copilot_profile_ref ? mapAgentCopilotProfileRef(document.agent_copilot_profile_ref) : null };
 }
 
 function mapDraftSummary(document: DraftListEnvelope["draft_summaries"][number]): ApplicationConfigurationDraftSummary {
-  return { draftId: document.draft_id, applicationId: document.application_id, draftVersion: document.draft_version, displayName: document.display_name, applicationKind: document.application_kind, defaultProtocol: document.default_protocol as ApplicationApiProtocol, defaultModel: document.default_model, validationState: document.validation_state, draftDigest: document.draft_digest, workflowRAGBindingRef: document.workflow_rag_binding_ref ? mapBindingRef(document.workflow_rag_binding_ref) : null, promptTemplateRef: document.prompt_template_ref ? mapPromptTemplateRef(document.prompt_template_ref) : null, updatedAt: document.updated_at, updatedByActorRef: document.updated_by_actor_ref };
+  return { draftId: document.draft_id, applicationId: document.application_id, draftVersion: document.draft_version, displayName: document.display_name, applicationKind: document.application_kind, defaultProtocol: document.default_protocol as ApplicationApiProtocol, defaultModel: document.default_model, validationState: document.validation_state, draftDigest: document.draft_digest, workflowRAGBindingRef: document.workflow_rag_binding_ref ? mapBindingRef(document.workflow_rag_binding_ref) : null, promptTemplateRef: document.prompt_template_ref ? mapPromptTemplateRef(document.prompt_template_ref) : null, agentCopilotProfileRef: document.agent_copilot_profile_ref ? mapAgentCopilotProfileRef(document.agent_copilot_profile_ref) : null, updatedAt: document.updated_at, updatedByActorRef: document.updated_by_actor_ref };
 }
 
 function mapValidation(document: ValidationDocument): ApplicationConfigurationDraftValidation {
@@ -416,26 +482,32 @@ function isDraftEnvelope(value: unknown, config: ApplicationConfigurationDraftCo
 }
 
 function isDraftListEnvelope(value: unknown, config: ApplicationConfigurationDraftConfig, applicationId: string): value is DraftListEnvelope {
-  return isRecord(value) && !containsForbiddenDraftResponseField(value) && value.workspace_id === config.workspaceId && value.application_id === applicationId && typeof value.request_id === "string" && (value.failure_code === null || typeof value.failure_code === "string") && Array.isArray(value.draft_summaries) && value.draft_summaries.every((summary) => isRecord(summary) && summary.application_id === applicationId && typeof summary.draft_id === "string" && typeof summary.draft_version === "number" && typeof summary.display_name === "string" && typeof summary.default_protocol === "string" && typeof summary.default_model === "string" && isDigest(summary.draft_digest) && (summary.workflow_rag_binding_ref === undefined || isBindingRefDocument(summary.workflow_rag_binding_ref)) && (summary.prompt_template_ref === undefined || isPromptTemplateRefDocument(summary.prompt_template_ref)));
+  return isRecord(value) && !containsForbiddenDraftResponseField(value) && value.workspace_id === config.workspaceId && value.application_id === applicationId && typeof value.request_id === "string" && (value.failure_code === null || typeof value.failure_code === "string") && Array.isArray(value.draft_summaries) && value.draft_summaries.every((summary) => isRecord(summary) && summary.application_id === applicationId && typeof summary.draft_id === "string" && typeof summary.draft_version === "number" && typeof summary.display_name === "string" && typeof summary.default_protocol === "string" && typeof summary.default_model === "string" && isDigest(summary.draft_digest) && (summary.workflow_rag_binding_ref === undefined || isBindingRefDocument(summary.workflow_rag_binding_ref)) && (summary.prompt_template_ref === undefined || isPromptTemplateRefDocument(summary.prompt_template_ref)) && (summary.agent_copilot_profile_ref === undefined || isAgentCopilotProfileRefDocument(summary.agent_copilot_profile_ref)));
 }
 
 function isDraftDocument(value: unknown, config: ApplicationConfigurationDraftConfig, applicationId: string): value is DraftDocument {
   if (!isRecord(value) || value.workspace_id !== config.workspaceId || value.application_id !== applicationId ||
-    ![APPLICATION_DRAFT_SCHEMA_VERSION_V1, APPLICATION_DRAFT_SCHEMA_VERSION_V2, APPLICATION_DRAFT_SCHEMA_VERSION_V3].includes(String(value.schema_version)) ||
+    ![APPLICATION_DRAFT_SCHEMA_VERSION_V1, APPLICATION_DRAFT_SCHEMA_VERSION_V2, APPLICATION_DRAFT_SCHEMA_VERSION_V3, APPLICATION_DRAFT_SCHEMA_VERSION_V4].includes(String(value.schema_version)) ||
     typeof value.draft_id !== "string" || typeof value.display_name !== "string" || typeof value.description !== "string" ||
     typeof value.application_kind !== "string" || typeof value.default_protocol !== "string" || typeof value.default_model !== "string" ||
     !Array.isArray(value.allowed_protocols) || !value.allowed_protocols.every((protocol) => typeof protocol === "string") ||
     typeof value.draft_version !== "number" || !isDigest(value.draft_digest) ||
     (value.workflow_rag_binding_ref !== undefined && !isBindingRefDocument(value.workflow_rag_binding_ref)) ||
     (value.prompt_template_ref !== undefined && !isPromptTemplateRefDocument(value.prompt_template_ref)) ||
+    (value.agent_copilot_profile_ref !== undefined && !isAgentCopilotProfileRefDocument(value.agent_copilot_profile_ref)) ||
     !isValidationDocument(value.validation_summary)) return false;
   if (value.schema_version === APPLICATION_DRAFT_SCHEMA_VERSION_V1) {
-    return value.workflow_rag_binding_ref === undefined && value.prompt_template_ref === undefined;
+    return value.workflow_rag_binding_ref === undefined && value.prompt_template_ref === undefined && value.agent_copilot_profile_ref === undefined;
   }
   if (value.schema_version === APPLICATION_DRAFT_SCHEMA_VERSION_V2) {
-    return value.workflow_rag_binding_ref !== undefined && value.prompt_template_ref === undefined;
+    return value.workflow_rag_binding_ref !== undefined && value.prompt_template_ref === undefined && value.agent_copilot_profile_ref === undefined;
   }
-  return value.application_kind === "prompt_application" && value.workflow_rag_binding_ref === undefined && value.prompt_template_ref !== undefined;
+  if (value.schema_version === APPLICATION_DRAFT_SCHEMA_VERSION_V3) {
+    return value.application_kind === "prompt_application" && value.workflow_rag_binding_ref === undefined &&
+      value.prompt_template_ref !== undefined && value.agent_copilot_profile_ref === undefined;
+  }
+  return value.application_kind === "agent" && value.workflow_rag_binding_ref === undefined &&
+    value.prompt_template_ref === undefined && value.agent_copilot_profile_ref !== undefined;
 }
 
 function isValidationDocument(value: unknown): value is ValidationDocument {
@@ -446,6 +518,8 @@ function mapBindingRef(value: BindingRefDocument): ApplicationDraftRAGBindingRef
 function isBindingRefDocument(value: unknown): value is BindingRefDocument { return isRecord(value) && Object.keys(value).length === 3 && /^wragb_[a-z2-7]{16}$/u.test(String(value.binding_id)) && value.binding_version === 1 && isDigest(value.binding_digest); }
 function mapPromptTemplateRef(value: PromptTemplateRefDocument): ApplicationDraftPromptTemplateRef { return { templateId: value.template_id, templateVersion: value.template_version, templateDigest: value.template_digest }; }
 function isPromptTemplateRefDocument(value: unknown): value is PromptTemplateRefDocument { return isRecord(value) && Object.keys(value).length === 3 && /^ptpl_[a-z2-7]{16}$/u.test(String(value.template_id)) && Number.isInteger(value.template_version) && value.template_version > 0 && isDigest(value.template_digest); }
+function mapAgentCopilotProfileRef(value: AgentCopilotProfileRefDocument): ApplicationDraftAgentCopilotProfileRef { return { profileId: value.profile_id, profileVersion: value.profile_version, profileDigest: value.profile_digest, policyDigest: value.policy_digest }; }
+function isAgentCopilotProfileRefDocument(value: unknown): value is AgentCopilotProfileRefDocument { return isRecord(value) && Object.keys(value).length === 4 && /^acpf_[a-z2-7]{16}$/u.test(String(value.profile_id)) && Number.isInteger(value.profile_version) && value.profile_version > 0 && isDigest(value.profile_digest) && isDigest(value.policy_digest); }
 function isDigest(value: unknown): value is string { return typeof value === "string" && /^sha256:[a-f0-9]{64}$/u.test(value); }
 
 function diff(field: ApplicationConfigurationDiff["field"], before: string, after: string): ApplicationConfigurationDiff { return { field, before, after, changed: before !== after }; }

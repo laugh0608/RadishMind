@@ -5,7 +5,8 @@ export type WorkflowRunSchemaVersion =
   | "workflow_run_record.v3"
   | "workflow_run_record.v4"
   | "workflow_run_record.v5"
-  | "workflow_run_record.v6";
+  | "workflow_run_record.v6"
+  | "workflow_run_record.v7";
 
 export type WorkflowRunStatus = "running" | "succeeded" | "failed" | "canceled" | "outcome_unknown";
 
@@ -218,6 +219,31 @@ export type PromptApplicationRunAuthority = {
   modelEligibilityDigest: string;
 };
 
+export type AgentCopilotRunAuthority = {
+  applicationId: string;
+  applicationRecordVersion: number;
+  applicationLifecycle: "active";
+  authorityDigest: string;
+  assignmentId: string;
+  assignmentVersion: number;
+  assignmentDigest: string;
+  publishCandidateId: string;
+  publishReviewVersion: number;
+  draftId: string;
+  draftVersion: number;
+  draftDigest: string;
+  profileId: string;
+  profileVersion: number;
+  profileDigest: string;
+  policyDigest: string;
+  project: "radishflow" | "radish";
+  allowedTasksDigest: string;
+  defaultProtocol: string;
+  defaultModel: string;
+  protocolPolicyDigest: string;
+  modelEligibilityDigest: string;
+};
+
 export type WorkflowRunRecord = {
   schemaVersion: WorkflowRunSchemaVersion;
   recordVersion: number;
@@ -236,6 +262,21 @@ export type WorkflowRunRecord = {
   inputDigest?: string;
   definitionAuthority?: WorkflowDefinitionRunAuthority | null;
   promptApplicationAuthority?: PromptApplicationRunAuthority | null;
+  agentCopilotAuthority?: AgentCopilotRunAuthority | null;
+  agentProject?: "radishflow" | "radish";
+  agentTask?: string;
+  agentLocale?: string;
+  agentContextBytes?: number;
+  agentArtifactCount?: number;
+  agentArtifactBytes?: number;
+  agentResponseStatus?: "unavailable" | "ok" | "partial" | "failed";
+  agentResponseDigest?: string;
+  agentAnswerCount?: number;
+  agentIssueCount?: number;
+  agentActionCount?: number;
+  agentCitationCount?: number;
+  agentRiskLevel?: "low" | "medium" | "high";
+  agentRequiresConfirmation?: boolean;
   variableNames?: string[];
   variableNamesDigest?: string;
   requestedProtocol?: string;
@@ -319,6 +360,16 @@ const PROMPT_APPLICATION_RECORD_KEYS = new Set([
   "selection_source", "status", "failure_code", "failure_summary", "started_at", "completed_at", "output",
   "usage", "side_effects", "diagnostic", "request_id", "audit_ref", "actor_ref",
 ]);
+const AGENT_COPILOT_RECORD_KEYS = new Set([
+  "schema_version", "record_version", "run_id", "tenant_ref", "workspace_id", "application_id",
+  "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version", "execution_profile",
+  "authority", "project", "task", "locale", "input_digest", "input_bytes", "context_bytes", "artifact_count",
+  "artifact_bytes", "requested_protocol", "selected_protocol", "requested_model", "selected_provider",
+  "selected_profile", "selected_model", "upstream_model", "selection_source", "response_status",
+  "response_digest", "answer_count", "issue_count", "action_count", "citation_count", "risk_level",
+  "requires_confirmation", "status", "failure_code", "failure_summary", "started_at", "completed_at", "output",
+  "usage", "side_effects", "diagnostic", "request_id", "audit_ref", "actor_ref",
+]);
 
 export function parseWorkflowRunRecordDocument(value: unknown): WorkflowRunRecord | null {
   if (!isRecord(value) || containsForbiddenWorkflowRunField(value)) return null;
@@ -326,12 +377,13 @@ export function parseWorkflowRunRecordDocument(value: unknown): WorkflowRunRecor
   if (schemaVersion !== "workflow_run_record.v0" && schemaVersion !== "workflow_run_record.v1" &&
     schemaVersion !== "workflow_run_record.v2" && schemaVersion !== "workflow_run_record.v3" &&
     schemaVersion !== "workflow_run_record.v4" && schemaVersion !== "workflow_run_record.v5" &&
-    schemaVersion !== "workflow_run_record.v6") return null;
+    schemaVersion !== "workflow_run_record.v6" && schemaVersion !== "workflow_run_record.v7") return null;
 
   if (schemaVersion === "workflow_run_record.v3") return parseRAGRunRecord(value);
   if (schemaVersion === "workflow_run_record.v4") return parseApplicationRAGRunRecord(value);
   if (schemaVersion === "workflow_run_record.v5") return parseDefinitionRunRecord(value);
   if (schemaVersion === "workflow_run_record.v6") return parsePromptApplicationRunRecord(value);
+  if (schemaVersion === "workflow_run_record.v7") return parseAgentCopilotRunRecord(value);
 
   const common = parseCommonRecordFields(value, schemaVersion);
   if (!common) return null;
@@ -417,6 +469,137 @@ function parsePromptApplicationRunRecord(value: Record<string, unknown>): Workfl
     selectionSource: value.selection_source, nodes: [], toolAttempt: null, ragSnapshot: null, retrievalAttempt: null,
     retrievalFragmentPreviews: [], ragApplicationAuthority: null, output: "", requestId: value.request_id,
     auditRef: value.audit_ref, actorRef: value.actor_ref, sideEffects, diagnostic,
+  };
+}
+
+function parseAgentCopilotRunRecord(value: Record<string, unknown>): WorkflowRunRecord | null {
+  if (Object.keys(value).length !== AGENT_COPILOT_RECORD_KEYS.size ||
+    Object.keys(value).some((key) => !AGENT_COPILOT_RECORD_KEYS.has(key)) ||
+    !isPatternString(value.run_id, /^run_[a-z0-9]{16,64}$/u) || !isPositiveInteger(value.record_version) ||
+    !isPatternString(value.tenant_ref, REFERENCE_PATTERN) || !isPatternString(value.workspace_id, REFERENCE_PATTERN) ||
+    !isPatternString(value.application_id, REFERENCE_PATTERN) || value.execution_kind !== "agent_copilot_suggestion" ||
+    value.execution_source_kind !== "agent_copilot_profile" ||
+    !isPatternString(value.execution_source_id, /^acpf_[a-z2-7]{16}$/u) ||
+    !isPositiveInteger(value.execution_source_version) || value.execution_profile !== "agent_copilot_suggestion_v1" ||
+    (value.project !== "radishflow" && value.project !== "radish") ||
+    !isPatternString(value.task, /^[a-z][a-z0-9_]{2,63}$/u) ||
+    !isPatternString(value.locale, /^[a-z]{2}(?:-[A-Z]{2})?$/u) ||
+    !isPatternString(value.input_digest, DIGEST_PATTERN) || !isBoundedInteger(value.input_bytes, 1, 524288) ||
+    !isBoundedInteger(value.context_bytes, 0, 131072) || !isBoundedInteger(value.artifact_count, 0, 16) ||
+    !isBoundedInteger(value.artifact_bytes, 0, 262144) ||
+    !isPatternString(value.requested_protocol, REFERENCE_PATTERN) || !isPatternString(value.selected_protocol, REFERENCE_PATTERN) ||
+    !isPatternString(value.requested_model, REFERENCE_PATTERN) || !isPatternString(value.selected_provider, REFERENCE_PATTERN) ||
+    !isPatternString(value.selected_profile, REFERENCE_PATTERN) || !isPatternString(value.selected_model, REFERENCE_PATTERN) ||
+    !isPatternString(value.upstream_model, REFERENCE_PATTERN) || !isPatternString(value.selection_source, REFERENCE_PATTERN) ||
+    !["unavailable", "ok", "partial", "failed"].includes(String(value.response_status)) ||
+    typeof value.response_digest !== "string" ||
+    (value.response_digest !== "" && !DIGEST_PATTERN.test(value.response_digest)) ||
+    !isBoundedInteger(value.answer_count, 0, 64) || !isBoundedInteger(value.issue_count, 0, 64) ||
+    !isBoundedInteger(value.action_count, 0, 64) || !isBoundedInteger(value.citation_count, 0, 64) ||
+    !["low", "medium", "high"].includes(String(value.risk_level)) ||
+    typeof value.requires_confirmation !== "boolean" || !isWorkflowRunStatus(value.status) ||
+    typeof value.failure_code !== "string" || typeof value.failure_summary !== "string" ||
+    value.failure_summary.length > 256 || !isTimestamp(value.started_at) ||
+    typeof value.completed_at !== "string" || value.output !== "" ||
+    !isPatternString(value.request_id, REFERENCE_PATTERN) || !isPatternString(value.audit_ref, REFERENCE_PATTERN) ||
+    !isPatternString(value.actor_ref, REFERENCE_PATTERN)) return null;
+  const authority = parseAgentCopilotAuthority(
+    value.authority,
+    value.application_id,
+    value.execution_source_id,
+    value.execution_source_version,
+    value.project,
+  );
+  const usage = parsePromptApplicationUsage(value.usage);
+  const sideEffects = parseSideEffects(value.side_effects);
+  const diagnostic = parsePromptApplicationDiagnostic(value.diagnostic);
+  if (!authority || !usage || !sideEffects || !diagnostic ||
+    sideEffects.retrievalCalls !== 0 || sideEffects.providerCalls > 1 ||
+    sideEffects.toolCalls !== 0 || sideEffects.confirmationCalls !== 0 ||
+    sideEffects.businessWrites !== 0 || sideEffects.replayWrites !== 0) return null;
+  const terminal = value.status !== "running";
+  if ((!terminal && (value.completed_at !== "" || value.failure_code !== "" ||
+      value.response_status !== "unavailable" || value.response_digest !== "")) ||
+    (terminal && !isTimestamp(value.completed_at)) ||
+    (value.status === "succeeded" && (value.failure_code !== "" || value.failure_summary !== "" ||
+      !["ok", "partial"].includes(String(value.response_status)) || value.response_digest === "")) ||
+    (terminal && value.status !== "succeeded" && value.failure_code === "")) return null;
+  return {
+    schemaVersion: "workflow_run_record.v7", recordVersion: value.record_version, runId: value.run_id,
+    planId: "", confirmationId: "", tenantRef: value.tenant_ref, draftId: "", draftVersion: 0, draftDigest: "",
+    executionKind: value.execution_kind, executionSourceKind: value.execution_source_kind,
+    executionSourceId: value.execution_source_id, executionSourceVersion: value.execution_source_version,
+    executionProfile: value.execution_profile, inputDigest: value.input_digest, definitionAuthority: null,
+    promptApplicationAuthority: null, agentCopilotAuthority: authority,
+    agentProject: value.project, agentTask: value.task, agentLocale: value.locale,
+    agentContextBytes: value.context_bytes, agentArtifactCount: value.artifact_count,
+    agentArtifactBytes: value.artifact_bytes,
+    agentResponseStatus: value.response_status as WorkflowRunRecord["agentResponseStatus"],
+    agentResponseDigest: value.response_digest, agentAnswerCount: value.answer_count,
+    agentIssueCount: value.issue_count, agentActionCount: value.action_count,
+    agentCitationCount: value.citation_count,
+    agentRiskLevel: value.risk_level as WorkflowRunRecord["agentRiskLevel"],
+    agentRequiresConfirmation: value.requires_confirmation,
+    requestedProtocol: value.requested_protocol, selectedProtocol: value.selected_protocol, promptUsage: usage,
+    workspaceId: value.workspace_id, applicationId: value.application_id, status: value.status,
+    failureCode: value.failure_code, failureSummary: value.failure_summary, startedAt: value.started_at,
+    completedAt: value.completed_at, inputBytes: value.input_bytes, conditionNodeIds: [],
+    requestedModel: value.requested_model, selectedProvider: value.selected_provider,
+    selectedProfile: value.selected_profile, selectedModel: value.selected_model, upstreamModel: value.upstream_model,
+    selectionSource: value.selection_source, nodes: [], toolAttempt: null, ragSnapshot: null, retrievalAttempt: null,
+    retrievalFragmentPreviews: [], ragApplicationAuthority: null, output: "", requestId: value.request_id,
+    auditRef: value.audit_ref, actorRef: value.actor_ref, sideEffects, diagnostic,
+  };
+}
+
+function parseAgentCopilotAuthority(
+  value: unknown,
+  applicationId: unknown,
+  profileId: unknown,
+  profileVersion: unknown,
+  project: unknown,
+): AgentCopilotRunAuthority | null {
+  const authorityKeys = ["schema_version", "execution_profile", "application_id", "application_record_version",
+    "application_lifecycle", "agent_copilot", "authority_digest"];
+  if (!hasExactKeys(value, authorityKeys)) return null;
+  const authority = value as Record<string, unknown>;
+  const agentKeys = ["assignment_id", "assignment_version", "assignment_digest", "publish_candidate_id",
+    "publish_review_version", "draft_id", "draft_version", "draft_digest", "agent_copilot_profile_ref",
+    "project", "allowed_tasks_digest", "default_protocol", "default_model", "protocol_policy_digest",
+    "model_eligibility_digest"];
+  if (authority.schema_version !== "application_runtime_authority.v3" ||
+    authority.execution_profile !== "agent_copilot_suggestion_v1" || authority.application_id !== applicationId ||
+    !isPositiveInteger(authority.application_record_version) || authority.application_lifecycle !== "active" ||
+    !isPatternString(authority.authority_digest, DIGEST_PATTERN) ||
+    !hasExactKeys(authority.agent_copilot, agentKeys)) return null;
+  const agent = authority.agent_copilot as Record<string, unknown>;
+  const refKeys = ["profile_id", "profile_version", "profile_digest", "policy_digest"];
+  if (!isPatternString(agent.assignment_id, /^acra_[a-z2-7]{16}$/u) || !isPositiveInteger(agent.assignment_version) ||
+    !isPatternString(agent.assignment_digest, DIGEST_PATTERN) ||
+    !isPatternString(agent.publish_candidate_id, REFERENCE_PATTERN) || !isPositiveInteger(agent.publish_review_version) ||
+    !isPatternString(agent.draft_id, REFERENCE_PATTERN) || !isPositiveInteger(agent.draft_version) ||
+    !isPatternString(agent.draft_digest, DIGEST_PATTERN) || !hasExactKeys(agent.agent_copilot_profile_ref, refKeys) ||
+    agent.project !== project || !isPatternString(agent.allowed_tasks_digest, DIGEST_PATTERN) ||
+    !isPatternString(agent.default_protocol, REFERENCE_PATTERN) || !isPatternString(agent.default_model, REFERENCE_PATTERN) ||
+    !isPatternString(agent.protocol_policy_digest, DIGEST_PATTERN) ||
+    !isPatternString(agent.model_eligibility_digest, DIGEST_PATTERN)) return null;
+  const ref = agent.agent_copilot_profile_ref as Record<string, unknown>;
+  if (ref.profile_id !== profileId || ref.profile_version !== profileVersion ||
+    !isPatternString(ref.profile_digest, DIGEST_PATTERN) || !isPatternString(ref.policy_digest, DIGEST_PATTERN)) return null;
+  return {
+    applicationId: authority.application_id as string,
+    applicationRecordVersion: authority.application_record_version as number,
+    applicationLifecycle: "active", authorityDigest: authority.authority_digest as string,
+    assignmentId: agent.assignment_id as string, assignmentVersion: agent.assignment_version as number,
+    assignmentDigest: agent.assignment_digest as string, publishCandidateId: agent.publish_candidate_id as string,
+    publishReviewVersion: agent.publish_review_version as number, draftId: agent.draft_id as string,
+    draftVersion: agent.draft_version as number, draftDigest: agent.draft_digest as string,
+    profileId: ref.profile_id as string, profileVersion: ref.profile_version as number,
+    profileDigest: ref.profile_digest as string, policyDigest: ref.policy_digest as string,
+    project: agent.project as "radishflow" | "radish", allowedTasksDigest: agent.allowed_tasks_digest as string,
+    defaultProtocol: agent.default_protocol as string, defaultModel: agent.default_model as string,
+    protocolPolicyDigest: agent.protocol_policy_digest as string,
+    modelEligibilityDigest: agent.model_eligibility_digest as string,
   };
 }
 
