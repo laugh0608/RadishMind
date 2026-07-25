@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_d_completed_batch_e_review_required`
+状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_d_completed_batch_e_ready`
 
 ## 功能定位
 
@@ -37,7 +37,7 @@
 2. 批次 B 的 `local_private_artifact_storage` owner 已完成：二进制容器观察与私有存储按稳定职责拆分，仍属于同一边界。
 3. 批次 C 已选择 profile / credential 配置单一方向：strict source 只承载 reference-only endpoint / credential / model-dir，编译稳定 `profile_digest`，并成为批次 A 的 profile 与 timeout owner。
 4. 批次 D 已选择 test-only `contract_fixture` 单一 client：只检查真实 fixture 图片容器并返回最小 observation，canonical artifact metadata 由 adapter 构造。
-5. 批次 E 进入实现前只评审 fixture 二进制到既有本机私有 store 的单次交付协调；远程 HTTP client、本机模型 client、reference resolver、Gateway 与 Web 仍不进入范围。
+5. 批次 E 已确认 fixture 二进制到既有本机私有 store 的单次交付协调，下一步直接实施；远程 HTTP client、本机模型 client、reference resolver、Gateway 与 Web 仍不进入范围。
 6. 生产 backend call 仍需要独立 credential resolver、endpoint/model-dir resolver、moderation、安全复核、运行配置和发布声明，不能由开发测试态 fixture client 代替。
 7. 普通 metadata mapping 文案和 runbook 调整继续复用现有测试与仓库基线，不恢复同层 checker 链。
 
@@ -68,6 +68,15 @@
 - adapter 根据 intent、backend request 和 observation 构造唯一 canonical artifact metadata；backend 不再成为第二套 artifact metadata 真相源。
 - 本批不持久化或返回 fixture bytes，不接 store coordinator，不解析 reference，不连接网络，不读取模型目录，不生成图片，也不启用 retry / fallback。
 
+### 批次 E 固定边界
+
+- 新增单一领域协调器，编排既有 adapter、test-only fixture client 与 `LocalPrivateImageArtifactStore`；不把持久化职责塞入 adapter 或 backend client，也不创建第二套 artifact store。
+- fixture client 在构造时拥有不可变二进制，并只允许对本次已验证的 artifact identity、observation 和 canonical metadata 执行一次内部交付；bytes 不进入 invocation result、citation、metadata reference、日志或异常。
+- 固定顺序为 adapter 完成 profile、request、safety、observation 与 canonical artifact 校验后，协调器请求一次 binary delivery，private store 再检查容器、大小、hash、MIME、dimensions、format、safety 与 provenance。
+- 只有 private store 成功返回不可变内部记录后，协调器才释放既有 citation 与 metadata reference；交付拒绝、重复交付、observation 漂移、store 冲突、完整性失败或不可用均失败关闭，不返回成功引用。
+- side-effect counter 必须区分 backend handoff、fixture binary delivery、private store write、binary revalidation、retry、fallback、upload 与 public URL；成功和所有失败路径都要求精确计数。
+- 本批不修改三份 image schema 或 `CopilotResponse`，不实现 remote HTTP / local model client、reference resolver、API / Gateway / Web、production storage、upload、public URL、retry / fallback 或生产声明。
+
 ## 验收方式
 
 - metadata-only runtime：runtime unit tests、image artifact checker、fast baseline。
@@ -75,6 +84,7 @@
 - backend adapter：credential boundary、safety gate、timeout/failure taxonomy、no upload by default 和全量仓库验证。
 - 受控调用批次 A：Python 相邻单元测试覆盖纯编译、单次调用、预算、安全、敏感材料、profile drift、artifact 观察值与 provenance；timeout 从批次 C 编译 profile 读取。
 - Profile 配置批次 C：strict schema、确定性 digest、开发测试环境、远程 / 本机互斥绑定、引用作用域、UTF-8 / source byte / timeout budget、敏感材料和 digest drift 负向测试。
+- Binary delivery 批次 E：相邻测试覆盖 PNG / JPEG / WebP 持久化、确定性引用、一次性交付、store 成功前不释放引用、重复 / 错 artifact 交付、payload / observation 漂移、store 冲突 / 不可用、二进制零泄露和精确副作用计数。
 
 ## 批次 A 完成结果
 
@@ -107,4 +117,4 @@
 2. 新增 `image_backend_contract_fixture_client.py`，以实际 fixture 容器计算 sha256、MIME 与 dimensions，并对 backend request、profile、timeout、output、input 和 safety 执行 exact match。
 3. `ImageBackendInvocationResult` 缩减为 artifact identity、UTC 时间与 observation；adapter 统一构造 title、purpose、generation、safety、provenance 和 canonical URI。
 4. 7 项具体 client、11 项 profile、12 项 adapter 与 15 项 storage 测试共同形成 45 项 runtime 测试；结果不泄露 bytes、endpoint、credential 或 provider raw material。
-5. 状态推进为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_d_completed_batch_e_review_required`。下一步只评审单次 fixture binary delivery 与既有本机私有 store 的协调边界。
+5. 状态推进为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_d_completed_batch_e_review_required`；日终设计复核随后确认了批次 E 的一次性交付、私有持久化顺序和失败关闭语义，当前状态为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_d_completed_batch_e_ready`。

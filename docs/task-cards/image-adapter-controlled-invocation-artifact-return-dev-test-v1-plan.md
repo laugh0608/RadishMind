@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_d_completed_batch_e_review_required`
+状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_d_completed_batch_e_ready`
 
 对应功能文档：[Image Generation / Artifact Return 设计与开发文档](../features/image-generation-artifact-return.md)
 
@@ -249,3 +249,31 @@
 - Profile 测试增至 11 项，覆盖 `contract_fixture` 仅限 test 和零 reference；adapter 12 项继续覆盖调用前安全与调用后不可信结果。
 - 15 项 storage 测试保持兼容，`services/runtime/tests` 总数为 45；既有五项 Image contract / mapper / consumer / builder 检查继续复用。
 - 状态推进为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_d_completed_batch_e_review_required`；批次 E 只先评审 fixture binary 的单次交付与既有本机私有 store 协调边界。
+
+## 批次 E：fixture binary delivery 与私有持久化协调
+
+### 设计结论
+
+批次 E 复用既有 `ContractFixtureImageBackendClient`、`invoke_image_generation` 和 `LocalPrivateImageArtifactStore`，新增单一领域协调器负责交付顺序与最终成功语义。adapter 继续拥有 canonical artifact metadata，client 继续拥有 test-only fixture 二进制，store 继续拥有私有持久化；三个 owner 不互相复制职责。
+
+### 固定流程
+
+1. 协调器调用既有 adapter；任何调用前拒绝或 backend 失败均直接结束，不请求 binary delivery。
+2. adapter 成功后，协调器使用该次 artifact identity、observation 与 canonical artifact metadata 请求 client 交付一次 fixture bytes。
+3. client 必须精确匹配已完成的调用与 artifact，拒绝未调用、错 artifact、错 observation、重复交付和并发重复消费；交付接口不返回 bytes。
+4. 交付 consumer 只调用一次既有 private store `put`；store 重新检查容器、预算、hash、MIME、dimensions、format、safety、provenance 和不可变绑定。
+5. 只有 store 成功后，协调器才返回 adapter 已生成的 citation 与 metadata reference；交付或持久化失败时不暴露 backend request、artifact document、成功引用、bytes、路径或 storage ref。
+
+### 稳定失败与计数
+
+- 新增协调层稳定失败语义：`image_artifact_binary_delivery_unavailable`、`image_artifact_binary_delivery_mismatch`、`image_artifact_binary_delivery_already_consumed`、`image_artifact_private_storage_failed`。
+- backend / adapter 原有失败码保持不变；store 内部失败统一由协调层脱敏，不把文件系统异常或本机路径带到公开结果。
+- `backend_call_count`、`image_generation_count`、`artifact_binary_delivery_count`、`local_artifact_store_write_count` 与 `artifact_binary_revalidation_count` 按真实副作用精确记录；retry、fallback、upload、public URL、production storage、executor、confirmation、writeback 和 replay 继续为 0。
+
+### 相邻测试与停止线
+
+- 覆盖 PNG / JPEG / WebP 成功持久化、相同输入的稳定 artifact / storage binding、store 成功前不释放引用和一次性交付。
+- 覆盖调用前拒绝、backend 失败、未调用交付、错 artifact、observation / payload 漂移、重复与并发交付、consumer 异常、store 冲突 / 完整性失败 / 不可用。
+- 断言所有结果、异常、日志投影与数据类都不含 bytes、base64、绝对路径、storage ref、endpoint、credential 或 provider raw material。
+- 不新增 schema、HTTP / Gateway、API key、repository、migration、Web、remote HTTP / local model client、reference resolver、upload、public URL、retry / fallback 或生产能力。
+- 复用 `services/runtime/tests` 与现有 Image 聚合门禁，不新增同层 checker；相邻测试、定向 Python 并发测试、差异卫生、fast 与 full 仓库门禁通过后，批次 E 方可标记完成。

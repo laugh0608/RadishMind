@@ -34,7 +34,7 @@
 - 本机私有 artifact store / reader：`services/runtime/image_artifact_private_storage.py`
 - Store / reader 相邻单元测试：`services/runtime/tests/test_image_artifact_private_storage.py`
 
-批次 A 已把 strict intent、低风险门禁、注入式 client 单次调用、artifact observation 和既有 mapper 串成纯领域链路；批次 B 建立本机私有 storage 与显式 reader；批次 C 把 profile 收口为 reference-only 编译产物；批次 D 新增仅限 test 的 `contract_fixture` 具体 client。Client 只以实际图片容器生成 identity、UTC 时间与 observation，canonical title、purpose、generation、safety、provenance 和 URI 由 adapter 单一构造。当前仍不提供 fixture binary delivery / store coordinator、真实 backend client、reference resolver、production storage、public delivery、HTTP / Gateway、Web 或生产能力；批次 E 只先评审单次 binary delivery 与既有私有 store 的协调。
+批次 A 已把 strict intent、低风险门禁、注入式 client 单次调用、artifact observation 和既有 mapper 串成纯领域链路；批次 B 建立本机私有 storage 与显式 reader；批次 C 把 profile 收口为 reference-only 编译产物；批次 D 新增仅限 test 的 `contract_fixture` 具体 client。Client 只以实际图片容器生成 identity、UTC 时间与 observation，canonical title、purpose、generation、safety、provenance 和 URI 由 adapter 单一构造。当前仍不提供 fixture binary delivery / store coordinator、真实 backend client、reference resolver、production storage、public delivery、HTTP / Gateway、Web 或生产能力；批次 E 已确认一次性交付、私有 store 重验和成功引用延后释放的协调边界。
 
 Handshake、runbook、backend readiness、mapping readiness / entry review / task card、consumer readiness / task card 和 builder entry review / task card 已被上述 runtime 实现消费，现作为下文历史可复验证据与 `scripts/check-repo.py` 非执行目录保留。它们不再进入每次 fast / full，也不表示 artifact store、binary reader、public delivery、真实生图 backend 或 production 能力成立。
 
@@ -281,7 +281,7 @@ Handshake、runbook、backend readiness、mapping readiness / entry review / tas
 - checker 必须跨读 runtime mapping readiness、artifact return runbook、safety runbook 和 backend adapter readiness，确认这些证据不会被提升为 runtime mapper implementation ready。
 - 在该 entry review 历史切片内，runtime mapper、artifact store、binary reader、public URL resolver 和 backend adapter implementation 五类候选均保持 `blocked`；后续实施已按独立任务边界放宽 metadata-only mapper / consumer / response builder，并在 Image Adapter 批次 B 放宽本机私有 store / reader，历史结论不应再解读为当前实现不存在。
 - 当前仍不改 `CopilotResponse` schema，不创建 public URL，不调用真实 backend，不生成或上传图片，也不进入 executor、confirmation、writeback 或 replay。
-- 后续 metadata-only mapper / consumer / response builder、受控调用批次 A、本机私有 artifact storage 批次 B、reference-only profile 批次 C 和 test-only fixture client 批次 D 均已完成。下一步只评审批次 E 的单次 binary delivery / store coordinator，不恢复同层 mapping readiness 链。
+- 后续 metadata-only mapper / consumer / response builder、受控调用批次 A、本机私有 artifact storage 批次 B、reference-only profile 批次 C 和 test-only fixture client 批次 D 均已完成。下一步实现批次 E 的单次 binary delivery / private store coordinator，不恢复同层 mapping readiness 链。
 
 ### Artifact store / binary reader boundary readiness
 
