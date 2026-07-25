@@ -19,9 +19,7 @@ from services.runtime.image_backend_profile_configuration import (  # noqa: E402
     compile_image_backend_profile,
 )
 from services.runtime.image_generation_adapter import (  # noqa: E402
-    FAILURE_BACKEND_ARTIFACT_HASH,
     FAILURE_BACKEND_ARTIFACT_LINEAGE,
-    FAILURE_BACKEND_INVALID_ARTIFACT,
     FAILURE_BACKEND_PROFILE_INVALID,
     FAILURE_BACKEND_PROFILE_MISMATCH,
     FAILURE_BACKEND_RESPONSE_UNTRUSTED,
@@ -87,64 +85,14 @@ def load_profile(
 PROFILE = load_profile()
 
 
-def artifact_for_request(
-    request_document: Mapping[str, Any],
-    *,
-    intent: Mapping[str, Any] | None = None,
-) -> dict[str, Any]:
-    source_intent = intent or load_intent()
-    output = request_document["output"]
-    parameters = request_document["parameters"]
-    backend = request_document["backend"]
-    artifact_id = "image-artifact-runtime-001"
-    return {
-        "schema_version": 1,
-        "kind": "image_generation_artifact",
-        "artifact_id": artifact_id,
-        "intent_id": request_document["intent_id"],
-        "backend_request_id": request_document["request_id"],
-        "status": "generated",
-        "artifact": {
-            "uri": f"artifact://radishmind/generated/{artifact_id}.{output['format']}",
-            "mime_type": "image/png",
-            "width": output["width"],
-            "height": output["height"],
-            "format": output["format"],
-            "sha256": OBSERVED_SHA256,
-            "title": source_intent["artifact_metadata"]["proposed_title"],
-            "purpose": source_intent["artifact_metadata"]["purpose"],
-        },
-        "generation": {
-            "backend_id": backend["id"],
-            "model": backend["model"],
-            "seed": parameters["seed"],
-            "steps": parameters["steps"],
-            "guidance_scale": parameters["guidance_scale"],
-        },
-        "safety": {
-            "risk_level": "low",
-            "requires_confirmation": False,
-            "review_status": "not_required",
-            "review_notes": [],
-        },
-        "provenance": {
-            "source_request_id": request_document["trace"]["source_request_id"],
-            "trace_ids": copy.deepcopy(request_document["trace"]["trace_ids"]),
-            "backend_request_id": request_document["request_id"],
-            "intent_id": request_document["intent_id"],
-        },
-        "created_at": "2026-07-25T00:00:00Z",
-    }
-
-
 def successful_backend_result(request_document: Mapping[str, Any]) -> ImageBackendInvocationResult:
-    artifact = artifact_for_request(request_document)
     return ImageBackendInvocationResult(
-        artifact_document=artifact,
+        artifact_id="image-artifact-runtime-001",
+        created_at="2026-07-25T00:00:00Z",
         observed_sha256=OBSERVED_SHA256,
         observed_mime_type="image/png",
-        observed_width=artifact["artifact"]["width"],
-        observed_height=artifact["artifact"]["height"],
+        observed_width=request_document["output"]["width"],
+        observed_height=request_document["output"]["height"],
     )
 
 
@@ -167,8 +115,16 @@ class ImageGenerationAdapterTest(unittest.TestCase):
     def test_compiler_is_deterministic_and_preserves_canonical_lineage(self) -> None:
         intent = load_intent()
 
-        first = compile_image_backend_request(intent, profile=PROFILE, backend_request_id=BACKEND_REQUEST_ID)
-        second = compile_image_backend_request(copy.deepcopy(intent), profile=PROFILE, backend_request_id=BACKEND_REQUEST_ID)
+        first = compile_image_backend_request(
+            intent,
+            profile=PROFILE,
+            backend_request_id=BACKEND_REQUEST_ID,
+        )
+        second = compile_image_backend_request(
+            copy.deepcopy(intent),
+            profile=PROFILE,
+            backend_request_id=BACKEND_REQUEST_ID,
+        )
 
         self.assertEqual(first, second)
         self.assertEqual(first["backend"]["id"], intent["backend"]["preferred"])
@@ -195,6 +151,14 @@ class ImageGenerationAdapterTest(unittest.TestCase):
         self.assertEqual(result.citation["kind"], "artifact")
         self.assertEqual(result.citation["locator"], "artifact://radishmind/generated/image-artifact-runtime-001.png")
         self.assertEqual(result.metadata_reference["sha256"], OBSERVED_SHA256)
+        self.assertEqual(
+            result.artifact_document["artifact"]["title"],
+            load_intent()["artifact_metadata"]["proposed_title"],
+        )
+        self.assertEqual(
+            result.artifact_document["provenance"]["trace_ids"],
+            result.backend_request["trace"]["trace_ids"],
+        )
         self.assertEqual(result.backend_call_count, 1)
         self.assertEqual(result.image_generation_count, 1)
         counters = adapter_side_effect_counters(result)
@@ -207,9 +171,21 @@ class ImageGenerationAdapterTest(unittest.TestCase):
 
     def test_confirmation_and_risk_gates_stop_before_backend_call(self) -> None:
         cases = (
-            ("confirmation", {"requires_confirmation": True, "risk_level": "low"}, FAILURE_INTENT_REQUIRES_CONFIRMATION),
-            ("medium", {"requires_confirmation": False, "risk_level": "medium"}, FAILURE_BACKEND_SAFETY_BLOCKED),
-            ("high", {"requires_confirmation": False, "risk_level": "high"}, FAILURE_INTENT_HIGH_RISK),
+            (
+                "confirmation",
+                {"requires_confirmation": True, "risk_level": "low"},
+                FAILURE_INTENT_REQUIRES_CONFIRMATION,
+            ),
+            (
+                "medium",
+                {"requires_confirmation": False, "risk_level": "medium"},
+                FAILURE_BACKEND_SAFETY_BLOCKED,
+            ),
+            (
+                "high",
+                {"requires_confirmation": False, "risk_level": "high"},
+                FAILURE_INTENT_HIGH_RISK,
+            ),
         )
         for name, safety_update, expected_failure in cases:
             with self.subTest(name=name):
@@ -364,53 +340,15 @@ class ImageGenerationAdapterTest(unittest.TestCase):
                 self.assertIsNone(result.backend_request)
                 self.assertIsNone(result.artifact_document)
 
-    def test_artifact_schema_and_lineage_drift_fail_closed(self) -> None:
-        def mutate(path: tuple[str, ...], value: Any) -> Callable[[Mapping[str, Any]], ImageBackendInvocationResult]:
-            def factory(request_document: Mapping[str, Any]) -> ImageBackendInvocationResult:
-                result = successful_backend_result(request_document)
-                artifact = copy.deepcopy(dict(result.artifact_document))
-                target = artifact
-                for key in path[:-1]:
-                    target = target[key]
-                target[path[-1]] = value
-                return ImageBackendInvocationResult(
-                    artifact_document=artifact,
-                    observed_sha256=result.observed_sha256,
-                    observed_mime_type=result.observed_mime_type,
-                    observed_width=result.observed_width,
-                    observed_height=result.observed_height,
-                )
-
-            return factory
-
-        cases = (
-            ("schema", ("unknown",), True, FAILURE_BACKEND_INVALID_ARTIFACT),
-            ("intent", ("intent_id",), "other-intent", FAILURE_BACKEND_ARTIFACT_LINEAGE),
-            ("request", ("backend_request_id",), "other-request", FAILURE_BACKEND_ARTIFACT_LINEAGE),
-            ("uri", ("artifact", "uri"), "https://public.example/image.png", FAILURE_BACKEND_RESPONSE_UNTRUSTED),
-            ("title", ("artifact", "title"), "other-title", FAILURE_BACKEND_ARTIFACT_LINEAGE),
-            ("width", ("artifact", "width"), 512, FAILURE_BACKEND_ARTIFACT_LINEAGE),
-            ("model", ("generation", "model"), "other-model", FAILURE_BACKEND_ARTIFACT_LINEAGE),
-            ("safety", ("safety", "review_status"), "pending_review", FAILURE_BACKEND_ARTIFACT_LINEAGE),
-            ("trace", ("provenance", "trace_ids"), ["other-trace"], FAILURE_BACKEND_ARTIFACT_LINEAGE),
-            ("invalid-utf8", ("artifact", "title"), "\ud800", FAILURE_BACKEND_RESPONSE_UNTRUSTED),
-        )
-        for name, path, value, expected_failure in cases:
-            with self.subTest(name=name):
-                client = RecordingClient(result_factory=mutate(path, value))
-                result = invoke(load_intent(), client)
-                self.assertEqual(result.failure_code, expected_failure)
-                self.assertEqual(len(client.calls), 1)
-                self.assertFalse(result.ok)
-                self.assertIsNone(result.backend_request)
-                self.assertIsNone(result.artifact_document)
-
-    def test_transport_observations_must_match_artifact_metadata(self) -> None:
-        def observed(**updates: Any) -> Callable[[Mapping[str, Any]], ImageBackendInvocationResult]:
+    def test_backend_outcome_identity_schema_and_lineage_drift_fail_closed(self) -> None:
+        def observed(
+            **updates: Any,
+        ) -> Callable[[Mapping[str, Any]], ImageBackendInvocationResult]:
             def factory(request_document: Mapping[str, Any]) -> ImageBackendInvocationResult:
                 result = successful_backend_result(request_document)
                 values = {
-                    "artifact_document": result.artifact_document,
+                    "artifact_id": result.artifact_id,
+                    "created_at": result.created_at,
                     "observed_sha256": result.observed_sha256,
                     "observed_mime_type": result.observed_mime_type,
                     "observed_width": result.observed_width,
@@ -422,10 +360,70 @@ class ImageGenerationAdapterTest(unittest.TestCase):
             return factory
 
         cases = (
-            ("hash", observed(observed_sha256="b" * 64), FAILURE_BACKEND_ARTIFACT_HASH),
-            ("mime", observed(observed_mime_type="image/jpeg"), FAILURE_BACKEND_RESPONSE_UNTRUSTED),
-            ("width", observed(observed_width=512), FAILURE_BACKEND_RESPONSE_UNTRUSTED),
-            ("invalid-observation", observed(observed_sha256="not-a-digest"), FAILURE_BACKEND_RESPONSE_UNTRUSTED),
+            (
+                "identity",
+                observed(artifact_id="../artifact"),
+                FAILURE_BACKEND_RESPONSE_UNTRUSTED,
+            ),
+            (
+                "timestamp",
+                observed(created_at="not-a-timestamp"),
+                FAILURE_BACKEND_RESPONSE_UNTRUSTED,
+            ),
+            (
+                "width",
+                observed(observed_width=512),
+                FAILURE_BACKEND_ARTIFACT_LINEAGE,
+            ),
+            (
+                "mime",
+                observed(observed_mime_type="image/jpeg"),
+                FAILURE_BACKEND_ARTIFACT_LINEAGE,
+            ),
+        )
+        for name, factory, expected_failure in cases:
+            with self.subTest(name=name):
+                client = RecordingClient(result_factory=factory)
+                result = invoke(load_intent(), client)
+                self.assertEqual(result.failure_code, expected_failure)
+                self.assertEqual(len(client.calls), 1)
+                self.assertFalse(result.ok)
+                self.assertIsNone(result.backend_request)
+                self.assertIsNone(result.artifact_document)
+
+    def test_transport_observations_must_be_canonical(self) -> None:
+        def observed(**updates: Any) -> Callable[[Mapping[str, Any]], ImageBackendInvocationResult]:
+            def factory(request_document: Mapping[str, Any]) -> ImageBackendInvocationResult:
+                result = successful_backend_result(request_document)
+                values = {
+                    "artifact_id": result.artifact_id,
+                    "created_at": result.created_at,
+                    "observed_sha256": result.observed_sha256,
+                    "observed_mime_type": result.observed_mime_type,
+                    "observed_width": result.observed_width,
+                    "observed_height": result.observed_height,
+                    **updates,
+                }
+                return ImageBackendInvocationResult(**values)
+
+            return factory
+
+        cases = (
+            (
+                "hash",
+                observed(observed_sha256="not-a-digest"),
+                FAILURE_BACKEND_RESPONSE_UNTRUSTED,
+            ),
+            (
+                "mime",
+                observed(observed_mime_type="application/octet-stream"),
+                FAILURE_BACKEND_RESPONSE_UNTRUSTED,
+            ),
+            (
+                "width",
+                observed(observed_width=0),
+                FAILURE_BACKEND_RESPONSE_UNTRUSTED,
+            ),
         )
         for name, factory, expected_failure in cases:
             with self.subTest(name=name):

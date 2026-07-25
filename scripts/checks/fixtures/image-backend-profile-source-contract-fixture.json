@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "image_backend_profile_source",
+  "profile_id": "image.diagram.fixture",
+  "profile_version": 1,
+  "environment": "test",
+  "enabled": true,
+  "backend": {
+    "id": "sd15",
+    "model": "sd15-local-or-service",
+    "adapter_profile": "diagram-default"
+  },
+  "runtime": {
+    "mode": "contract_fixture",
+    "endpoint_ref": null,
+    "model_dir_ref": null
+  },
+  "credential": {
+    "requirement": "not_required",
+    "secret_ref": null
+  },
+  "limits": {
+    "timeout_seconds": 30
+  }
+}

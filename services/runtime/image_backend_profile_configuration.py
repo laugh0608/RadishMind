@@ -323,6 +323,14 @@ def profile_binding_is_valid(
             and credential_requirement == "not_required"
             and secret_ref is None
         )
+    if runtime_mode == "contract_fixture":
+        return (
+            environment == "test"
+            and endpoint_ref is None
+            and model_dir_ref is None
+            and credential_requirement == "not_required"
+            and secret_ref is None
+        )
     return False
 
 

@@ -6,6 +6,7 @@ import math
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Protocol
@@ -62,11 +63,17 @@ MAX_ARTIFACT_TITLE_BYTES = 160
 IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 LOCALE_RE = re.compile(r"^[a-z]{2,3}(?:-[A-Z]{2})?$")
 SHA256_RE = re.compile(r"^[a-f0-9]{64}$")
+UTC_TIMESTAMP_RE = re.compile(
+    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$"
+)
 SENSITIVE_PATTERNS = (
     re.compile(r"https?://", re.IGNORECASE),
     re.compile(r"\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis)://", re.IGNORECASE),
     re.compile(
-        r"\b(?:authorization|headers?|api[_-]?key|credentials?|token|access[_-]?token|refresh[_-]?token|cookie|password|secret|endpoint|dsn|model[_-]?dir|provider[_-]?(?:config|runtime))\s*[:=]",
+        r"\b(?:authorization|headers?|api[_-]?key|credentials?|token|"
+        r"access[_-]?token|refresh[_-]?token|cookie|password|secret|"
+        r"endpoint|dsn|model[_-]?dir|"
+        r"provider[_-]?(?:config|runtime))\s*[:=]",
         re.IGNORECASE,
     ),
     re.compile(r"\bbearer\s+[A-Za-z0-9._~+/=-]{8,}", re.IGNORECASE),
@@ -95,7 +102,8 @@ ZERO_SIDE_EFFECTS = {
 
 @dataclass(frozen=True)
 class ImageBackendInvocationResult:
-    artifact_document: Mapping[str, Any]
+    artifact_id: str
+    created_at: str
     observed_sha256: str
     observed_mime_type: str
     observed_width: int
@@ -156,7 +164,10 @@ def invoke_image_generation(
 
     safety = mapping_at(intent, "safety")
     if safety["requires_confirmation"] is True:
-        return fail(FAILURE_INTENT_REQUIRES_CONFIRMATION, "image intent requires human confirmation before backend submission")
+        return fail(
+            FAILURE_INTENT_REQUIRES_CONFIRMATION,
+            "image intent requires human confirmation before backend submission",
+        )
     if safety["risk_level"] == "high":
         return fail(FAILURE_INTENT_HIGH_RISK, "high-risk image intent is not eligible for backend submission")
     if safety["risk_level"] != "low":
@@ -284,13 +295,27 @@ def validate_backend_result(
             FAILURE_BACKEND_RESPONSE_UNTRUSTED,
             "image backend returned an unsupported result envelope",
         )
-
-    artifact = copy_mapping(backend_result.artifact_document)
-    if artifact is None:
+    if not valid_identifier(backend_result.artifact_id):
         return fail_after_call(
-            FAILURE_BACKEND_INVALID_ARTIFACT,
-            "image backend artifact metadata must be an object",
+            FAILURE_BACKEND_RESPONSE_UNTRUSTED,
+            "image backend returned a noncanonical artifact identity",
         )
+    if not valid_created_at(backend_result.created_at):
+        return fail_after_call(
+            FAILURE_BACKEND_RESPONSE_UNTRUSTED,
+            "image backend returned a noncanonical artifact timestamp",
+        )
+    if not observed_result_is_valid(backend_result):
+        return fail_after_call(
+            FAILURE_BACKEND_RESPONSE_UNTRUSTED,
+            "image backend transport observation is invalid",
+        )
+
+    artifact = build_artifact_document(
+        intent,
+        backend_request,
+        backend_result,
+    )
     schema_failure = validate_schema(artifact, ARTIFACT_SCHEMA_PATH)
     if schema_failure:
         return fail_after_call(
@@ -314,11 +339,6 @@ def validate_backend_result(
             FAILURE_BACKEND_ARTIFACT_LINEAGE,
             lineage_failure,
         )
-    if not observed_result_is_valid(backend_result):
-        return fail_after_call(
-            FAILURE_BACKEND_RESPONSE_UNTRUSTED,
-            "image backend transport observation is invalid",
-        )
 
     mapping = map_image_artifact_to_response_reference(
         artifact,
@@ -328,13 +348,79 @@ def validate_backend_result(
         expected_height=backend_result.observed_height,
     )
     if not mapping.ok:
-        failure_code = FAILURE_BACKEND_ARTIFACT_HASH if mapping.failure_code == FAILURE_HASH_MISMATCH else FAILURE_BACKEND_RESPONSE_UNTRUSTED
+        failure_code = (
+            FAILURE_BACKEND_ARTIFACT_HASH
+            if mapping.failure_code == FAILURE_HASH_MISMATCH
+            else FAILURE_BACKEND_RESPONSE_UNTRUSTED
+        )
         return fail_after_call(
             failure_code,
             "image backend artifact metadata does not match the trusted transport observation",
         )
 
-    return success(backend_request, artifact, mapping)
+    return success(
+        backend_request,
+        artifact,
+        mapping,
+        image_generation_count=(
+            0 if profile.runtime_mode == "contract_fixture" else 1
+        ),
+    )
+
+
+def build_artifact_document(
+    intent: Mapping[str, Any],
+    backend_request: Mapping[str, Any],
+    backend_result: ImageBackendInvocationResult,
+) -> dict[str, Any]:
+    artifact_metadata = mapping_at(intent, "artifact_metadata")
+    backend = mapping_at(backend_request, "backend")
+    output = mapping_at(backend_request, "output")
+    parameters = mapping_at(backend_request, "parameters")
+    safety = mapping_at(backend_request, "safety")
+    trace = mapping_at(backend_request, "trace")
+    artifact_uri = (
+        f"artifact://radishmind/generated/"
+        f"{backend_result.artifact_id}.{output['format']}"
+    )
+    return {
+        "schema_version": 1,
+        "kind": "image_generation_artifact",
+        "artifact_id": backend_result.artifact_id,
+        "intent_id": backend_request["intent_id"],
+        "backend_request_id": backend_request["request_id"],
+        "status": "generated",
+        "artifact": {
+            "uri": artifact_uri,
+            "mime_type": backend_result.observed_mime_type,
+            "width": backend_result.observed_width,
+            "height": backend_result.observed_height,
+            "format": output["format"],
+            "sha256": backend_result.observed_sha256,
+            "title": artifact_metadata["proposed_title"],
+            "purpose": artifact_metadata["purpose"],
+        },
+        "generation": {
+            "backend_id": backend["id"],
+            "model": backend["model"],
+            "seed": parameters["seed"],
+            "steps": parameters["steps"],
+            "guidance_scale": parameters["guidance_scale"],
+        },
+        "safety": {
+            "risk_level": "low",
+            "requires_confirmation": False,
+            "review_status": "not_required",
+            "review_notes": copy.deepcopy(safety["review_notes"]),
+        },
+        "provenance": {
+            "source_request_id": trace["source_request_id"],
+            "trace_ids": copy.deepcopy(trace["trace_ids"]),
+            "backend_request_id": backend_request["request_id"],
+            "intent_id": backend_request["intent_id"],
+        },
+        "created_at": backend_result.created_at,
+    }
 
 
 def validate_intent_budget(
@@ -410,10 +496,16 @@ def validate_artifact_lineage(
     artifact_fields = mapping_at(artifact, "artifact")
     if not valid_identifier(artifact["artifact_id"]):
         return "image artifact id is not canonical"
-    expected_uri = f"artifact://radishmind/generated/{artifact['artifact_id']}.{artifact_fields['format']}"
+    expected_uri = (
+        f"artifact://radishmind/generated/"
+        f"{artifact['artifact_id']}.{artifact_fields['format']}"
+    )
     if artifact_fields["uri"] != expected_uri:
         return "image artifact URI does not match the canonical artifact reference"
-    if artifact_fields["title"] != artifact_metadata["proposed_title"] or artifact_fields["purpose"] != artifact_metadata["purpose"]:
+    if (
+        artifact_fields["title"] != artifact_metadata["proposed_title"]
+        or artifact_fields["purpose"] != artifact_metadata["purpose"]
+    ):
         return "image artifact title or purpose does not match intent"
     output = mapping_at(backend_request, "output")
     for key in ("width", "height", "format"):
@@ -472,6 +564,16 @@ def profile_is_valid(profile: ImageBackendProfile) -> bool:
 
 def valid_identifier(value: Any) -> bool:
     return isinstance(value, str) and utf8_size(value) <= MAX_IDENTIFIER_BYTES and bool(IDENTIFIER_RE.fullmatch(value))
+
+
+def valid_created_at(value: Any) -> bool:
+    if not isinstance(value, str) or not UTC_TIMESTAMP_RE.fullmatch(value):
+        return False
+    try:
+        datetime.fromisoformat(value.removesuffix("Z") + "+00:00")
+    except ValueError:
+        return False
+    return True
 
 
 def contains_sensitive_material(value: Any) -> bool:
@@ -537,6 +639,8 @@ def success(
     backend_request: dict[str, Any],
     artifact_document: dict[str, Any],
     mapping: ImageArtifactMappingResult,
+    *,
+    image_generation_count: int,
 ) -> ImageGenerationAdapterResult:
     return ImageGenerationAdapterResult(
         ok=True,
@@ -545,7 +649,7 @@ def success(
         citation=copy.deepcopy(mapping.citation),
         metadata_reference=copy.deepcopy(mapping.metadata_reference),
         backend_call_count=1,
-        image_generation_count=1,
+        image_generation_count=image_generation_count,
     )
 
 

@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_c_completed_batch_d_review_required`
+状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_d_completed_batch_e_review_required`
 
 对应功能文档：[Image Generation / Artifact Return 设计与开发文档](../features/image-generation-artifact-return.md)
 
@@ -199,3 +199,53 @@
 - 批次 A 相邻测试更新为编译 profile，新增 digest drift 调用前拒绝；12 项 adapter 测试全部通过。
 - 15 项 storage 测试继续通过，`services/runtime/tests` 总数为 37；五项既有 Image 检查保持兼容。
 - 状态推进为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_c_completed_batch_d_review_required`；批次 D 只允许先评审一个具体 backend client。
+
+## 批次 D：test-only contract fixture backend client
+
+### 单一方向
+
+批次 D 只打开 `image_backend_contract_fixture_client` owner。该 client 以调用侧注入的真实图片 fixture 承担离线 contract smoke，不解析批次 C 的 endpoint / credential / model-dir reference，不连接网络或加载模型。
+
+### 根因修正
+
+批次 A 的 `ImageBackendInvocationResult` 要求 backend client 返回完整 `image_generation_artifact`，但 canonical title、purpose、safety 与 provenance 属于 RadishMind intent / adapter 所有权，且未完整进入 backend request。批次 D 将 client 输出缩减为 artifact identity、UTC 时间与二进制 observation，由 adapter 唯一构造 canonical artifact metadata，避免 backend 成为第二套 artifact 真相源。
+
+### 允许
+
+- Profile source 新增仅限 `test` 的 `contract_fixture` runtime mode；credential 为 `not_required`，三类 reference 必须全部为 null。
+- 新增 `services/runtime/image_backend_contract_fixture_client.py`、一份 profile fixture 和相邻测试。
+- client 创建时检查调用侧注入的 PNG / JPEG / WebP fixture，调用时精确匹配 canonical backend request、profile、timeout、output、input 和 safety。
+- adapter 从可信 observation、intent 与 backend request 构造既有 `image_generation_artifact`，不新增 artifact schema。
+
+### 固定 client 规则
+
+1. 只接受 digest 可重算、enabled、`environment=test`、`runtime_mode=contract_fixture` 的编译 profile。
+2. fixture 最大 `32 MiB`，dimensions 最大 `2048 x 2048`，像素最大 `4,194,304`；hash、MIME 和 dimensions 必须来自实际容器检查。
+3. backend request 最大 `64 KiB` canonical JSON，必须通过既有 strict schema、UTF-8 与敏感材料检查。
+4. backend identity 与 profile exact match；timeout 必须等于 profile timeout。
+5. 首版只支持单张 text-to-image fixture，reference / edit / mask inputs 必须为空，safety 必须是 low-risk、无需确认且已允许 backend。
+6. artifact id 由 canonical backend request digest 确定性派生；created_at 只能是显式注入的 UTC 秒级时间。
+7. client result 禁止 bytes、base64、provider raw response、endpoint、credential、title、purpose、safety 与 provenance。
+8. fixture 成功只记录一次 backend handoff，`image_generation_count=0`；adapter 失败结果继续不返回 backend request 或 artifact metadata，不 retry / fallback。
+
+### 稳定失败语义
+
+- `image_backend_fixture_profile_invalid`
+- `image_backend_fixture_binary_invalid`
+- `image_backend_fixture_request_invalid`
+- `image_backend_fixture_request_mismatch`
+- 通过 adapter 调用时，上述内部失败统一脱敏为 `image_backend_response_untrusted`。
+
+### 非目标
+
+- 不持久化或返回 fixture bytes，不新增 binary delivery / store coordinator。
+- 不实现 remote HTTP client、local model client、endpoint / credential / model-dir resolver。
+- 不连接网络，不读取 secret、环境变量或模型目录，不下载模型，不生成图片。
+- 不新增 API、Gateway、Web、repository、migration、upload、public URL、retry / fallback 或生产声明。
+
+### 验收与完成记录
+
+- 7 项具体 client 测试覆盖 PNG / JPEG / WebP observation、确定性、canonical artifact owner、profile / fixture / timestamp、strict request、binding drift、零 generation count 与 adapter 脱敏失败。
+- Profile 测试增至 11 项，覆盖 `contract_fixture` 仅限 test 和零 reference；adapter 12 项继续覆盖调用前安全与调用后不可信结果。
+- 15 项 storage 测试保持兼容，`services/runtime/tests` 总数为 45；既有五项 Image contract / mapper / consumer / builder 检查继续复用。
+- 状态推进为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_d_completed_batch_e_review_required`；批次 E 只先评审 fixture binary 的单次交付与既有本机私有 store 协调边界。

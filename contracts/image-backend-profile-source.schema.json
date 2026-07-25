@@ -115,7 +115,8 @@
           "type": "string",
           "enum": [
             "remote_https",
-            "local_model"
+            "local_model",
+            "contract_fixture"
           ]
         },
         "endpoint_ref": {

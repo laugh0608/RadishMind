@@ -180,7 +180,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 - Student models 用于本地化、小成本部署和回归实验。
 - `RadishMind-Core` 负责理解、推理、结构化建议、候选排序、风险标记和可选图片输入理解。
 - Image Generation Runtime 独立负责图片像素生成；主模型只输出结构化 image intent 和约束。
-- `image_backend_profile_configuration.py` 先把 strict reference-only source 编译为带稳定 digest 与 timeout 的开发测试态 profile；`image_generation_adapter.py` 只接受可重算的 enabled profile，校验 strict intent、预算与敏感材料后执行注入式 client 单次 handoff；`image_artifact_binary_inspection.py` 与 `image_artifact_private_storage.py` 再把可信 PNG / JPEG / WebP 写入本机私有 content-addressed blob 和不可变 ref，并将 metadata-only lookup 与显式 binary consumption 分离；最后由 mapper、consumer 和 `coerce_response_document` 合并既有 citation。失败结果不返回 prompt、不可信 metadata、bytes、绝对路径或 storage ref；整条链不提供具体 backend client、reference resolver、production storage、public URL、HTTP / Gateway 或 Web 接线。
+- `image_backend_profile_configuration.py` 先把 strict reference-only source 编译为带稳定 digest 与 timeout 的开发测试态 profile；`image_backend_contract_fixture_client.py` 只在 test-only `contract_fixture` 模式检查真实 fixture 容器并返回 artifact identity、UTC 时间与 observation；`image_generation_adapter.py` 独占 canonical artifact metadata 构造；`image_artifact_private_storage.py` 再独立承担本机私有 content-addressed storage 与显式 binary reader。失败结果不返回 prompt、不可信 metadata、bytes、绝对路径或 storage ref；整条链不提供真实 backend client、reference resolver、binary delivery coordinator、production storage、public URL、HTTP / Gateway 或 Web 接线。
 
 ### 5. Rule Validation & Response Builder
 
@@ -218,7 +218,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 - `Conversation & Session`：`contracts/session-record.schema.json`、`contracts/session-recovery-checkpoint*.schema.json`、northbound session metadata、平台 checkpoint metadata-only route smoke、readiness summary、implementation preconditions、route smoke readiness rollup、short close readiness delta、stop-line manifest 和 storage / audit / result 边界 fixture
 - `Tooling Framework`：`contracts/tool*.schema.json`、tool registry / audit fixture、`scripts/check-tooling-framework-contract.py`、`scripts/check-session-recovery-checkpoint-contract.py`、confirmation flow design、executor boundary design、result materialization policy design、negative regression suite、deny-by-default gates、enablement plan 和各类 deterministic builder/check
 - `Evaluation & Governance`：`scripts/check-repo.py`、`scripts/check-radishflow-service-smoke-matrix.py`、offline eval、review records、promotion gates、negative consumption summary、negative coverage rollup、route negative coverage matrix、readiness consistency rollup、foundation status summary 和 P2 design gate checks
-- `Model Runtime`：`services/runtime/`、`scripts/run-radishmind-core-candidate.py`；其中 Image Path 已形成 strict intent → reference-only profile compile → 注入式单次 backend handoff → artifact observation → 本机私有 content-addressed store / 不可变 ref → metadata-only lookup / 显式 binary reader → response reference 的开发测试态链路；该链仍不承担具体 backend client、reference resolver、production storage 或 public URL 职责
+- `Model Runtime`：`services/runtime/`、`scripts/run-radishmind-core-candidate.py`；其中 Image Path 已形成 strict intent → reference-only profile compile → test-only fixture client → adapter-owned canonical artifact metadata → 独立本机私有 store / reader → response reference 的开发测试态边界；fixture binary 尚未接入 store coordinator，该链也不承担真实 backend client、reference resolver、production storage 或 public URL 职责
 
 ## 当前缺口
 
@@ -238,7 +238,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 - `RadishFlow` 的 gateway demo、service smoke matrix、UI consumption 和 candidate edit handoff 已作为未来接入门禁保留；在上层项目尚未具备真实接入能力前，当前只收口前置条件与阻塞项，不继续细化新的接线设计或模拟接入 summary。
 - `suggest_flowsheet_edits` 与 `suggest_ghost_completion` 的真实 candidate record、audit、replay 和治理链已阶段性收口；新增真实 capture 需要先说明非重复 drift 假设。
 - `RadishMind-Core` 本地小模型观测显示 raw 仍 blocked；broader review 的 15/15 `reviewed_pass`、`3B/4B` guided capacity review、1.5B full-holdout-9 raw / repaired comparison 和 3B CPU 单样本 timeout 当前只保留为路线证据，在没有 GPU / 明确实验窗口 / 新能力假设前不再默认继续真实模型产出专题。
-- `RadishMind-Image Adapter` 已具备 intent、backend request、artifact metadata、评测 manifest、metadata reference、safety gate、安全审查 runbook、backend adapter readiness 和历史 runtime mapping / response builder 证据；当前批次 A / B / C 已实现纯领域受控调用、本机私有 artifact storage、reference-only profile compiler、metadata-only mapper / consumer 与 `coerce_response_document` hook。该链不解析 endpoint / credential / model-dir reference，不调用真实生图 backend，不生成或上传图片，不实现具体 backend client、production object store 或 public URL resolver。
+- `RadishMind-Image Adapter` 已具备 intent、backend request、artifact metadata、评测 manifest、metadata reference、safety gate、安全审查 runbook、backend adapter readiness 和历史 runtime mapping / response builder 证据；当前批次 A / B / C / D 已实现纯领域受控调用、本机私有 artifact storage、reference-only profile compiler、test-only fixture client、adapter-owned canonical artifact metadata 与 metadata-only response hook。该链不解析 endpoint / credential / model-dir reference，不调用真实生图 backend，不持久化 fixture client 瞬时二进制，不生成或上传图片，也不实现 production object store 或 public URL resolver。
 
 ## 工程约束
 

@@ -93,6 +93,31 @@ class ImageBackendProfileConfigurationTest(unittest.TestCase):
         self.assertIsNone(profile.secret_ref)
         self.assertTrue(compiled_profile_is_valid(profile))
 
+    def test_contract_fixture_profile_is_test_only_and_has_no_runtime_reference(self) -> None:
+        source = load_source()
+        source["profile_id"] = "image.diagram.fixture"
+        source["runtime"] = {
+            "mode": "contract_fixture",
+            "endpoint_ref": None,
+            "model_dir_ref": None,
+        }
+        source["credential"] = {
+            "requirement": "not_required",
+            "secret_ref": None,
+        }
+
+        profile = compile_profile(source)
+
+        self.assertEqual(profile.runtime_mode, "contract_fixture")
+        self.assertTrue(compiled_profile_is_valid(profile))
+        self.assertIsNone(profile.endpoint_ref)
+        self.assertIsNone(profile.model_dir_ref)
+        self.assertIsNone(profile.secret_ref)
+
+        source["environment"] = "development"
+        result = compile_image_backend_profile(source)
+        self.assertEqual(result.failure_code, FAILURE_PROFILE_BINDING_INVALID)
+
     def test_strict_schema_rejects_unknown_missing_and_non_json_values(self) -> None:
         unknown = load_source()
         unknown["fallback_profile"] = "other"
