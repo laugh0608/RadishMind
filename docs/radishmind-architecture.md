@@ -180,7 +180,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 - Student models 用于本地化、小成本部署和回归实验。
 - `RadishMind-Core` 负责理解、推理、结构化建议、候选排序、风险标记和可选图片输入理解。
 - Image Generation Runtime 独立负责图片像素生成；主模型只输出结构化 image intent 和约束。
-- `services/runtime/image_artifact_runtime_mapper.py`、`services/runtime/image_artifact_response_consumer.py` 和 `services/runtime/inference_response.py#coerce_response_document` 共同构成 metadata-only image artifact response builder 链路：它只把已经通过 `image_generation_artifact` schema 的 request artifact metadata 投影并合并为现有 `CopilotResponse.citations` artifact citation，并在 blocked / failed / pending_review、hash mismatch、public URL claim、binary payload、provider raw dump、store / reader 缺失和 provenance 缺失时 fail closed。它不读取二进制、不查 store、不解析 public URL、不调用生图 backend、不上传 artifact，也不改变 `CopilotResponse` schema。
+- `services/runtime/image_generation_adapter.py` 提供开发测试态纯领域 Image Adapter：它校验 strict intent、UTF-8 / 数量 / 尺寸预算与敏感材料，确定性编译 backend request，只允许低风险且无需确认的请求调用注入式 client 一次，再以可信 transport observation 校验 artifact metadata；随后由 `image_artifact_runtime_mapper.py`、`image_artifact_response_consumer.py` 和 `inference_response.py#coerce_response_document` 将 metadata 投影并合并为既有 `CopilotResponse.citations`。失败结果不返回已编译 prompt 或不可信 artifact metadata；整条链不提供具体 backend client、profile / credential resolver、artifact store、binary reader、public URL、HTTP / Gateway 或 Web 接线，也不改变 `CopilotResponse` schema。
 
 ### 5. Rule Validation & Response Builder
 
@@ -218,7 +218,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 - `Conversation & Session`：`contracts/session-record.schema.json`、`contracts/session-recovery-checkpoint*.schema.json`、northbound session metadata、平台 checkpoint metadata-only route smoke、readiness summary、implementation preconditions、route smoke readiness rollup、short close readiness delta、stop-line manifest 和 storage / audit / result 边界 fixture
 - `Tooling Framework`：`contracts/tool*.schema.json`、tool registry / audit fixture、`scripts/check-tooling-framework-contract.py`、`scripts/check-session-recovery-checkpoint-contract.py`、confirmation flow design、executor boundary design、result materialization policy design、negative regression suite、deny-by-default gates、enablement plan 和各类 deterministic builder/check
 - `Evaluation & Governance`：`scripts/check-repo.py`、`scripts/check-radishflow-service-smoke-matrix.py`、offline eval、review records、promotion gates、negative consumption summary、negative coverage rollup、route negative coverage matrix、readiness consistency rollup、foundation status summary 和 P2 design gate checks
-- `Model Runtime`：`services/runtime/`、`scripts/run-radishmind-core-candidate.py`；其中 `image_artifact_runtime_mapper.py` 只做图片 artifact metadata 到 future response reference 的纯 metadata 投影，不承担 store、reader、backend 或 public URL 职责
+- `Model Runtime`：`services/runtime/`、`scripts/run-radishmind-core-candidate.py`；其中 `image_generation_adapter.py` 只承担开发测试态 strict intent → 注入式单次 backend handoff → artifact observation 校验，`image_artifact_runtime_mapper.py` 只做图片 artifact metadata 到 response reference 的纯 metadata 投影；两者均不承担具体 backend client、store、reader 或 public URL 职责
 
 ## 当前缺口
 

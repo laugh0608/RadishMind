@@ -1,12 +1,12 @@
 # RadishMind 图片生成契约
 
-更新时间：2026-07-15
+更新时间：2026-07-25
 
 ## `RadishMind-Image Adapter` 第一版仓库级契约
 
 图片生成能力通过独立 adapter / backend 提供。`RadishMind-Core` 只负责生成结构化意图、约束、风险确认和审查信息，不直接生成图片像素。
 
-第一版 image generation intent 已落成仓库级可回归契约。fast / full 当前只执行基础协议、评测 manifest 和三项 runtime 行为检查：
+第一版 image generation intent 已落成仓库级可回归契约。fast / full 当前执行纯领域 adapter 单元测试、基础协议、评测 manifest 和三项既有 runtime 行为检查：
 
 - Schema：`contracts/image-generation-intent.schema.json`
 - Backend request schema：`contracts/image-generation-backend-request.schema.json`
@@ -23,6 +23,10 @@
 - Artifact response consumer runtime implementation smoke：`scripts/check-image-artifact-response-consumer-runtime-implementation-v1.py`
 - Artifact response builder runtime integration implementation fixture：`scripts/checks/fixtures/image-artifact-response-builder-runtime-integration-implementation-v1.json`
 - Artifact response builder runtime integration implementation smoke：`scripts/check-image-artifact-response-builder-runtime-integration-implementation-v1.py`
+- Image Adapter 纯领域 runtime：`services/runtime/image_generation_adapter.py`
+- Image Adapter 相邻单元测试：`services/runtime/tests/test_image_generation_adapter.py`
+
+批次 A 已把 strict intent 校验、确定性 backend request 编译、低风险安全门禁、注入式 client 单次调用、artifact transport observation 校验和既有 mapper 引用生成串成开发测试态纯领域链路。失败结果不会返回已编译 prompt 或不可信 artifact metadata。该链路不提供具体 backend client、profile / credential / endpoint / model-dir resolver、artifact store / reader、图片二进制、HTTP / Gateway、Web 或生产能力；批次 B 在实现前必须独立复核这些 owner 的职责边界。
 
 Handshake、runbook、backend readiness、mapping readiness / entry review / task card、consumer readiness / task card 和 builder entry review / task card 已被上述 runtime 实现消费，现作为下文历史可复验证据与 `scripts/check-repo.py` 非执行目录保留。它们不再进入每次 fast / full，也不表示 artifact store、binary reader、public delivery、真实生图 backend 或 production 能力成立。
 
@@ -268,7 +272,7 @@ Handshake、runbook、backend readiness、mapping readiness / entry review / tas
 - checker 必须跨读 runtime mapping readiness、artifact return runbook、safety runbook 和 backend adapter readiness，确认这些证据不会被提升为 runtime mapper implementation ready。
 - 在该 entry review 切片内，runtime mapper、artifact store、binary reader、public URL resolver 和 backend adapter implementation 五类候选保持 `blocked`；后续只放宽了 metadata-only runtime mapper、response consumer 和 response builder hook，artifact store、binary reader、public URL resolver 与 backend adapter implementation 仍保持 deferred。
 - 当前不改 `CopilotResponse` schema，不创建 artifact store / public URL / binary reader，不调用真实 backend，不生成图片，不上传 artifact，也不进入 executor、confirmation、writeback 或 replay。
-- 后续若继续推进 Image Path，应先补 runtime mapper implementation entry review，再评估单一 runtime mapping 实现方向。
+- 后续 metadata-only mapper / consumer / response builder 已完成；当前又完成受控调用批次 A。下一步只先评审批次 B 的具体 backend client、配置与 artifact store / reader owner 边界，不恢复同层 mapping readiness 链。
 
 ### Artifact store / binary reader boundary readiness
 

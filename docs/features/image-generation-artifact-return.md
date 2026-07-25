@@ -1,6 +1,8 @@
 # Image Generation / Artifact Return 设计与开发文档
 
-更新时间：2026-06-14
+更新时间：2026-07-25
+
+状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_a_completed_batch_b_review_required`
 
 ## 功能定位
 
@@ -12,6 +14,15 @@
 - runtime integration 只从 request artifact metadata 发现 `image_generation_artifact`，通过 mapper / consumer 合并到现有 `CopilotResponse.citations` artifact citation。
 - 当前不改 `CopilotResponse` schema，不读取 artifact 二进制，不创建 artifact store、binary reader、public URL resolver、backend adapter，不调用真实生图 backend，不生成或上传图片。
 
+2026-07-25 已选择下一实现方向为“开发测试态 Image Adapter 受控调用”，不再继续派生 metadata-only readiness 链。首批只实现独立 Python 领域运行时：
+
+- 严格读取既有 `image_generation` intent，不建立第二套 intent / backend request / artifact contract。
+- 纯函数编译 `image_generation_backend_request`，backend profile、request id 与 timeout 由调用侧显式提供。
+- 在任何 backend side effect 前执行 schema、预算、敏感材料、profile exact match 与 safety gate。
+- backend client 只通过注入式协议调用一次；不自动 retry，不 fallback，不解析 credential、endpoint 或 model dir。
+- backend 返回 artifact metadata 与由 transport 观察到的 hash / MIME / dimensions；adapter 重验 lineage、generation、safety、provenance 和观察值，再复用既有 mapper 形成 artifact citation / 内部 metadata reference。
+- 本批不创建 HTTP API、Gateway route、store、binary reader、public URL、Web、生产 profile 或真实 backend client。
+
 ## 设计边界
 
 - artifact metadata 只允许作为 metadata-only reference 返回。
@@ -21,13 +32,24 @@
 
 ## 下一批开发方向
 
-1. 后续如果继续推进，必须在本功能文档中选择单一方向：artifact store、binary reader、public URL resolver 或 backend adapter。
-2. store / reader / public URL / backend adapter 不能并行打开。
-3. 真实 backend call 需要独立 adapter design、credential/profile boundary、safety gate、timeout/failure taxonomy 和 no binary leak 验证。
-4. 普通 metadata mapping 文案和 runbook 调整复用现有 checker 与 fast baseline。
+1. [Image Adapter 受控调用与 artifact 返回（开发 / 测试态）v1 实施任务卡](../task-cards/image-adapter-controlled-invocation-artifact-return-dev-test-v1-plan.md)批次 A 已完成。
+2. 批次 B 进入实现前，必须在同一功能文档内选择并冻结一个 owner 方向：具体 backend client、profile / credential 配置，或 artifact store / reader；三者不能并行打开。
+3. HTTP、Gateway、应用配置、API key、Session、Run History 与 Web 仍不因批次 A 自动进入范围。
+4. 生产 backend call 仍需要独立 credential/profile resolver、endpoint/model-dir、moderation、安全复核、运行配置和发布声明，不能由开发测试态注入协议代替。
+5. 普通 metadata mapping 文案和 runbook 调整继续复用现有测试与仓库基线，不恢复同层 checker 链。
 
 ## 验收方式
 
 - metadata-only runtime：runtime unit tests、image artifact checker、fast baseline。
 - store / reader：hash / mime / dimensions revalidation、binary leak negative tests、no side effects checks。
 - backend adapter：credential boundary、safety gate、timeout/failure taxonomy、no upload by default 和全量仓库验证。
+- 受控调用批次 A：Python 相邻单元测试覆盖纯编译、单次调用、预算、安全、敏感材料、profile drift、timeout、artifact 观察值与 provenance；随后运行 fast / full 仓库门禁。
+
+## 批次 A 完成结果
+
+1. 新增 `services/runtime/image_generation_adapter.py`，复用三份既有 schema 和 metadata mapper；没有新增第二套 intent、backend request 或 artifact 类型。
+2. `compile_image_backend_request` 对相同 intent、profile 和 request id 生成稳定请求；trace 固定包含 source request、intent 与 backend request lineage。
+3. `invoke_image_generation` 在调用前完成 schema、UTF-8、尺寸 / 像素 / count、参数、列表、标识符、locale、敏感材料、profile exact match 和 low-risk safety gate；所有前置失败 `backend_call_count=0`。
+4. 注入式 client 最多调用一次；timeout、unavailable 与未知异常不 retry / fallback，也不把异常原文、endpoint 或 credential 投影到结果。
+5. 成功返回必须同时提供 schema-valid artifact metadata 与 transport 观察到的 sha256 / MIME / dimensions；adapter 重验 canonical URI、lineage、generation、title / purpose、safety 和 provenance 后才生成既有 artifact citation / metadata reference。
+6. 11 项相邻单元测试已纳入 `services/runtime/tests` 和快速仓库入口；store lookup、binary read、upload、public URL、production storage、executor、confirmation、writeback 与 replay 均保持 0。

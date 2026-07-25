@@ -145,6 +145,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 - 主模型只输出结构化 image intent、约束、审查和 artifact metadata。
 - 真正的图片生成由独立 image adapter 和 backend 承接。
 - 当前 `services/runtime/image_artifact_runtime_mapper.py`、`services/runtime/image_artifact_response_consumer.py` 与 `services/runtime/inference_response.py#coerce_response_document` 已形成 metadata-only response builder 链路：从 `copilot_request.artifacts[*].metadata.image_generation_artifact` 读取 metadata，投影为 artifact citation，并合并进现有 `CopilotResponse.citations`。它们不读取 artifact 二进制、不查 artifact store、不解析 public URL、不调用真实生图 backend、不上传 artifact、不修改 `CopilotResponse` schema。
+- `services/runtime/image_generation_adapter.py` 已提供开发测试态纯领域 adapter runtime：校验 strict intent 与预算，确定性编译 backend request，只允许低风险且无需确认的请求进入注入式 client 一次调用，并校验返回 artifact metadata 与 transport observation 后复用既有 mapper。它不是具体 backend client，不读取或保存二进制，不解析 credential / endpoint / model directory，也不接 HTTP / Gateway / Web。
 - `blocked / failed / pending_review` artifact、invalid metadata、hash / mime / dimensions mismatch、public URL claim、signed URL policy missing、binary payload、provider raw dump、store / reader 缺失、safety review not passed 和 provenance missing 都必须 fail closed，不能进入成功 response。
 
 ### 7. 用户端、管理端和上层项目接入面

@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃 implementation task card。下一条产品能力必须先从功能设计入口完成专题选择与边界冻结。
+[Image Adapter 受控调用与 artifact 返回（开发 / 测试态）v1](image-adapter-controlled-invocation-artifact-return-dev-test-v1-plan.md)批次 A 已完成，当前状态为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_a_completed_batch_b_review_required`。批次 B 必须先独立复核真实 backend client、profile / credential 配置与 artifact store / reader 的职责边界，不从批次 A 直接扩实现。
 
 [应用开发工作区与发布准备审查 v1](../features/user-workspace/application-development-workspace-release-readiness-review-v1.md)批次 A 至 C 已完成并关闭，不再派生同层任务卡。
 
@@ -338,6 +338,7 @@ R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run
 17. [`Image Artifact Response Builder Integration` v1 计划](image-artifact-response-builder-integration-v1-plan.md)（`image-artifact-response-builder-integration-v1`）
 18. [`Image Artifact Response Builder Runtime Integration Entry Review` v1 计划](image-artifact-response-builder-runtime-integration-entry-review-v1-plan.md)（`image-artifact-response-builder-runtime-integration-entry-review-v1`）
 19. [`Image Artifact Response Builder Runtime Integration Implementation` v1 任务卡](image-artifact-response-builder-runtime-integration-implementation-v1-plan.md)（`image-artifact-response-builder-runtime-integration-implementation-v1`）
+20. [Image Adapter 受控调用与 artifact 返回（开发 / 测试态）v1](image-adapter-controlled-invocation-artifact-return-dev-test-v1-plan.md)（批次 A 已完成；批次 B 需独立复核）
 
 使用原则：
 - 任务卡定义的是任务边界、最小输入、输出要求和评测口径，不等同于最终实现代码

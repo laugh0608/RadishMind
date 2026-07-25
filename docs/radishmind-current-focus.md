@@ -11,7 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
-- 产品焦点：工作流审查链、Gateway 请求历史与调试台、应用 API 接入、配置草案、发布治理、应用目录与 API 密钥开发测试态认证均已完成；Workflow HTTP Tool、RAG Retrieval / 应用知识快照、RAG Regression Review、离线 RAG 质量评测、应用作用域 durable dataset / candidate review、知识基线晋级与配置绑定、Application RAG runtime、应用运行观测首批、Workflow 不可变版本晋级、Application Interaction Session、应用开发工作区、Prompt Application、Agent / Copilot 受控建议及[Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](features/user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md)均已关闭。最新专题已让 Prompt v6 与 Agent v7 严格复用既有 Comparison、Evaluation Case、Suite 和人工 decision，SQLite 真实浏览器完成 Agent case → suite → `approved v1`，状态为 `prompt_agent_application_regression_evaluation_release_review_dev_test_v1_completed`。下一步先在功能设计入口选择真实用户价值更高的新专题，不继续派生同层 gate-only 批次；真实 Radish 联调保持 `real_radish_integration_deferred`，agent loop、工具执行、业务写回、外部 connector、在线搜索、自动 activation / release、schedule、replay、生产认证、正式晋级、生产密钥、配额和计费继续关闭。
+- 产品焦点：既有 Workflow、Gateway、用户工作区、RAG、Session、Prompt / Agent 与回归评测专题均已关闭。当前进入 [图片生成 / 产物返回](features/image-generation-artifact-return.md)：批次 A 已完成 strict intent 校验、确定性 backend request 编译、低风险安全门禁、注入式单次 backend handoff、artifact transport observation 校验和既有 citation / metadata reference 合并，状态为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_a_completed_batch_b_review_required`。下一步只先评审批次 B 的真实 backend client、profile / credential 配置和 artifact store / reader 职责边界；真实图片生成、上传、公开 URL、HTTP / Gateway、Web 与生产声明继续关闭。
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算`、`R6 文档与检查器收敛` 均已完成。R6 关闭评审确认活动 checker 从 `132` 项、`38,644` 行降至 `111` 项、`28,486` 行，分别下降约 `15.9%` 与 `26.3%`；Provider、Production Ops 和 Control Plane formal UI 因仍有独立证据责任继续活动，不再派生第六批或同层 readiness 链。
 - `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片。production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
@@ -19,7 +19,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：[Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](features/user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md)已完成并关闭，当前状态为 `prompt_agent_application_regression_evaluation_release_review_dev_test_v1_completed`。Comparison v5 / v6 与对应 Prompt / Agent profile 精确配对，Agent Profile / project / task 漂移失败关闭；SQLite 真实浏览器完成两个同 lineage Agent v7 Run → Comparison `changed` → Case `passed` → Suite `passed` → `approved v1`，且 storage 为空、console 0 error。下一步不是继续本专题，而是先从功能设计入口确定新的产品主线；在此之前没有活跃 implementation task card。
+1. 产品线：[图片生成 / 产物返回](features/image-generation-artifact-return.md)批次 A 已完成并由[实施任务卡](task-cards/image-adapter-controlled-invocation-artifact-return-dev-test-v1-plan.md)记录。当前只存在注入式 backend client 协议和纯领域运行时，不含可用真实 backend；批次 B 进入实现前必须先完成独立边界复核。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
@@ -70,7 +70,9 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 40. [Agent / Copilot 应用档案版本审查与受控建议实施任务卡](task-cards/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)
 41. [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](features/user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md)
 42. [Prompt / Agent 应用回归评测与发布审查实施任务卡](task-cards/prompt-agent-application-regression-evaluation-release-review-dev-test-v1-plan.md)
-43. [本周周志](devlogs/2026-W30.md)
+43. [图片生成 / 产物返回](features/image-generation-artifact-return.md)
+44. [Image Adapter 受控调用与 artifact 返回实施任务卡](task-cards/image-adapter-controlled-invocation-artifact-return-dev-test-v1-plan.md)
+45. [本周周志](devlogs/2026-W30.md)
 
 ## 当前不要做
 
@@ -80,7 +82,7 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 - Prompt Application 专题已经关闭；不从其现有 assignment / invocation 原地增加 provider retry / fallback、自动 activation / release、replay、agent loop 或生产能力声明。
 - Agent / Copilot 专题已经关闭；不从既有 Profile、assignment、Session 或 Run 原地扩 agent loop、工具 / 检索执行、业务写回、自动 activation / release、retry / fallback、replay 或生产能力。
 - Prompt / Agent 回归评测专题已经关闭；不从 Case、Suite 或人工 decision 原地扩批量执行、自动发布、重放或生产晋级。
-- 不把 Image Path 仅元数据接线解释为 artifact store、public delivery 或真实后端已就绪。
+- 不把 Image Adapter 批次 A 的注入式单次 handoff 解释为真实 backend client、artifact store / reader、public delivery 或图片生成已就绪。
 - 不把 durable read foundation 解释为 repository adapter、真实数据库、OIDC、production API consumer 或完整 read-side API ready。
 - 不把 Workflow / Gateway / Admin 的普通离线证据界面写成生产能力已就绪。
 - 不在上层项目没有真实挂载点时继续细化假想接线。
