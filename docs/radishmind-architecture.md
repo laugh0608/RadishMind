@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-07-25
+更新时间：2026-07-26
 
 ## 架构目标
 
@@ -54,8 +54,8 @@ Storage adapter 历史状态锚点作为 checker 契约引用保留，不代表�
 - 面向管理员管理租户、用户、角色、权限、provider/profile、模型路由、API key、quota、price、secret backend、审计和部署状态。
 - 登录 / 授权、数据库、部署方式优先对齐 `Radish`；未来通过 OIDC 接入 `Radish` Auth，不在 RadishMind 内部自建身份真相源。
 - Control Plane 默认使用 Go，可独立于 gateway 拆服务；当前不新增 `.NET` / ASP.NET Core 作为默认后端栈。
-- 当前 `apps/radishmind-web/` 已实现只读 `admin-tenant-overview`、`admin-audit-log`、普通离线 Admin Operations Review / Readiness 和 Admin Provider/Profile & Deployment Evidence Review / Readiness。它们都不代表 production admin console。
-- 当前本地 console 只是 ops surface，不等同于 production admin console。
+- 当前 Web 已实现只读 Tenant / Audit、Admin Operations 和 Provider/Profile & Deployment Evidence Review，本地 console 也只是 ops surface；它们都不代表 production admin console。
+- Provider Profile / Model Route 批次 A 新增独立 Go 领域和 memory repository：Admin 以 `tenant + workspace + environment + configuration` 原子持有 draft / candidate / review / activation，既有 runtime inventory 继续持有 provider/profile 事实；approval 不改变 active snapshot，activation / rollback 以 generation CAS 生成新 generation。当前 snapshot 尚未接 Gateway，后续只能由 Gateway 通过只读 provider 消费，不得读取 Admin draft / review repository 或按请求回退静态 provider。
 
 ### 3. `Model Gateway / API Distribution`
 

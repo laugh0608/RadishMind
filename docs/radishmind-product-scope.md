@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-07-20
+更新时间：2026-07-26
 
 ## 核心定义
 
@@ -88,7 +88,8 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 - 管理租户、用户、角色、权限、模型供应商、provider profile、模型路由、API key、额度、价格、审计、secret backend 和部署状态。
 - 认证、授权、数据库、部署和运维习惯优先对齐 `Radish`；未来通过 OIDC 接入 `Radish` Auth。
 - Control Plane 可以拆成独立 Go 服务，但不因为职责扩张而引入新后端语言或塞进 gateway 单体。
-- 当前 `apps/radishmind-web/` 只提供只读 `admin-tenant-overview`、`admin-audit-log`、普通离线 Admin Operations Review / Readiness 和 Admin Provider/Profile & Deployment Evidence Review / Readiness；它不是 production admin console，也不提供 tenant mutation、audit mutation、provider/profile mutation、model route change、raw payload export、durable audit store、production backend、secret resolver、deployment preflight 或生产管理操作。
+- 当前 Web 仍只提供 `admin-tenant-overview`、`admin-audit-log`、Admin Operations Review 和 Provider/Profile & Deployment Evidence Review；它不是 production admin console。Provider Profile / Model Route 受控启用批次 A 已在 Go 领域建立作用域草案、不可变候选、人工 review、显式 activation、历史 rollback、只读 inventory resolver 和内存 owner，但尚未接 HTTP、Gateway 或 Web。
+- Admin Provider / Route 只保存既有 runtime inventory 的引用、版本、审查和激活事实，不复制 provider inventory，不保存 credential / endpoint。tenant mutation、audit mutation、production backend、secret resolver、deployment preflight、quota / billing 和生产管理操作继续关闭。
 
 3. `Model Gateway / API Distribution`
 

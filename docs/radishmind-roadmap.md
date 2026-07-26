@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-07-25
+更新时间：2026-07-26
 
 ## 文档职责
 
@@ -55,10 +55,10 @@
 
 ## 当前执行顺位
 
-1. 产品线：既有 Workflow、Gateway、用户工作区、RAG、Application Session、Prompt / Agent、回归评测与[图片生成 / 产物返回](features/image-generation-artifact-return.md)开发测试态 v1 均已完成并保持稳定。Image Adapter 批次 A 至 E 已形成受控 handoff、本机私有 storage、reference-only profile、test-only contract fixture client、一次性 binary delivery 与 store 成功后引用释放链路。下一顺位回到功能设计入口选择新的真实产品能力；真实 reference resolver、图片生成、上传、公开 URL、HTTP / Gateway、Web 与生产能力继续关闭。
+1. 产品线：当前推进 [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](features/admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md)。批次 A 已完成原子配置领域、内存 repository、只读 inventory resolver、draft / review / generation CAS、显式 activation 与历史 rollback；下一顺位是 SQLite / PostgreSQL durable dev/test repositories，再按设计进入 Admin API、Gateway snapshot consumer 和 Web。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
-4. 真实 Radish 联调保持 `real_radish_integration_deferred`；production secret backend、process supervisor、部署环境隔离、console production packaging、生产认证、生产 API key、quota 和 billing 继续为 `not_satisfied`。
+4. 真实 Radish 联调保持 `real_radish_integration_deferred`；production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、quota 和 billing 继续为 `not_satisfied`。
 5. 当前没有独立工程整改批次；后续只在真实功能实现中复用、补强或替代相关行为证据，不自动删除历史 fixture，也不新建同层治理入口。
 
 ## 权威入口
