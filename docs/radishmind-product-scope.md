@@ -89,6 +89,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 - 认证、授权、数据库、部署和运维习惯优先对齐 `Radish`；未来通过 OIDC 接入 `Radish` Auth。
 - Control Plane 可以拆成独立 Go 服务，但不因为职责扩张而引入新后端语言或塞进 gateway 单体。
 - 当前 Web 提供 `admin-tenant-overview`、`admin-audit-log`、Admin Operations Review，以及 Provider/Profile & Deployment Review 内的开发测试态受控配置工作区；它不是 production admin console。Provider Profile / Model Route 受控启用批次 A 至 E 已建立作用域领域、不可变候选、人工 review、显式 activation、历史 rollback、只读 inventory resolver、三模式 durable owner、verified Admin HTTP、Gateway snapshot consumer、Request History 谱系与双数据库浏览器证据。
+- User Workspace 五条只读 operation 已共享 `WorkspaceMembershipProvider`：Applications、API Keys、Workflow Definitions 与 Runs 复用既有 durable owner，Quota 在缺少可信 policy owner 时失败关闭；active workspace 只在当前 Web 进程内选择，切换会失效旧选择和旧快照。运营收件箱只消费四类已授权首分页快照，不创建 incident、notification 或 remediation owner。
 - Admin Provider / Route 只保存既有 runtime inventory 的引用、版本、审查和激活事实，不复制 provider inventory，不保存 credential / endpoint。tenant mutation、audit mutation、production backend、secret resolver、deployment preflight、quota / billing 和生产管理操作继续关闭。
 
 3. `Model Gateway / API Distribution`

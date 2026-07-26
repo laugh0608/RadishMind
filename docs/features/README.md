@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-26 当前执行口径：[工作区运营收件箱](user-workspace/workspace-operations-inbox-dev-test-v1.md)批次 A 已完成，复用四类 workspace-scoped durable read owner 形成首分页关注队列、显式 coverage 与既有详情跳转。下一步先收集真实开发测试反馈，不继续派生已关闭专题的同层批次；真实 secret / endpoint、production、自动路由、quota / billing 与真实 OIDC 继续关闭。
+2026-07-26 当前执行口径：[工作区运营收件箱](user-workspace/workspace-operations-inbox-dev-test-v1.md)批次 A 已完成，复用四类 workspace-scoped durable read owner 形成首分页关注队列、显式 coverage 与既有详情跳转。跨全部分页窗口的批次 B 等待真实使用证据；下一功能设计顺位转为 `Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1`，先完成全量写入 / 审查 / 执行路由的 owner、permission 和副作用审计。真实 secret / endpoint、production、自动路由、quota / billing 与真实 OIDC 继续关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -40,7 +40,7 @@
 
 | 功能文档 | 当前作用 | 下一步默认入口 |
 | --- | --- | --- |
-| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | 先验证首分页收件箱的真实使用价值；跨全分页服务端投影需另行评审 |
+| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | 先设计工作区写入与审查动作成员资格绑定；收件箱跨全分页服务端投影仍需真实使用证据 |
 | [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route 已完成草案、审查、受控启用、Admin Web、Gateway 快照消费与双数据库产品验证；身份、配额、凭据、审计和部署边界继续保留 | 选择新的管理控制面产品能力前先更新对应功能设计，不从已关闭专题原地扩生产 secret、quota / billing 或真实 OIDC |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
 | [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；HTTP Tool、RAG Retrieval、知识质量 / 晋级链、Application RAG durable invocation 和 immutable definition-bound execution 均已有可复验证据 | 作为应用开发工作区的既有权威能力来源，不从 executor 或 activation 原地扩自动执行、调度、重放或生产能力 |

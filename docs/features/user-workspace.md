@@ -40,11 +40,13 @@
 
 ## 下一批开发方向
 
-1. 工作区运营收件箱批次 A 已完成。先收集开发测试使用反馈；只有真实需要跨全部分页窗口，且四类 owner 的统一稳定 cursor 契约成立时才评审批次 B。
-2. Prompt / Agent 继续复用 canonical Run、Comparison、Evaluation Case / Suite 与 decision owner；不复制评测算法，不把人工 `approved` 接成自动 candidate、assignment、release 或 deploy。Agent / Copilot 仍复用 canonical `CopilotRequest / CopilotResponse`，不扩 agent loop、工具执行或业务写回。
-3. 本地 SQLite、应用目录、API 密钥和 Application Interaction Session 专题均已完成并关闭；不继续扩同层页面、准入文档、检查器或证据链。应用运行观测只有在全分页统计、可信 reported usage 或 quota / billing owner 成立时才评审服务端 summary。
-4. 一次性令牌继续只保存在当前 Web 组件内存；刷新、路由离开、应用 / 身份切换、组件卸载和服务重启都不得恢复原始令牌。
-5. 不把开发测试态应用目录或 API 密钥解释为生产存储库与生产授权；OIDC 模式在成员关系契约未成立时继续失败关闭。后续专题不得隐式打开生产认证、成员关系适配器、正式晋级、生产 API 密钥、配额、计费、模型服务凭据或新的 Gateway 请求 / 响应 schema。
+1. 下一功能设计顺位为 `Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1`。先审计 Application Catalog、API Key Lifecycle、Workflow、Prompt / Agent、Session、Evaluation 等既有写入 / 审查 / 执行路由，冻结 verified identity、active workspace、membership permission、resource owner 和副作用顺序；不得新建用户、tenant、role 或平行业务 owner。
+2. 第一实现批次必须从依赖顺序和风险边界出发选择职责完整的 owner 组合，并证明跨 tenant / subject、非成员、过期 identity / membership、workspace mismatch、permission denied 在 repository 查询或副作用前失败关闭。dev header 与 signed-test assertion 只能用于开发测试，不能成为 production OIDC 授权来源。
+3. 工作区运营收件箱批次 A 已完成。只有真实需要跨全部分页窗口，且四类 owner 的统一稳定 cursor 契约成立时才评审批次 B；不为扩展示例数量或页面计数启动服务端投影。
+4. Prompt / Agent 继续复用 canonical Run、Comparison、Evaluation Case / Suite 与 decision owner；不复制评测算法，不把人工 `approved` 接成自动 candidate、assignment、release 或 deploy。Agent / Copilot 仍复用 canonical `CopilotRequest / CopilotResponse`，不扩 agent loop、工具执行或业务写回。
+5. 本地 SQLite、应用目录、API 密钥和 Application Interaction Session 专题均已完成并关闭；不继续扩同层页面、准入文档、检查器或证据链。应用运行观测只有在全分页统计、可信 reported usage 或 quota / billing owner 成立时才评审服务端 summary。
+6. 一次性令牌继续只保存在当前 Web 组件内存；刷新、路由离开、应用 / 身份切换、组件卸载和服务重启都不得恢复原始令牌。
+7. 不把开发测试态应用目录或 API 密钥解释为生产存储库与生产授权；OIDC 模式在成员关系契约未成立时继续失败关闭。后续专题不得隐式打开生产认证、成员关系适配器、正式晋级、生产 API 密钥、配额、计费、模型服务凭据或新的 Gateway 请求 / 响应 schema。
 
 ## 验收方式
 

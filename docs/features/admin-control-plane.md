@@ -10,7 +10,7 @@
 
 - `apps/radishmind-web/` 已有 tenant overview、audit log、Admin Operations Review / Readiness 和 Admin Provider/Profile & Deployment Evidence Review / Readiness。
 - 现有页面只整理 readiness、evidence checklist、operator risk、provider/profile readiness、secret ref readiness 和 deployment status。
-- Go read handlers 已由 selector 显式路由：Tenant Summary / Audit 使用 PostgreSQL dev/test，五条 workspace operation 在 signed test 模式保留 fake binding、在 OIDC integration 模式 fail closed；shared verified identity、signed test verifier 和 route authorization 已落地。
+- Go read handlers 已由 selector 显式路由：Tenant Summary / Audit 使用 PostgreSQL dev/test；五条 workspace operation 已共享 `WorkspaceMembershipProvider`，Applications、API Keys、Workflow Definitions 与 Runs 复用 durable owner，Quota 在缺少可信 policy owner 时明确关闭。dev / signed-test membership 已可确定性复验，OIDC integration 仍因缺少 reviewed membership contract 而失败关闭。
 - 当前已有 deterministic Radish OIDC discovery / JWKS / JWT verifier，但没有 reviewed Radish upstream evidence、真实 integration token / evidence、production token / session、secret resolver、deployment preflight 或 production admin 操作。
 - User Workspace 的 Application Publish Governance 已把正式 application repository、production auth / membership 和发布 owner 明确暴露为 promotion blocker；dev/test candidate approved 不会绕过这些 blocker。
 - [Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) 第一批 runtime 已完成 shared verified identity / negative auth，第二批已完成 Tenant / Audit PostgreSQL dev/test repository，第三批已完成 OIDC deterministic verifier / auth boundary / operation gate。
@@ -29,10 +29,10 @@
 
 1. `Radish OIDC Integration Test Runtime v1` deterministic 批次已完成；真实 Radish 联调主动 deferred，不再占用 Admin 当前开发顺位。
 2. 未来 Radish 注册 RadishMind application/client 与 resource audience，并提供 reviewed issuer、JWKS policy、claim / permission mapping 和短期 token 流程后，再恢复只覆盖 tenant summary 与 audit summary 的真实联调。
-3. 五条 workspace route 继续返回 `workspace_membership_unavailable`，不读取 fake repository；workspace membership contract 未成立前，不迁移五条 User Workspace read route。
+3. 五条 workspace route 的开发测试态 read transition 已完成；OIDC 模式继续在 repository 前返回 `workspace_membership_unavailable`，直到 reviewed Radish membership owner / endpoint、撤销 / 过期语义和 claim mapping 成立。下一顺位的 workspace mutation authorization 必须复用同一 membership 边界，但独立完成写入、审查、执行副作用审计，不能把 read permission 直接等同于 mutation authority。
 4. 普通 evidence review 展示不再新增逐项 task card；只有真实 auth、数据库、secret、deployment 或管理动作才新增专项 gate。
 5. Provider Profile assignment 与 Model Route 的开发测试态受控配置已完成；Admin 只保存既有 runtime inventory 引用，审批不自动启用，Gateway 只消费显式启用的不可变快照。下一条管理控制面能力必须先更新独立功能设计，不能从该专题原地放大到生产配置。
-6. 本专题完成前不并行打开 quota / billing、production secret resolver、自动路由、真实 Radish OIDC 或 production deployment。
+6. 不并行打开 quota / billing、production secret resolver、自动路由、真实 Radish OIDC 或 production deployment。
 
 ## 验收方式
 

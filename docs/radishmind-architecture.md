@@ -46,8 +46,7 @@ Storage adapter 历史状态锚点作为 checker 契约引用保留，不代表�
 
 - 面向用户创建和运行 AI 应用、Prompt 应用、Workflow、Agent / Copilot 应用、RAG / 知识问答应用。
 - 消费模型网关、工作流 runtime、session metadata、运行记录、成本摘要和 API key 状态。
-- 当前 `apps/radishmind-web/` 已实现 Application Catalog、配置草案、人工晋级、API key、Application API、Workflow Definition / RAG、受控会话、运行 / 评测与运维审查，并由 Application Development Workspace 按五阶段组织；执行和管理动作仍只在显式 dev/test source 下开放，Release Readiness 只读且不能替代 production user workspace。
-- 已有本地 console 不能替代用户 workspace。
+- 当前 `apps/radishmind-web/` 已实现 Application Catalog、配置草案、人工晋级、API key、Application API、Workflow Definition / RAG、受控会话、运行 / 评测与运维审查，并由 Application Development Workspace 按五阶段组织；执行和管理动作仍只在显式 dev/test source 下开放，Release Readiness 只读且不能替代 production user workspace，已有本地 console 也不能替代用户 workspace。
 
 ### 2. `Admin Control Plane`
 
@@ -56,6 +55,7 @@ Storage adapter 历史状态锚点作为 checker 契约引用保留，不代表�
 - Control Plane 默认使用 Go，可独立于 gateway 拆服务；当前不新增 `.NET` / ASP.NET Core 作为默认后端栈。
 - 当前 Web 已实现只读 Tenant / Audit、Admin Operations 和 Provider/Profile & Deployment Evidence Review，本地 console 也只是 ops surface；它们都不代表 production admin console。
 - Provider Profile / Model Route 批次 A 至 E 已形成独立 Go 领域、memory / SQLite / PostgreSQL 三模式 repository、verified Admin HTTP 和 Admin Web：Admin 以 `tenant + workspace + environment + configuration` 原子持有 draft / candidate / review / activation，既有 runtime inventory 继续持有 provider/profile 事实；approval 不改变 active snapshot，activation / rollback 以事务 generation CAS 生成新 generation。Gateway 只通过只读 snapshot provider 在请求开始时固定 generation / digest，不读取 Admin draft / review repository，也不按请求回退静态 provider；Request History 只保存脱敏快照谱系。
+- Workspace-scoped read authorization 由 verified identity、active workspace selection、共享 `WorkspaceMembershipProvider`、逐资源 permission 和 durable owner scope 共同组成。active workspace 不是 membership proof；membership denial、过期、workspace mismatch 或 permission denial 必须在业务 repository 前失败关闭。Web 运营收件箱只在四类已授权快照之上做易失确定性投影，不新增跨资源存储或业务真相源。
 
 ### 3. `Model Gateway / API Distribution`
 

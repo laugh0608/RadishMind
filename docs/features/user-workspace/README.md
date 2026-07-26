@@ -27,6 +27,7 @@
 
 - 工作区运营收件箱批次 A 已完成；先以真实开发测试使用反馈判断是否需要跨全部分页窗口的服务端 read projection。没有需求与统一 owner cursor 契约前不启动批次 B。
 - Workspace-scoped Read Transition 开发 / 测试态批次 A、B 已完成。条件式批次 C 只有在取得 reviewed Radish membership owner / endpoint、撤销 / 过期语义与 OIDC mapping 后才启动；否则回到功能入口选择新的用户工作区能力。
+- 下一功能设计顺位为 `Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1`：先建立既有写入、审查、执行路由的 owner / permission / side-effect 矩阵，再冻结分批顺序；首批实现前不得从现有 read authorization 直接复制授权判断，也不得创建第二套身份、角色或成员关系真相源。
 - Prompt / Agent 回归评测与发布审查专题已完成并关闭；下一步先设计新的用户工作区产品能力，不继续派生本专题同层 readiness、refresh 或 gate-only 批次。
 - Prompt Application 批次 A 至 E 已完成并关闭：memory / SQLite / PostgreSQL 语义、Web、双数据库连续链、服务重启、CAS / drift / cancel 和敏感信息复验均已通过。
 - 不继续扩“应用开发工作区与发布准备审查 v1”、Prompt Application 或当前回归评测的同层切片。Prompt / Agent 继续复用现有 Run、Comparison、Evaluation 和发布治理真相源，不另建聚合发布真相源或自治执行器。
