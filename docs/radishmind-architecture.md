@@ -180,7 +180,7 @@ Protocol Compatibility Layer 翻译回 northbound response
 - Student models 用于本地化、小成本部署和回归实验。
 - `RadishMind-Core` 负责理解、推理、结构化建议、候选排序、风险标记和可选图片输入理解。
 - Image Generation Runtime 独立负责图片像素生成；主模型只输出结构化 image intent 和约束。
-- `image_backend_profile_configuration.py` 先把 strict reference-only source 编译为带稳定 digest 与 timeout 的开发测试态 profile；`image_backend_contract_fixture_client.py` 只在 test-only `contract_fixture` 模式检查真实 fixture 容器并返回 artifact identity、UTC 时间与 observation；`image_generation_adapter.py` 独占 canonical artifact metadata 构造；`image_artifact_private_storage.py` 再独立承担本机私有 content-addressed storage 与显式 binary reader。失败结果不返回 prompt、不可信 metadata、bytes、绝对路径或 storage ref；整条链不提供真实 backend client、reference resolver、binary delivery coordinator、production storage、public URL、HTTP / Gateway 或 Web 接线。
+- `image_backend_profile_configuration.py` 先把 strict reference-only source 编译为带稳定 digest 与 timeout 的开发测试态 profile；`image_backend_contract_fixture_client.py` 只在 test-only `contract_fixture` 模式检查真实 fixture 容器、返回 artifact identity / UTC 时间 / observation，并对已完成调用提供一次性内部 binary delivery；`image_generation_adapter.py` 独占 canonical artifact metadata 构造；`image_artifact_delivery_coordinator.py` 只负责编排 adapter 成功、单次交付、private store 重验与成功引用延后释放；`image_artifact_private_storage.py` 独立承担本机私有 content-addressed storage 与显式 binary reader。失败结果不返回 prompt、不可信 metadata、bytes、绝对路径或 storage ref；整条链不提供真实 backend client、reference resolver、production storage、public URL、HTTP / Gateway 或 Web 接线。
 
 ### 5. Rule Validation & Response Builder
 

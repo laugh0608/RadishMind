@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-07-25
+更新时间：2026-07-26
 
 ## 文档目的
 
@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-25 当前执行口径：既有 Workflow、Gateway、用户工作区、RAG、Session、应用开发工作区、Prompt / Agent 与回归评测均已完成并稳定维护。当前 [图片生成 / 产物返回](image-generation-artifact-return.md)批次 A / B / C / D 已实现受控 handoff、本机私有 storage、reference-only profile 与 test-only contract fixture client，批次 E 已完成设计复核，状态为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_d_completed_batch_e_ready`。下一步实现 fixture binary 单次交付与私有持久化协调；不直接打开 reference resolver、HTTP / Gateway、真实图片生成、上传、公开 URL 或 Web。
+2026-07-26 当前执行口径：既有 Workflow、Gateway、用户工作区、RAG、Session、应用开发工作区、Prompt / Agent、回归评测与 [图片生成 / 产物返回](image-generation-artifact-return.md)开发测试态 v1 均已完成并稳定维护。Image Adapter 批次 A 至 E 已形成受控 handoff、本机私有 storage、reference-only profile、test-only contract fixture client、一次性 binary delivery 与 store 成功后引用释放链路，状态为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_completed`。下一步回到功能设计入口选择新的真实产品能力；不直接打开 reference resolver、HTTP / Gateway、真实图片生成、上传、公开 URL 或 Web。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -44,7 +44,7 @@
 | [管理控制面](admin-control-plane.md) | 租户、权限、模型服务配置、配额、凭据、审计和部署证据 | 进入真实管理端、OIDC 或数据库前先更新 |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
 | [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；HTTP Tool、RAG Retrieval、知识质量 / 晋级链、Application RAG durable invocation 和 immutable definition-bound execution 均已有可复验证据 | 作为应用开发工作区的既有权威能力来源，不从 executor 或 activation 原地扩自动执行、调度、重放或生产能力 |
-| [图片生成 / 产物返回](image-generation-artifact-return.md) | 批次 A / B / C / D 已完成受控 handoff、本机私有 storage、reference-only profile 与 test-only fixture client；批次 E 设计已确认 | 实现单次 binary delivery / private store coordinator |
+| [图片生成 / 产物返回](image-generation-artifact-return.md) | 批次 A 至 E 已完成受控 handoff、本机私有 storage、reference-only profile、test-only fixture client 与一次性交付协调，开发测试态 v1 关闭 | 如需真实 backend、resolver 或公开交付，先建立独立功能 / 集成设计 |
 
 ## 细专题导航
 

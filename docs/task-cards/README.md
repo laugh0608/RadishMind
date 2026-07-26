@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[Image Adapter 受控调用与 artifact 返回（开发 / 测试态）v1](image-adapter-controlled-invocation-artifact-return-dev-test-v1-plan.md)批次 A / B / C / D 已完成，批次 E 的单次交付、失败关闭和私有持久化顺序已确认，当前状态为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_d_completed_batch_e_ready`。下一步实现 binary delivery / private store coordinator，不从 test-only client 直接扩真实 backend、API、Web 或生产能力。
+[Image Adapter 受控调用与 artifact 返回（开发 / 测试态）v1](image-adapter-controlled-invocation-artifact-return-dev-test-v1-plan.md)批次 A 至 E 已完成受控 handoff、本机私有 storage、reference-only profile、test-only fixture client、一次性 binary delivery 与 store 成功后引用释放，状态为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_completed`。任务卡关闭，不从 test-only client 直接扩真实 backend、API、Web 或生产能力。
 
 [应用开发工作区与发布准备审查 v1](../features/user-workspace/application-development-workspace-release-readiness-review-v1.md)批次 A 至 C 已完成并关闭，不再派生同层任务卡。
 
@@ -338,7 +338,7 @@ R3、Saved Draft PostgreSQL dev/test repository、R4 Gateway、executor v0、Run
 17. [`Image Artifact Response Builder Integration` v1 计划](image-artifact-response-builder-integration-v1-plan.md)（`image-artifact-response-builder-integration-v1`）
 18. [`Image Artifact Response Builder Runtime Integration Entry Review` v1 计划](image-artifact-response-builder-runtime-integration-entry-review-v1-plan.md)（`image-artifact-response-builder-runtime-integration-entry-review-v1`）
 19. [`Image Artifact Response Builder Runtime Integration Implementation` v1 任务卡](image-artifact-response-builder-runtime-integration-implementation-v1-plan.md)（`image-artifact-response-builder-runtime-integration-implementation-v1`）
-20. [Image Adapter 受控调用与 artifact 返回（开发 / 测试态）v1](image-adapter-controlled-invocation-artifact-return-dev-test-v1-plan.md)（批次 A / B / C / D 已完成；批次 E 的 binary delivery / private store coordinator 已可实施）
+20. [Image Adapter 受控调用与 artifact 返回（开发 / 测试态）v1](image-adapter-controlled-invocation-artifact-return-dev-test-v1-plan.md)（批次 A 至 E 已完成，开发测试态 v1 关闭）
 
 使用原则：
 - 任务卡定义的是任务边界、最小输入、输出要求和评测口径，不等同于最终实现代码

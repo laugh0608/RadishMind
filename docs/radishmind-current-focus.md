@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-07-25
+更新时间：2026-07-26
 
 ## 文档目的
 
@@ -11,7 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
-- 产品焦点：既有 Workflow、Gateway、用户工作区、RAG、Session、Prompt / Agent 与回归评测专题均已关闭。当前 [图片生成 / 产物返回](features/image-generation-artifact-return.md)批次 A / B / C / D 已完成受控 handoff、本机私有 storage、reference-only profile 与 test-only contract fixture client，批次 E 的职责与失败语义已确认，状态为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_d_completed_batch_e_ready`。下一步实现一次性 fixture binary delivery 与私有持久化协调：只有 adapter 校验和 store 重验均成功后才释放 citation / metadata reference；真实图片生成、reference resolver、上传、公开 URL、HTTP / Gateway、Web 与生产声明继续关闭。
+- 产品焦点：既有 Workflow、Gateway、用户工作区、RAG、Session、Prompt / Agent、回归评测与 [图片生成 / 产物返回](features/image-generation-artifact-return.md)开发测试态专题均已关闭。Image Adapter 批次 A 至 E 已完成受控 handoff、本机私有 storage、reference-only profile、test-only contract fixture client、一次性 binary delivery 与私有持久化协调，状态为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_completed`；只有 adapter 校验和 store 重验均成功后才释放 citation / metadata reference。下一步回到功能设计入口选择新的真实产品能力；真实图片生成、reference resolver、上传、公开 URL、HTTP / Gateway、Web 与生产声明继续关闭。
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算`、`R6 文档与检查器收敛` 均已完成。R6 关闭评审确认活动 checker 从 `132` 项、`38,644` 行降至 `111` 项、`28,486` 行，分别下降约 `15.9%` 与 `26.3%`；Provider、Production Ops 和 Control Plane formal UI 因仍有独立证据责任继续活动，不再派生第六批或同层 readiness 链。
 - `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片。production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
@@ -19,7 +19,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：[图片生成 / 产物返回](features/image-generation-artifact-return.md)批次 A / B / C / D 已完成并由[实施任务卡](task-cards/image-adapter-controlled-invocation-artifact-return-dev-test-v1-plan.md)记录。当前已有纯领域 adapter、本机私有 storage、reference-only profile 与 test-only fixture client，但仍不含可用真实 backend；批次 E 已完成设计复核，下一步直接实现单次 binary delivery / private store coordinator 及相邻负向测试。
+1. 产品线：[图片生成 / 产物返回](features/image-generation-artifact-return.md)开发测试态 v1 已由[实施任务卡](task-cards/image-adapter-controlled-invocation-artifact-return-dev-test-v1-plan.md)完成并关闭。当前没有在制产品实现批次；下一步先从功能设计入口选择新的真实用户流程，不从 test-only fixture client 原地扩真实 backend。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
@@ -82,7 +82,7 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 - Prompt Application 专题已经关闭；不从其现有 assignment / invocation 原地增加 provider retry / fallback、自动 activation / release、replay、agent loop 或生产能力声明。
 - Agent / Copilot 专题已经关闭；不从既有 Profile、assignment、Session 或 Run 原地扩 agent loop、工具 / 检索执行、业务写回、自动 activation / release、retry / fallback、replay 或生产能力。
 - Prompt / Agent 回归评测专题已经关闭；不从 Case、Suite 或人工 decision 原地扩批量执行、自动发布、重放或生产晋级。
-- 不把 Image Adapter 批次 A / B / C / D 的受控 handoff、本机私有 storage、reference-only profile 与 test-only fixture client 解释为真实 backend、credential / endpoint resolver、production object store、public delivery 或图片生成已就绪。
+- 不把 Image Adapter 批次 A 至 E 的受控 handoff、本机私有 storage、reference-only profile、test-only fixture client 与一次性私有交付协调解释为真实 backend、credential / endpoint resolver、production object store、public delivery 或图片生成已就绪。
 - 不把 durable read foundation 解释为 repository adapter、真实数据库、OIDC、production API consumer 或完整 read-side API ready。
 - 不把 Workflow / Gateway / Admin 的普通离线证据界面写成生产能力已就绪。
 - 不在上层项目没有真实挂载点时继续细化假想接线。

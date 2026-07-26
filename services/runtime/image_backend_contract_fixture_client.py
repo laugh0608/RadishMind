@@ -4,7 +4,9 @@ import copy
 import hashlib
 import json
 import math
-from collections.abc import Mapping
+import threading
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 from typing import Any
 
 from .image_artifact_binary_inspection import (
@@ -16,6 +18,7 @@ from .image_backend_profile_configuration import (
     compiled_profile_is_valid,
 )
 from .image_generation_adapter import (
+    ARTIFACT_SCHEMA_PATH,
     BACKEND_REQUEST_SCHEMA_PATH,
     ImageBackendInvocationResult,
     contains_only_valid_utf8,
@@ -29,6 +32,11 @@ FAILURE_FIXTURE_PROFILE_INVALID = "image_backend_fixture_profile_invalid"
 FAILURE_FIXTURE_BINARY_INVALID = "image_backend_fixture_binary_invalid"
 FAILURE_FIXTURE_REQUEST_INVALID = "image_backend_fixture_request_invalid"
 FAILURE_FIXTURE_REQUEST_MISMATCH = "image_backend_fixture_request_mismatch"
+FAILURE_FIXTURE_DELIVERY_UNAVAILABLE = "image_backend_fixture_binary_delivery_unavailable"
+FAILURE_FIXTURE_DELIVERY_MISMATCH = "image_backend_fixture_binary_delivery_mismatch"
+FAILURE_FIXTURE_DELIVERY_ALREADY_CONSUMED = (
+    "image_backend_fixture_binary_delivery_already_consumed"
+)
 
 MAX_FIXTURE_BYTES = 32 * 1024 * 1024
 MAX_BACKEND_REQUEST_BYTES = 64 * 1024
@@ -43,6 +51,15 @@ FORMAT_BY_MIME = {
 
 class ContractFixtureClientError(ValueError):
     pass
+
+
+@dataclass(frozen=True)
+class FixtureBinaryDeliveryResult:
+    ok: bool
+    failure_code: str | None = None
+    failure_message: str = ""
+    artifact_binary_delivery_count: int = 0
+    binary_consumer_call_count: int = 0
 
 
 class ContractFixtureImageBackendClient:
@@ -81,8 +98,13 @@ class ContractFixtureImageBackendClient:
             raise ContractFixtureClientError(FAILURE_FIXTURE_PROFILE_INVALID)
 
         self._profile = profile
+        self._fixture_payload = bytes(payload)
         self._observation = observation
         self._created_at = created_at
+        self._state_lock = threading.Lock()
+        self._completed_request: dict[str, Any] | None = None
+        self._completed_invocation: ImageBackendInvocationResult | None = None
+        self._delivery_consumed = False
 
     def invoke(
         self,
@@ -109,13 +131,86 @@ class ContractFixtureImageBackendClient:
             raise ContractFixtureClientError(FAILURE_FIXTURE_REQUEST_MISMATCH)
 
         request_digest = hashlib.sha256(request_bytes).hexdigest()
-        return ImageBackendInvocationResult(
+        result = ImageBackendInvocationResult(
             artifact_id=f"image-fixture-{request_digest[:24]}",
             created_at=self._created_at,
             observed_sha256=self._observation.sha256,
             observed_mime_type=self._observation.mime_type,
             observed_width=self._observation.width,
             observed_height=self._observation.height,
+        )
+        with self._state_lock:
+            if self._completed_request is not None and (
+                self._completed_request != request
+                or self._completed_invocation != result
+            ):
+                raise ContractFixtureClientError(
+                    FAILURE_FIXTURE_REQUEST_MISMATCH
+                )
+            self._completed_request = request
+            self._completed_invocation = result
+        return result
+
+    def deliver_binary(
+        self,
+        artifact_document: Mapping[str, Any],
+        consumer: Callable[[bytes], None],
+    ) -> FixtureBinaryDeliveryResult:
+        artifact = copy_mapping(artifact_document)
+        if not callable(consumer):
+            return delivery_failure(
+                FAILURE_FIXTURE_DELIVERY_UNAVAILABLE,
+                "fixture binary delivery consumer is unavailable",
+            )
+        if (
+            artifact is None
+            or not contains_only_valid_utf8(artifact)
+            or contains_sensitive_material(artifact)
+            or validate_schema(artifact, ARTIFACT_SCHEMA_PATH)
+        ):
+            return delivery_failure(
+                FAILURE_FIXTURE_DELIVERY_MISMATCH,
+                "fixture binary delivery metadata is not trusted",
+            )
+
+        with self._state_lock:
+            if (
+                self._completed_request is None
+                or self._completed_invocation is None
+            ):
+                return delivery_failure(
+                    FAILURE_FIXTURE_DELIVERY_UNAVAILABLE,
+                    "fixture binary delivery requires a completed invocation",
+                )
+            if self._delivery_consumed:
+                return delivery_failure(
+                    FAILURE_FIXTURE_DELIVERY_ALREADY_CONSUMED,
+                    "fixture binary delivery was already consumed",
+                )
+            if not artifact_matches_completed_invocation(
+                artifact,
+                self._completed_request,
+                self._completed_invocation,
+            ):
+                return delivery_failure(
+                    FAILURE_FIXTURE_DELIVERY_MISMATCH,
+                    "fixture binary delivery does not match the completed invocation",
+                )
+            self._delivery_consumed = True
+
+        try:
+            consumer(self._fixture_payload)
+        except Exception:
+            return delivery_failure(
+                FAILURE_FIXTURE_DELIVERY_UNAVAILABLE,
+                "fixture binary delivery consumer failed",
+                delivery_count=1,
+                consumer_call_count=1,
+            )
+        return FixtureBinaryDeliveryResult(
+            ok=True,
+            artifact_binary_delivery_count=1,
+            binary_consumer_call_count=1,
         )
 
 
@@ -149,6 +244,50 @@ def request_matches_fixture(
         and safety["gate"] == "approved_for_backend"
         and safety["requires_confirmation"] is False
         and safety["risk_level"] == "low"
+    )
+
+
+def artifact_matches_completed_invocation(
+    artifact: Mapping[str, Any],
+    request: Mapping[str, Any],
+    invocation: ImageBackendInvocationResult,
+) -> bool:
+    artifact_fields = artifact["artifact"]
+    provenance = artifact["provenance"]
+    expected_format = FORMAT_BY_MIME.get(invocation.observed_mime_type)
+    expected_uri = (
+        f"artifact://radishmind/generated/"
+        f"{invocation.artifact_id}.{expected_format}"
+    )
+    return (
+        artifact["artifact_id"] == invocation.artifact_id
+        and artifact["intent_id"] == request["intent_id"]
+        and artifact["backend_request_id"] == request["request_id"]
+        and artifact["created_at"] == invocation.created_at
+        and artifact_fields["uri"] == expected_uri
+        and artifact_fields["sha256"] == invocation.observed_sha256
+        and artifact_fields["mime_type"] == invocation.observed_mime_type
+        and artifact_fields["width"] == invocation.observed_width
+        and artifact_fields["height"] == invocation.observed_height
+        and artifact_fields["format"] == expected_format
+        and provenance["backend_request_id"] == request["request_id"]
+        and provenance["intent_id"] == request["intent_id"]
+    )
+
+
+def delivery_failure(
+    code: str,
+    message: str,
+    *,
+    delivery_count: int = 0,
+    consumer_call_count: int = 0,
+) -> FixtureBinaryDeliveryResult:
+    return FixtureBinaryDeliveryResult(
+        ok=False,
+        failure_code=code,
+        failure_message=message,
+        artifact_binary_delivery_count=delivery_count,
+        binary_consumer_call_count=consumer_call_count,
     )
 
 

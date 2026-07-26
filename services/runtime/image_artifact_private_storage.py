@@ -122,6 +122,7 @@ class ImageArtifactStoreResult:
     failure_message: str = ""
     artifact_store_lookup_count: int = 0
     local_artifact_store_write_count: int = 0
+    artifact_binary_revalidation_count: int = 0
     artifact_binary_read_count: int = 0
 
 
@@ -171,22 +172,36 @@ class LocalPrivateImageArtifactStore:
         try:
             observation = inspect_image_binary(payload_bytes)
         except ValueError:
-            return store_failure(FAILURE_BINARY_INVALID, "artifact payload is not a supported image container")
+            return store_failure(
+                FAILURE_BINARY_INVALID,
+                "artifact payload is not a supported image container",
+                revalidation_count=1,
+            )
         if observation.width > MAX_DIMENSION or observation.height > MAX_DIMENSION:
-            return store_failure(FAILURE_BINARY_INVALID, "artifact dimensions exceed the private store budget")
+            return store_failure(
+                FAILURE_BINARY_INVALID,
+                "artifact dimensions exceed the private store budget",
+                revalidation_count=1,
+            )
         if observation.width * observation.height > MAX_PIXELS:
-            return store_failure(FAILURE_BINARY_INVALID, "artifact pixel count exceeds the private store budget")
+            return store_failure(
+                FAILURE_BINARY_INVALID,
+                "artifact pixel count exceeds the private store budget",
+                revalidation_count=1,
+            )
 
         validation = validate_artifact_for_storage(artifact_document, observation)
         if not validation.ok:
             return store_failure(
                 validation.failure_code or FAILURE_INVALID_METADATA,
                 validation.failure_message or "artifact metadata failed private store validation",
+                revalidation_count=1,
             )
         artifact = dict(artifact_document)
         artifact_fields = dict(artifact["artifact"])
         record = build_reference_record(artifact, artifact_fields, observation)
 
+        blob_created = False
         try:
             self._prepare_root()
             blob_path = self._path_for_storage_ref(record["storage_ref"])
@@ -198,6 +213,7 @@ class LocalPrivateImageArtifactStore:
                 return store_failure(
                     FAILURE_STORE_CONFLICT,
                     "artifact id is already bound to different private storage metadata",
+                    revalidation_count=1,
                 )
 
             blob_created = write_immutable_file(
@@ -216,17 +232,30 @@ class LocalPrivateImageArtifactStore:
                 stored_artifact=stored,
                 created=created,
                 local_artifact_store_write_count=1 if created else 0,
+                artifact_binary_revalidation_count=1,
                 artifact_binary_read_count=0 if blob_created else 1,
             )
         except FileExistsError:
-            return store_failure(FAILURE_STORE_CONFLICT, "private artifact storage is immutable")
+            return store_failure(
+                FAILURE_STORE_CONFLICT,
+                "private artifact storage is immutable",
+                write_count=1 if blob_created else 0,
+                revalidation_count=1,
+            )
         except StoreIntegrityError:
             return store_failure(
                 FAILURE_STORE_INTEGRITY,
                 "existing private artifact storage failed integrity validation",
+                write_count=1 if blob_created else 0,
+                revalidation_count=1,
             )
         except (OSError, ValueError):
-            return store_failure(FAILURE_STORE_UNAVAILABLE, "private artifact store is unavailable")
+            return store_failure(
+                FAILURE_STORE_UNAVAILABLE,
+                "private artifact store is unavailable",
+                write_count=1 if blob_created else 0,
+                revalidation_count=1,
+            )
 
     def lookup(self, metadata_reference: Mapping[str, Any]) -> ImageArtifactStoreResult:
         expected_record = reference_record_from_metadata_reference(metadata_reference)
@@ -432,6 +461,11 @@ def private_storage_side_effect_counters(
         "artifact_store_lookup_count": result.artifact_store_lookup_count,
         "local_artifact_store_write_count": (
             result.local_artifact_store_write_count
+            if isinstance(result, ImageArtifactStoreResult)
+            else 0
+        ),
+        "artifact_binary_revalidation_count": (
+            result.artifact_binary_revalidation_count
             if isinstance(result, ImageArtifactStoreResult)
             else 0
         ),
@@ -771,12 +805,16 @@ def store_failure(
     message: str,
     *,
     lookup_count: int = 0,
+    write_count: int = 0,
+    revalidation_count: int = 0,
 ) -> ImageArtifactStoreResult:
     return ImageArtifactStoreResult(
         ok=False,
         failure_code=code,
         failure_message=message,
         artifact_store_lookup_count=lookup_count,
+        local_artifact_store_write_count=write_count,
+        artifact_binary_revalidation_count=revalidation_count,
     )
 
 

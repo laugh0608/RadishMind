@@ -2,7 +2,7 @@
 
 更新时间：2026-07-25
 
-状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_batch_d_completed_batch_e_ready`
+状态：`image_adapter_controlled_invocation_artifact_return_dev_test_v1_completed`
 
 对应功能文档：[Image Generation / Artifact Return 设计与开发文档](../features/image-generation-artifact-return.md)
 
@@ -277,3 +277,11 @@
 - 断言所有结果、异常、日志投影与数据类都不含 bytes、base64、绝对路径、storage ref、endpoint、credential 或 provider raw material。
 - 不新增 schema、HTTP / Gateway、API key、repository、migration、Web、remote HTTP / local model client、reference resolver、upload、public URL、retry / fallback 或生产能力。
 - 复用 `services/runtime/tests` 与现有 Image 聚合门禁，不新增同层 checker；相邻测试、定向 Python 并发测试、差异卫生、fast 与 full 仓库门禁通过后，批次 E 方可标记完成。
+
+### 完成记录
+
+- `services/runtime/image_artifact_delivery_coordinator.py` 已实现唯一协调顺序，adapter 失败时不请求交付，store 成功前不释放 citation / metadata reference。
+- `ContractFixtureImageBackendClient` 已实现不可变 bytes owner、已完成调用与 artifact / observation 绑定、线程安全一次性交付；consumer 调用前原子标记已消费，失败后不 retry。
+- `LocalPrivateImageArtifactStore` 已显式记录 binary revalidation 与逻辑写入计数；协调层把 store 内部失败统一脱敏为 `image_artifact_private_storage_failed`。
+- 11 项新测试覆盖三种格式、确定性绑定、前置拒绝、backend 失败、错 artifact、observation / payload 漂移、重复 / 并发消费、consumer 异常、store 冲突 / 不可用、零泄露与精确计数；Image runtime 共 56 项测试，差异卫生、fast 与 full 仓库门禁均已通过。
+- 批次 E 未新增 schema、HTTP / Gateway、API key、repository、migration、Web、真实 backend / resolver、upload、public URL、retry / fallback 或生产声明。完成锚点为 `image_adapter_controlled_invocation_artifact_return_dev_test_v1_completed`，任务卡关闭，不派生批次 F。
