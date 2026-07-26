@@ -33,7 +33,7 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 	if err := firstServer.localPersistenceRuntime.DB().QueryRowContext(
 		context.Background(),
 		"SELECT count(*) FROM radishmind_schema_migrations",
-	).Scan(&migrationCount); err != nil || migrationCount != 23 {
+	).Scan(&migrationCount); err != nil || migrationCount != 24 {
 		t.Fatalf("aggregate SQLite migration count drifted: count=%d err=%v", migrationCount, err)
 	}
 
@@ -571,15 +571,16 @@ func assertAggregateSQLiteRepositorySelection(t *testing.T, server *Server) {
 		t.Fatalf("workflow RAG evaluation datasets did not share the SQLite runtime: %T", server.workflowRAGEvaluationDatasetRepository)
 	}
 	for name, mode := range map[string]string{
-		"application_catalog": server.config.ApplicationCatalogStoreMode,
-		"application_draft":   server.config.ApplicationDraftStoreMode,
-		"application_publish": server.config.ApplicationPublishStoreMode,
-		"prompt_template":     server.config.PromptTemplateStoreMode,
-		"agent_profile":       server.config.AgentCopilotProfileStoreMode,
-		"api_key":             server.config.APIKeyStoreMode,
-		"gateway_request":     server.config.GatewayRequestStoreMode,
-		"workflow_draft":      server.config.WorkflowSavedDraftStoreMode,
-		"workflow_run":        server.config.WorkflowRunStoreMode,
+		"application_catalog":  server.config.ApplicationCatalogStoreMode,
+		"application_draft":    server.config.ApplicationDraftStoreMode,
+		"application_publish":  server.config.ApplicationPublishStoreMode,
+		"prompt_template":      server.config.PromptTemplateStoreMode,
+		"agent_profile":        server.config.AgentCopilotProfileStoreMode,
+		"admin_provider_route": server.config.AdminProviderRouteStoreMode,
+		"api_key":              server.config.APIKeyStoreMode,
+		"gateway_request":      server.config.GatewayRequestStoreMode,
+		"workflow_draft":       server.config.WorkflowSavedDraftStoreMode,
+		"workflow_run":         server.config.WorkflowRunStoreMode,
 	} {
 		if mode != "sqlite_dev" {
 			t.Fatalf("aggregate store mode drifted: component=%s mode=%s", name, mode)

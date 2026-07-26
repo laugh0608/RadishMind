@@ -17,7 +17,7 @@
 - [Application Configuration Draft & Review v1](user-workspace/application-configuration-draft-review-v1.md) 已把经过模型 / 协议校验的 application draft 配置交给既有 Integration / Playground；Gateway 仍只消费 application / protocol / model，不读取草案描述、不保存测试输入输出，也没有新增 northbound schema。
 - [Application Publish Governance & Promotion v1](user-workspace/application-publish-governance-promotion-v1.md) 只把 sanitized Gateway `request_id` 作为 candidate evidence reference，并复用既有 Integration / Playground / History handoff；Gateway 不读取 candidate、review 或 eligibility，也没有新增协议、schema、provider registry 或发布职责。
 - [用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已完成密钥领域、管理 API、五条 northbound 路由的显式 `api_key_dev_test` 认证、可信调用上下文、脱敏请求历史、最近使用更新、聚合 SQLite 本地产品链、真实 PostgreSQL 专项门禁、Web 一次性交接与浏览器连续验收，专题关闭；聚合 runtime 现已扩展为九组件。
-- [Admin Provider Profile / Model Route 受控启用（开发 / 测试态）v1](admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md) 批次 A 已建立配置草案、不可变候选、人工 review、显式 activation 和内存 active snapshot；当前尚未接入 Gateway，现有静态 provider/profile/model selection 行为保持不变，只有批次 D 才会引入互斥的 snapshot consumer。
+- [Admin Provider Profile / Model Route 受控启用（开发 / 测试态）v1](admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md) 批次 A、B 已建立配置领域、三模式 durable repository、人工 review、显式 activation 和可恢复 active snapshot；当前尚未接入 Gateway，现有静态 provider/profile/model selection 行为保持不变，只有批次 D 才会引入互斥的 snapshot consumer。
 - 当前不执行生产 API 密钥生命周期、quota enforcement、rate limit、billing、cost ledger、provider retry/fallback execution、production gateway 或 load balancing。
 
 ## 当前开发目标

@@ -2,7 +2,7 @@
 
 更新时间：2026-07-26
 
-状态：`admin_provider_route_controlled_activation_dev_test_v1_batch_a_completed_batch_b_ready`
+状态：`admin_provider_route_controlled_activation_dev_test_v1_batch_b_completed_batch_c_ready`
 
 对应功能文档：[Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](../features/admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md)
 
@@ -86,6 +86,15 @@ Admin draft
 - 草案、候选、review、active snapshot 和 activation history 全部可恢复。
 - activation 与 history 在同一事务中提交。
 - DB / WAL / 日志不包含 forbidden material。
+
+### 完成记录
+
+- SQLite 已接入聚合本地持久化 migration，五类领域事实均有约束、索引、受控更新或 append-only trigger；真实数据库在两次重启后恢复三代 activation history。
+- PostgreSQL 已完成独立 marker、checksum、manual migration、运行 / 迁移连接分离和五表 repository；运行身份只有 DML，DDL 与 append-only 篡改均被数据库拒绝。
+- 三种 store mode 互斥；SQLite migration mismatch、PostgreSQL marker mismatch、连接关闭和存储故障都失败关闭，不回退至 memory。
+- draft 与 activation 并发 CAS 已在 SQLite 和真实 PostgreSQL 验证；active snapshot 与 activation record 始终在同一事务提交。
+- 真实数据库、WAL / SHM 与聚合 payload 扫描未发现 credential、endpoint 或 Authorization 材料；Platform 全量 Go 测试、`go vet` 和 PostgreSQL 专项链已通过。
+- 下一步只进入批次 C，冻结 Admin HTTP contract、四项独立权限、verified identity、稳定错误映射与显式开发测试态 capability。
 
 ## 批次 C：Admin HTTP / Auth
 

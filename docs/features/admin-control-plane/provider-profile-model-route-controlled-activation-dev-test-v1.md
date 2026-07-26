@@ -2,7 +2,7 @@
 
 更新时间：2026-07-26
 
-状态：`admin_provider_route_controlled_activation_dev_test_v1_batch_a_completed_batch_b_ready`
+状态：`admin_provider_route_controlled_activation_dev_test_v1_batch_b_completed_batch_c_ready`
 
 ## 当前结论
 
@@ -14,11 +14,13 @@
 
 ## 当前实现
 
-批次 A 已完成 Go 领域、只读 inventory resolver、内存 repository 和严格完整性重验。当前可在 `tenant + workspace + environment + configuration` 作用域内执行草案 CAS 保存、不可变候选生成、独立 review CAS、显式 activation generation CAS，以及回到曾经启用的批准候选；rollback 生成新的 generation，activation history 保持 append-only。
+批次 A 已完成 Go 领域、只读 inventory resolver、内存 repository 和严格完整性重验。批次 B 已补齐共享 SQLite 本地产品持久化、PostgreSQL 开发测试态持久化、独立迁移、三模式 selector 和配置投影。当前可在 `tenant + workspace + environment + configuration` 作用域内执行草案 CAS 保存、不可变候选生成、独立 review CAS、显式 activation generation CAS，以及回到曾经启用的批准候选；rollback 生成新的 generation，activation history 保持 append-only。
 
 Profile assignment 只接受当前环境下的 `runtime_profile_ref`，candidate 创建与 activation 都解析同一个外部 inventory owner 并核对 capability、enabled 状态和 digest。approval 不创建 active snapshot；inventory 缺失、不可用或发生漂移时不产生 snapshot 和 activation record。草案、候选、snapshot 与 history 在写入返回和后续读取时都会重验 schema、规范化内容、状态关系及 digest。
 
-11 项相邻测试覆盖完整 activate / replace / rollback 流程、规范化确定性、draft / review / generation 并发 CAS、权限和三维作用域隔离、敏感材料、跨环境引用、重复路由、capability mismatch、inventory 缺失 / 不可用 / 漂移、拒绝候选、无效 rollback、repository unavailable、外部对象修改隔离及 deliberate stored drift；普通与 race 模式均已通过。
+SQLite 与 PostgreSQL 都持久化草案、候选、独立 review、当前快照和 append-only activation history；快照切换与 activation record 在同一事务提交。SQLite 复用聚合 migration owner 并覆盖真实文件、WAL / SHM 隐私扫描；PostgreSQL 使用独立 marker、checksum、manual migration、迁移 / 运行角色分离和事务级作用域 advisory lock。`memory_dev | sqlite_dev | postgres_dev_test` 互斥选择，配置、migration 或存储不可用时不回退。
+
+相邻测试覆盖完整 activate / replace / rollback、两次重启恢复、draft / review / generation 并发 CAS、append-only 保护、配置拒绝、selector no fallback、数据库与 WAL 隐私扫描。真实 PostgreSQL 专项链已覆盖运行角色 DDL 拒绝、多连接并发激活 CAS、服务重开恢复和 configured profile；Platform 全量 Go 测试与 `go vet` 已通过。
 
 ## 用户与真实需求
 
@@ -240,9 +242,9 @@ pending_review -> rejected
 
 ### 批次 B：SQLite 与 PostgreSQL 开发测试态持久化
 
-- 完成独立表、索引、migration、selector 和三模式 repository parity。
-- 验证重启恢复、并发 CAS、运行 / 迁移角色分离、DDL 拒绝、no fallback。
-- 扫描数据库、WAL、错误和日志，确认无敏感材料。
+- 已完成独立表、索引、migration、selector 和三模式 repository parity。
+- 已验证重启恢复、并发 CAS、运行 / 迁移角色分离、DDL 拒绝、no fallback。
+- 已扫描数据库、WAL、错误和日志，确认不持久化敏感材料。
 
 ### 批次 C：Admin API 与身份权限
 

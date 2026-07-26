@@ -83,6 +83,8 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
@@ -1275,7 +1277,8 @@ func TestSQLiteDevLocalPersistenceProjectsEffectiveStoresAndRequiresDevelopmentG
 		summary.SQLiteDevSchemaStatus != "startup_migrations_configured" ||
 		summary.ApplicationCatalogStoreMode != "sqlite_dev" || summary.ApplicationDraftStoreMode != "sqlite_dev" ||
 		summary.ApplicationPublishStoreMode != "sqlite_dev" || summary.PromptTemplateStoreMode != "sqlite_dev" ||
-		summary.AgentCopilotProfileStoreMode != "sqlite_dev" || summary.APIKeyStoreMode != "sqlite_dev" ||
+		summary.AgentCopilotProfileStoreMode != "sqlite_dev" || summary.AdminProviderRouteStoreMode != "sqlite_dev" ||
+		summary.APIKeyStoreMode != "sqlite_dev" ||
 		summary.GatewayRequestStoreMode != "sqlite_dev" || summary.WorkflowSavedDraftStoreMode != "sqlite_dev" ||
 		summary.WorkflowRunStoreMode != "sqlite_dev" {
 		t.Fatalf("unexpected sqlite_dev sanitized summary: %#v", summary)
@@ -1511,6 +1514,38 @@ func TestGatewayRequestStoreRejectsUnknownModeAndInvalidTimeout(t *testing.T) {
 	}
 }
 
+func TestAdminProviderRouteStoreConfiguration(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_ADMIN_PROVIDER_ROUTE_STORE", "postgres_dev_test")
+	t.Setenv(
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_DATABASE_URL",
+		"postgresql://admin-provider-route.invalid/private",
+	)
+	t.Setenv("RADISHMIND_ADMIN_PROVIDER_ROUTE_DATABASE_TIMEOUT", "17s")
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load admin provider route store configuration: %v", err)
+	}
+	if cfg.AdminProviderRouteStoreMode != "postgres_dev_test" ||
+		cfg.AdminProviderRouteDatabaseURL == "" ||
+		cfg.AdminProviderRouteDatabaseTimeout != 17*time.Second {
+		t.Fatalf("unexpected admin provider route configuration: %#v", cfg)
+	}
+	summary := cfg.SanitizedSummary()
+	if summary.AdminProviderRouteStoreMode != "postgres_dev_test" ||
+		!summary.AdminProviderRouteDatabaseConfigured ||
+		summary.Timeouts["admin_provider_route_database"] != "17s" ||
+		len(summary.MissingRequiredFields) != 0 {
+		t.Fatalf("unexpected admin provider route summary: %#v", summary)
+	}
+
+	cfg.AdminProviderRouteStoreMode = "future_backend"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "admin provider route store must be memory_dev, sqlite_dev, or postgres_dev_test" {
+		t.Fatalf("unknown admin provider route store mode must fail closed: %v", err)
+	}
+}
+
 func clearPlatformEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{
@@ -1570,6 +1605,10 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DATABASE_TIMEOUT",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_STORE",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DATABASE_TIMEOUT",
 		"RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_HTTP",
 		"RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_WRITE",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE",

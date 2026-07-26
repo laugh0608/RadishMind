@@ -27,6 +27,7 @@ const (
 	defaultApplicationCatalogDBTimeout  = 5 * time.Second
 	defaultPromptTemplateDBTimeout      = 5 * time.Second
 	defaultAgentCopilotProfileDBTimeout = 5 * time.Second
+	defaultAdminProviderRouteDBTimeout  = 5 * time.Second
 	defaultAPIKeyDBTimeout              = 5 * time.Second
 	defaultRunDBTimeout                 = 5 * time.Second
 	defaultGatewayRequestDBTimeout      = 5 * time.Second
@@ -39,6 +40,7 @@ const (
 	defaultApplicationCatalogStoreMode  = "memory_dev"
 	defaultPromptTemplateStoreMode      = "memory_dev"
 	defaultAgentCopilotProfileStoreMode = "memory_dev"
+	defaultAdminProviderRouteStoreMode  = "memory_dev"
 	defaultAPIKeyStoreMode              = "memory_dev"
 	defaultGatewayAuthMode              = "dev_headers"
 	defaultRunStoreMode                 = "memory_dev"
@@ -112,6 +114,9 @@ type Config struct {
 	AgentCopilotProfileStoreMode            string
 	AgentCopilotProfileDatabaseURL          string
 	AgentCopilotProfileDatabaseTimeout      time.Duration
+	AdminProviderRouteStoreMode             string
+	AdminProviderRouteDatabaseURL           string
+	AdminProviderRouteDatabaseTimeout       time.Duration
 	AgentCopilotRuntimeDevHTTPEnabled       bool
 	AgentCopilotRuntimeDevWriteEnabled      bool
 	PromptTemplateStoreMode                 string
@@ -194,6 +199,8 @@ type ConfigSummary struct {
 	AgentCopilotProfileDevWriteEnabled      bool              `json:"agent_copilot_profile_dev_write_enabled"`
 	AgentCopilotProfileStoreMode            string            `json:"agent_copilot_profile_store_mode"`
 	AgentCopilotProfileDatabaseConfigured   bool              `json:"agent_copilot_profile_database_configured"`
+	AdminProviderRouteStoreMode             string            `json:"admin_provider_route_store_mode"`
+	AdminProviderRouteDatabaseConfigured    bool              `json:"admin_provider_route_database_configured"`
 	AgentCopilotRuntimeDevHTTPEnabled       bool              `json:"agent_copilot_runtime_dev_http_enabled"`
 	AgentCopilotRuntimeDevWriteEnabled      bool              `json:"agent_copilot_runtime_dev_write_enabled"`
 	PromptTemplateStoreMode                 string            `json:"prompt_application_template_store_mode"`
@@ -357,6 +364,8 @@ func defaultConfig() Config {
 		PromptTemplateDatabaseTimeout:        defaultPromptTemplateDBTimeout,
 		AgentCopilotProfileStoreMode:         defaultAgentCopilotProfileStoreMode,
 		AgentCopilotProfileDatabaseTimeout:   defaultAgentCopilotProfileDBTimeout,
+		AdminProviderRouteStoreMode:          defaultAdminProviderRouteStoreMode,
+		AdminProviderRouteDatabaseTimeout:    defaultAdminProviderRouteDBTimeout,
 		APIKeyStoreMode:                      defaultAPIKeyStoreMode,
 		APIKeyDatabaseTimeout:                defaultAPIKeyDBTimeout,
 		GatewayAuthMode:                      defaultGatewayAuthMode,
@@ -393,6 +402,9 @@ func defaultConfig() Config {
 			"agent_copilot_profile_store":                  configSourceDefault,
 			"agent_copilot_profile_database":               configSourceDefault,
 			"agent_copilot_profile_database_timeout":       configSourceDefault,
+			"admin_provider_route_store":                   configSourceDefault,
+			"admin_provider_route_database":                configSourceDefault,
+			"admin_provider_route_database_timeout":        configSourceDefault,
 			"agent_copilot_runtime_dev_http":               configSourceDefault,
 			"agent_copilot_runtime_dev_write":              configSourceDefault,
 			"application_draft_store":                      configSourceDefault,
@@ -787,6 +799,19 @@ func applyEnvOverrides(cfg *Config) error {
 		}
 		applyDurationValue(&cfg.AgentCopilotProfileDatabaseTimeout, parsed, cfg.FieldSources, "agent_copilot_profile_database_timeout", configSourceEnv)
 	}
+	if value, ok := stringEnv("RADISHMIND_ADMIN_PROVIDER_ROUTE_STORE"); ok {
+		applyStringValue(&cfg.AdminProviderRouteStoreMode, value, cfg.FieldSources, "admin_provider_route_store", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_DATABASE_URL"); ok {
+		applyStringValue(&cfg.AdminProviderRouteDatabaseURL, value, cfg.FieldSources, "admin_provider_route_database", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_ADMIN_PROVIDER_ROUTE_DATABASE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_ADMIN_PROVIDER_ROUTE_DATABASE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.AdminProviderRouteDatabaseTimeout, parsed, cfg.FieldSources, "admin_provider_route_database_timeout", configSourceEnv)
+	}
 	if value, ok := stringEnv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE"); ok {
 		applyStringValue(&cfg.PromptTemplateStoreMode, value, cfg.FieldSources, "prompt_application_template_store", configSourceEnv)
 	}
@@ -1138,6 +1163,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if agentCopilotProfileStoreMode == "" {
 		agentCopilotProfileStoreMode = defaultAgentCopilotProfileStoreMode
 	}
+	adminProviderRouteStoreMode := strings.TrimSpace(cfg.AdminProviderRouteStoreMode)
+	if adminProviderRouteStoreMode == "" {
+		adminProviderRouteStoreMode = defaultAdminProviderRouteStoreMode
+	}
 	apiKeyStoreMode := strings.TrimSpace(cfg.APIKeyStoreMode)
 	if apiKeyStoreMode == "" {
 		apiKeyStoreMode = defaultAPIKeyStoreMode
@@ -1208,6 +1237,9 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_dev_http")
 		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_dev_write")
+	}
+	if adminProviderRouteStoreMode == "postgres_dev_test" {
+		requiredFields = appendRequiredConfigField(requiredFields, "admin_provider_route_database")
 	}
 	if cfg.PromptApplicationRuntimeDevHTTPEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
@@ -1360,6 +1392,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		AgentCopilotProfileDevWriteEnabled:      cfg.AgentCopilotProfileDevWriteEnabled,
 		AgentCopilotProfileStoreMode:            agentCopilotProfileStoreMode,
 		AgentCopilotProfileDatabaseConfigured:   strings.TrimSpace(cfg.AgentCopilotProfileDatabaseURL) != "",
+		AdminProviderRouteStoreMode:             adminProviderRouteStoreMode,
+		AdminProviderRouteDatabaseConfigured:    strings.TrimSpace(cfg.AdminProviderRouteDatabaseURL) != "",
 		AgentCopilotRuntimeDevHTTPEnabled:       cfg.AgentCopilotRuntimeDevHTTPEnabled,
 		AgentCopilotRuntimeDevWriteEnabled:      cfg.AgentCopilotRuntimeDevWriteEnabled,
 		PromptTemplateStoreMode:                 promptTemplateStoreMode,
@@ -1425,6 +1459,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"application_catalog_database":         cfg.ApplicationCatalogDatabaseTimeout.String(),
 			"prompt_application_template_database": cfg.PromptTemplateDatabaseTimeout.String(),
 			"agent_copilot_profile_database":       cfg.AgentCopilotProfileDatabaseTimeout.String(),
+			"admin_provider_route_database":        cfg.AdminProviderRouteDatabaseTimeout.String(),
 			"api_key_database":                     cfg.APIKeyDatabaseTimeout.String(),
 			"workflow_run_database":                cfg.WorkflowRunDatabaseTimeout.String(),
 		},
@@ -1453,6 +1488,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_MIGRATION_DATABASE_URL",
+			"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_DATABASE_URL",
+			"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
@@ -1588,6 +1625,10 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			}
 		case "agent_copilot_profile_database":
 			if strings.TrimSpace(cfg.AgentCopilotProfileDatabaseURL) == "" {
+				missing = append(missing, field)
+			}
+		case "admin_provider_route_database":
+			if strings.TrimSpace(cfg.AdminProviderRouteDatabaseURL) == "" {
 				missing = append(missing, field)
 			}
 		case "agent_copilot_runtime_dev_http":
@@ -1905,6 +1946,18 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.AgentCopilotProfileDatabaseTimeout <= 0 {
 		return fmt.Errorf("agent copilot profile database timeout must be positive")
+	}
+	switch strings.TrimSpace(cfg.AdminProviderRouteStoreMode) {
+	case "", "memory_dev", "sqlite_dev":
+	case "postgres_dev_test":
+		if strings.TrimSpace(cfg.AdminProviderRouteDatabaseURL) == "" {
+			return fmt.Errorf("admin provider route postgres_dev_test store requires a database URL")
+		}
+	default:
+		return fmt.Errorf("admin provider route store must be memory_dev, sqlite_dev, or postgres_dev_test")
+	}
+	if cfg.AdminProviderRouteDatabaseTimeout < 0 {
+		return fmt.Errorf("admin provider route database timeout cannot be negative")
 	}
 	switch strings.TrimSpace(cfg.PromptTemplateStoreMode) {
 	case "", "memory_dev":
