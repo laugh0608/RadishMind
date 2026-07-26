@@ -22,6 +22,7 @@ import {
   type WorkflowRAGEvaluationSampleInput,
   type WorkflowRAGEvaluationSnapshotBinding,
 } from "./workflowRAGEvaluationDatasetConsumer.ts";
+import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 
 const config = readWorkflowRAGEvaluationConfig();
 const DEFAULT_THRESHOLDS: WorkflowRAGEvaluationMetrics = {
@@ -55,10 +56,12 @@ export default function WorkflowRAGEvaluationDatasetPanel({
   applicationId,
   applicationName,
   applicationActive,
+  onEvidenceChange,
 }: {
   applicationId: string;
   applicationName: string;
   applicationActive: boolean;
+  onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
 }) {
   const [collection, setCollection] = useState<DatasetCollection>(emptyCollection);
   const [filter, setFilter] = useState<WorkflowRAGEvaluationLifecycle>("active");
@@ -80,6 +83,23 @@ export default function WorkflowRAGEvaluationDatasetPanel({
   const canReview = applicationActive && canRead && config.scopes.has("workflow_rag_evaluation_datasets:review") && config.scopes.has("workflow_rag_snapshots:read");
   const canArchive = applicationActive && config.scopes.has("workflow_rag_evaluation_datasets:archive");
   const visibleResources = useMemo(() => filter === "active" ? collection.active : collection.archived, [collection, filter]);
+
+  useEffect(() => {
+    if (!onEvidenceChange) return;
+    const failureCode = collection.failureCode || operation?.failureCode || "";
+    const ownerFailed = Boolean(failureCode) && (operation?.status === "failed" || operation?.status === "scope_denied" || operation?.status === "version_conflict" || Boolean(collection.failureCode));
+    const compatible = selectedReview?.candidateStatus === "passed" &&
+      (selectedReview.conclusion === "improved" || selectedReview.conclusion === "unchanged");
+    onEvidenceChange({
+      contributionId: "evaluation_review",
+      status: ownerFailed ? "blocked" : compatible ? "available" : "incomplete",
+      coverage: selectedReview || ownerFailed ? "complete" : collection.active.length ? "partial" : "none",
+      evidenceRefs: selectedReview ? [{ kind: "evaluation", id: selectedReview.reviewId, version: selectedReview.datasetVersion }] : [],
+      missingEvidence: compatible ? [] : ["Select a compatible candidate evaluation review with a passed candidate snapshot."],
+      blockers: ownerFailed ? [{ code: failureCode, summary: operation?.summary || "Evaluation evidence could not be loaded from its owner." }] : [],
+      failureCodes: ownerFailed ? [failureCode] : [],
+    });
+  }, [collection.active.length, collection.failureCode, onEvidenceChange, operation, selectedReview]);
 
   useEffect(() => {
     let cancelled = false;

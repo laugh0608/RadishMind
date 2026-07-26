@@ -52,6 +52,26 @@ var controlPlaneReadPermissionGrants = map[string]string{
 	"radishmind.application-sessions.execute":   "application_sessions:execute",
 }
 
+var promptApplicationTemplatePermissionGrants = map[string]string{
+	"radishmind.prompt-application-templates.read":        "prompt_application_templates:read",
+	"radishmind.prompt-application-templates.read-source": "prompt_application_templates:read_source",
+	"radishmind.prompt-application-templates.write":       "prompt_application_templates:write",
+	"radishmind.prompt-application-templates.version":     "prompt_application_templates:version",
+	"radishmind.prompt-application-templates.bind":        "prompt_application_templates:bind",
+	"radishmind.prompt-application-runtime.read":          "prompt_application_runtime:read",
+	"radishmind.prompt-application-runtime.write":         "prompt_application_runtime:write",
+}
+
+var agentCopilotPermissionGrants = map[string]string{
+	"radishmind.agent-copilot-profiles.read":        "agent_copilot_profiles:read",
+	"radishmind.agent-copilot-profiles.read-source": "agent_copilot_profiles:read_source",
+	"radishmind.agent-copilot-profiles.write":       "agent_copilot_profiles:write",
+	"radishmind.agent-copilot-profiles.version":     "agent_copilot_profiles:version",
+	"radishmind.agent-copilot-profiles.bind":        "agent_copilot_profiles:bind",
+	"radishmind.agent-copilot-runtime.read":         "agent_copilot_runtime:read",
+	"radishmind.agent-copilot-runtime.write":        "agent_copilot_runtime:write",
+}
+
 var controlPlaneReadAuthReferencePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$`)
 
 type VerifiedControlPlaneIdentity struct {
@@ -419,6 +439,12 @@ func projectControlPlaneReadPermissions(permissions []string) []string {
 	seen := map[string]bool{}
 	for _, permission := range permissions {
 		grant, ok := controlPlaneReadPermissionGrants[strings.TrimSpace(permission)]
+		if !ok {
+			grant, ok = promptApplicationTemplatePermissionGrants[strings.TrimSpace(permission)]
+		}
+		if !ok {
+			grant, ok = agentCopilotPermissionGrants[strings.TrimSpace(permission)]
+		}
 		if ok && !seen[grant] {
 			seen[grant] = true
 			grants = append(grants, grant)

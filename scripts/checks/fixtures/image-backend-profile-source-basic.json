@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "image_backend_profile_source",
+  "profile_id": "image.diagram.remote",
+  "profile_version": 1,
+  "environment": "test",
+  "enabled": true,
+  "backend": {
+    "id": "sd15",
+    "model": "sd15-local-or-service",
+    "adapter_profile": "diagram-default"
+  },
+  "runtime": {
+    "mode": "remote_https",
+    "endpoint_ref": "ref:radishmind/test/image-backends/endpoints/diagram-default",
+    "model_dir_ref": null
+  },
+  "credential": {
+    "requirement": "required",
+    "secret_ref": "ref:radishmind/test/image-backends/credentials/diagram-default"
+  },
+  "limits": {
+    "timeout_seconds": 30
+  }
+}

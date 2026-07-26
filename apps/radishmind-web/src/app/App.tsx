@@ -92,6 +92,7 @@ import {
   type ApplicationCatalogRecord,
 } from "../features/control-plane-read/applicationCatalogConsumer";
 import type { ApplicationCatalogSnapshot } from "../features/control-plane-read/applicationCatalogPanel";
+import { buildApplicationDevelopmentWorkspaceContext } from "../features/control-plane-read/applicationDevelopmentWorkspace";
 import {
   type WorkflowApplicationBlockedCapabilityPreview,
   type WorkflowApplicationDetailViewModel,
@@ -218,24 +219,14 @@ const savedDraftConsumerConfig = readWorkflowSavedDraftConsumerConfig();
 const workflowExecutorConsumerConfig = readWorkflowExecutorConsumerConfig();
 const workflowHTTPToolActionConsumerConfig = readWorkflowHTTPToolActionConsumerConfig();
 const workflowHTTPToolPermissions = workflowHTTPToolActionPermissions(workflowHTTPToolActionConsumerConfig);
-const WorkflowRunHistoryPanel = lazy(() => import("../features/control-plane-read/workflowRunHistoryPanel"));
 const WorkflowNodeDesigner = lazy(() => import("../features/control-plane-read/workflowNodeDesigner").then((module) => ({ default: module.WorkflowNodeDesigner })));
 const AdminOperationsReviewPanel = lazy(() => import("../features/control-plane-read/adminOperationsReviewPanel").then((module) => ({ default: module.AdminOperationsReviewPanel })));
 const ModelGatewayEvidenceReviewPanel = lazy(() => import("../features/control-plane-read/modelGatewayEvidenceReviewPanel").then((module) => ({ default: module.ModelGatewayEvidenceReviewPanel })));
 const ModelGatewayPlaygroundPanel = lazy(() => import("../features/control-plane-read/modelGatewayPlaygroundPanel"));
-const ApplicationApiIntegrationPanel = lazy(() => import("../features/control-plane-read/applicationApiIntegrationPanel"));
-const ApplicationConfigurationDraftPanel = lazy(() => import("../features/control-plane-read/applicationConfigurationDraftPanel"));
-const ApplicationPublishCandidatePanel = lazy(() => import("../features/control-plane-read/applicationPublishCandidatePanel"));
 const ApplicationCatalogPanel = lazy(() => import("../features/control-plane-read/applicationCatalogPanel").then((module) => ({ default: module.ApplicationCatalogPanel })));
-const WorkflowRAGSnapshotPanel = lazy(() => import("../features/control-plane-read/workflowRAGSnapshotPanel"));
-const WorkflowRAGEvaluationDatasetPanel = lazy(() => import("../features/control-plane-read/workflowRAGEvaluationDatasetPanel"));
-const WorkflowRAGPromotionPanel = lazy(() => import("../features/control-plane-read/workflowRAGPromotionPanel"));
+const ApplicationDevelopmentWorkspacePanel = lazy(() => import("../features/control-plane-read/applicationDevelopmentWorkspacePanel"));
+const ApplicationDevelopmentWorkspaceSurface = lazy(() => import("../features/control-plane-read/applicationDevelopmentWorkspaceSurface"));
 const WorkflowRAGExecutionPanel = lazy(() => import("../features/control-plane-read/workflowRAGExecutionPanel"));
-const WorkflowDefinitionPromotionPanel = lazy(() => import("../features/control-plane-read/workflowDefinitionPromotionPanel"));
-const APIKeyLifecyclePanel = lazy(() => import("../features/control-plane-read/apiKeyLifecyclePanel").then((module) => ({ default: module.APIKeyLifecyclePanel })));
-const ApplicationInteractionSessionPanel = lazy(() => import("../features/control-plane-read/applicationInteractionSessionPanel"));
-const ApplicationRAGInvocationPanel = lazy(() => import("../features/control-plane-read/workflowRAGApplicationRuntimePanel"));
-const ApplicationOperationsPanel = lazy(() => import("../features/control-plane-read/applicationOperationsPanel"));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
 const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
 
@@ -547,12 +538,53 @@ export function App() {
     savedDraftConflictReviewSummary,
     workflowReviewHandoff,
   } = workflowWorkspaceContext;
+  const applicationCatalogLive = applicationCatalogConfig.mode === "dev_application_catalog_http";
   const selectedApplicationCatalogRecord = applicationCatalogSnapshot?.records.find(
     (record) => record.applicationId === selectedApplicationRef,
   ) ?? null;
-  const applicationCatalogLive = applicationCatalogConfig.mode === "dev_application_catalog_http";
-  const canRenderSelectedApplicationActions = !applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active";
-  const workflowScopedApplicationId = selectedApplicationRef?.trim() || activeWorkflowDraft.applicationRef;
+  const applicationDevelopmentWorkspaceContext = useMemo(
+    () => buildApplicationDevelopmentWorkspaceContext({
+      applicationId: applicationCatalogLive
+        ? selectedApplicationCatalogRecord?.applicationId ?? ""
+        : selectedApplication.applicationRef,
+      displayName: applicationCatalogLive
+        ? selectedApplicationCatalogRecord?.displayName ?? ""
+        : selectedApplication.displayName,
+      applicationKind: applicationCatalogLive
+        ? selectedApplicationCatalogRecord?.applicationKind ?? ""
+        : selectedApplication.applicationKind,
+      lifecycleState: applicationCatalogLive
+        ? selectedApplicationCatalogRecord?.lifecycleState ?? ""
+        : selectedApplication.lifecycleState ?? "active",
+      recordVersion: applicationCatalogLive
+        ? selectedApplicationCatalogRecord?.recordVersion ?? 0
+        : selectedApplication.recordVersion ?? 0,
+      updatedAt: applicationCatalogLive
+        ? selectedApplicationCatalogRecord?.updatedAt ?? ""
+        : selectedApplication.updatedAt,
+      ownerSubjectRef: applicationCatalogLive
+        ? selectedApplicationCatalogRecord?.ownerSubjectRef ?? ""
+        : selectedApplication.ownerSubjectRef,
+      workspaceId: applicationCatalogLive
+        ? selectedApplicationCatalogRecord?.workspaceId ?? ""
+        : selectedApplication.workspaceId ?? "",
+      source: applicationCatalogLive ? "application_catalog" : "offline_read_model",
+    }),
+    [
+      applicationCatalogLive,
+      selectedApplication.applicationKind,
+      selectedApplication.applicationRef,
+      selectedApplication.displayName,
+      selectedApplication.lifecycleState,
+      selectedApplication.ownerSubjectRef,
+      selectedApplication.recordVersion,
+      selectedApplication.updatedAt,
+      selectedApplication.workspaceId,
+      selectedApplicationCatalogRecord,
+    ],
+  );
+  const workflowScopedApplicationId = applicationDevelopmentWorkspaceContext.applicationId ||
+    (applicationCatalogLive ? "" : activeWorkflowDraft.applicationRef);
   const savedDraftConflictRestoreSummary = useMemo(
     () =>
       savedDraftListState.summaries.find(
@@ -1556,9 +1588,7 @@ export function App() {
         />
         <Suspense fallback={<section className="surface-band"><p>Loading Gateway Playground…</p></section>}>
           <ModelGatewayPlaygroundPanel
-            selectedApplicationId={applicationCatalogLive
-              ? selectedApplicationCatalogRecord?.applicationId ?? ""
-              : selectedApplication.applicationRef}
+            selectedApplicationId={applicationDevelopmentWorkspaceContext.applicationId}
           />
         </Suspense>
         <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
@@ -1760,33 +1790,6 @@ export function App() {
             />
           </Suspense>
 
-          <Suspense fallback={<div className="workflow-rag-snapshot-panel"><p>Loading application knowledge snapshots…</p></div>}>
-            <WorkflowRAGSnapshotPanel
-              key={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}
-              applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
-              applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
-              applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
-            />
-          </Suspense>
-
-          <Suspense fallback={<div className="workflow-rag-evaluation-panel"><p>Loading Workflow RAG evaluation datasets…</p></div>}>
-            <WorkflowRAGEvaluationDatasetPanel
-              key={`rag-evaluation-${applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}`}
-              applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
-              applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
-              applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
-            />
-          </Suspense>
-
-          <Suspense fallback={<div className="workflow-rag-promotion-panel"><p>Loading Workflow RAG promotion and binding review…</p></div>}>
-            <WorkflowRAGPromotionPanel
-              key={`rag-promotion-${applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}`}
-              applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
-              applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
-              applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
-            />
-          </Suspense>
-
           {!applicationCatalogLive ? (
             <div className="application-list" aria-label="Workspace applications">
               {workspaceApplications.applications.map((application) => (
@@ -1800,85 +1803,37 @@ export function App() {
             </div>
           ) : null}
 
-          {canRenderSelectedApplicationActions ? (
-            <>
-              <WorkflowApplicationDetailPanel detail={workflowApplicationDetail} />
-              <Suspense fallback={<div className="application-configuration-draft"><p>Loading Application Configuration Draft…</p></div>}>
-                <ApplicationConfigurationDraftPanel
-                  key={selectedApplication.applicationRef}
-                  baseline={{
-                    applicationId: selectedApplication.applicationRef,
-                    displayName: selectedApplication.displayName,
-                    applicationKind: selectedApplication.applicationKind,
-                    updatedAt: selectedApplication.updatedAt,
-                  }}
-                />
-              </Suspense>
-              <Suspense fallback={<div className="application-publish-workspace"><p>Loading Application Publish Review…</p></div>}>
-                <ApplicationPublishCandidatePanel
-                  key={selectedApplication.applicationRef}
-                  baseline={{
-                    applicationId: selectedApplication.applicationRef,
-                    displayName: selectedApplication.displayName,
-                    applicationKind: selectedApplication.applicationKind,
-                    updatedAt: selectedApplication.updatedAt,
-                  }}
-                />
-              </Suspense>
-              <Suspense fallback={<div className="application-api-integration"><p>Loading Application API Integration…</p></div>}>
-                <ApplicationApiIntegrationPanel
-                  key={selectedApplication.applicationRef}
-                  applicationId={selectedApplication.applicationRef}
-                  applicationName={selectedApplication.displayName}
-                />
-              </Suspense>
-            </>
-          ) : selectedApplicationCatalogRecord ? (
-            <>
-              <WorkflowApplicationDetailPanel detail={workflowApplicationDetail} />
-              <Suspense fallback={<div className="application-configuration-draft"><p>Loading archived configuration history…</p></div>}>
-                <ApplicationConfigurationDraftPanel
-                  key={selectedApplication.applicationRef}
-                  readOnly
-                  baseline={{
-                    applicationId: selectedApplication.applicationRef,
-                    displayName: selectedApplication.displayName,
-                    applicationKind: selectedApplication.applicationKind,
-                    updatedAt: selectedApplication.updatedAt,
-                  }}
-                />
-              </Suspense>
-              <Suspense fallback={<div className="application-publish-workspace"><p>Loading archived publish history…</p></div>}>
-                <ApplicationPublishCandidatePanel
-                  key={selectedApplication.applicationRef}
-                  readOnly
-                  baseline={{
-                    applicationId: selectedApplication.applicationRef,
-                    displayName: selectedApplication.displayName,
-                    applicationKind: selectedApplication.applicationKind,
-                    updatedAt: selectedApplication.updatedAt,
-                  }}
-                />
-              </Suspense>
-              <article className="application-catalog-downstream-blocked" role="status">
-                <p className="eyebrow">Lifecycle enforcement</p>
-                <h4>Archived application is read-only</h4>
-                <p>Configuration drafts and publish candidates remain readable in dedicated read-only sections. New saves, reviews, and API invocation handoffs are hidden; existing run and request evidence remains available.</p>
-                <nav aria-label="Archived application history links">
-                  <a href="#application-configuration-draft">Configuration history</a>
-                  <a href="#application-publish-review">Publish history</a>
-                  <a href="#workspace-run-history">Run history</a>
-                  <a href="#model-gateway-request-history">Request history</a>
-                </nav>
-              </article>
-            </>
-          ) : (
-            <article className="application-catalog-downstream-blocked" role="status">
-              <p className="eyebrow">Lifecycle enforcement</p>
-              <h4>Create or select an active application</h4>
-              <p>The authoritative catalog is empty. Create an application before opening configuration, publish, or invocation workflows.</p>
-            </article>
-          )}
+          {applicationDevelopmentWorkspaceContext.status !== "unavailable" ? (
+            <WorkflowApplicationDetailPanel detail={workflowApplicationDetail} />
+          ) : null}
+
+          <Suspense fallback={<div className="application-development-workspace"><p>Loading Application Development Workspace…</p></div>}>
+            <ApplicationDevelopmentWorkspacePanel
+              key={applicationDevelopmentWorkspaceContext.generationKey}
+              context={applicationDevelopmentWorkspaceContext}
+              renderStageSurfaces={(activeStage, surfaceKey, controls) => (
+                <Suspense fallback={<div className="application-development-stage-surfaces"><p>Loading Application Development stage surfaces…</p></div>}>
+                  <ApplicationDevelopmentWorkspaceSurface
+                    key={surfaceKey}
+                    context={applicationDevelopmentWorkspaceContext}
+                    activeStage={activeStage}
+                    surfaceKey={surfaceKey}
+                    controls={controls}
+                    offlineApiKeys={workspaceApiKeys}
+                    suggestedDefinitionId={selectedWorkflowDefinitionId ?? ""}
+                    runHistoryRefreshKey={workflowRunHistoryRefreshKey}
+                    activeWorkflowDraft={activeWorkflowDraft}
+                    savedDraftVersion={savedDraftConsumerState.currentDraftVersion ?? 0}
+                    nextDerivedDraftNumber={workspaceCreatedDrafts.filter(
+                      (draft) => draft.applicationRef === workflowScopedApplicationId && (draft.baseDefinitionVersion ?? 0) > 0,
+                    ).length + 1}
+                    onDerivedDraft={handleCreateDefinitionDerivedDraft}
+                    onRunRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
+                  />
+                </Suspense>
+              )}
+            />
+          </Suspense>
 
           <div className="application-states" aria-label="Workspace application states">
             {workspaceApplications.statePreviews.map((state) => (
@@ -1886,37 +1841,6 @@ export function App() {
             ))}
           </div>
         </section>
-
-        <Suspense fallback={<section className="surface-band workspace-api-keys"><p>Loading API key lifecycle…</p></section>}>
-          <APIKeyLifecyclePanel
-            key={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}
-            applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
-            applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
-            applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
-            offlineView={workspaceApiKeys}
-          />
-        </Suspense>
-
-        <Suspense fallback={<section className="surface-band application-interaction-session"><p>Loading Application Interaction…</p></section>}>
-          <ApplicationInteractionSessionPanel
-            key={`application-interaction-${applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}`}
-            applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
-            applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
-            applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
-            suggestedDefinitionId={selectedWorkflowDefinitionId ?? ""}
-            onRunRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
-          />
-        </Suspense>
-
-        <Suspense fallback={<section className="surface-band workflow-rag-application-invocation"><p>Loading Application RAG Invocation…</p></section>}>
-          <ApplicationRAGInvocationPanel
-            key={`application-rag-${applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "no-application" : selectedApplication.applicationRef}`}
-            applicationId={applicationCatalogLive ? selectedApplicationCatalogRecord?.applicationId ?? "" : selectedApplication.applicationRef}
-            applicationName={applicationCatalogLive ? selectedApplicationCatalogRecord?.displayName ?? "" : selectedApplication.displayName}
-            applicationActive={!applicationCatalogLive || selectedApplicationCatalogRecord?.lifecycleState === "active"}
-            onRunRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
-          />
-        </Suspense>
 
         <section
           className="surface-band workspace-usage-quota"
@@ -2093,19 +2017,6 @@ export function App() {
             onSaveDraft={handleSaveWorkflowDraft}
             onReadDraft={handleReadWorkflowDraft}
           />
-          <Suspense fallback={<section className="workflow-definition-promotion-panel"><p>Loading workflow definition promotion…</p></section>}>
-            <WorkflowDefinitionPromotionPanel
-              key={`workflow-definition-promotion-${workflowScopedApplicationId}`}
-              applicationId={workflowScopedApplicationId}
-              activeDraft={activeWorkflowDraft}
-              savedDraftVersion={savedDraftConsumerState.currentDraftVersion ?? 0}
-              nextDerivedDraftNumber={workspaceCreatedDrafts.filter(
-                (draft) => draft.applicationRef === workflowScopedApplicationId && (draft.baseDefinitionVersion ?? 0) > 0,
-              ).length + 1}
-              onDerivedDraft={handleCreateDefinitionDerivedDraft}
-              onRunRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
-            />
-          </Suspense>
           <WorkflowHTTPToolActionPanel
             draft={activeWorkflowDraft}
             consumerState={workflowHTTPToolActionState}
@@ -2168,20 +2079,6 @@ export function App() {
             ))}
           </div>
         </section>
-
-        <Suspense fallback={<section className="surface-band"><p>Loading application operations…</p></section>}>
-          <ApplicationOperationsPanel
-            key={`application-operations-${workflowScopedApplicationId}`}
-            applicationId={workflowScopedApplicationId}
-            applicationName={applicationCatalogLive
-              ? selectedApplicationCatalogRecord?.displayName ?? ""
-              : selectedApplication.displayName}
-          />
-        </Suspense>
-
-        <Suspense fallback={<section className="surface-band"><p>Loading run history…</p></section>}>
-          <WorkflowRunHistoryPanel applicationId={workflowScopedApplicationId} refreshKey={workflowRunHistoryRefreshKey} />
-        </Suspense>
 
         <section hidden aria-hidden="true"
           className="surface-band workspace-run-history"

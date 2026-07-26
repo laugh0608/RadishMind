@@ -1,6 +1,6 @@
 # RadishMind 代码规范
 
-更新时间：2026-06-30
+更新时间：2026-07-20
 
 ## 文档目的
 
@@ -60,6 +60,12 @@
 - 组件命名与目录结构应能直接表达页面、容器或业务单元职责。
 - 不默认堆叠 `useMemo` / `useCallback`，只在真实性能或引用稳定性需要时使用。
 - UI 只消费后端协议与视图模型，不把业务真相源复制到前端。
+- `App.tsx` 等顶层组件只负责产品壳、全局导航、作用域选择和共享依赖注入；跨多个领域面板的阶段编排应由明确的 feature-owned workspace 承担。
+- 同一功能工作区默认只挂载当前 surface。作用域、权威 revision、lifecycle 或 route 变化时应更新 generation / `surfaceKey`，并在状态写入前拒绝旧 surface 的迟到回调。
+- 跨 owner handoff 只传递有作用域的稳定资源引用；目标 owner 必须重新读取精确资源，不接收来源完整对象，不用最近一条记录或本地副本自动补位。
+- readiness、overview 和 evidence rollup 只是可解释投影，不得持久化为领域状态，不得替代服务端 eligibility、人工审查、activation、assignment 或发布授权。
+- input、answer、transcript、一次性凭据和冲突草稿等易失或敏感状态应留在对应 owner 组件内，并在作用域、路由或 profile 切换时清除；不得写入 URL、浏览器持久化或通用 workspace context。
+- 聚合多个 consumer 时应保留各来源独立的 loading / ready / empty / failed 状态；partial failure 不能通过合并默认值掩盖，也不能据此推测跨来源关联。
 
 ## Go 规范
 

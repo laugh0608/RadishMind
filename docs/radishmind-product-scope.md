@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-07-19
+更新时间：2026-07-20
 
 ## 核心定义
 
@@ -145,7 +145,11 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 - 主模型只输出结构化 image intent、约束、审查和 artifact metadata。
 - 真正的图片生成由独立 image adapter 和 backend 承接。
 - 当前 `services/runtime/image_artifact_runtime_mapper.py`、`services/runtime/image_artifact_response_consumer.py` 与 `services/runtime/inference_response.py#coerce_response_document` 已形成 metadata-only response builder 链路：从 `copilot_request.artifacts[*].metadata.image_generation_artifact` 读取 metadata，投影为 artifact citation，并合并进现有 `CopilotResponse.citations`。它们不读取 artifact 二进制、不查 artifact store、不解析 public URL、不调用真实生图 backend、不上传 artifact、不修改 `CopilotResponse` schema。
-- `blocked / failed / pending_review` artifact、invalid metadata、hash / mime / dimensions mismatch、public URL claim、signed URL policy missing、binary payload、provider raw dump、store / reader 缺失、safety review not passed 和 provenance missing 都必须 fail closed，不能进入成功 response。
+- `services/runtime/image_backend_profile_configuration.py` 与 strict source schema 已提供开发测试态 reference-only profile compiler：区分 `remote_https`、`local_model` 与仅限 test 的 `contract_fixture`，生成稳定 `profile_digest` 并拥有 timeout；它不解析引用、不读取 credential、endpoint 或 model directory。
+- `services/runtime/image_backend_contract_fixture_client.py` 是首个具体 client，但只服务离线 test contract：检查调用侧注入的 PNG / JPEG / WebP fixture 与 canonical backend request，返回 deterministic artifact identity、UTC 时间和 observation，不返回或持久化 bytes，也不连接真实 backend。
+- `services/runtime/image_generation_adapter.py` 校验 strict intent 与预算，只接受 digest 可重算的 enabled profile，确定性编译 backend request 并单次调用 client；canonical title、purpose、generation、safety、provenance 与 URI 全部由 adapter 构造，backend 不拥有第二套 artifact metadata。
+- `services/runtime/image_artifact_private_storage.py` 与 `image_artifact_binary_inspection.py` 已提供开发测试态本机私有 artifact owner：以观测后的 PNG / JPEG / WebP 二进制写入 content-addressed blob，生成不可变 artifact ref，并把 metadata-only lookup 与显式授权、单次消费的 binary reader 分离；公开结果不含 bytes、绝对路径或 storage ref。它不是 production object store、公开交付层或 backend client。
+- `blocked / failed / pending_review` artifact、invalid metadata、hash / mime / dimensions mismatch、public URL claim、signed URL policy missing、binary payload、provider raw dump、store / reader 缺失、safety review not passed 和 provenance missing 都必须 fail closed，不能进入成功 response；本机私有 reader 还必须在 ref、文件类型、权限、大小与二进制重验全部通过后才允许内部 consumer 读取一次。
 
 ### 7. 用户端、管理端和上层项目接入面
 
@@ -161,7 +165,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 ## 当前阶段判断
 
 - 当前成熟度统一称为“内部开发者预览”，不再复用历史 `M2` 编号。2026-07-11 起，当前执行以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 为准；旧 storage adapter readiness 的下一依赖只作为历史证据。
-- R3 浏览器审查闭环、Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning、Evaluation Suite / Release Review、Gateway Request History / Playground、Application API Integration / Configuration / Publish Governance 与 Application Catalog 均已完成。[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已完成签发、一次性交接、管理端吊销、Gateway 作用域认证、请求历史、最近使用更新、SQLite / PostgreSQL 连续验证、Web 与重启复验。R6 已通过关闭评审；Workflow HTTP Tool、RAG Retrieval / 评测 / 知识晋级、Application RAG runtime、Workflow 不可变版本晋级与 definition-bound run v5，以及 Application Interaction Session 的三种 repository、双 profile 委托、Web、双数据库连续链和真实浏览器均已关闭。下一项优先设计应用开发工作区与发布准备审查，把既有能力组织为完整用户路径；production repository mode、真实 OIDC、production secret、业务写回 / replay、production API key、quota enforcement / billing 和公开生产 API 仍保持关闭。
+- R3 浏览器审查闭环、Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning、Evaluation Suite / Release Review、Gateway Request History / Playground、Application API Integration / Configuration / Publish Governance 与 Application Catalog 均已完成。[用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已完成签发、一次性交接、管理端吊销、Gateway 作用域认证、请求历史、最近使用更新、SQLite / PostgreSQL 连续验证、Web 与重启复验。R6 已通过关闭评审；Workflow HTTP Tool、RAG Retrieval / 评测 / 知识晋级、Application RAG runtime、Workflow 不可变版本晋级与 definition-bound run v5、Application Interaction Session，以及[应用开发工作区与发布准备审查 v1](features/user-workspace/application-development-workspace-release-readiness-review-v1.md)均已关闭。应用开发工作区已完成唯一 context、五阶段单 surface、精确 handoff、四态 readiness、失败关闭和真实浏览器隐私审计；production repository mode、真实 OIDC、production secret、业务写回 / replay、production API key、quota enforcement / billing 和公开生产 API 继续关闭。
 - 历史上的 `M3` service/API smoke 与 `M4` broader review、`3B/4B` capacity review 已经收口为冻结证据。
 - 当前正式主线切换为“AI 工具 / 工作流 / 模型网关 / Copilot 集成平台重定义 + 平台基础能力建设”，不再把“继续深挖同一批实验”或“提前设计不存在的真实接线”当作默认推进方式。
 - 当前 `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已收口为 `local usable / read-only close`：已用 `/v1/platform/overview`、`/v1/platform/local-smoke`、overview / local-smoke consumer smoke、最小本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist 固定本地 console 可展示能力与未满足的生产前置条件。`Production Ops Hardening v1` 已进一步固定 Docker local/test/prod 部署形态、compose 边界、镜像命名、静态 smoke、runbook 和运行记录模板，并完成一次 `docker_local` container smoke；`Provider Runtime & Health v1` 已固定 capability / health / selection / docs 四个可检查切片并进入 close candidate。2026-06-14 阶段评估后，默认停止继续扩同层只读 UI / gate-only 切片；Image Path 的 metadata-only response builder 接线和 Control Plane Read 的 repository interface + fake store interface 化均已完成，后续产品范围按功能设计文档选择单一实现方向，不在无运行窗口时继续补 console 小切片、provider 同层小切片、Production Ops 静态治理、真实模型长跑或假想上层接线。

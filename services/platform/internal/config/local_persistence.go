@@ -6,10 +6,37 @@ import (
 )
 
 func ValidateServerStart(cfg Config) error {
+	if cfg.PromptTemplateDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return errors.New("prompt application template dev HTTP requires control plane read dev auth")
+	}
+	if cfg.PromptTemplateDevWriteEnabled && !cfg.PromptTemplateDevHTTPEnabled {
+		return errors.New("prompt application template dev write requires its HTTP gate")
+	}
+	if cfg.AgentCopilotProfileDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return errors.New("agent copilot profile dev HTTP requires control plane read dev auth")
+	}
+	if cfg.AgentCopilotProfileDevWriteEnabled && !cfg.AgentCopilotProfileDevHTTPEnabled {
+		return errors.New("agent copilot profile dev write requires its HTTP gate")
+	}
+	if cfg.AgentCopilotRuntimeDevHTTPEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled ||
+		!cfg.ApplicationDraftDevHTTPEnabled || !cfg.ApplicationPublishDevHTTPEnabled || !cfg.AgentCopilotProfileDevHTTPEnabled) {
+		return errors.New("agent copilot runtime dev HTTP requires auth, catalog, draft, publish, and profile HTTP gates")
+	}
+	if cfg.AgentCopilotRuntimeDevWriteEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled {
+		return errors.New("agent copilot runtime dev write requires its HTTP gate")
+	}
+	if cfg.PromptApplicationRuntimeDevHTTPEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationDraftDevHTTPEnabled || !cfg.ApplicationPublishDevHTTPEnabled || !cfg.PromptTemplateDevHTTPEnabled) {
+		return errors.New("prompt application runtime dev HTTP requires auth, draft, publish, and template HTTP gates")
+	}
+	if cfg.PromptApplicationRuntimeDevWriteEnabled && !cfg.PromptApplicationRuntimeDevHTTPEnabled {
+		return errors.New("prompt application runtime dev write requires its HTTP gate")
+	}
 	if cfg.WorkflowDefinitionReleaseDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled || !cfg.WorkflowSavedDraftDevWriteEnabled) {
 		return errors.New("workflow definition release dev requires control plane auth and saved workflow draft HTTP/write gates")
 	}
-	if cfg.ApplicationSessionDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled || (!cfg.WorkflowDefinitionReleaseDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled)) {
+	if cfg.ApplicationSessionDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled ||
+		(!cfg.WorkflowDefinitionReleaseDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&
+			!cfg.PromptApplicationRuntimeDevHTTPEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled)) {
 		return errors.New("application session dev requires control plane auth, application catalog HTTP, and at least one supported runtime authority")
 	}
 	if EffectiveLocalPersistenceMode(cfg) != "sqlite_dev" {
@@ -33,6 +60,8 @@ func EffectiveLocalPersistenceConfig(cfg Config) Config {
 	cfg.ApplicationCatalogStoreMode = "sqlite_dev"
 	cfg.ApplicationDraftStoreMode = "sqlite_dev"
 	cfg.ApplicationPublishStoreMode = "sqlite_dev"
+	cfg.PromptTemplateStoreMode = "sqlite_dev"
+	cfg.AgentCopilotProfileStoreMode = "sqlite_dev"
 	cfg.APIKeyStoreMode = "sqlite_dev"
 	cfg.GatewayRequestStoreMode = "sqlite_dev"
 	cfg.WorkflowSavedDraftStoreMode = "sqlite_dev"
@@ -67,6 +96,8 @@ func localPersistenceComponentsConsistent(cfg Config) bool {
 		{name: "application_catalog_store", mode: cfg.ApplicationCatalogStoreMode},
 		{name: "application_draft_store", mode: cfg.ApplicationDraftStoreMode},
 		{name: "application_publish_store", mode: cfg.ApplicationPublishStoreMode},
+		{name: "prompt_application_template_store", mode: cfg.PromptTemplateStoreMode},
+		{name: "agent_copilot_profile_store", mode: cfg.AgentCopilotProfileStoreMode},
 		{name: "api_key_store", mode: cfg.APIKeyStoreMode},
 		{name: "gateway_request_store", mode: cfg.GatewayRequestStoreMode},
 		{name: "workflow_saved_draft_store", mode: cfg.WorkflowSavedDraftStoreMode},

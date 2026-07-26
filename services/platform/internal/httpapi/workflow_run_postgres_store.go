@@ -150,6 +150,12 @@ func workflowRunRecordFailureBoundary(record WorkflowRunRecord) WorkflowRunFailu
 	if record.Diagnostic == nil {
 		return ""
 	}
+	if record.SchemaVersion == workflowRunRecordPromptSchemaVersion && record.PromptDiagnostic != nil {
+		if record.PromptDiagnostic.FailureBoundary == "" {
+			return WorkflowRunFailureBoundary("none")
+		}
+		return WorkflowRunFailureBoundary(record.PromptDiagnostic.FailureBoundary)
+	}
 	if (record.SchemaVersion == workflowRunRecordRAGSchemaVersion || record.SchemaVersion == workflowRunRecordAppRAGSchemaVersion) && record.Diagnostic.FailureBoundary == "" {
 		return WorkflowRunFailureBoundary("none")
 	}

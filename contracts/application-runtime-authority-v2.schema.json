@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/application-runtime-authority-v2.schema.json",
+  "title": "ApplicationRuntimeAuthorityV2",
+  "description": "只用于 prompt_application_invocation_v1 的 exact metadata authority；既有 Workflow 与 RAG 继续使用 v1。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "execution_profile", "application_id", "application_record_version", "application_lifecycle", "prompt_application", "authority_digest"],
+  "properties": {
+    "schema_version": {"const": "application_runtime_authority.v2"},
+    "execution_profile": {"const": "prompt_application_invocation_v1"},
+    "application_id": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/applicationId"},
+    "application_record_version": {"type": "integer", "minimum": 1},
+    "application_lifecycle": {"const": "active"},
+    "prompt_application": {"$ref": "#/$defs/promptAuthority"},
+    "authority_digest": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/digest"}
+  },
+  "$defs": {
+    "promptAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assignment_id", "assignment_version", "assignment_digest", "publish_candidate_id", "publish_review_version", "draft_id", "draft_version", "draft_digest", "prompt_template_ref", "default_protocol", "default_model", "protocol_policy_digest", "model_eligibility_digest"],
+      "properties": {
+        "assignment_id": {"$ref": "prompt-application-runtime-assignment.schema.json#/$defs/assignmentId"},
+        "assignment_version": {"type": "integer", "minimum": 1},
+        "assignment_digest": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/digest"},
+        "publish_candidate_id": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+        "publish_review_version": {"type": "integer", "minimum": 1},
+        "draft_id": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+        "draft_version": {"type": "integer", "minimum": 1},
+        "draft_digest": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/digest"},
+        "prompt_template_ref": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/promptTemplateRef"},
+        "default_protocol": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/protocol"},
+        "default_model": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+        "protocol_policy_digest": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/digest"},
+        "model_eligibility_digest": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/digest"}
+      }
+    }
+  }
+}

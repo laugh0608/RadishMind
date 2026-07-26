@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,6 +15,114 @@ import (
 
 func TestApplicationConfigurationDraftLifecycleAndIsolation(t *testing.T) {
 	runApplicationConfigurationDraftLifecycleAndIsolation(t, newMemoryApplicationConfigurationDraftRepository())
+}
+
+func TestApplicationConfigurationDraftPromptTemplateBinding(t *testing.T) {
+	draftRepository := newMemoryApplicationConfigurationDraftRepository()
+	templateRepository := newMemoryPromptApplicationTemplateRepository()
+	draftContext := validApplicationDraftContext()
+	draftContext.ApplicationID = "app_aaaaaaaaaaaaaaaa"
+	draftContext.ActorRef = "subject_demo_user"
+	draftContext.OwnerSubjectRef = "subject_demo_user"
+	draftContext.TemplateBindingEnabled = true
+	payload := validApplicationDraftPayload()
+	payload.ApplicationID = draftContext.ApplicationID
+	payload.DraftID = "app-config-prompt-assistant"
+	payload.ApplicationKind = "prompt_application"
+
+	templateContext := validPromptApplicationTemplateContext()
+	templateContext.ApplicationID = draftContext.ApplicationID
+	templateContext.ActorRef = draftContext.ActorRef
+	templateContext.OwnerSubjectRef = draftContext.OwnerSubjectRef
+	templateInput := validPromptApplicationTemplateDraftInput()
+	templateInput.ApplicationID = draftContext.ApplicationID
+	templateService := newPromptApplicationTemplateService(templateRepository)
+	templateDraft := templateService.SaveDraft(templateContext, templateInput, 0)
+	if templateDraft.Draft == nil {
+		t.Fatalf("seed prompt template draft: %#v", templateDraft)
+	}
+	templateVersion := templateService.CreateVersion(templateContext, templateInput.TemplateID, 1)
+	if templateVersion.Version == nil {
+		t.Fatalf("seed prompt template version: %#v", templateVersion)
+	}
+
+	service := newApplicationConfigurationDraftService(draftRepository)
+	service.readPromptTemplateVersion = func(ctx ApplicationConfigurationDraftContext, templateID string, version int) (PromptApplicationTemplateVersion, string) {
+		value, err := templateRepository.ReadVersion(PromptApplicationTemplateContext{
+			RequestContext: ctx.RequestContext, RequestID: ctx.RequestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID,
+			ApplicationID: ctx.ApplicationID, ActorRef: ctx.ActorRef, OwnerSubjectRef: ctx.OwnerSubjectRef, AuditRef: ctx.AuditRef,
+		}, templateID, version)
+		if err != nil {
+			return PromptApplicationTemplateVersion{}, PromptApplicationTemplateFailureVersionNotFound
+		}
+		return value, ""
+	}
+	created := service.Save(draftContext, payload, 0)
+	if created.Draft == nil || created.Draft.DraftVersion != 1 {
+		t.Fatalf("seed prompt application draft: %#v", created)
+	}
+	bound := service.BindPromptTemplate(draftContext, payload.DraftID, PromptApplicationTemplateBindingInput{
+		ExpectedDraftVersion: 1, TemplateID: templateInput.TemplateID, TemplateVersion: 1,
+	})
+	if bound.Draft == nil || bound.Draft.SchemaVersion != applicationConfigurationDraftSchemaVersionV3 || bound.Draft.DraftVersion != 2 ||
+		bound.Draft.PromptTemplateRef == nil || bound.Draft.PromptTemplateRef.TemplateDigest != templateVersion.Version.TemplateDigest || bound.Draft.WorkflowRAGBindingRef != nil {
+		t.Fatalf("bind prompt template version: %#v", bound)
+	}
+	conflict := service.BindPromptTemplate(draftContext, payload.DraftID, PromptApplicationTemplateBindingInput{
+		ExpectedDraftVersion: 1, TemplateID: templateInput.TemplateID, TemplateVersion: 1,
+	})
+	if conflict.FailureCode != ApplicationDraftFailureVersionConflict || conflict.CurrentDraftVersion != 2 {
+		t.Fatalf("stale prompt template binding must fail CAS: %#v", conflict)
+	}
+	forgedPayload := bound.Draft.ApplicationConfigurationDraftPayload
+	forgedPayload.PromptTemplateRef = clonePromptApplicationTemplateRef(forgedPayload.PromptTemplateRef)
+	forgedPayload.PromptTemplateRef.TemplateDigest = strings.Repeat("a", 71)
+	forged := service.Save(draftContext, forgedPayload, 2)
+	if forged.FailureCode != ApplicationDraftFailurePayloadInvalid && forged.FailureCode != ApplicationDraftFailureTemplateBinding {
+		t.Fatalf("forged prompt template digest must fail closed: %#v", forged)
+	}
+}
+
+func TestApplicationConfigurationDraftPromptTemplateBindingHTTPRoute(t *testing.T) {
+	server := NewServer(config.Config{ControlPlaneReadDevAuthEnabled: true, ApplicationDraftDevHTTPEnabled: true, ApplicationDraftDevWriteEnabled: true}, Options{BuildVersion: "test"})
+	draftContext := validApplicationDraftContext()
+	draftContext.ApplicationID = "app_aaaaaaaaaaaaaaaa"
+	draftContext.ActorRef = "subject_demo_user"
+	draftContext.OwnerSubjectRef = "subject_demo_user"
+	payload := validApplicationDraftPayload()
+	payload.ApplicationID = draftContext.ApplicationID
+	payload.DraftID = "app-config-prompt-http"
+	payload.ApplicationKind = "prompt_application"
+	if saved := newApplicationConfigurationDraftService(server.applicationDraftRepository).Save(draftContext, payload, 0); saved.Draft == nil {
+		t.Fatalf("seed HTTP binding draft: %#v", saved)
+	}
+	templateContext := validPromptApplicationTemplateContext()
+	templateContext.ActorRef = draftContext.ActorRef
+	templateContext.OwnerSubjectRef = draftContext.OwnerSubjectRef
+	templateInput := validPromptApplicationTemplateDraftInput()
+	templateService := newPromptApplicationTemplateService(server.promptApplicationTemplateRepository)
+	if saved := templateService.SaveDraft(templateContext, templateInput, 0); saved.Draft == nil {
+		t.Fatalf("seed HTTP binding template: %#v", saved)
+	}
+	if version := templateService.CreateVersion(templateContext, templateInput.TemplateID, 1); version.Version == nil {
+		t.Fatalf("seed HTTP binding template version: %#v", version)
+	}
+	body := applicationConfigurationDraftPromptTemplateBindingBody{
+		WorkspaceID: draftContext.WorkspaceID, ApplicationID: draftContext.ApplicationID, ExpectedDraftVersion: 1,
+		TemplateID: templateInput.TemplateID, TemplateVersion: 1,
+	}
+	raw, err := json.Marshal(body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/application-configuration-drafts/"+payload.DraftID+"/prompt-template-binding", bytes.NewReader(raw))
+	setApplicationDraftHeaders(request, "application_drafts:write,prompt_application_templates:bind", draftContext.ApplicationID)
+	recorder := httptest.NewRecorder()
+	server.httpServer.Handler.ServeHTTP(recorder, request)
+	var result applicationConfigurationDraftEnvelope
+	if recorder.Code != http.StatusOK || json.Unmarshal(recorder.Body.Bytes(), &result) != nil || result.FailureCode != nil || result.Draft == nil || result.Draft.SchemaVersion != applicationConfigurationDraftSchemaVersionV3 || result.Draft.PromptTemplateRef == nil {
+		t.Fatalf("Prompt template binding route failed: status=%d body=%s", recorder.Code, recorder.Body.String())
+	}
 }
 
 func runApplicationConfigurationDraftLifecycleAndIsolation(t *testing.T, repository applicationConfigurationDraftRepository) {

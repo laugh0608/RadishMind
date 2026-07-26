@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-07-19
+更新时间：2026-07-21
 
 ## 这份文档讲什么
 
@@ -155,7 +155,7 @@ Production secret backend 当前仍只到说明、检查、metadata-only artifac
 
 Windows / PowerShell 使用对应的 `pwsh ./scripts/run-platform-service.ps1 config-check|diagnostics|serve`。
 
-wrapper 默认使用 `local-product` 档，把七组本地运行数据统一写入仓库根 `var/sqlite-dev/radishmind.db`，并开启对应开发门禁；配置摘要不会输出绝对路径。需要执行 PostgreSQL 专项验收或组件故障注入时，Shell 使用 `--profile configured`，PowerShell 使用 `-Profile configured`，该档不自动注入聚合持久化配置。
+wrapper 默认使用 `local-product` 档，把九组本地运行数据统一写入仓库根 `var/sqlite-dev/radishmind.db`，并开启对应开发门禁；配置摘要不会输出绝对路径。Prompt 与 Agent Runtime Assignment / Event、Session / Turn 和 Run 投影复用共享 Workflow Run Store，不要求第十个数据库组件。需要执行 PostgreSQL 专项验收或组件故障注入时，Shell 使用 `--profile configured`，PowerShell 使用 `-Profile configured`，该档不自动注入聚合持久化配置。
 
 当前 Platform 除 `/healthz`、overview / local-smoke、models、三协议 northbound、session/tooling 与七条 Control Plane Read-Side route 外，还注册 Workflow Draft / Definition / Run / Evaluation、Workflow RAG、Application RAG、Application Session、Application Draft / Publish Candidate 和 Gateway Request History dev/test route。完整路由与 gate 见 [Platform README](../services/platform/README.md)；路由注册不等于默认开放。
 
@@ -197,7 +197,7 @@ console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local
 
 ### 3.7 运行产品 UI shell（开发测试态）
 
-正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它默认离线，显式 dev-only 模式可分别连接 Control Plane Read、Saved Draft / Executor、Gateway Playground / History、Application Catalog、Application Configuration Draft / Publish Review、Workflow RAG、Application RAG、Workflow Definition、Application Session 与 Application Operations。API 密钥原文、Gateway / Session 输入输出和 transcript 只在当前 React 内存中短暂存在；列表、详情、历史、比较、评测和观测仍只消费脱敏 metadata。RadishFlow Copilot 与 Radish Docs Assistant 的离线样例继续由统一 fixture 防止漂移；任何 dev/test live path 都不能解释为 production API consumer、正式 application 发布、生产 API key / quota 或 production repository ready。
+正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它默认离线，显式 dev-only 模式可分别连接 Control Plane Read、Saved Draft / Executor、Gateway Playground / History、Application Catalog、Application Configuration Draft / Publish Review、Workflow RAG、Application RAG、Workflow Definition、Application Session、Prompt Application、Agent / Copilot 与 Application Operations。API 密钥原文、Gateway / Session / Prompt / Agent invocation 输入输出和 transcript 只在当前 React 内存中短暂存在；列表、详情、历史、比较、评测和观测仍只消费脱敏 metadata。RadishFlow Copilot 与 Radish Docs Assistant 的离线样例继续由统一 fixture 防止漂移；任何 dev/test live path 都不能解释为 production API consumer、正式 application 发布、生产 API key / quota 或 production repository ready。
 
 日常预览或前后端联调优先使用仓库根目录启动脚本，不再手动拼接环境变量：
 
@@ -212,7 +212,7 @@ Windows / PowerShell 使用：
 pwsh ./start.ps1 -Command web-live
 ```
 
-`web-live` 会启动或复用 Platform 与产品 UI。按使用目标显式组合基础组件参数，或直接选择 `--workflow-rag-application-local-product`、`--workflow-definition-local-product`、`--workflow-definition-postgres-dev-test`、`--application-session-local-product`、`--application-session-postgres-dev-test` 等完整产品档；launcher 会设置对应 HTTP/write gate、strict consumer source 和 migration status preflight。完整命令见 [Web README](../apps/radishmind-web/README.md)，受控运行顺序见[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)。它不是 production supervisor，不启用 production auth、自动 activation、quota enforcement、writeback 或 replay。
+`web-live` 会启动或复用 Platform 与产品 UI。按使用目标显式组合基础组件参数，或直接选择 `--workflow-rag-application-local-product`、`--workflow-definition-local-product`、`--application-session-local-product`、`--prompt-application-local-product`、`--agent-copilot-local-product` 及各自 PostgreSQL 对应档；launcher 会设置对应 HTTP/write gate、strict consumer source 和 migration status preflight。Agent 产品档当前只由 Shell wrapper 提供。完整命令见 [Web README](../apps/radishmind-web/README.md)，受控运行顺序见[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)、[Prompt Application 开发测试态使用指南](features/user-workspace/prompt-application-dev-test-usage-guide.md)与[Agent / Copilot 开发测试态使用指南](features/user-workspace/agent-copilot-dev-test-usage-guide.md)。它不是 production supervisor，不启用 production auth、自动 activation、quota enforcement、writeback 或 replay。
 
 如果 macOS `Control Center` / AirPlay 占用了默认 backend 端口 `7000`，改用备用本地端口启动：
 
@@ -275,6 +275,8 @@ npm run dev
 - Application RAG Runtime Assignment / Invocation
 - Workflow Definition Promotion / v5 Run
 - Application Interaction Session（Active / Closed 与 metadata-only turns）
+- Prompt Application Template / Runtime Assignment / Invocation
+- Agent / Copilot Profile / Runtime Assignment / Controlled Suggestion
 - Application Operations（Gateway Request / Workflow Run 双来源观测）
 - Admin Operations Review / Readiness
 - Admin Provider/Profile & Deployment Evidence Review / Readiness
@@ -285,6 +287,8 @@ Model Gateway 的读法是先看 Overview / Route / Usage-Audit / Evidence Revie
 
 应用受控运行的读法是先完成各自权威资源：Application RAG 要经过 knowledge promotion、binding、publish review 与 runtime assignment；Workflow Definition 要经过 saved draft、immutable candidate、人工 review、version 与 activation。随后可以直接发起 v4 / v5 运行，或在 Application Interaction Session 中显式选择 profile 后逐轮委托。Run History / Comparison / Evaluation 与 Application Operations 都只读消费已持久化 metadata，不重新执行，也不恢复 transcript。完整操作与失败处理见[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)。
 
+Prompt Application 与 Agent / Copilot 使用同一治理原则但拥有不同源码 owner。Prompt 依次建立 Template Version、Configuration / Candidate v3 与 Prompt Runtime Assignment；Agent 依次建立结构化 Profile Version、Configuration / Candidate v4 与 Agent Copilot Runtime Assignment。两者的 API key 和 Session 分别委托唯一 invocation service，完整输出只在首次同步响应或当前 Web 内存中可见；Run v6 / v7 只保存 metadata。操作顺序分别见 [Prompt Application 使用指南](features/user-workspace/prompt-application-dev-test-usage-guide.md)和 [Agent / Copilot 使用指南](features/user-workspace/agent-copilot-dev-test-usage-guide.md)。
+
 Draft Designer 的保存路径需要额外区分：默认仍展示 sample / local draft；显式 Saved Draft 开关可写入 `memory_dev` 或 `postgres_dev_test`。同一 launcher 还会设置 `RADISHMIND_WORKFLOW_EXECUTOR_DEV=1` 与 `VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http`，允许已保存、未修改且合规的 executor v0 草案运行并回读 record。该路径用于开发 / 测试，不是 production persistence、production API、publish 或 unrestricted runtime。
 
 Saved draft 冲突处理的本地读法：当保存返回 `version_conflict` 时，Draft Designer 保留本地 active draft，刷新当前 application 的 saved draft list，并显示 saved version metadata、validation state、blocked capability count 和下一步选择。继续本地草案会进入 `conflict_local_continued`，下一次保存以当前 saved version 作为 expected version；恢复 saved version 必须由用户从 refreshed list 显式触发。Review Handoff 只把 conflict review summary 作为 advisory-only 审查证据展示，不保存 handoff、不自动合并、不覆盖本地草案、不解锁 publish / run / confirmation / writeback。
@@ -293,17 +297,18 @@ Saved draft 冲突处理的本地读法：当保存返回 `version_conflict` 时
 
 Graph review handoff 的读法：在 Workflow Review Handoff 中先看 summary count，确认 node-targeted、edge-targeted 与 graph-level finding 的数量；再按分组查看每条 finding 的 source check、severity、target refs、summary 和 reviewer question。node-targeted finding 用于回到具体节点和 inspector；edge-targeted finding 用于核对 active draft edge 与条件摘要；graph-level finding 用于查看全局 blocked capability、runtime readiness 或停止线。这个面板只帮助 reviewer 建立审查上下文，不保存 handoff、不持久化 validation focus、不生成 publish / run / confirmation / writeback 操作。
 
-### 3.8 使用 Image Path metadata-only runtime mapper
+### 3.8 使用 Image Path 开发测试态领域运行时
 
-图片生成路径当前只允许 metadata-only runtime helper。开发者可以在离线检查或后续 response consumer 评审中导入：
+Image Path 已提供四个互相独立的领域 owner：
 
-```python
-from services.runtime.image_artifact_runtime_mapper import (
-    map_image_artifact_to_response_reference,
-)
-```
+- `image_generation_adapter.py`：校验 strict intent、预算、敏感材料、低风险安全状态和编译 profile，确定性生成 backend request，并验证 backend observation 后构造 canonical artifact metadata；
+- `image_backend_profile_configuration.py`：把 strict source 编译为稳定 digest 的 reference-only `development | test` profile，不解析 endpoint、credential 或 model-dir reference；
+- `image_backend_contract_fixture_client.py`：仅在 `test / contract_fixture` 模式检查调用方注入的 PNG / JPEG / WebP，用于离线契约测试，不生成图片；
+- `image_artifact_private_storage.py`：以调用方显式注入的绝对本机目录保存 content-addressed blob 和不可变 artifact ref，并通过显式授权 reader 一次交付内部 stream。
 
-输入必须是已符合 `contracts/image-generation-artifact.schema.json` 的 `image_generation_artifact` metadata。成功结果只返回 artifact citation 和 metadata reference；失败结果只返回 fail-closed failure code，不返回 citation。该 helper 不打开文件、不访问网络、不读取图片二进制、不查 store、不生成 public URL、不调用 backend。完整契约见 [图片生成契约](contracts/image-generation.md)。
+adapter 成功结果仍只返回 artifact document、citation 和 metadata reference，不返回 bytes、base64、绝对路径或 storage ref。test-only fixture client 当前只返回 artifact identity、UTC 时间和二进制 observation；fixture bytes 不会自动交给 private store。需要验证 store 时必须由测试或上层受控协调显式调用 `LocalPrivateImageArtifactStore.put`，store 会重新检查容器、hash、MIME、dimensions、format、安全状态和 provenance。
+
+metadata-only response mapper / consumer / builder 继续只处理 `image_generation_artifact` metadata，不打开二进制或调用 backend。当前没有 remote HTTP client、local model client、reference resolver、真实图片生成、上传、public URL、production object store、HTTP / Gateway 或 Web 接线。完整契约和代码示例见[图片生成契约](contracts/image-generation.md)与[Image Generation / Artifact Return 设计文档](features/image-generation-artifact-return.md)。
 
 ### 3.9 使用 Docker 部署资产
 

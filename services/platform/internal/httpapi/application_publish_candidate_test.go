@@ -17,6 +17,73 @@ func TestApplicationPublishCandidateLifecycleAndEligibility(t *testing.T) {
 	runApplicationPublishCandidateLifecycleAndEligibility(t, newMemoryApplicationConfigurationDraftRepository(), newMemoryApplicationPublishCandidateRepository())
 }
 
+func TestPromptApplicationPublishCandidateV3ExactTemplateReview(t *testing.T) {
+	draftRepository := newMemoryApplicationConfigurationDraftRepository()
+	candidateRepository := newMemoryApplicationPublishCandidateRepository()
+	templateRepository := newMemoryPromptApplicationTemplateRepository()
+	draftContext := validApplicationDraftContext()
+	draftContext.ApplicationID = "app_aaaaaaaaaaaaaaaa"
+	draftContext.TemplateBindingEnabled = true
+	templateContext := validPromptApplicationTemplateContext()
+	templateContext.ActorRef = draftContext.ActorRef
+	templateContext.OwnerSubjectRef = draftContext.OwnerSubjectRef
+	templateInput := validPromptApplicationTemplateDraftInput()
+	templateService := newPromptApplicationTemplateService(templateRepository)
+	if saved := templateService.SaveDraft(templateContext, templateInput, 0); saved.Draft == nil {
+		t.Fatalf("seed prompt template draft: %#v", saved)
+	}
+	version := templateService.CreateVersion(templateContext, templateInput.TemplateID, 1)
+	if version.Version == nil {
+		t.Fatalf("seed prompt template version: %#v", version)
+	}
+	payload := validApplicationDraftPayload()
+	payload.ApplicationID = draftContext.ApplicationID
+	payload.DraftID = "app-config-prompt-v3"
+	payload.ApplicationKind = "prompt_application"
+	draftService := newApplicationConfigurationDraftService(draftRepository)
+	draftService.readPromptTemplateVersion = func(ctx ApplicationConfigurationDraftContext, templateID string, templateVersion int) (PromptApplicationTemplateVersion, string) {
+		value, err := templateRepository.ReadVersion(templateContext, templateID, templateVersion)
+		if err != nil {
+			return PromptApplicationTemplateVersion{}, promptApplicationTemplateRepositoryFailure(err, PromptApplicationTemplateValidation{}).FailureCode
+		}
+		return value, ""
+	}
+	if created := draftService.Save(draftContext, payload, 0); created.Draft == nil {
+		t.Fatalf("seed prompt application draft: %#v", created)
+	}
+	bound := draftService.BindPromptTemplate(draftContext, payload.DraftID, PromptApplicationTemplateBindingInput{ExpectedDraftVersion: 1, TemplateID: templateInput.TemplateID, TemplateVersion: 1})
+	if bound.Draft == nil {
+		t.Fatalf("bind prompt template: %#v", bound)
+	}
+	publishContext := validApplicationPublishContext()
+	publishContext.ApplicationID = draftContext.ApplicationID
+	publishContext.PromptTemplateSourceReadEnabled = true
+	service := newApplicationPublishCandidateService(draftRepository, candidateRepository, func(ctx ApplicationPublishContext) (ApplicationSummary, error) {
+		return ApplicationSummary{ApplicationRef: ctx.ApplicationID, ApplicationKind: "prompt_application", UpdatedAt: payload.BaseApplicationUpdatedAt}, nil
+	})
+	service.readPromptTemplateVersion = func(ctx ApplicationPublishContext, ref PromptApplicationTemplateRef) (PromptApplicationTemplateVersion, string) {
+		value, err := templateRepository.ReadVersion(templateContext, ref.TemplateID, ref.TemplateVersion)
+		if err != nil {
+			return PromptApplicationTemplateVersion{}, promptApplicationTemplateRepositoryFailure(err, PromptApplicationTemplateValidation{}).FailureCode
+		}
+		return value, ""
+	}
+	created := service.Create(publishContext, ApplicationPublishCreateInput{CandidateID: "candidate-prompt-v3", DraftID: payload.DraftID, ExpectedDraftVersion: 2})
+	if created.Candidate == nil || created.Candidate.SchemaVersion != applicationPublishCandidateSchemaVersionV3 || created.Candidate.Configuration.PromptTemplateRef == nil || created.Candidate.Configuration.PromptTemplateRef.TemplateDigest != version.Version.TemplateDigest {
+		t.Fatalf("create Prompt publish candidate v3: %#v", created)
+	}
+	approved := service.Review(publishContext, created.Candidate.CandidateID, ApplicationPublishReviewInput{ExpectedReviewVersion: 0, Decision: applicationPublishDecisionApprove, Reason: "Reviewed exact Prompt template source and configuration lineage."})
+	if approved.Candidate == nil || approved.Candidate.CandidateState != applicationPublishStateApproved || approved.Candidate.ReviewVersion != 1 {
+		t.Fatalf("approve Prompt publish candidate v3: %#v", approved)
+	}
+	deniedContext := publishContext
+	deniedContext.PromptTemplateSourceReadEnabled = false
+	denied := service.Create(deniedContext, ApplicationPublishCreateInput{CandidateID: "candidate-prompt-denied", DraftID: payload.DraftID, ExpectedDraftVersion: 2})
+	if denied.FailureCode != ApplicationPublishFailureScopeDenied {
+		t.Fatalf("Prompt candidate creation without source review permission must fail: %#v", denied)
+	}
+}
+
 func runApplicationPublishCandidateLifecycleAndEligibility(t *testing.T, draftRepository applicationConfigurationDraftRepository, candidateRepository applicationPublishCandidateRepository) {
 	t.Helper()
 	draftContext := validApplicationDraftContext()

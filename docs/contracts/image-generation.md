@@ -1,12 +1,12 @@
 # RadishMind 图片生成契约
 
-更新时间：2026-07-15
+更新时间：2026-07-25
 
 ## `RadishMind-Image Adapter` 第一版仓库级契约
 
 图片生成能力通过独立 adapter / backend 提供。`RadishMind-Core` 只负责生成结构化意图、约束、风险确认和审查信息，不直接生成图片像素。
 
-第一版 image generation intent 已落成仓库级可回归契约。fast / full 当前只执行基础协议、评测 manifest 和三项 runtime 行为检查：
+第一版 image generation intent 已落成仓库级可回归契约。fast / full 当前执行纯领域 adapter 单元测试、基础协议、评测 manifest 和三项既有 runtime 行为检查：
 
 - Schema：`contracts/image-generation-intent.schema.json`
 - Backend request schema：`contracts/image-generation-backend-request.schema.json`
@@ -23,6 +23,18 @@
 - Artifact response consumer runtime implementation smoke：`scripts/check-image-artifact-response-consumer-runtime-implementation-v1.py`
 - Artifact response builder runtime integration implementation fixture：`scripts/checks/fixtures/image-artifact-response-builder-runtime-integration-implementation-v1.json`
 - Artifact response builder runtime integration implementation smoke：`scripts/check-image-artifact-response-builder-runtime-integration-implementation-v1.py`
+- Image Adapter 纯领域 runtime：`services/runtime/image_generation_adapter.py`
+- Image Adapter 相邻单元测试：`services/runtime/tests/test_image_generation_adapter.py`
+- Backend profile source schema：`contracts/image-backend-profile-source.schema.json`
+- Backend profile compiler：`services/runtime/image_backend_profile_configuration.py`
+- Backend profile 相邻单元测试：`services/runtime/tests/test_image_backend_profile_configuration.py`
+- Test-only contract fixture client：`services/runtime/image_backend_contract_fixture_client.py`
+- Contract fixture client 相邻单元测试：`services/runtime/tests/test_image_backend_contract_fixture_client.py`
+- 图片二进制检查：`services/runtime/image_artifact_binary_inspection.py`
+- 本机私有 artifact store / reader：`services/runtime/image_artifact_private_storage.py`
+- Store / reader 相邻单元测试：`services/runtime/tests/test_image_artifact_private_storage.py`
+
+批次 A 已把 strict intent、低风险门禁、注入式 client 单次调用、artifact observation 和既有 mapper 串成纯领域链路；批次 B 建立本机私有 storage 与显式 reader；批次 C 把 profile 收口为 reference-only 编译产物；批次 D 新增仅限 test 的 `contract_fixture` 具体 client。Client 只以实际图片容器生成 identity、UTC 时间与 observation，canonical title、purpose、generation、safety、provenance 和 URI 由 adapter 单一构造。当前仍不提供 fixture binary delivery / store coordinator、真实 backend client、reference resolver、production storage、public delivery、HTTP / Gateway、Web 或生产能力；批次 E 已确认一次性交付、私有 store 重验和成功引用延后释放的协调边界。
 
 Handshake、runbook、backend readiness、mapping readiness / entry review / task card、consumer readiness / task card 和 builder entry review / task card 已被上述 runtime 实现消费，现作为下文历史可复验证据与 `scripts/check-repo.py` 非执行目录保留。它们不再进入每次 fast / full，也不表示 artifact store、binary reader、public delivery、真实生图 backend 或 production 能力成立。
 
@@ -31,7 +43,8 @@ Handshake、runbook、backend readiness、mapping readiness / entry review / tas
 - `services/runtime/image_artifact_runtime_mapper.py` 只做 `image_generation_artifact` metadata 到 artifact citation / metadata reference 的投影。
 - `services/runtime/image_artifact_response_consumer.py` 只把 mapper 成功结果合并进现有 `CopilotResponse.citations`，`metadata_reference` 只作为内部 handoff。
 - `services/runtime/inference_response.py#coerce_response_document` 只从 `copilot_request.artifacts[*].metadata.image_generation_artifact` 发现 request-side metadata，按 request artifact 顺序经过 mapper / consumer 合并，并在最终 `CopilotResponse` schema validation 前 fail closed。
-- 这条链路不改 `CopilotResponse` schema，不读取 artifact 二进制，不查 artifact store，不解析 public URL，不调用真实生图 backend，不上传 artifact，也不接 gateway / platform HTTP route。
+- `services/runtime/image_artifact_private_storage.py` 是独立的本机私有 owner，不由 response builder 隐式调用；store、metadata-only lookup 和显式 binary reader 都要求 canonical `artifact://radishmind/generated/` URI、不可变 ref 与 hash / mime / dimensions / format / size 一致。
+- 这条链路不改 `CopilotResponse` schema，不解析 public URL，不调用真实生图 backend，不上传 artifact，也不接 gateway / platform HTTP route；response builder 仍不读取二进制或查询 store。
 
 当前 schema 固定的是 `RadishMind-Core -> RadishMind-Image Adapter -> Image Generation Backend -> artifact metadata` 的最小结构化链路，不承诺具体 backend 常驻、权重下载、图片质量或像素生成实现。第一版 intent 结构如下：
 
@@ -243,7 +256,7 @@ Handshake、runbook、backend readiness、mapping readiness / entry review / tas
 准入证据要求：
 
 - backend adapter 必须消费 `image_generation_backend_request` 的 backend id、model、adapter profile、prompt、output、parameters、safety gate 和 trace，不得绕过 `image-safety-runbook-evidence-v1`。
-- profile / credential / model dir / endpoint / timeout budget 当前都只是 implementation gate；缺失时必须映射到 fail-closed failure code，不能自动降级为可调用 backend。
+- profile / credential / model dir / endpoint / timeout 已由批次 C 固定为 reference-only 编译边界；引用缺失、跨环境、错 kind、互斥关系或 digest 漂移必须 fail closed，不能自动降级为可调用 backend。
 - backend response 未来只能进入 `image_generation_artifact` metadata；必须校验 `artifact://` URI、hash、backend/model、provenance 和 safety review，不接收 pixel payload、provider raw response 或 public URL。
 - 失败分类固定为 `image_backend_profile_missing`、`image_backend_credential_missing`、`image_backend_model_dir_missing`、`image_backend_endpoint_unavailable`、`image_backend_timeout`、`image_backend_safety_gate_blocked`、`image_backend_invalid_artifact_metadata`、`image_backend_artifact_hash_mismatch` 和 `image_backend_response_untrusted`；这些失败不触发 retry loop、fallback execution 或 success artifact reference。
 
@@ -266,18 +279,18 @@ Handshake、runbook、backend readiness、mapping readiness / entry review / tas
 入口评审要求：
 
 - checker 必须跨读 runtime mapping readiness、artifact return runbook、safety runbook 和 backend adapter readiness，确认这些证据不会被提升为 runtime mapper implementation ready。
-- 在该 entry review 切片内，runtime mapper、artifact store、binary reader、public URL resolver 和 backend adapter implementation 五类候选保持 `blocked`；后续只放宽了 metadata-only runtime mapper、response consumer 和 response builder hook，artifact store、binary reader、public URL resolver 与 backend adapter implementation 仍保持 deferred。
-- 当前不改 `CopilotResponse` schema，不创建 artifact store / public URL / binary reader，不调用真实 backend，不生成图片，不上传 artifact，也不进入 executor、confirmation、writeback 或 replay。
-- 后续若继续推进 Image Path，应先补 runtime mapper implementation entry review，再评估单一 runtime mapping 实现方向。
+- 在该 entry review 历史切片内，runtime mapper、artifact store、binary reader、public URL resolver 和 backend adapter implementation 五类候选均保持 `blocked`；后续实施已按独立任务边界放宽 metadata-only mapper / consumer / response builder，并在 Image Adapter 批次 B 放宽本机私有 store / reader，历史结论不应再解读为当前实现不存在。
+- 当前仍不改 `CopilotResponse` schema，不创建 public URL，不调用真实 backend，不生成或上传图片，也不进入 executor、confirmation、writeback 或 replay。
+- 后续 metadata-only mapper / consumer / response builder、受控调用批次 A、本机私有 artifact storage 批次 B、reference-only profile 批次 C 和 test-only fixture client 批次 D 均已完成。下一步实现批次 E 的单次 binary delivery / private store coordinator，不恢复同层 mapping readiness 链。
 
 ### Artifact store / binary reader boundary readiness
 
-`image-artifact-store-binary-reader-boundary-readiness-v1` 已把 store / binary reader 边界准入固定为 `image_artifact_store_binary_reader_boundary_readiness_defined`。该证据层只定义 future artifact store ownership、`artifact://` 解析边界、hash / mime type / dimensions revalidation、binary payload redaction、public URL / signed URL 禁止策略和 failure taxonomy，不实现 artifact store、binary reader、public URL resolver 或 runtime mapper。
+`image-artifact-store-binary-reader-boundary-readiness-v1` 曾把 store / binary reader 边界准入固定为 `image_artifact_store_binary_reader_boundary_readiness_defined`。该历史证据层只定义 future artifact store ownership、`artifact://` 解析边界、hash / mime type / dimensions revalidation、binary payload redaction、public URL / signed URL 禁止策略和 failure taxonomy；当前批次 B 已在该边界上实现本机私有 store / reader，但仍未实现 public URL resolver 或 production storage。
 
 边界准入要求：
 
-- artifact store 未来只能消费 artifact metadata reference，不接收 `pixel_payload`、`base64_image`、provider raw response、public URL 或 signed public URL。
-- binary reader 未来必须在 artifact store lookup、`artifact://` scheme、sha256、mime type、dimensions、safety review 和 public URL policy 全部通过后才可读；当前仍不允许读取 artifact 二进制。
+- artifact store 只能消费 canonical artifact metadata 与经检查的二进制，不接收 caller-supplied storage ref / path、`pixel_payload`、`base64_image`、provider raw response、public URL 或 signed public URL。
+- binary reader 必须在 artifact store lookup、`artifact://` scheme、sha256、mime type、dimensions、format、size、safety review 和 public URL policy 全部通过后才可读；当前只允许显式授权的内部 consumer 单次读取。
 - `artifact://` 仍不是 public URL、signed URL、production storage path 或 binary download endpoint；public URL / signed URL 行为必须等待 production storage policy 和 expiry policy。
 - store missing、binary reader missing、invalid URI、hash mismatch、mime mismatch、dimension mismatch、public URL claim、signed URL policy missing、binary payload、provider raw dump、pending / blocked safety review 和 provenance missing 都必须 fail closed。
 - 该 readiness 只允许下一步进入 runtime mapper implementation plan 评审，不允许直接写 runtime mapper、artifact store、binary reader、backend adapter implementation 或 response schema 变更。

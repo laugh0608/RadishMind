@@ -13,45 +13,49 @@ import (
 )
 
 const (
-	defaultListenAddr                  = ":7000"
-	defaultReadHeaderTimeout           = 5 * time.Second
-	defaultWriteTimeout                = 30 * time.Second
-	defaultBridgeTimeout               = 30 * time.Second
-	defaultBridgeMode                  = "stdio_pool"
-	defaultBridgeWorkerCount           = 4
-	defaultBridgeQueueSize             = 64
-	defaultBridgeHandshake             = 5 * time.Second
-	defaultDraftDBTimeout              = 5 * time.Second
-	defaultApplicationDraftDBTimeout   = 5 * time.Second
-	defaultApplicationPublishDBTimeout = 5 * time.Second
-	defaultApplicationCatalogDBTimeout = 5 * time.Second
-	defaultAPIKeyDBTimeout             = 5 * time.Second
-	defaultRunDBTimeout                = 5 * time.Second
-	defaultGatewayRequestDBTimeout     = 5 * time.Second
-	defaultPythonBinary                = "python3"
-	defaultBridgeScript                = "scripts/run-platform-bridge.py"
-	defaultProvider                    = "mock"
-	defaultDraftStoreMode              = "memory_dev"
-	defaultApplicationDraftStoreMode   = "memory_dev"
-	defaultApplicationPublishStoreMode = "memory_dev"
-	defaultApplicationCatalogStoreMode = "memory_dev"
-	defaultAPIKeyStoreMode             = "memory_dev"
-	defaultGatewayAuthMode             = "dev_headers"
-	defaultRunStoreMode                = "memory_dev"
-	defaultGatewayRequestStoreMode     = "memory_dev"
-	defaultLocalPersistenceMode        = "memory_dev"
-	defaultSQLiteDevDatabasePath       = "var/sqlite-dev/radishmind.db"
-	defaultControlPlaneReadAuthMode    = ""
-	defaultControlPlaneReadStoreMode   = "fake_store_dev"
-	defaultControlPlaneReadDBTimeout   = 5 * time.Second
-	defaultOIDCDiscoveryTimeout        = 3 * time.Second
-	defaultOIDCJWKSMaxAge              = 5 * time.Minute
-	defaultOIDCJWKSHardExpiry          = 15 * time.Minute
-	defaultOIDCRotationOverlap         = 5 * time.Minute
-	defaultOIDCClockSkew               = 30 * time.Second
-	defaultOIDCMaxTokenLifetime        = 10 * time.Minute
-	defaultOIDCMaxResponseBytes        = 256 * 1024
-	defaultOIDCMaxKeys                 = 32
+	defaultListenAddr                   = ":7000"
+	defaultReadHeaderTimeout            = 5 * time.Second
+	defaultWriteTimeout                 = 30 * time.Second
+	defaultBridgeTimeout                = 30 * time.Second
+	defaultBridgeMode                   = "stdio_pool"
+	defaultBridgeWorkerCount            = 4
+	defaultBridgeQueueSize              = 64
+	defaultBridgeHandshake              = 5 * time.Second
+	defaultDraftDBTimeout               = 5 * time.Second
+	defaultApplicationDraftDBTimeout    = 5 * time.Second
+	defaultApplicationPublishDBTimeout  = 5 * time.Second
+	defaultApplicationCatalogDBTimeout  = 5 * time.Second
+	defaultPromptTemplateDBTimeout      = 5 * time.Second
+	defaultAgentCopilotProfileDBTimeout = 5 * time.Second
+	defaultAPIKeyDBTimeout              = 5 * time.Second
+	defaultRunDBTimeout                 = 5 * time.Second
+	defaultGatewayRequestDBTimeout      = 5 * time.Second
+	defaultPythonBinary                 = "python3"
+	defaultBridgeScript                 = "scripts/run-platform-bridge.py"
+	defaultProvider                     = "mock"
+	defaultDraftStoreMode               = "memory_dev"
+	defaultApplicationDraftStoreMode    = "memory_dev"
+	defaultApplicationPublishStoreMode  = "memory_dev"
+	defaultApplicationCatalogStoreMode  = "memory_dev"
+	defaultPromptTemplateStoreMode      = "memory_dev"
+	defaultAgentCopilotProfileStoreMode = "memory_dev"
+	defaultAPIKeyStoreMode              = "memory_dev"
+	defaultGatewayAuthMode              = "dev_headers"
+	defaultRunStoreMode                 = "memory_dev"
+	defaultGatewayRequestStoreMode      = "memory_dev"
+	defaultLocalPersistenceMode         = "memory_dev"
+	defaultSQLiteDevDatabasePath        = "var/sqlite-dev/radishmind.db"
+	defaultControlPlaneReadAuthMode     = ""
+	defaultControlPlaneReadStoreMode    = "fake_store_dev"
+	defaultControlPlaneReadDBTimeout    = 5 * time.Second
+	defaultOIDCDiscoveryTimeout         = 3 * time.Second
+	defaultOIDCJWKSMaxAge               = 5 * time.Minute
+	defaultOIDCJWKSHardExpiry           = 15 * time.Minute
+	defaultOIDCRotationOverlap          = 5 * time.Minute
+	defaultOIDCClockSkew                = 30 * time.Second
+	defaultOIDCMaxTokenLifetime         = 10 * time.Minute
+	defaultOIDCMaxResponseBytes         = 256 * 1024
+	defaultOIDCMaxKeys                  = 32
 )
 
 const (
@@ -61,169 +65,195 @@ const (
 )
 
 type Config struct {
-	ListenAddr                           string
-	ReadHeaderTimeout                    time.Duration
-	WriteTimeout                         time.Duration
-	BridgeTimeout                        time.Duration
-	BridgeMode                           string
-	BridgeWorkerCount                    int
-	BridgeQueueCapacity                  int
-	BridgeHandshakeTimeout               time.Duration
-	ControlPlaneReadDevAuthEnabled       bool
-	ControlPlaneReadAuthMode             string
-	ControlPlaneReadTestIssuer           string
-	ControlPlaneReadTestAudience         string
-	ControlPlaneReadTestPublicKeyPEM     string
-	ControlPlaneReadOIDCIssuer           string
-	ControlPlaneReadOIDCDiscoveryURL     string
-	ControlPlaneReadOIDCAudience         string
-	ControlPlaneReadOIDCMappingVersion   string
-	ControlPlaneReadOIDCEvidenceRef      string
-	ControlPlaneReadOIDCSubjectClaim     string
-	ControlPlaneReadOIDCTenantClaim      string
-	ControlPlaneReadOIDCPermissionClaim  string
-	ControlPlaneReadOIDCTenantPermission string
-	ControlPlaneReadOIDCAuditPermission  string
-	ControlPlaneReadOIDCAlgorithms       string
-	ControlPlaneReadOIDCJWKSOrigin       string
-	ControlPlaneReadOIDCDiscoveryTimeout time.Duration
-	ControlPlaneReadOIDCJWKSMaxAge       time.Duration
-	ControlPlaneReadOIDCJWKSHardExpiry   time.Duration
-	ControlPlaneReadOIDCRotationOverlap  time.Duration
-	ControlPlaneReadOIDCClockSkew        time.Duration
-	ControlPlaneReadOIDCMaxTokenLifetime time.Duration
-	ControlPlaneReadOIDCMaxResponseBytes int
-	ControlPlaneReadOIDCMaxKeys          int
-	ControlPlaneReadStoreMode            string
-	ControlPlaneReadDatabaseURL          string
-	ControlPlaneReadDatabaseTimeout      time.Duration
-	WorkflowSavedDraftDevHTTPEnabled     bool
-	WorkflowSavedDraftDevWriteEnabled    bool
-	ApplicationDraftDevHTTPEnabled       bool
-	ApplicationDraftDevWriteEnabled      bool
-	ApplicationDraftStoreMode            string
-	ApplicationDraftDatabaseURL          string
-	ApplicationDraftDatabaseTimeout      time.Duration
-	ApplicationPublishDevHTTPEnabled     bool
-	ApplicationPublishDevWriteEnabled    bool
-	ApplicationPublishStoreMode          string
-	ApplicationPublishDatabaseURL        string
-	ApplicationPublishDatabaseTimeout    time.Duration
-	ApplicationCatalogDevHTTPEnabled     bool
-	ApplicationCatalogDevWriteEnabled    bool
-	ApplicationCatalogStoreMode          string
-	ApplicationCatalogDatabaseURL        string
-	ApplicationCatalogDatabaseTimeout    time.Duration
-	APIKeyLifecycleDevHTTPEnabled        bool
-	APIKeyLifecycleDevWriteEnabled       bool
-	APIKeyStoreMode                      string
-	APIKeyDatabaseURL                    string
-	APIKeyDatabaseTimeout                time.Duration
-	GatewayAuthMode                      string
-	WorkflowDefinitionReleaseDevEnabled  bool
-	ApplicationSessionDevEnabled         bool
-	WorkflowExecutorDevEnabled           bool
-	WorkflowToolActionDevEnabled         bool
-	WorkflowHTTPToolExecutionDevEnabled  bool
-	WorkflowRAGSnapshotDevEnabled        bool
-	WorkflowRAGExecutionDevEnabled       bool
-	WorkflowRAGEvaluationDevEnabled      bool
-	WorkflowRAGPromotionDevEnabled       bool
-	WorkflowRAGAppInvocationDevEnabled   bool
-	WorkflowHTTPToolTestLoopbackEnabled  bool
-	WorkflowDiagnosticsDevEnabled        bool
-	GatewayRequestHistoryDevEnabled      bool
-	GatewayRequestStoreMode              string
-	GatewayRequestDatabaseURL            string
-	GatewayRequestDatabaseTimeout        time.Duration
-	LocalPersistenceMode                 string
-	SQLiteDevDatabasePath                string
-	WorkflowSavedDraftStoreMode          string
-	WorkflowSavedDraftDatabaseURL        string
-	WorkflowSavedDraftDatabaseTimeout    time.Duration
-	WorkflowRunStoreMode                 string
-	WorkflowRunDatabaseURL               string
-	WorkflowRunDatabaseTimeout           time.Duration
-	PythonBinary                         string
-	BridgeScript                         string
-	Provider                             string
-	ProviderProfile                      string
-	Model                                string
-	BaseURL                              string
-	APIKey                               string
-	Temperature                          float64
-	ConfigFile                           string
-	FieldSources                         map[string]string
+	ListenAddr                              string
+	ReadHeaderTimeout                       time.Duration
+	WriteTimeout                            time.Duration
+	BridgeTimeout                           time.Duration
+	BridgeMode                              string
+	BridgeWorkerCount                       int
+	BridgeQueueCapacity                     int
+	BridgeHandshakeTimeout                  time.Duration
+	ControlPlaneReadDevAuthEnabled          bool
+	ControlPlaneReadAuthMode                string
+	ControlPlaneReadTestIssuer              string
+	ControlPlaneReadTestAudience            string
+	ControlPlaneReadTestPublicKeyPEM        string
+	ControlPlaneReadOIDCIssuer              string
+	ControlPlaneReadOIDCDiscoveryURL        string
+	ControlPlaneReadOIDCAudience            string
+	ControlPlaneReadOIDCMappingVersion      string
+	ControlPlaneReadOIDCEvidenceRef         string
+	ControlPlaneReadOIDCSubjectClaim        string
+	ControlPlaneReadOIDCTenantClaim         string
+	ControlPlaneReadOIDCPermissionClaim     string
+	ControlPlaneReadOIDCTenantPermission    string
+	ControlPlaneReadOIDCAuditPermission     string
+	ControlPlaneReadOIDCAlgorithms          string
+	ControlPlaneReadOIDCJWKSOrigin          string
+	ControlPlaneReadOIDCDiscoveryTimeout    time.Duration
+	ControlPlaneReadOIDCJWKSMaxAge          time.Duration
+	ControlPlaneReadOIDCJWKSHardExpiry      time.Duration
+	ControlPlaneReadOIDCRotationOverlap     time.Duration
+	ControlPlaneReadOIDCClockSkew           time.Duration
+	ControlPlaneReadOIDCMaxTokenLifetime    time.Duration
+	ControlPlaneReadOIDCMaxResponseBytes    int
+	ControlPlaneReadOIDCMaxKeys             int
+	ControlPlaneReadStoreMode               string
+	ControlPlaneReadDatabaseURL             string
+	ControlPlaneReadDatabaseTimeout         time.Duration
+	WorkflowSavedDraftDevHTTPEnabled        bool
+	WorkflowSavedDraftDevWriteEnabled       bool
+	ApplicationDraftDevHTTPEnabled          bool
+	ApplicationDraftDevWriteEnabled         bool
+	PromptTemplateDevHTTPEnabled            bool
+	PromptTemplateDevWriteEnabled           bool
+	AgentCopilotProfileDevHTTPEnabled       bool
+	AgentCopilotProfileDevWriteEnabled      bool
+	AgentCopilotProfileStoreMode            string
+	AgentCopilotProfileDatabaseURL          string
+	AgentCopilotProfileDatabaseTimeout      time.Duration
+	AgentCopilotRuntimeDevHTTPEnabled       bool
+	AgentCopilotRuntimeDevWriteEnabled      bool
+	PromptTemplateStoreMode                 string
+	PromptTemplateDatabaseURL               string
+	PromptTemplateDatabaseTimeout           time.Duration
+	PromptApplicationRuntimeDevHTTPEnabled  bool
+	PromptApplicationRuntimeDevWriteEnabled bool
+	ApplicationDraftStoreMode               string
+	ApplicationDraftDatabaseURL             string
+	ApplicationDraftDatabaseTimeout         time.Duration
+	ApplicationPublishDevHTTPEnabled        bool
+	ApplicationPublishDevWriteEnabled       bool
+	ApplicationPublishStoreMode             string
+	ApplicationPublishDatabaseURL           string
+	ApplicationPublishDatabaseTimeout       time.Duration
+	ApplicationCatalogDevHTTPEnabled        bool
+	ApplicationCatalogDevWriteEnabled       bool
+	ApplicationCatalogStoreMode             string
+	ApplicationCatalogDatabaseURL           string
+	ApplicationCatalogDatabaseTimeout       time.Duration
+	APIKeyLifecycleDevHTTPEnabled           bool
+	APIKeyLifecycleDevWriteEnabled          bool
+	APIKeyStoreMode                         string
+	APIKeyDatabaseURL                       string
+	APIKeyDatabaseTimeout                   time.Duration
+	GatewayAuthMode                         string
+	WorkflowDefinitionReleaseDevEnabled     bool
+	ApplicationSessionDevEnabled            bool
+	WorkflowExecutorDevEnabled              bool
+	WorkflowToolActionDevEnabled            bool
+	WorkflowHTTPToolExecutionDevEnabled     bool
+	WorkflowRAGSnapshotDevEnabled           bool
+	WorkflowRAGExecutionDevEnabled          bool
+	WorkflowRAGEvaluationDevEnabled         bool
+	WorkflowRAGPromotionDevEnabled          bool
+	WorkflowRAGAppInvocationDevEnabled      bool
+	WorkflowHTTPToolTestLoopbackEnabled     bool
+	WorkflowDiagnosticsDevEnabled           bool
+	GatewayRequestHistoryDevEnabled         bool
+	GatewayRequestStoreMode                 string
+	GatewayRequestDatabaseURL               string
+	GatewayRequestDatabaseTimeout           time.Duration
+	LocalPersistenceMode                    string
+	SQLiteDevDatabasePath                   string
+	WorkflowSavedDraftStoreMode             string
+	WorkflowSavedDraftDatabaseURL           string
+	WorkflowSavedDraftDatabaseTimeout       time.Duration
+	WorkflowRunStoreMode                    string
+	WorkflowRunDatabaseURL                  string
+	WorkflowRunDatabaseTimeout              time.Duration
+	PythonBinary                            string
+	BridgeScript                            string
+	Provider                                string
+	ProviderProfile                         string
+	Model                                   string
+	BaseURL                                 string
+	APIKey                                  string
+	Temperature                             float64
+	ConfigFile                              string
+	FieldSources                            map[string]string
 }
 
 type ConfigSummary struct {
-	ListenAddr                           string            `json:"listen_addr"`
-	ControlPlaneReadDevAuthEnabled       bool              `json:"control_plane_read_dev_auth_enabled"`
-	ControlPlaneReadAuthMode             string            `json:"control_plane_read_auth_mode"`
-	ControlPlaneReadTestConfigured       bool              `json:"control_plane_read_signed_test_configured"`
-	ControlPlaneReadOIDCConfigured       bool              `json:"control_plane_read_oidc_integration_configured"`
-	ControlPlaneReadOIDCMappingVersion   string            `json:"control_plane_read_oidc_mapping_version,omitempty"`
-	ControlPlaneReadOIDCEvidenceRef      string            `json:"control_plane_read_oidc_evidence_ref,omitempty"`
-	ControlPlaneReadStoreMode            string            `json:"control_plane_read_store_mode"`
-	ControlPlaneReadDatabaseConfigured   bool              `json:"control_plane_read_database_configured"`
-	WorkflowSavedDraftDevHTTPEnabled     bool              `json:"workflow_saved_draft_dev_http_enabled"`
-	WorkflowSavedDraftDevWriteEnabled    bool              `json:"workflow_saved_draft_dev_write_enabled"`
-	ApplicationDraftDevHTTPEnabled       bool              `json:"application_draft_dev_http_enabled"`
-	ApplicationDraftDevWriteEnabled      bool              `json:"application_draft_dev_write_enabled"`
-	ApplicationDraftStoreMode            string            `json:"application_draft_store_mode"`
-	ApplicationDraftDatabaseConfigured   bool              `json:"application_draft_database_configured"`
-	ApplicationPublishDevHTTPEnabled     bool              `json:"application_publish_dev_http_enabled"`
-	ApplicationPublishDevWriteEnabled    bool              `json:"application_publish_dev_write_enabled"`
-	ApplicationPublishStoreMode          string            `json:"application_publish_store_mode"`
-	ApplicationPublishDatabaseConfigured bool              `json:"application_publish_database_configured"`
-	ApplicationCatalogDevHTTPEnabled     bool              `json:"application_catalog_dev_http_enabled"`
-	ApplicationCatalogDevWriteEnabled    bool              `json:"application_catalog_dev_write_enabled"`
-	ApplicationCatalogStoreMode          string            `json:"application_catalog_store_mode"`
-	ApplicationCatalogDatabaseConfigured bool              `json:"application_catalog_database_configured"`
-	APIKeyLifecycleDevHTTPEnabled        bool              `json:"api_key_lifecycle_dev_http_enabled"`
-	APIKeyLifecycleDevWriteEnabled       bool              `json:"api_key_lifecycle_dev_write_enabled"`
-	APIKeyStoreMode                      string            `json:"api_key_store_mode"`
-	APIKeyDatabaseConfigured             bool              `json:"api_key_database_configured"`
-	GatewayAuthMode                      string            `json:"gateway_auth_mode"`
-	WorkflowDefinitionReleaseDevEnabled  bool              `json:"workflow_definition_release_dev_enabled"`
-	ApplicationSessionDevEnabled         bool              `json:"application_session_dev_enabled"`
-	WorkflowExecutorDevEnabled           bool              `json:"workflow_executor_dev_enabled"`
-	WorkflowToolActionDevEnabled         bool              `json:"workflow_tool_action_dev_enabled"`
-	WorkflowHTTPToolExecutionDevEnabled  bool              `json:"workflow_http_tool_execution_dev_enabled"`
-	WorkflowRAGSnapshotDevEnabled        bool              `json:"workflow_rag_snapshot_dev_enabled"`
-	WorkflowRAGExecutionDevEnabled       bool              `json:"workflow_rag_execution_dev_enabled"`
-	WorkflowRAGEvaluationDevEnabled      bool              `json:"workflow_rag_evaluation_dev_enabled"`
-	WorkflowRAGPromotionDevEnabled       bool              `json:"workflow_rag_promotion_dev_enabled"`
-	WorkflowRAGAppInvocationDevEnabled   bool              `json:"workflow_rag_application_invocation_dev_enabled"`
-	WorkflowHTTPToolTestLoopbackEnabled  bool              `json:"workflow_http_tool_test_loopback_enabled"`
-	WorkflowDiagnosticsDevEnabled        bool              `json:"workflow_diagnostics_dev_enabled"`
-	GatewayRequestHistoryDevEnabled      bool              `json:"gateway_request_history_dev_enabled"`
-	GatewayRequestStoreMode              string            `json:"gateway_request_store_mode"`
-	GatewayRequestDatabaseConfigured     bool              `json:"gateway_request_database_configured"`
-	LocalPersistenceMode                 string            `json:"local_persistence_mode"`
-	LocalPersistenceConfigured           bool              `json:"local_persistence_configured"`
-	SQLiteDevDatabaseConfigured          bool              `json:"sqlite_dev_database_configured"`
-	SQLiteDevSchemaStatus                string            `json:"sqlite_dev_schema_status"`
-	LocalPersistenceComponentsConsistent bool              `json:"local_persistence_components_consistent"`
-	WorkflowSavedDraftStoreMode          string            `json:"workflow_saved_draft_store_mode"`
-	WorkflowSavedDraftDatabaseConfigured bool              `json:"workflow_saved_draft_database_configured"`
-	WorkflowRunStoreMode                 string            `json:"workflow_run_store_mode"`
-	WorkflowRunDatabaseConfigured        bool              `json:"workflow_run_database_configured"`
-	Provider                             string            `json:"provider"`
-	Profile                              string            `json:"profile"`
-	Model                                string            `json:"model"`
-	ModelConfigured                      bool              `json:"model_configured"`
-	BaseURLConfigured                    bool              `json:"base_url_configured"`
-	CredentialState                      string            `json:"credential_state"`
-	Timeouts                             map[string]string `json:"timeouts"`
-	PythonBridge                         PythonBridge      `json:"python_bridge"`
-	Temperature                          float64           `json:"temperature"`
-	RequiredFields                       []string          `json:"required_fields"`
-	MissingRequiredFields                []string          `json:"missing_required_fields"`
-	SecretFields                         []string          `json:"secret_fields"`
-	ConfigFile                           ConfigFileSummary `json:"config_file"`
-	FieldSources                         map[string]string `json:"field_sources"`
-	Sanitized                            bool              `json:"sanitized"`
+	ListenAddr                              string            `json:"listen_addr"`
+	ControlPlaneReadDevAuthEnabled          bool              `json:"control_plane_read_dev_auth_enabled"`
+	ControlPlaneReadAuthMode                string            `json:"control_plane_read_auth_mode"`
+	ControlPlaneReadTestConfigured          bool              `json:"control_plane_read_signed_test_configured"`
+	ControlPlaneReadOIDCConfigured          bool              `json:"control_plane_read_oidc_integration_configured"`
+	ControlPlaneReadOIDCMappingVersion      string            `json:"control_plane_read_oidc_mapping_version,omitempty"`
+	ControlPlaneReadOIDCEvidenceRef         string            `json:"control_plane_read_oidc_evidence_ref,omitempty"`
+	ControlPlaneReadStoreMode               string            `json:"control_plane_read_store_mode"`
+	ControlPlaneReadDatabaseConfigured      bool              `json:"control_plane_read_database_configured"`
+	WorkflowSavedDraftDevHTTPEnabled        bool              `json:"workflow_saved_draft_dev_http_enabled"`
+	WorkflowSavedDraftDevWriteEnabled       bool              `json:"workflow_saved_draft_dev_write_enabled"`
+	ApplicationDraftDevHTTPEnabled          bool              `json:"application_draft_dev_http_enabled"`
+	ApplicationDraftDevWriteEnabled         bool              `json:"application_draft_dev_write_enabled"`
+	PromptTemplateDevHTTPEnabled            bool              `json:"prompt_application_template_dev_http_enabled"`
+	PromptTemplateDevWriteEnabled           bool              `json:"prompt_application_template_dev_write_enabled"`
+	AgentCopilotProfileDevHTTPEnabled       bool              `json:"agent_copilot_profile_dev_http_enabled"`
+	AgentCopilotProfileDevWriteEnabled      bool              `json:"agent_copilot_profile_dev_write_enabled"`
+	AgentCopilotProfileStoreMode            string            `json:"agent_copilot_profile_store_mode"`
+	AgentCopilotProfileDatabaseConfigured   bool              `json:"agent_copilot_profile_database_configured"`
+	AgentCopilotRuntimeDevHTTPEnabled       bool              `json:"agent_copilot_runtime_dev_http_enabled"`
+	AgentCopilotRuntimeDevWriteEnabled      bool              `json:"agent_copilot_runtime_dev_write_enabled"`
+	PromptTemplateStoreMode                 string            `json:"prompt_application_template_store_mode"`
+	PromptTemplateDatabaseConfigured        bool              `json:"prompt_application_template_database_configured"`
+	PromptApplicationRuntimeDevHTTPEnabled  bool              `json:"prompt_application_runtime_dev_http_enabled"`
+	PromptApplicationRuntimeDevWriteEnabled bool              `json:"prompt_application_runtime_dev_write_enabled"`
+	ApplicationDraftStoreMode               string            `json:"application_draft_store_mode"`
+	ApplicationDraftDatabaseConfigured      bool              `json:"application_draft_database_configured"`
+	ApplicationPublishDevHTTPEnabled        bool              `json:"application_publish_dev_http_enabled"`
+	ApplicationPublishDevWriteEnabled       bool              `json:"application_publish_dev_write_enabled"`
+	ApplicationPublishStoreMode             string            `json:"application_publish_store_mode"`
+	ApplicationPublishDatabaseConfigured    bool              `json:"application_publish_database_configured"`
+	ApplicationCatalogDevHTTPEnabled        bool              `json:"application_catalog_dev_http_enabled"`
+	ApplicationCatalogDevWriteEnabled       bool              `json:"application_catalog_dev_write_enabled"`
+	ApplicationCatalogStoreMode             string            `json:"application_catalog_store_mode"`
+	ApplicationCatalogDatabaseConfigured    bool              `json:"application_catalog_database_configured"`
+	APIKeyLifecycleDevHTTPEnabled           bool              `json:"api_key_lifecycle_dev_http_enabled"`
+	APIKeyLifecycleDevWriteEnabled          bool              `json:"api_key_lifecycle_dev_write_enabled"`
+	APIKeyStoreMode                         string            `json:"api_key_store_mode"`
+	APIKeyDatabaseConfigured                bool              `json:"api_key_database_configured"`
+	GatewayAuthMode                         string            `json:"gateway_auth_mode"`
+	WorkflowDefinitionReleaseDevEnabled     bool              `json:"workflow_definition_release_dev_enabled"`
+	ApplicationSessionDevEnabled            bool              `json:"application_session_dev_enabled"`
+	WorkflowExecutorDevEnabled              bool              `json:"workflow_executor_dev_enabled"`
+	WorkflowToolActionDevEnabled            bool              `json:"workflow_tool_action_dev_enabled"`
+	WorkflowHTTPToolExecutionDevEnabled     bool              `json:"workflow_http_tool_execution_dev_enabled"`
+	WorkflowRAGSnapshotDevEnabled           bool              `json:"workflow_rag_snapshot_dev_enabled"`
+	WorkflowRAGExecutionDevEnabled          bool              `json:"workflow_rag_execution_dev_enabled"`
+	WorkflowRAGEvaluationDevEnabled         bool              `json:"workflow_rag_evaluation_dev_enabled"`
+	WorkflowRAGPromotionDevEnabled          bool              `json:"workflow_rag_promotion_dev_enabled"`
+	WorkflowRAGAppInvocationDevEnabled      bool              `json:"workflow_rag_application_invocation_dev_enabled"`
+	WorkflowHTTPToolTestLoopbackEnabled     bool              `json:"workflow_http_tool_test_loopback_enabled"`
+	WorkflowDiagnosticsDevEnabled           bool              `json:"workflow_diagnostics_dev_enabled"`
+	GatewayRequestHistoryDevEnabled         bool              `json:"gateway_request_history_dev_enabled"`
+	GatewayRequestStoreMode                 string            `json:"gateway_request_store_mode"`
+	GatewayRequestDatabaseConfigured        bool              `json:"gateway_request_database_configured"`
+	LocalPersistenceMode                    string            `json:"local_persistence_mode"`
+	LocalPersistenceConfigured              bool              `json:"local_persistence_configured"`
+	SQLiteDevDatabaseConfigured             bool              `json:"sqlite_dev_database_configured"`
+	SQLiteDevSchemaStatus                   string            `json:"sqlite_dev_schema_status"`
+	LocalPersistenceComponentsConsistent    bool              `json:"local_persistence_components_consistent"`
+	WorkflowSavedDraftStoreMode             string            `json:"workflow_saved_draft_store_mode"`
+	WorkflowSavedDraftDatabaseConfigured    bool              `json:"workflow_saved_draft_database_configured"`
+	WorkflowRunStoreMode                    string            `json:"workflow_run_store_mode"`
+	WorkflowRunDatabaseConfigured           bool              `json:"workflow_run_database_configured"`
+	Provider                                string            `json:"provider"`
+	Profile                                 string            `json:"profile"`
+	Model                                   string            `json:"model"`
+	ModelConfigured                         bool              `json:"model_configured"`
+	BaseURLConfigured                       bool              `json:"base_url_configured"`
+	CredentialState                         string            `json:"credential_state"`
+	Timeouts                                map[string]string `json:"timeouts"`
+	PythonBridge                            PythonBridge      `json:"python_bridge"`
+	Temperature                             float64           `json:"temperature"`
+	RequiredFields                          []string          `json:"required_fields"`
+	MissingRequiredFields                   []string          `json:"missing_required_fields"`
+	SecretFields                            []string          `json:"secret_fields"`
+	ConfigFile                              ConfigFileSummary `json:"config_file"`
+	FieldSources                            map[string]string `json:"field_sources"`
+	Sanitized                               bool              `json:"sanitized"`
 }
 
 type PythonBridge struct {
@@ -323,6 +353,10 @@ func defaultConfig() Config {
 		ApplicationPublishDatabaseTimeout:    defaultApplicationPublishDBTimeout,
 		ApplicationCatalogStoreMode:          defaultApplicationCatalogStoreMode,
 		ApplicationCatalogDatabaseTimeout:    defaultApplicationCatalogDBTimeout,
+		PromptTemplateStoreMode:              defaultPromptTemplateStoreMode,
+		PromptTemplateDatabaseTimeout:        defaultPromptTemplateDBTimeout,
+		AgentCopilotProfileStoreMode:         defaultAgentCopilotProfileStoreMode,
+		AgentCopilotProfileDatabaseTimeout:   defaultAgentCopilotProfileDBTimeout,
 		APIKeyStoreMode:                      defaultAPIKeyStoreMode,
 		APIKeyDatabaseTimeout:                defaultAPIKeyDBTimeout,
 		GatewayAuthMode:                      defaultGatewayAuthMode,
@@ -332,72 +366,84 @@ func defaultConfig() Config {
 		GatewayRequestDatabaseTimeout:        defaultGatewayRequestDBTimeout,
 		SQLiteDevDatabasePath:                defaultSQLiteDevDatabasePath,
 		FieldSources: map[string]string{
-			"listen_addr":                           configSourceDefault,
-			"read_header_timeout":                   configSourceDefault,
-			"write_timeout":                         configSourceDefault,
-			"bridge_timeout":                        configSourceDefault,
-			"bridge_mode":                           configSourceDefault,
-			"bridge_worker_count":                   configSourceDefault,
-			"bridge_queue_capacity":                 configSourceDefault,
-			"bridge_handshake_timeout":              configSourceDefault,
-			"control_plane_read_dev_auth":           configSourceDefault,
-			"control_plane_read_auth_mode":          configSourceDefault,
-			"control_plane_read_store":              configSourceDefault,
-			"control_plane_read_database":           configSourceDefault,
-			"control_plane_read_database_timeout":   configSourceDefault,
-			"workflow_saved_draft_dev_http":         configSourceDefault,
-			"workflow_saved_draft_dev_write":        configSourceDefault,
-			"application_draft_dev_http":            configSourceDefault,
-			"application_draft_dev_write":           configSourceDefault,
-			"application_draft_store":               configSourceDefault,
-			"application_draft_database":            configSourceDefault,
-			"application_draft_database_timeout":    configSourceDefault,
-			"application_publish_dev_http":          configSourceDefault,
-			"application_publish_dev_write":         configSourceDefault,
-			"application_publish_store":             configSourceDefault,
-			"application_publish_database":          configSourceDefault,
-			"application_publish_database_timeout":  configSourceDefault,
-			"application_catalog_dev_http":          configSourceDefault,
-			"application_catalog_dev_write":         configSourceDefault,
-			"application_catalog_store":             configSourceDefault,
-			"application_catalog_database":          configSourceDefault,
-			"application_catalog_database_timeout":  configSourceDefault,
-			"api_key_store":                         configSourceDefault,
-			"api_key_database":                      configSourceDefault,
-			"api_key_database_timeout":              configSourceDefault,
-			"gateway_auth_mode":                     configSourceDefault,
-			"workflow_definition_release_dev":       configSourceDefault,
-			"application_session_dev":               configSourceDefault,
-			"workflow_executor_dev":                 configSourceDefault,
-			"workflow_tool_action_dev":              configSourceDefault,
-			"workflow_http_tool_execution_dev":      configSourceDefault,
-			"workflow_rag_snapshot_dev":             configSourceDefault,
-			"workflow_rag_execution_dev":            configSourceDefault,
-			"workflow_rag_evaluation_dev":           configSourceDefault,
-			"workflow_rag_promotion_dev":            configSourceDefault,
-			"workflow_http_tool_test_loopback":      configSourceDefault,
-			"workflow_diagnostics_dev":              configSourceDefault,
-			"gateway_request_history_dev":           configSourceDefault,
-			"gateway_request_store":                 configSourceDefault,
-			"gateway_request_database":              configSourceDefault,
-			"gateway_request_database_timeout":      configSourceDefault,
-			"local_persistence_mode":                configSourceDefault,
-			"sqlite_dev_database_path":              configSourceDefault,
-			"workflow_saved_draft_store":            configSourceDefault,
-			"workflow_saved_draft_database":         configSourceDefault,
-			"workflow_saved_draft_database_timeout": configSourceDefault,
-			"workflow_run_store":                    configSourceDefault,
-			"workflow_run_database":                 configSourceDefault,
-			"workflow_run_database_timeout":         configSourceDefault,
-			"python_binary":                         configSourceDefault,
-			"bridge_script":                         configSourceDefault,
-			"provider":                              configSourceDefault,
-			"profile":                               configSourceDefault,
-			"model":                                 configSourceDefault,
-			"base_url":                              configSourceDefault,
-			"credential":                            configSourceDefault,
-			"temperature":                           configSourceDefault,
-			"config_file":                           configSourceDefault,
+			"listen_addr":                                  configSourceDefault,
+			"read_header_timeout":                          configSourceDefault,
+			"write_timeout":                                configSourceDefault,
+			"bridge_timeout":                               configSourceDefault,
+			"bridge_mode":                                  configSourceDefault,
+			"bridge_worker_count":                          configSourceDefault,
+			"bridge_queue_capacity":                        configSourceDefault,
+			"bridge_handshake_timeout":                     configSourceDefault,
+			"control_plane_read_dev_auth":                  configSourceDefault,
+			"control_plane_read_auth_mode":                 configSourceDefault,
+			"control_plane_read_store":                     configSourceDefault,
+			"control_plane_read_database":                  configSourceDefault,
+			"control_plane_read_database_timeout":          configSourceDefault,
+			"workflow_saved_draft_dev_http":                configSourceDefault,
+			"workflow_saved_draft_dev_write":               configSourceDefault,
+			"application_draft_dev_http":                   configSourceDefault,
+			"application_draft_dev_write":                  configSourceDefault,
+			"prompt_application_template_dev_http":         configSourceDefault,
+			"prompt_application_template_dev_write":        configSourceDefault,
+			"prompt_application_template_store":            configSourceDefault,
+			"prompt_application_template_database":         configSourceDefault,
+			"prompt_application_template_database_timeout": configSourceDefault,
+			"agent_copilot_profile_dev_http":               configSourceDefault,
+			"agent_copilot_profile_dev_write":              configSourceDefault,
+			"agent_copilot_profile_store":                  configSourceDefault,
+			"agent_copilot_profile_database":               configSourceDefault,
+			"agent_copilot_profile_database_timeout":       configSourceDefault,
+			"agent_copilot_runtime_dev_http":               configSourceDefault,
+			"agent_copilot_runtime_dev_write":              configSourceDefault,
+			"application_draft_store":                      configSourceDefault,
+			"application_draft_database":                   configSourceDefault,
+			"application_draft_database_timeout":           configSourceDefault,
+			"application_publish_dev_http":                 configSourceDefault,
+			"application_publish_dev_write":                configSourceDefault,
+			"application_publish_store":                    configSourceDefault,
+			"application_publish_database":                 configSourceDefault,
+			"application_publish_database_timeout":         configSourceDefault,
+			"application_catalog_dev_http":                 configSourceDefault,
+			"application_catalog_dev_write":                configSourceDefault,
+			"application_catalog_store":                    configSourceDefault,
+			"application_catalog_database":                 configSourceDefault,
+			"application_catalog_database_timeout":         configSourceDefault,
+			"api_key_store":                                configSourceDefault,
+			"api_key_database":                             configSourceDefault,
+			"api_key_database_timeout":                     configSourceDefault,
+			"gateway_auth_mode":                            configSourceDefault,
+			"workflow_definition_release_dev":              configSourceDefault,
+			"application_session_dev":                      configSourceDefault,
+			"workflow_executor_dev":                        configSourceDefault,
+			"workflow_tool_action_dev":                     configSourceDefault,
+			"workflow_http_tool_execution_dev":             configSourceDefault,
+			"workflow_rag_snapshot_dev":                    configSourceDefault,
+			"workflow_rag_execution_dev":                   configSourceDefault,
+			"workflow_rag_evaluation_dev":                  configSourceDefault,
+			"workflow_rag_promotion_dev":                   configSourceDefault,
+			"workflow_http_tool_test_loopback":             configSourceDefault,
+			"workflow_diagnostics_dev":                     configSourceDefault,
+			"gateway_request_history_dev":                  configSourceDefault,
+			"gateway_request_store":                        configSourceDefault,
+			"gateway_request_database":                     configSourceDefault,
+			"gateway_request_database_timeout":             configSourceDefault,
+			"local_persistence_mode":                       configSourceDefault,
+			"sqlite_dev_database_path":                     configSourceDefault,
+			"workflow_saved_draft_store":                   configSourceDefault,
+			"workflow_saved_draft_database":                configSourceDefault,
+			"workflow_saved_draft_database_timeout":        configSourceDefault,
+			"workflow_run_store":                           configSourceDefault,
+			"workflow_run_database":                        configSourceDefault,
+			"workflow_run_database_timeout":                configSourceDefault,
+			"python_binary":                                configSourceDefault,
+			"bridge_script":                                configSourceDefault,
+			"provider":                                     configSourceDefault,
+			"profile":                                      configSourceDefault,
+			"model":                                        configSourceDefault,
+			"base_url":                                     configSourceDefault,
+			"credential":                                   configSourceDefault,
+			"temperature":                                  configSourceDefault,
+			"config_file":                                  configSourceDefault,
 		},
 	}
 }
@@ -679,6 +725,96 @@ func applyEnvOverrides(cfg *Config) error {
 		}
 		cfg.ApplicationDraftDevWriteEnabled = parsed
 		cfg.FieldSources["application_draft_dev_write"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP", value)
+		if err != nil {
+			return err
+		}
+		cfg.PromptTemplateDevHTTPEnabled = parsed
+		cfg.FieldSources["prompt_application_template_dev_http"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE", value)
+		if err != nil {
+			return err
+		}
+		cfg.PromptTemplateDevWriteEnabled = parsed
+		cfg.FieldSources["prompt_application_template_dev_write"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_HTTP"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_HTTP", value)
+		if err != nil {
+			return err
+		}
+		cfg.AgentCopilotProfileDevHTTPEnabled = parsed
+		cfg.FieldSources["agent_copilot_profile_dev_http"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_WRITE"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_WRITE", value)
+		if err != nil {
+			return err
+		}
+		cfg.AgentCopilotProfileDevWriteEnabled = parsed
+		cfg.FieldSources["agent_copilot_profile_dev_write"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_HTTP"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_HTTP", value)
+		if err != nil {
+			return err
+		}
+		cfg.AgentCopilotRuntimeDevHTTPEnabled = parsed
+		cfg.FieldSources["agent_copilot_runtime_dev_http"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_WRITE"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_WRITE", value)
+		if err != nil {
+			return err
+		}
+		cfg.AgentCopilotRuntimeDevWriteEnabled = parsed
+		cfg.FieldSources["agent_copilot_runtime_dev_write"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_AGENT_COPILOT_PROFILE_STORE"); ok {
+		applyStringValue(&cfg.AgentCopilotProfileStoreMode, value, cfg.FieldSources, "agent_copilot_profile_store", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL"); ok {
+		applyStringValue(&cfg.AgentCopilotProfileDatabaseURL, value, cfg.FieldSources, "agent_copilot_profile_database", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_AGENT_COPILOT_PROFILE_DATABASE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_AGENT_COPILOT_PROFILE_DATABASE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.AgentCopilotProfileDatabaseTimeout, parsed, cfg.FieldSources, "agent_copilot_profile_database_timeout", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE"); ok {
+		applyStringValue(&cfg.PromptTemplateStoreMode, value, cfg.FieldSources, "prompt_application_template_store", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL"); ok {
+		applyStringValue(&cfg.PromptTemplateDatabaseURL, value, cfg.FieldSources, "prompt_application_template_database", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DATABASE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DATABASE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.PromptTemplateDatabaseTimeout, parsed, cfg.FieldSources, "prompt_application_template_database_timeout", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_HTTP"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_HTTP", value)
+		if err != nil {
+			return err
+		}
+		cfg.PromptApplicationRuntimeDevHTTPEnabled = parsed
+		cfg.FieldSources["prompt_application_runtime_dev_http"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_WRITE"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_WRITE", value)
+		if err != nil {
+			return err
+		}
+		cfg.PromptApplicationRuntimeDevWriteEnabled = parsed
+		cfg.FieldSources["prompt_application_runtime_dev_write"] = configSourceEnv
 	}
 	if value, ok := stringEnv("RADISHMIND_APPLICATION_DRAFT_STORE"); ok {
 		applyStringValue(&cfg.ApplicationDraftStoreMode, value, cfg.FieldSources, "application_draft_store", configSourceEnv)
@@ -994,6 +1130,14 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if applicationCatalogStoreMode == "" {
 		applicationCatalogStoreMode = defaultApplicationCatalogStoreMode
 	}
+	promptTemplateStoreMode := strings.TrimSpace(cfg.PromptTemplateStoreMode)
+	if promptTemplateStoreMode == "" {
+		promptTemplateStoreMode = defaultPromptTemplateStoreMode
+	}
+	agentCopilotProfileStoreMode := strings.TrimSpace(cfg.AgentCopilotProfileStoreMode)
+	if agentCopilotProfileStoreMode == "" {
+		agentCopilotProfileStoreMode = defaultAgentCopilotProfileStoreMode
+	}
 	apiKeyStoreMode := strings.TrimSpace(cfg.APIKeyStoreMode)
 	if apiKeyStoreMode == "" {
 		apiKeyStoreMode = defaultAPIKeyStoreMode
@@ -1035,6 +1179,55 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_http")
 		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_write")
+	}
+	if cfg.PromptTemplateDevHTTPEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+	}
+	if cfg.PromptTemplateDevWriteEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_template_dev_http")
+	}
+	if cfg.AgentCopilotProfileDevHTTPEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+	}
+	if cfg.AgentCopilotProfileDevWriteEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_dev_http")
+	}
+	if cfg.AgentCopilotRuntimeDevHTTPEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+	}
+	if cfg.AgentCopilotRuntimeDevWriteEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_runtime_dev_http")
+	}
+	if agentCopilotProfileStoreMode == "postgres_dev_test" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_dev_write")
+		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_database")
+	}
+	if agentCopilotProfileStoreMode == "sqlite_dev" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "agent_copilot_profile_dev_write")
+	}
+	if cfg.PromptApplicationRuntimeDevHTTPEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_draft_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_publish_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_template_dev_http")
+	}
+	if cfg.PromptApplicationRuntimeDevWriteEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_runtime_dev_http")
+	}
+	if promptTemplateStoreMode == "postgres_dev_test" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_template_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_template_dev_write")
+		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_template_database")
+	}
+	if promptTemplateStoreMode == "sqlite_dev" {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_template_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "prompt_application_template_dev_write")
 	}
 	if applicationPublishStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
@@ -1126,14 +1319,18 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	}
 	if workflowRunStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
-		if !cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled {
+		if !cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled &&
+			!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&
+			!cfg.PromptApplicationRuntimeDevHTTPEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled {
 			requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
 		}
 		requiredFields = appendRequiredConfigField(requiredFields, "workflow_run_database")
 	}
 	if workflowRunStoreMode == "sqlite_dev" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
-		if !cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled {
+		if !cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled &&
+			!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&
+			!cfg.PromptApplicationRuntimeDevHTTPEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled {
 			requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
 		}
 	}
@@ -1144,64 +1341,76 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	missingRequiredFields := missingRequiredConfigFields(cfg, requiredFields)
 
 	return ConfigSummary{
-		ListenAddr:                           strings.TrimSpace(cfg.ListenAddr),
-		ControlPlaneReadDevAuthEnabled:       cfg.ControlPlaneReadDevAuthEnabled,
-		ControlPlaneReadAuthMode:             EffectiveControlPlaneReadAuthMode(cfg),
-		ControlPlaneReadTestConfigured:       strings.TrimSpace(cfg.ControlPlaneReadTestIssuer) != "" && strings.TrimSpace(cfg.ControlPlaneReadTestAudience) != "" && strings.TrimSpace(cfg.ControlPlaneReadTestPublicKeyPEM) != "",
-		ControlPlaneReadOIDCConfigured:       strings.TrimSpace(cfg.ControlPlaneReadOIDCIssuer) != "" && strings.TrimSpace(cfg.ControlPlaneReadOIDCAudience) != "" && strings.TrimSpace(cfg.ControlPlaneReadOIDCMappingVersion) != "",
-		ControlPlaneReadOIDCMappingVersion:   strings.TrimSpace(cfg.ControlPlaneReadOIDCMappingVersion),
-		ControlPlaneReadOIDCEvidenceRef:      strings.TrimSpace(cfg.ControlPlaneReadOIDCEvidenceRef),
-		ControlPlaneReadStoreMode:            controlPlaneReadStoreMode,
-		ControlPlaneReadDatabaseConfigured:   strings.TrimSpace(cfg.ControlPlaneReadDatabaseURL) != "",
-		WorkflowSavedDraftDevHTTPEnabled:     cfg.WorkflowSavedDraftDevHTTPEnabled,
-		WorkflowSavedDraftDevWriteEnabled:    cfg.WorkflowSavedDraftDevWriteEnabled,
-		ApplicationDraftDevHTTPEnabled:       cfg.ApplicationDraftDevHTTPEnabled,
-		ApplicationDraftDevWriteEnabled:      cfg.ApplicationDraftDevWriteEnabled,
-		ApplicationDraftStoreMode:            applicationDraftStoreMode,
-		ApplicationDraftDatabaseConfigured:   strings.TrimSpace(cfg.ApplicationDraftDatabaseURL) != "",
-		ApplicationPublishDevHTTPEnabled:     cfg.ApplicationPublishDevHTTPEnabled,
-		ApplicationPublishDevWriteEnabled:    cfg.ApplicationPublishDevWriteEnabled,
-		ApplicationPublishStoreMode:          applicationPublishStoreMode,
-		ApplicationPublishDatabaseConfigured: strings.TrimSpace(cfg.ApplicationPublishDatabaseURL) != "",
-		ApplicationCatalogDevHTTPEnabled:     cfg.ApplicationCatalogDevHTTPEnabled,
-		ApplicationCatalogDevWriteEnabled:    cfg.ApplicationCatalogDevWriteEnabled,
-		ApplicationCatalogStoreMode:          applicationCatalogStoreMode,
-		ApplicationCatalogDatabaseConfigured: strings.TrimSpace(cfg.ApplicationCatalogDatabaseURL) != "",
-		APIKeyLifecycleDevHTTPEnabled:        cfg.APIKeyLifecycleDevHTTPEnabled,
-		APIKeyLifecycleDevWriteEnabled:       cfg.APIKeyLifecycleDevWriteEnabled,
-		APIKeyStoreMode:                      apiKeyStoreMode,
-		APIKeyDatabaseConfigured:             strings.TrimSpace(cfg.APIKeyDatabaseURL) != "",
-		GatewayAuthMode:                      gatewayAuthMode,
-		WorkflowDefinitionReleaseDevEnabled:  cfg.WorkflowDefinitionReleaseDevEnabled,
-		ApplicationSessionDevEnabled:         cfg.ApplicationSessionDevEnabled,
-		WorkflowExecutorDevEnabled:           cfg.WorkflowExecutorDevEnabled,
-		WorkflowToolActionDevEnabled:         cfg.WorkflowToolActionDevEnabled,
-		WorkflowHTTPToolExecutionDevEnabled:  cfg.WorkflowHTTPToolExecutionDevEnabled,
-		WorkflowRAGSnapshotDevEnabled:        cfg.WorkflowRAGSnapshotDevEnabled,
-		WorkflowRAGExecutionDevEnabled:       cfg.WorkflowRAGExecutionDevEnabled,
-		WorkflowRAGEvaluationDevEnabled:      cfg.WorkflowRAGEvaluationDevEnabled,
-		WorkflowRAGPromotionDevEnabled:       cfg.WorkflowRAGPromotionDevEnabled,
-		WorkflowRAGAppInvocationDevEnabled:   cfg.WorkflowRAGAppInvocationDevEnabled,
-		WorkflowHTTPToolTestLoopbackEnabled:  cfg.WorkflowHTTPToolTestLoopbackEnabled,
-		WorkflowDiagnosticsDevEnabled:        cfg.WorkflowDiagnosticsDevEnabled,
-		GatewayRequestHistoryDevEnabled:      cfg.GatewayRequestHistoryDevEnabled,
-		GatewayRequestStoreMode:              gatewayRequestStoreMode,
-		GatewayRequestDatabaseConfigured:     strings.TrimSpace(cfg.GatewayRequestDatabaseURL) != "",
-		LocalPersistenceMode:                 localPersistenceMode,
-		LocalPersistenceConfigured:           strings.TrimSpace(cfg.LocalPersistenceMode) != "",
-		SQLiteDevDatabaseConfigured:          strings.TrimSpace(cfg.SQLiteDevDatabasePath) != "",
-		SQLiteDevSchemaStatus:                sqliteDevSchemaStatus(localPersistenceMode),
-		LocalPersistenceComponentsConsistent: localPersistenceComponentsConsistent(cfg),
-		WorkflowSavedDraftStoreMode:          workflowSavedDraftStoreMode,
-		WorkflowSavedDraftDatabaseConfigured: strings.TrimSpace(cfg.WorkflowSavedDraftDatabaseURL) != "",
-		WorkflowRunStoreMode:                 workflowRunStoreMode,
-		WorkflowRunDatabaseConfigured:        strings.TrimSpace(cfg.WorkflowRunDatabaseURL) != "",
-		Provider:                             provider,
-		Profile:                              profile,
-		Model:                                model,
-		ModelConfigured:                      model != "",
-		BaseURLConfigured:                    baseURLConfigured,
-		CredentialState:                      credentialState,
+		ListenAddr:                              strings.TrimSpace(cfg.ListenAddr),
+		ControlPlaneReadDevAuthEnabled:          cfg.ControlPlaneReadDevAuthEnabled,
+		ControlPlaneReadAuthMode:                EffectiveControlPlaneReadAuthMode(cfg),
+		ControlPlaneReadTestConfigured:          strings.TrimSpace(cfg.ControlPlaneReadTestIssuer) != "" && strings.TrimSpace(cfg.ControlPlaneReadTestAudience) != "" && strings.TrimSpace(cfg.ControlPlaneReadTestPublicKeyPEM) != "",
+		ControlPlaneReadOIDCConfigured:          strings.TrimSpace(cfg.ControlPlaneReadOIDCIssuer) != "" && strings.TrimSpace(cfg.ControlPlaneReadOIDCAudience) != "" && strings.TrimSpace(cfg.ControlPlaneReadOIDCMappingVersion) != "",
+		ControlPlaneReadOIDCMappingVersion:      strings.TrimSpace(cfg.ControlPlaneReadOIDCMappingVersion),
+		ControlPlaneReadOIDCEvidenceRef:         strings.TrimSpace(cfg.ControlPlaneReadOIDCEvidenceRef),
+		ControlPlaneReadStoreMode:               controlPlaneReadStoreMode,
+		ControlPlaneReadDatabaseConfigured:      strings.TrimSpace(cfg.ControlPlaneReadDatabaseURL) != "",
+		WorkflowSavedDraftDevHTTPEnabled:        cfg.WorkflowSavedDraftDevHTTPEnabled,
+		WorkflowSavedDraftDevWriteEnabled:       cfg.WorkflowSavedDraftDevWriteEnabled,
+		ApplicationDraftDevHTTPEnabled:          cfg.ApplicationDraftDevHTTPEnabled,
+		ApplicationDraftDevWriteEnabled:         cfg.ApplicationDraftDevWriteEnabled,
+		PromptTemplateDevHTTPEnabled:            cfg.PromptTemplateDevHTTPEnabled,
+		PromptTemplateDevWriteEnabled:           cfg.PromptTemplateDevWriteEnabled,
+		AgentCopilotProfileDevHTTPEnabled:       cfg.AgentCopilotProfileDevHTTPEnabled,
+		AgentCopilotProfileDevWriteEnabled:      cfg.AgentCopilotProfileDevWriteEnabled,
+		AgentCopilotProfileStoreMode:            agentCopilotProfileStoreMode,
+		AgentCopilotProfileDatabaseConfigured:   strings.TrimSpace(cfg.AgentCopilotProfileDatabaseURL) != "",
+		AgentCopilotRuntimeDevHTTPEnabled:       cfg.AgentCopilotRuntimeDevHTTPEnabled,
+		AgentCopilotRuntimeDevWriteEnabled:      cfg.AgentCopilotRuntimeDevWriteEnabled,
+		PromptTemplateStoreMode:                 promptTemplateStoreMode,
+		PromptTemplateDatabaseConfigured:        strings.TrimSpace(cfg.PromptTemplateDatabaseURL) != "",
+		PromptApplicationRuntimeDevHTTPEnabled:  cfg.PromptApplicationRuntimeDevHTTPEnabled,
+		PromptApplicationRuntimeDevWriteEnabled: cfg.PromptApplicationRuntimeDevWriteEnabled,
+		ApplicationDraftStoreMode:               applicationDraftStoreMode,
+		ApplicationDraftDatabaseConfigured:      strings.TrimSpace(cfg.ApplicationDraftDatabaseURL) != "",
+		ApplicationPublishDevHTTPEnabled:        cfg.ApplicationPublishDevHTTPEnabled,
+		ApplicationPublishDevWriteEnabled:       cfg.ApplicationPublishDevWriteEnabled,
+		ApplicationPublishStoreMode:             applicationPublishStoreMode,
+		ApplicationPublishDatabaseConfigured:    strings.TrimSpace(cfg.ApplicationPublishDatabaseURL) != "",
+		ApplicationCatalogDevHTTPEnabled:        cfg.ApplicationCatalogDevHTTPEnabled,
+		ApplicationCatalogDevWriteEnabled:       cfg.ApplicationCatalogDevWriteEnabled,
+		ApplicationCatalogStoreMode:             applicationCatalogStoreMode,
+		ApplicationCatalogDatabaseConfigured:    strings.TrimSpace(cfg.ApplicationCatalogDatabaseURL) != "",
+		APIKeyLifecycleDevHTTPEnabled:           cfg.APIKeyLifecycleDevHTTPEnabled,
+		APIKeyLifecycleDevWriteEnabled:          cfg.APIKeyLifecycleDevWriteEnabled,
+		APIKeyStoreMode:                         apiKeyStoreMode,
+		APIKeyDatabaseConfigured:                strings.TrimSpace(cfg.APIKeyDatabaseURL) != "",
+		GatewayAuthMode:                         gatewayAuthMode,
+		WorkflowDefinitionReleaseDevEnabled:     cfg.WorkflowDefinitionReleaseDevEnabled,
+		ApplicationSessionDevEnabled:            cfg.ApplicationSessionDevEnabled,
+		WorkflowExecutorDevEnabled:              cfg.WorkflowExecutorDevEnabled,
+		WorkflowToolActionDevEnabled:            cfg.WorkflowToolActionDevEnabled,
+		WorkflowHTTPToolExecutionDevEnabled:     cfg.WorkflowHTTPToolExecutionDevEnabled,
+		WorkflowRAGSnapshotDevEnabled:           cfg.WorkflowRAGSnapshotDevEnabled,
+		WorkflowRAGExecutionDevEnabled:          cfg.WorkflowRAGExecutionDevEnabled,
+		WorkflowRAGEvaluationDevEnabled:         cfg.WorkflowRAGEvaluationDevEnabled,
+		WorkflowRAGPromotionDevEnabled:          cfg.WorkflowRAGPromotionDevEnabled,
+		WorkflowRAGAppInvocationDevEnabled:      cfg.WorkflowRAGAppInvocationDevEnabled,
+		WorkflowHTTPToolTestLoopbackEnabled:     cfg.WorkflowHTTPToolTestLoopbackEnabled,
+		WorkflowDiagnosticsDevEnabled:           cfg.WorkflowDiagnosticsDevEnabled,
+		GatewayRequestHistoryDevEnabled:         cfg.GatewayRequestHistoryDevEnabled,
+		GatewayRequestStoreMode:                 gatewayRequestStoreMode,
+		GatewayRequestDatabaseConfigured:        strings.TrimSpace(cfg.GatewayRequestDatabaseURL) != "",
+		LocalPersistenceMode:                    localPersistenceMode,
+		LocalPersistenceConfigured:              strings.TrimSpace(cfg.LocalPersistenceMode) != "",
+		SQLiteDevDatabaseConfigured:             strings.TrimSpace(cfg.SQLiteDevDatabasePath) != "",
+		SQLiteDevSchemaStatus:                   sqliteDevSchemaStatus(localPersistenceMode),
+		LocalPersistenceComponentsConsistent:    localPersistenceComponentsConsistent(cfg),
+		WorkflowSavedDraftStoreMode:             workflowSavedDraftStoreMode,
+		WorkflowSavedDraftDatabaseConfigured:    strings.TrimSpace(cfg.WorkflowSavedDraftDatabaseURL) != "",
+		WorkflowRunStoreMode:                    workflowRunStoreMode,
+		WorkflowRunDatabaseConfigured:           strings.TrimSpace(cfg.WorkflowRunDatabaseURL) != "",
+		Provider:                                provider,
+		Profile:                                 profile,
+		Model:                                   model,
+		ModelConfigured:                         model != "",
+		BaseURLConfigured:                       baseURLConfigured,
+		CredentialState:                         credentialState,
 		Timeouts: map[string]string{
 			"read_header":                          cfg.ReadHeaderTimeout.String(),
 			"write":                                cfg.WriteTimeout.String(),
@@ -1214,6 +1423,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"application_draft_database":           cfg.ApplicationDraftDatabaseTimeout.String(),
 			"application_publish_database":         cfg.ApplicationPublishDatabaseTimeout.String(),
 			"application_catalog_database":         cfg.ApplicationCatalogDatabaseTimeout.String(),
+			"prompt_application_template_database": cfg.PromptTemplateDatabaseTimeout.String(),
+			"agent_copilot_profile_database":       cfg.AgentCopilotProfileDatabaseTimeout.String(),
 			"api_key_database":                     cfg.APIKeyDatabaseTimeout.String(),
 			"workflow_run_database":                cfg.WorkflowRunDatabaseTimeout.String(),
 		},
@@ -1238,6 +1449,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL",
+			"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL",
+			"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_MIGRATION_DATABASE_URL",
+			"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL",
+			"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
@@ -1349,6 +1564,34 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			}
 		case "application_draft_dev_write":
 			if !cfg.ApplicationDraftDevWriteEnabled {
+				missing = append(missing, field)
+			}
+		case "prompt_application_template_dev_http":
+			if !cfg.PromptTemplateDevHTTPEnabled {
+				missing = append(missing, field)
+			}
+		case "prompt_application_template_dev_write":
+			if !cfg.PromptTemplateDevWriteEnabled {
+				missing = append(missing, field)
+			}
+		case "prompt_application_template_database":
+			if strings.TrimSpace(cfg.PromptTemplateDatabaseURL) == "" {
+				missing = append(missing, field)
+			}
+		case "agent_copilot_profile_dev_http":
+			if !cfg.AgentCopilotProfileDevHTTPEnabled {
+				missing = append(missing, field)
+			}
+		case "agent_copilot_profile_dev_write":
+			if !cfg.AgentCopilotProfileDevWriteEnabled {
+				missing = append(missing, field)
+			}
+		case "agent_copilot_profile_database":
+			if strings.TrimSpace(cfg.AgentCopilotProfileDatabaseURL) == "" {
+				missing = append(missing, field)
+			}
+		case "agent_copilot_runtime_dev_http":
+			if !cfg.AgentCopilotRuntimeDevHTTPEnabled {
 				missing = append(missing, field)
 			}
 		case "application_draft_database":
@@ -1564,7 +1807,9 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	if cfg.WorkflowDefinitionReleaseDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled || !cfg.WorkflowSavedDraftDevWriteEnabled) {
 		return fmt.Errorf("workflow definition release dev requires control plane auth and saved workflow draft HTTP/write gates")
 	}
-	if cfg.ApplicationSessionDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled || (!cfg.WorkflowDefinitionReleaseDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled)) {
+	if cfg.ApplicationSessionDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled ||
+		(!cfg.WorkflowDefinitionReleaseDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&
+			!cfg.PromptApplicationRuntimeDevHTTPEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled)) {
 		return fmt.Errorf("application session dev requires control plane auth, application catalog HTTP, and at least one supported runtime authority")
 	}
 	switch strings.TrimSpace(cfg.WorkflowSavedDraftStoreMode) {
@@ -1626,6 +1871,62 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.ApplicationDraftDatabaseTimeout <= 0 {
 		return fmt.Errorf("application draft database timeout must be positive")
+	}
+	if cfg.PromptTemplateDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return fmt.Errorf("prompt application template dev HTTP requires control plane read dev auth")
+	}
+	if cfg.PromptTemplateDevWriteEnabled && !cfg.PromptTemplateDevHTTPEnabled {
+		return fmt.Errorf("prompt application template dev write requires its HTTP gate")
+	}
+	if cfg.AgentCopilotProfileDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return fmt.Errorf("agent copilot profile dev HTTP requires control plane read dev auth")
+	}
+	if cfg.AgentCopilotProfileDevWriteEnabled && !cfg.AgentCopilotProfileDevHTTPEnabled {
+		return fmt.Errorf("agent copilot profile dev write requires its HTTP gate")
+	}
+	if cfg.AgentCopilotRuntimeDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return fmt.Errorf("agent copilot runtime dev HTTP requires control plane read dev auth")
+	}
+	if cfg.AgentCopilotRuntimeDevWriteEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled {
+		return fmt.Errorf("agent copilot runtime dev write requires its HTTP gate")
+	}
+	switch strings.TrimSpace(cfg.AgentCopilotProfileStoreMode) {
+	case "", "memory_dev":
+	case "sqlite_dev":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.AgentCopilotProfileDevHTTPEnabled || !cfg.AgentCopilotProfileDevWriteEnabled {
+			return fmt.Errorf("agent copilot profile sqlite_dev store requires complete development gates")
+		}
+	case "postgres_dev_test":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.AgentCopilotProfileDevHTTPEnabled || !cfg.AgentCopilotProfileDevWriteEnabled || strings.TrimSpace(cfg.AgentCopilotProfileDatabaseURL) == "" {
+			return fmt.Errorf("agent copilot profile postgres_dev_test store requires complete development gates and a database URL")
+		}
+	default:
+		return fmt.Errorf("agent copilot profile store must be memory_dev, sqlite_dev, or postgres_dev_test")
+	}
+	if cfg.AgentCopilotProfileDatabaseTimeout <= 0 {
+		return fmt.Errorf("agent copilot profile database timeout must be positive")
+	}
+	switch strings.TrimSpace(cfg.PromptTemplateStoreMode) {
+	case "", "memory_dev":
+	case "sqlite_dev":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.PromptTemplateDevHTTPEnabled || !cfg.PromptTemplateDevWriteEnabled {
+			return fmt.Errorf("prompt application template sqlite_dev store requires complete development gates")
+		}
+	case "postgres_dev_test":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.PromptTemplateDevHTTPEnabled || !cfg.PromptTemplateDevWriteEnabled || strings.TrimSpace(cfg.PromptTemplateDatabaseURL) == "" {
+			return fmt.Errorf("prompt application template postgres_dev_test store requires complete development gates and a database URL")
+		}
+	default:
+		return fmt.Errorf("prompt application template store must be memory_dev, sqlite_dev, or postgres_dev_test")
+	}
+	if cfg.PromptTemplateDatabaseTimeout <= 0 {
+		return fmt.Errorf("prompt application template database timeout must be positive")
+	}
+	if cfg.PromptApplicationRuntimeDevHTTPEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationDraftDevHTTPEnabled || !cfg.ApplicationPublishDevHTTPEnabled || !cfg.PromptTemplateDevHTTPEnabled) {
+		return fmt.Errorf("prompt application runtime dev HTTP requires auth, draft, publish, and template HTTP gates")
+	}
+	if cfg.PromptApplicationRuntimeDevWriteEnabled && !cfg.PromptApplicationRuntimeDevHTTPEnabled {
+		return fmt.Errorf("prompt application runtime dev write requires its HTTP gate")
 	}
 	if cfg.ApplicationPublishDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return fmt.Errorf("application publish dev HTTP requires control plane read dev auth")
@@ -1754,12 +2055,18 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	switch strings.TrimSpace(cfg.WorkflowRunStoreMode) {
 	case "", "memory_dev", "repository_disabled", "repository":
 	case "sqlite_dev":
-		if !cfg.ControlPlaneReadDevAuthEnabled || (!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled) ||
+		if !cfg.ControlPlaneReadDevAuthEnabled ||
+			(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled &&
+				!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&
+				!cfg.PromptApplicationRuntimeDevHTTPEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled) ||
 			((cfg.WorkflowExecutorDevEnabled || cfg.WorkflowRAGExecutionDevEnabled) && !cfg.WorkflowSavedDraftDevHTTPEnabled) {
 			return fmt.Errorf("workflow run sqlite_dev store requires control plane read dev auth, an enabled workflow runtime product, and saved workflow draft dev HTTP for execution products")
 		}
 	case "postgres_dev_test":
-		if !cfg.ControlPlaneReadDevAuthEnabled || (!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled) ||
+		if !cfg.ControlPlaneReadDevAuthEnabled ||
+			(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled &&
+				!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&
+				!cfg.PromptApplicationRuntimeDevHTTPEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled) ||
 			((cfg.WorkflowExecutorDevEnabled || cfg.WorkflowRAGExecutionDevEnabled) && !cfg.WorkflowSavedDraftDevHTTPEnabled) || strings.TrimSpace(cfg.WorkflowRunDatabaseURL) == "" {
 			return fmt.Errorf("workflow run postgres_dev_test store requires complete development gates and a database URL")
 		}

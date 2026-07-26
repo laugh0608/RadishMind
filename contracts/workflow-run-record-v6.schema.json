@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-run-record-v6.schema.json",
+  "title": "WorkflowRunRecordV6",
+  "description": "Prompt Application invocation 的 metadata-only run；不保存变量值、模板、渲染消息、输出或 provider raw response。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "record_version", "run_id", "tenant_ref", "workspace_id", "application_id", "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version", "execution_profile", "authority", "input_digest", "input_bytes", "variable_names", "variable_names_digest", "requested_protocol", "selected_protocol", "requested_model", "selected_provider", "selected_profile", "selected_model", "upstream_model", "selection_source", "status", "failure_code", "failure_summary", "started_at", "completed_at", "output", "usage", "side_effects", "diagnostic", "request_id", "audit_ref", "actor_ref"],
+  "properties": {
+    "schema_version": {"const": "workflow_run_record.v6"},
+    "record_version": {"type": "integer", "minimum": 1},
+    "run_id": {"type": "string", "pattern": "^run_[a-z0-9]{16,64}$"},
+    "tenant_ref": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "workspace_id": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "application_id": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/applicationId"},
+    "execution_kind": {"const": "prompt_application_invocation"},
+    "execution_source_kind": {"const": "prompt_application_template"},
+    "execution_source_id": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/templateId"},
+    "execution_source_version": {"type": "integer", "minimum": 1},
+    "execution_profile": {"const": "prompt_application_invocation_v1"},
+    "authority": {"$ref": "application-runtime-authority-v2.schema.json"},
+    "input_digest": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/digest"},
+    "input_bytes": {"type": "integer", "minimum": 1, "maximum": 65536},
+    "variable_names": {"type": "array", "maxItems": 64, "uniqueItems": true, "items": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"}},
+    "variable_names_digest": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/digest"},
+    "requested_protocol": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/protocol"},
+    "selected_protocol": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/protocol"},
+    "requested_model": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "selected_provider": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "selected_profile": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "selected_model": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "upstream_model": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "selection_source": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "status": {"enum": ["running", "succeeded", "failed", "canceled", "outcome_unknown"]},
+    "failure_code": {"type": "string", "maxLength": 160},
+    "failure_summary": {"type": "string", "maxLength": 256},
+    "started_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"type": "string", "maxLength": 64},
+    "output": {"const": ""},
+    "usage": {"$ref": "#/$defs/usage"},
+    "side_effects": {"$ref": "#/$defs/sideEffects"},
+    "diagnostic": {"$ref": "#/$defs/diagnostic"},
+    "request_id": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "audit_ref": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "actor_ref": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"}
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "running"}}}, "then": {"properties": {"completed_at": {"const": ""}, "failure_code": {"const": ""}, "failure_summary": {"const": ""}}}},
+    {"if": {"properties": {"status": {"const": "succeeded"}}}, "then": {"properties": {"completed_at": {"type": "string", "format": "date-time"}, "failure_code": {"const": ""}, "failure_summary": {"const": ""}}}},
+    {"if": {"properties": {"status": {"enum": ["failed", "canceled", "outcome_unknown"]}}}, "then": {"properties": {"completed_at": {"type": "string", "format": "date-time"}, "failure_code": {"type": "string", "minLength": 1, "maxLength": 160}}}}
+  ],
+  "$defs": {
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "input_tokens", "output_tokens", "total_tokens"],
+      "properties": {
+        "state": {"enum": ["unavailable", "provider_reported"]},
+        "input_tokens": {"type": "integer", "minimum": 0},
+        "output_tokens": {"type": "integer", "minimum": 0},
+        "total_tokens": {"type": "integer", "minimum": 0}
+      }
+    },
+    "sideEffects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider_calls", "tool_calls", "confirmation_calls", "business_writes", "replay_writes"],
+      "properties": {
+        "retrieval_calls": {"const": 0},
+        "provider_calls": {"type": "integer", "minimum": 0, "maximum": 1},
+        "tool_calls": {"const": 0},
+        "confirmation_calls": {"const": 0},
+        "business_writes": {"const": 0},
+        "replay_writes": {"const": 0}
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["failure_boundary", "failure_stage", "terminal_write_state", "gateway_failure_category", "summary", "recommended_review_action", "observed_at"],
+      "properties": {
+        "failure_boundary": {"type": "string", "maxLength": 64},
+        "failure_stage": {"type": "string", "maxLength": 64},
+        "terminal_write_state": {"enum": ["pending", "stored", "unknown"]},
+        "gateway_failure_category": {"enum": ["none", "queue_full", "timeout", "canceled", "worker_crash", "protocol", "provider_failed", "output_unavailable", "unavailable"]},
+        "summary": {"type": "string", "maxLength": 256},
+        "recommended_review_action": {"type": "string", "maxLength": 64},
+        "observed_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}

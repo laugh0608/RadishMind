@@ -79,6 +79,10 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 		"RADISHMIND_APPLICATION_PUBLISH_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_APPLICATION_CATALOG_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
@@ -122,6 +126,192 @@ func TestApplicationSessionDevRequiresCatalogAndRuntimeAuthority(t *testing.T) {
 	cfg.WorkflowSavedDraftDevWriteEnabled = true
 	if err := ValidateServerStart(cfg); err != nil {
 		t.Fatalf("complete application session development gates should validate: %v", err)
+	}
+
+	promptCfg := defaultConfig()
+	promptCfg.ApplicationSessionDevEnabled = true
+	promptCfg.ControlPlaneReadDevAuthEnabled = true
+	promptCfg.ApplicationCatalogDevHTTPEnabled = true
+	promptCfg.ApplicationDraftDevHTTPEnabled = true
+	promptCfg.ApplicationPublishDevHTTPEnabled = true
+	promptCfg.PromptTemplateDevHTTPEnabled = true
+	promptCfg.PromptApplicationRuntimeDevHTTPEnabled = true
+	if err := ValidateServerStart(promptCfg); err != nil {
+		t.Fatalf("Prompt runtime authority should satisfy application session development gates: %v", err)
+	}
+
+	agentCfg := defaultConfig()
+	agentCfg.ApplicationSessionDevEnabled = true
+	agentCfg.ControlPlaneReadDevAuthEnabled = true
+	agentCfg.ApplicationCatalogDevHTTPEnabled = true
+	agentCfg.ApplicationDraftDevHTTPEnabled = true
+	agentCfg.ApplicationPublishDevHTTPEnabled = true
+	agentCfg.AgentCopilotProfileDevHTTPEnabled = true
+	agentCfg.AgentCopilotRuntimeDevHTTPEnabled = true
+	if err := ValidateServerStart(agentCfg); err != nil {
+		t.Fatalf("Agent runtime authority should satisfy application session development gates: %v", err)
+	}
+}
+
+func TestPromptApplicationTemplateDevGatesRemainExplicitAndIndependent(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.PromptTemplateDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "prompt application template dev HTTP requires control plane read dev auth") {
+		t.Fatalf("prompt template HTTP accepted missing verified auth: %v", err)
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("prompt template read/validate gate rejected complete auth: %v", err)
+	}
+	cfg.PromptTemplateDevHTTPEnabled = false
+	cfg.PromptTemplateDevWriteEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "prompt application template dev write requires its HTTP gate") {
+		t.Fatalf("prompt template write accepted missing HTTP gate: %v", err)
+	}
+	cfg.PromptTemplateDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("complete prompt template development gates rejected: %v", err)
+	}
+	cfg.PromptTemplateStoreMode = "postgres_dev_test"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil || !strings.Contains(err.Error(), "database URL") {
+		t.Fatalf("prompt template PostgreSQL store accepted a missing database URL: %v", err)
+	}
+	cfg.PromptTemplateDatabaseURL = "postgresql://prompt-template.invalid/secret"
+	if err := validateBridgeRuntimeConfig(cfg); err != nil {
+		t.Fatalf("complete prompt template PostgreSQL store config rejected: %v", err)
+	}
+
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE", "true")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE", "postgres_dev_test")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL", "postgresql://prompt-template.invalid/secret")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DATABASE_TIMEOUT", "12s")
+	loaded, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load prompt template development gates: %v", err)
+	}
+	if !loaded.PromptTemplateDevHTTPEnabled || !loaded.PromptTemplateDevWriteEnabled || loaded.PromptTemplateStoreMode != "postgres_dev_test" ||
+		loaded.PromptTemplateDatabaseTimeout != 12*time.Second ||
+		loaded.FieldSources["prompt_application_template_dev_http"] != configSourceEnv ||
+		loaded.FieldSources["prompt_application_template_dev_write"] != configSourceEnv ||
+		!loaded.SanitizedSummary().PromptTemplateDevHTTPEnabled ||
+		!loaded.SanitizedSummary().PromptTemplateDevWriteEnabled || !loaded.SanitizedSummary().PromptTemplateDatabaseConfigured ||
+		loaded.SanitizedSummary().PromptTemplateStoreMode != "postgres_dev_test" {
+		t.Fatalf("prompt template gate source or summary is incomplete: %#v", loaded.SanitizedSummary())
+	}
+}
+
+func TestAgentCopilotProfileDevGatesRemainExplicitAndIndependent(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.AgentCopilotProfileDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "agent copilot profile dev HTTP requires control plane read dev auth") {
+		t.Fatalf("profile HTTP accepted missing verified auth: %v", err)
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("profile read/validate gate rejected complete auth: %v", err)
+	}
+	cfg.AgentCopilotProfileDevHTTPEnabled = false
+	cfg.AgentCopilotProfileDevWriteEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "agent copilot profile dev write requires its HTTP gate") {
+		t.Fatalf("profile write accepted missing HTTP gate: %v", err)
+	}
+	cfg.AgentCopilotProfileDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("complete profile development gates rejected: %v", err)
+	}
+	cfg.ApplicationCatalogDevHTTPEnabled = true
+	cfg.ApplicationDraftDevHTTPEnabled = true
+	cfg.ApplicationPublishDevHTTPEnabled = true
+	cfg.AgentCopilotRuntimeDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("Agent Copilot runtime read gate rejected complete auth: %v", err)
+	}
+	cfg.AgentCopilotRuntimeDevHTTPEnabled = false
+	cfg.AgentCopilotRuntimeDevWriteEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "agent copilot runtime dev write requires its HTTP gate") {
+		t.Fatalf("Agent Copilot runtime write accepted missing HTTP gate: %v", err)
+	}
+	cfg.AgentCopilotRuntimeDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("complete Agent Copilot runtime gates rejected: %v", err)
+	}
+
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_APPLICATION_DRAFT_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_WRITE", "true")
+	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_STORE", "postgres_dev_test")
+	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL", "postgresql://profile.invalid/secret")
+	t.Setenv("RADISHMIND_AGENT_COPILOT_PROFILE_DATABASE_TIMEOUT", "13s")
+	t.Setenv("RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_WRITE", "true")
+	loaded, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load profile development gates: %v", err)
+	}
+	summary := loaded.SanitizedSummary()
+	if !loaded.AgentCopilotProfileDevHTTPEnabled || !loaded.AgentCopilotProfileDevWriteEnabled ||
+		!loaded.AgentCopilotRuntimeDevHTTPEnabled || !loaded.AgentCopilotRuntimeDevWriteEnabled ||
+		loaded.AgentCopilotProfileStoreMode != "postgres_dev_test" || loaded.AgentCopilotProfileDatabaseTimeout != 13*time.Second ||
+		loaded.FieldSources["agent_copilot_profile_dev_http"] != configSourceEnv ||
+		loaded.FieldSources["agent_copilot_profile_dev_write"] != configSourceEnv ||
+		loaded.FieldSources["agent_copilot_runtime_dev_http"] != configSourceEnv ||
+		loaded.FieldSources["agent_copilot_runtime_dev_write"] != configSourceEnv ||
+		loaded.FieldSources["agent_copilot_profile_store"] != configSourceEnv ||
+		!summary.AgentCopilotProfileDevHTTPEnabled || !summary.AgentCopilotProfileDevWriteEnabled ||
+		!summary.AgentCopilotRuntimeDevHTTPEnabled || !summary.AgentCopilotRuntimeDevWriteEnabled ||
+		summary.AgentCopilotProfileStoreMode != "postgres_dev_test" || !summary.AgentCopilotProfileDatabaseConfigured {
+		t.Fatalf("profile gate source or summary is incomplete: %#v", summary)
+	}
+	encoded, err := json.Marshal(summary)
+	if err != nil || strings.Contains(string(encoded), "profile.invalid") || strings.Contains(string(encoded), "postgresql://") {
+		t.Fatalf("profile database configuration leaked from summary: encoded=%s err=%v", encoded, err)
+	}
+}
+
+func TestPromptApplicationRuntimeDevGatesRequireCompleteAuthorityChain(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.PromptApplicationRuntimeDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "requires auth, draft, publish, and template HTTP gates") {
+		t.Fatalf("Prompt runtime HTTP accepted an incomplete authority chain: %v", err)
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	cfg.ApplicationDraftDevHTTPEnabled = true
+	cfg.ApplicationPublishDevHTTPEnabled = true
+	cfg.PromptTemplateDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("complete Prompt runtime read gates rejected: %v", err)
+	}
+	cfg.PromptApplicationRuntimeDevHTTPEnabled = false
+	cfg.PromptApplicationRuntimeDevWriteEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "dev write requires its HTTP gate") {
+		t.Fatalf("Prompt runtime write accepted a missing HTTP gate: %v", err)
+	}
+	cfg.PromptApplicationRuntimeDevHTTPEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("complete Prompt runtime write gates rejected: %v", err)
+	}
+
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_APPLICATION_DRAFT_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_APPLICATION_PUBLISH_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_WRITE", "true")
+	loaded, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load Prompt runtime gates: %v", err)
+	}
+	if !loaded.PromptApplicationRuntimeDevHTTPEnabled || !loaded.PromptApplicationRuntimeDevWriteEnabled ||
+		!loaded.SanitizedSummary().PromptApplicationRuntimeDevHTTPEnabled || !loaded.SanitizedSummary().PromptApplicationRuntimeDevWriteEnabled {
+		t.Fatalf("Prompt runtime gate summary is incomplete: %#v", loaded.SanitizedSummary())
 	}
 }
 
@@ -765,6 +955,21 @@ func TestPostgresWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
 		summary.WorkflowRunStoreMode != "postgres_dev_test" {
 		t.Fatalf("workflow run PostgreSQL config should be ready and sanitized: %#v", summary)
 	}
+
+	promptCfg := defaultConfig()
+	promptCfg.WorkflowRunStoreMode = "postgres_dev_test"
+	promptCfg.WorkflowRunDatabaseURL = "postgresql://runtime.invalid/secret"
+	promptCfg.ControlPlaneReadDevAuthEnabled = true
+	promptCfg.ApplicationDraftDevHTTPEnabled = true
+	promptCfg.ApplicationPublishDevHTTPEnabled = true
+	promptCfg.PromptTemplateDevHTTPEnabled = true
+	promptCfg.PromptApplicationRuntimeDevHTTPEnabled = true
+	if err := validateBridgeRuntimeConfig(promptCfg); err != nil {
+		t.Fatalf("Prompt runtime should enable the shared PostgreSQL run store: %v", err)
+	}
+	if missing := promptCfg.SanitizedSummary().MissingRequiredFields; len(missing) != 0 {
+		t.Fatalf("Prompt runtime should satisfy workflow run requirements: %#v", missing)
+	}
 }
 
 func TestSQLiteWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
@@ -801,6 +1006,15 @@ func TestSQLiteWorkflowRunModeRequiresExplicitDevelopmentGates(t *testing.T) {
 	cfg.WorkflowRAGEvaluationDevEnabled = true
 	if err := validateBridgeRuntimeConfig(cfg); err != nil {
 		t.Fatalf("independent RAG evaluation gate did not enable the shared SQLite backend: %v", err)
+	}
+
+	cfg.WorkflowRAGEvaluationDevEnabled = false
+	cfg.ApplicationDraftDevHTTPEnabled = true
+	cfg.ApplicationPublishDevHTTPEnabled = true
+	cfg.PromptTemplateDevHTTPEnabled = true
+	cfg.PromptApplicationRuntimeDevHTTPEnabled = true
+	if err := validateBridgeRuntimeConfig(cfg); err != nil {
+		t.Fatalf("Prompt runtime did not enable the shared SQLite run backend: %v", err)
 	}
 }
 
@@ -1060,7 +1274,8 @@ func TestSQLiteDevLocalPersistenceProjectsEffectiveStoresAndRequiresDevelopmentG
 		!summary.SQLiteDevDatabaseConfigured || !summary.LocalPersistenceComponentsConsistent ||
 		summary.SQLiteDevSchemaStatus != "startup_migrations_configured" ||
 		summary.ApplicationCatalogStoreMode != "sqlite_dev" || summary.ApplicationDraftStoreMode != "sqlite_dev" ||
-		summary.ApplicationPublishStoreMode != "sqlite_dev" || summary.APIKeyStoreMode != "sqlite_dev" ||
+		summary.ApplicationPublishStoreMode != "sqlite_dev" || summary.PromptTemplateStoreMode != "sqlite_dev" ||
+		summary.AgentCopilotProfileStoreMode != "sqlite_dev" || summary.APIKeyStoreMode != "sqlite_dev" ||
 		summary.GatewayRequestStoreMode != "sqlite_dev" || summary.WorkflowSavedDraftStoreMode != "sqlite_dev" ||
 		summary.WorkflowRunStoreMode != "sqlite_dev" {
 		t.Fatalf("unexpected sqlite_dev sanitized summary: %#v", summary)
@@ -1071,6 +1286,10 @@ func TestSQLiteDevLocalPersistenceProjectsEffectiveStoresAndRequiresDevelopmentG
 		"workflow_saved_draft_dev_write",
 		"application_draft_dev_http",
 		"application_draft_dev_write",
+		"agent_copilot_profile_dev_http",
+		"agent_copilot_profile_dev_write",
+		"prompt_application_template_dev_http",
+		"prompt_application_template_dev_write",
 		"application_publish_dev_http",
 		"application_publish_dev_write",
 		"application_catalog_dev_http",
@@ -1098,6 +1317,12 @@ func TestSQLiteDevLocalPersistenceProjectsEffectiveStoresAndRequiresDevelopmentG
 	cfg.WorkflowSavedDraftDevWriteEnabled = true
 	cfg.ApplicationDraftDevHTTPEnabled = true
 	cfg.ApplicationDraftDevWriteEnabled = true
+	cfg.PromptTemplateDevHTTPEnabled = true
+	cfg.PromptTemplateDevWriteEnabled = true
+	cfg.AgentCopilotProfileDevHTTPEnabled = true
+	cfg.AgentCopilotProfileDevWriteEnabled = true
+	cfg.AgentCopilotRuntimeDevHTTPEnabled = true
+	cfg.AgentCopilotRuntimeDevWriteEnabled = true
 	cfg.ApplicationPublishDevHTTPEnabled = true
 	cfg.ApplicationPublishDevWriteEnabled = true
 	cfg.ApplicationCatalogDevHTTPEnabled = true
@@ -1337,6 +1562,21 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DATABASE_TIMEOUT",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_HTTP",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_WRITE",
+		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP",
+		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_HTTP",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_WRITE",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_STORE",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_AGENT_COPILOT_PROFILE_DATABASE_TIMEOUT",
+		"RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_HTTP",
+		"RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_WRITE",
+		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE",
+		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DATABASE_TIMEOUT",
+		"RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_HTTP",
+		"RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_WRITE",
 		"RADISHMIND_APPLICATION_DRAFT_STORE",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",

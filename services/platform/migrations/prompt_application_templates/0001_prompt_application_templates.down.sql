@@ -1,0 +1,8 @@
+DROP TRIGGER IF EXISTS prompt_application_template_versions_no_delete ON prompt_application_template_versions;
+DROP TRIGGER IF EXISTS prompt_application_template_versions_no_update ON prompt_application_template_versions;
+DROP TRIGGER IF EXISTS prompt_application_template_drafts_no_delete ON prompt_application_template_drafts;
+DROP TRIGGER IF EXISTS prompt_application_template_drafts_controlled_update ON prompt_application_template_drafts;
+DROP FUNCTION IF EXISTS reject_prompt_application_template_mutation();
+DROP FUNCTION IF EXISTS enforce_prompt_application_template_draft_update();
+DROP TABLE IF EXISTS prompt_application_template_versions;
+DROP TABLE IF EXISTS prompt_application_template_drafts;

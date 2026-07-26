@@ -20,6 +20,7 @@ import {
 import type { ApplicationApiProtocol } from "./applicationApiIntegrationConsumer.ts";
 import {
   APPLICATION_MODEL_CATALOG_READY_EVENT,
+  readLatestApplicationModelCatalogReady,
   createApplicationModelCatalogReadyDetail,
   requestApplicationApiIntegrationDraftHandoff,
   type ApplicationModelCatalogReadyDetail,
@@ -31,6 +32,7 @@ import {
   readWorkflowRAGPromotionConfig,
   type WorkflowRAGPromotionListResult,
 } from "./workflowRAGPromotionConsumer.ts";
+import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 
 const config = readApplicationConfigurationDraftConfig();
 const promotionConfig = readWorkflowRAGPromotionConfig();
@@ -40,7 +42,17 @@ const protocols: Array<{ id: ApplicationApiProtocol; label: string }> = [
   { id: "messages", label: "Messages" },
 ];
 
-export default function ApplicationConfigurationDraftPanel({ baseline, readOnly = false }: { baseline: ApplicationConfigurationBaseline; readOnly?: boolean }) {
+export default function ApplicationConfigurationDraftPanel({
+  baseline,
+  readOnly = false,
+  onEvidenceChange,
+  onOpenPublishReview,
+}: {
+  baseline: ApplicationConfigurationBaseline;
+  readOnly?: boolean;
+  onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
+  onOpenPublishReview?: (draftId: string) => void;
+}) {
   const [draft, setDraft] = useState(() => createApplicationConfigurationDraft(config, baseline));
   const [operation, setOperation] = useState(() => initialApplicationConfigurationDraftState(config));
   const [catalog, setCatalog] = useState(() => initialApplicationDraftModelCatalog(config, baseline.applicationId));
@@ -63,6 +75,27 @@ export default function ApplicationConfigurationDraftPanel({ baseline, readOnly 
   useEffect(() => () => catalogController.current?.abort(), []);
 
   useEffect(() => {
+    function applyValidatedCatalog(detail: ApplicationModelCatalogReadyDetail) {
+      if (detail.applicationId !== baseline.applicationId) return;
+      catalogController.current?.abort();
+      catalogController.current = null;
+      setCatalog({
+        status: "ready",
+        applicationId: detail.applicationId,
+        models: detail.models,
+        selectedModel: detail.selectedModel,
+        failureCode: "",
+        summary: `Reused ${detail.models.length} models validated by the Gateway Playground.`,
+      });
+      setDraft((current) => ({ ...current, defaultModel: detail.selectedModel }));
+      setOperation((current) => ({
+        ...current,
+        status: "unsaved",
+        summary: "The Playground model catalog is ready for configuration validation.",
+        failureCode: "",
+        validation: { state: "invalid", isValid: false, findings: [] },
+      }));
+    }
     function receiveValidatedCatalog(event: Event) {
       const detail = (event as CustomEvent<ApplicationModelCatalogReadyDetail>).detail;
       try {
@@ -71,29 +104,13 @@ export default function ApplicationConfigurationDraftPanel({ baseline, readOnly 
           detail?.models ?? [],
           detail?.selectedModel ?? "",
         );
-        if (normalized.applicationId !== baseline.applicationId) return;
-        catalogController.current?.abort();
-        catalogController.current = null;
-        setCatalog({
-          status: "ready",
-          applicationId: normalized.applicationId,
-          models: normalized.models,
-          selectedModel: normalized.selectedModel,
-          failureCode: "",
-          summary: `Reused ${normalized.models.length} models validated by the Gateway Playground.`,
-        });
-        setDraft((current) => ({ ...current, defaultModel: normalized.selectedModel }));
-        setOperation((current) => ({
-          ...current,
-          status: "unsaved",
-          summary: "The Playground model catalog is ready for configuration validation.",
-          failureCode: "",
-          validation: { state: "invalid", isValid: false, findings: [] },
-        }));
+        applyValidatedCatalog(normalized);
       } catch {
         return;
       }
     }
+    const latest = readLatestApplicationModelCatalogReady(baseline.applicationId);
+    if (latest) applyValidatedCatalog(latest);
     window.addEventListener(APPLICATION_MODEL_CATALOG_READY_EVENT, receiveValidatedCatalog);
     return () => window.removeEventListener(APPLICATION_MODEL_CATALOG_READY_EVENT, receiveValidatedCatalog);
   }, [baseline.applicationId]);
@@ -106,6 +123,26 @@ export default function ApplicationConfigurationDraftPanel({ baseline, readOnly 
   const selectedBinding = bindings.summaries.find((item) => item.candidateId === selectedBindingCandidateId && item.bindingRef && item.eligibilityStatus === "eligible") ?? null;
   const bindingSourceReady = Boolean(selectedBinding && operation.currentDraftVersion === selectedBinding.sourceDraft.draftVersion && draft.draftId === selectedBinding.sourceDraft.draftId && draft.draftDigest === selectedBinding.sourceDraft.draftDigest);
   const handoffReady = operation.validation.isValid && currentValidation.isValid && catalog.status === "ready";
+
+  useEffect(() => {
+    if (!onEvidenceChange) return;
+    const failed = operation.status === "version_conflict" || operation.status === "store_failure" || operation.status === "scope_denied";
+    const saved = (operation.status === "saved" || operation.status === "restored") && operation.validation.isValid;
+    onEvidenceChange({
+      contributionId: "configuration_draft",
+      status: failed ? "blocked" : saved ? "available" : "incomplete",
+      coverage: saved || failed ? "complete" : draft.draftId ? "partial" : "none",
+      evidenceRefs: draft.draftId && operation.currentDraftVersion > 0
+        ? [{ kind: "draft", id: draft.draftId, version: operation.currentDraftVersion }]
+        : [],
+      missingEvidence: saved ? [] : [failed ? "Resolve the current configuration owner failure." : "Save and validate the current Application configuration draft."],
+      blockers: failed ? [{
+        code: operation.failureCode || "application_configuration_blocked",
+        summary: operation.summary,
+      }] : [],
+      failureCodes: failed && operation.failureCode ? [operation.failureCode] : [],
+    });
+  }, [draft.draftId, onEvidenceChange, operation]);
 
   useEffect(() => {
     if (readOnly && enabled) void refreshList();
@@ -226,7 +263,8 @@ export default function ApplicationConfigurationDraftPanel({ baseline, readOnly 
 
   function openPublishReview() {
     if (readOnly || operation.status !== "saved" && operation.status !== "restored") return;
-    window.location.hash = "application-publish-review";
+    if (onOpenPublishReview) onOpenPublishReview(draft.draftId);
+    else window.location.hash = "application-publish-review";
   }
 
   return (
@@ -270,7 +308,7 @@ export default function ApplicationConfigurationDraftPanel({ baseline, readOnly 
         <article className="application-draft-saved"><div className="application-api-card-heading"><div><p className="eyebrow">Saved dev/test drafts</p><h5>{list.summary}</h5></div><button type="button" onClick={() => void refreshList()} disabled={!enabled || list.status === "loading"}>Refresh</button></div>{list.failureCode ? <p className="failure-summary">{list.failureCode}</p> : null}{list.summaries.map((summary) => <button type="button" className="application-draft-summary" key={summary.draftId} onClick={() => void restoreDraft(summary.draftId)}><strong>{summary.displayName}</strong><span>v{summary.draftVersion} · {summary.defaultProtocol} · {summary.defaultModel}</span><small>{summary.updatedAt} · {summary.updatedByActorRef}</small></button>)}</article>
       </div>
 
-      <article className="application-draft-rag-binding">
+      {baseline.applicationKind === "workflow_copilot" || baseline.applicationKind === "docs_qa" ? <article className="application-draft-rag-binding">
         <div className="application-api-card-heading"><div><p className="eyebrow">Workflow RAG binding</p><h5>Explicit attach or replace</h5></div><button type="button" onClick={() => void loadApprovedBindings()} disabled={!bindingEnabled}>Load approved bindings</button></div>
         <label>Eligible immutable binding<select value={selectedBindingCandidateId} onChange={(event) => setSelectedBindingCandidateId(event.target.value)} disabled={!bindingEnabled || bindings.summaries.length === 0}><option value="">No approved binding selected</option>{bindings.summaries.map((item) => <option key={item.candidateId} value={item.candidateId} disabled={item.candidateState !== "approved" || item.eligibilityStatus !== "eligible" || !item.bindingRef}>{item.bindingRef?.bindingId ?? item.candidateId} · {item.candidateState} · {item.eligibilityStatus}</option>)}</select></label>
         {selectedBinding ? <div className="application-draft-binding-evidence"><strong>Source draft {selectedBinding.sourceDraft.draftId} · v{selectedBinding.sourceDraft.draftVersion}</strong><code>{selectedBinding.sourceDraft.draftDigest}</code><code>{selectedBinding.bindingRef?.bindingDigest}</code></div> : <p className="boundary-note">Approve a promotion candidate first. Approval does not attach anything automatically.</p>}
@@ -278,7 +316,7 @@ export default function ApplicationConfigurationDraftPanel({ baseline, readOnly 
         <div className="application-draft-actions"><button type="button" onClick={() => void restoreBindingSource()} disabled={!selectedBinding}>Restore exact source draft</button><button type="button" onClick={() => void attachBinding()} disabled={!bindingSourceReady || !selectedBinding?.bindingRef}>Attach immutable binding</button></div>
         {draft.workflowRAGBindingRef ? <p className="binding-status"><strong>Current draft binding</strong><code>{draft.workflowRAGBindingRef.bindingId} · v{draft.workflowRAGBindingRef.bindingVersion}</code><code>{draft.workflowRAGBindingRef.bindingDigest}</code></p> : null}
         <p className="boundary-note">Attach creates a new draft version through existing CAS. It cannot carry configuration edits, and it does not create a publish candidate.</p>
-      </article>
+      </article> : null}
 
       <p className="boundary-note">Drafts do not create, publish, delete, or update formal applications. Offline edits stay in memory; production authorization, API keys, quota, billing, provider credentials, fallback, and load balancing remain disabled.</p>
     </section>

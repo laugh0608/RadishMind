@@ -33,7 +33,7 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 	if err := firstServer.localPersistenceRuntime.DB().QueryRowContext(
 		context.Background(),
 		"SELECT count(*) FROM radishmind_schema_migrations",
-	).Scan(&migrationCount); err != nil || migrationCount != 18 {
+	).Scan(&migrationCount); err != nil || migrationCount != 23 {
 		t.Fatalf("aggregate SQLite migration count drifted: count=%d err=%v", migrationCount, err)
 	}
 
@@ -53,6 +53,20 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 	)
 	if draftResult.FailureCode != "" || draftResult.Draft == nil {
 		t.Fatalf("save aggregate SQLite application draft: %#v", draftResult)
+	}
+	promptContext := validPromptApplicationTemplateContext()
+	promptResult := newPromptApplicationTemplateService(firstServer.promptApplicationTemplateRepository).SaveDraft(
+		promptContext, validPromptApplicationTemplateDraftInput(), 0,
+	)
+	if promptResult.FailureCode != "" || promptResult.Draft == nil {
+		t.Fatalf("save aggregate SQLite prompt application template: %#v", promptResult)
+	}
+	profileContext := agentCopilotProfileTestContext("tenant:one", "workspace_one", "app_aaaaaaaaaaaaaaaa", "subject:owner")
+	profileResult := newAgentCopilotProfileService(firstServer.agentCopilotProfileRepository).SaveDraft(
+		profileContext, agentCopilotProfileTestInput("acpf_aaaaaaaaaaaaaaaa"), 0,
+	)
+	if profileResult.FailureCode != "" || profileResult.Draft == nil {
+		t.Fatalf("save aggregate SQLite agent copilot profile: %#v", profileResult)
 	}
 
 	publishContext := validApplicationPublishContext()
@@ -121,6 +135,14 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 	restoredDraft := newApplicationConfigurationDraftService(secondServer.applicationDraftRepository).Read(draftContext, draftResult.Draft.DraftID)
 	if restoredDraft.FailureCode != "" || restoredDraft.Draft == nil || restoredDraft.Draft.DraftVersion != 1 {
 		t.Fatalf("restore aggregate SQLite application draft: %#v", restoredDraft)
+	}
+	restoredPrompt := newPromptApplicationTemplateService(secondServer.promptApplicationTemplateRepository).ReadDraft(promptContext, promptResult.Draft.TemplateID)
+	if restoredPrompt.FailureCode != "" || restoredPrompt.Draft == nil || restoredPrompt.Draft.DraftVersion != 1 {
+		t.Fatalf("restore aggregate SQLite prompt application template: %#v", restoredPrompt)
+	}
+	restoredProfile := newAgentCopilotProfileService(secondServer.agentCopilotProfileRepository).ReadDraft(profileContext, profileResult.Draft.ProfileID)
+	if restoredProfile.FailureCode != "" || restoredProfile.Draft == nil || restoredProfile.Draft.DraftVersion != 1 {
+		t.Fatalf("restore aggregate SQLite agent copilot profile: %#v", restoredProfile)
 	}
 	restoredPublish := newApplicationPublishCandidateService(
 		secondServer.applicationDraftRepository,
@@ -512,6 +534,18 @@ func assertAggregateSQLiteRepositorySelection(t *testing.T, server *Server) {
 	if _, ok := server.applicationPublishCandidateRepository.(*sqliteApplicationPublishCandidateRepository); !ok {
 		t.Fatalf("application publish did not select SQLite: %T", server.applicationPublishCandidateRepository)
 	}
+	if promptStore, ok := server.promptApplicationTemplateRepository.(*sqlitePromptApplicationTemplateRepository); !ok || promptStore.database != server.localPersistenceRuntime.DB() {
+		t.Fatalf("prompt application templates did not share the SQLite runtime: %T", server.promptApplicationTemplateRepository)
+	}
+	if profileStore, ok := server.agentCopilotProfileRepository.(*sqliteAgentCopilotProfileRepository); !ok || profileStore.database != server.localPersistenceRuntime.DB() {
+		t.Fatalf("agent copilot profiles did not share the SQLite runtime: %T", server.agentCopilotProfileRepository)
+	}
+	if runtimeStore, ok := server.promptApplicationRuntimeRepository.(*sqlitePromptApplicationRuntimeRepository); !ok || runtimeStore.database != server.localPersistenceRuntime.DB() {
+		t.Fatalf("Prompt application runtime did not share the SQLite runtime: %T", server.promptApplicationRuntimeRepository)
+	}
+	if runtimeStore, ok := server.agentCopilotRuntimeRepository.(*sqliteAgentCopilotRuntimeRepository); !ok || runtimeStore.database != server.localPersistenceRuntime.DB() {
+		t.Fatalf("Agent Copilot runtime did not share the SQLite runtime: %T", server.agentCopilotRuntimeRepository)
+	}
 	if _, ok := server.apiKeyRepository.(*sqliteAPIKeyRepository); !ok {
 		t.Fatalf("API key did not select SQLite: %T", server.apiKeyRepository)
 	}
@@ -540,6 +574,8 @@ func assertAggregateSQLiteRepositorySelection(t *testing.T, server *Server) {
 		"application_catalog": server.config.ApplicationCatalogStoreMode,
 		"application_draft":   server.config.ApplicationDraftStoreMode,
 		"application_publish": server.config.ApplicationPublishStoreMode,
+		"prompt_template":     server.config.PromptTemplateStoreMode,
+		"agent_profile":       server.config.AgentCopilotProfileStoreMode,
 		"api_key":             server.config.APIKeyStoreMode,
 		"gateway_request":     server.config.GatewayRequestStoreMode,
 		"workflow_draft":      server.config.WorkflowSavedDraftStoreMode,
@@ -553,41 +589,49 @@ func assertAggregateSQLiteRepositorySelection(t *testing.T, server *Server) {
 
 func aggregateSQLiteDevServerConfig(databasePath string) config.Config {
 	return config.Config{
-		ListenAddr:                        ":0",
-		ReadHeaderTimeout:                 time.Second,
-		WriteTimeout:                      time.Second,
-		BridgeTimeout:                     time.Second,
-		BridgeMode:                        "process_per_request",
-		BridgeWorkerCount:                 1,
-		BridgeQueueCapacity:               1,
-		BridgeHandshakeTimeout:            time.Second,
-		PythonBinary:                      "python3",
-		BridgeScript:                      "scripts/run-platform-bridge.py",
-		Provider:                          "mock",
-		ControlPlaneReadDevAuthEnabled:    true,
-		ControlPlaneReadStoreMode:         "fake_store_dev",
-		ControlPlaneReadDatabaseTimeout:   time.Second,
-		WorkflowSavedDraftDevHTTPEnabled:  true,
-		WorkflowSavedDraftDevWriteEnabled: true,
-		WorkflowSavedDraftDatabaseTimeout: time.Second,
-		ApplicationDraftDevHTTPEnabled:    true,
-		ApplicationDraftDevWriteEnabled:   true,
-		ApplicationDraftDatabaseTimeout:   time.Second,
-		ApplicationPublishDevHTTPEnabled:  true,
-		ApplicationPublishDevWriteEnabled: true,
-		ApplicationPublishDatabaseTimeout: time.Second,
-		ApplicationCatalogDevHTTPEnabled:  true,
-		ApplicationCatalogDevWriteEnabled: true,
-		ApplicationCatalogDatabaseTimeout: time.Second,
-		APIKeyLifecycleDevHTTPEnabled:     true,
-		APIKeyLifecycleDevWriteEnabled:    true,
-		APIKeyDatabaseTimeout:             time.Second,
-		GatewayAuthMode:                   "dev_headers",
-		WorkflowExecutorDevEnabled:        true,
-		WorkflowRunDatabaseTimeout:        time.Second,
-		GatewayRequestHistoryDevEnabled:   true,
-		GatewayRequestDatabaseTimeout:     time.Second,
-		LocalPersistenceMode:              "sqlite_dev",
-		SQLiteDevDatabasePath:             databasePath,
+		ListenAddr:                              ":0",
+		ReadHeaderTimeout:                       time.Second,
+		WriteTimeout:                            time.Second,
+		BridgeTimeout:                           time.Second,
+		BridgeMode:                              "process_per_request",
+		BridgeWorkerCount:                       1,
+		BridgeQueueCapacity:                     1,
+		BridgeHandshakeTimeout:                  time.Second,
+		PythonBinary:                            "python3",
+		BridgeScript:                            "scripts/run-platform-bridge.py",
+		Provider:                                "mock",
+		ControlPlaneReadDevAuthEnabled:          true,
+		ControlPlaneReadStoreMode:               "fake_store_dev",
+		ControlPlaneReadDatabaseTimeout:         time.Second,
+		WorkflowSavedDraftDevHTTPEnabled:        true,
+		WorkflowSavedDraftDevWriteEnabled:       true,
+		WorkflowSavedDraftDatabaseTimeout:       time.Second,
+		ApplicationDraftDevHTTPEnabled:          true,
+		ApplicationDraftDevWriteEnabled:         true,
+		ApplicationDraftDatabaseTimeout:         time.Second,
+		ApplicationPublishDevHTTPEnabled:        true,
+		ApplicationPublishDevWriteEnabled:       true,
+		ApplicationPublishDatabaseTimeout:       time.Second,
+		ApplicationCatalogDevHTTPEnabled:        true,
+		ApplicationCatalogDevWriteEnabled:       true,
+		ApplicationCatalogDatabaseTimeout:       time.Second,
+		PromptTemplateDevHTTPEnabled:            true,
+		PromptTemplateDevWriteEnabled:           true,
+		PromptApplicationRuntimeDevHTTPEnabled:  true,
+		PromptApplicationRuntimeDevWriteEnabled: true,
+		PromptTemplateDatabaseTimeout:           time.Second,
+		AgentCopilotProfileDevHTTPEnabled:       true,
+		AgentCopilotProfileDevWriteEnabled:      true,
+		AgentCopilotProfileDatabaseTimeout:      time.Second,
+		APIKeyLifecycleDevHTTPEnabled:           true,
+		APIKeyLifecycleDevWriteEnabled:          true,
+		APIKeyDatabaseTimeout:                   time.Second,
+		GatewayAuthMode:                         "dev_headers",
+		WorkflowExecutorDevEnabled:              true,
+		WorkflowRunDatabaseTimeout:              time.Second,
+		GatewayRequestHistoryDevEnabled:         true,
+		GatewayRequestDatabaseTimeout:           time.Second,
+		LocalPersistenceMode:                    "sqlite_dev",
+		SQLiteDevDatabasePath:                   databasePath,
 	}
 }

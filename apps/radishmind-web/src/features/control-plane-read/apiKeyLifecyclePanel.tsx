@@ -14,6 +14,7 @@ import {
 import { requestAPIKeyModelGatewayPlaygroundHandoff } from "./modelGatewayPlaygroundEvents.ts";
 import { readModelGatewayPlaygroundConfig } from "./modelGatewayPlaygroundConsumer.ts";
 import { requestWorkflowRAGApplicationCredentialHandoff } from "./workflowRAGApplicationRuntimeEvents.ts";
+import { requestPromptApplicationCredentialHandoff } from "./promptApplicationInvocationEvents.ts";
 import type {
   WorkspaceApiKeyRow,
   WorkspaceApiKeysMetric,
@@ -29,6 +30,8 @@ const AVAILABLE_SCOPES: Array<{ scope: APIKeyScope; label: string }> = [
   { scope: "responses:invoke", label: "Responses" },
   { scope: "messages:invoke", label: "Messages" },
   { scope: "application_rag:invoke", label: "Application RAG invocation" },
+  { scope: "prompt_application:invoke", label: "Prompt Application invocation" },
+  { scope: "agent_copilot:invoke", label: "Agent Copilot invocation" },
 ];
 
 type IssuedCredential = {
@@ -202,6 +205,18 @@ export function APIKeyLifecyclePanel({
     window.location.hash = "application-rag-invocation";
   }
 
+  function handoffPromptCredential() {
+    if (!issuedCredential || !applicationId || !selectedRecord?.scopes.includes("prompt_application:invoke")) return;
+    requestPromptApplicationCredentialHandoff(
+      applicationId,
+      issuedCredential.apiKeyId,
+      issuedCredential.token,
+    );
+    setIssuedCredential(null);
+    setCopyStatus("");
+    window.location.hash = "prompt-application-invocation";
+  }
+
   function toggleScope(scope: APIKeyScope) {
     setScopes((current) => current.includes(scope) ? current.filter((item) => item !== scope) : [...current, scope]);
   }
@@ -245,6 +260,7 @@ export function APIKeyLifecyclePanel({
                   <button type="button" onClick={() => void copyCredential()}>Copy token</button>
                   <button type="button" onClick={handoffCredential}>Use in Playground</button>
                   {selectedRecord?.scopes.includes("application_rag:invoke") ? <button type="button" onClick={handoffRAGCredential}>Use in Application RAG</button> : null}
+                  {selectedRecord?.scopes.includes("prompt_application:invoke") ? <button type="button" onClick={handoffPromptCredential}>Use in Prompt Application</button> : null}
                   <button type="button" className="secondary-action" onClick={() => { setIssuedCredential(null); setCopyStatus(""); }}>Clear now</button>
                 </div>
                 {copyStatus ? <p className="boundary-note">{copyStatus}</p> : null}

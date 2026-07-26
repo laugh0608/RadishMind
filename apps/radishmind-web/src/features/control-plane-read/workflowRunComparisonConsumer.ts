@@ -11,7 +11,26 @@ export type WorkflowRunComparisonRun = {
   executionSourceVersion: number;
   executionProfile: string;
   definitionDigest: string;
-  status: "running" | "succeeded" | "failed" | "canceled";
+  authorityDigest: string;
+  profileDigest: string;
+  policyDigest: string;
+  allowedTasksDigest: string;
+  project: string;
+  task: string;
+  locale: string;
+  responseStatus: string;
+  responseDigest: string;
+  actionCount: number;
+  riskLevel: string;
+  requiresConfirmation: boolean;
+  variableNamesDigest: string;
+  requestedProtocol: string;
+  selectedProtocol: string;
+  usageState: string;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  status: "running" | "succeeded" | "failed" | "canceled" | "outcome_unknown";
   failureCode: string;
   failureBoundary: string;
   gatewayFailureCategory: string;
@@ -111,8 +130,8 @@ export type WorkflowRunRetrievalComparison = {
 };
 
 export type WorkflowRunComparison = {
-  schemaVersion: "workflow_run_comparison.v1" | "workflow_run_comparison.v2" | "workflow_run_comparison.v3" | "workflow_run_comparison.v4";
-  runProfile: "workflow_standard.v1" | "workflow_rag_retrieval.v1" | "workflow_rag_application_invocation.v1" | "workflow_definition_executor.v1";
+  schemaVersion: "workflow_run_comparison.v1" | "workflow_run_comparison.v2" | "workflow_run_comparison.v3" | "workflow_run_comparison.v4" | "workflow_run_comparison.v5" | "workflow_run_comparison.v6";
+  runProfile: "workflow_standard.v1" | "workflow_rag_retrieval.v1" | "workflow_rag_application_invocation.v1" | "workflow_definition_executor.v1" | "prompt_application_invocation_v1" | "agent_copilot_suggestion_v1";
   classification: "regression" | "improvement" | "changed" | "unchanged" | "inconclusive";
   comparisonState: "comparable" | "legacy_partial" | "running_inconclusive";
   baseline: WorkflowRunComparisonRun;
@@ -123,6 +142,9 @@ export type WorkflowRunComparison = {
   modelChanged: boolean;
   statusChanged: boolean;
   failureChanged: boolean;
+  authorityChanged: boolean;
+  variableContractChanged: boolean;
+  protocolChanged: boolean;
   durationDeltaMs: number;
   providerCallDelta: number;
   nodes: WorkflowRunNodeComparison[];
@@ -152,6 +174,25 @@ type ComparisonRunDocument = {
   execution_source_version?: number;
   execution_profile?: string;
   definition_digest?: string;
+  authority_digest?: string;
+  profile_digest?: string;
+  policy_digest?: string;
+  allowed_tasks_digest?: string;
+  project?: string;
+  task?: string;
+  locale?: string;
+  response_status?: string;
+  response_digest?: string;
+  action_count?: number;
+  risk_level?: string;
+  requires_confirmation?: boolean;
+  variable_names_digest?: string;
+  requested_protocol?: string;
+  selected_protocol?: string;
+  usage_state?: string;
+  input_tokens?: number;
+  output_tokens?: number;
+  total_tokens?: number;
   status: WorkflowRunComparisonRun["status"];
   failure_code: string;
   failure_boundary: string;
@@ -251,6 +292,9 @@ type ComparisonDocument = {
   model_changed: boolean;
   status_changed: boolean;
   failure_changed: boolean;
+  authority_changed?: boolean;
+  variable_contract_changed?: boolean;
+  protocol_changed?: boolean;
   duration_delta_ms: number;
   provider_call_delta: number;
   nodes: Array<{
@@ -320,6 +364,25 @@ function mapRun(value: ComparisonRunDocument): WorkflowRunComparisonRun {
     executionSourceVersion: value.execution_source_version ?? 0,
     executionProfile: value.execution_profile ?? "",
     definitionDigest: value.definition_digest ?? "",
+    authorityDigest: value.authority_digest ?? "",
+    profileDigest: value.profile_digest ?? "",
+    policyDigest: value.policy_digest ?? "",
+    allowedTasksDigest: value.allowed_tasks_digest ?? "",
+    project: value.project ?? "",
+    task: value.task ?? "",
+    locale: value.locale ?? "",
+    responseStatus: value.response_status ?? "",
+    responseDigest: value.response_digest ?? "",
+    actionCount: value.action_count ?? 0,
+    riskLevel: value.risk_level ?? "",
+    requiresConfirmation: value.requires_confirmation ?? false,
+    variableNamesDigest: value.variable_names_digest ?? "",
+    requestedProtocol: value.requested_protocol ?? "",
+    selectedProtocol: value.selected_protocol ?? "",
+    usageState: value.usage_state ?? "",
+    inputTokens: value.input_tokens ?? 0,
+    outputTokens: value.output_tokens ?? 0,
+    totalTokens: value.total_tokens ?? 0,
     status: value.status,
     failureCode: value.failure_code,
     failureBoundary: value.failure_boundary,
@@ -418,6 +481,9 @@ function mapComparison(value: ComparisonDocument): WorkflowRunComparison {
     modelChanged: value.model_changed,
     statusChanged: value.status_changed,
     failureChanged: value.failure_changed,
+    authorityChanged: value.authority_changed ?? false,
+    variableContractChanged: value.variable_contract_changed ?? false,
+    protocolChanged: value.protocol_changed ?? false,
     durationDeltaMs: value.duration_delta_ms,
     providerCallDelta: value.provider_call_delta,
     nodes: value.nodes.map((node) => ({
@@ -460,12 +526,16 @@ function hasForbiddenComparisonKey(value: unknown): boolean {
 function isComparisonDocument(value: unknown): value is ComparisonDocument {
   if (!value || typeof value !== "object") return false;
   const item = value as Partial<ComparisonDocument>;
-  const schemaValid = ["workflow_run_comparison.v1", "workflow_run_comparison.v2", "workflow_run_comparison.v3", "workflow_run_comparison.v4"].includes(item.schema_version ?? "");
+  const schemaValid = ["workflow_run_comparison.v1", "workflow_run_comparison.v2", "workflow_run_comparison.v3", "workflow_run_comparison.v4", "workflow_run_comparison.v5", "workflow_run_comparison.v6"].includes(item.schema_version ?? "");
   const baseKeys = ["schema_version", "classification", "comparison_state", "baseline", "candidate", "draft_changed", "execution_source_changed", "provider_changed", "model_changed", "status_changed", "failure_changed", "duration_delta_ms", "provider_call_delta", "nodes", "findings", "recommended_review_action"];
-  const expectedKeys = item.schema_version === "workflow_run_comparison.v4" ? [...baseKeys, "run_profile"] :
+  const expectedKeys = item.schema_version === "workflow_run_comparison.v5" || item.schema_version === "workflow_run_comparison.v6"
+    ? [...baseKeys, "run_profile", "authority_changed", "variable_contract_changed", "protocol_changed"]
+    : item.schema_version === "workflow_run_comparison.v4" ? [...baseKeys, "run_profile"] :
     item.schema_version === "workflow_run_comparison.v1" ? baseKeys : [...baseKeys, "retrieval"];
   if (!schemaValid || !hasOnlyKeys(value as Record<string, unknown>, expectedKeys)) return false;
   if (item.schema_version === "workflow_run_comparison.v4" && item.run_profile !== "workflow_definition_executor.v1") return false;
+  if (item.schema_version === "workflow_run_comparison.v5" && item.run_profile !== "prompt_application_invocation_v1") return false;
+  if (item.schema_version === "workflow_run_comparison.v6" && item.run_profile !== "agent_copilot_suggestion_v1") return false;
   const retrievalValid = item.schema_version === "workflow_run_comparison.v2" || item.schema_version === "workflow_run_comparison.v3"
     ? isRetrievalDocument(item.retrieval, item.schema_version) &&
       ((item.schema_version === "workflow_run_comparison.v2" && item.retrieval.run_profile === "workflow_rag_retrieval.v1" && item.baseline?.schema_version === "workflow_run_record.v3" && item.candidate?.schema_version === "workflow_run_record.v3") ||
@@ -477,6 +547,8 @@ function isComparisonDocument(value: unknown): value is ComparisonDocument {
     isComparisonRun(item.baseline) && isComparisonRun(item.candidate) && Array.isArray(item.nodes) && item.nodes.every(isComparisonNode) &&
     Array.isArray(item.findings) && item.findings.every(isFinding) && typeof item.recommended_review_action === "string" &&
     [item.draft_changed, item.execution_source_changed, item.provider_changed, item.model_changed, item.status_changed, item.failure_changed].every((field) => typeof field === "boolean") &&
+    (item.schema_version !== "workflow_run_comparison.v5" && item.schema_version !== "workflow_run_comparison.v6" ||
+      [item.authority_changed, item.variable_contract_changed, item.protocol_changed].every((field) => typeof field === "boolean")) &&
     [item.duration_delta_ms, item.provider_call_delta].every(Number.isInteger);
 }
 
@@ -486,8 +558,44 @@ function isComparisonRun(value: unknown): value is ComparisonRunDocument {
   const baseKeys = ["run_id", "schema_version", "draft_id", "draft_version", "status", "failure_code", "failure_boundary", "gateway_failure_category", "selected_provider", "selected_profile", "selected_model", "duration_ms", "stale_running", "request_id", "audit_ref", "side_effects"];
   const isV4 = item.schema_version === "workflow_run_record.v4";
   const isV5 = item.schema_version === "workflow_run_record.v5";
-  if (!hasOnlyKeys(value as Record<string, unknown>, isV5 ? [...baseKeys, "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version", "execution_profile", "definition_digest"] : isV4 ? [...baseKeys, "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version"] : baseKeys)) return false;
-  const sourceValid = isV5
+  const isV6 = item.schema_version === "workflow_run_record.v6";
+  const isV7 = item.schema_version === "workflow_run_record.v7";
+  const promptKeys = ["execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version", "execution_profile",
+    "authority_digest", "variable_names_digest", "requested_protocol", "selected_protocol", "usage_state"];
+  const optionalPromptUsageKeys = ["input_tokens", "output_tokens", "total_tokens"].filter((key) => key in (value as Record<string, unknown>));
+  const agentKeys = ["execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version",
+    "execution_profile", "authority_digest", "profile_digest", "policy_digest", "allowed_tasks_digest", "project",
+    "task", "locale", "response_status", "risk_level", "requested_protocol", "selected_protocol", "usage_state"];
+  const optionalAgentKeys = ["response_digest", "action_count", "requires_confirmation", "input_tokens", "output_tokens", "total_tokens"]
+    .filter((key) => key in (value as Record<string, unknown>));
+  if (!hasOnlyKeys(value as Record<string, unknown>, isV7 ? [...baseKeys, ...agentKeys, ...optionalAgentKeys] : isV6 ? [...baseKeys, ...promptKeys, ...optionalPromptUsageKeys] : isV5 ? [...baseKeys, "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version", "execution_profile", "definition_digest"] : isV4 ? [...baseKeys, "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version"] : baseKeys)) return false;
+  const sourceValid = isV7
+    ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "agent_copilot_suggestion" &&
+      item.execution_source_kind === "agent_copilot_profile" && /^acpf_[a-z2-7]{16}$/u.test(item.execution_source_id ?? "") &&
+      positiveInteger(item.execution_source_version) && item.execution_profile === "agent_copilot_suggestion_v1" &&
+      [item.authority_digest, item.profile_digest, item.policy_digest, item.allowed_tasks_digest]
+        .every((digest) => /^sha256:[a-f0-9]{64}$/u.test(digest ?? "")) &&
+      (item.project === "radishflow" || item.project === "radish") &&
+      typeof item.task === "string" && typeof item.locale === "string" &&
+      ["unavailable", "ok", "partial", "failed"].includes(item.response_status ?? "") &&
+      (item.response_digest === undefined || item.response_digest === "" ||
+        /^sha256:[a-f0-9]{64}$/u.test(item.response_digest)) &&
+      (item.action_count === undefined || Number.isInteger(item.action_count)) &&
+      (item.risk_level === "low" || item.risk_level === "medium" || item.risk_level === "high") &&
+      (item.requires_confirmation === undefined || typeof item.requires_confirmation === "boolean") &&
+      typeof item.requested_protocol === "string" && typeof item.selected_protocol === "string" &&
+      ["unavailable", "provider_reported"].includes(item.usage_state ?? "")
+    : isV6
+    ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "prompt_application_invocation" &&
+      item.execution_source_kind === "prompt_application_template" && typeof item.execution_source_id === "string" &&
+      item.execution_source_id.length > 0 && positiveInteger(item.execution_source_version) &&
+      item.execution_profile === "prompt_application_invocation_v1" &&
+      /^sha256:[a-f0-9]{64}$/u.test(item.authority_digest ?? "") &&
+      /^sha256:[a-f0-9]{64}$/u.test(item.variable_names_digest ?? "") &&
+      typeof item.requested_protocol === "string" && typeof item.selected_protocol === "string" &&
+      ["unavailable", "provider_reported"].includes(item.usage_state ?? "") &&
+      [item.input_tokens, item.output_tokens, item.total_tokens].every((token) => token === undefined || (Number.isInteger(token) && Number(token) >= 0))
+    : isV5
     ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "workflow_definition_execution" &&
       item.execution_source_kind === "workflow_definition" && typeof item.execution_source_id === "string" &&
       item.execution_source_id.length > 0 && positiveInteger(item.execution_source_version) &&
@@ -498,7 +606,7 @@ function isComparisonRun(value: unknown): value is ComparisonRunDocument {
       item.execution_source_id.length > 0 && positiveInteger(item.execution_source_version)
     : typeof item.draft_id === "string" && item.draft_id.length > 0 && positiveInteger(item.draft_version);
   return typeof item.run_id === "string" && typeof item.schema_version === "string" && sourceValid &&
-    ["running", "succeeded", "failed", "canceled"].includes(item.status ?? "") &&
+    ["running", "succeeded", "failed", "canceled", ...(isV6 || isV7 ? ["outcome_unknown"] : [])].includes(item.status ?? "") &&
     typeof item.failure_code === "string" && typeof item.failure_boundary === "string" && typeof item.gateway_failure_category === "string" &&
     typeof item.selected_provider === "string" && typeof item.selected_profile === "string" && typeof item.selected_model === "string" &&
     Number.isInteger(item.duration_ms) && typeof item.stale_running === "boolean" && typeof item.request_id === "string" &&

@@ -1,0 +1,8 @@
+DROP TRIGGER IF EXISTS agent_copilot_profile_versions_no_delete ON agent_copilot_profile_versions;
+DROP TRIGGER IF EXISTS agent_copilot_profile_versions_no_update ON agent_copilot_profile_versions;
+DROP TRIGGER IF EXISTS agent_copilot_profile_drafts_no_delete ON agent_copilot_profile_drafts;
+DROP TRIGGER IF EXISTS agent_copilot_profile_drafts_controlled_update ON agent_copilot_profile_drafts;
+DROP FUNCTION IF EXISTS reject_agent_copilot_profile_mutation();
+DROP FUNCTION IF EXISTS enforce_agent_copilot_profile_draft_update();
+DROP TABLE IF EXISTS agent_copilot_profile_versions;
+DROP TABLE IF EXISTS agent_copilot_profile_drafts;

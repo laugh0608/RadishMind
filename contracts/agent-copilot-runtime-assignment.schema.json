@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/agent-copilot-runtime-assignment.schema.json",
+  "title": "AgentCopilotRuntimeAssignmentV1",
+  "description": "将已审查候选中的精确 Agent / Copilot profile 版本赋予应用；不包含 provider、model 或 credential。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "assignment_id", "tenant_ref", "workspace_id", "application_id", "owner_subject_ref", "assignment_version", "state", "candidate_id", "candidate_review_version", "draft_id", "draft_version", "draft_digest", "agent_copilot_profile_ref", "assignment_digest", "activated_at", "updated_at", "revoked_at", "activated_by_actor_ref", "updated_by_actor_ref", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "agent_copilot_runtime_assignment.v1"},
+    "assignment_id": {"$ref": "#/$defs/assignmentId"},
+    "tenant_ref": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "workspace_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "application_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/applicationId"},
+    "owner_subject_ref": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "assignment_version": {"type": "integer", "minimum": 1},
+    "state": {"enum": ["active", "revoked"]},
+    "candidate_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "candidate_review_version": {"type": "integer", "minimum": 1},
+    "draft_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "draft_version": {"type": "integer", "minimum": 1},
+    "draft_digest": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/digest"},
+    "agent_copilot_profile_ref": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/profileRef"},
+    "assignment_digest": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/digest"},
+    "activated_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "revoked_at": {"oneOf": [{"type": "null"}, {"type": "string", "format": "date-time"}]},
+    "activated_by_actor_ref": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "updated_by_actor_ref": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "request_id": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"},
+    "audit_ref": {"$ref": "agent-copilot-profile-draft.schema.json#/$defs/ref"}
+  },
+  "allOf": [
+    {"if": {"properties": {"state": {"const": "active"}}}, "then": {"properties": {"revoked_at": {"type": "null"}}}},
+    {"if": {"properties": {"state": {"const": "revoked"}}}, "then": {"properties": {"revoked_at": {"type": "string", "format": "date-time"}}}}
+  ],
+  "$defs": {
+    "assignmentId": {"type": "string", "pattern": "^acra_[a-z2-7]{16}$"}
+  }
+}

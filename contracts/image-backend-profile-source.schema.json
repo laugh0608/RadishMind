@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/image-backend-profile-source.schema.json",
+  "title": "ImageBackendProfileSource",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "profile_id",
+    "profile_version",
+    "environment",
+    "enabled",
+    "backend",
+    "runtime",
+    "credential",
+    "limits"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kind": {
+      "type": "string",
+      "const": "image_backend_profile_source"
+    },
+    "profile_id": {
+      "$ref": "#/$defs/identifier"
+    },
+    "profile_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "environment": {
+      "type": "string",
+      "enum": [
+        "development",
+        "test"
+      ]
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "backend": {
+      "$ref": "#/$defs/backend"
+    },
+    "runtime": {
+      "$ref": "#/$defs/runtime"
+    },
+    "credential": {
+      "$ref": "#/$defs/credential"
+    },
+    "limits": {
+      "$ref": "#/$defs/limits"
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9._-]{2,63}$"
+    },
+    "profile_value": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$"
+    },
+    "reference": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 256,
+          "pattern": "^ref:radishmind/(development|test)/image-backends/[a-z0-9._/-]+$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "model",
+        "adapter_profile"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/profile_value"
+        },
+        "model": {
+          "$ref": "#/$defs/profile_value"
+        },
+        "adapter_profile": {
+          "$ref": "#/$defs/profile_value"
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "endpoint_ref",
+        "model_dir_ref"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "remote_https",
+            "local_model",
+            "contract_fixture"
+          ]
+        },
+        "endpoint_ref": {
+          "$ref": "#/$defs/reference"
+        },
+        "model_dir_ref": {
+          "$ref": "#/$defs/reference"
+        }
+      }
+    },
+    "credential": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirement",
+        "secret_ref"
+      ],
+      "properties": {
+        "requirement": {
+          "type": "string",
+          "enum": [
+            "required",
+            "not_required"
+          ]
+        },
+        "secret_ref": {
+          "$ref": "#/$defs/reference"
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timeout_seconds"
+      ],
+      "properties": {
+        "timeout_seconds": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 300
+        }
+      }
+    }
+  }
+}

@@ -40,14 +40,20 @@ type Server struct {
 	applicationDraftRepository              applicationConfigurationDraftRepository
 	applicationPublishCandidateRepository   applicationPublishCandidateRepository
 	applicationCatalogRepository            applicationCatalogRepository
+	promptApplicationTemplateRepository     promptApplicationTemplateRepository
+	agentCopilotProfileRepository           agentCopilotProfileRepository
 	applicationInteractionSessionRepository applicationInteractionSessionRepository
+	applicationSessionRepository            applicationInteractionSessionRepository
 	apiKeyRepository                        apiKeyRepository
 	workflowRunStore                        workflowRunStore
+	applicationRunStore                     workflowRunStore
 	workflowDefinitionReleaseRepository     workflowDefinitionReleaseRepository
 	workflowRAGSnapshotRepository           workflowRAGSnapshotRepository
 	workflowRAGEvaluationDatasetRepository  workflowRAGEvaluationDatasetRepository
 	workflowRAGPromotionRepository          workflowRAGPromotionRepository
 	workflowRAGAppRuntimeRepository         workflowRAGApplicationRuntimeRepository
+	promptApplicationRuntimeRepository      promptApplicationRuntimeRepository
+	agentCopilotRuntimeRepository           agentCopilotRuntimeRepository
 	workflowHTTPToolActionStore             workflowHTTPToolActionStore
 	workflowHTTPToolExecutionStore          workflowHTTPToolExecutionStore
 	workflowHTTPToolExecutionTransport      *workflowHTTPToolTransport
@@ -59,6 +65,8 @@ type Server struct {
 	closeApplicationDraftStore              func()
 	closeApplicationPublishStore            func()
 	closeApplicationCatalogStore            func()
+	closePromptApplicationTemplateStore     func()
+	closeAgentCopilotProfileStore           func()
 	closeAPIKeyStore                        func()
 	closeWorkflowRunStore                   func()
 	closeGatewayRequestStore                func()
@@ -146,6 +154,19 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
 		return nil, err
 	}
+	promptApplicationSessionRepository, err := newPromptApplicationSessionRepositoryForLegacy(applicationInteractionSessionRepository)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
+	agentCopilotSessionRepository, err := newAgentCopilotSessionRepositoryForLegacy(applicationInteractionSessionRepository)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
+	combinedApplicationSessionRepository := newCombinedApplicationInteractionSessionRepositoryWithAgent(
+		applicationInteractionSessionRepository, promptApplicationSessionRepository, agentCopilotSessionRepository,
+	)
 	var workflowDefinitionReleaseRepository workflowDefinitionReleaseRepository
 	if runtimeConfig.WorkflowDefinitionReleaseDevEnabled {
 		workflowDefinitionReleaseRepository, err = newWorkflowDefinitionReleaseRepositoryForRunStore(workflowRunStore)
@@ -177,14 +198,45 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 			return nil, err
 		}
 	}
+	promptApplicationRuntimeRepository, err := newPromptApplicationRuntimeRepositoryForRunStore(workflowRunStore)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
+	agentCopilotRuntimeRepository, err := newAgentCopilotRuntimeRepositoryForRunStore(workflowRunStore)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
+	promptApplicationRunStore, err := newPromptApplicationRunStoreForWorkflowRunStore(workflowRunStore)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
+	agentCopilotRunStore, err := newAgentCopilotRunStoreForWorkflowRunStore(workflowRunStore)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
+	combinedRunStore := newCombinedWorkflowRunStoreWithAgent(workflowRunStore, promptApplicationRunStore, agentCopilotRunStore)
 	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
 		return nil, err
 	}
-	platformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	promptApplicationTemplateRepository, closePromptApplicationTemplateStore, err := newPromptApplicationTemplateRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore)
+		return nil, err
+	}
+	agentCopilotProfileRepository, closeAgentCopilotProfileStore, err := newAgentCopilotProfileRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore)
+		return nil, err
+	}
+	platformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore)
 		return nil, err
 	}
 	mux := http.NewServeMux()
@@ -198,14 +250,20 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		applicationDraftRepository:              applicationDraftRepository,
 		applicationPublishCandidateRepository:   applicationPublishRepository,
 		applicationCatalogRepository:            applicationCatalogRepository,
+		promptApplicationTemplateRepository:     promptApplicationTemplateRepository,
+		agentCopilotProfileRepository:           agentCopilotProfileRepository,
 		applicationInteractionSessionRepository: applicationInteractionSessionRepository,
+		applicationSessionRepository:            combinedApplicationSessionRepository,
 		apiKeyRepository:                        apiKeyRepository,
 		workflowRunStore:                        workflowRunStore,
+		applicationRunStore:                     combinedRunStore,
 		workflowDefinitionReleaseRepository:     workflowDefinitionReleaseRepository,
 		workflowRAGSnapshotRepository:           workflowRAGSnapshotRepository,
 		workflowRAGEvaluationDatasetRepository:  workflowRAGEvaluationDatasetRepository,
 		workflowRAGPromotionRepository:          workflowRAGPromotionRepository,
 		workflowRAGAppRuntimeRepository:         workflowRAGApplicationRuntimeRepository,
+		promptApplicationRuntimeRepository:      promptApplicationRuntimeRepository,
+		agentCopilotRuntimeRepository:           agentCopilotRuntimeRepository,
 		workflowHTTPToolActionStore:             workflowHTTPToolActionStore,
 		workflowHTTPToolExecutionStore:          newWorkflowHTTPToolExecutionStoreForRunStore(workflowRunStore, workflowHTTPToolActionStore),
 		workflowEvaluationStore:                 newWorkflowEvaluationStoreForRunStore(workflowRunStore),
@@ -216,6 +274,8 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeApplicationDraftStore:              closeApplicationDraftStore,
 		closeApplicationPublishStore:            closeApplicationPublishStore,
 		closeApplicationCatalogStore:            closeApplicationCatalogStore,
+		closePromptApplicationTemplateStore:     closePromptApplicationTemplateStore,
+		closeAgentCopilotProfileStore:           closeAgentCopilotProfileStore,
 		closeAPIKeyStore:                        closeAPIKeyStore,
 		closeWorkflowRunStore:                   closeWorkflowRunStore,
 		closeGatewayRequestStore:                closeGatewayRequestStore,
@@ -263,6 +323,28 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationDraftListRoute, server.handleListApplicationConfigurationDrafts)
 	mux.HandleFunc(applicationDraftReadRoute, server.handleReadApplicationConfigurationDraft)
 	mux.HandleFunc(applicationDraftValidateRoute, server.handleValidateApplicationConfigurationDraft)
+	mux.HandleFunc(applicationDraftPromptTemplateBindingRoute, server.handleBindApplicationConfigurationDraftPromptTemplate)
+	mux.HandleFunc(applicationDraftAgentProfileBindingRoute, server.handleBindApplicationConfigurationDraftAgentProfile)
+	mux.HandleFunc(promptApplicationRuntimeReadRoute, server.handleReadPromptApplicationRuntimeAssignment)
+	mux.HandleFunc(promptApplicationRuntimeEventsRoute, server.handleReadPromptApplicationRuntimeEvents)
+	mux.HandleFunc(promptApplicationRuntimeDecisionRoute, server.handleDecidePromptApplicationRuntimeAssignment)
+	mux.HandleFunc(agentCopilotRuntimeReadRoute, server.handleReadAgentCopilotRuntimeAssignment)
+	mux.HandleFunc(agentCopilotRuntimeEventsRoute, server.handleReadAgentCopilotRuntimeEvents)
+	mux.HandleFunc(agentCopilotRuntimeDecisionRoute, server.handleDecideAgentCopilotRuntimeAssignment)
+	mux.HandleFunc(promptApplicationTemplateValidateRoute, server.handleValidatePromptApplicationTemplate)
+	mux.HandleFunc(promptApplicationTemplateSaveRoute, server.handleSavePromptApplicationTemplate)
+	mux.HandleFunc(promptApplicationTemplateListRoute, server.handleListPromptApplicationTemplates)
+	mux.HandleFunc(promptApplicationTemplateReadRoute, server.handleReadPromptApplicationTemplate)
+	mux.HandleFunc(promptApplicationTemplateVersionCreateRoute, server.handleCreatePromptApplicationTemplateVersion)
+	mux.HandleFunc(promptApplicationTemplateVersionListRoute, server.handleListPromptApplicationTemplateVersions)
+	mux.HandleFunc(promptApplicationTemplateVersionReadRoute, server.handleReadPromptApplicationTemplateVersion)
+	mux.HandleFunc(agentCopilotProfileValidateRoute, server.handleValidateAgentCopilotProfile)
+	mux.HandleFunc(agentCopilotProfileSaveRoute, server.handleSaveAgentCopilotProfile)
+	mux.HandleFunc(agentCopilotProfileListRoute, server.handleListAgentCopilotProfiles)
+	mux.HandleFunc(agentCopilotProfileReadRoute, server.handleReadAgentCopilotProfile)
+	mux.HandleFunc(agentCopilotProfileVersionCreateRoute, server.handleCreateAgentCopilotProfileVersion)
+	mux.HandleFunc(agentCopilotProfileVersionListRoute, server.handleListAgentCopilotProfileVersions)
+	mux.HandleFunc(agentCopilotProfileVersionReadRoute, server.handleReadAgentCopilotProfileVersion)
 	mux.HandleFunc(applicationPublishCandidateCreateRoute, server.handleCreateApplicationPublishCandidate)
 	mux.HandleFunc(applicationPublishCandidateListRoute, server.handleListApplicationPublishCandidates)
 	mux.HandleFunc(applicationPublishCandidateReadRoute, server.handleReadApplicationPublishCandidate)
@@ -298,6 +380,8 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(workflowRAGApplicationRuntimeAssignmentReadRoute, server.handleReadWorkflowRAGApplicationRuntimeAssignment)
 	mux.HandleFunc(workflowRAGApplicationRuntimeAssignmentDecisionRoute, server.handleDecideWorkflowRAGApplicationRuntimeAssignment)
 	mux.HandleFunc("POST "+workflowRAGApplicationInvocationRoute, server.handleWorkflowRAGApplicationInvocation)
+	mux.HandleFunc("POST "+promptApplicationInvocationRoute, server.handlePromptApplicationInvocation)
+	mux.HandleFunc("POST "+agentCopilotInvocationRoute, server.handleAgentCopilotInvocation)
 	mux.HandleFunc(workflowHTTPToolPlanCreateRoute, server.handleCreateWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowHTTPToolPlanReadRoute, server.handleReadWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowHTTPToolDecisionRoute, server.handleDecideWorkflowHTTPToolActionPlan)
@@ -401,6 +485,12 @@ func (s *Server) Close() {
 		if s.closeApplicationCatalogStore != nil {
 			s.closeApplicationCatalogStore()
 		}
+		if s.closeAgentCopilotProfileStore != nil {
+			s.closeAgentCopilotProfileStore()
+		}
+		if s.closePromptApplicationTemplateStore != nil {
+			s.closePromptApplicationTemplateStore()
+		}
 		if s.closeApplicationPublishStore != nil {
 			s.closeApplicationPublishStore()
 		}
@@ -479,6 +569,14 @@ func localConsoleAllowedHeaders() []string {
 		savedWorkflowDraftDevApplicationHeader,
 		applicationDraftDevWorkspaceHeader,
 		applicationDraftDevApplicationHeader,
+		promptApplicationTemplateDevWorkspaceHeader,
+		promptApplicationTemplateDevApplicationHeader,
+		agentCopilotProfileDevWorkspaceHeader,
+		agentCopilotProfileDevApplicationHeader,
+		agentCopilotRuntimeWorkspaceHeader,
+		agentCopilotRuntimeApplicationHeader,
+		promptApplicationRuntimeWorkspaceHeader,
+		promptApplicationRuntimeApplicationHeader,
 		applicationPublishDevWorkspaceHeader,
 		applicationPublishDevApplicationHeader,
 		gatewayRequestDevTenantHeader,

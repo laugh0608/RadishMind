@@ -564,6 +564,26 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/application-runtime-authority.schema.json",
         REPO_ROOT / "contracts/application-session.schema.json",
         REPO_ROOT / "contracts/application-session-turn.schema.json",
+        REPO_ROOT / "contracts/prompt-application-template-draft.schema.json",
+        REPO_ROOT / "contracts/prompt-application-template-version.schema.json",
+        REPO_ROOT / "contracts/application-configuration-draft-v3.schema.json",
+        REPO_ROOT / "contracts/application-publish-candidate-v3.schema.json",
+        REPO_ROOT / "contracts/prompt-application-runtime-assignment.schema.json",
+        REPO_ROOT / "contracts/prompt-application-runtime-assignment-event.schema.json",
+        REPO_ROOT / "contracts/application-runtime-authority-v2.schema.json",
+        REPO_ROOT / "contracts/application-session-v2.schema.json",
+        REPO_ROOT / "contracts/application-session-turn-v2.schema.json",
+        REPO_ROOT / "contracts/workflow-run-record-v6.schema.json",
+        REPO_ROOT / "contracts/agent-copilot-profile-draft.schema.json",
+        REPO_ROOT / "contracts/agent-copilot-profile-version.schema.json",
+        REPO_ROOT / "contracts/application-configuration-draft-v4.schema.json",
+        REPO_ROOT / "contracts/application-publish-candidate-v4.schema.json",
+        REPO_ROOT / "contracts/agent-copilot-runtime-assignment.schema.json",
+        REPO_ROOT / "contracts/agent-copilot-runtime-assignment-event.schema.json",
+        REPO_ROOT / "contracts/application-runtime-authority-v3.schema.json",
+        REPO_ROOT / "contracts/application-session-v3.schema.json",
+        REPO_ROOT / "contracts/application-session-turn-v3.schema.json",
+        REPO_ROOT / "contracts/workflow-run-record-v7.schema.json",
         REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
         REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json",
         REPO_ROOT / "contracts/radishflow-export-snapshot.schema.json",
@@ -1344,6 +1364,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-radishmind-core-candidate-citation-scaffold.py", [])
     run_python_script("check-radishmind-core-candidate-answer-scaffold.py", [])
     run_python_script("check-radishmind-core-candidate-prompt-budget.py", [])
+    run_python_unittest("services/runtime/tests")
     run_python_unittest("services/gateway/tests")
     run_python_unittest("scripts/checks/platform/tests")
     run_python_script("check-runtime-provider-dispatch.py", [])

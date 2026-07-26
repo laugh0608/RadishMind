@@ -44,6 +44,20 @@ type WorkflowHTTPToolExecutionAttempt struct {
 type workflowRunRecordAlias WorkflowRunRecord
 
 func (record WorkflowRunRecord) MarshalJSON() ([]byte, error) {
+	if record.SchemaVersion == agentCopilotRunV7Schema {
+		document, err := agentCopilotRunDocument(record)
+		if err != nil {
+			return nil, err
+		}
+		return json.Marshal(document)
+	}
+	if record.SchemaVersion == workflowRunRecordPromptSchemaVersion {
+		document, err := promptApplicationRunDocument(record)
+		if err != nil {
+			return nil, err
+		}
+		return json.Marshal(document)
+	}
 	if record.SchemaVersion == workflowRunRecordAppRAGSchemaVersion {
 		return marshalWorkflowRAGApplicationRunRecord(record)
 	}

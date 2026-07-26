@@ -1,6 +1,6 @@
 # Workflow Evaluation Cases / Batch Regression Review v1
 
-更新时间：2026-07-16
+更新时间：2026-07-25
 
 状态：`workflow_evaluation_cases_batch_regression_review_v1_completed`
 
@@ -73,3 +73,5 @@ evaluation case、case revision、baseline promotion 和 batch review 首版只�
 后续 [Workflow Evaluation Baseline & Case Versioning v1](workflow-evaluation-baseline-case-versioning-v1.md) 已完成 baseline promotion、case revision、expected classification 变更审查、并发版本和审计链，[Workflow Evaluation Suite / Release Review v1](workflow-evaluation-suite-release-review-v1.md) 也已完成 exact-version 聚合审查与人工 decision evidence；仍不保存输入、不自动执行或 replay。
 
 2026-07-18 独立的 [Workflow RAG Regression Review 与 Evaluation Profile v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1.md) 已允许相同 immutable retrieval binding 的 v3 run 创建、修订和即时 review；review item 派生 `run_profile=workflow_rag_retrieval.v1` 与 Comparison v2 schema。case / revision 仍只保存 run refs、预期分类和审计元数据，不复制 query、fragment、answer 或 comparison body；HTTP Tool v2 继续 unsupported。
+
+2026-07-25 [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](../user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md) 已补齐 Prompt v6 / Comparison v5 与 Agent v7 / Comparison v6 的严格消费。Prompt 必须保持同 Template lineage；Agent 必须保持同 Profile、project 与 task。Case owner、schema、route 和持久化均未复制或放宽，review 继续只读取 metadata-only Run。

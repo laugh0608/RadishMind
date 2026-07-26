@@ -220,10 +220,20 @@ func (s *Server) allowWorkflowExecutorDev(writer http.ResponseWriter, trace requ
 }
 
 func (s *Server) allowWorkflowRunHistoryDev(writer http.ResponseWriter, trace requestTrace) bool {
-	if s.config.WorkflowExecutorDevEnabled || s.config.WorkflowRAGExecutionDevEnabled {
+	if s.config.WorkflowExecutorDevEnabled || s.config.WorkflowRAGExecutionDevEnabled ||
+		s.config.PromptApplicationRuntimeDevHTTPEnabled || s.config.AgentCopilotRuntimeDevHTTPEnabled {
 		return true
 	}
 	s.writePlatformError(writer, trace, "WORKFLOW_EXECUTOR_DEV_DISABLED", "workflow run history requires an explicit workflow execution development gate")
+	return false
+}
+
+func (s *Server) allowWorkflowEvaluationDev(writer http.ResponseWriter, trace requestTrace) bool {
+	if s.config.WorkflowExecutorDevEnabled || s.config.PromptApplicationRuntimeDevHTTPEnabled ||
+		s.config.AgentCopilotRuntimeDevHTTPEnabled {
+		return true
+	}
+	s.writePlatformError(writer, trace, "WORKFLOW_EVALUATION_DEV_DISABLED", "workflow evaluation requires an explicit development gate")
 	return false
 }
 
@@ -234,7 +244,7 @@ func (s *Server) workflowExecutorService() workflowExecutorService {
 	service := newWorkflowExecutorService(
 		s.savedWorkflowDraftService().ReadDraft,
 		s.bridge,
-		s.workflowRunStore,
+		s.effectiveApplicationRunStore(),
 	)
 	service.defaultTemperature = s.config.Temperature
 	service.resolveSelection = func(ctx context.Context, requestedModel string) northboundSelection {
@@ -249,7 +259,14 @@ func (s *Server) workflowEvaluationService() workflowEvaluationService {
 	if s.workflowEvaluationStore == nil {
 		s.workflowEvaluationStore = newWorkflowEvaluationStoreForRunStore(s.workflowRunStore)
 	}
-	return newWorkflowEvaluationService(s.workflowEvaluationStore, s.workflowRunStore)
+	return newWorkflowEvaluationService(s.workflowEvaluationStore, s.effectiveApplicationRunStore())
+}
+
+func (s *Server) effectiveApplicationRunStore() workflowRunStore {
+	if s.applicationRunStore != nil {
+		return s.applicationRunStore
+	}
+	return s.workflowRunStore
 }
 
 func (s *Server) workflowEvaluationSuiteService() workflowEvaluationSuiteService {

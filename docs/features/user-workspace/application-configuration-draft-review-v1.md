@@ -1,6 +1,6 @@
 # 用户工作区应用配置草案与审查 v1
 
-更新时间：2026-07-15
+更新时间：2026-07-21
 
 状态：`application_configuration_draft_review_v1_complete`
 
@@ -137,6 +137,13 @@ Web 49 项测试与生产构建、平台全量 Go 测试和 PostgreSQL 集成套
 - 首次 attach / replace 必须从已批准 promotion candidate 的精确 source draft 开始。服务端重读当前 binding 与全部权威知识来源，确认除 binding ref 外没有配置修改后，才通过既有 expected-version CAS 创建下一版草案。
 - Web 只列出当前 eligible 的不可变 binding，并把“恢复 source draft”和“attach binding”保留为两个显式动作；批准 promotion candidate 不自动修改草案，attach 也不创建发布候选。
 - memory、SQLite 与 PostgreSQL 继续复用本专题既有 repository 和 JSON payload 表，无新增草案 store、selector、DSN、pool 或 migration。双数据库连续链与真实浏览器已验证 v1 source draft → v2 binding draft、重启恢复与 no-fallback。
+
+## 与 Prompt Application Template binding 的组合边界
+
+- 2026-07-21 已启用 `application_configuration_draft.v3`，只允许 `application_kind=prompt_application` 携带 `prompt_template_ref={template_id,template_version,template_digest}`；v3 不允许同时携带 Workflow RAG binding，v1 / v2 读取与写入语义保持不变。
+- binding 使用独立服务端路由：先重读当前精确草案与不可变 Template Version，由服务端计算并核对 digest，再通过既有 expected-version CAS 创建下一版草案。客户端不能直接保存或伪造 template ref，也不能提交模板正文。
+- binding 同时要求既有草案写权限与 `prompt_application_templates:bind`；Template 摘要、源码读取、版本创建和配置绑定保持独立授权。模板版本创建或发布候选批准都不会自动修改配置草案。
+- memory、SQLite 与 PostgreSQL 继续复用既有配置草案 repository 和 JSON payload 表；Template 源码只由独立 Template owner 保存，草案仅保存精确引用与服务端 digest。
 
 ## 停止线
 

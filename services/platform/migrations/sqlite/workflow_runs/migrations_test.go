@@ -9,9 +9,9 @@ import (
 	"radishmind.local/services/platform/internal/sqlitedev"
 )
 
-func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationInteractionSessions(t *testing.T) {
+func TestWorkflowRunSQLiteMigrationsAreOrderedThroughAgentCopilotInvocationProjections(t *testing.T) {
 	migrations := Migrations()
-	if len(migrations) != 12 {
+	if len(migrations) != 15 {
 		t.Fatalf("unexpected workflow run SQLite migration count: %d", len(migrations))
 	}
 	if migrations[0].ID != legacyMigrationID || migrations[0].StoreSchemaVersion != legacyRunStoreSchemaVersion {
@@ -47,8 +47,17 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationInteractionSessi
 	if migrations[10].ID != definitionExecutionMigrationID || migrations[10].StoreSchemaVersion != definitionExecutionSchemaVersion {
 		t.Fatalf("workflow definition execution migration drifted: %#v", migrations[10])
 	}
-	if migrations[11].ID != MigrationID || migrations[11].StoreSchemaVersion != StoreSchemaVersion {
+	if migrations[11].ID != applicationSessionMigrationID || migrations[11].StoreSchemaVersion != applicationSessionSchemaVersion {
 		t.Fatalf("application interaction session migration drifted: %#v", migrations[11])
+	}
+	if migrations[12].ID != promptRuntimeMigrationID || migrations[12].StoreSchemaVersion != promptRuntimeSchemaVersion {
+		t.Fatalf("prompt application runtime projection migration drifted: %#v", migrations[12])
+	}
+	if migrations[13].ID != agentRuntimeMigrationID || migrations[13].StoreSchemaVersion != agentRuntimeSchemaVersion {
+		t.Fatalf("Agent Copilot runtime assignment migration drifted: %#v", migrations[13])
+	}
+	if migrations[14].ID != MigrationID || migrations[14].StoreSchemaVersion != StoreSchemaVersion {
+		t.Fatalf("Agent Copilot invocation projection migration drifted: %#v", migrations[14])
 	}
 	for _, required := range []string{
 		"CREATE TABLE application_interaction_sessions",
@@ -61,6 +70,41 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationInteractionSessi
 	} {
 		if !strings.Contains(upSQLV12, required) {
 			t.Fatalf("SQLite application interaction session migration is missing %q", required)
+		}
+	}
+	for _, required := range []string{
+		"CREATE TABLE agent_copilot_sessions",
+		"CREATE TABLE agent_copilot_session_turns",
+		"CREATE TABLE agent_copilot_run_records",
+		"application_session.v3",
+		"application_session_turn.v3",
+		"workflow_run_record.v7",
+		"agent_copilot_runs_controlled_update",
+	} {
+		if !strings.Contains(upSQLV15, required) {
+			t.Fatalf("SQLite Agent Copilot invocation projection migration is missing %q", required)
+		}
+	}
+	for _, required := range []string{
+		"CREATE TABLE agent_copilot_runtime_assignments",
+		"CREATE TABLE agent_copilot_runtime_assignment_events",
+		"agent_copilot_runtime_assignment.v1",
+		"agent_copilot_assignments_controlled_update",
+		"agent_copilot_assignment_events_no_delete",
+	} {
+		if !strings.Contains(upSQLV14, required) {
+			t.Fatalf("SQLite Agent Copilot runtime assignment migration is missing %q", required)
+		}
+	}
+	for _, required := range []string{
+		"CREATE TABLE prompt_application_runtime_assignments",
+		"CREATE TABLE prompt_application_sessions",
+		"CREATE TABLE prompt_application_run_records",
+		"workflow_run_record.v6",
+		"prompt_application_runs_controlled_update",
+	} {
+		if !strings.Contains(upSQLV13, required) {
+			t.Fatalf("SQLite prompt application projection migration is missing %q", required)
 		}
 	}
 	for _, required := range []string{"workflow_run_record.v5", "workflow_definition", "workflow_runs_store_v5"} {
@@ -238,7 +282,7 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		_ = upgradedRuntime.Close()
 		t.Fatalf("legacy workflow run changed during upgrade: count=%d err=%v", legacyRunCount, err)
 	}
-	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 12 {
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 15 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("unexpected workflow run migration markers: count=%d err=%v", migrationCount, err)
 	}
@@ -279,6 +323,47 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name LIKE 'application_interaction_%'`).Scan(&applicationInteractionTriggerCount); err != nil || applicationInteractionTriggerCount != 4 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("application interaction session triggers are incomplete: count=%d err=%v", applicationInteractionTriggerCount, err)
+	}
+	var promptProjectionTableCount, promptProjectionTriggerCount int
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN (
+		'prompt_application_runtime_assignments','prompt_application_runtime_assignment_events','prompt_application_sessions',
+		'prompt_application_session_turns','prompt_application_run_records'
+	)`).Scan(&promptProjectionTableCount); err != nil || promptProjectionTableCount != 5 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("prompt application runtime projection tables are incomplete: count=%d err=%v", promptProjectionTableCount, err)
+	}
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name LIKE 'prompt_application_%'`).Scan(&promptProjectionTriggerCount); err != nil || promptProjectionTriggerCount != 10 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("prompt application runtime projection triggers are incomplete: count=%d err=%v", promptProjectionTriggerCount, err)
+	}
+	var agentAssignmentTableCount, agentAssignmentTriggerCount int
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN (
+		'agent_copilot_runtime_assignments','agent_copilot_runtime_assignment_events'
+	)`).Scan(&agentAssignmentTableCount); err != nil || agentAssignmentTableCount != 2 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("Agent Copilot runtime assignment tables are incomplete: count=%d err=%v", agentAssignmentTableCount, err)
+	}
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name IN (
+		'agent_copilot_assignments_controlled_update','agent_copilot_assignments_no_delete',
+		'agent_copilot_assignment_events_no_update','agent_copilot_assignment_events_no_delete'
+	)`).Scan(&agentAssignmentTriggerCount); err != nil || agentAssignmentTriggerCount != 4 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("Agent Copilot runtime assignment triggers are incomplete: count=%d err=%v", agentAssignmentTriggerCount, err)
+	}
+	var agentProjectionTableCount, agentProjectionTriggerCount int
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN (
+		'agent_copilot_sessions','agent_copilot_session_turns','agent_copilot_run_records'
+	)`).Scan(&agentProjectionTableCount); err != nil || agentProjectionTableCount != 3 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("Agent Copilot invocation projection tables are incomplete: count=%d err=%v", agentProjectionTableCount, err)
+	}
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name IN (
+		'agent_copilot_sessions_controlled_update','agent_copilot_sessions_no_delete',
+		'agent_copilot_turns_controlled_update','agent_copilot_turns_no_delete',
+		'agent_copilot_runs_controlled_update','agent_copilot_runs_no_delete'
+	)`).Scan(&agentProjectionTriggerCount); err != nil || agentProjectionTriggerCount != 6 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("Agent Copilot invocation projection triggers are incomplete: count=%d err=%v", agentProjectionTriggerCount, err)
 	}
 	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN (
 		'workflow_http_tool_action_plans',

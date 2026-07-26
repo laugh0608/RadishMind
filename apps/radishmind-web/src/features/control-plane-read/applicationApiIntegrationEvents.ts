@@ -18,12 +18,24 @@ export type ApplicationModelCatalogReadyDetail = {
   selectedModel: string;
 };
 
+let pendingDraftHandoff: ApplicationApiIntegrationDraftHandoffDetail | null = null;
+let latestModelCatalog: ApplicationModelCatalogReadyDetail | null = null;
+
 export function createApplicationApiIntegrationDraftHandoffDetail(
   applicationId: string,
   protocol: ApplicationApiProtocol,
   model: string,
 ): ApplicationApiIntegrationDraftHandoffDetail {
-  return { applicationId: applicationId.trim(), protocol, model: model.trim() };
+  const normalizedApplicationId = applicationId.trim();
+  const normalizedModel = model.trim();
+  if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{2,159}$/u.test(normalizedApplicationId)) {
+    throw new Error("Application API handoff scope is invalid.");
+  }
+  if ((protocol !== "chat_completions" && protocol !== "responses" && protocol !== "messages") ||
+    !/^[A-Za-z0-9._:/-]{1,160}$/u.test(normalizedModel)) {
+    throw new Error("Application API handoff selection is invalid.");
+  }
+  return { applicationId: normalizedApplicationId, protocol, model: normalizedModel };
 }
 
 export function requestApplicationApiIntegrationDraftHandoff(
@@ -31,9 +43,24 @@ export function requestApplicationApiIntegrationDraftHandoff(
   protocol: ApplicationApiProtocol,
   model: string,
 ): void {
+  pendingDraftHandoff = createApplicationApiIntegrationDraftHandoffDetail(applicationId, protocol, model);
   window.dispatchEvent(new CustomEvent(APPLICATION_API_INTEGRATION_DRAFT_HANDOFF_EVENT, {
-    detail: createApplicationApiIntegrationDraftHandoffDetail(applicationId, protocol, model),
+    detail: pendingDraftHandoff,
   }));
+}
+
+export function consumePendingApplicationApiIntegrationDraftHandoff(
+  applicationId: string,
+): ApplicationApiIntegrationDraftHandoffDetail | null {
+  const normalizedApplicationId = applicationId.trim();
+  if (!pendingDraftHandoff || pendingDraftHandoff.applicationId !== normalizedApplicationId) return null;
+  const detail = pendingDraftHandoff;
+  pendingDraftHandoff = null;
+  return detail;
+}
+
+export function clearPendingApplicationApiIntegrationDraftHandoff(): void {
+  pendingDraftHandoff = null;
 }
 
 export function createApplicationModelCatalogReadyDetail(
@@ -68,7 +95,23 @@ export function requestApplicationModelCatalogReady(
   models: ApplicationModelCatalogItem[],
   selectedModel: string,
 ): void {
+  latestModelCatalog = createApplicationModelCatalogReadyDetail(applicationId, models, selectedModel);
   window.dispatchEvent(new CustomEvent<ApplicationModelCatalogReadyDetail>(APPLICATION_MODEL_CATALOG_READY_EVENT, {
-    detail: createApplicationModelCatalogReadyDetail(applicationId, models, selectedModel),
+    detail: latestModelCatalog,
   }));
+}
+
+export function readLatestApplicationModelCatalogReady(
+  applicationId: string,
+): ApplicationModelCatalogReadyDetail | null {
+  const normalizedApplicationId = applicationId.trim();
+  if (!latestModelCatalog || latestModelCatalog.applicationId !== normalizedApplicationId) return null;
+  return {
+    ...latestModelCatalog,
+    models: latestModelCatalog.models.map((model) => ({ ...model, protocols: [...model.protocols] })),
+  };
+}
+
+export function clearLatestApplicationModelCatalogReady(): void {
+  latestModelCatalog = null;
 }

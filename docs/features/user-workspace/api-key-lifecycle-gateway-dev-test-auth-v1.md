@@ -257,6 +257,8 @@ PostgreSQL 使用独立 `api_key_records` 和 `api_key_schema_versions`，不复
 
 [Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](../workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)已实现显式 `application_rag:invoke` scope、独立 invocation route、SQLite / PostgreSQL durable assignment 和 Web 一次性交接，`0012` 真实专项与浏览器连续链已通过。该 scope 复用本专题的随机令牌、不可逆摘要、有效期 / 吊销、active application 与可信调用上下文，但不会自动授予 `chat:invoke`、`responses:invoke`、`messages:invoke` 或任何管理权限；反向也不继承。配额、生产认证和生产 API key 仍未启用。
 
+[提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)已实现独立 `prompt_application:invoke` scope 与 `POST /v1/prompt-applications/invocations`。该 scope 同样复用随机令牌、不可逆摘要、有效期 / 吊销、active application 和可信 tenant / workspace / application 上下文，但不继承通用协议、RAG 或管理 scope；既有 scope 也不会隐式获得 Prompt 调用权。当前 Web API key 创建面尚未开放该 scope，需通过受控开发测试路径签发。
+
 ## 停止线
 
 - 不声明 production API key、公开生产 Gateway、正式工作区成员授权或生产凭据存储已就绪。

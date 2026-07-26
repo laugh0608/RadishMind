@@ -16,6 +16,7 @@ import {
   type ApplicationInteractionSessionState,
   type ApplicationInteractionTurn,
 } from "./applicationInteractionSessionConsumer.ts";
+import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 
 const config = readApplicationInteractionSessionConfig();
 
@@ -43,12 +44,16 @@ export default function ApplicationInteractionSessionPanel({
   applicationActive,
   suggestedDefinitionId,
   onRunRecorded,
+  onOpenRun,
+  onEvidenceChange,
 }: {
   applicationId: string;
   applicationName: string;
   applicationActive: boolean;
   suggestedDefinitionId: string;
   onRunRecorded: (runId: string) => void;
+  onOpenRun?: (runId: string) => void;
+  onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
 }) {
   const [listing, setListing] = useState<ApplicationInteractionSessionListResult>(() => initialApplicationInteractionSessionListResult(config));
   const [sessions, setSessions] = useState<ApplicationInteractionSession[]>([]);
@@ -67,6 +72,32 @@ export default function ApplicationInteractionSessionPanel({
   const abortRef = useRef<AbortController | null>(null);
   const generationRef = useRef(0);
   const requestScopeRef = useRef<RequestScope>({ generation: 0, applicationId: "", sessionId: "", clientTurnKey: "" });
+
+  useEffect(() => {
+    if (!onEvidenceChange) return;
+    const latestTurn = [...turns, ...transcript.map((entry) => entry.turn).filter((turn): turn is ApplicationInteractionTurn => Boolean(turn))]
+      .filter((turn) => turn.runRef)
+      .sort((left, right) => right.sequence - left.sequence)[0];
+    if (!latestTurn && !operationFailure) return;
+    const ownerFailed = Boolean(operationFailure) && !latestTurn;
+    const succeeded = latestTurn?.status === "succeeded";
+    const terminalBlocked = Boolean(latestTurn && latestTurn.status !== "succeeded" && latestTurn.status !== "running");
+    onEvidenceChange({
+      contributionId: "controlled_run",
+      status: ownerFailed || terminalBlocked ? "blocked" : succeeded ? "available" : "incomplete",
+      coverage: latestTurn || ownerFailed ? "complete" : "none",
+      evidenceRefs: latestTurn?.runRef ? [
+        { kind: "session", id: latestTurn.sessionId },
+        { kind: "run", id: latestTurn.runRef.runId },
+      ] : [],
+      missingEvidence: succeeded ? [] : ["Complete and review a terminal v4 or v5 Application interaction run."],
+      blockers: ownerFailed || terminalBlocked ? [{
+        code: latestTurn?.failureCode || operationFailure || "controlled_run_blocked",
+        summary: latestTurn?.failureSummary || "The Application interaction owner reports a failure or non-success terminal run.",
+      }] : [],
+      failureCodes: latestTurn?.failureCode ? [latestTurn.failureCode] : operationFailure ? [operationFailure] : [],
+    });
+  }, [onEvidenceChange, operationFailure, transcript, turns]);
 
   useEffect(() => {
     abortRef.current?.abort();
@@ -328,7 +359,7 @@ export default function ApplicationInteractionSessionPanel({
               {entry.output ? <div className="application-interaction-message assistant-message"><span>Advisory response</span><p>{entry.output}</p></div> : null}
               {entry.answer?.citations.length ? <ul>{entry.answer.citations.map((citation) => <li key={citation.fragmentRef}><code>{citation.fragmentRef}</code><span>{citation.claimSummary}</span></li>)}</ul> : null}
               {entry.failureCode ? <p className="failure-summary" role="alert">{entry.failureCode}: {entry.failureSummary}</p> : null}
-              {entry.turn?.runRef ? <button type="button" className="secondary-action" onClick={() => { onRunRecorded(entry.turn?.runRef?.runId ?? ""); window.location.hash = "workspace-run-history"; }}>Open run {entry.turn.runRef.schemaVersion}</button> : null}
+              {entry.turn?.runRef ? <button type="button" className="secondary-action" onClick={() => onOpenRun?.(entry.turn?.runRef?.runId ?? "")}>Open run {entry.turn.runRef.schemaVersion}</button> : null}
             </article>
           ))}
         </div>

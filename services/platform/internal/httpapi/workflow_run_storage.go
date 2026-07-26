@@ -9,7 +9,15 @@ import (
 )
 
 func encodeWorkflowRunStorageRecord(record WorkflowRunRecord) ([]byte, time.Time, *time.Time, error) {
-	payload, err := json.Marshal(record)
+	var payload []byte
+	var err error
+	if record.SchemaVersion == workflowRunRecordPromptSchemaVersion {
+		payload, err = encodePromptApplicationRunStorageRecord(record)
+	} else if record.SchemaVersion == agentCopilotRunV7Schema {
+		payload, err = encodeAgentCopilotRunStorageRecord(record)
+	} else {
+		payload, err = json.Marshal(record)
+	}
 	if err != nil {
 		return nil, time.Time{}, nil, errWorkflowRunStoreContract
 	}
@@ -45,6 +53,12 @@ func decodeWorkflowRunStorageRecord(
 	}
 	if envelope.SchemaVersion == workflowRunRecordAppRAGSchemaVersion {
 		return decodeWorkflowRAGApplicationRunStorageRecord(runContext, payload)
+	}
+	if envelope.SchemaVersion == workflowRunRecordPromptSchemaVersion {
+		return decodePromptApplicationRunStorageRecord(runContext, payload)
+	}
+	if envelope.SchemaVersion == agentCopilotRunV7Schema {
+		return decodeAgentCopilotRunStorageRecord(runContext, payload)
 	}
 	var record WorkflowRunRecord
 	decoder := json.NewDecoder(strings.NewReader(string(payload)))
@@ -104,6 +118,20 @@ func workflowRunStringFromPointer(value *string) string {
 }
 
 func workflowRunStorageExecutionSource(record WorkflowRunRecord) (string, string, int, error) {
+	if record.SchemaVersion == workflowRunRecordPromptSchemaVersion {
+		if record.ExecutionSource == nil || record.ExecutionSource.SourceKind != promptApplicationExecutionSourceKind ||
+			!promptApplicationTemplateIDPattern.MatchString(record.ExecutionSource.ID) || record.ExecutionSource.Version < 1 {
+			return "", "", 0, errWorkflowRunStoreContract
+		}
+		return record.ExecutionSource.SourceKind, record.ExecutionSource.ID, record.ExecutionSource.Version, nil
+	}
+	if record.SchemaVersion == agentCopilotRunV7Schema {
+		if record.ExecutionSource == nil || record.ExecutionSource.SourceKind != agentCopilotExecutionSourceKind ||
+			!agentCopilotProfileIDPattern.MatchString(record.ExecutionSource.ID) || record.ExecutionSource.Version < 1 {
+			return "", "", 0, errWorkflowRunStoreContract
+		}
+		return record.ExecutionSource.SourceKind, record.ExecutionSource.ID, record.ExecutionSource.Version, nil
+	}
 	if record.SchemaVersion == workflowRunRecordAppRAGSchemaVersion {
 		if record.ExecutionSource == nil || record.ExecutionSource.SourceKind != workflowRAGApplicationExecutionSourceKind || strings.TrimSpace(record.ExecutionSource.ID) == "" || record.ExecutionSource.Version < 1 {
 			return "", "", 0, errWorkflowRunStoreContract

@@ -1,0 +1,9 @@
+{
+  "component": "agent_copilot_profiles",
+  "migration_id": "0001_agent_copilot_profiles",
+  "store_schema_version": "agent_copilot_profile_store_v1",
+  "up": "0001_agent_copilot_profiles.up.sql",
+  "down": "0001_agent_copilot_profiles.down.sql",
+  "automatic_apply": false,
+  "environment": "dev_test_only"
+}

@@ -208,6 +208,14 @@ func validateWorkflowRunStoreRecord(runContext WorkflowRunContext, record *Workf
 		if err := validateWorkflowRAGApplicationRunStoreRecord(runContext, record); err != nil {
 			return errWorkflowRunStoreContract
 		}
+	} else if record.SchemaVersion == workflowRunRecordPromptSchemaVersion {
+		if err := validatePromptApplicationWorkflowRunRecord(runContext, record); err != nil {
+			return errWorkflowRunStoreContract
+		}
+	} else if record.SchemaVersion == agentCopilotRunV7Schema {
+		if err := validateAgentCopilotWorkflowRunRecord(runContext, record); err != nil {
+			return errWorkflowRunStoreContract
+		}
 	} else if record.SchemaVersion == workflowRunRecordDefinitionSchemaVersion {
 		if err := validateWorkflowDefinitionRunStoreRecord(runContext, record); err != nil {
 			return errWorkflowRunStoreContract
@@ -259,7 +267,8 @@ func workflowRunRecordContainsEndpoint(record *WorkflowRunRecord) bool {
 func validWorkflowRunRecordSchema(schemaVersion string) bool {
 	return schemaVersion == workflowRunRecordSchemaVersion || schemaVersion == workflowRunRecordLegacySchemaVersion ||
 		schemaVersion == workflowRunRecordToolSchemaVersion || schemaVersion == workflowRunRecordRAGSchemaVersion ||
-		schemaVersion == workflowRunRecordAppRAGSchemaVersion || schemaVersion == workflowRunRecordDefinitionSchemaVersion
+		schemaVersion == workflowRunRecordAppRAGSchemaVersion || schemaVersion == workflowRunRecordDefinitionSchemaVersion ||
+		schemaVersion == workflowRunRecordPromptSchemaVersion || schemaVersion == agentCopilotRunV7Schema
 }
 
 func validWorkflowRunStatus(status WorkflowRunStatus) bool {
@@ -318,6 +327,19 @@ func cloneWorkflowRunRecord(record WorkflowRunRecord) WorkflowRunRecord {
 	if record.RAGApplication != nil {
 		authority := *record.RAGApplication
 		cloned.RAGApplication = &authority
+	}
+	if record.PromptApplication != nil {
+		authority := *record.PromptApplication
+		cloned.PromptApplication = &authority
+	}
+	if record.AgentCopilotAuthority != nil {
+		authority := *record.AgentCopilotAuthority
+		cloned.AgentCopilotAuthority = &authority
+	}
+	cloned.VariableNames = append([]string(nil), record.VariableNames...)
+	if record.PromptDiagnostic != nil {
+		diagnostic := *record.PromptDiagnostic
+		cloned.PromptDiagnostic = &diagnostic
 	}
 	cloned.Nodes = make([]WorkflowRunNodeRecord, 0, len(record.Nodes))
 	for _, node := range record.Nodes {

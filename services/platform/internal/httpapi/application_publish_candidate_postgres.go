@@ -142,11 +142,15 @@ func scanApplicationPublishCandidate(row applicationPublishCandidateRow) (Applic
 		return ApplicationPublishCandidate{}, err
 	}
 	var candidate ApplicationPublishCandidate
-	if err := json.Unmarshal(payload, &candidate); err != nil || strings.TrimSpace(candidate.CandidateID) == "" ||
+	if err := decodeStrictStoredJSON(payload, &candidate); err != nil || strings.TrimSpace(candidate.CandidateID) == "" ||
 		!applicationPublishCandidateSchemaSupported(candidate.SchemaVersion) || candidate.DraftVersion < 1 || candidate.ReviewVersion < 0 ||
-		(candidate.SchemaVersion == applicationPublishCandidateSchemaVersionV1 && candidate.Configuration.WorkflowRAGBindingRef != nil) ||
-		(candidate.SchemaVersion == applicationPublishCandidateSchemaVersionV2 && candidate.Configuration.WorkflowRAGBindingRef == nil) ||
-		(candidate.Configuration.WorkflowRAGBindingRef != nil && !validWorkflowRAGApplicationBindingRef(*candidate.Configuration.WorkflowRAGBindingRef)) {
+		(candidate.SchemaVersion == applicationPublishCandidateSchemaVersionV1 && (candidate.Configuration.WorkflowRAGBindingRef != nil || candidate.Configuration.PromptTemplateRef != nil || candidate.Configuration.AgentCopilotProfileRef != nil)) ||
+		(candidate.SchemaVersion == applicationPublishCandidateSchemaVersionV2 && (candidate.Configuration.WorkflowRAGBindingRef == nil || candidate.Configuration.PromptTemplateRef != nil || candidate.Configuration.AgentCopilotProfileRef != nil)) ||
+		(candidate.SchemaVersion == applicationPublishCandidateSchemaVersionV3 && (candidate.Configuration.WorkflowRAGBindingRef != nil || candidate.Configuration.PromptTemplateRef == nil || candidate.Configuration.AgentCopilotProfileRef != nil || candidate.Configuration.ApplicationKind != "prompt_application")) ||
+		(candidate.SchemaVersion == applicationPublishCandidateSchemaVersionV4 && (candidate.Configuration.WorkflowRAGBindingRef != nil || candidate.Configuration.PromptTemplateRef != nil || candidate.Configuration.AgentCopilotProfileRef == nil || candidate.Configuration.ApplicationKind != "agent")) ||
+		(candidate.Configuration.WorkflowRAGBindingRef != nil && !validWorkflowRAGApplicationBindingRef(*candidate.Configuration.WorkflowRAGBindingRef)) ||
+		(candidate.Configuration.PromptTemplateRef != nil && !validPromptApplicationTemplateRef(*candidate.Configuration.PromptTemplateRef)) ||
+		(candidate.Configuration.AgentCopilotProfileRef != nil && !validAgentCopilotProfileRef(*candidate.Configuration.AgentCopilotProfileRef)) {
 		return ApplicationPublishCandidate{}, errors.New("stored application publish candidate contract mismatch")
 	}
 	digest, err := applicationConfigurationCanonicalDigest(candidate.Configuration)
@@ -163,7 +167,8 @@ func scanApplicationPublishCandidate(row applicationPublishCandidateRow) (Applic
 }
 
 func applicationPublishCandidateSchemaSupported(schemaVersion string) bool {
-	return schemaVersion == applicationPublishCandidateSchemaVersionV1 || schemaVersion == applicationPublishCandidateSchemaVersionV2
+	return schemaVersion == applicationPublishCandidateSchemaVersionV1 || schemaVersion == applicationPublishCandidateSchemaVersionV2 ||
+		schemaVersion == applicationPublishCandidateSchemaVersionV3 || schemaVersion == applicationPublishCandidateSchemaVersionV4
 }
 
 func applicationPublishDatabaseContext(requestContext ApplicationPublishContext) context.Context {

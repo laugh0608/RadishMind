@@ -166,6 +166,10 @@ test("revoke maps the stored CAS conflict and keeps the current version", async 
 
 test("issue input validation rejects invalid scope, expiry, identifiers, and sensitive display names", () => {
   assert.equal(validateAPIKeyIssueInput(issueInput()), "");
+  assert.equal(
+    validateAPIKeyIssueInput({ ...issueInput(), scopes: ["agent_copilot:invoke"] }),
+    "",
+  );
   assert.equal(validateAPIKeyIssueInput({ ...issueInput(), applicationId: "app_invalid" }), "api_key_payload_invalid");
   assert.equal(validateAPIKeyIssueInput({ ...issueInput(), scopes: [] }), "api_key_payload_invalid");
   assert.equal(validateAPIKeyIssueInput({ ...issueInput(), expiresInDays: 91 }), "api_key_payload_invalid");

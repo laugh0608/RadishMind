@@ -2,6 +2,8 @@ import type { ApplicationApiProtocol } from "./applicationApiIntegrationConsumer
 
 const APPLICATION_PUBLISH_SCHEMA_VERSION_V1 = "application_publish_candidate.v1";
 const APPLICATION_PUBLISH_SCHEMA_VERSION_V2 = "application_publish_candidate.v2";
+const APPLICATION_PUBLISH_SCHEMA_VERSION_V3 = "application_publish_candidate.v3";
+const APPLICATION_PUBLISH_SCHEMA_VERSION_V4 = "application_publish_candidate.v4";
 const DEV_SOURCE = "dev-application-publish-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const FORBIDDEN_RESPONSE_FIELDS = new Set([
@@ -25,9 +27,22 @@ export type ApplicationPublishConfiguration = {
   defaultModel: string;
   allowedProtocols: ApplicationApiProtocol[];
   workflowRAGBindingRef: ApplicationPublishRAGBindingRef | null;
+  promptTemplateRef: ApplicationPublishPromptTemplateRef | null;
+  agentCopilotProfileRef: ApplicationPublishAgentCopilotProfileRef | null;
 };
 
 export type ApplicationPublishRAGBindingRef = { bindingId: string; bindingVersion: number; bindingDigest: string };
+export type ApplicationPublishPromptTemplateRef = {
+  templateId: string;
+  templateVersion: number;
+  templateDigest: string;
+};
+export type ApplicationPublishAgentCopilotProfileRef = {
+  profileId: string;
+  profileVersion: number;
+  profileDigest: string;
+  policyDigest: string;
+};
 
 export type ApplicationPublishReview = {
   reviewVersion: number;
@@ -44,13 +59,17 @@ export type ApplicationPublishDecision = "approve" | "reject" | "request_changes
 export type ApplicationPublishCandidateState = "pending_review" | "approved" | "rejected" | "changes_requested" | "withdrawn";
 
 export type ApplicationPromotionEligibility = {
-  eligible: false;
-  status: "promotion_blocked";
+  eligible: boolean;
+  status: "promotion_blocked" | "eligible_for_promotion";
   blockers: Array<{ code: string; summary: string }>;
 };
 
 export type ApplicationPublishCandidate = {
-  schemaVersion: typeof APPLICATION_PUBLISH_SCHEMA_VERSION_V1 | typeof APPLICATION_PUBLISH_SCHEMA_VERSION_V2;
+  schemaVersion:
+    | typeof APPLICATION_PUBLISH_SCHEMA_VERSION_V1
+    | typeof APPLICATION_PUBLISH_SCHEMA_VERSION_V2
+    | typeof APPLICATION_PUBLISH_SCHEMA_VERSION_V3
+    | typeof APPLICATION_PUBLISH_SCHEMA_VERSION_V4;
   candidateId: string;
   workspaceId: string;
   applicationId: string;
@@ -80,9 +99,11 @@ export type ApplicationPublishCandidateSummary = {
   draftDigest: string;
   candidateState: ApplicationPublishCandidateState;
   reviewVersion: number;
-  promotionStatus: "promotion_blocked";
+  promotionStatus: "promotion_blocked" | "eligible_for_promotion";
   promotionBlockers: number;
   workflowRAGBindingRef: ApplicationPublishRAGBindingRef | null;
+  promptTemplateRef: ApplicationPublishPromptTemplateRef | null;
+  agentCopilotProfileRef: ApplicationPublishAgentCopilotProfileRef | null;
   createdAt: string;
   updatedAt: string;
   updatedByActorRef: string;
@@ -126,6 +147,8 @@ type CandidateDocument = {
   configuration: {
     display_name: string; description: string; application_kind: string; default_protocol: string;
     default_model: string; allowed_protocols: string[]; workflow_rag_binding_ref?: BindingRefDocument;
+    prompt_template_ref?: PromptTemplateRefDocument;
+    agent_copilot_profile_ref?: AgentCopilotProfileRefDocument;
   };
   evidence_request_ids: string[];
   candidate_state: string;
@@ -159,6 +182,8 @@ type CandidateListEnvelope = {
     candidate_id: string; application_id: string; draft_id: string; draft_version: number; draft_digest: string;
     candidate_state: string; review_version: number; promotion_status: string; promotion_blockers: number;
     workflow_rag_binding_ref?: BindingRefDocument;
+    prompt_template_ref?: PromptTemplateRefDocument;
+    agent_copilot_profile_ref?: AgentCopilotProfileRefDocument;
     created_at: string; updated_at: string; updated_by_actor_ref: string;
   }>;
   failure_code: string | null;
@@ -166,6 +191,17 @@ type CandidateListEnvelope = {
 };
 
 type BindingRefDocument = { binding_id: string; binding_version: number; binding_digest: string };
+type PromptTemplateRefDocument = {
+  template_id: string;
+  template_version: number;
+  template_digest: string;
+};
+type AgentCopilotProfileRefDocument = {
+  profile_id: string;
+  profile_version: number;
+  profile_digest: string;
+  policy_digest: string;
+};
 
 export function readApplicationPublishCandidateConfig(): ApplicationPublishCandidateConfig {
   const env = import.meta.env as Record<string, string | undefined>;
@@ -322,7 +358,7 @@ function failedCandidateOperation(failureCode: string) {
 }
 
 function candidateHeaders(config: ApplicationPublishCandidateConfig, applicationId: string, requestId: string, operation: "read" | "write" | "review"): Record<string, string> {
-  const scope = `${operation === "read" ? "application_publish_candidates:read" : operation === "review" ? "application_publish_candidates:review" : "application_publish_candidates:write"},workflow_rag_promotions:read`;
+  const scope = `${operation === "read" ? "application_publish_candidates:read" : operation === "review" ? "application_publish_candidates:review" : "application_publish_candidates:write"},workflow_rag_promotions:read,prompt_application_templates:read_source,agent_copilot_profiles:read_source`;
   return {
     Accept: "application/json", "X-Request-Id": requestId,
     "X-RadishMind-Dev-Read-Identity": "radishmind-web-application-publish-dev",
@@ -346,11 +382,17 @@ function mapCandidate(document: CandidateDocument): ApplicationPublishCandidate 
       applicationKind: document.configuration.application_kind, defaultProtocol: document.configuration.default_protocol as ApplicationApiProtocol,
       defaultModel: document.configuration.default_model, allowedProtocols: document.configuration.allowed_protocols as ApplicationApiProtocol[],
       workflowRAGBindingRef: document.configuration.workflow_rag_binding_ref ? mapBindingRef(document.configuration.workflow_rag_binding_ref) : null,
+      promptTemplateRef: document.configuration.prompt_template_ref ? mapPromptTemplateRef(document.configuration.prompt_template_ref) : null,
+      agentCopilotProfileRef: document.configuration.agent_copilot_profile_ref ? mapAgentCopilotProfileRef(document.configuration.agent_copilot_profile_ref) : null,
     },
     evidenceRequestIds: [...document.evidence_request_ids], candidateState: document.candidate_state as ApplicationPublishCandidateState,
     reviewVersion: document.review_version,
     reviews: document.reviews.map((review) => ({ reviewVersion: review.review_version, decision: review.decision as ApplicationPublishDecision, reason: review.reason, state: review.state as ApplicationPublishCandidateState, reviewedAt: review.reviewed_at, reviewerRef: review.reviewer_ref, requestId: review.request_id, auditRef: review.audit_ref })),
-    promotionEligibility: { eligible: false, status: "promotion_blocked", blockers: document.promotion_eligibility.blockers.map((blocker) => ({ ...blocker })) },
+    promotionEligibility: {
+      eligible: document.promotion_eligibility.eligible,
+      status: document.promotion_eligibility.status as ApplicationPromotionEligibility["status"],
+      blockers: document.promotion_eligibility.blockers.map((blocker) => ({ ...blocker })),
+    },
     createdAt: document.created_at, updatedAt: document.updated_at, createdByActorRef: document.created_by_actor_ref,
     updatedByActorRef: document.updated_by_actor_ref, requestId: document.request_id, auditRef: document.audit_ref,
   };
@@ -361,8 +403,11 @@ function mapCandidateSummary(document: CandidateListEnvelope["candidate_summarie
     candidateId: document.candidate_id, applicationId: document.application_id, draftId: document.draft_id,
     draftVersion: document.draft_version, draftDigest: document.draft_digest,
     candidateState: document.candidate_state as ApplicationPublishCandidateState, reviewVersion: document.review_version,
-    promotionStatus: "promotion_blocked", promotionBlockers: document.promotion_blockers,
+    promotionStatus: document.promotion_status as ApplicationPublishCandidateSummary["promotionStatus"],
+    promotionBlockers: document.promotion_blockers,
     workflowRAGBindingRef: document.workflow_rag_binding_ref ? mapBindingRef(document.workflow_rag_binding_ref) : null,
+    promptTemplateRef: document.prompt_template_ref ? mapPromptTemplateRef(document.prompt_template_ref) : null,
+    agentCopilotProfileRef: document.agent_copilot_profile_ref ? mapAgentCopilotProfileRef(document.agent_copilot_profile_ref) : null,
     createdAt: document.created_at, updatedAt: document.updated_at, updatedByActorRef: document.updated_by_actor_ref,
   };
 }
@@ -381,23 +426,33 @@ function isCandidateListEnvelope(value: unknown, config: ApplicationPublishCandi
     isNonEmptyString(value.request_id) && isNonEmptyString(value.audit_ref) && (value.failure_code === null || isNonEmptyString(value.failure_code)) && Array.isArray(value.candidate_summaries) &&
     value.candidate_summaries.every((summary) => isRecord(summary) && summary.application_id === applicationId && isNonEmptyString(summary.candidate_id) &&
       isNonEmptyString(summary.draft_id) && Number.isInteger(summary.draft_version) && summary.draft_version > 0 && isDigest(summary.draft_digest) &&
-      isCandidateState(summary.candidate_state) && Number.isInteger(summary.review_version) && summary.review_version >= 0 && summary.promotion_status === "promotion_blocked" &&
+      isCandidateState(summary.candidate_state) && Number.isInteger(summary.review_version) && summary.review_version >= 0 && isPromotionStatus(summary.promotion_status) &&
       Number.isInteger(summary.promotion_blockers) && summary.promotion_blockers >= 0 && isNonEmptyString(summary.created_at) &&
-      isNonEmptyString(summary.updated_at) && isNonEmptyString(summary.updated_by_actor_ref) && (summary.workflow_rag_binding_ref === undefined || isBindingRef(summary.workflow_rag_binding_ref)));
+      isNonEmptyString(summary.updated_at) && isNonEmptyString(summary.updated_by_actor_ref) &&
+      (summary.workflow_rag_binding_ref === undefined || isBindingRef(summary.workflow_rag_binding_ref)) &&
+      (summary.prompt_template_ref === undefined || isPromptTemplateRef(summary.prompt_template_ref)) &&
+      (summary.agent_copilot_profile_ref === undefined || isAgentCopilotProfileRef(summary.agent_copilot_profile_ref)) &&
+      [summary.workflow_rag_binding_ref, summary.prompt_template_ref, summary.agent_copilot_profile_ref].filter((ref) => ref !== undefined).length <= 1);
 }
 
 function isCandidateDocument(value: unknown, config: ApplicationPublishCandidateConfig, applicationId: string): value is CandidateDocument {
-  if (!isRecord(value) || (value.schema_version !== APPLICATION_PUBLISH_SCHEMA_VERSION_V1 && value.schema_version !== APPLICATION_PUBLISH_SCHEMA_VERSION_V2) || value.workspace_id !== config.workspaceId || value.application_id !== applicationId ||
-    (value.schema_version === APPLICATION_PUBLISH_SCHEMA_VERSION_V1 && value.configuration?.workflow_rag_binding_ref !== undefined) ||
-    (value.schema_version === APPLICATION_PUBLISH_SCHEMA_VERSION_V2 && !isBindingRef(value.configuration?.workflow_rag_binding_ref)) ||
+  if (!isRecord(value) || ![APPLICATION_PUBLISH_SCHEMA_VERSION_V1, APPLICATION_PUBLISH_SCHEMA_VERSION_V2, APPLICATION_PUBLISH_SCHEMA_VERSION_V3, APPLICATION_PUBLISH_SCHEMA_VERSION_V4].includes(String(value.schema_version)) || value.workspace_id !== config.workspaceId || value.application_id !== applicationId ||
+    (value.schema_version === APPLICATION_PUBLISH_SCHEMA_VERSION_V1 && (value.configuration?.workflow_rag_binding_ref !== undefined || value.configuration?.prompt_template_ref !== undefined || value.configuration?.agent_copilot_profile_ref !== undefined)) ||
+    (value.schema_version === APPLICATION_PUBLISH_SCHEMA_VERSION_V2 && (!isBindingRef(value.configuration?.workflow_rag_binding_ref) || value.configuration?.prompt_template_ref !== undefined || value.configuration?.agent_copilot_profile_ref !== undefined)) ||
+    (value.schema_version === APPLICATION_PUBLISH_SCHEMA_VERSION_V3 && (value.configuration?.workflow_rag_binding_ref !== undefined || !isPromptTemplateRef(value.configuration?.prompt_template_ref) || value.configuration?.agent_copilot_profile_ref !== undefined || value.configuration?.application_kind !== "prompt_application")) ||
+    (value.schema_version === APPLICATION_PUBLISH_SCHEMA_VERSION_V4 && (value.configuration?.workflow_rag_binding_ref !== undefined || value.configuration?.prompt_template_ref !== undefined || !isAgentCopilotProfileRef(value.configuration?.agent_copilot_profile_ref) || value.configuration?.application_kind !== "agent")) ||
     !isNonEmptyString(value.candidate_id) || !isNonEmptyString(value.draft_id) || !Number.isInteger(value.draft_version) || value.draft_version < 1 || !isDigest(value.draft_digest) ||
     !isCandidateState(value.candidate_state) || !Number.isInteger(value.review_version) || value.review_version < 0 || !Array.isArray(value.evidence_request_ids) ||
     !value.evidence_request_ids.every(isEvidenceRequestId) || !isRecord(value.configuration) || !isNonEmptyString(value.configuration.display_name) ||
     typeof value.configuration.description !== "string" || !isNonEmptyString(value.configuration.application_kind) || !isApplicationProtocol(value.configuration.default_protocol) ||
     !isNonEmptyString(value.configuration.default_model) || !Array.isArray(value.configuration.allowed_protocols) || value.configuration.allowed_protocols.length === 0 ||
     !value.configuration.allowed_protocols.every(isApplicationProtocol) || !value.configuration.allowed_protocols.includes(value.configuration.default_protocol) ||
-    !Array.isArray(value.reviews) || value.reviews.length !== value.review_version || !isRecord(value.promotion_eligibility) || value.promotion_eligibility.eligible !== false ||
-    value.promotion_eligibility.status !== "promotion_blocked" || !Array.isArray(value.promotion_eligibility.blockers) || !isNonEmptyString(value.base_application_updated_at) ||
+    !Array.isArray(value.reviews) || value.reviews.length !== value.review_version || !isRecord(value.promotion_eligibility) ||
+    typeof value.promotion_eligibility.eligible !== "boolean" || !isPromotionStatus(value.promotion_eligibility.status) ||
+    value.promotion_eligibility.eligible !== (value.promotion_eligibility.status === "eligible_for_promotion") ||
+    !Array.isArray(value.promotion_eligibility.blockers) ||
+    (value.promotion_eligibility.eligible && value.promotion_eligibility.blockers.length !== 0) ||
+    !isNonEmptyString(value.base_application_updated_at) ||
     !isNonEmptyString(value.created_at) || !isNonEmptyString(value.updated_at) || !isNonEmptyString(value.created_by_actor_ref) ||
     !isNonEmptyString(value.updated_by_actor_ref) || !isNonEmptyString(value.request_id) || !isNonEmptyString(value.audit_ref)) return false;
   return value.reviews.every((review, index) => isRecord(review) && review.review_version === index + 1 && isApplicationPublishDecision(review.decision) &&
@@ -408,6 +463,36 @@ function isCandidateDocument(value: unknown, config: ApplicationPublishCandidate
 
 function mapBindingRef(value: BindingRefDocument): ApplicationPublishRAGBindingRef { return { bindingId: value.binding_id, bindingVersion: value.binding_version, bindingDigest: value.binding_digest }; }
 function isBindingRef(value: unknown): value is BindingRefDocument { return isRecord(value) && Object.keys(value).length === 3 && /^wragb_[a-z2-7]{16}$/u.test(String(value.binding_id)) && value.binding_version === 1 && isDigest(value.binding_digest); }
+function mapPromptTemplateRef(value: PromptTemplateRefDocument): ApplicationPublishPromptTemplateRef {
+  return {
+    templateId: value.template_id,
+    templateVersion: value.template_version,
+    templateDigest: value.template_digest,
+  };
+}
+function isPromptTemplateRef(value: unknown): value is PromptTemplateRefDocument {
+  return isRecord(value) && Object.keys(value).length === 3 &&
+    /^ptpl_[a-z2-7]{16}$/u.test(String(value.template_id)) &&
+    Number.isInteger(value.template_version) && value.template_version >= 1 &&
+    isDigest(value.template_digest);
+}
+function mapAgentCopilotProfileRef(value: AgentCopilotProfileRefDocument): ApplicationPublishAgentCopilotProfileRef {
+  return {
+    profileId: value.profile_id,
+    profileVersion: value.profile_version,
+    profileDigest: value.profile_digest,
+    policyDigest: value.policy_digest,
+  };
+}
+function isAgentCopilotProfileRef(value: unknown): value is AgentCopilotProfileRefDocument {
+  return isRecord(value) && Object.keys(value).length === 4 &&
+    /^acpf_[a-z2-7]{16}$/u.test(String(value.profile_id)) &&
+    Number.isInteger(value.profile_version) && value.profile_version >= 1 &&
+    isDigest(value.profile_digest) && isDigest(value.policy_digest);
+}
+function isPromotionStatus(value: unknown): value is ApplicationPromotionEligibility["status"] {
+  return value === "promotion_blocked" || value === "eligible_for_promotion";
+}
 
 function isCandidateState(value: unknown): value is ApplicationPublishCandidateState {
   return value === "pending_review" || value === "approved" || value === "rejected" || value === "changes_requested" || value === "withdrawn";

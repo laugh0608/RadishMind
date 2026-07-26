@@ -226,6 +226,36 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryConfiguration,
 			defaultMessage:  "saved workflow draft dev HTTP route is disabled",
 		},
+		"PROMPT_APPLICATION_TEMPLATE_DEV_HTTP_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "prompt application template dev HTTP route is disabled",
+		},
+		PromptApplicationTemplateFailurePayloadInvalid: {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "prompt application template request is invalid",
+		},
+		"AGENT_COPILOT_PROFILE_DEV_HTTP_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "agent copilot profile dev HTTP route is disabled",
+		},
+		"AGENT_COPILOT_RUNTIME_DEV_HTTP_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "agent copilot runtime dev HTTP route is disabled",
+		},
+		AgentCopilotProfileFailurePayloadInvalid: {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "agent copilot profile request is invalid",
+		},
 		"API_KEY_LIFECYCLE_DEV_HTTP_DISABLED": {
 			statusCode:      http.StatusForbidden,
 			errorType:       "invalid_request_error",

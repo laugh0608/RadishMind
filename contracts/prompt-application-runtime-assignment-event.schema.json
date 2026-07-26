@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/prompt-application-runtime-assignment-event.schema.json",
+  "title": "PromptApplicationRuntimeAssignmentEventV1",
+  "description": "Prompt Application assignment 的 append-only metadata event。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "event_id", "assignment_id", "tenant_ref", "workspace_id", "application_id", "owner_subject_ref", "event_sequence", "action", "expected_assignment_version", "resulting_assignment_version", "candidate_id", "candidate_review_version", "draft_id", "draft_version", "draft_digest", "prompt_template_ref", "assignment_digest", "occurred_at", "actor_ref", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "prompt_application_runtime_assignment_event.v1"},
+    "event_id": {"type": "string", "pattern": "^ptrae_[a-z2-7]{16}$"},
+    "assignment_id": {"$ref": "prompt-application-runtime-assignment.schema.json#/$defs/assignmentId"},
+    "tenant_ref": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "workspace_id": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "application_id": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/applicationId"},
+    "owner_subject_ref": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "event_sequence": {"type": "integer", "minimum": 1},
+    "action": {"enum": ["activate", "replace", "revoke"]},
+    "expected_assignment_version": {"type": "integer", "minimum": 0},
+    "resulting_assignment_version": {"type": "integer", "minimum": 1},
+    "candidate_id": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "candidate_review_version": {"type": "integer", "minimum": 1},
+    "draft_id": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "draft_version": {"type": "integer", "minimum": 1},
+    "draft_digest": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/digest"},
+    "prompt_template_ref": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/promptTemplateRef"},
+    "assignment_digest": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/digest"},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "actor_ref": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "request_id": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+    "audit_ref": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"}
+  }
+}

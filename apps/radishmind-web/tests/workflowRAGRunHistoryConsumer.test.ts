@@ -93,7 +93,7 @@ test("RAG comparison selection requires an exact immutable retrieval binding", a
   } finally { globalThis.fetch = originalFetch; }
 });
 
-test("Run History maps application RAG v4 execution authority without draft masquerading", async () => {
+test("Run History reloads an exact v4 handoff outside the current page without draft masquerading", async () => {
   const originalFetch = globalThis.fetch;
   const requests: string[] = [];
   globalThis.fetch = async (input) => {
@@ -114,7 +114,7 @@ test("Run History maps application RAG v4 execution authority without draft masq
     assert.equal(summary.executionSourceKind, "application_configuration_draft");
     assert.equal(summary.runtimeAssignmentId, "wragra_abcdefghijklmnop");
     assert.equal(summary.effectiveSnapshotRole, "candidate");
-    const detail = await readWorkflowRunHistoryDetail(summary, "app_flow_copilot", live);
+    const detail = await readWorkflowRunHistoryDetail({ runId: summary.runId }, "app_flow_copilot", live);
     assert.equal(detail?.schemaVersion, "workflow_run_record.v4");
     assert.equal(detail?.draftId, "");
     assert.equal(detail?.executionSourceId, "application-draft-0001");

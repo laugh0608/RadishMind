@@ -1,0 +1,9 @@
+{
+  "component": "prompt_application_templates",
+  "migration_id": "0001_prompt_application_templates",
+  "store_schema_version": "prompt_application_template_store_v1",
+  "up": "0001_prompt_application_templates.up.sql",
+  "down": "0001_prompt_application_templates.down.sql",
+  "automatic_apply": false,
+  "environment": "dev_test_only"
+}

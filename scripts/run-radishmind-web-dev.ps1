@@ -24,6 +24,8 @@ param(
     [switch]$WorkflowDefinitionPostgresDevTest,
     [switch]$ApplicationSessionLocalProduct,
     [switch]$ApplicationSessionPostgresDevTest,
+    [switch]$PromptApplicationLocalProduct,
+    [switch]$PromptApplicationPostgresDevTest,
     [switch]$VerifyOnly,
     [switch]$ExitAfterProbe,
     [switch]$Help
@@ -70,6 +72,10 @@ Options:
                         Enable the SQLite Application Session chain with Workflow Definition v5 and Application RAG v4 profiles.
   -ApplicationSessionPostgresDevTest
                         Enable the same dual-profile chain with PostgreSQL dev/test repositories.
+  -PromptApplicationLocalProduct
+                        Enable the SQLite Prompt Template → publish → runtime → invocation chain.
+  -PromptApplicationPostgresDevTest
+                        Enable the same Prompt Application chain with PostgreSQL dev/test repositories.
   -VerifyOnly           Probe existing backend/frontend processes only.
   -ExitAfterProbe       Start missing local processes, probe, then stop spawned processes.
 "@
@@ -85,12 +91,19 @@ if ($ApplicationSessionPostgresDevTest) {
     $ApplicationPublishPostgresDevTest = $true
     $GatewayRequestPostgresDevTest = $true
 }
+if ($PromptApplicationPostgresDevTest) {
+    $ApplicationPublishPostgresDevTest = $true
+    $ApplicationCatalogPostgresDevTest = $true
+    $GatewayRequestPostgresDevTest = $true
+}
 if ($WorkflowDefinitionPostgresDevTest) {
     $SavedDraftPostgresDevTest = $true
     $ApplicationCatalogPostgresDevTest = $true
 }
 $workflowDefinitionEnabled = $WorkflowDefinitionLocalProduct -or $WorkflowDefinitionPostgresDevTest
-$applicationSessionEnabled = $ApplicationSessionLocalProduct -or $ApplicationSessionPostgresDevTest
+$applicationSessionEnabled = $ApplicationSessionLocalProduct -or $ApplicationSessionPostgresDevTest -or `
+    $PromptApplicationLocalProduct -or $PromptApplicationPostgresDevTest
+$promptApplicationEnabled = $PromptApplicationLocalProduct -or $PromptApplicationPostgresDevTest
 $workflowRAGApplicationEnabled = $WorkflowRAGApplicationLocalProduct -or $ApplicationSessionPostgresDevTest
 
 if ($SavedDraftDev -and $Mode -ne "dev-live") {
@@ -144,6 +157,12 @@ if ($WorkflowDefinitionLocalProduct -and $WorkflowDefinitionPostgresDevTest) {
 if ($ApplicationSessionLocalProduct -and $ApplicationSessionPostgresDevTest) {
     throw "Choose either -ApplicationSessionLocalProduct or -ApplicationSessionPostgresDevTest"
 }
+if ($promptApplicationEnabled -and $Mode -ne "dev-live") {
+    throw "Prompt Application product mode requires -Mode dev-live"
+}
+if ($PromptApplicationLocalProduct -and $PromptApplicationPostgresDevTest) {
+    throw "Choose either -PromptApplicationLocalProduct or -PromptApplicationPostgresDevTest"
+}
 if ($ApplicationPublishDev -and $ApplicationPublishPostgresDevTest) {
     throw "Choose either -ApplicationPublishDev or -ApplicationPublishPostgresDevTest"
 }
@@ -167,6 +186,9 @@ if ($WorkflowRAGApplicationLocalProduct -and $explicitComponentMode) {
 }
 if ($WorkflowDefinitionLocalProduct -and $explicitComponentMode) {
     throw "-WorkflowDefinitionLocalProduct cannot be combined with explicit memory/PostgreSQL component modes"
+}
+if ($PromptApplicationLocalProduct -and $explicitComponentMode) {
+    throw "-PromptApplicationLocalProduct cannot be combined with explicit memory/PostgreSQL component modes"
 }
 $platformProfile = if ($explicitComponentMode) { "configured" } else { "local-product" }
 
@@ -258,6 +280,11 @@ function Invoke-SavedDraftPostgresMigrationStatus {
     $env:RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE = "1"
     $env:RADISHMIND_API_KEY_STORE = "postgres_dev_test"
     $env:RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
+    $env:RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP = "1"
+    $env:RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE = "1"
+    $env:RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE = "postgres_dev_test"
+    $env:RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
+    $env:RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_MIGRATION_DATABASE_URL = Get-SavedDraftDatabaseUrl
     Push-Location $platformDir
     try {
         & $goPath run ./cmd/radishmind-workflow-draft-migrate status | Out-Null
@@ -276,7 +303,7 @@ function Invoke-SavedDraftPostgresMigrationStatus {
         if ($LASTEXITCODE -ne 0) {
             throw "Gateway Request PostgreSQL migration preflight failed"
         }
-        if ($ApplicationSessionPostgresDevTest) {
+        if ($ApplicationSessionPostgresDevTest -or $PromptApplicationPostgresDevTest) {
             & $goPath run ./cmd/radishmind-api-key-migrate status | Out-Null
             if ($LASTEXITCODE -ne 0) {
                 throw "API Key PostgreSQL migration preflight failed"
@@ -292,6 +319,12 @@ function Invoke-SavedDraftPostgresMigrationStatus {
             & $goPath run ./cmd/radishmind-application-catalog-migrate status | Out-Null
             if ($LASTEXITCODE -ne 0) {
                 throw "Application Catalog PostgreSQL migration preflight failed"
+            }
+        }
+        if ($PromptApplicationPostgresDevTest) {
+            & $goPath run ./cmd/radishmind-prompt-application-template-migrate status | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                throw "Prompt Application Template PostgreSQL migration preflight failed"
             }
         }
     }
@@ -776,7 +809,7 @@ try {
     if ($Mode -eq "dev-live" -and -not (Test-Path -LiteralPath $platformWrapper -PathType Leaf)) {
         throw "Missing platform wrapper: $platformWrapper"
     }
-    if ($SavedDraftPostgresDevTest -or $GatewayRequestPostgresDevTest -or $ApplicationPublishPostgresDevTest -or $ApplicationCatalogPostgresDevTest) {
+    if ($SavedDraftPostgresDevTest -or $GatewayRequestPostgresDevTest -or $ApplicationPublishPostgresDevTest -or $ApplicationCatalogPostgresDevTest -or $PromptApplicationPostgresDevTest) {
         Invoke-SavedDraftPostgresMigrationStatus
         Write-Step "PostgreSQL dev/test migration preflight passed."
     }
@@ -814,13 +847,21 @@ try {
             if ($applicationSessionEnabled) {
                 $env:RADISHMIND_APPLICATION_SESSION_DEV = "1"
             }
+            if ($promptApplicationEnabled) {
+                $env:RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP = "1"
+                $env:RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE = "1"
+                $env:RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_HTTP = "1"
+                $env:RADISHMIND_PROMPT_APPLICATION_RUNTIME_DEV_WRITE = "1"
+                $env:RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP = "1"
+                $env:RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE = "1"
+            }
             if ($workflowDefinitionEnabled) {
                 $env:RADISHMIND_WORKFLOW_DEFINITION_RELEASE_DEV = "1"
                 $env:RADISHMIND_WORKFLOW_EXECUTOR_DEV = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP = "1"
                 $env:RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE = "1"
             }
-            if ($APIKeyLocalProduct -or $workflowRAGApplicationEnabled) {
+            if ($APIKeyLocalProduct -or $workflowRAGApplicationEnabled -or $promptApplicationEnabled) {
                 $env:RADISHMIND_GATEWAY_AUTH_MODE = "api_key_dev_test"
             }
             if ($ApplicationPublishPostgresDevTest) {
@@ -884,6 +925,15 @@ try {
                 $env:RADISHMIND_API_KEY_STORE = "postgres_dev_test"
                 $env:RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL = Get-SavedDraftDatabaseUrl
             }
+            if ($PromptApplicationPostgresDevTest) {
+                $databaseUrl = Get-SavedDraftDatabaseUrl
+                $env:RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE = "postgres_dev_test"
+                $env:RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_DATABASE_URL = $databaseUrl
+                $env:RADISHMIND_WORKFLOW_RUN_STORE = "postgres_dev_test"
+                $env:RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL = $databaseUrl
+                $env:RADISHMIND_API_KEY_STORE = "postgres_dev_test"
+                $env:RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL = $databaseUrl
+            }
 
             $backendPortOpen = Test-TcpPort -HostName $backendUri.Host -Port $backendUri.Port
             if ($backendPortOpen) {
@@ -909,28 +959,38 @@ try {
                 $env:VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL = $BackendUrl.TrimEnd("/")
                 $env:VITE_RADISHMIND_DEV_READ_TENANT_REF = $TenantRef
                 $env:VITE_RADISHMIND_DEV_READ_SUBJECT_REF = $SubjectRef
-                if ($ApplicationDraftDev -or $ApplicationPublishDev -or $ApplicationPublishPostgresDevTest -or $APIKeyLocalProduct -or $WorkflowRAGPromotionLocalProduct -or $workflowRAGApplicationEnabled) {
+                if ($ApplicationDraftDev -or $ApplicationPublishDev -or $ApplicationPublishPostgresDevTest -or $APIKeyLocalProduct -or $WorkflowRAGPromotionLocalProduct -or $workflowRAGApplicationEnabled -or $promptApplicationEnabled) {
                     $env:VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE = "dev-application-draft-http"
                     $env:VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
-                if ($ApplicationPublishDev -or $ApplicationPublishPostgresDevTest -or $APIKeyLocalProduct -or $WorkflowRAGPromotionLocalProduct -or $workflowRAGApplicationEnabled) {
+                if ($ApplicationPublishDev -or $ApplicationPublishPostgresDevTest -or $APIKeyLocalProduct -or $WorkflowRAGPromotionLocalProduct -or $workflowRAGApplicationEnabled -or $promptApplicationEnabled) {
                     $env:VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE = "dev-application-publish-http"
                     $env:VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
-                if ($ApplicationCatalogPostgresDevTest -or $APIKeyLocalProduct -or $WorkflowHTTPToolLocalProduct -or $WorkflowRAGDev -or $WorkflowRAGPromotionLocalProduct -or $workflowRAGApplicationEnabled -or $workflowDefinitionEnabled) {
+                if ($ApplicationCatalogPostgresDevTest -or $APIKeyLocalProduct -or $WorkflowHTTPToolLocalProduct -or $WorkflowRAGDev -or $WorkflowRAGPromotionLocalProduct -or $workflowRAGApplicationEnabled -or $workflowDefinitionEnabled -or $promptApplicationEnabled) {
                     $env:VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE = "dev-application-catalog-http"
                     $env:VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
-                if ($APIKeyLocalProduct -or $WorkflowHTTPToolLocalProduct -or $workflowRAGApplicationEnabled) {
+                if ($APIKeyLocalProduct -or $WorkflowHTTPToolLocalProduct -or $workflowRAGApplicationEnabled -or $promptApplicationEnabled) {
                     $env:VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE = "dev-api-key-lifecycle-http"
                     $env:VITE_RADISHMIND_API_KEY_LIFECYCLE_BASE_URL = $BackendUrl.TrimEnd("/")
                     $env:VITE_RADISHMIND_API_KEY_LIFECYCLE_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
-                if ($APIKeyLocalProduct -or $workflowRAGApplicationEnabled) {
+                if ($APIKeyLocalProduct -or $workflowRAGApplicationEnabled -or $promptApplicationEnabled) {
                     $env:VITE_RADISHMIND_GATEWAY_AUTH_MODE = "api_key_dev_test"
+                }
+                if ($promptApplicationEnabled) {
+                    $env:VITE_RADISHMIND_PROMPT_APPLICATION_SOURCE = "dev-prompt-application-http"
+                    $env:VITE_RADISHMIND_PROMPT_APPLICATION_BASE_URL = $BackendUrl.TrimEnd("/")
+                    $env:VITE_RADISHMIND_PROMPT_APPLICATION_WORKSPACE_ID = $savedDraftWorkspaceId
+                }
+                if ($savedDraftEnabled -or $promptApplicationEnabled) {
+                    $env:VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_SOURCE = "dev-workflow-run-history-http"
+                    $env:VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_BASE_URL = $BackendUrl.TrimEnd("/")
+                    $env:VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_WORKSPACE_ID = $savedDraftWorkspaceId
                 }
                 if ($savedDraftEnabled) {
                     $env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE = "dev-saved-draft-http"
@@ -974,7 +1034,7 @@ try {
                 if ($WorkflowDiagnosticsDev) {
                     $env:VITE_RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV = "true"
                 }
-                if ($GatewayRequestPostgresDevTest -or $APIKeyLocalProduct -or $workflowRAGApplicationEnabled) {
+                if ($GatewayRequestPostgresDevTest -or $APIKeyLocalProduct -or $workflowRAGApplicationEnabled -or $promptApplicationEnabled) {
                     $env:VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE = "dev-gateway-request-history-http"
                     $env:VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE = "dev-gateway-playground-http"
                     $env:VITE_RADISHMIND_GATEWAY_PLAYGROUND_BASE_URL = $BackendUrl.TrimEnd("/")
@@ -996,6 +1056,9 @@ try {
                 Remove-Item Env:VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_BASE_URL -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_WORKSPACE_ID -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE -ErrorAction SilentlyContinue
@@ -1004,6 +1067,9 @@ try {
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_SESSION_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_SESSION_BASE_URL -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_APPLICATION_SESSION_WORKSPACE_ID -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_PROMPT_APPLICATION_SOURCE -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_PROMPT_APPLICATION_BASE_URL -ErrorAction SilentlyContinue
+                Remove-Item Env:VITE_RADISHMIND_PROMPT_APPLICATION_WORKSPACE_ID -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_RAG_SOURCE -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_RAG_BASE_URL -ErrorAction SilentlyContinue
                 Remove-Item Env:VITE_RADISHMIND_WORKFLOW_RAG_WORKSPACE_ID -ErrorAction SilentlyContinue
@@ -1057,7 +1123,7 @@ try {
         Wait-Until -Name "dev-live read routes" -Probe {
             Invoke-ControlPlaneReadRoutesProbe -BaseUrl $BackendUrl -Tenant $TenantRef -Subject $SubjectRef
         }
-        if ($APIKeyLocalProduct -or $workflowRAGApplicationEnabled) {
+        if ($APIKeyLocalProduct -or $workflowRAGApplicationEnabled -or $promptApplicationEnabled) {
             Wait-Until -Name "Gateway API key auth mode" -Probe { Invoke-GatewayAPIKeyModeProbe -BaseUrl $BackendUrl }
         }
         if ($savedDraftEnabled) {
@@ -1144,8 +1210,12 @@ try {
             Write-Step "Workflow Definition $definitionStore product chain enabled for $savedDraftWorkspaceId/$savedDraftApplicationId; review, activation, execution, comparison, and evaluation remain explicit actions."
         }
         if ($applicationSessionEnabled) {
-            $sessionStore = if ($ApplicationSessionPostgresDevTest) { "PostgreSQL dev/test" } else { "SQLite" }
+            $sessionStore = if ($ApplicationSessionPostgresDevTest -or $PromptApplicationPostgresDevTest) { "PostgreSQL dev/test" } else { "SQLite" }
             Write-Step "Application Session $sessionStore dual-profile chain enabled for $savedDraftWorkspaceId/$savedDraftApplicationId; input and answer content remain browser-memory only."
+        }
+        if ($promptApplicationEnabled) {
+            $promptStore = if ($PromptApplicationPostgresDevTest) { "PostgreSQL dev/test" } else { "SQLite" }
+            Write-Step "Prompt Application $promptStore product chain enabled for $savedDraftWorkspaceId; template source, v3 publish, runtime assignment, one-time credential invocation, and Run v6 evidence remain explicit actions."
         }
     }
     Write-Step "This is a dev-only launcher, not a production supervisor. Controlled execution is dev-only; production auth, secret resolution, unrestricted tools, automatic confirmation, writeback and replay remain disabled."

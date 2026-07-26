@@ -68,7 +68,7 @@ type workflowEvaluationDecisionListEnvelope struct {
 
 func (s *Server) handleCreateWorkflowEvaluationSuite(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowEvaluationSuiteCreateRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowEvaluationDev(writer, trace) {
 		return
 	}
 	var body workflowEvaluationSuiteCreateHTTPBody
@@ -85,7 +85,7 @@ func (s *Server) handleCreateWorkflowEvaluationSuite(writer http.ResponseWriter,
 
 func (s *Server) handleListWorkflowEvaluationSuites(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowEvaluationSuiteListRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowEvaluationDev(writer, trace) {
 		return
 	}
 	ctx, limit, cursor, code := workflowEvaluationSuiteListContext(request, trace, "evaluation-suite-list")
@@ -98,7 +98,7 @@ func (s *Server) handleListWorkflowEvaluationSuites(writer http.ResponseWriter, 
 
 func (s *Server) handleReadWorkflowEvaluationSuite(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowEvaluationSuiteReadRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowEvaluationDev(writer, trace) {
 		return
 	}
 	ctx, code := workflowEvaluationSuiteReadContext(request, trace, "evaluation-suite-read")
@@ -111,7 +111,7 @@ func (s *Server) handleReadWorkflowEvaluationSuite(writer http.ResponseWriter, r
 
 func (s *Server) handleReviewWorkflowEvaluationSuite(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowEvaluationSuiteReviewRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowEvaluationDev(writer, trace) {
 		return
 	}
 	ctx, code := workflowEvaluationSuiteReadContext(request, trace, "evaluation-suite-review")
@@ -124,7 +124,7 @@ func (s *Server) handleReviewWorkflowEvaluationSuite(writer http.ResponseWriter,
 
 func (s *Server) handleCreateWorkflowEvaluationDecision(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowEvaluationDecisionCreateRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowEvaluationDev(writer, trace) {
 		return
 	}
 	var body workflowEvaluationDecisionHTTPBody
@@ -141,7 +141,7 @@ func (s *Server) handleCreateWorkflowEvaluationDecision(writer http.ResponseWrit
 
 func (s *Server) handleListWorkflowEvaluationDecisions(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowEvaluationDecisionListRoute)
-	if !s.allowWorkflowExecutorDev(writer, trace) {
+	if !s.allowWorkflowEvaluationDev(writer, trace) {
 		return
 	}
 	ctx, limit, cursor, code := workflowEvaluationSuiteListContext(request, trace, "evaluation-suite-decision-list")

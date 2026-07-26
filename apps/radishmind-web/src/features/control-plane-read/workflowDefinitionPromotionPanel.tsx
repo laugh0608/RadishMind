@@ -16,6 +16,7 @@ import {
   type WorkflowDefinitionCandidate,
   type WorkflowDefinitionVersion,
 } from "./workflowDefinitionPromotionConsumer.ts";
+import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 
 const config = readWorkflowDefinitionPromotionConfig();
 
@@ -25,10 +26,12 @@ type Props = {
   savedDraftVersion: number;
   nextDerivedDraftNumber: number;
   onDerivedDraft: (draft: WorkflowDraftDesignerDraft) => void;
-  onRunRecorded: () => void;
+  onRunRecorded: (runId: string) => void;
+  onOpenRun?: (runId: string) => void;
+  onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
 };
 
-export default function WorkflowDefinitionPromotionPanel({ applicationId, activeDraft, savedDraftVersion, nextDerivedDraftNumber, onDerivedDraft, onRunRecorded }: Props) {
+export default function WorkflowDefinitionPromotionPanel({ applicationId, activeDraft, savedDraftVersion, nextDerivedDraftNumber, onDerivedDraft, onRunRecorded, onOpenRun, onEvidenceChange }: Props) {
   const requestEpoch = useRef(0);
   const [candidates, setCandidates] = useState<WorkflowDefinitionCandidate[]>([]);
   const [selectedCandidateId, setSelectedCandidateId] = useState("");
@@ -54,6 +57,34 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
     () => versions.find((version) => activation?.state === "active" && version.version === activation.activeVersion) ?? null,
     [activation, versions],
   );
+
+  useEffect(() => {
+    if (!onEvidenceChange) return;
+    const ownerFailed = Boolean(failure);
+    const active = activation?.state === "active" && Boolean(activeVersion);
+    onEvidenceChange({
+      contributionId: "workflow_definition",
+      status: ownerFailed ? "blocked" : active ? "available" : "incomplete",
+      coverage: activeVersion || ownerFailed ? "complete" : "none",
+      evidenceRefs: activeVersion ? [{ kind: "definition", id: activeVersion.definitionId, version: activeVersion.version }] : [],
+      missingEvidence: active ? [] : ["Approve and activate an immutable Workflow Definition version."],
+      blockers: ownerFailed ? [{ code: "workflow_definition_owner_failure", summary: failure }] : [],
+      failureCodes: ownerFailed ? ["workflow_definition_owner_failure"] : [],
+    });
+  }, [activation?.state, activeVersion, failure, onEvidenceChange]);
+
+  useEffect(() => {
+    if (!onEvidenceChange || !lastRunId) return;
+    onEvidenceChange({
+      contributionId: "controlled_run",
+      status: "available",
+      coverage: "complete",
+      evidenceRefs: [{ kind: "run", id: lastRunId }],
+      missingEvidence: [],
+      blockers: [],
+      failureCodes: [],
+    });
+  }, [lastRunId, onEvidenceChange]);
 
   useEffect(() => {
     requestEpoch.current += 1;
@@ -165,7 +196,7 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
       setAdvisoryOutput(result.advisoryOutput);
       setInputText("");
       setNotice(`v5 运行 ${result.record.runId} 已完成；输入已从页面状态清除。`);
-      onRunRecorded();
+      onRunRecorded(result.record.runId);
     });
   }
 
@@ -187,10 +218,10 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
   }
 
   if (config.mode === "offline") {
-    return <section className="workflow-definition-promotion-panel offline"><div className="section-heading compact-heading"><div><p className="eyebrow">Workflow Definition · Promotion</p><h4>不可变版本晋级未启用</h4></div><span className="status-badge neutral">offline · zero requests</span></div><p>启用统一本地产品档后才能创建 candidate、人工审查、激活和运行；离线模式不会发起请求。</p></section>;
+    return <section className="workflow-definition-promotion-panel offline" id="workflow-definition-promotion"><div className="section-heading compact-heading"><div><p className="eyebrow">Workflow Definition · Promotion</p><h4>不可变版本晋级未启用</h4></div><span className="status-badge neutral">offline · zero requests</span></div><p>启用统一本地产品档后才能创建 candidate、人工审查、激活和运行；离线模式不会发起请求。</p></section>;
   }
 
-  return <section className="workflow-definition-promotion-panel" aria-labelledby="workflow-definition-promotion-title">
+  return <section className="workflow-definition-promotion-panel" id="workflow-definition-promotion" aria-labelledby="workflow-definition-promotion-title">
     <div className="section-heading compact-heading"><div><p className="eyebrow">Workflow Definition · Controlled runtime</p><h4 id="workflow-definition-promotion-title">不可变版本晋级与精确运行</h4></div><span className={`status-badge ${activation?.state === "active" ? "status-good" : "status-neutral"}`}>{activation?.state ?? "inactive"}</span></div>
     <p className="boundary-note">Saved Draft 保持可编辑；candidate、version、activation 与 v5 run 各自保存精确证据。批准不自动激活，激活不自动执行。</p>
     {failure ? <p className="workflow-definition-failure" role="alert">{failure}</p> : null}
@@ -228,7 +259,7 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
         {activeVersion?.snapshot.nodes.filter((node) => node.nodeType === "condition").map((node) => <label className="workflow-definition-condition" key={node.nodeId}><input type="checkbox" checked={conditionValues[node.nodeId] ?? false} onChange={(event) => setConditionValues((values) => ({ ...values, [node.nodeId]: event.currentTarget.checked }))} />{node.label} · {node.nodeId}</label>)}
         <label>Model（可留空）<input value={model} onChange={(event) => setModel(event.currentTarget.value)} /></label>
         <button type="button" disabled={Boolean(pending) || !activeVersion || !inputText.trim()} onClick={() => void startRun()}>启动精确版本运行</button>
-        {lastRunId ? <div className="workflow-definition-run-result"><strong>{lastRunId}</strong><p>{advisoryOutput || "运行已完成；无可展示 advisory output。"}</p><button type="button" onClick={() => { setAdvisoryOutput(""); setLastRunId(""); }}>清除一次性结果</button></div> : null}
+        {lastRunId ? <div className="workflow-definition-run-result"><strong>{lastRunId}</strong><p>{advisoryOutput || "运行已完成；无可展示 advisory output。"}</p><button type="button" onClick={() => onOpenRun?.(lastRunId)}>打开 Run History</button><button type="button" onClick={() => { setAdvisoryOutput(""); setLastRunId(""); }}>清除一次性结果</button></div> : null}
       </article>
     </div>
   </section>;

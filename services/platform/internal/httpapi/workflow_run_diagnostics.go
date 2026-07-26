@@ -28,6 +28,8 @@ const (
 	WorkflowRunFailureBoundaryRetrievalCitation WorkflowRunFailureBoundary = "retrieval_citation"
 	WorkflowRunFailureBoundaryProviderSelection WorkflowRunFailureBoundary = "provider_selection"
 	WorkflowRunFailureBoundaryProviderCall      WorkflowRunFailureBoundary = "provider_call"
+	WorkflowRunFailureBoundaryAuthority         WorkflowRunFailureBoundary = "authority"
+	WorkflowRunFailureBoundaryOutputContract    WorkflowRunFailureBoundary = "output_contract"
 )
 
 type WorkflowRunGatewayFailureCategory string
@@ -244,7 +246,8 @@ func validWorkflowRunFailureBoundary(value WorkflowRunFailureBoundary) bool {
 		WorkflowRunFailureBoundaryToolStore, WorkflowRunFailureBoundaryRetrievalPolicy,
 		WorkflowRunFailureBoundaryRetrievalStore, WorkflowRunFailureBoundaryRetrievalRank,
 		WorkflowRunFailureBoundaryRetrievalContext, WorkflowRunFailureBoundaryRetrievalCitation,
-		WorkflowRunFailureBoundaryProviderSelection, WorkflowRunFailureBoundaryProviderCall:
+		WorkflowRunFailureBoundaryProviderSelection, WorkflowRunFailureBoundaryProviderCall,
+		WorkflowRunFailureBoundaryAuthority, WorkflowRunFailureBoundaryOutputContract:
 		return true
 	default:
 		return false
@@ -268,7 +271,19 @@ func validWorkflowRunFailureCode(value WorkflowRunFailureCode) bool {
 		WorkflowRunFailureToolResponseTooLarge, WorkflowRunFailureToolResponseInvalid,
 		WorkflowRunFailureToolStore, WorkflowRunFailureToolOutcomeUnknown,
 		WorkflowRunFailureRetrievalUnsupported, WorkflowRunFailureDefinitionAuthority,
-		WorkflowRunFailureDefinitionIncompatible, WorkflowRunFailureDefinitionInterrupted:
+		WorkflowRunFailureDefinitionIncompatible, WorkflowRunFailureDefinitionInterrupted,
+		WorkflowRunFailurePromptIncompatible, WorkflowRunFailureAgentCopilotIncompatible,
+		WorkflowRunFailureCode(PromptApplicationRuntimeFailureAuthorityChanged),
+		WorkflowRunFailureCode(PromptApplicationInvocationFailureCanceled),
+		WorkflowRunFailureCode(PromptApplicationInvocationFailureOutcomeUnknown),
+		WorkflowRunFailureCode(PromptApplicationInvocationFailureOutputContract):
+		return true
+	case WorkflowRunFailureCode(AgentCopilotRuntimeFailureAuthorityChanged),
+		WorkflowRunFailureCode(AgentCopilotInvocationFailureInputInvalid),
+		WorkflowRunFailureCode(AgentCopilotInvocationFailureDuplicateRunning),
+		WorkflowRunFailureCode(AgentCopilotInvocationFailureCanceled),
+		WorkflowRunFailureCode(AgentCopilotInvocationFailureOutcomeUnknown),
+		WorkflowRunFailureCode(AgentCopilotInvocationFailureResponseContract):
 		return true
 	default:
 		return false

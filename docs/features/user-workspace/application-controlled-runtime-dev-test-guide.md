@@ -1,6 +1,6 @@
 # 应用受控运行开发测试态指南
 
-更新时间：2026-07-19
+更新时间：2026-07-20
 
 ## 适用范围
 
@@ -52,6 +52,41 @@ pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -WorkflowDefinitionLoca
 PostgreSQL 对应参数为 `--workflow-definition-postgres-dev-test` / `-WorkflowDefinitionPostgresDevTest`。Application RAG 的完整本地产品链使用 `--workflow-rag-application-local-product` / `-WorkflowRAGApplicationLocalProduct`。
 
 launcher 会组合必要的 Platform gate、Web source、workspace / application scope、共享 store 与 migration preflight。不要再手工组合不完整 selector；`configured` 档只用于显式 PostgreSQL组件组合和故障注入，缺失 marker、checksum、角色或连接时必须失败关闭。
+
+## Application Development Workspace 使用方式
+
+进入 User Workspace 并选中 Application 后，页面会以同一个 Application context 组织五个开发阶段。Application 仍通过 Applications 入口创建和选择，工作区不复制目录记录，也不创建另一份应用真相源。
+
+| 阶段 | 主要工作 | 关键边界 |
+| --- | --- | --- |
+| Configure / Build | 配置草案、Workflow Draft、知识绑定等构建工作 | 保存与校验仍由各资源 owner 负责 |
+| Human Promotion | 发布候选、Workflow Definition 和 RAG 晋级审查 | 审查、activation 与 assignment 都要求人工显式动作 |
+| Controlled Test | API key、Application API、RAG 调用与 Application Session | 只允许显式开发测试 source，不把 UI ready 当作执行授权 |
+| Run / Evaluation Review | Run History、Comparison、Evaluation 与 Application Operations | 只读消费持久化 metadata，不重新调用 provider |
+| Release Readiness | 汇总 Application、配置、Workflow、RAG、受控测试、评测和运维证据 | 只做开发测试态证据投影，不提供发布或 production ready 动作 |
+
+每次只挂载当前阶段的功能 surface。切换 Application、Application revision、lifecycle 或阶段时，页面会创建新的 workspace / route generation 和 `surfaceKey`；旧 surface 的迟到请求结果会被拒绝，不能覆盖当前选择或证据。未显示的阶段不会作为隐藏面板继续发请求。
+
+跨阶段跳转只传递当前 Application generation 内的稳定短引用。例如从配置草案前往发布审查，或从一次受控运行前往历史 / 评测时，目标 owner 会按精确 draft、candidate、definition、binding、assignment、session、run、request 或 evaluation 引用重新读取数据。handoff 不携带来源完整对象，也不自动保存、审查、激活、分配、调用 provider 或发布；切换 Application 后，旧 handoff 不再有效。
+
+Release Readiness 固定使用四种状态：
+
+- `review_not_started`：尚未形成可供汇总的 owner evidence。
+- `review_incomplete`：已有部分 evidence，但来源不全或无法证明当前 revision。
+- `review_blocked`：存在 lifecycle、authority drift、owner failure 或其它明确阻塞。
+- `dev_test_evidence_reviewable`：当前开发测试态 evidence 已可人工复核；不等于可发布或 production ready。
+
+`active` Application 可使用各阶段允许的开发测试动作；`archived` Application 的 Controlled Test 被阻塞，其余阶段仅保留只读审查；Application 不可用时全部阶段阻塞。默认离线来源缺少权威 revision 时，页面保留可浏览的稳定引用并显示 `incomplete / partial`，不会伪造 revision，也不会因此让整个页面崩溃。
+
+稳定 URL 只记录当前阶段，不保存 Application payload、资源完整对象、input、answer、token、review reason 或一次性凭据。刷新或重新选择 Application 后，应以各 owner 的权威读取结果为准，不依赖浏览器恢复易失状态。
+
+### 常见问题定位
+
+- readiness 长期为 `review_incomplete`：逐项检查对应 owner 是否加载成功、是否属于当前 Application revision，以及精确引用是否仍存在；不要用其它 draft 或 run 自动补位。
+- readiness 为 `review_blocked`：先处理 Application archived、authority drift、作用域不足、repository / migration 失败或 owner `partial_failure`，再刷新当前阶段。
+- handoff 后找不到目标资源：返回来源阶段确认资源是否仍属于当前 Application generation；目标 owner 不允许退回最近一次 draft、candidate 或 run。
+- 切换阶段后出现旧数据：记录当前 `surfaceKey` 并检查迟到回调是否经过 workspace controls；不要在 panel 外维护第二份可写选择状态。
+- 离线模式显示证据不完整：这是缺少权威 Application revision 时的预期行为；需要连续链时改用本节启动参数对应的显式开发测试 source。
 
 ## Workflow Definition 准备与运行
 

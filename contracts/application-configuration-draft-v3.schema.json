@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/application-configuration-draft-v3.schema.json",
+  "title": "ApplicationConfigurationDraftV3",
+  "description": "Prompt Application 的 ref-only 配置草案；不保存模板源码、运行输入或 provider 材料。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "draft_id", "workspace_id", "application_id", "base_application_updated_at", "display_name", "description", "application_kind", "default_protocol", "default_model", "allowed_protocols", "prompt_template_ref", "draft_version", "draft_digest", "validation_summary", "created_at", "updated_at", "created_by_actor_ref", "updated_by_actor_ref", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "application_configuration_draft.v3"},
+    "draft_id": {"$ref": "#/$defs/ref"},
+    "workspace_id": {"$ref": "#/$defs/ref"},
+    "application_id": {"$ref": "#/$defs/applicationId"},
+    "base_application_updated_at": {"type": "string", "format": "date-time"},
+    "display_name": {"type": "string", "minLength": 2, "maxLength": 120},
+    "description": {"type": "string", "maxLength": 1000},
+    "application_kind": {"const": "prompt_application"},
+    "default_protocol": {"$ref": "#/$defs/protocol"},
+    "default_model": {"$ref": "#/$defs/ref"},
+    "allowed_protocols": {"type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": {"$ref": "#/$defs/protocol"}},
+    "prompt_template_ref": {"$ref": "#/$defs/promptTemplateRef"},
+    "draft_version": {"type": "integer", "minimum": 1},
+    "draft_digest": {"$ref": "#/$defs/digest"},
+    "validation_summary": {"$ref": "#/$defs/validSummary"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "created_by_actor_ref": {"$ref": "#/$defs/ref"},
+    "updated_by_actor_ref": {"$ref": "#/$defs/ref"},
+    "request_id": {"$ref": "#/$defs/ref"},
+    "audit_ref": {"$ref": "#/$defs/ref"}
+  },
+  "$defs": {
+    "ref": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$"},
+    "applicationId": {"type": "string", "pattern": "^app_[a-z2-7]{16}$"},
+    "templateId": {"type": "string", "pattern": "^ptpl_[a-z2-7]{16}$"},
+    "digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "protocol": {"enum": ["chat_completions", "responses", "messages"]},
+    "promptTemplateRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template_id", "template_version", "template_digest"],
+      "properties": {
+        "template_id": {"$ref": "#/$defs/templateId"},
+        "template_version": {"type": "integer", "minimum": 1},
+        "template_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "validSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "is_valid", "findings"],
+      "properties": {
+        "state": {"const": "valid"},
+        "is_valid": {"const": true},
+        "findings": {"type": "array", "maxItems": 0}
+      }
+    },
+    "publicConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["display_name", "description", "application_kind", "default_protocol", "default_model", "allowed_protocols", "prompt_template_ref"],
+      "properties": {
+        "display_name": {"type": "string", "minLength": 2, "maxLength": 120},
+        "description": {"type": "string", "maxLength": 1000},
+        "application_kind": {"const": "prompt_application"},
+        "default_protocol": {"$ref": "#/$defs/protocol"},
+        "default_model": {"$ref": "#/$defs/ref"},
+        "allowed_protocols": {"type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": {"$ref": "#/$defs/protocol"}},
+        "prompt_template_ref": {"$ref": "#/$defs/promptTemplateRef"}
+      }
+    }
+  }
+}
