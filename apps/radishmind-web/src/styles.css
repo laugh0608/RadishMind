@@ -180,7 +180,7 @@ h4 {
 
 .live-read-source {
   display: grid;
-  grid-template-columns: minmax(180px, 1.2fr) minmax(260px, 1fr) auto;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(260px, 1fr) minmax(240px, 0.8fr) auto;
   align-items: start;
   gap: 16px;
   border: 1px solid #d8dee8;
@@ -205,6 +205,32 @@ h4 {
   grid-template-columns: repeat(3, minmax(72px, 1fr));
   gap: 10px;
   margin: 0;
+}
+
+.active-workspace-selector {
+  display: grid;
+  gap: 8px;
+}
+
+.active-workspace-selector label {
+  color: #5d6f84;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.active-workspace-selector div {
+  display: flex;
+  gap: 8px;
+}
+
+.active-workspace-selector input {
+  min-width: 0;
+  width: 100%;
+}
+
+.active-workspace-selector small {
+  color: #5d6f84;
+  line-height: 1.35;
 }
 
 .surface-band {

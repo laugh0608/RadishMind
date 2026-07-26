@@ -14,6 +14,14 @@ const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const DEFAULT_TENANT_REF = "tenant_demo";
 const DEFAULT_SUBJECT_REF = "subject_demo_user";
 const DEFAULT_SCOPES = "tenant:read,applications:read,api_keys:read,usage:read,runs:read,audit:read";
+const ACTIVE_WORKSPACE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$/u;
+const WORKSPACE_ROUTE_IDS = new Set<ControlPlaneReadRouteId>([
+  "application-summary-list-route",
+  "api-key-summary-list-route",
+  "quota-summary-route",
+  "workflow-definition-summary-list-route",
+  "run-record-summary-list-route",
+]);
 
 export type ControlPlaneReadDataSourceMode = "offline_fixture" | "dev_live_http";
 export type ControlPlaneReadAuthMode = "dev_headers" | "signed_test_token" | "radish_oidc_integration_test";
@@ -26,8 +34,6 @@ export type ControlPlaneReadDevLiveConfig = {
   subjectRef: string;
   authMode?: ControlPlaneReadAuthMode;
   storeMode?: ControlPlaneReadStoreMode;
-  applicationCatalogEnabled?: boolean;
-  apiKeyLifecycleEnabled?: boolean;
   workspaceId?: string;
 };
 
@@ -64,9 +70,11 @@ export function readControlPlaneReadDevLiveConfig(): ControlPlaneReadDevLiveConf
     subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || DEFAULT_SUBJECT_REF,
     authMode: normalizeAuthMode(env.VITE_RADISHMIND_READ_AUTH_MODE),
     storeMode: env.VITE_RADISHMIND_READ_STORE_MODE?.trim() === "postgres_dev_test" ? "postgres_dev_test" : "fake_store_dev",
-    applicationCatalogEnabled: env.VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE?.trim() === "dev-application-catalog-http",
-    apiKeyLifecycleEnabled: env.VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE?.trim() === "dev-api-key-lifecycle-http",
-    workspaceId: env.VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID?.trim() || "workspace_demo",
+    workspaceId: normalizeActiveWorkspaceId(
+      env.VITE_RADISHMIND_ACTIVE_WORKSPACE_ID ??
+      env.VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID ??
+      "workspace_demo",
+    ) ?? "workspace_demo",
   };
 }
 
@@ -86,8 +94,8 @@ export function initialControlPlaneReadDevLiveLoadState(
     message: config.authMode === "radish_oidc_integration_test"
       ? "Loading Admin reads while workspace operations remain membership-blocked."
       : config.storeMode === "postgres_dev_test"
-      ? "Loading routed PostgreSQL and fake read operations over signed dev/test HTTP."
-      : "Loading fake-store-backed read routes over dev HTTP.",
+      ? "Loading routed PostgreSQL workspace projections over signed development/test HTTP."
+      : "Loading development/test workspace owner projections over HTTP.",
   };
 }
 
@@ -131,16 +139,11 @@ async function fetchDevLiveEnvelope(routeId: ControlPlaneReadRouteId, config: Co
 function devLiveRouteUrl(routeId: ControlPlaneReadRouteId, config: ControlPlaneReadDevLiveConfig): string {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS[routeId];
   const path = route.path.replace("{tenant_ref}", encodeURIComponent(config.tenantRef));
-  if (routeId === "application-summary-list-route" && config.applicationCatalogEnabled) {
-    return `${config.baseUrl}${path}?workspace_id=${encodeURIComponent(config.workspaceId ?? "workspace_demo")}&lifecycle_state=active&limit=100`;
-  }
-  if (routeId === "api-key-summary-list-route" && config.apiKeyLifecycleEnabled) {
-    return `${config.baseUrl}${path}?workspace_id=${encodeURIComponent(config.workspaceId ?? "workspace_demo")}&limit=100`;
-  }
   return `${config.baseUrl}${path}`;
 }
 
 function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneReadDevLiveConfig): HeadersInit {
+  const workspaceHeaders = devLiveWorkspaceHeaders(routeId, config);
   if (config.authMode === "radish_oidc_integration_test") {
     const tokenProvider = (
       globalThis as typeof globalThis & {
@@ -155,6 +158,7 @@ function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneRe
       Accept: "application/json",
       "X-Request-Id": `dev-live-${routeId}`,
       Authorization: `Bearer ${token}`,
+      ...workspaceHeaders,
     };
   }
   if (config.authMode === "signed_test_token") {
@@ -171,6 +175,7 @@ function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneRe
       Accept: "application/json",
       "X-Request-Id": `dev-live-${routeId}`,
       Authorization: `Bearer ${token}`,
+      ...workspaceHeaders,
     };
   }
   return {
@@ -181,7 +186,35 @@ function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneRe
     "X-RadishMind-Dev-Read-Subject": config.subjectRef,
     "X-RadishMind-Dev-Read-Scopes": DEFAULT_SCOPES,
     "X-RadishMind-Dev-Read-Audit": "audit_dev_live_read_consumer",
+    ...workspaceHeaders,
   };
+}
+
+function devLiveWorkspaceHeaders(
+  routeId: ControlPlaneReadRouteId,
+  config: ControlPlaneReadDevLiveConfig,
+): Record<string, string> {
+  if (!WORKSPACE_ROUTE_IDS.has(routeId)) {
+    return {};
+  }
+  const workspaceId = normalizeActiveWorkspaceId(config.workspaceId ?? "workspace_demo");
+  if (!workspaceId) {
+    throw new Error("active workspace selection is invalid");
+  }
+  const headers: Record<string, string> = {
+    "X-RadishMind-Active-Workspace": workspaceId,
+  };
+  if ((config.authMode ?? "dev_headers") === "dev_headers") {
+    headers["X-RadishMind-Dev-Read-Membership-Workspace"] = workspaceId;
+    headers["X-RadishMind-Dev-Read-Membership-Permissions"] =
+      CONTROL_PLANE_READ_ROUTE_DEFINITIONS[routeId].requiredScope;
+  }
+  return headers;
+}
+
+export function normalizeActiveWorkspaceId(value: string): string | null {
+  const normalized = value.trim();
+  return ACTIVE_WORKSPACE_PATTERN.test(normalized) ? normalized : null;
 }
 
 function normalizeAuthMode(value: string | undefined): ControlPlaneReadAuthMode {

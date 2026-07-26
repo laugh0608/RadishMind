@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   initialControlPlaneReadDevLiveLoadState,
   loadControlPlaneReadDevLiveCollections,
+  normalizeActiveWorkspaceId,
   type ControlPlaneReadDevLiveConfig,
 } from "../src/features/control-plane-read/devLiveReadConsumer.ts";
 
@@ -61,11 +62,11 @@ test("Control Plane read consumer preserves sanitized non-2xx envelopes", async 
   }
 });
 
-test("Control Plane read consumer scopes catalog and API key lifecycle routes to the active workspace", async () => {
+test("Control Plane read consumer sends active workspace and dev membership only to workspace routes", async () => {
   const originalFetch = globalThis.fetch;
-  const urls: string[] = [];
-  globalThis.fetch = async (input) => {
-    urls.push(String(input));
+  const requests: Array<{ url: string; headers: Headers }> = [];
+  globalThis.fetch = async (input, init) => {
+    requests.push({ url: String(input), headers: new Headers(init?.headers) });
     return new Response(JSON.stringify({
       request_id: "request-workspace-scope",
       tenant_ref: "tenant_demo",
@@ -78,16 +79,30 @@ test("Control Plane read consumer scopes catalog and API key lifecycle routes to
   try {
     await loadControlPlaneReadDevLiveCollections({
       ...live,
-      applicationCatalogEnabled: true,
-      apiKeyLifecycleEnabled: true,
       workspaceId: "workspace_browser",
     });
-    assert.equal(urls.some((url) => url.endsWith("/v1/user-workspace/applications?workspace_id=workspace_browser&lifecycle_state=active&limit=100")), true);
-    assert.equal(urls.some((url) => url.endsWith("/v1/user-workspace/api-keys?workspace_id=workspace_browser&limit=100")), true);
-    assert.equal(urls.some((url) => url.endsWith("/v1/user-workspace/api-keys")), false);
+    const workspaceRequests = requests.filter(({ url }) => url.includes("/v1/user-workspace/"));
+    const adminRequests = requests.filter(({ url }) => !url.includes("/v1/user-workspace/"));
+    assert.equal(workspaceRequests.length, 5);
+    assert.equal(adminRequests.length, 2);
+    assert.equal(workspaceRequests.every(({ headers }) =>
+      headers.get("X-RadishMind-Active-Workspace") === "workspace_browser" &&
+      headers.get("X-RadishMind-Dev-Read-Membership-Workspace") === "workspace_browser" &&
+      headers.has("X-RadishMind-Dev-Read-Membership-Permissions")), true);
+    assert.equal(adminRequests.every(({ headers }) =>
+      !headers.has("X-RadishMind-Active-Workspace") &&
+      !headers.has("X-RadishMind-Dev-Read-Membership-Workspace")), true);
+    assert.equal(requests.some(({ url }) => url.includes("workspace_id=")), false);
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("active workspace selection is strict and normalized without persistence", () => {
+  assert.equal(normalizeActiveWorkspaceId(" workspace_browser "), "workspace_browser");
+  assert.equal(normalizeActiveWorkspaceId(""), null);
+  assert.equal(normalizeActiveWorkspaceId("workspace browser"), null);
+  assert.equal(normalizeActiveWorkspaceId("x".repeat(161)), null);
 });
 
 test("Control Plane read consumer rejects a non-envelope HTTP failure", async () => {
@@ -118,6 +133,7 @@ test("Control Plane read consumer uses an in-memory signed token without dev hea
     const headers = new Headers(init?.headers);
     assert.equal(headers.get("Authorization"), "Bearer test-token-material");
     assert.equal(headers.has("X-RadishMind-Dev-Read-Identity"), false);
+    assert.equal(headers.has("X-RadishMind-Dev-Read-Membership-Workspace"), false);
     return new Response(JSON.stringify({
       request_id: "request-signed",
       tenant_ref: "tenant_demo",

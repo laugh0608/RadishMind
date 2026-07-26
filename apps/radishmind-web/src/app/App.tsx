@@ -17,6 +17,7 @@ import { AdminProviderDeploymentReviewPanel } from "../features/control-plane-re
 import {
   initialControlPlaneReadDevLiveLoadState,
   loadControlPlaneReadDevLiveCollections,
+  normalizeActiveWorkspaceId,
   readControlPlaneReadDevLiveConfig,
   type ControlPlaneReadDevLiveConfig,
   type ControlPlaneReadDevLiveLoadState,
@@ -283,8 +284,15 @@ const WORKFLOW_DRAFT_NODE_TYPE_OPTIONS: WorkflowDraftNodeTypeOption[] = [
 ];
 
 export function App() {
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState(
+    () => normalizeActiveWorkspaceId(devLiveConfig.workspaceId ?? "") ?? "workspace_demo",
+  );
+  const activeDevLiveConfig = useMemo(
+    () => ({ ...devLiveConfig, workspaceId: activeWorkspaceId }),
+    [activeWorkspaceId],
+  );
   const [devLiveState, setDevLiveState] = useState<ControlPlaneReadDevLiveLoadState>(() =>
-    initialControlPlaneReadDevLiveLoadState(devLiveConfig),
+    initialControlPlaneReadDevLiveLoadState(activeDevLiveConfig),
   );
   const [selectedApplicationRef, setSelectedApplicationRef] = useState<string | null>(null);
   const [applicationCatalogSnapshot, setApplicationCatalogSnapshot] = useState<ApplicationCatalogSnapshot | null>(null);
@@ -333,18 +341,16 @@ export function App() {
     workflowHTTPToolExecutionState.status === "executing";
 
   useEffect(() => {
-    if (devLiveConfig.mode !== "dev_live_http") {
+    if (activeDevLiveConfig.mode !== "dev_live_http") {
       return;
     }
     let cancelled = false;
     setDevLiveState({
       status: "loading",
       mode: "dev_live_http",
-      message: devLiveConfig.storeMode === "postgres_dev_test"
-        ? "Loading routed PostgreSQL and fake read operations over signed dev/test HTTP."
-        : "Loading fake-store-backed read routes over dev HTTP.",
+      message: `Loading workspace ${activeWorkspaceId} through the development/test read boundary.`,
     });
-    loadControlPlaneReadDevLiveCollections(devLiveConfig)
+    loadControlPlaneReadDevLiveCollections(activeDevLiveConfig)
       .then((collections) => {
         if (cancelled) {
           return;
@@ -352,9 +358,7 @@ export function App() {
         setDevLiveState({
           status: "ready",
           mode: "dev_live_http",
-          message: devLiveConfig.storeMode === "postgres_dev_test"
-            ? "Dev live read consumer loaded signed-token envelopes from the routed PostgreSQL read repository."
-            : "Dev live read consumer loaded fake-store-backed HTTP envelopes.",
+          message: `Workspace ${activeWorkspaceId} loaded sanitized read envelopes.`,
           collections,
         });
       })
@@ -371,7 +375,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [activeDevLiveConfig, activeWorkspaceId]);
 
   const liveCollections: ControlPlaneReadCollectionsByRoute =
     devLiveState.status === "ready" ? devLiveState.collections : {};
@@ -1405,6 +1409,27 @@ export function App() {
     });
   };
 
+  const handleActiveWorkspaceSwitch = (candidate: string): boolean => {
+    const normalized = normalizeActiveWorkspaceId(candidate);
+    if (!normalized) {
+      return false;
+    }
+    if (normalized === activeWorkspaceId) {
+      return true;
+    }
+    setSelectedApplicationRef(null);
+    setApplicationCatalogSnapshot(null);
+    setSelectedWorkflowDefinitionId(null);
+    setSelectedRunId(null);
+    setSelectedWorkflowDraftId(null);
+    setSelectedWorkflowScenarioId(null);
+    setEditableWorkflowDraft(null);
+    setWorkflowDraftEditDirty(false);
+    pendingSavedDraftRestoreRef.current = null;
+    setActiveWorkspaceId(normalized);
+    return true;
+  };
+
   return (
     <main className="product-shell">
       <aside className="product-nav" aria-label="Product areas">
@@ -1488,6 +1513,7 @@ export function App() {
             />
             <Fact label="Writes" value={shell.catalog.allRoutesReadOnly ? "locked" : "enabled"} />
             <Fact label="Source" value={devLiveState.mode === "dev_live_http" ? devLiveState.status : "offline"} />
+            <Fact label="Workspace" value={activeWorkspaceId} />
             <Fact label="Tenant page" value={tenantOverview.canRenderTenant ? "ready" : "blocked"} />
             <Fact label="Audit page" value={adminAuditLog.canRenderAuditLog ? "ready" : "blocked"} />
             <Fact label="App page" value={workspaceApplications.canRenderApplications ? "ready" : "blocked"} />
@@ -1577,7 +1603,12 @@ export function App() {
           </div>
         </header>
 
-        <LiveReadSourceStatus state={devLiveState} config={devLiveConfig} />
+        <LiveReadSourceStatus
+          state={devLiveState}
+          config={activeDevLiveConfig}
+          activeWorkspaceId={activeWorkspaceId}
+          onActiveWorkspaceSwitch={handleActiveWorkspaceSwitch}
+        />
         <WorkflowUserWorkspaceHomePanel
           home={workflowUserWorkspaceHome}
           createdDraftCountsByWorkflowDefinition={createdWorkspaceDraftCountsByDefinition}
@@ -5608,8 +5639,31 @@ function Fact({ label, value }: { label: string; value: string }) {
   );
 }
 
-function LiveReadSourceStatus({ state, config }: { state: ControlPlaneReadDevLiveLoadState; config: ControlPlaneReadDevLiveConfig }) {
+function LiveReadSourceStatus({
+  state,
+  config,
+  activeWorkspaceId,
+  onActiveWorkspaceSwitch,
+}: {
+  state: ControlPlaneReadDevLiveLoadState;
+  config: ControlPlaneReadDevLiveConfig;
+  activeWorkspaceId: string;
+  onActiveWorkspaceSwitch: (candidate: string) => boolean;
+}) {
+  const [workspaceDraft, setWorkspaceDraft] = useState(activeWorkspaceId);
+  const [workspaceFailure, setWorkspaceFailure] = useState("");
+  useEffect(() => {
+    setWorkspaceDraft(activeWorkspaceId);
+    setWorkspaceFailure("");
+  }, [activeWorkspaceId]);
   const tone = state.status === "failed" ? "bad" : state.status === "ready" ? "good" : "neutral";
+  const switchWorkspace = () => {
+    if (!onActiveWorkspaceSwitch(workspaceDraft)) {
+      setWorkspaceFailure("Use a 1–160 character workspace reference containing letters, numbers, _, ., :, / or -.");
+      return;
+    }
+    setWorkspaceFailure("");
+  };
   return (
     <section className="live-read-source" aria-label="Read data source">
       <div>
@@ -5625,7 +5679,11 @@ function LiveReadSourceStatus({ state, config }: { state: ControlPlaneReadDevLiv
         <div>
           <dt>Auth</dt>
           <dd>{state.mode === "dev_live_http"
-            ? config.authMode === "signed_test_token" ? "signed test token" : "dev fake header"
+            ? config.authMode === "signed_test_token"
+              ? "signed test token"
+              : config.authMode === "radish_oidc_integration_test"
+                ? "OIDC integration test"
+                : "dev headers"
             : "offline view model"}</dd>
         </div>
         <div>
@@ -5635,6 +5693,33 @@ function LiveReadSourceStatus({ state, config }: { state: ControlPlaneReadDevLiv
             : "detached"}</dd>
         </div>
       </dl>
+      <form
+        className="active-workspace-selector"
+        aria-label="Active workspace selector"
+        onSubmit={(event) => {
+          event.preventDefault();
+          switchWorkspace();
+        }}
+      >
+        <label htmlFor="active-workspace-input">Active workspace</label>
+        <div>
+          <input
+            id="active-workspace-input"
+            value={workspaceDraft}
+            onChange={(event) => setWorkspaceDraft(event.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+            disabled={state.mode !== "dev_live_http"}
+          />
+          <button
+            type="submit"
+            disabled={state.mode !== "dev_live_http" || state.status === "loading" || workspaceDraft.trim() === activeWorkspaceId}
+          >
+            Switch
+          </button>
+        </div>
+        <small>{workspaceFailure || "Memory only; switching invalidates current workspace selections."}</small>
+      </form>
       <StatusBadge tone={tone}>{state.status}</StatusBadge>
     </section>
   );

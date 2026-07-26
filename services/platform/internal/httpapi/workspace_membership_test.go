@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -156,4 +157,38 @@ func TestWorkspaceQuotaPolicyUnavailableDoesNotQueryRepository(t *testing.T) {
 	if repository.totalCalls != 0 {
 		t.Fatalf("quota without policy owner reached repository %d times", repository.totalCalls)
 	}
+}
+
+func TestWorkspaceRunRouteListsWorkspaceWithoutApplicationSelection(t *testing.T) {
+	store := newMemoryWorkflowRunStore(10)
+	runContext := workflowExecutorTestContext()
+	runContext.RequestContext = context.Background()
+	runContext.ActorRef = "subject_demo_user"
+	runContext.ApplicationID = "app_workspace_route"
+	record := workflowRunHistoryTestRecord(
+		runContext, "run_workspace_route", "draft_workspace_route", time.Now().UTC(),
+	)
+	if err := store.UpsertRun(runContext, &record); err != nil {
+		t.Fatalf("seed workspace run route: %v", err)
+	}
+	server := NewServer(config.Config{}, Options{BuildVersion: "test"})
+	server.workspaceControlPlaneReadRepo = newWorkspaceScopedControlPlaneReadRepository(
+		newControlPlaneReadRepository(newControlPlaneReadFakeStore()),
+		newMemoryApplicationCatalogRepository(), newMemoryAPIKeyRepository(), nil, store,
+	)
+	request := newControlPlaneReadRequest(
+		http.MethodGet,
+		"/v1/user-workspace/runs?limit=10",
+		controlPlaneReadTestAuth("tenant_demo", "runs:read"),
+	)
+	recorder := httptest.NewRecorder()
+
+	server.httpServer.Handler.ServeHTTP(recorder, request)
+
+	envelope := decodeControlPlaneReadEnvelope(t, recorder, http.StatusOK)
+	if envelope.FailureCode != nil || len(envelope.Items) != 1 ||
+		envelope.Items[0]["application_ref"] != runContext.ApplicationID {
+		t.Fatalf("workspace-wide run route mismatch: %#v", envelope)
+	}
+	assertControlPlaneReadNoForbiddenPayload(t, recorder.Body.String())
 }

@@ -510,7 +510,7 @@ func controlPlaneReadFailureHTTPStatus(failureCode string) int {
 		return http.StatusForbidden
 	case "invalid_filter":
 		return http.StatusBadRequest
-	case "workspace_selection_missing", "workspace_application_selection_required":
+	case "workspace_selection_missing":
 		return http.StatusBadRequest
 	case "tenant_not_found", "quota_policy_missing":
 		return http.StatusNotFound

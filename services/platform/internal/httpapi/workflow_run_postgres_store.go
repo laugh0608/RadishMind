@@ -134,6 +134,66 @@ func (store *postgresWorkflowRunStore) ListRuns(runContext WorkflowRunContext, f
 	return WorkflowRunListPage{Records: records, HasMore: hasMore}, nil
 }
 
+func (store *postgresWorkflowRunStore) ListWorkspaceRuns(
+	runContext WorkflowWorkspaceRunListContext,
+	filter WorkflowWorkspaceRunListFilter,
+) (WorkflowRunListPage, error) {
+	if store == nil || store.pool == nil || !validWorkflowWorkspaceRunListContext(runContext) {
+		return WorkflowRunListPage{}, errWorkflowRunStoreContract
+	}
+	limit := workflowRunStoreListLimit(filter.Limit)
+	rows, err := store.pool.Query(runContext.RequestContext, `SELECT application_id,execution_source_kind,execution_source_id,execution_source_version,sanitized_run_record
+ FROM workflow_run_records
+ WHERE tenant_ref=$1 AND workspace_id=$2 AND actor_ref=$3
+	AND ($4='' OR application_id=$4)
+	AND ($5='' OR run_status=$5)
+	AND ($6='' OR (execution_source_kind='workflow_draft' AND execution_source_id=$6))
+	AND ($7='' OR execution_source_kind=$7) AND ($8='' OR execution_source_id=$8) AND ($9=0 OR execution_source_version=$9)
+	AND ($10='' OR failure_code=$10) AND ($11='' OR failure_boundary=$11)
+	AND ($12='' OR selected_provider=$12) AND ($13='' OR selected_model=$13)
+	AND ($14::boolean IS NULL OR (run_status='running' AND started_at < $15)=$14)
+	AND ($16::timestamptz IS NULL OR started_at >= $16) AND ($17::timestamptz IS NULL OR started_at <= $17)
+	AND ($18::timestamptz IS NULL OR (started_at,run_id,application_id) < ($18,$19,$20))
+ ORDER BY started_at DESC, run_id DESC, application_id DESC LIMIT $21`,
+		runContext.TenantRef, runContext.WorkspaceID, runContext.OwnerSubjectRef, filter.ApplicationID,
+		string(filter.Status), filter.DraftID, filter.ExecutionSourceKind, filter.ExecutionSourceID,
+		filter.ExecutionSourceVersion, string(filter.FailureCode), string(filter.FailureBoundary),
+		filter.Provider, filter.Model, filter.StaleRunning,
+		time.Now().UTC().Add(-workflowExecutorDefaultMaxRuntime), filter.StartedFrom, filter.StartedTo,
+		filter.BeforeTime, filter.BeforeRunID, filter.BeforeApplicationID, limit+1)
+	if err != nil {
+		return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
+	}
+	defer rows.Close()
+	records := make([]WorkflowRunRecord, 0, limit+1)
+	for rows.Next() {
+		var applicationID, sourceKind, sourceID string
+		var sourceVersion int
+		var payload []byte
+		if err = rows.Scan(&applicationID, &sourceKind, &sourceID, &sourceVersion, &payload); err != nil {
+			return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
+		}
+		record, decodeErr := decodePostgresWorkflowRunStorageProjection(WorkflowRunContext{
+			RequestContext: runContext.RequestContext,
+			TenantRef:      runContext.TenantRef,
+			WorkspaceID:    runContext.WorkspaceID,
+			ApplicationID:  applicationID,
+		}, sourceKind, sourceID, sourceVersion, payload)
+		if decodeErr != nil || record.ActorRef != runContext.OwnerSubjectRef {
+			return WorkflowRunListPage{}, errWorkflowRunStoreContract
+		}
+		records = append(records, record)
+	}
+	if rows.Err() != nil {
+		return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
+	}
+	hasMore := len(records) > limit
+	if hasMore {
+		records = records[:limit]
+	}
+	return WorkflowRunListPage{Records: records, HasMore: hasMore}, nil
+}
+
 func decodePostgresWorkflowRunStorageProjection(runContext WorkflowRunContext, sourceKind, sourceID string, sourceVersion int, payload []byte) (WorkflowRunRecord, error) {
 	record, err := decodeWorkflowRunStorageRecord(runContext, payload)
 	if err != nil {
@@ -163,3 +223,4 @@ func workflowRunRecordFailureBoundary(record WorkflowRunRecord) WorkflowRunFailu
 }
 
 var _ workflowRunStore = (*postgresWorkflowRunStore)(nil)
+var _ workflowWorkspaceRunProjection = (*postgresWorkflowRunStore)(nil)

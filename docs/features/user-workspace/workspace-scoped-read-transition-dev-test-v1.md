@@ -2,7 +2,7 @@
 
 更新时间：2026-07-26
 
-状态：`workspace_scoped_read_transition_dev_test_v1_batch_a_complete`
+状态：`workspace_scoped_read_transition_dev_test_v1_batch_b_complete`
 
 ## 文档目的
 
@@ -94,7 +94,7 @@
 | Applications | `applications:read` | Application Catalog repository | 迁移；按 tenant + workspace + subject 列表，输出 sanitized catalog summary | 不推导 latest definition / last run |
 | API keys | `api_keys:read` | API Key Lifecycle repository | 迁移；只输出 key ID、scope、state、时间，不输出 credential / digest | 不做 key 创建、撤销或 secret 交接 |
 | Workflow definitions | `applications:read` | Workflow Definition Release summary projection | 迁移；补齐 workspace predicate | 不创建第二套 definition projection |
-| Runs | `runs:read` | combined Workflow Run History store | 迁移；首批要求精确 `application_ref`，按 workspace + application 读取 metadata-only summary | 不做 workspace-wide N+1 聚合、replay 或正文返回 |
+| Runs | `runs:read` | combined Workflow Run History store | 批次 B 已迁移 workspace-wide owner projection；`application_ref` 为可选精确筛选 | 不做跨 owner 管理员读取、replay 或正文返回 |
 | Quota | `usage:read` | 缺少可信 policy owner | 保持关闭，返回 `quota_policy_unavailable` | 不使用 fake quota、不推算 token / cost、不做 enforcement / billing |
 
 未迁移或 owner 未启用不是 empty。Application / API key / Workflow / Run store unavailable 统一映射 `read_store_unavailable`；contract / cursor mismatch 映射 `read_store_contract_mismatch` 或 `invalid_filter`。
@@ -114,7 +114,6 @@
 | `workspace_permission_denied` | `403` | `0` |
 | `workspace_membership_unavailable` | `503` | `0` |
 | `quota_policy_unavailable` | `503` | `0` |
-| `workspace_application_selection_required` | `400` | `0` |
 | `read_store_unavailable` | `503` | attempted after allow |
 | `read_store_contract_mismatch` | `500` | attempted after allow |
 
@@ -126,7 +125,7 @@
 - workspace adapter 只做 context translation、filter translation、failure translation 和 sanitized summary projection。
 - Application Catalog / API Key cursor 继续由各自 owner 生成并绑定 tenant + workspace + subject。
 - Workflow Definition summary 必须同时检查 tenant、workspace 和 subject，修正旧投影只检查 tenant + subject 的缺口。
-- Run v1 只接受精确 `application_ref`，避免跨 application 扫描、N+1 查询和不稳定聚合 cursor。
+- Run 批次 B 使用 owner 原生 workspace-wide projection 与稳定 cursor，不做 application N+1 聚合；`application_ref` 只作为可选精确筛选。
 - API key projection 禁止暴露 display secret、credential token、credential digest、raw request / audit payload。
 - quota 不调用 fake repository；任何成功 fixture 都不能覆盖 `quota_policy_unavailable`。
 
@@ -175,13 +174,29 @@ production 必须拒绝 dev headers、signed test token、dev membership asserti
 
 实施状态：已完成。Platform 已建立共享 `WorkspaceMembershipProvider`、dev / signed-test assertion、五条 route 的统一 workspace authorization、`ReadRepositoryContext.WorkspaceID`、四类既有 owner adapter 和 quota fail-closed。相邻测试覆盖跨 tenant / subject、非成员、identity / membership expiry、workspace mismatch、permission denied、quota / Run 前置停止线和 repository zero-query；Workflow Definition summary 已补齐 workspace predicate。
 
-### 后续批次 B：Workspace-wide Run Projection 与 Web Selector
+### 批次 B：Workspace-wide Run Projection 与 Web Selector
 
 - 在 Run History owner 中建立稳定 workspace-wide cursor projection，移除 v1 的精确 application 前置。
 - Web 增加非持久化 active workspace selector、切换失效和 sanitized denied / unavailable 状态。
 - 继续不接真实 Radish OIDC 或 quota owner。
 
-### 后续批次 C：Reviewed Membership Adapter
+批次 B 设计确认：
+
+- workspace-wide Run projection 仍由既有 `workflowRunStore` 的 memory / SQLite / PostgreSQL owner 承载，只新增只读 projection interface，不复制表、运行记录或写入路径。
+- 查询强制绑定 verified tenant、active workspace 与 verified subject；`actor_ref` 是当前阶段可复用的 durable owner 边界，不扩 workspace 管理员跨 owner 读取。
+- `application_ref` 从必填前置改为可选精确筛选；`workflow_definition_id`、`status` 与 `failure_code` 保持可选筛选。
+- 稳定排序固定为 `started_at DESC, run_id DESC, application_id DESC`。cursor 同时保存最后一项三元组，并绑定 tenant、subject、workspace、完整筛选和排序；任一变化都返回 `invalid_filter`，不得静默换作用域。
+- Web selector 只在当前 React 进程内保存 active workspace。切换成功后立即清空 application、workflow definition、run 与 draft 等旧 workspace 选择，并用新 workspace 重新加载七条 read route。
+- workspace route 发出 `X-RadishMind-Active-Workspace`；仅 `dev_headers` 同时发出确定性的 dev membership proof。signed-test membership 继续只来自签名 token，OIDC integration test 继续明确 unavailable。
+- selector 不写 URL、cookie、`localStorage`、`sessionStorage` 或服务端 session；输入不合法时不发请求，denied / unavailable 只展示 sanitized envelope failure。
+
+完成锚点：`workspace_scoped_read_transition_dev_test_v1_batch_b_complete`。
+
+实施状态：已完成。Run owner 新增独立 workspace-wide projection interface，memory、SQLite、PostgreSQL 及 combined Workflow / Prompt / Agent store 均复用既有运行记录；查询绑定 tenant + workspace + actor subject，稳定 cursor 绑定作用域、筛选与 `started_at DESC, run_id DESC, application_id DESC`。`application_ref` 已从必填前置改为可选精确筛选。
+
+Admin Web 已增加进程内 active workspace selector。五条 workspace read route 携带 active workspace；仅 dev headers 模式携带逐路由最小 membership permission，signed-test 与 OIDC 不混入 dev proof。切换会清空旧 application、workflow definition、run 与 draft 选择并重新加载；离线态不发送请求，非法值不切换。
+
+### 条件式批次 C：Reviewed Membership Adapter
 
 只有 Radish owner 提供 reviewed membership contract 后，才设计 integration adapter、撤销 / cache / unavailable 和 OIDC HTTP / browser evidence。它不从 deterministic provider 自动晋级。
 
@@ -196,4 +211,4 @@ production 必须拒绝 dev headers、signed test token、dev membership asserti
 
 ## 下一实现入口
 
-批次 A 已完成。下一实现批次是“Workspace-wide Run Projection 与 Web Selector”，重点在 Run History owner 内建立稳定 workspace-wide cursor projection，消除 Run route 的精确 application 前置，并提供非持久化工作区切换界面；真实 Radish membership integration 与 quota policy owner 仍分别等待上游证据。
+批次 A、B 已完成，开发 / 测试态 v1 的 workspace authorization、durable read projection、workspace-wide Run history 与非持久化 Web selector 已形成闭环。当前没有可直接启动的批次 C：必须先取得 reviewed Radish membership owner / endpoint、撤销与过期语义及 OIDC mapping，才能更新本专题并设计 adapter。若无该上游证据，下一步回到功能设计入口选择新的真实产品能力；quota policy owner 继续独立等待。

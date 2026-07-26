@@ -168,55 +168,42 @@ func (repository workspaceScopedControlPlaneReadRepository) ListRunRecordSummari
 		result.FailureCode = ReadRepositoryFailureStoreUnavailable
 		return result
 	}
-	applicationID := strings.TrimSpace(request.Filters["application_ref"])
-	if applicationID == "" {
-		result.FailureCode = ReadRepositoryFailureCode("workspace_application_selection_required")
+	projection, ok := repository.runs.(workflowWorkspaceRunProjection)
+	if !ok {
+		result.FailureCode = ReadRepositoryFailureStoreUnavailable
 		return result
 	}
-	workflowDefinitionID := strings.TrimSpace(request.Filters["workflow_definition_id"])
-	executionSourceKind := ""
-	if workflowDefinitionID != "" {
-		executionSourceKind = workflowDefinitionExecutionSourceKind
-	}
-	if request.Sort != "" && request.Sort != "started_at_desc" {
-		result.FailureCode = ReadRepositoryFailureInvalidFilter
+	projectionResult := listWorkspaceRunProjection(projection, readContext, request)
+	if projectionResult.Failure != "" {
+		result.FailureCode = projectionResult.Failure
 		return result
 	}
-	serviceResult := (workflowExecutorService{store: repository.runs}).ListRuns(
-		WorkflowRunContext{
-			RequestContext: readContext.RequestContext, RequestID: readContext.RequestID,
-			TenantRef: readContext.TenantRef, WorkspaceID: readContext.WorkspaceID,
-			ApplicationID: applicationID, ActorRef: readContext.SubjectRef,
-			ScopeGrants: append([]string{}, readContext.ScopeGrants...), AuditRef: readContext.AuditRef,
-		},
-		WorkflowRunListRequest{
-			Limit: request.Limit, Cursor: request.Cursor,
-			Status:              WorkflowRunStatus(strings.TrimSpace(request.Filters["status"])),
-			ExecutionSourceKind: executionSourceKind,
-			ExecutionSourceID:   workflowDefinitionID,
-			FailureCode:         WorkflowRunFailureCode(strings.TrimSpace(request.Filters["failure_code"])),
-		},
-	)
-	if serviceResult.FailureCode != "" {
-		result.FailureCode = translateWorkflowRunReadFailure(serviceResult.FailureCode)
-		return result
-	}
-	result.Items = make([]RunRecordSummary, 0, len(serviceResult.Runs))
-	for _, summary := range serviceResult.Runs {
+	result.Items = make([]RunRecordSummary, 0, len(projectionResult.Records))
+	for _, record := range projectionResult.Records {
 		var failureCode *ReadRepositoryFailureCode
-		if summary.FailureCode != "" {
-			value := ReadRepositoryFailureCode(summary.FailureCode)
+		if record.FailureCode != "" {
+			value := ReadRepositoryFailureCode(record.FailureCode)
 			failureCode = &value
 		}
+		workflowDefinitionID := ""
+		sourceKind, sourceID, _, sourceErr := workflowRunStorageExecutionSource(record)
+		if sourceErr != nil {
+			result.Items = []RunRecordSummary{}
+			result.FailureCode = ReadRepositoryFailureContractMismatch
+			return result
+		}
+		if sourceKind == workflowDefinitionExecutionSourceKind {
+			workflowDefinitionID = sourceID
+		}
 		result.Items = append(result.Items, RunRecordSummary{
-			RunID: summary.RunID, TenantRef: readContext.TenantRef,
-			WorkflowDefinitionID: summary.ExecutionSourceID, ApplicationRef: summary.ApplicationID,
-			Status: string(summary.Status), FailureCode: failureCode,
-			TraceID: summary.RequestID, StartedAt: summary.StartedAt, CompletedAt: summary.CompletedAt,
+			RunID: record.RunID, TenantRef: readContext.TenantRef,
+			WorkflowDefinitionID: workflowDefinitionID, ApplicationRef: record.ApplicationID,
+			Status: string(record.Status), FailureCode: failureCode,
+			TraceID: record.RequestID, StartedAt: record.StartedAt, CompletedAt: record.CompletedAt,
 		})
 	}
-	if strings.TrimSpace(serviceResult.NextCursor) != "" {
-		result.NextCursor = &serviceResult.NextCursor
+	if strings.TrimSpace(projectionResult.NextCursor) != "" {
+		result.NextCursor = &projectionResult.NextCursor
 	}
 	return result
 }

@@ -77,7 +77,7 @@ func TestWorkspaceScopedReadRepositoryUsesDurableApplicationAndAPIKeyOwners(t *t
 	}
 }
 
-func TestWorkspaceScopedRunProjectionRequiresApplicationSelectionBeforeStoreQuery(t *testing.T) {
+func TestWorkspaceScopedRunProjectionDoesNotRequireApplicationSelection(t *testing.T) {
 	store := &countingWorkspaceRunStore{}
 	repository := newWorkspaceScopedControlPlaneReadRepository(
 		newControlPlaneReadRepository(newControlPlaneReadFakeStore()),
@@ -90,16 +90,18 @@ func TestWorkspaceScopedRunProjectionRequiresApplicationSelectionBeforeStoreQuer
 		},
 		ListRunRecordSummariesRequest{},
 	)
-	if result.FailureCode != "workspace_application_selection_required" {
-		t.Fatalf("unexpected run projection failure: %#v", result)
+	if result.FailureCode != "" || len(result.Items) != 0 {
+		t.Fatalf("unexpected workspace-wide run projection result: %#v", result)
 	}
-	if store.listCalls != 0 {
-		t.Fatalf("run store was queried without application selection: %d", store.listCalls)
+	if store.workspaceListCalls != 1 || store.applicationID != "" {
+		t.Fatalf("workspace projection was not queried without an application filter: %#v", store)
 	}
 }
 
 type countingWorkspaceRunStore struct {
-	listCalls int
+	listCalls          int
+	workspaceListCalls int
+	applicationID      string
 }
 
 func (store *countingWorkspaceRunStore) UpsertRun(WorkflowRunContext, *WorkflowRunRecord) error {
@@ -112,5 +114,14 @@ func (store *countingWorkspaceRunStore) ReadRun(WorkflowRunContext, string) (Wor
 
 func (store *countingWorkspaceRunStore) ListRuns(WorkflowRunContext, WorkflowRunListFilter) (WorkflowRunListPage, error) {
 	store.listCalls++
+	return WorkflowRunListPage{Records: []WorkflowRunRecord{}}, nil
+}
+
+func (store *countingWorkspaceRunStore) ListWorkspaceRuns(
+	_ WorkflowWorkspaceRunListContext,
+	filter WorkflowWorkspaceRunListFilter,
+) (WorkflowRunListPage, error) {
+	store.workspaceListCalls++
+	store.applicationID = filter.ApplicationID
 	return WorkflowRunListPage{Records: []WorkflowRunRecord{}}, nil
 }
