@@ -18,6 +18,8 @@ application_publish_dev=0
 application_publish_postgres_dev_test=0
 application_catalog_postgres_dev_test=0
 api_key_local_product=0
+admin_provider_route_local_product=0
+admin_provider_route_postgres_dev_test=0
 workflow_http_tool_local_product=0
 workflow_rag_dev=0
 workflow_rag_promotion_local_product=0
@@ -67,6 +69,10 @@ Options:
   --application-catalog-postgres-dev-test
                            Enable the PostgreSQL dev/test Application Catalog lifecycle UI.
   --api-key-local-product  Enable the SQLite local-product Application/API key/Playground chain.
+  --admin-provider-route-local-product
+                           Enable the SQLite Admin Provider route → Gateway → Request History chain.
+  --admin-provider-route-postgres-dev-test
+                           Enable the same Admin Provider route product chain with PostgreSQL dev/test stores.
   --workflow-http-tool-local-product
                            Enable the SQLite local-product Workflow HTTP Tool chain.
   --workflow-rag-dev       Enable the Workflow RAG snapshot, exact draft, retrieval execution, and Run History chain.
@@ -162,6 +168,14 @@ while [[ $# -gt 0 ]]; do
       api_key_local_product=1
       shift
       ;;
+    --admin-provider-route-local-product)
+      admin_provider_route_local_product=1
+      shift
+      ;;
+    --admin-provider-route-postgres-dev-test)
+      admin_provider_route_postgres_dev_test=1
+      shift
+      ;;
     --workflow-http-tool-local-product)
       workflow_http_tool_local_product=1
       shift
@@ -238,6 +252,14 @@ case "${mode}" in
     exit 2
     ;;
 esac
+
+if [[ "${admin_provider_route_local_product}" -eq 1 ]]; then
+  api_key_local_product=1
+fi
+if [[ "${admin_provider_route_postgres_dev_test}" -eq 1 ]]; then
+  application_catalog_postgres_dev_test=1
+  gateway_request_postgres_dev_test=1
+fi
 
 if [[ "${application_session_local_product}" -eq 1 ]]; then
   workflow_definition_local_product=1
@@ -323,6 +345,18 @@ if [[ "${application_catalog_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live
 fi
 if [[ "${api_key_local_product}" -eq 1 && "${mode}" != "dev-live" ]]; then
   echo "--api-key-local-product requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${admin_provider_route_local_product}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--admin-provider-route-local-product requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${admin_provider_route_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--admin-provider-route-postgres-dev-test requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${admin_provider_route_local_product}" -eq 1 && "${admin_provider_route_postgres_dev_test}" -eq 1 ]]; then
+  echo "Choose either --admin-provider-route-local-product or --admin-provider-route-postgres-dev-test" >&2
   exit 2
 fi
 if [[ "${workflow_http_tool_local_product}" -eq 1 && "${mode}" != "dev-live" ]]; then
@@ -519,13 +553,21 @@ probe_saved_draft_postgres_migration() {
 		export RADISHMIND_AGENT_COPILOT_PROFILE_STORE="postgres_dev_test"
 		export RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL="${database_url}"
 		export RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_MIGRATION_DATABASE_URL="${database_url}"
+		export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_HTTP="1"
+		export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_WRITE="1"
+		export RADISHMIND_ADMIN_PROVIDER_ROUTE_STORE="postgres_dev_test"
+		export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_DATABASE_URL="${database_url}"
+		export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_MIGRATION_DATABASE_URL="${database_url}"
     cd "${platform_dir}"
 		go run ./cmd/radishmind-workflow-draft-migrate status >/dev/null || return
 		go run ./cmd/radishmind-application-draft-migrate status >/dev/null || return
 		go run ./cmd/radishmind-workflow-run-migrate status >/dev/null || return
 		go run ./cmd/radishmind-gateway-request-migrate status >/dev/null || return
-		if [[ "${application_session_postgres_dev_test}" -eq 1 || "${prompt_application_postgres_dev_test}" -eq 1 ]]; then
+		if [[ "${application_session_postgres_dev_test}" -eq 1 || "${prompt_application_postgres_dev_test}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 ]]; then
 			go run ./cmd/radishmind-api-key-migrate status >/dev/null || return
+		fi
+		if [[ "${admin_provider_route_postgres_dev_test}" -eq 1 ]]; then
+			go run ./cmd/radishmind-admin-provider-route-migrate status >/dev/null || return
 		fi
 		if [[ "${application_publish_postgres_dev_test}" -eq 1 ]]; then
 			go run ./cmd/radishmind-application-publish-migrate status >/dev/null || return
@@ -706,6 +748,49 @@ except HTTPError as error:
         raise SystemExit(f"Gateway API key mode probe returned HTTP {error.code}: {document}")
 else:
     raise SystemExit("Gateway accepted an unauthenticated model request; api_key_dev_test mode is not active")
+PY
+}
+
+probe_admin_provider_route() {
+  local base_url="$1"
+  local tenant="$2"
+  local subject="$3"
+  local workspace_id="$4"
+  "${python_bin}" - "$base_url" "$tenant" "$subject" "$workspace_id" <<'PY'
+import json
+import sys
+from urllib.request import Request, urlopen
+
+base_url = sys.argv[1].rstrip("/")
+tenant = sys.argv[2]
+subject = sys.argv[3]
+workspace_id = sys.argv[4]
+url = f"{base_url}/v1/admin/provider-route-configurations/gateway-default/activation-history"
+request = Request(
+    url,
+    headers={
+        "Accept": "application/json",
+        "X-Request-Id": "admin-provider-route-web-probe",
+        "X-RadishMind-Dev-Read-Identity": "admin-provider-route-web-probe",
+        "X-RadishMind-Dev-Read-Tenant": tenant,
+        "X-RadishMind-Dev-Read-Subject": subject,
+        "X-RadishMind-Dev-Read-Scopes": "admin_provider_routes:read",
+        "X-RadishMind-Dev-Read-Audit": "audit_admin_provider_route_web_probe",
+        "X-RadishMind-Dev-Admin-Provider-Route-Workspace": workspace_id,
+        "X-RadishMind-Dev-Admin-Provider-Route-Environment": "test",
+    },
+    method="GET",
+)
+with urlopen(request, timeout=5) as response:
+    if response.status < 200 or response.status >= 300:
+        raise SystemExit(f"Unexpected HTTP status {response.status} from {url}")
+    document = json.loads(response.read().decode("utf-8"))
+if document.get("failure_code") is not None:
+    raise SystemExit(f"Admin Provider route returned failure_code={document.get('failure_code')} from {url}")
+if document.get("workspace_id") != workspace_id or document.get("environment") != "test":
+    raise SystemExit(f"Admin Provider route scope drifted: {document}")
+if not isinstance(document.get("activation_history"), list):
+    raise SystemExit(f"Admin Provider route did not return activation_history[] from {url}")
 PY
 }
 
@@ -1114,7 +1199,7 @@ if [[ "${mode}" == "dev-live" && ! -f "${platform_wrapper}" ]]; then
 fi
 
 saved_draft_database_url=""
-if [[ "${saved_draft_postgres_dev_test}" -eq 1 || "${gateway_request_postgres_dev_test}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${application_catalog_postgres_dev_test}" -eq 1 || "${prompt_application_postgres_dev_test}" -eq 1 || "${agent_copilot_postgres_dev_test}" -eq 1 ]]; then
+if [[ "${saved_draft_postgres_dev_test}" -eq 1 || "${gateway_request_postgres_dev_test}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${application_catalog_postgres_dev_test}" -eq 1 || "${prompt_application_postgres_dev_test}" -eq 1 || "${agent_copilot_postgres_dev_test}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 ]]; then
   require_command go
   saved_draft_database_url="$(build_saved_draft_database_url)"
   if ! probe_saved_draft_postgres_migration "${saved_draft_database_url}"; then
@@ -1179,8 +1264,23 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
         fi
-        if [[ "${api_key_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 ]]; then
+        if [[ "${api_key_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 ]]; then
           export RADISHMIND_GATEWAY_AUTH_MODE="api_key_dev_test"
+        fi
+        if [[ "${admin_provider_route_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 ]]; then
+          export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_HTTP="1"
+          export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_WRITE="1"
+          export RADISHMIND_GATEWAY_PROVIDER_ROUTE_SOURCE="admin_snapshot_dev_test"
+          export RADISHMIND_GATEWAY_PROVIDER_ROUTE_ENVIRONMENT="test"
+          export RADISHMIND_GATEWAY_PROVIDER_ROUTE_CONFIGURATION_ID="gateway-default"
+        fi
+        if [[ "${admin_provider_route_postgres_dev_test}" -eq 1 ]]; then
+          export RADISHMIND_ADMIN_PROVIDER_ROUTE_STORE="postgres_dev_test"
+          export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+          export RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP="1"
+          export RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE="1"
+          export RADISHMIND_API_KEY_STORE="postgres_dev_test"
+          export RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
         fi
         if [[ "${application_publish_postgres_dev_test}" -eq 1 ]]; then
           export RADISHMIND_APPLICATION_DRAFT_DEV_HTTP="1"
@@ -1287,12 +1387,12 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
-        if [[ "${api_key_local_product}" -eq 1 || "${workflow_http_tool_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 ]]; then
+        if [[ "${api_key_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 || "${workflow_http_tool_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE="dev-api-key-lifecycle-http"
           export VITE_RADISHMIND_API_KEY_LIFECYCLE_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_API_KEY_LIFECYCLE_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
-        if [[ "${api_key_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 ]]; then
+        if [[ "${api_key_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_GATEWAY_AUTH_MODE="api_key_dev_test"
         fi
         if [[ "${prompt_application_enabled}" -eq 1 ]]; then
@@ -1364,6 +1464,17 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_APPLICATION_ID="${saved_draft_application_id}"
           export VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SUBJECT_REF="${subject_ref}"
         fi
+        if [[ "${admin_provider_route_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 ]]; then
+          export VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_SOURCE="dev-admin-provider-route-http"
+          export VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_WORKSPACE_ID="${saved_draft_workspace_id}"
+          export VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_ENVIRONMENT="test"
+          export VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_CONFIGURATION_ID="gateway-default"
+          export VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_APPLICATION_ID="${saved_draft_application_id}"
+          export VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_PROVIDER_ID="${RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_PROVIDER_ID:-}"
+          export VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_RUNTIME_PROFILE="${RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_RUNTIME_PROFILE:-}"
+          export VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_MODEL_ID="${RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_MODEL_ID:-}"
+        fi
       else
         unset VITE_RADISHMIND_READ_SOURCE
         unset VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL
@@ -1422,6 +1533,15 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_CONSUMER_REF
         unset VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_APPLICATION_ID
         unset VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SUBJECT_REF
+        unset VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_SOURCE
+        unset VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_BASE_URL
+        unset VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_WORKSPACE_ID
+        unset VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_ENVIRONMENT
+        unset VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_CONFIGURATION_ID
+        unset VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_APPLICATION_ID
+        unset VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_PROVIDER_ID
+        unset VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_RUNTIME_PROFILE
+        unset VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_MODEL_ID
       fi
       exec npm run dev
     ) >"${log_dir}/web.out.log" 2>"${log_dir}/web.err.log" &
@@ -1442,8 +1562,18 @@ if [[ "${mode}" == "dev-live" ]]; then
     show_failure_help "dev-live read route probe failed"
     exit 1
   fi
-  if [[ "${api_key_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 ]] && ! wait_until "Gateway API key auth mode" probe_gateway_api_key_mode "${backend_url}"; then
+  if [[ "${api_key_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 ]] && ! wait_until "Gateway API key auth mode" probe_gateway_api_key_mode "${backend_url}"; then
     show_failure_help "Gateway api_key_dev_test mode probe failed"
+    exit 1
+  fi
+  if [[ "${admin_provider_route_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 ]] && ! wait_until \
+    "Admin Provider route dev/test API" \
+    probe_admin_provider_route \
+    "${backend_url}" \
+    "${tenant_ref}" \
+    "${subject_ref}" \
+    "${saved_draft_workspace_id}"; then
+    show_failure_help "Admin Provider route dev/test probe failed"
     exit 1
   fi
   if [[ "${saved_draft_enabled}" -eq 1 ]] && ! wait_until \
@@ -1532,6 +1662,12 @@ if [[ "${mode}" == "dev-live" ]]; then
   fi
   if [[ "${api_key_local_product}" -eq 1 ]]; then
     step "API key SQLite local-product Web chain enabled for ${saved_draft_workspace_id}; raw credentials remain browser-memory only."
+  fi
+  if [[ "${admin_provider_route_local_product}" -eq 1 ]]; then
+    step "Admin Provider route SQLite product chain enabled for ${saved_draft_workspace_id}/test/gateway-default; approval and activation remain separate actions."
+  fi
+  if [[ "${admin_provider_route_postgres_dev_test}" -eq 1 ]]; then
+    step "Admin Provider route PostgreSQL dev/test product chain enabled for ${saved_draft_workspace_id}/test/gateway-default; approval and activation remain separate actions."
   fi
   if [[ "${workflow_http_tool_local_product}" -eq 1 ]]; then
     step "Workflow HTTP Tool SQLite local-product Web chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; approve and execute remain separate actions."

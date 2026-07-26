@@ -6,7 +6,7 @@
 
 ## 当前专题
 
-- [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](provider-profile-model-route-controlled-activation-dev-test-v1.md)：当前在制产品专题，领域与三模式开发测试持久化两批已完成，下一步进入 Admin API / Auth；Gateway 快照消费和 Admin Web 后置，不会创建第二套 provider inventory，也不会读取真实 secret 或启用 production。
+- [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](provider-profile-model-route-controlled-activation-dev-test-v1.md)：五批开发已完成并关闭，覆盖领域与三模式 repository、Admin API / Auth、Gateway 不可变快照消费、Admin Web、SQLite / PostgreSQL 产品连续验证、服务重启和真实浏览器 activation / rollback；没有创建第二套 provider inventory，也没有读取真实 secret 或启用 production。
 - [Authenticated Read Store Transition v1](authenticated-read-store-transition-v1.md)：第一批 verified identity / negative auth runtime 与第二批 Tenant / Audit PostgreSQL dev/test runtime 均已完成。
 - [Tenant / Audit PostgreSQL Read Repository v1](tenant-audit-postgresql-read-repository-v1.md)：两条 Admin operation 已完成 projection schema、manual migration、read-only role、routed selector、keyset pagination、no-fallback、真实 PostgreSQL 与浏览器验收。
 - [Radish OIDC Integration Test v1](radish-oidc-integration-test-v1.md)：deterministic discovery / JWKS / JWT verifier、两条 Admin operation gate、五条 workspace membership fail-closed 和 Web 内存 token consumer 已完成；真实 Radish 联调为 `real_radish_integration_deferred`，未来在 Radish 注册 RadishMind application/client 与 resource audience 后恢复。

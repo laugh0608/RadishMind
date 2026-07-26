@@ -1,3 +1,5 @@
+import { lazy, Suspense } from "react";
+
 import type {
   AdminModelRouteReadiness,
   AdminProviderDeploymentLock,
@@ -7,6 +9,12 @@ import type {
   AdminProviderProfileReadiness,
   AdminSecretDeploymentEvidence,
 } from "./adminProviderDeploymentReview";
+
+const AdminProviderRouteWorkspacePanel = lazy(() =>
+  import("./adminProviderRouteWorkspacePanel.tsx").then((module) => ({
+    default: module.AdminProviderRouteWorkspacePanel,
+  })),
+);
 
 type StatusBadgeTone = "good" | "bad" | "neutral";
 
@@ -56,6 +64,10 @@ export function AdminProviderDeploymentReviewPanel({
           </div>
         </dl>
       </article>
+
+      <Suspense fallback={<div className="admin-provider-route-workspace"><p>Loading Provider route workspace…</p></div>}>
+        <AdminProviderRouteWorkspacePanel />
+      </Suspense>
 
       <div className="model-gateway-overview-section">
         <div className="model-gateway-overview-subheading">

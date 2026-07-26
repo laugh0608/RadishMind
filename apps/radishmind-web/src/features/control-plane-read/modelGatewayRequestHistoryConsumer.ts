@@ -40,6 +40,9 @@ export type GatewayRequestHistorySummary = {
   selectedProvider: string;
   selectedProfile: string;
   selectedModel: string;
+  providerRouteConfigurationId: string;
+  providerRouteGeneration: number;
+  providerRouteSnapshotDigest: string;
   httpStatusCode: number;
   failureCode: string;
   failureBoundary: string;
@@ -91,6 +94,9 @@ type GatewayRequestSummaryDocument = {
   selected_provider: string;
   selected_profile: string;
   selected_model: string;
+  provider_route_configuration_id?: string;
+  provider_route_generation?: number;
+  provider_route_snapshot_digest?: string;
   http_status_code: number;
   failure_code: string;
   failure_boundary: string;
@@ -297,6 +303,9 @@ function mapGatewayRequestSummary(value: GatewayRequestSummaryDocument): Gateway
     selectedProvider: value.selected_provider,
     selectedProfile: value.selected_profile,
     selectedModel: value.selected_model,
+    providerRouteConfigurationId: value.provider_route_configuration_id ?? "",
+    providerRouteGeneration: value.provider_route_generation ?? 0,
+    providerRouteSnapshotDigest: value.provider_route_snapshot_digest ?? "",
     httpStatusCode: value.http_status_code,
     failureCode: value.failure_code,
     failureBoundary: value.failure_boundary,
@@ -344,7 +353,8 @@ function isGatewayRequestSummaryDocument(value: unknown): value is GatewayReques
     typeof value.stream === "boolean" && ["started", "succeeded", "failed", "canceled"].includes(String(value.status)) &&
     isNonNegativeInteger(value.duration_ms) && isNonNegativeInteger(value.provider_duration_ms) &&
     typeof value.provider_duration_available === "boolean" && isNonNegativeInteger(value.http_status_code) &&
-    ["reported", "not_reported", "not_applicable"].includes(String(value.usage_availability)) && typeof value.stale_started === "boolean";
+    ["reported", "not_reported", "not_applicable"].includes(String(value.usage_availability)) &&
+    typeof value.stale_started === "boolean" && isProviderRouteLineageDocument(value);
 }
 
 function isGatewayRequestDetailDocument(value: unknown): value is GatewayRequestDetailDocument {
@@ -357,6 +367,17 @@ function isGatewayRequestDetailDocument(value: unknown): value is GatewayRequest
     ["reported", "not_reported", "not_applicable"].includes(String(value.usage.availability)) &&
     isNonNegativeInteger(value.usage.input_tokens) && isNonNegativeInteger(value.usage.output_tokens) &&
     isNonNegativeInteger(value.usage.total_tokens);
+}
+
+function isProviderRouteLineageDocument(value: GatewayRequestSummaryDocument | Record<string, unknown>): boolean {
+  const configurationId = value.provider_route_configuration_id;
+  const generation = value.provider_route_generation;
+  const digest = value.provider_route_snapshot_digest;
+  if (configurationId === undefined && generation === undefined && digest === undefined) return true;
+  return typeof configurationId === "string" &&
+    /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u.test(configurationId) &&
+    typeof generation === "number" && Number.isInteger(generation) && generation > 0 &&
+    typeof digest === "string" && /^sha256:[a-f0-9]{64}$/u.test(digest);
 }
 
 function assertNoForbiddenFields(value: unknown, path = "response") {

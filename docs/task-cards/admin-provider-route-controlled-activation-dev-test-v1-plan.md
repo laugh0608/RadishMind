@@ -2,7 +2,7 @@
 
 更新时间：2026-07-26
 
-状态：`admin_provider_route_controlled_activation_dev_test_v1_batch_d_completed_batch_e_ready`
+状态：`admin_provider_route_controlled_activation_dev_test_v1_completed`
 
 对应功能文档：[Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](../features/admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md)
 
@@ -158,6 +158,15 @@ Admin draft
 - 服务重启后配置与历史恢复。
 - 原始敏感材料不进入页面、URL、浏览器存储、日志或数据库。
 - Web 单元测试、build、产品 smoke、fast 和 full 仓库检查通过。
+
+### 完成记录
+
+- 既有 Provider Deployment Review 已扩展为受控配置工作区，覆盖草案编辑、严格本地预检、不可变候选、当前快照差异、独立审查、activation / rollback、当前 generation 与 append-only history。
+- Web consumer 固定 `admin_provider_routes:read | draft | review | activate` 四项作用域和 CAS 元数据，拒绝作用域漂移、部分 snapshot lineage、未知响应字段与递归敏感材料；offline 模式零请求。
+- Gateway Request History summary / detail 展示精确 Provider Route configuration、generation 与 snapshot digest；无真实 credential / endpoint 时，已选中快照的请求以 Provider inference failure 结束，路由与审计谱系仍完整可查。
+- SQLite 浏览器链完成两次 activation 和一次 rollback，最终 generation 3；服务重启后恢复三条历史。PostgreSQL 浏览器链完成 generation 1 激活并在重启后恢复，完整 integration 与 migration 恢复门禁通过。
+- `run-radishmind-web-dev.sh` 新增 SQLite 与 PostgreSQL 两种 Admin Provider Route 产品模式，统一启用并探测 Admin API、API key auth、Gateway snapshot source 和 Request History；所有启动的本地 Web / Platform 进程均在验收后关闭。
+- Web 237 项测试与生产 build 已通过；最终仓库快速与全量门禁结果记录在周志。本专题关闭，不派生批次 F 或同层 readiness / refresh / checker。
 
 ## 验证策略
 

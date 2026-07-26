@@ -2,7 +2,7 @@
 
 更新时间：2026-07-26
 
-状态：`admin_provider_route_controlled_activation_dev_test_v1_batch_d_completed_batch_e_ready`
+状态：`admin_provider_route_controlled_activation_dev_test_v1_completed`
 
 ## 当前结论
 
@@ -23,6 +23,12 @@ SQLite 与 PostgreSQL 都持久化草案、候选、独立 review、当前快照
 管理路由使用既有 verified identity owner，`tenant_ref` 不接受请求覆盖；workspace / environment 请求头、权限、真实 OIDC membership blocker 和写入门禁均在 repository 前校验。写入 body 拒绝未知字段、重复字段、尾随文档和超限载荷；所有管理响应均为 `no-store`，只返回脱敏资源、稳定 failure code、request / audit lineage 与冲突所需的当前版本。Bridge inventory resolver 只摘要化消费既有 inventory，不复制 endpoint 或 credential。
 
 相邻测试覆盖完整 HTTP activate 流程、权限独立投影、身份 / membership / 环境拒绝、strict JSON、HTTP 状态、inventory 摘要确定性、完整 activate / replace / rollback、两次重启恢复、draft / review / generation 并发 CAS、append-only 保护、配置拒绝、selector no fallback、数据库与 WAL 隐私扫描。真实 PostgreSQL 专项链已覆盖 Admin HTTP 写入 / 读取、运行角色 DDL 拒绝、多连接并发激活 CAS、服务重开恢复和 configured profile；Platform 全量 Go 测试与 `go vet` 已通过。
+
+批次 E 已在既有 Provider Deployment Review 中加入受控配置工作区：页面能够维护草案、创建不可变候选、查看候选与当前快照差异、记录独立审查、显式激活、选择历史候选回滚，并读取当前快照与 append-only generation history。严格 Web consumer 固定四项权限、作用域、CAS 元数据、响应 schema 和敏感字段拒绝；offline 模式保持零请求。
+
+SQLite 本地产品浏览器连续完成 `draft → candidate-one → approve → generation 1 → Gateway invocation → Request History lineage → candidate-two → generation 2 → rollback candidate-one → generation 3`，服务重启后恢复 generation 3 与三条历史。Gateway 调用在没有真实 Provider credential / endpoint 的停止线下命中精确快照后返回 `GATEWAY_INFERENCE_FAILED`；Request History 仍准确展示 `configuration_id`、generation 与 snapshot digest，不把失败误写成 route miss，也不保存请求正文或凭据。
+
+同一启动器已提供 PostgreSQL 开发测试态产品模式，统一预检 Admin Provider Route、API key、Gateway Request History migration 和 API key auth。真实 PostgreSQL 浏览器完成草案、候选、审批与 generation 1 激活，服务重启后恢复当前快照和一条历史；完整 PostgreSQL integration、migration 恢复、Web 237 项测试与生产构建均通过。
 
 ## 用户与真实需求
 
@@ -279,9 +285,10 @@ HTTP 状态固定分层：缺失 / 无效身份为 `401`，权限或环境禁止
 
 ### 批次 E：Admin Web 与连续产品验证
 
-- 完成草案编辑、候选差异、审查、激活、回滚、当前快照和历史界面。
-- 完成本地 SQLite 连续链、PostgreSQL 专项链、服务重启和浏览器连续验收。
-- 更新当前焦点、路线图、能力矩阵、Admin / Gateway 专题与周志。
+- 已完成草案编辑、候选差异、审查、激活、回滚、当前快照和历史界面。
+- 已完成 SQLite 与 PostgreSQL 开发测试态启动模式、专项门禁、服务重启和真实浏览器连续验收。
+- 已让 Gateway Playground 与 Request History 展示精确的激活快照 generation / digest 谱系。
+- 已更新当前焦点、路线图、能力矩阵、Admin / Gateway 专题与周志。
 
 ## 验收
 

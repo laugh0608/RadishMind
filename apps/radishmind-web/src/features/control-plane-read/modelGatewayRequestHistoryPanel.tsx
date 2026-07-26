@@ -136,7 +136,7 @@ export default function ModelGatewayRequestHistoryPanel() {
                 onClick={() => void selectRequest(request)}
               >
                 <span><strong>{request.route}</strong><small>{request.protocol} · {request.stream ? "stream" : "unary"}</small></span>
-                <span><small>Provider / model</small><strong>{request.selectedProvider || "unavailable"}</strong><small>{request.selectedProfile || "no profile"} · {request.selectedModel || "unavailable"}</small></span>
+                <span><small>Provider / model</small><strong>{request.selectedProvider || "unavailable"}</strong><small>{request.selectedProfile || "no profile"} · {request.selectedModel || "unavailable"}{request.providerRouteGeneration ? ` · generation ${request.providerRouteGeneration}` : ""}</small></span>
                 <span><small>Status / failure</small><strong>{request.status}{request.staleStarted ? " · stale" : ""}</strong><small>{request.failureBoundary || "no failure"}</small></span>
                 <span><small>Usage / duration</small><strong>{request.usageAvailability}</strong><small>{request.durationMs} ms · provider {request.providerDurationAvailable ? `${request.providerDurationMs} ms` : "unavailable"}</small></span>
                 <span><small>Started</small><strong>{formatTimestamp(request.startedAt)}</strong></span>
@@ -194,6 +194,7 @@ function GatewayRequestDetail({ detail }: { detail: GatewayRequestHistoryDetail 
         <div><dt>Caller scope</dt><dd>{detail.tenantRef} / {detail.workspaceId} / {detail.consumerRef}</dd></div>
         <div><dt>Application / subject</dt><dd>{detail.applicationId || "unbound"} / {detail.subjectRef}</dd></div>
         <div><dt>Selection</dt><dd>{detail.selectionSource || "unavailable"} · {detail.selectedProvider || "unavailable"} / {detail.selectedProfile || "no profile"} / {detail.selectedModel || "unavailable"}</dd></div>
+        <div><dt>Provider route snapshot</dt><dd>{detail.providerRouteGeneration ? `${detail.providerRouteConfigurationId} · generation ${detail.providerRouteGeneration} · ${shortDigest(detail.providerRouteSnapshotDigest)}` : "static configuration / unavailable"}</dd></div>
         <div><dt>Timing</dt><dd>total {detail.durationMs} ms · gateway {detail.gatewayDurationAvailable ? `${detail.gatewayDurationMs} ms` : "unavailable"} · provider {detail.providerDurationAvailable ? `${detail.providerDurationMs} ms` : "unavailable"}</dd></div>
         <div><dt>Usage</dt><dd>{detail.usageAvailability}{detail.usageAvailability === "reported" ? ` · ${detail.inputTokens} in / ${detail.outputTokens} out / ${detail.totalTokens} total` : ""}{detail.usageSource ? ` · ${detail.usageSource}` : ""}</dd></div>
         <div><dt>HTTP / failure</dt><dd>{detail.httpStatusCode || "unavailable"} · {detail.failureBoundary || "no failure"} · {detail.failureCode || "none"}</dd></div>
@@ -210,4 +211,8 @@ function formatTimestamp(value: string): string {
   if (!value) return "unavailable";
   const timestamp = new Date(value);
   return Number.isNaN(timestamp.valueOf()) ? value : timestamp.toLocaleString();
+}
+
+function shortDigest(value: string): string {
+  return value.length > 24 ? `${value.slice(0, 16)}…${value.slice(-8)}` : value;
 }

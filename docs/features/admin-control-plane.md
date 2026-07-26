@@ -16,7 +16,7 @@
 - [Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) 第一批 runtime 已完成 shared verified identity / negative auth，第二批已完成 Tenant / Audit PostgreSQL dev/test repository，第三批已完成 OIDC deterministic verifier / auth boundary / operation gate。
 - [Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 已完成两条 Admin operation 的 schema、manual migration、read-only role、routed selector、分页、no-fallback、真实 PostgreSQL、HTTP/Web 与浏览器验收。
 - [Radish OIDC Integration Test v1](admin-control-plane/radish-oidc-integration-test-v1.md) 已完成 deterministic discovery / JWKS / JWT runtime、只开放 tenant / audit、五条 workspace route membership fail-closed、隐私和 Web 内存 token 边界；真实 Radish 联调为 `real_radish_integration_deferred`。
-- [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md) 批次 A 至 D 已完成原子配置领域、三模式 repository、Admin API、verified identity、四项独立权限、Gateway 不可变快照消费和 Request History 谱系；下一步进入 Admin Web 与双数据库产品连续验证。
+- [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md) 批次 A 至 E 已完成并关闭，覆盖原子配置领域、三模式 repository、Admin API、verified identity、四项独立权限、Gateway 不可变快照消费、Request History 谱系、Admin Web 与双数据库重启浏览器链。
 
 ## 设计边界
 
@@ -31,7 +31,7 @@
 2. 未来 Radish 注册 RadishMind application/client 与 resource audience，并提供 reviewed issuer、JWKS policy、claim / permission mapping 和短期 token 流程后，再恢复只覆盖 tenant summary 与 audit summary 的真实联调。
 3. 五条 workspace route 继续返回 `workspace_membership_unavailable`，不读取 fake repository；workspace membership contract 未成立前，不迁移五条 User Workspace read route。
 4. 普通 evidence review 展示不再新增逐项 task card；只有真实 auth、数据库、secret、deployment 或管理动作才新增专项 gate。
-5. 当前在制产品方向为 Provider Profile assignment 与 Model Route 的开发测试态受控配置；Admin 只保存既有 runtime inventory 引用，审批不自动启用，Gateway 最终只消费显式启用的不可变快照。
+5. Provider Profile assignment 与 Model Route 的开发测试态受控配置已完成；Admin 只保存既有 runtime inventory 引用，审批不自动启用，Gateway 只消费显式启用的不可变快照。下一条管理控制面能力必须先更新独立功能设计，不能从该专题原地放大到生产配置。
 6. 本专题完成前不并行打开 quota / billing、production secret resolver、自动路由、真实 Radish OIDC 或 production deployment。
 
 ## 验收方式

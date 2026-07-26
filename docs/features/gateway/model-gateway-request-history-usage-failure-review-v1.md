@@ -1,6 +1,6 @@
 # Model Gateway Request History / Usage & Failure Review v1
 
-更新时间：2026-07-14
+更新时间：2026-07-26
 
 状态：`model_gateway_request_history_usage_failure_review_v1_sqlite_repository_completed`
 
@@ -17,6 +17,8 @@
 2026-07-14 已按[本地 SQLite 开发持久化 v1](../../platform/local-sqlite-dev-persistence-v1.md)完成 SQLite repository：复用既有 `gateway_request_record.v1`、完整 caller scope、终态 CAS、筛选分页和 recorder 语义，新增独立 component migration、共享 runtime 注入与配置失败关闭。SQLite 时间排序采用整数纳秒，避免 RFC3339 可变小数位文本承担数据库顺序；相同时刻继续按 `request_id DESC` 稳定翻页。
 
 memory 与 SQLite 已复用作用域、全过滤器、游标、等时刻排序和并发终态单写者契约。真实文件测试覆盖 checkpoint → canceled 终态、取消后受限 detached context、重启恢复、关闭不回退、存储文档损坏拒绝、请求 / 响应正文禁入，以及应用目录、API 密钥和请求历史在同一 shared runtime 上完成可信 northbound 调用。普通 review store 写入失败仍不改写 provider outcome；API 密钥认证所要求的请求历史可用性仍在 bridge / provider 前失败关闭。
+
+2026-07-26 Provider Route 受控启用专题在不改变 `gateway_request_record.v1` northbound schema 的前提下，把可选的 Admin snapshot lineage 投影到既有 summary / detail：只有 `configuration_id + generation + snapshot_digest` 三项完整且合法时才接受，静态配置记录继续保持三项均为空。真实浏览器已验证激活快照调用、Provider 失败终态与 history 详情关联；页面明确展示精确 generation 和缩略 digest，不暴露草案、候选、endpoint、credential、请求正文或 Provider 原始响应。SQLite 与 PostgreSQL 都通过服务重启恢复。
 
 ## 功能目标
 

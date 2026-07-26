@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-26 当前执行口径：既有 Workflow、Gateway、用户工作区、RAG、Session、Prompt / Agent、回归评测与 Image Adapter 开发测试态专题均已完成并稳定维护。当前在制专题为 [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md)；批次 A 至 D 已完成领域、三模式 repository、Admin API、Gateway 快照消费、请求级固定和历史谱系，下一步进入 Admin Web 与双数据库产品连续验证。真实 secret / endpoint、production、自动路由、quota / billing 与真实 OIDC 继续关闭。
+2026-07-26 当前执行口径：既有 Workflow、Gateway、用户工作区、RAG、Session、Prompt / Agent、回归评测、Image Adapter 与 [Provider Profile / Model Route 受控启用](admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md)开发测试态专题均已完成并稳定维护。Provider / Route 已具备 Admin Web、三模式 repository、受控 activation / rollback、Gateway 不可变快照消费、Request History 谱系以及 SQLite / PostgreSQL 重启浏览器证据。下一步应先选择并更新新的真实产品能力专题，不继续派生已关闭专题的同层批次；真实 secret / endpoint、production、自动路由、quota / billing 与真实 OIDC 继续关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -41,7 +41,7 @@
 | 功能文档 | 当前作用 | 下一步默认入口 |
 | --- | --- | --- |
 | [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；Application Interaction Session、应用开发工作区、Prompt / Agent 受控调用与回归发布审查均已完成开发测试态收口 | 选择并先设计下一条用户工作区产品能力 |
-| [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route 已完成草案、审查、受控启用、Admin API 和 Gateway 快照消费；身份、配额、凭据、审计和部署边界继续保留 | 进入 Admin Web 与双数据库产品连续验证，不打开生产 secret、quota / billing 或真实 OIDC |
+| [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route 已完成草案、审查、受控启用、Admin Web、Gateway 快照消费与双数据库产品验证；身份、配额、凭据、审计和部署边界继续保留 | 选择新的管理控制面产品能力前先更新对应功能设计，不从已关闭专题原地扩生产 secret、quota / billing 或真实 OIDC |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
 | [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；HTTP Tool、RAG Retrieval、知识质量 / 晋级链、Application RAG durable invocation 和 immutable definition-bound execution 均已有可复验证据 | 作为应用开发工作区的既有权威能力来源，不从 executor 或 activation 原地扩自动执行、调度、重放或生产能力 |
 | [图片生成 / 产物返回](image-generation-artifact-return.md) | 批次 A 至 E 已完成受控 handoff、本机私有 storage、reference-only profile、test-only fixture client 与一次性交付协调，开发测试态 v1 关闭 | 如需真实 backend、resolver 或公开交付，先建立独立功能 / 集成设计 |
@@ -63,7 +63,7 @@
 | [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](user-workspace/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md) | 功能 / 策略版本与受控建议专题 | 批次 A 至批次 E 已完成，专题关闭 |
 | [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md) | 功能 / 回归评测与人工发布审查专题 | Comparison v5 / v6、Case、Suite 与 decision 兼容和 SQLite 真实浏览器链已完成，专题关闭 |
 | [Admin Control Plane 细专题入口](admin-control-plane/README.md) | 功能专题目录 | 承接 authenticated read、permission binding、repository transition 与后续管理端真实使用路径 |
-| [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md) | 功能 / 高风险管理动作专题 | 批次 A 至 D 已完成领域、三模式 repository、Admin API、Gateway snapshot consumer 和请求历史谱系；下一步进入 Admin Web 与产品连续验证 |
+| [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md) | 功能 / 高风险管理动作专题 | 批次 A 至 E 已完成并关闭，覆盖领域、三模式 repository、Admin API / Web、Gateway snapshot consumer、请求历史谱系与双数据库产品验证 |
 | [Admin Control Plane Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) | 功能 / 平台协同专题 | verified identity、tenant / audit PostgreSQL dev/test repository 与 deterministic OIDC boundary 均已完成；真实 Radish 联调 deferred |
 | [Admin Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) | 功能 / 平台协同专题 | schema / migration、manual CLI、read-only role、selector、cursor、真实 PostgreSQL、HTTP/Web 与 browser validation 已完成 |
 | [Radish OIDC Integration Test v1](admin-control-plane/radish-oidc-integration-test-v1.md) | 功能 / 集成专题 | deterministic discovery / JWKS / JWT verifier、两条 Admin auth boundary、五条 workspace membership fail-closed 与 Web 内存 token consumer 已完成；真实 Radish 联调为 `real_radish_integration_deferred`，未来按 application/client registration 恢复 |

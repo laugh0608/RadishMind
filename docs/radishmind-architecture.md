@@ -55,7 +55,7 @@ Storage adapter 历史状态锚点作为 checker 契约引用保留，不代表�
 - 登录 / 授权、数据库、部署方式优先对齐 `Radish`；未来通过 OIDC 接入 `Radish` Auth，不在 RadishMind 内部自建身份真相源。
 - Control Plane 默认使用 Go，可独立于 gateway 拆服务；当前不新增 `.NET` / ASP.NET Core 作为默认后端栈。
 - 当前 Web 已实现只读 Tenant / Audit、Admin Operations 和 Provider/Profile & Deployment Evidence Review，本地 console 也只是 ops surface；它们都不代表 production admin console。
-- Provider Profile / Model Route 批次 A 至 C 已形成独立 Go 领域、memory / SQLite / PostgreSQL 三模式 repository 和 verified Admin HTTP：Admin 以 `tenant + workspace + environment + configuration` 原子持有 draft / candidate / review / activation，既有 runtime inventory 继续持有 provider/profile 事实；approval 不改变 active snapshot，activation / rollback 以事务 generation CAS 生成新 generation。当前 snapshot 尚未接 Gateway，下一批只能由 Gateway 通过只读 provider 消费，不得读取 Admin draft / review repository 或按请求回退静态 provider。
+- Provider Profile / Model Route 批次 A 至 E 已形成独立 Go 领域、memory / SQLite / PostgreSQL 三模式 repository、verified Admin HTTP 和 Admin Web：Admin 以 `tenant + workspace + environment + configuration` 原子持有 draft / candidate / review / activation，既有 runtime inventory 继续持有 provider/profile 事实；approval 不改变 active snapshot，activation / rollback 以事务 generation CAS 生成新 generation。Gateway 只通过只读 snapshot provider 在请求开始时固定 generation / digest，不读取 Admin draft / review repository，也不按请求回退静态 provider；Request History 只保存脱敏快照谱系。
 
 ### 3. `Model Gateway / API Distribution`
 

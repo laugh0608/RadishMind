@@ -69,6 +69,9 @@ test("Gateway request history maps scoped summaries, filters, pagination, and ca
     assert.equal(result.requests[0]?.requestId, "request_gateway_1");
     assert.equal(result.requests[0]?.storeMode, "sqlite_dev");
     assert.equal(result.requests[0]?.providerDurationAvailable, true);
+    assert.equal(result.requests[0]?.providerRouteConfigurationId, "gateway-default");
+    assert.equal(result.requests[0]?.providerRouteGeneration, 3);
+    assert.equal(result.requests[0]?.providerRouteSnapshotDigest, `sha256:${"d".repeat(64)}`);
     assert.equal(result.hasMore, true);
   } finally {
     globalThis.fetch = originalFetch;
@@ -128,6 +131,7 @@ test("Gateway request history maps sanitized detail and usage availability", asy
     assert.equal(detail.usageAvailability, "not_reported");
     assert.equal(detail.totalTokens, 0);
     assert.equal(detail.consumerRef, "consumer_web_dev");
+    assert.equal(detail.providerRouteGeneration, 3);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -154,6 +158,28 @@ test("Gateway request history rejects forbidden fields at any response depth", a
   }
 });
 
+test("Gateway request history rejects partial Provider route lineage", async () => {
+  const originalFetch = globalThis.fetch;
+  const { provider_route_snapshot_digest: _snapshotDigest, ...partial } = summaryDocument();
+  globalThis.fetch = async () => jsonResponse({
+    request_id: "request_list",
+    requests: [partial],
+    next_cursor: "",
+    has_more: false,
+    failure_code: null,
+    failure_summary: "",
+    audit_ref: "audit_list",
+  });
+  try {
+    await assert.rejects(
+      () => listGatewayRequestHistory(live, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER),
+      /Gateway request history route failed/,
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 function summaryDocument() {
   return {
     schema_version: "gateway_request_record.v1",
@@ -174,6 +200,9 @@ function summaryDocument() {
     selected_provider: "mock",
     selected_profile: "mock-dev",
     selected_model: "mock-model",
+    provider_route_configuration_id: "gateway-default",
+    provider_route_generation: 3,
+    provider_route_snapshot_digest: `sha256:${"d".repeat(64)}`,
     http_status_code: 502,
     failure_code: "GATEWAY_PROVIDER_FAILED",
     failure_boundary: "provider",
