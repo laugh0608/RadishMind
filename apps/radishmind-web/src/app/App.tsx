@@ -192,6 +192,11 @@ import {
   type WorkspaceRunRecordRow,
 } from "../features/control-plane-read/workspaceRunHistory";
 import {
+  buildWorkspaceOperationsInboxViewModel,
+  type WorkspaceOperationsInboxItem,
+} from "../features/control-plane-read/workspaceOperationsInbox";
+import { WorkspaceOperationsInboxPanel } from "../features/control-plane-read/workspaceOperationsInboxPanel";
+import {
   type WorkflowRunDetailGuardPreview,
   type WorkflowRunDetailSummary,
   type WorkflowRunDetailTimelineEvent,
@@ -387,6 +392,10 @@ export function App() {
     () => buildAdminAuditLogViewModel(liveCollections["audit-summary-list-route"]),
     [liveCollections],
   );
+  const workspaceReadApplications = useMemo(
+    () => buildWorkspaceApplicationsViewModel(liveCollections["application-summary-list-route"]),
+    [liveCollections],
+  );
   const workspaceApplications = useMemo(
     () => buildWorkspaceApplicationsViewModel(
       liveCollections["application-summary-list-route"],
@@ -414,6 +423,27 @@ export function App() {
   const workspaceRunHistory = useMemo(
     () => buildWorkspaceRunHistoryViewModel(liveCollections["run-record-summary-list-route"]),
     [liveCollections],
+  );
+  const workspaceOperationsInbox = useMemo(
+    () => buildWorkspaceOperationsInboxViewModel({
+      activeWorkspaceId,
+      referenceTime: new Date().toISOString(),
+      sourceSnapshotReady:
+        activeDevLiveConfig.mode !== "dev_live_http" || devLiveState.status === "ready",
+      workspaceApplications: workspaceReadApplications,
+      workspaceApiKeys,
+      workspaceWorkflowDefinitions,
+      workspaceRunHistory,
+    }),
+    [
+      activeWorkspaceId,
+      activeDevLiveConfig.mode,
+      devLiveState.status,
+      workspaceReadApplications,
+      workspaceApiKeys,
+      workspaceWorkflowDefinitions,
+      workspaceRunHistory,
+    ],
   );
   const modelGatewayOverview = useMemo(
     () =>
@@ -960,6 +990,15 @@ export function App() {
     }
     applyWorkflowSelectionPatch(selectionForRun(runId, { workspaceRunHistory }));
   };
+  const handleOpenWorkspaceOperationsInboxItem = (item: WorkspaceOperationsInboxItem) => {
+    if (item.sourceId === "applications" && item.applicationRef) {
+      handleSelectApplication(item.applicationRef);
+    } else if (item.sourceId === "workflow_definitions" && item.workflowDefinitionId) {
+      handleSelectWorkflowDefinition(item.workflowDefinitionId);
+    } else if (item.sourceId === "runs" && item.runId) {
+      handleSelectRun(item.runId);
+    }
+  };
   const handleSelectWorkflowDraft = (draftId: string) => {
     if (workflowExecutorOperationPending) {
       return;
@@ -1442,6 +1481,7 @@ export function App() {
           <div className="nav-link-group" aria-label="User workspace sections">
             <p className="nav-link-group-label">Workspace</p>
             <a href="#workflow-user-workspace-home">Workspace Home</a>
+            <a href="#workspace-operations-inbox">Operations Inbox</a>
             <a href="#workspace-applications">Applications</a>
             <a href="#application-api-integration">API Integration</a>
             <a href="#application-publish-review">Publish Review</a>
@@ -1528,6 +1568,7 @@ export function App() {
               value={workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? "ready" : "blocked"}
             />
             <Fact label="Run page" value={workspaceRunHistory.canRenderRuns ? "ready" : "blocked"} />
+            <Fact label="Inbox" value={workspaceOperationsInbox.status} />
             <Fact
               label="Action guard"
               value={workflowBlockedActionPreview.canRenderBlockedActionPreview ? "ready" : "blocked"}
@@ -1608,6 +1649,10 @@ export function App() {
           config={activeDevLiveConfig}
           activeWorkspaceId={activeWorkspaceId}
           onActiveWorkspaceSwitch={handleActiveWorkspaceSwitch}
+        />
+        <WorkspaceOperationsInboxPanel
+          inbox={workspaceOperationsInbox}
+          onOpenItem={handleOpenWorkspaceOperationsInboxItem}
         />
         <WorkflowUserWorkspaceHomePanel
           home={workflowUserWorkspaceHome}

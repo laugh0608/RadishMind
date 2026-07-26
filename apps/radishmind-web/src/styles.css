@@ -2699,12 +2699,121 @@ h4 {
   overflow-wrap: anywhere;
 }
 
+.workspace-operations-inbox-hero,
+.workspace-operations-inbox-metrics article,
+.workspace-operations-inbox-coverage article,
+.workspace-operations-inbox-item,
+.workspace-operations-inbox-empty,
 .workflow-user-workspace-home-hero,
 .workflow-user-workspace-home-card {
   min-width: 0;
   border: 1px solid #d8dee8;
   border-radius: 8px;
   background: #ffffff;
+}
+
+.workspace-operations-inbox {
+  display: grid;
+  gap: 14px;
+}
+
+.workspace-operations-inbox-hero {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.2fr) minmax(300px, 0.8fr);
+  gap: 16px;
+  padding: 16px;
+}
+
+.workspace-operations-inbox-hero h4,
+.workspace-operations-inbox-item h4,
+.workspace-operations-inbox-empty h4 {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.workspace-operations-inbox-hero p,
+.workspace-operations-inbox-metrics p,
+.workspace-operations-inbox-coverage p,
+.workspace-operations-inbox-item p,
+.workspace-operations-inbox-empty p {
+  margin: 8px 0 0;
+  color: #4e5f73;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.workspace-operations-inbox-metrics,
+.workspace-operations-inbox-coverage,
+.workspace-operations-inbox-items {
+  display: grid;
+  gap: 10px;
+}
+
+.workspace-operations-inbox-metrics,
+.workspace-operations-inbox-coverage {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.workspace-operations-inbox-items {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workspace-operations-inbox-metrics article,
+.workspace-operations-inbox-coverage article,
+.workspace-operations-inbox-item,
+.workspace-operations-inbox-empty {
+  padding: 14px;
+}
+
+.workspace-operations-inbox-metrics span,
+.workspace-operations-inbox-coverage span {
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.workspace-operations-inbox-metrics strong,
+.workspace-operations-inbox-coverage strong {
+  display: block;
+  margin-top: 6px;
+  color: #17202a;
+  font-size: 17px;
+}
+
+.workspace-operations-inbox-item.critical,
+.workspace-operations-inbox-item.high {
+  border-color: #e7c7c7;
+  background: #fffafa;
+}
+
+.workspace-operations-inbox-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.workspace-operations-inbox-row > div {
+  min-width: 0;
+}
+
+.workspace-operations-inbox-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.workspace-operations-inbox-meta dd {
+  overflow-wrap: anywhere;
+}
+
+.workspace-operations-inbox-item > a {
+  display: inline-flex;
+  margin-top: 12px;
+  color: #245a94;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .workflow-user-workspace-home-hero {
@@ -5147,6 +5256,11 @@ dd {
 }
 
 @media (max-width: 820px) {
+  .workspace-operations-inbox-hero,
+  .workspace-operations-inbox-metrics,
+  .workspace-operations-inbox-coverage,
+  .workspace-operations-inbox-items,
+  .workspace-operations-inbox-meta,
   .workflow-user-workspace-home-hero,
   .workflow-user-workspace-home-layout,
   .workflow-user-workspace-home-metric-grid,
@@ -5164,6 +5278,7 @@ dd {
   }
 
   .workflow-user-workspace-home-row-main,
+  .workspace-operations-inbox-row,
   .workflow-review-handoff-graph-group-heading,
   .saved-draft-list-heading {
     flex-wrap: wrap;

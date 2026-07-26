@@ -1,11 +1,12 @@
 # 用户工作区细专题入口
 
-更新时间：2026-07-25
+更新时间：2026-07-26
 
 本目录承接用户工作区中跨应用、模型发现、接入、调用与审查的具体功能专题。产品面长期边界继续以 [用户工作区设计与开发文档](../user-workspace.md) 为准。
 
 ## 当前专题
 
+- [工作区运营收件箱（开发 / 测试态）v1](workspace-operations-inbox-dev-test-v1.md)：批次 A 已完成四类既有 owner 首分页关注项、来源覆盖、稳定严重度、Web 既有详情跳转和 workspace 切换失败关闭；不新增运营或修复真相源。
 - [Workspace-scoped Read Transition / 工作区选择与成员资格绑定（开发 / 测试态）v1](workspace-scoped-read-transition-dev-test-v1.md)：批次 A、B 已完成共享 membership provider、五类 route 授权、四类 durable owner 读投影、workspace-wide Run cursor 与非持久化 Web selector；quota 和生产 membership 继续关闭。
 - [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md)：Prompt v6 / Agent v7 已严格接入既有 Comparison、Evaluation Case、Suite 与人工 decision；SQLite Agent case → suite → `approved v1` 和隐私复验均已完成，专题关闭。
 - [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md)：批次 A 至批次 E 已完成；Profile、发布与 assignment、唯一受控建议、Session / Run、类型专属 Web 与双数据库真实验收形成闭环，专题关闭。
@@ -24,6 +25,7 @@
 
 ## 下一步
 
+- 工作区运营收件箱批次 A 已完成；先以真实开发测试使用反馈判断是否需要跨全部分页窗口的服务端 read projection。没有需求与统一 owner cursor 契约前不启动批次 B。
 - Workspace-scoped Read Transition 开发 / 测试态批次 A、B 已完成。条件式批次 C 只有在取得 reviewed Radish membership owner / endpoint、撤销 / 过期语义与 OIDC mapping 后才启动；否则回到功能入口选择新的用户工作区能力。
 - Prompt / Agent 回归评测与发布审查专题已完成并关闭；下一步先设计新的用户工作区产品能力，不继续派生本专题同层 readiness、refresh 或 gate-only 批次。
 - Prompt Application 批次 A 至 E 已完成并关闭：memory / SQLite / PostgreSQL 语义、Web、双数据库连续链、服务重启、CAS / drift / cancel 和敏感信息复验均已通过。

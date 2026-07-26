@@ -20,6 +20,7 @@
 - [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md) 已完成并关闭：受限模板、不可变版本、Configuration Draft v3、Publish Candidate v3、Runtime Assignment、API key / Session v2、Run v6 与下游审查链均已接入；SQLite / PostgreSQL 连续链、重启恢复、CAS / authority drift / cancel 负向验收和浏览器隐私复验均已通过。
 - [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](user-workspace/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md) 已完成批次 A 至批次 E：strict contracts、policy compiler、三种 Profile owner、Configuration / Candidate v4、assignment、`agent_copilot:invoke`、Session / Turn v3、Run v7、类型专属 Web 与双数据库真实验收均已落地，专题关闭。
 - [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md) 已完成：Prompt v6 / Comparison v5 与 Agent v7 / Comparison v6 已严格接入既有 Evaluation Case、Suite 和人工 decision；SQLite 真实浏览器完成 Agent case → suite → `approved v1`，没有新增评测 owner 或自动发布能力。
+- [工作区运营收件箱（开发 / 测试态）v1](user-workspace/workspace-operations-inbox-dev-test-v1.md) 批次 A 已完成：active workspace 下的 Applications、API Keys、Workflow Definitions 与 Runs 首分页脱敏快照可投影为确定性关注队列，显式标记 partial / unavailable coverage，并跳转既有审查 surface；不新增 incident、notification、remediation 或 quota 真相源。
 - 工作区首页和工作流定义已支持创建本地工作流草案并进入草案设计器；草案保存复用仅开发的已保存草案消费端，不代表生产持久化已成立。
 - `User Workspace Saved Draft List v1` 已在工作区首页支持仅开发的已保存草案列表：显示当前应用下已保存草案的脱敏摘要、空结果 / 失败状态、刷新和恢复。默认内存、聚合 SQLite 与显式 PostgreSQL 开发测试态存储库均可承载该路径，但不代表生产持久化已成立。
 - 草案设计器已支持本地节点新增、移动、删除保护、属性编辑和边重建；校验检查器、执行计划预览和运行时准入检查器使用当前活跃草案，不代表工作流可正式发布或执行。
@@ -39,7 +40,7 @@
 
 ## 下一批开发方向
 
-1. Prompt / Agent 回归评测与发布审查专题已经完成并关闭。下一步先从功能设计入口选择新的用户工作区产品能力，不继续扩展本专题或派生同层门禁切片。
+1. 工作区运营收件箱批次 A 已完成。先收集开发测试使用反馈；只有真实需要跨全部分页窗口，且四类 owner 的统一稳定 cursor 契约成立时才评审批次 B。
 2. Prompt / Agent 继续复用 canonical Run、Comparison、Evaluation Case / Suite 与 decision owner；不复制评测算法，不把人工 `approved` 接成自动 candidate、assignment、release 或 deploy。Agent / Copilot 仍复用 canonical `CopilotRequest / CopilotResponse`，不扩 agent loop、工具执行或业务写回。
 3. 本地 SQLite、应用目录、API 密钥和 Application Interaction Session 专题均已完成并关闭；不继续扩同层页面、准入文档、检查器或证据链。应用运行观测只有在全分页统计、可信 reported usage 或 quota / billing owner 成立时才评审服务端 summary。
 4. 一次性令牌继续只保存在当前 Web 组件内存；刷新、路由离开、应用 / 身份切换、组件卸载和服务重启都不得恢复原始令牌。
