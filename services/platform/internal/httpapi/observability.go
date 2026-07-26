@@ -166,6 +166,30 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryProviderInventory,
 			defaultMessage:  "model not found",
 		},
+		gatewayProviderRouteFailureSnapshotUnavailable: {
+			statusCode:      http.StatusServiceUnavailable,
+			errorType:       "configuration_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "an active Provider route snapshot is unavailable",
+		},
+		gatewayProviderRouteFailureNotFound: {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "the requested model and protocol are not present in the active Provider route snapshot",
+		},
+		gatewayProviderRouteFailureInventoryMismatch: {
+			statusCode:      http.StatusServiceUnavailable,
+			errorType:       "provider_inventory_error",
+			failureBoundary: errorBoundaryProviderInventory,
+			defaultMessage:  "the active Provider route snapshot no longer matches runtime inventory",
+		},
+		gatewayProviderRouteFailureOverrideForbidden: {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "Provider overrides are forbidden when active snapshot routing is enabled",
+		},
 		"MISSING_MODEL_ID": {
 			statusCode:      http.StatusBadRequest,
 			errorType:       "invalid_request_error",

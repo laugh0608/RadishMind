@@ -20,18 +20,21 @@ const (
 )
 
 type northboundSelection struct {
-	provider            string
-	providerProfile     string
-	model               string
-	upstreamModel       string
-	source              string
-	inventoryKind       string
-	credentialState     string
-	deploymentMode      string
-	authMode            string
-	streaming           bool
-	northboundRoutes    []string
-	northboundProtocols []string
+	provider             string
+	providerProfile      string
+	model                string
+	upstreamModel        string
+	source               string
+	routeConfigurationID string
+	routeGeneration      int
+	routeSnapshotDigest  string
+	inventoryKind        string
+	credentialState      string
+	deploymentMode       string
+	authMode             string
+	streaming            bool
+	northboundRoutes     []string
+	northboundProtocols  []string
 }
 
 type northboundCanonicalRequestOptions struct {
@@ -547,6 +550,11 @@ func buildNorthboundSelectionMetadata(selection northboundSelection) map[string]
 		"fallback_policy":           fallbackPolicyDisabled,
 		"streaming":                 selection.streaming,
 	}
+	if selection.routeConfigurationID != "" {
+		metadata["provider_route_configuration_id"] = strings.TrimSpace(selection.routeConfigurationID)
+		metadata["provider_route_generation"] = selection.routeGeneration
+		metadata["provider_route_snapshot_digest"] = strings.TrimSpace(selection.routeSnapshotDigest)
+	}
 	if selection.credentialState != "" {
 		metadata["credential_state"] = strings.TrimSpace(selection.credentialState)
 	}
@@ -672,7 +680,8 @@ func (s *Server) buildBridgeEnvelopeOptions(selection northboundSelection, tempe
 		configuredProvider = "mock"
 	}
 	configuredProfile := strings.TrimSpace(s.config.ProviderProfile)
-	if options.Provider == configuredProvider && (configuredProvider != "openai-compatible" || options.ProviderProfile == configuredProfile) {
+	if selection.source != gatewayProviderRouteSelectionSource &&
+		options.Provider == configuredProvider && (configuredProvider != "openai-compatible" || options.ProviderProfile == configuredProfile) {
 		options.BaseURL = strings.TrimSpace(s.config.BaseURL)
 		options.APIKey = strings.TrimSpace(s.config.APIKey)
 		if options.Model == "" {

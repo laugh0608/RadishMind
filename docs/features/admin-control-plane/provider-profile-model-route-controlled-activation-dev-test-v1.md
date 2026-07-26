@@ -2,7 +2,7 @@
 
 更新时间：2026-07-26
 
-状态：`admin_provider_route_controlled_activation_dev_test_v1_batch_c_completed_batch_d_ready`
+状态：`admin_provider_route_controlled_activation_dev_test_v1_batch_d_completed_batch_e_ready`
 
 ## 当前结论
 
@@ -271,10 +271,11 @@ HTTP 状态固定分层：缺失 / 无效身份为 `401`，权限或环境禁止
 
 ### 批次 D：Gateway 不可变快照消费
 
-- 引入只读 snapshot provider interface，不让 Gateway 读取 Admin repository。
-- 请求开始时固定 generation / digest，历史写入脱敏 lineage。
-- 验证原子切换、在途请求固定、无效路由零 bridge 调用和不回退。
-- 保留现有静态配置模式作为明确选择，不在单次请求内混用两个来源。
+- 已引入只读 snapshot provider interface，Gateway 不读取 Admin 草案、候选、审查或历史 repository。
+- `static_config` 保持默认；显式 `admin_snapshot_dev_test` 要求 API key 开发测试态认证、Request History、环境和配置键完整，两个来源不在单次请求内混用。
+- 三协议已按 `protocol + model` 精确匹配已激活 route，并在请求开始时固定 configuration、generation、digest、runtime profile 与 resolved model。
+- snapshot / route / profile 缺失、override 和 inventory digest 漂移均在 bridge 前失败，不回退静态配置；后续 activation 只改变下一请求。
+- Request History 已在 memory、SQLite 与 PostgreSQL 保存脱敏 configuration / generation / digest；三协议、原子切换、在途固定、重启恢复、零 bridge 调用和 race 验证通过。
 
 ### 批次 E：Admin Web 与连续产品验证
 

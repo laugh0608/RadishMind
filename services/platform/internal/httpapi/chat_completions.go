@@ -99,9 +99,16 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 		locale = strings.TrimSpace(chatRequest.RadishMind.Locale)
 	}
 
-	selection := s.resolveNorthboundSelection(ctx, chatRequest.Model, chatRequest.RadishMind)
+	selection, selectionFailure := s.resolveGatewayNorthboundSelection(
+		ctx, trace.gatewayRequestContext, northboundProtocolChatCompletions,
+		chatRequest.Model, chatRequest.RadishMind,
+	)
 	trace.applySelection(selection)
 	s.checkpointGatewayRequestTrace(&trace, chatRequest.Stream)
+	if selectionFailure != "" {
+		s.writePlatformError(writer, trace, selectionFailure, "")
+		return
+	}
 	temperature := effectiveTemperature(chatRequest.Temperature, s.config.Temperature)
 
 	canonicalRequest, err := buildChatCanonicalRequest(chatRequest, locale, selection, trace.requestID)

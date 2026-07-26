@@ -88,9 +88,16 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 	ctx, cancel := context.WithTimeout(request.Context(), s.config.BridgeTimeout)
 	defer cancel()
 
-	selection := s.resolveNorthboundSelection(ctx, messageRequest.Model, messageRequest.RadishMind)
+	selection, selectionFailure := s.resolveGatewayNorthboundSelection(
+		ctx, trace.gatewayRequestContext, northboundProtocolMessages,
+		messageRequest.Model, messageRequest.RadishMind,
+	)
 	trace.applySelection(selection)
 	s.checkpointGatewayRequestTrace(&trace, messageRequest.Stream)
+	if selectionFailure != "" {
+		s.writePlatformError(writer, trace, selectionFailure, "")
+		return
+	}
 	promptText, northboundFields, err := buildMessagesPromptText(messageRequest, selection)
 	if err != nil {
 		s.writePlatformError(writer, trace, "INVALID_MESSAGES_REQUEST", err.Error())

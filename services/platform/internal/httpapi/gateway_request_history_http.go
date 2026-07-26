@@ -13,29 +13,32 @@ const (
 )
 
 type gatewayRequestSummaryDocument struct {
-	SchemaVersion             string                          `json:"schema_version"`
-	RecordVersion             int                             `json:"record_version"`
-	StoreMode                 string                          `json:"store_mode"`
-	RequestID                 string                          `json:"request_id"`
-	AuditRef                  string                          `json:"audit_ref"`
-	Route                     string                          `json:"route"`
-	Protocol                  string                          `json:"protocol"`
-	Stream                    bool                            `json:"stream"`
-	Status                    GatewayRequestStatus            `json:"status"`
-	StartedAt                 string                          `json:"started_at"`
-	CompletedAt               string                          `json:"completed_at"`
-	DurationMS                int64                           `json:"duration_ms"`
-	ProviderDurationMS        int64                           `json:"provider_duration_ms"`
-	ProviderDurationAvailable bool                            `json:"provider_duration_available"`
-	SelectionSource           string                          `json:"selection_source"`
-	SelectedProvider          string                          `json:"selected_provider"`
-	SelectedProfile           string                          `json:"selected_profile"`
-	SelectedModel             string                          `json:"selected_model"`
-	HTTPStatusCode            int                             `json:"http_status_code"`
-	FailureCode               string                          `json:"failure_code"`
-	FailureBoundary           string                          `json:"failure_boundary"`
-	UsageAvailability         GatewayRequestUsageAvailability `json:"usage_availability"`
-	StaleStarted              bool                            `json:"stale_started"`
+	SchemaVersion                string                          `json:"schema_version"`
+	RecordVersion                int                             `json:"record_version"`
+	StoreMode                    string                          `json:"store_mode"`
+	RequestID                    string                          `json:"request_id"`
+	AuditRef                     string                          `json:"audit_ref"`
+	Route                        string                          `json:"route"`
+	Protocol                     string                          `json:"protocol"`
+	Stream                       bool                            `json:"stream"`
+	Status                       GatewayRequestStatus            `json:"status"`
+	StartedAt                    string                          `json:"started_at"`
+	CompletedAt                  string                          `json:"completed_at"`
+	DurationMS                   int64                           `json:"duration_ms"`
+	ProviderDurationMS           int64                           `json:"provider_duration_ms"`
+	ProviderDurationAvailable    bool                            `json:"provider_duration_available"`
+	SelectionSource              string                          `json:"selection_source"`
+	SelectedProvider             string                          `json:"selected_provider"`
+	SelectedProfile              string                          `json:"selected_profile"`
+	SelectedModel                string                          `json:"selected_model"`
+	ProviderRouteConfigurationID string                          `json:"provider_route_configuration_id,omitempty"`
+	ProviderRouteGeneration      int                             `json:"provider_route_generation,omitempty"`
+	ProviderRouteSnapshotDigest  string                          `json:"provider_route_snapshot_digest,omitempty"`
+	HTTPStatusCode               int                             `json:"http_status_code"`
+	FailureCode                  string                          `json:"failure_code"`
+	FailureBoundary              string                          `json:"failure_boundary"`
+	UsageAvailability            GatewayRequestUsageAvailability `json:"usage_availability"`
+	StaleStarted                 bool                            `json:"stale_started"`
 }
 
 type gatewayRequestDetailDocument struct {
@@ -246,7 +249,10 @@ func gatewayRequestSummaryFromRecord(record GatewayRequestRecord, now time.Time)
 		ProviderDurationAvailable: record.ProviderDurationAvailable,
 		SelectionSource:           record.SelectionSource, SelectedProvider: record.SelectedProvider,
 		SelectedProfile: record.SelectedProfile, SelectedModel: record.SelectedModel,
-		HTTPStatusCode: record.HTTPStatusCode, FailureCode: record.FailureCode,
+		ProviderRouteConfigurationID: record.ProviderRouteConfigurationID,
+		ProviderRouteGeneration:      record.ProviderRouteGeneration,
+		ProviderRouteSnapshotDigest:  record.ProviderRouteSnapshotDigest,
+		HTTPStatusCode:               record.HTTPStatusCode, FailureCode: record.FailureCode,
 		FailureBoundary: record.FailureBoundary, UsageAvailability: record.Usage.Availability,
 		StaleStarted: gatewayRequestIsStale(record, now),
 	}

@@ -1567,6 +1567,63 @@ func TestAdminProviderRouteStoreConfiguration(t *testing.T) {
 	}
 }
 
+func TestGatewayProviderRouteSourceConfiguration(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_GATEWAY_AUTH_MODE", "api_key_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_SOURCE", "admin_snapshot_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_ENVIRONMENT", "test")
+	t.Setenv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_CONFIGURATION_ID", "gateway-default")
+
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load Gateway Provider route configuration: %v", err)
+	}
+	if EffectiveGatewayProviderRouteSource(cfg) != "admin_snapshot_dev_test" ||
+		cfg.GatewayProviderRouteEnvironment != "test" ||
+		cfg.GatewayProviderRouteConfigurationID != "gateway-default" {
+		t.Fatalf("unexpected Gateway Provider route configuration: %#v", cfg)
+	}
+	summary := cfg.SanitizedSummary()
+	if summary.GatewayProviderRouteSource != "admin_snapshot_dev_test" ||
+		summary.GatewayProviderRouteEnvironment != "test" ||
+		summary.GatewayProviderRouteConfigurationID != "gateway-default" ||
+		summary.FieldSources["gateway_provider_route_source"] != configSourceEnv {
+		t.Fatalf("unexpected Gateway Provider route summary: %#v", summary)
+	}
+
+	cfg = defaultConfig()
+	cfg.GatewayProviderRouteEnvironment = "test"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "Gateway static_config provider route source forbids Admin snapshot scope" {
+		t.Fatalf("static Provider routing accepted Admin snapshot scope: %v", err)
+	}
+
+	cfg = defaultConfig()
+	cfg.GatewayProviderRouteSource = "admin_snapshot_dev_test"
+	cfg.GatewayProviderRouteEnvironment = "production"
+	cfg.GatewayProviderRouteConfigurationID = "gateway-default"
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	cfg.ApplicationCatalogDevHTTPEnabled = true
+	cfg.APIKeyLifecycleDevHTTPEnabled = true
+	cfg.GatewayAuthMode = "api_key_dev_test"
+	cfg.GatewayRequestHistoryDevEnabled = true
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "Gateway admin_snapshot_dev_test provider route environment must be development or test" {
+		t.Fatalf("production Provider route environment was not rejected: %v", err)
+	}
+
+	cfg.GatewayProviderRouteEnvironment = "test"
+	cfg.GatewayProviderRouteConfigurationID = "invalid/config"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "Gateway admin_snapshot_dev_test provider route configuration ID is invalid" {
+		t.Fatalf("invalid Provider route configuration ID was not rejected: %v", err)
+	}
+}
+
 func clearPlatformEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{
@@ -1662,6 +1719,9 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_API_KEY_DATABASE_TIMEOUT",
 		"RADISHMIND_GATEWAY_AUTH_MODE",
+		"RADISHMIND_GATEWAY_PROVIDER_ROUTE_SOURCE",
+		"RADISHMIND_GATEWAY_PROVIDER_ROUTE_ENVIRONMENT",
+		"RADISHMIND_GATEWAY_PROVIDER_ROUTE_CONFIGURATION_ID",
 		"RADISHMIND_WORKFLOW_RUN_STORE",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",

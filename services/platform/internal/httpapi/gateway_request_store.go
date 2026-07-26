@@ -195,10 +195,23 @@ func validateGatewayRequestStoreRecord(
 		record.ProviderDurationMS < 0 || record.HTTPStatusCode < 0 || record.HTTPStatusCode > 599 {
 		return errGatewayRequestStoreContract
 	}
-	for _, reference := range []string{record.SelectionSource, record.SelectedProvider, record.SelectedProfile, record.SelectedModel} {
+	for _, reference := range []string{
+		record.SelectionSource, record.SelectedProvider, record.SelectedProfile, record.SelectedModel,
+		record.ProviderRouteConfigurationID, record.ProviderRouteSnapshotDigest,
+	} {
 		if reference != "" && !validGatewayRequestReference(reference, 256) {
 			return errGatewayRequestStoreContract
 		}
+	}
+	if record.ProviderRouteGeneration < 0 ||
+		(record.ProviderRouteConfigurationID == "") != (record.ProviderRouteGeneration == 0) ||
+		(record.ProviderRouteConfigurationID == "") != (record.ProviderRouteSnapshotDigest == "") {
+		return errGatewayRequestStoreContract
+	}
+	if record.ProviderRouteConfigurationID != "" &&
+		(!adminProviderRouteIdentifierPattern.MatchString(record.ProviderRouteConfigurationID) ||
+			!adminProviderRouteDigestPattern.MatchString(record.ProviderRouteSnapshotDigest)) {
+		return errGatewayRequestStoreContract
 	}
 	startedAt, err := time.Parse(time.RFC3339Nano, record.StartedAt)
 	if err != nil || startedAt.IsZero() {

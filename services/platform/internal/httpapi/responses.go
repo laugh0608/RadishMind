@@ -75,9 +75,16 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 	ctx, cancel := context.WithTimeout(request.Context(), s.config.BridgeTimeout)
 	defer cancel()
 
-	selection := s.resolveNorthboundSelection(ctx, responseRequest.Model, responseRequest.RadishMind)
+	selection, selectionFailure := s.resolveGatewayNorthboundSelection(
+		ctx, trace.gatewayRequestContext, northboundProtocolResponses,
+		responseRequest.Model, responseRequest.RadishMind,
+	)
 	trace.applySelection(selection)
 	s.checkpointGatewayRequestTrace(&trace, responseRequest.Stream)
+	if selectionFailure != "" {
+		s.writePlatformError(writer, trace, selectionFailure, "")
+		return
+	}
 	promptText, northboundFields, err := buildResponsesPromptText(responseRequest, selection)
 	if err != nil {
 		s.writePlatformError(writer, trace, "INVALID_RESPONSES_REQUEST", err.Error())

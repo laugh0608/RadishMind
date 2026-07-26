@@ -115,6 +115,9 @@ func TestGatewayRequestSQLiteCheckpointTerminalRestartAndNoFallback(t *testing.T
 	record.SelectedProvider = "mock"
 	record.SelectedProfile = "profile_sqlite"
 	record.SelectedModel = "model_sqlite"
+	record.ProviderRouteConfigurationID = "gateway-default"
+	record.ProviderRouteGeneration = 4
+	record.ProviderRouteSnapshotDigest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	if err := store.UpdateRequest(requestContext, &record); err != nil || record.RecordVersion != 2 ||
 		record.Status != GatewayRequestStatusStarted {
 		t.Fatalf("checkpoint Gateway request SQLite record: record=%#v err=%v", record, err)
@@ -186,7 +189,9 @@ func TestGatewayRequestSQLiteCheckpointTerminalRestartAndNoFallback(t *testing.T
 	restartedStore := newSQLiteGatewayRequestStore(secondRuntime.DB())
 	restored, found, err := restartedStore.ReadRequest(requestContext, record.RequestID)
 	if err != nil || !found || restored.Status != GatewayRequestStatusCanceled || restored.RecordVersion != 3 ||
-		restored.StoreMode != gatewayRequestStoreModeSQLiteDev || restored.SelectedProfile != "profile_sqlite" {
+		restored.StoreMode != gatewayRequestStoreModeSQLiteDev || restored.SelectedProfile != "profile_sqlite" ||
+		restored.ProviderRouteConfigurationID != "gateway-default" || restored.ProviderRouteGeneration != 4 ||
+		restored.ProviderRouteSnapshotDigest != record.ProviderRouteSnapshotDigest {
 		t.Fatalf("restore Gateway request SQLite record: found=%v record=%#v err=%v", found, restored, err)
 	}
 	page, err := restartedStore.ListRequests(requestContext, GatewayRequestListFilter{

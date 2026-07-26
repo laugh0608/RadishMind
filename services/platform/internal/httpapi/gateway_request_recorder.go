@@ -175,6 +175,9 @@ func applyGatewayRequestSelection(record *GatewayRequestRecord, trace requestTra
 	record.SelectedProvider = strings.TrimSpace(trace.selection.provider)
 	record.SelectedProfile = strings.TrimSpace(trace.selection.providerProfile)
 	record.SelectedModel = strings.TrimSpace(trace.selection.model)
+	record.ProviderRouteConfigurationID = strings.TrimSpace(trace.selection.routeConfigurationID)
+	record.ProviderRouteGeneration = trace.selection.routeGeneration
+	record.ProviderRouteSnapshotDigest = strings.TrimSpace(trace.selection.routeSnapshotDigest)
 }
 
 func gatewayMetadataInt64(metadata map[string]any, key string) (int64, bool) {

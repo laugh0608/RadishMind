@@ -65,6 +65,9 @@ func TestPostgresGatewayRequestStoreIntegration(t *testing.T) {
 		record.SelectedProvider = "mock"
 		record.SelectedProfile = "profile_pg"
 		record.SelectedModel = "model_pg"
+		record.ProviderRouteConfigurationID = "gateway-default"
+		record.ProviderRouteGeneration = index + 1
+		record.ProviderRouteSnapshotDigest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 		if err = store.CreateRequest(requestContext, &record); err != nil {
 			t.Fatal(err)
 		}
@@ -93,7 +96,11 @@ func TestPostgresGatewayRequestStoreIntegration(t *testing.T) {
 	}
 	store = newPostgresGatewayRequestStore(reopened)
 	recovered, found, err := store.ReadRequest(requestContext, "request_pg_c")
-	if err != nil || !found || recovered.Status != GatewayRequestStatusSucceeded || recovered.StoreMode != gatewayRequestStoreModePostgresDevTest {
+	if err != nil || !found || recovered.Status != GatewayRequestStatusSucceeded ||
+		recovered.StoreMode != gatewayRequestStoreModePostgresDevTest ||
+		recovered.ProviderRouteConfigurationID != "gateway-default" ||
+		recovered.ProviderRouteGeneration != 3 ||
+		recovered.ProviderRouteSnapshotDigest != "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" {
 		t.Fatalf("Gateway request restart recovery failed: found=%v record=%#v err=%v", found, recovered, err)
 	}
 

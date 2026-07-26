@@ -2,7 +2,7 @@
 
 更新时间：2026-07-26
 
-状态：`admin_provider_route_controlled_activation_dev_test_v1_batch_c_completed_batch_d_ready`
+状态：`admin_provider_route_controlled_activation_dev_test_v1_batch_d_completed_batch_e_ready`
 
 对应功能文档：[Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](../features/admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md)
 
@@ -134,6 +134,15 @@ Admin draft
 - 在途请求不因后续激活发生 provider 漂移。
 - route missing、profile missing、inventory drift 和 snapshot unavailable 均在 bridge 前失败。
 - 现有 northbound contract 和静态配置回滚模式保持兼容。
+
+### 完成记录
+
+- 新增只读 `gatewayProviderRouteSnapshotProvider`，Gateway 只取得当前 active snapshot，不读取 Admin 草案、候选、审查或 activation history。
+- `RADISHMIND_GATEWAY_PROVIDER_ROUTE_SOURCE` 默认使用 `static_config`；显式 `admin_snapshot_dev_test` 必须同时配置 `development | test` 环境、`configuration_id`、API key 开发测试态认证和 Request History，两个来源不能在单次请求内混用。
+- 三种 northbound 协议按 `protocol + model` 精确匹配 route，再解析稳定 assignment 与当前 bridge inventory；snapshot 缺失、route 缺失、override、profile 缺失或 inventory digest 漂移均在 provider bridge 前失败，不回退静态 provider/profile。
+- 请求开始时固定 configuration、generation、snapshot digest、runtime profile 和 resolved model；后续 activation 只影响下一请求，在途请求继续使用已取得的选择。
+- Request History summary / detail 及 memory、SQLite、PostgreSQL 脱敏记录新增 configuration、generation 与 snapshot digest，不保存草案、候选、endpoint、credential 或 runtime 原始配置。
+- 三协议 handler、原子切换、在途固定、零 bridge 调用、静态兼容、SQLite 重启、PostgreSQL 重启消费与历史恢复、定向 race 和完整 Platform Go 测试均已通过；下一步只进入批次 E。
 
 ## 批次 E：Admin Web 与产品链
 

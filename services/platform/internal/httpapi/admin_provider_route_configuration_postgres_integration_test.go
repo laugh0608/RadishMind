@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"radishmind.local/services/platform/internal/bridge"
+	"radishmind.local/services/platform/internal/config"
 	adminproviderroutemigrations "radishmind.local/services/platform/migrations/admin_provider_routes"
 )
 
@@ -52,7 +54,14 @@ func TestAdminProviderRoutePostgresLifecycleRestartCASAndRuntimeRole(t *testing.
 		t.Fatalf("open admin provider route runtime pool: %v", err)
 	}
 	repository := newPostgresAdminProviderRouteRepository(runtimePool)
-	resolver := newFakeAdminProviderInventoryResolver()
+	primaryProfile := adminProviderRouteBridgeProfile()
+	secondaryProfile := primaryProfile
+	secondaryProfile.Profile = "mock-secondary"
+	secondaryProfile.NormalizedProfile = "mock-secondary"
+	routeBridge := &fakeBridge{inventory: bridge.ProviderInventory{
+		Profiles: []bridge.ProviderProfileDescription{primaryProfile, secondaryProfile},
+	}}
+	resolver := bridgeAdminProviderInventoryResolver{bridge: routeBridge}
 	service := newAdminProviderRouteService(repository, resolver)
 	requestContext := adminProviderRouteTestContext()
 	requestContext.RequestContext = ctx
@@ -200,6 +209,32 @@ func TestAdminProviderRoutePostgresLifecycleRestartCASAndRuntimeRole(t *testing.
 		candidate.Candidate.CandidateState != adminProviderRouteCandidateApproved ||
 		candidate.Candidate.Review == nil {
 		t.Fatalf("restore PostgreSQL candidate and review: %#v", candidate)
+	}
+	gatewayServer := &Server{
+		bridge: routeBridge,
+		config: config.Config{
+			GatewayProviderRouteSource:          "admin_snapshot_dev_test",
+			GatewayProviderRouteEnvironment:     "test",
+			GatewayProviderRouteConfigurationID: "gateway-default",
+		},
+		providerRouteSnapshotProvider: adminProviderRouteSnapshotProvider{
+			repository: newPostgresAdminProviderRouteRepository(reopened),
+		},
+	}
+	gatewayContext := GatewayRequestContext{
+		RequestContext: ctx, TenantRef: requestContext.TenantRef, WorkspaceID: requestContext.WorkspaceID,
+		ConsumerRef: "api_key:key_aaaaaaaaaaaaaaaa", ApplicationID: "app-postgres-route",
+		SubjectRef: requestContext.ActorRef, AuditContext: "api-key-dev-test",
+		Source: gatewayAPIKeyAuthenticationSource, RequestID: "request-postgres-route-consumer",
+		AuditRef: "audit-postgres-route-consumer",
+	}
+	selection, failure := gatewayServer.resolveGatewayNorthboundSelection(
+		ctx, gatewayContext, northboundProtocolChatCompletions, "mock-model", nil,
+	)
+	if failure != "" || selection.routeGeneration != 2 ||
+		selection.providerProfile != "mock-secondary" ||
+		selection.routeSnapshotDigest != snapshot.Snapshot.SnapshotDigest {
+		t.Fatalf("consume PostgreSQL active snapshot through Gateway: selection=%#v failure=%s", selection, failure)
 	}
 
 	httpFixture := newAdminProviderRouteHTTPFixture()

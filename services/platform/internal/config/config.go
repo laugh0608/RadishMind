@@ -43,6 +43,7 @@ const (
 	defaultAdminProviderRouteStoreMode  = "memory_dev"
 	defaultAPIKeyStoreMode              = "memory_dev"
 	defaultGatewayAuthMode              = "dev_headers"
+	defaultGatewayProviderRouteSource   = "static_config"
 	defaultRunStoreMode                 = "memory_dev"
 	defaultGatewayRequestStoreMode      = "memory_dev"
 	defaultLocalPersistenceMode         = "memory_dev"
@@ -145,6 +146,9 @@ type Config struct {
 	APIKeyDatabaseURL                       string
 	APIKeyDatabaseTimeout                   time.Duration
 	GatewayAuthMode                         string
+	GatewayProviderRouteSource              string
+	GatewayProviderRouteEnvironment         string
+	GatewayProviderRouteConfigurationID     string
 	WorkflowDefinitionReleaseDevEnabled     bool
 	ApplicationSessionDevEnabled            bool
 	WorkflowExecutorDevEnabled              bool
@@ -226,6 +230,9 @@ type ConfigSummary struct {
 	APIKeyStoreMode                         string            `json:"api_key_store_mode"`
 	APIKeyDatabaseConfigured                bool              `json:"api_key_database_configured"`
 	GatewayAuthMode                         string            `json:"gateway_auth_mode"`
+	GatewayProviderRouteSource              string            `json:"gateway_provider_route_source"`
+	GatewayProviderRouteEnvironment         string            `json:"gateway_provider_route_environment,omitempty"`
+	GatewayProviderRouteConfigurationID     string            `json:"gateway_provider_route_configuration_id,omitempty"`
 	WorkflowDefinitionReleaseDevEnabled     bool              `json:"workflow_definition_release_dev_enabled"`
 	ApplicationSessionDevEnabled            bool              `json:"application_session_dev_enabled"`
 	WorkflowExecutorDevEnabled              bool              `json:"workflow_executor_dev_enabled"`
@@ -373,6 +380,7 @@ func defaultConfig() Config {
 		APIKeyStoreMode:                      defaultAPIKeyStoreMode,
 		APIKeyDatabaseTimeout:                defaultAPIKeyDBTimeout,
 		GatewayAuthMode:                      defaultGatewayAuthMode,
+		GatewayProviderRouteSource:           defaultGatewayProviderRouteSource,
 		WorkflowRunStoreMode:                 defaultRunStoreMode,
 		WorkflowRunDatabaseTimeout:           defaultRunDBTimeout,
 		GatewayRequestStoreMode:              defaultGatewayRequestStoreMode,
@@ -428,6 +436,9 @@ func defaultConfig() Config {
 			"api_key_database":                             configSourceDefault,
 			"api_key_database_timeout":                     configSourceDefault,
 			"gateway_auth_mode":                            configSourceDefault,
+			"gateway_provider_route_source":                configSourceDefault,
+			"gateway_provider_route_environment":           configSourceDefault,
+			"gateway_provider_route_configuration_id":      configSourceDefault,
 			"workflow_definition_release_dev":              configSourceDefault,
 			"application_session_dev":                      configSourceDefault,
 			"workflow_executor_dev":                        configSourceDefault,
@@ -964,6 +975,15 @@ func applyEnvOverrides(cfg *Config) error {
 	if value, ok := stringEnv("RADISHMIND_GATEWAY_AUTH_MODE"); ok {
 		applyStringValue(&cfg.GatewayAuthMode, value, cfg.FieldSources, "gateway_auth_mode", configSourceEnv)
 	}
+	if value, ok := stringEnv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_SOURCE"); ok {
+		applyStringValue(&cfg.GatewayProviderRouteSource, value, cfg.FieldSources, "gateway_provider_route_source", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_ENVIRONMENT"); ok {
+		applyStringValue(&cfg.GatewayProviderRouteEnvironment, value, cfg.FieldSources, "gateway_provider_route_environment", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_CONFIGURATION_ID"); ok {
+		applyStringValue(&cfg.GatewayProviderRouteConfigurationID, value, cfg.FieldSources, "gateway_provider_route_configuration_id", configSourceEnv)
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_DEFINITION_RELEASE_DEV"); ok {
 		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_DEFINITION_RELEASE_DEV", value)
 		if err != nil {
@@ -1192,6 +1212,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		apiKeyStoreMode = defaultAPIKeyStoreMode
 	}
 	gatewayAuthMode := EffectiveGatewayAuthMode(cfg)
+	gatewayProviderRouteSource := EffectiveGatewayProviderRouteSource(cfg)
 	workflowRunStoreMode := strings.TrimSpace(cfg.WorkflowRunStoreMode)
 	if workflowRunStoreMode == "" {
 		workflowRunStoreMode = defaultRunStoreMode
@@ -1437,6 +1458,9 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		APIKeyStoreMode:                         apiKeyStoreMode,
 		APIKeyDatabaseConfigured:                strings.TrimSpace(cfg.APIKeyDatabaseURL) != "",
 		GatewayAuthMode:                         gatewayAuthMode,
+		GatewayProviderRouteSource:              gatewayProviderRouteSource,
+		GatewayProviderRouteEnvironment:         strings.TrimSpace(cfg.GatewayProviderRouteEnvironment),
+		GatewayProviderRouteConfigurationID:     strings.TrimSpace(cfg.GatewayProviderRouteConfigurationID),
 		WorkflowDefinitionReleaseDevEnabled:     cfg.WorkflowDefinitionReleaseDevEnabled,
 		ApplicationSessionDevEnabled:            cfg.ApplicationSessionDevEnabled,
 		WorkflowExecutorDevEnabled:              cfg.WorkflowExecutorDevEnabled,
@@ -2101,6 +2125,27 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	default:
 		return fmt.Errorf("Gateway auth mode must be dev_headers or api_key_dev_test")
 	}
+	switch EffectiveGatewayProviderRouteSource(cfg) {
+	case "static_config":
+		if strings.TrimSpace(cfg.GatewayProviderRouteEnvironment) != "" ||
+			strings.TrimSpace(cfg.GatewayProviderRouteConfigurationID) != "" {
+			return fmt.Errorf("Gateway static_config provider route source forbids Admin snapshot scope")
+		}
+	case "admin_snapshot_dev_test":
+		environment := strings.TrimSpace(cfg.GatewayProviderRouteEnvironment)
+		configurationID := strings.TrimSpace(cfg.GatewayProviderRouteConfigurationID)
+		if EffectiveGatewayAuthMode(cfg) != "api_key_dev_test" || !cfg.GatewayRequestHistoryDevEnabled {
+			return fmt.Errorf("Gateway admin_snapshot_dev_test provider route source requires API key auth and Gateway request history")
+		}
+		if environment != "development" && environment != "test" {
+			return fmt.Errorf("Gateway admin_snapshot_dev_test provider route environment must be development or test")
+		}
+		if !validGatewayProviderRouteConfigurationID(configurationID) {
+			return fmt.Errorf("Gateway admin_snapshot_dev_test provider route configuration ID is invalid")
+		}
+	default:
+		return fmt.Errorf("Gateway provider route source must be static_config or admin_snapshot_dev_test")
+	}
 	if cfg.WorkflowDiagnosticsDevEnabled {
 		if !cfg.WorkflowExecutorDevEnabled {
 			return fmt.Errorf("workflow diagnostics dev requires workflow executor dev")
@@ -2191,6 +2236,31 @@ func EffectiveGatewayAuthMode(cfg Config) string {
 		return defaultGatewayAuthMode
 	}
 	return mode
+}
+
+func EffectiveGatewayProviderRouteSource(cfg Config) string {
+	source := strings.TrimSpace(cfg.GatewayProviderRouteSource)
+	if source == "" {
+		return defaultGatewayProviderRouteSource
+	}
+	return source
+}
+
+func validGatewayProviderRouteConfigurationID(value string) bool {
+	value = strings.TrimSpace(value)
+	if value == "" || len(value) > 160 {
+		return false
+	}
+	for index, character := range value {
+		if character >= 'A' && character <= 'Z' ||
+			character >= 'a' && character <= 'z' ||
+			character >= '0' && character <= '9' ||
+			index > 0 && strings.ContainsRune("._:-", character) {
+			continue
+		}
+		return false
+	}
+	return true
 }
 
 func EffectiveControlPlaneReadStoreMode(cfg Config) string {

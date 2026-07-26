@@ -24,9 +24,8 @@ func (resolver bridgeAdminProviderInventoryResolver) ResolveProviderProfile(
 	environment = strings.TrimSpace(environment)
 	providerID = strings.TrimSpace(providerID)
 	runtimeProfileRef = strings.TrimSpace(runtimeProfileRef)
-	prefix := "ref:radishmind/" + environment + "/provider-profiles/"
-	profileKey := strings.TrimPrefix(runtimeProfileRef, prefix)
-	if profileKey == runtimeProfileRef || profileKey == "" {
+	profileKey, ok := adminProviderRouteRuntimeProfileKey(environment, runtimeProfileRef)
+	if !ok {
 		return AdminProviderInventoryBinding{}, errAdminProviderRouteInventoryNotFound
 	}
 	inventory, err := resolver.bridge.DescribeInventory(ctx)
@@ -49,9 +48,30 @@ func (resolver bridgeAdminProviderInventoryResolver) ResolveProviderProfile(
 	if matched == nil {
 		return AdminProviderInventoryBinding{}, errAdminProviderRouteInventoryNotFound
 	}
-	capabilities := adminProviderRouteInventoryCapabilities(*matched)
-	northboundProtocols := append([]string{}, matched.NorthboundProtocols...)
-	northboundRoutes := append([]string{}, matched.NorthboundRoutes...)
+	return adminProviderRouteInventoryBindingFromProfile(environment, providerID, runtimeProfileRef, *matched)
+}
+
+func adminProviderRouteRuntimeProfileKey(environment string, runtimeProfileRef string) (string, bool) {
+	prefix := "ref:radishmind/" + strings.TrimSpace(environment) + "/provider-profiles/"
+	normalizedRef := strings.TrimSpace(runtimeProfileRef)
+	profileKey := strings.TrimPrefix(normalizedRef, prefix)
+	return profileKey, profileKey != normalizedRef && profileKey != ""
+}
+
+func adminProviderRouteInventoryBindingFromProfile(
+	environment string,
+	providerID string,
+	runtimeProfileRef string,
+	profile bridge.ProviderProfileDescription,
+) (AdminProviderInventoryBinding, error) {
+	profileKey, ok := adminProviderRouteRuntimeProfileKey(environment, runtimeProfileRef)
+	if !ok || strings.TrimSpace(profile.ProviderID) != strings.TrimSpace(providerID) ||
+		strings.TrimSpace(profile.Profile) != profileKey {
+		return AdminProviderInventoryBinding{}, errAdminProviderRouteInventoryNotFound
+	}
+	capabilities := adminProviderRouteInventoryCapabilities(profile)
+	northboundProtocols := append([]string{}, profile.NorthboundProtocols...)
+	northboundRoutes := append([]string{}, profile.NorthboundRoutes...)
 	sort.Strings(northboundProtocols)
 	sort.Strings(northboundRoutes)
 	digest, err := adminProviderRouteCanonicalDigest(struct {
@@ -75,24 +95,24 @@ func (resolver bridgeAdminProviderInventoryResolver) ResolveProviderProfile(
 		AuthMode              string         `json:"auth_mode"`
 		Streaming             bool           `json:"streaming"`
 	}{
-		Environment: environment, Profile: strings.TrimSpace(matched.Profile),
-		NormalizedProfile:     strings.TrimSpace(matched.NormalizedProfile),
-		ProviderID:            strings.TrimSpace(matched.ProviderID),
-		ResolvedModel:         strings.TrimSpace(matched.ResolvedModel),
-		APIStyle:              strings.TrimSpace(matched.APIStyle),
-		HasBaseURL:            matched.HasBaseURL,
-		HasAPIKey:             matched.HasAPIKey,
-		RequestTimeoutSeconds: matched.RequestTimeoutSeconds,
-		Active:                matched.Active,
-		Fallback:              matched.Fallback,
-		ChainIndex:            matched.ChainIndex,
-		Capabilities:          matched.Capabilities,
+		Environment: environment, Profile: strings.TrimSpace(profile.Profile),
+		NormalizedProfile:     strings.TrimSpace(profile.NormalizedProfile),
+		ProviderID:            strings.TrimSpace(profile.ProviderID),
+		ResolvedModel:         strings.TrimSpace(profile.ResolvedModel),
+		APIStyle:              strings.TrimSpace(profile.APIStyle),
+		HasBaseURL:            profile.HasBaseURL,
+		HasAPIKey:             profile.HasAPIKey,
+		RequestTimeoutSeconds: profile.RequestTimeoutSeconds,
+		Active:                profile.Active,
+		Fallback:              profile.Fallback,
+		ChainIndex:            profile.ChainIndex,
+		Capabilities:          profile.Capabilities,
 		NorthboundProtocols:   northboundProtocols,
 		NorthboundRoutes:      northboundRoutes,
-		CredentialState:       strings.TrimSpace(matched.CredentialState),
-		DeploymentMode:        strings.TrimSpace(matched.DeploymentMode),
-		AuthMode:              strings.TrimSpace(matched.AuthMode),
-		Streaming:             matched.Streaming,
+		CredentialState:       strings.TrimSpace(profile.CredentialState),
+		DeploymentMode:        strings.TrimSpace(profile.DeploymentMode),
+		AuthMode:              strings.TrimSpace(profile.AuthMode),
+		Streaming:             profile.Streaming,
 	})
 	if err != nil {
 		return AdminProviderInventoryBinding{}, errAdminProviderRouteInventoryUnavailable
@@ -100,7 +120,7 @@ func (resolver bridgeAdminProviderInventoryResolver) ResolveProviderProfile(
 	return AdminProviderInventoryBinding{
 		ProfileID: profileKey, ProviderID: providerID, RuntimeProfileRef: runtimeProfileRef,
 		Environment: environment, Capabilities: capabilities, InventoryDigest: digest,
-		Enabled: matched.Active,
+		Enabled: profile.Active,
 	}, nil
 }
 

@@ -43,6 +43,7 @@ type Server struct {
 	promptApplicationTemplateRepository     promptApplicationTemplateRepository
 	agentCopilotProfileRepository           agentCopilotProfileRepository
 	adminProviderRouteRepository            adminProviderRouteRepository
+	providerRouteSnapshotProvider           gatewayProviderRouteSnapshotProvider
 	applicationInteractionSessionRepository applicationInteractionSessionRepository
 	applicationSessionRepository            applicationInteractionSessionRepository
 	apiKeyRepository                        apiKeyRepository
@@ -260,6 +261,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		promptApplicationTemplateRepository:     promptApplicationTemplateRepository,
 		agentCopilotProfileRepository:           agentCopilotProfileRepository,
 		adminProviderRouteRepository:            adminProviderRouteRepository,
+		providerRouteSnapshotProvider:           adminProviderRouteSnapshotProvider{repository: adminProviderRouteRepository},
 		applicationInteractionSessionRepository: applicationInteractionSessionRepository,
 		applicationSessionRepository:            combinedApplicationSessionRepository,
 		apiKeyRepository:                        apiKeyRepository,
