@@ -16,17 +16,19 @@ import (
 )
 
 type fakeBridge struct {
-	providers    []bridge.ProviderDescription
-	inventory    bridge.ProviderInventory
-	envelope     bridge.GatewayEnvelope
-	handleErr    error
-	handleHook   func()
-	lastRequest  []byte
-	lastOptions  bridge.EnvelopeOptions
-	handleCalls  int
-	streamCalled bool
-	streamErr    error
-	streamHook   func()
+	providers      []bridge.ProviderDescription
+	inventory      bridge.ProviderInventory
+	inventoryErr   error
+	envelope       bridge.GatewayEnvelope
+	handleErr      error
+	handleHook     func()
+	lastRequest    []byte
+	lastOptions    bridge.EnvelopeOptions
+	handleCalls    int
+	streamCalled   bool
+	streamErr      error
+	streamHook     func()
+	inventoryCalls int
 }
 
 type checkpointDeniedQueriesFixture struct {
@@ -82,7 +84,8 @@ func (f *fakeBridge) DescribeProviders(context.Context) ([]bridge.ProviderDescri
 }
 
 func (f *fakeBridge) DescribeInventory(context.Context) (bridge.ProviderInventory, error) {
-	return f.inventory, nil
+	f.inventoryCalls++
+	return f.inventory, f.inventoryErr
 }
 
 func (f *fakeBridge) HandleEnvelope(_ context.Context, canonicalRequest []byte, options bridge.EnvelopeOptions) (bridge.GatewayEnvelope, error) {

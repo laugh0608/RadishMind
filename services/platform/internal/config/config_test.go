@@ -1516,6 +1516,9 @@ func TestGatewayRequestStoreRejectsUnknownModeAndInvalidTimeout(t *testing.T) {
 
 func TestAdminProviderRouteStoreConfiguration(t *testing.T) {
 	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_WRITE", "1")
 	t.Setenv("RADISHMIND_ADMIN_PROVIDER_ROUTE_STORE", "postgres_dev_test")
 	t.Setenv(
 		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_DATABASE_URL",
@@ -1528,12 +1531,16 @@ func TestAdminProviderRouteStoreConfiguration(t *testing.T) {
 	}
 	if cfg.AdminProviderRouteStoreMode != "postgres_dev_test" ||
 		cfg.AdminProviderRouteDatabaseURL == "" ||
-		cfg.AdminProviderRouteDatabaseTimeout != 17*time.Second {
+		cfg.AdminProviderRouteDatabaseTimeout != 17*time.Second ||
+		!cfg.AdminProviderRouteDevHTTPEnabled ||
+		!cfg.AdminProviderRouteDevWriteEnabled {
 		t.Fatalf("unexpected admin provider route configuration: %#v", cfg)
 	}
 	summary := cfg.SanitizedSummary()
 	if summary.AdminProviderRouteStoreMode != "postgres_dev_test" ||
 		!summary.AdminProviderRouteDatabaseConfigured ||
+		!summary.AdminProviderRouteDevHTTPEnabled ||
+		!summary.AdminProviderRouteDevWriteEnabled ||
 		summary.Timeouts["admin_provider_route_database"] != "17s" ||
 		len(summary.MissingRequiredFields) != 0 {
 		t.Fatalf("unexpected admin provider route summary: %#v", summary)
@@ -1543,6 +1550,20 @@ func TestAdminProviderRouteStoreConfiguration(t *testing.T) {
 	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
 		err.Error() != "admin provider route store must be memory_dev, sqlite_dev, or postgres_dev_test" {
 		t.Fatalf("unknown admin provider route store mode must fail closed: %v", err)
+	}
+
+	cfg = defaultConfig()
+	cfg.AdminProviderRouteDevHTTPEnabled = true
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "admin provider route dev HTTP requires control plane dev auth" {
+		t.Fatalf("admin provider route HTTP gate opened without verified dev auth: %v", err)
+	}
+
+	cfg = defaultConfig()
+	cfg.AdminProviderRouteDevWriteEnabled = true
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "admin provider route dev write requires admin provider route dev HTTP" {
+		t.Fatalf("admin provider route write gate opened without HTTP gate: %v", err)
 	}
 }
 
@@ -1606,6 +1627,8 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DATABASE_TIMEOUT",
 		"RADISHMIND_ADMIN_PROVIDER_ROUTE_STORE",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_HTTP",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_WRITE",
 		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DATABASE_TIMEOUT",

@@ -42,6 +42,7 @@ type Server struct {
 	applicationCatalogRepository            applicationCatalogRepository
 	promptApplicationTemplateRepository     promptApplicationTemplateRepository
 	agentCopilotProfileRepository           agentCopilotProfileRepository
+	adminProviderRouteRepository            adminProviderRouteRepository
 	applicationInteractionSessionRepository applicationInteractionSessionRepository
 	applicationSessionRepository            applicationInteractionSessionRepository
 	apiKeyRepository                        apiKeyRepository
@@ -67,6 +68,7 @@ type Server struct {
 	closeApplicationCatalogStore            func()
 	closePromptApplicationTemplateStore     func()
 	closeAgentCopilotProfileStore           func()
+	closeAdminProviderRouteStore            func()
 	closeAPIKeyStore                        func()
 	closeWorkflowRunStore                   func()
 	closeGatewayRequestStore                func()
@@ -234,9 +236,14 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore)
 		return nil, err
 	}
-	platformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	adminProviderRouteRepository, closeAdminProviderRouteStore, err := newAdminProviderRouteRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore)
+		return nil, err
+	}
+	platformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore)
 		return nil, err
 	}
 	mux := http.NewServeMux()
@@ -252,6 +259,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		applicationCatalogRepository:            applicationCatalogRepository,
 		promptApplicationTemplateRepository:     promptApplicationTemplateRepository,
 		agentCopilotProfileRepository:           agentCopilotProfileRepository,
+		adminProviderRouteRepository:            adminProviderRouteRepository,
 		applicationInteractionSessionRepository: applicationInteractionSessionRepository,
 		applicationSessionRepository:            combinedApplicationSessionRepository,
 		apiKeyRepository:                        apiKeyRepository,
@@ -276,6 +284,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeApplicationCatalogStore:            closeApplicationCatalogStore,
 		closePromptApplicationTemplateStore:     closePromptApplicationTemplateStore,
 		closeAgentCopilotProfileStore:           closeAgentCopilotProfileStore,
+		closeAdminProviderRouteStore:            closeAdminProviderRouteStore,
 		closeAPIKeyStore:                        closeAPIKeyStore,
 		closeWorkflowRunStore:                   closeWorkflowRunStore,
 		closeGatewayRequestStore:                closeGatewayRequestStore,
@@ -345,6 +354,14 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(agentCopilotProfileVersionCreateRoute, server.handleCreateAgentCopilotProfileVersion)
 	mux.HandleFunc(agentCopilotProfileVersionListRoute, server.handleListAgentCopilotProfileVersions)
 	mux.HandleFunc(agentCopilotProfileVersionReadRoute, server.handleReadAgentCopilotProfileVersion)
+	mux.HandleFunc(adminProviderRouteDraftReadRoute, server.handleReadAdminProviderRouteDraft)
+	mux.HandleFunc(adminProviderRouteDraftPutRoute, server.handlePutAdminProviderRouteDraft)
+	mux.HandleFunc(adminProviderRouteCandidateCreateRoute, server.handleCreateAdminProviderRouteCandidate)
+	mux.HandleFunc(adminProviderRouteCandidateReadRoute, server.handleReadAdminProviderRouteCandidate)
+	mux.HandleFunc(adminProviderRouteReviewRoute, server.handleReviewAdminProviderRouteCandidate)
+	mux.HandleFunc(adminProviderRouteActivationRoute, server.handleActivateAdminProviderRouteCandidate)
+	mux.HandleFunc(adminProviderRouteActiveSnapshotRoute, server.handleReadAdminProviderRouteActiveSnapshot)
+	mux.HandleFunc(adminProviderRouteActivationHistoryRoute, server.handleListAdminProviderRouteActivations)
 	mux.HandleFunc(applicationPublishCandidateCreateRoute, server.handleCreateApplicationPublishCandidate)
 	mux.HandleFunc(applicationPublishCandidateListRoute, server.handleListApplicationPublishCandidates)
 	mux.HandleFunc(applicationPublishCandidateReadRoute, server.handleReadApplicationPublishCandidate)
@@ -488,6 +505,9 @@ func (s *Server) Close() {
 		if s.closeAgentCopilotProfileStore != nil {
 			s.closeAgentCopilotProfileStore()
 		}
+		if s.closeAdminProviderRouteStore != nil {
+			s.closeAdminProviderRouteStore()
+		}
 		if s.closePromptApplicationTemplateStore != nil {
 			s.closePromptApplicationTemplateStore()
 		}
@@ -579,6 +599,8 @@ func localConsoleAllowedHeaders() []string {
 		promptApplicationRuntimeApplicationHeader,
 		applicationPublishDevWorkspaceHeader,
 		applicationPublishDevApplicationHeader,
+		adminProviderRouteDevWorkspaceHeader,
+		adminProviderRouteDevEnvironmentHeader,
 		gatewayRequestDevTenantHeader,
 		gatewayRequestDevWorkspaceHeader,
 		gatewayRequestDevConsumerHeader,

@@ -2,7 +2,7 @@
 
 更新时间：2026-07-26
 
-状态：`admin_provider_route_controlled_activation_dev_test_v1_batch_b_completed_batch_c_ready`
+状态：`admin_provider_route_controlled_activation_dev_test_v1_batch_c_completed_batch_d_ready`
 
 ## 当前结论
 
@@ -14,13 +14,15 @@
 
 ## 当前实现
 
-批次 A 已完成 Go 领域、只读 inventory resolver、内存 repository 和严格完整性重验。批次 B 已补齐共享 SQLite 本地产品持久化、PostgreSQL 开发测试态持久化、独立迁移、三模式 selector 和配置投影。当前可在 `tenant + workspace + environment + configuration` 作用域内执行草案 CAS 保存、不可变候选生成、独立 review CAS、显式 activation generation CAS，以及回到曾经启用的批准候选；rollback 生成新的 generation，activation history 保持 append-only。
+批次 A 已完成 Go 领域、只读 inventory resolver、内存 repository 和严格完整性重验。批次 B 已补齐共享 SQLite 本地产品持久化、PostgreSQL 开发测试态持久化、独立迁移、三模式 selector 和配置投影。批次 C 已完成 Admin HTTP、verified identity 投影、四项独立权限、显式开发测试态 HTTP / write 门禁和稳定状态映射。当前可在 `tenant + workspace + environment + configuration` 作用域内通过 API 执行草案 CAS 保存、不可变候选生成、独立 review CAS、显式 activation generation CAS，以及回到曾经启用的批准候选；rollback 生成新的 generation，activation history 保持 append-only。
 
 Profile assignment 只接受当前环境下的 `runtime_profile_ref`，candidate 创建与 activation 都解析同一个外部 inventory owner 并核对 capability、enabled 状态和 digest。approval 不创建 active snapshot；inventory 缺失、不可用或发生漂移时不产生 snapshot 和 activation record。草案、候选、snapshot 与 history 在写入返回和后续读取时都会重验 schema、规范化内容、状态关系及 digest。
 
 SQLite 与 PostgreSQL 都持久化草案、候选、独立 review、当前快照和 append-only activation history；快照切换与 activation record 在同一事务提交。SQLite 复用聚合 migration owner 并覆盖真实文件、WAL / SHM 隐私扫描；PostgreSQL 使用独立 marker、checksum、manual migration、迁移 / 运行角色分离和事务级作用域 advisory lock。`memory_dev | sqlite_dev | postgres_dev_test` 互斥选择，配置、migration 或存储不可用时不回退。
 
-相邻测试覆盖完整 activate / replace / rollback、两次重启恢复、draft / review / generation 并发 CAS、append-only 保护、配置拒绝、selector no fallback、数据库与 WAL 隐私扫描。真实 PostgreSQL 专项链已覆盖运行角色 DDL 拒绝、多连接并发激活 CAS、服务重开恢复和 configured profile；Platform 全量 Go 测试与 `go vet` 已通过。
+管理路由使用既有 verified identity owner，`tenant_ref` 不接受请求覆盖；workspace / environment 请求头、权限、真实 OIDC membership blocker 和写入门禁均在 repository 前校验。写入 body 拒绝未知字段、重复字段、尾随文档和超限载荷；所有管理响应均为 `no-store`，只返回脱敏资源、稳定 failure code、request / audit lineage 与冲突所需的当前版本。Bridge inventory resolver 只摘要化消费既有 inventory，不复制 endpoint 或 credential。
+
+相邻测试覆盖完整 HTTP activate 流程、权限独立投影、身份 / membership / 环境拒绝、strict JSON、HTTP 状态、inventory 摘要确定性、完整 activate / replace / rollback、两次重启恢复、draft / review / generation 并发 CAS、append-only 保护、配置拒绝、selector no fallback、数据库与 WAL 隐私扫描。真实 PostgreSQL 专项链已覆盖 Admin HTTP 写入 / 读取、运行角色 DDL 拒绝、多连接并发激活 CAS、服务重开恢复和 configured profile；Platform 全量 Go 测试与 `go vet` 已通过。
 
 ## 用户与真实需求
 
@@ -206,19 +208,32 @@ pending_review -> rejected
 
 版本冲突返回当前 revision / review version / generation，但不返回其他作用域数据。inventory not found 与 mismatch 只给稳定码，不泄露相邻 inventory 项。
 
-## API 方向
+## Admin HTTP 契约
 
-后续 HTTP 批次在既有 verified identity 基础上提供：
+批次 C 在既有 verified identity 基础上固定以下管理路由：
 
 - `GET|PUT /v1/admin/provider-route-configurations/{configuration_id}`
 - `POST /v1/admin/provider-route-configurations/{configuration_id}/candidates`
-- `GET /v1/admin/provider-route-candidates/{candidate_id}`
-- `POST /v1/admin/provider-route-candidates/{candidate_id}/reviews`
-- `POST /v1/admin/provider-route-candidates/{candidate_id}/activations`
+- `GET /v1/admin/provider-route-configurations/{configuration_id}/candidates/{candidate_id}`
+- `POST /v1/admin/provider-route-configurations/{configuration_id}/candidates/{candidate_id}/reviews`
+- `POST /v1/admin/provider-route-configurations/{configuration_id}/candidates/{candidate_id}/activations`
 - `GET /v1/admin/provider-route-configurations/{configuration_id}/active-snapshot`
 - `GET /v1/admin/provider-route-configurations/{configuration_id}/activation-history`
 
-具体 payload 与 HTTP 状态在 API 批次冻结。不得复用 northbound Gateway 路由承载管理动作。
+`tenant_ref` 只来自 verified identity；开发测试态 workspace 与 environment 分别由
+`X-RadishMind-Dev-Admin-Provider-Route-Workspace` 和
+`X-RadishMind-Dev-Admin-Provider-Route-Environment` 显式传入，并在进入 repository 前校验。路由不接受额外 query 参数，也不允许 body 重写 tenant、workspace、environment、actor、request id 或 audit ref。
+
+写入 body 固定为：
+
+- 草案：`expected_revision`、`display_name`、`provider_profiles`、`model_routes`
+- 候选：`candidate_id`、`expected_draft_revision`
+- 审查：`expected_review_version`、`decision`、`reason`
+- 激活 / 回滚：`expected_generation`、`action`、`reason`
+
+所有 body 使用有界 strict JSON，未知字段、重复对象、尾随内容和超限载荷在领域与 repository 前拒绝。管理响应统一返回 request / audit lineage、作用域、对应领域资源、稳定 `failure_code` 和冲突时的当前 revision / review version / generation；activation history 缺省为空数组。所有成功与失败响应都设置 `Cache-Control: no-store`。
+
+HTTP 状态固定分层：缺失 / 无效身份为 `401`，权限或环境禁止为 `403`，资源不存在为 `404`，CAS / 状态冲突为 `409`，领域资格不满足为 `422`，inventory / store / membership unavailable 为 `503`，strict payload 错误为 `400`。真实 OIDC workspace membership 未成立时必须在 repository 前返回 `workspace_membership_unavailable`。不得复用 northbound Gateway 路由承载管理动作。
 
 ## 持久化方向
 
@@ -248,10 +263,11 @@ pending_review -> rejected
 
 ### 批次 C：Admin API 与身份权限
 
-- 接入 verified identity 与四项独立权限。
-- 提供草案、候选、审查、激活、回滚和历史 API。
-- 固定 HTTP failure mapping、strict payload、no-store 与脱敏诊断。
-- OIDC membership 未成立时继续失败关闭。
+- 已接入 verified identity 与四项独立权限，权限不会隐含应用或 Gateway 写权限。
+- 已提供草案、候选、审查、激活、回滚、当前快照和历史 API。
+- 已固定 HTTP failure mapping、strict payload、no-store、request / audit lineage 与脱敏诊断。
+- `RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_HTTP` 与 `RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_WRITE` 默认关闭且具有启动依赖；OIDC membership 未成立时在 repository 前失败关闭。
+- 已覆盖内存 HTTP 连续链和真实 PostgreSQL Admin HTTP 持久化链；下一步只进入批次 D Gateway snapshot consumer，不提前打开 Web。
 
 ### 批次 D：Gateway 不可变快照消费
 

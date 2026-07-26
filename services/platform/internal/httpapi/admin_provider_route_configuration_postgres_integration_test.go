@@ -201,4 +201,73 @@ func TestAdminProviderRoutePostgresLifecycleRestartCASAndRuntimeRole(t *testing.
 		candidate.Candidate.Review == nil {
 		t.Fatalf("restore PostgreSQL candidate and review: %#v", candidate)
 	}
+
+	httpFixture := newAdminProviderRouteHTTPFixture()
+	httpFixture.server.adminProviderRouteRepository = newPostgresAdminProviderRouteRepository(reopened)
+	httpDraftInput := adminProviderRouteTestDraftInput(0, "mock-primary")
+	httpDraft := httpFixture.serve(
+		t,
+		"PUT",
+		"/v1/admin/provider-route-configurations/gateway-http",
+		adminProviderRouteDraftPutBody{
+			ExpectedRevision: httpDraftInput.ExpectedRevision,
+			DisplayName:      "PostgreSQL HTTP routing",
+			ProviderProfiles: httpDraftInput.ProviderProfiles,
+			ModelRoutes:      httpDraftInput.ModelRoutes,
+		},
+		httpFixture.auth,
+		200,
+	)
+	if httpDraft.Draft == nil || httpDraft.Draft.DraftRevision != 1 {
+		t.Fatalf("create PostgreSQL draft through Admin HTTP: %#v", httpDraft)
+	}
+	httpFixture.serve(
+		t,
+		"POST",
+		"/v1/admin/provider-route-configurations/gateway-http/candidates",
+		adminProviderRouteCandidateCreateBody{
+			CandidateID:           "candidate-http",
+			ExpectedDraftRevision: 1,
+		},
+		httpFixture.auth,
+		201,
+	)
+	httpFixture.serve(
+		t,
+		"POST",
+		"/v1/admin/provider-route-configurations/gateway-http/candidates/candidate-http/reviews",
+		adminProviderRouteReviewBody{
+			ExpectedReviewVersion: 0,
+			Decision:              "approve",
+			Reason:                "Approve the PostgreSQL Admin HTTP candidate.",
+		},
+		httpFixture.auth,
+		200,
+	)
+	httpActivation := httpFixture.serve(
+		t,
+		"POST",
+		"/v1/admin/provider-route-configurations/gateway-http/candidates/candidate-http/activations",
+		adminProviderRouteActivationBody{
+			ExpectedGeneration: 0,
+			Action:             "activate",
+			Reason:             "Activate the PostgreSQL Admin HTTP candidate.",
+		},
+		httpFixture.auth,
+		200,
+	)
+	if httpActivation.Snapshot == nil || httpActivation.Snapshot.Generation != 1 {
+		t.Fatalf("activate PostgreSQL candidate through Admin HTTP: %#v", httpActivation)
+	}
+	httpHistory := httpFixture.serve(
+		t,
+		"GET",
+		"/v1/admin/provider-route-configurations/gateway-http/activation-history",
+		nil,
+		httpFixture.auth,
+		200,
+	)
+	if len(httpHistory.ActivationHistory) != 1 {
+		t.Fatalf("restore PostgreSQL Admin HTTP activation history: %#v", httpHistory)
+	}
 }

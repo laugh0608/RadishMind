@@ -72,6 +72,13 @@ var agentCopilotPermissionGrants = map[string]string{
 	"radishmind.agent-copilot-runtime.write":        "agent_copilot_runtime:write",
 }
 
+var adminProviderRoutePermissionGrants = map[string]string{
+	"radishmind.admin-provider-routes.read":     "admin_provider_routes:read",
+	"radishmind.admin-provider-routes.draft":    "admin_provider_routes:draft",
+	"radishmind.admin-provider-routes.review":   "admin_provider_routes:review",
+	"radishmind.admin-provider-routes.activate": "admin_provider_routes:activate",
+}
+
 var controlPlaneReadAuthReferencePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$`)
 
 type VerifiedControlPlaneIdentity struct {
@@ -444,6 +451,9 @@ func projectControlPlaneReadPermissions(permissions []string) []string {
 		}
 		if !ok {
 			grant, ok = agentCopilotPermissionGrants[strings.TrimSpace(permission)]
+		}
+		if !ok {
+			grant, ok = adminProviderRoutePermissionGrants[strings.TrimSpace(permission)]
 		}
 		if ok && !seen[grant] {
 			seen[grant] = true

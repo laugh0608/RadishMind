@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[Admin Provider Profile / Model Route 受控启用（开发 / 测试态）v1](admin-provider-route-controlled-activation-dev-test-v1-plan.md)批次 A、B 已完成领域、三模式 repository、inventory digest 重验、三类 CAS、SQLite / PostgreSQL migration、角色隔离、重启恢复与 no fallback，状态为 `admin_provider_route_controlled_activation_dev_test_v1_batch_b_completed_batch_c_ready`；下一步进入 Admin HTTP / Auth。
+[Admin Provider Profile / Model Route 受控启用（开发 / 测试态）v1](admin-provider-route-controlled-activation-dev-test-v1-plan.md)批次 A 至 C 已完成领域、三模式 repository、inventory digest 重验、三类 CAS、SQLite / PostgreSQL migration、Admin HTTP、verified identity、四项权限和 strict contract，状态为 `admin_provider_route_controlled_activation_dev_test_v1_batch_c_completed_batch_d_ready`；下一步进入 Gateway snapshot consumer。
 
 [应用开发工作区与发布准备审查 v1](../features/user-workspace/application-development-workspace-release-readiness-review-v1.md)批次 A 至 C 已完成并关闭，不再派生同层任务卡。
 

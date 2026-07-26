@@ -114,6 +114,8 @@ type Config struct {
 	AgentCopilotProfileStoreMode            string
 	AgentCopilotProfileDatabaseURL          string
 	AgentCopilotProfileDatabaseTimeout      time.Duration
+	AdminProviderRouteDevHTTPEnabled        bool
+	AdminProviderRouteDevWriteEnabled       bool
 	AdminProviderRouteStoreMode             string
 	AdminProviderRouteDatabaseURL           string
 	AdminProviderRouteDatabaseTimeout       time.Duration
@@ -199,6 +201,8 @@ type ConfigSummary struct {
 	AgentCopilotProfileDevWriteEnabled      bool              `json:"agent_copilot_profile_dev_write_enabled"`
 	AgentCopilotProfileStoreMode            string            `json:"agent_copilot_profile_store_mode"`
 	AgentCopilotProfileDatabaseConfigured   bool              `json:"agent_copilot_profile_database_configured"`
+	AdminProviderRouteDevHTTPEnabled        bool              `json:"admin_provider_route_dev_http_enabled"`
+	AdminProviderRouteDevWriteEnabled       bool              `json:"admin_provider_route_dev_write_enabled"`
 	AdminProviderRouteStoreMode             string            `json:"admin_provider_route_store_mode"`
 	AdminProviderRouteDatabaseConfigured    bool              `json:"admin_provider_route_database_configured"`
 	AgentCopilotRuntimeDevHTTPEnabled       bool              `json:"agent_copilot_runtime_dev_http_enabled"`
@@ -802,6 +806,22 @@ func applyEnvOverrides(cfg *Config) error {
 	if value, ok := stringEnv("RADISHMIND_ADMIN_PROVIDER_ROUTE_STORE"); ok {
 		applyStringValue(&cfg.AdminProviderRouteStoreMode, value, cfg.FieldSources, "admin_provider_route_store", configSourceEnv)
 	}
+	if value, ok := stringEnv("RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_HTTP"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_HTTP", value)
+		if err != nil {
+			return err
+		}
+		cfg.AdminProviderRouteDevHTTPEnabled = parsed
+		cfg.FieldSources["admin_provider_route_dev_http"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_WRITE"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_WRITE", value)
+		if err != nil {
+			return err
+		}
+		cfg.AdminProviderRouteDevWriteEnabled = parsed
+		cfg.FieldSources["admin_provider_route_dev_write"] = configSourceEnv
+	}
 	if value, ok := stringEnv("RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_DATABASE_URL"); ok {
 		applyStringValue(&cfg.AdminProviderRouteDatabaseURL, value, cfg.FieldSources, "admin_provider_route_database", configSourceEnv)
 	}
@@ -1392,6 +1412,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		AgentCopilotProfileDevWriteEnabled:      cfg.AgentCopilotProfileDevWriteEnabled,
 		AgentCopilotProfileStoreMode:            agentCopilotProfileStoreMode,
 		AgentCopilotProfileDatabaseConfigured:   strings.TrimSpace(cfg.AgentCopilotProfileDatabaseURL) != "",
+		AdminProviderRouteDevHTTPEnabled:        cfg.AdminProviderRouteDevHTTPEnabled,
+		AdminProviderRouteDevWriteEnabled:       cfg.AdminProviderRouteDevWriteEnabled,
 		AdminProviderRouteStoreMode:             adminProviderRouteStoreMode,
 		AdminProviderRouteDatabaseConfigured:    strings.TrimSpace(cfg.AdminProviderRouteDatabaseURL) != "",
 		AgentCopilotRuntimeDevHTTPEnabled:       cfg.AgentCopilotRuntimeDevHTTPEnabled,
@@ -1958,6 +1980,12 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.AdminProviderRouteDatabaseTimeout < 0 {
 		return fmt.Errorf("admin provider route database timeout cannot be negative")
+	}
+	if cfg.AdminProviderRouteDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return fmt.Errorf("admin provider route dev HTTP requires control plane dev auth")
+	}
+	if cfg.AdminProviderRouteDevWriteEnabled && !cfg.AdminProviderRouteDevHTTPEnabled {
+		return fmt.Errorf("admin provider route dev write requires admin provider route dev HTTP")
 	}
 	switch strings.TrimSpace(cfg.PromptTemplateStoreMode) {
 	case "", "memory_dev":

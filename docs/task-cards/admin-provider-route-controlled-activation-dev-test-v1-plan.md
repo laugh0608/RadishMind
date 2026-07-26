@@ -2,7 +2,7 @@
 
 更新时间：2026-07-26
 
-状态：`admin_provider_route_controlled_activation_dev_test_v1_batch_b_completed_batch_c_ready`
+状态：`admin_provider_route_controlled_activation_dev_test_v1_batch_c_completed_batch_d_ready`
 
 对应功能文档：[Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](../features/admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md)
 
@@ -110,6 +110,14 @@ Admin draft
 - 权限不足、OIDC membership unavailable 和未知作用域在 repository 前失败。
 - stale revision / review / generation 返回 409 与脱敏当前版本。
 - 错误和响应不包含 inventory raw payload 或敏感材料。
+
+### 完成记录
+
+- 八条 Admin 管理路由已接入既有 verified identity owner，固定 read / draft / review / activate 四项独立权限；tenant 只来自验证身份，workspace / environment 在 repository 前校验。
+- `RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_HTTP` 与 `RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_WRITE` 默认关闭，write 依赖 HTTP、HTTP 依赖 control-plane dev auth；三模式 repository 已进入统一 Server 启动与关闭生命周期。
+- 管理写入启用有界 strict JSON，拒绝未知字段、递归重复字段和尾随内容；响应统一 `no-store`，稳定映射 400 / 401 / 403 / 404 / 409 / 422 / 503，并保留脱敏 request / audit lineage 与当前冲突版本。
+- Bridge inventory resolver 只把既有 provider inventory 投影为 capability、enabled 与 canonical digest，不返回 endpoint / credential；profile 缺失、重复或 bridge 不可用均失败关闭。
+- 内存 HTTP 连续链、身份 / scope / OIDC / 环境拒绝矩阵和 PostgreSQL Admin HTTP 持久化链已通过；下一步只进入批次 D Gateway snapshot consumer。
 
 ## 批次 D：Gateway snapshot consumer
 

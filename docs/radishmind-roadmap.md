@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：当前推进 [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](features/admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md)。批次 A、B 已完成原子配置领域、三模式 repository、SQLite / PostgreSQL durable dev/test 持久化、迁移 / 运行角色分离、事务 CAS、重启恢复与 no fallback；下一顺位是 Admin API 与 verified identity / 四项独立权限，再按设计进入 Gateway snapshot consumer 和 Web。
+1. 产品线：当前推进 [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](features/admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md)。批次 A 至 C 已完成原子配置领域、三模式 repository、SQLite / PostgreSQL durable dev/test 持久化、Admin API、verified identity、四项独立权限、strict contract 与 PostgreSQL API 连续链；下一顺位是 Gateway snapshot consumer，再按设计进入 Admin Web。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、quota 和 billing 继续为 `not_satisfied`。
