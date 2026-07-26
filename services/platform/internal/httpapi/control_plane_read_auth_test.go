@@ -60,30 +60,41 @@ func TestControlPlaneReadSignedTestTokenAdminRoutes(t *testing.T) {
 func TestControlPlaneReadSignedTestTokenCoversAllRouteGrants(t *testing.T) {
 	privateKey := generateSignedTestPrivateKey(t)
 	server := newSignedTestControlPlaneReadServer(t, privateKey)
+	repository := &recordingControlPlaneReadRepository{}
+	server.workspaceControlPlaneReadRepo = repository
 	for _, test := range []struct {
-		name       string
-		target     string
-		permission string
+		name            string
+		target          string
+		permission      string
+		expectedStatus  int
+		expectedFailure string
 	}{
 		{name: "tenant", target: "/v1/control-plane/tenants/tenant_demo/summary", permission: "radishmind.tenant.read"},
 		{name: "applications", target: "/v1/user-workspace/applications", permission: "radishmind.applications.read"},
 		{name: "api keys", target: "/v1/user-workspace/api-keys", permission: "radishmind.api-keys.read"},
-		{name: "quota", target: "/v1/user-workspace/usage/quota-summary", permission: "radishmind.usage.read"},
+		{name: "quota", target: "/v1/user-workspace/usage/quota-summary", permission: "radishmind.usage.read", expectedStatus: http.StatusServiceUnavailable, expectedFailure: "quota_policy_unavailable"},
 		{name: "workflow definitions", target: "/v1/user-workspace/workflow-definitions", permission: "radishmind.applications.read"},
-		{name: "runs", target: "/v1/user-workspace/runs", permission: "radishmind.runs.read"},
+		{name: "runs", target: "/v1/user-workspace/runs?application_ref=app_demo", permission: "radishmind.runs.read"},
 		{name: "audit", target: "/v1/control-plane/audit", permission: "radishmind.audit.read"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			claims := validSignedTestClaims()
 			claims["permissions"] = []string{test.permission}
 			request := httptest.NewRequest(http.MethodGet, test.target, nil)
+			request.Header.Set(activeWorkspaceHeader, "workspace_demo")
 			request.Header.Set("Authorization", "Bearer "+signControlPlaneReadTestToken(t, privateKey, "RS256", claims))
 			recorder := httptest.NewRecorder()
 
 			server.httpServer.Handler.ServeHTTP(recorder, request)
 
-			envelope := decodeControlPlaneReadEnvelope(t, recorder, http.StatusOK)
-			if envelope.FailureCode != nil {
+			expectedStatus := test.expectedStatus
+			if expectedStatus == 0 {
+				expectedStatus = http.StatusOK
+			}
+			envelope := decodeControlPlaneReadEnvelope(t, recorder, expectedStatus)
+			if test.expectedFailure != "" {
+				assertControlPlaneReadFailure(t, envelope, test.expectedFailure)
+			} else if envelope.FailureCode != nil {
 				t.Fatalf("route grant was denied: %#v", envelope)
 			}
 		})
@@ -180,6 +191,10 @@ func validSignedTestClaims() map[string]any {
 		"exp":         now.Add(time.Hour).Unix(),
 		"auth_time":   now.Add(-time.Minute).Unix(),
 		"sid":         "session:test-admin",
+		"workspace_memberships": []map[string]any{{
+			"workspace_id": "workspace_demo",
+			"permissions":  []string{"applications:read", "api_keys:read", "usage:read", "runs:read"},
+		}},
 	}
 }
 

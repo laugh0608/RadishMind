@@ -87,7 +87,7 @@ func TestPostgresWorkflowDefinitionReleaseLifecycleRestartCASAndCorruption(t *te
 	if err != nil {
 		t.Fatal(err)
 	}
-	summaries := repository.ListSummaries(ReadRepositoryContext{RequestContext: ctx, TenantRef: releaseCtx.TenantRef, SubjectRef: releaseCtx.OwnerSubjectRef, AuditRef: "audit_postgres_summary"}, ListWorkflowDefinitionSummariesRequest{})
+	summaries := repository.ListSummaries(ReadRepositoryContext{RequestContext: ctx, TenantRef: releaseCtx.TenantRef, WorkspaceID: releaseCtx.WorkspaceID, SubjectRef: releaseCtx.OwnerSubjectRef, AuditRef: "audit_postgres_summary"}, ListWorkflowDefinitionSummariesRequest{})
 	if summaries.FailureCode != "" || len(summaries.Items) != 1 || summaries.Items[0].DefinitionStatus != workflowDefinitionActivationActive {
 		t.Fatalf("PostgreSQL live summary: %#v", summaries)
 	}

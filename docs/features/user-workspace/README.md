@@ -6,6 +6,7 @@
 
 ## 当前专题
 
+- [Workspace-scoped Read Transition / 工作区选择与成员资格绑定（开发 / 测试态）v1](workspace-scoped-read-transition-dev-test-v1.md)：批次 A 已完成共享 membership provider、dev / signed-test assertion、五类 route 授权、四类既有 durable owner 读投影和 quota fail-closed；生产 membership 与 quota owner 继续关闭。
 - [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md)：Prompt v6 / Agent v7 已严格接入既有 Comparison、Evaluation Case、Suite 与人工 decision；SQLite Agent case → suite → `approved v1` 和隐私复验均已完成，专题关闭。
 - [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md)：批次 A 至批次 E 已完成；Profile、发布与 assignment、唯一受控建议、Session / Run、类型专属 Web 与双数据库真实验收形成闭环，专题关闭。
 - [Agent / Copilot 开发测试态使用指南](agent-copilot-dev-test-usage-guide.md)：说明 Profile → Configuration v4 → Candidate v4 → Assignment → API key / Session v3 → Run v7 的操作顺序、启动配置、身份权限、CAS、持久化、隐私和排障边界。
@@ -23,6 +24,7 @@
 
 ## 下一步
 
+- Workspace-scoped Read Transition 下一批进入 workspace-wide Run projection 与非持久化 Web selector，先消除 Run read 的精确 `application_ref` 前置；不接真实 Radish OIDC，不创建 quota、user、tenant、role 或 workspace 第二真相源。
 - Prompt / Agent 回归评测与发布审查专题已完成并关闭；下一步先设计新的用户工作区产品能力，不继续派生本专题同层 readiness、refresh 或 gate-only 批次。
 - Prompt Application 批次 A 至 E 已完成并关闭：memory / SQLite / PostgreSQL 语义、Web、双数据库连续链、服务重启、CAS / drift / cancel 和敏感信息复验均已通过。
 - 不继续扩“应用开发工作区与发布准备审查 v1”、Prompt Application 或当前回归评测的同层切片。Prompt / Agent 继续复用现有 Run、Comparison、Evaluation 和发布治理真相源，不另建聚合发布真相源或自治执行器。

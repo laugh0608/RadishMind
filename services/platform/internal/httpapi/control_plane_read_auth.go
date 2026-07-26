@@ -96,30 +96,38 @@ type VerifiedControlPlaneIdentity struct {
 	SessionRef             string
 	KeyIDRef               string
 	Algorithm              string
+	WorkspaceMemberships   []VerifiedWorkspaceMembershipAssertion
 }
 
 type ControlPlaneResourceBinding struct {
-	TenantRef        string
-	TenantVerified   bool
-	PermissionGrants []string
-	SourceRef        string
-	PolicyVersion    string
-	ExpiresAt        time.Time
+	TenantRef                   string
+	TenantVerified              bool
+	PermissionGrants            []string
+	SourceRef                   string
+	PolicyVersion               string
+	ExpiresAt                   time.Time
+	WorkspaceID                 string
+	WorkspaceMembershipVerified bool
+	WorkspacePermissionGrants   []string
+	WorkspaceSourceRef          string
+	WorkspacePolicyVersion      string
+	WorkspaceExpiresAt          time.Time
 }
 
 type controlPlaneReadAuthContext struct {
-	AuthMode         string
-	IdentityContext  string
-	TenantBinding    string
-	SubjectBinding   string
-	ScopeGrants      []string
-	AuditContext     string
-	IssuerRef        string
-	SessionRef       string
-	VerifiedIdentity *VerifiedControlPlaneIdentity
-	ResourceBinding  ControlPlaneResourceBinding
-	FailureCode      string
-	FailureStatus    int
+	AuthMode             string
+	IdentityContext      string
+	TenantBinding        string
+	SubjectBinding       string
+	ScopeGrants          []string
+	AuditContext         string
+	IssuerRef            string
+	SessionRef           string
+	VerifiedIdentity     *VerifiedControlPlaneIdentity
+	ResourceBinding      ControlPlaneResourceBinding
+	WorkspaceMemberships []VerifiedWorkspaceMembershipAssertion
+	FailureCode          string
+	FailureStatus        int
 }
 
 type controlPlaneReadAuthenticator struct {
@@ -137,16 +145,22 @@ type signedTestTokenHeader struct {
 }
 
 type signedTestTokenClaims struct {
-	Issuer      string          `json:"iss"`
-	Subject     string          `json:"sub"`
-	TenantRef   string          `json:"tenant_id"`
-	Audience    json.RawMessage `json:"aud"`
-	Permissions []string        `json:"permissions"`
-	IssuedAt    int64           `json:"iat"`
-	NotBefore   int64           `json:"nbf"`
-	ExpiresAt   int64           `json:"exp"`
-	AuthTime    int64           `json:"auth_time"`
-	SessionRef  string          `json:"sid"`
+	Issuer               string                               `json:"iss"`
+	Subject              string                               `json:"sub"`
+	TenantRef            string                               `json:"tenant_id"`
+	Audience             json.RawMessage                      `json:"aud"`
+	Permissions          []string                             `json:"permissions"`
+	IssuedAt             int64                                `json:"iat"`
+	NotBefore            int64                                `json:"nbf"`
+	ExpiresAt            int64                                `json:"exp"`
+	AuthTime             int64                                `json:"auth_time"`
+	SessionRef           string                               `json:"sid"`
+	WorkspaceMemberships []signedTestWorkspaceMembershipClaim `json:"workspace_memberships,omitempty"`
+}
+
+type signedTestWorkspaceMembershipClaim struct {
+	WorkspaceID string   `json:"workspace_id"`
+	Permissions []string `json:"permissions"`
 }
 
 type signedTestTokenValidator struct {
@@ -220,7 +234,15 @@ func withControlPlaneReadAuthenticator(next http.Handler, authenticator *control
 func sanitizedControlPlaneReadAuthRequest(request *http.Request, auth controlPlaneReadAuthContext) *http.Request {
 	cloned := request.Clone(withControlPlaneReadFakeAuthContext(request.Context(), auth))
 	cloned.Header.Del("Authorization")
-	for _, header := range []string{controlPlaneReadDevIdentityHeader, controlPlaneReadDevTenantHeader, controlPlaneReadDevSubjectHeader, controlPlaneReadDevScopesHeader, controlPlaneReadDevAuditHeader} {
+	for _, header := range []string{
+		controlPlaneReadDevIdentityHeader,
+		controlPlaneReadDevTenantHeader,
+		controlPlaneReadDevSubjectHeader,
+		controlPlaneReadDevScopesHeader,
+		controlPlaneReadDevAuditHeader,
+		controlPlaneReadDevMembershipHeader,
+		controlPlaneReadDevMembershipPermHeader,
+	} {
 		cloned.Header.Del(header)
 	}
 	return cloned
@@ -280,15 +302,16 @@ func controlPlaneReadDevAuthFromHeaders(request *http.Request) (controlPlaneRead
 		SessionRef:    "session:dev-read",
 	}
 	return controlPlaneReadAuthContext{
-		AuthMode:         controlPlaneReadAuthModeDevHeaders,
-		IdentityContext:  identity,
-		TenantBinding:    tenantRef,
-		SubjectBinding:   subjectRef,
-		ScopeGrants:      scopes,
-		AuditContext:     strings.TrimSpace(request.Header.Get(controlPlaneReadDevAuditHeader)),
-		IssuerRef:        identityProjection.IssuerRef,
-		SessionRef:       identityProjection.SessionRef,
-		VerifiedIdentity: identityProjection,
+		AuthMode:             controlPlaneReadAuthModeDevHeaders,
+		IdentityContext:      identity,
+		TenantBinding:        tenantRef,
+		SubjectBinding:       subjectRef,
+		ScopeGrants:          scopes,
+		AuditContext:         strings.TrimSpace(request.Header.Get(controlPlaneReadDevAuditHeader)),
+		IssuerRef:            identityProjection.IssuerRef,
+		SessionRef:           identityProjection.SessionRef,
+		VerifiedIdentity:     identityProjection,
+		WorkspaceMemberships: workspaceMembershipsFromDevHeaders(request, tenantRef, subjectRef),
 		ResourceBinding: ControlPlaneResourceBinding{
 			TenantRef:        tenantRef,
 			TenantVerified:   true,
@@ -335,16 +358,17 @@ func controlPlaneReadSignedTestAuthFromRequest(request *http.Request, validator 
 		ExpiresAt:        identity.ExpiresAt,
 	}
 	return controlPlaneReadAuthContext{
-		AuthMode:         controlPlaneReadAuthModeSignedTestToken,
-		IdentityContext:  "verified:signed-test-token",
-		TenantBinding:    identity.TenantRef,
-		SubjectBinding:   identity.SubjectRef,
-		ScopeGrants:      append([]string{}, identity.ScopeGrants...),
-		AuditContext:     "audit:signed-test-token",
-		IssuerRef:        identity.IssuerRef,
-		SessionRef:       identity.SessionRef,
-		VerifiedIdentity: &identity,
-		ResourceBinding:  binding,
+		AuthMode:             controlPlaneReadAuthModeSignedTestToken,
+		IdentityContext:      "verified:signed-test-token",
+		TenantBinding:        identity.TenantRef,
+		SubjectBinding:       identity.SubjectRef,
+		ScopeGrants:          append([]string{}, identity.ScopeGrants...),
+		AuditContext:         "audit:signed-test-token",
+		IssuerRef:            identity.IssuerRef,
+		SessionRef:           identity.SessionRef,
+		VerifiedIdentity:     &identity,
+		ResourceBinding:      binding,
+		WorkspaceMemberships: append([]VerifiedWorkspaceMembershipAssertion{}, identity.WorkspaceMemberships...),
 	}
 }
 
@@ -378,7 +402,7 @@ func (validator *signedTestTokenValidator) Validate(rawToken string) (VerifiedCo
 		return VerifiedControlPlaneIdentity{}, errors.New("invalid signed test token claims")
 	}
 	audiences, err := signedTestTokenAudiences(claims.Audience)
-	if err != nil || !validControlPlaneReadAuthReference(claims.Subject, false) || !validControlPlaneReadAuthReference(claims.TenantRef, true) || !validControlPlaneReadAuthReference(claims.SessionRef, false) || !validControlPlaneReadPermissions(claims.Permissions) || !validControlPlaneReadAuthReference(header.KeyID, false) || claims.IssuedAt == 0 || claims.NotBefore == 0 || claims.ExpiresAt == 0 || claims.AuthTime == 0 {
+	if err != nil || !validControlPlaneReadAuthReference(claims.Subject, false) || !validControlPlaneReadAuthReference(claims.TenantRef, true) || !validControlPlaneReadAuthReference(claims.SessionRef, false) || !validControlPlaneReadPermissions(claims.Permissions) || !validSignedTestWorkspaceMembershipClaims(claims.WorkspaceMemberships) || !validControlPlaneReadAuthReference(header.KeyID, false) || claims.IssuedAt == 0 || claims.NotBefore == 0 || claims.ExpiresAt == 0 || claims.AuthTime == 0 {
 		return VerifiedControlPlaneIdentity{}, errors.New("missing signed test token claims")
 	}
 	if claims.Issuer != validator.issuer || !containsExactString(audiences, validator.audience) {
@@ -389,7 +413,7 @@ func (validator *signedTestTokenValidator) Validate(rawToken string) (VerifiedCo
 		return VerifiedControlPlaneIdentity{}, errors.New("signed test token time validation failed")
 	}
 	grants := projectControlPlaneReadPermissions(claims.Permissions)
-	return VerifiedControlPlaneIdentity{
+	identity := VerifiedControlPlaneIdentity{
 		AuthSource:             controlPlaneReadAuthModeSignedTestToken,
 		IssuerRef:              "issuer:signed-test",
 		SubjectRef:             strings.TrimSpace(claims.Subject),
@@ -404,7 +428,9 @@ func (validator *signedTestTokenValidator) Validate(rawToken string) (VerifiedCo
 		SessionRef:             strings.TrimSpace(claims.SessionRef),
 		KeyIDRef:               "key:" + strings.TrimSpace(header.KeyID),
 		Algorithm:              header.Algorithm,
-	}, nil
+	}
+	identity.WorkspaceMemberships = workspaceMembershipAssertionsFromSignedTestIdentity(identity, claims.WorkspaceMemberships)
+	return identity, nil
 }
 
 func parseSignedTestRSAPublicKey(rawPEM string) (*rsa.PublicKey, error) {
@@ -470,12 +496,46 @@ func controlPlaneReadHasAnyDevHeader(request *http.Request) bool {
 		controlPlaneReadDevSubjectHeader,
 		controlPlaneReadDevScopesHeader,
 		controlPlaneReadDevAuditHeader,
+		controlPlaneReadDevMembershipHeader,
+		controlPlaneReadDevMembershipPermHeader,
 	} {
 		if strings.TrimSpace(request.Header.Get(header)) != "" {
 			return true
 		}
 	}
 	return false
+}
+
+func validSignedTestWorkspaceMembershipClaims(claims []signedTestWorkspaceMembershipClaim) bool {
+	seen := make(map[string]struct{}, len(claims))
+	for _, claim := range claims {
+		workspaceID := strings.TrimSpace(claim.WorkspaceID)
+		if !validControlPlaneReadAuthReference(workspaceID, false) || !validWorkspacePermissionGrants(claim.Permissions) {
+			return false
+		}
+		if _, duplicate := seen[workspaceID]; duplicate {
+			return false
+		}
+		seen[workspaceID] = struct{}{}
+	}
+	return true
+}
+
+func workspaceMembershipAssertionsFromSignedTestIdentity(
+	identity VerifiedControlPlaneIdentity,
+	claims []signedTestWorkspaceMembershipClaim,
+) []VerifiedWorkspaceMembershipAssertion {
+	assertions := make([]VerifiedWorkspaceMembershipAssertion, 0, len(claims))
+	for _, claim := range claims {
+		assertions = append(assertions, VerifiedWorkspaceMembershipAssertion{
+			TenantRef: identity.TenantRef, SubjectRef: identity.SubjectRef,
+			WorkspaceID:      strings.TrimSpace(claim.WorkspaceID),
+			PermissionGrants: append([]string{}, claim.Permissions...),
+			SourceRef:        "membership:signed-test-token", PolicyVersion: workspaceMembershipPolicyVersion,
+			ExpiresAt: identity.ExpiresAt,
+		})
+	}
+	return assertions
 }
 
 func containsExactString(values []string, expected string) bool {

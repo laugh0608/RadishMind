@@ -7,6 +7,7 @@ type ReadRepositoryContext struct {
 	RequestID      string
 	TenantRef      string
 	SubjectRef     string
+	WorkspaceID    string
 	ScopeGrants    []string
 	AuditRef       string
 	IssuerRef      string

@@ -29,12 +29,14 @@ type bridgeClient interface {
 }
 
 type Server struct {
-	httpServer            *http.Server
-	options               Options
-	bridge                bridgeClient
-	config                config.Config
-	controlPlaneReadStore controlPlaneReadStore
-	controlPlaneReadRepo  ControlPlaneReadRepository
+	httpServer                    *http.Server
+	options                       Options
+	bridge                        bridgeClient
+	config                        config.Config
+	controlPlaneReadStore         controlPlaneReadStore
+	controlPlaneReadRepo          ControlPlaneReadRepository
+	workspaceControlPlaneReadRepo ControlPlaneReadRepository
+	workspaceMembershipProvider   WorkspaceMembershipProvider
 
 	savedWorkflowDraftStore                 savedWorkflowDraftStore
 	applicationDraftRepository              applicationConfigurationDraftRepository
@@ -222,6 +224,13 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		return nil, err
 	}
 	combinedRunStore := newCombinedWorkflowRunStoreWithAgent(workflowRunStore, promptApplicationRunStore, agentCopilotRunStore)
+	workspaceControlPlaneReadRepository := newWorkspaceScopedControlPlaneReadRepository(
+		controlPlaneReadRepository,
+		applicationCatalogRepository,
+		apiKeyRepository,
+		workflowDefinitionReleaseRepository,
+		combinedRunStore,
+	)
 	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
@@ -254,6 +263,8 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		bridge:                                  platformBridge,
 		config:                                  runtimeConfig,
 		controlPlaneReadRepo:                    controlPlaneReadRepository,
+		workspaceControlPlaneReadRepo:           workspaceControlPlaneReadRepository,
+		workspaceMembershipProvider:             newDeterministicDevTestWorkspaceMembershipProvider(),
 		savedWorkflowDraftStore:                 savedWorkflowDraftStore,
 		applicationDraftRepository:              applicationDraftRepository,
 		applicationPublishCandidateRepository:   applicationPublishRepository,
@@ -588,6 +599,9 @@ func localConsoleAllowedHeaders() []string {
 		controlPlaneReadDevScopesHeader,
 		controlPlaneReadDevAuditHeader,
 		savedWorkflowDraftDevWorkspaceHeader,
+		activeWorkspaceHeader,
+		controlPlaneReadDevMembershipHeader,
+		controlPlaneReadDevMembershipPermHeader,
 		savedWorkflowDraftDevApplicationHeader,
 		applicationDraftDevWorkspaceHeader,
 		applicationDraftDevApplicationHeader,

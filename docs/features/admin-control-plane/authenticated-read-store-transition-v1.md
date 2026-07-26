@@ -220,7 +220,7 @@ token signature、issuer、audience、algorithm、time 或 required claim 失败
 
 ### 第四批：Workspace-scoped Read Transition
 
-另行设计 active workspace selection、membership provider 和五条 User Workspace route 的 repository transition。它不属于本专题前三批的默认实施范围。
+已由 [Workspace-scoped Read Transition / 工作区选择与成员资格绑定（开发 / 测试态）v1](../user-workspace/workspace-scoped-read-transition-dev-test-v1.md) 承接。批次 A 已完成 active workspace 逐请求选择、共享 `WorkspaceMembershipProvider`、deterministic dev / signed-test assertion、五条 User Workspace route 的统一授权、四类 durable owner 读投影和 quota fail-closed；真实 Radish membership owner 与 production authorization 继续关闭。
 
 ## 验收方式
 
@@ -247,4 +247,4 @@ token signature、issuer、audience、algorithm、time 或 required claim 失败
 
 ## 下一实现入口
 
-`Admin Tenant / Audit PostgreSQL Read Repository Runtime v1` 已完成真实 PostgreSQL、signed-token HTTP/Web 和浏览器验收。[Radish OIDC Integration Test v1](radish-oidc-integration-test-v1.md) 已完成 deterministic runtime、auth boundary 与 operation gate。真实 Radish 联调为 `real_radish_integration_deferred`，不再是当前下一步；未来由 Radish 注册 RadishMind application/client 与 resource audience 后恢复，不迁移五条 workspace-scoped route。
+`Admin Tenant / Audit PostgreSQL Read Repository Runtime v1` 已完成真实 PostgreSQL、signed-token HTTP/Web 和浏览器验收。[Radish OIDC Integration Test v1](radish-oidc-integration-test-v1.md) 已完成 deterministic runtime、auth boundary 与 operation gate。五条 workspace-scoped route 已进入独立专题并完成批次 A；下一批是 workspace-wide Run projection 与 Web selector。真实 Radish 联调继续为 `real_radish_integration_deferred`，未来由 Radish 注册 RadishMind application/client、resource audience 与 reviewed membership owner 后恢复。

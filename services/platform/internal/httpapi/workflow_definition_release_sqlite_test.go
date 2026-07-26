@@ -146,7 +146,7 @@ func TestSQLiteWorkflowDefinitionReleaseLifecycleRestartAndAppendOnly(t *testing
 	if err != nil || activation.PointerVersion != 1 {
 		t.Fatalf("activate: %#v %v", activation, err)
 	}
-	summaries := repository.ListSummaries(ReadRepositoryContext{RequestContext: context.Background(), TenantRef: ctx.TenantRef, SubjectRef: ctx.OwnerSubjectRef, AuditRef: "audit_summary"}, ListWorkflowDefinitionSummariesRequest{ReadRepositoryRequest: ReadRepositoryRequest{Filters: ReadRepositoryFilters{"application_ref": ctx.ApplicationID}, Sort: "updated_at_desc"}})
+	summaries := repository.ListSummaries(ReadRepositoryContext{RequestContext: context.Background(), TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, SubjectRef: ctx.OwnerSubjectRef, AuditRef: "audit_summary"}, ListWorkflowDefinitionSummariesRequest{ReadRepositoryRequest: ReadRepositoryRequest{Filters: ReadRepositoryFilters{"application_ref": ctx.ApplicationID}, Sort: "updated_at_desc"}})
 	if summaries.FailureCode != "" || len(summaries.Items) != 1 || summaries.Items[0].WorkflowDefinitionID != candidate.DefinitionID || summaries.Items[0].DefinitionStatus != workflowDefinitionActivationActive || summaries.Items[0].Version != 1 {
 		t.Fatalf("live definition summary: %#v", summaries)
 	}
@@ -244,7 +244,7 @@ func TestWorkflowDefinitionReleaseLiveProjectionReplacesOfflineSample(t *testing
 	if _, _, err = server.workflowDefinitionReleaseRepository.Review(ctx, candidate.CandidateID, 0, "approve", "reviewed live projection", candidate.SourceDraftDigest, time.Date(2026, 7, 19, 16, 1, 0, 0, time.UTC)); err != nil {
 		t.Fatal(err)
 	}
-	result := server.controlPlaneReadRepository().ListWorkflowDefinitionSummaries(ReadRepositoryContext{TenantRef: ctx.TenantRef, SubjectRef: ctx.OwnerSubjectRef, AuditRef: "audit_live"}, ListWorkflowDefinitionSummariesRequest{})
+	result := server.controlPlaneReadRepository().ListWorkflowDefinitionSummaries(ReadRepositoryContext{TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, SubjectRef: ctx.OwnerSubjectRef, AuditRef: "audit_live"}, ListWorkflowDefinitionSummariesRequest{})
 	if result.FailureCode != "" || len(result.Items) != 1 || result.Items[0].WorkflowDefinitionID != candidate.DefinitionID || result.Items[0].DefinitionStatus != workflowDefinitionActivationInactive {
 		t.Fatalf("live projection mixed or omitted repository state: %#v", result)
 	}

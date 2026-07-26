@@ -22,6 +22,7 @@ type controlPlaneReadEnvelopeForTest struct {
 func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 	server := NewServer(config.Config{}, Options{BuildVersion: "test"})
 	server.controlPlaneReadStore = newControlPlaneReadFakeStore()
+	server.workspaceControlPlaneReadRepo = newControlPlaneReadRepository(server.controlPlaneReadStore)
 
 	t.Run("tenant summary succeeds with test-only auth context", func(t *testing.T) {
 		req := newControlPlaneReadRequest(
@@ -47,7 +48,7 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 		assertControlPlaneReadNoForbiddenPayload(t, rec.Body.String())
 	})
 
-	t.Run("quota summary succeeds with test-only auth context", func(t *testing.T) {
+	t.Run("quota summary stays closed without policy owner", func(t *testing.T) {
 		req := newControlPlaneReadRequest(
 			http.MethodGet,
 			"/v1/user-workspace/usage/quota-summary",
@@ -58,15 +59,12 @@ func TestControlPlaneReadFakeStoreRoutes(t *testing.T) {
 
 		server.httpServer.Handler.ServeHTTP(rec, req)
 
-		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusOK)
+		envelope := decodeControlPlaneReadEnvelope(t, rec, http.StatusServiceUnavailable)
 		if envelope.RequestID != "req-quota-summary" || envelope.TenantRef != "tenant_demo" {
 			t.Fatalf("unexpected envelope identity: %#v", envelope)
 		}
-		if envelope.FailureCode != nil || len(envelope.Items) != 1 {
+		if envelope.FailureCode == nil || *envelope.FailureCode != "quota_policy_unavailable" || len(envelope.Items) != 0 {
 			t.Fatalf("unexpected quota summary response: %#v", envelope)
-		}
-		if got := envelope.Items[0]["quota_id"]; got != "quota_demo_current" {
-			t.Fatalf("unexpected quota id: %#v", got)
 		}
 		assertControlPlaneReadNoForbiddenPayload(t, rec.Body.String())
 	})
@@ -315,6 +313,7 @@ func TestControlPlaneReadHandlersUseRepositoryInterface(t *testing.T) {
 	server := NewServer(config.Config{}, Options{BuildVersion: "test"})
 	repository := &recordingControlPlaneReadRepository{}
 	server.controlPlaneReadRepo = repository
+	server.workspaceControlPlaneReadRepo = repository
 
 	req := newControlPlaneReadRequest(
 		http.MethodGet,
@@ -341,16 +340,23 @@ func TestControlPlaneReadHandlersUseRepositoryInterface(t *testing.T) {
 
 func newControlPlaneReadRequest(method string, target string, auth controlPlaneReadAuthContext) *http.Request {
 	req := httptest.NewRequest(method, target, nil)
+	req.Header.Set(activeWorkspaceHeader, "workspace_demo")
 	return req.WithContext(withControlPlaneReadFakeAuthContext(req.Context(), auth))
 }
 
 func controlPlaneReadTestAuth(tenantRef string, scopes ...string) controlPlaneReadAuthContext {
 	return controlPlaneReadAuthContext{
+		AuthMode:        controlPlaneReadAuthModeDevHeaders,
 		IdentityContext: "subject_demo_user",
 		TenantBinding:   tenantRef,
 		SubjectBinding:  "subject_demo_user",
 		ScopeGrants:     scopes,
 		AuditContext:    "audit_test_context",
+		WorkspaceMemberships: []VerifiedWorkspaceMembershipAssertion{{
+			TenantRef: tenantRef, SubjectRef: "subject_demo_user", WorkspaceID: "workspace_demo",
+			PermissionGrants: append([]string{}, scopes...),
+			SourceRef:        "membership:test", PolicyVersion: workspaceMembershipPolicyVersion,
+		}},
 	}
 }
 
@@ -363,6 +369,12 @@ func setControlPlaneReadDevAuthHeaders(req *http.Request) {
 		"tenant:read,applications:read,api_keys:read,usage:read,runs:read,audit:read",
 	)
 	req.Header.Set(controlPlaneReadDevAuditHeader, "audit_dev_live_read_consumer")
+	req.Header.Set(activeWorkspaceHeader, "workspace_demo")
+	req.Header.Set(controlPlaneReadDevMembershipHeader, "workspace_demo")
+	req.Header.Set(
+		controlPlaneReadDevMembershipPermHeader,
+		"applications:read,api_keys:read,usage:read,runs:read",
+	)
 }
 
 func stringPointerForTest(value string) *string {
