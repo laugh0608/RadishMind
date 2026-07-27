@@ -2,7 +2,7 @@
 
 更新时间：2026-07-27
 
-状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_a1_complete_batch_a2_ready`
+状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_a_complete_batch_b_ready`
 
 对应功能文档：[Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](../features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md)
 
@@ -15,7 +15,7 @@
 ## 根因
 
 - Workspace-scoped Read Transition 已有 verified identity、active workspace、membership assertion 和 durable read projection，mutation handler 尚未统一消费该 binding。
-- Application Catalog 与 API Key Lifecycle 当前只从 verified identity 获取 tenant / subject / operation permission，并信任 body workspace 的语法与旧 context builder；body workspace 不是 membership proof。
+- Application Catalog 与 API Key Lifecycle 已完成 shared membership binding；后续 Workflow、Prompt、Agent、Session、Run 与 Evaluation 仍存在从 verified identity、body workspace 与旧 context builder 组合上下文的路径，body workspace 不是 membership proof。
 - Workflow、Prompt、Agent、Session、Run 和 Evaluation 存在多种 dev header / body workspace 组合，若不先建立稳定共享入口，后续会继续复制授权判断和失败映射。
 - API key create 还包含 credential 生成、hash、持久化和一次性交接，必须在资源根授权稳定后单独验证。
 
@@ -107,6 +107,14 @@ dev/test enablement
 - memory、SQLite、PostgreSQL 连续链、重启恢复、吊销生效和敏感信息扫描通过。
 - A2 完成前不推进 Workflow / Prompt / Agent / Session / Evaluation。
 
+### A2 完成记录（2026-07-27）
+
+- API key create / revoke 已在 body 解码前复用共享 workspace authorization；`api_keys:write` 与 `api_keys:revoke` 同时进入 identity 和 membership permission 判断，body workspace 只做精确一致性校验。
+- 双操作拒绝矩阵证明 identity、selection、membership、body binding 与 OIDC unavailable 均在 Application Catalog / API Key repository 前失败，两个业务 owner 的调用数均为 0。
+- 相邻 service spy 固定 Application owner reload → identifier generation → credential generation / hash → record write；inactive、missing 与 cross-owner Application 继续证明 credential generator 为 0，失败响应不交付 token。
+- dev headers、signed-test、Web active workspace / dev membership 分离、memory / SQLite / PostgreSQL、吊销、重启、敏感扫描、完整 Platform HTTP、定向 race、`go vet`、Web 246 项测试和 production build 均通过。
+- A2 没有修改 read route、application invocation、Gateway API key auth、repository interface、record schema、migration、expected-version CAS 或 production enablement；下一步只复核批次 B。
+
 ## 后续批次
 
 1. 批次 B：Workflow Draft、Application Configuration Draft、Prompt Template 与 Agent Profile。
@@ -130,4 +138,4 @@ dev/test enablement
 - 不把 active workspace、body workspace、旧 dev header、resource record 或 API key 当作人类 membership proof。
 - 不修改 application API key invocation 的逐请求授权模型。
 - 不启用 production OIDC、production membership、quota / billing、自动发布、自动确认、replay、unrestricted tool 或业务写回。
-- 不从 A1 扩 API Key、Workflow、Prompt、Agent、Session、Run 或 Evaluation runtime。
+- 不从已完成的 A1 / A2 直接扩审查 / 激活、Session、Run 或 Evaluation runtime；批次 B 先复核四类创作 owner 的真实权限与 context。

@@ -19,6 +19,8 @@ var workspacePermissionAllowlist = map[string]struct{}{
 	"applications:write":   {},
 	"applications:archive": {},
 	"api_keys:read":        {},
+	"api_keys:write":       {},
+	"api_keys:revoke":      {},
 	"usage:read":           {},
 	"runs:read":            {},
 }

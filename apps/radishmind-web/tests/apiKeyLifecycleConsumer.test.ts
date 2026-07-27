@@ -44,6 +44,9 @@ test("issue accepts the one-time credential only with no-store and strict manage
     assert.equal(init?.method, "POST");
     const headers = new Headers(init?.headers);
     assert.equal(headers.get("X-RadishMind-Dev-Read-Scopes"), "api_keys:write,api_keys:read");
+    assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "api_keys:write");
     assert.equal(headers.has("Authorization"), false);
     const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
     assert.deepEqual(body.scopes, ["models:read", "responses:invoke"]);
@@ -100,6 +103,9 @@ test("list, detail, and revoke preserve application scope without credential mat
     }
     assert.equal(new URL(String(url)).pathname, "/v1/user-workspace/api-keys/key_aaaaaaaaaaaaaaaa/revoke");
     assert.equal(headers.get("X-RadishMind-Dev-Read-Scopes"), "api_keys:revoke,api_keys:read");
+    assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "api_keys:revoke");
     assert.deepEqual(JSON.parse(String(init?.body)), { workspace_id: "workspace_demo", expected_version: 1 });
     return jsonResponse(operationEnvelope({ revoked: true, version: 2 }));
   };
@@ -119,6 +125,31 @@ test("list, detail, and revoke preserve application scope without credential mat
     assert.equal(revoked.record?.recordVersion, 2);
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+test("signed issue selects the active workspace without dev membership proof", async () => {
+  const originalFetch = globalThis.fetch;
+  const tokenGlobal = globalThis as typeof globalThis & {
+    __RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__?: () => string;
+  };
+  const originalProvider = tokenGlobal.__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__;
+  let capturedHeaders = new Headers();
+  tokenGlobal.__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__ = () => "signed-api-key-token-in-memory";
+  globalThis.fetch = async (_input, init) => {
+    capturedHeaders = new Headers(init?.headers);
+    return jsonResponse(issueEnvelope(), 201, { "Cache-Control": "private, no-store" });
+  };
+  try {
+    const result = await issueAPIKey({ ...live, authMode: "signed_test_token" }, issueInput());
+    assert.equal(result.status, "issued");
+    assert.equal(capturedHeaders.get("Authorization"), "Bearer signed-api-key-token-in-memory");
+    assert.equal(capturedHeaders.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Membership-Workspace"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Membership-Permissions"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+    tokenGlobal.__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__ = originalProvider;
   }
 });
 

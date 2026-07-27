@@ -46,13 +46,17 @@ func (server *Server) handleCreateAPIKey(writer http.ResponseWriter, request *ht
 	if !server.allowAPIKeyLifecycleDevHTTP(writer, trace) {
 		return
 	}
+	requestContext, failureCode, status := server.apiKeyMutationContextFromRequest(request, trace, "api_keys:write", "create")
+	if failureCode != "" {
+		writeAPIKeyResult(writer, status, trace, requestContext, APIKeyResult{FailureCode: failureCode}, true)
+		return
+	}
 	var body apiKeyCreateBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	requestContext, failureCode, status := server.apiKeyContextFromRequest(request, trace, body.WorkspaceID, "api_keys:write", "create")
-	if failureCode != "" {
-		writeAPIKeyResult(writer, status, trace, requestContext, APIKeyResult{FailureCode: failureCode}, true)
+	if !apiKeyMutationWorkspaceMatches(requestContext, body.WorkspaceID) {
+		writeAPIKeyResult(writer, http.StatusForbidden, trace, requestContext, APIKeyResult{FailureCode: "workspace_binding_mismatch"}, true)
 		return
 	}
 	requestContext.WriteEnabled = server.config.APIKeyLifecycleDevWriteEnabled
@@ -87,13 +91,17 @@ func (server *Server) handleRevokeAPIKey(writer http.ResponseWriter, request *ht
 	if !server.allowAPIKeyLifecycleDevHTTP(writer, trace) {
 		return
 	}
+	requestContext, failureCode, status := server.apiKeyMutationContextFromRequest(request, trace, "api_keys:revoke", "revoke")
+	if failureCode != "" {
+		writeAPIKeyResult(writer, status, trace, requestContext, APIKeyResult{FailureCode: failureCode}, false)
+		return
+	}
 	var body apiKeyRevokeBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	requestContext, failureCode, status := server.apiKeyContextFromRequest(request, trace, body.WorkspaceID, "api_keys:revoke", "revoke")
-	if failureCode != "" {
-		writeAPIKeyResult(writer, status, trace, requestContext, APIKeyResult{FailureCode: failureCode}, false)
+	if !apiKeyMutationWorkspaceMatches(requestContext, body.WorkspaceID) {
+		writeAPIKeyResult(writer, http.StatusForbidden, trace, requestContext, APIKeyResult{FailureCode: "workspace_binding_mismatch"}, false)
 		return
 	}
 	requestContext.WriteEnabled = server.config.APIKeyLifecycleDevWriteEnabled
@@ -153,6 +161,30 @@ func (server *Server) apiKeyContextFromRequest(request *http.Request, trace requ
 		return requestContext, APIKeyFailureScopeDenied, http.StatusForbidden
 	}
 	return requestContext, "", http.StatusOK
+}
+
+func (server *Server) apiKeyMutationContextFromRequest(
+	request *http.Request,
+	trace requestTrace,
+	requiredPermission string,
+	auditSuffix string,
+) (APIKeyContext, string, int) {
+	for _, authorization := range request.Header.Values("Authorization") {
+		if strings.Contains(authorization, apiKeyTokenPrefix) {
+			return APIKeyContext{RequestContext: request.Context(), RequestID: trace.requestID}, APIKeyFailureCredentialConflict, http.StatusBadRequest
+		}
+	}
+	auth, failureCode, status := server.authorizeWorkspaceScopedRequest(request, requiredPermission)
+	requestContext := APIKeyContext{
+		RequestContext: request.Context(), RequestID: trace.requestID, TenantRef: strings.TrimSpace(auth.TenantBinding),
+		WorkspaceID: strings.TrimSpace(auth.ResourceBinding.WorkspaceID), ActorRef: strings.TrimSpace(auth.SubjectBinding),
+		OwnerSubjectRef: strings.TrimSpace(auth.SubjectBinding), AuditRef: "audit_" + trace.requestID + "_api-key-" + auditSuffix,
+	}
+	return requestContext, failureCode, status
+}
+
+func apiKeyMutationWorkspaceMatches(requestContext APIKeyContext, workspaceID string) bool {
+	return workspaceID == requestContext.WorkspaceID
 }
 
 func (server *Server) allowAPIKeyLifecycleDevHTTP(writer http.ResponseWriter, trace requestTrace) bool {
