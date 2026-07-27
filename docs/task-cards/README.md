@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-07-26
+更新时间：2026-07-27
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -11,6 +11,8 @@
 - 2026-06-14 起，长期功能设计默认写入 `docs/features/`；任务卡只用于具体实现批次、前置条件或高风险边界。普通只读展示、文案、布局和 evidence 组织不再默认逐项新增任务卡。
 
 ## 当前活跃任务
+
+[Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](workspace-scoped-mutation-authorization-dev-test-v1-plan.md)已完成全量路由设计并进入 A1 Application Catalog；A1 只建立共享 mutation authorization、稳定 failure mapping 与三模式负向证据，完成前不进入 A2 API Key Lifecycle。
 
 [Admin Provider Profile / Model Route 受控启用（开发 / 测试态）v1](admin-provider-route-controlled-activation-dev-test-v1-plan.md)批次 A 至 C 已完成领域、三模式 repository、inventory digest 重验、三类 CAS、SQLite / PostgreSQL migration、Admin HTTP、verified identity、四项权限和 strict contract，状态为 `admin_provider_route_controlled_activation_dev_test_v1_batch_c_completed_batch_d_ready`；下一步进入 Gateway snapshot consumer。
 

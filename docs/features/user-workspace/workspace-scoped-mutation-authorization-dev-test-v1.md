@@ -2,7 +2,7 @@
 
 更新时间：2026-07-27
 
-状态：`workspace_scoped_mutation_authorization_dev_test_v1_design_complete_batch_a_task_card_pending`
+状态：`workspace_scoped_mutation_authorization_dev_test_v1_task_card_complete_batch_a1_in_progress`
 
 ## 文档目的
 
@@ -292,7 +292,7 @@
 
 ## 停止线
 
-- 设计确认和任务卡冻结前不修改 mutation runtime。
+- 任务卡已冻结；运行代码只按当前批次范围修改，A1 完成前不进入 A2 或后续 mutation owner。
 - 不把 active workspace、body workspace、旧 dev header、application owner 或 API key 解释成 membership proof。
 - 不创建新的用户、tenant、role、membership、Application、Workflow、Run、Evaluation 或 credential owner。
 - 不通过统一授权专题顺带启用 production OIDC、production API key、quota / billing、自动发布、自动确认、replay、unrestricted tool 或业务写回。
