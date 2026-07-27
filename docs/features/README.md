@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-27 当前执行口径：[Workspace-scoped Mutation Authorization](user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 批次 A 至 E 已完成，原 47 条人类交互式 mutation 已统一绑定 identity / membership，专题关闭。[已保存 Workflow 草案派生](workflow/saved-workflow-draft-derivation-dev-test-v1.md)完成独立本地草案与脱敏直接来源后，[已保存 Workflow 草案修订历史、版本比较与显式恢复](workflow/saved-workflow-draft-revision-history-restore-dev-test-v1.md)继续完成三种存储的不可变历史、原子保存、精确读取、结构化比较和恢复为新版本；新增恢复入口复用共享 membership provider 并原子要求草案读写权限。运营收件箱跨全部分页窗口的批次 B 继续等待真实使用证据；下一步回到功能设计选择，不新增同层 gate-only 切片。真实 secret / endpoint、production、自动路由、quota / billing 与真实 OIDC 继续关闭。
+2026-07-27 当前执行口径：[Provider 上报用量规范化与应用用量审查](gateway/provider-reported-usage-normalization-application-review-dev-test-v1.md)已完成五类 Provider usage、Gateway envelope、三协议 unary / stream、Request History 双数据库持久化与应用当前窗口 token 审查。[已保存 Workflow 草案修订历史、版本比较与显式恢复](workflow/saved-workflow-draft-revision-history-restore-dev-test-v1.md)及 Workspace-scoped Mutation Authorization 也已关闭。下一步回到功能设计选择；运营收件箱跨全部分页窗口仍等待真实使用证据，token 估算、价格、quota / billing、真实 secret / endpoint、production 与真实 OIDC 继续关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -73,7 +73,8 @@
 | [Control Plane Verified Identity Context & Negative Auth Runtime v1](../task-cards/control-plane-verified-identity-negative-auth-runtime-v1-plan.md) | 高风险实现批次 | 已完成 RS256 signed test token、permission projection、13 类负向认证、七条 route authorization 与 Web sanitized denial state；fake store 保持不变 |
 | [Gateway 细专题入口](gateway/README.md) | 功能专题目录 | 承接 Gateway 运行时、协议兼容和真实使用路径专题 |
 | [Gateway Python Bridge Runtime v1](gateway/python-bridge-runtime-v1.md) | 运行时专题 | 受控 `stdio` worker pool 已成为默认模式，完成生命周期、取消、崩溃恢复、请求隔离和性能验收；process 模式保留回滚 |
-| [Model Gateway Request History / Usage & Failure Review v1](gateway/model-gateway-request-history-usage-failure-review-v1.md) | 功能专题 | `memory_dev`、PostgreSQL dev/test、终态证据、分页详情、重启恢复和真实 Web 审查已完成；reported usage 与 production 能力后置 |
+| [Model Gateway Request History / Usage & Failure Review v1](gateway/model-gateway-request-history-usage-failure-review-v1.md) | 功能专题 | `memory_dev`、SQLite、PostgreSQL dev/test、终态证据、分页详情、重启恢复和真实 Web 审查已完成 |
+| [Provider 上报用量规范化与应用用量审查（开发 / 测试态）v1](gateway/provider-reported-usage-normalization-application-review-dev-test-v1.md) | 功能 / Provider contract 专题 | OpenAI-compatible、Gemini、Anthropic、HuggingFace 与 Ollama reported usage 已进入 Gateway、三协议、Request History 和 Application Operations；成本、quota 与 billing 未打开 |
 | [Model Gateway Request History / Usage & Failure Review v1 任务卡](../task-cards/model-gateway-request-history-usage-failure-review-v1-plan.md) | 实现批次 | 状态为 `complete`；保留为实现与验证索引，不继续派生同层 readiness 链 |
 | [Gateway Playground / Request Review Loop v1](gateway/gateway-playground-request-review-loop-v1.md) | 功能专题 | 三协议 unary / stream、取消、稳定失败和精确 history handoff 已完成；不持久化输入输出 |
 | [Workflow 细专题入口](workflow/README.md) | 功能专题目录 | 承接 workflow 具体功能、页面 / 界面和实现专题 |

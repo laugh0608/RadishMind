@@ -8,6 +8,7 @@ from typing import Any, Callable
 import jsonschema
 
 from services.runtime.inference import run_inference, validate_request_document, validate_response_document
+from services.runtime.inference_provider import not_reported_provider_usage
 from services.runtime.inference_support import load_schema, make_failed_response, utc_now_iso
 from services.runtime.provider_registry import is_supported_provider
 
@@ -18,6 +19,14 @@ SUPPORTED_ROUTES = {
     ("radish", "answer_docs_question"),
     ("radishflow", "suggest_flowsheet_edits"),
     ("radishflow", "suggest_ghost_completion"),
+}
+PROVIDER_USAGE_SOURCES = {
+    "openai_compatible_usage",
+    "gemini_usage_metadata",
+    "anthropic_usage",
+    "huggingface_usage",
+    "ollama_usage",
+    "ollama_eval_counts",
 }
 
 
@@ -30,6 +39,31 @@ class GatewayOptions:
     api_key: str = ""
     temperature: float = 0.0
     request_timeout_seconds: float = 120.0
+
+
+def sanitize_provider_usage(value: Any) -> dict[str, Any]:
+    not_reported = not_reported_provider_usage()
+    if not isinstance(value, dict) or value.get("availability") != "reported":
+        return not_reported
+    source = value.get("source")
+    counts = (
+        value.get("input_tokens"),
+        value.get("output_tokens"),
+        value.get("total_tokens"),
+    )
+    if (
+        source not in PROVIDER_USAGE_SOURCES
+        or any(isinstance(count, bool) or not isinstance(count, int) or count < 0 for count in counts)
+        or counts[2] != counts[0] + counts[1]
+    ):
+        return not_reported
+    return {
+        "availability": "reported",
+        "source": source,
+        "input_tokens": counts[0],
+        "output_tokens": counts[1],
+        "total_tokens": counts[2],
+    }
 
 
 def route_key(copilot_request: dict[str, Any]) -> tuple[str, str]:
@@ -47,6 +81,7 @@ def build_gateway_metadata(
     request_validated: bool,
     response_validated: bool,
     provider_duration_ms: int = 0,
+    provider_usage: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     project, task = route_key(copilot_request or {})
     return {
@@ -57,6 +92,7 @@ def build_gateway_metadata(
         "request_validated": request_validated,
         "response_validated": response_validated,
         "advisory_only": True,
+        "usage": sanitize_provider_usage(provider_usage),
         "provider": {
             "name": options.provider,
             "profile": options.provider_profile,
@@ -77,6 +113,7 @@ def build_gateway_envelope(
     request_validated: bool = False,
     response_validated: bool = False,
     provider_duration_ms: int = 0,
+    provider_usage: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     request = copilot_request or {}
     project, task = route_key(request)
@@ -95,12 +132,21 @@ def build_gateway_envelope(
             request_validated=request_validated,
             response_validated=response_validated,
             provider_duration_ms=provider_duration_ms,
+            provider_usage=provider_usage,
         ),
     }
 
 
 def validate_gateway_envelope(document: Any) -> None:
     jsonschema.validate(document, load_schema(GATEWAY_ENVELOPE_SCHEMA_PATH))
+    usage = document["metadata"]["usage"]
+    if (
+        usage["availability"] == "reported"
+        and usage["total_tokens"] != usage["input_tokens"] + usage["output_tokens"]
+    ):
+        raise jsonschema.ValidationError(
+            "reported gateway usage total_tokens must equal input_tokens + output_tokens"
+        )
 
 
 def validated_gateway_envelope(**kwargs: Any) -> dict[str, Any]:
@@ -201,6 +247,7 @@ def handle_copilot_request(
             request_validated=True,
             response_validated=True,
             provider_duration_ms=provider_duration_ms,
+            provider_usage=inference_result.get("provider_usage"),
         )
     except Exception:
         provider_finished_at = provider_finished_at or time.perf_counter()

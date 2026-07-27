@@ -138,7 +138,11 @@ export default function ModelGatewayRequestHistoryPanel() {
                 <span><strong>{request.route}</strong><small>{request.protocol} · {request.stream ? "stream" : "unary"}</small></span>
                 <span><small>Provider / model</small><strong>{request.selectedProvider || "unavailable"}</strong><small>{request.selectedProfile || "no profile"} · {request.selectedModel || "unavailable"}{request.providerRouteGeneration ? ` · generation ${request.providerRouteGeneration}` : ""}</small></span>
                 <span><small>Status / failure</small><strong>{request.status}{request.staleStarted ? " · stale" : ""}</strong><small>{request.failureBoundary || "no failure"}</small></span>
-                <span><small>Usage / duration</small><strong>{request.usageAvailability}</strong><small>{request.durationMs} ms · provider {request.providerDurationAvailable ? `${request.providerDurationMs} ms` : "unavailable"}</small></span>
+                <span>
+                  <small>Usage / duration</small>
+                  <strong>{request.usageAvailability === "reported" ? `${request.totalTokens} tokens` : request.usageAvailability}</strong>
+                  <small>{request.usageAvailability === "reported" ? `${request.inputTokens} in · ${request.outputTokens} out · ${request.usageSource}` : "Provider usage unavailable"} · {request.durationMs} ms · provider {request.providerDurationAvailable ? `${request.providerDurationMs} ms` : "unavailable"}</small>
+                </span>
                 <span><small>Started</small><strong>{formatTimestamp(request.startedAt)}</strong></span>
               </button>
             ))}

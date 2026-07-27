@@ -64,6 +64,9 @@ test("application operations keeps channel attribution separate and sorts one lo
   assert.equal(snapshot.metrics.gatewayFailed, 1);
   assert.equal(snapshot.metrics.gatewayUsageReported, 1);
   assert.equal(snapshot.metrics.gatewayUsageNotReported, 1);
+  assert.equal(snapshot.metrics.gatewayInputTokens, 24);
+  assert.equal(snapshot.metrics.gatewayOutputTokens, 7);
+  assert.equal(snapshot.metrics.gatewayTotalTokens, 31);
   assert.equal(snapshot.metrics.workflowLoaded, 2);
   assert.equal(snapshot.metrics.workflowSucceeded, 1);
   assert.equal(snapshot.metrics.workflowFailed, 1);
@@ -165,6 +168,10 @@ function gatewayReadyState(): GatewayRequestHistoryState {
         failureCode: "",
         failureBoundary: "none",
         usageAvailability: "reported",
+        usageSource: "openai_compatible_usage",
+        inputTokens: 24,
+        outputTokens: 7,
+        totalTokens: 31,
         staleStarted: false,
       },
       {
@@ -190,6 +197,10 @@ function gatewayReadyState(): GatewayRequestHistoryState {
         failureCode: "provider_failed",
         failureBoundary: "provider",
         usageAvailability: "not_reported",
+        usageSource: "",
+        inputTokens: 0,
+        outputTokens: 0,
+        totalTokens: 0,
         staleStarted: false,
       },
     ],

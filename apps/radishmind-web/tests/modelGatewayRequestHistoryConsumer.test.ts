@@ -118,7 +118,13 @@ test("Gateway request history maps sanitized detail and usage availability", asy
         subject_ref: "subject_web_dev",
         gateway_duration_ms: 90,
         gateway_duration_available: true,
-        usage: { availability: "not_reported", source: "", input_tokens: 0, output_tokens: 0, total_tokens: 0 },
+        usage: {
+          availability: "reported",
+          source: "gemini_usage_metadata",
+          input_tokens: 34,
+          output_tokens: 11,
+          total_tokens: 45,
+        },
       },
       failure_code: null,
       failure_summary: "",
@@ -128,8 +134,9 @@ test("Gateway request history maps sanitized detail and usage availability", asy
   try {
     const detail = await readGatewayRequestHistoryDetail(live, "request_gateway_1");
     assert.equal(detail.gatewayDurationMs, 90);
-    assert.equal(detail.usageAvailability, "not_reported");
-    assert.equal(detail.totalTokens, 0);
+    assert.equal(detail.usageAvailability, "reported");
+    assert.equal(detail.usageSource, "gemini_usage_metadata");
+    assert.equal(detail.totalTokens, 45);
     assert.equal(detail.consumerRef, "consumer_web_dev");
     assert.equal(detail.providerRouteGeneration, 3);
   } finally {
@@ -180,6 +187,38 @@ test("Gateway request history rejects partial Provider route lineage", async () 
   }
 });
 
+test("Gateway request history rejects inconsistent reported usage", async () => {
+  const originalFetch = globalThis.fetch;
+  const summary = summaryDocument();
+  globalThis.fetch = async () => jsonResponse({
+    request_id: "request_list",
+    requests: [{
+      ...summary,
+      usage_availability: "reported",
+      usage: {
+        availability: "reported",
+        source: "openai_compatible_usage",
+        input_tokens: 10,
+        output_tokens: 4,
+        total_tokens: 99,
+      },
+    }],
+    next_cursor: "",
+    has_more: false,
+    failure_code: null,
+    failure_summary: "",
+    audit_ref: "audit_list",
+  });
+  try {
+    await assert.rejects(
+      () => listGatewayRequestHistory(live, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER),
+      /Gateway request history route failed/,
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 function summaryDocument() {
   return {
     schema_version: "gateway_request_record.v1",
@@ -207,6 +246,13 @@ function summaryDocument() {
     failure_code: "GATEWAY_PROVIDER_FAILED",
     failure_boundary: "provider",
     usage_availability: "not_reported",
+    usage: {
+      availability: "not_reported",
+      source: "",
+      input_tokens: 0,
+      output_tokens: 0,
+      total_tokens: 0,
+    },
     stale_started: false,
   };
 }

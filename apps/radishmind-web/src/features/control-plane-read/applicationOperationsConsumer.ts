@@ -41,6 +41,10 @@ export type ApplicationOperationsTimelineEntry = {
   requestId: string;
   auditRef: string;
   usageAvailability: "" | "reported" | "not_reported" | "not_applicable";
+  usageSource: string;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
   providerCalls: number;
   retrievalCalls: number;
   toolCalls: number;
@@ -58,6 +62,9 @@ export type ApplicationOperationsMetrics = {
   gatewayUsageReported: number;
   gatewayUsageNotReported: number;
   gatewayUsageNotApplicable: number;
+  gatewayInputTokens: number;
+  gatewayOutputTokens: number;
+  gatewayTotalTokens: number;
   workflowLoaded: number;
   workflowRunning: number;
   workflowSucceeded: number;
@@ -226,6 +233,9 @@ function buildMetrics(
     gatewayUsageReported: 0,
     gatewayUsageNotReported: 0,
     gatewayUsageNotApplicable: 0,
+    gatewayInputTokens: 0,
+    gatewayOutputTokens: 0,
+    gatewayTotalTokens: 0,
     workflowLoaded: runs.length,
     workflowRunning: 0,
     workflowSucceeded: 0,
@@ -244,7 +254,12 @@ function buildMetrics(
     if (request.status === "succeeded") metrics.gatewaySucceeded += 1;
     if (request.status === "failed") metrics.gatewayFailed += 1;
     if (request.status === "canceled") metrics.gatewayCanceled += 1;
-    if (request.usageAvailability === "reported") metrics.gatewayUsageReported += 1;
+    if (request.usageAvailability === "reported") {
+      metrics.gatewayUsageReported += 1;
+      metrics.gatewayInputTokens += request.inputTokens;
+      metrics.gatewayOutputTokens += request.outputTokens;
+      metrics.gatewayTotalTokens += request.totalTokens;
+    }
     if (request.usageAvailability === "not_reported") metrics.gatewayUsageNotReported += 1;
     if (request.usageAvailability === "not_applicable") metrics.gatewayUsageNotApplicable += 1;
   }
@@ -282,6 +297,10 @@ function gatewayTimelineEntry(request: GatewayRequestHistorySummary): Applicatio
     requestId: request.requestId,
     auditRef: request.auditRef,
     usageAvailability: request.usageAvailability,
+    usageSource: request.usageSource,
+    inputTokens: request.inputTokens,
+    outputTokens: request.outputTokens,
+    totalTokens: request.totalTokens,
     providerCalls: 0,
     retrievalCalls: 0,
     toolCalls: 0,
@@ -309,6 +328,10 @@ function workflowTimelineEntry(run: WorkflowRunHistorySummary): ApplicationOpera
     requestId: run.requestId,
     auditRef: run.auditRef,
     usageAvailability: "",
+    usageSource: "",
+    inputTokens: 0,
+    outputTokens: 0,
+    totalTokens: 0,
     providerCalls: run.sideEffects.providerCalls,
     retrievalCalls: run.sideEffects.retrievalCalls,
     toolCalls: run.sideEffects.toolCalls,

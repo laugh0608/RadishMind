@@ -122,6 +122,7 @@ func (s *Server) applyGatewayEnvelopeToTrace(trace *requestTrace, envelope bridg
 		trace.gatewayRequest.ProviderDurationMS = value
 		trace.gatewayRequest.ProviderDurationAvailable = true
 	}
+	trace.gatewayRequest.Usage = gatewayUsageFromEnvelope(envelope)
 }
 
 func (s *Server) finishGatewayRequestTrace(
@@ -196,6 +197,45 @@ func gatewayMetadataInt64(metadata map[string]any, key string) (int64, bool) {
 	default:
 		return 0, false
 	}
+}
+
+func gatewayUsageFromEnvelope(envelope bridge.GatewayEnvelope) GatewayRequestUsage {
+	notReported := GatewayRequestUsage{Availability: GatewayRequestUsageNotReported}
+	rawUsage, ok := envelope.Metadata["usage"].(map[string]any)
+	if !ok {
+		return notReported
+	}
+	availability, _ := rawUsage["availability"].(string)
+	if GatewayRequestUsageAvailability(strings.TrimSpace(availability)) != GatewayRequestUsageReported {
+		return notReported
+	}
+	source, _ := rawUsage["source"].(string)
+	source = strings.TrimSpace(source)
+	switch source {
+	case "openai_compatible_usage", "gemini_usage_metadata", "anthropic_usage",
+		"huggingface_usage", "ollama_usage", "ollama_eval_counts":
+	default:
+		return notReported
+	}
+	inputTokens, inputOK := gatewayMetadataInt64(rawUsage, "input_tokens")
+	outputTokens, outputOK := gatewayMetadataInt64(rawUsage, "output_tokens")
+	totalTokens, totalOK := gatewayMetadataInt64(rawUsage, "total_tokens")
+	maxInt := int64(^uint(0) >> 1)
+	if !inputOK || !outputOK || !totalOK ||
+		inputTokens > maxInt || outputTokens > maxInt || totalTokens > maxInt {
+		return notReported
+	}
+	usage := GatewayRequestUsage{
+		Availability: GatewayRequestUsageReported,
+		Source:       source,
+		InputTokens:  int(inputTokens),
+		OutputTokens: int(outputTokens),
+		TotalTokens:  int(totalTokens),
+	}
+	if !validGatewayRequestUsage(usage) {
+		return notReported
+	}
+	return usage
 }
 
 func logGatewayRequestStoreOutcome(requestID string, route string, storeMode string, outcome string) {

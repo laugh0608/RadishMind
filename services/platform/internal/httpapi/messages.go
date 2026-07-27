@@ -28,7 +28,7 @@ type anthropicMessagesResponse struct {
 	Model        string                    `json:"model"`
 	StopReason   string                    `json:"stop_reason"`
 	StopSequence any                       `json:"stop_sequence"`
-	Usage        anthropicMessagesUsage    `json:"usage"`
+	Usage        *anthropicMessagesUsage   `json:"usage,omitempty"`
 }
 
 type anthropicMessageContent struct {
@@ -59,9 +59,9 @@ type anthropicContentDelta struct {
 }
 
 type anthropicMessageDeltaEvent struct {
-	Type  string                 `json:"type"`
-	Delta anthropicStopDelta     `json:"delta"`
-	Usage anthropicMessagesUsage `json:"usage"`
+	Type  string                  `json:"type"`
+	Delta anthropicStopDelta      `json:"delta"`
+	Usage *anthropicMessagesUsage `json:"usage,omitempty"`
 }
 
 type anthropicStopDelta struct {
@@ -118,7 +118,7 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 	}
 
 	if messageRequest.Stream {
-		if err := s.streamAnthropicMessagesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(messageRequest.Temperature, s.config.Temperature), trace); err != nil {
+		if err := s.streamAnthropicMessagesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(messageRequest.Temperature, s.config.Temperature), &trace); err != nil {
 			s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 			return
 		}
@@ -210,10 +210,7 @@ func buildAnthropicMessagesResponseWithID(envelope bridge.GatewayEnvelope, model
 				Text: content,
 			},
 		},
-		Usage: anthropicMessagesUsage{
-			InputTokens:  0,
-			OutputTokens: 0,
-		},
+		Usage: anthropicMessagesUsageFromEnvelope(envelope),
 	}, nil
 }
 
@@ -225,10 +222,6 @@ func buildAnthropicMessagesResponseSkeleton(responseID string, model string) ant
 		Model:      model,
 		StopReason: "",
 		Content:    nil,
-		Usage: anthropicMessagesUsage{
-			InputTokens:  0,
-			OutputTokens: 0,
-		},
 	}
 }
 
@@ -238,7 +231,7 @@ func (s *Server) streamAnthropicMessagesResponse(
 	canonicalRequest []byte,
 	selection northboundSelection,
 	temperature float64,
-	trace requestTrace,
+	trace *requestTrace,
 ) error {
 	responseID := buildNorthboundResponseID("msg-", trace.requestID)
 	streamStarted := false
@@ -251,7 +244,7 @@ func (s *Server) streamAnthropicMessagesResponse(
 			return nil
 		}
 		prepareSSEHeaders(writer)
-		writeTraceHeaders(writer, trace)
+		writeTraceHeaders(writer, *trace)
 		if err := writeSSEEvent(writer, "message_start", anthropicMessageStartEvent{
 			Type:    "message_start",
 			Message: buildAnthropicMessagesResponseSkeleton(responseID, selection.model),
@@ -322,6 +315,7 @@ func (s *Server) streamAnthropicMessagesResponse(
 	if completedEnvelope == nil {
 		return fmt.Errorf("platform bridge stream completed without envelope")
 	}
+	s.applyGatewayEnvelopeToTrace(trace, *completedEnvelope)
 
 	responseDocument, err := buildAnthropicMessagesResponseWithID(*completedEnvelope, selection.model, responseID)
 	if err != nil {
@@ -348,6 +342,17 @@ func (s *Server) streamAnthropicMessagesResponse(
 	if err := writeSSEEvent(writer, "", "[DONE]"); err != nil {
 		return err
 	}
-	logRequestTrace(trace, http.StatusOK, "", "")
+	logRequestTrace(*trace, http.StatusOK, "", "")
 	return nil
+}
+
+func anthropicMessagesUsageFromEnvelope(envelope bridge.GatewayEnvelope) *anthropicMessagesUsage {
+	usage := gatewayUsageFromEnvelope(envelope)
+	if usage.Availability != GatewayRequestUsageReported {
+		return nil
+	}
+	return &anthropicMessagesUsage{
+		InputTokens:  usage.InputTokens,
+		OutputTokens: usage.OutputTokens,
+	}
 }

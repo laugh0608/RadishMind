@@ -36,7 +36,7 @@ func runGatewayRequestHistoryScopeFilterAndCursor(t *testing.T, store gatewayReq
 		if index == 2 {
 			record.Usage = GatewayRequestUsage{
 				Availability: GatewayRequestUsageReported,
-				Source:       "provider_response",
+				Source:       "openai_compatible_usage",
 				InputTokens:  2,
 				OutputTokens: 3,
 				TotalTokens:  5,

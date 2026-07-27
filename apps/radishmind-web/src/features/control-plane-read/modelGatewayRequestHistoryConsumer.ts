@@ -47,6 +47,10 @@ export type GatewayRequestHistorySummary = {
   failureCode: string;
   failureBoundary: string;
   usageAvailability: "reported" | "not_reported" | "not_applicable";
+  usageSource: string;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
   staleStarted: boolean;
 };
 
@@ -58,10 +62,6 @@ export type GatewayRequestHistoryDetail = GatewayRequestHistorySummary & {
   subjectRef: string;
   gatewayDurationMs: number;
   gatewayDurationAvailable: boolean;
-  usageSource: string;
-  inputTokens: number;
-  outputTokens: number;
-  totalTokens: number;
 };
 
 export type GatewayRequestHistoryState = {
@@ -101,7 +101,16 @@ type GatewayRequestSummaryDocument = {
   failure_code: string;
   failure_boundary: string;
   usage_availability: GatewayRequestHistorySummary["usageAvailability"];
+  usage: GatewayRequestUsageDocument;
   stale_started: boolean;
+};
+
+type GatewayRequestUsageDocument = {
+  availability: GatewayRequestHistorySummary["usageAvailability"];
+  source: string;
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
 };
 
 type GatewayRequestDetailDocument = Omit<GatewayRequestSummaryDocument, "usage_availability"> & {
@@ -112,13 +121,6 @@ type GatewayRequestDetailDocument = Omit<GatewayRequestSummaryDocument, "usage_a
   subject_ref: string;
   gateway_duration_ms: number;
   gateway_duration_available: boolean;
-  usage: {
-    availability: GatewayRequestHistorySummary["usageAvailability"];
-    source: string;
-    input_tokens: number;
-    output_tokens: number;
-    total_tokens: number;
-  };
 };
 
 type GatewayRequestListEnvelope = {
@@ -310,6 +312,10 @@ function mapGatewayRequestSummary(value: GatewayRequestSummaryDocument): Gateway
     failureCode: value.failure_code,
     failureBoundary: value.failure_boundary,
     usageAvailability: value.usage_availability,
+    usageSource: value.usage.source,
+    inputTokens: value.usage.input_tokens,
+    outputTokens: value.usage.output_tokens,
+    totalTokens: value.usage.total_tokens,
     staleStarted: value.stale_started,
   };
 }
@@ -324,10 +330,6 @@ function mapGatewayRequestDetail(value: GatewayRequestDetailDocument): GatewayRe
     subjectRef: value.subject_ref,
     gatewayDurationMs: value.gateway_duration_ms,
     gatewayDurationAvailable: value.gateway_duration_available,
-    usageSource: value.usage.source,
-    inputTokens: value.usage.input_tokens,
-    outputTokens: value.usage.output_tokens,
-    totalTokens: value.usage.total_tokens,
   };
 }
 
@@ -346,7 +348,7 @@ function isGatewayRequestReadEnvelope(value: unknown): value is GatewayRequestRe
 }
 
 function isGatewayRequestSummaryDocument(value: unknown): value is GatewayRequestSummaryDocument {
-  if (!isRecord(value)) return false;
+  if (!isRecord(value) || !isGatewayRequestUsageDocument(value.usage)) return false;
   return value.schema_version === "gateway_request_record.v1" && isNonNegativeInteger(value.record_version) &&
     ["memory_dev", "sqlite_dev", "postgres_dev_test"].includes(String(value.store_mode)) &&
     stringFields(value, ["request_id", "audit_ref", "route", "protocol", "started_at", "completed_at", "selection_source", "selected_provider", "selected_profile", "selected_model", "failure_code", "failure_boundary"]) &&
@@ -354,6 +356,7 @@ function isGatewayRequestSummaryDocument(value: unknown): value is GatewayReques
     isNonNegativeInteger(value.duration_ms) && isNonNegativeInteger(value.provider_duration_ms) &&
     typeof value.provider_duration_available === "boolean" && isNonNegativeInteger(value.http_status_code) &&
     ["reported", "not_reported", "not_applicable"].includes(String(value.usage_availability)) &&
+    value.usage_availability === value.usage.availability &&
     typeof value.stale_started === "boolean" && isProviderRouteLineageDocument(value);
 }
 
@@ -363,10 +366,28 @@ function isGatewayRequestDetailDocument(value: unknown): value is GatewayRequest
     stringFields(value, ["tenant_ref", "workspace_id", "consumer_ref", "subject_ref"]) &&
     (value.application_id === undefined || typeof value.application_id === "string") &&
     isNonNegativeInteger(value.gateway_duration_ms) && typeof value.gateway_duration_available === "boolean" &&
-    stringFields(value.usage, ["availability", "source"]) &&
-    ["reported", "not_reported", "not_applicable"].includes(String(value.usage.availability)) &&
-    isNonNegativeInteger(value.usage.input_tokens) && isNonNegativeInteger(value.usage.output_tokens) &&
-    isNonNegativeInteger(value.usage.total_tokens);
+    isGatewayRequestUsageDocument(value.usage);
+}
+
+function isGatewayRequestUsageDocument(value: unknown): value is GatewayRequestUsageDocument {
+  if (!isRecord(value) || typeof value.availability !== "string" || typeof value.source !== "string" ||
+    !["reported", "not_reported", "not_applicable"].includes(String(value.availability)) ||
+    !isNonNegativeInteger(value.input_tokens) || !isNonNegativeInteger(value.output_tokens) ||
+    !isNonNegativeInteger(value.total_tokens)) {
+    return false;
+  }
+  if (value.availability === "reported") {
+    return [
+      "openai_compatible_usage",
+      "gemini_usage_metadata",
+      "anthropic_usage",
+      "huggingface_usage",
+      "ollama_usage",
+      "ollama_eval_counts",
+    ].includes(value.source) && value.total_tokens === value.input_tokens + value.output_tokens;
+  }
+  return value.source === "" && value.input_tokens === 0 &&
+    value.output_tokens === 0 && value.total_tokens === 0;
 }
 
 function isProviderRouteLineageDocument(value: GatewayRequestSummaryDocument | Record<string, unknown>): boolean {

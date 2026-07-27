@@ -450,7 +450,15 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 			Response: map[string]any{
 				"summary": "bridge summary",
 			},
-			Metadata: map[string]any{},
+			Metadata: map[string]any{
+				"usage": map[string]any{
+					"availability":  "reported",
+					"source":        "openai_compatible_usage",
+					"input_tokens":  9,
+					"output_tokens": 4,
+					"total_tokens":  13,
+				},
+			},
 		},
 	}
 
@@ -490,6 +498,9 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		if response.Model != "platform-model" {
 			t.Fatalf("unexpected model: %s", response.Model)
 		}
+		if response.Usage == nil || response.Usage.TotalTokens != 13 {
+			t.Fatalf("unexpected responses usage: %#v", response.Usage)
+		}
 
 		northbound := canonicalNorthboundContext(t, decodeCanonicalRequest(t, fb.lastRequest))
 		if northbound["protocol"] != northboundProtocolResponses {
@@ -524,6 +535,9 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		if !strings.Contains(streamBody, "event: response.completed") || !strings.Contains(streamBody, "data: [DONE]") {
 			t.Fatalf("missing response completion markers: %s", streamBody)
 		}
+		if !strings.Contains(streamBody, `"total_tokens":13`) {
+			t.Fatalf("missing reported response stream usage: %s", streamBody)
+		}
 	})
 
 	t.Run("messages", func(t *testing.T) {
@@ -548,6 +562,9 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		}
 		if response.Model != "platform-model" {
 			t.Fatalf("unexpected model: %s", response.Model)
+		}
+		if response.Usage == nil || response.Usage.InputTokens != 9 || response.Usage.OutputTokens != 4 {
+			t.Fatalf("unexpected messages usage: %#v", response.Usage)
 		}
 
 		northbound := canonicalNorthboundContext(t, decodeCanonicalRequest(t, fb.lastRequest))
@@ -580,6 +597,9 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		if !strings.Contains(streamBody, "event: content_block_delta") || !strings.Contains(streamBody, "data: [DONE]") {
 			t.Fatalf("missing anthropic delta markers: %s", streamBody)
 		}
+		if !strings.Contains(streamBody, `"input_tokens":9`) || !strings.Contains(streamBody, `"output_tokens":4`) {
+			t.Fatalf("missing reported message stream usage: %s", streamBody)
+		}
 	})
 
 	t.Run("chat stream", func(t *testing.T) {
@@ -595,6 +615,9 @@ func TestPlatformNorthboundRoutes(t *testing.T) {
 		streamBody := rec.Body.String()
 		if !strings.Contains(streamBody, "chat.completion.chunk") || !strings.Contains(streamBody, "data: [DONE]") {
 			t.Fatalf("missing chat completion stream markers: %s", streamBody)
+		}
+		if !strings.Contains(streamBody, `"total_tokens":13`) {
+			t.Fatalf("missing reported stream usage: %s", streamBody)
 		}
 	})
 

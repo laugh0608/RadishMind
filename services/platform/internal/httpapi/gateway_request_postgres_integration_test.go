@@ -75,6 +75,15 @@ func TestPostgresGatewayRequestStoreIntegration(t *testing.T) {
 		record.CompletedAt = base.Add(time.Duration(index)*time.Second + time.Millisecond).Format(time.RFC3339Nano)
 		record.DurationMS = 1
 		record.HTTPStatusCode = 200
+		if index == 2 {
+			record.Usage = GatewayRequestUsage{
+				Availability: GatewayRequestUsageReported,
+				Source:       "openai_compatible_usage",
+				InputTokens:  17,
+				OutputTokens: 6,
+				TotalTokens:  23,
+			}
+		}
 		if err = store.UpdateRequest(requestContext, &record); err != nil {
 			t.Fatal(err)
 		}
@@ -100,7 +109,9 @@ func TestPostgresGatewayRequestStoreIntegration(t *testing.T) {
 		recovered.StoreMode != gatewayRequestStoreModePostgresDevTest ||
 		recovered.ProviderRouteConfigurationID != "gateway-default" ||
 		recovered.ProviderRouteGeneration != 3 ||
-		recovered.ProviderRouteSnapshotDigest != "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" {
+		recovered.ProviderRouteSnapshotDigest != "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" ||
+		recovered.Usage.Availability != GatewayRequestUsageReported ||
+		recovered.Usage.Source != "openai_compatible_usage" || recovered.Usage.TotalTokens != 23 {
 		t.Fatalf("Gateway request restart recovery failed: found=%v record=%#v err=%v", found, recovered, err)
 	}
 

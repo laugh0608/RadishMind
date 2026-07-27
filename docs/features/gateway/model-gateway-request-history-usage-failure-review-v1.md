@@ -12,13 +12,15 @@
 
 2026-07-12 第三批已完成最终终态证据与功能关闭。审查发现 northbound request context 取消后无法继续驱动 PostgreSQL terminal update，会让 durable record 停留在 `started`；recorder 现仅为 terminal store update 派生保留 caller values、移除原取消信号并受数据库超时约束的短时 context。该 context 不传给 bridge / provider，不继续生成响应，不重试 northbound 请求，也不改变取消响应语义。
 
-真实浏览器以单 worker / 有界 queue 的显式测试配置验证 40 路并发中 38 个 `503` queue full、`504 / BRIDGE_WORKER_TIMEOUT`、unary 与 stream `408 / BRIDGE_WORKER_CANCELED`，PostgreSQL 详情和 canceled filter 均可复验，全新浏览器会话无 error / warning。完整摘要见 [终态证据附件](evidence/request-history-terminal-evidence-2026-07-12.json)。adapter 尚无可证明的 provider token 来源，因此 usage 正确保持 `not_reported`，本功能不声明 reported usage 已验证；未来出现可信 usage contract 时应作为独立功能批次打开，不阻塞本次 dev/test request history v1 关闭。
+真实浏览器以单 worker / 有界 queue 的显式测试配置验证 40 路并发中 38 个 `503` queue full、`504 / BRIDGE_WORKER_TIMEOUT`、unary 与 stream `408 / BRIDGE_WORKER_CANCELED`，PostgreSQL 详情和 canceled filter 均可复验，全新浏览器会话无 error / warning。完整摘要见 [终态证据附件](evidence/request-history-terminal-evidence-2026-07-12.json)。当时 adapter 尚无可证明的 provider token 来源，因此 usage 正确保留 `not_reported`；该缺口已于 2026-07-27 由独立 Provider 上报用量规范化专题补齐，不改变本专题当时的关闭证据。
 
 2026-07-14 已按[本地 SQLite 开发持久化 v1](../../platform/local-sqlite-dev-persistence-v1.md)完成 SQLite repository：复用既有 `gateway_request_record.v1`、完整 caller scope、终态 CAS、筛选分页和 recorder 语义，新增独立 component migration、共享 runtime 注入与配置失败关闭。SQLite 时间排序采用整数纳秒，避免 RFC3339 可变小数位文本承担数据库顺序；相同时刻继续按 `request_id DESC` 稳定翻页。
 
 memory 与 SQLite 已复用作用域、全过滤器、游标、等时刻排序和并发终态单写者契约。真实文件测试覆盖 checkpoint → canceled 终态、取消后受限 detached context、重启恢复、关闭不回退、存储文档损坏拒绝、请求 / 响应正文禁入，以及应用目录、API 密钥和请求历史在同一 shared runtime 上完成可信 northbound 调用。普通 review store 写入失败仍不改写 provider outcome；API 密钥认证所要求的请求历史可用性仍在 bridge / provider 前失败关闭。
 
 2026-07-26 Provider Route 受控启用专题在不改变 `gateway_request_record.v1` northbound schema 的前提下，把可选的 Admin snapshot lineage 投影到既有 summary / detail：只有 `configuration_id + generation + snapshot_digest` 三项完整且合法时才接受，静态配置记录继续保持三项均为空。真实浏览器已验证激活快照调用、Provider 失败终态与 history 详情关联；页面明确展示精确 generation 和缩略 digest，不暴露草案、候选、endpoint、credential、请求正文或 Provider 原始响应。SQLite 与 PostgreSQL 都通过服务重启恢复。
+
+2026-07-27 [Provider 上报用量规范化与应用用量审查](provider-reported-usage-normalization-application-review-dev-test-v1.md)已完成独立 usage contract：Gateway envelope、三类 northbound unary / stream、recorder、memory / SQLite / PostgreSQL、summary / detail 与 Web 现可承接经验证的 `reported` source 和三个 token counts。缺失或非法 Provider usage 继续保持 `not_reported`，不估算 token，也不打开成本、quota 或 billing。
 
 ## 功能目标
 
@@ -174,7 +176,7 @@ v1 声明 dev/test 默认保留 14 天、每 scope 最多 50,000 条，但请求
 
 - 在现有 Model Gateway Evidence Review 增加真实 Request History 入口，不创建新的一级产品面。
 - 新增独立 consumer、domain mapping 和 lazy panel；`App.tsx` 只保留装配，不承载查询、过滤或详情逻辑。
-- 列表显示 route/protocol、provider/profile/model、status、usage availability、total duration、provider duration、started time 和 failure boundary。
+- 列表显示 route/protocol、provider/profile/model、status、usage availability；`reported` 时同时显示 source 和 input / output / total tokens，并继续显示 total duration、provider duration、started time 和 failure boundary。
 - 详情显示 caller references、selection source、timing breakdown、reported usage、稳定 failure、request / audit ref、store mode 和 stale_started；不展示原始 payload。
 - offline source 零请求并明确 `offline evidence`；dev/test source 只读取新资源族。disabled、scope denied、空列表、filter/cursor invalid、store unavailable 分别呈现。
 - 现有离线 quota/cost、Workflow trace 和 audit correlation 继续作为背景 evidence，不与真实 Gateway request list 合并或充当 fallback。
@@ -208,7 +210,7 @@ v1 声明 dev/test 默认保留 14 天、每 scope 最多 50,000 条，但请求
 - read API：strict query、scope、空列表、list/detail 对齐、filter / cursor 篡改、store failure 和无 fixture fallback。
 - PostgreSQL：fresh migration、rollback / reapply、runtime DDL 拒绝、重启恢复、并发、scope 隔离、分页、marker mismatch、连接失败与 no fallback。
 - Web：offline 零请求、strict mapping、filter、pagination、detail、usage unavailable、失败状态、forbidden-field 拒绝和独立 chunk。
-- 浏览器：成功、invalid request、provider failure、queue/timeout/cancel、stream complete/cancel、usage unavailable、分页过滤、详情、Platform 重启恢复和敏感字段缺失；`reported` 只在可信 provider usage contract 成立后另行验收。
+- 浏览器：成功、invalid request、provider failure、queue/timeout/cancel、stream complete/cancel、usage unavailable、reported usage、分页过滤、详情、Platform 重启恢复和敏感字段缺失。
 - 所有路径确认自动 retry / fallback、quota write、billing write、tool、confirmation、business write 和 replay 为 0。
 
 ## 停止线

@@ -119,6 +119,11 @@ export default function ApplicationOperationsPanel({
           detail={`${metrics.gatewayUsageNotReported} not reported · ${metrics.gatewayUsageNotApplicable} not applicable`}
         />
         <MetricCard
+          label="Provider-reported tokens"
+          value={`${metrics.gatewayTotalTokens} total`}
+          detail={`${metrics.gatewayInputTokens} input · ${metrics.gatewayOutputTokens} output · loaded window`}
+        />
+        <MetricCard
           label="Workflow status"
           value={`${metrics.workflowSucceeded} succeeded`}
           detail={`${metrics.workflowFailed} failed · ${metrics.workflowCanceled} canceled · ${metrics.workflowRunning} running · ${metrics.workflowOutcomeUnknown} unknown`}
@@ -155,7 +160,7 @@ export default function ApplicationOperationsPanel({
       )}
 
       <p className="boundary-note">
-        两个通道只在应用作用域下并列展示，不建立一对一关联。当前数字只覆盖已加载窗口，不是全量 usage、token、cost、quota 或 billing；输入、回答、凭据和 provider 原始材料不会进入该视图。
+        两个通道只在应用作用域下并列展示，不建立一对一关联。Token 数仅汇总当前已加载窗口中 Provider 明确上报的记录，不是全量 usage、cost、quota 或 billing；输入、回答、凭据和 provider 原始材料不会进入该视图。
       </p>
     </section>
   );
@@ -211,7 +216,14 @@ function TimelineEntry({ entry }: { entry: ApplicationOperationsTimelineEntry })
           <div><dt>Failure</dt><dd>{entry.failureCode || "none"} · {entry.failureBoundary || "none"}</dd></div>
           <div><dt>Request / audit</dt><dd>{entry.requestId} · {entry.auditRef}</dd></div>
           {entry.source === "gateway_request" ? (
-            <div><dt>Usage</dt><dd>{entry.usageAvailability}</dd></div>
+            <div>
+              <dt>Usage</dt>
+              <dd>
+                {entry.usageAvailability === "reported"
+                  ? `${entry.totalTokens} total · ${entry.inputTokens} input · ${entry.outputTokens} output · ${entry.usageSource}`
+                  : entry.usageAvailability}
+              </dd>
+            </div>
           ) : (
             <div><dt>Calls</dt><dd>{entry.providerCalls} provider · {entry.retrievalCalls} retrieval · {entry.toolCalls} tool</dd></div>
           )}

@@ -38,6 +38,7 @@ type gatewayRequestSummaryDocument struct {
 	FailureCode                  string                          `json:"failure_code"`
 	FailureBoundary              string                          `json:"failure_boundary"`
 	UsageAvailability            GatewayRequestUsageAvailability `json:"usage_availability"`
+	Usage                        GatewayRequestUsage             `json:"usage"`
 	StaleStarted                 bool                            `json:"stale_started"`
 }
 
@@ -254,6 +255,7 @@ func gatewayRequestSummaryFromRecord(record GatewayRequestRecord, now time.Time)
 		ProviderRouteSnapshotDigest:  record.ProviderRouteSnapshotDigest,
 		HTTPStatusCode:               record.HTTPStatusCode, FailureCode: record.FailureCode,
 		FailureBoundary: record.FailureBoundary, UsageAvailability: record.Usage.Availability,
+		Usage:        record.Usage,
 		StaleStarted: gatewayRequestIsStale(record, now),
 	}
 }

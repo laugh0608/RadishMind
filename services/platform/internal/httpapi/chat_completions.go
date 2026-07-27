@@ -42,6 +42,7 @@ type openAIChatCompletionResponse struct {
 	Created int64                        `json:"created"`
 	Model   string                       `json:"model"`
 	Choices []openAIChatCompletionChoice `json:"choices"`
+	Usage   *openAIChatCompletionUsage   `json:"usage,omitempty"`
 }
 
 type openAIChatCompletionStreamChunk struct {
@@ -50,6 +51,13 @@ type openAIChatCompletionStreamChunk struct {
 	Created int64                              `json:"created"`
 	Model   string                             `json:"model"`
 	Choices []openAIChatCompletionStreamChoice `json:"choices"`
+	Usage   *openAIChatCompletionUsage         `json:"usage,omitempty"`
+}
+
+type openAIChatCompletionUsage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
 }
 
 type openAIChatCompletionChoice struct {
@@ -118,7 +126,7 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 	}
 
 	if chatRequest.Stream {
-		if err := s.streamOpenAIChatCompletionResponse(ctx, writer, canonicalRequest, selection, temperature, trace); err != nil {
+		if err := s.streamOpenAIChatCompletionResponse(ctx, writer, canonicalRequest, selection, temperature, &trace); err != nil {
 			s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 			return
 		}
@@ -307,6 +315,7 @@ func buildOpenAIChatCompletionResponse(envelope bridge.GatewayEnvelope, model st
 	}
 
 	content := buildNorthboundResponseContent(envelope)
+	usage := openAIChatCompletionUsageFromEnvelope(envelope)
 
 	responseID := buildNorthboundResponseID("chatcmpl-", envelope.RequestID)
 
@@ -315,6 +324,7 @@ func buildOpenAIChatCompletionResponse(envelope bridge.GatewayEnvelope, model st
 		Object:  "chat.completion",
 		Created: timeNowUnix(),
 		Model:   model,
+		Usage:   usage,
 		Choices: []openAIChatCompletionChoice{
 			{
 				Index: 0,
@@ -334,20 +344,21 @@ func (s *Server) streamOpenAIChatCompletionResponse(
 	canonicalRequest []byte,
 	selection northboundSelection,
 	temperature float64,
-	trace requestTrace,
+	trace *requestTrace,
 ) error {
 	responseID := buildNorthboundResponseID("chatcmpl-", trace.requestID)
 	createdAt := timeNowUnix()
 	streamStarted := false
 	streamCompleted := false
 	emittedContent := false
+	var completedEnvelope *bridge.GatewayEnvelope
 
 	startStream := func() error {
 		if streamStarted {
 			return nil
 		}
 		prepareSSEHeaders(writer)
-		writeTraceHeaders(writer, trace)
+		writeTraceHeaders(writer, *trace)
 		if err := writeSSEEvent(writer, "", openAIChatCompletionStreamChunk{
 			ID:      responseID,
 			Object:  "chat.completion.chunk",
@@ -394,6 +405,9 @@ func (s *Server) streamOpenAIChatCompletionResponse(
 				})
 			case "completed":
 				streamCompleted = true
+				if event.Envelope != nil {
+					completedEnvelope = event.Envelope
+				}
 				if event.Envelope != nil && strings.EqualFold(event.Envelope.Status, "failed") && !emittedContent {
 					return fmt.Errorf("%s", gatewayErrorMessage(event.Envelope.Error))
 				}
@@ -411,6 +425,10 @@ func (s *Server) streamOpenAIChatCompletionResponse(
 	if !streamCompleted {
 		return fmt.Errorf("platform bridge stream ended without completion event")
 	}
+	if completedEnvelope == nil {
+		return fmt.Errorf("platform bridge stream completed without envelope")
+	}
+	s.applyGatewayEnvelopeToTrace(trace, *completedEnvelope)
 	if err := startStream(); err != nil {
 		return err
 	}
@@ -428,6 +446,7 @@ func (s *Server) streamOpenAIChatCompletionResponse(
 				FinishReason: &finishReason,
 			},
 		},
+		Usage: openAIChatCompletionUsageFromEnvelope(*completedEnvelope),
 	}); err != nil {
 		return err
 	}
@@ -435,8 +454,20 @@ func (s *Server) streamOpenAIChatCompletionResponse(
 	if err := writeSSEEvent(writer, "", "[DONE]"); err != nil {
 		return err
 	}
-	logRequestTrace(trace, http.StatusOK, "", "")
+	logRequestTrace(*trace, http.StatusOK, "", "")
 	return nil
+}
+
+func openAIChatCompletionUsageFromEnvelope(envelope bridge.GatewayEnvelope) *openAIChatCompletionUsage {
+	usage := gatewayUsageFromEnvelope(envelope)
+	if usage.Availability != GatewayRequestUsageReported {
+		return nil
+	}
+	return &openAIChatCompletionUsage{
+		PromptTokens:     usage.InputTokens,
+		CompletionTokens: usage.OutputTokens,
+		TotalTokens:      usage.TotalTokens,
+	}
 }
 
 func effectiveTemperature(requestTemperature *float64, fallback float64) float64 {
