@@ -11,7 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
-- 产品焦点：[Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 已完成批次 A 至 C，状态为 `workspace_scoped_mutation_authorization_dev_test_v1_batch_c_complete_batch_d_ready`。27 条 mutation 已复用唯一 membership provider；Publish Candidate、Definition Candidate / activation、RAG Promotion 与三类 Runtime Assignment 支持 body 前授权、单次原子组合权限、资源条件 source permission、稳定 failure mapping、primary owner zero-call、Web header 分离和 PostgreSQL 回归。下一步只复核批次 D 的 Workflow Run、Application Session / Turn 与人类受控执行 owner、credential 和外部副作用顺序。
+- 产品焦点：[Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 已完成批次 A 至 D，状态为 `workspace_scoped_mutation_authorization_dev_test_v1_batch_d_complete_batch_e_ready`。32 条 mutation 已复用唯一 membership provider；Session / Turn 与两类人类受控 Run 现已支持 body 前单次原子权限、owner / Run write / Gateway zero-call 拒绝证据、Web header 分离和 PostgreSQL 回归。下一步只复核批次 E 的 RAG Dataset / Snapshot、HTTP Tool 与 Evaluation 组合权限、credential 和外部副作用顺序。
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算`、`R6 文档与检查器收敛` 均已完成。R6 关闭评审确认活动 checker 从 `132` 项、`38,644` 行降至 `111` 项、`28,486` 行，分别下降约 `15.9%` 与 `26.3%`；Provider、Production Ops 和 Control Plane formal UI 因仍有独立证据责任继续活动，不再派生第六批或同层 readiness 链。
 - `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片。production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
@@ -19,7 +19,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：[Workspace-scoped Mutation Authorization](features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 批次 A 至 C 已完成：Application Catalog、API Key Lifecycle、四类创作 owner、Publish / Definition / RAG 审查晋级与三类 Runtime Assignment 均绑定 verified identity、active workspace、membership permission 和既有 owner；组合权限由单次 provider decision 原子判断。下一步进入批次 D 设计复核，只覆盖 Workflow Run、Application Session / Turn 与人类受控执行；生产 membership adapter、真实 OIDC、quota / billing、运营收件箱批次 B、自动修复和 Provider Route 同层扩展继续关闭。
+1. 产品线：[Workspace-scoped Mutation Authorization](features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 批次 A 至 D 已完成：Application Catalog、API Key Lifecycle、创作 / 审查 / 激活 owner、Runtime Assignment、Session / Turn 与两类人类受控 Run 均绑定 verified identity、active workspace、membership permission 和既有 owner；组合权限由单次 provider decision 原子判断。下一步进入批次 E 设计复核，只覆盖 RAG Dataset / Snapshot、HTTP Tool 与 Evaluation 组合 owner；生产 membership adapter、真实 OIDC、quota / billing、运营收件箱批次 B、自动修复和 Provider Route 同层扩展继续关闭。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。

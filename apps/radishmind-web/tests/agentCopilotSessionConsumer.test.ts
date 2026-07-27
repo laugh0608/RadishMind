@@ -19,8 +19,10 @@ const applicationId = "app_aaaaaaaaaaaaaaaa";
 
 test("Agent Session v3 create binds the exact execution profile", async () => {
   let body: any;
+  let headers = new Headers();
   globalThis.fetch = async (_url, init) => {
     body = JSON.parse(String(init?.body));
+    headers = new Headers(init?.headers);
     return jsonResponse(createEnvelope());
   };
   const result = await createAgentCopilotSession(config, applicationId);
@@ -31,12 +33,17 @@ test("Agent Session v3 create binds the exact execution profile", async () => {
     application_id: applicationId,
     execution_profile: "agent_copilot_suggestion_v1",
   });
+  assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+  assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "application_sessions:write");
 });
 
 test("Agent turn keeps context request-only and maps one transient advisory response", async () => {
   let capturedBody = "";
+  let headers = new Headers();
   globalThis.fetch = async (_url, init) => {
     capturedBody = String(init?.body);
+    headers = new Headers(init?.headers);
     return jsonResponse(turnEnvelope());
   };
   const result = await executeAgentCopilotSessionTurn(config, session(), {
@@ -52,6 +59,9 @@ test("Agent turn keeps context request-only and maps one transient advisory resp
   assert.equal(result.response?.proposedActions[0]?.requiresConfirmation, true);
   assert.match(capturedBody, /selected_unit_ids/u);
   assert.doesNotMatch(JSON.stringify(result), /selected_unit_ids|not_converged/u);
+  assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+  assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "application_sessions:execute");
 });
 
 test("Agent turn drops replay output and rejects safety relaxation or sensitive response material", async () => {

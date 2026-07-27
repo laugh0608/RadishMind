@@ -12,11 +12,12 @@ import (
 
 func TestApplicationInteractionSessionHTTPManagementPathAndStrictBoundary(t *testing.T) {
 	definitionService, runContext, definitionRequest, bridgeClient, _ := workflowDefinitionExecutionFixture(t)
-	server := &Server{config: config.Config{ApplicationSessionDevEnabled: true}, applicationCatalogRepository: definitionService.applications, workflowDefinitionReleaseRepository: definitionService.repository, applicationInteractionSessionRepository: newMemoryApplicationInteractionSessionRepository()}
+	server := &Server{config: config.Config{ApplicationSessionDevEnabled: true}, applicationCatalogRepository: definitionService.applications, workflowDefinitionReleaseRepository: definitionService.repository, applicationInteractionSessionRepository: newMemoryApplicationInteractionSessionRepository(), workspaceMembershipProvider: newDeterministicDevTestWorkspaceMembershipProvider()}
 	auth := applicationInteractionSessionHTTPAuth(runContext, "application_sessions:read", "application_sessions:write")
 
 	createBody := `{"workspace_id":"` + runContext.WorkspaceID + `","application_id":"` + runContext.ApplicationID + `","execution_profile":"workflow_definition_executor_v1","definition_id":"` + definitionRequest.DefinitionID + `"}`
 	createRequest := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/application-sessions", strings.NewReader(createBody))
+	createRequest.Header.Set(activeWorkspaceHeader, runContext.WorkspaceID)
 	createRequest = createRequest.WithContext(withControlPlaneReadFakeAuthContext(createRequest.Context(), auth))
 	createResponse := httptest.NewRecorder()
 	server.handleCreateApplicationInteractionSession(createResponse, createRequest)
@@ -58,6 +59,7 @@ func TestApplicationInteractionSessionHTTPManagementPathAndStrictBoundary(t *tes
 	closeBody := `{"workspace_id":"` + runContext.WorkspaceID + `","application_id":"` + runContext.ApplicationID + `","expected_version":1}`
 	closeRequest := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/application-sessions/"+created.Session.SessionID+"/close", strings.NewReader(closeBody))
 	closeRequest.SetPathValue("session_id", created.Session.SessionID)
+	closeRequest.Header.Set(activeWorkspaceHeader, runContext.WorkspaceID)
 	closeRequest = closeRequest.WithContext(withControlPlaneReadFakeAuthContext(closeRequest.Context(), auth))
 	closeResponse := httptest.NewRecorder()
 	server.handleCloseApplicationInteractionSession(closeResponse, closeRequest)
@@ -66,6 +68,7 @@ func TestApplicationInteractionSessionHTTPManagementPathAndStrictBoundary(t *tes
 	}
 
 	unknownRequest := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/application-sessions", strings.NewReader(strings.TrimSuffix(createBody, "}")+`,"input":"forbidden"}`))
+	unknownRequest.Header.Set(activeWorkspaceHeader, runContext.WorkspaceID)
 	unknownRequest = unknownRequest.WithContext(withControlPlaneReadFakeAuthContext(unknownRequest.Context(), auth))
 	unknownResponse := httptest.NewRecorder()
 	server.handleCreateApplicationInteractionSession(unknownResponse, unknownRequest)
@@ -81,7 +84,7 @@ func TestApplicationInteractionSessionHTTPManagementPathAndStrictBoundary(t *tes
 
 func TestApplicationInteractionSessionHTTPGateAndScopeFailClosed(t *testing.T) {
 	definitionService, runContext, definitionRequest, bridgeClient, _ := workflowDefinitionExecutionFixture(t)
-	server := &Server{applicationCatalogRepository: definitionService.applications, workflowDefinitionReleaseRepository: definitionService.repository, applicationInteractionSessionRepository: newMemoryApplicationInteractionSessionRepository()}
+	server := &Server{applicationCatalogRepository: definitionService.applications, workflowDefinitionReleaseRepository: definitionService.repository, applicationInteractionSessionRepository: newMemoryApplicationInteractionSessionRepository(), workspaceMembershipProvider: newDeterministicDevTestWorkspaceMembershipProvider()}
 	body := `{"workspace_id":"` + runContext.WorkspaceID + `","application_id":"` + runContext.ApplicationID + `","execution_profile":"workflow_definition_executor_v1","definition_id":"` + definitionRequest.DefinitionID + `"}`
 	request := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/application-sessions", strings.NewReader(body))
 	request = request.WithContext(withControlPlaneReadFakeAuthContext(request.Context(), applicationInteractionSessionHTTPAuth(runContext, "application_sessions:write")))
@@ -96,7 +99,7 @@ func TestApplicationInteractionSessionHTTPGateAndScopeFailClosed(t *testing.T) {
 	denied = denied.WithContext(withControlPlaneReadFakeAuthContext(denied.Context(), applicationInteractionSessionHTTPAuth(runContext, "application_sessions:read")))
 	deniedResponse := httptest.NewRecorder()
 	server.handleCreateApplicationInteractionSession(deniedResponse, denied)
-	if deniedResponse.Code != http.StatusForbidden || !strings.Contains(deniedResponse.Body.String(), ApplicationInteractionFailureScopeDenied) || bridgeClient.callCount() != 0 {
+	if deniedResponse.Code != http.StatusForbidden || !strings.Contains(deniedResponse.Body.String(), "scope_denied") || bridgeClient.callCount() != 0 {
 		t.Fatalf("application session write scope did not fail closed: status=%d body=%s", deniedResponse.Code, deniedResponse.Body.String())
 	}
 }
@@ -108,10 +111,12 @@ func TestApplicationInteractionTurnHTTPExecutesStrictWorkflowV5AndDoesNotReplayP
 		bridge: bridgeClient, applicationCatalogRepository: definitionService.applications,
 		workflowDefinitionReleaseRepository:     definitionService.repository,
 		applicationInteractionSessionRepository: newMemoryApplicationInteractionSessionRepository(), workflowRunStore: runStore,
+		workspaceMembershipProvider: newDeterministicDevTestWorkspaceMembershipProvider(),
 	}
 	auth := applicationInteractionSessionHTTPAuth(runContext, "application_sessions:write", "application_sessions:read", "application_sessions:execute")
 	createBody := `{"workspace_id":"` + runContext.WorkspaceID + `","application_id":"` + runContext.ApplicationID + `","execution_profile":"workflow_definition_executor_v1","definition_id":"` + definitionRequest.DefinitionID + `"}`
 	createRequest := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/application-sessions", strings.NewReader(createBody))
+	createRequest.Header.Set(activeWorkspaceHeader, runContext.WorkspaceID)
 	createRequest = createRequest.WithContext(withControlPlaneReadFakeAuthContext(createRequest.Context(), auth))
 	createResponse := httptest.NewRecorder()
 	server.handleCreateApplicationInteractionSession(createResponse, createRequest)
@@ -125,6 +130,7 @@ func TestApplicationInteractionTurnHTTPExecutesStrictWorkflowV5AndDoesNotReplayP
 	execute := func(body string, authContext controlPlaneReadAuthContext) *httptest.ResponseRecorder {
 		request := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/application-sessions/"+created.Session.SessionID+"/turns", strings.NewReader(body))
 		request.SetPathValue("session_id", created.Session.SessionID)
+		request.Header.Set(activeWorkspaceHeader, runContext.WorkspaceID)
 		request = request.WithContext(withControlPlaneReadFakeAuthContext(request.Context(), authContext))
 		response := httptest.NewRecorder()
 		server.handleExecuteApplicationInteractionTurn(response, request)
@@ -148,11 +154,21 @@ func TestApplicationInteractionTurnHTTPExecutesStrictWorkflowV5AndDoesNotReplayP
 		t.Fatalf("turn HTTP accepted client authority: status=%d body=%s bridge=%d", unknown.Code, unknown.Body.String(), bridgeClient.callCount())
 	}
 	denied := execute(strings.Replace(turnBody, "turn_http_001", "turn_http_002", 1), applicationInteractionSessionHTTPAuth(runContext, "application_sessions:read"))
-	if denied.Code != http.StatusForbidden || !strings.Contains(denied.Body.String(), ApplicationInteractionFailureScopeDenied) || bridgeClient.callCount() != 1 {
+	if denied.Code != http.StatusForbidden || !strings.Contains(denied.Body.String(), "scope_denied") || bridgeClient.callCount() != 1 {
 		t.Fatalf("turn execute scope did not fail closed: status=%d body=%s bridge=%d", denied.Code, denied.Body.String(), bridgeClient.callCount())
 	}
 }
 
 func applicationInteractionSessionHTTPAuth(ctx WorkflowRunContext, scopes ...string) controlPlaneReadAuthContext {
-	return controlPlaneReadAuthContext{AuthMode: controlPlaneReadAuthModeDevHeaders, IdentityContext: "dev:application-session-test", TenantBinding: ctx.TenantRef, SubjectBinding: ctx.ActorRef, ScopeGrants: scopes, AuditContext: "audit_application_session_http", VerifiedIdentity: &VerifiedControlPlaneIdentity{SubjectRef: ctx.ActorRef, TenantRef: ctx.TenantRef}, ResourceBinding: ControlPlaneResourceBinding{TenantRef: ctx.TenantRef, TenantVerified: true}}
+	return controlPlaneReadAuthContext{
+		AuthMode: controlPlaneReadAuthModeDevHeaders, IdentityContext: "dev:application-session-test",
+		TenantBinding: ctx.TenantRef, SubjectBinding: ctx.ActorRef, ScopeGrants: scopes,
+		AuditContext:     "audit_application_session_http",
+		VerifiedIdentity: &VerifiedControlPlaneIdentity{SubjectRef: ctx.ActorRef, TenantRef: ctx.TenantRef},
+		ResourceBinding:  ControlPlaneResourceBinding{TenantRef: ctx.TenantRef, TenantVerified: true},
+		WorkspaceMemberships: []VerifiedWorkspaceMembershipAssertion{{
+			TenantRef: ctx.TenantRef, SubjectRef: ctx.ActorRef, WorkspaceID: ctx.WorkspaceID,
+			PermissionGrants: append([]string{}, scopes...),
+		}},
+	}
 }

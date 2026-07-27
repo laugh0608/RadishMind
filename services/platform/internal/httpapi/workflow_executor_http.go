@@ -63,6 +63,12 @@ func (s *Server) handleStartWorkflowRun(writer http.ResponseWriter, request *htt
 	if !s.allowWorkflowExecutorDev(writer, trace) {
 		return
 	}
+	auth, failureCode, status := s.authorizeWorkspaceScopedPermissions(request, "workflow_runs:execute", "workflow_drafts:read")
+	runContext := workflowRunMutationContext(request, trace, auth, "", "start")
+	if failureCode != "" {
+		writeWorkflowRunResultWithStatus(writer, status, trace, runContext, workflowRunFailure(WorkflowRunFailureCode(failureCode), "Workflow run authorization is denied."))
+		return
+	}
 	var body workflowRunStartHTTPBody
 	if !s.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{
 		maxBytes:            maxControlJSONRequestBodyBytes,
@@ -70,17 +76,12 @@ func (s *Server) handleStartWorkflowRun(writer http.ResponseWriter, request *htt
 	}) {
 		return
 	}
-	runContext, failureCode := workflowRunContextFromRequest(
-		request,
-		trace,
-		body.WorkspaceID,
-		body.ApplicationID,
-		"start",
-		"workflow_runs:execute",
-		"workflow_drafts:read",
-	)
-	if failureCode != "" {
-		writeWorkflowRunResult(writer, trace, runContext, workflowRunFailure(failureCode, "Workflow run scope is denied."))
+	runContext = workflowRunMutationContext(request, trace, auth, body.ApplicationID, "start")
+	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID ||
+		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevWorkspaceHeader)) != auth.ResourceBinding.WorkspaceID ||
+		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevApplicationHeader)) != runContext.ApplicationID ||
+		!validControlPlaneReadAuthReference(runContext.ApplicationID, false) {
+		writeWorkflowRunResultWithStatus(writer, http.StatusForbidden, trace, runContext, workflowRunFailure(WorkflowRunFailureCode("workspace_binding_mismatch"), "Workflow run workspace binding is denied."))
 		return
 	}
 	result := s.workflowExecutorService().StartRun(runContext, WorkflowRunRequest{
@@ -313,13 +314,39 @@ func workflowRunContextFromRequest(
 	return runContext, ""
 }
 
+func workflowRunMutationContext(
+	request *http.Request,
+	trace requestTrace,
+	auth controlPlaneReadAuthContext,
+	applicationID string,
+	auditSuffix string,
+) WorkflowRunContext {
+	return WorkflowRunContext{
+		RequestContext: request.Context(), RequestID: trace.requestID,
+		TenantRef: strings.TrimSpace(auth.TenantBinding), WorkspaceID: strings.TrimSpace(auth.ResourceBinding.WorkspaceID),
+		ApplicationID: strings.TrimSpace(applicationID), ActorRef: strings.TrimSpace(auth.SubjectBinding),
+		ScopeGrants: cloneStringSlice(auth.ScopeGrants),
+		AuditRef:    auditRefForWorkflowRun(trace, auditSuffix),
+	}
+}
+
 func writeWorkflowRunResult(
 	writer http.ResponseWriter,
 	trace requestTrace,
 	runContext WorkflowRunContext,
 	result WorkflowRunResult,
 ) {
-	writeObservedJSON(writer, http.StatusOK, trace, workflowRunEnvelope{
+	writeWorkflowRunResultWithStatus(writer, http.StatusOK, trace, runContext, result)
+}
+
+func writeWorkflowRunResultWithStatus(
+	writer http.ResponseWriter,
+	status int,
+	trace requestTrace,
+	runContext WorkflowRunContext,
+	result WorkflowRunResult,
+) {
+	writeObservedJSON(writer, status, trace, workflowRunEnvelope{
 		RequestID:       trace.requestID,
 		WorkspaceID:     runContext.WorkspaceID,
 		ApplicationID:   runContext.ApplicationID,

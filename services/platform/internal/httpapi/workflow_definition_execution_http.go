@@ -26,13 +26,22 @@ func (server *Server) handleStartWorkflowDefinitionRun(writer http.ResponseWrite
 		server.writePlatformError(writer, trace, "WORKFLOW_DEFINITION_EXECUTOR_DEV_DISABLED", "workflow definition execution requires explicit development opt-in")
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "workflow_runs:execute", "workflow_definitions:read")
+	runContext := workflowRunMutationContext(request, trace, auth, "", "definition-start")
+	if failure != "" {
+		writeWorkflowRunResultWithStatus(writer, status, trace, runContext, workflowRunFailure(WorkflowRunFailureCode(failure), "Workflow definition run authorization is denied."))
+		return
+	}
 	var body workflowDefinitionRunHTTPBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	runContext, failure := workflowRunContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "definition-start", "workflow_runs:execute", "workflow_definitions:read")
-	if failure != "" {
-		writeWorkflowRunResult(writer, trace, runContext, workflowRunFailure(failure, "Workflow definition run scope is denied."))
+	runContext = workflowRunMutationContext(request, trace, auth, body.ApplicationID, "definition-start")
+	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID ||
+		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevWorkspaceHeader)) != auth.ResourceBinding.WorkspaceID ||
+		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevApplicationHeader)) != runContext.ApplicationID ||
+		!validControlPlaneReadAuthReference(runContext.ApplicationID, false) {
+		writeWorkflowRunResultWithStatus(writer, http.StatusForbidden, trace, runContext, workflowRunFailure(WorkflowRunFailureCode("workspace_binding_mismatch"), "Workflow definition run workspace binding is denied."))
 		return
 	}
 	result := server.workflowDefinitionExecutionService().StartRun(runContext, WorkflowDefinitionRunRequest{DefinitionID: strings.TrimSpace(body.DefinitionID), ExpectedPointerVersion: body.ExpectedPointerVersion, ExpectedDefinitionVersion: body.ExpectedDefinitionVersion, ExpectedDefinitionDigest: strings.TrimSpace(body.ExpectedDefinitionDigest), InputText: body.InputText, ConditionValues: body.ConditionValues, Model: body.Model, Temperature: body.Temperature})

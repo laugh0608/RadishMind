@@ -37,6 +37,12 @@ test("Prompt Session v2 creates explicit profile and sends transient variables o
     execution_profile: "prompt_application_invocation_v1",
   });
   assert.equal(requests[0]?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_sessions:write");
+  assert.equal(requests[0]?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(requests[0]?.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+  assert.equal(
+    requests[0]?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"),
+    "application_sessions:write",
+  );
 
   const turn = await executePromptApplicationSessionTurn(
     config,
@@ -58,6 +64,12 @@ test("Prompt Session v2 creates explicit profile and sends transient variables o
     variables: { question: "如何审查？", tone: "清晰" },
   });
   assert.equal(requests[1]?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_sessions:execute");
+  assert.equal(requests[1]?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(requests[1]?.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+  assert.equal(
+    requests[1]?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"),
+    "application_sessions:execute",
+  );
 });
 
 test("Prompt Session v2 lists only strict metadata records for stage recovery", async () => {

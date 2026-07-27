@@ -21,7 +21,7 @@
 - [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](user-workspace/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md) 已完成批次 A 至批次 E：strict contracts、policy compiler、三种 Profile owner、Configuration / Candidate v4、assignment、`agent_copilot:invoke`、Session / Turn v3、Run v7、类型专属 Web 与双数据库真实验收均已落地，专题关闭。
 - [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md) 已完成：Prompt v6 / Comparison v5 与 Agent v7 / Comparison v6 已严格接入既有 Evaluation Case、Suite 和人工 decision；SQLite 真实浏览器完成 Agent case → suite → `approved v1`，没有新增评测 owner 或自动发布能力。
 - [工作区运营收件箱（开发 / 测试态）v1](user-workspace/workspace-operations-inbox-dev-test-v1.md) 批次 A 已完成：active workspace 下的 Applications、API Keys、Workflow Definitions 与 Runs 首分页脱敏快照可投影为确定性关注队列，显式标记 partial / unavailable coverage，并跳转既有审查 surface；不新增 incident、notification、remediation 或 quota 真相源。
-- [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 已完成设计、全量 mutation inventory、唯一任务卡及批次 A 至 C；verified identity、active workspace、单项 / 原子组合与资源条件 membership permission、resource owner、稳定拒绝与副作用顺序已进入 27 条 mutation，下一步复核批次 D 的 Workflow Run、Application Session / Turn 与人类受控执行。
+- [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 已完成设计、全量 mutation inventory、唯一任务卡及批次 A 至 D；verified identity、active workspace、单项 / 原子组合与资源条件 membership permission、resource owner、稳定拒绝与副作用顺序已进入 32 条 mutation，下一步复核批次 E 的 RAG Dataset / Snapshot、HTTP Tool 与 Evaluation 组合 owner。
 - 工作区首页和工作流定义已支持创建本地工作流草案并进入草案设计器；草案保存复用仅开发的已保存草案消费端，不代表生产持久化已成立。
 - `User Workspace Saved Draft List v1` 已在工作区首页支持仅开发的已保存草案列表：显示当前应用下已保存草案的脱敏摘要、空结果 / 失败状态、刷新和恢复。默认内存、聚合 SQLite 与显式 PostgreSQL 开发测试态存储库均可承载该路径，但不代表生产持久化已成立。
 - 草案设计器已支持本地节点新增、移动、删除保护、属性编辑和边重建；校验检查器、执行计划预览和运行时准入检查器使用当前活跃草案，不代表工作流可正式发布或执行。
@@ -41,7 +41,7 @@
 
 ## 下一批开发方向
 
-1. Workspace-scoped Mutation Authorization 批次 A 至 C 已完成共享 mutation authorization、稳定 failure mapping、业务 owner zero-call、API key credential 副作用顺序、创作 / 审查 / 激活态原子组合与资源条件权限、Web header 分离和 memory / SQLite / PostgreSQL 证据。下一步只复核批次 D 的 Workflow Run、Application Session / Turn 与人类受控执行 owner、credential、Run 创建和 Gateway / provider 副作用顺序。
+1. Workspace-scoped Mutation Authorization 批次 A 至 D 已完成共享 mutation authorization、稳定 failure mapping、业务 owner / 外部副作用为零、API key credential 副作用顺序、创作 / 审查 / 激活 / Session / Turn / Run 原子组合与资源条件权限、Web header 分离和 memory / SQLite / PostgreSQL 证据。下一步只复核批次 E 的 RAG Dataset / Snapshot、HTTP Tool 与 Evaluation 组合权限、credential、owner 重读和 Gateway / provider / network 副作用顺序。
 2. 后续批次继续要求跨 tenant / subject、非成员、过期 identity / membership、workspace mismatch、permission denied 在业务 repository 查询或副作用前失败关闭。dev header 与 signed-test assertion 只能用于开发测试，不能成为 production OIDC 授权来源。
 3. 工作区运营收件箱批次 A 已完成。只有真实需要跨全部分页窗口，且四类 owner 的统一稳定 cursor 契约成立时才评审批次 B；不为扩展示例数量或页面计数启动服务端投影。
 4. Prompt / Agent 继续复用 canonical Run、Comparison、Evaluation Case / Suite 与 decision owner；不复制评测算法，不把人工 `approved` 接成自动 candidate、assignment、release 或 deploy。Agent / Copilot 仍复用 canonical `CopilotRequest / CopilotResponse`，不扩 agent loop、工具执行或业务写回。

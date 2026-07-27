@@ -2,7 +2,7 @@
 
 更新时间：2026-07-27
 
-状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_c_complete_batch_d_ready`
+状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_d_complete_batch_e_ready`
 
 对应功能文档：[Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](../features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md)
 
@@ -164,11 +164,37 @@ dev/test enablement
 - repository interface、schema、migration、CAS、append-only event / audit、approval / activation 分离和三类 application API key invocation 均未改变。
 - 批次 C 已关闭，累计 27 条 mutation 完成迁移；下一步只复核批次 D。
 
+## 批次 D：Session / Turn 与人类受控执行
+
+### 范围
+
+- Application Interaction Session create / close；
+- Application Interaction Turn execute；
+- Saved Workflow Draft run；
+- Workflow Definition-bound run。
+
+### 固定决策
+
+- 本批共 5 条 mutation。Session write / execute 使用各自单项 permission；Saved Draft run 原子要求 `workflow_runs:execute` + `workflow_drafts:read`；Definition-bound run 原子要求 `workflow_runs:execute` + `workflow_definitions:read`。所有 permission 均在 body 前由一次 membership decision 判断。
+- Session create / close 的授权与 binding failure 必须保持 Session、Application、Definition / Runtime authority owner 和外部调用为 0；Session 管理动作不创建 Run、不调用 Gateway / provider。
+- Turn execute 的授权与 binding failure 必须发生在 Session read、Turn reservation、Run write 和任何 delegate 前。授权通过后仍只按 persisted Session authority 至多委托一次，不接受客户端 credential、API key 或 authority override。
+- 两类 Run 的授权与 binding failure 必须发生在 Draft / Definition / Activation / Application read、planned Run write 和 Gateway / provider 前；授权通过后继续复用既有 planned → external call → terminal 顺序与失败恢复。
+- repository interface、schema、migration、Session / Turn / Run CAS、idempotent replay、metadata-only persistence 和三类 application API key invocation 均不改变。
+
+### 完成记录（2026-07-27）
+
+- 5 条 Session / Turn / Run mutation 已接入共享 authorization；Session write / execute 与两类双权限 Run 均在 body 前由一次 membership decision 判断。
+- 跨 5 条入口的拒绝矩阵证明 identity、selection、membership、body binding 与 OIDC unavailable 均在业务 owner、Turn reservation、Run write 和 Gateway / provider 前失败；双权限缺失测试同时固定 provider 0 / 1 次调用边界。
+- Session 管理动作保持零 Run 与零外部调用，Turn 继续只按 persisted authority 至多委托一次，两类 Run 保持 planned → external call → terminal 顺序；客户端不能覆盖 runtime credential 或 authority。
+- 上游 permission projection 与五类 Web consumer 已补齐；完整 Platform Go tests、定向 race、`go vet`、Web 246 项测试 / production build 与 PostgreSQL integration suite 通过。
+- repository interface、schema、migration、Session / Turn / Run CAS、idempotent replay、metadata-only persistence 与 application API key invocation 均未改变。
+- 批次 D 已关闭，累计 32 条 mutation 完成迁移；下一步只复核批次 E。
+
 ## 后续批次
 
 1. 批次 C 已完成：Publish Candidate、Definition Candidate、RAG Promotion 与 Runtime Assignment。
-2. 下一步批次 D：Workflow Run、Application Session / Turn 与人类受控执行。
-3. 后续批次 E：RAG Dataset / Snapshot、HTTP Tool 与 Evaluation。
+2. 批次 D 已完成：Workflow Run、Application Session / Turn 与人类受控执行。
+3. 下一批次 E：RAG Dataset / Snapshot、HTTP Tool 与 Evaluation。
 
 每批开始前必须从功能文档 inventory 重读真实 permission、workspace 来源、owner 和副作用。若出现公开 API、schema、幂等协议、provider 或网络边界变化，先更新功能文档与本任务卡。
 
@@ -186,4 +212,4 @@ dev/test enablement
 - 不把 active workspace、body workspace、旧 dev header、resource record 或 API key 当作人类 membership proof。
 - 不修改 application API key invocation 的逐请求授权模型。
 - 不启用 production OIDC、production membership、quota / billing、自动发布、自动确认、replay、unrestricted tool 或业务写回。
-- 不从已完成的批次 A 至 C 直接复制到 Session、Run 或 Evaluation runtime；批次 D 先复核执行 credential、Run 创建、provider / Gateway 调用和状态转换副作用。
+- 不从已完成的批次 A 至 D 直接复制到 Evaluation、RAG Dataset / Snapshot 或 HTTP Tool runtime；批次 E 必须先复核组合权限、执行 credential、owner 重读和 provider / Gateway / network 副作用。

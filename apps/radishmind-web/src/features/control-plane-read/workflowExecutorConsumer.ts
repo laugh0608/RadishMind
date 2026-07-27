@@ -612,7 +612,7 @@ async function requestWorkflowRunEnvelope(
   }
   const response = await fetch(`${config.baseUrl}${path}`, {
     ...init,
-    headers: workflowExecutorHeaders(config, applicationRef, requestId),
+    headers: workflowExecutorHeaders(config, applicationRef, requestId, init.method === "POST"),
   });
   const body: unknown = await response.json();
   if (!response.ok) {
@@ -628,6 +628,7 @@ function workflowExecutorHeaders(
   config: WorkflowExecutorConsumerConfig,
   applicationRef: string,
   requestId: string,
+  mutation: boolean,
 ): HeadersInit {
   return {
     Accept: "application/json",
@@ -640,6 +641,11 @@ function workflowExecutorHeaders(
     "X-RadishMind-Dev-Read-Audit": "audit_dev_workflow_executor_consumer",
     "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Workflow-Application": applicationRef,
+    ...(mutation ? {
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Permissions": "workflow_runs:execute,workflow_drafts:read",
+    } : {}),
   };
 }
 

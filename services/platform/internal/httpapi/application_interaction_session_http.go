@@ -103,13 +103,19 @@ func (server *Server) handleCreateApplicationInteractionSession(writer http.Resp
 	if !server.allowApplicationInteractionSessionDev(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "application_sessions:write")
+	ctx := applicationInteractionMutationContext(request, trace, auth, "", "create")
+	if failure != "" {
+		writeApplicationInteractionSessionResult(writer, status, trace, ctx, applicationInteractionSessionFailure(failure))
+		return
+	}
 	var body applicationInteractionSessionCreateBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure, status := applicationInteractionContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "create", "application_sessions:write")
-	if failure != "" {
-		writeApplicationInteractionSessionResult(writer, status, trace, ctx, applicationInteractionSessionFailure(failure))
+	ctx = applicationInteractionMutationContext(request, trace, auth, body.ApplicationID, "create")
+	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID || validateApplicationInteractionContext(ctx) != nil {
+		writeApplicationInteractionSessionResult(writer, http.StatusForbidden, trace, ctx, applicationInteractionSessionFailure("workspace_binding_mismatch"))
 		return
 	}
 	ctx.WriteEnabled = true
@@ -174,13 +180,19 @@ func (server *Server) handleCloseApplicationInteractionSession(writer http.Respo
 	if !server.allowApplicationInteractionSessionDev(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "application_sessions:write")
+	ctx := applicationInteractionMutationContext(request, trace, auth, "", "close")
+	if failure != "" {
+		writeApplicationInteractionSessionResult(writer, status, trace, ctx, applicationInteractionSessionFailure(failure))
+		return
+	}
 	var body applicationInteractionSessionCloseBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure, status := applicationInteractionContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "close", "application_sessions:write")
-	if failure != "" {
-		writeApplicationInteractionSessionResult(writer, status, trace, ctx, applicationInteractionSessionFailure(failure))
+	ctx = applicationInteractionMutationContext(request, trace, auth, body.ApplicationID, "close")
+	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID || validateApplicationInteractionContext(ctx) != nil {
+		writeApplicationInteractionSessionResult(writer, http.StatusForbidden, trace, ctx, applicationInteractionSessionFailure("workspace_binding_mismatch"))
 		return
 	}
 	ctx.WriteEnabled = true
@@ -216,13 +228,19 @@ func (server *Server) handleExecuteApplicationInteractionTurn(writer http.Respon
 	if !server.allowApplicationInteractionSessionDev(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "application_sessions:execute")
+	ctx := applicationInteractionMutationContext(request, trace, auth, "", "turn-execute")
+	if failure != "" {
+		writeApplicationInteractionTurnResult(writer, status, trace, ctx, request.PathValue("session_id"), applicationInteractionTurnExecutionFailure(failure, "Application session turn authorization is denied."))
+		return
+	}
 	var body applicationInteractionTurnBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure, status := applicationInteractionContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "turn-execute", "application_sessions:execute")
-	if failure != "" {
-		writeApplicationInteractionTurnResult(writer, status, trace, ctx, request.PathValue("session_id"), applicationInteractionTurnExecutionFailure(failure, "Application session turn scope is denied."))
+	ctx = applicationInteractionMutationContext(request, trace, auth, body.ApplicationID, "turn-execute")
+	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID || validateApplicationInteractionContext(ctx) != nil {
+		writeApplicationInteractionTurnResult(writer, http.StatusForbidden, trace, ctx, request.PathValue("session_id"), applicationInteractionTurnExecutionFailure("workspace_binding_mismatch", "Application session turn workspace binding is denied."))
 		return
 	}
 	ctx.WriteEnabled = true
@@ -307,6 +325,22 @@ func applicationInteractionContextFromRequest(request *http.Request, trace reque
 		return ctx, ApplicationInteractionFailureScopeDenied, http.StatusForbidden
 	}
 	return ctx, "", http.StatusOK
+}
+
+func applicationInteractionMutationContext(
+	request *http.Request,
+	trace requestTrace,
+	auth controlPlaneReadAuthContext,
+	applicationID string,
+	suffix string,
+) ApplicationInteractionContext {
+	return ApplicationInteractionContext{
+		RequestContext: request.Context(), RequestID: trace.requestID,
+		TenantRef: strings.TrimSpace(auth.TenantBinding), WorkspaceID: strings.TrimSpace(auth.ResourceBinding.WorkspaceID),
+		ApplicationID: strings.TrimSpace(applicationID), ActorRef: strings.TrimSpace(auth.SubjectBinding),
+		OwnerSubjectRef: strings.TrimSpace(auth.SubjectBinding),
+		AuditRef:        "audit_" + trace.requestID + "_application-session-" + suffix,
+	}
 }
 
 func applicationInteractionSessionQueryAllowed(values map[string][]string, allowed ...string) bool {

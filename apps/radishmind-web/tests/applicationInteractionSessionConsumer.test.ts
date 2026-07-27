@@ -56,6 +56,9 @@ test("session list and create use exact application scope and explicit profile",
   });
   assert.equal(created.status, "ready");
   assert.equal(requests[1]?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_sessions:write");
+  assert.equal(requests[1]?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(requests[1]?.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+  assert.equal(requests[1]?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "application_sessions:write");
   assert.deepEqual(requests[1]?.body, {
     workspace_id: "workspace_demo",
     application_id: applicationId,
@@ -106,6 +109,9 @@ test("turn execution keeps input request-only and returns transient v5 output", 
   assert.equal(result.turn?.runRef?.schemaVersion, "workflow_run_record.v5");
   assert.equal(result.advisoryOutput, "Review this bounded advisory recommendation.");
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_sessions:execute");
+  assert.equal(captured?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+  assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "application_sessions:execute");
   assert.deepEqual(captured?.body, {
     workspace_id: "workspace_demo",
     application_id: applicationId,
@@ -163,9 +169,12 @@ test("turn consumer rejects secret input before fetch and invalid terminal contr
 
 test("turn history and close preserve metadata-only CAS", async () => {
   let operation = "turns";
-  globalThis.fetch = async () => operation === "turns"
-    ? jsonResponse(turnListEnvelope([workflowTurn()]))
-    : jsonResponse(sessionEnvelope({ ...workflowSession(2), state: "closed", closed_at: "2026-07-19T11:00:00Z" }));
+  let closeHeaders: Headers | undefined;
+  globalThis.fetch = async (_input, init) => {
+    if (operation === "turns") return jsonResponse(turnListEnvelope([workflowTurn()]));
+    closeHeaders = new Headers(init?.headers);
+    return jsonResponse(sessionEnvelope({ ...workflowSession(2), state: "closed", closed_at: "2026-07-19T11:00:00Z" }));
+  };
   const session = parsedWorkflowSession();
   const turns = await listApplicationInteractionTurns(config, session);
   assert.equal(turns.status, "ready");
@@ -175,6 +184,8 @@ test("turn history and close preserve metadata-only CAS", async () => {
   const closed = await closeApplicationInteractionSession(config, session);
   assert.equal(closed.session?.state, "closed");
   assert.equal(closed.session?.recordVersion, 2);
+  assert.equal(closeHeaders?.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(closeHeaders?.get("X-RadishMind-Dev-Read-Membership-Permissions"), "application_sessions:write");
 });
 
 test("application switch, session switch, cancel, and late response invalidate scope", () => {

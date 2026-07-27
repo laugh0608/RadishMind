@@ -59,12 +59,19 @@ test("review CAS conflict remains explicit without fallback", async () => {
 });
 
 test("definition run maps strict v5 evidence and transient advisory output", async () => {
-  globalThis.fetch = async () => json({ request_id: "request_run", workspace_id: "workspace_demo", application_id: applicationId, run: runV5(), advisory_output: "Transient advisory output.", failure_code: null, failure_summary: "", audit_ref: "audit_run" });
+  let runHeaders: Headers | undefined;
+  globalThis.fetch = async (_input, init) => {
+    runHeaders = new Headers(init?.headers);
+    return json({ request_id: "request_run", workspace_id: "workspace_demo", application_id: applicationId, run: runV5(), advisory_output: "Transient advisory output.", failure_code: null, failure_summary: "", audit_ref: "audit_run" });
+  };
   const result = await startWorkflowDefinitionRun(live, applicationId, { definitionId: "definition_demo", expectedPointerVersion: 1, expectedDefinitionVersion: 1, expectedDefinitionDigest: digest, inputText: "Bounded one-time input.", conditionValues: {}, model: "" });
   assert.equal(result.record.schemaVersion, "workflow_run_record.v5");
   assert.equal(result.record.definitionAuthority?.activationPointerVersion, 1);
   assert.equal(result.record.output, "");
   assert.equal(result.advisoryOutput, "Transient advisory output.");
+  assert.equal(runHeaders?.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(runHeaders?.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+  assert.equal(runHeaders?.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_runs:execute,workflow_definitions:read");
   globalThis.fetch = async () => json({ request_id: "request_run", workspace_id: "workspace_demo", application_id: applicationId, run: runV5(), advisory_output: "ok", raw_response: "forbidden", failure_code: null, failure_summary: "", audit_ref: "audit_run" });
   await assert.rejects(() => startWorkflowDefinitionRun(live, applicationId, { definitionId: "definition_demo", expectedPointerVersion: 1, expectedDefinitionVersion: 1, expectedDefinitionDigest: digest, inputText: "Bounded.", conditionValues: {}, model: "" }), /invalid or sensitive/u);
 });

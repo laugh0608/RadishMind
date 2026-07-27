@@ -435,8 +435,17 @@ func setSavedWorkflowDraftDevHeaders(req *http.Request, scopes string) {
 	setControlPlaneReadDevAuthHeaders(req)
 	req.Header.Set(controlPlaneReadDevScopesHeader, scopes)
 	req.Header.Set(activeWorkspaceHeader, "workspace_demo")
-	req.Header.Set(controlPlaneReadDevMembershipHeader, "workspace_demo")
-	req.Header.Set(controlPlaneReadDevMembershipPermHeader, scopes)
+	membershipPermissions := make([]string, 0)
+	for _, scope := range strings.Split(scopes, ",") {
+		scope = strings.TrimSpace(scope)
+		if _, allowed := workspacePermissionAllowlist[scope]; allowed {
+			membershipPermissions = append(membershipPermissions, scope)
+		}
+	}
+	if len(membershipPermissions) > 0 {
+		req.Header.Set(controlPlaneReadDevMembershipHeader, "workspace_demo")
+		req.Header.Set(controlPlaneReadDevMembershipPermHeader, strings.Join(membershipPermissions, ","))
+	}
 	req.Header.Set(savedWorkflowDraftDevWorkspaceHeader, "workspace_demo")
 	req.Header.Set(savedWorkflowDraftDevApplicationHeader, "app_flow_copilot")
 }

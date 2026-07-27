@@ -168,8 +168,8 @@ func TestWorkflowExecutorHTTPRoutes(t *testing.T) {
 
 		server.httpServer.Handler.ServeHTTP(response, request)
 
-		envelope := decodeWorkflowRunEnvelope(t, response, http.StatusOK)
-		if envelope.FailureCode == nil || *envelope.FailureCode != string(WorkflowRunFailureScopeDenied) || envelope.Run != nil {
+		envelope := decodeWorkflowRunEnvelope(t, response, http.StatusForbidden)
+		if envelope.FailureCode == nil || *envelope.FailureCode != "scope_denied" || envelope.Run != nil {
 			t.Fatalf("missing execute scope must fail closed: %#v", envelope)
 		}
 		if testBridge.callCount() != 0 {

@@ -407,7 +407,12 @@ async function readJSON(url: string, config: WorkflowDefinitionPromotionConfig, 
 
 function headers(config: WorkflowDefinitionPromotionConfig, applicationId: string, scopes: string): HeadersInit {
   const requestId = `web-workflow-definition-${Date.now().toString(36)}`;
-  const mutationPermission = ["workflow_definitions:write", "workflow_definitions:review", "workflow_definitions:activate"].includes(scopes) ? scopes : "";
+  const mutationPermission = [
+    "workflow_definitions:write",
+    "workflow_definitions:review",
+    "workflow_definitions:activate",
+    "workflow_runs:execute,workflow_definitions:read",
+  ].includes(scopes) ? scopes : "";
   return {
     Accept: "application/json", "X-Request-Id": requestId,
     "X-RadishMind-Dev-Read-Identity": "workflow-definition-promotion-web",

@@ -580,6 +580,7 @@ function envelopeScopeMatches(value: Record<string, unknown>, config: Applicatio
 }
 
 function managementHeaders(config: ApplicationInteractionSessionConfig, applicationId: string, requestId: string, scope: string) {
+  const mutationPermission = scope === "application_sessions:write" || scope === "application_sessions:execute" ? scope : "";
   return {
     "X-Request-Id": requestId,
     "X-RadishMind-Dev-Read-Identity": `application-interaction-session-web:${config.subjectRef}`,
@@ -588,6 +589,11 @@ function managementHeaders(config: ApplicationInteractionSessionConfig, applicat
     "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Workflow-Application": applicationId,
     "X-RadishMind-Dev-Read-Scopes": scope,
+    ...(mutationPermission ? {
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Permissions": mutationPermission,
+    } : {}),
   };
 }
 

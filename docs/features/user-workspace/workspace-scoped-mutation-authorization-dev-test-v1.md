@@ -2,7 +2,7 @@
 
 更新时间：2026-07-27
 
-状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_c_complete_batch_d_ready`
+状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_d_complete_batch_e_ready`
 
 ## 文档目的
 
@@ -13,8 +13,8 @@
 ## 当前问题
 
 - Workspace-scoped Read Transition 已让 Applications、API keys、Workflow definitions 与 Runs 的读操作调用共享 membership provider；现有写入、审查和执行路由仍有多套 context builder。
-- 批次 A 至 C 共 27 条 mutation 已在 body 解码前调用共享 membership provider，并只从 verified binding 建立 tenant、subject 与 workspace context；Application Interaction Session、Turn、Run 与 Evaluation 等后续 owner 仍主要从 body / query 获取 workspace。
-- Workflow Draft、Definition、RAG、Prompt 与 Agent 的创作、审查及激活入口已完成迁移；尚未迁移的 Session、Turn、Run、Evaluation、RAG Dataset / Snapshot 与 HTTP Tool 路由仍需按 inventory 复核真实 owner 和副作用顺序。
+- 批次 A 至 D 共 32 条 mutation 已在 body 解码前调用共享 membership provider，并只从 verified binding 建立 tenant、subject 与 workspace context；Evaluation、RAG Dataset / Snapshot 与 HTTP Tool 等后续组合 owner 仍需按 inventory 复核。
+- Workflow Draft、Definition、RAG、Prompt、Agent、Session、Turn 与两类人类受控 Run 入口已完成迁移；尚未迁移的 Evaluation、RAG Dataset / Snapshot 与 HTTP Tool 路由仍需按 inventory 复核真实 owner 和副作用顺序。
 - Prompt、Agent 与 Application RAG 的直接 invocation 使用 application API key。API key 是应用运行凭据，不是当前人类成员关系 assertion；不能为了表面统一而在 invocation handler 中伪造 membership。
 - 尚未迁移的旧 handler 仍可能把 identity、workspace 或 permission failure 压平为领域 `scope_denied`，无法稳定区分身份失效、工作区未选择、非成员、成员过期、workspace mismatch 与 membership permission denied。
 - 当前 `WorkspaceMembershipProvider` 已接受 read、批次 A 至 C 的单项和原子组合 mutation permission；后续复杂执行路由同样不能通过循环调用 provider 或只校验其中一项来近似授权。
@@ -306,11 +306,37 @@
 - 上游 signed permission projection、Web 六类 consumer 的 active workspace / dev membership headers、完整 Platform Go tests、定向 race、`go vet`、Web 246 项测试与 PostgreSQL integration suite 均已通过；既有 schema、migration、CAS、append-only event / audit 和 application API key invocation 未改变。
 - 批次 C 已关闭；专题累计 27 条 mutation，下一步只进入批次 D 的 Workflow Run、Application Session / Turn 与人类受控执行设计复核。
 
+### 批次 D：Session / Turn 与人类受控执行
+
+范围：
+
+- Application Interaction Session create / close；
+- Application Interaction Turn execute；
+- Saved Workflow Draft run；
+- Workflow Definition-bound run。
+
+设计复核结论（2026-07-27）：
+
+- 本批共 5 条 mutation。Session create / close 原子要求 `application_sessions:write`，Turn execute 原子要求 `application_sessions:execute`，Saved Draft run 原子要求 `workflow_runs:execute` + `workflow_drafts:read`，Definition-bound run 原子要求 `workflow_runs:execute` + `workflow_definitions:read`；完整权限集合均可在 body 解码与业务 owner 前确定，必须由一次 membership decision 验证。
+- Session create / close 在完整授权与 body workspace / application binding 通过后，才能重读 Application、Definition 或 Runtime Assignment authority 并写 Session CAS；不得调用 Gateway / provider 或创建 Run。
+- Turn execute 在完整授权与 body binding 通过后，才允许重读 Session、校验 active state / expected version / client turn key、预留 metadata-only Turn，并按 Session 已持久化的 exact authority 至多委托一次 Workflow Definition、Application RAG、Prompt 或 Agent runtime。客户端不能提交 API key、runtime credential 或 authority override；直接 application invocation 的 API key 边界保持不变。
+- Saved Draft run 与 Definition-bound run 在完整授权与 body binding 通过后，才能分别重读 exact saved draft，或 activation / immutable version / Application authority；随后沿用既有 planned Run 写入 → 至多一次 Gateway / provider 调用 → terminal Run 写入顺序。
+- identity、selection、membership 与 body workspace / application binding 拒绝时，Session、Draft、Definition、Application、Runtime Assignment、Run owner、Turn reservation 和 Gateway / provider 调用均为 0。严格 payload、资源缺失、CAS 或 authority drift 的后续失败继续由既有 service 负责，不改变 schema、repository interface、幂等语义或失败恢复。
+
+实施结果（2026-07-27）：
+
+- 5 条 Session / Turn / Run mutation 已接入共享 authorization；单项权限和两类双权限 Run 均在 body 前由一次 membership decision 原子验证，identity 缺第二权限时 provider 为 0，membership 缺第二权限时 provider 恰好为 1。
+- 跨 5 条入口的拒绝矩阵覆盖 identity permission、active workspace、membership 缺失 / permission、workspace binding 与 OIDC unavailable；Session、Draft、Definition、Application、Runtime Assignment、Run owner、Turn reservation 及 Gateway / provider 调用均为 0。
+- Session create / close 保持零 Run 与零外部调用；Turn 继续只按 persisted Session authority 至多委托一次；两类 Run 保持 planned write → 单次外部调用 → terminal write，不接受客户端 credential 或 authority override。
+- 上游 permission projection 与 Web 的 Application Interaction、Prompt Session、Agent Session、Saved Draft Run、Definition Run consumer 已补齐 active workspace 和精确 dev membership permission；read route 与 application API key invocation 未改变。
+- 完整 Platform Go tests、定向 race、`go vet`、Web 246 项测试 / production build 与 PostgreSQL integration suite 均已通过；repository interface、schema、migration、CAS、idempotent replay 与 metadata-only persistence 未改变。
+- 批次 D 已关闭；专题累计 32 条 mutation，下一步只进入批次 E 的 RAG Dataset / Snapshot、HTTP Tool 与 Evaluation 组合 owner 设计复核。
+
 ## 后续批次顺序
 
 1. 批次 C 已完成：Publish Candidate、Definition Candidate、RAG Promotion 与三类 Runtime Assignment 等审查 / 激活 owner。
-2. 下一步批次 D：Workflow Run、Application Session / Turn 与人类发起的受控执行。
-3. 后续批次 E：RAG Dataset / Snapshot、HTTP Tool 与 Evaluation 组合 owner。
+2. 批次 D 已完成：Workflow Run、Application Session / Turn 与人类发起的受控执行。
+3. 下一批次 E：RAG Dataset / Snapshot、HTTP Tool 与 Evaluation 组合 owner。
 
 每批开始前必须回看 inventory 中的真实 owner 依赖。若需要修改 schema、公开 API、运行时幂等、外部 provider 或高风险网络边界，先更新本专题和唯一任务卡，不把同一专题拆成平行 readiness 链。
 
@@ -345,6 +371,13 @@
 - identity、selection、membership、body binding 与 OIDC unavailable 失败关闭可复验；三类 assignment approve / activate 不自动 invocation 或创建 Run。
 - memory、SQLite、PostgreSQL、定向 race、`go vet`、Web tests / build、fast 与全量仓库检查通过。
 
+批次 D：
+
+- 5 条 Session / Turn / Run mutation 保持既有 Session CAS、Turn reservation、Run planned / terminal 写入、幂等重放与 metadata-only persistence。
+- 单项和双项 permission 均在业务 owner 与外部调用前由一次 membership decision 原子验证；授权和 binding 拒绝时业务 owner、Turn reservation、Run write 与 Gateway / provider 均为 0。
+- Web mutation 在 dev mode 携带 active workspace 与精确 membership permission；read route 与 application API key invocation 不继承人类 membership proof。
+- memory、SQLite、PostgreSQL、定向 race、`go vet`、Web tests / build、fast 与全量仓库检查通过。
+
 ## 隐私边界
 
 - raw identity token、membership assertion、dev membership headers 与 API key 不进入日志、audit record、error body、Run input 或 committed fixture。
@@ -367,7 +400,7 @@
 
 ## 停止线
 
-- 任务卡已冻结且批次 A 至 C 已完成；下一步只复核批次 D 的 Workflow Run、Application Session / Turn 与人类受控执行，不直接进入实现或批次 E 组合 owner。
+- 任务卡批次 A 至 D 已完成；下一步只复核批次 E 的 RAG Dataset / Snapshot、HTTP Tool 与 Evaluation 组合 owner，不在设计冻结前直接迁移。
 - 不把 active workspace、body workspace、旧 dev header、application owner 或 API key 解释成 membership proof。
 - 不创建新的用户、tenant、role、membership、Application、Workflow、Run、Evaluation 或 credential owner。
 - 不通过统一授权专题顺带启用 production OIDC、production API key、quota / billing、自动发布、自动确认、replay、unrestricted tool 或业务写回。
