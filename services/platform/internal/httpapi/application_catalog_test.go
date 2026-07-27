@@ -141,12 +141,21 @@ func TestApplicationCatalogHTTPScopesUnknownFieldsAndOIDCZeroQuery(t *testing.T)
 	server := &Server{
 		config:                       config.Config{ApplicationCatalogDevHTTPEnabled: true, ApplicationCatalogDevWriteEnabled: true},
 		applicationCatalogRepository: repository,
+		workspaceMembershipProvider:  newDeterministicDevTestWorkspaceMembershipProvider(),
 	}
 	auth := controlPlaneReadAuthContext{
 		AuthMode: controlPlaneReadAuthModeDevHeaders, IdentityContext: "verified:dev", TenantBinding: "tenant_demo",
 		SubjectBinding: "subject_owner", ScopeGrants: []string{"applications:read", "applications:write", "applications:archive"},
+		ResourceBinding: ControlPlaneResourceBinding{TenantRef: "tenant_demo", TenantVerified: true},
+		WorkspaceMemberships: []VerifiedWorkspaceMembershipAssertion{{
+			TenantRef: "tenant_demo", SubjectRef: "subject_owner", WorkspaceID: "workspace_demo",
+			PermissionGrants: []string{"applications:read", "applications:write", "applications:archive"},
+			SourceRef:        "membership:test", PolicyVersion: workspaceMembershipPolicyVersion,
+			ExpiresAt: time.Now().Add(time.Hour),
+		}},
 	}
 	request := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/applications", strings.NewReader(`{"workspace_id":"workspace_demo","display_name":"Catalog App","description":"Owned app","application_kind":"agent"}`))
+	request.Header.Set(activeWorkspaceHeader, "workspace_demo")
 	request = request.WithContext(withControlPlaneReadFakeAuthContext(request.Context(), auth))
 	recorder := httptest.NewRecorder()
 	server.handleCreateApplicationCatalogRecord(recorder, request)
@@ -170,6 +179,7 @@ func TestApplicationCatalogHTTPScopesUnknownFieldsAndOIDCZeroQuery(t *testing.T)
 
 	update := httptest.NewRequest(http.MethodPut, "/v1/user-workspace/applications/"+applicationID, strings.NewReader(`{"workspace_id":"workspace_demo","expected_version":1,"display_name":"Catalog App v2","description":"Updated app","application_kind":"agent"}`))
 	update.SetPathValue("application_id", applicationID)
+	update.Header.Set(activeWorkspaceHeader, "workspace_demo")
 	update = update.WithContext(withControlPlaneReadFakeAuthContext(update.Context(), auth))
 	updateRecorder := httptest.NewRecorder()
 	server.handleUpdateApplicationCatalogRecord(updateRecorder, update)
@@ -187,6 +197,7 @@ func TestApplicationCatalogHTTPScopesUnknownFieldsAndOIDCZeroQuery(t *testing.T)
 
 	archive := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/applications/"+applicationID+"/archive", strings.NewReader(`{"workspace_id":"workspace_demo","expected_version":2}`))
 	archive.SetPathValue("application_id", applicationID)
+	archive.Header.Set(activeWorkspaceHeader, "workspace_demo")
 	archive = archive.WithContext(withControlPlaneReadFakeAuthContext(archive.Context(), auth))
 	archiveRecorder := httptest.NewRecorder()
 	server.handleArchiveApplicationCatalogRecord(archiveRecorder, archive)
@@ -195,6 +206,7 @@ func TestApplicationCatalogHTTPScopesUnknownFieldsAndOIDCZeroQuery(t *testing.T)
 	}
 
 	unknown := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/applications", strings.NewReader(`{"workspace_id":"workspace_demo","display_name":"Catalog App","application_kind":"agent","owner_subject_ref":"subject_other"}`))
+	unknown.Header.Set(activeWorkspaceHeader, "workspace_demo")
 	unknown = unknown.WithContext(withControlPlaneReadFakeAuthContext(unknown.Context(), auth))
 	unknownRecorder := httptest.NewRecorder()
 	server.handleCreateApplicationCatalogRecord(unknownRecorder, unknown)
@@ -205,10 +217,11 @@ func TestApplicationCatalogHTTPScopesUnknownFieldsAndOIDCZeroQuery(t *testing.T)
 	readOnlyAuth := auth
 	readOnlyAuth.ScopeGrants = []string{"applications:read"}
 	denied := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/applications", strings.NewReader(`{"workspace_id":"workspace_demo","display_name":"Denied App","application_kind":"agent"}`))
+	denied.Header.Set(activeWorkspaceHeader, "workspace_demo")
 	denied = denied.WithContext(withControlPlaneReadFakeAuthContext(denied.Context(), readOnlyAuth))
 	deniedRecorder := httptest.NewRecorder()
 	server.handleCreateApplicationCatalogRecord(deniedRecorder, denied)
-	if deniedRecorder.Code != http.StatusForbidden || !strings.Contains(deniedRecorder.Body.String(), ApplicationCatalogFailureScopeDenied) {
+	if deniedRecorder.Code != http.StatusForbidden || !strings.Contains(deniedRecorder.Body.String(), "scope_denied") {
 		t.Fatalf("write scope must be independent: %d body=%s", deniedRecorder.Code, deniedRecorder.Body.String())
 	}
 
@@ -226,6 +239,210 @@ func TestApplicationCatalogHTTPScopesUnknownFieldsAndOIDCZeroQuery(t *testing.T)
 	if counting.listCalls.Load() != 0 {
 		t.Fatalf("OIDC membership failure must not query repository: %d", counting.listCalls.Load())
 	}
+}
+
+func TestApplicationCatalogMutationAuthorizationDenialsDoNotQueryRepository(t *testing.T) {
+	now := time.Now().UTC()
+	baseAuth := applicationCatalogMutationTestAuth(now)
+	tests := []struct {
+		name          string
+		body          string
+		active        []string
+		mutate        func(*controlPlaneReadAuthContext)
+		omitAuth      bool
+		expectedCode  int
+		expectedError string
+	}{
+		{
+			name: "identity missing", active: []string{"workspace_demo"}, omitAuth: true,
+			expectedCode: http.StatusUnauthorized, expectedError: "identity_context_missing",
+		},
+		{
+			name: "identity invalid", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.FailureCode = "auth_context_contract_mismatch"
+				auth.FailureStatus = http.StatusUnauthorized
+			}, expectedCode: http.StatusUnauthorized, expectedError: "auth_context_contract_mismatch",
+		},
+		{
+			name: "identity permission denied", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.ScopeGrants = []string{"applications:read"}
+			}, expectedCode: http.StatusForbidden, expectedError: "scope_denied",
+		},
+		{
+			name: "selection missing before malformed payload", body: `{`,
+			expectedCode: http.StatusBadRequest, expectedError: "workspace_selection_missing",
+		},
+		{
+			name: "selection repeated", active: []string{"workspace_demo", "workspace_demo"},
+			expectedCode: http.StatusForbidden, expectedError: "workspace_binding_mismatch",
+		},
+		{
+			name: "selection invalid", active: []string{"workspace demo"},
+			expectedCode: http.StatusForbidden, expectedError: "workspace_binding_mismatch",
+		},
+		{
+			name: "membership missing", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.WorkspaceMemberships = nil
+			}, expectedCode: http.StatusForbidden, expectedError: "workspace_membership_denied",
+		},
+		{
+			name: "membership expired", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.WorkspaceMemberships[0].ExpiresAt = now.Add(-time.Second)
+			}, expectedCode: http.StatusForbidden, expectedError: "workspace_membership_expired",
+		},
+		{
+			name: "membership tenant mismatch", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.WorkspaceMemberships[0].TenantRef = "tenant_other"
+			}, expectedCode: http.StatusForbidden, expectedError: "workspace_binding_mismatch",
+		},
+		{
+			name: "membership subject mismatch", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.WorkspaceMemberships[0].SubjectRef = "subject_other"
+			}, expectedCode: http.StatusForbidden, expectedError: "workspace_binding_mismatch",
+		},
+		{
+			name: "membership workspace mismatch", active: []string{"workspace_other"},
+			expectedCode: http.StatusForbidden, expectedError: "workspace_binding_mismatch",
+		},
+		{
+			name: "membership permission denied", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.WorkspaceMemberships[0].PermissionGrants = []string{"applications:read"}
+			}, expectedCode: http.StatusForbidden, expectedError: "workspace_permission_denied",
+		},
+		{
+			name: "payload workspace mismatch", body: `{"workspace_id":"workspace_other","display_name":"Denied App","application_kind":"agent"}`,
+			active: []string{"workspace_demo"}, expectedCode: http.StatusForbidden, expectedError: "workspace_binding_mismatch",
+		},
+		{
+			name: "payload workspace is not normalized", body: `{"workspace_id":" workspace_demo","display_name":"Denied App","application_kind":"agent"}`,
+			active: []string{"workspace_demo"}, expectedCode: http.StatusForbidden, expectedError: "workspace_binding_mismatch",
+		},
+		{
+			name: "OIDC membership unavailable", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.AuthMode = controlPlaneReadAuthModeRadishOIDCIntegrationTest
+			}, expectedCode: http.StatusServiceUnavailable, expectedError: "workspace_membership_unavailable",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			repository := &countingApplicationCatalogRepository{applicationCatalogRepository: newMemoryApplicationCatalogRepository()}
+			server := &Server{
+				config:                       config.Config{ApplicationCatalogDevHTTPEnabled: true, ApplicationCatalogDevWriteEnabled: true},
+				applicationCatalogRepository: repository,
+				workspaceMembershipProvider:  newDeterministicDevTestWorkspaceMembershipProvider(),
+			}
+			body := test.body
+			if body == "" {
+				body = `{"workspace_id":"workspace_demo","display_name":"Denied App","application_kind":"agent"}`
+			}
+			request := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/applications", strings.NewReader(body))
+			for _, active := range test.active {
+				request.Header.Add(activeWorkspaceHeader, active)
+			}
+			if !test.omitAuth {
+				auth := cloneApplicationCatalogMutationTestAuth(baseAuth)
+				if test.mutate != nil {
+					test.mutate(&auth)
+				}
+				request = request.WithContext(withControlPlaneReadFakeAuthContext(request.Context(), auth))
+			}
+			recorder := httptest.NewRecorder()
+
+			server.handleCreateApplicationCatalogRecord(recorder, request)
+
+			if recorder.Code != test.expectedCode || !strings.Contains(recorder.Body.String(), test.expectedError) {
+				t.Fatalf("unexpected denial: status=%d body=%s", recorder.Code, recorder.Body.String())
+			}
+			if repository.totalCalls.Load() != 0 {
+				t.Fatalf("authorization denial reached repository %d times", repository.totalCalls.Load())
+			}
+		})
+	}
+}
+
+func TestApplicationCatalogMutationDevAndSignedAuthorization(t *testing.T) {
+	t.Run("dev headers", func(t *testing.T) {
+		server := NewServer(config.Config{
+			ControlPlaneReadDevAuthEnabled:    true,
+			ApplicationCatalogDevHTTPEnabled:  true,
+			ApplicationCatalogDevWriteEnabled: true,
+		}, Options{BuildVersion: "test"})
+		repository := &countingApplicationCatalogRepository{applicationCatalogRepository: newMemoryApplicationCatalogRepository()}
+		server.applicationCatalogRepository = repository
+		request := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/applications", strings.NewReader(
+			`{"workspace_id":"workspace_demo","display_name":"Dev App","application_kind":"agent"}`,
+		))
+		request.Header.Set(controlPlaneReadDevIdentityHeader, "dev-mutation-consumer")
+		request.Header.Set(controlPlaneReadDevTenantHeader, "tenant_demo")
+		request.Header.Set(controlPlaneReadDevSubjectHeader, "subject_owner")
+		request.Header.Set(controlPlaneReadDevScopesHeader, "applications:write")
+		request.Header.Set(controlPlaneReadDevAuditHeader, "audit_dev_mutation_consumer")
+		request.Header.Set(activeWorkspaceHeader, "workspace_demo")
+		request.Header.Set(controlPlaneReadDevMembershipHeader, "workspace_demo")
+		request.Header.Set(controlPlaneReadDevMembershipPermHeader, "applications:write")
+		recorder := httptest.NewRecorder()
+
+		server.httpServer.Handler.ServeHTTP(recorder, request)
+
+		if recorder.Code != http.StatusOK || repository.totalCalls.Load() != 1 {
+			t.Fatalf("dev mutation authorization failed: status=%d calls=%d body=%s", recorder.Code, repository.totalCalls.Load(), recorder.Body.String())
+		}
+	})
+
+	t.Run("signed test token", func(t *testing.T) {
+		privateKey := generateSignedTestPrivateKey(t)
+		server := newSignedTestControlPlaneReadServer(t, privateKey)
+		server.config.ApplicationCatalogDevHTTPEnabled = true
+		server.config.ApplicationCatalogDevWriteEnabled = true
+		repository := &countingApplicationCatalogRepository{applicationCatalogRepository: newMemoryApplicationCatalogRepository()}
+		server.applicationCatalogRepository = repository
+		claims := validSignedTestClaims()
+		claims["permissions"] = []string{"radishmind.applications.write"}
+		claims["workspace_memberships"] = []map[string]any{{
+			"workspace_id": "workspace_demo",
+			"permissions":  []string{"applications:write"},
+		}}
+		request := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/applications", strings.NewReader(
+			`{"workspace_id":"workspace_demo","display_name":"Signed App","application_kind":"agent"}`,
+		))
+		request.Header.Set(activeWorkspaceHeader, "workspace_demo")
+		request.Header.Set("Authorization", "Bearer "+signControlPlaneReadTestToken(t, privateKey, "RS256", claims))
+		recorder := httptest.NewRecorder()
+
+		server.httpServer.Handler.ServeHTTP(recorder, request)
+
+		if recorder.Code != http.StatusOK || repository.totalCalls.Load() != 1 {
+			t.Fatalf("signed mutation authorization failed: status=%d calls=%d body=%s", recorder.Code, repository.totalCalls.Load(), recorder.Body.String())
+		}
+	})
+
+	t.Run("expired signed identity", func(t *testing.T) {
+		privateKey := generateSignedTestPrivateKey(t)
+		server := newSignedTestControlPlaneReadServer(t, privateKey)
+		server.config.ApplicationCatalogDevHTTPEnabled = true
+		server.config.ApplicationCatalogDevWriteEnabled = true
+		repository := &countingApplicationCatalogRepository{applicationCatalogRepository: newMemoryApplicationCatalogRepository()}
+		server.applicationCatalogRepository = repository
+		claims := validSignedTestClaims()
+		claims["permissions"] = []string{"radishmind.applications.write"}
+		claims["exp"] = time.Now().Add(-time.Minute).Unix()
+		request := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/applications", strings.NewReader(
+			`{"workspace_id":"workspace_demo","display_name":"Expired App","application_kind":"agent"}`,
+		))
+		request.Header.Set(activeWorkspaceHeader, "workspace_demo")
+		request.Header.Set("Authorization", "Bearer "+signControlPlaneReadTestToken(t, privateKey, "RS256", claims))
+		recorder := httptest.NewRecorder()
+
+		server.httpServer.Handler.ServeHTTP(recorder, request)
+
+		if recorder.Code != http.StatusUnauthorized || !strings.Contains(recorder.Body.String(), "auth_context_contract_mismatch") {
+			t.Fatalf("expired signed identity was not rejected: status=%d body=%s", recorder.Code, recorder.Body.String())
+		}
+		if repository.totalCalls.Load() != 0 {
+			t.Fatalf("expired signed identity reached repository %d times", repository.totalCalls.Load())
+		}
+	})
 }
 
 func TestApplicationCatalogArchiveBlocksDraftSaveAndPublishReview(t *testing.T) {
@@ -300,12 +517,68 @@ func TestApplicationCatalogArchiveBlocksDraftSaveAndPublishReview(t *testing.T) 
 
 type countingApplicationCatalogRepository struct {
 	applicationCatalogRepository
-	listCalls atomic.Int32
+	totalCalls atomic.Int32
+	listCalls  atomic.Int32
+}
+
+func (repository *countingApplicationCatalogRepository) Create(requestContext ApplicationCatalogContext, record ApplicationCatalogRecord) (ApplicationCatalogRecord, error) {
+	repository.totalCalls.Add(1)
+	return repository.applicationCatalogRepository.Create(requestContext, record)
+}
+
+func (repository *countingApplicationCatalogRepository) Read(requestContext ApplicationCatalogContext, applicationID string) (ApplicationCatalogRecord, error) {
+	repository.totalCalls.Add(1)
+	return repository.applicationCatalogRepository.Read(requestContext, applicationID)
 }
 
 func (repository *countingApplicationCatalogRepository) List(requestContext ApplicationCatalogContext, query applicationCatalogListQuery) ([]ApplicationCatalogRecord, error) {
+	repository.totalCalls.Add(1)
 	repository.listCalls.Add(1)
 	return repository.applicationCatalogRepository.List(requestContext, query)
+}
+
+func (repository *countingApplicationCatalogRepository) UpdateMetadata(requestContext ApplicationCatalogContext, applicationID string, expectedVersion int, update ApplicationCatalogRecord) (ApplicationCatalogRecord, error) {
+	repository.totalCalls.Add(1)
+	return repository.applicationCatalogRepository.UpdateMetadata(requestContext, applicationID, expectedVersion, update)
+}
+
+func (repository *countingApplicationCatalogRepository) Archive(requestContext ApplicationCatalogContext, applicationID string, expectedVersion int, update ApplicationCatalogRecord) (ApplicationCatalogRecord, error) {
+	repository.totalCalls.Add(1)
+	return repository.applicationCatalogRepository.Archive(requestContext, applicationID, expectedVersion, update)
+}
+
+func (repository *countingApplicationCatalogRepository) RequireActive(requestContext ApplicationCatalogContext, applicationID string) (ApplicationCatalogRecord, error) {
+	repository.totalCalls.Add(1)
+	return repository.applicationCatalogRepository.RequireActive(requestContext, applicationID)
+}
+
+func applicationCatalogMutationTestAuth(now time.Time) controlPlaneReadAuthContext {
+	return controlPlaneReadAuthContext{
+		AuthMode: controlPlaneReadAuthModeDevHeaders, IdentityContext: "verified:mutation-test",
+		TenantBinding: "tenant_demo", SubjectBinding: "subject_owner",
+		ScopeGrants: []string{"applications:write"},
+		ResourceBinding: ControlPlaneResourceBinding{
+			TenantRef: "tenant_demo", TenantVerified: true,
+		},
+		WorkspaceMemberships: []VerifiedWorkspaceMembershipAssertion{{
+			TenantRef: "tenant_demo", SubjectRef: "subject_owner", WorkspaceID: "workspace_demo",
+			PermissionGrants: []string{"applications:write"}, SourceRef: "membership:test",
+			PolicyVersion: workspaceMembershipPolicyVersion, ExpiresAt: now.Add(time.Hour),
+		}},
+	}
+}
+
+func cloneApplicationCatalogMutationTestAuth(auth controlPlaneReadAuthContext) controlPlaneReadAuthContext {
+	cloned := auth
+	cloned.ScopeGrants = append([]string{}, auth.ScopeGrants...)
+	cloned.WorkspaceMemberships = append([]VerifiedWorkspaceMembershipAssertion{}, auth.WorkspaceMemberships...)
+	for index := range cloned.WorkspaceMemberships {
+		cloned.WorkspaceMemberships[index].PermissionGrants = append(
+			[]string{},
+			auth.WorkspaceMemberships[index].PermissionGrants...,
+		)
+	}
+	return cloned
 }
 
 func applicationCatalogTestContext(owner string) ApplicationCatalogContext {

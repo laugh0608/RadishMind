@@ -57,6 +57,9 @@ test("create sends only mutable fields with exact write scope", async () => {
     assert.equal(captured?.url, "http://platform.test/v1/user-workspace/applications");
     assert.equal(captured?.method, "POST");
     assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "applications:write,applications:read");
+    assert.equal(captured?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+    assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "applications:write");
     assert.deepEqual(captured?.body, {
       workspace_id: "workspace_demo",
       display_name: "Catalog App",
@@ -104,6 +107,8 @@ test("update preserves a server CAS conflict and archive uses the archive scope"
     }
     const headers = new Headers(init?.headers);
     assert.equal(headers.get("X-RadishMind-Dev-Read-Scopes"), "applications:archive,applications:read");
+    assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "applications:archive");
     return jsonResponse(operationEnvelope({ lifecycle: "archived", version: 4 }));
   };
   try {
@@ -116,6 +121,34 @@ test("update preserves a server CAS conflict and archive uses the archive scope"
     assert.equal(archived.record?.archivedAt, "2026-07-13T16:05:00Z");
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+test("signed mutation selects the active workspace without dev membership proof", async () => {
+  const originalFetch = globalThis.fetch;
+  const tokenGlobal = globalThis as typeof globalThis & {
+    __RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__?: () => string;
+  };
+  const originalProvider = tokenGlobal.__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__;
+  let capturedHeaders = new Headers();
+  tokenGlobal.__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__ = () => "signed-token-in-memory";
+  globalThis.fetch = async (_input, init) => {
+    capturedHeaders = new Headers(init?.headers);
+    return jsonResponse(operationEnvelope());
+  };
+  try {
+    const result = await createApplicationCatalogRecord(
+      { ...config, authMode: "signed_test_token" },
+      fields(),
+    );
+    assert.equal(result.status, "created");
+    assert.equal(capturedHeaders.get("Authorization"), "Bearer signed-token-in-memory");
+    assert.equal(capturedHeaders.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Membership-Workspace"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Membership-Permissions"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+    tokenGlobal.__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__ = originalProvider;
   }
 });
 

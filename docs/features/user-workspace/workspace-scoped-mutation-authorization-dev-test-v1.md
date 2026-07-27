@@ -2,7 +2,7 @@
 
 更新时间：2026-07-27
 
-状态：`workspace_scoped_mutation_authorization_dev_test_v1_task_card_complete_batch_a1_in_progress`
+状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_a1_complete_batch_a2_ready`
 
 ## 文档目的
 
@@ -13,11 +13,11 @@
 ## 当前问题
 
 - Workspace-scoped Read Transition 已让 Applications、API keys、Workflow definitions 与 Runs 的读操作调用共享 membership provider；现有写入、审查和执行路由仍有多套 context builder。
-- Application Catalog、API Key Lifecycle 与 Application Interaction Session 当前通过 `authorizeControlPlaneReadRequest` 获取 verified identity 和业务 permission，但 workspace 主要来自 body / query，尚未调用共享 membership provider。
+- Application Catalog 三条 mutation 已在 body 解码前调用共享 membership provider，并只从 verified binding 建立 tenant、subject 与 workspace context；API Key Lifecycle 与 Application Interaction Session 等后续 owner 仍主要从 body / query 获取 workspace。
 - Workflow Draft、Definition、RAG、Evaluation、Prompt 与 Agent 路由大多从 request context 读取 identity，并用 body workspace 与历史 dev workspace header 相等作为作用域证明；该相等关系不是 membership proof。
 - Prompt、Agent 与 Application RAG 的直接 invocation 使用 application API key。API key 是应用运行凭据，不是当前人类成员关系 assertion；不能为了表面统一而在 invocation handler 中伪造 membership。
 - 多数旧 handler 会把 identity、workspace 或 permission failure 压平为领域 `scope_denied`，无法稳定区分身份失效、工作区未选择、非成员、成员过期、workspace mismatch 与 membership permission denied。
-- 当前 `WorkspaceMembershipProvider` 只接受单一 read permission，allowlist 也只有 read 权限；复杂执行路由可能要求多个业务 permission，不能通过循环调用 provider 或只校验其中一项来近似授权。
+- 当前 `WorkspaceMembershipProvider` 已接受 read 与 A1 Application Catalog 的单一 mutation permission；后续复杂执行路由可能要求多个业务 permission，不能通过循环调用 provider 或只校验其中一项来近似授权。
 
 ## 目标用户与核心流程
 
@@ -226,6 +226,14 @@
 - 跨 tenant / subject、非成员、过期 identity / membership、workspace mismatch、permission denied 在 Application Catalog repository 查询前失败关闭。
 - 保持 memory / SQLite / PostgreSQL owner、CAS、soft archive 和下游归档只读语义不变。
 
+实施结果（2026-07-27）：
+
+- 共享 workspace authorization 入口已从 read-only 命名边界抽为通用入口；既有 read wrapper 与行为保持不变，没有创建第二个 provider。
+- `applications:write` 与 `applications:archive` 已进入 membership permission registry。create / update / archive 在 JSON body 解码前完成 identity、identity permission、active workspace 与 membership decision，body workspace 只做 verified binding 精确一致性校验。
+- 稳定失败码不再压平为 Application Catalog 领域 `scope_denied`；identity、selection、membership 与 body binding 负向矩阵均由 repository spy 证明业务查询和写入为 0。
+- dev headers、signed-test token、过期 signed identity 与 OIDC unavailable 已覆盖；Web mutation 发送 active workspace，只有 dev mode 发送 membership proof，signed-test token 只携带内存 token 与 active selection。
+- Application Catalog memory、SQLite、本地产品重启链、完整 Platform HTTP、定向 race、`go vet`、Web 245 项测试 / production build 和 PostgreSQL integration suite 均通过；record schema、CAS、soft archive、cursor 与 read route 保持不变。
+
 ### 批次 A2：API Key Lifecycle
 
 范围：
@@ -242,7 +250,7 @@
 - failure、日志、request history、Web state 与持久化介质不得出现原始 token；成功 response 继续 `Cache-Control: no-store`。
 - revoke 继续以 API key record version 做 CAS，不修改历史 Gateway request / Run。
 
-批次 A1 和 A2 使用同一任务卡，但按顺序实现和验证。A1 未形成稳定 shared context、错误映射与双数据库负向证据前不得进入 A2。
+批次 A1 和 A2 使用同一任务卡并按顺序实现和验证。A1 已形成稳定 shared context、错误映射与双数据库证据；当前允许进入 A2，但不得借 A2 扩大到后续 owner。
 
 ## 后续批次顺序
 
@@ -292,7 +300,7 @@
 
 ## 停止线
 
-- 任务卡已冻结；运行代码只按当前批次范围修改，A1 完成前不进入 A2 或后续 mutation owner。
+- 任务卡已冻结且 A1 已完成；当前只进入 A2 API Key Lifecycle，不进入批次 B 或后续 mutation owner。
 - 不把 active workspace、body workspace、旧 dev header、application owner 或 API key 解释成 membership proof。
 - 不创建新的用户、tenant、role、membership、Application、Workflow、Run、Evaluation 或 credential owner。
 - 不通过统一授权专题顺带启用 production OIDC、production API key、quota / billing、自动发布、自动确认、replay、unrestricted tool 或业务写回。

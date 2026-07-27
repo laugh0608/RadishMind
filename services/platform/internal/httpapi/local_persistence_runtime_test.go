@@ -452,6 +452,7 @@ func decodeLocalProductResponse(t *testing.T, response *httptest.ResponseRecorde
 func setLocalProductControlHeaders(request *http.Request, scopes string) {
 	setControlPlaneReadDevAuthHeaders(request)
 	request.Header.Set(controlPlaneReadDevScopesHeader, scopes)
+	request.Header.Set(controlPlaneReadDevMembershipPermHeader, scopes)
 }
 
 func setLocalProductWorkflowHeaders(request *http.Request, scopes, applicationID string) {

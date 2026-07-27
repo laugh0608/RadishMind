@@ -14,11 +14,13 @@ const (
 	workspaceMembershipPolicyVersion        = "workspace_membership_dev_test_v1"
 )
 
-var workspaceReadPermissionAllowlist = map[string]struct{}{
-	"applications:read": {},
-	"api_keys:read":     {},
-	"usage:read":        {},
-	"runs:read":         {},
+var workspacePermissionAllowlist = map[string]struct{}{
+	"applications:read":    {},
+	"applications:write":   {},
+	"applications:archive": {},
+	"api_keys:read":        {},
+	"usage:read":           {},
+	"runs:read":            {},
 }
 
 type VerifiedWorkspaceMembershipAssertion struct {
@@ -74,7 +76,7 @@ func (provider deterministicDevTestWorkspaceMembershipProvider) AuthorizeWorkspa
 		return workspaceMembershipFailure("workspace_binding_mismatch", http.StatusForbidden)
 	}
 	permission := strings.TrimSpace(request.RequiredPermission)
-	if _, allowed := workspaceReadPermissionAllowlist[permission]; !allowed {
+	if _, allowed := workspacePermissionAllowlist[permission]; !allowed {
 		return workspaceMembershipFailure("workspace_permission_denied", http.StatusForbidden)
 	}
 	now := provider.now().UTC()
@@ -118,7 +120,7 @@ func validWorkspacePermissionGrants(grants []string) bool {
 	seen := make(map[string]struct{}, len(grants))
 	for _, raw := range grants {
 		grant := strings.TrimSpace(raw)
-		if _, allowed := workspaceReadPermissionAllowlist[grant]; !allowed {
+		if _, allowed := workspacePermissionAllowlist[grant]; !allowed {
 			return false
 		}
 		if _, duplicate := seen[grant]; duplicate {

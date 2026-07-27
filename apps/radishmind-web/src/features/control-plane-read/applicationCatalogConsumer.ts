@@ -468,6 +468,7 @@ function applicationCatalogHeaders(
   requestId: string,
   operation: "read" | "create" | "update" | "archive",
 ): Record<string, string> {
+  const mutationPermission = operation === "archive" ? "applications:archive" : "applications:write";
   if (config.authMode !== "dev_headers") {
     const tokenProvider = config.authMode === "signed_test_token"
       ? (globalThis as typeof globalThis & { __RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__?: () => string })
@@ -476,7 +477,12 @@ function applicationCatalogHeaders(
         .__RADISHMIND_CONTROL_PLANE_OIDC_INTEGRATION_TOKEN__;
     const token = tokenProvider?.().trim() ?? "";
     if (!token) throw new Error("application catalog auth token is unavailable in browser memory");
-    return { Accept: "application/json", "X-Request-Id": requestId, Authorization: `Bearer ${token}` };
+    return {
+      Accept: "application/json",
+      "X-Request-Id": requestId,
+      Authorization: `Bearer ${token}`,
+      ...(operation === "read" ? {} : { "X-RadishMind-Active-Workspace": config.workspaceId }),
+    };
   }
   const scope = operation === "archive" ? "applications:archive,applications:read" :
     operation === "read" ? "applications:read" : "applications:write,applications:read";
@@ -488,6 +494,11 @@ function applicationCatalogHeaders(
     "X-RadishMind-Dev-Read-Subject": config.subjectRef,
     "X-RadishMind-Dev-Read-Scopes": scope,
     "X-RadishMind-Dev-Read-Audit": `audit-${requestId}`,
+    ...(operation === "read" ? {} : {
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Permissions": mutationPermission,
+    }),
   };
 }
 

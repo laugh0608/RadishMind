@@ -2,7 +2,7 @@
 
 更新时间：2026-07-27
 
-状态：`workspace_scoped_mutation_authorization_dev_test_v1_task_card_complete_batch_a1_in_progress`
+状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_a1_complete_batch_a2_ready`
 
 对应功能文档：[Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](../features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md)
 
@@ -76,6 +76,14 @@ dev/test enablement
 - identity、selection、membership 与 body binding failure 的业务 repository query / write 均为 0。
 - memory、SQLite、PostgreSQL 既有 owner 行为不变；至少完成相邻 HTTP、repository 与现有 PostgreSQL 集成回归。
 - 定向普通测试、race、完整 `internal/httpapi`、`go vet ./...`、fast 和 full 仓库门禁通过。
+
+### A1 完成记录（2026-07-27）
+
+- 三条 Application Catalog mutation 已在 body 解码前复用共享 workspace authorization；`applications:write` 与 `applications:archive` 同时进入 identity 和 membership permission 判断。
+- active workspace 成为唯一 selector；body workspace 只与 verified resource binding 做精确一致性校验，tenant、actor、owner subject 与 workspace 均不接受 body 覆盖。
+- identity、selection、membership 与 body binding 的稳定失败码保持原值，业务 repository spy 对全部拒绝路径记录为 0；旧 Application Catalog read route 未随 A1 扩大迁移。
+- dev headers、signed-test、过期 signed identity、OIDC unavailable、memory / SQLite / PostgreSQL、定向 race、完整 Platform HTTP、`go vet`、Web 245 项测试和 production build 均通过。
+- A1 没有修改 repository interface、record schema、migration、CAS、soft archive、cursor、application API key invocation 或 production enablement；下一步只进入 A2。
 
 ## 批次 A2：API Key Lifecycle
 

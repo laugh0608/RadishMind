@@ -287,6 +287,13 @@ func (s *Server) authorizeWorkspaceScopedReadRequest(
 	request *http.Request,
 	requiredPermission string,
 ) (controlPlaneReadAuthContext, string, int) {
+	return s.authorizeWorkspaceScopedRequest(request, requiredPermission)
+}
+
+func (s *Server) authorizeWorkspaceScopedRequest(
+	request *http.Request,
+	requiredPermission string,
+) (controlPlaneReadAuthContext, string, int) {
 	auth, failureCode, status := authorizeControlPlaneReadRequest(request, "", requiredPermission)
 	if failureCode != "" {
 		return auth, failureCode, status
