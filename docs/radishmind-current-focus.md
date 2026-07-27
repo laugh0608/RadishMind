@@ -20,7 +20,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：Provider 上报用量规范化与应用当前窗口用量审查已完成；草案派生 / 修订历史和 Mutation Authorization 也已关闭。下一步回到功能设计选择，不把当前窗口 token 汇总扩成全量统计、价格、quota 或 billing，也不继续扩同层授权、只读审查、历史 checker、自动保存、自动合并或分支图；生产 membership adapter、真实 OIDC、运营收件箱批次 B、跨作用域复制和 Provider Route 同层扩展继续按各自停止线关闭。
+1. 产品线：Provider 上报用量规范化与应用当前窗口用量审查已完成；草案派生 / 修订历史和 Mutation Authorization 也已关闭。2026-07-28 下一顺位是先设计“已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1”，围绕活动 / 归档草案、稳定分页、筛选、可逆归档和归档后操作资格形成真实用户路径；设计确认后才决定是否创建高风险任务卡。不把当前窗口 token 汇总扩成全量统计、价格、quota 或 billing，也不继续扩同层授权、只读审查、历史 checker、自动保存、自动合并、永久删除或分支图；生产 membership adapter、真实 OIDC、运营收件箱批次 B、跨作用域复制和 Provider Route 同层扩展继续按各自停止线关闭。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
@@ -75,7 +75,7 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 44. [Image Adapter 受控调用与 artifact 返回实施任务卡](task-cards/image-adapter-controlled-invocation-artifact-return-dev-test-v1-plan.md)
 45. [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](features/admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md)
 46. [Admin Provider Profile / Model Route 受控启用实施任务卡](task-cards/admin-provider-route-controlled-activation-dev-test-v1-plan.md)
-47. [本周周志](devlogs/2026-W30.md)
+47. [本周周志](devlogs/2026-W31.md)
 48. [Workspace-scoped Read Transition / 工作区选择与成员资格绑定（开发 / 测试态）v1](features/user-workspace/workspace-scoped-read-transition-dev-test-v1.md)
 49. [工作区运营收件箱（开发 / 测试态）v1](features/user-workspace/workspace-operations-inbox-dev-test-v1.md)
 50. [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md)

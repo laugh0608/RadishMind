@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-07-26
+更新时间：2026-07-27
 
 ## 核心定义
 
@@ -21,6 +21,7 @@
 - 部署方式、数据库选型、登录 / 授权边界优先参考 `Radish`；未来由 Radish 注册 RadishMind application/client 与 resource audience，RadishMind 服务端作为 resource server 消费 verified token，不自建第二套 issuer、账号、角色或身份真相源。参考 `Radish` 不代表默认引入 `.NET` / ASP.NET Core；RadishMind 后端默认继续使用 `Go` 承载 control plane / gateway / API 服务，`Python` 只保留在模型、评测和 AI 生态强相关链路，`TypeScript/Vite` 承载前端。
 - `RadishFlow` 和 `Radish` 是优先接入对象与产品参考，但不是 RadishMind 平台本体开发的阻塞条件。上层暂时没有稳定 UI、command 或 API 挂载点时，本仓库应继续推进可离线验证、可复用到后续真实接入的用户端、workflow runtime、control plane 和模型网关功能；不把等待上层接线写成产品停滞理由。
 - 当前首要用户是 Radish 体系内部开发者和团队成员，首要产品任务是创建、校验、保存、恢复和审查 Workflow；Gateway 是第一工程支撑面，Admin 只推进支撑 Workflow / Gateway 所需能力。
+- User Workspace 的五条只读 operation 与 47 条人类交互式 mutation 已在开发 / 测试态共享 verified identity、active workspace 和唯一 membership decision；这只证明本仓库 dev header / signed-test assertion 下的授权、资源绑定和零副作用边界，不代表真实 Radish membership adapter、OIDC 登录或生产授权已成立。
 - 四个一级产品面保持不变；`Image Generation / Artifact Return` 是横切适配能力，不作为当前第五条一级产品主线。
 - `Radish` 保持身份、成员关系和上层业务真相；RadishMind 可以拥有自身 Workflow draft / version、run record、trace、usage 和 audit 运行数据，不把自身 operational database 与复制 Radish 真相源混为一谈。
 

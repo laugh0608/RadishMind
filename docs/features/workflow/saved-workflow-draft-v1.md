@@ -1,6 +1,6 @@
 # Saved Workflow Draft v1 功能专题
 
-更新时间：2026-07-16
+更新时间：2026-07-27
 
 ## 专题定位
 
@@ -259,9 +259,9 @@ production auth runtime bridge 的唯一允许 auth source 是 `radish_oidc_veri
 
 ## 下一批开发
 
-显式开发 / 测试态 PostgreSQL durable repository、R4 Gateway、executor v0、持久 Run History、本地 SQLite 连续产品链与 API 密钥 Web 验收均已完成，不继续追加 storage adapter readiness，也不启用 `repository` production mode。[Workflow 受控 HTTP Tool 与人工确认执行实施任务卡](../../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)的三个批次也已完成，并继续证明精确 Saved Draft version 可作为受控 action plan 的权威输入而不改写 Saved Draft v1 的持久化职责。[Workflow RAG Retrieval 与应用知识快照设计](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md)已完成知识快照基础批次 A；批次 B execution 仍必须重读精确草案与 `rag_ref`，不得把 snapshot 管理完成误写成可执行 RAG；production OIDC、membership、production secret、audit store、公开生产 API、writeback 和 replay 继续关闭。下方旧依赖顺序只作为历史 checker 兼容记录读取。
+显式开发 / 测试态 PostgreSQL repository、R4 Gateway、executor v0、持久 Run History、本地 SQLite 连续产品链与 API 密钥 Web 验收均已完成，不继续追加 storage adapter readiness，也不启用 `repository` production mode。[Workflow 受控 HTTP Tool 与人工确认执行实施任务卡](../../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)和 [Workflow RAG Retrieval 与应用知识快照](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md)的三个批次均已完成；两条路径继续证明精确 Saved Draft version 可作为受控 action plan 或 retrieval authority 的输入，而不改写 Saved Draft v1 的持久化职责。production OIDC、membership、production secret、audit store、公开生产 API、writeback 和 replay 继续关闭。下方旧依赖顺序只作为历史 checker 兼容记录读取。
 
-dev-only consumer integration、草案编辑 / 创建 / 列表 / 恢复、精确已保存版本派生、不可变修订历史、结构化版本比较、本地图结构编辑、Node Designer、版本冲突审查、memory / SQLite / PostgreSQL 开发测试态 repository 和数据库重启恢复均已落地。历史 production secret / storage adapter 准入锚点继续保留，但不再是 Saved Draft 或当前产品线的下一依赖；production repository、真实 Radish membership、production secret、audit store 与公开生产 API 仍需未来独立专题。下一批回到新的真实用户流程设计，不从历史能力原地扩自动保存、自动恢复、自动合并、同步、祖先图、分支图或跨作用域复制。
+dev-only consumer integration、草案编辑 / 创建 / 列表 / 恢复、精确已保存版本派生、不可变修订历史、结构化版本比较、本地图结构编辑、Node Designer、版本冲突审查、memory / SQLite / PostgreSQL 开发测试态 repository 和数据库重启恢复均已落地。历史 production secret / storage adapter 准入锚点继续保留，但不再是 Saved Draft 或当前产品线的下一依赖；production repository、真实 Radish membership、production secret、audit store 与公开生产 API 仍需未来独立专题。2026-07-28 下一批先设计草案库生命周期与组织，审计活动 / 归档状态、稳定分页、筛选、可逆归档和归档后操作资格；不从历史能力原地扩自动保存、自动恢复、自动合并、同步、永久删除、祖先图、分支图或跨作用域复制。
 
 ## 2026-06-28 依赖复评
 
@@ -276,7 +276,7 @@ dev-only consumer integration、草案编辑 / 创建 / 列表 / 恢复、精确
 | production resolver runtime | production resolver blocker consolidation、real resolver entry refresh、cloud selection、credential handle、approval、backend health、no leakage 和 audit store refresh 已消费 | production resolver runtime task card 仍 blocked；不读取 secret、不调用云 secret 服务、不创建 credential handle |
 | audit store runtime | durable backend boundary、durable backend selection readiness、writer、runtime schema、delivery、idempotency readiness、runtime entry refresh v5、storage adapter runtime implementation entry review、storage adapter backend product evidence readiness、storage adapter metadata contract artifact readiness、append-only semantics evidence readiness、retention / redaction policy evidence readiness、offline validation evidence readiness、negative leakage scan evidence readiness、rollback / recovery evidence readiness、storage adapter runtime implementation entry refresh、metadata contract artifact materialization entry review、metadata contract artifact materialization、backend product selection review、after-negative-leakage entry refresh、concrete database selection readiness、concrete database selection review、database provider selection readiness、database provider selection review、database driver selection readiness、database driver selection review、runtime event schema artifact entry review / task card / artifact、blocker matrix、writer runtime implementation entry review、idempotency runtime implementation entry review、delivery runtime implementation entry review 和 concrete durable backend selection review 已完成 | audit store runtime task card 仍 blocked；storage adapter runtime task card 仍需先做 `storage_adapter_database_connection_lifecycle_readiness`，writer runtime task card、idempotency runtime task card 与 delivery runtime task card 仍 blocked；不创建 audit store、storage adapter runtime、writer、delivery runtime 或 idempotency runtime |
 
-以上 2026-06-28 依赖复评只用于解释 production repository / audit store 为什么仍关闭，不再派生当前下一项。不得把这些静态状态解释成 production durable persistence ready，也不得用它们否定已经完成的 memory / SQLite / PostgreSQL 开发测试态 repository；当前产品顺位以受控 HTTP Tool 功能设计为准。
+以上 2026-06-28 依赖复评只用于解释 production repository / audit store 为什么仍关闭，不再派生当前下一项。不得把这些静态状态解释成 production durable persistence ready，也不得用它们否定已经完成的 memory / SQLite / PostgreSQL 开发测试态 repository；当前产品顺位以[当前推进焦点](../../radishmind-current-focus.md)为准。
 
 ## 验收方式
 

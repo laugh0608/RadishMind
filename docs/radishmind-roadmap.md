@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：[Provider 上报用量规范化与应用用量审查](features/gateway/provider-reported-usage-normalization-application-review-dev-test-v1.md)已完成五类 Provider usage、Gateway envelope、三协议 unary / stream、Request History 双数据库持久化和应用当前窗口 token 审查；草案派生 / 修订历史与 Mutation Authorization 也已关闭。下一顺位回到功能设计选择；全历史 usage 聚合、运营收件箱全分页投影、production membership adapter、quota / billing 与真实 OIDC 均保持条件式入口。
+1. 产品线：[Provider 上报用量规范化与应用用量审查](features/gateway/provider-reported-usage-normalization-application-review-dev-test-v1.md)已完成五类 Provider usage、Gateway envelope、三协议 unary / stream、Request History 双数据库持久化和应用当前窗口 token 审查；草案派生 / 修订历史与 Mutation Authorization 也已关闭。2026-07-28 先进入“已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1”功能设计，审计活动 / 归档状态、稳定分页、筛选、可逆归档和归档后操作资格，再决定实现批次；全历史 usage 聚合、运营收件箱全分页投影、production membership adapter、quota / billing 与真实 OIDC 均保持条件式入口。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；dev header 与 signed-test membership 不能作为 production 授权来源。production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、quota 和 billing 继续为 `not_satisfied`。
@@ -70,7 +70,7 @@
 - 系统边界：[架构](radishmind-architecture.md)
 - 协议边界：[集成契约](radishmind-integration-contracts.md)
 - 能力状态：[能力矩阵](radishmind-capability-matrix.md)
-- 历史完成记录：[2026-W29 周志](devlogs/2026-W29.md)
+- 当前开发记录：[2026-W31 周志](devlogs/2026-W31.md)
 
 ## 停止线
 

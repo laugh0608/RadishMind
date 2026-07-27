@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约
 
-更新时间：2026-07-25
+更新时间：2026-07-27
 
 ## 文档目的
 
@@ -64,7 +64,7 @@
 - RadishMind 自有开发测试数据使用统一三层持久化契约：`memory_dev` 负责快速进程内测试，聚合 `sqlite_dev` 负责单一应用作用域的本地连续开发，显式 `postgres_dev_test` 负责 migration、角色、方言和并发同构验证。应用目录、配置草案、发布候选、API 密钥、Gateway 请求历史、工作流草案、工作流运行、Prompt Template 和 Agent Copilot Profile owner 在三种实现中保持相同作用域、版本保护、稳定分页、敏感材料禁入与 no-fallback；Prompt 与 Agent Runtime Assignment / Event、Session / Turn 和 Run 投影复用共享 Workflow Run Store，不新增数据库组件。SQLite 只通过聚合模式启用，PostgreSQL migration / runtime 角色必须隔离。本文后续历史段落中关于这些九组数据“仍无数据库、repository 或 durable persistence”的旧阶段描述不再代表当前实现；production repository、Radish 身份 / membership、生产密钥、配额和计费停止线仍然有效。
 - Admin authenticated read 只消费 Radish 的 verified identity、tenant 和审查后的 permission projection；RadishMind 不解析分散 claim、不读取 Radish 业务数据库，也不复制 user / tenant / role 真相源。workspace / application membership 属于 RadishMind 资源绑定，不能由 `radish-api` scope 或角色名称隐式推导。
 - 当前 `signed_test_token` 只用于本仓库 dev/test：固定 `RS256`、显式 issuer / audience / test public key 和版本化 permission allowlist，输出 sanitized verified context；它不是 Radish OIDC client、JWKS 联调、production token 或 workspace membership 替代品。
-- `Radish OIDC Integration Test v1` 已为 tenant / audit 两条 Admin operation 实现 deterministic issuer / discovery / JWKS / JWT verifier、版本化 permission projection、zero-query auth boundary 和 Web 内存 token consumer；五条 workspace operation 在 membership adapter 前统一返回 `workspace_membership_unavailable`，不读取 fake repository。真实 Radish 联调为 `real_radish_integration_deferred`：未来由 Radish 注册 RadishMind application/client 与 resource audience，真实 issuer、audience、claim 与 permission mapping 仍必须来自 reviewed upstream evidence。RadishMind 只拥有自己的接入 profile 和 route mapping，不自建 issuer、账号或角色真相源；该模式不构成 browser login 或 production auth。
+- `Radish OIDC Integration Test v1` 已为 tenant / audit 两条 Admin operation 实现 deterministic issuer / discovery / JWKS / JWT verifier、版本化 permission projection、zero-query auth boundary 和 Web 内存 token consumer。开发 / 测试态五条 workspace read operation 与 47 条人类交互式 mutation 现已共享唯一 `WorkspaceMembershipProvider`、active workspace 与原子 permission decision；dev header 和 signed-test membership assertion 只用于本仓库验证，授权或资源绑定失败保持业务 owner、credential、Run、Gateway / provider 与网络副作用为 0。真实 Radish 联调仍为 `real_radish_integration_deferred`，OIDC 模式在缺少 reviewed production membership adapter 时继续返回 `workspace_membership_unavailable`；未来真实 issuer、audience、claim、permission 与 membership mapping 必须来自 reviewed upstream evidence。RadishMind 只拥有自己的接入 profile 和 route mapping，不自建 issuer、账号、角色或成员关系真相源；该模式不构成 browser login 或 production auth。
 - Admin tenant / audit PostgreSQL 只承载 RadishMind sanitized read projection，不读取 Radish 数据库，也不复制 user / tenant / role / permission 表；dev/test seed 不是生产 ingestion 或合规 audit ledger，runtime repository 没有写权限。
 - 部署、数据库和登录 / 授权默认参考 `Radish`；未来 RadishMind 作为 OIDC client 接入 `Radish`，不把用户身份和权限真相源放进模型 runtime，也不默认引入 `.NET` / ASP.NET Core。
 - `RadishFlow` 和 `Radish` 的真实挂载点成熟度不作为 RadishMind 平台功能开发的阻塞条件。没有稳定 UI、command 或 API 承接入口时，本仓库先推进离线、只读、advisory-only、blocked capability 的产品面和协议边界；真实接入只在上层提供明确挂载点、确认流和审计落点后选择一个切片推进。
