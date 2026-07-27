@@ -2,7 +2,7 @@
 
 更新时间：2026-07-27
 
-状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_b_complete_batch_c_ready`
+状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_c_complete_batch_d_ready`
 
 ## 文档目的
 
@@ -13,11 +13,11 @@
 ## 当前问题
 
 - Workspace-scoped Read Transition 已让 Applications、API keys、Workflow definitions 与 Runs 的读操作调用共享 membership provider；现有写入、审查和执行路由仍有多套 context builder。
-- Application Catalog 三条 mutation 与 API Key Lifecycle create / revoke 已在 body 解码前调用共享 membership provider，并只从 verified binding 建立 tenant、subject 与 workspace context；Application Interaction Session 等后续 owner 仍主要从 body / query 获取 workspace。
-- Workflow Draft、Definition、RAG、Evaluation、Prompt 与 Agent 路由大多从 request context 读取 identity，并用 body workspace 与历史 dev workspace header 相等作为作用域证明；该相等关系不是 membership proof。
+- 批次 A 至 C 共 27 条 mutation 已在 body 解码前调用共享 membership provider，并只从 verified binding 建立 tenant、subject 与 workspace context；Application Interaction Session、Turn、Run 与 Evaluation 等后续 owner 仍主要从 body / query 获取 workspace。
+- Workflow Draft、Definition、RAG、Prompt 与 Agent 的创作、审查及激活入口已完成迁移；尚未迁移的 Session、Turn、Run、Evaluation、RAG Dataset / Snapshot 与 HTTP Tool 路由仍需按 inventory 复核真实 owner 和副作用顺序。
 - Prompt、Agent 与 Application RAG 的直接 invocation 使用 application API key。API key 是应用运行凭据，不是当前人类成员关系 assertion；不能为了表面统一而在 invocation handler 中伪造 membership。
-- 多数旧 handler 会把 identity、workspace 或 permission failure 压平为领域 `scope_denied`，无法稳定区分身份失效、工作区未选择、非成员、成员过期、workspace mismatch 与 membership permission denied。
-- 当前 `WorkspaceMembershipProvider` 已接受 read、A1 Application Catalog 与 A2 API Key Lifecycle 的单一 mutation permission；后续复杂执行路由可能要求多个业务 permission，不能通过循环调用 provider 或只校验其中一项来近似授权。
+- 尚未迁移的旧 handler 仍可能把 identity、workspace 或 permission failure 压平为领域 `scope_denied`，无法稳定区分身份失效、工作区未选择、非成员、成员过期、workspace mismatch 与 membership permission denied。
+- 当前 `WorkspaceMembershipProvider` 已接受 read、批次 A 至 C 的单项和原子组合 mutation permission；后续复杂执行路由同样不能通过循环调用 provider 或只校验其中一项来近似授权。
 
 ## 目标用户与核心流程
 
@@ -125,7 +125,7 @@
 | `POST /v1/user-workspace/application-configuration-drafts/{draft_id}/prompt-template-binding` | `application_drafts:write` + `prompt_application_templates:bind` | body + path + application draft dev header | 同 identity permissions | Application Draft + Prompt Template Version owners；binding CAS |
 | `POST /v1/user-workspace/application-configuration-drafts/{draft_id}/agent-copilot-profile-binding` | `application_drafts:write` + `agent_copilot_profiles:bind` | body + path + application draft dev header | 同 identity permissions | Application Draft + Agent Profile Version owners；binding CAS |
 | `POST /v1/user-workspace/application-publish-candidates` | `application_publish_candidates:write`，按 candidate kind 增加 `workflow_rag_promotions:read` / `prompt_application_templates:read_source` / `agent_copilot_profiles:read_source` | application publish dev headers | 同 identity permissions | Publish Candidate + Draft + Catalog + binding source owners；immutable candidate write |
-| `POST /v1/user-workspace/application-publish-candidates/{candidate_id}/reviews` | `application_publish_candidates:review` | application publish dev headers + path | `application_publish_candidates:review` | Publish Candidate owner；review CAS，不自动 assignment / release |
+| `POST /v1/user-workspace/application-publish-candidates/{candidate_id}/reviews` | `application_publish_candidates:review`，`approve` 按 candidate kind 增加 `workflow_rag_promotions:read` / `prompt_application_templates:read_source` / `agent_copilot_profiles:read_source` | application publish dev headers + path | 同 identity permissions | Publish Candidate owner；review CAS，不自动 assignment / release |
 
 ### Prompt Application
 
@@ -278,14 +278,39 @@
 - signed-test permission projection 已补齐 Workflow Draft 与 Application Draft；四类 validate 路由均通过真实签名 token + signed membership assertion。Web mutation 发送 active workspace 和精确 dev membership permission，读请求仍沿既有 header / owner 边界。
 - memory、SQLite、PostgreSQL owner contract、完整 Platform Go tests、Web 246 项测试 / production build 与 PostgreSQL integration suite 已通过；repository interface、schema、migration、CAS、application API key invocation 和批次 C 审查 / 激活 owner 均未改变。
 
-批次 B 已关闭。下一步允许进入批次 C 设计复核，但必须先核对 Publish Candidate、Definition Candidate、RAG Promotion 与三类 Runtime Assignment 的多 owner 重读和组合权限，不从创作 handler 直接复制实现。
+批次 B 已关闭。
+
+### 批次 C：审查与激活 owner
+
+范围：
+
+- Application Publish Candidate create / review；
+- Workflow Definition Candidate create / review 与 Definition activation；
+- Workflow RAG Promotion Candidate create / review；
+- Workflow RAG、Prompt Application、Agent Copilot 三类 Runtime Assignment decision。
+
+设计复核结论（2026-07-27）：
+
+- 本批共 10 条 mutation。除 Application Publish Candidate create 和 `approve` review 的资源条件 source permission 外，其余入口的完整 permission 集合都能在业务 owner 前确定，必须在 JSON body 解码前通过同一次 membership decision。
+- RAG Promotion create 原子要求 `workflow_rag_promotions:write`、`workflow_rag_evaluation_datasets:read`、`workflow_rag_snapshots:read` 与 `application_drafts:read`；缺少任一 identity permission 时 provider 为 0，缺少任一 membership permission 时 provider 只调用一次，全部业务 owner 为 0。
+- Application Publish Candidate create 先原子要求 `application_publish_candidates:write`，review 先要求 `application_publish_candidates:review`。附加 `workflow_rag_promotions:read`、`prompt_application_templates:read_source` 或 `agent_copilot_profiles:read_source` 只能由权威草案或候选类型决定，因此允许在基础 authorization 后由 create 最小重读 Application Draft、由 `approve` 最小重读 Publish Candidate，再从同一 verified identity 与 membership grant 交集派生对应能力；不得第二次调用 provider，也不得要求调用者持有与实际候选类型无关的 source permission。非 `approve` review 不追加 source permission。
+- 上述条件权限缺失时，只允许发生确定候选类型所需的 Application Draft 或 Publish Candidate 最小只读；Publish Candidate durable write、Application Catalog 与 RAG / Prompt / Agent source owner 重读均必须为 0。其它 identity、selection、membership 与 body workspace 拒绝仍要求全部业务 owner 为 0。
+- review、activation 与三类 assignment decision 只要求各自单项 permission；既有 service 继续负责按 verified tenant、workspace、subject 与资源 ID 重读 candidate、draft、version、application、promotion 等权威 owner，并维持 CAS、不可变版本、append-only event / audit 和“不因 approve 自动 activate / execute”的状态机。
+- body workspace 只与 active workspace 精确比较；Application Publish、Workflow Definition 的历史 workspace / application header 以及三类 Runtime Assignment 的旧 dev header 不再建立 mutation authority。path application / definition / candidate ID 继续由既有 owner 做作用域内精确重读。
+
+实施结果（2026-07-27）：
+
+- 10 条 Publish Candidate、Definition Candidate / activation、RAG Promotion 与三类 Runtime Assignment mutation 已接入共享 authorization；所有可预先确定的 permission 都在 body 前由一次 membership decision 原子验证。
+- 跨 10 条入口的拒绝矩阵覆盖 identity permission、active workspace、membership 缺失 / permission、workspace mismatch 与 OIDC unavailable，primary owner 调用均为 0；RAG Promotion 四权限回归固定 identity 缺权限时 provider 为 0、membership 缺权限时 provider 恰好为 1。
+- Application Publish create 与 `approve` review 只在基础授权后最小重读权威 Draft / Candidate，再从同一 verified identity 与 membership grants 交集派生实际 source permission；缺权限时 baseline、source owner 与 durable write 均为 0。
+- 上游 signed permission projection、Web 六类 consumer 的 active workspace / dev membership headers、完整 Platform Go tests、定向 race、`go vet`、Web 246 项测试与 PostgreSQL integration suite 均已通过；既有 schema、migration、CAS、append-only event / audit 和 application API key invocation 未改变。
+- 批次 C 已关闭；专题累计 27 条 mutation，下一步只进入批次 D 的 Workflow Run、Application Session / Turn 与人类受控执行设计复核。
 
 ## 后续批次顺序
 
-1. 批次 B：Workflow Draft、Application Configuration Draft、Prompt Template 与 Agent Profile 等创作 owner。
-2. 批次 C：Publish Candidate、Definition Candidate、RAG Promotion 与三类 Runtime Assignment 等审查 / 激活 owner。
-3. 批次 D：Workflow Run、Application Session / Turn 与人类发起的受控执行。
-4. 批次 E：RAG Dataset / Snapshot、HTTP Tool 与 Evaluation 组合 owner。
+1. 批次 C 已完成：Publish Candidate、Definition Candidate、RAG Promotion 与三类 Runtime Assignment 等审查 / 激活 owner。
+2. 下一步批次 D：Workflow Run、Application Session / Turn 与人类发起的受控执行。
+3. 后续批次 E：RAG Dataset / Snapshot、HTTP Tool 与 Evaluation 组合 owner。
 
 每批开始前必须回看 inventory 中的真实 owner 依赖。若需要修改 schema、公开 API、运行时幂等、外部 provider 或高风险网络边界，先更新本专题和唯一任务卡，不把同一专题拆成平行 readiness 链。
 
@@ -313,6 +338,13 @@
 - dev headers、signed-test 与 OIDC unavailable 失败关闭均可复验；Web mutation 只在 dev mode 携带 membership proof。
 - memory、SQLite、PostgreSQL、定向 race、`go vet`、Web tests / build、fast 与全量仓库检查通过。
 
+批次 C：
+
+- 10 条审查 / 激活 mutation 保持既有 candidate immutable、review / activation / assignment CAS、append-only event / audit 与 ref-only runtime selection。
+- 可预先确定的 permission 在业务 owner 前由一次 membership decision 原子验证；Publish Candidate create / approve 的资源条件权限只允许一次最小草案 / 候选重读，且不得触发无关 source owner 或 durable write。
+- identity、selection、membership、body binding 与 OIDC unavailable 失败关闭可复验；三类 assignment approve / activate 不自动 invocation 或创建 Run。
+- memory、SQLite、PostgreSQL、定向 race、`go vet`、Web tests / build、fast 与全量仓库检查通过。
+
 ## 隐私边界
 
 - raw identity token、membership assertion、dev membership headers 与 API key 不进入日志、audit record、error body、Run input 或 committed fixture。
@@ -335,7 +367,7 @@
 
 ## 停止线
 
-- 任务卡已冻结且批次 A、B 已完成；当前下一步只复核批次 C 的审查 / 激活 owner，不进入执行或批次 E 组合 owner。
+- 任务卡已冻结且批次 A 至 C 已完成；下一步只复核批次 D 的 Workflow Run、Application Session / Turn 与人类受控执行，不直接进入实现或批次 E 组合 owner。
 - 不把 active workspace、body workspace、旧 dev header、application owner 或 API key 解释成 membership proof。
 - 不创建新的用户、tenant、role、membership、Application、Workflow、Run、Evaluation 或 credential owner。
 - 不通过统一授权专题顺带启用 production OIDC、production API key、quota / billing、自动发布、自动确认、replay、unrestricted tool 或业务写回。

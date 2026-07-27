@@ -26,8 +26,10 @@ test("Agent runtime reads exact assignment lineage and append-only events", asyn
 
 test("Agent runtime decision sends only CAS fields and preserves a version conflict", async () => {
   let body: any;
+  let headers: Headers | undefined;
   globalThis.fetch = async (_url, init) => {
     body = JSON.parse(String(init?.body));
+    headers = new Headers(init?.headers);
     return jsonResponse({
       ...runtimeEnvelope(),
       assignment: null,
@@ -44,6 +46,9 @@ test("Agent runtime decision sends only CAS fields and preserves a version confl
     action: "replace",
     candidate_id: "candidate-agent-v2",
   });
+  assert.equal(headers?.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(headers?.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+  assert.equal(headers?.get("X-RadishMind-Dev-Read-Membership-Permissions"), "agent_copilot_runtime:write");
   assert.equal(result.status, "version_conflict");
   assert.equal(result.currentAssignmentVersion, 2);
 });

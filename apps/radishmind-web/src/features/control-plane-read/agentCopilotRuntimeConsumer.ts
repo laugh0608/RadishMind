@@ -263,6 +263,11 @@ function runtimeHeaders(
       ? "agent_copilot_runtime:read,agent_copilot_runtime:write"
       : "agent_copilot_runtime:read",
     "X-RadishMind-Dev-Read-Audit": `audit_${requestId}_agent_runtime`,
+    ...(operation === "write" ? {
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Permissions": "agent_copilot_runtime:write",
+    } : {}),
     "X-RadishMind-Dev-Agent-Copilot-Runtime-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Agent-Copilot-Runtime-Application": applicationId,
   };

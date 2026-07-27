@@ -58,10 +58,14 @@ func TestPromptApplicationPublishCandidateV3ExactTemplateReview(t *testing.T) {
 	publishContext := validApplicationPublishContext()
 	publishContext.ApplicationID = draftContext.ApplicationID
 	publishContext.PromptTemplateSourceReadEnabled = true
+	baselineCalls := 0
+	sourceCalls := 0
 	service := newApplicationPublishCandidateService(draftRepository, candidateRepository, func(ctx ApplicationPublishContext) (ApplicationSummary, error) {
+		baselineCalls++
 		return ApplicationSummary{ApplicationRef: ctx.ApplicationID, ApplicationKind: "prompt_application", UpdatedAt: payload.BaseApplicationUpdatedAt}, nil
 	})
 	service.readPromptTemplateVersion = func(ctx ApplicationPublishContext, ref PromptApplicationTemplateRef) (PromptApplicationTemplateVersion, string) {
+		sourceCalls++
 		value, err := templateRepository.ReadVersion(templateContext, ref.TemplateID, ref.TemplateVersion)
 		if err != nil {
 			return PromptApplicationTemplateVersion{}, promptApplicationTemplateRepositoryFailure(err, PromptApplicationTemplateValidation{}).FailureCode
@@ -78,9 +82,22 @@ func TestPromptApplicationPublishCandidateV3ExactTemplateReview(t *testing.T) {
 	}
 	deniedContext := publishContext
 	deniedContext.PromptTemplateSourceReadEnabled = false
+	baselineCalls, sourceCalls = 0, 0
 	denied := service.Create(deniedContext, ApplicationPublishCreateInput{CandidateID: "candidate-prompt-denied", DraftID: payload.DraftID, ExpectedDraftVersion: 2})
-	if denied.FailureCode != ApplicationPublishFailureScopeDenied {
-		t.Fatalf("Prompt candidate creation without source review permission must fail: %#v", denied)
+	if denied.FailureCode != ApplicationPublishFailureScopeDenied || baselineCalls != 0 || sourceCalls != 0 {
+		t.Fatalf("Prompt candidate creation without source review permission crossed downstream owners: result=%#v baseline=%d source=%d", denied, baselineCalls, sourceCalls)
+	}
+	reviewCandidate := service.Create(publishContext, ApplicationPublishCreateInput{CandidateID: "candidate-prompt-review-denied", DraftID: payload.DraftID, ExpectedDraftVersion: 2})
+	if reviewCandidate.Candidate == nil {
+		t.Fatalf("seed Prompt candidate for denied review: %#v", reviewCandidate)
+	}
+	baselineCalls, sourceCalls = 0, 0
+	deniedReview := service.Review(deniedContext, reviewCandidate.Candidate.CandidateID, ApplicationPublishReviewInput{
+		ExpectedReviewVersion: 0, Decision: applicationPublishDecisionApprove, Reason: "Attempt approval without exact source permission.",
+	})
+	storedReviewCandidate, err := candidateRepository.Read(publishContext, reviewCandidate.Candidate.CandidateID)
+	if deniedReview.FailureCode != ApplicationPublishFailureScopeDenied || baselineCalls != 0 || sourceCalls != 0 || err != nil || storedReviewCandidate.ReviewVersion != 0 {
+		t.Fatalf("Prompt candidate approval without source review permission crossed downstream owners: result=%#v baseline=%d source=%d stored=%#v err=%v", deniedReview, baselineCalls, sourceCalls, storedReviewCandidate, err)
 	}
 }
 
@@ -295,4 +312,9 @@ func setApplicationPublishHeaders(request *http.Request, scopes, applicationID s
 	request.Header.Set(controlPlaneReadDevScopesHeader, scopes)
 	request.Header.Set(applicationPublishDevWorkspaceHeader, "workspace_demo")
 	request.Header.Set(applicationPublishDevApplicationHeader, applicationID)
+	if request.Method != http.MethodGet {
+		request.Header.Set(activeWorkspaceHeader, "workspace_demo")
+		request.Header.Set(controlPlaneReadDevMembershipHeader, "workspace_demo")
+		request.Header.Set(controlPlaneReadDevMembershipPermHeader, scopes)
+	}
 }

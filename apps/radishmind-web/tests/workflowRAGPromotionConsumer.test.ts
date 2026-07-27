@@ -48,6 +48,9 @@ test("promotion create sends exact authority refs and dedicated scopes", async (
       dataset_digest: digest("d"), candidate_review_id: "wragr_aaaaaaaaaaaaaaaa", draft_id: "app-config-flow", expected_draft_version: 1,
     });
     assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "workflow_rag_promotions:write,workflow_rag_evaluation_datasets:read,workflow_rag_snapshots:read,application_drafts:read");
+    assert.equal(captured?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+    assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_rag_promotions:write,workflow_rag_evaluation_datasets:read,workflow_rag_snapshots:read,application_drafts:read");
     assert.equal("baseline_snapshot" in captured!.body, false);
   } finally { globalThis.fetch = originalFetch; }
 });

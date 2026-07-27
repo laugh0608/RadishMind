@@ -51,6 +51,9 @@ test("assignment read and decision keep exact management scope and CAS", async (
   });
   assert.equal(decision.status, "ready");
   assert.equal(requests[1]?.headers.get("X-RadishMind-Dev-Read-Scopes"), "workflow_rag_runtime:write");
+  assert.equal(requests[1]?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(requests[1]?.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+  assert.equal(requests[1]?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_rag_runtime:write");
   assert.deepEqual(requests[1]?.body, {
     workspace_id: "workspace_demo", expected_record_version: 1, decision: "replace",
     publish_candidate_id: "candidate-approved-0002", reason: "Replace with reviewed candidate evidence.",

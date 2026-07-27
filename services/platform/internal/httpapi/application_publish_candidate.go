@@ -254,6 +254,14 @@ func (service applicationPublishCandidateService) Create(requestContext Applicat
 	if !draft.ValidationSummary.IsValid || !validation.IsValid {
 		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureDraftInvalid, CurrentDraftVersion: draft.DraftVersion}
 	}
+	snapshot := applicationPublishSnapshotFromDraft(draft)
+	digest, err := applicationConfigurationCanonicalDigest(snapshot)
+	if err != nil || draft.DraftDigest != "" && draft.DraftDigest != digest {
+		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureStoreUnavailable}
+	}
+	if !applicationPublishSourcePermissionEnabled(requestContext, snapshot) {
+		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureScopeDenied}
+	}
 	baseline, err := service.readBaseline(requestContext)
 	if errors.Is(err, errApplicationCatalogArchived) {
 		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureApplicationArchived, CurrentDraftVersion: draft.DraftVersion}
@@ -264,31 +272,17 @@ func (service applicationPublishCandidateService) Create(requestContext Applicat
 	if strings.TrimSpace(baseline.UpdatedAt) != strings.TrimSpace(draft.BaseApplicationUpdatedAt) {
 		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureBaseRevisionChanged, CurrentDraftVersion: draft.DraftVersion}
 	}
-	snapshot := applicationPublishSnapshotFromDraft(draft)
-	digest, err := applicationConfigurationCanonicalDigest(snapshot)
-	if err != nil || draft.DraftDigest != "" && draft.DraftDigest != digest {
-		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureStoreUnavailable}
-	}
 	if snapshot.WorkflowRAGBindingRef != nil {
-		if !requestContext.RAGPromotionReadEnabled {
-			return ApplicationPublishResult{FailureCode: ApplicationPublishFailureScopeDenied}
-		}
 		if _, failureCode := service.resolveBinding(requestContext, *snapshot.WorkflowRAGBindingRef); failureCode != "" {
 			return ApplicationPublishResult{FailureCode: applicationPublishBindingMutationFailure(failureCode)}
 		}
 	}
 	if snapshot.PromptTemplateRef != nil {
-		if !requestContext.PromptTemplateSourceReadEnabled {
-			return ApplicationPublishResult{FailureCode: ApplicationPublishFailureScopeDenied}
-		}
 		if _, failureCode := service.resolvePromptTemplate(requestContext, *snapshot.PromptTemplateRef); failureCode != "" {
 			return ApplicationPublishResult{FailureCode: applicationPublishPromptTemplateFailure(failureCode)}
 		}
 	}
 	if snapshot.AgentCopilotProfileRef != nil {
-		if !requestContext.AgentProfileSourceReadEnabled {
-			return ApplicationPublishResult{FailureCode: ApplicationPublishFailureScopeDenied}
-		}
 		if _, failureCode := service.resolveAgentProfile(requestContext, *snapshot.AgentCopilotProfileRef); failureCode != "" {
 			return ApplicationPublishResult{FailureCode: applicationPublishAgentProfileFailure(failureCode)}
 		}
@@ -359,11 +353,7 @@ func (service applicationPublishCandidateService) Review(requestContext Applicat
 	if applicationDraftStringContainsSecret(reason) {
 		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureSecretForbidden}
 	}
-	if _, err := service.readBaseline(requestContext); errors.Is(err, errApplicationCatalogArchived) {
-		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureApplicationArchived}
-	} else if err != nil {
-		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureStoreUnavailable}
-	}
+	var approvalCandidate ApplicationPublishCandidate
 	if decision == applicationPublishDecisionApprove {
 		candidate, err := service.candidateRepository.Read(requestContext, candidateID)
 		if err != nil {
@@ -375,8 +365,19 @@ func (service applicationPublishCandidateService) Review(requestContext Applicat
 		if !applicationPublishTransitionAllowed(candidate.CandidateState, decision) {
 			return ApplicationPublishResult{FailureCode: ApplicationPublishFailureReviewTransitionInvalid}
 		}
-		if failureCode := service.validateApproval(requestContext, candidate); failureCode != "" {
-			return ApplicationPublishResult{FailureCode: failureCode, CurrentReviewVersion: candidate.ReviewVersion, CurrentCandidateState: candidate.CandidateState}
+		if !applicationPublishSourcePermissionEnabled(requestContext, candidate.Configuration) {
+			return ApplicationPublishResult{FailureCode: ApplicationPublishFailureScopeDenied, CurrentReviewVersion: candidate.ReviewVersion, CurrentCandidateState: candidate.CandidateState}
+		}
+		approvalCandidate = candidate
+	}
+	if _, err := service.readBaseline(requestContext); errors.Is(err, errApplicationCatalogArchived) {
+		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureApplicationArchived}
+	} else if err != nil {
+		return ApplicationPublishResult{FailureCode: ApplicationPublishFailureStoreUnavailable}
+	}
+	if decision == applicationPublishDecisionApprove {
+		if failureCode := service.validateApproval(requestContext, approvalCandidate); failureCode != "" {
+			return ApplicationPublishResult{FailureCode: failureCode, CurrentReviewVersion: approvalCandidate.ReviewVersion, CurrentCandidateState: approvalCandidate.CandidateState}
 		}
 	}
 	state := applicationPublishStateForDecision(decision)
@@ -650,6 +651,12 @@ func applicationPublishSnapshotFromDraft(draft ApplicationConfigurationDraft) Ap
 		PromptTemplateRef:      clonePromptApplicationTemplateRef(draft.PromptTemplateRef),
 		AgentCopilotProfileRef: cloneAgentCopilotProfileRef(draft.AgentCopilotProfileRef),
 	}
+}
+
+func applicationPublishSourcePermissionEnabled(requestContext ApplicationPublishContext, snapshot ApplicationPublishConfigurationSnapshot) bool {
+	return (snapshot.WorkflowRAGBindingRef == nil || requestContext.RAGPromotionReadEnabled) &&
+		(snapshot.PromptTemplateRef == nil || requestContext.PromptTemplateSourceReadEnabled) &&
+		(snapshot.AgentCopilotProfileRef == nil || requestContext.AgentProfileSourceReadEnabled)
 }
 
 func applicationConfigurationCanonicalDigest(snapshot ApplicationPublishConfigurationSnapshot) (string, error) {

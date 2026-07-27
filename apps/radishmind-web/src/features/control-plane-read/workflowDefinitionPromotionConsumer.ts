@@ -407,7 +407,22 @@ async function readJSON(url: string, config: WorkflowDefinitionPromotionConfig, 
 
 function headers(config: WorkflowDefinitionPromotionConfig, applicationId: string, scopes: string): HeadersInit {
   const requestId = `web-workflow-definition-${Date.now().toString(36)}`;
-  return { Accept: "application/json", "X-Request-Id": requestId, "X-RadishMind-Dev-Read-Identity": "workflow-definition-promotion-web", "X-RadishMind-Dev-Read-Tenant": config.tenantRef, "X-RadishMind-Dev-Read-Subject": config.subjectRef, "X-RadishMind-Dev-Read-Scopes": scopes, "X-RadishMind-Dev-Read-Audit": `audit_${requestId}`, "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId, "X-RadishMind-Dev-Workflow-Application": applicationId };
+  const mutationPermission = ["workflow_definitions:write", "workflow_definitions:review", "workflow_definitions:activate"].includes(scopes) ? scopes : "";
+  return {
+    Accept: "application/json", "X-Request-Id": requestId,
+    "X-RadishMind-Dev-Read-Identity": "workflow-definition-promotion-web",
+    "X-RadishMind-Dev-Read-Tenant": config.tenantRef,
+    "X-RadishMind-Dev-Read-Subject": config.subjectRef,
+    "X-RadishMind-Dev-Read-Scopes": scopes,
+    "X-RadishMind-Dev-Read-Audit": `audit_${requestId}`,
+    ...(mutationPermission ? {
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Permissions": mutationPermission,
+    } : {}),
+    "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Workflow-Application": applicationId,
+  };
 }
 
 function scopeQuery(config: WorkflowDefinitionPromotionConfig, applicationId: string): string {

@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](workspace-scoped-mutation-authorization-dev-test-v1-plan.md)已完成批次 A / B：共享 mutation authorization、稳定 failure mapping、业务 owner zero-call、凭据副作用顺序、创作态原子组合权限、Web header 分离与三模式 / 双数据库证据成立；下一步复核批次 C 审查 / 激活 owner。
+[Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](workspace-scoped-mutation-authorization-dev-test-v1-plan.md)已完成批次 A 至 C：27 条 mutation 的共享 authorization、稳定 failure mapping、业务 owner zero-call、凭据副作用顺序、创作 / 审查 / 激活态原子组合与资源条件权限、Web header 分离及三模式 / 双数据库证据成立；下一步复核批次 D 执行 owner。
 
 [Admin Provider Profile / Model Route 受控启用（开发 / 测试态）v1](admin-provider-route-controlled-activation-dev-test-v1-plan.md)批次 A 至 C 已完成领域、三模式 repository、inventory digest 重验、三类 CAS、SQLite / PostgreSQL migration、Admin HTTP、verified identity、四项权限和 strict contract，状态为 `admin_provider_route_controlled_activation_dev_test_v1_batch_c_completed_batch_d_ready`；下一步进入 Gateway snapshot consumer。
 

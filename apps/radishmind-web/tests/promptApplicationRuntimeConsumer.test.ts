@@ -47,8 +47,10 @@ test("Prompt runtime reads exact authority and append-only events", async () => 
 
 test("Prompt runtime decision sends only CAS fields and preserves conflict state", async () => {
   let body: any;
+  let headers: Headers | undefined;
   globalThis.fetch = async (_input, init) => {
     body = JSON.parse(String(init?.body));
+    headers = new Headers(init?.headers);
     const envelope = runtimeEnvelope();
     envelope.assignment = null;
     envelope.events = [];
@@ -65,6 +67,9 @@ test("Prompt runtime decision sends only CAS fields and preserves conflict state
     action: "replace",
     candidate_id: "candidate-prompt-v2",
   });
+  assert.equal(headers?.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(headers?.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+  assert.equal(headers?.get("X-RadishMind-Dev-Read-Membership-Permissions"), "prompt_application_runtime:write");
   assert.equal(result.status, "version_conflict");
   assert.equal(result.currentAssignmentVersion, 3);
 });

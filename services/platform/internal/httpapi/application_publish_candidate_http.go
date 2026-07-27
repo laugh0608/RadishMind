@@ -54,13 +54,22 @@ func (server *Server) handleCreateApplicationPublishCandidate(writer http.Respon
 	if !server.allowApplicationPublishDevHTTP(writer, request, trace) {
 		return
 	}
-	var body applicationPublishCandidateCreateBody
-	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
+	auth, failureCode, status := server.authorizeWorkspaceScopedPermissions(request, "application_publish_candidates:write")
+	requestContext := applicationPublishMutationContext(
+		request, trace, auth, request.Header.Get(applicationPublishDevApplicationHeader),
+		server.config.ApplicationPublishDevWriteEnabled, "create",
+	)
+	if failureCode != "" {
+		writeApplicationPublishCandidateResultWithStatus(writer, status, trace, requestContext, ApplicationPublishResult{FailureCode: failureCode})
 		return
 	}
-	requestContext, failureCode := applicationPublishContextFromRequest(request, trace, request.Header.Get(applicationPublishDevWorkspaceHeader), request.Header.Get(applicationPublishDevApplicationHeader), "application_publish_candidates:write", server.config.ApplicationPublishDevWriteEnabled, "create")
-	if failureCode != "" {
-		writeApplicationPublishCandidateResult(writer, trace, requestContext, ApplicationPublishResult{FailureCode: failureCode})
+	if strings.TrimSpace(request.Header.Get(applicationPublishDevWorkspaceHeader)) != auth.ResourceBinding.WorkspaceID ||
+		!validControlPlaneReadAuthReference(requestContext.ApplicationID, false) {
+		writeApplicationPublishCandidateResultWithStatus(writer, http.StatusForbidden, trace, requestContext, ApplicationPublishResult{FailureCode: "workspace_binding_mismatch"})
+		return
+	}
+	var body applicationPublishCandidateCreateBody
+	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
 	result := server.applicationPublishCandidateService().Create(requestContext, ApplicationPublishCreateInput{
@@ -106,13 +115,22 @@ func (server *Server) handleReviewApplicationPublishCandidate(writer http.Respon
 	if !server.allowApplicationPublishDevHTTP(writer, request, trace) {
 		return
 	}
-	var body applicationPublishCandidateReviewBody
-	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
+	auth, failureCode, status := server.authorizeWorkspaceScopedPermissions(request, "application_publish_candidates:review")
+	requestContext := applicationPublishMutationContext(
+		request, trace, auth, request.Header.Get(applicationPublishDevApplicationHeader),
+		server.config.ApplicationPublishDevWriteEnabled, "review",
+	)
+	if failureCode != "" {
+		writeApplicationPublishCandidateResultWithStatus(writer, status, trace, requestContext, ApplicationPublishResult{FailureCode: failureCode})
 		return
 	}
-	requestContext, failureCode := applicationPublishContextFromRequest(request, trace, request.Header.Get(applicationPublishDevWorkspaceHeader), request.Header.Get(applicationPublishDevApplicationHeader), "application_publish_candidates:review", server.config.ApplicationPublishDevWriteEnabled, "review")
-	if failureCode != "" {
-		writeApplicationPublishCandidateResult(writer, trace, requestContext, ApplicationPublishResult{FailureCode: failureCode})
+	if strings.TrimSpace(request.Header.Get(applicationPublishDevWorkspaceHeader)) != auth.ResourceBinding.WorkspaceID ||
+		!validControlPlaneReadAuthReference(requestContext.ApplicationID, false) {
+		writeApplicationPublishCandidateResultWithStatus(writer, http.StatusForbidden, trace, requestContext, ApplicationPublishResult{FailureCode: "workspace_binding_mismatch"})
+		return
+	}
+	var body applicationPublishCandidateReviewBody
+	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
 	result := server.applicationPublishCandidateService().Review(requestContext, request.PathValue("candidate_id"), ApplicationPublishReviewInput{
@@ -237,6 +255,26 @@ func applicationPublishContextFromRequest(request *http.Request, trace requestTr
 	return requestContext, ""
 }
 
+func applicationPublishMutationContext(
+	request *http.Request,
+	trace requestTrace,
+	auth controlPlaneReadAuthContext,
+	applicationID string,
+	writeEnabled bool,
+	auditSuffix string,
+) ApplicationPublishContext {
+	return ApplicationPublishContext{
+		RequestContext: request.Context(), RequestID: trace.requestID,
+		TenantRef: strings.TrimSpace(auth.TenantBinding), WorkspaceID: strings.TrimSpace(auth.ResourceBinding.WorkspaceID),
+		ApplicationID: strings.TrimSpace(applicationID), ActorRef: strings.TrimSpace(auth.SubjectBinding),
+		OwnerSubjectRef: strings.TrimSpace(auth.SubjectBinding), WriteEnabled: writeEnabled,
+		RAGPromotionReadEnabled:         workspacePermissionEnabled(auth, "workflow_rag_promotions:read"),
+		PromptTemplateSourceReadEnabled: workspacePermissionEnabled(auth, "prompt_application_templates:read_source"),
+		AgentProfileSourceReadEnabled:   workspacePermissionEnabled(auth, "agent_copilot_profiles:read_source"),
+		AuditRef:                        "audit_" + trace.requestID + "_application-publish-" + auditSuffix,
+	}
+}
+
 func workflowRAGPromotionContextFromPublish(ctx ApplicationPublishContext) WorkflowRAGPromotionContext {
 	return WorkflowRAGPromotionContext{
 		RequestContext: ctx.RequestContext, RequestID: ctx.RequestID, TenantRef: ctx.TenantRef,
@@ -246,7 +284,11 @@ func workflowRAGPromotionContextFromPublish(ctx ApplicationPublishContext) Workf
 }
 
 func writeApplicationPublishCandidateResult(writer http.ResponseWriter, trace requestTrace, requestContext ApplicationPublishContext, result ApplicationPublishResult) {
-	writeObservedJSON(writer, http.StatusOK, trace, applicationPublishCandidateEnvelope{
+	writeApplicationPublishCandidateResultWithStatus(writer, http.StatusOK, trace, requestContext, result)
+}
+
+func writeApplicationPublishCandidateResultWithStatus(writer http.ResponseWriter, status int, trace requestTrace, requestContext ApplicationPublishContext, result ApplicationPublishResult) {
+	writeObservedJSON(writer, status, trace, applicationPublishCandidateEnvelope{
 		RequestID: trace.requestID, WorkspaceID: requestContext.WorkspaceID, ApplicationID: requestContext.ApplicationID,
 		Candidate: result.Candidate, FailureCode: optionalApplicationDraftFailure(result.FailureCode),
 		CurrentReviewVersion: result.CurrentReviewVersion, CurrentCandidateState: result.CurrentCandidateState,

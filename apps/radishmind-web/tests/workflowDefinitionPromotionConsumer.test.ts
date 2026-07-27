@@ -35,6 +35,9 @@ test("candidate create sends exact scope and strict authority fields", async () 
   assert.equal(candidate.definitionDigest, digest);
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "workflow_definitions:write");
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Workflow-Application"), applicationId);
+  assert.equal(captured?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+  assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_definitions:write");
   assert.deepEqual(captured?.body, { candidate_id: "candidate_demo", definition_id: "definition_demo", draft_id: "draft_demo", expected_draft_version: 3 });
 });
 

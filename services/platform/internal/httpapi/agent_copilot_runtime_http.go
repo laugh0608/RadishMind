@@ -67,16 +67,24 @@ func (server *Server) handleDecideAgentCopilotRuntimeAssignment(writer http.Resp
 	if !server.allowAgentCopilotRuntimeDevHTTP(writer, request, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "agent_copilot_runtime:write")
+	ctx := agentCopilotRuntimeMutationContext(
+		request, trace, auth, request.PathValue("application_id"),
+		server.config.AgentCopilotRuntimeDevWriteEnabled, "decision",
+	)
+	if failure != "" {
+		writeAgentCopilotRuntimeResultWithStatus(writer, status, trace, ctx, agentCopilotRuntimeFailure(failure), true)
+		return
+	}
 	var body agentCopilotRuntimeDecisionBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := agentCopilotRuntimeContextFromRequest(
-		request, trace, body.WorkspaceID, request.PathValue("application_id"),
-		"agent_copilot_runtime:write", server.config.AgentCopilotRuntimeDevWriteEnabled, "decision",
-	)
-	if failure != "" {
-		writeAgentCopilotRuntimeResult(writer, trace, ctx, agentCopilotRuntimeFailure(failure), true)
+	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID ||
+		strings.TrimSpace(request.Header.Get(agentCopilotRuntimeWorkspaceHeader)) != auth.ResourceBinding.WorkspaceID ||
+		strings.TrimSpace(request.Header.Get(agentCopilotRuntimeApplicationHeader)) != ctx.ApplicationID ||
+		!validControlPlaneReadAuthReference(ctx.ApplicationID, false) {
+		writeAgentCopilotRuntimeResultWithStatus(writer, http.StatusForbidden, trace, ctx, agentCopilotRuntimeFailure("workspace_binding_mismatch"), true)
 		return
 	}
 	result := server.agentCopilotRuntimeService().Decide(ctx, AgentCopilotRuntimeDecisionInput{
@@ -138,8 +146,36 @@ func agentCopilotRuntimeContextFromRequest(
 	return ctx, ""
 }
 
+func agentCopilotRuntimeMutationContext(
+	request *http.Request,
+	trace requestTrace,
+	auth controlPlaneReadAuthContext,
+	applicationID string,
+	writeEnabled bool,
+	auditSuffix string,
+) AgentCopilotRuntimeContext {
+	return AgentCopilotRuntimeContext{
+		RequestContext: request.Context(), RequestID: trace.requestID,
+		TenantRef: strings.TrimSpace(auth.TenantBinding), WorkspaceID: strings.TrimSpace(auth.ResourceBinding.WorkspaceID),
+		ApplicationID: strings.TrimSpace(applicationID), ActorRef: strings.TrimSpace(auth.SubjectBinding),
+		OwnerSubjectRef: strings.TrimSpace(auth.SubjectBinding), WriteEnabled: writeEnabled,
+		AuditRef: "audit_" + trace.requestID + "_agent-copilot-runtime-" + auditSuffix,
+	}
+}
+
 func writeAgentCopilotRuntimeResult(
 	writer http.ResponseWriter,
+	trace requestTrace,
+	ctx AgentCopilotRuntimeContext,
+	result AgentCopilotRuntimeResult,
+	includeEvents bool,
+) {
+	writeAgentCopilotRuntimeResultWithStatus(writer, http.StatusOK, trace, ctx, result, includeEvents)
+}
+
+func writeAgentCopilotRuntimeResultWithStatus(
+	writer http.ResponseWriter,
+	status int,
 	trace requestTrace,
 	ctx AgentCopilotRuntimeContext,
 	result AgentCopilotRuntimeResult,
@@ -149,7 +185,7 @@ func writeAgentCopilotRuntimeResult(
 	if includeEvents && result.Events != nil {
 		events = result.Events
 	}
-	writeObservedJSON(writer, http.StatusOK, trace, agentCopilotRuntimeEnvelope{
+	writeObservedJSON(writer, status, trace, agentCopilotRuntimeEnvelope{
 		RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID,
 		ApplicationID: ctx.ApplicationID, Assignment: result.Assignment, Events: events,
 		FailureCode:              optionalApplicationDraftFailure(result.FailureCode),

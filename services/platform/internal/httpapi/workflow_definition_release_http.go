@@ -74,13 +74,19 @@ func (server *Server) handleCreateWorkflowDefinitionCandidate(writer http.Respon
 	if !server.allowWorkflowDefinitionReleaseHTTP(writer, request, trace) {
 		return
 	}
-	var body workflowDefinitionCandidateCreateBody
-	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "workflow_definitions:write")
+	ctx := workflowDefinitionMutationContext(request, trace, auth, request.Header.Get(savedWorkflowDraftDevApplicationHeader), "candidate-create")
+	if failure != "" {
+		writeWorkflowDefinitionResultWithStatus(writer, status, trace, ctx, WorkflowDefinitionReleaseResult{FailureCode: failure})
 		return
 	}
-	ctx, failure := workflowDefinitionContextFromRequest(request, trace, request.Header.Get(savedWorkflowDraftDevWorkspaceHeader), request.Header.Get(savedWorkflowDraftDevApplicationHeader), "workflow_definitions:write", "candidate-create")
-	if failure != "" {
-		writeWorkflowDefinitionResult(writer, trace, ctx, WorkflowDefinitionReleaseResult{FailureCode: failure})
+	if strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevWorkspaceHeader)) != auth.ResourceBinding.WorkspaceID ||
+		!validControlPlaneReadAuthReference(ctx.ApplicationID, false) {
+		writeWorkflowDefinitionResultWithStatus(writer, http.StatusForbidden, trace, ctx, WorkflowDefinitionReleaseResult{FailureCode: "workspace_binding_mismatch"})
+		return
+	}
+	var body workflowDefinitionCandidateCreateBody
+	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
 	result := server.workflowDefinitionReleaseService().Create(ctx, WorkflowDefinitionCandidateCreateInput{
@@ -124,13 +130,19 @@ func (server *Server) handleDecideWorkflowDefinitionCandidate(writer http.Respon
 	if !server.allowWorkflowDefinitionReleaseHTTP(writer, request, trace) {
 		return
 	}
-	var body workflowDefinitionCandidateDecisionBody
-	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "workflow_definitions:review")
+	ctx := workflowDefinitionMutationContext(request, trace, auth, request.Header.Get(savedWorkflowDraftDevApplicationHeader), "candidate-decision")
+	if failure != "" {
+		writeWorkflowDefinitionResultWithStatus(writer, status, trace, ctx, WorkflowDefinitionReleaseResult{FailureCode: failure})
 		return
 	}
-	ctx, failure := workflowDefinitionContextFromRequest(request, trace, request.Header.Get(savedWorkflowDraftDevWorkspaceHeader), request.Header.Get(savedWorkflowDraftDevApplicationHeader), "workflow_definitions:review", "candidate-decision")
-	if failure != "" {
-		writeWorkflowDefinitionResult(writer, trace, ctx, WorkflowDefinitionReleaseResult{FailureCode: failure})
+	if strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevWorkspaceHeader)) != auth.ResourceBinding.WorkspaceID ||
+		!validControlPlaneReadAuthReference(ctx.ApplicationID, false) {
+		writeWorkflowDefinitionResultWithStatus(writer, http.StatusForbidden, trace, ctx, WorkflowDefinitionReleaseResult{FailureCode: "workspace_binding_mismatch"})
+		return
+	}
+	var body workflowDefinitionCandidateDecisionBody
+	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
 	result := server.workflowDefinitionReleaseService().Review(ctx, request.PathValue("candidate_id"), WorkflowDefinitionReviewInput{
@@ -192,13 +204,19 @@ func (server *Server) handleDecideWorkflowDefinitionActivation(writer http.Respo
 	if !server.allowWorkflowDefinitionReleaseHTTP(writer, request, trace) {
 		return
 	}
-	var body workflowDefinitionActivationDecisionBody
-	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "workflow_definitions:activate")
+	ctx := workflowDefinitionMutationContext(request, trace, auth, request.Header.Get(savedWorkflowDraftDevApplicationHeader), "activation-decision")
+	if failure != "" {
+		writeWorkflowDefinitionResultWithStatus(writer, status, trace, ctx, WorkflowDefinitionReleaseResult{FailureCode: failure})
 		return
 	}
-	ctx, failure := workflowDefinitionContextFromRequest(request, trace, request.Header.Get(savedWorkflowDraftDevWorkspaceHeader), request.Header.Get(savedWorkflowDraftDevApplicationHeader), "workflow_definitions:activate", "activation-decision")
-	if failure != "" {
-		writeWorkflowDefinitionResult(writer, trace, ctx, WorkflowDefinitionReleaseResult{FailureCode: failure})
+	if strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevWorkspaceHeader)) != auth.ResourceBinding.WorkspaceID ||
+		!validControlPlaneReadAuthReference(ctx.ApplicationID, false) {
+		writeWorkflowDefinitionResultWithStatus(writer, http.StatusForbidden, trace, ctx, WorkflowDefinitionReleaseResult{FailureCode: "workspace_binding_mismatch"})
+		return
+	}
+	var body workflowDefinitionActivationDecisionBody
+	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
 	result := server.workflowDefinitionReleaseService().DecideActivation(ctx, request.PathValue("definition_id"), WorkflowDefinitionActivationInput{
@@ -245,8 +263,28 @@ func workflowDefinitionContextFromRequest(request *http.Request, trace requestTr
 	return ctx, ""
 }
 
+func workflowDefinitionMutationContext(
+	request *http.Request,
+	trace requestTrace,
+	auth controlPlaneReadAuthContext,
+	applicationID string,
+	auditSuffix string,
+) WorkflowDefinitionReleaseContext {
+	return WorkflowDefinitionReleaseContext{
+		RequestContext: request.Context(), RequestID: trace.requestID,
+		TenantRef: strings.TrimSpace(auth.TenantBinding), WorkspaceID: strings.TrimSpace(auth.ResourceBinding.WorkspaceID),
+		ApplicationID: strings.TrimSpace(applicationID), ActorRef: strings.TrimSpace(auth.SubjectBinding),
+		OwnerSubjectRef: strings.TrimSpace(auth.SubjectBinding),
+		AuditRef:        "audit_" + trace.requestID + "_workflow-definition-" + auditSuffix,
+	}
+}
+
 func writeWorkflowDefinitionResult(writer http.ResponseWriter, trace requestTrace, ctx WorkflowDefinitionReleaseContext, result WorkflowDefinitionReleaseResult) {
-	writeObservedJSON(writer, http.StatusOK, trace, workflowDefinitionReleaseEnvelope{
+	writeWorkflowDefinitionResultWithStatus(writer, http.StatusOK, trace, ctx, result)
+}
+
+func writeWorkflowDefinitionResultWithStatus(writer http.ResponseWriter, status int, trace requestTrace, ctx WorkflowDefinitionReleaseContext, result WorkflowDefinitionReleaseResult) {
+	writeObservedJSON(writer, status, trace, workflowDefinitionReleaseEnvelope{
 		RequestID:             trace.requestID,
 		WorkspaceID:           ctx.WorkspaceID,
 		ApplicationID:         ctx.ApplicationID,

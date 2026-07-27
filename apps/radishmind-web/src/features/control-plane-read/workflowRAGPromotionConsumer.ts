@@ -260,7 +260,18 @@ function mapDecision(value: Document): WorkflowRAGPromotionDecisionRecord { retu
 function mapBinding(value: Document): WorkflowRAGApplicationBinding { return { ...mapBindingRef(value), candidateId: value.candidate_id as string, candidateDigest: value.candidate_digest as string, approvedDecisionId: value.approved_decision_id as string, approvedRecordVersion: value.approved_record_version as number, evidence: mapEvidence(value.evidence as Document), issuedAt: value.issued_at as string, issuedByActorRef: value.issued_by_actor_ref as string }; }
 function mapEligibility(value: Document): WorkflowRAGPromotionEligibility { return { eligible: value.eligible as boolean, status: value.status as "eligible" | "blocked", blockers: (value.blockers as Document[]).map((blocker) => blocker.code as string) }; }
 
-function headers(config: WorkflowRAGPromotionConfig, applicationId: string, scopes: WorkflowRAGPromotionScope[], operation: string) { return buildWorkflowRAGRequestHeaders(config, applicationId, scopes, operation); }
+function headers(config: WorkflowRAGPromotionConfig, applicationId: string, scopes: WorkflowRAGPromotionScope[], operation: string) {
+  const base = buildWorkflowRAGRequestHeaders(config, applicationId, scopes, operation);
+  const mutation = operation === "promotion-create" || operation === "promotion-decision";
+  return {
+    ...base,
+    ...(mutation ? { "X-RadishMind-Active-Workspace": config.workspaceId } : {}),
+    ...(mutation && config.authMode === "dev_headers" ? {
+      "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Permissions": scopes.join(","),
+    } : {}),
+  };
+}
 function boundaryFor(config: WorkflowRAGPromotionConfig, applicationId: string, scopes: WorkflowRAGPromotionScope[]): "offline" | "scope_denied" | "" { if (config.mode === "offline") return "offline"; if (!SCOPE_ID.test(applicationId) || scopes.some((scope) => !config.scopes.has(scope))) return "scope_denied"; return ""; }
 function listBoundary(boundary: "offline" | "scope_denied"): WorkflowRAGPromotionListResult { return { status: boundary, summaries: [], nextCursor: "", failureCode: boundary === "offline" ? "workflow_rag_promotion_http_disabled" : "workflow_rag_promotion_scope_denied", summary: boundary === "offline" ? "Offline mode sends zero knowledge promotion requests." : "Required promotion scopes are unavailable; zero requests were sent." }; }
 function operationBoundary(boundary: "offline" | "scope_denied"): WorkflowRAGPromotionOperationResult { return { status: boundary, detail: null, failureCode: boundary === "offline" ? "workflow_rag_promotion_http_disabled" : "workflow_rag_promotion_scope_denied", currentRecordVersion: 0, currentState: "", summary: boundary === "offline" ? "Offline mode sends zero knowledge promotion requests." : "Required promotion scopes are unavailable; zero requests were sent." }; }

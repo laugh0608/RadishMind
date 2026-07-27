@@ -2,7 +2,7 @@
 
 更新时间：2026-07-27
 
-状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_b_complete_batch_c_ready`
+状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_c_complete_batch_d_ready`
 
 对应功能文档：[Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](../features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md)
 
@@ -139,20 +139,45 @@ dev/test enablement
 - memory、SQLite、PostgreSQL 与 owner CAS / immutable / ref-only 语义保持不变；完整 Go 与 Web、PostgreSQL integration suite 已通过。
 - 本批没有进入 Publish Candidate、Definition Candidate、RAG Promotion、Runtime Assignment、Session、Run、Evaluation 或 application API key invocation。
 
+## 批次 C：审查与激活 owner
+
+### 范围
+
+- Application Publish Candidate create / review；
+- Workflow Definition Candidate create / review 与 activation；
+- Workflow RAG Promotion Candidate create / review；
+- Workflow RAG、Prompt Application、Agent Copilot Runtime Assignment decision。
+
+### 固定决策
+
+- 本批共 10 条 mutation。可预先确定的完整权限集合必须在 body 解码与业务 owner 前由一次 membership decision 原子验证。
+- RAG Promotion create 固定要求四项 permission；review、definition、activation 与三类 assignment 使用 inventory 中各自单项 permission。
+- Application Publish Candidate create 先要求 `application_publish_candidates:write`，review 先要求 `application_publish_candidates:review`。RAG / Prompt / Agent source permission 由 create 最小重读的权威 Application Draft 或 `approve` 最小重读的 Publish Candidate 类型决定，并只从同一 verified identity + membership grants 交集派生；provider 不得再次调用，也不得把三项条件权限全部强加给调用者。非 `approve` review 不追加 source permission。
+- 条件 source permission 缺失时，只允许 Application Draft 或 Publish Candidate 最小只读；Publish Candidate write、Application Catalog 与对应 source owner 查询必须为 0。其它授权拒绝路径要求全部业务 owner 为 0。
+- 既有 candidate / review / activation / assignment repository、schema、migration、CAS、event / audit 与 API key invocation 不改变；approval 不自动 activation，assignment 不自动 invocation。
+
+### 完成记录（2026-07-27）
+
+- 10 条审查 / 激活 mutation 已接入共享 authorization；可预先确定的 permission 在 body 前由一次 membership decision 原子验证，RAG Promotion create 的四项 permission 不拆分为多次 provider 调用。
+- 跨 10 条入口的拒绝矩阵证明 identity、selection、membership、body binding 与 OIDC unavailable 均在 primary owner 前失败；Application Publish 条件 source permission 缺失只发生一次最小 Draft / Candidate 重读，不查询 baseline、source owner 或 durable write。
+- 上游 permission projection 与 Web 六类 mutation consumer 均已补齐；完整 Platform Go tests、定向 race、`go vet`、Web 246 项测试 / production build 与 PostgreSQL integration suite 通过。
+- repository interface、schema、migration、CAS、append-only event / audit、approval / activation 分离和三类 application API key invocation 均未改变。
+- 批次 C 已关闭，累计 27 条 mutation 完成迁移；下一步只复核批次 D。
+
 ## 后续批次
 
-1. 批次 C：Publish Candidate、Definition Candidate、RAG Promotion 与 Runtime Assignment。
-2. 批次 D：Workflow Run、Application Session / Turn 与人类受控执行。
-3. 批次 E：RAG Dataset / Snapshot、HTTP Tool 与 Evaluation。
+1. 批次 C 已完成：Publish Candidate、Definition Candidate、RAG Promotion 与 Runtime Assignment。
+2. 下一步批次 D：Workflow Run、Application Session / Turn 与人类受控执行。
+3. 后续批次 E：RAG Dataset / Snapshot、HTTP Tool 与 Evaluation。
 
 每批开始前必须从功能文档 inventory 重读真实 permission、workspace 来源、owner 和副作用。若出现公开 API、schema、幂等协议、provider 或网络边界变化，先更新功能文档与本任务卡。
 
 ## 验证策略
 
 - 授权核心：`workspace_membership_test.go` 与新增 mutation authorization 相邻测试。
-- HTTP：Application Catalog / API Key handler 正向、负向、zero-query / zero-side-effect spy。
+- HTTP：每批 handler 正向、拒绝矩阵、zero-query / zero-side-effect spy 与条件 owner 重读顺序。
 - 持久化：复用既有 memory、SQLite、PostgreSQL repository contract 与产品集成门禁。
-- 并发：对 permission decision、Application CAS 和 API key create / revoke 使用定向 race。
+- 并发：对 permission decision、关键 CAS 与当批 owner 使用定向 race。
 - 仓库级：每个批次完成运行 `./scripts/check-repo.sh --fast`；A1、A2 和专题关闭运行全量 `./scripts/check-repo.sh`。
 
 ## 总停止线
@@ -161,4 +186,4 @@ dev/test enablement
 - 不把 active workspace、body workspace、旧 dev header、resource record 或 API key 当作人类 membership proof。
 - 不修改 application API key invocation 的逐请求授权模型。
 - 不启用 production OIDC、production membership、quota / billing、自动发布、自动确认、replay、unrestricted tool 或业务写回。
-- 不从已完成的批次 A / B 直接复制到审查 / 激活、Session、Run 或 Evaluation runtime；批次 C 先复核多 owner 重读、组合权限和状态转换副作用。
+- 不从已完成的批次 A 至 C 直接复制到 Session、Run 或 Evaluation runtime；批次 D 先复核执行 credential、Run 创建、provider / Gateway 调用和状态转换副作用。

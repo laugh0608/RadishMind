@@ -352,6 +352,11 @@ function managementHeaders(config: WorkflowRAGApplicationRuntimeConfig, applicat
     "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Workflow-Application": applicationId,
     "X-RadishMind-Dev-Read-Scopes": operation === "write" ? "workflow_rag_runtime:write" : "workflow_rag_runtime:read",
+    ...(operation === "write" ? {
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Permissions": "workflow_rag_runtime:write",
+    } : {}),
   };
 }
 

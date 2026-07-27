@@ -275,6 +275,7 @@ func TestWorkflowRAGApplicationRuntimeHTTPManagementAndAPIKeyInvocationBoundarie
 		workflowRAGEvaluationDatasetRepository: fixture.promotionFixture.evaluations,
 		workflowRAGPromotionRepository:         fixture.promotionFixture.promotions,
 		workflowRAGAppRuntimeRepository:        fixture.runtimeRepository,
+		workspaceMembershipProvider:            newDeterministicDevTestWorkspaceMembershipProvider(),
 	}
 	if controlPlaneReadPermissionGrants["radishmind.workflow-rag-runtime.read"] != "workflow_rag_runtime:read" || controlPlaneReadPermissionGrants["radishmind.workflow-rag-runtime.write"] != "workflow_rag_runtime:write" {
 		t.Fatalf("runtime management permission projection drifted: %#v", controlPlaneReadPermissionGrants)
@@ -284,6 +285,7 @@ func TestWorkflowRAGApplicationRuntimeHTTPManagementAndAPIKeyInvocationBoundarie
 	decisionRequest.SetPathValue("application_id", fixture.runtimeContext.ApplicationID)
 	decisionRequest.Header.Set(savedWorkflowDraftDevWorkspaceHeader, fixture.runtimeContext.WorkspaceID)
 	decisionRequest.Header.Set(savedWorkflowDraftDevApplicationHeader, fixture.runtimeContext.ApplicationID)
+	decisionRequest.Header.Set(activeWorkspaceHeader, fixture.runtimeContext.WorkspaceID)
 	decisionRequest = decisionRequest.WithContext(withControlPlaneReadFakeAuthContext(decisionRequest.Context(), workflowRAGApplicationRuntimeHTTPAuth(fixture, "workflow_rag_runtime:write")))
 	decisionRecorder := httptest.NewRecorder()
 	server.handleDecideWorkflowRAGApplicationRuntimeAssignment(decisionRecorder, decisionRequest)
@@ -344,6 +346,10 @@ func workflowRAGApplicationRuntimeHTTPAuth(fixture *workflowRAGApplicationRuntim
 			SubjectRef: fixture.runtimeContext.ActorRef,
 			TenantRef:  fixture.runtimeContext.TenantRef,
 		},
+		WorkspaceMemberships: []VerifiedWorkspaceMembershipAssertion{{
+			TenantRef: fixture.runtimeContext.TenantRef, SubjectRef: fixture.runtimeContext.ActorRef,
+			WorkspaceID: fixture.runtimeContext.WorkspaceID, PermissionGrants: scopes,
+		}},
 		ResourceBinding: ControlPlaneResourceBinding{TenantRef: fixture.runtimeContext.TenantRef, TenantVerified: true},
 	}
 }
