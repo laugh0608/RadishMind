@@ -4247,6 +4247,99 @@ h4 {
   background: #f4f6f8;
 }
 
+.workflow-draft-revision-panel {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  border: 1px solid #d7dee8;
+  border-radius: 12px;
+  padding: 16px;
+  background: #f8fafc;
+}
+
+.workflow-draft-revision-panel > p {
+  margin: 0;
+}
+
+.workflow-draft-revision-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.8fr) minmax(320px, 1.2fr);
+  gap: 12px;
+}
+
+.workflow-draft-revision-list {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.workflow-draft-revision-list button {
+  display: grid;
+  gap: 4px;
+  border: 1px solid #cad3df;
+  border-radius: 9px;
+  padding: 10px;
+  background: #fff;
+  color: #17202a;
+  text-align: left;
+}
+
+.workflow-draft-revision-list button.selected {
+  border-color: #2f6f5f;
+  box-shadow: 0 0 0 2px rgb(47 111 95 / 12%);
+}
+
+.workflow-draft-revision-list button:disabled {
+  color: #8793a4;
+  background: #f4f6f8;
+}
+
+.workflow-draft-revision-detail {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.workflow-draft-revision-detail ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.workflow-draft-revision-detail > button,
+.workflow-draft-revision-confirm button {
+  min-height: 36px;
+  border: 1px solid #cad3df;
+  border-radius: 8px;
+  background: #fff;
+  color: #17202a;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.workflow-draft-revision-confirm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid #e6c86b;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fffbeb;
+}
+
+.workflow-draft-revision-confirm p {
+  margin: 0;
+}
+
+.workflow-draft-revision-stopline {
+  border-left: 3px solid #2f6f5f;
+  padding-left: 10px;
+  color: #40566e;
+}
+
 .workflow-draft-conflict-review-card {
   gap: 14px;
 }
@@ -5124,6 +5217,7 @@ dd {
   .workflow-draft-summary-grid,
   .workflow-draft-edit-grid,
   .workflow-draft-consumer-grid,
+  .workflow-draft-revision-grid,
   .workflow-draft-conflict-review,
   .workflow-draft-structure-controls,
   .workflow-draft-add-node-grid,

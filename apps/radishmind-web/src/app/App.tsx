@@ -39,6 +39,7 @@ import {
   type WorkflowSavedDraftConsumerState,
   type WorkflowSavedDraftConflictReviewSummary,
 } from "../features/control-plane-read/savedWorkflowDraftConsumer";
+import type { WorkflowSavedDraftRevisionRestoreResult } from "../features/control-plane-read/workflowSavedDraftRevisionConsumer";
 import {
   buildWorkflowExecutorV0Draft,
   evaluateWorkflowExecutorEligibility,
@@ -231,6 +232,11 @@ const workflowExecutorConsumerConfig = readWorkflowExecutorConsumerConfig();
 const workflowHTTPToolActionConsumerConfig = readWorkflowHTTPToolActionConsumerConfig();
 const workflowHTTPToolPermissions = workflowHTTPToolActionPermissions(workflowHTTPToolActionConsumerConfig);
 const WorkflowNodeDesigner = lazy(() => import("../features/control-plane-read/workflowNodeDesigner").then((module) => ({ default: module.WorkflowNodeDesigner })));
+const WorkflowSavedDraftRevisionPanel = lazy(() =>
+  import("../features/control-plane-read/workflowSavedDraftRevisionPanel").then((module) => ({
+    default: module.WorkflowSavedDraftRevisionPanel,
+  })),
+);
 const AdminOperationsReviewPanel = lazy(() => import("../features/control-plane-read/adminOperationsReviewPanel").then((module) => ({ default: module.AdminOperationsReviewPanel })));
 const ModelGatewayEvidenceReviewPanel = lazy(() => import("../features/control-plane-read/modelGatewayEvidenceReviewPanel").then((module) => ({ default: module.ModelGatewayEvidenceReviewPanel })));
 const ModelGatewayPlaygroundPanel = lazy(() => import("../features/control-plane-read/modelGatewayPlaygroundPanel"));
@@ -1329,6 +1335,29 @@ export function App() {
         }));
       });
   };
+  const handleWorkflowDraftRevisionRestored = (
+    restoredDraft: WorkflowDraftDesignerDraft,
+    result: WorkflowSavedDraftRevisionRestoreResult,
+  ) => {
+    setWorkspaceCreatedDrafts((drafts) => [
+      ...drafts.filter((draft) => draft.draftId !== restoredDraft.draftId),
+      restoredDraft,
+    ]);
+    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(restoredDraft));
+    setWorkflowDraftEditDirty(false);
+    setSavedDraftConsumerState({
+      status: result.failureCode ? "save_failed" : "saved_dev_record",
+      mode: "dev_saved_draft_http",
+      sourceLabel: result.failureCode ?? "restored revision",
+      summary: result.summary,
+      failureCode: result.failureCode,
+      currentDraftVersion: result.currentDraftVersion,
+      conflictDraftVersion: null,
+      auditRef: result.auditRef,
+      requestId: result.requestId,
+    });
+    refreshSavedWorkflowDraftList(restoredDraft.applicationRef);
+  };
   const handleWorkflowExecutorConditionValueChange = (nodeId: string, value: boolean) => {
     setWorkflowExecutorConditionValues((values) => ({ ...values, [nodeId]: value }));
   };
@@ -2121,6 +2150,21 @@ export function App() {
             onSaveDraft={handleSaveWorkflowDraft}
             onReadDraft={handleReadWorkflowDraft}
           />
+          <Suspense fallback={<section className="workflow-draft-revision-panel"><p>正在加载草案修订历史工作区…</p></section>}>
+            <WorkflowSavedDraftRevisionPanel
+              draft={activeWorkflowDraft}
+              currentDraftVersion={savedDraftConsumerState.currentDraftVersion}
+              config={savedDraftConsumerConfig}
+              dirty={workflowDraftEditDirty}
+              disabled={
+                workflowExecutorOperationPending ||
+                workflowHTTPToolOperationPending ||
+                workflowRAGOperationPending ||
+                ["saving", "validating", "reading"].includes(savedDraftConsumerState.status)
+              }
+              onRestored={handleWorkflowDraftRevisionRestored}
+            />
+          </Suspense>
           <WorkflowHTTPToolActionPanel
             draft={activeWorkflowDraft}
             consumerState={workflowHTTPToolActionState}

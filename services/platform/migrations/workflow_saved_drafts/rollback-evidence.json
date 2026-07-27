@@ -5,17 +5,20 @@
   "store_schema_version": "saved_workflow_drafts_store_v1",
   "status": "dev_test_rollback_executed_and_reapply_passed",
   "rollback_scope": {
-    "down_migration": "0001_saved_workflow_drafts.down.sql",
+    "down_migrations": [
+      "0002_saved_workflow_draft_revisions.down.sql",
+      "0001_saved_workflow_drafts.down.sql"
+    ],
     "disposable_dev_test_only": true,
     "operator_cli_down_available": false,
     "runtime_role_can_rollback": false,
     "migration_role_required": true
   },
   "verified_sequence": [
-    "apply_matching_migration",
-    "execute_reviewed_down_migration_under_advisory_lock_and_transaction",
+    "apply_0001_and_0002_migration_chain",
+    "execute_reviewed_0002_then_0001_down_migrations_under_advisory_lock_and_transaction",
     "inspect_not_applied",
-    "reapply_matching_migration",
+    "reapply_0001_and_0002_migration_chain",
     "inspect_applied"
   ],
   "non_disposable_database_requirements": [

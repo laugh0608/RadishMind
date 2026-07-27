@@ -358,6 +358,8 @@
 
 专题至此关闭。生产 membership adapter、真实 OIDC、quota / billing 或公开 API 由各自生产准入专题承接；若未来新增人类交互式 mutation，应先更新 inventory 和对应功能设计，不重开同层迁移批次。
 
+2026-07-27 后续纳入：Saved Draft 修订历史专题新增 `POST /v1/user-workspace/workflow-drafts/{draft_id}/revisions/{draft_version}/restore`。该入口不重开本专题批次，直接复用共享 provider，并在 body 解码与 owner 调用前由一次 membership decision 原子要求 `workflow_drafts:read + workflow_drafts:write`；拒绝路径保持 owner 零调用，具体版本 CAS、不可变 revision 和产品验收由对应功能专题承载。
+
 ## 验收方式
 
 设计阶段：

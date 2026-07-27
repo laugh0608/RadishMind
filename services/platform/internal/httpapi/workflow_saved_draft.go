@@ -265,6 +265,7 @@ type SavedWorkflowDraftSideEffects struct {
 type memorySavedWorkflowDraftStore struct {
 	mu          sync.RWMutex
 	drafts      map[string]SavedWorkflowDraft
+	revisions   map[string]map[int]SavedWorkflowDraftRevision
 	sideEffects SavedWorkflowDraftSideEffects
 	unavailable bool
 }
@@ -285,7 +286,8 @@ func newSavedWorkflowDraftService(store savedWorkflowDraftStore) savedWorkflowDr
 
 func newMemorySavedWorkflowDraftStore() *memorySavedWorkflowDraftStore {
 	return &memorySavedWorkflowDraftStore{
-		drafts: make(map[string]SavedWorkflowDraft),
+		drafts:    make(map[string]SavedWorkflowDraft),
+		revisions: make(map[string]map[int]SavedWorkflowDraftRevision),
 	}
 }
 
@@ -607,6 +609,15 @@ func (store *memorySavedWorkflowDraftStore) WriteDraft(
 	store.mu.Lock()
 	defer store.mu.Unlock()
 
+	return store.writeDraftLocked(draft, expectedDraftVersion, SavedWorkflowDraftRevisionKindSaved, 0)
+}
+
+func (store *memorySavedWorkflowDraftStore) writeDraftLocked(
+	draft SavedWorkflowDraft,
+	expectedDraftVersion int,
+	revisionKind SavedWorkflowDraftRevisionKind,
+	restoredFromVersion int,
+) (int, error) {
 	if store.unavailable {
 		return 0, errors.New("saved workflow draft store unavailable")
 	}
@@ -620,7 +631,19 @@ func (store *memorySavedWorkflowDraftStore) WriteDraft(
 	if !found && expectedDraftVersion != 0 {
 		return 0, savedWorkflowDraftStoreWriteFailure(SavedWorkflowDraftFailureNotFound)
 	}
+	revisions := store.revisions[draft.DraftID]
+	if revisions == nil {
+		revisions = make(map[int]SavedWorkflowDraftRevision)
+	}
+	if _, duplicate := revisions[draft.DraftVersion]; duplicate {
+		return expectedDraftVersion, savedWorkflowDraftStoreWriteFailure(
+			SavedWorkflowDraftFailureStoreContractMismatch,
+		)
+	}
+	revision := newSavedWorkflowDraftRevision(draft, revisionKind, restoredFromVersion)
 	store.drafts[draft.DraftID] = cloneSavedWorkflowDraft(draft)
+	revisions[draft.DraftVersion] = cloneSavedWorkflowDraftRevision(revision)
+	store.revisions[draft.DraftID] = revisions
 	store.sideEffects.DraftWriteCount++
 	return draft.DraftVersion, nil
 }

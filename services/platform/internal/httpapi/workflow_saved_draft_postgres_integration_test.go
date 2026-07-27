@@ -75,6 +75,12 @@ func TestSavedWorkflowDraftPostgresDevTestRepository(t *testing.T) {
 		firstMigration.MigrationID != secondMigration.MigrationID {
 		t.Fatalf("migration apply must be idempotent: first=%#v second=%#v", firstMigration, secondMigration)
 	}
+	constrainPostgresSavedWorkflowDraftRevisionPrivileges(
+		t,
+		databaseContext,
+		adminPool,
+		runtimeUser,
+	)
 	assertPostgresIntegrationRuntimeRoleCannotMigrate(
 		t,
 		databaseContext,
@@ -88,6 +94,12 @@ func TestSavedWorkflowDraftPostgresDevTestRepository(t *testing.T) {
 	if firstSave.FailureCode != nil || firstSave.Draft == nil || firstSave.CurrentDraftVersion != 1 {
 		t.Fatalf("first PostgreSQL save failed: %#v", firstSave)
 	}
+	assertPostgresSavedWorkflowDraftRevisionIsAppendOnly(
+		t,
+		databaseContext,
+		runtimeDatabaseURL,
+		payload.DraftID,
+	)
 	firstServer.Close()
 
 	secondServer := newPostgresSavedWorkflowDraftIntegrationServer(t, cfg)
@@ -157,6 +169,41 @@ func TestSavedWorkflowDraftPostgresDevTestRepository(t *testing.T) {
 	}
 	if successCount != 1 || conflictCount != concurrentWriters-1 {
 		t.Fatalf("atomic CAS drifted: successes=%d conflicts=%d", successCount, conflictCount)
+	}
+	revisionContext := SavedWorkflowDraftContext{
+		RequestContext:  databaseContext,
+		RequestID:       "request-postgres-revision-history",
+		TenantRef:       "tenant_demo",
+		WorkspaceID:     "workspace_demo",
+		ApplicationID:   "app_flow_copilot",
+		ActorRef:        "subject_platform_ops",
+		OwnerSubjectRef: "subject_platform_ops",
+		ScopeGrants:     []string{"workflow_drafts:read", "workflow_drafts:write"},
+		AuditRef:        "audit-postgres-revision-history",
+		WriteEnabled:    true,
+	}
+	revisionService := secondServer.savedWorkflowDraftService()
+	revisionHistory := revisionService.ListDraftRevisions(
+		revisionContext,
+		ListSavedWorkflowDraftRevisionsRequest{DraftID: payload.DraftID},
+	)
+	if revisionHistory.FailureCode != "" || len(revisionHistory.Revisions) != 2 ||
+		revisionHistory.Revisions[0].DraftVersion != 2 ||
+		revisionHistory.Revisions[1].DraftVersion != 1 {
+		t.Fatalf("PostgreSQL revision history drifted: %#v", revisionHistory)
+	}
+	restoredRevision := revisionService.RestoreDraftRevision(
+		revisionContext,
+		RestoreSavedWorkflowDraftRevisionRequest{
+			DraftID:                     payload.DraftID,
+			SourceDraftVersion:          1,
+			ExpectedCurrentDraftVersion: 2,
+		},
+	)
+	if restoredRevision.FailureCode != "" || restoredRevision.Draft == nil ||
+		restoredRevision.Draft.DraftVersion != 3 ||
+		restoredRevision.Draft.Name != payload.Name {
+		t.Fatalf("PostgreSQL revision restore drifted: %#v", restoredRevision)
 	}
 
 	ownerDenied := readPostgresSavedWorkflowDraft(
@@ -355,6 +402,52 @@ func assertPostgresIntegrationRuntimeRoleCannotMigrate(
 	}
 }
 
+func constrainPostgresSavedWorkflowDraftRevisionPrivileges(
+	t *testing.T,
+	ctx context.Context,
+	adminPool *pgxpool.Pool,
+	runtimeUser string,
+) {
+	t.Helper()
+	quotedRuntimeUser := pgx.Identifier{runtimeUser}.Sanitize()
+	statements := []string{
+		"REVOKE ALL ON TABLE saved_workflow_draft_revisions FROM " + quotedRuntimeUser,
+		"GRANT SELECT, INSERT ON TABLE saved_workflow_draft_revisions TO " + quotedRuntimeUser,
+	}
+	for _, statement := range statements {
+		if _, err := adminPool.Exec(ctx, statement); err != nil {
+			t.Fatalf("constrain PostgreSQL saved draft revision privileges: %v", err)
+		}
+	}
+}
+
+func assertPostgresSavedWorkflowDraftRevisionIsAppendOnly(
+	t *testing.T,
+	ctx context.Context,
+	runtimeDatabaseURL string,
+	draftID string,
+) {
+	t.Helper()
+	runtimePool, err := workflowdraftmigrations.OpenPool(ctx, runtimeDatabaseURL)
+	if err != nil {
+		t.Fatalf("open PostgreSQL runtime pool for append-only check: %v", err)
+	}
+	defer runtimePool.Close()
+	for _, statement := range []string{
+		"UPDATE saved_workflow_draft_revisions SET revision_kind='saved' WHERE draft_id=$1",
+		"DELETE FROM saved_workflow_draft_revisions WHERE draft_id=$1",
+	} {
+		if _, err := runtimePool.Exec(ctx, statement, draftID); err == nil {
+			t.Fatalf("PostgreSQL runtime role unexpectedly mutated saved draft revision history")
+		} else {
+			var postgresError *pgconn.PgError
+			if !errors.As(err, &postgresError) || postgresError.Code != "42501" {
+				t.Fatalf("append-only denial returned unexpected database error")
+			}
+		}
+	}
+}
+
 func assertPostgresIntegrationDatabaseIsDisposable(
 	t *testing.T,
 	ctx context.Context,
@@ -376,6 +469,9 @@ func resetPostgresSavedWorkflowDraftSchema(
 	pool *pgxpool.Pool,
 ) {
 	t.Helper()
+	if _, err := pool.Exec(ctx, "DROP TABLE IF EXISTS saved_workflow_draft_revisions"); err != nil {
+		t.Fatalf("drop integration draft revision table: %v", err)
+	}
 	if _, err := pool.Exec(ctx, "DROP TABLE IF EXISTS saved_workflow_drafts"); err != nil {
 		t.Fatalf("drop integration draft table: %v", err)
 	}

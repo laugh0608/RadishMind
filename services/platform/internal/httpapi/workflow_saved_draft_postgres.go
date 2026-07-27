@@ -36,15 +36,28 @@ func (executor *postgresSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord
 			FailureCode: SavedWorkflowDraftFailureStoreContractMismatch,
 		}
 	}
+	if !validSavedWorkflowDraftRevisionWriteMetadata(query.RevisionKind, query.RestoredFromVersion) {
+		return savedWorkflowDraftRepositoryQuerySaveResult{
+			FailureCode: SavedWorkflowDraftFailureStoreContractMismatch,
+		}
+	}
 	payload, validation, blocked, createdAt, updatedAt, failureCode :=
 		savedWorkflowDraftRecordValues(query.Record)
 	if failureCode != "" {
 		return savedWorkflowDraftRepositoryQuerySaveResult{FailureCode: failureCode}
 	}
 
+	transaction, err := executor.pool.Begin(ctx)
+	if err != nil {
+		return savedWorkflowDraftRepositoryQuerySaveResult{
+			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
+	}
+	defer func() { _ = transaction.Rollback(context.Background()) }()
+
 	var row savedWorkflowDraftRowScanner
 	if query.ExpectedDraftVersion == 0 {
-		row = executor.pool.QueryRow(
+		row = transaction.QueryRow(
 			ctx,
 			postgresSavedWorkflowDraftInsertSQL,
 			query.Record.TenantRef,
@@ -67,7 +80,7 @@ func (executor *postgresSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord
 			query.Record.Draft.RequestAuditMetadata.AuditRef,
 		)
 	} else {
-		row = executor.pool.QueryRow(
+		row = transaction.QueryRow(
 			ctx,
 			postgresSavedWorkflowDraftUpdateSQL,
 			query.Record.StoreSchemaVersion,
@@ -92,6 +105,28 @@ func (executor *postgresSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord
 
 	record, err := scanPostgresSavedWorkflowDraftRecord(row)
 	if err == nil {
+		if _, insertErr := transaction.Exec(
+			ctx,
+			postgresSavedWorkflowDraftRevisionInsertSQL,
+			query.Record.TenantRef,
+			query.Record.WorkspaceID,
+			query.Record.ApplicationID,
+			query.Record.DraftID,
+			query.Record.OwnerSubjectRef,
+			query.Record.Draft.DraftVersion,
+			query.RevisionKind,
+			query.RestoredFromVersion,
+			payload,
+		); insertErr != nil {
+			return savedWorkflowDraftRepositoryQuerySaveResult{
+				FailureCode: SavedWorkflowDraftFailureStoreContractMismatch,
+			}
+		}
+		if commitErr := transaction.Commit(ctx); commitErr != nil {
+			return savedWorkflowDraftRepositoryQuerySaveResult{
+				FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+			}
+		}
 		return savedWorkflowDraftRepositoryQuerySaveResult{
 			Record:              record,
 			CurrentDraftVersion: record.Draft.DraftVersion,
@@ -107,6 +142,7 @@ func (executor *postgresSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord
 			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
 		}
 	}
+	_ = transaction.Rollback(ctx)
 	return executor.failedCASResult(ctx, query)
 }
 
@@ -214,6 +250,129 @@ func (executor *postgresSavedWorkflowDraftQueryExecutor) ListWorkflowDraftRecord
 	return savedWorkflowDraftRepositoryQueryListResult{Records: records}
 }
 
+func (executor *postgresSavedWorkflowDraftQueryExecutor) ReadWorkflowDraftRevision(
+	ctx context.Context,
+	query savedWorkflowDraftRepositoryRevisionReadQuery,
+) savedWorkflowDraftRepositoryQueryRevisionReadResult {
+	if executor == nil || executor.pool == nil || ctx == nil {
+		return savedWorkflowDraftRepositoryQueryRevisionReadResult{
+			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
+	}
+	revision, err := scanPostgresSavedWorkflowDraftRevision(executor.pool.QueryRow(
+		ctx,
+		postgresSavedWorkflowDraftRevisionReadSQL,
+		query.ActorContext.TenantRef,
+		query.ActorContext.WorkspaceID,
+		query.ActorContext.ApplicationID,
+		query.DraftID,
+		query.ActorContext.OwnerSubjectRef,
+		query.DraftVersion,
+	))
+	if err == nil {
+		return savedWorkflowDraftRepositoryQueryRevisionReadResult{Revision: revision}
+	}
+	if errors.Is(err, errSavedWorkflowDraftStoredRecordContract) {
+		return savedWorkflowDraftRepositoryQueryRevisionReadResult{
+			FailureCode: SavedWorkflowDraftFailureStoreContractMismatch,
+		}
+	}
+	if !errors.Is(err, pgx.ErrNoRows) {
+		return savedWorkflowDraftRepositoryQueryRevisionReadResult{
+			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
+	}
+	_, owner, found, lookupFailed := executor.currentVersionAndOwner(
+		ctx,
+		query.ActorContext,
+		query.DraftID,
+	)
+	if lookupFailed {
+		return savedWorkflowDraftRepositoryQueryRevisionReadResult{
+			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
+	}
+	if found && owner != query.ActorContext.OwnerSubjectRef {
+		return savedWorkflowDraftRepositoryQueryRevisionReadResult{
+			FailureCode: SavedWorkflowDraftFailureScopeDenied,
+		}
+	}
+	return savedWorkflowDraftRepositoryQueryRevisionReadResult{
+		FailureCode: SavedWorkflowDraftFailureRevisionNotFound,
+	}
+}
+
+func (executor *postgresSavedWorkflowDraftQueryExecutor) ListWorkflowDraftRevisions(
+	ctx context.Context,
+	query savedWorkflowDraftRepositoryRevisionListQuery,
+) savedWorkflowDraftRepositoryQueryRevisionListResult {
+	if executor == nil || executor.pool == nil || ctx == nil {
+		return savedWorkflowDraftRepositoryQueryRevisionListResult{
+			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
+	}
+	_, owner, found, lookupFailed := executor.currentVersionAndOwner(
+		ctx,
+		query.ActorContext,
+		query.DraftID,
+	)
+	if lookupFailed {
+		return savedWorkflowDraftRepositoryQueryRevisionListResult{
+			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
+	}
+	if !found {
+		return savedWorkflowDraftRepositoryQueryRevisionListResult{
+			FailureCode: SavedWorkflowDraftFailureNotFound,
+		}
+	}
+	if owner != query.ActorContext.OwnerSubjectRef {
+		return savedWorkflowDraftRepositoryQueryRevisionListResult{
+			FailureCode: SavedWorkflowDraftFailureScopeDenied,
+		}
+	}
+	rows, err := executor.pool.Query(
+		ctx,
+		postgresSavedWorkflowDraftRevisionListSQL,
+		query.ActorContext.TenantRef,
+		query.ActorContext.WorkspaceID,
+		query.ActorContext.ApplicationID,
+		query.DraftID,
+		query.ActorContext.OwnerSubjectRef,
+		query.BeforeVersion,
+		query.Limit+1,
+	)
+	if err != nil {
+		return savedWorkflowDraftRepositoryQueryRevisionListResult{
+			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
+	}
+	defer rows.Close()
+	summaries := make([]SavedWorkflowDraftRevisionSummary, 0, query.Limit+1)
+	for rows.Next() {
+		revision, scanErr := scanPostgresSavedWorkflowDraftRevision(rows)
+		if scanErr != nil {
+			return savedWorkflowDraftRepositoryQueryRevisionListResult{
+				FailureCode: SavedWorkflowDraftFailureStoreContractMismatch,
+			}
+		}
+		summaries = append(summaries, savedWorkflowDraftRevisionSummary(revision))
+	}
+	if rows.Err() != nil {
+		return savedWorkflowDraftRepositoryQueryRevisionListResult{
+			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
+	}
+	hasMore := len(summaries) > query.Limit
+	if hasMore {
+		summaries = summaries[:query.Limit]
+	}
+	return savedWorkflowDraftRepositoryQueryRevisionListResult{
+		Revisions: summaries,
+		HasMore:   hasMore,
+	}
+}
+
 func (executor *postgresSavedWorkflowDraftQueryExecutor) failedCASResult(
 	ctx context.Context,
 	query savedWorkflowDraftRepositorySaveQuery,
@@ -297,6 +456,52 @@ func scanPostgresSavedWorkflowDraftRecord(
 		return SavedWorkflowDraftRepositoryStoredRecord{}, errSavedWorkflowDraftStoredRecordContract
 	}
 	return decoded, nil
+}
+
+func scanPostgresSavedWorkflowDraftRevision(
+	row savedWorkflowDraftRowScanner,
+) (SavedWorkflowDraftRevision, error) {
+	record := SavedWorkflowDraftRepositoryStoredRecord{
+		StoreSchemaVersion: savedWorkflowDraftRepositoryStoreSchemaVersion,
+	}
+	var draftVersion int
+	var revisionKind string
+	var restoredFromVersion int
+	var payload []byte
+	if err := row.Scan(
+		&record.TenantRef,
+		&record.WorkspaceID,
+		&record.ApplicationID,
+		&record.DraftID,
+		&record.OwnerSubjectRef,
+		&draftVersion,
+		&revisionKind,
+		&restoredFromVersion,
+		&payload,
+	); err != nil {
+		return SavedWorkflowDraftRevision{}, err
+	}
+	decoded, err := decodeSavedWorkflowDraftStoredRecord(record, payload)
+	if err != nil || decoded.Draft.DraftVersion != draftVersion {
+		return SavedWorkflowDraftRevision{}, errSavedWorkflowDraftStoredRecordContract
+	}
+	revision := SavedWorkflowDraftRevision{
+		SchemaVersion:       savedWorkflowDraftRevisionSchemaVersion,
+		Draft:               decoded.Draft,
+		RevisionKind:        SavedWorkflowDraftRevisionKind(revisionKind),
+		RestoredFromVersion: restoredFromVersion,
+	}
+	if failure := validateSavedWorkflowDraftRevisionScope(
+		SavedWorkflowDraftContext{
+			WorkspaceID:   record.WorkspaceID,
+			ApplicationID: record.ApplicationID,
+		},
+		revision,
+		record.DraftID,
+	); failure != "" {
+		return SavedWorkflowDraftRevision{}, errSavedWorkflowDraftStoredRecordContract
+	}
+	return revision, nil
 }
 
 const postgresSavedWorkflowDraftReturningColumns = `
@@ -385,3 +590,52 @@ SELECT draft_version, owner_subject_ref
    AND workspace_id = $2
    AND application_id = $3
    AND draft_id = $4`
+
+const postgresSavedWorkflowDraftRevisionColumns = `
+    tenant_ref,
+    workspace_id,
+    application_id,
+    draft_id,
+    owner_subject_ref,
+    draft_version,
+    revision_kind,
+    restored_from_version,
+    sanitized_revision_record`
+
+const postgresSavedWorkflowDraftRevisionInsertSQL = `
+INSERT INTO saved_workflow_draft_revisions (
+    tenant_ref,
+    workspace_id,
+    application_id,
+    draft_id,
+    owner_subject_ref,
+    draft_version,
+    revision_kind,
+    restored_from_version,
+    sanitized_revision_record
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+
+const postgresSavedWorkflowDraftRevisionReadSQL = `
+SELECT ` + postgresSavedWorkflowDraftRevisionColumns + `
+  FROM saved_workflow_draft_revisions
+ WHERE tenant_ref = $1
+   AND workspace_id = $2
+   AND application_id = $3
+   AND draft_id = $4
+   AND owner_subject_ref = $5
+   AND draft_version = $6`
+
+const postgresSavedWorkflowDraftRevisionListSQL = `
+SELECT ` + postgresSavedWorkflowDraftRevisionColumns + `
+  FROM saved_workflow_draft_revisions
+ WHERE tenant_ref = $1
+   AND workspace_id = $2
+   AND application_id = $3
+   AND draft_id = $4
+   AND owner_subject_ref = $5
+   AND ($6 = 0 OR draft_version < $6)
+ ORDER BY draft_version DESC
+ LIMIT $7`
+
+var _ SavedWorkflowDraftRepositoryQueryExecutor = (*postgresSavedWorkflowDraftQueryExecutor)(nil)
+var _ SavedWorkflowDraftRevisionRepositoryQueryExecutor = (*postgresSavedWorkflowDraftQueryExecutor)(nil)

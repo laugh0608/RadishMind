@@ -23,6 +23,7 @@
 - 2026-07-11 已完成 R3 最新 dev-live 收口：真实 Web consumer 与 Go dev-only route 覆盖创建、编辑、校验、连续保存、列表刷新、恢复、真实版本冲突、Continue / Restore 和 Review Handoff；launcher 已提供显式 Saved Draft dev 模式与 route probe，Handoff layout evidence 重复 key 和 favicon 控制台噪声已修复。
 - 当前已完成 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](saved-workflow-draft-postgresql-dev-test-repository-v1.md)：显式 `postgres_dev_test` 模式已实现真实 migration、回滚 / 重建、重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback、CI 与真实浏览器验收；production `repository` 继续关闭。
 - 2026-07-14 已完成本地 SQLite S2 工作流草案批次，状态为 `workflow_saved_draft_sqlite_repository_completed`。本批复用同一 `SavedWorkflowDraftRepositoryAdapter` 和领域失败语义，新增独立 SQLite migration、共享 runtime query executor 与显式 `sqlite_dev` selector；已验证预期版本竞争、完整作用域、稳定顺序、HTTP 保存 / 读取、重启恢复、损坏记录拒绝和敏感内容禁入。随后七组件聚合 `sqlite_dev`、跨平台本地产品启动档、连续 HTTP 产品链和真实 PostgreSQL 专项门禁均已通过；production `repository` 继续关闭。
+- 2026-07-27 已完成[修订历史、版本比较与显式恢复](saved-workflow-draft-revision-history-restore-dev-test-v1.md)，状态为 `saved_workflow_draft_revision_history_restore_dev_test_v1_completed`。`SaveDraft` 在 Memory、SQLite 与 PostgreSQL 中原子更新当前记录并追加不可变 revision；新增历史分页、精确读取与恢复为新版本领域 / HTTP 契约，Draft Designer 提供结构化比较和两步恢复确认。
 - 当前已新增 [Saved Workflow Draft Durable Store Preconditions v1](saved-workflow-draft-durable-store-preconditions-v1.md)：固定 durable store 迁移前的 draft scope、`owner_subject_ref` / workspace 归属、version conflict、no sample fallback、dev store 与未来 repository adapter 的切换停止线；它只定义前置设计，不实现 durable persistence。
 - 当前已新增 [Saved Workflow Draft Repository Contract Preconditions v1](saved-workflow-draft-repository-contract-preconditions-v1.md)：固定 future `SavedWorkflowDraftRepository` 的 `SaveWorkflowDraftRecord`、`ReadWorkflowDraftRecord` 和 `ListWorkflowDraftRecords` contract preconditions；它只定义 actor context、request / result、failure 和 projection 边界，不创建 repository interface。
 - 当前已新增 [Saved Workflow Draft Schema / Migration Preconditions v1](saved-workflow-draft-schema-migration-preconditions-v1.md)：固定 future durable store 的 logical schema、index strategy、migration gate、failure mapping、no sample fallback 和 artifact guard；状态为 `draft_schema_migration_preconditions_defined`，不创建真实数据库 schema 或 SQL migration。
@@ -181,8 +182,8 @@ Saved draft 是用户工作区中的可编辑设计记录，不是 published wor
 
 | 文件 | 职责 | 边界 |
 | --- | --- | --- |
-| `workflow_saved_draft.go` | `SavedWorkflowDraft` v1 domain service、memory dev store、dev-only save / read / validate / list route 消费的失败语义 | 只承载开发态草案记录，不连接数据库，不执行 workflow |
-| `workflow_saved_draft_repository.go` | `SavedWorkflowDraftRepository` interface、save / read / list request / result、stored record 和 `SavedWorkflowDraftRepositoryQueryExecutor` 注入边界 | 只定义 adapter 与未来 query executor 的窄契约，不实现 SQL、migration runner 或数据库连接 |
+| `workflow_saved_draft.go`、`workflow_saved_draft_revision.go` | `SavedWorkflowDraft` v1 domain service、memory dev current / revision owner、save / read / validate / list / revision / restore 失败语义 | 只承载开发测试态草案与不可变修订，不执行 workflow |
+| `workflow_saved_draft_repository.go`、`workflow_saved_draft_revision_repository_adapter.go` | current / revision repository contract、schema preflight、原子写入 metadata 与公开投影 | SQL executor 仍由显式 store 注入，不允许回退 memory、sample 或 fixture |
 | `workflow_saved_draft_repository_adapter.go` | `NewSavedWorkflowDraftRepositoryAdapter`、schema preflight、actor context 检查、stored record contract 检查和 sanitized projection | 只通过注入式 query executor 调用未来 store；没有 query executor 时返回 `draft_store_unavailable`，不得回退 memory dev、sample 或 fixture |
 | `workflow_saved_draft_production_auth_runtime.go` | 把已验证的 `SavedWorkflowDraftVerifiedAuthContext` 与 `SavedWorkflowDraftWorkspaceBinding` 投影为 repository actor context | 只接受已验证输入，不做 OIDC middleware、token validation 或 membership lookup |
 
@@ -199,6 +200,13 @@ production auth runtime bridge 的唯一允许 auth source 是 `radish_oidc_veri
 3. 校验 schema、graph、contract、capability 和 risk。
 4. 成功时原子保存并递增 `draft_version`，返回 sanitized draft、validation summary、blocked capability summary 和 request / audit metadata。
 5. 失败时不得产生部分写入，不得回退 sample / fixture，不得创建 run record 或 confirmation decision。
+
+修订与恢复流程：
+
+1. 每次成功保存都在同一原子边界更新 current record 并追加对应版本 revision。
+2. 历史列表按版本倒序使用 draft-bound opaque cursor；详情只读取精确版本。
+3. 显式恢复必须携带当前精确版本，重新经过现行校验，并创建 `current_version + 1` 的 `restored` revision。
+4. 原历史及恢复前当前版本保持不可变；既有数据库只回填迁移时可证明的 current snapshot。
 
 读取流程：
 
@@ -245,12 +253,15 @@ production auth runtime bridge 的唯一允许 auth source 是 `radish_oidc_veri
 | `draft_owner_scope_denied` | owner scope 未验证 |
 | `draft_scope_grant_missing` | 缺少 `workflow_drafts:read` 或 `workflow_drafts:write` scope |
 | `draft_audit_context_missing` | audit ref 缺失，拒绝进入 production auth runtime bridge 成功路径 |
+| `draft_revision_not_found` | 精确修订不存在或不属于当前作用域，不回退当前草案 |
+| `draft_revision_cursor_invalid` | 分页 cursor 非法、跨 draft 或页大小不一致，拒绝返回部分列表 |
+| `draft_revision_restore_invalid` | 恢复请求、来源或 revision metadata 不符合契约，不产生写入 |
 
 ## 下一批开发
 
 显式开发 / 测试态 PostgreSQL durable repository、R4 Gateway、executor v0、持久 Run History、本地 SQLite 连续产品链与 API 密钥 Web 验收均已完成，不继续追加 storage adapter readiness，也不启用 `repository` production mode。[Workflow 受控 HTTP Tool 与人工确认执行实施任务卡](../../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)的三个批次也已完成，并继续证明精确 Saved Draft version 可作为受控 action plan 的权威输入而不改写 Saved Draft v1 的持久化职责。[Workflow RAG Retrieval 与应用知识快照设计](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md)已完成知识快照基础批次 A；批次 B execution 仍必须重读精确草案与 `rag_ref`，不得把 snapshot 管理完成误写成可执行 RAG；production OIDC、membership、production secret、audit store、公开生产 API、writeback 和 replay 继续关闭。下方旧依赖顺序只作为历史 checker 兼容记录读取。
 
-dev-only consumer integration、草案编辑 / 创建 / 列表 / 恢复、精确已保存版本派生、本地图结构编辑、Node Designer、版本冲突审查、memory / SQLite / PostgreSQL 开发测试态 repository 和浏览器重启恢复均已落地。历史 production secret / storage adapter 准入锚点继续保留，但不再是 Saved Draft 或当前产品线的下一依赖；production repository、真实 Radish membership、production secret、audit store 与公开生产 API 仍需未来独立专题。下一批回到新的真实用户流程设计，不从派生能力原地扩自动合并、同步、祖先图或跨作用域复制。
+dev-only consumer integration、草案编辑 / 创建 / 列表 / 恢复、精确已保存版本派生、不可变修订历史、结构化版本比较、本地图结构编辑、Node Designer、版本冲突审查、memory / SQLite / PostgreSQL 开发测试态 repository 和数据库重启恢复均已落地。历史 production secret / storage adapter 准入锚点继续保留，但不再是 Saved Draft 或当前产品线的下一依赖；production repository、真实 Radish membership、production secret、audit store 与公开生产 API 仍需未来独立专题。下一批回到新的真实用户流程设计，不从历史能力原地扩自动保存、自动恢复、自动合并、同步、祖先图、分支图或跨作用域复制。
 
 ## 2026-06-28 依赖复评
 

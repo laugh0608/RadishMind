@@ -583,6 +583,7 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 		application_publish_candidates,
 		application_configuration_drafts,
 		application_catalog_records,
+		saved_workflow_draft_revisions,
 		saved_workflow_drafts,
 		workflow_run_schema_versions,
 		prompt_application_template_schema_versions,

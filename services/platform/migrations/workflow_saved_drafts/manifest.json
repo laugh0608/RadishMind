@@ -336,9 +336,13 @@
   ],
   "migration_plan": {
     "migration_id": "0001_saved_workflow_drafts",
+    "latest_migration_id": "0002_saved_workflow_draft_revisions",
     "migration_root": "services/platform/migrations/workflow_saved_drafts",
     "up_migration_path": "services/platform/migrations/workflow_saved_drafts/0001_saved_workflow_drafts.up.sql",
     "down_migration_path": "services/platform/migrations/workflow_saved_drafts/0001_saved_workflow_drafts.down.sql",
+    "latest_up_migration_path": "services/platform/migrations/workflow_saved_drafts/0002_saved_workflow_draft_revisions.up.sql",
+    "latest_down_migration_path": "services/platform/migrations/workflow_saved_drafts/0002_saved_workflow_draft_revisions.down.sql",
+    "checksum_scope": "ordered_up_migration_chain",
     "forward_only_exception": null,
     "manual_apply_required": true,
     "startup_auto_migration_allowed": false,
@@ -354,6 +358,38 @@
     "go_baseline": "1.25",
     "runtime_role": "table_dml_without_schema_create",
     "migration_role": "explicit_one_time_ddl"
+  },
+  "revision_history_extension": {
+    "revision_schema_version": "saved_workflow_draft_revision.v1",
+    "table_name": "saved_workflow_draft_revisions",
+    "scope_predicate": [
+      "tenant_ref",
+      "workspace_id",
+      "application_id",
+      "draft_id",
+      "draft_version"
+    ],
+    "revision_kinds": [
+      "saved",
+      "restored",
+      "backfilled_current"
+    ],
+    "current_write_and_revision_append_atomic": true,
+    "runtime_allowed_operations": [
+      "SELECT",
+      "INSERT"
+    ],
+    "runtime_forbidden_operations": [
+      "UPDATE",
+      "DELETE"
+    ],
+    "migration_backfill": "current_snapshot_only",
+    "pre_migration_history_inference_allowed": false,
+    "operations": [
+      "ReadWorkflowDraftRevisionRecord",
+      "ListWorkflowDraftRevisionRecords",
+      "SaveRestoredWorkflowDraftRevisionRecord"
+    ]
   },
   "evidence_refs": {
     "ddl_review": "services/platform/migrations/workflow_saved_drafts/ddl-review.md",

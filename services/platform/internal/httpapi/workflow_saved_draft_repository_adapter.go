@@ -45,6 +45,15 @@ func (adapter SavedWorkflowDraftRepositoryAdapter) SaveWorkflowDraftRecord(
 	if failureCode := adapter.schemaPreflight.failureCodeFor(draft.SchemaVersion); failureCode != "" {
 		return SaveWorkflowDraftRecordResult{FailureCode: failureCode}
 	}
+	revisionKind := normalizedSavedWorkflowDraftRevisionKind(request.RevisionKind)
+	if (revisionKind == SavedWorkflowDraftRevisionKindSaved && request.RestoredFromVersion != 0) ||
+		(revisionKind == SavedWorkflowDraftRevisionKindRestored && request.RestoredFromVersion < 1) ||
+		(revisionKind != SavedWorkflowDraftRevisionKindSaved &&
+			revisionKind != SavedWorkflowDraftRevisionKindRestored) {
+		return SaveWorkflowDraftRecordResult{
+			FailureCode: SavedWorkflowDraftFailureStoreContractMismatch,
+		}
+	}
 	if adapter.queryExecutor == nil {
 		return SaveWorkflowDraftRecordResult{FailureCode: SavedWorkflowDraftFailureStoreUnavailable}
 	}
@@ -53,6 +62,8 @@ func (adapter SavedWorkflowDraftRepositoryAdapter) SaveWorkflowDraftRecord(
 		ActorContext:         actor,
 		ExpectedDraftVersion: request.ExpectedDraftVersion,
 		Record:               savedWorkflowDraftRepositoryRecordFromDraft(actor, draft, adapter.schemaPreflight),
+		RevisionKind:         revisionKind,
+		RestoredFromVersion:  request.RestoredFromVersion,
 	})
 	if queryResult.FailureCode != "" {
 		return SaveWorkflowDraftRecordResult{

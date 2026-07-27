@@ -58,15 +58,16 @@ RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE=postgres_dev_test
 services/platform/migrations/workflow_saved_drafts/
 ```
 
-本批物化：
+当前 migration chain 物化：
 
 - `workflow_saved_draft_schema_versions` marker，记录 component、migration id、store schema version、checksum 和 applied time。
 - `saved_workflow_drafts` 表，保存 scope / owner / version / status / timestamp / actor / audit 列和 sanitized draft JSONB。
+- `saved_workflow_draft_revisions` 表，按完整 scope + draft version 保存不可变 sanitized snapshot、revision kind 与直接恢复来源。
 - `(tenant_ref, workspace_id, application_id, draft_id)` 唯一键。
 - owner list 与 status list 索引。
 - migration checksum、事务和 PostgreSQL advisory lock。
 
-migration 通过独立一次性命令显式执行；平台服务启动只做连接和 schema preflight，不自动创建或升级 schema。重复执行相同 migration 必须幂等；marker、checksum、store schema 或物理表不一致时必须失败。
+migration 通过独立一次性命令显式执行；平台服务启动只做连接和 schema preflight，不自动创建或升级 schema。`0001 → 0002` 升级只回填当前快照并标记 `backfilled_current`，不推测迁移前历史。重复执行相同 migration chain 必须幂等；marker、aggregate checksum、store schema 或任一物理表不一致时必须失败。
 
 实现采用 `pgx/v5 v5.9.2`，平台 Go 基线同步到 `1.25`。`postgres_dev_test` 使用受控连接池并由 `Server` 在 shutdown 时关闭；数据库原始错误只保留允许公开的 SQLSTATE，连接信息不进入响应或日志。
 
@@ -93,7 +94,8 @@ migration 通过独立一次性命令显式执行；平台服务启动只做连�
 5. 覆盖 tenant / workspace / application / owner 隔离。
 6. 覆盖 migration 未应用、marker mismatch、连接中断和 no fallback。
 7. 用真实 Web consumer 复验保存、服务重启、恢复、二次保存、冲突、Continue / Restore 和 Review Handoff。
-8. 在 disposable test database 实际执行 down migration，再次 apply 必须恢复到兼容 marker。
+8. 覆盖不可变 revision 列表、精确读取、恢复为新版本、重启可见性，以及 runtime role 对 revision `UPDATE / DELETE` 的明确拒绝。
+9. 在 disposable test database 按 `0002 → 0001` 实际执行 down migration，再次 apply 必须恢复到兼容 marker。
 
 ## 门禁调整
 
@@ -104,6 +106,7 @@ migration 通过独立一次性命令显式执行；平台服务启动只做连�
 ## 完成结果
 
 - 已实现真实 up/down migration、schema marker、checksum、advisory lock、连接池、PostgreSQL query executor、独立 migration CLI 与双端 dev/test 入口。
+- `0002_saved_workflow_draft_revisions` 已把 current CAS 与 revision append 收进同一事务，支持既有 `0001` 数据库升级、当前快照回填、历史分页、精确读取和显式恢复；runtime role 对 revision 表只保留 `SELECT / INSERT`。
 - `postgres_dev_test` 只在完整显式开发配置下启用；production `repository` 与 `repository_disabled` 继续失败关闭，没有 memory/sample fallback。
 - 真实 PostgreSQL 集成测试已覆盖重复 migration、down/reapply、运行角色 DDL 拒绝、跨连接池恢复、16 路并发 CAS、tenant / application / owner 隔离、连接关闭和 marker mismatch。
 - 浏览器已覆盖保存 version 1、整套服务重启、恢复、继续保存 version 2、双标签制造 version 3 冲突、显式 `Continue local draft` 后保存 version 4，以及 Review Handoff。验收同时修复了 Restore 后状态被 selection effect 重置为 version 0 的问题。

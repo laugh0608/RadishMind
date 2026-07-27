@@ -18,12 +18,25 @@ func TestEmbeddedMigrationIdentityIsStable(t *testing.T) {
 		"saved_workflow_drafts_owner_list_idx",
 		"saved_workflow_drafts_status_list_idx",
 	} {
-		if !strings.Contains(upMigrationSQL, literal) {
+		if !strings.Contains(initialUpMigrationSQL, literal) {
 			t.Fatalf("embedded migration is missing %q", literal)
 		}
 	}
-	if !strings.Contains(downMigrationSQL, "DROP TABLE IF EXISTS saved_workflow_drafts") {
+	for _, literal := range []string{
+		"CREATE TABLE saved_workflow_draft_revisions",
+		"revision_kind",
+		"backfilled_current",
+		"saved_workflow_draft_revisions_owner_version_idx",
+	} {
+		if !strings.Contains(revisionUpMigrationSQL, literal) {
+			t.Fatalf("embedded revision migration is missing %q", literal)
+		}
+	}
+	if !strings.Contains(initialDownMigrationSQL, "DROP TABLE IF EXISTS saved_workflow_drafts") {
 		t.Fatalf("test rollback SQL does not remove saved workflow drafts")
+	}
+	if !strings.Contains(revisionDownMigrationSQL, "DROP TABLE IF EXISTS saved_workflow_draft_revisions") {
+		t.Fatalf("test rollback SQL does not remove saved workflow draft revisions")
 	}
 }
 

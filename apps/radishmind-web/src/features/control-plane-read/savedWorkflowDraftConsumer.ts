@@ -170,7 +170,7 @@ type SavedWorkflowDraftListEnvelope = {
   audit_ref: string;
 };
 
-type SavedWorkflowDraftDocument = SavedWorkflowDraftPayload & {
+export type SavedWorkflowDraftDocument = SavedWorkflowDraftPayload & {
   draft_version: number;
   draft_status: string;
   created_at: string;
@@ -781,7 +781,7 @@ async function requestSavedWorkflowDraftListEnvelope(
   return body;
 }
 
-function savedWorkflowDraftHeadersForApplication(
+export function savedWorkflowDraftHeadersForApplication(
   config: WorkflowSavedDraftConsumerConfig,
   applicationRef: string,
   requestId: string,
@@ -946,7 +946,7 @@ function toWorkflowSavedDraftSummary(document: SavedWorkflowDraftSummaryDocument
   };
 }
 
-function workflowDraftFromSavedWorkflowDraftDocument(
+export function workflowDraftFromSavedWorkflowDraftDocument(
   document: SavedWorkflowDraftDocument,
 ): WorkflowDraftDesignerDraft {
   const validationState = document.validation_summary?.validation_state || document.draft_status || "invalid_draft";

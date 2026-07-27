@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：[Workspace-scoped Mutation Authorization](features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md)批次 A 至 E 已完成并关闭；[已保存 Workflow 草案派生](features/workflow/saved-workflow-draft-derivation-dev-test-v1.md)已继续交付精确 saved version → 独立本地草案 → 既有 Validate / Save / Review 的小而完整纵向切片。下一顺位回到功能设计选择；运营收件箱全分页投影、production membership adapter、quota / billing 与真实 OIDC 均保持条件式入口。
+1. 产品线：[Workspace-scoped Mutation Authorization](features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md)批次 A 至 E 已完成并关闭；[已保存 Workflow 草案派生](features/workflow/saved-workflow-draft-derivation-dev-test-v1.md)与后续[不可变修订历史、版本比较和显式恢复](features/workflow/saved-workflow-draft-revision-history-restore-dev-test-v1.md)已形成独立草案复用、历史审查和恢复为新版本的连续用户路径。下一顺位回到功能设计选择；运营收件箱全分页投影、production membership adapter、quota / billing 与真实 OIDC 均保持条件式入口。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；dev header 与 signed-test membership 不能作为 production 授权来源。production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、quota 和 billing 继续为 `not_satisfied`。

@@ -16,8 +16,9 @@ import (
 
 const (
 	Component          = "workflow_saved_drafts"
-	MigrationID        = "0001_saved_workflow_drafts"
+	MigrationID        = "0002_saved_workflow_draft_revisions"
 	StoreSchemaVersion = "saved_workflow_drafts_store_v1"
+	legacyMigrationID  = "0001_saved_workflow_drafts"
 
 	MigrationStateApplied    = "applied"
 	MigrationStateNotApplied = "not_applied"
@@ -36,10 +37,16 @@ CREATE TABLE IF NOT EXISTS workflow_saved_draft_schema_versions (
 );`
 
 //go:embed 0001_saved_workflow_drafts.up.sql
-var upMigrationSQL string
+var initialUpMigrationSQL string
 
 //go:embed 0001_saved_workflow_drafts.down.sql
-var downMigrationSQL string
+var initialDownMigrationSQL string
+
+//go:embed 0002_saved_workflow_draft_revisions.up.sql
+var revisionUpMigrationSQL string
+
+//go:embed 0002_saved_workflow_draft_revisions.down.sql
+var revisionDownMigrationSQL string
 
 type State struct {
 	MigrationState     string
@@ -79,7 +86,14 @@ func OpenPool(ctx context.Context, databaseURL string) (*pgxpool.Pool, error) {
 }
 
 func ExpectedChecksum() string {
-	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upMigrationSQL)))
+	return fmt.Sprintf(
+		"sha256:%x",
+		sha256.Sum256([]byte(initialUpMigrationSQL+"\n"+revisionUpMigrationSQL)),
+	)
+}
+
+func legacyExpectedChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(initialUpMigrationSQL)))
 }
 
 func Inspect(ctx context.Context, pool *pgxpool.Pool) (State, error) {
@@ -133,20 +147,44 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 		return State{}, errors.New("saved workflow draft migration marker does not match the embedded migration")
 	}
 
-	if _, err := transaction.Exec(ctx, upMigrationSQL); err != nil {
-		return State{}, safeDatabaseError("apply saved workflow draft migration", err)
-	}
-	if _, err := transaction.Exec(
-		ctx,
-		`INSERT INTO workflow_saved_draft_schema_versions
-            (component, migration_id, store_schema_version, migration_checksum)
-         VALUES ($1, $2, $3, $4)`,
-		Component,
-		MigrationID,
-		StoreSchemaVersion,
-		ExpectedChecksum(),
-	); err != nil {
-		return State{}, safeDatabaseError("write saved workflow draft migration marker", err)
+	if state.MigrationID == legacyMigrationID {
+		if _, err := transaction.Exec(ctx, revisionUpMigrationSQL); err != nil {
+			return State{}, safeDatabaseError("apply saved workflow draft revision migration", err)
+		}
+		if _, err := transaction.Exec(
+			ctx,
+			`UPDATE workflow_saved_draft_schema_versions
+			    SET migration_id = $1,
+			        store_schema_version = $2,
+			        migration_checksum = $3,
+			        applied_at = now()
+			  WHERE component = $4`,
+			MigrationID,
+			StoreSchemaVersion,
+			ExpectedChecksum(),
+			Component,
+		); err != nil {
+			return State{}, safeDatabaseError("advance saved workflow draft migration marker", err)
+		}
+	} else {
+		if _, err := transaction.Exec(ctx, initialUpMigrationSQL); err != nil {
+			return State{}, safeDatabaseError("apply saved workflow draft initial migration", err)
+		}
+		if _, err := transaction.Exec(ctx, revisionUpMigrationSQL); err != nil {
+			return State{}, safeDatabaseError("apply saved workflow draft revision migration", err)
+		}
+		if _, err := transaction.Exec(
+			ctx,
+			`INSERT INTO workflow_saved_draft_schema_versions
+	            (component, migration_id, store_schema_version, migration_checksum)
+	         VALUES ($1, $2, $3, $4)`,
+			Component,
+			MigrationID,
+			StoreSchemaVersion,
+			ExpectedChecksum(),
+		); err != nil {
+			return State{}, safeDatabaseError("write saved workflow draft migration marker", err)
+		}
 	}
 
 	state, err = inspectWithQuery(ctx, transaction)
@@ -204,7 +242,10 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 	if state.MigrationState != MigrationStateApplied {
 		return State{}, errors.New("saved workflow draft rollback requires the matching applied migration")
 	}
-	if _, err := transaction.Exec(ctx, downMigrationSQL); err != nil {
+	if _, err := transaction.Exec(ctx, revisionDownMigrationSQL); err != nil {
+		return State{}, safeDatabaseError("rollback saved workflow draft revision migration", err)
+	}
+	if _, err := transaction.Exec(ctx, initialDownMigrationSQL); err != nil {
 		return State{}, safeDatabaseError("rollback saved workflow draft migration", err)
 	}
 	if err := transaction.Commit(ctx); err != nil {
@@ -239,6 +280,19 @@ func inspectWithQuery(ctx context.Context, query rowQuerier) (State, error) {
 		&state.AppliedAt,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
+		var draftTableExists bool
+		var revisionTableExists bool
+		if err := query.QueryRow(
+			ctx,
+			`SELECT
+			    to_regclass('public.saved_workflow_drafts') IS NOT NULL,
+			    to_regclass('public.saved_workflow_draft_revisions') IS NOT NULL`,
+		).Scan(&draftTableExists, &revisionTableExists); err != nil {
+			return State{}, safeDatabaseError("inspect saved workflow draft tables", err)
+		}
+		if draftTableExists || revisionTableExists {
+			return State{MigrationState: MigrationStateMismatch}, nil
+		}
 		return State{MigrationState: MigrationStateNotApplied}, nil
 	}
 	if err != nil {
@@ -246,16 +300,28 @@ func inspectWithQuery(ctx context.Context, query rowQuerier) (State, error) {
 	}
 
 	var draftTableExists bool
+	var revisionTableExists bool
 	if err := query.QueryRow(
 		ctx,
-		"SELECT to_regclass('public.saved_workflow_drafts') IS NOT NULL",
-	).Scan(&draftTableExists); err != nil {
-		return State{}, safeDatabaseError("inspect saved workflow draft table", err)
+		`SELECT
+		    to_regclass('public.saved_workflow_drafts') IS NOT NULL,
+		    to_regclass('public.saved_workflow_draft_revisions') IS NOT NULL`,
+	).Scan(&draftTableExists, &revisionTableExists); err != nil {
+		return State{}, safeDatabaseError("inspect saved workflow draft tables", err)
+	}
+	if state.MigrationID == legacyMigrationID &&
+		state.StoreSchemaVersion == StoreSchemaVersion &&
+		state.MigrationChecksum == legacyExpectedChecksum() &&
+		draftTableExists &&
+		!revisionTableExists {
+		state.MigrationState = MigrationStateNotApplied
+		return state, nil
 	}
 	if state.MigrationID != MigrationID ||
 		state.StoreSchemaVersion != StoreSchemaVersion ||
 		state.MigrationChecksum != ExpectedChecksum() ||
-		!draftTableExists {
+		!draftTableExists ||
+		!revisionTableExists {
 		state.MigrationState = MigrationStateMismatch
 		return state, nil
 	}

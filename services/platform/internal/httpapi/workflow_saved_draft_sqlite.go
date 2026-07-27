@@ -41,6 +41,9 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord(
 	if query.ExpectedDraftVersion < 0 || query.Record.Draft.DraftVersion != query.ExpectedDraftVersion+1 {
 		return savedWorkflowDraftRepositoryQuerySaveResult{FailureCode: SavedWorkflowDraftFailureStoreContractMismatch}
 	}
+	if !validSavedWorkflowDraftRevisionWriteMetadata(query.RevisionKind, query.RestoredFromVersion) {
+		return savedWorkflowDraftRepositoryQuerySaveResult{FailureCode: SavedWorkflowDraftFailureStoreContractMismatch}
+	}
 	payload, validation, blocked, createdAt, updatedAt, failureCode := savedWorkflowDraftRecordValues(query.Record)
 	if failureCode != "" {
 		return savedWorkflowDraftRepositoryQuerySaveResult{FailureCode: failureCode}
@@ -54,9 +57,15 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord(
 		return savedWorkflowDraftRepositoryQuerySaveResult{FailureCode: SavedWorkflowDraftFailureStoreContractMismatch}
 	}
 
+	transaction, err := executor.database.BeginTx(ctx, nil)
+	if err != nil {
+		return savedWorkflowDraftRepositoryQuerySaveResult{FailureCode: SavedWorkflowDraftFailureStoreUnavailable}
+	}
+	defer func() { _ = transaction.Rollback() }()
+
 	var row sqliteSavedWorkflowDraftRow
 	if query.ExpectedDraftVersion == 0 {
-		row = executor.database.QueryRowContext(
+		row = transaction.QueryRowContext(
 			ctx,
 			sqliteSavedWorkflowDraftInsertSQL,
 			query.Record.TenantRef,
@@ -79,7 +88,7 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord(
 			query.Record.Draft.RequestAuditMetadata.AuditRef,
 		)
 	} else {
-		row = executor.database.QueryRowContext(
+		row = transaction.QueryRowContext(
 			ctx,
 			sqliteSavedWorkflowDraftUpdateSQL,
 			query.Record.StoreSchemaVersion,
@@ -105,6 +114,28 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord(
 
 	record, err := scanSQLiteSavedWorkflowDraftRecord(row)
 	if err == nil {
+		if _, insertErr := transaction.ExecContext(
+			ctx,
+			sqliteSavedWorkflowDraftRevisionInsertSQL,
+			query.Record.TenantRef,
+			query.Record.WorkspaceID,
+			query.Record.ApplicationID,
+			query.Record.DraftID,
+			query.Record.OwnerSubjectRef,
+			query.Record.Draft.DraftVersion,
+			query.RevisionKind,
+			query.RestoredFromVersion,
+			string(payload),
+		); insertErr != nil {
+			return savedWorkflowDraftRepositoryQuerySaveResult{
+				FailureCode: SavedWorkflowDraftFailureStoreContractMismatch,
+			}
+		}
+		if commitErr := transaction.Commit(); commitErr != nil {
+			return savedWorkflowDraftRepositoryQuerySaveResult{
+				FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+			}
+		}
 		return savedWorkflowDraftRepositoryQuerySaveResult{
 			Record:              record,
 			CurrentDraftVersion: record.Draft.DraftVersion,
@@ -116,6 +147,7 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord(
 	if !errors.Is(err, sql.ErrNoRows) {
 		return savedWorkflowDraftRepositoryQuerySaveResult{FailureCode: SavedWorkflowDraftFailureStoreUnavailable}
 	}
+	_ = transaction.Rollback()
 	return executor.failedCASResult(ctx, query)
 }
 
@@ -203,6 +235,130 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) ListWorkflowDraftRecords(
 		return savedWorkflowDraftRepositoryQueryListResult{FailureCode: SavedWorkflowDraftFailureStoreUnavailable}
 	}
 	return savedWorkflowDraftRepositoryQueryListResult{Records: records}
+}
+
+func (executor *sqliteSavedWorkflowDraftQueryExecutor) ReadWorkflowDraftRevision(
+	ctx context.Context,
+	query savedWorkflowDraftRepositoryRevisionReadQuery,
+) savedWorkflowDraftRepositoryQueryRevisionReadResult {
+	if executor == nil || executor.database == nil || ctx == nil {
+		return savedWorkflowDraftRepositoryQueryRevisionReadResult{
+			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
+	}
+	revision, err := scanSQLiteSavedWorkflowDraftRevision(executor.database.QueryRowContext(
+		ctx,
+		sqliteSavedWorkflowDraftRevisionReadSQL,
+		query.ActorContext.TenantRef,
+		query.ActorContext.WorkspaceID,
+		query.ActorContext.ApplicationID,
+		query.DraftID,
+		query.ActorContext.OwnerSubjectRef,
+		query.DraftVersion,
+	))
+	if err == nil {
+		return savedWorkflowDraftRepositoryQueryRevisionReadResult{Revision: revision}
+	}
+	if errors.Is(err, errSavedWorkflowDraftStoredRecordContract) {
+		return savedWorkflowDraftRepositoryQueryRevisionReadResult{
+			FailureCode: SavedWorkflowDraftFailureStoreContractMismatch,
+		}
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
+		return savedWorkflowDraftRepositoryQueryRevisionReadResult{
+			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
+	}
+	_, owner, found, lookupFailed := executor.currentVersionAndOwner(
+		ctx,
+		query.ActorContext,
+		query.DraftID,
+	)
+	if lookupFailed {
+		return savedWorkflowDraftRepositoryQueryRevisionReadResult{
+			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
+	}
+	if found && owner != query.ActorContext.OwnerSubjectRef {
+		return savedWorkflowDraftRepositoryQueryRevisionReadResult{
+			FailureCode: SavedWorkflowDraftFailureScopeDenied,
+		}
+	}
+	return savedWorkflowDraftRepositoryQueryRevisionReadResult{
+		FailureCode: SavedWorkflowDraftFailureRevisionNotFound,
+	}
+}
+
+func (executor *sqliteSavedWorkflowDraftQueryExecutor) ListWorkflowDraftRevisions(
+	ctx context.Context,
+	query savedWorkflowDraftRepositoryRevisionListQuery,
+) savedWorkflowDraftRepositoryQueryRevisionListResult {
+	if executor == nil || executor.database == nil || ctx == nil {
+		return savedWorkflowDraftRepositoryQueryRevisionListResult{
+			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
+	}
+	_, owner, found, lookupFailed := executor.currentVersionAndOwner(
+		ctx,
+		query.ActorContext,
+		query.DraftID,
+	)
+	if lookupFailed {
+		return savedWorkflowDraftRepositoryQueryRevisionListResult{
+			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
+	}
+	if !found {
+		return savedWorkflowDraftRepositoryQueryRevisionListResult{
+			FailureCode: SavedWorkflowDraftFailureNotFound,
+		}
+	}
+	if owner != query.ActorContext.OwnerSubjectRef {
+		return savedWorkflowDraftRepositoryQueryRevisionListResult{
+			FailureCode: SavedWorkflowDraftFailureScopeDenied,
+		}
+	}
+	rows, err := executor.database.QueryContext(
+		ctx,
+		sqliteSavedWorkflowDraftRevisionListSQL,
+		query.ActorContext.TenantRef,
+		query.ActorContext.WorkspaceID,
+		query.ActorContext.ApplicationID,
+		query.DraftID,
+		query.ActorContext.OwnerSubjectRef,
+		query.BeforeVersion,
+		query.BeforeVersion,
+		query.Limit+1,
+	)
+	if err != nil {
+		return savedWorkflowDraftRepositoryQueryRevisionListResult{
+			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
+	}
+	defer rows.Close()
+	summaries := make([]SavedWorkflowDraftRevisionSummary, 0, query.Limit+1)
+	for rows.Next() {
+		revision, scanErr := scanSQLiteSavedWorkflowDraftRevision(rows)
+		if scanErr != nil {
+			return savedWorkflowDraftRepositoryQueryRevisionListResult{
+				FailureCode: SavedWorkflowDraftFailureStoreContractMismatch,
+			}
+		}
+		summaries = append(summaries, savedWorkflowDraftRevisionSummary(revision))
+	}
+	if rows.Err() != nil {
+		return savedWorkflowDraftRepositoryQueryRevisionListResult{
+			FailureCode: SavedWorkflowDraftFailureStoreUnavailable,
+		}
+	}
+	hasMore := len(summaries) > query.Limit
+	if hasMore {
+		summaries = summaries[:query.Limit]
+	}
+	return savedWorkflowDraftRepositoryQueryRevisionListResult{
+		Revisions: summaries,
+		HasMore:   hasMore,
+	}
 }
 
 func (executor *sqliteSavedWorkflowDraftQueryExecutor) failedCASResult(
@@ -298,6 +454,52 @@ func scanSQLiteSavedWorkflowDraftRecord(
 	return decoded, nil
 }
 
+func scanSQLiteSavedWorkflowDraftRevision(
+	row sqliteSavedWorkflowDraftRow,
+) (SavedWorkflowDraftRevision, error) {
+	record := SavedWorkflowDraftRepositoryStoredRecord{
+		StoreSchemaVersion: savedWorkflowDraftRepositoryStoreSchemaVersion,
+	}
+	var draftVersion int
+	var revisionKind string
+	var restoredFromVersion int
+	var payload []byte
+	if err := row.Scan(
+		&record.TenantRef,
+		&record.WorkspaceID,
+		&record.ApplicationID,
+		&record.DraftID,
+		&record.OwnerSubjectRef,
+		&draftVersion,
+		&revisionKind,
+		&restoredFromVersion,
+		&payload,
+	); err != nil {
+		return SavedWorkflowDraftRevision{}, err
+	}
+	decoded, err := decodeSavedWorkflowDraftStoredRecord(record, payload)
+	if err != nil || decoded.Draft.DraftVersion != draftVersion {
+		return SavedWorkflowDraftRevision{}, errSavedWorkflowDraftStoredRecordContract
+	}
+	revision := SavedWorkflowDraftRevision{
+		SchemaVersion:       savedWorkflowDraftRevisionSchemaVersion,
+		Draft:               decoded.Draft,
+		RevisionKind:        SavedWorkflowDraftRevisionKind(revisionKind),
+		RestoredFromVersion: restoredFromVersion,
+	}
+	if failure := validateSavedWorkflowDraftRevisionScope(
+		SavedWorkflowDraftContext{
+			WorkspaceID:   record.WorkspaceID,
+			ApplicationID: record.ApplicationID,
+		},
+		revision,
+		record.DraftID,
+	); failure != "" {
+		return SavedWorkflowDraftRevision{}, errSavedWorkflowDraftStoredRecordContract
+	}
+	return revision, nil
+}
+
 const sqliteSavedWorkflowDraftReturningColumns = `
     tenant_ref,
     workspace_id,
@@ -349,4 +551,36 @@ SELECT draft_version, owner_subject_ref
   FROM saved_workflow_drafts
  WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND draft_id=?`
 
+const sqliteSavedWorkflowDraftRevisionColumns = `
+    tenant_ref,
+    workspace_id,
+    application_id,
+    draft_id,
+    owner_subject_ref,
+    draft_version,
+    revision_kind,
+    restored_from_version,
+    sanitized_revision_record`
+
+const sqliteSavedWorkflowDraftRevisionInsertSQL = `
+INSERT INTO saved_workflow_draft_revisions (
+    tenant_ref, workspace_id, application_id, draft_id, owner_subject_ref,
+    draft_version, revision_kind, restored_from_version, sanitized_revision_record
+) VALUES (?,?,?,?,?,?,?,?,?)`
+
+const sqliteSavedWorkflowDraftRevisionReadSQL = `
+SELECT ` + sqliteSavedWorkflowDraftRevisionColumns + `
+  FROM saved_workflow_draft_revisions
+ WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND draft_id=?
+   AND owner_subject_ref=? AND draft_version=?`
+
+const sqliteSavedWorkflowDraftRevisionListSQL = `
+SELECT ` + sqliteSavedWorkflowDraftRevisionColumns + `
+  FROM saved_workflow_draft_revisions
+ WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND draft_id=?
+   AND owner_subject_ref=? AND (?=0 OR draft_version < ?)
+ ORDER BY draft_version DESC
+ LIMIT ?`
+
 var _ SavedWorkflowDraftRepositoryQueryExecutor = (*sqliteSavedWorkflowDraftQueryExecutor)(nil)
+var _ SavedWorkflowDraftRevisionRepositoryQueryExecutor = (*sqliteSavedWorkflowDraftQueryExecutor)(nil)
