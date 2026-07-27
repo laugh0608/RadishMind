@@ -63,6 +63,7 @@ def assert_literals(text: str, literals: list[Any], label: str) -> None:
 def assert_frontend_and_platform_contract(fixture: dict[str, Any]) -> None:
     contract = fixture.get("frontend_contract") or {}
     app_text = read(str(contract.get("app_file")))
+    clone_text = read(str(contract.get("clone_file")))
     designer_text = read(str(contract.get("designer_file")))
     consumer_text = read(str(contract.get("consumer_file")))
     validation_text = read(str(contract.get("validation_file")))
@@ -75,6 +76,11 @@ def assert_frontend_and_platform_contract(fixture: dict[str, Any]) -> None:
 
     assert_literals(designer_text, contract.get("required_designer_literals") or [], "workflowDraftDesigner.ts")
     assert_literals(app_text, contract.get("required_app_literals") or [], "App.tsx")
+    assert_literals(
+        clone_text,
+        contract.get("required_clone_literals") or [],
+        "workflowSavedDraftDerivation.ts",
+    )
     assert_literals(consumer_text, contract.get("required_consumer_literals") or [], "savedWorkflowDraftConsumer.ts")
     assert_literals(validation_text, contract.get("required_validation_literals") or [], "workflowDraftValidationInspector.ts")
     assert_literals(execution_plan_text, contract.get("required_execution_plan_literals") or [], "workflowExecutionPlanPreview.ts")

@@ -12,13 +12,11 @@
 
 ## 当前活跃任务
 
-[Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](workspace-scoped-mutation-authorization-dev-test-v1-plan.md)已完成批次 A 至 D：32 条 mutation 的共享 authorization、稳定 failure mapping、业务 owner / 外部副作用为零、凭据副作用顺序、创作 / 审查 / 激活 / Session / Turn / Run 原子组合与资源条件权限、Web header 分离及三模式 / 双数据库证据成立；下一步复核批次 E 组合 owner。
-
-[Admin Provider Profile / Model Route 受控启用（开发 / 测试态）v1](admin-provider-route-controlled-activation-dev-test-v1-plan.md)批次 A 至 C 已完成领域、三模式 repository、inventory digest 重验、三类 CAS、SQLite / PostgreSQL migration、Admin HTTP、verified identity、四项权限和 strict contract，状态为 `admin_provider_route_controlled_activation_dev_test_v1_batch_c_completed_batch_d_ready`；下一步进入 Gateway snapshot consumer。
-
-[应用开发工作区与发布准备审查 v1](../features/user-workspace/application-development-workspace-release-readiness-review-v1.md)批次 A 至 C 已完成并关闭，不再派生同层任务卡。
+当前没有活跃实现任务。Workspace-scoped Mutation Authorization、Admin Provider Profile / Model Route、应用开发工作区与已保存 Workflow 草案派生均已完成；下一批应先更新对应功能设计，再决定是否创建任务卡。
 
 ## 最近关闭任务
+
+最新关闭：[已保存 Workflow 草案派生（开发 / 测试态）v1](saved-workflow-draft-derivation-dev-test-v1-plan.md)已完成精确 saved version、独立短 ID、深复制、直接来源 metadata 和既有 Validate / Save / Review；[Workspace-scoped Mutation Authorization v1](workspace-scoped-mutation-authorization-dev-test-v1-plan.md)已完成 47 条 mutation 的共享 authorization 与双数据库证据；[Admin Provider Profile / Model Route 受控启用 v1](admin-provider-route-controlled-activation-dev-test-v1-plan.md)已完成三模式 repository、verified Admin API、Gateway snapshot consumer、Web 和请求历史谱系。以下为较早关闭任务：
 
 1. [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](prompt-agent-application-regression-evaluation-release-review-dev-test-v1-plan.md)：Comparison v5 / v6、Case / Suite strict consumer、Agent 不兼容失败映射和 SQLite case → suite → `approved v1` 已完成，任务卡关闭。
 2. [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)：批次 A 至批次 E 已完成，状态为 `agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_completed`；任务卡关闭，不再派生同层续批。

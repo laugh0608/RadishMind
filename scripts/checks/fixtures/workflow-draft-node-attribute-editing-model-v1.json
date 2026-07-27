@@ -26,6 +26,7 @@
   ],
   "frontend_contract": {
     "app_file": "apps/radishmind-web/src/app/App.tsx",
+    "clone_file": "apps/radishmind-web/src/features/control-plane-read/workflowSavedDraftDerivation.ts",
     "designer_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesigner.ts",
     "consumer_file": "apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts",
     "validation_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftValidationInspector.ts",
@@ -52,7 +53,9 @@
       "handleWorkflowDraftNodeOutputFieldsChange",
       "handleWorkflowDraftNodeOutputMappingChange",
       "parseWorkflowDraftContractFields",
-      "workflow-draft-node-attribute-grid",
+      "workflow-draft-node-attribute-grid"
+    ],
+    "required_clone_literals": [
       "inputContractFields: [...node.inputContractFields]",
       "outputContractFields: [...node.outputContractFields]"
     ],

@@ -132,6 +132,69 @@ func TestSavedWorkflowDraftSaveReadValidateContracts(t *testing.T) {
 		}
 	})
 
+	t.Run("direct derivation metadata is normalized without copying source records", func(t *testing.T) {
+		store := newMemorySavedWorkflowDraftStore()
+		service := newSavedWorkflowDraftService(store)
+		context := savedWorkflowDraftTestContext()
+		payload := validSavedWorkflowDraftPayload()
+		payload.DraftID = "draft_derived_a1b2c3d4_01"
+		payload.AdditionalFields = map[string]any{
+			savedWorkflowDraftDerivationAdditionalField: map[string]any{
+				"version":              float64(1),
+				"source_kind":          "saved_workflow_draft",
+				"source_draft_id":      "  draft_radishflow_copilot_saved_v1  ",
+				"source_draft_version": float64(3),
+				"ignored_field":        "not persisted",
+			},
+		}
+
+		saveResult := service.SaveDraft(context, SaveWorkflowDraftRequest{Payload: payload})
+
+		if saveResult.FailureCode != "" || saveResult.Draft == nil {
+			t.Fatalf("save should preserve sanitized direct derivation metadata: %#v", saveResult)
+		}
+		derivation, ok := saveResult.Draft.AdditionalFields[savedWorkflowDraftDerivationAdditionalField].(map[string]any)
+		if !ok {
+			t.Fatalf("saved draft missing normalized derivation metadata: %#v", saveResult.Draft.AdditionalFields)
+		}
+		want := map[string]any{
+			"version":              1,
+			"source_kind":          "saved_workflow_draft",
+			"source_draft_id":      "draft_radishflow_copilot_saved_v1",
+			"source_draft_version": 3,
+		}
+		if !reflect.DeepEqual(derivation, want) {
+			t.Fatalf("saved draft derivation metadata drifted: got %#v want %#v", derivation, want)
+		}
+
+		readResult := service.ReadDraft(context, ReadWorkflowDraftRequest{DraftID: payload.DraftID})
+		if readResult.FailureCode != "" || readResult.Draft == nil ||
+			!reflect.DeepEqual(readResult.Draft.AdditionalFields, saveResult.Draft.AdditionalFields) {
+			t.Fatalf("read should restore direct derivation metadata: %#v", readResult)
+		}
+
+		selfReferenced := validSavedWorkflowDraftPayload()
+		selfReferenced.AdditionalFields = map[string]any{
+			savedWorkflowDraftDerivationAdditionalField: map[string]any{
+				"version":              1,
+				"source_kind":          "saved_workflow_draft",
+				"source_draft_id":      selfReferenced.DraftID,
+				"source_draft_version": 1,
+			},
+		}
+		validation := service.ValidateDraft(context, ValidateWorkflowDraftRequest{Payload: selfReferenced})
+		if validation.FailureCode != "" {
+			t.Fatalf("invalid optional derivation metadata should be removed without rejecting the draft: %#v", validation)
+		}
+		normalized, _ := service.validatePayload(context, selfReferenced)
+		if _, found := normalized.AdditionalFields[savedWorkflowDraftDerivationAdditionalField]; found {
+			t.Fatalf("self-referenced derivation metadata must not survive normalization: %#v", normalized.AdditionalFields)
+		}
+		if got := store.SideEffects(); got.DraftWriteCount != 1 || hasSavedWorkflowDraftRuntimeSideEffect(got) {
+			t.Fatalf("derivation metadata must not add runtime side effects: %#v", got)
+		}
+	})
+
 	t.Run("contract invalid draft can be saved as review finding", func(t *testing.T) {
 		store := newMemorySavedWorkflowDraftStore()
 		service := newSavedWorkflowDraftService(store)

@@ -11,7 +11,8 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
-- 产品焦点：[Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 已完成批次 A 至 E，状态为 `workspace_scoped_mutation_authorization_dev_test_v1_complete`。47 条人类交互式 mutation 已复用唯一 membership provider，具备 body 前单次原子权限、owner / Run write / Gateway / provider / network zero-call 拒绝证据、Web header 分离和 PostgreSQL 回归；专题关闭，不继续派生同层 gate-only 批次。
+- 产品焦点：[已保存 Workflow 草案派生（开发 / 测试态）v1](features/workflow/saved-workflow-draft-derivation-dev-test-v1.md) 已完成，状态为 `saved_workflow_draft_derivation_dev_test_v1_completed`。Draft Designer 只在活动内容与精确 saved version 一致时开放派生，新草案使用独立短 ID、深复制图与布局、版本 `0` 和脱敏直接来源，并继续复用既有 Validate / Save / Review、membership、owner、CAS 与 repository；不新增 route、migration 或真相源。
+- [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 已完成批次 A 至 E，状态为 `workspace_scoped_mutation_authorization_dev_test_v1_complete`。47 条人类交互式 mutation 已复用唯一 membership provider，专题关闭。
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算`、`R6 文档与检查器收敛` 均已完成。R6 关闭评审确认活动 checker 从 `132` 项、`38,644` 行降至 `111` 项、`28,486` 行，分别下降约 `15.9%` 与 `26.3%`；Provider、Production Ops 和 Control Plane formal UI 因仍有独立证据责任继续活动，不再派生第六批或同层 readiness 链。
 - `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片。production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
@@ -19,7 +20,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：[Workspace-scoped Mutation Authorization](features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 批次 A 至 E 已完成：Application Catalog、API Key Lifecycle、创作 / 审查 / 激活 owner、Runtime Assignment、Session / Turn、RAG Dataset / Snapshot、HTTP Tool、Evaluation 与人类受控 Run 均绑定 verified identity、active workspace、membership permission 和既有 owner；组合权限由单次 provider decision 原子判断。下一步回到功能设计选择，不继续扩同层授权 checker；生产 membership adapter、真实 OIDC、quota / billing、运营收件箱批次 B、自动修复和 Provider Route 同层扩展继续按各自停止线关闭。
+1. 产品线：已保存 Workflow 草案派生已完成精确 source → 独立草案 → 校验 / 保存 / 审查纵向闭环，Mutation Authorization 批次 A 至 E 也已关闭。下一步回到功能设计选择，不继续扩同层授权、只读审查或草案派生 checker；生产 membership adapter、真实 OIDC、quota / billing、运营收件箱批次 B、自动修复、草案合并 / 跨作用域复制和 Provider Route 同层扩展继续按各自停止线关闭。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
@@ -79,6 +80,8 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 49. [工作区运营收件箱（开发 / 测试态）v1](features/user-workspace/workspace-operations-inbox-dev-test-v1.md)
 50. [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md)
 51. [Workspace-scoped Mutation Authorization 实施任务卡](task-cards/workspace-scoped-mutation-authorization-dev-test-v1-plan.md)
+52. [已保存 Workflow 草案派生（开发 / 测试态）v1](features/workflow/saved-workflow-draft-derivation-dev-test-v1.md)
+53. [已保存 Workflow 草案派生实施任务卡](task-cards/saved-workflow-draft-derivation-dev-test-v1-plan.md)
 
 ## 当前不要做
 

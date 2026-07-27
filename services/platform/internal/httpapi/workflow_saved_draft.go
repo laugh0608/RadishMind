@@ -16,6 +16,9 @@ const (
 	savedWorkflowDraftDesignerLayoutVersion         = "designer_layout_v1"
 	savedWorkflowDraftDesignerLayoutSource          = "workflow_node_designer"
 	savedWorkflowDraftDesignerLayoutPersistence     = "saved_draft_metadata"
+	savedWorkflowDraftDerivationAdditionalField     = "derivation_v1"
+	savedWorkflowDraftDerivationSourceKind          = "saved_workflow_draft"
+	savedWorkflowDraftDerivationVersion             = 1
 
 	maxSavedWorkflowDraftNodes            = 50
 	maxSavedWorkflowDraftEdges            = 120
@@ -680,6 +683,7 @@ func normalizeSavedWorkflowDraftPayload(payload SavedWorkflowDraftPayload) Saved
 	normalized.AdditionalFields = normalizeSavedWorkflowDraftAdditionalFields(
 		normalized.AdditionalFields,
 		normalized.Nodes,
+		normalized.DraftID,
 	)
 	return normalized
 }
@@ -755,6 +759,7 @@ func firstSavedWorkflowDraftForbiddenFieldAtPath(path string, fields map[string]
 func normalizeSavedWorkflowDraftAdditionalFields(
 	fields map[string]any,
 	nodes []SavedWorkflowDraftNode,
+	draftID string,
 ) map[string]any {
 	normalized := cloneSavedWorkflowDraftAdditionalFields(fields)
 	if len(normalized) == 0 {
@@ -768,10 +773,50 @@ func normalizeSavedWorkflowDraftAdditionalFields(
 	} else {
 		delete(normalized, savedWorkflowDraftDesignerLayoutAdditionalField)
 	}
+	if derivation, found := normalizeSavedWorkflowDraftDerivation(
+		normalized[savedWorkflowDraftDerivationAdditionalField],
+		draftID,
+	); found {
+		normalized[savedWorkflowDraftDerivationAdditionalField] = derivation
+	} else {
+		delete(normalized, savedWorkflowDraftDerivationAdditionalField)
+	}
 	if len(normalized) == 0 {
 		return nil
 	}
 	return normalized
+}
+
+func normalizeSavedWorkflowDraftDerivation(
+	value any,
+	draftID string,
+) (map[string]any, bool) {
+	derivation, ok := value.(map[string]any)
+	if !ok {
+		return nil, false
+	}
+	version, versionOK := savedWorkflowDraftAdditionalNumber(derivation["version"])
+	sourceDraftID := savedWorkflowDraftAdditionalString(derivation["source_draft_id"])
+	sourceDraftVersion, sourceDraftVersionOK := savedWorkflowDraftAdditionalNumber(
+		derivation["source_draft_version"],
+	)
+	if !versionOK ||
+		version != savedWorkflowDraftDerivationVersion ||
+		savedWorkflowDraftAdditionalString(derivation["source_kind"]) != savedWorkflowDraftDerivationSourceKind ||
+		sourceDraftID == "" ||
+		sourceDraftID == strings.TrimSpace(draftID) ||
+		len(sourceDraftID) > maxSavedWorkflowDraftLabelLength ||
+		!sourceDraftVersionOK ||
+		sourceDraftVersion < 1 ||
+		math.Trunc(sourceDraftVersion) != sourceDraftVersion {
+		return nil, false
+	}
+	return map[string]any{
+		"version":              savedWorkflowDraftDerivationVersion,
+		"source_kind":          savedWorkflowDraftDerivationSourceKind,
+		"source_draft_id":      sourceDraftID,
+		"source_draft_version": int(sourceDraftVersion),
+	}, true
 }
 
 func normalizeSavedWorkflowDraftDesignerLayout(

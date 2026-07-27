@@ -98,6 +98,13 @@ export type WorkflowDraftDesignerRouteMetadata = {
   auditRef: string;
 };
 
+export type WorkflowSavedDraftDerivation = {
+  version: 1;
+  sourceKind: "saved_workflow_draft";
+  sourceDraftId: string;
+  sourceDraftVersion: number;
+};
+
 export type WorkflowDraftDesignerDraft = {
   draftId: string;
   templateRef: string;
@@ -116,6 +123,7 @@ export type WorkflowDraftDesignerDraft = {
   routeMetadata: WorkflowDraftDesignerRouteMetadata;
   localOnlyInteraction: "inspect_only" | "local_edit";
   executionProfile?: "review_only" | "executor_v0" | "rag_retrieval_v1";
+  derivation?: WorkflowSavedDraftDerivation;
 };
 
 export type WorkflowDraftDesignerSource = {

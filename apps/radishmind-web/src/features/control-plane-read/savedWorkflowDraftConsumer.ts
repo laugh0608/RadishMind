@@ -24,6 +24,8 @@ const SAVED_DRAFT_SCHEMA_VERSION = "saved_workflow_draft.v1";
 const DESIGNER_LAYOUT_VERSION = "designer_layout_v1";
 const DESIGNER_LAYOUT_SOURCE = "workflow_node_designer";
 const DESIGNER_LAYOUT_PERSISTENCE = "saved_draft_metadata";
+const DERIVATION_METADATA_VERSION = 1;
+const DERIVATION_SOURCE_KIND = "saved_workflow_draft";
 const EXECUTOR_V0_METADATA_VERSION = "workflow_executor_v0";
 const MAX_DESIGNER_LAYOUT_COORDINATE = 10000;
 
@@ -223,9 +225,17 @@ type SavedWorkflowDraftPayload = {
 
 type SavedWorkflowDraftAdditionalFields = {
   designer_layout_v1?: SavedWorkflowDraftDesignerLayoutV1;
+  derivation_v1?: SavedWorkflowDraftDerivationV1Metadata;
   executor_v0?: SavedWorkflowDraftExecutorV0Metadata;
   rag_retrieval_v1?: SavedWorkflowDraftRAGRetrievalV1Metadata;
 } & Record<string, unknown>;
+
+type SavedWorkflowDraftDerivationV1Metadata = {
+  version: typeof DERIVATION_METADATA_VERSION;
+  source_kind: typeof DERIVATION_SOURCE_KIND;
+  source_draft_id: string;
+  source_draft_version: number;
+};
 
 type SavedWorkflowDraftExecutorV0Metadata = {
   version: typeof EXECUTOR_V0_METADATA_VERSION;
@@ -883,6 +893,14 @@ function toSavedWorkflowDraftAdditionalFields(
       side_effect_policy: "retrieval_and_provider_once",
     };
   }
+  if (draft.derivation) {
+    additionalFields.derivation_v1 = {
+      version: DERIVATION_METADATA_VERSION,
+      source_kind: DERIVATION_SOURCE_KIND,
+      source_draft_id: draft.derivation.sourceDraftId,
+      source_draft_version: draft.derivation.sourceDraftVersion,
+    };
+  }
   return Object.keys(additionalFields).length > 0 ? additionalFields : undefined;
 }
 
@@ -936,6 +954,10 @@ function workflowDraftFromSavedWorkflowDraftDocument(
   const nodes = document.nodes.map(toWorkflowDraftDesignerNode);
   const isRAGRetrievalV1 = isSavedWorkflowDraftRAGRetrievalV1Metadata(
     document.additional_fields?.rag_retrieval_v1,
+  );
+  const derivation = savedWorkflowDraftDerivationFromMetadata(
+    document.additional_fields?.derivation_v1,
+    document.draft_id,
   );
   return {
     draftId: document.draft_id,
@@ -993,6 +1015,34 @@ function workflowDraftFromSavedWorkflowDraftDocument(
       : isRAGRetrievalV1
         ? "rag_retrieval_v1"
         : "review_only",
+    ...(derivation ? { derivation } : {}),
+  };
+}
+
+function savedWorkflowDraftDerivationFromMetadata(
+  value: unknown,
+  draftId: string,
+): WorkflowDraftDesignerDraft["derivation"] {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const candidate = value as Partial<SavedWorkflowDraftDerivationV1Metadata>;
+  if (
+    candidate.version !== DERIVATION_METADATA_VERSION ||
+    candidate.source_kind !== DERIVATION_SOURCE_KIND ||
+    typeof candidate.source_draft_id !== "string" ||
+    candidate.source_draft_id.trim() === "" ||
+    candidate.source_draft_id === draftId ||
+    !Number.isInteger(candidate.source_draft_version) ||
+    (candidate.source_draft_version ?? 0) < 1
+  ) {
+    return undefined;
+  }
+  return {
+    version: DERIVATION_METADATA_VERSION,
+    sourceKind: DERIVATION_SOURCE_KIND,
+    sourceDraftId: candidate.source_draft_id,
+    sourceDraftVersion: candidate.source_draft_version as number,
   };
 }
 

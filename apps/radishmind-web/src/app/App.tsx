@@ -134,6 +134,11 @@ import {
   type WorkflowDraftDesignerViewModel,
 } from "../features/control-plane-read/workflowDraftDesigner";
 import {
+  buildDerivedWorkflowDraft,
+  canDeriveSavedWorkflowDraft,
+  cloneWorkflowDraftForEditing,
+} from "../features/control-plane-read/workflowSavedDraftDerivation";
+import {
   type WorkflowDraftBlockedCapabilityCheck,
   type WorkflowDraftContractCheck,
   type WorkflowDraftStructuralCheck,
@@ -1076,6 +1081,28 @@ export function App() {
     if (workflowExecutorOperationPending || workflowRAGOperationPending) return;
     setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
     applyWorkflowSelectionPatch({ applicationRef: createdDraft.applicationRef, workflowDefinitionId: createdDraft.workflowDefinitionId, runId: null, draftId: createdDraft.draftId, scenarioId: null });
+    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
+    setWorkflowDraftEditDirty(true);
+    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
+  };
+  const handleDeriveSavedWorkflowDraft = () => {
+    const operationPending = workflowExecutorOperationPending || workflowRAGOperationPending;
+    if (!canDeriveSavedWorkflowDraft(savedDraftConsumerState, workflowDraftEditDirty, operationPending)) {
+      return;
+    }
+    const createdDraft = buildDerivedWorkflowDraft(
+      activeWorkflowDraft,
+      savedDraftConsumerState.currentDraftVersion,
+      workflowDraftDesigner.drafts.map((draft) => draft.draftId),
+    );
+    setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
+    applyWorkflowSelectionPatch({
+      applicationRef: createdDraft.applicationRef,
+      workflowDefinitionId: createdDraft.workflowDefinitionId,
+      runId: null,
+      draftId: createdDraft.draftId,
+      scenarioId: null,
+    });
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
     setWorkflowDraftEditDirty(true);
     setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
@@ -2089,6 +2116,7 @@ export function App() {
             onResetDraftEdits={handleWorkflowDraftEditReset}
             onContinueLocalDraftAfterConflict={handleContinueLocalWorkflowDraftAfterConflict}
             onRestoreConflictSavedDraft={handleRestoreConflictSavedWorkflowDraft}
+            onDeriveSavedDraft={handleDeriveSavedWorkflowDraft}
             onValidateDraft={handleValidateWorkflowDraft}
             onSaveDraft={handleSaveWorkflowDraft}
             onReadDraft={handleReadWorkflowDraft}
@@ -3585,6 +3613,7 @@ function WorkflowDraftDesignerPanel({
   onResetDraftEdits,
   onContinueLocalDraftAfterConflict,
   onRestoreConflictSavedDraft,
+  onDeriveSavedDraft,
   onValidateDraft,
   onSaveDraft,
   onReadDraft,
@@ -3620,6 +3649,7 @@ function WorkflowDraftDesignerPanel({
   onResetDraftEdits: () => void;
   onContinueLocalDraftAfterConflict: () => void;
   onRestoreConflictSavedDraft: () => void;
+  onDeriveSavedDraft: () => void;
   onValidateDraft: () => void;
   onSaveDraft: () => void;
   onReadDraft: () => void;
@@ -3681,6 +3711,13 @@ function WorkflowDraftDesignerPanel({
           <strong>{selectedDraft.routeMetadata.requestId}</strong>
           <p>{selectedDraft.routeMetadata.auditRef}</p>
         </article>
+        {selectedDraft.derivation ? (
+          <article className="workflow-draft-card">
+            <span>派生来源</span>
+            <strong>{selectedDraft.derivation.sourceDraftId}</strong>
+            <p>saved version {selectedDraft.derivation.sourceDraftVersion} · direct parent only</p>
+          </article>
+        ) : null}
       </div>
 
       <div className="workflow-draft-edit-grid" aria-label="Workflow draft local editing">
@@ -3748,6 +3785,19 @@ function WorkflowDraftDesignerPanel({
             </button>
             <button type="button" disabled={!canCallDevConsumer || interactionDisabled} onClick={onReadDraft}>
               Read
+            </button>
+            <button
+              type="button"
+              disabled={
+                !canDeriveSavedWorkflowDraft(
+                  savedDraftConsumerState,
+                  draftEditDirty,
+                  interactionDisabled,
+                )
+              }
+              onClick={onDeriveSavedDraft}
+            >
+              派生新草案
             </button>
           </div>
         </article>
@@ -3955,33 +4005,6 @@ function workflowSavedDraftConsumerTone(status: WorkflowSavedDraftConsumerState[
     return "bad";
   }
   return "neutral";
-}
-
-function cloneWorkflowDraftForEditing(draft: WorkflowDraftDesignerDraft): WorkflowDraftDesignerDraft {
-  return {
-    ...draft,
-    nodes: draft.nodes.map((node) => ({
-      ...node,
-      inputContractFields: [...node.inputContractFields],
-      outputContractFields: [...node.outputContractFields],
-    })),
-    edges: draft.edges.map((edge) => ({ ...edge })),
-    designerLayout: cloneWorkflowDraftDesignerLayout(draft.designerLayout),
-    readiness: draft.readiness.map((readiness) => ({ ...readiness })),
-    risks: draft.risks.map((risk) => ({ ...risk })),
-    blockedCapabilities: draft.blockedCapabilities.map((capability) => ({ ...capability })),
-    routeMetadata: { ...draft.routeMetadata },
-  };
-}
-
-function cloneWorkflowDraftDesignerLayout(
-  layout: WorkflowDraftDesignerLayout,
-): WorkflowDraftDesignerLayout {
-  return {
-    source: "workflow_node_designer",
-    persistence: layout.persistence,
-    nodePositions: layout.nodePositions.map((position) => ({ ...position })),
-  };
 }
 
 function workspaceDraftCreatedConsumerState(
