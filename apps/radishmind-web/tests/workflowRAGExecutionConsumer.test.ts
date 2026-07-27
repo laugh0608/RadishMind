@@ -47,8 +47,10 @@ test("RAG draft builder binds the selected application scope", () => {
 test("saved draft persistence carries the exact rag_ref and RAG execution metadata", async () => {
   const originalFetch = globalThis.fetch;
   let body: any = null;
+  let headers = new Headers();
   globalThis.fetch = async (_input, init) => {
     body = JSON.parse(String(init?.body));
+    headers = new Headers(init?.headers);
     return response({ request_id: "request_save_rag", workspace_id: "workspace_demo", application_id: "app_flow_copilot", draft: null, failure_code: "draft_store_unavailable", current_draft_version: 0, validation_summary: { validation_state: "unavailable", valid_for_review: false }, blocked_capabilities: [], audit_ref: "audit_save_rag" });
   };
   try {
@@ -58,6 +60,8 @@ test("saved draft persistence carries the exact rag_ref and RAG execution metada
     assert.deepEqual(body.draft.additional_fields.rag_retrieval_v1, { version: 1, execution_route: "retrieval_executions", side_effect_policy: "retrieval_and_provider_once" });
     assert.deepEqual(body.draft.edges.map((edge: any) => edge.condition_summary), ["", "", ""]);
     assert.deepEqual(body.draft.requested_capabilities, []);
+    assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_drafts:write");
   } finally { globalThis.fetch = originalFetch; }
 });
 

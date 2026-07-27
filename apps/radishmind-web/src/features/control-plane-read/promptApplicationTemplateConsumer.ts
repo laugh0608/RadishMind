@@ -811,6 +811,9 @@ function templateHeaders(
   operation: string,
 ): Record<string, string> {
   const requestId = createRequestId(`prompt-template-${operation}`);
+  const mutationPermissions = scopes.filter((scope) =>
+    scope === "prompt_application_templates:write" || scope === "prompt_application_templates:version"
+  );
   return {
     Accept: "application/json",
     "X-Request-Id": requestId,
@@ -819,6 +822,11 @@ function templateHeaders(
     "X-RadishMind-Dev-Read-Subject": config.subjectRef,
     "X-RadishMind-Dev-Read-Scopes": scopes.join(","),
     "X-RadishMind-Dev-Read-Audit": `audit_${requestId}`,
+    ...(mutationPermissions.length === 0 ? {} : {
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Permissions": mutationPermissions.join(","),
+    }),
     "X-RadishMind-Dev-Prompt-Template-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Prompt-Template-Application": applicationId,
   };

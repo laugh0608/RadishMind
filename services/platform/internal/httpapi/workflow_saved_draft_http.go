@@ -163,6 +163,17 @@ func (s *Server) handleSaveWorkflowDraft(writer http.ResponseWriter, request *ht
 	if !s.allowSavedWorkflowDraftDevHTTP(writer, request, trace) {
 		return
 	}
+	auth, failureCode, status := s.authorizeWorkspaceScopedPermissions(request, "workflow_drafts:write")
+	context := savedWorkflowDraftMutationContext(
+		request, trace, auth, "", s.config.WorkflowSavedDraftDevWriteEnabled, "save",
+	)
+	if failureCode != "" {
+		writeSavedWorkflowDraftResultWithStatus(
+			writer, status, trace, context,
+			savedWorkflowDraftFailure(SavedWorkflowDraftFailureCode(failureCode), savedWorkflowDraftAuditMetadata(context)),
+		)
+		return
+	}
 	var body savedWorkflowDraftSaveHTTPBody
 	if !s.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{
 		maxBytes:            maxControlJSONRequestBodyBytes,
@@ -171,17 +182,14 @@ func (s *Server) handleSaveWorkflowDraft(writer http.ResponseWriter, request *ht
 		return
 	}
 	payload := savedWorkflowDraftPayloadFromDocument(body.Draft)
-	context, failureCode := savedWorkflowDraftContextFromRequest(
-		request,
-		trace,
-		payload.WorkspaceID,
-		payload.ApplicationID,
-		"workflow_drafts:write",
-		s.config.WorkflowSavedDraftDevWriteEnabled,
-		"save",
+	context = savedWorkflowDraftMutationContext(
+		request, trace, auth, payload.ApplicationID, s.config.WorkflowSavedDraftDevWriteEnabled, "save",
 	)
-	if failureCode != "" {
-		writeSavedWorkflowDraftResult(writer, trace, context, savedWorkflowDraftFailure(failureCode, savedWorkflowDraftAuditMetadata(context)))
+	if payload.WorkspaceID != auth.ResourceBinding.WorkspaceID {
+		writeSavedWorkflowDraftResultWithStatus(
+			writer, http.StatusForbidden, trace, context,
+			savedWorkflowDraftFailure("workspace_binding_mismatch", savedWorkflowDraftAuditMetadata(context)),
+		)
 		return
 	}
 	result := s.savedWorkflowDraftService().SaveDraft(context, SaveWorkflowDraftRequest{
@@ -251,6 +259,15 @@ func (s *Server) handleValidateWorkflowDraft(writer http.ResponseWriter, request
 	if !s.allowSavedWorkflowDraftDevHTTP(writer, request, trace) {
 		return
 	}
+	auth, failureCode, status := s.authorizeWorkspaceScopedPermissions(request, "workflow_drafts:write")
+	context := savedWorkflowDraftMutationContext(request, trace, auth, "", false, "validate")
+	if failureCode != "" {
+		writeSavedWorkflowDraftResultWithStatus(
+			writer, status, trace, context,
+			savedWorkflowDraftFailure(SavedWorkflowDraftFailureCode(failureCode), savedWorkflowDraftAuditMetadata(context)),
+		)
+		return
+	}
 	var body savedWorkflowDraftValidateHTTPBody
 	if !s.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{
 		maxBytes:            maxControlJSONRequestBodyBytes,
@@ -259,17 +276,12 @@ func (s *Server) handleValidateWorkflowDraft(writer http.ResponseWriter, request
 		return
 	}
 	payload := savedWorkflowDraftPayloadFromDocument(body.Draft)
-	context, failureCode := savedWorkflowDraftContextFromRequest(
-		request,
-		trace,
-		payload.WorkspaceID,
-		payload.ApplicationID,
-		"workflow_drafts:write",
-		false,
-		"validate",
-	)
-	if failureCode != "" {
-		writeSavedWorkflowDraftResult(writer, trace, context, savedWorkflowDraftFailure(failureCode, savedWorkflowDraftAuditMetadata(context)))
+	context = savedWorkflowDraftMutationContext(request, trace, auth, payload.ApplicationID, false, "validate")
+	if payload.WorkspaceID != auth.ResourceBinding.WorkspaceID {
+		writeSavedWorkflowDraftResultWithStatus(
+			writer, http.StatusForbidden, trace, context,
+			savedWorkflowDraftFailure("workspace_binding_mismatch", savedWorkflowDraftAuditMetadata(context)),
+		)
 		return
 	}
 	result := s.savedWorkflowDraftService().ValidateDraft(context, ValidateWorkflowDraftRequest{Payload: payload})
@@ -334,14 +346,46 @@ func savedWorkflowDraftContextFromRequest(
 	return context, ""
 }
 
+func savedWorkflowDraftMutationContext(
+	request *http.Request,
+	trace requestTrace,
+	auth controlPlaneReadAuthContext,
+	applicationID string,
+	writeEnabled bool,
+	auditSuffix string,
+) SavedWorkflowDraftContext {
+	return SavedWorkflowDraftContext{
+		RequestContext:  request.Context(),
+		RequestID:       trace.requestID,
+		TenantRef:       strings.TrimSpace(auth.TenantBinding),
+		WorkspaceID:     strings.TrimSpace(auth.ResourceBinding.WorkspaceID),
+		ApplicationID:   strings.TrimSpace(applicationID),
+		ActorRef:        strings.TrimSpace(auth.SubjectBinding),
+		OwnerSubjectRef: strings.TrimSpace(auth.SubjectBinding),
+		ScopeGrants:     append([]string{}, auth.ScopeGrants...),
+		AuditRef:        auditRefForSavedWorkflowDraft(trace, auditSuffix),
+		WriteEnabled:    writeEnabled,
+	}
+}
+
 func writeSavedWorkflowDraftResult(
 	writer http.ResponseWriter,
 	trace requestTrace,
 	context SavedWorkflowDraftContext,
 	result SavedWorkflowDraftResult,
 ) {
+	writeSavedWorkflowDraftResultWithStatus(writer, http.StatusOK, trace, context, result)
+}
+
+func writeSavedWorkflowDraftResultWithStatus(
+	writer http.ResponseWriter,
+	status int,
+	trace requestTrace,
+	context SavedWorkflowDraftContext,
+	result SavedWorkflowDraftResult,
+) {
 	failureCode := savedWorkflowDraftFailureCodePointer(result.FailureCode)
-	writeObservedJSON(writer, http.StatusOK, trace, savedWorkflowDraftEnvelope{
+	writeObservedJSON(writer, status, trace, savedWorkflowDraftEnvelope{
 		RequestID:           trace.requestID,
 		WorkspaceID:         strings.TrimSpace(context.WorkspaceID),
 		ApplicationID:       strings.TrimSpace(context.ApplicationID),

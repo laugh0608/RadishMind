@@ -15,14 +15,29 @@ const (
 )
 
 var workspacePermissionAllowlist = map[string]struct{}{
-	"applications:read":    {},
-	"applications:write":   {},
-	"applications:archive": {},
-	"api_keys:read":        {},
-	"api_keys:write":       {},
-	"api_keys:revoke":      {},
-	"usage:read":           {},
-	"runs:read":            {},
+	"applications:read":                        {},
+	"applications:write":                       {},
+	"applications:archive":                     {},
+	"api_keys:read":                            {},
+	"api_keys:write":                           {},
+	"api_keys:revoke":                          {},
+	"usage:read":                               {},
+	"runs:read":                                {},
+	"workflow_drafts:read":                     {},
+	"workflow_drafts:write":                    {},
+	"application_drafts:read":                  {},
+	"application_drafts:write":                 {},
+	"prompt_application_templates:read":        {},
+	"prompt_application_templates:read_source": {},
+	"prompt_application_templates:write":       {},
+	"prompt_application_templates:version":     {},
+	"prompt_application_templates:bind":        {},
+	"agent_copilot_profiles:read":              {},
+	"agent_copilot_profiles:read_source":       {},
+	"agent_copilot_profiles:write":             {},
+	"agent_copilot_profiles:version":           {},
+	"agent_copilot_profiles:bind":              {},
+	"workflow_rag_promotions:bind":             {},
 }
 
 type VerifiedWorkspaceMembershipAssertion struct {
@@ -36,9 +51,9 @@ type VerifiedWorkspaceMembershipAssertion struct {
 }
 
 type WorkspaceMembershipRequest struct {
-	Auth               controlPlaneReadAuthContext
-	ActiveWorkspaceID  string
-	RequiredPermission string
+	Auth                controlPlaneReadAuthContext
+	ActiveWorkspaceID   string
+	RequiredPermissions []string
 }
 
 type WorkspaceMembershipDecision struct {
@@ -77,8 +92,8 @@ func (provider deterministicDevTestWorkspaceMembershipProvider) AuthorizeWorkspa
 	if !validControlPlaneReadAuthReference(workspaceID, false) {
 		return workspaceMembershipFailure("workspace_binding_mismatch", http.StatusForbidden)
 	}
-	permission := strings.TrimSpace(request.RequiredPermission)
-	if _, allowed := workspacePermissionAllowlist[permission]; !allowed {
+	permissions, valid := normalizeRequiredWorkspacePermissions(request.RequiredPermissions)
+	if !valid {
 		return workspaceMembershipFailure("workspace_permission_denied", http.StatusForbidden)
 	}
 	now := provider.now().UTC()
@@ -93,8 +108,10 @@ func (provider deterministicDevTestWorkspaceMembershipProvider) AuthorizeWorkspa
 		if !assertion.ExpiresAt.IsZero() && !assertion.ExpiresAt.After(now) {
 			return workspaceMembershipFailure("workspace_membership_expired", http.StatusForbidden)
 		}
-		if !controlPlaneReadHasScope(assertion.PermissionGrants, permission) {
-			return workspaceMembershipFailure("workspace_permission_denied", http.StatusForbidden)
+		for _, permission := range permissions {
+			if !controlPlaneReadHasScope(assertion.PermissionGrants, permission) {
+				return workspaceMembershipFailure("workspace_permission_denied", http.StatusForbidden)
+			}
 		}
 		binding := auth.ResourceBinding
 		binding.WorkspaceID = workspaceID
@@ -109,6 +126,26 @@ func (provider deterministicDevTestWorkspaceMembershipProvider) AuthorizeWorkspa
 		return workspaceMembershipFailure("workspace_binding_mismatch", http.StatusForbidden)
 	}
 	return workspaceMembershipFailure("workspace_membership_denied", http.StatusForbidden)
+}
+
+func normalizeRequiredWorkspacePermissions(required []string) ([]string, bool) {
+	if len(required) == 0 {
+		return nil, false
+	}
+	permissions := make([]string, 0, len(required))
+	seen := make(map[string]struct{}, len(required))
+	for _, raw := range required {
+		permission := strings.TrimSpace(raw)
+		if _, allowed := workspacePermissionAllowlist[permission]; !allowed {
+			return nil, false
+		}
+		if _, duplicate := seen[permission]; duplicate {
+			continue
+		}
+		seen[permission] = struct{}{}
+		permissions = append(permissions, permission)
+	}
+	return permissions, len(permissions) > 0
 }
 
 func workspaceMembershipFailure(code string, status int) WorkspaceMembershipDecision {

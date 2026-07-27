@@ -434,6 +434,9 @@ func newSavedWorkflowDraftHTTPTestServerWithStoreMode(writeEnabled bool, storeMo
 func setSavedWorkflowDraftDevHeaders(req *http.Request, scopes string) {
 	setControlPlaneReadDevAuthHeaders(req)
 	req.Header.Set(controlPlaneReadDevScopesHeader, scopes)
+	req.Header.Set(activeWorkspaceHeader, "workspace_demo")
+	req.Header.Set(controlPlaneReadDevMembershipHeader, "workspace_demo")
+	req.Header.Set(controlPlaneReadDevMembershipPermHeader, scopes)
 	req.Header.Set(savedWorkflowDraftDevWorkspaceHeader, "workspace_demo")
 	req.Header.Set(savedWorkflowDraftDevApplicationHeader, "app_flow_copilot")
 }

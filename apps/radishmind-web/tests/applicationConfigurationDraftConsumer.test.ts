@@ -101,6 +101,9 @@ test("Application draft save carries application scope and maps version conflict
       assert.equal(headers.get("X-RadishMind-Dev-Application-Draft-Workspace"), "workspace_demo");
       assert.equal(headers.get("X-RadishMind-Dev-Application-Draft-Application"), "app_docs_assistant");
       assert.equal(headers.get("X-RadishMind-Dev-Read-Scopes"), "application_drafts:read,application_drafts:write");
+      assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+      assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+      assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "application_drafts:write");
       const body = JSON.parse(String(init?.body));
       assert.equal(body.expected_draft_version, 1);
       assert.equal(body.draft.application_id, "app_docs_assistant");
@@ -237,6 +240,7 @@ test("Application draft Prompt binding sends ref inputs and restores v3 exact di
   );
   assert.equal(captured?.url.endsWith("/application-configuration-drafts/app-config-prompt/prompt-template-binding"), true);
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_drafts:read,application_drafts:write,prompt_application_templates:bind");
+  assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "application_drafts:write,prompt_application_templates:bind");
   assert.deepEqual(captured?.body, {
     workspace_id: "workspace_demo",
     application_id: promptBaseline.applicationId,
@@ -316,6 +320,7 @@ test("Application draft Agent binding sends exact Profile identity and restores 
     );
     assert.equal(captured?.url.endsWith("/application-configuration-drafts/app-config-agent/agent-copilot-profile-binding"), true);
     assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_drafts:read,application_drafts:write,agent_copilot_profiles:bind");
+    assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "application_drafts:write,agent_copilot_profiles:bind");
     assert.deepEqual(captured?.body, {
       workspace_id: "workspace_demo",
       application_id: agentBaseline.applicationId,

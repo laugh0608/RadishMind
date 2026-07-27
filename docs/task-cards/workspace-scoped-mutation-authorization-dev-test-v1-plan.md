@@ -2,7 +2,7 @@
 
 更新时间：2026-07-27
 
-状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_a_complete_batch_b_ready`
+状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_b_complete_batch_c_ready`
 
 对应功能文档：[Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](../features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md)
 
@@ -115,12 +115,35 @@ dev/test enablement
 - dev headers、signed-test、Web active workspace / dev membership 分离、memory / SQLite / PostgreSQL、吊销、重启、敏感扫描、完整 Platform HTTP、定向 race、`go vet`、Web 246 项测试和 production build 均通过。
 - A2 没有修改 read route、application invocation、Gateway API key auth、repository interface、record schema、migration、expected-version CAS 或 production enablement；下一步只复核批次 B。
 
+## 批次 B：创作 owner
+
+### 范围
+
+- Workflow Draft validate / save；
+- Application Configuration Draft validate / save、Prompt Template binding、Agent Profile binding；
+- Prompt Template validate / save / version；
+- Agent Profile validate / save / version。
+
+### 固定决策
+
+- 单权限与组合权限统一进入 `authorizeWorkspaceScopedPermissions`；组合权限不得循环调用 membership provider。
+- 12 条 mutation 均在 body 解码前完成授权；body workspace 只做 verified active workspace 精确一致性校验。
+- Configuration Draft 可选 binding 能力由 verified identity 与 membership grants 交集派生；显式 binding 路由仍必须原子要求基础写权限与对应 bind 权限。
+- 历史 owner dev workspace / application header 不再建立 mutation authority；既有 read route 暂不随本批迁移。
+
+### 完成记录（2026-07-27）
+
+- permission registry、signed-test projection 与共享 provider 已支持本批单项 / 组合权限；Prompt / Agent binding 的第二权限缺失分别在 identity 或单次 membership decision 阶段失败。
+- 四类 save 拒绝矩阵证明 identity、selection、membership、body binding 与 OIDC unavailable 均在业务 owner 前失败，owner 调用为 0；双权限测试同时固定 provider 调用次数。
+- 既有正向 HTTP 覆盖 validate、save、immutable version、Prompt binding 与 Agent binding；Web 四类 consumer 已发送 active workspace 和最小 dev membership permission。
+- memory、SQLite、PostgreSQL 与 owner CAS / immutable / ref-only 语义保持不变；完整 Go 与 Web、PostgreSQL integration suite 已通过。
+- 本批没有进入 Publish Candidate、Definition Candidate、RAG Promotion、Runtime Assignment、Session、Run、Evaluation 或 application API key invocation。
+
 ## 后续批次
 
-1. 批次 B：Workflow Draft、Application Configuration Draft、Prompt Template 与 Agent Profile。
-2. 批次 C：Publish Candidate、Definition Candidate、RAG Promotion 与 Runtime Assignment。
-3. 批次 D：Workflow Run、Application Session / Turn 与人类受控执行。
-4. 批次 E：RAG Dataset / Snapshot、HTTP Tool 与 Evaluation。
+1. 批次 C：Publish Candidate、Definition Candidate、RAG Promotion 与 Runtime Assignment。
+2. 批次 D：Workflow Run、Application Session / Turn 与人类受控执行。
+3. 批次 E：RAG Dataset / Snapshot、HTTP Tool 与 Evaluation。
 
 每批开始前必须从功能文档 inventory 重读真实 permission、workspace 来源、owner 和副作用。若出现公开 API、schema、幂等协议、provider 或网络边界变化，先更新功能文档与本任务卡。
 
@@ -138,4 +161,4 @@ dev/test enablement
 - 不把 active workspace、body workspace、旧 dev header、resource record 或 API key 当作人类 membership proof。
 - 不修改 application API key invocation 的逐请求授权模型。
 - 不启用 production OIDC、production membership、quota / billing、自动发布、自动确认、replay、unrestricted tool 或业务写回。
-- 不从已完成的 A1 / A2 直接扩审查 / 激活、Session、Run 或 Evaluation runtime；批次 B 先复核四类创作 owner 的真实权限与 context。
+- 不从已完成的批次 A / B 直接复制到审查 / 激活、Session、Run 或 Evaluation runtime；批次 C 先复核多 owner 重读、组合权限和状态转换副作用。

@@ -639,6 +639,9 @@ function profileHeaders(
   operation: string,
 ): Record<string, string> {
   const requestId = createRequestId(`agent-profile-${operation}`);
+  const mutationPermissions = scopes.filter((scope) =>
+    scope === "agent_copilot_profiles:write" || scope === "agent_copilot_profiles:version"
+  );
   return {
     Accept: "application/json",
     "X-Request-Id": requestId,
@@ -647,6 +650,11 @@ function profileHeaders(
     "X-RadishMind-Dev-Read-Subject": config.subjectRef,
     "X-RadishMind-Dev-Read-Scopes": scopes.join(","),
     "X-RadishMind-Dev-Read-Audit": `audit_${requestId}_agent_copilot`,
+    ...(mutationPermissions.length === 0 ? {} : {
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Permissions": mutationPermissions.join(","),
+    }),
     "X-RadishMind-Dev-Agent-Copilot-Profile-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Agent-Copilot-Profile-Application": applicationId,
   };

@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-27 当前执行口径：[Workspace-scoped Mutation Authorization](user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 首批 A1 Application Catalog 与 A2 API Key Lifecycle 已完成：identity / membership 双重权限、active workspace 唯一选择、稳定拒绝映射、业务 repository zero-query、API key 副作用顺序、Web header 分离及 memory / SQLite / PostgreSQL 回归均已成立。下一步先复核同一任务卡批次 B 的四类创作 owner；[工作区运营收件箱](user-workspace/workspace-operations-inbox-dev-test-v1.md)跨全部分页窗口的批次 B 继续等待真实使用证据。真实 secret / endpoint、production、自动路由、quota / billing 与真实 OIDC 继续关闭。
+2026-07-27 当前执行口径：[Workspace-scoped Mutation Authorization](user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 批次 A 与 B 已完成：Application Catalog、API Key Lifecycle、Workflow Draft、Application Configuration Draft、Prompt Template 与 Agent Profile 的 identity / membership 双重权限、active workspace 唯一选择、原子组合权限、稳定拒绝映射、owner zero-call、Web header 分离及 memory / SQLite / PostgreSQL 回归均已成立。下一步先复核同一任务卡批次 C 的审查 / 激活 owner；[工作区运营收件箱](user-workspace/workspace-operations-inbox-dev-test-v1.md)跨全部分页窗口的批次 B 继续等待真实使用证据。真实 secret / endpoint、production、自动路由、quota / billing 与真实 OIDC 继续关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -40,7 +40,7 @@
 
 | 功能文档 | 当前作用 | 下一步默认入口 |
 | --- | --- | --- |
-| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | Mutation Authorization 首批 A1 / A2 已完成；下一步复核批次 B 创作 owner |
+| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | Mutation Authorization 批次 A / B 已完成；下一步复核批次 C 审查 / 激活 owner |
 | [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route 已完成草案、审查、受控启用、Admin Web、Gateway 快照消费与双数据库产品验证；身份、配额、凭据、审计和部署边界继续保留 | 选择新的管理控制面产品能力前先更新对应功能设计，不从已关闭专题原地扩生产 secret、quota / billing 或真实 OIDC |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
 | [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；HTTP Tool、RAG Retrieval、知识质量 / 晋级链、Application RAG durable invocation 和 immutable definition-bound execution 均已有可复验证据 | 作为应用开发工作区的既有权威能力来源，不从 executor 或 activation 原地扩自动执行、调度、重放或生产能力 |

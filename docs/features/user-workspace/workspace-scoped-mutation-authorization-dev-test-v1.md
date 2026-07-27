@@ -2,7 +2,7 @@
 
 更新时间：2026-07-27
 
-状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_a_complete_batch_b_ready`
+状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_b_complete_batch_c_ready`
 
 ## 文档目的
 
@@ -258,7 +258,27 @@
 - dev headers、signed-test token 与 Web header 分离已覆盖；read route、三类 application invocation、Gateway API key auth、record schema、repository interface、migration、CAS 与历史 request / Run 均保持不变。
 - memory、SQLite、PostgreSQL、吊销、重启恢复、敏感信息扫描、完整 Platform HTTP、定向 race、`go vet`、Web 246 项测试和 production build 均通过。
 
-批次 A1 和 A2 使用同一任务卡并已按顺序完成和验证。当前允许进入批次 B 设计复核，但不得直接把 A1 / A2 的单权限 handler 形态复制到可能需要组合权限的后续 owner。
+批次 A1 和 A2 使用同一任务卡并已按顺序完成和验证。
+
+### 批次 B：创作 owner
+
+范围：
+
+- Workflow Draft validate / save；
+- Application Configuration Draft validate / save，以及 Prompt Template / Agent Profile 两条显式 binding；
+- Prompt Template validate / save / immutable version；
+- Agent Profile validate / save / immutable version。
+
+实施结果（2026-07-27）：
+
+- 共享 workspace authorization 已支持权限集合。identity 权限在 provider 前一次性校验，membership provider 每个请求只调用一次并原子验证全部 required permissions；两条 binding 路由分别要求 `application_drafts:write` + `prompt_application_templates:bind`、`application_drafts:write` + `agent_copilot_profiles:bind`。
+- 12 条 mutation 均在 JSON body 解码前完成 identity、identity permission、active workspace 与 membership decision；body workspace 只与 verified binding 精确比较，tenant、workspace、actor 与 owner subject 不再来自旧 owner dev header。
+- Configuration Draft save 中已有的可选 RAG / Prompt / Agent binding 能力只按 verified identity grants 与 verified membership grants 的交集启用；不循环调用 provider，也不因基础草案保存隐式授予 binding permission。
+- 跨四类 owner 的拒绝矩阵覆盖 identity permission、selection、membership 缺失 / 过期 / permission、workspace mismatch 与 OIDC unavailable；owner spy 全部为 0。组合权限测试证明 identity 第二权限缺失时 provider 为 0，membership 第二权限缺失时 provider 恰好调用一次且 owner 为 0。
+- signed-test permission projection 已补齐 Workflow Draft 与 Application Draft；四类 validate 路由均通过真实签名 token + signed membership assertion。Web mutation 发送 active workspace 和精确 dev membership permission，读请求仍沿既有 header / owner 边界。
+- memory、SQLite、PostgreSQL owner contract、完整 Platform Go tests、Web 246 项测试 / production build 与 PostgreSQL integration suite 已通过；repository interface、schema、migration、CAS、application API key invocation 和批次 C 审查 / 激活 owner 均未改变。
+
+批次 B 已关闭。下一步允许进入批次 C 设计复核，但必须先核对 Publish Candidate、Definition Candidate、RAG Promotion 与三类 Runtime Assignment 的多 owner 重读和组合权限，不从创作 handler 直接复制实现。
 
 ## 后续批次顺序
 
@@ -286,6 +306,13 @@
 - Web 授权消费测试确认 active workspace 与 membership proof 分离，切换后不复用旧 response 或 credential。
 - 相邻 Go tests、定向 race、`go vet ./...`、Web tests / build、fast 与全量仓库检查按任务卡执行。
 
+批次 B：
+
+- 四类创作 owner 的 validate / save / version / binding 正向链保持原有 CAS、不可变版本和 ref-only binding 语义。
+- identity、selection、membership 与 body binding 负向矩阵在业务 owner 前失败，组合权限由一次 provider decision 原子判断。
+- dev headers、signed-test 与 OIDC unavailable 失败关闭均可复验；Web mutation 只在 dev mode 携带 membership proof。
+- memory、SQLite、PostgreSQL、定向 race、`go vet`、Web tests / build、fast 与全量仓库检查通过。
+
 ## 隐私边界
 
 - raw identity token、membership assertion、dev membership headers 与 API key 不进入日志、audit record、error body、Run input 或 committed fixture。
@@ -308,7 +335,7 @@
 
 ## 停止线
 
-- 任务卡已冻结且首批 A1 / A2 已完成；当前只复核批次 B 四类创作 owner，不进入审查 / 激活、执行或组合 owner。
+- 任务卡已冻结且批次 A、B 已完成；当前下一步只复核批次 C 的审查 / 激活 owner，不进入执行或批次 E 组合 owner。
 - 不把 active workspace、body workspace、旧 dev header、application owner 或 API key 解释成 membership proof。
 - 不创建新的用户、tenant、role、membership、Application、Workflow、Run、Evaluation 或 credential owner。
 - 不通过统一授权专题顺带启用 production OIDC、production API key、quota / billing、自动发布、自动确认、replay、unrestricted tool 或业务写回。

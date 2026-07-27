@@ -732,7 +732,7 @@ async function requestSavedWorkflowDraftEnvelopeForApplication(
   }
   const response = await fetch(`${config.baseUrl}${path}`, {
     ...init,
-    headers: savedWorkflowDraftHeadersForApplication(config, applicationRef, requestId),
+    headers: savedWorkflowDraftHeadersForApplication(config, applicationRef, requestId, init.method === "POST"),
   });
   const body: unknown = await response.json();
   if (!response.ok) {
@@ -758,6 +758,7 @@ async function requestSavedWorkflowDraftListEnvelope(
       config,
       applicationRef,
       `dev-saved-draft-list-${applicationRef}`,
+      false,
     ),
   });
   const body: unknown = await response.json();
@@ -774,6 +775,7 @@ function savedWorkflowDraftHeadersForApplication(
   config: WorkflowSavedDraftConsumerConfig,
   applicationRef: string,
   requestId: string,
+  mutation: boolean,
 ): HeadersInit {
   return {
     Accept: "application/json",
@@ -784,6 +786,11 @@ function savedWorkflowDraftHeadersForApplication(
     "X-RadishMind-Dev-Read-Subject": config.subjectRef,
     "X-RadishMind-Dev-Read-Scopes": DEFAULT_SCOPES,
     "X-RadishMind-Dev-Read-Audit": "audit_dev_saved_draft_consumer",
+    ...(mutation ? {
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Permissions": "workflow_drafts:write",
+    } : {}),
     "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Workflow-Application": applicationRef,
   };

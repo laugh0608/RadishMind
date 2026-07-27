@@ -294,9 +294,25 @@ func (s *Server) authorizeWorkspaceScopedRequest(
 	request *http.Request,
 	requiredPermission string,
 ) (controlPlaneReadAuthContext, string, int) {
-	auth, failureCode, status := authorizeControlPlaneReadRequest(request, "", requiredPermission)
+	return s.authorizeWorkspaceScopedPermissions(request, requiredPermission)
+}
+
+func (s *Server) authorizeWorkspaceScopedPermissions(
+	request *http.Request,
+	requiredPermissions ...string,
+) (controlPlaneReadAuthContext, string, int) {
+	permissions, valid := normalizeRequiredWorkspacePermissions(requiredPermissions)
+	if !valid {
+		return controlPlaneReadAuthContext{}, "workspace_permission_denied", http.StatusForbidden
+	}
+	auth, failureCode, status := authorizeControlPlaneReadRequest(request, "", permissions[0])
 	if failureCode != "" {
 		return auth, failureCode, status
+	}
+	for _, permission := range permissions[1:] {
+		if !controlPlaneReadHasScope(auth.ScopeGrants, permission) {
+			return auth, "scope_denied", http.StatusForbidden
+		}
 	}
 	values := request.Header.Values(activeWorkspaceHeader)
 	if len(values) == 0 || strings.TrimSpace(values[0]) == "" {
@@ -310,13 +326,19 @@ func (s *Server) authorizeWorkspaceScopedRequest(
 		return auth, "workspace_membership_unavailable", http.StatusServiceUnavailable
 	}
 	decision := provider.AuthorizeWorkspace(request.Context(), WorkspaceMembershipRequest{
-		Auth: auth, ActiveWorkspaceID: strings.TrimSpace(values[0]), RequiredPermission: requiredPermission,
+		Auth: auth, ActiveWorkspaceID: strings.TrimSpace(values[0]), RequiredPermissions: permissions,
 	})
 	if decision.FailureCode != "" {
 		return auth, decision.FailureCode, decision.HTTPStatus
 	}
 	auth.ResourceBinding = decision.Binding
 	return auth, "", http.StatusOK
+}
+
+func workspacePermissionEnabled(auth controlPlaneReadAuthContext, permission string) bool {
+	return auth.ResourceBinding.WorkspaceMembershipVerified &&
+		controlPlaneReadHasScope(auth.ScopeGrants, permission) &&
+		controlPlaneReadHasScope(auth.ResourceBinding.WorkspacePermissionGrants, permission)
 }
 
 func controlPlaneReadRepositoryRequestFromQuery(request *http.Request, filters map[string]string, strictAuditPagination bool) (ReadRepositoryRequest, string) {

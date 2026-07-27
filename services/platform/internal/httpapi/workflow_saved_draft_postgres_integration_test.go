@@ -490,6 +490,9 @@ func setPostgresSavedWorkflowDraftHeaders(
 		"workflow_drafts:read,workflow_drafts:write",
 	)
 	request.Header.Set(controlPlaneReadDevAuditHeader, "audit_postgres_saved_draft_integration")
+	request.Header.Set(activeWorkspaceHeader, workspaceID)
+	request.Header.Set(controlPlaneReadDevMembershipHeader, workspaceID)
+	request.Header.Set(controlPlaneReadDevMembershipPermHeader, "workflow_drafts:write")
 	request.Header.Set(savedWorkflowDraftDevWorkspaceHeader, workspaceID)
 	request.Header.Set(savedWorkflowDraftDevApplicationHeader, applicationID)
 }
