@@ -364,7 +364,23 @@ export function buildWorkflowRAGRequestHeaders(
     if (!token) throw new Error("workflow RAG auth token is unavailable in browser memory");
     return { Accept: "application/json", "X-Request-Id": requestId, Authorization: `Bearer ${token}`, "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId, "X-RadishMind-Dev-Workflow-Application": applicationId };
   }
-  return { Accept: "application/json", "X-Request-Id": requestId, "X-RadishMind-Dev-Read-Identity": "radishmind-web-workflow-rag-dev", "X-RadishMind-Dev-Read-Tenant": config.tenantRef, "X-RadishMind-Dev-Read-Subject": config.subjectRef, "X-RadishMind-Dev-Read-Scopes": scopes.join(","), "X-RadishMind-Dev-Read-Audit": `audit-${requestId}`, "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId, "X-RadishMind-Dev-Workflow-Application": applicationId };
+  const headers = { Accept: "application/json", "X-Request-Id": requestId, "X-RadishMind-Dev-Read-Identity": "radishmind-web-workflow-rag-dev", "X-RadishMind-Dev-Read-Tenant": config.tenantRef, "X-RadishMind-Dev-Read-Subject": config.subjectRef, "X-RadishMind-Dev-Read-Scopes": scopes.join(","), "X-RadishMind-Dev-Read-Audit": `audit-${requestId}`, "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId, "X-RadishMind-Dev-Workflow-Application": applicationId };
+  const mutationScopes = new Set([
+    "workflow_rag_snapshots:write",
+    "workflow_rag_snapshots:archive",
+    "workflow_rag:execute",
+    "workflow_runs:execute",
+    "workflow_rag_evaluation_datasets:write",
+    "workflow_rag_evaluation_datasets:review",
+    "workflow_rag_evaluation_datasets:archive",
+  ]);
+  if (!scopes.some((scope) => mutationScopes.has(scope))) return headers;
+  return {
+    ...headers,
+    "X-RadishMind-Active-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Read-Membership-Permissions": scopes.join(","),
+  };
 }
 
 function readBoundary(config: WorkflowRAGSnapshotConfig, applicationId: string): "offline" | "scope_denied" | "" {

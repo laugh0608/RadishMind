@@ -37,10 +37,7 @@ func (server *Server) handleStartWorkflowDefinitionRun(writer http.ResponseWrite
 		return
 	}
 	runContext = workflowRunMutationContext(request, trace, auth, body.ApplicationID, "definition-start")
-	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID ||
-		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevWorkspaceHeader)) != auth.ResourceBinding.WorkspaceID ||
-		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevApplicationHeader)) != runContext.ApplicationID ||
-		!validControlPlaneReadAuthReference(runContext.ApplicationID, false) {
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, runContext.ApplicationID) {
 		writeWorkflowRunResultWithStatus(writer, http.StatusForbidden, trace, runContext, workflowRunFailure(WorkflowRunFailureCode("workspace_binding_mismatch"), "Workflow definition run workspace binding is denied."))
 		return
 	}

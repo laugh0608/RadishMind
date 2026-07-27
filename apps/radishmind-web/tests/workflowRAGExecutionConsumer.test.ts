@@ -120,6 +120,9 @@ test("execution posts only the bounded request and maps metadata-only v3 with a 
     assert.equal(result.record?.sideEffects.providerCalls, 1);
     assert.match(captured!.url, /\/workflow-drafts\/draft_app_flow_copilot_rag_v1_01\/retrieval-executions$/u);
     assert.equal(captured!.headers.get("X-RadishMind-Dev-Read-Scopes"), "workflow_rag:execute,workflow_runs:execute,workflow_drafts:read,workflow_rag_snapshots:read");
+    assert.equal(captured!.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(captured!.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+    assert.equal(captured!.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_rag:execute,workflow_runs:execute,workflow_drafts:read,workflow_rag_snapshots:read");
     assert.deepEqual(captured!.body, { workspace_id: "workspace_demo", application_id: "app_flow_copilot", draft_version: 4, input_text: "Explain the supported boundary.", model: "mock-rag", temperature: 0.2 });
     for (const forbidden of ["fragment", "rank", "citation", "snapshot_digest", "profile_digest", "rag_ref"]) assert.equal(forbidden in captured!.body, false);
     assert.equal(JSON.stringify(result.record).includes("Explain the supported boundary"), false);

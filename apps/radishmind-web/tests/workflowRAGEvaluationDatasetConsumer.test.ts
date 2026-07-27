@@ -72,6 +72,9 @@ test("create sends complete replacement input and exact write plus snapshot scop
     assert.equal(result.version?.samples[0]?.queryText, "approved pressure procedure");
     assert.equal(captured?.url, "http://platform.test/v1/user-workspace/workflow-rag-evaluation-datasets");
     assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "workflow_rag_evaluation_datasets:write,workflow_rag_snapshots:read");
+    assert.equal(captured?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+    assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_rag_evaluation_datasets:write,workflow_rag_snapshots:read");
     assert.deepEqual(captured?.body, {
       workspace_id: "workspace_demo",
       application_id: applicationId,
@@ -125,6 +128,7 @@ test("candidate review is metadata-only, exact scoped, and rejects query or unkn
     assert.equal(created.review?.conclusion, "regressed");
     assert.equal(JSON.stringify(created).includes("approved pressure procedure"), false);
     assert.equal(requests[0]?.headers.get("X-RadishMind-Dev-Read-Scopes"), "workflow_rag_evaluation_datasets:review,workflow_rag_evaluation_datasets:read,workflow_rag_snapshots:read");
+    assert.equal(requests[0]?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_rag_evaluation_datasets:review,workflow_rag_evaluation_datasets:read,workflow_rag_snapshots:read");
     assert.deepEqual(requests[0]?.body, { workspace_id: "workspace_demo", application_id: applicationId, dataset_version: 1, dataset_digest: digestA, candidate_snapshot: snapshotBindingDocument(candidateId, "workflow.rag.candidate_docs.v1", digestC) });
 
     const leaked = reviewOperationEnvelope();
@@ -165,6 +169,7 @@ test("review history, version CAS, and archive never call retrieval execution", 
     const archived = await archiveWorkflowRAGEvaluationDataset(config, applicationId, datasetId, 2);
     assert.equal(archived.status, "archived");
     assert.equal(requests[2]?.headers.get("X-RadishMind-Dev-Read-Scopes"), "workflow_rag_evaluation_datasets:archive");
+    assert.equal(requests[2]?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_rag_evaluation_datasets:archive");
     assert.equal(requests.some((request) => request.url.includes("retrieval-executions")), false);
   } finally { globalThis.fetch = originalFetch; }
 });

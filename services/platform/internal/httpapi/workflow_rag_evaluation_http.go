@@ -97,13 +97,20 @@ func (server *Server) handleCreateWorkflowRAGEvaluationDataset(writer http.Respo
 	if !server.allowWorkflowRAGEvaluationDev(writer, trace) {
 		return
 	}
+	requiredPermissions := []string{"workflow_rag_evaluation_datasets:write", "workflow_rag_snapshots:read"}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, requiredPermissions...)
+	ctx := workflowRAGEvaluationMutationContext(request, trace, auth, "", "create")
+	if failure != "" {
+		writeWorkflowRAGEvaluationResultWithStatus(writer, status, trace, ctx, workflowRAGEvaluationFailure(failure))
+		return
+	}
 	var body workflowRAGEvaluationDatasetCreateBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: workflowRAGEvaluationMaxRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := workflowRAGEvaluationContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "create", "workflow_rag_evaluation_datasets:write", "workflow_rag_snapshots:read")
-	if failure != "" {
-		writeWorkflowRAGEvaluationResult(writer, trace, ctx, workflowRAGEvaluationFailure(failure))
+	ctx = workflowRAGEvaluationMutationContext(request, trace, auth, body.ApplicationID, "create")
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
+		writeWorkflowRAGEvaluationResultWithStatus(writer, http.StatusForbidden, trace, ctx, workflowRAGEvaluationFailure("workspace_binding_mismatch"))
 		return
 	}
 	writeWorkflowRAGEvaluationResult(writer, trace, ctx, server.workflowRAGEvaluationDatasetService().Create(ctx, WorkflowRAGEvaluationDatasetCreateInput{DatasetKey: body.DatasetKey, DisplayName: body.DisplayName, ContentClassification: body.ContentClassification, BaselineSnapshot: body.BaselineSnapshot, Thresholds: body.Thresholds, ReviewSummary: body.ReviewSummary, Samples: body.Samples}))
@@ -159,13 +166,20 @@ func (server *Server) handleVersionWorkflowRAGEvaluationDataset(writer http.Resp
 	if !server.allowWorkflowRAGEvaluationDev(writer, trace) {
 		return
 	}
+	requiredPermissions := []string{"workflow_rag_evaluation_datasets:write", "workflow_rag_snapshots:read"}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, requiredPermissions...)
+	ctx := workflowRAGEvaluationMutationContext(request, trace, auth, "", "version")
+	if failure != "" {
+		writeWorkflowRAGEvaluationResultWithStatus(writer, status, trace, ctx, workflowRAGEvaluationFailure(failure))
+		return
+	}
 	var body workflowRAGEvaluationDatasetVersionBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: workflowRAGEvaluationMaxRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := workflowRAGEvaluationContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "version", "workflow_rag_evaluation_datasets:write", "workflow_rag_snapshots:read")
-	if failure != "" {
-		writeWorkflowRAGEvaluationResult(writer, trace, ctx, workflowRAGEvaluationFailure(failure))
+	ctx = workflowRAGEvaluationMutationContext(request, trace, auth, body.ApplicationID, "version")
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
+		writeWorkflowRAGEvaluationResultWithStatus(writer, http.StatusForbidden, trace, ctx, workflowRAGEvaluationFailure("workspace_binding_mismatch"))
 		return
 	}
 	writeWorkflowRAGEvaluationResult(writer, trace, ctx, server.workflowRAGEvaluationDatasetService().Version(ctx, request.PathValue("dataset_id"), WorkflowRAGEvaluationDatasetVersionInput{ExpectedLatestVersion: body.ExpectedLatestVersion, DisplayName: body.DisplayName, ContentClassification: body.ContentClassification, BaselineSnapshot: body.BaselineSnapshot, Thresholds: body.Thresholds, ReviewSummary: body.ReviewSummary, Samples: body.Samples}))
@@ -176,13 +190,19 @@ func (server *Server) handleArchiveWorkflowRAGEvaluationDataset(writer http.Resp
 	if !server.allowWorkflowRAGEvaluationDev(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "workflow_rag_evaluation_datasets:archive")
+	ctx := workflowRAGEvaluationMutationContext(request, trace, auth, "", "archive")
+	if failure != "" {
+		writeWorkflowRAGEvaluationResultWithStatus(writer, status, trace, ctx, workflowRAGEvaluationFailure(failure))
+		return
+	}
 	var body workflowRAGEvaluationDatasetArchiveBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := workflowRAGEvaluationContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "archive", "workflow_rag_evaluation_datasets:archive")
-	if failure != "" {
-		writeWorkflowRAGEvaluationResult(writer, trace, ctx, workflowRAGEvaluationFailure(failure))
+	ctx = workflowRAGEvaluationMutationContext(request, trace, auth, body.ApplicationID, "archive")
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
+		writeWorkflowRAGEvaluationResultWithStatus(writer, http.StatusForbidden, trace, ctx, workflowRAGEvaluationFailure("workspace_binding_mismatch"))
 		return
 	}
 	writeWorkflowRAGEvaluationResult(writer, trace, ctx, server.workflowRAGEvaluationDatasetService().Archive(ctx, request.PathValue("dataset_id"), body.ExpectedLatestVersion))
@@ -193,13 +213,20 @@ func (server *Server) handleCreateWorkflowRAGCandidateReview(writer http.Respons
 	if !server.allowWorkflowRAGEvaluationDev(writer, trace) {
 		return
 	}
+	requiredPermissions := []string{"workflow_rag_evaluation_datasets:review", "workflow_rag_evaluation_datasets:read", "workflow_rag_snapshots:read"}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, requiredPermissions...)
+	ctx := workflowRAGEvaluationMutationContext(request, trace, auth, "", "candidate-review")
+	if failure != "" {
+		writeWorkflowRAGEvaluationResultWithStatus(writer, status, trace, ctx, workflowRAGEvaluationFailure(failure))
+		return
+	}
 	var body workflowRAGCandidateReviewCreateBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := workflowRAGEvaluationContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "candidate-review", "workflow_rag_evaluation_datasets:review", "workflow_rag_evaluation_datasets:read", "workflow_rag_snapshots:read")
-	if failure != "" {
-		writeWorkflowRAGEvaluationResult(writer, trace, ctx, workflowRAGEvaluationFailure(failure))
+	ctx = workflowRAGEvaluationMutationContext(request, trace, auth, body.ApplicationID, "candidate-review")
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
+		writeWorkflowRAGEvaluationResultWithStatus(writer, http.StatusForbidden, trace, ctx, workflowRAGEvaluationFailure("workspace_binding_mismatch"))
 		return
 	}
 	writeWorkflowRAGEvaluationResult(writer, trace, ctx, server.workflowRAGEvaluationDatasetService().CreateCandidateReview(ctx, request.PathValue("dataset_id"), WorkflowRAGCandidateReviewInput{DatasetVersion: body.DatasetVersion, DatasetDigest: body.DatasetDigest, CandidateSnapshot: body.CandidateSnapshot}))
@@ -254,6 +281,15 @@ func workflowRAGEvaluationContextFromRequest(request *http.Request, trace reques
 	return ctx, ""
 }
 
+func workflowRAGEvaluationMutationContext(request *http.Request, trace requestTrace, auth controlPlaneReadAuthContext, applicationID, suffix string) WorkflowRAGSnapshotContext {
+	runContext := workflowRunMutationContext(request, trace, auth, applicationID, "rag-evaluation-"+suffix)
+	return WorkflowRAGSnapshotContext{
+		RequestContext: runContext.RequestContext, RequestID: runContext.RequestID, TenantRef: runContext.TenantRef,
+		WorkspaceID: runContext.WorkspaceID, ApplicationID: runContext.ApplicationID,
+		ActorRef: runContext.ActorRef, AuditRef: runContext.AuditRef,
+	}
+}
+
 func (server *Server) allowWorkflowRAGEvaluationDev(writer http.ResponseWriter, trace requestTrace) bool {
 	if server.config.WorkflowRAGEvaluationDevEnabled {
 		return true
@@ -300,7 +336,11 @@ func workflowRAGEvaluationFailurePointer(code string) *string {
 }
 
 func writeWorkflowRAGEvaluationResult(writer http.ResponseWriter, trace requestTrace, ctx WorkflowRAGSnapshotContext, result WorkflowRAGEvaluationResult) {
-	writeObservedJSON(writer, http.StatusOK, trace, workflowRAGEvaluationEnvelope{RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, Resource: result.Resource, Version: result.Version, Review: result.Review, FailureCode: workflowRAGEvaluationFailurePointer(result.FailureCode), CurrentLatestVersion: result.CurrentLatestVersion, CurrentLifecycle: result.CurrentLifecycle, AuditRef: ctx.AuditRef})
+	writeWorkflowRAGEvaluationResultWithStatus(writer, http.StatusOK, trace, ctx, result)
+}
+
+func writeWorkflowRAGEvaluationResultWithStatus(writer http.ResponseWriter, status int, trace requestTrace, ctx WorkflowRAGSnapshotContext, result WorkflowRAGEvaluationResult) {
+	writeObservedJSON(writer, status, trace, workflowRAGEvaluationEnvelope{RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, Resource: result.Resource, Version: result.Version, Review: result.Review, FailureCode: workflowRAGEvaluationFailurePointer(result.FailureCode), CurrentLatestVersion: result.CurrentLatestVersion, CurrentLifecycle: result.CurrentLifecycle, AuditRef: ctx.AuditRef})
 }
 
 func writeWorkflowRAGEvaluationListResult(writer http.ResponseWriter, trace requestTrace, ctx WorkflowRAGSnapshotContext, result WorkflowRAGEvaluationListResult) {

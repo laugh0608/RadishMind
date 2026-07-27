@@ -27,17 +27,21 @@ func (server *Server) handleWorkflowRAGExecution(writer http.ResponseWriter, req
 	if !server.allowWorkflowRAGExecutionDev(writer, trace) {
 		return
 	}
+	auth, failureCode, status := server.authorizeWorkspaceScopedPermissions(request, workflowRAGExecutionRequiredScopes...)
+	runContext := workflowRunMutationContext(request, trace, auth, "", "rag-execute")
+	if failureCode != "" {
+		writeWorkflowRunResultWithStatus(writer, status, trace, runContext, workflowRAGExecutionFailure(failureCode))
+		return
+	}
 	var body workflowRAGExecutionHTTPBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{
 		maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true,
 	}) {
 		return
 	}
-	runContext, failureCode := workflowRunContextFromRequest(
-		request, trace, body.WorkspaceID, body.ApplicationID, "rag-execute", workflowRAGExecutionRequiredScopes...,
-	)
-	if failureCode != "" || !workflowRAGHasVerifiedActor(request) {
-		writeWorkflowRunResult(writer, trace, runContext, workflowRAGExecutionFailure(WorkflowRAGFailureScopeDenied))
+	runContext = workflowRunMutationContext(request, trace, auth, body.ApplicationID, "rag-execute")
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, runContext.ApplicationID) {
+		writeWorkflowRunResultWithStatus(writer, http.StatusForbidden, trace, runContext, workflowRAGExecutionFailure("workspace_binding_mismatch"))
 		return
 	}
 	result := server.workflowRAGExecutionService().Execute(runContext, WorkflowRAGExecutionRequest{

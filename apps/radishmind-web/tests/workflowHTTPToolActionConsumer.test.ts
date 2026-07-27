@@ -171,6 +171,9 @@ test("create sends only exact saved scope and public arguments, then maps a reda
   assert.equal("profile_id" in body, false);
   const headers = requests[0]?.init.headers as Record<string, string>;
   assert.equal(headers["X-RadishMind-Dev-Read-Scopes"], "workflow_drafts:read,workflow_tool_actions:plan");
+  assert.equal(headers["X-RadishMind-Active-Workspace"], "workspace_demo");
+  assert.equal(headers["X-RadishMind-Dev-Read-Membership-Workspace"], "workspace_demo");
+  assert.equal(headers["X-RadishMind-Dev-Read-Membership-Permissions"], "workflow_drafts:read,workflow_tool_actions:plan");
 });
 
 test("detail reload reads the durable scoped plan without a list route", async (t) => {
@@ -189,6 +192,8 @@ test("detail reload reads the durable scoped plan without a list route", async (
   assert.equal(requests[0]?.init.method, "GET");
   const headers = requests[0]?.init.headers as Record<string, string>;
   assert.equal(headers["X-RadishMind-Dev-Read-Scopes"], "workflow_tool_actions:read");
+  assert.equal(headers["X-RadishMind-Active-Workspace"], undefined);
+  assert.equal(headers["X-RadishMind-Dev-Read-Membership-Permissions"], undefined);
 });
 
 test("approval records a CAS decision and never calls an execution route", async (t) => {
@@ -215,6 +220,7 @@ test("approval records a CAS decision and never calls an execution route", async
   });
   const headers = requests[0]?.init.headers as Record<string, string>;
   assert.equal(headers["X-RadishMind-Dev-Read-Scopes"], "workflow_tool_actions:confirm");
+  assert.equal(headers["X-RadishMind-Dev-Read-Membership-Permissions"], "workflow_tool_actions:confirm");
 });
 
 test("CAS conflict automatically refreshes the durable detail before another decision", async (t) => {

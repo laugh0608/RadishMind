@@ -2,7 +2,7 @@
 
 更新时间：2026-07-27
 
-状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_d_complete_batch_e_ready`
+状态：`workspace_scoped_mutation_authorization_dev_test_v1_complete`
 
 对应功能文档：[Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](../features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md)
 
@@ -15,7 +15,7 @@
 ## 根因
 
 - Workspace-scoped Read Transition 已有 verified identity、active workspace、membership assertion 和 durable read projection，mutation handler 尚未统一消费该 binding。
-- Application Catalog 与 API Key Lifecycle 已完成 shared membership binding；后续 Workflow、Prompt、Agent、Session、Run 与 Evaluation 仍存在从 verified identity、body workspace 与旧 context builder 组合上下文的路径，body workspace 不是 membership proof。
+- Application Catalog、API Key Lifecycle、Workflow、Prompt、Agent、Session、Run、RAG、HTTP Tool 与 Evaluation 已完成 shared membership binding；body workspace 与旧 context builder 均不再建立 mutation authority。
 - Workflow、Prompt、Agent、Session、Run 和 Evaluation 存在多种 dev header / body workspace 组合，若不先建立稳定共享入口，后续会继续复制授权判断和失败映射。
 - API key create 还包含 credential 生成、hash、持久化和一次性交接，必须在资源根授权稳定后单独验证。
 
@@ -188,15 +188,39 @@ dev/test enablement
 - Session 管理动作保持零 Run 与零外部调用，Turn 继续只按 persisted authority 至多委托一次，两类 Run 保持 planned → external call → terminal 顺序；客户端不能覆盖 runtime credential 或 authority。
 - 上游 permission projection 与五类 Web consumer 已补齐；完整 Platform Go tests、定向 race、`go vet`、Web 246 项测试 / production build 与 PostgreSQL integration suite 通过。
 - repository interface、schema、migration、Session / Turn / Run CAS、idempotent replay、metadata-only persistence 与 application API key invocation 均未改变。
-- 批次 D 已关闭，累计 32 条 mutation 完成迁移；下一步只复核批次 E。
+- 批次 D 关闭时累计 32 条 mutation，并据此进入现已完成的批次 E。
 
-## 后续批次
+## 批次 E：RAG、HTTP Tool 与 Evaluation
+
+### 范围
+
+- RAG retrieval execution、Snapshot create / version / archive；
+- RAG Evaluation Dataset create / version / archive、Candidate Review；
+- HTTP Tool plan / confirmation / execution；
+- Workflow Evaluation Case create / revision、Suite create / decision。
+
+### 固定决策
+
+- 本批共 15 条 mutation；完整权限集合均在 body 前确定并由一次 membership decision 原子验证。
+- 授权与 binding 拒绝必须发生在 Snapshot / Dataset / Draft / Tool / Evaluation / Run owner、Gateway / provider 和网络调用之前。
+- RAG retrieval 与 HTTP Tool execution 保持既有最多一次外部副作用和 Run 终态顺序；Tool confirmation 与 Evaluation decision 不自动执行或发布。
+- 不修改 repository interface、schema、migration、CAS、幂等协议、API key invocation、tool allowlist、网络策略或 production enablement。
+
+### 完成记录（2026-07-27）
+
+- 15 条 mutation 已接入共享 authorization；RAG retrieval 四权限、Dataset 与 Review 组合权限、HTTP Tool plan / execution 及四条 Evaluation 双权限入口均由一次 membership decision 验证。
+- 全入口拒绝矩阵覆盖 identity、selection、membership、body / 历史 header binding 与 OIDC unavailable，业务 owner、Run write、Gateway / provider / network 调用均为 0；10 条组合入口固定 provider 0 / 1 次边界。
+- Web RAG、HTTP Tool 与 Evaluation consumer 已发送 active workspace 和精确 dev membership permission，只读请求保持无 mutation membership proof。
+- 完整 Platform Go tests、定向 race、`go vet`、Web 246 项测试 / production build 与 PostgreSQL integration suite 均通过；既有持久化与外部副作用协议保持不变。
+- 批次 E 关闭，专题累计 47 条 mutation 全部完成。
+
+## 批次关闭
 
 1. 批次 C 已完成：Publish Candidate、Definition Candidate、RAG Promotion 与 Runtime Assignment。
 2. 批次 D 已完成：Workflow Run、Application Session / Turn 与人类受控执行。
-3. 下一批次 E：RAG Dataset / Snapshot、HTTP Tool 与 Evaluation。
+3. 批次 E 已完成：RAG Dataset / Snapshot、HTTP Tool 与 Evaluation。
 
-每批开始前必须从功能文档 inventory 重读真实 permission、workspace 来源、owner 和副作用。若出现公开 API、schema、幂等协议、provider 或网络边界变化，先更新功能文档与本任务卡。
+本任务卡关闭。后续新增 mutation 先进入对应功能设计和 inventory；生产 membership adapter、真实 OIDC、公开 API 与 quota / billing 不在本任务卡续批。
 
 ## 验证策略
 
@@ -212,4 +236,4 @@ dev/test enablement
 - 不把 active workspace、body workspace、旧 dev header、resource record 或 API key 当作人类 membership proof。
 - 不修改 application API key invocation 的逐请求授权模型。
 - 不启用 production OIDC、production membership、quota / billing、自动发布、自动确认、replay、unrestricted tool 或业务写回。
-- 不从已完成的批次 A 至 D 直接复制到 Evaluation、RAG Dataset / Snapshot 或 HTTP Tool runtime；批次 E 必须先复核组合权限、执行 credential、owner 重读和 provider / Gateway / network 副作用。
+- 批次 A 至 E 已完成；不继续为相同授权边界派生同层 gate-only 批次。

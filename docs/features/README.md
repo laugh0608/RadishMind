@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-27 当前执行口径：[Workspace-scoped Mutation Authorization](user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 批次 A 至 D 已完成：32 条 Application、API Key、Workflow、RAG、Prompt、Agent、Session、Turn 与受控 Run mutation 的 identity / membership 双重权限、active workspace 唯一选择、原子组合权限、资源条件 source permission、稳定拒绝映射、owner / 外部副作用为零、Web header 分离及 memory / SQLite / PostgreSQL 回归均已成立。下一步只复核同一任务卡批次 E 的 RAG Dataset / Snapshot、HTTP Tool 与 Evaluation 组合 owner；[工作区运营收件箱](user-workspace/workspace-operations-inbox-dev-test-v1.md)跨全部分页窗口的批次 B 继续等待真实使用证据。真实 secret / endpoint、production、自动路由、quota / billing 与真实 OIDC 继续关闭。
+2026-07-27 当前执行口径：[Workspace-scoped Mutation Authorization](user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 批次 A 至 E 已完成：47 条 Application、API Key、Workflow、RAG、Prompt、Agent、Session、Turn、HTTP Tool、Evaluation 与受控 Run mutation 的 identity / membership 双重权限、active workspace 唯一选择、原子组合权限、资源条件 source permission、稳定拒绝映射、owner / 外部副作用为零、Web header 分离及 memory / SQLite / PostgreSQL 回归均已成立，专题关闭。[工作区运营收件箱](user-workspace/workspace-operations-inbox-dev-test-v1.md)跨全部分页窗口的批次 B 继续等待真实使用证据；下一步先回到功能设计选择，不新增同层 gate-only 切片。真实 secret / endpoint、production、自动路由、quota / billing 与真实 OIDC 继续关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -40,7 +40,7 @@
 
 | 功能文档 | 当前作用 | 下一步默认入口 |
 | --- | --- | --- |
-| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | Mutation Authorization 批次 A 至 D 已完成；下一步复核批次 E 组合 owner |
+| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | Mutation Authorization 批次 A 至 E 已完成，专题关闭 |
 | [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route 已完成草案、审查、受控启用、Admin Web、Gateway 快照消费与双数据库产品验证；身份、配额、凭据、审计和部署边界继续保留 | 选择新的管理控制面产品能力前先更新对应功能设计，不从已关闭专题原地扩生产 secret、quota / billing 或真实 OIDC |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
 | [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；HTTP Tool、RAG Retrieval、知识质量 / 晋级链、Application RAG durable invocation 和 immutable definition-bound execution 均已有可复验证据 | 作为应用开发工作区的既有权威能力来源，不从 executor 或 activation 原地扩自动执行、调度、重放或生产能力 |
@@ -68,7 +68,7 @@
 | [Admin Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) | 功能 / 平台协同专题 | schema / migration、manual CLI、read-only role、selector、cursor、真实 PostgreSQL、HTTP/Web 与 browser validation 已完成 |
 | [Radish OIDC Integration Test v1](admin-control-plane/radish-oidc-integration-test-v1.md) | 功能 / 集成专题 | deterministic discovery / JWKS / JWT verifier、两条 Admin auth boundary、五条 workspace membership fail-closed 与 Web 内存 token consumer 已完成；真实 Radish 联调为 `real_radish_integration_deferred`，未来按 application/client registration 恢复 |
 | [Workspace-scoped Read Transition / 工作区选择与成员资格绑定（开发 / 测试态）v1](user-workspace/workspace-scoped-read-transition-dev-test-v1.md) | 功能 / 授权与读投影专题 | 批次 A、B 已完成：共享 membership provider、五条 route 授权、durable owner 投影、workspace-wide Run cursor、非持久化 Web selector 与 quota fail-closed 已成立；reviewed membership adapter 等待上游契约 |
-| [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) | 功能 / 写入与执行授权专题 | 批次 A 至 D 共 32 条 mutation 已完成共享授权、原子组合 / 条件权限、稳定 failure mapping、零业务 / 外部副作用和三模式 / 双数据库 / Web 证据；批次 E ready |
+| [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) | 功能 / 写入与执行授权专题 | 批次 A 至 E 共 47 条 mutation 已完成共享授权、原子组合 / 条件权限、稳定 failure mapping、零业务 / 外部副作用和三模式 / 双数据库 / Web 证据；专题关闭 |
 | [工作区运营收件箱（开发 / 测试态）v1](user-workspace/workspace-operations-inbox-dev-test-v1.md) | 功能 / 跨资源运营审查专题 | 批次 A 已完成四类既有 owner 首分页关注项、coverage、确定性排序、workspace 切换失效和既有详情跳转；不新增运营真相源或自动修复 |
 | [Control Plane Verified Identity Context & Negative Auth Runtime v1](../task-cards/control-plane-verified-identity-negative-auth-runtime-v1-plan.md) | 高风险实现批次 | 已完成 RS256 signed test token、permission projection、13 类负向认证、七条 route authorization 与 Web sanitized denial state；fake store 保持不变 |
 | [Gateway 细专题入口](gateway/README.md) | 功能专题目录 | 承接 Gateway 运行时、协议兼容和真实使用路径专题 |

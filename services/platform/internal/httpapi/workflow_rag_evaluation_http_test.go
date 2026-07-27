@@ -25,8 +25,8 @@ func TestWorkflowRAGEvaluationHTTPStrictPermissionsAndCandidateReview(t *testing
 	setSavedWorkflowDraftDevHeaders(deniedRequest, "workflow_rag_evaluation_datasets:write")
 	deniedResponse := httptest.NewRecorder()
 	server.httpServer.Handler.ServeHTTP(deniedResponse, deniedRequest)
-	denied := decodeWorkflowRAGEvaluationEnvelope(t, deniedResponse, http.StatusOK)
-	if denied.FailureCode == nil || *denied.FailureCode != WorkflowRAGEvaluationFailureScopeDenied {
+	denied := decodeWorkflowRAGEvaluationEnvelope(t, deniedResponse, http.StatusForbidden)
+	if denied.FailureCode == nil || *denied.FailureCode != "scope_denied" {
 		t.Fatalf("dataset create accepted missing snapshot read permission: %#v", denied)
 	}
 

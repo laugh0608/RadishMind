@@ -172,6 +172,9 @@ function executionHeaders(
     "X-RadishMind-Dev-Read-Audit": "audit_dev_workflow_http_tool_execution_consumer",
     "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Workflow-Application": applicationId,
+    "X-RadishMind-Active-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Read-Membership-Permissions": EXECUTION_SCOPES.join(","),
   };
 }
 

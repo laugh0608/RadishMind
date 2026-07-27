@@ -77,10 +77,7 @@ func (s *Server) handleStartWorkflowRun(writer http.ResponseWriter, request *htt
 		return
 	}
 	runContext = workflowRunMutationContext(request, trace, auth, body.ApplicationID, "start")
-	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID ||
-		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevWorkspaceHeader)) != auth.ResourceBinding.WorkspaceID ||
-		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevApplicationHeader)) != runContext.ApplicationID ||
-		!validControlPlaneReadAuthReference(runContext.ApplicationID, false) {
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, runContext.ApplicationID) {
 		writeWorkflowRunResultWithStatus(writer, http.StatusForbidden, trace, runContext, workflowRunFailure(WorkflowRunFailureCode("workspace_binding_mismatch"), "Workflow run workspace binding is denied."))
 		return
 	}
@@ -328,6 +325,20 @@ func workflowRunMutationContext(
 		ScopeGrants: cloneStringSlice(auth.ScopeGrants),
 		AuditRef:    auditRefForWorkflowRun(trace, auditSuffix),
 	}
+}
+
+func workflowMutationBindingMatches(
+	request *http.Request,
+	auth controlPlaneReadAuthContext,
+	workspaceID string,
+	applicationID string,
+) bool {
+	verifiedWorkspaceID := strings.TrimSpace(auth.ResourceBinding.WorkspaceID)
+	verifiedApplicationID := strings.TrimSpace(applicationID)
+	return strings.TrimSpace(workspaceID) == verifiedWorkspaceID &&
+		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevWorkspaceHeader)) == verifiedWorkspaceID &&
+		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevApplicationHeader)) == verifiedApplicationID &&
+		validControlPlaneReadAuthReference(verifiedApplicationID, false)
 }
 
 func writeWorkflowRunResult(

@@ -47,8 +47,8 @@ func TestWorkflowRAGExecutionHTTPUsesIndependentGateAndStrictVerifiedScope(t *te
 			setSavedWorkflowDraftDevHeaders(request, strings.Join(scopes, ","))
 			response := httptest.NewRecorder()
 			server.httpServer.Handler.ServeHTTP(response, request)
-			envelope := decodeWorkflowRAGExecutionEnvelope(t, response, http.StatusOK)
-			if envelope.FailureCode == nil || *envelope.FailureCode != WorkflowRAGFailureScopeDenied ||
+			envelope := decodeWorkflowRAGExecutionEnvelope(t, response, http.StatusForbidden)
+			if envelope.FailureCode == nil || *envelope.FailureCode != "scope_denied" ||
 				envelope.Run != nil || testBridge.handleCalls != before {
 				t.Fatalf("missing scope %s was not denied before execution: %#v", missing, envelope)
 			}
@@ -62,8 +62,8 @@ func TestWorkflowRAGExecutionHTTPUsesIndependentGateAndStrictVerifiedScope(t *te
 		request.Header.Set(savedWorkflowDraftDevApplicationHeader, "application_other")
 		response := httptest.NewRecorder()
 		server.httpServer.Handler.ServeHTTP(response, request)
-		envelope := decodeWorkflowRAGExecutionEnvelope(t, response, http.StatusOK)
-		if envelope.FailureCode == nil || *envelope.FailureCode != WorkflowRAGFailureScopeDenied || testBridge.handleCalls != before {
+		envelope := decodeWorkflowRAGExecutionEnvelope(t, response, http.StatusForbidden)
+		if envelope.FailureCode == nil || *envelope.FailureCode != "workspace_binding_mismatch" || testBridge.handleCalls != before {
 			t.Fatalf("application binding mismatch was not denied: %#v", envelope)
 		}
 	})
@@ -73,8 +73,8 @@ func TestWorkflowRAGExecutionHTTPUsesIndependentGateAndStrictVerifiedScope(t *te
 		request := workflowRAGExecutionHTTPRequest(t, draft.DraftID, body)
 		response := httptest.NewRecorder()
 		server.httpServer.Handler.ServeHTTP(response, request)
-		envelope := decodeWorkflowRAGExecutionEnvelope(t, response, http.StatusOK)
-		if envelope.FailureCode == nil || *envelope.FailureCode != WorkflowRAGFailureScopeDenied || testBridge.handleCalls != before {
+		envelope := decodeWorkflowRAGExecutionEnvelope(t, response, http.StatusUnauthorized)
+		if envelope.FailureCode == nil || *envelope.FailureCode != "identity_context_missing" || testBridge.handleCalls != before {
 			t.Fatalf("unverified actor reached retrieval execution: %d %s", response.Code, response.Body.String())
 		}
 	})

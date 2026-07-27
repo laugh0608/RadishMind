@@ -85,6 +85,8 @@ func TestWorkflowHTTPToolActionHTTPRoutes(t *testing.T) {
 			path   string
 			body   string
 			scopes string
+			status int
+			code   string
 		}{
 			{
 				name: "create requires plan scope", method: http.MethodPost,
@@ -95,11 +97,13 @@ func TestWorkflowHTTPToolActionHTTPRoutes(t *testing.T) {
 					PublicArguments: map[string]any{"resource_key": "docs/radishflow/overview"},
 				})),
 				scopes: "workflow_drafts:read",
+				status: http.StatusForbidden, code: "scope_denied",
 			},
 			{
 				name: "read requires read scope", method: http.MethodGet,
 				path:   "/v1/user-workspace/workflow-tool-action-plans/" + plan.PlanID + "?workspace_id=" + draft.WorkspaceID + "&application_id=" + draft.ApplicationID,
 				scopes: "workflow_tool_actions:plan",
+				status: http.StatusOK, code: string(WorkflowHTTPToolActionFailureScopeDenied),
 			},
 			{
 				name: "decision requires confirm scope", method: http.MethodPost,
@@ -109,6 +113,7 @@ func TestWorkflowHTTPToolActionHTTPRoutes(t *testing.T) {
 					ExpectedRecordVersion: 1, Decision: WorkflowHTTPToolConfirmationApprove,
 				})),
 				scopes: "workflow_tool_actions:read",
+				status: http.StatusForbidden, code: "scope_denied",
 			},
 		}
 		for _, testCase := range tests {
@@ -117,8 +122,8 @@ func TestWorkflowHTTPToolActionHTTPRoutes(t *testing.T) {
 				setWorkflowHTTPToolActionDevHeaders(request, testCase.scopes)
 				response := httptest.NewRecorder()
 				server.httpServer.Handler.ServeHTTP(response, request)
-				envelope := decodeWorkflowHTTPToolActionEnvelope(t, response, http.StatusOK)
-				if envelope.FailureCode == nil || *envelope.FailureCode != string(WorkflowHTTPToolActionFailureScopeDenied) || envelope.ActionPlan != nil {
+				envelope := decodeWorkflowHTTPToolActionEnvelope(t, response, testCase.status)
+				if envelope.FailureCode == nil || *envelope.FailureCode != testCase.code || envelope.ActionPlan != nil {
 					t.Fatalf("missing dedicated scope must fail closed: %#v", envelope)
 				}
 			})
@@ -226,8 +231,8 @@ func TestWorkflowHTTPToolActionHTTPRoutes(t *testing.T) {
 		setWorkflowHTTPToolActionDevHeaders(missingScopeRequest, "workflow_tool_actions:execute,workflow_drafts:read")
 		missingScopeResponse := httptest.NewRecorder()
 		server.httpServer.Handler.ServeHTTP(missingScopeResponse, missingScopeRequest)
-		missingScope := decodeWorkflowHTTPToolExecutionEnvelope(t, missingScopeResponse, http.StatusOK)
-		if missingScope.FailureCode == nil || *missingScope.FailureCode != string(WorkflowRunFailureScopeDenied) {
+		missingScope := decodeWorkflowHTTPToolExecutionEnvelope(t, missingScopeResponse, http.StatusForbidden)
+		if missingScope.FailureCode == nil || *missingScope.FailureCode != "scope_denied" {
 			t.Fatalf("missing workflow_runs:execute scope was accepted: %#v", missingScope)
 		}
 

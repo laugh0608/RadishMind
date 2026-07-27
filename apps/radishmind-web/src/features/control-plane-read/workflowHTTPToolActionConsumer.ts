@@ -667,7 +667,7 @@ function workflowHTTPToolActionHeaders(
   scope: "plan" | "read" | "confirm",
 ): HeadersInit {
   const scopes = scope === "plan" ? PLAN_SCOPE_GRANTS : scope === "confirm" ? CONFIRM_SCOPE_GRANTS : READ_SCOPE_GRANTS;
-  return {
+  const headers = {
     Accept: "application/json",
     "Content-Type": "application/json",
     "X-Request-Id": requestId,
@@ -678,6 +678,13 @@ function workflowHTTPToolActionHeaders(
     "X-RadishMind-Dev-Read-Audit": "audit_dev_workflow_http_tool_action_consumer",
     "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Workflow-Application": applicationId,
+  };
+  if (scope === "read") return headers;
+  return {
+    ...headers,
+    "X-RadishMind-Active-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Read-Membership-Permissions": scopes.join(","),
   };
 }
 

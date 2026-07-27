@@ -2,7 +2,7 @@
 
 更新时间：2026-07-27
 
-状态：`workspace_scoped_mutation_authorization_dev_test_v1_batch_d_complete_batch_e_ready`
+状态：`workspace_scoped_mutation_authorization_dev_test_v1_complete`
 
 ## 文档目的
 
@@ -13,11 +13,11 @@
 ## 当前问题
 
 - Workspace-scoped Read Transition 已让 Applications、API keys、Workflow definitions 与 Runs 的读操作调用共享 membership provider；现有写入、审查和执行路由仍有多套 context builder。
-- 批次 A 至 D 共 32 条 mutation 已在 body 解码前调用共享 membership provider，并只从 verified binding 建立 tenant、subject 与 workspace context；Evaluation、RAG Dataset / Snapshot 与 HTTP Tool 等后续组合 owner 仍需按 inventory 复核。
-- Workflow Draft、Definition、RAG、Prompt、Agent、Session、Turn 与两类人类受控 Run 入口已完成迁移；尚未迁移的 Evaluation、RAG Dataset / Snapshot 与 HTTP Tool 路由仍需按 inventory 复核真实 owner 和副作用顺序。
+- 批次 A 至 E 共 47 条人类交互式 mutation 已在 body 解码前调用共享 membership provider，并只从 verified binding 建立 tenant、subject 与 workspace context；本开发测试态专题已完成。
+- Workflow Draft、Definition、RAG、Prompt、Agent、Session、Turn、Evaluation、HTTP Tool 与人类受控 Run 入口已完成迁移；后续不再派生同层 gate-only 批次。
 - Prompt、Agent 与 Application RAG 的直接 invocation 使用 application API key。API key 是应用运行凭据，不是当前人类成员关系 assertion；不能为了表面统一而在 invocation handler 中伪造 membership。
 - 尚未迁移的旧 handler 仍可能把 identity、workspace 或 permission failure 压平为领域 `scope_denied`，无法稳定区分身份失效、工作区未选择、非成员、成员过期、workspace mismatch 与 membership permission denied。
-- 当前 `WorkspaceMembershipProvider` 已接受 read、批次 A 至 C 的单项和原子组合 mutation permission；后续复杂执行路由同样不能通过循环调用 provider 或只校验其中一项来近似授权。
+- 当前 `WorkspaceMembershipProvider` 已接受 read、批次 A 至 E 的单项、资源条件与原子组合 mutation permission；复杂执行路由不得通过循环调用 provider 或只校验其中一项来近似授权。
 
 ## 目标用户与核心流程
 
@@ -169,7 +169,7 @@
 
 | 路由 | identity / runtime permission | 当前 workspace 来源 | membership permission | durable owner 与副作用 |
 | --- | --- | --- | --- | --- |
-| `POST /v1/user-workspace/workflow-drafts/{draft_id}/retrieval-executions` | `workflow_rag:execute` + `workflow_runs:execute` | body + workflow dev headers + path | 同 identity permissions | Saved Draft + Snapshot + Run owners；检索、Gateway 调用、Run 写入 |
+| `POST /v1/user-workspace/workflow-drafts/{draft_id}/retrieval-executions` | `workflow_rag:execute` + `workflow_runs:execute` + `workflow_drafts:read` + `workflow_rag_snapshots:read` | body + workflow dev headers + path | 同 identity permissions | Saved Draft + Snapshot + Run owners；检索、Gateway 调用、Run 写入 |
 | `POST /v1/user-workspace/workflow-retrieval-snapshots` | `workflow_rag_snapshots:write` | body + workflow dev headers | `workflow_rag_snapshots:write` | Retrieval Snapshot owner；draft write |
 | `POST /v1/user-workspace/workflow-retrieval-snapshots/{snapshot_id}/versions` | `workflow_rag_snapshots:write` | body + workflow dev headers + path | `workflow_rag_snapshots:write` | Snapshot owner；immutable version write |
 | `POST /v1/user-workspace/workflow-retrieval-snapshots/{snapshot_id}/archive` | `workflow_rag_snapshots:archive` | body + workflow dev headers + path | `workflow_rag_snapshots:archive` | Snapshot owner；archive CAS |
@@ -330,15 +330,33 @@
 - Session create / close 保持零 Run 与零外部调用；Turn 继续只按 persisted Session authority 至多委托一次；两类 Run 保持 planned write → 单次外部调用 → terminal write，不接受客户端 credential 或 authority override。
 - 上游 permission projection 与 Web 的 Application Interaction、Prompt Session、Agent Session、Saved Draft Run、Definition Run consumer 已补齐 active workspace 和精确 dev membership permission；read route 与 application API key invocation 未改变。
 - 完整 Platform Go tests、定向 race、`go vet`、Web 246 项测试 / production build 与 PostgreSQL integration suite 均已通过；repository interface、schema、migration、CAS、idempotent replay 与 metadata-only persistence 未改变。
-- 批次 D 已关闭；专题累计 32 条 mutation，下一步只进入批次 E 的 RAG Dataset / Snapshot、HTTP Tool 与 Evaluation 组合 owner 设计复核。
+- 批次 D 关闭时专题累计 32 条 mutation，并据此进入现已完成的批次 E。
 
-## 后续批次顺序
+### 批次 E：RAG Dataset / Snapshot、HTTP Tool 与 Evaluation
+
+范围：
+
+- RAG retrieval execution、Snapshot create / version / archive；
+- RAG Evaluation Dataset create / version / archive 与 Candidate Review；
+- HTTP Tool plan / confirmation / execution；
+- Workflow Evaluation Case create / revision 与 Suite create / decision。
+
+设计与实施结果（2026-07-27）：
+
+- 本批共 15 条 mutation。RAG retrieval execution 原子要求 `workflow_rag:execute` + `workflow_runs:execute` + `workflow_drafts:read` + `workflow_rag_snapshots:read`；Dataset write / review、HTTP Tool plan / execution 与四条 Evaluation mutation 的完整组合权限均在 body 前由一次 membership decision 验证。
+- Snapshot、Dataset、Tool plan / confirmation 和 Evaluation 管理动作保持零非预期外部调用；RAG retrieval 与 HTTP Tool execution 继续复用既有 planned / claimed → 至多一次外部调用 → terminal Run 顺序。confirmation 与 Evaluation decision 不自动执行、发布或写回业务真相源。
+- 跨 15 条入口的拒绝矩阵覆盖 identity permission、active workspace、membership 缺失 / permission、body workspace、历史 application header 与 OIDC unavailable；业务 owner、Run write、Gateway / provider / network 调用均为 0。10 条组合权限入口同时固定 identity 缺最终权限时 provider 为 0、membership 缺最终权限时 provider 恰好为 1。
+- 上游 permission projection、共享 membership registry 与 RAG、HTTP Tool、Evaluation Web consumer 已补齐；mutation 在 dev mode 发送 active workspace、membership workspace 与精确权限集合，只读请求不继承 mutation membership proof。
+- 完整 Platform Go tests、定向 race、`go vet`、Web 246 项测试 / production build 与 PostgreSQL integration suite 均已通过；repository interface、schema、migration、CAS、幂等、API key invocation、tool allowlist、网络策略和 production enablement 均未改变。
+- 批次 E 已关闭，开发测试态专题累计 47 条 mutation 全部完成。
+
+## 批次关闭结论
 
 1. 批次 C 已完成：Publish Candidate、Definition Candidate、RAG Promotion 与三类 Runtime Assignment 等审查 / 激活 owner。
 2. 批次 D 已完成：Workflow Run、Application Session / Turn 与人类发起的受控执行。
-3. 下一批次 E：RAG Dataset / Snapshot、HTTP Tool 与 Evaluation 组合 owner。
+3. 批次 E 已完成：RAG Dataset / Snapshot、HTTP Tool 与 Evaluation 组合 owner。
 
-每批开始前必须回看 inventory 中的真实 owner 依赖。若需要修改 schema、公开 API、运行时幂等、外部 provider 或高风险网络边界，先更新本专题和唯一任务卡，不把同一专题拆成平行 readiness 链。
+专题至此关闭。生产 membership adapter、真实 OIDC、quota / billing 或公开 API 由各自生产准入专题承接；若未来新增人类交互式 mutation，应先更新 inventory 和对应功能设计，不重开同层迁移批次。
 
 ## 验收方式
 
@@ -378,6 +396,13 @@
 - Web mutation 在 dev mode 携带 active workspace 与精确 membership permission；read route 与 application API key invocation 不继承人类 membership proof。
 - memory、SQLite、PostgreSQL、定向 race、`go vet`、Web tests / build、fast 与全量仓库检查通过。
 
+批次 E：
+
+- 15 条 RAG、HTTP Tool 与 Evaluation mutation 保持既有 Snapshot / Dataset / Review / Tool / Case / Suite / Run owner、CAS、幂等与 metadata-only persistence。
+- 单项和组合 permission 均在业务 owner 与外部调用前由一次 membership decision 验证；授权和 binding 拒绝时 owner、Run write、Gateway / provider / network 均为 0。
+- Web mutation 在 dev mode 携带 active workspace 与精确 membership permission，只读请求不携带 mutation membership proof。
+- memory、SQLite、PostgreSQL、定向 race、`go vet`、Web tests / build、fast 与全量仓库检查通过。
+
 ## 隐私边界
 
 - raw identity token、membership assertion、dev membership headers 与 API key 不进入日志、audit record、error body、Run input 或 committed fixture。
@@ -400,7 +425,7 @@
 
 ## 停止线
 
-- 任务卡批次 A 至 D 已完成；下一步只复核批次 E 的 RAG Dataset / Snapshot、HTTP Tool 与 Evaluation 组合 owner，不在设计冻结前直接迁移。
+- 任务卡批次 A 至 E 已完成，开发测试态专题关闭；不继续派生同层 gate-only 批次。
 - 不把 active workspace、body workspace、旧 dev header、application owner 或 API key 解释成 membership proof。
 - 不创建新的用户、tenant、role、membership、Application、Workflow、Run、Evaluation 或 credential owner。
 - 不通过统一授权专题顺带启用 production OIDC、production API key、quota / billing、自动发布、自动确认、replay、unrestricted tool 或业务写回。
