@@ -80,7 +80,7 @@ func TestBatchBMutationAuthorizationDenialsDoNotReachOwners(t *testing.T) {
 					if test.active != "" {
 						request.Header.Set(activeWorkspaceHeader, test.active)
 					}
-					auth := batchBMutationAuth(now, operation.permission)
+					auth := batchBMutationAuth(now, operation.permissions...)
 					if test.mutate != nil {
 						test.mutate(&auth)
 					}
@@ -230,12 +230,12 @@ func TestBatchBMutationSignedIdentityAndMembershipReachValidationOwners(t *testi
 }
 
 type batchBMutationAuthorizationOperation struct {
-	name       string
-	target     string
-	permission string
-	body       func(bool) string
-	server     func() (*Server, *atomic.Int64)
-	handle     func(*Server, http.ResponseWriter, *http.Request)
+	name        string
+	target      string
+	permissions []string
+	body        func(bool) string
+	server      func() (*Server, *atomic.Int64)
+	handle      func(*Server, http.ResponseWriter, *http.Request)
 }
 
 func batchBMutationAuthorizationOperations(t *testing.T) []batchBMutationAuthorizationOperation {
@@ -290,7 +290,8 @@ func batchBMutationAuthorizationOperations(t *testing.T) []batchBMutationAuthori
 	}
 	return []batchBMutationAuthorizationOperation{
 		{
-			name: "workflow draft", target: "/v1/user-workspace/workflow-drafts", permission: "workflow_drafts:write", body: workflowBody,
+			name: "workflow draft", target: "/v1/user-workspace/workflow-drafts",
+			permissions: []string{"workflow_drafts:read", "workflow_drafts:write"}, body: workflowBody,
 			server: func() (*Server, *atomic.Int64) {
 				owner := &countingSavedWorkflowDraftStore{}
 				return &Server{
@@ -301,7 +302,8 @@ func batchBMutationAuthorizationOperations(t *testing.T) []batchBMutationAuthori
 			handle: (*Server).handleSaveWorkflowDraft,
 		},
 		{
-			name: "application configuration draft", target: "/v1/user-workspace/application-drafts", permission: "application_drafts:write", body: applicationBody,
+			name: "application configuration draft", target: "/v1/user-workspace/application-drafts",
+			permissions: []string{"application_drafts:write"}, body: applicationBody,
 			server: func() (*Server, *atomic.Int64) {
 				owner := &countingApplicationConfigurationDraftRepository{}
 				return &Server{
@@ -312,7 +314,8 @@ func batchBMutationAuthorizationOperations(t *testing.T) []batchBMutationAuthori
 			handle: (*Server).handleSaveApplicationConfigurationDraft,
 		},
 		{
-			name: "prompt template", target: "/v1/user-workspace/prompt-application-templates", permission: "prompt_application_templates:write", body: promptBody,
+			name: "prompt template", target: "/v1/user-workspace/prompt-application-templates",
+			permissions: []string{"prompt_application_templates:write"}, body: promptBody,
 			server: func() (*Server, *atomic.Int64) {
 				owner := &countingPromptApplicationTemplateRepository{}
 				return &Server{
@@ -323,7 +326,8 @@ func batchBMutationAuthorizationOperations(t *testing.T) []batchBMutationAuthori
 			handle: (*Server).handleSavePromptApplicationTemplate,
 		},
 		{
-			name: "agent profile", target: "/v1/user-workspace/agent-copilot-profiles", permission: "agent_copilot_profiles:write", body: agentBody,
+			name: "agent profile", target: "/v1/user-workspace/agent-copilot-profiles",
+			permissions: []string{"agent_copilot_profiles:write"}, body: agentBody,
 			server: func() (*Server, *atomic.Int64) {
 				owner := &countingAgentCopilotProfileRepository{}
 				return &Server{

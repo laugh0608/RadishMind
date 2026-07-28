@@ -36,8 +36,9 @@ func TestSavedWorkflowDraftSQLiteDomainContract(t *testing.T) {
 	}
 	payloadA.Name = "Draft A reviewed"
 	updated := service.SaveDraft(requestContext, SaveWorkflowDraftRequest{
-		ExpectedDraftVersion: 1,
-		Payload:              payloadA,
+		ExpectedDraftVersion:     1,
+		ExpectedLifecycleVersion: 1,
+		Payload:                  payloadA,
 	})
 	if updated.FailureCode != "" || updated.Draft == nil || updated.CurrentDraftVersion != 2 {
 		t.Fatalf("update SQLite draft A: %#v", updated)
@@ -85,8 +86,9 @@ func TestSavedWorkflowDraftSQLiteDomainContract(t *testing.T) {
 			candidate := payloadA
 			candidate.Name = fmt.Sprintf("Concurrent candidate %02d", index)
 			results <- service.SaveDraft(requestContext, SaveWorkflowDraftRequest{
-				ExpectedDraftVersion: 2,
-				Payload:              candidate,
+				ExpectedDraftVersion:     2,
+				ExpectedLifecycleVersion: 1,
+				Payload:                  candidate,
 			})
 		}()
 	}

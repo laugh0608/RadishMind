@@ -74,8 +74,9 @@ func TestSavedWorkflowDraftMemoryLifecycleRoundTrip(t *testing.T) {
 	}
 
 	saveBlocked := service.SaveDraft(requestContext, SaveWorkflowDraftRequest{
-		ExpectedDraftVersion: 1,
-		Payload:              payload,
+		ExpectedDraftVersion:     1,
+		ExpectedLifecycleVersion: 2,
+		Payload:                  payload,
 	})
 	if saveBlocked.FailureCode != SavedWorkflowDraftFailureArchived || saveBlocked.Draft != nil {
 		t.Fatalf("archived draft save must fail closed: %#v", saveBlocked)
@@ -84,6 +85,7 @@ func TestSavedWorkflowDraftMemoryLifecycleRoundTrip(t *testing.T) {
 		DraftID:                     payload.DraftID,
 		SourceDraftVersion:          1,
 		ExpectedCurrentDraftVersion: 1,
+		ExpectedLifecycleVersion:    2,
 	})
 	if restoreBlocked.FailureCode != SavedWorkflowDraftFailureArchived || restoreBlocked.Draft != nil {
 		t.Fatalf("archived draft restore must fail closed: %#v", restoreBlocked)
@@ -508,8 +510,9 @@ func TestSavedWorkflowDraftArchiveSaveConcurrency(t *testing.T) {
 			defer wait.Done()
 			<-start
 			saveResult = service.SaveDraft(requestContext, SaveWorkflowDraftRequest{
-				ExpectedDraftVersion: 1,
-				Payload:              payload,
+				ExpectedDraftVersion:     1,
+				ExpectedLifecycleVersion: 1,
+				Payload:                  payload,
 			})
 		}()
 		go func() {
@@ -561,8 +564,9 @@ func TestSavedWorkflowDraftArchiveRestoreConcurrency(t *testing.T) {
 		}
 		payload.Name = "Second revision"
 		second := service.SaveDraft(requestContext, SaveWorkflowDraftRequest{
-			ExpectedDraftVersion: 1,
-			Payload:              payload,
+			ExpectedDraftVersion:     1,
+			ExpectedLifecycleVersion: 1,
+			Payload:                  payload,
 		})
 		if second.FailureCode != "" || second.Draft == nil {
 			t.Fatalf("seed second revision: %#v", second)
@@ -580,6 +584,7 @@ func TestSavedWorkflowDraftArchiveRestoreConcurrency(t *testing.T) {
 				DraftID:                     payload.DraftID,
 				SourceDraftVersion:          1,
 				ExpectedCurrentDraftVersion: 2,
+				ExpectedLifecycleVersion:    1,
 			})
 		}()
 		go func() {
@@ -641,6 +646,25 @@ func TestArchivedSavedWorkflowDraftIsRejectedByDirectConsumers(t *testing.T) {
 		err.Error() != "Saved workflow draft is not active." {
 		t.Fatalf("HTTP tool planning accepted archived draft: %v", err)
 	}
+	derivedPayload := validSavedWorkflowDraftPayload()
+	derivedPayload.DraftID = "draft_archived_source_derivation"
+	derivedPayload.AdditionalFields = map[string]any{
+		savedWorkflowDraftDerivationAdditionalField: map[string]any{
+			"version":              1,
+			"source_kind":          savedWorkflowDraftDerivationSourceKind,
+			"source_draft_id":      archived.Draft.DraftID,
+			"source_draft_version": archived.Draft.DraftVersion,
+		},
+	}
+	derived := service.SaveDraft(requestContext, SaveWorkflowDraftRequest{
+		Payload:                  derivedPayload,
+		ExpectedLifecycleVersion: archived.Draft.LifecycleVersion,
+	})
+	if derived.FailureCode != SavedWorkflowDraftFailureArchived || derived.Draft != nil ||
+		derived.CurrentDraftVersion != archived.Draft.DraftVersion ||
+		derived.CurrentLifecycleVersion != archived.Draft.LifecycleVersion {
+		t.Fatalf("derived first save accepted archived source: %#v", derived)
+	}
 	if sideEffects := store.SideEffects(); sideEffects.DraftWriteCount != 1 ||
 		sideEffects.LifecycleTransitionCount != 1 ||
 		hasSavedWorkflowDraftRuntimeSideEffect(sideEffects) {
@@ -655,7 +679,17 @@ func saveWorkflowDraftLibraryFixture(
 	payload SavedWorkflowDraftPayload,
 ) SavedWorkflowDraft {
 	t.Helper()
-	result := service.SaveDraft(requestContext, SaveWorkflowDraftRequest{Payload: payload})
+	expectedLifecycleVersion := 0
+	if _, derived := normalizeSavedWorkflowDraftDerivation(
+		payload.AdditionalFields[savedWorkflowDraftDerivationAdditionalField],
+		payload.DraftID,
+	); derived {
+		expectedLifecycleVersion = 1
+	}
+	result := service.SaveDraft(requestContext, SaveWorkflowDraftRequest{
+		Payload:                  payload,
+		ExpectedLifecycleVersion: expectedLifecycleVersion,
+	})
 	if result.FailureCode != "" || result.Draft == nil {
 		t.Fatalf("save library fixture %s: %#v", payload.DraftID, result)
 	}

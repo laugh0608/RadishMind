@@ -4,9 +4,9 @@
 
 状态：`saved_workflow_draft_library_lifecycle_organization_dev_test_v1_batch_b_completed`
 
-实施准入：`implementation_task_card_active_batch_c_ready`
+实施准入：`implementation_task_card_active_batch_d_ready`
 
-当前实现进度：批次 A、B 已完成领域类型、三种 store 的 lifecycle owner、严格 cursor、keyset 分页 / 筛选、双版本并发、双数据库 `0003`、原子 transition / event、升级 / 回滚和 active lifecycle 消费资格；repository library adapter 保持显式 opt-in，既有 HTTP 列表语义未提前改变，HTTP permission 与 Web 尚未进入实现。
+当前实现进度：批次 A、B、C 已完成领域类型、三种 store lifecycle owner、严格 cursor、keyset 分页 / 筛选、双版本并发、双数据库 `0003`、原子 transition / event、HTTP list / archive / unarchive、`workflow_drafts:archive` 单次 membership 判定、保存 / 恢复双版本请求和相邻派生 / 晋级 / 执行 active lifecycle 资格；SQLite / PostgreSQL 已由 runtime store 暴露 library service interface。Web 活动 / 归档视图仍未实现，下一步只进入批次 D。
 
 ## 功能目标
 

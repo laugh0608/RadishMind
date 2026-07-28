@@ -14,6 +14,7 @@ const (
 
 type savedWorkflowDraftRevisionRestoreHTTPBody struct {
 	ExpectedCurrentDraftVersion int `json:"expected_current_draft_version"`
+	ExpectedLifecycleVersion    int `json:"expected_lifecycle_version"`
 }
 
 type savedWorkflowDraftRevisionDocument struct {
@@ -39,15 +40,17 @@ type savedWorkflowDraftRevisionSummaryDocument struct {
 }
 
 type savedWorkflowDraftRevisionEnvelope struct {
-	RequestID           string                               `json:"request_id"`
-	WorkspaceID         string                               `json:"workspace_id"`
-	ApplicationID       string                               `json:"application_id"`
-	Revision            *savedWorkflowDraftRevisionDocument  `json:"revision"`
-	Draft               *savedWorkflowDraftDocument          `json:"draft"`
-	FailureCode         *string                              `json:"failure_code"`
-	CurrentDraftVersion int                                  `json:"current_draft_version"`
-	ValidationSummary   savedWorkflowDraftValidationDocument `json:"validation_summary"`
-	AuditRef            string                               `json:"audit_ref"`
+	RequestID               string                               `json:"request_id"`
+	WorkspaceID             string                               `json:"workspace_id"`
+	ApplicationID           string                               `json:"application_id"`
+	Revision                *savedWorkflowDraftRevisionDocument  `json:"revision"`
+	Draft                   *savedWorkflowDraftDocument          `json:"draft"`
+	FailureCode             *string                              `json:"failure_code"`
+	CurrentDraftVersion     int                                  `json:"current_draft_version"`
+	CurrentLifecycleVersion int                                  `json:"current_lifecycle_version"`
+	CurrentLifecycleState   string                               `json:"current_lifecycle_state"`
+	ValidationSummary       savedWorkflowDraftValidationDocument `json:"validation_summary"`
+	AuditRef                string                               `json:"audit_ref"`
 }
 
 type savedWorkflowDraftRevisionListEnvelope struct {
@@ -197,6 +200,7 @@ func (s *Server) handleRestoreWorkflowDraftRevision(writer http.ResponseWriter, 
 			DraftID:                     strings.TrimSpace(request.PathValue("draft_id")),
 			SourceDraftVersion:          version,
 			ExpectedCurrentDraftVersion: body.ExpectedCurrentDraftVersion,
+			ExpectedLifecycleVersion:    body.ExpectedLifecycleVersion,
 		},
 	)
 	writeSavedWorkflowDraftRevisionResult(writer, http.StatusOK, trace, context, result)
@@ -226,15 +230,17 @@ func writeSavedWorkflowDraftRevisionResult(
 	result SavedWorkflowDraftRevisionResult,
 ) {
 	writeObservedJSON(writer, status, trace, savedWorkflowDraftRevisionEnvelope{
-		RequestID:           trace.requestID,
-		WorkspaceID:         strings.TrimSpace(context.WorkspaceID),
-		ApplicationID:       strings.TrimSpace(context.ApplicationID),
-		Revision:            savedWorkflowDraftRevisionDocumentPointer(result.Revision),
-		Draft:               savedWorkflowDraftDocumentPointer(result.Draft),
-		FailureCode:         savedWorkflowDraftFailureCodePointer(result.FailureCode),
-		CurrentDraftVersion: result.CurrentDraftVersion,
-		ValidationSummary:   savedWorkflowDraftValidationToDocument(result.ValidationSummary),
-		AuditRef:            strings.TrimSpace(result.RequestAuditMetadata.AuditRef),
+		RequestID:               trace.requestID,
+		WorkspaceID:             strings.TrimSpace(context.WorkspaceID),
+		ApplicationID:           strings.TrimSpace(context.ApplicationID),
+		Revision:                savedWorkflowDraftRevisionDocumentPointer(result.Revision),
+		Draft:                   savedWorkflowDraftDocumentPointer(result.Draft),
+		FailureCode:             savedWorkflowDraftFailureCodePointer(result.FailureCode),
+		CurrentDraftVersion:     result.CurrentDraftVersion,
+		CurrentLifecycleVersion: result.CurrentLifecycleVersion,
+		CurrentLifecycleState:   string(result.CurrentLifecycleState),
+		ValidationSummary:       savedWorkflowDraftValidationToDocument(result.ValidationSummary),
+		AuditRef:                strings.TrimSpace(result.RequestAuditMetadata.AuditRef),
 	})
 }
 

@@ -8,9 +8,8 @@ import (
 )
 
 // repositorySavedWorkflowDraftLibraryStore exposes the repository library contract
-// to service callers that explicitly opt into the batch C HTTP surface. Keeping the
-// wrapper distinct prevents the legacy HTTP list route from silently adopting the
-// paginated default before its request and response contract is extended.
+// to service callers selected by the batch C HTTP surface while retaining the
+// repository-backed save, read, and revision behavior.
 type repositorySavedWorkflowDraftLibraryStore struct {
 	*repositorySavedWorkflowDraftStore
 }

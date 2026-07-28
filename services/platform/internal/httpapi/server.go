@@ -341,6 +341,8 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(savedWorkflowDraftListRoute, server.handleListWorkflowDrafts)
 	mux.HandleFunc(savedWorkflowDraftReadRoute, server.handleReadWorkflowDraft)
 	mux.HandleFunc(savedWorkflowDraftValidateRoute, server.handleValidateWorkflowDraft)
+	mux.HandleFunc(savedWorkflowDraftArchiveRoute, server.handleArchiveWorkflowDraft)
+	mux.HandleFunc(savedWorkflowDraftUnarchiveRoute, server.handleUnarchiveWorkflowDraft)
 	mux.HandleFunc(savedWorkflowDraftRevisionListRoute, server.handleListWorkflowDraftRevisions)
 	mux.HandleFunc(savedWorkflowDraftRevisionReadRoute, server.handleReadWorkflowDraftRevision)
 	mux.HandleFunc(savedWorkflowDraftRevisionRestoreRoute, server.handleRestoreWorkflowDraftRevision)

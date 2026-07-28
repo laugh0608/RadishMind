@@ -6,10 +6,12 @@ import (
 )
 
 const (
-	savedWorkflowDraftSaveRoute     = "POST /v1/user-workspace/workflow-drafts"
-	savedWorkflowDraftListRoute     = "GET /v1/user-workspace/workflow-drafts"
-	savedWorkflowDraftReadRoute     = "GET /v1/user-workspace/workflow-drafts/{draft_id}"
-	savedWorkflowDraftValidateRoute = "POST /v1/user-workspace/workflow-drafts/validate"
+	savedWorkflowDraftSaveRoute      = "POST /v1/user-workspace/workflow-drafts"
+	savedWorkflowDraftListRoute      = "GET /v1/user-workspace/workflow-drafts"
+	savedWorkflowDraftReadRoute      = "GET /v1/user-workspace/workflow-drafts/{draft_id}"
+	savedWorkflowDraftValidateRoute  = "POST /v1/user-workspace/workflow-drafts/validate"
+	savedWorkflowDraftArchiveRoute   = "POST /v1/user-workspace/workflow-drafts/{draft_id}/archive"
+	savedWorkflowDraftUnarchiveRoute = "POST /v1/user-workspace/workflow-drafts/{draft_id}/unarchive"
 )
 
 const (
@@ -18,8 +20,9 @@ const (
 )
 
 type savedWorkflowDraftSaveHTTPBody struct {
-	ExpectedDraftVersion int                               `json:"expected_draft_version"`
-	Draft                savedWorkflowDraftPayloadDocument `json:"draft"`
+	ExpectedDraftVersion     int                               `json:"expected_draft_version"`
+	ExpectedLifecycleVersion int                               `json:"expected_lifecycle_version"`
+	Draft                    savedWorkflowDraftPayloadDocument `json:"draft"`
 }
 
 type savedWorkflowDraftValidateHTTPBody struct {
@@ -27,15 +30,17 @@ type savedWorkflowDraftValidateHTTPBody struct {
 }
 
 type savedWorkflowDraftEnvelope struct {
-	RequestID           string                               `json:"request_id"`
-	WorkspaceID         string                               `json:"workspace_id"`
-	ApplicationID       string                               `json:"application_id"`
-	Draft               *savedWorkflowDraftDocument          `json:"draft"`
-	FailureCode         *string                              `json:"failure_code"`
-	CurrentDraftVersion int                                  `json:"current_draft_version"`
-	ValidationSummary   savedWorkflowDraftValidationDocument `json:"validation_summary"`
-	BlockedCapabilities []savedWorkflowDraftBlockedDocument  `json:"blocked_capabilities"`
-	AuditRef            string                               `json:"audit_ref"`
+	RequestID               string                               `json:"request_id"`
+	WorkspaceID             string                               `json:"workspace_id"`
+	ApplicationID           string                               `json:"application_id"`
+	Draft                   *savedWorkflowDraftDocument          `json:"draft"`
+	FailureCode             *string                              `json:"failure_code"`
+	CurrentDraftVersion     int                                  `json:"current_draft_version"`
+	CurrentLifecycleVersion int                                  `json:"current_lifecycle_version"`
+	CurrentLifecycleState   string                               `json:"current_lifecycle_state"`
+	ValidationSummary       savedWorkflowDraftValidationDocument `json:"validation_summary"`
+	BlockedCapabilities     []savedWorkflowDraftBlockedDocument  `json:"blocked_capabilities"`
+	AuditRef                string                               `json:"audit_ref"`
 }
 
 type savedWorkflowDraftListEnvelope struct {
@@ -43,6 +48,8 @@ type savedWorkflowDraftListEnvelope struct {
 	WorkspaceID    string                              `json:"workspace_id"`
 	ApplicationID  string                              `json:"application_id"`
 	DraftSummaries []savedWorkflowDraftSummaryDocument `json:"draft_summaries"`
+	NextCursor     string                              `json:"next_cursor"`
+	HasMore        bool                                `json:"has_more"`
 	FailureCode    *string                             `json:"failure_code"`
 	AuditRef       string                              `json:"audit_ref"`
 }
@@ -71,6 +78,12 @@ type savedWorkflowDraftPayloadDocument struct {
 type savedWorkflowDraftDocument struct {
 	savedWorkflowDraftPayloadDocument
 	DraftVersion               int                                  `json:"draft_version"`
+	LifecycleState             string                               `json:"lifecycle_state"`
+	LifecycleVersion           int                                  `json:"lifecycle_version"`
+	ArchivedAt                 *string                              `json:"archived_at"`
+	LibraryUpdatedAt           string                               `json:"library_updated_at"`
+	LifecycleUpdatedByActorRef string                               `json:"lifecycle_updated_by_actor_ref"`
+	ProvenanceKind             string                               `json:"provenance_kind"`
 	CreatedAt                  string                               `json:"created_at"`
 	UpdatedAt                  string                               `json:"updated_at"`
 	CreatedByActorRef          string                               `json:"created_by_actor_ref"`
@@ -82,23 +95,29 @@ type savedWorkflowDraftDocument struct {
 }
 
 type savedWorkflowDraftSummaryDocument struct {
-	DraftID                    string `json:"draft_id"`
-	WorkspaceID                string `json:"workspace_id"`
-	ApplicationID              string `json:"application_id"`
-	SourceDefinitionID         string `json:"source_definition_id"`
-	DraftVersion               int    `json:"draft_version"`
-	SchemaVersion              string `json:"schema_version"`
-	DraftStatus                string `json:"draft_status"`
-	Name                       string `json:"name"`
-	Description                string `json:"description"`
-	UpdatedAt                  string `json:"updated_at"`
-	UpdatedByActorRef          string `json:"updated_by_actor_ref"`
-	NodeCount                  int    `json:"node_count"`
-	EdgeCount                  int    `json:"edge_count"`
-	BlockedCapabilityCount     int    `json:"blocked_capability_count"`
-	ValidationState            string `json:"validation_state"`
-	ValidForReview             bool   `json:"valid_for_review"`
-	SampleOrUnsavedDraftStatus string `json:"sample_or_unsaved_draft_status"`
+	DraftID                    string  `json:"draft_id"`
+	WorkspaceID                string  `json:"workspace_id"`
+	ApplicationID              string  `json:"application_id"`
+	SourceDefinitionID         string  `json:"source_definition_id"`
+	DraftVersion               int     `json:"draft_version"`
+	LifecycleState             string  `json:"lifecycle_state"`
+	LifecycleVersion           int     `json:"lifecycle_version"`
+	ArchivedAt                 *string `json:"archived_at"`
+	LibraryUpdatedAt           string  `json:"library_updated_at"`
+	LifecycleUpdatedByActorRef string  `json:"lifecycle_updated_by_actor_ref"`
+	ProvenanceKind             string  `json:"provenance_kind"`
+	SchemaVersion              string  `json:"schema_version"`
+	DraftStatus                string  `json:"draft_status"`
+	Name                       string  `json:"name"`
+	Description                string  `json:"description"`
+	UpdatedAt                  string  `json:"updated_at"`
+	UpdatedByActorRef          string  `json:"updated_by_actor_ref"`
+	NodeCount                  int     `json:"node_count"`
+	EdgeCount                  int     `json:"edge_count"`
+	BlockedCapabilityCount     int     `json:"blocked_capability_count"`
+	ValidationState            string  `json:"validation_state"`
+	ValidForReview             bool    `json:"valid_for_review"`
+	SampleOrUnsavedDraftStatus string  `json:"sample_or_unsaved_draft_status"`
 }
 
 type savedWorkflowDraftNodeDocument struct {
@@ -163,7 +182,11 @@ func (s *Server) handleSaveWorkflowDraft(writer http.ResponseWriter, request *ht
 	if !s.allowSavedWorkflowDraftDevHTTP(writer, request, trace) {
 		return
 	}
-	auth, failureCode, status := s.authorizeWorkspaceScopedPermissions(request, "workflow_drafts:write")
+	auth, failureCode, status := s.authorizeWorkspaceScopedPermissions(
+		request,
+		"workflow_drafts:read",
+		"workflow_drafts:write",
+	)
 	context := savedWorkflowDraftMutationContext(
 		request, trace, auth, "", s.config.WorkflowSavedDraftDevWriteEnabled, "save",
 	)
@@ -193,8 +216,9 @@ func (s *Server) handleSaveWorkflowDraft(writer http.ResponseWriter, request *ht
 		return
 	}
 	result := s.savedWorkflowDraftService().SaveDraft(context, SaveWorkflowDraftRequest{
-		ExpectedDraftVersion: body.ExpectedDraftVersion,
-		Payload:              payload,
+		ExpectedDraftVersion:     body.ExpectedDraftVersion,
+		ExpectedLifecycleVersion: body.ExpectedLifecycleVersion,
+		Payload:                  payload,
 	})
 	writeSavedWorkflowDraftResult(writer, trace, context, result)
 }
@@ -232,25 +256,33 @@ func (s *Server) handleListWorkflowDrafts(writer http.ResponseWriter, request *h
 	}
 	workspaceID := strings.TrimSpace(request.URL.Query().Get("workspace_id"))
 	applicationID := strings.TrimSpace(request.URL.Query().Get("application_id"))
-	context, failureCode := savedWorkflowDraftContextFromRequest(
-		request,
-		trace,
-		workspaceID,
-		applicationID,
-		"workflow_drafts:read",
-		false,
-		"list",
+	context, failureCode, status := s.savedWorkflowDraftLibraryContextFromRequest(
+		request, trace, workspaceID, applicationID, "list", "workflow_drafts:read",
 	)
 	if failureCode != "" {
+		writeSavedWorkflowDraftListResultWithStatus(
+			writer,
+			status,
+			trace,
+			context,
+			savedWorkflowDraftListFailure(
+				SavedWorkflowDraftFailureCode(failureCode),
+				savedWorkflowDraftAuditMetadata(context),
+			),
+		)
+		return
+	}
+	listRequest, listFailureCode := savedWorkflowDraftListRequestFromQuery(request)
+	if listFailureCode != "" {
 		writeSavedWorkflowDraftListResult(
 			writer,
 			trace,
 			context,
-			savedWorkflowDraftListFailure(failureCode, savedWorkflowDraftAuditMetadata(context)),
+			savedWorkflowDraftListFailure(listFailureCode, savedWorkflowDraftAuditMetadata(context)),
 		)
 		return
 	}
-	result := s.savedWorkflowDraftService().ListDrafts(context, ListWorkflowDraftsRequest{})
+	result := s.savedWorkflowDraftService().ListDrafts(context, listRequest)
 	writeSavedWorkflowDraftListResult(writer, trace, context, result)
 }
 
@@ -386,15 +418,17 @@ func writeSavedWorkflowDraftResultWithStatus(
 ) {
 	failureCode := savedWorkflowDraftFailureCodePointer(result.FailureCode)
 	writeObservedJSON(writer, status, trace, savedWorkflowDraftEnvelope{
-		RequestID:           trace.requestID,
-		WorkspaceID:         strings.TrimSpace(context.WorkspaceID),
-		ApplicationID:       strings.TrimSpace(context.ApplicationID),
-		Draft:               savedWorkflowDraftDocumentPointer(result.Draft),
-		FailureCode:         failureCode,
-		CurrentDraftVersion: result.CurrentDraftVersion,
-		ValidationSummary:   savedWorkflowDraftValidationToDocument(result.ValidationSummary),
-		BlockedCapabilities: savedWorkflowDraftBlockedToDocuments(result.BlockedCapabilities),
-		AuditRef:            strings.TrimSpace(result.RequestAuditMetadata.AuditRef),
+		RequestID:               trace.requestID,
+		WorkspaceID:             strings.TrimSpace(context.WorkspaceID),
+		ApplicationID:           strings.TrimSpace(context.ApplicationID),
+		Draft:                   savedWorkflowDraftDocumentPointer(result.Draft),
+		FailureCode:             failureCode,
+		CurrentDraftVersion:     result.CurrentDraftVersion,
+		CurrentLifecycleVersion: result.CurrentLifecycleVersion,
+		CurrentLifecycleState:   string(result.CurrentLifecycleState),
+		ValidationSummary:       savedWorkflowDraftValidationToDocument(result.ValidationSummary),
+		BlockedCapabilities:     savedWorkflowDraftBlockedToDocuments(result.BlockedCapabilities),
+		AuditRef:                strings.TrimSpace(result.RequestAuditMetadata.AuditRef),
 	})
 }
 
@@ -404,12 +438,24 @@ func writeSavedWorkflowDraftListResult(
 	context SavedWorkflowDraftContext,
 	result SavedWorkflowDraftListResult,
 ) {
+	writeSavedWorkflowDraftListResultWithStatus(writer, http.StatusOK, trace, context, result)
+}
+
+func writeSavedWorkflowDraftListResultWithStatus(
+	writer http.ResponseWriter,
+	status int,
+	trace requestTrace,
+	context SavedWorkflowDraftContext,
+	result SavedWorkflowDraftListResult,
+) {
 	failureCode := savedWorkflowDraftFailureCodePointer(result.FailureCode)
-	writeObservedJSON(writer, http.StatusOK, trace, savedWorkflowDraftListEnvelope{
+	writeObservedJSON(writer, status, trace, savedWorkflowDraftListEnvelope{
 		RequestID:      trace.requestID,
 		WorkspaceID:    strings.TrimSpace(context.WorkspaceID),
 		ApplicationID:  strings.TrimSpace(context.ApplicationID),
 		DraftSummaries: savedWorkflowDraftSummariesToDocuments(result.Summaries),
+		NextCursor:     result.NextCursor,
+		HasMore:        result.HasMore,
 		FailureCode:    failureCode,
 		AuditRef:       strings.TrimSpace(result.RequestAuditMetadata.AuditRef),
 	})
@@ -446,6 +492,12 @@ func savedWorkflowDraftDocumentPointer(draft *SavedWorkflowDraft) *savedWorkflow
 	return &savedWorkflowDraftDocument{
 		savedWorkflowDraftPayloadDocument: payload,
 		DraftVersion:                      draft.DraftVersion,
+		LifecycleState:                    string(draft.LifecycleState),
+		LifecycleVersion:                  draft.LifecycleVersion,
+		ArchivedAt:                        savedWorkflowDraftOptionalString(draft.ArchivedAt),
+		LibraryUpdatedAt:                  draft.LibraryUpdatedAt,
+		LifecycleUpdatedByActorRef:        draft.LifecycleUpdatedByActorRef,
+		ProvenanceKind:                    string(draft.ProvenanceKind),
 		CreatedAt:                         draft.CreatedAt,
 		UpdatedAt:                         draft.UpdatedAt,
 		CreatedByActorRef:                 draft.CreatedByActorRef,
@@ -466,6 +518,12 @@ func savedWorkflowDraftFromDocument(document savedWorkflowDraftDocument) SavedWo
 		SourceDefinitionID:         payload.SourceDefinitionID,
 		BaseDefinitionVersion:      payload.BaseDefinitionVersion,
 		DraftVersion:               document.DraftVersion,
+		LifecycleState:             SavedWorkflowDraftLifecycleState(document.LifecycleState),
+		LifecycleVersion:           document.LifecycleVersion,
+		ArchivedAt:                 savedWorkflowDraftStringValue(document.ArchivedAt),
+		LibraryUpdatedAt:           document.LibraryUpdatedAt,
+		LifecycleUpdatedByActorRef: document.LifecycleUpdatedByActorRef,
+		ProvenanceKind:             SavedWorkflowDraftProvenanceKind(document.ProvenanceKind),
 		SchemaVersion:              payload.SchemaVersion,
 		DraftStatus:                payload.DraftStatus,
 		CreatedAt:                  document.CreatedAt,
@@ -501,6 +559,12 @@ func savedWorkflowDraftSummariesToDocuments(
 			ApplicationID:              summary.ApplicationID,
 			SourceDefinitionID:         summary.SourceDefinitionID,
 			DraftVersion:               summary.DraftVersion,
+			LifecycleState:             string(summary.LifecycleState),
+			LifecycleVersion:           summary.LifecycleVersion,
+			ArchivedAt:                 savedWorkflowDraftOptionalString(summary.ArchivedAt),
+			LibraryUpdatedAt:           summary.LibraryUpdatedAt,
+			LifecycleUpdatedByActorRef: summary.LifecycleUpdatedByActorRef,
+			ProvenanceKind:             string(summary.ProvenanceKind),
 			SchemaVersion:              summary.SchemaVersion,
 			DraftStatus:                string(summary.DraftStatus),
 			Name:                       summary.Name,

@@ -48,7 +48,9 @@ func newSavedWorkflowDraftStoreFromConfigWithSQLiteRuntime(
 			return nil, nil, errors.New("saved workflow draft SQLite store schema version is incompatible")
 		}
 		selection := SelectWorkflowSavedDraftStore(mode, WorkflowSavedDraftStoreSelector{
-			SQLiteDevStore: newSQLiteSavedWorkflowDraftStore(sqliteRuntime.DB()),
+			SQLiteDevStore: newRepositorySavedWorkflowDraftLibraryStore(
+				newSQLiteSavedWorkflowDraftStore(sqliteRuntime.DB()),
+			),
 		})
 		if selection.FailureCode != "" {
 			return nil, nil, errors.New("sqlite_dev saved workflow draft store selection failed")
@@ -109,7 +111,9 @@ func newSavedWorkflowDraftStoreFromConfigWithSQLiteRuntime(
 			MigrationState:     savedWorkflowDraftRepositoryMigrationApplied,
 		},
 	})
-	postgresStore := newRepositorySavedWorkflowDraftStore(repository)
+	postgresStore := newRepositorySavedWorkflowDraftLibraryStore(
+		newRepositorySavedWorkflowDraftStore(repository),
+	)
 	selection := SelectWorkflowSavedDraftStore(mode, WorkflowSavedDraftStoreSelector{
 		PostgresDevTestStore: postgresStore,
 	})

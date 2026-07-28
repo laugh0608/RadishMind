@@ -68,15 +68,18 @@ type RestoreSavedWorkflowDraftRevisionRequest struct {
 	DraftID                     string
 	SourceDraftVersion          int
 	ExpectedCurrentDraftVersion int
+	ExpectedLifecycleVersion    int
 }
 
 type SavedWorkflowDraftRevisionResult struct {
-	Revision             *SavedWorkflowDraftRevision
-	Draft                *SavedWorkflowDraft
-	FailureCode          SavedWorkflowDraftFailureCode
-	CurrentDraftVersion  int
-	ValidationSummary    SavedWorkflowDraftValidationSummary
-	RequestAuditMetadata SavedWorkflowDraftAuditMetadata
+	Revision                *SavedWorkflowDraftRevision
+	Draft                   *SavedWorkflowDraft
+	FailureCode             SavedWorkflowDraftFailureCode
+	CurrentDraftVersion     int
+	CurrentLifecycleVersion int
+	CurrentLifecycleState   SavedWorkflowDraftLifecycleState
+	ValidationSummary       SavedWorkflowDraftValidationSummary
+	RequestAuditMetadata    SavedWorkflowDraftAuditMetadata
 }
 
 type SavedWorkflowDraftRevisionListResult struct {
@@ -213,7 +216,10 @@ func (service savedWorkflowDraftService) RestoreDraftRevision(
 		return savedWorkflowDraftRevisionFailure(SavedWorkflowDraftFailureWriteDisabled, audit)
 	}
 	draftID := strings.TrimSpace(request.DraftID)
-	if draftID == "" || request.SourceDraftVersion < 1 || request.ExpectedCurrentDraftVersion < 1 {
+	if draftID == "" ||
+		request.SourceDraftVersion < 1 ||
+		request.ExpectedCurrentDraftVersion < 1 ||
+		request.ExpectedLifecycleVersion < 1 {
 		return savedWorkflowDraftRevisionFailure(SavedWorkflowDraftFailureRevisionRestore, audit)
 	}
 	store, ok := service.store.(savedWorkflowDraftRevisionStore)
@@ -245,11 +251,25 @@ func (service savedWorkflowDraftService) RestoreDraftRevision(
 	if current.LifecycleState != SavedWorkflowDraftLifecycleActive {
 		result := savedWorkflowDraftRevisionFailure(SavedWorkflowDraftFailureArchived, audit)
 		result.CurrentDraftVersion = current.DraftVersion
+		result.CurrentLifecycleVersion = current.LifecycleVersion
+		result.CurrentLifecycleState = current.LifecycleState
+		return result
+	}
+	if current.LifecycleVersion != request.ExpectedLifecycleVersion {
+		result := savedWorkflowDraftRevisionFailure(
+			SavedWorkflowDraftFailureLifecycleVersionConflict,
+			audit,
+		)
+		result.CurrentDraftVersion = current.DraftVersion
+		result.CurrentLifecycleVersion = current.LifecycleVersion
+		result.CurrentLifecycleState = current.LifecycleState
 		return result
 	}
 	if current.DraftVersion != request.ExpectedCurrentDraftVersion {
 		result := savedWorkflowDraftRevisionFailure(SavedWorkflowDraftFailureVersionConflict, audit)
 		result.CurrentDraftVersion = current.DraftVersion
+		result.CurrentLifecycleVersion = current.LifecycleVersion
+		result.CurrentLifecycleState = current.LifecycleState
 		return result
 	}
 	payload := savedWorkflowDraftPayloadFromDraft(source.Draft)
@@ -300,15 +320,32 @@ func (service savedWorkflowDraftService) RestoreDraftRevision(
 		request.SourceDraftVersion,
 	)
 	if err != nil {
-		result := savedWorkflowDraftRevisionFailure(savedWorkflowDraftStoreFailureCode(err), audit)
+		failureCode := savedWorkflowDraftStoreFailureCode(err)
+		result := savedWorkflowDraftRevisionFailure(failureCode, audit)
 		result.CurrentDraftVersion = currentVersion
+		if failureCode == SavedWorkflowDraftFailureArchived ||
+			failureCode == SavedWorkflowDraftFailureLifecycleVersionConflict ||
+			failureCode == SavedWorkflowDraftFailureVersionConflict {
+			if latest, found, readErr := service.store.ReadDraftByID(
+				context,
+				draftID,
+			); readErr == nil && found {
+				if normalizedLatest, ok := normalizeAndValidateSavedWorkflowDraftLifecycle(latest); ok {
+					result.CurrentDraftVersion = normalizedLatest.DraftVersion
+					result.CurrentLifecycleVersion = normalizedLatest.LifecycleVersion
+					result.CurrentLifecycleState = normalizedLatest.LifecycleState
+				}
+			}
+		}
 		return result
 	}
 	return SavedWorkflowDraftRevisionResult{
-		Draft:                cloneSavedWorkflowDraftPointer(restored),
-		CurrentDraftVersion:  restored.DraftVersion,
-		ValidationSummary:    cloneSavedWorkflowDraftValidationSummary(restored.ValidationSummary),
-		RequestAuditMetadata: audit,
+		Draft:                   cloneSavedWorkflowDraftPointer(restored),
+		CurrentDraftVersion:     restored.DraftVersion,
+		CurrentLifecycleVersion: restored.LifecycleVersion,
+		CurrentLifecycleState:   restored.LifecycleState,
+		ValidationSummary:       cloneSavedWorkflowDraftValidationSummary(restored.ValidationSummary),
+		RequestAuditMetadata:    audit,
 	}
 }
 

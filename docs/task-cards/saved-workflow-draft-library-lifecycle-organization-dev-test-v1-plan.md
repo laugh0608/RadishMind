@@ -4,7 +4,7 @@
 
 状态：`in_progress`
 
-当前入口：`batch_c_ready`
+当前入口：`batch_d_ready`
 
 ## 目标
 
@@ -130,7 +130,16 @@
 
 ## 批次 C：HTTP、权限与相邻操作资格
 
-状态：`ready`
+状态：`completed`
+
+完成证据：
+
+- Saved Draft list HTTP 已消费 lifecycle、limit、opaque cursor、name prefix、validation 与 provenance 筛选，并返回 `next_cursor` / `has_more` 和完整 sanitized lifecycle summary。
+- archive / unarchive HTTP 已使用严格 body、path / body / header / active workspace 绑定和只含 lifecycle metadata 的响应；active unarchive、stale 双版本、unknown field 与 scope mismatch 均失败关闭。
+- `workflow_drafts:archive` 已进入 signed-test permission projection 与 membership allowlist；archive / unarchive 一次 membership decision 原子要求 read + archive，save 一次判定要求 read + write。
+- save、revision restore 与 Workflow Definition candidate 已显式携带 expected lifecycle version；派生首次保存复验来源双版本，现有 candidate / Definition / Run 证据不因来源归档失效。
+- Saved Draft executor、RAG retrieval 与 HTTP Tool 继续在各自业务 owner 内复验 active lifecycle；归档后新操作在 provider、tool、Run、confirmation 和业务写回前失败。
+- 完整 HTTP API、完整 race、平台全包、`go vet` 与真实 PostgreSQL 开发测试链均通过；临时 PostgreSQL 容器已关闭。
 
 ### 实现
 
@@ -159,7 +168,7 @@
 
 ## 批次 D：Saved Draft Library Web
 
-状态：`blocked_by_batch_c`
+状态：`ready`
 
 ### 实现
 

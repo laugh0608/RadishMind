@@ -553,8 +553,8 @@ func assertAggregateSQLiteRepositorySelection(t *testing.T, server *Server) {
 	if _, ok := server.gatewayRequestHistoryStore.(*sqliteGatewayRequestStore); !ok {
 		t.Fatalf("Gateway request did not select SQLite: %T", server.gatewayRequestHistoryStore)
 	}
-	if _, ok := server.savedWorkflowDraftStore.(*repositorySavedWorkflowDraftStore); !ok {
-		t.Fatalf("saved workflow draft did not select the SQLite repository adapter: %T", server.savedWorkflowDraftStore)
+	if _, ok := server.savedWorkflowDraftStore.(*repositorySavedWorkflowDraftLibraryStore); !ok {
+		t.Fatalf("saved workflow draft did not select the SQLite library repository adapter: %T", server.savedWorkflowDraftStore)
 	}
 	if _, ok := server.workflowRunStore.(*sqliteWorkflowRunStore); !ok {
 		t.Fatalf("workflow run did not select SQLite: %T", server.workflowRunStore)

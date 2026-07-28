@@ -25,6 +25,7 @@ var workspacePermissionAllowlist = map[string]struct{}{
 	"runs:read":                                {},
 	"workflow_drafts:read":                     {},
 	"workflow_drafts:write":                    {},
+	"workflow_drafts:archive":                  {},
 	"application_drafts:read":                  {},
 	"application_drafts:write":                 {},
 	"application_publish_candidates:write":     {},

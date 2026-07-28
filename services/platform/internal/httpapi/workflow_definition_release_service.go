@@ -20,10 +20,11 @@ const (
 )
 
 type WorkflowDefinitionCandidateCreateInput struct {
-	CandidateID          string
-	DefinitionID         string
-	DraftID              string
-	ExpectedDraftVersion int
+	CandidateID              string
+	DefinitionID             string
+	DraftID                  string
+	ExpectedDraftVersion     int
+	ExpectedLifecycleVersion int
 }
 
 type WorkflowDefinitionReviewInput struct {
@@ -67,10 +68,17 @@ func (service workflowDefinitionReleaseService) Create(ctx WorkflowDefinitionRel
 	input.DefinitionID = strings.TrimSpace(input.DefinitionID)
 	input.DraftID = strings.TrimSpace(input.DraftID)
 	if !validWorkflowDefinitionContext(ctx) || !applicationDraftIdentifierPattern.MatchString(input.CandidateID) ||
-		!applicationDraftIdentifierPattern.MatchString(input.DefinitionID) || !applicationDraftIdentifierPattern.MatchString(input.DraftID) || input.ExpectedDraftVersion < 1 {
+		!applicationDraftIdentifierPattern.MatchString(input.DefinitionID) || !applicationDraftIdentifierPattern.MatchString(input.DraftID) ||
+		input.ExpectedDraftVersion < 1 || input.ExpectedLifecycleVersion < 1 {
 		return WorkflowDefinitionReleaseResult{FailureCode: workflowDefinitionFailurePayloadInvalid}
 	}
-	draft, failureCode := service.readExactDraft(ctx, input.DraftID, input.ExpectedDraftVersion)
+	draft, failureCode := service.readExactDraft(
+		ctx,
+		input.DraftID,
+		input.ExpectedDraftVersion,
+		input.ExpectedLifecycleVersion,
+		true,
+	)
 	if failureCode != "" {
 		return WorkflowDefinitionReleaseResult{FailureCode: failureCode}
 	}
@@ -93,7 +101,13 @@ func (service workflowDefinitionReleaseService) Review(ctx WorkflowDefinitionRel
 	if err != nil {
 		return workflowDefinitionResultFromError(err)
 	}
-	draft, failureCode := service.readExactDraft(ctx, candidate.SourceDraftID, candidate.SourceDraftVersion)
+	draft, failureCode := service.readExactDraft(
+		ctx,
+		candidate.SourceDraftID,
+		candidate.SourceDraftVersion,
+		0,
+		false,
+	)
 	if failureCode != "" {
 		if failureCode == workflowDefinitionFailureSourceVersionDrift || failureCode == workflowDefinitionFailureSourceNotFound {
 			failureCode = workflowDefinitionFailureSourceDigestDrift
@@ -178,7 +192,13 @@ func (service workflowDefinitionReleaseService) DecideActivation(ctx WorkflowDef
 	return WorkflowDefinitionReleaseResult{Activation: &value, CurrentPointerVersion: value.PointerVersion}
 }
 
-func (service workflowDefinitionReleaseService) readExactDraft(ctx WorkflowDefinitionReleaseContext, draftID string, expectedVersion int) (SavedWorkflowDraft, string) {
+func (service workflowDefinitionReleaseService) readExactDraft(
+	ctx WorkflowDefinitionReleaseContext,
+	draftID string,
+	expectedVersion int,
+	expectedLifecycleVersion int,
+	requireActive bool,
+) (SavedWorkflowDraft, string) {
 	draftContext := SavedWorkflowDraftContext{
 		RequestContext:  ctx.RequestContext,
 		RequestID:       ctx.RequestID,
@@ -204,14 +224,21 @@ func (service workflowDefinitionReleaseService) readExactDraft(ctx WorkflowDefin
 	if result.Draft.DraftVersion != expectedVersion {
 		return SavedWorkflowDraft{}, workflowDefinitionFailureSourceVersionDrift
 	}
-	activeDraft, lifecycleFailure := activeSavedWorkflowDraftForConsumption(*result.Draft)
-	if lifecycleFailure != "" {
+	draft := *result.Draft
+	if requireActive {
+		if draft.LifecycleVersion != expectedLifecycleVersion {
+			return SavedWorkflowDraft{}, workflowDefinitionFailureSourceIneligible
+		}
+		activeDraft, lifecycleFailure := activeSavedWorkflowDraftForConsumption(draft)
+		if lifecycleFailure != "" {
+			return SavedWorkflowDraft{}, workflowDefinitionFailureSourceIneligible
+		}
+		draft = activeDraft
+	}
+	if draft.DraftStatus != SavedWorkflowDraftStatusValidForReview || !draft.ValidationSummary.ValidForReview || len(draft.BlockedCapabilitySummary) > 0 {
 		return SavedWorkflowDraft{}, workflowDefinitionFailureSourceIneligible
 	}
-	if activeDraft.DraftStatus != SavedWorkflowDraftStatusValidForReview || !activeDraft.ValidationSummary.ValidForReview || len(activeDraft.BlockedCapabilitySummary) > 0 {
-		return SavedWorkflowDraft{}, workflowDefinitionFailureSourceIneligible
-	}
-	return activeDraft, ""
+	return draft, ""
 }
 
 func workflowDefinitionResultFromError(err error) WorkflowDefinitionReleaseResult {

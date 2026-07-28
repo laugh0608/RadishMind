@@ -50,7 +50,13 @@ func TestSQLiteWorkflowDefinitionContinuousProductChainRestartAndDeactivation(t 
 	releaseService := newWorkflowDefinitionReleaseService(savedDraftStore, repository)
 	now := time.Date(2026, 7, 19, 18, 0, 0, 0, time.UTC)
 	releaseService.now = func() time.Time { return now }
-	created := releaseService.Create(releaseContext, WorkflowDefinitionCandidateCreateInput{CandidateID: "candidate_sqlite_product", DefinitionID: "definition_sqlite_product", DraftID: saved.Draft.DraftID, ExpectedDraftVersion: saved.Draft.DraftVersion})
+	created := releaseService.Create(releaseContext, WorkflowDefinitionCandidateCreateInput{
+		CandidateID:              "candidate_sqlite_product",
+		DefinitionID:             "definition_sqlite_product",
+		DraftID:                  saved.Draft.DraftID,
+		ExpectedDraftVersion:     saved.Draft.DraftVersion,
+		ExpectedLifecycleVersion: saved.Draft.LifecycleVersion,
+	})
 	if created.FailureCode != "" || created.Candidate == nil {
 		t.Fatalf("create candidate from exact saved draft: %#v", created)
 	}

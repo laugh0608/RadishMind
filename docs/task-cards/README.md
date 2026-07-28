@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1](saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)是当前唯一活跃实现任务，状态为 `in_progress`，当前入口为 `batch_c_ready`。批次 A、B 已完成领域、三种 store lifecycle owner、严格 cursor、服务端 keyset 分页 / 筛选、双版本并发、双数据库 `0003`、原子 transition / event 与升级 / 回滚；批次 C 只推进 HTTP、`workflow_drafts:archive` permission 和相邻操作资格。Provider 上报用量审查、Mutation Authorization、草案派生与修订历史均已关闭，不派生平行任务卡。
+[已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1](saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)是当前唯一活跃实现任务，状态为 `in_progress`，当前入口为 `batch_d_ready`。批次 A、B、C 已完成领域、三种 store lifecycle owner、严格 cursor、服务端 keyset 分页 / 筛选、双版本并发、双数据库 `0003`、原子 transition / event、HTTP lifecycle API、`workflow_drafts:archive` permission 和相邻操作资格；批次 D 只推进 Saved Draft Library Web。Provider 上报用量审查、Mutation Authorization、草案派生与修订历史均已关闭，不派生平行任务卡。
 
 ## 最近关闭任务
 

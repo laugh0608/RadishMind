@@ -39,6 +39,7 @@ var controlPlaneReadPermissionGrants = map[string]string{
 	"radishmind.audit.read":                               "audit:read",
 	"radishmind.workflow-drafts.read":                     "workflow_drafts:read",
 	"radishmind.workflow-drafts.write":                    "workflow_drafts:write",
+	"radishmind.workflow-drafts.archive":                  "workflow_drafts:archive",
 	"radishmind.application-drafts.read":                  "application_drafts:read",
 	"radishmind.application-drafts.write":                 "application_drafts:write",
 	"radishmind.application-publish-candidates.write":     "application_publish_candidates:write",

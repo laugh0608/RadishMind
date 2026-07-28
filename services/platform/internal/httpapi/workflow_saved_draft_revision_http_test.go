@@ -55,6 +55,7 @@ func TestSavedWorkflowDraftRevisionHTTPRoutes(t *testing.T) {
 
 	restoreBody := mustSavedWorkflowDraftJSON(t, savedWorkflowDraftRevisionRestoreHTTPBody{
 		ExpectedCurrentDraftVersion: 2,
+		ExpectedLifecycleVersion:    1,
 	})
 	restoreRequest := httptest.NewRequest(
 		http.MethodPost,
@@ -114,8 +115,9 @@ func saveWorkflowDraftRevisionHTTPFixture(
 ) {
 	t.Helper()
 	body := mustSavedWorkflowDraftJSON(t, savedWorkflowDraftSaveHTTPBody{
-		ExpectedDraftVersion: expectedVersion,
-		Draft:                savedWorkflowDraftPayloadDocumentFromDraftPayload(payload),
+		ExpectedDraftVersion:     expectedVersion,
+		ExpectedLifecycleVersion: min(expectedVersion, 1),
+		Draft:                    savedWorkflowDraftPayloadDocumentFromDraftPayload(payload),
 	})
 	request := httptest.NewRequest(
 		http.MethodPost,

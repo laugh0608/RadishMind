@@ -93,8 +93,9 @@ type SavedWorkflowDraftContext struct {
 }
 
 type SaveWorkflowDraftRequest struct {
-	ExpectedDraftVersion int
-	Payload              SavedWorkflowDraftPayload
+	ExpectedDraftVersion     int
+	ExpectedLifecycleVersion int
+	Payload                  SavedWorkflowDraftPayload
 }
 
 type ReadWorkflowDraftRequest struct {
@@ -229,12 +230,14 @@ type SavedWorkflowDraftAuditMetadata struct {
 }
 
 type SavedWorkflowDraftResult struct {
-	Draft                *SavedWorkflowDraft
-	FailureCode          SavedWorkflowDraftFailureCode
-	CurrentDraftVersion  int
-	ValidationSummary    SavedWorkflowDraftValidationSummary
-	BlockedCapabilities  []SavedWorkflowDraftBlockedCapability
-	RequestAuditMetadata SavedWorkflowDraftAuditMetadata
+	Draft                   *SavedWorkflowDraft
+	FailureCode             SavedWorkflowDraftFailureCode
+	CurrentDraftVersion     int
+	CurrentLifecycleVersion int
+	CurrentLifecycleState   SavedWorkflowDraftLifecycleState
+	ValidationSummary       SavedWorkflowDraftValidationSummary
+	BlockedCapabilities     []SavedWorkflowDraftBlockedCapability
+	RequestAuditMetadata    SavedWorkflowDraftAuditMetadata
 }
 
 type SavedWorkflowDraftSummary struct {
@@ -335,16 +338,91 @@ func (service savedWorkflowDraftService) SaveDraft(
 		if existing.LifecycleState != SavedWorkflowDraftLifecycleActive {
 			result := savedWorkflowDraftFailure(SavedWorkflowDraftFailureArchived, auditMetadata)
 			result.CurrentDraftVersion = existing.DraftVersion
+			result.CurrentLifecycleVersion = existing.LifecycleVersion
+			result.CurrentLifecycleState = existing.LifecycleState
+			return result
+		}
+		if request.ExpectedDraftVersion != existing.DraftVersion {
+			result := savedWorkflowDraftFailure(SavedWorkflowDraftFailureVersionConflict, auditMetadata)
+			result.CurrentDraftVersion = existing.DraftVersion
+			result.CurrentLifecycleVersion = existing.LifecycleVersion
+			result.CurrentLifecycleState = existing.LifecycleState
+			return result
+		}
+		if request.ExpectedLifecycleVersion != existing.LifecycleVersion {
+			result := savedWorkflowDraftFailure(
+				SavedWorkflowDraftFailureLifecycleVersionConflict,
+				auditMetadata,
+			)
+			result.CurrentDraftVersion = existing.DraftVersion
+			result.CurrentLifecycleVersion = existing.LifecycleVersion
+			result.CurrentLifecycleState = existing.LifecycleState
 			return result
 		}
 	}
-	if found && request.ExpectedDraftVersion != existing.DraftVersion {
-		result := savedWorkflowDraftFailure(SavedWorkflowDraftFailureVersionConflict, auditMetadata)
-		result.CurrentDraftVersion = existing.DraftVersion
-		return result
-	}
 	if !found && request.ExpectedDraftVersion != 0 {
 		return savedWorkflowDraftFailure(SavedWorkflowDraftFailureNotFound, auditMetadata)
+	}
+	if !found {
+		derivation, derived := normalizeSavedWorkflowDraftDerivation(
+			normalized.AdditionalFields[savedWorkflowDraftDerivationAdditionalField],
+			normalized.DraftID,
+		)
+		if derived {
+			sourceDraftID := savedWorkflowDraftAdditionalString(derivation["source_draft_id"])
+			sourceDraftVersion, _ := savedWorkflowDraftAdditionalNumber(
+				derivation["source_draft_version"],
+			)
+			source, sourceFound, sourceErr := service.store.ReadDraftByID(context, sourceDraftID)
+			if sourceErr != nil {
+				return savedWorkflowDraftFailure(
+					savedWorkflowDraftStoreFailureCode(sourceErr),
+					auditMetadata,
+				)
+			}
+			if !sourceFound {
+				return savedWorkflowDraftFailure(SavedWorkflowDraftFailureNotFound, auditMetadata)
+			}
+			source, lifecycleOK := normalizeAndValidateSavedWorkflowDraftLifecycle(source)
+			if !lifecycleOK {
+				return savedWorkflowDraftFailure(
+					SavedWorkflowDraftFailureLifecycleStoreContract,
+					auditMetadata,
+				)
+			}
+			if source.LifecycleState != SavedWorkflowDraftLifecycleActive {
+				result := savedWorkflowDraftFailure(SavedWorkflowDraftFailureArchived, auditMetadata)
+				result.CurrentDraftVersion = source.DraftVersion
+				result.CurrentLifecycleVersion = source.LifecycleVersion
+				result.CurrentLifecycleState = source.LifecycleState
+				return result
+			}
+			if int(sourceDraftVersion) != source.DraftVersion {
+				result := savedWorkflowDraftFailure(
+					SavedWorkflowDraftFailureVersionConflict,
+					auditMetadata,
+				)
+				result.CurrentDraftVersion = source.DraftVersion
+				result.CurrentLifecycleVersion = source.LifecycleVersion
+				result.CurrentLifecycleState = source.LifecycleState
+				return result
+			}
+			if request.ExpectedLifecycleVersion != source.LifecycleVersion {
+				result := savedWorkflowDraftFailure(
+					SavedWorkflowDraftFailureLifecycleVersionConflict,
+					auditMetadata,
+				)
+				result.CurrentDraftVersion = source.DraftVersion
+				result.CurrentLifecycleVersion = source.LifecycleVersion
+				result.CurrentLifecycleState = source.LifecycleState
+				return result
+			}
+		} else if request.ExpectedLifecycleVersion != 0 {
+			return savedWorkflowDraftFailure(
+				SavedWorkflowDraftFailurePayloadInvalid,
+				auditMetadata,
+			)
+		}
 	}
 
 	now := service.now().UTC().Format(time.RFC3339)
@@ -400,17 +478,34 @@ func (service savedWorkflowDraftService) SaveDraft(
 	draft.ProvenanceKind = savedWorkflowDraftProvenanceKind(draft)
 	currentDraftVersion, err := service.store.WriteDraft(context, draft, request.ExpectedDraftVersion)
 	if err != nil {
-		result := savedWorkflowDraftFailure(savedWorkflowDraftStoreFailureCode(err), auditMetadata)
+		failureCode := savedWorkflowDraftStoreFailureCode(err)
+		result := savedWorkflowDraftFailure(failureCode, auditMetadata)
 		result.CurrentDraftVersion = currentDraftVersion
+		if failureCode == SavedWorkflowDraftFailureArchived ||
+			failureCode == SavedWorkflowDraftFailureLifecycleVersionConflict ||
+			failureCode == SavedWorkflowDraftFailureVersionConflict {
+			if current, currentFound, readErr := service.store.ReadDraftByID(
+				context,
+				draft.DraftID,
+			); readErr == nil && currentFound {
+				if normalizedCurrent, ok := normalizeAndValidateSavedWorkflowDraftLifecycle(current); ok {
+					result.CurrentDraftVersion = normalizedCurrent.DraftVersion
+					result.CurrentLifecycleVersion = normalizedCurrent.LifecycleVersion
+					result.CurrentLifecycleState = normalizedCurrent.LifecycleState
+				}
+			}
+		}
 		return result
 	}
 
 	return SavedWorkflowDraftResult{
-		Draft:                cloneSavedWorkflowDraftPointer(draft),
-		CurrentDraftVersion:  draft.DraftVersion,
-		ValidationSummary:    draft.ValidationSummary,
-		BlockedCapabilities:  cloneSavedWorkflowDraftBlockedCapabilities(draft.BlockedCapabilitySummary),
-		RequestAuditMetadata: auditMetadata,
+		Draft:                   cloneSavedWorkflowDraftPointer(draft),
+		CurrentDraftVersion:     draft.DraftVersion,
+		CurrentLifecycleVersion: draft.LifecycleVersion,
+		CurrentLifecycleState:   draft.LifecycleState,
+		ValidationSummary:       draft.ValidationSummary,
+		BlockedCapabilities:     cloneSavedWorkflowDraftBlockedCapabilities(draft.BlockedCapabilitySummary),
+		RequestAuditMetadata:    auditMetadata,
 	}
 }
 
@@ -473,11 +568,13 @@ func (service savedWorkflowDraftService) ReadDraft(
 	draft.SampleOrUnsavedDraftStatus = "saved_draft_record"
 
 	return SavedWorkflowDraftResult{
-		Draft:                cloneSavedWorkflowDraftPointer(draft),
-		CurrentDraftVersion:  draft.DraftVersion,
-		ValidationSummary:    draft.ValidationSummary,
-		BlockedCapabilities:  cloneSavedWorkflowDraftBlockedCapabilities(draft.BlockedCapabilitySummary),
-		RequestAuditMetadata: auditMetadata,
+		Draft:                   cloneSavedWorkflowDraftPointer(draft),
+		CurrentDraftVersion:     draft.DraftVersion,
+		CurrentLifecycleVersion: draft.LifecycleVersion,
+		CurrentLifecycleState:   draft.LifecycleState,
+		ValidationSummary:       draft.ValidationSummary,
+		BlockedCapabilities:     cloneSavedWorkflowDraftBlockedCapabilities(draft.BlockedCapabilitySummary),
+		RequestAuditMetadata:    auditMetadata,
 	}
 }
 

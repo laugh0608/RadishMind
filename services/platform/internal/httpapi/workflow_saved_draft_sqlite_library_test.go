@@ -473,17 +473,24 @@ func populateSavedWorkflowDraftLibraryFixture(
 				savedWorkflowDraftDerivationAdditionalField: map[string]any{
 					"version":              1,
 					"source_kind":          savedWorkflowDraftDerivationSourceKind,
-					"source_draft_id":      "source_draft_demo",
-					"source_draft_version": 2,
+					"source_draft_id":      "draft_library_01",
+					"source_draft_version": 1,
 				},
 			}
 		}
 		if index%4 == 0 {
 			payload.RequestedCapabilities = []string{"executor"}
 		}
+		expectedLifecycleVersion := 0
+		if index%3 == 2 {
+			expectedLifecycleVersion = 1
+		}
 		result := service.SaveDraft(
 			requestContext,
-			SaveWorkflowDraftRequest{Payload: payload},
+			SaveWorkflowDraftRequest{
+				Payload:                  payload,
+				ExpectedLifecycleVersion: expectedLifecycleVersion,
+			},
 		)
 		if result.FailureCode != "" || result.Draft == nil {
 			t.Fatalf("save library fixture %d: %#v", index, result)

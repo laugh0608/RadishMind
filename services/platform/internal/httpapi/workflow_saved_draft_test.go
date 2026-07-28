@@ -136,6 +136,12 @@ func TestSavedWorkflowDraftSaveReadValidateContracts(t *testing.T) {
 		store := newMemorySavedWorkflowDraftStore()
 		service := newSavedWorkflowDraftService(store)
 		context := savedWorkflowDraftTestContext()
+		sourcePayload := validSavedWorkflowDraftPayload()
+		sourcePayload.DraftID = "draft_radishflow_copilot_saved_v1"
+		source := service.SaveDraft(context, SaveWorkflowDraftRequest{Payload: sourcePayload})
+		if source.FailureCode != "" || source.Draft == nil {
+			t.Fatalf("seed derivation source: %#v", source)
+		}
 		payload := validSavedWorkflowDraftPayload()
 		payload.DraftID = "draft_derived_a1b2c3d4_01"
 		payload.AdditionalFields = map[string]any{
@@ -143,12 +149,15 @@ func TestSavedWorkflowDraftSaveReadValidateContracts(t *testing.T) {
 				"version":              float64(1),
 				"source_kind":          "saved_workflow_draft",
 				"source_draft_id":      "  draft_radishflow_copilot_saved_v1  ",
-				"source_draft_version": float64(3),
+				"source_draft_version": float64(1),
 				"ignored_field":        "not persisted",
 			},
 		}
 
-		saveResult := service.SaveDraft(context, SaveWorkflowDraftRequest{Payload: payload})
+		saveResult := service.SaveDraft(context, SaveWorkflowDraftRequest{
+			Payload:                  payload,
+			ExpectedLifecycleVersion: source.Draft.LifecycleVersion,
+		})
 
 		if saveResult.FailureCode != "" || saveResult.Draft == nil {
 			t.Fatalf("save should preserve sanitized direct derivation metadata: %#v", saveResult)
@@ -161,7 +170,7 @@ func TestSavedWorkflowDraftSaveReadValidateContracts(t *testing.T) {
 			"version":              1,
 			"source_kind":          "saved_workflow_draft",
 			"source_draft_id":      "draft_radishflow_copilot_saved_v1",
-			"source_draft_version": 3,
+			"source_draft_version": 1,
 		}
 		if !reflect.DeepEqual(derivation, want) {
 			t.Fatalf("saved draft derivation metadata drifted: got %#v want %#v", derivation, want)
@@ -190,7 +199,7 @@ func TestSavedWorkflowDraftSaveReadValidateContracts(t *testing.T) {
 		if _, found := normalized.AdditionalFields[savedWorkflowDraftDerivationAdditionalField]; found {
 			t.Fatalf("self-referenced derivation metadata must not survive normalization: %#v", normalized.AdditionalFields)
 		}
-		if got := store.SideEffects(); got.DraftWriteCount != 1 || hasSavedWorkflowDraftRuntimeSideEffect(got) {
+		if got := store.SideEffects(); got.DraftWriteCount != 2 || hasSavedWorkflowDraftRuntimeSideEffect(got) {
 			t.Fatalf("derivation metadata must not add runtime side effects: %#v", got)
 		}
 	})
@@ -360,8 +369,9 @@ func TestSavedWorkflowDraftFailureSemantics(t *testing.T) {
 				payload := validSavedWorkflowDraftPayload()
 				payload.Description = "concurrent writer " + time.Duration(writerIndex).String()
 				results <- service.SaveDraft(context, SaveWorkflowDraftRequest{
-					ExpectedDraftVersion: initial.Draft.DraftVersion,
-					Payload:              payload,
+					ExpectedDraftVersion:     initial.Draft.DraftVersion,
+					ExpectedLifecycleVersion: initial.Draft.LifecycleVersion,
+					Payload:                  payload,
 				})
 			}(index)
 		}

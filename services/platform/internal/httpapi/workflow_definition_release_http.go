@@ -18,10 +18,11 @@ const (
 )
 
 type workflowDefinitionCandidateCreateBody struct {
-	CandidateID          string `json:"candidate_id"`
-	DefinitionID         string `json:"definition_id"`
-	DraftID              string `json:"draft_id"`
-	ExpectedDraftVersion int    `json:"expected_draft_version"`
+	CandidateID              string `json:"candidate_id"`
+	DefinitionID             string `json:"definition_id"`
+	DraftID                  string `json:"draft_id"`
+	ExpectedDraftVersion     int    `json:"expected_draft_version"`
+	ExpectedLifecycleVersion int    `json:"expected_lifecycle_version"`
 }
 
 type workflowDefinitionCandidateDecisionBody struct {
@@ -90,10 +91,11 @@ func (server *Server) handleCreateWorkflowDefinitionCandidate(writer http.Respon
 		return
 	}
 	result := server.workflowDefinitionReleaseService().Create(ctx, WorkflowDefinitionCandidateCreateInput{
-		CandidateID:          body.CandidateID,
-		DefinitionID:         body.DefinitionID,
-		DraftID:              body.DraftID,
-		ExpectedDraftVersion: body.ExpectedDraftVersion,
+		CandidateID:              body.CandidateID,
+		DefinitionID:             body.DefinitionID,
+		DraftID:                  body.DraftID,
+		ExpectedDraftVersion:     body.ExpectedDraftVersion,
+		ExpectedLifecycleVersion: body.ExpectedLifecycleVersion,
 	})
 	writeWorkflowDefinitionResult(writer, trace, ctx, result)
 }

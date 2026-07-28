@@ -48,8 +48,9 @@ func TestSavedWorkflowDraftRevisionHistoryAndRestore(t *testing.T) {
 			}
 			payload.Name = "Revision two"
 			second := service.SaveDraft(requestContext, SaveWorkflowDraftRequest{
-				ExpectedDraftVersion: 1,
-				Payload:              payload,
+				ExpectedDraftVersion:     1,
+				ExpectedLifecycleVersion: 1,
+				Payload:                  payload,
 			})
 			if second.FailureCode != "" || second.Draft == nil || second.Draft.DraftVersion != 2 {
 				t.Fatalf("save revision two: %#v", second)
@@ -93,6 +94,7 @@ func TestSavedWorkflowDraftRevisionHistoryAndRestore(t *testing.T) {
 					DraftID:                     payload.DraftID,
 					SourceDraftVersion:          1,
 					ExpectedCurrentDraftVersion: 2,
+					ExpectedLifecycleVersion:    1,
 				},
 			)
 			if restored.FailureCode != "" || restored.Draft == nil ||
@@ -129,6 +131,7 @@ func TestSavedWorkflowDraftRevisionHistoryAndRestore(t *testing.T) {
 					DraftID:                     payload.DraftID,
 					SourceDraftVersion:          2,
 					ExpectedCurrentDraftVersion: 2,
+					ExpectedLifecycleVersion:    1,
 				},
 			)
 			if stale.FailureCode != SavedWorkflowDraftFailureVersionConflict ||

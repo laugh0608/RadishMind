@@ -36,10 +36,11 @@ func TestSavedWorkflowDraftSQLiteStoreFactory(t *testing.T) {
 	if err != nil || store == nil || closeStore == nil {
 		t.Fatalf("construct SQLite saved draft store: store=%#v close_set=%v err=%v", store, closeStore != nil, err)
 	}
-	repositoryStore, ok := store.(*repositorySavedWorkflowDraftStore)
+	libraryStore, ok := store.(*repositorySavedWorkflowDraftLibraryStore)
 	if !ok {
 		t.Fatalf("SQLite selector returned unexpected store type: %T", store)
 	}
+	repositoryStore := libraryStore.repositorySavedWorkflowDraftStore
 	adapter, ok := repositoryStore.repository.(SavedWorkflowDraftRepositoryAdapter)
 	if !ok {
 		t.Fatalf("SQLite store did not use the repository adapter: %T", repositoryStore.repository)

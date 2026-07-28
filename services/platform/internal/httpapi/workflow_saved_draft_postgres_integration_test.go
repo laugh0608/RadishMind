@@ -383,6 +383,7 @@ func TestSavedWorkflowDraftPostgresDevTestRepository(t *testing.T) {
 			DraftID:                     payload.DraftID,
 			SourceDraftVersion:          1,
 			ExpectedCurrentDraftVersion: 2,
+			ExpectedLifecycleVersion:    1,
 		},
 	)
 	if restoredRevision.FailureCode != "" || restoredRevision.Draft == nil ||
@@ -390,14 +391,12 @@ func TestSavedWorkflowDraftPostgresDevTestRepository(t *testing.T) {
 		restoredRevision.Draft.Name != payload.Name {
 		t.Fatalf("PostgreSQL revision restore drifted: %#v", restoredRevision)
 	}
-	repositoryStore, ok := secondServer.savedWorkflowDraftStore.(*repositorySavedWorkflowDraftStore)
+	libraryStore, ok := secondServer.savedWorkflowDraftStore.(*repositorySavedWorkflowDraftLibraryStore)
 	if !ok {
-		t.Fatalf("PostgreSQL saved draft store does not expose repository contract: %T",
+		t.Fatalf("PostgreSQL saved draft store does not expose library repository contract: %T",
 			secondServer.savedWorkflowDraftStore)
 	}
-	libraryService := newSavedWorkflowDraftService(
-		newRepositorySavedWorkflowDraftLibraryStore(repositoryStore),
-	)
+	libraryService := newSavedWorkflowDraftService(libraryStore)
 	assertPostgresSavedWorkflowDraftLifecycleAtomicity(
 		t,
 		databaseContext,
@@ -950,8 +949,9 @@ func postPostgresSavedWorkflowDraft(
 ) savedWorkflowDraftEnvelope {
 	t.Helper()
 	body, err := json.Marshal(savedWorkflowDraftSaveHTTPBody{
-		ExpectedDraftVersion: expectedVersion,
-		Draft:                savedWorkflowDraftPayloadDocumentFromDraftPayload(payload),
+		ExpectedDraftVersion:     expectedVersion,
+		ExpectedLifecycleVersion: min(expectedVersion, 1),
+		Draft:                    savedWorkflowDraftPayloadDocumentFromDraftPayload(payload),
 	})
 	if err != nil {
 		t.Fatalf("marshal PostgreSQL saved draft request: %v", err)
@@ -1026,7 +1026,10 @@ func setPostgresSavedWorkflowDraftHeaders(
 	request.Header.Set(controlPlaneReadDevAuditHeader, "audit_postgres_saved_draft_integration")
 	request.Header.Set(activeWorkspaceHeader, workspaceID)
 	request.Header.Set(controlPlaneReadDevMembershipHeader, workspaceID)
-	request.Header.Set(controlPlaneReadDevMembershipPermHeader, "workflow_drafts:write")
+	request.Header.Set(
+		controlPlaneReadDevMembershipPermHeader,
+		"workflow_drafts:read,workflow_drafts:write",
+	)
 	request.Header.Set(savedWorkflowDraftDevWorkspaceHeader, workspaceID)
 	request.Header.Set(savedWorkflowDraftDevApplicationHeader, applicationID)
 }
