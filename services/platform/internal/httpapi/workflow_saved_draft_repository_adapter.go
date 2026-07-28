@@ -237,6 +237,9 @@ func savedWorkflowDraftRepositoryDraftFailure(
 	if draft.SchemaVersion != savedWorkflowDraftSchemaVersion {
 		return SavedWorkflowDraftFailureSchemaVersionUnsupported
 	}
+	if _, ok := normalizeAndValidateSavedWorkflowDraftLifecycle(draft); !ok {
+		return SavedWorkflowDraftFailureLifecycleStoreContract
+	}
 	return ""
 }
 

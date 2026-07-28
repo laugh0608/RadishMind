@@ -193,7 +193,7 @@ func (service savedWorkflowDraftService) transitionDraftLifecycle(
 		target,
 		request.ExpectedDraftVersion,
 		request.ExpectedLifecycleVersion,
-		service.now().UTC(),
+		service.now().UTC().Truncate(time.Microsecond),
 	)
 	result := SavedWorkflowDraftLifecycleTransitionResult{
 		CurrentDraftVersion:     draft.DraftVersion,

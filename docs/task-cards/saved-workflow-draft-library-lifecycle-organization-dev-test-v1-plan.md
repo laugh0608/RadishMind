@@ -4,7 +4,7 @@
 
 状态：`in_progress`
 
-当前入口：`batch_b_ready`
+当前入口：`batch_c_ready`
 
 ## 目标
 
@@ -17,7 +17,7 @@
 ## 前置条件与已知事实
 
 - Memory、SQLite 与 PostgreSQL 已共享 Saved Draft domain、repository adapter、scope / owner、内容 CAS、schema preflight 和 no fallback。
-- 当前 `ListWorkflowDraftsRequest` 无分页 / 筛选；Memory 返回全部，SQLite / PostgreSQL 固定最多 `200` 条，HTTP 无 `next_cursor`。
+- `ListWorkflowDraftsRequest` 与三种 store 已具备分页 / 筛选；HTTP query 与 envelope 仍未消费新契约。
 - `draft_status` 是 validation state，不是生命周期。
 - revision 已有 append-only owner、稳定版本 cursor、精确读取、结构化比较和显式恢复。
 - 已保存草案派生、Workflow Definition candidate、Saved Draft execution、RAG retrieval 和 HTTP Tool 都会消费精确草案，必须统一增加 active lifecycle 资格。
@@ -87,7 +87,16 @@
 
 ## 批次 B：SQLite / PostgreSQL schema 与 repository
 
-状态：`ready`
+状态：`completed`
+
+完成证据：
+
+- SQLite / PostgreSQL `0003` 已增加 lifecycle / library 投影、append-only event、keyset / validation / provenance / name prefix 索引和 legacy active v1 回填。
+- repository adapter、query executor 与 store bridge 已承接 page / filter / transition；内容保存和 lifecycle transition 均使用数据库内双版本 CAS。
+- repository library store 采用显式 opt-in wrapper；批次 C 接入 HTTP query / envelope 前，既有 SQLite / PostgreSQL HTTP store 不暴露 library service interface，避免旧列表被默认 `25` 条分页静默截断。
+- SQLite 与 PostgreSQL current transition / event insert 已处于同一事务，event insert 失败会回滚 current record。
+- Memory、SQLite、PostgreSQL page / filter golden matrix、SQLite 并发 / 重启 / 损坏投影和真实 PostgreSQL 集成均已通过。
+- 真实 PostgreSQL 已验证 `0002 → 0003`、重复 apply、reviewed rollback / reapply、runtime role event `UPDATE / DELETE` 拒绝、并发单赢家与配置启动；测试容器已停止。
 
 ### 实现
 
@@ -121,7 +130,7 @@
 
 ## 批次 C：HTTP、权限与相邻操作资格
 
-状态：`blocked_by_batch_b`
+状态：`ready`
 
 ### 实现
 

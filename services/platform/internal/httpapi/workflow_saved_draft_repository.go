@@ -1,6 +1,9 @@
 package httpapi
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 const savedWorkflowDraftRepositoryStoreSchemaVersion = "saved_workflow_drafts_store_v1"
 
@@ -37,6 +40,19 @@ type SavedWorkflowDraftRevisionRepository interface {
 	) ListSavedWorkflowDraftRevisionRecordsResult
 }
 
+type SavedWorkflowDraftLibraryRepository interface {
+	ListWorkflowDraftLibraryPage(
+		ctx context.Context,
+		actor SavedWorkflowDraftRepositoryActorContext,
+		request ListWorkflowDraftLibraryPageRequest,
+	) ListWorkflowDraftLibraryPageResult
+	TransitionWorkflowDraftLifecycle(
+		ctx context.Context,
+		actor SavedWorkflowDraftRepositoryActorContext,
+		request TransitionWorkflowDraftLifecycleRecordRequest,
+	) TransitionWorkflowDraftLifecycleRecordResult
+}
+
 type SaveWorkflowDraftRecordRequest struct {
 	ExpectedDraftVersion int
 	Draft                SavedWorkflowDraft
@@ -65,6 +81,39 @@ type ListWorkflowDraftRecordsRequest struct{}
 type ListWorkflowDraftRecordsResult struct {
 	Summaries   []SavedWorkflowDraftSummary
 	FailureCode SavedWorkflowDraftFailureCode
+}
+
+type ListWorkflowDraftLibraryPageRequest struct {
+	LifecycleState        SavedWorkflowDraftLifecycleState
+	Limit                 int
+	NamePrefix            string
+	ValidationState       SavedWorkflowDraftStatus
+	ProvenanceKind        SavedWorkflowDraftProvenanceKind
+	AfterLibraryUpdatedAt string
+	AfterDraftID          string
+}
+
+type ListWorkflowDraftLibraryPageResult struct {
+	Summaries   []SavedWorkflowDraftSummary
+	HasMore     bool
+	FailureCode SavedWorkflowDraftFailureCode
+}
+
+type TransitionWorkflowDraftLifecycleRecordRequest struct {
+	DraftID                  string
+	TargetState              SavedWorkflowDraftLifecycleState
+	ExpectedDraftVersion     int
+	ExpectedLifecycleVersion int
+	OccurredAt               time.Time
+}
+
+type TransitionWorkflowDraftLifecycleRecordResult struct {
+	Draft                   *SavedWorkflowDraft
+	Event                   *SavedWorkflowDraftLifecycleEvent
+	FailureCode             SavedWorkflowDraftFailureCode
+	CurrentDraftVersion     int
+	CurrentLifecycleVersion int
+	CurrentLifecycleState   SavedWorkflowDraftLifecycleState
 }
 
 type ReadSavedWorkflowDraftRevisionRecordRequest struct {
@@ -146,6 +195,35 @@ type savedWorkflowDraftRepositoryQueryListResult struct {
 	FailureCode SavedWorkflowDraftFailureCode
 }
 
+type savedWorkflowDraftRepositoryLibraryPageQuery struct {
+	ActorContext SavedWorkflowDraftRepositoryActorContext
+	Filter       savedWorkflowDraftLibraryListFilter
+}
+
+type savedWorkflowDraftRepositoryLifecycleTransitionQuery struct {
+	ActorContext             SavedWorkflowDraftRepositoryActorContext
+	DraftID                  string
+	TargetState              SavedWorkflowDraftLifecycleState
+	ExpectedDraftVersion     int
+	ExpectedLifecycleVersion int
+	OccurredAt               time.Time
+}
+
+type savedWorkflowDraftRepositoryQueryLibraryPageResult struct {
+	Records     []SavedWorkflowDraftRepositoryStoredRecord
+	HasMore     bool
+	FailureCode SavedWorkflowDraftFailureCode
+}
+
+type savedWorkflowDraftRepositoryQueryLifecycleTransitionResult struct {
+	Record                  SavedWorkflowDraftRepositoryStoredRecord
+	Event                   SavedWorkflowDraftLifecycleEvent
+	FailureCode             SavedWorkflowDraftFailureCode
+	CurrentDraftVersion     int
+	CurrentLifecycleVersion int
+	CurrentLifecycleState   SavedWorkflowDraftLifecycleState
+}
+
 type savedWorkflowDraftRepositoryQueryRevisionReadResult struct {
 	Revision    SavedWorkflowDraftRevision
 	FailureCode SavedWorkflowDraftFailureCode
@@ -181,6 +259,17 @@ type SavedWorkflowDraftRevisionRepositoryQueryExecutor interface {
 		ctx context.Context,
 		query savedWorkflowDraftRepositoryRevisionListQuery,
 	) savedWorkflowDraftRepositoryQueryRevisionListResult
+}
+
+type SavedWorkflowDraftLibraryRepositoryQueryExecutor interface {
+	ListWorkflowDraftLibraryPage(
+		ctx context.Context,
+		query savedWorkflowDraftRepositoryLibraryPageQuery,
+	) savedWorkflowDraftRepositoryQueryLibraryPageResult
+	TransitionWorkflowDraftLifecycle(
+		ctx context.Context,
+		query savedWorkflowDraftRepositoryLifecycleTransitionQuery,
+	) savedWorkflowDraftRepositoryQueryLifecycleTransitionResult
 }
 
 type SavedWorkflowDraftRepositorySchemaPreflight struct {

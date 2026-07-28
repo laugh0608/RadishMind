@@ -32,11 +32,30 @@ func TestEmbeddedMigrationIdentityIsStable(t *testing.T) {
 			t.Fatalf("embedded revision migration is missing %q", literal)
 		}
 	}
+	for _, literal := range []string{
+		"CREATE TABLE saved_workflow_draft_lifecycle_events",
+		"saved_workflow_drafts_owner_lifecycle_list_idx",
+		"saved_workflow_drafts_validation_list_idx",
+		"saved_workflow_drafts_provenance_list_idx",
+		"saved_workflow_drafts_name_list_idx",
+		"library_updated_at = updated_at",
+		"provenance_kind = CASE",
+	} {
+		if !strings.Contains(libraryUpMigrationSQL, literal) {
+			t.Fatalf("embedded library migration is missing %q", literal)
+		}
+	}
 	if !strings.Contains(initialDownMigrationSQL, "DROP TABLE IF EXISTS saved_workflow_drafts") {
 		t.Fatalf("test rollback SQL does not remove saved workflow drafts")
 	}
 	if !strings.Contains(revisionDownMigrationSQL, "DROP TABLE IF EXISTS saved_workflow_draft_revisions") {
 		t.Fatalf("test rollback SQL does not remove saved workflow draft revisions")
+	}
+	if !strings.Contains(
+		libraryDownMigrationSQL,
+		"DROP TABLE IF EXISTS saved_workflow_draft_lifecycle_events",
+	) {
+		t.Fatalf("test rollback SQL does not remove saved workflow draft lifecycle events")
 	}
 }
 

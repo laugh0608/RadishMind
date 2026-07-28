@@ -56,6 +56,18 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord(
 	if err != nil {
 		return savedWorkflowDraftRepositoryQuerySaveResult{FailureCode: SavedWorkflowDraftFailureStoreContractMismatch}
 	}
+	libraryUpdatedAt, err := time.Parse(time.RFC3339Nano, query.Record.Draft.LibraryUpdatedAt)
+	if err != nil || !libraryUpdatedAt.Equal(updatedAt) {
+		return savedWorkflowDraftRepositoryQuerySaveResult{
+			FailureCode: SavedWorkflowDraftFailureLifecycleStoreContract,
+		}
+	}
+	libraryUpdatedAtUnixNano, err := savedWorkflowDraftUnixNano(libraryUpdatedAt)
+	if err != nil {
+		return savedWorkflowDraftRepositoryQuerySaveResult{
+			FailureCode: SavedWorkflowDraftFailureLifecycleStoreContract,
+		}
+	}
 
 	transaction, err := executor.database.BeginTx(ctx, nil)
 	if err != nil {
@@ -77,6 +89,14 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord(
 			query.Record.Draft.SchemaVersion,
 			query.Record.Draft.DraftVersion,
 			query.Record.Draft.DraftStatus,
+			query.Record.Draft.LifecycleState,
+			query.Record.Draft.LifecycleVersion,
+			nil,
+			libraryUpdatedAtUnixNano,
+			query.Record.Draft.LifecycleUpdatedByActorRef,
+			query.Record.Draft.Name,
+			query.Record.Draft.ValidationSummary.ValidationState,
+			query.Record.Draft.ProvenanceKind,
 			string(payload),
 			string(validation),
 			string(blocked),
@@ -95,10 +115,14 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord(
 			query.Record.Draft.SchemaVersion,
 			query.Record.Draft.DraftVersion,
 			query.Record.Draft.DraftStatus,
+			query.Record.Draft.Name,
+			query.Record.Draft.ValidationSummary.ValidationState,
+			query.Record.Draft.ProvenanceKind,
 			string(payload),
 			string(validation),
 			string(blocked),
 			updatedAtUnixNano,
+			libraryUpdatedAtUnixNano,
 			query.Record.Draft.UpdatedByActorRef,
 			query.Record.Draft.RequestAuditMetadata.RequestID,
 			query.Record.Draft.RequestAuditMetadata.AuditRef,
@@ -108,6 +132,7 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord(
 			query.Record.DraftID,
 			query.Record.OwnerSubjectRef,
 			query.ExpectedDraftVersion,
+			query.Record.Draft.LifecycleVersion,
 			createdAtUnixNano,
 		)
 	}
@@ -141,6 +166,11 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) SaveWorkflowDraftRecord(
 			CurrentDraftVersion: record.Draft.DraftVersion,
 		}
 	}
+	if errors.Is(err, errSavedWorkflowDraftStoredLibraryProjection) {
+		return savedWorkflowDraftRepositoryQuerySaveResult{
+			FailureCode: SavedWorkflowDraftFailureLifecycleStoreContract,
+		}
+	}
 	if errors.Is(err, errSavedWorkflowDraftStoredRecordContract) {
 		return savedWorkflowDraftRepositoryQuerySaveResult{FailureCode: SavedWorkflowDraftFailureStoreContractMismatch}
 	}
@@ -171,6 +201,11 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) ReadWorkflowDraftRecord(
 		return savedWorkflowDraftRepositoryQueryReadResult{
 			Record:              record,
 			CurrentDraftVersion: record.Draft.DraftVersion,
+		}
+	}
+	if errors.Is(err, errSavedWorkflowDraftStoredLibraryProjection) {
+		return savedWorkflowDraftRepositoryQueryReadResult{
+			FailureCode: SavedWorkflowDraftFailureLifecycleStoreContract,
 		}
 	}
 	if errors.Is(err, errSavedWorkflowDraftStoredRecordContract) {
@@ -224,7 +259,9 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) ListWorkflowDraftRecords(
 		record, scanErr := scanSQLiteSavedWorkflowDraftRecord(rows)
 		if scanErr != nil {
 			failureCode := SavedWorkflowDraftFailureStoreUnavailable
-			if errors.Is(scanErr, errSavedWorkflowDraftStoredRecordContract) {
+			if errors.Is(scanErr, errSavedWorkflowDraftStoredLibraryProjection) {
+				failureCode = SavedWorkflowDraftFailureLifecycleStoreContract
+			} else if errors.Is(scanErr, errSavedWorkflowDraftStoredRecordContract) {
 				failureCode = SavedWorkflowDraftFailureStoreContractMismatch
 			}
 			return savedWorkflowDraftRepositoryQueryListResult{FailureCode: failureCode}
@@ -365,7 +402,7 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) failedCASResult(
 	ctx context.Context,
 	query savedWorkflowDraftRepositorySaveQuery,
 ) savedWorkflowDraftRepositoryQuerySaveResult {
-	currentVersion, owner, found, lookupFailed := executor.currentVersionAndOwner(
+	state, found, lookupFailed := executor.currentDraftState(
 		ctx,
 		query.ActorContext,
 		query.Record.DraftID,
@@ -376,15 +413,28 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) failedCASResult(
 	if !found {
 		return savedWorkflowDraftRepositoryQuerySaveResult{FailureCode: SavedWorkflowDraftFailureNotFound}
 	}
-	if owner != query.Record.OwnerSubjectRef {
+	if state.OwnerSubjectRef != query.Record.OwnerSubjectRef {
 		return savedWorkflowDraftRepositoryQuerySaveResult{
 			FailureCode:         SavedWorkflowDraftFailureScopeDenied,
-			CurrentDraftVersion: currentVersion,
+			CurrentDraftVersion: state.DraftVersion,
+		}
+	}
+	if state.LifecycleState != SavedWorkflowDraftLifecycleActive {
+		return savedWorkflowDraftRepositoryQuerySaveResult{
+			FailureCode:         SavedWorkflowDraftFailureArchived,
+			CurrentDraftVersion: state.DraftVersion,
+		}
+	}
+	if state.DraftVersion == query.ExpectedDraftVersion &&
+		state.LifecycleVersion != query.Record.Draft.LifecycleVersion {
+		return savedWorkflowDraftRepositoryQuerySaveResult{
+			FailureCode:         SavedWorkflowDraftFailureLifecycleVersionConflict,
+			CurrentDraftVersion: state.DraftVersion,
 		}
 	}
 	return savedWorkflowDraftRepositoryQuerySaveResult{
 		FailureCode:         SavedWorkflowDraftFailureVersionConflict,
-		CurrentDraftVersion: currentVersion,
+		CurrentDraftVersion: state.DraftVersion,
 	}
 }
 
@@ -393,23 +443,8 @@ func (executor *sqliteSavedWorkflowDraftQueryExecutor) currentVersionAndOwner(
 	actor SavedWorkflowDraftRepositoryActorContext,
 	draftID string,
 ) (int, string, bool, bool) {
-	var currentVersion int
-	var owner string
-	err := executor.database.QueryRowContext(
-		ctx,
-		sqliteSavedWorkflowDraftCurrentVersionSQL,
-		actor.TenantRef,
-		actor.WorkspaceID,
-		actor.ApplicationID,
-		draftID,
-	).Scan(&currentVersion, &owner)
-	if errors.Is(err, sql.ErrNoRows) {
-		return 0, "", false, false
-	}
-	if err != nil {
-		return 0, "", false, true
-	}
-	return currentVersion, owner, true, false
+	state, found, failed := executor.currentDraftState(ctx, actor, draftID)
+	return state.DraftVersion, state.OwnerSubjectRef, found, failed
 }
 
 func scanSQLiteSavedWorkflowDraftRecord(
@@ -420,6 +455,14 @@ func scanSQLiteSavedWorkflowDraftRecord(
 	var draftVersion int
 	var schemaVersion string
 	var draftStatus string
+	var lifecycleState string
+	var lifecycleVersion int
+	var archivedAtUnixNano sql.NullInt64
+	var libraryUpdatedAtUnixNano int64
+	var lifecycleUpdatedByActorRef string
+	var draftName string
+	var validationState string
+	var provenanceKind string
 	var createdAtUnixNano int64
 	var updatedAtUnixNano int64
 	if err := row.Scan(
@@ -432,6 +475,14 @@ func scanSQLiteSavedWorkflowDraftRecord(
 		&schemaVersion,
 		&draftVersion,
 		&draftStatus,
+		&lifecycleState,
+		&lifecycleVersion,
+		&archivedAtUnixNano,
+		&libraryUpdatedAtUnixNano,
+		&lifecycleUpdatedByActorRef,
+		&draftName,
+		&validationState,
+		&provenanceKind,
 		&payload,
 		&createdAtUnixNano,
 		&updatedAtUnixNano,
@@ -451,7 +502,22 @@ func scanSQLiteSavedWorkflowDraftRecord(
 	if err != nil || createdAt.UnixNano() != createdAtUnixNano || updatedAt.UnixNano() != updatedAtUnixNano {
 		return SavedWorkflowDraftRepositoryStoredRecord{}, errSavedWorkflowDraftStoredRecordContract
 	}
-	return decoded, nil
+	archivedAt := ""
+	if archivedAtUnixNano.Valid {
+		archivedAt = time.Unix(0, archivedAtUnixNano.Int64).UTC().Format(time.RFC3339Nano)
+	}
+	libraryUpdatedAt := time.Unix(0, libraryUpdatedAtUnixNano).UTC().Format(time.RFC3339Nano)
+	return applySavedWorkflowDraftStoredLibraryProjection(
+		decoded,
+		lifecycleState,
+		lifecycleVersion,
+		archivedAt,
+		libraryUpdatedAt,
+		lifecycleUpdatedByActorRef,
+		draftName,
+		validationState,
+		provenanceKind,
+	)
 }
 
 func scanSQLiteSavedWorkflowDraftRevision(
@@ -510,6 +576,14 @@ const sqliteSavedWorkflowDraftReturningColumns = `
     schema_version,
     draft_version,
     draft_status,
+    lifecycle_state,
+    lifecycle_version,
+    archived_at_unix_nano,
+    library_updated_at_unix_nano,
+    lifecycle_updated_by_actor_ref,
+    draft_name,
+    validation_state,
+    provenance_kind,
     sanitized_draft_payload,
     created_at_unix_nano,
     updated_at_unix_nano`
@@ -518,20 +592,26 @@ const sqliteSavedWorkflowDraftInsertSQL = `
 INSERT INTO saved_workflow_drafts (
     tenant_ref, workspace_id, application_id, draft_id, owner_subject_ref,
     store_schema_version, schema_version, draft_version, draft_status,
+    lifecycle_state, lifecycle_version, archived_at_unix_nano,
+    library_updated_at_unix_nano, lifecycle_updated_by_actor_ref,
+    draft_name, validation_state, provenance_kind,
     sanitized_draft_payload, validation_summary, blocked_capability_summary,
     created_at_unix_nano, updated_at_unix_nano, created_by_actor_ref,
     updated_by_actor_ref, request_id, audit_ref
-) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 ON CONFLICT (tenant_ref, workspace_id, application_id, draft_id) DO NOTHING
 RETURNING ` + sqliteSavedWorkflowDraftReturningColumns
 
 const sqliteSavedWorkflowDraftUpdateSQL = `
 UPDATE saved_workflow_drafts
    SET store_schema_version=?, schema_version=?, draft_version=?, draft_status=?,
+       draft_name=?, validation_state=?, provenance_kind=?,
        sanitized_draft_payload=?, validation_summary=?, blocked_capability_summary=?,
-       updated_at_unix_nano=?, updated_by_actor_ref=?, request_id=?, audit_ref=?
+       updated_at_unix_nano=?, library_updated_at_unix_nano=?,
+       updated_by_actor_ref=?, request_id=?, audit_ref=?
  WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND draft_id=?
-   AND owner_subject_ref=? AND draft_version=? AND created_at_unix_nano=?
+   AND owner_subject_ref=? AND draft_version=? AND lifecycle_version=?
+   AND lifecycle_state='active' AND created_at_unix_nano=?
 RETURNING ` + sqliteSavedWorkflowDraftReturningColumns
 
 const sqliteSavedWorkflowDraftReadSQL = `
@@ -545,11 +625,6 @@ SELECT ` + sqliteSavedWorkflowDraftReturningColumns + `
  WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=?
  ORDER BY updated_at_unix_nano DESC, draft_id ASC
  LIMIT ?`
-
-const sqliteSavedWorkflowDraftCurrentVersionSQL = `
-SELECT draft_version, owner_subject_ref
-  FROM saved_workflow_drafts
- WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND draft_id=?`
 
 const sqliteSavedWorkflowDraftRevisionColumns = `
     tenant_ref,

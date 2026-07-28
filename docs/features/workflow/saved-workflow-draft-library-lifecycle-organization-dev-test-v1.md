@@ -2,11 +2,11 @@
 
 更新时间：2026-07-28
 
-状态：`saved_workflow_draft_library_lifecycle_organization_dev_test_v1_batch_a_completed`
+状态：`saved_workflow_draft_library_lifecycle_organization_dev_test_v1_batch_b_completed`
 
-实施准入：`implementation_task_card_active_batch_b_ready`
+实施准入：`implementation_task_card_active_batch_c_ready`
 
-当前实现进度：批次 A 已完成领域类型、Memory lifecycle owner、严格 cursor、keyset 分页、筛选、双版本并发与 active lifecycle 消费资格；SQLite / PostgreSQL schema、repository page / transition、HTTP permission 与 Web 尚未进入实现。
+当前实现进度：批次 A、B 已完成领域类型、三种 store 的 lifecycle owner、严格 cursor、keyset 分页 / 筛选、双版本并发、双数据库 `0003`、原子 transition / event、升级 / 回滚和 active lifecycle 消费资格；repository library adapter 保持显式 opt-in，既有 HTTP 列表语义未提前改变，HTTP permission 与 Web 尚未进入实现。
 
 ## 功能目标
 
