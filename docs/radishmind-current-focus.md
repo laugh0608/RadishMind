@@ -21,7 +21,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：草案库生命周期批次 A、B、C 已完成，下一顺位是批次 D 的 Saved Draft Library 活动 / 归档视图、筛选、加载更多、归档只读审查和术语修正；只消费本批已冻结的 HTTP 契约，不扩后端同层 gate。不把本专题扩成永久删除、批量清理、自动归档、自动保存、自动合并、分支图或跨作用域移动，也不把当前窗口 token 汇总扩成全量统计、价格、quota 或 billing；生产 membership adapter、真实 OIDC、运营收件箱批次 B 和 Provider Route 同层扩展继续按各自停止线关闭。
+1. 产品线：草案库生命周期批次 A、B、C 已完成，下一顺位是批次 D 的 Saved Draft Library Web；先收口严格 consumer 契约与活动 / 归档独立查询状态，再实现筛选、加载更多、归档只读审查、archive / unarchive 和术语修正，只消费本批已冻结的 HTTP 契约，不扩后端同层 gate。不把本专题扩成永久删除、批量清理、自动归档、自动保存、自动合并、分支图或跨作用域移动，也不把当前窗口 token 汇总扩成全量统计、价格、quota 或 billing；生产 membership adapter、真实 OIDC、运营收件箱批次 B 和 Provider Route 同层扩展继续按各自停止线关闭。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。

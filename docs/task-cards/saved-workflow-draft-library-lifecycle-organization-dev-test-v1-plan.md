@@ -17,11 +17,12 @@
 ## 前置条件与已知事实
 
 - Memory、SQLite 与 PostgreSQL 已共享 Saved Draft domain、repository adapter、scope / owner、内容 CAS、schema preflight 和 no fallback。
-- `ListWorkflowDraftsRequest` 与三种 store 已具备分页 / 筛选；HTTP query 与 envelope 仍未消费新契约。
+- `ListWorkflowDraftsRequest`、三种 store 与 HTTP query / envelope 已共享分页、筛选、lifecycle metadata、`next_cursor` 和 `has_more` 契约。
 - `draft_status` 是 validation state，不是生命周期。
 - revision 已有 append-only owner、稳定版本 cursor、精确读取、结构化比较和显式恢复。
-- 已保存草案派生、Workflow Definition candidate、Saved Draft execution、RAG retrieval 和 HTTP Tool 都会消费精确草案，必须统一增加 active lifecycle 资格。
+- 已保存草案派生、Workflow Definition candidate、Saved Draft execution、RAG retrieval 和 HTTP Tool 已在各自业务 owner 内统一增加 active lifecycle 资格。
 - Workspace-scoped Mutation Authorization 已提供唯一 membership provider；新增 mutation 必须复用它。
+- Web Saved Draft consumer 尚未消费新集合与 lifecycle mutation 契约，批次 D 只在既有 Workflow 产品面补齐这一用户闭环。
 - 生产 repository、真实 OIDC、production membership adapter 和公开生产 API 仍关闭。
 
 ## 不变量
@@ -169,6 +170,13 @@
 ## 批次 D：Saved Draft Library Web
 
 状态：`ready`
+
+### 明日实施顺序（2026-07-29）
+
+1. 先更新 `savedWorkflowDraftConsumer.ts` 的严格类型、parser 和 request builder，完整消费 lifecycle summary、`next_cursor` / `has_more`、当前双版本与稳定 failure envelope。
+2. 再在 `App.tsx` 建立活动 / 归档两套独立 query state，固定筛选、加载更多、按 `draft_id` 防御重复、scope / filter reset 和迟到响应隔离。
+3. 最后更新 `workflowUserWorkspaceHomePanel.tsx` 与 revision 面板，落实“打开草案 / 只读审查 / 恢复历史版本”术语、两步 archive、显式 unarchive 和归档态 restore 禁用。
+4. 以新增 Saved Draft Library consumer 测试、既有 revision / lifecycle 测试、Web 全量测试和 production build 作为批次 D 提交前证据。
 
 ### 实现
 

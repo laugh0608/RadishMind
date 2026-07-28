@@ -261,7 +261,7 @@ production auth runtime bridge 的唯一允许 auth source 是 `radish_oidc_veri
 
 显式开发 / 测试态 PostgreSQL repository、R4 Gateway、executor v0、持久 Run History、本地 SQLite 连续产品链与 API 密钥 Web 验收均已完成，不继续追加 storage adapter readiness，也不启用 `repository` production mode。[Workflow 受控 HTTP Tool 与人工确认执行实施任务卡](../../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)和 [Workflow RAG Retrieval 与应用知识快照](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md)的三个批次均已完成；两条路径继续证明精确 Saved Draft version 可作为受控 action plan 或 retrieval authority 的输入，而不改写 Saved Draft v1 的持久化职责。production OIDC、membership、production secret、audit store、公开生产 API、writeback 和 replay 继续关闭。下方旧依赖顺序只作为历史 checker 兼容记录读取。
 
-dev-only consumer integration、草案编辑 / 创建 / 列表 / 恢复、精确已保存版本派生、不可变修订历史、结构化版本比较、本地图结构编辑、Node Designer、版本冲突审查、memory / SQLite / PostgreSQL 开发测试态 repository 和数据库重启恢复均已落地。历史 production secret / storage adapter 准入锚点继续保留，但不再是 Saved Draft 或当前产品线的下一依赖；production repository、真实 Radish membership、production secret、audit store 与公开生产 API 仍需未来独立专题。2026-07-28 下一批先设计草案库生命周期与组织，审计活动 / 归档状态、稳定分页、筛选、可逆归档和归档后操作资格；不从历史能力原地扩自动保存、自动恢复、自动合并、同步、永久删除、祖先图、分支图或跨作用域复制。
+dev-only consumer integration、草案编辑 / 创建 / 列表 / 恢复、精确已保存版本派生、不可变修订历史、结构化版本比较、本地图结构编辑、Node Designer、版本冲突审查、memory / SQLite / PostgreSQL 开发测试态 repository 和数据库重启恢复均已落地。历史 production secret / storage adapter 准入锚点继续保留，但不再是 Saved Draft 或当前产品线的下一依赖；production repository、真实 Radish membership、production secret、audit store 与公开生产 API 仍需未来独立专题。2026-07-28 已完成[草案库生命周期与组织](saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md)设计及批次 A、B、C，活动 / 归档状态、稳定分页、筛选、可逆归档、双版本并发和归档后操作资格已有服务端与双数据库证据；下一步只进入批次 D 的 Saved Draft Library Web，不从历史能力原地扩自动保存、自动恢复、自动合并、同步、永久删除、祖先图、分支图或跨作用域复制。
 
 ## 2026-06-28 依赖复评
 

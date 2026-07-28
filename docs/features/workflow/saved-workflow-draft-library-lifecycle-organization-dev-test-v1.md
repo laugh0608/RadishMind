@@ -2,7 +2,7 @@
 
 更新时间：2026-07-28
 
-状态：`saved_workflow_draft_library_lifecycle_organization_dev_test_v1_batch_b_completed`
+状态：`saved_workflow_draft_library_lifecycle_organization_dev_test_v1_batch_c_completed`
 
 实施准入：`implementation_task_card_active_batch_d_ready`
 
@@ -21,24 +21,23 @@
 
 归档不是删除、内容保存、内容修订、发布、停用 Definition 或取消 Run。生命周期变化不得借用 `draft_version` 伪装成图内容变化，也不得改写既有 revision。
 
-## 当前实现审计
+## 设计时审计与当前治理结果
 
 ### 服务与存储
 
-- `ListWorkflowDraftsRequest` 当前为空结构，只能按 tenant、workspace、application 与 owner 的既有上下文列举。
-- memory store 返回当前作用域的全部草案，并按 `updated_at DESC, draft_id ASC` 排序。
-- SQLite 与 PostgreSQL 使用相同排序，但固定最多读取 `200` 条；HTTP envelope 没有 `next_cursor` 或 `has_more`，超过上限时调用方无法判断列表被截断。
-- 当前表只有内容 `draft_version` 和校验用途的 `draft_status`。`draft_status` 的允许值为 `valid_for_review`、`invalid_draft`、`blocked_capability`、`schema_unsupported`，不能承担生命周期。
-- 当前 owner 已有内容 CAS、三种 store、scope / owner 隔离、no fallback、schema preflight、数据库升级与重启恢复，可作为本功能的唯一基础。
+- 设计时 `ListWorkflowDraftsRequest` 为空、SQLite / PostgreSQL 固定最多读取 `200` 条且 HTTP 无截断信号；批次 A 至 C 已把它替换为三种 store 一致的 lifecycle、limit、opaque cursor、name prefix、validation 与 provenance 查询。
+- memory、SQLite 与 PostgreSQL 现统一使用 `library_updated_at DESC, draft_id ASC` keyset 排序和 `limit + 1`，HTTP envelope 已返回 `next_cursor` 与 `has_more`，不再保留固定 `200` 条静默截断。
+- `draft_status` 继续只承担 `valid_for_review`、`invalid_draft`、`blocked_capability`、`schema_unsupported` 校验状态；活动 / 归档由独立 lifecycle metadata、CAS 与 event owner 承担。
+- 既有内容 CAS、scope / owner 隔离、no fallback、schema preflight、数据库升级与重启恢复保持不变；双数据库 `0003` 已补齐 projection、索引、原子 transition / event 与 runtime role 约束。
 - revision 列表已经具备绑定 draft 与页大小的 opaque cursor，可复用 cursor 校验思路，但不能直接复用只按整数版本倒序的 cursor 结构。
 
 ### Web 与相邻流程
 
-- Web consumer 每次读取当前 application 的完整返回窗口并整体替换列表，没有加载更多、活动 / 归档视图或服务端筛选。
+- Web consumer 仍按旧契约整体替换当前 application 的列表，尚未消费 lifecycle metadata、服务端筛选、`next_cursor` 或 archive / unarchive；这是批次 D 的明确边界。
 - 当前 UI 把“读取一条已保存草案并进入 Draft Designer”称为 `restore`，同时 revision mutation 也使用“恢复历史版本”。本功能必须把前者改称“打开草案”，把“恢复”保留给 revision restore。
-- 已保存草案派生只允许精确已保存版本、无未保存修改和无 pending operation，但当前没有 lifecycle 资格。
-- revision 历史支持 list / read / compare / restore；其中前三项可继续服务归档草案，restore mutation 必须要求活动状态。
-- Workflow Definition candidate 创建、Saved Draft 受控执行、RAG retrieval 和 HTTP Tool 等入口当前按精确草案版本读取，尚未统一检查草案生命周期。
+- 已保存草案派生首次保存已复验来源精确内容版本、生命周期版本与 active 状态；无未保存修改和无 pending operation 的既有要求保持不变。
+- revision 历史的 list / read / compare 继续可读；restore request 已携带 expected lifecycle version，并在归档状态失败关闭。
+- Workflow Definition candidate、Saved Draft 受控执行、RAG retrieval 和 HTTP Tool 已在各自业务 owner 内统一复验 active lifecycle。
 - 已晋级 Definition 和既有 Run 都保留 source draft provenance；来源草案归档后，这些不可变证据不得失效或被级联修改。
 
 ## 目标用户与核心场景
