@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1](saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)是当前唯一活跃实现任务，状态为 `planned`，当前入口为 `batch_a_ready`。功能设计已固定活动 / 归档、独立 lifecycle CAS、append-only event、服务端 keyset 分页、筛选、权限和归档后资格；批次 A 从领域、集合契约与 Memory owner 开始。Provider 上报用量审查、Mutation Authorization、草案派生与修订历史均已关闭，不派生平行任务卡。
+[已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1](saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)是当前唯一活跃实现任务，状态为 `in_progress`，当前入口为 `batch_b_ready`。批次 A 已完成领域、Memory lifecycle owner、严格 cursor、服务端 keyset 分页、筛选、双版本并发和 active lifecycle 消费资格；批次 B 只推进 SQLite / PostgreSQL `0003` migration、repository page / transition 与三种 store 契约一致性。Provider 上报用量审查、Mutation Authorization、草案派生与修订历史均已关闭，不派生平行任务卡。
 
 ## 最近关闭任务
 

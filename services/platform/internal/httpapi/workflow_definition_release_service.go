@@ -204,10 +204,14 @@ func (service workflowDefinitionReleaseService) readExactDraft(ctx WorkflowDefin
 	if result.Draft.DraftVersion != expectedVersion {
 		return SavedWorkflowDraft{}, workflowDefinitionFailureSourceVersionDrift
 	}
-	if result.Draft.DraftStatus != SavedWorkflowDraftStatusValidForReview || !result.Draft.ValidationSummary.ValidForReview || len(result.Draft.BlockedCapabilitySummary) > 0 {
+	activeDraft, lifecycleFailure := activeSavedWorkflowDraftForConsumption(*result.Draft)
+	if lifecycleFailure != "" {
 		return SavedWorkflowDraft{}, workflowDefinitionFailureSourceIneligible
 	}
-	return *result.Draft, ""
+	if activeDraft.DraftStatus != SavedWorkflowDraftStatusValidForReview || !activeDraft.ValidationSummary.ValidForReview || len(activeDraft.BlockedCapabilitySummary) > 0 {
+		return SavedWorkflowDraft{}, workflowDefinitionFailureSourceIneligible
+	}
+	return activeDraft, ""
 }
 
 func workflowDefinitionResultFromError(err error) WorkflowDefinitionReleaseResult {

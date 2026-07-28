@@ -2,11 +2,9 @@ package httpapi
 
 import (
 	"context"
-	"errors"
 	"math"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -55,6 +53,13 @@ const (
 	SavedWorkflowDraftFailureOwnerScopeDenied           SavedWorkflowDraftFailureCode = "draft_owner_scope_denied"
 	SavedWorkflowDraftFailureScopeGrantMissing          SavedWorkflowDraftFailureCode = "draft_scope_grant_missing"
 	SavedWorkflowDraftFailureAuditContextMissing        SavedWorkflowDraftFailureCode = "draft_audit_context_missing"
+	SavedWorkflowDraftFailureArchived                   SavedWorkflowDraftFailureCode = "draft_archived"
+	SavedWorkflowDraftFailureLifecycleVersionConflict   SavedWorkflowDraftFailureCode = "draft_lifecycle_version_conflict"
+	SavedWorkflowDraftFailureLifecycleStateConflict     SavedWorkflowDraftFailureCode = "draft_lifecycle_state_conflict"
+	SavedWorkflowDraftFailureListCursorInvalid          SavedWorkflowDraftFailureCode = "draft_list_cursor_invalid"
+	SavedWorkflowDraftFailureListFilterInvalid          SavedWorkflowDraftFailureCode = "draft_list_filter_invalid"
+	SavedWorkflowDraftFailureLifecycleEventWrite        SavedWorkflowDraftFailureCode = "draft_lifecycle_event_write_failed"
+	SavedWorkflowDraftFailureLifecycleStoreContract     SavedWorkflowDraftFailureCode = "draft_lifecycle_store_contract_mismatch"
 )
 
 type SavedWorkflowDraftStatus string
@@ -96,7 +101,14 @@ type ReadWorkflowDraftRequest struct {
 	DraftID string
 }
 
-type ListWorkflowDraftsRequest struct{}
+type ListWorkflowDraftsRequest struct {
+	LifecycleState  SavedWorkflowDraftLifecycleState
+	Limit           int
+	Cursor          string
+	NamePrefix      string
+	ValidationState SavedWorkflowDraftStatus
+	ProvenanceKind  SavedWorkflowDraftProvenanceKind
+}
 
 type ValidateWorkflowDraftRequest struct {
 	Payload SavedWorkflowDraftPayload
@@ -161,6 +173,12 @@ type SavedWorkflowDraft struct {
 	SourceDefinitionID         string
 	BaseDefinitionVersion      int
 	DraftVersion               int
+	LifecycleState             SavedWorkflowDraftLifecycleState
+	LifecycleVersion           int
+	ArchivedAt                 string
+	LibraryUpdatedAt           string
+	LifecycleUpdatedByActorRef string
+	ProvenanceKind             SavedWorkflowDraftProvenanceKind
 	SchemaVersion              string
 	DraftStatus                SavedWorkflowDraftStatus
 	CreatedAt                  string
@@ -225,6 +243,12 @@ type SavedWorkflowDraftSummary struct {
 	ApplicationID              string
 	SourceDefinitionID         string
 	DraftVersion               int
+	LifecycleState             SavedWorkflowDraftLifecycleState
+	LifecycleVersion           int
+	ArchivedAt                 string
+	LibraryUpdatedAt           string
+	LifecycleUpdatedByActorRef string
+	ProvenanceKind             SavedWorkflowDraftProvenanceKind
 	SchemaVersion              string
 	DraftStatus                SavedWorkflowDraftStatus
 	Name                       string
@@ -241,6 +265,8 @@ type SavedWorkflowDraftSummary struct {
 
 type SavedWorkflowDraftListResult struct {
 	Summaries            []SavedWorkflowDraftSummary
+	NextCursor           string
+	HasMore              bool
 	FailureCode          SavedWorkflowDraftFailureCode
 	RequestAuditMetadata SavedWorkflowDraftAuditMetadata
 }
@@ -254,20 +280,14 @@ type savedWorkflowDraftStore interface {
 
 type SavedWorkflowDraftSideEffects struct {
 	DraftWriteCount          int
+	LifecycleTransitionCount int
+	LifecycleEventWriteCount int
 	ExecutorCallCount        int
 	ConfirmationCallCount    int
 	BusinessWritebackCount   int
 	ReplayCallCount          int
 	MaterializedResultReads  int
 	ExternalRepositoryWrites int
-}
-
-type memorySavedWorkflowDraftStore struct {
-	mu          sync.RWMutex
-	drafts      map[string]SavedWorkflowDraft
-	revisions   map[string]map[int]SavedWorkflowDraftRevision
-	sideEffects SavedWorkflowDraftSideEffects
-	unavailable bool
 }
 
 type savedWorkflowDraftService struct {
@@ -281,13 +301,6 @@ func newSavedWorkflowDraftService(store savedWorkflowDraftStore) savedWorkflowDr
 		now: func() time.Time {
 			return time.Now().UTC()
 		},
-	}
-}
-
-func newMemorySavedWorkflowDraftStore() *memorySavedWorkflowDraftStore {
-	return &memorySavedWorkflowDraftStore{
-		drafts:    make(map[string]SavedWorkflowDraft),
-		revisions: make(map[string]map[int]SavedWorkflowDraftRevision),
 	}
 }
 
@@ -313,6 +326,18 @@ func (service savedWorkflowDraftService) SaveDraft(
 	if found && !savedWorkflowDraftMatchesScope(existing, context.WorkspaceID, context.ApplicationID) {
 		return savedWorkflowDraftFailure(SavedWorkflowDraftFailureScopeDenied, auditMetadata)
 	}
+	if found {
+		var lifecycleOK bool
+		existing, lifecycleOK = normalizeAndValidateSavedWorkflowDraftLifecycle(existing)
+		if !lifecycleOK {
+			return savedWorkflowDraftFailure(SavedWorkflowDraftFailureLifecycleStoreContract, auditMetadata)
+		}
+		if existing.LifecycleState != SavedWorkflowDraftLifecycleActive {
+			result := savedWorkflowDraftFailure(SavedWorkflowDraftFailureArchived, auditMetadata)
+			result.CurrentDraftVersion = existing.DraftVersion
+			return result
+		}
+	}
 	if found && request.ExpectedDraftVersion != existing.DraftVersion {
 		result := savedWorkflowDraftFailure(SavedWorkflowDraftFailureVersionConflict, auditMetadata)
 		result.CurrentDraftVersion = existing.DraftVersion
@@ -326,10 +351,17 @@ func (service savedWorkflowDraftService) SaveDraft(
 	draftVersion := 1
 	createdAt := now
 	createdByActorRef := context.ActorRef
+	lifecycleState := SavedWorkflowDraftLifecycleActive
+	lifecycleVersion := 1
+	libraryUpdatedAt := now
+	lifecycleUpdatedByActorRef := ""
 	if found {
 		draftVersion = existing.DraftVersion + 1
 		createdAt = existing.CreatedAt
 		createdByActorRef = existing.CreatedByActorRef
+		lifecycleState = existing.LifecycleState
+		lifecycleVersion = existing.LifecycleVersion
+		lifecycleUpdatedByActorRef = existing.LifecycleUpdatedByActorRef
 	}
 
 	draft := SavedWorkflowDraft{
@@ -339,6 +371,10 @@ func (service savedWorkflowDraftService) SaveDraft(
 		SourceDefinitionID:         normalized.SourceDefinitionID,
 		BaseDefinitionVersion:      normalized.BaseDefinitionVersion,
 		DraftVersion:               draftVersion,
+		LifecycleState:             lifecycleState,
+		LifecycleVersion:           lifecycleVersion,
+		LibraryUpdatedAt:           libraryUpdatedAt,
+		LifecycleUpdatedByActorRef: lifecycleUpdatedByActorRef,
 		SchemaVersion:              normalized.SchemaVersion,
 		DraftStatus:                validationResult.ValidationSummary.ValidationState,
 		CreatedAt:                  createdAt,
@@ -361,6 +397,7 @@ func (service savedWorkflowDraftService) SaveDraft(
 		RequestAuditMetadata:       auditMetadata,
 		SampleOrUnsavedDraftStatus: "saved_draft_record",
 	}
+	draft.ProvenanceKind = savedWorkflowDraftProvenanceKind(draft)
 	currentDraftVersion, err := service.store.WriteDraft(context, draft, request.ExpectedDraftVersion)
 	if err != nil {
 		result := savedWorkflowDraftFailure(savedWorkflowDraftStoreFailureCode(err), auditMetadata)
@@ -399,6 +436,11 @@ func (service savedWorkflowDraftService) ReadDraft(
 	}
 	if !savedWorkflowDraftMatchesScope(draft, context.WorkspaceID, context.ApplicationID) {
 		return savedWorkflowDraftFailure(SavedWorkflowDraftFailureScopeDenied, auditMetadata)
+	}
+	var lifecycleOK bool
+	draft, lifecycleOK = normalizeAndValidateSavedWorkflowDraftLifecycle(draft)
+	if !lifecycleOK {
+		return savedWorkflowDraftFailure(SavedWorkflowDraftFailureLifecycleStoreContract, auditMetadata)
 	}
 	if draft.SchemaVersion != savedWorkflowDraftSchemaVersion {
 		result := savedWorkflowDraftFailure(SavedWorkflowDraftFailureSchemaVersionUnsupported, auditMetadata)
@@ -441,11 +483,17 @@ func (service savedWorkflowDraftService) ReadDraft(
 
 func (service savedWorkflowDraftService) ListDrafts(
 	context SavedWorkflowDraftContext,
-	_ ListWorkflowDraftsRequest,
+	request ListWorkflowDraftsRequest,
 ) SavedWorkflowDraftListResult {
 	auditMetadata := savedWorkflowDraftAuditMetadata(context)
 	if strings.TrimSpace(context.WorkspaceID) == "" || strings.TrimSpace(context.ApplicationID) == "" {
 		return savedWorkflowDraftListFailure(SavedWorkflowDraftFailureScopeDenied, auditMetadata)
+	}
+	if libraryStore, ok := service.store.(savedWorkflowDraftLibraryStore); ok {
+		return service.listDraftLibrary(context, request, libraryStore)
+	}
+	if savedWorkflowDraftListRequestUsesLibraryContract(request) {
+		return savedWorkflowDraftListFailure(SavedWorkflowDraftFailureStoreUnavailable, auditMetadata)
 	}
 
 	summaries, err := service.store.ListDraftSummariesByScope(context)
@@ -554,105 +602,6 @@ func (service savedWorkflowDraftService) validatePayload(
 		BlockedCapabilities:  cloneSavedWorkflowDraftBlockedCapabilities(blockedCapabilities),
 		RequestAuditMetadata: auditMetadata,
 	}
-}
-
-func (store *memorySavedWorkflowDraftStore) ReadDraftByID(
-	_ SavedWorkflowDraftContext,
-	draftID string,
-) (SavedWorkflowDraft, bool, error) {
-	store.mu.RLock()
-	defer store.mu.RUnlock()
-
-	if store.unavailable {
-		return SavedWorkflowDraft{}, false, errors.New("saved workflow draft store unavailable")
-	}
-	draft, found := store.drafts[draftID]
-	if !found {
-		return SavedWorkflowDraft{}, false, nil
-	}
-	return cloneSavedWorkflowDraft(draft), true, nil
-}
-
-func (store *memorySavedWorkflowDraftStore) ListDraftSummariesByScope(
-	requestContext SavedWorkflowDraftContext,
-) ([]SavedWorkflowDraftSummary, error) {
-	store.mu.RLock()
-	defer store.mu.RUnlock()
-
-	if store.unavailable {
-		return nil, errors.New("saved workflow draft store unavailable")
-	}
-	drafts := make([]SavedWorkflowDraft, 0)
-	for _, draft := range store.drafts {
-		if savedWorkflowDraftMatchesScope(draft, requestContext.WorkspaceID, requestContext.ApplicationID) {
-			drafts = append(drafts, cloneSavedWorkflowDraft(draft))
-		}
-	}
-	sort.Slice(drafts, func(i, j int) bool {
-		if drafts[i].UpdatedAt == drafts[j].UpdatedAt {
-			return drafts[i].DraftID < drafts[j].DraftID
-		}
-		return drafts[i].UpdatedAt > drafts[j].UpdatedAt
-	})
-	summaries := make([]SavedWorkflowDraftSummary, 0, len(drafts))
-	for _, draft := range drafts {
-		summaries = append(summaries, savedWorkflowDraftSummaryFromDraft(draft))
-	}
-	return summaries, nil
-}
-
-func (store *memorySavedWorkflowDraftStore) WriteDraft(
-	_ SavedWorkflowDraftContext,
-	draft SavedWorkflowDraft,
-	expectedDraftVersion int,
-) (int, error) {
-	store.mu.Lock()
-	defer store.mu.Unlock()
-
-	return store.writeDraftLocked(draft, expectedDraftVersion, SavedWorkflowDraftRevisionKindSaved, 0)
-}
-
-func (store *memorySavedWorkflowDraftStore) writeDraftLocked(
-	draft SavedWorkflowDraft,
-	expectedDraftVersion int,
-	revisionKind SavedWorkflowDraftRevisionKind,
-	restoredFromVersion int,
-) (int, error) {
-	if store.unavailable {
-		return 0, errors.New("saved workflow draft store unavailable")
-	}
-	existing, found := store.drafts[draft.DraftID]
-	if found && !savedWorkflowDraftMatchesScope(existing, draft.WorkspaceID, draft.ApplicationID) {
-		return 0, savedWorkflowDraftStoreWriteFailure(SavedWorkflowDraftFailureScopeDenied)
-	}
-	if found && existing.DraftVersion != expectedDraftVersion {
-		return existing.DraftVersion, savedWorkflowDraftStoreWriteFailure(SavedWorkflowDraftFailureVersionConflict)
-	}
-	if !found && expectedDraftVersion != 0 {
-		return 0, savedWorkflowDraftStoreWriteFailure(SavedWorkflowDraftFailureNotFound)
-	}
-	revisions := store.revisions[draft.DraftID]
-	if revisions == nil {
-		revisions = make(map[int]SavedWorkflowDraftRevision)
-	}
-	if _, duplicate := revisions[draft.DraftVersion]; duplicate {
-		return expectedDraftVersion, savedWorkflowDraftStoreWriteFailure(
-			SavedWorkflowDraftFailureStoreContractMismatch,
-		)
-	}
-	revision := newSavedWorkflowDraftRevision(draft, revisionKind, restoredFromVersion)
-	store.drafts[draft.DraftID] = cloneSavedWorkflowDraft(draft)
-	revisions[draft.DraftVersion] = cloneSavedWorkflowDraftRevision(revision)
-	store.revisions[draft.DraftID] = revisions
-	store.sideEffects.DraftWriteCount++
-	return draft.DraftVersion, nil
-}
-
-func (store *memorySavedWorkflowDraftStore) SideEffects() SavedWorkflowDraftSideEffects {
-	store.mu.RLock()
-	defer store.mu.RUnlock()
-
-	return store.sideEffects
 }
 
 func savedWorkflowDraftAuditMetadata(context SavedWorkflowDraftContext) SavedWorkflowDraftAuditMetadata {
@@ -1147,12 +1096,21 @@ func savedWorkflowDraftPayloadFromDraft(draft SavedWorkflowDraft) SavedWorkflowD
 }
 
 func savedWorkflowDraftSummaryFromDraft(draft SavedWorkflowDraft) SavedWorkflowDraftSummary {
+	if normalized, ok := normalizeAndValidateSavedWorkflowDraftLifecycle(draft); ok {
+		draft = normalized
+	}
 	return SavedWorkflowDraftSummary{
 		DraftID:                    draft.DraftID,
 		WorkspaceID:                draft.WorkspaceID,
 		ApplicationID:              draft.ApplicationID,
 		SourceDefinitionID:         draft.SourceDefinitionID,
 		DraftVersion:               draft.DraftVersion,
+		LifecycleState:             draft.LifecycleState,
+		LifecycleVersion:           draft.LifecycleVersion,
+		ArchivedAt:                 draft.ArchivedAt,
+		LibraryUpdatedAt:           draft.LibraryUpdatedAt,
+		LifecycleUpdatedByActorRef: draft.LifecycleUpdatedByActorRef,
+		ProvenanceKind:             draft.ProvenanceKind,
 		SchemaVersion:              draft.SchemaVersion,
 		DraftStatus:                draft.DraftStatus,
 		Name:                       draft.Name,

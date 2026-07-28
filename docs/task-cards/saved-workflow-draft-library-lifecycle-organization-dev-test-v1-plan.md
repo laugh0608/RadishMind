@@ -2,9 +2,9 @@
 
 更新时间：2026-07-28
 
-状态：`planned`
+状态：`in_progress`
 
-当前入口：`batch_a_ready`
+当前入口：`batch_b_ready`
 
 ## 目标
 
@@ -39,7 +39,15 @@
 
 ## 批次 A：领域、集合契约与 Memory owner
 
-状态：`ready`
+状态：`completed`
+
+完成证据：
+
+- Saved Draft domain 已增加 lifecycle、library、provenance、transition / event 与稳定 failure code。
+- Memory owner 已实现双版本 CAS、当前状态与 event 原子提交、活动 / 归档列表和三类组合筛选。
+- cursor 已绑定完整 scope、筛选、limit 与排序锚点，并严格拒绝未知字段、结构 / schema 漂移和锚点篡改。
+- `231` 条同时间记录已通过三页完整遍历；archive 与 save / restore 并发均只有一方成功。
+- 保存、修订恢复、Workflow executor、RAG execution、HTTP Tool planning 与 Definition candidate 已统一复验 active lifecycle。
 
 ### 实现
 
@@ -69,7 +77,7 @@
 - 空页、最大页、超过 `200` 条完整遍历、相同时间的 `draft_id` tie-break。
 - cursor 的 scope、lifecycle、filter、limit 和 schema 漂移全部失败关闭。
 - archive → read-only → unarchive；重复 archive / unarchive 返回 state conflict。
-- save / restore / promotion 与 archive 并发只有精确双版本 CAS 一方成功。
+- save / restore 与 archive 并发只有精确双版本 CAS 一方成功；candidate / promotion 的跨 owner 原子资格留在批次 C。
 - 归档后相邻 mutation 和 execution owner 返回 `draft_archived`，副作用计数为 `0`。
 
 ### 停止线
@@ -79,7 +87,7 @@
 
 ## 批次 B：SQLite / PostgreSQL schema 与 repository
 
-状态：`blocked_by_batch_a`
+状态：`ready`
 
 ### 实现
 

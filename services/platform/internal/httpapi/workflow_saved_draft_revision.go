@@ -237,6 +237,16 @@ func (service savedWorkflowDraftService) RestoreDraftRevision(
 	if !found {
 		return savedWorkflowDraftRevisionFailure(SavedWorkflowDraftFailureNotFound, audit)
 	}
+	var lifecycleOK bool
+	current, lifecycleOK = normalizeAndValidateSavedWorkflowDraftLifecycle(current)
+	if !lifecycleOK {
+		return savedWorkflowDraftRevisionFailure(SavedWorkflowDraftFailureLifecycleStoreContract, audit)
+	}
+	if current.LifecycleState != SavedWorkflowDraftLifecycleActive {
+		result := savedWorkflowDraftRevisionFailure(SavedWorkflowDraftFailureArchived, audit)
+		result.CurrentDraftVersion = current.DraftVersion
+		return result
+	}
 	if current.DraftVersion != request.ExpectedCurrentDraftVersion {
 		result := savedWorkflowDraftRevisionFailure(SavedWorkflowDraftFailureVersionConflict, audit)
 		result.CurrentDraftVersion = current.DraftVersion
@@ -255,6 +265,11 @@ func (service savedWorkflowDraftService) RestoreDraftRevision(
 		SourceDefinitionID:         normalized.SourceDefinitionID,
 		BaseDefinitionVersion:      normalized.BaseDefinitionVersion,
 		DraftVersion:               current.DraftVersion + 1,
+		LifecycleState:             current.LifecycleState,
+		LifecycleVersion:           current.LifecycleVersion,
+		ArchivedAt:                 current.ArchivedAt,
+		LibraryUpdatedAt:           now,
+		LifecycleUpdatedByActorRef: current.LifecycleUpdatedByActorRef,
 		SchemaVersion:              normalized.SchemaVersion,
 		DraftStatus:                validation.ValidationSummary.ValidationState,
 		CreatedAt:                  current.CreatedAt,
@@ -277,6 +292,7 @@ func (service savedWorkflowDraftService) RestoreDraftRevision(
 		RequestAuditMetadata:       audit,
 		SampleOrUnsavedDraftStatus: "saved_draft_record",
 	}
+	restored.ProvenanceKind = savedWorkflowDraftProvenanceKind(restored)
 	currentVersion, err := store.WriteRestoredDraft(
 		context,
 		restored,

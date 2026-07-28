@@ -704,6 +704,11 @@ func buildWorkflowExecutionPlan(
 	draft SavedWorkflowDraft,
 	conditionValues map[string]bool,
 ) (workflowExecutionPlan, WorkflowRunFailureCode, string) {
+	activeDraft, lifecycleFailure := activeSavedWorkflowDraftForConsumption(draft)
+	if lifecycleFailure != "" {
+		return workflowExecutionPlan{}, WorkflowRunFailureDraftNotEligible, "Workflow draft is not active."
+	}
+	draft = activeDraft
 	if draft.DraftVersion <= 0 {
 		return workflowExecutionPlan{}, WorkflowRunFailureDraftVersionUnavailable, "Workflow draft does not have a persisted executable version."
 	}

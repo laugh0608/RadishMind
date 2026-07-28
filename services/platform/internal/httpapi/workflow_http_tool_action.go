@@ -699,6 +699,11 @@ func (service workflowHTTPToolActionService) newAudit(ctx WorkflowHTTPToolAction
 }
 
 func validateWorkflowHTTPToolDraft(draft SavedWorkflowDraft, targetNodeID string, definition WorkflowHTTPToolDefinition) error {
+	activeDraft, lifecycleFailure := activeSavedWorkflowDraftForConsumption(draft)
+	if lifecycleFailure != "" {
+		return errors.New("Saved workflow draft is not active.")
+	}
+	draft = activeDraft
 	if draft.SchemaVersion != savedWorkflowDraftSchemaVersion || !workflowHTTPToolDraftFindingsAreEligible(draft.ValidationSummary) {
 		return errors.New("Saved workflow draft has blocking findings outside the tool action planning boundary.")
 	}
