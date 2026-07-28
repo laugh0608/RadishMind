@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-07-27
+更新时间：2026-07-28
 
 ## 文档目的
 
@@ -11,6 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
+- [已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1](features/workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md) 已完成代码现状审计与功能设计，状态为 `saved_workflow_draft_library_lifecycle_organization_dev_test_v1_designed`。[唯一高风险任务卡](task-cards/saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)已创建，状态为 `planned`，当前入口为 `batch_a_ready`；下一步只推进领域、集合契约与 Memory owner。
 - 产品焦点：[Provider 上报用量规范化与应用用量审查（开发 / 测试态）v1](features/gateway/provider-reported-usage-normalization-application-review-dev-test-v1.md) 已完成，状态为 `provider_reported_usage_normalization_application_review_dev_test_v1_completed`。OpenAI-compatible、Gemini、Anthropic、HuggingFace 与 Ollama 的可信 reported usage 已通过 Gateway envelope、三类 northbound unary / stream、Request History memory / SQLite / PostgreSQL 和 Application Operations 当前窗口审查形成连续证据；缺失或非法 usage 保持 `not_reported`。
 - [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 已完成批次 A 至 E，状态为 `workspace_scoped_mutation_authorization_dev_test_v1_complete`。47 条人类交互式 mutation 已复用唯一 membership provider，专题关闭。
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算`、`R6 文档与检查器收敛` 均已完成。R6 关闭评审确认活动 checker 从 `132` 项、`38,644` 行降至 `111` 项、`28,486` 行，分别下降约 `15.9%` 与 `26.3%`；Provider、Production Ops 和 Control Plane formal UI 因仍有独立证据责任继续活动，不再派生第六批或同层 readiness 链。
@@ -20,7 +21,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：Provider 上报用量规范化与应用当前窗口用量审查已完成；草案派生 / 修订历史和 Mutation Authorization 也已关闭。2026-07-28 下一顺位是先设计“已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1”，围绕活动 / 归档草案、稳定分页、筛选、可逆归档和归档后操作资格形成真实用户路径；设计确认后才决定是否创建高风险任务卡。不把当前窗口 token 汇总扩成全量统计、价格、quota 或 billing，也不继续扩同层授权、只读审查、历史 checker、自动保存、自动合并、永久删除或分支图；生产 membership adapter、真实 OIDC、运营收件箱批次 B、跨作用域复制和 Provider Route 同层扩展继续按各自停止线关闭。
+1. 产品线：草案库生命周期与组织设计及唯一高风险任务卡已完成，下一顺位是批次 A 的领域、集合契约与 Memory owner；批次 A 验证前不并行修改 SQLite / PostgreSQL、HTTP 或 Web。不把本专题扩成永久删除、批量清理、自动归档、自动保存、自动合并、分支图或跨作用域移动，也不把当前窗口 token 汇总扩成全量统计、价格、quota 或 billing；生产 membership adapter、真实 OIDC、运营收件箱批次 B 和 Provider Route 同层扩展继续按各自停止线关闭。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
@@ -86,6 +87,8 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 55. [已保存 Workflow 草案修订历史、版本比较与显式恢复实施任务卡](task-cards/saved-workflow-draft-revision-history-restore-dev-test-v1-plan.md)
 56. [Provider 上报用量规范化与应用用量审查（开发 / 测试态）v1](features/gateway/provider-reported-usage-normalization-application-review-dev-test-v1.md)
 57. [Provider 上报用量规范化与应用用量审查实施任务卡](task-cards/provider-reported-usage-normalization-application-review-dev-test-v1-plan.md)
+58. [已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1](features/workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md)
+59. [已保存 Workflow 草案库生命周期与组织实施任务卡](task-cards/saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)
 
 ## 当前不要做
 

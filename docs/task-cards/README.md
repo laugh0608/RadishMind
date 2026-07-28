@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-07-27
+更新时间：2026-07-28
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃实现任务。Provider 上报用量规范化与应用用量审查、Workspace-scoped Mutation Authorization、Admin Provider Profile / Model Route、应用开发工作区、已保存 Workflow 草案派生及修订历史 / 版本比较 / 显式恢复均已完成；下一批应先更新对应功能设计，再决定是否创建任务卡。
+[已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1](saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)是当前唯一活跃实现任务，状态为 `planned`，当前入口为 `batch_a_ready`。功能设计已固定活动 / 归档、独立 lifecycle CAS、append-only event、服务端 keyset 分页、筛选、权限和归档后资格；批次 A 从领域、集合契约与 Memory owner 开始。Provider 上报用量审查、Mutation Authorization、草案派生与修订历史均已关闭，不派生平行任务卡。
 
 ## 最近关闭任务
 

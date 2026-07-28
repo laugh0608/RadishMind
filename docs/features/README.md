@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-07-27
+更新时间：2026-07-28
 
 ## 文档目的
 
@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-27 当前执行口径：[Provider 上报用量规范化与应用用量审查](gateway/provider-reported-usage-normalization-application-review-dev-test-v1.md)已完成五类 Provider usage、Gateway envelope、三协议 unary / stream、Request History 双数据库持久化与应用当前窗口 token 审查。[已保存 Workflow 草案修订历史、版本比较与显式恢复](workflow/saved-workflow-draft-revision-history-restore-dev-test-v1.md)及 Workspace-scoped Mutation Authorization 也已关闭。下一步回到功能设计选择；运营收件箱跨全部分页窗口仍等待真实使用证据，token 估算、价格、quota / billing、真实 secret / endpoint、production 与真实 OIDC 继续关闭。
+2026-07-28 当前执行口径：[已保存 Workflow 草案库生命周期与组织](workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md)已完成代码现状审计与功能设计，固定活动 / 归档、独立 lifecycle CAS、追加式事件、服务端 keyset 分页、筛选和归档后操作资格。[唯一高风险任务卡](../task-cards/saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)已创建，下一步进入批次 A 的领域、集合契约与 Memory owner。Provider 上报用量审查、草案修订历史与 Workspace-scoped Mutation Authorization 均已关闭；运营收件箱跨全部分页窗口仍等待真实使用证据，token 估算、价格、quota / billing、真实 secret / endpoint、production 与真实 OIDC 继续关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -92,6 +92,7 @@
 | [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) | 实现专题 | 已完成 `postgres_dev_test` migration、回滚 / 重建、运行角色隔离、服务重启恢复、原子 CAS、scope / owner 隔离、no fallback、CI 与真实浏览器验收 |
 | [已保存 Workflow 草案派生（开发 / 测试态）v1](workflow/saved-workflow-draft-derivation-dev-test-v1.md) | 功能 / 草案复用专题 | 已完成精确已保存版本到独立草案的深复制、短 ID、直接来源 metadata、既有保存 / 恢复往返和 Draft Designer 入口；不覆盖源草案，不实现合并或跨作用域复制 |
 | [已保存 Workflow 草案修订历史、版本比较与显式恢复（开发 / 测试态）v1](workflow/saved-workflow-draft-revision-history-restore-dev-test-v1.md) | 功能 / 草案版本审查专题 | 已完成三种存储的 append-only revision、稳定分页、精确读取、Web 结构化比较和恢复为严格递增新版本；不实现自动保存、合并或分支图 |
+| [已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1](workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md) | 功能 / 草案库生命周期专题 | 已完成设计并创建唯一高风险任务卡，批次 A ready；允许实现活动 / 归档、稳定分页、筛选、可逆 lifecycle 与归档后资格，不打开删除、批量操作、生产能力或跨作用域移动 |
 | [Production Secret Backend Audit Store Storage Adapter Concrete Managed Database Provider Selection Readiness v1](../platform/production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-readiness-v1.md) | 平台专题 | 固定 concrete managed database provider selection 前置准入；状态为 `audit_store_storage_adapter_concrete_managed_database_provider_selection_readiness_defined`，历史下一项 `storage_adapter_concrete_managed_database_provider_selection_review` 已被后续 review 消费；不选择真实 provider、endpoint、driver import、SQL、storage adapter runtime、audit store runtime、repository mode 或 production API |
 | [Production Secret Backend Audit Store Storage Adapter Concrete Managed Database Provider Selection Review v1](../platform/production-secret-backend-audit-store-storage-adapter-concrete-managed-database-provider-selection-review-v1.md) | 平台专题 | 固定 concrete managed database provider 的 reference-only selection review；状态为 `audit_store_storage_adapter_concrete_managed_database_provider_selection_review_defined`，selection decision 为 `concrete_managed_database_provider_reference_selected_runtime_blocked`，selected provider reference 为 `managed_postgresql_compatible_provider_reference`，历史下一项 `storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review` 已被后续 entry refresh 消费；不创建真实 provider、endpoint、driver import、SQL、storage adapter runtime、audit store runtime、repository mode 或 production API |
 | [Production Secret Backend Audit Store Storage Adapter Runtime Implementation Entry Refresh After Concrete Managed Database Provider Selection Review v1](../platform/production-secret-backend-audit-store-storage-adapter-runtime-implementation-entry-refresh-after-concrete-managed-database-provider-selection-review-v1.md) | 平台专题 | 固定 concrete managed database provider selection review 后的 runtime entry refresh；状态为 `audit_store_storage_adapter_runtime_implementation_entry_refresh_after_concrete_managed_database_provider_selection_review_defined`，entry decision 为 `storage_adapter_runtime_task_card_still_blocked_after_concrete_managed_database_provider_selection_review_entry_refresh`，历史下一项 `storage_adapter_provider_account_resource_endpoint_readiness` 已被后续 readiness 消费；不创建真实 provider、endpoint、driver import、SQL、storage adapter runtime、audit store runtime、repository mode 或 production API |
