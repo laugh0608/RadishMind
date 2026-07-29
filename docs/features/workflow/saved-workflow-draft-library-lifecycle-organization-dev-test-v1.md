@@ -2,11 +2,11 @@
 
 更新时间：2026-07-29
 
-状态：`saved_workflow_draft_library_lifecycle_organization_dev_test_v1_batch_d_completed`
+状态：`saved_workflow_draft_library_lifecycle_organization_dev_test_v1_completed`
 
-实施准入：`implementation_task_card_active_batch_e_ready`
+实施准入：`implementation_task_card_closed`
 
-当前实现进度：批次 A、B、C、D 已完成领域类型、三种 store lifecycle owner、严格 cursor、keyset 分页 / 筛选、双版本并发、双数据库 `0003`、原子 transition / event、HTTP list / archive / unarchive、`workflow_drafts:archive` 单次 membership 判定、保存 / 恢复双版本请求、相邻派生 / 晋级 / 执行 active lifecycle 资格，以及 Web 活动 / 归档独立查询、筛选、加载更多、只读归档审查、两步 archive、显式 unarchive、迟到响应隔离和“打开 / 恢复历史版本”术语分离。下一步只进入批次 E 的连续验证与文档收口。
+当前实现进度：批次 A 至 E 已完成领域类型、三种 store lifecycle owner、严格 cursor、keyset 分页 / 筛选、双版本并发、双数据库 `0003`、原子 transition / event、HTTP list / archive / unarchive、`workflow_drafts:archive` 单次 membership 判定、保存 / 恢复双版本请求、相邻派生 / 晋级 / 执行 active lifecycle 资格，以及 Web 活动 / 归档独立查询、筛选、加载更多、只读归档审查、两步 archive、显式 unarchive、迟到响应隔离和“打开 / 恢复历史版本”术语分离。超过 `200` 条的三存储同时间记录矩阵、真实 PostgreSQL、SQLite 本地产品启动与浏览器连续链均已复验，专题关闭。
 
 ## 功能目标
 
@@ -230,7 +230,7 @@ dev header、signed-test membership 和 production OIDC 的边界保持不变。
 2. 批次 B：SQLite / PostgreSQL `0003` migration、投影列、索引、原子 transition 与 runtime role。
 3. 批次 C：HTTP list / archive / unarchive、membership permission 和相邻 save / restore / promotion / execution 资格。
 4. 批次 D：Saved Draft Library 活动 / 归档视图、筛选、加载更多、只读归档审查和术语修正。
-5. 批次 E：双数据库、升级、重启、并发、浏览器连续链、隐私与仓库门禁收口。
+5. 批次 E：已完成双数据库、升级、重启、并发、浏览器连续链、隐私与仓库门禁收口。
 
 不为普通布局、文案或只读列表另建平行任务卡、fixture 或 checker。专项证据只服务新增 API、schema、permission 和高风险操作资格。
 
@@ -248,6 +248,8 @@ dev header、signed-test membership 和 production OIDC 的边界保持不变。
 - 已晋级 Definition 与既有 Run 在来源草案归档后仍可审查，Definition-bound execution 不被错误阻断。
 - archive / unarchive 失败路径的 provider、tool、confirmation、Run、publish 和业务写入计数均为 `0`。
 - migration、cursor、event 与响应通过 forbidden-field 和敏感信息扫描。
+
+批次 E 已使用 `231` 条相同时间记录复验三种 store 的完整分页、筛选和稳定顺序；真实浏览器通过 SQLite 本地产品链复验服务重启、`25 + 1` 分页、组合筛选、workspace 切换隔离、归档只读审查、解除归档和双版本重新取得资格。完整 Go、race、`go vet`、Web tests / build、真实 PostgreSQL 与仓库门禁共同构成关闭证据。
 
 ## 停止线
 

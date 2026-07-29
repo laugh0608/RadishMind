@@ -2,9 +2,9 @@
 
 更新时间：2026-07-29
 
-状态：`in_progress`
+状态：`completed`
 
-当前入口：`batch_e_ready`
+当前入口：`closed`
 
 ## 目标
 
@@ -22,7 +22,7 @@
 - revision 已有 append-only owner、稳定版本 cursor、精确读取、结构化比较和显式恢复。
 - 已保存草案派生、Workflow Definition candidate、Saved Draft execution、RAG retrieval 和 HTTP Tool 已在各自业务 owner 内统一增加 active lifecycle 资格。
 - Workspace-scoped Mutation Authorization 已提供唯一 membership provider；新增 mutation 必须复用它。
-- Web Saved Draft consumer 已消费新集合、双版本与 lifecycle mutation 契约；批次 E 只收口双数据库、浏览器和仓库连续验证。
+- Web Saved Draft consumer 已消费新集合、双版本与 lifecycle mutation 契约；批次 E 已完成双数据库、浏览器和仓库连续验证。
 - 生产 repository、真实 OIDC、production membership adapter 和公开生产 API 仍关闭。
 
 ## 不变量
@@ -205,7 +205,15 @@
 
 ## 批次 E：连续验证与文档收口
 
-状态：`ready`
+状态：`completed`
+
+完成证据：
+
+- Memory、SQLite 与 PostgreSQL 共享 `231` 条相同时间记录的 golden matrix；`213` 条 active、`18` 条 archived 以及 name、validation、provenance、unversioned、derived 与组合筛选均返回相同精确 ID 和 cursor 语义。
+- SQLite 本地产品链经服务重启恢复 `26` 条活动草案，浏览器按 `25 + 1` 加载；workspace 切换无泄漏，组合筛选返回 `25` 条预期派生草案。
+- 真实浏览器完成两步 archive、归档当前记录 / revision / compare 只读审查、相邻编辑 / 派生 / 恢复 / 晋级 / 执行入口禁用、显式 unarchive，并在重新读取后取得 `draft_version=1`、`lifecycle_version=3` 的活动资格。
+- 连续链修正了持久 Run 缺失 cost 字段、Saved Draft read/list membership header、unversioned local draft 选择、延迟读取输入事件和 repository archive 独立 permission 五处真实集成缺口，并补齐对应回归。
+- 完整 Go、race、`go vet`、Web `266` 项测试、production build、真实 PostgreSQL integration / migration / configured startup、脚本静态一致性、隐私扫描和仓库门禁通过；本批启动的 Web、platform 与 PostgreSQL 进程均已停止。
 
 ### 产品连续链
 

@@ -11,7 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
-- [已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1](features/workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md) 批次 A、B、C、D 已完成，状态为 `saved_workflow_draft_library_lifecycle_organization_dev_test_v1_batch_d_completed`。领域、三种 store owner、严格 cursor、分页 / 组合筛选、双版本并发、双数据库 `0003`、原子 transition / event、HTTP lifecycle API、独立 archive permission、相邻操作 active lifecycle 资格，以及 Web 活动 / 归档独立查询、筛选、加载更多、归档只读审查、两步 archive、显式 unarchive 和迟到响应隔离已有可执行证据；[唯一高风险任务卡](task-cards/saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)当前入口为 `batch_e_ready`。
+- [已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1](features/workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md) 批次 A 至 E 已完成，状态为 `saved_workflow_draft_library_lifecycle_organization_dev_test_v1_completed`。领域、三种 store owner、严格 cursor、超过 `200` 条分页 / 组合筛选、双版本并发、双数据库 `0003`、原子 transition / event、HTTP lifecycle API、独立 archive permission、相邻操作 active lifecycle 资格、Web 活动 / 归档库，以及 SQLite 重启和真实浏览器 archive → 只读审查 → unarchive 连续链已有可执行证据；[唯一高风险任务卡](task-cards/saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)已关闭。
 - 产品焦点：[Provider 上报用量规范化与应用用量审查（开发 / 测试态）v1](features/gateway/provider-reported-usage-normalization-application-review-dev-test-v1.md) 已完成，状态为 `provider_reported_usage_normalization_application_review_dev_test_v1_completed`。OpenAI-compatible、Gemini、Anthropic、HuggingFace 与 Ollama 的可信 reported usage 已通过 Gateway envelope、三类 northbound unary / stream、Request History memory / SQLite / PostgreSQL 和 Application Operations 当前窗口审查形成连续证据；缺失或非法 usage 保持 `not_reported`。
 - [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 已完成批次 A 至 E，状态为 `workspace_scoped_mutation_authorization_dev_test_v1_complete`。47 条人类交互式 mutation 已复用唯一 membership provider，专题关闭。
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算`、`R6 文档与检查器收敛` 均已完成。R6 关闭评审确认活动 checker 从 `132` 项、`38,644` 行降至 `111` 项、`28,486` 行，分别下降约 `15.9%` 与 `26.3%`；Provider、Production Ops 和 Control Plane formal UI 因仍有独立证据责任继续活动，不再派生第六批或同层 readiness 链。
@@ -21,7 +21,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：草案库生命周期批次 A 至 D 已完成，下一顺位是批次 E 的连续验证与文档收口；按既定产品链复验旧数据库升级、超过 `200` 条分页 / 组合筛选、活动打开、归档只读、相邻操作失败关闭、重启、解除归档与重新取得双版本资格，并补齐 SQLite、PostgreSQL 和真实浏览器证据。不再扩后端或新增同层 checker，也不把本专题扩成永久删除、批量清理、自动归档、自动保存、自动合并、分支图或跨作用域移动；生产 membership adapter、真实 OIDC、运营收件箱批次 B 和 Provider Route 同层扩展继续按各自停止线关闭。
+1. 产品线：草案库生命周期专题已完成并关闭，当前没有已准入的产品实现任务。下一轮先依据用户工作区与 Workflow 的真实使用证据更新一个既有功能设计文档，再决定实施拆分；工作区运营收件箱批次 B 和 Application Operations 全历史聚合只有在出现跨全部分页窗口的真实需求后才重新评审。未满足该条件时不创建 task card，也不把已关闭专题扩成永久删除、批量清理、自动归档、自动保存、自动合并、分支图或跨作用域移动；production membership adapter、真实 OIDC、quota / billing 和 Provider Route 同层扩展继续按各自停止线关闭。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
