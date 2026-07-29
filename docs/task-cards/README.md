@@ -12,11 +12,11 @@
 
 ## 当前活跃任务
 
-当前没有活跃实现任务。下一轮先依据真实使用证据更新一个既有功能设计文档，再判断是否需要实现任务卡；不得从已关闭专题自动派生平行任务卡。
+当前没有活跃实现任务。下一轮先依据真实使用证据更新一个既有功能设计文档，再判断是否需要实施任务卡；不得从已关闭专题自动派生平行任务卡。
 
 ## 最近关闭任务
 
-最新关闭：[应用解除归档与安全重新启用 v1](application-unarchive-safe-reactivation-dev-test-v1-plan.md)已完成三种 store CAS、组合权限、Gateway 资格回归、Web 与真实浏览器连续链；[已保存 Workflow 草案库生命周期与组织 v1](saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)已完成批次 A 至 E 的三存储分页 / 筛选、双版本 lifecycle、Web 草案库、真实 PostgreSQL 与浏览器连续链；[Provider 上报用量规范化与应用用量审查 v1](provider-reported-usage-normalization-application-review-dev-test-v1-plan.md)已完成五类 Provider usage、Gateway / northbound / Request History 与应用当前窗口审查；[已保存 Workflow 草案修订历史、版本比较与显式恢复 v1](saved-workflow-draft-revision-history-restore-dev-test-v1-plan.md)已完成三种存储的不可变历史、精确版本、比较和恢复为新版本；[Workspace-scoped Mutation Authorization v1](workspace-scoped-mutation-authorization-dev-test-v1-plan.md)已完成原 47 条 mutation 的共享 authorization。以下为较早关闭任务：
+最新关闭：[API 密钥引导式轮换与验证后退役 v1](api-key-guided-rotation-verified-retirement-dev-test-v1-plan.md)已完成易失会话、同 scopes 替代、认证证据门槛、精确退役 CAS、Web 与真实浏览器连续链；[应用解除归档与安全重新启用 v1](application-unarchive-safe-reactivation-dev-test-v1-plan.md)已完成三种 store CAS、组合权限、Gateway 资格回归、Web 与真实浏览器连续链；[已保存 Workflow 草案库生命周期与组织 v1](saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)已完成批次 A 至 E 的三存储分页 / 筛选、双版本 lifecycle、Web 草案库、真实 PostgreSQL 与浏览器连续链；[Provider 上报用量规范化与应用用量审查 v1](provider-reported-usage-normalization-application-review-dev-test-v1-plan.md)已完成五类 Provider usage、Gateway / northbound / Request History 与应用当前窗口审查；[已保存 Workflow 草案修订历史、版本比较与显式恢复 v1](saved-workflow-draft-revision-history-restore-dev-test-v1-plan.md)已完成三种存储的不可变历史、精确版本、比较和恢复为新版本；[Workspace-scoped Mutation Authorization v1](workspace-scoped-mutation-authorization-dev-test-v1-plan.md)已完成原 47 条 mutation 的共享 authorization。以下为较早关闭任务：
 
 1. [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](prompt-agent-application-regression-evaluation-release-review-dev-test-v1-plan.md)：Comparison v5 / v6、Case / Suite strict consumer、Agent 不兼容失败映射和 SQLite case → suite → `approved v1` 已完成，任务卡关闭。
 2. [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)：批次 A 至批次 E 已完成，状态为 `agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_completed`；任务卡关闭，不再派生同层续批。

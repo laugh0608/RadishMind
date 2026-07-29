@@ -11,6 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
+- [API 密钥引导式轮换与验证后退役（开发 / 测试态）v1](features/user-workspace/api-key-guided-rotation-verified-retirement-dev-test-v1.md) 批次 A、B 已完成，状态为 `api_key_guided_rotation_verified_retirement_dev_test_v1_completed`。易失脱敏会话、同应用 / 同 owner / 同 scopes 替代、`last_used_at` 验证门槛、原 Key 精确重读与 revoke CAS、Web 和真实浏览器连续链已有可执行证据；未新增 rotate API、schema 或持久 rotation owner。
 - [应用解除归档与安全重新启用（开发 / 测试态）v1](features/user-workspace/application-unarchive-safe-reactivation-dev-test-v1.md) 批次 A 至 C 已完成，状态为 `application_unarchive_safe_reactivation_dev_test_v1_completed`。三种 store CAS、`applications:archive + applications:write` 单次组合权限、显式影响确认、Gateway 资格回归、Web 与真实浏览器连续链已有可执行证据；目录 owner 不级联改写 API Key、运行时绑定、会话、草案、候选或运行记录。
 - [已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1](features/workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md) 批次 A 至 E 已完成，状态为 `saved_workflow_draft_library_lifecycle_organization_dev_test_v1_completed`。领域、三种 store owner、严格 cursor、超过 `200` 条分页 / 组合筛选、双版本并发、双数据库 `0003`、原子 transition / event、HTTP lifecycle API、独立 archive permission、相邻操作 active lifecycle 资格、Web 活动 / 归档库，以及 SQLite 重启和真实浏览器 archive → 只读审查 → unarchive 连续链已有可执行证据；[唯一高风险任务卡](task-cards/saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)已关闭。
 - 产品焦点：[Provider 上报用量规范化与应用用量审查（开发 / 测试态）v1](features/gateway/provider-reported-usage-normalization-application-review-dev-test-v1.md) 已完成，状态为 `provider_reported_usage_normalization_application_review_dev_test_v1_completed`。OpenAI-compatible、Gemini、Anthropic、HuggingFace 与 Ollama 的可信 reported usage 已通过 Gateway envelope、三类 northbound unary / stream、Request History memory / SQLite / PostgreSQL 和 Application Operations 当前窗口审查形成连续证据；缺失或非法 usage 保持 `not_reported`。
@@ -22,7 +23,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：应用解除归档与安全重新启用已完成并关闭，当前没有已准入的产品实现任务。下一轮先依据用户工作区与 Workflow 的真实使用证据更新一个既有功能设计文档，再决定实施拆分；工作区运营收件箱批次 B 和 Application Operations 全历史聚合只有在出现跨全部分页窗口的真实需求后才重新评审。未满足对应准入证据时不创建 task card，也不把已关闭专题扩成物理删除、批量生命周期、自动资源重建或生产恢复；production membership adapter、真实 OIDC、quota / billing 和 Provider Route 同层扩展继续按各自停止线关闭。
+1. 产品线：API 密钥引导式轮换与验证后退役已完成并关闭，当前没有已准入的产品实现任务。下一轮先依据用户工作区与 Workflow 的真实使用证据更新一个既有功能设计文档，再决定实施拆分；工作区运营收件箱批次 B 和 Application Operations 全历史聚合继续等待跨全部分页窗口的真实需求。未满足准入证据时不新建任务卡，也不从已关闭专题扩自动轮换、持久 rotation owner、production membership adapter、真实 OIDC、quota / billing 或 Provider Route 同层能力。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
@@ -92,6 +93,8 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 59. [已保存 Workflow 草案库生命周期与组织实施任务卡](task-cards/saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)
 60. [应用解除归档与安全重新启用（开发 / 测试态）v1](features/user-workspace/application-unarchive-safe-reactivation-dev-test-v1.md)
 61. [应用解除归档与安全重新启用实施任务卡](task-cards/application-unarchive-safe-reactivation-dev-test-v1-plan.md)
+62. [API 密钥引导式轮换与验证后退役（开发 / 测试态）v1](features/user-workspace/api-key-guided-rotation-verified-retirement-dev-test-v1.md)
+63. [API 密钥引导式轮换与验证后退役实施任务卡](task-cards/api-key-guided-rotation-verified-retirement-dev-test-v1-plan.md)
 
 ## 当前不要做
 

@@ -267,3 +267,5 @@ PostgreSQL 使用独立 `api_key_records` 和 `api_key_schema_versions`，不复
 - 不允许密钥调用管理端、密钥生命周期、应用生命周期、配置草案或发布审查 API。
 - 不提供原始令牌再次查看、恢复、导出、物理删除、反吊销、原地换密、作用域修改或有效期延长。
 - 不为本功能逐项新增 readiness、refresh、fixture 或 checker 链；新增 schema 和高风险认证边界由单一实施任务卡、代码测试、PostgreSQL 集成和现有聚合门禁承载。
+
+开发测试态“先签发、验证后吊销”的用户编排已由独立的[API 密钥引导式轮换与验证后退役 v1](api-key-guided-rotation-verified-retirement-dev-test-v1.md)承接。它只复用本专题既有 issue、一次性交接、`last_used_at` 与 revoke CAS，不修改这里已经完成的凭据领域、Gateway 认证或生产停止线。

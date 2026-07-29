@@ -18,6 +18,7 @@
 - [应用受控运行开发测试态指南](application-controlled-runtime-dev-test-guide.md)：说明 Application RAG、Workflow Definition、Application Interaction Session、v4 / v5 运行记录与 Application Operations 的启动、资源准备、作用域、恢复、失败语义和隐私边界。
 - [应用交互会话与受控运行编排（开发 / 测试态）v1](application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)：strict contract、三种 Session / Turn owner、exact authority reload、v5 / v4 单次委托、Web 易失交互工作区、双数据库 launcher 连续链、重启恢复、真实浏览器和敏感扫描均已完成，专题关闭。
 - [API 密钥生命周期与 Gateway 开发测试态认证 v1](api-key-lifecycle-gateway-dev-test-auth-v1.md)：Gateway 认证、统一 `sqlite_dev` repository / 聚合 runtime、双数据库门禁、Web 一次性交接、真实浏览器连续路径、重启恢复与敏感信息复验均已完成，专题关闭。
+- [API 密钥引导式轮换与验证后退役（开发 / 测试态）v1](api-key-guided-rotation-verified-retirement-dev-test-v1.md)：批次 A、B 已完成；易失脱敏会话、同 scopes 替代、`last_used_at` 验证门槛、精确退役 CAS 与真实浏览器连续链均有可复验证据，专题关闭。
 - [应用目录与生命周期（开发/测试态）v1](application-catalog-lifecycle-dev-test-v1.md)：核心生命周期、内存与 PostgreSQL 开发测试态存储、Web 管理、下游归档只读约束和真实浏览器连续验收均已完成。
 - [应用解除归档与安全重新启用（开发 / 测试态）v1](application-unarchive-safe-reactivation-dev-test-v1.md)：批次 A 至 C、三种 store CAS、组合权限、显式影响确认、Gateway 资格回归、Web 与真实浏览器连续验收均已完成，专题关闭。
 - [应用 API 接入与调用 v1](application-api-integration-invocation-v1.md)：把选中应用、`/v1/models` 模型目录、三协议接入示例、现有 Gateway 调试台调用与脱敏请求历史审查串成连续的内部开发者路径。
@@ -27,7 +28,7 @@
 
 ## 下一步
 
-- 应用解除归档与安全重新启用已完成并关闭。下一轮先依据用户工作区与 Workflow 的真实使用证据更新对应功能设计；不从本专题扩物理删除、批量生命周期或生产恢复。
+- API 密钥引导式轮换与验证后退役已完成并关闭。下一轮先依据用户工作区与 Workflow 的真实使用证据更新对应功能设计；不从本专题扩自动轮换、持久 rotation owner 或生产凭据能力。
 - 工作区运营收件箱批次 A 已完成；先以真实开发测试使用反馈判断是否需要跨全部分页窗口的服务端 read projection。没有需求与统一 owner cursor 契约前不启动批次 B。
 - Workspace-scoped Read Transition 开发 / 测试态批次 A、B 已完成。条件式批次 C 只有在取得 reviewed Radish membership owner / endpoint、撤销 / 过期语义与 OIDC mapping 后才启动；否则回到功能入口选择新的用户工作区能力。
 - Workspace-scoped Mutation Authorization 批次 A 至 E 已完成并关闭；后续生产 membership adapter 和真实 OIDC 只在 reviewed 上游契约齐备后独立恢复，不从本专题派生同层 gate-only 批次。
