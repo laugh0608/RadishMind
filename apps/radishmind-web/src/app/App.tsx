@@ -23,17 +23,26 @@ import {
   type ControlPlaneReadDevLiveLoadState,
 } from "../features/control-plane-read/devLiveReadConsumer";
 import {
+  archiveWorkflowDraftDevRecord,
   continueLocalWorkflowDraftAfterVersionConflict,
+  emptyWorkflowSavedDraftLibraryFilters,
+  initialWorkflowSavedDraftLifecycleOperationState,
   initialWorkflowSavedDraftConsumerState,
   initialWorkflowSavedDraftListState,
   listWorkflowDraftDevRecords,
+  mergeWorkflowSavedDraftListPage,
   nextWorkflowSavedDraftExpectedVersion,
+  openWorkflowDraftDevRecord,
   readWorkflowDraftDevRecord,
   readWorkflowSavedDraftConsumerConfig,
-  restoreWorkflowDraftDevRecord,
   saveWorkflowDraftDevRecord,
+  unarchiveWorkflowDraftDevRecord,
   validateWorkflowDraftDevRecord,
+  workflowSavedDraftRequestIsCurrent,
   workflowSavedDraftConflictRequiresResolution,
+  type WorkflowSavedDraftLibraryFilters,
+  type WorkflowSavedDraftLifecycleOperationState,
+  type WorkflowSavedDraftLifecycleState,
   type WorkflowSavedDraftListState,
   type WorkflowSavedDraftSummary,
   type WorkflowSavedDraftConsumerState,
@@ -172,7 +181,6 @@ import {
   type WorkflowSurfaceOverviewViewModel,
 } from "../features/control-plane-read/workflowSurfaceOverview";
 import { WorkflowWorkspaceReviewPanel } from "../features/control-plane-read/workflowWorkspaceReviewPanel";
-import { WorkflowUserWorkspaceHomePanel } from "../features/control-plane-read/workflowUserWorkspaceHomePanel";
 import {
   buildWorkflowWorkspaceContextViewModel,
   selectionForApplication,
@@ -235,6 +243,11 @@ const WorkflowNodeDesigner = lazy(() => import("../features/control-plane-read/w
 const WorkflowSavedDraftRevisionPanel = lazy(() =>
   import("../features/control-plane-read/workflowSavedDraftRevisionPanel").then((module) => ({
     default: module.WorkflowSavedDraftRevisionPanel,
+  })),
+);
+const WorkflowUserWorkspaceHomePanel = lazy(() =>
+  import("../features/control-plane-read/workflowUserWorkspaceHomePanel").then((module) => ({
+    default: module.WorkflowUserWorkspaceHomePanel,
   })),
 );
 const AdminOperationsReviewPanel = lazy(() => import("../features/control-plane-read/adminOperationsReviewPanel").then((module) => ({ default: module.AdminOperationsReviewPanel })));
@@ -307,6 +320,10 @@ export function App() {
     () => ({ ...devLiveConfig, workspaceId: activeWorkspaceId }),
     [activeWorkspaceId],
   );
+  const activeSavedDraftConsumerConfig = useMemo(
+    () => ({ ...savedDraftConsumerConfig, workspaceId: activeWorkspaceId }),
+    [activeWorkspaceId],
+  );
   const [devLiveState, setDevLiveState] = useState<ControlPlaneReadDevLiveLoadState>(() =>
     initialControlPlaneReadDevLiveLoadState(activeDevLiveConfig),
   );
@@ -317,12 +334,31 @@ export function App() {
   const [selectedWorkflowDraftId, setSelectedWorkflowDraftId] = useState<string | null>(null);
   const [selectedWorkflowScenarioId, setSelectedWorkflowScenarioId] = useState<string | null>(null);
   const [savedDraftConsumerState, setSavedDraftConsumerState] = useState<WorkflowSavedDraftConsumerState>(() =>
-    initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig),
+    initialWorkflowSavedDraftConsumerState(activeSavedDraftConsumerConfig),
   );
-  const [savedDraftListState, setSavedDraftListState] = useState<WorkflowSavedDraftListState>(() =>
-    initialWorkflowSavedDraftListState(savedDraftConsumerConfig),
-  );
-  const pendingSavedDraftRestoreRef = useRef<{
+  const [savedDraftLibraryLifecycle, setSavedDraftLibraryLifecycle] =
+    useState<WorkflowSavedDraftLifecycleState>("active");
+  const [savedDraftLibraryFilters, setSavedDraftLibraryFilters] =
+    useState<WorkflowSavedDraftLibraryFilters>(() => emptyWorkflowSavedDraftLibraryFilters());
+  const [savedDraftListStates, setSavedDraftListStates] = useState<
+    Record<WorkflowSavedDraftLifecycleState, WorkflowSavedDraftListState>
+  >(() => ({
+    active: initialWorkflowSavedDraftListState(activeSavedDraftConsumerConfig, "", "active"),
+    archived: initialWorkflowSavedDraftListState(activeSavedDraftConsumerConfig, "", "archived"),
+  }));
+  const savedDraftListRequestGenerationRef = useRef<Record<WorkflowSavedDraftLifecycleState, number>>({
+    active: 0,
+    archived: 0,
+  });
+  const savedDraftLifecycleOperationGenerationRef = useRef(0);
+  const savedDraftOpenRequestGenerationRef = useRef(0);
+  const [savedDraftLifecycleOperation, setSavedDraftLifecycleOperation] =
+    useState<WorkflowSavedDraftLifecycleOperationState>(() =>
+      initialWorkflowSavedDraftLifecycleOperationState()
+    );
+  const savedDraftListState = savedDraftListStates[savedDraftLibraryLifecycle];
+  const activeSavedDraftListState = savedDraftListStates.active;
+  const pendingSavedDraftConsumerStateRef = useRef<{
     draftId: string;
     state: WorkflowSavedDraftConsumerState;
   } | null>(null);
@@ -531,9 +567,9 @@ export function App() {
         localWorkflowDrafts: workspaceCreatedDrafts,
         activeWorkflowDraftOverride: editableWorkflowDraft,
         savedDraftConsumerState,
-        savedDraftListStatus: savedDraftListState.status,
-        savedDraftListFailureCode: savedDraftListState.failureCode,
-        savedDraftSummaries: savedDraftListState.summaries,
+        savedDraftListStatus: activeSavedDraftListState.status,
+        savedDraftListFailureCode: activeSavedDraftListState.failureCode,
+        savedDraftSummaries: activeSavedDraftListState.summaries,
         selection: {
           applicationRef: selectedApplicationRef,
           workflowDefinitionId: selectedWorkflowDefinitionId,
@@ -551,9 +587,9 @@ export function App() {
       workspaceCreatedDrafts,
       editableWorkflowDraft,
       savedDraftConsumerState,
-      savedDraftListState.failureCode,
-      savedDraftListState.status,
-      savedDraftListState.summaries,
+      activeSavedDraftListState.failureCode,
+      activeSavedDraftListState.status,
+      activeSavedDraftListState.summaries,
       selectedApplicationRef,
       selectedWorkflowDefinitionId,
       selectedRunId,
@@ -630,14 +666,18 @@ export function App() {
   );
   const workflowScopedApplicationId = applicationDevelopmentWorkspaceContext.applicationId ||
     (applicationCatalogLive ? "" : activeWorkflowDraft.applicationRef);
-  const savedDraftConflictRestoreSummary = useMemo(
+  const savedDraftLibraryScopeKey =
+    `${activeWorkspaceId}:${workflowScopedApplicationId}:${activeSavedDraftConsumerConfig.subjectRef}`;
+  const savedDraftLibraryScopeKeyRef = useRef(savedDraftLibraryScopeKey);
+  savedDraftLibraryScopeKeyRef.current = savedDraftLibraryScopeKey;
+  const savedDraftConflictOpenSummary = useMemo(
     () =>
-      savedDraftListState.summaries.find(
+      activeSavedDraftListState.summaries.find(
         (summary) =>
           summary.draftId === activeWorkflowDraft.draftId &&
           summary.applicationRef === activeWorkflowDraft.applicationRef,
       ) ?? null,
-    [activeWorkflowDraft.applicationRef, activeWorkflowDraft.draftId, savedDraftListState.summaries],
+    [activeSavedDraftListState.summaries, activeWorkflowDraft.applicationRef, activeWorkflowDraft.draftId],
   );
   const createdWorkspaceDraftCountsByDefinition = useMemo(
     () =>
@@ -667,23 +707,23 @@ export function App() {
 
   useEffect(() => {
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(selectedWorkflowDraft));
-    const pendingRestore = pendingSavedDraftRestoreRef.current;
-    if (pendingRestore) {
-      pendingSavedDraftRestoreRef.current = null;
-      if (pendingRestore.draftId === selectedWorkflowDraft.draftId) {
-        setSavedDraftConsumerState(pendingRestore.state);
+    const pendingConsumerState = pendingSavedDraftConsumerStateRef.current;
+    if (pendingConsumerState) {
+      pendingSavedDraftConsumerStateRef.current = null;
+      if (pendingConsumerState.draftId === selectedWorkflowDraft.draftId) {
+        setSavedDraftConsumerState(pendingConsumerState.state);
         setWorkflowDraftEditDirty(false);
         return;
       }
     }
     if (selectedWorkflowDraft.localOnlyInteraction === "local_edit") {
       setWorkflowDraftEditDirty(true);
-      setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, selectedWorkflowDraft));
+      setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(activeSavedDraftConsumerConfig, selectedWorkflowDraft));
       return;
     }
-    setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig));
+    setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(activeSavedDraftConsumerConfig));
     setWorkflowDraftEditDirty(false);
-  }, [selectedWorkflowDraft.draftId]);
+  }, [activeSavedDraftConsumerConfig, selectedWorkflowDraft.draftId]);
 
   useEffect(() => {
     setWorkflowExecutorState(initialWorkflowExecutorConsumerState(workflowExecutorConsumerConfig));
@@ -722,7 +762,7 @@ export function App() {
         return {
           ...state,
           summary:
-            "Local edits remain active, but the version conflict still requires explicit Continue local draft or Restore saved version before another dev route action.",
+            "Local edits remain active, but the version conflict still requires explicit Continue local draft or Open saved draft before another dev route action.",
         };
       }
       if (state.status === "conflict_local_continued") {
@@ -936,11 +976,11 @@ export function App() {
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(selectedWorkflowDraft));
     if (selectedWorkflowDraft.localOnlyInteraction === "local_edit") {
       setWorkflowDraftEditDirty(true);
-      setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, selectedWorkflowDraft));
+      setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(activeSavedDraftConsumerConfig, selectedWorkflowDraft));
       return;
     }
     setWorkflowDraftEditDirty(false);
-    setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(savedDraftConsumerConfig));
+    setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(activeSavedDraftConsumerConfig));
   };
 
   const applyWorkflowSelectionPatch = ({
@@ -1043,7 +1083,7 @@ export function App() {
     });
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
     setWorkflowDraftEditDirty(true);
-    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
+    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(activeSavedDraftConsumerConfig, createdDraft));
   };
   const handleCreateWorkflowExecutorDraft = () => {
     if (workflowExecutorOperationPending) {
@@ -1069,7 +1109,7 @@ export function App() {
     });
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
     setWorkflowDraftEditDirty(true);
-    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
+    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(activeSavedDraftConsumerConfig, createdDraft));
     setWorkflowExecutorState(initialWorkflowExecutorConsumerState(workflowExecutorConsumerConfig));
     setWorkflowExecutorInput(DEFAULT_WORKFLOW_EXECUTOR_INPUT);
     setWorkflowExecutorModel("");
@@ -1081,7 +1121,7 @@ export function App() {
     applyWorkflowSelectionPatch({ applicationRef: createdDraft.applicationRef, workflowDefinitionId: createdDraft.workflowDefinitionId, runId: null, draftId: createdDraft.draftId, scenarioId: null });
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
     setWorkflowDraftEditDirty(true);
-    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
+    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(activeSavedDraftConsumerConfig, createdDraft));
   };
   const handleCreateDefinitionDerivedDraft = (createdDraft: WorkflowDraftDesignerDraft) => {
     if (workflowExecutorOperationPending || workflowRAGOperationPending) return;
@@ -1089,7 +1129,7 @@ export function App() {
     applyWorkflowSelectionPatch({ applicationRef: createdDraft.applicationRef, workflowDefinitionId: createdDraft.workflowDefinitionId, runId: null, draftId: createdDraft.draftId, scenarioId: null });
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
     setWorkflowDraftEditDirty(true);
-    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
+    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(activeSavedDraftConsumerConfig, createdDraft));
   };
   const handleDeriveSavedWorkflowDraft = () => {
     const operationPending = workflowExecutorOperationPending || workflowRAGOperationPending;
@@ -1101,6 +1141,15 @@ export function App() {
       savedDraftConsumerState.currentDraftVersion,
       workflowDraftDesigner.drafts.map((draft) => draft.draftId),
     );
+    const derivedConsumerState = workspaceDraftCreatedConsumerState(
+      activeSavedDraftConsumerConfig,
+      createdDraft,
+      savedDraftConsumerState.currentLifecycleVersion,
+    );
+    pendingSavedDraftConsumerStateRef.current = {
+      draftId: createdDraft.draftId,
+      state: derivedConsumerState,
+    };
     setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
     applyWorkflowSelectionPatch({
       applicationRef: createdDraft.applicationRef,
@@ -1111,113 +1160,382 @@ export function App() {
     });
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
     setWorkflowDraftEditDirty(true);
-    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(savedDraftConsumerConfig, createdDraft));
+    setSavedDraftConsumerState(derivedConsumerState);
   };
-  const refreshSavedWorkflowDraftList = (applicationRef: string) => {
-    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
-      setSavedDraftListState(initialWorkflowSavedDraftListState(savedDraftConsumerConfig, applicationRef));
+  const refreshSavedWorkflowDraftList = (
+    applicationRef: string,
+    lifecycleState: WorkflowSavedDraftLifecycleState = savedDraftLibraryLifecycle,
+    filters: WorkflowSavedDraftLibraryFilters = savedDraftLibraryFilters,
+    append = false,
+  ) => {
+    const generation = savedDraftListRequestGenerationRef.current[lifecycleState] + 1;
+    savedDraftListRequestGenerationRef.current[lifecycleState] = generation;
+    const requestScopeKey = savedDraftLibraryScopeKeyRef.current;
+    if (activeSavedDraftConsumerConfig.mode !== "dev_saved_draft_http" || !applicationRef) {
+      setSavedDraftListStates((states) => ({
+        ...states,
+        [lifecycleState]: initialWorkflowSavedDraftListState(
+          activeSavedDraftConsumerConfig,
+          applicationRef,
+          lifecycleState,
+          filters,
+        ),
+      }));
       return;
     }
-    setSavedDraftListState((state) => ({
-      ...state,
-      status: "loading",
-      mode: "dev_saved_draft_http",
-      sourceLabel: "loading",
-      summary: "Loading saved dev draft summaries for the selected application.",
-      applicationRef,
-      failureCode: null,
-      summaries: [],
+    const current = savedDraftListStates[lifecycleState];
+    const cursor = append ? current.nextCursor : "";
+    if (append && (!current.hasMore || current.status === "loading")) {
+      return;
+    }
+    setSavedDraftListStates((states) => ({
+      ...states,
+      [lifecycleState]: {
+        ...states[lifecycleState],
+        status: "loading",
+        mode: "dev_saved_draft_http",
+        sourceLabel: cursor ? "loading more" : "loading",
+        summary: cursor
+          ? `Loading more ${lifecycleState} saved drafts.`
+          : `Loading ${lifecycleState} saved drafts for the selected application.`,
+        applicationRef,
+        lifecycleState,
+        filters,
+        failureCode: null,
+        ...(cursor ? {} : { summaries: [], nextCursor: "", hasMore: false }),
+      },
     }));
-    listWorkflowDraftDevRecords(applicationRef, savedDraftConsumerConfig)
-      .then(setSavedDraftListState)
+    listWorkflowDraftDevRecords(applicationRef, activeSavedDraftConsumerConfig, {
+      lifecycleState,
+      filters,
+      cursor,
+      limit: 25,
+    })
+      .then((page) => {
+        if (!workflowSavedDraftRequestIsCurrent(
+          generation,
+          savedDraftListRequestGenerationRef.current[lifecycleState],
+          requestScopeKey,
+          savedDraftLibraryScopeKeyRef.current,
+        )) {
+          return;
+        }
+        setSavedDraftListStates((states) => ({
+          ...states,
+          [lifecycleState]: cursor
+            ? mergeWorkflowSavedDraftListPage(states[lifecycleState], page)
+            : page,
+        }));
+      })
       .catch((error: unknown) => {
-        setSavedDraftListState((state) => ({
-          ...state,
-          status: "list_failed",
-          sourceLabel: "list_failed",
-          summary: error instanceof Error ? error.message : "Saved draft list failed.",
-          applicationRef,
-          failureCode: "dev_saved_draft_list_failed",
-          summaries: [],
+        if (!workflowSavedDraftRequestIsCurrent(
+          generation,
+          savedDraftListRequestGenerationRef.current[lifecycleState],
+          requestScopeKey,
+          savedDraftLibraryScopeKeyRef.current,
+        )) {
+          return;
+        }
+        setSavedDraftListStates((states) => ({
+          ...states,
+          [lifecycleState]: {
+            ...states[lifecycleState],
+            status: "list_failed",
+            sourceLabel: "list_failed",
+            summary: error instanceof Error ? error.message : "Saved draft list failed.",
+            applicationRef,
+            lifecycleState,
+            filters,
+            failureCode: "dev_saved_draft_list_failed",
+            ...(cursor ? {} : { summaries: [], nextCursor: "", hasMore: false }),
+          },
         }));
       });
   };
   useEffect(() => {
-    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
-      setSavedDraftListState(initialWorkflowSavedDraftListState(savedDraftConsumerConfig, workflowScopedApplicationId));
-      return;
-    }
-    refreshSavedWorkflowDraftList(workflowScopedApplicationId);
-  }, [workflowScopedApplicationId]);
+    savedDraftListRequestGenerationRef.current.active += 1;
+    savedDraftListRequestGenerationRef.current.archived += 1;
+    savedDraftLifecycleOperationGenerationRef.current += 1;
+    savedDraftOpenRequestGenerationRef.current += 1;
+    setSavedDraftLibraryLifecycle("active");
+    setSavedDraftLibraryFilters(emptyWorkflowSavedDraftLibraryFilters());
+    setSavedDraftLifecycleOperation(initialWorkflowSavedDraftLifecycleOperationState());
+    setSavedDraftListStates({
+      active: initialWorkflowSavedDraftListState(
+        activeSavedDraftConsumerConfig,
+        workflowScopedApplicationId,
+        "active",
+      ),
+      archived: initialWorkflowSavedDraftListState(
+        activeSavedDraftConsumerConfig,
+        workflowScopedApplicationId,
+        "archived",
+      ),
+    });
+    refreshSavedWorkflowDraftList(
+      workflowScopedApplicationId,
+      "active",
+      emptyWorkflowSavedDraftLibraryFilters(),
+    );
+  }, [
+    activeSavedDraftConsumerConfig,
+    applicationDevelopmentWorkspaceContext.generationKey,
+    workflowScopedApplicationId,
+  ]);
   const handleRefreshSavedWorkflowDraftList = () => {
-    refreshSavedWorkflowDraftList(workflowScopedApplicationId);
+    refreshSavedWorkflowDraftList(
+      workflowScopedApplicationId,
+      savedDraftLibraryLifecycle,
+      savedDraftLibraryFilters,
+    );
   };
-  const handleRestoreSavedWorkflowDraft = (summary: WorkflowSavedDraftSummary) => {
-    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+  const handleSavedDraftLibraryLifecycleChange = (lifecycleState: WorkflowSavedDraftLifecycleState) => {
+    savedDraftListRequestGenerationRef.current[lifecycleState] += 1;
+    savedDraftLifecycleOperationGenerationRef.current += 1;
+    savedDraftOpenRequestGenerationRef.current += 1;
+    setSavedDraftLibraryLifecycle(lifecycleState);
+    setSavedDraftLifecycleOperation(initialWorkflowSavedDraftLifecycleOperationState());
+    setSavedDraftListStates((states) => ({
+      ...states,
+      [lifecycleState]: initialWorkflowSavedDraftListState(
+        activeSavedDraftConsumerConfig,
+        workflowScopedApplicationId,
+        lifecycleState,
+        savedDraftLibraryFilters,
+      ),
+    }));
+    refreshSavedWorkflowDraftList(
+      workflowScopedApplicationId,
+      lifecycleState,
+      savedDraftLibraryFilters,
+    );
+  };
+  const handleSavedDraftLibraryFiltersChange = (filters: WorkflowSavedDraftLibraryFilters) => {
+    savedDraftListRequestGenerationRef.current.active += 1;
+    savedDraftListRequestGenerationRef.current.archived += 1;
+    savedDraftLifecycleOperationGenerationRef.current += 1;
+    savedDraftOpenRequestGenerationRef.current += 1;
+    setSavedDraftLibraryFilters(filters);
+    setSavedDraftLifecycleOperation(initialWorkflowSavedDraftLifecycleOperationState());
+    setSavedDraftListStates({
+      active: initialWorkflowSavedDraftListState(
+        activeSavedDraftConsumerConfig,
+        workflowScopedApplicationId,
+        "active",
+        filters,
+      ),
+      archived: initialWorkflowSavedDraftListState(
+        activeSavedDraftConsumerConfig,
+        workflowScopedApplicationId,
+        "archived",
+        filters,
+      ),
+    });
+    refreshSavedWorkflowDraftList(workflowScopedApplicationId, savedDraftLibraryLifecycle, filters);
+  };
+  const handleLoadMoreSavedWorkflowDrafts = () => {
+    refreshSavedWorkflowDraftList(
+      workflowScopedApplicationId,
+      savedDraftLibraryLifecycle,
+      savedDraftLibraryFilters,
+      true,
+    );
+  };
+  const handleOpenSavedWorkflowDraft = (summary: WorkflowSavedDraftSummary) => {
+    if (activeSavedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
       return;
     }
+    const requestGeneration = savedDraftOpenRequestGenerationRef.current + 1;
+    savedDraftOpenRequestGenerationRef.current = requestGeneration;
+    const requestScopeKey = savedDraftLibraryScopeKeyRef.current;
     setSavedDraftConsumerState((state) => ({
       ...state,
       status: "reading",
-      summary: `Restoring saved draft ${summary.draftId} through the dev-only read route.`,
+      summary: summary.lifecycleState === "archived"
+        ? `Opening archived saved draft ${summary.draftId} for read-only review.`
+        : `Opening saved draft ${summary.draftId} through the dev-only read route.`,
       failureCode: null,
+      currentDraftVersion: summary.draftVersion,
+      currentLifecycleVersion: summary.lifecycleVersion,
+      currentLifecycleState: summary.lifecycleState,
       conflictDraftVersion: null,
     }));
-    restoreWorkflowDraftDevRecord(summary, savedDraftConsumerConfig)
+    openWorkflowDraftDevRecord(summary, activeSavedDraftConsumerConfig)
       .then((result) => {
+        if (!workflowSavedDraftRequestIsCurrent(
+          requestGeneration,
+          savedDraftOpenRequestGenerationRef.current,
+          requestScopeKey,
+          savedDraftLibraryScopeKeyRef.current,
+        )) {
+          return;
+        }
         setSavedDraftConsumerState(result.state);
         if (!result.draft) {
-          setSavedDraftListState((state) => ({
-            ...state,
-            status: "restore_failed",
-            sourceLabel: "restore_failed",
-            summary: result.state.summary,
-            failureCode: result.state.failureCode ?? "dev_saved_draft_restore_failed",
+          setSavedDraftListStates((states) => ({
+            ...states,
+            [summary.lifecycleState]: {
+              ...states[summary.lifecycleState],
+              status: "open_failed",
+              sourceLabel: "open_failed",
+              summary: result.state.summary,
+              failureCode: result.state.failureCode ?? "dev_saved_draft_open_failed",
+            },
           }));
           return;
         }
-        const restoredDraft = result.draft;
-        pendingSavedDraftRestoreRef.current = {
-          draftId: restoredDraft.draftId,
+        const openedDraft = result.draft;
+        pendingSavedDraftConsumerStateRef.current = {
+          draftId: openedDraft.draftId,
           state: result.state,
         };
         const nextRun = workspaceRunHistory.runs.find(
           (run) =>
-            run.applicationRef === restoredDraft.applicationRef &&
-            run.workflowDefinitionId === restoredDraft.workflowDefinitionId,
+            run.applicationRef === openedDraft.applicationRef &&
+            run.workflowDefinitionId === openedDraft.workflowDefinitionId,
         );
         setWorkspaceCreatedDrafts((drafts) => [
-          ...drafts.filter((draft) => draft.draftId !== restoredDraft.draftId),
-          restoredDraft,
+          ...drafts.filter((draft) => draft.draftId !== openedDraft.draftId),
+          openedDraft,
         ]);
         applyWorkflowSelectionPatch({
-          applicationRef: restoredDraft.applicationRef,
-          workflowDefinitionId: restoredDraft.workflowDefinitionId,
+          applicationRef: openedDraft.applicationRef,
+          workflowDefinitionId: openedDraft.workflowDefinitionId,
           runId: nextRun?.runId ?? null,
-          draftId: restoredDraft.draftId,
+          draftId: openedDraft.draftId,
           scenarioId: null,
         });
-        setEditableWorkflowDraft(cloneWorkflowDraftForEditing(restoredDraft));
+        setEditableWorkflowDraft(cloneWorkflowDraftForEditing(openedDraft));
         setWorkflowDraftEditDirty(false);
       })
       .catch((error: unknown) => {
-        const message = error instanceof Error ? error.message : "Saved draft restore failed.";
+        if (!workflowSavedDraftRequestIsCurrent(
+          requestGeneration,
+          savedDraftOpenRequestGenerationRef.current,
+          requestScopeKey,
+          savedDraftLibraryScopeKeyRef.current,
+        )) {
+          return;
+        }
+        const message = error instanceof Error ? error.message : "Saved draft open failed.";
         setSavedDraftConsumerState((state) => ({
           ...state,
           status: "read_failed",
-          sourceLabel: "restore_failed",
+          sourceLabel: "open_failed",
           summary: message,
-          failureCode: "dev_saved_draft_restore_failed",
+          failureCode: "dev_saved_draft_open_failed",
           conflictDraftVersion: null,
         }));
-        setSavedDraftListState((state) => ({
-          ...state,
-          status: "restore_failed",
-          sourceLabel: "restore_failed",
-          summary: message,
-          failureCode: "dev_saved_draft_restore_failed",
+        setSavedDraftListStates((states) => ({
+          ...states,
+          [summary.lifecycleState]: {
+            ...states[summary.lifecycleState],
+            status: "open_failed",
+            sourceLabel: "open_failed",
+            summary: message,
+            failureCode: "dev_saved_draft_open_failed",
+          },
         }));
       });
+  };
+  const handleSavedWorkflowDraftLifecycleTransition = async (
+    summary: WorkflowSavedDraftSummary,
+    targetState: WorkflowSavedDraftLifecycleState,
+  ) => {
+    if (activeSavedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+      return;
+    }
+    const operationGeneration = savedDraftLifecycleOperationGenerationRef.current + 1;
+    savedDraftLifecycleOperationGenerationRef.current = operationGeneration;
+    const operationScopeKey = savedDraftLibraryScopeKeyRef.current;
+    if (
+      targetState === "archived" &&
+      activeWorkflowDraft.draftId === summary.draftId &&
+      workflowDraftEditDirty
+    ) {
+      setSavedDraftLifecycleOperation({
+        status: "failed",
+        draftId: summary.draftId,
+        targetState,
+        currentDraftVersion: summary.draftVersion,
+        currentLifecycleVersion: summary.lifecycleVersion,
+        currentLifecycleState: summary.lifecycleState,
+        failureCode: "draft_local_edits_pending",
+        requestId: `saved-draft-${targetState}-${summary.draftId}`,
+        auditRef: "not_sent",
+        summary: "Save or reset local edits before archiving this exact saved draft version.",
+      });
+      return;
+    }
+    setSavedDraftLifecycleOperation({
+      status: "transitioning",
+      draftId: summary.draftId,
+      targetState,
+      currentDraftVersion: summary.draftVersion,
+      currentLifecycleVersion: summary.lifecycleVersion,
+      currentLifecycleState: summary.lifecycleState,
+      failureCode: null,
+      requestId: `saved-draft-${targetState}-${summary.draftId}`,
+      auditRef: "pending",
+      summary: `${targetState === "archived" ? "Archiving" : "Unarchiving"} ${summary.draftId}.`,
+    });
+    try {
+      const result = targetState === "archived"
+        ? await archiveWorkflowDraftDevRecord(summary, activeSavedDraftConsumerConfig)
+        : await unarchiveWorkflowDraftDevRecord(summary, activeSavedDraftConsumerConfig);
+      if (!workflowSavedDraftRequestIsCurrent(
+        operationGeneration,
+        savedDraftLifecycleOperationGenerationRef.current,
+        operationScopeKey,
+        savedDraftLibraryScopeKeyRef.current,
+      )) {
+        return;
+      }
+      setSavedDraftLifecycleOperation(result);
+      if (result.status === "failed") {
+        return;
+      }
+      if (activeWorkflowDraft.draftId === summary.draftId) {
+        setSavedDraftConsumerState((state) => ({
+          ...state,
+          status: "saved_dev_record",
+          sourceLabel: targetState === "active" ? "reopen required" : "archived read-only",
+          currentDraftVersion: result.currentDraftVersion,
+          currentLifecycleVersion: result.currentLifecycleVersion,
+          currentLifecycleState: targetState === "active" ? "unknown" : result.currentLifecycleState,
+          summary: targetState === "active"
+            ? `${result.summary} The existing browser draft remains read-only until it is opened again.`
+            : result.summary,
+          failureCode: null,
+          requestId: result.requestId,
+          auditRef: result.auditRef,
+        }));
+        setWorkflowDraftEditDirty(false);
+      }
+      refreshSavedWorkflowDraftList(workflowScopedApplicationId, "active", savedDraftLibraryFilters);
+      refreshSavedWorkflowDraftList(workflowScopedApplicationId, "archived", savedDraftLibraryFilters);
+    } catch (error) {
+      if (!workflowSavedDraftRequestIsCurrent(
+        operationGeneration,
+        savedDraftLifecycleOperationGenerationRef.current,
+        operationScopeKey,
+        savedDraftLibraryScopeKeyRef.current,
+      )) {
+        return;
+      }
+      setSavedDraftLifecycleOperation({
+        status: "failed",
+        draftId: summary.draftId,
+        targetState,
+        currentDraftVersion: summary.draftVersion,
+        currentLifecycleVersion: summary.lifecycleVersion,
+        currentLifecycleState: summary.lifecycleState,
+        failureCode: "dev_saved_draft_lifecycle_request_failed",
+        requestId: `saved-draft-${targetState}-${summary.draftId}`,
+        auditRef: "unavailable",
+        summary: error instanceof Error ? error.message : "Saved draft lifecycle request failed.",
+      });
+    }
   };
   const handleContinueLocalWorkflowDraftAfterConflict = () => {
     setSavedDraftConsumerState((state) =>
@@ -1225,15 +1543,17 @@ export function App() {
     );
     setWorkflowDraftEditDirty(true);
   };
-  const handleRestoreConflictSavedWorkflowDraft = () => {
-    if (!savedDraftConflictRestoreSummary) {
+  const handleOpenConflictSavedWorkflowDraft = () => {
+    if (!savedDraftConflictOpenSummary) {
       return;
     }
-    handleRestoreSavedWorkflowDraft(savedDraftConflictRestoreSummary);
+    handleOpenSavedWorkflowDraft(savedDraftConflictOpenSummary);
   };
   const handleValidateWorkflowDraft = () => {
     if (
-      savedDraftConsumerConfig.mode !== "dev_saved_draft_http" ||
+      activeSavedDraftConsumerConfig.mode !== "dev_saved_draft_http" ||
+      (savedDraftConsumerState.currentDraftVersion > 0 &&
+        savedDraftConsumerState.currentLifecycleState !== "active") ||
       workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState)
     ) {
       return;
@@ -1246,7 +1566,13 @@ export function App() {
       failureCode: null,
       conflictDraftVersion: null,
     }));
-    validateWorkflowDraftDevRecord(activeWorkflowDraft, savedDraftConsumerConfig, currentDraftVersion)
+    validateWorkflowDraftDevRecord(
+      activeWorkflowDraft,
+      activeSavedDraftConsumerConfig,
+      currentDraftVersion,
+      savedDraftConsumerState.currentLifecycleVersion,
+      savedDraftConsumerState.currentLifecycleState,
+    )
       .then(setSavedDraftConsumerState)
       .catch((error: unknown) => {
         setSavedDraftConsumerState((state) => ({
@@ -1260,7 +1586,11 @@ export function App() {
       });
   };
   const handleSaveWorkflowDraft = () => {
-    if (savedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
+    if (
+      activeSavedDraftConsumerConfig.mode !== "dev_saved_draft_http" ||
+      (savedDraftConsumerState.currentDraftVersion > 0 &&
+        savedDraftConsumerState.currentLifecycleState !== "active")
+    ) {
       return;
     }
     const expectedDraftVersion = nextWorkflowSavedDraftExpectedVersion(savedDraftConsumerState);
@@ -1274,11 +1604,20 @@ export function App() {
       failureCode: null,
       conflictDraftVersion: null,
     }));
-    saveWorkflowDraftDevRecord(activeWorkflowDraft, savedDraftConsumerConfig, expectedDraftVersion)
+    saveWorkflowDraftDevRecord(
+      activeWorkflowDraft,
+      activeSavedDraftConsumerConfig,
+      expectedDraftVersion,
+      savedDraftConsumerState.currentLifecycleVersion,
+    )
       .then((nextState) => {
         setSavedDraftConsumerState(nextState);
         if (nextState.status === "version_conflict") {
-          refreshSavedWorkflowDraftList(activeWorkflowDraft.applicationRef);
+          refreshSavedWorkflowDraftList(
+            activeWorkflowDraft.applicationRef,
+            "active",
+            savedDraftLibraryFilters,
+          );
           return;
         }
         if (nextState.status === "saved_dev_record") {
@@ -1293,7 +1632,11 @@ export function App() {
             draft === null ? null : { ...draft, localOnlyInteraction: "inspect_only" },
           );
           setWorkflowDraftEditDirty(false);
-          refreshSavedWorkflowDraftList(activeWorkflowDraft.applicationRef);
+          refreshSavedWorkflowDraftList(
+            activeWorkflowDraft.applicationRef,
+            "active",
+            savedDraftLibraryFilters,
+          );
         }
       })
       .catch((error: unknown) => {
@@ -1309,7 +1652,7 @@ export function App() {
   };
   const handleReadWorkflowDraft = () => {
     if (
-      savedDraftConsumerConfig.mode !== "dev_saved_draft_http" ||
+      activeSavedDraftConsumerConfig.mode !== "dev_saved_draft_http" ||
       workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState)
     ) {
       return;
@@ -1322,7 +1665,7 @@ export function App() {
       failureCode: null,
       conflictDraftVersion: null,
     }));
-    readWorkflowDraftDevRecord(activeWorkflowDraft, savedDraftConsumerConfig, currentDraftVersion)
+    readWorkflowDraftDevRecord(activeWorkflowDraft, activeSavedDraftConsumerConfig, currentDraftVersion)
       .then(setSavedDraftConsumerState)
       .catch((error: unknown) => {
         setSavedDraftConsumerState((state) => ({
@@ -1352,11 +1695,13 @@ export function App() {
       summary: result.summary,
       failureCode: result.failureCode,
       currentDraftVersion: result.currentDraftVersion,
+      currentLifecycleVersion: result.currentLifecycleVersion,
+      currentLifecycleState: result.currentLifecycleState,
       conflictDraftVersion: null,
       auditRef: result.auditRef,
       requestId: result.requestId,
     });
-    refreshSavedWorkflowDraftList(restoredDraft.applicationRef);
+    refreshSavedWorkflowDraftList(restoredDraft.applicationRef, "active", savedDraftLibraryFilters);
   };
   const handleWorkflowExecutorConditionValueChange = (nodeId: string, value: boolean) => {
     setWorkflowExecutorConditionValues((values) => ({ ...values, [nodeId]: value }));
@@ -1520,7 +1865,11 @@ export function App() {
     setSelectedWorkflowScenarioId(null);
     setEditableWorkflowDraft(null);
     setWorkflowDraftEditDirty(false);
-    pendingSavedDraftRestoreRef.current = null;
+    pendingSavedDraftConsumerStateRef.current = null;
+    savedDraftListRequestGenerationRef.current.active += 1;
+    savedDraftListRequestGenerationRef.current.archived += 1;
+    savedDraftLifecycleOperationGenerationRef.current += 1;
+    savedDraftOpenRequestGenerationRef.current += 1;
     setActiveWorkspaceId(normalized);
     return true;
   };
@@ -1710,14 +2059,28 @@ export function App() {
           inbox={workspaceOperationsInbox}
           onOpenItem={handleOpenWorkspaceOperationsInboxItem}
         />
-        <WorkflowUserWorkspaceHomePanel
-          home={workflowUserWorkspaceHome}
-          createdDraftCountsByWorkflowDefinition={createdWorkspaceDraftCountsByDefinition}
-          savedDraftListState={savedDraftListState}
-          onCreateDraftForWorkflowDefinition={handleCreateWorkspaceDraftFromDefinition}
-          onRefreshSavedDrafts={handleRefreshSavedWorkflowDraftList}
-          onRestoreSavedDraft={handleRestoreSavedWorkflowDraft}
-        />
+        <Suspense fallback={<section className="surface-band"><p>Loading Saved Draft Library…</p></section>}>
+          <WorkflowUserWorkspaceHomePanel
+            home={workflowUserWorkspaceHome}
+            createdDraftCountsByWorkflowDefinition={createdWorkspaceDraftCountsByDefinition}
+            savedDraftListState={savedDraftListState}
+            libraryLifecycle={savedDraftLibraryLifecycle}
+            libraryFilters={savedDraftLibraryFilters}
+            lifecycleOperation={savedDraftLifecycleOperation}
+            onCreateDraftForWorkflowDefinition={handleCreateWorkspaceDraftFromDefinition}
+            onLibraryLifecycleChange={handleSavedDraftLibraryLifecycleChange}
+            onLibraryFiltersChange={handleSavedDraftLibraryFiltersChange}
+            onRefreshSavedDrafts={handleRefreshSavedWorkflowDraftList}
+            onLoadMoreSavedDrafts={handleLoadMoreSavedWorkflowDrafts}
+            onOpenSavedDraft={handleOpenSavedWorkflowDraft}
+            onArchiveSavedDraft={(summary) => {
+              void handleSavedWorkflowDraftLifecycleTransition(summary, "archived");
+            }}
+            onUnarchiveSavedDraft={(summary) => {
+              void handleSavedWorkflowDraftLifecycleTransition(summary, "active");
+            }}
+          />
+        </Suspense>
         <Suspense fallback={<section className="surface-band"><p>Loading Gateway Playground…</p></section>}>
           <ModelGatewayPlaygroundPanel
             selectedApplicationId={applicationDevelopmentWorkspaceContext.applicationId}
@@ -1956,6 +2319,8 @@ export function App() {
                     runHistoryRefreshKey={workflowRunHistoryRefreshKey}
                     activeWorkflowDraft={activeWorkflowDraft}
                     savedDraftVersion={savedDraftConsumerState.currentDraftVersion ?? 0}
+                    savedDraftLifecycleVersion={savedDraftConsumerState.currentLifecycleVersion}
+                    savedDraftLifecycleState={savedDraftConsumerState.currentLifecycleState}
                     nextDerivedDraftNumber={workspaceCreatedDrafts.filter(
                       (draft) => draft.applicationRef === workflowScopedApplicationId && (draft.baseDefinitionVersion ?? 0) > 0,
                     ).length + 1}
@@ -2120,7 +2485,7 @@ export function App() {
             selectedDraftId={selectedWorkflowDraft.draftId}
             savedDraftConsumerState={savedDraftConsumerState}
             savedDraftConflictReviewSummary={savedDraftConflictReviewSummary}
-            savedDraftConflictRestoreSummary={savedDraftConflictRestoreSummary}
+            savedDraftConflictOpenSummary={savedDraftConflictOpenSummary}
             draftEditDirty={workflowDraftEditDirty}
             executorOperationPending={workflowExecutorOperationPending || workflowHTTPToolOperationPending || workflowRAGOperationPending}
             onSelectDraft={handleSelectWorkflowDraft}
@@ -2144,7 +2509,7 @@ export function App() {
             onRemoveNode={handleWorkflowDraftRemoveNode}
             onResetDraftEdits={handleWorkflowDraftEditReset}
             onContinueLocalDraftAfterConflict={handleContinueLocalWorkflowDraftAfterConflict}
-            onRestoreConflictSavedDraft={handleRestoreConflictSavedWorkflowDraft}
+            onOpenConflictSavedDraft={handleOpenConflictSavedWorkflowDraft}
             onDeriveSavedDraft={handleDeriveSavedWorkflowDraft}
             onValidateDraft={handleValidateWorkflowDraft}
             onSaveDraft={handleSaveWorkflowDraft}
@@ -2154,7 +2519,9 @@ export function App() {
             <WorkflowSavedDraftRevisionPanel
               draft={activeWorkflowDraft}
               currentDraftVersion={savedDraftConsumerState.currentDraftVersion}
-              config={savedDraftConsumerConfig}
+              currentLifecycleVersion={savedDraftConsumerState.currentLifecycleVersion}
+              lifecycleState={savedDraftConsumerState.currentLifecycleState}
+              config={activeSavedDraftConsumerConfig}
               dirty={workflowDraftEditDirty}
               disabled={
                 workflowExecutorOperationPending ||
@@ -3632,7 +3999,7 @@ function WorkflowDraftDesignerPanel({
   selectedDraftId,
   savedDraftConsumerState,
   savedDraftConflictReviewSummary,
-  savedDraftConflictRestoreSummary,
+  savedDraftConflictOpenSummary,
   draftEditDirty,
   executorOperationPending,
   onSelectDraft,
@@ -3656,7 +4023,7 @@ function WorkflowDraftDesignerPanel({
   onRemoveNode,
   onResetDraftEdits,
   onContinueLocalDraftAfterConflict,
-  onRestoreConflictSavedDraft,
+  onOpenConflictSavedDraft,
   onDeriveSavedDraft,
   onValidateDraft,
   onSaveDraft,
@@ -3668,7 +4035,7 @@ function WorkflowDraftDesignerPanel({
   selectedDraftId: string;
   savedDraftConsumerState: WorkflowSavedDraftConsumerState;
   savedDraftConflictReviewSummary: WorkflowSavedDraftConflictReviewSummary | null;
-  savedDraftConflictRestoreSummary: WorkflowSavedDraftSummary | null;
+  savedDraftConflictOpenSummary: WorkflowSavedDraftSummary | null;
   draftEditDirty: boolean;
   executorOperationPending: boolean;
   onSelectDraft: (draftId: string) => void;
@@ -3692,7 +4059,7 @@ function WorkflowDraftDesignerPanel({
   onRemoveNode: (nodeId: string) => void;
   onResetDraftEdits: () => void;
   onContinueLocalDraftAfterConflict: () => void;
-  onRestoreConflictSavedDraft: () => void;
+  onOpenConflictSavedDraft: () => void;
   onDeriveSavedDraft: () => void;
   onValidateDraft: () => void;
   onSaveDraft: () => void;
@@ -3701,11 +4068,15 @@ function WorkflowDraftDesignerPanel({
   const canCallDevConsumer = savedDraftConsumerState.mode === "dev_saved_draft_http";
   const operationPending = ["saving", "validating", "reading"].includes(savedDraftConsumerState.status);
   const conflictRequiresResolution = workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState);
-  const interactionDisabled = operationPending || conflictRequiresResolution || executorOperationPending;
+  const lifecycleReadOnly =
+    savedDraftConsumerState.currentDraftVersion > 0 &&
+    savedDraftConsumerState.currentLifecycleState !== "active";
+  const requestInteractionDisabled = operationPending || conflictRequiresResolution || executorOperationPending;
+  const interactionDisabled = requestInteractionDisabled || lifecycleReadOnly;
   const editStateLabel = draftEditDirty ? "unsaved local" : selectedDraft.localOnlyInteraction;
-  const conflictRestoreUnavailableMessage =
-    savedDraftConflictReviewSummary?.restoreUnavailableReason ??
-    "Saved version metadata is refreshing from the dev-only saved draft list before restore is enabled.";
+  const conflictOpenUnavailableMessage =
+    savedDraftConflictReviewSummary?.openUnavailableReason ??
+    "Saved version metadata is refreshing from the dev-only saved draft list before open is enabled.";
   return (
     <div
       className="workflow-draft-designer"
@@ -3718,9 +4089,19 @@ function WorkflowDraftDesignerPanel({
           <h4>{selectedDraft.label}</h4>
         </div>
         <StatusBadge tone={designer.canRenderDraftDesigner ? "good" : "bad"}>
-          {designer.canRenderDraftDesigner ? "offline designer ready" : "blocked"}
+          {lifecycleReadOnly
+            ? `${savedDraftConsumerState.currentLifecycleState} read-only review`
+            : designer.canRenderDraftDesigner
+              ? "offline designer ready"
+              : "blocked"}
         </StatusBadge>
       </div>
+      {lifecycleReadOnly ? (
+        <p className="workflow-draft-revision-stopline">
+          当前草案 lifecycle 为 {savedDraftConsumerState.currentLifecycleState}：内容、修订历史和比较保持可读；
+          本地编辑、保存、派生、恢复、晋级和直接执行全部禁用，重新进入活动态后仍需显式打开。
+        </p>
+      ) : null}
 
       <div className="workflow-draft-template-grid" aria-label="Workflow draft templates">
         {designer.templates.map((template) => (
@@ -3803,10 +4184,13 @@ function WorkflowDraftDesignerPanel({
         </article>
         <article className="workflow-draft-card">
           <span>Version</span>
-          <strong>{String(savedDraftConsumerState.currentDraftVersion)}</strong>
+          <strong>
+            content {savedDraftConsumerState.currentDraftVersion} / lifecycle
+            {" "}{savedDraftConsumerState.currentLifecycleVersion}
+          </strong>
           <p>
             {savedDraftConsumerState.conflictDraftVersion === null
-              ? savedDraftConsumerState.auditRef
+              ? `${savedDraftConsumerState.currentLifecycleState} · ${savedDraftConsumerState.auditRef}`
               : `Conflict current version ${savedDraftConsumerState.conflictDraftVersion}`}
           </p>
         </article>
@@ -3827,7 +4211,11 @@ function WorkflowDraftDesignerPanel({
             <button type="button" disabled={!canCallDevConsumer || interactionDisabled} onClick={onSaveDraft}>
               Save
             </button>
-            <button type="button" disabled={!canCallDevConsumer || interactionDisabled} onClick={onReadDraft}>
+            <button
+              type="button"
+              disabled={!canCallDevConsumer || requestInteractionDisabled}
+              onClick={onReadDraft}
+            >
               Read
             </button>
             <button
@@ -3895,8 +4283,8 @@ function WorkflowDraftDesignerPanel({
                 <dd>{savedDraftConflictReviewSummary.savedMetadataState}</dd>
               </div>
               <div>
-                <dt>Restore</dt>
-                <dd>{savedDraftConflictReviewSummary.restoreActionState}</dd>
+                <dt>Open</dt>
+                <dd>{savedDraftConflictReviewSummary.openActionState}</dd>
               </div>
             </dl>
             <p>{savedDraftConflictReviewSummary.summary}</p>
@@ -3904,7 +4292,7 @@ function WorkflowDraftDesignerPanel({
             <div className="workflow-workspace-review-token-list" aria-label="Saved draft conflict review locks">
               <code>auto_overwrite_locked</code>
               <code>auto_merge_locked</code>
-              <code>{savedDraftConflictReviewSummary.restoreActionState}</code>
+              <code>{savedDraftConflictReviewSummary.openActionState}</code>
             </div>
             <div className="workflow-draft-conflict-action-row" aria-label="Saved draft conflict review actions">
               <button
@@ -3921,19 +4309,19 @@ function WorkflowDraftDesignerPanel({
                 type="button"
                 disabled={
                   operationPending ||
-                  !savedDraftConflictRestoreSummary ||
-                  !savedDraftConflictReviewSummary.canRestoreFromSavedDraft
+                  !savedDraftConflictOpenSummary ||
+                  !savedDraftConflictReviewSummary.canOpenSavedDraft
                 }
-                onClick={onRestoreConflictSavedDraft}
+                onClick={onOpenConflictSavedDraft}
               >
-                Restore saved version
+                Open saved draft
               </button>
             </div>
-            {!savedDraftConflictReviewSummary.canRestoreFromSavedDraft ? (
-              <p>{conflictRestoreUnavailableMessage}</p>
+            {!savedDraftConflictReviewSummary.canOpenSavedDraft ? (
+              <p>{conflictOpenUnavailableMessage}</p>
             ) : (
               <p>
-                Restore saved version is available from sanitized saved draft metadata; it still replaces the
+                Open saved draft is available from sanitized saved draft metadata; it still replaces the
                 active draft only after explicit selection.
               </p>
             )}
@@ -4054,6 +4442,7 @@ function workflowSavedDraftConsumerTone(status: WorkflowSavedDraftConsumerState[
 function workspaceDraftCreatedConsumerState(
   config: ReturnType<typeof readWorkflowSavedDraftConsumerConfig>,
   draft: WorkflowDraftDesignerDraft,
+  sourceLifecycleVersion = 0,
 ): WorkflowSavedDraftConsumerState {
   const initialState = initialWorkflowSavedDraftConsumerState(config);
   return {
@@ -4066,6 +4455,8 @@ function workspaceDraftCreatedConsumerState(
         : `Workspace draft ${draft.draftId} is local only until the dev-only saved draft route is enabled.`,
     failureCode: null,
     currentDraftVersion: 0,
+    currentLifecycleVersion: sourceLifecycleVersion,
+    currentLifecycleState: "active",
     conflictDraftVersion: null,
     auditRef: draft.routeMetadata.auditRef,
     requestId: draft.routeMetadata.requestId,

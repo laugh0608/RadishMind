@@ -1,25 +1,25 @@
 # Saved Workflow Draft Conflict Review v1
 
-更新时间：2026-07-11
+更新时间：2026-07-29
 
 状态：`workflow_saved_draft_conflict_review_v1_implemented`
 
 ## 文档目的
 
-本文档定义并记录 saved workflow draft 在版本冲突、恢复和审查交接中的用户工作流。它承接现有 dev-only saved draft route、consumer `version_conflict` 状态、Draft Designer active draft 和 Review Handoff，不创建新的 runtime 或生产后端。
+本文档定义并记录 saved workflow draft 在版本冲突、打开和审查交接中的用户工作流。它承接现有 dev-only saved draft route、consumer `version_conflict` 状态、Draft Designer active draft 和 Review Handoff，不创建新的 runtime 或生产后端。“恢复”只用于 revision restore。
 
 ## 当前状态
 
 - Draft Designer 已在 `version_conflict` 后展示 saved draft conflict review，保留本地 active draft，并展示 saved version、updated metadata、validation state 和 blocked capability count。
 - 前端 consumer 已新增 `conflict_local_continued` 状态；用户显式选择继续编辑本地草案后，后续保存会使用当前 saved version 作为 expected version。
-- 2026-07-10 已修正 saved version 生命周期：已保存草案进入 `unsaved_local` 或 `validation_ready` 后继续保留 persisted base version；未处理的 `version_conflict` 会阻止 validate / save / read，只有显式 Continue 或 Restore 后才能继续 dev route 动作。
-- Draft Designer 已提供显式恢复 saved version 的入口；恢复动作复用既有 dev-only read route 和 saved draft list summary，不由保存失败自动触发。
-- 保存返回 `version_conflict` 后，Draft Designer 会刷新当前 application 的 sanitized saved draft list，为显式恢复 saved version 准备当前 metadata；该刷新不读取 secret、不恢复草案、不覆盖本地 active draft。
+- 2026-07-29 已修正 saved version 生命周期：已保存草案进入 `unsaved_local` 或 `validation_ready` 后继续保留 persisted base version 和精确 lifecycle authority；未处理的 `version_conflict` 会阻止 validate / save / read，只有显式 Continue 或 Open 后才能继续 dev route 动作。
+- Draft Designer 已提供显式打开 saved draft 的入口；打开动作复用既有 dev-only read route 和 saved draft list summary，不由保存失败自动触发。
+- 保存返回 `version_conflict` 后，Draft Designer 会刷新当前 application 的 sanitized saved draft list，为显式打开 saved draft 准备当前 metadata；该刷新不读取 secret、不打开草案、不覆盖本地 active draft。
 - Review Handoff 已消费同一份 conflict review summary，并以 advisory-only 形式展示冲突状态、saved version metadata、validation 状态、blocked capability 和 auto overwrite / auto merge 停止线。
 - 2026-07-11 已用真实 Web consumer 与 Go dev-only route 完成最新 dev-live 复验：正常路径覆盖创建、节点 / 边 / 属性 / 布局编辑、校验、连续保存、列表刷新与恢复；冲突路径覆盖独立写入推进版本、未决冲突锁定、Continue 后基于当前 saved version 保存、显式 Restore 和 Review Handoff conflict evidence。
 - dev-live launcher 已增加显式 `--saved-draft-dev` / `-SavedDraftDev`，集中启用 memory-dev Saved Draft read/write consumer 并探测 list route；普通 `dev-live` 仍不隐式开放写入。
 - Handoff canvas layout evidence 已在 view model 层去重，避免已定位节点同时来自 layout positions 与 nodes 时产生 React 重复 key；补齐 SVG favicon 后，最终新浏览器会话为零 error / warning。
-- 2026-07-01 已整理冲突审查卡片与 Review Handoff 可读性：前端 conflict review summary 现在显式派生 `savedMetadataLoaded`、`savedMetadataState`、`restoreActionState`、`restoreUnavailableReason`、本地草案保留说明和 reviewer 下一步；恢复入口在 metadata 刷新中、列表为空、列表失败或缺少匹配 summary 时保持禁用，并说明本地草案仍未被覆盖或合并。
+- 2026-07-29 已统一冲突审查卡片与 Review Handoff 术语：前端 conflict review summary 显式派生 `savedMetadataLoaded`、`savedMetadataState`、`openActionState`、`openUnavailableReason`、本地草案保留说明和 reviewer 下一步；打开入口在 metadata 刷新中、列表为空、列表失败或缺少匹配 summary 时保持禁用，并说明本地草案仍未被覆盖或合并。
 - `workflow-saved-draft-consumer-smoke-v1`、Web lifecycle behavior test 与 `workflow-review-handoff-active-draft-v1` 已同步覆盖该实现；本批不新增 checker、backend route、repository mode、数据库、runtime 或 public production API。
 - 2026-06-30 dev-live 浏览器复核作为历史证据保留；2026-07-11 最新复验已覆盖 saved version 生命周期修复后的完整路径，并替代此前仅剩 `favicon.ico` 404 的浏览器记录。
 
@@ -32,7 +32,7 @@
 ## 当前输入
 
 - `POST /v1/user-workspace/workflow-drafts` 已能返回 `version_conflict`，前端 consumer 会保留本地草案并展示 saved draft version metadata。
-- `GET /v1/user-workspace/workflow-drafts/{draft_id}` 已能恢复 saved draft 到 Draft Designer。
+- `GET /v1/user-workspace/workflow-drafts/{draft_id}` 已能打开 saved draft 到 Draft Designer。
 - Review Handoff 已能消费 active draft 的 validation、plan 和 readiness。
 - `memory_dev` 是当前唯一可成功读写的 store mode；`repository` 和 `repository_disabled` 仍 fail closed。
 
@@ -40,27 +40,27 @@
 
 1. 用户在 Draft Designer 编辑 active draft，并通过 dev-only saved draft consumer 保存。
 2. 如果后端返回 `version_conflict`，页面保留本地 active draft，不自动读取 saved version，也不覆盖本地节点、边、layout 或属性编辑。
-3. 页面刷新当前 application 的 saved draft list，只用 sanitized summary 准备恢复入口；metadata 未就绪时恢复入口应保持不可用。
+3. 页面刷新当前 application 的 saved draft list，只用 sanitized summary 准备打开入口；metadata 未就绪时打开入口应保持不可用。
 4. 用户可以继续本地草案；此时状态进入 `conflict_local_continued`，后续保存使用当前 saved version 作为 expected version。
-5. 用户也可以显式恢复 saved version；恢复动作复用 read route，并把恢复结果带回 Draft Designer。
+5. 用户也可以显式打开 saved draft；打开动作复用 read route，并把结果带回 Draft Designer。
 6. Reviewer 在 Review Handoff 中查看 conflict review summary，确认冲突来源、saved version metadata、validation 状态、blocked capability 和停止线。
 
 ## 界面读法
 
 - 冲突状态首先说明“本地草案仍保留”，再说明 saved version 的版本号、更新时间、更新人、校验状态和 blocked capability 数量。
-- 恢复入口必须显示 metadata 状态，以及当前是 `restore_available` 还是 `restore_requires_saved_list`；metadata 未加载、列表为空、列表失败或缺少匹配 summary 时，应说明恢复入口等待 sanitized saved draft list 重新可用。
+- 打开入口必须显示 metadata 状态，以及当前是 `open_available` 还是 `open_requires_saved_list`；metadata 未加载、列表为空、列表失败或缺少匹配 summary 时，应说明打开入口等待 sanitized saved draft list 重新可用。
 - “继续本地草案”代表用户选择先保留当前编辑上下文，不代表系统已经合并远端版本。
-- “恢复 saved version”代表用户主动把 saved draft 读回 Draft Designer；该动作必须可区分于保存失败后的自动 fallback。
+- “打开 saved draft”代表用户主动把当前记录读回 Draft Designer；该动作必须可区分于“恢复历史版本”和保存失败后的自动 fallback。
 - Review Handoff 的 conflict summary 是审查证据，不是发布、执行、确认或业务写回前置条件。
 
 ## 已实现能力
 
 1. Draft Designer 在 `version_conflict` 后展示冲突审查状态，说明本地草案、远端 saved version 和下一步选择。
-2. 用户可以明确选择继续编辑本地草案，或从 saved draft 重新恢复；系统不得自动覆盖本地 active draft。
-3. 冲突发生后会刷新当前 application 的 saved draft list，让恢复按钮基于已保存版本摘要可用；刷新过程仍只消费 sanitized summary。
+2. 用户可以明确选择继续编辑本地草案，或打开 saved draft；系统不得自动覆盖本地 active draft。
+3. 冲突发生后会刷新当前 application 的 saved draft list，让打开按钮基于已保存版本摘要可用；刷新过程仍只消费 sanitized summary。
 4. Review Handoff 增加 conflict review summary，把冲突状态、saved version metadata、validation 状态和 blocked capability 一起交给 reviewer。
-5. Workspace saved draft list 保持 sanitized summary，只提供恢复入口，不暴露 secret、token、完整 claim 或 runtime material。
-6. Draft Designer 与 Review Handoff 共用同一份恢复状态、metadata 状态、本地草案保留说明和 reviewer 下一步文案；这些字段只属于前端派生摘要，不改变 dev-only route、schema 或 runtime 边界。
+5. Workspace saved draft list 保持 sanitized summary，只提供打开入口，不暴露 secret、token、完整 claim 或 runtime material。
+6. Draft Designer 与 Review Handoff 共用同一份打开状态、metadata 状态、本地草案保留说明和 reviewer 下一步文案；这些字段只属于前端派生摘要，不改变 dev-only route、schema 或 runtime 边界。
 
 ## 后续开发
 
@@ -85,15 +85,15 @@
 ## 验收方式
 
 - `version_conflict` 后本地 active draft 不丢失，用户能看到冲突来源和 saved version metadata。
-- 保存冲突后只刷新当前 application 的 saved draft list，并在 metadata 未就绪时保持恢复入口禁用。
-- 冲突审查卡片和 Review Handoff 都能展示 metadata state、restore action state、本地草案保留说明和 reviewer 下一步。
-- 恢复 saved draft 必须是显式动作，不能由保存失败自动触发。
+- 保存冲突后只刷新当前 application 的 saved draft list，并在 metadata 未就绪时保持打开入口禁用。
+- 冲突审查卡片和 Review Handoff 都能展示 metadata state、open action state、本地草案保留说明和 reviewer 下一步。
+- 打开 saved draft 必须是显式动作，不能由保存失败自动触发。
 - Review Handoff 能显示 conflict review summary，并保持 advisory-only。
 - 失败状态不得回退到 sample、fixture 或 memory dev 的其它草案。
 - 现有 workflow consumer smoke、Review Handoff 检查和 web build 可复验本批实现；只有新增协议字段、route 行为或高风险边界时再新增专项 task card / fixture / checker。
 - 已保存草案经过本地编辑或 validate 后再次保存，必须继续使用原 persisted base version；validate 的非持久化 `current_draft_version=0` 不得覆盖本地 saved baseline。
 - `version_conflict` 未显式处理前，Validate / Save / Read 和草案编辑控件保持禁用，不能通过重复 Save 绕过冲突审查。
-- dev-live 浏览器复核记录应能证明本地 active draft 不被自动覆盖、冲突后列表刷新只准备恢复入口、恢复 saved version 必须显式触发，且 Review Handoff 仍只提供 advisory-only 审查语义。
+- dev-live 浏览器复核记录应能证明本地 active draft 不被自动覆盖、冲突后列表刷新只准备打开入口、打开 saved draft 必须显式触发，且 Review Handoff 仍只提供 advisory-only 审查语义。
 
 ## 停止线
 

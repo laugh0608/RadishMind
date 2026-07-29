@@ -8,6 +8,7 @@ const MAX_DRAFT_LABEL_LENGTH = 160;
 export type WorkflowSavedDraftDerivationState = {
   status: string;
   currentDraftVersion: number;
+  currentLifecycleState?: string;
 };
 
 export function canDeriveSavedWorkflowDraft(
@@ -17,6 +18,7 @@ export function canDeriveSavedWorkflowDraft(
 ): boolean {
   return state.status === "saved_dev_record" &&
     state.currentDraftVersion >= 1 &&
+    state.currentLifecycleState === "active" &&
     !draftEditDirty &&
     !operationPending;
 }

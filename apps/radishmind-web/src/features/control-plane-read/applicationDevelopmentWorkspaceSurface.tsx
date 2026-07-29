@@ -40,6 +40,8 @@ type Props = {
   runHistoryRefreshKey: number;
   activeWorkflowDraft: WorkflowDraftDesignerDraft;
   savedDraftVersion: number;
+  savedDraftLifecycleVersion: number;
+  savedDraftLifecycleState: "active" | "archived" | "unknown";
   nextDerivedDraftNumber: number;
   onDerivedDraft: (draft: WorkflowDraftDesignerDraft) => void;
   onRunRecorded: () => void;
@@ -55,6 +57,8 @@ export default function ApplicationDevelopmentWorkspaceSurface({
   runHistoryRefreshKey,
   activeWorkflowDraft,
   savedDraftVersion,
+  savedDraftLifecycleVersion,
+  savedDraftLifecycleState,
   nextDerivedDraftNumber,
   onDerivedDraft,
   onRunRecorded,
@@ -237,6 +241,8 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                 applicationId={context.applicationId}
                 activeDraft={activeWorkflowDraft}
                 savedDraftVersion={savedDraftVersion}
+                savedDraftLifecycleVersion={savedDraftLifecycleVersion}
+                savedDraftLifecycleState={savedDraftLifecycleState}
                 nextDerivedDraftNumber={nextDerivedDraftNumber}
                 onDerivedDraft={onDerivedDraft}
                 onRunRecorded={handleRunRecorded}

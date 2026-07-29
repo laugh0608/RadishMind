@@ -354,6 +354,8 @@ function savedDraftState() {
     summary: "saved",
     failureCode: null,
     currentDraftVersion: 4,
+    currentLifecycleVersion: 1,
+    currentLifecycleState: "active" as const,
     conflictDraftVersion: null,
     auditRef: "audit_saved_draft",
     requestId: "request_saved_draft",

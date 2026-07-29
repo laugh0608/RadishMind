@@ -403,10 +403,14 @@ export function evaluateWorkflowHTTPToolActionEligibility(
   const toolNodes = draft.nodes.filter((node) => node.nodeType === "http_tool");
   const toolNode = toolNodes.length === 1 ? toolNodes[0] : null;
 
-  if (savedDraftState.status !== "saved_dev_record" || savedDraftState.currentDraftVersion < 1) {
+  if (
+    savedDraftState.status !== "saved_dev_record" ||
+    savedDraftState.currentDraftVersion < 1 ||
+    savedDraftState.currentLifecycleState !== "active"
+  ) {
     reasons.push({
       code: "workflow_tool_saved_draft_required",
-      summary: "The selected draft must have an exact durable saved version.",
+      summary: "The selected draft must have exact durable content and active lifecycle versions.",
     });
   }
   if (draftEditDirty) {

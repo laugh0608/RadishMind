@@ -18,6 +18,8 @@ import {
 export function WorkflowSavedDraftRevisionPanel({
   draft,
   currentDraftVersion,
+  currentLifecycleVersion,
+  lifecycleState,
   config,
   dirty,
   disabled,
@@ -25,6 +27,8 @@ export function WorkflowSavedDraftRevisionPanel({
 }: {
   draft: WorkflowDraftDesignerDraft;
   currentDraftVersion: number;
+  currentLifecycleVersion: number;
+  lifecycleState: "active" | "archived" | "unknown";
   config: WorkflowSavedDraftConsumerConfig;
   dirty: boolean;
   disabled: boolean;
@@ -98,7 +102,13 @@ export function WorkflowSavedDraftRevisionPanel({
   };
 
   const restoreSelectedRevision = async () => {
-    if (!selected || confirmVersion !== selected.draftVersion || currentDraftVersion < 1) return;
+    if (
+      !selected ||
+      confirmVersion !== selected.draftVersion ||
+      currentDraftVersion < 1 ||
+      currentLifecycleVersion < 1 ||
+      lifecycleState !== "active"
+    ) return;
     setRestoring(true);
     setOperationSummary(`正在从版本 ${selected.draftVersion} 创建新修订。`);
     try {
@@ -106,6 +116,7 @@ export function WorkflowSavedDraftRevisionPanel({
         draft,
         selected.draftVersion,
         currentDraftVersion,
+        currentLifecycleVersion,
         config,
       );
       if (!result.draft) {
@@ -125,6 +136,7 @@ export function WorkflowSavedDraftRevisionPanel({
   };
 
   const canUseHistory = config.mode === "dev_saved_draft_http" && currentDraftVersion > 0;
+  const restoreBlocked = lifecycleState !== "active";
   return (
     <section className="workflow-draft-revision-panel" aria-label="草案修订历史与恢复">
       <div className="section-heading compact-heading">
@@ -133,9 +145,16 @@ export function WorkflowSavedDraftRevisionPanel({
           <h4>草案修订历史与恢复</h4>
         </div>
         <span className="status-badge neutral">
-          {currentDraftVersion > 0 ? `current v${currentDraftVersion}` : "尚未保存"}
+          {currentDraftVersion > 0
+            ? `current v${currentDraftVersion} · lifecycle v${currentLifecycleVersion} · ${lifecycleState}`
+            : "尚未保存"}
         </span>
       </div>
+      {lifecycleState === "archived" ? (
+        <p className="workflow-draft-revision-stopline">
+          归档草案保持历史读取和版本比较能力；恢复历史版本已由 <code>draft_archived</code> 停止线禁用。
+        </p>
+      ) : null}
       <p>{history.summary}</p>
       <div className="workflow-draft-action-row">
         <button
@@ -200,7 +219,7 @@ export function WorkflowSavedDraftRevisionPanel({
                     </p>
                     <button
                       type="button"
-                      disabled={disabled || restoring}
+                      disabled={disabled || restoring || restoreBlocked}
                       onClick={() => void restoreSelectedRevision()}
                     >
                       {restoring ? "正在恢复…" : "确认创建新修订"}
@@ -212,12 +231,20 @@ export function WorkflowSavedDraftRevisionPanel({
                 ) : (
                   <button
                     type="button"
-                    disabled={disabled || restoring || selected.draftVersion === currentDraftVersion}
+                    disabled={
+                      disabled ||
+                      restoring ||
+                      restoreBlocked ||
+                      selected.draftVersion === currentDraftVersion
+                    }
                     onClick={() => setConfirmVersion(selected.draftVersion)}
                   >
                     准备从此版本恢复
                   </button>
                 )}
+                {restoreBlocked ? (
+                  <p>当前 lifecycle 为 {lifecycleState}；只有重新读取后的活动草案可以创建恢复修订。</p>
+                ) : null}
               </>
             ) : (
               <p>{detailStatus === "loading" ? "正在读取修订详情。" : "选择一个历史版本以查看结构化差异。"}</p>

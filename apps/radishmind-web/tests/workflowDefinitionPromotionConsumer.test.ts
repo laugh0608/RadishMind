@@ -21,7 +21,7 @@ test("workflow definition promotion remains offline with zero requests", async (
   let requests = 0;
   globalThis.fetch = async () => { requests += 1; throw new Error("unexpected"); };
   assert.deepEqual(await listWorkflowDefinitionCandidates(offline, applicationId), []);
-  await assert.rejects(() => createWorkflowDefinitionCandidate(offline, applicationId, { candidateId: "candidate_demo", definitionId: "definition_demo", draftId: "draft_demo", expectedDraftVersion: 1 }), /offline mode/u);
+  await assert.rejects(() => createWorkflowDefinitionCandidate(offline, applicationId, { candidateId: "candidate_demo", definitionId: "definition_demo", draftId: "draft_demo", expectedDraftVersion: 1, expectedLifecycleVersion: 1 }), /offline mode/u);
   assert.equal(requests, 0);
 });
 
@@ -31,14 +31,14 @@ test("candidate create sends exact scope and strict authority fields", async () 
     captured = { headers: new Headers(init?.headers), body: JSON.parse(String(init?.body)) };
     return json(releaseEnvelope({ candidate: candidateDocument() }));
   };
-  const candidate = await createWorkflowDefinitionCandidate(live, applicationId, { candidateId: "candidate_demo", definitionId: "definition_demo", draftId: "draft_demo", expectedDraftVersion: 3 });
+  const candidate = await createWorkflowDefinitionCandidate(live, applicationId, { candidateId: "candidate_demo", definitionId: "definition_demo", draftId: "draft_demo", expectedDraftVersion: 3, expectedLifecycleVersion: 2 });
   assert.equal(candidate.definitionDigest, digest);
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "workflow_definitions:write");
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Workflow-Application"), applicationId);
   assert.equal(captured?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_definitions:write");
-  assert.deepEqual(captured?.body, { candidate_id: "candidate_demo", definition_id: "definition_demo", draft_id: "draft_demo", expected_draft_version: 3 });
+  assert.deepEqual(captured?.body, { candidate_id: "candidate_demo", definition_id: "definition_demo", draft_id: "draft_demo", expected_draft_version: 3, expected_lifecycle_version: 2 });
 });
 
 test("strict candidate list rejects scope, schema, and sensitive drift", async () => {

@@ -6,20 +6,27 @@ import {
   buildDerivedWorkflowDraft,
   canDeriveSavedWorkflowDraft,
 } from "../src/features/control-plane-read/workflowSavedDraftDerivation.ts";
-import { saveWorkflowDraftDevRecord } from "../src/features/control-plane-read/savedWorkflowDraftConsumer.ts";
+import {
+  saveWorkflowDraftDevRecord,
+  validateWorkflowDraftDevRecord,
+} from "../src/features/control-plane-read/savedWorkflowDraftConsumer.ts";
 
 test("saved draft derivation requires a clean exact saved version", () => {
-  const saved = { status: "saved_dev_record", currentDraftVersion: 3 };
+  const saved = { status: "saved_dev_record", currentDraftVersion: 3, currentLifecycleState: "active" };
 
   assert.equal(canDeriveSavedWorkflowDraft(saved, false, false), true);
+  assert.equal(
+    canDeriveSavedWorkflowDraft({ ...saved, currentLifecycleState: "archived" }, false, false),
+    false,
+  );
   assert.equal(canDeriveSavedWorkflowDraft(saved, true, false), false);
   assert.equal(canDeriveSavedWorkflowDraft(saved, false, true), false);
   assert.equal(
-    canDeriveSavedWorkflowDraft({ status: "validation_ready", currentDraftVersion: 3 }, false, false),
+    canDeriveSavedWorkflowDraft({ status: "validation_ready", currentDraftVersion: 3, currentLifecycleState: "active" }, false, false),
     false,
   );
   assert.equal(
-    canDeriveSavedWorkflowDraft({ status: "saved_dev_record", currentDraftVersion: 0 }, false, false),
+    canDeriveSavedWorkflowDraft({ status: "saved_dev_record", currentDraftVersion: 0, currentLifecycleState: "active" }, false, false),
     false,
   );
 });
@@ -96,7 +103,9 @@ test("derived draft save sends only the direct sanitized source reference", asyn
       draft: null,
       failure_code: "draft_store_unavailable",
       current_draft_version: 0,
-      validation_summary: { validation_state: "unavailable", valid_for_review: false },
+      current_lifecycle_version: 5,
+      current_lifecycle_state: "active",
+      validation_summary: { validation_state: "unavailable", valid_for_review: false, findings: [] },
       blocked_capabilities: [],
       audit_ref: "audit_derivation_save",
     }), { status: 200, headers: { "Content-Type": "application/json" } });
@@ -108,7 +117,7 @@ test("derived draft save sends only the direct sanitized source reference", asyn
     workspaceId: "workspace_demo",
     tenantRef: "tenant_demo",
     subjectRef: "subject_demo_user",
-  }, 0);
+  }, 0, 5);
 
   assert.deepEqual(requestBody.draft.additional_fields.derivation_v1, {
     version: 1,
@@ -116,8 +125,53 @@ test("derived draft save sends only the direct sanitized source reference", asyn
     source_draft_id: source.draftId,
     source_draft_version: 5,
   });
+  assert.equal(requestBody.expected_lifecycle_version, 5);
   assert.equal(JSON.stringify(requestBody).includes(source.routeMetadata.requestId), false);
   assert.equal(JSON.stringify(requestBody).includes(source.routeMetadata.auditRef), false);
+});
+
+test("validation preserves the exact saved lifecycle authority", async (t) => {
+  const source = sourceDraft();
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    request_id: "req_validation",
+    workspace_id: "workspace_demo",
+    application_id: source.applicationRef,
+    draft: null,
+    failure_code: null,
+    current_draft_version: 0,
+    current_lifecycle_version: 0,
+    current_lifecycle_state: "",
+    validation_summary: {
+      validation_state: "valid_for_review",
+      valid_for_review: true,
+      findings: [],
+    },
+    blocked_capabilities: [],
+    audit_ref: "audit_validation",
+  }), { status: 200, headers: { "Content-Type": "application/json" } });
+
+  const state = await validateWorkflowDraftDevRecord(
+    source,
+    {
+      mode: "dev_saved_draft_http",
+      baseUrl: "http://platform.test",
+      workspaceId: "workspace_demo",
+      tenantRef: "tenant_demo",
+      subjectRef: "subject_demo_user",
+    },
+    4,
+    7,
+    "active",
+  );
+
+  assert.equal(state.status, "validation_ready");
+  assert.equal(state.currentDraftVersion, 4);
+  assert.equal(state.currentLifecycleVersion, 7);
+  assert.equal(state.currentLifecycleState, "active");
 });
 
 function sourceDraft(): WorkflowDraftDesignerDraft {

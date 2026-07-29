@@ -9,8 +9,15 @@ import type {
 } from "./workflowUserWorkspaceHome";
 import type {
   WorkflowSavedDraftListState,
+  WorkflowSavedDraftLibraryFilters,
+  WorkflowSavedDraftLifecycleOperationState,
+  WorkflowSavedDraftLifecycleState,
   WorkflowSavedDraftSummary,
 } from "./savedWorkflowDraftConsumer";
+import {
+  workflowSavedDraftArchiveConfirmationSummary,
+  workflowSavedDraftLibraryActions,
+} from "./savedWorkflowDraftLibraryPresentation.ts";
 import type {
   WorkflowWorkspaceReviewStage,
   WorkflowWorkspaceReviewStopLine,
@@ -23,19 +30,42 @@ export function WorkflowUserWorkspaceHomePanel({
   createdDraftCountsByWorkflowDefinition,
   savedDraftListState,
   onCreateDraftForWorkflowDefinition,
+  libraryLifecycle,
+  libraryFilters,
+  lifecycleOperation,
+  onLibraryLifecycleChange,
+  onLibraryFiltersChange,
   onRefreshSavedDrafts,
-  onRestoreSavedDraft,
+  onLoadMoreSavedDrafts,
+  onOpenSavedDraft,
+  onArchiveSavedDraft,
+  onUnarchiveSavedDraft,
 }: {
   home: WorkflowUserWorkspaceHomeViewModel;
   createdDraftCountsByWorkflowDefinition: Record<string, number>;
   savedDraftListState: WorkflowSavedDraftListState;
+  libraryLifecycle: WorkflowSavedDraftLifecycleState;
+  libraryFilters: WorkflowSavedDraftLibraryFilters;
+  lifecycleOperation: WorkflowSavedDraftLifecycleOperationState;
   onCreateDraftForWorkflowDefinition: (workflowDefinitionId: string) => void;
+  onLibraryLifecycleChange: (lifecycleState: WorkflowSavedDraftLifecycleState) => void;
+  onLibraryFiltersChange: (filters: WorkflowSavedDraftLibraryFilters) => void;
   onRefreshSavedDrafts: () => void;
-  onRestoreSavedDraft: (summary: WorkflowSavedDraftSummary) => void;
+  onLoadMoreSavedDrafts: () => void;
+  onOpenSavedDraft: (summary: WorkflowSavedDraftSummary) => void;
+  onArchiveSavedDraft: (summary: WorkflowSavedDraftSummary) => void;
+  onUnarchiveSavedDraft: (summary: WorkflowSavedDraftSummary) => void;
 }) {
+  const [draftFilters, setDraftFilters] = useState(libraryFilters);
+  const [archiveConfirmDraftId, setArchiveConfirmDraftId] = useState("");
   const primaryReadiness = home.readinessRollup.slice(0, 6);
   const primaryRouteEvidence = home.routeEvidence.slice(0, 4);
   const primaryStopLines = home.stopLines.slice(0, 4);
+
+  useEffect(() => {
+    setDraftFilters(libraryFilters);
+    setArchiveConfirmDraftId("");
+  }, [libraryFilters, savedDraftListState.applicationRef, libraryLifecycle]);
 
   return (
     <section
@@ -130,7 +160,7 @@ export function WorkflowUserWorkspaceHomePanel({
         <div className="workflow-user-workspace-home-subheading saved-draft-list-heading">
           <div>
             <p className="eyebrow">Saved Drafts</p>
-            <h4>Dev saved draft restore</h4>
+            <h4>Saved Draft Library</h4>
           </div>
           <button
             type="button"
@@ -139,6 +169,87 @@ export function WorkflowUserWorkspaceHomePanel({
           >
             Refresh
           </button>
+        </div>
+        <div className="saved-draft-library-tabs" aria-label="Saved draft lifecycle views">
+          {(["active", "archived"] as const).map((lifecycleState) => (
+            <button
+              key={lifecycleState}
+              type="button"
+              className={libraryLifecycle === lifecycleState ? "selected" : ""}
+              disabled={savedDraftListState.status === "loading"}
+              onClick={() => onLibraryLifecycleChange(lifecycleState)}
+            >
+              {lifecycleState === "active" ? "活动草案" : "归档草案"}
+            </button>
+          ))}
+        </div>
+        <div className="saved-draft-library-filters" aria-label="Saved draft library filters">
+          <label>
+            <span>名称前缀</span>
+            <input
+              value={draftFilters.namePrefix}
+              maxLength={80}
+              onChange={(event) => setDraftFilters((filters) => ({
+                ...filters,
+                namePrefix: event.currentTarget.value,
+              }))}
+            />
+          </label>
+          <label>
+            <span>Validation</span>
+            <select
+              value={draftFilters.validationState}
+              onChange={(event) => setDraftFilters((filters) => ({
+                ...filters,
+                validationState: event.currentTarget.value as WorkflowSavedDraftLibraryFilters["validationState"],
+              }))}
+            >
+              <option value="">全部</option>
+              <option value="valid_for_review">valid_for_review</option>
+              <option value="invalid_draft">invalid_draft</option>
+              <option value="blocked_capability">blocked_capability</option>
+              <option value="schema_unsupported">schema_unsupported</option>
+            </select>
+          </label>
+          <label>
+            <span>Provenance</span>
+            <select
+              value={draftFilters.provenanceKind}
+              onChange={(event) => setDraftFilters((filters) => ({
+                ...filters,
+                provenanceKind: event.currentTarget.value as WorkflowSavedDraftLibraryFilters["provenanceKind"],
+              }))}
+            >
+              <option value="">全部</option>
+              <option value="unversioned">unversioned</option>
+              <option value="workflow_definition">workflow_definition</option>
+              <option value="saved_draft_derivation">saved_draft_derivation</option>
+            </select>
+          </label>
+          <div className="saved-draft-library-filter-actions">
+            <button
+              type="button"
+              disabled={savedDraftListState.status === "loading"}
+              onClick={() => onLibraryFiltersChange(draftFilters)}
+            >
+              应用筛选
+            </button>
+            <button
+              type="button"
+              disabled={savedDraftListState.status === "loading"}
+              onClick={() => {
+                const cleared: WorkflowSavedDraftLibraryFilters = {
+                  namePrefix: "",
+                  validationState: "",
+                  provenanceKind: "",
+                };
+                setDraftFilters(cleared);
+                onLibraryFiltersChange(cleared);
+              }}
+            >
+              清除
+            </button>
+          </div>
         </div>
         <article className="workflow-user-workspace-home-card saved-draft-list-status">
           <div className="workflow-user-workspace-home-row-main">
@@ -156,8 +267,16 @@ export function WorkflowUserWorkspaceHomePanel({
               <dd>{savedDraftListState.applicationRef || home.applicationId}</dd>
             </div>
             <div>
-              <dt>Summaries</dt>
+              <dt>Lifecycle</dt>
+              <dd>{savedDraftListState.lifecycleState}</dd>
+            </div>
+            <div>
+              <dt>Loaded</dt>
               <dd>{savedDraftListState.summaries.length}</dd>
+            </div>
+            <div>
+              <dt>More</dt>
+              <dd>{savedDraftListState.hasMore ? "available" : "none"}</dd>
             </div>
             <div>
               <dt>Failure</dt>
@@ -169,17 +288,44 @@ export function WorkflowUserWorkspaceHomePanel({
             </div>
           </dl>
           <p>{savedDraftListState.summary}</p>
+          {lifecycleOperation.status !== "idle" ? (
+            <p>
+              Lifecycle: {lifecycleOperation.status} · {lifecycleOperation.draftId} ·
+              {lifecycleOperation.failureCode ?? "no failure"} · {lifecycleOperation.summary}
+            </p>
+          ) : null}
         </article>
         <div className="saved-draft-summary-grid" aria-label="Saved draft summaries">
           {savedDraftListState.summaries.map((summary) => (
             <WorkflowSavedDraftSummaryCard
               key={summary.draftId}
               summary={summary}
-              restoringDisabled={savedDraftListState.status === "loading"}
-              onRestoreSavedDraft={onRestoreSavedDraft}
+              operationPending={
+                savedDraftListState.status === "loading" ||
+                lifecycleOperation.status === "transitioning"
+              }
+              archiveConfirmation={archiveConfirmDraftId === summary.draftId}
+              onPrepareArchive={() => setArchiveConfirmDraftId(summary.draftId)}
+              onCancelArchive={() => setArchiveConfirmDraftId("")}
+              onOpenSavedDraft={onOpenSavedDraft}
+              onArchiveSavedDraft={(draft) => {
+                setArchiveConfirmDraftId("");
+                onArchiveSavedDraft(draft);
+              }}
+              onUnarchiveSavedDraft={onUnarchiveSavedDraft}
             />
           ))}
         </div>
+        {savedDraftListState.hasMore ? (
+          <button
+            className="saved-draft-library-load-more"
+            type="button"
+            disabled={savedDraftListState.status === "loading"}
+            onClick={onLoadMoreSavedDrafts}
+          >
+            {savedDraftListState.status === "loading" ? "正在加载…" : "加载更多"}
+          </button>
+        ) : null}
       </div>
 
       <div className="workflow-user-workspace-home-section">
@@ -298,13 +444,24 @@ function WorkflowUserWorkspaceHomeApplicationCard({
 
 function WorkflowSavedDraftSummaryCard({
   summary,
-  restoringDisabled,
-  onRestoreSavedDraft,
+  operationPending,
+  archiveConfirmation,
+  onPrepareArchive,
+  onCancelArchive,
+  onOpenSavedDraft,
+  onArchiveSavedDraft,
+  onUnarchiveSavedDraft,
 }: {
   summary: WorkflowSavedDraftSummary;
-  restoringDisabled: boolean;
-  onRestoreSavedDraft: (summary: WorkflowSavedDraftSummary) => void;
+  operationPending: boolean;
+  archiveConfirmation: boolean;
+  onPrepareArchive: () => void;
+  onCancelArchive: () => void;
+  onOpenSavedDraft: (summary: WorkflowSavedDraftSummary) => void;
+  onArchiveSavedDraft: (summary: WorkflowSavedDraftSummary) => void;
+  onUnarchiveSavedDraft: (summary: WorkflowSavedDraftSummary) => void;
 }) {
+  const actions = workflowSavedDraftLibraryActions(summary);
   return (
     <article className="workflow-user-workspace-home-card saved-draft-summary-card">
       <div className="workflow-user-workspace-home-row-main">
@@ -321,7 +478,19 @@ function WorkflowSavedDraftSummaryCard({
         </div>
         <div>
           <dt>Version</dt>
-          <dd>{summary.draftVersion}</dd>
+          <dd>content {summary.draftVersion} / lifecycle {summary.lifecycleVersion}</dd>
+        </div>
+        <div>
+          <dt>Provenance</dt>
+          <dd>{summary.provenanceKind}</dd>
+        </div>
+        <div>
+          <dt>Library updated</dt>
+          <dd>{summary.libraryUpdatedAt}</dd>
+        </div>
+        <div>
+          <dt>Archived</dt>
+          <dd>{summary.archivedAt ?? "no"}</dd>
         </div>
         <div>
           <dt>Graph</dt>
@@ -337,10 +506,32 @@ function WorkflowSavedDraftSummaryCard({
       <p>{summary.description}</p>
       <div className="workflow-user-workspace-home-actions">
         <span>{summary.sampleOrUnsavedDraftStatus}</span>
-        <button type="button" disabled={restoringDisabled} onClick={() => onRestoreSavedDraft(summary)}>
-          Restore
+        <button type="button" disabled={operationPending} onClick={() => onOpenSavedDraft(summary)}>
+          {actions.primaryLabel}
         </button>
+        {actions.lifecycleConfirmationRequired ? (
+          <button type="button" disabled={operationPending} onClick={onPrepareArchive}>
+            {actions.lifecycleLabel}
+          </button>
+        ) : (
+          <button type="button" disabled={operationPending} onClick={() => onUnarchiveSavedDraft(summary)}>
+            {actions.lifecycleLabel}
+          </button>
+        )}
       </div>
+      {archiveConfirmation ? (
+        <div className="saved-draft-archive-confirmation" role="group" aria-label={`Confirm archive ${summary.draftId}`}>
+          <p>
+            {workflowSavedDraftArchiveConfirmationSummary(summary.draftId)}
+          </p>
+          <button type="button" disabled={operationPending} onClick={() => onArchiveSavedDraft(summary)}>
+            确认归档
+          </button>
+          <button type="button" disabled={operationPending} onClick={onCancelArchive}>
+            取消
+          </button>
+        </div>
+      ) : null}
     </article>
   );
 }
@@ -502,8 +693,9 @@ function workflowSavedDraftListTone(status: WorkflowSavedDraftListState["status"
   if (status === "ready") {
     return "good";
   }
-  if (status === "list_failed" || status === "restore_failed") {
+  if (status === "list_failed" || status === "open_failed") {
     return "bad";
   }
   return "neutral";
 }
+import { useEffect, useState } from "react";

@@ -52,6 +52,8 @@ test("executor eligibility requires the exact saved clean graph", () => {
     summary: "saved",
     failureCode: null,
     currentDraftVersion: 3,
+    currentLifecycleVersion: 1,
+    currentLifecycleState: "active" as const,
     conflictDraftVersion: null,
     auditRef: "audit_saved",
     requestId: "req_saved",
@@ -64,6 +66,14 @@ test("executor eligibility requires the exact saved clean graph", () => {
   const dirty = evaluateWorkflowExecutorEligibility(draft, savedState, true);
   assert.equal(dirty.eligible, false);
   assert.equal(dirty.reasons.some((reason) => reason.code === "unsaved_local_changes"), true);
+  assert.equal(
+    evaluateWorkflowExecutorEligibility(
+      draft,
+      { ...savedState, currentLifecycleState: "archived" },
+      false,
+    ).eligible,
+    false,
+  );
 
   const unsafeDraft = {
     ...draft,

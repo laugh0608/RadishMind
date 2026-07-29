@@ -1,12 +1,12 @@
 # 已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1
 
-更新时间：2026-07-28
+更新时间：2026-07-29
 
-状态：`saved_workflow_draft_library_lifecycle_organization_dev_test_v1_batch_c_completed`
+状态：`saved_workflow_draft_library_lifecycle_organization_dev_test_v1_batch_d_completed`
 
-实施准入：`implementation_task_card_active_batch_d_ready`
+实施准入：`implementation_task_card_active_batch_e_ready`
 
-当前实现进度：批次 A、B、C 已完成领域类型、三种 store lifecycle owner、严格 cursor、keyset 分页 / 筛选、双版本并发、双数据库 `0003`、原子 transition / event、HTTP list / archive / unarchive、`workflow_drafts:archive` 单次 membership 判定、保存 / 恢复双版本请求和相邻派生 / 晋级 / 执行 active lifecycle 资格；SQLite / PostgreSQL 已由 runtime store 暴露 library service interface。Web 活动 / 归档视图仍未实现，下一步只进入批次 D。
+当前实现进度：批次 A、B、C、D 已完成领域类型、三种 store lifecycle owner、严格 cursor、keyset 分页 / 筛选、双版本并发、双数据库 `0003`、原子 transition / event、HTTP list / archive / unarchive、`workflow_drafts:archive` 单次 membership 判定、保存 / 恢复双版本请求、相邻派生 / 晋级 / 执行 active lifecycle 资格，以及 Web 活动 / 归档独立查询、筛选、加载更多、只读归档审查、两步 archive、显式 unarchive、迟到响应隔离和“打开 / 恢复历史版本”术语分离。下一步只进入批次 E 的连续验证与文档收口。
 
 ## 功能目标
 
@@ -33,8 +33,10 @@
 
 ### Web 与相邻流程
 
-- Web consumer 仍按旧契约整体替换当前 application 的列表，尚未消费 lifecycle metadata、服务端筛选、`next_cursor` 或 archive / unarchive；这是批次 D 的明确边界。
-- 当前 UI 把“读取一条已保存草案并进入 Draft Designer”称为 `restore`，同时 revision mutation 也使用“恢复历史版本”。本功能必须把前者改称“打开草案”，把“恢复”保留给 revision restore。
+- Web consumer 已严格消费 lifecycle metadata、服务端筛选、`next_cursor` / `has_more`、双版本 failure envelope 和 archive / unarchive；活动 / 归档拥有独立结果、cursor 与加载状态，分页合并按 `draft_id` 防御重复。
+- UI 已把“读取一条已保存草案并进入 Draft Designer”统一改称“打开草案”，归档态使用“只读审查”；“恢复”只保留给 revision restore。
+- workspace、application、owner、lifecycle 或 filter 变化会清理 cursor、选择与 pending，并用 generation + scope key 拒绝迟到响应；解除归档后刷新两侧列表但不自动打开，必须重新读取当前双版本。
+- 校验响应不具备 lifecycle 权威，Web 会保留调用前精确 lifecycle 版本与状态，避免已保存活动草案在 validate 后被错误锁成未知态。
 - 已保存草案派生首次保存已复验来源精确内容版本、生命周期版本与 active 状态；无未保存修改和无 pending operation 的既有要求保持不变。
 - revision 历史的 list / read / compare 继续可读；restore request 已携带 expected lifecycle version，并在归档状态失败关闭。
 - Workflow Definition candidate、Saved Draft 受控执行、RAG retrieval 和 HTTP Tool 已在各自业务 owner 内统一复验 active lifecycle。

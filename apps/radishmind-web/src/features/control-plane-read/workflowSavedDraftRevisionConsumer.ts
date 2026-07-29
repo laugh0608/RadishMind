@@ -45,6 +45,8 @@ export type WorkflowSavedDraftRevisionHistoryState = {
 export type WorkflowSavedDraftRevisionRestoreResult = {
   draft: WorkflowDraftDesignerDraft | null;
   currentDraftVersion: number;
+  currentLifecycleVersion: number;
+  currentLifecycleState: "active" | "archived" | "unknown";
   failureCode: string | null;
   requestId: string;
   auditRef: string;
@@ -92,6 +94,13 @@ type SavedWorkflowDraftRevisionEnvelope = {
   draft: SavedWorkflowDraftDocument | null;
   failure_code: string | null;
   current_draft_version: number;
+  current_lifecycle_version: number;
+  current_lifecycle_state: string;
+  validation_summary: {
+    validation_state: string;
+    valid_for_review: boolean;
+    findings: unknown[];
+  };
   audit_ref: string;
 };
 
@@ -202,6 +211,7 @@ export async function restoreWorkflowSavedDraftRevision(
   draft: WorkflowDraftDesignerDraft,
   sourceDraftVersion: number,
   expectedCurrentDraftVersion: number,
+  expectedLifecycleVersion: number,
   config: WorkflowSavedDraftConsumerConfig,
 ): Promise<WorkflowSavedDraftRevisionRestoreResult> {
   const envelope = await requestRevisionJSON<SavedWorkflowDraftRevisionEnvelope>(
@@ -213,6 +223,7 @@ export async function restoreWorkflowSavedDraftRevision(
       method: "POST",
       body: JSON.stringify({
         expected_current_draft_version: expectedCurrentDraftVersion,
+        expected_lifecycle_version: expectedLifecycleVersion,
       }),
     },
     isRevisionEnvelope,
@@ -221,6 +232,8 @@ export async function restoreWorkflowSavedDraftRevision(
     return {
       draft: null,
       currentDraftVersion: envelope.current_draft_version,
+      currentLifecycleVersion: envelope.current_lifecycle_version,
+      currentLifecycleState: currentLifecycleState(envelope.current_lifecycle_state),
       failureCode: envelope.failure_code ?? "draft_revision_restore_failed",
       requestId: envelope.request_id,
       auditRef: envelope.audit_ref,
@@ -230,6 +243,8 @@ export async function restoreWorkflowSavedDraftRevision(
   return {
     draft: workflowDraftFromSavedWorkflowDraftDocument(envelope.draft),
     currentDraftVersion: envelope.current_draft_version,
+    currentLifecycleVersion: envelope.current_lifecycle_version,
+    currentLifecycleState: currentLifecycleState(envelope.current_lifecycle_state),
     failureCode: null,
     requestId: envelope.request_id,
     auditRef: envelope.audit_ref,
@@ -252,7 +267,7 @@ async function requestRevisionJSON<T>(
     config,
     applicationRef,
     requestId,
-    init.method === "POST",
+    init.method === "POST" ? "write" : "read",
   ));
   if (init.method === "POST") {
     headers.set(
@@ -313,6 +328,14 @@ function isRevisionEnvelope(value: unknown): value is SavedWorkflowDraftRevision
     typeof candidate.workspace_id === "string" &&
     typeof candidate.application_id === "string" &&
     typeof candidate.current_draft_version === "number" &&
+    typeof candidate.current_lifecycle_version === "number" &&
+    typeof candidate.current_lifecycle_state === "string" &&
+    !!candidate.validation_summary &&
+    typeof candidate.validation_summary === "object" &&
     (typeof candidate.failure_code === "string" || candidate.failure_code === null) &&
     typeof candidate.audit_ref === "string";
+}
+
+function currentLifecycleState(value: string): "active" | "archived" | "unknown" {
+  return value === "active" || value === "archived" ? value : "unknown";
 }

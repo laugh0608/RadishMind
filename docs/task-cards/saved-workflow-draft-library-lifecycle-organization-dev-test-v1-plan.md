@@ -1,10 +1,10 @@
 # 已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1 实施任务卡
 
-更新时间：2026-07-28
+更新时间：2026-07-29
 
 状态：`in_progress`
 
-当前入口：`batch_d_ready`
+当前入口：`batch_e_ready`
 
 ## 目标
 
@@ -22,7 +22,7 @@
 - revision 已有 append-only owner、稳定版本 cursor、精确读取、结构化比较和显式恢复。
 - 已保存草案派生、Workflow Definition candidate、Saved Draft execution、RAG retrieval 和 HTTP Tool 已在各自业务 owner 内统一增加 active lifecycle 资格。
 - Workspace-scoped Mutation Authorization 已提供唯一 membership provider；新增 mutation 必须复用它。
-- Web Saved Draft consumer 尚未消费新集合与 lifecycle mutation 契约，批次 D 只在既有 Workflow 产品面补齐这一用户闭环。
+- Web Saved Draft consumer 已消费新集合、双版本与 lifecycle mutation 契约；批次 E 只收口双数据库、浏览器和仓库连续验证。
 - 生产 repository、真实 OIDC、production membership adapter 和公开生产 API 仍关闭。
 
 ## 不变量
@@ -169,14 +169,16 @@
 
 ## 批次 D：Saved Draft Library Web
 
-状态：`ready`
+状态：`completed`
 
-### 明日实施顺序（2026-07-29）
+完成证据：
 
-1. 先更新 `savedWorkflowDraftConsumer.ts` 的严格类型、parser 和 request builder，完整消费 lifecycle summary、`next_cursor` / `has_more`、当前双版本与稳定 failure envelope。
-2. 再在 `App.tsx` 建立活动 / 归档两套独立 query state，固定筛选、加载更多、按 `draft_id` 防御重复、scope / filter reset 和迟到响应隔离。
-3. 最后更新 `workflowUserWorkspaceHomePanel.tsx` 与 revision 面板，落实“打开草案 / 只读审查 / 恢复历史版本”术语、两步 archive、显式 unarchive 和归档态 restore 禁用。
-4. 以新增 Saved Draft Library consumer 测试、既有 revision / lifecycle 测试、Web 全量测试和 production build 作为批次 D 提交前证据。
+- `savedWorkflowDraftConsumer.ts` 已严格消费 lifecycle summary、`next_cursor` / `has_more`、当前双版本与稳定 failure envelope；list query 绑定 lifecycle、三类筛选、cursor 和 limit。
+- `App.tsx` 已建立活动 / 归档两套独立 query state，分页合并按 `draft_id` 防御重复，scope / application / owner / lifecycle / filter 切换会清理 cursor、选择、pending 并隔离迟到响应。
+- Workspace Home 已提供活动 / 归档、筛选、加载更多、双版本 metadata、两步 archive、显式 unarchive 与生命周期操作结果；解除归档后只刷新列表，不自动打开或解锁。
+- 当前记录统一使用“打开草案 / 只读审查”，revision mutation 保留“恢复历史版本”；归档当前记录与 revision history / compare 可读，编辑、保存、派生、历史恢复、晋级和直接执行均失败关闭。
+- validate 保留当前已保存 lifecycle 权威，不让无 lifecycle 权威的校验响应把精确版本 / 状态清空。
+- Web `263` 项测试、production build、`go test ./internal/httpapi`、`git diff --check`、仓库快速门禁和全量门禁已通过；入口 chunk 继续处于既有 `500 KiB` 门禁内。
 
 ### 实现
 
@@ -203,7 +205,7 @@
 
 ## 批次 E：连续验证与文档收口
 
-状态：`blocked_by_batch_d`
+状态：`ready`
 
 ### 产品连续链
 

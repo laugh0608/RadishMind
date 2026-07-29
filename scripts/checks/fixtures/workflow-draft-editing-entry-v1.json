@@ -44,9 +44,9 @@
       "workflow-draft-edit-field",
       "workflow-draft-node-label-input",
       "workflow-draft-edge-condition-input",
-      "saveWorkflowDraftDevRecord(activeWorkflowDraft",
-      "validateWorkflowDraftDevRecord(activeWorkflowDraft",
-      "readWorkflowDraftDevRecord(activeWorkflowDraft",
+      "saveWorkflowDraftDevRecord(",
+      "validateWorkflowDraftDevRecord(",
+      "readWorkflowDraftDevRecord(",
       "setWorkflowDraftEditDirty(false)"
     ],
     "required_designer_literals": [

@@ -51,7 +51,7 @@ test("saved draft persistence carries the exact rag_ref and RAG execution metada
   globalThis.fetch = async (_input, init) => {
     body = JSON.parse(String(init?.body));
     headers = new Headers(init?.headers);
-    return response({ request_id: "request_save_rag", workspace_id: "workspace_demo", application_id: "app_flow_copilot", draft: null, failure_code: "draft_store_unavailable", current_draft_version: 0, validation_summary: { validation_state: "unavailable", valid_for_review: false }, blocked_capabilities: [], audit_ref: "audit_save_rag" });
+    return response({ request_id: "request_save_rag", workspace_id: "workspace_demo", application_id: "app_flow_copilot", draft: null, failure_code: "draft_store_unavailable", current_draft_version: 0, current_lifecycle_version: 0, current_lifecycle_state: "", validation_summary: { validation_state: "unavailable", valid_for_review: false, findings: [] }, blocked_capabilities: [], audit_ref: "audit_save_rag" });
   };
   try {
     await saveWorkflowDraftDevRecord(boundDraft(), { mode: "dev_saved_draft_http", baseUrl: "http://platform.test", tenantRef: "tenant_demo", workspaceId: "workspace_demo", subjectRef: "subject_demo_user" }, 0);
@@ -61,13 +61,23 @@ test("saved draft persistence carries the exact rag_ref and RAG execution metada
     assert.deepEqual(body.draft.edges.map((edge: any) => edge.condition_summary), ["", "", ""]);
     assert.deepEqual(body.draft.requested_capabilities, []);
     assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
-    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_drafts:write");
+    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_drafts:read,workflow_drafts:write");
+    assert.equal(body.expected_lifecycle_version, 0);
   } finally { globalThis.fetch = originalFetch; }
 });
 
 test("execution eligibility requires every grant, an exact saved version, and the exact topology", () => {
   const draft = boundDraft();
   assert.equal(evaluateWorkflowRAGExecutionEligibility(draft, savedState(), false, config).eligible, true);
+  assert.equal(
+    evaluateWorkflowRAGExecutionEligibility(
+      draft,
+      { ...savedState(), currentLifecycleState: "archived" },
+      false,
+      config,
+    ).eligible,
+    false,
+  );
   assert.equal(evaluateWorkflowRAGExecutionEligibility(draft, savedState(), true, config).reasons.some((reason) => reason.code === "unsaved_local_changes"), true);
 
   const missingScope = { ...config, scopes: new Set(["workflow_rag:execute", "workflow_runs:execute", "workflow_drafts:read"] as const) };
@@ -174,7 +184,7 @@ function sourceDraft() {
 }
 
 function savedState() {
-  return { status: "saved_dev_record" as const, mode: "dev_saved_draft_http" as const, sourceLabel: "saved", summary: "saved", failureCode: null, currentDraftVersion: 4, conflictDraftVersion: null, auditRef: "audit_saved", requestId: "request_saved" };
+  return { status: "saved_dev_record" as const, mode: "dev_saved_draft_http" as const, sourceLabel: "saved", summary: "saved", failureCode: null, currentDraftVersion: 4, currentLifecycleVersion: 1, currentLifecycleState: "active" as const, conflictDraftVersion: null, auditRef: "audit_saved", requestId: "request_saved" };
 }
 
 function validInput() { return { inputText: "Explain the supported boundary.", model: "mock-rag", temperature: 0.2 }; }

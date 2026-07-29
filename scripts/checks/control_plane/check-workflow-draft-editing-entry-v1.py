@@ -70,17 +70,17 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
 
     require(
         app_text.index("activeWorkflowDraftOverride: editableWorkflowDraft")
-        < app_text.index("validateWorkflowDraftDevRecord(activeWorkflowDraft"),
+        < app_text.index("validateWorkflowDraftDevRecord("),
         "validate must consume context-owned active workflow draft after local edit state is wired",
     )
     require(
         app_text.index("activeWorkflowDraftOverride: editableWorkflowDraft")
-        < app_text.index("saveWorkflowDraftDevRecord(activeWorkflowDraft"),
+        < app_text.index("saveWorkflowDraftDevRecord("),
         "save must consume context-owned active workflow draft after local edit state is wired",
     )
     require(
         app_text.index("activeWorkflowDraftOverride: editableWorkflowDraft")
-        < app_text.index("readWorkflowDraftDevRecord(activeWorkflowDraft"),
+        < app_text.index("readWorkflowDraftDevRecord("),
         "read must consume context-owned active workflow draft after local edit state is wired",
     )
 

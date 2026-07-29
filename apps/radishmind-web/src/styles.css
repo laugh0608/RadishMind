@@ -2893,6 +2893,93 @@ h4 {
   background: #f4f6f8;
 }
 
+.saved-draft-library-tabs,
+.saved-draft-library-filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.saved-draft-library-tabs button,
+.saved-draft-library-filter-actions button,
+.saved-draft-library-load-more,
+.saved-draft-archive-confirmation button {
+  min-height: 36px;
+  border: 1px solid #cad3df;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #17202a;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 12px;
+}
+
+.saved-draft-library-tabs button.selected {
+  border-color: #2f6f5f;
+  background: #edf7f3;
+  color: #24594d;
+}
+
+.saved-draft-library-tabs button:disabled,
+.saved-draft-library-filter-actions button:disabled,
+.saved-draft-library-load-more:disabled,
+.saved-draft-archive-confirmation button:disabled {
+  color: #8793a4;
+  background: #f4f6f8;
+}
+
+.saved-draft-library-filters {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(160px, 0.9fr) minmax(180px, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+  border: 1px solid #d8dee8;
+  border-radius: 10px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.saved-draft-library-filters label {
+  display: grid;
+  gap: 6px;
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.saved-draft-library-filters input,
+.saved-draft-library-filters select {
+  min-width: 0;
+  min-height: 36px;
+  border: 1px solid #cad3df;
+  border-radius: 8px;
+  background: #fff;
+  color: #17202a;
+  font: inherit;
+  padding: 7px 9px;
+}
+
+.saved-draft-library-load-more {
+  justify-self: start;
+}
+
+.saved-draft-archive-confirmation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+  border: 1px solid #e6c86b;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fffbeb;
+}
+
+.saved-draft-archive-confirmation p {
+  margin: 0;
+}
+
 .workflow-user-workspace-home-metric-grid,
 .workflow-user-workspace-home-readiness-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -5382,6 +5469,11 @@ dd {
   .workflow-definition-row-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .saved-draft-library-filters,
+  .saved-draft-archive-confirmation {
+    grid-template-columns: 1fr;
   }
 
   .model-gateway-overview-hero,

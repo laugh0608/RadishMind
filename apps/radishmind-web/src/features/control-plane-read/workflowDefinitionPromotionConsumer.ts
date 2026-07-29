@@ -276,13 +276,14 @@ export async function listWorkflowDefinitionCandidates(config: WorkflowDefinitio
   return body.candidates.map(mapCandidate);
 }
 
-export async function createWorkflowDefinitionCandidate(config: WorkflowDefinitionPromotionConfig, applicationId: string, input: { candidateId: string; definitionId: string; draftId: string; expectedDraftVersion: number }): Promise<WorkflowDefinitionCandidate> {
+export async function createWorkflowDefinitionCandidate(config: WorkflowDefinitionPromotionConfig, applicationId: string, input: { candidateId: string; definitionId: string; draftId: string; expectedDraftVersion: number; expectedLifecycleVersion: number }): Promise<WorkflowDefinitionCandidate> {
   assertLive(config);
   return requireCandidate(await writeRelease(config, applicationId, "/v1/user-workspace/workflow-definition-candidates", "workflow_definitions:write", {
     candidate_id: input.candidateId,
     definition_id: input.definitionId,
     draft_id: input.draftId,
     expected_draft_version: input.expectedDraftVersion,
+    expected_lifecycle_version: input.expectedLifecycleVersion,
   }));
 }
 

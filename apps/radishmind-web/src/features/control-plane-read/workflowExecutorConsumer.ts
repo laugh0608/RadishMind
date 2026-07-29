@@ -282,10 +282,11 @@ export function evaluateWorkflowExecutorEligibility(
   const graphEligibility = evaluateWorkflowExecutorGraphEligibility(draft);
   const reasons: WorkflowExecutorEligibilityReason[] = [...graphEligibility.reasons];
   if (savedDraftState.currentDraftVersion <= 0 ||
+    savedDraftState.currentLifecycleState !== "active" ||
     !["saved_dev_record", "validation_ready"].includes(savedDraftState.status)) {
     reasons.push({
       code: "saved_draft_version_unavailable",
-      summary: "The active executor draft must be saved before it can run.",
+      summary: "The active executor draft must be saved and carry an exact active lifecycle before it can run.",
     });
   }
   if (draftEditDirty) {

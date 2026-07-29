@@ -1,6 +1,6 @@
 # Saved Workflow Draft v1 功能专题
 
-更新时间：2026-07-27
+更新时间：2026-07-29
 
 ## 专题定位
 
@@ -13,14 +13,14 @@
 - Platform Go domain service 已实现，文件为 `services/platform/internal/httpapi/workflow_saved_draft.go`。
 - 已覆盖 `SavedWorkflowDraft` v1 类型、并发安全的 memory dev store、原子 expected-version compare-and-swap、`SaveDraft` / `ReadDraft` / `ValidateDraft` / `ListDrafts`、blocking / information finding 状态语义、版本冲突、失败语义、sanitized response、no sample fallback 和 no side effects tests。
 - 当前已新增 dev-only HTTP route 和 web consumer 状态区分：`POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}`、`GET /v1/user-workspace/workflow-drafts` 和 `POST /v1/user-workspace/workflow-drafts/validate` 默认关闭，只在显式 dev 配置下工作。
-- 当前已补 route contract 和 consumer smoke：Go route test 固定 envelope、header、CORS、not found / store unavailable no sample fallback；前端 consumer 固定 `version_conflict` 与 `conflict_local_continued` 状态，version conflict 时保留本地草案、展示当前 saved draft version metadata，并刷新当前 application 的 saved draft list 以准备显式恢复。
+- 当前已补 route contract 和 consumer smoke：Go route test 固定 envelope、header、CORS、not found / store unavailable no sample fallback；前端 consumer 固定 `version_conflict` 与 `conflict_local_continued` 状态，version conflict 时保留本地草案、展示当前 saved draft version metadata，并刷新当前 application 的 saved draft list 以准备显式打开。
 - 当前已接入 [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md)：Draft Designer 可编辑草案名称、说明、节点名称和边条件摘要，validate / save / read 使用当前本地草案。
 - 当前已接入 [User Workspace Draft Creation v1](user-workspace-draft-creation-v1.md)：用户可从 Workspace Home 或 workflow definitions 创建本地草案，再复用 dev-only saved draft consumer 保存。
-- 当前已接入 [User Workspace Saved Draft List v1](user-workspace-saved-draft-list-v1.md)：Workspace Home 可读取当前 application 的 saved dev draft sanitized summary，并通过 read route 恢复到 Draft Designer。
+- 当前已接入 [User Workspace Saved Draft List v1](user-workspace-saved-draft-list-v1.md)：Workspace Home 可读取当前 application 的 saved dev draft sanitized summary，并通过 read route 打开到 Draft Designer；归档态保持只读审查。
 - 当前已接入 [Workflow Draft Designer Editing Model v2](draft-designer-editing-model-v2.md)：Draft Designer 可本地新增节点、移动节点、删除非受保护节点并重建边，validate / save / read 继续消费当前 active draft。
 - 当前已接入 [Workflow Draft Node Attribute Editing Model v1](draft-node-attribute-editing-model-v1.md)：Draft Designer 可编辑节点级 provider / profile、tool ref、RAG ref、summary、contract fields 和 output mapping，dev-only saved draft payload / response 会保存并恢复节点级 summary、contract fields、output mapping 和 refs。
-- 当前已接入 [Workflow Review Handoff Active Draft v1](review-handoff-active-draft-v1.md)：Review Handoff 会把恢复后的 active draft validation inspector、execution plan preview、runtime readiness inspector 和 saved draft conflict review summary 汇总为 advisory-only 审查交接记录。
-- 2026-07-11 已完成 R3 最新 dev-live 收口：真实 Web consumer 与 Go dev-only route 覆盖创建、编辑、校验、连续保存、列表刷新、恢复、真实版本冲突、Continue / Restore 和 Review Handoff；launcher 已提供显式 Saved Draft dev 模式与 route probe，Handoff layout evidence 重复 key 和 favicon 控制台噪声已修复。
+- 当前已接入 [Workflow Review Handoff Active Draft v1](review-handoff-active-draft-v1.md)：Review Handoff 会把打开后的 active draft validation inspector、execution plan preview、runtime readiness inspector 和 saved draft conflict review summary 汇总为 advisory-only 审查交接记录。
+- 2026-07-11 已完成 R3 dev-live 收口；2026-07-29 当前记录术语已由 Restore 迁移为 Open，真实版本冲突仍要求显式 Continue / Open，revision restore 继续独立保留。
 - 当前已完成 [Saved Workflow Draft PostgreSQL Dev/Test Repository v1](saved-workflow-draft-postgresql-dev-test-repository-v1.md)：显式 `postgres_dev_test` 模式已实现真实 migration、回滚 / 重建、重启恢复、原子 expected-version、tenant / workspace / application / owner scope、no fallback、CI 与真实浏览器验收；production `repository` 继续关闭。
 - 2026-07-14 已完成本地 SQLite S2 工作流草案批次，状态为 `workflow_saved_draft_sqlite_repository_completed`。本批复用同一 `SavedWorkflowDraftRepositoryAdapter` 和领域失败语义，新增独立 SQLite migration、共享 runtime query executor 与显式 `sqlite_dev` selector；已验证预期版本竞争、完整作用域、稳定顺序、HTTP 保存 / 读取、重启恢复、损坏记录拒绝和敏感内容禁入。随后七组件聚合 `sqlite_dev`、跨平台本地产品启动档、连续 HTTP 产品链和真实 PostgreSQL 专项门禁均已通过；production `repository` 继续关闭。
 - 2026-07-27 已完成[修订历史、版本比较与显式恢复](saved-workflow-draft-revision-history-restore-dev-test-v1.md)，状态为 `saved_workflow_draft_revision_history_restore_dev_test_v1_completed`。`SaveDraft` 在 Memory、SQLite 与 PostgreSQL 中原子更新当前记录并追加不可变 revision；新增历史分页、精确读取与恢复为新版本领域 / HTTP 契约，Draft Designer 提供结构化比较和两步恢复确认。
@@ -261,7 +261,7 @@ production auth runtime bridge 的唯一允许 auth source 是 `radish_oidc_veri
 
 显式开发 / 测试态 PostgreSQL repository、R4 Gateway、executor v0、持久 Run History、本地 SQLite 连续产品链与 API 密钥 Web 验收均已完成，不继续追加 storage adapter readiness，也不启用 `repository` production mode。[Workflow 受控 HTTP Tool 与人工确认执行实施任务卡](../../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)和 [Workflow RAG Retrieval 与应用知识快照](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md)的三个批次均已完成；两条路径继续证明精确 Saved Draft version 可作为受控 action plan 或 retrieval authority 的输入，而不改写 Saved Draft v1 的持久化职责。production OIDC、membership、production secret、audit store、公开生产 API、writeback 和 replay 继续关闭。下方旧依赖顺序只作为历史 checker 兼容记录读取。
 
-dev-only consumer integration、草案编辑 / 创建 / 列表 / 恢复、精确已保存版本派生、不可变修订历史、结构化版本比较、本地图结构编辑、Node Designer、版本冲突审查、memory / SQLite / PostgreSQL 开发测试态 repository 和数据库重启恢复均已落地。历史 production secret / storage adapter 准入锚点继续保留，但不再是 Saved Draft 或当前产品线的下一依赖；production repository、真实 Radish membership、production secret、audit store 与公开生产 API 仍需未来独立专题。2026-07-28 已完成[草案库生命周期与组织](saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md)设计及批次 A、B、C，活动 / 归档状态、稳定分页、筛选、可逆归档、双版本并发和归档后操作资格已有服务端与双数据库证据；下一步只进入批次 D 的 Saved Draft Library Web，不从历史能力原地扩自动保存、自动恢复、自动合并、同步、永久删除、祖先图、分支图或跨作用域复制。
+dev-only consumer integration、草案编辑 / 创建 / 列表 / 打开、精确已保存版本派生、不可变修订历史、结构化版本比较、本地图结构编辑、Node Designer、版本冲突审查、memory / SQLite / PostgreSQL 开发测试态 repository 和数据库重启恢复均已落地。历史 production secret / storage adapter 准入锚点继续保留，但不再是 Saved Draft 或当前产品线的下一依赖；production repository、真实 Radish membership、production secret、audit store 与公开生产 API 仍需未来独立专题。2026-07-29 已完成[草案库生命周期与组织](saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md)批次 A 至 D，活动 / 归档状态、稳定分页、筛选、可逆归档、双版本并发、归档后操作资格和 Web 草案库闭环已有证据；下一步只进入批次 E 的连续验证与文档收口，不从历史能力原地扩自动保存、自动恢复、自动合并、同步、永久删除、祖先图、分支图或跨作用域复制。
 
 ## 2026-06-28 依赖复评
 

@@ -104,7 +104,10 @@ test("restore request carries read and write membership permissions and exposes 
       headers.get("X-RadishMind-Dev-Read-Membership-Permissions"),
       "workflow_drafts:read,workflow_drafts:write",
     );
-    assert.deepEqual(JSON.parse(String(init?.body)), { expected_current_draft_version: 3 });
+    assert.deepEqual(JSON.parse(String(init?.body)), {
+      expected_current_draft_version: 3,
+      expected_lifecycle_version: 2,
+    });
     return new Response(JSON.stringify({
       request_id: "request-restore-conflict",
       workspace_id: config.workspaceId,
@@ -113,16 +116,19 @@ test("restore request carries read and write membership permissions and exposes 
       draft: null,
       failure_code: "draft_version_conflict",
       current_draft_version: 4,
+      current_lifecycle_version: 2,
+      current_lifecycle_state: "active",
       validation_summary: { validation_state: "", valid_for_review: false, findings: [] },
       audit_ref: "audit-restore-conflict",
     }), { status: 200 });
   };
 
-  const result = await restoreWorkflowSavedDraftRevision(draft, 1, 3, config);
+  const result = await restoreWorkflowSavedDraftRevision(draft, 1, 3, 2, config);
 
   assert.equal(result.draft, null);
   assert.equal(result.failureCode, "draft_version_conflict");
   assert.equal(result.currentDraftVersion, 4);
+  assert.equal(result.currentLifecycleVersion, 2);
 });
 
 test("sample-only mode exposes a disabled revision history state", () => {

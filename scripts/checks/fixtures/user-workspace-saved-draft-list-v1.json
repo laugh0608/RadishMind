@@ -76,22 +76,22 @@
       "ready",
       "empty",
       "list_failed",
-      "restore_failed"
+      "open_failed"
     ],
     "required_exports": [
       "WorkflowSavedDraftListState",
       "WorkflowSavedDraftSummary",
       "listWorkflowDraftDevRecords",
-      "restoreWorkflowDraftDevRecord",
+      "openWorkflowDraftDevRecord",
       "initialWorkflowSavedDraftListState"
     ],
     "required_literals": [
       "draft_summaries",
-      "No saved dev draft records were returned",
+      "Saved draft list can be loaded",
       "no sample fallback",
       "dev-saved-draft-list",
-      "dev-saved-draft-restore",
-      "Restored from dev-only saved draft record"
+      "dev-saved-draft-open",
+      "Opened from a dev-only saved draft record"
     ]
   },
   "app_contract": {
@@ -99,20 +99,20 @@
     "required_literals": [
       "savedDraftListState",
       "refreshSavedWorkflowDraftList",
-      "handleRestoreSavedWorkflowDraft",
-      "restoreWorkflowDraftDevRecord(summary",
+      "handleOpenSavedWorkflowDraft",
+      "openWorkflowDraftDevRecord(summary",
       "setWorkspaceCreatedDrafts((drafts) => [",
-      "draftId: restoredDraft.draftId"
+      "draftId: openedDraft.draftId"
     ]
   },
   "home_panel_contract": {
     "file": "apps/radishmind-web/src/features/control-plane-read/workflowUserWorkspaceHomePanel.tsx",
     "required_literals": [
       "User workspace saved draft list",
-      "Dev saved draft restore",
+      "Saved Draft Library",
       "WorkflowSavedDraftSummaryCard",
       "saved-draft-summary-grid",
-      "onRestoreSavedDraft(summary)"
+      "onOpenSavedDraft(summary)"
     ],
     "style_file": "apps/radishmind-web/src/styles.css",
     "required_style_selectors": [
@@ -126,7 +126,7 @@
       "user_workspace_saved_draft_list_implemented",
       "GET /v1/user-workspace/workflow-drafts",
       "draft_summaries",
-      "restore_failed"
+      "open_failed"
     ],
     "docs/task-cards/user-workspace-saved-draft-list-v1-plan.md": [
       "user-workspace-saved-draft-list-v1",

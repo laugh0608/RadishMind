@@ -96,12 +96,12 @@ def assert_consumer_contract(fixture: dict[str, Any]) -> None:
         require(str(literal) in consumer_text, f"saved draft list consumer missing literal: {literal}")
     require(
         "workflowDraftFromSavedWorkflowDraftDocument" in consumer_text,
-        "restore must project saved record into a Draft Designer draft",
+        "open must project saved record into a Draft Designer draft",
     )
     require(
         consumer_text.index("listWorkflowDraftDevRecords")
-        < consumer_text.index("restoreWorkflowDraftDevRecord"),
-        "list helper should be defined before restore helper",
+        < consumer_text.index("openWorkflowDraftDevRecord"),
+        "list helper should be defined before open helper",
     )
 
 
@@ -112,8 +112,8 @@ def assert_app_and_home_contract(fixture: dict[str, Any]) -> None:
         require(str(literal) in app_text, f"App missing saved draft list literal: {literal}")
     require(
         app_text.index("listWorkflowDraftDevRecords(applicationRef")
-        < app_text.index("restoreWorkflowDraftDevRecord(summary"),
-        "App must list summaries before restore path",
+        < app_text.index("openWorkflowDraftDevRecord(summary"),
+        "App must list summaries before open path",
     )
 
     home_contract = fixture.get("home_panel_contract") or {}

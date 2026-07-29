@@ -53,6 +53,8 @@
       "draft",
       "failure_code",
       "current_draft_version",
+      "current_lifecycle_version",
+      "current_lifecycle_state",
       "validation_summary",
       "blocked_capabilities",
       "audit_ref"
@@ -77,6 +79,8 @@
     "required_state_fields": [
       "failureCode",
       "currentDraftVersion",
+      "currentLifecycleVersion",
+      "currentLifecycleState",
       "conflictDraftVersion",
       "auditRef",
       "requestId"
@@ -101,7 +105,7 @@
       "version_conflict",
       "Saved draft conflict review",
       "Continue local draft",
-      "Restore saved version",
+      "Open saved draft",
       "savedDraftConflictReviewSummary",
       "Conflict current version",
       "nextWorkflowSavedDraftExpectedVersion(savedDraftConsumerState)",
@@ -109,7 +113,7 @@
       "workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState)",
       "interactionDisabled",
       "nextState.status === \"version_conflict\"",
-      "refreshSavedWorkflowDraftList(activeWorkflowDraft.applicationRef)",
+      "activeWorkflowDraft.applicationRef,",
       "Saved version metadata is refreshing"
     ]
   },

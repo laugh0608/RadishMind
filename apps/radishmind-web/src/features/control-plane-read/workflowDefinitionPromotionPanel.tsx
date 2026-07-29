@@ -24,6 +24,8 @@ type Props = {
   applicationId: string;
   activeDraft: WorkflowDraftDesignerDraft;
   savedDraftVersion: number;
+  savedDraftLifecycleVersion: number;
+  savedDraftLifecycleState: "active" | "archived" | "unknown";
   nextDerivedDraftNumber: number;
   onDerivedDraft: (draft: WorkflowDraftDesignerDraft) => void;
   onRunRecorded: (runId: string) => void;
@@ -31,7 +33,7 @@ type Props = {
   onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
 };
 
-export default function WorkflowDefinitionPromotionPanel({ applicationId, activeDraft, savedDraftVersion, nextDerivedDraftNumber, onDerivedDraft, onRunRecorded, onOpenRun, onEvidenceChange }: Props) {
+export default function WorkflowDefinitionPromotionPanel({ applicationId, activeDraft, savedDraftVersion, savedDraftLifecycleVersion, savedDraftLifecycleState, nextDerivedDraftNumber, onDerivedDraft, onRunRecorded, onOpenRun, onEvidenceChange }: Props) {
   const requestEpoch = useRef(0);
   const [candidates, setCandidates] = useState<WorkflowDefinitionCandidate[]>([]);
   const [selectedCandidateId, setSelectedCandidateId] = useState("");
@@ -156,12 +158,12 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
   }
 
   async function createCandidate() {
-    if (savedDraftVersion < 1) {
-      setFailure("必须先保存并校验当前草案，才能创建晋级候选。");
+    if (savedDraftVersion < 1 || savedDraftLifecycleVersion < 1 || savedDraftLifecycleState !== "active") {
+      setFailure("必须先重新读取活动草案的精确内容版本和生命周期版本，才能创建晋级候选。");
       return;
     }
     await runOperation("create", async () => {
-      const created = await createWorkflowDefinitionCandidate(config, applicationId, { candidateId, definitionId, draftId: activeDraft.draftId, expectedDraftVersion: savedDraftVersion });
+      const created = await createWorkflowDefinitionCandidate(config, applicationId, { candidateId, definitionId, draftId: activeDraft.draftId, expectedDraftVersion: savedDraftVersion, expectedLifecycleVersion: savedDraftLifecycleVersion });
       await refresh(created.definitionId);
       setSelectedCandidateId(created.candidateId);
       setNotice(`候选 ${created.candidateId} 已从精确草案 v${created.sourceDraftVersion} 创建。`);
@@ -231,8 +233,8 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
         <p className="eyebrow">1 · Candidate</p><h5>从已保存草案创建候选</h5>
         <label>Candidate ID<input value={candidateId} onChange={(event) => setCandidateId(event.currentTarget.value)} /></label>
         <label>Definition ID<input value={definitionId} onChange={(event) => setDefinitionId(event.currentTarget.value)} /></label>
-        <dl><div><dt>Draft</dt><dd>{activeDraft.draftId} · v{savedDraftVersion}</dd></div><div><dt>Provenance</dt><dd>{activeDraft.workflowDefinitionId || "new lineage"} · base v{activeDraft.baseDefinitionVersion ?? 0}</dd></div></dl>
-        <button type="button" disabled={Boolean(pending) || savedDraftVersion < 1} onClick={() => void createCandidate()}>创建晋级候选</button>
+        <dl><div><dt>Draft</dt><dd>{activeDraft.draftId} · v{savedDraftVersion} · lifecycle v{savedDraftLifecycleVersion} · {savedDraftLifecycleState}</dd></div><div><dt>Provenance</dt><dd>{activeDraft.workflowDefinitionId || "new lineage"} · base v{activeDraft.baseDefinitionVersion ?? 0}</dd></div></dl>
+        <button type="button" disabled={Boolean(pending) || savedDraftVersion < 1 || savedDraftLifecycleVersion < 1 || savedDraftLifecycleState !== "active"} onClick={() => void createCandidate()}>创建晋级候选</button>
         <div className="workflow-definition-list">{candidates.map((candidate) => <button type="button" className={candidate.candidateId === selectedCandidate?.candidateId ? "selected" : ""} key={candidate.candidateId} onClick={() => setSelectedCandidateId(candidate.candidateId)}><strong>{candidate.candidateId}</strong><span>{candidate.state} · review v{candidate.reviewVersion}</span></button>)}</div>
       </article>
       <article>

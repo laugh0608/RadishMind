@@ -273,8 +273,8 @@ function WorkflowReviewHandoffSavedDraftConflictCard({
           <dd>{summary.savedMetadataState}</dd>
         </div>
         <div>
-          <dt>Restore</dt>
-          <dd>{summary.restoreActionState}</dd>
+          <dt>Open</dt>
+          <dd>{summary.openActionState}</dd>
         </div>
         <div>
           <dt>Local graph</dt>
@@ -284,15 +284,15 @@ function WorkflowReviewHandoffSavedDraftConflictCard({
       <div className="workflow-workspace-review-token-list" aria-label="Saved draft conflict review locks">
         <code>auto_overwrite_locked</code>
         <code>auto_merge_locked</code>
-        <code>{summary.restoreActionState === "restore_available" ? "restore_available" : "restore_requires_saved_list"}</code>
+        <code>{summary.openActionState}</code>
       </div>
       <p>{summary.summary}</p>
       <p>{summary.localDraftPreservationSummary}</p>
-      {summary.restoreUnavailableReason ? (
-        <p>{summary.restoreUnavailableReason}</p>
+      {summary.openUnavailableReason ? (
+        <p>{summary.openUnavailableReason}</p>
       ) : (
         <p>
-          Restore saved version is available from sanitized saved draft metadata; it remains separate from
+          Open saved draft is available from sanitized saved draft metadata; it remains separate from
           auto overwrite and auto merge.
         </p>
       )}
