@@ -54,6 +54,7 @@
 | [用户工作区细专题入口](user-workspace/README.md) | 功能专题目录 | 承接应用、模型发现、API 接入、调用与审查的连续用户路径 |
 | [API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) | 功能 / 认证专题 | 双数据库、Web 一次性交接、浏览器连续验收、敏感信息扫描和重启恢复已完成，专题关闭 |
 | [应用目录与生命周期（开发/测试态）v1](user-workspace/application-catalog-lifecycle-dev-test-v1.md) | 功能 / 生命周期专题 | 核心生命周期、PostgreSQL 持久化、Web 管理和真实浏览器连续验收已完成 |
+| [应用解除归档与安全重新启用（开发 / 测试态）v1](user-workspace/application-unarchive-safe-reactivation-dev-test-v1.md) | 功能 / 生命周期恢复专题 | 批次 A 至 C、组合权限、显式影响确认、三种 store CAS、Gateway 资格回归与 Web / 浏览器连续验收已完成 |
 | [应用 API 接入与调用 v1](user-workspace/application-api-integration-invocation-v1.md) | 功能 / 页面专题 | 已完成选中应用、`/v1/models`、三协议 × 三语言接入示例、现有调试台与脱敏请求历史的内部开发者闭环 |
 | [应用配置草案与审查 v1](user-workspace/application-configuration-draft-review-v1.md) | 功能 / 页面专题 | 已完成应用配置草案、校验、`memory_dev` / PostgreSQL 开发测试态持久化、版本冲突、比较与 API 接入交接 |
 | [应用发布治理与晋级审查 v1](user-workspace/application-publish-governance-promotion-v1.md) | 功能 / 治理专题 | 已完成不可变候选版本、服务端草案重读、审查 CAS、漂移识别、阻塞式晋级资格判断，以及接入区 / 调试台 / 请求历史交接；不执行正式发布 |
