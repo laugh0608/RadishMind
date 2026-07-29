@@ -1416,6 +1416,7 @@ h4 {
 .api-key-lifecycle-scope article,
 .api-key-issue-form,
 .api-key-one-time-panel,
+.api-key-rotation-panel,
 .api-key-lifecycle-row,
 .api-key-detail,
 .api-key-lifecycle-empty {
@@ -1445,6 +1446,7 @@ h4 {
 
 .api-key-lifecycle-scope p,
 .api-key-one-time-panel p,
+.api-key-rotation-panel p,
 .api-key-list-summary,
 .api-key-lifecycle-empty p,
 .api-key-detail p {
@@ -1454,6 +1456,7 @@ h4 {
 
 .api-key-issue-form,
 .api-key-one-time-panel,
+.api-key-rotation-panel,
 .api-key-detail {
   display: grid;
   align-content: start;
@@ -1476,6 +1479,7 @@ h4 {
 }
 
 .api-key-issue-form input,
+.api-key-rotation-form input,
 .api-key-list-controls select {
   min-width: 0;
   border: 1px solid #cbd5e1;
@@ -1543,6 +1547,118 @@ h4 {
 .api-key-one-time-panel {
   border-color: #d8a846;
   background: #fffbeb;
+}
+
+.api-key-rotation-panel {
+  border-color: #8fb7a3;
+  background: #f6fbf8;
+}
+
+.api-key-rotation-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.api-key-rotation-steps li {
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 8px 10px;
+  background: #fff;
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.api-key-rotation-steps li.complete {
+  border-color: #72a78a;
+  color: #17643a;
+}
+
+.api-key-rotation-steps li.current {
+  border-color: #d8a846;
+  background: #fffbeb;
+  color: #60420d;
+}
+
+.api-key-rotation-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.api-key-rotation-meta div {
+  min-width: 0;
+  border-radius: 7px;
+  padding: 9px 10px;
+  background: #fff;
+}
+
+.api-key-rotation-meta dt,
+.api-key-rotation-meta dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.api-key-rotation-meta dt {
+  color: #607086;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.api-key-rotation-meta dd {
+  margin-top: 4px;
+  color: #243140;
+  font-size: 13px;
+}
+
+.api-key-rotation-scopes,
+.api-key-rotation-verification,
+.api-key-rotation-retirement,
+.api-key-rotation-confirm {
+  display: grid;
+  gap: 9px;
+}
+
+.api-key-rotation-scopes > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.api-key-rotation-scopes code,
+.api-key-rotation-evidence code {
+  border-radius: 5px;
+  padding: 3px 6px;
+  background: #e7f2eb;
+  color: #17643a;
+}
+
+.api-key-rotation-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.api-key-rotation-form label {
+  display: grid;
+  gap: 6px;
+  color: #607086;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.api-key-rotation-confirm {
+  border-left: 4px solid #b43b31;
+  border-radius: 7px;
+  padding: 12px;
+  background: #fff1ef;
 }
 
 .api-key-one-time-token {
@@ -1615,6 +1731,9 @@ h4 {
 @media (max-width: 900px) {
   .api-key-lifecycle-scope,
   .api-key-lifecycle-layout,
+  .api-key-rotation-steps,
+  .api-key-rotation-meta,
+  .api-key-rotation-form,
   .api-key-detail dl {
     grid-template-columns: 1fr;
   }

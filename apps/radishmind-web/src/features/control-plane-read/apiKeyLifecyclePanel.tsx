@@ -11,6 +11,18 @@ import {
   type APIKeyRecord,
   type APIKeyScope,
 } from "./apiKeyLifecycleConsumer.ts";
+import {
+  APIKeyRotationSessionError,
+  beginAPIKeyRotationSession,
+  cancelAPIKeyRotationSession,
+  completeAPIKeyRotationSession,
+  currentAPIKeyRotationSourceVersion,
+  readAPIKeyRotationSession,
+  recordAPIKeyRotationReplacement,
+  refreshAPIKeyRotationVerification,
+  synchronizeAPIKeyRotationApplication,
+  type APIKeyRotationSession,
+} from "./apiKeyRotationSession.ts";
 import { requestAPIKeyModelGatewayPlaygroundHandoff } from "./modelGatewayPlaygroundEvents.ts";
 import { readModelGatewayPlaygroundConfig } from "./modelGatewayPlaygroundConsumer.ts";
 import { requestWorkflowRAGApplicationCredentialHandoff } from "./workflowRAGApplicationRuntimeEvents.ts";
@@ -64,7 +76,13 @@ export function APIKeyLifecyclePanel({
   const [selectedRecord, setSelectedRecord] = useState<APIKeyRecord | null>(null);
   const [issuedCredential, setIssuedCredential] = useState<IssuedCredential | null>(null);
   const [pendingRevokeId, setPendingRevokeId] = useState("");
-  const [busy, setBusy] = useState<"" | "list" | "issue" | "read" | "revoke">("");
+  const [rotation, setRotation] = useState<APIKeyRotationSession | null>(() => readAPIKeyRotationSession(applicationId));
+  const [rotationDisplayName, setRotationDisplayName] = useState("");
+  const [rotationExpiresInDays, setRotationExpiresInDays] = useState(30);
+  const [showRotationRetireConfirm, setShowRotationRetireConfirm] = useState(false);
+  const [busy, setBusy] = useState<
+    "" | "list" | "issue" | "read" | "revoke" | "rotation_issue" | "rotation_verify" | "rotation_retire"
+  >("");
   const [copyStatus, setCopyStatus] = useState("");
   const [notice, setNotice] = useState<OperationNotice>({ tone: "neutral", summary: "", failureCode: "" });
   const operationGeneration = useRef(0);
@@ -74,6 +92,11 @@ export function APIKeyLifecyclePanel({
     setIssuedCredential(null);
     setSelectedRecord(null);
     setPendingRevokeId("");
+    const currentRotation = synchronizeAPIKeyRotationApplication(applicationId);
+    setRotation(currentRotation);
+    setRotationDisplayName(currentRotation ? replacementDisplayName(currentRotation.sourceDisplayName) : "");
+    setRotationExpiresInDays(30);
+    setShowRotationRetireConfirm(false);
     setCopyStatus("");
     setNotice({ tone: "neutral", summary: "", failureCode: "" });
     setDisplayName(defaultDisplayName(applicationName));
@@ -170,6 +193,158 @@ export function APIKeyLifecyclePanel({
     if (result.status === "version_conflict") await loadRecords(false, "");
   }
 
+  function startRotation(record: APIKeyRecord) {
+    try {
+      const next = beginAPIKeyRotationSession(record);
+      setRotation(next);
+      setRotationDisplayName(replacementDisplayName(record.displayName));
+      setRotationExpiresInDays(30);
+      setShowRotationRetireConfirm(false);
+      setIssuedCredential(null);
+      setCopyStatus("");
+      setSelectedRecord(record);
+      setNotice({
+        tone: "neutral",
+        summary: `Rotation started for ${record.apiKeyId}. The original key stays active until its replacement is verified.`,
+        failureCode: "",
+      });
+    } catch (error) {
+      setNotice(rotationFailureNotice(error));
+    }
+  }
+
+  function cancelRotation() {
+    cancelAPIKeyRotationSession(applicationId);
+    setRotation(null);
+    setRotationDisplayName("");
+    setRotationExpiresInDays(30);
+    setShowRotationRetireConfirm(false);
+    setIssuedCredential(null);
+    setCopyStatus("");
+    setNotice({
+      tone: "neutral",
+      summary: "Rotation session cleared. Stored API key records were not changed.",
+      failureCode: "",
+    });
+  }
+
+  async function issueRotationReplacement() {
+    if (!rotation || rotation.phase !== "replacement_pending" || !applicationActive) return;
+    const generation = ++operationGeneration.current;
+    setIssuedCredential(null);
+    setCopyStatus("");
+    setBusy("rotation_issue");
+    const result = await issueAPIKey(config, {
+      applicationId,
+      displayName: rotationDisplayName,
+      scopes: rotation.scopes,
+      expiresInDays: rotationExpiresInDays,
+    });
+    if (operationGeneration.current !== generation) return;
+    setBusy("");
+    if (result.status !== "issued" || !result.record || !result.credentialToken) {
+      setNotice({ tone: "bad", summary: result.summary, failureCode: result.failureCode });
+      return;
+    }
+    try {
+      const next = recordAPIKeyRotationReplacement(applicationId, result.record);
+      setRotation(next);
+      setIssuedCredential({ apiKeyId: result.record.apiKeyId, token: result.credentialToken });
+      setSelectedRecord(result.record);
+      setNotice({
+        tone: "good",
+        summary: "Replacement key issued. The original key remains active; validate the replacement before retirement.",
+        failureCode: "",
+      });
+      await loadRecords(false, "");
+    } catch (error) {
+      setIssuedCredential(null);
+      setSelectedRecord(result.record);
+      setNotice(rotationFailureNotice(error));
+      await loadRecords(false, "");
+    }
+  }
+
+  async function checkRotationVerification() {
+    if (!rotation?.replacementApiKeyId) return;
+    const generation = ++operationGeneration.current;
+    setBusy("rotation_verify");
+    const result = await readAPIKeyRecord(config, rotation.replacementApiKeyId);
+    if (operationGeneration.current !== generation) return;
+    setBusy("");
+    if (result.status !== "loaded" || !result.record) {
+      setNotice({ tone: "bad", summary: result.summary, failureCode: result.failureCode });
+      return;
+    }
+    try {
+      const next = refreshAPIKeyRotationVerification(applicationId, result.record);
+      setRotation(next);
+      setSelectedRecord(result.record);
+      setShowRotationRetireConfirm(false);
+      setNotice(next.phase === "verified"
+        ? {
+          tone: "good",
+          summary: `Replacement authentication verified at ${next.replacementLastUsedAt}. Review the original key before retirement.`,
+          failureCode: "",
+        }
+        : {
+          tone: "neutral",
+          summary: "The replacement key has no successful Gateway authentication yet. The original key remains active.",
+          failureCode: "",
+        });
+    } catch (error) {
+      setNotice(rotationFailureNotice(error));
+    }
+  }
+
+  async function retireRotationSource() {
+    if (!rotation || rotation.phase !== "verified" || !showRotationRetireConfirm) return;
+    const generation = ++operationGeneration.current;
+    setBusy("rotation_retire");
+    const source = await readAPIKeyRecord(config, rotation.sourceApiKeyId);
+    if (operationGeneration.current !== generation) return;
+    if (source.status !== "loaded" || !source.record) {
+      setBusy("");
+      setNotice({ tone: "bad", summary: source.summary, failureCode: source.failureCode });
+      return;
+    }
+    let expectedVersion: number;
+    try {
+      expectedVersion = currentAPIKeyRotationSourceVersion(applicationId, source.record);
+    } catch (error) {
+      setBusy("");
+      setNotice(rotationFailureNotice(error));
+      return;
+    }
+    const revoked = await revokeAPIKey(config, source.record.apiKeyId, expectedVersion);
+    if (operationGeneration.current !== generation) return;
+    setBusy("");
+    if (revoked.status !== "revoked" || !revoked.record) {
+      setShowRotationRetireConfirm(false);
+      setNotice({ tone: "bad", summary: revoked.summary, failureCode: revoked.failureCode });
+      if (revoked.status === "version_conflict") await loadRecords(false, "");
+      return;
+    }
+    try {
+      completeAPIKeyRotationSession(applicationId, revoked.record);
+      setRotation(null);
+      setRotationDisplayName("");
+      setRotationExpiresInDays(30);
+      setShowRotationRetireConfirm(false);
+      setIssuedCredential(null);
+      setCopyStatus("");
+      setSelectedRecord(revoked.record);
+      setNotice({
+        tone: "good",
+        summary: "Rotation completed. The original key is revoked and the verified replacement remains active.",
+        failureCode: "",
+      });
+      await loadRecords(false, "");
+    } catch (error) {
+      setNotice(rotationFailureNotice(error));
+    }
+  }
+
   async function copyCredential() {
     if (!issuedCredential) return;
     try {
@@ -240,14 +415,15 @@ export function APIKeyLifecyclePanel({
         <div className="api-key-lifecycle-layout">
           <form className="api-key-issue-form" onSubmit={submitIssue}>
             <div className="api-key-card-heading"><div><p className="eyebrow">Issue credential</p><h4>One-time API key</h4></div><span className="status-badge neutral">memory only</span></div>
-            <label>Display name<input value={displayName} onChange={(event) => setDisplayName(event.target.value)} minLength={2} maxLength={80} disabled={!applicationActive || busy === "issue"} /></label>
-            <label>Expires in days<input type="number" value={expiresInDays} onChange={(event) => setExpiresInDays(Number(event.target.value))} min={1} max={90} disabled={!applicationActive || busy === "issue"} /></label>
-            <fieldset disabled={!applicationActive || busy === "issue"}>
+            <label>Display name<input value={displayName} onChange={(event) => setDisplayName(event.target.value)} minLength={2} maxLength={80} disabled={!applicationActive || Boolean(rotation) || busy === "issue"} /></label>
+            <label>Expires in days<input type="number" value={expiresInDays} onChange={(event) => setExpiresInDays(Number(event.target.value))} min={1} max={90} disabled={!applicationActive || Boolean(rotation) || busy === "issue"} /></label>
+            <fieldset disabled={!applicationActive || Boolean(rotation) || busy === "issue"}>
               <legend>Gateway scopes</legend>
               {AVAILABLE_SCOPES.map((item) => <label key={item.scope}><input type="checkbox" checked={scopes.includes(item.scope)} onChange={() => toggleScope(item.scope)} /> <code>{item.scope}</code><span>{item.label}</span></label>)}
             </fieldset>
-            <button type="submit" disabled={!applicationActive || busy !== "" || scopes.length === 0}>{busy === "issue" ? "Issuing…" : "Issue API key"}</button>
+            <button type="submit" disabled={!applicationActive || Boolean(rotation) || busy !== "" || scopes.length === 0}>{busy === "issue" ? "Issuing…" : "Issue API key"}</button>
             {!applicationActive ? <p className="boundary-note">Archived applications keep existing metadata readable and revocable but cannot issue new credentials.</p> : null}
+            {rotation ? <p className="boundary-note">Finish or cancel the active guided rotation before issuing an unrelated key.</p> : null}
           </form>
 
           <article className="api-key-one-time-panel" aria-live="polite">
@@ -270,6 +446,75 @@ export function APIKeyLifecyclePanel({
         </div>
       )}
 
+      {rotation ? (
+        <article className="api-key-rotation-panel" aria-labelledby="api-key-rotation-title">
+          <div className="api-key-card-heading">
+            <div>
+              <p className="eyebrow">Guided rotation · {rotation.phase.replaceAll("_", " ")}</p>
+              <h4 id="api-key-rotation-title">Replace {rotation.sourceApiKeyId}</h4>
+            </div>
+            <span className={`status-badge ${rotation.phase === "verified" ? "good" : "neutral"}`}>
+              {rotation.phase === "verified" ? "replacement verified" : "original stays active"}
+            </span>
+          </div>
+          <ol className="api-key-rotation-steps">
+            <li className="complete">Source reviewed</li>
+            <li className={rotation.phase !== "replacement_pending" ? "complete" : "current"}>Replacement issued</li>
+            <li className={rotation.phase === "verified" ? "complete" : rotation.phase === "verification_pending" ? "current" : ""}>Gateway authentication observed</li>
+            <li className={rotation.phase === "verified" ? "current" : ""}>Retire original</li>
+          </ol>
+          <dl className="api-key-rotation-meta">
+            <div><dt>Application</dt><dd>{rotation.applicationId}</dd></div>
+            <div><dt>Owner</dt><dd>{rotation.ownerSubjectRef}</dd></div>
+            <div><dt>Original version</dt><dd>{rotation.sourceRecordVersion}</dd></div>
+            <div><dt>Replacement</dt><dd>{rotation.replacementApiKeyId || "not issued"}</dd></div>
+          </dl>
+          <div className="api-key-rotation-scopes">
+            <strong>Locked scopes</strong>
+            <div>{rotation.scopes.map((scope) => <code key={scope}>{scope}</code>)}</div>
+            <p>Guided rotation cannot add or remove permissions. Use a separate key lifecycle decision for scope changes.</p>
+          </div>
+          {rotation.phase === "replacement_pending" ? (
+            <div className="api-key-rotation-form">
+              <label>Replacement display name<input value={rotationDisplayName} onChange={(event) => setRotationDisplayName(event.target.value)} minLength={2} maxLength={80} disabled={busy !== "" || !applicationActive} /></label>
+              <label>Replacement expires in days<input type="number" value={rotationExpiresInDays} onChange={(event) => setRotationExpiresInDays(Number(event.target.value))} min={1} max={90} disabled={busy !== "" || !applicationActive} /></label>
+              <button type="button" onClick={() => void issueRotationReplacement()} disabled={busy !== "" || !applicationActive}>
+                {busy === "rotation_issue" ? "Issuing replacement…" : "Issue same-scope replacement"}
+              </button>
+            </div>
+          ) : (
+            <div className="api-key-rotation-verification">
+              <p>
+                Use the one-time replacement credential through an existing scoped surface or external client, then check its exact record.
+                The original key will not be changed during verification.
+              </p>
+              <button type="button" onClick={() => void checkRotationVerification()} disabled={busy !== ""}>
+                {busy === "rotation_verify" ? "Checking authentication…" : "Check replacement authentication"}
+              </button>
+              {rotation.replacementLastUsedAt ? <p className="api-key-rotation-evidence">Gateway authentication observed at <code>{rotation.replacementLastUsedAt}</code>.</p> : null}
+            </div>
+          )}
+          {rotation.phase === "verified" ? (
+            <div className="api-key-rotation-retirement">
+              {!showRotationRetireConfirm ? (
+                <button type="button" className="danger-action" onClick={() => setShowRotationRetireConfirm(true)} disabled={busy !== ""}>Review original retirement</button>
+              ) : (
+                <div className="api-key-rotation-confirm" role="alert">
+                  <strong>Revoke original key {rotation.sourceApiKeyId}?</strong>
+                  <p>This is irreversible. The source will be read again and revoked with its current version; the verified replacement remains active.</p>
+                  <button type="button" className="danger-action" onClick={() => void retireRotationSource()} disabled={busy !== ""}>
+                    {busy === "rotation_retire" ? "Retiring original…" : "Confirm verified replacement and revoke original"}
+                  </button>
+                  <button type="button" className="secondary-action" onClick={() => setShowRotationRetireConfirm(false)} disabled={busy !== ""}>Keep original active</button>
+                </div>
+              )}
+            </div>
+          ) : null}
+          <button type="button" className="secondary-action" onClick={cancelRotation} disabled={busy !== ""}>Cancel guided rotation</button>
+          <p className="boundary-note">Only sanitized rotation metadata survives an in-app route handoff. Browser reload clears the session, and no API key is changed automatically.</p>
+        </article>
+      ) : null}
+
       <div className="api-key-list-controls">
         <label>Effective state<select value={effectiveState} onChange={(event) => setEffectiveState(event.target.value as APIKeyEffectiveState | "")} disabled={!applicationId || busy !== ""}><option value="">All</option><option value="active">Active</option><option value="expired">Expired</option><option value="revoked">Revoked</option></select></label>
         <button type="button" onClick={() => void loadRecords(false, "")} disabled={!applicationId || busy !== ""}>{busy === "list" ? "Loading…" : "Refresh keys"}</button>
@@ -284,9 +529,13 @@ export function APIKeyLifecyclePanel({
             record={record}
             selected={selectedRecord?.apiKeyId === record.apiKeyId}
             pendingRevoke={pendingRevokeId === record.apiKeyId}
+            rotationRole={rotation?.sourceApiKeyId === record.apiKeyId ? "source" : rotation?.replacementApiKeyId === record.apiKeyId ? "replacement" : ""}
+            rotationActive={Boolean(rotation)}
+            applicationActive={applicationActive}
             busy={busy}
             onRead={() => void loadDetail(record.apiKeyId)}
             onRevoke={() => void confirmRevoke(record)}
+            onRotate={() => startRotation(record)}
           />
         ))}
       </div>
@@ -301,23 +550,38 @@ function APIKeyLifecycleRow({
   record,
   selected,
   pendingRevoke,
+  rotationRole,
+  rotationActive,
+  applicationActive,
   busy,
   onRead,
   onRevoke,
+  onRotate,
 }: {
   record: APIKeyRecord;
   selected: boolean;
   pendingRevoke: boolean;
+  rotationRole: "" | "source" | "replacement";
+  rotationActive: boolean;
+  applicationActive: boolean;
   busy: string;
   onRead: () => void;
   onRevoke: () => void;
+  onRotate: () => void;
 }) {
+  const active = record.lifecycleState === "active" && record.effectiveState === "active";
   return (
     <article className={`api-key-lifecycle-row ${selected ? "selected" : ""}`}>
-      <div className="api-key-row-main"><div><p className="eyebrow">{record.displayName}</p><h4>{record.apiKeyId}</h4></div><span className={`status-badge ${record.effectiveState === "active" ? "good" : "neutral"}`}>{record.effectiveState}</span></div>
+      <div className="api-key-row-main"><div><p className="eyebrow">{record.displayName}</p><h4>{record.apiKeyId}</h4></div><span className={`status-badge ${record.effectiveState === "active" ? "good" : "neutral"}`}>{rotationRole || record.effectiveState}</span></div>
       <div className="api-key-scopes">{record.scopes.map((scope) => <code key={scope}>{scope}</code>)}</div>
       <dl className="api-key-row-meta"><div><dt>Version</dt><dd>{record.recordVersion}</dd></div><div><dt>Expires</dt><dd>{record.expiresAt}</dd></div><div><dt>Last used</dt><dd>{record.lastUsedAt ?? "not recorded"}</dd></div></dl>
-      <div className="api-key-row-actions"><button type="button" onClick={onRead} disabled={busy !== ""}>View detail</button><button type="button" className={pendingRevoke ? "danger-action" : "secondary-action"} onClick={onRevoke} disabled={busy !== "" || record.lifecycleState === "revoked"}>{pendingRevoke ? "Confirm revoke" : "Revoke"}</button></div>
+      <div className="api-key-row-actions">
+        <button type="button" onClick={onRead} disabled={busy !== ""}>View detail</button>
+        {active && applicationActive ? <button type="button" className="secondary-action" onClick={onRotate} disabled={busy !== "" || rotationActive}>{rotationRole === "source" ? "Rotation active" : "Rotate"}</button> : null}
+        <button type="button" className={pendingRevoke ? "danger-action" : "secondary-action"} onClick={onRevoke} disabled={busy !== "" || record.lifecycleState === "revoked" || rotationRole !== ""}>
+          {rotationRole ? "Managed by rotation" : pendingRevoke ? "Confirm revoke" : "Revoke"}
+        </button>
+      </div>
     </article>
   );
 }
@@ -365,4 +629,20 @@ function initialList(summary = "Select an application to load API keys."): APIKe
 function defaultDisplayName(applicationName: string): string {
   const prefix = applicationName.trim().slice(0, 54);
   return prefix ? `${prefix} browser key` : "Browser development key";
+}
+
+function replacementDisplayName(sourceDisplayName: string): string {
+  const prefix = sourceDisplayName.trim().slice(0, 68);
+  return prefix ? `${prefix} replacement` : "Rotated development key";
+}
+
+function rotationFailureNotice(error: unknown): OperationNotice {
+  const failureCode = error instanceof APIKeyRotationSessionError
+    ? error.failureCode
+    : "api_key_rotation_state_invalid";
+  return {
+    tone: "bad",
+    summary: "Guided rotation stopped without revoking the original key. Review the current key records before continuing.",
+    failureCode,
+  };
 }
