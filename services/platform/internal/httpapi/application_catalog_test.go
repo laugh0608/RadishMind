@@ -64,6 +64,33 @@ func runApplicationCatalogLifecycleAndOwnerIsolation(t *testing.T, repository ap
 	if secondArchive := service.Archive(owner, created.Record.ApplicationID, 3); secondArchive.FailureCode != ApplicationCatalogFailureTransitionInvalid {
 		t.Fatalf("archived record must reject a second transition: %#v", secondArchive)
 	}
+	staleUnarchive := service.Unarchive(owner, created.Record.ApplicationID, ApplicationCatalogUnarchiveInput{
+		ExpectedVersion: 2, AcknowledgeExistingAccessReactivation: true,
+	})
+	if staleUnarchive.FailureCode != ApplicationCatalogFailureVersionConflict ||
+		staleUnarchive.CurrentRecordVersion != 3 ||
+		staleUnarchive.CurrentLifecycleState != applicationCatalogLifecycleArchived {
+		t.Fatalf("stale unarchive must expose current archived version: %#v", staleUnarchive)
+	}
+	missingAcknowledgement := service.Unarchive(owner, created.Record.ApplicationID, ApplicationCatalogUnarchiveInput{ExpectedVersion: 3})
+	if missingAcknowledgement.FailureCode != ApplicationCatalogFailurePayloadInvalid {
+		t.Fatalf("unarchive without access reactivation acknowledgement must fail: %#v", missingAcknowledgement)
+	}
+	unarchived := service.Unarchive(owner, created.Record.ApplicationID, ApplicationCatalogUnarchiveInput{
+		ExpectedVersion: 3, AcknowledgeExistingAccessReactivation: true,
+	})
+	if unarchived.FailureCode != "" || unarchived.Record == nil || unarchived.Record.RecordVersion != 4 ||
+		unarchived.Record.LifecycleState != applicationCatalogLifecycleActive || unarchived.Record.ArchivedAt != nil {
+		t.Fatalf("unexpected unarchive result: %#v", unarchived)
+	}
+	if active := service.RequireActive(owner, created.Record.ApplicationID); active.FailureCode != "" || active.Record == nil {
+		t.Fatalf("unarchived record must satisfy active requirement: %#v", active)
+	}
+	if secondUnarchive := service.Unarchive(owner, created.Record.ApplicationID, ApplicationCatalogUnarchiveInput{
+		ExpectedVersion: 4, AcknowledgeExistingAccessReactivation: true,
+	}); secondUnarchive.FailureCode != ApplicationCatalogFailureTransitionInvalid {
+		t.Fatalf("active record must reject a second unarchive: %#v", secondUnarchive)
+	}
 }
 
 func TestApplicationCatalogValidationPaginationAndCAS(t *testing.T) {
@@ -133,6 +160,35 @@ func runApplicationCatalogValidationPaginationAndCAS(t *testing.T, repository ap
 	wait.Wait()
 	if successes.Load() != 1 || conflicts.Load() != 7 {
 		t.Fatalf("CAS must select one writer: successes=%d conflicts=%d", successes.Load(), conflicts.Load())
+	}
+
+	archived := service.Archive(requestContext, applicationID, 2)
+	if archived.FailureCode != "" || archived.Record == nil {
+		t.Fatalf("archive before concurrent unarchive: %#v", archived)
+	}
+	successes.Store(0)
+	conflicts.Store(0)
+	wait = sync.WaitGroup{}
+	for index := 0; index < 8; index++ {
+		wait.Add(1)
+		go func() {
+			defer wait.Done()
+			result := service.Unarchive(requestContext, applicationID, ApplicationCatalogUnarchiveInput{
+				ExpectedVersion: 3, AcknowledgeExistingAccessReactivation: true,
+			})
+			switch result.FailureCode {
+			case "":
+				successes.Add(1)
+			case ApplicationCatalogFailureVersionConflict:
+				conflicts.Add(1)
+			default:
+				t.Errorf("unexpected concurrent unarchive: %#v", result)
+			}
+		}()
+	}
+	wait.Wait()
+	if successes.Load() != 1 || conflicts.Load() != 7 {
+		t.Fatalf("unarchive CAS must select one writer: successes=%d conflicts=%d", successes.Load(), conflicts.Load())
 	}
 }
 
@@ -205,6 +261,20 @@ func TestApplicationCatalogHTTPScopesUnknownFieldsAndOIDCZeroQuery(t *testing.T)
 		t.Fatalf("unexpected archive response: %d body=%s", archiveRecorder.Code, archiveRecorder.Body.String())
 	}
 
+	unarchive := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/applications/"+applicationID+"/unarchive", strings.NewReader(
+		`{"workspace_id":"workspace_demo","expected_version":3,"acknowledge_existing_access_reactivation":true}`,
+	))
+	unarchive.SetPathValue("application_id", applicationID)
+	unarchive.Header.Set(activeWorkspaceHeader, "workspace_demo")
+	unarchive = unarchive.WithContext(withControlPlaneReadFakeAuthContext(unarchive.Context(), auth))
+	unarchiveRecorder := httptest.NewRecorder()
+	server.handleUnarchiveApplicationCatalogRecord(unarchiveRecorder, unarchive)
+	if unarchiveRecorder.Code != http.StatusOK ||
+		!strings.Contains(unarchiveRecorder.Body.String(), `"lifecycle_state":"active"`) ||
+		!strings.Contains(unarchiveRecorder.Body.String(), `"record_version":4`) {
+		t.Fatalf("unexpected unarchive response: %d body=%s", unarchiveRecorder.Code, unarchiveRecorder.Body.String())
+	}
+
 	unknown := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/applications", strings.NewReader(`{"workspace_id":"workspace_demo","display_name":"Catalog App","application_kind":"agent","owner_subject_ref":"subject_other"}`))
 	unknown.Header.Set(activeWorkspaceHeader, "workspace_demo")
 	unknown = unknown.WithContext(withControlPlaneReadFakeAuthContext(unknown.Context(), auth))
@@ -238,6 +308,119 @@ func TestApplicationCatalogHTTPScopesUnknownFieldsAndOIDCZeroQuery(t *testing.T)
 	}
 	if counting.listCalls.Load() != 0 {
 		t.Fatalf("OIDC membership failure must not query repository: %d", counting.listCalls.Load())
+	}
+}
+
+func TestApplicationCatalogUnarchiveRequiresAcknowledgementAndCombinedPermissionsWithoutRepositoryAccess(t *testing.T) {
+	now := time.Now().UTC()
+	broadAuth := applicationCatalogMutationTestAuth(now)
+	broadAuth.ScopeGrants = []string{"applications:archive", "applications:write"}
+	broadAuth.WorkspaceMemberships[0].PermissionGrants = []string{"applications:archive", "applications:write"}
+	tests := []struct {
+		name          string
+		body          string
+		mutate        func(*controlPlaneReadAuthContext)
+		expectedCode  int
+		expectedError string
+	}{
+		{
+			name:         "acknowledgement missing",
+			body:         `{"workspace_id":"workspace_demo","expected_version":2}`,
+			expectedCode: http.StatusBadRequest, expectedError: ApplicationCatalogFailurePayloadInvalid,
+		},
+		{
+			name:         "acknowledgement false",
+			body:         `{"workspace_id":"workspace_demo","expected_version":2,"acknowledge_existing_access_reactivation":false}`,
+			expectedCode: http.StatusBadRequest, expectedError: ApplicationCatalogFailurePayloadInvalid,
+		},
+		{
+			name:         "unknown field",
+			body:         `{"workspace_id":"workspace_demo","expected_version":2,"acknowledge_existing_access_reactivation":true,"reactivate_everything":true}`,
+			expectedCode: http.StatusBadRequest, expectedError: "INVALID_JSON",
+		},
+		{
+			name: "write scope missing",
+			body: `{"workspace_id":"workspace_demo","expected_version":2,"acknowledge_existing_access_reactivation":true}`,
+			mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.ScopeGrants = []string{"applications:archive"}
+			},
+			expectedCode: http.StatusForbidden, expectedError: "scope_denied",
+		},
+		{
+			name: "archive scope missing",
+			body: `{"workspace_id":"workspace_demo","expected_version":2,"acknowledge_existing_access_reactivation":true}`,
+			mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.ScopeGrants = []string{"applications:write"}
+			},
+			expectedCode: http.StatusForbidden, expectedError: "scope_denied",
+		},
+		{
+			name: "write membership missing",
+			body: `{"workspace_id":"workspace_demo","expected_version":2,"acknowledge_existing_access_reactivation":true}`,
+			mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.WorkspaceMemberships[0].PermissionGrants = []string{"applications:archive"}
+			},
+			expectedCode: http.StatusForbidden, expectedError: "workspace_permission_denied",
+		},
+		{
+			name: "archive membership missing",
+			body: `{"workspace_id":"workspace_demo","expected_version":2,"acknowledge_existing_access_reactivation":true}`,
+			mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.WorkspaceMemberships[0].PermissionGrants = []string{"applications:write"}
+			},
+			expectedCode: http.StatusForbidden, expectedError: "workspace_permission_denied",
+		},
+		{
+			name: "OIDC membership unavailable",
+			body: `{"workspace_id":"workspace_demo","expected_version":2,"acknowledge_existing_access_reactivation":true}`,
+			mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.AuthMode = controlPlaneReadAuthModeRadishOIDCIntegrationTest
+			},
+			expectedCode: http.StatusServiceUnavailable, expectedError: "workspace_membership_unavailable",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			baseRepository := newMemoryApplicationCatalogRepository()
+			requestContext := applicationCatalogTestContext("subject_owner")
+			record := ApplicationCatalogRecord{
+				SchemaVersion: applicationCatalogSchemaVersion, ApplicationID: "app_aaaaaaaaaaaaaaaa",
+				TenantRef: requestContext.TenantRef, WorkspaceID: requestContext.WorkspaceID, OwnerSubjectRef: requestContext.OwnerSubjectRef,
+				DisplayName: "Archived App", ApplicationKind: "agent", LifecycleState: applicationCatalogLifecycleArchived,
+				RecordVersion: 2, CreatedAt: now.Format(time.RFC3339Nano), UpdatedAt: now.Format(time.RFC3339Nano),
+				ArchivedAt:        optionalApplicationCatalogTimestamp(now.Format(time.RFC3339Nano)),
+				CreatedByActorRef: requestContext.ActorRef, UpdatedByActorRef: requestContext.ActorRef,
+				RequestID: requestContext.RequestID, AuditRef: requestContext.AuditRef,
+			}
+			if _, err := baseRepository.Create(requestContext, record); err != nil {
+				t.Fatalf("seed archived application: %v", err)
+			}
+			repository := &countingApplicationCatalogRepository{applicationCatalogRepository: baseRepository}
+			server := &Server{
+				config:                       config.Config{ApplicationCatalogDevHTTPEnabled: true, ApplicationCatalogDevWriteEnabled: true},
+				applicationCatalogRepository: repository,
+				workspaceMembershipProvider:  newDeterministicDevTestWorkspaceMembershipProvider(),
+			}
+			auth := cloneApplicationCatalogMutationTestAuth(broadAuth)
+			if test.mutate != nil {
+				test.mutate(&auth)
+			}
+			request := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/applications/app_aaaaaaaaaaaaaaaa/unarchive", strings.NewReader(test.body))
+			request.SetPathValue("application_id", "app_aaaaaaaaaaaaaaaa")
+			request.Header.Set(activeWorkspaceHeader, "workspace_demo")
+			request = request.WithContext(withControlPlaneReadFakeAuthContext(request.Context(), auth))
+			recorder := httptest.NewRecorder()
+
+			server.handleUnarchiveApplicationCatalogRecord(recorder, request)
+
+			if recorder.Code != test.expectedCode || !strings.Contains(recorder.Body.String(), test.expectedError) {
+				t.Fatalf("unexpected unarchive denial: status=%d body=%s", recorder.Code, recorder.Body.String())
+			}
+			if repository.totalCalls.Load() != 0 {
+				t.Fatalf("unarchive denial reached repository %d times", repository.totalCalls.Load())
+			}
+		})
 	}
 }
 
@@ -513,6 +696,18 @@ func TestApplicationCatalogArchiveBlocksDraftSaveAndPublishReview(t *testing.T) 
 	if blockedReview.FailureCode != ApplicationCatalogFailureArchived {
 		t.Fatalf("archived application must block candidate review: %#v", blockedReview)
 	}
+
+	unarchived := archiveService.Unarchive(catalogContext, applicationID, ApplicationCatalogUnarchiveInput{
+		ExpectedVersion: 2, AcknowledgeExistingAccessReactivation: true,
+	})
+	if unarchived.FailureCode != "" || unarchived.Record == nil {
+		t.Fatalf("unarchive application: %#v", unarchived)
+	}
+	payload.BaseApplicationUpdatedAt = unarchived.Record.UpdatedAt
+	resumedDraft := server.applicationConfigurationDraftService().Save(draftContext, payload, 1)
+	if resumedDraft.FailureCode != "" || resumedDraft.Draft == nil || resumedDraft.Draft.DraftVersion != 2 {
+		t.Fatalf("unarchived application must allow a baseline-refreshed draft save: %#v", resumedDraft)
+	}
 }
 
 type countingApplicationCatalogRepository struct {
@@ -545,6 +740,11 @@ func (repository *countingApplicationCatalogRepository) UpdateMetadata(requestCo
 func (repository *countingApplicationCatalogRepository) Archive(requestContext ApplicationCatalogContext, applicationID string, expectedVersion int, update ApplicationCatalogRecord) (ApplicationCatalogRecord, error) {
 	repository.totalCalls.Add(1)
 	return repository.applicationCatalogRepository.Archive(requestContext, applicationID, expectedVersion, update)
+}
+
+func (repository *countingApplicationCatalogRepository) Unarchive(requestContext ApplicationCatalogContext, applicationID string, expectedVersion int, update ApplicationCatalogRecord) (ApplicationCatalogRecord, error) {
+	repository.totalCalls.Add(1)
+	return repository.applicationCatalogRepository.Unarchive(requestContext, applicationID, expectedVersion, update)
 }
 
 func (repository *countingApplicationCatalogRepository) RequireActive(requestContext ApplicationCatalogContext, applicationID string) (ApplicationCatalogRecord, error) {
@@ -587,4 +787,8 @@ func applicationCatalogTestContext(owner string) ApplicationCatalogContext {
 		WorkspaceID: "workspace_demo", ActorRef: owner, OwnerSubjectRef: owner,
 		AuditRef: "audit_catalog_test", WriteEnabled: true,
 	}
+}
+
+func optionalApplicationCatalogTimestamp(value string) *string {
+	return &value
 }

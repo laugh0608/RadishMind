@@ -122,7 +122,7 @@ func (repository *postgresApplicationCatalogRepository) UpdateMetadata(requestCo
 	current.UpdatedByActorRef = update.UpdatedByActorRef
 	current.RequestID = update.RequestID
 	current.AuditRef = update.AuditRef
-	return repository.persistMutation(requestContext, current, expectedVersion, applicationCatalogLifecycleActive)
+	return repository.persistMutation(requestContext, current, expectedVersion, applicationCatalogLifecycleActive, errApplicationCatalogArchived)
 }
 
 func (repository *postgresApplicationCatalogRepository) Archive(requestContext ApplicationCatalogContext, applicationID string, expectedVersion int, update ApplicationCatalogRecord) (ApplicationCatalogRecord, error) {
@@ -143,7 +143,28 @@ func (repository *postgresApplicationCatalogRepository) Archive(requestContext A
 	current.UpdatedByActorRef = update.UpdatedByActorRef
 	current.RequestID = update.RequestID
 	current.AuditRef = update.AuditRef
-	return repository.persistMutation(requestContext, current, expectedVersion, applicationCatalogLifecycleActive)
+	return repository.persistMutation(requestContext, current, expectedVersion, applicationCatalogLifecycleActive, errApplicationCatalogTransitionInvalid)
+}
+
+func (repository *postgresApplicationCatalogRepository) Unarchive(requestContext ApplicationCatalogContext, applicationID string, expectedVersion int, update ApplicationCatalogRecord) (ApplicationCatalogRecord, error) {
+	current, err := repository.Read(requestContext, applicationID)
+	if err != nil {
+		return ApplicationCatalogRecord{}, err
+	}
+	if current.RecordVersion != expectedVersion {
+		return ApplicationCatalogRecord{}, applicationCatalogVersionConflictError{CurrentVersion: current.RecordVersion, CurrentState: current.LifecycleState}
+	}
+	if current.LifecycleState != applicationCatalogLifecycleArchived {
+		return ApplicationCatalogRecord{}, errApplicationCatalogTransitionInvalid
+	}
+	current.LifecycleState = applicationCatalogLifecycleActive
+	current.RecordVersion++
+	current.UpdatedAt = update.UpdatedAt
+	current.ArchivedAt = nil
+	current.UpdatedByActorRef = update.UpdatedByActorRef
+	current.RequestID = update.RequestID
+	current.AuditRef = update.AuditRef
+	return repository.persistMutation(requestContext, current, expectedVersion, applicationCatalogLifecycleArchived, errApplicationCatalogTransitionInvalid)
 }
 
 func (repository *postgresApplicationCatalogRepository) RequireActive(requestContext ApplicationCatalogContext, applicationID string) (ApplicationCatalogRecord, error) {
@@ -157,7 +178,13 @@ func (repository *postgresApplicationCatalogRepository) RequireActive(requestCon
 	return record, nil
 }
 
-func (repository *postgresApplicationCatalogRepository) persistMutation(requestContext ApplicationCatalogContext, record ApplicationCatalogRecord, expectedVersion int, expectedLifecycle string) (ApplicationCatalogRecord, error) {
+func (repository *postgresApplicationCatalogRepository) persistMutation(
+	requestContext ApplicationCatalogContext,
+	record ApplicationCatalogRecord,
+	expectedVersion int,
+	expectedLifecycle string,
+	lifecycleMismatchError error,
+) (ApplicationCatalogRecord, error) {
 	payload, err := json.Marshal(record)
 	if err != nil {
 		return ApplicationCatalogRecord{}, errApplicationCatalogStoreUnavailable
@@ -183,8 +210,8 @@ func (repository *postgresApplicationCatalogRepository) persistMutation(requestC
 	if latest.RecordVersion != expectedVersion {
 		return ApplicationCatalogRecord{}, applicationCatalogVersionConflictError{CurrentVersion: latest.RecordVersion, CurrentState: latest.LifecycleState}
 	}
-	if latest.LifecycleState == applicationCatalogLifecycleArchived {
-		return ApplicationCatalogRecord{}, errApplicationCatalogArchived
+	if latest.LifecycleState != expectedLifecycle {
+		return ApplicationCatalogRecord{}, lifecycleMismatchError
 	}
 	return ApplicationCatalogRecord{}, errApplicationCatalogStoreUnavailable
 }

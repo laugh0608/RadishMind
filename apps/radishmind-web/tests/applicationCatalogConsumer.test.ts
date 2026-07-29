@@ -6,6 +6,7 @@ import {
   createApplicationCatalogRecord,
   listApplicationCatalogRecords,
   readApplicationCatalogRecord,
+  unarchiveApplicationCatalogRecord,
   updateApplicationCatalogRecord,
   validateApplicationCatalogMutableFields,
   type ApplicationCatalogConfig,
@@ -32,6 +33,7 @@ test("application catalog offline mode sends zero requests", async () => {
     await readApplicationCatalogRecord(offline, "app_aaaaaaaaaaaaaaaa");
     await updateApplicationCatalogRecord(offline, "app_aaaaaaaaaaaaaaaa", 1, fields());
     await archiveApplicationCatalogRecord(offline, "app_aaaaaaaaaaaaaaaa", 1);
+    await unarchiveApplicationCatalogRecord(offline, "app_aaaaaaaaaaaaaaaa", 2);
     assert.equal(calls, 0);
   } finally {
     globalThis.fetch = originalFetch;
@@ -91,7 +93,7 @@ test("list strictly accepts scoped active and archived projections", async () =>
   }
 });
 
-test("update preserves a server CAS conflict and archive uses the archive scope", async () => {
+test("update preserves a server CAS conflict and lifecycle transitions use exact permissions", async () => {
   const originalFetch = globalThis.fetch;
   let calls = 0;
   globalThis.fetch = async (_input, init) => {
@@ -106,10 +108,21 @@ test("update preserves a server CAS conflict and archive uses the archive scope"
       });
     }
     const headers = new Headers(init?.headers);
-    assert.equal(headers.get("X-RadishMind-Dev-Read-Scopes"), "applications:archive,applications:read");
     assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
-    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "applications:archive");
-    return jsonResponse(operationEnvelope({ lifecycle: "archived", version: 4 }));
+    if (calls === 2) {
+      assert.equal(headers.get("X-RadishMind-Dev-Read-Scopes"), "applications:archive,applications:read");
+      assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "applications:archive");
+      return jsonResponse(operationEnvelope({ lifecycle: "archived", version: 4 }));
+    }
+    assert.equal(String(_input), "http://platform.test/v1/user-workspace/applications/app_aaaaaaaaaaaaaaaa/unarchive");
+    assert.equal(headers.get("X-RadishMind-Dev-Read-Scopes"), "applications:archive,applications:write,applications:read");
+    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "applications:archive,applications:write");
+    assert.deepEqual(JSON.parse(String(init?.body)), {
+      workspace_id: "workspace_demo",
+      expected_version: 4,
+      acknowledge_existing_access_reactivation: true,
+    });
+    return jsonResponse(operationEnvelope({ lifecycle: "active", version: 5 }));
   };
   try {
     const conflict = await updateApplicationCatalogRecord(config, "app_aaaaaaaaaaaaaaaa", 2, fields("Local edit"));
@@ -119,6 +132,10 @@ test("update preserves a server CAS conflict and archive uses the archive scope"
     const archived = await archiveApplicationCatalogRecord(config, "app_aaaaaaaaaaaaaaaa", 3);
     assert.equal(archived.status, "archived");
     assert.equal(archived.record?.archivedAt, "2026-07-13T16:05:00Z");
+    const unarchived = await unarchiveApplicationCatalogRecord(config, "app_aaaaaaaaaaaaaaaa", 4);
+    assert.equal(unarchived.status, "unarchived");
+    assert.equal(unarchived.record?.recordVersion, 5);
+    assert.equal(unarchived.record?.archivedAt, null);
   } finally {
     globalThis.fetch = originalFetch;
   }

@@ -103,6 +103,34 @@ func TestApplicationCatalogPostgresLifecycle(t *testing.T) {
 	if active := restarted.RequireActive(requestContext, created.Record.ApplicationID); active.FailureCode != ApplicationCatalogFailureArchived {
 		t.Fatalf("archived PostgreSQL record must fail active requirement: %#v", active)
 	}
+	successes.Store(0)
+	conflicts.Store(0)
+	wait = sync.WaitGroup{}
+	for index := 0; index < 8; index++ {
+		wait.Add(1)
+		go func() {
+			defer wait.Done()
+			result := restarted.Unarchive(requestContext, created.Record.ApplicationID, ApplicationCatalogUnarchiveInput{
+				ExpectedVersion: 4, AcknowledgeExistingAccessReactivation: true,
+			})
+			if result.FailureCode == "" {
+				successes.Add(1)
+			} else if result.FailureCode == ApplicationCatalogFailureVersionConflict {
+				conflicts.Add(1)
+			} else {
+				t.Errorf("unexpected PostgreSQL unarchive CAS result: %#v", result)
+			}
+		}()
+	}
+	wait.Wait()
+	if successes.Load() != 1 || conflicts.Load() != 7 {
+		t.Fatalf("PostgreSQL unarchive CAS must select one writer: successes=%d conflicts=%d", successes.Load(), conflicts.Load())
+	}
+	unarchived := restarted.Read(requestContext, created.Record.ApplicationID)
+	if unarchived.Record == nil || unarchived.Record.RecordVersion != 5 ||
+		unarchived.Record.LifecycleState != applicationCatalogLifecycleActive || unarchived.Record.ArchivedAt != nil {
+		t.Fatalf("read unarchived PostgreSQL application record: %#v", unarchived)
+	}
 	otherOwner := requestContext
 	otherOwner.OwnerSubjectRef = "subject_other"
 	otherOwner.ActorRef = "subject_other"

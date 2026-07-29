@@ -6,6 +6,7 @@ import {
   listApplicationCatalogRecords,
   readApplicationCatalogConfig,
   readApplicationCatalogRecord,
+  unarchiveApplicationCatalogRecord,
   updateApplicationCatalogRecord,
   validateApplicationCatalogMutableFields,
   type ApplicationCatalogKind,
@@ -46,7 +47,8 @@ export function ApplicationCatalogPanel({
   const [createFields, setCreateFields] = useState<ApplicationCatalogMutableFields>(EMPTY_FIELDS);
   const [showCreate, setShowCreate] = useState(false);
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
-  const [pending, setPending] = useState<"" | "loading" | "creating" | "reading" | "updating" | "archiving">("");
+  const [showUnarchiveConfirm, setShowUnarchiveConfirm] = useState(false);
+  const [pending, setPending] = useState<"" | "loading" | "creating" | "reading" | "updating" | "archiving" | "unarchiving">("");
   const [operation, setOperation] = useState<ApplicationCatalogOperationResult | null>(null);
 
   const visibleRecords = useMemo(
@@ -118,6 +120,7 @@ export function ApplicationCatalogPanel({
     setFields(fieldsFromRecord(record));
     setShowCreate(false);
     setShowArchiveConfirm(false);
+    setShowUnarchiveConfirm(false);
     setOperation(null);
     if (notifyImmediately) onSelectRecord(record);
     if (config.mode === "offline") return;
@@ -185,6 +188,19 @@ export function ApplicationCatalogPanel({
     });
   };
 
+  const handleUnarchive = () => {
+    if (!selectedRecord) return;
+    setPending("unarchiving");
+    unarchiveApplicationCatalogRecord(config, selectedRecord.applicationId, selectedRecord.recordVersion).then((result) => {
+      setPending("");
+      setOperation(result);
+      if (!result.record) return;
+      replaceRecord(result.record, "Unarchived application after explicit access reactivation review.");
+      setFilter("active");
+      setShowUnarchiveConfirm(false);
+    });
+  };
+
   const handleLoadMore = () => {
     const cursor = nextCursors[filter];
     if (!cursor) return;
@@ -216,7 +232,7 @@ export function ApplicationCatalogPanel({
           </div>
           <span className="status-badge neutral">offline</span>
         </div>
-        <p>Offline verification keeps the existing application summaries, sends zero catalog requests, and never simulates create, update, or archive success.</p>
+        <p>Offline verification keeps the existing application summaries, sends zero catalog requests, and never simulates create, update, archive, or unarchive success.</p>
       </section>
     );
   }
@@ -294,14 +310,26 @@ export function ApplicationCatalogPanel({
               <button type="button" className="danger-action" onClick={() => setShowArchiveConfirm(true)} disabled={Boolean(pending)}>Archive application</button>
             </div>
           ) : (
-            <p className="application-catalog-archive-note">Archived applications keep historical drafts, candidates, runs, and request history readable. New configuration, publish review, and invocation handoffs are disabled.</p>
+            <div className="application-catalog-actions">
+              <p className="application-catalog-archive-note">Archived applications keep historical drafts, candidates, runs, and request history readable. New configuration, publish review, and invocation handoffs are disabled.</p>
+              <button type="button" className="primary-action" onClick={() => setShowUnarchiveConfirm(true)} disabled={Boolean(pending)}>Unarchive application</button>
+            </div>
           )}
           {showArchiveConfirm ? (
             <div className="application-catalog-confirm" role="alert">
               <strong>Archive version {selectedRecord.recordVersion}?</strong>
-              <p>This permanently closes metadata updates and new configuration, publish review, and invocation handoffs in v1.</p>
+              <p>This closes metadata updates and new configuration, publish review, and invocation handoffs while archived. A later unarchive still requires an explicit access reactivation review.</p>
               <button type="button" className="danger-action" onClick={handleArchive} disabled={Boolean(pending)}>Confirm archive</button>
               <button type="button" onClick={() => setShowArchiveConfirm(false)} disabled={Boolean(pending)}>Keep active</button>
+            </div>
+          ) : null}
+          {showUnarchiveConfirm && selectedRecord.lifecycleState === "archived" ? (
+            <div className="application-catalog-confirm" role="alert">
+              <strong>Reactivate version {selectedRecord.recordVersion}?</strong>
+              <p>Existing unrevoked API keys, active runtime bindings, and open sessions may regain eligibility. No key, run, request, or downstream resource will be created automatically.</p>
+              <p>Historical drafts and publish candidates keep their own versions and must still pass existing baseline and drift checks.</p>
+              <button type="button" className="primary-action" onClick={handleUnarchive} disabled={Boolean(pending)}>I understand — unarchive</button>
+              <button type="button" onClick={() => setShowUnarchiveConfirm(false)} disabled={Boolean(pending)}>Keep archived</button>
             </div>
           ) : null}
         </article>

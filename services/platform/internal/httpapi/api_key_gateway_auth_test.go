@@ -316,12 +316,37 @@ func runGatewayAPIKeyExpiryApplicationArchiveAndRevokeRace(t *testing.T, keyRepo
 		WorkspaceID: managementContext.WorkspaceID, ActorRef: managementContext.ActorRef,
 		OwnerSubjectRef: managementContext.OwnerSubjectRef, AuditRef: "audit_archive_app", WriteEnabled: true,
 	}
-	archived := newApplicationCatalogService(applicationRepository).Archive(catalogContext, "app_aaaaaaaaaaaaaaaa", 1)
+	catalogService := newApplicationCatalogService(applicationRepository)
+	archived := catalogService.Archive(catalogContext, "app_aaaaaaaaaaaaaaaa", 1)
 	if archived.FailureCode != "" {
 		t.Fatalf("archive API key application: %#v", archived)
 	}
 	if result := authenticate(archivedKey.CredentialToken); result.FailureCode != APIKeyFailureApplicationUnavailable {
 		t.Fatalf("archived application API key was accepted: %#v", result)
+	}
+	unarchived := catalogService.Unarchive(catalogContext, "app_aaaaaaaaaaaaaaaa", ApplicationCatalogUnarchiveInput{
+		ExpectedVersion: 2, AcknowledgeExistingAccessReactivation: true,
+	})
+	if unarchived.FailureCode != "" {
+		t.Fatalf("unarchive API key application: %#v", unarchived)
+	}
+	if result := authenticate(archivedKey.CredentialToken); result.FailureCode != "" {
+		t.Fatalf("eligible API key did not recover with the active application: %#v", result)
+	}
+	revokedAfterRecovery := service.Revoke(managementContext, archivedKey.Record.APIKeyID, 1)
+	if revokedAfterRecovery.FailureCode != "" {
+		t.Fatalf("revoke recovered API key: %#v", revokedAfterRecovery)
+	}
+	if result := catalogService.Archive(catalogContext, "app_aaaaaaaaaaaaaaaa", 3); result.FailureCode != "" {
+		t.Fatalf("re-archive application before revoked key recovery check: %#v", result)
+	}
+	if result := catalogService.Unarchive(catalogContext, "app_aaaaaaaaaaaaaaaa", ApplicationCatalogUnarchiveInput{
+		ExpectedVersion: 4, AcknowledgeExistingAccessReactivation: true,
+	}); result.FailureCode != "" {
+		t.Fatalf("re-unarchive application before revoked key recovery check: %#v", result)
+	}
+	if result := authenticate(archivedKey.CredentialToken); result.FailureCode != APIKeyFailureRevoked {
+		t.Fatalf("revoked API key recovered with the application: %#v", result)
 	}
 }
 

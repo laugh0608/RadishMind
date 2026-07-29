@@ -323,6 +323,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationCatalogReadRoute, server.handleReadApplicationCatalogRecord)
 	mux.HandleFunc(applicationCatalogUpdateRoute, server.handleUpdateApplicationCatalogRecord)
 	mux.HandleFunc(applicationCatalogArchiveRoute, server.handleArchiveApplicationCatalogRecord)
+	mux.HandleFunc(applicationCatalogUnarchiveRoute, server.handleUnarchiveApplicationCatalogRecord)
 	mux.HandleFunc(applicationSessionCreateRoute, server.handleCreateApplicationInteractionSession)
 	mux.HandleFunc(applicationSessionListRoute, server.handleListApplicationInteractionSessions)
 	mux.HandleFunc(applicationSessionReadRoute, server.handleReadApplicationInteractionSession)
