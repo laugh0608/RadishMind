@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约
 
-更新时间：2026-07-27
+更新时间：2026-07-29
 
 ## 文档目的
 
@@ -62,6 +62,7 @@
 - 用户端、管理端、模型网关和 workflow runtime 都必须复用同一套 canonical contract，不为每个产品面另起一套私有协议。
 - 管理身份与模型调用凭证必须分层：Application Catalog 与 API Key Lifecycle 使用受验证的 control-plane identity、workspace binding 和管理作用域；五条模型网关 northbound route 可在显式 `api_key_dev_test` 下使用 Bearer 密钥，并仅从密钥记录恢复租户、工作区、应用、所有者和调用作用域。管理 API 不接受 RadishMind API 密钥，Gateway API key 模式不接受开发身份头覆盖，所有失败都必须在 bridge / provider 前结束。
 - RadishMind 自有开发测试数据使用统一三层持久化契约：`memory_dev` 负责快速进程内测试，聚合 `sqlite_dev` 负责单一应用作用域的本地连续开发，显式 `postgres_dev_test` 负责 migration、角色、方言和并发同构验证。应用目录、配置草案、发布候选、API 密钥、Gateway 请求历史、工作流草案、工作流运行、Prompt Template 和 Agent Copilot Profile owner 在三种实现中保持相同作用域、版本保护、稳定分页、敏感材料禁入与 no-fallback；Prompt 与 Agent Runtime Assignment / Event、Session / Turn 和 Run 投影复用共享 Workflow Run Store，不新增数据库组件。SQLite 只通过聚合模式启用，PostgreSQL migration / runtime 角色必须隔离。本文后续历史段落中关于这些九组数据“仍无数据库、repository 或 durable persistence”的旧阶段描述不再代表当前实现；production repository、Radish 身份 / membership、生产密钥、配额和计费停止线仍然有效。
+- 2026-07-29 新增链路继续复用既有 owner 与契约，不创建第二套管理协议：Saved Draft archive / unarchive 由草案 owner 以独立 `lifecycle_version`、`workflow_drafts:archive` 和活动资格重读承载；Application `archived -> active` 由目录 owner 以 `applications:archive + applications:write`、显式影响确认和记录版本 CAS 承载，下游 API Key、运行时绑定、会话、草案、候选与 Run 只在后续调用时重新判断资格，不被级联改写；API Key 引导式轮换只在 Web 易失会话中编排既有 issue / read / Gateway `last_used_at` / revoke CAS，不新增 rotate API、schema、持久 rotation session 或原始令牌恢复能力。
 - Admin authenticated read 只消费 Radish 的 verified identity、tenant 和审查后的 permission projection；RadishMind 不解析分散 claim、不读取 Radish 业务数据库，也不复制 user / tenant / role 真相源。workspace / application membership 属于 RadishMind 资源绑定，不能由 `radish-api` scope 或角色名称隐式推导。
 - 当前 `signed_test_token` 只用于本仓库 dev/test：固定 `RS256`、显式 issuer / audience / test public key 和版本化 permission allowlist，输出 sanitized verified context；它不是 Radish OIDC client、JWKS 联调、production token 或 workspace membership 替代品。
 - `Radish OIDC Integration Test v1` 已为 tenant / audit 两条 Admin operation 实现 deterministic issuer / discovery / JWKS / JWT verifier、版本化 permission projection、zero-query auth boundary 和 Web 内存 token consumer。开发 / 测试态五条 workspace read operation 与 47 条人类交互式 mutation 现已共享唯一 `WorkspaceMembershipProvider`、active workspace 与原子 permission decision；dev header 和 signed-test membership assertion 只用于本仓库验证，授权或资源绑定失败保持业务 owner、credential、Run、Gateway / provider 与网络副作用为 0。真实 Radish 联调仍为 `real_radish_integration_deferred`，OIDC 模式在缺少 reviewed production membership adapter 时继续返回 `workspace_membership_unavailable`；未来真实 issuer、audience、claim、permission 与 membership mapping 必须来自 reviewed upstream evidence。RadishMind 只拥有自己的接入 profile 和 route mapping，不自建 issuer、账号、角色或成员关系真相源；该模式不构成 browser login 或 production auth。

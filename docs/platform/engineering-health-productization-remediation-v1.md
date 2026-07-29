@@ -129,7 +129,7 @@
 2. 在 Draft Designer 编辑节点、边、属性和布局。
 3. 执行校验并在图上定位 blocking / info finding。
 4. 保存草案、刷新列表并恢复同一 saved record。
-5. 制造版本冲突，保留本地编辑并显式选择恢复 saved version。
+5. 制造版本冲突，保留本地编辑并显式选择打开当前 saved record；不可变 revision 恢复继续通过独立历史流程验证。
 6. 在 Review Handoff 查看 validation、plan、readiness 和 conflict evidence。
 
 验收要求：

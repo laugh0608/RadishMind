@@ -23,7 +23,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：API 密钥引导式轮换与验证后退役已完成并关闭，当前没有已准入的产品实现任务。下一轮先依据用户工作区与 Workflow 的真实使用证据更新一个既有功能设计文档，再决定实施拆分；工作区运营收件箱批次 B 和 Application Operations 全历史聚合继续等待跨全部分页窗口的真实需求。未满足准入证据时不新建任务卡，也不从已关闭专题扩自动轮换、持久 rotation owner、production membership adapter、真实 OIDC、quota / billing 或 Provider Route 同层能力。
+1. 产品线：Saved Draft 草案库、应用安全重新启用和 API 密钥引导式轮换均已完成并关闭，当前没有已准入的产品实现任务。2026-07-30 先按真实开发者路径复盘三条连续链，将确认的摩擦、缺口与需求回写一个既有功能设计文档，再决定实施拆分；工作区运营收件箱批次 B 和 Application Operations 全历史聚合继续等待跨全部分页窗口的真实需求。未满足准入证据时不新建任务卡，也不从已关闭专题扩自动轮换、持久 rotation owner、production membership adapter、真实 OIDC、quota / billing 或 Provider Route 同层能力。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。

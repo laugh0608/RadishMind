@@ -1,6 +1,6 @@
 # 用户工作区设计与开发文档
 
-更新时间：2026-07-27
+更新时间：2026-07-29
 
 ## 功能定位
 
@@ -12,8 +12,8 @@
 - [应用 API 接入与调用 v1](user-workspace/application-api-integration-invocation-v1.md) 已把当前选中应用、`/v1/models` 模型目录、三协议 × 三语言接入示例、现有 Gateway 调试台和脱敏请求历史串成连续的内部开发者路径；作用域不再依赖固定应用配置。
 - [应用配置草案与审查 v1](user-workspace/application-configuration-draft-review-v1.md) 已为当前应用建立独立脱敏配置草案，完成模型 / 协议校验、memory / SQLite / PostgreSQL 开发测试态保存、恢复、配置比较、CAS 冲突审查，以及到 API 接入区和调试台的交接；正式应用真相源仍只读。
 - [应用发布治理与晋级审查 v1](user-workspace/application-publish-governance-promotion-v1.md) 已把有效的已保存草案固定为不可变候选版本，完成服务端重读、摘要计算、审查 CAS、漂移 / 被取代检查、阻塞式晋级资格判断，以及到接入区、调试台和请求历史的交接；`approved` 仍不修改正式应用。
-- [应用目录与生命周期（开发/测试态）v1](user-workspace/application-catalog-lifecycle-dev-test-v1.md) 已完成核心生命周期、memory / SQLite / PostgreSQL 开发测试持久化、Web 管理和真实浏览器纵向验收：应用唯一真相源、服务端标识、所有者作用域、完整元数据更新、软归档、原子 CAS、独立迁移、无回退、归档只读历史和重启恢复均已成立。
-- [API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已完成并关闭：活跃应用可以签发有期限、有受控作用域、只展示一次且可吊销的开发测试态密钥，五条 northbound 路由可显式启用 API 密钥认证，并记录可信调用上下文、脱敏请求历史与最近使用时间；聚合 SQLite 本地产品链现已扩展为九组件，真实 PostgreSQL 专项门禁、Web 一次性交接、真实浏览器连续验收、敏感信息扫描和重启恢复均已通过。
+- [应用目录与生命周期（开发/测试态）v1](user-workspace/application-catalog-lifecycle-dev-test-v1.md) 已完成核心生命周期、memory / SQLite / PostgreSQL 开发测试持久化、Web 管理和真实浏览器纵向验收；[应用解除归档与安全重新启用 v1](user-workspace/application-unarchive-safe-reactivation-dev-test-v1.md)进一步完成 `archived -> active` 单赢家 CAS、组合权限、显式影响确认和下游重新资格判断。目录 owner 不级联改写 API Key、运行时绑定、会话、草案、候选或运行记录。
+- [API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已完成并关闭：活跃应用可以签发有期限、有受控作用域、只展示一次且可吊销的开发测试态密钥，五条 northbound 路由可显式启用 API 密钥认证，并记录可信调用上下文、脱敏请求历史与最近使用时间；[API 密钥引导式轮换与验证后退役 v1](user-workspace/api-key-guided-rotation-verified-retirement-dev-test-v1.md)复用这些 owner，完成同 scopes 替代、`last_used_at` 认证门槛、来源精确重读和 revoke CAS，不新增 rotate API、schema 或持久 rotation owner。
 - [应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md) 批次 A 已完成：当前应用可并列审查 Gateway 请求与 Workflow 运行的首分页窗口，分别查看状态、usage availability、受控调用计数、来源覆盖和合并时间线；两类记录不自动关联，当前窗口不冒充全量 usage、成本、配额或计费。
 - [应用交互会话与受控运行编排（开发 / 测试态）v1](user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md) 已完成并关闭：同一应用可显式选择 Workflow Definition v5 或 Application RAG v4 profile 建立 metadata-only session / turn，完成双数据库持久化、易失 transcript、取消、关闭、重启恢复、Run History 交接、真实浏览器和敏感信息扫描；不会从持久 metadata 恢复正文。
 - [应用开发工作区与发布准备审查 v1](user-workspace/application-development-workspace-release-readiness-review-v1.md) 已完成并关闭：唯一 application context、workspace / route generation、五阶段单 surface、route-scoped evidence、精确 Draft / Run handoff、九项 owner contribution、七个来源组和四态 readiness 投影均已进入 Web；真实浏览器已验证 Application 切换、稳定 hash、离线零 owner 请求和零页面控制台告警，缺少权威 revision 时保守显示 `incomplete / partial`。
@@ -23,9 +23,9 @@
 - [工作区运营收件箱（开发 / 测试态）v1](user-workspace/workspace-operations-inbox-dev-test-v1.md) 批次 A 已完成：active workspace 下的 Applications、API Keys、Workflow Definitions 与 Runs 首分页脱敏快照可投影为确定性关注队列，显式标记 partial / unavailable coverage，并跳转既有审查 surface；不新增 incident、notification、remediation 或 quota 真相源。
 - [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 已完成设计、全量 mutation inventory、唯一任务卡及批次 A 至 E；verified identity、active workspace、单项 / 原子组合与资源条件 membership permission、resource owner、稳定拒绝与副作用顺序已进入全部 47 条人类交互式 mutation，专题关闭。
 - 工作区首页和工作流定义已支持创建本地工作流草案并进入草案设计器；草案保存复用仅开发的已保存草案消费端，不代表生产持久化已成立。
-- `User Workspace Saved Draft List v1` 已在工作区首页支持仅开发的已保存草案列表：显示当前应用下已保存草案的脱敏摘要、空结果 / 失败状态、刷新和恢复。默认内存、聚合 SQLite 与显式 PostgreSQL 开发测试态存储库均可承载该路径，但不代表生产持久化已成立。
+- `User Workspace Saved Draft Library v1` 已在工作区首页支持仅开发的活动 / 归档草案库：显示当前应用下已保存草案的脱敏摘要、组合筛选、严格 cursor 分页、空结果 / 失败状态、打开、归档只读审查和显式解除归档。默认内存、聚合 SQLite 与显式 PostgreSQL 开发测试态存储库均可承载该路径，但不代表生产持久化已成立。
 - 草案设计器已支持本地节点新增、移动、删除保护、属性编辑和边重建；校验检查器、执行计划预览和运行时准入检查器使用当前活跃草案，不代表工作流可正式发布或执行。
-- 工作流审查交接已把恢复后的活跃草案校验、执行计划和运行时准入结果汇总为可交接审查记录，仍不保存、不导出、不发送交接内容。
+- 工作流审查交接已把当前打开的活动草案校验、执行计划和运行时准入结果汇总为可交接审查记录，仍不保存、不导出、不发送交接内容。
 - 已保存草案与运行历史具备 memory / SQLite / PostgreSQL 开发测试态存储库；受控执行器 v0、失败审查、运行比较、评测用例 / 版本管理和评测套件 / 发布审查已接入工作区运行历史。
 - 应用配置草案、发布候选和显式启用的应用目录均具备 memory、SQLite 与 PostgreSQL 开发测试态存储库；应用目录未启用时，历史只读列表仍来自预置假数据存储库。
 - 当前仍不具备生产认证 / 存储库、Radish 工作区成员关系、正式应用生命周期 / 晋级、生产 API 密钥、配额执行、计费、不受限工具调用、业务写回或重放；开发测试态 HTTP Tool 人工确认与两种受控应用调用已经存在，但不能外推为通用工具、自动确认或生产执行能力。
@@ -41,11 +41,11 @@
 
 ## 下一批开发方向
 
-1. Workspace-scoped Mutation Authorization 批次 A 至 E 已完成共享 mutation authorization、稳定 failure mapping、业务 owner / 外部副作用为零、API key credential 副作用顺序、创作 / 审查 / 激活 / Session / Turn / Run / RAG / HTTP Tool / Evaluation 原子组合与资源条件权限、Web header 分离和 memory / SQLite / PostgreSQL 证据。专题关闭，下一步回到功能设计选择，不继续新增同层授权门禁。
+1. Saved Draft 草案库、应用安全重新启用和 API 密钥引导式轮换均已完成并关闭。下一轮先按真实开发者使用路径复盘三条连续链，将确认的摩擦、缺口与需求回写一个既有功能设计文档，再决定实施拆分；不提前新增同层授权门禁、任务卡或检查器。
 2. 后续批次继续要求跨 tenant / subject、非成员、过期 identity / membership、workspace mismatch、permission denied 在业务 repository 查询或副作用前失败关闭。dev header 与 signed-test assertion 只能用于开发测试，不能成为 production OIDC 授权来源。
 3. 工作区运营收件箱批次 A 已完成。只有真实需要跨全部分页窗口，且四类 owner 的统一稳定 cursor 契约成立时才评审批次 B；不为扩展示例数量或页面计数启动服务端投影。
 4. Prompt / Agent 继续复用 canonical Run、Comparison、Evaluation Case / Suite 与 decision owner；不复制评测算法，不把人工 `approved` 接成自动 candidate、assignment、release 或 deploy。Agent / Copilot 仍复用 canonical `CopilotRequest / CopilotResponse`，不扩 agent loop、工具执行或业务写回。
-5. 本地 SQLite、应用目录、API 密钥和 Application Interaction Session 专题均已完成并关闭；不继续扩同层页面、准入文档、检查器或证据链。应用运行观测只有在全分页统计、可信 reported usage 或 quota / billing owner 成立时才评审服务端 summary。
+5. 本地 SQLite、应用目录与安全重新启用、API 密钥生命周期与引导式轮换、Application Interaction Session 专题均已完成并关闭；不继续扩同层页面、准入文档、检查器或证据链。应用运行观测只有在全分页统计或 quota / billing owner 成立时才评审服务端 summary；可信 reported usage 已成立，但当前仍只覆盖已加载窗口。
 6. 一次性令牌继续只保存在当前 Web 组件内存；刷新、路由离开、应用 / 身份切换、组件卸载和服务重启都不得恢复原始令牌。
 7. 不把开发测试态应用目录或 API 密钥解释为生产存储库与生产授权；OIDC 模式在成员关系契约未成立时继续失败关闭。后续专题不得隐式打开生产认证、成员关系适配器、正式晋级、生产 API 密钥、配额、计费、模型服务凭据或新的 Gateway 请求 / 响应 schema。
 

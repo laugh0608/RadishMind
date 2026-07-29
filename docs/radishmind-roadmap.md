@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：[已保存 Workflow 草案库生命周期与组织](features/workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md)批次 A 至 E 已完成三种 store、严格 cursor、超过 `200` 条的 keyset 分页 / 组合筛选、双版本并发、双数据库 `0003`、原子 transition / event、HTTP lifecycle API、独立 permission、相邻操作资格、Saved Draft Library Web 与真实浏览器连续链，[唯一高风险任务卡](task-cards/saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)已关闭。当前没有已准入产品实现任务；下一轮必须先依据真实使用证据更新一个既有功能设计文档。全历史 usage 聚合、运营收件箱全分页投影、production membership adapter、quota / billing 与真实 OIDC 均保持条件式入口。
+1. 产品线：[已保存 Workflow 草案库生命周期与组织](features/workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md)批次 A 至 E、[应用解除归档与安全重新启用](features/user-workspace/application-unarchive-safe-reactivation-dev-test-v1.md)批次 A 至 C，以及 [API 密钥引导式轮换与验证后退役](features/user-workspace/api-key-guided-rotation-verified-retirement-dev-test-v1.md)批次 A、B 均已完成并关闭。三条链分别保留草案双版本生命周期、应用 owner 与下游资格重判、API Key owner 与易失轮换编排边界，并具备三种 store、Web 和真实浏览器证据。当前没有已准入产品实现任务；2026-07-30 先完成真实开发者使用复盘并更新一个既有功能设计文档。全历史 usage 聚合、运营收件箱全分页投影、production membership adapter、quota / billing 与真实 OIDC 均保持条件式入口。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；dev header 与 signed-test membership 不能作为 production 授权来源。production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、quota 和 billing 继续为 `not_satisfied`。

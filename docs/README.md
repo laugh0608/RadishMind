@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-07-27
+更新时间：2026-07-29
 
 ## 阅读原则
 
@@ -25,7 +25,7 @@
 ## 当前状态
 
 - 当前成熟度是“内部开发者预览”；整改与当前执行顺序以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 和 [当前推进焦点](radishmind-current-focus.md) 为准。
-- R2 至 R6、Workspace-scoped Read Transition、Workspace-scoped Mutation Authorization、Workflow Draft Review Loop、Saved Draft 三种开发测试态 repository、受控 Workflow Executor、版本化 Workflow / RAG / Prompt / Agent 运行路径、持久 Run History 与评测审查、Gateway Request History 均已完成。2026-07-27 又完成精确已保存草案派生、不可变修订历史与显式恢复，以及五类 Provider reported usage 到 Gateway、northbound、Request History 和 Application Operations 的连续交接；2026-07-28 已完成 Saved Draft 草案库生命周期与组织设计及批次 A、B、C，下一顺位是批次 D 的活动 / 归档草案库 Web。production membership、真实 OIDC、production secret、quota / billing、业务写回、自动合并和 replay 继续关闭。
+- R2 至 R6、Workspace-scoped Read Transition、Workspace-scoped Mutation Authorization、Workflow Draft Review Loop、Saved Draft 三种开发测试态 repository、受控 Workflow Executor、版本化 Workflow / RAG / Prompt / Agent 运行路径、持久 Run History 与评测审查、Gateway Request History 均已完成。2026-07-29 又关闭 Saved Draft 草案库生命周期批次 A 至 E、应用解除归档与安全重新启用批次 A 至 C，以及 API 密钥引导式轮换批次 A、B；三条链均具备 memory / SQLite / PostgreSQL、Web 与真实浏览器证据，并保持各自 owner、CAS、权限和生产停止线。当前没有已准入产品实现任务；下一轮先依据真实使用证据更新一个既有功能设计文档。production membership、真实 OIDC、production secret、quota / billing、业务写回、自动合并和 replay 继续关闭。
 - `RadishMind` 已正式从“模型实验 / 接入准备仓库”的狭义口径，收口为 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台。
 - 当前仓库主线不再只是等待其他项目真实接入；长期按四个一级产品面和五条工程主线组织。四个产品面是 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；`Image Generation / Artifact Return` 作为横切适配能力保留。五条工程主线是 `Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。
 - 当前项目的更强正式定义已经固定在 [战略定义](radishmind-strategy.md)：`RadishMind` 是 `AI Tools / Workflow / Model Gateway / Copilot Integration Platform`，核心价值是把 AI 应用构建、工作流运行、模型 API 分发、多模型接入和 Copilot 集成收口成可控产品能力。

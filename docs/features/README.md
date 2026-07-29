@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-29 当前执行口径：[已保存 Workflow 草案库生命周期与组织](workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md)批次 A 至 E 已完成领域、三种 store lifecycle owner、严格 cursor、超过 `200` 条的服务端 keyset 分页 / 组合筛选、双版本并发、双数据库 `0003`、原子 transition / event、HTTP lifecycle API、独立 archive permission、相邻操作资格、Web 草案库和真实浏览器连续链；[唯一高风险任务卡](../task-cards/saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)已关闭。当前没有已准入的产品实现任务；下一轮先依据真实使用证据更新一个既有功能设计文档。运营收件箱跨全部分页窗口与 Application Operations 全历史聚合仍等待真实需求，token 估算、价格、quota / billing、真实 secret / endpoint、production 与真实 OIDC 继续关闭。
+2026-07-29 当前执行口径：[已保存 Workflow 草案库生命周期与组织](workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md)批次 A 至 E、[应用解除归档与安全重新启用](user-workspace/application-unarchive-safe-reactivation-dev-test-v1.md)批次 A 至 C，以及 [API 密钥引导式轮换与验证后退役](user-workspace/api-key-guided-rotation-verified-retirement-dev-test-v1.md)批次 A、B 均已完成并关闭唯一高风险任务卡。三条链已分别固定草案活动 / 归档与双版本生命周期、应用安全重新启用及下游重新资格判断、同 scopes 密钥替代与验证后精确退役，并具备三种 store、Web 和真实浏览器连续证据。当前没有已准入的产品实现任务；下一轮先复盘真实使用，再更新一个既有功能设计文档。运营收件箱跨全部分页窗口与 Application Operations 全历史聚合仍等待真实需求，自动轮换、持久 rotation owner、token 估算、价格、quota / billing、真实 secret / endpoint、production 与真实 OIDC 继续关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
