@@ -15,7 +15,6 @@ import (
 
 func TestSavedWorkflowDraftSQLiteLibraryMatchesMemoryGoldenMatrix(t *testing.T) {
 	requestContext := savedWorkflowDraftSQLiteContext()
-	memoryService := newSavedWorkflowDraftService(newMemorySavedWorkflowDraftStore())
 	sqliteRuntime := openSavedWorkflowDraftSQLiteRuntime(
 		t,
 		filepath.Join(t.TempDir(), "library-matrix.db"),
@@ -25,51 +24,12 @@ func TestSavedWorkflowDraftSQLiteLibraryMatchesMemoryGoldenMatrix(t *testing.T) 
 			newSQLiteSavedWorkflowDraftStore(sqliteRuntime.DB()),
 		),
 	)
-	populateSavedWorkflowDraftLibraryFixture(t, &memoryService, requestContext)
-	populateSavedWorkflowDraftLibraryFixture(t, &sqliteService, requestContext)
-
-	cases := []ListWorkflowDraftsRequest{
-		{LifecycleState: SavedWorkflowDraftLifecycleActive, Limit: 5},
-		{LifecycleState: SavedWorkflowDraftLifecycleArchived, Limit: 5},
-		{
-			LifecycleState: SavedWorkflowDraftLifecycleActive,
-			Limit:          5,
-			NamePrefix:     "Alpha",
-		},
-		{
-			LifecycleState:  SavedWorkflowDraftLifecycleActive,
-			Limit:           5,
-			ValidationState: SavedWorkflowDraftStatusBlockedCapability,
-		},
-		{
-			LifecycleState: SavedWorkflowDraftLifecycleActive,
-			Limit:          5,
-			ProvenanceKind: SavedWorkflowDraftProvenanceDraftDerived,
-		},
-		{
-			LifecycleState: SavedWorkflowDraftLifecycleActive,
-			Limit:          5,
-			ProvenanceKind: SavedWorkflowDraftProvenanceUnversioned,
-		},
-	}
-	for _, request := range cases {
-		memoryIDs := collectSavedWorkflowDraftLibraryIDs(
-			t,
-			memoryService,
-			requestContext,
-			request,
-		)
-		sqliteIDs := collectSavedWorkflowDraftLibraryIDs(
-			t,
-			sqliteService,
-			requestContext,
-			request,
-		)
-		if !reflect.DeepEqual(sqliteIDs, memoryIDs) {
-			t.Fatalf("SQLite library matrix drifted for %#v: sqlite=%v memory=%v",
-				request, sqliteIDs, memoryIDs)
-		}
-	}
+	assertSavedWorkflowDraftLibraryMatchesMemoryGoldenMatrix(
+		t,
+		"SQLite",
+		sqliteService,
+		requestContext,
+	)
 }
 
 func TestSavedWorkflowDraftSQLiteLibraryContractRequiresExplicitOptIn(t *testing.T) {
@@ -107,6 +67,56 @@ func TestSavedWorkflowDraftSQLiteLibraryContractRequiresExplicitOptIn(t *testing
 	libraryStore := newRepositorySavedWorkflowDraftLibraryStore(store)
 	if _, ok := any(libraryStore).(savedWorkflowDraftLibraryStore); !ok {
 		t.Fatal("repository library wrapper does not expose the library service contract")
+	}
+}
+
+func TestSavedWorkflowDraftSQLiteLifecycleTransitionRequiresArchiveScope(t *testing.T) {
+	runtime := openSavedWorkflowDraftSQLiteRuntime(
+		t,
+		filepath.Join(t.TempDir(), "lifecycle-archive-scope.db"),
+	)
+	service := newSavedWorkflowDraftService(
+		newRepositorySavedWorkflowDraftLibraryStore(
+			newSQLiteSavedWorkflowDraftStore(runtime.DB()),
+		),
+	)
+	saveContext := savedWorkflowDraftSQLiteContext()
+	saved := service.SaveDraft(
+		saveContext,
+		SaveWorkflowDraftRequest{Payload: validSavedWorkflowDraftPayload()},
+	)
+	if saved.FailureCode != "" || saved.Draft == nil {
+		t.Fatalf("save SQLite lifecycle scope fixture: %#v", saved)
+	}
+
+	archiveContext := saveContext
+	archiveContext.ScopeGrants = []string{"workflow_drafts:read", "workflow_drafts:archive"}
+	archived := service.ArchiveDraft(
+		archiveContext,
+		TransitionSavedWorkflowDraftLifecycleRequest{
+			DraftID:                  saved.Draft.DraftID,
+			ExpectedDraftVersion:     saved.Draft.DraftVersion,
+			ExpectedLifecycleVersion: saved.Draft.LifecycleVersion,
+		},
+	)
+	if archived.FailureCode != "" || archived.Draft == nil {
+		t.Fatalf("archive scope should authorize the repository transition: %#v", archived)
+	}
+
+	writeOnlyContext := saveContext
+	writeOnlyContext.ScopeGrants = []string{"workflow_drafts:read", "workflow_drafts:write"}
+	unarchive := service.UnarchiveDraft(
+		writeOnlyContext,
+		TransitionSavedWorkflowDraftLifecycleRequest{
+			DraftID:                  archived.Draft.DraftID,
+			ExpectedDraftVersion:     archived.Draft.DraftVersion,
+			ExpectedLifecycleVersion: archived.Draft.LifecycleVersion,
+		},
+	)
+	if unarchive.FailureCode != SavedWorkflowDraftFailureScopeGrantMissing ||
+		unarchive.Draft != nil ||
+		unarchive.Event != nil {
+		t.Fatalf("write scope must not substitute for archive scope: %#v", unarchive)
 	}
 }
 
@@ -455,16 +465,17 @@ func populateSavedWorkflowDraftLibraryFixture(
 ) {
 	t.Helper()
 	baseTime := time.Date(2026, 7, 28, 10, 0, 0, 0, time.UTC)
-	for index := 0; index < 14; index++ {
-		service.now = func() time.Time { return baseTime.Add(time.Duration(index) * time.Second) }
+	const draftCount = 231
+	for index := 0; index < draftCount; index++ {
+		service.now = func() time.Time { return baseTime }
 		payload := validSavedWorkflowDraftPayload()
-		payload.DraftID = fmt.Sprintf("draft_library_%02d", index)
-		payload.Name = fmt.Sprintf("Beta draft %02d", index)
+		payload.DraftID = fmt.Sprintf("draft_library_%03d", index)
+		payload.Name = fmt.Sprintf("Beta draft %03d", index)
 		payload.BaseDefinitionVersion = 0
 		payload.SourceDefinitionID = ""
 		switch index % 3 {
 		case 0:
-			payload.Name = fmt.Sprintf("Alpha draft %02d", index)
+			payload.Name = fmt.Sprintf("Alpha draft %03d", index)
 		case 1:
 			payload.BaseDefinitionVersion = 3
 			payload.SourceDefinitionID = "workflow_definition_demo"
@@ -473,7 +484,7 @@ func populateSavedWorkflowDraftLibraryFixture(
 				savedWorkflowDraftDerivationAdditionalField: map[string]any{
 					"version":              1,
 					"source_kind":          savedWorkflowDraftDerivationSourceKind,
-					"source_draft_id":      "draft_library_01",
+					"source_draft_id":      "draft_library_001",
 					"source_draft_version": 1,
 				},
 			}
@@ -495,7 +506,7 @@ func populateSavedWorkflowDraftLibraryFixture(
 		if result.FailureCode != "" || result.Draft == nil {
 			t.Fatalf("save library fixture %d: %#v", index, result)
 		}
-		if index%5 == 0 {
+		if index%13 == 0 {
 			service.now = func() time.Time {
 				return baseTime.Add(time.Hour + time.Duration(index)*time.Second)
 			}
@@ -510,6 +521,72 @@ func populateSavedWorkflowDraftLibraryFixture(
 			if archived.FailureCode != "" {
 				t.Fatalf("archive library fixture %d: %#v", index, archived)
 			}
+		}
+	}
+}
+
+func assertSavedWorkflowDraftLibraryMatchesMemoryGoldenMatrix(
+	t *testing.T,
+	storeLabel string,
+	persistentService savedWorkflowDraftService,
+	requestContext SavedWorkflowDraftContext,
+) {
+	t.Helper()
+	memoryService := newSavedWorkflowDraftService(newMemorySavedWorkflowDraftStore())
+	populateSavedWorkflowDraftLibraryFixture(t, &memoryService, requestContext)
+	populateSavedWorkflowDraftLibraryFixture(t, &persistentService, requestContext)
+
+	requests := []ListWorkflowDraftsRequest{
+		{LifecycleState: SavedWorkflowDraftLifecycleActive, Limit: 100},
+		{LifecycleState: SavedWorkflowDraftLifecycleArchived, Limit: 25},
+		{
+			LifecycleState: SavedWorkflowDraftLifecycleActive,
+			Limit:          37,
+			NamePrefix:     "Alpha",
+		},
+		{
+			LifecycleState:  SavedWorkflowDraftLifecycleActive,
+			Limit:           37,
+			ValidationState: SavedWorkflowDraftStatusBlockedCapability,
+		},
+		{
+			LifecycleState: SavedWorkflowDraftLifecycleActive,
+			Limit:          37,
+			ProvenanceKind: SavedWorkflowDraftProvenanceDraftDerived,
+		},
+		{
+			LifecycleState: SavedWorkflowDraftLifecycleActive,
+			Limit:          37,
+			ProvenanceKind: SavedWorkflowDraftProvenanceUnversioned,
+		},
+		{
+			LifecycleState:  SavedWorkflowDraftLifecycleActive,
+			Limit:           17,
+			NamePrefix:      "Alpha",
+			ValidationState: SavedWorkflowDraftStatusBlockedCapability,
+			ProvenanceKind:  SavedWorkflowDraftProvenanceUnversioned,
+		},
+	}
+	for index, request := range requests {
+		memoryIDs := collectSavedWorkflowDraftLibraryIDs(
+			t,
+			memoryService,
+			requestContext,
+			request,
+		)
+		persistentIDs := collectSavedWorkflowDraftLibraryIDs(
+			t,
+			persistentService,
+			requestContext,
+			request,
+		)
+		if !reflect.DeepEqual(persistentIDs, memoryIDs) {
+			t.Fatalf("%s library matrix drifted for %#v: persistent=%v memory=%v",
+				storeLabel, request, persistentIDs, memoryIDs)
+		}
+		if index == 0 && len(persistentIDs) <= 200 {
+			t.Fatalf("%s active library did not cross the 200-record boundary: got %d",
+				storeLabel, len(persistentIDs))
 		}
 	}
 }

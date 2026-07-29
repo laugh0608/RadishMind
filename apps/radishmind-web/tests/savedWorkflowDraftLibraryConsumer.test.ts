@@ -41,7 +41,12 @@ test("saved draft library list sends the exact query and maps lifecycle paginati
     });
     const headers = new Headers(init?.headers);
     assert.equal(headers.get("X-RadishMind-Dev-Read-Scopes"), "workflow_drafts:read");
-    assert.equal(headers.get("X-RadishMind-Active-Workspace"), null);
+    assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+    assert.equal(
+      headers.get("X-RadishMind-Dev-Read-Membership-Permissions"),
+      "workflow_drafts:read",
+    );
     return jsonResponse(listEnvelope([summaryDocument("draft_review", "archived")], {
       nextCursor: "opaque-next",
       hasMore: true,

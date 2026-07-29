@@ -160,7 +160,7 @@ function toRunRecordRow(run: RunRecordSummary): WorkspaceRunRecordRow {
     applicationRef: run.application_ref,
     status: run.status,
     failureCode: run.failure_code ?? "none",
-    estimatedCost: formatCost(run.cost_summary.estimated_cost, run.cost_summary.currency),
+    estimatedCost: formatCost(run.cost_summary),
     traceId: run.trace_id,
     startedAt: run.started_at,
     completedAt: run.completed_at ?? "still running",
@@ -254,6 +254,19 @@ function buildStatePreviews(
   ];
 }
 
-function formatCost(value: number, currency: string): string {
+function formatCost(costSummary: RunRecordSummary["cost_summary"]): string {
+  const { estimated_cost: value, currency } = costSummary;
+  if (value === undefined && currency === undefined) {
+    return "unavailable";
+  }
+  if (
+    typeof value !== "number" ||
+    !Number.isFinite(value) ||
+    value < 0 ||
+    typeof currency !== "string" ||
+    !/^[A-Z]{3}$/u.test(currency)
+  ) {
+    return "invalid";
+  }
   return `${currency} ${value.toFixed(2)}`;
 }

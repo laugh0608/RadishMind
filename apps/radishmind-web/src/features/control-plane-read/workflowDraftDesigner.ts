@@ -12,6 +12,7 @@ import {
   type WorkflowDefinitionDetailNode,
 } from "./workflowDefinitionDetail";
 import { buildWorkflowConfirmationPlaceholderViewModel, type WorkflowConfirmationPlaceholderViewModel } from "./workflowConfirmationPlaceholder";
+import { workflowDraftHasLocalWorkspaceIdentity } from "./workflowSavedDraftDerivation";
 import type { WorkspaceWorkflowDefinitionRow } from "./workspaceWorkflowDefinitions";
 
 export type WorkflowDraftDesignerTemplate = {
@@ -228,12 +229,11 @@ export function buildWorkflowDraftDesignerViewModel(
       auditRef,
     );
   });
-  // A newly derived draft can precede the next read-side definition summary refresh.
-  // Local drafts are already explicit workspace state, so keep every scoped draft
-  // without requiring a possibly stale read-side definition summary.
-  const localDrafts = (source.localDrafts ?? []).filter(
-    (draft) => draft.applicationRef.trim() !== "" && draft.workflowDefinitionId.trim() !== "",
-  );
+  // A newly created or derived draft can exist before the application has any
+  // published workflow definition. Local drafts are already explicit workspace
+  // state, so scope them by their own stable draft/application identity instead
+  // of requiring a read-side definition reference.
+  const localDrafts = (source.localDrafts ?? []).filter(workflowDraftHasLocalWorkspaceIdentity);
   const drafts = [...baseDrafts, ...localDrafts];
   const forbiddenProjectionBlocked = controlPlaneReadResponseHasForbiddenOutput({
     draft: { [CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS[7]]: "blocked" },

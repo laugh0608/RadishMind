@@ -678,9 +678,10 @@ probe_control_plane_read_routes() {
   local base_url="$1"
   local tenant="$2"
   local subject="$3"
-  "${python_bin}" - "$base_url" "$tenant" "$subject" "${application_catalog_postgres_dev_test}" "${saved_draft_workspace_id}" "${platform_profile}" <<'PY'
+  "${python_bin}" - "$base_url" "$tenant" "$subject" "${application_catalog_postgres_dev_test}" "${saved_draft_workspace_id}" "${platform_profile}" "${workflow_definition_enabled}" <<'PY'
 import json
 import sys
+from urllib.error import HTTPError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
@@ -690,6 +691,7 @@ subject = sys.argv[3]
 catalog_enabled = sys.argv[4] == "1"
 workspace_id = sys.argv[5]
 local_product = sys.argv[6] == "local-product"
+workflow_definition_enabled = sys.argv[7] == "1"
 application_route = "/v1/user-workspace/applications"
 if catalog_enabled or local_product:
     application_route += f"?workspace_id={quote(workspace_id)}&lifecycle_state=active&limit=1"
@@ -697,15 +699,15 @@ api_key_route = "/v1/user-workspace/api-keys"
 if local_product or catalog_enabled:
     api_key_route += f"?workspace_id={quote(workspace_id)}&limit=1"
 routes = [
-    f"/v1/control-plane/tenants/{quote(tenant)}/summary",
-    application_route,
-    api_key_route,
-    "/v1/user-workspace/usage/quota-summary",
-    "/v1/user-workspace/workflow-definitions",
-    "/v1/user-workspace/runs",
-    "/v1/control-plane/audit",
+    (f"/v1/control-plane/tenants/{quote(tenant)}/summary", False),
+    (application_route, not (local_product or catalog_enabled)),
+    (api_key_route, not (local_product or catalog_enabled)),
+    ("/v1/user-workspace/runs", True),
+    ("/v1/control-plane/audit", False),
 ]
-headers = {
+if workflow_definition_enabled:
+    routes.insert(3, ("/v1/user-workspace/workflow-definitions", True))
+base_headers = {
     "Accept": "application/json",
     "X-Request-Id": "dev-live-script-probe",
     "X-RadishMind-Dev-Read-Identity": "dev-live-read-consumer",
@@ -714,9 +716,19 @@ headers = {
     "X-RadishMind-Dev-Read-Scopes": "tenant:read,applications:read,api_keys:read,usage:read,runs:read,audit:read",
     "X-RadishMind-Dev-Read-Audit": "audit_dev_live_script_probe",
 }
-for path in routes:
+workspace_headers = {
+    **base_headers,
+    "X-RadishMind-Active-Workspace": workspace_id,
+    "X-RadishMind-Dev-Read-Membership-Workspace": workspace_id,
+    "X-RadishMind-Dev-Read-Membership-Permissions": "applications:read,api_keys:read,usage:read,runs:read",
+}
+for path, workspace_scoped in routes:
     url = f"{base_url}{path}"
-    request = Request(url, headers=headers, method="GET")
+    request = Request(
+        url,
+        headers=workspace_headers if workspace_scoped else base_headers,
+        method="GET",
+    )
     with urlopen(request, timeout=5) as response:
         if response.status < 200 or response.status >= 300:
             raise SystemExit(f"Unexpected HTTP status {response.status} from {url}")
@@ -727,6 +739,36 @@ for path in routes:
         raise SystemExit(f"Route returned failure_code={document.get('failure_code')} from {url}")
     if not isinstance(document.get("items"), list):
         raise SystemExit(f"Route did not return items[] from {url}")
+
+quota_url = f"{base_url}/v1/user-workspace/usage/quota-summary"
+quota_request = Request(quota_url, headers=workspace_headers, method="GET")
+
+def require_failure(request, expected_status, expected_failure, label):
+    try:
+        urlopen(request, timeout=5)
+    except HTTPError as error:
+        document = json.loads(error.read().decode("utf-8"))
+        if error.code != expected_status or document.get("failure_code") != expected_failure:
+            raise SystemExit(
+                f"{label} returned HTTP {error.code}: {document}"
+            )
+    else:
+        raise SystemExit(f"{label} unexpectedly succeeded")
+
+require_failure(
+    quota_request,
+    503,
+    "quota_policy_unavailable",
+    "Quota fail-closed probe",
+)
+if not workflow_definition_enabled:
+    definition_url = f"{base_url}/v1/user-workspace/workflow-definitions"
+    require_failure(
+        Request(definition_url, headers=workspace_headers, method="GET"),
+        503,
+        "read_store_unavailable",
+        "Disabled Workflow Definition read owner probe",
+    )
 PY
 }
 
@@ -823,6 +865,9 @@ request = Request(
         "X-RadishMind-Dev-Read-Subject": subject,
         "X-RadishMind-Dev-Read-Scopes": "workflow_drafts:read,workflow_drafts:write",
         "X-RadishMind-Dev-Read-Audit": "audit_dev_live_saved_draft_probe",
+        "X-RadishMind-Active-Workspace": workspace_id,
+        "X-RadishMind-Dev-Read-Membership-Workspace": workspace_id,
+        "X-RadishMind-Dev-Read-Membership-Permissions": "workflow_drafts:read,workflow_drafts:write,workflow_drafts:archive",
         "X-RadishMind-Dev-Workflow-Workspace": workspace_id,
         "X-RadishMind-Dev-Workflow-Application": application_id,
     },
@@ -862,6 +907,9 @@ request = Request(url, headers={
     "X-RadishMind-Dev-Read-Subject": subject,
     "X-RadishMind-Dev-Read-Scopes": "workflow_definitions:read",
     "X-RadishMind-Dev-Read-Audit": "audit_dev_live_workflow_definition_probe",
+    "X-RadishMind-Active-Workspace": workspace_id,
+    "X-RadishMind-Dev-Read-Membership-Workspace": workspace_id,
+    "X-RadishMind-Dev-Read-Membership-Permissions": "workflow_definitions:read",
     "X-RadishMind-Dev-Workflow-Workspace": workspace_id,
     "X-RadishMind-Dev-Workflow-Application": application_id,
 }, method="GET")
@@ -944,6 +992,9 @@ request = Request(
         "X-RadishMind-Dev-Read-Subject": subject,
         "X-RadishMind-Dev-Read-Scopes": "workflow_drafts:read,workflow_runs:execute,workflow_runs:read",
         "X-RadishMind-Dev-Read-Audit": "audit_dev_live_workflow_executor_probe",
+        "X-RadishMind-Active-Workspace": workspace_id,
+        "X-RadishMind-Dev-Read-Membership-Workspace": workspace_id,
+        "X-RadishMind-Dev-Read-Membership-Permissions": "workflow_drafts:read,workflow_runs:execute,workflow_runs:read",
         "X-RadishMind-Dev-Workflow-Workspace": workspace_id,
         "X-RadishMind-Dev-Workflow-Application": application_id,
     },

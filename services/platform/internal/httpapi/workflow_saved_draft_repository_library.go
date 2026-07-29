@@ -103,7 +103,7 @@ func (adapter SavedWorkflowDraftRepositoryAdapter) TransitionWorkflowDraftLifecy
 	actor = normalizeSavedWorkflowDraftRepositoryActorContext(actor)
 	if failureCode := savedWorkflowDraftRepositoryActorFailure(
 		actor,
-		"workflow_drafts:write",
+		"workflow_drafts:archive",
 	); failureCode != "" {
 		return TransitionWorkflowDraftLifecycleRecordResult{FailureCode: failureCode}
 	}

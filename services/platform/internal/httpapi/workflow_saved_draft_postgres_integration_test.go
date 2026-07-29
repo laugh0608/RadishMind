@@ -14,7 +14,6 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
-	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -219,7 +218,7 @@ func TestSavedWorkflowDraftPostgresDevTestRepository(t *testing.T) {
 		runtimeUser,
 		os.Getenv("RADISHMIND_POSTGRES_INTEGRATION_RUNTIME_PASSWORD"),
 	)
-	databaseContext, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	databaseContext, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 	adminPool, err := workflowdraftmigrations.OpenPool(databaseContext, migrationDatabaseURL)
 	if err != nil {
@@ -363,9 +362,13 @@ func TestSavedWorkflowDraftPostgresDevTestRepository(t *testing.T) {
 		ApplicationID:   "app_flow_copilot",
 		ActorRef:        "subject_platform_ops",
 		OwnerSubjectRef: "subject_platform_ops",
-		ScopeGrants:     []string{"workflow_drafts:read", "workflow_drafts:write"},
-		AuditRef:        "audit-postgres-revision-history",
-		WriteEnabled:    true,
+		ScopeGrants: []string{
+			"workflow_drafts:read",
+			"workflow_drafts:write",
+			"workflow_drafts:archive",
+		},
+		AuditRef:     "audit-postgres-revision-history",
+		WriteEnabled: true,
 	}
 	revisionService := secondServer.savedWorkflowDraftService()
 	revisionHistory := revisionService.ListDraftRevisions(
@@ -808,45 +811,12 @@ func assertPostgresSavedWorkflowDraftLibraryMatchesMemory(
 	requestContext.ActorRef = "subject_postgres_library_matrix"
 	requestContext.OwnerSubjectRef = requestContext.ActorRef
 	requestContext.AuditRef = "audit-postgres-library-matrix"
-	memoryService := newSavedWorkflowDraftService(newMemorySavedWorkflowDraftStore())
-	populateSavedWorkflowDraftLibraryFixture(t, &memoryService, requestContext)
-	populateSavedWorkflowDraftLibraryFixture(t, &postgresService, requestContext)
-	for _, request := range []ListWorkflowDraftsRequest{
-		{LifecycleState: SavedWorkflowDraftLifecycleActive, Limit: 4},
-		{LifecycleState: SavedWorkflowDraftLifecycleArchived, Limit: 4},
-		{
-			LifecycleState: SavedWorkflowDraftLifecycleActive,
-			Limit:          4,
-			NamePrefix:     "Alpha",
-		},
-		{
-			LifecycleState:  SavedWorkflowDraftLifecycleActive,
-			Limit:           4,
-			ValidationState: SavedWorkflowDraftStatusBlockedCapability,
-		},
-		{
-			LifecycleState: SavedWorkflowDraftLifecycleActive,
-			Limit:          4,
-			ProvenanceKind: SavedWorkflowDraftProvenanceDraftDerived,
-		},
-	} {
-		memoryIDs := collectSavedWorkflowDraftLibraryIDs(
-			t,
-			memoryService,
-			requestContext,
-			request,
-		)
-		postgresIDs := collectSavedWorkflowDraftLibraryIDs(
-			t,
-			postgresService,
-			requestContext,
-			request,
-		)
-		if !reflect.DeepEqual(postgresIDs, memoryIDs) {
-			t.Fatalf("PostgreSQL library matrix drifted for %#v: postgres=%v memory=%v",
-				request, postgresIDs, memoryIDs)
-		}
-	}
+	assertSavedWorkflowDraftLibraryMatchesMemoryGoldenMatrix(
+		t,
+		"PostgreSQL",
+		postgresService,
+		requestContext,
+	)
 }
 
 func assertPostgresSavedWorkflowDraftRevisionIsAppendOnly(

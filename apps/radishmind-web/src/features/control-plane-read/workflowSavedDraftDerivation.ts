@@ -11,6 +11,12 @@ export type WorkflowSavedDraftDerivationState = {
   currentLifecycleState?: string;
 };
 
+export function workflowDraftHasLocalWorkspaceIdentity(
+  draft: Pick<WorkflowDraftDesignerDraft, "draftId" | "applicationRef">,
+): boolean {
+  return draft.draftId.trim() !== "" && draft.applicationRef.trim() !== "";
+}
+
 export function canDeriveSavedWorkflowDraft(
   state: WorkflowSavedDraftDerivationState,
   draftEditDirty: boolean,

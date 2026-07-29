@@ -252,7 +252,11 @@ func savedWorkflowDraftSQLiteContext() SavedWorkflowDraftContext {
 	requestContext.RequestContext = context.Background()
 	requestContext.TenantRef = "tenant:demo"
 	requestContext.OwnerSubjectRef = requestContext.ActorRef
-	requestContext.ScopeGrants = []string{"workflow_drafts:read", "workflow_drafts:write"}
+	requestContext.ScopeGrants = []string{
+		"workflow_drafts:read",
+		"workflow_drafts:write",
+		"workflow_drafts:archive",
+	}
 	return requestContext
 }
 

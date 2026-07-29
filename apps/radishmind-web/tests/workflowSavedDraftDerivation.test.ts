@@ -5,6 +5,7 @@ import type { WorkflowDraftDesignerDraft } from "../src/features/control-plane-r
 import {
   buildDerivedWorkflowDraft,
   canDeriveSavedWorkflowDraft,
+  workflowDraftHasLocalWorkspaceIdentity,
 } from "../src/features/control-plane-read/workflowSavedDraftDerivation.ts";
 import {
   saveWorkflowDraftDevRecord,
@@ -27,6 +28,24 @@ test("saved draft derivation requires a clean exact saved version", () => {
   );
   assert.equal(
     canDeriveSavedWorkflowDraft({ status: "saved_dev_record", currentDraftVersion: 0, currentLifecycleState: "active" }, false, false),
+    false,
+  );
+});
+
+test("local draft identity does not require a published workflow definition", () => {
+  assert.equal(
+    workflowDraftHasLocalWorkspaceIdentity({
+      draftId: "draft_unversioned",
+      applicationRef: "app_without_definition",
+    }),
+    true,
+  );
+  assert.equal(
+    workflowDraftHasLocalWorkspaceIdentity({ draftId: "", applicationRef: "app_without_definition" }),
+    false,
+  );
+  assert.equal(
+    workflowDraftHasLocalWorkspaceIdentity({ draftId: "draft_invalid", applicationRef: "" }),
     false,
   );
 });

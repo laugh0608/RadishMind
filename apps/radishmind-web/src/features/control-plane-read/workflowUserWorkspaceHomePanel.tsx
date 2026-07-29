@@ -189,20 +189,20 @@ export function WorkflowUserWorkspaceHomePanel({
             <input
               value={draftFilters.namePrefix}
               maxLength={80}
-              onChange={(event) => setDraftFilters((filters) => ({
-                ...filters,
+              onChange={(event) => setDraftFilters({
+                ...draftFilters,
                 namePrefix: event.currentTarget.value,
-              }))}
+              })}
             />
           </label>
           <label>
             <span>Validation</span>
             <select
               value={draftFilters.validationState}
-              onChange={(event) => setDraftFilters((filters) => ({
-                ...filters,
+              onChange={(event) => setDraftFilters({
+                ...draftFilters,
                 validationState: event.currentTarget.value as WorkflowSavedDraftLibraryFilters["validationState"],
-              }))}
+              })}
             >
               <option value="">全部</option>
               <option value="valid_for_review">valid_for_review</option>
@@ -215,10 +215,10 @@ export function WorkflowUserWorkspaceHomePanel({
             <span>Provenance</span>
             <select
               value={draftFilters.provenanceKind}
-              onChange={(event) => setDraftFilters((filters) => ({
-                ...filters,
+              onChange={(event) => setDraftFilters({
+                ...draftFilters,
                 provenanceKind: event.currentTarget.value as WorkflowSavedDraftLibraryFilters["provenanceKind"],
-              }))}
+              })}
             >
               <option value="">全部</option>
               <option value="unversioned">unversioned</option>

@@ -1097,7 +1097,9 @@ export function savedWorkflowDraftHeadersForApplication(
       : DEFAULT_READ_SCOPES;
   const membershipPermissions = access === "archive"
     ? "workflow_drafts:read,workflow_drafts:archive"
-    : "workflow_drafts:read,workflow_drafts:write";
+    : access === "write"
+      ? "workflow_drafts:read,workflow_drafts:write"
+      : "workflow_drafts:read";
   return {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -1107,11 +1109,9 @@ export function savedWorkflowDraftHeadersForApplication(
     "X-RadishMind-Dev-Read-Subject": config.subjectRef,
     "X-RadishMind-Dev-Read-Scopes": scopes,
     "X-RadishMind-Dev-Read-Audit": "audit_dev_saved_draft_consumer",
-    ...(access !== "read" ? {
-      "X-RadishMind-Active-Workspace": config.workspaceId,
-      "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
-      "X-RadishMind-Dev-Read-Membership-Permissions": membershipPermissions,
-    } : {}),
+    "X-RadishMind-Active-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Read-Membership-Permissions": membershipPermissions,
     "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Workflow-Application": applicationRef,
   };
