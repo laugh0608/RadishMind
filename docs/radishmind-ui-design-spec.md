@@ -10,9 +10,9 @@ family-ui 家族通用规范现以 RadishX `docs/design/family-ui/` `v26.7.2` �
 
 ## 文档目的
 
-本文档是 RadishMind 前端 UI 的正式设计规范源，用于约束 `apps/radishmind-console/`、`apps/radishmind-web/`、Pencil 设计稿和后续 React 实现任务。
+本文档保留 RadishMind 早期前端页面范围、状态语义和 Pencil 治理依据，供 `apps/radishmind-console/`、`apps/radishmind-web/` 迁移时核对。当前家族通用规范、项目差异和产品化协作方式分别以 family-ui、[UI 差异附录](ui-addendum.md)与 [Family UI 产品化专题](features/user-workspace/radishmind-family-ui-productization-v1.md)为准。
 
-[UI 设计参考](radishmind-ui-design-reference.md) 只提供灵感素材和外部产品观察；本文件定义 RadishMind 自己的视觉目标、语义 token、组件规则、状态表达、窄屏策略和设计稿治理要求。
+[UI 设计参考](radishmind-ui-design-reference.md) 只提供灵感素材和外部产品观察；本文件中的领域状态、窄屏原则和历史页面清单继续作为迁移输入，但不再独立覆盖当前 family-ui 视觉规则或设计基准面分级。
 
 当前规范同时服务 `UI Design Topic / Pencil Draft`、`P3 Local Product Shell / Ops Surface`、Control Plane read-side product UI shell，以及显式开发测试态的 Workflow / Application 受控运行面板。它不声明正式 production console 已完成，也不把开发测试态 executor、持久化、人工审查或会话编排画成 production、业务写回或 replay 能力。
 
@@ -190,7 +190,7 @@ RadishMind UI 分成两个当前实现面：
 
 ## 页面范围
 
-首批 Pencil 与 React 实现必须覆盖：
+以下是早期 Pencil 与 React 的历史覆盖清单，用于识别已有领域面和停止线，不表示每项都必须建立独立 Pencil 画板。当前批次先按页面族归并，再依照 [Family UI 产品化专题的设计基准面分级](features/user-workspace/radishmind-family-ui-productization-v1.md#pencil-协作模型)决定完整 Pencil、局部 Pencil 或直接实现：
 
 1. `Local Overview`
    - service status
@@ -309,22 +309,27 @@ Control Plane read-side 页面必须继续使用紧凑工作台布局，不做�
 
 ## Pencil 设计稿治理
 
-`.pen` 是 UI 设计源文件，必须进入 `docs/designs/`。
+`.pen` 是信息层级、布局、组件关系、交互语义和响应式顺序的设计源文件，必须进入 `docs/designs/`；它不是功能、文案、按钮、数据来源或权限条件的真相源，也不承载完整页面清单。
 
 设计稿要求：
 
 - 文件名表达端点和职责。
-- 主桌面稿使用 `1920x1080`。
-- 窄屏稿使用 `1080x1920`。
-- 每个主要页面标明 ready、failed/stale、blocked 或 loading 的至少一种对应状态。
+- 画板尺寸遵循当前产品化专题；历史 `1920x1080` / `1080x1920` 稿只作为迁移证据。
+- “主要页面”统一按设计基准面理解：它是为页面族冻结新结构、交互、风险表达或响应式策略的最小代表面，不等于重要路由或完整功能页。
+- 打开 Pencil 前必须核对当前功能文档和代码，并在产品化专题记录页面族、覆盖级别、代码锚点、基线 commit、真实状态与停止线。
+- 完整 Pencil 只覆盖 `A` 级页面族；`B` 级只补无法推导的局部决策，`C` 级沿已评审模式直接实现。
+- 一个设计基准面默认只保留一个桌面代表状态；窄屏重排、关键失败、blocked、confirmation 或凭据状态只有在无法安全推导时才增加画板。
 - 设计稿中的控件必须区分当前可用、只读展示、未来确认流和明确 blocked。
-- 设计稿评审通过前，不把当前 console 壳扩成正式 UI 或大面积重构。
+- 不为字段、普通文案、按钮条件或相似页面复制完整画板，也不把代表性设计文案当作实现契约。
 
 实现映射要求：
 
-- 设计稿定稿后，拆成小的 React + Vite + TypeScript 实现任务。
-- 每个实现任务说明对应的 `.pen` 页面、涉及组件、可复用 token、验证入口和不做范围。
-- 若实现偏离设计稿，应先更新设计稿或在任务文档中记录原因。
+- 设计基准面评审后，先实现该代表面，再让同族页面直接复用已落地组件与模式。
+- 每个实现任务说明对应的 `surface_id`、Pencil 覆盖级别、涉及组件、可复用 token、验证入口和不做范围。
+- 当前 Family UI 产品化设计源为 `docs/designs/radishmind-web-family-ui-v1.pen`；首个覆盖记录 `radishmind_web_s1_product_shell_v1` 已完成桌面 partial 代表面与 `390x844` 单列重排，具体代码基线、参考图映射和停止线以产品化专题为准。
+- 实现中的文案、动作条件、数据与权限以当前功能文档、API 和代码为准；不为保持静态稿表面一致而恢复已过期内容。
+- 最终验收以运行中的 React 页面、真实浏览器桌面 / 窄屏截图、键盘路径、测试和 consumer smoke 为准。
+- 只有信息架构、交互模型、风险表达、共享组件结构或响应式顺序变化时回写 Pencil；功能事实变化更新其真实 owner，并在必要时记录偏离原因。
 
 ## 验收标准
 

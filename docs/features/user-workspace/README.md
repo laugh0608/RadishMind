@@ -6,8 +6,8 @@
 
 ## 当前专题
 
-- [RadishMind Family UI 参考图产品面映射 v1](radishmind-family-ui-reference-mapping-v1.md)：已把 family-ui `references.md` 的 `ref-01` 至 `ref-27` 逐项映射到产品壳、Application Workspace、Saved Draft / Designer、API Integration / Key，固定吸收原则、禁止照搬内容、Pencil 构件与版权停止线；下一步直接进入 `S1` 产品壳设计。
-- [RadishMind Family UI 产品化设计与迁移 v1](radishmind-family-ui-productization-v1.md)：基础批次已完成，family-ui `v26.7.2` `Workbench` token、项目别名、差异附录和页面状态矩阵已有可复验证据；当前转入 Pencil 真实任务设计，评审后再做逐页纵向迁移。
+- [RadishMind Family UI 参考图产品面映射 v1](radishmind-family-ui-reference-mapping-v1.md)：已把 family-ui `references.md` 的 `ref-01` 至 `ref-27` 逐项映射到产品壳、Application Workspace、Saved Draft / Designer、API Integration / Key，固定吸收原则、禁止照搬内容、Pencil 构件与版权停止线；`S1` 已消费产品壳对应映射。
+- [RadishMind Family UI 产品化设计与迁移 v1](radishmind-family-ui-productization-v1.md)：基础批次、参考图映射、Pencil 协作模型与 `S1` 设计基准面已完成；完整 Pencil 只覆盖四个 `A` 级页面族及必要变体，同族相似页面直接实现并以真实浏览器复核。
 - [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](workspace-scoped-mutation-authorization-dev-test-v1.md)：批次 A 至 E 共 47 条 mutation 已完成 identity / membership 双重权限、active workspace 唯一选择、原子组合与条件权限、稳定拒绝映射和零业务 / 外部副作用证据；专题关闭。
 - [工作区运营收件箱（开发 / 测试态）v1](workspace-operations-inbox-dev-test-v1.md)：批次 A 已完成四类既有 owner 首分页关注项、来源覆盖、稳定严重度、Web 既有详情跳转和 workspace 切换失败关闭；不新增运营或修复真相源。
 - [Workspace-scoped Read Transition / 工作区选择与成员资格绑定（开发 / 测试态）v1](workspace-scoped-read-transition-dev-test-v1.md)：批次 A、B 已完成共享 membership provider、五类 route 授权、四类 durable owner 读投影、workspace-wide Run cursor 与非持久化 Web selector；quota 和生产 membership 继续关闭。
@@ -30,7 +30,7 @@
 
 ## 下一步
 
-- 27 张参考图产品面映射已完成。下一步使用 Pencil 盘点既有设计源并先完成 `S1` 产品壳的 `1440x900` ready / partial 与 `390x844` 单列设计；评审通过后再进入 Application Workspace。
+- `S1` 产品壳 `A` 级基准面已在 `docs/designs/radishmind-web-family-ui-v1.pen` 完成：`1440x900` partial 代表面与 `390x844` 单列重排均无布局问题。下一步按 `radishmind_web_s1_product_shell_v1` 实施真实 React 产品壳、消除既有窄屏超宽并完成浏览器复核；通过后再进入 `S2` Application Workspace。
 - API 密钥引导式轮换与验证后退役已完成并关闭。下一轮先依据用户工作区与 Workflow 的真实使用证据更新对应功能设计；不从本专题扩自动轮换、持久 rotation owner 或生产凭据能力。
 - 工作区运营收件箱批次 A 已完成；先以真实开发测试使用反馈判断是否需要跨全部分页窗口的服务端 read projection。没有需求与统一 owner cursor 契约前不启动批次 B。
 - Workspace-scoped Read Transition 开发 / 测试态批次 A、B 已完成。条件式批次 C 只有在取得 reviewed Radish membership owner / endpoint、撤销 / 过期语义与 OIDC mapping 后才启动；否则回到功能入口选择新的用户工作区能力。

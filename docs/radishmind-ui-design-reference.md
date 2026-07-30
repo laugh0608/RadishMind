@@ -53,7 +53,7 @@ AFFINE 与 CodexApp 的截图是当前最重要的风格参考。它们共同的
 
 RadishMind 的 UI 不是通用文档工具、服务器面板、社区论坛或代码托管平台。它的核心界面应围绕平台运行、模型/profile inventory、session/tooling metadata、blocked action、local readiness、错误诊断和未来确认动作组织。
 
-未来 Pencil 设计稿至少应覆盖以下页面或状态：
+以下是早期识别的候选页面族和状态，不代表每项都必须建立完整 Pencil 画板。当前应先按 [Family UI 产品化专题](features/user-workspace/radishmind-family-ui-productization-v1.md#pencil-协作模型)完成设计基准面分级，再决定完整设计、局部设计或直接实现：
 
 1. `Local Overview`：服务状态、当前 provider/profile、可用 route、停止线摘要。
 2. `Local Readiness`：healthz、overview、local-smoke、CORS、端口、no-side-effects 和诊断提示。
@@ -66,14 +66,14 @@ RadishMind 的 UI 不是通用文档工具、服务器面板、社区论坛或�
 
 - Pencil 设计稿必须同时遵守 [UI 设计规范](radishmind-ui-design-spec.md)，本页只提供参考素材和外部观察。
 - `pencil` 设计稿应先定信息架构和关键状态，不先追求装饰细节。
-- 每个主要页面要同时画 ready、loading、failed / stale 和 blocked 状态。
+- `A` 级设计基准面只画一个桌面代表状态，以及无法从中安全推导的窄屏或关键风险状态；不为 ready、loading、failed / stale 和 blocked 机械复制完整页面。
 - 设计稿中必须标明哪些控件只是只读展示，哪些未来可能进入 confirmation flow。
-- 不在设计稿定稿前大面积重构 `apps/radishmind-console/` 的视觉系统。
-- 定稿后再把设计拆成小的 React + Vite + TypeScript 实现任务，并补对应 visual smoke 或行为门禁。
+- 对应设计基准面评审前，不大面积重构其结构；同族 `B` / `C` 级页面可在已评审模式落地后直接实现。
+- 基准面评审后再拆成小的 React + Vite + TypeScript 实现任务，并补对应 visual smoke 或行为门禁。
 
 ## 不做什么
 
 - 不直接照抄 AFFINE、CodexApp、1Panel、Discourse、GitHub 或 Cloudflare 的品牌、图标、页面结构和配色。
 - 不把参考截图中的营销感、社交产品语境或通用后台能力直接搬进 RadishMind。
 - 不为了“好看”牺牲平台边界：executor、durable store、confirmation、业务写回和 replay 未 ready 时，UI 必须继续明确 blocked / read-only。
-- 不在没有 Pencil 定稿前，把当前本地 console 当作最终产品 UI。
+- 不在没有完成设计基准面判定与对应结构评审前，把当前本地 console 当作最终产品 UI。

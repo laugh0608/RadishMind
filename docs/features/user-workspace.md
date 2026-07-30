@@ -62,7 +62,7 @@
 
 ## 下一批开发方向
 
-1. `user_workspace_real_path_ui_coherence_v1` 已完成并关闭。[RadishMind Family UI 产品化设计与迁移 v1](user-workspace/radishmind-family-ui-productization-v1.md) 的 family-ui `v26.7.2` Workbench token、差异附录和采用治理基础批次也已完成；[27 张参考图产品面映射](user-workspace/radishmind-family-ui-reference-mapping-v1.md)进一步固定四个首批产品面的吸收与排除边界。当前使用 Pencil 先设计 `S1` 产品壳的桌面与窄屏真实任务状态，评审后再依次推进其余产品面；不以“进入 UI 阶段”为由跳过后续新功能的设计文档。
+1. `user_workspace_real_path_ui_coherence_v1` 已完成并关闭。[RadishMind Family UI 产品化设计与迁移 v1](user-workspace/radishmind-family-ui-productization-v1.md) 的 family-ui `v26.7.2` Workbench token、差异附录、[27 张参考图映射](user-workspace/radishmind-family-ui-reference-mapping-v1.md)、Pencil 分级和 `S1` 产品壳桌面 / 窄屏设计基准面均已完成。下一步实施 `radishmind_web_s1_product_shell_v1` 并以真实浏览器验收，再进入 `S2` Application Workspace；其余页面继续按页面族分为完整 Pencil、局部 Pencil 和直接实现，不以“进入 UI 阶段”为由跳过后续新功能的设计文档。
 2. 后续批次继续要求跨 tenant / subject、非成员、过期 identity / membership、workspace mismatch、permission denied 在业务 repository 查询或副作用前失败关闭。dev header 与 signed-test assertion 只能用于开发测试，不能成为 production OIDC 授权来源。
 3. 工作区运营收件箱批次 A 已完成。只有真实需要跨全部分页窗口，且四类 owner 的统一稳定 cursor 契约成立时才评审批次 B；不为扩展示例数量或页面计数启动服务端投影。
 4. Prompt / Agent 继续复用 canonical Run、Comparison、Evaluation Case / Suite 与 decision owner；不复制评测算法，不把人工 `approved` 接成自动 candidate、assignment、release 或 deploy。Agent / Copilot 仍复用 canonical `CopilotRequest / CopilotResponse`，不扩 agent loop、工具执行或业务写回。
