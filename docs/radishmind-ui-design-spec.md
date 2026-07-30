@@ -326,7 +326,7 @@ Control Plane read-side 页面必须继续使用紧凑工作台布局，不做�
 
 - 设计基准面评审后，先实现该代表面，再让同族页面直接复用已落地组件与模式。
 - 每个实现任务说明对应的 `surface_id`、Pencil 覆盖级别、涉及组件、可复用 token、验证入口和不做范围。
-- 当前 Family UI 产品化设计源为 `docs/designs/radishmind-web-family-ui-v1.pen`；首个覆盖记录 `radishmind_web_s1_product_shell_v1` 已完成桌面 partial 代表面与 `390x844` 单列重排，具体代码基线、参考图映射和停止线以产品化专题为准。
+- 当前 Family UI 产品化设计源为 `docs/designs/radishmind-web-family-ui-v1.pen`；首个覆盖记录 `radishmind_web_s1_product_shell_v1` 已完成桌面 partial 代表面、`390x844` 单列重排、真实 React 实现和浏览器验收，具体代码基线、参考图映射和停止线以产品化专题为准。
 - 实现中的文案、动作条件、数据与权限以当前功能文档、API 和代码为准；不为保持静态稿表面一致而恢复已过期内容。
 - 最终验收以运行中的 React 页面、真实浏览器桌面 / 窄屏截图、键盘路径、测试和 consumer smoke 为准。
 - 只有信息架构、交互模型、风险表达、共享组件结构或响应式顺序变化时回写 Pencil；功能事实变化更新其真实 owner，并在必要时记录偏离原因。

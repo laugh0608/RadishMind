@@ -2,7 +2,7 @@
 
 更新时间：2026-07-30
 
-状态：`radishmind_family_ui_productization_v1_s1_design_baseline_completed`
+状态：`radishmind_family_ui_productization_v1_s1_implementation_completed`
 
 ## 目标
 
@@ -137,7 +137,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 | `surface_id` | 状态 | Pencil 覆盖 | 代码基线与锚点 | 设计决策与停止线 |
 | --- | --- | --- | --- | --- |
-| `radishmind_web_s1_product_shell_v1` | `design_baseline_completed_r4` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S1 Product Shell — Desktop / Partial · R4` 与 `S1 Product Shell — Narrow / Partial · R4` | commit `4a33a9dd`；`apps/radishmind-web/src/app/App.tsx` 的 `product-shell`、`product-nav`、`workspace-header`、`active-workspace-selector`；`apps/radishmind-web/src/styles.css` 的同名壳层样式 | 桌面只保留一个主导航侧栏，workspace / application 上下文持续可见，首屏以运营收件箱和来源覆盖回答“继续什么、为什么受限”；窄屏折叠侧栏并按任务顺序单列重排。代表性数量和文案不构成功能真相，不新增 production、全量统计、实时性、自动处置或 dark mode 声明。 |
+| `radishmind_web_s1_product_shell_v1` | `implementation_completed_r4` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S1 Product Shell — Desktop / Partial · R4` 与 `S1 Product Shell — Narrow / Partial · R4` | 设计基准 commit `24655516`；`apps/radishmind-web/src/app/ProductNavigation.tsx`、`apps/radishmind-web/src/app/App.tsx`、`apps/radishmind-web/src/features/control-plane-read/workspaceProductOverviewPanel.tsx`、`workspaceOperationsInboxPanel.tsx` 与 `apps/radishmind-web/src/styles.css` | 桌面只保留一个主导航侧栏，workspace / application 上下文持续可见，首屏以运营收件箱和来源覆盖回答“继续什么、为什么受限”；窄屏折叠侧栏并按任务顺序单列重排。代表性数量和文案不构成功能真相，不新增 production、全量统计、实时性、自动处置或 dark mode 声明。 |
 
 `S1` 消费 `ref-03`、`ref-07`、`ref-08`、`ref-09`、`ref-15`、`ref-17`、`ref-18`、`ref-19` 与 `ref-24` 的层级、密度、上下文和状态表达；`ref-20` 只保留未来暗色证据，不在当前画板增加主题切换。两个画板均已通过 Pencil 全树布局检查，结果为 `No layout problems`；视觉复核确认没有裁切、重叠和横向溢出。
 
@@ -154,6 +154,8 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 - 窄屏复用柔色 command bar、workspace pulse 和对象卡语法，按任务顺序单列重组，不缩小桌面导航和 KPI。
 
 第三轮导航复核确认，`R3` 的图标产品轨与文字对象侧栏虽然配色已降低对比，但仍被感知为两套并列工具栏，且当前功能并不存在需要双轨表达的独立导航层级。`R4` 删除图标产品轨，把品牌、workspace 切换、一级入口、环境边界、账户和帮助统一归入一个桌面侧栏；窄屏继续使用单一 command bar 与折叠导航。后续只有存在真实、稳定且可独立切换的跨产品层级时，才重新评估产品轨，不为视觉效果预留第二套导航。
+
+真实 React 实现继续以现有 view model 和动作 owner 为功能真相：导航计数、workspace、active application、source coverage、Operations Inbox 与写入边界均消费当前代码数据；Pencil 中的代表性名称、数量和动作没有进入实现。既有次级页面保留在折叠的“More surfaces”入口，不以壳层迁移删除功能入口。
 
 ### 设计与实现闭环
 
@@ -182,7 +184,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 ### 设计批次：真实任务页面蓝图
 
-参考图产品面映射、Pencil 协作模型与 `S1` 产品壳设计基准面均已完成。下一步按 `radishmind_web_s1_product_shell_v1` 实施产品壳纵向切片，在真实 React 页面消除 `390px` 视口的既有 `421px` 内容宽度并完成桌面信息层级迁移；通过浏览器复核后再进入 `S2` Application Workspace 设计。后续只为 `A` 级页面族或 `B` 级新决策扩稿。设计评审必须映射到 `ref-XX`、代码基线、现有 owner、consumer 和停止线，不能用静态理想稿代替真实交互状态。
+参考图产品面映射、Pencil 协作模型与 `S1` 产品壳设计、实现和浏览器验收均已完成。下一步进入 `S2` Application Workspace `A` 级设计基准面，先以一个真实 Application 连续任务固定五阶段工作区、当前 surface、evidence / readiness 与关键 blocked / partial 表达。后续只为 `A` 级页面族或 `B` 级新决策扩稿。设计评审必须映射到 `ref-XX`、代码基线、现有 owner、consumer 和停止线，不能用静态理想稿代替真实交互状态。
 
 ### 实现批次：纵向切片迁移
 
@@ -196,9 +198,9 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 ## 基础浏览器基线
 
-- `1440x900`：页面根宽度与 viewport 一致，Workbench 计算值为 `--rd-bg-app: #f7f4ee`、`--rd-bg-surface: #fffdf8`、`--rm-brand-primary: #435c74`，控制台无 warning / error。
-- `390x844`：导航已经按单列重排，但完整长页面的既有 `scrollWidth` 为 `421px`。首个可见根因是 Application Configuration Draft 深层卡片中的长状态 badge 在窄容器内保持固有宽度；切回本批之前的字体栈仍为 `421px`，因此不是 token 或字体接入造成的新回归。
-- `S1` Pencil 画板已在 `390x844` 固定画布内完成单列重排且无布局问题，并重新组织桌面 read-shell 信息密度；真实 React 页面仍保留既有 `421px` 超宽，必须由下一纵向实现批次消除，不能用设计稿结果替代浏览器验收。
+- `1440x900`：真实页面 `scrollWidth` 与 viewport 均为 `1440px`，唯一桌面导航宽 `248px`，Operations Inbox 四行均为 `68px`，首屏概览与 inbox 在 `900px` 高度内完成展示。
+- `390x844`：闭合导航与展开菜单的页面 `scrollWidth`、body 宽度和菜单面板宽度均为 `390px`；四行 Operations Inbox 均为 `94px`，菜单导航后自动收起并把目标锚点滚动到视口顶部。
+- 既有 `421px` 超宽的真实根因是 Application Configuration Draft 深层标题行中的长状态 badge。实现批次通过移动端共享收缩规则、标题行换行和 React Flow 边界收口消除该偏差；应用内浏览器复验控制台无 warning / error。
 
 ## 基础批次验收
 

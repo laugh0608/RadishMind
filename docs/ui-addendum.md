@@ -89,7 +89,7 @@ RadishMind 是 Radish 家族中的 AI 工具、工作流、模型网关和 Copil
 
 - 现有 `styles.css` 仍包含大量冷灰、深海军蓝和硬编码间距；基础批次只接入 token 与字体，不做视觉突变。
 - 现有组件尚未全面消费 `--rm-*` / `--rd-*`；只允许在后续页面纵向切片中迁移，不继续为新设计增加无语义硬编码颜色。
-- `390px` 窄屏的完整长页面目前存在 `421px` 既有横向内容宽度，主要来自 Application Configuration Draft 深层卡片中的长状态 badge；旧字体对照结果相同。首批页面设计与实现必须消除此偏差。
+- `S1` 实现已经消除 `390px` 窄屏原有的 `421px` 横向内容宽度。根因是 Application Configuration Draft 深层标题行中的长状态 badge；移动端共享收缩规则、标题行换行与 React Flow 边界已收口，闭合导航和展开菜单的真实页面宽度均为 `390px`。
 - family-ui 已包含暗色映射，但 RadishMind 尚未完成暗色页面设计、切换策略和双态视觉验收，因此当前不提供暗色主题开关。
 - 旧 [UI 设计规范](radishmind-ui-design-spec.md) 暂作为历史迁移源保留；其中家族通用视觉规则已由 family-ui 取代，领域状态和产品边界逐步迁入功能专题与本附录。
 

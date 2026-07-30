@@ -19,7 +19,6 @@ import {
   loadControlPlaneReadDevLiveCollections,
   normalizeActiveWorkspaceId,
   readControlPlaneReadDevLiveConfig,
-  type ControlPlaneReadDevLiveConfig,
   type ControlPlaneReadDevLiveLoadState,
 } from "../features/control-plane-read/devLiveReadConsumer";
 import {
@@ -210,6 +209,7 @@ import {
   type WorkspaceOperationsInboxItem,
 } from "../features/control-plane-read/workspaceOperationsInbox";
 import { WorkspaceOperationsInboxPanel } from "../features/control-plane-read/workspaceOperationsInboxPanel";
+import { WorkspaceProductOverviewPanel } from "../features/control-plane-read/workspaceProductOverviewPanel";
 import {
   type WorkflowRunDetailGuardPreview,
   type WorkflowRunDetailSummary,
@@ -222,6 +222,7 @@ import {
   type WorkflowBlockedActionRequirement,
   type WorkflowConfirmationPlaceholderPreview,
 } from "../features/control-plane-read/workflowBlockedActionPreview";
+import { ProductNavigation } from "./ProductNavigation";
 import {
   type WorkflowConfirmationDecisionField,
   type WorkflowConfirmationPlaceholderPrerequisite,
@@ -1876,185 +1877,37 @@ export function App() {
   };
 
   return (
-    <main className="product-shell">
-      <aside className="product-nav" aria-label="Product areas">
-        <div>
-          <p className="eyebrow">RadishMind</p>
-          <h1>Control Plane</h1>
-          <p className="nav-summary">Developer control plane for review surfaces and the bounded workflow executor v0.</p>
-        </div>
-        <nav className="nav-links" aria-label="Read shell sections">
-          <div className="nav-link-group" aria-label="User workspace sections">
-            <p className="nav-link-group-label">Workspace</p>
-            <a href="#workflow-user-workspace-home">Workspace Home</a>
-            <a href="#workspace-operations-inbox">Operations Inbox</a>
-            <a href="#workspace-applications">Applications</a>
-            <a href="#application-api-integration">API Integration</a>
-            <a href="#application-publish-review">Publish Review</a>
-            <a href="#workspace-workflow-definitions">Workflows</a>
-            <a href="#workspace-run-history">Run History</a>
-            <a href="#workspace-api-keys">API Keys</a>
-            <a href="#application-interaction-session">Application Interaction</a>
-            <a href="#application-rag-invocation">Application RAG</a>
-            <a href="#workspace-usage-quota">Usage Quota</a>
-          </div>
-          <div className="nav-link-group" aria-label="Model gateway sections">
-            <p className="nav-link-group-label">Model Gateway</p>
-            <a href="#model-gateway-playground">Playground</a>
-            <a href="#model-gateway-overview">Gateway Overview</a>
-            <a href="#model-gateway-route-evidence">Route Evidence</a>
-            <a href="#model-gateway-usage-audit-evidence">Usage Evidence</a>
-            <a href="#model-gateway-evidence-review">Evidence Review</a>
-          </div>
-          <div className="nav-link-group" aria-label="Workflow review sections">
-            <p className="nav-link-group-label">Workflow Review</p>
-            <a href="#workflow-application-detail">Application Detail</a>
-            <a href="#workflow-draft-designer">Draft Designer</a>
-            <a href="#workflow-http-tool-action-review">HTTP Tool Review</a>
-            <a href="#workflow-executor-v0">Executor v0</a>
-            <a href="#workflow-draft-validation-inspector">Draft Validation</a>
-            <a href="#workflow-execution-plan-preview">Full-runtime Plan</a>
-            <a href="#workflow-runtime-readiness-inspector">Full-runtime Readiness</a>
-            <a href="#workflow-scenario-inspector">Scenario Inspector</a>
-            <a href="#workflow-workspace-review">Review Workspace</a>
-            <a href="#workflow-review-handoff">Review Handoff</a>
-            <a href="#workflow-surface-overview">Workflow Overview</a>
-            <a href="#workflow-blocked-action-preview">Blocked Action</a>
-            <a href="#workflow-confirmation-placeholder">Confirmation</a>
-          </div>
-          <div className="nav-link-group" aria-label="Admin control plane sections">
-            <p className="nav-link-group-label">Admin</p>
-            <a href="#admin-operations-review">Operations Review</a>
-            <a href="#admin-provider-deployment-review">Provider Deployment</a>
-            <a href="#admin-tenant-overview">Tenant Overview</a>
-            <a href="#admin-audit-log">Audit Log</a>
-          </div>
-          <div className="nav-link-group" aria-label="Contract and guard sections">
-            <p className="nav-link-group-label">Contract</p>
-            <a href="#routes">Route Catalog</a>
-            <a href="#states">Shared States</a>
-            <a href="#guard">Output Guard</a>
-          </div>
-        </nav>
-        <div className="nav-locks" aria-label="Stop lines">
-          {shell.lockedCapabilities.map((capability) => (
-            <span key={capability}>{capability}</span>
-          ))}
-        </div>
-      </aside>
+    <main className="product-shell" data-rd-profile="workbench">
+      <ProductNavigation
+        activeWorkspaceId={activeWorkspaceId}
+        apiKeysAnchor="#workspace-api-keys"
+        counts={{
+          inbox: workspaceOperationsInbox.items.length,
+          applications: workspaceApplications.applications.length,
+          workflows: workspaceWorkflowDefinitions.workflowDefinitions.length,
+          apiKeys: workspaceApiKeys.apiKeys.length,
+        }}
+        sourceConfig={activeDevLiveConfig}
+        sourceState={devLiveState}
+        onActiveWorkspaceSwitch={handleActiveWorkspaceSwitch}
+      />
 
       <section className="product-workspace" aria-label="Control plane read shell">
-        <header className="workspace-header">
-          <div>
-            <p className="eyebrow">Shared Read Shell</p>
-            <h2>Read catalog and status model</h2>
-          </div>
-          <div className="header-facts" aria-label="Read shell facts">
-            <Fact label="Routes" value={String(shell.catalog.routes.length)} />
-            <Fact
-              label="Database"
-              value={devLiveConfig.mode === "dev_live_http" && devLiveConfig.storeMode === "postgres_dev_test"
-                ? "dev/test attached"
-                : shell.catalog.databaseBacked ? "attached" : "detached"}
-            />
-            <Fact label="Writes" value={shell.catalog.allRoutesReadOnly ? "locked" : "enabled"} />
-            <Fact label="Source" value={devLiveState.mode === "dev_live_http" ? devLiveState.status : "offline"} />
-            <Fact label="Workspace" value={activeWorkspaceId} />
-            <Fact label="Tenant page" value={tenantOverview.canRenderTenant ? "ready" : "blocked"} />
-            <Fact label="Audit page" value={adminAuditLog.canRenderAuditLog ? "ready" : "blocked"} />
-            <Fact label="App page" value={workspaceApplications.canRenderApplications ? "ready" : "blocked"} />
-            <Fact
-              label="App detail"
-              value={workflowApplicationDetail.canRenderApplicationDetail ? "ready" : "blocked"}
-            />
-            <Fact label="Key page" value={workspaceApiKeys.canRenderApiKeys ? "ready" : "blocked"} />
-            <Fact label="Quota page" value={workspaceUsageQuota.canRenderQuota ? "ready" : "blocked"} />
-            <Fact
-              label="Workflow page"
-              value={workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? "ready" : "blocked"}
-            />
-            <Fact label="Run page" value={workspaceRunHistory.canRenderRuns ? "ready" : "blocked"} />
-            <Fact label="Inbox" value={workspaceOperationsInbox.status} />
-            <Fact
-              label="Action guard"
-              value={workflowBlockedActionPreview.canRenderBlockedActionPreview ? "ready" : "blocked"}
-            />
-            <Fact
-              label="Legacy confirm"
-              value={workflowConfirmationPlaceholder.canRenderConfirmationPlaceholder ? "archived" : "blocked"}
-            />
-            <Fact
-              label="HTTP Tool plan"
-              value={workflowHTTPToolActionState.mode === "dev_workflow_http_tool_http" ? workflowHTTPToolActionState.status : "disabled"}
-            />
-            <Fact
-              label="Draft"
-              value={workflowDraftDesigner.canRenderDraftDesigner ? "ready" : "blocked"}
-            />
-            <Fact
-              label="Validate"
-              value={activeWorkflowDraftValidationInspector.validationStatus}
-            />
-            <Fact
-              label="Plan"
-              value={activeWorkflowExecutionPlanPreview.canRenderExecutionPlanPreview ? "preview" : "blocked"}
-            />
-            <Fact
-              label="Runtime"
-              value={activeWorkflowRuntimeReadinessInspector.canRenderRuntimeReadinessInspector ? "blocked" : "missing"}
-            />
-            <Fact
-              label="Overview"
-              value={workflowSurfaceOverview.canRenderSurfaceOverview ? "offline" : "blocked"}
-            />
-            <Fact
-              label="Scenario"
-              value={workflowScenarioInspector.canRenderScenarioInspector ? "offline" : "blocked"}
-            />
-            <Fact
-              label="Review"
-              value={workflowWorkspaceReview.canRenderWorkspaceReview ? "offline" : "blocked"}
-            />
-            <Fact
-              label="Home"
-              value={workflowUserWorkspaceHome.canRenderUserWorkspaceHome ? "offline" : "blocked"}
-            />
-            <Fact
-              label="Handoff"
-              value={workflowReviewHandoff.canRenderReviewHandoff ? "offline" : "blocked"}
-            />
-            <Fact
-              label="Gateway"
-              value={modelGatewayOverview.canRenderModelGatewayOverview ? "offline" : "blocked"}
-            />
-            <Fact
-              label="Gateway route"
-              value={modelGatewayRouteEvidence.canRenderRouteEvidenceDetail ? "offline" : "blocked"}
-            />
-            <Fact
-              label="Gateway usage"
-              value={modelGatewayUsageAuditEvidence.canRenderUsageAuditEvidence ? "offline" : "blocked"}
-            />
-            <Fact
-              label="Gateway review"
-              value={modelGatewayEvidenceReview.canRenderEvidenceReview ? "offline" : "blocked"}
-            />
-            <Fact
-              label="Admin review"
-              value={adminOperationsReview.canRenderAdminOperationsReview ? "offline" : "blocked"}
-            />
-            <Fact
-              label="Admin provider"
-              value={adminProviderDeploymentReview.canRenderProviderDeploymentReview ? "offline" : "blocked"}
-            />
+        <header className="workspace-header" id="workspace-overview">
+          <h2>Workspace</h2>
+          <div className="workspace-header-state">
+            <span>{activeWorkspaceId}</span>
+            <span className={`status-badge ${workspaceOperationsInbox.status === "blocked" ? "bad" : "neutral"}`}>
+              {workspaceOperationsInbox.status}
+            </span>
           </div>
         </header>
 
-        <LiveReadSourceStatus
-          state={devLiveState}
-          config={activeDevLiveConfig}
-          activeWorkspaceId={activeWorkspaceId}
-          onActiveWorkspaceSwitch={handleActiveWorkspaceSwitch}
+        <WorkspaceProductOverviewPanel
+          application={applicationDevelopmentWorkspaceContext}
+          inbox={workspaceOperationsInbox}
+          sourceConfig={activeDevLiveConfig}
+          sourceState={devLiveState}
         />
         <WorkspaceOperationsInboxPanel
           inbox={workspaceOperationsInbox}
@@ -2114,7 +1967,7 @@ export function App() {
           <div className="section-heading">
             <div>
               <p className="eyebrow">Admin Control Plane</p>
-              <h3 id="admin-tenant-overview-title">Tenant overview</h3>
+              <h3 id="admin-tenant-overview-title">Tenant Overview</h3>
             </div>
             <StatusBadge tone={tenantOverview.canRenderTenant ? "good" : "bad"}>
               {tenantOverview.canRenderTenant ? "read-only ready" : "blocked"}
@@ -2169,7 +2022,7 @@ export function App() {
           <div className="section-heading">
             <div>
               <p className="eyebrow">Admin Control Plane</p>
-              <h3 id="admin-audit-log-title">Audit log</h3>
+              <h3 id="admin-audit-log-title">Audit Log</h3>
             </div>
             <StatusBadge tone={adminAuditLog.canRenderAuditLog ? "good" : "bad"}>
               {adminAuditLog.canRenderAuditLog ? "read-only ready" : "blocked"}
@@ -2348,7 +2201,7 @@ export function App() {
           <div className="section-heading">
             <div>
               <p className="eyebrow">User Workspace</p>
-              <h3 id="workspace-usage-quota-title">Usage quota</h3>
+              <h3 id="workspace-usage-quota-title">Usage Quota</h3>
             </div>
             <StatusBadge tone={workspaceUsageQuota.canRenderQuota ? "good" : "bad"}>
               {workspaceUsageQuota.canRenderQuota ? "read-only ready" : "blocked"}
@@ -2419,7 +2272,7 @@ export function App() {
           <div className="section-heading">
             <div>
               <p className="eyebrow">User Workspace</p>
-              <h3 id="workspace-workflow-definitions-title">Workflow definitions</h3>
+              <h3 id="workspace-workflow-definitions-title">Workflows</h3>
             </div>
             <StatusBadge tone={workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? "good" : "bad"}>
               {workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? "read-only ready" : "blocked"}
@@ -2605,7 +2458,7 @@ export function App() {
           <div className="section-heading">
             <div>
               <p className="eyebrow">User Workspace</p>
-              <h3 id="workspace-run-history-title">Run history</h3>
+              <h3 id="workspace-run-history-title">Run History</h3>
             </div>
             <StatusBadge tone={workspaceRunHistory.canRenderRuns ? "good" : "bad"}>
               {workspaceRunHistory.canRenderRuns ? "read-only ready" : "blocked"}
@@ -6135,101 +5988,6 @@ function TenantStatePreview({ state }: { state: AdminTenantOverviewStatePreview 
         items {state.itemCount} / failure {state.failureCode}
       </small>
     </article>
-  );
-}
-
-function Fact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="fact">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
-function LiveReadSourceStatus({
-  state,
-  config,
-  activeWorkspaceId,
-  onActiveWorkspaceSwitch,
-}: {
-  state: ControlPlaneReadDevLiveLoadState;
-  config: ControlPlaneReadDevLiveConfig;
-  activeWorkspaceId: string;
-  onActiveWorkspaceSwitch: (candidate: string) => boolean;
-}) {
-  const [workspaceDraft, setWorkspaceDraft] = useState(activeWorkspaceId);
-  const [workspaceFailure, setWorkspaceFailure] = useState("");
-  useEffect(() => {
-    setWorkspaceDraft(activeWorkspaceId);
-    setWorkspaceFailure("");
-  }, [activeWorkspaceId]);
-  const tone = state.status === "failed" ? "bad" : state.status === "ready" ? "good" : "neutral";
-  const switchWorkspace = () => {
-    if (!onActiveWorkspaceSwitch(workspaceDraft)) {
-      setWorkspaceFailure("Use a 1–160 character workspace reference containing letters, numbers, _, ., :, / or -.");
-      return;
-    }
-    setWorkspaceFailure("");
-  };
-  return (
-    <section className="live-read-source" aria-label="Read data source">
-      <div>
-        <p className="eyebrow">Read Source</p>
-        <h3>{state.mode === "dev_live_http" ? "Dev live HTTP" : "Offline fixtures"}</h3>
-        <p>{state.message}</p>
-      </div>
-      <dl>
-        <div>
-          <dt>Base URL</dt>
-          <dd>{state.mode === "dev_live_http" ? config.baseUrl : "not used"}</dd>
-        </div>
-        <div>
-          <dt>Auth</dt>
-          <dd>{state.mode === "dev_live_http"
-            ? config.authMode === "signed_test_token"
-              ? "signed test token"
-              : config.authMode === "radish_oidc_integration_test"
-                ? "OIDC integration test"
-                : "dev headers"
-            : "offline view model"}</dd>
-        </div>
-        <div>
-          <dt>Database</dt>
-          <dd>{state.mode === "dev_live_http" && config.storeMode === "postgres_dev_test"
-            ? "PostgreSQL dev/test projection"
-            : "detached"}</dd>
-        </div>
-      </dl>
-      <form
-        className="active-workspace-selector"
-        aria-label="Active workspace selector"
-        onSubmit={(event) => {
-          event.preventDefault();
-          switchWorkspace();
-        }}
-      >
-        <label htmlFor="active-workspace-input">Active workspace</label>
-        <div>
-          <input
-            id="active-workspace-input"
-            value={workspaceDraft}
-            onChange={(event) => setWorkspaceDraft(event.target.value)}
-            autoComplete="off"
-            spellCheck={false}
-            disabled={state.mode !== "dev_live_http"}
-          />
-          <button
-            type="submit"
-            disabled={state.mode !== "dev_live_http" || state.status === "loading" || workspaceDraft.trim() === activeWorkspaceId}
-          >
-            Switch
-          </button>
-        </div>
-        <small>{workspaceFailure || "Memory only; switching invalidates current workspace selections."}</small>
-      </form>
-      <StatusBadge tone={tone}>{state.status}</StatusBadge>
-    </section>
   );
 }
 
