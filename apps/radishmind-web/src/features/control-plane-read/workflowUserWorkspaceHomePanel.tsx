@@ -467,7 +467,7 @@ function WorkflowSavedDraftSummaryCard({
       <div className="workflow-user-workspace-home-row-main">
         <div>
           <p className="eyebrow">{summary.workflowDefinitionId}</p>
-          <h5>{summary.name}</h5>
+          <h5 title={summary.name}>{summary.name}</h5>
         </div>
         <StatusBadge tone={summary.validForReview ? "good" : "neutral"}>{summary.validationState}</StatusBadge>
       </div>

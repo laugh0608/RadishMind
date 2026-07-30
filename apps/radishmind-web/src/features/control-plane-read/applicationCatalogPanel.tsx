@@ -241,7 +241,7 @@ export function ApplicationCatalogPanel({
     <section className="application-catalog-panel" aria-label="Application catalog management">
       <div className="application-catalog-heading">
         <div>
-          <p className="eyebrow">Application catalog · PostgreSQL dev/test</p>
+          <p className="eyebrow">Application catalog · development/test</p>
           <h4>Manage workspace applications</h4>
         </div>
         <span className={`status-badge ${snapshot.status === "ready" ? "good" : snapshot.status === "failed" ? "bad" : "neutral"}`}>

@@ -1,6 +1,6 @@
 # 用户工作区设计与开发文档
 
-更新时间：2026-07-29
+更新时间：2026-07-30
 
 ## 功能定位
 
@@ -29,8 +29,29 @@
 - 已保存草案与运行历史具备 memory / SQLite / PostgreSQL 开发测试态存储库；受控执行器 v0、失败审查、运行比较、评测用例 / 版本管理和评测套件 / 发布审查已接入工作区运行历史。
 - 应用配置草案、发布候选和显式启用的应用目录均具备 memory、SQLite 与 PostgreSQL 开发测试态存储库；应用目录未启用时，历史只读列表仍来自预置假数据存储库。
 - 当前仍不具备生产认证 / 存储库、Radish 工作区成员关系、正式应用生命周期 / 晋级、生产 API 密钥、配额执行、计费、不受限工具调用、业务写回或重放；开发测试态 HTTP Tool 人工确认与两种受控应用调用已经存在，但不能外推为通用工具、自动确认或生产执行能力。
+- 2026-07-30 已使用同一 SQLite 本地产品档完成三条真实开发者连续链复盘：Saved Draft 活动 → 归档 → 只读审查 → 解除归档 → 重新打开；应用活动 → 归档 → Gateway 资格拒绝 → 安全重新启用 → 资格恢复；API Key 来源选择 → 同 scopes 替代 → Gateway 认证 → `last_used_at` 验证 → 来源退役。领域 owner、双版本 CAS、失败关闭和一次性凭据边界均符合设计，确认的摩擦全部属于现有 Web 上下文交接、状态解释与信息密度。
 
 历史已保存草案准入专题继续作为证据索引保留，不再在本入口重复展开。需要追溯时，从 [工作流专题入口](workflow/README.md) 和对应实现专题进入。
+
+## 2026-07-30 真实路径复盘与 UI 一致性批次
+
+本批状态为 `user_workspace_real_path_ui_coherence_v1_completed`。它是既有功能的 UI 阶段首批完整纵向切片，不改变领域协议、持久化 owner、权限、生命周期或生产边界。
+
+| 真实目标 | 已确认摩擦 | 既有 owner | 本批处理 |
+| --- | --- | --- | --- |
+| 从草案库打开活动草案或审查归档草案 | 精确读取成功后页面仍停留在长列表；长名称会主导卡片高度；解除归档后的失败关闭状态直接显示 `unknown` | Saved Draft consumer 与 Workflow Draft Designer | 仅在精确打开成功后交接到 Designer；限制卡片标题的视觉行数并保留完整名称；把 `unknown` 解释为“需要重新打开” |
+| 归档应用后理解 Gateway 资格为何失效 | SQLite 本地产品仍显示 `PostgreSQL dev/test`；模型目录把 canonical `api_key_application_unavailable` 降为通用 `HTTP 403` | Application Catalog 与 Gateway 模型目录 consumer | 使用不冒充具体 store 的开发测试态标签；严格消费允许列表内的 Gateway 错误信封，显示稳定错误码和固定脱敏摘要 |
+| 验证替代 Key 后审查轮换状态 | 精确详情已得到 `last_used_at`，轮换面板已解锁，但同页列表仍显示未使用，直到再次加载 | API Key Lifecycle consumer 与易失轮换会话 | 用精确详情替换当前列表中的同一记录，使验证面板、详情和列表立即一致 |
+
+验收要求：
+
+1. Saved Draft 的“打开草案 / 只读审查”只有在精确读取和作用域检查成功后才进入 `#workflow-draft-designer`；失败时保留在草案库并展示原失败状态。
+2. 长草案名称不再无限拉高卡片，完整名称仍可通过原生标题查看；解除归档后的浏览器旧快照保持只读，但向用户解释为需要重新打开，而不是暴露 `unknown` 技术状态。
+3. Application Catalog 不声明无法从当前配置证明的存储实现；已归档或不可用应用的模型目录请求显示 `api_key_application_unavailable` 和固定脱敏解释，未知或非法失败正文继续收敛为通用失败，且不泄露响应正文。
+4. 替代 Key 的精确验证读取成功后，同页列表立即反映最新 `last_used_at`；一次性 token 仍只保存在组件内存，不进入列表、详情、日志或持久化介质。
+5. 复用现有 Web 单元测试、production build、真实浏览器链与仓库门禁；不新增 API、schema、migration、repository、任务卡、fixture 或专项 checker。
+
+停止线：本批不修复或清理历史开发测试数据，不增加自动命名、批量生命周期、自动轮换、持久 rotation owner、跨分页运营收件箱、全历史用量聚合、生产认证或生产凭据能力。
 
 ## 设计边界
 
@@ -41,7 +62,7 @@
 
 ## 下一批开发方向
 
-1. Saved Draft 草案库、应用安全重新启用和 API 密钥引导式轮换均已完成并关闭。下一轮先按真实开发者使用路径复盘三条连续链，将确认的摩擦、缺口与需求回写一个既有功能设计文档，再决定实施拆分；不提前新增同层授权门禁、任务卡或检查器。
+1. `user_workspace_real_path_ui_coherence_v1` 已完成并关闭。下一轮继续处于 UI 设计与连续使用打磨阶段，先以真实开发者任务审查跨页面导航、信息层级、窄屏和可访问性，再把确认问题回写本入口或对应页面专题；不以“进入 UI 阶段”为由跳过后续新功能的设计文档。
 2. 后续批次继续要求跨 tenant / subject、非成员、过期 identity / membership、workspace mismatch、permission denied 在业务 repository 查询或副作用前失败关闭。dev header 与 signed-test assertion 只能用于开发测试，不能成为 production OIDC 授权来源。
 3. 工作区运营收件箱批次 A 已完成。只有真实需要跨全部分页窗口，且四类 owner 的统一稳定 cursor 契约成立时才评审批次 B；不为扩展示例数量或页面计数启动服务端投影。
 4. Prompt / Agent 继续复用 canonical Run、Comparison、Evaluation Case / Suite 与 decision owner；不复制评测算法，不把人工 `approved` 接成自动 candidate、assignment、release 或 deploy。Agent / Copilot 仍复用 canonical `CopilotRequest / CopilotResponse`，不扩 agent loop、工具执行或业务写回。

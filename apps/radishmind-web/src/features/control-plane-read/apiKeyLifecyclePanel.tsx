@@ -5,6 +5,7 @@ import {
   listAPIKeyRecords,
   readAPIKeyLifecycleConfig,
   readAPIKeyRecord,
+  replaceAPIKeyListRecord,
   revokeAPIKey,
   type APIKeyEffectiveState,
   type APIKeyListResult,
@@ -276,10 +277,12 @@ export function APIKeyLifecyclePanel({
       setNotice({ tone: "bad", summary: result.summary, failureCode: result.failureCode });
       return;
     }
+    const replacementRecord = result.record;
     try {
-      const next = refreshAPIKeyRotationVerification(applicationId, result.record);
+      const next = refreshAPIKeyRotationVerification(applicationId, replacementRecord);
       setRotation(next);
-      setSelectedRecord(result.record);
+      setSelectedRecord(replacementRecord);
+      setList((current) => replaceAPIKeyListRecord(current, replacementRecord));
       setShowRotationRetireConfirm(false);
       setNotice(next.phase === "verified"
         ? {

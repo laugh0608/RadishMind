@@ -5,6 +5,7 @@ import {
   issueAPIKey,
   listAPIKeyRecords,
   readAPIKeyRecord,
+  replaceAPIKeyListRecord,
   revokeAPIKey,
   validateAPIKeyIssueInput,
   type APIKeyIssueInput,
@@ -205,6 +206,28 @@ test("issue input validation rejects invalid scope, expiry, identifiers, and sen
   assert.equal(validateAPIKeyIssueInput({ ...issueInput(), scopes: [] }), "api_key_payload_invalid");
   assert.equal(validateAPIKeyIssueInput({ ...issueInput(), expiresInDays: 91 }), "api_key_payload_invalid");
   assert.equal(validateAPIKeyIssueInput({ ...issueInput(), displayName: "Authorization: Bearer hidden" }), "api_key_secret_material_forbidden");
+});
+
+test("exact API key detail replaces the matching list projection without changing pagination state", async () => {
+  const originalFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => jsonResponse(listEnvelope());
+    const list = await listAPIKeyRecords(live, "app_aaaaaaaaaaaaaaaa");
+    const exactRecord = {
+      ...list.records[0]!,
+      lastUsedAt: "2026-07-30T10:22:42Z",
+      requestId: "api-key-exact-read-request",
+      auditRef: "audit-api-key-exact-read-request",
+    };
+    const replaced = replaceAPIKeyListRecord(list, exactRecord);
+
+    assert.equal(replaced.records[0]?.lastUsedAt, "2026-07-30T10:22:42Z");
+    assert.equal(replaced.nextCursor, list.nextCursor);
+    assert.equal(replaced.status, list.status);
+    assert.equal(replaceAPIKeyListRecord(list, { ...exactRecord, apiKeyId: "key_bbbbbbbbbbbbbbbb" }), list);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 function issueInput(): APIKeyIssueInput {

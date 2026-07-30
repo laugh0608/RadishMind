@@ -1407,6 +1407,7 @@ export function App() {
         });
         setEditableWorkflowDraft(cloneWorkflowDraftForEditing(openedDraft));
         setWorkflowDraftEditDirty(false);
+        window.location.hash = "#workflow-draft-designer";
       })
       .catch((error: unknown) => {
         if (!workflowSavedDraftRequestIsCurrent(
@@ -4071,6 +4072,9 @@ function WorkflowDraftDesignerPanel({
   const lifecycleReadOnly =
     savedDraftConsumerState.currentDraftVersion > 0 &&
     savedDraftConsumerState.currentLifecycleState !== "active";
+  const lifecycleReadOnlyLabel = savedDraftConsumerState.currentLifecycleState === "unknown"
+    ? "reopen required"
+    : `${savedDraftConsumerState.currentLifecycleState} read-only review`;
   const requestInteractionDisabled = operationPending || conflictRequiresResolution || executorOperationPending;
   const interactionDisabled = requestInteractionDisabled || lifecycleReadOnly;
   const editStateLabel = draftEditDirty ? "unsaved local" : selectedDraft.localOnlyInteraction;
@@ -4090,7 +4094,7 @@ function WorkflowDraftDesignerPanel({
         </div>
         <StatusBadge tone={designer.canRenderDraftDesigner ? "good" : "bad"}>
           {lifecycleReadOnly
-            ? `${savedDraftConsumerState.currentLifecycleState} read-only review`
+            ? lifecycleReadOnlyLabel
             : designer.canRenderDraftDesigner
               ? "offline designer ready"
               : "blocked"}
@@ -4098,8 +4102,9 @@ function WorkflowDraftDesignerPanel({
       </div>
       {lifecycleReadOnly ? (
         <p className="workflow-draft-revision-stopline">
-          当前草案 lifecycle 为 {savedDraftConsumerState.currentLifecycleState}：内容、修订历史和比较保持可读；
-          本地编辑、保存、派生、恢复、晋级和直接执行全部禁用，重新进入活动态后仍需显式打开。
+          {savedDraftConsumerState.currentLifecycleState === "unknown"
+            ? "草案已解除归档，但当前浏览器仍保留解除归档前的只读快照；请从活动草案库重新打开，以读取最新 lifecycle 和内容版本。"
+            : `当前草案 lifecycle 为 ${savedDraftConsumerState.currentLifecycleState}：内容、修订历史和比较保持可读；本地编辑、保存、派生、恢复、晋级和直接执行全部禁用。`}
         </p>
       ) : null}
 

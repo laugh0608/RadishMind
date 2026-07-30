@@ -65,7 +65,7 @@ Web 单元测试覆盖离线零请求、目录成功 / 空结果 / HTTP 失败 /
 
 响应只接受 `object: "list"`、`data: Model[]`。每个模型必须包含单行、非空且长度受限的 `id`，并校验 `object: "model"`、非负 `created` 与字符串 `owned_by`。界面只保留模型标识、所有者和公开协议能力；忽略模型服务凭据状态、端点与未知元数据。顶层或模型公共投影出现凭据、授权、敏感信息、原始错误、端点或请求头载荷时按失败关闭处理。
 
-HTTP 非成功响应保留 `gateway_model_catalog_http_failed`，非法 JSON / 信封保留 `gateway_model_catalog_response_invalid`，网络失败保留 `gateway_model_catalog_network_error`；界面只显示稳定错误码与脱敏摘要，不显示响应正文、调用栈、端点或请求头。
+HTTP 非成功响应若携带结构合法且错误码位于模型目录允许列表内的 Gateway 错误信封，则保留 canonical 错误码并映射固定脱敏摘要；其中应用归档或不可用必须显示 `api_key_application_unavailable`，使用户可以回到 Application Catalog 审查生命周期。未知错误码、非法信封或非 JSON 正文收敛为 `gateway_model_catalog_http_failed`，成功状态下的非法 JSON / 信封保留 `gateway_model_catalog_response_invalid`，网络失败保留 `gateway_model_catalog_network_error`；界面不得显示响应正文、服务端错误消息、调用栈、端点或请求头。
 
 ## 接入示例
 

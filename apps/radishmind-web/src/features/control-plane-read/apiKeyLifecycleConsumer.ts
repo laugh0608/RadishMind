@@ -98,6 +98,17 @@ export type APIKeyOperationResult = {
   summary: string;
 };
 
+export function replaceAPIKeyListRecord(
+  list: APIKeyListResult,
+  record: APIKeyRecord,
+): APIKeyListResult {
+  if (!list.records.some((item) => item.apiKeyId === record.apiKeyId)) return list;
+  return {
+    ...list,
+    records: list.records.map((item) => item.apiKeyId === record.apiKeyId ? record : item),
+  };
+}
+
 type APIKeyRecordDocument = {
   schema_version: string;
   api_key_id: string;
