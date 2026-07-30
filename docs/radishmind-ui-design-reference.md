@@ -1,12 +1,12 @@
 # RadishMind UI 设计参考
 
-更新时间：2026-05-23
+更新时间：2026-07-30
 
 ## 文档目的
 
 本文档为 `UI Design Topic / Pencil Draft` 提供视觉参考素材。这里收录的截图只作为内部灵感参考，用来学习优秀产品在布局、信息密度、颜色、层级、圆角、留白和状态表达上的处理方式。
 
-这些参考不代表 RadishMind 要复制任何产品的界面、品牌、图标、配色或交互细节。正式 UI 规范以 [UI 设计规范](radishmind-ui-design-spec.md) 为准；未来 UI 必须先结合 RadishMind 的平台定位、只读/可执行边界、session/tooling metadata、readiness、错误诊断和确认流要求重新设计，再用 `pencil` 绘制 `.pen` 设计稿，定稿后才进入 React 实现。
+这些参考不代表 RadishMind 要复制任何产品的界面、品牌、图标、配色或交互细节。当前家族通用规范以 RadishX `docs/design/family-ui/` `v26.7.2` 为准，RadishMind 项目差异见 [UI 差异附录](ui-addendum.md)；family-ui 27 张参考图到首批产品面的采用边界见 [Family UI 参考图产品面映射 v1](features/user-workspace/radishmind-family-ui-reference-mapping-v1.md)。本页只保留项目历史灵感库，不能覆盖当前规范、功能边界和产品面映射。
 
 ## 参考素材清单
 

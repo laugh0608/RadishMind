@@ -1,0 +1,49 @@
+:root {
+  /* RadishMind L2 aliases: stable project vocabulary over family-ui L1 semantics. */
+  --rm-bg-app: var(--rd-bg-app);
+  --rm-bg-surface: var(--rd-bg-surface);
+  --rm-bg-muted: var(--rd-bg-muted);
+  --rm-bg-canvas: var(--rd-bg-canvas);
+  --rm-bg-sidebar: var(--rd-bg-muted);
+  --rm-bg-sidebar-active: var(--rd-action-soft);
+  --rm-bg-sidebar-note: var(--rd-bg-muted);
+
+  --rm-text-primary: var(--rd-text-primary);
+  --rm-text-secondary: var(--rd-text-secondary);
+  --rm-text-muted: var(--rd-text-muted);
+  --rm-text-on-accent: var(--rd-text-on-accent);
+
+  --rm-border-soft: var(--rd-border-soft);
+  --rm-border-strong: var(--rd-border-strong);
+  --rm-focus-ring: var(--rd-focus-ring);
+
+  --rm-brand-primary: var(--rd-action-primary);
+  --rm-brand-hover: var(--rd-action-hover);
+  --rm-brand-soft: var(--rd-action-soft);
+  --rm-accent-secondary: var(--rd-accent-jade);
+  --rm-accent-tertiary: var(--rd-accent-purple);
+
+  --rm-state-success: var(--rd-state-success);
+  --rm-state-success-soft: var(--rd-state-success-soft);
+  --rm-state-warning: var(--rd-state-warning);
+  --rm-state-warning-soft: var(--rd-state-warning-soft);
+  --rm-state-danger: var(--rd-state-danger);
+  --rm-state-danger-soft: var(--rd-state-danger-soft);
+  --rm-state-info: var(--rd-state-info);
+  --rm-state-info-soft: var(--rd-state-info-soft);
+  --rm-state-neutral: var(--rd-state-neutral);
+  --rm-state-neutral-soft: var(--rd-state-neutral-soft);
+
+  --rm-font-sans: var(--rd-font-sans);
+  --rm-font-serif: var(--rd-font-serif);
+  --rm-font-mono: var(--rd-font-mono);
+
+  --rm-radius-xs: var(--rd-radius-xs);
+  --rm-radius-sm: var(--rd-radius-sm);
+  --rm-radius-md: var(--rd-radius-md);
+  --rm-radius-lg: var(--rd-radius-lg);
+  --rm-radius-pill: var(--rd-radius-pill);
+
+  --rm-shadow-panel: var(--rd-shadow-panel);
+  --rm-shadow-popover: var(--rd-shadow-popover);
+}

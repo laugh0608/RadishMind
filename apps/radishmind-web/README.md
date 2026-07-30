@@ -7,6 +7,13 @@
 - `Model Gateway / API Distribution`：普通离线 Model Gateway Overview、Route Evidence、Usage/Audit Evidence 与 Evidence Review / Readiness，复用 shared read shell、API key summary、quota summary、run history、audit log、provider runtime、`gateway-api-key-quota-readiness` 和前三个网关 view model 证据，展示 northbound API compatibility surfaces、provider/profile inventory、route binding、selection cases、key scope、quota / cost snapshot、trace / failure、audit decision、readiness rollup、evidence checklist、route / usage / audit key risks 和 locked distribution capabilities。
 - `Workflow / Agent Runtime Function Surface`：既有 workflow detail / review / Draft Designer / Validation、`workflow-execution-plan-preview-offline-v1`、`workflow-runtime-readiness-inspector-offline-v1` 等运行时预览面板，以及显式 dev-only 的 Saved Draft、HTTP Tool、Workflow RAG v3、Application RAG v4、Workflow Definition v5、Application Interaction Session、Run History / Comparison / Evaluation 与 Application Operations。
 
+## Family UI 基座
+
+- 通用 UI 规范采用 RadishX family-ui `v26.7.2`，页面根节点使用 `Workbench` Profile。
+- `src/styles/family-ui/tokens.css` 与 `tokens.json` 是上游原样镜像；项目差异通过 `src/styles/radishmind-aliases.css` 的 `--rm-*` L2 别名表达。
+- 样式导入顺序固定为 family-ui token、RadishMind alias、现有页面样式。基础批次只接入字体，不执行全量换色或布局迁移。
+- 产品化范围、页面顺序、状态矩阵和停止线见 `docs/features/user-workspace/radishmind-family-ui-productization-v1.md`，项目差异见 `docs/ui-addendum.md`。
+
 当前边界：
 
 - 默认只消费 `contracts/typescript/control-plane-read-api.ts` 的离线 read-side contract。

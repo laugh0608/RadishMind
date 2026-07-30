@@ -11,6 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
+- [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md) 已完成基础批次和 [27 张参考图产品面映射](features/user-workspace/radishmind-family-ui-reference-mapping-v1.md)，当前状态为 `radishmind_family_ui_productization_v1_reference_mapping_completed`。通用规范采用 RadishX family-ui `v26.7.2` 的 `Workbench` Profile；上游 token 原样镜像、`--rm-*` 兼容别名、项目差异附录、采用规则及 `ref-01` 至 `ref-27` 的吸收 / 排除边界均已进入仓库。下一步直接进入 `S1` 产品壳 Pencil 设计。
 - [用户工作区设计与开发文档](features/user-workspace.md)中的首批真实路径 UI 一致性治理已完成，状态为 `user_workspace_real_path_ui_coherence_v1_completed`。SQLite 本地产品真实链确认 Saved Draft、应用重新启用与 API Key 轮换的领域行为正确；Web 已补齐精确打开后的 Designer 交接、长标题信息密度、解除归档重新打开说明、开发测试态环境标签、`api_key_application_unavailable` 稳定脱敏解释和替代 Key 精确验证后的列表即时刷新。没有新增 API、schema、repository、任务卡或 checker。
 - [API 密钥引导式轮换与验证后退役（开发 / 测试态）v1](features/user-workspace/api-key-guided-rotation-verified-retirement-dev-test-v1.md) 批次 A、B 已完成，状态为 `api_key_guided_rotation_verified_retirement_dev_test_v1_completed`。易失脱敏会话、同应用 / 同 owner / 同 scopes 替代、`last_used_at` 验证门槛、原 Key 精确重读与 revoke CAS、Web 和真实浏览器连续链已有可执行证据；未新增 rotate API、schema 或持久 rotation owner。
 - [应用解除归档与安全重新启用（开发 / 测试态）v1](features/user-workspace/application-unarchive-safe-reactivation-dev-test-v1.md) 批次 A 至 C 已完成，状态为 `application_unarchive_safe_reactivation_dev_test_v1_completed`。三种 store CAS、`applications:archive + applications:write` 单次组合权限、显式影响确认、Gateway 资格回归、Web 与真实浏览器连续链已有可执行证据；目录 owner 不级联改写 API Key、运行时绑定、会话、草案、候选或运行记录。
@@ -24,7 +25,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：当前已进入 UI 设计与真实连续使用打磨阶段，但这只表示既有功能设计已足以支撑当前页面治理，不表示后续新功能可以跳过设计。首批 User Workspace UI 一致性治理已经完成；下一轮先按真实开发者任务审查跨页面导航、信息层级、窄屏和可访问性，再把确认问题写入既有专题。工作区运营收件箱批次 B 和 Application Operations 全历史聚合继续等待跨全部分页窗口的真实需求；未满足准入证据时不新建任务卡，也不扩自动轮换、持久 rotation owner、production membership adapter、真实 OIDC、quota / billing 或 Provider Route 同层能力。
+1. 产品线：Family UI 产品化基础批次与 27 张参考图映射均已完成。下一步使用 Pencil 先设计 `S1` 产品壳的 `1440x900` ready / partial 和 `390x844` 单列状态，再按 Application Workspace、Saved Draft / Designer、API Integration / Key 推进；首批设计必须解决 `390px` 视口下既有 `421px` 横向内容宽度和桌面 read-shell 状态卡信息密度。进入 UI 阶段只表示这些既有功能设计足以支撑当前页面治理，不表示后续新功能可以跳过设计。工作区运营收件箱批次 B 和 Application Operations 全历史聚合继续等待跨全部分页窗口的真实需求；未满足准入证据时不新建任务卡，也不扩自动轮换、持久 rotation owner、production membership adapter、真实 OIDC、quota / billing 或 Provider Route 同层能力。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。

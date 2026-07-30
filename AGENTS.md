@@ -42,6 +42,14 @@
 - dev / test 与 production 分别验收；生产门禁默认约束 capability enablement、运行配置和发布声明，不长期以未来 adapter、migration、repository 文件必须不存在作为完成条件
 - 历史 readiness / review / refresh 证据保留为归档，不再派生同层链；新增 checker 必须证明现有单元测试、集成测试或聚合门禁无法承载
 
+## UI 规范
+
+- UI 家族通用规范遵循 RadishX `docs/design/family-ui/` `v26.7.2`；RadishMind 的项目差异、专属组件与迁移偏差只维护在 `docs/ui-addendum.md`
+- `apps/radishmind-web/` 使用 family-ui `Workbench` Profile；上游 `tokens.css` 与 `tokens.json` 以原样镜像进入构建，项目组件消费 `--rd-*` 语义层或 `--rm-*` L2 别名，不直接消费调色板层
+- 新的家族通用 token 应先回到 family-ui 讨论；RadishMind 专属语义可在项目别名层表达，但不得用新的硬编码颜色绕开语义 token
+- UI 产品化先完成真实任务、页面状态与 Pencil 设计，再按纵向切片实现；不得把未实现能力、开发测试态 owner、首分页窗口或离线 evidence 画成生产就绪、全量统计或可自动执行
+- Workbench 使用纸色、墨蓝主交互、玉色正向辅助和小面积紫色区分，不使用品牌面纹样；颜色不得成为状态的唯一通道
+
 ## 文档真相源
 
 `docs/` 是本仓库的正式文档源，优先级最高的文档如下：

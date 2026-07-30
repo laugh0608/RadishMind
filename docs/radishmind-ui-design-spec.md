@@ -1,6 +1,12 @@
-# RadishMind UI 设计规范
+# RadishMind UI 设计规范（迁移中）
 
-更新时间：2026-07-20
+更新时间：2026-07-30
+
+状态：`legacy_ui_spec_migration_source`
+
+family-ui 家族通用规范现以 RadishX `docs/design/family-ui/` `v26.7.2` 为真相源，RadishMind 项目差异见 [UI 差异附录](ui-addendum.md)，当前产品化推进见 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)。
+
+本文件暂保留历史页面、状态与 Pencil 治理规则，供迁移时核对。下文中与家族色彩、字体、间距、圆角、阴影、图标或通用组件冲突的规则已被 family-ui 取代；领域能力与停止线继续以对应功能设计文档为准。
 
 ## 文档目的
 
@@ -336,4 +342,4 @@ Control Plane read-side 页面必须继续使用紧凑工作台布局，不做�
 
 RadishMind 可以借鉴 Radish 的 UI 治理方式：先有规范、token、设计源文件和实现映射，再进入页面重构。
 
-但 RadishMind 不继承 Radish 的淡雅新中式视觉主题。RadishMind 的默认气质是安静、工程化、可审计的本地 AI runtime 工作台。
+RadishMind 采用 family-ui 的 `Workbench` Profile：复用家族纸色、字体、间距、圆角、状态与交互语义，但不使用品牌面纹样和装饰性表达；默认气质仍是安静、工程化、可审计的 AI runtime 工作台。

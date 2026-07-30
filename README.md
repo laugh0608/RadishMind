@@ -10,6 +10,8 @@
 - [系统架构](docs/radishmind-architecture.md)
 - [阶段路线图](docs/radishmind-roadmap.md)
 - [跨项目集成契约](docs/radishmind-integration-contracts.md)
+- [Family UI 产品化设计](docs/features/user-workspace/radishmind-family-ui-productization-v1.md)
+- [RadishMind UI 差异附录](docs/ui-addendum.md)
 - [应用目录与 API 密钥开发测试指南](docs/features/user-workspace/application-catalog-api-key-dev-test-guide.md)
 - [代码规范](docs/radishmind-code-standards.md)
 - [本地 Console 说明](apps/radishmind-console/README.md)
@@ -29,6 +31,7 @@
 - 仓库级检查默认使用 `.venv`：macOS / Linux / WSL 用 `./scripts/check-repo.sh`，Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1`
 - 文本文件默认走 UTF-8 + LF，规则以 `.editorconfig` 和 `.gitattributes` 为准
 - 本地模型配置以仓库根 `.env.example` 为示例，真实 `.env` 只留本地
+- 产品 UI 通用规范遵循 RadishX `docs/design/family-ui/` `v26.7.2`，项目差异只维护在 `docs/ui-addendum.md`
 
 ## 说明
 
