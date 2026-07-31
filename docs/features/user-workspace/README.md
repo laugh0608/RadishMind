@@ -7,7 +7,7 @@
 ## 当前专题
 
 - [RadishMind Family UI 参考图产品面映射 v1](radishmind-family-ui-reference-mapping-v1.md)：已把 family-ui `references.md` 的 `ref-01` 至 `ref-27` 逐项映射到产品壳、Application Workspace、Saved Draft / Designer、API Integration / Key，固定吸收原则、禁止照搬内容、Pencil 构件与版权停止线；`S1` 已消费产品壳对应映射。
-- [RadishMind Family UI 产品化设计与迁移 v1](radishmind-family-ui-productization-v1.md)：基础批次、参考图映射、Pencil 协作模型与 `S1` 设计基准面已完成；完整 Pencil 只覆盖四个 `A` 级页面族及必要变体，同族相似页面直接实现并以真实浏览器复核。
+- [RadishMind Family UI 产品化设计与迁移 v1](radishmind-family-ui-productization-v1.md)：基础批次、参考图映射、Pencil 协作模型，以及 `S1` 设计、真实 React 实现与浏览器验收均已完成；完整 Pencil 只覆盖四个 `A` 级页面族及必要变体，同族相似页面直接实现并以真实浏览器复核。
 - [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](workspace-scoped-mutation-authorization-dev-test-v1.md)：批次 A 至 E 共 47 条 mutation 已完成 identity / membership 双重权限、active workspace 唯一选择、原子组合与条件权限、稳定拒绝映射和零业务 / 外部副作用证据；专题关闭。
 - [工作区运营收件箱（开发 / 测试态）v1](workspace-operations-inbox-dev-test-v1.md)：批次 A 已完成四类既有 owner 首分页关注项、来源覆盖、稳定严重度、Web 既有详情跳转和 workspace 切换失败关闭；不新增运营或修复真相源。
 - [Workspace-scoped Read Transition / 工作区选择与成员资格绑定（开发 / 测试态）v1](workspace-scoped-read-transition-dev-test-v1.md)：批次 A、B 已完成共享 membership provider、五类 route 授权、四类 durable owner 读投影、workspace-wide Run cursor 与非持久化 Web selector；quota 和生产 membership 继续关闭。

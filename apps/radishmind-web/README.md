@@ -11,7 +11,8 @@
 
 - 通用 UI 规范采用 RadishX family-ui `v26.7.2`，页面根节点使用 `Workbench` Profile。
 - `src/styles/family-ui/tokens.css` 与 `tokens.json` 是上游原样镜像；项目差异通过 `src/styles/radishmind-aliases.css` 的 `--rm-*` L2 别名表达。
-- 样式导入顺序固定为 family-ui token、RadishMind alias、现有页面样式。基础批次只接入字体，不执行全量换色或布局迁移。
+- 样式导入顺序固定为 family-ui token、RadishMind alias、现有页面样式。基础批次只接入字体；`S1` 产品壳已完成首个页面级纵向迁移，但其余长页面仍按设计基准面顺序逐批收敛，不执行无设计依据的全量换色。
+- `S1` 当前实现使用唯一 `248px` 桌面导航和同一导航的窄屏 command bar / 折叠菜单；Workspace 首屏消费真实 active workspace、application、source coverage、Operations Inbox 与写入边界 view model，设计稿中的代表性名称、数量和动作不进入代码。
 - 产品化范围、页面顺序、状态矩阵和停止线见 `docs/features/user-workspace/radishmind-family-ui-productization-v1.md`，项目差异见 `docs/ui-addendum.md`。
 
 当前边界：
@@ -92,11 +93,13 @@
 - `applicationDevelopmentWorkspace.ts` / `applicationDevelopmentWorkspaceRoute.ts` 负责唯一 Application context、五阶段映射、lifecycle availability、workspace generation、route generation 与 `surfaceKey`；`applicationDevelopmentWorkspacePanel.tsx` / `applicationDevelopmentWorkspaceSurface.tsx` 只挂载当前阶段 owner surface，并拒绝不属于当前 surface 的迟到 evidence 回调。
 - `applicationDevelopmentHandoff.ts` 只管理当前 Application generation 内一个待消费的稳定短引用；`applicationDevelopmentReadiness.ts` 只聚合九项脱敏 contribution 与四态 readiness，二者都不复制领域对象、输入输出、credential、发布记录或运行真相源。
 - `workflowDraftDesigner.ts` 与 `App.tsx` 负责受控本地编辑、本地节点新增 / 移动 / 删除保护、边重建、节点属性编辑、active draft validate / save / read、版本冲突时保留本地草案，以及 saved dev draft 打开后进入 Draft Designer；`workflowUserWorkspaceHome.ts` / `workflowUserWorkspaceHomePanel.tsx` 负责从 Workspace Home 与 workflow definitions 派生本地草案，并展示活动 / 归档、筛选、加载更多、打开 / 只读审查和可逆 lifecycle 入口。
-- `App.tsx` 只负责顶层分组导航、Application 选择和把共享 context / owner props 交给 feature-owned workspace；Application 开发阶段编排由 `ApplicationDevelopmentWorkspaceSurface` 承担。如果新增真实后端 route、持久化状态或执行能力，应先落契约和边界文档，并按风险判断是否需要任务卡、fixture 或 checker，而不是直接在 App 或 panel 中接线。
+- `ProductNavigation.tsx` 负责唯一桌面侧栏、窄屏折叠菜单、active workspace 切换和主 / 次级页面锚点；主入口只保留 Overview、Operations Inbox、Applications、Workflows、API & Keys 及两项 Review，既有长尾页面进入可折叠的 `More surfaces`，没有因壳层迁移删除功能入口。
+- `workspaceProductOverviewPanel.tsx` 与 `workspaceOperationsInboxPanel.tsx` 负责 `S1` 首屏的真实来源覆盖、当前 Application、紧凑关注队列、继续任务和写入边界；它们只消费现有 view model，不创建新的统计、运营或修复真相源。
+- `App.tsx` 负责产品壳组合、Application 选择和把共享 context / owner props 交给 feature-owned workspace；Application 开发阶段编排由 `ApplicationDevelopmentWorkspaceSurface` 承担。如果新增真实后端 route、持久化状态或执行能力，应先落契约和边界文档，并按风险判断是否需要任务卡、fixture 或 checker，而不是直接在 App 或 panel 中接线。
 
 User Workspace Home / Workflow Review Workspace 读法：
 
-- 左侧导航按 `Workspace`、`Model Gateway`、`Workflow Review`、`Admin` 和 `Contract` 分组；用户端工作区入口、模型网关证据、workflow 审查入口和管理端入口不再与契约 guard 混排。
+- 产品导航优先展示 Workspace 与 Review 主任务；Model Gateway、Workflow Review、Admin 和 Contract 的次级证据面统一进入 `More surfaces`，不再形成与主导航并列的第二套工具栏。
 - 先看 User Workspace Home，确认应用组合、审查路径、最近 run、优先 readiness、主要 route evidence 和关键 stop line rollup。
 - 再看 Model Gateway Overview、Route Evidence、Usage/Audit Evidence 和 Evidence Review / Readiness，确认 northbound API surfaces、provider/profile、route binding、selection cases、API key / quota / trace / audit evidence、readiness rollup、evidence checklist、route / usage / audit key risks 和 locked distribution capabilities；该区域只解释模型网关分发证据，不提供 key lifecycle、quota enforcement、cost record writes、secret resolver 或 fallback execution。
 - 再看 Admin Operations Review / Readiness，确认 tenant、audit、gateway 和 Production Ops 静态证据是否足以支撑管理端只读审查，并明确 production backend、tenant mutation、raw audit export、数据库、Radish auth、repository、secret resolver、production gateway、deployment preflight、executor、writeback 和 replay 仍保持锁定。

@@ -137,7 +137,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 | `surface_id` | 状态 | Pencil 覆盖 | 代码基线与锚点 | 设计决策与停止线 |
 | --- | --- | --- | --- | --- |
-| `radishmind_web_s1_product_shell_v1` | `implementation_completed_r4` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S1 Product Shell — Desktop / Partial · R4` 与 `S1 Product Shell — Narrow / Partial · R4` | 设计基准 commit `24655516`；`apps/radishmind-web/src/app/ProductNavigation.tsx`、`apps/radishmind-web/src/app/App.tsx`、`apps/radishmind-web/src/features/control-plane-read/workspaceProductOverviewPanel.tsx`、`workspaceOperationsInboxPanel.tsx` 与 `apps/radishmind-web/src/styles.css` | 桌面只保留一个主导航侧栏，workspace / application 上下文持续可见，首屏以运营收件箱和来源覆盖回答“继续什么、为什么受限”；窄屏折叠侧栏并按任务顺序单列重排。代表性数量和文案不构成功能真相，不新增 production、全量统计、实时性、自动处置或 dark mode 声明。 |
+| `radishmind_web_s1_product_shell_v1` | `implementation_completed_r4` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S1 Product Shell — Desktop / Partial · R4` 与 `S1 Product Shell — Narrow / Partial · R4` | 设计基准 commit `24655516`，实现 commit `88ec1107`；`apps/radishmind-web/src/app/ProductNavigation.tsx`、`apps/radishmind-web/src/app/App.tsx`、`apps/radishmind-web/src/features/control-plane-read/workspaceProductOverviewPanel.tsx`、`workspaceOperationsInboxPanel.tsx` 与 `apps/radishmind-web/src/styles.css` | 桌面只保留一个主导航侧栏，workspace / application 上下文持续可见，首屏以运营收件箱和来源覆盖回答“继续什么、为什么受限”；窄屏折叠侧栏并按任务顺序单列重排。代表性数量和文案不构成功能真相，不新增 production、全量统计、实时性、自动处置或 dark mode 声明。 |
 
 `S1` 消费 `ref-03`、`ref-07`、`ref-08`、`ref-09`、`ref-15`、`ref-17`、`ref-18`、`ref-19` 与 `ref-24` 的层级、密度、上下文和状态表达；`ref-20` 只保留未来暗色证据，不在当前画板增加主题切换。两个画板均已通过 Pencil 全树布局检查，结果为 `No layout problems`；视觉复核确认没有裁切、重叠和横向溢出。
 
@@ -215,7 +215,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 - 上游 CSS / JSON 镜像逐字比对通过。
 - Web `272/272` 测试和 production build 通过。
-- Playwright `1440x900` 与 `390x844` 复验完成，控制台零 warning / error；窄屏既有超宽已用旧字体对照确认不是本批回归。
+- 基础批次 Playwright `1440x900` 与 `390x844` 复验完成；`S1` 实现后应用内浏览器再次确认唯一 `248px` 桌面导航、`68px` / `94px` 任务行、窄屏菜单交互和 `390px` 精确页面宽度，控制台零 warning / error。
 - `./scripts/check-repo.sh --fast` 与 `./scripts/check-repo.sh` 均通过；只保留 W28–W30 历史周志的既有篇幅 warning。
 
 ## 停止线
