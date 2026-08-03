@@ -290,7 +290,7 @@ Control Plane read-side product UI 额外覆盖：
    - 选中 Application 后固定显示 Application Context Header，以及 Configure / Build、Human Promotion、Controlled Test、Run / Evaluation Review、Release Readiness 五阶段；Application 选择仍由上层 Applications 入口承担
    - 当前只挂载一个 feature-owned stage surface；Application、revision、lifecycle 或阶段变化必须更新 workspace / route generation 与 `surfaceKey`，旧 surface 的迟到回调不得覆盖当前 evidence 或选择
    - 跨阶段 handoff 只允许当前 Application generation 内的稳定短引用；目标 owner 必须重读精确 draft、candidate、definition、binding、assignment、session、run、request 或 evaluation，不接收来源完整对象，不自动执行保存、审查、activation、assignment、provider 调用或发布
-   - Release Readiness 只读聚合九项 owner contribution 与七个来源组，状态固定为 `review_not_started`、`review_incomplete`、`review_blocked`、`dev_test_evidence_reviewable`；不得提供 production ready、publish ready、持久化 readiness 或发布按钮
+   - Release Readiness 只读聚合十三项 owner contribution 与九个来源组，状态固定为 `review_not_started`、`review_incomplete`、`review_blocked`、`dev_test_evidence_reviewable`；与当前 application kind 无关的 contribution 只作为 `not applicable` 完整收口，不得提供 production ready、publish ready、持久化 readiness 或发布按钮
    - active Application 的阶段可操作，archived Application 除 Controlled Test 外保持只读，unavailable Application 全部阻塞；离线来源缺少权威 revision 时必须显示 `incomplete / partial`，不得伪造版本或中断页面
    - 窄屏按 Context Header、Stage Navigation、当前 Surface、Evidence / Readiness 的顺序单列排列；稳定 URL 只保留阶段 hash，不携带 Application payload、input、answer、token、review reason 或完整资源引用
 

@@ -2,7 +2,7 @@
 
 更新时间：2026-08-03
 
-状态：`radishmind_family_ui_reference_mapping_v1_v26_7_3_revalidated`
+状态：`radishmind_family_ui_reference_mapping_v1_s2_design_consumed`
 
 ## 文档职责
 
@@ -113,5 +113,5 @@ S4 组合原则：接入向导只编排既有 owner。原始 API Key 只在签�
 - 四个产品面都具有可追溯参考依据和明确不采用项。
 - 没有复制、提交或重新托管外部参考图。
 - 移动端、暗色和未实现能力没有从参考图获得隐式准入。
-- 2026-08-03 已实际重新查看 `ref-05`、`ref-11`、`ref-12`、`ref-13`、`ref-14` 与 `ref-27`；原有 `S2` 映射仍成立，但必须按 RadishMind 的五阶段、owner evidence、readiness 和停止线重新组合，不复制原产品结构。
-- `S1` 产品壳 `R4` 设计、真实 React 实现与桌面 / 窄屏浏览器验收均已完成；下一步直接消费 `ref-05`、`ref-11`、`ref-12`、`ref-13`、`ref-14` 与 `ref-27`，建立 `S2` Application Workspace 设计基准面，不再补同层参考资料。
+- 2026-08-03 已实际重新查看 `ref-05`、`ref-11`、`ref-12`、`ref-13`、`ref-14`、`ref-18` 与 `ref-27`；原有产品面映射仍成立，但 `ref-18` 的大尺度品牌 / 导航 / 搜索、抬起选中实体与宽松主对象，以及 `ref-13` 的图标任务身份、阶段 rail 与单一宽工作面，应作为 `S1` / `S2` 共享视觉语法，而不只是局部结构参考。
+- `S1 React R4` 与桌面 / 窄屏浏览器验收已完成；`S2 R1` 与 `R2` 先后解决真实信息层级和连续工作面，但联合人工视觉复核仍确认 `S1 R4` / `S2 R2` 过小、过碎、层级平均，更像微缩审计原型。`S1 R5` / `S2 R3` 因此共同转译 `ref-18` / `ref-13` 为“大尺度、低噪声、强主次、柔和实体感”，同时保留五阶段、owner evidence、readiness 和 blocked / partial 停止线。下一步联合评审两组基准面。

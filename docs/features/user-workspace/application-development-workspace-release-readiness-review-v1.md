@@ -175,7 +175,7 @@ context 不保存领域对象、请求正文、响应正文、凭据、输入、
 - Application 切换、revision / lifecycle 变化由 workspace generation 物理重建控制器；离开工作区清空 pending handoff 和 readiness contributions，返回后必须由 owner 重新上报。
 - 目标 owner 消费 handoff 后重新读取精确资源；handoff 不自动触发保存、review、activation、assignment、provider / tool 调用、运行或发布。
 
-readiness contribution 固定为九项：`application_lifecycle`、`configuration_draft`、`publish_candidate`、`workflow_definition`、`rag_binding`、`rag_assignment`、`controlled_run`、`evaluation_review`、`operations_coverage`。它们归入七个来源组，四态聚合保持保守：未选择 Application 为 `review_not_started`；任一 owner failure、漂移、生命周期 blocker 或 `partial_failure` 为 `review_blocked`；已有 Application 但必要 contribution 未齐为 `review_incomplete`；九项均有完整开发测试态 evidence 时才允许 `dev_test_evidence_reviewable`。
+当前 readiness contribution 固定为十三项：`application_lifecycle`、`configuration_draft`、`publish_candidate`、`workflow_definition`、`rag_binding`、`rag_assignment`、`prompt_template`、`prompt_assignment`、`agent_profile`、`agent_assignment`、`controlled_run`、`evaluation_review`、`operations_coverage`。它们归入 Application、Configuration / Candidate、Workflow authority、RAG authority、Prompt authority、Agent Copilot authority、Controlled test、Evaluation 和 Operations 九个来源组；与当前 application kind 无关的 contribution 以 `not applicable / available / complete` 收口，不形成伪 blocker。四态聚合保持保守：未选择 Application 为 `review_not_started`；任一 owner failure、漂移、生命周期 blocker 或 `partial_failure` 为 `review_blocked`；已有 Application 但适用 contribution 未齐为 `review_incomplete`；十三项均按当前 kind 完整收口时才允许 `dev_test_evidence_reviewable`。
 
 ### 批次 C：连续链与专题收口
 
@@ -184,6 +184,18 @@ readiness contribution 固定为九项：`application_lifecycle`、`configuratio
 - 根据实际行为证据更新功能专题、当前焦点、能力矩阵和周志后关闭专题。
 
 若任何批次发现必须新增 API、schema、repository、执行边界或高风险写入，应停止当前批次，先更新本设计并创建唯一的高风险任务卡；不得把新边界隐藏在普通 UI 重组中。
+
+## 2026-08-03 Family UI S2 设计基准面
+
+`radishmind_web_s2_application_workspace_v1` 已在 [Family UI Pencil 设计源](../../designs/radishmind-web-family-ui-v1.pen) 中完成 `R3`，当前为设计评审完成前的实现门禁，不改变本专题已经关闭的功能范围：
+
+- 桌面 `1440x900` 继承 `S1` 单一产品导航，以 RadishFlow Copilot 这一真实 Application 作用域组织 Application Context、五阶段任务路径、唯一 Human Promotion 当前 surface 和从属 Evidence / Readiness rail；阶段只表达可进入性，不显示伪完成进度。
+- 窄屏 `390x844` 固定为“Application Context → 当前阶段选择器 → 当前 surface → Readiness 摘要”，五阶段与九个来源组通过渐进展开查看，不压缩桌面双栏，也不产生横向溢出。
+- 代表面使用缺少权威 revision 的离线 Application 和未证明的 RAG assignment 同时固定 `partial` 与 `blocked` 表达；状态均有文字、结构和语义色第二通道，不能被理解为生产 readiness。
+- 当前代码审计确认九个来源组、十三项 contribution、generation / surfaceKey、精确 ref handoff 和目标 owner 重读仍是实现真相；Pencil 中的代表性计数、标签和短引用不进入功能契约。
+- 共享设计决策记录明确消费 `ref-05`、`ref-11`、`ref-12`、`ref-13`、`ref-14`、`ref-18` 与 `ref-27`，并排除主题切换、事故语境、ETA、自动阶段完成、自动 activation / assignment、发布按钮和五阶段重复画板。
+- `R1` 的功能层级通过审计，`R2` 改为连续工作面、图标分段阶段带、时间线 evidence 与贴合详情 rail；联合人工复核仍确认其尺度过小、表面过碎且主次不足。`R3` 用更大的 Application 身份、阶段 rail 和 Human Promotion 主对象，以及选择性抬升感，完成视觉根因修正。
+- `S2` 桌面 / 窄屏与共享设计决策记录均通过 Pencil 全树布局检查，无裁切、重叠或占位节点。下一步与 `S1 R5` 一起完成联合人工评审，确认后再实施 React 纵向切片。
 
 ## 当前实现进度
 
@@ -202,14 +214,14 @@ readiness contribution 固定为九项：`application_lifecycle`、`configuratio
 - 归档 Application 的配置、候选和 evidence 保持只读，Controlled Test 整段失败关闭；未知或未选择 Application 不挂载写入 / 运行 owner。
 - Application Workspace 精准测试增至 8 项，新增一次性 route handoff 测试；全部 Web 测试 `171 / 171`、`npm run build`、route / handoff / Workflow Definition 定向测试均通过。
 
-批次 A 已关闭，批次 B 也已完成。通用 feature-scoped 脱敏 handoff refs、九项 owner contribution、七个来源组与四态 readiness view model 已进入 Web；既有一次性 Application API token 交接仍保持在专用内存通道，不进入通用 handoff state。
+批次 A 已关闭，批次 B 也已完成。通用 feature-scoped 脱敏 handoff refs、十三项 owner contribution、九个来源组与四态 readiness view model 已进入 Web；既有一次性 Application API token 交接仍保持在专用内存通道，不进入通用 handoff state。下文 2026-07-20 的“九项 / 七组”记录是 Prompt / Agent 扩展前的批次 B 历史证据，不代表当前代码规模。
 
 2026-07-20 已完成批次 B：
 
 - 新增 feature-scoped handoff controller，只允许当前 Application generation 内一个待消费的稳定短引用；新交接替换旧交接，离开工作区立即清空，作用域漂移、代际过期、非法引用和错误目标均失败关闭。
-- Configuration Draft、Publish Candidate、Workflow Definition、RAG Binding、RAG Assignment、Controlled Run、Evaluation 与 Operations owner 通过窄回调上报九项脱敏 contribution；工作区不重复请求 owner，不保存领域对象、输入输出或凭据。
+- 批次 B 当时由 Configuration Draft、Publish Candidate、Workflow Definition、RAG Binding、RAG Assignment、Controlled Run、Evaluation 与 Operations owner 通过窄回调上报九项脱敏 contribution；后续 Prompt Template / Assignment 与 Agent Profile / Assignment 沿用同一边界扩展为当前十三项，工作区仍不重复请求 owner，不保存领域对象、输入输出或凭据。
 - Draft → Publish Review 与 Run → Run History 已改用通用 handoff；目标 owner 重新读取精确 draft / run，找不到时明确保留在 owner 视图，不信任来源提交的完整对象，也不自动触发审查或运行。
-- Release Readiness 已按 Application、Configuration / Candidate、Workflow authority、RAG authority、Controlled test、Evaluation、Operations 七组展示状态、coverage、精确引用、缺失项、blocker、failure code 和下一跳；九项证据全部完整时才输出 `dev_test_evidence_reviewable`。
+- 批次 B 当时按 Application、Configuration / Candidate、Workflow authority、RAG authority、Controlled test、Evaluation、Operations 七组展示状态、coverage、精确引用、缺失项、blocker、failure code 和下一跳；后续 Prompt / Agent 两组沿同一规则接入，当前十三项 contribution 按 application kind 全部完整收口时才输出 `dev_test_evidence_reviewable`。
 - Application 切换、revision / lifecycle 变化和离开工作区会重建或清空 evidence / handoff state；`partial_failure`、owner failure、归档、漂移或 blocker 保守聚合为 `review_blocked`，不会隐藏其它已加载证据。
 - Application Workspace 精准测试增至 17 项；全部 Web 测试 `180 / 180`、`npm run build`、`git diff --check` 与仓库快速门禁通过。实现没有新增 API、schema、repository、发布记录、聚合 store、执行算法或专项 checker。
 
