@@ -1,14 +1,14 @@
 # RadishMind UI 差异附录
 
-更新时间：2026-07-30
+更新时间：2026-08-03
 
-采用基线：RadishX `docs/design/family-ui/` `v26.7.2`
+采用基线：RadishX `docs/design/family-ui/` `v26.7.3`
 
-Profile：`Workbench`
+Profile：RadishMind 主动选择 `Workbench`
 
 ## 文档职责
 
-本文件只记录 RadishMind 相对 family-ui 的项目差异、专属组件和迁移偏差。家族通用色彩、字体、间距、圆角、阴影、图标、组件和平台布局规则不在本仓库复制维护。
+本文件只记录 RadishMind 相对 family-ui 的项目选择、专属组件和迁移偏差。family-ui 提供通用参考基线，不替具体项目规定配色分工、技术接入、采用状态或迁移节奏；RadishMind 的这些决策由本文件负责。
 
 规则优先级：
 
@@ -24,10 +24,11 @@ Profile：`Workbench`
 RadishMind 是 Radish 家族中的 AI 工具、工作流、模型网关和 Copilot 集成工作台：
 
 - 视觉主气质：现代、克制、可信、可审计。
+- 身份识别：灰玉，对应 `--rd-brand-*`；只用于产品身份与明确品牌实底，不承担状态或日常主操作。
 - 主交互强调：墨蓝，对应 `--rd-action-*`。
 - 次级正向强调：玉色，对应 `--rd-accent-jade` 与 success 语义。
 - 小面积辅助区分：紫色，对应 `--rd-accent-purple`。
-- 品牌胭脂色不作为日常主按钮颜色，也不用于大面积工程工作台背景。
+- 小面积关注提示：胭脂，对应项目级 `--rm-attention-*`；不等同于品牌、danger 或自动发布资格。
 - Workbench 不使用家族纹样；`--rd-pattern-line` 仅随 token 镜像存在，不进入当前页面设计。
 
 ### 产品面表达
@@ -40,7 +41,7 @@ RadishMind 是 Radish 家族中的 AI 工具、工作流、模型网关和 Copil
 
 ## Token 与构建映射
 
-上游原样镜像：
+RadishMind 当前选择精确镜像所采用 family-ui 版本的参考实现；这是项目接入策略，不是上游对采用方的强制要求：
 
 - `apps/radishmind-web/src/styles/family-ui/tokens.css`
 - `apps/radishmind-web/src/styles/family-ui/tokens.json`
@@ -61,14 +62,17 @@ RadishMind 是 Radish 家族中的 AI 工具、工作流、模型网关和 Copil
 
 | RadishMind 语义 | family-ui 映射 | 用途 |
 | --- | --- | --- |
-| `--rm-brand-primary` | `--rd-action-primary` | 主按钮、选中态、关键交互 |
-| `--rm-brand-soft` | `--rd-action-soft` | 当前上下文、轻量选中背景 |
+| `--rm-identity-*` | `--rd-brand-*` | 产品身份、品牌柔底与身份悬停 |
+| `--rm-text-on-identity` | `--rd-text-on-brand` | 品牌实底上的可读前景 |
+| `--rm-action-*` | `--rd-action-*` | 主按钮、链接、选中态与关键交互 |
+| `--rm-attention-primary` | `--rd-accent-rouge` | 小面积关注计数或需要人工留意的非状态提示 |
+| `--rm-attention-soft` | 从 `--rd-accent-rouge` 派生的项目柔底 | 关注提示背景，不复用 danger 或 brand 柔底 |
 | `--rm-accent-secondary` | `--rd-accent-jade` | 正向辅助、健康或已满足证据 |
 | `--rm-accent-tertiary` | `--rd-accent-purple` | 小面积类型区分 |
 | `--rm-state-*` | `--rd-state-*` | success / warning / danger / info / neutral |
 | `--rm-bg-*`、`--rm-text-*`、`--rm-border-*` | 对应 `--rd-*` 语义 | 页面、面板、文本与边界 |
 
-`--rm-brand-primary` 的名称保留现有项目词汇，但语义是 Workbench 的主交互色，不等同于 family-ui 品牌面 `--rd-brand-primary`。
+`v26.7.3` 新增 `--rd-text-on-brand` 并把参考实现中的默认品牌识别改为灰玉。RadishMind 不再用名为 brand 的项目别名承载 action；identity、action 与 attention 必须分别映射，避免上游品牌值变化静默改写交互或关注语义。
 
 ## RadishMind 专属组件
 
@@ -89,6 +93,7 @@ RadishMind 是 Radish 家族中的 AI 工具、工作流、模型网关和 Copil
 
 - 现有 `styles.css` 仍包含大量冷灰、深海军蓝和硬编码间距；基础批次只接入 token 与字体，不做视觉突变。
 - 现有组件尚未全面消费 `--rm-*` / `--rd-*`；只允许在后续页面纵向切片中迁移，不继续为新设计增加无语义硬编码颜色。
+- `v26.7.3` token 已完成精确镜像；`S1` 产品身份改为灰玉，墨蓝 action 与胭脂 attention 通过项目别名保持原有职责，不再直接混用 `--rd-brand-primary`。
 - `S1` 实现已经消除 `390px` 窄屏原有的 `421px` 横向内容宽度。根因是 Application Configuration Draft 深层标题行中的长状态 badge；移动端共享收缩规则、标题行换行与 React Flow 边界已收口，闭合导航和展开菜单的真实页面宽度均为 `390px`。
 - family-ui 已包含暗色映射，但 RadishMind 尚未完成暗色页面设计、切换策略和双态视觉验收，因此当前不提供暗色主题开关。
 - 旧 [UI 设计规范](radishmind-ui-design-spec.md) 暂作为历史迁移源保留；其中家族通用视觉规则已由 family-ui 取代，领域状态和产品边界逐步迁入功能专题与本附录。
@@ -106,9 +111,8 @@ RadishMind 是 Radish 家族中的 AI 工具、工作流、模型网关和 Copil
 
 ## 维护流程
 
-1. family-ui 版本升级时，先阅读上游 migration playbook。
-2. 原样更新 CSS / JSON 镜像并核对内容一致性。
-3. 审查 `--rm-*` 映射、专属组件和已登记偏差。
+1. family-ui 版本升级时，先阅读上游 README、Changelog、规范扩展与版本兼容原则，并检查是否标记为破坏性变更。
+2. 由 RadishMind 决定是否升级；采用升级时精确更新 CSS / JSON 镜像并核对内容一致性。
+3. 审查 `--rm-*` 映射、品牌与操作语义、专属组件和已登记偏差，不让参考实现的值变化静默改变业务表达。
 4. 执行 Web 测试、production build、桌面与窄屏 smoke。
-5. 更新本文件、产品化专题、当前焦点与周志。
-6. RadishMind 验收完成后，再由 RadishX 维护者更新上游 adoption 状态；本仓库不替代上游真相源。
+5. 更新本文件、产品化专题、当前焦点与周志。采用状态只在 RadishMind 维护；只有新的跨界面通用语义才回到 family-ui 讨论。

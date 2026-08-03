@@ -6724,8 +6724,8 @@ textarea {
   height: 46px;
   flex: 0 0 46px;
   border-radius: var(--rm-radius-md);
-  background: var(--rm-brand-soft);
-  color: var(--rd-brand-primary);
+  background: var(--rm-identity-soft);
+  color: var(--rm-identity-primary);
   font-family: var(--rm-font-mono);
   font-size: 13px;
   font-weight: 800;
@@ -6792,7 +6792,7 @@ textarea {
   border: 0;
   border-radius: var(--rm-radius-xs);
   background: transparent;
-  color: var(--rm-brand-primary);
+  color: var(--rm-action-primary);
   cursor: pointer;
 }
 
@@ -6843,7 +6843,7 @@ textarea {
 .product-nav-group a:hover,
 .product-nav-group a[aria-current="page"] {
   background: var(--rm-bg-sidebar-active);
-  color: var(--rm-brand-primary);
+  color: var(--rm-action-primary);
 }
 
 .product-nav-group a span {
@@ -6914,7 +6914,7 @@ textarea {
   border: 1px solid var(--rm-border-soft);
   border-radius: var(--rm-radius-md);
   padding: 10px;
-  background: var(--rm-brand-soft);
+  background: var(--rm-action-soft);
 }
 
 .product-nav-environment > span:first-child {
@@ -7124,7 +7124,7 @@ textarea {
 
 .workspace-active-application > a,
 .workspace-operations-inbox-footer a {
-  color: var(--rm-brand-primary);
+  color: var(--rm-action-primary);
   font-size: 12px;
   font-weight: 700;
 }
@@ -7140,8 +7140,8 @@ textarea {
   min-width: 28px;
   height: 28px;
   border-radius: var(--rm-radius-pill);
-  background: var(--rm-brand-soft);
-  color: var(--rd-brand-primary);
+  background: var(--rm-attention-soft);
+  color: var(--rm-attention-primary);
   font-family: var(--rm-font-mono);
   font-size: 11px;
   font-weight: 800;
@@ -7262,7 +7262,7 @@ textarea {
 }
 
 .workspace-operations-inbox-action a {
-  color: var(--rm-brand-primary);
+  color: var(--rm-action-primary);
   font-size: 16px;
 }
 
@@ -7471,6 +7471,10 @@ textarea {
   .product-workspace {
     gap: 15px;
     padding: 24px 14px 42px;
+  }
+
+  .product-workspace [id] {
+    scroll-margin-top: 72px;
   }
 
   .product-workspace *,

@@ -9,8 +9,8 @@
 
 ## Family UI 基座
 
-- 通用 UI 规范采用 RadishX family-ui `v26.7.2`，页面根节点使用 `Workbench` Profile。
-- `src/styles/family-ui/tokens.css` 与 `tokens.json` 是上游原样镜像；项目差异通过 `src/styles/radishmind-aliases.css` 的 `--rm-*` L2 别名表达。
+- 通用 UI 参考基线采用 RadishX family-ui `v26.7.3`；页面根节点使用 `Workbench` Profile，这是 RadishMind 对工作面气质与密度的项目级选择。
+- `src/styles/family-ui/tokens.css` 与 `tokens.json` 作为 RadishMind 的接入策略精确镜像当前采用版本；项目差异通过 `src/styles/radishmind-aliases.css` 的 `--rm-*` L2 别名表达，identity、action、attention 与状态语义保持分离。
 - 样式导入顺序固定为 family-ui token、RadishMind alias、现有页面样式。基础批次只接入字体；`S1` 产品壳已完成首个页面级纵向迁移，但其余长页面仍按设计基准面顺序逐批收敛，不执行无设计依据的全量换色。
 - `S1` 当前实现使用唯一 `248px` 桌面导航和同一导航的窄屏 command bar / 折叠菜单；Workspace 首屏消费真实 active workspace、application、source coverage、Operations Inbox 与写入边界 view model，设计稿中的代表性名称、数量和动作不进入代码。
 - 产品化范围、页面顺序、状态矩阵和停止线见 `docs/features/user-workspace/radishmind-family-ui-productization-v1.md`，项目差异见 `docs/ui-addendum.md`。

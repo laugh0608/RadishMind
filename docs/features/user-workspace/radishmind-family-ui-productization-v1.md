@@ -1,8 +1,8 @@
 # RadishMind Family UI 产品化设计与迁移 v1
 
-更新时间：2026-07-30
+更新时间：2026-08-03
 
-状态：`radishmind_family_ui_productization_v1_s1_implementation_completed`
+状态：`radishmind_family_ui_productization_v1_s1_v26_7_3_alignment_completed`
 
 ## 目标
 
@@ -27,20 +27,20 @@
 
 ## 规范真相源
 
-通用 UI 规范遵循 RadishX 仓库 `docs/design/family-ui/` 的 `v26.7.2`：
+通用 UI 参考基线采用 RadishX 仓库 `docs/design/family-ui/` 的 `v26.7.3`：
 
-- 家族通用原则、色彩、字体、间距、圆角、阴影、图标、组件、平台布局和迁移方式以上游规范为准。
+- 家族通用原则、稳定语义、字体、间距、圆角、阴影、图标、组件和平台布局以上游规范为参考；上游不替项目决定产品配色、Profile、接入方式、采用状态或迁移顺序。
 - RadishMind 只在 [UI 差异附录](../../ui-addendum.md) 中维护项目差异、专属组件和暂存偏差。
-- Web 构建中的上游 token 镜像必须与对应 family-ui 版本原样一致，不在镜像文件中直接修改项目差异。
+- RadishMind 主动选择 `Workbench` Profile，并把上游 token 原样镜像作为本项目的接入策略；镜像文件必须与对应 family-ui 版本一致，不在其中直接修改项目差异。
 - 新的家族通用 token 应先回到 family-ui 讨论；RadishMind 专属语义先使用 `--rm-*` L2 别名或项目组件变量表达。
 
 ## 产品 Profile
 
-RadishMind 使用 `Workbench` Profile：
+RadishMind 项目主动选择 `Workbench` Profile：
 
 - 画面气质是现代、安静、紧凑、可审计的工程工作台。
 - 亮色底采用家族纸色，但不使用品牌面纹样和装饰性印章。
-- 主交互强调色使用墨蓝语义，成功与可继续状态使用玉色，紫色只用于小面积辅助区分。
+- 身份与家族归属使用灰玉语义，主交互使用墨蓝语义，成功与可继续状态使用玉色，紫色只用于小面积类型区分，胭脂只用于需要注意但不等同危险的项目语义。
 - 颜色不是状态的唯一通道；状态必须同时具有文字、图标或结构语义。
 - 信息密度允许高于品牌展示面，但主任务、当前上下文、高风险动作和失败原因必须有清晰层级。
 - 页面、区域和卡片标题只显示稳定名称，不在标题上下追加 eyebrow、代表状态、营销句或临时解释句；状态、范围和来源数量进入 badge、字段或数据行。
@@ -137,7 +137,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 | `surface_id` | 状态 | Pencil 覆盖 | 代码基线与锚点 | 设计决策与停止线 |
 | --- | --- | --- | --- | --- |
-| `radishmind_web_s1_product_shell_v1` | `implementation_completed_r4` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S1 Product Shell — Desktop / Partial · R4` 与 `S1 Product Shell — Narrow / Partial · R4` | 设计基准 commit `24655516`，实现 commit `88ec1107`；`apps/radishmind-web/src/app/ProductNavigation.tsx`、`apps/radishmind-web/src/app/App.tsx`、`apps/radishmind-web/src/features/control-plane-read/workspaceProductOverviewPanel.tsx`、`workspaceOperationsInboxPanel.tsx` 与 `apps/radishmind-web/src/styles.css` | 桌面只保留一个主导航侧栏，workspace / application 上下文持续可见，首屏以运营收件箱和来源覆盖回答“继续什么、为什么受限”；窄屏折叠侧栏并按任务顺序单列重排。代表性数量和文案不构成功能真相，不新增 production、全量统计、实时性、自动处置或 dark mode 声明。 |
+| `radishmind_web_s1_product_shell_v1` | `implementation_completed_r4_v26_7_3_revalidated` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S1 Product Shell — Desktop / Partial · R4` 与 `S1 Product Shell — Narrow / Partial · R4` | 设计基准 commit `24655516`，实现 commit `88ec1107`；`apps/radishmind-web/src/app/ProductNavigation.tsx`、`apps/radishmind-web/src/app/App.tsx`、`apps/radishmind-web/src/features/control-plane-read/workspaceProductOverviewPanel.tsx`、`workspaceOperationsInboxPanel.tsx` 与 `apps/radishmind-web/src/styles.css` | 桌面只保留一个主导航侧栏，workspace / application 上下文持续可见，首屏以运营收件箱和来源覆盖回答“继续什么、为什么受限”；窄屏折叠侧栏并按任务顺序单列重排。代表性数量和文案不构成功能真相，不新增 production、全量统计、实时性、自动处置或 dark mode 声明。 |
 
 `S1` 消费 `ref-03`、`ref-07`、`ref-08`、`ref-09`、`ref-15`、`ref-17`、`ref-18`、`ref-19` 与 `ref-24` 的层级、密度、上下文和状态表达；`ref-20` 只保留未来暗色证据，不在当前画板增加主题切换。两个画板均已通过 Pencil 全树布局检查，结果为 `No layout problems`；视觉复核确认没有裁切、重叠和横向溢出。
 
@@ -149,7 +149,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 - 页面、区域和卡片标题只保留名称；状态、范围、数量与限制进入结构化 badge、字段或数据行，不在标题下补解释性副文案；
 - workspace pulse 继续使用非均质摘要，不退回四张同等权重指标卡；
 - Operations Inbox 使用参考 `ref-08` / `ref-24` 的表格式关注队列、severity 筛选和软印色状态，同时保留 owner、当前窗口与 partial 停止线；
-- 小面积胭脂只用于家族 seal 与关注计数，墨蓝负责交互，玉色和赭色只表达状态，雅紫只区分 application / workflow 对象；
+- 小面积灰玉只用于家族 seal 等身份表达，墨蓝负责交互，胭脂只用于关注计数等注意语义，玉色和赭色只表达状态，雅紫只区分 application / workflow 对象；
 - 桌面关注队列行高固定为 `68px`，窄屏三行任务条目固定为 `94px`；列表不再随剩余视口高度拉伸；
 - 窄屏复用柔色 command bar、workspace pulse 和对象卡语法，按任务顺序单列重组，不缩小桌面导航和 KPI。
 
@@ -176,9 +176,9 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 交付：
 
-- 引入 family-ui `v26.7.2` 的 `tokens.css` 与 `tokens.json` 原样镜像。
+- 初始引入 family-ui `v26.7.2` 的 token，并于 2026-08-03 升级为 `v26.7.3` 的 `tokens.css` 与 `tokens.json` 原样镜像。
 - 在文档根节点启用 `data-rd-profile="workbench"`。
-- 建立 `--rm-* -> --rd-*` L2 兼容别名。
+- 建立 `--rm-* -> --rd-*` L2 语义别名，并明确区分身份、操作、正向、类型与注意语义。
 - 让 Web 的基础字体消费项目别名，不在同批执行全量配色或布局迁移。
 - 建立项目差异附录，更新协作规范、文档入口、当前焦点和旧规范迁移状态。
 
@@ -199,7 +199,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 ## 基础浏览器基线
 
 - `1440x900`：真实页面 `scrollWidth` 与 viewport 均为 `1440px`，唯一桌面导航宽 `248px`，Operations Inbox 四行均为 `68px`，首屏概览与 inbox 在 `900px` 高度内完成展示。
-- `390x844`：闭合导航与展开菜单的页面 `scrollWidth`、body 宽度和菜单面板宽度均为 `390px`；四行 Operations Inbox 均为 `94px`，菜单导航后自动收起并把目标锚点滚动到视口顶部。
+- `390x844`：闭合导航与展开菜单的页面 `scrollWidth`、body 宽度和菜单面板宽度均为 `390px`；四行 Operations Inbox 均为 `94px`，菜单导航后自动收起，并为目标锚点保留 `64px` command bar 与 `8px` 可见间隔。
 - 既有 `421px` 超宽的真实根因是 Application Configuration Draft 深层标题行中的长状态 badge。实现批次通过移动端共享收缩规则、标题行换行和 React Flow 边界收口消除该偏差；应用内浏览器复验控制台无 warning / error。
 
 ## 基础批次验收
@@ -213,9 +213,10 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 完成证据：
 
-- 上游 CSS / JSON 镜像逐字比对通过。
+- 上游 `v26.7.3` CSS / JSON 镜像逐字比对通过，项目别名不再混用身份色与操作色。
 - Web `272/272` 测试和 production build 通过。
 - 基础批次 Playwright `1440x900` 与 `390x844` 复验完成；`S1` 实现后应用内浏览器再次确认唯一 `248px` 桌面导航、`68px` / `94px` 任务行、窄屏菜单交互和 `390px` 精确页面宽度，控制台零 warning / error。
+- `v26.7.3` 对齐后应用内浏览器再次确认：灰玉 identity、墨蓝 action 与胭脂 attention 分工正确；`1440x900` 和 `390x844` 均无横向溢出；窄屏菜单关闭后目标标题在 `72px` 处保持可见；控制台零 warning / error。
 - `./scripts/check-repo.sh --fast` 与 `./scripts/check-repo.sh` 均通过；只保留 W28–W30 历史周志的既有篇幅 warning。
 
 ## 停止线

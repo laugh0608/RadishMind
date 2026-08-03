@@ -11,15 +11,21 @@
   --rm-text-primary: var(--rd-text-primary);
   --rm-text-secondary: var(--rd-text-secondary);
   --rm-text-muted: var(--rd-text-muted);
+  --rm-text-on-identity: var(--rd-text-on-brand);
   --rm-text-on-accent: var(--rd-text-on-accent);
 
   --rm-border-soft: var(--rd-border-soft);
   --rm-border-strong: var(--rd-border-strong);
   --rm-focus-ring: var(--rd-focus-ring);
 
-  --rm-brand-primary: var(--rd-action-primary);
-  --rm-brand-hover: var(--rd-action-hover);
-  --rm-brand-soft: var(--rd-action-soft);
+  --rm-identity-primary: var(--rd-brand-primary);
+  --rm-identity-hover: var(--rd-brand-hover);
+  --rm-identity-soft: var(--rd-brand-soft);
+  --rm-action-primary: var(--rd-action-primary);
+  --rm-action-hover: var(--rd-action-hover);
+  --rm-action-soft: var(--rd-action-soft);
+  --rm-attention-primary: var(--rd-accent-rouge);
+  --rm-attention-soft: color-mix(in srgb, var(--rd-accent-rouge) 12%, transparent);
   --rm-accent-secondary: var(--rd-accent-jade);
   --rm-accent-tertiary: var(--rd-accent-purple);
 

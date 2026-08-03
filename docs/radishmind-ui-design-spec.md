@@ -1,10 +1,10 @@
 # RadishMind UI 设计规范（迁移中）
 
-更新时间：2026-07-30
+更新时间：2026-08-03
 
 状态：`legacy_ui_spec_migration_source`
 
-family-ui 家族通用规范现以 RadishX `docs/design/family-ui/` `v26.7.2` 为真相源，RadishMind 项目差异见 [UI 差异附录](ui-addendum.md)，当前产品化推进见 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)。
+family-ui 家族通用参考基线现采用 RadishX `docs/design/family-ui/` `v26.7.3`，RadishMind 的 Profile、配色、接入和迁移选择见 [UI 差异附录](ui-addendum.md)，当前产品化推进见 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)。
 
 本文件暂保留历史页面、状态与 Pencil 治理规则，供迁移时核对。下文中与家族色彩、字体、间距、圆角、阴影、图标或通用组件冲突的规则已被 family-ui 取代；领域能力与停止线继续以对应功能设计文档为准。
 
@@ -87,7 +87,9 @@ RadishMind UI 分成两个当前实现面：
 | `--rm-text-primary` | 主文本、标题 | 深灰黑 |
 | `--rm-text-secondary` | 辅助说明、时间、metadata | 中性灰 |
 | `--rm-border-soft` | 卡片和分区边框 | 低对比灰 |
-| `--rm-brand-primary` | 主按钮、当前焦点 | 克制蓝或青绿 |
+| `--rm-identity-primary` | 产品身份 | 灰玉 |
+| `--rm-action-primary` | 主按钮、链接、当前焦点 | 克制墨蓝 |
+| `--rm-attention-primary` | 小面积关注提示 | 胭脂，不承担 danger 语义 |
 | `--rm-state-success` | ready、connected、passed | 低饱和绿 |
 | `--rm-state-warning` | stale、warning、not ready | 低饱和橙 |
 | `--rm-state-danger` | failed、danger、unsafe | 克制红 |

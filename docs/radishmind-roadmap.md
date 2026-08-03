@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-07-30
+更新时间：2026-08-03
 
 ## 文档职责
 
@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：[已保存 Workflow 草案库生命周期与组织](features/workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md)批次 A 至 E、[应用解除归档与安全重新启用](features/user-workspace/application-unarchive-safe-reactivation-dev-test-v1.md)批次 A 至 C，以及 [API 密钥引导式轮换与验证后退役](features/user-workspace/api-key-guided-rotation-verified-retirement-dev-test-v1.md)批次 A、B 均已完成并关闭。2026-07-30 真实开发者复盘、首批 UI 一致性治理和 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md) 的基础批次、参考图映射、Pencil 分级、`S1` 产品壳 `R4` 设计、真实 React 实现与桌面 / 窄屏浏览器验收均已完成；当前顺位为 `S2` Application Workspace `A` 级设计基准面，评审通过后再进入对应纵向实现。全历史 usage 聚合、运营收件箱全分页投影、production membership adapter、quota / billing 与真实 OIDC 均保持条件式入口。
+1. 产品线：[已保存 Workflow 草案库生命周期与组织](features/workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md)批次 A 至 E、[应用解除归档与安全重新启用](features/user-workspace/application-unarchive-safe-reactivation-dev-test-v1.md)批次 A 至 C，以及 [API 密钥引导式轮换与验证后退役](features/user-workspace/api-key-guided-rotation-verified-retirement-dev-test-v1.md)批次 A、B 均已完成并关闭。2026-07-30 真实开发者复盘、首批 UI 一致性治理与 `S1` 产品壳纵向切片均已完成；2026-08-03 又完成 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md) 的 `v26.7.3` 通用参考基线对齐、RadishMind Workbench 选择、原样 token 镜像和项目语义分层。当前顺位仍为 `S2` Application Workspace `A` 级设计基准面，评审通过后再进入对应纵向实现。全历史 usage 聚合、运营收件箱全分页投影、production membership adapter、quota / billing 与真实 OIDC 均保持条件式入口。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；dev header 与 signed-test membership 不能作为 production 授权来源。production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、quota 和 billing 继续为 `not_satisfied`。
@@ -70,7 +70,7 @@
 - 系统边界：[架构](radishmind-architecture.md)
 - 协议边界：[集成契约](radishmind-integration-contracts.md)
 - 能力状态：[能力矩阵](radishmind-capability-matrix.md)
-- 当前开发记录：[2026-W31 周志](devlogs/2026-W31.md)
+- 当前开发记录：[2026-W32 周志](devlogs/2026-W32.md)
 
 ## 停止线
 

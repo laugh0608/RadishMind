@@ -31,7 +31,7 @@
 - 仓库级检查默认使用 `.venv`：macOS / Linux / WSL 用 `./scripts/check-repo.sh`，Windows / PowerShell 用 `pwsh ./scripts/check-repo.ps1`
 - 文本文件默认走 UTF-8 + LF，规则以 `.editorconfig` 和 `.gitattributes` 为准
 - 本地模型配置以仓库根 `.env.example` 为示例，真实 `.env` 只留本地
-- 产品 UI 通用规范遵循 RadishX `docs/design/family-ui/` `v26.7.2`，项目差异只维护在 `docs/ui-addendum.md`
+- 产品 UI 通用参考基线采用 RadishX `docs/design/family-ui/` `v26.7.3`；Profile、配色与精确 token 镜像是 RadishMind 的项目级选择，详见 `docs/ui-addendum.md`
 
 ## 说明
 
