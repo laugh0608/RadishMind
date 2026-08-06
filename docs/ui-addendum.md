@@ -1,6 +1,6 @@
 # RadishMind UI 差异附录
 
-更新时间：2026-08-03
+更新时间：2026-08-06
 
 采用基线：RadishX `docs/design/family-ui/` `v26.7.3`
 
@@ -97,7 +97,7 @@ RadishMind 当前选择精确镜像所采用 family-ui 版本的参考实现；�
 - 现有组件尚未全面消费 `--rm-*` / `--rd-*`；只允许在后续页面纵向切片中迁移，不继续为新设计增加无语义硬编码颜色。
 - `v26.7.3` token 已完成精确镜像；`S1` 产品身份改为灰玉，墨蓝 action 与胭脂 attention 通过项目别名保持原有职责，不再直接混用 `--rd-brand-primary`。
 - `S1` 实现已经消除 `390px` 窄屏原有的 `421px` 横向内容宽度。根因是 Application Configuration Draft 深层标题行中的长状态 badge；移动端共享收缩规则、标题行换行与 React Flow 边界已收口，闭合导航和展开菜单的真实页面宽度均为 `390px`。
-- `S1 R5` / `S2 R3` 已在 Pencil 中固定“大尺度、低噪声、强主次、柔和实体感”的联合视觉基准，但仍待人工评审。`S1` React 实现仍为 `R4`，`S2` 尚未进入 React 纵向实现；在实现完成前不把新基准写成已落地产品行为。
+- `S1 R5` / `S2 R3` 的人工评审结论为现代产品感不足；`S1 R6` / `S2 R4` 修正了整体方向，`S1 R7` / `S2 R5` 取消了无职责的桌面外圈容器，但局部仍偏规整文字面板。`S1 R8` / `S2 R6` 已用 Operations Inbox 四项紧凑窗口与 evidence path、Source evidence 分布矩阵、当前阶段轻量选中轨、十三段 contribution window、九格 readiness 与 authorization path 增强信息密度和视觉焦点；选中只归属于当前导航或详情 owner，普通状态项不得因 `missing`、`blocked` 或 `partial` 获得选中底色。2026-08-06 人工复评已通过；`S1` React 实现仍为 `R4` 并进入 R8 迁移，`S2` 在共享壳层完成前不启动；在实现完成前不把新基准写成已落地产品行为。
 - family-ui 已包含暗色映射，但 RadishMind 尚未完成暗色页面设计、切换策略和双态视觉验收，因此当前不提供暗色主题开关。
 - 旧 [UI 设计规范](radishmind-ui-design-spec.md) 暂作为历史迁移源保留；其中家族通用视觉规则已由 family-ui 取代，领域状态和产品边界逐步迁入功能专题与本附录。
 

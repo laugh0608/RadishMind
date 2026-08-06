@@ -1,8 +1,8 @@
 # RadishMind Family UI 参考图产品面映射 v1
 
-更新时间：2026-08-03
+更新时间：2026-08-05
 
-状态：`radishmind_family_ui_reference_mapping_v1_s2_design_consumed`
+状态：`radishmind_family_ui_reference_mapping_v1_s1_r8_s2_r6_design_consumed`
 
 ## 文档职责
 
@@ -35,7 +35,7 @@
 | `ref-08` 通知 severity 面板 | severity tab 计数；图标、标题、摘要、时间、级别 chip | Operations Inbox 的优先级筛选、关注项结构和 partial coverage | 荧光严重度、仅靠颜色区分 |
 | `ref-09` 自动化仪表盘全景 | 侧栏、主区、卡片间距比例 | `1440x900` 产品壳整体比例与首屏节奏 | 逐像素复制原页面结构 |
 | `ref-15` SEO 仪表盘 | 等宽元信息、数值密度、条状分布 | route / profile / usage metadata 和紧凑指标标签 | 蓝橙图表原配色、无 owner 的趋势推测 |
-| `ref-17` HR 出勤仪表盘 | KPI、分布、明细表的密集组合 | 已覆盖来源、当前窗口与关注明细的分层 | 青绿大色块、把首分页冒充全量 |
+| `ref-17` HR 出勤仪表盘 | 非对称数据重心、清晰大数值、分布与明细表组合 | `S1 R8` workspace pulse 与 Source evidence 的状态分布、四来源矩阵和关注明细分层，以及 `S2 R6` readiness 的 `5 / 9` 九格矩阵与次级风险 | 青绿原配色、HR 语义、把首分页冒充全量 |
 | `ref-18` 律所日历工作台 | 侧栏功能分组、对象分组、标题与计数徽章 | workspace / application 分组与当前对象计数 | 日历业务语境、紫色主强调 |
 | `ref-19` 文档应用 space 切换 | 账户、状态、space 子菜单和设置分组 | workspace / application context switcher | 彩虹头像、把切换状态写入持久浏览器介质 |
 | `ref-20` 深色分析仪表盘 | 暗色下卡片、边框和前景层次 | 只作为未来 Workbench 暗色审查证据 | 在本批提供暗色开关或点阵地图装饰 |
@@ -52,7 +52,7 @@ S1 组合原则：产品壳首屏使用“当前上下文 → 少量可信状态
 | `ref-12` 事故时间线 | 旧态到新态的迁移、时间线、状态与级别双通道 | lifecycle、candidate review、assignment 与 CAS 事件记录 | 事故语境、橙色品牌强调 |
 | `ref-13` 履约进度 | 多段进度、当前步骤、引用 chip 和右对齐摘要 | Configure → Promotion → Test → Review → Readiness 五阶段路径 | ETA 承诺、订单与金额语义 |
 | `ref-14` ATS 阶段管理 | 阶段 KPI 分组、排序指示、来源图标与文字 | owner contribution、阶段完成度和来源覆盖 | 紫色主按钮、把阶段数值当自动发布资格 |
-| `ref-27` 客服协作 Inbox | 队列分组、AI Agent 分组、团队状态与双向内容层次 | application kind 分组、Prompt / Agent 专属 surface 与 session handoff | 客服聊天产品照搬、纸纹背景和语音状态 |
+| `ref-27` 客服协作 Inbox | 连续导航 / 队列 / 详情窗格、轻量选中轨和明确上下文 | `S2 R6` review path / contribution / readiness 三窗格与当前阶段导航焦点，并共享给 `S1 R8` 的 Operations Inbox 四项队列、列表 / 详情双窗格和 evidence path | 客服聊天产品照搬、纸纹背景、AI Agent 品牌和语音状态 |
 
 S2 组合原则：五阶段是任务路径，不是装饰性 stepper。每一阶段必须显示当前 owner、已满足证据、阻塞原因和下一次人工动作；readiness 仍是不可持久化、不可发布的只读投影。
 
@@ -77,7 +77,7 @@ S3 组合原则：桌面优先采用“草案范围 / 筛选 → 草案列表 �
 | `ref-02` 订单行内操作 | 行内操作组、状态与分页器形态 | Key detail、验证、退役和严格 cursor 列表操作 | 价格 chip、无确认的批量操作 |
 | `ref-10` 可用性行式编辑器 | toggle、多行字段、行内增删复制、发丝分隔 | scope、expiry、环境变量与接入参数的紧凑编辑 | 日程语义、复制真实 secret |
 | `ref-16` 数据源连接向导 | 四步 stepper、选择卡、双列表单、成功状态条 | 选择 application → 获取 Key → 选择协议 / 模型 → 验证调用 | 自动连接外部数据源、把成功测试写成生产 readiness |
-| `ref-25` 分享与邀请设置 | 权限下拉、进度、限制提示、危险操作分区 | scope 选择、一次性交接、验证门槛与来源退役确认 | 密码重置、上传、Dark Mode 和真实 token 回显 |
+| `ref-25` 分享与邀请设置 | 白色抬升表面、细边界、宽松控件和限制提示分区 | `S4` scope / 一次性交接 / 验证门槛，并作为 `S1 R8` / `S2 R6` 的共享表面质感 | 密码重置、上传、Dark Mode 和真实 token 回显 |
 
 S4 组合原则：接入向导只编排既有 owner。原始 API Key 只在签发成功响应中出现一次；刷新、离开、application 切换和服务重启均不可恢复。
 
@@ -114,4 +114,7 @@ S4 组合原则：接入向导只编排既有 owner。原始 API Key 只在签�
 - 没有复制、提交或重新托管外部参考图。
 - 移动端、暗色和未实现能力没有从参考图获得隐式准入。
 - 2026-08-03 已实际重新查看 `ref-05`、`ref-11`、`ref-12`、`ref-13`、`ref-14`、`ref-18` 与 `ref-27`；原有产品面映射仍成立，但 `ref-18` 的大尺度品牌 / 导航 / 搜索、抬起选中实体与宽松主对象，以及 `ref-13` 的图标任务身份、阶段 rail 与单一宽工作面，应作为 `S1` / `S2` 共享视觉语法，而不只是局部结构参考。
-- `S1 React R4` 与桌面 / 窄屏浏览器验收已完成；`S2 R1` 与 `R2` 先后解决真实信息层级和连续工作面，但联合人工视觉复核仍确认 `S1 R4` / `S2 R2` 过小、过碎、层级平均，更像微缩审计原型。`S1 R5` / `S2 R3` 因此共同转译 `ref-18` / `ref-13` 为“大尺度、低噪声、强主次、柔和实体感”，同时保留五阶段、owner evidence、readiness 和 blocked / partial 停止线。下一步联合评审两组基准面。
+- 2026-08-05 联合人工评审判定 `S1 R5` / `S2 R3` 仍受米色雾感、圆角小卡和平均化信息块影响，现代产品感不足。`S1 R6` / `S2 R4` 据此重点重读 `ref-27`、`ref-25` 与 `ref-17`，分别吸收连续窗格、白色抬升表面与非对称数据重心，同时保留五阶段、九组来源、十三项 contribution、owner evidence、readiness 和 blocked / partial 停止线；该轮随后进入第二次人工复评，期间未进入 React。
+- 同日第六轮人工复评确认，`R6` / `R4` 的参考方向已经成立，但 Operations Inbox、Source evidence 和 Application Workspace 仍过于规整，桌面外圈宽留白与大圆角窗口缺少产品职责。`S1 R7` / `S2 R5` 因此把 `ref-27` 的选中轨和队列节奏、`ref-17` 的主次数据关系进一步落实到真实工作面，并取消两个桌面根画板的外圈容器。当前继续等待联合复评，复评前不进入 React。
+- 同日第七轮人工复评继续指出，`R7` / `R5` 虽已去除无职责外框，但局部仍像规整状态文字面板。`S1 R8` / `S2 R6` 因此进一步吸收 `ref-27` 的紧凑焦点队列与详情上下文，以及 `ref-17` 的矩阵化数据节奏：Operations Inbox 增加四项当前窗口和 evidence path，Source evidence 改为状态分布与四来源矩阵，Application Workspace 增加当前阶段选中轨、十三段 contribution window、九格 readiness 和 authorization path。后续局部复核又把 Inbox 选中行降为中性柔底与描边图标，并取消中央缺失 contribution 的伪选中态；选中只归属于详情 owner 或当前导航，状态仍由文字、图标和标签表达。功能真相、窄屏顺序与 React 停止线未改变。
+- 2026-08-06 联合人工复评通过 `S1 R8` / `S2 R6`。参考映射、克制家族色、全视口桌面结构、窄屏渐进顺序和状态停止线均冻结为当前实现输入；后续普通实现偏差直接在 React 与浏览器复核中收口，只有结构性设计决策变化才重新回写 Pencil。
