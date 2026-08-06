@@ -1893,16 +1893,6 @@ export function App() {
       />
 
       <section className="product-workspace" aria-label="Control plane read shell">
-        <header className="workspace-header" id="workspace-overview">
-          <h2>Workspace</h2>
-          <div className="workspace-header-state">
-            <span>{activeWorkspaceId}</span>
-            <span className={`status-badge ${workspaceOperationsInbox.status === "blocked" ? "bad" : "neutral"}`}>
-              {workspaceOperationsInbox.status}
-            </span>
-          </div>
-        </header>
-
         <WorkspaceProductOverviewPanel
           application={applicationDevelopmentWorkspaceContext}
           inbox={workspaceOperationsInbox}

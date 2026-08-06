@@ -22,17 +22,19 @@ type ProductNavigationProps = {
 };
 
 const PRIMARY_LINKS = [
-  { href: "#workspace-overview", label: "Overview", countKey: null },
-  { href: "#workspace-operations-inbox", label: "Operations inbox", countKey: "inbox" },
-  { href: "#workspace-applications", label: "Applications", countKey: "applications" },
-  { href: "#workspace-workflow-definitions", label: "Workflows", countKey: "workflows" },
-  { href: "#workspace-api-keys", label: "API & keys", countKey: "apiKeys" },
+  { href: "#workspace-overview", label: "Overview", icon: "overview", countKey: null },
+  { href: "#workspace-operations-inbox", label: "Operations inbox", icon: "inbox", countKey: "inbox" },
+  { href: "#workspace-applications", label: "Applications", icon: "application", countKey: "applications" },
+  { href: "#workspace-workflow-definitions", label: "Workflows", icon: "workflow", countKey: "workflows" },
+  { href: "#workspace-api-keys", label: "API & keys", icon: "key", countKey: "apiKeys" },
 ] as const;
 
 const REVIEW_LINKS = [
-  { href: "#workspace-run-history", label: "Run history" },
-  { href: "#model-gateway-evidence-review", label: "Evidence review" },
+  { href: "#workspace-run-history", label: "Run history", icon: "history" },
+  { href: "#model-gateway-evidence-review", label: "Evidence review", icon: "evidence" },
 ] as const;
+
+type NavigationIconName = typeof PRIMARY_LINKS[number]["icon"] | typeof REVIEW_LINKS[number]["icon"];
 
 const SECONDARY_GROUPS = [
   {
@@ -146,8 +148,11 @@ export function ProductNavigation({
 function ProductBrand() {
   return (
     <a className="product-brand" href="#workspace-overview" aria-label="RadishMind workspace overview">
-      <span className="product-brand-seal" aria-hidden="true">RM</span>
-      <strong>RadishMind</strong>
+      <span className="product-brand-seal" aria-hidden="true">R</span>
+      <span className="product-brand-copy">
+        <strong>RadishMind</strong>
+        <small>Workbench</small>
+      </span>
     </a>
   );
 }
@@ -188,15 +193,19 @@ function WorkspaceSwitcher({
       }}
     >
       <label htmlFor={inputId}>Workspace</label>
-      <div>
-        <input
-          id={inputId}
-          value={workspaceDraft}
-          onChange={(event) => setWorkspaceDraft(event.target.value)}
-          autoComplete="off"
-          spellCheck={false}
-          disabled={!workspaceSwitchEnabled}
-        />
+      <div className="product-workspace-switcher-control">
+        <span className="product-workspace-avatar" aria-hidden="true">WS</span>
+        <span className="product-workspace-copy">
+          <input
+            id={inputId}
+            value={workspaceDraft}
+            onChange={(event) => setWorkspaceDraft(event.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+            disabled={!workspaceSwitchEnabled}
+          />
+          <small>Developer workspace</small>
+        </span>
         {workspaceSwitchEnabled ? (
           <button
             type="submit"
@@ -207,7 +216,7 @@ function WorkspaceSwitcher({
           </button>
         ) : null}
       </div>
-      {workspaceFailure ? <small role="alert">{workspaceFailure}</small> : null}
+      {workspaceFailure ? <small className="product-workspace-failure" role="alert">{workspaceFailure}</small> : null}
     </form>
   );
 }
@@ -234,7 +243,10 @@ function NavigationLinks({
               href={href}
               aria-current={activeHash === href ? "page" : undefined}
             >
-              <span>{link.label}</span>
+              <span className="product-nav-link-main">
+                <span className="product-nav-icon"><NavigationIcon name={link.icon} /></span>
+                <span>{link.label}</span>
+              </span>
               {count !== null ? <small>{count}</small> : null}
             </a>
           );
@@ -249,7 +261,10 @@ function NavigationLinks({
             href={link.href}
             aria-current={activeHash === link.href ? "page" : undefined}
           >
-            <span>{link.label}</span>
+            <span className="product-nav-link-main">
+              <span className="product-nav-icon"><NavigationIcon name={link.icon} /></span>
+              <span>{link.label}</span>
+            </span>
           </a>
         ))}
       </div>
@@ -268,5 +283,52 @@ function NavigationLinks({
         </div>
       </details>
     </nav>
+  );
+}
+
+function NavigationIcon({ name }: { name: NavigationIconName }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      {name === "overview" ? (
+        <>
+          <rect x="3" y="3" width="7" height="7" rx="1.5" />
+          <rect x="14" y="3" width="7" height="7" rx="1.5" />
+          <rect x="3" y="14" width="7" height="7" rx="1.5" />
+          <rect x="14" y="14" width="7" height="7" rx="1.5" />
+        </>
+      ) : name === "inbox" ? (
+        <>
+          <path d="M4 5.5h16v13H4z" />
+          <path d="M4 14h4l1.5 2h5l1.5-2h4" />
+        </>
+      ) : name === "application" ? (
+        <>
+          <rect x="4" y="3.5" width="16" height="17" rx="2.5" />
+          <path d="M4 8.5h16M8 6h.01" />
+        </>
+      ) : name === "workflow" ? (
+        <>
+          <rect x="3" y="3" width="6" height="6" rx="1.5" />
+          <rect x="15" y="15" width="6" height="6" rx="1.5" />
+          <path d="M9 6h3a3 3 0 0 1 3 3v6M12 15h3" />
+        </>
+      ) : name === "key" ? (
+        <>
+          <circle cx="8" cy="12" r="4" />
+          <path d="M12 12h9M17 12v3M20 12v2" />
+        </>
+      ) : name === "history" ? (
+        <>
+          <path d="M4 5v5h5" />
+          <path d="M5.5 16.5A8 8 0 1 0 5 8.5L4 10" />
+          <path d="M12 8v4l3 2" />
+        </>
+      ) : (
+        <>
+          <circle cx="11" cy="11" r="6" />
+          <path d="m16 16 4 4M8.5 11h5M11 8.5v5" />
+        </>
+      )}
+    </svg>
   );
 }
