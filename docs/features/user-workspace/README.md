@@ -30,7 +30,7 @@
 
 ## 下一步
 
-- `S1 React R4` 与浏览器验收已完成：`1440x900` 使用唯一 `248px` 桌面侧栏和 `68px` 任务行，`390x844` 使用单一折叠菜单和 `94px` 任务行；两种视口均无横向溢出。`S1 R5` / `S2 R3` 桌面、窄屏与共享设计决策记录已完成联合视觉重构，并通过 Pencil 全树布局检查；当前待人工评审，新基准尚未落到 React。
+- `S1 React R8` 与严格浏览器验收已完成：`1440x900` 使用唯一 `248px` 桌面侧栏、非对称 workspace pulse 和 `88px` 连续任务行，`390x844` 使用单一折叠菜单、`96px` 任务行和渐进 evidence；`1101/1100px`、`821px` 与 `390px` 均无页面级横向溢出，API Key / Run History 条件渲染 owner 跳转闭合。`S2 R6` 桌面、窄屏与共享设计决策记录已通过人工复评，当前进入 React 纵向切片。
 - API 密钥引导式轮换与验证后退役已完成并关闭。下一轮先依据用户工作区与 Workflow 的真实使用证据更新对应功能设计；不从本专题扩自动轮换、持久 rotation owner 或生产凭据能力。
 - 工作区运营收件箱批次 A 已完成；先以真实开发测试使用反馈判断是否需要跨全部分页窗口的服务端 read projection。没有需求与统一 owner cursor 契约前不启动批次 B。
 - Workspace-scoped Read Transition 开发 / 测试态批次 A、B 已完成。条件式批次 C 只有在取得 reviewed Radish membership owner / endpoint、撤销 / 过期语义与 OIDC mapping 后才启动；否则回到功能入口选择新的用户工作区能力。

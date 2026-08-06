@@ -62,7 +62,7 @@
 
 ## 下一批开发方向
 
-1. `user_workspace_real_path_ui_coherence_v1` 已完成并关闭。[RadishMind Family UI 产品化设计与迁移 v1](user-workspace/radishmind-family-ui-productization-v1.md) 已对齐 family-ui `v26.7.3` 通用参考基线，并由 RadishMind 主动选择 Workbench Profile、原样 token 镜像和项目语义别名；差异附录、[27 张参考图映射](user-workspace/radishmind-family-ui-reference-mapping-v1.md)、Pencil 分级、`S1 React R4` 与浏览器验收，以及 `S1 R5` / `S2 R3` 桌面 / 窄屏视觉重构均已完成。新基准以大尺度、低噪声、强主次和柔和实体感替代微缩审计原型，但尚未实现。下一步先联合评审两组基准面，确认后先落地 `S1 R5` 共享壳层语法，再实施 `S2 R3` React 纵向切片；其余页面继续按页面族分为完整 Pencil、局部 Pencil 和直接实现，不以“进入 UI 阶段”为由跳过后续新功能的设计文档。
+1. `user_workspace_real_path_ui_coherence_v1` 已完成并关闭。[RadishMind Family UI 产品化设计与迁移 v1](user-workspace/radishmind-family-ui-productization-v1.md) 已对齐 family-ui `v26.7.3` 通用参考基线，并由 RadishMind 主动选择 Workbench Profile、原样 token 镜像和项目语义别名；差异附录、[27 张参考图映射](user-workspace/radishmind-family-ui-reference-mapping-v1.md)、Pencil 分级、`S1 R8` 设计、React 实现与严格浏览器验收均已完成。共享产品壳现在使用全视口桌面结构、唯一导航、非对称数据主面、连续 Inbox / evidence detail、真实来源分布和窄屏渐进披露。下一步实施已通过人工复评的 `S2 R6` Application Workspace 纵向切片；其余页面继续按页面族分为完整 Pencil、局部 Pencil 和直接实现，不以“进入 UI 阶段”为由跳过后续新功能的设计文档。
 2. 后续批次继续要求跨 tenant / subject、非成员、过期 identity / membership、workspace mismatch、permission denied 在业务 repository 查询或副作用前失败关闭。dev header 与 signed-test assertion 只能用于开发测试，不能成为 production OIDC 授权来源。
 3. 工作区运营收件箱批次 A 已完成。只有真实需要跨全部分页窗口，且四类 owner 的统一稳定 cursor 契约成立时才评审批次 B；不为扩展示例数量或页面计数启动服务端投影。
 4. Prompt / Agent 继续复用 canonical Run、Comparison、Evaluation Case / Suite 与 decision owner；不复制评测算法，不把人工 `approved` 接成自动 candidate、assignment、release 或 deploy。Agent / Copilot 仍复用 canonical `CopilotRequest / CopilotResponse`，不扩 agent loop、工具执行或业务写回。
