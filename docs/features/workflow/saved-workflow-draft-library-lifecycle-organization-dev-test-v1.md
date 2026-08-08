@@ -1,6 +1,6 @@
 # 已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1
 
-更新时间：2026-07-29
+更新时间：2026-08-08
 
 状态：`saved_workflow_draft_library_lifecycle_organization_dev_test_v1_completed`
 
@@ -41,6 +41,12 @@
 - revision 历史的 list / read / compare 继续可读；restore request 已携带 expected lifecycle version，并在归档状态失败关闭。
 - Workflow Definition candidate、Saved Draft 受控执行、RAG retrieval 和 HTTP Tool 已在各自业务 owner 内统一复验 active lifecycle。
 - 已晋级 Definition 和既有 Run 都保留 source draft provenance；来源草案归档后，这些不可变证据不得失效或被级联修改。
+
+### S3 UI 消费
+
+- S3 Workflow Designer 只消费本专题已经成立的活动 / 归档列表、严格 cursor、筛选、双版本 lifecycle 和精确打开，不新增草案库 API、schema、repository 或生命周期动作。
+- 活动草案进入可编辑 Designer；归档草案进入只读审查。解除归档后必须从活动草案库重新精确打开，旧浏览器快照不得自动恢复为可编辑状态。
+- Saved Draft Library 作为 `B` 级产品面复用 S1 列表和 S3 Designer 上下文模式；普通状态、筛选和分页不派生独立 Pencil 画板或专项 checker。
 
 ## 目标用户与核心场景
 

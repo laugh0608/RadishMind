@@ -5,6 +5,7 @@ import type {
   ControlPlaneReadDevLiveLoadState,
 } from "../features/control-plane-read/devLiveReadConsumer";
 import { applicationDevelopmentStageForHash } from "../features/control-plane-read/applicationDevelopmentWorkspace";
+import { workflowDesignerPrimaryHref } from "./productNavigationRoute";
 
 type ProductNavigationCounts = {
   inbox: number;
@@ -298,6 +299,8 @@ function primaryNavigationHref(
   if (activeHash === "#application-development-workspace" || applicationDevelopmentStageForHash(activeHash)) {
     return "#workspace-applications";
   }
+  const workflowHref = workflowDesignerPrimaryHref(activeHash);
+  if (workflowHref) return workflowHref;
   return null;
 }
 

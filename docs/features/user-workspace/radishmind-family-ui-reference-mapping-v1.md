@@ -1,8 +1,8 @@
 # RadishMind Family UI 参考图产品面映射 v1
 
-更新时间：2026-08-05
+更新时间：2026-08-08
 
-状态：`radishmind_family_ui_reference_mapping_v1_s1_r8_s2_r6_design_consumed`
+状态：`radishmind_family_ui_reference_mapping_v1_s1_r8_s2_r6_s3_r1_implemented`
 
 ## 文档职责
 
@@ -67,7 +67,7 @@ S2 组合原则：五阶段是任务路径，不是装饰性 stepper。每一阶
 | `ref-23` 社区内容流与 toast | 卡片摘要、标签、反馈入口、成功 toast | 草案保存结果、状态标签和易失成功反馈 | 投票、反应和 Active Now 社交元素 |
 | `ref-26` 邮件 Inbox tabs | Inbox / Sent / Drafts / Archive tab、勾选与附件卡 | 活动 / 归档草案分段、明确 selected row 与详情交接 | 批量生命周期、附件预览和 Spam 语义 |
 
-S3 组合原则：桌面优先采用“草案范围 / 筛选 → 草案列表 → Designer / Inspector”的任务型多栏布局；窄屏改为按任务前后关系切换单列视图，不让画布、列表和 inspector 同时压缩。
+S3 组合原则：`S3 R1` 桌面把完整 Saved Draft Library 保持为唯一列表 owner，在 Designer 内只保留当前 / 活动草案引用和精确打开交接，再以“草案引用与节点工具 → 画布 → Inspector”组成连续三栏；Validation、Preview Plan 与 Review Handoff 收入底部渐进审查面。窄屏按“上下文 → 动作 → 当前节点 → 有界画布 → Inspector → 审查入口”单列重排，不把完整列表、画布和 Inspector 同时压缩。当前节点使用动作色结构选中，readiness、lifecycle 和 finding 的状态色不承担选中语义。
 
 ## S4：Application API Integration / API Key
 
@@ -115,6 +115,8 @@ S4 组合原则：接入向导只编排既有 owner。原始 API Key 只在签�
 - 移动端、暗色和未实现能力没有从参考图获得隐式准入。
 - 2026-08-03 已实际重新查看 `ref-05`、`ref-11`、`ref-12`、`ref-13`、`ref-14`、`ref-18` 与 `ref-27`；原有产品面映射仍成立，但 `ref-18` 的大尺度品牌 / 导航 / 搜索、抬起选中实体与宽松主对象，以及 `ref-13` 的图标任务身份、阶段 rail 与单一宽工作面，应作为 `S1` / `S2` 共享视觉语法，而不只是局部结构参考。
 - 2026-08-05 联合人工评审判定 `S1 R5` / `S2 R3` 仍受米色雾感、圆角小卡和平均化信息块影响，现代产品感不足。`S1 R6` / `S2 R4` 据此重点重读 `ref-27`、`ref-25` 与 `ref-17`，分别吸收连续窗格、白色抬升表面与非对称数据重心，同时保留五阶段、九组来源、十三项 contribution、owner evidence、readiness 和 blocked / partial 停止线；该轮随后进入第二次人工复评，期间未进入 React。
-- 同日第六轮人工复评确认，`R6` / `R4` 的参考方向已经成立，但 Operations Inbox、Source evidence 和 Application Workspace 仍过于规整，桌面外圈宽留白与大圆角窗口缺少产品职责。`S1 R7` / `S2 R5` 因此把 `ref-27` 的选中轨和队列节奏、`ref-17` 的主次数据关系进一步落实到真实工作面，并取消两个桌面根画板的外圈容器。当前继续等待联合复评，复评前不进入 React。
+- 同日第六轮人工复评确认，`R6` / `R4` 的参考方向已经成立，但 Operations Inbox、Source evidence 和 Application Workspace 仍过于规整，桌面外圈宽留白与大圆角窗口缺少产品职责。`S1 R7` / `S2 R5` 因此把 `ref-27` 的选中轨和队列节奏、`ref-17` 的主次数据关系进一步落实到真实工作面，并取消两个桌面根画板的外圈容器；该轮随后进入第七轮复评。
 - 同日第七轮人工复评继续指出，`R7` / `R5` 虽已去除无职责外框，但局部仍像规整状态文字面板。`S1 R8` / `S2 R6` 因此进一步吸收 `ref-27` 的紧凑焦点队列与详情上下文，以及 `ref-17` 的矩阵化数据节奏：Operations Inbox 增加四项当前窗口和 evidence path，Source evidence 改为状态分布与四来源矩阵，Application Workspace 增加当前阶段选中轨、十三段 contribution window、九格 readiness 和 authorization path。后续局部复核又把 Inbox 选中行降为中性柔底与描边图标，并取消中央缺失 contribution 的伪选中态；选中只归属于详情 owner 或当前导航，状态仍由文字、图标和标签表达。功能真相、窄屏顺序与 React 停止线未改变。
 - 2026-08-06 联合人工复评通过 `S1 R8` / `S2 R6`。参考映射、克制家族色、全视口桌面结构、窄屏渐进顺序和状态停止线均冻结为当前实现输入；后续普通实现偏差直接在 React 与浏览器复核中收口，只有结构性设计决策变化才重新回写 Pencil。
+- 2026-08-08 重新审阅 `ref-04`、`ref-06`、`ref-21`、`ref-22`、`ref-23` 与 `ref-26` 的既定吸收边界，并以当前运行时事实完成 `S3 R1`。实际 Pen 渲染复核确认桌面全视口三列、唯一 Workflows 导航、画布主任务、紧凑草案交接和底部渐进审查成立；`390x844` 画板保持页面单列与画布内部平移边界，状态和选中语义没有混用。Pencil 仅使用代表性草案与节点，不声明生产持久化、发布或执行能力。
+- 同日 React 与应用内浏览器复核确认参考映射已被真实实现消费：Designer 只复用现有草案、画布、validation、plan、readiness 与 handoff owner；完整 Saved Draft Library 没有重复挂载。桌面和窄屏的墨蓝结构选中与 lifecycle / readiness / finding 状态分工明确，`390x844` 画布保持容器内平移且 body 无横向溢出，归档草案仍为只读审查，未产生生产发布或执行声明。

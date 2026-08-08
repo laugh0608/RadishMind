@@ -58,12 +58,18 @@ def assert_fixture_shape(fixture: dict[str, Any]) -> None:
 def assert_frontend_contract(fixture: dict[str, Any]) -> None:
     contract = fixture.get("frontend_contract") or {}
     app_text = read(str(contract.get("app_file")))
+    panel_text = read(str(contract.get("panel_file")))
     context_text = read(str(contract.get("context_file")))
     consumer_text = read(str(contract.get("consumer_file")))
     style_text = read(str(contract.get("style_file")))
 
     for literal in contract.get("required_app_literals") or []:
         require(str(literal) in app_text, f"App missing editing model literal: {literal}")
+    for literal in contract.get("required_panel_literals") or []:
+        require(
+            str(literal) in panel_text,
+            f"workflowDraftDesignerPanel missing editing model literal: {literal}",
+        )
     for literal in contract.get("required_context_literals") or []:
         require(str(literal) in context_text, f"workflow workspace context missing literal: {literal}")
     for literal in contract.get("required_consumer_literals") or []:

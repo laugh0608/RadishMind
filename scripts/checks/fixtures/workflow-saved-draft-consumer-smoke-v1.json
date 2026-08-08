@@ -100,20 +100,32 @@
   },
   "app_contract": {
     "file": "apps/radishmind-web/src/app/App.tsx",
-    "required_literals": [
-      "workflow-draft-consumer-grid",
+    "panel_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesignerPanel.tsx",
+    "required_state_action_literals": [
       "version_conflict",
-      "Saved draft conflict review",
-      "Continue local draft",
-      "Open saved draft",
       "savedDraftConflictReviewSummary",
-      "Conflict current version",
       "nextWorkflowSavedDraftExpectedVersion(savedDraftConsumerState)",
       "expectedDraftVersion === null",
       "workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState)",
-      "interactionDisabled",
       "nextState.status === \"version_conflict\"",
       "activeWorkflowDraft.applicationRef,",
+      "savedDraftConsumerState={savedDraftConsumerState}",
+      "onContinueLocalDraftAfterConflict={handleContinueLocalWorkflowDraftAfterConflict}",
+      "onOpenConflictSavedDraft={handleOpenConflictSavedWorkflowDraft}",
+      "onValidateDraft={handleValidateWorkflowDraft}",
+      "onSaveDraft={handleSaveWorkflowDraft}",
+      "onReadDraft={handleReadWorkflowDraft}"
+    ],
+    "required_panel_display_literals": [
+      "workflow-designer-actions",
+      "Version conflict review",
+      "Continue local draft",
+      "Open saved draft",
+      "Saved draft conflict review actions",
+      "savedDraftConflictReviewSummary",
+      "workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState)",
+      "interactionDisabled",
+      "Saved version",
       "Saved version metadata is refreshing"
     ]
   },

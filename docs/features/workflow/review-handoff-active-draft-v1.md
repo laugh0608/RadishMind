@@ -1,6 +1,6 @@
 # Workflow Review Handoff Active Draft v1 专题
 
-更新时间：2026-07-29
+更新时间：2026-08-08
 
 ## 专题定位
 
@@ -60,6 +60,12 @@
 - 如果页面同时出现 conflict summary 和 graph review finding，reviewer 应先确认本地草案是否继续作为审查对象，再按 `handoffPath` 阅读节点、连线或全图证据。
 
 这些区块都属于浏览器内只读审查视图。页面不会因为展示上述信息而保存草案、打开当前 saved record、恢复不可变 revision、发送 handoff、生成执行计划、解锁发布、启动 runtime 或提交确认决策。
+
+## S3 Workbench 呈现
+
+S3 Workflow Designer 把 Review Handoff 作为当前 active draft 的渐进审查入口，不把完整 handoff 长面板与画布、Saved Draft Library 和 inspector 同时平铺。入口继续读取同一 validation / plan / readiness 与 node designer review record，只改变信息层级和阅读顺序，不改变派生、保存或发送边界。
+
+桌面从 Designer 主动作或 validation 审查面进入 handoff；窄屏在画布和 inspector 之后展开。`Review Handoff` 只表示打开只读审查上下文，不表示发送、导出、批准、发布或运行。
 
 ## 验收方式
 

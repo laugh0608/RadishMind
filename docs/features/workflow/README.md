@@ -1,6 +1,6 @@
 # Workflow 细专题入口
 
-更新时间：2026-07-29
+更新时间：2026-08-08
 
 ## 文档目的
 
@@ -41,14 +41,14 @@
 | [Production Secret Backend Audit Store Storage Adapter Provider Account / Resource / Endpoint Readiness v1](../../platform/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1.md) | 平台专题 | `audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined` | Workflow durable store 上游历史静态锚点；readiness decision 为 `provider_account_resource_endpoint_readiness_defined_without_real_provider_resource`，原下一依赖 `storage_adapter_provider_account_resource_endpoint_review` 已被后续 review 消费，仍不创建真实 provider account、provider resource、database endpoint、region detail、DSN、DB provider、connection provider、SQL、storage adapter runtime、audit store runtime、repository mode 或 production API |
 | [Production Secret Backend Audit Store Storage Adapter Provider Account / Resource / Endpoint Review v1](../../platform/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.md) | 平台专题 | `audit_store_storage_adapter_provider_account_resource_endpoint_review_defined` | Workflow durable store 上游历史静态锚点；review decision 为 `provider_account_resource_endpoint_review_defined_runtime_blocked`，原下一依赖 `storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 已冻结，不再代表当前排期；仍不创建真实 provider account、provider resource、database endpoint、region detail、DSN、DB provider、connection provider、storage adapter runtime、audit store runtime、production repository mode 或 production API |
 | [Saved Workflow Draft Conflict Review v1](saved-workflow-draft-conflict-review-v1.md) | 功能专题 | `workflow_saved_draft_conflict_review_v1_implemented` | 已实现 Draft Designer `version_conflict` 冲突审查、冲突后 saved draft list 刷新、继续本地草案、显式打开 saved draft 和 Review Handoff conflict review summary；“恢复”只用于 revision restore |
-| [Workflow Draft Designer Surface](draft-designer-surface.md) | 页面 / Surface 专题 | `structure_editing_model_v2_implemented` | 固定 draft designer 的页面状态、数据来源、本地结构编辑和后续 saved draft 接线边界 |
+| [Workflow Draft Designer Surface](draft-designer-surface.md) | 页面 / Surface 专题 | `workflow_draft_designer_surface_v1_implemented` | 已完成 S3 Workbench 产品化，固定 Saved Draft、结构 / 属性编辑、画布、校验、计划和 handoff 的真实状态与响应式顺序 |
 | [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md) | 功能 / 页面专题 | `implemented` | 固定草案名称、说明、节点名称和边条件摘要的受控本地编辑入口 |
 | [User Workspace Draft Creation v1](user-workspace-draft-creation-v1.md) | 功能 / 页面专题 | `implemented` | 固定从 Workspace Home / workflow definitions 创建本地草案并进入 Draft Designer 的入口 |
 | [User Workspace Saved Draft List v1](user-workspace-saved-draft-list-v1.md) | 功能 / 页面专题 | `implemented` | 固定 Workspace Home 中已保存 dev draft 的 sanitized summary、活动 / 归档、筛选、分页、empty / failure state 和打开入口 |
 | [Workflow Draft Designer Editing Model v2](draft-designer-editing-model-v2.md) | 功能 / 页面专题 | `workflow_draft_designer_editing_model_v2_implemented` | 固定 Draft Designer 本地节点新增、删除保护、重排、边重建和 active draft 下游预览 |
 | [Workflow Draft Node Attribute Editing Model v1](draft-node-attribute-editing-model-v1.md) | 功能 / 页面专题 | `workflow_draft_node_attribute_editing_model_v1_implemented` | 固定 Draft Designer 节点属性编辑、保存映射、恢复映射和下游 validation / plan 消费 |
 | [Workflow Review Handoff Active Draft v1](review-handoff-active-draft-v1.md) | 页面 / Surface 专题 | `workflow_review_handoff_active_draft_v1_implemented` | 固定 Review Handoff 对 active draft validation / plan / readiness 的可交接审查记录 |
-| [Workflow Node Designer Surface v1](node-designer-surface-v1.md) | 页面 / Surface 专题 | `workflow_node_designer_surface_v1_defined` | 固定节点画布 designer 的 Builder 体验阶段、typed port / edge 语义、UI 区域、saved draft 映射边界和停止线 |
+| [Workflow Node Designer Surface v1](node-designer-surface-v1.md) | 页面 / Surface 专题 | `workflow_node_designer_surface_v1_implemented` | 画布、持久布局、受控连线、inspector、validation navigation、handoff 与 S3 Workbench 产品化均已实现 |
 | [Workflow Node Designer Library Selection v1](node-designer-library-selection-v1.md) | 实现准入专题 | `workflow_node_designer_library_selection_v1_defined` | 为首批节点画布实现选定 `@xyflow/react`，并固定状态模型、依赖引入边界、fallback 和停止线 |
 | [Workflow Node Designer Surface Implementation v1 任务卡](../../task-cards/workflow-node-designer-surface-implementation-v1-plan.md) | 实现批次 | `workflow_node_designer_surface_implementation_v1_implemented` | 已完成首批 `@xyflow/react` 前端画布、active draft graph adapter、custom node / edge、inspector bridge、连线校验反馈和 fallback 保留 |
 | [Workflow Node Designer Saved Draft Mapping v1](node-designer-saved-draft-mapping-v1.md) | 功能专题 | `workflow_node_designer_saved_draft_mapping_implementation_v1_implemented` | 固定节点画布 layout metadata、edge kind、validation overlay 与 saved draft / Review Handoff 的映射边界，并已实现 UI-only layout mapping |
@@ -171,7 +171,7 @@
 
 ## 当前下一步
 
-Saved Draft、已保存草案派生、不可变修订历史与显式恢复、Node Designer、executor v0、持久 Run History、Failure Review、Run Comparison、Evaluation Cases、Baseline / Case Versioning、Evaluation Suite / Release Review、Gateway Request History、Gateway Playground、API 密钥开发测试态认证、知识基线晋级与应用配置绑定，以及 [Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)均已完成。不继续在 Workflow 页面叠加同层只读审查能力。[已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1](saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md) 批次 A 至 E 与[唯一高风险任务卡](../../task-cards/saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)均已关闭，不扩后端同层能力。
+Saved Draft、已保存草案派生、不可变修订历史与显式恢复、Node Designer、executor v0、持久 Run History、Failure Review、Run Comparison、Evaluation Cases、Baseline / Case Versioning、Evaluation Suite / Release Review、Gateway Request History、Gateway Playground、API 密钥开发测试态认证、知识基线晋级与应用配置绑定，以及 [Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)均已完成。当前只把既有 Workflow Designer 能力按 S3 Workbench 重新组织，不叠加同层审查 owner。[已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1](saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md) 批次 A 至 E 与[唯一高风险任务卡](../../task-cards/saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)均已关闭，S3 不扩后端同层能力。
 
 [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) 的三个批次已完成：版本化 definition / profile、durable action plan / confirmation、受控 transport、原子 claim、`workflow_run_record.v2`、memory / SQLite / PostgreSQL、diagnostics、`/executions`、Web 与真实浏览器重启链均已有证据。[Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 的三个批次也已完成：精确 snapshot / `rag_ref`、独立单次 retrieval / Gateway、strict citation、metadata-only run v3、Web、双数据库浏览器重启与 no-fallback 均已有证据；本专题不派生批次 D。
 

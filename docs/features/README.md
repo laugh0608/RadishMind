@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-07-29
+更新时间：2026-08-08
 
 ## 文档目的
 
@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-07-29 当前执行口径：[已保存 Workflow 草案库生命周期与组织](workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md)批次 A 至 E、[应用解除归档与安全重新启用](user-workspace/application-unarchive-safe-reactivation-dev-test-v1.md)批次 A 至 C，以及 [API 密钥引导式轮换与验证后退役](user-workspace/api-key-guided-rotation-verified-retirement-dev-test-v1.md)批次 A、B 均已完成并关闭唯一高风险任务卡。三条链已分别固定草案活动 / 归档与双版本生命周期、应用安全重新启用及下游重新资格判断、同 scopes 密钥替代与验证后精确退役，并具备三种 store、Web 和真实浏览器连续证据。当前没有已准入的产品实现任务；下一轮先复盘真实使用，再更新一个既有功能设计文档。运营收件箱跨全部分页窗口与 Application Operations 全历史聚合仍等待真实需求，自动轮换、持久 rotation owner、token 估算、价格、quota / billing、真实 secret / endpoint、production 与真实 OIDC 继续关闭。
+2026-08-08 当前执行口径：Family UI `S1 R8` 产品壳、`S2 R6` Application Workspace 与 `S3 R1` Workflow Designer / Saved Draft Library 已完成设计、React 实现和真实浏览器验收。S3 复用现有 Draft / Node Designer、Saved Draft lifecycle、validation、plan、readiness 与 Review Handoff owner，未新增 API、schema、repository、task card 或专项 checker；迁移的六组既有 source-literal checker / fixture 只跟随组件职责拆分。下一步进入 `S4 Application API Integration / API Key`，先复核既有接入、一次性凭据和验证后退役事实，再完成 `A` 级桌面 / 窄屏设计与纵向切片，不复制 secret 或声明生产 readiness。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -101,8 +101,8 @@
 | [Production Secret Backend Audit Store Storage Adapter Provider Account / Resource / Endpoint Readiness v1](../platform/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-readiness-v1.md) | 平台专题 | 固定 provider account / resource / endpoint 进入实现前的 metadata-only readiness；状态为 `audit_store_storage_adapter_provider_account_resource_endpoint_readiness_defined`，后续 review 已完成并冻结为历史证据，不代表当前排期；不写入真实 provider account、resource、endpoint、DSN、credential payload，不创建 driver import、SQL、storage adapter runtime、audit store runtime、repository mode 或 production API |
 | [Production Secret Backend Audit Store Storage Adapter Provider Account / Resource / Endpoint Review v1](../platform/production-secret-backend-audit-store-storage-adapter-provider-account-resource-endpoint-review-v1.md) | 平台专题 | 历史静态 review，状态为 `audit_store_storage_adapter_provider_account_resource_endpoint_review_defined`；原下一依赖 `storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 已冻结，不再代表当前排期；不写入真实 provider account、resource、endpoint、DSN 或 credential payload，不创建 production storage adapter、audit store、repository mode 或 API |
 | [Saved Workflow Draft Conflict Review v1](workflow/saved-workflow-draft-conflict-review-v1.md) | 功能专题 | 已实现并完成 dev-live 浏览器复核，覆盖 saved draft 在 `version_conflict`、冲突后 saved draft list 刷新、继续本地草案、显式打开 saved draft 和 Review Handoff conflict review summary 中的用户工作流；“恢复”只用于 revision restore |
-| [Workflow Draft Designer Surface](workflow/draft-designer-surface.md) | 页面 / Surface 专题 | 固定 draft designer 的 sample / unsaved / saved 状态和后续 consumer 接线边界 |
-| [Workflow Node Designer Surface v1](workflow/node-designer-surface-v1.md) | 页面 / Surface 专题 | 固定节点画布 designer 的 builder 阶段位置、typed port / edge 语义、saved draft 映射边界和停止线 |
+| [Workflow Draft Designer Surface](workflow/draft-designer-surface.md) | 页面 / Surface 专题 | 已实现 Saved Draft、结构 / 属性编辑、Node Designer、校验、计划和 Review Handoff，并承接 S3 Workbench 产品化状态矩阵与响应式顺序 |
+| [Workflow Node Designer Surface v1](workflow/node-designer-surface-v1.md) | 页面 / Surface 专题 | `workflow_node_designer_surface_v1_implemented`；既有画布、持久布局、受控连线、inspector、validation navigation 与 handoff 进入 S3 产品化重组 |
 | [Workflow Node Designer Library Selection v1](workflow/node-designer-library-selection-v1.md) | 实现准入专题 | 为首批节点画布实现选定 `@xyflow/react`，固定状态模型、依赖引入边界、fallback 和停止线 |
 | [Workflow Node Designer Saved Draft Mapping v1](workflow/node-designer-saved-draft-mapping-v1.md) | 功能专题 | 固定节点画布 layout metadata、edge kind、validation overlay 与 saved draft / Review Handoff 的映射边界，并已完成 UI-only layout mapping |
 | [Workflow Node Designer Review Handoff v1](workflow/node-designer-review-handoff-v1.md) | 页面 / Surface 专题 | 固定节点画布 layout、validation overlay、inspector state、saved draft mapping、`graphReviewFindings`、`handoffPath` 和 evidence refs 进入现有 Review Handoff 的只读审查边界 |
@@ -116,7 +116,7 @@
 | [Dev-only Saved Draft Consumer](workflow/dev-only-saved-draft-consumer.md) | 实现专题 | 固定下一批 dev-only HTTP route + web consumer 的准入、验收和停止线 |
 | [Workflow Draft Editing Entry v1](workflow/draft-editing-entry-v1.md) | 功能 / 页面专题 | 固定草案名称、说明、节点名称和边条件摘要的受控本地编辑入口 |
 | [User Workspace Draft Creation v1](workflow/user-workspace-draft-creation-v1.md) | 功能 / 页面专题 | 固定从 Workspace Home / workflow definitions 创建本地草案并进入 Draft Designer 的入口 |
-| [User Workspace Saved Draft List v1](workflow/user-workspace-saved-draft-list-v1.md) | 功能 / 页面专题 | 固定 Workspace Home 的 saved dev draft summary、活动 / 归档、筛选、分页、empty / failure state 和打开入口 |
+| [User Workspace Saved Draft List v1](workflow/user-workspace-saved-draft-list-v1.md) | 功能 / 页面专题 | 已实现活动 / 归档、严格 cursor、筛选、分页、empty / failure、精确打开和只读审查，并作为 S3 `B` 级同旅程入口 |
 | [Workflow Draft Designer Editing Model v2](workflow/draft-designer-editing-model-v2.md) | 功能 / 页面专题 | 固定 Draft Designer 的本地节点新增、删除保护、重排和 active draft 下游预览 |
 | [Workflow Draft Node Attribute Editing Model v1](workflow/draft-node-attribute-editing-model-v1.md) | 功能 / 页面专题 | 固定 Draft Designer 的节点属性编辑、保存映射、恢复映射和 validation / plan 消费 |
 | [Workflow Review Handoff Active Draft v1](workflow/review-handoff-active-draft-v1.md) | 页面 / Surface 专题 | 固定 Review Handoff 对 active draft validation / plan / readiness 的可交接审查记录 |

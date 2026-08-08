@@ -1,6 +1,6 @@
 # Workflow Node Designer Review Handoff v1 专题
 
-更新时间：2026-07-04
+更新时间：2026-08-08
 
 状态：`workflow_node_designer_review_handoff_v1_implemented`
 
@@ -89,4 +89,4 @@ Review Handoff 中的 `graphReviewFindings` 是给人工审查者使用的只读
 - 不由 Review Handoff 新增或修改 saved draft persisted schema；`additional_fields.designer_layout_v1` 只由 Persisted Layout 保存链路承接。
 - 不把 graph review finding、layout、overlay、inspector state、derived edge kind 或 `valid_for_review` 解释为运行顺序、runtime binding、publish ready、run ready 或 production ready。
 - 不实现 workflow executor、node executor、tool executor、agent loop、publish、run、confirmation decision、decision store、execution unlock、writeback、replay、resume 或 materialized result reader。
-- 不接 durable persistence、repository adapter、真实数据库、schema migration、store selector、Radish OIDC middleware、token validation、membership adapter、API key lifecycle、quota、billing 或 public production API。
+- Handoff 本身不新增或写入 repository；现有 memory、SQLite、PostgreSQL 开发测试态 saved draft record 只作为来源，不因此启用 production repository、production auth、quota、billing 或 public production API。

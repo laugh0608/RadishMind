@@ -26,6 +26,7 @@
   ],
   "frontend_contract": {
     "app_file": "apps/radishmind-web/src/app/App.tsx",
+    "panel_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesignerPanel.tsx",
     "designer_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesigner.ts",
     "style_file": "apps/radishmind-web/src/styles.css",
     "required_app_literals": [
@@ -40,14 +41,26 @@
       "handleWorkflowDraftEdgeConditionChange",
       "handleWorkflowDraftEditReset",
       "localOnlyInteraction: \"local_edit\"",
+      "saveWorkflowDraftDevRecord(",
+      "validateWorkflowDraftDevRecord(",
+      "readWorkflowDraftDevRecord(",
+      "setWorkflowDraftEditDirty(false)",
+      "onUpdateDraftLabel={handleWorkflowDraftLabelChange}",
+      "onUpdateDraftSummary={handleWorkflowDraftSummaryChange}",
+      "onUpdateNodeLabel={handleWorkflowDraftNodeLabelChange}",
+      "onUpdateEdgeCondition={handleWorkflowDraftEdgeConditionChange}",
+      "onResetDraftEdits={handleWorkflowDraftEditReset}"
+    ],
+    "required_panel_literals": [
       "workflow-draft-edit-grid",
       "workflow-draft-edit-field",
       "workflow-draft-node-label-input",
       "workflow-draft-edge-condition-input",
-      "saveWorkflowDraftDevRecord(",
-      "validateWorkflowDraftDevRecord(",
-      "readWorkflowDraftDevRecord(",
-      "setWorkflowDraftEditDirty(false)"
+      "disabled={interactionDisabled}",
+      "disabled={!draftEditDirty || interactionDisabled}",
+      "onResetDraftEdits",
+      "onUpdateNodeLabel",
+      "onUpdateEdgeCondition"
     ],
     "required_designer_literals": [
       "localOnlyInteraction: \"inspect_only\" | \"local_edit\";"
@@ -74,8 +87,9 @@
       "`implemented`"
     ],
     "docs/features/workflow/draft-designer-surface.md": [
-      "Workflow Draft Editing Entry v1",
-      "受控本地编辑入口"
+      "Workflow Draft Designer Surface",
+      "active draft",
+      "受控编辑"
     ],
     "docs/features/workflow/saved-workflow-draft-v1.md": [
       "Workflow Draft Editing Entry v1",

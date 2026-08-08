@@ -1,8 +1,8 @@
 # Workflow Node Designer Surface v1 专题
 
-更新时间：2026-06-25
+更新时间：2026-08-08
 
-状态：`workflow_node_designer_surface_v1_defined`
+状态：`workflow_node_designer_surface_v1_implemented`
 
 ## 专题定位
 
@@ -31,7 +31,8 @@
 13. 已实现：[Workflow Node Designer Layout Review Findings v1 任务卡](../../task-cards/workflow-node-designer-layout-review-findings-v1-plan.md)，状态为 `workflow_node_designer_layout_review_findings_v1_implemented`，修正中宽布局、inspector connected edge 删除条目和 Draft edge 卡片长 id 可读性。
 14. 已实现：[Workflow Node Designer Builder Interaction Polish v1 任务卡](../../task-cards/workflow-node-designer-builder-interaction-polish-v1-plan.md)，状态为 `workflow_node_designer_builder_interaction_polish_v1_implemented`，补齐交互状态条、节点快速选择和连接 / 拖拽 / 删除反馈。
 15. 已实现：[Workflow Node Designer Validation Overlay Navigation v1 任务卡](../../task-cards/workflow-node-designer-validation-overlay-navigation-v1-plan.md)，状态为 `workflow_node_designer_validation_overlay_navigation_v1_implemented`，把 validation finding 映射为节点 / 连线 / inspector 的 UI-only 导航和高亮。
-16. 后续独立目标：publish、run、executor、confirmation、writeback 和 replay。
+16. 当前产品化目标：在不扩大 graph model、持久化格式或 runtime 能力的前提下，把既有画布、inspector、validation navigation 与 Review Handoff 重组为 S3 Workbench 代表面。
+17. 后续独立目标：publish、run、executor、confirmation、writeback 和 replay。
 
 它不替代 durable store 上游前置，也不解锁 repository mode。若下一批选择继续 durable store，上游 auth、membership、schema marker、secret resolver、connection provider 和 production resolver blocker 仍按既有专题推进。
 
@@ -62,6 +63,7 @@
 - validation 导航：Validation overlay 列表会把 structural / contract finding 映射到节点和相关连线，高亮与 focus 是 UI-only state，不写入 draft 或 saved draft metadata。
 - Review Handoff：`nodeDesignerReviewRecord` 读取同一 active draft，汇总 canvas layout、validation overlay、inspector state 和 saved draft mapping；它不保存、不导出、不发送 handoff。
 - 编辑锁定：saved draft 读写操作 pending 时，画布仍可查看和选择，但节点拖拽、连线、删除和 inspector 字段修改会被锁定。
+- 选中语义：当前节点、当前 validation finding 和状态分别使用节点选中轨、finding focus 与文字状态通道；`blocked`、`review_required` 等状态颜色不会自动成为选中态。
 
 ## 节点模型
 
@@ -115,16 +117,18 @@ v1 的持久化节点类型默认沿用 Saved Workflow Draft v1 已允许的草�
 
 如果当前 saved draft schema 尚不能表达上述 edge kind，初期实现只能把它们作为 UI derived state 或 validation finding 展示，不得静默扩展持久化格式。
 
-## 页面结构
+## S3 Workbench 页面结构
 
-Node Designer Surface 当前采用以下可操作布局：
+Node Designer Surface 在 S3 中采用以下可操作布局：
 
-- 顶部：画布标题、active draft 状态、saved draft mapping summary、layout metadata 来源和 derived edge kind 边界。
-- 交互条：编辑锁定状态、最近连接 / 拖拽 / 删除反馈，以及节点快速选择。
-- validation overlay navigation：展示 validation status、finding 数量、graph target summary，并提供 focus / clear focus。
-- 中间：React Flow 画布、typed handle、custom node / edge、MiniMap、Controls、节点位置和连线校验。
-- 右侧：当前节点 inspector，编辑 label、provider / profile ref、tool ref、RAG ref、input / output summary、output mapping，并删除 connected edge 或可删除节点。
-- 既有列表式 Draft Designer：继续保留，作为 fallback、字段细编辑和 edge condition summary 编辑路径。
+- 顶部：active draft identity、内容 / lifecycle 版本、saved state，以及 `Validate`、`Save Draft`、`Preview Plan` 和 `Review Handoff`。
+- 左侧：Saved Draft 范围、当前草案摘要、节点类型和结构入口。
+- 中央：React Flow 画布、typed handle、custom node / edge、MiniMap、Controls、节点位置和连线校验；画布是唯一主任务面。
+- 右侧：当前节点或连线 inspector，编辑 label、provider / profile ref、tool ref、RAG ref、input / output summary、output mapping，并删除 connected edge 或可删除节点。
+- 渐进审查面：编辑锁定 / 最近交互反馈、validation status、finding 导航、saved mapping、conflict、plan 与 handoff。
+- 既有列表式 Draft Designer：继续保留为 fallback、精细字段编辑和 edge condition summary 编辑路径。
+
+窄屏按 active draft context、主动作、当前节点、有界画布、inspector、validation / handoff 的任务顺序单列重排。React Flow 可以在有界画布内部平移和缩放，但不得造成页面级横向溢出；Saved Draft 列表、画布和 inspector 不同时压缩成桌面多栏。
 
 画布不是 marketing hero，也不是静态说明页。实现时第一屏应直接是可操作的 workflow designer。
 
@@ -136,7 +140,13 @@ Node Designer Surface 当前采用以下可操作布局：
 - 节点 label、summary、provider / profile ref、tool ref、RAG ref。
 - input / output contract fields。
 - output mapping summary。
-- active draft edge endpoints、edge condition summary 和 validation finding。
+- active draft edge endpoints 和 edge condition summary。
+
+只派生、不持久化：
+
+- validation finding、validation focus、节点 selection 和 drag state。
+- React Flow 原始 node / edge、handle / port id、viewport、visual edge style、derived edge kind 和 runtime order。
+- execution plan preview、runtime readiness 与 Review Handoff record。
 
 明确排除：
 
@@ -171,12 +181,13 @@ Node Designer Surface 当前采用以下可操作布局：
 - 实现任务卡已收录首批前端画布接入；不新增 schema、backend route、fixture、checker 或 runtime artifact。
 - `./scripts/check-repo.sh --fast` 通过。
 
-后续实现阶段：
+S3 产品化阶段：
 
-- Web build 通过。
+- Web `274/274` 测试与 production build 通过。
 - 画布交互测试覆盖节点新增、移动、选中、连线、删除保护、validation overlay 和 read / save failure state。
 - Saved draft consumer smoke 继续覆盖 no sample fallback、version conflict 和 failure code。
-- 若引入新 schema、route、dependency 或高风险边界，补专项 task card、fixture、checker 和对应仓库基线。
+- 应用内浏览器已覆盖 `1440x900`、`1281/1280px`、`1101/1100px`、`761/760px` 和 `390x844`：选中节点使用 action 结构，readiness 与 validation 状态不冒充选中；Delete / Backspace 不删除本地画布节点，受保护节点和归档态 mutation 保持禁用，画布内部平移不产生页面横向溢出，控制台零 warning / error。
+- 本批不引入新 schema、route、dependency 或高风险边界，因此不新增 task card、fixture 或专项 checker。
 
 ## 停止线
 

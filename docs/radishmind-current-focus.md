@@ -11,7 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
-- [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md) 已完成 `v26.7.3` 通用参考基线、项目语义、`S1 R8` 产品壳和 `S2 R6` Application Workspace React 纵向切片，状态为 `radishmind_family_ui_productization_v1_s1_r8_s2_r6_implemented`。S2 现已在共享全视口壳层内落地 Application Context、五阶段 review path、唯一 Human Promotion 当前面、三项中性 contribution、十三段窗口轨、九组来源 readiness、authorization path 与渐进 owner surface；Applications 与当前阶段分别保持唯一产品导航 / 阶段选中态。真实离线 view model 保持九组、十三项、revision `partial`、未证明 RAG assignment 的 `blocked` 风险表达和不可发布边界；Pencil 的 `5 / 9` 是代表数值，当前 fixture 实际只引用 `1 / 9` 来源组，没有被实现覆盖。Web `272/272` 测试和 production build 通过，`1440x900`、`1101/1100px`、`821px`、`761/760px` 与 `390x844` 均无页面级横向溢出，五阶段 / 九来源展开和 owner review 开合闭合，控制台零 warning / error。
+- [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md) 已完成 `v26.7.3` 通用参考基线、项目语义、`S1 R8` 产品壳、`S2 R6` Application Workspace 与 `S3 R1` Workflow Designer / Saved Draft Library 产品化，状态为 `radishmind_family_ui_productization_v1_s1_r8_s2_r6_s3_r1_implemented`。S3 在共享全视口壳层内落地唯一 Workflows 导航、草案上下文与真实动作、紧凑草案引用 / 节点轨、React Flow 画布、Inspector、validation、plan 与 handoff 渐进审查；完整 Saved Draft Library 继续唯一挂载。节点状态保持中性，只有当前节点 / finding 使用独立结构选中；键盘删除不能绕过受控 mutation，归档草案可选择审查但不可编辑。S1 / S2 的真实 view model 仍保持九组来源、十三项 contribution、revision `partial`、未证明 RAG assignment 的 `blocked` 风险与 readiness 只读不可发布边界。Web `274/274` 测试和 production build 通过；应用内浏览器覆盖 `1440x900`、`1281/1280px`、`1101/1100px`、`761/760px` 与 `390x844`，页面级横向溢出为零，保存 / 读取 / 派生 / 归档 / 解除归档和只读审查链正确，控制台零 warning / error。
 - [用户工作区设计与开发文档](features/user-workspace.md)中的首批真实路径 UI 一致性治理已完成，状态为 `user_workspace_real_path_ui_coherence_v1_completed`。SQLite 本地产品真实链确认 Saved Draft、应用重新启用与 API Key 轮换的领域行为正确；Web 已补齐精确打开后的 Designer 交接、长标题信息密度、解除归档重新打开说明、开发测试态环境标签、`api_key_application_unavailable` 稳定脱敏解释和替代 Key 精确验证后的列表即时刷新。没有新增 API、schema、repository、任务卡或 checker。
 - [API 密钥引导式轮换与验证后退役（开发 / 测试态）v1](features/user-workspace/api-key-guided-rotation-verified-retirement-dev-test-v1.md) 批次 A、B 已完成，状态为 `api_key_guided_rotation_verified_retirement_dev_test_v1_completed`。易失脱敏会话、同应用 / 同 owner / 同 scopes 替代、`last_used_at` 验证门槛、原 Key 精确重读与 revoke CAS、Web 和真实浏览器连续链已有可执行证据；未新增 rotate API、schema 或持久 rotation owner。
 - [应用解除归档与安全重新启用（开发 / 测试态）v1](features/user-workspace/application-unarchive-safe-reactivation-dev-test-v1.md) 批次 A 至 C 已完成，状态为 `application_unarchive_safe_reactivation_dev_test_v1_completed`。三种 store CAS、`applications:archive + applications:write` 单次组合权限、显式影响确认、Gateway 资格回归、Web 与真实浏览器连续链已有可执行证据；目录 owner 不级联改写 API Key、运行时绑定、会话、草案、候选或运行记录。
@@ -25,7 +25,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：Family UI `v26.7.3` 参考基线、项目语义分层、参考图映射、Pencil 协作模型、`S1 R8` 产品壳与 `S2 R6` Application Workspace 均已完成实现和浏览器验收。下一步先回到对应功能设计文档，评估 `S3` Workflow Designer 的画布、节点 / 连线、inspector、校验与审查交接是否仍满足当前代码事实，再决定其 `A` 级设计基准面实施批次；Saved Draft Library 保持 `B` 级直接实现 / 局部补稿，API Integration / Key 仍排在其后。运营收件箱全分页投影和 Application Operations 全历史聚合继续等待真实需求；当前不新建同层 task card、API、schema、repository、生产声明或专项 checker。
+1. 产品线：Family UI `v26.7.3` 参考基线、项目语义分层、参考图映射、Pencil 协作模型，以及 `S1 R8`、`S2 R6`、`S3 R1` 的设计、React 实现和浏览器验收均已完成。下一步进入 `S4 Application API Integration / API Key`：先联合审阅既有应用 API 接入、API Key lifecycle、引导式轮换与一次性凭据交接专题和当前 React owner，再完成接入任务主面、模型 / 协议选择、scope、一次性凭据、验证后退役与资格失败的 `A` 级桌面 / 窄屏设计基准，并实施对应纵向切片。该阶段继续编排既有 owner，不复制真实 secret，不把测试成功写成生产 readiness；若代码事实没有新增高风险边界，则继续复用现有 API、schema、repository、测试和聚合门禁，不新建同层 task card 或专项 checker。运营收件箱全分页投影和 Application Operations 全历史聚合继续等待真实需求。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
@@ -80,7 +80,7 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 44. [Image Adapter 受控调用与 artifact 返回实施任务卡](task-cards/image-adapter-controlled-invocation-artifact-return-dev-test-v1-plan.md)
 45. [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](features/admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md)
 46. [Admin Provider Profile / Model Route 受控启用实施任务卡](task-cards/admin-provider-route-controlled-activation-dev-test-v1-plan.md)
-47. [本周周志](devlogs/2026-W31.md)
+47. [本周周志](devlogs/2026-W32.md)
 48. [Workspace-scoped Read Transition / 工作区选择与成员资格绑定（开发 / 测试态）v1](features/user-workspace/workspace-scoped-read-transition-dev-test-v1.md)
 49. [工作区运营收件箱（开发 / 测试态）v1](features/user-workspace/workspace-operations-inbox-dev-test-v1.md)
 50. [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](features/user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md)

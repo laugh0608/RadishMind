@@ -63,6 +63,7 @@ def assert_literals(text: str, literals: list[Any], label: str) -> None:
 def assert_frontend_and_platform_contract(fixture: dict[str, Any]) -> None:
     contract = fixture.get("frontend_contract") or {}
     app_text = read(str(contract.get("app_file")))
+    panel_text = read(str(contract.get("panel_file")))
     clone_text = read(str(contract.get("clone_file")))
     designer_text = read(str(contract.get("designer_file")))
     consumer_text = read(str(contract.get("consumer_file")))
@@ -77,6 +78,11 @@ def assert_frontend_and_platform_contract(fixture: dict[str, Any]) -> None:
     assert_literals(designer_text, contract.get("required_designer_literals") or [], "workflowDraftDesigner.ts")
     assert_literals(app_text, contract.get("required_app_literals") or [], "App.tsx")
     assert_literals(
+        panel_text,
+        contract.get("required_panel_literals") or [],
+        "workflowDraftDesignerPanel.tsx",
+    )
+    assert_literals(
         clone_text,
         contract.get("required_clone_literals") or [],
         "workflowSavedDraftDerivation.ts",
@@ -88,10 +94,23 @@ def assert_frontend_and_platform_contract(fixture: dict[str, Any]) -> None:
     for selector in contract.get("required_style_selectors") or []:
         require(str(selector) in style_text, f"styles.css missing selector: {selector}")
 
+    panel_render_index = app_text.index("<WorkflowDraftDesignerPanel")
+    for handler in (
+        "handleWorkflowDraftNodeProviderRefChange",
+        "handleWorkflowDraftNodeToolRefChange",
+        "handleWorkflowDraftNodeRagRefChange",
+        "handleWorkflowDraftNodeInputFieldsChange",
+        "handleWorkflowDraftNodeOutputFieldsChange",
+        "handleWorkflowDraftNodeOutputMappingChange",
+    ):
+        require(
+            app_text.index(handler) < panel_render_index,
+            f"{handler} must remain owned by App before panel callback wiring",
+        )
     require(
-        app_text.index("handleWorkflowDraftNodeProviderRefChange")
-        < app_text.index("function WorkflowDraftNodeCard"),
-        "node attribute state handlers must be owned by App before node card rendering",
+        panel_text.index("function WorkflowDraftNodeCard")
+        < panel_text.index("workflow-draft-node-attribute-grid", panel_text.index("function WorkflowDraftNodeCard")),
+        "node attribute rendering must remain inside the extracted workflow draft node card",
     )
     require(
         consumer_text.index("input_contract_fields")

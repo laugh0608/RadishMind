@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-08-03
+更新时间：2026-08-08
 
 ## 阅读原则
 
@@ -25,7 +25,7 @@
 ## 当前状态
 
 - 当前成熟度是“内部开发者预览”；整改与当前执行顺序以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 和 [当前推进焦点](radishmind-current-focus.md) 为准。
-- UI 产品线已进入 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)：通用参考基线已对齐 RadishX family-ui `v26.7.3`，RadishMind 主动选择 `Workbench` Profile、上游 token 原样镜像和“灰玉身份、墨蓝操作、玉色正向、雅紫类型、胭脂注意”的项目语义，差异见 [UI 差异附录](ui-addendum.md)。`S1 R8` 已把 `ref-27` / `ref-25` / `ref-17` 的连续窗格、白色抬升表面和非对称数据重心落到 React：桌面外圈容器已取消，唯一导航、workspace pulse、来源分布矩阵、Operations Inbox 连续列表 / evidence detail 与窄屏渐进披露均通过真实浏览器验收。选中态只服务正在驱动详情或导航的对象，真实 view model 计数不被 Pencil 代表值覆盖。当前进入 `S2 R6` Application Workspace 纵向切片。
+- UI 产品线已进入 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)：通用参考基线已对齐 RadishX family-ui `v26.7.3`，RadishMind 主动选择 `Workbench` Profile、上游 token 原样镜像和“灰玉身份、墨蓝操作、玉色正向、雅紫类型、胭脂注意”的项目语义，差异见 [UI 差异附录](ui-addendum.md)。`S1 R8` 产品壳、`S2 R6` Application Workspace 与 `S3 R1` Workflow Designer / Saved Draft Library 均已完成 Pencil、React、真实浏览器和仓库门禁验收；选中态只服务正在驱动详情或导航的对象，状态色不冒充选中，真实 view model 和开发测试态生命周期不被 Pencil 代表值覆盖。当前下一顺位是 `S4 Application API Integration / API Key` 的功能事实复核、`A` 级桌面 / 窄屏设计和纵向切片实现。
 - R2 至 R6、Workspace-scoped Read Transition、Workspace-scoped Mutation Authorization、Workflow Draft Review Loop、Saved Draft 三种开发测试态 repository、受控 Workflow Executor、版本化 Workflow / RAG / Prompt / Agent 运行路径、持久 Run History 与评测审查、Gateway Request History 均已完成。2026-07-29 又关闭 Saved Draft 草案库生命周期批次 A 至 E、应用解除归档与安全重新启用批次 A 至 C，以及 API 密钥引导式轮换批次 A、B；三条链均具备 memory / SQLite / PostgreSQL、Web 与真实浏览器证据，并保持各自 owner、CAS、权限和生产停止线。当前准入的是普通 UI 产品化基础与设计批次，不新增高风险 task card；production membership、真实 OIDC、production secret、quota / billing、业务写回、自动合并和 replay 继续关闭。
 - `RadishMind` 已正式从“模型实验 / 接入准备仓库”的狭义口径，收口为 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台。
 - 当前仓库主线不再只是等待其他项目真实接入；长期按四个一级产品面和五条工程主线组织。四个产品面是 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；`Image Generation / Artifact Return` 作为横切适配能力保留。五条工程主线是 `Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。

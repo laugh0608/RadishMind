@@ -170,11 +170,17 @@ export function WorkflowUserWorkspaceHomePanel({
             Refresh
           </button>
         </div>
-        <div className="saved-draft-library-tabs" aria-label="Saved draft lifecycle views">
+        <div
+          className="saved-draft-library-tabs"
+          role="tablist"
+          aria-label="Saved draft lifecycle views"
+        >
           {(["active", "archived"] as const).map((lifecycleState) => (
             <button
               key={lifecycleState}
               type="button"
+              role="tab"
+              aria-selected={libraryLifecycle === lifecycleState}
               className={libraryLifecycle === lifecycleState ? "selected" : ""}
               disabled={savedDraftListState.status === "loading"}
               onClick={() => onLibraryLifecycleChange(lifecycleState)}

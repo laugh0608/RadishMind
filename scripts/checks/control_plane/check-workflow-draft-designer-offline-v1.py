@@ -276,8 +276,11 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
         "apps/radishmind-web/src/features/control-plane-read/workflowConfirmationPlaceholder.ts"
     )
     app_source = read("apps/radishmind-web/src/app/App.tsx")
+    panel_source = read(
+        "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesignerPanel.tsx"
+    )
     styles = read("apps/radishmind-web/src/styles.css")
-    checked_source = "\n".join([designer_source, app_source])
+    checked_source = "\n".join([designer_source, app_source, panel_source])
 
     for literal in (
         "buildWorkflowDraftDesignerViewModel",
@@ -309,20 +312,11 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     ):
         require(literal in designer_source, f"draft designer source missing literal: {literal}")
 
-    for literal in (
-        "WorkflowDraftDesignerPanel",
-        "WorkflowDraftTemplateButton",
-        "WorkflowDraftNodeCard",
-        "WorkflowDraftEdgeCard",
-        "WorkflowDraftReadinessCard",
-        "WorkflowDraftRiskCard",
-        "WorkflowDraftBlockedCapabilityCard",
-        "workflowDraftDesigner",
-        "selectedWorkflowDraftId",
-        "setSelectedWorkflowDraftId",
-        "workflow-draft-designer",
-    ):
-        require(literal in app_source, f"App.tsx missing draft designer render literal: {literal}")
+    source_expectations = fixture.get("source_expectations") or {}
+    for literal in source_expectations.get("required_app_state_action_literals") or []:
+        require(literal in app_source, f"App.tsx missing draft designer owner literal: {literal}")
+    for literal in source_expectations.get("required_panel_display_literals") or []:
+        require(literal in panel_source, f"workflowDraftDesignerPanel.tsx missing display literal: {literal}")
 
     for literal in (
         "WorkflowDefinitionDetailViewModel",
