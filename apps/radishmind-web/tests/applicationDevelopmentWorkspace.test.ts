@@ -5,6 +5,7 @@ import {
   applicationDevelopmentStageForHash,
   applicationDevelopmentHashTargetsOwnerSurface,
   applicationRuntimeReviewSurfaceForHash,
+  workflowReviewSurfaceForHash,
   buildApplicationDevelopmentWorkspaceContext,
   type ApplicationDevelopmentWorkspaceInput,
 } from "../src/features/control-plane-read/applicationDevelopmentWorkspace.ts";
@@ -87,6 +88,10 @@ test("opens owner review for exact child anchors without treating stage anchors 
     "#model-gateway-playground",
     "#model-gateway-request-history",
     "#application-operations",
+    "#workspace-run-history",
+    "#workflow-run-comparison",
+    "#workflow-evaluation-cases",
+    "#workflow-evaluation-release-review",
   ]) {
     assert.equal(applicationDevelopmentHashTargetsOwnerSurface(anchor), false);
   }
@@ -98,6 +103,14 @@ test("runtime review aliases keep one persistent task surface", () => {
   assert.equal(applicationRuntimeReviewSurfaceForHash("#application-operations"), "evidence");
   assert.equal(applicationRuntimeReviewSurfaceForHash("#application-api-integration"), null);
   assert.equal(applicationRuntimeReviewSurfaceForHash("#application-operations-preview"), null);
+});
+
+test("workflow review aliases keep one persistent task surface", () => {
+  assert.equal(workflowReviewSurfaceForHash("#workspace-run-history"), "runs");
+  assert.equal(workflowReviewSurfaceForHash("workflow-run-comparison"), "comparison");
+  assert.equal(workflowReviewSurfaceForHash("#workflow-evaluation-cases"), "cases");
+  assert.equal(workflowReviewSurfaceForHash("#workflow-evaluation-release-review"), "release");
+  assert.equal(workflowReviewSurfaceForHash("#workflow-evaluation-release-review-export"), null);
 });
 
 test("missing application fails closed without fabricating a scope", () => {
@@ -154,6 +167,9 @@ test("existing panel and handoff anchors resolve to their owning stages", () => 
   assert.equal(applicationDevelopmentStageForHash("#workflow-rag-evaluation-panel"), "evidence_review");
   assert.equal(applicationDevelopmentStageForHash("#application-operations"), "evidence_review");
   assert.equal(applicationDevelopmentStageForHash("#model-gateway-request-history"), "evidence_review");
+  assert.equal(applicationDevelopmentStageForHash("#workflow-run-comparison"), "evidence_review");
+  assert.equal(applicationDevelopmentStageForHash("#workflow-evaluation-cases"), "evidence_review");
+  assert.equal(applicationDevelopmentStageForHash("#workflow-evaluation-release-review"), "evidence_review");
   assert.equal(applicationDevelopmentStageForHash("#prompt-application-template-workspace"), "configure_build");
   assert.equal(applicationDevelopmentStageForHash("#prompt-application-runtime-assignment"), "human_promotion");
   assert.equal(applicationDevelopmentStageForHash("#prompt-application-invocation"), "controlled_test");

@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：[RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md) 已依次完成 `S1 R8` 产品壳、`S2 R6` Application Workspace、`S3 R2` Workflow Designer、`S4 R1` Application Access 与 `S5 R1` Application Runtime Review。当前下一顺位是 Workflow Run History / Comparison / Evaluation Case / Suite / Human Release Review 页面族的事实审计、设计覆盖评分和纵向切片：保留既有分页、metadata-only detail、人工 decision 与不可发布边界，不新增自动评测执行、replay / resume、自动 release 或全历史聚合。全历史 usage 聚合、运营收件箱全分页投影、production membership adapter、quota / billing 与真实 OIDC 均保持条件式入口。
+1. 产品线：[RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md) 已依次完成 `S1 R8` 产品壳、`S2 R6` Application Workspace、`S3 R2` Workflow Designer、`S4 R1` Application Access、`S5 R1` Application Runtime Review 与 `S6 R1` Workflow Run & Evaluation Review。当前下一顺位是 Admin / Control Plane 页面族的事实审计、设计覆盖评分和纵向切片：保留既有 authenticated read、workspace / tenant scope、权限绑定、只读详情、blocked action 与开发测试管理边界，不新增 production membership、正式 OIDC、生产 secret、provider 自动接入、自动路由或生产启用。全历史 usage 聚合、运营收件箱全分页投影、production membership adapter、quota / billing 与真实 OIDC 均保持条件式入口。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；dev header 与 signed-test membership 不能作为 production 授权来源。production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、quota 和 billing 继续为 `not_satisfied`。

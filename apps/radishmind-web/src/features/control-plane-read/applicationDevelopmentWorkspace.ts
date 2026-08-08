@@ -8,6 +8,7 @@ export const APPLICATION_DEVELOPMENT_STAGE_IDS = [
 
 export type ApplicationDevelopmentStageId = typeof APPLICATION_DEVELOPMENT_STAGE_IDS[number];
 export type ApplicationRuntimeReviewSurface = "run" | "request" | "evidence";
+export type WorkflowReviewSurface = "runs" | "comparison" | "cases" | "release";
 export type ApplicationDevelopmentWorkspaceStatus = "active" | "archived" | "unavailable";
 export type ApplicationDevelopmentStageAvailability = "available" | "read_only" | "blocked";
 export type ApplicationDevelopmentSurfaceKind =
@@ -104,7 +105,14 @@ const STAGE_DEFINITIONS: ReadonlyArray<ApplicationDevelopmentStageDefinition> = 
     label: "Run / Evaluation Review",
     summary: "Inspect durable runs, comparison, evaluation, request, and operations evidence.",
     anchor: "workspace-run-history",
-    aliases: ["workflow-rag-evaluation-panel", "application-operations", "model-gateway-request-history"],
+    aliases: [
+      "workflow-run-comparison",
+      "workflow-evaluation-cases",
+      "workflow-evaluation-release-review",
+      "workflow-rag-evaluation-panel",
+      "application-operations",
+      "model-gateway-request-history",
+    ],
   },
   {
     stageId: "release_readiness",
@@ -187,6 +195,7 @@ export function applicationDevelopmentStageForHash(hash: string): ApplicationDev
 export function applicationDevelopmentHashTargetsOwnerSurface(hash: string): boolean {
   const anchor = hash.trim().replace(/^#/u, "");
   if (applicationRuntimeReviewSurfaceForHash(anchor)) return false;
+  if (workflowReviewSurfaceForHash(anchor)) return false;
   return STAGE_DEFINITIONS.some((stage) => stage.aliases.includes(anchor));
 }
 
@@ -195,6 +204,15 @@ export function applicationRuntimeReviewSurfaceForHash(hash: string): Applicatio
   if (anchor === "model-gateway-playground") return "run";
   if (anchor === "model-gateway-request-history") return "request";
   if (anchor === "application-operations") return "evidence";
+  return null;
+}
+
+export function workflowReviewSurfaceForHash(hash: string): WorkflowReviewSurface | null {
+  const anchor = hash.trim().replace(/^#/u, "");
+  if (anchor === "workspace-run-history") return "runs";
+  if (anchor === "workflow-run-comparison") return "comparison";
+  if (anchor === "workflow-evaluation-cases") return "cases";
+  if (anchor === "workflow-evaluation-release-review") return "release";
   return null;
 }
 

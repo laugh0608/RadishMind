@@ -276,6 +276,14 @@ Application Runtime Review 作为 Application Workspace 的持续后置 surface 
 
 S5 的 Run request、Request review、Review evidence 仅提供上下文连续性和精确 handoff。它不把调用结果写入 readiness，不把脱敏 request detail 当作可重放载荷，也不把当前窗口 operations 当作发布资格、全历史或生产健康证据。
 
+## 2026-08-08 Family UI S6 组合边界
+
+Workflow Run & Evaluation Review 作为 Application Workspace 的持续后置 surface 挂载，不改变 S2 五阶段、九组 source groups、十三项 contributions、revision `partial`、RAG authority `blocked` 或 readiness 只读不可发布的真相。旧 Evidence 阶段继续保留 RAG Evaluation Dataset 等阶段 owner，但不再重复挂载 Run History；Run、Comparison、Cases 与 Release Review 由 S6 四个精确 hash 编排为单一当前 owner。
+
+S6 继续消费唯一 application / workspace / lifecycle context。workspace 配置与当前 context 不一致时 live owner 零请求失败关闭；application / workspace 切换先清空列表、详情、comparison 和 handoff，再用 generation guard 拒绝迟到响应。archived application 保留 metadata-only Run、Case、Suite 和 decision history 只读可达，诊断、创建、修订与 decision 写入关闭。
+
+Run 列表只是严格 cursor 的当前窗口，不冒充全历史；Comparison 是请求时派生结果，不持久化也不重新执行；Case / Suite 只保存 exact version 引用和脱敏审查元数据；人工 `approved` 必须绑定当前 review digest，且只形成 append-only evidence，不创建 candidate、assignment、release、deploy、readiness contribution 或 production authorization。
+
 ## 停止线
 
 - 不创建正式应用晋级、发布或 release API，不修改正式应用真相源。

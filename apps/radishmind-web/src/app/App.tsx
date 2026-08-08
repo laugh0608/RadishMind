@@ -261,6 +261,7 @@ const ApplicationCatalogPanel = lazy(() => import("../features/control-plane-rea
 const ApplicationDevelopmentWorkspacePanel = lazy(() => import("../features/control-plane-read/applicationDevelopmentWorkspacePanel"));
 const ApplicationDevelopmentWorkspaceSurface = lazy(() => import("../features/control-plane-read/applicationDevelopmentWorkspaceSurface"));
 const ApplicationRuntimeReviewWorkspace = lazy(() => import("../features/control-plane-read/applicationRuntimeReviewWorkspace"));
+const WorkflowReviewWorkspace = lazy(() => import("../features/control-plane-read/workflowReviewWorkspace"));
 const WorkflowRAGExecutionPanel = lazy(() => import("../features/control-plane-read/workflowRAGExecutionPanel"));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
 const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
@@ -2156,7 +2157,6 @@ export function App() {
                     controls={controls}
                     offlineApiKeys={workspaceApiKeys}
                     suggestedDefinitionId={selectedWorkflowDefinitionId ?? ""}
-                    runHistoryRefreshKey={workflowRunHistoryRefreshKey}
                     activeWorkflowDraft={activeWorkflowDraft}
                     savedDraftVersion={savedDraftConsumerState.currentDraftVersion ?? 0}
                     savedDraftLifecycleVersion={savedDraftConsumerState.currentLifecycleVersion}
@@ -2170,13 +2170,23 @@ export function App() {
                 </Suspense>
               )}
               renderPersistentSurfaces={(surfaceKey, controls) => (
-                <Suspense fallback={<div className="application-runtime-review-loading"><p>Loading Application Runtime Review…</p></div>}>
-                  <ApplicationRuntimeReviewWorkspace
-                    context={applicationDevelopmentWorkspaceContext}
-                    surfaceKey={surfaceKey}
-                    controls={controls}
-                  />
-                </Suspense>
+                <>
+                  <Suspense fallback={<div className="application-runtime-review-loading"><p>Loading Application Runtime Review…</p></div>}>
+                    <ApplicationRuntimeReviewWorkspace
+                      context={applicationDevelopmentWorkspaceContext}
+                      surfaceKey={surfaceKey}
+                      controls={controls}
+                    />
+                  </Suspense>
+                  <Suspense fallback={<div className="workflow-review-loading"><p>Loading Workflow Review…</p></div>}>
+                    <WorkflowReviewWorkspace
+                      context={applicationDevelopmentWorkspaceContext}
+                      surfaceKey={surfaceKey}
+                      controls={controls}
+                      refreshKey={workflowRunHistoryRefreshKey}
+                    />
+                  </Suspense>
+                </>
               )}
             />
           </Suspense>

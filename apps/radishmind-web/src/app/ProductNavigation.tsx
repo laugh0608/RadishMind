@@ -8,6 +8,7 @@ import { applicationDevelopmentStageForHash } from "../features/control-plane-re
 import {
   applicationApiAccessPrimaryHref,
   workflowDesignerPrimaryHref,
+  workflowReviewPrimaryHref,
 } from "./productNavigationRoute";
 
 type ProductNavigationCounts = {
@@ -236,6 +237,7 @@ function NavigationLinks({
   counts: ProductNavigationCounts;
 }) {
   const activePrimaryHref = primaryNavigationHref(activeHash, apiKeysAnchor);
+  const activeReviewHref = workflowReviewPrimaryHref(activeHash) ?? activeHash;
   return (
     <nav className="product-nav-links" aria-label="Workspace sections">
       <div className="product-nav-group">
@@ -265,7 +267,7 @@ function NavigationLinks({
           <a
             key={link.href}
             href={link.href}
-            aria-current={activeHash === link.href ? "page" : undefined}
+            aria-current={activeReviewHref === link.href ? "page" : undefined}
           >
             <span className="product-nav-link-main">
               <span className="product-nav-icon"><NavigationIcon name={link.icon} /></span>
@@ -301,6 +303,8 @@ function primaryNavigationHref(
   if (exactPrimary) return exactPrimary;
   const applicationApiAccessHref = applicationApiAccessPrimaryHref(activeHash);
   if (applicationApiAccessHref) return applicationApiAccessHref;
+  const workflowReviewHref = workflowReviewPrimaryHref(activeHash);
+  if (workflowReviewHref) return workflowReviewHref;
   if (activeHash === "#application-development-workspace" || applicationDevelopmentStageForHash(activeHash)) {
     return "#workspace-applications";
   }

@@ -1,5 +1,6 @@
 const APPLICATION_API_ACCESS_PRIMARY_HREF = "#workspace-api-keys" as const;
 const WORKFLOW_DESIGNER_PRIMARY_HREF = "#workspace-workflow-definitions" as const;
+const WORKFLOW_REVIEW_PRIMARY_HREF = "#workspace-run-history" as const;
 
 const APPLICATION_API_ACCESS_ANCHORS = new Set([
   "#application-api-integration",
@@ -15,6 +16,13 @@ const WORKFLOW_DESIGNER_ANCHORS = new Set([
   "#workflow-review-handoff",
 ]);
 
+const WORKFLOW_REVIEW_ANCHORS = new Set([
+  "#workspace-run-history",
+  "#workflow-run-comparison",
+  "#workflow-evaluation-cases",
+  "#workflow-evaluation-release-review",
+]);
+
 export function applicationApiAccessPrimaryHref(
   activeHash: string,
 ): typeof APPLICATION_API_ACCESS_PRIMARY_HREF | null {
@@ -23,4 +31,8 @@ export function applicationApiAccessPrimaryHref(
 
 export function workflowDesignerPrimaryHref(activeHash: string): typeof WORKFLOW_DESIGNER_PRIMARY_HREF | null {
   return WORKFLOW_DESIGNER_ANCHORS.has(activeHash) ? WORKFLOW_DESIGNER_PRIMARY_HREF : null;
+}
+
+export function workflowReviewPrimaryHref(activeHash: string): typeof WORKFLOW_REVIEW_PRIMARY_HREF | null {
+  return WORKFLOW_REVIEW_ANCHORS.has(activeHash) ? WORKFLOW_REVIEW_PRIMARY_HREF : null;
 }

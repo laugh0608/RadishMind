@@ -27,7 +27,6 @@ const WorkflowRAGEvaluationDatasetPanel = lazy(() => import("./workflowRAGEvalua
 const WorkflowDefinitionPromotionPanel = lazy(() => import("./workflowDefinitionPromotionPanel.tsx"));
 const WorkflowRAGPromotionPanel = lazy(() => import("./workflowRAGPromotionPanel.tsx"));
 const WorkflowRAGSnapshotPanel = lazy(() => import("./workflowRAGSnapshotPanel.tsx"));
-const WorkflowRunHistoryPanel = lazy(() => import("./workflowRunHistoryPanel.tsx"));
 
 type Props = {
   context: ApplicationDevelopmentWorkspaceContext;
@@ -36,7 +35,6 @@ type Props = {
   controls: ApplicationDevelopmentWorkspaceControls;
   offlineApiKeys: WorkspaceApiKeysViewModel;
   suggestedDefinitionId: string;
-  runHistoryRefreshKey: number;
   activeWorkflowDraft: WorkflowDraftDesignerDraft;
   savedDraftVersion: number;
   savedDraftLifecycleVersion: number;
@@ -53,7 +51,6 @@ export default function ApplicationDevelopmentWorkspaceSurface({
   controls,
   offlineApiKeys,
   suggestedDefinitionId,
-  runHistoryRefreshKey,
   activeWorkflowDraft,
   savedDraftVersion,
   savedDraftLifecycleVersion,
@@ -99,13 +96,6 @@ export default function ApplicationDevelopmentWorkspaceSurface({
   const consumePromotionHandoff = useCallback((handoffId: string) => {
     controls.consumeHandoff("human_promotion", handoffId);
   }, [controls.consumeHandoff]);
-  const consumeEvidenceHandoff = useCallback((handoffId: string) => {
-    controls.consumeHandoff("evidence_review", handoffId);
-  }, [controls.consumeHandoff]);
-  const pendingRunHandoff = controls.pendingHandoff?.targetStage === "evidence_review" &&
-    controls.pendingHandoff.refKind === "run"
-    ? controls.pendingHandoff
-    : null;
   const pendingDraftHandoff = controls.pendingHandoff?.targetStage === "human_promotion" &&
     controls.pendingHandoff.refKind === "draft"
     ? controls.pendingHandoff
@@ -351,16 +341,11 @@ export default function ApplicationDevelopmentWorkspaceSurface({
               />
             </Suspense>
           ) : null}
-          <Suspense fallback={<StageFallback label="run history" />}>
-            <WorkflowRunHistoryPanel
-              key={`${context.generationKey}:run-history`}
-              applicationId={context.applicationId}
-              refreshKey={runHistoryRefreshKey}
-              handoffRunId={pendingRunHandoff?.refId}
-              handoffId={pendingRunHandoff?.handoffId}
-              onHandoffConsumed={consumeEvidenceHandoff}
-            />
-          </Suspense>
+          <article className="application-development-stage-paused">
+            <p className="eyebrow">Workflow review path</p>
+            <h4>Run and evaluation owners are task-scoped</h4>
+            <p>Use Runs, Compare, Cases, or Release below. Only the selected owner is mounted.</p>
+          </article>
         </StageSurface>
       ) : null}
 

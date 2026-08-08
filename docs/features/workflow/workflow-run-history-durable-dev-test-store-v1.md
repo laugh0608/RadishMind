@@ -164,3 +164,10 @@ services/platform/migrations/workflow_runs/
 - 不把 Saved Draft repository 改造成 run repository，不把旧 fake run API 作为运行真相源。
 
 后续 [Workflow Execution Diagnostics / Failure Review v1](workflow-execution-diagnostics-failure-review-v1.md) 已在本资源族上完成 v1 诊断、失败过滤、受控故障场景和 Web 失败审查；本专题的持久化与 scope 边界保持不变。[Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) 已完成 v2 validator、三种 store、诊断兼容和 Run History / detail 的 Web v2 消费。
+
+## 2026-08-08 Family UI S6 R1 产品化
+
+- Run History 已由 `WorkflowReviewWorkspace` 与 `workflowReviewOwner` 编排为 S6 的 Run owner；列表仍只表示严格 cursor 的当前窗口，过滤、加载更早记录、精确 detail、节点 / retrieval metadata 和可用诊断按渐进区块展开，不改变本专题 API 或 store。
+- application / workspace 切换先清空 list、detail 与 pending handoff，再以 generation guard 拒绝迟到响应；workspace 配置漂移时零请求失败关闭。offline sample 明确为独立 evidence，不投影成当前 application 的 live 运行记录。
+- archived application 继续允许 metadata-only 历史和详情审查，但关闭诊断动作；页面不提供 replay、resume、retry、publish 或业务写回。旧 S2 Evidence 阶段不再重复挂载 Run History，S6 保持唯一 owner。
+- Web `281/281`、production build 与桌面 / 临界断点 / `390x844` 真实浏览器复验通过；没有新增 API、schema、repository、task card、fixture 或专项 checker。

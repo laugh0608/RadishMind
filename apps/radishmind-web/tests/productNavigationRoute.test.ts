@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   applicationApiAccessPrimaryHref,
   workflowDesignerPrimaryHref,
+  workflowReviewPrimaryHref,
 } from "../src/app/productNavigationRoute.ts";
 
 test("maps only the explicit S4 application API access anchors to API & keys", () => {
@@ -53,5 +54,28 @@ test("does not claim adjacent workflow or prefix-like anchors", () => {
     "#workspace-applications",
   ]) {
     assert.equal(workflowDesignerPrimaryHref(anchor), null);
+  }
+});
+
+test("maps only the explicit S6 workflow review anchors to Run history", () => {
+  for (const anchor of [
+    "#workspace-run-history",
+    "#workflow-run-comparison",
+    "#workflow-evaluation-cases",
+    "#workflow-evaluation-release-review",
+  ]) {
+    assert.equal(workflowReviewPrimaryHref(anchor), "#workspace-run-history");
+  }
+});
+
+test("does not claim adjacent workflow review anchors", () => {
+  for (const anchor of [
+    "#workflow-run-comparison-preview",
+    "#workflow-evaluation-cases-archive",
+    "#workflow-evaluation-release-review-export",
+    "workflow-run-comparison",
+    "#application-operations",
+  ]) {
+    assert.equal(workflowReviewPrimaryHref(anchor), null);
   }
 });

@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-08 当前执行口径：Family UI `S1 R8` 产品壳、`S2 R6` Application Workspace、`S3 R2` Workflow Designer、`S4 R1` Application Access 与 `S5 R1` Application Runtime Review 已完成设计、React 实现和真实浏览器严格验收。S5 复用既有 Playground、Request History 与 Application Operations owner，形成应用作用域的“受控调用 → 精确请求审查 → 当前窗口证据”持续任务面；workspace scope 漂移零请求失败关闭，application / workspace 切换先清空旧状态并拒绝迟到响应，当前窗口、脱敏 envelope 和易失调用结果不互相冒充。没有新增 API、schema、repository、task card 或专项 checker。下一步进入 Workflow Run History / Comparison / Evaluation Case / Suite / Human Release Review 页面族的事实审计、设计覆盖评分和 React 纵向切片。
+2026-08-08 当前执行口径：Family UI `S1 R8` 产品壳、`S2 R6` Application Workspace、`S3 R2` Workflow Designer、`S4 R1` Application Access、`S5 R1` Application Runtime Review 与 `S6 R1` Workflow Run & Evaluation Review 已完成设计、React 实现和真实浏览器严格验收。S6 复用既有 Run、Comparison、Case、Suite 与 decision owner，形成应用作用域的“运行定位 → 兼容比较 → 版本化证据 → 摘要绑定的人工判断”持续任务面；workspace scope 漂移零请求失败关闭，application / workspace 切换先清空旧状态并拒绝迟到响应，当前窗口、即时 comparison、exact refs 和 append-only decision evidence 不互相冒充。没有新增 API、schema、repository、task card 或专项 checker。下一步进入 Admin / Control Plane 页面族的事实审计、设计覆盖评分和 React 纵向切片。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。

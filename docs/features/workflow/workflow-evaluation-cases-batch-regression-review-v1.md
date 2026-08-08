@@ -75,3 +75,9 @@ evaluation case、case revision、baseline promotion 和 batch review 首版只�
 2026-07-18 独立的 [Workflow RAG Regression Review 与 Evaluation Profile v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1.md) 已允许相同 immutable retrieval binding 的 v3 run 创建、修订和即时 review；review item 派生 `run_profile=workflow_rag_retrieval.v1` 与 Comparison v2 schema。case / revision 仍只保存 run refs、预期分类和审计元数据，不复制 query、fragment、answer 或 comparison body；HTTP Tool v2 继续 unsupported。
 
 2026-07-25 [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](../user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md) 已补齐 Prompt v6 / Comparison v5 与 Agent v7 / Comparison v6 的严格消费。Prompt 必须保持同 Template lineage；Agent 必须保持同 Profile、project 与 task。Case owner、schema、route 和持久化均未复制或放宽，review 继续只读取 metadata-only Run。
+
+## 2026-08-08 Family UI S6 R1 产品化
+
+- Evaluation Cases 已成为 S6 的 Cases task，只在被选中时挂载既有 lazy owner；列表、exact revision、baseline / candidate run refs、创建、修订和即时 review 继续消费原有 consumer 与 store，不复制第二套 case 状态机。
+- application / workspace 切换先清空 list、selection 与 form transient state，并用 generation guard 拒绝迟到响应。archived application 保留 case、revision 与 review 只读可达，创建和修订关闭。
+- 本页面不自动执行评测、不重新运行引用的 run、不自动挑选 baseline，也不把 case review 写成发布资格。Web 测试、production build 与桌面 / 窄屏单 owner 路径通过；没有新增 API、schema、repository、task card、fixture 或专项 checker。
