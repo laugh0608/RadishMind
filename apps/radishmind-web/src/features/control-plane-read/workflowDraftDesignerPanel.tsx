@@ -198,8 +198,6 @@ export function WorkflowDraftDesignerPanel({
           >
             Read saved
           </button>
-          <a href="#workflow-execution-plan-preview">Preview plan</a>
-          <a href="#workflow-review-handoff">Review handoff</a>
         </div>
         {lifecycleReadOnly ? (
           <p className="workflow-draft-revision-stopline" role="status">
@@ -231,13 +229,14 @@ export function WorkflowDraftDesignerPanel({
             ))}
           </div>
 
-          <div className="workflow-designer-node-palette">
-            <div className="workflow-designer-rail-heading">
+          <details className="workflow-designer-node-palette">
+            <summary className="workflow-designer-rail-heading">
               <div>
                 <span>Add node</span>
                 <strong>{selectedDraft.nodes.length} nodes</strong>
               </div>
-            </div>
+              <small>Expand</small>
+            </summary>
             <div className="workflow-draft-add-node-grid" aria-label="Add workflow draft node">
               {nodeTypeOptions.map((option) => (
                 <button
@@ -253,7 +252,7 @@ export function WorkflowDraftDesignerPanel({
                 </button>
               ))}
             </div>
-          </div>
+          </details>
         </aside>
 
         <div className="workflow-designer-canvas-column">
@@ -284,30 +283,39 @@ export function WorkflowDraftDesignerPanel({
             />
           </Suspense>
         </div>
-      </div>
 
-      <nav className="workflow-designer-review-links" aria-label="Workflow draft review surfaces">
-        <a href="#workflow-draft-validation-inspector">
-          <span>Validation</span>
-          <strong>{validationInspector.validationStatus}</strong>
-          <small>{validationInspector.structuralChecks.length + validationInspector.contractChecks.length} checks</small>
-        </a>
-        <a href="#workflow-execution-plan-preview">
-          <span>Preview plan</span>
-          <strong>Derived only</strong>
-          <small>No execution owner</small>
-        </a>
-        <a href="#workflow-runtime-readiness-inspector">
-          <span>Readiness</span>
-          <strong>Read only</strong>
-          <small>{selectedDraft.readiness.length} checks</small>
-        </a>
-        <a href="#workflow-review-handoff">
-          <span>Review handoff</span>
-          <strong>Browser only</strong>
-          <small>No save, export, or send</small>
-        </a>
-      </nav>
+        <details className="workflow-designer-review-dock">
+          <summary>
+            <span>Review surfaces</span>
+            <strong>
+              {validationInspector.validationStatus} · {validationInspector.structuralChecks.length + validationInspector.contractChecks.length} validation checks
+            </strong>
+            <small>Plan, readiness, and handoff remain derived or read only</small>
+          </summary>
+          <nav className="workflow-designer-review-links" aria-label="Workflow draft review surfaces">
+            <a href="#workflow-draft-validation-inspector">
+              <span>Validation</span>
+              <strong>{validationInspector.validationStatus}</strong>
+              <small>{validationInspector.structuralChecks.length + validationInspector.contractChecks.length} checks</small>
+            </a>
+            <a href="#workflow-execution-plan-preview">
+              <span>Preview plan</span>
+              <strong>Derived only</strong>
+              <small>No execution owner</small>
+            </a>
+            <a href="#workflow-runtime-readiness-inspector">
+              <span>Readiness</span>
+              <strong>Read only</strong>
+              <small>{selectedDraft.readiness.length} checks</small>
+            </a>
+            <a href="#workflow-review-handoff">
+              <span>Review handoff</span>
+              <strong>Browser only</strong>
+              <small>No save, export, or send</small>
+            </a>
+          </nav>
+        </details>
+      </div>
 
       {savedDraftConflictReviewSummary ? (
         <details className="workflow-designer-disclosure workflow-draft-conflict-review" open>

@@ -1,5 +1,5 @@
 {
-  "version": "2.15",
+  "version": "2.17",
   "children": [
     {
       "type": "frame",
@@ -9667,9 +9667,9 @@
     {
       "type": "frame",
       "id": "S3007o",
-      "name": "S3 Workflow Designer — Desktop / Partial · R1",
       "x": 0,
       "y": 2400,
+      "name": "S3 Workflow Designer — Desktop / Partial · R2",
       "clip": true,
       "width": 1440,
       "height": 900,
@@ -10150,6 +10150,17 @@
                       "cornerRadius": 10,
                       "stroke": "#C9D5C5",
                       "strokeWidth": 1,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#2F493626",
+                        "offset": {
+                          "x": 0,
+                          "y": 3
+                        },
+                        "blur": 9,
+                        "spread": -6
+                      },
                       "padding": [
                         0,
                         11
@@ -10211,18 +10222,7 @@
                             }
                           ]
                         }
-                      ],
-                      "effect": {
-                        "type": "shadow",
-                        "shadowType": "outer",
-                        "color": "#2F493626",
-                        "offset": {
-                          "x": 0,
-                          "y": 3
-                        },
-                        "blur": 9,
-                        "spread": -6
-                      }
+                      ]
                     },
                     {
                       "type": "frame",
@@ -10524,16 +10524,16 @@
                   "id": "S3002r",
                   "name": "S3 Designer Context Header",
                   "width": "fill_container",
-                  "height": 144,
+                  "height": 128,
                   "fill": "$bg-surface",
                   "stroke": "$border-soft",
                   "strokeWidth": {
                     "bottom": 1
                   },
                   "layout": "vertical",
-                  "gap": 9,
+                  "gap": 7,
                   "padding": [
-                    17,
+                    14,
                     20
                   ],
                   "children": [
@@ -10590,7 +10590,7 @@
                               "fill": "$text-primary",
                               "content": "Workflow Designer",
                               "fontFamily": "$font-sans",
-                              "fontSize": 29,
+                              "fontSize": 32,
                               "fontWeight": "650",
                               "letterSpacing": -0.5
                             },
@@ -10601,7 +10601,7 @@
                               "fill": "$text-secondary",
                               "content": "Compose, validate and review the active development draft.",
                               "fontFamily": "$font-sans",
-                              "fontSize": 11,
+                              "fontSize": 12,
                               "fontWeight": "500"
                             }
                           ]
@@ -10694,7 +10694,7 @@
                             {
                               "type": "frame",
                               "id": "S3002a",
-                              "name": "Preview Plan",
+                              "name": "Read Saved",
                               "height": 38,
                               "fill": "$bg-surface",
                               "cornerRadius": 10,
@@ -10711,58 +10711,19 @@
                                 {
                                   "type": "icon",
                                   "id": "S30028",
-                                  "name": "Preview Plan Icon",
+                                  "name": "Read Saved Icon",
                                   "width": 16,
                                   "height": 16,
-                                  "icon": "list-tree",
+                                  "icon": "database",
                                   "library": "lucide",
                                   "fill": "$text-secondary"
                                 },
                                 {
                                   "type": "text",
                                   "id": "S30029",
-                                  "name": "Preview Plan Label",
+                                  "name": "Read Saved Label",
                                   "fill": "$text-primary",
-                                  "content": "Preview plan",
-                                  "fontFamily": "$font-sans",
-                                  "fontSize": 12,
-                                  "fontWeight": "620"
-                                }
-                              ]
-                            },
-                            {
-                              "type": "frame",
-                              "id": "S3002d",
-                              "name": "Review Handoff",
-                              "height": 38,
-                              "fill": "$bg-surface",
-                              "cornerRadius": 10,
-                              "stroke": "$border-strong",
-                              "strokeWidth": 1,
-                              "gap": 7,
-                              "padding": [
-                                0,
-                                12
-                              ],
-                              "justifyContent": "center",
-                              "alignItems": "center",
-                              "children": [
-                                {
-                                  "type": "icon",
-                                  "id": "S3002b",
-                                  "name": "Review Handoff Icon",
-                                  "width": 16,
-                                  "height": 16,
-                                  "icon": "arrow-up-right",
-                                  "library": "lucide",
-                                  "fill": "$text-secondary"
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "S3002c",
-                                  "name": "Review Handoff Label",
-                                  "fill": "$text-primary",
-                                  "content": "Review handoff",
+                                  "content": "Read saved",
                                   "fontFamily": "$font-sans",
                                   "fontSize": 12,
                                   "fontWeight": "620"
@@ -10811,7 +10772,7 @@
                           "id": "S3002j",
                           "name": "Draft Identity",
                           "height": 24,
-                          "fill": "$action-soft",
+                          "fill": "$neutral-soft",
                           "cornerRadius": 12,
                           "padding": [
                             0,
@@ -10918,12 +10879,7 @@
                   "height": "fill_container",
                   "fill": "$bg-canvas",
                   "layout": "vertical",
-                  "gap": 14,
-                  "padding": [
-                    14,
-                    18,
-                    18
-                  ],
+                  "gap": 8,
                   "children": [
                     {
                       "type": "frame",
@@ -10931,23 +10887,23 @@
                       "name": "S3 Designer Workbench",
                       "width": "fill_container",
                       "height": "fill_container",
-                      "gap": 12,
+                      "gap": 10,
                       "children": [
                         {
                           "type": "frame",
                           "id": "S30046",
                           "name": "S3 Draft and Node Rail",
-                          "width": 214,
+                          "width": 198,
                           "height": "fill_container",
                           "fill": "$bg-surface",
                           "cornerRadius": 13,
                           "stroke": "$border-soft",
                           "strokeWidth": 1,
                           "layout": "vertical",
-                          "gap": 12,
+                          "gap": 10,
                           "padding": [
-                            14,
-                            12
+                            12,
+                            10
                           ],
                           "children": [
                             {
@@ -11002,14 +10958,14 @@
                               "name": "Draft Reference/draft_local_7",
                               "width": "fill_container",
                               "height": 70,
-                              "fill": "$action-soft",
+                              "fill": "$bg-surface",
                               "cornerRadius": 10,
-                              "stroke": "$action",
+                              "stroke": "$border-strong",
                               "strokeWidth": {
-                                "left": 3,
                                 "top": 1,
                                 "right": 1,
-                                "bottom": 1
+                                "bottom": 1,
+                                "left": 3
                               },
                               "layout": "vertical",
                               "gap": 5,
@@ -11070,7 +11026,7 @@
                                   "fill": "$text-muted",
                                   "content": "content v7 · local edits",
                                   "fontFamily": "$font-mono",
-                                  "fontSize": 9,
+                                  "fontSize": 10,
                                   "fontWeight": "500"
                                 }
                               ]
@@ -11144,7 +11100,7 @@
                                   "fill": "$text-muted",
                                   "content": "content v5 · saved",
                                   "fontFamily": "$font-mono",
-                                  "fontSize": 9,
+                                  "fontSize": 10,
                                   "fontWeight": "500"
                                 }
                               ]
@@ -11272,9 +11228,11 @@
                                       "id": "S3003h",
                                       "name": "Prompt Description",
                                       "fill": "$text-muted",
+                                      "textGrowth": "fixed-width",
+                                      "width": "fill_container",
                                       "content": "Context and instruction",
                                       "fontFamily": "$font-sans",
-                                      "fontSize": 9,
+                                      "fontSize": 10,
                                       "fontWeight": "500"
                                     }
                                   ]
@@ -11356,7 +11314,7 @@
                                       "fill": "$text-muted",
                                       "content": "LLM invocation",
                                       "fontFamily": "$font-sans",
-                                      "fontSize": 9,
+                                      "fontSize": 10,
                                       "fontWeight": "500"
                                     }
                                   ]
@@ -11436,9 +11394,11 @@
                                       "id": "S3003v",
                                       "name": "RAG Description",
                                       "fill": "$text-muted",
+                                      "textGrowth": "fixed-width",
+                                      "width": "fill_container",
                                       "content": "Authority-gated retrieval",
                                       "fontFamily": "$font-sans",
-                                      "fontSize": 9,
+                                      "fontSize": 10,
                                       "fontWeight": "500"
                                     }
                                   ]
@@ -11520,7 +11480,7 @@
                                       "fill": "$text-muted",
                                       "content": "Policy branch",
                                       "fontFamily": "$font-sans",
-                                      "fontSize": 9,
+                                      "fontSize": 10,
                                       "fontWeight": "500"
                                     }
                                   ]
@@ -11543,13 +11503,13 @@
                           "type": "frame",
                           "id": "S3005r",
                           "name": "S3 Workflow Canvas",
+                          "clip": true,
                           "width": "fill_container",
                           "height": "fill_container",
                           "fill": "$bg-surface",
-                          "cornerRadius": 13,
+                          "cornerRadius": 10,
                           "stroke": "$border-soft",
                           "strokeWidth": 1,
-                          "clip": true,
                           "layout": "vertical",
                           "children": [
                             {
@@ -11557,17 +11517,17 @@
                               "id": "S3004i",
                               "name": "S3 Canvas Toolbar",
                               "width": "fill_container",
-                              "height": 46,
+                              "height": 43,
+                              "stroke": "$border-soft",
+                              "strokeWidth": {
+                                "bottom": 1
+                              },
                               "padding": [
                                 0,
                                 12
                               ],
                               "justifyContent": "space_between",
                               "alignItems": "center",
-                              "stroke": "$border-soft",
-                              "strokeWidth": {
-                                "bottom": 1
-                              },
                               "children": [
                                 {
                                   "type": "frame",
@@ -11702,50 +11662,197 @@
                               "type": "frame",
                               "id": "S3004j",
                               "name": "S3 Canvas Stage",
+                              "clip": true,
                               "width": "fill_container",
                               "height": "fill_container",
                               "fill": "$bg-canvas",
-                              "clip": true,
+                              "layout": "none",
                               "children": [
                                 {
                                   "type": "frame",
-                                  "id": "S3004k",
-                                  "name": "S3 Canvas Connection A",
-                                  "x": 168,
-                                  "y": 98,
-                                  "width": 86,
-                                  "height": 2,
-                                  "fill": "$border-strong",
-                                  "cornerRadius": 1
+                                  "id": "kgsXq",
+                                  "x": 186,
+                                  "y": 191,
+                                  "name": "S3 Canvas Edge/Context to Model",
+                                  "width": 58,
+                                  "height": 100,
+                                  "layout": "none",
+                                  "children": [
+                                    {
+                                      "type": "ellipse",
+                                      "id": "xHxtI",
+                                      "x": 0,
+                                      "y": 0,
+                                      "name": "Context Edge Source Port",
+                                      "fill": "$border-strong",
+                                      "width": 8,
+                                      "height": 8
+                                    },
+                                    {
+                                      "type": "rectangle",
+                                      "cornerRadius": 1,
+                                      "id": "OfgsC",
+                                      "x": 4,
+                                      "y": 0,
+                                      "name": "Context Edge Segment A",
+                                      "fill": "$border-strong",
+                                      "width": 25,
+                                      "height": 2
+                                    },
+                                    {
+                                      "type": "rectangle",
+                                      "cornerRadius": 1,
+                                      "id": "wAaba",
+                                      "x": 28,
+                                      "y": 0,
+                                      "name": "Context Edge Segment B",
+                                      "fill": "$border-strong",
+                                      "width": 2,
+                                      "height": 99
+                                    },
+                                    {
+                                      "type": "rectangle",
+                                      "cornerRadius": 1,
+                                      "id": "N7yoyG",
+                                      "x": 28,
+                                      "y": 97,
+                                      "name": "Context Edge Segment C",
+                                      "fill": "$border-strong",
+                                      "width": 25,
+                                      "height": 2
+                                    },
+                                    {
+                                      "type": "icon",
+                                      "id": "ydg3I",
+                                      "x": 44,
+                                      "y": 86,
+                                      "name": "Context Edge Arrow",
+                                      "width": 14,
+                                      "height": 14,
+                                      "icon": "arrow-right",
+                                      "library": "lucide",
+                                      "fill": "$text-muted"
+                                    }
+                                  ]
                                 },
                                 {
                                   "type": "frame",
-                                  "id": "S3004l",
-                                  "name": "S3 Canvas Connection B",
-                                  "x": 366,
-                                  "y": 184,
-                                  "width": 120,
-                                  "height": 2,
-                                  "fill": "$action",
-                                  "cornerRadius": 1
+                                  "id": "juq4C",
+                                  "x": 202,
+                                  "y": 311,
+                                  "name": "S3 Canvas Edge/Retrieval to Model",
+                                  "width": 42,
+                                  "height": 81,
+                                  "layout": "none",
+                                  "children": [
+                                    {
+                                      "type": "ellipse",
+                                      "id": "CxlfH",
+                                      "x": 0,
+                                      "y": 72,
+                                      "name": "Retrieval Edge Source Port",
+                                      "fill": "$border-strong",
+                                      "width": 8,
+                                      "height": 8
+                                    },
+                                    {
+                                      "type": "rectangle",
+                                      "cornerRadius": 1,
+                                      "id": "b1BmB",
+                                      "x": 4,
+                                      "y": 79,
+                                      "name": "Retrieval Edge Segment A",
+                                      "fill": "$border-strong",
+                                      "width": 17,
+                                      "height": 2
+                                    },
+                                    {
+                                      "type": "rectangle",
+                                      "cornerRadius": 1,
+                                      "id": "mWF21",
+                                      "x": 20,
+                                      "y": 0,
+                                      "name": "Retrieval Edge Segment B",
+                                      "fill": "$border-strong",
+                                      "width": 2,
+                                      "height": 81
+                                    },
+                                    {
+                                      "type": "rectangle",
+                                      "cornerRadius": 1,
+                                      "id": "IQgG8",
+                                      "x": 20,
+                                      "y": 0,
+                                      "name": "Retrieval Edge Segment C",
+                                      "fill": "$border-strong",
+                                      "width": 17,
+                                      "height": 2
+                                    },
+                                    {
+                                      "type": "icon",
+                                      "id": "qNX1W",
+                                      "x": 28,
+                                      "y": 0,
+                                      "name": "Retrieval Edge Arrow",
+                                      "width": 14,
+                                      "height": 14,
+                                      "icon": "arrow-right",
+                                      "library": "lucide",
+                                      "fill": "$text-muted"
+                                    }
+                                  ]
                                 },
                                 {
                                   "type": "frame",
-                                  "id": "S3004m",
-                                  "name": "S3 Canvas Connection C",
-                                  "x": 296,
+                                  "id": "kXNdc",
+                                  "x": 418,
                                   "y": 286,
-                                  "width": 2,
-                                  "height": 76,
-                                  "fill": "$border-strong",
-                                  "cornerRadius": 1
+                                  "name": "S3 Canvas Edge/Model to Output",
+                                  "width": 64,
+                                  "height": 14,
+                                  "layout": "none",
+                                  "children": [
+                                    {
+                                      "type": "ellipse",
+                                      "id": "Eaog7",
+                                      "x": 0,
+                                      "y": 3,
+                                      "name": "Model Edge Source Port",
+                                      "fill": "$border-strong",
+                                      "width": 8,
+                                      "height": 8
+                                    },
+                                    {
+                                      "type": "rectangle",
+                                      "cornerRadius": 1,
+                                      "id": "E6XKO",
+                                      "x": 4,
+                                      "y": 6,
+                                      "name": "Model Edge Segment",
+                                      "fill": "$border-strong",
+                                      "width": 55,
+                                      "height": 2
+                                    },
+                                    {
+                                      "type": "icon",
+                                      "id": "H5faa",
+                                      "x": 50,
+                                      "y": 0,
+                                      "name": "Model Edge Arrow",
+                                      "width": 14,
+                                      "height": 14,
+                                      "icon": "arrow-right",
+                                      "library": "lucide",
+                                      "fill": "$text-muted"
+                                    }
+                                  ]
                                 },
                                 {
                                   "type": "frame",
                                   "id": "S3004w",
+                                  "x": 28,
+                                  "y": 150,
                                   "name": "Canvas Node/Load context",
-                                  "x": 24,
-                                  "y": 54,
                                   "width": 158,
                                   "height": 82,
                                   "fill": "$bg-surface",
@@ -11804,7 +11911,7 @@
                                               "fill": "$text-muted",
                                               "content": "PROMPT",
                                               "fontFamily": "$font-mono",
-                                              "fontSize": 9,
+                                              "fontSize": 10,
                                               "fontWeight": "650"
                                             }
                                           ]
@@ -11832,7 +11939,7 @@
                                               "fill": "$success",
                                               "content": "READY",
                                               "fontFamily": "$font-mono",
-                                              "fontSize": 8,
+                                              "fontSize": 9,
                                               "fontWeight": "700"
                                             }
                                           ]
@@ -11854,9 +11961,9 @@
                                 {
                                   "type": "frame",
                                   "id": "S30056",
+                                  "x": 244,
+                                  "y": 245,
                                   "name": "Canvas Node/Draft answer",
-                                  "x": 218,
-                                  "y": 136,
                                   "width": 174,
                                   "height": 92,
                                   "fill": "$bg-surface",
@@ -11926,7 +12033,7 @@
                                               "fill": "$text-muted",
                                               "content": "MODEL",
                                               "fontFamily": "$font-mono",
-                                              "fontSize": 9,
+                                              "fontSize": 10,
                                               "fontWeight": "650"
                                             }
                                           ]
@@ -11954,7 +12061,7 @@
                                               "fill": "$success",
                                               "content": "READY",
                                               "fontFamily": "$font-mono",
-                                              "fontSize": 8,
+                                              "fontSize": 9,
                                               "fontWeight": "700"
                                             }
                                           ]
@@ -11976,9 +12083,9 @@
                                 {
                                   "type": "frame",
                                   "id": "S3005g",
+                                  "x": 482,
+                                  "y": 250,
                                   "name": "Canvas Node/Return result",
-                                  "x": 464,
-                                  "y": 226,
                                   "width": 146,
                                   "height": 82,
                                   "fill": "$bg-surface",
@@ -12037,7 +12144,7 @@
                                               "fill": "$text-muted",
                                               "content": "OUTPUT",
                                               "fontFamily": "$font-mono",
-                                              "fontSize": 9,
+                                              "fontSize": 10,
                                               "fontWeight": "650"
                                             }
                                           ]
@@ -12065,7 +12172,7 @@
                                               "fill": "$success",
                                               "content": "READY",
                                               "fontFamily": "$font-mono",
-                                              "fontSize": 8,
+                                              "fontSize": 9,
                                               "fontWeight": "700"
                                             }
                                           ]
@@ -12087,9 +12194,9 @@
                                 {
                                   "type": "frame",
                                   "id": "S3005q",
-                                  "name": "Canvas Node/Knowledge lookup",
-                                  "x": 218,
+                                  "x": 28,
                                   "y": 350,
+                                  "name": "Canvas Node/Knowledge lookup",
                                   "width": 174,
                                   "height": 82,
                                   "fill": "$bg-surface",
@@ -12148,7 +12255,7 @@
                                               "fill": "$text-muted",
                                               "content": "RAG",
                                               "fontFamily": "$font-mono",
-                                              "fontSize": 9,
+                                              "fontSize": 10,
                                               "fontWeight": "650"
                                             }
                                           ]
@@ -12176,7 +12283,7 @@
                                               "fill": "$warning",
                                               "content": "BLOCKED",
                                               "fontFamily": "$font-mono",
-                                              "fontSize": 8,
+                                              "fontSize": 9,
                                               "fontWeight": "700"
                                             }
                                           ]
@@ -12203,18 +12310,15 @@
                           "type": "frame",
                           "id": "S3006r",
                           "name": "S3 Node Inspector",
-                          "width": 308,
+                          "width": 296,
                           "height": "fill_container",
                           "fill": "$bg-surface",
-                          "cornerRadius": 13,
+                          "cornerRadius": 10,
                           "stroke": "$border-soft",
                           "strokeWidth": 1,
                           "layout": "vertical",
-                          "gap": 12,
-                          "padding": [
-                            14,
-                            14
-                          ],
+                          "gap": 10,
+                          "padding": 12,
                           "children": [
                             {
                               "type": "frame",
@@ -12253,31 +12357,6 @@
                                       "fontWeight": "650"
                                     }
                                   ]
-                                },
-                                {
-                                  "type": "frame",
-                                  "id": "S3005w",
-                                  "name": "S3 Selected Node",
-                                  "height": 24,
-                                  "fill": "$action-soft",
-                                  "cornerRadius": 12,
-                                  "padding": [
-                                    0,
-                                    9
-                                  ],
-                                  "alignItems": "center",
-                                  "children": [
-                                    {
-                                      "type": "text",
-                                      "id": "S3005v",
-                                      "name": "S3 Selected Node Label",
-                                      "fill": "$action",
-                                      "content": "SELECTED",
-                                      "fontFamily": "$font-mono",
-                                      "fontSize": 10,
-                                      "fontWeight": "650"
-                                    }
-                                  ]
                                 }
                               ]
                             },
@@ -12296,7 +12375,7 @@
                                   "fill": "$text-muted",
                                   "content": "NODE KEY",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 9,
+                                  "fontSize": 10,
                                   "fontWeight": "700",
                                   "letterSpacing": 0.6
                                 },
@@ -12345,7 +12424,7 @@
                                   "fill": "$text-muted",
                                   "content": "MODEL PROFILE",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 9,
+                                  "fontSize": 10,
                                   "fontWeight": "700",
                                   "letterSpacing": 0.6
                                 },
@@ -12526,9 +12605,11 @@
                                   "id": "S3006i",
                                   "name": "S3 Node Boundary Copy",
                                   "fill": "$text-secondary",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
                                   "content": "Save and validation do not publish or run this workflow.",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 9,
+                                  "fontSize": 10,
                                   "fontWeight": "500"
                                 }
                               ]
@@ -12626,115 +12707,151 @@
                     },
                     {
                       "type": "frame",
-                      "id": "S3007k",
-                      "name": "S3 Progressive Review Rail",
-                      "width": "fill_container",
-                      "height": 154,
-                      "gap": 12,
+                      "id": "jALoP",
+                      "name": "S3 Compact Review Status Bar",
+                      "clip": true,
+                      "width": 1176,
+                      "height": 72,
+                      "fill": "$bg-surface",
+                      "cornerRadius": 10,
+                      "stroke": "$border-soft",
+                      "strokeWidth": 1,
                       "children": [
                         {
                           "type": "frame",
-                          "id": "S30071",
-                          "name": "S3 Validation Evidence",
+                          "id": "jTItH",
+                          "name": "Validation Status",
                           "width": "fill_container",
                           "height": "fill_container",
-                          "fill": "$action-soft",
-                          "cornerRadius": 11,
-                          "stroke": "$action",
+                          "gap": 10,
+                          "padding": [
+                            10,
+                            14
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "u5ncb",
+                              "name": "Validation Status Icon Surface",
+                              "width": 30,
+                              "height": 30,
+                              "fill": "$bg-muted",
+                              "cornerRadius": 8,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "h2kihL",
+                                  "name": "Validation Status Icon",
+                                  "width": 15,
+                                  "height": 15,
+                                  "icon": "triangle-alert",
+                                  "library": "lucide",
+                                  "fill": "$warning"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "M7G4M",
+                              "name": "Validation Status Copy",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "Kj9tC",
+                                  "name": "Validation Status Title",
+                                  "fill": "$text-primary",
+                                  "content": "Validation · 2 findings",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "650"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "OVroo",
+                                  "name": "Validation Status Detail",
+                                  "fill": "$action",
+                                  "content": "Focus a finding",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 10,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Lk73V",
+                          "name": "Plan Status",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "stroke": "$border-soft",
                           "strokeWidth": {
-                            "left": 3,
-                            "top": 1,
-                            "right": 1,
-                            "bottom": 1
+                            "left": 1
                           },
-                          "layout": "vertical",
-                          "gap": 8,
+                          "gap": 10,
                           "padding": [
-                            12,
-                            13
+                            10,
+                            14
                           ],
+                          "alignItems": "center",
                           "children": [
                             {
                               "type": "frame",
-                              "id": "S3006w",
-                              "name": "S3 Validation Evidence Header",
-                              "width": "fill_container",
-                              "justifyContent": "space_between",
+                              "id": "mfVtU",
+                              "name": "Plan Status Icon Surface",
+                              "width": 30,
+                              "height": 30,
+                              "fill": "$bg-muted",
+                              "cornerRadius": 8,
+                              "justifyContent": "center",
                               "alignItems": "center",
                               "children": [
                                 {
-                                  "type": "text",
-                                  "id": "S3006t",
-                                  "name": "S3 Validation Evidence Title",
-                                  "fill": "$text-primary",
-                                  "content": "Validation",
-                                  "fontFamily": "$font-sans",
-                                  "fontSize": 12,
-                                  "fontWeight": "650"
-                                },
-                                {
-                                  "type": "frame",
-                                  "id": "S3006v",
-                                  "name": "S3 Validation Evidence Badge",
-                                  "height": 24,
-                                  "fill": "$warning-soft",
-                                  "cornerRadius": 12,
-                                  "padding": [
-                                    0,
-                                    9
-                                  ],
-                                  "alignItems": "center",
-                                  "children": [
-                                    {
-                                      "type": "text",
-                                      "id": "S3006u",
-                                      "name": "S3 Validation Evidence Badge Label",
-                                      "fill": "$warning",
-                                      "content": "2 FINDINGS",
-                                      "fontFamily": "$font-mono",
-                                      "fontSize": 10,
-                                      "fontWeight": "650"
-                                    }
-                                  ]
+                                  "type": "icon",
+                                  "id": "AE8u5",
+                                  "name": "Plan Status Icon",
+                                  "width": 15,
+                                  "height": 15,
+                                  "icon": "list-tree",
+                                  "library": "lucide",
+                                  "fill": "$text-secondary"
                                 }
                               ]
                             },
                             {
-                              "type": "text",
-                              "id": "S3006x",
-                              "name": "S3 Validation Evidence Detail",
-                              "fill": "$text-secondary",
-                              "content": "Selected: model profile requires an explicit dev owner.",
-                              "fontFamily": "$font-sans",
-                              "fontSize": 10,
-                              "fontWeight": "500"
-                            },
-                            {
                               "type": "frame",
-                              "id": "S30070",
-                              "name": "S3 Validation Evidence Link",
-                              "gap": 6,
-                              "alignItems": "center",
+                              "id": "uiofA",
+                              "name": "Plan Status Copy",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 3,
                               "children": [
                                 {
                                   "type": "text",
-                                  "id": "S3006y",
-                                  "name": "S3 Validation Evidence Link Label",
-                                  "fill": "$action",
-                                  "content": "Focus finding",
-                                  "fontFamily": "$font-sans",
-                                  "fontSize": 10,
+                                  "id": "L6AYUO",
+                                  "name": "Plan Status Title",
+                                  "fill": "$text-primary",
+                                  "content": "Plan · 4 steps",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
                                   "fontWeight": "650"
                                 },
                                 {
-                                  "type": "icon",
-                                  "id": "S3006z",
-                                  "name": "S3 Validation Evidence Link Icon",
-                                  "width": 12,
-                                  "height": 12,
-                                  "icon": "arrow-right",
-                                  "library": "lucide",
-                                  "fill": "$action"
+                                  "type": "text",
+                                  "id": "XQree",
+                                  "name": "Plan Status Detail",
+                                  "fill": "$text-secondary",
+                                  "content": "Derived · no execution owner",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 10,
+                                  "fontWeight": "500"
                                 }
                               ]
                             }
@@ -12742,205 +12859,71 @@
                         },
                         {
                           "type": "frame",
-                          "id": "S3007a",
-                          "name": "S3 Plan Evidence",
+                          "id": "pl79t",
+                          "name": "Handoff Status",
                           "width": "fill_container",
                           "height": "fill_container",
-                          "fill": "$bg-surface",
-                          "cornerRadius": 11,
                           "stroke": "$border-soft",
-                          "strokeWidth": 1,
-                          "layout": "vertical",
-                          "gap": 8,
+                          "strokeWidth": {
+                            "left": 1
+                          },
+                          "gap": 10,
                           "padding": [
-                            12,
-                            13
+                            10,
+                            14
                           ],
+                          "alignItems": "center",
                           "children": [
                             {
                               "type": "frame",
-                              "id": "S30075",
-                              "name": "S3 Plan Evidence Header",
-                              "width": "fill_container",
-                              "justifyContent": "space_between",
+                              "id": "hLMa1",
+                              "name": "Handoff Status Icon Surface",
+                              "width": 30,
+                              "height": 30,
+                              "fill": "$bg-muted",
+                              "cornerRadius": 8,
+                              "justifyContent": "center",
                               "alignItems": "center",
                               "children": [
-                                {
-                                  "type": "text",
-                                  "id": "S30072",
-                                  "name": "S3 Plan Evidence Title",
-                                  "fill": "$text-primary",
-                                  "content": "Preview plan",
-                                  "fontFamily": "$font-sans",
-                                  "fontSize": 12,
-                                  "fontWeight": "650"
-                                },
-                                {
-                                  "type": "frame",
-                                  "id": "S30074",
-                                  "name": "S3 Plan Evidence Badge",
-                                  "height": 24,
-                                  "fill": "$purple-soft",
-                                  "cornerRadius": 12,
-                                  "padding": [
-                                    0,
-                                    9
-                                  ],
-                                  "alignItems": "center",
-                                  "children": [
-                                    {
-                                      "type": "text",
-                                      "id": "S30073",
-                                      "name": "S3 Plan Evidence Badge Label",
-                                      "fill": "$purple",
-                                      "content": "4 STEPS",
-                                      "fontFamily": "$font-mono",
-                                      "fontSize": 10,
-                                      "fontWeight": "650"
-                                    }
-                                  ]
-                                }
-                              ]
-                            },
-                            {
-                              "type": "text",
-                              "id": "S30076",
-                              "name": "S3 Plan Evidence Detail",
-                              "fill": "$text-secondary",
-                              "content": "Derived in-browser from the current draft; no execution owner.",
-                              "fontFamily": "$font-sans",
-                              "fontSize": 10,
-                              "fontWeight": "500"
-                            },
-                            {
-                              "type": "frame",
-                              "id": "S30079",
-                              "name": "S3 Plan Evidence Link",
-                              "gap": 6,
-                              "alignItems": "center",
-                              "children": [
-                                {
-                                  "type": "text",
-                                  "id": "S30077",
-                                  "name": "S3 Plan Evidence Link Label",
-                                  "fill": "$action",
-                                  "content": "Open review",
-                                  "fontFamily": "$font-sans",
-                                  "fontSize": 10,
-                                  "fontWeight": "650"
-                                },
                                 {
                                   "type": "icon",
-                                  "id": "S30078",
-                                  "name": "S3 Plan Evidence Link Icon",
-                                  "width": 12,
-                                  "height": 12,
-                                  "icon": "arrow-right",
+                                  "id": "uhJxV",
+                                  "name": "Handoff Status Icon",
+                                  "width": 15,
+                                  "height": 15,
+                                  "icon": "arrow-up-right",
                                   "library": "lucide",
-                                  "fill": "$action"
+                                  "fill": "$text-secondary"
                                 }
                               ]
-                            }
-                          ]
-                        },
-                        {
-                          "type": "frame",
-                          "id": "S3007j",
-                          "name": "S3 Handoff Evidence",
-                          "width": "fill_container",
-                          "height": "fill_container",
-                          "fill": "$bg-surface",
-                          "cornerRadius": 11,
-                          "stroke": "$border-soft",
-                          "strokeWidth": 1,
-                          "layout": "vertical",
-                          "gap": 8,
-                          "padding": [
-                            12,
-                            13
-                          ],
-                          "children": [
+                            },
                             {
                               "type": "frame",
-                              "id": "S3007e",
-                              "name": "S3 Handoff Evidence Header",
+                              "id": "AFQjJ",
+                              "name": "Handoff Status Copy",
                               "width": "fill_container",
-                              "justifyContent": "space_between",
-                              "alignItems": "center",
+                              "layout": "vertical",
+                              "gap": 3,
                               "children": [
                                 {
                                   "type": "text",
-                                  "id": "S3007b",
-                                  "name": "S3 Handoff Evidence Title",
+                                  "id": "RVQbP",
+                                  "name": "Handoff Status Title",
                                   "fill": "$text-primary",
                                   "content": "Review handoff",
-                                  "fontFamily": "$font-sans",
+                                  "fontFamily": "Inter",
                                   "fontSize": 12,
                                   "fontWeight": "650"
                                 },
                                 {
-                                  "type": "frame",
-                                  "id": "S3007d",
-                                  "name": "S3 Handoff Evidence Badge",
-                                  "height": 24,
-                                  "fill": "$neutral-soft",
-                                  "cornerRadius": 12,
-                                  "padding": [
-                                    0,
-                                    9
-                                  ],
-                                  "alignItems": "center",
-                                  "children": [
-                                    {
-                                      "type": "text",
-                                      "id": "S3007c",
-                                      "name": "S3 Handoff Evidence Badge Label",
-                                      "fill": "$text-secondary",
-                                      "content": "READ ONLY",
-                                      "fontFamily": "$font-mono",
-                                      "fontSize": 10,
-                                      "fontWeight": "650"
-                                    }
-                                  ]
-                                }
-                              ]
-                            },
-                            {
-                              "type": "text",
-                              "id": "S3007f",
-                              "name": "S3 Handoff Evidence Detail",
-                              "fill": "$text-secondary",
-                              "content": "Draft, validation and boundary evidence prepared for review.",
-                              "fontFamily": "$font-sans",
-                              "fontSize": 10,
-                              "fontWeight": "500"
-                            },
-                            {
-                              "type": "frame",
-                              "id": "S3007i",
-                              "name": "S3 Handoff Evidence Link",
-                              "gap": 6,
-                              "alignItems": "center",
-                              "children": [
-                                {
                                   "type": "text",
-                                  "id": "S3007g",
-                                  "name": "S3 Handoff Evidence Link Label",
-                                  "fill": "$action",
-                                  "content": "Open review",
-                                  "fontFamily": "$font-sans",
+                                  "id": "yXmE3",
+                                  "name": "Handoff Status Detail",
+                                  "fill": "$text-secondary",
+                                  "content": "Read only · no export or send",
+                                  "fontFamily": "Inter",
                                   "fontSize": 10,
-                                  "fontWeight": "650"
-                                },
-                                {
-                                  "type": "icon",
-                                  "id": "S3007h",
-                                  "name": "S3 Handoff Evidence Link Icon",
-                                  "width": 12,
-                                  "height": 12,
-                                  "icon": "arrow-right",
-                                  "library": "lucide",
-                                  "fill": "$action"
+                                  "fontWeight": "500"
                                 }
                               ]
                             }
@@ -12959,9 +12942,9 @@
     {
       "type": "frame",
       "id": "S300ak",
-      "name": "S3 Workflow Designer — Narrow / Partial · R1",
       "x": 1520,
       "y": 2400,
+      "name": "S3 Workflow Designer — Narrow / Partial · R2",
       "clip": true,
       "width": 390,
       "height": 844,
@@ -13105,10 +13088,7 @@
               "fill": "$bg-canvas",
               "layout": "vertical",
               "gap": 10,
-              "padding": [
-                12,
-                14
-              ],
+              "padding": 14,
               "children": [
                 {
                   "type": "frame",
@@ -13134,7 +13114,7 @@
                       "fill": "$text-muted",
                       "content": "WORKFLOWS / WF_CONTENT_ASSIST",
                       "fontFamily": "$font-mono",
-                      "fontSize": 8,
+                      "fontSize": 10,
                       "fontWeight": "650",
                       "letterSpacing": 0.4
                     },
@@ -13153,7 +13133,7 @@
                           "fill": "$text-primary",
                           "content": "Workflow Designer",
                           "fontFamily": "$font-sans",
-                          "fontSize": 21,
+                          "fontSize": 24,
                           "fontWeight": "650",
                           "letterSpacing": -0.3
                         },
@@ -13196,7 +13176,7 @@
                           "id": "S30085",
                           "name": "S3 Narrow Draft",
                           "height": 24,
-                          "fill": "$action-soft",
+                          "fill": "$neutral-soft",
                           "cornerRadius": 12,
                           "padding": [
                             0,
@@ -13276,7 +13256,7 @@
                   "name": "S3 Narrow Actions",
                   "width": "fill_container",
                   "height": 42,
-                  "gap": 8,
+                  "gap": 6,
                   "children": [
                     {
                       "type": "frame",
@@ -13353,122 +13333,37 @@
                     {
                       "type": "frame",
                       "id": "S3008j",
-                      "name": "S3 Narrow More",
-                      "width": 42,
+                      "name": "S3 Narrow Read Saved",
+                      "width": "fill_container",
                       "height": 42,
                       "fill": "$bg-surface",
                       "cornerRadius": 10,
                       "stroke": "$border-strong",
                       "strokeWidth": 1,
+                      "gap": 6,
                       "justifyContent": "center",
                       "alignItems": "center",
                       "children": [
                         {
                           "type": "icon",
                           "id": "S3008i",
-                          "name": "S3 Narrow More Icon",
-                          "width": 17,
-                          "height": 17,
-                          "icon": "ellipsis",
+                          "name": "S3 Narrow Read Saved Icon",
+                          "width": 15,
+                          "height": 15,
+                          "icon": "database",
                           "library": "lucide",
                           "fill": "$text-secondary"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "S3008s",
-                  "name": "S3 Narrow Current Node",
-                  "width": "fill_container",
-                  "height": 50,
-                  "fill": "$action-soft",
-                  "cornerRadius": 10,
-                  "stroke": "$action",
-                  "strokeWidth": {
-                    "left": 3,
-                    "top": 1,
-                    "right": 1,
-                    "bottom": 1
-                  },
-                  "padding": [
-                    0,
-                    11
-                  ],
-                  "justifyContent": "space_between",
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "S3008q",
-                      "name": "S3 Narrow Current Node Identity",
-                      "gap": 8,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "frame",
-                          "id": "S3008m",
-                          "name": "S3 Narrow Current Node Mark",
-                          "width": 28,
-                          "height": 28,
-                          "fill": "$purple-soft",
-                          "cornerRadius": 8,
-                          "justifyContent": "center",
-                          "alignItems": "center",
-                          "children": [
-                            {
-                              "type": "icon",
-                              "id": "S3008l",
-                              "name": "S3 Narrow Current Node Icon",
-                              "width": 14,
-                              "height": 14,
-                              "icon": "brain-circuit",
-                              "library": "lucide",
-                              "fill": "$purple"
-                            }
-                          ]
                         },
                         {
-                          "type": "frame",
-                          "id": "S3008p",
-                          "name": "S3 Narrow Current Node Copy",
-                          "layout": "vertical",
-                          "gap": 1,
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "S3008n",
-                              "name": "S3 Narrow Current Node Label",
-                              "fill": "$text-primary",
-                              "content": "Draft answer",
-                              "fontFamily": "$font-sans",
-                              "fontSize": 11,
-                              "fontWeight": "650"
-                            },
-                            {
-                              "type": "text",
-                              "id": "S3008o",
-                              "name": "S3 Narrow Current Node Type",
-                              "fill": "$text-muted",
-                              "content": "MODEL · radishmind-core-dev",
-                              "fontFamily": "$font-mono",
-                              "fontSize": 8,
-                              "fontWeight": "500"
-                            }
-                          ]
+                          "type": "text",
+                          "id": "Y59VHY",
+                          "name": "S3 Narrow Read Saved Label",
+                          "fill": "$text-primary",
+                          "content": "Read",
+                          "fontFamily": "Inter",
+                          "fontSize": 10
                         }
                       ]
-                    },
-                    {
-                      "type": "icon",
-                      "id": "S3008r",
-                      "name": "S3 Narrow Current Node Chevron",
-                      "width": 15,
-                      "height": 15,
-                      "icon": "chevron-down",
-                      "library": "lucide",
-                      "fill": "$action"
                     }
                   ]
                 },
@@ -13476,13 +13371,13 @@
                   "type": "frame",
                   "id": "S3009v",
                   "name": "S3 Narrow Canvas",
+                  "clip": true,
                   "width": "fill_container",
-                  "height": 226,
+                  "height": 414,
                   "fill": "$bg-surface",
-                  "cornerRadius": 12,
+                  "cornerRadius": 10,
                   "stroke": "$border-soft",
                   "strokeWidth": 1,
-                  "clip": true,
                   "layout": "vertical",
                   "children": [
                     {
@@ -13490,17 +13385,17 @@
                       "id": "S3008x",
                       "name": "S3 Narrow Canvas Toolbar",
                       "width": "fill_container",
-                      "height": 34,
-                      "padding": [
-                        0,
-                        10
-                      ],
-                      "justifyContent": "space_between",
-                      "alignItems": "center",
+                      "height": 39,
                       "stroke": "$border-soft",
                       "strokeWidth": {
                         "bottom": 1
                       },
+                      "padding": [
+                        0,
+                        11
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
                       "children": [
                         {
                           "type": "frame",
@@ -13547,39 +13442,175 @@
                       "type": "frame",
                       "id": "S3008y",
                       "name": "S3 Narrow Canvas Stage",
-                      "width": "fill_container",
-                      "height": 194,
-                      "fill": "$bg-canvas",
                       "clip": true,
+                      "width": 362,
+                      "height": 374,
+                      "fill": "$bg-canvas",
+                      "layout": "none",
                       "children": [
                         {
                           "type": "frame",
-                          "id": "S3008z",
-                          "name": "S3 Narrow Canvas Connection A",
-                          "x": 116,
-                          "y": 56,
-                          "width": 76,
-                          "height": 2,
-                          "fill": "$border-strong",
-                          "cornerRadius": 1
+                          "id": "lgCeo",
+                          "x": 132,
+                          "y": 112,
+                          "name": "S3 Narrow Edge/Context to Model",
+                          "width": 73,
+                          "height": 18,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "nND0o",
+                              "x": 0,
+                              "y": 5,
+                              "name": "Narrow Context Source Port",
+                              "fill": "$border-strong",
+                              "width": 8,
+                              "height": 8
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 1,
+                              "id": "JChp1",
+                              "x": 4,
+                              "y": 8,
+                              "name": "Narrow Context Edge Segment",
+                              "fill": "$border-strong",
+                              "width": 64,
+                              "height": 2
+                            },
+                            {
+                              "type": "icon",
+                              "id": "h478Fq",
+                              "x": 59,
+                              "y": 2,
+                              "name": "Narrow Context Edge Arrow",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "arrow-right",
+                              "library": "lucide",
+                              "fill": "$text-muted"
+                            }
+                          ]
                         },
                         {
                           "type": "frame",
-                          "id": "S30090",
-                          "name": "S3 Narrow Canvas Connection B",
-                          "x": 258,
-                          "y": 118,
-                          "width": 52,
-                          "height": 2,
-                          "fill": "$action",
-                          "cornerRadius": 1
+                          "id": "PKx43",
+                          "x": 188,
+                          "y": 116,
+                          "name": "S3 Narrow Edge/Retrieval to Model",
+                          "width": 18,
+                          "height": 178,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "B4J2n",
+                              "x": 0,
+                              "y": 168,
+                              "name": "Narrow Retrieval Source Port",
+                              "fill": "$border-strong",
+                              "width": 8,
+                              "height": 8
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 1,
+                              "id": "qwwut",
+                              "x": 4,
+                              "y": 8,
+                              "name": "Narrow Retrieval Edge Vertical",
+                              "fill": "$border-strong",
+                              "width": 2,
+                              "height": 164
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 1,
+                              "id": "GmxGu",
+                              "x": 4,
+                              "y": 8,
+                              "name": "Narrow Retrieval Edge Target",
+                              "fill": "$border-strong",
+                              "width": 8,
+                              "height": 2
+                            },
+                            {
+                              "type": "icon",
+                              "id": "qj00w",
+                              "x": 3,
+                              "y": 2,
+                              "name": "Narrow Retrieval Edge Arrow",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "arrow-right",
+                              "library": "lucide",
+                              "fill": "$text-muted"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Asxqs",
+                          "x": 226,
+                          "y": 116,
+                          "name": "S3 Narrow Edge/Model to Output",
+                          "width": 109,
+                          "height": 178,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "W328EE",
+                              "x": 101,
+                              "y": 0,
+                              "name": "Narrow Model Source Port",
+                              "fill": "$border-strong",
+                              "width": 8,
+                              "height": 8
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 1,
+                              "id": "SYAir",
+                              "x": 105,
+                              "y": 4,
+                              "name": "Narrow Model Edge Vertical",
+                              "fill": "$border-strong",
+                              "width": 2,
+                              "height": 167
+                            },
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 1,
+                              "id": "ye0D6",
+                              "x": 0,
+                              "y": 169,
+                              "name": "Narrow Model Edge Target",
+                              "fill": "$border-strong",
+                              "width": 107,
+                              "height": 2
+                            },
+                            {
+                              "type": "icon",
+                              "id": "y3yinf",
+                              "x": 0,
+                              "y": 162,
+                              "name": "Narrow Model Edge Arrow",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "arrow-left",
+                              "library": "lucide",
+                              "fill": "$text-muted"
+                            }
+                          ]
                         },
                         {
                           "type": "frame",
                           "id": "S3009a",
+                          "x": 18,
+                          "y": 75,
                           "name": "Canvas Node/Context",
-                          "x": 10,
-                          "y": 20,
                           "width": 114,
                           "height": 82,
                           "fill": "$bg-surface",
@@ -13638,7 +13669,7 @@
                                       "fill": "$text-muted",
                                       "content": "PROMPT",
                                       "fontFamily": "$font-mono",
-                                      "fontSize": 9,
+                                      "fontSize": 10,
                                       "fontWeight": "650"
                                     }
                                   ]
@@ -13666,7 +13697,7 @@
                                       "fill": "$success",
                                       "content": "READY",
                                       "fontFamily": "$font-mono",
-                                      "fontSize": 8,
+                                      "fontSize": 9,
                                       "fontWeight": "700"
                                     }
                                   ]
@@ -13688,9 +13719,9 @@
                         {
                           "type": "frame",
                           "id": "S3009k",
+                          "x": 205,
+                          "y": 70,
                           "name": "Canvas Node/Draft answer",
-                          "x": 156,
-                          "y": 68,
                           "width": 130,
                           "height": 92,
                           "fill": "$bg-surface",
@@ -13760,7 +13791,7 @@
                                       "fill": "$text-muted",
                                       "content": "MODEL",
                                       "fontFamily": "$font-mono",
-                                      "fontSize": 9,
+                                      "fontSize": 10,
                                       "fontWeight": "650"
                                     }
                                   ]
@@ -13788,7 +13819,7 @@
                                       "fill": "$success",
                                       "content": "READY",
                                       "fontFamily": "$font-mono",
-                                      "fontSize": 8,
+                                      "fontSize": 9,
                                       "fontWeight": "700"
                                     }
                                   ]
@@ -13810,9 +13841,9 @@
                         {
                           "type": "frame",
                           "id": "S3009u",
+                          "x": 226,
+                          "y": 250,
                           "name": "Canvas Node/Output",
-                          "x": 304,
-                          "y": 116,
                           "width": 100,
                           "height": 82,
                           "fill": "$bg-surface",
@@ -13871,7 +13902,7 @@
                                       "fill": "$text-muted",
                                       "content": "OUTPUT",
                                       "fontFamily": "$font-mono",
-                                      "fontSize": 9,
+                                      "fontSize": 10,
                                       "fontWeight": "650"
                                     }
                                   ]
@@ -13899,7 +13930,7 @@
                                       "fill": "$success",
                                       "content": "READY",
                                       "fontFamily": "$font-mono",
-                                      "fontSize": 8,
+                                      "fontSize": 9,
                                       "fontWeight": "700"
                                     }
                                   ]
@@ -13917,6 +13948,117 @@
                               "fontWeight": "650"
                             }
                           ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "ceNxM",
+                          "x": 18,
+                          "y": 250,
+                          "name": "Canvas Node/Knowledge lookup",
+                          "width": 174,
+                          "height": 82,
+                          "fill": "$bg-surface",
+                          "cornerRadius": 12,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 7,
+                          "padding": [
+                            11,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "C1oZUa",
+                              "name": "Knowledge lookup Identity",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "rfMmF",
+                                  "name": "Knowledge lookup Type",
+                                  "gap": 7,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "WpTgn",
+                                      "name": "Knowledge lookup Type Mark",
+                                      "width": 24,
+                                      "height": 24,
+                                      "fill": "$purple-soft",
+                                      "cornerRadius": 7,
+                                      "justifyContent": "center",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "icon",
+                                          "id": "PLNgV",
+                                          "name": "Knowledge lookup Type Icon",
+                                          "width": 13,
+                                          "height": 13,
+                                          "icon": "database",
+                                          "library": "lucide",
+                                          "fill": "$purple"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "kuKk1",
+                                      "name": "Knowledge lookup Type Label",
+                                      "fill": "$text-muted",
+                                      "content": "RAG",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 10,
+                                      "fontWeight": "650"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "CAvCR",
+                                  "name": "Knowledge lookup Status",
+                                  "gap": 5,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "X8n97u",
+                                      "name": "Knowledge lookup Status Dot",
+                                      "width": 7,
+                                      "height": 7,
+                                      "fill": "$warning",
+                                      "cornerRadius": 4
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "K1o1J",
+                                      "name": "Knowledge lookup Status Label",
+                                      "fill": "$warning",
+                                      "content": "BLOCKED",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 9,
+                                      "fontWeight": "700"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "KbUWP",
+                              "name": "Knowledge lookup Name",
+                              "fill": "$text-primary",
+                              "content": "Knowledge lookup",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "650"
+                            }
+                          ]
                         }
                       ]
                     }
@@ -13927,182 +14069,74 @@
                   "id": "S300aa",
                   "name": "S3 Narrow Inspector",
                   "width": "fill_container",
-                  "height": 154,
+                  "height": 72,
                   "fill": "$bg-surface",
-                  "cornerRadius": 12,
+                  "cornerRadius": 10,
                   "stroke": "$border-soft",
                   "strokeWidth": 1,
-                  "layout": "vertical",
-                  "gap": 8,
+                  "gap": 10,
                   "padding": [
                     10,
                     11
                   ],
+                  "alignItems": "center",
                   "children": [
                     {
                       "type": "frame",
-                      "id": "S300a1",
-                      "name": "S3 Narrow Inspector Header",
+                      "id": "UauiZ",
+                      "name": "S3 Narrow Inspector Identity",
                       "width": "fill_container",
-                      "justifyContent": "space_between",
-                      "alignItems": "center",
+                      "layout": "vertical",
+                      "gap": 3,
                       "children": [
                         {
-                          "type": "frame",
-                          "id": "S3009y",
-                          "name": "S3 Narrow Inspector Identity",
-                          "gap": 7,
-                          "alignItems": "center",
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "S3009w",
-                              "name": "S3 Narrow Inspector Label",
-                              "fill": "$text-muted",
-                              "content": "INSPECTOR",
-                              "fontFamily": "$font-sans",
-                              "fontSize": 10,
-                              "fontWeight": "700",
-                              "letterSpacing": 0.9
-                            },
-                            {
-                              "type": "text",
-                              "id": "S3009x",
-                              "name": "S3 Narrow Inspector Node",
-                              "fill": "$text-primary",
-                              "content": "Draft answer",
-                              "fontFamily": "$font-sans",
-                              "fontSize": 12,
-                              "fontWeight": "650"
-                            }
-                          ]
+                          "type": "text",
+                          "id": "oiM3a",
+                          "name": "S3 Narrow Inspector Title",
+                          "fill": "$text-primary",
+                          "content": "Inspector · Draft answer",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "650"
                         },
                         {
-                          "type": "frame",
-                          "id": "S300a0",
-                          "name": "S3 Narrow Selected",
-                          "height": 24,
-                          "fill": "$action-soft",
-                          "cornerRadius": 12,
-                          "padding": [
-                            0,
-                            9
-                          ],
-                          "alignItems": "center",
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "S3009z",
-                              "name": "S3 Narrow Selected Label",
-                              "fill": "$action",
-                              "content": "SELECTED",
-                              "fontFamily": "$font-mono",
-                              "fontSize": 10,
-                              "fontWeight": "650"
-                            }
-                          ]
+                          "type": "text",
+                          "id": "GQLsQ",
+                          "name": "S3 Narrow Inspector Meta",
+                          "fill": "$text-secondary",
+                          "content": "Model · core-dev · 0.2",
+                          "fontFamily": "Geist Mono",
+                          "fontSize": 10,
+                          "fontWeight": "500"
                         }
                       ]
                     },
                     {
                       "type": "frame",
-                      "id": "S300a6",
-                      "name": "S3 Narrow Inspector Fields",
-                      "width": "fill_container",
-                      "gap": 8,
-                      "children": [
-                        {
-                          "type": "frame",
-                          "id": "S300a3",
-                          "name": "S3 Narrow Node Key",
-                          "width": "fill_container",
-                          "height": 36,
-                          "fill": "$bg-muted",
-                          "cornerRadius": 8,
-                          "stroke": "$border-soft",
-                          "strokeWidth": 1,
-                          "padding": [
-                            0,
-                            9
-                          ],
-                          "alignItems": "center",
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "S300a2",
-                              "name": "S3 Narrow Node Key Value",
-                              "fill": "$text-primary",
-                              "content": "draft_answer",
-                              "fontFamily": "$font-mono",
-                              "fontSize": 9,
-                              "fontWeight": "500"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "frame",
-                          "id": "S300a5",
-                          "name": "S3 Narrow Model",
-                          "width": "fill_container",
-                          "height": 36,
-                          "fill": "$bg-muted",
-                          "cornerRadius": 8,
-                          "stroke": "$border-soft",
-                          "strokeWidth": 1,
-                          "padding": [
-                            0,
-                            9
-                          ],
-                          "alignItems": "center",
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "S300a4",
-                              "name": "S3 Narrow Model Value",
-                              "fill": "$text-primary",
-                              "content": "core-dev",
-                              "fontFamily": "$font-mono",
-                              "fontSize": 9,
-                              "fontWeight": "500"
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "S300a9",
-                      "name": "S3 Narrow Contract Detail",
-                      "width": "fill_container",
-                      "height": 34,
-                      "fill": "$bg-muted",
-                      "cornerRadius": 8,
-                      "padding": [
-                        0,
-                        9
-                      ],
-                      "justifyContent": "space_between",
+                      "id": "kclfH",
+                      "name": "S3 Narrow Inspector Action",
+                      "gap": 7,
                       "alignItems": "center",
                       "children": [
                         {
                           "type": "text",
-                          "id": "S300a7",
-                          "name": "S3 Narrow Contract Label",
-                          "fill": "$text-primary",
-                          "content": "Contract and node details",
-                          "fontFamily": "$font-sans",
-                          "fontSize": 9,
-                          "fontWeight": "620"
+                          "id": "BG9tE",
+                          "name": "S3 Narrow Inspector Action Label",
+                          "fill": "$action",
+                          "content": "Open details",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "650"
                         },
                         {
                           "type": "icon",
-                          "id": "S300a8",
-                          "name": "S3 Narrow Contract Chevron",
-                          "width": 13,
-                          "height": 13,
+                          "id": "gqDae",
+                          "name": "S3 Narrow Inspector Chevron",
+                          "width": 14,
+                          "height": 14,
                           "icon": "chevron-down",
                           "library": "lucide",
-                          "fill": "$text-secondary"
+                          "fill": "$action"
                         }
                       ]
                     }
@@ -14113,16 +14147,16 @@
                   "id": "S300ah",
                   "name": "S3 Narrow Progressive Review",
                   "width": "fill_container",
-                  "height": 62,
+                  "height": 68,
                   "fill": "$bg-surface",
-                  "cornerRadius": 11,
+                  "cornerRadius": 10,
                   "stroke": "$border-soft",
                   "strokeWidth": 1,
-                  "padding": [
-                    0,
-                    10
-                  ],
                   "gap": 8,
+                  "padding": [
+                    10,
+                    11
+                  ],
                   "alignItems": "center",
                   "children": [
                     {
@@ -14163,7 +14197,7 @@
                           "fill": "$text-primary",
                           "content": "2 validation findings",
                           "fontFamily": "$font-sans",
-                          "fontSize": 10,
+                          "fontSize": 12,
                           "fontWeight": "650"
                         },
                         {
@@ -14173,7 +14207,7 @@
                           "fill": "$text-muted",
                           "content": "Preview plan · Review handoff (read only)",
                           "fontFamily": "$font-sans",
-                          "fontSize": 8,
+                          "fontSize": 10,
                           "fontWeight": "500"
                         }
                       ]
@@ -14201,7 +14235,7 @@
       "id": "D8fU3U",
       "x": 0,
       "y": 3380,
-      "name": "S1 + S2 + S3 Visual Language — Design Decision Record · R7",
+      "name": "S1 + S2 + S3 Visual Language — Design Decision Record · R8",
       "clip": true,
       "width": 1440,
       "height": 360,
@@ -14255,7 +14289,7 @@
                   "id": "uOg5v",
                   "name": "Design Decision Title",
                   "fill": "$text-primary",
-                  "content": "Modern Workbench language · S1—S3",
+                  "content": "Modern Workbench language · S1—S3 · R2",
                   "fontFamily": "$font-sans",
                   "fontSize": 26,
                   "fontWeight": "670",
@@ -14312,7 +14346,7 @@
                           "id": "Gw9oy",
                           "name": "R8 / R6 Decision Badge Label",
                           "fill": "$brand",
-                          "content": "R8 / R6 / R1",
+                          "content": "R8 / R6 / R2",
                           "fontFamily": "$font-mono",
                           "fontSize": 8,
                           "fontWeight": "700",
@@ -14708,7 +14742,7 @@
                               "fill": "$text-secondary",
                               "textGrowth": "fixed-width",
                               "width": "fill_container",
-                              "content": "Selection follows interaction ownership: status-only rows stay neutral; detail-driving rows keep a light action rail.",
+                              "content": "Workflow canvas owns the visual center; review stays in one compact status bar and expands on demand.",
                               "lineHeight": 1.25,
                               "fontFamily": "$font-sans",
                               "fontSize": 8,
@@ -14760,7 +14794,7 @@
                               "fill": "$text-secondary",
                               "textGrowth": "fixed-width",
                               "width": "fill_container",
-                              "content": "32px page titles, readable controls and selective large data establish rhythm.",
+                              "content": "32px page titles, readable controls and supporting copy no smaller than 10px establish rhythm.",
                               "lineHeight": 1.25,
                               "fontFamily": "$font-sans",
                               "fontSize": 8,
@@ -14991,7 +15025,7 @@
                           "fill": "$text-secondary",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "Desktop uses continuous work surfaces; S3 reserves the center for the workflow canvas.",
+                          "content": "Desktop keeps the current graph readable by default, offers explicit Fit graph, and holds review in one compact status bar.",
                           "lineHeight": 1.3,
                           "fontFamily": "$font-sans",
                           "fontSize": 9,
@@ -15024,7 +15058,7 @@
                           "fill": "$text-secondary",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "Narrow screens preserve context → action → node → canvas → inspector → review order.",
+                          "content": "Narrow order: context → action → canvas → collapsible inspector → review.",
                           "lineHeight": 1.3,
                           "fontFamily": "$font-sans",
                           "fontSize": 9,

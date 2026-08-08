@@ -25,7 +25,7 @@
 - 工作区首页和工作流定义已支持创建本地工作流草案并进入草案设计器；草案保存复用仅开发的已保存草案消费端，不代表生产持久化已成立。
 - `User Workspace Saved Draft Library v1` 已在工作区首页支持仅开发的活动 / 归档草案库：显示当前应用下已保存草案的脱敏摘要、组合筛选、严格 cursor 分页、空结果 / 失败状态、打开、归档只读审查和显式解除归档。默认内存、聚合 SQLite 与显式 PostgreSQL 开发测试态存储库均可承载该路径，但不代表生产持久化已成立。
 - 草案设计器已支持本地节点新增、移动、删除保护、属性编辑和边重建；校验检查器、执行计划预览和运行时准入检查器使用当前活跃草案，不代表工作流可正式发布或执行。
-- Family UI `S3 R1` 已把草案上下文、真实保存 / 读取动作、紧凑 Saved Draft 引用、节点工具、React Flow 画布、Inspector 与渐进 validation / plan / handoff 重组为共享 Workbench 纵向切片；完整 Saved Draft Library 仍是唯一列表 owner，归档草案可选择审查但不可编辑。桌面、关键断点和 `390x844` 已通过应用内浏览器复核，未新增 API、schema、repository 或生产声明。
+- Family UI `S3 R1` 已完成既有草案、Saved Draft、Node Designer 与审查 owner 的 React 行为整合，但因确定性画布裁切、节点计数与实际可见节点错位、边不可读、底部 review 等权和窄屏重复 Inspector，被人工评审退回。`S3 R2` 已完成默认当前节点 / 直接邻居焦点、显式 `Fit graph`、紧凑 review、Inspector `1440px` 右侧 / `<=1380px` 下移 / `<=760px` 折叠与强选中语义修正，并通过桌面、临界断点和 `390x844` 严格复验；默认两节点邻域与全图八节点 / 七边均完整可读。完整 Saved Draft Library 仍是唯一列表 owner，归档草案只读。App owner 与九组来源、十三项 contribution、revision `partial`、RAG authority `blocked`、readiness 不可发布边界不变，不新增 API、schema、task card 或专项 checker。
 - 工作流审查交接已把当前打开的活动草案校验、执行计划和运行时准入结果汇总为可交接审查记录，仍不保存、不导出、不发送交接内容。
 - 已保存草案与运行历史具备 memory / SQLite / PostgreSQL 开发测试态存储库；受控执行器 v0、失败审查、运行比较、评测用例 / 版本管理和评测套件 / 发布审查已接入工作区运行历史。
 - 应用配置草案、发布候选和显式启用的应用目录均具备 memory、SQLite 与 PostgreSQL 开发测试态存储库；应用目录未启用时，历史只读列表仍来自预置假数据存储库。
@@ -63,7 +63,7 @@
 
 ## 下一批开发方向
 
-1. `user_workspace_real_path_ui_coherence_v1` 已完成并关闭。[RadishMind Family UI 产品化设计与迁移 v1](user-workspace/radishmind-family-ui-productization-v1.md) 已对齐 family-ui `v26.7.3` 通用参考基线，并由 RadishMind 主动选择 Workbench Profile、原样 token 镜像和项目语义别名；差异附录、[27 张参考图映射](user-workspace/radishmind-family-ui-reference-mapping-v1.md)、Pencil 分级、`S1 R8` 产品壳和 `S2 R6` Application Workspace 的设计、React 实现与严格浏览器验收均已完成。当前进入 `S3 Workflow Designer`：先以现有画布、inspector、validation、Saved Draft 与 Review Handoff 为功能事实建立 `A` 级基准面，再实施 React Workbench；Saved Draft Library 保持 `B` 级复用，`S4 API Integration / API Key` 排在其后。
+1. `user_workspace_real_path_ui_coherence_v1` 已完成并关闭。[RadishMind Family UI 产品化设计与迁移 v1](user-workspace/radishmind-family-ui-productization-v1.md) 已对齐 family-ui `v26.7.3` 通用参考基线，并由 RadishMind 主动选择 Workbench Profile、原样 token 镜像和项目语义别名；差异附录、[27 张参考图映射](user-workspace/radishmind-family-ui-reference-mapping-v1.md)、Pencil 分级、`S1 R8` 产品壳、`S2 R6` Application Workspace 与 `S3 R2 Workflow Designer` 的设计、React 实现和严格浏览器验收均已完成。下一步进入 `S4 API Integration / API Key`：先复核现有接入、Key lifecycle、一次性交接和验证后退役 owner，再完成 `A` 级桌面 / 窄屏设计与 React 纵向切片；Saved Draft Library 继续保持 `B` 级唯一列表 owner。
 2. 后续批次继续要求跨 tenant / subject、非成员、过期 identity / membership、workspace mismatch、permission denied 在业务 repository 查询或副作用前失败关闭。dev header 与 signed-test assertion 只能用于开发测试，不能成为 production OIDC 授权来源。
 3. 工作区运营收件箱批次 A 已完成。只有真实需要跨全部分页窗口，且四类 owner 的统一稳定 cursor 契约成立时才评审批次 B；不为扩展示例数量或页面计数启动服务端投影。
 4. Prompt / Agent 继续复用 canonical Run、Comparison、Evaluation Case / Suite 与 decision owner；不复制评测算法，不把人工 `approved` 接成自动 candidate、assignment、release 或 deploy。Agent / Copilot 仍复用 canonical `CopilotRequest / CopilotResponse`，不扩 agent loop、工具执行或业务写回。

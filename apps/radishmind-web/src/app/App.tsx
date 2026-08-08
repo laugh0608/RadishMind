@@ -1943,9 +1943,6 @@ export function App() {
         </Suspense>
         <AdminProviderDeploymentReviewPanel review={adminProviderDeploymentReview} />
         <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />
-        <Suspense fallback={<section className="surface-band"><p>Loading workflow review handoff…</p></section>}>
-          <WorkflowReviewHandoffPanel handoff={workflowReviewHandoff} />
-        </Suspense>
         <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />
         <WorkflowScenarioInspectorPanel
           inspector={workflowScenarioInspector}
@@ -2439,6 +2436,9 @@ export function App() {
           <WorkflowDraftValidationInspectorPanel inspector={activeWorkflowDraftValidationInspector} />
           <WorkflowExecutionPlanPreviewPanel preview={activeWorkflowExecutionPlanPreview} />
           <WorkflowRuntimeReadinessInspectorPanel readiness={activeWorkflowRuntimeReadinessInspector} />
+          <Suspense fallback={<section className="surface-band"><p>Loading workflow review handoff…</p></section>}>
+            <WorkflowReviewHandoffPanel handoff={workflowReviewHandoff} />
+          </Suspense>
 
           <div className="workflow-definition-states" aria-label="Workspace workflow definition states">
             {workspaceWorkflowDefinitions.statePreviews.map((state) => (

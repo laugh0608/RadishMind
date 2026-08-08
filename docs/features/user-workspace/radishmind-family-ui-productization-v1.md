@@ -2,7 +2,7 @@
 
 更新时间：2026-08-08
 
-状态：`radishmind_family_ui_productization_v1_s1_r8_s2_r6_s3_r1_implemented`
+状态：`radishmind_family_ui_productization_v1_s1_r8_s2_r6_s3_r2_implemented`
 
 ## 目标
 
@@ -141,8 +141,8 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 | --- | --- | --- | --- | --- |
 | `radishmind_web_s1_product_shell_v1` | `implementation_r8_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S1 Product Shell — Desktop / Partial · R8` 与 `S1 Product Shell — Narrow / Partial · R8` | `R8` 设计基准 commit `1c537537`，实现 commit `321e9899`；`apps/radishmind-web/src/app/ProductNavigation.tsx`、`apps/radishmind-web/src/app/App.tsx`、`apps/radishmind-web/src/features/control-plane-read/workspaceProductOverviewPanel.tsx`、`workspaceOperationsInboxPanel.tsx` 与 `apps/radishmind-web/src/styles.css` | `R8` 已落地唯一导航、workspace / application 上下文、全视口桌面壳、非对称 pulse、来源分布矩阵、连续 Inbox 列表 / 详情、轻量选中轨和 evidence path。Pencil 的四项队列与 `1 / 2 / 1` 只表示设计基准；真实离线 view model 在验收时投影五项队列与 `1 / 3 / 0` 来源分布，React 未伪造计数或改写 partial 停止线。 |
 | `radishmind_web_s2_application_workspace_v1` | `implementation_r6_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S2 Application Workspace — Desktop / Partial · R6`、`S2 Application Workspace — Narrow / Partial · R6` 与 `S1 + S2 Visual Language — Design Decision Record · R6` | 代码审计基线 `a545f511`，实现于 2026-08-08；`applicationDevelopmentWorkspacePanel.tsx`、`applicationDevelopmentWorkspaceSurface.tsx`、`applicationDevelopmentWorkspace.ts`、`applicationDevelopmentWorkspaceRoute.ts`、`applicationDevelopmentReadiness.ts`、`applicationDevelopmentWorkspaceControls.ts`、`ProductNavigation.tsx` 与 `styles.css` | `R6` 已在共享壳层内落地五阶段、owner contribution 与 readiness 投影；Applications 和当前阶段分别形成唯一产品导航 / 阶段选中态，普通 contribution 始终保持中性。桌面使用 `3 / 13` 窗口轨、九格来源矩阵和 authorization path；窄屏按 Application Context、当前阶段选择器、三项贡献、readiness 摘要渐进重排。React 继续使用真实 view model，当前离线 fixture 为 `1 / 9` owner references，不复制 Pencil 的代表性 `5 / 9`。 |
-| `radishmind_web_s3_workflow_designer_v1` | `implementation_r1_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S3 Workflow Designer — Desktop / Partial · R1`、`S3 Workflow Designer — Narrow / Partial · R1` 与 `S1 + S2 + S3 Visual Language — Design Decision Record · R7` | 2026-08-08 完成实现；`App.tsx` 继续持有草案、consumer、冲突和 mutation owner，`workflowDraftDesignerPanel.tsx` 承担 Workbench 展示，`workflowNodeDesigner.tsx`、`ProductNavigation.tsx`、`productNavigationRoute.ts` 与 `styles.css` 承担画布、导航和响应式语义 | `R1` 已落地桌面“草案引用与节点工具—画布—Inspector”连续工作面和窄屏“上下文—动作—当前节点—画布—Inspector—审查”顺序。当前节点只用墨蓝结构选中；readiness、lifecycle 与 finding 只用独立小型标记和文字。Validation、Preview Plan、Review Handoff 保持渐进只读，键盘删除不能绕过受控 mutation，草案切换会重置画布瞬态。 |
-| `radishmind_web_s3_saved_draft_library_v1` | `b_level_implementation_completed` | `S3 Workflow Designer R1` 左侧只冻结紧凑活动草案引用、当前草案与完整 Library 交接，不建立第二个重复页面 | `workflowUserWorkspaceHomePanel.tsx`、saved draft list / lifecycle consumer 与 `App.tsx` 的精确打开、归档、恢复 owner；本批补齐 action-token tab 与 `tablist` / `tab` / `aria-selected` 语义 | 完整 Saved Draft Library 保持唯一挂载；Designer 只显示当前 / 活动草案引用和精确打开入口。真实浏览器已复验保存、读取、派生、两步归档、归档只读、解除归档和活动列表重新打开；不新增自动打开、自动覆盖、批量 lifecycle 或生产 repository。 |
+| `radishmind_web_s3_workflow_designer_v1` | `implementation_r2_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S3 Workflow Designer — Desktop / Partial · R2`、`S3 Workflow Designer — Narrow / Partial · R2` 与 `S1 + S2 + S3 Visual Language — Design Decision Record · R8`；三者实际渲染无裁切，`R1` 因人工评审退回，不再作为验收基准 | `App.tsx` 继续持有草案、consumer、冲突和 mutation owner，`workflowDraftDesignerPanel.tsx` 承担 Workbench 展示，`workflowNodeDesigner.tsx`、`ProductNavigation.tsx`、`productNavigationRoute.ts` 与 `styles.css` 承担画布、导航和响应式语义 | `R1` 虽通过行为测试与页面级溢出检查，但存在确定性画布裁切、节点计数与可见节点错位、连线不可读、底部三块 review 等权铺陈，以及窄屏节点裁切与重复 Inspector 层级，因此被人工退回。`R2` 已完成当前节点 / 直接邻居默认焦点、显式 `Fit graph`、紧凑 review，以及 `1440px` 右侧 / `<=1380px` 下移 / `<=760px` 折叠的 Inspector。强选中只属于当前导航或驱动 Inspector 的当前对象，finding 与 readiness / lifecycle 状态保持独立。 |
+| `radishmind_web_s3_saved_draft_library_v1` | `b_level_implementation_completed` | `S3 Workflow Designer R2` 只保留紧凑活动草案引用、当前草案与完整 Library 交接，不建立第二个重复页面 | `workflowUserWorkspaceHomePanel.tsx`、saved draft list / lifecycle consumer 与 `App.tsx` 的精确打开、归档、恢复 owner；本批补齐 action-token tab 与 `tablist` / `tab` / `aria-selected` 语义 | 完整 Saved Draft Library 保持唯一挂载；Designer 只显示当前 / 活动草案引用和精确打开入口。真实浏览器已复验保存、读取、派生、两步归档、归档只读、解除归档和活动列表重新打开；S3 R2 不改变该 owner，也不新增自动打开、自动覆盖、批量 lifecycle 或生产 repository。 |
 
 `S1` 消费 `ref-03`、`ref-07`、`ref-08`、`ref-09`、`ref-15`、`ref-17`、`ref-18`、`ref-19` 与 `ref-24` 的产品层级，并共享 `ref-25` 的白色抬升表面和 `ref-27` 的连续窗格语法；`ref-20` 只保留未来暗色证据，不在当前画板增加主题切换。两个画板均已通过 Pencil 全树布局检查，结果为 `No layout problems`；视觉复核确认没有裁切、重叠和横向溢出。
 
@@ -233,7 +233,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 ### 设计批次：真实任务页面蓝图
 
-参考图产品面映射、Pencil 协作模型，以及 `S1 R8`、`S2 R6`、`S3 R1` 的桌面 / 窄屏设计、React 实现和真实浏览器验收均已完成。下一设计批次进入 `S4 Application API Integration / API Key`：先审计既有 API 接入、Key lifecycle、一次性交接与验证后退役 owner，再冻结接入任务主面和关键风险状态；不新增同层理想稿、兄弟画板或普通 UI 专项 task card。
+参考图产品面映射、Pencil 协作模型，以及 `S1 R8`、`S2 R6`、`S3 R2` 的桌面 / 窄屏设计、React 实现和真实浏览器验收均已完成；`S3 R1` 因确定性画布裁切与层级重复被人工退回的事实保留。下一设计批次进入 `S4 Application API Integration / API Key`：先复核既有 API 接入、Key lifecycle、一次性交接与验证后退役 owner，再冻结接入任务主面和关键风险状态并实施 React 纵向切片；不新增同层理想稿、兄弟画板或普通 UI 专项 task card。
 
 ### 实现批次：纵向切片迁移
 
@@ -271,9 +271,11 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 - `321e9899 feat(ui): 落地 S1 R8 产品壳` 已完成 Workbench 导航、workspace pulse、Source evidence、Operations Inbox 与响应式交互迁移；Web `272/272` 测试和 production build 通过，严格应用内浏览器复核覆盖桌面、临界宽度、窄屏菜单、API Key / Run History 跨阶段锚点和零 warning / error。
 - `S2 R6` 已完成 Application Context、五阶段 review path、Human Promotion contribution 主面、九组来源 readiness、authorization path 和 owner surface 渐进展开；真实离线 view model 保持 revision `partial`、十三项 contribution、九组来源和不可发布边界。未证明的 RAG assignment 由 presentation 层根据现有缺失证据明确表达为 `blocked`，同时保留底层 owner rollup 的 `incomplete` 供审计，不改写四态 readiness 聚合。
 - S2 应用内浏览器严格复核覆盖 `1440x900`、`1101/1100px`、`821px`、`761/760px` 与 `390x844`；所有宽度的页面 `scrollWidth` 均等于 viewport，窄屏三条 contribution 均为 `90px`，五阶段菜单、九来源展开与 owner review 开合正常，URL 无敏感材料，控制台零 warning / error。Pencil 的 `5 / 9` 保持代表数值，当前 fixture 实际显示 `1 / 9` owner references。
-- `S3 R1` 已把 Workflow Designer 展示职责从 `App.tsx` 提取到 lazy Workbench panel，同时保留 App 的草案选择、编辑、冲突、Saved Draft lifecycle 与 mutation owner。Web `274/274` 测试、production build 和六组既有 consumer / designer checker 均通过；应用内浏览器覆盖 `1440x900`、`1281/1280px`、`1101/1100px`、`761/760px` 与 `390x844`，各宽度页面横向溢出为零，窄屏 MiniMap 隐藏，保存 / 读取 / 派生 / 归档 / 解除归档链、归档只读、节点拖拽、键盘删除保护和草案切换瞬态重置正确，控制台零 warning / error。
-- Family UI Pencil 设计源现有七个根画板：`S1`、`S2`、`S3` 各一组桌面 / 窄屏代表面，以及共享设计决策记录；S3 画板全树检查与实际 Pen 渲染复核确认无裁切、越界或占位节点。
-- `./scripts/check-repo.sh --fast` 与 `./scripts/check-repo.sh` 均通过；只保留 W28–W30 历史周志的既有篇幅 warning。
+- `S3 R1` 已完成 App owner / Panel presentation 职责拆分，Web `274/274` 测试、production build 和六组既有 consumer / designer checker 也已通过；这些结果继续作为行为回归证据，但不构成视觉验收。人工复核确认页面 `scrollWidth` 等于 viewport 并不能证明 React Flow 内部内容可见，`R1` 存在确定性裁切、节点计数与可见节点错位、边不可读、review 层级平均化和窄屏重复 Inspector，因此验收被撤回。
+- `S3 R2` 已完成默认视口与层级修正：进入 Designer 时聚焦当前节点及直接邻居，显式 `Fit graph` 才展示全图；选择节点或 finding 会把目标带入可读视区。review 已收为紧凑入口，Inspector 在 `1440px` 位于右侧、`<=1380px` 下移、`<=760px` 默认折叠；窄屏不重复当前节点摘要与完整 Inspector。
+- Pencil Desktop / Narrow R2 与 Decision R8 已完成全树和实际渲染复核，无裁切、越界或占位节点。Web `274/274` 测试、production build 与既有八项 workflow checker 全部通过；`workflowNodeDesigner` 为 `205.40kB < 220kB`，`index` 为 `468.40kB < 500kB`。
+- 应用内浏览器严格复核覆盖 `1440x900`、`1381/1380px`、`1101/1100px`、`761/760px` 与 `390x844`：默认两节点邻域完整可读，显式 `Fit graph` 的八节点 / 七边全部完整，各宽度无横向溢出；移动端 review 位于 rail 之前。键盘删除保护、受保护节点、节点切换、finding 定位、Inspector 折叠 / 展开通过，全新页签控制台零 warning / error。
+- S3 继续以 App 为唯一 application / workflow / run / draft / scenario、Saved Draft lifecycle、conflict 与 mutation owner；九组来源、十三项 contribution、revision `partial`、RAG authority `blocked`、readiness 只读且不可发布的事实不变。本轮不新增 API、schema、repository、task card、fixture 或专项 checker。
 
 ## 停止线
 

@@ -17,6 +17,7 @@ import {
   type NodeChange,
   type NodeProps,
   type NodeTypes,
+  type ReactFlowInstance,
 } from "@xyflow/react";
 
 import type {
@@ -63,6 +64,8 @@ type WorkflowNodeDesignerFeedback = {
   message: string;
 };
 
+type WorkflowNodeDesignerViewportMode = "focus" | "graph";
+
 type WorkflowNodeDesignerValidationFocus = {
   checkId: string;
   label: string;
@@ -105,11 +108,11 @@ type WorkflowNodeDesignerProps = {
 
 const LANE_X: Record<WorkflowDraftDesignerNode["lane"], number> = {
   context: 0,
-  retrieval: 240,
-  model: 480,
-  policy: 720,
-  preview: 960,
-  output: 1200,
+  retrieval: 216,
+  model: 432,
+  policy: 648,
+  preview: 864,
+  output: 1080,
 };
 
 const EDGE_KIND_CLASS: Record<WorkflowNodeDesignerEdgeKind, string> = {
@@ -126,6 +129,13 @@ const nodeTypes = {
 const edgeTypes = {
   workflowDraftEdge: WorkflowNodeDesignerEdgePath,
 };
+
+function workflowNodeDesignerCompactFocusPosition(index: number): { x: number; y: number } {
+  return {
+    x: (index % 2) * 216,
+    y: Math.floor(index / 2) * 180,
+  };
+}
 
 export function WorkflowNodeDesigner({
   draft,
@@ -153,6 +163,14 @@ export function WorkflowNodeDesigner({
   const [nodes, setNodes] = useState(initialNodes);
   const [selectedNodeId, setSelectedNodeId] = useState(draft.nodes[0]?.nodeId ?? "");
   const [validationFocus, setValidationFocus] = useState<WorkflowNodeDesignerValidationFocus | null>(null);
+  const [flowInstance, setFlowInstance] = useState<ReactFlowInstance<
+    WorkflowNodeDesignerNode,
+    WorkflowNodeDesignerEdge
+  > | null>(null);
+  const [viewportMode, setViewportMode] = useState<WorkflowNodeDesignerViewportMode>("focus");
+  const [narrowViewport, setNarrowViewport] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches,
+  );
   const [interactionFeedback, setInteractionFeedback] = useState<WorkflowNodeDesignerFeedback>({
     tone: "neutral",
     message: "Connect typed ports to add controlled draft edges.",
@@ -186,6 +204,81 @@ export function WorkflowNodeDesigner({
 
   const selectedNode = draft.nodes.find((node) => node.nodeId === selectedNodeId) ?? draft.nodes[0];
   const selectedNodeRemovable = selectedNode ? canRemoveNode(selectedNode.nodeId) : false;
+  const topologyKey = `${draft.nodes.map((node) => node.nodeId).join("|")}::${draft.edges
+    .map((edge) => `${edge.fromNodeId}>${edge.toNodeId}`)
+    .join("|")}`;
+  const canvasNodeIds = useMemo(() => draft.nodes.map((node) => node.nodeId), [topologyKey]);
+  const neighborhoodNodeIds = useMemo(
+    () => workflowNodeDesignerNeighborhoodNodeIds(draft, selectedNodeId),
+    [selectedNodeId, topologyKey],
+  );
+  const validationFocusNodeIds = useMemo(
+    () => workflowNodeDesignerValidationViewportNodeIds(draft, validationFocus),
+    [topologyKey, validationFocus],
+  );
+  const focusedCanvasNodeIds = validationFocusNodeIds.length > 0 ? validationFocusNodeIds : neighborhoodNodeIds;
+  const fitCanvasNodes = useCallback(
+    (
+      instance: ReactFlowInstance<WorkflowNodeDesignerNode, WorkflowNodeDesignerEdge>,
+      targetNodeIds: string[],
+      mode: WorkflowNodeDesignerViewportMode,
+    ) => {
+      window.requestAnimationFrame(() => {
+        void instance.fitView({
+          nodes: targetNodeIds.map((id) => ({ id })),
+          padding: mode === "graph" ? 0.12 : narrowViewport ? 0.2 : 0.16,
+          minZoom: 0.24,
+          maxZoom: mode === "graph" ? 0.72 : narrowViewport ? 0.9 : 0.96,
+          duration: 180,
+        });
+      });
+    },
+    [narrowViewport],
+  );
+  const reframeCanvasViewport = useCallback(
+    (instance: ReactFlowInstance<WorkflowNodeDesignerNode, WorkflowNodeDesignerEdge>) => {
+      const targetNodeIds = viewportMode === "graph" ? canvasNodeIds : focusedCanvasNodeIds;
+      fitCanvasNodes(instance, targetNodeIds, viewportMode);
+    },
+    [canvasNodeIds, fitCanvasNodes, focusedCanvasNodeIds, viewportMode],
+  );
+
+  const onFlowInit = useCallback(
+    (instance: ReactFlowInstance<WorkflowNodeDesignerNode, WorkflowNodeDesignerEdge>) => {
+      setFlowInstance(instance);
+      fitCanvasNodes(instance, focusedCanvasNodeIds, "focus");
+    },
+    [fitCanvasNodes, focusedCanvasNodeIds],
+  );
+
+  useEffect(() => {
+    const narrowViewport = window.matchMedia("(max-width: 760px)");
+    const handleViewportModeChange = () => setNarrowViewport(narrowViewport.matches);
+    narrowViewport.addEventListener("change", handleViewportModeChange);
+    return () => narrowViewport.removeEventListener("change", handleViewportModeChange);
+  }, []);
+
+  useEffect(() => {
+    if (flowInstance) {
+      reframeCanvasViewport(flowInstance);
+    }
+  }, [flowInstance, reframeCanvasViewport, topologyKey]);
+
+  useEffect(() => {
+    if (!flowInstance) {
+      return;
+    }
+    let frameId = 0;
+    const handleResize = () => {
+      window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(() => reframeCanvasViewport(flowInstance));
+    };
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [flowInstance, reframeCanvasViewport]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<WorkflowNodeDesignerNode>[]) => {
@@ -253,6 +346,7 @@ export function WorkflowNodeDesigner({
       if (!nextNode) {
         return;
       }
+      setViewportMode("focus");
       setValidationFocus(null);
       setSelectedNodeId(nextNode.nodeId);
       setInteractionFeedback({
@@ -265,6 +359,7 @@ export function WorkflowNodeDesigner({
 
   const focusValidationFinding = useCallback((item: WorkflowNodeDesignerValidationNavItem) => {
     const firstNodeId = item.targetNodeIds[0];
+    setViewportMode("focus");
     setValidationFocus({
       checkId: item.checkId,
       label: item.label,
@@ -284,12 +379,28 @@ export function WorkflowNodeDesigner({
   }, []);
 
   const clearValidationFocus = useCallback(() => {
+    setViewportMode("focus");
     setValidationFocus(null);
     setInteractionFeedback({
       tone: "neutral",
       message: "Validation overlay focus cleared; canvas selection remains UI-only.",
     });
   }, []);
+
+  const focusSelectedNode = useCallback(() => {
+    setViewportMode("focus");
+    setValidationFocus(null);
+    if (flowInstance) {
+      fitCanvasNodes(flowInstance, neighborhoodNodeIds, "focus");
+    }
+  }, [fitCanvasNodes, flowInstance, neighborhoodNodeIds]);
+
+  const fitWholeGraph = useCallback(() => {
+    setViewportMode("graph");
+    if (flowInstance) {
+      fitCanvasNodes(flowInstance, canvasNodeIds, "graph");
+    }
+  }, [canvasNodeIds, fitCanvasNodes, flowInstance]);
 
   const onNodeClick = useCallback((_: unknown, node: WorkflowNodeDesignerNode) => {
     selectNode(node.data.draftNodeId);
@@ -363,6 +474,11 @@ export function WorkflowNodeDesigner({
     () =>
       nodes.map((node) => ({
         ...node,
+        hidden: viewportMode === "focus" && !focusedCanvasNodeIds.includes(node.data.draftNodeId),
+        position:
+          narrowViewport && viewportMode === "focus" && focusedCanvasNodeIds.includes(node.data.draftNodeId)
+            ? workflowNodeDesignerCompactFocusPosition(focusedCanvasNodeIds.indexOf(node.data.draftNodeId))
+            : node.position,
         selected: node.data.draftNodeId === selectedNodeId,
         data: {
           ...node.data,
@@ -372,19 +488,22 @@ export function WorkflowNodeDesigner({
           validationSeverity: validationFocus?.severity,
         },
       })),
-    [nodes, selectedNodeId, validationFocus],
+    [focusedCanvasNodeIds, narrowViewport, nodes, selectedNodeId, validationFocus, viewportMode],
   );
   const displayedEdges = useMemo(
     () =>
       edges.map((edge) => ({
         ...edge,
+        hidden:
+          viewportMode === "focus" &&
+          (!focusedCanvasNodeIds.includes(edge.source) || !focusedCanvasNodeIds.includes(edge.target)),
         data: {
           ...(edge.data ?? { edgeKind: "data_edge", conditionSummary: "" }),
           validationFocus: workflowNodeDesignerValidationFocusState(validationFocus?.edgeIds.includes(edge.id) ?? false),
           validationSeverity: validationFocus?.severity,
         },
       })),
-    [edges, validationFocus],
+    [edges, focusedCanvasNodeIds, validationFocus, viewportMode],
   );
   const layoutPersistenceLabel =
     draft.designerLayout.persistence === "saved_draft_metadata" ? "restored saved draft layout" : "active draft layout";
@@ -395,7 +514,32 @@ export function WorkflowNodeDesigner({
   const editingStateLabel = editingDisabled ? "Editing locked" : "Editing enabled";
   const editingStateSummary = editingDisabled
     ? "Saved draft operation pending; canvas selection remains available without local mutation."
-    : "Drag nodes, connect typed ports, or edit inspector fields on the active draft.";
+    : narrowViewport && viewportMode === "focus"
+      ? "Focused layout is transient; use Fit graph before changing saved positions, or edit the visible typed ports and Inspector."
+      : "Drag nodes, connect typed ports, or edit inspector fields on the active draft.";
+  const inspectorContent = selectedNode ? (
+    <WorkflowNodeDesignerInspector
+      node={selectedNode}
+      editingDisabled={editingDisabled}
+      canDelete={selectedNodeRemovable}
+      interactionFeedback={interactionFeedback}
+      edges={selectedNodeEdges}
+      onUpdateNodeLabel={onUpdateNodeLabel}
+      onUpdateNodeInputSummary={onUpdateNodeInputSummary}
+      onUpdateNodeOutputSummary={onUpdateNodeOutputSummary}
+      onUpdateNodeProviderRef={onUpdateNodeProviderRef}
+      onUpdateNodeToolRef={onUpdateNodeToolRef}
+      onUpdateNodeRagRef={onUpdateNodeRagRef}
+      onUpdateNodeOutputMapping={onUpdateNodeOutputMapping}
+      onRemoveEdge={onRemoveDraftEdge}
+      onRemoveNode={onRemoveDraftNode}
+    />
+  ) : (
+    <div className="workflow-node-designer-empty">
+      <strong>Node unavailable</strong>
+      <p>The list editor remains available and no sample fallback has been applied.</p>
+    </div>
+  );
 
   return (
     <section className="workflow-node-designer" aria-label="Workflow node designer canvas">
@@ -406,27 +550,34 @@ export function WorkflowNodeDesigner({
         </div>
         <div className="workflow-node-designer-status">
           <span>{draft.localOnlyInteraction}</span>
-          <strong>{draft.nodes.length} nodes / {draft.edges.length} derived edges</strong>
+          <strong>{draft.nodes.length} nodes / {draft.edges.length} draft edges</strong>
         </div>
       </div>
 
-      <div className="workflow-node-designer-mapping-summary" aria-label="Workflow node designer saved draft mapping">
-        <article>
-          <span>Saved draft mapping</span>
-          <strong>Attributes and edge endpoints</strong>
-          <p>Save Draft writes node attributes, contract fields, edge endpoints, and condition summaries.</p>
-        </article>
-        <article>
-          <span>Layout metadata</span>
+      <details className="workflow-node-designer-mapping-summary">
+        <summary>
+          <span>Persistence mapping</span>
           <strong>{mappedLayoutCount} positioned nodes</strong>
-          <p>{layoutPersistenceLabel}: {layoutPersistenceSummary}</p>
-        </article>
-        <article>
-          <span>Derived edge kind</span>
-          <strong>Not persisted</strong>
-          <p>Canvas edge colors are derived from node lane, risk, policy, and audit context.</p>
-        </article>
-      </div>
+          <small>Attributes and endpoints save; viewport, selection, and edge kind do not</small>
+        </summary>
+        <div className="workflow-node-designer-mapping-details" aria-label="Workflow node designer saved draft mapping">
+          <article>
+            <span>Saved draft mapping</span>
+            <strong>Attributes and edge endpoints</strong>
+            <p>Save Draft writes node attributes, contract fields, edge endpoints, and condition summaries.</p>
+          </article>
+          <article>
+            <span>Layout metadata</span>
+            <strong>{mappedLayoutCount} positioned nodes</strong>
+            <p>{layoutPersistenceLabel}: {layoutPersistenceSummary}</p>
+          </article>
+          <article>
+            <span>Derived edge kind</span>
+            <strong>Not persisted</strong>
+            <p>Visual edge kind labels are derived from node lane, risk, policy, and audit context.</p>
+          </article>
+        </div>
+      </details>
 
       <div className="workflow-node-designer-interaction-bar" aria-label="Workflow node designer interaction state">
         <div
@@ -442,7 +593,7 @@ export function WorkflowNodeDesigner({
           <p>{editingStateSummary}</p>
         </div>
         <div className="workflow-node-designer-node-switcher" aria-label="Select workflow draft node">
-          <span>Selected node</span>
+          <span>Node navigator</span>
           <div className="workflow-node-designer-node-switcher-list">
             {draft.nodes.map((node) => (
               <button
@@ -462,110 +613,187 @@ export function WorkflowNodeDesigner({
               </button>
             ))}
           </div>
+          <label className="workflow-node-designer-mobile-node-select">
+            <span>Inspect node</span>
+            <select value={selectedNodeId} onChange={(event) => selectNode(event.currentTarget.value)}>
+              {draft.nodes.map((node) => (
+                <option key={node.nodeId} value={node.nodeId}>
+                  {node.label} · {node.nodeType}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
 
       <div className="workflow-node-designer-shell">
-        <div
-          className={`workflow-node-designer-canvas ${editingDisabled ? "locked" : "editable"}`}
-          data-editing-state={editingDisabled ? "locked" : "enabled"}
-          aria-label={`Workflow node designer canvas; ${editingStateLabel.toLowerCase()}`}
-        >
-          <ReactFlow
-            nodes={displayedNodes}
-            edges={displayedEdges}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            nodesDraggable={!editingDisabled}
-            nodesConnectable={!editingDisabled}
-            deleteKeyCode={null}
-            elementsSelectable
-            fitView
-            minZoom={0.45}
-            maxZoom={1.4}
-            onNodesChange={onNodesChange}
-            onNodeClick={onNodeClick}
-            onNodeDragStop={onNodeDragStop}
-            onConnect={onConnect}
-            isValidConnection={isValidConnection}
+        <div className="workflow-node-designer-canvas-stage">
+          <div className="workflow-node-designer-canvas-toolbar" aria-label="Workflow canvas viewport controls">
+            <div>
+              <span>Canvas view</span>
+              <strong>
+                {validationFocus
+                  ? `${validationFocus.label} · ${validationFocusNodeIds.length} target nodes`
+                  : viewportMode === "graph"
+                    ? `Full graph · ${draft.nodes.length} nodes`
+                    : `Focused neighborhood · ${focusedCanvasNodeIds.length} nodes`}
+              </strong>
+            </div>
+            <div>
+              <button type="button" aria-pressed={viewportMode === "focus"} onClick={focusSelectedNode}>
+                Focus node
+              </button>
+              <button type="button" aria-pressed={viewportMode === "graph"} onClick={fitWholeGraph}>
+                Fit graph
+              </button>
+            </div>
+          </div>
+          <div
+            className={`workflow-node-designer-canvas ${editingDisabled ? "locked" : "editable"}`}
+            data-editing-state={editingDisabled ? "locked" : "enabled"}
+            aria-label={`Workflow node designer canvas; ${editingStateLabel.toLowerCase()}`}
           >
-            <Background gap={24} size={1} />
-            <MiniMap pannable zoomable nodeStrokeWidth={3} />
-            <Controls showInteractive={false} />
-          </ReactFlow>
+            <ReactFlow<WorkflowNodeDesignerNode, WorkflowNodeDesignerEdge>
+              nodes={displayedNodes}
+              edges={displayedEdges}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              nodesDraggable={!editingDisabled && (!narrowViewport || viewportMode === "graph")}
+              nodesConnectable={!editingDisabled}
+              deleteKeyCode={null}
+              elementsSelectable
+              minZoom={0.24}
+              maxZoom={1.4}
+              onInit={onFlowInit}
+              onNodesChange={onNodesChange}
+              onNodeClick={onNodeClick}
+              onNodeDragStop={onNodeDragStop}
+              onConnect={onConnect}
+              isValidConnection={isValidConnection}
+            >
+              <Background gap={24} size={1} />
+              {viewportMode === "graph" ? <MiniMap pannable zoomable nodeStrokeWidth={3} /> : null}
+              <Controls showFitView={false} showInteractive={false} />
+            </ReactFlow>
+          </div>
         </div>
 
-        <aside className="workflow-node-designer-inspector" aria-label="Workflow node designer inspector">
-          {selectedNode ? (
-            <WorkflowNodeDesignerInspector
-              node={selectedNode}
-              editingDisabled={editingDisabled}
-              canDelete={selectedNodeRemovable}
-              interactionFeedback={interactionFeedback}
-              edges={selectedNodeEdges}
-              onUpdateNodeLabel={onUpdateNodeLabel}
-              onUpdateNodeInputSummary={onUpdateNodeInputSummary}
-              onUpdateNodeOutputSummary={onUpdateNodeOutputSummary}
-              onUpdateNodeProviderRef={onUpdateNodeProviderRef}
-              onUpdateNodeToolRef={onUpdateNodeToolRef}
-              onUpdateNodeRagRef={onUpdateNodeRagRef}
-              onUpdateNodeOutputMapping={onUpdateNodeOutputMapping}
-              onRemoveEdge={onRemoveDraftEdge}
-              onRemoveNode={onRemoveDraftNode}
-            />
-          ) : (
-            <div className="workflow-node-designer-empty">
-              <strong>Node unavailable</strong>
-              <p>The list editor remains available and no sample fallback has been applied.</p>
+        {narrowViewport ? (
+          <details
+            className="workflow-node-designer-inspector is-disclosure"
+            aria-label="Workflow node designer inspector"
+          >
+            <summary>
+              <span>Inspector</span>
+              <strong>{selectedNode?.label ?? "Node unavailable"}</strong>
+            </summary>
+            <div className="workflow-node-designer-inspector-content">
+              {inspectorContent}
             </div>
-          )}
-        </aside>
+          </details>
+        ) : (
+          <aside className="workflow-node-designer-inspector" aria-label="Workflow node designer inspector">
+            {inspectorContent}
+          </aside>
+        )}
       </div>
 
-      <div
+      <details
         className="workflow-node-designer-validation-navigation"
         aria-label="Workflow node designer validation overlay navigation"
       >
-        <div className="workflow-node-designer-validation-navigation-heading">
+        <summary className="workflow-node-designer-validation-navigation-heading">
           <div>
             <span>Validation overlay</span>
             <strong>
               {validationInspector.validationStatus} / {validationNavigationItems.length} findings
             </strong>
           </div>
-          <button type="button" disabled={!validationFocus} onClick={clearValidationFocus}>
-            Clear focus
-          </button>
+          <small>Expand findings</small>
+        </summary>
+        <div className="workflow-node-designer-validation-navigation-body">
+          <div className="workflow-node-designer-validation-navigation-actions">
+            <span>Finding focus is independent from node selection.</span>
+            <button type="button" disabled={!validationFocus} onClick={clearValidationFocus}>
+              Clear focus
+            </button>
+          </div>
+          <div className="workflow-node-designer-validation-navigation-list">
+            {validationNavigationItems.map((item) => {
+              const isFocused = validationFocus?.checkId === item.checkId;
+              return (
+                <button
+                  key={item.checkId}
+                  type="button"
+                  className={`${item.status} status-${item.status} ${item.severity} severity-${item.severity} ${
+                    isFocused ? "focused is-validation-focused" : "is-not-validation-focused"
+                  }`}
+                  data-validation-status={item.status}
+                  data-validation-severity={item.severity}
+                  data-validation-focus={isFocused ? "focused" : "none"}
+                  aria-pressed={isFocused}
+                  aria-label={`${item.label}; status ${item.status}; severity ${item.severity}; ${item.targetSummary}; ${
+                    isFocused ? "validation focus active" : "focus validation finding"
+                  }`}
+                  onClick={() => focusValidationFinding(item)}
+                >
+                  <span>{item.status}</span>
+                  <strong>{item.label}</strong>
+                  <small>{item.targetSummary}</small>
+                </button>
+              );
+            })}
+          </div>
         </div>
-        <div className="workflow-node-designer-validation-navigation-list">
-          {validationNavigationItems.map((item) => {
-            const isFocused = validationFocus?.checkId === item.checkId;
-            return (
-              <button
-                key={item.checkId}
-                type="button"
-                className={`${item.status} status-${item.status} ${item.severity} severity-${item.severity} ${
-                  isFocused ? "focused is-validation-focused" : "is-not-validation-focused"
-                }`}
-                data-validation-status={item.status}
-                data-validation-severity={item.severity}
-                data-validation-focus={isFocused ? "focused" : "none"}
-                aria-pressed={isFocused}
-                aria-label={`${item.label}; status ${item.status}; severity ${item.severity}; ${item.targetSummary}; ${
-                  isFocused ? "validation focus active" : "focus validation finding"
-                }`}
-                onClick={() => focusValidationFinding(item)}
-              >
-                <span>{item.status}</span>
-                <strong>{item.label}</strong>
-                <small>{item.targetSummary}</small>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      </details>
     </section>
   );
+}
+
+function workflowNodeDesignerNeighborhoodNodeIds(
+  draft: WorkflowDraftDesignerDraft,
+  selectedNodeId: string,
+): string[] {
+  const availableNodeIds = new Set(draft.nodes.map((node) => node.nodeId));
+  const selectedNode = draft.nodes.find((node) => node.nodeId === selectedNodeId) ?? draft.nodes[0];
+  if (!selectedNode) {
+    return [];
+  }
+  const adjacentNodeIds = new Set<string>();
+  for (const edge of draft.edges) {
+    if (edge.fromNodeId === selectedNodeId && availableNodeIds.has(edge.toNodeId)) {
+      adjacentNodeIds.add(edge.toNodeId);
+    }
+    if (edge.toNodeId === selectedNodeId && availableNodeIds.has(edge.fromNodeId)) {
+      adjacentNodeIds.add(edge.fromNodeId);
+    }
+  }
+  const nearestAdjacentNode = draft.nodes
+    .filter((node) => adjacentNodeIds.has(node.nodeId))
+    .sort((left, right) => {
+      const leftDistance = Math.abs(LANE_X[left.lane] - LANE_X[selectedNode.lane]);
+      const rightDistance = Math.abs(LANE_X[right.lane] - LANE_X[selectedNode.lane]);
+      return leftDistance - rightDistance;
+    })[0];
+  return nearestAdjacentNode ? [selectedNode.nodeId, nearestAdjacentNode.nodeId] : [selectedNode.nodeId];
+}
+
+function workflowNodeDesignerValidationViewportNodeIds(
+  draft: WorkflowDraftDesignerDraft,
+  validationFocus: WorkflowNodeDesignerValidationFocus | null,
+): string[] {
+  if (!validationFocus) {
+    return [];
+  }
+  const targetNodeIds = new Set(validationFocus.nodeIds);
+  const targetEdgeIds = new Set(validationFocus.edgeIds);
+  for (const edge of draft.edges) {
+    if (targetEdgeIds.has(edge.edgeId)) {
+      targetNodeIds.add(edge.fromNodeId);
+      targetNodeIds.add(edge.toNodeId);
+    }
+  }
+  return draft.nodes.map((node) => node.nodeId).filter((nodeId) => targetNodeIds.has(nodeId));
 }
 
 function buildWorkflowNodeDesignerNodes(
@@ -623,6 +851,7 @@ function buildWorkflowNodeDesignerEdges(draft: WorkflowDraftDesignerDraft): Work
       deletable: false,
       markerEnd: {
         type: MarkerType.ArrowClosed,
+        color: "var(--rm-border-strong)",
       },
       data: {
         edgeKind,
@@ -780,26 +1009,21 @@ function WorkflowNodeDesignerNodeCard({ data, selected }: NodeProps<WorkflowNode
     >
       <Handle id={`${data.draftNodeId}:input`} type="target" position={Position.Left} />
       <div className="workflow-node-designer-node-header">
-        <span>{data.lane}</span>
+        <div>
+          <span>{data.lane} · {data.nodeType}</span>
+          <small>{data.readiness}</small>
+        </div>
         <strong>{data.label}</strong>
       </div>
       <p>{data.outputSummary}</p>
       <dl>
-        <div>
-          <dt>Type</dt>
-          <dd>{data.nodeType}</dd>
-        </div>
-        <div>
-          <dt>Risk</dt>
-          <dd>{data.requiresConfirmation ? "requires confirmation" : data.riskLevel}</dd>
-        </div>
         <div>
           <dt>Ref</dt>
           <dd>{data.providerRef || data.toolRef || data.ragRef || "draft local"}</dd>
         </div>
         <div>
           <dt>Guard</dt>
-          <dd>{data.protectedNode ? "protected" : data.readiness}</dd>
+          <dd>{data.protectedNode ? "protected" : data.requiresConfirmation ? "confirmation" : data.riskLevel}</dd>
         </div>
       </dl>
       <Handle id={`${data.draftNodeId}:output`} type="source" position={Position.Right} />
@@ -884,6 +1108,16 @@ function WorkflowNodeDesignerInspector({
           {interactionFeedback.message}
         </p>
       </div>
+      <dl className="workflow-node-designer-inspector-meta">
+        <div>
+          <dt>Reference</dt>
+          <dd>{node.providerRef || node.toolRef || node.ragRef || "draft local"}</dd>
+        </div>
+        <div>
+          <dt>Readiness</dt>
+          <dd>{node.readiness}</dd>
+        </div>
+      </dl>
       <label>
         <span>Label</span>
         <input
@@ -894,88 +1128,101 @@ function WorkflowNodeDesignerInspector({
           onChange={(event) => onUpdateNodeLabel(node.nodeId, event.currentTarget.value)}
         />
       </label>
-      <label>
-        <span>Provider ref</span>
-        <input
-          type="text"
-          value={node.providerRef}
-          maxLength={240}
-          disabled={editingDisabled}
-          onChange={(event) => onUpdateNodeProviderRef(node.nodeId, event.currentTarget.value)}
-        />
-      </label>
-      <label>
-        <span>Tool ref</span>
-        <input
-          type="text"
-          value={node.toolRef}
-          maxLength={240}
-          disabled={editingDisabled}
-          onChange={(event) => onUpdateNodeToolRef(node.nodeId, event.currentTarget.value)}
-        />
-      </label>
-      <label>
-        <span>RAG ref</span>
-        <input
-          type="text"
-          value={node.ragRef}
-          maxLength={240}
-          disabled={editingDisabled}
-          onChange={(event) => onUpdateNodeRagRef(node.nodeId, event.currentTarget.value)}
-        />
-      </label>
-      <label>
-        <span>Input summary</span>
-        <textarea
-          value={node.inputSummary}
-          maxLength={4000}
-          rows={3}
-          disabled={editingDisabled}
-          onChange={(event) => onUpdateNodeInputSummary(node.nodeId, event.currentTarget.value)}
-        />
-      </label>
-      <label>
-        <span>Output summary</span>
-        <textarea
-          value={node.outputSummary}
-          maxLength={4000}
-          rows={3}
-          disabled={editingDisabled}
-          onChange={(event) => onUpdateNodeOutputSummary(node.nodeId, event.currentTarget.value)}
-        />
-      </label>
-      <label>
-        <span>Output mapping</span>
-        <textarea
-          value={node.outputMappingSummary}
-          maxLength={4000}
-          rows={3}
-          disabled={editingDisabled}
-          onChange={(event) => onUpdateNodeOutputMapping(node.nodeId, event.currentTarget.value)}
-        />
-      </label>
-      <div className="workflow-node-designer-edge-actions" aria-label="Selected node draft edges">
-        <span>Connected edges</span>
-        {edges.length === 0 ? (
-          <p>No draft edge is connected to this node.</p>
-        ) : (
-          edges.map((edge) => (
-            <div key={edge.edgeId} className="workflow-node-designer-edge-action">
-              <div className="workflow-node-designer-edge-action-main">
-                <strong>
-                  {edge.fromNodeId} to {edge.toNodeId}
-                </strong>
-                <small>
-                  {edge.edgeKind} / {edge.edgeId}
-                </small>
+      <details className="workflow-node-designer-inspector-details">
+        <summary>
+          <span>Node attributes and contract</span>
+          <small>References, summaries, and mapping</small>
+        </summary>
+        <div className="workflow-node-designer-inspector-details-body">
+          <label>
+            <span>Provider ref</span>
+            <input
+              type="text"
+              value={node.providerRef}
+              maxLength={240}
+              disabled={editingDisabled}
+              onChange={(event) => onUpdateNodeProviderRef(node.nodeId, event.currentTarget.value)}
+            />
+          </label>
+          <label>
+            <span>Tool ref</span>
+            <input
+              type="text"
+              value={node.toolRef}
+              maxLength={240}
+              disabled={editingDisabled}
+              onChange={(event) => onUpdateNodeToolRef(node.nodeId, event.currentTarget.value)}
+            />
+          </label>
+          <label>
+            <span>RAG ref</span>
+            <input
+              type="text"
+              value={node.ragRef}
+              maxLength={240}
+              disabled={editingDisabled}
+              onChange={(event) => onUpdateNodeRagRef(node.nodeId, event.currentTarget.value)}
+            />
+          </label>
+          <label>
+            <span>Input summary</span>
+            <textarea
+              value={node.inputSummary}
+              maxLength={4000}
+              rows={3}
+              disabled={editingDisabled}
+              onChange={(event) => onUpdateNodeInputSummary(node.nodeId, event.currentTarget.value)}
+            />
+          </label>
+          <label>
+            <span>Output summary</span>
+            <textarea
+              value={node.outputSummary}
+              maxLength={4000}
+              rows={3}
+              disabled={editingDisabled}
+              onChange={(event) => onUpdateNodeOutputSummary(node.nodeId, event.currentTarget.value)}
+            />
+          </label>
+          <label>
+            <span>Output mapping</span>
+            <textarea
+              value={node.outputMappingSummary}
+              maxLength={4000}
+              rows={3}
+              disabled={editingDisabled}
+              onChange={(event) => onUpdateNodeOutputMapping(node.nodeId, event.currentTarget.value)}
+            />
+          </label>
+        </div>
+      </details>
+      <details className="workflow-node-designer-inspector-details">
+        <summary>
+          <span>Connected edges</span>
+          <small>{edges.length} draft edges</small>
+        </summary>
+        <div className="workflow-node-designer-edge-actions" aria-label="Selected node draft edges">
+          {edges.length === 0 ? (
+            <p>No draft edge is connected to this node.</p>
+          ) : (
+            edges.map((edge) => (
+              <div key={edge.edgeId} className="workflow-node-designer-edge-action">
+                <div className="workflow-node-designer-edge-action-main">
+                  <strong>
+                    {edge.fromNodeId} to {edge.toNodeId}
+                  </strong>
+                  <small>
+                    {edge.edgeKind} / {edge.edgeId}
+                  </small>
+                </div>
+                <button type="button" disabled={editingDisabled} onClick={() => onRemoveEdge(edge.edgeId)}>
+                  Remove edge
+                </button>
               </div>
-              <button type="button" disabled={editingDisabled} onClick={() => onRemoveEdge(edge.edgeId)}>
-                Remove edge
-              </button>
-            </div>
-          ))
-        )}
-      </div>
+            ))
+          )}
+        </div>
+      </details>
       <button type="button" disabled={editingDisabled || !canDelete} onClick={() => onRemoveNode(node.nodeId)}>
         Remove node
       </button>

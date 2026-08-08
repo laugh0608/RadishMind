@@ -2,7 +2,7 @@
 
 更新时间：2026-08-08
 
-状态：`radishmind_family_ui_reference_mapping_v1_s1_r8_s2_r6_s3_r1_implemented`
+状态：`radishmind_family_ui_reference_mapping_v1_s1_r8_s2_r6_s3_r2_implemented`
 
 ## 文档职责
 
@@ -67,7 +67,7 @@ S2 组合原则：五阶段是任务路径，不是装饰性 stepper。每一阶
 | `ref-23` 社区内容流与 toast | 卡片摘要、标签、反馈入口、成功 toast | 草案保存结果、状态标签和易失成功反馈 | 投票、反应和 Active Now 社交元素 |
 | `ref-26` 邮件 Inbox tabs | Inbox / Sent / Drafts / Archive tab、勾选与附件卡 | 活动 / 归档草案分段、明确 selected row 与详情交接 | 批量生命周期、附件预览和 Spam 语义 |
 
-S3 组合原则：`S3 R1` 桌面把完整 Saved Draft Library 保持为唯一列表 owner，在 Designer 内只保留当前 / 活动草案引用和精确打开交接，再以“草案引用与节点工具 → 画布 → Inspector”组成连续三栏；Validation、Preview Plan 与 Review Handoff 收入底部渐进审查面。窄屏按“上下文 → 动作 → 当前节点 → 有界画布 → Inspector → 审查入口”单列重排，不把完整列表、画布和 Inspector 同时压缩。当前节点使用动作色结构选中，readiness、lifecycle 和 finding 的状态色不承担选中语义。
+S3 组合原则：完整 Saved Draft Library 保持为唯一列表 owner，Designer 只保留当前 / 活动草案引用和精确打开交接。`S3 R2` 桌面默认聚焦当前节点及直接邻居，让节点、端口和连线保持可读；全图查看由显式 `Fit graph` 触发，不用缩小到不可读来冒充四节点均可见。review 只保留紧凑摘要和展开入口；Inspector 在 `1440px` 固定于右侧，`<=1380px` 下移，`<=760px` 默认折叠。窄屏按“上下文 → 动作 → 当前节点 / 直接邻居画布 → 紧凑审查”重排，不重复同一节点摘要与完整 Inspector。强选中只归属于当前导航或正在驱动 Inspector 的对象；readiness、lifecycle 和 finding 的状态色不承担选中语义。
 
 ## S4：Application API Integration / API Key
 
@@ -118,5 +118,5 @@ S4 组合原则：接入向导只编排既有 owner。原始 API Key 只在签�
 - 同日第六轮人工复评确认，`R6` / `R4` 的参考方向已经成立，但 Operations Inbox、Source evidence 和 Application Workspace 仍过于规整，桌面外圈宽留白与大圆角窗口缺少产品职责。`S1 R7` / `S2 R5` 因此把 `ref-27` 的选中轨和队列节奏、`ref-17` 的主次数据关系进一步落实到真实工作面，并取消两个桌面根画板的外圈容器；该轮随后进入第七轮复评。
 - 同日第七轮人工复评继续指出，`R7` / `R5` 虽已去除无职责外框，但局部仍像规整状态文字面板。`S1 R8` / `S2 R6` 因此进一步吸收 `ref-27` 的紧凑焦点队列与详情上下文，以及 `ref-17` 的矩阵化数据节奏：Operations Inbox 增加四项当前窗口和 evidence path，Source evidence 改为状态分布与四来源矩阵，Application Workspace 增加当前阶段选中轨、十三段 contribution window、九格 readiness 和 authorization path。后续局部复核又把 Inbox 选中行降为中性柔底与描边图标，并取消中央缺失 contribution 的伪选中态；选中只归属于详情 owner 或当前导航，状态仍由文字、图标和标签表达。功能真相、窄屏顺序与 React 停止线未改变。
 - 2026-08-06 联合人工复评通过 `S1 R8` / `S2 R6`。参考映射、克制家族色、全视口桌面结构、窄屏渐进顺序和状态停止线均冻结为当前实现输入；后续普通实现偏差直接在 React 与浏览器复核中收口，只有结构性设计决策变化才重新回写 Pencil。
-- 2026-08-08 重新审阅 `ref-04`、`ref-06`、`ref-21`、`ref-22`、`ref-23` 与 `ref-26` 的既定吸收边界，并以当前运行时事实完成 `S3 R1`。实际 Pen 渲染复核确认桌面全视口三列、唯一 Workflows 导航、画布主任务、紧凑草案交接和底部渐进审查成立；`390x844` 画板保持页面单列与画布内部平移边界，状态和选中语义没有混用。Pencil 仅使用代表性草案与节点，不声明生产持久化、发布或执行能力。
-- 同日 React 与应用内浏览器复核确认参考映射已被真实实现消费：Designer 只复用现有草案、画布、validation、plan、readiness 与 handoff owner；完整 Saved Draft Library 没有重复挂载。桌面和窄屏的墨蓝结构选中与 lifecycle / readiness / finding 状态分工明确，`390x844` 画布保持容器内平移且 body 无横向溢出，归档草案仍为只读审查，未产生生产发布或执行声明。
+- 2026-08-08 重新审阅 `ref-04`、`ref-06`、`ref-21`、`ref-22`、`ref-23` 与 `ref-26` 的既定吸收边界，并完成 `S3 R1` 行为实现；但后续人工评审确认，Pen 全树检查与 body 无横向溢出没有覆盖 React Flow 内部确定性裁切。`R1` 的节点计数与实际可见节点错位、连线不可读、底部三块 review 等权铺陈，以及窄屏节点裁切与 Inspector 重复层级均不符合参考映射，因此视觉验收撤回。
+- `S3 R2` 已按当前运行时事实修正上述结构，不改 owner 或能力边界：默认聚焦当前节点与直接邻居、提供显式 `Fit graph`、收紧 review 密度，并按 `1440px` 右侧 / `<=1380px` 下移 / `<=760px` 折叠安排 Inspector。Pencil Desktop / Narrow R2 与 Decision R8 实际渲染无裁切；桌面、临界断点和 `390x844` 的真实浏览器严格复验确认默认两节点邻域和全图八节点 / 七边完整可读、无横向溢出、移动端 review 位于 rail 之前。归档草案仍只读，九组来源、十三项 contribution、revision `partial`、RAG authority `blocked`、readiness 不可发布保持不变；不新增 API、schema、task card 或专项 checker。下一步进入 `S4 Application API Integration / API Key` 功能事实复核、`A` 级设计与 React 纵向切片。

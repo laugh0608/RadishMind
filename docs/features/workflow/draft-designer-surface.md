@@ -2,7 +2,7 @@
 
 更新时间：2026-08-08
 
-状态：`workflow_draft_designer_surface_v1_implemented`
+状态：`workflow_draft_designer_surface_v1_s3_r2_implemented`
 
 ## 专题定位
 
@@ -32,17 +32,20 @@ S3 把上述既有能力重组为共享 Workbench 壳层中的连续 Designer �
 4. 左侧承载草案范围、Saved Draft 摘要、节点类型与结构入口。
 5. 中央 React Flow 画布是唯一主任务面。
 6. 右侧只承载当前节点或连线 inspector。
-7. validation、conflict、mapping、plan 和 handoff 使用渐进审查面，不继续平铺为等权卡片。
+7. validation、conflict、mapping、plan 和 handoff 使用紧凑摘要与渐进审查入口，不继续平铺为等权卡片。
+8. 画布默认聚焦当前节点与直接邻居，并提供显式 `Fit graph` 查看全图；不能以缩小到不可读或裁掉节点来满足节点计数。
 
-窄屏 `390x844` 按“草案上下文 → 主动作 → 当前节点 → 有界画布 → inspector → validation / handoff”重排。页面不得横向溢出；画布内部可以平移和缩放。Saved Draft Library、画布和 inspector 不在同一行压缩。
+窄屏 `390x844` 按“草案上下文 → 主动作 → 当前节点 / 直接邻居画布 → 紧凑审查”重排。页面不得横向溢出；画布内部可以平移和缩放，Inspector 在 `<=760px` 默认折叠且不得与当前节点摘要重复。Saved Draft Library、画布和 Inspector 不在同一行压缩。
 
-## S3 产品化实现结果
+## S3 R1 人工退回与 R2 修正
 
-- `App.tsx` 继续唯一持有 application / workflow / run / draft / scenario 选择、editable draft、dirty、Saved Draft consumer / lifecycle / conflict 与全部 mutation action；`workflowDraftDesignerPanel.tsx` 只消费现有 view model 和 callbacks，并以 lazy chunk 承担 Workbench 展示。
-- Designer 顶部显示真实 application、draft、content / lifecycle version、lifecycle 与 edit state；动作只复用 `Validate`、`Save draft`、`Read saved`、`Preview plan` 与 `Review handoff`，没有新增发布、运行、导出或发送。
-- 完整 Saved Draft Library 仍只挂载在 Workspace Home；Designer 左轨只承载紧凑草案引用、节点类型和精确打开交接。Library 的活动 / 归档 tab 使用 action token，并补齐 `tablist` / `tab` / `aria-selected` 语义。
-- `WorkflowNodeDesigner` 以草案 id 作为组件 key，切换草案时重置 viewport、selection 与 validation focus；Delete / Backspace、React Flow remove change 和锁定态 mutation 都不能绕过 App 的受控动作与 protected-node guard。
-- `1280px` 起 Inspector 下移，`760px` 起页面单列且隐藏 MiniMap；`390x844` 保持当前节点 → 有界画布 → Inspector → validation / review 的真实 DOM 顺序，画布内部平移不扩张 body。
+- `S3 R1` 已完成 App owner / Panel presentation 的职责拆分、受控 mutation 保护和 Saved Draft Library 唯一挂载；Web 行为测试、production build、既有 checker 与页面级横向溢出检查均通过。这些结果继续作为行为回归证据，但不再代表视觉验收。
+- 后续人工评审确认 `R1` 存在确定性画布裁切：页面可以没有 body 横向溢出，但 React Flow 内的节点仍被固定视口、最小缩放与隐藏溢出裁掉，导致“4 nodes”与实际可见节点错位，边也无法完整阅读。底部 Validation / Preview Plan / Review Handoff 三块等权，窄屏又重复当前节点摘要与完整 Inspector，主任务和审查层级不成立，因此 `R1` 被退回。
+- `S3 R2` 已改为默认聚焦当前节点与直接邻居，保证节点、端口和连线在首屏可读；显式 `Fit graph` 才承担全图展示。选择节点或 validation finding 会把目标带入可读视区，不再只更新选中状态而让目标留在裁切区外。
+- review 已改为紧凑摘要和按需展开入口。Inspector 在 `1440px` 固定于画布右侧，`<=1380px` 下移到画布之后，`<=760px` 默认折叠；窄屏不再重复同一节点的切换摘要与完整 Inspector。
+- 强选中只属于当前产品导航或正在驱动 Inspector 的节点 / 连线；普通节点、Saved Draft 引用和 review 摘要保持中性，finding focus 与 lifecycle / readiness / failure 状态使用独立结构、文字和图标通道。
+- `App.tsx` 继续唯一持有 application / workflow / run / draft / scenario 选择、editable draft、dirty、Saved Draft consumer / lifecycle / conflict 与全部 mutation action；`workflowDraftDesignerPanel.tsx` 只消费现有 view model 和 callbacks。九组来源、十三项 contribution、revision `partial`、RAG authority `blocked`、readiness 只读且不可发布的边界不变。
+- Designer 动作仍只复用 `Validate`、`Save draft`、`Read saved`、`Preview plan` 与 `Review handoff`；没有新增发布、运行、导出或发送，也不新增 API、schema、repository、task card、fixture 或专项 checker。
 
 ## 状态模型
 
@@ -61,7 +64,7 @@ S3 把上述既有能力重组为共享 Workbench 壳层中的连续 Designer �
 | 生命周期 | `archived` | 内容、revision、比较与审查可读；编辑和下游 mutation 关闭 |
 | 生命周期 | `unknown` | 解除归档后的旧只读快照；必须从活动库重新打开 |
 
-当前节点、当前 validation finding 和当前产品导航使用不同的选中结构与文字通道。`blocked`、`review_required`、`failed` 等状态颜色不自动获得选中高亮。
+当前产品导航和正在驱动 Inspector 的节点 / 连线才使用强选中结构；当前 validation finding 使用独立 focus 结构与文字通道。`blocked`、`review_required`、`failed` 等状态颜色不自动获得选中高亮。
 
 ## 保存与派生边界
 
@@ -83,12 +86,12 @@ S3 把上述既有能力重组为共享 Workbench 壳层中的连续 Designer �
 
 ## 验收方式
 
-- Web 测试和 production build 通过。
+- Pencil `S3 Workflow Designer — Desktop / Partial · R2`、`S3 Workflow Designer — Narrow / Partial · R2` 与 Decision R8 已完成全树和实际渲染复核，无裁切、越界或占位节点。
+- Web `274/274` 测试与 production build 通过；`workflowNodeDesigner` 为 `205.40kB < 220kB`，`index` 为 `468.40kB < 500kB`。既有八项 workflow checker 全部通过，没有新增专项 checker。
 - Saved Draft consumer smoke 继续覆盖 no sample fallback、双版本 conflict、严格 cursor、归档只读和解除归档后重新打开。
-- 画布交互覆盖节点选择 / 拖拽、合法与非法连线、edge 删除、节点删除保护、validation focus、pending lock 和 inspector 编辑。
-- 应用内浏览器复核 `1440x900`、共享壳层临界宽度、Designer 自身重排断点与 `390x844`；页面无横向溢出，画布内部平移不扩张 body，控制台无新增错误。
-- S3 只复用现有 Web 测试、consumer smoke、build 和仓库门禁，不为普通 UI 产品化新增专项 checker。
-- 2026-08-08 实际证据为 Web `274/274`、production build、六组既有 checker，以及应用内浏览器 `1440x900`、`1281/1280px`、`1101/1100px`、`761/760px`、`390x844`；保存 / 读取 / 派生 / 归档 / 解除归档与只读审查链通过，页面级横向溢出为零，控制台零 warning / error。
+- 应用内浏览器严格复核覆盖 `1440x900`、`1381/1380px`、`1101/1100px`、`761/760px` 与 `390x844`。默认两节点邻域完整可读，显式 `Fit graph` 的八节点 / 七边全部完整；各宽度无横向溢出，Inspector 在 `1440px` 右侧、`<=1380px` 下移、`<=760px` 折叠，移动端 review 位于 rail 之前。
+- 键盘删除保护、受保护节点、节点切换、finding 定位、Inspector 折叠 / 展开及强选中与状态通道分离均通过；全新页签控制台零 warning / error。
+- `R1` 的 Web、build 和行为检查结果继续作为回归基线，但其视觉验收因未证明画布内容完整可读而保持撤回。`R2` 已完成严格复验，下一步进入 `S4 Application API Integration / API Key` 功能事实复核、`A` 级设计与 React 纵向切片。
 
 ## 停止线
 

@@ -2,7 +2,7 @@
 
 更新时间：2026-08-08
 
-状态：`workflow_node_designer_surface_v1_implemented`
+状态：`workflow_node_designer_surface_v1_s3_r2_implemented`
 
 ## 专题定位
 
@@ -31,8 +31,8 @@
 13. 已实现：[Workflow Node Designer Layout Review Findings v1 任务卡](../../task-cards/workflow-node-designer-layout-review-findings-v1-plan.md)，状态为 `workflow_node_designer_layout_review_findings_v1_implemented`，修正中宽布局、inspector connected edge 删除条目和 Draft edge 卡片长 id 可读性。
 14. 已实现：[Workflow Node Designer Builder Interaction Polish v1 任务卡](../../task-cards/workflow-node-designer-builder-interaction-polish-v1-plan.md)，状态为 `workflow_node_designer_builder_interaction_polish_v1_implemented`，补齐交互状态条、节点快速选择和连接 / 拖拽 / 删除反馈。
 15. 已实现：[Workflow Node Designer Validation Overlay Navigation v1 任务卡](../../task-cards/workflow-node-designer-validation-overlay-navigation-v1-plan.md)，状态为 `workflow_node_designer_validation_overlay_navigation_v1_implemented`，把 validation finding 映射为节点 / 连线 / inspector 的 UI-only 导航和高亮。
-16. 当前产品化目标：在不扩大 graph model、持久化格式或 runtime 能力的前提下，把既有画布、inspector、validation navigation 与 Review Handoff 重组为 S3 Workbench 代表面。
-17. 后续独立目标：publish、run、executor、confirmation、writeback 和 replay。
+16. 已完成产品化目标：`S3 R1` 因确定性画布裁切与层级重复被人工退回；`S3 R2` 在不扩大 graph model、持久化格式或 runtime 能力的前提下，完成默认焦点、显式 `Fit graph`、紧凑 review、Inspector 响应式与选中语义修正，并通过严格浏览器复验。
+17. 当前下一步：进入 `S4 Application API Integration / API Key` 的功能事实复核、`A` 级设计与 React 纵向切片；publish、run、executor、confirmation、writeback 和 replay 仍是更后的独立目标。
 
 它不替代 durable store 上游前置，也不解锁 repository mode。若下一批选择继续 durable store，上游 auth、membership、schema marker、secret resolver、connection provider 和 production resolver blocker 仍按既有专题推进。
 
@@ -55,7 +55,8 @@
 
 当前 `apps/radishmind-web/` 的 Draft Designer 已包含 Node Designer 画布。它默认从 active draft 派生 React Flow view model，列表式 Draft Designer 仍作为 fallback 与细字段编辑路径保留。
 
-- 节点选择：点击画布节点或使用节点快速选择条会切换右侧 inspector；该选择只属于浏览器内 UI state。
+- 节点选择：点击画布节点或 finding 会切换 Inspector，并把目标节点及直接邻居带入可读视区；该选择与 viewport 都只属于浏览器内 UI state。
+- 默认视口：进入草案时聚焦当前节点和直接邻居；显式 `Fit graph` 用于查看全图，不能以不可读缩放或裁切节点来满足图节点计数。
 - 节点拖拽：拖拽结束后写回 active draft 的 designer layout；Save Draft 会把受控节点坐标序列化到 `additional_fields.designer_layout_v1`，restore 优先读取该 metadata。
 - 新增连线：从 source handle 连接到 target handle 时，`onConnect` 会校验已知节点、禁止 self-loop、禁止重复 from-to pair，并通过 active draft mutation 新增 `draft.edges`。
 - 删除连线：右侧 inspector 的 connected edge 条目提供删除入口；删除后 validation inspector、Preview Plan 和 Review Handoff 都继续消费 mutation 后的 active draft。
@@ -63,7 +64,7 @@
 - validation 导航：Validation overlay 列表会把 structural / contract finding 映射到节点和相关连线，高亮与 focus 是 UI-only state，不写入 draft 或 saved draft metadata。
 - Review Handoff：`nodeDesignerReviewRecord` 读取同一 active draft，汇总 canvas layout、validation overlay、inspector state 和 saved draft mapping；它不保存、不导出、不发送 handoff。
 - 编辑锁定：saved draft 读写操作 pending 时，画布仍可查看和选择，但节点拖拽、连线、删除和 inspector 字段修改会被锁定。
-- 选中语义：当前节点、当前 validation finding 和状态分别使用节点选中轨、finding focus 与文字状态通道；`blocked`、`review_required` 等状态颜色不会自动成为选中态。
+- 选中语义：当前产品导航和正在驱动 Inspector 的节点 / 连线使用强选中轨，validation finding 使用独立 focus，状态只用文字、图标与标签；`blocked`、`review_required` 等状态颜色不会自动成为选中态。
 
 ## 节点模型
 
@@ -123,12 +124,12 @@ Node Designer Surface 在 S3 中采用以下可操作布局：
 
 - 顶部：active draft identity、内容 / lifecycle 版本、saved state，以及 `Validate`、`Save Draft`、`Preview Plan` 和 `Review Handoff`。
 - 左侧：Saved Draft 范围、当前草案摘要、节点类型和结构入口。
-- 中央：React Flow 画布、typed handle、custom node / edge、MiniMap、Controls、节点位置和连线校验；画布是唯一主任务面。
-- 右侧：当前节点或连线 inspector，编辑 label、provider / profile ref、tool ref、RAG ref、input / output summary、output mapping，并删除 connected edge 或可删除节点。
-- 渐进审查面：编辑锁定 / 最近交互反馈、validation status、finding 导航、saved mapping、conflict、plan 与 handoff。
+- 中央：React Flow 画布、typed handle、custom node / edge、MiniMap、Controls、节点位置和连线校验；画布是唯一主任务面，默认只需保证当前节点和直接邻居完整可读，并提供显式 `Fit graph` 查看全图。
+- Inspector：`1440px` 固定在画布右侧；`<=1380px` 下移到画布之后；`<=760px` 默认折叠。它负责当前节点或连线的细节编辑与删除，不与窄屏当前节点摘要重复。
+- 渐进审查面：编辑锁定 / 最近交互反馈、validation status、finding 导航、saved mapping、conflict、plan 与 handoff 收为紧凑摘要和按需展开入口，不再平铺成三块等权底部面板。
 - 既有列表式 Draft Designer：继续保留为 fallback、精细字段编辑和 edge condition summary 编辑路径。
 
-窄屏按 active draft context、主动作、当前节点、有界画布、inspector、validation / handoff 的任务顺序单列重排。React Flow 可以在有界画布内部平移和缩放，但不得造成页面级横向溢出；Saved Draft 列表、画布和 inspector 不同时压缩成桌面多栏。
+窄屏按 active draft context、主动作、当前节点 / 直接邻居画布、紧凑 validation / handoff 的任务顺序单列重排。React Flow 可以在有界画布内部平移和缩放，但不得造成页面级横向溢出或静默裁掉当前焦点；Inspector 默认折叠，Saved Draft 列表、画布和 Inspector 不同时压缩成桌面多栏。
 
 画布不是 marketing hero，也不是静态说明页。实现时第一屏应直接是可操作的 workflow designer。
 
@@ -183,10 +184,12 @@ Node Designer Surface 在 S3 中采用以下可操作布局：
 
 S3 产品化阶段：
 
-- Web `274/274` 测试与 production build 通过。
-- 画布交互测试覆盖节点新增、移动、选中、连线、删除保护、validation overlay 和 read / save failure state。
-- Saved draft consumer smoke 继续覆盖 no sample fallback、version conflict 和 failure code。
-- 应用内浏览器已覆盖 `1440x900`、`1281/1280px`、`1101/1100px`、`761/760px` 和 `390x844`：选中节点使用 action 结构，readiness 与 validation 状态不冒充选中；Delete / Backspace 不删除本地画布节点，受保护节点和归档态 mutation 保持禁用，画布内部平移不产生页面横向溢出，控制台零 warning / error。
+- `S3 R1` 的 Web `274/274` 测试与 production build 已通过，只保留为行为回归证据；人工评审发现确定性画布裁切、节点计数与实际可见节点错位、连线不可读、底部 review 等权和窄屏重复 Inspector，因此视觉验收已撤回。
+- Pencil Desktop / Narrow R2 与 Decision R8 已通过全树和实际渲染复核，无裁切、越界或占位节点。
+- Web `274/274` 测试与 production build 通过；`workflowNodeDesigner` 为 `205.40kB < 220kB`，`index` 为 `468.40kB < 500kB`。既有八项 workflow checker 全部通过。
+- 应用内浏览器严格复核覆盖 `1440x900`、`1381/1380px`、`1101/1100px`、`761/760px` 和 `390x844`：默认两节点邻域完整可读，显式 `Fit graph` 的八节点 / 七边全部完整，各宽度无横向溢出；Inspector 在 `1440px` 右侧、`<=1380px` 下移、`<=760px` 折叠，移动端 review 位于 rail 之前。
+- 键盘 Delete / Backspace 保护、受保护节点、节点切换、finding 定位、Inspector 折叠 / 展开、强选中唯一性与状态通道分离均通过；全新页签控制台零 warning / error。
+- Saved draft consumer smoke 继续覆盖 no sample fallback、version conflict 和 failure code；画布行为回归继续覆盖节点新增、移动、选中、连线、删除保护、validation overlay 和 read / save failure state。
 - 本批不引入新 schema、route、dependency 或高风险边界，因此不新增 task card、fixture 或专项 checker。
 
 ## 停止线
