@@ -173,6 +173,7 @@ test("existing panel and handoff anchors resolve to their owning stages", () => 
   assert.equal(applicationDevelopmentStageForHash("#prompt-application-template-workspace"), "configure_build");
   assert.equal(applicationDevelopmentStageForHash("#prompt-application-runtime-assignment"), "human_promotion");
   assert.equal(applicationDevelopmentStageForHash("#prompt-application-invocation"), "controlled_test");
+  assert.equal(applicationDevelopmentStageForHash("#prompt-application-session"), "controlled_test");
   assert.equal(applicationDevelopmentStageForHash("#agent-copilot-profile-workspace"), "configure_build");
   assert.equal(applicationDevelopmentStageForHash("#agent-copilot-runtime-assignment"), "human_promotion");
   assert.equal(applicationDevelopmentStageForHash("#agent-copilot-invocation"), "controlled_test");

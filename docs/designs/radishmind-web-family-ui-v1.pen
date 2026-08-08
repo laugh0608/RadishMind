@@ -27542,6 +27542,3800 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "pPFqm",
+      "x": 2030,
+      "y": 980,
+      "name": "S8 Prompt / Agent Type Workspace — Desktop / Dev Test · R1",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$bg-canvas",
+      "children": [
+        {
+          "type": "frame",
+          "id": "xNOry",
+          "name": "S4 Desktop Product Navigation",
+          "width": 264,
+          "height": "fill_container",
+          "fill": "$bg-surface",
+          "stroke": "$border-soft",
+          "strokeWidth": {
+            "right": 1
+          },
+          "layout": "vertical",
+          "gap": 22,
+          "padding": [
+            28,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "aTJf1",
+              "name": "RadishMind Identity",
+              "width": "fill_container",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "tBoOv",
+                  "name": "RadishMind Mark",
+                  "width": 38,
+                  "height": 38,
+                  "fill": "$brand-soft",
+                  "cornerRadius": 12,
+                  "layout": "vertical",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "UaqRC",
+                      "name": "RadishMind Mark Letter",
+                      "fill": "$brand",
+                      "content": "R",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "zqY71",
+                  "name": "RadishMind Product Name",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "gJphb",
+                      "name": "RadishMind Name",
+                      "fill": "$text-primary",
+                      "content": "RadishMind",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 16,
+                      "fontWeight": "650"
+                    },
+                    {
+                      "type": "text",
+                      "id": "qDXlF",
+                      "name": "Workbench Label",
+                      "fill": "$text-muted",
+                      "content": "WORKBENCH",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 9,
+                      "fontWeight": "normal",
+                      "letterSpacing": 1
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "YpXe6",
+              "name": "Workspace Selector",
+              "width": "fill_container",
+              "fill": "$bg-muted",
+              "cornerRadius": 12,
+              "stroke": "$border-soft",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 4,
+              "padding": 14,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "uat4v",
+                  "name": "Workspace Selector Label",
+                  "fill": "$text-muted",
+                  "content": "WORKSPACE",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 9,
+                  "fontWeight": "normal",
+                  "letterSpacing": 1
+                },
+                {
+                  "type": "text",
+                  "id": "k9K84",
+                  "name": "Workspace Name",
+                  "fill": "$text-primary",
+                  "content": "workspace_demo",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 13,
+                  "fontWeight": "650"
+                },
+                {
+                  "type": "text",
+                  "id": "vowey",
+                  "name": "Workspace Environment",
+                  "fill": "$text-secondary",
+                  "content": "Developer workspace",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "M2mdJ",
+              "name": "Workspace Navigation Label",
+              "fill": "$text-muted",
+              "content": "WORKSPACE",
+              "fontFamily": "$font-mono",
+              "fontSize": 9,
+              "fontWeight": "normal",
+              "letterSpacing": 1.2
+            },
+            {
+              "type": "frame",
+              "id": "z02yON",
+              "name": "Workspace Navigation Items",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "dHWlj",
+                  "name": "Overview Navigation Item",
+                  "width": "fill_container",
+                  "height": 42,
+                  "fill": "$bg-surface",
+                  "cornerRadius": 9,
+                  "stroke": "$bg-surface",
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "lV3A2",
+                      "name": "Overview Navigation Label",
+                      "fill": "$text-primary",
+                      "content": "Overview",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "450"
+                    },
+                    {
+                      "type": "text",
+                      "id": "xTfWT",
+                      "name": "Overview Navigation Count",
+                      "fill": "$text-muted",
+                      "content": "01",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "S93nX",
+                  "name": "Operations inbox Navigation Item",
+                  "width": "fill_container",
+                  "height": 42,
+                  "fill": "$bg-surface",
+                  "cornerRadius": 9,
+                  "stroke": "$bg-surface",
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Axfm6",
+                      "name": "Operations inbox Navigation Label",
+                      "fill": "$text-primary",
+                      "content": "Operations inbox",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "450"
+                    },
+                    {
+                      "type": "text",
+                      "id": "vLXp2",
+                      "name": "Operations inbox Navigation Count",
+                      "fill": "$text-muted",
+                      "content": "05",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "zXROx",
+                  "name": "Applications Navigation Item",
+                  "width": "fill_container",
+                  "height": 42,
+                  "fill": "$bg-surface",
+                  "cornerRadius": 9,
+                  "stroke": "$bg-surface",
+                  "strokeWidth": 1,
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "XJJwx",
+                      "name": "Applications Navigation Label",
+                      "fill": "$text-primary",
+                      "content": "Applications",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "650"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ZsWSB",
+                      "name": "Applications Navigation Count",
+                      "fill": "$text-muted",
+                      "content": "04",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "uM0Di",
+                  "name": "Workflows Navigation Item",
+                  "width": "fill_container",
+                  "height": 42,
+                  "fill": "$bg-surface",
+                  "cornerRadius": 9,
+                  "stroke": "$bg-surface",
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "KOUSL",
+                      "name": "Workflows Navigation Label",
+                      "fill": "$text-primary",
+                      "content": "Workflows",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "450"
+                    },
+                    {
+                      "type": "text",
+                      "id": "XQFkc",
+                      "name": "Workflows Navigation Count",
+                      "fill": "$text-muted",
+                      "content": "12",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "v0Ju3D",
+                  "name": "API & keys Navigation Item",
+                  "width": "fill_container",
+                  "height": 42,
+                  "fill": "$bg-surface",
+                  "cornerRadius": 9,
+                  "stroke": "$bg-surface",
+                  "strokeWidth": 1,
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "idDWh",
+                      "name": "API & keys Navigation Label",
+                      "fill": "$text-primary",
+                      "content": "API & keys",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "450"
+                    },
+                    {
+                      "type": "text",
+                      "id": "p1flRt",
+                      "name": "API & keys Navigation Count",
+                      "fill": "$text-muted",
+                      "content": "17",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "qPaJ0",
+              "name": "Review Navigation Label",
+              "fill": "$text-muted",
+              "content": "REVIEW",
+              "fontFamily": "$font-mono",
+              "fontSize": 9,
+              "fontWeight": "normal",
+              "letterSpacing": 1.2
+            },
+            {
+              "type": "frame",
+              "id": "OLbHD",
+              "name": "Review Navigation Items",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "xDTgl",
+                  "name": "Run history Navigation Item",
+                  "width": "fill_container",
+                  "height": 42,
+                  "fill": "$neutral-soft",
+                  "cornerRadius": 9,
+                  "stroke": "$action",
+                  "strokeWidth": {
+                    "left": 3
+                  },
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "fJoWe",
+                      "name": "Run history Navigation Label",
+                      "fill": "$text-secondary",
+                      "content": "Run history",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "TAlBB",
+                  "name": "Evidence review Navigation Item",
+                  "width": "fill_container",
+                  "height": 36,
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "iIEnN",
+                      "name": "Evidence review Navigation Label",
+                      "fill": "$text-secondary",
+                      "content": "Evidence review",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "pTzfD",
+              "name": "Navigation Flexible Space",
+              "width": "fill_container",
+              "height": "fill_container"
+            },
+            {
+              "type": "frame",
+              "id": "ns1v9",
+              "name": "Development Test Boundary",
+              "width": "fill_container",
+              "fill": "$warning-soft",
+              "cornerRadius": 10,
+              "gap": 10,
+              "padding": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "a4L34q",
+                  "name": "Development Test Icon",
+                  "fill": "$warning",
+                  "content": "△",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "viiWr",
+                  "name": "Development Test Copy",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "LqvHO",
+                      "name": "Development Test Title",
+                      "fill": "$text-primary",
+                      "content": "Development / test",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 11,
+                      "fontWeight": "650"
+                    },
+                    {
+                      "type": "text",
+                      "id": "SM15K",
+                      "name": "Development Test Status",
+                      "fill": "$warning",
+                      "content": "GUARDED",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 8,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Fcq5N",
+          "name": "S6 Desktop Main",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$bg-canvas",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "ezkMP",
+              "name": "S6 Workflow Review Header",
+              "width": "fill_container",
+              "height": 146,
+              "fill": "$bg-surface",
+              "stroke": "$border-soft",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                22,
+                28
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "dfVju",
+                  "name": "S6 Workflow Review Header Top",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "OAf0b",
+                      "name": "S6 Workflow Review Breadcrumb",
+                      "fill": "$text-muted",
+                      "content": "APPLICATIONS / APP_FLOW_AGENT / AGENT",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 9,
+                      "fontWeight": "normal",
+                      "letterSpacing": 0.7
+                    },
+                    {
+                      "type": "frame",
+                      "id": "u8KShC",
+                      "name": "S6 Header Badges",
+                      "gap": 7,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "nItXa",
+                          "name": "S6 Dev Test Badge",
+                          "height": 24,
+                          "fill": "$warning-soft",
+                          "cornerRadius": 7,
+                          "padding": [
+                            0,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "jrzV7",
+                              "name": "S6 Dev Test Badge Label",
+                              "fill": "$warning",
+                              "content": "DEV / TEST",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 8,
+                              "fontWeight": "700",
+                              "letterSpacing": 0.35
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "iple6",
+                          "name": "S6 Active Application Badge",
+                          "height": 24,
+                          "fill": "$success-soft",
+                          "cornerRadius": 7,
+                          "padding": [
+                            0,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "SmWKr",
+                              "name": "S6 Active Application Badge Label",
+                              "fill": "$success",
+                              "content": "ACTIVE",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 8,
+                              "fontWeight": "700",
+                              "letterSpacing": 0.35
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Yjhbd",
+                          "name": "S6 Partial Revision Badge",
+                          "height": 24,
+                          "fill": "$purple-soft",
+                          "cornerRadius": 7,
+                          "padding": [
+                            0,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "ntpeA",
+                              "name": "S6 Partial Revision Badge Label",
+                              "fill": "$purple",
+                              "content": "ADVISORY",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 8,
+                              "fontWeight": "700",
+                              "letterSpacing": 0.35
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "DMUyf",
+                  "name": "S6 Workflow Review Title",
+                  "fill": "$text-primary",
+                  "content": "Agent / Copilot type workspace",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 32,
+                  "fontWeight": "650",
+                  "letterSpacing": -0.5
+                },
+                {
+                  "type": "text",
+                  "id": "VYjqx",
+                  "name": "S6 Workflow Review Description",
+                  "fill": "$text-secondary",
+                  "content": "Trace one Agent application from exact Profile authority through human promotion, explicit assignment, one advisory suggestion, and evaluation handoff.",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "j75cvU",
+              "name": "S6 Workflow Review Body",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$bg-surface",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "cVFLB",
+                  "name": "S6 Workflow Review Path",
+                  "width": 214,
+                  "height": "fill_container",
+                  "fill": "$bg-muted",
+                  "stroke": "$border-soft",
+                  "strokeWidth": {
+                    "right": 1
+                  },
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": [
+                    18,
+                    16
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "zrlww",
+                      "name": "S6 Review Path Label",
+                      "fill": "$text-muted",
+                      "content": "TYPE PATH",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 9,
+                      "fontWeight": "600",
+                      "letterSpacing": 1
+                    },
+                    {
+                      "type": "frame",
+                      "id": "C3ekb",
+                      "name": "S6 Runs Step",
+                      "width": "fill_container",
+                      "height": 76,
+                      "fill": "#FFFFFF00",
+                      "cornerRadius": 10,
+                      "stroke": "#FFFFFF00",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "padding": [
+                        11,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "E4Cf1j",
+                          "name": "S6 Runs Step Header",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "RNY6o",
+                              "name": "S6 Runs Step Index",
+                              "width": 22,
+                              "height": 22,
+                              "fill": "$bg-surface",
+                              "cornerRadius": 7,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "fFJnj",
+                                  "name": "S6 Runs Step Index Label",
+                                  "fill": "$text-muted",
+                                  "content": "01",
+                                  "fontFamily": "$font-mono",
+                                  "fontSize": 8,
+                                  "fontWeight": "700"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "oOIsj",
+                              "name": "S6 Runs Step Title",
+                              "fill": "$text-primary",
+                              "content": "Profile",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "650"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "JjeRo",
+                          "name": "S6 Runs Step Copy",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Create and version the exact structured source authority.",
+                          "lineHeight": 1.25,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 9,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "SMT21",
+                      "name": "S6 Compare Step",
+                      "width": "fill_container",
+                      "height": 76,
+                      "fill": "$bg-surface",
+                      "cornerRadius": 10,
+                      "stroke": "$action",
+                      "strokeWidth": {
+                        "left": 3
+                      },
+                      "layout": "vertical",
+                      "gap": 4,
+                      "padding": [
+                        11,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "BsB09",
+                          "name": "S6 Compare Step Header",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "H9MNU",
+                              "name": "S6 Compare Step Index",
+                              "width": 22,
+                              "height": 22,
+                              "fill": "$action",
+                              "cornerRadius": 7,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "ENPys",
+                                  "name": "S6 Compare Step Index Label",
+                                  "fill": "$bg-surface",
+                                  "content": "02",
+                                  "fontFamily": "$font-mono",
+                                  "fontSize": 8,
+                                  "fontWeight": "700"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "GpO3p",
+                              "name": "S6 Compare Step Title",
+                              "fill": "$text-primary",
+                              "content": "Promote / assign",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "650"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "DJ2da",
+                          "name": "S6 Compare Step Copy",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Review candidate evidence, then manage assignment explicitly.",
+                          "lineHeight": 1.25,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 9,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "K4jlZ1",
+                      "name": "S6 Cases Step",
+                      "width": "fill_container",
+                      "height": 76,
+                      "fill": "#FFFFFF00",
+                      "cornerRadius": 10,
+                      "stroke": "#FFFFFF00",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "padding": [
+                        11,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "c1fizc",
+                          "name": "S6 Cases Step Header",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "c8YXq",
+                              "name": "S6 Cases Step Index",
+                              "width": 22,
+                              "height": 22,
+                              "fill": "$bg-surface",
+                              "cornerRadius": 7,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "s9NLO",
+                                  "name": "S6 Cases Step Index Label",
+                                  "fill": "$text-muted",
+                                  "content": "03",
+                                  "fontFamily": "$font-mono",
+                                  "fontSize": 8,
+                                  "fontWeight": "700"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "gpQRI",
+                              "name": "S6 Cases Step Title",
+                              "fill": "$text-primary",
+                              "content": "Suggest",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "650"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "n5a8qe",
+                          "name": "S6 Cases Step Copy",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Run one Session v3 advisory suggestion from exact authority.",
+                          "lineHeight": 1.25,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 9,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "a0UY3",
+                      "name": "S6 Release Step",
+                      "width": "fill_container",
+                      "height": 76,
+                      "fill": "#FFFFFF00",
+                      "cornerRadius": 10,
+                      "stroke": "#FFFFFF00",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "padding": [
+                        11,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "PTJUx",
+                          "name": "S6 Release Step Header",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "flQKQ",
+                              "name": "S6 Release Step Index",
+                              "width": 22,
+                              "height": 22,
+                              "fill": "$bg-surface",
+                              "cornerRadius": 7,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "ZEfQ4",
+                                  "name": "S6 Release Step Index Label",
+                                  "fill": "$text-muted",
+                                  "content": "04",
+                                  "fontFamily": "$font-mono",
+                                  "fontSize": 8,
+                                  "fontWeight": "700"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "agrIv",
+                              "name": "S6 Release Step Title",
+                              "fill": "$text-primary",
+                              "content": "Evaluate",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "650"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "s8Djq1",
+                          "name": "S6 Release Step Copy",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Hand exact Run v7 evidence to comparison and human review.",
+                          "lineHeight": 1.25,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 9,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "z9cot",
+                      "name": "S6 Review Path Flexible Space",
+                      "width": "fill_container",
+                      "height": "fill_container"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "SF27f",
+                      "name": "S6 Review Stop Line",
+                      "width": "fill_container",
+                      "fill": "$warning-soft",
+                      "cornerRadius": 10,
+                      "stroke": "$warning",
+                      "strokeWidth": {
+                        "left": 3
+                      },
+                      "layout": "vertical",
+                      "gap": 5,
+                      "padding": 11,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "T8x0Qj",
+                          "name": "S6 Review Stop Line Title",
+                          "fill": "$warning",
+                          "content": "Advisory and dev / test only",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 10,
+                          "fontWeight": "650"
+                        },
+                        {
+                          "type": "text",
+                          "id": "EHyuI",
+                          "name": "S6 Review Stop Line Copy",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "No automatic assignment, tool execution, action application, release, retry, or replay.",
+                          "lineHeight": 1.3,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 9,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "yelhh",
+                  "name": "S6 Comparison Work Surface",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$bg-surface",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 18,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "MXfwG",
+                      "name": "S6 Comparison Scope Bar",
+                      "width": "fill_container",
+                      "height": 56,
+                      "fill": "$bg-muted",
+                      "cornerRadius": 10,
+                      "stroke": "$border-soft",
+                      "strokeWidth": 1,
+                      "padding": [
+                        0,
+                        14
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "WosH8",
+                          "name": "S6 Comparison Scope Copy",
+                          "layout": "vertical",
+                          "gap": 3,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "oY3Hh",
+                              "name": "S6 Comparison Scope Title",
+                              "fill": "$text-primary",
+                              "content": "Controlled Agent suggestion",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "650"
+                            },
+                            {
+                              "type": "text",
+                              "id": "WOiTz",
+                              "name": "S6 Comparison Scope Meta",
+                              "fill": "$text-secondary",
+                              "content": "workspace_demo · app_flow_agent · agent_copilot_profile v3",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 9,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "dWi8l",
+                          "name": "S6 Comparison Scope Statuses",
+                          "gap": 7,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "suaXJ",
+                              "name": "S6 Comparable Badge",
+                              "height": 24,
+                              "fill": "$success-soft",
+                              "cornerRadius": 7,
+                              "padding": [
+                                0,
+                                8
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "yVLBL",
+                                  "name": "S6 Comparable Badge Label",
+                                  "fill": "$success",
+                                  "content": "EXACT AUTHORITY",
+                                  "fontFamily": "$font-mono",
+                                  "fontSize": 8,
+                                  "fontWeight": "700",
+                                  "letterSpacing": 0.35
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "RAQex",
+                              "name": "S6 Instant View Badge",
+                              "height": 24,
+                              "fill": "$neutral-soft",
+                              "cornerRadius": 7,
+                              "padding": [
+                                0,
+                                8
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "hTcKF",
+                                  "name": "S6 Instant View Badge Label",
+                                  "fill": "$text-secondary",
+                                  "content": "ONE OWNER",
+                                  "fontFamily": "$font-mono",
+                                  "fontSize": 8,
+                                  "fontWeight": "700",
+                                  "letterSpacing": 0.35
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "c1eZK",
+                      "name": "S6 Comparison Main",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "gap": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "uj6Mi",
+                          "name": "S6 Run Pair Rail",
+                          "width": 252,
+                          "height": "fill_container",
+                          "fill": "$bg-muted",
+                          "cornerRadius": 11,
+                          "stroke": "$border-soft",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 10,
+                          "padding": 12,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "k3saZA",
+                              "name": "S6 Run Pair Header",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "iKHL0",
+                                  "name": "S6 Run Pair Title",
+                                  "fill": "$text-primary",
+                                  "content": "Authority chain",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "650"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "HM8pi",
+                                  "name": "S6 Pair Count",
+                                  "height": 24,
+                                  "fill": "$neutral-soft",
+                                  "cornerRadius": 7,
+                                  "padding": [
+                                    0,
+                                    8
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "AJCp8",
+                                      "name": "S6 Pair Count Label",
+                                      "fill": "$text-secondary",
+                                      "content": "4 EXACT REFS",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "700",
+                                      "letterSpacing": 0.35
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "HOR58",
+                              "name": "S6 Baseline Run",
+                              "width": "fill_container",
+                              "height": 92,
+                              "fill": "$bg-surface",
+                              "cornerRadius": 10,
+                              "stroke": "$action",
+                              "strokeWidth": {
+                                "top": 1,
+                                "right": 1,
+                                "bottom": 1,
+                                "left": 3
+                              },
+                              "layout": "vertical",
+                              "gap": 7,
+                              "padding": 11,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "oCboN",
+                                  "name": "S6 Baseline Run Header",
+                                  "width": "fill_container",
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "kzPcf",
+                                      "name": "S6 Baseline Run Title",
+                                      "fill": "$text-primary",
+                                      "content": "Profile version",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 11,
+                                      "fontWeight": "650"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "BjYvr",
+                                      "name": "S6 Baseline Run Status",
+                                      "height": 24,
+                                      "fill": "$success-soft",
+                                      "cornerRadius": 7,
+                                      "padding": [
+                                        0,
+                                        8
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "pWl3I",
+                                          "name": "S6 Baseline Run Status Label",
+                                          "fill": "$success",
+                                          "content": "VALID",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700",
+                                          "letterSpacing": 0.35
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "m3UT77",
+                                  "name": "S6 Baseline Run Id",
+                                  "fill": "$text-secondary",
+                                  "content": "profile_agent_flow · v3",
+                                  "fontFamily": "$font-mono",
+                                  "fontSize": 9,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "vpezk",
+                                  "name": "S6 Baseline Run Meta",
+                                  "fill": "$text-muted",
+                                  "content": "advisory policy · tools disabled",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 9,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "aBk5S",
+                              "name": "S6 Candidate Run",
+                              "width": "fill_container",
+                              "height": 92,
+                              "fill": "$bg-surface",
+                              "cornerRadius": 10,
+                              "stroke": "$border-soft",
+                              "strokeWidth": 1,
+                              "layout": "vertical",
+                              "gap": 7,
+                              "padding": 11,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "DsJhl",
+                                  "name": "S6 Candidate Run Header",
+                                  "width": "fill_container",
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "g1aOOt",
+                                      "name": "S6 Candidate Run Title",
+                                      "fill": "$text-primary",
+                                      "content": "Runtime assignment",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 11,
+                                      "fontWeight": "650"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "wBp5W",
+                                      "name": "S6 Candidate Run Status",
+                                      "height": 24,
+                                      "fill": "$warning-soft",
+                                      "cornerRadius": 7,
+                                      "padding": [
+                                        0,
+                                        8
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "x6Com1",
+                                          "name": "S6 Candidate Run Status Label",
+                                          "fill": "$warning",
+                                          "content": "ACTIVE",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700",
+                                          "letterSpacing": 0.35
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "ZdWd6",
+                                  "name": "S6 Candidate Run Id",
+                                  "fill": "$text-secondary",
+                                  "content": "assignment v2",
+                                  "fontFamily": "$font-mono",
+                                  "fontSize": 9,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "K5O9d",
+                                  "name": "S6 Candidate Run Meta",
+                                  "fill": "$text-muted",
+                                  "content": "candidate v4 · expected version matched",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 9,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "REInx",
+                              "name": "S6 Run Pair Boundary",
+                              "width": "fill_container",
+                              "fill": "$bg-surface",
+                              "cornerRadius": 9,
+                              "stroke": "$border-soft",
+                              "strokeWidth": 1,
+                              "layout": "vertical",
+                              "gap": 5,
+                              "padding": 10,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "JyDLP",
+                                  "name": "S6 Run Pair Boundary Title",
+                                  "fill": "$text-primary",
+                                  "content": "Read-time authority",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 10,
+                                  "fontWeight": "650"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "bQq8j",
+                                  "name": "S6 Run Pair Boundary Copy",
+                                  "fill": "$text-secondary",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "The owner reloads Profile, Configuration, Candidate, and Assignment before the single provider call.",
+                                  "lineHeight": 1.3,
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 9,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "rqSQT",
+                          "name": "S6 Comparison Detail",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 11,
+                          "stroke": "$border-soft",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "NChpO",
+                              "name": "S6 Comparison Detail Header",
+                              "width": "fill_container",
+                              "height": 56,
+                              "stroke": "$border-soft",
+                              "strokeWidth": {
+                                "bottom": 1
+                              },
+                              "padding": [
+                                0,
+                                14
+                              ],
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "ig1bM",
+                                  "name": "S6 Comparison Detail Heading",
+                                  "layout": "vertical",
+                                  "gap": 3,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "FYGaf",
+                                      "name": "S6 Comparison Detail Title",
+                                      "fill": "$text-primary",
+                                      "content": "Suggestion remains advisory",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 16,
+                                      "fontWeight": "650"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "a3XMh",
+                                      "name": "S6 Comparison Detail Subtitle",
+                                      "fill": "$text-secondary",
+                                      "content": "Review response metadata and candidate-action risk before opening exact Run evidence.",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 10,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "nh0ed",
+                                  "name": "S6 Regression Badge",
+                                  "height": 24,
+                                  "fill": "$warning-soft",
+                                  "cornerRadius": 7,
+                                  "padding": [
+                                    0,
+                                    8
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "Fjkqp",
+                                      "name": "S6 Regression Badge Label",
+                                      "fill": "$warning",
+                                      "content": "REQUIRES CONFIRMATION",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "700",
+                                      "letterSpacing": 0.35
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "fynu3",
+                              "name": "S6 Comparison Metrics",
+                              "width": "fill_container",
+                              "height": 88,
+                              "stroke": "$border-soft",
+                              "strokeWidth": {
+                                "bottom": 1
+                              },
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "X0FSx",
+                                  "name": "S6 Status Metric",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 5,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "xcuqE",
+                                      "name": "S6 Status Metric Label",
+                                      "fill": "$text-muted",
+                                      "content": "RESPONSE",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "yWYuL",
+                                      "name": "S6 Status Metric Value",
+                                      "fill": "$warning",
+                                      "content": "partial · advisory",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 13,
+                                      "fontWeight": "650"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "Q1a0q3",
+                                  "name": "S6 Duration Metric",
+                                  "width": "fill_container",
+                                  "stroke": "$border-soft",
+                                  "strokeWidth": {
+                                    "right": 1,
+                                    "left": 1
+                                  },
+                                  "layout": "vertical",
+                                  "gap": 5,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "zNtHy",
+                                      "name": "S6 Duration Metric Label",
+                                      "fill": "$text-muted",
+                                      "content": "SIDE EFFECT",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "z2iTwU",
+                                      "name": "S6 Duration Metric Value",
+                                      "fill": "$text-primary",
+                                      "content": "1 provider call",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 13,
+                                      "fontWeight": "650"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "BxkGS",
+                                      "name": "S6 Duration Metric Note",
+                                      "fill": "$text-muted",
+                                      "content": "tool / writeback 0",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 8,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "cihGC",
+                                  "name": "S6 Finding Metric",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 5,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "X2xkP6",
+                                      "name": "S6 Finding Metric Label",
+                                      "fill": "$text-muted",
+                                      "content": "ACTIONS",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "GrSDV",
+                                      "name": "S6 Finding Metric Value",
+                                      "fill": "$text-primary",
+                                      "content": "1 candidate edit",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 13,
+                                      "fontWeight": "650"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "zpVzz",
+                              "name": "S6 Comparison Findings",
+                              "width": "fill_container",
+                              "height": 104,
+                              "layout": "vertical",
+                              "gap": 7,
+                              "padding": [
+                                11,
+                                14
+                              ],
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "N4loJe",
+                                  "name": "S6 Finding One",
+                                  "width": "fill_container",
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "wpfWs",
+                                      "name": "S6 Finding One Copy",
+                                      "fill": "$text-primary",
+                                      "content": "Candidate edit requires explicit external confirmation",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 10,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "malws",
+                                      "name": "S6 Finding One Status",
+                                      "height": 24,
+                                      "fill": "$warning-soft",
+                                      "cornerRadius": 7,
+                                      "padding": [
+                                        0,
+                                        8
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "ARkkj",
+                                          "name": "S6 Finding One Status Label",
+                                          "fill": "$warning",
+                                          "content": "REVIEW",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700",
+                                          "letterSpacing": 0.35
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "KpDrz",
+                                  "name": "S6 Finding Two",
+                                  "width": "fill_container",
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "UWRB4",
+                                      "name": "S6 Finding Two Copy",
+                                      "fill": "$text-primary",
+                                      "content": "No tool, connector, search, or business write executed",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 10,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "e3L5kD",
+                                      "name": "S6 Finding Two Status",
+                                      "height": 24,
+                                      "fill": "$purple-soft",
+                                      "cornerRadius": 7,
+                                      "padding": [
+                                        0,
+                                        8
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "KlpPj",
+                                          "name": "S6 Finding Two Status Label",
+                                          "fill": "$purple",
+                                          "content": "BLOCKED",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700",
+                                          "letterSpacing": 0.35
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "qaZgN",
+                                  "name": "S6 Finding Three",
+                                  "width": "fill_container",
+                                  "height": 24,
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "rULxr",
+                                      "name": "S6 Finding Three Copy",
+                                      "fill": "$text-secondary",
+                                      "content": "Run v7 stores metadata-only execution evidence",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 10,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "DRW6G",
+                                      "name": "S6 Finding Three Status",
+                                      "height": 24,
+                                      "fill": "$neutral-soft",
+                                      "cornerRadius": 7,
+                                      "padding": [
+                                        0,
+                                        8
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "sX1rs",
+                                          "name": "S6 Finding Three Status Label",
+                                          "fill": "$text-secondary",
+                                          "content": "EXACT REF",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700",
+                                          "letterSpacing": 0.35
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "w6dV9x",
+                              "name": "S6 Node Delta Table",
+                              "width": "fill_container",
+                              "height": "fill_container",
+                              "fill": "$bg-muted",
+                              "stroke": "$border-soft",
+                              "strokeWidth": {
+                                "top": 1
+                              },
+                              "layout": "vertical",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "kd7Xq",
+                                  "name": "S6 Node Delta Header",
+                                  "width": "fill_container",
+                                  "height": 36,
+                                  "padding": [
+                                    0,
+                                    14
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "M4LZr",
+                                      "name": "S6 Node Delta Header Label",
+                                      "fill": "$text-muted",
+                                      "content": "AUTHORITY / STATE / OWNER / EVIDENCE",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "u8KzA",
+                                  "name": "S6 Node Delta Row Prompt",
+                                  "width": "fill_container",
+                                  "height": 44,
+                                  "fill": "$bg-surface",
+                                  "stroke": "$border-soft",
+                                  "strokeWidth": {
+                                    "top": 1
+                                  },
+                                  "padding": [
+                                    0,
+                                    14
+                                  ],
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "vLwMv",
+                                      "name": "S6 Node Delta Prompt Name",
+                                      "fill": "$text-primary",
+                                      "content": "Profile",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 10,
+                                      "fontWeight": "650"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "gnl00",
+                                      "name": "S6 Node Delta Prompt Value",
+                                      "fill": "$success",
+                                      "content": "version v3 · valid",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 10,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "Hz6xa",
+                                      "name": "S6 Node Delta Prompt Evidence",
+                                      "fill": "$text-muted",
+                                      "content": "Profile owner",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "e3ZsJO",
+                                  "name": "S6 Node Delta Row Model",
+                                  "width": "fill_container",
+                                  "height": 44,
+                                  "fill": "$bg-surface",
+                                  "stroke": "$border-soft",
+                                  "strokeWidth": {
+                                    "top": 1
+                                  },
+                                  "padding": [
+                                    0,
+                                    14
+                                  ],
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "aRlkY",
+                                      "name": "S6 Node Delta Model Name",
+                                      "fill": "$text-primary",
+                                      "content": "Candidate",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 10,
+                                      "fontWeight": "650"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "JSn8i",
+                                      "name": "S6 Node Delta Model Value",
+                                      "fill": "$warning",
+                                      "content": "approved v4",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 10,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "heq7i",
+                                      "name": "S6 Node Delta Model Evidence",
+                                      "fill": "$text-muted",
+                                      "content": "Publish owner",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "teen5",
+                                  "name": "S6 Node Delta Row Output",
+                                  "width": "fill_container",
+                                  "height": 44,
+                                  "fill": "$bg-surface",
+                                  "stroke": "$border-soft",
+                                  "strokeWidth": {
+                                    "top": 1
+                                  },
+                                  "padding": [
+                                    0,
+                                    14
+                                  ],
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "qawoU",
+                                      "name": "S6 Node Delta Output Name",
+                                      "fill": "$text-primary",
+                                      "content": "Assignment",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 10,
+                                      "fontWeight": "650"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "nOZ3n",
+                                      "name": "S6 Node Delta Output Value",
+                                      "fill": "$warning",
+                                      "content": "active v2",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 10,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "GFAeK",
+                                      "name": "S6 Node Delta Output Evidence",
+                                      "fill": "$text-muted",
+                                      "content": "Runtime owner",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "QXPor",
+                      "name": "S6 Review Transition Bar",
+                      "width": "fill_container",
+                      "height": 66,
+                      "fill": "$bg-muted",
+                      "cornerRadius": 10,
+                      "stroke": "$border-soft",
+                      "strokeWidth": 1,
+                      "padding": [
+                        0,
+                        14
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "U1B9d",
+                          "name": "S6 Review Transition Copy",
+                          "layout": "vertical",
+                          "gap": 3,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "wpwAm",
+                              "name": "S6 Review Transition Title",
+                              "fill": "$text-primary",
+                              "content": "Continue with exact Run evidence",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "650"
+                            },
+                            {
+                              "type": "text",
+                              "id": "uHIOT",
+                              "name": "S6 Review Transition Description",
+                              "fill": "$text-secondary",
+                              "content": "Keep the response volatile, then hand Run v7 to compatible comparison and versioned evaluation evidence.",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 9,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "J2rHJ",
+                          "name": "S6 Review Transition Actions",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "a2lTY2",
+                              "name": "S6 Case Transition",
+                              "height": 24,
+                              "fill": "$action-soft",
+                              "cornerRadius": 7,
+                              "padding": [
+                                0,
+                                8
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "j2V4lY",
+                                  "name": "S6 Case Transition Label",
+                                  "fill": "$action",
+                                  "content": "06  SESSION",
+                                  "fontFamily": "$font-mono",
+                                  "fontSize": 8,
+                                  "fontWeight": "700",
+                                  "letterSpacing": 0.35
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "oKY2G",
+                              "name": "S6 Release Transition",
+                              "height": 24,
+                              "fill": "$bg-surface",
+                              "cornerRadius": 7,
+                              "padding": [
+                                0,
+                                8
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "T3wxu",
+                                  "name": "S6 Release Transition Label",
+                                  "fill": "$text-primary",
+                                  "content": "07  EVALUATE",
+                                  "fontFamily": "$font-mono",
+                                  "fontSize": 8,
+                                  "fontWeight": "700",
+                                  "letterSpacing": 0.35
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "q7pfnh",
+      "x": 3590,
+      "y": 980,
+      "name": "S8 Prompt / Agent Type Workspace — Narrow / Dev Test · R1",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$bg-canvas",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "Ga6gG",
+          "name": "S6 Narrow Command Bar",
+          "width": "fill_container",
+          "height": 64,
+          "fill": "$bg-surface",
+          "stroke": "$border-soft",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            15
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "YscIH",
+              "name": "S6 Narrow Identity",
+              "gap": 9,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "jDqRH",
+                  "name": "S4 Narrow Mark",
+                  "width": 34,
+                  "height": 34,
+                  "fill": "$brand-soft",
+                  "cornerRadius": 10,
+                  "layout": "vertical",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "BB5pP",
+                      "name": "S4 Narrow Mark Letter",
+                      "fill": "$brand",
+                      "content": "R",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "J2N45",
+                  "name": "S4 Narrow Product Name",
+                  "fill": "$text-primary",
+                  "content": "RadishMind",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "650"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "W8fsUe",
+              "name": "S4 Narrow Menu",
+              "fill": "$bg-muted",
+              "cornerRadius": 99,
+              "stroke": "$border-soft",
+              "strokeWidth": 1,
+              "padding": [
+                8,
+                10
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "obsgS",
+                  "name": "S4 Narrow Menu Label",
+                  "fill": "$text-primary",
+                  "content": "Menu",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 11,
+                  "fontWeight": "650"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Kz1U2",
+          "name": "S6 Narrow Content",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$bg-canvas",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            12,
+            15
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "eMQ5X",
+              "name": "S6 Narrow Review Context",
+              "width": "fill_container",
+              "height": 94,
+              "fill": "$bg-surface",
+              "cornerRadius": 10,
+              "stroke": "$border-soft",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 5,
+              "padding": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ROCAR",
+                  "name": "S6 Narrow Context Header",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "xn7ou",
+                      "name": "S6 Narrow Breadcrumb",
+                      "fill": "$text-muted",
+                      "content": "APPLICATION / AGENT",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 8,
+                      "fontWeight": "normal",
+                      "letterSpacing": 0.5
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Vnrmm",
+                      "name": "S6 Narrow Dev Test Badge",
+                      "height": 22,
+                      "fill": "$warning-soft",
+                      "cornerRadius": 7,
+                      "padding": [
+                        0,
+                        7
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "YWvX4",
+                          "name": "S6 Narrow Dev Test Badge Label",
+                          "fill": "$warning",
+                          "content": "DEV / TEST",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 7,
+                          "fontWeight": "700",
+                          "letterSpacing": 0.25
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "nTy8f",
+                  "name": "S6 Narrow Review Title",
+                  "fill": "$text-primary",
+                  "content": "Agent type workspace",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 22,
+                  "fontWeight": "650",
+                  "letterSpacing": -0.3
+                },
+                {
+                  "type": "frame",
+                  "id": "WnyNY",
+                  "name": "S6 Narrow Context Footer",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "MCpze",
+                      "name": "S6 Narrow Scope",
+                      "fill": "$text-secondary",
+                      "content": "app_flow_agent · workspace_demo",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 8,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "v1LBJD",
+                      "name": "S6 Narrow Context Statuses",
+                      "gap": 5,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "wTJI9",
+                          "name": "S6 Narrow Active Badge",
+                          "height": 22,
+                          "fill": "$success-soft",
+                          "cornerRadius": 7,
+                          "padding": [
+                            0,
+                            7
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "MUmk0",
+                              "name": "S6 Narrow Active Badge Label",
+                              "fill": "$success",
+                              "content": "ACTIVE",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 7,
+                              "fontWeight": "700",
+                              "letterSpacing": 0.25
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "To1L9",
+                          "name": "S6 Narrow Partial Badge",
+                          "height": 22,
+                          "fill": "$purple-soft",
+                          "cornerRadius": 7,
+                          "padding": [
+                            0,
+                            7
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Le7gr",
+                              "name": "S6 Narrow Partial Badge Label",
+                              "fill": "$purple",
+                              "content": "ADVISORY",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 7,
+                              "fontWeight": "700",
+                              "letterSpacing": 0.25
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ajniB",
+              "name": "S6 Narrow Review Path",
+              "width": "fill_container",
+              "height": 90,
+              "fill": "$bg-surface",
+              "cornerRadius": 10,
+              "stroke": "$border-soft",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 6,
+              "padding": 9,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "JeF6K",
+                  "name": "S6 Narrow Review Path Label",
+                  "fill": "$text-muted",
+                  "content": "TYPE PATH",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 8,
+                  "fontWeight": "600",
+                  "letterSpacing": 0.8
+                },
+                {
+                  "type": "frame",
+                  "id": "F9rwE5",
+                  "name": "S6 Narrow Review Tasks",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "yLEBA",
+                      "name": "S6 Narrow Runs Task",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "fill": "$bg-surface",
+                      "cornerRadius": 8,
+                      "stroke": "$border-soft",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 3,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "d2eaQy",
+                          "name": "S6 Narrow Runs Task Index",
+                          "fill": "$text-muted",
+                          "content": "01",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 7,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "hq3Xi",
+                          "name": "S6 Narrow Runs Task Label",
+                          "fill": "$text-secondary",
+                          "content": "Profile",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 9,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "M2T6m",
+                      "name": "S6 Narrow Compare Task",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "fill": "$bg-surface",
+                      "cornerRadius": 8,
+                      "stroke": "$border-soft",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 3,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "m5ofQj",
+                          "name": "S6 Narrow Compare Task Index",
+                          "fill": "$text-muted",
+                          "content": "02",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 7,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "gxgFU",
+                          "name": "S6 Narrow Compare Task Label",
+                          "fill": "$text-secondary",
+                          "content": "Assign",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 9,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "GIcGy",
+                      "name": "S6 Narrow Cases Task",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "fill": "$bg-surface",
+                      "cornerRadius": 8,
+                      "stroke": "$border-soft",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 3,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "FCB0K",
+                          "name": "S6 Narrow Cases Task Index",
+                          "fill": "$text-muted",
+                          "content": "03",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 7,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "pfYQb",
+                          "name": "S6 Narrow Cases Task Label",
+                          "fill": "$text-secondary",
+                          "content": "Suggest",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 9,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Fu3PI",
+                      "name": "S6 Narrow Release Task",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "fill": "$action-soft",
+                      "cornerRadius": 8,
+                      "stroke": "$action",
+                      "strokeWidth": {
+                        "top": 1,
+                        "right": 1,
+                        "bottom": 2,
+                        "left": 1
+                      },
+                      "layout": "vertical",
+                      "gap": 3,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "B72Kcd",
+                          "name": "S6 Narrow Release Task Index",
+                          "fill": "$action",
+                          "content": "04",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 7,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "g2vne",
+                          "name": "S6 Narrow Release Task Label",
+                          "fill": "$action",
+                          "content": "Evaluate",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 9,
+                          "fontWeight": "650"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "L1sFln",
+              "name": "S6 Narrow Release Owner",
+              "width": "fill_container",
+              "height": 454,
+              "fill": "$bg-surface",
+              "cornerRadius": 10,
+              "stroke": "$border-soft",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Z32cX",
+                  "name": "S6 Narrow Release Owner Header",
+                  "width": "fill_container",
+                  "height": 56,
+                  "stroke": "$border-soft",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "n1bVZ",
+                      "name": "S6 Narrow Release Heading",
+                      "layout": "vertical",
+                      "gap": 3,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ppa10",
+                          "name": "S6 Narrow Release Title",
+                          "fill": "$text-primary",
+                          "content": "Controlled suggestion",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 14,
+                          "fontWeight": "650"
+                        },
+                        {
+                          "type": "text",
+                          "id": "p8WQC8",
+                          "name": "S6 Narrow Release Meta",
+                          "fill": "$text-secondary",
+                          "content": "profile_agent_flow · assignment v2",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 8,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "dqL2k",
+                      "name": "S6 Narrow Review Digest Badge",
+                      "height": 22,
+                      "fill": "$neutral-soft",
+                      "cornerRadius": 7,
+                      "padding": [
+                        0,
+                        7
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "J8nTr",
+                          "name": "S6 Narrow Review Digest Badge Label",
+                          "fill": "$text-secondary",
+                          "content": "EXACT AUTHORITY",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 7,
+                          "fontWeight": "700",
+                          "letterSpacing": 0.25
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "E2KJBk",
+                  "name": "S6 Narrow Review Digest",
+                  "width": "fill_container",
+                  "height": 58,
+                  "fill": "$bg-muted",
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    9,
+                    10
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "KHVAl",
+                      "name": "S6 Narrow Digest Header",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "B5zyYu",
+                          "name": "S6 Narrow Digest Title",
+                          "fill": "$text-primary",
+                          "content": "Authority chain",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 10,
+                          "fontWeight": "650"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "sSQxk",
+                          "name": "S6 Narrow Suite Passed Badge",
+                          "height": 22,
+                          "fill": "$success-soft",
+                          "cornerRadius": 7,
+                          "padding": [
+                            0,
+                            7
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "n0q9OE",
+                              "name": "S6 Narrow Suite Passed Badge Label",
+                              "fill": "$success",
+                              "content": "READY 4 / 4",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 7,
+                              "fontWeight": "700",
+                              "letterSpacing": 0.25
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "XhvKP",
+                      "name": "S6 Narrow Digest Value",
+                      "fill": "$text-secondary",
+                      "content": "profile v3 · configuration v4 · candidate v4 · assignment v2",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 8,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "af3aV",
+                  "name": "S6 Narrow Decision Summary",
+                  "width": "fill_container",
+                  "height": 76,
+                  "stroke": "$border-soft",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "padding": 10,
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "oc6C0",
+                      "name": "S6 Narrow Decision Summary Copy",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "pbyfY",
+                          "name": "S6 Narrow Decision Summary Label",
+                          "fill": "$text-muted",
+                          "content": "RESPONSE",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 8,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "c1oRSY",
+                          "name": "S6 Narrow Decision Summary Value",
+                          "fill": "$success",
+                          "content": "Partial",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 16,
+                          "fontWeight": "650"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Fx3nY",
+                          "name": "S6 Narrow Decision Summary Note",
+                          "fill": "$text-secondary",
+                          "content": "advisory evidence",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 9,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "TwUvq",
+                      "name": "S6 Narrow Decision Evidence Badge",
+                      "height": 22,
+                      "fill": "$warning-soft",
+                      "cornerRadius": 7,
+                      "padding": [
+                        0,
+                        7
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "G4dSu",
+                          "name": "S6 Narrow Decision Evidence Badge Label",
+                          "fill": "$warning",
+                          "content": "CONFIRMATION REQUIRED",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 7,
+                          "fontWeight": "700",
+                          "letterSpacing": 0.25
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "K4BvGp",
+                  "name": "S6 Narrow Decision Timeline",
+                  "width": "fill_container",
+                  "height": 116,
+                  "layout": "vertical",
+                  "gap": 7,
+                  "padding": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "EoPp2",
+                      "name": "S6 Narrow Decision Evidence One",
+                      "width": "fill_container",
+                      "height": 44,
+                      "fill": "$bg-muted",
+                      "cornerRadius": 8,
+                      "padding": [
+                        0,
+                        9
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "m3ZzM",
+                          "name": "S6 Narrow Decision One Copy",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "WCNun",
+                              "name": "S6 Narrow Decision One Title",
+                              "fill": "$text-primary",
+                              "content": "Candidate edit proposed",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 10,
+                              "fontWeight": "650"
+                            },
+                            {
+                              "type": "text",
+                              "id": "CXPUM",
+                              "name": "S6 Narrow Decision One Meta",
+                              "fill": "$text-muted",
+                              "content": "Run v7 · exact authority · metadata only",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 7,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "lsIPk",
+                          "name": "S6 Narrow Decision One Status",
+                          "height": 22,
+                          "fill": "$success-soft",
+                          "cornerRadius": 7,
+                          "padding": [
+                            0,
+                            7
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "nSZlS",
+                              "name": "S6 Narrow Decision One Status Label",
+                              "fill": "$success",
+                              "content": "REVIEW",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 7,
+                              "fontWeight": "700",
+                              "letterSpacing": 0.25
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "G8enUV",
+                      "name": "S6 Narrow Decision Evidence Two",
+                      "width": "fill_container",
+                      "height": 44,
+                      "fill": "$bg-muted",
+                      "cornerRadius": 8,
+                      "padding": [
+                        0,
+                        9
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "pM1xv",
+                          "name": "S6 Narrow Decision Two Copy",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "evZcs",
+                              "name": "S6 Narrow Decision Two Title",
+                              "fill": "$text-primary",
+                              "content": "No tool or writeback executed",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 10,
+                              "fontWeight": "650"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Z0PYEF",
+                              "name": "S6 Narrow Decision Two Meta",
+                              "fill": "$text-muted",
+                              "content": "provider side effect 1 · all others 0",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 7,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "xtd2D",
+                          "name": "S6 Narrow Decision Two Status",
+                          "height": 22,
+                          "fill": "$purple-soft",
+                          "cornerRadius": 7,
+                          "padding": [
+                            0,
+                            7
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "nUpbQ",
+                              "name": "S6 Narrow Decision Two Status Label",
+                              "fill": "$purple",
+                              "content": "BLOCKED",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 7,
+                              "fontWeight": "700",
+                              "letterSpacing": 0.25
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "gWfts",
+                  "name": "S6 Narrow Decision Action Area",
+                  "width": "fill_container",
+                  "height": 58,
+                  "fill": "$bg-muted",
+                  "stroke": "$border-soft",
+                  "strokeWidth": {
+                    "top": 1,
+                    "bottom": 1
+                  },
+                  "padding": [
+                    8,
+                    10
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "V4EEOB",
+                      "name": "S6 Narrow Decision Action Copy",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "EMdRE",
+                          "name": "S6 Narrow Decision Action Title",
+                          "fill": "$text-primary",
+                          "content": "Open exact run evidence",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 10,
+                          "fontWeight": "650"
+                        },
+                        {
+                          "type": "text",
+                          "id": "nMgIa",
+                          "name": "S6 Narrow Decision Action Note",
+                          "fill": "$text-muted",
+                          "content": "evaluation keeps current window",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "t2iaH",
+                      "name": "S6 Narrow Decision Action Button",
+                      "height": 34,
+                      "fill": "$action",
+                      "cornerRadius": 8,
+                      "padding": [
+                        0,
+                        12
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "hNOix",
+                          "name": "S6 Narrow Decision Action Label",
+                          "fill": "$bg-surface",
+                          "content": "Review",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 10,
+                          "fontWeight": "650"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "r0ho8",
+                  "name": "S6 Narrow Release Owner Footer",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": 10,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "M0ctV",
+                      "name": "S6 Narrow Release Boundary Title",
+                      "fill": "$warning",
+                      "content": "Suggestion is not an executed action",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 10,
+                      "fontWeight": "650"
+                    },
+                    {
+                      "type": "text",
+                      "id": "W2rdk",
+                      "name": "S6 Narrow Release Boundary Copy",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "No automatic confirmation, assignment, release, deploy, retry, replay, tool execution, or business writeback.",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "DdJh4",
+              "name": "S6 Narrow Global Boundary",
+              "width": "fill_container",
+              "height": 76,
+              "fill": "$warning-soft",
+              "cornerRadius": 10,
+              "stroke": "$warning",
+              "strokeWidth": {
+                "left": 3
+              },
+              "layout": "vertical",
+              "gap": 5,
+              "padding": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "wk6WO",
+                  "name": "S6 Narrow Global Boundary Header",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "hj4wA",
+                      "name": "S6 Narrow Global Boundary Title",
+                      "fill": "$warning",
+                      "content": "Dev / test type boundary",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 10,
+                      "fontWeight": "650"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "jaIZv",
+                      "name": "S6 Narrow Read Only Badge",
+                      "height": 22,
+                      "fill": "$bg-surface",
+                      "cornerRadius": 7,
+                      "padding": [
+                        0,
+                        7
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "HnHYJ",
+                          "name": "S6 Narrow Read Only Badge Label",
+                          "fill": "$warning",
+                          "content": "NO AUTO EXECUTION",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 7,
+                          "fontWeight": "700",
+                          "letterSpacing": 0.25
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "a4O8w",
+                  "name": "S6 Narrow Global Boundary Copy",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Prompt uses the same task topology with Template, Invocation, Session v2, Run v6, and Comparison v5 owners.",
+                  "lineHeight": 1.25,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 9,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "dw3b9",
+      "x": 2030,
+      "y": 1960,
+      "name": "S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 Visual Language — Design Decision Record · R13",
+      "clip": true,
+      "width": 1440,
+      "height": 410,
+      "fill": "#F7F7F4",
+      "layout": "vertical",
+      "gap": 16,
+      "padding": [
+        22,
+        26
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "ZBfRQ",
+          "name": "R12 Decision Header",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "dAatj",
+              "name": "R12 Decision Title",
+              "layout": "vertical",
+              "gap": 3,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "OgVO6",
+                  "name": "R12 Title",
+                  "fill": "#19241F",
+                  "content": "Modern Workbench language · S1–S8 · R13",
+                  "fontFamily": "Inter",
+                  "fontSize": 20,
+                  "fontWeight": "650"
+                },
+                {
+                  "type": "text",
+                  "id": "ZPezu",
+                  "name": "R12 Subtitle",
+                  "fill": "#6D7872",
+                  "content": "Type-specific source, governance, controlled use, and evaluation handoff without duplicating owners.",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "XkSUA",
+              "name": "R12 Decision Tags",
+              "gap": 7,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "KCkXh",
+                  "name": "R12 Tag INTERACTION",
+                  "fill": "#EAF1F4",
+                  "cornerRadius": 999,
+                  "layout": "vertical",
+                  "padding": [
+                    6,
+                    9
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "GA8qX",
+                      "name": "R12 Tag INTERACTION Text",
+                      "fill": "#23546C",
+                      "content": "INTERACTION",
+                      "fontFamily": "Inter",
+                      "fontSize": 8,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Fk1hn",
+                  "name": "R12 Tag DEV / TEST",
+                  "fill": "#EDF4F0",
+                  "cornerRadius": 999,
+                  "layout": "vertical",
+                  "padding": [
+                    6,
+                    9
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "PjK1J",
+                      "name": "R12 Tag DEV / TEST Text",
+                      "fill": "#2F6E51",
+                      "content": "DEV / TEST",
+                      "fontFamily": "Inter",
+                      "fontSize": 8,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "yCJpl",
+                  "name": "R12 Tag PRODUCTION CLOSED",
+                  "fill": "#FAECEA",
+                  "cornerRadius": 999,
+                  "layout": "vertical",
+                  "padding": [
+                    6,
+                    9
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "RirIF",
+                      "name": "R12 Tag PRODUCTION CLOSED Text",
+                      "fill": "#9C4E52",
+                      "content": "PRODUCTION CLOSED",
+                      "fontFamily": "Inter",
+                      "fontSize": 8,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "E7MwsK",
+          "name": "R12 Decision Columns",
+          "width": "fill_container",
+          "height": "fill_container",
+          "gap": 12,
+          "children": [
+            {
+              "type": "frame",
+              "id": "PdLGN",
+              "name": "R12 SELECTION AND HIERARCHY",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "#FFFFFF",
+              "stroke": "#D9DFDB",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 9,
+              "padding": [
+                14,
+                16
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Zaclx",
+                  "name": "R12 SELECTION AND HIERARCHY Title",
+                  "fill": "#6E7973",
+                  "content": "SELECTION AND HIERARCHY",
+                  "fontFamily": "Inter",
+                  "fontSize": 9,
+                  "fontWeight": "700",
+                  "letterSpacing": 0.8
+                },
+                {
+                  "type": "frame",
+                  "id": "LVXBa",
+                  "name": "R12 Decision 01",
+                  "width": "fill_container",
+                  "gap": 9,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "a6kzRu",
+                      "name": "R12 Decision 01 Number",
+                      "width": 22,
+                      "height": 22,
+                      "fill": "#EEF2EF",
+                      "cornerRadius": 7,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "EfMPC",
+                          "name": "R12 Decision 01 Number Text",
+                          "fill": "#637069",
+                          "content": "01",
+                          "fontFamily": "Inter",
+                          "fontSize": 8,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "SFU5E",
+                      "name": "R12 Decision 01 Text",
+                      "fill": "#3E4A44",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Navigation selects the current page family; task rails select the current owner.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "WnCN1",
+                  "name": "R12 Decision 02",
+                  "width": "fill_container",
+                  "gap": 9,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "JJcnj",
+                      "name": "R12 Decision 02 Number",
+                      "width": 22,
+                      "height": 22,
+                      "fill": "#EEF2EF",
+                      "cornerRadius": 7,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "jYE52",
+                          "name": "R12 Decision 02 Number Text",
+                          "fill": "#637069",
+                          "content": "02",
+                          "fontFamily": "Inter",
+                          "fontSize": 8,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "AKcWd",
+                      "name": "R12 Decision 02 Text",
+                      "fill": "#3E4A44",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Only rows that drive detail use the blue selection rail. Status remains a separate text and badge channel.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Ebrxi",
+                  "name": "R12 Decision 03",
+                  "width": "fill_container",
+                  "gap": 9,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "fLbFX",
+                      "name": "R12 Decision 03 Number",
+                      "width": 22,
+                      "height": 22,
+                      "fill": "#EEF2EF",
+                      "cornerRadius": 7,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "avC7q",
+                          "name": "R12 Decision 03 Number Text",
+                          "fill": "#637069",
+                          "content": "03",
+                          "fontFamily": "Inter",
+                          "fontSize": 8,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "m3ihz",
+                      "name": "R12 Decision 03 Text",
+                      "fill": "#3E4A44",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "S8 uses one application-kind context and one type task path; only the current task owner is mounted.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "mgBXj",
+              "name": "R12 OWNER, SCOPE, AND ACTION",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "#FFFFFF",
+              "stroke": "#D9DFDB",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 9,
+              "padding": [
+                14,
+                16
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "N3w3i",
+                  "name": "R12 OWNER, SCOPE, AND ACTION Title",
+                  "fill": "#6E7973",
+                  "content": "OWNER, SCOPE, AND ACTION",
+                  "fontFamily": "Inter",
+                  "fontSize": 9,
+                  "fontWeight": "700",
+                  "letterSpacing": 0.8
+                },
+                {
+                  "type": "frame",
+                  "id": "VL9eJ",
+                  "name": "R12 Decision 04",
+                  "width": "fill_container",
+                  "gap": 9,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "F5GU3",
+                      "name": "R12 Decision 04 Number",
+                      "width": 22,
+                      "height": 22,
+                      "fill": "#EEF2EF",
+                      "cornerRadius": 7,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "f7OJfT",
+                          "name": "R12 Decision 04 Number Text",
+                          "fill": "#637069",
+                          "content": "04",
+                          "fontFamily": "Inter",
+                          "fontSize": 8,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "g24nCI",
+                      "name": "R12 Decision 04 Text",
+                      "fill": "#3E4A44",
+                      "textGrowth": "fixed-width",
+                      "width": 340,
+                      "content": "Prompt Template and Agent Profile remain separate source owners with exact tenant + workspace + application scope.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "x7InkH",
+                  "name": "R12 Decision 05",
+                  "width": "fill_container",
+                  "gap": 9,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "ELyad",
+                      "name": "R12 Decision 05 Number",
+                      "width": 22,
+                      "height": 22,
+                      "fill": "#EEF2EF",
+                      "cornerRadius": 7,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "f3uZvK",
+                          "name": "R12 Decision 05 Number Text",
+                          "fill": "#637069",
+                          "content": "05",
+                          "fontFamily": "Inter",
+                          "fontSize": 8,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "oXhTp",
+                      "name": "R12 Decision 05 Text",
+                      "fill": "#3E4A44",
+                      "textGrowth": "fixed-width",
+                      "width": 340,
+                      "content": "Configuration, Candidate, and Runtime Assignment stay distinct; every mutation keeps its own permission and CAS.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "BjcrS",
+                  "name": "R12 Decision 06",
+                  "width": "fill_container",
+                  "gap": 9,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "ysN23",
+                      "name": "R12 Decision 06 Number",
+                      "width": 22,
+                      "height": 22,
+                      "fill": "#EEF2EF",
+                      "cornerRadius": 7,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "VBe0f",
+                          "name": "R12 Decision 06 Number Text",
+                          "fill": "#637069",
+                          "content": "06",
+                          "fontFamily": "Inter",
+                          "fontSize": 8,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "Ui32Q",
+                      "name": "R12 Decision 06 Text",
+                      "fill": "#3E4A44",
+                      "textGrowth": "fixed-width",
+                      "width": 340,
+                      "content": "Access, invocation, Session, Run, and Evaluation remain existing owners; approval never triggers the next owner.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "MyGBx",
+              "name": "R12 RESPONSIVE ORDER AND STOP LINE",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "#FFFFFF",
+              "stroke": "#D9DFDB",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 9,
+              "padding": [
+                14,
+                16
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "akvO2",
+                  "name": "R12 RESPONSIVE ORDER AND STOP LINE Title",
+                  "fill": "#6E7973",
+                  "content": "RESPONSIVE ORDER AND STOP LINE",
+                  "fontFamily": "Inter",
+                  "fontSize": 9,
+                  "fontWeight": "700",
+                  "letterSpacing": 0.8
+                },
+                {
+                  "type": "frame",
+                  "id": "X03oi",
+                  "name": "R12 Decision 07",
+                  "width": "fill_container",
+                  "gap": 9,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "PC4ot",
+                      "name": "R12 Decision 07 Number",
+                      "width": 22,
+                      "height": 22,
+                      "fill": "#EEF2EF",
+                      "cornerRadius": 7,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "jt1f5",
+                          "name": "R12 Decision 07 Number Text",
+                          "fill": "#637069",
+                          "content": "07",
+                          "fontFamily": "Inter",
+                          "fontSize": 8,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "dm1Ze",
+                      "name": "R12 Decision 07 Text",
+                      "fill": "#3E4A44",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Desktop keeps context → type rail → current owner. Narrow keeps context → all type tasks → one owner → stop line.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "LcuvX",
+                  "name": "R12 Decision 08",
+                  "width": "fill_container",
+                  "gap": 9,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "g7W66E",
+                      "name": "R12 Decision 08 Number",
+                      "width": 22,
+                      "height": 22,
+                      "fill": "#EEF2EF",
+                      "cornerRadius": 7,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "gY8gW",
+                          "name": "R12 Decision 08 Number Text",
+                          "fill": "#637069",
+                          "content": "08",
+                          "fontFamily": "Inter",
+                          "fontSize": 8,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "zPA7J",
+                      "name": "R12 Decision 08 Text",
+                      "fill": "#3E4A44",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Template, Profile, Session, Run, and Evaluation lists remain current owner windows, never full-history totals.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "DF9Jh",
+                  "name": "R12 Decision 09",
+                  "width": "fill_container",
+                  "gap": 9,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "C5PGUx",
+                      "name": "R12 Decision 09 Number",
+                      "width": 22,
+                      "height": 22,
+                      "fill": "#F4DDDA",
+                      "cornerRadius": 7,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "nkZL9",
+                          "name": "R12 Decision 09 Number Text",
+                          "fill": "#9E4E53",
+                          "content": "09",
+                          "fontFamily": "Inter",
+                          "fontSize": 8,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "wFEaX",
+                      "name": "R12 Decision 09 Text",
+                      "fill": "#3E4A44",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "No production auth, automatic assignment or release, agent loop, tool execution, retry, replay, or business writeback.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "variables": {

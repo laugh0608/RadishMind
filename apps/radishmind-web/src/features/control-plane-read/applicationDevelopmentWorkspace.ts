@@ -95,6 +95,7 @@ const STAGE_DEFINITIONS: ReadonlyArray<ApplicationDevelopmentStageDefinition> = 
       "workspace-api-keys",
       "application-rag-invocation",
       "prompt-application-invocation",
+      "prompt-application-session",
       "agent-copilot-invocation",
       "agent-copilot-session",
       "model-gateway-playground",

@@ -2,13 +2,13 @@
 
 更新时间：2026-08-08
 
-状态：`radishmind_family_ui_reference_mapping_v1_s1_r8_s2_r6_s3_r2_s4_r1_s5_r1_s6_r1_s7_r1_implemented`
+状态：`radishmind_family_ui_reference_mapping_v1_s1_r8_s2_r6_s3_r2_s4_r1_s5_r1_s6_r1_s7_r1_s8_r1_implemented`
 
 ## 文档职责
 
-本文件把 RadishX `docs/design/family-ui/references.md` 登记的 27 张外部 UI 参考图，逐项映射到 RadishMind 七个产品化设计面。它只承载“吸收什么、放到哪里、明确不学什么”的设计决策，不复制图片，不替代 family-ui 通用规范，也不改变 RadishMind 功能边界。
+本文件把 RadishX `docs/design/family-ui/references.md` 登记的 27 张外部 UI 参考图，逐项映射到 RadishMind 八个产品化设计面。它只承载“吸收什么、放到哪里、明确不学什么”的设计决策，不复制图片，不替代 family-ui 通用规范，也不改变 RadishMind 功能边界。
 
-七个目标产品面：
+八个目标产品面：
 
 | 编号 | 产品面 | 首批真实任务 |
 | --- | --- | --- |
@@ -19,6 +19,7 @@
 | `S5` | Application Runtime Review | 受控调用、精确请求审查、应用当前窗口运行证据与跨 owner handoff |
 | `S6` | Workflow Run & Evaluation Review | 运行定位、兼容比较、版本化用例 / 套件与摘要绑定的人工判断 |
 | `S7` | Admin Control Plane | 管理上下文、七资源定位、Tenant / Audit 只读详情、身份缺口与开发测试态配置 owner |
+| `S8` | Prompt / Agent Type Workspace | 类型源码、治理、assignment、Access、受控调用与 Evaluation 交接的单任务路径 |
 
 ## 使用与版权边界
 
@@ -143,3 +144,4 @@ S6 组合原则：四个精确任务入口共用 application / workspace context
 - `S5 R1` 已按共享参考原则完成 Application Runtime Review：桌面以 context → vertical task rail → single owner 建立主次，`<=1280px` 把任务轨改为横向三段，`<=760px` 改为纵向顺序；普通 request / timeline 行保持中性，任务和详情选中使用墨蓝细轨，状态 badge 不承担选中语义。Pencil Desktop / Narrow R1 与 Decision R10 全树无裁切、越界和占位节点；真实浏览器覆盖 `1440x900`、`1281/1280px`、`1101/1100px`、`761/760px`、`390x844`，各宽度无横向溢出、只挂载一个 owner，控制台零 warning / error。
 - `S6 R1` 已按二次转译原则完成 Workflow Run & Evaluation Review：Desktop 以 context → vertical four-task rail → dominant owner 建立运行定位、兼容比较、版本化证据与人工判断的连续路径；Narrow 固定为 context → four-task row → current owner → stop line。Pencil Desktop / Narrow R1 与 Decision R11 全树无裁切、越界或占位节点；真实浏览器覆盖 `1440x900`、`1281/1280px`、`1101/1100px`、`761/760px`、`390x844`，精确 hash、单 owner、Run history 一级导航归属、窄屏顺序和零横向溢出均通过，控制台零 warning / error。
 - `S7 R1` 继续吸收 `ref-27` 的连续资源路径、`ref-25` 的白色抬升 owner 和 S1–S6 已冻结的墨蓝轻选中轨：Desktop 使用 context → seven-resource path → single owner，Narrow 固定为 context → `4 + 3` task grid → owner → stop line。普通资源和状态保持中性，只有当前任务或驱动 Audit detail 的记录获得选中；User / Role 缺口、offline、denied 与 activation state 均不冒充选择。Pencil Desktop / Narrow R1 与 Decision R12 全树无裁切、越界或占位节点；真实浏览器覆盖 `1440x900`、全部关键断点与 `390x844`，单 owner、窄屏顺序和零横向溢出均通过，控制台零 warning / error。
+- `S8 R1` 继续转译 `ref-27` 的连续任务路径、`ref-25` 的纸色抬升 owner，以及 S2 / S4 / S6 已冻结的 context、Access 与 evidence 交接：Desktop 使用 type context → seven / eight-task path → single owner，Narrow 固定为 context → complete task grid → owner → stop line。普通任务保持中性，只有当前任务使用墨蓝细轨；ready、archived、blocked 与 assignment state 不承担选中语义。Pencil Desktop / Narrow R1 与 Decision R13 全树无裁切、越界或占位节点；真实浏览器覆盖桌面、关键断点与 `390×844`，单 owner、窄屏顺序和零横向溢出均通过，控制台零 warning / error。

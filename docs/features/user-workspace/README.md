@@ -6,8 +6,9 @@
 
 ## 当前专题
 
-- [RadishMind Family UI 参考图产品面映射 v1](radishmind-family-ui-reference-mapping-v1.md)：已把 family-ui `references.md` 的 `ref-01` 至 `ref-27` 逐项映射到产品壳、Application Workspace、Saved Draft / Designer、API Integration / Key 与 Application Runtime Review，固定实际查看、共享转译、禁止照搬内容、Pencil 构件与版权停止线。
-- [RadishMind Family UI 产品化设计与迁移 v1](radishmind-family-ui-productization-v1.md)：family-ui `v26.7.3` 参考基线、RadishMind Workbench 选择、原样 token 镜像和身份 / 操作 / 注意语义分层已经对齐；`S1 R8`、`S2 R6`、`S3 R2`、`S4 R1`、`S5 R1` 与 `S6 R1` 的 Pencil、React、真实浏览器和文档真相源均已完成。完整 Pencil 只覆盖六个 `A` 级页面族及必要变体，同族相似页面直接实现并以真实浏览器复核。
+- [RadishMind Family UI 参考图产品面映射 v1](radishmind-family-ui-reference-mapping-v1.md)：已把 family-ui `references.md` 的 `ref-01` 至 `ref-27` 逐项映射到 S1–S8 八个产品面，固定实际查看、共享转译、禁止照搬内容、Pencil 构件与版权停止线。
+- [RadishMind Family UI 产品化设计与迁移 v1](radishmind-family-ui-productization-v1.md)：family-ui `v26.7.3` 参考基线、RadishMind Workbench 选择、原样 token 镜像和身份 / 操作 / 注意语义分层已经对齐；`S1 R8` 至 `S8 R1` 的 Pencil、React、真实浏览器和文档真相源均已完成。完整 Pencil 只覆盖八个 `A` 级页面族及必要变体，同族相似页面直接实现并以真实浏览器复核。
+- [Prompt / Agent / Copilot 类型工作区产品化 v1](prompt-agent-copilot-type-workspace-productization-v1.md)：S8 已完成。既有 Template / Profile、Configuration、Candidate、Assignment、Access、Session / Invocation、Run 与 Evaluation owner 被编排为七 / 八任务单 owner 工作区；开发测试态停止线、`A` 级 Pencil 与真实浏览器证据均已关闭。
 - [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](workspace-scoped-mutation-authorization-dev-test-v1.md)：批次 A 至 E 共 47 条 mutation 已完成 identity / membership 双重权限、active workspace 唯一选择、原子组合与条件权限、稳定拒绝映射和零业务 / 外部副作用证据；专题关闭。
 - [工作区运营收件箱（开发 / 测试态）v1](workspace-operations-inbox-dev-test-v1.md)：批次 A 已完成四类既有 owner 首分页关注项、来源覆盖、稳定严重度、Web 既有详情跳转和 workspace 切换失败关闭；不新增运营或修复真相源。
 - [Workspace-scoped Read Transition / 工作区选择与成员资格绑定（开发 / 测试态）v1](workspace-scoped-read-transition-dev-test-v1.md)：批次 A、B 已完成共享 membership provider、五类 route 授权、四类 durable owner 读投影、workspace-wide Run cursor 与非持久化 Web selector；quota 和生产 membership 继续关闭。
@@ -30,7 +31,7 @@
 
 ## 下一步
 
-- Family UI `S1 R8`、`S2 R6`、`S3 R2`、`S4 R1`、`S5 R1` 与 `S6 R1` 已完成。下一步联合复核 Admin / Control Plane 的既有 Tenant、User、Role、Audit、Provider、Profile 与 Route owner，冻结“管理上下文 → 资源定位 → 权限 / 证据审查 → 受控管理动作”的信息层级、失败语义和窄屏顺序，再按页面新颖度选择完整 / 局部 Pencil 或直接复用并实施 React 纵向切片；不扩 production membership、正式 OIDC、生产 secret、自动路由或生产启用声明。
+- Family UI `S1 R8` 至 `S8 R1` 已完成。下一步回到用户工作区功能入口，根据真实使用证据先定义新的产品能力；不从 S8 原地扩 API、schema、生产认证、自动 assignment、自动发布、长期记忆或 agent loop。
 - API 密钥引导式轮换与验证后退役已完成并关闭。下一轮先依据用户工作区与 Workflow 的真实使用证据更新对应功能设计；不从本专题扩自动轮换、持久 rotation owner 或生产凭据能力。
 - 工作区运营收件箱批次 A 已完成；先以真实开发测试使用反馈判断是否需要跨全部分页窗口的服务端 read projection。没有需求与统一 owner cursor 契约前不启动批次 B。
 - Workspace-scoped Read Transition 开发 / 测试态批次 A、B 已完成。条件式批次 C 只有在取得 reviewed Radish membership owner / endpoint、撤销 / 过期语义与 OIDC mapping 后才启动；否则回到功能入口选择新的用户工作区能力。

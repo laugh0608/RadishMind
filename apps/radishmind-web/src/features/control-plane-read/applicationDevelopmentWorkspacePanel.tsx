@@ -32,6 +32,7 @@ import type {
   ApplicationDevelopmentEvidenceReport,
   ApplicationDevelopmentWorkspaceControls,
 } from "./applicationDevelopmentWorkspaceControls.ts";
+import { promptAgentTypeWorkspaceOwnsHash } from "./promptAgentTypeWorkspaceModel.ts";
 
 const REPRESENTATIVE_CONTRIBUTIONS = [
   {
@@ -109,7 +110,7 @@ export default function ApplicationDevelopmentWorkspacePanel({
   useEffect(() => {
     function synchronizeStage() {
       setRouteState((current) => transitionApplicationDevelopmentRoute(current, context, window.location.hash));
-      if (applicationDevelopmentHashTargetsOwnerSurface(window.location.hash)) setOwnerSurfaceOpen(true);
+      if (ownerSurfaceTargeted(context, window.location.hash)) setOwnerSurfaceOpen(true);
     }
     synchronizeStage();
     window.addEventListener("hashchange", synchronizeStage);
@@ -151,7 +152,7 @@ export default function ApplicationDevelopmentWorkspacePanel({
     if (previousActiveStage.current !== activeStage) {
       setStageMenuOpen(false);
       const targetsPendingOwner = handoffStateRef.current.pending?.targetStage === activeStage;
-      setOwnerSurfaceOpen(Boolean(targetsPendingOwner) || applicationDevelopmentHashTargetsOwnerSurface(window.location.hash));
+      setOwnerSurfaceOpen(Boolean(targetsPendingOwner) || ownerSurfaceTargeted(context, window.location.hash));
     }
     previousActiveStage.current = activeStage;
   }, [activeStage, context]);
@@ -534,6 +535,11 @@ function contributionStatusLabel(
 function applicationInitials(displayName: string): string {
   const initials = displayName.trim().split(/\s+/u).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("");
   return initials || "—";
+}
+
+function ownerSurfaceTargeted(context: ApplicationDevelopmentWorkspaceContext, hash: string): boolean {
+  return applicationDevelopmentHashTargetsOwnerSurface(hash) ||
+    promptAgentTypeWorkspaceOwnsHash(hash, context.surfaceKind);
 }
 
 function applicationDevelopmentPresentationSource(

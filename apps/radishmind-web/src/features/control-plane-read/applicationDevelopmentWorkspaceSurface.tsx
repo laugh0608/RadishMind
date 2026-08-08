@@ -16,12 +16,7 @@ const ApplicationApiIntegrationPanel = lazy(() => import("./applicationApiIntegr
 const ApplicationConfigurationDraftPanel = lazy(() => import("./applicationConfigurationDraftPanel.tsx"));
 const ApplicationInteractionSessionPanel = lazy(() => import("./applicationInteractionSessionPanel.tsx"));
 const ApplicationPublishCandidatePanel = lazy(() => import("./applicationPublishCandidatePanel.tsx"));
-const PromptApplicationTemplatePanel = lazy(() => import("./promptApplicationTemplatePanel.tsx"));
-const PromptApplicationInvocationPanel = lazy(() => import("./promptApplicationInvocationPanel.tsx"));
-const PromptApplicationSessionPanel = lazy(() => import("./promptApplicationSessionPanel.tsx"));
-const AgentCopilotProfilePanel = lazy(() => import("./agentCopilotProfilePanel.tsx"));
-const AgentCopilotRuntimePanel = lazy(() => import("./agentCopilotRuntimePanel.tsx"));
-const AgentCopilotSessionPanel = lazy(() => import("./agentCopilotSessionPanel.tsx"));
+const PromptAgentTypeWorkspace = lazy(() => import("./promptAgentTypeWorkspace.tsx"));
 const ApplicationRAGInvocationPanel = lazy(() => import("./workflowRAGApplicationRuntimePanel.tsx"));
 const WorkflowRAGEvaluationDatasetPanel = lazy(() => import("./workflowRAGEvaluationDatasetPanel.tsx"));
 const WorkflowDefinitionPromotionPanel = lazy(() => import("./workflowDefinitionPromotionPanel.tsx"));
@@ -114,36 +109,39 @@ export default function ApplicationDevelopmentWorkspaceSurface({
     );
   }
 
+  if (context.surfaceKind === "prompt_application" || context.surfaceKind === "agent_copilot") {
+    if (activeStage === "release_readiness") {
+      return (
+        <article className="application-development-stage-paused" role="status">
+          <p className="eyebrow">Release readiness boundary</p>
+          <h4>{controls.readiness.status}</h4>
+          <p>{controls.readiness.summary} The source cards below remain the only readiness projection.</p>
+        </article>
+      );
+    }
+    return (
+      <Suspense fallback={<StageFallback label="Prompt / Agent type workspace" />}>
+        <PromptAgentTypeWorkspace
+          context={context}
+          activeStage={activeStage}
+          baseline={baseline}
+          accessSurface={<ApplicationAccessWorkspace context={context} offlineApiKeys={offlineApiKeys} />}
+          handoffDraftId={pendingDraftHandoff?.refId}
+          handoffId={pendingDraftHandoff?.handoffId}
+          onHandoffConsumed={consumePromotionHandoff}
+          onEvidenceChange={reportOwnerEvidence}
+          onOpenPublishReview={openPublishReview}
+          onRunRecorded={handleRunRecorded}
+          onOpenRun={openRunEvidence}
+        />
+      </Suspense>
+    );
+  }
+
   return (
     <div className="application-development-stage-surfaces">
       {activeStage === "configure_build" ? (
         <StageSurface stage="configure_build" title="Configure and build">
-          {context.surfaceKind === "prompt_application" ? (
-            <Suspense fallback={<StageFallback label="Prompt Application template workspace" />}>
-              <PromptApplicationTemplatePanel
-                key={`${context.generationKey}:prompt-template`}
-                applicationId={context.applicationId}
-                applicationName={context.displayName}
-                applicationKind={context.applicationKind}
-                applicationActive={context.applicationActive}
-                onOpenPublishReview={openPublishReview}
-                onEvidenceChange={reportOwnerEvidence}
-              />
-            </Suspense>
-          ) : null}
-          {context.surfaceKind === "agent_copilot" ? (
-            <Suspense fallback={<StageFallback label="Agent Copilot Profile workspace" />}>
-              <AgentCopilotProfilePanel
-                key={`${context.generationKey}:agent-profile`}
-                applicationId={context.applicationId}
-                applicationName={context.displayName}
-                applicationKind={context.applicationKind}
-                applicationActive={context.applicationActive}
-                onOpenPublishReview={openPublishReview}
-                onEvidenceChange={reportOwnerEvidence}
-              />
-            </Suspense>
-          ) : null}
           {context.surfaceKind === "workflow_rag" ? (
             <Suspense fallback={<StageFallback label="application knowledge snapshots" />}>
               <WorkflowRAGSnapshotPanel
@@ -212,17 +210,6 @@ export default function ApplicationDevelopmentWorkspaceSurface({
               />
             </Suspense>
           )}
-          {context.applicationActive && context.surfaceKind === "agent_copilot" ? (
-            <Suspense fallback={<StageFallback label="Agent Copilot runtime assignment" />}>
-              <AgentCopilotRuntimePanel
-                key={`${context.generationKey}:agent-runtime`}
-                applicationId={context.applicationId}
-                applicationName={context.displayName}
-                applicationActive={context.applicationActive}
-                onEvidenceChange={reportOwnerEvidence}
-              />
-            </Suspense>
-          ) : null}
           {context.applicationActive && context.surfaceKind === "workflow_rag" ? (
             <Suspense fallback={<StageFallback label="Workflow Definition promotion" />}>
               <WorkflowDefinitionPromotionPanel
@@ -260,16 +247,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                     <span aria-hidden="true">⌄</span>
                   </summary>
                   <div>
-                    {context.surfaceKind === "prompt_application" ? (
-                      <Suspense fallback={<StageFallback label="Prompt Application Session v2" />}>
-                        <PromptApplicationSessionPanel
-                          key={`${context.generationKey}:prompt-session`}
-                          applicationId={context.applicationId}
-                          onRunRecorded={handleRunRecorded}
-                          onOpenRun={openRunEvidence}
-                        />
-                      </Suspense>
-                    ) : context.surfaceKind === "workflow_rag" ? (
+                    {context.surfaceKind === "workflow_rag" ? (
                       <Suspense fallback={<StageFallback label="Application Interaction" />}>
                         <ApplicationInteractionSessionPanel
                           key={`${context.generationKey}:interaction`}
@@ -277,30 +255,6 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                           applicationName={context.displayName}
                           applicationActive={context.applicationActive}
                           suggestedDefinitionId={suggestedDefinitionId}
-                          onRunRecorded={handleRunRecorded}
-                          onOpenRun={openRunEvidence}
-                          onEvidenceChange={reportOwnerEvidence}
-                        />
-                      </Suspense>
-                    ) : null}
-                    {context.surfaceKind === "agent_copilot" ? (
-                      <Suspense fallback={<StageFallback label="Agent Copilot Session v3" />}>
-                        <AgentCopilotSessionPanel
-                          key={`${context.generationKey}:agent-session`}
-                          applicationId={context.applicationId}
-                          applicationName={context.displayName}
-                          onRunRecorded={handleRunRecorded}
-                          onOpenRun={openRunEvidence}
-                          onEvidenceChange={reportOwnerEvidence}
-                        />
-                      </Suspense>
-                    ) : null}
-                    {context.surfaceKind === "prompt_application" ? (
-                      <Suspense fallback={<StageFallback label="Prompt Application controlled invocation" />}>
-                        <PromptApplicationInvocationPanel
-                          key={`${context.generationKey}:prompt-invocation`}
-                          applicationId={context.applicationId}
-                          applicationName={context.displayName}
                           onRunRecorded={handleRunRecorded}
                           onOpenRun={openRunEvidence}
                           onEvidenceChange={reportOwnerEvidence}

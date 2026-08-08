@@ -53,6 +53,8 @@ export default function ApplicationPublishCandidatePanel({
   handoffDraftId = "",
   handoffId = "",
   onHandoffConsumed,
+  includeRuntimeAssignment = true,
+  onSelectedCandidateChange,
 }: {
   baseline: ApplicationConfigurationBaseline;
   readOnly?: boolean;
@@ -60,6 +62,8 @@ export default function ApplicationPublishCandidatePanel({
   handoffDraftId?: string;
   handoffId?: string;
   onHandoffConsumed?: (handoffId: string) => void;
+  includeRuntimeAssignment?: boolean;
+  onSelectedCandidateChange?: (candidate: ApplicationPublishCandidate | null) => void;
 }) {
   const [draftList, setDraftList] = useState<ApplicationConfigurationDraftListState>(() => initialApplicationConfigurationDraftListState(draftConfig));
   const [candidateList, setCandidateList] = useState<ApplicationPublishCandidateListState>(() => initialApplicationPublishListState(publishConfig));
@@ -86,6 +90,10 @@ export default function ApplicationPublishCandidatePanel({
     setHandoffState("");
     handledHandoffIdRef.current = "";
   }, [baseline.applicationId]);
+
+  useEffect(() => {
+    onSelectedCandidateChange?.(candidate);
+  }, [candidate, onSelectedCandidateChange]);
 
   const enabled = publishConfig.mode === "dev_application_publish_http" && draftConfig.mode === "dev_application_draft_http";
   const mutationEnabled = enabled && !readOnly;
@@ -249,7 +257,7 @@ export default function ApplicationPublishCandidatePanel({
 
       {candidate ? <>
         <CandidateDetail candidate={candidate} baseline={baseline} readOnly={readOnly} onIntegration={openIntegration} onPlayground={openPlayground} onHistory={(requestId) => { requestGatewayRequestHistoryReview(requestId, candidate.applicationId); window.location.hash = "model-gateway-request-history"; }} />
-        {candidate.schemaVersion === "application_publish_candidate.v3" ? (
+        {includeRuntimeAssignment && candidate.schemaVersion === "application_publish_candidate.v3" ? (
           <PromptApplicationRuntimePanel
             applicationId={candidate.applicationId}
             publishCandidateId={candidate.candidateId}
@@ -257,7 +265,7 @@ export default function ApplicationPublishCandidatePanel({
             readOnly={readOnly}
             onEvidenceChange={onEvidenceChange}
           />
-        ) : candidate.schemaVersion !== "application_publish_candidate.v4" ? (
+        ) : includeRuntimeAssignment && candidate.schemaVersion !== "application_publish_candidate.v4" ? (
           <WorkflowRAGRuntimeAssignmentPanel
             applicationId={candidate.applicationId}
             publishCandidateId={candidate.candidateId}

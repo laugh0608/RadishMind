@@ -6461,6 +6461,520 @@ dd {
   }
 }
 
+.prompt-agent-type-workspace {
+  background: var(--rm-bg-surface);
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-lg);
+  box-shadow: var(--rm-shadow-panel);
+  margin-top: 1.25rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.prompt-agent-type-heading {
+  align-items: end;
+  background: var(--rm-bg-canvas);
+  border-bottom: 1px solid var(--rm-border-soft);
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1.4fr) minmax(30rem, 1fr);
+  padding: 1.35rem 1.5rem 1.2rem;
+}
+
+.prompt-agent-type-heading h3,
+.prompt-agent-type-heading p,
+.prompt-agent-type-heading dl {
+  margin: 0;
+}
+
+.prompt-agent-type-heading > div > p:last-child {
+  color: var(--rm-text-secondary);
+  line-height: 1.55;
+  margin-top: 0.35rem;
+  max-width: 54rem;
+}
+
+.prompt-agent-type-heading dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.prompt-agent-type-heading dl > div {
+  border-left: 1px solid var(--rm-border-soft);
+  min-width: 0;
+  padding: 0.15rem 0.8rem;
+}
+
+.prompt-agent-type-heading dt {
+  color: var(--rm-text-muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.prompt-agent-type-heading dd {
+  color: var(--rm-text-primary);
+  font-size: 0.8rem;
+  font-weight: 750;
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.prompt-agent-type-heading dd.is-active {
+  color: var(--rm-state-success);
+}
+
+.prompt-agent-type-heading dd.is-archived {
+  color: var(--rm-state-warning);
+}
+
+.prompt-agent-type-layout {
+  display: grid;
+  grid-template-columns: 15.5rem minmax(0, 1fr);
+  min-width: 0;
+}
+
+.prompt-agent-type-path {
+  align-content: start;
+  background: var(--rm-bg-muted);
+  border-right: 1px solid var(--rm-border-soft);
+  display: grid;
+  min-width: 0;
+  padding: 1rem 0;
+}
+
+.prompt-agent-type-path > header {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0 1rem 0.8rem;
+}
+
+.prompt-agent-type-path > header span {
+  color: var(--rm-text-muted);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.prompt-agent-type-path > header strong {
+  color: var(--rm-text-secondary);
+  font-size: 0.78rem;
+}
+
+.prompt-agent-type-task {
+  align-items: center;
+  border-top: 1px solid var(--rm-border-soft);
+  color: var(--rm-text-secondary);
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: 0.2rem 1.6rem minmax(0, 1fr) auto;
+  min-height: 3.5rem;
+  padding: 0.65rem 0.85rem 0.65rem 0;
+  position: relative;
+  text-decoration: none;
+}
+
+.prompt-agent-type-task > i {
+  align-self: stretch;
+  background: transparent;
+  border-radius: 0 var(--rm-radius-xs) var(--rm-radius-xs) 0;
+}
+
+.prompt-agent-type-task > b {
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 0.67rem;
+}
+
+.prompt-agent-type-task > span {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.prompt-agent-type-task strong {
+  color: var(--rm-text-primary);
+  font-size: 0.79rem;
+}
+
+.prompt-agent-type-task small {
+  color: var(--rm-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.prompt-agent-type-task > em {
+  color: var(--rm-action-primary);
+  font-size: 1rem;
+  font-style: normal;
+}
+
+.prompt-agent-type-task:hover {
+  background: var(--rm-bg-canvas);
+}
+
+.prompt-agent-type-task.is-selected {
+  background: var(--rm-action-soft);
+}
+
+.prompt-agent-type-task.is-selected:hover {
+  background: var(--rm-action-soft);
+}
+
+.prompt-agent-type-task.is-selected > i {
+  background: var(--rm-action-primary);
+}
+
+.prompt-agent-type-task.is-blocked {
+  background: var(--rm-state-neutral-soft);
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.prompt-agent-type-task.is-blocked > i {
+  background: var(--rm-state-warning);
+  opacity: 0.55;
+}
+
+.prompt-agent-type-boundary {
+  align-items: start;
+  background: var(--rm-attention-soft);
+  border-top: 1px solid var(--rm-border-soft);
+  color: var(--rm-text-secondary);
+  display: grid;
+  font-size: 0.7rem;
+  gap: 0.55rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  line-height: 1.45;
+  margin: 0;
+  padding: 0.85rem 1rem;
+}
+
+.prompt-agent-type-boundary > span {
+  align-items: center;
+  background: var(--rm-attention-primary);
+  border-radius: var(--rm-radius-pill);
+  color: var(--rm-text-on-accent);
+  display: inline-flex;
+  font-size: 0.65rem;
+  font-weight: 900;
+  height: 1.2rem;
+  justify-content: center;
+  width: 1.2rem;
+}
+
+.prompt-agent-type-owner {
+  background: var(--rm-bg-surface);
+  min-width: 0;
+  padding: 1.25rem;
+}
+
+.prompt-agent-type-owner > section,
+.prompt-agent-type-owner > article,
+.prompt-agent-type-owner .application-access-workspace {
+  margin-top: 0;
+  min-width: 0;
+}
+
+/* S8 mounts legacy dev/test owners inside a paper Workbench. Keep their existing
+   structure and behavior, but consume the current semantic surface tokens. */
+.prompt-agent-type-owner .prompt-application-template-panel,
+.prompt-agent-type-owner .prompt-application-runtime-panel,
+.prompt-agent-type-owner .prompt-application-invocation-panel,
+.prompt-agent-type-owner .prompt-application-session-panel,
+.prompt-agent-type-owner .application-publish-workspace,
+.prompt-agent-type-owner .agent-copilot-profile-panel {
+  color: var(--rm-text-primary);
+  border-color: var(--rm-border-soft);
+  background: var(--rm-bg-surface);
+  box-shadow: none;
+}
+
+.prompt-agent-type-owner .prompt-template-scope article,
+.prompt-agent-type-owner .prompt-template-editor,
+.prompt-agent-type-owner .prompt-template-review,
+.prompt-agent-type-owner .prompt-template-lower-grid > article,
+.prompt-agent-type-owner .prompt-template-binding,
+.prompt-agent-type-owner .prompt-template-version-detail,
+.prompt-agent-type-owner .application-publish-scope article,
+.prompt-agent-type-owner .application-publish-create,
+.prompt-agent-type-owner .application-publish-review,
+.prompt-agent-type-owner .application-publish-snapshot,
+.prompt-agent-type-owner .application-publish-eligibility,
+.prompt-agent-type-owner .application-publish-evidence,
+.prompt-agent-type-owner .application-publish-review-log,
+.prompt-agent-type-owner .application-publish-saved {
+  color: var(--rm-text-primary);
+  border-color: var(--rm-border-soft);
+  background: var(--rm-bg-muted);
+}
+
+.prompt-agent-type-owner .prompt-template-scope span,
+.prompt-agent-type-owner .prompt-template-scope p,
+.prompt-agent-type-owner .prompt-template-editor label,
+.prompt-agent-type-owner .prompt-template-review label,
+.prompt-agent-type-owner .prompt-template-binding label,
+.prompt-agent-type-owner .prompt-template-summary small,
+.prompt-agent-type-owner .prompt-template-preview code,
+.prompt-agent-type-owner .application-publish-scope span,
+.prompt-agent-type-owner .application-publish-scope p,
+.prompt-agent-type-owner .application-publish-review-log span,
+.prompt-agent-type-owner .application-publish-create label,
+.prompt-agent-type-owner .application-publish-review label,
+.prompt-agent-type-owner .application-publish-candidate-list button small,
+.prompt-agent-type-owner .application-publish-eligibility li p {
+  color: var(--rm-text-secondary);
+}
+
+.prompt-agent-type-owner .prompt-template-editor input,
+.prompt-agent-type-owner .prompt-template-editor select,
+.prompt-agent-type-owner .prompt-template-editor textarea,
+.prompt-agent-type-owner .prompt-template-review textarea,
+.prompt-agent-type-owner .prompt-template-binding select,
+.prompt-agent-type-owner .application-publish-create input,
+.prompt-agent-type-owner .application-publish-create select,
+.prompt-agent-type-owner .application-publish-create textarea,
+.prompt-agent-type-owner .application-publish-review select,
+.prompt-agent-type-owner .application-publish-review textarea {
+  color: var(--rm-text-primary);
+  border-color: var(--rm-border-strong);
+  background: var(--rm-bg-surface);
+}
+
+.prompt-agent-type-owner .prompt-template-editor fieldset,
+.prompt-agent-type-owner .application-publish-comparison > div,
+.prompt-agent-type-owner .application-publish-evidence > button,
+.prompt-agent-type-owner .application-publish-review-log > div,
+.prompt-agent-type-owner .application-publish-candidate-list > button {
+  color: var(--rm-text-primary);
+  border-color: var(--rm-border-soft);
+  background: var(--rm-bg-surface);
+}
+
+.prompt-agent-type-owner .prompt-template-message,
+.prompt-agent-type-owner .prompt-template-variable,
+.prompt-agent-type-owner .prompt-template-source > div {
+  color: var(--rm-text-primary);
+  background: var(--rm-bg-canvas);
+}
+
+.prompt-agent-type-owner .prompt-template-summary {
+  color: var(--rm-text-primary);
+  border-color: var(--rm-border-soft);
+  background: var(--rm-bg-surface);
+}
+
+.prompt-agent-type-owner .prompt-template-summary.selected {
+  border-color: var(--rm-action-primary);
+  background: var(--rm-action-soft);
+}
+
+.prompt-agent-type-owner .prompt-template-preview,
+.prompt-agent-type-owner .application-publish-binding {
+  border-color: var(--rm-border-soft);
+  background: var(--rm-state-success-soft);
+}
+
+.prompt-agent-type-owner .application-publish-digest {
+  color: var(--rm-state-success);
+}
+
+.prompt-agent-type-owner .application-publish-eligibility li {
+  border-left-color: var(--rm-attention-primary);
+  background: var(--rm-attention-soft);
+}
+
+.prompt-agent-type-loading,
+.prompt-agent-type-blocked {
+  background: var(--rm-bg-muted);
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-md);
+  color: var(--rm-text-secondary);
+  padding: 1.25rem;
+}
+
+.prompt-agent-type-blocked h4,
+.prompt-agent-type-blocked p {
+  margin-bottom: 0;
+}
+
+.prompt-agent-type-evaluation-handoff {
+  display: grid;
+  gap: 1rem;
+}
+
+.prompt-agent-type-evaluation-handoff h4,
+.prompt-agent-type-evaluation-handoff p,
+.prompt-agent-type-evaluation-handoff dl {
+  margin: 0;
+}
+
+.prompt-agent-type-evaluation-handoff > div > p:last-child {
+  color: var(--rm-text-secondary);
+  line-height: 1.55;
+  margin-top: 0.35rem;
+}
+
+.prompt-agent-type-evaluation-handoff dl {
+  border-bottom: 1px solid var(--rm-border-soft);
+  border-top: 1px solid var(--rm-border-soft);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.prompt-agent-type-evaluation-handoff dl > div {
+  border-right: 1px solid var(--rm-border-soft);
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+  padding: 0.9rem;
+}
+
+.prompt-agent-type-evaluation-handoff dl > div:last-child {
+  border-right: 0;
+}
+
+.prompt-agent-type-evaluation-handoff dt {
+  color: var(--rm-text-muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.prompt-agent-type-evaluation-handoff dd {
+  color: var(--rm-text-primary);
+  font-size: 0.8rem;
+  font-weight: 750;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1280px) {
+  .prompt-agent-type-heading {
+    grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.8fr);
+  }
+
+  .prompt-agent-type-heading dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prompt-agent-type-heading dl > div:nth-child(3),
+  .prompt-agent-type-heading dl > div:nth-child(4) {
+    border-top: 1px solid var(--rm-border-soft);
+    padding-top: 0.55rem;
+  }
+}
+
+@media (max-width: 1100px) {
+  .prompt-agent-type-heading {
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prompt-agent-type-heading dl {
+    border-top: 1px solid var(--rm-border-soft);
+    padding-top: 0.75rem;
+  }
+
+  .prompt-agent-type-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prompt-agent-type-path {
+    border-bottom: 1px solid var(--rm-border-soft);
+    border-right: 0;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 0;
+  }
+
+  .prompt-agent-type-path > header,
+  .prompt-agent-type-boundary {
+    grid-column: 1 / -1;
+  }
+
+  .prompt-agent-type-path > header {
+    padding: 0.85rem 1rem;
+  }
+
+  .prompt-agent-type-task {
+    border-right: 1px solid var(--rm-border-soft);
+    grid-template-columns: 0.2rem 1.4rem minmax(0, 1fr) auto;
+    min-height: 4rem;
+    padding-right: 0.65rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .prompt-agent-type-path {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prompt-agent-type-evaluation-handoff dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prompt-agent-type-evaluation-handoff dl > div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .prompt-agent-type-evaluation-handoff dl > div:nth-child(n + 3) {
+    border-top: 1px solid var(--rm-border-soft);
+  }
+}
+
+@media (max-width: 760px) {
+  .prompt-agent-type-workspace {
+    border-left: 0;
+    border-radius: 0;
+    border-right: 0;
+    box-shadow: none;
+    margin-left: -1rem;
+    margin-right: -1rem;
+  }
+
+  .prompt-agent-type-heading {
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .prompt-agent-type-heading > div > p:last-child {
+    font-size: 0.78rem;
+  }
+
+  .prompt-agent-type-heading dl > div {
+    padding: 0.45rem 0.6rem;
+  }
+
+  .prompt-agent-type-owner {
+    padding: 0.9rem;
+  }
+
+  .prompt-agent-type-task {
+    min-height: 3.7rem;
+  }
+
+  .prompt-agent-type-task small,
+  .prompt-agent-type-task > em {
+    display: none;
+  }
+
+  .prompt-agent-type-evaluation-handoff dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prompt-agent-type-evaluation-handoff dl > div,
+  .prompt-agent-type-evaluation-handoff dl > div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .prompt-agent-type-evaluation-handoff dl > div:nth-child(n + 2) {
+    border-top: 1px solid var(--rm-border-soft);
+  }
+}
+
 /* S7 Admin Control Plane Workbench */
 .admin-control-plane-workspace[hidden] {
   display: none;
