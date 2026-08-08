@@ -20,8 +20,10 @@ type StatusBadgeTone = "good" | "bad" | "neutral";
 
 export function AdminProviderDeploymentReviewPanel({
   review,
+  includeControlledWorkspace = true,
 }: {
   review: AdminProviderDeploymentReviewViewModel;
+  includeControlledWorkspace?: boolean;
 }) {
   return (
     <section
@@ -65,9 +67,11 @@ export function AdminProviderDeploymentReviewPanel({
         </dl>
       </article>
 
-      <Suspense fallback={<div className="admin-provider-route-workspace"><p>Loading Provider route workspace…</p></div>}>
-        <AdminProviderRouteWorkspacePanel />
-      </Suspense>
+      {includeControlledWorkspace ? (
+        <Suspense fallback={<div className="admin-provider-route-workspace"><p>Loading Provider route workspace…</p></div>}>
+          <AdminProviderRouteWorkspacePanel />
+        </Suspense>
+      ) : null}
 
       <div className="model-gateway-overview-section">
         <div className="model-gateway-overview-subheading">

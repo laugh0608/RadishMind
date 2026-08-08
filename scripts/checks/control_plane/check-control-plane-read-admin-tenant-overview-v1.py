@@ -163,6 +163,12 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     source = app_source_text()
     admin_source = read_text("apps/radishmind-web/src/features/control-plane-read/adminTenantOverview.ts")
     app_source = read_text("apps/radishmind-web/src/app/App.tsx")
+    workspace_source = read_text(
+        "apps/radishmind-web/src/features/control-plane-read/adminControlPlaneWorkspace.tsx"
+    )
+    route_source = read_text(
+        "apps/radishmind-web/src/features/control-plane-read/adminControlPlaneRoute.ts"
+    )
     for symbol in EXPECTED_CONTRACT_SYMBOLS:
         require(symbol in admin_source, f"admin tenant overview missing contract symbol: {symbol}")
     for state in EXPECTED_REQUIRED_STATES:
@@ -177,12 +183,21 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     ):
         require(literal in source, f"admin tenant overview missing source literal: {literal}")
     for literal in (
-        "Tenant Overview",
-        "tenantOverview.canRenderTenant",
-        "TenantStatePreview",
-        "TenantFact",
+        "AdminControlPlaneWorkspace",
+        "tenantOverview={tenantOverview}",
     ):
-        require(literal in app_source, f"App.tsx missing tenant overview rendering literal: {literal}")
+        require(literal in app_source, f"App.tsx missing Admin tenant owner mount: {literal}")
+    for literal in (
+        "AdminTenantOwner",
+        "overview.canRenderTenant",
+        "Tenant summary unavailable",
+        "This is a sanitized summary projection.",
+    ):
+        require(literal in workspace_source, f"Admin tenant owner missing rendering literal: {literal}")
+    require(
+        'anchor: "admin-tenant-overview"' in route_source,
+        "Admin tenant owner route anchor drifted",
+    )
     for forbidden_literal in fixture.get("forbidden_source_literals") or []:
         require(str(forbidden_literal) not in source, f"web source contains forbidden literal: {forbidden_literal}")
     for route_path in (

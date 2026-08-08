@@ -217,6 +217,12 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     source = app_source_text()
     page_source = read_text("apps/radishmind-web/src/features/control-plane-read/adminAuditLog.ts")
     app_source = read_text("apps/radishmind-web/src/app/App.tsx")
+    workspace_source = read_text(
+        "apps/radishmind-web/src/features/control-plane-read/adminControlPlaneWorkspace.tsx"
+    )
+    route_source = read_text(
+        "apps/radishmind-web/src/features/control-plane-read/adminControlPlaneRoute.ts"
+    )
     for symbol in EXPECTED_CONTRACT_SYMBOLS:
         require(symbol in page_source, f"admin audit log missing contract symbol: {symbol}")
     for state in EXPECTED_REQUIRED_STATES:
@@ -243,14 +249,24 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     ):
         require(literal in source, f"admin audit log missing source literal: {literal}")
     for literal in (
-        "Audit Log",
-        "adminAuditLog.canRenderAuditLog",
-        "AuditLogMetric",
-        "AuditEventRow",
-        "AuditLogStatePreview",
+        "AdminControlPlaneWorkspace",
+        "auditLog={adminAuditLog}",
+    ):
+        require(literal in app_source, f"App.tsx missing Admin audit owner mount: {literal}")
+    for literal in (
+        "AdminAuditOwner",
+        "AuditSelectionRow",
+        "AuditReadOnlyDetail",
+        "loadControlPlaneReadDevLiveCollection",
+        "recorded_at_desc",
+        "Raw export blocked",
         "Recorded",
     ):
-        require(literal in app_source, f"App.tsx missing admin audit log rendering literal: {literal}")
+        require(literal in workspace_source, f"Admin audit owner missing rendering literal: {literal}")
+    require(
+        'anchor: "admin-audit-log"' in route_source,
+        "Admin audit owner route anchor drifted",
+    )
     for forbidden_literal in fixture.get("forbidden_source_literals") or []:
         require(str(forbidden_literal) not in source, f"web source contains forbidden literal: {forbidden_literal}")
     for forbidden_literal in fixture.get("forbidden_control_literals") or []:

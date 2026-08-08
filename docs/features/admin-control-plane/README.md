@@ -1,11 +1,12 @@
 # Admin Control Plane 细专题入口
 
-更新时间：2026-07-26
+更新时间：2026-08-08
 
 本目录承接 `Admin Control Plane` 中需要跨身份、权限、repository 和管理端使用路径推进的功能专题。产品面长期边界继续以 [Admin Control Plane 设计与开发文档](../admin-control-plane.md) 为准。
 
 ## 当前专题
 
+- [Admin Control Plane 设计与开发文档](../admin-control-plane.md)：`S7 R1` 已把 Tenant、User、Role、Audit、Provider、Profile 与 Route 编排为七任务单 owner 工作面。Tenant / Audit 复用既有 authenticated read；User / Role 明确失败关闭；Provider / Profile / Route 复用同一开发测试态原子配置 owner。Pencil、React、关键断点和真实浏览器验收已完成，未扩 API、schema、repository、permission 或生产边界。
 - [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](provider-profile-model-route-controlled-activation-dev-test-v1.md)：五批开发已完成并关闭，覆盖领域与三模式 repository、Admin API / Auth、Gateway 不可变快照消费、Admin Web、SQLite / PostgreSQL 产品连续验证、服务重启和真实浏览器 activation / rollback；没有创建第二套 provider inventory，也没有读取真实 secret 或启用 production。
 - [Authenticated Read Store Transition v1](authenticated-read-store-transition-v1.md)：第一批 verified identity / negative auth runtime 与第二批 Tenant / Audit PostgreSQL dev/test runtime 均已完成。
 - [Tenant / Audit PostgreSQL Read Repository v1](tenant-audit-postgresql-read-repository-v1.md)：两条 Admin operation 已完成 projection schema、manual migration、read-only role、routed selector、keyset pagination、no-fallback、真实 PostgreSQL 与浏览器验收。

@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   initialControlPlaneReadDevLiveLoadState,
+  loadControlPlaneReadDevLiveCollection,
   loadControlPlaneReadDevLiveCollections,
   normalizeActiveWorkspaceId,
   type ControlPlaneReadDevLiveConfig,
@@ -93,6 +94,62 @@ test("Control Plane read consumer sends active workspace and dev membership only
       !headers.has("X-RadishMind-Active-Workspace") &&
       !headers.has("X-RadishMind-Dev-Read-Membership-Workspace")), true);
     assert.equal(requests.some(({ url }) => url.includes("workspace_id=")), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Audit pagination sends only the reviewed cursor, limit, and sort query", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedUrl = "";
+  globalThis.fetch = async (input) => {
+    capturedUrl = String(input);
+    return new Response(JSON.stringify({
+      request_id: "request-audit-page-two",
+      tenant_ref: "tenant_demo",
+      items: [],
+      next_cursor: null,
+      failure_code: null,
+      audit_ref: "audit-page-two",
+    }), { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+  try {
+    const collection = await loadControlPlaneReadDevLiveCollection(
+      live,
+      "audit-summary-list-route",
+      { cursor: "cursor.v1/next+page", limit: 50, sort: "recorded_at_desc" },
+    );
+    assert.equal(
+      capturedUrl,
+      "http://127.0.0.1:7000/v1/control-plane/audit?cursor=cursor.v1%2Fnext%2Bpage&limit=50&sort=recorded_at_desc",
+    );
+    assert.equal(collection.requestId, "request-audit-page-two");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Cursor pagination is audit-only and validates client bounds before fetch", async () => {
+  let calls = 0;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    calls += 1;
+    throw new Error("unexpected fetch");
+  };
+  try {
+    await assert.rejects(
+      loadControlPlaneReadDevLiveCollection(live, "application-summary-list-route", { cursor: "cursor" }),
+      /does not accept cursor pagination/,
+    );
+    await assert.rejects(
+      loadControlPlaneReadDevLiveCollection(live, "audit-summary-list-route", { cursor: " " }),
+      /audit cursor is invalid/,
+    );
+    await assert.rejects(
+      loadControlPlaneReadDevLiveCollection(live, "audit-summary-list-route", { limit: 101 }),
+      /audit limit is invalid/,
+    );
+    assert.equal(calls, 0);
   } finally {
     globalThis.fetch = originalFetch;
   }

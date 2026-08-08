@@ -37,6 +37,12 @@ export type ControlPlaneReadDevLiveConfig = {
   workspaceId?: string;
 };
 
+export type ControlPlaneReadPageRequest = {
+  cursor?: string;
+  limit?: number;
+  sort?: "recorded_at_desc";
+};
+
 export type ControlPlaneReadDevLiveLoadState =
   | {
       status: "idle";
@@ -107,14 +113,8 @@ export async function loadControlPlaneReadDevLiveCollections(
   }
   const entries = await Promise.all(
     CONTROL_PLANE_READ_ROUTE_IDS.map(async (routeId) => {
-      const envelope = await fetchDevLiveEnvelope(routeId, config);
-      if (controlPlaneReadResponseHasForbiddenOutput(envelope)) {
-        throw new Error(`${routeId} returned forbidden read-side output`);
-      }
-      return [
-        routeId,
-        toControlPlaneReadCollectionViewModel(routeId, envelope, { source: "dev_live_http" }),
-      ] as const;
+      const collection = await loadControlPlaneReadDevLiveCollection(config, routeId);
+      return [routeId, collection] as const;
     }),
   );
   return Object.fromEntries(entries) as Partial<
@@ -122,8 +122,27 @@ export async function loadControlPlaneReadDevLiveCollections(
   >;
 }
 
-async function fetchDevLiveEnvelope(routeId: ControlPlaneReadRouteId, config: ControlPlaneReadDevLiveConfig) {
-  const response = await fetch(devLiveRouteUrl(routeId, config), {
+export async function loadControlPlaneReadDevLiveCollection(
+  config: ControlPlaneReadDevLiveConfig,
+  routeId: ControlPlaneReadRouteId,
+  pageRequest: ControlPlaneReadPageRequest = {},
+): Promise<ControlPlaneReadCollectionViewModel> {
+  if (config.mode !== "dev_live_http") {
+    throw new Error("development/test live read source is disabled");
+  }
+  const envelope = await fetchDevLiveEnvelope(routeId, config, pageRequest);
+  if (controlPlaneReadResponseHasForbiddenOutput(envelope)) {
+    throw new Error(`${routeId} returned forbidden read-side output`);
+  }
+  return toControlPlaneReadCollectionViewModel(routeId, envelope, { source: "dev_live_http" });
+}
+
+async function fetchDevLiveEnvelope(
+  routeId: ControlPlaneReadRouteId,
+  config: ControlPlaneReadDevLiveConfig,
+  pageRequest: ControlPlaneReadPageRequest,
+) {
+  const response = await fetch(devLiveRouteUrl(routeId, config, pageRequest), {
     method: "GET",
     headers: devLiveHeaders(routeId, config),
   });
@@ -136,10 +155,48 @@ async function fetchDevLiveEnvelope(routeId: ControlPlaneReadRouteId, config: Co
   };
 }
 
-function devLiveRouteUrl(routeId: ControlPlaneReadRouteId, config: ControlPlaneReadDevLiveConfig): string {
+function devLiveRouteUrl(
+  routeId: ControlPlaneReadRouteId,
+  config: ControlPlaneReadDevLiveConfig,
+  pageRequest: ControlPlaneReadPageRequest,
+): string {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS[routeId];
   const path = route.path.replace("{tenant_ref}", encodeURIComponent(config.tenantRef));
-  return `${config.baseUrl}${path}`;
+  const query = auditPageQuery(routeId, pageRequest);
+  return `${config.baseUrl}${path}${query ? `?${query}` : ""}`;
+}
+
+function auditPageQuery(
+  routeId: ControlPlaneReadRouteId,
+  pageRequest: ControlPlaneReadPageRequest,
+): string {
+  const hasPageRequest = pageRequest.cursor !== undefined ||
+    pageRequest.limit !== undefined ||
+    pageRequest.sort !== undefined;
+  if (!hasPageRequest) {
+    return "";
+  }
+  if (routeId !== "audit-summary-list-route") {
+    throw new Error(`${routeId} does not accept cursor pagination`);
+  }
+  const query = new URLSearchParams();
+  if (pageRequest.cursor !== undefined) {
+    const cursor = pageRequest.cursor.trim();
+    if (!cursor || cursor.length > 1024) {
+      throw new Error("audit cursor is invalid");
+    }
+    query.set("cursor", cursor);
+  }
+  if (pageRequest.limit !== undefined) {
+    if (!Number.isInteger(pageRequest.limit) || pageRequest.limit < 1 || pageRequest.limit > 100) {
+      throw new Error("audit limit is invalid");
+    }
+    query.set("limit", String(pageRequest.limit));
+  }
+  if (pageRequest.sort !== undefined) {
+    query.set("sort", pageRequest.sort);
+  }
+  return query.toString();
 }
 
 function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneReadDevLiveConfig): HeadersInit {

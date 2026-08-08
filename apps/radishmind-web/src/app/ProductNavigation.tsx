@@ -6,6 +6,7 @@ import type {
 } from "../features/control-plane-read/devLiveReadConsumer";
 import { applicationDevelopmentStageForHash } from "../features/control-plane-read/applicationDevelopmentWorkspace";
 import {
+  adminControlPlanePrimaryHref,
   applicationApiAccessPrimaryHref,
   workflowDesignerPrimaryHref,
   workflowReviewPrimaryHref,
@@ -33,6 +34,7 @@ const PRIMARY_LINKS = [
   { href: "#workspace-applications", label: "Applications", icon: "application", countKey: "applications" },
   { href: "#workspace-workflow-definitions", label: "Workflows", icon: "workflow", countKey: "workflows" },
   { href: "#workspace-api-keys", label: "API & keys", icon: "key", countKey: "apiKeys" },
+  { href: "#admin-control-plane", label: "Admin", icon: "admin", countKey: null },
 ] as const;
 
 const REVIEW_LINKS = [
@@ -305,6 +307,8 @@ function primaryNavigationHref(
   if (applicationApiAccessHref) return applicationApiAccessHref;
   const workflowReviewHref = workflowReviewPrimaryHref(activeHash);
   if (workflowReviewHref) return workflowReviewHref;
+  const adminHref = adminControlPlanePrimaryHref(activeHash);
+  if (adminHref) return adminHref;
   if (activeHash === "#application-development-workspace" || applicationDevelopmentStageForHash(activeHash)) {
     return "#workspace-applications";
   }
@@ -349,6 +353,11 @@ function NavigationIcon({ name }: { name: NavigationIconName }) {
           <path d="M4 5v5h5" />
           <path d="M5.5 16.5A8 8 0 1 0 5 8.5L4 10" />
           <path d="M12 8v4l3 2" />
+        </>
+      ) : name === "admin" ? (
+        <>
+          <path d="M4 9.5 12 4l8 5.5" />
+          <path d="M6 10v8.5h12V10M9 18.5v-5h6v5" />
         </>
       ) : (
         <>

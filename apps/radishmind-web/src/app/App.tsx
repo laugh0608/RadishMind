@@ -2,18 +2,12 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, type KeyboardEven
 
 import {
   buildAdminTenantOverviewViewModel,
-  type AdminTenantOverviewFact,
-  type AdminTenantOverviewStatePreview,
 } from "../features/control-plane-read/adminTenantOverview";
 import {
   buildAdminAuditLogViewModel,
-  type AdminAuditEventRow,
-  type AdminAuditLogMetric,
-  type AdminAuditLogStatePreview,
 } from "../features/control-plane-read/adminAuditLog";
 import { buildAdminOperationsReviewViewModel } from "../features/control-plane-read/adminOperationsReview";
 import { buildAdminProviderDeploymentReviewViewModel } from "../features/control-plane-read/adminProviderDeploymentReview";
-import { AdminProviderDeploymentReviewPanel } from "../features/control-plane-read/adminProviderDeploymentReviewPanel";
 import {
   initialControlPlaneReadDevLiveLoadState,
   loadControlPlaneReadDevLiveCollections,
@@ -255,7 +249,7 @@ const WorkflowUserWorkspaceHomePanel = lazy(() =>
     default: module.WorkflowUserWorkspaceHomePanel,
   })),
 );
-const AdminOperationsReviewPanel = lazy(() => import("../features/control-plane-read/adminOperationsReviewPanel").then((module) => ({ default: module.AdminOperationsReviewPanel })));
+const AdminControlPlaneWorkspace = lazy(() => import("../features/control-plane-read/adminControlPlaneWorkspace"));
 const ModelGatewayEvidenceReviewPanel = lazy(() => import("../features/control-plane-read/modelGatewayEvidenceReviewPanel").then((module) => ({ default: module.ModelGatewayEvidenceReviewPanel })));
 const ApplicationCatalogPanel = lazy(() => import("../features/control-plane-read/applicationCatalogPanel").then((module) => ({ default: module.ApplicationCatalogPanel })));
 const ApplicationDevelopmentWorkspacePanel = lazy(() => import("../features/control-plane-read/applicationDevelopmentWorkspacePanel"));
@@ -1935,9 +1929,17 @@ export function App() {
         <ModelGatewayUsageAuditEvidencePanel evidence={modelGatewayUsageAuditEvidence} />
         <Suspense fallback={<section className="surface-band"><p>Loading review evidence…</p></section>}>
           <ModelGatewayEvidenceReviewPanel review={modelGatewayEvidenceReview} />
-          <AdminOperationsReviewPanel review={adminOperationsReview} />
         </Suspense>
-        <AdminProviderDeploymentReviewPanel review={adminProviderDeploymentReview} />
+        <Suspense fallback={<section className="surface-band"><p>Loading Admin Control Plane…</p></section>}>
+          <AdminControlPlaneWorkspace
+            tenantOverview={tenantOverview}
+            auditLog={adminAuditLog}
+            operationsReview={adminOperationsReview}
+            providerDeploymentReview={adminProviderDeploymentReview}
+            sourceConfig={activeDevLiveConfig}
+            sourceState={devLiveState}
+          />
+        </Suspense>
         <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />
         <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />
         <WorkflowScenarioInspectorPanel
@@ -1945,126 +1947,6 @@ export function App() {
           selectedScenarioId={workflowScenarioInspector.selectedScenarioId}
           onSelectScenario={setSelectedWorkflowScenarioId}
         />
-
-        <section
-          className="surface-band tenant-overview"
-          id="admin-tenant-overview"
-          aria-labelledby="admin-tenant-overview-title"
-        >
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Admin Control Plane</p>
-              <h3 id="admin-tenant-overview-title">Tenant Overview</h3>
-            </div>
-            <StatusBadge tone={tenantOverview.canRenderTenant ? "good" : "bad"}>
-              {tenantOverview.canRenderTenant ? "read-only ready" : "blocked"}
-            </StatusBadge>
-          </div>
-
-          <div className="tenant-layout">
-            <article className="tenant-summary">
-              <div className="card-title-row">
-                <div>
-                  <p className="eyebrow">Tenant Summary Route</p>
-                  <h4>{tenantOverview.tenant?.tenant_display_name ?? "No tenant summary"}</h4>
-                </div>
-                <StatusBadge tone="neutral">{tenantOverview.requiredScope}</StatusBadge>
-              </div>
-              <p className="route-path">{tenantOverview.routePath}</p>
-              <dl className="tenant-meta">
-                <div>
-                  <dt>Route</dt>
-                  <dd>{tenantOverview.routeId}</dd>
-                </div>
-                <div>
-                  <dt>Model</dt>
-                  <dd>{tenantOverview.readModel}</dd>
-                </div>
-                <div>
-                  <dt>Request</dt>
-                  <dd>{tenantOverview.requestId}</dd>
-                </div>
-                <div>
-                  <dt>Audit</dt>
-                  <dd>{tenantOverview.auditRef}</dd>
-                </div>
-              </dl>
-            </article>
-
-            <div className="tenant-facts" aria-label="Tenant overview facts">
-              {tenantOverview.facts.map((fact) => (
-                <TenantFact key={fact.label} fact={fact} />
-              ))}
-            </div>
-          </div>
-
-          <div className="tenant-states" aria-label="Tenant overview states">
-            {tenantOverview.statePreviews.map((state) => (
-              <TenantStatePreview key={state.id} state={state} />
-            ))}
-          </div>
-        </section>
-
-        <section className="surface-band admin-audit-log" id="admin-audit-log" aria-labelledby="admin-audit-log-title">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Admin Control Plane</p>
-              <h3 id="admin-audit-log-title">Audit Log</h3>
-            </div>
-            <StatusBadge tone={adminAuditLog.canRenderAuditLog ? "good" : "bad"}>
-              {adminAuditLog.canRenderAuditLog ? "read-only ready" : "blocked"}
-            </StatusBadge>
-          </div>
-
-          <div className="audit-log-summary">
-            <article className="audit-log-route">
-              <div className="card-title-row">
-                <div>
-                  <p className="eyebrow">Audit Summary List Route</p>
-                  <h4>{adminAuditLog.routeId}</h4>
-                </div>
-                <StatusBadge tone="neutral">{adminAuditLog.requiredScope}</StatusBadge>
-              </div>
-              <p className="route-path">{adminAuditLog.routePath}</p>
-              <dl className="tenant-meta">
-                <div>
-                  <dt>Model</dt>
-                  <dd>{adminAuditLog.readModel}</dd>
-                </div>
-                <div>
-                  <dt>Request</dt>
-                  <dd>{adminAuditLog.requestId}</dd>
-                </div>
-                <div>
-                  <dt>Next cursor</dt>
-                  <dd>{adminAuditLog.nextCursor ?? "none"}</dd>
-                </div>
-                <div>
-                  <dt>Audit</dt>
-                  <dd>{adminAuditLog.auditRef}</dd>
-                </div>
-              </dl>
-            </article>
-
-            <div className="audit-log-metrics" aria-label="Admin audit log metrics">
-              {adminAuditLog.metrics.map((metric) => (
-                <AuditLogMetric key={metric.label} metric={metric} />
-              ))}
-            </div>
-          </div>
-
-          <div className="audit-event-list" aria-label="Admin audit events">
-            {adminAuditLog.auditEvents.map((event) => (
-              <AuditEventRow key={event.auditRef} event={event} />
-            ))}
-          </div>
-
-          <div className="audit-log-states" aria-label="Admin audit log states">
-            {adminAuditLog.statePreviews.map((state) => (
-              <AuditLogStatePreview key={state.id} state={state} />
-            ))}
-          </div>
-        </section>
 
         <section
           className="surface-band workspace-applications"
@@ -3057,67 +2939,6 @@ function workflowScenarioTone(status: WorkflowScenarioStatus): "good" | "bad" | 
     return "good";
   }
   return "neutral";
-}
-
-function AuditLogMetric({ metric }: { metric: AdminAuditLogMetric }) {
-  return (
-    <article className="audit-log-metric">
-      <span>{metric.label}</span>
-      <strong>{metric.value}</strong>
-      <p>{metric.detail}</p>
-    </article>
-  );
-}
-
-function AuditEventRow({ event }: { event: AdminAuditEventRow }) {
-  return (
-    <article className="audit-event-row">
-      <div className="audit-event-row-main">
-        <div>
-          <p className="eyebrow">{event.eventKind}</p>
-          <h4>{event.auditRef}</h4>
-        </div>
-        <StatusBadge tone={event.decision === "denied" ? "bad" : "good"}>{event.decision}</StatusBadge>
-      </div>
-      <dl className="audit-event-row-meta">
-        <div>
-          <dt>Actor</dt>
-          <dd>{event.actorSubjectRef}</dd>
-        </div>
-        <div>
-          <dt>Resource</dt>
-          <dd>{event.resourceRef}</dd>
-        </div>
-        <div>
-          <dt>Failure</dt>
-          <dd>{event.failureCode}</dd>
-        </div>
-        <div>
-          <dt>Trace</dt>
-          <dd>{event.traceId}</dd>
-        </div>
-        <div>
-          <dt>Recorded</dt>
-          <dd>{event.recordedAt}</dd>
-        </div>
-      </dl>
-    </article>
-  );
-}
-
-function AuditLogStatePreview({ state }: { state: AdminAuditLogStatePreview }) {
-  return (
-    <article className="audit-log-state">
-      <div>
-        <strong>{state.label}</strong>
-        <span>{state.status}</span>
-      </div>
-      <p>{state.summary}</p>
-      <small>
-        items {state.itemCount} / failure {state.failureCode}
-      </small>
-    </article>
-  );
 }
 
 function RunHistoryMetric({ metric }: { metric: WorkspaceRunHistoryMetric }) {
@@ -5201,31 +5022,6 @@ function ApplicationRow({
 function ApplicationStatePreview({ state }: { state: WorkspaceApplicationsStatePreview }) {
   return (
     <article className="application-state">
-      <div>
-        <strong>{state.label}</strong>
-        <span>{state.status}</span>
-      </div>
-      <p>{state.summary}</p>
-      <small>
-        items {state.itemCount} / failure {state.failureCode}
-      </small>
-    </article>
-  );
-}
-
-function TenantFact({ fact }: { fact: AdminTenantOverviewFact }) {
-  return (
-    <article className="tenant-fact">
-      <span>{fact.label}</span>
-      <strong>{fact.value}</strong>
-      <p>{fact.detail}</p>
-    </article>
-  );
-}
-
-function TenantStatePreview({ state }: { state: AdminTenantOverviewStatePreview }) {
-  return (
-    <article className="tenant-state">
       <div>
         <strong>{state.label}</strong>
         <span>{state.status}</span>

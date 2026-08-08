@@ -2,7 +2,7 @@
 
 更新时间：2026-08-08
 
-状态：`radishmind_family_ui_productization_v1_s1_r8_s2_r6_s3_r2_s4_r1_s5_r1_s6_r1_implemented`
+状态：`radishmind_family_ui_productization_v1_s1_r8_s2_r6_s3_r2_s4_r1_s5_r1_s6_r1_s7_r1_implemented`
 
 ## 目标
 
@@ -62,10 +62,10 @@ RadishMind 项目主动选择 `Workbench` Profile：
 4. Application API Integration 与 API Key：模型资格、接入示例、一次性凭据交接、验证后退役和失败解释。
 5. Application Runtime Review：受控调用、精确请求审查、应用当前窗口运行证据和跨 owner 交接。
 6. Workflow Run & Evaluation Review：运行定位、兼容比较、版本化 Case / Suite 证据和摘要绑定的人工判断。
+7. Admin Control Plane：管理上下文、七类资源定位、Tenant / Audit 只读证据、身份缺口和开发测试态 Provider / Profile / Route 受控配置。
 
 ### 后续设计面
 
-- Admin / Control Plane 的只读证据、blocked action 和开发测试态管理面。
 - Prompt 与 Agent / Copilot 的类型专属配置、受控调用和回归评测路径。
 
 后续设计面不因列入范围而自动获得实现准入；每一批仍要以对应功能专题中的当前能力为边界。
@@ -134,8 +134,9 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 | `S4` API Integration / API Key | `A` | 接入任务主面与一次性凭据交接、验证后退役的关键风险状态 | API Key 风险状态并入同一页面族，不为每个生命周期状态复制完整页面 |
 | `S5` Application Runtime Review | `A` | 受控调用、脱敏请求审查与当前窗口证据的持续任务面；补充窄屏单 owner 顺序 | 复用既有三类 consumer，不复制执行、history 或 operations 真相源 |
 | `S6` Workflow Run & Evaluation Review | `A` | 运行定位、兼容比较、exact-version Case / Suite 与 digest-bound 人工 decision；补充窄屏四任务顺序 | 复用既有五类 consumer，不复制 run、comparison、evaluation 或 release truth source |
+| `S7` Admin Control Plane | `A` | 管理上下文、Tenant / User / Role / Audit / Provider / Profile / Route 七资源拓扑、单 owner 和窄屏顺序 | 五维评分为 `2 / 2 / 2 / 2 / 2`；Tenant / Audit 复用 authenticated read，User / Role 显式失败关闭，Provider / Profile / Route 复用同一原子配置 owner |
 
-当前维护六个完整设计基准面和必要的局部 / 状态变体，不按路由、组件或状态数量扩张画板。
+当前维护七个完整设计基准面和必要的局部 / 状态变体，不按路由、组件或状态数量扩张画板。
 
 ### 设计基准面覆盖记录
 
@@ -148,6 +149,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 | `radishmind_web_s4_application_access_v1` | `implementation_r1_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S4 Application Access — Desktop / Dev Test · R1`、`S4 Application Access — Narrow / Dev Test · R1` 与 `S1 + S2 + S3 + S4 Visual Language — Design Decision Record · R9`；三者全树无裁切、越界或占位节点 | `applicationDevelopmentWorkspaceSurface.tsx` 编排单一 S4 task owner，`applicationApiIntegrationPanel.tsx`、`apiKeyLifecyclePanel.tsx`、`ProductNavigation.tsx`、`productNavigationRoute.ts` 与 `styles.css` 继续消费既有 integration、lifecycle、rotation、handoff 和 Playground owner | 接入、凭据、验证和退役按一个任务轨渐进呈现；普通 Key 行保持中性，只有驱动详情的行使用墨蓝细轨，active / expired / revoked / verification pending 等状态不承担选中语义。模型只开放实际声明的协议；七项 scope、一次性凭据和 `last_used_at` 验证门槛保持真实。archived application 只允许 Key metadata / detail / revoke，继续阻断 issue、rotate、integration 和 invocation；offline workspace summary 与当前应用 lifecycle 列表不合并。 |
 | `radishmind_web_s5_application_runtime_review_v1` | `implementation_r1_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S5 Application Runtime Review — Desktop / Dev Test · R1`、`S5 Application Runtime Review — Narrow / Dev Test · R1` 与 `S1 + S2 + S3 + S4 + S5 Visual Language — Design Decision Record · R10`；三者全树无裁切、越界或占位节点 | `applicationRuntimeReviewWorkspace.tsx` 在 Application Workspace 后持续挂载 S5 上下文与任务轨，`modelGatewayPlaygroundPanel.tsx`、`modelGatewayRequestHistoryPanel.tsx`、`applicationOperationsPanel.tsx` 仍分别持有既有 owner；`applicationDevelopmentWorkspacePanel.tsx`、`App.tsx` 与 `styles.css` 只负责组合和响应式语义 | Run、Request、Evidence 三个任务只挂载一个当前 owner。Playground 使用目录真实模型 / 协议资格且只保存易失结果；Request History 在切换 application / workspace 时先清空并拒绝迟到响应；Operations 只汇总已加载的 Gateway / Workflow 当前窗口，不推测跨来源关联。普通行保持中性，任务 / 详情选中使用墨蓝细轨，状态继续使用独立文字和 badge。archived application 阻断 Run，history / evidence 保持真实可读边界。 |
 | `radishmind_web_s6_workflow_run_evaluation_review_v1` | `implementation_r1_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S6 Workflow Run & Evaluation Review — Desktop / Dev Test · R1`、`S6 Workflow Run & Evaluation Review — Narrow / Dev Test · R1` 与 `S1 + S2 + S3 + S4 + S5 + S6 Visual Language — Design Decision Record · R11`；三者全树无裁切、越界或占位节点 | `workflowReviewWorkspace.tsx` 持续挂载 S6 上下文与四任务轨，`workflowReviewOwner.tsx`、`workflowRunComparisonPanel.tsx`、`workflowEvaluationPanel.tsx`、`workflowEvaluationSuitePanel.tsx` 继续消费既有 run、comparison、case、suite 与 decision consumer；`ProductNavigation.tsx`、`productNavigationRoute.ts`、`App.tsx` 与 `styles.css` 负责精确导航、组合和响应式语义 | Runs、Compare、Cases、Release 四个任务只挂载一个当前 owner。Run 只表示当前 cursor window；Comparison 即时派生且不持久化；Case / Suite 使用 exact refs；decision 绑定 review digest，`approved` 只形成 append-only evidence。workspace mismatch 零请求失败关闭，切换上下文先清空并拒绝迟到响应，archived application 保留历史只读但关闭诊断与 mutation。 |
+| `radishmind_web_s7_admin_control_plane_v1` | `implementation_r1_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S7 Admin Control Plane — Desktop / Dev Test · R1`、`S7 Admin Control Plane — Narrow / Dev Test · R1` 与 `S1 + S2 + S3 + S4 + S5 + S6 + S7 Visual Language — Design Decision Record · R12`；三者全树无裁切、越界或占位节点 | `adminControlPlaneWorkspace.tsx` 持续挂载 context、七资源任务轨与单 owner，`adminControlPlaneRoute.ts` 固定精确 hash；`devLiveReadConsumer.ts`、`adminProviderRouteWorkspacePanel.tsx`、`ProductNavigation.tsx`、`App.tsx` 与 `styles.css` 复用既有 consumer、配置 owner 和 Workbench 壳层 | Tenant 只显示脱敏 summary；Audit 保持严格 cursor current window，行选中只驱动只读详情；User / Role 没有 RadishMind list owner，明确阻断邀请、角色变更与 production session。Provider / Profile / Route 是同一 `tenant_ref + workspace_id + environment + configuration_id` 原子 owner 的三个任务入口，不拆成伪 CRUD，也不复制 runtime inventory、credential、endpoint 或生产启用能力。 |
 
 `S1` 消费 `ref-03`、`ref-07`、`ref-08`、`ref-09`、`ref-15`、`ref-17`、`ref-18`、`ref-19` 与 `ref-24` 的产品层级，并共享 `ref-25` 的白色抬升表面和 `ref-27` 的连续窗格语法；`ref-20` 只保留未来暗色证据，不在当前画板增加主题切换。两个画板均已通过 Pencil 全树布局检查，结果为 `No layout problems`；视觉复核确认没有裁切、重叠和横向溢出。
 
@@ -238,11 +240,11 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 ### 设计批次：真实任务页面蓝图
 
-参考图产品面映射、Pencil 协作模型，以及 `S1 R8`、`S2 R6`、`S3 R2`、`S4 R1`、`S5 R1`、`S6 R1` 的桌面 / 窄屏设计、React 实现和真实浏览器验收均已完成；`S3 R1` 因确定性画布裁切与层级重复被人工退回的事实保留。下一设计批次转入 Admin / Control Plane 页面族：先审计 Tenant、User、Role、Audit、Provider、Profile 与 Route 的 authenticated read、权限绑定、只读 / blocked 边界和 dev / test 管理动作，再决定完整 Pencil、局部 Pencil与直接复用边界；不新增同层理想稿、兄弟画板或普通 UI 专项 task card。
+参考图产品面映射、Pencil 协作模型，以及 `S1 R8`、`S2 R6`、`S3 R2`、`S4 R1`、`S5 R1`、`S6 R1`、`S7 R1` 的桌面 / 窄屏设计、React 实现和真实浏览器验收均已完成；`S3 R1` 因确定性画布裁切与层级重复被人工退回的事实保留。S7 审计确认 User / Role 没有 RadishMind list owner，Provider / Profile / Route 也不是三套独立 CRUD，因此七类资源只建立一个桌面和一个窄屏代表面。后续产品化批次必须先由当前功能设计顺位产生，不从 S7 原地扩张 production membership、OIDC、secret、自动路由或生产启用。
 
 ### 实现批次：纵向切片迁移
 
-按“产品壳 → Application Workspace → Saved Draft / Designer → API Integration / Key → Application Runtime Review → Workflow Run & Evaluation Review”的顺序逐批实施。每批同时完成：
+按“产品壳 → Application Workspace → Saved Draft / Designer → API Integration / Key → Application Runtime Review → Workflow Run & Evaluation Review → Admin Control Plane”的顺序逐批实施。每批同时完成：
 
 - 对应页面和共享组件的语义 token 迁移；
 - 桌面与窄屏行为；
@@ -255,7 +257,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 - `1440x900`：真实页面 `scrollWidth` 与 viewport 均为 `1440px`，唯一桌面导航宽 `248px`；真实 view model 的五行 Operations Inbox 均为 `88px`，列表与只读 evidence detail 组成连续双窗格。
 - `390x844`：闭合导航与展开菜单的页面 `scrollWidth`、body 宽度和菜单面板宽度均为 `390px`；五行 Operations Inbox 均为 `96px`，桌面详情渐进隐藏，`Open selected` 保留 owner 跳转。菜单导航后自动收起，目标锚点位于 `72px`。
 - 响应式壳层在 `1101px` 保持 `248px` 桌面导航，在 `1100px` 切换 command bar；`1101px`、`1100px`、`821px` 与 `390px` 均无页面级横向溢出。
-- 条件渲染的 API Key owner 不能只依赖静态 hash 滚动；S6 的 Run History、Comparison、Cases 与 Release Review 则由精确 hash 映射到同一个持续工作面，并在目标 owner 挂载后滚动到 `72px`。相邻或前缀 hash 不获得隐式归属，没有新增路由、执行动作或伪造 owner。
+- 条件渲染的 API Key owner 不能只依赖静态 hash 滚动；S6 的 Run History、Comparison、Cases 与 Release Review，以及 S7 的七类资源任务，均由精确 hash 映射到持续工作面，并在目标 owner 挂载后滚动到 `72px`。相邻或前缀 hash 不获得隐式归属，没有新增路由、执行动作或伪造 owner。
 
 ## 基础批次验收
 
@@ -294,6 +296,10 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 - Pencil Desktop / Narrow R1 与 Decision R11 已显式保存，整棵设计树无 clipping / placeholder。Web `281/281` 与 production build 通过；S6 chunks 分别为 `workflowReviewWorkspace 4.82 KiB`、`workflowReviewOwner 23.00 KiB`、`workflowEvaluationPanel 8.57 KiB`、`workflowEvaluationSuitePanel 15.47 KiB`、`workflowRunComparisonPanel 27.70 KiB`，主入口 `469.67 KiB` 仍低于 `500 KiB` 预算。
 - 应用内浏览器覆盖 `1440x900`、`1281/1280px`、`1101/1100px`、`761/760px` 与 `390x844`：精确任务切换、单 owner、Run history 一级导航归属、窄屏 context → task → owner 顺序和深链定位正确，各宽度无横向溢出，控制台零 warning / error。默认 runtime 为 offline，因此浏览器验收如实覆盖失败关闭资格面；Pencil 的 live dev / test 数据只作为已批准代表态，不冒充本机 live owner 结果。
 - S6 没有新增自动评测执行、replay / resume、自动 candidate / assignment / release、全历史聚合、业务写回、API、schema、repository、task card、fixture 或专项 checker。
+- `S7 R1` 已把 Tenant、User、Role、Audit、Provider、Profile 与 Route 编排为“管理上下文 → 七资源定位 → 单一当前 owner”。Tenant / Audit 继续使用既有 `tenant:read` / `audit:read` consumer；Audit Web 补齐现有契约允许的 cursor next / previous current-window 导航和行驱动 metadata-only detail，offline next 保持禁用。User / Role 只呈现 Radish-owned 真相边界和 blocked action；Provider / Profile / Route 继续复用四项独立权限、draft CAS、不可变 candidate、独立 review 与显式 generation activation。
+- Pencil Desktop / Narrow R1 与 Decision R12 已完成全树检查，结果为零裁切、零越界、零占位。Web `287/287` 与 production build 通过；`adminControlPlaneWorkspace 34.33 KiB`、`adminProviderRouteWorkspacePanel 22.47 KiB`，主入口降至 `458.43 KiB < 500 KiB`。
+- 应用内浏览器覆盖 `1440x900`、`1281/1280px`、`1101/1100px`、`901/900px`、`761/760px` 与 `390x844`：七任务精确 hash、单 owner、Audit 行选中 / 只读详情、Supporting evidence 折叠、窄屏 context → task → owner 顺序和关键布局切换正确；所有宽度无横向溢出，控制台零 warning / error。默认 offline fixture 没有被改写成 live 管理事实，也没有产生 Provider / Route 管理请求。
+- S7 没有新增 API、schema、repository、permission、task card、fixture、专项 checker、生产 membership、正式 OIDC、secret material、provider onboarding、自动路由或生产启用。
 
 ## 停止线
 

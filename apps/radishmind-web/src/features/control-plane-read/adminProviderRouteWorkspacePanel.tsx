@@ -37,7 +37,11 @@ type WorkspaceOperation = {
   auditRef: string;
 };
 
-export function AdminProviderRouteWorkspacePanel() {
+export function AdminProviderRouteWorkspacePanel({
+  focus = "route",
+}: {
+  focus?: "provider" | "profile" | "route";
+}) {
   const [draftInput, setDraftInput] = useState<AdminProviderRouteDraftInput>(() =>
     createAdminProviderRouteDraftInput(config),
   );
@@ -228,12 +232,22 @@ export function AdminProviderRouteWorkspacePanel() {
   }
 
   const live = config.mode === "dev_admin_provider_route_http";
+  const focusLabel = focus === "provider"
+    ? "Runtime inventory references"
+    : focus === "profile"
+    ? "Provider Profile assignments"
+    : "Model routes and generation lineage";
   return (
-    <div className="admin-provider-route-workspace" id="admin-provider-route-workspace">
+    <div
+      className="admin-provider-route-workspace"
+      id="admin-provider-route-workspace"
+      data-resource-focus={focus}
+    >
       <div className="model-gateway-overview-subheading admin-provider-route-workspace-heading">
         <div>
-          <p className="eyebrow">Controlled Configuration Workspace</p>
+          <p className="eyebrow">Controlled Configuration Workspace · {focus}</p>
           <h4>Draft, review, activation, rollback, and Gateway lineage</h4>
+          <p>{focusLabel}</p>
         </div>
         <span className={`status-badge ${live ? "good" : "neutral"}`}>
           {live ? `${config.environment} · dev/test` : "offline"}

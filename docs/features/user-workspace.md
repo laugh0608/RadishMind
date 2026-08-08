@@ -66,7 +66,7 @@
 
 ## 下一批开发方向
 
-1. `user_workspace_real_path_ui_coherence_v1` 已完成并关闭。[RadishMind Family UI 产品化设计与迁移 v1](user-workspace/radishmind-family-ui-productization-v1.md) 已对齐 family-ui `v26.7.3` 通用参考基线，并由 RadishMind 主动选择 Workbench Profile、原样 token 镜像和项目语义别名；差异附录、[27 张参考图映射](user-workspace/radishmind-family-ui-reference-mapping-v1.md)、Pencil 分级，以及 `S1 R8`、`S2 R6`、`S3 R2`、`S4 R1`、`S5 R1`、`S6 R1` 的设计、React 实现和严格浏览器验收均已完成。S6 已把既有 Run History、Comparison、Evaluation Case / Suite 与 Human Release Review 组织成连续产品路径；下一步转入 Admin / Control Plane 页面族，先判断设计覆盖级别，再实施 React 纵向切片。Saved Draft Library 继续保持 `B` 级唯一列表 owner，当前窗口仍不冒充全历史或 quota / billing。
+1. `user_workspace_real_path_ui_coherence_v1` 已完成并关闭。[RadishMind Family UI 产品化设计与迁移 v1](user-workspace/radishmind-family-ui-productization-v1.md) 已对齐 family-ui `v26.7.3` 通用参考基线，并由 RadishMind 主动选择 Workbench Profile、原样 token 镜像和项目语义别名；差异附录、[27 张参考图映射](user-workspace/radishmind-family-ui-reference-mapping-v1.md)、Pencil 分级，以及 `S1 R8`、`S2 R6`、`S3 R2`、`S4 R1`、`S5 R1`、`S6 R1`、`S7 R1` 的设计、React 实现和严格浏览器验收均已完成。S7 已把既有 Admin read 与开发测试态配置 owner 组织成七资源连续产品路径；下一产品化顺位必须从新的功能设计专题产生。Saved Draft Library 继续保持 `B` 级唯一列表 owner，当前窗口仍不冒充全历史或 quota / billing。
 2. 后续批次继续要求跨 tenant / subject、非成员、过期 identity / membership、workspace mismatch、permission denied 在业务 repository 查询或副作用前失败关闭。dev header 与 signed-test assertion 只能用于开发测试，不能成为 production OIDC 授权来源。
 3. 工作区运营收件箱批次 A 已完成。只有真实需要跨全部分页窗口，且四类 owner 的统一稳定 cursor 契约成立时才评审批次 B；不为扩展示例数量或页面计数启动服务端投影。
 4. Prompt / Agent 继续复用 canonical Run、Comparison、Evaluation Case / Suite 与 decision owner；不复制评测算法，不把人工 `approved` 接成自动 candidate、assignment、release 或 deploy。Agent / Copilot 仍复用 canonical `CopilotRequest / CopilotResponse`，不扩 agent loop、工具执行或业务写回。

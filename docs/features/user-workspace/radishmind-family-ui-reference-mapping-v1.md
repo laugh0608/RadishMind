@@ -2,13 +2,13 @@
 
 更新时间：2026-08-08
 
-状态：`radishmind_family_ui_reference_mapping_v1_s1_r8_s2_r6_s3_r2_s4_r1_s5_r1_s6_r1_implemented`
+状态：`radishmind_family_ui_reference_mapping_v1_s1_r8_s2_r6_s3_r2_s4_r1_s5_r1_s6_r1_s7_r1_implemented`
 
 ## 文档职责
 
-本文件把 RadishX `docs/design/family-ui/references.md` 登记的 27 张外部 UI 参考图，逐项映射到 RadishMind 六个产品化设计面。它只承载“吸收什么、放到哪里、明确不学什么”的设计决策，不复制图片，不替代 family-ui 通用规范，也不改变 RadishMind 功能边界。
+本文件把 RadishX `docs/design/family-ui/references.md` 登记的 27 张外部 UI 参考图，逐项映射到 RadishMind 七个产品化设计面。它只承载“吸收什么、放到哪里、明确不学什么”的设计决策，不复制图片，不替代 family-ui 通用规范，也不改变 RadishMind 功能边界。
 
-六个目标产品面：
+七个目标产品面：
 
 | 编号 | 产品面 | 首批真实任务 |
 | --- | --- | --- |
@@ -18,6 +18,7 @@
 | `S4` | Application API Integration / API Key | 模型资格、接入向导、示例、scope、一次性凭据、验证与退役 |
 | `S5` | Application Runtime Review | 受控调用、精确请求审查、应用当前窗口运行证据与跨 owner handoff |
 | `S6` | Workflow Run & Evaluation Review | 运行定位、兼容比较、版本化用例 / 套件与摘要绑定的人工判断 |
+| `S7` | Admin Control Plane | 管理上下文、七资源定位、Tenant / Audit 只读详情、身份缺口与开发测试态配置 owner |
 
 ## 使用与版权边界
 
@@ -140,4 +141,5 @@ S6 组合原则：四个精确任务入口共用 application / workspace context
 - `S4 R1` 已把上述原则转译为同一 Application Access 页面族：桌面使用 access rail 与单一任务主面，窄屏按 application context → `2×2` access path → one-time credential → selected Key → verification / retire 重排。强选中只归属于当前任务或驱动详情的 Key 行，active / revoked / verification pending 等状态只使用 badge、文字和结构第二通道；一次性凭据代表面只说明 live response 可用，不绘制伪造 secret。
 - Pencil Desktop / Narrow R1 与 Decision R9 全树无裁切、越界和占位节点；真实浏览器在 `1440x900`、关键断点与 `390x844` 复验无横向溢出。七项 scope、workspace scope 失败关闭、archived Key 只读 / revoke、offline workspace summary 分离和 production authorization closed 均以现有 owner 为事实源；没有新增 API、schema、repository、task card 或专项 checker。
 - `S5 R1` 已按共享参考原则完成 Application Runtime Review：桌面以 context → vertical task rail → single owner 建立主次，`<=1280px` 把任务轨改为横向三段，`<=760px` 改为纵向顺序；普通 request / timeline 行保持中性，任务和详情选中使用墨蓝细轨，状态 badge 不承担选中语义。Pencil Desktop / Narrow R1 与 Decision R10 全树无裁切、越界和占位节点；真实浏览器覆盖 `1440x900`、`1281/1280px`、`1101/1100px`、`761/760px`、`390x844`，各宽度无横向溢出、只挂载一个 owner，控制台零 warning / error。
-- `S6 R1` 已按二次转译原则完成 Workflow Run & Evaluation Review：Desktop 以 context → vertical four-task rail → dominant owner 建立运行定位、兼容比较、版本化证据与人工判断的连续路径；Narrow 固定为 context → four-task row → current owner → stop line。Pencil Desktop / Narrow R1 与 Decision R11 全树无裁切、越界或占位节点；真实浏览器覆盖 `1440x900`、`1281/1280px`、`1101/1100px`、`761/760px`、`390x844`，精确 hash、单 owner、Run history 一级导航归属、窄屏顺序和零横向溢出均通过，控制台零 warning / error。下一步进入 Admin / Control Plane 页面族事实审计。
+- `S6 R1` 已按二次转译原则完成 Workflow Run & Evaluation Review：Desktop 以 context → vertical four-task rail → dominant owner 建立运行定位、兼容比较、版本化证据与人工判断的连续路径；Narrow 固定为 context → four-task row → current owner → stop line。Pencil Desktop / Narrow R1 与 Decision R11 全树无裁切、越界或占位节点；真实浏览器覆盖 `1440x900`、`1281/1280px`、`1101/1100px`、`761/760px`、`390x844`，精确 hash、单 owner、Run history 一级导航归属、窄屏顺序和零横向溢出均通过，控制台零 warning / error。
+- `S7 R1` 继续吸收 `ref-27` 的连续资源路径、`ref-25` 的白色抬升 owner 和 S1–S6 已冻结的墨蓝轻选中轨：Desktop 使用 context → seven-resource path → single owner，Narrow 固定为 context → `4 + 3` task grid → owner → stop line。普通资源和状态保持中性，只有当前任务或驱动 Audit detail 的记录获得选中；User / Role 缺口、offline、denied 与 activation state 均不冒充选择。Pencil Desktop / Narrow R1 与 Decision R12 全树无裁切、越界或占位节点；真实浏览器覆盖 `1440x900`、全部关键断点与 `390x844`，单 owner、窄屏顺序和零横向溢出均通过，控制台零 warning / error。

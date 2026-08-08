@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  adminControlPlanePrimaryHref,
   applicationApiAccessPrimaryHref,
   workflowDesignerPrimaryHref,
   workflowReviewPrimaryHref,
@@ -77,5 +78,34 @@ test("does not claim adjacent workflow review anchors", () => {
     "#application-operations",
   ]) {
     assert.equal(workflowReviewPrimaryHref(anchor), null);
+  }
+});
+
+test("maps only explicit Admin Control Plane owners and legacy evidence anchors to Admin", () => {
+  for (const anchor of [
+    "#admin-control-plane",
+    "#admin-tenant-overview",
+    "#admin-user-directory",
+    "#admin-role-policy",
+    "#admin-audit-log",
+    "#admin-provider-config",
+    "#admin-profile-config",
+    "#admin-route-config",
+    "#admin-operations-review",
+    "#admin-provider-deployment-review",
+  ]) {
+    assert.equal(adminControlPlanePrimaryHref(anchor), "#admin-control-plane");
+  }
+});
+
+test("does not claim adjacent or prefix-like Admin anchors", () => {
+  for (const anchor of [
+    "#admin-control-plane-preview",
+    "#admin-user-directory-export",
+    "#admin-route-config-production",
+    "admin-audit-log",
+    "#model-gateway-route-evidence",
+  ]) {
+    assert.equal(adminControlPlanePrimaryHref(anchor), null);
   }
 });

@@ -286,6 +286,7 @@ HTTP 状态固定分层：缺失 / 无效身份为 `401`，权限或环境禁止
 ### 批次 E：Admin Web 与连续产品验证
 
 - 已完成草案编辑、候选差异、审查、激活、回滚、当前快照和历史界面。
+- `S7 R1` 已把 Provider、Profile 与 Route 作为同一原子 owner 的三个资源入口纳入 Admin Control Plane 连续工作面；入口只改变当前任务焦点，不复制 draft、candidate、review、activation、history 或 runtime inventory 状态。
 - 已完成 SQLite 与 PostgreSQL 开发测试态启动模式、专项门禁、服务重启和真实浏览器连续验收。
 - 已让 Gateway Playground 与 Request History 展示精确的激活快照 generation / digest 谱系。
 - 已更新当前焦点、路线图、能力矩阵、Admin / Gateway 专题与周志。
