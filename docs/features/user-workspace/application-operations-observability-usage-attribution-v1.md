@@ -143,6 +143,13 @@ Application Operations 面板包含：
 - privacy：只允许出现规范化 token counts 与稳定 usage source；不出现 prompt、input、answer、response body、credential、header、endpoint、provider raw payload 或 fragment 正文。
 - regression：既有 Gateway Request History 与 Workflow Run History 页面、过滤、详情和分页保持不变。
 
+## 2026-08-08 Family UI S5 产品化衔接
+
+- 既有 Application Operations owner 已进入 Application Runtime Review 的 `Review evidence` 任务，与 Run request、Request review 共享当前 application / workspace / lifecycle context，但继续保持独立事实源。
+- Gateway 与 Workflow 来源只有在各自 runtime workspace 与当前 context 一致时才读取；任一 enabled source scope 漂移时零请求失败关闭，并明确显示来源不可用，不用另一来源的数据掩盖。
+- 摘要、source coverage、usage 与 timeline 仍只覆盖当前已加载窗口；timeline 的 request / run action 精确切换到对应 owner，不推测两个来源之间的关联。
+- 本批不新增服务端 summary、统一 cursor、全历史统计、成本、quota、billing、自动诊断或生产健康声明。
+
 ## 停止线
 
 - 不把加载窗口摘要写成全量历史、计费凭证、成本、quota 或 billing。

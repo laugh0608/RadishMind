@@ -257,10 +257,10 @@ const WorkflowUserWorkspaceHomePanel = lazy(() =>
 );
 const AdminOperationsReviewPanel = lazy(() => import("../features/control-plane-read/adminOperationsReviewPanel").then((module) => ({ default: module.AdminOperationsReviewPanel })));
 const ModelGatewayEvidenceReviewPanel = lazy(() => import("../features/control-plane-read/modelGatewayEvidenceReviewPanel").then((module) => ({ default: module.ModelGatewayEvidenceReviewPanel })));
-const ModelGatewayPlaygroundPanel = lazy(() => import("../features/control-plane-read/modelGatewayPlaygroundPanel"));
 const ApplicationCatalogPanel = lazy(() => import("../features/control-plane-read/applicationCatalogPanel").then((module) => ({ default: module.ApplicationCatalogPanel })));
 const ApplicationDevelopmentWorkspacePanel = lazy(() => import("../features/control-plane-read/applicationDevelopmentWorkspacePanel"));
 const ApplicationDevelopmentWorkspaceSurface = lazy(() => import("../features/control-plane-read/applicationDevelopmentWorkspaceSurface"));
+const ApplicationRuntimeReviewWorkspace = lazy(() => import("../features/control-plane-read/applicationRuntimeReviewWorkspace"));
 const WorkflowRAGExecutionPanel = lazy(() => import("../features/control-plane-read/workflowRAGExecutionPanel"));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
 const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
@@ -1929,11 +1929,6 @@ export function App() {
             }}
           />
         </Suspense>
-        <Suspense fallback={<section className="surface-band"><p>Loading Gateway Playground…</p></section>}>
-          <ModelGatewayPlaygroundPanel
-            selectedApplicationId={applicationDevelopmentWorkspaceContext.applicationId}
-          />
-        </Suspense>
         <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
         <ModelGatewayRouteEvidencePanel detail={modelGatewayRouteEvidence} />
         <ModelGatewayUsageAuditEvidencePanel evidence={modelGatewayUsageAuditEvidence} />
@@ -2171,6 +2166,15 @@ export function App() {
                     ).length + 1}
                     onDerivedDraft={handleCreateDefinitionDerivedDraft}
                     onRunRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
+                  />
+                </Suspense>
+              )}
+              renderPersistentSurfaces={(surfaceKey, controls) => (
+                <Suspense fallback={<div className="application-runtime-review-loading"><p>Loading Application Runtime Review…</p></div>}>
+                  <ApplicationRuntimeReviewWorkspace
+                    context={applicationDevelopmentWorkspaceContext}
+                    surfaceKey={surfaceKey}
+                    controls={controls}
                   />
                 </Suspense>
               )}

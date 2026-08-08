@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   applicationDevelopmentStageForHash,
   applicationDevelopmentHashTargetsOwnerSurface,
+  applicationRuntimeReviewSurfaceForHash,
   buildApplicationDevelopmentWorkspaceContext,
   type ApplicationDevelopmentWorkspaceInput,
 } from "../src/features/control-plane-read/applicationDevelopmentWorkspace.ts";
@@ -74,7 +75,6 @@ test("opens owner review for exact child anchors without treating stage anchors 
   for (const anchor of [
     "#application-api-integration",
     "#workspace-api-keys",
-    "#model-gateway-playground",
     "#prompt-application-invocation",
   ]) {
     assert.equal(applicationDevelopmentHashTargetsOwnerSurface(anchor), true);
@@ -84,9 +84,20 @@ test("opens owner review for exact child anchors without treating stage anchors 
     "#application-development-workspace",
     "#workspace-applications",
     "#workspace-api-keys-preview",
+    "#model-gateway-playground",
+    "#model-gateway-request-history",
+    "#application-operations",
   ]) {
     assert.equal(applicationDevelopmentHashTargetsOwnerSurface(anchor), false);
   }
+});
+
+test("runtime review aliases keep one persistent task surface", () => {
+  assert.equal(applicationRuntimeReviewSurfaceForHash("#model-gateway-playground"), "run");
+  assert.equal(applicationRuntimeReviewSurfaceForHash("model-gateway-request-history"), "request");
+  assert.equal(applicationRuntimeReviewSurfaceForHash("#application-operations"), "evidence");
+  assert.equal(applicationRuntimeReviewSurfaceForHash("#application-api-integration"), null);
+  assert.equal(applicationRuntimeReviewSurfaceForHash("#application-operations-preview"), null);
 });
 
 test("missing application fails closed without fabricating a scope", () => {

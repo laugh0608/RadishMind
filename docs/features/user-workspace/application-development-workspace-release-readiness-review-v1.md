@@ -270,6 +270,12 @@ context 不保存领域对象、请求正文、响应正文、凭据、输入、
 - 批次 C 或阶段真相源收口时补完整 `./scripts/check-repo.sh` 和真实浏览器检查；
 - 只有引入后端 contract 或执行边界时才增加相称的 Go、race、vet、PostgreSQL integration 与专项验证。
 
+## 2026-08-08 Family UI S5 组合边界
+
+Application Runtime Review 作为 Application Workspace 的持续后置 surface 挂载，不改变 S2 五阶段、九组 source groups、十三项 contributions、revision `partial`、RAG authority `blocked` 或 readiness 只读不可发布的真相。旧 Controlled Test / Evidence 阶段只负责既有阶段 owner；Playground、Request History 与 Application Operations 由 S5 单一任务轨编排，避免同一 Operations owner 重复挂载。
+
+S5 的 Run request、Request review、Review evidence 仅提供上下文连续性和精确 handoff。它不把调用结果写入 readiness，不把脱敏 request detail 当作可重放载荷，也不把当前窗口 operations 当作发布资格、全历史或生产健康证据。
+
 ## 停止线
 
 - 不创建正式应用晋级、发布或 release API，不修改正式应用真相源。

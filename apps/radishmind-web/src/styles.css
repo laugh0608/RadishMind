@@ -6461,6 +6461,821 @@ dd {
   }
 }
 
+/* S5 Application Runtime Review Workbench */
+.application-runtime-review-workspace[hidden],
+.application-runtime-review-owner-panel[hidden] {
+  display: none;
+}
+
+.application-runtime-review-workspace {
+  display: grid;
+  min-width: 0;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-lg);
+  background: var(--rm-bg-surface);
+  box-shadow: var(--rm-shadow-panel);
+}
+
+.application-runtime-review-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  min-width: 0;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--rm-border-soft);
+  background: var(--rm-bg-surface);
+}
+
+.application-runtime-review-heading > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.application-runtime-review-heading h3,
+.application-runtime-review-heading p {
+  margin: 0;
+}
+
+.application-runtime-review-heading h3 {
+  color: var(--rm-text-primary);
+  font-size: 28px;
+  font-weight: 660;
+  letter-spacing: -0.025em;
+}
+
+.application-runtime-review-heading > div > p:last-child {
+  max-width: 670px;
+  color: var(--rm-text-secondary);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.application-runtime-review-heading dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(100px, 1fr));
+  min-width: min(420px, 42%);
+  margin: 0;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-md);
+}
+
+.application-runtime-review-heading dl > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-right: 1px solid var(--rm-border-soft);
+}
+
+.application-runtime-review-heading dl > div:last-child {
+  border-right: 0;
+}
+
+.application-runtime-review-heading dt {
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.application-runtime-review-heading dd {
+  overflow: hidden;
+  margin: 0;
+  color: var(--rm-text-primary);
+  font-family: var(--rm-font-mono);
+  font-size: 10px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.application-runtime-review-heading dd.is-active {
+  color: var(--rm-state-success);
+}
+
+.application-runtime-review-heading dd.is-archived {
+  color: var(--rm-state-neutral);
+}
+
+.application-runtime-review-layout {
+  display: grid;
+  grid-template-columns: 216px minmax(0, 1fr);
+  min-width: 0;
+}
+
+.application-runtime-review-path {
+  display: grid;
+  grid-template-rows: auto repeat(3, auto) minmax(96px, 1fr);
+  align-content: start;
+  min-width: 0;
+  border-right: 1px solid var(--rm-border-soft);
+  background: var(--rm-bg-muted);
+}
+
+.application-runtime-review-path > header {
+  display: grid;
+  gap: 6px;
+  min-height: 74px;
+  padding: 16px 14px;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.application-runtime-review-path > header span {
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.application-runtime-review-path > header strong {
+  color: var(--rm-text-primary);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.application-runtime-review-task {
+  display: grid;
+  grid-template-columns: 3px 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 72px;
+  padding: 9px 12px 9px 0;
+  border-bottom: 1px solid var(--rm-border-soft);
+  background: transparent;
+  color: var(--rm-text-secondary);
+  text-decoration: none;
+}
+
+.application-runtime-review-task > i {
+  width: 3px;
+  height: 100%;
+  border-radius: 0 var(--rm-radius-pill) var(--rm-radius-pill) 0;
+  background: transparent;
+}
+
+.application-runtime-review-task > b {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: 50%;
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+}
+
+.application-runtime-review-task > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.application-runtime-review-task strong,
+.application-runtime-review-task small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.application-runtime-review-task strong {
+  color: var(--rm-text-primary);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.application-runtime-review-task small {
+  color: var(--rm-text-muted);
+  font-size: 8px;
+}
+
+.application-runtime-review-task > em {
+  color: var(--rm-action-primary);
+  font-size: 18px;
+  font-style: normal;
+}
+
+.application-runtime-review-task:hover {
+  background: var(--rm-bg-surface);
+}
+
+.application-runtime-review-task.is-selected {
+  background: var(--rm-action-soft);
+}
+
+.application-runtime-review-task.is-selected > i {
+  background: var(--rm-action-primary);
+}
+
+.application-runtime-review-task.is-selected > b {
+  border-color: var(--rm-action-primary);
+  background: var(--rm-action-primary);
+  color: var(--rm-text-on-accent);
+}
+
+.application-runtime-review-task.is-blocked {
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+
+.application-runtime-review-boundary {
+  align-self: end;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  margin: 14px;
+  padding: 10px;
+  border-left: 3px solid var(--rm-state-warning);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-state-warning-soft);
+  color: var(--rm-state-warning);
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.application-runtime-review-boundary > span {
+  display: inline-grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-family: var(--rm-font-mono);
+  font-weight: 800;
+}
+
+.application-runtime-review-owner,
+.application-runtime-review-owner-panel {
+  min-width: 0;
+}
+
+.application-runtime-review-owner {
+  background: var(--rm-bg-canvas);
+}
+
+.application-runtime-review-owner-panel > .surface-band,
+.application-runtime-review-owner-panel > .gateway-request-history {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 18px;
+  background: var(--rm-bg-canvas);
+  box-shadow: none;
+}
+
+.application-runtime-review-loading {
+  min-height: 180px;
+  padding: 28px;
+  color: var(--rm-text-secondary);
+}
+
+.application-runtime-review-owner .section-heading,
+.application-runtime-review-owner .gateway-request-history-heading {
+  align-items: start;
+  margin: 0;
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.application-runtime-review-owner .section-heading h3,
+.application-runtime-review-owner .gateway-request-history-heading h4 {
+  color: var(--rm-text-primary);
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.application-runtime-review-owner .gateway-playground-layout {
+  grid-template-columns: minmax(300px, 0.92fr) minmax(320px, 1.08fr);
+  gap: 12px;
+}
+
+.application-runtime-review-owner .gateway-playground-form,
+.application-runtime-review-owner .gateway-playground-result,
+.application-runtime-review-owner .gateway-playground-scope,
+.application-runtime-review-owner .gateway-playground-model-catalog,
+.application-runtime-review-owner .gateway-request-history-summary > article,
+.application-runtime-review-owner .gateway-request-history-detail,
+.application-runtime-review-owner .application-operations-coverage article,
+.application-runtime-review-owner .application-operations-timeline article {
+  border-color: var(--rm-border-soft);
+  border-radius: var(--rm-radius-md);
+  background: var(--rm-bg-surface);
+}
+
+.application-runtime-review-owner .gateway-playground-form,
+.application-runtime-review-owner .gateway-playground-result {
+  padding: 14px;
+}
+
+.application-runtime-review-owner .gateway-playground-scope,
+.application-runtime-review-owner .gateway-playground-model-catalog,
+.application-runtime-review-owner .gateway-playground-output {
+  border-color: var(--rm-border-soft);
+  background: var(--rm-bg-muted);
+  color: var(--rm-text-primary);
+}
+
+.application-runtime-review-owner .gateway-playground-form label,
+.application-runtime-review-owner .gateway-playground-model-catalog p,
+.application-runtime-review-owner .gateway-playground-scope,
+.application-runtime-review-owner .gateway-playground-scope code {
+  color: var(--rm-text-secondary);
+}
+
+.application-runtime-review-owner .gateway-playground-form input,
+.application-runtime-review-owner .gateway-playground-form select,
+.application-runtime-review-owner .gateway-playground-form textarea,
+.application-runtime-review-owner .gateway-request-history-filters input,
+.application-runtime-review-owner .gateway-request-history-filters select {
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+}
+
+.application-runtime-review-owner .gateway-playground-blocked,
+.application-runtime-review-owner .gateway-request-history-blocked {
+  border-color: var(--rm-border-soft);
+  background: var(--rm-bg-surface);
+}
+
+.application-runtime-review-owner button {
+  min-height: 34px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-sm);
+  padding: 0 11px;
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.application-runtime-review-owner button[type="submit"],
+.application-runtime-review-owner .gateway-playground-result > button {
+  border-color: var(--rm-action-primary);
+  background: var(--rm-action-primary);
+  color: var(--rm-text-on-accent);
+}
+
+.application-runtime-review-owner button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.application-runtime-review-owner .gateway-request-history {
+  gap: 14px;
+}
+
+.application-runtime-review-owner .gateway-request-history-heading > div {
+  display: grid;
+  gap: 4px;
+}
+
+.application-runtime-review-owner .gateway-request-history-heading p {
+  margin: 0;
+  color: var(--rm-text-secondary);
+  font-size: 10px;
+}
+
+.application-runtime-review-owner .gateway-request-history-summary {
+  grid-template-columns: minmax(250px, 0.8fr) minmax(260px, 1.2fr);
+  align-items: start;
+}
+
+.gateway-request-history-filter-disclosure {
+  overflow: hidden;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-md);
+  background: var(--rm-bg-surface);
+}
+
+.gateway-request-history-filter-disclosure > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 46px;
+  padding: 0 13px;
+  color: var(--rm-text-primary);
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.gateway-request-history-filter-disclosure > summary span {
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.application-runtime-review-owner .gateway-request-history-filters {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-width: 1px 0 0;
+  border-radius: 0;
+  border-color: var(--rm-border-soft);
+  padding: 12px;
+  background: var(--rm-bg-muted);
+}
+
+.application-runtime-review-owner .gateway-request-history-row {
+  position: relative;
+  grid-template-columns: minmax(170px, 1.1fr) minmax(170px, 1fr) minmax(120px, 0.75fr);
+  gap: 10px;
+  overflow: hidden;
+  border-color: var(--rm-border-soft);
+  border-radius: var(--rm-radius-md);
+  padding: 12px 12px 12px 15px;
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+}
+
+.application-runtime-review-owner .gateway-request-history-row::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: transparent;
+  content: "";
+}
+
+.application-runtime-review-owner .gateway-request-history-row:hover {
+  border-color: var(--rm-border-strong);
+  background: var(--rm-bg-surface);
+}
+
+.application-runtime-review-owner .gateway-request-history-row.is-selected {
+  border-color: var(--rm-border-strong);
+  background: var(--rm-bg-surface);
+}
+
+.application-runtime-review-owner .gateway-request-history-row.is-selected::before {
+  background: var(--rm-action-primary);
+}
+
+.application-runtime-review-owner .gateway-request-history-row > span:nth-child(4) {
+  grid-column: 1 / 3;
+}
+
+.application-runtime-review-owner .gateway-request-history-row small {
+  color: var(--rm-text-muted);
+}
+
+.gateway-request-history-status,
+.application-operations-status {
+  display: inline-flex;
+  justify-self: start;
+  width: fit-content;
+  min-height: 20px;
+  align-items: center;
+  border-radius: var(--rm-radius-pill);
+  padding: 0 7px;
+  background: var(--rm-state-neutral-soft);
+  color: var(--rm-state-neutral);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.gateway-request-history-status.succeeded,
+.application-operations-status.succeeded {
+  background: var(--rm-state-success-soft);
+  color: var(--rm-state-success);
+}
+
+.gateway-request-history-status.failed,
+.gateway-request-history-status.canceled,
+.application-operations-status.failed,
+.application-operations-status.canceled,
+.application-operations-status.outcome_unknown {
+  background: var(--rm-state-danger-soft);
+  color: var(--rm-state-danger);
+}
+
+.gateway-request-history-status.started,
+.application-operations-status.started,
+.application-operations-status.running {
+  background: var(--rm-state-info-soft);
+  color: var(--rm-state-info);
+}
+
+.application-runtime-review-owner .gateway-request-history-detail {
+  border-left: 3px solid var(--rm-action-primary);
+}
+
+.application-runtime-review-owner .gateway-request-history-detail-grid {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-sm);
+}
+
+.application-runtime-review-owner .gateway-request-history-detail-grid > div {
+  padding: 9px 11px;
+  border-right: 1px solid var(--rm-border-soft);
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.application-runtime-review-owner .gateway-request-history-detail-grid > div:nth-child(2n) {
+  border-right: 0;
+}
+
+.application-runtime-review-owner .application-operations {
+  gap: 14px;
+}
+
+.application-runtime-review-owner .application-operations-coverage {
+  gap: 10px;
+}
+
+.application-runtime-review-owner .application-operations-coverage article {
+  padding: 12px;
+}
+
+.application-runtime-review-owner .application-operations-metrics {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-md);
+  background: var(--rm-bg-surface);
+}
+
+.application-runtime-review-owner .application-operations-metrics article {
+  border: 0;
+  border-right: 1px solid var(--rm-border-soft);
+  border-radius: 0;
+  padding: 11px;
+  background: transparent;
+}
+
+.application-runtime-review-owner .application-operations-metrics article:last-child {
+  border-right: 0;
+}
+
+.application-runtime-review-owner .application-operations-metrics p,
+.application-runtime-review-owner .application-operations-metrics span,
+.application-runtime-review-owner .application-operations-timeline-heading span,
+.application-runtime-review-owner .application-operations-empty {
+  color: var(--rm-text-muted);
+}
+
+.application-runtime-review-owner .application-operations-metrics strong {
+  color: var(--rm-text-primary);
+  font-size: 13px;
+}
+
+.application-runtime-review-owner .application-operations-failure,
+.application-runtime-review-owner .application-operations-stop-line {
+  border-color: var(--rm-state-danger);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-state-danger-soft);
+  color: var(--rm-state-danger);
+}
+
+.application-runtime-review-owner .application-operations-timeline li::before {
+  background: var(--rm-border-strong);
+}
+
+.application-runtime-review-owner .application-operations-timeline-marker {
+  border-color: var(--rm-bg-canvas);
+  background: var(--rm-text-muted);
+}
+
+.application-runtime-review-owner .application-operations-timeline li[data-source="gateway_request"] article {
+  border-left: 3px solid var(--rm-accent-tertiary);
+}
+
+.application-runtime-review-owner .application-operations-timeline li[data-source="workflow_run"] article {
+  border-left: 3px solid var(--rm-identity-primary);
+}
+
+.application-runtime-review-owner .application-operations-timeline article > button {
+  justify-self: start;
+  margin-top: 10px;
+}
+
+.model-gateway-runtime-review-link {
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-md);
+  padding: 14px;
+  background: var(--rm-bg-muted);
+}
+
+.model-gateway-runtime-review-link a {
+  color: var(--rm-action-primary);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+@media (max-width: 1280px) {
+  .application-runtime-review-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .application-runtime-review-heading dl {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .application-runtime-review-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .application-runtime-review-path {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--rm-border-soft);
+  }
+
+  .application-runtime-review-path > header,
+  .application-runtime-review-boundary {
+    grid-column: 1 / -1;
+  }
+
+  .application-runtime-review-task {
+    border-right: 1px solid var(--rm-border-soft);
+  }
+
+  .application-runtime-review-task:nth-of-type(3) {
+    border-right: 0;
+  }
+
+  .application-runtime-review-boundary {
+    align-self: auto;
+    margin: 10px 14px 14px;
+  }
+
+  .application-runtime-review-owner .application-operations-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .application-runtime-review-owner .application-operations-metrics article:nth-child(3) {
+    border-right: 0;
+  }
+
+  .application-runtime-review-owner .application-operations-metrics article:nth-child(n + 4) {
+    border-top: 1px solid var(--rm-border-soft);
+  }
+}
+
+@media (max-width: 1100px) {
+  .application-runtime-review-workspace {
+    scroll-margin-top: 72px;
+  }
+}
+
+@media (max-width: 900px) {
+  .application-runtime-review-owner .gateway-playground-layout,
+  .application-runtime-review-owner .gateway-request-history-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .application-runtime-review-owner .gateway-request-history-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .application-runtime-review-owner .gateway-request-history-row > span:nth-child(4) {
+    grid-column: auto;
+  }
+
+  .application-runtime-review-owner .gateway-request-history-row > span:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .application-runtime-review-workspace {
+    margin-top: 14px;
+    border-radius: var(--rm-radius-md);
+  }
+
+  .application-runtime-review-heading {
+    gap: 14px;
+    padding: 16px 14px;
+  }
+
+  .application-runtime-review-heading h3 {
+    font-size: 23px;
+  }
+
+  .application-runtime-review-heading > div > p:last-child {
+    font-size: 10px;
+  }
+
+  .application-runtime-review-heading dl {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .application-runtime-review-heading dl > div {
+    padding: 8px 9px;
+  }
+
+  .application-runtime-review-heading dl > div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .application-runtime-review-heading dl > div:last-child {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--rm-border-soft);
+  }
+
+  .application-runtime-review-path {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto repeat(3, auto) auto;
+  }
+
+  .application-runtime-review-path > header,
+  .application-runtime-review-boundary {
+    grid-column: auto;
+  }
+
+  .application-runtime-review-path > header {
+    min-height: 58px;
+    padding: 12px;
+  }
+
+  .application-runtime-review-task {
+    min-height: 58px;
+    border-right: 0;
+  }
+
+  .application-runtime-review-boundary {
+    margin: 10px 12px 12px;
+  }
+
+  .application-runtime-review-owner-panel > .surface-band,
+  .application-runtime-review-owner-panel > .gateway-request-history {
+    padding: 14px 12px;
+  }
+
+  .application-runtime-review-owner .section-heading,
+  .application-runtime-review-owner .gateway-request-history-heading,
+  .application-runtime-review-owner .application-operations-timeline-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .application-runtime-review-owner .application-operations-actions .status-badge {
+    align-self: flex-start;
+  }
+
+  .application-runtime-review-owner .section-heading > .status-badge {
+    align-self: flex-start;
+  }
+
+  .application-runtime-review-owner .gateway-playground-form,
+  .application-runtime-review-owner .gateway-request-history-filters,
+  .application-runtime-review-owner .gateway-request-history-row,
+  .application-runtime-review-owner .gateway-request-history-detail-grid,
+  .application-runtime-review-owner .application-operations-coverage,
+  .application-runtime-review-owner .application-operations-metrics,
+  .application-runtime-review-owner .application-operations-coverage dl div,
+  .application-runtime-review-owner .application-operations-timeline dl div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .application-runtime-review-owner .gateway-request-history-row > span:last-child,
+  .application-runtime-review-owner .gateway-playground-input,
+  .application-runtime-review-owner .gateway-playground-actions,
+  .application-runtime-review-owner .gateway-playground-form .boundary-note {
+    grid-column: auto;
+  }
+
+  .application-runtime-review-owner .gateway-request-history-detail-grid > div,
+  .application-runtime-review-owner .gateway-request-history-detail-grid > div:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .application-runtime-review-owner .application-operations-metrics article,
+  .application-runtime-review-owner .application-operations-metrics article:nth-child(3) {
+    border-right: 0;
+    border-bottom: 1px solid var(--rm-border-soft);
+  }
+
+  .application-runtime-review-owner .application-operations-metrics article:last-child {
+    border-bottom: 0;
+  }
+
+  .gateway-request-history-filter-disclosure > summary span {
+    display: none;
+  }
+}
+
 /* S4 Application Access Workbench */
 .application-development-owner-surface
   .application-development-stage-surface[data-application-development-stage="controlled_test"] {

@@ -83,10 +83,15 @@ type RepresentativeContribution = {
 export default function ApplicationDevelopmentWorkspacePanel({
   context,
   renderStageSurfaces,
+  renderPersistentSurfaces,
 }: {
   context: ApplicationDevelopmentWorkspaceContext;
   renderStageSurfaces?: (
     activeStage: ApplicationDevelopmentStageId | null,
+    surfaceKey: string,
+    controls: ApplicationDevelopmentWorkspaceControls,
+  ) => ReactNode;
+  renderPersistentSurfaces?: (
     surfaceKey: string,
     controls: ApplicationDevelopmentWorkspaceControls,
   ) => ReactNode;
@@ -145,7 +150,8 @@ export default function ApplicationDevelopmentWorkspacePanel({
     }
     if (previousActiveStage.current !== activeStage) {
       setStageMenuOpen(false);
-      setOwnerSurfaceOpen(applicationDevelopmentHashTargetsOwnerSurface(window.location.hash));
+      const targetsPendingOwner = handoffStateRef.current.pending?.targetStage === activeStage;
+      setOwnerSurfaceOpen(Boolean(targetsPendingOwner) || applicationDevelopmentHashTargetsOwnerSurface(window.location.hash));
     }
     previousActiveStage.current = activeStage;
   }, [activeStage, context]);
@@ -160,7 +166,10 @@ export default function ApplicationDevelopmentWorkspacePanel({
     const next = issueApplicationDevelopmentHandoff(handoffStateRef.current, context, input);
     handoffStateRef.current = next;
     setHandoffState(next);
-    if (next.pending) window.location.hash = next.pending.targetAnchor;
+    if (next.pending) {
+      setOwnerSurfaceOpen(true);
+      window.location.hash = next.pending.targetAnchor;
+    }
   }, [context]);
 
   const consumeHandoff = useCallback((targetStage: ApplicationDevelopmentStageId, handoffId: string) => {
@@ -406,6 +415,7 @@ export default function ApplicationDevelopmentWorkspacePanel({
           {renderStageSurfaces?.(activeStage, routeState.surfaceKey, controls)}
         </section>
       </div>
+      {renderPersistentSurfaces?.(routeState.surfaceKey, controls)}
     </section>
   );
 }

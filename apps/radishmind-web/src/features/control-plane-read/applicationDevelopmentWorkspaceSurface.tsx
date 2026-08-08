@@ -23,7 +23,6 @@ const AgentCopilotProfilePanel = lazy(() => import("./agentCopilotProfilePanel.t
 const AgentCopilotRuntimePanel = lazy(() => import("./agentCopilotRuntimePanel.tsx"));
 const AgentCopilotSessionPanel = lazy(() => import("./agentCopilotSessionPanel.tsx"));
 const ApplicationRAGInvocationPanel = lazy(() => import("./workflowRAGApplicationRuntimePanel.tsx"));
-const ApplicationOperationsPanel = lazy(() => import("./applicationOperationsPanel.tsx"));
 const WorkflowRAGEvaluationDatasetPanel = lazy(() => import("./workflowRAGEvaluationDatasetPanel.tsx"));
 const WorkflowDefinitionPromotionPanel = lazy(() => import("./workflowDefinitionPromotionPanel.tsx"));
 const WorkflowRAGPromotionPanel = lazy(() => import("./workflowRAGPromotionPanel.tsx"));
@@ -352,14 +351,6 @@ export default function ApplicationDevelopmentWorkspaceSurface({
               />
             </Suspense>
           ) : null}
-          <Suspense fallback={<StageFallback label="application operations" />}>
-            <ApplicationOperationsPanel
-              key={`${context.generationKey}:operations`}
-              applicationId={context.applicationId}
-              applicationName={context.displayName}
-              onEvidenceChange={reportOwnerEvidence}
-            />
-          </Suspense>
           <Suspense fallback={<StageFallback label="run history" />}>
             <WorkflowRunHistoryPanel
               key={`${context.generationKey}:run-history`}

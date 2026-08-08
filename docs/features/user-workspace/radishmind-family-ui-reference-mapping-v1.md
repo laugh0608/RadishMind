@@ -2,13 +2,13 @@
 
 更新时间：2026-08-08
 
-状态：`radishmind_family_ui_reference_mapping_v1_s1_r8_s2_r6_s3_r2_s4_r1_implemented`
+状态：`radishmind_family_ui_reference_mapping_v1_s1_r8_s2_r6_s3_r2_s4_r1_s5_r1_implemented`
 
 ## 文档职责
 
-本文件把 RadishX `docs/design/family-ui/references.md` 登记的 27 张外部 UI 参考图，逐项映射到 RadishMind 首批四个产品化设计面。它只承载“吸收什么、放到哪里、明确不学什么”的设计决策，不复制图片，不替代 family-ui 通用规范，也不改变 RadishMind 功能边界。
+本文件把 RadishX `docs/design/family-ui/references.md` 登记的 27 张外部 UI 参考图，逐项映射到 RadishMind 五个产品化设计面。它只承载“吸收什么、放到哪里、明确不学什么”的设计决策，不复制图片，不替代 family-ui 通用规范，也不改变 RadishMind 功能边界。
 
-四个目标产品面：
+五个目标产品面：
 
 | 编号 | 产品面 | 首批真实任务 |
 | --- | --- | --- |
@@ -16,6 +16,7 @@
 | `S2` | Application Development Workspace | 五阶段路径、readiness、owner evidence、lifecycle、CAS / drift 与 handoff |
 | `S3` | Saved Draft Library / Workflow Designer | 活动 / 归档草案、列表、精确打开、画布、属性、校验与审查交接 |
 | `S4` | Application API Integration / API Key | 模型资格、接入向导、示例、scope、一次性凭据、验证与退役 |
+| `S5` | Application Runtime Review | 受控调用、精确请求审查、应用当前窗口运行证据与跨 owner handoff |
 
 ## 使用与版权边界
 
@@ -81,6 +82,12 @@ S3 组合原则：完整 Saved Draft Library 保持为唯一列表 owner，Desig
 
 S4 组合原则：接入向导只编排既有 owner。原始 API Key 只在签发成功响应中出现一次；刷新、离开、application 切换和服务重启均不可恢复。
 
+## S5：Application Runtime Review
+
+S5 不重新分配 `ref-01` 至 `ref-27` 的首要归属，而是复用已经完成视觉复核的共享原则：`ref-27` 的连续任务窗格用于 Run / Request / Evidence 单 owner 任务面，`ref-12` 的时间与状态双通道用于当前窗口 timeline，`ref-15` 的紧凑元信息用于 request、model、protocol 与 source coverage。三张参考图仍分别以 S2、S2、S1 为首要产品面，S5 只记录二次转译，避免为了新增页面族伪造一套参考归属。
+
+S5 组合原则：调用输入与结果只保留在当前组件内存；Request History 只展示既有脱敏 envelope；Application Operations 只汇总当前已加载的 Gateway / Workflow 窗口。强选中只属于当前任务和驱动详情的行，成功 / 失败 / partial / archived 使用独立 badge、文字与结构通道；跨 application / workspace 切换必须先清空旧视图并拒绝迟到响应。
+
 ## 跨产品面设计约束
 
 1. 统一使用纸色底、暖白表面、发丝边框和极柔阴影；身份使用灰玉、操作使用墨蓝，不把参考图的冷灰、紫蓝或高饱和品牌色带入 RadishMind。
@@ -98,6 +105,7 @@ S4 组合原则：接入向导只编排既有 owner。原始 API Key 只在签�
 2. `S2` Application Workspace：五阶段、blocked readiness、CAS / drift confirmation。
 3. `S3` Saved Draft / Designer：活动与归档库、精确打开、画布 / inspector、failed / stale。
 4. `S4` API Integration / Key：接入向导、一次性交接、验证后退役和资格失败。
+5. `S5` Application Runtime Review：应用上下文、三任务轨、单一 owner、精确 request / run handoff 与窄屏渐进顺序。
 
 每张画板的说明区至少记录：
 
@@ -110,7 +118,7 @@ S4 组合原则：接入向导只编排既有 owner。原始 API Key 只在签�
 ## 验收结论
 
 - `ref-01` 至 `ref-27` 每项恰好有一个首要产品面。
-- 四个产品面都具有可追溯参考依据和明确不采用项。
+- 五个产品面都具有可追溯参考依据和明确不采用项。
 - 没有复制、提交或重新托管外部参考图。
 - 移动端、暗色和未实现能力没有从参考图获得隐式准入。
 - 2026-08-03 已实际重新查看 `ref-05`、`ref-11`、`ref-12`、`ref-13`、`ref-14`、`ref-18` 与 `ref-27`；原有产品面映射仍成立，但 `ref-18` 的大尺度品牌 / 导航 / 搜索、抬起选中实体与宽松主对象，以及 `ref-13` 的图标任务身份、阶段 rail 与单一宽工作面，应作为 `S1` / `S2` 共享视觉语法，而不只是局部结构参考。
@@ -122,4 +130,5 @@ S4 组合原则：接入向导只编排既有 owner。原始 API Key 只在签�
 - `S3 R2` 已按当前运行时事实修正上述结构，不改 owner 或能力边界：默认聚焦当前节点与直接邻居、提供显式 `Fit graph`、收紧 review 密度，并按 `1440px` 右侧 / `<=1380px` 下移 / `<=760px` 折叠安排 Inspector。Pencil Desktop / Narrow R2 与 Decision R8 实际渲染无裁切；桌面、临界断点和 `390x844` 的真实浏览器严格复验确认默认两节点邻域和全图八节点 / 七边完整可读、无横向溢出、移动端 review 位于 rail 之前。归档草案仍只读，九组来源、十三项 contribution、revision `partial`、RAG authority `blocked`、readiness 不可发布保持不变；不新增 API、schema、task card 或专项 checker。
 - 2026-08-08 已实际查看 `ref-01`、`ref-02`、`ref-10`、`ref-16` 与 `ref-25` 原图，而不只读取索引：分别吸收连续中性列表与小面积状态、受控行操作、发丝分隔的紧凑 scope 行、任务阶段 rail，以及白色抬升表面和限制提示分区；明确排除电商 KPI、价格与批量操作、日程语义、外部数据源“连接成功”声明、原始蓝色品牌和任何真实 token 图示。
 - `S4 R1` 已把上述原则转译为同一 Application Access 页面族：桌面使用 access rail 与单一任务主面，窄屏按 application context → `2×2` access path → one-time credential → selected Key → verification / retire 重排。强选中只归属于当前任务或驱动详情的 Key 行，active / revoked / verification pending 等状态只使用 badge、文字和结构第二通道；一次性凭据代表面只说明 live response 可用，不绘制伪造 secret。
-- Pencil Desktop / Narrow R1 与 Decision R9 全树无裁切、越界和占位节点；真实浏览器在 `1440x900`、关键断点与 `390x844` 复验无横向溢出。七项 scope、workspace scope 失败关闭、archived Key 只读 / revoke、offline workspace summary 分离和 production authorization closed 均以现有 owner 为事实源；没有新增 API、schema、repository、task card 或专项 checker。下一步转入 Gateway Playground / Request History / Application Operations 后续设计面。
+- Pencil Desktop / Narrow R1 与 Decision R9 全树无裁切、越界和占位节点；真实浏览器在 `1440x900`、关键断点与 `390x844` 复验无横向溢出。七项 scope、workspace scope 失败关闭、archived Key 只读 / revoke、offline workspace summary 分离和 production authorization closed 均以现有 owner 为事实源；没有新增 API、schema、repository、task card 或专项 checker。
+- `S5 R1` 已按共享参考原则完成 Application Runtime Review：桌面以 context → vertical task rail → single owner 建立主次，`<=1280px` 把任务轨改为横向三段，`<=760px` 改为纵向顺序；普通 request / timeline 行保持中性，任务和详情选中使用墨蓝细轨，状态 badge 不承担选中语义。Pencil Desktop / Narrow R1 与 Decision R10 全树无裁切、越界和占位节点；真实浏览器覆盖 `1440x900`、`1281/1280px`、`1101/1100px`、`761/760px`、`390x844`，各宽度无横向溢出、只挂载一个 owner，控制台零 warning / error。下一步进入 Workflow Run / Comparison / Evaluation / Human Release Review 页面族事实审计。

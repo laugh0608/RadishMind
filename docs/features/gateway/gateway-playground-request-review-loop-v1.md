@@ -116,6 +116,13 @@ base URL、tenant、workspace、consumer、application 和 subject 复用 Gatewa
 - 成功、失败和取消均可按同一 request id 打开真实 history detail。
 - lazy chunk 通过现有 64 KiB 普通 chunk 预算；不扩大 `App.tsx` 业务逻辑。
 
+## 2026-08-08 Family UI S5 产品化衔接
+
+- 既有 Playground owner 已进入 Application Runtime Review 的 `Run request` 任务，不再以全局独立面板常驻；S5 只负责编排 application / workspace / lifecycle context 和精确 Request History handoff，不复制 Gateway 请求或响应逻辑。
+- 调用资格现在同时要求 active application、当前 workspace 与 Gateway workspace 一致、模型目录 ready、选中模型真实声明所选协议，并已取得当前组件内存中的开发测试态 credential。任一条件不满足时零调用失败关闭。
+- application 切换会中止在途请求并清空 credential、catalog、model、protocol、input、stream 与 result，避免旧应用结果挂在新上下文；跨应用 handoff 会被拒绝。
+- 原始输入与响应继续只存在于当前组件内存，Request History 仍只接收脱敏 envelope；archived application 不允许发起调用。本批没有新增自动 retry / fallback、provider 路由承诺、生产认证、API 或持久化 owner。
+
 ## 停止线
 
 - 不实现 production API key、OIDC Gateway auth、quota、rate limit、billing、cost ledger 或 key issuance。

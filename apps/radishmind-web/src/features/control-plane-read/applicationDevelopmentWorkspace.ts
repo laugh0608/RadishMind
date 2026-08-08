@@ -7,6 +7,7 @@ export const APPLICATION_DEVELOPMENT_STAGE_IDS = [
 ] as const;
 
 export type ApplicationDevelopmentStageId = typeof APPLICATION_DEVELOPMENT_STAGE_IDS[number];
+export type ApplicationRuntimeReviewSurface = "run" | "request" | "evidence";
 export type ApplicationDevelopmentWorkspaceStatus = "active" | "archived" | "unavailable";
 export type ApplicationDevelopmentStageAvailability = "available" | "read_only" | "blocked";
 export type ApplicationDevelopmentSurfaceKind =
@@ -185,7 +186,16 @@ export function applicationDevelopmentStageForHash(hash: string): ApplicationDev
 
 export function applicationDevelopmentHashTargetsOwnerSurface(hash: string): boolean {
   const anchor = hash.trim().replace(/^#/u, "");
+  if (applicationRuntimeReviewSurfaceForHash(anchor)) return false;
   return STAGE_DEFINITIONS.some((stage) => stage.aliases.includes(anchor));
+}
+
+export function applicationRuntimeReviewSurfaceForHash(hash: string): ApplicationRuntimeReviewSurface | null {
+  const anchor = hash.trim().replace(/^#/u, "");
+  if (anchor === "model-gateway-playground") return "run";
+  if (anchor === "model-gateway-request-history") return "request";
+  if (anchor === "application-operations") return "evidence";
+  return null;
 }
 
 function applicationDevelopmentGenerationKey(

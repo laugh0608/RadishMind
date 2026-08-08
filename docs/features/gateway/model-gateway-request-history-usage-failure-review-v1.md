@@ -213,6 +213,13 @@ v1 声明 dev/test 默认保留 14 天、每 scope 最多 50,000 条，但请求
 - 浏览器：成功、invalid request、provider failure、queue/timeout/cancel、stream complete/cancel、usage unavailable、reported usage、分页过滤、详情、Platform 重启恢复和敏感字段缺失。
 - 所有路径确认自动 retry / fallback、quota write、billing write、tool、confirmation、business write 和 replay 为 0。
 
+## 2026-08-08 Family UI S5 产品化衔接
+
+- 既有 Request History owner 已进入 Application Runtime Review 的 `Review request` 任务，并以当前 application、workspace 与 consumer 作为显式上下文；S5 不合并或改写历史记录真相源。
+- application / workspace 切换时先清空筛选窗口、列表和详情，再启动新读取；list、detail 与 handoff 都使用逻辑 generation 拒绝迟到响应，避免跨应用视觉泄漏。
+- 筛选器默认折叠，普通请求行保持中性，只有驱动详情的当前行使用墨蓝细轨；success / failure / partial 仍由独立 badge、文字和脱敏字段表达，状态色不冒充选中。
+- 从 Playground 的 request handoff 只精确打开同应用记录；详情继续是脱敏 envelope，不恢复原始 prompt、Authorization 或 provider 正文，也不提供 replay / retry。
+
 ## 停止线
 
 - 不实现 production API key lifecycle、OIDC Gateway auth、quota enforcement、rate limit、billing、cost ledger 或合规审计账本。
