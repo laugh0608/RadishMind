@@ -1,13 +1,13 @@
 # 用户工作区细专题入口
 
-更新时间：2026-08-03
+更新时间：2026-08-08
 
 本目录承接用户工作区中跨应用、模型发现、接入、调用与审查的具体功能专题。产品面长期边界继续以 [用户工作区设计与开发文档](../user-workspace.md) 为准。
 
 ## 当前专题
 
-- [RadishMind Family UI 参考图产品面映射 v1](radishmind-family-ui-reference-mapping-v1.md)：已把 family-ui `references.md` 的 `ref-01` 至 `ref-27` 逐项映射到产品壳、Application Workspace、Saved Draft / Designer、API Integration / Key，固定实际查看、吸收原则、禁止照搬内容、Pencil 构件与版权停止线；`S1` 已消费产品壳对应映射，`S2` 六张相关参考图已于 2026-08-03 重新查看。
-- [RadishMind Family UI 产品化设计与迁移 v1](radishmind-family-ui-productization-v1.md)：family-ui `v26.7.3` 参考基线、RadishMind Workbench 选择、原样 token 镜像和身份 / 操作 / 注意语义分层已经对齐；基础批次、参考图映射、Pencil 协作模型，以及 `S1` 设计、真实 React 实现与浏览器验收均已完成。完整 Pencil 只覆盖四个 `A` 级页面族及必要变体，同族相似页面直接实现并以真实浏览器复核。
+- [RadishMind Family UI 参考图产品面映射 v1](radishmind-family-ui-reference-mapping-v1.md)：已把 family-ui `references.md` 的 `ref-01` 至 `ref-27` 逐项映射到产品壳、Application Workspace、Saved Draft / Designer、API Integration / Key，固定实际查看、吸收原则、禁止照搬内容、Pencil 构件与版权停止线；`S4` 对应的 `ref-01`、`ref-02`、`ref-10`、`ref-16`、`ref-25` 已于 2026-08-08 逐张复核并完成转译。
+- [RadishMind Family UI 产品化设计与迁移 v1](radishmind-family-ui-productization-v1.md)：family-ui `v26.7.3` 参考基线、RadishMind Workbench 选择、原样 token 镜像和身份 / 操作 / 注意语义分层已经对齐；`S1 R8`、`S2 R6`、`S3 R2` 与 `S4 R1` 的 Pencil、React、真实浏览器和文档真相源均已完成。完整 Pencil 只覆盖四个 `A` 级页面族及必要变体，同族相似页面直接实现并以真实浏览器复核。
 - [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](workspace-scoped-mutation-authorization-dev-test-v1.md)：批次 A 至 E 共 47 条 mutation 已完成 identity / membership 双重权限、active workspace 唯一选择、原子组合与条件权限、稳定拒绝映射和零业务 / 外部副作用证据；专题关闭。
 - [工作区运营收件箱（开发 / 测试态）v1](workspace-operations-inbox-dev-test-v1.md)：批次 A 已完成四类既有 owner 首分页关注项、来源覆盖、稳定严重度、Web 既有详情跳转和 workspace 切换失败关闭；不新增运营或修复真相源。
 - [Workspace-scoped Read Transition / 工作区选择与成员资格绑定（开发 / 测试态）v1](workspace-scoped-read-transition-dev-test-v1.md)：批次 A、B 已完成共享 membership provider、五类 route 授权、四类 durable owner 读投影、workspace-wide Run cursor 与非持久化 Web selector；quota 和生产 membership 继续关闭。
@@ -30,7 +30,7 @@
 
 ## 下一步
 
-- `S1 React R8` 与严格浏览器验收已完成：`1440x900` 使用唯一 `248px` 桌面侧栏、非对称 workspace pulse 和 `88px` 连续任务行，`390x844` 使用单一折叠菜单、`96px` 任务行和渐进 evidence；`1101/1100px`、`821px` 与 `390px` 均无页面级横向溢出，API Key / Run History 条件渲染 owner 跳转闭合。`S2 R6` 桌面、窄屏与共享设计决策记录已通过人工复评，当前进入 React 纵向切片。
+- Family UI 首批 `S1 R8`、`S2 R6`、`S3 R2` 与 `S4 R1` 已完成。下一步联合复核 Gateway Playground、Request History 与 Application Operations 的既有 owner，冻结“受控调用 → 精确请求审查 → 应用当前窗口证据”的信息层级、失败语义和窄屏顺序，再按页面新颖度选择完整 / 局部 Pencil 或直接复用并实施 React 纵向切片；不把当前窗口写成全历史，也不扩 quota / billing、自动 retry / fallback 或生产认证。
 - API 密钥引导式轮换与验证后退役已完成并关闭。下一轮先依据用户工作区与 Workflow 的真实使用证据更新对应功能设计；不从本专题扩自动轮换、持久 rotation owner 或生产凭据能力。
 - 工作区运营收件箱批次 A 已完成；先以真实开发测试使用反馈判断是否需要跨全部分页窗口的服务端 read projection。没有需求与统一 owner cursor 契约前不启动批次 B。
 - Workspace-scoped Read Transition 开发 / 测试态批次 A、B 已完成。条件式批次 C 只有在取得 reviewed Radish membership owner / endpoint、撤销 / 过期语义与 OIDC mapping 后才启动；否则回到功能入口选择新的用户工作区能力。

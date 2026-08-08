@@ -1,6 +1,6 @@
 # 用户工作区应用 API 接入与调用 v1
 
-更新时间：2026-07-18
+更新时间：2026-08-08
 
 状态：`application_api_integration_invocation_v1_complete`
 
@@ -13,6 +13,10 @@ Web 单元测试覆盖离线零请求、目录成功 / 空结果 / HTTP 失败 /
 真实浏览器以 `app_docs_assistant` 完成 6 个模型加载、Messages / TypeScript 示例、Messages 单次响应、Messages 流式响应、用户取消和精确请求历史详情。取消请求在调试台显示 `gateway_playground_request_canceled / client / HTTP not observed`，同一 `request_id` 的脱敏详情显示 `408 / BRIDGE_WORKER_CANCELED / python_bridge`、`app_docs_assistant` 与 `gateway_request_record.v1 · version 3 · memory_dev`。控制台为 0 个错误 / 0 个警告，URL 只有稳定区段锚点，`localStorage` / `sessionStorage` 均为空。
 
 2026-07-15 已完成与开发测试态 API 密钥链的组合：Gateway Playground 在 `api_key_dev_test` 模式下只用内存中的 Bearer 凭据加载模型目录和调用三种协议，并将严格校验后的模型公开字段通过脱敏事件交给 API 接入区和配置草案；Bearer 凭据不会进入交接事件。请求历史交接同时携带调用对应的 `consumer_ref`，使 `api_key:<api_key_id>` 与应用作用域精确匹配；`sqlite_dev` 请求历史已纳入严格消费端允许列表。
+
+2026-08-08 的 Family UI `S4 R1` 把既有接入与凭据 owner 组织为 Application Access 单一任务面：Connect API、Credentials、Validate 与 Verify / retire 只表达用户当前位置，不声称自动完成。模型选择仍来自严格目录；协议选项只开放当前模型实际声明的 `protocols`，不再把三种协议全部画成可用。`api_key_dev_test` 尚未获得一次性 Bearer 凭据时，目录区域显示明确资格阻塞并引导到 Credentials，不保留一个必然失败但看似可执行的普通加载按钮。
+
+S4 同时把当前 Application Workspace 的 `workspaceId` 传入接入 owner，并与显式 Gateway 配置作用域做失败关闭核对；不一致时不发送模型目录请求。`#application-api-integration` 与 `#workspace-api-keys` 继续使用原有锚点和 owner，但都归入产品导航 `API & keys`，深层锚点会先展开当前 Controlled Test owner。应用切换继续清空旧模型、示例和失败；本轮没有新增 API、schema、repository、协议适配器、task card 或专项 checker。
 
 ## 功能目标
 

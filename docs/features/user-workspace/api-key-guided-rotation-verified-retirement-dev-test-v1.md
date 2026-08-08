@@ -1,6 +1,6 @@
 # API 密钥引导式轮换与验证后退役（开发 / 测试态）v1
 
-更新时间：2026-07-29
+更新时间：2026-08-08
 
 状态：`api_key_guided_rotation_verified_retirement_dev_test_v1_completed`
 
@@ -159,6 +159,10 @@ Web 只保留不含凭据的易失轮换会话：
 - SQLite 本地产品真实浏览器链验证：原 Key 已成功加载 `6` 个模型；替代 Key 签发后原 Key 继续加载 `6` 个模型；替代 Key 未认证时不存在退役入口；替代 Key 经 Playground 加载 `6` 个模型并形成精确 `last_used_at` 后才解锁退役确认；退役完成后原 Key 再次访问得到 `HTTP 403`，替代记录保持活动且保留认证证据；
 - 浏览器验收产生的原 Key 与替代 Key 均已显式吊销，Web、platform 服务和浏览器页签已关闭；
 - `git diff --check`、仓库快速门禁与完整门禁均通过；仅保留既有 W28、W29、W30 周志尺寸 warning。
+
+2026-08-08 的 Family UI `S4 R1` 继续复用这套易失状态机，没有新增 rotation owner。Connect API、Credentials、Validate、Verify / retire 只形成页面任务位置；`verification_pending` 仍要求精确读取替代 Key 的 `last_used_at`，退役按钮在证据成立前保持禁用。状态 badge 不承担选中语义，当前任务和驱动详情的 Key 行才使用墨蓝细轨。
+
+archived application 仍可读取、打开详情和吊销已有 Key，但不能开始或继续引导式轮换；issue、integration 和 invocation 同样关闭。workspace context 与 lifecycle 配置不一致、应用切换或旧列表尚未返回时都失败关闭并清空当前投影，不用旧 application 的记录填充新上下文。S4 浏览器连续链完成一次签发与两步吊销，原始令牌未进入文档、日志或持久浏览器介质；没有修改 API、schema、repository、permission 或 production 停止线。
 
 ## 停止线
 

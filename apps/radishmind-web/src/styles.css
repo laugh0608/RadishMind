@@ -6461,6 +6461,720 @@ dd {
   }
 }
 
+/* S4 Application Access Workbench */
+.application-development-owner-surface
+  .application-development-stage-surface[data-application-development-stage="controlled_test"] {
+  gap: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: var(--rm-bg-surface);
+}
+
+.application-development-owner-surface
+  .application-development-stage-surface[data-application-development-stage="controlled_test"]
+  > .application-development-stage-heading {
+  display: none;
+}
+
+.application-access-workspace {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-md);
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  box-shadow: var(--rm-shadow-panel);
+}
+
+.application-access-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px 22px 18px;
+}
+
+.application-access-heading h3,
+.application-access-heading p {
+  margin: 0;
+}
+
+.application-access-heading h3 {
+  margin-top: 4px;
+  font-size: clamp(1.7rem, 2.4vw, 2.15rem);
+  letter-spacing: -0.035em;
+}
+
+.application-access-heading > div:first-child > p:last-child {
+  max-width: 720px;
+  margin-top: 7px;
+  color: var(--rm-text-secondary);
+  line-height: 1.5;
+}
+
+.application-access-boundaries {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.application-access-workbench {
+  display: grid;
+  grid-template-columns: 212px minmax(0, 1fr);
+  min-width: 0;
+  border-top: 1px solid var(--rm-border-soft);
+}
+
+.application-access-rail {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  border-right: 1px solid var(--rm-border-soft);
+  padding: 16px 12px;
+  background: var(--rm-bg-canvas);
+}
+
+.application-access-rail > p:first-child {
+  margin: 0 8px;
+  color: var(--rm-text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.application-access-rail nav {
+  display: grid;
+  gap: 4px;
+}
+
+.application-access-rail nav > a,
+.application-access-rail nav > span {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 9px;
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: var(--rm-radius-sm);
+  padding: 10px 9px;
+  color: var(--rm-text-secondary);
+  text-decoration: none;
+}
+
+.application-access-rail nav > a:hover {
+  border-color: var(--rm-border-soft);
+  background: var(--rm-bg-surface);
+}
+
+.application-access-rail nav > a[aria-current="step"] {
+  border-color: var(--rm-border-soft);
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  box-shadow: inset 3px 0 0 var(--rm-action-primary);
+}
+
+.application-access-rail nav > .is-disabled {
+  color: var(--rm-text-muted);
+  opacity: 0.7;
+}
+
+.application-access-rail nav b {
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 0.7rem;
+}
+
+.application-access-rail nav span span,
+.application-access-rail nav a span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.application-access-rail nav strong {
+  color: inherit;
+  font-size: 0.82rem;
+}
+
+.application-access-rail nav small {
+  overflow-wrap: anywhere;
+  color: var(--rm-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.application-access-rail > .boundary-note {
+  margin: 4px 8px 0;
+  color: var(--rm-text-muted);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.application-access-main {
+  min-width: 0;
+  padding: 18px;
+  background: var(--rm-bg-surface);
+}
+
+.application-access-owner,
+.application-access-owner > *,
+.application-api-integration-layout > *,
+.api-key-lifecycle > * {
+  min-width: 0;
+}
+
+.application-access-owner[hidden] {
+  display: none;
+}
+
+.application-access-owner > .application-api-integration,
+.application-access-owner > .workspace-api-keys {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.application-access-archived-boundary {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 14px;
+  border-left: 3px solid var(--rm-state-warning);
+  padding: 10px 12px;
+  background: var(--rm-state-warning-soft);
+  color: var(--rm-text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.application-access-archived-boundary strong {
+  color: var(--rm-text-primary);
+}
+
+.application-access-related-surfaces {
+  margin-top: 12px;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-bg-surface);
+}
+
+.application-access-related-surfaces > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  color: var(--rm-text-primary);
+  cursor: pointer;
+  list-style: none;
+}
+
+.application-access-related-surfaces > summary::-webkit-details-marker {
+  display: none;
+}
+
+.application-access-related-surfaces > summary span:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.application-access-related-surfaces > summary small {
+  color: var(--rm-text-muted);
+}
+
+.application-access-related-surfaces > div {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid var(--rm-border-soft);
+  padding: 14px;
+}
+
+.application-api-integration {
+  gap: 12px;
+  color: var(--rm-text-primary);
+}
+
+.application-api-integration .section-heading,
+.api-key-lifecycle .section-heading {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--rm-border-soft);
+  padding-bottom: 12px;
+}
+
+.application-api-integration-scope,
+.api-key-lifecycle-scope {
+  gap: 0;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-bg-muted);
+}
+
+.application-api-integration-scope article,
+.api-key-lifecycle-scope article {
+  border: 0;
+  border-radius: 0;
+  padding: 10px 12px;
+  background: transparent;
+}
+
+.application-api-integration-scope article + article,
+.api-key-lifecycle-scope article + article {
+  border-left: 1px solid var(--rm-border-soft);
+}
+
+.application-api-integration-layout {
+  grid-template-columns: minmax(220px, 0.7fr) minmax(340px, 1.3fr);
+  gap: 10px;
+}
+
+.application-api-models,
+.application-api-example,
+.application-api-integration-offline,
+.api-key-issue-form,
+.api-key-one-time-panel,
+.api-key-rotation-panel,
+.api-key-lifecycle-row,
+.api-key-detail,
+.api-key-lifecycle-empty {
+  border-color: var(--rm-border-soft);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-bg-surface);
+}
+
+.application-api-models {
+  background: var(--rm-bg-muted);
+}
+
+.application-api-models select,
+.application-api-example select,
+.api-key-issue-form input,
+.api-key-rotation-form input,
+.api-key-list-controls select {
+  min-height: 36px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-sm);
+  padding: 7px 9px;
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+}
+
+.application-api-eligibility-blocked {
+  display: grid;
+  gap: 7px;
+  border-left: 3px solid var(--rm-state-warning);
+  padding: 10px 11px;
+  background: var(--rm-state-warning-soft);
+  color: var(--rm-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.application-api-eligibility-blocked strong {
+  color: var(--rm-text-primary);
+}
+
+.application-api-eligibility-blocked p {
+  margin: 0;
+  color: inherit;
+}
+
+.application-api-eligibility-blocked a {
+  justify-self: start;
+  color: var(--rm-action-primary);
+  font-weight: 750;
+}
+
+.application-api-example pre {
+  max-width: 100%;
+  border-color: var(--rm-border-strong);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-text-primary);
+  color: var(--rm-bg-surface);
+}
+
+.application-api-integration button,
+.api-key-lifecycle button {
+  border-color: var(--rm-action-primary);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-action-primary);
+  color: var(--rm-text-on-accent);
+}
+
+.application-api-integration button:hover:not(:disabled),
+.api-key-lifecycle button:hover:not(:disabled) {
+  border-color: var(--rm-action-hover);
+  background: var(--rm-action-hover);
+}
+
+.api-key-lifecycle button.secondary-action {
+  border-color: var(--rm-border-strong);
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+}
+
+.api-key-lifecycle button.danger-action {
+  border-color: var(--rm-state-danger);
+  background: var(--rm-state-danger);
+  color: var(--rm-text-on-accent);
+}
+
+.api-key-lifecycle {
+  gap: 12px;
+  color: var(--rm-text-primary);
+}
+
+.api-key-lifecycle-layout {
+  align-items: start;
+  gap: 10px;
+}
+
+.api-key-issue-disclosure {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-bg-surface);
+}
+
+.api-key-issue-disclosure > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  color: var(--rm-text-primary);
+  cursor: pointer;
+  list-style: none;
+}
+
+.api-key-issue-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.api-key-issue-disclosure > summary > span:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.api-key-issue-disclosure > summary small {
+  color: var(--rm-text-muted);
+  font-size: 0.7rem;
+}
+
+.api-key-issue-disclosure > summary > span:last-child {
+  color: var(--rm-action-primary);
+  font-size: 1.1rem;
+  font-weight: 760;
+}
+
+.api-key-issue-disclosure[open] > summary > span:last-child {
+  transform: rotate(45deg);
+}
+
+.api-key-issue-disclosure .api-key-issue-form {
+  border: 0;
+  border-top: 1px solid var(--rm-border-soft);
+  border-radius: 0;
+}
+
+.api-key-issue-form fieldset {
+  border-color: var(--rm-border-soft);
+  border-radius: var(--rm-radius-sm);
+  padding: 6px 10px;
+}
+
+.api-key-issue-form fieldset label {
+  grid-template-columns: auto minmax(150px, 0.9fr) minmax(120px, 1.1fr);
+  border-top: 1px solid var(--rm-border-soft);
+  padding: 8px 2px;
+}
+
+.api-key-issue-form fieldset label:first-of-type {
+  border-top: 0;
+}
+
+.api-key-issue-form fieldset code,
+.api-key-scopes code {
+  overflow-wrap: anywhere;
+  color: var(--rm-text-secondary);
+}
+
+.api-key-lifecycle .api-key-scopes {
+  gap: 4px;
+}
+
+.api-key-lifecycle .api-key-scopes code {
+  padding: 4px 6px;
+  font-size: 0.67rem;
+}
+
+.api-key-one-time-panel {
+  border-color: var(--rm-border-soft);
+  background: var(--rm-bg-muted);
+}
+
+.api-key-one-time-panel.has-credential {
+  border-color: var(--rm-state-warning);
+  background: var(--rm-state-warning-soft);
+}
+
+.api-key-one-time-panel:not(.has-credential) {
+  gap: 6px;
+  padding: 12px;
+}
+
+.api-key-one-time-panel:not(.has-credential) p {
+  margin: 0;
+}
+
+.api-key-one-time-token {
+  max-width: 100%;
+  border-color: var(--rm-state-warning);
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+}
+
+.api-key-rotation-panel {
+  border-color: var(--rm-border-strong);
+  background: var(--rm-bg-muted);
+}
+
+.api-key-rotation-steps li {
+  border-color: var(--rm-border-soft);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-muted);
+}
+
+.api-key-rotation-steps li.complete {
+  border-color: var(--rm-border-soft);
+  color: var(--rm-state-success);
+}
+
+.api-key-rotation-steps li.current {
+  border-color: var(--rm-state-warning);
+  background: var(--rm-state-warning-soft);
+  color: var(--rm-text-primary);
+}
+
+.api-key-lifecycle-list {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-sm);
+}
+
+.api-key-lifecycle-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 14px;
+  border: 0;
+  border-radius: 0;
+  padding: 13px 14px;
+}
+
+.api-key-lifecycle-row > .api-key-row-main,
+.api-key-lifecycle-row > .api-key-scopes,
+.api-key-lifecycle-row > .api-key-row-meta {
+  grid-column: 1;
+}
+
+.api-key-lifecycle-row > .api-key-row-main {
+  align-items: flex-start;
+}
+
+.api-key-lifecycle-row > .api-key-row-actions {
+  grid-row: 1 / span 3;
+  grid-column: 2;
+  align-content: center;
+  align-items: stretch;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 126px;
+}
+
+.api-key-lifecycle-row + .api-key-lifecycle-row {
+  border-top: 1px solid var(--rm-border-soft);
+}
+
+.api-key-lifecycle-row.selected {
+  border-color: transparent;
+  background: var(--rm-bg-muted);
+  box-shadow: inset 3px 0 0 var(--rm-action-primary);
+}
+
+.api-key-lifecycle-row .status-badge {
+  box-shadow: none;
+}
+
+.api-key-row-meta {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  color: var(--rm-text-secondary);
+}
+
+.api-key-operation-notice,
+.api-key-operation-notice.good,
+.api-key-operation-notice.bad {
+  border-radius: var(--rm-radius-sm);
+}
+
+.workspace-api-keys:not(.api-key-lifecycle) > .boundary-note {
+  margin: 0;
+  border-left: 3px solid var(--rm-state-info);
+  padding: 8px 10px;
+  background: var(--rm-state-info-soft);
+}
+
+@media (max-width: 1180px) {
+  .application-access-workbench {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .application-access-rail {
+    border-right: 0;
+    border-bottom: 1px solid var(--rm-border-soft);
+  }
+
+  .application-access-rail nav {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .application-access-rail > .boundary-note {
+    display: none;
+  }
+
+  .application-api-integration-layout {
+    grid-template-columns: minmax(210px, 0.65fr) minmax(320px, 1.35fr);
+  }
+}
+
+@media (max-width: 1100px) {
+  .application-access-workspace {
+    scroll-margin-top: 64px;
+  }
+}
+
+@media (max-width: 760px) {
+  .application-development-owner-surface
+    .application-development-stage-surface[data-application-development-stage="controlled_test"] {
+    margin-right: -12px;
+    margin-left: -12px;
+  }
+
+  .application-access-workspace {
+    overflow: visible;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .application-access-heading {
+    display: grid;
+    gap: 12px;
+    padding: 16px 12px 14px;
+  }
+
+  .application-access-heading h3 {
+    font-size: 1.65rem;
+  }
+
+  .application-access-boundaries {
+    justify-content: flex-start;
+  }
+
+  .application-access-rail {
+    padding: 12px;
+  }
+
+  .application-access-rail nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .application-access-main {
+    padding: 14px 12px 18px;
+  }
+
+  .application-api-integration-scope,
+  .application-api-integration-layout,
+  .api-key-lifecycle-scope,
+  .api-key-lifecycle-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .application-api-integration-scope article + article,
+  .api-key-lifecycle-scope article + article {
+    border-top: 1px solid var(--rm-border-soft);
+    border-left: 0;
+  }
+
+  .application-api-example-controls,
+  .application-api-actions,
+  .api-key-list-controls,
+  .api-key-row-actions,
+  .api-key-one-time-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .application-api-example pre {
+    min-height: 220px;
+    max-height: 340px;
+  }
+
+  .api-key-one-time-panel {
+    order: -1;
+  }
+
+  .api-key-issue-form fieldset label {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .api-key-issue-form fieldset label span {
+    grid-column: 2;
+  }
+
+  .api-key-rotation-steps,
+  .api-key-rotation-meta,
+  .api-key-rotation-form,
+  .api-key-detail dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .api-key-lifecycle-row {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px;
+  }
+
+  .api-key-lifecycle-row > .api-key-row-actions {
+    grid-row: auto;
+    grid-column: 1;
+    min-width: 0;
+  }
+
+  .api-key-row-meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .api-key-row-actions button,
+  .api-key-one-time-actions button,
+  .application-api-actions button {
+    width: 100%;
+  }
+
+  .application-access-related-surfaces {
+    margin: 10px 0 0;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+}
+
 /* S3 R2 Workflow Designer Workbench --------------------------------------------- */
 
 .workflow-designer-workbench {

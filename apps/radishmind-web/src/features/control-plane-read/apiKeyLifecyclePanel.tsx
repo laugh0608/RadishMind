@@ -62,11 +62,13 @@ export function APIKeyLifecyclePanel({
   applicationId,
   applicationName,
   applicationActive,
+  workspaceId,
   offlineView,
 }: {
   applicationId: string;
   applicationName: string;
   applicationActive: boolean;
+  workspaceId: string;
   offlineView: WorkspaceApiKeysViewModel;
 }) {
   const [list, setList] = useState<APIKeyListResult>(() => initialList());
@@ -77,7 +79,9 @@ export function APIKeyLifecyclePanel({
   const [selectedRecord, setSelectedRecord] = useState<APIKeyRecord | null>(null);
   const [issuedCredential, setIssuedCredential] = useState<IssuedCredential | null>(null);
   const [pendingRevokeId, setPendingRevokeId] = useState("");
-  const [rotation, setRotation] = useState<APIKeyRotationSession | null>(() => readAPIKeyRotationSession(applicationId));
+  const [rotation, setRotation] = useState<APIKeyRotationSession | null>(() => (
+    applicationActive ? readAPIKeyRotationSession(applicationId) : null
+  ));
   const [rotationDisplayName, setRotationDisplayName] = useState("");
   const [rotationExpiresInDays, setRotationExpiresInDays] = useState(30);
   const [showRotationRetireConfirm, setShowRotationRetireConfirm] = useState(false);
@@ -87,6 +91,9 @@ export function APIKeyLifecyclePanel({
   const [copyStatus, setCopyStatus] = useState("");
   const [notice, setNotice] = useState<OperationNotice>({ tone: "neutral", summary: "", failureCode: "" });
   const operationGeneration = useRef(0);
+  const issueDisclosure = useRef<HTMLDetailsElement>(null);
+  const oneTimePanel = useRef<HTMLElement>(null);
+  const workspaceScopeMatches = config.mode !== "dev_api_key_lifecycle_http" || config.workspaceId === workspaceId;
 
   useEffect(() => {
     operationGeneration.current += 1;
@@ -94,8 +101,9 @@ export function APIKeyLifecyclePanel({
     setSelectedRecord(null);
     setPendingRevokeId("");
     const currentRotation = synchronizeAPIKeyRotationApplication(applicationId);
-    setRotation(currentRotation);
-    setRotationDisplayName(currentRotation ? replacementDisplayName(currentRotation.sourceDisplayName) : "");
+    const visibleRotation = applicationActive ? currentRotation : null;
+    setRotation(visibleRotation);
+    setRotationDisplayName(visibleRotation ? replacementDisplayName(visibleRotation.sourceDisplayName) : "");
     setRotationExpiresInDays(30);
     setShowRotationRetireConfirm(false);
     setCopyStatus("");
@@ -104,8 +112,11 @@ export function APIKeyLifecyclePanel({
     setScopes(AVAILABLE_SCOPES.map(({ scope }) => scope));
     setExpiresInDays(30);
     setEffectiveState("");
-    if (config.mode === "dev_api_key_lifecycle_http" && applicationId) void loadRecords(false, "", "");
-  }, [applicationId, applicationName]);
+    setList(initialList(applicationId ? `Loading API keys for ${applicationName}.` : undefined));
+    if (config.mode === "dev_api_key_lifecycle_http" && applicationId && workspaceScopeMatches) {
+      void loadRecords(false, "", "");
+    }
+  }, [applicationActive, applicationId, applicationName, workspaceScopeMatches]);
 
   useEffect(() => {
     function clearCredentialAfterRouteLeave() {
@@ -119,6 +130,20 @@ export function APIKeyLifecyclePanel({
   }, []);
 
   if (config.mode === "offline") return <OfflineAPIKeySummary view={offlineView} />;
+  if (!workspaceScopeMatches) {
+    return (
+      <section className="surface-band workspace-api-keys api-key-lifecycle" id="workspace-api-keys" aria-labelledby="workspace-api-keys-title">
+        <div className="section-heading">
+          <div><p className="eyebrow">Credentials</p><h3 id="workspace-api-keys-title">API key lifecycle</h3></div>
+          <span className="status-badge neutral">scope mismatch</span>
+        </div>
+        <article className="api-key-lifecycle-empty" role="alert">
+          <h4>Lifecycle requests are blocked</h4>
+          <p>The active Application Workspace is <code>{workspaceId}</code>, while this dev/test lifecycle owner is configured for <code>{config.workspaceId}</code>.</p>
+        </article>
+      </section>
+    );
+  }
 
   async function loadRecords(
     append: boolean,
@@ -153,6 +178,8 @@ export function APIKeyLifecyclePanel({
       setSelectedRecord(result.record);
       setNotice({ tone: "good", summary: result.summary, failureCode: "" });
       await loadRecords(false, "");
+      issueDisclosure.current?.removeAttribute("open");
+      window.requestAnimationFrame(() => oneTimePanel.current?.scrollIntoView({ block: "center" }));
       return;
     }
     setNotice({ tone: "bad", summary: result.summary, failureCode: result.failureCode });
@@ -403,7 +430,7 @@ export function APIKeyLifecyclePanel({
   return (
     <section className="surface-band workspace-api-keys api-key-lifecycle" id="workspace-api-keys" aria-labelledby="workspace-api-keys-title">
       <div className="section-heading">
-        <div><p className="eyebrow">User Workspace</p><h3 id="workspace-api-keys-title">API key lifecycle</h3></div>
+        <div><p className="eyebrow">Credentials</p><h3 id="workspace-api-keys-title">API key lifecycle</h3></div>
         <span className="status-badge good">dev/test interactive</span>
       </div>
 
@@ -414,22 +441,27 @@ export function APIKeyLifecyclePanel({
 
       {!selectedApplicationAvailable ? (
         <article className="api-key-lifecycle-empty" role="status"><h4>Create or select an application first</h4><p>API keys can only be issued and listed against the authoritative application catalog.</p></article>
-      ) : (
+      ) : applicationActive ? (
         <div className="api-key-lifecycle-layout">
-          <form className="api-key-issue-form" onSubmit={submitIssue}>
-            <div className="api-key-card-heading"><div><p className="eyebrow">Issue credential</p><h4>One-time API key</h4></div><span className="status-badge neutral">memory only</span></div>
-            <label>Display name<input value={displayName} onChange={(event) => setDisplayName(event.target.value)} minLength={2} maxLength={80} disabled={!applicationActive || Boolean(rotation) || busy === "issue"} /></label>
-            <label>Expires in days<input type="number" value={expiresInDays} onChange={(event) => setExpiresInDays(Number(event.target.value))} min={1} max={90} disabled={!applicationActive || Boolean(rotation) || busy === "issue"} /></label>
-            <fieldset disabled={!applicationActive || Boolean(rotation) || busy === "issue"}>
-              <legend>Gateway scopes</legend>
-              {AVAILABLE_SCOPES.map((item) => <label key={item.scope}><input type="checkbox" checked={scopes.includes(item.scope)} onChange={() => toggleScope(item.scope)} /> <code>{item.scope}</code><span>{item.label}</span></label>)}
-            </fieldset>
-            <button type="submit" disabled={!applicationActive || Boolean(rotation) || busy !== "" || scopes.length === 0}>{busy === "issue" ? "Issuing…" : "Issue API key"}</button>
-            {!applicationActive ? <p className="boundary-note">Archived applications keep existing metadata readable and revocable but cannot issue new credentials.</p> : null}
-            {rotation ? <p className="boundary-note">Finish or cancel the active guided rotation before issuing an unrelated key.</p> : null}
-          </form>
+          <details className="api-key-issue-disclosure" ref={issueDisclosure}>
+            <summary>
+              <span><strong>Issue new credential</strong><small>Choose expiry and 7 explicit scopes</small></span>
+              <span aria-hidden="true">+</span>
+            </summary>
+            <form className="api-key-issue-form" onSubmit={submitIssue}>
+              <div className="api-key-card-heading"><div><p className="eyebrow">Issue settings</p><h4>One-time API key</h4></div><span className="status-badge neutral">memory only</span></div>
+              <label>Display name<input value={displayName} onChange={(event) => setDisplayName(event.target.value)} minLength={2} maxLength={80} disabled={!applicationActive || Boolean(rotation) || busy === "issue"} /></label>
+              <label>Expires in days<input type="number" value={expiresInDays} onChange={(event) => setExpiresInDays(Number(event.target.value))} min={1} max={90} disabled={!applicationActive || Boolean(rotation) || busy === "issue"} /></label>
+              <fieldset disabled={!applicationActive || Boolean(rotation) || busy === "issue"}>
+                <legend>Gateway scopes</legend>
+                {AVAILABLE_SCOPES.map((item) => <label key={item.scope}><input type="checkbox" checked={scopes.includes(item.scope)} onChange={() => toggleScope(item.scope)} /> <code>{item.scope}</code><span>{item.label}</span></label>)}
+              </fieldset>
+              <button type="submit" disabled={!applicationActive || Boolean(rotation) || busy !== "" || scopes.length === 0}>{busy === "issue" ? "Issuing…" : "Issue API key"}</button>
+              {rotation ? <p className="boundary-note">Finish or cancel the active guided rotation before issuing an unrelated key.</p> : null}
+            </form>
+          </details>
 
-          <article className="api-key-one-time-panel" aria-live="polite">
+          <article className={`api-key-one-time-panel ${issuedCredential ? "has-credential" : ""}`} aria-live="polite" ref={oneTimePanel}>
             <div className="api-key-card-heading"><div><p className="eyebrow">One-time handoff</p><h4>{issuedCredential?.apiKeyId ?? "No pending credential"}</h4></div><span className={`status-badge ${issuedCredential ? "good" : "neutral"}`}>{issuedCredential ? "available once" : "cleared"}</span></div>
             {issuedCredential ? (
               <>
@@ -447,9 +479,9 @@ export function APIKeyLifecyclePanel({
             ) : <p>No raw credential is retained. Lists, details, errors, history, and reloads only receive sanitized metadata.</p>}
           </article>
         </div>
-      )}
+      ) : null}
 
-      {rotation ? (
+      {rotation && applicationActive ? (
         <article className="api-key-rotation-panel" aria-labelledby="api-key-rotation-title">
           <div className="api-key-card-heading">
             <div>
@@ -574,12 +606,12 @@ function APIKeyLifecycleRow({
 }) {
   const active = record.lifecycleState === "active" && record.effectiveState === "active";
   return (
-    <article className={`api-key-lifecycle-row ${selected ? "selected" : ""}`}>
+    <article className={`api-key-lifecycle-row ${selected ? "selected" : ""}`} data-selected={String(selected)}>
       <div className="api-key-row-main"><div><p className="eyebrow">{record.displayName}</p><h4>{record.apiKeyId}</h4></div><span className={`status-badge ${record.effectiveState === "active" ? "good" : "neutral"}`}>{rotationRole || record.effectiveState}</span></div>
       <div className="api-key-scopes">{record.scopes.map((scope) => <code key={scope}>{scope}</code>)}</div>
       <dl className="api-key-row-meta"><div><dt>Version</dt><dd>{record.recordVersion}</dd></div><div><dt>Expires</dt><dd>{record.expiresAt}</dd></div><div><dt>Last used</dt><dd>{record.lastUsedAt ?? "not recorded"}</dd></div></dl>
       <div className="api-key-row-actions">
-        <button type="button" onClick={onRead} disabled={busy !== ""}>View detail</button>
+        <button type="button" onClick={onRead} disabled={busy !== ""} aria-pressed={selected}>View detail</button>
         {active && applicationActive ? <button type="button" className="secondary-action" onClick={onRotate} disabled={busy !== "" || rotationActive}>{rotationRole === "source" ? "Rotation active" : "Rotate"}</button> : null}
         <button type="button" className={pendingRevoke ? "danger-action" : "secondary-action"} onClick={onRevoke} disabled={busy !== "" || record.lifecycleState === "revoked" || rotationRole !== ""}>
           {rotationRole ? "Managed by rotation" : pendingRevoke ? "Confirm revoke" : "Revoke"}
@@ -602,7 +634,8 @@ function APIKeyDetail({ record }: { record: APIKeyRecord }) {
 function OfflineAPIKeySummary({ view }: { view: WorkspaceApiKeysViewModel }) {
   return (
     <section className="surface-band workspace-api-keys" id="workspace-api-keys" aria-labelledby="workspace-api-keys-title">
-      <div className="section-heading"><div><p className="eyebrow">User Workspace</p><h3 id="workspace-api-keys-title">API keys</h3></div><span className={`status-badge ${view.canRenderApiKeys ? "good" : "bad"}`}>{view.canRenderApiKeys ? "read-only ready" : "blocked"}</span></div>
+      <div className="section-heading"><div><p className="eyebrow">Workspace read-only summary</p><h3 id="workspace-api-keys-title">API keys</h3></div><span className={`status-badge ${view.canRenderApiKeys ? "good" : "bad"}`}>{view.canRenderApiKeys ? "read-only ready" : "blocked"}</span></div>
+      <p className="boundary-note">Offline evidence is workspace-scoped and is not a lifecycle list for the currently selected application.</p>
       <div className="api-keys-summary">
         <article className="api-keys-route"><div className="card-title-row"><div><p className="eyebrow">API Key Summary List Route</p><h4>{view.routeId}</h4></div><span className="status-badge neutral">{view.requiredScope}</span></div><p className="route-path">{view.routePath}</p><dl className="tenant-meta"><div><dt>Model</dt><dd>{view.readModel}</dd></div><div><dt>Request</dt><dd>{view.requestId}</dd></div><div><dt>Next cursor</dt><dd>{view.nextCursor ?? "none"}</dd></div><div><dt>Audit</dt><dd>{view.auditRef}</dd></div></dl></article>
         <div className="api-keys-metrics">{view.metrics.map((metric) => <OfflineMetric key={metric.label} metric={metric} />)}</div>

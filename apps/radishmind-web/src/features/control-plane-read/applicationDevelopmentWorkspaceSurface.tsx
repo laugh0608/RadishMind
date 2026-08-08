@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, type ReactNode } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from "react";
 
 import type { WorkspaceApiKeysViewModel } from "./workspaceApiKeys.ts";
 import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner.ts";
@@ -256,87 +256,85 @@ export default function ApplicationDevelopmentWorkspaceSurface({
 
       {activeStage === "controlled_test" ? (
         <StageSurface stage="controlled_test" title="Controlled test">
-          {context.applicationActive ? (
+          {context.status === "unavailable" ? (
+            <ControlledTestBlocked status={context.status} />
+          ) : (
             <>
-              <Suspense fallback={<StageFallback label="Application API Integration" />}>
-                <ApplicationApiIntegrationPanel
-                  key={`${context.generationKey}:api-integration`}
-                  applicationId={context.applicationId}
-                  applicationName={context.displayName}
-                />
-              </Suspense>
-              <Suspense fallback={<StageFallback label="API key lifecycle" />}>
-                <APIKeyLifecyclePanel
-                  key={`${context.generationKey}:api-key`}
-                  applicationId={context.applicationId}
-                  applicationName={context.displayName}
-                  applicationActive={context.applicationActive}
-                  offlineView={offlineApiKeys}
-                />
-              </Suspense>
-              {context.surfaceKind === "prompt_application" ? (
-                <Suspense fallback={<StageFallback label="Prompt Application Session v2" />}>
-                  <PromptApplicationSessionPanel
-                    key={`${context.generationKey}:prompt-session`}
-                    applicationId={context.applicationId}
-                    onRunRecorded={handleRunRecorded}
-                    onOpenRun={openRunEvidence}
-                  />
-                </Suspense>
-              ) : context.surfaceKind === "workflow_rag" ? (
-                <Suspense fallback={<StageFallback label="Application Interaction" />}>
-                  <ApplicationInteractionSessionPanel
-                    key={`${context.generationKey}:interaction`}
-                    applicationId={context.applicationId}
-                    applicationName={context.displayName}
-                    applicationActive={context.applicationActive}
-                    suggestedDefinitionId={suggestedDefinitionId}
-                    onRunRecorded={handleRunRecorded}
-                    onOpenRun={openRunEvidence}
-                    onEvidenceChange={reportOwnerEvidence}
-                  />
-                </Suspense>
-              ) : null}
-              {context.surfaceKind === "agent_copilot" ? (
-                <Suspense fallback={<StageFallback label="Agent Copilot Session v3" />}>
-                  <AgentCopilotSessionPanel
-                    key={`${context.generationKey}:agent-session`}
-                    applicationId={context.applicationId}
-                    applicationName={context.displayName}
-                    onRunRecorded={handleRunRecorded}
-                    onOpenRun={openRunEvidence}
-                    onEvidenceChange={reportOwnerEvidence}
-                  />
-                </Suspense>
-              ) : null}
-              {context.surfaceKind === "prompt_application" ? (
-                <Suspense fallback={<StageFallback label="Prompt Application controlled invocation" />}>
-                  <PromptApplicationInvocationPanel
-                    key={`${context.generationKey}:prompt-invocation`}
-                    applicationId={context.applicationId}
-                    applicationName={context.displayName}
-                    onRunRecorded={handleRunRecorded}
-                    onOpenRun={openRunEvidence}
-                    onEvidenceChange={reportOwnerEvidence}
-                  />
-                </Suspense>
-              ) : null}
-              {context.surfaceKind === "workflow_rag" ? (
-                <Suspense fallback={<StageFallback label="Application RAG Invocation" />}>
-                  <ApplicationRAGInvocationPanel
-                    key={`${context.generationKey}:rag-invocation`}
-                    applicationId={context.applicationId}
-                    applicationName={context.displayName}
-                    applicationActive={context.applicationActive}
-                    onRunRecorded={handleRunRecorded}
-                    onOpenRun={openRunEvidence}
-                    onEvidenceChange={reportOwnerEvidence}
-                  />
-                </Suspense>
+              <ApplicationAccessWorkspace
+                context={context}
+                offlineApiKeys={offlineApiKeys}
+              />
+              {context.applicationActive ? (
+                <details className="application-access-related-surfaces">
+                  <summary>
+                    <span><strong>Application-specific controlled tests</strong><small>Existing owner surfaces</small></span>
+                    <span aria-hidden="true">⌄</span>
+                  </summary>
+                  <div>
+                    {context.surfaceKind === "prompt_application" ? (
+                      <Suspense fallback={<StageFallback label="Prompt Application Session v2" />}>
+                        <PromptApplicationSessionPanel
+                          key={`${context.generationKey}:prompt-session`}
+                          applicationId={context.applicationId}
+                          onRunRecorded={handleRunRecorded}
+                          onOpenRun={openRunEvidence}
+                        />
+                      </Suspense>
+                    ) : context.surfaceKind === "workflow_rag" ? (
+                      <Suspense fallback={<StageFallback label="Application Interaction" />}>
+                        <ApplicationInteractionSessionPanel
+                          key={`${context.generationKey}:interaction`}
+                          applicationId={context.applicationId}
+                          applicationName={context.displayName}
+                          applicationActive={context.applicationActive}
+                          suggestedDefinitionId={suggestedDefinitionId}
+                          onRunRecorded={handleRunRecorded}
+                          onOpenRun={openRunEvidence}
+                          onEvidenceChange={reportOwnerEvidence}
+                        />
+                      </Suspense>
+                    ) : null}
+                    {context.surfaceKind === "agent_copilot" ? (
+                      <Suspense fallback={<StageFallback label="Agent Copilot Session v3" />}>
+                        <AgentCopilotSessionPanel
+                          key={`${context.generationKey}:agent-session`}
+                          applicationId={context.applicationId}
+                          applicationName={context.displayName}
+                          onRunRecorded={handleRunRecorded}
+                          onOpenRun={openRunEvidence}
+                          onEvidenceChange={reportOwnerEvidence}
+                        />
+                      </Suspense>
+                    ) : null}
+                    {context.surfaceKind === "prompt_application" ? (
+                      <Suspense fallback={<StageFallback label="Prompt Application controlled invocation" />}>
+                        <PromptApplicationInvocationPanel
+                          key={`${context.generationKey}:prompt-invocation`}
+                          applicationId={context.applicationId}
+                          applicationName={context.displayName}
+                          onRunRecorded={handleRunRecorded}
+                          onOpenRun={openRunEvidence}
+                          onEvidenceChange={reportOwnerEvidence}
+                        />
+                      </Suspense>
+                    ) : null}
+                    {context.surfaceKind === "workflow_rag" ? (
+                      <Suspense fallback={<StageFallback label="Application RAG Invocation" />}>
+                        <ApplicationRAGInvocationPanel
+                          key={`${context.generationKey}:rag-invocation`}
+                          applicationId={context.applicationId}
+                          applicationName={context.displayName}
+                          applicationActive={context.applicationActive}
+                          onRunRecorded={handleRunRecorded}
+                          onOpenRun={openRunEvidence}
+                          onEvidenceChange={reportOwnerEvidence}
+                        />
+                      </Suspense>
+                    ) : null}
+                  </div>
+                </details>
               ) : null}
             </>
-          ) : (
-            <ControlledTestBlocked status={context.status} />
           )}
         </StageSurface>
       ) : null}
@@ -384,6 +382,121 @@ export default function ApplicationDevelopmentWorkspaceSurface({
       ) : null}
     </div>
   );
+}
+
+type ApplicationAccessSurface = "integration" | "credentials";
+
+function ApplicationAccessWorkspace({
+  context,
+  offlineApiKeys,
+}: {
+  context: ApplicationDevelopmentWorkspaceContext;
+  offlineApiKeys: WorkspaceApiKeysViewModel;
+}) {
+  const [activeSurface, setActiveSurface] = useState<ApplicationAccessSurface>(() => (
+    accessSurfaceForHash(window.location.hash, context.applicationActive)
+  ));
+
+  useEffect(() => {
+    function synchronizeSurface() {
+      const activeHash = window.location.hash.trim();
+      setActiveSurface(accessSurfaceForHash(activeHash, context.applicationActive));
+      if (activeHash === "#application-api-integration" || activeHash === "#workspace-api-keys") {
+        window.requestAnimationFrame(() => {
+          document.querySelector<HTMLElement>(".application-access-workspace")?.scrollIntoView({ block: "start" });
+        });
+      }
+    }
+    synchronizeSurface();
+    window.addEventListener("hashchange", synchronizeSurface);
+    return () => window.removeEventListener("hashchange", synchronizeSurface);
+  }, [context.applicationActive]);
+
+  return (
+    <section
+      className="application-access-workspace"
+      aria-labelledby="application-access-workspace-title"
+      data-active-surface={activeSurface}
+      data-application-active={String(context.applicationActive)}
+    >
+      <header className="application-access-heading">
+        <div>
+          <p className="eyebrow">S4 · Application access</p>
+          <h3 id="application-access-workspace-title">API Integration &amp; Keys</h3>
+          <p>Choose one access task, keep credentials scoped to this application, then validate through an existing controlled surface.</p>
+        </div>
+        <div className="application-access-boundaries" aria-label="Application access boundaries">
+          <span className="status-badge neutral">dev / test</span>
+          <span className={`status-badge ${context.applicationActive ? "good" : "neutral"}`}>
+            {context.applicationActive ? "active application" : "archived · read / revoke"}
+          </span>
+        </div>
+      </header>
+
+      <div className="application-access-workbench">
+        <aside className="application-access-rail" aria-label="Application access tasks">
+          <p>Access path</p>
+          <nav>
+            {context.applicationActive ? (
+              <a href="#application-api-integration" aria-current={activeSurface === "integration" ? "step" : undefined}>
+                <b>01</b><span><strong>Connect API</strong><small>Model, protocol, example</small></span>
+              </a>
+            ) : (
+              <span className="is-disabled"><b>01</b><span><strong>Connect API</strong><small>Blocked for archived application</small></span></span>
+            )}
+            <a href="#workspace-api-keys" aria-current={activeSurface === "credentials" ? "step" : undefined}>
+              <b>02</b><span><strong>Credentials</strong><small>Issue, inspect, revoke</small></span>
+            </a>
+            {context.applicationActive ? (
+              <a href="#model-gateway-playground">
+                <b>03</b><span><strong>Validate</strong><small>Existing Playground</small></span>
+              </a>
+            ) : (
+              <span className="is-disabled"><b>03</b><span><strong>Validate</strong><small>Invocation blocked</small></span></span>
+            )}
+            <span><b>04</b><span><strong>Verify / retire</strong><small>Exact Gateway evidence</small></span></span>
+          </nav>
+          <p className="boundary-note">The path shows task position only. It does not assert production readiness or automatic completion.</p>
+        </aside>
+
+        <main className="application-access-main">
+          {!context.applicationActive ? (
+            <div className="application-access-archived-boundary" role="status">
+              <strong>Archived application boundary</strong>
+              <span>Sanitized Key metadata remains readable and revocable. Issue, rotation, model loading, and invocation stay blocked.</span>
+            </div>
+          ) : null}
+          <div className="application-access-owner" hidden={activeSurface !== "integration"}>
+            <Suspense fallback={<StageFallback label="Application API Integration" />}>
+              <ApplicationApiIntegrationPanel
+                key={`${context.generationKey}:api-integration`}
+                applicationId={context.applicationId}
+                applicationName={context.displayName}
+                workspaceId={context.workspaceId}
+              />
+            </Suspense>
+          </div>
+          <div className="application-access-owner" hidden={activeSurface !== "credentials"}>
+            <Suspense fallback={<StageFallback label="API key lifecycle" />}>
+              <APIKeyLifecyclePanel
+                key={`${context.generationKey}:api-key`}
+                applicationId={context.applicationId}
+                applicationName={context.displayName}
+                applicationActive={context.applicationActive}
+                workspaceId={context.workspaceId}
+                offlineView={offlineApiKeys}
+              />
+            </Suspense>
+          </div>
+        </main>
+      </div>
+    </section>
+  );
+}
+
+function accessSurfaceForHash(hash: string, applicationActive: boolean): ApplicationAccessSurface {
+  if (!applicationActive) return "credentials";
+  return hash.trim() === "#workspace-api-keys" ? "credentials" : "integration";
 }
 
 function StageSurface({ stage, title, children }: { stage: string; title: string; children: ReactNode }) {

@@ -183,6 +183,11 @@ export function applicationDevelopmentStageForHash(hash: string): ApplicationDev
   return STAGE_DEFINITIONS.find((stage) => stage.anchor === anchor || stage.aliases.includes(anchor))?.stageId ?? null;
 }
 
+export function applicationDevelopmentHashTargetsOwnerSurface(hash: string): boolean {
+  const anchor = hash.trim().replace(/^#/u, "");
+  return STAGE_DEFINITIONS.some((stage) => stage.aliases.includes(anchor));
+}
+
 function applicationDevelopmentGenerationKey(
   applicationId: string,
   lifecycleState: ApplicationDevelopmentWorkspaceContext["lifecycleState"],
@@ -198,5 +203,5 @@ function stageAvailability(
 ): ApplicationDevelopmentStageAvailability {
   if (status === "unavailable") return "blocked";
   if (status === "active") return "available";
-  return stageId === "controlled_test" ? "blocked" : "read_only";
+  return "read_only";
 }

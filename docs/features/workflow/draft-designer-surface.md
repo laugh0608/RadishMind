@@ -91,7 +91,7 @@ S3 把上述既有能力重组为共享 Workbench 壳层中的连续 Designer �
 - Saved Draft consumer smoke 继续覆盖 no sample fallback、双版本 conflict、严格 cursor、归档只读和解除归档后重新打开。
 - 应用内浏览器严格复核覆盖 `1440x900`、`1381/1380px`、`1101/1100px`、`761/760px` 与 `390x844`。默认两节点邻域完整可读，显式 `Fit graph` 的八节点 / 七边全部完整；各宽度无横向溢出，Inspector 在 `1440px` 右侧、`<=1380px` 下移、`<=760px` 折叠，移动端 review 位于 rail 之前。
 - 键盘删除保护、受保护节点、节点切换、finding 定位、Inspector 折叠 / 展开及强选中与状态通道分离均通过；全新页签控制台零 warning / error。
-- `R1` 的 Web、build 和行为检查结果继续作为回归基线，但其视觉验收因未证明画布内容完整可读而保持撤回。`R2` 已完成严格复验，下一步进入 `S4 Application API Integration / API Key` 功能事实复核、`A` 级设计与 React 纵向切片。
+- `R1` 的 Web、build 和行为检查结果继续作为回归基线，但其视觉验收因未证明画布内容完整可读而保持撤回。`R2` 已完成严格复验；后续 `S4 Application Access` 产品化纵向切片也已完成，Workflow Designer 保持已验收基线，不继续派生同层改造。
 
 ## 停止线
 

@@ -5,7 +5,10 @@ import type {
   ControlPlaneReadDevLiveLoadState,
 } from "../features/control-plane-read/devLiveReadConsumer";
 import { applicationDevelopmentStageForHash } from "../features/control-plane-read/applicationDevelopmentWorkspace";
-import { workflowDesignerPrimaryHref } from "./productNavigationRoute";
+import {
+  applicationApiAccessPrimaryHref,
+  workflowDesignerPrimaryHref,
+} from "./productNavigationRoute";
 
 type ProductNavigationCounts = {
   inbox: number;
@@ -296,6 +299,8 @@ function primaryNavigationHref(
   const exactPrimary = PRIMARY_LINKS.map((link) => link.countKey === "apiKeys" ? apiKeysAnchor : link.href)
     .find((href) => href === activeHash);
   if (exactPrimary) return exactPrimary;
+  const applicationApiAccessHref = applicationApiAccessPrimaryHref(activeHash);
+  if (applicationApiAccessHref) return applicationApiAccessHref;
   if (activeHash === "#application-development-workspace" || applicationDevelopmentStageForHash(activeHash)) {
     return "#workspace-applications";
   }

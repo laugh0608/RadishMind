@@ -2,7 +2,7 @@
 
 更新时间：2026-08-08
 
-状态：`radishmind_family_ui_productization_v1_s1_r8_s2_r6_s3_r2_implemented`
+状态：`radishmind_family_ui_productization_v1_s1_r8_s2_r6_s3_r2_s4_r1_implemented`
 
 ## 目标
 
@@ -143,6 +143,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 | `radishmind_web_s2_application_workspace_v1` | `implementation_r6_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S2 Application Workspace — Desktop / Partial · R6`、`S2 Application Workspace — Narrow / Partial · R6` 与 `S1 + S2 Visual Language — Design Decision Record · R6` | 代码审计基线 `a545f511`，实现于 2026-08-08；`applicationDevelopmentWorkspacePanel.tsx`、`applicationDevelopmentWorkspaceSurface.tsx`、`applicationDevelopmentWorkspace.ts`、`applicationDevelopmentWorkspaceRoute.ts`、`applicationDevelopmentReadiness.ts`、`applicationDevelopmentWorkspaceControls.ts`、`ProductNavigation.tsx` 与 `styles.css` | `R6` 已在共享壳层内落地五阶段、owner contribution 与 readiness 投影；Applications 和当前阶段分别形成唯一产品导航 / 阶段选中态，普通 contribution 始终保持中性。桌面使用 `3 / 13` 窗口轨、九格来源矩阵和 authorization path；窄屏按 Application Context、当前阶段选择器、三项贡献、readiness 摘要渐进重排。React 继续使用真实 view model，当前离线 fixture 为 `1 / 9` owner references，不复制 Pencil 的代表性 `5 / 9`。 |
 | `radishmind_web_s3_workflow_designer_v1` | `implementation_r2_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S3 Workflow Designer — Desktop / Partial · R2`、`S3 Workflow Designer — Narrow / Partial · R2` 与 `S1 + S2 + S3 Visual Language — Design Decision Record · R8`；三者实际渲染无裁切，`R1` 因人工评审退回，不再作为验收基准 | `App.tsx` 继续持有草案、consumer、冲突和 mutation owner，`workflowDraftDesignerPanel.tsx` 承担 Workbench 展示，`workflowNodeDesigner.tsx`、`ProductNavigation.tsx`、`productNavigationRoute.ts` 与 `styles.css` 承担画布、导航和响应式语义 | `R1` 虽通过行为测试与页面级溢出检查，但存在确定性画布裁切、节点计数与可见节点错位、连线不可读、底部三块 review 等权铺陈，以及窄屏节点裁切与重复 Inspector 层级，因此被人工退回。`R2` 已完成当前节点 / 直接邻居默认焦点、显式 `Fit graph`、紧凑 review，以及 `1440px` 右侧 / `<=1380px` 下移 / `<=760px` 折叠的 Inspector。强选中只属于当前导航或驱动 Inspector 的当前对象，finding 与 readiness / lifecycle 状态保持独立。 |
 | `radishmind_web_s3_saved_draft_library_v1` | `b_level_implementation_completed` | `S3 Workflow Designer R2` 只保留紧凑活动草案引用、当前草案与完整 Library 交接，不建立第二个重复页面 | `workflowUserWorkspaceHomePanel.tsx`、saved draft list / lifecycle consumer 与 `App.tsx` 的精确打开、归档、恢复 owner；本批补齐 action-token tab 与 `tablist` / `tab` / `aria-selected` 语义 | 完整 Saved Draft Library 保持唯一挂载；Designer 只显示当前 / 活动草案引用和精确打开入口。真实浏览器已复验保存、读取、派生、两步归档、归档只读、解除归档和活动列表重新打开；S3 R2 不改变该 owner，也不新增自动打开、自动覆盖、批量 lifecycle 或生产 repository。 |
+| `radishmind_web_s4_application_access_v1` | `implementation_r1_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S4 Application Access — Desktop / Dev Test · R1`、`S4 Application Access — Narrow / Dev Test · R1` 与 `S1 + S2 + S3 + S4 Visual Language — Design Decision Record · R9`；三者全树无裁切、越界或占位节点 | `applicationDevelopmentWorkspaceSurface.tsx` 编排单一 S4 task owner，`applicationApiIntegrationPanel.tsx`、`apiKeyLifecyclePanel.tsx`、`ProductNavigation.tsx`、`productNavigationRoute.ts` 与 `styles.css` 继续消费既有 integration、lifecycle、rotation、handoff 和 Playground owner | 接入、凭据、验证和退役按一个任务轨渐进呈现；普通 Key 行保持中性，只有驱动详情的行使用墨蓝细轨，active / expired / revoked / verification pending 等状态不承担选中语义。模型只开放实际声明的协议；七项 scope、一次性凭据和 `last_used_at` 验证门槛保持真实。archived application 只允许 Key metadata / detail / revoke，继续阻断 issue、rotate、integration 和 invocation；offline workspace summary 与当前应用 lifecycle 列表不合并。 |
 
 `S1` 消费 `ref-03`、`ref-07`、`ref-08`、`ref-09`、`ref-15`、`ref-17`、`ref-18`、`ref-19` 与 `ref-24` 的产品层级，并共享 `ref-25` 的白色抬升表面和 `ref-27` 的连续窗格语法；`ref-20` 只保留未来暗色证据，不在当前画板增加主题切换。两个画板均已通过 Pencil 全树布局检查，结果为 `No layout problems`；视觉复核确认没有裁切、重叠和横向溢出。
 
@@ -233,7 +234,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 ### 设计批次：真实任务页面蓝图
 
-参考图产品面映射、Pencil 协作模型，以及 `S1 R8`、`S2 R6`、`S3 R2` 的桌面 / 窄屏设计、React 实现和真实浏览器验收均已完成；`S3 R1` 因确定性画布裁切与层级重复被人工退回的事实保留。下一设计批次进入 `S4 Application API Integration / API Key`：先复核既有 API 接入、Key lifecycle、一次性交接与验证后退役 owner，再冻结接入任务主面和关键风险状态并实施 React 纵向切片；不新增同层理想稿、兄弟画板或普通 UI 专项 task card。
+参考图产品面映射、Pencil 协作模型，以及 `S1 R8`、`S2 R6`、`S3 R2`、`S4 R1` 的桌面 / 窄屏设计、React 实现和真实浏览器验收均已完成；`S3 R1` 因确定性画布裁切与层级重复被人工退回的事实保留。下一设计批次转入 Gateway Playground / Request History / Application Operations 后续设计面：先复核既有受控调用、请求标识交接、应用作用域和当前窗口运行证据，再决定完整 Pencil、局部 Pencil与直接复用边界；不新增同层理想稿、兄弟画板或普通 UI 专项 task card。
 
 ### 实现批次：纵向切片迁移
 
@@ -276,6 +277,10 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 - Pencil Desktop / Narrow R2 与 Decision R8 已完成全树和实际渲染复核，无裁切、越界或占位节点。Web `274/274` 测试、production build 与既有八项 workflow checker 全部通过；`workflowNodeDesigner` 为 `205.40kB < 220kB`，`index` 为 `468.40kB < 500kB`。
 - 应用内浏览器严格复核覆盖 `1440x900`、`1381/1380px`、`1101/1100px`、`761/760px` 与 `390x844`：默认两节点邻域完整可读，显式 `Fit graph` 的八节点 / 七边全部完整，各宽度无横向溢出；移动端 review 位于 rail 之前。键盘删除保护、受保护节点、节点切换、finding 定位、Inspector 折叠 / 展开通过，全新页签控制台零 warning / error。
 - S3 继续以 App 为唯一 application / workflow / run / draft / scenario、Saved Draft lifecycle、conflict 与 mutation owner；九组来源、十三项 contribution、revision `partial`、RAG authority `blocked`、readiness 只读且不可发布的事实不变。本轮不新增 API、schema、repository、task card、fixture 或专项 checker。
+- `S4 R1` 已完成 Application Access 单一任务面：Connect API、Credentials、Validate、Verify / retire 只表达任务位置，不声称自动完成。API Integration 在 `api_key_dev_test` 未取得一次性凭据时显示资格阻塞；模型协议选择只开放目录真实声明的能力；workspace 配置与当前 context 不一致时零请求失败关闭。
+- API Key 页面继续消费七项真实 scope 和既有 issue / read / revoke / rotation owner；应用切换先清空旧列表，避免旧应用 Key 暂挂在新标题下。archived application 保留脱敏记录、详情和 revoke，但 issue、rotate、integration 与 invocation 继续关闭；offline workspace summary 明确为独立只读 evidence，不冒充当前应用 Key。
+- Pencil Desktop / Narrow R1 与 Decision R9 已显式保存，整棵设计树无 clipping / placeholder。Web `277/277` 与 production build 通过；应用内浏览器覆盖 `1440x900`、`1181/1180px`、`1101/1100px`、`761/760px`、`390x844`，所有宽度 `scrollWidth` 等于 viewport，任务选中、响应式顺序、一次性交接、签发 / 吊销、跨应用隔离和控制台零 warning / error 均通过。
+- 浏览器连续链在本地产品档签发一枚开发测试 Key，只检查一次性 token 的结构与内存边界，不记录原文；随后以两步确认吊销该记录。URL、日志、文档、Pencil 和持久浏览器介质均未写入原始凭据。本轮没有新增 API、schema、repository、task card、fixture 或专项 checker。
 
 ## 停止线
 

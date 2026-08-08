@@ -1,7 +1,32 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { workflowDesignerPrimaryHref } from "../src/app/productNavigationRoute.ts";
+import {
+  applicationApiAccessPrimaryHref,
+  workflowDesignerPrimaryHref,
+} from "../src/app/productNavigationRoute.ts";
+
+test("maps only the explicit S4 application API access anchors to API & keys", () => {
+  for (const anchor of [
+    "#application-api-integration",
+    "#workspace-api-keys",
+  ]) {
+    assert.equal(applicationApiAccessPrimaryHref(anchor), "#workspace-api-keys");
+  }
+});
+
+test("does not claim adjacent application, API key, or prefix-like anchors", () => {
+  for (const anchor of [
+    "#application-api-integration-preview",
+    "#workspace-api-keys-archive",
+    "#application-interaction-session",
+    "#model-gateway-playground",
+    "application-api-integration",
+    "#workspace-applications",
+  ]) {
+    assert.equal(applicationApiAccessPrimaryHref(anchor), null);
+  }
+});
 
 test("maps only the explicit S3 workflow designer anchors to Workflows", () => {
   for (const anchor of [

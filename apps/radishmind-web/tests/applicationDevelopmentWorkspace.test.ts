@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   applicationDevelopmentStageForHash,
+  applicationDevelopmentHashTargetsOwnerSurface,
   buildApplicationDevelopmentWorkspaceContext,
   type ApplicationDevelopmentWorkspaceInput,
 } from "../src/features/control-plane-read/applicationDevelopmentWorkspace.ts";
@@ -65,8 +66,27 @@ test("application revision and lifecycle changes rotate the workspace generation
   assert.notEqual(current.generationKey, revised.generationKey);
   assert.notEqual(revised.generationKey, archived.generationKey);
   assert.equal(archived.applicationActive, false);
-  assert.equal(archived.stages.find((stage) => stage.stageId === "controlled_test")?.availability, "blocked");
+  assert.equal(archived.stages.find((stage) => stage.stageId === "controlled_test")?.availability, "read_only");
   assert.equal(archived.stages.find((stage) => stage.stageId === "evidence_review")?.availability, "read_only");
+});
+
+test("opens owner review for exact child anchors without treating stage anchors as child surfaces", () => {
+  for (const anchor of [
+    "#application-api-integration",
+    "#workspace-api-keys",
+    "#model-gateway-playground",
+    "#prompt-application-invocation",
+  ]) {
+    assert.equal(applicationDevelopmentHashTargetsOwnerSurface(anchor), true);
+  }
+  for (const anchor of [
+    "#application-interaction-session",
+    "#application-development-workspace",
+    "#workspace-applications",
+    "#workspace-api-keys-preview",
+  ]) {
+    assert.equal(applicationDevelopmentHashTargetsOwnerSurface(anchor), false);
+  }
 });
 
 test("missing application fails closed without fabricating a scope", () => {

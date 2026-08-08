@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-08 当前执行口径：Family UI `S1 R8` 产品壳、`S2 R6` Application Workspace 与 `S3 R2` Workflow Designer 已完成设计、React 实现和真实浏览器严格验收。`S3 R1` 曾因确定性画布裁切、节点计数与实际可见节点错位、边不可读、底部 review 等权和窄屏重复 Inspector 被人工退回；R2 已完成默认焦点、显式 `Fit graph`、紧凑 review、Inspector `1440px` 右侧 / `<=1380px` 下移 / `<=760px` 折叠及选中语义修正。S3 继续复用 App、Draft / Node Designer、Saved Draft lifecycle、validation、plan、readiness 与 Review Handoff owner，保持九组来源、十三项 contribution、revision `partial`、RAG authority `blocked`、readiness 只读且不可发布；不新增 API、schema、repository、task card 或专项 checker。下一步进入 `S4 Application API Integration / API Key` 的功能事实复核、`A` 级设计与 React 纵向切片。
+2026-08-08 当前执行口径：Family UI 首批 `S1 R8` 产品壳、`S2 R6` Application Workspace、`S3 R2` Workflow Designer 与 `S4 R1` Application API Integration / API Key 已完成设计、React 实现和真实浏览器严格验收。S4 继续复用现有 model catalog、API Key lifecycle、七项 scope、一次性交接、rotation、Playground 与 Request History owner；workspace scope 漂移失败关闭，archived application 只保留 Key metadata / detail / revoke，offline workspace summary 与当前 application lifecycle 列表分离。原始令牌不进入 URL、浏览器持久化、日志、文档或 Pencil；没有新增 API、schema、repository、task card 或专项 checker。下一步联合复核 Gateway Playground、Request History 与 Application Operations，组织“受控调用 → 精确请求审查 → 应用当前窗口证据”的后续产品路径，再按页面新颖度决定 Pencil 覆盖与 React 纵向切片。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。

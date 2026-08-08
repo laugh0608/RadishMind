@@ -2,7 +2,7 @@
 
 更新时间：2026-08-08
 
-状态：`radishmind_family_ui_reference_mapping_v1_s1_r8_s2_r6_s3_r2_implemented`
+状态：`radishmind_family_ui_reference_mapping_v1_s1_r8_s2_r6_s3_r2_s4_r1_implemented`
 
 ## 文档职责
 
@@ -119,4 +119,7 @@ S4 组合原则：接入向导只编排既有 owner。原始 API Key 只在签�
 - 同日第七轮人工复评继续指出，`R7` / `R5` 虽已去除无职责外框，但局部仍像规整状态文字面板。`S1 R8` / `S2 R6` 因此进一步吸收 `ref-27` 的紧凑焦点队列与详情上下文，以及 `ref-17` 的矩阵化数据节奏：Operations Inbox 增加四项当前窗口和 evidence path，Source evidence 改为状态分布与四来源矩阵，Application Workspace 增加当前阶段选中轨、十三段 contribution window、九格 readiness 和 authorization path。后续局部复核又把 Inbox 选中行降为中性柔底与描边图标，并取消中央缺失 contribution 的伪选中态；选中只归属于详情 owner 或当前导航，状态仍由文字、图标和标签表达。功能真相、窄屏顺序与 React 停止线未改变。
 - 2026-08-06 联合人工复评通过 `S1 R8` / `S2 R6`。参考映射、克制家族色、全视口桌面结构、窄屏渐进顺序和状态停止线均冻结为当前实现输入；后续普通实现偏差直接在 React 与浏览器复核中收口，只有结构性设计决策变化才重新回写 Pencil。
 - 2026-08-08 重新审阅 `ref-04`、`ref-06`、`ref-21`、`ref-22`、`ref-23` 与 `ref-26` 的既定吸收边界，并完成 `S3 R1` 行为实现；但后续人工评审确认，Pen 全树检查与 body 无横向溢出没有覆盖 React Flow 内部确定性裁切。`R1` 的节点计数与实际可见节点错位、连线不可读、底部三块 review 等权铺陈，以及窄屏节点裁切与 Inspector 重复层级均不符合参考映射，因此视觉验收撤回。
-- `S3 R2` 已按当前运行时事实修正上述结构，不改 owner 或能力边界：默认聚焦当前节点与直接邻居、提供显式 `Fit graph`、收紧 review 密度，并按 `1440px` 右侧 / `<=1380px` 下移 / `<=760px` 折叠安排 Inspector。Pencil Desktop / Narrow R2 与 Decision R8 实际渲染无裁切；桌面、临界断点和 `390x844` 的真实浏览器严格复验确认默认两节点邻域和全图八节点 / 七边完整可读、无横向溢出、移动端 review 位于 rail 之前。归档草案仍只读，九组来源、十三项 contribution、revision `partial`、RAG authority `blocked`、readiness 不可发布保持不变；不新增 API、schema、task card 或专项 checker。下一步进入 `S4 Application API Integration / API Key` 功能事实复核、`A` 级设计与 React 纵向切片。
+- `S3 R2` 已按当前运行时事实修正上述结构，不改 owner 或能力边界：默认聚焦当前节点与直接邻居、提供显式 `Fit graph`、收紧 review 密度，并按 `1440px` 右侧 / `<=1380px` 下移 / `<=760px` 折叠安排 Inspector。Pencil Desktop / Narrow R2 与 Decision R8 实际渲染无裁切；桌面、临界断点和 `390x844` 的真实浏览器严格复验确认默认两节点邻域和全图八节点 / 七边完整可读、无横向溢出、移动端 review 位于 rail 之前。归档草案仍只读，九组来源、十三项 contribution、revision `partial`、RAG authority `blocked`、readiness 不可发布保持不变；不新增 API、schema、task card 或专项 checker。
+- 2026-08-08 已实际查看 `ref-01`、`ref-02`、`ref-10`、`ref-16` 与 `ref-25` 原图，而不只读取索引：分别吸收连续中性列表与小面积状态、受控行操作、发丝分隔的紧凑 scope 行、任务阶段 rail，以及白色抬升表面和限制提示分区；明确排除电商 KPI、价格与批量操作、日程语义、外部数据源“连接成功”声明、原始蓝色品牌和任何真实 token 图示。
+- `S4 R1` 已把上述原则转译为同一 Application Access 页面族：桌面使用 access rail 与单一任务主面，窄屏按 application context → `2×2` access path → one-time credential → selected Key → verification / retire 重排。强选中只归属于当前任务或驱动详情的 Key 行，active / revoked / verification pending 等状态只使用 badge、文字和结构第二通道；一次性凭据代表面只说明 live response 可用，不绘制伪造 secret。
+- Pencil Desktop / Narrow R1 与 Decision R9 全树无裁切、越界和占位节点；真实浏览器在 `1440x900`、关键断点与 `390x844` 复验无横向溢出。七项 scope、workspace scope 失败关闭、archived Key 只读 / revoke、offline workspace summary 分离和 production authorization closed 均以现有 owner 为事实源；没有新增 API、schema、repository、task card 或专项 checker。下一步转入 Gateway Playground / Request History / Application Operations 后续设计面。

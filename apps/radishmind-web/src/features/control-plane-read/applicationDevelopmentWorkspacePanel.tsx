@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import {
+  applicationDevelopmentHashTargetsOwnerSurface,
   type ApplicationDevelopmentStage,
   type ApplicationDevelopmentStageId,
   type ApplicationDevelopmentWorkspaceContext,
@@ -103,6 +104,7 @@ export default function ApplicationDevelopmentWorkspacePanel({
   useEffect(() => {
     function synchronizeStage() {
       setRouteState((current) => transitionApplicationDevelopmentRoute(current, context, window.location.hash));
+      if (applicationDevelopmentHashTargetsOwnerSurface(window.location.hash)) setOwnerSurfaceOpen(true);
     }
     synchronizeStage();
     window.addEventListener("hashchange", synchronizeStage);
@@ -143,7 +145,7 @@ export default function ApplicationDevelopmentWorkspacePanel({
     }
     if (previousActiveStage.current !== activeStage) {
       setStageMenuOpen(false);
-      setOwnerSurfaceOpen(false);
+      setOwnerSurfaceOpen(applicationDevelopmentHashTargetsOwnerSurface(window.location.hash));
     }
     previousActiveStage.current = activeStage;
   }, [activeStage, context]);
