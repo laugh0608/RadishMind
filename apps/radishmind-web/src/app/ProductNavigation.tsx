@@ -4,6 +4,7 @@ import type {
   ControlPlaneReadDevLiveConfig,
   ControlPlaneReadDevLiveLoadState,
 } from "../features/control-plane-read/devLiveReadConsumer";
+import { applicationDevelopmentStageForHash } from "../features/control-plane-read/applicationDevelopmentWorkspace";
 
 type ProductNavigationCounts = {
   inbox: number;
@@ -230,6 +231,7 @@ function NavigationLinks({
   apiKeysAnchor: ProductNavigationProps["apiKeysAnchor"];
   counts: ProductNavigationCounts;
 }) {
+  const activePrimaryHref = primaryNavigationHref(activeHash, apiKeysAnchor);
   return (
     <nav className="product-nav-links" aria-label="Workspace sections">
       <div className="product-nav-group">
@@ -241,7 +243,7 @@ function NavigationLinks({
             <a
               key={href}
               href={href}
-              aria-current={activeHash === href ? "page" : undefined}
+              aria-current={activePrimaryHref === href ? "page" : undefined}
             >
               <span className="product-nav-link-main">
                 <span className="product-nav-icon"><NavigationIcon name={link.icon} /></span>
@@ -284,6 +286,19 @@ function NavigationLinks({
       </details>
     </nav>
   );
+}
+
+function primaryNavigationHref(
+  activeHash: string,
+  apiKeysAnchor: ProductNavigationProps["apiKeysAnchor"],
+): string | null {
+  const exactPrimary = PRIMARY_LINKS.map((link) => link.countKey === "apiKeys" ? apiKeysAnchor : link.href)
+    .find((href) => href === activeHash);
+  if (exactPrimary) return exactPrimary;
+  if (activeHash === "#application-development-workspace" || applicationDevelopmentStageForHash(activeHash)) {
+    return "#workspace-applications";
+  }
+  return null;
 }
 
 function NavigationIcon({ name }: { name: NavigationIconName }) {

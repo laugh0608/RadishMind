@@ -1,6 +1,6 @@
 # 应用开发工作区与发布准备审查 v1
 
-更新时间：2026-07-20
+更新时间：2026-08-08
 
 状态：`application_development_workspace_release_readiness_review_v1_completed`
 
@@ -187,7 +187,7 @@ context 不保存领域对象、请求正文、响应正文、凭据、输入、
 
 ## 2026-08-03 Family UI S2 设计基准面
 
-`radishmind_web_s2_application_workspace_v1` 已在 [Family UI Pencil 设计源](../../designs/radishmind-web-family-ui-v1.pen) 中完成 `R3`，当前为设计评审完成前的实现门禁，不改变本专题已经关闭的功能范围：
+`radishmind_web_s2_application_workspace_v1` 已在 [Family UI Pencil 设计源](../../designs/radishmind-web-family-ui-v1.pen) 中完成 `R6` 并于 2026-08-08 落地 React，不改变本专题已经关闭的功能范围：
 
 - 桌面 `1440x900` 继承 `S1` 单一产品导航，以 RadishFlow Copilot 这一真实 Application 作用域组织 Application Context、五阶段任务路径、唯一 Human Promotion 当前 surface 和从属 Evidence / Readiness rail；阶段只表达可进入性，不显示伪完成进度。
 - 窄屏 `390x844` 固定为“Application Context → 当前阶段选择器 → 当前 surface → Readiness 摘要”，五阶段与九个来源组通过渐进展开查看，不压缩桌面双栏，也不产生横向溢出。
@@ -195,7 +195,7 @@ context 不保存领域对象、请求正文、响应正文、凭据、输入、
 - 当前代码审计确认九个来源组、十三项 contribution、generation / surfaceKey、精确 ref handoff 和目标 owner 重读仍是实现真相；Pencil 中的代表性计数、标签和短引用不进入功能契约。
 - 共享设计决策记录明确消费 `ref-05`、`ref-11`、`ref-12`、`ref-13`、`ref-14`、`ref-18` 与 `ref-27`，并排除主题切换、事故语境、ETA、自动阶段完成、自动 activation / assignment、发布按钮和五阶段重复画板。
 - `R1` 的功能层级通过审计，`R2` 改为连续工作面、图标分段阶段带、时间线 evidence 与贴合详情 rail；联合人工复核仍确认其尺度过小、表面过碎且主次不足。`R3` 用更大的 Application 身份、阶段 rail 和 Human Promotion 主对象，以及选择性抬升感，完成视觉根因修正。
-- `S2 R6` 桌面 / 窄屏与共享设计决策记录均通过 Pencil 全树布局检查和联合人工复评，无裁切、重叠或占位节点；`S1 R8` 共享壳层现已完成。下一步直接实施本专题的 React 纵向切片，并复用既有 Web 测试、production build 与桌面 / 窄屏真实浏览器验收。
+- `S2 R6` 桌面 / 窄屏与共享设计决策记录均通过 Pencil 全树布局检查和联合人工复评，无裁切、重叠或占位节点；React 已复用 `S1 R8` 共享壳层完成纵向切片和桌面 / 窄屏真实浏览器验收。
 
 ## 当前实现进度
 
@@ -242,6 +242,15 @@ context 不保存领域对象、请求正文、响应正文、凭据、输入、
 - 浏览器启动复验发现离线 Application 没有权威 `recordVersion` 时 lifecycle evidence 会携带非法版本 `0` 并中断 React 根节点。实现已按来源真实性修正：保留可浏览 Application 作用域，但把 lifecycle evidence 降为 `incomplete / partial`，保留无版本短引用并明确缺少权威 revision，不再伪造完整证据或抛错。
 - 完整页面加载与五阶段连续交互共观察到的请求仅为 Vite 页面、模块与动态 chunk；交互期没有 XHR、Fetch 或 `/v1/` owner 请求，控制台无页面 warning / error，网络无加载失败。浏览器存储不直接读取；代码扫描确认工作区只使用稳定 `location.hash`，不写 `localStorage`、`sessionStorage` 或 cookie，既有离线 consumer 测试继续固定零请求和一次性内存边界。
 - Application Workspace 回归增至 `18` 项，全部 Web 测试 `182 / 182`、`npm run build` 与全量 `./scripts/check-repo.sh` 通过。批次 C 和本专题至此关闭；没有新增 API、schema、repository、fixture、checker、任务卡、发布记录或执行算法。
+
+2026-08-08 已完成 Family UI `S2 R6` 产品化实现：
+
+- `ApplicationDevelopmentWorkspacePanel` 复用现有 `evidenceState`、readiness view model、generation、surfaceKey 与 handoff controller，重组为 Application Context、五阶段 review path、Human Promotion 三项代表 contribution、十三段当前窗口、九组来源 readiness、authorization path 和渐进 owner surface；没有复制领域对象或增加 owner 请求。
+- 桌面只让 Applications 产品导航和当前阶段形成柔底 / 墨蓝细轨选中态，普通 `missing`、`blocked`、`partial` contribution 保持中性行；窄屏按“Application Context → 当前阶段选择器 → 当前 surface → Readiness 摘要”排列，五阶段与全部九组来源可渐进展开。
+- 缺少权威 revision 继续来自 Application lifecycle contribution 的 `partial`。底层 readiness 对未开始的 RAG assignment 保持 `incomplete`；S2 presentation 仅在现有 `rag_assignment` 缺失证据存在时把 RAG authority 显式表达为 `blocked` 风险，并通过 `data-rag-owner-status` 保留 owner rollup 原值，不改四态 readiness、owner contribution 或发布资格。
+- 九组来源、十三项 contribution 和所有状态均由当前 view model 计算。Pencil 的 `5 / 9` 只是代表面数值；当前离线 fixture 实际只有 Application 引用，因此 React 如实显示 `1 / 9`，没有伪造来源覆盖。
+- Web `272/272` 测试和 production build 通过；应用内浏览器复核 `1440x900`、`1101/1100px`、`821px`、`761/760px` 和 `390x844` 均无横向溢出，五阶段切换、九来源展开、owner review 开合和窄屏顺序正确，URL 无敏感材料，控制台零 warning / error。开发服务已在验收后关闭。
+- 本轮没有新增 API、schema、repository、生产声明、task card、fixture、专项 checker、发布记录或执行算法；readiness 继续易失、只读、不可发布且不能满足 production authorization。
 
 ## 验收方式
 

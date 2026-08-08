@@ -1,8 +1,8 @@
 # RadishMind Family UI 产品化设计与迁移 v1
 
-更新时间：2026-08-06
+更新时间：2026-08-08
 
-状态：`radishmind_family_ui_productization_v1_s1_r8_implemented_s2_r6_approved_for_implementation`
+状态：`radishmind_family_ui_productization_v1_s1_r8_s2_r6_implemented`
 
 ## 目标
 
@@ -140,7 +140,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 | `surface_id` | 状态 | Pencil 覆盖 | 代码基线与锚点 | 设计决策与停止线 |
 | --- | --- | --- | --- | --- |
 | `radishmind_web_s1_product_shell_v1` | `implementation_r8_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S1 Product Shell — Desktop / Partial · R8` 与 `S1 Product Shell — Narrow / Partial · R8` | `R8` 设计基准 commit `1c537537`，实现 commit `321e9899`；`apps/radishmind-web/src/app/ProductNavigation.tsx`、`apps/radishmind-web/src/app/App.tsx`、`apps/radishmind-web/src/features/control-plane-read/workspaceProductOverviewPanel.tsx`、`workspaceOperationsInboxPanel.tsx` 与 `apps/radishmind-web/src/styles.css` | `R8` 已落地唯一导航、workspace / application 上下文、全视口桌面壳、非对称 pulse、来源分布矩阵、连续 Inbox 列表 / 详情、轻量选中轨和 evidence path。Pencil 的四项队列与 `1 / 2 / 1` 只表示设计基准；真实离线 view model 在验收时投影五项队列与 `1 / 3 / 0` 来源分布，React 未伪造计数或改写 partial 停止线。 |
-| `radishmind_web_s2_application_workspace_v1` | `design_r6_approved_for_implementation` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S2 Application Workspace — Desktop / Partial · R6`、`S2 Application Workspace — Narrow / Partial · R6` 与 `S1 + S2 Visual Language — Design Decision Record · R6` | 代码审计基线 `a545f511`；`applicationDevelopmentWorkspacePanel.tsx`、`applicationDevelopmentWorkspaceSurface.tsx`、`applicationDevelopmentWorkspace.ts`、`applicationDevelopmentWorkspaceRoute.ts`、`applicationDevelopmentReadiness.ts` 与 `applicationDevelopmentWorkspaceControls.ts` | `R6` 保留五阶段、owner contribution 与 readiness 真相；当前阶段使用柔底、墨蓝细轨与编号实体形成唯一导航选中态，中央 contribution 以中性列表和 `3 / 13` 窗口轨表达状态与代表范围，右栏以 `5 / 9` 九格矩阵、blocked / missing 次级风险和 authorization path 表达只读边界；窄屏继续收敛为当前阶段、三项代表贡献和渐进 readiness。设计已通过人工复评，`S1 R8` 共享壳层现已完成，下一纵向切片直接实施本面。 |
+| `radishmind_web_s2_application_workspace_v1` | `implementation_r6_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S2 Application Workspace — Desktop / Partial · R6`、`S2 Application Workspace — Narrow / Partial · R6` 与 `S1 + S2 Visual Language — Design Decision Record · R6` | 代码审计基线 `a545f511`，实现于 2026-08-08；`applicationDevelopmentWorkspacePanel.tsx`、`applicationDevelopmentWorkspaceSurface.tsx`、`applicationDevelopmentWorkspace.ts`、`applicationDevelopmentWorkspaceRoute.ts`、`applicationDevelopmentReadiness.ts`、`applicationDevelopmentWorkspaceControls.ts`、`ProductNavigation.tsx` 与 `styles.css` | `R6` 已在共享壳层内落地五阶段、owner contribution 与 readiness 投影；Applications 和当前阶段分别形成唯一产品导航 / 阶段选中态，普通 contribution 始终保持中性。桌面使用 `3 / 13` 窗口轨、九格来源矩阵和 authorization path；窄屏按 Application Context、当前阶段选择器、三项贡献、readiness 摘要渐进重排。React 继续使用真实 view model，当前离线 fixture 为 `1 / 9` owner references，不复制 Pencil 的代表性 `5 / 9`。 |
 
 `S1` 消费 `ref-03`、`ref-07`、`ref-08`、`ref-09`、`ref-15`、`ref-17`、`ref-18`、`ref-19` 与 `ref-24` 的产品层级，并共享 `ref-25` 的白色抬升表面和 `ref-27` 的连续窗格语法；`ref-20` 只保留未来暗色证据，不在当前画板增加主题切换。两个画板均已通过 Pencil 全树布局检查，结果为 `No layout problems`；视觉复核确认没有裁切、重叠和横向溢出。
 
@@ -231,7 +231,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 ### 设计批次：真实任务页面蓝图
 
-参考图产品面映射、Pencil 协作模型、`S1 R8` 实现 / 浏览器验收，以及 `S2 R6` 桌面、窄屏和共享设计决策记录均已完成。2026-08-06 联合人工视觉评审和 `S1 R8` React 纵向切片均已闭合；当前直接实施 `S2 R6`，不新增同层理想稿、兄弟画板或普通 UI 专项 task card。
+参考图产品面映射、Pencil 协作模型、`S1 R8` 与 `S2 R6` 的桌面 / 窄屏设计、React 实现和真实浏览器验收均已完成。当前按既定顺序回到 `S3` Workflow Designer 对应功能设计文档核对画布交互和代码事实，不新增同层理想稿、兄弟画板或普通 UI 专项 task card。
 
 ### 实现批次：纵向切片迁移
 
@@ -267,6 +267,8 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 - `v26.7.3` 对齐后应用内浏览器再次确认：灰玉 identity、墨蓝 action 与胭脂 attention 分工正确；`1440x900` 和 `390x844` 均无横向溢出；窄屏菜单关闭后目标标题在 `72px` 处保持可见；控制台零 warning / error。
 - `S1 R8`、`S2 R6` 的桌面 / 窄屏与共享设计决策记录已显式保存到 Family UI Pencil 设计源；五个根画板全树布局检查无裁切、重叠或占位节点，并以 `2x` PNG 导出复核全视口桌面壳层、Operations Inbox 四项窗口与 evidence path、Source evidence 分布矩阵、九格 readiness、authorization path、窄屏渐进顺序、九组来源和 blocked / partial 停止线。
 - `321e9899 feat(ui): 落地 S1 R8 产品壳` 已完成 Workbench 导航、workspace pulse、Source evidence、Operations Inbox 与响应式交互迁移；Web `272/272` 测试和 production build 通过，严格应用内浏览器复核覆盖桌面、临界宽度、窄屏菜单、API Key / Run History 跨阶段锚点和零 warning / error。
+- `S2 R6` 已完成 Application Context、五阶段 review path、Human Promotion contribution 主面、九组来源 readiness、authorization path 和 owner surface 渐进展开；真实离线 view model 保持 revision `partial`、十三项 contribution、九组来源和不可发布边界。未证明的 RAG assignment 由 presentation 层根据现有缺失证据明确表达为 `blocked`，同时保留底层 owner rollup 的 `incomplete` 供审计，不改写四态 readiness 聚合。
+- S2 应用内浏览器严格复核覆盖 `1440x900`、`1101/1100px`、`821px`、`761/760px` 与 `390x844`；所有宽度的页面 `scrollWidth` 均等于 viewport，窄屏三条 contribution 均为 `90px`，五阶段菜单、九来源展开与 owner review 开合正常，URL 无敏感材料，控制台零 warning / error。Pencil 的 `5 / 9` 保持代表数值，当前 fixture 实际显示 `1 / 9` owner references。
 - `./scripts/check-repo.sh --fast` 与 `./scripts/check-repo.sh` 均通过；只保留 W28–W30 历史周志的既有篇幅 warning。
 
 ## 停止线
