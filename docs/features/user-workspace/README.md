@@ -1,13 +1,14 @@
 # 用户工作区细专题入口
 
-更新时间：2026-08-08
+更新时间：2026-08-09
 
 本目录承接用户工作区中跨应用、模型发现、接入、调用与审查的具体功能专题。产品面长期边界继续以 [用户工作区设计与开发文档](../user-workspace.md) 为准。
 
 ## 当前专题
 
 - [RadishMind Family UI 参考图产品面映射 v1](radishmind-family-ui-reference-mapping-v1.md)：已把 family-ui `references.md` 的 `ref-01` 至 `ref-27` 逐项映射到 S1–S8 八个产品面，固定实际查看、共享转译、禁止照搬内容、Pencil 构件与版权停止线。
-- [RadishMind Family UI 产品化设计与迁移 v1](radishmind-family-ui-productization-v1.md)：family-ui `v26.7.3` 参考基线、RadishMind Workbench 选择、原样 token 镜像和身份 / 操作 / 注意语义分层已经对齐；`S1 R8` 至 `S8 R1` 的 Pencil、React、真实浏览器和文档真相源均已完成。完整 Pencil 只覆盖八个 `A` 级页面族及必要变体，同族相似页面直接实现并以真实浏览器复核。
+- [RadishMind Family UI 产品化设计与迁移 v1](radishmind-family-ui-productization-v1.md)：family-ui `v26.7.3` 参考基线、RadishMind Workbench 选择和项目语义层已经对齐；`S1 R8` 至 `S9 R1` 的 Pencil、React 与真实浏览器均已完成，`S10 Application Evaluation Campaign` 已评为 `8 / A`，因 Pencil 被其它项目占用而保持设计与 React 未开始。
+- [应用评测计划、受控执行与证据归档（开发 / 测试态）v1](application-evaluation-campaign-controlled-execution-dev-test-v1.md)：后端批次 A 至 D 已完成 immutable Plan、三模式 Campaign owner、四 Profile 顺序执行、active API Key quota binding、interrupted reconciliation 和既有 Comparison / Case / Suite exact handoff；Pencil 空闲后再推进完整设计、React 与浏览器批次 E。
 - [Prompt / Agent / Copilot 类型工作区产品化 v1](prompt-agent-copilot-type-workspace-productization-v1.md)：S8 已完成。既有 Template / Profile、Configuration、Candidate、Assignment、Access、Session / Invocation、Run 与 Evaluation owner 被编排为七 / 八任务单 owner 工作区；开发测试态停止线、`A` 级 Pencil 与真实浏览器证据均已关闭。
 - [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](workspace-scoped-mutation-authorization-dev-test-v1.md)：批次 A 至 E 共 47 条 mutation 已完成 identity / membership 双重权限、active workspace 唯一选择、原子组合与条件权限、稳定拒绝映射和零业务 / 外部副作用证据；专题关闭。
 - [工作区运营收件箱（开发 / 测试态）v1](workspace-operations-inbox-dev-test-v1.md)：批次 A 已完成四类既有 owner 首分页关注项、来源覆盖、稳定严重度、Web 既有详情跳转和 workspace 切换失败关闭；不新增运营或修复真相源。
@@ -31,7 +32,7 @@
 
 ## 下一步
 
-- Family UI `S1 R8` 至 `S8 R1` 已完成。下一步回到用户工作区功能入口，根据真实使用证据先定义新的产品能力；不从 S8 原地扩 API、schema、生产认证、自动 assignment、自动发布、长期记忆或 agent loop。
+- Family UI `S1 R8` 至 `S9 R1` 已完成。下一步是 `S10 Application Evaluation Campaign` 批次 E；只有 Pencil 空闲并经用户确认后，才冻结完整 Desktop / Narrow 基准并进入 React 与浏览器验收。
 - API 密钥引导式轮换与验证后退役已完成并关闭。下一轮先依据用户工作区与 Workflow 的真实使用证据更新对应功能设计；不从本专题扩自动轮换、持久 rotation owner 或生产凭据能力。
 - 工作区运营收件箱批次 A 已完成；先以真实开发测试使用反馈判断是否需要跨全部分页窗口的服务端 read projection。没有需求与统一 owner cursor 契约前不启动批次 B。
 - Workspace-scoped Read Transition 开发 / 测试态批次 A、B 已完成。条件式批次 C 只有在取得 reviewed Radish membership owner / endpoint、撤销 / 过期语义与 OIDC mapping 后才启动；否则回到功能入口选择新的用户工作区能力。

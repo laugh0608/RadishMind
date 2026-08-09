@@ -44,6 +44,7 @@ type AgentCopilotInvocationInput struct {
 	Artifacts           []AgentCopilotArtifact
 	Context             map[string]any
 	ClientInvocationKey string
+	RunID               string
 }
 
 type AgentCopilotInvocationResult struct {
@@ -179,6 +180,12 @@ func (service agentCopilotInvocationService) Invoke(ctx AgentCopilotRuntimeConte
 	}
 	runContext := agentCopilotWorkflowRunContext(ctx)
 	runID := agentCopilotInvocationRunID(ctx, clientKey)
+	if input.RunID != "" {
+		if !workflowRAGRunIDPattern.MatchString(input.RunID) {
+			return agentCopilotInvocationFailure(AgentCopilotInvocationFailureInputInvalid)
+		}
+		runID = input.RunID
+	}
 	existing, found, err := service.runStore.ReadRun(runContext, runID)
 	if err != nil {
 		return agentCopilotInvocationFailure(AgentCopilotRuntimeFailureStoreUnavailable)

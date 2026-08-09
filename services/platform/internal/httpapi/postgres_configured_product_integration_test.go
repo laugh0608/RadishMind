@@ -534,6 +534,9 @@ func runConfiguredPostgresMigrationGate(
 func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
 	_, err := pool.Exec(ctx, `DROP TABLE IF EXISTS
+		application_evaluation_campaigns,
+		application_evaluation_plan_versions,
+		application_evaluation_plans,
 		agent_copilot_run_records,
 		agent_copilot_session_turns,
 		agent_copilot_sessions,
@@ -621,6 +624,9 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_prompt_application_runtime_mutation(), enforce_prompt_application_run_update(), enforce_prompt_application_turn_update(), enforce_prompt_application_session_update(), enforce_prompt_application_assignment_update(), reject_prompt_application_template_mutation(), enforce_prompt_application_template_draft_update()`); err != nil {
 		t.Fatalf("reset configured PostgreSQL prompt application guards: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_application_evaluation_mutation(), enforce_application_evaluation_campaign_update(), enforce_application_evaluation_plan_update()`); err != nil {
+		t.Fatalf("reset configured PostgreSQL application evaluation guards: %v", err)
 	}
 }
 

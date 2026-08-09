@@ -11,6 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
+- [应用评测计划、受控执行与证据归档（开发 / 测试态）v1](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md)已完成后端批次 A 至 D，状态为 `application_evaluation_campaign_controlled_execution_dev_test_v1_backend_a_to_d_completed_ui_blocked`。不可变 plan version、memory / SQLite / PostgreSQL campaign owner、严格 Plan / Campaign / Pair API、四 Profile 顺序委托、authority checkpoint、当前 actor-owned active API Key quota binding、interrupted reconciliation，以及 Comparison / exact Case version / Suite handoff 已成立。批次 E 的五维评分为 `8`、覆盖级别为 `A / 完整 Pencil`；Pencil 正被其它项目占用，因此未读取或修改设计源，也未启动 React 与浏览器验收。
 - [应用 API Key 请求配额与 Provider Attempt 准入（开发 / 测试态）v1](features/gateway/application-api-key-request-quota-admission-dev-test-v1.md)批次 A 至 E 已全部完成，状态为 `application_api_key_request_quota_admission_dev_test_v1_completed`。后端三模式 quota owner、Admin GET / PUT、独立权限和六条 provider 前原子准入继续成立；`S9 Admin Quota Admission` 已按五维评分 `1 / 2 / 2 / 2 / 1 = 8` 完成完整 Pencil、React 严格 consumer、正整数 CAS 确认、missing / permission / environment / conflict / store failure 失败关闭和真实浏览器连续链。旧 User Workspace `QuotaSummary` 仍为 `quota_policy_unavailable`，生产 quota、rate limit、token / cost、billing、正式 membership / OIDC 与自动路由未打开。
 - [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md) 已完成 `v26.7.3` 通用参考基线、项目语义，以及 `S1 R8` 产品壳至 `S9 R1` Admin Quota Admission，状态为 `radishmind_family_ui_productization_v1_s1_to_s9_implemented`。S9 Desktop / Narrow R1 与 Decision R14 已显式保存；React 复用 S1–S8 全视口 Workbench、S7 管理上下文和唯一 owner 语义，只让当前 application 使用墨蓝选中轨，quota 状态使用独立文字与注意色。Web `304/304`、production build 与 `1440×900`、`900×900`、`390×844` 浏览器验收通过，各宽度无横向溢出、控制台零 warning / error；真实 memory_dev 连续链覆盖 missing → create → ready、并发版本漂移 → `409` → reload。下一产品切片尚未在本批决定，必须重新从功能专题和真实使用证据选择，不从已完成 S9 原地派生同层页面或生产能力。
 - S9 后续真实 API Key 高频链已复现 quota 内调用 → `429 / gateway_quota_exceeded / quota_admission` → 同 request id Request History → Admin Quota owner。审计发现 Playground 原本只显示技术码，现按 `C / 直接实现` 复用既有失败引导模式，明确 UTC 日预算、零 provider 调用和无自动重试，并精确打开同一 application 的 Admin Quota；用户工作区不读取或推算 used / remaining。该修正不改变 S5 / S9 Pencil、API、schema、repository、permission 或生产停止线。
@@ -30,7 +31,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：S8 两个真实路径接缝、quota 专题批次 A 至 E、Workflow Definition 真实连续链、RAG Promotion → Configuration Draft 精确交接与 RAG v3 当前权威恢复链均已关闭；`S9 Admin Quota Admission` 的完整 Pencil、React、Web build 和真实浏览器验收已完成。下一步应回到功能设计入口，以新的真实任务阻塞选择产品专题；不得从 S9、Definition 或 RAG 审计原地扩 production membership、正式 OIDC、生产 secret、token / cost、billing、自动提额、自动禁用、自动路由或生产启用。
+1. 产品线：应用评测计划、受控 Campaign 与 evidence handoff 后端批次 A 至 D 已完成；下一步只在 Pencil 空闲并经用户确认后推进批次 E，先冻结 Desktop / Narrow 与共享 Decision Record，再实现 React strict consumer、完整状态矩阵和真实浏览器连续链。等待期间不以临时页面抢跑，也不从既有 S9、Definition、RAG、Case 或 Suite owner 扩 production membership、正式 OIDC、生产 secret、billing、自动执行或自动发布。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
@@ -104,6 +105,8 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 63. [API 密钥引导式轮换与验证后退役实施任务卡](task-cards/api-key-guided-rotation-verified-retirement-dev-test-v1-plan.md)
 64. [应用 API Key 请求配额与 Provider Attempt 准入（开发 / 测试态）v1](features/gateway/application-api-key-request-quota-admission-dev-test-v1.md)
 65. [应用 API Key 请求配额与 Provider Attempt 准入实施任务卡](task-cards/application-api-key-request-quota-admission-dev-test-v1-plan.md)
+66. [应用评测计划、受控执行与证据归档（开发 / 测试态）v1](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md)
+67. [应用评测计划、受控执行与证据归档实施任务卡](task-cards/application-evaluation-campaign-controlled-execution-dev-test-v1-plan.md)
 
 ## 当前不要做
 

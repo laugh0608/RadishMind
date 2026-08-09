@@ -2,7 +2,7 @@
 
 更新时间：2026-08-09
 
-状态：`radishmind_family_ui_productization_v1_s1_to_s9_implemented`
+状态：`radishmind_family_ui_productization_v1_s1_to_s9_implemented_s10_design_blocked`
 
 ## 目标
 
@@ -69,7 +69,8 @@ RadishMind 项目主动选择 `Workbench` Profile：
 ### 后续设计面
 
 - `S9 Admin Quota Admission` 已由[应用 API Key 请求配额与 Provider Attempt 准入专题](../gateway/application-api-key-request-quota-admission-dev-test-v1.md)和真实后端 owner 产生，并按五维评分 `1 / 2 / 2 / 2 / 1 = 8` 完成 `A / 完整 Pencil`、React 与真实浏览器验收。
-- 其它后续设计面必须由新的功能专题和真实使用证据产生；S1–S9 不原地派生同层页面链。
+- `S10 Application Evaluation Campaign` 已由[应用评测计划、受控执行与证据归档专题](application-evaluation-campaign-controlled-execution-dev-test-v1.md)和完成的后端批次 A 至 D 产生，五维评分为 `8`、覆盖级别为 `A / 完整 Pencil`。Pencil 正被其它项目占用，尚未读取设计源、冻结画板或开始 React；空闲后按 Desktop / Narrow、共享 Decision Record、纵向 React 与浏览器验收顺序推进。
+- 其它后续设计面必须由新的功能专题和真实使用证据产生；S1–S10 不原地派生同层页面链。
 
 后续设计面不因列入范围而自动获得实现准入；每一批仍要以对应功能专题中的当前能力为边界。
 
@@ -161,6 +162,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 | `radishmind_web_s7_admin_control_plane_v1` | `implementation_r1_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S7 Admin Control Plane — Desktop / Dev Test · R1`、`S7 Admin Control Plane — Narrow / Dev Test · R1` 与 `S1 + S2 + S3 + S4 + S5 + S6 + S7 Visual Language — Design Decision Record · R12`；三者全树无裁切、越界或占位节点 | `adminControlPlaneWorkspace.tsx` 持续挂载 context、七资源任务轨与单 owner，`adminControlPlaneRoute.ts` 固定精确 hash；`devLiveReadConsumer.ts`、`adminProviderRouteWorkspacePanel.tsx`、`ProductNavigation.tsx`、`App.tsx` 与 `styles.css` 复用既有 consumer、配置 owner 和 Workbench 壳层 | Tenant 只显示脱敏 summary；Audit 保持严格 cursor current window，行选中只驱动只读详情；User / Role 没有 RadishMind list owner，明确阻断邀请、角色变更与 production session。Provider / Profile / Route 是同一 `tenant_ref + workspace_id + environment + configuration_id` 原子 owner 的三个任务入口，不拆成伪 CRUD，也不复制 runtime inventory、credential、endpoint 或生产启用能力。 |
 | `radishmind_web_s8_prompt_agent_type_workspace_v1` | `implementation_r1_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S8 Prompt / Agent Type Workspace — Desktop / Dev Test · R1`、`S8 Prompt / Agent Type Workspace — Narrow / Dev Test · R1` 与 `S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 Visual Language — Design Decision Record · R13`；三者全树无裁切、越界或占位节点 | `promptAgentTypeWorkspace.tsx` 与 `promptAgentTypeWorkspaceModel.ts` 负责编排；Template / Profile、Configuration、Candidate、Prompt / Agent Assignment、API / Key、Invocation / Session 与 S6 既有 panel / consumer 继续持有领域真相；`applicationDevelopmentWorkspaceSurface.tsx` 只切换到一个当前 owner，`App.tsx` 在 application selection host 规范化跨类型任务 anchor | Prompt 按八任务、Agent 按七任务组织真实能力。Candidate 与 Assignment 分开定位但不复制状态；application kind 切换只替换上一类型的精确 S8 anchor，不折叠共享或 S6 深层 owner。输入 / 输出保持易失，archived source / governance 只读，controlled use 阻塞；approved、active 或 successful 均不表示 production release / enablement。 |
 | `radishmind_web_s9_admin_quota_admission_v1` | `implementation_r1_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S9 Admin Quota Admission — Desktop / Dev Test · R1`、`S9 Admin Quota Admission — Narrow / Dev Test · R1` 与 `S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 + S9 Visual Language — Design Decision Record · R14`；三者全树无裁切、越界或占位节点 | `adminControlPlaneWorkspace.tsx` 新增第八项 Quota owner，`adminGatewayRequestQuotaConsumer.ts`、`adminGatewayRequestQuotaPanel.tsx`、`adminControlPlaneRoute.ts`、`App.tsx`、`ProductNavigation.tsx` 与 `styles.css` 复用既有管理上下文、application selection host 和 Workbench 响应式壳层 | Policy 与 usage 只接受 `tenant_ref + workspace_id + environment + application_id` 精确 owner；used / remaining 不从 Request History 或旧 `QuotaSummary` 推算。普通 application 行保持中性，只有驱动详情的 application 使用墨蓝选中轨，`exceeded` 与 blocked 状态不冒充选中。更新只接受正整数并经过 expected-version 确认；生产 membership、OIDC、production quota、token / cost、billing、自动提额、删除 / 禁用和自动路由继续关闭。 |
+| `radishmind_web_s10_application_evaluation_campaign_v1` | `backend_ready_design_blocked` | 五维评分 `8`、覆盖级别 `A / 完整 Pencil`；Pencil 被其它项目占用，Desktop / Narrow 与共享 Decision Record 尚未创建 | 后端批次 A 至 D 已提供 immutable Plan、Campaign、Pair Preview / Handoff strict API；React consumer、页面 owner 和路由尚未开始 | 未来页面必须复用 S1–S9 全视口 Workbench，组织 Plan、Campaign、Pair Review 与 Handoff 单 owner 路径；普通行中性，只有当前详情 owner 可选中，failed / quota / interrupted / partial 不能冒充选中。Pencil 空闲前停止 UI 修改。 |
 
 `S1` 消费 `ref-03`、`ref-07`、`ref-08`、`ref-09`、`ref-15`、`ref-17`、`ref-18`、`ref-19` 与 `ref-24` 的产品层级，并共享 `ref-25` 的白色抬升表面和 `ref-27` 的连续窗格语法；`ref-20` 只保留未来暗色证据，不在当前画板增加主题切换。两个画板均已通过 Pencil 全树布局检查，结果为 `No layout problems`；视觉复核确认没有裁切、重叠和横向溢出。
 
@@ -323,6 +325,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 - S9 Web 批次复用既有后端契约、权限和聚合验证，没有新增 API、schema、migration、repository、permission、task card、fixture 或专项 checker；production quota、formal membership / OIDC、token / cost、billing、删除 / 禁用、自动提额和自动路由继续关闭。
 - S9 完成后的真实 API Key 路径复核在 S5 Playground 发现 quota admission 失败恢复信息断点。五维评分为 `0 / 0 / 0 / 1 / 1 = 2`，采用 `C / 直接实现`：复用既有失败引导卡，只对允许列表内的 `quota_admission` failure 说明 UTC 日预算、零 provider 调用并打开当前 application 的 Admin Quota owner；Web `305/305`、production build 与 `1440×900`、`900×900`、`390×844` 浏览器复验通过，各宽度保持 context → task → owner 顺序、零横向溢出和控制台零 warning / error。既有 S5 / S9 Pencil 基准面继续有效，本批未操作被其它项目占用的 Pencil。
 - Workflow RAG Promotion → Configuration Draft 跟进把静态 hash 收紧为 S2 workspace 单引用 handoff：配置 owner 只按精确 `candidateId` 重读并选择当前 `approved + eligible` binding，不回退、不自动恢复、不 attach。Web `308/308`、production build 与四个视口通过；来源草案 `v1` 对当前 `v2` 的恢复以既有稳定 failure 失败关闭。既有 S2 / RAG owner 设计基准继续有效，本批未操作 Pencil。
+- `S10 Application Evaluation Campaign` 的后端批次 A 至 D 已完成，冻结 scope、不可变 Plan、四 Profile 顺序 Campaign、API Key quota admission、interrupted reconciliation 和 exact Case / Suite handoff。五维评分为 `8`，采用 `A / 完整 Pencil`；因设计源正被其它项目占用，尚未创建或修改画板，也未开始 React 和真实浏览器批次 E。
 
 ## 停止线
 

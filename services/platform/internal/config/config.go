@@ -159,6 +159,8 @@ type Config struct {
 	WorkflowRAGSnapshotDevEnabled            bool
 	WorkflowRAGExecutionDevEnabled           bool
 	WorkflowRAGEvaluationDevEnabled          bool
+	ApplicationEvaluationCampaignDevEnabled  bool
+	ApplicationEvaluationCampaignEnvironment string
 	WorkflowRAGPromotionDevEnabled           bool
 	WorkflowRAGAppInvocationDevEnabled       bool
 	WorkflowHTTPToolTestLoopbackEnabled      bool
@@ -250,6 +252,8 @@ type ConfigSummary struct {
 	WorkflowRAGSnapshotDevEnabled            bool              `json:"workflow_rag_snapshot_dev_enabled"`
 	WorkflowRAGExecutionDevEnabled           bool              `json:"workflow_rag_execution_dev_enabled"`
 	WorkflowRAGEvaluationDevEnabled          bool              `json:"workflow_rag_evaluation_dev_enabled"`
+	ApplicationEvaluationCampaignDevEnabled  bool              `json:"application_evaluation_campaign_dev_enabled"`
+	ApplicationEvaluationCampaignEnvironment string            `json:"application_evaluation_campaign_environment,omitempty"`
 	WorkflowRAGPromotionDevEnabled           bool              `json:"workflow_rag_promotion_dev_enabled"`
 	WorkflowRAGAppInvocationDevEnabled       bool              `json:"workflow_rag_application_invocation_dev_enabled"`
 	WorkflowHTTPToolTestLoopbackEnabled      bool              `json:"workflow_http_tool_test_loopback_enabled"`
@@ -351,58 +355,59 @@ func LoadFromEnv() (Config, error) {
 
 func defaultConfig() Config {
 	return Config{
-		ListenAddr:                           defaultListenAddr,
-		ReadHeaderTimeout:                    defaultReadHeaderTimeout,
-		WriteTimeout:                         defaultWriteTimeout,
-		BridgeTimeout:                        defaultBridgeTimeout,
-		BridgeMode:                           defaultBridgeMode,
-		BridgeWorkerCount:                    defaultBridgeWorkerCount,
-		BridgeQueueCapacity:                  defaultBridgeQueueSize,
-		BridgeHandshakeTimeout:               defaultBridgeHandshake,
-		ControlPlaneReadAuthMode:             defaultControlPlaneReadAuthMode,
-		ControlPlaneReadStoreMode:            defaultControlPlaneReadStoreMode,
-		ControlPlaneReadDatabaseTimeout:      defaultControlPlaneReadDBTimeout,
-		ControlPlaneReadOIDCDiscoveryTimeout: defaultOIDCDiscoveryTimeout,
-		ControlPlaneReadOIDCJWKSMaxAge:       defaultOIDCJWKSMaxAge,
-		ControlPlaneReadOIDCJWKSHardExpiry:   defaultOIDCJWKSHardExpiry,
-		ControlPlaneReadOIDCRotationOverlap:  defaultOIDCRotationOverlap,
-		ControlPlaneReadOIDCClockSkew:        defaultOIDCClockSkew,
-		ControlPlaneReadOIDCMaxTokenLifetime: defaultOIDCMaxTokenLifetime,
-		ControlPlaneReadOIDCMaxResponseBytes: defaultOIDCMaxResponseBytes,
-		ControlPlaneReadOIDCMaxKeys:          defaultOIDCMaxKeys,
-		PythonBinary:                         defaultPythonBinary,
-		BridgeScript:                         defaultBridgeScript,
-		Provider:                             defaultProvider,
-		ProviderProfile:                      "",
-		Model:                                "",
-		BaseURL:                              "",
-		APIKey:                               "",
-		Temperature:                          0,
-		WorkflowSavedDraftStoreMode:          defaultDraftStoreMode,
-		WorkflowSavedDraftDatabaseTimeout:    defaultDraftDBTimeout,
-		ApplicationDraftStoreMode:            defaultApplicationDraftStoreMode,
-		ApplicationDraftDatabaseTimeout:      defaultApplicationDraftDBTimeout,
-		ApplicationPublishStoreMode:          defaultApplicationPublishStoreMode,
-		ApplicationPublishDatabaseTimeout:    defaultApplicationPublishDBTimeout,
-		ApplicationCatalogStoreMode:          defaultApplicationCatalogStoreMode,
-		ApplicationCatalogDatabaseTimeout:    defaultApplicationCatalogDBTimeout,
-		PromptTemplateStoreMode:              defaultPromptTemplateStoreMode,
-		PromptTemplateDatabaseTimeout:        defaultPromptTemplateDBTimeout,
-		AgentCopilotProfileStoreMode:         defaultAgentCopilotProfileStoreMode,
-		AgentCopilotProfileDatabaseTimeout:   defaultAgentCopilotProfileDBTimeout,
-		AdminProviderRouteStoreMode:          defaultAdminProviderRouteStoreMode,
-		AdminProviderRouteDatabaseTimeout:    defaultAdminProviderRouteDBTimeout,
-		APIKeyStoreMode:                      defaultAPIKeyStoreMode,
-		APIKeyDatabaseTimeout:                defaultAPIKeyDBTimeout,
-		GatewayAuthMode:                      defaultGatewayAuthMode,
-		GatewayProviderRouteSource:           defaultGatewayProviderRouteSource,
-		WorkflowRunStoreMode:                 defaultRunStoreMode,
-		WorkflowRunDatabaseTimeout:           defaultRunDBTimeout,
-		GatewayRequestStoreMode:              defaultGatewayRequestStoreMode,
-		GatewayRequestDatabaseTimeout:        defaultGatewayRequestDBTimeout,
-		GatewayRequestQuotaStoreMode:         defaultGatewayRequestQuotaStoreMode,
-		GatewayRequestQuotaDatabaseTimeout:   defaultGatewayRequestQuotaDBTimeout,
-		SQLiteDevDatabasePath:                defaultSQLiteDevDatabasePath,
+		ListenAddr:                               defaultListenAddr,
+		ReadHeaderTimeout:                        defaultReadHeaderTimeout,
+		WriteTimeout:                             defaultWriteTimeout,
+		BridgeTimeout:                            defaultBridgeTimeout,
+		BridgeMode:                               defaultBridgeMode,
+		BridgeWorkerCount:                        defaultBridgeWorkerCount,
+		BridgeQueueCapacity:                      defaultBridgeQueueSize,
+		BridgeHandshakeTimeout:                   defaultBridgeHandshake,
+		ControlPlaneReadAuthMode:                 defaultControlPlaneReadAuthMode,
+		ControlPlaneReadStoreMode:                defaultControlPlaneReadStoreMode,
+		ControlPlaneReadDatabaseTimeout:          defaultControlPlaneReadDBTimeout,
+		ControlPlaneReadOIDCDiscoveryTimeout:     defaultOIDCDiscoveryTimeout,
+		ControlPlaneReadOIDCJWKSMaxAge:           defaultOIDCJWKSMaxAge,
+		ControlPlaneReadOIDCJWKSHardExpiry:       defaultOIDCJWKSHardExpiry,
+		ControlPlaneReadOIDCRotationOverlap:      defaultOIDCRotationOverlap,
+		ControlPlaneReadOIDCClockSkew:            defaultOIDCClockSkew,
+		ControlPlaneReadOIDCMaxTokenLifetime:     defaultOIDCMaxTokenLifetime,
+		ControlPlaneReadOIDCMaxResponseBytes:     defaultOIDCMaxResponseBytes,
+		ControlPlaneReadOIDCMaxKeys:              defaultOIDCMaxKeys,
+		PythonBinary:                             defaultPythonBinary,
+		BridgeScript:                             defaultBridgeScript,
+		Provider:                                 defaultProvider,
+		ProviderProfile:                          "",
+		Model:                                    "",
+		BaseURL:                                  "",
+		APIKey:                                   "",
+		Temperature:                              0,
+		WorkflowSavedDraftStoreMode:              defaultDraftStoreMode,
+		WorkflowSavedDraftDatabaseTimeout:        defaultDraftDBTimeout,
+		ApplicationDraftStoreMode:                defaultApplicationDraftStoreMode,
+		ApplicationDraftDatabaseTimeout:          defaultApplicationDraftDBTimeout,
+		ApplicationPublishStoreMode:              defaultApplicationPublishStoreMode,
+		ApplicationPublishDatabaseTimeout:        defaultApplicationPublishDBTimeout,
+		ApplicationCatalogStoreMode:              defaultApplicationCatalogStoreMode,
+		ApplicationCatalogDatabaseTimeout:        defaultApplicationCatalogDBTimeout,
+		PromptTemplateStoreMode:                  defaultPromptTemplateStoreMode,
+		PromptTemplateDatabaseTimeout:            defaultPromptTemplateDBTimeout,
+		AgentCopilotProfileStoreMode:             defaultAgentCopilotProfileStoreMode,
+		AgentCopilotProfileDatabaseTimeout:       defaultAgentCopilotProfileDBTimeout,
+		AdminProviderRouteStoreMode:              defaultAdminProviderRouteStoreMode,
+		AdminProviderRouteDatabaseTimeout:        defaultAdminProviderRouteDBTimeout,
+		APIKeyStoreMode:                          defaultAPIKeyStoreMode,
+		APIKeyDatabaseTimeout:                    defaultAPIKeyDBTimeout,
+		GatewayAuthMode:                          defaultGatewayAuthMode,
+		GatewayProviderRouteSource:               defaultGatewayProviderRouteSource,
+		ApplicationEvaluationCampaignEnvironment: "development",
+		WorkflowRunStoreMode:                     defaultRunStoreMode,
+		WorkflowRunDatabaseTimeout:               defaultRunDBTimeout,
+		GatewayRequestStoreMode:                  defaultGatewayRequestStoreMode,
+		GatewayRequestDatabaseTimeout:            defaultGatewayRequestDBTimeout,
+		GatewayRequestQuotaStoreMode:             defaultGatewayRequestQuotaStoreMode,
+		GatewayRequestQuotaDatabaseTimeout:       defaultGatewayRequestQuotaDBTimeout,
+		SQLiteDevDatabasePath:                    defaultSQLiteDevDatabasePath,
 		FieldSources: map[string]string{
 			"listen_addr":                                  configSourceDefault,
 			"read_header_timeout":                          configSourceDefault,
@@ -464,6 +469,8 @@ func defaultConfig() Config {
 			"workflow_rag_snapshot_dev":                    configSourceDefault,
 			"workflow_rag_execution_dev":                   configSourceDefault,
 			"workflow_rag_evaluation_dev":                  configSourceDefault,
+			"application_evaluation_campaign_dev":          configSourceDefault,
+			"application_evaluation_campaign_environment":  configSourceDefault,
 			"workflow_rag_promotion_dev":                   configSourceDefault,
 			"workflow_http_tool_test_loopback":             configSourceDefault,
 			"workflow_diagnostics_dev":                     configSourceDefault,
@@ -1072,6 +1079,18 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.WorkflowRAGEvaluationDevEnabled = parsed
 		cfg.FieldSources["workflow_rag_evaluation_dev"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_DEV"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_DEV", value)
+		if err != nil {
+			return err
+		}
+		cfg.ApplicationEvaluationCampaignDevEnabled = parsed
+		cfg.FieldSources["application_evaluation_campaign_dev"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_ENVIRONMENT"); ok {
+		cfg.ApplicationEvaluationCampaignEnvironment = strings.TrimSpace(value)
+		cfg.FieldSources["application_evaluation_campaign_environment"] = configSourceEnv
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_RAG_PROMOTION_DEV"); ok {
 		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_RAG_PROMOTION_DEV", value)
 		if err != nil {
@@ -1434,6 +1453,13 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	if cfg.WorkflowRAGEvaluationDevEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 	}
+	if cfg.ApplicationEvaluationCampaignDevEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+		requiredFields = appendRequiredConfigField(requiredFields, "application_catalog_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "workflow_rag_evaluation_dev")
+		requiredFields = appendRequiredConfigField(requiredFields, "api_key_lifecycle_dev_http")
+		requiredFields = appendRequiredConfigField(requiredFields, "gateway_request_quota_enforcement_dev")
+	}
 	if cfg.WorkflowRAGPromotionDevEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 	}
@@ -1460,7 +1486,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	}
 	if workflowRunStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
-		if !cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled &&
+		if !cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.ApplicationEvaluationCampaignDevEnabled &&
 			!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&
 			!cfg.PromptApplicationRuntimeDevHTTPEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled {
 			requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
@@ -1469,7 +1495,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	}
 	if workflowRunStoreMode == "sqlite_dev" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
-		if !cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled &&
+		if !cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.ApplicationEvaluationCampaignDevEnabled &&
 			!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&
 			!cfg.PromptApplicationRuntimeDevHTTPEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled {
 			requiredFields = appendRequiredConfigField(requiredFields, "workflow_executor_dev")
@@ -1537,6 +1563,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		WorkflowRAGSnapshotDevEnabled:            cfg.WorkflowRAGSnapshotDevEnabled,
 		WorkflowRAGExecutionDevEnabled:           cfg.WorkflowRAGExecutionDevEnabled,
 		WorkflowRAGEvaluationDevEnabled:          cfg.WorkflowRAGEvaluationDevEnabled,
+		ApplicationEvaluationCampaignDevEnabled:  cfg.ApplicationEvaluationCampaignDevEnabled,
+		ApplicationEvaluationCampaignEnvironment: strings.TrimSpace(cfg.ApplicationEvaluationCampaignEnvironment),
 		WorkflowRAGPromotionDevEnabled:           cfg.WorkflowRAGPromotionDevEnabled,
 		WorkflowRAGAppInvocationDevEnabled:       cfg.WorkflowRAGAppInvocationDevEnabled,
 		WorkflowHTTPToolTestLoopbackEnabled:      cfg.WorkflowHTTPToolTestLoopbackEnabled,
@@ -2273,6 +2301,22 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	if cfg.WorkflowRAGEvaluationDevEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return fmt.Errorf("workflow RAG evaluation dev requires control plane read dev auth")
 	}
+	if cfg.ApplicationEvaluationCampaignDevEnabled {
+		environment := strings.TrimSpace(cfg.ApplicationEvaluationCampaignEnvironment)
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled || !cfg.WorkflowRAGEvaluationDevEnabled ||
+			!cfg.APIKeyLifecycleDevHTTPEnabled || !cfg.GatewayRequestQuotaEnforcementDevEnabled {
+			return fmt.Errorf("application evaluation campaign dev requires control plane read dev auth, application catalog dev HTTP, workflow RAG evaluation dev, API key lifecycle, and Gateway quota enforcement")
+		}
+		if environment != "development" && environment != "test" {
+			return fmt.Errorf("application evaluation campaign environment must be development or test")
+		}
+		if strings.TrimSpace(cfg.GatewayProviderRouteSource) == "admin_snapshot_dev_test" && environment != strings.TrimSpace(cfg.GatewayProviderRouteEnvironment) {
+			return fmt.Errorf("application evaluation campaign environment must match the Gateway provider route environment")
+		}
+		if environment != strings.TrimSpace(cfg.GatewayRequestQuotaEnvironment) {
+			return fmt.Errorf("application evaluation campaign environment must match the Gateway quota environment")
+		}
+	}
 	if cfg.WorkflowRAGPromotionDevEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return fmt.Errorf("workflow RAG promotion dev requires control plane read dev auth")
 	}
@@ -2286,7 +2330,7 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	case "", "memory_dev", "repository_disabled", "repository":
 	case "sqlite_dev":
 		if !cfg.ControlPlaneReadDevAuthEnabled ||
-			(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled &&
+			(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.ApplicationEvaluationCampaignDevEnabled &&
 				!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&
 				!cfg.PromptApplicationRuntimeDevHTTPEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled) ||
 			((cfg.WorkflowExecutorDevEnabled || cfg.WorkflowRAGExecutionDevEnabled) && !cfg.WorkflowSavedDraftDevHTTPEnabled) {
@@ -2294,7 +2338,7 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 		}
 	case "postgres_dev_test":
 		if !cfg.ControlPlaneReadDevAuthEnabled ||
-			(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled &&
+			(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.ApplicationEvaluationCampaignDevEnabled &&
 				!cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&
 				!cfg.PromptApplicationRuntimeDevHTTPEnabled && !cfg.AgentCopilotRuntimeDevHTTPEnabled) ||
 			((cfg.WorkflowExecutorDevEnabled || cfg.WorkflowRAGExecutionDevEnabled) && !cfg.WorkflowSavedDraftDevHTTPEnabled) || strings.TrimSpace(cfg.WorkflowRunDatabaseURL) == "" {

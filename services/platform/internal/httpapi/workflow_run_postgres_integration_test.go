@@ -457,6 +457,7 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if _, mutationErr := runtimePool.Exec(ctx, `UPDATE workflow_rag_execution_audits SET event_kind='snapshot_created' WHERE snapshot_id='rags_aaaaaaaaaaaaaaaa'`); mutationErr == nil {
 		t.Fatal("PostgreSQL runtime role mutated append-only workflow RAG snapshot audits")
 	}
+	applicationEvaluationEvidence := runPostgresApplicationEvaluationRepositoryContract(t, ctx, runtimePool)
 	runtimePool.Close()
 	reopened, err := workflowrunmigrations.OpenPool(ctx, runtimeDatabaseURL)
 	if err != nil {
@@ -466,6 +467,15 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	evaluationStore = newPostgresWorkflowEvaluationStore(reopened)
 	actionStore = newPostgresWorkflowHTTPToolActionStore(reopened)
 	executionStore = newPostgresWorkflowHTTPToolExecutionStore(reopened)
+	restartedApplicationEvaluation := newPostgresApplicationEvaluationRepository(reopened)
+	restoredApplicationEvaluationPlan, found, applicationEvaluationErr := restartedApplicationEvaluation.ReadPlan(applicationEvaluationEvidence.Context, applicationEvaluationEvidence.PlanID)
+	if applicationEvaluationErr != nil || !found || restoredApplicationEvaluationPlan.RecordVersion != 2 || restoredApplicationEvaluationPlan.LatestPlanVersion != 2 {
+		t.Fatalf("restart application evaluation plan recovery failed: found=%v err=%v plan=%+v", found, applicationEvaluationErr, restoredApplicationEvaluationPlan)
+	}
+	restoredApplicationEvaluationCampaign, found, applicationEvaluationErr := restartedApplicationEvaluation.ReadCampaign(applicationEvaluationEvidence.Context, applicationEvaluationEvidence.CampaignID)
+	if applicationEvaluationErr != nil || !found || restoredApplicationEvaluationCampaign.RecordVersion != 4 || restoredApplicationEvaluationCampaign.Handoff == nil || len(restoredApplicationEvaluationCampaign.Handoff.CaseRefs) != 1 {
+		t.Fatalf("restart application evaluation campaign recovery failed: found=%v err=%v campaign=%+v", found, applicationEvaluationErr, restoredApplicationEvaluationCampaign)
+	}
 	restoredRAG := newWorkflowRAGSnapshotService(newPostgresWorkflowRAGSnapshotRepository(reopened)).Read(
 		workflowRAGTestContext(), "rags_aaaaaaaaaaaaaaaa", 2,
 	)
@@ -922,9 +932,100 @@ func TestPostgresWorkflowRAGEvaluationDatasetIntegration(t *testing.T) {
 	}
 }
 
+type postgresApplicationEvaluationEvidence struct {
+	Context    ApplicationEvaluationContext
+	PlanID     string
+	CampaignID string
+}
+
+func runPostgresApplicationEvaluationRepositoryContract(t *testing.T, requestContext context.Context, pool *pgxpool.Pool) postgresApplicationEvaluationEvidence {
+	t.Helper()
+	planService, evaluationContext := newApplicationEvaluationPlanTestService(t, "workflow_copilot")
+	evaluationContext.RequestContext = requestContext
+	repository := newPostgresApplicationEvaluationRepository(pool)
+	planService.repository = repository
+	planService.newPlanID = func() (string, error) { return "aeplan_aaaaaaaaaaaaaaaa", nil }
+	created := planService.Create(evaluationContext, applicationEvaluationWorkflowPlanInput("PostgreSQL evaluation campaign"))
+	if created.FailureCode != "" || created.Plan == nil || created.Version == nil {
+		t.Fatalf("create PostgreSQL application evaluation plan: %+v", created)
+	}
+	revisionResults := make(chan ApplicationEvaluationPlanResult, 2)
+	for _, name := range []string{"PostgreSQL evaluation revision A", "PostgreSQL evaluation revision B"} {
+		name := name
+		go func() {
+			revisionResults <- planService.Revise(evaluationContext, created.Plan.PlanID, ApplicationEvaluationPlanReviseInput{
+				ExpectedVersion: 1, Name: name, ExecutionProfile: created.Version.ExecutionProfile,
+				Target: created.Version.Target, Items: created.Version.Items,
+			})
+		}()
+	}
+	var revised *ApplicationEvaluationPlanResult
+	conflicts := 0
+	for index := 0; index < 2; index++ {
+		result := <-revisionResults
+		if result.FailureCode == "" {
+			copy := result
+			revised = &copy
+		} else if result.FailureCode == ApplicationEvaluationFailureVersionConflict {
+			conflicts++
+		}
+	}
+	if revised == nil || revised.Plan == nil || revised.Version == nil || conflicts != 1 {
+		t.Fatalf("PostgreSQL application evaluation CAS did not have one winner: revised=%+v conflicts=%d", revised, conflicts)
+	}
+	campaign := applicationEvaluationPendingCampaign(evaluationContext, "postgres-campaign", "2026-08-09T08:00:00Z")
+	campaign.PlanID, campaign.PlanVersion, campaign.PlanDigest = revised.Plan.PlanID, revised.Version.PlanVersion, revised.Version.PlanDigest
+	if _, inserted, err := repository.CreateCampaign(evaluationContext, campaign); err != nil || !inserted {
+		t.Fatalf("create PostgreSQL application evaluation campaign: inserted=%v err=%v", inserted, err)
+	}
+	if replayed, inserted, err := repository.CreateCampaign(evaluationContext, campaign); err != nil || inserted || replayed.CampaignID != campaign.CampaignID {
+		t.Fatalf("replay PostgreSQL application evaluation campaign: inserted=%v err=%v campaign=%+v", inserted, err, replayed)
+	}
+	authority := applicationEvaluationWorkflowAuthority(t, evaluationContext)
+	running := campaign
+	running.RecordVersion, running.State, running.StartedAt, running.Authority = 2, applicationEvaluationCampaignStateRunning, "2026-08-09T08:00:01Z", &authority
+	running, updated, err := repository.UpdateCampaign(evaluationContext, 1, running)
+	if err != nil || !updated {
+		t.Fatalf("start PostgreSQL application evaluation campaign: updated=%v err=%v", updated, err)
+	}
+	finished := running
+	finished.RecordVersion, finished.State, finished.SucceededItems, finished.CompletedAt = 3, applicationEvaluationCampaignStateSucceeded, 1, "2026-08-09T08:00:02Z"
+	finished.Items[0].State, finished.Items[0].StartedAt, finished.Items[0].CompletedAt = applicationEvaluationCampaignItemSucceeded, finished.StartedAt, finished.CompletedAt
+	finished.Items[0].RunSchemaVersion, finished.Items[0].RunProfile, finished.Items[0].AuthorityDigest = workflowRunRecordDefinitionSchemaVersion, workflowDefinitionExecutorProfile, authority.AuthorityDigest
+	finished, updated, err = repository.UpdateCampaign(evaluationContext, 2, finished)
+	if err != nil || !updated {
+		t.Fatalf("finish PostgreSQL application evaluation campaign: updated=%v err=%v", updated, err)
+	}
+	withHandoff := finished
+	withHandoff.RecordVersion = 4
+	withHandoff.Handoff = &ApplicationEvaluationHandoffRef{
+		BaselineCampaignID: "aecamp_bbbbbbbbbbbbbbbb", CandidateCampaignID: withHandoff.CampaignID,
+		CaseRefs: []WorkflowEvaluationSuiteCaseRef{{CaseID: "eval_postgres_case", Version: 1}}, State: "partial", AuditRef: "audit-postgres-handoff",
+	}
+	currentCampaign, found, readErr := repository.ReadCampaign(evaluationContext, withHandoff.CampaignID)
+	if readErr != nil || !found || !validApplicationEvaluationCampaignUpdate(currentCampaign, withHandoff) {
+		t.Fatalf("PostgreSQL application evaluation handoff update contract mismatch before write: found=%v err=%v current=%+v next=%+v", found, readErr, currentCampaign, withHandoff)
+	}
+	if _, updated, err = repository.UpdateCampaign(evaluationContext, 3, withHandoff); err != nil || !updated {
+		t.Fatalf("checkpoint PostgreSQL application evaluation handoff: updated=%v err=%v", updated, err)
+	}
+	otherScope := evaluationContext
+	otherScope.WorkspaceID = "workspace-other"
+	if _, found, err := repository.ReadCampaign(otherScope, campaign.CampaignID); err != nil || found {
+		t.Fatalf("PostgreSQL application evaluation leaked cross-scope campaign: found=%v err=%v", found, err)
+	}
+	if _, err := pool.Exec(requestContext, `UPDATE application_evaluation_plan_versions SET plan_version=plan_version+1 WHERE plan_id=$1`, created.Plan.PlanID); err == nil {
+		t.Fatal("PostgreSQL runtime role mutated immutable application evaluation plan version")
+	}
+	if _, err := pool.Exec(requestContext, `DELETE FROM application_evaluation_campaigns WHERE campaign_id=$1`, campaign.CampaignID); err == nil {
+		t.Fatal("PostgreSQL runtime role deleted application evaluation campaign")
+	}
+	return postgresApplicationEvaluationEvidence{Context: evaluationContext, PlanID: created.Plan.PlanID, CampaignID: campaign.CampaignID}
+}
+
 func resetPostgresWorkflowRunSchema(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
-	if _, err := pool.Exec(ctx, `DROP TABLE IF EXISTS agent_copilot_run_records, agent_copilot_session_turns, agent_copilot_sessions, agent_copilot_runtime_assignment_events, agent_copilot_runtime_assignments, prompt_application_run_records, prompt_application_session_turns, prompt_application_sessions, prompt_application_runtime_assignment_events, prompt_application_runtime_assignments, application_interaction_session_turns, application_interaction_sessions, workflow_definition_release_audits, workflow_definition_activation_events, workflow_definition_activations, workflow_definition_versions, workflow_definition_release_decisions, workflow_definition_release_candidates, workflow_rag_application_runtime_audits, workflow_rag_application_runtime_events, workflow_rag_application_runtime_assignments, workflow_rag_knowledge_promotion_audits, workflow_rag_application_bindings, workflow_rag_knowledge_promotion_decisions, workflow_rag_knowledge_promotion_candidates, workflow_rag_evaluation_audits, workflow_rag_candidate_snapshot_reviews, workflow_rag_evaluation_dataset_versions, workflow_rag_evaluation_dataset_resources, workflow_rag_execution_audits, workflow_rag_snapshot_fragments, workflow_rag_snapshot_versions, workflow_rag_snapshot_resources, workflow_http_tool_execution_attempts, workflow_http_tool_confirmation_decisions, workflow_http_tool_execution_audits, workflow_http_tool_action_plans, workflow_evaluation_suite_decisions, workflow_evaluation_suites, workflow_evaluation_case_revisions, workflow_evaluation_cases, workflow_run_records`); err != nil {
+	if _, err := pool.Exec(ctx, `DROP TABLE IF EXISTS application_evaluation_campaigns, application_evaluation_plan_versions, application_evaluation_plans, agent_copilot_run_records, agent_copilot_session_turns, agent_copilot_sessions, agent_copilot_runtime_assignment_events, agent_copilot_runtime_assignments, prompt_application_run_records, prompt_application_session_turns, prompt_application_sessions, prompt_application_runtime_assignment_events, prompt_application_runtime_assignments, application_interaction_session_turns, application_interaction_sessions, workflow_definition_release_audits, workflow_definition_activation_events, workflow_definition_activations, workflow_definition_versions, workflow_definition_release_decisions, workflow_definition_release_candidates, workflow_rag_application_runtime_audits, workflow_rag_application_runtime_events, workflow_rag_application_runtime_assignments, workflow_rag_knowledge_promotion_audits, workflow_rag_application_bindings, workflow_rag_knowledge_promotion_decisions, workflow_rag_knowledge_promotion_candidates, workflow_rag_evaluation_audits, workflow_rag_candidate_snapshot_reviews, workflow_rag_evaluation_dataset_versions, workflow_rag_evaluation_dataset_resources, workflow_rag_execution_audits, workflow_rag_snapshot_fragments, workflow_rag_snapshot_versions, workflow_rag_snapshot_resources, workflow_http_tool_execution_attempts, workflow_http_tool_confirmation_decisions, workflow_http_tool_execution_audits, workflow_http_tool_action_plans, workflow_evaluation_suite_decisions, workflow_evaluation_suites, workflow_evaluation_case_revisions, workflow_evaluation_cases, workflow_run_records`); err != nil {
 		t.Fatalf("reset workflow run integration tables: %v", err)
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_agent_copilot_invocation_projection_mutation(), enforce_agent_copilot_run_update(), enforce_agent_copilot_turn_update(), enforce_agent_copilot_session_update()`); err != nil {
@@ -947,6 +1048,9 @@ func resetPostgresWorkflowRunSchema(t *testing.T, ctx context.Context, pool *pgx
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_workflow_http_tool_append_only_mutation()`); err != nil {
 		t.Fatalf("reset workflow HTTP tool append-only guard: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_application_evaluation_mutation(), enforce_application_evaluation_campaign_update(), enforce_application_evaluation_plan_update()`); err != nil {
+		t.Fatalf("reset application evaluation guards: %v", err)
 	}
 	if _, err := pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS workflow_run_schema_versions (component text PRIMARY KEY, migration_id text NOT NULL, store_schema_version text NOT NULL, migration_checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
 		t.Fatalf("prepare workflow run integration marker: %v", err)

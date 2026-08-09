@@ -8,8 +8,8 @@ import (
 
 const (
 	Component                        = "workflow_runs"
-	MigrationID                      = "0015_agent_copilot_invocation_projections"
-	StoreSchemaVersion               = "workflow_run_store_sqlite_v15"
+	MigrationID                      = "0016_application_evaluation_campaigns"
+	StoreSchemaVersion               = "workflow_run_store_sqlite_v16"
 	RunRecordStoreSchemaVersion      = "workflow_runs_store_v5"
 	legacyMigrationID                = "0001_workflow_runs"
 	toolActionsMigrationID           = "0002_workflow_http_tool_actions"
@@ -39,6 +39,8 @@ const (
 	promptRuntimeSchemaVersion       = "workflow_run_store_sqlite_v13"
 	agentRuntimeMigrationID          = "0014_agent_copilot_runtime_assignments"
 	agentRuntimeSchemaVersion        = "workflow_run_store_sqlite_v14"
+	agentInvocationMigrationID       = "0015_agent_copilot_invocation_projections"
+	agentInvocationSchemaVersion     = "workflow_run_store_sqlite_v15"
 )
 
 //go:embed 0001_workflow_runs.up.sql
@@ -86,6 +88,9 @@ var upSQLV14 string
 //go:embed 0015_agent_copilot_invocation_projections.up.sql
 var upSQLV15 string
 
+//go:embed 0016_application_evaluation_campaigns.up.sql
+var upSQLV16 string
+
 func Migrations() []sqlitedev.Migration {
 	return []sqlitedev.Migration{
 		{
@@ -132,6 +137,7 @@ func Migrations() []sqlitedev.Migration {
 		{Component: Component, ID: applicationSessionMigrationID, StoreSchemaVersion: applicationSessionSchemaVersion, UpSQL: upSQLV12},
 		{Component: Component, ID: promptRuntimeMigrationID, StoreSchemaVersion: promptRuntimeSchemaVersion, UpSQL: upSQLV13},
 		{Component: Component, ID: agentRuntimeMigrationID, StoreSchemaVersion: agentRuntimeSchemaVersion, UpSQL: upSQLV14},
-		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV15},
+		{Component: Component, ID: agentInvocationMigrationID, StoreSchemaVersion: agentInvocationSchemaVersion, UpSQL: upSQLV15},
+		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV16},
 	}
 }

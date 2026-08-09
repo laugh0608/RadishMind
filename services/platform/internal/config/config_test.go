@@ -588,6 +588,41 @@ func TestWorkflowRAGEvaluationDevGateIsIndependentAndRequiresVerifiedAuth(t *tes
 	}
 }
 
+func TestApplicationEvaluationCampaignDevGateRequiresOwnersAndBoundEnvironment(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_DEV", "1")
+	if _, err := LoadFromEnv(); err == nil || !strings.Contains(err.Error(), "requires control plane read dev auth") {
+		t.Fatalf("application evaluation campaign accepted missing owners: %v", err)
+	}
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_RAG_EVALUATION_DEV", "1")
+	t.Setenv("RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_AUTH_MODE", "api_key_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_ENFORCEMENT_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_ENVIRONMENT", "test")
+	t.Setenv("RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_ENVIRONMENT", "test")
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load application evaluation campaign gate: %v", err)
+	}
+	summary := cfg.SanitizedSummary()
+	if !cfg.ApplicationEvaluationCampaignDevEnabled || cfg.ApplicationEvaluationCampaignEnvironment != "test" ||
+		!summary.ApplicationEvaluationCampaignDevEnabled || summary.ApplicationEvaluationCampaignEnvironment != "test" ||
+		cfg.FieldSources["application_evaluation_campaign_dev"] != configSourceEnv ||
+		cfg.FieldSources["application_evaluation_campaign_environment"] != configSourceEnv {
+		t.Fatalf("application evaluation campaign summary or source is incomplete: %#v", summary)
+	}
+	if validateErr := ValidateServerStart(cfg); validateErr != nil {
+		t.Fatalf("application evaluation campaign rejected complete owners: %v", validateErr)
+	}
+	cfg.ApplicationEvaluationCampaignEnvironment = "production"
+	if validateErr := ValidateServerStart(cfg); validateErr == nil || !strings.Contains(validateErr.Error(), "must be development or test") {
+		t.Fatalf("application evaluation campaign accepted production: %v", validateErr)
+	}
+}
+
 func TestWorkflowRAGPromotionDevGateIsIndependentAndRequiresVerifiedAuth(t *testing.T) {
 	clearPlatformEnv(t)
 	t.Setenv("RADISHMIND_WORKFLOW_RAG_PROMOTION_DEV", "1")

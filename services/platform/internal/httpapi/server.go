@@ -63,6 +63,7 @@ type Server struct {
 	workflowHTTPToolExecutionTransport      *workflowHTTPToolTransport
 	workflowEvaluationStore                 workflowEvaluationStore
 	workflowEvaluationSuiteStore            workflowEvaluationSuiteStore
+	applicationEvaluationRepository         applicationEvaluationRepository
 	gatewayRequestHistoryStore              gatewayRequestStore
 	gatewayRequestHistoryStoreMode          string
 	gatewayRequestQuotaRepository           GatewayRequestQuotaRepository
@@ -155,6 +156,11 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore)
 		return nil, err
+	}
+	applicationEvaluationRepository := newApplicationEvaluationRepositoryForRunStore(workflowRunStore)
+	if runtimeConfig.ApplicationEvaluationCampaignDevEnabled && applicationEvaluationRepository == nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, fmt.Errorf("application evaluation campaign requires a supported workflow runtime backend")
 	}
 	applicationInteractionSessionRepository, err := newApplicationInteractionSessionRepositoryForRunStore(workflowRunStore)
 	if err != nil {
@@ -300,6 +306,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		workflowHTTPToolExecutionStore:          newWorkflowHTTPToolExecutionStoreForRunStore(workflowRunStore, workflowHTTPToolActionStore),
 		workflowEvaluationStore:                 newWorkflowEvaluationStoreForRunStore(workflowRunStore),
 		workflowEvaluationSuiteStore:            newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
+		applicationEvaluationRepository:         applicationEvaluationRepository,
 		gatewayRequestHistoryStore:              gatewayRequestStore,
 		gatewayRequestHistoryStoreMode:          gatewayRequestStoreMode,
 		gatewayRequestQuotaRepository:           gatewayRequestQuotaRepository,
@@ -453,6 +460,19 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(workflowEvaluationSuiteReviewRoute, server.handleReviewWorkflowEvaluationSuite)
 	mux.HandleFunc(workflowEvaluationDecisionCreateRoute, server.handleCreateWorkflowEvaluationDecision)
 	mux.HandleFunc(workflowEvaluationDecisionListRoute, server.handleListWorkflowEvaluationDecisions)
+	mux.HandleFunc(applicationEvaluationPlanCreateRoute, server.handleCreateApplicationEvaluationPlan)
+	mux.HandleFunc(applicationEvaluationPlanListRoute, server.handleListApplicationEvaluationPlans)
+	mux.HandleFunc(applicationEvaluationPlanReadRoute, server.handleReadApplicationEvaluationPlan)
+	mux.HandleFunc(applicationEvaluationPlanReviseRoute, server.handleReviseApplicationEvaluationPlan)
+	mux.HandleFunc(applicationEvaluationPlanArchiveRoute, server.handleArchiveApplicationEvaluationPlan)
+	mux.HandleFunc(applicationEvaluationVersionListRoute, server.handleListApplicationEvaluationPlanVersions)
+	mux.HandleFunc(applicationEvaluationVersionReadRoute, server.handleReadApplicationEvaluationPlanVersion)
+	mux.HandleFunc(applicationEvaluationCampaignExecuteRoute, server.handleExecuteApplicationEvaluationCampaign)
+	mux.HandleFunc(applicationEvaluationCampaignListRoute, server.handleListApplicationEvaluationCampaigns)
+	mux.HandleFunc(applicationEvaluationCampaignReadRoute, server.handleReadApplicationEvaluationCampaign)
+	mux.HandleFunc(applicationEvaluationCampaignReconcileRoute, server.handleReconcileApplicationEvaluationCampaign)
+	mux.HandleFunc(applicationEvaluationPairPreviewRoute, server.handlePreviewApplicationEvaluationCampaignPair)
+	mux.HandleFunc(applicationEvaluationHandoffRoute, server.handleMaterializeApplicationEvaluationHandoff)
 	mux.HandleFunc(gatewayRequestListRoute, server.handleListGatewayRequests)
 	mux.HandleFunc(gatewayRequestReadRoute, server.handleReadGatewayRequest)
 
@@ -642,6 +662,7 @@ func localConsoleAllowedHeaders() []string {
 		adminProviderRouteDevWorkspaceHeader,
 		adminProviderRouteDevEnvironmentHeader,
 		gatewayRequestQuotaEnvironmentHeader,
+		applicationEvaluationEnvironmentHeader,
 		gatewayRequestDevTenantHeader,
 		gatewayRequestDevWorkspaceHeader,
 		gatewayRequestDevConsumerHeader,

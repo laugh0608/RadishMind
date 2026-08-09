@@ -27,6 +27,7 @@ const (
 type PromptApplicationInvocationInput struct {
 	Variables           map[string]any
 	ClientInvocationKey string
+	RunID               string
 }
 
 type PromptApplicationInvocationResult struct {
@@ -85,6 +86,12 @@ func (service promptApplicationInvocationService) Invoke(ctx PromptApplicationRu
 	}
 	runContext := promptApplicationWorkflowRunContext(ctx)
 	runID := promptApplicationInvocationRunID(ctx, clientKey)
+	if input.RunID != "" {
+		if !workflowRAGRunIDPattern.MatchString(input.RunID) {
+			return promptApplicationInvocationFailure(PromptApplicationInvocationFailureInputInvalid)
+		}
+		runID = input.RunID
+	}
 	existing, found, err := service.runStore.ReadRun(runContext, runID)
 	if err != nil {
 		return promptApplicationInvocationFailure(PromptApplicationRuntimeFailureStoreUnavailable)

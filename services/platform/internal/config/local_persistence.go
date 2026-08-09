@@ -6,6 +6,22 @@ import (
 )
 
 func ValidateServerStart(cfg Config) error {
+	if cfg.ApplicationEvaluationCampaignDevEnabled {
+		environment := strings.TrimSpace(cfg.ApplicationEvaluationCampaignEnvironment)
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled || !cfg.WorkflowRAGEvaluationDevEnabled ||
+			!cfg.APIKeyLifecycleDevHTTPEnabled || !cfg.GatewayRequestQuotaEnforcementDevEnabled {
+			return errors.New("application evaluation campaign dev requires control plane read dev auth, application catalog dev HTTP, workflow RAG evaluation dev, API key lifecycle, and Gateway quota enforcement")
+		}
+		if environment != "development" && environment != "test" {
+			return errors.New("application evaluation campaign environment must be development or test")
+		}
+		if strings.TrimSpace(cfg.GatewayProviderRouteSource) == "admin_snapshot_dev_test" && environment != strings.TrimSpace(cfg.GatewayProviderRouteEnvironment) {
+			return errors.New("application evaluation campaign environment must match the Gateway provider route environment")
+		}
+		if environment != strings.TrimSpace(cfg.GatewayRequestQuotaEnvironment) {
+			return errors.New("application evaluation campaign environment must match the Gateway quota environment")
+		}
+	}
 	if cfg.PromptTemplateDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return errors.New("prompt application template dev HTTP requires control plane read dev auth")
 	}

@@ -67,6 +67,9 @@ var workspacePermissionAllowlist = map[string]struct{}{
 	"workflow_tool_actions:confirm":            {},
 	"workflow_tool_actions:execute":            {},
 	"workflow_evaluations:write":               {},
+	"application_evaluations:read":             {},
+	"application_evaluations:write":            {},
+	"application_evaluations:execute":          {},
 	"admin_gateway_quotas:read":                {},
 	"admin_gateway_quotas:write":               {},
 }

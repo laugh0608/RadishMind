@@ -170,6 +170,7 @@ func TestWorkflowRunPendingMigrationPaths(t *testing.T) {
 		{name: "v15", migrationID: applicationSessionMigrationID, requiredFragment: "CREATE TABLE prompt_application_runtime_assignments", forbiddenFragment: "CREATE TABLE application_interaction_sessions"},
 		{name: "v16", migrationID: promptRuntimeMigrationID, requiredFragment: "CREATE TABLE agent_copilot_runtime_assignments", forbiddenFragment: "CREATE TABLE prompt_application_runtime_assignments"},
 		{name: "v17", migrationID: agentRuntimeMigrationID, requiredFragment: "CREATE TABLE agent_copilot_sessions", forbiddenFragment: "CREATE TABLE agent_copilot_runtime_assignments"},
+		{name: "v18", migrationID: agentInvocationMigrationID, requiredFragment: "CREATE TABLE application_evaluation_plans", forbiddenFragment: "CREATE TABLE agent_copilot_sessions"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -249,6 +250,10 @@ func TestWorkflowRunPendingRollbackPathsDoNotDropUnappliedTables(t *testing.T) {
 	agentRuntimeRollback := rollbackSQLThrough(agentRuntimeMigrationID)
 	if !strings.Contains(agentRuntimeRollback, "agent_copilot_runtime_assignments") || strings.Contains(agentRuntimeRollback, "agent_copilot_run_records") {
 		t.Fatalf("v17 rollback must remove Agent Copilot assignments without removing unapplied v18: %s", agentRuntimeRollback)
+	}
+	agentInvocationRollback := rollbackSQLThrough(agentInvocationMigrationID)
+	if !strings.Contains(agentInvocationRollback, "agent_copilot_run_records") || strings.Contains(agentInvocationRollback, "application_evaluation_plans") {
+		t.Fatalf("v18 rollback must remove Agent Copilot invocation projections without removing unapplied v19: %s", agentInvocationRollback)
 	}
 	if rollbackSQLThrough("0000_unknown") != "" {
 		t.Fatal("unknown pending rollback must fail closed")
