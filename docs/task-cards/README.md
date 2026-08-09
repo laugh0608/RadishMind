@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前唯一活跃高风险实现任务卡为[应用 API Key 请求配额与 Provider Attempt 准入 v1](application-api-key-request-quota-admission-dev-test-v1-plan.md)：批次 A 至 D 已完成领域、双数据库、Admin API 和六条 inference route 的 provider 前原子准入；批次 E 的完整 Pencil、Admin Web 与浏览器验收因设计源被其他项目占用而未开始。不得派生平行 quota task card，也不得用临时 UI 绕过设计基准面。
+当前唯一活跃高风险实现任务卡为[应用评测计划、受控执行与证据归档 v1](application-evaluation-campaign-controlled-execution-dev-test-v1-plan.md)：后端批次 A 至 D 已完成 immutable Plan、三模式 Campaign owner、四类 Profile 顺序执行、active API Key quota binding、interrupted reconciliation 和 exact Comparison / Case / Suite handoff。批次 E 的完整 Pencil、React 与浏览器验收因设计源被其它项目占用而未开始；Pencil 空闲前不得用临时 UI 绕过设计基准面。[应用 API Key 请求配额与 Provider Attempt 准入 v1](application-api-key-request-quota-admission-dev-test-v1-plan.md)已完成批次 A 至 E 并关闭，不再派生平行 quota task card。
 
 ## 最近关闭任务
 

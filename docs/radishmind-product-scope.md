@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-07-29
+更新时间：2026-08-09
 
 ## 核心定义
 
@@ -24,6 +24,12 @@
 - User Workspace 的五条只读 operation 与 47 条人类交互式 mutation 已在开发 / 测试态共享 verified identity、active workspace 和唯一 membership decision；这只证明本仓库 dev header / signed-test assertion 下的授权、资源绑定和零副作用边界，不代表真实 Radish membership adapter、OIDC 登录或生产授权已成立。
 - 四个一级产品面保持不变；`Image Generation / Artifact Return` 是横切适配能力，不作为当前第五条一级产品主线。
 - `Radish` 保持身份、成员关系和上层业务真相；RadishMind 可以拥有自身 Workflow draft / version、run record、trace、usage 和 audit 运行数据，不把自身 operational database 与复制 Radish 真相源混为一谈。
+
+## 当前实施状态
+
+Family UI `S1 R8` 至 `S9 R1` 已完成 Pencil、React 和真实浏览器严格验收。开发测试态 application request quota 已完成独立三模式 owner、Admin GET / PUT、CAS 更新、六条 API Key inference route 的 provider 前原子准入以及 S9 管理面；这不代表 production quota、rate limit、token / cost 或 billing 成立。
+
+当前产品顺位是 `S10 Application Evaluation Campaign`。后端批次 A 至 D 已完成不可变 Plan、三模式 Campaign owner、四类既有 Profile 受控执行、active API Key quota binding、interrupted reconciliation 和 exact Comparison / Case / Suite handoff。批次 E 的完整 Pencil、React 和浏览器验收仍未开始；Pencil 被其它项目占用时保持停止，不以临时 UI 替代设计基准面。
 
 ## 产品形态
 

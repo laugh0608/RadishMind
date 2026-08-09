@@ -1,6 +1,6 @@
 # Workflow Run Comparison / Regression Review v1
 
-更新时间：2026-07-16
+更新时间：2026-08-09
 
 状态：`workflow_run_comparison_regression_review_v1_completed`
 
@@ -91,3 +91,8 @@ Run History 在真实 dev / test 模式提供基线 / 候选选择和比较审�
 - SQLite 当前权威复验确认 `workflow_run_comparison.v3` 的嵌套 retrieval profile 正确，但顶层 `run_profile` 仍沿用 standard 默认值，使严格 Web consumer 对 HTTP `200` 失败关闭。根因是 RAG comparison builder 只替换 schema 和 retrieval profile，没有同步顶层稳定判别字段。
 - v2 现固定 `workflow_rag_retrieval.v1`，v3 固定 `workflow_rag_application_invocation.v1`；v1、v4、v5、v6 也由 strict consumer 按 schema 精确校验既有 profile。缺失或错配不再由客户端推断或降级接受。
 - 两次 v4 Application RAG run 的真实 Comparison 已恢复为 `unchanged / comparable`，并继续只返回 metadata authority、差异摘要和零副作用计数。没有增加 schema 版本、API、持久 comparison、重新执行或自动 release 行为。
+
+## 2026-08-09 Application Evaluation Campaign 消费边界
+
+- [应用评测计划、受控执行与证据归档 v1](../user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md) 的 Pair Preview 只以 baseline / candidate Campaign 中已持久的 exact run ref 即时调用既有 Comparison owner。Campaign 不保存 comparison body、classification 或 finding 快照。
+- authority drift、quota 拒绝、interrupted 或未成功 Campaign 不会被 Pair Preview 伪装为可比较 run；Comparison 继续按各 Profile 的 lineage、scope 和 metadata-only 契约失败关闭，不重新执行 provider。

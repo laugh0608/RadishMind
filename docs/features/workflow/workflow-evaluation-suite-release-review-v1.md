@@ -1,6 +1,6 @@
 # Workflow Evaluation Suite / Release Review v1
 
-更新时间：2026-07-25
+更新时间：2026-08-09
 
 状态：`workflow_evaluation_suite_release_review_v1_completed`
 
@@ -78,3 +78,8 @@ decision CAS 在单事务中锁定 suite、比较 current decision version、插
 - Evaluation Suite / Human Release Review 已成为 S6 的 Release task，只在被选中时挂载既有 lazy owner。suite 继续聚合 exact case revision，人工 decision 必须绑定当前 review digest；decision history 保持 append-only。
 - application / workspace 切换先清空 suite、review、decision 与 conflict transient state，并以 generation guard 拒绝迟到响应。archived application 保留 suite、review 与 decision history 只读可达，suite 创建和 decision 写入关闭。
 - `approved` 在标题、边界提示和审查摘要中都明确为 evidence-only，不触发 candidate、assignment、release、deploy、provider 调用或 production enablement。默认 offline 只显示资格边界，不伪造 live suite；Web 测试、production build 与真实浏览器路径通过。
+
+## 2026-08-09 Application Evaluation Campaign 交接边界
+
+- Application Evaluation Handoff 只在全部 exact Case version 创建完成后调用既有 Suite owner，Suite 仍由本 owner 验证同 scope、互异 exact refs 和不可变组成。Suite 成功后 candidate Campaign 才从 `partial` 推进到 `complete`。
+- Campaign 不保存 suite review body、digest 或 decision history；Handoff 不自动提交 `approved`、不触发 release / deploy、不回滚已建 Case。Suite 失败时保留 partial checkpoint，由人工审查后决定新建评测计划或 Campaign，不自动续跑。

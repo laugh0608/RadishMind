@@ -1,6 +1,6 @@
 # Workflow Evaluation Cases / Batch Regression Review v1
 
-更新时间：2026-07-25
+更新时间：2026-08-09
 
 状态：`workflow_evaluation_cases_batch_regression_review_v1_completed`
 
@@ -81,3 +81,8 @@ evaluation case、case revision、baseline promotion 和 batch review 首版只�
 - Evaluation Cases 已成为 S6 的 Cases task，只在被选中时挂载既有 lazy owner；列表、exact revision、baseline / candidate run refs、创建、修订和即时 review 继续消费原有 consumer 与 store，不复制第二套 case 状态机。
 - application / workspace 切换先清空 list、selection 与 form transient state，并用 generation guard 拒绝迟到响应。archived application 保留 case、revision 与 review 只读可达，创建和修订关闭。
 - 本页面不自动执行评测、不重新运行引用的 run、不自动挑选 baseline，也不把 case review 写成发布资格。Web 测试、production build 与桌面 / 窄屏单 owner 路径通过；没有新增 API、schema、repository、task card、fixture 或专项 checker。
+
+## 2026-08-09 Application Evaluation Campaign 下游关系
+
+- Application Evaluation Campaign 把受控执行和 Case owner 连成一条显式 handoff，但不修改本文的 Case schema、scope、版本、权限或 review 语义。每个 item 仍只保存 exact baseline / candidate run ref 和 expected classification，并由本 owner 即时重读 Comparison。
+- candidate Campaign 只作为 handoff checkpoint；Case 创建成功后的 append-only evidence 不因后续 item 失败而回滚、删除或自动补偿，也不因 Campaign partial 而冒充 suite 或 release decision。
