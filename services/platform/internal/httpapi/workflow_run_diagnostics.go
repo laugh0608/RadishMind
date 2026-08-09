@@ -44,6 +44,7 @@ const (
 	WorkflowRunGatewayFailureProviderFailed    WorkflowRunGatewayFailureCategory = "provider_failed"
 	WorkflowRunGatewayFailureOutputUnavailable WorkflowRunGatewayFailureCategory = "output_unavailable"
 	WorkflowRunGatewayFailureUnavailable       WorkflowRunGatewayFailureCategory = "unavailable"
+	WorkflowRunGatewayFailureQuota             WorkflowRunGatewayFailureCategory = "quota"
 )
 
 type WorkflowRunReviewAction string
@@ -276,7 +277,11 @@ func validWorkflowRunFailureCode(value WorkflowRunFailureCode) bool {
 		WorkflowRunFailureCode(PromptApplicationRuntimeFailureAuthorityChanged),
 		WorkflowRunFailureCode(PromptApplicationInvocationFailureCanceled),
 		WorkflowRunFailureCode(PromptApplicationInvocationFailureOutcomeUnknown),
-		WorkflowRunFailureCode(PromptApplicationInvocationFailureOutputContract):
+		WorkflowRunFailureCode(PromptApplicationInvocationFailureOutputContract),
+		WorkflowRunFailureCode(GatewayRequestQuotaFailurePolicyNotFound),
+		WorkflowRunFailureCode(GatewayRequestQuotaFailureAttemptConflict),
+		WorkflowRunFailureCode(GatewayRequestQuotaFailureExceeded),
+		WorkflowRunFailureCode(GatewayRequestQuotaFailureStoreUnavailable):
 		return true
 	case WorkflowRunFailureCode(AgentCopilotRuntimeFailureAuthorityChanged),
 		WorkflowRunFailureCode(AgentCopilotInvocationFailureInputInvalid),
@@ -324,7 +329,7 @@ func validWorkflowRunGatewayFailureCategory(value WorkflowRunGatewayFailureCateg
 		WorkflowRunGatewayFailureTimeout, WorkflowRunGatewayFailureCanceled,
 		WorkflowRunGatewayFailureWorkerCrash, WorkflowRunGatewayFailureProtocol,
 		WorkflowRunGatewayFailureProviderFailed, WorkflowRunGatewayFailureOutputUnavailable,
-		WorkflowRunGatewayFailureUnavailable:
+		WorkflowRunGatewayFailureUnavailable, WorkflowRunGatewayFailureQuota:
 		return true
 	default:
 		return false

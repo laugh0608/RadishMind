@@ -121,6 +121,9 @@ func (service workflowRAGApplicationInvocationService) Invoke(ctx WorkflowRAGApp
 	}
 	rawAnswer, gatewayCategory, failure := service.callGateway(executionContext, normalized, authority, runID, selection, ranking)
 	if failure != "" {
+		if gatewayRequestQuotaFailureCodeFromValue(failure) != "" {
+			record.SideEffects.ProviderCalls = 0
+		}
 		record.Diagnostic.GatewayFailureCategory = gatewayCategory
 		return service.completeFailure(runContext, record, failure, WorkflowRunFailureBoundaryProviderCall, "provider")
 	}
@@ -228,6 +231,9 @@ func (service workflowRAGApplicationInvocationService) callGateway(ctx context.C
 	options := service.gatewayOptions(selection, service.defaultTemperature)
 	envelope, err := service.bridge.HandleEnvelope(ctx, canonicalRequest, options)
 	if err != nil {
+		if quotaFailure := gatewayRequestQuotaFailureCode(err); quotaFailure != "" {
+			return "", WorkflowRunGatewayFailureQuota, quotaFailure
+		}
 		if errors.Is(ctx.Err(), context.Canceled) || errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			return "", WorkflowRunGatewayFailureCanceled, WorkflowRAGApplicationFailureGatewayFailed
 		}
@@ -352,6 +358,12 @@ func workflowRAGApplicationFailureSummary(code string) string {
 		return "The application RAG retrieval budget was exceeded."
 	case WorkflowRAGApplicationFailureGatewayFailed:
 		return "Gateway could not complete the application RAG invocation."
+	case GatewayRequestQuotaFailureExceeded:
+		return "Application RAG request quota is exhausted for the current UTC period."
+	case GatewayRequestQuotaFailurePolicyNotFound, GatewayRequestQuotaFailureStoreUnavailable:
+		return "Application RAG request quota is unavailable."
+	case GatewayRequestQuotaFailureAttemptConflict:
+		return "Application RAG request quota admission conflicts with an existing attempt."
 	case WorkflowRAGFailureInterrupted:
 		return "The application RAG invocation was interrupted and was not replayed."
 	case WorkflowRAGApplicationFailureAnswerInvalid, WorkflowRAGApplicationFailureCitationInvalid:

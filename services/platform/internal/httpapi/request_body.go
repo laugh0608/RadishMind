@@ -27,9 +27,22 @@ func (s *Server) decodeJSONRequestBody(
 	target any,
 	options jsonRequestBodyOptions,
 ) bool {
-	if request.ContentLength > options.maxBytes {
-		s.writePlatformError(writer, trace, "REQUEST_BODY_TOO_LARGE", "request body exceeds the endpoint limit")
+	err := decodeJSONRequestBodyValue(writer, request, target, options)
+	if err != nil {
+		s.writeJSONRequestBodyError(writer, trace, err)
 		return false
+	}
+	return true
+}
+
+func decodeJSONRequestBodyValue(
+	writer http.ResponseWriter,
+	request *http.Request,
+	target any,
+	options jsonRequestBodyOptions,
+) error {
+	if request.ContentLength > options.maxBytes {
+		return &http.MaxBytesError{Limit: options.maxBytes}
 	}
 
 	request.Body = http.MaxBytesReader(writer, request.Body, options.maxBytes)
@@ -37,12 +50,10 @@ func (s *Server) decodeJSONRequestBody(
 	if options.rejectDuplicateFields {
 		payload, err := io.ReadAll(request.Body)
 		if err != nil {
-			s.writeJSONRequestBodyError(writer, trace, err)
-			return false
+			return err
 		}
 		if err := validateNoDuplicateJSONFields(payload); err != nil {
-			s.writeJSONRequestBodyError(writer, trace, err)
-			return false
+			return err
 		}
 		decoder = json.NewDecoder(bytes.NewReader(payload))
 	} else {
@@ -52,17 +63,15 @@ func (s *Server) decodeJSONRequestBody(
 		decoder.DisallowUnknownFields()
 	}
 	if err := decoder.Decode(target); err != nil {
-		s.writeJSONRequestBodyError(writer, trace, err)
-		return false
+		return err
 	}
 	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
 		if err == nil {
 			err = errors.New("request body contains multiple JSON documents")
 		}
-		s.writeJSONRequestBodyError(writer, trace, err)
-		return false
+		return err
 	}
-	return true
+	return nil
 }
 
 func validateNoDuplicateJSONFields(payload []byte) error {

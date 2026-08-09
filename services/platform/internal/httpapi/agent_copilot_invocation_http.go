@@ -47,7 +47,7 @@ func (server *Server) handleAgentCopilotInvocation(writer http.ResponseWriter, r
 	}
 	gatewayContext := authentication.RequestContext
 	ctx := AgentCopilotRuntimeContext{
-		RequestContext: request.Context(), RequestID: trace.requestID,
+		RequestContext: gatewayContext.RequestContext, RequestID: trace.requestID,
 		TenantRef: gatewayContext.TenantRef, WorkspaceID: gatewayContext.WorkspaceID,
 		ApplicationID: gatewayContext.ApplicationID, ActorRef: gatewayContext.SubjectRef,
 		OwnerSubjectRef: gatewayContext.SubjectRef,
@@ -66,7 +66,11 @@ func (server *Server) handleAgentCopilotInvocation(writer http.ResponseWriter, r
 			run = &document
 		}
 	}
-	writeObservedJSON(writer, http.StatusOK, trace, agentCopilotInvocationEnvelope{
+	status := http.StatusOK
+	if gatewayRequestQuotaFailureCodeFromValue(result.FailureCode) != "" {
+		status = gatewayRequestQuotaHTTPStatus(result.FailureCode)
+	}
+	writeObservedJSON(writer, status, trace, agentCopilotInvocationEnvelope{
 		RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID,
 		ApplicationID: ctx.ApplicationID, Run: run, Response: result.Response,
 		FailureCode:    optionalApplicationDraftFailure(strings.TrimSpace(result.FailureCode)),

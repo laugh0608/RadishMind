@@ -1567,6 +1567,42 @@ func TestAdminProviderRouteStoreConfiguration(t *testing.T) {
 	}
 }
 
+func TestGatewayRequestQuotaConfiguration(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_AUTH_MODE", "api_key_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_WRITE", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_ENFORCEMENT_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_ENVIRONMENT", "test")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_STORE", "postgres_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_TEST_DATABASE_URL", "postgresql://quota.invalid/private")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_DATABASE_TIMEOUT", "19s")
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load gateway request quota configuration: %v", err)
+	}
+	if !cfg.GatewayRequestQuotaDevHTTPEnabled || !cfg.GatewayRequestQuotaDevWriteEnabled ||
+		!cfg.GatewayRequestQuotaEnforcementDevEnabled || cfg.GatewayRequestQuotaEnvironment != "test" ||
+		cfg.GatewayRequestQuotaStoreMode != "postgres_dev_test" || cfg.GatewayRequestQuotaDatabaseTimeout != 19*time.Second {
+		t.Fatalf("unexpected gateway request quota configuration: %#v", cfg)
+	}
+	summary := cfg.SanitizedSummary()
+	if !summary.GatewayRequestQuotaDatabaseConfigured || summary.GatewayRequestQuotaEnvironment != "test" ||
+		summary.Timeouts["gateway_request_quota_database"] != "19s" {
+		t.Fatalf("unexpected gateway request quota summary: %#v", summary)
+	}
+
+	cfg.GatewayRequestQuotaEnvironment = "production"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "Gateway request quota enforcement environment must be development or test" {
+		t.Fatalf("production quota environment must fail closed: %v", err)
+	}
+}
+
 func TestGatewayProviderRouteSourceConfiguration(t *testing.T) {
 	clearPlatformEnv(t)
 	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
@@ -1667,6 +1703,13 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DATABASE_TIMEOUT",
+		"RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_HTTP",
+		"RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_WRITE",
+		"RADISHMIND_GATEWAY_REQUEST_QUOTA_ENFORCEMENT_DEV",
+		"RADISHMIND_GATEWAY_REQUEST_QUOTA_ENVIRONMENT",
+		"RADISHMIND_GATEWAY_REQUEST_QUOTA_STORE",
+		"RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_GATEWAY_REQUEST_QUOTA_DATABASE_TIMEOUT",
 		"RADISHMIND_LOCAL_PERSISTENCE_MODE",
 		"RADISHMIND_SQLITE_DEV_DATABASE_PATH",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",

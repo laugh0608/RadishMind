@@ -108,9 +108,13 @@ func (server *Server) handleWorkflowRAGApplicationInvocation(writer http.Respons
 		return
 	}
 	gatewayContext := authentication.RequestContext
-	ctx := WorkflowRAGApplicationRuntimeContext{RequestContext: request.Context(), RequestID: trace.requestID, TenantRef: gatewayContext.TenantRef, WorkspaceID: gatewayContext.WorkspaceID, ApplicationID: gatewayContext.ApplicationID, ActorRef: gatewayContext.SubjectRef, OwnerSubjectRef: gatewayContext.SubjectRef, AuditRef: "audit_" + trace.requestID + "_application-rag-invocation"}
+	ctx := WorkflowRAGApplicationRuntimeContext{RequestContext: gatewayContext.RequestContext, RequestID: trace.requestID, TenantRef: gatewayContext.TenantRef, WorkspaceID: gatewayContext.WorkspaceID, ApplicationID: gatewayContext.ApplicationID, ActorRef: gatewayContext.SubjectRef, OwnerSubjectRef: gatewayContext.SubjectRef, AuditRef: "audit_" + trace.requestID + "_application-rag-invocation"}
 	result := server.workflowRAGApplicationInvocationService().Invoke(ctx, WorkflowRAGApplicationInvocationInput{Input: body.Input})
-	writeObservedJSON(writer, http.StatusOK, trace, workflowRAGApplicationInvocationEnvelope{RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, Run: result.Run, Answer: result.Answer, FailureCode: workflowRAGApplicationFailurePointer(result.FailureCode), FailureSummary: result.FailureSummary, AuditRef: ctx.AuditRef})
+	status := http.StatusOK
+	if gatewayRequestQuotaFailureCodeFromValue(result.FailureCode) != "" {
+		status = gatewayRequestQuotaHTTPStatus(result.FailureCode)
+	}
+	writeObservedJSON(writer, status, trace, workflowRAGApplicationInvocationEnvelope{RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, Run: result.Run, Answer: result.Answer, FailureCode: workflowRAGApplicationFailurePointer(result.FailureCode), FailureSummary: result.FailureSummary, AuditRef: ctx.AuditRef})
 }
 
 func (server *Server) allowWorkflowRAGApplicationInvocationDev(writer http.ResponseWriter, trace requestTrace) bool {

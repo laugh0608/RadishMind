@@ -65,6 +65,7 @@ func EffectiveLocalPersistenceConfig(cfg Config) Config {
 	cfg.AdminProviderRouteStoreMode = "sqlite_dev"
 	cfg.APIKeyStoreMode = "sqlite_dev"
 	cfg.GatewayRequestStoreMode = "sqlite_dev"
+	cfg.GatewayRequestQuotaStoreMode = "sqlite_dev"
 	cfg.WorkflowSavedDraftStoreMode = "sqlite_dev"
 	cfg.WorkflowRunStoreMode = "sqlite_dev"
 	return cfg
@@ -102,6 +103,7 @@ func localPersistenceComponentsConsistent(cfg Config) bool {
 		{name: "admin_provider_route_store", mode: cfg.AdminProviderRouteStoreMode},
 		{name: "api_key_store", mode: cfg.APIKeyStoreMode},
 		{name: "gateway_request_store", mode: cfg.GatewayRequestStoreMode},
+		{name: "gateway_request_quota_store", mode: cfg.GatewayRequestQuotaStoreMode},
 		{name: "workflow_saved_draft_store", mode: cfg.WorkflowSavedDraftStoreMode},
 		{name: "workflow_run_store", mode: cfg.WorkflowRunStoreMode},
 	}

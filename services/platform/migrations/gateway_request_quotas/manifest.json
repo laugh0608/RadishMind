@@ -1,0 +1,10 @@
+{
+  "component": "gateway_request_quotas",
+  "migration_id": "0001_gateway_request_quotas",
+  "store_schema_version": "gateway_request_quota_store_v1",
+  "up": "0001_gateway_request_quotas.up.sql",
+  "down": "0001_gateway_request_quotas.down.sql",
+  "runtime_role": "SELECT, INSERT, UPDATE only",
+  "period": "calendar_day_utc",
+  "scope": "tenant_ref + workspace_id + environment + application_id"
+}

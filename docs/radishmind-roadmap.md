@@ -55,10 +55,10 @@
 
 ## 当前执行顺位
 
-1. 产品线：[RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md) 已依次完成 `S1 R8` 产品壳至 `S8 R1` Prompt / Agent Type Workspace。S8 只编排既有类型 owner，保持输入输出易失、当前窗口、人工确认和生产关闭边界；没有新增 API、schema、生产认证、自动 assignment、自动发布或 agent loop。下一产品化顺位必须从新的功能设计专题产生；全历史 usage 聚合、运营收件箱全分页投影、production membership adapter、quota / billing 与真实 OIDC 均保持条件式入口。
+1. 产品线：[RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md) 已完成 `S1 R8` 至 `S8 R1`。新的开发测试态 application request quota 专题已完成后端 A 至 D，形成 `S9 Admin Quota Admission` 顺位；下一步在 Pencil 空闲后完成完整设计、React 与浏览器验收。全历史 usage 聚合、运营收件箱全分页投影、production membership adapter、生产 quota / billing 与真实 OIDC 继续保持条件式入口。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
-4. 真实 Radish 联调保持 `real_radish_integration_deferred`；dev header 与 signed-test membership 不能作为 production 授权来源。production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、quota 和 billing 继续为 `not_satisfied`。
+4. 真实 Radish 联调保持 `real_radish_integration_deferred`；dev header 与 signed-test membership 不能作为 production 授权来源。production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、production quota 和 billing 继续为 `not_satisfied`；开发测试态 application request admission 不改变这些结论。
 5. 当前没有独立工程整改批次；后续只在真实功能实现中复用、补强或替代相关行为证据，不自动删除历史 fixture，也不新建同层治理入口。
 
 ## 权威入口

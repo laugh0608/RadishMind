@@ -20,6 +20,7 @@ const (
 	errorBoundarySouthboundProvider = "southbound_provider"
 	errorBoundaryGatewayAuth        = "gateway_authentication"
 	errorBoundaryConfiguration      = "configuration"
+	errorBoundaryQuotaAdmission     = "quota_admission"
 	errorBoundaryUnknown            = "unknown"
 )
 
@@ -454,6 +455,30 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryPythonBridge,
 			defaultMessage:  "platform bridge process failed",
 		},
+		GatewayRequestQuotaFailureExceeded: {
+			statusCode:      http.StatusTooManyRequests,
+			errorType:       "quota_error",
+			failureBoundary: errorBoundaryQuotaAdmission,
+			defaultMessage:  "gateway request quota is exhausted for the current UTC period",
+		},
+		GatewayRequestQuotaFailurePolicyNotFound: {
+			statusCode:      http.StatusServiceUnavailable,
+			errorType:       "configuration_error",
+			failureBoundary: errorBoundaryQuotaAdmission,
+			defaultMessage:  "gateway request quota policy is unavailable",
+		},
+		GatewayRequestQuotaFailureAttemptConflict: {
+			statusCode:      http.StatusConflict,
+			errorType:       "quota_error",
+			failureBoundary: errorBoundaryQuotaAdmission,
+			defaultMessage:  "gateway request quota attempt conflicts with a recorded admission",
+		},
+		GatewayRequestQuotaFailureStoreUnavailable: {
+			statusCode:      http.StatusServiceUnavailable,
+			errorType:       "platform_error",
+			failureBoundary: errorBoundaryQuotaAdmission,
+			defaultMessage:  "gateway request quota storage is unavailable",
+		},
 		"PLATFORM_RESPONSE_INVALID": {
 			statusCode:      http.StatusBadGateway,
 			errorType:       "platform_error",
@@ -485,6 +510,9 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 }
 
 func bridgeFailureCode(err error) string {
+	if code := gatewayRequestQuotaFailureCode(err); code != "" {
+		return code
+	}
 	if code := bridge.ErrorCode(err); code != "" {
 		return code
 	}

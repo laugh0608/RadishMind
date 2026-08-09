@@ -58,6 +58,46 @@ func TestAgentCopilotInvocationUsesCanonicalContractAndCallsGatewayOnce(t *testi
 	}
 }
 
+func TestAgentCopilotInvocationQuotaRejectsBeforeProviderAndReplayDoesNotConsume(t *testing.T) {
+	fixture := newAgentCopilotInvocationFixture(t)
+	repository := newMemoryGatewayRequestQuotaRepository()
+	quotaContext := GatewayRequestQuotaContext{
+		RequestContext: context.Background(), TenantRef: fixture.ctx.TenantRef, WorkspaceID: fixture.ctx.WorkspaceID,
+		Environment: "test", ApplicationID: fixture.ctx.ApplicationID, ActorRef: fixture.ctx.ActorRef,
+		RequestID: "request-agent-quota-policy", AuditRef: "audit-agent-quota-policy",
+	}
+	now := time.Date(2026, 8, 9, 17, 30, 0, 0, time.UTC)
+	if _, err := repository.PutPolicy(quotaContext, 0, 1, now); err != nil {
+		t.Fatalf("put Agent quota policy: %v", err)
+	}
+	quotaBridge := newGatewayRequestQuotaBridgeClient(fixture.bridge, repository)
+	quotaBridge.now = func() time.Time { return now }
+	fixture.service.bridge = quotaBridge
+	input := validAgentCopilotInvocationInput()
+	input.ClientInvocationKey = "agent-quota-first"
+	firstContext := fixture.ctx
+	firstContext.RequestContext = gatewayRequestQuotaBridgeTestContextForRoute(quotaContext, "request-agent-quota-first", "POST "+agentCopilotInvocationRoute)
+	first := fixture.service.Invoke(firstContext, input)
+	if first.FailureCode != "" || first.Run == nil || first.Run.SideEffects.ProviderCalls != 1 || fixture.bridge.callCount() != 1 {
+		t.Fatalf("Agent quota first admission drifted: result=%+v calls=%d", first, fixture.bridge.callCount())
+	}
+	replayContext := fixture.ctx
+	replayContext.RequestContext = gatewayRequestQuotaBridgeTestContextForRoute(quotaContext, "request-agent-quota-replay", "POST "+agentCopilotInvocationRoute)
+	replay := fixture.service.Invoke(replayContext, input)
+	if !replay.IdempotentReplay || replay.FailureCode != "" || fixture.bridge.callCount() != 1 {
+		t.Fatalf("Agent replay consumed quota or provider: result=%+v calls=%d", replay, fixture.bridge.callCount())
+	}
+	overInput := validAgentCopilotInvocationInput()
+	overInput.ClientInvocationKey = "agent-quota-over"
+	overContext := fixture.ctx
+	overContext.RequestContext = gatewayRequestQuotaBridgeTestContextForRoute(quotaContext, "request-agent-quota-over", "POST "+agentCopilotInvocationRoute)
+	over := fixture.service.Invoke(overContext, overInput)
+	if over.FailureCode != GatewayRequestQuotaFailureExceeded || over.Run == nil ||
+		over.Run.SideEffects.ProviderCalls != 0 || fixture.bridge.callCount() != 1 {
+		t.Fatalf("Agent quota rejection crossed provider: result=%+v calls=%d", over, fixture.bridge.callCount())
+	}
+}
+
 func TestAgentCopilotInvocationAcceptsCanonicalPartialGatewayResponse(t *testing.T) {
 	fixture := newAgentCopilotInvocationFixture(t)
 	fixture.bridge.handle = func(context.Context, []byte, bridge.EnvelopeOptions) (bridge.GatewayEnvelope, error) {

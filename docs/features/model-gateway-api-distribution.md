@@ -16,9 +16,9 @@
 - [User Workspace Application API Integration & Invocation v1](user-workspace/application-api-integration-invocation-v1.md) 已复用 `/v1/models`、Playground 与 History，让当前选中 application 完成模型发现、接入示例、dev/test 调用和同 request id 审查；没有扩 Gateway API 或 schema。
 - [Application Configuration Draft & Review v1](user-workspace/application-configuration-draft-review-v1.md) 已把经过模型 / 协议校验的 application draft 配置交给既有 Integration / Playground；Gateway 仍只消费 application / protocol / model，不读取草案描述、不保存测试输入输出，也没有新增 northbound schema。
 - [Application Publish Governance & Promotion v1](user-workspace/application-publish-governance-promotion-v1.md) 只把 sanitized Gateway `request_id` 作为 candidate evidence reference，并复用既有 Integration / Playground / History handoff；Gateway 不读取 candidate、review 或 eligibility，也没有新增协议、schema、provider registry 或发布职责。
-- [用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已完成密钥领域、管理 API、五条 northbound 路由的显式 `api_key_dev_test` 认证、可信调用上下文、脱敏请求历史、最近使用更新、聚合 SQLite 本地产品链、真实 PostgreSQL 专项门禁、Web 一次性交接与浏览器连续验收，专题关闭；聚合 runtime 现已扩展为九组件。
+- [用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已完成密钥领域、管理 API、五条 northbound 路由的显式 `api_key_dev_test` 认证、可信调用上下文、脱敏请求历史、最近使用更新、聚合 SQLite 本地产品链、真实 PostgreSQL 专项门禁、Web 一次性交接与浏览器连续验收，专题关闭；聚合 runtime 现已随 Admin Provider / Route 与 application request quota 扩展为十一组件。
 - [Admin Provider Profile / Model Route 受控启用（开发 / 测试态）v1](admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md) 批次 A 至 E 已完成并关闭，建立配置领域、三模式 durable repository、人工 review、显式 activation、可恢复 active snapshot、verified Admin API、Admin Web 和只读 Gateway consumer。`static_config` 继续作为默认模式；显式 `admin_snapshot_dev_test` 模式按租户、工作区、环境、配置、protocol 与 model 精确选路，固定请求开始时的 generation / digest，inventory 或 route 漂移在 bridge 前失败且不回退；Request History 页面展示精确快照谱系。
-- 当前不执行生产 API 密钥生命周期、quota enforcement、rate limit、billing、cost ledger、provider retry/fallback execution、production gateway 或 load balancing。
+- 当前已执行开发测试态 application request quota admission；仍不执行生产 API 密钥生命周期、production quota、rate limit、billing、cost ledger、provider retry/fallback execution、production gateway 或 load balancing。
 
 ## 当前开发目标
 
@@ -47,7 +47,7 @@ Workflow 产品链、Gateway Request History、[Gateway Playground / Request Rev
 4. 已实现健康握手、并发上限、排队、超时 / 取消、崩溃恢复、优雅退出和 credential 隔离。
 5. 新实现相对 back-to-back process 基线的顺序 / 并发 bridge 自身 p95 开销下降 `93.5% / 94.4%`，已切换默认模式。
 6. Request History、Playground、Application API Integration、Application Configuration Draft / Review 与 Publish Governance 已完成 application → validated configuration → models / examples → request → response → history → immutable candidate / review 的开发测试路径。
-7. API 密钥 Gateway 认证、当前九组件 `sqlite_dev` 本地连续链、PostgreSQL migration / 角色 / 方言 / 并发门禁、Web 一次性交接和浏览器重启复验均已通过；Provider reported usage 已进入 canonical envelope、三协议、历史与应用审查。不继续派生同层 Gateway 切片，也不提前打开 production distribution、token 估算、价格、配额或计费。
+7. API 密钥 Gateway 认证、本地连续链、PostgreSQL migration / 角色 / 方言 / 并发门禁、Web 一次性交接和浏览器重启复验均已通过；Provider reported usage 已进入 canonical envelope、三协议、历史与应用审查。独立 application request quota 已完成后端 owner、双数据库、Admin API 和六条 route provider 前准入，Pencil / Admin Web 待设计源空闲；不提前打开 production distribution、token 估算、价格、production quota 或计费。
 
 ## 验收方式
 
@@ -61,6 +61,6 @@ Workflow 产品链、Gateway Request History、[Gateway Playground / Request Rev
 - process-per-request 继续作为显式回滚模式；不移除该路径，也不把 worker pool 扩为动态集群调度。
 - 不新增第二套 northbound contract、provider registry、selection policy 或 Gateway 业务真相源。
 - 不把 mock provider 性能解释为真实 provider SLA。
-- 不在本批启用 production API key、quota、billing、自动 fallback、load balancing 或 production deployment。
+- 不在本批启用 production API key、production quota、billing、自动 fallback、load balancing 或 production deployment。
 - 不为基线与选型新增 readiness / refresh checker 链；现有单元测试、benchmark、Gateway smoke 和仓库门禁足以承载。
 - Playground 与 Request History 只服务开发 / 测试交互和审查，不等于 production API key、quota enforcement、billing、cost ledger、自动 retry/fallback、load balancing 或 production gateway ready。

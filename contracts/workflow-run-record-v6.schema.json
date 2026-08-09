@@ -82,7 +82,7 @@
         "failure_boundary": {"type": "string", "maxLength": 64},
         "failure_stage": {"type": "string", "maxLength": 64},
         "terminal_write_state": {"enum": ["pending", "stored", "unknown"]},
-        "gateway_failure_category": {"enum": ["none", "queue_full", "timeout", "canceled", "worker_crash", "protocol", "provider_failed", "output_unavailable", "unavailable"]},
+        "gateway_failure_category": {"enum": ["none", "queue_full", "timeout", "canceled", "worker_crash", "protocol", "provider_failed", "output_unavailable", "unavailable", "quota"]},
         "summary": {"type": "string", "maxLength": 256},
         "recommended_review_action": {"type": "string", "maxLength": 64},
         "observed_at": {"type": "string", "format": "date-time"}

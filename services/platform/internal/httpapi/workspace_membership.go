@@ -67,6 +67,8 @@ var workspacePermissionAllowlist = map[string]struct{}{
 	"workflow_tool_actions:confirm":            {},
 	"workflow_tool_actions:execute":            {},
 	"workflow_evaluations:write":               {},
+	"admin_gateway_quotas:read":                {},
+	"admin_gateway_quotas:write":               {},
 }
 
 type VerifiedWorkspaceMembershipAssertion struct {

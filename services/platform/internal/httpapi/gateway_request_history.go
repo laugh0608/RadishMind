@@ -370,7 +370,7 @@ func validGatewayRequestFailureBoundary(value string) bool {
 	switch value {
 	case errorBoundaryNorthboundRequest, errorBoundaryCanonicalRequest, errorBoundaryProviderInventory,
 		errorBoundaryPythonBridge, errorBoundaryPlatformResponse, errorBoundarySouthboundProvider,
-		errorBoundaryGatewayAuth, errorBoundaryConfiguration, errorBoundaryUnknown:
+		errorBoundaryGatewayAuth, errorBoundaryConfiguration, errorBoundaryQuotaAdmission, errorBoundaryUnknown:
 		return true
 	default:
 		return false

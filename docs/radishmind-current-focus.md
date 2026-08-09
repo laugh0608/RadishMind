@@ -11,6 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
+- 当前在制功能：[应用 API Key 请求配额与 Provider Attempt 准入（开发 / 测试态）v1](features/gateway/application-api-key-request-quota-admission-dev-test-v1.md)已完成后端批次 A 至 D：application / workspace / `development | test` 作用域的 UTC 日请求 policy、memory / SQLite / PostgreSQL repository、manual migration、Admin GET / PUT、独立权限、六条 API Key inference route provider 前原子准入、`429 / 409 / 503` 稳定失败和 Run / Request History 诊断已成立。真实 PostgreSQL 已验证 migration 幂等、受限 runtime role、八路并发单赢家和重启恢复。旧 User Workspace `QuotaSummary` 仍为 `quota_policy_unavailable`，生产 quota、rate limit、token / cost 和 billing 未打开。五维评分 `1 / 2 / 2 / 2 / 1 = 8`，下一顺位是 `S9 Admin Quota Admission` 的完整 Pencil 与 React；Pencil 仍被其他项目占用，空闲并通知用户前不修改设计源，也不写临时 UI。
 - [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md) 已完成 `v26.7.3` 通用参考基线、项目语义，以及 `S1 R8` 产品壳至 `S8 R1` Prompt / Agent Type Workspace，状态为 `radishmind_family_ui_productization_v1_s1_r8_s2_r6_s3_r2_s4_r1_s5_r1_s6_r1_s7_r1_s8_r1_implemented`。S8 以当前 application / workspace / lifecycle 为上下文，把 Prompt 的八任务和 Agent 的七任务编排为单 owner 工作面；2026-08-09 真实路径复核已修正跨类型专属 hash，并继续把真实 Agent `application_session_authority_changed` 的技术失败补成允许列表式资格解释：明确 provider 副作用为零，并精确交接现有 Assignment owner。Prompt Invocation / Session 复用同一规则，非资格失败不误导跳转，前端不复制 readiness。Pencil Desktop / Narrow R1 与 Decision R13 继续有效；本次五维评分 `0 / 0 / 0 / 1 / 1 = 2`，采用 `C / 直接实现`。Web `298/298`、production build 和 `1440×900`、`1100×900`、`760×844`、`390×844` 浏览器复验通过，各宽度无横向溢出、单任务 / 单 owner 且控制台零 warning / error。当前没有 archived application 数据，浏览器未伪造该状态；模型测试保证归档只读与受控调用阻塞。本轮不新增 API、schema、repository、permission、task card、fixture 或专项 checker。
 - [用户工作区设计与开发文档](features/user-workspace.md)中的首批真实路径 UI 一致性治理已完成，状态为 `user_workspace_real_path_ui_coherence_v1_completed`。SQLite 本地产品真实链确认 Saved Draft、应用重新启用与 API Key 轮换的领域行为正确；Web 已补齐精确打开后的 Designer 交接、长标题信息密度、解除归档重新打开说明、开发测试态环境标签、`api_key_application_unavailable` 稳定脱敏解释和替代 Key 精确验证后的列表即时刷新。没有新增 API、schema、repository、任务卡或 checker。
 - [API 密钥引导式轮换与验证后退役（开发 / 测试态）v1](features/user-workspace/api-key-guided-rotation-verified-retirement-dev-test-v1.md) 批次 A、B 已完成，状态为 `api_key_guided_rotation_verified_retirement_dev_test_v1_completed`。易失脱敏会话、同应用 / 同 owner / 同 scopes 替代、`last_used_at` 验证门槛、原 Key 精确重读与 revoke CAS、Web 和真实浏览器连续链已有可执行证据；未新增 rotate API、schema 或持久 rotation owner。
@@ -25,7 +26,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：`S8 Prompt / Agent Type Workspace` 已完成并关闭本轮产品化实现；2026-08-09 两次真实路径跟进先根治跨类型 URL 任务身份，再补齐受控使用资格失败到 Assignment 的精确解释与交接。服务端仍是 authority 和副作用的唯一判定者，前端没有增加第二套 readiness。事实审计没有发现需要扩展架构或协议的阻塞；下一顺位仍必须回到对应功能设计专题选择新的真实产品能力，不从 S8 原地增加 production membership、正式 OIDC、生产 secret、provider 自动接入、自动路由、自动 assignment / release、长期记忆、agent loop、生产启用或跨系统写回，也不为普通 UI 新增 API、schema、task card 或专项 checker。
+1. 产品线：S8 两个真实路径接缝已关闭；新的 quota 专题已按授权扩展 API、schema、repository、permission 和唯一高风险任务卡，并完成后端 A 至 D。当前不是继续选择另一项新能力，而是在 Pencil 空闲后完成 `S9 Admin Quota Admission` 的设计、React、Web build 与真实浏览器验收；不得从该入口扩 production membership、正式 OIDC、生产 secret、token / cost、billing、自动提额、自动禁用、自动路由或生产启用。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
@@ -97,6 +98,8 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 61. [应用解除归档与安全重新启用实施任务卡](task-cards/application-unarchive-safe-reactivation-dev-test-v1-plan.md)
 62. [API 密钥引导式轮换与验证后退役（开发 / 测试态）v1](features/user-workspace/api-key-guided-rotation-verified-retirement-dev-test-v1.md)
 63. [API 密钥引导式轮换与验证后退役实施任务卡](task-cards/api-key-guided-rotation-verified-retirement-dev-test-v1-plan.md)
+64. [应用 API Key 请求配额与 Provider Attempt 准入（开发 / 测试态）v1](features/gateway/application-api-key-request-quota-admission-dev-test-v1.md)
+65. [应用 API Key 请求配额与 Provider Attempt 准入实施任务卡](task-cards/application-api-key-request-quota-admission-dev-test-v1-plan.md)
 
 ## 当前不要做
 
@@ -104,6 +107,7 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 - 不把 task card 当成功能长期设计文档。
 - 不在没有对应专题文档更新的情况下启动新的大功能或高风险实现。
 - 不让 Admin Provider / Route 草案复制 provider runtime inventory；该专题已关闭，不从现有 Web 原地扩真实 credential / endpoint、production、自动路由、quota 或 billing。
+- 不把新的开发测试态 application request quota 改写成生产 quota、token / cost、billing、rate limit 或旧 tenant-only `QuotaSummary` 已就绪。
 - Prompt Application 专题已经关闭；不从其现有 assignment / invocation 原地增加 provider retry / fallback、自动 activation / release、replay、agent loop 或生产能力声明。
 - Agent / Copilot 专题已经关闭；不从既有 Profile、assignment、Session 或 Run 原地扩 agent loop、工具 / 检索执行、业务写回、自动 activation / release、retry / fallback、replay 或生产能力。
 - Prompt / Agent 回归评测专题已经关闭；不从 Case、Suite 或人工 decision 原地扩批量执行、自动发布、重放或生产晋级。

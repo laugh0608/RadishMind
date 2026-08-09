@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-07-30
+更新时间：2026-08-09
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃高风险实现任务卡。Family UI 产品化属于普通 UI 设计与纵向迁移，复用 Web 测试、build、consumer smoke 和仓库门禁，不为 token 基础或页面视觉迁移新增专项 task card；不得从已关闭专题自动派生平行任务卡。
+当前唯一活跃高风险实现任务卡为[应用 API Key 请求配额与 Provider Attempt 准入 v1](application-api-key-request-quota-admission-dev-test-v1-plan.md)：批次 A 至 D 已完成领域、双数据库、Admin API 和六条 inference route 的 provider 前原子准入；批次 E 的完整 Pencil、Admin Web 与浏览器验收因设计源被其他项目占用而未开始。不得派生平行 quota task card，也不得用临时 UI 绕过设计基准面。
 
 ## 最近关闭任务
 

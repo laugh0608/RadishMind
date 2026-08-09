@@ -12,6 +12,7 @@ import (
 	sqliteapplicationcatalogmigrations "radishmind.local/services/platform/migrations/sqlite/application_catalog_records"
 	sqliteapplicationdraftmigrations "radishmind.local/services/platform/migrations/sqlite/application_configuration_drafts"
 	sqliteapplicationpublishmigrations "radishmind.local/services/platform/migrations/sqlite/application_publish_candidates"
+	sqlitegatewayrequestquotamigrations "radishmind.local/services/platform/migrations/sqlite/gateway_request_quotas"
 	sqlitegatewayrequestmigrations "radishmind.local/services/platform/migrations/sqlite/gateway_requests"
 	sqlitepromptapplicationtemplatemigrations "radishmind.local/services/platform/migrations/sqlite/prompt_application_templates"
 	sqliteworkflowrunmigrations "radishmind.local/services/platform/migrations/sqlite/workflow_runs"
@@ -33,7 +34,7 @@ func openLocalPersistenceRuntime(cfg config.Config) (*sqlitedev.Runtime, error) 
 }
 
 func localPersistenceSQLiteMigrations() []sqlitedev.Migration {
-	migrations := make([]sqlitedev.Migration, 0, 10)
+	migrations := make([]sqlitedev.Migration, 0, 11)
 	migrations = append(migrations, sqliteadminproviderroutemigrations.Migrations()...)
 	migrations = append(migrations, sqliteapplicationcatalogmigrations.Migrations()...)
 	migrations = append(migrations, sqliteagentcopilotprofilemigrations.Migrations()...)
@@ -41,6 +42,7 @@ func localPersistenceSQLiteMigrations() []sqlitedev.Migration {
 	migrations = append(migrations, sqliteapplicationpublishmigrations.Migrations()...)
 	migrations = append(migrations, sqliteapikeymigrations.Migrations()...)
 	migrations = append(migrations, sqlitegatewayrequestmigrations.Migrations()...)
+	migrations = append(migrations, sqlitegatewayrequestquotamigrations.Migrations()...)
 	migrations = append(migrations, sqlitepromptapplicationtemplatemigrations.Migrations()...)
 	migrations = append(migrations, sqliteworkflowdraftmigrations.Migrations()...)
 	migrations = append(migrations, sqliteworkflowrunmigrations.Migrations()...)
