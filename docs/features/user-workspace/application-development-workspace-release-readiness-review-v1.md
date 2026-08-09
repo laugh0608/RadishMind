@@ -138,6 +138,7 @@ context 不保存领域对象、请求正文、响应正文、凭据、输入、
 - 单个下游来源失败时只阻塞对应阶段和发布准备投影；其它已加载来源可以继续只读审查，但页面必须显示 `partial_failure` 或等价明确状态。
 - CAS、漂移和过期 generation 不得覆盖当前状态；冲突只展示现有 owner 允许的脱敏 metadata。
 - owner evidence 即使已经通过回调入口的 scope 检查，也必须在 React state updater 真正应用时再次核对当前 `applicationId` 与 workspace generation；切换 application 后排队中的旧 updater 直接丢弃，不得向新 workspace 抛错或覆盖 readiness。
+- 2026-08-09 真实硬加载与快速 application 切换复现了上述竞争窗口：旧 evidence 已通过外层检查，但在新 application state 生效后才进入 updater，原严格断言会让 React 根节点失败。workspace owner 现以同一精确 scope predicate 在 updater 内先丢弃迟到输入；纯函数对直接误用仍保持抛错，浏览器硬加载回归无空白根节点或控制台 error。
 - 取消或路由离开后，迟到响应不得重新填充 input、answer、transcript、selection、conflict 或 readiness。
 - readiness projection 不定义新的外部失败码；它保留既有 owner failure code，并用来源级 UI 状态组织展示。
 - 任一失败路径都不得产生额外 provider 调用、工具调用、confirmation、业务写入、replay、activation、assignment 或 release。

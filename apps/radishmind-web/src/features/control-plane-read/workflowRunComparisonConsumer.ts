@@ -281,7 +281,7 @@ type RetrievalDocument = {
 
 type ComparisonDocument = {
   schema_version: WorkflowRunComparison["schemaVersion"];
-  run_profile?: WorkflowRunComparison["runProfile"];
+  run_profile: WorkflowRunComparison["runProfile"];
   classification: WorkflowRunComparison["classification"];
   comparison_state: WorkflowRunComparison["comparisonState"];
   baseline: ComparisonRunDocument;
@@ -470,7 +470,7 @@ function mapRetrieval(value: RetrievalDocument): WorkflowRunRetrievalComparison 
 function mapComparison(value: ComparisonDocument): WorkflowRunComparison {
   return {
     schemaVersion: value.schema_version,
-    runProfile: value.run_profile ?? (value.schema_version === "workflow_run_comparison.v2" ? "workflow_rag_retrieval.v1" : value.schema_version === "workflow_run_comparison.v3" ? "workflow_rag_application_invocation.v1" : "workflow_standard.v1"),
+    runProfile: value.run_profile,
     classification: value.classification,
     comparisonState: value.comparison_state,
     baseline: mapRun(value.baseline),
@@ -527,15 +527,21 @@ function isComparisonDocument(value: unknown): value is ComparisonDocument {
   if (!value || typeof value !== "object") return false;
   const item = value as Partial<ComparisonDocument>;
   const schemaValid = ["workflow_run_comparison.v1", "workflow_run_comparison.v2", "workflow_run_comparison.v3", "workflow_run_comparison.v4", "workflow_run_comparison.v5", "workflow_run_comparison.v6"].includes(item.schema_version ?? "");
-  const baseKeys = ["schema_version", "classification", "comparison_state", "baseline", "candidate", "draft_changed", "execution_source_changed", "provider_changed", "model_changed", "status_changed", "failure_changed", "duration_delta_ms", "provider_call_delta", "nodes", "findings", "recommended_review_action"];
+  const baseKeys = ["schema_version", "run_profile", "classification", "comparison_state", "baseline", "candidate", "draft_changed", "execution_source_changed", "provider_changed", "model_changed", "status_changed", "failure_changed", "duration_delta_ms", "provider_call_delta", "nodes", "findings", "recommended_review_action"];
   const expectedKeys = item.schema_version === "workflow_run_comparison.v5" || item.schema_version === "workflow_run_comparison.v6"
-    ? [...baseKeys, "run_profile", "authority_changed", "variable_contract_changed", "protocol_changed"]
-    : item.schema_version === "workflow_run_comparison.v4" ? [...baseKeys, "run_profile"] :
+    ? [...baseKeys, "authority_changed", "variable_contract_changed", "protocol_changed"]
+    : item.schema_version === "workflow_run_comparison.v4" ? baseKeys :
     item.schema_version === "workflow_run_comparison.v1" ? baseKeys : [...baseKeys, "retrieval"];
   if (!schemaValid || !hasOnlyKeys(value as Record<string, unknown>, expectedKeys)) return false;
-  if (item.schema_version === "workflow_run_comparison.v4" && item.run_profile !== "workflow_definition_executor.v1") return false;
-  if (item.schema_version === "workflow_run_comparison.v5" && item.run_profile !== "prompt_application_invocation_v1") return false;
-  if (item.schema_version === "workflow_run_comparison.v6" && item.run_profile !== "agent_copilot_suggestion_v1") return false;
+  const expectedRunProfile = new Map<WorkflowRunComparison["schemaVersion"], WorkflowRunComparison["runProfile"]>([
+    ["workflow_run_comparison.v1", "workflow_standard.v1"],
+    ["workflow_run_comparison.v2", "workflow_rag_retrieval.v1"],
+    ["workflow_run_comparison.v3", "workflow_rag_application_invocation.v1"],
+    ["workflow_run_comparison.v4", "workflow_definition_executor.v1"],
+    ["workflow_run_comparison.v5", "prompt_application_invocation_v1"],
+    ["workflow_run_comparison.v6", "agent_copilot_suggestion_v1"],
+  ]).get(item.schema_version as WorkflowRunComparison["schemaVersion"]);
+  if (item.run_profile !== expectedRunProfile) return false;
   const retrievalValid = item.schema_version === "workflow_run_comparison.v2" || item.schema_version === "workflow_run_comparison.v3"
     ? isRetrievalDocument(item.retrieval, item.schema_version) &&
       ((item.schema_version === "workflow_run_comparison.v2" && item.retrieval.run_profile === "workflow_rag_retrieval.v1" && item.baseline?.schema_version === "workflow_run_record.v3" && item.candidate?.schema_version === "workflow_run_record.v3") ||

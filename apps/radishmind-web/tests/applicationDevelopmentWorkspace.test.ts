@@ -22,6 +22,7 @@ import {
 } from "../src/features/control-plane-read/applicationDevelopmentHandoff.ts";
 import {
   APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS,
+  applicationDevelopmentEvidenceMatchesScope,
   applyApplicationDevelopmentEvidence,
   buildApplicationDevelopmentReadinessViewModel,
   initialApplicationDevelopmentEvidenceState,
@@ -496,6 +497,33 @@ test("readiness rejects evidence from another application or route generation", 
       ...evidenceInput(context, "configuration_draft", "draft-001"),
       workspaceGenerationKey: "stale-generation",
     }),
+    /generation is stale/,
+  );
+});
+
+test("workspace evidence race guard drops a queued response after application scope replacement", () => {
+  const previousContext = buildApplicationDevelopmentWorkspaceContext(activeApplication);
+  const nextContext = buildApplicationDevelopmentWorkspaceContext({
+    ...activeApplication,
+    applicationId: "app_replacement",
+    displayName: "Replacement application",
+  });
+  const queuedEvidence = evidenceInput(previousContext, "configuration_draft", "draft-queued");
+
+  assert.equal(
+    applicationDevelopmentEvidenceMatchesScope(
+      initialApplicationDevelopmentEvidenceState(nextContext),
+      previousContext,
+      queuedEvidence,
+    ),
+    false,
+  );
+  assert.throws(
+    () => applyApplicationDevelopmentEvidence(
+      initialApplicationDevelopmentEvidenceState(nextContext),
+      previousContext,
+      queuedEvidence,
+    ),
     /generation is stale/,
   );
 });

@@ -305,7 +305,7 @@ export function applyApplicationDevelopmentEvidence(
   if (state.workspaceGenerationKey !== context.generationKey || input.workspaceGenerationKey !== context.generationKey) {
     throw new Error("Application development evidence generation is stale.");
   }
-  if (!context.applicationId || input.applicationId.trim() !== context.applicationId) {
+  if (!context.applicationId || state.applicationId !== context.applicationId || input.applicationId.trim() !== context.applicationId) {
     throw new Error("Application development evidence scope does not match the current workspace.");
   }
   const normalized = normalizeContribution(input);
@@ -313,6 +313,18 @@ export function applyApplicationDevelopmentEvidence(
     ...state,
     contributions: { ...state.contributions, [input.contributionId]: normalized },
   };
+}
+
+export function applicationDevelopmentEvidenceMatchesScope(
+  state: ApplicationDevelopmentEvidenceState,
+  context: ApplicationDevelopmentWorkspaceContext,
+  input: ApplicationDevelopmentEvidenceInput,
+): boolean {
+  return Boolean(context.applicationId) &&
+    state.applicationId === context.applicationId &&
+    input.applicationId.trim() === context.applicationId &&
+    state.workspaceGenerationKey === context.generationKey &&
+    input.workspaceGenerationKey === context.generationKey;
 }
 
 export function buildApplicationDevelopmentReadinessViewModel(

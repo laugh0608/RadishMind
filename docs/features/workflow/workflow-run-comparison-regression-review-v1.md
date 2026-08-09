@@ -85,3 +85,9 @@ Run History 在真实 dev / test 模式提供基线 / 候选选择和比较审�
 - Run Comparison 已成为 S6 的独立 Compare task，只在该任务被选中时挂载既有 lazy owner。用户从当前 application 的 Run owner 选择精确 baseline / candidate，既有 compatibility 与 scope 规则继续失败关闭。
 - Comparison 仍在请求时即时派生，不持久化、不重新执行 run，也不自动选择 baseline 或宣称 release readiness。普通 run 行保持中性，当前选择使用 action 语义，classification / failure 继续使用独立状态通道。
 - application / workspace 切换会清空双方选择与 comparison 结果，迟到响应不能回填新上下文；offline 和 workspace mismatch 均不发 live 请求。Web 测试、production build 与真实浏览器任务切换通过，未新增 API、schema 或执行能力。
+
+## 2026-08-09 Application RAG profile 契约修正
+
+- SQLite 当前权威复验确认 `workflow_run_comparison.v3` 的嵌套 retrieval profile 正确，但顶层 `run_profile` 仍沿用 standard 默认值，使严格 Web consumer 对 HTTP `200` 失败关闭。根因是 RAG comparison builder 只替换 schema 和 retrieval profile，没有同步顶层稳定判别字段。
+- v2 现固定 `workflow_rag_retrieval.v1`，v3 固定 `workflow_rag_application_invocation.v1`；v1、v4、v5、v6 也由 strict consumer 按 schema 精确校验既有 profile。缺失或错配不再由客户端推断或降级接受。
+- 两次 v4 Application RAG run 的真实 Comparison 已恢复为 `unchanged / comparable`，并继续只返回 metadata authority、差异摘要和零副作用计数。没有增加 schema 版本、API、持久 comparison、重新执行或自动 release 行为。

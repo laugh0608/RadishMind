@@ -12,13 +12,14 @@ function run(runId: string, status: "succeeded" | "failed") {
 }
 
 function envelope(overrides: Record<string, unknown> = {}) {
-  return { request_id: "request_compare", workspace_id: "workspace_demo", application_id: "app_demo", failure_code: null, failure_summary: "", audit_ref: "audit_compare", comparison: { schema_version: "workflow_run_comparison.v1", classification: "regression", comparison_state: "comparable", baseline: run("run_base", "succeeded"), candidate: run("run_candidate", "failed"), draft_changed: false, execution_source_changed: false, provider_changed: false, model_changed: false, status_changed: true, failure_changed: true, duration_delta_ms: 20, provider_call_delta: 0, nodes: [{ node_id: "node_model", node_type: "llm", change: "changed", baseline_status: "succeeded", candidate_status: "failed", baseline_duration_ms: 50, candidate_duration_ms: 70, duration_delta_ms: 20 }], findings: [{ code: "status_regressed", severity: "review_required" }], recommended_review_action: "check_gateway_capacity" }, ...overrides };
+  return { request_id: "request_compare", workspace_id: "workspace_demo", application_id: "app_demo", failure_code: null, failure_summary: "", audit_ref: "audit_compare", comparison: { schema_version: "workflow_run_comparison.v1", run_profile: "workflow_standard.v1", classification: "regression", comparison_state: "comparable", baseline: run("run_base", "succeeded"), candidate: run("run_candidate", "failed"), draft_changed: false, execution_source_changed: false, provider_changed: false, model_changed: false, status_changed: true, failure_changed: true, duration_delta_ms: 20, provider_call_delta: 0, nodes: [{ node_id: "node_model", node_type: "llm", change: "changed", baseline_status: "succeeded", candidate_status: "failed", baseline_duration_ms: 50, candidate_duration_ms: 70, duration_delta_ms: 20 }], findings: [{ code: "status_regressed", severity: "review_required" }], recommended_review_action: "check_gateway_capacity" }, ...overrides };
 }
 
 const digest = `sha256:${"a".repeat(64)}`;
 function ragEnvelope() {
   const body = envelope();
   body.comparison.schema_version = "workflow_run_comparison.v2" as "workflow_run_comparison.v1";
+  body.comparison.run_profile = "workflow_rag_retrieval.v1";
   body.comparison.classification = "unchanged";
   for (const value of [body.comparison.baseline, body.comparison.candidate]) {
     value.schema_version = "workflow_run_record.v3";
@@ -100,6 +101,7 @@ test("workflow run comparison maps the application RAG v4 review profile", async
     Object.assign(value, { execution_kind: "application_rag_invocation", execution_source_kind: "application_configuration_draft", execution_source_id: "appdraft_aaaaaaaaaaaaaaaa", execution_source_version: 2 });
   }
   body.comparison.schema_version = "workflow_run_comparison.v3" as "workflow_run_comparison.v1";
+  body.comparison.run_profile = "workflow_rag_application_invocation.v1";
   body.comparison.retrieval.run_profile = "workflow_rag_application_invocation.v1";
   body.comparison.retrieval.retrieval_node_id = "application_rag_retrieval";
   const authority = (suffix: "a" | "b") => ({

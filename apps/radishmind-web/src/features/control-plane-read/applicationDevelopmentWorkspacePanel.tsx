@@ -20,6 +20,7 @@ import {
 } from "./applicationDevelopmentHandoff.ts";
 import {
   APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS,
+  applicationDevelopmentEvidenceMatchesScope,
   applyApplicationDevelopmentEvidence,
   buildApplicationDevelopmentReadinessViewModel,
   initialApplicationDevelopmentEvidenceState,
@@ -161,9 +162,7 @@ export default function ApplicationDevelopmentWorkspacePanel({
     if (input.applicationId !== context.applicationId || input.workspaceGenerationKey !== context.generationKey) return;
     if (!applicationDevelopmentRouteAcceptsResponse(input.surfaceKey, routeStateRef.current)) return;
     setEvidenceState((current) => {
-      if (current.applicationId !== context.applicationId || current.workspaceGenerationKey !== context.generationKey) {
-        return current;
-      }
+      if (!applicationDevelopmentEvidenceMatchesScope(current, context, input)) return current;
       return applyApplicationDevelopmentEvidence(current, context, input);
     });
   }, [context]);

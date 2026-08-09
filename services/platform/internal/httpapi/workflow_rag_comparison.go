@@ -116,9 +116,11 @@ func workflowRAGApplicationRunsComparable(baseline, candidate WorkflowRunRecord)
 func buildWorkflowRAGRunComparison(baseline, candidate WorkflowRunRecord, now time.Time) WorkflowRunComparison {
 	comparison := buildWorkflowRunComparison(baseline, candidate, now)
 	comparison.SchemaVersion = workflowRAGRunComparisonSchemaVersion
+	comparison.RunProfile = workflowRAGComparisonProfile
 	retrieval := compareWorkflowRAGRetrievalAttempts(*baseline.RAGSnapshot, *baseline.RetrievalAttempt, *candidate.RetrievalAttempt)
 	if baseline.SchemaVersion == workflowRunRecordAppRAGSchemaVersion {
 		comparison.SchemaVersion = workflowRAGAppRunComparisonSchemaVersion
+		comparison.RunProfile = workflowRAGApplicationComparisonProfile
 		retrieval.RunProfile = workflowRAGApplicationComparisonProfile
 		baselineAuthority := workflowRAGApplicationComparisonAuthority(*baseline.RAGApplication, *baseline.RAGSnapshot)
 		candidateAuthority := workflowRAGApplicationComparisonAuthority(*candidate.RAGApplication, *candidate.RAGSnapshot)

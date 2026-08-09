@@ -35,7 +35,8 @@ func TestWorkflowRAGRunV3ComparisonHTTPRouteIsMetadataOnly(t *testing.T) {
 	server.httpServer.Handler.ServeHTTP(response, request)
 	var envelope workflowRunComparisonEnvelope
 	if response.Code != http.StatusOK || json.Unmarshal(response.Body.Bytes(), &envelope) != nil || envelope.FailureCode != nil ||
-		envelope.Comparison == nil || envelope.Comparison.SchemaVersion != workflowRAGRunComparisonSchemaVersion || envelope.Comparison.Retrieval == nil {
+		envelope.Comparison == nil || envelope.Comparison.SchemaVersion != workflowRAGRunComparisonSchemaVersion ||
+		envelope.Comparison.RunProfile != workflowRAGComparisonProfile || envelope.Comparison.Retrieval == nil {
 		t.Fatalf("unexpected RAG comparison HTTP response: %d %s", response.Code, response.Body.String())
 	}
 	for _, forbidden := range []string{"official retrieval guidance", "fragment_content", "prompt_packet", "raw_response", "credential", "\"answer\""} {
@@ -68,7 +69,8 @@ func TestWorkflowRAGRunV3ComparisonEvaluationBaselineAndSuite(t *testing.T) {
 
 	comparison := newWorkflowExecutorService(nil, nil, fixture.runStore).CompareRuns(fixture.runContext, baseline.Record.RunID, candidate.Record.RunID)
 	if comparison.FailureCode != "" || comparison.Comparison == nil || comparison.Comparison.SchemaVersion != workflowRAGRunComparisonSchemaVersion ||
-		comparison.Comparison.Retrieval == nil || comparison.Comparison.Retrieval.RunProfile != workflowRAGComparisonProfile ||
+		comparison.Comparison.RunProfile != workflowRAGComparisonProfile || comparison.Comparison.Retrieval == nil ||
+		comparison.Comparison.Retrieval.RunProfile != workflowRAGComparisonProfile ||
 		comparison.Comparison.Classification != WorkflowRunComparisonUnchanged {
 		t.Fatalf("run comparison did not accept matching v3 records: %#v", comparison)
 	}

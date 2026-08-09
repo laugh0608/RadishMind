@@ -50,7 +50,9 @@ func TestSQLiteWorkflowRAGApplicationRuntimeRestartTransactionAndV4RunSource(t *
 	}
 	historyService := workflowExecutorService{store: runStore}
 	comparison := historyService.CompareRuns(workflowRAGApplicationRunContext(fixture.runtimeContext), result.Run.RunID, candidateResult.Run.RunID)
-	if comparison.FailureCode != "" || comparison.Comparison == nil || comparison.Comparison.Retrieval == nil || comparison.Comparison.Retrieval.RunProfile != workflowRAGApplicationComparisonProfile || comparison.Comparison.ExecutionSourceChanged {
+	if comparison.FailureCode != "" || comparison.Comparison == nil ||
+		comparison.Comparison.RunProfile != workflowRAGApplicationComparisonProfile || comparison.Comparison.Retrieval == nil ||
+		comparison.Comparison.Retrieval.RunProfile != workflowRAGApplicationComparisonProfile || comparison.Comparison.ExecutionSourceChanged {
 		t.Fatalf("compare SQLite application RAG v4 runs: %#v", comparison)
 	}
 	history := historyService.ListRuns(workflowRAGApplicationRunContext(fixture.runtimeContext), WorkflowRunListRequest{Limit: 10})
