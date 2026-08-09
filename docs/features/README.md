@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-08-08
+更新时间：2026-08-09
 
 ## 文档目的
 
@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-09 当前执行口径：Family UI `S1 R8` 至 `S8 R1` 已完成设计、React 实现和真实浏览器严格验收。新的[应用 API Key 请求配额与 Provider Attempt 准入](gateway/application-api-key-request-quota-admission-dev-test-v1.md)已按高风险执行专题完成后端批次 A 至 D，扩展了独立 API、数据库 schema、repository、permission 与唯一任务卡；生产 quota、token / cost、billing 和旧 workspace quota 投影仍关闭。其 `A / 完整 Pencil` 与 Admin Web 批次等待设计源空闲，不用临时 React 结构绕过设计基准面。
+2026-08-09 当前执行口径：Family UI `S1 R8` 至 `S9 R1` 已完成设计、React 实现和真实浏览器严格验收。[应用 API Key 请求配额与 Provider Attempt 准入](gateway/application-api-key-request-quota-admission-dev-test-v1.md)已按高风险执行专题完成批次 A 至 E，覆盖独立 API、数据库 schema、repository、permission、六条 inference route 的 provider 前原子准入，以及 `S9 Admin Quota Admission` 的完整 Pencil、严格 React consumer、CAS 确认和浏览器连续链；生产 quota、token / cost、billing 和旧 workspace quota 投影仍关闭。下一产品切片必须重新从功能专题与真实使用证据选择，不从已完成 S9 原地派生同层页面或生产能力。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -41,7 +41,7 @@
 | 功能文档 | 当前作用 | 下一步默认入口 |
 | --- | --- | --- |
 | [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | Mutation Authorization 批次 A 至 E 已完成，专题关闭 |
-| [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route 已完成受控启用；独立开发测试态 application request quota 已完成后端 owner、Admin API、双数据库与 Gateway admission，Web 尚未开始 | 设计源空闲后完成 quota Pencil / React；不从已关闭 Provider 专题扩 production secret、billing 或真实 OIDC |
+| [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route 与独立开发测试态 application request quota 均已完成受控管理；quota 覆盖 owner、Admin API、双数据库、Gateway admission、完整 Pencil、React 和真实浏览器连续链 | 回到功能设计入口，以新的真实任务阻塞选择产品专题；不从已关闭 Provider / Quota 专题扩 production secret、billing 或真实 OIDC |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
 | [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；HTTP Tool、RAG Retrieval、知识质量 / 晋级链、Application RAG durable invocation 和 immutable definition-bound execution 均已有可复验证据 | 作为应用开发工作区的既有权威能力来源，不从 executor 或 activation 原地扩自动执行、调度、重放或生产能力 |
 | [图片生成 / 产物返回](image-generation-artifact-return.md) | 批次 A 至 E 已完成受控 handoff、本机私有 storage、reference-only profile、test-only fixture client 与一次性交付协调，开发测试态 v1 关闭 | 如需真实 backend、resolver 或公开交付，先建立独立功能 / 集成设计 |
@@ -56,7 +56,7 @@
 | [API 密钥引导式轮换与验证后退役（开发 / 测试态）v1](user-workspace/api-key-guided-rotation-verified-retirement-dev-test-v1.md) | 功能 / 凭据轮换专题 | 易失会话、同 scopes 替代、认证证据门槛、精确退役 CAS 和真实浏览器连续验收已完成，专题关闭 |
 | [应用目录与生命周期（开发/测试态）v1](user-workspace/application-catalog-lifecycle-dev-test-v1.md) | 功能 / 生命周期专题 | 核心生命周期、PostgreSQL 持久化、Web 管理和真实浏览器连续验收已完成 |
 | [应用解除归档与安全重新启用（开发 / 测试态）v1](user-workspace/application-unarchive-safe-reactivation-dev-test-v1.md) | 功能 / 生命周期恢复专题 | 批次 A 至 C、组合权限、显式影响确认、三种 store CAS、Gateway 资格回归与 Web / 浏览器连续验收已完成 |
-| [应用 API 接入与调用 v1](user-workspace/application-api-integration-invocation-v1.md) | 功能 / 页面专题 | 已完成选中应用、`/v1/models`、三协议 × 三语言接入示例、现有调试台与脱敏请求历史的内部开发者闭环 |
+| [应用 API 接入与调用 v1](user-workspace/application-api-integration-invocation-v1.md) | 功能 / 页面专题 | 已完成选中应用、`/v1/models`、三协议 × 三语言接入示例、现有调试台与脱敏请求历史的内部开发者闭环；quota admission 失败可解释零 provider 副作用并精确交给当前 application 的 Admin Quota owner |
 | [应用配置草案与审查 v1](user-workspace/application-configuration-draft-review-v1.md) | 功能 / 页面专题 | 已完成应用配置草案、校验、`memory_dev` / PostgreSQL 开发测试态持久化、版本冲突、比较与 API 接入交接 |
 | [应用发布治理与晋级审查 v1](user-workspace/application-publish-governance-promotion-v1.md) | 功能 / 治理专题 | 已完成不可变候选版本、服务端草案重读、审查 CAS、漂移识别、阻塞式晋级资格判断，以及接入区 / 调试台 / 请求历史交接；不执行正式发布 |
 | [应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md) | 功能 / 可观察性专题 | 已完成 Gateway 请求与 Workflow 运行的独立来源覆盖、当前窗口归因摘要和合并时间线；不推测关联或估算 token / cost / quota / billing |
@@ -78,7 +78,7 @@
 | [Gateway Python Bridge Runtime v1](gateway/python-bridge-runtime-v1.md) | 运行时专题 | 受控 `stdio` worker pool 已成为默认模式，完成生命周期、取消、崩溃恢复、请求隔离和性能验收；process 模式保留回滚 |
 | [Model Gateway Request History / Usage & Failure Review v1](gateway/model-gateway-request-history-usage-failure-review-v1.md) | 功能专题 | `memory_dev`、SQLite、PostgreSQL dev/test、终态证据、分页详情、重启恢复和真实 Web 审查已完成 |
 | [Provider 上报用量规范化与应用用量审查（开发 / 测试态）v1](gateway/provider-reported-usage-normalization-application-review-dev-test-v1.md) | 功能 / Provider contract 专题 | OpenAI-compatible、Gemini、Anthropic、HuggingFace 与 Ollama reported usage 已进入 Gateway、三协议、Request History 和 Application Operations；成本、quota 与 billing 未打开 |
-| [应用 API Key 请求配额与 Provider Attempt 准入（开发 / 测试态）v1](gateway/application-api-key-request-quota-admission-dev-test-v1.md) | 功能 / 高风险准入专题 | 后端 A 至 D 已完成 application / workspace / environment UTC 日请求 policy、三模式 repository、Admin GET / PUT、六条 API Key inference route 原子准入和稳定失败；Pencil / Web 待设计源空闲，生产 quota、token / cost 与 billing 关闭 |
+| [应用 API Key 请求配额与 Provider Attempt 准入（开发 / 测试态）v1](gateway/application-api-key-request-quota-admission-dev-test-v1.md) | 功能 / 高风险准入专题 | 批次 A 至 E 已完成 application / workspace / environment UTC 日请求 policy、三模式 repository、Admin GET / PUT、六条 API Key inference route 原子准入和稳定失败，以及 S9 完整 Pencil、React 严格 consumer、CAS 确认和真实浏览器连续链；生产 quota、token / cost 与 billing 关闭 |
 | [Model Gateway Request History / Usage & Failure Review v1 任务卡](../task-cards/model-gateway-request-history-usage-failure-review-v1-plan.md) | 实现批次 | 状态为 `complete`；保留为实现与验证索引，不继续派生同层 readiness 链 |
 | [Gateway Playground / Request Review Loop v1](gateway/gateway-playground-request-review-loop-v1.md) | 功能专题 | 三协议 unary / stream、取消、稳定失败和精确 history handoff 已完成；不持久化输入输出 |
 | [Workflow 细专题入口](workflow/README.md) | 功能专题目录 | 承接 workflow 具体功能、页面 / 界面和实现专题 |

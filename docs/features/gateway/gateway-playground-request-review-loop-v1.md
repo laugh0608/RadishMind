@@ -1,6 +1,6 @@
 # Gateway Playground / Request Review Loop v1
 
-更新时间：2026-07-12
+更新时间：2026-08-09
 
 状态：`gateway_playground_request_review_loop_v1_complete`
 
@@ -15,6 +15,8 @@
 2026-07-12 已完成独立 lazy consumer / panel、三协议 unary / stream adapter、SSE terminal parser、用户 abort、稳定失败、20,000 字符输出预算、offline 零请求、双端 launcher 配置和 request-id history handoff。后续 Application API Integration 在不复制调用逻辑的前提下扩展 application / protocol / model handoff，Playground 请求与 History detail 现在都使用当前 application scope。Web consumer 单测覆盖三协议 request / response、caller scope、SSE、HTTP failure、correlation mismatch、malformed response、invalid input、abort、output budget、network failure和动态 application scope。
 
 真实浏览器验证 Chat Completions 与 Responses unary、Messages stream、页面按钮取消和 history handoff。Playground 只把本地 abort 表达为 `client / gateway_playground_request_canceled / HTTP not observed`；同 request id 的 PostgreSQL detail 提供服务端事实 `408 / BRIDGE_WORKER_CANCELED / python_bridge`，record 为 `gateway_request_record.v1 · version 3 · postgres_dev_test`。URL、localStorage 与 sessionStorage 不含输入输出，全新会话为 0 error / 0 warning。功能 v1 已关闭，下一批不追加 prompt history、分享、导出或 production key / quota / billing。
+
+2026-08-09 的真实 API Key quota 连续链确认 `gateway_quota_exceeded / quota_admission` 原本只显示技术码和 Request History 入口，无法说明 UTC 日预算、零 provider 副作用或权威处理 owner。该接缝按五维评分 `0 / 0 / 0 / 1 / 1 = 2` 采用 `C / 直接实现`：Playground 只对稳定的 missing policy、exceeded 与 store unavailable admission failure 显示允许列表引导，明确 provider 调用为零，并把同一当前 application 交给既有 `#admin-gateway-request-quota` owner。页面不读取 Admin response、不显示或推算 used / remaining、不自动重试或修改 limit；Request History 继续只负责脱敏请求证据。
 
 ## 目标用户与主路径
 

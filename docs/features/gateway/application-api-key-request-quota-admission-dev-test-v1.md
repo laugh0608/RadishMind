@@ -146,6 +146,8 @@ go run ./cmd/radishmind-gateway-request-quota-migrate status
 
 Admin Control Plane 已新增 Quota 任务 owner，读取精确 application policy、UTC window、used / remaining、record version 与 blocked reason；更新动作使用 `expected_version` CAS，并在提交前显示精确 tenant、workspace、environment、application 与 request limit 影响确认。严格 consumer 拒绝额外字段、敏感字段、作用域漂移、policy / usage 不一致和非法计数；permission、environment、missing policy、version conflict、store unavailable 与 gate disabled 都以稳定失败关闭，不回退 Request History 或旧 `QuotaSummary`。
 
+后续真实用户工作区复验确认 quota 拒绝原本只有技术码和 Request History 入口。Playground 现只在 failure code 与 `quota_admission` boundary 同时匹配时显示恢复引导：说明 UTC 日请求预算、零 provider 调用和无自动重试，并把当前 application 交给既有 Admin Quota owner。该引导不消费 Admin policy / usage，不展示或推算 used / remaining；无匹配的 provider、transport、auth 或其它失败仍留在原 owner。
+
 五维评分固定为 `1 / 2 / 2 / 2 / 1 = 8`，采用 `A / 完整 Pencil`。Family UI 设计源已新增 `S9 Admin Quota Admission — Desktop / Dev Test · R1`、`S9 Admin Quota Admission — Narrow / Dev Test · R1` 与 `S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 + S9 Visual Language — Design Decision Record · R14`。React 复用 S1–S8 全视口 Workbench 和 S7 管理上下文；普通 application 行保持中性，只有驱动当前详情的 application 使用墨蓝选中轨，`policy missing`、`policy ready`、`limit reached` 与 blocked 状态通过独立文字和语义色表达。
 
 ## 实施批次

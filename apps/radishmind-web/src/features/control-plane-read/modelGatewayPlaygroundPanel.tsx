@@ -5,6 +5,7 @@ import {
   initialModelGatewayPlaygroundResult,
   modelGatewayPlaygroundConfigForApplication,
   modelGatewayPlaygroundConfigForAPIKey,
+  modelGatewayQuotaFailureGuidance,
   readModelGatewayPlaygroundConfig,
   submitModelGatewayPlaygroundRequest,
   type ModelGatewayPlaygroundConfig,
@@ -213,6 +214,7 @@ export default function ModelGatewayPlaygroundPanel({
   const credentialReady = config.authMode === "dev_headers" || Boolean(apiKeyCredential);
   const executionReady = enabled && active && applicationActive && workspaceScopeMatches && credentialReady &&
     catalog.status === "ready" && Boolean(selectedCatalogModel) && supportedProtocols.includes(protocol);
+  const quotaFailureGuidance = modelGatewayQuotaFailureGuidance(result.failureCode, result.failureBoundary);
   return (
     <section className="surface-band model-gateway-overview gateway-playground" id="model-gateway-playground" aria-labelledby="model-gateway-playground-title">
       <div className="section-heading">
@@ -265,6 +267,17 @@ export default function ModelGatewayPlaygroundPanel({
               <div><dt>HTTP</dt><dd>{result.httpStatus || (result.status === "idle" || result.status === "submitting" ? "pending" : "not observed")}</dd></div>
               <div><dt>Failure</dt><dd>{result.failureCode || "none"}{result.failureBoundary ? ` · ${result.failureBoundary}` : ""}</dd></div>
             </dl>
+            {quotaFailureGuidance ? (
+              <article className="controlled-use-failure-guidance" aria-label="Gateway quota failure guidance">
+                <div className="application-api-card-heading">
+                  <div><p className="eyebrow">Quota admission blocked</p><h5>{quotaFailureGuidance.title}</h5></div>
+                  <span className="status-badge bad">no provider call</span>
+                </div>
+                <p>{quotaFailureGuidance.summary}</p>
+                <p className="boundary-note">{quotaFailureGuidance.sideEffectSummary}</p>
+                <a href={`#${quotaFailureGuidance.adminAnchor}`}>{quotaFailureGuidance.adminLabel} <span aria-hidden="true">→</span></a>
+              </article>
+            ) : null}
             {result.historyReviewAvailable && result.requestId ? <button type="button" onClick={reviewHistory}>Review sanitized history</button> : null}
           </article>
         </div>

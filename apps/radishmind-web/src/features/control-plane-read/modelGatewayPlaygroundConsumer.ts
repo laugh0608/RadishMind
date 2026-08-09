@@ -36,6 +36,14 @@ export type ModelGatewayPlaygroundResult = {
   historyReviewAvailable: boolean;
 };
 
+export type ModelGatewayQuotaFailureGuidance = {
+  title: string;
+  summary: string;
+  adminAnchor: "admin-gateway-request-quota";
+  adminLabel: string;
+  sideEffectSummary: string;
+};
+
 type GatewayErrorDocument = {
   error: {
     message: string;
@@ -52,6 +60,37 @@ const MAX_MODEL_CHARS = 160;
 
 class PlaygroundOutputTooLargeError extends Error {}
 class PlaygroundResponseInvalidError extends Error {}
+
+const QUOTA_FAILURE_GUIDANCE: Readonly<Record<string, Pick<ModelGatewayQuotaFailureGuidance, "title" | "summary">>> = {
+  gateway_quota_policy_not_found: {
+    title: "No request quota policy",
+    summary: "This exact development/test application scope has no UTC daily request policy. An authorized administrator must create a positive limit in the quota owner before another provider attempt.",
+  },
+  gateway_quota_exceeded: {
+    title: "UTC request quota exhausted",
+    summary: "This application has exhausted its current UTC calendar-day request budget. An authorized administrator can inspect the exact quota-owner usage and review a positive-limit CAS update.",
+  },
+  gateway_quota_store_unavailable: {
+    title: "Request quota owner unavailable",
+    summary: "The quota owner could not make an authoritative admission decision, so this request failed closed. An authorized administrator can inspect the same application policy without using Request History as usage truth.",
+  },
+};
+
+const QUOTA_FAILURE_SIDE_EFFECT_SUMMARY = "The server stopped this request at quota_admission before bridge or provider execution. No provider call was made, and this page will not retry or change the limit automatically.";
+
+export function modelGatewayQuotaFailureGuidance(
+  failureCode: string,
+  failureBoundary: string,
+): ModelGatewayQuotaFailureGuidance | null {
+  if (failureBoundary !== "quota_admission") return null;
+  const guidance = QUOTA_FAILURE_GUIDANCE[failureCode];
+  return guidance ? {
+    ...guidance,
+    adminAnchor: "admin-gateway-request-quota",
+    adminLabel: "Open Admin Quota",
+    sideEffectSummary: QUOTA_FAILURE_SIDE_EFFECT_SUMMARY,
+  } : null;
+}
 
 export function readModelGatewayPlaygroundConfig(): ModelGatewayPlaygroundConfig {
   const env = import.meta.env as Record<string, string | undefined>;

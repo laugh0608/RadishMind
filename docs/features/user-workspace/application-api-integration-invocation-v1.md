@@ -18,6 +18,8 @@ Web 单元测试覆盖离线零请求、目录成功 / 空结果 / HTTP 失败 /
 
 S4 同时把当前 Application Workspace 的 `workspaceId` 传入接入 owner，并与显式 Gateway 配置作用域做失败关闭核对；不一致时不发送模型目录请求。`#application-api-integration` 与 `#workspace-api-keys` 继续使用原有锚点和 owner，但都归入产品导航 `API & keys`，深层锚点会先展开当前 Controlled Test owner。应用切换继续清空旧模型、示例和失败；本轮没有新增 API、schema、repository、协议适配器、task card 或专项 checker。
 
+2026-08-09 真实复验覆盖 API Key 一次性交接、作用域模型目录、配额内调用、`429 / gateway_quota_exceeded / quota_admission`、同 request id 脱敏历史与 Admin Quota owner。现有 Playground 现在对允许列表内的 quota admission failure 解释 UTC 日请求边界和零 provider 副作用，并精确打开当前 application 的 Admin Quota；用户工作区不读取 policy / usage，不从 Request History 或旧 `QuotaSummary` 推算 used / remaining，也不自动重试、提额或修改 policy。
+
 ## 功能目标
 
 让内部开发者从用户工作区的应用列表选择一个应用后，在同一应用详情中完成模型发现、接入示例生成、测试调用和调用审查。该路径消费现有 `/v1/models`、Gateway 调试台与脱敏请求历史，不新增上行路由、协议适配器、SSE 解析器、请求状态模型、存储库或模型服务注册表。

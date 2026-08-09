@@ -317,6 +317,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 - React 严格校验 exact envelope、作用域、UTC usage 算术与敏感字段；正整数创建 / 更新先 review 再 confirm，CAS 冲突保留旧 owner、禁用编辑并只提供 reload。permission、environment、missing policy、version conflict、store failure 与 disabled gate 均失败关闭，不回退旧 quota evidence。
 - Web `304/304` 与 production build 通过；应用内浏览器覆盖 `1440×900`、`900×900`、`390×844`，各宽度 `scrollWidth` 等于 viewport，应用切换始终只有一个选中轨，missing → create → ready 与并发 version conflict → reload 连续链通过，控制台零 warning / error。自启动服务已关闭，`7000` / `4100` 端口已释放。
 - S9 Web 批次复用既有后端契约、权限和聚合验证，没有新增 API、schema、migration、repository、permission、task card、fixture 或专项 checker；production quota、formal membership / OIDC、token / cost、billing、删除 / 禁用、自动提额和自动路由继续关闭。
+- S9 完成后的真实 API Key 路径复核在 S5 Playground 发现 quota admission 失败恢复信息断点。五维评分为 `0 / 0 / 0 / 1 / 1 = 2`，采用 `C / 直接实现`：复用既有失败引导卡，只对允许列表内的 `quota_admission` failure 说明 UTC 日预算、零 provider 调用并打开当前 application 的 Admin Quota owner；Web `305/305`、production build 与 `1440×900`、`900×900`、`390×844` 浏览器复验通过，各宽度保持 context → task → owner 顺序、零横向溢出和控制台零 warning / error。既有 S5 / S9 Pencil 基准面继续有效，本批未操作被其它项目占用的 Pencil。
 
 ## 停止线
 
