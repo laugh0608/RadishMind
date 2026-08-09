@@ -1,6 +1,6 @@
 # Prompt / Agent / Copilot 类型工作区产品化 v1
 
-更新时间：2026-08-08
+更新时间：2026-08-09
 
 状态：`prompt_agent_copilot_type_workspace_productization_v1_implemented`
 
@@ -58,6 +58,12 @@
 
 因此本批新增的只是类型任务编排层：它根据 application kind 和当前 hash 选择一个 owner，复用 S2 application context、S4 access、S6 review 和既有 handoff，不复制数据或执行逻辑。
 
+### 2026-08-09 真实路径复核
+
+S1–S8 连续产品路径复核发现：从 Agent / Copilot application 切换到 Prompt Application，或反向切换时，application context 和可见 owner 会正确更新，但类型专属 hash 仍可能保留上一种 application kind 的 anchor。当前实现随后依赖 stage fallback 选出可见 owner，因此页面表面正确，刷新、分享和深链接身份却已经失真。
+
+本轮只补类型切换时的 anchor 规范化：若当前 hash 是上一类型的精确 S8 owner anchor，则在不增加浏览历史的前提下替换为新类型的等价任务 anchor；共享 Configuration / Candidate anchor、S6 深层 review anchor 与无关页面 hash 保持原样。Prompt Session 切到 Agent 时落到其唯一 Session v3 Suggestion owner。该修正不改变 owner、权限、分页、API、schema 或执行行为，也不需要新的 Pencil 基准面。
+
 ## 任务拓扑
 
 Prompt Application 使用以下任务顺序：
@@ -100,10 +106,11 @@ Agent / Copilot 使用同一语法，但类型任务为 `Profile → Configurati
 3. 从 S2 通用 stage surface 移出 Prompt / Agent 重复挂载；Workflow / RAG 路径保持原 owner 与布局。
 4. 为 Prompt assignment 与 Session 补稳定 anchor，不修改其 API、状态机或 mutation 行为。
 5. Evaluation 继续交给 S6；S8 只说明 exact Run handoff、当前窗口和人工 evidence 停止线。
+6. application kind 改变时，只规范化上一类型的精确 S8 anchor；普通 hashchange 和 S6 深层 owner anchor 不改写。
 
 ## 验收方式
 
-- 纯 view model 测试覆盖 Prompt / Agent 任务集合、hash 选择、stage fallback、archived blocked action 与未知类型拒绝。
+- 纯 view model 测试覆盖 Prompt / Agent 任务集合、hash 选择、stage fallback、跨类型 anchor 规范化、archived blocked action 与未知类型拒绝。
 - Web 全量测试与 production build 通过。
 - 真实浏览器覆盖 `1440×900`、关键断点和 `390×844`；检查任务选中、状态与选中分离、单 owner、响应式顺序、交互、横向溢出和控制台。
 - 运行 `./scripts/check-repo.sh --fast`；本批更新阶段真相源与产品化顺位，提交前补跑全量 `./scripts/check-repo.sh`。
@@ -113,9 +120,10 @@ Agent / Copilot 使用同一语法，但类型任务为 `Profile → Configurati
 - Pencil 已新增 `S8 Prompt / Agent Type Workspace — Desktop / Dev Test · R1`、`S8 Prompt / Agent Type Workspace — Narrow / Dev Test · R1`，共享决策记录升级为 `S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 Visual Language — Design Decision Record · R13`；全树检查无裁切、越界或占位节点。
 - React 已新增类型任务 view model 与持续 S8 工作面。Prompt 使用八任务，Agent 使用七任务；任一时刻只挂载一个既有 owner，Evaluation 只形成 S6 交接说明。S2 通用 surface 不再重复挂载 Prompt / Agent owner，Workflow / RAG 路径保持原状。
 - Prompt Candidate 原组件继续持有候选数据，只新增可关闭的内嵌 assignment 组合和当前候选回传，供 S8 将 Candidate 与 Assignment 分成两个真实任务；没有复制 candidate 或 runtime assignment 状态机。
-- Web `293/293` 单元测试与 production build 通过。S8 入口 chunk 为 `9.44 KiB`，纯任务模型 chunk 为 `3.21 KiB`，主入口为 `458.51 KiB`，均在现有预算内。
+- Web `295/295` 单元测试与 production build 通过。S8 入口 chunk 为 `9.38 KiB`，主入口为 `462.50 KiB`，均在现有预算内。
 - 应用内浏览器使用自启动 SQLite Agent / Prompt 本地产品链完成两类任务逐项切换；严格覆盖 `1440×900`、`1100×900`、`900×900`、`760×844` 与 `390×844`。各宽度 document / body / S8 scroll width 与 viewport 一致，当前任务和 owner 均唯一，响应式顺序正确，控制台零 warning / error。
 - 当前产品数据没有 archived application 记录，因此浏览器没有改写真实数据制造归档态；归档 source / governance 只读和 controlled use 阻塞由纯模型测试覆盖。开发服务在验收后关闭。
+- 2026-08-09 应用内浏览器真实复验 Agent Invocation → Prompt Invocation、Prompt Session → Agent Suggestion、Profile → Template、Assignment 与 Access 双向切换，并确认刷新后按真实选中 application 保留等价任务身份；共享 owner、S6 深层 review 与普通页面 hash 不被改写。既有 Pencil 基准面继续有效。
 
 ## 停止线
 

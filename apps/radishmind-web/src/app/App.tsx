@@ -96,7 +96,11 @@ import {
   type ApplicationCatalogRecord,
 } from "../features/control-plane-read/applicationCatalogConsumer";
 import type { ApplicationCatalogSnapshot } from "../features/control-plane-read/applicationCatalogPanel";
-import { buildApplicationDevelopmentWorkspaceContext } from "../features/control-plane-read/applicationDevelopmentWorkspace";
+import {
+  applicationDevelopmentSurfaceKind,
+  buildApplicationDevelopmentWorkspaceContext,
+} from "../features/control-plane-read/applicationDevelopmentWorkspace";
+import { promptAgentTypeWorkspaceCanonicalHashForTypeSwitch } from "../features/control-plane-read/promptAgentTypeWorkspaceModel";
 import {
   type WorkflowApplicationBlockedCapabilityPreview,
   type WorkflowApplicationDetailViewModel,
@@ -983,6 +987,18 @@ export function App() {
     setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(activeSavedDraftConsumerConfig));
   };
 
+  const canonicalizeApplicationTypeWorkspaceHash = (nextApplicationKind: string) => {
+    const canonicalHash = promptAgentTypeWorkspaceCanonicalHashForTypeSwitch(
+      window.location.hash,
+      applicationDevelopmentWorkspaceContext.surfaceKind,
+      applicationDevelopmentSurfaceKind(nextApplicationKind),
+    );
+    if (!canonicalHash) return;
+
+    const oldURL = window.location.href;
+    window.history.replaceState(window.history.state, "", canonicalHash);
+    window.dispatchEvent(new HashChangeEvent("hashchange", { oldURL, newURL: window.location.href }));
+  };
   const applyWorkflowSelectionPatch = ({
     applicationRef,
     workflowDefinitionId,
@@ -1006,6 +1022,10 @@ export function App() {
     if (workflowExecutorOperationPending) {
       return;
     }
+    const nextApplication = workspaceApplications.applications.find(
+      (application) => application.applicationRef === applicationRef,
+    );
+    if (nextApplication) canonicalizeApplicationTypeWorkspaceHash(nextApplication.applicationKind);
     applyWorkflowSelectionPatch(
       selectionForApplication(applicationRef, {
         workspaceApplications,
@@ -1016,6 +1036,7 @@ export function App() {
   };
   const handleSelectApplicationCatalogRecord = (record: ApplicationCatalogRecord) => {
     if (workflowExecutorOperationPending) return;
+    canonicalizeApplicationTypeWorkspaceHash(record.applicationKind);
     applyWorkflowSelectionPatch({
       applicationRef: record.applicationId,
       workflowDefinitionId: null,

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  promptAgentTypeWorkspaceCanonicalHashForTypeSwitch,
   promptAgentTypeWorkspaceOwnsHash,
   promptAgentTypeWorkspaceSurfaceForHash,
   promptAgentTypeWorkspaceTasks,
@@ -73,4 +74,82 @@ test("only exact S8 hashes keep the type owner surface open", () => {
   assert.equal(promptAgentTypeWorkspaceOwnsHash("#admin-control-plane", "agent_copilot"), false);
   assert.equal(promptAgentTypeWorkspaceOwnsHash("#prompt-application-invocation-preview", "prompt_application"), false);
   assert.equal(promptAgentTypeWorkspaceOwnsHash("#prompt-application-invocation", "workflow_rag"), false);
+});
+
+test("application kind switches replace only the previous type's exact S8 anchor", () => {
+  assert.equal(
+    promptAgentTypeWorkspaceCanonicalHashForTypeSwitch(
+      "#agent-copilot-invocation",
+      "agent_copilot",
+      "prompt_application",
+    ),
+    "#prompt-application-invocation",
+  );
+  assert.equal(
+    promptAgentTypeWorkspaceCanonicalHashForTypeSwitch(
+      "#prompt-application-runtime-assignment",
+      "prompt_application",
+      "agent_copilot",
+    ),
+    "#agent-copilot-runtime-assignment",
+  );
+  assert.equal(
+    promptAgentTypeWorkspaceCanonicalHashForTypeSwitch(
+      "#prompt-application-session",
+      "prompt_application",
+      "agent_copilot",
+    ),
+    "#agent-copilot-invocation",
+  );
+  assert.equal(
+    promptAgentTypeWorkspaceCanonicalHashForTypeSwitch(
+      "#application-api-integration",
+      "prompt_application",
+      "agent_copilot",
+    ),
+    "#workspace-api-keys",
+  );
+});
+
+test("type switch canonicalization preserves shared, review, unrelated, and same-type hashes", () => {
+  assert.equal(
+    promptAgentTypeWorkspaceCanonicalHashForTypeSwitch(
+      "#application-configuration-draft",
+      "prompt_application",
+      "agent_copilot",
+    ),
+    null,
+  );
+  assert.equal(
+    promptAgentTypeWorkspaceCanonicalHashForTypeSwitch(
+      "#workflow-run-comparison",
+      "prompt_application",
+      "agent_copilot",
+    ),
+    null,
+  );
+  assert.equal(
+    promptAgentTypeWorkspaceCanonicalHashForTypeSwitch(
+      "#application-development-workspace",
+      "prompt_application",
+      "agent_copilot",
+    ),
+    null,
+  );
+  assert.equal(
+    promptAgentTypeWorkspaceCanonicalHashForTypeSwitch(
+      "#prompt-application-invocation",
+      "prompt_application",
+      "prompt_application",
+    ),
+    null,
+  );
+  assert.equal(
+    promptAgentTypeWorkspaceCanonicalHashForTypeSwitch(
+      "#prompt-application-session",
+      "unsupported",
+      "agent_copilot",
+    ),
+    "#agent-copilot-invocation",
+  );
 });

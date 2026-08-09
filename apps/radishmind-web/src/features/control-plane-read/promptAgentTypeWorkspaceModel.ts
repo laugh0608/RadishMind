@@ -111,6 +111,38 @@ export function promptAgentTypeWorkspaceOwnsHash(
   return promptAgentTypeWorkspaceSurfaceForHash(hash, surfaceKind, null) !== null;
 }
 
+export function promptAgentTypeWorkspaceCanonicalHashForTypeSwitch(
+  hash: string,
+  previousSurfaceKind: ApplicationDevelopmentSurfaceKind,
+  nextSurfaceKind: ApplicationDevelopmentSurfaceKind,
+): string | null {
+  if (previousSurfaceKind === nextSurfaceKind) return null;
+  if (nextSurfaceKind !== "prompt_application" && nextSurfaceKind !== "agent_copilot") return null;
+
+  const previousSurface = promptAgentTypeWorkspaceSurfaceForHash(hash, previousSurfaceKind, null)
+    ?? promptAgentTypeWorkspaceSurfaceForKnownTypeAnchor(hash);
+  if (!previousSurface || previousSurface === "evaluation") return null;
+
+  const nextSurface = previousSurface === "session" && nextSurfaceKind === "agent_copilot"
+    ? "controlled_use"
+    : previousSurface;
+  const nextDefinition = (nextSurfaceKind === "prompt_application" ? PROMPT_TASKS : AGENT_TASKS)
+    .find((taskDefinition) => taskDefinition.surface === nextSurface);
+  if (!nextDefinition) return null;
+
+  const canonicalHash = `#${nextDefinition.anchor}`;
+  return hash.trim() === canonicalHash ? null : canonicalHash;
+}
+
+function promptAgentTypeWorkspaceSurfaceForKnownTypeAnchor(
+  hash: string,
+): PromptAgentTypeWorkspaceSurface | null {
+  const promptSurface = promptAgentTypeWorkspaceSurfaceForHash(hash, "prompt_application", null);
+  const agentSurface = promptAgentTypeWorkspaceSurfaceForHash(hash, "agent_copilot", null);
+  if (promptSurface && agentSurface && promptSurface !== agentSurface) return null;
+  return promptSurface ?? agentSurface;
+}
+
 function task(
   surface: PromptAgentTypeWorkspaceSurface,
   anchor: string,
