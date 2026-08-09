@@ -145,6 +145,8 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 2026-08-09 的 Workflow Definition 真实连续链复验五维评分为 `0 / 0 / 0 / 1 / 1 = 2`，采用 `C / 直接实现`：只补 RAG 专属 owner 交接、Definition 资格失败关闭、拓扑派生和 application 切换后的迟到 evidence 拒绝，继续复用 S2 / S3 / S6 已冻结的信息层级、任务轨、选中语义和响应式顺序。Pencil 当时正被其它项目占用，本批没有读取或修改设计源，也没有建立第十个页面族。
 
+同日的 Workflow RAG Promotion → Configuration Draft 交接复验同样为 `0 / 0 / 0 / 1 / 1 = 2`，采用 `C / 直接实现`：复用 S2 已冻结的阶段切换、单 owner 打开和易失单引用交接，配置页复用既有 binding selector、显式恢复与失败关闭表达。`1440×900`、`900×900`、`720×900`、`390×844` 保持 context → task → owner 顺序、零横向溢出和控制台零 warning / error；本批没有新布局、交互模型或响应式策略，因此未操作正被其它项目占用的 Pencil，也没有建立第十个页面族。
+
 ### 设计基准面覆盖记录
 
 | `surface_id` | 状态 | Pencil 覆盖 | 代码基线与锚点 | 设计决策与停止线 |
@@ -320,6 +322,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 - Web `304/304` 与 production build 通过；应用内浏览器覆盖 `1440×900`、`900×900`、`390×844`，各宽度 `scrollWidth` 等于 viewport，应用切换始终只有一个选中轨，missing → create → ready 与并发 version conflict → reload 连续链通过，控制台零 warning / error。自启动服务已关闭，`7000` / `4100` 端口已释放。
 - S9 Web 批次复用既有后端契约、权限和聚合验证，没有新增 API、schema、migration、repository、permission、task card、fixture 或专项 checker；production quota、formal membership / OIDC、token / cost、billing、删除 / 禁用、自动提额和自动路由继续关闭。
 - S9 完成后的真实 API Key 路径复核在 S5 Playground 发现 quota admission 失败恢复信息断点。五维评分为 `0 / 0 / 0 / 1 / 1 = 2`，采用 `C / 直接实现`：复用既有失败引导卡，只对允许列表内的 `quota_admission` failure 说明 UTC 日预算、零 provider 调用并打开当前 application 的 Admin Quota owner；Web `305/305`、production build 与 `1440×900`、`900×900`、`390×844` 浏览器复验通过，各宽度保持 context → task → owner 顺序、零横向溢出和控制台零 warning / error。既有 S5 / S9 Pencil 基准面继续有效，本批未操作被其它项目占用的 Pencil。
+- Workflow RAG Promotion → Configuration Draft 跟进把静态 hash 收紧为 S2 workspace 单引用 handoff：配置 owner 只按精确 `candidateId` 重读并选择当前 `approved + eligible` binding，不回退、不自动恢复、不 attach。Web `308/308`、production build 与四个视口通过；来源草案 `v1` 对当前 `v2` 的恢复以既有稳定 failure 失败关闭。既有 S2 / RAG owner 设计基准继续有效，本批未操作 Pencil。
 
 ## 停止线
 

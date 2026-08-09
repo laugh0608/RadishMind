@@ -258,6 +258,25 @@ test("feature-scoped handoff keeps only one exact ref and consumes it at the own
   assert.equal(consumed.state.pending, null);
 });
 
+test("approved RAG binding handoff opens configuration attach with one server-reload ref", () => {
+  const context = buildApplicationDevelopmentWorkspaceContext(activeApplication);
+  const issued = issueApplicationDevelopmentHandoff(
+    initialApplicationDevelopmentHandoffState(context),
+    context,
+    {
+      applicationId: context.applicationId,
+      sourceStage: "human_promotion",
+      refKind: "binding",
+      refId: "wragp_aaaaaaaaaaaaaaaa",
+    },
+  );
+
+  assert.equal(issued.pending?.targetStage, "configure_build");
+  assert.equal(issued.pending?.targetAnchor, "application-configuration-draft");
+  assert.equal(issued.pending?.refId, "wragp_aaaaaaaaaaaaaaaa");
+  assert.equal(Object.hasOwn(issued.pending ?? {}, "bindingDigest"), false);
+});
+
 test("handoff rejects scope drift, unsafe refs, and stale workspace generations", () => {
   const context = buildApplicationDevelopmentWorkspaceContext(activeApplication);
   const initial = initialApplicationDevelopmentHandoffState(context);

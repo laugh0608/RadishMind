@@ -91,8 +91,23 @@ export default function ApplicationDevelopmentWorkspaceSurface({
   const consumePromotionHandoff = useCallback((handoffId: string) => {
     controls.consumeHandoff("human_promotion", handoffId);
   }, [controls.consumeHandoff]);
+  const openConfigurationAttach = useCallback((candidateId: string) => {
+    controls.issueHandoff({
+      applicationId: context.applicationId,
+      sourceStage: "human_promotion",
+      refKind: "binding",
+      refId: candidateId,
+    });
+  }, [context.applicationId, controls.issueHandoff]);
+  const consumeConfigurationHandoff = useCallback((handoffId: string) => {
+    controls.consumeHandoff("configure_build", handoffId);
+  }, [controls.consumeHandoff]);
   const pendingDraftHandoff = controls.pendingHandoff?.targetStage === "human_promotion" &&
     controls.pendingHandoff.refKind === "draft"
+    ? controls.pendingHandoff
+    : null;
+  const pendingBindingHandoff = controls.pendingHandoff?.targetStage === "configure_build" &&
+    controls.pendingHandoff.refKind === "binding"
     ? controls.pendingHandoff
     : null;
 
@@ -168,6 +183,9 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                 key={`${context.generationKey}:configuration:${context.status}`}
                 readOnly={context.status === "archived"}
                 baseline={baseline}
+                handoffBindingCandidateId={pendingBindingHandoff?.refId}
+                handoffId={pendingBindingHandoff?.handoffId}
+                onHandoffConsumed={consumeConfigurationHandoff}
                 onEvidenceChange={reportOwnerEvidence}
                 onOpenPublishReview={openPublishReview}
               />
@@ -186,6 +204,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                 applicationName={context.displayName}
                 applicationActive={context.applicationActive}
                 onEvidenceChange={reportOwnerEvidence}
+                onOpenConfigurationAttach={openConfigurationAttach}
               />
             </Suspense>
           ) : null}

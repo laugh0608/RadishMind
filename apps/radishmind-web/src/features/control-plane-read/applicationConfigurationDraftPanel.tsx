@@ -27,10 +27,12 @@ import {
 } from "./applicationApiIntegrationEvents.ts";
 import { requestModelGatewayPlaygroundHandoff } from "./modelGatewayPlaygroundEvents.ts";
 import {
+  findExactEligibleWorkflowRAGPromotionBinding,
   initialWorkflowRAGPromotionListResult,
   listWorkflowRAGPromotionCandidates,
   readWorkflowRAGPromotionConfig,
   type WorkflowRAGPromotionListResult,
+  type WorkflowRAGPromotionSummary,
 } from "./workflowRAGPromotionConsumer.ts";
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 
@@ -45,11 +47,17 @@ const protocols: Array<{ id: ApplicationApiProtocol; label: string }> = [
 export default function ApplicationConfigurationDraftPanel({
   baseline,
   readOnly = false,
+  handoffBindingCandidateId = "",
+  handoffId = "",
+  onHandoffConsumed,
   onEvidenceChange,
   onOpenPublishReview,
 }: {
   baseline: ApplicationConfigurationBaseline;
   readOnly?: boolean;
+  handoffBindingCandidateId?: string;
+  handoffId?: string;
+  onHandoffConsumed?: (handoffId: string) => void;
   onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
   onOpenPublishReview?: (draftId: string) => void;
 }) {
@@ -59,7 +67,9 @@ export default function ApplicationConfigurationDraftPanel({
   const [list, setList] = useState(() => initialApplicationConfigurationDraftListState(config));
   const [bindings, setBindings] = useState<WorkflowRAGPromotionListResult>(() => initialWorkflowRAGPromotionListResult(promotionConfig));
   const [selectedBindingCandidateId, setSelectedBindingCandidateId] = useState("");
+  const [bindingHandoffState, setBindingHandoffState] = useState("");
   const catalogController = useRef<AbortController | null>(null);
+  const handledHandoffIdRef = useRef("");
 
   useEffect(() => {
     catalogController.current?.abort();
@@ -70,6 +80,8 @@ export default function ApplicationConfigurationDraftPanel({
     setList(initialApplicationConfigurationDraftListState(config));
     setBindings(initialWorkflowRAGPromotionListResult(promotionConfig));
     setSelectedBindingCandidateId("");
+    setBindingHandoffState("");
+    handledHandoffIdRef.current = "";
   }, [baseline.applicationId]);
 
   useEffect(() => () => catalogController.current?.abort(), []);
@@ -148,6 +160,23 @@ export default function ApplicationConfigurationDraftPanel({
     if (readOnly && enabled) void refreshList();
   }, [baseline.applicationId, readOnly]);
 
+  useEffect(() => {
+    if (!handoffId || !handoffBindingCandidateId || handledHandoffIdRef.current === handoffId) return;
+    handledHandoffIdRef.current = handoffId;
+    if (!bindingEnabled) {
+      setBindingHandoffState(`Binding candidate ${handoffBindingCandidateId} was not loaded because the configuration owner is read-only or offline. No draft was modified.`);
+      onHandoffConsumed?.(handoffId);
+      return;
+    }
+    setBindingHandoffState(`Loading exact binding candidate ${handoffBindingCandidateId} from RAG Promotion.`);
+    void loadApprovedBindings(handoffBindingCandidateId)
+      .then((selected) => setBindingHandoffState(selected
+        ? `Exact binding ${selected.bindingRef?.bindingId} was reloaded for explicit attach. Restore its source draft before attaching; no draft was modified.`
+        : `Binding candidate ${handoffBindingCandidateId} is unavailable, blocked, or no longer approved in the current Application scope. No fallback binding was selected.`))
+      .catch(() => setBindingHandoffState(`Binding candidate ${handoffBindingCandidateId} could not be reloaded from RAG Promotion. No fallback binding was selected and no draft was modified.`))
+      .finally(() => onHandoffConsumed?.(handoffId));
+  }, [baseline.applicationId, bindingEnabled, handoffBindingCandidateId, handoffId, onHandoffConsumed]);
+
   function edit(patch: Partial<ApplicationConfigurationDraft>) {
     setDraft((current) => ({ ...current, ...patch }));
     setOperation((current) => ({ ...current, status: enabled ? "unsaved" : "offline", summary: "Application configuration has unsaved in-memory edits.", failureCode: "", validation: { state: "invalid", isValid: false, findings: [] } }));
@@ -207,12 +236,15 @@ export default function ApplicationConfigurationDraftPanel({
     if (restored.draft) setDraft(restored.draft);
   }
 
-  async function loadApprovedBindings() {
-    if (!bindingEnabled) return;
+  async function loadApprovedBindings(preferredCandidateId = ""): Promise<WorkflowRAGPromotionSummary | null> {
+    if (!bindingEnabled) return null;
     const next = await listWorkflowRAGPromotionCandidates(promotionConfig, baseline.applicationId);
     setBindings(next);
-    const first = next.summaries.find((item) => item.candidateState === "approved" && item.eligibilityStatus === "eligible" && item.bindingRef);
-    setSelectedBindingCandidateId(first?.candidateId ?? "");
+    const selected = preferredCandidateId
+      ? findExactEligibleWorkflowRAGPromotionBinding(next.summaries, preferredCandidateId)
+      : next.summaries.find((item) => item.candidateState === "approved" && item.eligibilityStatus === "eligible" && item.bindingRef) ?? null;
+    setSelectedBindingCandidateId(selected?.candidateId ?? "");
+    return selected;
   }
 
   async function restoreBindingSource() {
@@ -279,6 +311,7 @@ export default function ApplicationConfigurationDraftPanel({
         <article><span>Workspace</span><strong>{config.workspaceId}</strong><p>{enabled ? "dev/test repository enabled" : "offline memory only"}</p></article>
         <article><span>Version</span><strong>{operation.currentDraftVersion || "unsaved"}</strong><p>Formal application remains read-only.</p></article>
       </div>
+      {bindingHandoffState ? <p className="boundary-note" role="status">{bindingHandoffState}</p> : null}
 
       <div className="application-draft-layout">
         <article className="application-draft-editor">

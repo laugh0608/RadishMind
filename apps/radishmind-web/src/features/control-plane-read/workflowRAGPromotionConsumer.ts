@@ -108,6 +108,18 @@ export type WorkflowRAGPromotionSummary = {
 export type WorkflowRAGPromotionListResult = { status: "offline" | "scope_denied" | "ready" | "empty" | "failed"; summaries: WorkflowRAGPromotionSummary[]; nextCursor: string; failureCode: string; summary: string };
 export type WorkflowRAGPromotionOperationResult = { status: "offline" | "scope_denied" | "created" | "loaded" | "decided" | "record_version_conflict" | "failed"; detail: WorkflowRAGPromotionDetail | null; failureCode: string; currentRecordVersion: number; currentState: string; summary: string };
 
+export function findExactEligibleWorkflowRAGPromotionBinding(
+  summaries: readonly WorkflowRAGPromotionSummary[],
+  candidateId: string,
+): WorkflowRAGPromotionSummary | null {
+  return summaries.find((summary) =>
+    summary.candidateId === candidateId &&
+    summary.candidateState === "approved" &&
+    summary.eligibilityStatus === "eligible" &&
+    summary.bindingRef !== null
+  ) ?? null;
+}
+
 type Document = Record<string, unknown>;
 
 export function readWorkflowRAGPromotionConfig(): WorkflowRAGPromotionConfig {

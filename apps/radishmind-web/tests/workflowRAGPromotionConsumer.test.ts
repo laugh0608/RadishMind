@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   createWorkflowRAGPromotionCandidate,
   decideWorkflowRAGPromotionCandidate,
+  findExactEligibleWorkflowRAGPromotionBinding,
   listWorkflowRAGPromotionCandidates,
   readWorkflowRAGPromotionCandidate,
   workflowRAGPromotionDecisionAllowed,
@@ -102,6 +103,37 @@ test("promotion state transitions stay explicit", () => {
   assert.equal(workflowRAGPromotionDecisionAllowed("approved", "cancel"), true);
   assert.equal(workflowRAGPromotionDecisionAllowed("approved", "approve"), false);
   assert.equal(workflowRAGPromotionDecisionAllowed("canceled", "cancel"), false);
+});
+
+test("binding handoff selection requires the exact eligible approved candidate without fallback", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => jsonResponse({
+    ...promotionListEnvelope(),
+    items: [
+      {
+        ...promotionListEnvelope().items[0],
+        candidate_state: "approved",
+        record_version: 2,
+        binding_ref: bindingRefDocument(),
+        eligibility_status: "eligible",
+        blocker_count: 0,
+      },
+      {
+        ...promotionListEnvelope().items[0],
+        candidate_id: "wragp_bbbbbbbbbbbbbbbb",
+        candidate_state: "approved",
+        record_version: 2,
+        binding_ref: { binding_id: "wragb_bbbbbbbbbbbbbbbb", binding_version: 1, binding_digest: digest("b") },
+        eligibility_status: "blocked",
+      },
+    ],
+  });
+  try {
+    const result = await listWorkflowRAGPromotionCandidates(live, "app_flow_copilot");
+    assert.equal(findExactEligibleWorkflowRAGPromotionBinding(result.summaries, "wragp_aaaaaaaaaaaaaaaa")?.bindingRef?.bindingId, "wragb_aaaaaaaaaaaaaaaa");
+    assert.equal(findExactEligibleWorkflowRAGPromotionBinding(result.summaries, "wragp_bbbbbbbbbbbbbbbb"), null);
+    assert.equal(findExactEligibleWorkflowRAGPromotionBinding(result.summaries, "wragp_cccccccccccccccc"), null);
+  } finally { globalThis.fetch = originalFetch; }
 });
 
 function promotionListEnvelope() {

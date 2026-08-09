@@ -1,6 +1,6 @@
 # Workflow RAG 知识基线晋级与应用配置绑定审查 v1
 
-更新时间：2026-07-18
+更新时间：2026-08-09
 
 状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_completed`
 
@@ -191,6 +191,7 @@ Web 在现有 RAG evaluation dataset / candidate review 面板之后增加 lazy-
 - detail 展示精确 snapshot / profile digests、权威 review metadata 与 drift blocker，不显示 query / fragment / prompt / answer；
 - decision UI 明确区分 approve 与 attach，批准后不自动保存草案；CAS conflict 保留本地 reason 并要求刷新；
 - 配置草案只选择 approved binding ref，首次 attach 单独保存下一 draft version；
+- Promotion detail 的配置交接只传一个精确 `candidateId`，由 Application Development Workspace 打开配置 owner；配置 owner 重新读取当前 promotion list，只接受同 application 下仍为 `approved + eligible` 且具有 binding ref 的精确候选，不发送 digest、表单内容或凭据，也不回退首条可用 binding；
 - publish panel 展示 exact binding ref 与动态复核 blocker，不能把 `approved` 显示为 published；
 - 应用切换、scope drift、非 2xx、strict schema drift 或 forbidden field 都清除旧交接并失败关闭。
 
@@ -219,6 +220,8 @@ Web 在现有 RAG evaluation dataset / candidate review 面板之后增加 lazy-
 4. 批次 D（已完成）：Web promotion panel、配置草案 / 发布审查接线、应用切换隔离、完整测试 / build、SQLite / PostgreSQL 连续链、真实浏览器和阶段收口。
 
 批次 A 已物化四份 JSON Schema 与 Go strict contract，完成权威 application / draft / dataset / review / snapshots / profile 重读、精确不可变 candidate digest、人工状态机、CAS、append-only decision / audit、approve 原子签发 binding、memory owner lock、独立权限 / gate 和四条 API。批次 B 已在 shared SQLite / PostgreSQL 上物化 promotion candidate current projection、append-only decision / binding / audit，factory 严格复用 workflow database / pool；PostgreSQL 详情证据链使用只读 `REPEATABLE READ` 快照，避免并发提交期间读取到撕裂视图。批次 C 已让 draft v1 / publish candidate v1 保持兼容，并以 v2 JSON payload 保存 ref-only binding；草案保存、promotion source draft 与发布候选共用唯一 canonical digest。首次 attach / replace 只允许 binding ref 变化，发布候选 create / approve / read-time eligibility 会重新读取不可变 binding 与全部权威知识来源。SQLite 与 PostgreSQL 继续使用既有 application draft / publish `0001` 表和 marker，无 DDL、平行 store 或回填。批次 D 已完成 strict Web consumer、promotion / attach / publish 三段显式操作、应用切换隔离、SQLite / PostgreSQL 连续链、真实浏览器和阶段收口。
+
+2026-08-09 的本地真实路径跟进发现，Promotion detail 原有“打开配置草稿挂载步骤”只切换 hash，没有打开配置 owner，也没有定位已核准 binding。该接缝现按五维评分 `0 / 0 / 0 / 1 / 1 = 2` 采用 `C / 直接实现`：复用既有 Application Development Workspace 易失 handoff，只交接 `candidateId`，配置 owner 通过 strict consumer 重读并精确选择，不自动恢复草案、挂载 binding 或保存。当前本地 binding 来源草案是 `v1`，权威草案已为 `v2`；用户显式恢复后由既有 `workflow_rag_promotion_draft_changed` 失败关闭，证明前端没有用旧摘要绕过 CAS / digest 边界。Web `308/308`、production build 与四个视口浏览器验收通过；没有改变 API、schema、repository、permission、专题完成状态或生产停止线，也没有操作被其它项目占用的 Pencil。
 
 边界复核结论为通过，专题完成锚点为 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_completed`。浏览器和双数据库证据证明 approve 只签发不可变 binding 资格，attach 只创建新的配置草案版本，publish review 只追加人工审查并重算 blocker；三步均不互相自动触发。后续若设计新的运行时消费路径，必须以新的功能设计重新评审权限、执行和生产边界，不从本专题直接派生实现任务。
 
