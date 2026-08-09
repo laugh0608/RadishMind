@@ -91,6 +91,7 @@ test("maps only explicit Admin Control Plane owners and legacy evidence anchors 
     "#admin-provider-config",
     "#admin-profile-config",
     "#admin-route-config",
+    "#admin-gateway-request-quota",
     "#admin-operations-review",
     "#admin-provider-deployment-review",
   ]) {

@@ -2,7 +2,7 @@
 
 更新时间：2026-08-09
 
-状态：`radishmind_family_ui_productization_v1_s1_to_s8_implemented_s9_quota_pencil_blocked`
+状态：`radishmind_family_ui_productization_v1_s1_to_s9_implemented`
 
 ## 目标
 
@@ -64,11 +64,12 @@ RadishMind 项目主动选择 `Workbench` Profile：
 6. Workflow Run & Evaluation Review：运行定位、兼容比较、版本化 Case / Suite 证据和摘要绑定的人工判断。
 7. Admin Control Plane：管理上下文、七类资源定位、Tenant / Audit 只读证据、身份缺口和开发测试态 Provider / Profile / Route 受控配置。
 8. Prompt / Agent / Copilot 类型工作区：类型源码、配置、候选、assignment、Access、受控调用和评测交接的单任务路径。
+9. Admin Quota Admission：精确 application policy、quota-owner UTC usage、expected-version CAS 确认与稳定失败关闭。
 
 ### 后续设计面
 
-- `S9 Admin Quota Admission` 已由[应用 API Key 请求配额与 Provider Attempt 准入专题](../gateway/application-api-key-request-quota-admission-dev-test-v1.md)和真实后端 owner 产生；五维评分 `1 / 2 / 2 / 2 / 1 = 8`，采用 `A / 完整 Pencil`。Pencil 当前被其他项目占用，设计源空闲并通知用户前不修改画板，也不先写临时 React 页面。
-- 其它后续设计面必须由新的功能专题和真实使用证据产生；S1–S8 不原地派生同层页面链。
+- `S9 Admin Quota Admission` 已由[应用 API Key 请求配额与 Provider Attempt 准入专题](../gateway/application-api-key-request-quota-admission-dev-test-v1.md)和真实后端 owner 产生，并按五维评分 `1 / 2 / 2 / 2 / 1 = 8` 完成 `A / 完整 Pencil`、React 与真实浏览器验收。
+- 其它后续设计面必须由新的功能专题和真实使用证据产生；S1–S9 不原地派生同层页面链。
 
 后续设计面不因列入范围而自动获得实现准入；每一批仍要以对应功能专题中的当前能力为边界。
 
@@ -138,9 +139,9 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 | `S6` Workflow Run & Evaluation Review | `A` | 运行定位、兼容比较、exact-version Case / Suite 与 digest-bound 人工 decision；补充窄屏四任务顺序 | 复用既有五类 consumer，不复制 run、comparison、evaluation 或 release truth source |
 | `S7` Admin Control Plane | `A` | 管理上下文、Tenant / User / Role / Audit / Provider / Profile / Route 七资源拓扑、单 owner 和窄屏顺序 | 五维评分为 `2 / 2 / 2 / 2 / 2`；Tenant / Audit 复用 authenticated read，User / Role 显式失败关闭，Provider / Profile / Route 复用同一原子配置 owner |
 | `S8` Prompt / Agent / Copilot 类型工作区 | `A` | 类型上下文、七 / 八任务拓扑、单 owner、易失输入输出与人工评测交接；补窄屏任务先于 owner 的顺序 | 五维评分为 `1 / 2 / 2 / 2 / 2`；复用 Template / Profile、Configuration、Candidate、Assignment、Access、Session / Invocation 与 S6 owner |
-| `S9` Admin Quota Admission | `A` | 待设计：application policy、UTC 当前窗口、used / remaining、CAS 更新确认、稳定 blocked reason 与窄屏顺序 | 五维评分为 `1 / 2 / 2 / 2 / 1`；后端 A 至 D 已完成，复用 S7 管理上下文和单 owner 语义，不并入 Provider / Profile / Route，不冒充 production quota / billing |
+| `S9` Admin Quota Admission | `A` | application policy、quota-owner UTC used / remaining、CAS 更新确认、稳定 blocked reason 与窄屏 context → task → owner 顺序 | 五维评分为 `1 / 2 / 2 / 2 / 1`；Desktop / Narrow R1 与 Decision R14 已完成，React 复用 S7 管理上下文和单 owner 语义，不并入 Provider / Profile / Route，不冒充 production quota / billing |
 
-当前维护八个已完成设计基准面和必要的局部 / 状态变体；`S9` 是唯一待设计基准面，Pencil 空闲前保持未开始，不按路由、组件或状态数量扩张画板。
+当前维护九个已完成设计基准面和必要的局部 / 状态变体；新的页面族必须重新评分，不按路由、组件或状态数量扩张画板。
 
 ### 设计基准面覆盖记录
 
@@ -155,7 +156,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 | `radishmind_web_s6_workflow_run_evaluation_review_v1` | `implementation_r1_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S6 Workflow Run & Evaluation Review — Desktop / Dev Test · R1`、`S6 Workflow Run & Evaluation Review — Narrow / Dev Test · R1` 与 `S1 + S2 + S3 + S4 + S5 + S6 Visual Language — Design Decision Record · R11`；三者全树无裁切、越界或占位节点 | `workflowReviewWorkspace.tsx` 持续挂载 S6 上下文与四任务轨，`workflowReviewOwner.tsx`、`workflowRunComparisonPanel.tsx`、`workflowEvaluationPanel.tsx`、`workflowEvaluationSuitePanel.tsx` 继续消费既有 run、comparison、case、suite 与 decision consumer；`ProductNavigation.tsx`、`productNavigationRoute.ts`、`App.tsx` 与 `styles.css` 负责精确导航、组合和响应式语义 | Runs、Compare、Cases、Release 四个任务只挂载一个当前 owner。Run 只表示当前 cursor window；Comparison 即时派生且不持久化；Case / Suite 使用 exact refs；decision 绑定 review digest，`approved` 只形成 append-only evidence。workspace mismatch 零请求失败关闭，切换上下文先清空并拒绝迟到响应，archived application 保留历史只读但关闭诊断与 mutation。 |
 | `radishmind_web_s7_admin_control_plane_v1` | `implementation_r1_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S7 Admin Control Plane — Desktop / Dev Test · R1`、`S7 Admin Control Plane — Narrow / Dev Test · R1` 与 `S1 + S2 + S3 + S4 + S5 + S6 + S7 Visual Language — Design Decision Record · R12`；三者全树无裁切、越界或占位节点 | `adminControlPlaneWorkspace.tsx` 持续挂载 context、七资源任务轨与单 owner，`adminControlPlaneRoute.ts` 固定精确 hash；`devLiveReadConsumer.ts`、`adminProviderRouteWorkspacePanel.tsx`、`ProductNavigation.tsx`、`App.tsx` 与 `styles.css` 复用既有 consumer、配置 owner 和 Workbench 壳层 | Tenant 只显示脱敏 summary；Audit 保持严格 cursor current window，行选中只驱动只读详情；User / Role 没有 RadishMind list owner，明确阻断邀请、角色变更与 production session。Provider / Profile / Route 是同一 `tenant_ref + workspace_id + environment + configuration_id` 原子 owner 的三个任务入口，不拆成伪 CRUD，也不复制 runtime inventory、credential、endpoint 或生产启用能力。 |
 | `radishmind_web_s8_prompt_agent_type_workspace_v1` | `implementation_r1_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S8 Prompt / Agent Type Workspace — Desktop / Dev Test · R1`、`S8 Prompt / Agent Type Workspace — Narrow / Dev Test · R1` 与 `S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 Visual Language — Design Decision Record · R13`；三者全树无裁切、越界或占位节点 | `promptAgentTypeWorkspace.tsx` 与 `promptAgentTypeWorkspaceModel.ts` 负责编排；Template / Profile、Configuration、Candidate、Prompt / Agent Assignment、API / Key、Invocation / Session 与 S6 既有 panel / consumer 继续持有领域真相；`applicationDevelopmentWorkspaceSurface.tsx` 只切换到一个当前 owner，`App.tsx` 在 application selection host 规范化跨类型任务 anchor | Prompt 按八任务、Agent 按七任务组织真实能力。Candidate 与 Assignment 分开定位但不复制状态；application kind 切换只替换上一类型的精确 S8 anchor，不折叠共享或 S6 深层 owner。输入 / 输出保持易失，archived source / governance 只读，controlled use 阻塞；approved、active 或 successful 均不表示 production release / enablement。 |
-| `radishmind_web_s9_admin_quota_admission_v1` | `backend_ready_pencil_blocked` | 待 Pencil 空闲后建立一个 `1440×900` 桌面代表面和无法直接推导的 `390×844` 窄屏代表面 | 后端事实源为 `GatewayRequestQuotaRepository`、`GET / PUT /v1/admin/gateway-request-quotas/{application_id}`、`admin_gateway_quotas:read / write` 与六条 API Key inference admission；React 尚未开始 | 设计只冻结 policy / usage 层级、CAS 确认、quota blocked risk、唯一当前任务和窄屏 context → task → owner 顺序。普通 application / policy 行保持中性，`exceeded` 注意状态不冒充选中；不得绘制生产 membership、生产 API Key、token / cost、billing、自动提额或自动禁用。 |
+| `radishmind_web_s9_admin_quota_admission_v1` | `implementation_r1_completed` | [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 中的 `S9 Admin Quota Admission — Desktop / Dev Test · R1`、`S9 Admin Quota Admission — Narrow / Dev Test · R1` 与 `S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 + S9 Visual Language — Design Decision Record · R14`；三者全树无裁切、越界或占位节点 | `adminControlPlaneWorkspace.tsx` 新增第八项 Quota owner，`adminGatewayRequestQuotaConsumer.ts`、`adminGatewayRequestQuotaPanel.tsx`、`adminControlPlaneRoute.ts`、`App.tsx`、`ProductNavigation.tsx` 与 `styles.css` 复用既有管理上下文、application selection host 和 Workbench 响应式壳层 | Policy 与 usage 只接受 `tenant_ref + workspace_id + environment + application_id` 精确 owner；used / remaining 不从 Request History 或旧 `QuotaSummary` 推算。普通 application 行保持中性，只有驱动详情的 application 使用墨蓝选中轨，`exceeded` 与 blocked 状态不冒充选中。更新只接受正整数并经过 expected-version 确认；生产 membership、OIDC、production quota、token / cost、billing、自动提额、删除 / 禁用和自动路由继续关闭。 |
 
 `S1` 消费 `ref-03`、`ref-07`、`ref-08`、`ref-09`、`ref-15`、`ref-17`、`ref-18`、`ref-19` 与 `ref-24` 的产品层级，并共享 `ref-25` 的白色抬升表面和 `ref-27` 的连续窗格语法；`ref-20` 只保留未来暗色证据，不在当前画板增加主题切换。两个画板均已通过 Pencil 全树布局检查，结果为 `No layout problems`；视觉复核确认没有裁切、重叠和横向溢出。
 
@@ -246,11 +247,11 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 ### 设计批次：真实任务页面蓝图
 
-参考图产品面映射、Pencil 协作模型，以及 `S1 R8`、`S2 R6`、`S3 R2`、`S4 R1`、`S5 R1`、`S6 R1`、`S7 R1`、`S8 R1` 的桌面 / 窄屏设计、React 实现和真实浏览器验收均已完成；`S3 R1` 因确定性画布裁切与层级重复被人工退回的事实保留。2026-08-09 真实路径复核先直接修正两个可复用 S8 接缝，随后新的 quota 专题完成高风险后端 A 至 D，并产生 `S9 Admin Quota Admission` 设计顺位。`S9` 评分为 `8`，不能用 S7 现有结构直接推导完整风险交互；Pencil 被占用期间停在后端就绪，不原地扩张 production membership、OIDC、secret、自动路由、token / cost、billing 或生产启用。
+参考图产品面映射、Pencil 协作模型，以及 `S1 R8`、`S2 R6`、`S3 R2`、`S4 R1`、`S5 R1`、`S6 R1`、`S7 R1`、`S8 R1`、`S9 R1` 的桌面 / 窄屏设计、React 实现和真实浏览器验收均已完成；`S3 R1` 因确定性画布裁切与层级重复被人工退回的事实保留。2026-08-09 真实路径复核先直接修正两个可复用 S8 接缝，再完成 quota 高风险后端 A 至 D，最后按评分 `8` 交付 S9 完整 Pencil 与 React。S9 没有原地扩张 production membership、OIDC、secret、自动路由、token / cost、billing 或生产启用。
 
 ### 实现批次：纵向切片迁移
 
-按“产品壳 → Application Workspace → Saved Draft / Designer → API Integration / Key → Application Runtime Review → Workflow Run & Evaluation Review → Admin Control Plane → Prompt / Agent Type Workspace”的顺序逐批实施。每批同时完成：
+按“产品壳 → Application Workspace → Saved Draft / Designer → API Integration / Key → Application Runtime Review → Workflow Run & Evaluation Review → Admin Control Plane → Prompt / Agent Type Workspace → Admin Quota Admission”的顺序逐批实施。每批同时完成：
 
 - 对应页面和共享组件的语义 token 迁移；
 - 桌面与窄屏行为；
@@ -311,12 +312,17 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 - 2026-08-09 跟进后 Web `295/295` 与 production build 通过；`promptAgentTypeWorkspace 9.38 KiB`，主入口 `462.50 KiB < 500 KiB`。应用内浏览器复验 Agent Invocation → Prompt Invocation、Prompt Session → Agent Suggestion、Profile → Template、Assignment 与 Access 双向切换，以及刷新后的等价任务身份；并覆盖 `1440×900`、`1100×900`、`900×900`、`760×844` 与 `390×844`。各宽度无横向溢出，单任务 / 单 owner、响应式顺序与控制台零 warning / error 均通过。
 - 当前真实产品数据没有 archived application，浏览器没有改写数据制造该状态；纯模型测试继续保证 archived source / governance 只读和 controlled use 阻塞。S8 没有新增 API、schema、repository、permission、task card、fixture、专项 checker、自动 assignment、自动 release、agent loop、production membership、正式 OIDC、生产 secret、provider 自动接入、自动路由或生产启用。
 - S8 受控使用失败交接跟进采用共享允许列表 view model：Prompt Invocation、Prompt Session 与 Agent Session 只对真实 assignment / authority 失败显示原因、零 provider 副作用和当前类型 Assignment 入口，其它失败留在原 owner。Web `298/298`、production build 和 `1440×900`、`1100×900`、`760×844`、`390×844` 浏览器复验通过，单任务 / 单 owner、窄屏顺序、零横向溢出与控制台零 warning / error 均保持成立；既有 S8 Pencil 基准面不变。
+- `S9 R1` 已把 Quota 作为 S7 Admin Control Plane 的第八项精确 owner：application 列表只让当前详情 owner 获得墨蓝选中轨，policy / exceeded / blocked 状态使用独立文字和语义色；详情只消费 quota owner 的 UTC policy / usage，不从 Request History 或旧 `QuotaSummary` 推导。
+- 五维评分为 `1 / 2 / 2 / 2 / 1`，采用 `A / 完整 Pencil`。Desktop / Narrow R1 与 Decision R14 已显式保存并完成全树检查，结果为零裁切、零越界、零占位；设计冻结 policy / usage 层级、expected-version 确认、稳定 blocked reason 和窄屏 context → task → owner 顺序。
+- React 严格校验 exact envelope、作用域、UTC usage 算术与敏感字段；正整数创建 / 更新先 review 再 confirm，CAS 冲突保留旧 owner、禁用编辑并只提供 reload。permission、environment、missing policy、version conflict、store failure 与 disabled gate 均失败关闭，不回退旧 quota evidence。
+- Web `304/304` 与 production build 通过；应用内浏览器覆盖 `1440×900`、`900×900`、`390×844`，各宽度 `scrollWidth` 等于 viewport，应用切换始终只有一个选中轨，missing → create → ready 与并发 version conflict → reload 连续链通过，控制台零 warning / error。自启动服务已关闭，`7000` / `4100` 端口已释放。
+- S9 Web 批次复用既有后端契约、权限和聚合验证，没有新增 API、schema、migration、repository、permission、task card、fixture 或专项 checker；production quota、formal membership / OIDC、token / cost、billing、删除 / 禁用、自动提额和自动路由继续关闭。
 
 ## 停止线
 
 - 基础批次不做 `styles.css` 全量换色、组件重写或页面重新布局。
 - 不因 family-ui 已提供暗色 token 就声明暗色主题切换可用。
-- 不新增 API、schema、migration、repository、生产认证、quota / billing 或执行能力。
+- 不由 UI 产品化专题继续新增 API、schema、migration、repository、生产认证、production quota / billing 或执行能力；开发测试态 quota 只消费其独立功能专题的既有 owner。
 - 不把开发测试态 owner、离线 evidence、首分页窗口或人工审查画成生产就绪、全量统计、自动执行或业务写回。
 - 不要求每个路由、组件、功能状态或相似页面都有独立 Pencil 画板，也不让 Pencil 取代功能文档与当前代码。
 - 不为普通 UI 迁移新增 task card、fixture 或专项 checker；优先复用 Web 测试、build、consumer smoke 和仓库门禁。

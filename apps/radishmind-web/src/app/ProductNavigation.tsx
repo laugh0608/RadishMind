@@ -86,6 +86,7 @@ const SECONDARY_GROUPS = [
       ["#admin-provider-deployment-review", "Provider deployment"],
       ["#admin-tenant-overview", "Tenant overview"],
       ["#admin-audit-log", "Audit log"],
+      ["#admin-gateway-request-quota", "Request quota"],
       ["#routes", "Route catalog"],
       ["#states", "Shared states"],
       ["#guard", "Output guard"],

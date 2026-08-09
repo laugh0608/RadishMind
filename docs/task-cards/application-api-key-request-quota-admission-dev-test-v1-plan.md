@@ -2,7 +2,7 @@
 
 更新时间：2026-08-09
 
-状态：`application_api_key_request_quota_admission_dev_test_v1_backend_a_to_d_completed_web_pending`
+状态：`application_api_key_request_quota_admission_dev_test_v1_completed`
 
 ## 目标
 
@@ -63,12 +63,14 @@
 
 ## 批次 E：Pencil、Web 与产品验收
 
-状态：未开始；Pencil 被其他项目占用。
+状态：已完成。
 
 - 五维初评 `1 / 2 / 2 / 2 / 1 = 8`，按 `A / 完整 Pencil` 处理。
-- Pencil 当前被其他项目占用；空闲且已通知用户后，设计 Admin Quota 桌面 / 窄屏代表面。
+- 已在 Pencil 空闲后完成 Admin Quota Desktop / Narrow R1 与共享 Decision R14，并显式保存设计源。
 - React 复用 S1–S8 Workbench 壳层、唯一选中语义、注意色和开发测试态边界。
 - 自启动服务完成 `1440×900`、关键断点和 `390×844` 严格浏览器验收后关闭。
+
+实际证据：Web `304/304`、production build、三视口零横向溢出和控制台零 warning / error 通过；memory_dev 连续链覆盖 missing policy、正整数创建、显式确认、并发 CAS 冲突、旧 owner 保留和 reload 权威版本。permission、environment、missing policy、version conflict 与 store failure 的严格失败 envelope 由 consumer 测试和现有后端 HTTP 测试共同覆盖。
 
 退出条件：Pencil、Web 测试、production build、真实浏览器、控制台、横向溢出和交互通过。
 
@@ -87,4 +89,4 @@
 - 不实现 token quota、估算、price、cost、billing、rate limit、排队、retry / fallback 或自动路由。
 - 不修改旧 quota fixture 冒充真实 owner，不从 Request History 分页窗口聚合总量。
 - 不为本任务继续新增专项 task card、fixture 或 checker；测试、migration smoke、Web build 和仓库聚合门禁承载证据。
-- Pencil 被占用期间不修改设计源，不用临时 React 结构替代应有的设计基准面。
+- 已冻结的 Pencil 只承载结构、交互、风险和响应式顺序；功能事实继续以专题、API 契约和代码为准，不复制完整状态画板。

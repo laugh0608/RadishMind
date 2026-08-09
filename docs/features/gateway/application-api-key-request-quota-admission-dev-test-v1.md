@@ -2,7 +2,7 @@
 
 更新时间：2026-08-09
 
-状态：`application_api_key_request_quota_admission_dev_test_v1_backend_a_to_d_completed_pencil_blocked`
+状态：`application_api_key_request_quota_admission_dev_test_v1_completed`
 
 ## 功能目标
 
@@ -144,9 +144,9 @@ go run ./cmd/radishmind-gateway-request-quota-migrate status
 
 ## Web 与 Pencil
 
-Web 后续在 Admin Control Plane 新增 Quota 任务 owner，读取当前 application policy、UTC window、used / remaining、record version 与 blocked reason；更新动作要求显式预期版本和影响确认。普通列表保持中性，只有驱动详情的 policy / application 才可选中；`gateway_quota_exceeded` 的注意色不得冒充选中。
+Admin Control Plane 已新增 Quota 任务 owner，读取精确 application policy、UTC window、used / remaining、record version 与 blocked reason；更新动作使用 `expected_version` CAS，并在提交前显示精确 tenant、workspace、environment、application 与 request limit 影响确认。严格 consumer 拒绝额外字段、敏感字段、作用域漂移、policy / usage 不一致和非法计数；permission、environment、missing policy、version conflict、store unavailable 与 gate disabled 都以稳定失败关闭，不回退 Request History 或旧 `QuotaSummary`。
 
-五维初评为 `1 / 2 / 2 / 2 / 1 = 8`：需要新管理任务、原子阻断表达、policy / usage 主次和窄屏顺序，预期为 `A / 完整 Pencil`。Pencil 当前被其他项目占用，本专题在其空闲并通知用户前不操作设计源；后端实现不据此虚构最终 UI。
+五维评分固定为 `1 / 2 / 2 / 2 / 1 = 8`，采用 `A / 完整 Pencil`。Family UI 设计源已新增 `S9 Admin Quota Admission — Desktop / Dev Test · R1`、`S9 Admin Quota Admission — Narrow / Dev Test · R1` 与 `S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 + S9 Visual Language — Design Decision Record · R14`。React 复用 S1–S8 全视口 Workbench 和 S7 管理上下文；普通 application 行保持中性，只有驱动当前详情的 application 使用墨蓝选中轨，`policy missing`、`policy ready`、`limit reached` 与 blocked 状态通过独立文字和语义色表达。
 
 ## 实施批次
 
@@ -156,9 +156,9 @@ Web 后续在 Admin Control Plane 新增 Quota 任务 owner，读取当前 appli
 2. 批次 B：SQLite / PostgreSQL migration、repository、selector、重启和 no-fallback。
 3. 批次 C：Admin read/write API、权限、严格 JSON 与作用域负向验证。
 4. 批次 D：bridge wrapper、六条 API Key inference route、history / run failure 和零 provider 副作用。
-5. 批次 E：Pencil、Admin Web、真实浏览器连续链、文档和仓库门禁；Pencil 占用期间不得开始。
+5. 批次 E：Pencil、Admin Web、真实浏览器连续链、文档和仓库门禁。
 
-截至 2026-08-09，批次 A 至 D 已完成：memory / SQLite / PostgreSQL repository、双数据库 migration、Admin GET / PUT、权限与 membership、六条 API Key inference route 的 provider 前 admission、稳定失败映射及 Run / Request History 诊断均已落地。PostgreSQL 真实门禁已验证 migration 幂等、受限 runtime role、八路并发只准入一次与重启恢复。批次 E 因 Pencil 仍被其他项目占用而保持未开始，React 不用临时结构绕过完整设计基准面。
+截至 2026-08-09，批次 A 至 E 已完成：memory / SQLite / PostgreSQL repository、双数据库 migration、Admin GET / PUT、权限与 membership、六条 API Key inference route 的 provider 前 admission、稳定失败映射、Run / Request History 诊断、完整 Pencil、React consumer、CAS 确认与真实浏览器连续链均已落地。PostgreSQL 真实门禁已验证 migration 幂等、受限 runtime role、八路并发只准入一次与重启恢复；Web 验收进一步以 memory_dev 验证 missing → create → ready，以及外部并发更新造成的 expected version 冲突、旧 owner 保留和显式 reload 回到权威版本。
 
 ## 验收
 
@@ -170,6 +170,8 @@ Web 后续在 Admin Control Plane 新增 Quota 任务 owner，读取当前 appli
 - API 与 Web 不暴露 token、credential digest、Authorization、prompt、message、provider raw response、endpoint、SQL 或 DSN。
 - Web 测试、production build、桌面 / 关键断点 / `390×844` 浏览器、SQLite 重启、PostgreSQL migration / role / 并发和仓库门禁通过。
 
+批次 E 的 Web `304/304` 测试与 production build 已通过；应用内浏览器覆盖 `1440×900`、`900×900` 和 `390×844`，页面 `scrollWidth` 均等于 viewport，application 切换始终只有一个选中轨，CAS 冲突时输入禁用且只能 reload，控制台零 warning / error。自启动平台与 Vite 服务已关闭，`7000` / `4100` 端口已释放。本批没有新增 API、schema、migration、repository、permission、task card、fixture 或专项 checker。
+
 ## 停止线
 
 - 不实现 production quota、真实 OIDC membership、production API Key、tenant-wide / key-specific policy 继承或跨环境复制。
@@ -177,4 +179,4 @@ Web 后续在 Admin Control Plane 新增 Quota 任务 owner，读取当前 appli
 - 不实现 token 强制配额、token 估算、价格、成本换算、billing ledger、invoice、结算或预算告警。
 - 不把 Request History、Workflow Run、旧 quota fixture 或 Web 当前窗口变成 quota 真相源。
 - 不把 admitted 解释为 provider success，也不把 provider reported usage 解释为计费凭证。
-- 不在 Pencil 被占用时修改设计源；后续完整 Pencil 只冻结结构、交互、风险和响应式顺序，功能事实仍以本专题、API 契约和代码为准。
+- 已完成的完整 Pencil 只冻结结构、交互、风险和响应式顺序；功能事实仍以本专题、API 契约和代码为准，后续普通文案或字段变化不派生重复画板。

@@ -1045,6 +1045,14 @@ export function App() {
       scenarioId: null,
     });
   };
+  const handleSelectAdminQuotaApplication = (applicationId: string) => {
+    if (applicationCatalogLive) {
+      const record = applicationCatalogSnapshot?.records.find((item) => item.applicationId === applicationId);
+      if (record) handleSelectApplicationCatalogRecord(record);
+      return;
+    }
+    handleSelectApplication(applicationId);
+  };
   const handleSelectWorkflowDefinition = (workflowDefinitionId: string) => {
     if (workflowExecutorOperationPending) {
       return;
@@ -1959,6 +1967,10 @@ export function App() {
             providerDeploymentReview={adminProviderDeploymentReview}
             sourceConfig={activeDevLiveConfig}
             sourceState={devLiveState}
+            applications={workspaceApplications.applications}
+            selectedApplicationId={applicationDevelopmentWorkspaceContext.applicationId}
+            selectedApplicationDisplayName={applicationDevelopmentWorkspaceContext.displayName}
+            onSelectApplication={handleSelectAdminQuotaApplication}
           />
         </Suspense>
         <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />

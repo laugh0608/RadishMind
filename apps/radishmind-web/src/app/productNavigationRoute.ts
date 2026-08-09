@@ -33,6 +33,7 @@ const ADMIN_CONTROL_PLANE_ANCHORS = new Set([
   "#admin-provider-config",
   "#admin-profile-config",
   "#admin-route-config",
+  "#admin-gateway-request-quota",
   "#admin-operations-review",
   "#admin-provider-deployment-review",
 ]);

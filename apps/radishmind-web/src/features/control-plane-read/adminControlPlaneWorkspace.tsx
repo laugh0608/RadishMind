@@ -16,12 +16,14 @@ import {
   readAdminProviderRouteConfig,
   type AdminProviderRouteConfig,
 } from "./adminProviderRouteConsumer.ts";
+import { readAdminGatewayRequestQuotaConfig } from "./adminGatewayRequestQuotaConsumer.ts";
 import type { AdminTenantOverviewViewModel } from "./adminTenantOverview.ts";
 import {
   loadControlPlaneReadDevLiveCollection,
   type ControlPlaneReadDevLiveConfig,
   type ControlPlaneReadDevLiveLoadState,
 } from "./devLiveReadConsumer.ts";
+import type { WorkspaceApplicationRow } from "./workspaceApplications.ts";
 
 const AdminOperationsReviewPanel = lazy(() =>
   import("./adminOperationsReviewPanel.tsx").then((module) => ({
@@ -38,6 +40,11 @@ const AdminProviderRouteWorkspacePanel = lazy(() =>
     default: module.AdminProviderRouteWorkspacePanel,
   })),
 );
+const AdminGatewayRequestQuotaPanel = lazy(() =>
+  import("./adminGatewayRequestQuotaPanel.tsx").then((module) => ({
+    default: module.AdminGatewayRequestQuotaPanel,
+  })),
+);
 
 const providerRouteConfig = readAdminProviderRouteConfig();
 
@@ -48,6 +55,10 @@ export default function AdminControlPlaneWorkspace({
   providerDeploymentReview,
   sourceConfig,
   sourceState,
+  applications,
+  selectedApplicationId,
+  selectedApplicationDisplayName,
+  onSelectApplication,
 }: {
   tenantOverview: AdminTenantOverviewViewModel;
   auditLog: AdminAuditLogViewModel;
@@ -55,6 +66,10 @@ export default function AdminControlPlaneWorkspace({
   providerDeploymentReview: AdminProviderDeploymentReviewViewModel;
   sourceConfig: ControlPlaneReadDevLiveConfig;
   sourceState: ControlPlaneReadDevLiveLoadState;
+  applications: WorkspaceApplicationRow[];
+  selectedApplicationId: string;
+  selectedApplicationDisplayName: string;
+  onSelectApplication: (applicationId: string) => void;
 }) {
   const [activeSurface, setActiveSurface] = useState<AdminControlPlaneSurface | null>(() =>
     adminControlPlaneSurfaceForHash(window.location.hash),
@@ -102,9 +117,24 @@ export default function AdminControlPlaneWorkspace({
   }, [activeSurface]);
 
   const activeTask = ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === activeSurface);
+  const quotaConfig = useMemo(
+    () => readAdminGatewayRequestQuotaConfig({
+      tenantRef: sourceConfig.tenantRef,
+      workspaceId: sourceConfig.workspaceId ?? "",
+      applicationId: selectedApplicationId,
+    }),
+    [selectedApplicationId, sourceConfig.tenantRef, sourceConfig.workspaceId],
+  );
   const statusBySurface = useMemo(
-    () => buildResourceStatuses(tenantOverview, auditLog, sourceConfig, sourceState, providerRouteConfig),
-    [auditLog, sourceConfig, sourceState, tenantOverview],
+    () => buildResourceStatuses(
+      tenantOverview,
+      auditLog,
+      sourceConfig,
+      sourceState,
+      providerRouteConfig,
+      quotaConfig.mode,
+    ),
+    [auditLog, quotaConfig.mode, sourceConfig, sourceState, tenantOverview],
   );
 
   return (
@@ -117,15 +147,21 @@ export default function AdminControlPlaneWorkspace({
     >
       <header className="admin-control-plane-heading">
         <div>
-          <p className="eyebrow">S7 · Admin Control Plane</p>
-          <h3 id="admin-control-plane-title">Administration and routing</h3>
-          <p>Review scoped identity evidence, then use the explicit development/test configuration owner.</p>
+          <p className="eyebrow">{activeSurface === "quota" ? "S9 · Admin Quota Admission" : "S7 · Admin Control Plane"}</p>
+          <h3 id="admin-control-plane-title">
+            {activeSurface === "quota" ? "Application request quota" : "Administration and routing"}
+          </h3>
+          <p>
+            {activeSurface === "quota"
+              ? "Maintain the exact development/test application policy and its quota-owner UTC usage."
+              : "Review scoped identity evidence, then use the explicit development/test configuration owner."}
+          </p>
         </div>
         <dl>
           <div><dt>Tenant</dt><dd>{sourceConfig.tenantRef}</dd></div>
           <div><dt>Workspace</dt><dd>{sourceConfig.workspaceId ?? "unavailable"}</dd></div>
           <div><dt>Auth source</dt><dd>{adminAuthSourceLabel(sourceConfig)}</dd></div>
-          <div><dt>Environment</dt><dd>{providerRouteConfig.environment}</dd></div>
+          <div><dt>Environment</dt><dd>{activeSurface === "quota" ? quotaConfig.environment : providerRouteConfig.environment}</dd></div>
         </dl>
       </header>
 
@@ -152,7 +188,7 @@ export default function AdminControlPlaneWorkspace({
           <p className="admin-control-plane-boundary">
             <span aria-hidden="true">!</span>
             User and Role remain Radish-owned. Production membership, formal OIDC, secrets, onboarding,
-            automatic routing, and production enablement stay closed.
+            automatic routing, production quota, token/cost and billing stay closed.
           </p>
         </nav>
 
@@ -166,6 +202,17 @@ export default function AdminControlPlaneWorkspace({
           ) : null}
           {activeSurface === "provider" || activeSurface === "profile" || activeSurface === "route" ? (
             <AdminProviderRouteOwner surface={activeSurface} config={providerRouteConfig} />
+          ) : null}
+          {activeSurface === "quota" ? (
+            <AdminQuotaOwner
+              tenantRef={sourceConfig.tenantRef}
+              workspaceId={sourceConfig.workspaceId ?? ""}
+              selectedApplicationId={selectedApplicationId}
+              selectedApplicationDisplayName={selectedApplicationDisplayName}
+              applications={applications}
+              onSelectApplication={onSelectApplication}
+              live={quotaConfig.mode === "dev_admin_gateway_request_quota_http"}
+            />
           ) : null}
         </main>
       </div>
@@ -196,6 +243,7 @@ function buildResourceStatuses(
   sourceConfig: ControlPlaneReadDevLiveConfig,
   sourceState: ControlPlaneReadDevLiveLoadState,
   routeConfig: AdminProviderRouteConfig,
+  quotaMode: "offline" | "dev_admin_gateway_request_quota_http",
 ): Record<AdminControlPlaneSurface, ResourceStatus> {
   const liveReady = sourceConfig.mode === "dev_live_http" && sourceState.status === "ready";
   const tenantStatus: ResourceStatus = liveReady && tenantOverview.canRenderTenant
@@ -219,6 +267,9 @@ function buildResourceStatuses(
     provider: routeStatus,
     profile: routeStatus,
     route: routeStatus,
+    quota: quotaMode === "dev_admin_gateway_request_quota_http"
+      ? { label: "UTC daily CAS", tone: "ready" }
+      : { label: "offline", tone: "neutral" },
   };
 }
 
@@ -487,6 +538,47 @@ function AdminProviderRouteOwner({
       </header>
       <Suspense fallback={<div className="admin-control-plane-loading">Loading controlled configuration owner…</div>}>
         <AdminProviderRouteWorkspacePanel focus={surface} />
+      </Suspense>
+    </section>
+  );
+}
+
+function AdminQuotaOwner({
+  tenantRef,
+  workspaceId,
+  selectedApplicationId,
+  selectedApplicationDisplayName,
+  applications,
+  onSelectApplication,
+  live,
+}: {
+  tenantRef: string;
+  workspaceId: string;
+  selectedApplicationId: string;
+  selectedApplicationDisplayName: string;
+  applications: WorkspaceApplicationRow[];
+  onSelectApplication: (applicationId: string) => void;
+  live: boolean;
+}) {
+  return (
+    <section className="admin-control-owner-surface admin-control-quota-owner" aria-labelledby="admin-quota-owner-title">
+      <header>
+        <div>
+          <p className="eyebrow">Quota · development / test</p>
+          <h4 id="admin-quota-owner-title">Application request quota admission</h4>
+          <p>Read the current UTC owner, then review and confirm one expected-version policy update.</p>
+        </div>
+        <StatusPill tone={live ? "ready" : "neutral"}>{live ? "dev/test control" : "offline"}</StatusPill>
+      </header>
+      <Suspense fallback={<div className="admin-control-plane-loading">Loading application quota owner…</div>}>
+        <AdminGatewayRequestQuotaPanel
+          tenantRef={tenantRef}
+          workspaceId={workspaceId}
+          selectedApplicationId={selectedApplicationId}
+          selectedApplicationDisplayName={selectedApplicationDisplayName}
+          applications={applications}
+          onSelectApplication={onSelectApplication}
+        />
       </Suspense>
     </section>
   );

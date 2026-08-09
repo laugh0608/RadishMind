@@ -5,7 +5,8 @@ export type AdminControlPlaneSurface =
   | "audit"
   | "provider"
   | "profile"
-  | "route";
+  | "route"
+  | "quota";
 
 export type AdminControlPlaneResourceTask = {
   surface: AdminControlPlaneSurface;
@@ -23,6 +24,7 @@ export const ADMIN_CONTROL_PLANE_RESOURCE_TASKS: ReadonlyArray<AdminControlPlane
   { surface: "provider", anchor: "admin-provider-config", label: "Provider", scope: "inventory ref", number: "05" },
   { surface: "profile", anchor: "admin-profile-config", label: "Profile", scope: "assignment", number: "06" },
   { surface: "route", anchor: "admin-route-config", label: "Route", scope: "generation CAS", number: "07" },
+  { surface: "quota", anchor: "admin-gateway-request-quota", label: "Quota", scope: "UTC daily CAS", number: "08" },
 ];
 
 const SURFACE_BY_HASH = new Map<string, AdminControlPlaneSurface>([
