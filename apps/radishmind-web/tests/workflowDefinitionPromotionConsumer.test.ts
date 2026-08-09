@@ -6,6 +6,7 @@ import {
   createWorkflowDefinitionCandidate,
   decideWorkflowDefinitionCandidate,
   deriveWorkflowDraftFromDefinitionVersion,
+  evaluateWorkflowDefinitionCandidateCompatibility,
   listWorkflowDefinitionCandidates,
   startWorkflowDefinitionRun,
   type WorkflowDefinitionPromotionConfig,
@@ -23,6 +24,22 @@ test("workflow definition promotion remains offline with zero requests", async (
   assert.deepEqual(await listWorkflowDefinitionCandidates(offline, applicationId), []);
   await assert.rejects(() => createWorkflowDefinitionCandidate(offline, applicationId, { candidateId: "candidate_demo", definitionId: "definition_demo", draftId: "draft_demo", expectedDraftVersion: 1, expectedLifecycleVersion: 1 }), /offline mode/u);
   assert.equal(requests, 0);
+});
+
+test("candidate compatibility routes RAG drafts to their dedicated promotion owner", () => {
+  const compatible = evaluateWorkflowDefinitionCandidateCompatibility({
+    executionProfile: "executor_v0",
+    nodes: [{ nodeType: "prompt" }, { nodeType: "llm" }, { nodeType: "output" }],
+  });
+  assert.equal(compatible.compatible, true);
+
+  const rag = evaluateWorkflowDefinitionCandidateCompatibility({
+    executionProfile: "rag_retrieval_v1",
+    nodes: [{ nodeType: "prompt" }, { nodeType: "rag_retrieval" }, { nodeType: "llm" }, { nodeType: "output" }],
+  });
+  assert.deepEqual(rag.unsupportedNodeTypes, ["rag_retrieval"]);
+  assert.equal(rag.handoffAnchor, "workflow-rag-promotion-review");
+  assert.match(rag.summary, /RAG Promotion/u);
 });
 
 test("candidate create sends exact scope and strict authority fields", async () => {
@@ -89,10 +106,12 @@ test("derived draft preserves exact immutable base version provenance", () => {
       inputContract: { contractId: "contract_input", requiredFields: ["input_text"], summary: "input" }, outputContract: { contractId: "contract_output", requiredFields: ["answer"], summary: "output" }, providerRefs: ["provider:mock"], toolRefs: [], ragRefs: [], requestedCapabilities: [], executionProfile: "workflow_definition_executor_v1",
     }, activationEligible: true, eligibilityBlockers: [], createdAt: document.created_at, createdByActorRef: document.created_by_actor_ref, requestId: document.request_id, auditRef: document.audit_ref,
   };
+  version.snapshot.nodes = [version.snapshot.nodes[2]!, version.snapshot.nodes[1]!, version.snapshot.nodes[0]!];
   const draft = deriveWorkflowDraftFromDefinitionVersion(version, applicationId, 2);
   assert.equal(draft.workflowDefinitionId, "definition_demo");
   assert.equal(draft.baseDefinitionVersion, 1);
   assert.equal(draft.localOnlyInteraction, "local_edit");
+  assert.deepEqual(draft.nodes.map((node) => node.nodeType), ["prompt", "llm", "output"]);
 });
 
 function releaseEnvelope(overrides: Record<string, unknown> = {}) { return { request_id: "request_release", workspace_id: "workspace_demo", application_id: applicationId, candidate: null, version: null, activation: null, failure_code: null, current_review_version: 0, current_pointer_version: 0, audit_ref: "audit_release", ...overrides }; }

@@ -7,6 +7,7 @@ import {
   decideWorkflowDefinitionActivation,
   decideWorkflowDefinitionCandidate,
   deriveWorkflowDraftFromDefinitionVersion,
+  evaluateWorkflowDefinitionCandidateCompatibility,
   listWorkflowDefinitionCandidates,
   listWorkflowDefinitionVersions,
   readWorkflowDefinitionActivation,
@@ -54,6 +55,14 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
   const [pending, setPending] = useState("");
   const [notice, setNotice] = useState("");
   const [failure, setFailure] = useState("");
+  const candidateCompatibility = useMemo(
+    () => evaluateWorkflowDefinitionCandidateCompatibility(activeDraft),
+    [activeDraft],
+  );
+  const canCreateCandidate = candidateCompatibility.compatible
+    && savedDraftVersion > 0
+    && savedDraftLifecycleVersion > 0
+    && savedDraftLifecycleState === "active";
 
   const activeVersion = useMemo(
     () => versions.find((version) => activation?.state === "active" && version.version === activation.activeVersion) ?? null,
@@ -117,6 +126,8 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
   useEffect(() => {
     setCandidateId(defaultCandidateId(activeDraft.draftId, savedDraftVersion));
     setDefinitionId(activeDraft.workflowDefinitionId || defaultDefinitionId(activeDraft.draftId));
+    setFailure("");
+    setNotice("");
   }, [activeDraft.draftId, activeDraft.workflowDefinitionId, savedDraftVersion]);
 
   useEffect(() => {
@@ -158,6 +169,10 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
   }
 
   async function createCandidate() {
+    if (!candidateCompatibility.compatible) {
+      setFailure(candidateCompatibility.summary);
+      return;
+    }
     if (savedDraftVersion < 1 || savedDraftLifecycleVersion < 1 || savedDraftLifecycleState !== "active") {
       setFailure("必须先重新读取活动草案的精确内容版本和生命周期版本，才能创建晋级候选。");
       return;
@@ -234,7 +249,8 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
         <label>Candidate ID<input value={candidateId} onChange={(event) => setCandidateId(event.currentTarget.value)} /></label>
         <label>Definition ID<input value={definitionId} onChange={(event) => setDefinitionId(event.currentTarget.value)} /></label>
         <dl><div><dt>Draft</dt><dd>{activeDraft.draftId} · v{savedDraftVersion} · lifecycle v{savedDraftLifecycleVersion} · {savedDraftLifecycleState}</dd></div><div><dt>Provenance</dt><dd>{activeDraft.workflowDefinitionId || "new lineage"} · base v{activeDraft.baseDefinitionVersion ?? 0}</dd></div></dl>
-        <button type="button" disabled={Boolean(pending) || savedDraftVersion < 1 || savedDraftLifecycleVersion < 1 || savedDraftLifecycleState !== "active"} onClick={() => void createCandidate()}>创建晋级候选</button>
+        {!candidateCompatibility.compatible ? <div className="workflow-definition-candidate-handoff"><strong>当前草案不能进入 Definition candidate</strong><p>{candidateCompatibility.summary}</p>{candidateCompatibility.handoffAnchor ? <a href={`#${candidateCompatibility.handoffAnchor}`}>转到 Workflow RAG Promotion</a> : null}</div> : null}
+        <button type="button" disabled={Boolean(pending) || !canCreateCandidate} onClick={() => void createCandidate()}>创建晋级候选</button>
         <div className="workflow-definition-list">{candidates.map((candidate) => <button type="button" className={candidate.candidateId === selectedCandidate?.candidateId ? "selected" : ""} key={candidate.candidateId} onClick={() => setSelectedCandidateId(candidate.candidateId)}><strong>{candidate.candidateId}</strong><span>{candidate.state} · review v{candidate.reviewVersion}</span></button>)}</div>
       </article>
       <article>

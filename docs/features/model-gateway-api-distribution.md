@@ -1,6 +1,6 @@
 # Model Gateway / API Distribution 设计与开发文档
 
-更新时间：2026-07-27
+更新时间：2026-08-09
 
 ## 功能定位
 
@@ -47,7 +47,7 @@ Workflow 产品链、Gateway Request History、[Gateway Playground / Request Rev
 4. 已实现健康握手、并发上限、排队、超时 / 取消、崩溃恢复、优雅退出和 credential 隔离。
 5. 新实现相对 back-to-back process 基线的顺序 / 并发 bridge 自身 p95 开销下降 `93.5% / 94.4%`，已切换默认模式。
 6. Request History、Playground、Application API Integration、Application Configuration Draft / Review 与 Publish Governance 已完成 application → validated configuration → models / examples → request → response → history → immutable candidate / review 的开发测试路径。
-7. API 密钥 Gateway 认证、本地连续链、PostgreSQL migration / 角色 / 方言 / 并发门禁、Web 一次性交接和浏览器重启复验均已通过；Provider reported usage 已进入 canonical envelope、三协议、历史与应用审查。独立 application request quota 已完成后端 owner、双数据库、Admin API 和六条 route provider 前准入，Pencil / Admin Web 待设计源空闲；不提前打开 production distribution、token 估算、价格、production quota 或计费。
+7. API 密钥 Gateway 认证、本地连续链、PostgreSQL migration / 角色 / 方言 / 并发门禁、Web 一次性交接和浏览器重启复验均已通过；Provider reported usage 已进入 canonical envelope、三协议、历史与应用审查。独立 application request quota 已完成三模式 owner、Admin API、六条 route provider 前准入、S9 完整 Pencil、React 严格 consumer、CAS 确认与真实浏览器连续链；不提前打开 production distribution、token 估算、价格、production quota 或计费。
 
 ## 验收方式
 

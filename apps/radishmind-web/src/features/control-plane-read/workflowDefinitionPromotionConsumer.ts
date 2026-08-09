@@ -25,6 +25,38 @@ export type WorkflowDefinitionPromotionConfig = {
   subjectRef: string;
 };
 
+export type WorkflowDefinitionCandidateCompatibility = {
+  compatible: boolean;
+  unsupportedNodeTypes: Array<"rag_retrieval" | "http_tool">;
+  handoffAnchor: "workflow-rag-promotion-review" | null;
+  summary: string;
+};
+
+export function evaluateWorkflowDefinitionCandidateCompatibility(
+  draft: {
+    nodes: Array<Pick<WorkflowDraftDesignerDraft["nodes"][number], "nodeType">>;
+    executionProfile?: WorkflowDraftDesignerDraft["executionProfile"];
+  },
+): WorkflowDefinitionCandidateCompatibility {
+  const unsupportedNodeTypes = [...new Set(
+    draft.nodes
+      .map((node) => node.nodeType)
+      .filter((nodeType): nodeType is "rag_retrieval" | "http_tool" => nodeType === "rag_retrieval" || nodeType === "http_tool"),
+  )];
+  if (unsupportedNodeTypes.length === 0) {
+    return { compatible: true, unsupportedNodeTypes, handoffAnchor: null, summary: "Saved Draft 与 Workflow Definition candidate v1 契约兼容。" };
+  }
+  const routesToRAGOwner = unsupportedNodeTypes.includes("rag_retrieval") || draft.executionProfile === "rag_retrieval_v1";
+  return {
+    compatible: false,
+    unsupportedNodeTypes,
+    handoffAnchor: routesToRAGOwner ? "workflow-rag-promotion-review" : null,
+    summary: routesToRAGOwner
+      ? "该草案包含 RAG retrieval 节点；请先在独立的 Workflow RAG Promotion owner 完成知识证据晋级与绑定审查。"
+      : `Workflow Definition candidate v1 不接收 ${unsupportedNodeTypes.join(", ")} 节点。`,
+  };
+}
+
 export type WorkflowDefinitionSnapshot = {
   schemaVersion: "saved_workflow_draft.v1";
   name: string;
@@ -355,6 +387,7 @@ export async function startWorkflowDefinitionRun(config: WorkflowDefinitionPromo
 export function deriveWorkflowDraftFromDefinitionVersion(version: WorkflowDefinitionVersion, applicationId: string, draftNumber: number): WorkflowDraftDesignerDraft {
   const number = String(Math.max(1, draftNumber)).padStart(2, "0");
   const draftId = `draft_${safeIdPart(version.definitionId)}_v${version.version}_${number}`;
+  const orderedNodes = workflowDefinitionNodesInGraphOrder(version.snapshot);
   return {
     draftId,
     templateRef: `${version.definitionId}:v${version.version}`,
@@ -364,7 +397,7 @@ export function deriveWorkflowDraftFromDefinitionVersion(version: WorkflowDefini
     baseDefinitionVersion: version.version,
     providerProfileRef: version.snapshot.providerRefs[0] ?? "",
     summary: `Derived from immutable ${version.definitionId} v${version.version}; edits require a new candidate, review, and activation.`,
-    nodes: version.snapshot.nodes.map((node) => ({
+    nodes: orderedNodes.map((node) => ({
       ...node,
       riskLevel: node.riskLevel === "high" ? "high" : node.riskLevel === "medium" ? "medium" : "low",
       lane: node.nodeType === "llm" ? "model" : node.nodeType === "condition" ? "policy" : node.nodeType === "output" ? "output" : "context",
@@ -372,7 +405,7 @@ export function deriveWorkflowDraftFromDefinitionVersion(version: WorkflowDefini
       previewOnlyReason: "Derived editable draft; the source definition version remains immutable.",
     })),
     edges: version.snapshot.edges.map((edge) => ({ ...edge, edgeKind: "context" })),
-    designerLayout: { source: "workflow_node_designer", persistence: "ui_only", nodePositions: version.snapshot.nodes.map((node, index) => ({ nodeId: node.nodeId, x: index * 320, y: 0 })) },
+    designerLayout: { source: "workflow_node_designer", persistence: "ui_only", nodePositions: orderedNodes.map((node, index) => ({ nodeId: node.nodeId, x: index * 320, y: 0 })) },
     readiness: [{ checkId: "definition_provenance", label: "Definition provenance", status: "ready", summary: `Exact source ${version.definitionId} v${version.version} · ${version.definitionDigest}.` }],
     risks: [],
     blockedCapabilities: [],
@@ -380,6 +413,31 @@ export function deriveWorkflowDraftFromDefinitionVersion(version: WorkflowDefini
     localOnlyInteraction: "local_edit",
     executionProfile: "executor_v0",
   };
+}
+
+function workflowDefinitionNodesInGraphOrder(snapshot: WorkflowDefinitionSnapshot): WorkflowDefinitionSnapshot["nodes"] {
+  const nodesById = new Map(snapshot.nodes.map((node) => [node.nodeId, node]));
+  const sourceOrder = new Map(snapshot.nodes.map((node, index) => [node.nodeId, index]));
+  const indegree = new Map(snapshot.nodes.map((node) => [node.nodeId, 0]));
+  const outgoing = new Map(snapshot.nodes.map((node) => [node.nodeId, [] as string[]]));
+  for (const edge of snapshot.edges) {
+    if (!nodesById.has(edge.fromNodeId) || !nodesById.has(edge.toNodeId)) return [...snapshot.nodes];
+    indegree.set(edge.toNodeId, (indegree.get(edge.toNodeId) ?? 0) + 1);
+    outgoing.get(edge.fromNodeId)?.push(edge.toNodeId);
+  }
+  const ready = snapshot.nodes.filter((node) => indegree.get(node.nodeId) === 0).map((node) => node.nodeId);
+  const ordered: WorkflowDefinitionSnapshot["nodes"] = [];
+  while (ready.length > 0) {
+    ready.sort((left, right) => (sourceOrder.get(left) ?? 0) - (sourceOrder.get(right) ?? 0));
+    const nodeId = ready.shift()!;
+    ordered.push(nodesById.get(nodeId)!);
+    for (const targetId of outgoing.get(nodeId) ?? []) {
+      const nextIndegree = (indegree.get(targetId) ?? 0) - 1;
+      indegree.set(targetId, nextIndegree);
+      if (nextIndegree === 0) ready.push(targetId);
+    }
+  }
+  return ordered.length === snapshot.nodes.length ? ordered : [...snapshot.nodes];
 }
 
 async function readRelease(config: WorkflowDefinitionPromotionConfig, applicationId: string, path: string, scope: string): Promise<ReleaseEnvelope> {

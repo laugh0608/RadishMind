@@ -160,7 +160,12 @@ export default function ApplicationDevelopmentWorkspacePanel({
   const reportEvidence = useCallback((input: ApplicationDevelopmentEvidenceReport) => {
     if (input.applicationId !== context.applicationId || input.workspaceGenerationKey !== context.generationKey) return;
     if (!applicationDevelopmentRouteAcceptsResponse(input.surfaceKey, routeStateRef.current)) return;
-    setEvidenceState((current) => applyApplicationDevelopmentEvidence(current, context, input));
+    setEvidenceState((current) => {
+      if (current.applicationId !== context.applicationId || current.workspaceGenerationKey !== context.generationKey) {
+        return current;
+      }
+      return applyApplicationDevelopmentEvidence(current, context, input);
+    });
   }, [context]);
 
   const issueHandoff = useCallback((input: ApplicationDevelopmentHandoffInput) => {

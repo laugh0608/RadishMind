@@ -42,7 +42,8 @@ VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$13,$14)`, ctx.TenantRef, ctx
 		if err != nil {
 			return postgresWorkflowDefinitionMutationError(err)
 		}
-		audit := store.audits[workflowDefinitionScopeKey(ctx, "candidate")][0]
+		candidateAudits := store.audits[workflowDefinitionScopeKey(ctx, "candidate")]
+		audit := candidateAudits[len(candidateAudits)-1]
 		if err = insertPostgresWorkflowDefinitionAudit(tx, ctx, audit); err != nil {
 			return err
 		}

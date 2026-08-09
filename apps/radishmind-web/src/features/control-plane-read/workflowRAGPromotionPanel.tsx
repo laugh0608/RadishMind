@@ -163,7 +163,7 @@ export default function WorkflowRAGPromotionPanel({ applicationId, applicationNa
     }
   }
 
-  if (promotionConfig.mode === "offline") return <section className="workflow-rag-promotion-panel offline" aria-label="Workflow RAG knowledge promotion"><div className="section-heading compact-heading"><div><p className="eyebrow">Workflow RAG · Promotion</p><h4>知识基线晋级审查未启用</h4></div><span className="status-badge neutral">offline</span></div><p>Offline mode sends zero promotion requests. Dataset、草案、decision 与 binding 均不会在浏览器中伪造。</p></section>;
+  if (promotionConfig.mode === "offline") return <section className="workflow-rag-promotion-panel offline" id="workflow-rag-promotion-review" aria-label="Workflow RAG knowledge promotion"><div className="section-heading compact-heading"><div><p className="eyebrow">Workflow RAG · Promotion</p><h4>知识基线晋级审查未启用</h4></div><span className="status-badge neutral">offline</span></div><p>Offline mode sends zero promotion requests. Dataset、草案、decision 与 binding 均不会在浏览器中伪造。</p></section>;
 
   return <section className="workflow-rag-promotion-panel" id="workflow-rag-promotion-review" aria-labelledby="workflow-rag-promotion-title">
     <div className="section-heading compact-heading"><div><p className="eyebrow">Workflow RAG · Promotion & binding</p><h4 id="workflow-rag-promotion-title">知识证据晋级、人工决定与配置绑定资格</h4></div><span className={`status-badge ${detail?.eligibility.eligible ? "good" : operation.failureCode ? "bad" : "neutral"}`}>{detail?.candidate.candidateState ?? operation.status}</span></div>

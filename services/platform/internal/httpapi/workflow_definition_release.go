@@ -265,8 +265,36 @@ func workflowDefinitionEligibility(draft SavedWorkflowDraft) (bool, []string) {
 			blockers = append(blockers, "confirmation_authority_required:"+node.NodeID)
 		}
 	}
+	if blocker := workflowDefinitionExecutionBlocker(draft); blocker != "" {
+		blockers = append(blockers, blocker)
+	}
 	sort.Strings(blockers)
 	return len(blockers) == 0, blockers
+}
+
+func workflowDefinitionExecutionBlocker(draft SavedWorkflowDraft) string {
+	conditionValues := make(map[string]bool)
+	for _, node := range draft.Nodes {
+		if node.NodeType == "condition" {
+			conditionValues[node.NodeID] = false
+		}
+	}
+	if _, failureCode, _ := buildWorkflowExecutionPlan(draft, conditionValues); failureCode != "" {
+		return "execution_profile_incompatible:" + string(failureCode)
+	}
+	return ""
+}
+
+func workflowDefinitionDraftMatchesCandidateContract(draft SavedWorkflowDraft) bool {
+	for _, node := range draft.Nodes {
+		switch node.NodeType {
+		case "prompt", "llm", "condition", "output":
+			continue
+		default:
+			return false
+		}
+	}
+	return true
 }
 
 func (store *workflowDefinitionReleaseStore) CreateCandidate(ctx WorkflowDefinitionReleaseContext, candidateID, definitionID string, draft SavedWorkflowDraft, now time.Time) (WorkflowDefinitionReleaseCandidate, error) {
@@ -275,6 +303,9 @@ func (store *workflowDefinitionReleaseStore) CreateCandidate(ctx WorkflowDefinit
 		return WorkflowDefinitionReleaseCandidate{}, errWorkflowDefinitionPayloadInvalid
 	}
 	if draft.DraftStatus != SavedWorkflowDraftStatusValidForReview || !draft.ValidationSummary.ValidForReview || len(draft.BlockedCapabilitySummary) > 0 {
+		return WorkflowDefinitionReleaseCandidate{}, errWorkflowDefinitionInvalidState
+	}
+	if !workflowDefinitionDraftMatchesCandidateContract(draft) {
 		return WorkflowDefinitionReleaseCandidate{}, errWorkflowDefinitionInvalidState
 	}
 	snapshot, digest, err := workflowDefinitionSnapshotFromDraft(draft)
@@ -430,6 +461,10 @@ func (store *workflowDefinitionReleaseStore) DecideActivation(ctx WorkflowDefini
 		}
 		selected := versions[version-1]
 		if !selected.ActivationEligible || len(selected.EligibilityBlockers) > 0 {
+			return WorkflowDefinitionActivation{}, errWorkflowDefinitionInvalidState
+		}
+		executionDraft := workflowDefinitionSnapshotAsDraft(WorkflowRunContext{WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID}, selected)
+		if workflowDefinitionExecutionBlocker(executionDraft) != "" {
 			return WorkflowDefinitionActivation{}, errWorkflowDefinitionInvalidState
 		}
 		activeDigest = selected.DefinitionDigest

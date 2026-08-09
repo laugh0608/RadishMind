@@ -183,6 +183,53 @@ func TestSQLiteWorkflowDefinitionReleaseLifecycleRestartAndAppendOnly(t *testing
 	}
 }
 
+func TestSQLiteWorkflowDefinitionReleaseCreateAdvancesPastOrphanedAppendOnlyAudit(t *testing.T) {
+	runtime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: filepath.Join(t.TempDir(), "workflow-definition-orphan-audit.db"), Migrations: sqliteworkflowrunmigrations.Migrations()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer runtime.Close()
+	repository := newSQLiteWorkflowDefinitionReleaseRepository(runtime.DB())
+	ctx := workflowDefinitionTestContext()
+	ctx.RequestContext = context.Background()
+	now := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
+
+	first, err := repository.CreateCandidate(ctx, "candidate-orphaned", "definition-orphaned", workflowDefinitionTestDraft(), now)
+	if err != nil {
+		t.Fatalf("create first candidate: %v", err)
+	}
+	result, err := runtime.DB().ExecContext(context.Background(), `DELETE FROM workflow_definition_release_candidates WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND candidate_id=?`, ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, first.CandidateID)
+	if err != nil {
+		t.Fatalf("remove unreferenced candidate fixture: %v", err)
+	}
+	if affected, rowsErr := result.RowsAffected(); rowsErr != nil || affected != 1 {
+		t.Fatalf("unexpected candidate cleanup result: affected=%d err=%v", affected, rowsErr)
+	}
+
+	if _, err = repository.CreateCandidate(ctx, "candidate-after-orphan", "definition-after-orphan", workflowDefinitionTestDraft(), now.Add(time.Minute)); err != nil {
+		t.Fatalf("create after append-only orphan audit: %v", err)
+	}
+	rows, err := runtime.DB().QueryContext(context.Background(), `SELECT audit_id FROM workflow_definition_release_audits WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? ORDER BY occurred_at_unix_nano,audit_id`, ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rows.Close()
+	var auditIDs []string
+	for rows.Next() {
+		var auditID string
+		if err = rows.Scan(&auditID); err != nil {
+			t.Fatal(err)
+		}
+		auditIDs = append(auditIDs, auditID)
+	}
+	if err = rows.Err(); err != nil {
+		t.Fatal(err)
+	}
+	if len(auditIDs) != 2 || auditIDs[0] != "release-audit-candidate-1" || auditIDs[1] != "release-audit-candidate-2" {
+		t.Fatalf("append-only audit sequence drift: %#v", auditIDs)
+	}
+}
+
 func TestSQLiteWorkflowDefinitionReleaseCASAndCorruptionFailClosed(t *testing.T) {
 	runtime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: filepath.Join(t.TempDir(), "workflow-definition-cas.db"), Migrations: sqliteworkflowrunmigrations.Migrations()})
 	if err != nil {

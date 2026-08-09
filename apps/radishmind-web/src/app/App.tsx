@@ -4293,8 +4293,8 @@ function WorkflowDraftStructuralCheckCard({ check }: { check: WorkflowDraftStruc
       </div>
       <p>{check.summary}</p>
       <div className="workflow-draft-validation-evidence" aria-label="Workflow draft structural check evidence">
-        {check.evidenceRefs.map((evidenceRef) => (
-          <code key={evidenceRef}>{evidenceRef}</code>
+        {check.evidenceRefs.map((evidenceRef, index) => (
+          <code key={`${evidenceRef}:${index}`}>{evidenceRef}</code>
         ))}
       </div>
     </article>

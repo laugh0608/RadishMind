@@ -38,7 +38,8 @@ func (repository *sqliteWorkflowDefinitionReleaseRepository) CreateCandidate(ctx
 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, candidate.CandidateID, candidate.DefinitionID, candidate.State, candidate.ReviewVersion, candidate.SourceDraftID, candidate.SourceDraftVersion, candidate.SourceDraftDigest, candidate.DefinitionDigest, createdAt, createdAt, string(candidatePayload)); err != nil {
 			return sqliteWorkflowDefinitionMutationError(err)
 		}
-		audit := store.audits[workflowDefinitionScopeKey(ctx, "candidate")][0]
+		candidateAudits := store.audits[workflowDefinitionScopeKey(ctx, "candidate")]
+		audit := candidateAudits[len(candidateAudits)-1]
 		if err = insertSQLiteWorkflowDefinitionAudit(connection, ctx, audit); err != nil {
 			return err
 		}

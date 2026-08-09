@@ -6166,6 +6166,20 @@ dd {
   background: rgba(95, 196, 209, 0.1);
 }
 
+.workflow-definition-candidate-handoff {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(169, 187, 201, 0.28);
+  border-radius: 0.65rem;
+  background: rgba(169, 187, 201, 0.08);
+}
+
+.workflow-definition-candidate-handoff p {
+  margin: 0;
+  color: #a9bbc9;
+}
+
 @media (max-width: 900px) {
   .workflow-definition-promotion-grid {
     grid-template-columns: 1fr;
