@@ -6786,6 +6786,40 @@ dd {
   background: var(--rm-attention-soft);
 }
 
+.controlled-use-failure-guidance {
+  background: var(--rm-attention-soft);
+  border: 1px solid var(--rm-border-soft);
+  border-left: 3px solid var(--rm-attention-primary);
+  border-radius: var(--rm-radius-md);
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 1rem;
+  min-width: 0;
+  padding: 1rem;
+}
+
+.controlled-use-failure-guidance h5,
+.controlled-use-failure-guidance p {
+  margin: 0;
+}
+
+.controlled-use-failure-guidance > p {
+  color: var(--rm-text-secondary);
+  line-height: 1.5;
+}
+
+.controlled-use-failure-guidance > a {
+  color: var(--rm-action-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  justify-self: start;
+  text-decoration: none;
+}
+
+.controlled-use-failure-guidance > a:hover {
+  text-decoration: underline;
+}
+
 .prompt-agent-type-loading,
 .prompt-agent-type-blocked {
   background: var(--rm-bg-muted);

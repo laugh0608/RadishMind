@@ -120,6 +120,14 @@ Agent / Copilot Runtime Assignment 是当前运行 authority 的 ref-only 指针
 
 `CopilotResponse.proposed_actions` 只作为候选动作返回。任何 `requires_confirmation=true` 的动作都不得由本专题执行；首版即使返回 `apply` 描述，也不能把它解释为已授权命令、工具调用或业务写回。
 
+### Web 资格失败交接
+
+S8 Controlled Use 继续直接调用 Application Session v3 owner，由服务端重读 Agent Copilot assignment、candidate、Configuration Draft 与 Profile Version。前端不复制运行资格，也不根据已加载摘要预先禁用 Session 创建。
+
+当 Session owner 稳定返回 `application_session_authority_not_found`、`application_session_authority_changed` 或 `application_session_profile_ineligible` 时，Web 可以说明本次尝试在 Gateway / provider 调用前失败关闭，并提供当前 Agent Application 的 `#agent-copilot-runtime-assignment` 精确入口。该入口只切换既有 Assignment owner，不携带 application ID、candidate ID 或 mutation 参数，不自动 activate、replace、revoke 或重试。其它权限、输入、存储、传输、响应契约、取消和 outcome unknown 失败保持原始 owner 处理。
+
+该交接已在 2026-08-09 实现并用 SQLite 真实 `application_session_authority_changed` 复验；桌面与移动端均只选中 Assignment task，不产生自动 mutation 或 provider 重试。
+
 ## 数据、隐私与运行证据
 
 Profile owner 可以保存结构化策略源码，但不得保存 credential、token、header、cookie、DSN、运行输入或外部系统业务内容。Configuration Draft、Publish Candidate 与 Runtime Assignment 只保存精确 ref、digest 和必要审计 metadata。

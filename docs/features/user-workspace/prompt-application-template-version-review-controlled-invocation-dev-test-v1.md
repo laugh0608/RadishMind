@@ -172,6 +172,14 @@ Prompt invocation service 在创建运行前和每次计划内 provider 调用�
 
 原始变量、渲染消息、模板正文副本、模型输出和 provider raw response 只在当前请求内存中存在。成功响应可把当前输出返回调用方；幂等重试和历史读取不得根据 metadata 伪造输出或 transcript。
 
+### Web 资格失败交接
+
+S8 的 Prompt Invocation 与 Prompt Session 继续把运行资格交给服务端 exact authority resolver，前端不根据已加载 assignment 摘要建立第二套 readiness 判定。Prompt Invocation 只有在服务端稳定返回 `prompt_runtime_assignment_not_found`、`prompt_runtime_candidate_ineligible` 或 `prompt_runtime_authority_changed` 时，才说明本次尝试在 Gateway / provider 调用前失败关闭，并提供 `#prompt-application-runtime-assignment` 精确入口。Prompt Session 只对 `application_session_authority_not_found`、`application_session_authority_changed` 或 `application_session_profile_ineligible` 提供相同交接。
+
+该入口不携带 application ID、candidate ID、version 或 mutation 参数，只切换既有 Assignment owner；不能自动 activate、replace、revoke、重新签发 credential 或重试调用。scope、输入、传输、存储、响应契约、取消和 outcome unknown 等失败继续由原 owner 解释。
+
+该交接已在 2026-08-09 进入共享 Web 组件与纯 view model 测试；真实浏览器同时确认 Prompt Invocation / Session 在没有允许列表内失败时不会显示伪恢复入口。
+
 ## Web 产品路径
 
 Prompt Application 工作区作为既有 Application Development Workspace 下的独立 feature-owned surface，至少覆盖：

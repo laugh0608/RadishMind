@@ -243,7 +243,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 ### 设计批次：真实任务页面蓝图
 
-参考图产品面映射、Pencil 协作模型，以及 `S1 R8`、`S2 R6`、`S3 R2`、`S4 R1`、`S5 R1`、`S6 R1`、`S7 R1`、`S8 R1` 的桌面 / 窄屏设计、React 实现和真实浏览器验收均已完成；`S3 R1` 因确定性画布裁切与层级重复被人工退回的事实保留。2026-08-09 真实路径复核只暴露 S8 跨 application kind 的 URL 任务身份失真，既有结构、交互与响应式基准无需改变，因此直接修正 React anchor 规范化，不新增 Pencil 画板。后续产品化批次必须先由当前功能设计顺位产生，不从 S7 / S8 原地扩张 production membership、OIDC、secret、自动路由、自动 assignment、agent loop 或生产启用。
+参考图产品面映射、Pencil 协作模型，以及 `S1 R8`、`S2 R6`、`S3 R2`、`S4 R1`、`S5 R1`、`S6 R1`、`S7 R1`、`S8 R1` 的桌面 / 窄屏设计、React 实现和真实浏览器验收均已完成；`S3 R1` 因确定性画布裁切与层级重复被人工退回的事实保留。2026-08-09 真实路径复核先暴露 S8 跨 application kind 的 URL 任务身份失真，随后暴露受控使用资格失败缺少 Assignment 交接；两者均复用既有结构、交互、风险和响应式基准，后者五维评分 `0 / 0 / 0 / 1 / 1 = 2`，因此都直接修正 React，不新增 Pencil 画板。后续产品化批次必须先由当前功能设计顺位产生，不从 S7 / S8 原地扩张 production membership、OIDC、secret、自动路由、自动 assignment、agent loop 或生产启用。
 
 ### 实现批次：纵向切片迁移
 
@@ -307,6 +307,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 - 五维评分为 `1 / 2 / 2 / 2 / 2`，采用 `A / 完整 Pencil`。Desktop / Narrow R1 与 Decision R13 已完成全树检查，结果为零裁切、零越界、零占位；Prompt 差异进入共享决策记录，不复制第二套完整画板。
 - 2026-08-09 跟进后 Web `295/295` 与 production build 通过；`promptAgentTypeWorkspace 9.38 KiB`，主入口 `462.50 KiB < 500 KiB`。应用内浏览器复验 Agent Invocation → Prompt Invocation、Prompt Session → Agent Suggestion、Profile → Template、Assignment 与 Access 双向切换，以及刷新后的等价任务身份；并覆盖 `1440×900`、`1100×900`、`900×900`、`760×844` 与 `390×844`。各宽度无横向溢出，单任务 / 单 owner、响应式顺序与控制台零 warning / error 均通过。
 - 当前真实产品数据没有 archived application，浏览器没有改写数据制造该状态；纯模型测试继续保证 archived source / governance 只读和 controlled use 阻塞。S8 没有新增 API、schema、repository、permission、task card、fixture、专项 checker、自动 assignment、自动 release、agent loop、production membership、正式 OIDC、生产 secret、provider 自动接入、自动路由或生产启用。
+- S8 受控使用失败交接跟进采用共享允许列表 view model：Prompt Invocation、Prompt Session 与 Agent Session 只对真实 assignment / authority 失败显示原因、零 provider 副作用和当前类型 Assignment 入口，其它失败留在原 owner。Web `298/298`、production build 和 `1440×900`、`1100×900`、`760×844`、`390×844` 浏览器复验通过，单任务 / 单 owner、窄屏顺序、零横向溢出与控制台零 warning / error 均保持成立；既有 S8 Pencil 基准面不变。
 
 ## 停止线
 

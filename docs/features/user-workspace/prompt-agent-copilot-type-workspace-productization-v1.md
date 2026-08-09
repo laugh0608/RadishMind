@@ -64,6 +64,18 @@ S1–S8 连续产品路径复核发现：从 Agent / Copilot application 切换�
 
 本轮只补类型切换时的 anchor 规范化：若当前 hash 是上一类型的精确 S8 owner anchor，则在不增加浏览历史的前提下替换为新类型的等价任务 anchor；共享 Configuration / Candidate anchor、S6 深层 review anchor 与无关页面 hash 保持原样。Prompt Session 切到 Agent 时落到其唯一 Session v3 Suggestion owner。该修正不改变 owner、权限、分页、API、schema 或执行行为，也不需要新的 Pencil 基准面。
 
+### 2026-08-09 受控使用资格失败交接
+
+真实 SQLite 路径进一步发现：Agent Session 在当前 assignment 已漂移时由服务端正确返回 `application_session_authority_changed`，且 Gateway / provider 副作用为零；但 Controlled Use owner 只显示技术失败码，用户无法判断应返回哪个既有 owner 修复资格。Prompt 单次调用和 Prompt Session 也存在相同信息断点。
+
+本轮按真实 consumer 冻结允许列表式解释：
+
+- Prompt 单次调用仅将 `prompt_runtime_assignment_not_found`、`prompt_runtime_candidate_ineligible`、`prompt_runtime_authority_changed` 交给 Prompt Assignment；
+- Prompt Session 与 Agent Session 仅将 `application_session_authority_not_found`、`application_session_authority_changed`、`application_session_profile_ineligible` 交给各自 Assignment；
+- 解释同时说明当前尝试在 provider 调用前失败关闭，不声称 assignment 已修复，也不自动 activate、replace、revoke 或重试；
+- scope、输入、传输、存储、响应契约、取消和 outcome unknown 等失败保持原 owner 与原技术证据，不错误引导到 Assignment；
+- 前端不预读或复制 runtime eligibility，不因本地推测禁用请求；服务端继续是当前 authority 与副作用边界的唯一判定者。
+
 ## 任务拓扑
 
 Prompt Application 使用以下任务顺序：
@@ -99,6 +111,8 @@ Agent / Copilot 使用同一语法，但类型任务为 `Profile → Configurati
 - 一个窄屏代表面，冻结“类型上下文 → 全部任务 → 当前 owner → 停止线”的顺序；
 - Prompt 差异直接写入设计决策，不复制完整画板。
 
+本轮受控使用资格失败交接五维评分为 `0 / 0 / 0 / 1 / 1 = 2`：不改变 S8 结构、交互模型或风险语义，只复用既有失败表达、Assignment task 和窄屏顺序增加精确恢复入口，因此采用 `C / 直接实现`，不修改 Pencil。
+
 ## React 纵向切片
 
 1. 新增纯 view model，按 application kind、stage 与 hash 确定任务集合和当前 owner；非法类型或未知 hash 失败关闭。
@@ -107,12 +121,14 @@ Agent / Copilot 使用同一语法，但类型任务为 `Profile → Configurati
 4. 为 Prompt assignment 与 Session 补稳定 anchor，不修改其 API、状态机或 mutation 行为。
 5. Evaluation 继续交给 S6；S8 只说明 exact Run handoff、当前窗口和人工 evidence 停止线。
 6. application kind 改变时，只规范化上一类型的精确 S8 anchor；普通 hashchange 和 S6 深层 owner anchor 不改写。
+7. 对允许列表内的 assignment / authority 失败显示确定性原因、零 provider 副作用和对应 Assignment 锚点；其它失败不提供该交接。
 
 ## 验收方式
 
 - 纯 view model 测试覆盖 Prompt / Agent 任务集合、hash 选择、stage fallback、跨类型 anchor 规范化、archived blocked action 与未知类型拒绝。
 - Web 全量测试与 production build 通过。
 - 真实浏览器覆盖 `1440×900`、关键断点和 `390×844`；检查任务选中、状态与选中分离、单 owner、响应式顺序、交互、横向溢出和控制台。
+- 真实失败链验证 Controlled Use 显示精确资格说明，点击后只切换到当前类型的 Assignment task；不得发起自动 mutation 或 provider 重试。
 - 运行 `./scripts/check-repo.sh --fast`；本批更新阶段真相源与产品化顺位，提交前补跑全量 `./scripts/check-repo.sh`。
 
 ## 实现结果
@@ -120,10 +136,11 @@ Agent / Copilot 使用同一语法，但类型任务为 `Profile → Configurati
 - Pencil 已新增 `S8 Prompt / Agent Type Workspace — Desktop / Dev Test · R1`、`S8 Prompt / Agent Type Workspace — Narrow / Dev Test · R1`，共享决策记录升级为 `S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 Visual Language — Design Decision Record · R13`；全树检查无裁切、越界或占位节点。
 - React 已新增类型任务 view model 与持续 S8 工作面。Prompt 使用八任务，Agent 使用七任务；任一时刻只挂载一个既有 owner，Evaluation 只形成 S6 交接说明。S2 通用 surface 不再重复挂载 Prompt / Agent owner，Workflow / RAG 路径保持原状。
 - Prompt Candidate 原组件继续持有候选数据，只新增可关闭的内嵌 assignment 组合和当前候选回传，供 S8 将 Candidate 与 Assignment 分成两个真实任务；没有复制 candidate 或 runtime assignment 状态机。
-- Web `295/295` 单元测试与 production build 通过。S8 入口 chunk 为 `9.38 KiB`，主入口为 `462.50 KiB`，均在现有预算内。
+- Web `298/298` 单元测试与 production build 通过。共享 `ControlledUseFailureGuidance` chunk 为 `2.66 KiB`，S8 入口 chunk 为 `9.44 KiB`，主入口为 `462.50 KiB`，均在现有预算内。
 - 应用内浏览器使用自启动 SQLite Agent / Prompt 本地产品链完成两类任务逐项切换；严格覆盖 `1440×900`、`1100×900`、`900×900`、`760×844` 与 `390×844`。各宽度 document / body / S8 scroll width 与 viewport 一致，当前任务和 owner 均唯一，响应式顺序正确，控制台零 warning / error。
 - 当前产品数据没有 archived application 记录，因此浏览器没有改写真实数据制造归档态；归档 source / governance 只读和 controlled use 阻塞由纯模型测试覆盖。开发服务在验收后关闭。
 - 2026-08-09 应用内浏览器真实复验 Agent Invocation → Prompt Invocation、Prompt Session → Agent Suggestion、Profile → Template、Assignment 与 Access 双向切换，并确认刷新后按真实选中 application 保留等价任务身份；共享 owner、S6 深层 review 与普通页面 hash 不被改写。既有 Pencil 基准面继续有效。
+- 2026-08-09 第二次真实复验以 Agent `application_session_authority_changed` 触发资格卡，确认技术码、确定性解释、零 provider 副作用和 `#agent-copilot-runtime-assignment` 精确交接同时可见；点击后只有 Assignment task 与 owner 被选中。Prompt Invocation / Session 无对应失败时不显示伪恢复入口。`1440×900`、`1100×900`、`760×844` 与 `390×844` 均无横向溢出，控制台零 warning / error，开发服务已关闭。
 
 ## 停止线
 

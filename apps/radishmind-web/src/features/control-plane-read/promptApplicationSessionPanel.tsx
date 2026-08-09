@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { parsePromptApplicationVariables } from "./promptApplicationInvocationConsumer.ts";
+import ControlledUseFailureGuidance from "./ControlledUseFailureGuidance.tsx";
 import {
   createPromptApplicationSession,
   executePromptApplicationSessionTurn,
@@ -143,6 +144,7 @@ export default function PromptApplicationSessionPanel({
           </>
         ) : null}
         {result.failureCode ? <p className="failure-summary">{result.failureCode}: {result.failureSummary}</p> : null}
+        <ControlledUseFailureGuidance owner="prompt_session" failureCode={result.failureCode} />
         <p className="boundary-note">{result.summary}</p>
       </article>
       <p className="boundary-note">
