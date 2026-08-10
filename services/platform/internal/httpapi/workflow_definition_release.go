@@ -102,9 +102,11 @@ type WorkflowDefinitionEdge struct {
 }
 
 type WorkflowDefinitionContract struct {
-	ContractID     string   `json:"contract_id"`
-	RequiredFields []string `json:"required_fields"`
-	Summary        string   `json:"summary"`
+	ContractID     string                         `json:"contract_id"`
+	RequiredFields []string                       `json:"required_fields,omitempty"`
+	Fields         []WorkflowStructuredInputField `json:"fields,omitempty"`
+	Summary        string                         `json:"summary"`
+	ContractDigest string                         `json:"contract_digest,omitempty"`
 }
 
 type WorkflowDefinitionReview struct {
@@ -224,6 +226,17 @@ func workflowDefinitionScopeKey(ctx WorkflowDefinitionReleaseContext, id string)
 }
 
 func workflowDefinitionSnapshotFromDraft(draft SavedWorkflowDraft) (WorkflowDefinitionSnapshot, string, error) {
+	_, _, executorProfile, supported := workflowDefinitionSchemaIdentityForDraft(draft.SchemaVersion)
+	if !supported {
+		return WorkflowDefinitionSnapshot{}, "", errWorkflowDefinitionPayloadInvalid
+	}
+	if draft.SchemaVersion == savedWorkflowDraftStructuredSchemaVersion {
+		inputContract, failureCode, _ := normalizeWorkflowStructuredInputContract(draft.InputContract)
+		if failureCode != "" {
+			return WorkflowDefinitionSnapshot{}, "", errWorkflowDefinitionPayloadInvalid
+		}
+		draft.InputContract = inputContract
+	}
 	snapshot := WorkflowDefinitionSnapshot{
 		SchemaVersion:         draft.SchemaVersion,
 		Name:                  strings.TrimSpace(draft.Name),
@@ -236,14 +249,22 @@ func workflowDefinitionSnapshotFromDraft(draft SavedWorkflowDraft) (WorkflowDefi
 		ToolRefs:              cloneStringSlice(draft.ToolRefs),
 		RAGRefs:               cloneStringSlice(draft.RAGRefs),
 		RequestedCapabilities: cloneStringSlice(draft.RequestedCapabilities),
-		ExecutionProfile:      "workflow_definition_executor_v1",
+		ExecutionProfile:      executorProfile,
 	}
-	payload, err := json.Marshal(snapshot)
+	digest, err := workflowDefinitionSnapshotDigest(snapshot)
 	if err != nil {
 		return WorkflowDefinitionSnapshot{}, "", err
 	}
+	return snapshot, digest, nil
+}
+
+func workflowDefinitionSnapshotDigest(snapshot WorkflowDefinitionSnapshot) (string, error) {
+	payload, err := json.Marshal(snapshot)
+	if err != nil {
+		return "", err
+	}
 	digest := sha256.Sum256(payload)
-	return snapshot, "sha256:" + hex.EncodeToString(digest[:]), nil
+	return "sha256:" + hex.EncodeToString(digest[:]), nil
 }
 
 func workflowDefinitionEligibility(draft SavedWorkflowDraft) (bool, []string) {
@@ -279,7 +300,7 @@ func workflowDefinitionExecutionBlocker(draft SavedWorkflowDraft) string {
 			conditionValues[node.NodeID] = false
 		}
 	}
-	if _, failureCode, _ := buildWorkflowExecutionPlan(draft, conditionValues); failureCode != "" {
+	if _, failureCode, _ := buildWorkflowDefinitionExecutionPlan(draft, conditionValues); failureCode != "" {
 		return "execution_profile_incompatible:" + string(failureCode)
 	}
 	return ""
@@ -327,7 +348,7 @@ func (store *workflowDefinitionReleaseStore) CreateCandidate(ctx WorkflowDefinit
 	}
 	timestamp := now.UTC().Format(time.RFC3339Nano)
 	candidate := WorkflowDefinitionReleaseCandidate{
-		SchemaVersion:       workflowDefinitionCandidateSchemaVersion,
+		SchemaVersion:       workflowDefinitionCandidateSchemaForDraft(draft.SchemaVersion),
 		CandidateID:         candidateID,
 		DefinitionID:        definitionID,
 		SourceDraftID:       draft.DraftID,
@@ -403,8 +424,12 @@ func (store *workflowDefinitionReleaseStore) Review(ctx WorkflowDefinitionReleas
 	}
 	definitionKey := workflowDefinitionScopeKey(ctx, candidate.DefinitionID)
 	versionNumber := len(store.versions[definitionKey]) + 1
+	versionSchema, ok := workflowDefinitionVersionSchemaForCandidate(candidate.SchemaVersion)
+	if !ok {
+		return WorkflowDefinitionReleaseCandidate{}, nil, errWorkflowDefinitionStore
+	}
 	version := WorkflowDefinitionVersion{
-		SchemaVersion:          workflowDefinitionVersionSchemaVersion,
+		SchemaVersion:          versionSchema,
 		DefinitionID:           candidate.DefinitionID,
 		Version:                versionNumber,
 		DefinitionDigest:       candidate.DefinitionDigest,
@@ -624,7 +649,9 @@ func cloneWorkflowDefinitionSnapshot(value WorkflowDefinitionSnapshot) WorkflowD
 	}
 	value.Edges = append([]WorkflowDefinitionEdge(nil), value.Edges...)
 	value.InputContract.RequiredFields = cloneStringSlice(value.InputContract.RequiredFields)
+	value.InputContract.Fields = cloneWorkflowStructuredInputFields(value.InputContract.Fields)
 	value.OutputContract.RequiredFields = cloneStringSlice(value.OutputContract.RequiredFields)
+	value.OutputContract.Fields = cloneWorkflowStructuredInputFields(value.OutputContract.Fields)
 	value.ProviderRefs = cloneStringSlice(value.ProviderRefs)
 	value.ToolRefs = cloneStringSlice(value.ToolRefs)
 	value.RAGRefs = cloneStringSlice(value.RAGRefs)
@@ -656,7 +683,10 @@ func workflowDefinitionEdgesFromDraft(edges []SavedWorkflowDraftEdge) []Workflow
 }
 
 func workflowDefinitionContractFromDraft(contract SavedWorkflowDraftContract) WorkflowDefinitionContract {
-	return WorkflowDefinitionContract{ContractID: contract.ContractID, RequiredFields: cloneStringSlice(contract.RequiredFields), Summary: contract.Summary}
+	return WorkflowDefinitionContract{
+		ContractID: contract.ContractID, RequiredFields: cloneStringSlice(contract.RequiredFields),
+		Fields: cloneWorkflowStructuredInputFields(contract.Fields), Summary: contract.Summary, ContractDigest: contract.ContractDigest,
+	}
 }
 
 func cloneWorkflowDefinitionCandidate(value WorkflowDefinitionReleaseCandidate) WorkflowDefinitionReleaseCandidate {

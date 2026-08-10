@@ -283,6 +283,10 @@ func validateWorkflowRunStoreRecord(runContext WorkflowRunContext, record *Workf
 		if err := validateAgentCopilotWorkflowRunRecord(runContext, record); err != nil {
 			return errWorkflowRunStoreContract
 		}
+	} else if record.SchemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion {
+		if err := validateWorkflowDefinitionStructuredRunStoreRecord(runContext, record); err != nil {
+			return errWorkflowRunStoreContract
+		}
 	} else if record.SchemaVersion == workflowRunRecordDefinitionSchemaVersion {
 		if err := validateWorkflowDefinitionRunStoreRecord(runContext, record); err != nil {
 			return errWorkflowRunStoreContract
@@ -335,7 +339,8 @@ func validWorkflowRunRecordSchema(schemaVersion string) bool {
 	return schemaVersion == workflowRunRecordSchemaVersion || schemaVersion == workflowRunRecordLegacySchemaVersion ||
 		schemaVersion == workflowRunRecordToolSchemaVersion || schemaVersion == workflowRunRecordRAGSchemaVersion ||
 		schemaVersion == workflowRunRecordAppRAGSchemaVersion || schemaVersion == workflowRunRecordDefinitionSchemaVersion ||
-		schemaVersion == workflowRunRecordPromptSchemaVersion || schemaVersion == agentCopilotRunV7Schema
+		schemaVersion == workflowRunRecordPromptSchemaVersion || schemaVersion == agentCopilotRunV7Schema ||
+		schemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion
 }
 
 func validWorkflowRunStatus(status WorkflowRunStatus) bool {
@@ -358,6 +363,7 @@ func cloneWorkflowRunRecord(record WorkflowRunRecord) WorkflowRunRecord {
 		cloned.Diagnostic = &diagnostic
 	}
 	cloned.ConditionNodeIDs = cloneStringSlice(record.ConditionNodeIDs)
+	cloned.InputFields = cloneWorkflowStructuredInputMetadataFields(record.InputFields)
 	if record.ToolAttempt != nil {
 		attempt := *record.ToolAttempt
 		attempt.OutputProjection = make(map[string]any, len(record.ToolAttempt.OutputProjection))

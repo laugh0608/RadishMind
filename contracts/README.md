@@ -1,6 +1,6 @@
 # RadishMind 统一契约文件
 
-更新时间：2026-08-09
+更新时间：2026-08-10
 
 本目录承载 `RadishMind` 第一版真实契约文件。
 
@@ -92,6 +92,11 @@
 76. `application-session-v3.schema.json`
 77. `application-session-turn-v3.schema.json`
 78. `workflow-run-record-v7.schema.json`
+79. `saved-workflow-draft-v2.schema.json`
+80. `workflow-definition-release-candidate-v2.schema.json`
+81. `workflow-definition-version-v2.schema.json`
+82. `workflow-run-record-v8.schema.json`
+83. `workflow-run-comparison-v7.schema.json`
 
 当前 TypeScript 消费契约：
 
@@ -101,6 +106,8 @@
 4. `typescript/control-plane-read-api.ts`
 
 使用原则：
+
+- `saved-workflow-draft-v2.schema.json`、`workflow-definition-release-candidate-v2.schema.json`、`workflow-definition-version-v2.schema.json`、`workflow-run-record-v8.schema.json` 与 `workflow-run-comparison-v7.schema.json` 共同冻结 Workflow Definition 结构化运行输入的独立兼容域；v2 合同只允许最多 `16` 个扁平强类型字段，Run v8 与 Comparison v7 只保留合同、字段名 / 类型、bytes、digest 和 authority metadata，不保存输入值，也不把 v1 自动迁移或 fallback 到 v2
 
 - 文档说明以 [docs/radishmind-integration-contracts.md](../docs/radishmind-integration-contracts.md) 为语义说明入口；分主题契约说明位于 [docs/contracts/](../docs/contracts/README.md)
 - `contracts/` 中的 schema 是程序化校验入口

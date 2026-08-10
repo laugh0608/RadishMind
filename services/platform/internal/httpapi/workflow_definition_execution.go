@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"strings"
 )
 
@@ -140,15 +139,6 @@ func normalizeWorkflowDefinitionRunRequest(request WorkflowDefinitionRunRequest)
 	return request, "", ""
 }
 
-func workflowDefinitionSnapshotDigest(snapshot WorkflowDefinitionSnapshot) (string, error) {
-	payload, err := json.Marshal(snapshot)
-	if err != nil {
-		return "", err
-	}
-	digest := sha256.Sum256(payload)
-	return "sha256:" + hex.EncodeToString(digest[:]), nil
-}
-
 func workflowDefinitionInputDigest(input string) string {
 	digest := sha256.Sum256([]byte(input))
 	return "sha256:" + hex.EncodeToString(digest[:])
@@ -163,7 +153,14 @@ func workflowDefinitionSnapshotAsDraft(ctx WorkflowRunContext, version WorkflowD
 	for _, edge := range version.Snapshot.Edges {
 		edges = append(edges, SavedWorkflowDraftEdge{EdgeID: edge.EdgeID, FromNodeID: edge.FromNodeID, ToNodeID: edge.ToNodeID, ConditionSummary: edge.ConditionSummary})
 	}
-	return SavedWorkflowDraft{DraftID: version.SourceDraftID, DraftVersion: version.SourceDraftVersion, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, SchemaVersion: savedWorkflowDraftSchemaVersion, DraftStatus: SavedWorkflowDraftStatusValidForReview, Nodes: nodes, Edges: edges, ProviderRefs: cloneStringSlice(version.Snapshot.ProviderRefs), ToolRefs: cloneStringSlice(version.Snapshot.ToolRefs), RAGRefs: cloneStringSlice(version.Snapshot.RAGRefs), RequestedCapabilities: cloneStringSlice(version.Snapshot.RequestedCapabilities), ValidationSummary: SavedWorkflowDraftValidationSummary{ValidationState: SavedWorkflowDraftStatusValidForReview, ValidForReview: true}}
+	return SavedWorkflowDraft{
+		DraftID: version.SourceDraftID, DraftVersion: version.SourceDraftVersion, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
+		SchemaVersion: version.Snapshot.SchemaVersion, DraftStatus: SavedWorkflowDraftStatusValidForReview, Nodes: nodes, Edges: edges,
+		InputContract: savedWorkflowDraftContractFromDefinition(version.Snapshot.InputContract), OutputContract: savedWorkflowDraftContractFromDefinition(version.Snapshot.OutputContract),
+		ProviderRefs: cloneStringSlice(version.Snapshot.ProviderRefs), ToolRefs: cloneStringSlice(version.Snapshot.ToolRefs), RAGRefs: cloneStringSlice(version.Snapshot.RAGRefs),
+		RequestedCapabilities: cloneStringSlice(version.Snapshot.RequestedCapabilities),
+		ValidationSummary:     SavedWorkflowDraftValidationSummary{ValidationState: SavedWorkflowDraftStatusValidForReview, ValidForReview: true},
+	}
 }
 
 func workflowDefinitionRunAuthority(value workflowDefinitionExecutionAuthority) *WorkflowDefinitionRunAuthority {

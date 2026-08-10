@@ -2,7 +2,7 @@
 
 更新时间：2026-08-10
 
-状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_design_frozen_implementation_not_started`
+状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_a_completed_batch_b_next`
 
 对应功能文档：[Workflow Definition 结构化运行输入（开发 / 测试态）v1](../features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)
 
@@ -46,11 +46,11 @@
 
 ## 批次 A：版本化 schema 与领域模型
 
-- [ ] 增加 Draft v2、Release Candidate v2、Definition Version v2 schema 与 Go 类型。
-- [ ] 增加 Run v8、Comparison v7 及 `workflow_definition_executor.v2` evaluation profile。
-- [ ] 实现 contract / input canonicalization、digest、预算、secret 与稳定 failure code。
-- [ ] 冻结 v1/v2 compatibility matrix，覆盖历史读取、无自动迁移、混合请求和无 fallback。
-- [ ] 更新 Saved Draft validation / release candidate / promotion domain tests。
+- [x] 增加 Draft v2、Release Candidate v2、Definition Version v2 schema 与 Go 类型。
+- [x] 增加 Run v8、Comparison v7 及 `workflow_definition_executor.v2` evaluation profile。
+- [x] 实现 contract / input canonicalization、digest、预算、secret 与稳定 failure code。
+- [x] 冻结 v1/v2 compatibility matrix，覆盖历史读取、无自动迁移、混合请求和无 fallback。
+- [x] 更新 Saved Draft validation / release candidate / promotion domain tests。
 
 批次 A 退出条件：相同合同与输入跨重复编码得到相同 digest；任何不合法值在执行副作用前失败；旧版本行为不变。
 
@@ -105,4 +105,4 @@
 
 ## 当前下一步
 
-实施批次 A。先提交版本化 schema、Go 领域合同和 compatibility tests；在这些身份稳定前，不创建 migration，不修改 React，也不操作 Pencil。
+实施批次 B。先接通 strict v1/v2 HTTP request union 与 `workflow_definition_executor_v2`，再按 memory → SQLite → PostgreSQL 顺序补 durable lifecycle、migration、restart / corruption / CAS / no-fallback 测试和 Direct Run / Run History metadata-only 纵向链；本批仍不修改 React，也不操作 Pencil。

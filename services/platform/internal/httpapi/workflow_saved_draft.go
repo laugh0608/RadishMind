@@ -165,6 +165,8 @@ type SavedWorkflowDraftContract struct {
 	ContractID     string
 	RequiredFields []string
 	Summary        string
+	Fields         []WorkflowStructuredInputField
+	ContractDigest string
 }
 
 type SavedWorkflowDraft struct {
@@ -537,7 +539,7 @@ func (service savedWorkflowDraftService) ReadDraft(
 	if !lifecycleOK {
 		return savedWorkflowDraftFailure(SavedWorkflowDraftFailureLifecycleStoreContract, auditMetadata)
 	}
-	if draft.SchemaVersion != savedWorkflowDraftSchemaVersion {
+	if !supportedSavedWorkflowDraftSchemaVersion(draft.SchemaVersion) {
 		result := savedWorkflowDraftFailure(SavedWorkflowDraftFailureSchemaVersionUnsupported, auditMetadata)
 		result.CurrentDraftVersion = draft.DraftVersion
 		result.ValidationSummary = SavedWorkflowDraftValidationSummary{
@@ -661,8 +663,15 @@ func (service savedWorkflowDraftService) validatePayload(
 	if normalized.DraftID == "" || normalized.Name == "" {
 		return normalized, savedWorkflowDraftFailure(SavedWorkflowDraftFailurePayloadInvalid, auditMetadata)
 	}
-	if normalized.SchemaVersion != savedWorkflowDraftSchemaVersion {
+	if !supportedSavedWorkflowDraftSchemaVersion(normalized.SchemaVersion) {
 		return normalized, savedWorkflowDraftFailure(SavedWorkflowDraftFailureSchemaVersionUnsupported, auditMetadata)
+	}
+	if normalized.SchemaVersion == savedWorkflowDraftStructuredSchemaVersion {
+		inputContract, failureCode, _ := normalizeWorkflowStructuredInputContract(normalized.InputContract)
+		if failureCode != "" {
+			return normalized, savedWorkflowDraftFailure(SavedWorkflowDraftFailureContractInvalid, auditMetadata)
+		}
+		normalized.InputContract = inputContract
 	}
 	if savedWorkflowDraftPayloadTooLarge(normalized) {
 		return normalized, savedWorkflowDraftFailure(SavedWorkflowDraftFailurePayloadTooLarge, auditMetadata)
@@ -771,6 +780,13 @@ func savedWorkflowDraftPayloadTooLarge(payload SavedWorkflowDraftPayload) bool {
 			return true
 		}
 		for _, text := range []string{node.InputSummary, node.OutputSummary, node.OutputMappingSummary} {
+			if len(text) > maxSavedWorkflowDraftTextLength {
+				return true
+			}
+		}
+	}
+	for _, field := range payload.InputContract.Fields {
+		for _, text := range []string{field.Name, field.Label, field.Description} {
 			if len(text) > maxSavedWorkflowDraftTextLength {
 				return true
 			}
@@ -1037,15 +1053,23 @@ func validateSavedWorkflowDraftGraph(
 
 func validateSavedWorkflowDraftContracts(payload SavedWorkflowDraftPayload) []SavedWorkflowDraftValidationFinding {
 	findings := make([]SavedWorkflowDraftValidationFinding, 0)
-	if payload.InputContract.ContractID == "" || len(payload.InputContract.RequiredFields) == 0 {
+	inputInvalid := payload.InputContract.ContractID == "" || len(payload.InputContract.RequiredFields) == 0
+	if payload.SchemaVersion == savedWorkflowDraftStructuredSchemaVersion {
+		_, failureCode, _ := normalizeWorkflowStructuredInputContract(payload.InputContract)
+		inputInvalid = failureCode != ""
+	} else if len(payload.InputContract.Fields) != 0 || payload.InputContract.ContractDigest != "" {
+		inputInvalid = true
+	}
+	if inputInvalid {
 		findings = append(findings, SavedWorkflowDraftValidationFinding{
 			Code:     SavedWorkflowDraftFailureContractInvalid,
 			Severity: SavedWorkflowDraftValidationBlocking,
 			Field:    "input_contract",
-			Summary:  "Input contract must define a contract id and required fields.",
+			Summary:  "Input contract does not match the saved workflow draft schema version.",
 		})
 	}
-	if payload.OutputContract.ContractID == "" || len(payload.OutputContract.RequiredFields) == 0 {
+	if payload.OutputContract.ContractID == "" || len(payload.OutputContract.RequiredFields) == 0 ||
+		len(payload.OutputContract.Fields) != 0 || payload.OutputContract.ContractDigest != "" {
 		findings = append(findings, SavedWorkflowDraftValidationFinding{
 			Code:     SavedWorkflowDraftFailureContractInvalid,
 			Severity: SavedWorkflowDraftValidationBlocking,
@@ -1298,6 +1322,8 @@ func cloneSavedWorkflowDraftContract(contract SavedWorkflowDraftContract) SavedW
 		ContractID:     strings.TrimSpace(contract.ContractID),
 		RequiredFields: normalizedStringSet(contract.RequiredFields),
 		Summary:        strings.TrimSpace(contract.Summary),
+		Fields:         cloneWorkflowStructuredInputFields(contract.Fields),
+		ContractDigest: strings.TrimSpace(contract.ContractDigest),
 	}
 }
 
