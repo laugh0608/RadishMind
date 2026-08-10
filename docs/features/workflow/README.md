@@ -12,7 +12,7 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
-| [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1.md) | 功能 / 输入合同与执行兼容专题 | `workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_pencil_frozen_implementation_next` | Draft / Definition v2、executor v2、Run v8、Comparison v7、三模式 durable chain 与局部 Pencil 已贯通；下一步实现 Session v4 和共享输入编辑器 |
+| [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1.md) | 功能 / 输入合同与执行兼容专题 | `workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_pencil_frozen_implementation_next` | Draft / Definition v2、executor v2、Run v8、Comparison v7、三模式 durable chain 与已审 Visual R4 局部 Pencil 已贯通；下一步实现 Session v4 和共享输入编辑器 |
 | [Workflow Definition 结构化运行输入 v1 实施任务卡](../../task-cards/workflow-definition-structured-runtime-inputs-dev-test-v1-plan.md) | 活跃高风险实现批次 | `workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_pencil_frozen_implementation_next` | 唯一实施卡继续收口 strict decoder、Session、Evaluation、Campaign 与连续产品链 |
 | [Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md) | 功能 / 版本与执行权威专题 | `workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_completed` | A 至 D 已完成不可变晋级、人工 activation、definition-bound run v5、Web、双数据库连续链与真实浏览器验收 |
 | [Workflow 不可变版本晋级与受控运行绑定 v1 实施任务卡](../../task-cards/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md) | 已归档高风险实现批次 | `completed` | A / B / C / D 全部完成，不派生平行任务卡 |

@@ -68,13 +68,13 @@
 
 ## 批次 C：Session 与共享 Web 输入编辑器
 
-- [x] 在 Pencil 空闲且确认基准源后冻结局部字段行、合同摘要、错误归属、值清理提示与窄屏顺序。
+- [x] 在 Pencil 空闲且确认基准源后冻结 Visual R4 表单画布、合同摘要、错误归属、值清理提示与窄屏顺序。
 - [ ] 实现共享 `StructuredRuntimeInputEditor` 及 strict contract decoder。
 - [ ] 实现 Application Interaction Session v4 authority / turn 合同与 v2 executor bridge。
 - [ ] 接入 Definition Direct Run 和 Session，覆盖 permission、contract drift、secret、type、budget 与 value clearing。
 - [ ] 完成 Web tests、production build、三视口浏览器与 console 检查。
 
-Pencil 前置证据：`docs/designs/radishmind-web-family-ui-v1.pen` 中 Desktop `W3O4tV`、Narrow `t39foq` 已冻结为 `B / 局部 Pencil · R1`。两张局部稿覆盖 exact contract、四类字段、字段级错误、authority / contract 失败、值清理和窄屏顺序；不建立 S11，也不提前画 Evaluation Plan / Campaign v2。
+Pencil 前置证据：`docs/designs/radishmind-web-family-ui-v1.pen` 中 Desktop `W3O4tV`、Narrow `t39foq` 已冻结为 `B / 局部 Pencil · Visual R4` 并通过人工复核。两张局部稿覆盖 exact contract、四类真实输入控件、非对称桌面表单、渐进窄屏顺序、字段级错误、authority / contract 失败和值清理；不建立 S11，也不提前画 Evaluation Plan / Campaign v2。
 
 批次 C 退出条件：三个 authority 切换边界不残留值；页面不猜测合同、不回显已提交输入；Desktop、关键断点与 `390×844` 无横向溢出。
 

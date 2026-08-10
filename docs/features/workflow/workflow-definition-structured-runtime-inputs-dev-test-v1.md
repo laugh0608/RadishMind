@@ -2,7 +2,7 @@
 
 更新时间：2026-08-10
 
-状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_pencil_visual_r4_review_next`
+状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_pencil_frozen_implementation_next`
 
 ## 功能定位
 
@@ -148,7 +148,7 @@ Application Session v4 只在 application active Definition 已绑定 `workflow_
 
 客户端只能使用服务端返回的 exact immutable contract 生成表单，不猜测字段，不缓存跨 authority 的输入值。颜色不是错误、必填、类型或选中状态的唯一通道。
 
-2026-08-10 已在 [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 完成 `B / 局部 Pencil`：Desktop `W3O4tV` 与 Narrow `t39foq`。首版 R1 因继承 S9 之后被退回的独立表单看板语言而失效；Visual R2 虽恢复薄页眉、输入路径、单一 editor owner 和 authority rail，仍因业务表面全部硬方形被再次退回；Visual R3 恢复职责圆角后，字段区仍像以整页横线切割出的静态列表。Visual R4 已把字段区改为有留白层级的表单画布，保留不可变合同、authority 与易失值边界，不再用表格替代真实输入控件。两张局部稿仍只表达共享组件，不复制完整页面，也不建立 S11，当前等待人工视觉复核：
+2026-08-10 已在 [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 完成 `B / 局部 Pencil`：Desktop `W3O4tV` 与 Narrow `t39foq`。首版 R1 因继承 S9 之后被退回的独立表单看板语言而失效；Visual R2 虽恢复薄页眉、输入路径、单一 editor owner 和 authority rail，仍因业务表面全部硬方形被再次退回；Visual R3 恢复职责圆角后，字段区仍像以整页横线切割出的静态列表。Visual R4 已把字段区改为有留白层级的表单画布，保留不可变合同、authority 与易失值边界，不再用表格替代真实输入控件。两张局部稿已于同日通过人工复核并冻结为批次 C 实现基准；它们仍只表达共享组件，不复制完整页面，也不建立 S11：
 
 - Desktop 固定不可变合同上下文、Direct Run / Session 共用标识、非对称双列表单、字段级错误、布尔开关、authority / contract 失败归属、易失值说明和 Batch D 停止线；长文本字段独占整行，短字段依据任务关系成组，不堆成等权卡片；
 - Narrow 固定 `context → path → editor owner → ephemeral boundary` 单列顺序，字段按 `process_description → target_temperature_c + include_recycle → operator_note` 渐进编排，不把桌面栏宽或整行分割机械压缩进 `390×844`；
@@ -179,7 +179,7 @@ Application Session v4 只在 application active Definition 已绑定 `workflow_
 - 增加 Application Session v4 authority / turn 合同和 Definition direct Run / Session 两个 consumer。
 - 验证值清理、错误归属、Desktop / 关键断点 / `390×844` 与 console。
 
-局部 Pencil Visual R4 已完成结构和截图检查，但仍等待人工视觉复核。复核通过后只进入共享 `StructuredRuntimeInputEditor` strict contract decoder、Application Session v4 authority / turn 合同，以及 Definition Direct Run / Session 两个 consumer 的实现；Evaluation Plan / Campaign v2 继续留在批次 D。
+局部 Pencil Visual R4 已完成结构、截图检查和人工视觉复核。批次 C 下一步只进入共享 `StructuredRuntimeInputEditor` strict contract decoder、Application Session v4 authority / turn 合同，以及 Definition Direct Run / Session 两个 consumer 的实现；Evaluation Plan / Campaign v2 继续留在批次 D。
 
 ### 批次 D：Evaluation 与 Campaign
 
@@ -215,4 +215,4 @@ Application Session v4 只在 application active Definition 已绑定 `workflow_
 
 ## 当前下一步
 
-继续实施唯一任务卡批次 C：先复核 Desktop `W3O4tV`、Narrow `t39foq` Visual R4；通过后再按该局部基准实现 strict contract decoder、共享 `StructuredRuntimeInputEditor`、Application Session v4 authority / turn 合同，以及 Definition Direct Run / Session 两个 consumer。当前不进入 Evaluation Plan / Campaign v2，不创建 S11 页面族，也不扩大 production、secret 输入、自动执行或业务写回边界。
+继续实施唯一任务卡批次 C：按已冻结的 Desktop `W3O4tV`、Narrow `t39foq` Visual R4 实现 strict contract decoder、共享 `StructuredRuntimeInputEditor`、Application Session v4 authority / turn 合同，以及 Definition Direct Run / Session 两个 consumer。当前不进入 Evaluation Plan / Campaign v2，不创建 S11 页面族，也不扩大 production、secret 输入、自动执行或业务写回边界。

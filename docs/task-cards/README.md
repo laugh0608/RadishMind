@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前活跃任务为 [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1-plan.md)，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_pencil_frozen_implementation_next`。HTTP / executor、三模式 durable chain、Direct Run / History 与局部 Pencil 已关闭；下一步只实施批次 C 的 strict contract decoder、Session v4 和 Definition Run / Session 共享输入编辑器，不提前进入 Evaluation Plan / Campaign v2，也不派生平行 task card 或同层 gate-only 切片。
+当前活跃任务为 [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1-plan.md)，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_pencil_frozen_implementation_next`。HTTP / executor、三模式 durable chain、Direct Run / History 与已审 Visual R4 局部 Pencil 已关闭；下一步只实施批次 C 的 strict contract decoder、Session v4 和 Definition Run / Session 共享输入编辑器，不提前进入 Evaluation Plan / Campaign v2，也不派生平行 task card 或同层 gate-only 切片。
 
 ## 最近关闭任务
 
