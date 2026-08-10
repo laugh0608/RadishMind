@@ -15,7 +15,7 @@
 
 2026-06-14 起，具体功能或长期开发目标先看 [功能设计文档入口](features/README.md)。任务卡只承载实现批次、前置条件或高风险边界，不再作为功能默认主文档。
 
-2026-08-10 当前读法：Family UI `S1 R8` 至 `S10 R1` 已完成；`S10 Application Evaluation Campaign` 的后端 A 至 D、完整 Pencil、React strict consumer、memory / SQLite 三视口 exact handoff 和服务重启恢复均已关闭。下一步回到功能设计入口选择新的真实用户需求。production membership / OIDC、production secret、production quota / billing、自动执行和自动发布仍未打开。
+2026-08-10 当前读法：Family UI `S1 R8` 至 `S10 R1` 已完成；当前专题切换到 [Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)。设计已冻结 Draft / Definition v2、executor v2、Run v8、Comparison v7、Session v4 与 Evaluation Plan / Campaign v2，下一步实施批次 A。production membership / OIDC、production secret、production quota / billing、自动执行和自动发布仍未打开。
 
 ## 项目定位
 

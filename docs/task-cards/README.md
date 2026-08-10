@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃高风险实现任务卡。S10 SQLite Plan → Campaign → Pair → exact Case / Suite Handoff 与服务重启恢复已完成；下一项工作先从功能设计入口选择真实用户需求，不为已关闭专题派生平行 task card 或同层 gate-only 切片。
+当前活跃任务为 [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1-plan.md)，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_design_frozen_implementation_not_started`。下一步只实施批次 A 的版本化 schema、Go 领域合同、canonicalization / digest 和兼容测试；migration、React 与局部 Pencil 按任务卡顺序进入后续批次，不派生平行 task card 或同层 gate-only 切片。
 
 ## 最近关闭任务
 
