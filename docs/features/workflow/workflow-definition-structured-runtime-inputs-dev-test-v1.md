@@ -2,7 +2,7 @@
 
 更新时间：2026-08-10
 
-状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_b_completed_batch_c_next`
+状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_pencil_frozen_implementation_next`
 
 ## 功能定位
 
@@ -148,6 +148,13 @@ Application Session v4 只在 application active Definition 已绑定 `workflow_
 
 客户端只能使用服务端返回的 exact immutable contract 生成表单，不猜测字段，不缓存跨 authority 的输入值。颜色不是错误、必填、类型或选中状态的唯一通道。
 
+2026-08-10 已在 [Family UI v1](../../designs/radishmind-web-family-ui-v1.pen) 冻结 `B / 局部 Pencil · R1`：Desktop `W3O4tV` 与 Narrow `t39foq`。两张局部稿只表达共享组件，不复制完整页面，也不建立 S11：
+
+- Desktop 固定不可变合同摘要、Direct Run / Session 共用标识、四种字段行、字段级错误、authority / contract 失败归属、易失值说明和 Batch D 停止线；
+- Narrow 固定 `contract → authority change / values cleared → fields → ephemeral lifecycle → actions` 单列顺序，不把桌面两栏压缩进 `390×844`；
+- authority 切换后必须显示值已清理，类型 / required 错误贴在精确字段，contract drift 与 authority 失败接管提交区域并清空全部值；
+- Pencil 中的示例合同 id、digest、字段名与占位文案只用于评审结构，不进入 React 或服务端真相源。
+
 ## 实施批次
 
 ### 批次 A：版本化合同与领域模型
@@ -171,6 +178,8 @@ Application Session v4 只在 application active Definition 已绑定 `workflow_
 - 先冻结 `B / 局部 Pencil`，再实现共享 `StructuredRuntimeInputEditor`。
 - 增加 Application Session v4 authority / turn 合同和 Definition direct Run / Session 两个 consumer。
 - 验证值清理、错误归属、Desktop / 关键断点 / `390×844` 与 console。
+
+局部 Pencil 前置已经完成。当前只进入共享 `StructuredRuntimeInputEditor` strict contract decoder、Application Session v4 authority / turn 合同，以及 Definition Direct Run / Session 两个 consumer 的实现；Evaluation Plan / Campaign v2 继续留在批次 D。
 
 ### 批次 D：Evaluation 与 Campaign
 
@@ -206,4 +215,4 @@ Application Session v4 只在 application active Definition 已绑定 `workflow_
 
 ## 当前下一步
 
-进入唯一实施任务卡批次 C：先在既有 Definition Run 与 Application Interaction Session 任务区冻结 `B / 局部 Pencil` 的字段行、合同摘要、错误归属、值清理提示和窄屏顺序，再实现 Application Session v4 与共享 `StructuredRuntimeInputEditor` 两个 consumer。当前不进入 Evaluation Plan / Campaign v2，不创建 S11 页面族，也不扩大 production、secret 输入、自动执行或业务写回边界。
+继续实施唯一任务卡批次 C：按已冻结的 Desktop `W3O4tV`、Narrow `t39foq` 局部基准实现 strict contract decoder、共享 `StructuredRuntimeInputEditor`、Application Session v4 authority / turn 合同，以及 Definition Direct Run / Session 两个 consumer。当前不进入 Evaluation Plan / Campaign v2，不创建 S11 页面族，也不扩大 production、secret 输入、自动执行或业务写回边界。

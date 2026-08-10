@@ -29,7 +29,7 @@
 
 Family UI `S1 R8` 至 `S10 R1` 已完成 Pencil、React 和真实浏览器严格验收。开发测试态 application request quota 已完成独立三模式 owner、Admin GET / PUT、CAS 更新、六条 API Key inference route 的 provider 前原子准入以及 S9 管理面；这不代表 production quota、rate limit、token / cost 或 billing 成立。
 
-`S10 Application Evaluation Campaign` 已完成并关闭。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成批次 B：显式 v2 schema、strict HTTP union、executor v2、隐私 metadata 与 memory / SQLite / PostgreSQL durable chain 已贯通。下一步实施批次 C 的局部 Pencil、Session v4 和共享输入编辑器，不从 S10 派生同层门禁，也不扩大 production、自动执行或业务写回声明。
+`S10 Application Evaluation Campaign` 已完成并关闭。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成批次 B 与批次 C 局部 Pencil 前置：显式 v2 schema、strict HTTP union、executor v2、隐私 metadata、三模式 durable chain，以及 Desktop / Narrow 共享输入模式均已冻结。下一步实现 Session v4、strict contract decoder 和共享输入编辑器，不从 S10 派生同层门禁，也不扩大 production、自动执行或业务写回声明。
 
 ## 产品形态
 

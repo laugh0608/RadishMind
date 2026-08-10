@@ -95,6 +95,7 @@ RadishMind 项目主动选择 `Workbench` Profile：
 - 窄屏主设计画板：`390x844`，按任务顺序重排为单列，不缩放桌面三栏。
 - 交互状态：至少包含键盘 focus、hover、disabled、loading、error 和 confirmation。
 - 设计源：Family UI 产品化设计使用 [radishmind-web-family-ui-v1.pen](../../designs/radishmind-web-family-ui-v1.pen)；既有 `radishmind-console-ops-surface-v0.pen` 保留为历史 Ops Surface 证据，不继续承载新的页面族。
+- 顶层 Pencil 基准面默认按产品审阅顺序横向排放：同一 surface 的 Desktop 与 Narrow 相邻，阶段 Decision 紧随对应 surface；不得再把新增基准面纵向堆叠或另起孤立画布列。该规则只约束无限画布中的审阅排布，不改变页面自身的响应式方向。
 - 外部参考：27 张 family-ui 参考图的逐项采用与排除边界已固定在 [Family UI 参考图产品面映射 v1](radishmind-family-ui-reference-mapping-v1.md)；Pencil 只标注 `ref-XX` 与吸收原则，不嵌入或复制外部截图。
 
 ## Pencil 协作模型
@@ -145,7 +146,9 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 当前维护十个已完成设计基准面和必要的局部 / 状态变体；新的页面族必须重新评分，不按路由、组件或状态数量扩张画板。
 
-2026-08-10 的 Workflow Definition 结构化运行输入五维评分为 `0 / 1 / 1 / 1 / 2 = 5`，采用 `B / 局部 Pencil`：只冻结共享字段行、合同摘要、错误归属、值清理提示和窄屏顺序，复用 Definition Run、Application Interaction Session 与 Application Evaluation Plan 三个既有任务区。它不是新的页面族，不建立 S11；HTTP / executor 与 durable store 批次已经完成，局部设计现在作为 Session v4 与共享 React editor 的前置，不回写或重画 S2 / S3 / S10 完整基准面。
+2026-08-10 的 Workflow Definition 结构化运行输入五维评分为 `0 / 1 / 1 / 1 / 2 = 5`，采用 `B / 局部 Pencil`：Desktop `W3O4tV` 与 Narrow `t39foq` 已冻结共享字段行、合同摘要、错误归属、值清理提示和窄屏顺序，复用 Definition Run、Application Interaction Session 与后续 Application Evaluation Plan 三个既有任务区。它不是新的页面族，不建立 S11；HTTP / executor 与 durable store 批次已经完成，局部设计现在作为 Session v4 与共享 React editor 的实现前置，不回写或重画 S2 / S3 / S10 完整基准面。
+
+同轮人工反馈确认两项画布治理问题并已修正：原有 24 个顶层基准面从多列纵向堆叠改为 S1 → S10 单行审阅带，新增两张局部稿继续放在 R15 右侧；S9 `C7pkb` / `x8lESc` / `tCWCW` 与 S10 `Um8Zh` / `ZxJd7` / `UNMOS` 原先使用独立硬编码米棕色板，现已统一消费既有 `$bg-*`、`$text-*`、`$action`、`$warning`、`$attention`、`$success` 与边界 token。配额注意、确认和失败仍保留小面积语义色，但整页不再以风险柔底色形成另一套视觉语言。
 
 2026-08-09 的 Workflow Definition 真实连续链复验五维评分为 `0 / 0 / 0 / 1 / 1 = 2`，采用 `C / 直接实现`：只补 RAG 专属 owner 交接、Definition 资格失败关闭、拓扑派生和 application 切换后的迟到 evidence 拒绝，继续复用 S2 / S3 / S6 已冻结的信息层级、任务轨、选中语义和响应式顺序。Pencil 当时正被其它项目占用，本批没有读取或修改设计源，也没有建立第十个页面族。
 

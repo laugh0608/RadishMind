@@ -2,7 +2,7 @@
 
 更新时间：2026-08-10
 
-状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_b_completed_batch_c_next`
+状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_pencil_frozen_implementation_next`
 
 对应功能文档：[Workflow Definition 结构化运行输入（开发 / 测试态）v1](../features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)
 
@@ -68,11 +68,13 @@
 
 ## 批次 C：Session 与共享 Web 输入编辑器
 
-- [ ] 在 Pencil 空闲且确认基准源后冻结局部字段行、合同摘要、错误归属、值清理提示与窄屏顺序。
+- [x] 在 Pencil 空闲且确认基准源后冻结局部字段行、合同摘要、错误归属、值清理提示与窄屏顺序。
 - [ ] 实现共享 `StructuredRuntimeInputEditor` 及 strict contract decoder。
 - [ ] 实现 Application Interaction Session v4 authority / turn 合同与 v2 executor bridge。
 - [ ] 接入 Definition Direct Run 和 Session，覆盖 permission、contract drift、secret、type、budget 与 value clearing。
 - [ ] 完成 Web tests、production build、三视口浏览器与 console 检查。
+
+Pencil 前置证据：`docs/designs/radishmind-web-family-ui-v1.pen` 中 Desktop `W3O4tV`、Narrow `t39foq` 已冻结为 `B / 局部 Pencil · R1`。两张局部稿覆盖 exact contract、四类字段、字段级错误、authority / contract 失败、值清理和窄屏顺序；不建立 S11，也不提前画 Evaluation Plan / Campaign v2。
 
 批次 C 退出条件：三个 authority 切换边界不残留值；页面不猜测合同、不回显已提交输入；Desktop、关键断点与 `390×844` 无横向溢出。
 
@@ -107,4 +109,4 @@
 
 ## 当前下一步
 
-实施批次 C。先在 Pencil 冻结 `B / 局部` 字段编辑、合同摘要、错误归属、值清理和窄屏顺序，再实现 Application Session v4 authority / turn 合同与 Definition Run / Session 共享 `StructuredRuntimeInputEditor`；本批不提前进入 Evaluation Plan / Campaign v2，也不建立 S11 页面族。
+继续实施批次 C。Pencil 前置已关闭，下一步实现 strict contract decoder、共享 `StructuredRuntimeInputEditor`、Application Session v4 authority / turn 合同与 Definition Run / Session 两个 consumer；本批不提前进入 Evaluation Plan / Campaign v2，也不建立 S11 页面族。
