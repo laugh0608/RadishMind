@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-10 当前执行口径：Family UI `S1 R8` 至 `S10 R1` 已完成。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成批次 A 的 Draft / Definition v2、Run v8、Comparison v7 schema、Go 领域合同、canonicalization / digest 与 v1/v2 兼容矩阵；下一步实施批次 B 的 HTTP、executor 与三模式 durable chain。生产 quota、token / cost、billing、正式 membership / OIDC、自动执行和自动发布仍关闭。
+2026-08-10 当前执行口径：Family UI `S1 R8` 至 `S10 R1` 已完成。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成批次 B 的 strict HTTP union、executor v2、Run v8 metadata-only History 与 memory / SQLite / PostgreSQL durable chain；下一步先冻结 `B / 局部 Pencil`，再实施 Session v4 和共享输入编辑器。生产 quota、token / cost、billing、正式 membership / OIDC、自动执行和自动发布仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -43,7 +43,7 @@
 | [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | Mutation Authorization 批次 A 至 E 已完成，专题关闭 |
 | [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route 与独立开发测试态 application request quota 均已完成受控管理；quota 覆盖 owner、Admin API、双数据库、Gateway admission、完整 Pencil、React 和真实浏览器连续链 | 回到功能设计入口，以新的真实任务阻塞选择产品专题；不从已关闭 Provider / Quota 专题扩 production secret、billing 或真实 OIDC |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
-| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；Definition 结构化输入批次 A 已固定版本化 schema、领域合同、canonicalization、digest 与兼容测试 | 实施批次 B 的 strict HTTP union、executor v2、三模式 durable lifecycle 与 Direct Run / History 纵向链 |
+| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；Definition 结构化输入批次 B 已接通 strict HTTP union、executor v2、三模式 durable lifecycle 与 Direct Run / History | 实施批次 C 的局部 Pencil、Session v4 和 Definition Run / Session 共享输入编辑器 |
 | [图片生成 / 产物返回](image-generation-artifact-return.md) | 批次 A 至 E 已完成受控 handoff、本机私有 storage、reference-only profile、test-only fixture client 与一次性交付协调，开发测试态 v1 关闭 | 如需真实 backend、resolver 或公开交付，先建立独立功能 / 集成设计 |
 
 ## 细专题导航
@@ -83,7 +83,7 @@
 | [Model Gateway Request History / Usage & Failure Review v1 任务卡](../task-cards/model-gateway-request-history-usage-failure-review-v1-plan.md) | 实现批次 | 状态为 `complete`；保留为实现与验证索引，不继续派生同层 readiness 链 |
 | [Gateway Playground / Request Review Loop v1](gateway/gateway-playground-request-review-loop-v1.md) | 功能专题 | 三协议 unary / stream、取消、稳定失败和精确 history handoff 已完成；不持久化输入输出 |
 | [Workflow 细专题入口](workflow/README.md) | 功能专题目录 | 承接 workflow 具体功能、页面 / 界面和实现专题 |
-| [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) | 功能 / 输入合同与执行兼容专题 | 批次 A 已完成版本化 schema、Go 领域合同、canonicalization / digest、稳定失败码与 v1/v2 兼容矩阵；下一步实施批次 B |
+| [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) | 功能 / 输入合同与执行兼容专题 | 批次 B 已完成 HTTP / executor、三模式 durable chain、Run v8 History 与双数据库复验；下一步实施批次 C |
 | [Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md) | 功能 / 高风险执行专题 | A / B / C 三批已完成 durable assignment、API key 调用、run v4、Web、双数据库连续链与真实浏览器复验；专题关闭 |
 | [Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md) | 功能 / 版本与执行权威专题 | 批次 A 至 D 已完成 immutable release、三种 repository、run v5、Web、双数据库连续链与浏览器验收；专题已关闭 |
 | [Workflow 不可变版本晋级与受控运行绑定 v1 实施任务卡](../task-cards/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md) | 已归档高风险实现批次 | A / B / C / D 全部完成，不派生平行任务卡 |

@@ -15,7 +15,7 @@
 
 2026-06-14 起，具体功能或长期开发目标先看 [功能设计文档入口](features/README.md)。任务卡只承载实现批次、前置条件或高风险边界，不再作为功能默认主文档。
 
-2026-08-10 当前读法：Family UI `S1 R8` 至 `S10 R1` 已完成；当前专题切换到 [Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)。设计已冻结 Draft / Definition v2、executor v2、Run v8、Comparison v7、Session v4 与 Evaluation Plan / Campaign v2，下一步实施批次 A。production membership / OIDC、production secret、production quota / billing、自动执行和自动发布仍未打开。
+2026-08-10 当前读法：Family UI `S1 R8` 至 `S10 R1` 已完成；当前 [Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成批次 B 的 HTTP / executor、三模式 durable chain 与 Run v8 History。下一步实施批次 C 的 `B / 局部 Pencil`、Session v4 和共享输入编辑器；Evaluation Plan / Campaign v2 留在后续批次。production membership / OIDC、production secret、production quota / billing、自动执行和自动发布仍未打开。
 
 ## 项目定位
 

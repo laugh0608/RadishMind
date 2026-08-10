@@ -182,7 +182,7 @@ func (adapter SavedWorkflowDraftRepositoryAdapter) validateStoredRecord(
 		record.Draft.ApplicationID != actor.ApplicationID {
 		return SavedWorkflowDraftFailureStoreContractMismatch
 	}
-	if record.Draft.SchemaVersion != savedWorkflowDraftSchemaVersion {
+	if !supportedSavedWorkflowDraftSchemaVersion(record.Draft.SchemaVersion) {
 		return SavedWorkflowDraftFailureSchemaVersionUnsupported
 	}
 	return ""
@@ -234,7 +234,7 @@ func savedWorkflowDraftRepositoryDraftFailure(
 	if draft.WorkspaceID != actor.WorkspaceID || draft.ApplicationID != actor.ApplicationID {
 		return SavedWorkflowDraftFailureScopeDenied
 	}
-	if draft.SchemaVersion != savedWorkflowDraftSchemaVersion {
+	if !supportedSavedWorkflowDraftSchemaVersion(draft.SchemaVersion) {
 		return SavedWorkflowDraftFailureSchemaVersionUnsupported
 	}
 	if _, ok := normalizeAndValidateSavedWorkflowDraftLifecycle(draft); !ok {
@@ -296,7 +296,7 @@ func (preflight SavedWorkflowDraftRepositorySchemaPreflight) failureCodeFor(
 	if preflight.StoreSchemaVersion != savedWorkflowDraftRepositoryStoreSchemaVersion {
 		return SavedWorkflowDraftFailureStoreSchemaVersionMismatch
 	}
-	if strings.TrimSpace(payloadSchemaVersion) != savedWorkflowDraftSchemaVersion {
+	if !supportedSavedWorkflowDraftSchemaVersion(strings.TrimSpace(payloadSchemaVersion)) {
 		return SavedWorkflowDraftFailureSchemaVersionUnsupported
 	}
 	return ""

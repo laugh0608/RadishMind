@@ -23,6 +23,15 @@ func TestEmbeddedMigrationIdentityIsStable(t *testing.T) {
 		}
 	}
 	for _, literal := range []string{
+		"saved_workflow_draft.v2",
+		"saved_workflow_drafts_payload_schema_check",
+		"input_contract,contract_digest",
+	} {
+		if !strings.Contains(structuredInputUpMigrationSQL, literal) {
+			t.Fatalf("embedded structured input migration is missing %q", literal)
+		}
+	}
+	for _, literal := range []string{
 		"CREATE TABLE saved_workflow_draft_revisions",
 		"revision_kind",
 		"backfilled_current",
@@ -56,6 +65,9 @@ func TestEmbeddedMigrationIdentityIsStable(t *testing.T) {
 		"DROP TABLE IF EXISTS saved_workflow_draft_lifecycle_events",
 	) {
 		t.Fatalf("test rollback SQL does not remove saved workflow draft lifecycle events")
+	}
+	if !strings.Contains(structuredInputDownMigrationSQL, "DROP CONSTRAINT IF EXISTS saved_workflow_drafts_payload_schema_check") {
+		t.Fatal("test rollback SQL does not remove the structured input payload constraint")
 	}
 }
 

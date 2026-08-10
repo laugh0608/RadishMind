@@ -16,10 +16,11 @@ import (
 
 const (
 	Component           = "workflow_saved_drafts"
-	MigrationID         = "0003_saved_workflow_draft_library"
+	MigrationID         = "0004_saved_workflow_draft_structured_inputs"
 	StoreSchemaVersion  = "saved_workflow_drafts_store_v1"
 	legacyMigrationID   = "0001_saved_workflow_drafts"
 	revisionMigrationID = "0002_saved_workflow_draft_revisions"
+	libraryMigrationID  = "0003_saved_workflow_draft_library"
 
 	MigrationStateApplied    = "applied"
 	MigrationStateNotApplied = "not_applied"
@@ -54,6 +55,12 @@ var libraryUpMigrationSQL string
 
 //go:embed 0003_saved_workflow_draft_library.down.sql
 var libraryDownMigrationSQL string
+
+//go:embed 0004_saved_workflow_draft_structured_inputs.up.sql
+var structuredInputUpMigrationSQL string
+
+//go:embed 0004_saved_workflow_draft_structured_inputs.down.sql
+var structuredInputDownMigrationSQL string
 
 type State struct {
 	MigrationState     string
@@ -96,7 +103,7 @@ func ExpectedChecksum() string {
 	return fmt.Sprintf(
 		"sha256:%x",
 		sha256.Sum256([]byte(
-			initialUpMigrationSQL+"\n"+revisionUpMigrationSQL+"\n"+libraryUpMigrationSQL,
+			initialUpMigrationSQL+"\n"+revisionUpMigrationSQL+"\n"+libraryUpMigrationSQL+"\n"+structuredInputUpMigrationSQL,
 		)),
 	)
 }
@@ -109,6 +116,13 @@ func revisionExpectedChecksum() string {
 	return fmt.Sprintf(
 		"sha256:%x",
 		sha256.Sum256([]byte(initialUpMigrationSQL+"\n"+revisionUpMigrationSQL)),
+	)
+}
+
+func libraryExpectedChecksum() string {
+	return fmt.Sprintf(
+		"sha256:%x",
+		sha256.Sum256([]byte(initialUpMigrationSQL+"\n"+revisionUpMigrationSQL+"\n"+libraryUpMigrationSQL)),
 	)
 }
 
@@ -163,14 +177,19 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 		return State{}, errors.New("saved workflow draft migration marker does not match the embedded migration")
 	}
 
-	if state.MigrationID == legacyMigrationID {
-		if _, err := transaction.Exec(ctx, revisionUpMigrationSQL); err != nil {
-			return State{}, safeDatabaseError("apply saved workflow draft revision migration", err)
+	if state.MigrationID == legacyMigrationID || state.MigrationID == revisionMigrationID || state.MigrationID == libraryMigrationID {
+		if state.MigrationID == legacyMigrationID {
+			if _, err := transaction.Exec(ctx, revisionUpMigrationSQL); err != nil {
+				return State{}, safeDatabaseError("apply saved workflow draft revision migration", err)
+			}
 		}
-	}
-	if state.MigrationID == legacyMigrationID || state.MigrationID == revisionMigrationID {
-		if _, err := transaction.Exec(ctx, libraryUpMigrationSQL); err != nil {
-			return State{}, safeDatabaseError("apply saved workflow draft library migration", err)
+		if state.MigrationID == legacyMigrationID || state.MigrationID == revisionMigrationID {
+			if _, err := transaction.Exec(ctx, libraryUpMigrationSQL); err != nil {
+				return State{}, safeDatabaseError("apply saved workflow draft library migration", err)
+			}
+		}
+		if _, err := transaction.Exec(ctx, structuredInputUpMigrationSQL); err != nil {
+			return State{}, safeDatabaseError("apply saved workflow draft structured input migration", err)
 		}
 		if _, err := transaction.Exec(
 			ctx,
@@ -196,6 +215,9 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 		}
 		if _, err := transaction.Exec(ctx, libraryUpMigrationSQL); err != nil {
 			return State{}, safeDatabaseError("apply saved workflow draft library migration", err)
+		}
+		if _, err := transaction.Exec(ctx, structuredInputUpMigrationSQL); err != nil {
+			return State{}, safeDatabaseError("apply saved workflow draft structured input migration", err)
 		}
 		if _, err := transaction.Exec(
 			ctx,
@@ -266,6 +288,9 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 	if state.MigrationState != MigrationStateApplied {
 		return State{}, errors.New("saved workflow draft rollback requires the matching applied migration")
 	}
+	if _, err := transaction.Exec(ctx, structuredInputDownMigrationSQL); err != nil {
+		return State{}, safeDatabaseError("rollback saved workflow draft structured input migration", err)
+	}
 	if _, err := transaction.Exec(ctx, libraryDownMigrationSQL); err != nil {
 		return State{}, safeDatabaseError("rollback saved workflow draft library migration", err)
 	}
@@ -329,6 +354,7 @@ func inspectWithQuery(ctx context.Context, query rowQuerier) (State, error) {
 	var draftTableExists bool
 	var revisionTableExists bool
 	var lifecycleEventTableExists bool
+	var payloadSchemaConstraintCount int
 	if err := query.QueryRow(
 		ctx,
 		`SELECT
@@ -337,6 +363,17 @@ func inspectWithQuery(ctx context.Context, query rowQuerier) (State, error) {
 		    to_regclass('public.saved_workflow_draft_lifecycle_events') IS NOT NULL`,
 	).Scan(&draftTableExists, &revisionTableExists, &lifecycleEventTableExists); err != nil {
 		return State{}, safeDatabaseError("inspect saved workflow draft tables", err)
+	}
+	if draftTableExists {
+		if err := query.QueryRow(
+			ctx,
+			`SELECT count(*)
+			   FROM pg_constraint
+			  WHERE conrelid='public.saved_workflow_drafts'::regclass
+			    AND conname='saved_workflow_drafts_payload_schema_check'`,
+		).Scan(&payloadSchemaConstraintCount); err != nil {
+			return State{}, safeDatabaseError("inspect saved workflow draft payload schema constraint", err)
+		}
 	}
 	if state.MigrationID == legacyMigrationID &&
 		state.StoreSchemaVersion == StoreSchemaVersion &&
@@ -355,12 +392,23 @@ func inspectWithQuery(ctx context.Context, query rowQuerier) (State, error) {
 		state.MigrationState = MigrationStateNotApplied
 		return state, nil
 	}
+	if state.MigrationID == libraryMigrationID &&
+		state.StoreSchemaVersion == StoreSchemaVersion &&
+		state.MigrationChecksum == libraryExpectedChecksum() &&
+		draftTableExists &&
+		revisionTableExists &&
+		lifecycleEventTableExists &&
+		payloadSchemaConstraintCount == 0 {
+		state.MigrationState = MigrationStateNotApplied
+		return state, nil
+	}
 	if state.MigrationID != MigrationID ||
 		state.StoreSchemaVersion != StoreSchemaVersion ||
 		state.MigrationChecksum != ExpectedChecksum() ||
 		!draftTableExists ||
 		!revisionTableExists ||
-		!lifecycleEventTableExists {
+		!lifecycleEventTableExists ||
+		payloadSchemaConstraintCount != 1 {
 		state.MigrationState = MigrationStateMismatch
 		return state, nil
 	}

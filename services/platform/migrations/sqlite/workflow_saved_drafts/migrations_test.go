@@ -5,9 +5,9 @@ import (
 	"testing"
 )
 
-func TestSQLiteSavedWorkflowDraftMigrationChainIncludesLibraryLifecycle(t *testing.T) {
+func TestSQLiteSavedWorkflowDraftMigrationChainIncludesStructuredInputs(t *testing.T) {
 	migrations := Migrations()
-	if len(migrations) != 3 || migrations[len(migrations)-1].ID != MigrationID {
+	if len(migrations) != 4 || migrations[len(migrations)-1].ID != MigrationID {
 		t.Fatalf("unexpected SQLite saved draft migration chain: %#v", migrations)
 	}
 	for _, literal := range []string{
@@ -21,6 +21,17 @@ func TestSQLiteSavedWorkflowDraftMigrationChainIncludesLibraryLifecycle(t *testi
 	} {
 		if !strings.Contains(libraryUpSQL, literal) {
 			t.Fatalf("SQLite library lifecycle migration is missing %q", literal)
+		}
+	}
+	for _, literal := range []string{
+		"saved_workflow_draft.v2",
+		"input_contract.contract_digest",
+		"saved_workflow_drafts_pre_structured_inputs",
+		"saved_workflow_draft_revisions_pre_structured_inputs",
+		"saved_workflow_draft_lifecycle_events_pre_structured_inputs",
+	} {
+		if !strings.Contains(structuredInputUpSQL, literal) {
+			t.Fatalf("SQLite structured input migration is missing %q", literal)
 		}
 	}
 }

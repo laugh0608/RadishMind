@@ -79,6 +79,10 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"CREATE TABLE agent_copilot_run_records",
 		"workflow_run_record.v7",
 		"agent_copilot_runs_controlled_update",
+		"workflow_run_record.v8",
+		"input_contract_id",
+		"input_contract_digest",
+		"workflow_run_records_structured_input_projection_check",
 	} {
 		if !strings.Contains(upSQL, required) {
 			t.Fatalf("workflow run up migration is missing %q", required)
@@ -166,11 +170,12 @@ func TestWorkflowRunPendingMigrationPaths(t *testing.T) {
 		{name: "v11", migrationID: ragKnowledgePromotionMigrationID, requiredFragment: "CREATE TABLE workflow_rag_application_runtime_assignments", forbiddenFragment: "CREATE TABLE workflow_rag_knowledge_promotion_candidates"},
 		{name: "v12", migrationID: applicationRuntimeMigrationID, requiredFragment: "CREATE TABLE workflow_definition_release_candidates", forbiddenFragment: "CREATE TABLE workflow_rag_application_runtime_assignments"},
 		{name: "v13", migrationID: definitionReleaseMigrationID, requiredFragment: "workflow_run_record.v5", forbiddenFragment: "CREATE TABLE workflow_definition_release_candidates"},
-		{name: "v14", migrationID: definitionExecutionMigrationID, requiredFragment: "CREATE TABLE application_interaction_sessions", forbiddenFragment: "workflow_run_record.v5"},
+		{name: "v14", migrationID: definitionExecutionMigrationID, requiredFragment: "CREATE TABLE application_interaction_sessions", forbiddenFragment: "CREATE TABLE workflow_definition_release_candidates"},
 		{name: "v15", migrationID: applicationSessionMigrationID, requiredFragment: "CREATE TABLE prompt_application_runtime_assignments", forbiddenFragment: "CREATE TABLE application_interaction_sessions"},
 		{name: "v16", migrationID: promptRuntimeMigrationID, requiredFragment: "CREATE TABLE agent_copilot_runtime_assignments", forbiddenFragment: "CREATE TABLE prompt_application_runtime_assignments"},
 		{name: "v17", migrationID: agentRuntimeMigrationID, requiredFragment: "CREATE TABLE agent_copilot_sessions", forbiddenFragment: "CREATE TABLE agent_copilot_runtime_assignments"},
 		{name: "v18", migrationID: agentInvocationMigrationID, requiredFragment: "CREATE TABLE application_evaluation_plans", forbiddenFragment: "CREATE TABLE agent_copilot_sessions"},
+		{name: "v19", migrationID: applicationEvaluationMigrationID, requiredFragment: "input_contract_id", forbiddenFragment: "CREATE TABLE application_evaluation_plans"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -254,6 +259,10 @@ func TestWorkflowRunPendingRollbackPathsDoNotDropUnappliedTables(t *testing.T) {
 	agentInvocationRollback := rollbackSQLThrough(agentInvocationMigrationID)
 	if !strings.Contains(agentInvocationRollback, "agent_copilot_run_records") || strings.Contains(agentInvocationRollback, "application_evaluation_plans") {
 		t.Fatalf("v18 rollback must remove Agent Copilot invocation projections without removing unapplied v19: %s", agentInvocationRollback)
+	}
+	applicationEvaluationRollback := rollbackSQLThrough(applicationEvaluationMigrationID)
+	if !strings.Contains(applicationEvaluationRollback, "application_evaluation_plans") || strings.Contains(applicationEvaluationRollback, "input_contract_id") {
+		t.Fatalf("v19 rollback must remove application evaluation campaigns without removing unapplied v20: %s", applicationEvaluationRollback)
 	}
 	if rollbackSQLThrough("0000_unknown") != "" {
 		t.Fatal("unknown pending rollback must fail closed")

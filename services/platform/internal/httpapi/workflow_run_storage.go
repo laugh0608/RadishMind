@@ -150,6 +150,13 @@ func workflowRunStorageExecutionSource(record WorkflowRunRecord) (string, string
 	return "workflow_draft", record.DraftID, record.DraftVersion, nil
 }
 
+func workflowRunStructuredInputProjection(record WorkflowRunRecord) (string, string) {
+	if record.SchemaVersion != workflowRunRecordDefinitionStructuredSchemaVersion {
+		return "", ""
+	}
+	return record.InputContractID, record.InputContractDigest
+}
+
 func rejectTrailingWorkflowRunJSON(decoder *json.Decoder) error {
 	var trailing any
 	err := decoder.Decode(&trailing)

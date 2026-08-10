@@ -301,7 +301,7 @@ func TestWorkflowDefinitionExecutionHTTPStrictAuthorityAndScope(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	body := workflowDefinitionRunHTTPBody{WorkspaceID: "workspace_demo", ApplicationID: applicationID, DefinitionID: version.DefinitionID, ExpectedPointerVersion: activation.PointerVersion, ExpectedDefinitionVersion: version.Version, ExpectedDefinitionDigest: version.DefinitionDigest, InputText: "HTTP bounded input", ConditionValues: map[string]bool{}}
+	body := workflowDefinitionRunHTTPBody{WorkspaceID: "workspace_demo", ApplicationID: applicationID, DefinitionID: version.DefinitionID, ExpectedPointerVersion: activation.PointerVersion, ExpectedDefinitionVersion: version.Version, ExpectedDefinitionDigest: version.DefinitionDigest, InputText: json.RawMessage(`"HTTP bounded input"`), ConditionValues: map[string]bool{}}
 	request := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/workflow-definition-runs", bytes.NewReader(mustWorkflowRunJSON(t, body)))
 	setControlPlaneReadDevAuthHeaders(request)
 	request.Header.Set(controlPlaneReadDevScopesHeader, "workflow_runs:execute,workflow_definitions:read")

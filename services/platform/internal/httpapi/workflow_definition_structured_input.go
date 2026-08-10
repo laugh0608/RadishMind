@@ -445,6 +445,38 @@ func cloneWorkflowStructuredInputMetadataFields(fields []WorkflowStructuredInput
 	return cloned
 }
 
+func cloneWorkflowStructuredInputValues(values map[string]any) map[string]any {
+	if values == nil {
+		return nil
+	}
+	cloned := make(map[string]any, len(values))
+	for name, value := range values {
+		cloned[name] = value
+	}
+	return cloned
+}
+
+func workflowDefinitionStructuredPromptInput(input workflowStructuredInputNormalization) (string, error) {
+	document := struct {
+		SchemaVersion  string                                 `json:"schema_version"`
+		ContractID     string                                 `json:"contract_id"`
+		ContractDigest string                                 `json:"contract_digest"`
+		Fields         []WorkflowStructuredInputMetadataField `json:"fields"`
+		Values         json.RawMessage                        `json:"values"`
+	}{
+		SchemaVersion:  "workflow_structured_input_packet.v1",
+		ContractID:     input.Contract.ContractID,
+		ContractDigest: input.Contract.ContractDigest,
+		Fields:         cloneWorkflowStructuredInputMetadataFields(input.Fields),
+		Values:         json.RawMessage(append([]byte(nil), input.CanonicalPayload...)),
+	}
+	payload, err := json.Marshal(document)
+	if err != nil {
+		return "", err
+	}
+	return string(payload), nil
+}
+
 func validateWorkflowDefinitionStructuredRunStoreRecord(runContext WorkflowRunContext, record *WorkflowRunRecord) error {
 	if record == nil || record.SchemaVersion != workflowRunRecordDefinitionStructuredSchemaVersion || record.DefinitionAuthority == nil ||
 		record.ExecutionKind != workflowDefinitionExecutionKind || record.ExecutionSourceKind != workflowDefinitionExecutionSourceKind ||

@@ -453,7 +453,44 @@ func TestSavedWorkflowDraftPostgresDevTestRepository(t *testing.T) {
 		t.Fatalf("application mismatch must not return a draft: %#v", applicationDenied)
 	}
 
+	structuredPayload := validSavedWorkflowDraftPayload()
+	structuredPayload.DraftID = "draft_structured_postgres"
+	structuredPayload.Name = "Structured PostgreSQL draft"
+	structuredPayload.SchemaVersion = savedWorkflowDraftStructuredSchemaVersion
+	structuredPayload.InputContract = workflowStructuredInputContractForTest()
+	structuredSave := postPostgresSavedWorkflowDraft(t, secondServer, structuredPayload, 0, "subject_platform_ops", "tenant_demo")
+	if structuredSave.FailureCode != nil || structuredSave.Draft == nil ||
+		structuredSave.Draft.SchemaVersion != savedWorkflowDraftStructuredSchemaVersion ||
+		structuredSave.Draft.InputContract.ContractDigest == "" || len(structuredSave.Draft.InputContract.Fields) != 4 {
+		t.Fatalf("PostgreSQL structured draft save failed: %#v", structuredSave)
+	}
+	if _, err := adminPool.Exec(
+		databaseContext,
+		`UPDATE saved_workflow_drafts
+		    SET sanitized_draft_payload=jsonb_set(sanitized_draft_payload,'{schema_version}',to_jsonb('saved_workflow_draft.v1'::text))
+		  WHERE draft_id=$1`,
+		structuredPayload.DraftID,
+	); err == nil {
+		t.Fatal("PostgreSQL accepted a saved draft payload schema that disagrees with its projection")
+	}
+
 	secondServer.Close()
+	restartedStructuredServer := newPostgresSavedWorkflowDraftIntegrationServer(t, cfg)
+	restoredStructured := readPostgresSavedWorkflowDraft(
+		t,
+		restartedStructuredServer,
+		structuredPayload.DraftID,
+		"workspace_demo",
+		"app_flow_copilot",
+		"subject_platform_ops",
+		"tenant_demo",
+	)
+	if restoredStructured.FailureCode != nil || restoredStructured.Draft == nil ||
+		restoredStructured.Draft.SchemaVersion != savedWorkflowDraftStructuredSchemaVersion ||
+		restoredStructured.Draft.InputContract.ContractDigest != structuredSave.Draft.InputContract.ContractDigest {
+		t.Fatalf("PostgreSQL structured draft did not survive restart: %#v", restoredStructured)
+	}
+	restartedStructuredServer.Close()
 	unavailable := readPostgresSavedWorkflowDraft(
 		t,
 		secondServer,

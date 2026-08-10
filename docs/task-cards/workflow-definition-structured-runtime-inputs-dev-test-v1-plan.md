@@ -2,7 +2,7 @@
 
 更新时间：2026-08-10
 
-状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_a_completed_batch_b_next`
+状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_b_completed_batch_c_next`
 
 对应功能文档：[Workflow Definition 结构化运行输入（开发 / 测试态）v1](../features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)
 
@@ -56,13 +56,15 @@
 
 ## 批次 B：HTTP、executor 与 durable store
 
-- [ ] 实现 strict v1/v2 request union 与 `workflow_definition_executor_v2`。
-- [ ] 扩展 memory repository 与服务层的 v2 Draft / Definition / Run 生命周期。
-- [ ] 增加 SQLite saved draft / workflow run migration、restart、CAS、corruption 与 no-fallback 测试。
-- [ ] 增加 PostgreSQL migration、rollback / reapply、row lock、restart 与 no-fallback 测试。
-- [ ] 完成 Direct Run 与 Run History metadata-only 展示合同。
+- [x] 实现 strict v1/v2 request union 与 `workflow_definition_executor_v2`。
+- [x] 扩展 memory repository 与服务层的 v2 Draft / Definition / Run 生命周期。
+- [x] 增加 SQLite saved draft / workflow run migration、restart、CAS、corruption 与 no-fallback 测试。
+- [x] 增加 PostgreSQL migration、rollback / reapply、row lock、restart 与 no-fallback 测试。
+- [x] 完成 Direct Run 与 Run History metadata-only 展示合同。
 
 批次 B 退出条件：三种 store 可完成 v2 Draft → Candidate → Promotion → Activation → Run v8，未迁移、错版本、store failure 与 authority drift 全部失败关闭。
+
+批次 B 已通过 memory、SQLite 与 PostgreSQL 纵向复验。SQLite 使用 Saved Draft `0004` 与 Workflow Run `0017`，PostgreSQL 使用 Saved Draft `0004` 与 Workflow Run `0020`；Draft payload schema、Run contract projection 与 sanitized record 均有数据库约束和仓储复核。Direct Run / History 不回显值，provider 前 authority checkpoint 会复核 contract digest，v2 错误形状不回退 v1，关闭后的 repository 不回退 memory。
 
 ## 批次 C：Session 与共享 Web 输入编辑器
 
@@ -105,4 +107,4 @@
 
 ## 当前下一步
 
-实施批次 B。先接通 strict v1/v2 HTTP request union 与 `workflow_definition_executor_v2`，再按 memory → SQLite → PostgreSQL 顺序补 durable lifecycle、migration、restart / corruption / CAS / no-fallback 测试和 Direct Run / Run History metadata-only 纵向链；本批仍不修改 React，也不操作 Pencil。
+实施批次 C。先在 Pencil 冻结 `B / 局部` 字段编辑、合同摘要、错误归属、值清理和窄屏顺序，再实现 Application Session v4 authority / turn 合同与 Definition Run / Session 共享 `StructuredRuntimeInputEditor`；本批不提前进入 Evaluation Plan / Campaign v2，也不建立 S11 页面族。

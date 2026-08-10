@@ -2,7 +2,7 @@
 
 更新时间：2026-08-10
 
-状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_a_completed_batch_b_next`
+状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_b_completed_batch_c_next`
 
 ## 功能定位
 
@@ -156,13 +156,15 @@ Application Session v4 只在 application active Definition 已绑定 `workflow_
 - 实现 input contract / value canonicalization、digest、预算、secret 与兼容矩阵。
 - 保留 v1/v5 完整读取、执行和比较路径，覆盖无自动迁移、无 fallback 负向测试。
 
-批次 A 已完成。仓库已冻结五份 Draft / Candidate / Definition / Run / Comparison schema、`workflow_definition_executor.v2` 评测身份、最多 `16` 个字段的 Go 领域合同、稳定 canonical JSON / digest、预算与 secret 检查，以及八类稳定输入失败码。Saved Draft validation、Candidate / Version materialize、Run store / history 和 Comparison dispatch 已按显式版本矩阵分派；v1 不改写为 v2，v5 / v8 不混合比较，Comparison v7 只接受同 Definition lineage、同 contract digest 的终态 Run v8。当前还没有 v2 HTTP request、executor 调用或 durable migration，相关入口继续失败关闭。
+批次 A 已完成。仓库已冻结五份 Draft / Candidate / Definition / Run / Comparison schema、`workflow_definition_executor.v2` 评测身份、最多 `16` 个字段的 Go 领域合同、稳定 canonical JSON / digest、预算与 secret 检查，以及八类稳定输入失败码。Saved Draft validation、Candidate / Version materialize、Run store / history 和 Comparison dispatch 已按显式版本矩阵分派；v1 不改写为 v2，v5 / v8 不混合比较，Comparison v7 只接受同 Definition lineage、同 contract digest 的终态 Run v8。
 
 ### 批次 B：HTTP、executor 与三模式持久化
 
 - 实现 strict v1/v2 request union 与 `workflow_definition_executor_v2`。
 - 增加 memory、SQLite、PostgreSQL migration / repository 支持和 restart / corruption / CAS 测试。
 - 完成 Draft 保存、candidate、promotion、activation、direct Run 与 Run History 纵向链。
+
+批次 B 已完成。Direct Run HTTP 现在按 exact Definition profile 执行严格 `input_text | inputs` 联合分派，executor v2 只把有界 typed packet 交给 provider；Run v8 与 History 仅保存合同、字段、字节数和 digest metadata。Saved Draft 与 Workflow Run 分别通过 SQLite `0004` / `0017`、PostgreSQL `0004` / `0020` 迁移接通 v2 / v8，并由数据库 payload / projection 约束与仓储解码双层失败关闭。memory、SQLite、PostgreSQL 已复验 Draft v2 → Candidate v2 → Definition v2 → Activation → Run v8 → Comparison v7，覆盖服务重启、隐私扫描、CAS / 行锁既有合同、腐化拒绝、关闭后无 memory fallback 和 v1 连续回归。
 
 ### 批次 C：Session 与共享 Web 输入编辑器
 
@@ -204,4 +206,4 @@ Application Session v4 只在 application active Definition 已绑定 `workflow_
 
 ## 当前下一步
 
-进入唯一实施任务卡批次 B：实现 strict v1/v2 HTTP request union、`workflow_definition_executor_v2`、memory / SQLite / PostgreSQL durable lifecycle 与 Direct Run / Run History metadata-only 纵向链。局部 Pencil 必须在批次 C 的 React 修改前冻结，但不阻塞批次 B 的服务实现。
+进入唯一实施任务卡批次 C：先在既有 Definition Run 与 Application Interaction Session 任务区冻结 `B / 局部 Pencil` 的字段行、合同摘要、错误归属、值清理提示和窄屏顺序，再实现 Application Session v4 与共享 `StructuredRuntimeInputEditor` 两个 consumer。当前不进入 Evaluation Plan / Campaign v2，不创建 S11 页面族，也不扩大 production、secret 输入、自动执行或业务写回边界。

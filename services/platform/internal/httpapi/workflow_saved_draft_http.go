@@ -146,9 +146,11 @@ type savedWorkflowDraftEdgeDocument struct {
 }
 
 type savedWorkflowDraftContractDocument struct {
-	ContractID     string   `json:"contract_id"`
-	RequiredFields []string `json:"required_fields"`
-	Summary        string   `json:"summary"`
+	ContractID     string                         `json:"contract_id"`
+	RequiredFields []string                       `json:"required_fields,omitempty"`
+	Fields         []WorkflowStructuredInputField `json:"fields,omitempty"`
+	Summary        string                         `json:"summary"`
+	ContractDigest string                         `json:"contract_digest,omitempty"`
 }
 
 type savedWorkflowDraftValidationDocument struct {
@@ -683,7 +685,9 @@ func savedWorkflowDraftContractFromDocument(document savedWorkflowDraftContractD
 	return SavedWorkflowDraftContract{
 		ContractID:     document.ContractID,
 		RequiredFields: cloneStringSlice(document.RequiredFields),
+		Fields:         cloneWorkflowStructuredInputFields(document.Fields),
 		Summary:        document.Summary,
+		ContractDigest: document.ContractDigest,
 	}
 }
 
@@ -691,7 +695,9 @@ func savedWorkflowDraftContractToDocument(contract SavedWorkflowDraftContract) s
 	return savedWorkflowDraftContractDocument{
 		ContractID:     contract.ContractID,
 		RequiredFields: cloneStringSlice(contract.RequiredFields),
+		Fields:         cloneWorkflowStructuredInputFields(contract.Fields),
 		Summary:        contract.Summary,
+		ContractDigest: contract.ContractDigest,
 	}
 }
 

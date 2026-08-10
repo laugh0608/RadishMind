@@ -16,8 +16,8 @@ import (
 
 const (
 	Component                                     = "workflow_runs"
-	MigrationID                                   = "0019_application_evaluation_campaigns"
-	StoreSchemaVersion                            = "workflow_run_store_v19"
+	MigrationID                                   = "0020_workflow_definition_structured_inputs"
+	StoreSchemaVersion                            = "workflow_run_store_v20"
 	legacyMigrationID                             = "0001_workflow_runs"
 	legacyStoreSchemaVersion                      = "workflow_run_store_v1"
 	diagnosticsMigrationID                        = "0002_workflow_run_diagnostics"
@@ -54,6 +54,8 @@ const (
 	agentRuntimeStoreSchemaVersion                = "workflow_run_store_v17"
 	agentInvocationMigrationID                    = "0018_agent_copilot_invocation_projections"
 	agentInvocationStoreSchemaVersion             = "workflow_run_store_v18"
+	applicationEvaluationMigrationID              = "0019_application_evaluation_campaigns"
+	applicationEvaluationStoreSchemaVersion       = "workflow_run_store_v19"
 	MigrationStateApplied                         = "applied"
 	MigrationStatePending                         = "pending"
 	MigrationStateNotApplied                      = "not_applied"
@@ -179,8 +181,14 @@ var upSQLV19 string
 //go:embed 0019_application_evaluation_campaigns.down.sql
 var downSQLV19 string
 
-var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13 + "\n" + upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19
-var downSQL = downSQLV19 + "\n" + downSQLV18 + "\n" + downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+//go:embed 0020_workflow_definition_structured_inputs.up.sql
+var upSQLV20 string
+
+//go:embed 0020_workflow_definition_structured_inputs.down.sql
+var downSQLV20 string
+
+var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13 + "\n" + upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20
+var downSQL = downSQLV20 + "\n" + downSQLV19 + "\n" + downSQLV18 + "\n" + downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 
 type State struct {
 	MigrationState, MigrationID, StoreSchemaVersion, MigrationChecksum string
@@ -269,6 +277,10 @@ func agentRuntimeChecksum() string {
 
 func agentInvocationChecksum() string {
 	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9+"\n"+upSQLV10+"\n"+upSQLV11+"\n"+upSQLV12+"\n"+upSQLV13+"\n"+upSQLV14+"\n"+upSQLV15+"\n"+upSQLV16+"\n"+upSQLV17+"\n"+upSQLV18)))
+}
+
+func applicationEvaluationChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9+"\n"+upSQLV10+"\n"+upSQLV11+"\n"+upSQLV12+"\n"+upSQLV13+"\n"+upSQLV14+"\n"+upSQLV15+"\n"+upSQLV16+"\n"+upSQLV17+"\n"+upSQLV18+"\n"+upSQLV19)))
 }
 
 func Inspect(ctx context.Context, pool *pgxpool.Pool) (State, error) {
@@ -392,29 +404,32 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 }
 
 func pendingMigrationSQL(appliedMigrationID string) string {
+	if appliedMigrationID == applicationEvaluationMigrationID {
+		return upSQLV20
+	}
 	if appliedMigrationID == agentInvocationMigrationID {
-		return upSQLV19
+		return upSQLV19 + "\n" + upSQLV20
 	}
 	if appliedMigrationID == agentRuntimeMigrationID {
-		return upSQLV18 + "\n" + upSQLV19
+		return upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20
 	}
 	if appliedMigrationID == promptRuntimeMigrationID {
-		return upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19
+		return upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20
 	}
 	if appliedMigrationID == applicationSessionMigrationID {
-		return upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19
+		return upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20
 	}
 	if appliedMigrationID == definitionExecutionMigrationID {
-		return upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19
+		return upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20
 	}
 	if appliedMigrationID == definitionReleaseMigrationID {
-		return upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19
+		return upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20
 	}
 	pending := pendingMigrationSQLThroughDefinitionRelease(appliedMigrationID)
 	if pending == "" {
 		return ""
 	}
-	return pending + "\n" + upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19
+	return pending + "\n" + upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20
 }
 
 func pendingMigrationSQLThroughDefinitionRelease(appliedMigrationID string) string {
@@ -486,6 +501,8 @@ func rollbackSQLThrough(appliedMigrationID string) string {
 		return downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 	case agentInvocationMigrationID:
 		return downSQLV18 + "\n" + downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case applicationEvaluationMigrationID:
+		return downSQLV19 + "\n" + downSQLV18 + "\n" + downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 	default:
 		return ""
 	}
@@ -547,10 +564,16 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 		state.MigrationState = MigrationStatePending
 	} else if state.MigrationID == agentInvocationMigrationID && state.StoreSchemaVersion == agentInvocationStoreSchemaVersion && state.MigrationChecksum == agentInvocationChecksum() && tableExists {
 		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == applicationEvaluationMigrationID && state.StoreSchemaVersion == applicationEvaluationStoreSchemaVersion && state.MigrationChecksum == applicationEvaluationChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
 	} else {
 		var diagnosticColumnCount int
 		if err = query.QueryRow(ctx, `SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name='workflow_run_records' AND column_name IN ('failure_code','failure_boundary','selected_provider','selected_model')`).Scan(&diagnosticColumnCount); err != nil {
 			return State{}, safeDatabaseError("inspect workflow run diagnostics columns", err)
+		}
+		var structuredInputColumnCount int
+		if err = query.QueryRow(ctx, `SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name='workflow_run_records' AND column_name IN ('input_contract_id','input_contract_digest')`).Scan(&structuredInputColumnCount); err != nil {
+			return State{}, safeDatabaseError("inspect workflow structured input columns", err)
 		}
 		var evaluationTableExists bool
 		if err = query.QueryRow(ctx, "SELECT to_regclass('public.workflow_evaluation_cases') IS NOT NULL").Scan(&evaluationTableExists); err != nil {
@@ -828,7 +851,7 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 			)`).Scan(&applicationEvaluationTriggerCount); err != nil {
 			return State{}, safeDatabaseError("inspect application evaluation triggers", err)
 		}
-		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 || !evaluationTableExists || !revisionTableExists || currentVersionColumnCount != 1 || !suiteTableExists || !decisionTableExists || !actionPlanTableExists || !confirmationDecisionTableExists || !executionAuditTableExists || !executionAttemptTableExists || appendOnlyTriggerCount != 2 || !ragResourceTableExists || !ragVersionTableExists || !ragFragmentTableExists || !ragAuditTableExists || ragAppendOnlyTriggerCount != 3 || ragExecutionEventConstraintCount != 1 || !ragEvaluationResourceTableExists || !ragEvaluationVersionTableExists || !ragCandidateReviewTableExists || !ragEvaluationAuditTableExists || ragEvaluationAppendOnlyTriggerCount != 3 || ragPromotionTableCount != 4 || ragPromotionAppendOnlyTriggerCount != 3 || executionSourceColumnCount != 3 || legacyDraftColumnCount != 0 || applicationRuntimeTableCount != 3 || applicationRuntimeTriggerCount != 2 || definitionReleaseTableCount != 6 || definitionReleaseTriggerCount != 4 || applicationInteractionTableCount != 2 || applicationInteractionTriggerCount != 4 || promptProjectionTableCount != 5 || promptProjectionTriggerCount != 10 || agentAssignmentTableCount != 2 || agentAssignmentTriggerCount != 4 || agentProjectionTableCount != 3 || agentProjectionTriggerCount != 6 || applicationEvaluationTableCount != 3 || applicationEvaluationTriggerCount != 6 {
+		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 || structuredInputColumnCount != 2 || !evaluationTableExists || !revisionTableExists || currentVersionColumnCount != 1 || !suiteTableExists || !decisionTableExists || !actionPlanTableExists || !confirmationDecisionTableExists || !executionAuditTableExists || !executionAttemptTableExists || appendOnlyTriggerCount != 2 || !ragResourceTableExists || !ragVersionTableExists || !ragFragmentTableExists || !ragAuditTableExists || ragAppendOnlyTriggerCount != 3 || ragExecutionEventConstraintCount != 1 || !ragEvaluationResourceTableExists || !ragEvaluationVersionTableExists || !ragCandidateReviewTableExists || !ragEvaluationAuditTableExists || ragEvaluationAppendOnlyTriggerCount != 3 || ragPromotionTableCount != 4 || ragPromotionAppendOnlyTriggerCount != 3 || executionSourceColumnCount != 3 || legacyDraftColumnCount != 0 || applicationRuntimeTableCount != 3 || applicationRuntimeTriggerCount != 2 || definitionReleaseTableCount != 6 || definitionReleaseTriggerCount != 4 || applicationInteractionTableCount != 2 || applicationInteractionTriggerCount != 4 || promptProjectionTableCount != 5 || promptProjectionTriggerCount != 10 || agentAssignmentTableCount != 2 || agentAssignmentTriggerCount != 4 || agentProjectionTableCount != 3 || agentProjectionTriggerCount != 6 || applicationEvaluationTableCount != 3 || applicationEvaluationTriggerCount != 6 {
 			state.MigrationState = MigrationStateMismatch
 		} else {
 			state.MigrationState = MigrationStateApplied

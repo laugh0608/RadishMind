@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前活跃任务为 [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1-plan.md)，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_design_frozen_implementation_not_started`。下一步只实施批次 A 的版本化 schema、Go 领域合同、canonicalization / digest 和兼容测试；migration、React 与局部 Pencil 按任务卡顺序进入后续批次，不派生平行 task card 或同层 gate-only 切片。
+当前活跃任务为 [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1-plan.md)，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_batch_b_completed_batch_c_next`。HTTP / executor、memory / SQLite / PostgreSQL durable chain 与 Direct Run / History 已关闭；下一步只实施批次 C 的局部 Pencil、Session v4 和 Definition Run / Session 共享输入编辑器，不提前进入 Evaluation Plan / Campaign v2，也不派生平行 task card 或同层 gate-only 切片。
 
 ## 最近关闭任务
 

@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：[Workflow Definition 结构化运行输入](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 批次 A 已完成 Draft / Definition v2、Run v8、Comparison v7 schema、领域合同、canonicalization / digest 与旧版本兼容测试；当前进入批次 B，实施 strict HTTP union、executor v2、三模式 durable lifecycle 和 Direct Run / History 纵向链。Session v4、Evaluation Plan / Campaign v2 和 `B / 局部 Pencil` 按唯一任务卡后续批次推进；不自动迁移 v1，不保存直接运行 / Session 输入值，不扩 production、自动执行或 S11 页面族。
+1. 产品线：[Workflow Definition 结构化运行输入](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 批次 B 已完成 strict HTTP union、executor v2、三模式 Draft v2 / Run v8 durable lifecycle、Direct Run / History 与双数据库复验；当前进入批次 C，先冻结 `B / 局部 Pencil`，再实现 Session v4 和 Definition Run / Session 共享输入编辑器。Evaluation Plan / Campaign v2 留在批次 D；不自动迁移 v1，不保存直接运行 / Session 输入值，不扩 production、自动执行或 S11 页面族。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；dev header 与 signed-test membership 不能作为 production 授权来源。production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、production quota 和 billing 继续为 `not_satisfied`；开发测试态 application request admission 不改变这些结论。
