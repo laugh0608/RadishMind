@@ -99,7 +99,7 @@ RadishMind 当前选择精确镜像所采用 family-ui 版本的参考实现；�
 - `v26.7.3` token 已完成精确镜像；`S1` 产品身份改为灰玉，墨蓝 action 与胭脂 attention 通过项目别名保持原有职责，不再直接混用 `--rd-brand-primary`。
 - `S1` 实现已经消除 `390px` 窄屏原有的 `421px` 横向内容宽度。根因是 Application Configuration Draft 深层标题行中的长状态 badge；移动端共享收缩规则、标题行换行与 React Flow 边界已收口，闭合导航和展开菜单的真实页面宽度均为 `390px`。
 - `S1 R5` / `S2 R3` 的人工评审结论为现代产品感不足；`S1 R6` / `S2 R4` 修正了整体方向，`S1 R7` / `S2 R5` 取消了无职责的桌面外圈容器，但局部仍偏规整文字面板。`S1 R8` / `S2 R6` 已用 Operations Inbox 紧凑窗口与 evidence path、Source evidence 分布矩阵、当前阶段轻量选中轨、十三段 contribution window、九格 readiness 与 authorization path 增强信息密度和视觉焦点；选中只归属于当前导航或详情 owner，普通状态项不得因 `missing`、`blocked` 或 `partial` 获得选中底色。2026-08-06 人工复评已通过，`S1 R8` React 也已按真实 view model 落地并完成严格浏览器验收；设计中的代表计数不覆盖运行时计数。当前进入 `S2 R6`，不把尚未实现的 Application Workspace 新基准写成已落地产品行为。
-- S9 / S10 原 R1 的首次返工只把独立米棕色板映射回项目 token，未改变宽 hero、等权卡片、稀疏工作面和另一套侧栏，因此再次被人工退回。2026-08-10 已完成 Visual R2 结构归位：S9、S10 与结构化输入局部稿均以 S8 连续 Workbench 为母版，当前等待人工视觉复核；已有 React 功能证据不得冒充 Visual R2 已落地。
+- S9 / S10 原 R1 的首次返工只把独立米棕色板映射回项目 token，未改变宽 hero、等权卡片、稀疏工作面和另一套侧栏，因此被人工退回；Visual R2 虽完成连续 Workbench 结构归位，又把上下文、任务、owner 与 boundary 全部处理成硬方形，仍未继承 S7 / S8 和 `reference-ui` 的形态语言，因此再次被退回。2026-08-10 已完成 Visual R3：连续窗格与表格行保持方正发丝边界，业务表面使用 `8–11px` 职责圆角，紧凑控件使用 `7–8px`，标签使用全圆角。S9、S10 与结构化输入局部稿当前等待人工视觉复核；已有 React 功能证据不得冒充 Visual R3 已落地。
 - family-ui 已包含暗色映射，但 RadishMind 尚未完成暗色页面设计、切换策略和双态视觉验收，因此当前不提供暗色主题开关。
 - 旧 [UI 设计规范](radishmind-ui-design-spec.md) 暂作为历史迁移源保留；其中家族通用视觉规则已由 family-ui 取代，领域状态和产品边界逐步迁入功能专题与本附录。
 

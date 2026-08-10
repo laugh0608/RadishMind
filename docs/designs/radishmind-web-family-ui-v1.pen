@@ -31343,7 +31343,7 @@
       "id": "C7pkb",
       "x": 19920,
       "y": 0,
-      "name": "S9 Admin Quota Admission — Desktop / Dev Test · R2",
+      "name": "S9 Admin Quota Admission — Desktop / Dev Test · R3",
       "clip": true,
       "width": 1440,
       "height": 900,
@@ -31983,6 +31983,7 @@
                           "id": "J98VE",
                           "name": "S9 Path Applications",
                           "height": 60,
+                          "cornerRadius": 10,
                           "gap": 10,
                           "alignItems": "center",
                           "children": [
@@ -31993,6 +31994,7 @@
                               "width": 28,
                               "height": 28,
                               "fill": "$bg-surface",
+                              "cornerRadius": 7,
                               "layout": "vertical",
                               "justifyContent": "center",
                               "alignItems": "center",
@@ -32045,6 +32047,7 @@
                           "name": "S9 Path Policy",
                           "height": 60,
                           "fill": "$action-soft",
+                          "cornerRadius": 10,
                           "stroke": "$action",
                           "strokeWidth": {
                             "left": 2
@@ -32065,6 +32068,7 @@
                               "width": 28,
                               "height": 28,
                               "fill": "$action",
+                              "cornerRadius": 7,
                               "layout": "vertical",
                               "justifyContent": "center",
                               "alignItems": "center",
@@ -32116,6 +32120,7 @@
                           "id": "TZoFy",
                           "name": "S9 Path Admission",
                           "height": 60,
+                          "cornerRadius": 10,
                           "gap": 10,
                           "alignItems": "center",
                           "children": [
@@ -32126,6 +32131,7 @@
                               "width": 28,
                               "height": 28,
                               "fill": "$bg-surface",
+                              "cornerRadius": 7,
                               "layout": "vertical",
                               "justifyContent": "center",
                               "alignItems": "center",
@@ -32177,6 +32183,7 @@
                           "id": "x0IKM",
                           "name": "S9 Path Audit",
                           "height": 60,
+                          "cornerRadius": 10,
                           "gap": 10,
                           "alignItems": "center",
                           "children": [
@@ -32187,6 +32194,7 @@
                               "width": 28,
                               "height": 28,
                               "fill": "$bg-surface",
+                              "cornerRadius": 7,
                               "layout": "vertical",
                               "justifyContent": "center",
                               "alignItems": "center",
@@ -32241,6 +32249,7 @@
                       "name": "S9 Path Boundary",
                       "width": "fill_container",
                       "fill": "$warning-soft",
+                      "cornerRadius": 10,
                       "layout": "vertical",
                       "gap": 6,
                       "padding": 12,
@@ -32288,6 +32297,7 @@
                       "width": "fill_container",
                       "height": 74,
                       "fill": "$action-soft",
+                      "cornerRadius": 10,
                       "stroke": "$action",
                       "strokeWidth": {
                         "left": 3
@@ -32366,15 +32376,20 @@
                       "width": "fill_container",
                       "height": 510,
                       "fill": "$bg-surface",
-                      "stroke": "$border-soft",
+                      "stroke": "$bg-surface",
+                      "gap": 12,
                       "children": [
                         {
                           "type": "frame",
                           "id": "G0NABA",
                           "name": "S9 Policy Facts",
+                          "clip": true,
                           "width": 620,
                           "height": "fill_container",
                           "fill": "$bg-surface",
+                          "cornerRadius": 11,
+                          "stroke": "$border-soft",
+                          "strokeWidth": 1,
                           "layout": "vertical",
                           "children": [
                             {
@@ -32710,13 +32725,13 @@
                           "type": "frame",
                           "id": "XewA7",
                           "name": "S9 Admission Rail",
+                          "clip": true,
                           "width": "fill_container",
                           "height": "fill_container",
                           "fill": "$bg-muted",
+                          "cornerRadius": 11,
                           "stroke": "$border-soft",
-                          "strokeWidth": {
-                            "left": 1
-                          },
+                          "strokeWidth": 1,
                           "layout": "vertical",
                           "gap": 12,
                           "padding": 18,
@@ -32767,6 +32782,7 @@
                               "width": "fill_container",
                               "height": 6,
                               "fill": "$border-soft",
+                              "cornerRadius": 99,
                               "layout": "vertical",
                               "children": [
                                 {
@@ -32776,6 +32792,7 @@
                                   "width": "fill_container",
                                   "height": 6,
                                   "fill": "$attention",
+                                  "cornerRadius": 99,
                                   "layout": "vertical"
                                 }
                               ]
@@ -32815,6 +32832,7 @@
                               "name": "S9 CAS Notice",
                               "width": "fill_container",
                               "fill": "$action-soft",
+                              "cornerRadius": 8,
                               "layout": "vertical",
                               "gap": 6,
                               "padding": 12,
@@ -32850,6 +32868,7 @@
                               "width": "fill_container",
                               "height": 38,
                               "fill": "$border-soft",
+                              "cornerRadius": 8,
                               "layout": "vertical",
                               "justifyContent": "center",
                               "alignItems": "center",
@@ -32887,6 +32906,7 @@
                       "width": "fill_container",
                       "height": 72,
                       "fill": "$warning-soft",
+                      "cornerRadius": 10,
                       "stroke": "$warning",
                       "strokeWidth": {
                         "left": 2
@@ -32954,7 +32974,7 @@
       "id": "x8lESc",
       "x": 21440,
       "y": 0,
-      "name": "S9 Admin Quota Admission — Narrow / Dev Test · R2",
+      "name": "S9 Admin Quota Admission — Narrow / Dev Test · R3",
       "clip": true,
       "width": 390,
       "height": 844,
@@ -33070,6 +33090,7 @@
               "width": "fill_container",
               "height": 94,
               "fill": "$bg-surface",
+              "cornerRadius": 10,
               "stroke": "$border-soft",
               "layout": "vertical",
               "gap": 5,
@@ -33174,6 +33195,7 @@
               "width": "fill_container",
               "height": 90,
               "fill": "$bg-surface",
+              "cornerRadius": 10,
               "stroke": "$border-soft",
               "layout": "vertical",
               "gap": 6,
@@ -33204,6 +33226,7 @@
                       "width": "fill_container",
                       "height": 56,
                       "fill": "$bg-surface",
+                      "cornerRadius": 8,
                       "stroke": "$border-soft",
                       "layout": "vertical",
                       "gap": 4,
@@ -33239,6 +33262,7 @@
                       "width": "fill_container",
                       "height": 56,
                       "fill": "$action",
+                      "cornerRadius": 8,
                       "stroke": "$action",
                       "layout": "vertical",
                       "gap": 4,
@@ -33274,6 +33298,7 @@
                       "width": "fill_container",
                       "height": 56,
                       "fill": "$bg-surface",
+                      "cornerRadius": 8,
                       "stroke": "$border-soft",
                       "layout": "vertical",
                       "gap": 4,
@@ -33309,6 +33334,7 @@
                       "width": "fill_container",
                       "height": 56,
                       "fill": "$bg-surface",
+                      "cornerRadius": 8,
                       "stroke": "$border-soft",
                       "layout": "vertical",
                       "gap": 4,
@@ -33345,9 +33371,11 @@
               "type": "frame",
               "id": "mrB4E",
               "name": "S9 Narrow Admission Owner",
+              "clip": true,
               "width": "fill_container",
               "height": 454,
               "fill": "$bg-surface",
+              "cornerRadius": 10,
               "stroke": "$border-soft",
               "layout": "vertical",
               "children": [
@@ -33729,6 +33757,7 @@
                       "width": 92,
                       "height": 32,
                       "fill": "$border-soft",
+                      "cornerRadius": 8,
                       "layout": "vertical",
                       "justifyContent": "center",
                       "alignItems": "center",
@@ -33790,6 +33819,7 @@
               "width": "fill_container",
               "height": 76,
               "fill": "$warning-soft",
+              "cornerRadius": 10,
               "stroke": "$warning",
               "layout": "vertical",
               "gap": 5,
@@ -33848,7 +33878,7 @@
       "id": "tCWCW",
       "x": 21910,
       "y": 0,
-      "name": "S9 Admin Quota Admission — Design Decision Record · R14 · Visual R2",
+      "name": "S9 Admin Quota Admission — Design Decision Record · R14 · Visual R3",
       "clip": true,
       "width": 1440,
       "height": 410,
@@ -33899,39 +33929,78 @@
             },
             {
               "type": "frame",
-              "id": "VZDKt",
+              "id": "oH2CX",
               "name": "S9 R14 Decision States",
-              "gap": 16,
+              "gap": 7,
               "children": [
                 {
-                  "type": "text",
-                  "id": "aWSTl",
-                  "name": "S9 R14 Decision Scope",
-                  "fill": "$action",
-                  "content": "S9",
-                  "fontFamily": "$font-sans",
-                  "fontSize": 9,
-                  "fontWeight": "600"
+                  "type": "frame",
+                  "id": "qj5ts",
+                  "name": "S9 R14 Scope Tag",
+                  "fill": "$action-soft",
+                  "cornerRadius": 999,
+                  "padding": [
+                    5,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "wTpOX",
+                      "name": "S9 R14 Scope Tag Label",
+                      "fill": "$action",
+                      "content": "S9",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "600"
+                    }
+                  ]
                 },
                 {
-                  "type": "text",
-                  "id": "o1zwa",
-                  "name": "S9 R14 Decision Viewports",
-                  "fill": "$success",
-                  "content": "DESKTOP + NARROW",
-                  "fontFamily": "$font-sans",
-                  "fontSize": 9,
-                  "fontWeight": "600"
+                  "type": "frame",
+                  "id": "QlyKZ",
+                  "name": "S9 R14 Viewport Tag",
+                  "fill": "$success-soft",
+                  "cornerRadius": 999,
+                  "padding": [
+                    5,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "VlBB5",
+                      "name": "S9 R14 Viewport Tag Label",
+                      "fill": "$success",
+                      "content": "DESKTOP + NARROW",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "600"
+                    }
+                  ]
                 },
                 {
-                  "type": "text",
-                  "id": "CeWUg",
-                  "name": "S9 R14 Decision Environment",
-                  "fill": "$warning",
-                  "content": "DEV / TEST",
-                  "fontFamily": "$font-sans",
-                  "fontSize": 9,
-                  "fontWeight": "600"
+                  "type": "frame",
+                  "id": "K3qOe",
+                  "name": "S9 R14 Environment Tag",
+                  "fill": "$warning-soft",
+                  "cornerRadius": 999,
+                  "padding": [
+                    5,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "E1ofd",
+                      "name": "S9 R14 Environment Tag Label",
+                      "fill": "$warning",
+                      "content": "DEV / TEST",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "600"
+                    }
+                  ]
                 }
               ]
             }
@@ -34452,7 +34521,7 @@
       "id": "Um8Zh",
       "x": 23550,
       "y": 0,
-      "name": "S10 Evaluation Campaign Workspace — Desktop / Dev Test · R2",
+      "name": "S10 Evaluation Campaign Workspace — Desktop / Dev Test · R3",
       "clip": true,
       "width": 1440,
       "height": 900,
@@ -35094,6 +35163,7 @@
                           "id": "I3H9y",
                           "name": "S10 Path Plan",
                           "height": 60,
+                          "cornerRadius": 10,
                           "gap": 10,
                           "alignItems": "center",
                           "children": [
@@ -35104,6 +35174,7 @@
                               "width": 28,
                               "height": 28,
                               "fill": "$bg-surface",
+                              "cornerRadius": 7,
                               "layout": "vertical",
                               "justifyContent": "center",
                               "alignItems": "center",
@@ -35156,6 +35227,7 @@
                           "name": "S10 Path Campaign",
                           "height": 60,
                           "fill": "$action-soft",
+                          "cornerRadius": 10,
                           "stroke": "$action",
                           "strokeWidth": {
                             "left": 2
@@ -35176,6 +35248,7 @@
                               "width": 28,
                               "height": 28,
                               "fill": "$action",
+                              "cornerRadius": 7,
                               "layout": "vertical",
                               "justifyContent": "center",
                               "alignItems": "center",
@@ -35227,6 +35300,7 @@
                           "id": "mgQ6j",
                           "name": "S10 Path Pair",
                           "height": 60,
+                          "cornerRadius": 10,
                           "gap": 10,
                           "alignItems": "center",
                           "children": [
@@ -35237,6 +35311,7 @@
                               "width": 28,
                               "height": 28,
                               "fill": "$bg-surface",
+                              "cornerRadius": 7,
                               "layout": "vertical",
                               "justifyContent": "center",
                               "alignItems": "center",
@@ -35288,6 +35363,7 @@
                           "id": "oi5HF",
                           "name": "S10 Path Handoff",
                           "height": 60,
+                          "cornerRadius": 10,
                           "gap": 10,
                           "alignItems": "center",
                           "children": [
@@ -35298,6 +35374,7 @@
                               "width": 28,
                               "height": 28,
                               "fill": "$bg-surface",
+                              "cornerRadius": 7,
                               "layout": "vertical",
                               "justifyContent": "center",
                               "alignItems": "center",
@@ -35352,6 +35429,7 @@
                       "name": "S10 Path Boundary",
                       "width": "fill_container",
                       "fill": "$warning-soft",
+                      "cornerRadius": 10,
                       "layout": "vertical",
                       "gap": 6,
                       "padding": 12,
@@ -35399,6 +35477,7 @@
                       "width": "fill_container",
                       "height": 74,
                       "fill": "$action-soft",
+                      "cornerRadius": 10,
                       "stroke": "$action",
                       "strokeWidth": {
                         "left": 3
@@ -35477,15 +35556,20 @@
                       "width": "fill_container",
                       "height": 548,
                       "fill": "$bg-surface",
-                      "stroke": "$border-soft",
+                      "stroke": "$bg-surface",
+                      "gap": 12,
                       "children": [
                         {
                           "type": "frame",
                           "id": "QIEie",
                           "name": "S10 Campaign Evidence",
+                          "clip": true,
                           "width": 620,
                           "height": "fill_container",
                           "fill": "$bg-surface",
+                          "cornerRadius": 11,
+                          "stroke": "$border-soft",
+                          "strokeWidth": 1,
                           "layout": "vertical",
                           "children": [
                             {
@@ -35962,6 +36046,7 @@
                               "name": "S10 Pair Interpretation",
                               "width": "fill_container",
                               "fill": "$bg-muted",
+                              "cornerRadius": 8,
                               "layout": "vertical",
                               "gap": 7,
                               "padding": 16,
@@ -35996,13 +36081,13 @@
                           "type": "frame",
                           "id": "MfOvA",
                           "name": "S10 Handoff Rail",
+                          "clip": true,
                           "width": "fill_container",
                           "height": "fill_container",
                           "fill": "$bg-muted",
+                          "cornerRadius": 11,
                           "stroke": "$border-soft",
-                          "strokeWidth": {
-                            "left": 1
-                          },
+                          "strokeWidth": 1,
                           "layout": "vertical",
                           "gap": 12,
                           "padding": 18,
@@ -36052,6 +36137,7 @@
                               "name": "S10 Pair Scope",
                               "width": "fill_container",
                               "fill": "$action-soft",
+                              "cornerRadius": 8,
                               "layout": "vertical",
                               "gap": 6,
                               "padding": 12,
@@ -36095,6 +36181,7 @@
                               "name": "S10 Handoff Guard",
                               "width": "fill_container",
                               "fill": "$attention-soft",
+                              "cornerRadius": 8,
                               "stroke": "$attention",
                               "layout": "vertical",
                               "gap": 6,
@@ -36131,6 +36218,7 @@
                               "width": "fill_container",
                               "height": 38,
                               "fill": "$action",
+                              "cornerRadius": 8,
                               "layout": "vertical",
                               "justifyContent": "center",
                               "alignItems": "center",
@@ -36168,6 +36256,7 @@
                       "width": "fill_container",
                       "height": 72,
                       "fill": "$warning-soft",
+                      "cornerRadius": 10,
                       "stroke": "$warning",
                       "strokeWidth": {
                         "left": 2
@@ -36235,7 +36324,7 @@
       "id": "ZxJd7",
       "x": 25070,
       "y": 0,
-      "name": "S10 Evaluation Campaign Workspace — Narrow / Dev Test · R2",
+      "name": "S10 Evaluation Campaign Workspace — Narrow / Dev Test · R3",
       "clip": true,
       "width": 390,
       "height": 844,
@@ -36351,6 +36440,7 @@
               "width": "fill_container",
               "height": 94,
               "fill": "$bg-surface",
+              "cornerRadius": 10,
               "stroke": "$border-soft",
               "layout": "vertical",
               "gap": 5,
@@ -36455,6 +36545,7 @@
               "width": "fill_container",
               "height": 90,
               "fill": "$bg-surface",
+              "cornerRadius": 10,
               "stroke": "$border-soft",
               "layout": "vertical",
               "gap": 6,
@@ -36485,6 +36576,7 @@
                       "width": "fill_container",
                       "height": 56,
                       "fill": "$bg-surface",
+                      "cornerRadius": 8,
                       "stroke": "$border-soft",
                       "layout": "vertical",
                       "gap": 4,
@@ -36520,6 +36612,7 @@
                       "width": "fill_container",
                       "height": 56,
                       "fill": "$action",
+                      "cornerRadius": 8,
                       "stroke": "$action",
                       "layout": "vertical",
                       "gap": 4,
@@ -36555,6 +36648,7 @@
                       "width": "fill_container",
                       "height": 56,
                       "fill": "$bg-surface",
+                      "cornerRadius": 8,
                       "stroke": "$border-soft",
                       "layout": "vertical",
                       "gap": 4,
@@ -36590,6 +36684,7 @@
                       "width": "fill_container",
                       "height": 56,
                       "fill": "$bg-surface",
+                      "cornerRadius": 8,
                       "stroke": "$border-soft",
                       "layout": "vertical",
                       "gap": 4,
@@ -36626,9 +36721,11 @@
               "type": "frame",
               "id": "W264I",
               "name": "S10 Narrow Campaign Owner",
+              "clip": true,
               "width": "fill_container",
               "height": 454,
               "fill": "$bg-surface",
+              "cornerRadius": 10,
               "stroke": "$border-soft",
               "layout": "vertical",
               "children": [
@@ -37078,6 +37175,7 @@
                       "width": 104,
                       "height": 32,
                       "fill": "$action",
+                      "cornerRadius": 8,
                       "layout": "vertical",
                       "justifyContent": "center",
                       "alignItems": "center",
@@ -37139,6 +37237,7 @@
               "width": "fill_container",
               "height": 76,
               "fill": "$warning-soft",
+              "cornerRadius": 10,
               "stroke": "$warning",
               "layout": "vertical",
               "gap": 5,
@@ -37197,7 +37296,7 @@
       "id": "UNMOS",
       "x": 25540,
       "y": 0,
-      "name": "S10 Evaluation Campaign Workspace — Design Decision Record · R15 · Visual R2",
+      "name": "S10 Evaluation Campaign Workspace — Design Decision Record · R15 · Visual R3",
       "clip": true,
       "width": 1440,
       "height": 410,
@@ -37248,39 +37347,78 @@
             },
             {
               "type": "frame",
-              "id": "AA2fx",
+              "id": "hFilu",
               "name": "S10 R15 Decision States",
-              "gap": 16,
+              "gap": 7,
               "children": [
                 {
-                  "type": "text",
-                  "id": "NW3Qw",
-                  "name": "S10 R15 Decision Scope",
-                  "fill": "$action",
-                  "content": "S10",
-                  "fontFamily": "$font-sans",
-                  "fontSize": 9,
-                  "fontWeight": "600"
+                  "type": "frame",
+                  "id": "wiOMC",
+                  "name": "S10 R15 Scope Tag",
+                  "fill": "$action-soft",
+                  "cornerRadius": 999,
+                  "padding": [
+                    5,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "YOY6E",
+                      "name": "S10 R15 Scope Tag Label",
+                      "fill": "$action",
+                      "content": "S10",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "600"
+                    }
+                  ]
                 },
                 {
-                  "type": "text",
-                  "id": "DTqM7",
-                  "name": "S10 R15 Decision Viewports",
-                  "fill": "$success",
-                  "content": "DESKTOP + NARROW",
-                  "fontFamily": "$font-sans",
-                  "fontSize": 9,
-                  "fontWeight": "600"
+                  "type": "frame",
+                  "id": "LNiKg",
+                  "name": "S10 R15 Viewport Tag",
+                  "fill": "$success-soft",
+                  "cornerRadius": 999,
+                  "padding": [
+                    5,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "se1qT",
+                      "name": "S10 R15 Viewport Tag Label",
+                      "fill": "$success",
+                      "content": "DESKTOP + NARROW",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "600"
+                    }
+                  ]
                 },
                 {
-                  "type": "text",
-                  "id": "RMUIY",
-                  "name": "S10 R15 Decision Environment",
-                  "fill": "$warning",
-                  "content": "PARTIAL",
-                  "fontFamily": "$font-sans",
-                  "fontSize": 9,
-                  "fontWeight": "600"
+                  "type": "frame",
+                  "id": "cHddO",
+                  "name": "S10 R15 Environment Tag",
+                  "fill": "$warning-soft",
+                  "cornerRadius": 999,
+                  "padding": [
+                    5,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "KLs7Q",
+                      "name": "S10 R15 Environment Tag Label",
+                      "fill": "$warning",
+                      "content": "PARTIAL",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "600"
+                    }
+                  ]
                 }
               ]
             }
@@ -37801,7 +37939,7 @@
       "id": "W3O4tV",
       "x": 27180,
       "y": 0,
-      "name": "Structured Runtime Input Editor — Desktop / Local · R2",
+      "name": "Structured Runtime Input Editor — Desktop / Local · R3",
       "clip": true,
       "width": 1040,
       "height": 760,
@@ -37956,6 +38094,7 @@
                       "name": "Local Input Contract Step",
                       "height": 54,
                       "fill": "$action-soft",
+                      "cornerRadius": 10,
                       "stroke": "$action",
                       "strokeWidth": {
                         "left": 2
@@ -37976,6 +38115,7 @@
                           "width": 26,
                           "height": 26,
                           "fill": "$action",
+                          "cornerRadius": 7,
                           "layout": "vertical",
                           "justifyContent": "center",
                           "alignItems": "center",
@@ -38027,6 +38167,7 @@
                       "id": "xgGEG",
                       "name": "Local Input Values Step",
                       "height": 54,
+                      "cornerRadius": 10,
                       "gap": 9,
                       "alignItems": "center",
                       "children": [
@@ -38037,6 +38178,7 @@
                           "width": 26,
                           "height": 26,
                           "fill": "$bg-surface",
+                          "cornerRadius": 7,
                           "layout": "vertical",
                           "justifyContent": "center",
                           "alignItems": "center",
@@ -38088,6 +38230,7 @@
                       "id": "d0qvE",
                       "name": "Local Input Validate Step",
                       "height": 54,
+                      "cornerRadius": 10,
                       "gap": 9,
                       "alignItems": "center",
                       "children": [
@@ -38098,6 +38241,7 @@
                           "width": 26,
                           "height": 26,
                           "fill": "$bg-surface",
+                          "cornerRadius": 7,
                           "layout": "vertical",
                           "justifyContent": "center",
                           "alignItems": "center",
@@ -38149,6 +38293,7 @@
                       "id": "jSdKu",
                       "name": "Local Input Run Step",
                       "height": 54,
+                      "cornerRadius": 10,
                       "gap": 9,
                       "alignItems": "center",
                       "children": [
@@ -38159,6 +38304,7 @@
                           "width": 26,
                           "height": 26,
                           "fill": "$bg-surface",
+                          "cornerRadius": 7,
                           "layout": "vertical",
                           "justifyContent": "center",
                           "alignItems": "center",
@@ -38213,6 +38359,7 @@
                   "name": "Local Input Contract Facts",
                   "width": "fill_container",
                   "fill": "$bg-surface",
+                  "cornerRadius": 10,
                   "layout": "vertical",
                   "gap": 7,
                   "padding": 12,
@@ -38275,6 +38422,7 @@
                   "name": "Local Input Path Boundary",
                   "width": "fill_container",
                   "fill": "$warning-soft",
+                  "cornerRadius": 10,
                   "layout": "vertical",
                   "gap": 5,
                   "padding": 12,
@@ -38322,6 +38470,7 @@
                   "width": "fill_container",
                   "height": 64,
                   "fill": "$action-soft",
+                  "cornerRadius": 10,
                   "stroke": "$action",
                   "strokeWidth": {
                     "left": 3
@@ -38400,15 +38549,20 @@
                   "width": "fill_container",
                   "height": 448,
                   "fill": "$bg-surface",
-                  "stroke": "$border-soft",
+                  "stroke": "$bg-surface",
+                  "gap": 12,
                   "children": [
                     {
                       "type": "frame",
                       "id": "L5oJ0",
                       "name": "Local Input Field Owner",
+                      "clip": true,
                       "width": 560,
                       "height": "fill_container",
                       "fill": "$bg-surface",
+                      "cornerRadius": 11,
+                      "stroke": "$border-soft",
+                      "strokeWidth": 1,
                       "layout": "vertical",
                       "children": [
                         {
@@ -38530,6 +38684,7 @@
                                   "width": "fill_container",
                                   "height": 34,
                                   "fill": "$bg-surface",
+                                  "cornerRadius": 7,
                                   "stroke": "$border-strong",
                                   "layout": "vertical",
                                   "padding": [
@@ -38607,6 +38762,7 @@
                                   "width": "fill_container",
                                   "height": 34,
                                   "fill": "$attention-soft",
+                                  "cornerRadius": 7,
                                   "stroke": "$attention",
                                   "layout": "vertical",
                                   "padding": [
@@ -38683,6 +38839,7 @@
                                   "width": "fill_container",
                                   "height": 34,
                                   "fill": "$bg-surface",
+                                  "cornerRadius": 7,
                                   "stroke": "$border-strong",
                                   "layout": "vertical",
                                   "padding": [
@@ -38755,6 +38912,7 @@
                                   "width": "fill_container",
                                   "height": 34,
                                   "fill": "$bg-surface",
+                                  "cornerRadius": 7,
                                   "stroke": "$border-strong",
                                   "layout": "vertical",
                                   "padding": [
@@ -38786,6 +38944,7 @@
                           "width": "fill_container",
                           "height": 56,
                           "fill": "$warning-soft",
+                          "cornerRadius": 8,
                           "stroke": "$warning",
                           "strokeWidth": {
                             "top": 1
@@ -38826,13 +38985,13 @@
                       "type": "frame",
                       "id": "H1dV2Z",
                       "name": "Local Input Authority Rail",
+                      "clip": true,
                       "width": "fill_container",
                       "height": "fill_container",
                       "fill": "$bg-muted",
+                      "cornerRadius": 11,
                       "stroke": "$border-soft",
-                      "strokeWidth": {
-                        "left": 1
-                      },
+                      "strokeWidth": 1,
                       "layout": "vertical",
                       "gap": 11,
                       "padding": 14,
@@ -39032,6 +39191,7 @@
                           "width": "fill_container",
                           "height": 36,
                           "fill": "$border-soft",
+                          "cornerRadius": 8,
                           "layout": "vertical",
                           "justifyContent": "center",
                           "alignItems": "center",
@@ -39059,6 +39219,7 @@
                   "width": "fill_container",
                   "height": 64,
                   "fill": "$warning-soft",
+                  "cornerRadius": 10,
                   "stroke": "$warning",
                   "strokeWidth": {
                     "left": 2
@@ -39124,7 +39285,7 @@
       "id": "t39foq",
       "x": 28300,
       "y": 0,
-      "name": "Structured Runtime Input Editor — Narrow / Local · R2",
+      "name": "Structured Runtime Input Editor — Narrow / Local · R3",
       "clip": true,
       "width": 390,
       "height": 844,
@@ -39163,6 +39324,7 @@
                   "width": 34,
                   "height": 34,
                   "fill": "$brand-soft",
+                  "cornerRadius": 10,
                   "layout": "vertical",
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -39197,6 +39359,7 @@
               "name": "Narrow Local Input Mode",
               "height": 29,
               "fill": "$bg-muted",
+              "cornerRadius": 99,
               "stroke": "$border-soft",
               "layout": "vertical",
               "padding": [
@@ -39241,6 +39404,7 @@
               "width": "fill_container",
               "height": 94,
               "fill": "$bg-surface",
+              "cornerRadius": 10,
               "stroke": "$border-soft",
               "layout": "vertical",
               "gap": 5,
@@ -39345,6 +39509,7 @@
               "width": "fill_container",
               "height": 82,
               "fill": "$bg-surface",
+              "cornerRadius": 10,
               "stroke": "$border-soft",
               "layout": "vertical",
               "gap": 6,
@@ -39375,6 +39540,7 @@
                       "width": "fill_container",
                       "height": 48,
                       "fill": "$action",
+                      "cornerRadius": 8,
                       "stroke": "$action",
                       "layout": "vertical",
                       "gap": 3,
@@ -39410,6 +39576,7 @@
                       "width": "fill_container",
                       "height": 48,
                       "fill": "$bg-surface",
+                      "cornerRadius": 8,
                       "stroke": "$border-soft",
                       "layout": "vertical",
                       "gap": 3,
@@ -39445,6 +39612,7 @@
                       "width": "fill_container",
                       "height": 48,
                       "fill": "$bg-surface",
+                      "cornerRadius": 8,
                       "stroke": "$border-soft",
                       "layout": "vertical",
                       "gap": 3,
@@ -39480,6 +39648,7 @@
                       "width": "fill_container",
                       "height": 48,
                       "fill": "$bg-surface",
+                      "cornerRadius": 8,
                       "stroke": "$border-soft",
                       "layout": "vertical",
                       "gap": 3,
@@ -39516,9 +39685,11 @@
               "type": "frame",
               "id": "wloFI",
               "name": "Narrow Local Input Owner",
+              "clip": true,
               "width": "fill_container",
               "height": 494,
               "fill": "$bg-surface",
+              "cornerRadius": 10,
               "stroke": "$border-soft",
               "layout": "vertical",
               "children": [
@@ -39697,6 +39868,7 @@
                           "width": "fill_container",
                           "height": 30,
                           "fill": "$bg-surface",
+                          "cornerRadius": 7,
                           "stroke": "$border-strong",
                           "layout": "vertical",
                           "padding": [
@@ -39774,6 +39946,7 @@
                           "width": "fill_container",
                           "height": 30,
                           "fill": "$attention-soft",
+                          "cornerRadius": 7,
                           "stroke": "$attention",
                           "layout": "vertical",
                           "padding": [
@@ -39850,6 +40023,7 @@
                           "width": "fill_container",
                           "height": 30,
                           "fill": "$bg-surface",
+                          "cornerRadius": 7,
                           "stroke": "$border-strong",
                           "layout": "vertical",
                           "padding": [
@@ -39922,6 +40096,7 @@
                           "width": "fill_container",
                           "height": 30,
                           "fill": "$bg-surface",
+                          "cornerRadius": 7,
                           "stroke": "$border-strong",
                           "layout": "vertical",
                           "padding": [
@@ -40000,6 +40175,7 @@
                       "width": 104,
                       "height": 32,
                       "fill": "$border-soft",
+                      "cornerRadius": 8,
                       "layout": "vertical",
                       "justifyContent": "center",
                       "alignItems": "center",
@@ -40061,6 +40237,7 @@
               "width": "fill_container",
               "height": 62,
               "fill": "$warning-soft",
+              "cornerRadius": 10,
               "stroke": "$warning",
               "layout": "vertical",
               "gap": 5,
