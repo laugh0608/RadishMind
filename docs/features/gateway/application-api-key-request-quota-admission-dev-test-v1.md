@@ -1,6 +1,6 @@
 # 应用 API Key 请求配额与 Provider Attempt 准入（开发 / 测试态）v1
 
-更新时间：2026-08-09
+更新时间：2026-08-10
 
 状态：`application_api_key_request_quota_admission_dev_test_v1_completed`
 
@@ -148,7 +148,7 @@ Admin Control Plane 已新增 Quota 任务 owner，读取精确 application poli
 
 后续真实用户工作区复验确认 quota 拒绝原本只有技术码和 Request History 入口。Playground 现只在 failure code 与 `quota_admission` boundary 同时匹配时显示恢复引导：说明 UTC 日请求预算、零 provider 调用和无自动重试，并把当前 application 交给既有 Admin Quota owner。该引导不消费 Admin policy / usage，不展示或推算 used / remaining；无匹配的 provider、transport、auth 或其它失败仍留在原 owner。
 
-五维评分固定为 `1 / 2 / 2 / 2 / 1 = 8`，采用 `A / 完整 Pencil`。Family UI 设计源已新增 `S9 Admin Quota Admission — Desktop / Dev Test · R1`、`S9 Admin Quota Admission — Narrow / Dev Test · R1` 与 `S1 + S2 + S3 + S4 + S5 + S6 + S7 + S8 + S9 Visual Language — Design Decision Record · R14`。React 复用 S1–S8 全视口 Workbench 和 S7 管理上下文；普通 application 行保持中性，只有驱动当前详情的 application 使用墨蓝选中轨，`policy missing`、`policy ready`、`limit reached` 与 blocked 状态通过独立文字和语义色表达。
+五维评分固定为 `1 / 2 / 2 / 2 / 1 = 8`，采用 `A / 完整 Pencil`。Family UI 设计源中的 Desktop `C7pkb`、Narrow `x8lESc` 与 Decision R14 `tCWCW` 已在 2026-08-10 从被人工退回的 R1 重做为 Visual R2：不再保留宽 hero、等权指标卡和稀疏多卡骨架，直接继承 S8 的 `264px` 产品导航、薄页眉、对象路径、单一 quota owner、连续 policy rows 和 admission rail。三张画板已保存并通过零折叠、零硬编码色、零 placeholder 检查，当前等待人工视觉复核。React 的 quota 功能和浏览器证据继续有效，但尚未声明采用 Visual R2；普通 application 行保持中性，只有驱动当前详情的 application 使用墨蓝选中轨，`policy missing`、`policy ready`、`limit reached` 与 blocked 状态继续通过独立文字和语义色表达。
 
 ## 实施批次
 

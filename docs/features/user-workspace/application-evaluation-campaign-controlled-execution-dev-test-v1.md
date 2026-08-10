@@ -179,7 +179,7 @@ campaign 不锁住发布或 assignment owner，也不通过长事务包住 provi
 - permission、archived application、environment mismatch、authority drift、quota、version conflict、missing policy、store failure、interrupted / partial handoff 状态；
 - Desktop、关键断点与 `390×844` 的响应式顺序、选中语义和无横向溢出。
 
-2026-08-10 已在用户确认设计源空闲后冻结 `S10` Desktop、Narrow 与共享 Decision R15，并据此实现 React 纵向切片。后续同类页面继续复用这一基准面，不以临时布局或平行 owner 绕开设计、协议和真相源。
+2026-08-10 已在用户确认设计源空闲后完成 `S10` Desktop、Narrow 与共享 Decision R15，并据此实现 React 功能纵向切片；但首版 R1 后续因 dashboard 式进度卡、稀疏工作面和页面骨架没有继承 S1–S8 被人工退回。相同根节点现已重做为 Visual R2：共享 `264px` 产品导航、薄页眉、evidence path、selected campaign 单一 owner、连续 item rows 和单一 handoff rail，等待人工视觉复核。功能契约、strict consumer 与真实数据库证据不因视觉修订失效，但 React 暂不声明与 Visual R2 对齐。
 
 普通 plan、campaign 和 item 行保持中性；只有驱动当前详情的对象使用墨蓝选中轨。failed、quota exceeded、interrupted、partial 或 blocked 只使用文字、图标与状态色，不冒充选中。
 
@@ -207,7 +207,7 @@ campaign 不锁住发布或 assignment owner，也不通过长事务包住 provi
 
 ### 批次 E：Pencil、React 与浏览器验收（已完成）
 
-- 已冻结 Desktop `Um8Zh`、Narrow `ZxJd7` 和共享 Decision R15 `UNMOS`，并完成 2× PNG 证据导出。
+- Desktop `Um8Zh`、Narrow `ZxJd7` 和共享 Decision R15 `UNMOS` 的原 R1 已被人工视觉退回；Visual R2 已显式保存并完成实际截图、零折叠、零硬编码色和零 placeholder 检查，等待人工视觉复核。历史 2× PNG 只属于 R1 证据，不再作为当前视觉基准。
 - 已实现 strict consumer、四任务单 owner Workbench、完整失败关闭、Plan / Campaign / Pair / Handoff 交互和全视口响应式样式。
 - Web `316/316`、S10 定向 `7/7` 与 production build 已通过；memory 真实浏览器已完成 Plan → 两次 Campaign → Pair → exact Case / Suite Handoff，`1440×900`、`1024×900`、`390×844` 无横向溢出，控制台零 warning / error，刷新后仍恢复 exact evidence。
 - SQLite 真实页面以 `app_cssvwuvwodxmxecz` 创建 Plan `aeplan_lkqe7gr7kjobmf73 v1`。首个 Campaign `aecamp_slj6slzdz35qvhne` 在第二个 LLM 节点以 `workflow_run_gateway_failed / gateway` 失败并保留真实证据，由此定位同一 Run 复用 quota request identity 的根因；修正为逐 LLM 节点派生 provider-attempt identity 后，baseline `aecamp_2xrptdhto6nbj7vc` 与 candidate `aecamp_qr2wmglzcj5eortb` 均成功。Pair Preview 得到 `comparable`、expected `unchanged`、actual `changed`、mismatch `1`，显式 Handoff 生成 Case `eval_034d69aec0d7a2323c7f222f v1` 与 Suite `suite_9a8017d686be57009c7ad973`。再次重启服务后精确恢复同一 Case / Suite；`1440×900`、`1024×900`、`390×844` 均无横向溢出，控制台零 warning / error，页面未回显原始凭据。
