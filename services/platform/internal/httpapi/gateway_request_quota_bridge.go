@@ -98,6 +98,16 @@ func withGatewayRequestQuotaBinding(ctx context.Context, binding gatewayRequestQ
 	return context.WithValue(ctx, gatewayRequestQuotaBindingKey{}, binding)
 }
 
+func withGatewayRequestQuotaAttempt(ctx context.Context, requestID string) context.Context {
+	binding, found := gatewayRequestQuotaBindingFromContext(ctx)
+	if !found {
+		return ctx
+	}
+	binding.RequestID = strings.TrimSpace(requestID)
+	binding.QuotaContext.RequestID = binding.RequestID
+	return withGatewayRequestQuotaBinding(ctx, binding)
+}
+
 func gatewayRequestQuotaBindingFromContext(ctx context.Context) (gatewayRequestQuotaBinding, bool) {
 	if ctx == nil {
 		return gatewayRequestQuotaBinding{}, false

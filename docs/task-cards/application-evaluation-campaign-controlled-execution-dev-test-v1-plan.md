@@ -2,7 +2,7 @@
 
 更新时间：2026-08-10
 
-状态：`application_evaluation_campaign_controlled_execution_dev_test_v1_batch_e_implemented_sqlite_browser_followup_required`
+状态：`application_evaluation_campaign_controlled_execution_dev_test_v1_completed`
 
 对应功能文档：[应用评测计划、受控执行与证据归档（开发 / 测试态）v1](../features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md)
 
@@ -46,7 +46,7 @@
 8. handoff 发生部分成功时返回和持久化 exact partial refs，不删除 append-only evidence，也不声称原子回滚。
 9. API body 拒绝未知字段，query 严格 allowlist，cursor 与 version token 绑定 scope，mutation 使用 CAS。
 10. memory / SQLite / PostgreSQL 行为等价；PostgreSQL 不自动迁移，SQLite 使用共享 runtime。
-11. campaign 必须选择当前 actor 在当前 application 下仍为 active 的 API Key；gate 强制启用 quota enforcement，逐项确定性 Run ID 同时作为 quota request identity。
+11. campaign 必须选择当前 actor 在当前 application 下仍为 active 的 API Key；gate 强制启用 quota enforcement。逐项确定性 Run ID 是 durable Run 根身份；单 provider 调用可直接使用该身份，多 LLM 节点 Workflow 必须按 Run 与 node 派生独立、确定性的 provider-attempt request identity。
 12. handoff 只在 candidate campaign 保存；每个 exact Case version 成功后立即以 `partial` checkpoint，Suite 成功后推进 `complete`，partial 不自动续跑或补偿。
 
 ## 批次 A：正式设计与领域 owner
@@ -95,10 +95,10 @@
 - [x] 复用 S1–S9 全视口 Workbench 实现 Plan、Campaign、Pair Review 与 Handoff 页面。
 - [x] 实现 strict response validation、permission / environment / archived / authority drift / quota / conflict / store / interrupted / partial 状态。
 - [x] 完成执行和 handoff 二次确认；普通行中性，只有当前详情 owner 选中。
-- [ ] Web tests、production build、三视口和 memory 浏览器链已通过；SQLite 浏览器已到 durable draft / Key / quota / candidate，服务重启后的 Plan → Campaign → Pair → Handoff 尾项待复验。
+- [x] Web tests、production build、三视口、memory 与 SQLite 浏览器链已通过；SQLite 完成 Plan → 两次 succeeded Campaign → Pair → exact Case / Suite Handoff，并在服务重启后恢复同一证据。
 - [x] 已检查横向溢出、键盘可聚焦语义、凭据不回显、SQLite 持久记录和 console，并停止全部自启动开发服务。
 
-批次 E 的设计与实现已完成，不以临时 React 页面替代设计基准面。专题只因 SQLite 浏览器尾项保持开启，不派生平行 task card 或同层 gate-only 切片。
+批次 E 的设计、实现与 SQLite 重启复验均已完成，不以临时 React 页面替代设计基准面。任务卡关闭，不派生平行 task card 或同层 gate-only 切片。
 
 ## 验证矩阵
 
@@ -122,5 +122,5 @@
 
 ## 当前阻塞
 
-- 设计源、实现、测试与 memory 浏览器链均不再阻塞。服务重启后，应用内浏览器 URL 安全策略拒绝重新进入本地页面；未采用 raw CDP、替代浏览器或其它绕过方式。
-- 下一次可安全连接本地页面时，只复验 SQLite 已有 application 的 Plan → 两次 Campaign → Pair → Handoff 与重启恢复，然后关闭专题；不得借此扩 production、自动执行或新 owner。
+- 无。设计、实现、测试、memory / SQLite 浏览器链和服务重启恢复均已完成。
+- 下一项工作回到功能设计入口选择新的真实用户需求；不得从已关闭任务卡扩 production、自动执行或新 owner。

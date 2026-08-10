@@ -2,7 +2,7 @@
 
 更新时间：2026-08-10
 
-状态：`application_evaluation_campaign_controlled_execution_dev_test_v1_batch_e_implemented_sqlite_browser_followup_required`
+状态：`application_evaluation_campaign_controlled_execution_dev_test_v1_completed`
 
 ## 功能定位
 
@@ -125,7 +125,7 @@ campaign 不锁住发布或 assignment owner，也不通过长事务包住 provi
 - 每项执行前先持久化确定性 `run_id` 和 `running` 状态，再调用既有服务；Prompt / Agent 使用由 campaign 生成的 `client_invocation_key`，Definition / RAG 注入相同确定性 Run ID。
 - 专题 gate 要求 API Key lifecycle、API Key dev/test auth 与 Gateway quota enforcement 已显式启用，且 campaign environment 与 quota environment 一致；未满足时服务拒绝启动该能力。
 - HTTP 发起前重读当前 actor-owned API Key；key 不存在、跨 application、已撤销、已过期或 store 不可用均失败关闭。服务只保存 `api_key_id`，不读取或返回 credential token。
-- 每个 item 将所选 `api_key_id`、确定性 `run_id`、完整 quota scope 与既有 inference route 注入 Gateway bridge；`run_id` 同时作为 quota request identity，provider 调用仍在现有原子 admission 之后发生，campaign 不预留或绕过额度。
+- 每个 item 将所选 `api_key_id`、确定性 `run_id`、完整 quota scope 与既有 inference route 注入 Gateway bridge。`run_id` 保持 durable Run 根身份；单 provider 调用可直接使用该根身份，多 LLM 节点 Workflow 则按 `run_id + node_id` 派生确定性的 provider-attempt request identity，保证同一 Run 内每次真实 provider attempt 独立准入。provider 调用仍在现有原子 admission 之后发生，campaign 不预留或绕过额度。
 - quota exhausted、policy missing、attempt conflict 和 quota store failure 作为 item / campaign 失败证据保存，剩余项不执行。
 - HTTP 连接取消不会触发后台继续运行。若进程中断，重启 reconciliation 只根据确定性 Run ID 收口 campaign 状态，不重放 provider 调用。
 
@@ -205,20 +205,20 @@ campaign 不锁住发布或 assignment owner，也不通过长事务包住 provi
 - 实现 campaign pair preview。
 - 显式确认后交接既有 Case / Suite，保留 partial handoff 真实状态和 exact refs。
 
-### 批次 E：Pencil、React 与浏览器验收（实现完成，SQLite 浏览器尾项待复验）
+### 批次 E：Pencil、React 与浏览器验收（已完成）
 
 - 已冻结 Desktop `Um8Zh`、Narrow `ZxJd7` 和共享 Decision R15 `UNMOS`，并完成 2× PNG 证据导出。
 - 已实现 strict consumer、四任务单 owner Workbench、完整失败关闭、Plan / Campaign / Pair / Handoff 交互和全视口响应式样式。
 - Web `316/316`、S10 定向 `7/7` 与 production build 已通过；memory 真实浏览器已完成 Plan → 两次 Campaign → Pair → exact Case / Suite Handoff，`1440×900`、`1024×900`、`390×844` 无横向溢出，控制台零 warning / error，刷新后仍恢复 exact evidence。
-- SQLite 真实页面已完成 executor v0 草案持久化、actor-owned scoped API Key、UTC 日配额和 Definition candidate 创建；数据库只读复验确认 draft v1 active、candidate pending 与 quota policy v1 / 100。服务重启后浏览器安全策略拒绝重新进入本地页，未绕过限制；SQLite Plan → Campaign → Pair → Handoff 浏览器尾项仍需在可重新连接的会话复验。
+- SQLite 真实页面以 `app_cssvwuvwodxmxecz` 创建 Plan `aeplan_lkqe7gr7kjobmf73 v1`。首个 Campaign `aecamp_slj6slzdz35qvhne` 在第二个 LLM 节点以 `workflow_run_gateway_failed / gateway` 失败并保留真实证据，由此定位同一 Run 复用 quota request identity 的根因；修正为逐 LLM 节点派生 provider-attempt identity 后，baseline `aecamp_2xrptdhto6nbj7vc` 与 candidate `aecamp_qr2wmglzcj5eortb` 均成功。Pair Preview 得到 `comparable`、expected `unchanged`、actual `changed`、mismatch `1`，显式 Handoff 生成 Case `eval_034d69aec0d7a2323c7f222f v1` 与 Suite `suite_9a8017d686be57009c7ad973`。再次重启服务后精确恢复同一 Case / Suite；`1440×900`、`1024×900`、`390×844` 均无横向溢出，控制台零 warning / error，页面未回显原始凭据。
 
 ## 当前实现进度
 
 - 批次 A 至 D 已实现：领域合同、memory / SQLite / PostgreSQL repository、SQLite `0016` / PostgreSQL `0019` migration、严格 Plan / Campaign / Pair HTTP、四 Profile 显式 executor 映射、authority checkpoint、确定性 Run ID、quota binding、interrupted reconciliation，以及 Comparison / Case / Suite handoff。
 - PostgreSQL repository 使用行锁与 CAS；SQLite 与 PostgreSQL 都拒绝版本覆盖、资源删除和非法状态迁移。Case / Suite partial handoff 以 candidate campaign 为单一锚点逐项 checkpoint。
-- 相邻测试覆盖计划版本、campaign 幂等与顺序执行、quota binding、authority drift、quota failure、reconcile 不重放、strict HTTP、权限、active API Key 归属、SQLite restart / corruption、PostgreSQL migration 与 repository contract、Comparison preview、complete / partial handoff。
-- 批次 E 的设计、React、strict consumer、测试、build、三视口和 memory 真实浏览器连续链已完成；开发服务均已停止。
-- SQLite 持久链已由既有 Go repository / restart / handoff 测试和本次浏览器前半链、只读数据库证据共同验证；由于浏览器服务重启后的 URL 安全策略阻止续连，唯一未关闭项是 SQLite 真实浏览器中的 Plan → Campaign → Pair → Handoff 后半链。专题保持开启，不把部分浏览器证据写成完整关闭。
+- 相邻测试覆盖计划版本、campaign 幂等与顺序执行、quota binding、多 LLM 节点独立 provider-attempt admission、authority drift、quota failure、reconcile 不重放、strict HTTP、权限、active API Key 归属、SQLite restart / corruption、PostgreSQL migration 与 repository contract、Comparison preview、complete / partial handoff。
+- 批次 E 的设计、React、strict consumer、测试、build、三视口、memory 与 SQLite 真实浏览器连续链均已完成；开发服务均已停止。
+- SQLite 已完成 exact Plan → 两次 succeeded Campaign → Pair → Handoff，并在服务重启后恢复同一 Case / Suite。首个失败 Campaign 作为多节点 quota identity 根因证据保留；修正后双 LLM 节点回归证明每个 provider attempt 独立准入。专题关闭，不扩张 production membership / OIDC、production secret、billing、自动执行、自动重试 / 续跑、发布 / 部署或业务写回。
 
 ## 验收方式
 

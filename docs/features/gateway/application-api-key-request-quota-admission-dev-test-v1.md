@@ -162,7 +162,7 @@ Admin Control Plane 已新增 Quota 任务 owner，读取精确 application poli
 
 截至 2026-08-09，批次 A 至 E 已完成：memory / SQLite / PostgreSQL repository、双数据库 migration、Admin GET / PUT、权限与 membership、六条 API Key inference route 的 provider 前 admission、稳定失败映射、Run / Request History 诊断、完整 Pencil、React consumer、CAS 确认与真实浏览器连续链均已落地。PostgreSQL 真实门禁已验证 migration 幂等、受限 runtime role、八路并发只准入一次与重启恢复；Web 验收进一步以 memory_dev 验证 missing → create → ready，以及外部并发更新造成的 expected version 冲突、旧 owner 保留和显式 reload 回到权威版本。
 
-后续应用评测 Campaign 作为显式 quota consumer 接入时不修改本专题 owner：Campaign 发起者必须选择当前 application 下由当前 actor 持有的 active API Key；每个 item 把该 `api_key_id`、完整作用域和确定性 `run_id` 注入既有 Gateway bridge，`run_id` 作为 request identity。普通未声明 API Key 的内部调用仍不消耗本 policy；Campaign 不预留额度、不从历史推算余量，也不能绕过 provider 前原子准入。
+应用评测 Campaign 作为显式 quota consumer 接入时不修改本专题 owner：Campaign 发起者必须选择当前 application 下由当前 actor 持有的 active API Key；每个 item 把该 `api_key_id`、完整作用域和确定性 `run_id` 注入既有 Gateway bridge。`run_id` 保持 durable Run 根身份；单 provider 调用可直接使用该身份，多 LLM 节点 Workflow 按 `run_id + node_id` 派生独立、确定性的 provider-attempt request identity。普通未声明 API Key 的内部调用仍不消耗本 policy；Campaign 不预留额度、不从历史推算余量，也不能绕过 provider 前原子准入。
 
 ## 验收
 

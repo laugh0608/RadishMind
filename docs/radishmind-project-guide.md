@@ -15,7 +15,7 @@
 
 2026-06-14 起，具体功能或长期开发目标先看 [功能设计文档入口](features/README.md)。任务卡只承载实现批次、前置条件或高风险边界，不再作为功能默认主文档。
 
-2026-08-10 当前读法：Family UI `S1 R8` 至 `S9 R1` 已完成；`S10 Application Evaluation Campaign` 的后端 A 至 D、完整 Pencil、React strict consumer、三视口和 memory 浏览器 exact handoff 也已完成。下一步只复验 SQLite 浏览器后半链并关闭专题。production membership / OIDC、production secret、production quota / billing、自动执行和自动发布仍未打开。
+2026-08-10 当前读法：Family UI `S1 R8` 至 `S10 R1` 已完成；`S10 Application Evaluation Campaign` 的后端 A 至 D、完整 Pencil、React strict consumer、memory / SQLite 三视口 exact handoff 和服务重启恢复均已关闭。下一步回到功能设计入口选择新的真实用户需求。production membership / OIDC、production secret、production quota / billing、自动执行和自动发布仍未打开。
 
 ## 项目定位
 

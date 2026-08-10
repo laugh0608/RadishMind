@@ -2,7 +2,7 @@
 
 更新时间：2026-08-10
 
-状态：`radishmind_family_ui_productization_v1_s1_to_s10_implemented_sqlite_browser_followup_required`
+状态：`radishmind_family_ui_productization_v1_s1_to_s10_completed`
 
 ## 目标
 
@@ -69,7 +69,7 @@ RadishMind 项目主动选择 `Workbench` Profile：
 ### 后续设计面
 
 - `S9 Admin Quota Admission` 已由[应用 API Key 请求配额与 Provider Attempt 准入专题](../gateway/application-api-key-request-quota-admission-dev-test-v1.md)和真实后端 owner 产生，并按五维评分 `1 / 2 / 2 / 2 / 1 = 8` 完成 `A / 完整 Pencil`、React 与真实浏览器验收。
-- `S10 Application Evaluation Campaign` 已按五维评分 `8`、覆盖级别 `A / 完整 Pencil` 冻结 Desktop `Um8Zh`、Narrow `ZxJd7` 与共享 Decision R15 `UNMOS`，React 纵向切片、strict consumer、三视口和 memory 浏览器 exact handoff 已完成；SQLite 浏览器后半链仍待复验。
+- `S10 Application Evaluation Campaign` 已按五维评分 `8`、覆盖级别 `A / 完整 Pencil` 冻结 Desktop `Um8Zh`、Narrow `ZxJd7` 与共享 Decision R15 `UNMOS`，React 纵向切片、strict consumer、memory / SQLite 三视口 exact handoff 和服务重启恢复均已完成。
 - 其它后续设计面必须由新的功能专题和真实使用证据产生；S1–S10 不原地派生同层页面链。
 
 后续设计面不因列入范围而自动获得实现准入；每一批仍要以对应功能专题中的当前能力为边界。
@@ -325,7 +325,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 - S9 Web 批次复用既有后端契约、权限和聚合验证，没有新增 API、schema、migration、repository、permission、task card、fixture 或专项 checker；production quota、formal membership / OIDC、token / cost、billing、删除 / 禁用、自动提额和自动路由继续关闭。
 - S9 完成后的真实 API Key 路径复核在 S5 Playground 发现 quota admission 失败恢复信息断点。五维评分为 `0 / 0 / 0 / 1 / 1 = 2`，采用 `C / 直接实现`：复用既有失败引导卡，只对允许列表内的 `quota_admission` failure 说明 UTC 日预算、零 provider 调用并打开当前 application 的 Admin Quota owner；Web `305/305`、production build 与 `1440×900`、`900×900`、`390×844` 浏览器复验通过，各宽度保持 context → task → owner 顺序、零横向溢出和控制台零 warning / error。既有 S5 / S9 Pencil 基准面继续有效，本批未操作被其它项目占用的 Pencil。
 - Workflow RAG Promotion → Configuration Draft 跟进把静态 hash 收紧为 S2 workspace 单引用 handoff：配置 owner 只按精确 `candidateId` 重读并选择当前 `approved + eligible` binding，不回退、不自动恢复、不 attach。Web `308/308`、production build 与四个视口通过；来源草案 `v1` 对当前 `v2` 的恢复以既有稳定 failure 失败关闭。既有 S2 / RAG owner 设计基准继续有效，本批未操作 Pencil。
-- `S10 R1` 已冻结 Desktop `Um8Zh`、Narrow `ZxJd7` 与 Decision R15 `UNMOS`；四任务 Workbench 只让当前 owner 使用墨蓝选中轨，Plan lifecycle、Campaign progress、Pair mismatch 和 Handoff 状态保持独立文字证据。S10 定向 `7/7`、Web `316/316`、production build、三视口与 memory exact handoff 通过；SQLite 浏览器已验证 durable draft / Key / quota / candidate，服务重启后的 Plan / Campaign / Handoff 尾项因浏览器安全策略保持待复验。
+- `S10 R1` 已冻结 Desktop `Um8Zh`、Narrow `ZxJd7` 与 Decision R15 `UNMOS`；四任务 Workbench 只让当前 owner 使用墨蓝选中轨，Plan lifecycle、Campaign progress、Pair mismatch 和 Handoff 状态保持独立文字证据。S10 定向 `7/7`、Web `316/316`、production build、三视口、memory exact handoff 与 SQLite Plan → 两次 Campaign → Pair → exact Case / Suite Handoff 均通过；服务重启后恢复同一 Case / Suite，专题关闭。
 
 ## 停止线
 

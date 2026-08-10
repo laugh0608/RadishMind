@@ -575,8 +575,9 @@ func (service workflowExecutorService) executeNode(
 			temperature = *request.Temperature
 		}
 		record.SideEffects.ProviderCalls++
+		providerContext := withGatewayRequestQuotaAttempt(executionContext, record.RunID+"-"+node.NodeID)
 		envelope, err := service.bridge.HandleEnvelope(
-			executionContext,
+			providerContext,
 			canonicalRequest,
 			workflowRunBridgeEnvelopeOptions(service, selection, temperature),
 		)
