@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-08-09
+更新时间：2026-08-10
 
 ## 这份文档讲什么
 
@@ -15,7 +15,7 @@
 
 2026-06-14 起，具体功能或长期开发目标先看 [功能设计文档入口](features/README.md)。任务卡只承载实现批次、前置条件或高风险边界，不再作为功能默认主文档。
 
-2026-08-09 当前读法：Family UI `S1 R8` 至 `S9 R1` 已完成，开发测试态 application request quota 已完成后端、Admin Web 和真实浏览器链。下一产品顺位是 `S10 Application Evaluation Campaign`：后端 A 至 D 已完成，完整 Pencil / React / 浏览器批次 E 等待设计源空闲。production membership / OIDC、production secret、production quota / billing、自动执行和自动发布仍未打开。
+2026-08-10 当前读法：Family UI `S1 R8` 至 `S9 R1` 已完成；`S10 Application Evaluation Campaign` 的后端 A 至 D、完整 Pencil、React strict consumer、三视口和 memory 浏览器 exact handoff 也已完成。下一步只复验 SQLite 浏览器后半链并关闭专题。production membership / OIDC、production secret、production quota / billing、自动执行和自动发布仍未打开。
 
 ## 项目定位
 

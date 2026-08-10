@@ -107,6 +107,10 @@ const STAGE_DEFINITIONS: ReadonlyArray<ApplicationDevelopmentStageDefinition> = 
     summary: "Inspect durable runs, comparison, evaluation, request, and operations evidence.",
     anchor: "workspace-run-history",
     aliases: [
+      "application-evaluation-plan",
+      "application-evaluation-campaign",
+      "application-evaluation-pair",
+      "application-evaluation-handoff",
       "workflow-run-comparison",
       "workflow-evaluation-cases",
       "workflow-evaluation-release-review",

@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-08-09
+更新时间：2026-08-10
 
 ## 文档职责
 
@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：[RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md) 已完成 `S1 R8` 至 `S9 R1`，开发测试态 application request quota 批次 A 至 E 全部关闭。下一顺位已选定[Application Evaluation Campaign](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md)：后端批次 A 至 D 已完成，批次 E 只在 Pencil 空闲且经用户确认后推进完整 Desktop / Narrow 设计、React 严格 consumer 与浏览器验收；设计源被占用时不以临时页面抢跑。全历史 usage 聚合、运营收件箱全分页投影、production membership adapter、生产 quota / billing 与真实 OIDC 继续保持条件式入口。
+1. 产品线：[Application Evaluation Campaign](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md) 的后端 A 至 D、S10 Desktop / Narrow / Decision R15、React strict consumer、测试、build、三视口和 memory 浏览器 exact handoff 已完成。下一步只复验 SQLite 浏览器 Plan → 两次 Campaign → Pair → Handoff 与重启恢复后关闭专题；不新增同层页面或 gate-only 切片。全历史 usage 聚合、运营收件箱全分页投影、production membership adapter、生产 quota / billing 与真实 OIDC 继续保持条件式入口。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；dev header 与 signed-test membership 不能作为 production 授权来源。production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、production quota 和 billing 继续为 `not_satisfied`；开发测试态 application request admission 不改变这些结论。

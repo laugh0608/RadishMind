@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-08-09
+更新时间：2026-08-10
 
 ## 阅读原则
 
@@ -25,7 +25,7 @@
 ## 当前状态
 
 - 当前成熟度是“内部开发者预览”；整改与当前执行顺序以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 和 [当前推进焦点](radishmind-current-focus.md) 为准。
-- UI 产品线已进入 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)：通用参考基线已对齐 RadishX family-ui `v26.7.3`，RadishMind 主动选择 `Workbench` Profile、上游 token 原样镜像和“灰玉身份、墨蓝操作、玉色正向、雅紫类型、胭脂注意”的项目语义，差异见 [UI 差异附录](ui-addendum.md)。`S1 R8` 至 `S9 R1` 已完成 Pencil、React 和真实浏览器严格验收；S9 以独立 application request quota owner、Admin CAS 与 provider 前原子准入为事实源。新选定的 `S10 Application Evaluation Campaign` 已完成后端批次 A 至 D，设计与 React 批次 E 因 Pencil 被其它项目占用而保持未开始，不以临时页面绕过设计基准面。
+- UI 产品线已进入 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)：通用参考基线已对齐 RadishX family-ui `v26.7.3`，RadishMind 主动选择 `Workbench` Profile、上游 token 原样镜像和“灰玉身份、墨蓝操作、玉色正向、雅紫类型、胭脂注意”的项目语义。`S1 R8` 至 `S9 R1` 已完成；`S10 Application Evaluation Campaign` 的完整 Pencil、React、strict consumer、三视口与 memory 浏览器 exact handoff 也已落地，当前只待 SQLite 浏览器后半链复验。
 - R2 至 R6、Workspace-scoped Read Transition、Workspace-scoped Mutation Authorization、Workflow Draft Review Loop、Saved Draft 三种开发测试态 repository、受控 Workflow Executor、版本化 Workflow / RAG / Prompt / Agent 运行路径、持久 Run History 与评测审查、Gateway Request History 均已完成。开发测试态 application request quota 已完成三模式 owner、Admin 管理面和六条 API Key inference route 准入；应用评测 Plan / Campaign 后端已完成三模式持久化、四类 Profile 受控执行和 exact Comparison / Case / Suite handoff。production membership、真实 OIDC、production secret、production quota / billing、业务写回、自动合并和 replay 继续关闭。
 - `RadishMind` 已正式从“模型实验 / 接入准备仓库”的狭义口径，收口为 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台。
 - 当前仓库主线不再只是等待其他项目真实接入；长期按四个一级产品面和五条工程主线组织。四个产品面是 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；`Image Generation / Artifact Return` 作为横切适配能力保留。五条工程主线是 `Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。

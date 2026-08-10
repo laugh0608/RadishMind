@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-08-09
+更新时间：2026-08-10
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前唯一活跃高风险实现任务卡为[应用评测计划、受控执行与证据归档 v1](application-evaluation-campaign-controlled-execution-dev-test-v1-plan.md)：后端批次 A 至 D 已完成 immutable Plan、三模式 Campaign owner、四类 Profile 顺序执行、active API Key quota binding、interrupted reconciliation 和 exact Comparison / Case / Suite handoff。批次 E 的完整 Pencil、React 与浏览器验收因设计源被其它项目占用而未开始；Pencil 空闲前不得用临时 UI 绕过设计基准面。[应用 API Key 请求配额与 Provider Attempt 准入 v1](application-api-key-request-quota-admission-dev-test-v1-plan.md)已完成批次 A 至 E 并关闭，不再派生平行 quota task card。
+当前唯一活跃高风险实现任务卡仍为[应用评测计划、受控执行与证据归档 v1](application-evaluation-campaign-controlled-execution-dev-test-v1-plan.md)：后端 A 至 D 与批次 E 的完整 Pencil、React strict consumer、测试、build、三视口和 memory 浏览器 exact handoff 已完成。SQLite 页面已完成 durable draft、scoped Key、quota 与 candidate，服务重启后的 Plan → Campaign → Pair → Handoff 尾项因浏览器安全策略待复验；专题不派生平行 task card。[应用 API Key 请求配额与 Provider Attempt 准入 v1](application-api-key-request-quota-admission-dev-test-v1-plan.md)已关闭。
 
 ## 最近关闭任务
 

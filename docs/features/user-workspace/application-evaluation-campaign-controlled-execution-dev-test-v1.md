@@ -1,8 +1,8 @@
 # 应用评测计划、受控执行与证据归档（开发 / 测试态）v1
 
-更新时间：2026-08-09
+更新时间：2026-08-10
 
-状态：`application_evaluation_campaign_controlled_execution_dev_test_v1_backend_a_to_d_completed_ui_blocked`
+状态：`application_evaluation_campaign_controlled_execution_dev_test_v1_batch_e_implemented_sqlite_browser_followup_required`
 
 ## 功能定位
 
@@ -179,7 +179,7 @@ campaign 不锁住发布或 assignment owner，也不通过长事务包住 provi
 - permission、archived application、environment mismatch、authority drift、quota、version conflict、missing policy、store failure、interrupted / partial handoff 状态；
 - Desktop、关键断点与 `390×844` 的响应式顺序、选中语义和无横向溢出。
 
-Pencil 被其它项目占用期间不得读取或修改设计源，也不得用临时 React 布局代替设计基准面。后端与正式功能合同可以继续推进；React 在 Pencil 空闲并完成基准面冻结后实施。
+2026-08-10 已在用户确认设计源空闲后冻结 `S10` Desktop、Narrow 与共享 Decision R15，并据此实现 React 纵向切片。后续同类页面继续复用这一基准面，不以临时布局或平行 owner 绕开设计、协议和真相源。
 
 普通 plan、campaign 和 item 行保持中性；只有驱动当前详情的对象使用墨蓝选中轨。failed、quota exceeded、interrupted、partial 或 blocked 只使用文字、图标与状态色，不冒充选中。
 
@@ -205,18 +205,20 @@ Pencil 被其它项目占用期间不得读取或修改设计源，也不得用�
 - 实现 campaign pair preview。
 - 显式确认后交接既有 Case / Suite，保留 partial handoff 真实状态和 exact refs。
 
-### 批次 E：Pencil、React 与浏览器验收
+### 批次 E：Pencil、React 与浏览器验收（实现完成，SQLite 浏览器尾项待复验）
 
-- Pencil 空闲后冻结 Desktop / Narrow 和共享 Decision Record。
-- 实现 strict consumer、完整状态矩阵、确认交互和全视口 Workbench 页面。
-- 运行 Web tests、production build 和真实 memory / SQLite 浏览器连续链。
+- 已冻结 Desktop `Um8Zh`、Narrow `ZxJd7` 和共享 Decision R15 `UNMOS`，并完成 2× PNG 证据导出。
+- 已实现 strict consumer、四任务单 owner Workbench、完整失败关闭、Plan / Campaign / Pair / Handoff 交互和全视口响应式样式。
+- Web `316/316`、S10 定向 `7/7` 与 production build 已通过；memory 真实浏览器已完成 Plan → 两次 Campaign → Pair → exact Case / Suite Handoff，`1440×900`、`1024×900`、`390×844` 无横向溢出，控制台零 warning / error，刷新后仍恢复 exact evidence。
+- SQLite 真实页面已完成 executor v0 草案持久化、actor-owned scoped API Key、UTC 日配额和 Definition candidate 创建；数据库只读复验确认 draft v1 active、candidate pending 与 quota policy v1 / 100。服务重启后浏览器安全策略拒绝重新进入本地页，未绕过限制；SQLite Plan → Campaign → Pair → Handoff 浏览器尾项仍需在可重新连接的会话复验。
 
 ## 当前实现进度
 
 - 批次 A 至 D 已实现：领域合同、memory / SQLite / PostgreSQL repository、SQLite `0016` / PostgreSQL `0019` migration、严格 Plan / Campaign / Pair HTTP、四 Profile 显式 executor 映射、authority checkpoint、确定性 Run ID、quota binding、interrupted reconciliation，以及 Comparison / Case / Suite handoff。
 - PostgreSQL repository 使用行锁与 CAS；SQLite 与 PostgreSQL 都拒绝版本覆盖、资源删除和非法状态迁移。Case / Suite partial handoff 以 candidate campaign 为单一锚点逐项 checkpoint。
 - 相邻测试覆盖计划版本、campaign 幂等与顺序执行、quota binding、authority drift、quota failure、reconcile 不重放、strict HTTP、权限、active API Key 归属、SQLite restart / corruption、PostgreSQL migration 与 repository contract、Comparison preview、complete / partial handoff。
-- 批次 E 尚未开始。Pencil 正被其它项目占用，未读取或修改设计源，也没有用临时 React 页面替代完整设计基准面。
+- 批次 E 的设计、React、strict consumer、测试、build、三视口和 memory 真实浏览器连续链已完成；开发服务均已停止。
+- SQLite 持久链已由既有 Go repository / restart / handoff 测试和本次浏览器前半链、只读数据库证据共同验证；由于浏览器服务重启后的 URL 安全策略阻止续连，唯一未关闭项是 SQLite 真实浏览器中的 Plan → Campaign → Pair → Handoff 后半链。专题保持开启，不把部分浏览器证据写成完整关闭。
 
 ## 验收方式
 

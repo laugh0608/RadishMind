@@ -1,8 +1,8 @@
 # 应用评测计划、受控执行与证据归档（开发 / 测试态）v1 实施任务卡
 
-更新时间：2026-08-09
+更新时间：2026-08-10
 
-状态：`application_evaluation_campaign_controlled_execution_dev_test_v1_backend_a_to_d_completed_ui_blocked`
+状态：`application_evaluation_campaign_controlled_execution_dev_test_v1_batch_e_implemented_sqlite_browser_followup_required`
 
 对应功能文档：[应用评测计划、受控执行与证据归档（开发 / 测试态）v1](../features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md)
 
@@ -91,14 +91,14 @@
 
 ## 批次 E：Pencil、React 与真实浏览器
 
-- [ ] Pencil 空闲后按五维评分 `8`、`A / 完整 Pencil` 冻结 Desktop / Narrow 与共享 Decision Record。
-- [ ] 复用 S1–S9 全视口 Workbench 实现 Plan、Campaign、Pair Review 与 Handoff 页面。
-- [ ] 实现 strict response validation、permission / environment / archived / authority drift / quota / conflict / store / interrupted / partial 状态。
-- [ ] 完成执行和 handoff 二次确认；普通行中性，只有当前详情 owner 选中。
-- [ ] 运行 Web tests、production build 和 `1440×900`、关键断点、`390×844` 浏览器验收。
-- [ ] 检查横向溢出、键盘路径、storage、console，并停止开发服务。
+- [x] 按五维评分 `8`、`A / 完整 Pencil` 冻结 Desktop `Um8Zh`、Narrow `ZxJd7` 与共享 Decision R15 `UNMOS`。
+- [x] 复用 S1–S9 全视口 Workbench 实现 Plan、Campaign、Pair Review 与 Handoff 页面。
+- [x] 实现 strict response validation、permission / environment / archived / authority drift / quota / conflict / store / interrupted / partial 状态。
+- [x] 完成执行和 handoff 二次确认；普通行中性，只有当前详情 owner 选中。
+- [ ] Web tests、production build、三视口和 memory 浏览器链已通过；SQLite 浏览器已到 durable draft / Key / quota / candidate，服务重启后的 Plan → Campaign → Pair → Handoff 尾项待复验。
+- [x] 已检查横向溢出、键盘可聚焦语义、凭据不回显、SQLite 持久记录和 console，并停止全部自启动开发服务。
 
-批次 E 在 Pencil 占用期间保持未开始，不以临时 React 页面替代设计基准面。
+批次 E 的设计与实现已完成，不以临时 React 页面替代设计基准面。专题只因 SQLite 浏览器尾项保持开启，不派生平行 task card 或同层 gate-only 切片。
 
 ## 验证矩阵
 
@@ -122,4 +122,5 @@
 
 ## 当前阻塞
 
-- 后端批次 A 至 D 已完成。Pencil 正被其它项目占用；批次 E 必须等用户确认 Pencil 空闲后再读取或修改设计源。
+- 设计源、实现、测试与 memory 浏览器链均不再阻塞。服务重启后，应用内浏览器 URL 安全策略拒绝重新进入本地页面；未采用 raw CDP、替代浏览器或其它绕过方式。
+- 下一次可安全连接本地页面时，只复验 SQLite 已有 application 的 Plan → 两次 Campaign → Pair → Handoff 与重启恢复，然后关闭专题；不得借此扩 production、自动执行或新 owner。

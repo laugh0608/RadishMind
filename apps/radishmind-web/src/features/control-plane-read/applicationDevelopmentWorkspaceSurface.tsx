@@ -14,6 +14,7 @@ const APIKeyLifecyclePanel = lazy(() =>
 );
 const ApplicationApiIntegrationPanel = lazy(() => import("./applicationApiIntegrationPanel.tsx"));
 const ApplicationConfigurationDraftPanel = lazy(() => import("./applicationConfigurationDraftPanel.tsx"));
+const ApplicationEvaluationCampaignPanel = lazy(() => import("./applicationEvaluationCampaignPanel.tsx"));
 const ApplicationInteractionSessionPanel = lazy(() => import("./applicationInteractionSessionPanel.tsx"));
 const ApplicationPublishCandidatePanel = lazy(() => import("./applicationPublishCandidatePanel.tsx"));
 const PromptAgentTypeWorkspace = lazy(() => import("./promptAgentTypeWorkspace.tsx"));
@@ -303,6 +304,16 @@ export default function ApplicationDevelopmentWorkspaceSurface({
 
       {activeStage === "evidence_review" ? (
         <StageSurface stage="evidence_review" title="Run and evaluation review">
+          <Suspense fallback={<StageFallback label="Application Evaluation Campaign" />}>
+            <ApplicationEvaluationCampaignPanel
+              key={`${context.generationKey}:application-evaluation`}
+              applicationId={context.applicationId}
+              applicationName={context.displayName}
+              applicationKind={context.applicationKind}
+              workspaceId={context.workspaceId}
+              applicationActive={context.applicationActive}
+            />
+          </Suspense>
           {context.surfaceKind === "workflow_rag" ? (
             <Suspense fallback={<StageFallback label="Workflow RAG evaluation datasets" />}>
               <WorkflowRAGEvaluationDatasetPanel

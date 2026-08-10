@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-08-09
+更新时间：2026-08-10
 
 ## 核心定义
 
@@ -29,7 +29,7 @@
 
 Family UI `S1 R8` 至 `S9 R1` 已完成 Pencil、React 和真实浏览器严格验收。开发测试态 application request quota 已完成独立三模式 owner、Admin GET / PUT、CAS 更新、六条 API Key inference route 的 provider 前原子准入以及 S9 管理面；这不代表 production quota、rate limit、token / cost 或 billing 成立。
 
-当前产品顺位是 `S10 Application Evaluation Campaign`。后端批次 A 至 D 已完成不可变 Plan、三模式 Campaign owner、四类既有 Profile 受控执行、active API Key quota binding、interrupted reconciliation 和 exact Comparison / Case / Suite handoff。批次 E 的完整 Pencil、React 和浏览器验收仍未开始；Pencil 被其它项目占用时保持停止，不以临时 UI 替代设计基准面。
+当前产品顺位仍是 `S10 Application Evaluation Campaign`。后端 A 至 D、完整 Pencil、React strict consumer、测试、build、三视口与 memory 浏览器 exact handoff 已完成；SQLite 浏览器已验证 durable draft、scoped Key、quota 与 candidate，服务重启后的 Plan → Campaign → Pair → Handoff 尾项待复验。完成该尾项后才关闭专题，不以部分证据扩大生产声明。
 
 ## 产品形态
 

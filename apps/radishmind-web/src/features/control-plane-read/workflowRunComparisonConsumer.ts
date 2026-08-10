@@ -328,7 +328,14 @@ export async function compareWorkflowRuns(
   if (!response.ok || !isComparisonEnvelope(body)) throw new Error(`workflow run comparison route failed with HTTP ${response.status}`);
   if (body.workspace_id !== config.workspaceId || body.application_id !== applicationId) throw new Error("workflow run comparison response scope drifted");
   if (body.failure_code || !body.comparison) throw new Error(`${body.failure_code ?? "workflow_run_comparison_unavailable"}: ${body.failure_summary}`);
-  return mapComparison(body.comparison);
+  return decodeWorkflowRunComparison(body.comparison);
+}
+
+export function decodeWorkflowRunComparison(value: unknown): WorkflowRunComparison {
+  if (hasForbiddenComparisonKey(value) || !isComparisonDocument(value)) {
+    throw new Error("workflow run comparison response failed strict validation");
+  }
+  return mapComparison(value);
 }
 
 function comparisonHeaders(config: WorkflowExecutorConsumerConfig, applicationId: string): HeadersInit {

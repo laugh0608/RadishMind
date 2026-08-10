@@ -32,6 +32,8 @@ prompt_application_local_product=0
 prompt_application_postgres_dev_test=0
 agent_copilot_local_product=0
 agent_copilot_postgres_dev_test=0
+application_evaluation_dev=0
+application_evaluation_local_product=0
 saved_draft_workspace_id="workspace_demo"
 saved_draft_application_id="app_flow_copilot"
 
@@ -96,6 +98,10 @@ Options:
                            Enable the SQLite Agent Profile → v4 publish → assignment → Session v3 → Run v7 chain.
   --agent-copilot-postgres-dev-test
                            Enable the same Agent Copilot chain with PostgreSQL dev/test repositories.
+  --application-evaluation-dev
+                           Enable the memory-dev Application Evaluation Plan → Campaign → Pair → Handoff chain.
+  --application-evaluation-local-product
+                           Enable the same Application Evaluation chain with the shared SQLite local-product runtime.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
   -h, --help              Show this help.
@@ -224,6 +230,14 @@ while [[ $# -gt 0 ]]; do
       agent_copilot_postgres_dev_test=1
       shift
       ;;
+    --application-evaluation-dev)
+      application_evaluation_dev=1
+      shift
+      ;;
+    --application-evaluation-local-product)
+      application_evaluation_local_product=1
+      shift
+      ;;
     --verify-only)
       verify_only=1
       shift
@@ -280,12 +294,20 @@ if [[ "${agent_copilot_postgres_dev_test}" -eq 1 ]]; then
   application_catalog_postgres_dev_test=1
   gateway_request_postgres_dev_test=1
 fi
+if [[ "${application_evaluation_dev}" -eq 1 ]]; then
+  saved_draft_dev=1
+fi
+if [[ "${application_evaluation_local_product}" -eq 1 ]]; then
+  api_key_local_product=1
+  workflow_definition_local_product=1
+fi
 if [[ "${workflow_definition_postgres_dev_test}" -eq 1 ]]; then
   saved_draft_postgres_dev_test=1
   application_catalog_postgres_dev_test=1
 fi
 workflow_definition_enabled=0
-if [[ "${workflow_definition_local_product}" -eq 1 || "${workflow_definition_postgres_dev_test}" -eq 1 ]]; then
+if [[ "${workflow_definition_local_product}" -eq 1 || "${workflow_definition_postgres_dev_test}" -eq 1 ||
+  "${application_evaluation_dev}" -eq 1 ]]; then
   workflow_definition_enabled=1
 fi
 application_session_enabled=0
@@ -305,6 +327,10 @@ fi
 workflow_rag_application_enabled=0
 if [[ "${workflow_rag_application_local_product}" -eq 1 || "${application_session_postgres_dev_test}" -eq 1 ]]; then
   workflow_rag_application_enabled=1
+fi
+application_evaluation_enabled=0
+if [[ "${application_evaluation_dev}" -eq 1 || "${application_evaluation_local_product}" -eq 1 ]]; then
+  application_evaluation_enabled=1
 fi
 
 if [[ "${saved_draft_dev}" -eq 1 && "${mode}" != "dev-live" ]]; then
@@ -341,6 +367,16 @@ if [[ "${application_publish_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live
 fi
 if [[ "${application_catalog_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live" ]]; then
   echo "--application-catalog-postgres-dev-test requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${application_evaluation_dev}" -eq 1 || "${application_evaluation_local_product}" -eq 1 ]]; then
+  if [[ "${mode}" != "dev-live" ]]; then
+    echo "Application Evaluation modes require --mode dev-live" >&2
+    exit 2
+  fi
+fi
+if [[ "${application_evaluation_dev}" -eq 1 && "${application_evaluation_local_product}" -eq 1 ]]; then
+  echo "Choose either --application-evaluation-dev or --application-evaluation-local-product" >&2
   exit 2
 fi
 if [[ "${api_key_local_product}" -eq 1 && "${mode}" != "dev-live" ]]; then
@@ -416,7 +452,7 @@ explicit_component_mode=0
 if [[ "${saved_draft_dev}" -eq 1 || "${saved_draft_postgres_dev_test}" -eq 1 ||
   "${gateway_request_postgres_dev_test}" -eq 1 || "${application_draft_dev}" -eq 1 ||
   "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 ||
-  "${application_catalog_postgres_dev_test}" -eq 1 ]]; then
+  "${application_catalog_postgres_dev_test}" -eq 1 || "${application_evaluation_dev}" -eq 1 ]]; then
   explicit_component_mode=1
 fi
 if [[ "${api_key_local_product}" -eq 1 && "${explicit_component_mode}" -eq 1 ]]; then
@@ -957,6 +993,48 @@ if document.get("failure_code") is not None or not isinstance(document.get("item
 PY
 }
 
+probe_application_evaluation_route() {
+  local base_url="$1"
+  local tenant="$2"
+  local subject="$3"
+  local workspace_id="$4"
+  local application_id="$5"
+  "${python_bin}" - "$base_url" "$tenant" "$subject" "$workspace_id" "$application_id" <<'PY'
+import json
+import sys
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+
+base_url, tenant, subject, workspace_id, application_id = sys.argv[1:]
+query = urlencode({"workspace_id": workspace_id, "environment": "test", "lifecycle_state": "active", "limit": "1"})
+url = f"{base_url.rstrip('/')}/v1/user-workspace/applications/{application_id}/evaluation-plans?{query}"
+permissions = "application_evaluations:read"
+request = Request(url, headers={
+    "Accept": "application/json",
+    "X-Request-Id": "dev-live-application-evaluation-probe",
+    "X-RadishMind-Dev-Read-Identity": "dev-live-application-evaluation-probe",
+    "X-RadishMind-Dev-Read-Tenant": tenant,
+    "X-RadishMind-Dev-Read-Subject": subject,
+    "X-RadishMind-Dev-Read-Scopes": permissions,
+    "X-RadishMind-Dev-Read-Audit": "audit_dev_live_application_evaluation_probe",
+    "X-RadishMind-Active-Workspace": workspace_id,
+    "X-RadishMind-Dev-Read-Membership-Workspace": workspace_id,
+    "X-RadishMind-Dev-Read-Membership-Permissions": permissions,
+    "X-RadishMind-Dev-Workflow-Workspace": workspace_id,
+    "X-RadishMind-Dev-Workflow-Application": application_id,
+    "X-RadishMind-Dev-Application-Evaluation-Environment": "test",
+}, method="GET")
+with urlopen(request, timeout=5) as response:
+    if response.status < 200 or response.status >= 300:
+        raise SystemExit(f"Unexpected HTTP status {response.status} from {url}")
+    document = json.loads(response.read().decode("utf-8"))
+if document.get("failure_code") is not None or not isinstance(document.get("plans"), list):
+    raise SystemExit("Application Evaluation route did not return a successful plans[] envelope")
+if document.get("workspace_id") != workspace_id or document.get("application_id") != application_id or document.get("environment") != "test":
+    raise SystemExit(f"Application Evaluation route scope drifted: {document}")
+PY
+}
+
 probe_workflow_executor_route() {
   local base_url="$1"
   local tenant="$2"
@@ -1315,6 +1393,21 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
         fi
+        if [[ "${application_evaluation_enabled}" -eq 1 ]]; then
+          export RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_DEV="1"
+          export RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_ENVIRONMENT="test"
+          export RADISHMIND_APPLICATION_CATALOG_DEV_HTTP="1"
+          export RADISHMIND_APPLICATION_CATALOG_DEV_WRITE="1"
+          export RADISHMIND_WORKFLOW_RAG_EVALUATION_DEV="1"
+          export RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP="1"
+          export RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE="1"
+          export RADISHMIND_GATEWAY_AUTH_MODE="api_key_dev_test"
+          export RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV="1"
+          export RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_HTTP="1"
+          export RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_WRITE="1"
+          export RADISHMIND_GATEWAY_REQUEST_QUOTA_ENFORCEMENT_DEV="1"
+          export RADISHMIND_GATEWAY_REQUEST_QUOTA_ENVIRONMENT="test"
+        fi
         if [[ "${api_key_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 ]]; then
           export RADISHMIND_GATEWAY_AUTH_MODE="api_key_dev_test"
         fi
@@ -1438,13 +1531,21 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export VITE_RADISHMIND_APPLICATION_CATALOG_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
-        if [[ "${api_key_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 || "${workflow_http_tool_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 ]]; then
+        if [[ "${api_key_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 || "${workflow_http_tool_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 || "${application_evaluation_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE="dev-api-key-lifecycle-http"
           export VITE_RADISHMIND_API_KEY_LIFECYCLE_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_API_KEY_LIFECYCLE_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
-        if [[ "${api_key_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 ]]; then
+        if [[ "${api_key_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 || "${application_evaluation_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_GATEWAY_AUTH_MODE="api_key_dev_test"
+        fi
+        if [[ "${application_evaluation_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_APPLICATION_EVALUATION_SOURCE="dev-application-evaluation-http"
+          export VITE_RADISHMIND_APPLICATION_EVALUATION_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_APPLICATION_EVALUATION_ENVIRONMENT="test"
+          export VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_SOURCE="dev-admin-gateway-request-quota-http"
+          export VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_ENVIRONMENT="test"
         fi
         if [[ "${prompt_application_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_PROMPT_APPLICATION_SOURCE="dev-prompt-application-http"
@@ -1573,6 +1674,12 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE
         unset VITE_RADISHMIND_API_KEY_LIFECYCLE_BASE_URL
         unset VITE_RADISHMIND_API_KEY_LIFECYCLE_WORKSPACE_ID
+        unset VITE_RADISHMIND_APPLICATION_EVALUATION_SOURCE
+        unset VITE_RADISHMIND_APPLICATION_EVALUATION_BASE_URL
+        unset VITE_RADISHMIND_APPLICATION_EVALUATION_ENVIRONMENT
+        unset VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_SOURCE
+        unset VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_BASE_URL
+        unset VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_ENVIRONMENT
         unset VITE_RADISHMIND_GATEWAY_AUTH_MODE
         unset VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE
         unset VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE
@@ -1613,7 +1720,7 @@ if [[ "${mode}" == "dev-live" ]]; then
     show_failure_help "dev-live read route probe failed"
     exit 1
   fi
-  if [[ "${api_key_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 ]] && ! wait_until "Gateway API key auth mode" probe_gateway_api_key_mode "${backend_url}"; then
+  if [[ "${api_key_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 || "${application_evaluation_enabled}" -eq 1 ]] && ! wait_until "Gateway API key auth mode" probe_gateway_api_key_mode "${backend_url}"; then
     show_failure_help "Gateway api_key_dev_test mode probe failed"
     exit 1
   fi
@@ -1682,6 +1789,17 @@ if [[ "${mode}" == "dev-live" ]]; then
     show_failure_help "Application Session dev route probe failed"
     exit 1
   fi
+  if [[ "${application_evaluation_enabled}" -eq 1 ]] && ! wait_until \
+    "Application Evaluation dev route" \
+    probe_application_evaluation_route \
+    "${backend_url}" \
+    "${tenant_ref}" \
+    "${subject_ref}" \
+    "${saved_draft_workspace_id}" \
+    "${saved_draft_application_id}"; then
+    show_failure_help "Application Evaluation dev route probe failed"
+    exit 1
+  fi
   if [[ "${agent_copilot_enabled}" -eq 1 ]] && ! wait_until \
     "Agent Copilot dev routes" \
     probe_agent_copilot_route \
@@ -1734,7 +1852,9 @@ if [[ "${mode}" == "dev-live" ]]; then
   fi
   if [[ "${workflow_definition_enabled}" -eq 1 ]]; then
     definition_store="SQLite"
-    if [[ "${workflow_definition_postgres_dev_test}" -eq 1 ]]; then
+    if [[ "${application_evaluation_dev}" -eq 1 ]]; then
+      definition_store="memory-dev"
+    elif [[ "${workflow_definition_postgres_dev_test}" -eq 1 ]]; then
       definition_store="PostgreSQL dev/test"
     fi
     step "Workflow Definition ${definition_store} product chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; review, activation, execution, comparison, and evaluation remain explicit actions."
@@ -1759,6 +1879,13 @@ if [[ "${mode}" == "dev-live" ]]; then
       agent_store="PostgreSQL dev/test"
     fi
     step "Agent Copilot ${agent_store} product chain enabled for ${saved_draft_workspace_id}; Profile source, v4 publish, assignment, Session v3, one-shot suggestion, and Run v7 evidence remain explicit actions."
+  fi
+  if [[ "${application_evaluation_enabled}" -eq 1 ]]; then
+    evaluation_store="memory-dev"
+    if [[ "${application_evaluation_local_product}" -eq 1 ]]; then
+      evaluation_store="SQLite local-product"
+    fi
+    step "Application Evaluation ${evaluation_store} chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; Plan, Campaign, Pair, and Handoff remain explicit development/test actions."
   fi
 fi
 step "This is a dev-only launcher, not a production supervisor. Controlled execution is dev-only; production auth, secret resolution, unrestricted tools, automatic confirmation, writeback and replay remain disabled."
