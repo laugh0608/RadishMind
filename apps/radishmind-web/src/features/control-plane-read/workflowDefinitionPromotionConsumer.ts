@@ -4,6 +4,11 @@ import {
   parseWorkflowRunRecordDocument,
   type WorkflowRunRecord,
 } from "./workflowRunRecordConsumer.ts";
+import {
+  parseStructuredRuntimeInputContractDocument,
+  type StructuredRuntimeInputContract,
+  type StructuredRuntimeInputValues,
+} from "./structuredRuntimeInput.ts";
 
 const DEV_SOURCE = "dev-workflow-definition-promotion-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
@@ -12,7 +17,7 @@ const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u;
 const REF_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_.:/-]{2,239}$/u;
 const DIGEST_PATTERN = /^sha256:[a-f0-9]{64}$/u;
 const FORBIDDEN_RESPONSE_KEYS = new Set([
-  "input_text", "condition_values", "prompt", "messages", "answer", "credential",
+  "input_text", "inputs", "condition_values", "prompt", "messages", "answer", "credential",
   "token", "authorization", "cookie", "header", "headers", "raw_request", "raw_response",
   "provider_raw_envelope", "endpoint", "url", "uri",
 ]);
@@ -58,7 +63,7 @@ export function evaluateWorkflowDefinitionCandidateCompatibility(
 }
 
 export type WorkflowDefinitionSnapshot = {
-  schemaVersion: "saved_workflow_draft.v1";
+  schemaVersion: "saved_workflow_draft.v1" | "saved_workflow_draft.v2";
   name: string;
   description: string;
   nodes: Array<{
@@ -79,13 +84,13 @@ export type WorkflowDefinitionSnapshot = {
     requiresConfirmation: boolean;
   }>;
   edges: Array<{ edgeId: string; fromNodeId: string; toNodeId: string; conditionSummary: string }>;
-  inputContract: { contractId: string; requiredFields: string[]; summary: string };
+  inputContract: { contractId: string; requiredFields: string[]; summary: string } | StructuredRuntimeInputContract;
   outputContract: { contractId: string; requiredFields: string[]; summary: string };
   providerRefs: string[];
   toolRefs: string[];
   ragRefs: string[];
   requestedCapabilities: string[];
-  executionProfile: "workflow_definition_executor_v1";
+  executionProfile: "workflow_definition_executor_v1" | "workflow_definition_executor_v2";
 };
 
 export type WorkflowDefinitionReview = {
@@ -99,6 +104,7 @@ export type WorkflowDefinitionReview = {
 };
 
 export type WorkflowDefinitionCandidate = {
+  schemaVersion: "workflow_definition_release_candidate.v1" | "workflow_definition_release_candidate.v2";
   candidateId: string;
   definitionId: string;
   sourceDraftId: string;
@@ -118,6 +124,7 @@ export type WorkflowDefinitionCandidate = {
 };
 
 export type WorkflowDefinitionVersion = {
+  schemaVersion: "workflow_definition_version.v1" | "workflow_definition_version.v2";
   definitionId: string;
   version: number;
   definitionDigest: string;
@@ -179,7 +186,7 @@ export class WorkflowDefinitionPromotionConflict extends Error {
 }
 
 type CandidateDocument = {
-  schema_version: "workflow_definition_release_candidate.v1";
+  schema_version: "workflow_definition_release_candidate.v1" | "workflow_definition_release_candidate.v2";
   candidate_id: string;
   definition_id: string;
   source_draft_id: string;
@@ -201,7 +208,7 @@ type CandidateDocument = {
 };
 
 type VersionDocument = {
-  schema_version: "workflow_definition_version.v1";
+  schema_version: "workflow_definition_version.v1" | "workflow_definition_version.v2";
   definition_id: string;
   version: number;
   definition_digest: string;
@@ -261,7 +268,7 @@ type ActivationEventDocument = {
 };
 
 type SnapshotDocument = {
-  schema_version: "saved_workflow_draft.v1";
+  schema_version: "saved_workflow_draft.v1" | "saved_workflow_draft.v2";
   name: string;
   description: string;
   nodes: Array<Record<string, unknown>>;
@@ -272,7 +279,7 @@ type SnapshotDocument = {
   tool_refs: string[];
   rag_refs: string[];
   requested_capabilities: string[];
-  execution_profile: "workflow_definition_executor_v1";
+  execution_profile: "workflow_definition_executor_v1" | "workflow_definition_executor_v2";
 };
 
 type ReleaseEnvelope = {
@@ -356,8 +363,23 @@ export async function decideWorkflowDefinitionActivation(config: WorkflowDefinit
   return mapActivation(body.activation);
 }
 
-export async function startWorkflowDefinitionRun(config: WorkflowDefinitionPromotionConfig, applicationId: string, input: { definitionId: string; expectedPointerVersion: number; expectedDefinitionVersion: number; expectedDefinitionDigest: string; inputText: string; conditionValues: Record<string, boolean>; model: string }): Promise<{ record: WorkflowRunRecord; advisoryOutput: string }> {
+type WorkflowDefinitionRunInput = {
+  definitionId: string;
+  expectedPointerVersion: number;
+  expectedDefinitionVersion: number;
+  expectedDefinitionDigest: string;
+  conditionValues: Record<string, boolean>;
+  model: string;
+} & (
+  | { executionProfile: "workflow_definition_executor_v1"; inputText: string }
+  | { executionProfile: "workflow_definition_executor_v2"; inputs: StructuredRuntimeInputValues }
+);
+
+export async function startWorkflowDefinitionRun(config: WorkflowDefinitionPromotionConfig, applicationId: string, input: WorkflowDefinitionRunInput): Promise<{ record: WorkflowRunRecord; advisoryOutput: string }> {
   assertLive(config);
+  const runtimeInput = input.executionProfile === "workflow_definition_executor_v2"
+    ? { inputs: input.inputs }
+    : { input_text: input.inputText };
   const response = await fetch(`${config.baseUrl}/v1/user-workspace/workflow-definition-runs`, {
     method: "POST",
     headers: { ...headers(config, applicationId, "workflow_runs:execute,workflow_definitions:read"), "Content-Type": "application/json" },
@@ -368,7 +390,7 @@ export async function startWorkflowDefinitionRun(config: WorkflowDefinitionPromo
       expected_pointer_version: input.expectedPointerVersion,
       expected_definition_version: input.expectedDefinitionVersion,
       expected_definition_digest: input.expectedDefinitionDigest,
-      input_text: input.inputText,
+      ...runtimeInput,
       condition_values: input.conditionValues,
       model: input.model,
       temperature: null,
@@ -378,13 +400,17 @@ export async function startWorkflowDefinitionRun(config: WorkflowDefinitionPromo
   if (!isRunEnvelope(body, config, applicationId)) throw new Error("workflow definition run returned an invalid or sensitive envelope");
   if (!response.ok || body.failure_code || !body.run) throw responseError(body, "definition run");
   const record = parseWorkflowRunRecordDocument(body.run);
-  if (!record || record.schemaVersion !== "workflow_run_record.v5" || record.executionSourceKind !== "workflow_definition") {
-    throw new Error("workflow definition run did not return strict workflow_run_record.v5 evidence");
+  const expectedSchema = input.executionProfile === "workflow_definition_executor_v2" ? "workflow_run_record.v8" : "workflow_run_record.v5";
+  if (!record || record.schemaVersion !== expectedSchema || record.executionSourceKind !== "workflow_definition") {
+    throw new Error(`workflow definition run did not return strict ${expectedSchema} evidence`);
   }
   return { record, advisoryOutput: body.advisory_output ?? "" };
 }
 
 export function deriveWorkflowDraftFromDefinitionVersion(version: WorkflowDefinitionVersion, applicationId: string, draftNumber: number): WorkflowDraftDesignerDraft {
+  if (version.snapshot.schemaVersion !== "saved_workflow_draft.v1") {
+    throw new Error("Workflow Definition v2 must be edited through the structured input contract designer.");
+  }
   const number = String(Math.max(1, draftNumber)).padStart(2, "0");
   const draftId = `draft_${safeIdPart(version.definitionId)}_v${version.version}_${number}`;
   const orderedNodes = workflowDefinitionNodesInGraphOrder(version.snapshot);
@@ -531,14 +557,18 @@ function isCandidateDocument(value: unknown): value is CandidateDocument {
   const keys = ["schema_version", "candidate_id", "definition_id", "source_draft_id", "source_draft_version", "source_draft_digest", "definition_digest", "snapshot", "activation_eligible", "eligibility_blockers", "state", "review_version", "reviews", "created_at", "updated_at", "created_by_actor_ref", "updated_by_actor_ref", "request_id", "audit_ref"];
   if (!strictObject(value, keys)) return false;
   const item = value as Record<string, unknown>;
-  return item.schema_version === "workflow_definition_release_candidate.v1" && id(item.candidate_id) && id(item.definition_id) && id(item.source_draft_id) && positive(item.source_draft_version) && digest(item.source_draft_digest) && digest(item.definition_digest) && isSnapshotDocument(item.snapshot) && typeof item.activation_eligible === "boolean" && strings(item.eligibility_blockers) && ["pending", "approved", "rejected", "superseded"].includes(String(item.state)) && nonnegative(item.review_version) && Array.isArray(item.reviews) && item.reviews.every(isReviewDocument) && timestamp(item.created_at) && timestamp(item.updated_at) && ref(item.created_by_actor_ref) && ref(item.updated_by_actor_ref) && ref(item.request_id) && ref(item.audit_ref);
+  const matchingVersion = (item.schema_version === "workflow_definition_release_candidate.v1" && (item.snapshot as Record<string, unknown>)?.schema_version === "saved_workflow_draft.v1") ||
+    (item.schema_version === "workflow_definition_release_candidate.v2" && (item.snapshot as Record<string, unknown>)?.schema_version === "saved_workflow_draft.v2");
+  return matchingVersion && id(item.candidate_id) && id(item.definition_id) && id(item.source_draft_id) && positive(item.source_draft_version) && digest(item.source_draft_digest) && digest(item.definition_digest) && isSnapshotDocument(item.snapshot) && typeof item.activation_eligible === "boolean" && strings(item.eligibility_blockers) && ["pending", "approved", "rejected", "superseded"].includes(String(item.state)) && nonnegative(item.review_version) && Array.isArray(item.reviews) && item.reviews.every(isReviewDocument) && timestamp(item.created_at) && timestamp(item.updated_at) && ref(item.created_by_actor_ref) && ref(item.updated_by_actor_ref) && ref(item.request_id) && ref(item.audit_ref);
 }
 
 function isVersionDocument(value: unknown): value is VersionDocument {
   const keys = ["schema_version", "definition_id", "version", "definition_digest", "candidate_id", "candidate_review_version", "source_draft_id", "source_draft_version", "source_draft_digest", "snapshot", "activation_eligible", "eligibility_blockers", "created_at", "created_by_actor_ref", "request_id", "audit_ref"];
   if (!strictObject(value, keys)) return false;
   const item = value as Record<string, unknown>;
-  return item.schema_version === "workflow_definition_version.v1" && id(item.definition_id) && positive(item.version) && digest(item.definition_digest) && id(item.candidate_id) && positive(item.candidate_review_version) && id(item.source_draft_id) && positive(item.source_draft_version) && digest(item.source_draft_digest) && isSnapshotDocument(item.snapshot) && typeof item.activation_eligible === "boolean" && strings(item.eligibility_blockers) && timestamp(item.created_at) && ref(item.created_by_actor_ref) && ref(item.request_id) && ref(item.audit_ref);
+  const matchingVersion = (item.schema_version === "workflow_definition_version.v1" && (item.snapshot as Record<string, unknown>)?.schema_version === "saved_workflow_draft.v1") ||
+    (item.schema_version === "workflow_definition_version.v2" && (item.snapshot as Record<string, unknown>)?.schema_version === "saved_workflow_draft.v2");
+  return matchingVersion && id(item.definition_id) && positive(item.version) && digest(item.definition_digest) && id(item.candidate_id) && positive(item.candidate_review_version) && id(item.source_draft_id) && positive(item.source_draft_version) && digest(item.source_draft_digest) && isSnapshotDocument(item.snapshot) && typeof item.activation_eligible === "boolean" && strings(item.eligibility_blockers) && timestamp(item.created_at) && ref(item.created_by_actor_ref) && ref(item.request_id) && ref(item.audit_ref);
 }
 
 function isActivationDocument(value: unknown): value is ActivationDocument {
@@ -563,7 +593,13 @@ function isActivationEventDocument(value: unknown): value is ActivationEventDocu
 function isSnapshotDocument(value: unknown): value is SnapshotDocument {
   if (!strictObject(value, ["schema_version", "name", "description", "nodes", "edges", "input_contract", "output_contract", "provider_refs", "tool_refs", "rag_refs", "requested_capabilities", "execution_profile"])) return false;
   const item = value as Record<string, unknown>;
-  return item.schema_version === "saved_workflow_draft.v1" && typeof item.name === "string" && typeof item.description === "string" && Array.isArray(item.nodes) && item.nodes.length > 0 && item.nodes.every(isSnapshotNode) && Array.isArray(item.edges) && item.edges.every(isSnapshotEdge) && isContract(item.input_contract) && isContract(item.output_contract) && strings(item.provider_refs) && strings(item.tool_refs) && strings(item.rag_refs) && strings(item.requested_capabilities) && item.execution_profile === "workflow_definition_executor_v1";
+  const inputContractValid = item.schema_version === "saved_workflow_draft.v2"
+    ? parseStructuredRuntimeInputContractDocument(item.input_contract) !== null && item.execution_profile === "workflow_definition_executor_v2"
+    : isContract(item.input_contract) && item.execution_profile === "workflow_definition_executor_v1";
+  return (item.schema_version === "saved_workflow_draft.v1" || item.schema_version === "saved_workflow_draft.v2") && inputContractValid &&
+    typeof item.name === "string" && typeof item.description === "string" && Array.isArray(item.nodes) && item.nodes.length > 0 && item.nodes.every(isSnapshotNode) &&
+    Array.isArray(item.edges) && item.edges.every(isSnapshotEdge) && isContract(item.output_contract) && strings(item.provider_refs) && strings(item.tool_refs) &&
+    strings(item.rag_refs) && strings(item.requested_capabilities);
 }
 
 function isSnapshotNode(value: unknown): value is Record<string, unknown> {
@@ -583,10 +619,10 @@ function isContract(value: unknown): value is Record<string, unknown> {
   return strictObject(value, ["contract_id", "required_fields", "summary"]) && typeof (value as Record<string, unknown>).contract_id === "string" && strings((value as Record<string, unknown>).required_fields) && typeof (value as Record<string, unknown>).summary === "string";
 }
 
-function mapCandidate(value: CandidateDocument): WorkflowDefinitionCandidate { return { candidateId: value.candidate_id, definitionId: value.definition_id, sourceDraftId: value.source_draft_id, sourceDraftVersion: value.source_draft_version, sourceDraftDigest: value.source_draft_digest, definitionDigest: value.definition_digest, snapshot: mapSnapshot(value.snapshot), activationEligible: value.activation_eligible, eligibilityBlockers: [...value.eligibility_blockers], state: value.state, reviewVersion: value.review_version, reviews: value.reviews.map((review) => ({ reviewVersion: review.review_version, decision: review.decision, reason: review.reason, reviewerRef: review.reviewer_ref, reviewedAt: review.reviewed_at, requestId: review.request_id, auditRef: review.audit_ref })), createdAt: value.created_at, updatedAt: value.updated_at, requestId: value.request_id, auditRef: value.audit_ref }; }
-function mapVersion(value: VersionDocument): WorkflowDefinitionVersion { return { definitionId: value.definition_id, version: value.version, definitionDigest: value.definition_digest, candidateId: value.candidate_id, candidateReviewVersion: value.candidate_review_version, sourceDraftId: value.source_draft_id, sourceDraftVersion: value.source_draft_version, sourceDraftDigest: value.source_draft_digest, snapshot: mapSnapshot(value.snapshot), activationEligible: value.activation_eligible, eligibilityBlockers: [...value.eligibility_blockers], createdAt: value.created_at, createdByActorRef: value.created_by_actor_ref, requestId: value.request_id, auditRef: value.audit_ref }; }
+function mapCandidate(value: CandidateDocument): WorkflowDefinitionCandidate { return { schemaVersion: value.schema_version, candidateId: value.candidate_id, definitionId: value.definition_id, sourceDraftId: value.source_draft_id, sourceDraftVersion: value.source_draft_version, sourceDraftDigest: value.source_draft_digest, definitionDigest: value.definition_digest, snapshot: mapSnapshot(value.snapshot), activationEligible: value.activation_eligible, eligibilityBlockers: [...value.eligibility_blockers], state: value.state, reviewVersion: value.review_version, reviews: value.reviews.map((review) => ({ reviewVersion: review.review_version, decision: review.decision, reason: review.reason, reviewerRef: review.reviewer_ref, reviewedAt: review.reviewed_at, requestId: review.request_id, auditRef: review.audit_ref })), createdAt: value.created_at, updatedAt: value.updated_at, requestId: value.request_id, auditRef: value.audit_ref }; }
+function mapVersion(value: VersionDocument): WorkflowDefinitionVersion { return { schemaVersion: value.schema_version, definitionId: value.definition_id, version: value.version, definitionDigest: value.definition_digest, candidateId: value.candidate_id, candidateReviewVersion: value.candidate_review_version, sourceDraftId: value.source_draft_id, sourceDraftVersion: value.source_draft_version, sourceDraftDigest: value.source_draft_digest, snapshot: mapSnapshot(value.snapshot), activationEligible: value.activation_eligible, eligibilityBlockers: [...value.eligibility_blockers], createdAt: value.created_at, createdByActorRef: value.created_by_actor_ref, requestId: value.request_id, auditRef: value.audit_ref }; }
 function mapActivation(value: ActivationDocument): WorkflowDefinitionActivation { return { definitionId: value.definition_id, pointerVersion: value.pointer_version, state: value.state, activeVersion: value.active_version, activeDefinitionDigest: value.active_definition_digest, events: value.events.map((event) => ({ eventId: event.event_id, decision: event.decision, reason: event.reason, beforePointerVersion: event.before_pointer_version, afterPointerVersion: event.after_pointer_version, beforeActiveVersion: event.before_active_version, afterActiveVersion: event.after_active_version, actorRef: event.actor_ref, createdAt: event.created_at, requestId: event.request_id, auditRef: event.audit_ref })), updatedAt: value.updated_at, updatedByActorRef: value.updated_by_actor_ref, requestId: value.request_id, auditRef: value.audit_ref }; }
-function mapSnapshot(value: SnapshotDocument): WorkflowDefinitionSnapshot { return { schemaVersion: value.schema_version, name: value.name, description: value.description, nodes: value.nodes.map((node) => ({ nodeId: String(node.node_id), nodeType: node.node_type as WorkflowDefinitionSnapshot["nodes"][number]["nodeType"], label: String(node.label), inputSummary: String(node.input_summary), outputSummary: String(node.output_summary), inputContractRef: String(node.input_contract_ref), outputContractRef: String(node.output_contract_ref), inputContractFields: [...node.input_contract_fields as string[]], outputContractFields: [...node.output_contract_fields as string[]], outputMappingSummary: String(node.output_mapping_summary), providerRef: String(node.provider_ref), toolRef: String(node.tool_ref), ragRef: String(node.rag_ref), riskLevel: String(node.risk_level), requiresConfirmation: Boolean(node.requires_confirmation) })), edges: value.edges.map((edge) => ({ edgeId: String(edge.edge_id), fromNodeId: String(edge.from_node_id), toNodeId: String(edge.to_node_id), conditionSummary: String(edge.condition_summary) })), inputContract: mapContract(value.input_contract), outputContract: mapContract(value.output_contract), providerRefs: [...value.provider_refs], toolRefs: [...value.tool_refs], ragRefs: [...value.rag_refs], requestedCapabilities: [...value.requested_capabilities], executionProfile: value.execution_profile }; }
+function mapSnapshot(value: SnapshotDocument): WorkflowDefinitionSnapshot { return { schemaVersion: value.schema_version, name: value.name, description: value.description, nodes: value.nodes.map((node) => ({ nodeId: String(node.node_id), nodeType: node.node_type as WorkflowDefinitionSnapshot["nodes"][number]["nodeType"], label: String(node.label), inputSummary: String(node.input_summary), outputSummary: String(node.output_summary), inputContractRef: String(node.input_contract_ref), outputContractRef: String(node.output_contract_ref), inputContractFields: [...node.input_contract_fields as string[]], outputContractFields: [...node.output_contract_fields as string[]], outputMappingSummary: String(node.output_mapping_summary), providerRef: String(node.provider_ref), toolRef: String(node.tool_ref), ragRef: String(node.rag_ref), riskLevel: String(node.risk_level), requiresConfirmation: Boolean(node.requires_confirmation) })), edges: value.edges.map((edge) => ({ edgeId: String(edge.edge_id), fromNodeId: String(edge.from_node_id), toNodeId: String(edge.to_node_id), conditionSummary: String(edge.condition_summary) })), inputContract: value.schema_version === "saved_workflow_draft.v2" ? parseStructuredRuntimeInputContractDocument(value.input_contract)! : mapContract(value.input_contract), outputContract: mapContract(value.output_contract), providerRefs: [...value.provider_refs], toolRefs: [...value.tool_refs], ragRefs: [...value.rag_refs], requestedCapabilities: [...value.requested_capabilities], executionProfile: value.execution_profile }; }
 function mapContract(value: Record<string, unknown>) { return { contractId: String(value.contract_id), requiredFields: [...value.required_fields as string[]], summary: String(value.summary) }; }
 function requireCandidate(value: ReleaseEnvelope): WorkflowDefinitionCandidate { if (!value.candidate) throw responseError(value, "candidate"); return mapCandidate(value.candidate); }
 function responseError(value: unknown, operation: string): Error { if (value && typeof value === "object") { const item = value as Record<string, unknown>; if (typeof item.failure_code === "string") return new Error(`${item.failure_code}: ${typeof item.failure_summary === "string" ? item.failure_summary : operation}`); } return new Error(`${operation} failed`); }

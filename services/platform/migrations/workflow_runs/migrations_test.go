@@ -83,6 +83,10 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"input_contract_id",
 		"input_contract_digest",
 		"workflow_run_records_structured_input_projection_check",
+		"application_session.v4",
+		"application_session_turn.v4",
+		"application_runtime_authority.v4",
+		"application_interaction_sessions_payload_v4_check",
 	} {
 		if !strings.Contains(upSQL, required) {
 			t.Fatalf("workflow run up migration is missing %q", required)
@@ -128,6 +132,7 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"DROP TABLE IF EXISTS workflow_evaluation_case_revisions",
 		"DROP TABLE IF EXISTS workflow_evaluation_cases",
 		"DROP TABLE IF EXISTS workflow_run_records",
+		"DROP CONSTRAINT application_interaction_sessions_payload_v4_check",
 	} {
 		if !strings.Contains(downSQL, required) {
 			t.Fatalf("workflow run down migration is missing %q", required)
@@ -176,6 +181,7 @@ func TestWorkflowRunPendingMigrationPaths(t *testing.T) {
 		{name: "v17", migrationID: agentRuntimeMigrationID, requiredFragment: "CREATE TABLE agent_copilot_sessions", forbiddenFragment: "CREATE TABLE agent_copilot_runtime_assignments"},
 		{name: "v18", migrationID: agentInvocationMigrationID, requiredFragment: "CREATE TABLE application_evaluation_plans", forbiddenFragment: "CREATE TABLE agent_copilot_sessions"},
 		{name: "v19", migrationID: applicationEvaluationMigrationID, requiredFragment: "input_contract_id", forbiddenFragment: "CREATE TABLE application_evaluation_plans"},
+		{name: "v20", migrationID: structuredDefinitionMigrationID, requiredFragment: "application_session.v4", forbiddenFragment: "workflow_run_record.v8"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -263,6 +269,10 @@ func TestWorkflowRunPendingRollbackPathsDoNotDropUnappliedTables(t *testing.T) {
 	applicationEvaluationRollback := rollbackSQLThrough(applicationEvaluationMigrationID)
 	if !strings.Contains(applicationEvaluationRollback, "application_evaluation_plans") || strings.Contains(applicationEvaluationRollback, "input_contract_id") {
 		t.Fatalf("v19 rollback must remove application evaluation campaigns without removing unapplied v20: %s", applicationEvaluationRollback)
+	}
+	structuredDefinitionRollback := rollbackSQLThrough(structuredDefinitionMigrationID)
+	if !strings.Contains(structuredDefinitionRollback, "input_contract_id") || strings.Contains(structuredDefinitionRollback, "application_interaction_sessions_payload_v4_check") {
+		t.Fatalf("v20 rollback must remove structured Definition columns without removing unapplied v21: %s", structuredDefinitionRollback)
 	}
 	if rollbackSQLThrough("0000_unknown") != "" {
 		t.Fatal("unknown pending rollback must fail closed")

@@ -9,11 +9,13 @@ import (
 )
 
 const (
-	applicationInteractionAuthoritySchemaVersion = "application_runtime_authority.v1"
-	applicationInteractionProfileWorkflow        = workflowDefinitionExecutorProfile
-	applicationInteractionProfileRAG             = "application_rag_invocation_v1"
-	applicationInteractionProfilePrompt          = promptApplicationInvocationProfile
-	applicationInteractionProfileAgentCopilot    = agentCopilotSuggestionProfile
+	applicationInteractionAuthoritySchemaVersion           = "application_runtime_authority.v1"
+	applicationInteractionStructuredAuthoritySchemaVersion = "application_runtime_authority.v4"
+	applicationInteractionProfileWorkflow                  = workflowDefinitionExecutorProfile
+	applicationInteractionProfileWorkflowStructured        = workflowDefinitionStructuredExecutorProfile
+	applicationInteractionProfileRAG                       = "application_rag_invocation_v1"
+	applicationInteractionProfilePrompt                    = promptApplicationInvocationProfile
+	applicationInteractionProfileAgentCopilot              = agentCopilotSuggestionProfile
 )
 
 const (
@@ -33,12 +35,13 @@ type ApplicationInteractionProfileBinding struct {
 }
 
 type ApplicationInteractionWorkflowAuthority struct {
-	DefinitionID             string `json:"definition_id"`
-	DefinitionVersion        int    `json:"definition_version"`
-	DefinitionDigest         string `json:"definition_digest"`
-	ActivationPointerVersion int    `json:"activation_pointer_version"`
-	CandidateID              string `json:"candidate_id"`
-	CandidateReviewVersion   int    `json:"candidate_review_version"`
+	DefinitionID             string                      `json:"definition_id"`
+	DefinitionVersion        int                         `json:"definition_version"`
+	DefinitionDigest         string                      `json:"definition_digest"`
+	ActivationPointerVersion int                         `json:"activation_pointer_version"`
+	CandidateID              string                      `json:"candidate_id"`
+	CandidateReviewVersion   int                         `json:"candidate_review_version"`
+	InputContract            *WorkflowDefinitionContract `json:"input_contract,omitempty"`
 }
 
 type ApplicationInteractionRAGAuthority struct {
@@ -107,11 +110,15 @@ func (resolver exactApplicationInteractionAuthorityResolver) Resolve(ctx Applica
 	if err != nil {
 		return ApplicationInteractionAuthoritySnapshot{}, ApplicationInteractionFailureStoreUnavailable
 	}
-	snapshot := ApplicationInteractionAuthoritySnapshot{SchemaVersion: applicationInteractionAuthoritySchemaVersion, ExecutionProfile: binding.ExecutionProfile, ApplicationID: application.ApplicationID, ApplicationRecordVersion: application.RecordVersion, ApplicationLifecycle: application.LifecycleState}
+	authoritySchemaVersion := applicationInteractionAuthoritySchemaVersion
+	if binding.ExecutionProfile == applicationInteractionProfileWorkflowStructured {
+		authoritySchemaVersion = applicationInteractionStructuredAuthoritySchemaVersion
+	}
+	snapshot := ApplicationInteractionAuthoritySnapshot{SchemaVersion: authoritySchemaVersion, ExecutionProfile: binding.ExecutionProfile, ApplicationID: application.ApplicationID, ApplicationRecordVersion: application.RecordVersion, ApplicationLifecycle: application.LifecycleState}
 	var failure string
 	switch binding.ExecutionProfile {
-	case applicationInteractionProfileWorkflow:
-		snapshot.WorkflowDefinition, failure = resolver.resolveWorkflowDefinition(ctx, binding.DefinitionID)
+	case applicationInteractionProfileWorkflow, applicationInteractionProfileWorkflowStructured:
+		snapshot.WorkflowDefinition, failure = resolver.resolveWorkflowDefinition(ctx, binding.DefinitionID, binding.ExecutionProfile)
 	case applicationInteractionProfileRAG:
 		snapshot.ApplicationRAG, failure = resolver.resolveApplicationRAG(ctx)
 	case applicationInteractionProfilePrompt:
@@ -188,7 +195,7 @@ func (resolver exactApplicationInteractionAuthorityResolver) resolvePromptAuthor
 	}
 }
 
-func (resolver exactApplicationInteractionAuthorityResolver) resolveWorkflowDefinition(ctx ApplicationInteractionContext, definitionID string) (*ApplicationInteractionWorkflowAuthority, string) {
+func (resolver exactApplicationInteractionAuthorityResolver) resolveWorkflowDefinition(ctx ApplicationInteractionContext, definitionID, executionProfile string) (*ApplicationInteractionWorkflowAuthority, string) {
 	if resolver.definitions == nil {
 		return nil, ApplicationInteractionFailureAuthorityMissing
 	}
@@ -205,10 +212,19 @@ func (resolver exactApplicationInteractionAuthorityResolver) resolveWorkflowDefi
 	if err != nil || digest != version.DefinitionDigest || digest != activation.ActiveDefinitionDigest {
 		return nil, ApplicationInteractionFailureAuthorityChanged
 	}
-	if !version.ActivationEligible || len(version.EligibilityBlockers) != 0 || version.Snapshot.ExecutionProfile != applicationInteractionProfileWorkflow {
+	if !version.ActivationEligible || len(version.EligibilityBlockers) != 0 || version.Snapshot.ExecutionProfile != executionProfile {
 		return nil, ApplicationInteractionFailureProfileIneligible
 	}
-	return &ApplicationInteractionWorkflowAuthority{DefinitionID: version.DefinitionID, DefinitionVersion: version.Version, DefinitionDigest: version.DefinitionDigest, ActivationPointerVersion: activation.PointerVersion, CandidateID: version.CandidateID, CandidateReviewVersion: version.CandidateReviewVersion}, ""
+	authority := &ApplicationInteractionWorkflowAuthority{DefinitionID: version.DefinitionID, DefinitionVersion: version.Version, DefinitionDigest: version.DefinitionDigest, ActivationPointerVersion: activation.PointerVersion, CandidateID: version.CandidateID, CandidateReviewVersion: version.CandidateReviewVersion}
+	if executionProfile == applicationInteractionProfileWorkflowStructured {
+		normalized, code, _ := normalizeWorkflowStructuredInputContract(savedWorkflowDraftContractFromDefinition(version.Snapshot.InputContract))
+		if code != "" || normalized.ContractDigest != version.Snapshot.InputContract.ContractDigest {
+			return nil, ApplicationInteractionFailureAuthorityChanged
+		}
+		contract := WorkflowDefinitionContract{ContractID: normalized.ContractID, Fields: cloneWorkflowStructuredInputFields(normalized.Fields), Summary: normalized.Summary, ContractDigest: normalized.ContractDigest}
+		authority.InputContract = &contract
+	}
+	return authority, ""
 }
 
 func (resolver exactApplicationInteractionAuthorityResolver) resolveApplicationRAG(ctx ApplicationInteractionContext) (*ApplicationInteractionRAGAuthority, string) {
@@ -246,7 +262,7 @@ func validateApplicationInteractionProfileBinding(binding ApplicationInteraction
 	binding.ExecutionProfile = strings.TrimSpace(binding.ExecutionProfile)
 	binding.DefinitionID = strings.TrimSpace(binding.DefinitionID)
 	switch binding.ExecutionProfile {
-	case applicationInteractionProfileWorkflow:
+	case applicationInteractionProfileWorkflow, applicationInteractionProfileWorkflowStructured:
 		if !applicationDraftIdentifierPattern.MatchString(binding.DefinitionID) {
 			return errWorkflowRunStoreContract
 		}
@@ -303,7 +319,7 @@ func validateApplicationInteractionAuthority(snapshot ApplicationInteractionAuth
 		}
 		return nil
 	}
-	if snapshot.SchemaVersion != applicationInteractionAuthoritySchemaVersion || !applicationDraftIdentifierPattern.MatchString(snapshot.ApplicationID) || snapshot.ApplicationRecordVersion < 1 || snapshot.ApplicationLifecycle != applicationCatalogLifecycleActive || !workflowRAGDigestPattern.MatchString(snapshot.AuthorityDigest) {
+	if (snapshot.SchemaVersion != applicationInteractionAuthoritySchemaVersion && snapshot.SchemaVersion != applicationInteractionStructuredAuthoritySchemaVersion) || !applicationDraftIdentifierPattern.MatchString(snapshot.ApplicationID) || snapshot.ApplicationRecordVersion < 1 || snapshot.ApplicationLifecycle != applicationCatalogLifecycleActive || !workflowRAGDigestPattern.MatchString(snapshot.AuthorityDigest) {
 		return errWorkflowRunStoreContract
 	}
 	calculated, err := applicationInteractionAuthorityDigest(snapshot)
@@ -311,10 +327,23 @@ func validateApplicationInteractionAuthority(snapshot ApplicationInteractionAuth
 		return errWorkflowRunStoreContract
 	}
 	switch snapshot.ExecutionProfile {
-	case applicationInteractionProfileWorkflow:
+	case applicationInteractionProfileWorkflow, applicationInteractionProfileWorkflowStructured:
 		value := snapshot.WorkflowDefinition
 		if value == nil || snapshot.ApplicationRAG != nil || !applicationDraftIdentifierPattern.MatchString(value.DefinitionID) || value.DefinitionVersion < 1 || value.ActivationPointerVersion < 1 || !workflowRAGDigestPattern.MatchString(value.DefinitionDigest) || !applicationDraftIdentifierPattern.MatchString(value.CandidateID) || value.CandidateReviewVersion < 1 {
 			return errWorkflowRunStoreContract
+		}
+		if snapshot.ExecutionProfile == applicationInteractionProfileWorkflow {
+			if snapshot.SchemaVersion != applicationInteractionAuthoritySchemaVersion || value.InputContract != nil {
+				return errWorkflowRunStoreContract
+			}
+		} else {
+			if snapshot.SchemaVersion != applicationInteractionStructuredAuthoritySchemaVersion || value.InputContract == nil {
+				return errWorkflowRunStoreContract
+			}
+			normalized, code, _ := normalizeWorkflowStructuredInputContract(savedWorkflowDraftContractFromDefinition(*value.InputContract))
+			if code != "" || normalized.ContractDigest != value.InputContract.ContractDigest {
+				return errWorkflowRunStoreContract
+			}
 		}
 	case applicationInteractionProfileRAG:
 		value := snapshot.ApplicationRAG

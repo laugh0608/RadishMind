@@ -86,6 +86,8 @@ test("session consumer rejects schema, scope, and sensitive response drift", asy
     { ...sessionListEnvelope([workflowSession()]), token: "forbidden" },
     sessionListEnvelope([{ ...workflowSession(), input_text: "must not echo" }]),
     sessionListEnvelope([{ ...workflowSession(), owner_subject_ref: "subject_wrong_user" }]),
+    sessionListEnvelope([{ ...workflowSession(), turn_count: 0, last_turn_id: "appturn_abcdefghijklmnop" }]),
+    sessionListEnvelope([{ ...workflowSession(), turn_count: 1, last_turn_id: null }]),
   ];
   for (const document of invalidDocuments) {
     globalThis.fetch = async () => jsonResponse(document);
@@ -122,6 +124,44 @@ test("turn execution keeps input request-only and returns transient v5 output", 
     model: "",
     temperature: null,
   });
+});
+
+test("structured Session v4 sends inputs only and accepts metadata-only v8 turn", async () => {
+  let capturedBody: Record<string, unknown> | undefined;
+  globalThis.fetch = async (_input, init) => {
+    capturedBody = JSON.parse(String(init?.body));
+    return jsonResponse(turnEnvelope(structuredSession(2), structuredTurn()));
+  };
+  const result = await executeApplicationInteractionTurn(config, {
+    session: parsedStructuredSession(), clientTurnKey: "web_turn_structured_001",
+    inputs: { customer_name: "Acme", retry_count: 2 }, conditionValues: {}, model: "", temperature: null,
+  });
+  assert.equal(result.status, "succeeded");
+  assert.equal(result.session?.schemaVersion, "application_session.v4");
+  assert.equal(result.turn?.schemaVersion, "application_session_turn.v4");
+  assert.equal(result.turn?.runRef?.schemaVersion, "workflow_run_record.v8");
+  assert.deepEqual(result.turn?.inputFields, [{ name: "customer_name", valueType: "string" }, { name: "retry_count", valueType: "integer" }]);
+  assert.deepEqual(capturedBody?.inputs, { customer_name: "Acme", retry_count: 2 });
+  assert.equal(Object.hasOwn(capturedBody ?? {}, "input_text"), false);
+});
+
+test("structured Session v4 rejects legacy, missing, unknown, and secret inputs before fetch", async () => {
+  let requests = 0;
+  globalThis.fetch = async () => { requests += 1; return jsonResponse({}); };
+  const session = parsedStructuredSession();
+  const invalid = [
+    await executeApplicationInteractionTurn(config, { session, clientTurnKey: "web_turn_structured_legacy", inputText: "legacy" }),
+    await executeApplicationInteractionTurn(config, { session, clientTurnKey: "web_turn_structured_missing", inputs: { customer_name: "Acme" } }),
+    await executeApplicationInteractionTurn(config, { session, clientTurnKey: "web_turn_structured_unknown", inputs: { customer_name: "Acme", retry_count: 2, unknown: true } }),
+    await executeApplicationInteractionTurn(config, { session, clientTurnKey: "web_turn_structured_secret", inputs: { customer_name: "password=hunter2", retry_count: 2 } }),
+  ];
+  assert.deepEqual(invalid.map((result) => result.failureCode), [
+    "application_session_payload_invalid",
+    "workflow_input_required_field_missing",
+    "workflow_input_unknown_field",
+    "workflow_input_secret_material_forbidden",
+  ]);
+  assert.equal(requests, 0);
 });
 
 test("RAG turn metadata requires v4 and maps answer only from current response", async () => {
@@ -217,7 +257,7 @@ function parsedWorkflowSession() {
       applicationLifecycle: "active" as const,
       workflowDefinition: {
         definitionId: "definition_support_flow", definitionVersion: 3, definitionDigest: digest("b"), activationPointerVersion: 2,
-        candidateId: "candidate_definition_003", candidateReviewVersion: 1,
+        candidateId: "candidate_definition_003", candidateReviewVersion: 1, inputContract: null,
       },
       applicationRAG: null,
       authorityDigest: digest("a"),
@@ -230,6 +270,27 @@ function parsedWorkflowSession() {
     closedAt: "",
     requestId: "application-session-create-0001",
     auditRef: "audit_application-session-create-0001",
+  };
+}
+
+function parsedStructuredSession() {
+  return {
+    ...parsedWorkflowSession(),
+    schemaVersion: "application_session.v4" as const,
+    executionProfile: "workflow_definition_executor_v2" as const,
+    authority: {
+      schemaVersion: "application_runtime_authority.v4" as const,
+      executionProfile: "workflow_definition_executor_v2" as const,
+      applicationId,
+      applicationRecordVersion: 2,
+      applicationLifecycle: "active" as const,
+      workflowDefinition: {
+        definitionId: "definition_support_flow", definitionVersion: 4, definitionDigest: digest("b"), activationPointerVersion: 3,
+        candidateId: "candidate_definition_004", candidateReviewVersion: 1, inputContract: structuredInputContract(),
+      },
+      applicationRAG: null,
+      authorityDigest: digest("4"),
+    },
   };
 }
 
@@ -299,6 +360,49 @@ function workflowAuthority() {
   };
 }
 
+function structuredSession(recordVersion = 1) {
+  return {
+    ...workflowSession(recordVersion), schema_version: "application_session.v4",
+    profile_binding: { execution_profile: "workflow_definition_executor_v2", definition_id: "definition_support_flow" },
+    authority: structuredAuthority(),
+  };
+}
+
+function structuredAuthority() {
+  return {
+    schema_version: "application_runtime_authority.v4", execution_profile: "workflow_definition_executor_v2", application_id: applicationId,
+    application_record_version: 2, application_lifecycle: "active",
+    workflow_definition: {
+      definition_id: "definition_support_flow", definition_version: 4, definition_digest: digest("b"), activation_pointer_version: 3,
+      candidate_id: "candidate_definition_004", candidate_review_version: 1,
+      input_contract: structuredInputContractDocument(),
+    },
+    application_rag: null, authority_digest: digest("4"),
+  };
+}
+
+function structuredInputContractDocument() {
+  return {
+    contract_id: "contract_customer_retry",
+    fields: [
+      { name: "customer_name", value_type: "string", required: true, label: "Customer", description: "Bounded label." },
+      { name: "retry_count", value_type: "integer", required: true, label: "Retries", description: "Safe retry count." },
+    ],
+    summary: "Typed runtime inputs.", contract_digest: digest("5"),
+  };
+}
+
+function structuredInputContract() {
+  return {
+    contractId: "contract_customer_retry",
+    fields: [
+      { name: "customer_name", valueType: "string" as const, required: true, label: "Customer", description: "Bounded label." },
+      { name: "retry_count", valueType: "integer" as const, required: true, label: "Retries", description: "Safe retry count." },
+    ],
+    summary: "Typed runtime inputs.", contractDigest: digest("5"),
+  };
+}
+
 function ragAuthority() {
   return {
     schema_version: "application_runtime_authority.v1", execution_profile: "application_rag_invocation_v1", application_id: applicationId,
@@ -322,6 +426,16 @@ function workflowTurn() {
     input_digest: digest("3"), input_bytes: 41, run_ref: { run_id: "run_abcdefghijklmnop", schema_version: "workflow_run_record.v5" },
     failure_code: "", failure_summary: "", started_at: "2026-07-19T10:01:00Z", completed_at: "2026-07-19T10:01:01Z",
     actor_ref: "subject_demo_user", request_id: "application-session-turn-0001", audit_ref: "audit_application-session-turn-0001",
+  };
+}
+
+function structuredTurn() {
+  return {
+    ...workflowTurn(), schema_version: "application_session_turn.v4", client_turn_key: "web_turn_structured_001",
+    execution_profile: "workflow_definition_executor_v2", authority: structuredAuthority(),
+    input_contract_id: "contract_customer_retry", input_contract_digest: digest("5"),
+    input_fields: [{ name: "customer_name", value_type: "string" }, { name: "retry_count", value_type: "integer" }],
+    run_ref: { run_id: "run_abcdefghijklmnop", schema_version: "workflow_run_record.v8" },
   };
 }
 

@@ -1,8 +1,18 @@
+import {
+  parseStructuredRuntimeInputContractDocument,
+  validateStructuredRuntimeInputDrafts,
+  type StructuredRuntimeInputContract,
+  type StructuredRuntimeInputValues,
+} from "./structuredRuntimeInput.ts";
+
 const DEV_SOURCE = "dev-application-session-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const SESSION_SCHEMA_VERSION = "application_session.v1";
+const STRUCTURED_SESSION_SCHEMA_VERSION = "application_session.v4";
 const TURN_SCHEMA_VERSION = "application_session_turn.v1";
+const STRUCTURED_TURN_SCHEMA_VERSION = "application_session_turn.v4";
 const AUTHORITY_SCHEMA_VERSION = "application_runtime_authority.v1";
+const STRUCTURED_AUTHORITY_SCHEMA_VERSION = "application_runtime_authority.v4";
 const ANSWER_SCHEMA_VERSION = "workflow_rag_application_answer.v1";
 const APPLICATION_ID_PATTERN = /^app_[a-z0-9]{16}$/u;
 const SESSION_ID_PATTERN = /^appsess_[a-z2-7]{16}$/u;
@@ -16,11 +26,12 @@ const DIGEST_PATTERN = /^sha256:[a-f0-9]{64}$/u;
 const FRAGMENT_REF_PATTERN = /^[a-z][a-z0-9_]{2,63}$/u;
 const FORBIDDEN_RESPONSE_FIELDS = new Set([
   "authorization", "credential", "credentials", "token", "secret", "headers", "header", "cookie", "dsn",
-  "raw_request", "raw_response", "prompt", "messages", "provider_raw_envelope", "fragment_content", "input_text",
+  "raw_request", "raw_response", "prompt", "messages", "provider_raw_envelope", "fragment_content", "input_text", "inputs",
 ]);
 
 export type ApplicationInteractionExecutionProfile =
   | "workflow_definition_executor_v1"
+  | "workflow_definition_executor_v2"
   | "application_rag_invocation_v1";
 
 export type ApplicationInteractionSessionState = "active" | "closed";
@@ -34,7 +45,7 @@ export type ApplicationInteractionSessionConfig = {
 };
 
 export type ApplicationInteractionAuthority = {
-  schemaVersion: typeof AUTHORITY_SCHEMA_VERSION;
+  schemaVersion: typeof AUTHORITY_SCHEMA_VERSION | typeof STRUCTURED_AUTHORITY_SCHEMA_VERSION;
   executionProfile: ApplicationInteractionExecutionProfile;
   applicationId: string;
   applicationRecordVersion: number;
@@ -46,6 +57,7 @@ export type ApplicationInteractionAuthority = {
     activationPointerVersion: number;
     candidateId: string;
     candidateReviewVersion: number;
+    inputContract: StructuredRuntimeInputContract | null;
   };
   applicationRAG: null | {
     assignmentId: string;
@@ -70,7 +82,7 @@ export type ApplicationInteractionAuthority = {
 };
 
 export type ApplicationInteractionSession = {
-  schemaVersion: typeof SESSION_SCHEMA_VERSION;
+  schemaVersion: typeof SESSION_SCHEMA_VERSION | typeof STRUCTURED_SESSION_SCHEMA_VERSION;
   sessionId: string;
   tenantRef: string;
   workspaceId: string;
@@ -93,11 +105,11 @@ export type ApplicationInteractionSession = {
 
 export type ApplicationInteractionRunRef = {
   runId: string;
-  schemaVersion: "workflow_run_record.v4" | "workflow_run_record.v5";
+  schemaVersion: "workflow_run_record.v4" | "workflow_run_record.v5" | "workflow_run_record.v8";
 };
 
 export type ApplicationInteractionTurn = {
-  schemaVersion: typeof TURN_SCHEMA_VERSION;
+  schemaVersion: typeof TURN_SCHEMA_VERSION | typeof STRUCTURED_TURN_SCHEMA_VERSION;
   turnId: string;
   sessionId: string;
   sequence: number;
@@ -111,6 +123,9 @@ export type ApplicationInteractionTurn = {
   status: "running" | "succeeded" | "failed" | "canceled" | "outcome_unknown";
   inputDigest: string;
   inputBytes: number;
+  inputContractId: string;
+  inputContractDigest: string;
+  inputFields: Array<{ name: string; valueType: "string" | "integer" | "number" | "boolean" }>;
   runRef: ApplicationInteractionRunRef | null;
   failureCode: string;
   failureSummary: string;
@@ -292,7 +307,7 @@ export async function createApplicationInteractionSession(
     application_id: input.applicationId,
     execution_profile: input.executionProfile,
   };
-  if (input.executionProfile === "workflow_definition_executor_v1") body.definition_id = definitionId;
+  if (input.executionProfile === "workflow_definition_executor_v1" || input.executionProfile === "workflow_definition_executor_v2") body.definition_id = definitionId;
   return fetchSession(config, input.applicationId, requestId, `${config.baseUrl}/v1/user-workspace/application-sessions`, {
     method: "POST", headers: { ...managementHeaders(config, input.applicationId, requestId, "application_sessions:write"), "Content-Type": "application/json" }, body: JSON.stringify(body), signal,
   });
@@ -343,7 +358,8 @@ export async function executeApplicationInteractionTurn(
   input: {
     session: ApplicationInteractionSession;
     clientTurnKey: string;
-    inputText: string;
+    inputText?: string;
+    inputs?: StructuredRuntimeInputValues;
     conditionValues?: Record<string, boolean>;
     model?: string;
     temperature?: number | null;
@@ -351,15 +367,23 @@ export async function executeApplicationInteractionTurn(
   signal?: AbortSignal,
 ): Promise<ApplicationInteractionTurnResult> {
   if (config.mode === "offline") return offlineTurnResult();
-  const text = input.inputText.trim();
+  const text = input.inputText?.trim() ?? "";
   const conditionValues = input.conditionValues ?? {};
   const model = input.model?.trim() ?? "";
   const temperature = input.temperature ?? null;
+  const structuredContract = input.session.executionProfile === "workflow_definition_executor_v2"
+    ? input.session.authority.workflowDefinition?.inputContract ?? null
+    : null;
+  const structuredValidation = structuredContract && input.inputs
+    ? validateStructuredRuntimeInputDrafts(structuredContract, Object.fromEntries(Object.entries(input.inputs).map(([name, value]) => [name, typeof value === "number" ? String(value) : value])))
+    : null;
+  if (structuredValidation && !structuredValidation.ok) return failedTurn(structuredValidation.failureCode);
   if (!validScope(config, input.session.applicationId) || input.session.state !== "active" ||
     !SESSION_ID_PATTERN.test(input.session.sessionId) || !REF_PATTERN.test(input.clientTurnKey) ||
-    text.length === 0 || new TextEncoder().encode(text).length > 8192 || containsSensitiveText(text) ||
     Object.keys(conditionValues).length > 16 || !Object.entries(conditionValues).every(([key, value]) => REF_PATTERN.test(key) && typeof value === "boolean") ||
     model.length > 256 || model.includes("://") || containsSensitiveText(model) ||
+    (input.session.executionProfile === "workflow_definition_executor_v2" && (!structuredContract || !structuredValidation?.ok || input.inputText !== undefined)) ||
+    (input.session.executionProfile !== "workflow_definition_executor_v2" && (input.inputs !== undefined || text.length === 0 || new TextEncoder().encode(text).length > 8192 || containsSensitiveText(text))) ||
     (input.session.executionProfile === "application_rag_invocation_v1" && (Object.keys(conditionValues).length > 0 || model !== "" || temperature !== null))) {
     return failedTurn(containsSensitiveText(text) || containsSensitiveText(model) ? "application_session_secret_material_forbidden" : "application_session_payload_invalid");
   }
@@ -373,7 +397,7 @@ export async function executeApplicationInteractionTurn(
         application_id: input.session.applicationId,
         expected_session_version: input.session.recordVersion,
         client_turn_key: input.clientTurnKey,
-        input_text: text,
+        ...(input.session.executionProfile === "workflow_definition_executor_v2" ? { inputs: structuredValidation!.inputs } : { input_text: text }),
         condition_values: conditionValues,
         model,
         temperature,
@@ -430,20 +454,22 @@ async function fetchSession(
 
 function parseSession(value: unknown, config: ApplicationInteractionSessionConfig, applicationId: string): ApplicationInteractionSession | null {
   if (!isExactRecord(value, ["schema_version", "session_id", "tenant_ref", "workspace_id", "application_id", "owner_subject_ref", "state", "record_version", "profile_binding", "authority", "content_retention", "turn_count", "last_turn_id", "created_at", "updated_at", "closed_at", "created_by_actor_ref", "updated_by_actor_ref", "request_id", "audit_ref"]) ||
-    containsForbiddenField(value) || value.schema_version !== SESSION_SCHEMA_VERSION || !SESSION_ID_PATTERN.test(String(value.session_id)) ||
+    containsForbiddenField(value) || (value.schema_version !== SESSION_SCHEMA_VERSION && value.schema_version !== STRUCTURED_SESSION_SCHEMA_VERSION) || !SESSION_ID_PATTERN.test(String(value.session_id)) ||
     value.tenant_ref !== config.tenantRef || value.workspace_id !== config.workspaceId || value.application_id !== applicationId ||
     value.owner_subject_ref !== config.subjectRef || (value.state !== "active" && value.state !== "closed") || !isPositiveInteger(value.record_version) ||
     !isRecord(value.profile_binding) || !isNonNegativeInteger(value.turn_count) ||
     !(value.last_turn_id === null || TURN_ID_PATTERN.test(String(value.last_turn_id))) || value.content_retention !== "metadata_only" ||
+    (value.turn_count === 0) !== (value.last_turn_id === null) ||
     !isTimestamp(value.created_at) || !isTimestamp(value.updated_at) || !(value.closed_at === null || isTimestamp(value.closed_at)) ||
     (value.state === "active" && value.closed_at !== null) || (value.state === "closed" && value.closed_at === null) ||
     !REF_PATTERN.test(String(value.created_by_actor_ref)) || !REF_PATTERN.test(String(value.updated_by_actor_ref)) ||
     !REF_PATTERN.test(String(value.request_id)) || !REF_PATTERN.test(String(value.audit_ref))) return null;
   const binding = parseProfileBinding(value.profile_binding);
   const authority = parseAuthority(value.authority, applicationId);
-  if (!binding || !authority || binding.executionProfile !== authority.executionProfile) return null;
+  const expectedSchema = binding?.executionProfile === "workflow_definition_executor_v2" ? STRUCTURED_SESSION_SCHEMA_VERSION : SESSION_SCHEMA_VERSION;
+  if (!binding || !authority || binding.executionProfile !== authority.executionProfile || value.schema_version !== expectedSchema) return null;
   return {
-    schemaVersion: SESSION_SCHEMA_VERSION, sessionId: String(value.session_id), tenantRef: config.tenantRef,
+    schemaVersion: expectedSchema, sessionId: String(value.session_id), tenantRef: config.tenantRef,
     workspaceId: config.workspaceId, applicationId, ownerSubjectRef: String(value.owner_subject_ref), state: value.state,
     recordVersion: Number(value.record_version), executionProfile: binding.executionProfile, definitionId: binding.definitionId,
     authority, contentRetention: "metadata_only", turnCount: Number(value.turn_count), lastTurnId: value.last_turn_id === null ? "" : String(value.last_turn_id),
@@ -453,8 +479,11 @@ function parseSession(value: unknown, config: ApplicationInteractionSessionConfi
 }
 
 function parseTurn(value: unknown, config: ApplicationInteractionSessionConfig, applicationId: string, sessionId: string, profile: ApplicationInteractionExecutionProfile): ApplicationInteractionTurn | null {
-  if (!isExactRecord(value, ["schema_version", "turn_id", "session_id", "sequence", "client_turn_key", "tenant_ref", "workspace_id", "application_id", "owner_subject_ref", "execution_profile", "authority", "status", "input_digest", "input_bytes", "run_ref", "failure_code", "failure_summary", "started_at", "completed_at", "actor_ref", "request_id", "audit_ref"]) ||
-    containsForbiddenField(value) || value.schema_version !== TURN_SCHEMA_VERSION || !TURN_ID_PATTERN.test(String(value.turn_id)) || value.session_id !== sessionId ||
+  const structured = profile === "workflow_definition_executor_v2";
+  const keys = ["schema_version", "turn_id", "session_id", "sequence", "client_turn_key", "tenant_ref", "workspace_id", "application_id", "owner_subject_ref", "execution_profile", "authority", "status", ...(structured ? ["input_contract_id", "input_contract_digest", "input_fields"] : []), "input_digest", "input_bytes", "run_ref", "failure_code", "failure_summary", "started_at", "completed_at", "actor_ref", "request_id", "audit_ref"];
+  const expectedSchema = structured ? STRUCTURED_TURN_SCHEMA_VERSION : TURN_SCHEMA_VERSION;
+  if (!isExactRecord(value, keys) ||
+    containsForbiddenField(value) || value.schema_version !== expectedSchema || !TURN_ID_PATTERN.test(String(value.turn_id)) || value.session_id !== sessionId ||
     !isPositiveInteger(value.sequence) || !REF_PATTERN.test(String(value.client_turn_key)) || value.tenant_ref !== config.tenantRef ||
     value.workspace_id !== config.workspaceId || value.application_id !== applicationId || value.owner_subject_ref !== config.subjectRef ||
     value.execution_profile !== profile || !isTurnStatus(value.status) || !DIGEST_PATTERN.test(String(value.input_digest)) ||
@@ -464,15 +493,22 @@ function parseTurn(value: unknown, config: ApplicationInteractionSessionConfig, 
     !REF_PATTERN.test(String(value.request_id)) || !REF_PATTERN.test(String(value.audit_ref))) return null;
   const authority = parseAuthority(value.authority, applicationId);
   const runRef = value.run_ref === null ? null : parseRunRef(value.run_ref, profile);
+  const inputFields = structured ? parseStructuredInputMetadata(value.input_fields) : [];
+  const authorityContract = authority?.workflowDefinition?.inputContract ?? null;
+  const authorityFields = new Map(authorityContract?.fields.map((field) => [field.name, field.valueType]) ?? []);
   if (!authority || authority.executionProfile !== profile || (value.run_ref !== null && !runRef) ||
+    !inputFields || (structured && (Number(value.input_bytes) < 2 || !REF_PATTERN.test(String(value.input_contract_id)) || !DIGEST_PATTERN.test(String(value.input_contract_digest)) ||
+      !authorityContract || authorityContract.contractId !== value.input_contract_id || authorityContract.contractDigest !== value.input_contract_digest ||
+      inputFields.some((field) => authorityFields.get(field.name) !== field.valueType))) ||
     (value.status === "running" && (runRef !== null || value.failure_code !== "" || value.failure_summary !== "" || value.completed_at !== null)) ||
     (value.status !== "running" && value.completed_at === null) ||
     (value.status === "succeeded" && (!runRef || value.failure_code !== "" || value.failure_summary !== "")) ||
     (["failed", "canceled", "outcome_unknown"].includes(value.status) && value.failure_code.length === 0)) return null;
   return {
-    schemaVersion: TURN_SCHEMA_VERSION, turnId: String(value.turn_id), sessionId, sequence: Number(value.sequence), clientTurnKey: String(value.client_turn_key),
+    schemaVersion: expectedSchema, turnId: String(value.turn_id), sessionId, sequence: Number(value.sequence), clientTurnKey: String(value.client_turn_key),
     tenantRef: config.tenantRef, workspaceId: config.workspaceId, applicationId, ownerSubjectRef: String(value.owner_subject_ref), executionProfile: profile,
-    authority, status: value.status, inputDigest: String(value.input_digest), inputBytes: Number(value.input_bytes), runRef,
+    authority, status: value.status, inputDigest: String(value.input_digest), inputBytes: Number(value.input_bytes),
+    inputContractId: structured ? String(value.input_contract_id) : "", inputContractDigest: structured ? String(value.input_contract_digest) : "", inputFields, runRef,
     failureCode: value.failure_code, failureSummary: value.failure_summary, startedAt: String(value.started_at),
     completedAt: value.completed_at === null ? "" : String(value.completed_at), actorRef: String(value.actor_ref), requestId: String(value.request_id), auditRef: String(value.audit_ref),
   };
@@ -480,21 +516,26 @@ function parseTurn(value: unknown, config: ApplicationInteractionSessionConfig, 
 
 function parseAuthority(value: unknown, applicationId: string): ApplicationInteractionAuthority | null {
   if (!isExactRecord(value, ["schema_version", "execution_profile", "application_id", "application_record_version", "application_lifecycle", "workflow_definition", "application_rag", "authority_digest"]) ||
-    containsForbiddenField(value) || value.schema_version !== AUTHORITY_SCHEMA_VERSION || !isExecutionProfile(value.execution_profile) ||
+    containsForbiddenField(value) || (value.schema_version !== AUTHORITY_SCHEMA_VERSION && value.schema_version !== STRUCTURED_AUTHORITY_SCHEMA_VERSION) || !isExecutionProfile(value.execution_profile) ||
     value.application_id !== applicationId || !isPositiveInteger(value.application_record_version) || value.application_lifecycle !== "active" ||
     !DIGEST_PATTERN.test(String(value.authority_digest))) return null;
-  const workflowDefinition = value.workflow_definition === null ? null : parseWorkflowDefinitionAuthority(value.workflow_definition);
+  const structured = value.execution_profile === "workflow_definition_executor_v2";
+  const workflowDefinition = value.workflow_definition === null ? null : parseWorkflowDefinitionAuthority(value.workflow_definition, structured);
   const applicationRAG = value.application_rag === null ? null : parseApplicationRAGAuthority(value.application_rag);
-  if ((value.execution_profile === "workflow_definition_executor_v1" && (!workflowDefinition || applicationRAG)) ||
+  if (((value.execution_profile === "workflow_definition_executor_v1" || structured) && (!workflowDefinition || applicationRAG)) ||
     (value.execution_profile === "application_rag_invocation_v1" && (workflowDefinition || !applicationRAG))) return null;
-  return { schemaVersion: AUTHORITY_SCHEMA_VERSION, executionProfile: value.execution_profile, applicationId, applicationRecordVersion: Number(value.application_record_version), applicationLifecycle: "active", workflowDefinition, applicationRAG, authorityDigest: String(value.authority_digest) };
+  const expectedSchema = structured ? STRUCTURED_AUTHORITY_SCHEMA_VERSION : AUTHORITY_SCHEMA_VERSION;
+  if (value.schema_version !== expectedSchema) return null;
+  return { schemaVersion: expectedSchema, executionProfile: value.execution_profile, applicationId, applicationRecordVersion: Number(value.application_record_version), applicationLifecycle: "active", workflowDefinition, applicationRAG, authorityDigest: String(value.authority_digest) };
 }
 
-function parseWorkflowDefinitionAuthority(value: unknown): NonNullable<ApplicationInteractionAuthority["workflowDefinition"]> | null {
-  if (!isExactRecord(value, ["definition_id", "definition_version", "definition_digest", "activation_pointer_version", "candidate_id", "candidate_review_version"]) ||
+function parseWorkflowDefinitionAuthority(value: unknown, structured: boolean): NonNullable<ApplicationInteractionAuthority["workflowDefinition"]> | null {
+  if (!isExactRecord(value, ["definition_id", "definition_version", "definition_digest", "activation_pointer_version", "candidate_id", "candidate_review_version", ...(structured ? ["input_contract"] : [])]) ||
     !REF_PATTERN.test(String(value.definition_id)) || !isPositiveInteger(value.definition_version) || !DIGEST_PATTERN.test(String(value.definition_digest)) ||
     !isPositiveInteger(value.activation_pointer_version) || !REF_PATTERN.test(String(value.candidate_id)) || !isPositiveInteger(value.candidate_review_version)) return null;
-  return { definitionId: String(value.definition_id), definitionVersion: Number(value.definition_version), definitionDigest: String(value.definition_digest), activationPointerVersion: Number(value.activation_pointer_version), candidateId: String(value.candidate_id), candidateReviewVersion: Number(value.candidate_review_version) };
+  const inputContract = structured ? parseStructuredRuntimeInputContractDocument(value.input_contract) : null;
+  if (structured && !inputContract) return null;
+  return { definitionId: String(value.definition_id), definitionVersion: Number(value.definition_version), definitionDigest: String(value.definition_digest), activationPointerVersion: Number(value.activation_pointer_version), candidateId: String(value.candidate_id), candidateReviewVersion: Number(value.candidate_review_version), inputContract };
 }
 
 function parseApplicationRAGAuthority(value: unknown): NonNullable<ApplicationInteractionAuthority["applicationRAG"]> | null {
@@ -517,7 +558,7 @@ function parseApplicationRAGAuthority(value: unknown): NonNullable<ApplicationIn
 
 function parseProfileBinding(value: Record<string, unknown>): { executionProfile: ApplicationInteractionExecutionProfile; definitionId: string } | null {
   if (!isExecutionProfile(value.execution_profile)) return null;
-  if (value.execution_profile === "workflow_definition_executor_v1" && isExactRecord(value, ["execution_profile", "definition_id"]) && REF_PATTERN.test(String(value.definition_id))) {
+  if ((value.execution_profile === "workflow_definition_executor_v1" || value.execution_profile === "workflow_definition_executor_v2") && isExactRecord(value, ["execution_profile", "definition_id"]) && REF_PATTERN.test(String(value.definition_id))) {
     return { executionProfile: value.execution_profile, definitionId: String(value.definition_id) };
   }
   if (value.execution_profile === "application_rag_invocation_v1" && isExactRecord(value, ["execution_profile"])) return { executionProfile: value.execution_profile, definitionId: "" };
@@ -526,7 +567,7 @@ function parseProfileBinding(value: Record<string, unknown>): { executionProfile
 
 function parseRunRef(value: unknown, profile: ApplicationInteractionExecutionProfile): ApplicationInteractionRunRef | null {
   if (!isExactRecord(value, ["run_id", "schema_version"]) || !RUN_ID_PATTERN.test(String(value.run_id))) return null;
-  const expectedSchema = profile === "workflow_definition_executor_v1" ? "workflow_run_record.v5" : "workflow_run_record.v4";
+  const expectedSchema = profile === "workflow_definition_executor_v2" ? "workflow_run_record.v8" : profile === "workflow_definition_executor_v1" ? "workflow_run_record.v5" : "workflow_run_record.v4";
   return value.schema_version === expectedSchema ? { runId: String(value.run_id), schemaVersion: expectedSchema } : null;
 }
 
@@ -602,7 +643,9 @@ function validScope(config: ApplicationInteractionSessionConfig, applicationId: 
 }
 
 function validProfileBinding(profile: ApplicationInteractionExecutionProfile, definitionId: string): boolean {
-  return profile === "workflow_definition_executor_v1" ? REF_PATTERN.test(definitionId) : profile === "application_rag_invocation_v1" && definitionId === "";
+  return profile === "workflow_definition_executor_v1" || profile === "workflow_definition_executor_v2"
+    ? REF_PATTERN.test(definitionId)
+    : profile === "application_rag_invocation_v1" && definitionId === "";
 }
 
 function containsSensitiveText(value: string): boolean {
@@ -630,7 +673,21 @@ function isRecord(value: unknown): value is Record<string, any> {
 }
 
 function isExecutionProfile(value: unknown): value is ApplicationInteractionExecutionProfile {
-  return value === "workflow_definition_executor_v1" || value === "application_rag_invocation_v1";
+  return value === "workflow_definition_executor_v1" || value === "workflow_definition_executor_v2" || value === "application_rag_invocation_v1";
+}
+
+function parseStructuredInputMetadata(value: unknown): ApplicationInteractionTurn["inputFields"] | null {
+  if (!Array.isArray(value) || value.length > 16) return null;
+  const result: ApplicationInteractionTurn["inputFields"] = [];
+  const names = new Set<string>();
+  for (const field of value) {
+    if (!isExactRecord(field, ["name", "value_type"]) || !/^[a-z][a-z0-9_]{0,63}$/u.test(String(field.name)) ||
+      (field.value_type !== "string" && field.value_type !== "integer" && field.value_type !== "number" && field.value_type !== "boolean") ||
+      names.has(String(field.name))) return null;
+    names.add(String(field.name));
+    result.push({ name: String(field.name), valueType: field.value_type });
+  }
+  return result.every((field, index) => index === 0 || result[index - 1]!.name < field.name) ? result : null;
 }
 
 function isTurnStatus(value: unknown): value is ApplicationInteractionTurn["status"] {

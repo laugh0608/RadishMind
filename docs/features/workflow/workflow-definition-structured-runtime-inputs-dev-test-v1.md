@@ -1,8 +1,8 @@
 # Workflow Definition 结构化运行输入（开发 / 测试态）v1
 
-更新时间：2026-08-10
+更新时间：2026-08-11
 
-状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_pencil_frozen_implementation_next`
+状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_completed_batch_d_next`
 
 ## 功能定位
 
@@ -179,7 +179,11 @@ Application Session v4 只在 application active Definition 已绑定 `workflow_
 - 增加 Application Session v4 authority / turn 合同和 Definition direct Run / Session 两个 consumer。
 - 验证值清理、错误归属、Desktop / 关键断点 / `390×844` 与 console。
 
-局部 Pencil Visual R4 已完成结构、截图检查和人工视觉复核。批次 C 下一步只进入共享 `StructuredRuntimeInputEditor` strict contract decoder、Application Session v4 authority / turn 合同，以及 Definition Direct Run / Session 两个 consumer 的实现；Evaluation Plan / Campaign v2 继续留在批次 D。
+局部 Pencil Visual R4 已完成结构、截图检查和人工视觉复核。共享 `StructuredRuntimeInputEditor` 与 strict decoder 已由 Definition Direct Run 和 Application Interaction Session 共同消费，按服务端 exact immutable contract 生成 `string | integer | number | boolean` 控件并在 authority、version、session、application 切换和提交时清空值。Application Session / Turn v4 与 authority v4 已接入 executor v2，持久记录只含合同身份、字段名 / 类型、bytes、digest、状态与 Run v8 ref；SQLite `0018` 已通过重启复验，PostgreSQL `0021` 已补齐旧约束升级、回滚和集成测试覆盖。
+
+批次 C 已完成。Web `323/323`、production build、Platform `go test ./...` 和 PostgreSQL build-tag 编译检查已通过；本地 SQLite 产品的 Definition Direct Run 与 Application Interaction Session 已用 exact v2 Definition 合同完成真实浏览器复核。required 与 secret 失败均在执行前归属精确字段，authority 失效由 Session owner 返回稳定失败码，成功 Direct Run / Session 只展示 `workflow_run_record.v8` metadata，提交值在提交、candidate / definition、session、application 与 route 切换后清除且不回显。`1440×900`、`1100×900`、`721×900`、`720×900` 与 `390×844` 均无横向溢出，`720px` 断点按约定切为单列，最终浏览器 console 无 warning / error。
+
+浏览器复核还发现并关闭两处相邻根因：Session 本地字段校验曾把“失败码 + 展示摘要”整体误送 readiness blocker code，触发严格 evidence normalization 后使 React 工作区崩溃；共享 editor / Session 样式曾引用未定义的旧 CSS 变量，导致 Definition owner 中出现低对比文本。现已分别保持 code / summary 职责分离，并统一消费 `--rm-*` 语义 token 与 Workbench 纸色表面。
 
 ### 批次 D：Evaluation 与 Campaign
 
@@ -215,4 +219,4 @@ Application Session v4 只在 application active Definition 已绑定 `workflow_
 
 ## 当前下一步
 
-继续实施唯一任务卡批次 C：按已冻结的 Desktop `W3O4tV`、Narrow `t39foq` Visual R4 实现 strict contract decoder、共享 `StructuredRuntimeInputEditor`、Application Session v4 authority / turn 合同，以及 Definition Direct Run / Session 两个 consumer。当前不进入 Evaluation Plan / Campaign v2，不创建 S11 页面族，也不扩大 production、secret 输入、自动执行或业务写回边界。
+进入唯一任务卡批次 D：先把 Comparison、Evaluation Case / Baseline / Suite 的 exact v2 profile / Run v8 兼容设计和现有实现差距收口，再实现 Application Evaluation Plan / Campaign v2 typed Definition fixture、authority / contract checkpoint 与既有 Case / Suite handoff。继续不创建 S11 页面族，不扩大 production、secret 输入、自动执行、自动发布或业务写回边界。

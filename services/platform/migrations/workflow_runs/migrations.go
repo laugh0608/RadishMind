@@ -16,8 +16,8 @@ import (
 
 const (
 	Component                                     = "workflow_runs"
-	MigrationID                                   = "0020_workflow_definition_structured_inputs"
-	StoreSchemaVersion                            = "workflow_run_store_v20"
+	MigrationID                                   = "0021_application_structured_sessions"
+	StoreSchemaVersion                            = "workflow_run_store_v21"
 	legacyMigrationID                             = "0001_workflow_runs"
 	legacyStoreSchemaVersion                      = "workflow_run_store_v1"
 	diagnosticsMigrationID                        = "0002_workflow_run_diagnostics"
@@ -56,6 +56,8 @@ const (
 	agentInvocationStoreSchemaVersion             = "workflow_run_store_v18"
 	applicationEvaluationMigrationID              = "0019_application_evaluation_campaigns"
 	applicationEvaluationStoreSchemaVersion       = "workflow_run_store_v19"
+	structuredDefinitionMigrationID               = "0020_workflow_definition_structured_inputs"
+	structuredDefinitionStoreSchemaVersion        = "workflow_run_store_v20"
 	MigrationStateApplied                         = "applied"
 	MigrationStatePending                         = "pending"
 	MigrationStateNotApplied                      = "not_applied"
@@ -187,8 +189,14 @@ var upSQLV20 string
 //go:embed 0020_workflow_definition_structured_inputs.down.sql
 var downSQLV20 string
 
-var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13 + "\n" + upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20
-var downSQL = downSQLV20 + "\n" + downSQLV19 + "\n" + downSQLV18 + "\n" + downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+//go:embed 0021_application_structured_sessions.up.sql
+var upSQLV21 string
+
+//go:embed 0021_application_structured_sessions.down.sql
+var downSQLV21 string
+
+var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13 + "\n" + upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20 + "\n" + upSQLV21
+var downSQL = downSQLV21 + "\n" + downSQLV20 + "\n" + downSQLV19 + "\n" + downSQLV18 + "\n" + downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 
 type State struct {
 	MigrationState, MigrationID, StoreSchemaVersion, MigrationChecksum string
@@ -281,6 +289,10 @@ func agentInvocationChecksum() string {
 
 func applicationEvaluationChecksum() string {
 	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9+"\n"+upSQLV10+"\n"+upSQLV11+"\n"+upSQLV12+"\n"+upSQLV13+"\n"+upSQLV14+"\n"+upSQLV15+"\n"+upSQLV16+"\n"+upSQLV17+"\n"+upSQLV18+"\n"+upSQLV19)))
+}
+
+func structuredDefinitionChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9+"\n"+upSQLV10+"\n"+upSQLV11+"\n"+upSQLV12+"\n"+upSQLV13+"\n"+upSQLV14+"\n"+upSQLV15+"\n"+upSQLV16+"\n"+upSQLV17+"\n"+upSQLV18+"\n"+upSQLV19+"\n"+upSQLV20)))
 }
 
 func Inspect(ctx context.Context, pool *pgxpool.Pool) (State, error) {
@@ -404,32 +416,35 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 }
 
 func pendingMigrationSQL(appliedMigrationID string) string {
+	if appliedMigrationID == structuredDefinitionMigrationID {
+		return upSQLV21
+	}
 	if appliedMigrationID == applicationEvaluationMigrationID {
-		return upSQLV20
+		return upSQLV20 + "\n" + upSQLV21
 	}
 	if appliedMigrationID == agentInvocationMigrationID {
-		return upSQLV19 + "\n" + upSQLV20
+		return upSQLV19 + "\n" + upSQLV20 + "\n" + upSQLV21
 	}
 	if appliedMigrationID == agentRuntimeMigrationID {
-		return upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20
+		return upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20 + "\n" + upSQLV21
 	}
 	if appliedMigrationID == promptRuntimeMigrationID {
-		return upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20
+		return upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20 + "\n" + upSQLV21
 	}
 	if appliedMigrationID == applicationSessionMigrationID {
-		return upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20
+		return upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20 + "\n" + upSQLV21
 	}
 	if appliedMigrationID == definitionExecutionMigrationID {
-		return upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20
+		return upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20 + "\n" + upSQLV21
 	}
 	if appliedMigrationID == definitionReleaseMigrationID {
-		return upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20
+		return upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20 + "\n" + upSQLV21
 	}
 	pending := pendingMigrationSQLThroughDefinitionRelease(appliedMigrationID)
 	if pending == "" {
 		return ""
 	}
-	return pending + "\n" + upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20
+	return pending + "\n" + upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20 + "\n" + upSQLV21
 }
 
 func pendingMigrationSQLThroughDefinitionRelease(appliedMigrationID string) string {
@@ -503,6 +518,8 @@ func rollbackSQLThrough(appliedMigrationID string) string {
 		return downSQLV18 + "\n" + downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 	case applicationEvaluationMigrationID:
 		return downSQLV19 + "\n" + downSQLV18 + "\n" + downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case structuredDefinitionMigrationID:
+		return downSQLV20 + "\n" + downSQLV19 + "\n" + downSQLV18 + "\n" + downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 	default:
 		return ""
 	}
@@ -565,6 +582,8 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 	} else if state.MigrationID == agentInvocationMigrationID && state.StoreSchemaVersion == agentInvocationStoreSchemaVersion && state.MigrationChecksum == agentInvocationChecksum() && tableExists {
 		state.MigrationState = MigrationStatePending
 	} else if state.MigrationID == applicationEvaluationMigrationID && state.StoreSchemaVersion == applicationEvaluationStoreSchemaVersion && state.MigrationChecksum == applicationEvaluationChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == structuredDefinitionMigrationID && state.StoreSchemaVersion == structuredDefinitionStoreSchemaVersion && state.MigrationChecksum == structuredDefinitionChecksum() && tableExists {
 		state.MigrationState = MigrationStatePending
 	} else {
 		var diagnosticColumnCount int
@@ -759,7 +778,7 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 			)`).Scan(&definitionReleaseTriggerCount); err != nil {
 			return State{}, safeDatabaseError("inspect workflow definition release append-only triggers", err)
 		}
-		var applicationInteractionTableCount, applicationInteractionTriggerCount int
+		var applicationInteractionTableCount, applicationInteractionTriggerCount, applicationInteractionStructuredConstraintCount int
 		if err = query.QueryRow(ctx, `SELECT count(*) FROM pg_class relation
 			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
 			WHERE namespace.nspname='public' AND relation.relkind='r' AND relation.relname IN (
@@ -776,6 +795,14 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 				'application_interaction_sessions_no_delete','application_interaction_turns_no_delete'
 			)`).Scan(&applicationInteractionTriggerCount); err != nil {
 			return State{}, safeDatabaseError("inspect application interaction session triggers", err)
+		}
+		if err = query.QueryRow(ctx, `SELECT count(*) FROM pg_constraint
+			WHERE conname IN (
+				'application_interaction_sessions_profile_v4_check',
+				'application_interaction_sessions_payload_v4_check',
+				'application_interaction_session_turns_payload_v4_check'
+			)`).Scan(&applicationInteractionStructuredConstraintCount); err != nil {
+			return State{}, safeDatabaseError("inspect application structured session constraints", err)
 		}
 		var promptProjectionTableCount, promptProjectionTriggerCount int
 		if err = query.QueryRow(ctx, `SELECT count(*) FROM pg_class relation
@@ -851,7 +878,7 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 			)`).Scan(&applicationEvaluationTriggerCount); err != nil {
 			return State{}, safeDatabaseError("inspect application evaluation triggers", err)
 		}
-		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 || structuredInputColumnCount != 2 || !evaluationTableExists || !revisionTableExists || currentVersionColumnCount != 1 || !suiteTableExists || !decisionTableExists || !actionPlanTableExists || !confirmationDecisionTableExists || !executionAuditTableExists || !executionAttemptTableExists || appendOnlyTriggerCount != 2 || !ragResourceTableExists || !ragVersionTableExists || !ragFragmentTableExists || !ragAuditTableExists || ragAppendOnlyTriggerCount != 3 || ragExecutionEventConstraintCount != 1 || !ragEvaluationResourceTableExists || !ragEvaluationVersionTableExists || !ragCandidateReviewTableExists || !ragEvaluationAuditTableExists || ragEvaluationAppendOnlyTriggerCount != 3 || ragPromotionTableCount != 4 || ragPromotionAppendOnlyTriggerCount != 3 || executionSourceColumnCount != 3 || legacyDraftColumnCount != 0 || applicationRuntimeTableCount != 3 || applicationRuntimeTriggerCount != 2 || definitionReleaseTableCount != 6 || definitionReleaseTriggerCount != 4 || applicationInteractionTableCount != 2 || applicationInteractionTriggerCount != 4 || promptProjectionTableCount != 5 || promptProjectionTriggerCount != 10 || agentAssignmentTableCount != 2 || agentAssignmentTriggerCount != 4 || agentProjectionTableCount != 3 || agentProjectionTriggerCount != 6 || applicationEvaluationTableCount != 3 || applicationEvaluationTriggerCount != 6 {
+		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 || structuredInputColumnCount != 2 || !evaluationTableExists || !revisionTableExists || currentVersionColumnCount != 1 || !suiteTableExists || !decisionTableExists || !actionPlanTableExists || !confirmationDecisionTableExists || !executionAuditTableExists || !executionAttemptTableExists || appendOnlyTriggerCount != 2 || !ragResourceTableExists || !ragVersionTableExists || !ragFragmentTableExists || !ragAuditTableExists || ragAppendOnlyTriggerCount != 3 || ragExecutionEventConstraintCount != 1 || !ragEvaluationResourceTableExists || !ragEvaluationVersionTableExists || !ragCandidateReviewTableExists || !ragEvaluationAuditTableExists || ragEvaluationAppendOnlyTriggerCount != 3 || ragPromotionTableCount != 4 || ragPromotionAppendOnlyTriggerCount != 3 || executionSourceColumnCount != 3 || legacyDraftColumnCount != 0 || applicationRuntimeTableCount != 3 || applicationRuntimeTriggerCount != 2 || definitionReleaseTableCount != 6 || definitionReleaseTriggerCount != 4 || applicationInteractionTableCount != 2 || applicationInteractionTriggerCount != 4 || applicationInteractionStructuredConstraintCount != 3 || promptProjectionTableCount != 5 || promptProjectionTriggerCount != 10 || agentAssignmentTableCount != 2 || agentAssignmentTriggerCount != 4 || agentProjectionTableCount != 3 || agentProjectionTriggerCount != 6 || applicationEvaluationTableCount != 3 || applicationEvaluationTriggerCount != 6 {
 			state.MigrationState = MigrationStateMismatch
 		} else {
 			state.MigrationState = MigrationStateApplied

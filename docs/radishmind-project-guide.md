@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-08-10
+更新时间：2026-08-11
 
 ## 这份文档讲什么
 
@@ -15,7 +15,7 @@
 
 2026-06-14 起，具体功能或长期开发目标先看 [功能设计文档入口](features/README.md)。任务卡只承载实现批次、前置条件或高风险边界，不再作为功能默认主文档。
 
-2026-08-10 当前读法：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，Pencil 顶层基准面已改为横向审阅带；S9 / S10 功能已完成，Visual R3 仍等待人工复核。当前 [Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成批次 B，批次 C 的局部 Pencil Visual R4 也已通过人工复核并冻结。下一步实现 Session v4、strict contract decoder 和共享输入编辑器；Evaluation Plan / Campaign v2 留在后续批次。production membership / OIDC、production secret、production quota / billing、自动执行和自动发布仍未打开。
+2026-08-11 当前读法：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 功能已完成，Visual R3 仍等待人工复核。当前 [Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 批次 C 已完成 Session v4、strict decoder、共享输入编辑器、验证和真实浏览器证据；下一步进入 Evaluation Plan / Campaign v2 批次 D。production membership / OIDC、production secret、production quota / billing、自动执行和自动发布仍未打开。
 
 ## 项目定位
 

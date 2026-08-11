@@ -1,6 +1,6 @@
 # RadishMind 统一契约文件
 
-更新时间：2026-08-10
+更新时间：2026-08-11
 
 本目录承载 `RadishMind` 第一版真实契约文件。
 
@@ -97,6 +97,9 @@
 81. `workflow-definition-version-v2.schema.json`
 82. `workflow-run-record-v8.schema.json`
 83. `workflow-run-comparison-v7.schema.json`
+84. `application-runtime-authority-v4.schema.json`
+85. `application-session-v4.schema.json`
+86. `application-session-turn-v4.schema.json`
 
 当前 TypeScript 消费契约：
 
@@ -108,6 +111,7 @@
 使用原则：
 
 - `saved-workflow-draft-v2.schema.json`、`workflow-definition-release-candidate-v2.schema.json`、`workflow-definition-version-v2.schema.json`、`workflow-run-record-v8.schema.json` 与 `workflow-run-comparison-v7.schema.json` 共同冻结 Workflow Definition 结构化运行输入的独立兼容域；v2 合同只允许最多 `16` 个扁平强类型字段，Run v8 与 Comparison v7 只保留合同、字段名 / 类型、bytes、digest 和 authority metadata，不保存输入值，也不把 v1 自动迁移或 fallback 到 v2
+- `application-runtime-authority-v4.schema.json`、`application-session-v4.schema.json` 与 `application-session-turn-v4.schema.json` 把同一结构化输入合同接入 Application Session：authority v4 精确绑定 Definition v2 的 input contract，turn v4 只保存合同引用、字段名 / 类型与 Run v8 引用，不保存运行输入值、prompt、完整输出或模型原始响应；旧 workflow v1、RAG、Prompt 与 Agent profile 继续保留各自兼容域，不自动升级或 fallback
 
 - 文档说明以 [docs/radishmind-integration-contracts.md](../docs/radishmind-integration-contracts.md) 为语义说明入口；分主题契约说明位于 [docs/contracts/](../docs/contracts/README.md)
 - `contracts/` 中的 schema 是程序化校验入口

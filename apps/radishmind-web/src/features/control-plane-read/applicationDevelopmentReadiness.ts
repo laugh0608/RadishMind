@@ -200,7 +200,7 @@ const CONTRIBUTIONS: Record<ApplicationDevelopmentContributionId, ContributionDe
   },
   controlled_run: {
     sourceGroupId: "controlled_test",
-    missingLabel: "Record a reviewable v4, v5, v6, or v7 controlled run.",
+    missingLabel: "Record a reviewable v4, v5, v6, v7, or v8 controlled run.",
     nextStage: "controlled_test",
     nextAnchor: "application-interaction-session",
   },

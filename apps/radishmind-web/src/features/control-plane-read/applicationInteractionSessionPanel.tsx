@@ -17,6 +17,12 @@ import {
   type ApplicationInteractionTurn,
 } from "./applicationInteractionSessionConsumer.ts";
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
+import StructuredRuntimeInputEditor from "./StructuredRuntimeInputEditor.tsx";
+import {
+  structuredRuntimeInputAuthorityKey,
+  validateStructuredRuntimeInputDrafts,
+  type StructuredRuntimeInputDrafts,
+} from "./structuredRuntimeInput.ts";
 
 const config = readApplicationInteractionSessionConfig();
 
@@ -63,6 +69,8 @@ export default function ApplicationInteractionSessionPanel({
   const [sessionStateFilter, setSessionStateFilter] = useState<ApplicationInteractionSessionState>("active");
   const [definitionId, setDefinitionId] = useState(suggestedDefinitionId);
   const [input, setInput] = useState("");
+  const [structuredInputDrafts, setStructuredInputDrafts] = useState<StructuredRuntimeInputDrafts>({});
+  const [structuredInputErrors, setStructuredInputErrors] = useState<Record<string, string>>({});
   const [conditionValues, setConditionValues] = useState("{}");
   const [model, setModel] = useState("");
   const [temperature, setTemperature] = useState("");
@@ -90,7 +98,7 @@ export default function ApplicationInteractionSessionPanel({
         { kind: "session", id: latestTurn.sessionId },
         { kind: "run", id: latestTurn.runRef.runId },
       ] : [],
-      missingEvidence: succeeded ? [] : ["Complete and review a terminal v4 or v5 Application interaction run."],
+      missingEvidence: succeeded ? [] : ["Complete and review a terminal v4, v5 or v8 Application interaction run."],
       blockers: ownerFailed || terminalBlocked ? [{
         code: latestTurn?.failureCode || operationFailure || "controlled_run_blocked",
         summary: latestTurn?.failureSummary || "The Application interaction owner reports a failure or non-success terminal run.",
@@ -135,6 +143,15 @@ export default function ApplicationInteractionSessionPanel({
     };
   }, [applicationActive, applicationId]);
 
+  const structuredInputContract = selectedSession?.executionProfile === "workflow_definition_executor_v2"
+    ? selectedSession.authority.workflowDefinition?.inputContract ?? null
+    : null;
+
+  useEffect(() => {
+    setStructuredInputDrafts({});
+    setStructuredInputErrors({});
+  }, [selectedSession?.sessionId, structuredInputContract ? structuredRuntimeInputAuthorityKey(structuredInputContract) : "legacy"]);
+
   function beginOperation(next: typeof pending): AbortController {
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -162,14 +179,14 @@ export default function ApplicationInteractionSessionPanel({
   }
 
   async function createSession() {
-    if (!applicationActive || pending || (profile === "workflow_definition_executor_v1" && !definitionId.trim())) return;
+    if (!applicationActive || pending || ((profile === "workflow_definition_executor_v1" || profile === "workflow_definition_executor_v2") && !definitionId.trim())) return;
     const generation = ++generationRef.current;
     requestScopeRef.current = { generation, applicationId, sessionId: "", clientTurnKey: "" };
     setSelectedSession(null);
     setTurns([]);
     clearTransientInput();
     const controller = beginOperation("create");
-    const result = await createApplicationInteractionSession(config, { applicationId, executionProfile: profile, definitionId: profile === "workflow_definition_executor_v1" ? definitionId : "" }, controller.signal);
+    const result = await createApplicationInteractionSession(config, { applicationId, executionProfile: profile, definitionId: profile === "application_rag_invocation_v1" ? "" : definitionId }, controller.signal);
     if (generationRef.current !== generation) return;
     abortRef.current = null;
     setPending("");
@@ -209,10 +226,21 @@ export default function ApplicationInteractionSessionPanel({
     setSelectedSession(result.session);
     setSessions((current) => mergeSessions(current, result.session as ApplicationInteractionSession));
     setInput("");
+    setStructuredInputDrafts({});
+    setStructuredInputErrors({});
   }
 
   async function submitTurn() {
-    if (!selectedSession || selectedSession.state !== "active" || !input.trim() || pending) return;
+    if (!selectedSession || selectedSession.state !== "active" || pending) return;
+    const structuredValidation = structuredInputContract
+      ? validateStructuredRuntimeInputDrafts(structuredInputContract, structuredInputDrafts)
+      : null;
+    if (structuredValidation && !structuredValidation.ok) {
+      setStructuredInputErrors(structuredValidation.fieldErrors);
+      setOperationFailure(structuredValidation.failureCode);
+      return;
+    }
+    if (!structuredInputContract && !input.trim()) return;
     const parsedConditions = parseConditionValues(conditionValues);
     const parsedTemperature = parseTemperature(temperature);
     if (!parsedConditions || parsedTemperature === undefined) {
@@ -223,17 +251,21 @@ export default function ApplicationInteractionSessionPanel({
     const generation = ++generationRef.current;
     const expectedScope = { generation, applicationId, sessionId: selectedSession.sessionId, clientTurnKey };
     requestScopeRef.current = expectedScope;
-    const currentInput = input.trim();
+    const currentInput = structuredInputContract
+      ? `${Object.keys(structuredValidation!.inputs).sort().join(", ") || "无可选字段"} 已按合同提交；输入值未写入 transcript。`
+      : input.trim();
     setInput("");
+    setStructuredInputDrafts({});
+    setStructuredInputErrors({});
     setTranscript((current) => [...current, { clientTurnKey, input: currentInput, status: "running", output: "", answer: null, turn: null, failureCode: "", failureSummary: "" }]);
     const controller = beginOperation("turn");
     const result = await executeApplicationInteractionTurn(config, {
       session: selectedSession,
       clientTurnKey,
-      inputText: currentInput,
-      conditionValues: selectedSession.executionProfile === "workflow_definition_executor_v1" ? parsedConditions : {},
-      model: selectedSession.executionProfile === "workflow_definition_executor_v1" ? model : "",
-      temperature: selectedSession.executionProfile === "workflow_definition_executor_v1" ? parsedTemperature : null,
+      ...(selectedSession.executionProfile === "workflow_definition_executor_v2" ? { inputs: structuredValidation!.inputs } : { inputText: currentInput }),
+      conditionValues: selectedSession.executionProfile === "application_rag_invocation_v1" ? {} : parsedConditions,
+      model: selectedSession.executionProfile === "application_rag_invocation_v1" ? "" : model,
+      temperature: selectedSession.executionProfile === "application_rag_invocation_v1" ? null : parsedTemperature,
     }, controller.signal);
     if (!applicationInteractionResponseMatchesScope(expectedScope, requestScopeRef.current)) return;
     abortRef.current = null;
@@ -272,15 +304,17 @@ export default function ApplicationInteractionSessionPanel({
 
   function clearTransientInput() {
     setInput("");
+    setStructuredInputDrafts({});
+    setStructuredInputErrors({});
     setConditionValues("{}");
     setModel("");
     setTemperature("");
     setTranscript([]);
   }
 
-  const workflowProfile = selectedSession?.executionProfile === "workflow_definition_executor_v1";
+  const workflowProfile = selectedSession?.executionProfile === "workflow_definition_executor_v1" || selectedSession?.executionProfile === "workflow_definition_executor_v2";
   const canCreate = config.mode !== "offline" && applicationActive && !pending && (profile === "application_rag_invocation_v1" || Boolean(definitionId.trim()));
-  const canSubmit = config.mode !== "offline" && applicationActive && selectedSession?.state === "active" && Boolean(input.trim()) && !pending;
+  const canSubmit = config.mode !== "offline" && applicationActive && selectedSession?.state === "active" && Boolean(structuredInputContract || input.trim()) && !pending;
 
   return (
     <section className="surface-band application-interaction-session" id="application-interaction-session" aria-labelledby="application-interaction-session-title">
@@ -307,10 +341,11 @@ export default function ApplicationInteractionSessionPanel({
         <label>Execution profile
           <select value={profile} onChange={(event) => setProfile(event.target.value as ApplicationInteractionExecutionProfile)} disabled={Boolean(pending)}>
             <option value="workflow_definition_executor_v1">Workflow Definition v5</option>
+            <option value="workflow_definition_executor_v2">Workflow Definition v8 · structured inputs</option>
             <option value="application_rag_invocation_v1">Application RAG v4</option>
           </select>
         </label>
-        {profile === "workflow_definition_executor_v1" ? <label>Active definition ID<input value={definitionId} onChange={(event) => setDefinitionId(event.target.value)} disabled={Boolean(pending)} placeholder="definition_support_flow" /></label> : null}
+        {profile !== "application_rag_invocation_v1" ? <label>Active definition ID<input value={definitionId} onChange={(event) => setDefinitionId(event.target.value)} disabled={Boolean(pending)} placeholder="definition_support_flow" /></label> : null}
         <button type="button" onClick={() => void createSession()} disabled={!canCreate}>{pending === "create" ? "Creating…" : "Create bound session"}</button>
         <button type="button" className="secondary-action" onClick={() => void reloadSessions()} disabled={config.mode === "offline" || Boolean(pending) || !applicationActive}>Reload sessions</button>
       </div>
@@ -318,7 +353,7 @@ export default function ApplicationInteractionSessionPanel({
       <div className="application-interaction-session-list" aria-label="Application sessions">
         {sessions.length === 0 ? <p className="empty-state">{listing.summary}</p> : sessions.map((session) => (
           <button type="button" key={session.sessionId} className={selectedSession?.sessionId === session.sessionId ? "selected" : ""} onClick={() => void selectSession(session)} disabled={Boolean(pending)}>
-            <span><strong>{session.executionProfile === "workflow_definition_executor_v1" ? "Workflow Definition" : "Application RAG"}</strong><code>{session.sessionId}</code></span>
+            <span><strong>{session.executionProfile === "application_rag_invocation_v1" ? "Application RAG" : session.executionProfile === "workflow_definition_executor_v2" ? "Workflow Definition · structured" : "Workflow Definition"}</strong><code>{session.sessionId}</code></span>
             <span><small>{session.state} · v{session.recordVersion}</small><small>{session.turnCount} turns</small></span>
           </button>
         ))}
@@ -329,11 +364,12 @@ export default function ApplicationInteractionSessionPanel({
           <div className="application-interaction-authority">
             <div><span>Authority digest</span><code>{selectedSession.authority.authorityDigest}</code></div>
             <div><span>Exact binding</span><strong>{selectedSession.authority.workflowDefinition ? `${selectedSession.authority.workflowDefinition.definitionId} · definition v${selectedSession.authority.workflowDefinition.definitionVersion} · pointer v${selectedSession.authority.workflowDefinition.activationPointerVersion}` : `${selectedSession.authority.applicationRAG?.assignmentId} · assignment v${selectedSession.authority.applicationRAG?.assignmentVersion}`}</strong></div>
+            {structuredInputContract ? <div><span>Input contract</span><strong>{structuredInputContract.contractId}</strong><code>{structuredInputContract.contractDigest}</code></div> : null}
             <button type="button" className="secondary-action" onClick={() => void closeSession()} disabled={selectedSession.state !== "active" || Boolean(pending)}>{pending === "close" ? "Closing…" : "Close session"}</button>
           </div>
 
           <div className="application-interaction-composer">
-            <label>Transient input<textarea value={input} onChange={(event) => setInput(event.target.value)} rows={5} maxLength={8192} disabled={selectedSession.state !== "active" || Boolean(pending)} placeholder="Send one bounded interaction. Do not include credentials, tokens, or authorization headers." /></label>
+            {structuredInputContract ? <StructuredRuntimeInputEditor contract={structuredInputContract} drafts={structuredInputDrafts} fieldErrors={structuredInputErrors} disabled={selectedSession.state !== "active" || Boolean(pending)} onChange={(drafts) => { setStructuredInputDrafts(drafts); setStructuredInputErrors({}); }} /> : <label>Transient input<textarea value={input} onChange={(event) => setInput(event.target.value)} rows={5} maxLength={8192} disabled={selectedSession.state !== "active" || Boolean(pending)} placeholder="Send one bounded interaction. Do not include credentials, tokens, or authorization headers." /></label>}
             {workflowProfile ? (
               <div className="application-interaction-workflow-options">
                 <label>Condition values JSON<textarea value={conditionValues} onChange={(event) => setConditionValues(event.target.value)} rows={2} disabled={Boolean(pending)} /></label>
@@ -344,7 +380,7 @@ export default function ApplicationInteractionSessionPanel({
             <div className="application-interaction-actions">
               <button type="button" onClick={() => void submitTurn()} disabled={!canSubmit}>{pending === "turn" ? "Running…" : "Run turn"}</button>
               {pending === "turn" ? <button type="button" className="secondary-action" onClick={cancelTurn}>Cancel current turn</button> : null}
-              <button type="button" className="secondary-action" onClick={clearTransientInput} disabled={pending === "turn" || (!input && transcript.length === 0)}>Clear transient transcript</button>
+              <button type="button" className="secondary-action" onClick={clearTransientInput} disabled={pending === "turn" || (!input && Object.keys(structuredInputDrafts).length === 0 && transcript.length === 0)}>Clear transient transcript</button>
             </div>
           </div>
         </>
@@ -368,7 +404,7 @@ export default function ApplicationInteractionSessionPanel({
       <div className="application-interaction-turn-history">
         <div className="application-api-card-heading"><div><p className="eyebrow">Persisted evidence</p><h4>Turn metadata only</h4></div><span>{turns.length}</span></div>
         {turns.length === 0 ? <p className="empty-state">Select a session to load status, digest, byte count, run ref, failure metadata, and timestamps—never transcript content.</p> : (
-          <ul>{turns.map((turn) => <li key={turn.turnId}><span><strong>#{turn.sequence} · {turn.status}</strong><code>{turn.turnId}</code></span><span><small>{turn.inputDigest} · {turn.inputBytes} bytes</small><code>{turn.runRef ? `${turn.runRef.schemaVersion} · ${turn.runRef.runId}` : turn.failureCode || "no run ref"}</code></span></li>)}</ul>
+          <ul>{turns.map((turn) => <li key={turn.turnId}><span><strong>#{turn.sequence} · {turn.status}</strong><code>{turn.turnId}</code></span><span><small>{turn.inputDigest} · {turn.inputBytes} bytes</small>{turn.inputFields.length ? <small>{turn.inputFields.map((field) => `${field.name}:${field.valueType}`).join(" · ")}</small> : null}<code>{turn.runRef ? `${turn.runRef.schemaVersion} · ${turn.runRef.runId}` : turn.failureCode || "no run ref"}</code></span></li>)}</ul>
         )}
       </div>
 

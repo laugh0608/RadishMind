@@ -120,6 +120,38 @@ func TestPostgresApplicationInteractionSessionRestartCASPrivacyAndNoFallback(t *
 		t.Fatalf("PostgreSQL CAS outcomes: successes=%d conflicts=%d", successes, conflicts)
 	}
 
+	structuredDefinitionService, structuredRunContext, structuredRunRequest, structuredBridge, _ := workflowDefinitionStructuredExecutionFixture(t)
+	structuredRunContext.RequestContext = ctx
+	structuredResolver := newExactApplicationInteractionAuthorityResolver(structuredDefinitionService.applications, structuredDefinitionService.repository, nil, workflowRAGApplicationAuthorityResolver{})
+	structuredService := newApplicationInteractionSessionService(newPostgresApplicationInteractionSessionRepository(runtimePool), structuredResolver)
+	structuredIDs := []string{"appsess_dddddddddddddddd", "appturn_dddddddddddddddd"}
+	structuredService.newID = func(string) (string, error) {
+		value := structuredIDs[0]
+		structuredIDs = structuredIDs[1:]
+		return value, nil
+	}
+	structuredService.now = func() time.Time { return now.Add(5 * time.Second) }
+	structuredContext := ApplicationInteractionContext{RequestContext: ctx, RequestID: "request_postgres_structured_session", TenantRef: structuredRunContext.TenantRef, WorkspaceID: structuredRunContext.WorkspaceID, ApplicationID: structuredRunContext.ApplicationID, ActorRef: structuredRunContext.ActorRef, OwnerSubjectRef: structuredRunContext.ActorRef, AuditRef: "audit_postgres_structured_session", WriteEnabled: true}
+	structuredCreated := structuredService.Create(structuredContext, ApplicationInteractionSessionCreateInput{ProfileBinding: ApplicationInteractionProfileBinding{ExecutionProfile: applicationInteractionProfileWorkflowStructured, DefinitionID: structuredRunRequest.DefinitionID}})
+	if structuredCreated.FailureCode != "" || structuredCreated.Session == nil {
+		t.Fatalf("create PostgreSQL structured session: %#v", structuredCreated)
+	}
+	structuredCoordinator := newApplicationInteractionTurnCoordinator(structuredService, structuredResolver, structuredDefinitionService.StartRun, nil)
+	structuredCoordinator.now = func() time.Time { return now.Add(6 * time.Second) }
+	structuredPrivateValue := "postgres-private-structured-input"
+	structuredExecuted := structuredCoordinator.Execute(structuredContext, structuredCreated.Session.SessionID, ApplicationInteractionTurnExecutionInput{
+		ExpectedSessionVersion: structuredCreated.Session.RecordVersion, ClientTurnKey: "postgres_structured_turn",
+		Inputs: map[string]any{"customer_name": structuredPrivateValue, "retry_count": 2}, ConditionValues: map[string]bool{},
+	})
+	if structuredExecuted.FailureCode != "" || structuredExecuted.Turn == nil || structuredExecuted.Turn.RunRef == nil ||
+		structuredExecuted.Turn.RunRef.SchemaVersion != workflowRunRecordDefinitionStructuredSchemaVersion || structuredBridge.callCount() != 1 {
+		t.Fatalf("execute PostgreSQL structured session: result=%#v bridge=%d", structuredExecuted, structuredBridge.callCount())
+	}
+	var structuredPayload string
+	if err = runtimePool.QueryRow(ctx, `SELECT sanitized_turn_payload::text FROM application_interaction_session_turns WHERE turn_id=$1`, structuredExecuted.Turn.TurnID).Scan(&structuredPayload); err != nil || strings.Contains(structuredPayload, structuredPrivateValue) || !strings.Contains(structuredPayload, "input_contract_digest") {
+		t.Fatalf("PostgreSQL structured session persistence drifted: payload=%s err=%v", structuredPayload, err)
+	}
+
 	runtimePool.Close()
 	if _, err = service.repository.Read(interactionContext, created.Session.SessionID); !errors.Is(err, errApplicationSessionStore) {
 		t.Fatalf("closed PostgreSQL session repository fell back: %v", err)
@@ -134,5 +166,11 @@ func TestPostgresApplicationInteractionSessionRestartCASPrivacyAndNoFallback(t *
 	turns, turnsErr := restarted.ListTurns(interactionContext, created.Session.SessionID)
 	if err != nil || turnsErr != nil || stored.RecordVersion != 2 || len(turns) != 1 || turns[0].Status != string(WorkflowRunStatusSucceeded) {
 		t.Fatalf("restart PostgreSQL application session: session=%#v turns=%#v err=%v turnsErr=%v", stored, turns, err, turnsErr)
+	}
+	structuredStored, structuredErr := restarted.Read(structuredContext, structuredCreated.Session.SessionID)
+	structuredTurns, structuredTurnsErr := restarted.ListTurns(structuredContext, structuredCreated.Session.SessionID)
+	if structuredErr != nil || structuredTurnsErr != nil || structuredStored.SchemaVersion != applicationStructuredSessionSchemaVersion || len(structuredTurns) != 1 ||
+		structuredTurns[0].SchemaVersion != applicationStructuredSessionTurnSchemaVersion || len(structuredTurns[0].InputFields) != 2 {
+		t.Fatalf("restart PostgreSQL structured session: session=%#v turns=%#v err=%v turnsErr=%v", structuredStored, structuredTurns, structuredErr, structuredTurnsErr)
 	}
 }

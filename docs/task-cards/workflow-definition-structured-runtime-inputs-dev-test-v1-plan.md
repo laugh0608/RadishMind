@@ -1,8 +1,8 @@
 # Workflow Definition 结构化运行输入（开发 / 测试态）v1 实施任务卡
 
-更新时间：2026-08-10
+更新时间：2026-08-11
 
-状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_pencil_frozen_implementation_next`
+状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_completed_batch_d_next`
 
 对应功能文档：[Workflow Definition 结构化运行输入（开发 / 测试态）v1](../features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)
 
@@ -69,12 +69,15 @@
 ## 批次 C：Session 与共享 Web 输入编辑器
 
 - [x] 在 Pencil 空闲且确认基准源后冻结 Visual R4 表单画布、合同摘要、错误归属、值清理提示与窄屏顺序。
-- [ ] 实现共享 `StructuredRuntimeInputEditor` 及 strict contract decoder。
-- [ ] 实现 Application Interaction Session v4 authority / turn 合同与 v2 executor bridge。
-- [ ] 接入 Definition Direct Run 和 Session，覆盖 permission、contract drift、secret、type、budget 与 value clearing。
-- [ ] 完成 Web tests、production build、三视口浏览器与 console 检查。
+- [x] 实现共享 `StructuredRuntimeInputEditor` 及 strict contract decoder。
+- [x] 实现 Application Interaction Session v4 authority / turn 合同与 v2 executor bridge。
+- [x] 接入 Definition Direct Run 和 Session，覆盖 permission、contract drift、secret、type、budget 与 value clearing。
+- [x] 完成 Web tests 与 production build。
+- [x] 完成三视口浏览器与 console 检查。
 
 Pencil 前置证据：`docs/designs/radishmind-web-family-ui-v1.pen` 中 Desktop `W3O4tV`、Narrow `t39foq` 已冻结为 `B / 局部 Pencil · Visual R4` 并通过人工复核。两张局部稿覆盖 exact contract、四类真实输入控件、非对称桌面表单、渐进窄屏顺序、字段级错误、authority / contract 失败和值清理；不建立 S11，也不提前画 Evaluation Plan / Campaign v2。
+
+实现证据：Web 共享 decoder / editor 已接入 Definition Direct Run 与 Session；服务端冻结 `application_runtime_authority.v4`，并以 `application_session.v4` / `application_session_turn.v4` 桥接 `workflow_definition_executor_v2` 与 Run v8。memory 与 SQLite 覆盖成功、失败、contract drift、副作用停止线、metadata-only 和重启；PostgreSQL `0021` 迁移与 build-tag 集成测试已实现。Web `323/323`、production build、Platform `go test ./...` 及 PostgreSQL build-tag 编译检查已通过。真实浏览器进一步完成 required / secret / authority failure、Direct Run / Session 成功链、提交 / candidate / session / route 切换清理和无输入值回显；`1440×900`、`1100×900`、`721×900`、`720×900` 与 `390×844` 无横向溢出，最终 console 无 warning / error。复核中发现的 readiness failure code 映射崩溃和旧 CSS 变量低对比问题已在现有 owner 内根治。
 
 批次 C 退出条件：三个 authority 切换边界不残留值；页面不猜测合同、不回显已提交输入；Desktop、关键断点与 `390×844` 无横向溢出。
 
@@ -109,4 +112,4 @@ Pencil 前置证据：`docs/designs/radishmind-web-family-ui-v1.pen` 中 Desktop
 
 ## 当前下一步
 
-继续实施批次 C。Pencil 前置已关闭，下一步实现 strict contract decoder、共享 `StructuredRuntimeInputEditor`、Application Session v4 authority / turn 合同与 Definition Run / Session 两个 consumer；本批不提前进入 Evaluation Plan / Campaign v2，也不建立 S11 页面族。
+进入批次 D：先核对 Comparison、Evaluation Case / Baseline / Suite 对 exact v2 profile / Run v8 的现状与缺口，再实现 Application Evaluation Plan / Campaign v2 typed Definition fixture、authority / contract checkpoint 和 existing Case / Suite handoff。继续保持 v1/v2 隔离、metadata-only Campaign / Run、无自动重试 / 发布 / 部署，并且不建立 S11 页面族。

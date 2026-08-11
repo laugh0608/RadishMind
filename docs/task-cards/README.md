@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-08-10
+更新时间：2026-08-11
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前活跃任务为 [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1-plan.md)，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_pencil_frozen_implementation_next`。HTTP / executor、三模式 durable chain、Direct Run / History 与已审 Visual R4 局部 Pencil 已关闭；下一步只实施批次 C 的 strict contract decoder、Session v4 和 Definition Run / Session 共享输入编辑器，不提前进入 Evaluation Plan / Campaign v2，也不派生平行 task card 或同层 gate-only 切片。
+当前活跃任务为 [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1-plan.md)，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_completed_batch_d_next`。Session v4、strict decoder、Definition Run / Session 共享输入编辑器、静态验证和真实浏览器证据已完成；下一步在同一任务卡进入 Evaluation Plan / Campaign v2 批次 D，不派生平行 task card 或同层 gate-only 切片。
 
 ## 最近关闭任务
 

@@ -341,6 +341,10 @@ test("readiness starts incomplete for an active Application and rolls up all nin
   assert.equal(view.sources.find((source) => source.sourceGroupId === "application")?.status, "available");
   assert.equal(view.canPersistReadiness, false);
   assert.equal(view.canPublish, false);
+  assert.equal(
+    view.sources.find((source) => source.sourceGroupId === "controlled_test")?.missingEvidence.some((item) => item.includes("v8")),
+    true,
+  );
 });
 
 test("offline Application without an authoritative revision stays reviewable but incomplete", () => {

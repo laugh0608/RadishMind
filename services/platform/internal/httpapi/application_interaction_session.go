@@ -16,13 +16,15 @@ import (
 )
 
 const (
-	applicationSessionSchemaVersion     = "application_session.v1"
-	applicationSessionTurnSchemaVersion = "application_session_turn.v1"
-	applicationSessionStateActive       = "active"
-	applicationSessionStateClosed       = "closed"
-	applicationSessionRetentionPolicy   = "metadata_only"
-	applicationSessionDefaultListLimit  = 25
-	applicationSessionMaximumListLimit  = 100
+	applicationSessionSchemaVersion               = "application_session.v1"
+	applicationSessionTurnSchemaVersion           = "application_session_turn.v1"
+	applicationStructuredSessionSchemaVersion     = "application_session.v4"
+	applicationStructuredSessionTurnSchemaVersion = "application_session_turn.v4"
+	applicationSessionStateActive                 = "active"
+	applicationSessionStateClosed                 = "closed"
+	applicationSessionRetentionPolicy             = "metadata_only"
+	applicationSessionDefaultListLimit            = 25
+	applicationSessionMaximumListLimit            = 100
 )
 
 const (
@@ -106,31 +108,47 @@ type ApplicationInteractionRunRef struct {
 }
 
 type ApplicationInteractionTurn struct {
-	SchemaVersion    string                                  `json:"schema_version"`
-	TurnID           string                                  `json:"turn_id"`
-	SessionID        string                                  `json:"session_id"`
-	Sequence         int                                     `json:"sequence"`
-	ClientTurnKey    string                                  `json:"client_turn_key"`
-	TenantRef        string                                  `json:"tenant_ref"`
-	WorkspaceID      string                                  `json:"workspace_id"`
-	ApplicationID    string                                  `json:"application_id"`
-	OwnerSubjectRef  string                                  `json:"owner_subject_ref"`
-	ExecutionProfile string                                  `json:"execution_profile"`
-	Authority        ApplicationInteractionAuthoritySnapshot `json:"authority"`
-	Status           string                                  `json:"status"`
-	InputDigest      string                                  `json:"input_digest"`
-	InputBytes       int                                     `json:"input_bytes"`
-	RunRef           *ApplicationInteractionRunRef           `json:"run_ref"`
-	FailureCode      string                                  `json:"failure_code"`
-	FailureSummary   string                                  `json:"failure_summary"`
-	StartedAt        string                                  `json:"started_at"`
-	CompletedAt      *string                                 `json:"completed_at"`
-	ActorRef         string                                  `json:"actor_ref"`
-	RequestID        string                                  `json:"request_id"`
-	AuditRef         string                                  `json:"audit_ref"`
+	SchemaVersion       string                                  `json:"schema_version"`
+	TurnID              string                                  `json:"turn_id"`
+	SessionID           string                                  `json:"session_id"`
+	Sequence            int                                     `json:"sequence"`
+	ClientTurnKey       string                                  `json:"client_turn_key"`
+	TenantRef           string                                  `json:"tenant_ref"`
+	WorkspaceID         string                                  `json:"workspace_id"`
+	ApplicationID       string                                  `json:"application_id"`
+	OwnerSubjectRef     string                                  `json:"owner_subject_ref"`
+	ExecutionProfile    string                                  `json:"execution_profile"`
+	Authority           ApplicationInteractionAuthoritySnapshot `json:"authority"`
+	Status              string                                  `json:"status"`
+	InputDigest         string                                  `json:"input_digest"`
+	InputBytes          int                                     `json:"input_bytes"`
+	InputContractID     string                                  `json:"input_contract_id,omitempty"`
+	InputContractDigest string                                  `json:"input_contract_digest,omitempty"`
+	InputFields         []WorkflowStructuredInputMetadataField  `json:"input_fields,omitempty"`
+	RunRef              *ApplicationInteractionRunRef           `json:"run_ref"`
+	FailureCode         string                                  `json:"failure_code"`
+	FailureSummary      string                                  `json:"failure_summary"`
+	StartedAt           string                                  `json:"started_at"`
+	CompletedAt         *string                                 `json:"completed_at"`
+	ActorRef            string                                  `json:"actor_ref"`
+	RequestID           string                                  `json:"request_id"`
+	AuditRef            string                                  `json:"audit_ref"`
 }
 
 func (turn ApplicationInteractionTurn) MarshalJSON() ([]byte, error) {
+	if turn.SchemaVersion == applicationStructuredSessionTurnSchemaVersion {
+		type alias ApplicationInteractionTurn
+		payload, err := json.Marshal(alias(turn))
+		if err != nil {
+			return nil, err
+		}
+		var document map[string]any
+		if err = json.Unmarshal(payload, &document); err != nil {
+			return nil, err
+		}
+		document["input_fields"] = cloneWorkflowStructuredInputMetadataFields(turn.InputFields)
+		return json.Marshal(document)
+	}
 	if turn.SchemaVersion == promptApplicationSessionTurnV2Schema {
 		document, err := promptApplicationTurnContractFromInteraction(turn)
 		if err != nil {
@@ -178,6 +196,9 @@ type ApplicationInteractionTurnReservationInput struct {
 	ClientTurnKey          string
 	InputDigest            string
 	InputBytes             int
+	InputContractID        string
+	InputContractDigest    string
+	InputFields            []WorkflowStructuredInputMetadataField
 	StartedAt              time.Time
 }
 
@@ -278,7 +299,9 @@ func (service applicationInteractionSessionService) Create(ctx ApplicationIntera
 	}
 	now := service.now().UTC().Format(time.RFC3339Nano)
 	schemaVersion := applicationSessionSchemaVersion
-	if input.ProfileBinding.ExecutionProfile == applicationInteractionProfilePrompt {
+	if input.ProfileBinding.ExecutionProfile == applicationInteractionProfileWorkflowStructured {
+		schemaVersion = applicationStructuredSessionSchemaVersion
+	} else if input.ProfileBinding.ExecutionProfile == applicationInteractionProfilePrompt {
 		schemaVersion = promptApplicationSessionV2Schema
 	} else if input.ProfileBinding.ExecutionProfile == applicationInteractionProfileAgentCopilot {
 		schemaVersion = agentCopilotSessionV3Schema
@@ -311,7 +334,7 @@ func (service applicationInteractionSessionService) List(ctx ApplicationInteract
 		state = applicationSessionStateActive
 	}
 	profile := strings.TrimSpace(input.ExecutionProfile)
-	if (state != applicationSessionStateActive && state != applicationSessionStateClosed) || (profile != "" && profile != applicationInteractionProfileWorkflow && profile != applicationInteractionProfileRAG && profile != applicationInteractionProfilePrompt && profile != applicationInteractionProfileAgentCopilot) {
+	if (state != applicationSessionStateActive && state != applicationSessionStateClosed) || (profile != "" && profile != applicationInteractionProfileWorkflow && profile != applicationInteractionProfileWorkflowStructured && profile != applicationInteractionProfileRAG && profile != applicationInteractionProfilePrompt && profile != applicationInteractionProfileAgentCopilot) {
 		return ApplicationInteractionSessionListResult{Sessions: []ApplicationInteractionSession{}, FailureCode: ApplicationInteractionFailurePayloadInvalid}
 	}
 	limit := input.Limit
@@ -429,12 +452,14 @@ func (service applicationInteractionSessionService) ReserveTurn(ctx ApplicationI
 	updated.UpdatedAt = input.StartedAt.UTC().Format(time.RFC3339Nano)
 	updated.UpdatedByActorRef, updated.RequestID, updated.AuditRef = ctx.ActorRef, ctx.RequestID, ctx.AuditRef
 	turnSchemaVersion := applicationSessionTurnSchemaVersion
-	if current.ProfileBinding.ExecutionProfile == applicationInteractionProfilePrompt {
+	if current.ProfileBinding.ExecutionProfile == applicationInteractionProfileWorkflowStructured {
+		turnSchemaVersion = applicationStructuredSessionTurnSchemaVersion
+	} else if current.ProfileBinding.ExecutionProfile == applicationInteractionProfilePrompt {
 		turnSchemaVersion = promptApplicationSessionTurnV2Schema
 	} else if current.ProfileBinding.ExecutionProfile == applicationInteractionProfileAgentCopilot {
 		turnSchemaVersion = agentCopilotSessionTurnV3Schema
 	}
-	turn := ApplicationInteractionTurn{SchemaVersion: turnSchemaVersion, TurnID: turnID, SessionID: current.SessionID, Sequence: current.TurnCount + 1, ClientTurnKey: strings.TrimSpace(input.ClientTurnKey), TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, OwnerSubjectRef: ctx.OwnerSubjectRef, ExecutionProfile: current.ProfileBinding.ExecutionProfile, Authority: authority, Status: string(WorkflowRunStatusRunning), InputDigest: strings.TrimSpace(input.InputDigest), InputBytes: input.InputBytes, StartedAt: input.StartedAt.UTC().Format(time.RFC3339Nano), ActorRef: ctx.ActorRef, RequestID: ctx.RequestID, AuditRef: ctx.AuditRef}
+	turn := ApplicationInteractionTurn{SchemaVersion: turnSchemaVersion, TurnID: turnID, SessionID: current.SessionID, Sequence: current.TurnCount + 1, ClientTurnKey: strings.TrimSpace(input.ClientTurnKey), TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, OwnerSubjectRef: ctx.OwnerSubjectRef, ExecutionProfile: current.ProfileBinding.ExecutionProfile, Authority: authority, Status: string(WorkflowRunStatusRunning), InputDigest: strings.TrimSpace(input.InputDigest), InputBytes: input.InputBytes, InputContractID: strings.TrimSpace(input.InputContractID), InputContractDigest: strings.TrimSpace(input.InputContractDigest), InputFields: cloneWorkflowStructuredInputMetadataFields(input.InputFields), StartedAt: input.StartedAt.UTC().Format(time.RFC3339Nano), ActorRef: ctx.ActorRef, RequestID: ctx.RequestID, AuditRef: ctx.AuditRef}
 	storedSession, storedTurn, replay, err := service.repository.ReserveTurn(ctx, input.ExpectedSessionVersion, updated, turn)
 	if err != nil {
 		return applicationInteractionRepositoryFailure(err)
@@ -755,7 +780,9 @@ func validateStoredApplicationInteractionSession(ctx ApplicationInteractionConte
 		}
 		return nil
 	}
-	if session.SchemaVersion != applicationSessionSchemaVersion || !applicationSessionIDPattern.MatchString(session.SessionID) || session.TenantRef != ctx.TenantRef || session.WorkspaceID != ctx.WorkspaceID || session.ApplicationID != ctx.ApplicationID || session.OwnerSubjectRef != ctx.OwnerSubjectRef || (session.State != applicationSessionStateActive && session.State != applicationSessionStateClosed) || session.RecordVersion < 1 || session.ContentRetention != applicationSessionRetentionPolicy || session.TurnCount < 0 || validateApplicationInteractionProfileBinding(session.ProfileBinding) != nil || validateApplicationInteractionAuthority(session.Authority) != nil || session.ProfileBinding.ExecutionProfile != session.Authority.ExecutionProfile || session.ProfileBinding.DefinitionID != applicationInteractionAuthorityDefinitionID(session.Authority) || parseApplicationInteractionTimestamp(session.CreatedAt) == nil || parseApplicationInteractionTimestamp(session.UpdatedAt) == nil || strings.TrimSpace(session.CreatedByActorRef) == "" || strings.TrimSpace(session.UpdatedByActorRef) == "" || strings.TrimSpace(session.RequestID) == "" || strings.TrimSpace(session.AuditRef) == "" {
+	validSchemaProfile := (session.SchemaVersion == applicationSessionSchemaVersion && session.ProfileBinding.ExecutionProfile != applicationInteractionProfileWorkflowStructured) ||
+		(session.SchemaVersion == applicationStructuredSessionSchemaVersion && session.ProfileBinding.ExecutionProfile == applicationInteractionProfileWorkflowStructured)
+	if !validSchemaProfile || !applicationSessionIDPattern.MatchString(session.SessionID) || session.TenantRef != ctx.TenantRef || session.WorkspaceID != ctx.WorkspaceID || session.ApplicationID != ctx.ApplicationID || session.OwnerSubjectRef != ctx.OwnerSubjectRef || (session.State != applicationSessionStateActive && session.State != applicationSessionStateClosed) || session.RecordVersion < 1 || session.ContentRetention != applicationSessionRetentionPolicy || session.TurnCount < 0 || validateApplicationInteractionProfileBinding(session.ProfileBinding) != nil || validateApplicationInteractionAuthority(session.Authority) != nil || session.ProfileBinding.ExecutionProfile != session.Authority.ExecutionProfile || session.ProfileBinding.DefinitionID != applicationInteractionAuthorityDefinitionID(session.Authority) || parseApplicationInteractionTimestamp(session.CreatedAt) == nil || parseApplicationInteractionTimestamp(session.UpdatedAt) == nil || strings.TrimSpace(session.CreatedByActorRef) == "" || strings.TrimSpace(session.UpdatedByActorRef) == "" || strings.TrimSpace(session.RequestID) == "" || strings.TrimSpace(session.AuditRef) == "" {
 		return errApplicationSessionContract
 	}
 	if session.State == applicationSessionStateActive && session.ClosedAt != nil || session.State == applicationSessionStateClosed && (session.ClosedAt == nil || parseApplicationInteractionTimestamp(*session.ClosedAt) == nil) || session.TurnCount == 0 && session.LastTurnID != nil || session.TurnCount > 0 && (session.LastTurnID == nil || !applicationTurnIDPattern.MatchString(*session.LastTurnID)) {
@@ -779,7 +806,16 @@ func validateStoredApplicationInteractionTurn(ctx ApplicationInteractionContext,
 		}
 		return nil
 	}
-	if turn.SchemaVersion != applicationSessionTurnSchemaVersion || !applicationTurnIDPattern.MatchString(turn.TurnID) || !applicationSessionIDPattern.MatchString(turn.SessionID) || turn.Sequence < 1 || !applicationDraftIdentifierPattern.MatchString(turn.ClientTurnKey) || turn.TenantRef != ctx.TenantRef || turn.WorkspaceID != ctx.WorkspaceID || turn.ApplicationID != ctx.ApplicationID || turn.OwnerSubjectRef != ctx.OwnerSubjectRef || turn.ExecutionProfile != turn.Authority.ExecutionProfile || validateApplicationInteractionAuthority(turn.Authority) != nil || !workflowRAGDigestPattern.MatchString(turn.InputDigest) || turn.InputBytes < 1 || turn.InputBytes > workflowExecutorMaxInputBytes || parseApplicationInteractionTimestamp(turn.StartedAt) == nil || strings.TrimSpace(turn.ActorRef) == "" || strings.TrimSpace(turn.RequestID) == "" || strings.TrimSpace(turn.AuditRef) == "" || len(turn.FailureSummary) > 256 {
+	validSchemaProfile := (turn.SchemaVersion == applicationSessionTurnSchemaVersion && turn.ExecutionProfile != applicationInteractionProfileWorkflowStructured) ||
+		(turn.SchemaVersion == applicationStructuredSessionTurnSchemaVersion && turn.ExecutionProfile == applicationInteractionProfileWorkflowStructured)
+	if !validSchemaProfile || !applicationTurnIDPattern.MatchString(turn.TurnID) || !applicationSessionIDPattern.MatchString(turn.SessionID) || turn.Sequence < 1 || !applicationDraftIdentifierPattern.MatchString(turn.ClientTurnKey) || turn.TenantRef != ctx.TenantRef || turn.WorkspaceID != ctx.WorkspaceID || turn.ApplicationID != ctx.ApplicationID || turn.OwnerSubjectRef != ctx.OwnerSubjectRef || turn.ExecutionProfile != turn.Authority.ExecutionProfile || validateApplicationInteractionAuthority(turn.Authority) != nil || !workflowRAGDigestPattern.MatchString(turn.InputDigest) || turn.InputBytes < 1 || turn.InputBytes > workflowExecutorMaxInputBytes || parseApplicationInteractionTimestamp(turn.StartedAt) == nil || strings.TrimSpace(turn.ActorRef) == "" || strings.TrimSpace(turn.RequestID) == "" || strings.TrimSpace(turn.AuditRef) == "" || len(turn.FailureSummary) > 256 {
+		return errApplicationSessionContract
+	}
+	if turn.ExecutionProfile == applicationInteractionProfileWorkflowStructured {
+		if validateApplicationInteractionStructuredInputMetadata(turn) != nil {
+			return errApplicationSessionContract
+		}
+	} else if turn.InputContractID != "" || turn.InputContractDigest != "" || len(turn.InputFields) != 0 {
 		return errApplicationSessionContract
 	}
 	if turn.Status == string(WorkflowRunStatusRunning) {
@@ -811,12 +847,45 @@ func validateApplicationInteractionRunRef(profile string, ref *ApplicationIntera
 		return errApplicationSessionContract
 	}
 	if profile == applicationInteractionProfileWorkflow && ref.SchemaVersion != workflowRunRecordDefinitionSchemaVersion ||
+		profile == applicationInteractionProfileWorkflowStructured && ref.SchemaVersion != workflowRunRecordDefinitionStructuredSchemaVersion ||
 		profile == applicationInteractionProfileRAG && ref.SchemaVersion != workflowRunRecordAppRAGSchemaVersion ||
 		profile == applicationInteractionProfilePrompt && ref.SchemaVersion != workflowRunRecordPromptSchemaVersion ||
 		profile == applicationInteractionProfileAgentCopilot && ref.SchemaVersion != agentCopilotRunV7Schema {
 		return errApplicationSessionContract
 	}
 	return nil
+}
+
+func validateApplicationInteractionStructuredInputMetadata(turn ApplicationInteractionTurn) error {
+	authority := turn.Authority.WorkflowDefinition
+	if authority == nil || authority.InputContract == nil || turn.InputContractID != authority.InputContract.ContractID ||
+		turn.InputContractDigest != authority.InputContract.ContractDigest || !workflowRAGDigestPattern.MatchString(turn.InputContractDigest) {
+		return errApplicationSessionContract
+	}
+	contractFields := make(map[string]WorkflowStructuredInputValueType, len(authority.InputContract.Fields))
+	for _, field := range authority.InputContract.Fields {
+		contractFields[field.Name] = field.ValueType
+	}
+	previous := ""
+	for _, field := range turn.InputFields {
+		if field.Name <= previous || contractFields[field.Name] != field.ValueType {
+			return errApplicationSessionContract
+		}
+		previous = field.Name
+	}
+	return nil
+}
+
+func workflowStructuredInputMetadataFieldsEqual(left, right []WorkflowStructuredInputMetadataField) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for index := range left {
+		if left[index] != right[index] {
+			return false
+		}
+	}
+	return true
 }
 
 func validateApplicationInteractionSessionTransition(before, after ApplicationInteractionSession) error {
@@ -834,7 +903,7 @@ func validateApplicationInteractionSessionReserve(before, after ApplicationInter
 }
 
 func validateApplicationInteractionTurnTransition(before, after ApplicationInteractionTurn) error {
-	if before.Status != string(WorkflowRunStatusRunning) || after.Status == string(WorkflowRunStatusRunning) || before.TurnID != after.TurnID || before.SessionID != after.SessionID || before.Sequence != after.Sequence || before.ClientTurnKey != after.ClientTurnKey || before.InputDigest != after.InputDigest || before.InputBytes != after.InputBytes || before.StartedAt != after.StartedAt || !applicationInteractionAuthoritiesEqual(before.Authority, after.Authority) {
+	if before.Status != string(WorkflowRunStatusRunning) || after.Status == string(WorkflowRunStatusRunning) || before.TurnID != after.TurnID || before.SessionID != after.SessionID || before.Sequence != after.Sequence || before.ClientTurnKey != after.ClientTurnKey || before.InputDigest != after.InputDigest || before.InputBytes != after.InputBytes || before.InputContractID != after.InputContractID || before.InputContractDigest != after.InputContractDigest || !workflowStructuredInputMetadataFieldsEqual(before.InputFields, after.InputFields) || before.StartedAt != after.StartedAt || !applicationInteractionAuthoritiesEqual(before.Authority, after.Authority) {
 		return errApplicationSessionContract
 	}
 	return nil
@@ -862,11 +931,11 @@ func applicationInteractionAuthoritiesEqual(left, right ApplicationInteractionAu
 }
 
 func applicationInteractionTurnsIdempotentlyEqual(left, right ApplicationInteractionTurn) bool {
-	return left.SessionID == right.SessionID && left.ClientTurnKey == right.ClientTurnKey && left.ExecutionProfile == right.ExecutionProfile && left.Authority.AuthorityDigest == right.Authority.AuthorityDigest && left.Status == right.Status && left.InputDigest == right.InputDigest && left.InputBytes == right.InputBytes && applicationInteractionRunRefsEqual(left.RunRef, right.RunRef) && left.FailureCode == right.FailureCode && left.FailureSummary == right.FailureSummary
+	return left.SessionID == right.SessionID && left.ClientTurnKey == right.ClientTurnKey && left.ExecutionProfile == right.ExecutionProfile && left.Authority.AuthorityDigest == right.Authority.AuthorityDigest && left.Status == right.Status && left.InputDigest == right.InputDigest && left.InputBytes == right.InputBytes && left.InputContractID == right.InputContractID && left.InputContractDigest == right.InputContractDigest && workflowStructuredInputMetadataFieldsEqual(left.InputFields, right.InputFields) && applicationInteractionRunRefsEqual(left.RunRef, right.RunRef) && left.FailureCode == right.FailureCode && left.FailureSummary == right.FailureSummary
 }
 
 func applicationInteractionTurnReservationsEqual(left, right ApplicationInteractionTurn) bool {
-	return left.SessionID == right.SessionID && left.ClientTurnKey == right.ClientTurnKey && left.ExecutionProfile == right.ExecutionProfile && left.Authority.AuthorityDigest == right.Authority.AuthorityDigest && left.InputDigest == right.InputDigest && left.InputBytes == right.InputBytes
+	return left.SessionID == right.SessionID && left.ClientTurnKey == right.ClientTurnKey && left.ExecutionProfile == right.ExecutionProfile && left.Authority.AuthorityDigest == right.Authority.AuthorityDigest && left.InputDigest == right.InputDigest && left.InputBytes == right.InputBytes && left.InputContractID == right.InputContractID && left.InputContractDigest == right.InputContractDigest && workflowStructuredInputMetadataFieldsEqual(left.InputFields, right.InputFields)
 }
 
 func applicationInteractionRunRefsEqual(left, right *ApplicationInteractionRunRef) bool {
@@ -910,14 +979,14 @@ func validateApplicationInteractionContractJSON(contract string, payload []byte)
 	decoder := json.NewDecoder(strings.NewReader(string(payload)))
 	decoder.DisallowUnknownFields()
 	switch contract {
-	case applicationSessionSchemaVersion:
+	case applicationSessionSchemaVersion, applicationStructuredSessionSchemaVersion:
 		var session ApplicationInteractionSession
 		if err := decoder.Decode(&session); err != nil || decoder.Decode(&struct{}{}) != io.EOF {
 			return errApplicationSessionContract
 		}
 		ctx := ApplicationInteractionContext{TenantRef: session.TenantRef, WorkspaceID: session.WorkspaceID, ApplicationID: session.ApplicationID, OwnerSubjectRef: session.OwnerSubjectRef}
 		return validateStoredApplicationInteractionSession(ctx, session)
-	case applicationSessionTurnSchemaVersion:
+	case applicationSessionTurnSchemaVersion, applicationStructuredSessionTurnSchemaVersion:
 		var turn ApplicationInteractionTurn
 		if err := decoder.Decode(&turn); err != nil || decoder.Decode(&struct{}{}) != io.EOF {
 			return errApplicationSessionContract
@@ -981,6 +1050,7 @@ func cloneApplicationInteractionSession(value ApplicationInteractionSession) App
 func cloneApplicationInteractionTurn(value ApplicationInteractionTurn) ApplicationInteractionTurn {
 	copy := value
 	copy.Authority = cloneApplicationInteractionAuthority(value.Authority)
+	copy.InputFields = cloneWorkflowStructuredInputMetadataFields(value.InputFields)
 	copy.RunRef = cloneApplicationInteractionRunRef(value.RunRef)
 	if value.CompletedAt != nil {
 		completed := *value.CompletedAt
@@ -993,6 +1063,11 @@ func cloneApplicationInteractionAuthority(value ApplicationInteractionAuthorityS
 	copy := value
 	if value.WorkflowDefinition != nil {
 		workflow := *value.WorkflowDefinition
+		if value.WorkflowDefinition.InputContract != nil {
+			contract := *value.WorkflowDefinition.InputContract
+			contract.Fields = cloneWorkflowStructuredInputFields(contract.Fields)
+			workflow.InputContract = &contract
+		}
 		copy.WorkflowDefinition = &workflow
 	}
 	if value.ApplicationRAG != nil {

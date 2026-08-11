@@ -1,6 +1,8 @@
 package httpapi
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
@@ -33,7 +35,8 @@ type applicationInteractionTurnBody struct {
 	ApplicationID          string                 `json:"application_id"`
 	ExpectedSessionVersion int                    `json:"expected_session_version"`
 	ClientTurnKey          string                 `json:"client_turn_key"`
-	InputText              string                 `json:"input_text"`
+	InputText              json.RawMessage        `json:"input_text,omitempty"`
+	Inputs                 json.RawMessage        `json:"inputs,omitempty"`
 	ConditionValues        map[string]bool        `json:"condition_values"`
 	Model                  string                 `json:"model"`
 	Temperature            *float64               `json:"temperature"`
@@ -244,10 +247,16 @@ func (server *Server) handleExecuteApplicationInteractionTurn(writer http.Respon
 		return
 	}
 	ctx.WriteEnabled = true
+	inputText, inputs, inputTextProvided, inputsProvided, decodeFailure := decodeApplicationInteractionTurnInputs(body)
+	if decodeFailure != "" {
+		writeApplicationInteractionTurnResult(writer, http.StatusBadRequest, trace, ctx, request.PathValue("session_id"), applicationInteractionTurnExecutionFailure(decodeFailure, "Application session turn input shape is invalid."))
+		return
+	}
 	result := server.applicationInteractionTurnCoordinator().Execute(ctx, request.PathValue("session_id"), ApplicationInteractionTurnExecutionInput{
 		ExpectedSessionVersion: body.ExpectedSessionVersion,
 		ClientTurnKey:          body.ClientTurnKey,
-		InputText:              body.InputText,
+		InputText:              inputText,
+		Inputs:                 inputs,
 		ConditionValues:        body.ConditionValues,
 		Model:                  body.Model,
 		Temperature:            body.Temperature,
@@ -257,8 +266,28 @@ func (server *Server) handleExecuteApplicationInteractionTurn(writer http.Respon
 		AgentConversationID:    body.ConversationID,
 		AgentArtifacts:         body.Artifacts,
 		AgentContext:           body.Context,
+		inputTextProvided:      inputTextProvided,
+		inputsProvided:         inputsProvided,
 	})
 	writeApplicationInteractionTurnResult(writer, http.StatusOK, trace, ctx, request.PathValue("session_id"), result)
+}
+
+func decodeApplicationInteractionTurnInputs(body applicationInteractionTurnBody) (string, map[string]any, bool, bool, string) {
+	var inputText string
+	if body.InputText != nil {
+		if err := json.Unmarshal(body.InputText, &inputText); err != nil {
+			return "", nil, false, false, ApplicationInteractionFailurePayloadInvalid
+		}
+	}
+	var inputs map[string]any
+	if body.Inputs != nil {
+		decoder := json.NewDecoder(bytes.NewReader(body.Inputs))
+		decoder.UseNumber()
+		if err := decoder.Decode(&inputs); err != nil || inputs == nil {
+			return "", nil, false, false, ApplicationInteractionFailurePayloadInvalid
+		}
+	}
+	return inputText, inputs, body.InputText != nil, body.Inputs != nil, ""
 }
 
 func (server *Server) applicationInteractionSessionService() applicationInteractionSessionService {
