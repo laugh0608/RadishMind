@@ -151,6 +151,8 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 2026-08-11 React 接入与真实浏览器复核已完成：Definition Direct Run 与 Application Interaction Session 复用同一 editor；Definition owner 从历史深色容器收敛为 Workbench 纸色表面，editor / Session 统一消费 `--rm-*` 语义 token。`1440×900`、`1100×900`、`721×900`、`720×900` 与 `390×844` 均无横向溢出，`720px` 断点从双列合同摘要和横向字段标签切为单列；Desktop 与窄屏实际截图确认字段、帮助、布尔选择和易失值边界可读，最终 console 无 warning / error。该结论只冻结结构化输入局部模式，不表示 S9 / S10 React 已采用 Visual R3，也不建立 S11。
 
+2026-08-11 的 Workflow RAG 本地知识材料导入、审查与快照构建五维评分为 `1 / 1 / 1 / 1 / 1 = 5`，采用 `B / 局部 Pencil`。它只改造 S2 内既有知识快照 owner：增加本地文件选择、来源 / 预算 findings、fragment list、当前 fragment inspector 和提交摘要，create / version 继续使用同一 owner；窄屏按来源 → findings → fragment list → inspector → submit 渐进排列。纯 TypeScript importer / sectioner 已先行完成，当前 Pen 会话被另一项目占用，因此没有读取或修改其设计源；局部稿仍待在 RadishMind 设计源内冻结。局部稿不得建立 S11、重画完整 S2、伪造生产数据或把解析失败 / duplicate / secret / version conflict 画成选中态；人工通过前不启动 React 结构改造。
+
 同轮人工反馈确认画布治理、信息架构与表面形态是三个独立维度。26 个顶层基准面已保持 S1 → S10 单行审阅带；第一次只映射 token、第二次 Visual R2 只归位页面骨架，仍把上下文、任务、owner 与 boundary 做成同一种硬方块，因此两轮均被人工明确退回。Visual R3 保留 S8 母版的 `264px` 产品导航、薄页眉、对象路径、单一主 owner、连续事实行与一个辅助 rail，并依据 S7 / S8 和 `reference-ui` 恢复职责圆角；该规则继续作为 S9 / S10 当前稿基线。结构化输入 Visual R4 进一步区分“连续事实数据”和“待编辑值”：前者可保留方正发丝边界，后者必须呈现真实控件、字段关系与局部错误，不能以表格代理表单。
 
 2026-08-09 的 Workflow Definition 真实连续链复验五维评分为 `0 / 0 / 0 / 1 / 1 = 2`，采用 `C / 直接实现`：只补 RAG 专属 owner 交接、Definition 资格失败关闭、拓扑派生和 application 切换后的迟到 evidence 拒绝，继续复用 S2 / S3 / S6 已冻结的信息层级、任务轨、选中语义和响应式顺序。Pencil 当时正被其它项目占用，本批没有读取或修改设计源，也没有建立第十个页面族。

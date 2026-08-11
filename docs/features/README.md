@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-11 当前执行口径：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 功能已完成且 Visual R3 仍等待人工复核。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成批次 A 至 E，覆盖 Session v4、Evaluation Plan / Campaign v2、三存储连续链和 SQLite 产品浏览器收口。当前没有活跃实现批次；下一步先按真实用户阻塞选择新的功能设计专题。生产 quota、token / cost、billing、正式 membership / OIDC、自动执行和自动发布仍关闭。
+2026-08-11 当前执行口径：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 功能已完成且 Visual R3 仍等待人工复核。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成批次 A 至 E，覆盖 Session v4、Evaluation Plan / Campaign v2、三存储连续链和 SQLite 产品浏览器收口。新的产品专题 [Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 已完成纯 TypeScript importer / sectioner、确定性引用、重复 / 预算 findings 和既有 snapshot validator 接缝；下一步先冻结 `B / 局部 Pencil`，人工通过后再进入单一结构化 owner。生产 quota、token / cost、billing、正式 membership / OIDC、自动执行和自动发布仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -43,7 +43,7 @@
 | [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | Mutation Authorization 批次 A 至 E 已完成，专题关闭 |
 | [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route 与独立开发测试态 application request quota 均已完成受控管理；quota 覆盖 owner、Admin API、双数据库、Gateway admission、完整 Pencil、React 和真实浏览器连续链 | 回到功能设计入口，以新的真实任务阻塞选择产品专题；不从已关闭 Provider / Quota 专题扩 production secret、billing 或真实 OIDC |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
-| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；Definition 结构化输入批次 A 至 E 已关闭 | 回到功能设计入口，以新的真实任务阻塞选择专题 |
+| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；Definition 结构化输入批次 A 至 E 已关闭，RAG 本地 importer 已完成 | 先完成 RAG 本地材料 `B / 局部 Pencil`，人工通过后接入单一结构化 snapshot owner |
 | [图片生成 / 产物返回](image-generation-artifact-return.md) | 批次 A 至 E 已完成受控 handoff、本机私有 storage、reference-only profile、test-only fixture client 与一次性交付协调，开发测试态 v1 关闭 | 如需真实 backend、resolver 或公开交付，先建立独立功能 / 集成设计 |
 
 ## 细专题导航
@@ -83,6 +83,7 @@
 | [Model Gateway Request History / Usage & Failure Review v1 任务卡](../task-cards/model-gateway-request-history-usage-failure-review-v1-plan.md) | 实现批次 | 状态为 `complete`；保留为实现与验证索引，不继续派生同层 readiness 链 |
 | [Gateway Playground / Request Review Loop v1](gateway/gateway-playground-request-review-loop-v1.md) | 功能专题 | 三协议 unary / stream、取消、稳定失败和精确 history handoff 已完成；不持久化输入输出 |
 | [Workflow 细专题入口](workflow/README.md) | 功能专题目录 | 承接 workflow 具体功能、页面 / 界面和实现专题 |
+| [Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) | 功能 / 本地材料与快照构建专题 | 当前活跃专题；确定性本地 importer 已完成，下一步冻结 `B / 局部 Pencil` 后接入既有 snapshot API / CAS / repository，不新增 API、schema、migration 或持久 staging |
 | [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) | 功能 / 输入合同与执行兼容专题 | 批次 A 至 E、三存储连续链、SQLite 产品浏览器、重启、隐私与旧版兼容均已完成；专题关闭 |
 | [Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md) | 功能 / 高风险执行专题 | A / B / C 三批已完成 durable assignment、API key 调用、run v4、Web、双数据库连续链与真实浏览器复验；专题关闭 |
 | [Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md) | 功能 / 版本与执行权威专题 | 批次 A 至 D 已完成 immutable release、三种 repository、run v5、Web、双数据库连续链与浏览器验收；专题已关闭 |

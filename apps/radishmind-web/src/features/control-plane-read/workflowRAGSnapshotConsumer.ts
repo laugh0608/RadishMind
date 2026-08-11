@@ -178,7 +178,7 @@ export function readWorkflowRAGSnapshotConfig(): WorkflowRAGSnapshotConfig {
 export function validateWorkflowRAGSnapshotWriteInput(input: WorkflowRAGSnapshotWriteInput): string {
   if (!SNAPSHOT_KEY_PATTERN.test(input.snapshotKey.trim()) || input.displayName.trim().length < 2 || input.displayName.trim().length > 120 ||
     !CLASSIFICATIONS.includes(input.contentClassification) || input.fragments.length < 1 || input.fragments.length > 256 ||
-    containsSecretMaterial(input.displayName)) return "workflow_rag_snapshot_payload_invalid";
+    containsWorkflowRAGSecretMaterial(input.displayName)) return "workflow_rag_snapshot_payload_invalid";
   const refs = new Set<string>();
   let totalBytes = 0;
   for (const fragment of input.fragments) {
@@ -187,7 +187,7 @@ export function validateWorkflowRAGSnapshotWriteInput(input: WorkflowRAGSnapshot
       !SOURCE_TYPES.includes(fragment.sourceType) || !isReference(fragment.sourceRef) || fragment.sourceRef.includes("://") ||
       !/^[a-z0-9][a-z0-9._/-]{0,119}$/u.test(fragment.pageSlug.trim()) || fragment.title.trim().length > 160 ||
       !fragment.content.trim() || contentBytes > 8192) return "workflow_rag_fragment_invalid";
-    if (containsSecretMaterial([fragment.sourceRef, fragment.pageSlug, fragment.title, fragment.content].join("\n"))) {
+    if (containsWorkflowRAGSecretMaterial([fragment.sourceRef, fragment.pageSlug, fragment.title, fragment.content].join("\n"))) {
       return "workflow_rag_secret_material_forbidden";
     }
     refs.add(fragment.fragmentRef.trim());
@@ -328,7 +328,7 @@ function isFragment(value: unknown, classification: unknown): value is FragmentD
     FRAGMENT_REF_PATTERN.test(String(value.fragment_ref)) && SOURCE_TYPES.includes(value.source_type as WorkflowRAGSourceType) &&
     isReference(value.source_ref) && !String(value.source_ref).includes("://") && /^[a-z0-9][a-z0-9._/-]{0,119}$/u.test(String(value.page_slug)) &&
     typeof value.title === "string" && value.title.length <= 160 && typeof value.is_official === "boolean" &&
-    isNonEmptyString(value.content) && !containsSecretMaterial(value.content) && value.content_classification === classification &&
+    isNonEmptyString(value.content) && !containsWorkflowRAGSecretMaterial(value.content) && value.content_classification === classification &&
     isInteger(value.content_bytes, 1, 8192) && new TextEncoder().encode(value.content).length === value.content_bytes && DIGEST_PATTERN.test(String(value.content_digest));
 }
 
@@ -399,8 +399,8 @@ function operationBoundaryResult(boundary: "offline" | "scope_denied"): Workflow
 function localFailure(failureCode: string): WorkflowRAGSnapshotOperationResult { return { status: "failed", record: null, failureCode, currentLatestVersion: 0, currentLifecycleState: "", summary: "Knowledge snapshot input was rejected before any request." }; }
 function failedOperationResult(failureCode = "workflow_rag_store_unavailable"): WorkflowRAGSnapshotOperationResult { return { status: "failed", record: null, failureCode, currentLatestVersion: 0, currentLifecycleState: "", summary: "Knowledge snapshot operation failed without trusted response or fallback." }; }
 function failedListResult(failureCode = "workflow_rag_store_unavailable"): WorkflowRAGSnapshotListResult { return { status: "failed", records: [], nextCursor: "", failureCode, summary: "Knowledge snapshot list failed without fallback." }; }
-function containsForbiddenMaterial(value: unknown, forbidContent: boolean): boolean { if (typeof value === "string") return containsSecretMaterial(value); if (Array.isArray(value)) return value.some((item) => containsForbiddenMaterial(item, forbidContent)); if (!isRecord(value)) return false; return Object.entries(value).some(([key, nested]) => (forbidContent && key === "content") || FORBIDDEN_MATERIAL_KEYS.has(key.toLowerCase()) || containsForbiddenMaterial(nested, forbidContent)); }
-function containsSecretMaterial(value: string): boolean { return /authorization:|bearer\s|api[_-]?key\s*[:=]|x-radishmind-dev-|cookie:|password\s*=|secret\s*=|token\s*=|sk-[a-z0-9]|-----begin private key-----|(?:postgres(?:ql)?|mysql|mongodb):\/\//iu.test(value); }
+function containsForbiddenMaterial(value: unknown, forbidContent: boolean): boolean { if (typeof value === "string") return containsWorkflowRAGSecretMaterial(value); if (Array.isArray(value)) return value.some((item) => containsForbiddenMaterial(item, forbidContent)); if (!isRecord(value)) return false; return Object.entries(value).some(([key, nested]) => (forbidContent && key === "content") || FORBIDDEN_MATERIAL_KEYS.has(key.toLowerCase()) || containsForbiddenMaterial(nested, forbidContent)); }
+export function containsWorkflowRAGSecretMaterial(value: string): boolean { return /authorization:|bearer\s|api[_-]?key\s*[:=]|x-radishmind-dev-|cookie:|password\s*=|secret\s*=|token\s*=|sk-[a-z0-9]|-----begin private key-----|(?:postgres(?:ql)?|mysql|mongodb):\/\//iu.test(value); }
 function isWorkflowRAGScope(value: string): value is WorkflowRAGScope { return value === "workflow_rag_snapshots:read" || value === "workflow_rag_snapshots:write" || value === "workflow_rag_snapshots:archive" || value === "workflow_rag:execute" || value === "workflow_runs:execute" || value === "workflow_drafts:read"; }
 function isRAGRef(value: unknown, key: unknown, version: unknown): boolean { return value === `workflow.rag.${String(key)}.v${String(version)}`; }
 function isReference(value: unknown): value is string { return typeof value === "string" && /^[A-Za-z0-9][A-Za-z0-9_.:/-]{2,159}$/u.test(value); }

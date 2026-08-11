@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-2026-08-11 当前结论：Saved Draft durable dev/test repository、版本历史、R4 Gateway、executor、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG 与不可变 Definition 受控运行均已有可复验证据。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成 Draft / Definition v2、executor v2、Run v8、Comparison v7、strict contract decoder、Session v4、Evaluation Plan / Campaign v2、三模式 durable chain 与 SQLite 产品浏览器收口，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_completed`。下一步回到功能设计入口，不从已关闭专题扩自动 activation、草案自动保存 / 合并 / 同步、分支图、schedule、replay / resume、agent loop、外部 connector 或 production enablement。以下 production durable-store readiness 只保留为历史兼容锚点。
+2026-08-11 当前结论：Saved Draft durable dev/test repository、版本历史、R4 Gateway、executor、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG 与不可变 Definition 受控运行均已有可复验证据。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成 Draft / Definition v2、executor v2、Run v8、Comparison v7、strict contract decoder、Session v4、Evaluation Plan / Campaign v2、三模式 durable chain 与 SQLite 产品浏览器收口，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_completed`。当前活跃专题转为 [Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)：只在既有 snapshot owner 前增加浏览器内材料暂存、确定性切分和结构化审查，不从已关闭专题扩自动 activation、草案自动保存 / 合并 / 同步、分支图、schedule、replay / resume、agent loop、外部 connector 或 production enablement。以下 production durable-store readiness 只保留为历史兼容锚点。
 
 2026-06-29 Production Secret Backend audit store runtime blocker matrix 及其后续 storage adapter readiness / review 链只作为历史静态锚点保留，不再定义当前顺位，也不影响已经完成的 Workflow memory / SQLite / PostgreSQL 开发测试态存储。production secret、production audit store、production repository mode 与公开生产 API 仍未启用。
 
@@ -157,7 +157,7 @@ Saved Workflow Draft v1 采用 fail-closed 语义。建议固定以下失败码�
 
 ## 下一批开发方向
 
-[应用开发工作区与发布准备审查 v1](user-workspace/application-development-workspace-release-readiness-review-v1.md)已完成设计确认并进入批次 A。该设计把 Workflow Definition、RAG assignment、Session、Run History、Comparison、Evaluation / Baseline / Suite 固定为既有只读证据或显式动作来源，并统一 application scope、generation 清理和交接关系；页面层不得复制 authority resolver、执行算法、运行 store 或发布 owner。当前只进入 Web 组合批次，connector、在线搜索、embedding、reranker、schedule、replay、业务写回和生产能力继续后置。
+[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 已完成纯 TypeScript 严格 UTF-8 Markdown / Text reader、确定性 sectioner、稳定引用、重复 / 预算 findings 和既有 snapshot validator 接缝，状态为 `workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_batch_a_domain_completed_pencil_pending`。下一步先在 RadishMind 设计源冻结 `B / 局部 Pencil`，人工通过后再实现单一结构化 fragment editor；最终仍只把用户显式确认的 replacement 交给既有 snapshot create / version owner。原始文件与 staging 不持久化，不新增 API、schema、migration、repository、permission、task card、fixture 或 checker；connector、在线搜索、embedding、reranker、schedule、replay、业务写回和生产能力继续后置。
 
 ## 验收方式
 

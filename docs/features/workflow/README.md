@@ -12,6 +12,7 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
+| [Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) | 功能 / 本地材料暂存与快照构建专题 | `workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_batch_a_domain_completed_pencil_pending` | 纯 TypeScript importer / sectioner、重复 / 预算 findings 和既有 snapshot validator 接缝已完成；下一步冻结 `B / 局部 Pencil`，人工通过后再进入单一结构化 owner，不新增后端 owner |
 | [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1.md) | 功能 / 输入合同与执行兼容专题 | `workflow_definition_structured_runtime_inputs_dev_test_v1_completed` | 批次 A 至 E、三存储连续链、SQLite 产品浏览器、重启、隐私与旧版兼容均已完成；专题关闭 |
 | [Workflow Definition 结构化运行输入 v1 实施任务卡](../../task-cards/workflow-definition-structured-runtime-inputs-dev-test-v1-plan.md) | 已关闭高风险实现批次 | `workflow_definition_structured_runtime_inputs_dev_test_v1_completed` | 唯一实施卡已关闭，不派生平行任务卡或同层 gate-only 批次 |
 | [Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md) | 功能 / 版本与执行权威专题 | `workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_completed` | A 至 D 已完成不可变晋级、人工 activation、definition-bound run v5、Web、双数据库连续链与真实浏览器验收 |
