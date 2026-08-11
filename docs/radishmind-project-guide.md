@@ -15,7 +15,7 @@
 
 2026-06-14 起，具体功能或长期开发目标先看 [功能设计文档入口](features/README.md)。任务卡只承载实现批次、前置条件或高风险边界，不再作为功能默认主文档。
 
-2026-08-11 当前读法：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 功能已完成，Visual R3 仍等待人工复核。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成批次 A 至 E、三存储连续链和 SQLite 产品浏览器收口；当前没有活跃实现批次，下一步回到功能设计入口选择新的真实产品专题。production membership / OIDC、production secret、production quota / billing、自动执行和自动发布仍未打开。
+2026-08-11 当前读法：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 功能已完成，Visual R3 仍等待人工复核。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成批次 A 至 E、三存储连续链和 SQLite 产品浏览器收口；当前活跃专题已切换到 [Workflow RAG 本地知识材料导入、审查与快照构建](features/workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)，纯 importer 已完成，下一步先冻结局部 Pencil。production membership / OIDC、production secret、production quota / billing、自动执行和自动发布仍未打开。
 
 ## 项目定位
 
@@ -63,7 +63,7 @@
 4. `Evaluation & Governance`：schema、smoke、offline eval、review、promotion gate、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression governance suite、negative coverage rollup、route negative coverage matrix 和 readiness consistency rollup。
 5. `Model Adaptation`：基座选型、prompt/runtime 协同、蒸馏、训练样本治理和模型晋级。
 
-当前可运行的开发测试产品路径已经覆盖：Gateway 三协议调用与 sanitized Request History；Application Catalog 创建 / 编辑 / 归档 / 安全重新启用，API Key 生命周期与引导式轮换；Application API Integration、Configuration Draft、Publish Candidate Review；Saved Draft 活动 / 归档草案库、HTTP Tool、RAG v3、Application RAG v4、Workflow Definition v5、Application Interaction Session、durable Run History / Comparison / Evaluation 与 Application Operations；Admin verified identity、Tenant / Audit PostgreSQL read repository，以及 deterministic OIDC verifier。长期契约入口分别见 [服务/API 接入契约](contracts/service-api.md)、[Control Plane Read-Side 契约](contracts/control-plane-read-side.md)、[Radish OIDC Token Validation 契约](contracts/radish-oidc-token-validation.md)和[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)。这些路径仍由显式 dev/test gate 保护，不是公开 production API。
+当前可运行的开发测试产品路径已经覆盖：Gateway 三协议调用与 sanitized Request History；Application Catalog 创建 / 编辑 / 归档 / 安全重新启用，API Key 生命周期与引导式轮换；Application API Integration、Configuration Draft、Publish Candidate Review；Saved Draft 活动 / 归档草案库、HTTP Tool、RAG v3、Application RAG v4、Workflow Definition v5 / v8、Application Interaction Session v1 / v4、durable Run History / Comparison / Evaluation 与 Application Operations；Admin verified identity、Tenant / Audit PostgreSQL read repository，以及 deterministic OIDC verifier。长期契约入口分别见 [服务/API 接入契约](contracts/service-api.md)、[Control Plane Read-Side 契约](contracts/control-plane-read-side.md)、[Radish OIDC Token Validation 契约](contracts/radish-oidc-token-validation.md)和[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)。这些路径仍由显式 dev/test gate 保护，不是公开 production API。
 
 `Saved Workflow Draft v1` 已实现 platform Go domain service、memory / SQLite / PostgreSQL 开发测试态 repository、HTTP / Web consumer、严格 cursor、超过 `200` 条的 keyset 分页 / 组合筛选、内容版本与 lifecycle 版本分离、append-only lifecycle event、archive / unarchive 和相邻操作活动资格重读。Draft Designer 的 `version_conflict` 读法是保留当前本地 active draft、刷新当前 application 的 sanitized 活动草案列表、允许用户继续本地草案或显式打开当前 saved record，并把同一份 conflict review summary 交给 Review Handoff；它不自动覆盖、不自动合并。恢复不可变 revision 由独立历史面板承载，不与打开当前记录混用。当前仍不开放 production repository、真实 OIDC / membership、production secret、自动保存 / 合并、永久删除、批量生命周期、业务写回、replay / resume 或公开生产 API。
 
@@ -273,8 +273,8 @@ npm run dev
 - Application Configuration Draft
 - Application Publish Review
 - Application RAG Runtime Assignment / Invocation
-- Workflow Definition Promotion / v5 Run
-- Application Interaction Session（Active / Closed 与 metadata-only turns）
+- Workflow Definition Promotion / v5 与 v8 Run
+- Application Interaction Session v1 / v4（Active / Closed 与 metadata-only turns）
 - Prompt Application Template / Runtime Assignment / Invocation
 - Agent / Copilot Profile / Runtime Assignment / Controlled Suggestion
 - Application Operations（Gateway Request / Workflow Run 双来源观测）
@@ -285,7 +285,7 @@ npm run dev
 
 Model Gateway 的读法是先看 Overview / Route / Usage-Audit / Evidence Review，再进入 Playground 发起三协议 unary / stream 请求，最后按同一 request id 打开 sanitized Request History。Application Detail 侧可先在 API Integration 选择模型和协议，再进入 Configuration Draft 保存 / 比较配置，最后在 Publish Review 创建不可变 candidate 并记录审查决定；approved candidate 仍显示 promotion blockers，不修改正式 application。
 
-应用受控运行的读法是先完成各自权威资源：Application RAG 要经过 knowledge promotion、binding、publish review 与 runtime assignment；Workflow Definition 要经过 saved draft、immutable candidate、人工 review、version 与 activation。随后可以直接发起 v4 / v5 运行，或在 Application Interaction Session 中显式选择 profile 后逐轮委托。Run History / Comparison / Evaluation 与 Application Operations 都只读消费已持久化 metadata，不重新执行，也不恢复 transcript。完整操作与失败处理见[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)。
+应用受控运行的读法是先完成各自权威资源：Application RAG 要经过 knowledge promotion、binding、publish review 与 runtime assignment；Workflow Definition 要经过 saved draft、immutable candidate、人工 review、version 与 activation。随后可以直接发起 v4 / v5 / v8 运行，或在 Application Interaction Session 中显式选择 profile 后逐轮委托。Run History / Comparison / Evaluation 与 Application Operations 都只读消费已持久化 metadata，不重新执行，也不恢复 transcript；v8 只保存结构化输入合同与字段 metadata，不保存字段值。完整操作与失败处理见[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)。
 
 Prompt Application 与 Agent / Copilot 使用同一治理原则但拥有不同源码 owner。Prompt 依次建立 Template Version、Configuration / Candidate v3 与 Prompt Runtime Assignment；Agent 依次建立结构化 Profile Version、Configuration / Candidate v4 与 Agent Copilot Runtime Assignment。两者的 API key 和 Session 分别委托唯一 invocation service，完整输出只在首次同步响应或当前 Web 内存中可见；Run v6 / v7 只保存 metadata。操作顺序分别见 [Prompt Application 使用指南](features/user-workspace/prompt-application-dev-test-usage-guide.md)和 [Agent / Copilot 使用指南](features/user-workspace/agent-copilot-dev-test-usage-guide.md)。
 
@@ -380,7 +380,7 @@ docker compose -f deploy/docker-compose.local.yaml down
 - durable session/checkpoint/audit/result store、materialized checkpoint/result reader 和 recovery runbook
 - 真实工具执行器、materialized tool result cache、上层确认流接线和完整 session/tooling 负向回归 implementation consumer
 
-所以如果你问“现在怎么部署”，准确答案是：仓库已支持本地 CLI、Go Platform + Python bridge、Web / Console launcher、Docker 静态部署边界，以及多组显式 `memory_dev` / `sqlite_dev` / `postgres_dev_test` 产品 runtime。开发者可复验 Gateway 调用与 History、Application Draft / Publish Review、Workflow RAG v3、Application RAG v4、Workflow Definition v5、Application Session、Run / Comparison / Evaluation / Operations，以及 Admin signed-token 与 deterministic OIDC path。它们仍不是 production deployment：真实镜像发布、测试环境 smoke、production preflight、production secret backend、Radish 登录与 membership、production repository、正式 application promotion、业务写回和 replay 均未开放。
+所以如果你问“现在怎么部署”，准确答案是：仓库已支持本地 CLI、Go Platform + Python bridge、Web / Console launcher、Docker 静态部署边界，以及多组显式 `memory_dev` / `sqlite_dev` / `postgres_dev_test` 产品 runtime。开发者可复验 Gateway 调用与 History、Application Draft / Publish Review、Workflow RAG v3、Application RAG v4、Workflow Definition v5 / v8、Application Session v1 / v4、Run / Comparison / Evaluation / Operations，以及 Admin signed-token 与 deterministic OIDC path。它们仍不是 production deployment：真实镜像发布、测试环境 smoke、production preflight、production secret backend、Radish 登录与 membership、production repository、正式 application promotion、业务写回和 replay 均未开放。
 
 ## 读文档顺序
 

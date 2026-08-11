@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃高风险实现任务卡。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1-plan.md) 已完成批次 A 至 E，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_completed`；三存储连续链、SQLite 产品浏览器、重启、隐私、v1 回归和仓库门禁均已闭合。下一步先回到功能设计入口选择新的真实产品专题，不从已关闭卡派生平行 task card 或同层 gate-only 切片。
+当前没有活跃高风险实现任务卡。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1-plan.md) 已完成批次 A 至 E，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_completed`；三存储连续链、SQLite 产品浏览器、重启、隐私、v1 回归和仓库门禁均已闭合。当前产品专题已切换到 Workflow RAG 本地材料导入；它复用既有 API、schema、repository 与权限，按功能文档、普通 Web 测试 / build 和产品浏览器推进，因此不新建任务卡，也不从已关闭卡派生平行 gate-only 切片。
 
 ## 最近关闭任务
 
