@@ -2,12 +2,20 @@ import {
   decodeWorkflowRunComparison,
   type WorkflowRunComparison,
 } from "./workflowRunComparisonConsumer.ts";
+import {
+  parseStructuredRuntimeInputContractDocument,
+  type StructuredRuntimeInputContract,
+  type StructuredRuntimeInputValues,
+} from "./structuredRuntimeInput.ts";
 
 const DEV_SOURCE = "dev-application-evaluation-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const PLAN_SCHEMA = "application_evaluation_plan.v1";
 const PLAN_VERSION_SCHEMA = "application_evaluation_plan_version.v1";
 const CAMPAIGN_SCHEMA = "application_evaluation_campaign.v1";
+const STRUCTURED_PLAN_SCHEMA = "application_evaluation_plan.v2";
+const STRUCTURED_PLAN_VERSION_SCHEMA = "application_evaluation_plan_version.v2";
+const STRUCTURED_CAMPAIGN_SCHEMA = "application_evaluation_campaign.v2";
 const IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9._:-]{2,255}$/u;
 const WORKSPACE_IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9_.:/-]{2,159}$/u;
 const DIGEST = /^sha256:[a-f0-9]{64}$/u;
@@ -58,6 +66,7 @@ const FORBIDDEN_FIELDS = new Set([
 
 export const APPLICATION_EVALUATION_PROFILES = [
   "workflow_definition_executor_v1",
+  "workflow_definition_executor_v2",
   "application_rag_invocation_v1",
   "prompt_application_invocation_v1",
   "agent_copilot_suggestion_v1",
@@ -107,6 +116,7 @@ export type ApplicationEvaluationDefinitionTarget = {
   expectedPointerVersion: number;
   expectedDefinitionVersion: number;
   expectedDefinitionDigest: string;
+  inputContract: StructuredRuntimeInputContract | null;
 };
 
 export type ApplicationEvaluationPlanTarget = {
@@ -122,6 +132,7 @@ export type ApplicationEvaluationPlanItem = {
     conditionValues: Record<string, boolean>;
     model: string;
     temperature: number | null;
+    inputs: StructuredRuntimeInputValues | null;
   } | null;
   applicationRAG: { input: string } | null;
   promptApplication: { variables: Record<string, JsonValue> } | null;
@@ -135,7 +146,7 @@ export type ApplicationEvaluationPlanItem = {
 };
 
 export type ApplicationEvaluationPlan = {
-  schemaVersion: typeof PLAN_SCHEMA;
+  schemaVersion: typeof PLAN_SCHEMA | typeof STRUCTURED_PLAN_SCHEMA;
   planId: string;
   recordVersion: number;
   latestPlanVersion: number;
@@ -157,7 +168,7 @@ export type ApplicationEvaluationPlan = {
 };
 
 export type ApplicationEvaluationPlanVersion = {
-  schemaVersion: typeof PLAN_VERSION_SCHEMA;
+  schemaVersion: typeof PLAN_VERSION_SCHEMA | typeof STRUCTURED_PLAN_VERSION_SCHEMA;
   planId: string;
   planVersion: number;
   previousPlanVersion: number;
@@ -199,7 +210,7 @@ export type ApplicationEvaluationCampaignItem = {
 };
 
 export type ApplicationEvaluationCampaign = {
-  schemaVersion: typeof CAMPAIGN_SCHEMA;
+  schemaVersion: typeof CAMPAIGN_SCHEMA | typeof STRUCTURED_CAMPAIGN_SCHEMA;
   campaignId: string;
   clientCampaignKey: string;
   recordVersion: number;
@@ -347,9 +358,36 @@ export function applicationEvaluationPlanTemplate(
         expectedPointerVersion: 1,
         expectedDefinitionVersion: 1,
         expectedDefinitionDigest: `sha256:${"0".repeat(64)}`,
+        inputContract: null,
       } },
       items: [{ ...base, workflowDefinition: {
         inputText: "Review this representative input.", conditionValues: {}, model: "", temperature: null,
+        inputs: null,
+      }, applicationRAG: null, promptApplication: null, agentCopilot: null }],
+    };
+  }
+  if (profile === "workflow_definition_executor_v2") {
+    return {
+      name: "Structured workflow definition regression",
+      executionProfile: profile,
+      target: { workflowDefinition: {
+        definitionId: "wf_example",
+        expectedPointerVersion: 1,
+        expectedDefinitionVersion: 1,
+        expectedDefinitionDigest: `sha256:${"0".repeat(64)}`,
+        inputContract: {
+          contractId: "contract_replace_with_exact_definition",
+          fields: [{
+            name: "representative_input", valueType: "string", required: true,
+            label: "Representative input", description: "Replace this placeholder with the exact immutable Definition contract.",
+          }],
+          summary: "Replace with the exact immutable Definition input contract.",
+          contractDigest: `sha256:${"0".repeat(64)}`,
+        },
+      } },
+      items: [{ ...base, workflowDefinition: {
+        inputText: "", conditionValues: {}, model: "", temperature: null,
+        inputs: { representative_input: "Review this representative input." },
       }, applicationRAG: null, promptApplication: null, agentCopilot: null }],
     };
   }
@@ -722,7 +760,7 @@ function mapScope(value: Document, config: ApplicationEvaluationConfig): ScopeEn
 
 function isPlanDocument(value: unknown, config: ApplicationEvaluationConfig): value is Document {
   if (!isExactDocument(value, PLAN_KEYS)) return false;
-  return value.schema_version === PLAN_SCHEMA && typeof value.plan_id === "string" && positiveInteger(value.record_version) &&
+  return value.schema_version === planSchemaForProfile(value.execution_profile) && typeof value.plan_id === "string" && positiveInteger(value.record_version) &&
     positiveInteger(value.latest_plan_version) && digest(value.latest_plan_digest) && scopeDocumentMatches(value, config) &&
     nonEmptyString(value.name, 160) && isProfile(value.execution_profile) && nonNegativeInteger(value.item_count) &&
     Number(value.item_count) <= 20 && (value.lifecycle_state === "active" || value.lifecycle_state === "archived") &&
@@ -732,7 +770,7 @@ function isPlanDocument(value: unknown, config: ApplicationEvaluationConfig): va
 
 function isVersionDocument(value: unknown, config: ApplicationEvaluationConfig): value is Document {
   if (!isExactDocument(value, VERSION_KEYS)) return false;
-  return value.schema_version === PLAN_VERSION_SCHEMA && typeof value.plan_id === "string" && positiveInteger(value.plan_version) &&
+  return value.schema_version === planVersionSchemaForProfile(value.execution_profile) && typeof value.plan_id === "string" && positiveInteger(value.plan_version) &&
     nonNegativeInteger(value.previous_plan_version) && digest(value.plan_digest) && scopeDocumentMatches(value, config) &&
     nonEmptyString(value.name, 160) && isProfile(value.execution_profile) && isTargetDocument(value.target) &&
     Array.isArray(value.items) && value.items.length > 0 && value.items.length <= 20 && value.items.every(isPlanItemDocument) &&
@@ -744,9 +782,15 @@ function isVersionDocument(value: unknown, config: ApplicationEvaluationConfig):
 function isTargetDocument(value: unknown): value is Document {
   if (!isExactDocument(value, ["workflow_definition"])) return false;
   if (value.workflow_definition === null) return true;
-  return isExactDocument(value.workflow_definition, ["definition_id", "expected_pointer_version", "expected_definition_version", "expected_definition_digest"]) &&
-    nonEmptyString(value.workflow_definition.definition_id) && positiveInteger(value.workflow_definition.expected_pointer_version) &&
-    positiveInteger(value.workflow_definition.expected_definition_version) && digest(value.workflow_definition.expected_definition_digest);
+  const target = value.workflow_definition;
+  if (!isDocument(target)) return false;
+  const keys = Object.hasOwn(target, "input_contract")
+    ? ["definition_id", "expected_pointer_version", "expected_definition_version", "expected_definition_digest", "input_contract"]
+    : ["definition_id", "expected_pointer_version", "expected_definition_version", "expected_definition_digest"];
+  return isExactDocument(target, keys) &&
+    nonEmptyString(target.definition_id) && positiveInteger(target.expected_pointer_version) &&
+    positiveInteger(target.expected_definition_version) && digest(target.expected_definition_digest) &&
+    (!Object.hasOwn(target, "input_contract") || parseStructuredRuntimeInputContractDocument(target.input_contract) !== null);
 }
 
 function isPlanItemDocument(value: unknown): value is Document {
@@ -754,9 +798,11 @@ function isPlanItemDocument(value: unknown): value is Document {
     !isClassification(value.expected_classification)) return false;
   const fixtures = [value.workflow_definition, value.application_rag, value.prompt_application, value.agent_copilot];
   if (fixtures.filter((fixture) => fixture !== null).length !== 1) return false;
-  const workflowValid = value.workflow_definition === null || (isExactDocument(value.workflow_definition, ["input_text", "condition_values", "model", "temperature"]) &&
-    nonEmptyString(value.workflow_definition.input_text, 8000) && isBooleanRecord(value.workflow_definition.condition_values) &&
-    typeof value.workflow_definition.model === "string" && (value.workflow_definition.temperature === null || finiteNumber(value.workflow_definition.temperature)));
+  const workflowValid = value.workflow_definition === null ||
+    (isExactDocument(value.workflow_definition, ["input_text", "condition_values", "model", "temperature"]) &&
+      nonEmptyString(value.workflow_definition.input_text, 8000) && isBooleanRecord(value.workflow_definition.condition_values) &&
+      typeof value.workflow_definition.model === "string" && (value.workflow_definition.temperature === null || finiteNumber(value.workflow_definition.temperature))) ||
+    (isExactDocument(value.workflow_definition, ["inputs"]) && isStructuredInputRecord(value.workflow_definition.inputs));
   const ragValid = value.application_rag === null || (isExactDocument(value.application_rag, ["input"]) && nonEmptyString(value.application_rag.input, 8000));
   const promptValid = value.prompt_application === null || (isExactDocument(value.prompt_application, ["variables"]) && isJsonRecord(value.prompt_application.variables));
   const agentValid = value.agent_copilot === null || (isExactDocument(value.agent_copilot, ["task", "locale", "conversation_id", "artifacts", "context"]) &&
@@ -779,7 +825,7 @@ function isCampaignDocument(value: unknown, config: ApplicationEvaluationConfig)
   if (!isExactDocument(value, CAMPAIGN_KEYS)) return false;
   const itemsValid = Array.isArray(value.items) && value.items.length > 0 && value.items.length <= 20 &&
     value.items.every(isCampaignItemDocument);
-  return value.schema_version === CAMPAIGN_SCHEMA && nonEmptyString(value.campaign_id) && nonEmptyString(value.client_campaign_key) &&
+  return value.schema_version === campaignSchemaForProfile(value.execution_profile) && nonEmptyString(value.campaign_id) && nonEmptyString(value.client_campaign_key) &&
     positiveInteger(value.record_version) && scopeDocumentMatches(value, config) && nonEmptyString(value.plan_id) &&
     positiveInteger(value.plan_version) && digest(value.plan_digest) && isProfile(value.execution_profile) &&
     nonEmptyString(value.quota_api_key_id) && (value.authority === null || isAuthorityDocument(value.authority)) &&
@@ -839,7 +885,7 @@ function isPairItemDocument(value: unknown): value is Document {
 
 function mapPlan(value: Document): ApplicationEvaluationPlan {
   return {
-    schemaVersion: PLAN_SCHEMA,
+    schemaVersion: value.schema_version as ApplicationEvaluationPlan["schemaVersion"],
     planId: String(value.plan_id),
     recordVersion: Number(value.record_version),
     latestPlanVersion: Number(value.latest_plan_version),
@@ -863,7 +909,7 @@ function mapPlan(value: Document): ApplicationEvaluationPlan {
 
 function mapVersion(value: Document): ApplicationEvaluationPlanVersion {
   return {
-    schemaVersion: PLAN_VERSION_SCHEMA,
+    schemaVersion: value.schema_version as ApplicationEvaluationPlanVersion["schemaVersion"],
     planId: String(value.plan_id),
     planVersion: Number(value.plan_version),
     previousPlanVersion: Number(value.previous_plan_version),
@@ -891,6 +937,9 @@ function mapTarget(value: Document): ApplicationEvaluationPlanTarget {
     expectedPointerVersion: Number(definition.expected_pointer_version),
     expectedDefinitionVersion: Number(definition.expected_definition_version),
     expectedDefinitionDigest: String(definition.expected_definition_digest),
+    inputContract: Object.hasOwn(definition, "input_contract")
+      ? parseStructuredRuntimeInputContractDocument(definition.input_contract)
+      : null,
   } };
 }
 
@@ -903,9 +952,13 @@ function mapPlanItem(value: Document): ApplicationEvaluationPlanItem {
     itemKey: String(value.item_key),
     name: String(value.name),
     expectedClassification: value.expected_classification as ApplicationEvaluationClassification,
-    workflowDefinition: workflow ? {
+    workflowDefinition: workflow ? Object.hasOwn(workflow, "inputs") ? {
+      inputText: "", conditionValues: {}, model: "", temperature: null,
+      inputs: workflow.inputs as StructuredRuntimeInputValues,
+    } : {
       inputText: String(workflow.input_text), conditionValues: workflow.condition_values as Record<string, boolean>,
       model: String(workflow.model), temperature: workflow.temperature === null ? null : Number(workflow.temperature),
+      inputs: null,
     } : null,
     applicationRAG: rag ? { input: String(rag.input) } : null,
     promptApplication: prompt ? { variables: prompt.variables as Record<string, JsonValue> } : null,
@@ -919,7 +972,7 @@ function mapPlanItem(value: Document): ApplicationEvaluationPlanItem {
 function mapCampaign(value: Document): ApplicationEvaluationCampaign {
   const authority = value.authority as Document | null;
   return {
-    schemaVersion: CAMPAIGN_SCHEMA,
+    schemaVersion: value.schema_version as ApplicationEvaluationCampaign["schemaVersion"],
     campaignId: String(value.campaign_id),
     clientCampaignKey: String(value.client_campaign_key),
     recordVersion: Number(value.record_version),
@@ -993,12 +1046,17 @@ function mapPairReview(value: Document): ApplicationEvaluationPairReview {
 }
 
 function encodeTarget(value: ApplicationEvaluationPlanTarget): Document {
-  return { workflow_definition: value.workflowDefinition ? {
+  if (!value.workflowDefinition) return { workflow_definition: null };
+  const definition: Document = {
     definition_id: value.workflowDefinition.definitionId,
     expected_pointer_version: value.workflowDefinition.expectedPointerVersion,
     expected_definition_version: value.workflowDefinition.expectedDefinitionVersion,
     expected_definition_digest: value.workflowDefinition.expectedDefinitionDigest,
-  } : null };
+  };
+  if (value.workflowDefinition.inputContract) {
+    definition.input_contract = encodeStructuredInputContract(value.workflowDefinition.inputContract);
+  }
+  return { workflow_definition: definition };
 }
 
 function encodePlanItem(value: ApplicationEvaluationPlanItem): Document {
@@ -1006,7 +1064,9 @@ function encodePlanItem(value: ApplicationEvaluationPlanItem): Document {
     item_key: value.itemKey,
     name: value.name,
     expected_classification: value.expectedClassification,
-    workflow_definition: value.workflowDefinition ? {
+    workflow_definition: value.workflowDefinition ? value.workflowDefinition.inputs !== null ? {
+      inputs: value.workflowDefinition.inputs,
+    } : {
       input_text: value.workflowDefinition.inputText,
       condition_values: value.workflowDefinition.conditionValues,
       model: value.workflowDefinition.model,
@@ -1029,15 +1089,56 @@ function validPlanDraft(value: ApplicationEvaluationPlanDraft): boolean {
   const workflowTarget = value.target.workflowDefinition;
   if (value.executionProfile === "workflow_definition_executor_v1") {
     if (!workflowTarget || !DIGEST.test(workflowTarget.expectedDefinitionDigest) ||
-      !positiveInteger(workflowTarget.expectedPointerVersion) || !positiveInteger(workflowTarget.expectedDefinitionVersion)) return false;
+      !positiveInteger(workflowTarget.expectedPointerVersion) || !positiveInteger(workflowTarget.expectedDefinitionVersion) || workflowTarget.inputContract !== null) return false;
+  } else if (value.executionProfile === "workflow_definition_executor_v2") {
+    if (!workflowTarget || !DIGEST.test(workflowTarget.expectedDefinitionDigest) ||
+      !positiveInteger(workflowTarget.expectedPointerVersion) || !positiveInteger(workflowTarget.expectedDefinitionVersion) ||
+      workflowTarget.inputContract === null) return false;
   } else if (workflowTarget !== null) return false;
   return value.items.every((item) => {
     const fixtures = [item.workflowDefinition, item.applicationRAG, item.promptApplication, item.agentCopilot];
     const selected = fixtures.findIndex((fixture) => fixture !== null);
-    const expected = APPLICATION_EVALUATION_PROFILES.indexOf(value.executionProfile);
+    const expected = expectedFixtureIndex(value.executionProfile);
     return selected === expected && fixtures.filter((fixture) => fixture !== null).length === 1 &&
-      nonEmptyString(item.itemKey, 64) && nonEmptyString(item.name, 160) && isClassification(item.expectedClassification);
+      nonEmptyString(item.itemKey, 64) && nonEmptyString(item.name, 160) && isClassification(item.expectedClassification) &&
+      (value.executionProfile !== "workflow_definition_executor_v2" || isStructuredInputRecord(item.workflowDefinition?.inputs));
   });
+}
+
+function planSchemaForProfile(profile: unknown): string {
+  return profile === "workflow_definition_executor_v2" ? STRUCTURED_PLAN_SCHEMA : PLAN_SCHEMA;
+}
+
+function planVersionSchemaForProfile(profile: unknown): string {
+  return profile === "workflow_definition_executor_v2" ? STRUCTURED_PLAN_VERSION_SCHEMA : PLAN_VERSION_SCHEMA;
+}
+
+function campaignSchemaForProfile(profile: unknown): string {
+  return profile === "workflow_definition_executor_v2" ? STRUCTURED_CAMPAIGN_SCHEMA : CAMPAIGN_SCHEMA;
+}
+
+function expectedFixtureIndex(profile: ApplicationEvaluationProfile): number {
+  if (profile === "workflow_definition_executor_v1" || profile === "workflow_definition_executor_v2") return 0;
+  if (profile === "application_rag_invocation_v1") return 1;
+  if (profile === "prompt_application_invocation_v1") return 2;
+  return 3;
+}
+
+function encodeStructuredInputContract(contract: StructuredRuntimeInputContract): Document {
+  return {
+    contract_id: contract.contractId,
+    fields: contract.fields.map((field) => ({
+      name: field.name, value_type: field.valueType, required: field.required,
+      label: field.label, description: field.description,
+    })),
+    summary: contract.summary,
+    contract_digest: contract.contractDigest,
+  };
+}
+
+function isStructuredInputRecord(value: unknown): value is Record<string, string | number | boolean> {
+  return isDocument(value) && Object.values(value).every((item) =>
+    typeof item === "string" || typeof item === "boolean" || typeof item === "number" && Number.isFinite(item));
 }
 
 function offlinePlanList(config: ApplicationEvaluationConfig): ApplicationEvaluationPlanListEnvelope {

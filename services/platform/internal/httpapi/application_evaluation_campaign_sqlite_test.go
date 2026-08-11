@@ -114,6 +114,74 @@ func TestSQLiteApplicationEvaluationPlanAndCampaignSurviveRestart(t *testing.T) 
 	}
 }
 
+func TestSQLiteStructuredApplicationEvaluationSurvivesRestartWithoutCampaignValues(t *testing.T) {
+	databasePath := filepath.Join(t.TempDir(), "application-evaluation-structured.db")
+	runtime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: databasePath, Migrations: sqliteworkflowrunmigrations.Migrations()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	planService, evaluationContext := newApplicationEvaluationPlanTestService(t, "workflow_copilot")
+	repository := newSQLiteApplicationEvaluationRepository(runtime.DB())
+	planService.repository = repository
+	planService.newPlanID = func() (string, error) { return "aeplan_bbbbbbbbbbbbbbbb", nil }
+	created := planService.Create(evaluationContext, applicationEvaluationStructuredPlanInput(t, "Structured durable campaign"))
+	if created.FailureCode != "" || created.Plan == nil || created.Version == nil {
+		_ = runtime.Close()
+		t.Fatalf("create SQLite structured plan: %+v", created)
+	}
+	authority := applicationEvaluationStructuredWorkflowAuthority(t, evaluationContext, created.Version.Target.WorkflowDefinition)
+	runStore := newMemoryWorkflowRunStore(10)
+	campaignService := newApplicationEvaluationCampaignService(
+		repository,
+		func(ApplicationEvaluationContext, ApplicationEvaluationPlanVersion) (ApplicationEvaluationCampaignAuthority, string) {
+			return authority, ""
+		},
+		func(callContext ApplicationEvaluationContext, _ ApplicationEvaluationPlanVersion, item ApplicationEvaluationPlanItem, runID string) (*WorkflowRunRecord, string, string) {
+			run := applicationEvaluationSucceededStructuredDefinitionRun(t, callContext, authority, item, runID)
+			storeTerminalComparisonTestRun(t, runStore, applicationEvaluationWorkflowRunContext(callContext), run)
+			return run, "", ""
+		},
+		func(callContext ApplicationEvaluationContext, runID string) (WorkflowRunRecord, bool, error) {
+			return runStore.ReadRun(applicationEvaluationWorkflowRunContext(callContext), runID)
+		},
+	)
+	executed := campaignService.Execute(evaluationContext, ApplicationEvaluationCampaignExecuteInput{
+		PlanID: created.Plan.PlanID, PlanVersion: created.Version.PlanVersion, PlanDigest: created.Version.PlanDigest,
+		ExpectedPlanRecordVersion: created.Plan.RecordVersion, ClientCampaignKey: "structured_sqlite", QuotaAPIKeyID: "key_aaaaaaaaaaaaaaaa",
+		AcknowledgeSequentialExecution: true, AcknowledgeQuotaConsumption: true,
+	})
+	if executed.FailureCode != "" || executed.Campaign == nil || executed.Campaign.State != applicationEvaluationCampaignStateSucceeded {
+		_ = runtime.Close()
+		t.Fatalf("execute SQLite structured campaign: %+v", executed)
+	}
+	var leakedCampaignValues int
+	if err = runtime.DB().QueryRowContext(context.Background(), `SELECT count(*) FROM application_evaluation_campaigns WHERE instr(sanitized_campaign_record,'Ada') > 0 OR instr(sanitized_campaign_record,'"inputs"') > 0`).Scan(&leakedCampaignValues); err != nil || leakedCampaignValues != 0 {
+		_ = runtime.Close()
+		t.Fatalf("structured campaign persisted fixture values: count=%d err=%v", leakedCampaignValues, err)
+	}
+	if err = runtime.Close(); err != nil {
+		t.Fatal(err)
+	}
+	restarted, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: databasePath, Migrations: sqliteworkflowrunmigrations.Migrations()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer restarted.Close()
+	restartedRepository := newSQLiteApplicationEvaluationRepository(restarted.DB())
+	plan, found, err := restartedRepository.ReadPlan(evaluationContext, created.Plan.PlanID)
+	if err != nil || !found || plan.SchemaVersion != applicationEvaluationStructuredPlanSchemaVersion {
+		t.Fatalf("read restarted structured plan: found=%v err=%v plan=%+v", found, err, plan)
+	}
+	version, found, err := restartedRepository.ReadPlanVersion(evaluationContext, created.Plan.PlanID, created.Version.PlanVersion)
+	if err != nil || !found || version.SchemaVersion != applicationEvaluationStructuredPlanVersionSchemaVersion || version.Items[0].WorkflowDefinition == nil || version.Items[0].WorkflowDefinition.Inputs["customer_name"] != "Ada" {
+		t.Fatalf("read restarted structured plan version: found=%v err=%v version=%+v", found, err, version)
+	}
+	campaign, found, err := restartedRepository.ReadCampaign(evaluationContext, executed.Campaign.CampaignID)
+	if err != nil || !found || campaign.SchemaVersion != applicationEvaluationStructuredCampaignSchemaVersion || campaign.Items[0].RunSchemaVersion != workflowRunRecordDefinitionStructuredSchemaVersion {
+		t.Fatalf("read restarted structured campaign: found=%v err=%v campaign=%+v", found, err, campaign)
+	}
+}
+
 func TestSQLiteApplicationEvaluationStoredContractCloses(t *testing.T) {
 	runtime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: filepath.Join(t.TempDir(), "application-evaluation-corruption.db"), Migrations: sqliteworkflowrunmigrations.Migrations()})
 	if err != nil {

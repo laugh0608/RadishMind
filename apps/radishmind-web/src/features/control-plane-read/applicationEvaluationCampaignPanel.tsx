@@ -25,6 +25,13 @@ import {
   type ApplicationEvaluationPlanVersion,
   type ApplicationEvaluationProfile,
 } from "./applicationEvaluationCampaignConsumer.ts";
+import StructuredRuntimeInputEditor from "./StructuredRuntimeInputEditor.tsx";
+import {
+  structuredRuntimeInputAuthorityKey,
+  validateStructuredRuntimeInputDrafts,
+  type StructuredRuntimeInputDrafts,
+  type StructuredRuntimeInputValues,
+} from "./structuredRuntimeInput.ts";
 
 type EvaluationTask = "plan" | "campaign" | "pair" | "handoff";
 type LoadState = "offline" | "loading" | "ready" | "empty" | "failed";
@@ -599,9 +606,17 @@ function PlanOwner({
           <textarea value={targetJSON} onChange={(event) => onTargetJSONChange(event.target.value)} spellCheck={false} disabled={operationPending} />
         </label>
         <label className="is-code is-items">
-          <span>Ordered fixtures · 1–20 · strict JSON</span>
+          <span>{profile === "workflow_definition_executor_v2"
+            ? "Ordered fixtures · 1–20 · advanced strict JSON"
+            : "Ordered fixtures · 1–20 · strict JSON"}</span>
           <textarea value={itemsJSON} onChange={(event) => onItemsJSONChange(event.target.value)} spellCheck={false} disabled={operationPending} />
         </label>
+        {profile === "workflow_definition_executor_v2" ? <StructuredEvaluationFixtureEditor
+          targetJSON={targetJSON}
+          itemsJSON={itemsJSON}
+          disabled={operationPending}
+          onItemsJSONChange={onItemsJSONChange}
+        /> : null}
       </div>
       {!pending ? (
         <div className="application-evaluation-actions">
@@ -623,6 +638,98 @@ function PlanOwner({
       )}
     </section>
   );
+}
+
+function StructuredEvaluationFixtureEditor({
+  targetJSON,
+  itemsJSON,
+  disabled,
+  onItemsJSONChange,
+}: {
+  targetJSON: string;
+  itemsJSON: string;
+  disabled: boolean;
+  onItemsJSONChange: (value: string) => void;
+}) {
+  const source = useMemo(() => {
+    try {
+      const draft = parseApplicationEvaluationPlanDraft(
+        "Structured evaluation fixture editor",
+        "workflow_definition_executor_v2",
+        targetJSON,
+        itemsJSON,
+      );
+      const contract = draft.target.workflowDefinition?.inputContract ?? null;
+      return contract ? { contract, items: draft.items } : null;
+    } catch {
+      return null;
+    }
+  }, [itemsJSON, targetJSON]);
+  const [selectedItemKey, setSelectedItemKey] = useState("");
+  const selectedItem = source?.items.find((item) => item.itemKey === selectedItemKey) ?? source?.items[0] ?? null;
+  const sourceInputs = selectedItem?.workflowDefinition?.inputs ?? {};
+  const sourceKey = source && selectedItem
+    ? `${structuredRuntimeInputAuthorityKey(source.contract)}:${selectedItem.itemKey}:${JSON.stringify(sourceInputs)}`
+    : "invalid";
+  const [drafts, setDrafts] = useState<StructuredRuntimeInputDrafts>(() => runtimeInputDrafts(sourceInputs));
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [validationSummary, setValidationSummary] = useState("");
+
+  useEffect(() => {
+    setSelectedItemKey(selectedItem?.itemKey ?? "");
+    setDrafts(runtimeInputDrafts(sourceInputs));
+    setFieldErrors({});
+    setValidationSummary("");
+  }, [sourceKey]);
+
+  if (!source || !selectedItem) {
+    return <div className="application-evaluation-structured-fixture invalid">
+      <strong>Structured fixture editor unavailable</strong>
+      <p>Load an exact v2 Definition target contract and valid ordered fixtures to enable typed editing.</p>
+    </div>;
+  }
+  const validSource = source;
+  const currentItem = selectedItem;
+
+  function updateDrafts(next: StructuredRuntimeInputDrafts) {
+    setDrafts(next);
+    const validation = validateStructuredRuntimeInputDrafts(validSource.contract, next);
+    setFieldErrors(validation.fieldErrors);
+    setValidationSummary(validation.summary);
+    if (!validation.ok) return;
+    const nextItems = validSource.items.map((item) => item.itemKey === currentItem.itemKey ? {
+      ...item,
+      workflowDefinition: item.workflowDefinition ? { ...item.workflowDefinition, inputs: validation.inputs } : null,
+    } : item);
+    onItemsJSONChange(serializeApplicationEvaluationItems(nextItems));
+  }
+
+  return <div className="application-evaluation-structured-fixture">
+    <div className="application-evaluation-structured-fixture-toolbar">
+      <div>
+        <strong>Typed fixture input</strong>
+        <p>Values are validated against the immutable Definition contract before they update the fixture JSON.</p>
+      </div>
+      <label>
+        <span>Fixture</span>
+        <select value={selectedItem.itemKey} onChange={(event) => setSelectedItemKey(event.target.value)} disabled={disabled}>
+          {source.items.map((item) => <option key={item.itemKey} value={item.itemKey}>{item.name} · {item.itemKey}</option>)}
+        </select>
+      </label>
+    </div>
+    <StructuredRuntimeInputEditor
+      contract={source.contract}
+      drafts={drafts}
+      fieldErrors={fieldErrors}
+      disabled={disabled}
+      onChange={updateDrafts}
+    />
+    {validationSummary ? <p className="application-evaluation-structured-fixture-error" role="alert">{validationSummary}</p> : null}
+  </div>;
+}
+
+function runtimeInputDrafts(values: StructuredRuntimeInputValues): StructuredRuntimeInputDrafts {
+  return Object.fromEntries(Object.entries(values).map(([name, value]) => [name, typeof value === "boolean" ? value : String(value)]));
 }
 
 function CampaignOwner({

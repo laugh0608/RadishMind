@@ -192,7 +192,7 @@ test("Application Evaluation fails closed on forbidden, extra, scope-drifted, an
   }
 });
 
-test("Application Evaluation templates cover all four profiles and reject secret-bearing drafts", () => {
+test("Application Evaluation templates cover all five profiles and reject secret-bearing drafts", () => {
   for (const profile of APPLICATION_EVALUATION_PROFILES) {
     const template = applicationEvaluationPlanTemplate(profile);
     const parsed = parseApplicationEvaluationPlanDraft(
@@ -219,6 +219,38 @@ test("Application Evaluation templates cover all four profiles and reject secret
     serializeApplicationEvaluationTarget(template.target),
     JSON.stringify(secretItems),
   ), /forbidden field/);
+});
+
+test("Application Evaluation v2 decodes exact contracts and sends typed fixtures only", async () => {
+  const originalFetch = globalThis.fetch;
+  const bodies: Array<Record<string, unknown>> = [];
+  globalThis.fetch = async (input, init) => {
+    const url = new URL(String(input));
+    if (init?.method === "POST") {
+      bodies.push(JSON.parse(String(init.body)) as Record<string, unknown>);
+    }
+    return jsonResponse(url.pathname.endsWith("/versions/1") || init?.method === "POST"
+      ? structuredPlanEnvelope()
+      : { ...scope(), plans: [structuredPlanRecord()], next_cursor: "", has_more: false });
+  };
+  try {
+    const listed = await listApplicationEvaluationPlans(config);
+    const exact = await readApplicationEvaluationPlanVersion(config, "plan_structured", 1);
+    assert.equal(listed.plans[0]?.schemaVersion, "application_evaluation_plan.v2");
+    assert.equal(exact.version?.target.workflowDefinition?.inputContract?.contractId, "contract_structured");
+    assert.deepEqual(exact.version?.items[0]?.workflowDefinition?.inputs, { customer_name: "Ada", retry_count: 2 });
+
+    const draft = applicationEvaluationPlanTemplate("workflow_definition_executor_v2");
+    draft.target = exact.version?.target ?? draft.target;
+    draft.items = exact.version?.items ?? draft.items;
+    await createApplicationEvaluationPlan(config, draft);
+    const body = bodies[0] as { target: { workflow_definition: Record<string, unknown> }; items: Array<{ workflow_definition: Record<string, unknown> }> };
+    assert.deepEqual(Object.keys(body.items[0]?.workflow_definition ?? {}), ["inputs"]);
+    assert.equal(Object.hasOwn(body.target.workflow_definition, "input_contract"), true);
+    assert.equal(JSON.stringify(body).includes("input_text"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 function scope() {
@@ -291,6 +323,58 @@ function planVersion() {
     request_id: "request_plan_version",
     audit_ref: "audit_plan_version",
   };
+}
+
+function structuredContractRecord() {
+  return {
+    contract_id: "contract_structured",
+    fields: [
+      { name: "customer_name", value_type: "string", required: true, label: "Customer", description: "Evaluation customer." },
+      { name: "retry_count", value_type: "integer", required: false, label: "Retries", description: "Evaluation retry count." },
+    ],
+    summary: "Typed evaluation inputs.",
+    contract_digest: digest,
+  };
+}
+
+function structuredPlanRecord() {
+  return {
+    ...planRecord(),
+    schema_version: "application_evaluation_plan.v2",
+    plan_id: "plan_structured",
+    execution_profile: "workflow_definition_executor_v2",
+    name: "Structured workflow regression",
+  };
+}
+
+function structuredPlanVersion() {
+  return {
+    ...planVersion(),
+    schema_version: "application_evaluation_plan_version.v2",
+    plan_id: "plan_structured",
+    execution_profile: "workflow_definition_executor_v2",
+    name: "Structured workflow regression",
+    target: { workflow_definition: {
+      definition_id: "definition_structured",
+      expected_pointer_version: 2,
+      expected_definition_version: 3,
+      expected_definition_digest: digest,
+      input_contract: structuredContractRecord(),
+    } },
+    items: [{
+      item_key: "case_01",
+      name: "Representative structured case",
+      expected_classification: "unchanged",
+      workflow_definition: { inputs: { customer_name: "Ada", retry_count: 2 } },
+      application_rag: null,
+      prompt_application: null,
+      agent_copilot: null,
+    }],
+  };
+}
+
+function structuredPlanEnvelope() {
+  return { ...scope(), plan: structuredPlanRecord(), version: structuredPlanVersion(), current_record_version: 3, current_state: "active" };
 }
 
 function campaignRecord(campaignId = "campaign_candidate", recordVersion = 7) {

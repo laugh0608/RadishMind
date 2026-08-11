@@ -1,6 +1,6 @@
 # 应用评测计划、受控执行与证据归档（开发 / 测试态）v1
 
-更新时间：2026-08-10
+更新时间：2026-08-11
 
 状态：`application_evaluation_campaign_controlled_execution_dev_test_v1_completed`
 
@@ -97,6 +97,7 @@ Plan current record 不重复保存 fixture 正文。读取具体输入必须读
 | 执行 Profile | application / target | fixture | 既有 Run |
 | --- | --- | --- | --- |
 | `workflow_definition_executor_v1` | workflow application + exact definition id / pointer version / definition version / digest | `input_text`、`condition_values`、可选 model / temperature | v5 |
+| `workflow_definition_executor_v2` | workflow application + exact definition / pointer / input contract id 与 digest | `inputs`；按不可变合同校验的扁平 typed fixture | v8 |
 | `application_rag_invocation_v1` | RAG-capable application + active RAG assignment | `input` | v4 |
 | `prompt_application_invocation_v1` | `prompt_application` + active Prompt assignment | `variables` | v6 |
 | `agent_copilot_suggestion_v1` | `agent` + active Agent assignment | `task`、`locale`、可选 conversation id、artifacts、context | v7 |
@@ -215,6 +216,7 @@ campaign 不锁住发布或 assignment owner，也不通过长事务包住 provi
 ## 当前实现进度
 
 - 批次 A 至 D 已实现：领域合同、memory / SQLite / PostgreSQL repository、SQLite `0016` / PostgreSQL `0019` migration、严格 Plan / Campaign / Pair HTTP、四 Profile 显式 executor 映射、authority checkpoint、确定性 Run ID、quota binding、interrupted reconciliation，以及 Comparison / Case / Suite handoff。
+- Workflow Definition 结构化运行输入专题批次 D 在原 owner 上增加 Plan / Plan Version / Campaign v2 与第五个 `workflow_definition_executor_v2` Profile；typed fixture 只使用 `{inputs}`，Campaign 逐项重读 exact Definition / contract authority，Run v8 pair 交给 Comparison v7 和既有 Case / Suite。SQLite `0019` 与 PostgreSQL `0022` 扩展共享 Workflow Run Store；v1 资源不迁移、不回退，Campaign 与 Run 不复制 fixture 正文。
 - PostgreSQL repository 使用行锁与 CAS；SQLite 与 PostgreSQL 都拒绝版本覆盖、资源删除和非法状态迁移。Case / Suite partial handoff 以 candidate campaign 为单一锚点逐项 checkpoint。
 - 相邻测试覆盖计划版本、campaign 幂等与顺序执行、quota binding、多 LLM 节点独立 provider-attempt admission、authority drift、quota failure、reconcile 不重放、strict HTTP、权限、active API Key 归属、SQLite restart / corruption、PostgreSQL migration 与 repository contract、Comparison preview、complete / partial handoff。
 - 批次 E 的设计、React、strict consumer、测试、build、三视口、memory 与 SQLite 真实浏览器连续链均已完成；开发服务均已停止。

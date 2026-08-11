@@ -87,6 +87,69 @@ func TestApplicationEvaluationPlanHTTPStrictLifecycle(t *testing.T) {
 	}
 }
 
+func TestApplicationEvaluationPlanHTTPStructuredFixtureUsesV2Contract(t *testing.T) {
+	server := NewServer(config.Config{
+		ControlPlaneReadDevAuthEnabled: true, ApplicationCatalogDevHTTPEnabled: true,
+		WorkflowRAGEvaluationDevEnabled: true, ApplicationEvaluationCampaignDevEnabled: true,
+		ApplicationEvaluationCampaignEnvironment: applicationEvaluationEnvironmentTest, Provider: "mock",
+		APIKeyLifecycleDevHTTPEnabled: true, GatewayAuthMode: gatewayAPIKeyAuthenticationSource,
+		GatewayRequestHistoryDevEnabled: true, GatewayRequestQuotaEnforcementDevEnabled: true, GatewayRequestQuotaEnvironment: applicationEvaluationEnvironmentTest,
+	}, Options{BuildVersion: "test"})
+	t.Cleanup(server.Close)
+	applicationID := "app_bbbbbbbbbbbbbbbb"
+	catalog := server.applicationCatalogService()
+	catalog.newID = func() (string, error) { return applicationID, nil }
+	if created := catalog.Create(ApplicationCatalogContext{
+		RequestContext: context.Background(), RequestID: "request-app-structured", TenantRef: "tenant_demo",
+		WorkspaceID: "workspace_demo", ActorRef: "subject_demo_user", OwnerSubjectRef: "subject_demo_user",
+		AuditRef: "audit-app-structured", WriteEnabled: true,
+	}, ApplicationCatalogCreateInput{DisplayName: "Structured evaluation HTTP app", ApplicationKind: "workflow_copilot"}); created.FailureCode != "" {
+		t.Fatalf("create application: %+v", created)
+	}
+
+	input := applicationEvaluationStructuredPlanInput(t, "HTTP structured regression")
+	response := serveApplicationEvaluationRequest(t, server, http.MethodPost,
+		"/v1/user-workspace/applications/"+applicationID+"/evaluation-plans",
+		applicationEvaluationPlanCreateBody{
+			WorkspaceID: "workspace_demo", Environment: applicationEvaluationEnvironmentTest,
+			Name: input.Name, ExecutionProfile: input.ExecutionProfile, Target: input.Target, Items: input.Items,
+		}, applicationID, "application_evaluations:write")
+	body := response.Body.String()
+	envelope := decodeApplicationEvaluationPlanHTTPEnvelope(t, response, http.StatusOK)
+	if envelope.Plan == nil || envelope.Version == nil ||
+		envelope.Plan.SchemaVersion != applicationEvaluationStructuredPlanSchemaVersion ||
+		envelope.Version.SchemaVersion != applicationEvaluationStructuredPlanVersionSchemaVersion ||
+		envelope.Version.Target.WorkflowDefinition == nil || envelope.Version.Target.WorkflowDefinition.InputContract == nil {
+		t.Fatalf("unexpected structured envelope: %+v", envelope)
+	}
+	if !strings.Contains(body, `"workflow_definition":{"inputs":{"customer_name":"Ada"}}`) ||
+		strings.Contains(body, `"input_text"`) {
+		t.Fatalf("structured fixture response drifted: %s", body)
+	}
+
+	secretBody := strings.Replace(bodyForApplicationEvaluationStructuredCreate(t, input), `"Ada"`, `"token=do-not-store"`, 1)
+	secretRequest := httptest.NewRequest(http.MethodPost,
+		"/v1/user-workspace/applications/"+applicationID+"/evaluation-plans", strings.NewReader(secretBody))
+	setApplicationEvaluationHTTPHeaders(secretRequest, applicationID, "application_evaluations:write")
+	secretResponse := httptest.NewRecorder()
+	server.httpServer.Handler.ServeHTTP(secretResponse, secretRequest)
+	if secretResponse.Code != http.StatusForbidden || !strings.Contains(secretResponse.Body.String(), ApplicationEvaluationFailureSecretForbidden) {
+		t.Fatalf("secret-bearing structured fixture was accepted: status=%d body=%s", secretResponse.Code, secretResponse.Body.String())
+	}
+}
+
+func bodyForApplicationEvaluationStructuredCreate(t *testing.T, input ApplicationEvaluationPlanCreateInput) string {
+	t.Helper()
+	payload, err := json.Marshal(applicationEvaluationPlanCreateBody{
+		WorkspaceID: "workspace_demo", Environment: applicationEvaluationEnvironmentTest,
+		Name: input.Name, ExecutionProfile: input.ExecutionProfile, Target: input.Target, Items: input.Items,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(payload)
+}
+
 func TestApplicationEvaluationPlanHTTPPermissionEnvironmentAndUnknownFieldClose(t *testing.T) {
 	server := NewServer(config.Config{
 		ControlPlaneReadDevAuthEnabled: true, ApplicationCatalogDevHTTPEnabled: true,

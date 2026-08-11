@@ -9,9 +9,9 @@ import (
 	"radishmind.local/services/platform/internal/sqlitedev"
 )
 
-func TestWorkflowRunSQLiteMigrationsAreOrderedThroughStructuredApplicationSessions(t *testing.T) {
+func TestWorkflowRunSQLiteMigrationsAreOrderedThroughStructuredApplicationEvaluation(t *testing.T) {
 	migrations := Migrations()
-	if len(migrations) != 18 {
+	if len(migrations) != 19 {
 		t.Fatalf("unexpected workflow run SQLite migration count: %d", len(migrations))
 	}
 	if migrations[0].ID != legacyMigrationID || migrations[0].StoreSchemaVersion != legacyRunStoreSchemaVersion {
@@ -65,8 +65,11 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughStructuredApplicationSessio
 	if migrations[16].ID != structuredDefinitionMigrationID || migrations[16].StoreSchemaVersion != structuredDefinitionSchemaVersion {
 		t.Fatalf("workflow definition structured input migration drifted: %#v", migrations[16])
 	}
-	if migrations[17].ID != MigrationID || migrations[17].StoreSchemaVersion != StoreSchemaVersion {
+	if migrations[17].ID != structuredSessionMigrationID || migrations[17].StoreSchemaVersion != structuredSessionSchemaVersion {
 		t.Fatalf("application structured session migration drifted: %#v", migrations[17])
+	}
+	if migrations[18].ID != MigrationID || migrations[18].StoreSchemaVersion != StoreSchemaVersion {
+		t.Fatalf("application structured evaluation migration drifted: %#v", migrations[18])
 	}
 	for _, required := range []string{
 		"workflow_run_record.v8",
@@ -89,6 +92,18 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughStructuredApplicationSessio
 	} {
 		if !strings.Contains(upSQLV18, required) {
 			t.Fatalf("SQLite application structured session migration is missing %q", required)
+		}
+	}
+	for _, required := range []string{
+		"application_evaluation_plan.v2",
+		"application_evaluation_plan_version.v2",
+		"application_evaluation_campaign.v2",
+		"workflow_definition_executor_v2",
+		"input_contract",
+		"application_evaluation_campaigns_pre_structured_inputs",
+	} {
+		if !strings.Contains(upSQLV19, required) {
+			t.Fatalf("SQLite application structured evaluation migration is missing %q", required)
 		}
 	}
 	for _, required := range []string{
@@ -325,7 +340,7 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		_ = upgradedRuntime.Close()
 		t.Fatalf("legacy workflow run changed during upgrade: count=%d err=%v", legacyRunCount, err)
 	}
-	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 18 {
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 19 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("unexpected workflow run migration markers: count=%d err=%v", migrationCount, err)
 	}

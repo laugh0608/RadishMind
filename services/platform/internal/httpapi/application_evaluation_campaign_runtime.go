@@ -34,16 +34,17 @@ func (server *Server) resolveApplicationEvaluationCampaignAuthority(ctx Applicat
 			return ApplicationEvaluationCampaignAuthority{}, applicationEvaluationAuthorityFailure(failure)
 		}
 		return applicationEvaluationCampaignAuthorityPayload(version.ExecutionProfile, authority.Snapshot, authority.Snapshot.AuthorityDigest)
-	case applicationInteractionProfileWorkflow, applicationInteractionProfileRAG:
+	case applicationInteractionProfileWorkflow, applicationInteractionProfileWorkflowStructured, applicationInteractionProfileRAG:
 		binding := ApplicationInteractionProfileBinding{ExecutionProfile: version.ExecutionProfile}
-		if version.ExecutionProfile == applicationInteractionProfileWorkflow && version.Target.WorkflowDefinition != nil {
+		if (version.ExecutionProfile == applicationInteractionProfileWorkflow || version.ExecutionProfile == applicationInteractionProfileWorkflowStructured) && version.Target.WorkflowDefinition != nil {
 			binding.DefinitionID = version.Target.WorkflowDefinition.DefinitionID
 		}
 		snapshot, failure := server.applicationInteractionAuthorityResolver().Resolve(applicationEvaluationInteractionContext(ctx), binding)
 		if failure != "" {
 			return ApplicationEvaluationCampaignAuthority{}, applicationEvaluationAuthorityFailure(failure)
 		}
-		if version.ExecutionProfile == applicationInteractionProfileWorkflow && !applicationEvaluationWorkflowTargetMatchesAuthority(version.Target.WorkflowDefinition, snapshot.WorkflowDefinition) {
+		if (version.ExecutionProfile == applicationInteractionProfileWorkflow || version.ExecutionProfile == applicationInteractionProfileWorkflowStructured) &&
+			!applicationEvaluationWorkflowTargetMatchesAuthority(version.Target.WorkflowDefinition, snapshot.WorkflowDefinition, version.ExecutionProfile) {
 			return ApplicationEvaluationCampaignAuthority{}, ApplicationEvaluationFailureAuthorityChanged
 		}
 		return applicationEvaluationCampaignAuthorityPayload(version.ExecutionProfile, snapshot, snapshot.AuthorityDigest)
@@ -70,6 +71,19 @@ func (server *Server) invokeApplicationEvaluationCampaignItem(
 			DefinitionID: target.DefinitionID, ExpectedPointerVersion: target.ExpectedPointerVersion,
 			ExpectedDefinitionVersion: target.ExpectedDefinitionVersion, ExpectedDefinitionDigest: target.ExpectedDefinitionDigest,
 			InputText: fixture.InputText, ConditionValues: fixture.ConditionValues, Model: fixture.Model, Temperature: fixture.Temperature,
+		})
+		return result.Record, string(result.FailureCode), result.FailureSummary
+	case applicationInteractionProfileWorkflowStructured:
+		if version.Target.WorkflowDefinition == nil || item.WorkflowDefinition == nil || item.WorkflowDefinition.Inputs == nil {
+			return nil, ApplicationEvaluationFailureStoreContract, applicationEvaluationFailureSummary(ApplicationEvaluationFailureStoreContract)
+		}
+		target, fixture := version.Target.WorkflowDefinition, item.WorkflowDefinition
+		service := server.workflowDefinitionExecutionService()
+		service.executor.newRunID = func() (string, error) { return runID, nil }
+		result := service.StartRun(applicationEvaluationWorkflowRunContext(ctx), WorkflowDefinitionRunRequest{
+			DefinitionID: target.DefinitionID, ExpectedPointerVersion: target.ExpectedPointerVersion,
+			ExpectedDefinitionVersion: target.ExpectedDefinitionVersion, ExpectedDefinitionDigest: target.ExpectedDefinitionDigest,
+			Inputs: fixture.Inputs, ConditionValues: map[string]bool{},
 		})
 		return result.Record, string(result.FailureCode), result.FailureSummary
 	case applicationInteractionProfileRAG:
@@ -142,8 +156,18 @@ func agentCopilotApplicationEvaluationRuntimeContext(ctx ApplicationEvaluationCo
 	}
 }
 
-func applicationEvaluationWorkflowTargetMatchesAuthority(target *ApplicationEvaluationDefinitionTarget, authority *ApplicationInteractionWorkflowAuthority) bool {
-	return target != nil && authority != nil && target.DefinitionID == authority.DefinitionID &&
+func applicationEvaluationWorkflowTargetMatchesAuthority(target *ApplicationEvaluationDefinitionTarget, authority *ApplicationInteractionWorkflowAuthority, profile string) bool {
+	if target == nil || authority == nil || target.DefinitionID != authority.DefinitionID ||
+		target.ExpectedPointerVersion != authority.ActivationPointerVersion || target.ExpectedDefinitionVersion != authority.DefinitionVersion ||
+		target.ExpectedDefinitionDigest != authority.DefinitionDigest {
+		return false
+	}
+	if profile == applicationInteractionProfileWorkflowStructured {
+		return target.InputContract != nil && authority.InputContract != nil &&
+			target.InputContract.ContractID == authority.InputContract.ContractID &&
+			target.InputContract.ContractDigest == authority.InputContract.ContractDigest
+	}
+	return target.InputContract == nil && authority.InputContract == nil && target.DefinitionID == authority.DefinitionID &&
 		target.ExpectedPointerVersion == authority.ActivationPointerVersion && target.ExpectedDefinitionVersion == authority.DefinitionVersion &&
 		target.ExpectedDefinitionDigest == authority.DefinitionDigest
 }

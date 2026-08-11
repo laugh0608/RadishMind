@@ -94,8 +94,12 @@ func (service applicationEvaluationPlanService) Create(ctx ApplicationEvaluation
 			return applicationEvaluationPlanFailure(ApplicationEvaluationFailureStoreUnavailable)
 		}
 		now := service.currentTime().Format(time.RFC3339Nano)
+		planSchema, versionSchema, _, supported := applicationEvaluationSchemaVersions(profile)
+		if !supported {
+			return applicationEvaluationPlanFailure(ApplicationEvaluationFailureProfileIneligible)
+		}
 		version := ApplicationEvaluationPlanVersion{
-			SchemaVersion: applicationEvaluationPlanVersionSchemaVersion,
+			SchemaVersion: versionSchema,
 			PlanID:        planID, PlanVersion: 1, PreviousPlanVersion: 0,
 			TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, Environment: ctx.Environment, ApplicationID: ctx.ApplicationID,
 			Name: name, ExecutionProfile: profile, Target: target, Items: items,
@@ -106,7 +110,7 @@ func (service applicationEvaluationPlanService) Create(ctx ApplicationEvaluation
 			return applicationEvaluationPlanFailure(ApplicationEvaluationFailureStoreUnavailable)
 		}
 		plan := ApplicationEvaluationPlan{
-			SchemaVersion: applicationEvaluationPlanSchemaVersion, PlanID: planID, RecordVersion: 1,
+			SchemaVersion: planSchema, PlanID: planID, RecordVersion: 1,
 			LatestPlanVersion: 1, LatestPlanDigest: version.PlanDigest,
 			TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, Environment: ctx.Environment, ApplicationID: ctx.ApplicationID,
 			Name: name, ExecutionProfile: profile, ItemCount: len(items), LifecycleState: applicationEvaluationPlanStateActive,
@@ -153,9 +157,13 @@ func (service applicationEvaluationPlanService) Revise(ctx ApplicationEvaluation
 	if current.LifecycleState == applicationEvaluationPlanStateArchived {
 		return applicationEvaluationPlanConflictWithCode(current, ApplicationEvaluationFailureArchived)
 	}
+	planSchema, versionSchema, _, supported := applicationEvaluationSchemaVersions(profile)
+	if !supported || current.SchemaVersion != planSchema {
+		return applicationEvaluationPlanConflictWithCode(current, ApplicationEvaluationFailureProfileIneligible)
+	}
 	now := service.currentTime().Format(time.RFC3339Nano)
 	version := ApplicationEvaluationPlanVersion{
-		SchemaVersion: applicationEvaluationPlanVersionSchemaVersion, PlanID: planID,
+		SchemaVersion: versionSchema, PlanID: planID,
 		PlanVersion: current.LatestPlanVersion + 1, PreviousPlanVersion: current.LatestPlanVersion,
 		TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, Environment: ctx.Environment, ApplicationID: ctx.ApplicationID,
 		Name: name, ExecutionProfile: profile, Target: target, Items: items,
@@ -365,7 +373,7 @@ func (service applicationEvaluationPlanService) requireApplicationProfile(ctx Ap
 	}
 	eligible := false
 	switch profile {
-	case applicationInteractionProfileWorkflow, applicationInteractionProfileRAG:
+	case applicationInteractionProfileWorkflow, applicationInteractionProfileWorkflowStructured, applicationInteractionProfileRAG:
 		eligible = application.ApplicationKind == "workflow_copilot" || application.ApplicationKind == "docs_qa"
 	case applicationInteractionProfilePrompt:
 		eligible = application.ApplicationKind == "prompt_application"

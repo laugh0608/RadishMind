@@ -2,7 +2,7 @@
 
 更新时间：2026-08-11
 
-状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_completed_batch_d_next`
+状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_d_completed_batch_e_next`
 
 ## 功能定位
 
@@ -191,6 +191,10 @@ Application Session v4 只在 application active Definition 已绑定 `workflow_
 - 增加 Application Evaluation Plan / Campaign v2 typed fixture、authority checkpoint 与 pair handoff。
 - 保持 Campaign / Run metadata-only，不复制输入正文。
 
+批次 D 已完成。Comparison v7、Evaluation Case / Baseline / Suite 现在只在 exact `workflow_definition_executor.v2 + workflow_run_record.v8` 兼容域内消费 Definition 结构化运行；v5 / v8 混用、Definition lineage 或 contract digest 漂移均失败关闭。Application Evaluation Plan / Plan Version / Campaign v2 已接入 typed Definition fixture、authority / contract checkpoint、pair preview 和既有 Case / Suite handoff；Web 的 Plan owner 复用 `StructuredRuntimeInputEditor`，原始 JSON 只保留为高级审查面。Campaign 与 Run 仍只保存 metadata 和 refs，不复制 fixture 正文。
+
+memory 已覆盖双 Campaign → Comparison v7 → Case / Suite 完整交接、secret 与 contract drift；SQLite `0019` 已覆盖 v1 数据保留、v2 重启与 Campaign 隐私扫描；PostgreSQL `0022` 已冻结 v1 / v2 profile-schema 约束、回滚、pending migration 与 inspect。Web strict consumer、HTTP exact union 和 production build 已通过；真实三存储连续链、浏览器 Campaign 链与仓库全量门禁归入批次 E。
+
 ### 批次 E：连续产品链复验与收口
 
 - memory、SQLite、PostgreSQL 覆盖 Draft → Definition → Run → Comparison / Evaluation。
@@ -219,4 +223,4 @@ Application Session v4 只在 application active Definition 已绑定 `workflow_
 
 ## 当前下一步
 
-进入唯一任务卡批次 D：先把 Comparison、Evaluation Case / Baseline / Suite 的 exact v2 profile / Run v8 兼容设计和现有实现差距收口，再实现 Application Evaluation Plan / Campaign v2 typed Definition fixture、authority / contract checkpoint 与既有 Case / Suite handoff。继续不创建 S11 页面族，不扩大 production、secret 输入、自动执行、自动发布或业务写回边界。
+进入唯一任务卡批次 E：复验 memory、SQLite、PostgreSQL 的 Draft v2 → Definition v2 → Run v8 → Comparison v7 / Evaluation 连续链；在本地产品中完成 Direct Run、Session、Campaign、重启、隐私扫描、v1 回归、关键视口和 console。继续不创建 S11 页面族，不扩大 production、secret 输入、自动执行、自动发布或业务写回边界。

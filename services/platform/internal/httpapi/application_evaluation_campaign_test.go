@@ -457,6 +457,150 @@ func TestApplicationEvaluationCampaignPairMaterializesExactCasesAndSuite(t *test
 	}
 }
 
+func TestApplicationEvaluationStructuredPlanCampaignAndHandoff(t *testing.T) {
+	planService, ctx := newApplicationEvaluationPlanTestService(t, "workflow_copilot")
+	input := applicationEvaluationStructuredPlanInput(t, "Structured campaign")
+	created := planService.Create(ctx, input)
+	if created.FailureCode != "" || created.Plan == nil || created.Version == nil ||
+		created.Plan.SchemaVersion != applicationEvaluationStructuredPlanSchemaVersion ||
+		created.Version.SchemaVersion != applicationEvaluationStructuredPlanVersionSchemaVersion ||
+		created.Version.ExecutionProfile != applicationInteractionProfileWorkflowStructured {
+		t.Fatalf("create structured evaluation plan: %+v", created)
+	}
+	fixture := created.Version.Items[0].WorkflowDefinition
+	if fixture == nil || fixture.Inputs["customer_name"] != "Ada" || fixture.InputText != "" {
+		t.Fatalf("structured fixture was not normalized: %+v", fixture)
+	}
+	serializedVersion, err := json.Marshal(created.Version)
+	if err != nil || strings.Contains(string(serializedVersion), "input_text") || !strings.Contains(string(serializedVersion), `"inputs":{"customer_name":"Ada"}`) {
+		t.Fatalf("structured plan version JSON shape drift: err=%v payload=%s", err, serializedVersion)
+	}
+
+	legacyRevision := planService.Revise(ctx, created.Plan.PlanID, ApplicationEvaluationPlanReviseInput{
+		ExpectedVersion: created.Plan.RecordVersion, Name: "Legacy downgrade",
+		ExecutionProfile: applicationInteractionProfileWorkflow,
+		Target: ApplicationEvaluationPlanTarget{WorkflowDefinition: &ApplicationEvaluationDefinitionTarget{
+			DefinitionID: "definition-one", ExpectedPointerVersion: 1, ExpectedDefinitionVersion: 1,
+			ExpectedDefinitionDigest: "sha256:" + strings.Repeat("b", 64),
+		}},
+		Items: []ApplicationEvaluationPlanItem{{
+			ItemKey: "first", Name: "Legacy", ExpectedClassification: WorkflowRunComparisonUnchanged,
+			WorkflowDefinition: &ApplicationEvaluationDefinitionFixture{InputText: "legacy", ConditionValues: map[string]bool{}},
+		}},
+	})
+	if legacyRevision.FailureCode != ApplicationEvaluationFailureProfileIneligible || legacyRevision.CurrentRecordVersion != created.Plan.RecordVersion {
+		t.Fatalf("structured plan was downgraded to v1: %+v", legacyRevision)
+	}
+
+	authority := applicationEvaluationStructuredWorkflowAuthority(t, ctx, created.Version.Target.WorkflowDefinition)
+	runStore := newMemoryWorkflowRunStore(20)
+	campaignService := newApplicationEvaluationCampaignService(
+		planService.repository,
+		func(ApplicationEvaluationContext, ApplicationEvaluationPlanVersion) (ApplicationEvaluationCampaignAuthority, string) {
+			return authority, ""
+		},
+		func(callContext ApplicationEvaluationContext, _ ApplicationEvaluationPlanVersion, item ApplicationEvaluationPlanItem, runID string) (*WorkflowRunRecord, string, string) {
+			run := applicationEvaluationSucceededStructuredDefinitionRun(t, callContext, authority, item, runID)
+			storeTerminalComparisonTestRun(t, runStore, applicationEvaluationWorkflowRunContext(callContext), run)
+			return run, "", ""
+		},
+		func(callContext ApplicationEvaluationContext, runID string) (WorkflowRunRecord, bool, error) {
+			return runStore.ReadRun(applicationEvaluationWorkflowRunContext(callContext), runID)
+		},
+	)
+	execute := func(key string) ApplicationEvaluationCampaign {
+		result := campaignService.Execute(ctx, ApplicationEvaluationCampaignExecuteInput{
+			PlanID: created.Plan.PlanID, PlanVersion: created.Version.PlanVersion, PlanDigest: created.Version.PlanDigest,
+			ExpectedPlanRecordVersion: created.Plan.RecordVersion, ClientCampaignKey: key, QuotaAPIKeyID: "key_aaaaaaaaaaaaaaaa",
+			AcknowledgeSequentialExecution: true, AcknowledgeQuotaConsumption: true,
+		})
+		if result.FailureCode != "" || result.Campaign == nil || result.Campaign.State != applicationEvaluationCampaignStateSucceeded ||
+			result.Campaign.SchemaVersion != applicationEvaluationStructuredCampaignSchemaVersion ||
+			result.Campaign.Items[0].RunSchemaVersion != workflowRunRecordDefinitionStructuredSchemaVersion {
+			t.Fatalf("execute structured campaign %s: %+v", key, result)
+		}
+		campaignPayload, marshalErr := json.Marshal(result.Campaign)
+		if marshalErr != nil || strings.Contains(string(campaignPayload), "Ada") || strings.Contains(string(campaignPayload), `"inputs"`) {
+			t.Fatalf("campaign copied typed fixture: err=%v payload=%s", marshalErr, campaignPayload)
+		}
+		return *result.Campaign
+	}
+	baseline, candidate := execute("structured_baseline"), execute("structured_candidate")
+
+	evaluation := newWorkflowEvaluationService(newMemoryWorkflowEvaluationStore(10), runStore)
+	evaluation.newCaseID = func() (string, error) { return "eval_structured_handoff", nil }
+	suite := newWorkflowEvaluationSuiteService(newMemoryWorkflowEvaluationSuiteStore(10), evaluation)
+	suite.newSuiteID = func() (string, error) { return "suite_structured_handoff", nil }
+	handoffService := newApplicationEvaluationHandoffService(planService.repository, runStore, evaluation, suite)
+	preview := handoffService.Preview(ctx, ApplicationEvaluationPairInput{
+		BaselineCampaignID: baseline.CampaignID, CandidateCampaignID: candidate.CampaignID,
+	})
+	if preview.FailureCode != "" || preview.Review == nil || len(preview.Review.Items) != 1 ||
+		preview.Review.Items[0].Comparison == nil || preview.Review.Items[0].Comparison.SchemaVersion != workflowDefinitionStructuredRunComparisonSchemaVersion {
+		t.Fatalf("preview structured pair: %+v", preview)
+	}
+	handoff := handoffService.Materialize(ctx, ApplicationEvaluationHandoffInput{
+		BaselineCampaignID: baseline.CampaignID, CandidateCampaignID: candidate.CampaignID,
+		ExpectedBaselineRecordVersion: baseline.RecordVersion, ExpectedCandidateRecordVersion: candidate.RecordVersion,
+		AcknowledgeEvidenceMaterializing: true,
+	})
+	if handoff.FailureCode != "" || handoff.Handoff == nil || handoff.Handoff.State != "complete" ||
+		len(handoff.Handoff.CaseRefs) != 1 || handoff.Handoff.SuiteID == "" {
+		t.Fatalf("materialize structured handoff: %+v", handoff)
+	}
+}
+
+func TestApplicationEvaluationStructuredPlanRejectsSecretAndContractDrift(t *testing.T) {
+	planService, ctx := newApplicationEvaluationPlanTestService(t, "workflow_copilot")
+	secret := applicationEvaluationStructuredPlanInput(t, "Secret fixture")
+	secret.Items[0].WorkflowDefinition.Inputs["customer_name"] = "password=hunter2"
+	if result := planService.Create(ctx, secret); result.FailureCode != ApplicationEvaluationFailureSecretForbidden {
+		t.Fatalf("structured plan accepted a secret fixture: %+v", result)
+	}
+
+	created := planService.Create(ctx, applicationEvaluationStructuredPlanInput(t, "Authority drift"))
+	if created.FailureCode != "" || created.Plan == nil || created.Version == nil {
+		t.Fatalf("create authority drift plan: %+v", created)
+	}
+	authority := applicationEvaluationStructuredWorkflowAuthority(t, ctx, created.Version.Target.WorkflowDefinition)
+	drifted := authority
+	var snapshot ApplicationInteractionAuthoritySnapshot
+	if err := json.Unmarshal(authority.Snapshot, &snapshot); err != nil {
+		t.Fatal(err)
+	}
+	snapshot.WorkflowDefinition.InputContract.ContractDigest = "sha256:" + strings.Repeat("d", 64)
+	snapshot.AuthorityDigest, _ = applicationInteractionAuthorityDigest(snapshot)
+	drifted.AuthorityDigest = snapshot.AuthorityDigest
+	drifted.Snapshot, _ = json.Marshal(snapshot)
+	resolveCalls, invokeCalls := 0, 0
+	service := newApplicationEvaluationCampaignService(
+		planService.repository,
+		func(ApplicationEvaluationContext, ApplicationEvaluationPlanVersion) (ApplicationEvaluationCampaignAuthority, string) {
+			resolveCalls++
+			if resolveCalls == 1 {
+				return authority, ""
+			}
+			return drifted, ""
+		},
+		func(ApplicationEvaluationContext, ApplicationEvaluationPlanVersion, ApplicationEvaluationPlanItem, string) (*WorkflowRunRecord, string, string) {
+			invokeCalls++
+			return nil, "", ""
+		},
+		func(ApplicationEvaluationContext, string) (WorkflowRunRecord, bool, error) {
+			return WorkflowRunRecord{}, false, nil
+		},
+	)
+	result := service.Execute(ctx, ApplicationEvaluationCampaignExecuteInput{
+		PlanID: created.Plan.PlanID, PlanVersion: created.Version.PlanVersion, PlanDigest: created.Version.PlanDigest,
+		ExpectedPlanRecordVersion: created.Plan.RecordVersion, ClientCampaignKey: "structured_drift", QuotaAPIKeyID: "key_aaaaaaaaaaaaaaaa",
+		AcknowledgeSequentialExecution: true, AcknowledgeQuotaConsumption: true,
+	})
+	if result.Campaign == nil || result.Campaign.State != applicationEvaluationCampaignStateFailed ||
+		result.FailureCode != ApplicationEvaluationFailureAuthorityChanged || invokeCalls != 0 {
+		t.Fatalf("contract drift did not stop before invocation: result=%+v invokes=%d", result, invokeCalls)
+	}
+}
+
 func TestApplicationEvaluationCampaignHandoffPersistsPartialCaseRefs(t *testing.T) {
 	planService, ctx := newApplicationEvaluationPlanTestService(t, "workflow_copilot")
 	created := planService.Create(ctx, applicationEvaluationWorkflowPlanInput("Partial handoff"))
@@ -570,6 +714,88 @@ func applicationEvaluationPromptItem(key, name string, classification WorkflowRu
 		ItemKey: key, Name: name, ExpectedClassification: classification,
 		PromptApplication: &ApplicationEvaluationPromptFixture{Variables: map[string]any{"topic": "radish", "count": 2}},
 	}
+}
+
+func applicationEvaluationStructuredPlanInput(t *testing.T, name string) ApplicationEvaluationPlanCreateInput {
+	t.Helper()
+	normalized, code, summary := normalizeWorkflowStructuredInputContract(workflowStructuredInputContractForTest())
+	if code != "" {
+		t.Fatalf("normalize structured plan contract: code=%s summary=%s", code, summary)
+	}
+	contract := &WorkflowDefinitionContract{
+		ContractID: normalized.ContractID, Fields: cloneWorkflowStructuredInputFields(normalized.Fields),
+		Summary: normalized.Summary, ContractDigest: normalized.ContractDigest,
+	}
+	return ApplicationEvaluationPlanCreateInput{
+		Name: name, ExecutionProfile: applicationInteractionProfileWorkflowStructured,
+		Target: ApplicationEvaluationPlanTarget{WorkflowDefinition: &ApplicationEvaluationDefinitionTarget{
+			DefinitionID: "definition-one", ExpectedPointerVersion: 1, ExpectedDefinitionVersion: 1,
+			ExpectedDefinitionDigest: "sha256:" + strings.Repeat("b", 64), InputContract: contract,
+		}},
+		Items: []ApplicationEvaluationPlanItem{{
+			ItemKey: "first", Name: "Structured input", ExpectedClassification: WorkflowRunComparisonUnchanged,
+			WorkflowDefinition: &ApplicationEvaluationDefinitionFixture{Inputs: map[string]any{"customer_name": "Ada"}},
+		}},
+	}
+}
+
+func applicationEvaluationStructuredWorkflowAuthority(t *testing.T, ctx ApplicationEvaluationContext, target *ApplicationEvaluationDefinitionTarget) ApplicationEvaluationCampaignAuthority {
+	t.Helper()
+	if target == nil || target.InputContract == nil {
+		t.Fatal("structured target contract is missing")
+	}
+	snapshot := ApplicationInteractionAuthoritySnapshot{
+		SchemaVersion: applicationInteractionStructuredAuthoritySchemaVersion, ExecutionProfile: applicationInteractionProfileWorkflowStructured,
+		ApplicationID: ctx.ApplicationID, ApplicationRecordVersion: 1, ApplicationLifecycle: applicationCatalogLifecycleActive,
+		WorkflowDefinition: &ApplicationInteractionWorkflowAuthority{
+			DefinitionID: target.DefinitionID, DefinitionVersion: target.ExpectedDefinitionVersion,
+			DefinitionDigest: target.ExpectedDefinitionDigest, ActivationPointerVersion: target.ExpectedPointerVersion,
+			CandidateID: "candidate-structured", CandidateReviewVersion: 1,
+			InputContract: &WorkflowDefinitionContract{
+				ContractID: target.InputContract.ContractID, Fields: cloneWorkflowStructuredInputFields(target.InputContract.Fields),
+				Summary: target.InputContract.Summary, ContractDigest: target.InputContract.ContractDigest,
+			},
+		},
+	}
+	var err error
+	snapshot.AuthorityDigest, err = applicationInteractionAuthorityDigest(snapshot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	payload, err := json.Marshal(snapshot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return ApplicationEvaluationCampaignAuthority{ExecutionProfile: snapshot.ExecutionProfile, AuthorityDigest: snapshot.AuthorityDigest, Snapshot: payload}
+}
+
+func applicationEvaluationSucceededStructuredDefinitionRun(
+	t *testing.T,
+	ctx ApplicationEvaluationContext,
+	authority ApplicationEvaluationCampaignAuthority,
+	item ApplicationEvaluationPlanItem,
+	runID string,
+) *WorkflowRunRecord {
+	t.Helper()
+	run := applicationEvaluationSucceededDefinitionRun(ctx, authority, runID)
+	var snapshot ApplicationInteractionAuthoritySnapshot
+	if err := json.Unmarshal(authority.Snapshot, &snapshot); err != nil || snapshot.WorkflowDefinition == nil || snapshot.WorkflowDefinition.InputContract == nil || item.WorkflowDefinition == nil {
+		t.Fatalf("decode structured campaign authority: err=%v snapshot=%+v item=%+v", err, snapshot, item)
+	}
+	normalized, code, summary := normalizeWorkflowStructuredInputValues(
+		savedWorkflowDraftContractFromDefinition(*snapshot.WorkflowDefinition.InputContract), item.WorkflowDefinition.Inputs,
+	)
+	if code != "" {
+		t.Fatalf("normalize structured campaign input: code=%s summary=%s", code, summary)
+	}
+	run.SchemaVersion = workflowRunRecordDefinitionStructuredSchemaVersion
+	run.ExecutionProfile = applicationInteractionProfileWorkflowStructured
+	run.InputContractID = normalized.Contract.ContractID
+	run.InputContractDigest = normalized.Contract.ContractDigest
+	run.InputDigest = normalized.InputDigest
+	run.InputBytes = normalized.InputBytes
+	run.InputFields = cloneWorkflowStructuredInputMetadataFields(normalized.Fields)
+	return run
 }
 
 func applicationEvaluationPendingCampaign(ctx ApplicationEvaluationContext, clientKey, now string) ApplicationEvaluationCampaign {

@@ -109,8 +109,12 @@ func (service applicationEvaluationCampaignService) Execute(ctx ApplicationEvalu
 		return applicationEvaluationCampaignFailure(failure)
 	}
 	campaignID := applicationEvaluationDeterministicCampaignID(ctx, input.ClientCampaignKey)
+	_, _, campaignSchema, supported := applicationEvaluationSchemaVersions(version.ExecutionProfile)
+	if !supported {
+		return applicationEvaluationCampaignFailure(ApplicationEvaluationFailureProfileIneligible)
+	}
 	campaign := ApplicationEvaluationCampaign{
-		SchemaVersion: applicationEvaluationCampaignSchemaVersion, CampaignID: campaignID,
+		SchemaVersion: campaignSchema, CampaignID: campaignID,
 		ClientCampaignKey: input.ClientCampaignKey, RecordVersion: 1,
 		TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, Environment: ctx.Environment, ApplicationID: ctx.ApplicationID,
 		PlanID: version.PlanID, PlanVersion: version.PlanVersion, PlanDigest: version.PlanDigest, ExecutionProfile: version.ExecutionProfile, QuotaAPIKeyID: input.QuotaAPIKeyID,
@@ -369,6 +373,18 @@ func applicationEvaluationRunMatchesCampaign(ctx ApplicationEvaluationContext, c
 			run.DefinitionAuthority.DefinitionID == snapshot.WorkflowDefinition.DefinitionID && run.DefinitionAuthority.DefinitionVersion == snapshot.WorkflowDefinition.DefinitionVersion &&
 			run.DefinitionAuthority.DefinitionDigest == snapshot.WorkflowDefinition.DefinitionDigest && run.DefinitionAuthority.ActivationPointerVersion == snapshot.WorkflowDefinition.ActivationPointerVersion &&
 			run.DefinitionAuthority.ApplicationRecordVersion == snapshot.ApplicationRecordVersion
+	case applicationInteractionProfileWorkflowStructured:
+		var snapshot ApplicationInteractionAuthoritySnapshot
+		return run.SchemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion && run.ExecutionProfile == applicationInteractionProfileWorkflowStructured &&
+			run.DefinitionAuthority != nil && decodeStrictApplicationEvaluationJSON(campaign.Authority.Snapshot, &snapshot) == nil &&
+			snapshot.WorkflowDefinition != nil && snapshot.WorkflowDefinition.InputContract != nil &&
+			run.DefinitionAuthority.DefinitionID == snapshot.WorkflowDefinition.DefinitionID &&
+			run.DefinitionAuthority.DefinitionVersion == snapshot.WorkflowDefinition.DefinitionVersion &&
+			run.DefinitionAuthority.DefinitionDigest == snapshot.WorkflowDefinition.DefinitionDigest &&
+			run.DefinitionAuthority.ActivationPointerVersion == snapshot.WorkflowDefinition.ActivationPointerVersion &&
+			run.DefinitionAuthority.ApplicationRecordVersion == snapshot.ApplicationRecordVersion &&
+			run.InputContractID == snapshot.WorkflowDefinition.InputContract.ContractID &&
+			run.InputContractDigest == snapshot.WorkflowDefinition.InputContract.ContractDigest
 	case applicationInteractionProfileRAG:
 		var snapshot ApplicationInteractionAuthoritySnapshot
 		return run.SchemaVersion == workflowRunRecordAppRAGSchemaVersion && run.RAGApplication != nil && run.RAGSnapshot != nil &&
@@ -418,7 +434,7 @@ func firstApplicationEvaluationSummary(values ...string) string {
 
 func applicationEvaluationInvocationRoute(profile string) string {
 	switch profile {
-	case applicationInteractionProfileWorkflow:
+	case applicationInteractionProfileWorkflow, applicationInteractionProfileWorkflowStructured:
 		return workflowDefinitionRunCreateRoute
 	case applicationInteractionProfileRAG:
 		return "POST " + workflowRAGApplicationInvocationRoute

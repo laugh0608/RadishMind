@@ -248,6 +248,69 @@ func TestWorkflowDefinitionStructuredRunAndComparisonCompatibility(t *testing.T)
 	}
 }
 
+func TestWorkflowDefinitionStructuredEvaluationCaseAndSuiteUseExactProfile(t *testing.T) {
+	contract := workflowStructuredInputContractForTest()
+	normalized, code, summary := normalizeWorkflowStructuredInputValues(contract, map[string]any{"customer_name": "Ada"})
+	if code != "" {
+		t.Fatalf("normalize evaluation input: code=%s summary=%s", code, summary)
+	}
+	context := workflowExecutorTestContext()
+	runStore := newMemoryWorkflowRunStore(10)
+	baseline := workflowDefinitionStructuredRunRecordForTest(t, "run_structured_eval_base", normalized)
+	candidate := workflowDefinitionStructuredRunRecordForTest(t, "run_structured_eval_candidate", normalized)
+	persistTerminalStructuredRunForTest(t, runStore, context, &baseline)
+	persistTerminalStructuredRunForTest(t, runStore, context, &candidate)
+
+	evaluation := newWorkflowEvaluationService(newMemoryWorkflowEvaluationStore(10), runStore)
+	evaluation.newCaseID = func() (string, error) { return "eval_structured_definition", nil }
+	created := evaluation.Create(context, WorkflowEvaluationCreateRequest{
+		Name:          "Structured definition evaluation",
+		BaselineRunID: baseline.RunID,
+		Expectations: []WorkflowEvaluationExpectation{{
+			CandidateRunID: candidate.RunID, ExpectedClassification: WorkflowRunComparisonUnchanged,
+		}},
+	})
+	if created.FailureCode != "" || created.Case == nil {
+		t.Fatalf("create structured evaluation case: %#v", created)
+	}
+	review := evaluation.Review(context, created.Case.CaseID)
+	if review.FailureCode != "" || review.Review == nil || review.Review.RunProfile != workflowDefinitionStructuredEvaluationProfile ||
+		len(review.Review.Items) != 1 || review.Review.Items[0].ComparisonSchemaVersion != workflowDefinitionStructuredRunComparisonSchemaVersion {
+		t.Fatalf("review structured evaluation case: %#v", review)
+	}
+
+	suite := newWorkflowEvaluationSuiteService(newMemoryWorkflowEvaluationSuiteStore(10), evaluation)
+	suite.newSuiteID = func() (string, error) { return "suite_structured_definition", nil }
+	createdSuite := suite.Create(context, WorkflowEvaluationSuiteCreateRequest{
+		Name: "Structured definition suite",
+		CaseRefs: []WorkflowEvaluationSuiteCaseRef{{
+			CaseID: created.Case.CaseID, Version: created.Case.Version,
+		}},
+	})
+	if createdSuite.FailureCode != "" || createdSuite.Suite == nil {
+		t.Fatalf("create structured evaluation suite: %#v", createdSuite)
+	}
+	suiteReview := suite.Review(context, createdSuite.Suite.SuiteID)
+	if suiteReview.FailureCode != "" || suiteReview.Review == nil || len(suiteReview.Review.Items) != 1 ||
+		suiteReview.Review.Items[0].RunProfile != workflowDefinitionStructuredEvaluationProfile {
+		t.Fatalf("review structured evaluation suite: %#v", suiteReview)
+	}
+
+	drifted := workflowDefinitionStructuredRunRecordForTest(t, "run_structured_eval_drift", normalized)
+	drifted.InputContractDigest = "sha256:" + strings.Repeat("c", 64)
+	persistTerminalStructuredRunForTest(t, runStore, context, &drifted)
+	rejected := evaluation.Create(context, WorkflowEvaluationCreateRequest{
+		Name:          "Structured contract drift",
+		BaselineRunID: baseline.RunID,
+		Expectations: []WorkflowEvaluationExpectation{{
+			CandidateRunID: drifted.RunID, ExpectedClassification: WorkflowRunComparisonChanged,
+		}},
+	})
+	if rejected.FailureCode != WorkflowEvaluationFailureDefinitionIncompatible {
+		t.Fatalf("structured evaluation accepted contract drift: %#v", rejected)
+	}
+}
+
 func workflowStructuredInputContractForTest() SavedWorkflowDraftContract {
 	return SavedWorkflowDraftContract{
 		ContractID: "contract_structured_input",

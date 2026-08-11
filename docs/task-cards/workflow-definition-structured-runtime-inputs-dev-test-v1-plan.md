@@ -2,7 +2,7 @@
 
 更新时间：2026-08-11
 
-状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_c_completed_batch_d_next`
+状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_d_completed_batch_e_next`
 
 对应功能文档：[Workflow Definition 结构化运行输入（开发 / 测试态）v1](../features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)
 
@@ -83,12 +83,14 @@ Pencil 前置证据：`docs/designs/radishmind-web-family-ui-v1.pen` 中 Desktop
 
 ## 批次 D：Evaluation 与 Campaign v2
 
-- [ ] 让 Comparison、Evaluation Case / Baseline / Suite 接受 exact v2 profile / Run v8。
-- [ ] 增加 Application Evaluation Plan / Campaign v2 typed Definition fixture。
-- [ ] 实现 campaign authority / contract checkpoint、pair preview 与 existing Case / Suite handoff。
-- [ ] 覆盖 v1/v2 plan 隔离、contract drift、secret fixture、partial handoff 与 restart。
+- [x] 让 Comparison、Evaluation Case / Baseline / Suite 接受 exact v2 profile / Run v8。
+- [x] 增加 Application Evaluation Plan / Campaign v2 typed Definition fixture。
+- [x] 实现 campaign authority / contract checkpoint、pair preview 与 existing Case / Suite handoff。
+- [x] 覆盖 v1/v2 plan 隔离、contract drift、secret fixture、partial handoff 与 restart。
 
 批次 D 退出条件：同一 v2 plan version 可以产生兼容 Run v8 pair 并交接既有评测 owner；Campaign / Run 不复制 fixture 正文。
+
+实现证据：Evaluation Case 在创建时即按 Run v8 exact Definition / contract 兼容域失败关闭，Comparison v7 与 Suite 保留 `workflow_definition_executor.v2`。Plan / Version / Campaign v2 使用严格 profile-schema 联合，typed fixture 只允许 `{inputs}`；Campaign 每项执行前重读 authority / contract，pair preview 与 complete / partial handoff 继续复用既有 Case / Suite owner。Web strict consumer 与 Plan owner 已接入共享结构化输入编辑器。memory 覆盖双 Campaign 和 handoff，SQLite `0019` 覆盖 restart 与无 fixture 正文，PostgreSQL `0022` 覆盖升级 / 回滚 / pending / inspect；v1 不自动迁移或回退。
 
 ## 批次 E：连续产品链与关闭证据
 
@@ -112,4 +114,4 @@ Pencil 前置证据：`docs/designs/radishmind-web-family-ui-v1.pen` 中 Desktop
 
 ## 当前下一步
 
-进入批次 D：先核对 Comparison、Evaluation Case / Baseline / Suite 对 exact v2 profile / Run v8 的现状与缺口，再实现 Application Evaluation Plan / Campaign v2 typed Definition fixture、authority / contract checkpoint 和 existing Case / Suite handoff。继续保持 v1/v2 隔离、metadata-only Campaign / Run、无自动重试 / 发布 / 部署，并且不建立 S11 页面族。
+进入批次 E：先完成本地 SQLite 产品的 Direct Run → Session → Campaign → Comparison / Evaluation 与重启复核，再补 PostgreSQL 连续链、隐私扫描、v1 历史路径和全量仓库门禁。继续保持 v1/v2 隔离、metadata-only Session / Campaign / Run、无自动重试 / 发布 / 部署，并且不建立 S11 页面族。

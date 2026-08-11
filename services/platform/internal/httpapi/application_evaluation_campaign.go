@@ -18,9 +18,12 @@ import (
 )
 
 const (
-	applicationEvaluationPlanSchemaVersion        = "application_evaluation_plan.v1"
-	applicationEvaluationPlanVersionSchemaVersion = "application_evaluation_plan_version.v1"
-	applicationEvaluationCampaignSchemaVersion    = "application_evaluation_campaign.v1"
+	applicationEvaluationPlanSchemaVersion                  = "application_evaluation_plan.v1"
+	applicationEvaluationPlanVersionSchemaVersion           = "application_evaluation_plan_version.v1"
+	applicationEvaluationCampaignSchemaVersion              = "application_evaluation_campaign.v1"
+	applicationEvaluationStructuredPlanSchemaVersion        = "application_evaluation_plan.v2"
+	applicationEvaluationStructuredPlanVersionSchemaVersion = "application_evaluation_plan_version.v2"
+	applicationEvaluationStructuredCampaignSchemaVersion    = "application_evaluation_campaign.v2"
 
 	applicationEvaluationEnvironmentDevelopment = "development"
 	applicationEvaluationEnvironmentTest        = "test"
@@ -92,10 +95,11 @@ type ApplicationEvaluationContext struct {
 }
 
 type ApplicationEvaluationDefinitionTarget struct {
-	DefinitionID              string `json:"definition_id"`
-	ExpectedPointerVersion    int    `json:"expected_pointer_version"`
-	ExpectedDefinitionVersion int    `json:"expected_definition_version"`
-	ExpectedDefinitionDigest  string `json:"expected_definition_digest"`
+	DefinitionID              string                      `json:"definition_id"`
+	ExpectedPointerVersion    int                         `json:"expected_pointer_version"`
+	ExpectedDefinitionVersion int                         `json:"expected_definition_version"`
+	ExpectedDefinitionDigest  string                      `json:"expected_definition_digest"`
+	InputContract             *WorkflowDefinitionContract `json:"input_contract,omitempty"`
 }
 
 type ApplicationEvaluationPlanTarget struct {
@@ -107,6 +111,63 @@ type ApplicationEvaluationDefinitionFixture struct {
 	ConditionValues map[string]bool `json:"condition_values"`
 	Model           string          `json:"model"`
 	Temperature     *float64        `json:"temperature"`
+	Inputs          map[string]any  `json:"-"`
+}
+
+func (fixture ApplicationEvaluationDefinitionFixture) MarshalJSON() ([]byte, error) {
+	if fixture.Inputs != nil {
+		return json.Marshal(struct {
+			Inputs map[string]any `json:"inputs"`
+		}{Inputs: fixture.Inputs})
+	}
+	type legacyFixture struct {
+		InputText       string          `json:"input_text"`
+		ConditionValues map[string]bool `json:"condition_values"`
+		Model           string          `json:"model"`
+		Temperature     *float64        `json:"temperature"`
+	}
+	return json.Marshal(legacyFixture{
+		InputText: fixture.InputText, ConditionValues: fixture.ConditionValues,
+		Model: fixture.Model, Temperature: fixture.Temperature,
+	})
+}
+
+func (fixture *ApplicationEvaluationDefinitionFixture) UnmarshalJSON(payload []byte) error {
+	var fields map[string]json.RawMessage
+	if err := decodeStrictApplicationEvaluationJSON(payload, &fields); err != nil {
+		return err
+	}
+	if raw, present := fields["inputs"]; present {
+		if len(fields) != 1 {
+			return errApplicationEvaluationStoreContract
+		}
+		var inputs map[string]any
+		decoder := json.NewDecoder(strings.NewReader(string(raw)))
+		decoder.UseNumber()
+		if err := decoder.Decode(&inputs); err != nil || inputs == nil || decoder.Decode(&struct{}{}) == nil {
+			return errApplicationEvaluationStoreContract
+		}
+		*fixture = ApplicationEvaluationDefinitionFixture{Inputs: inputs}
+		return nil
+	}
+	if len(fields) != 4 {
+		return errApplicationEvaluationStoreContract
+	}
+	type legacyFixture struct {
+		InputText       string          `json:"input_text"`
+		ConditionValues map[string]bool `json:"condition_values"`
+		Model           string          `json:"model"`
+		Temperature     *float64        `json:"temperature"`
+	}
+	var legacy legacyFixture
+	if err := decodeStrictApplicationEvaluationJSON(payload, &legacy); err != nil {
+		return err
+	}
+	*fixture = ApplicationEvaluationDefinitionFixture{
+		InputText: legacy.InputText, ConditionValues: legacy.ConditionValues,
+		Model: legacy.Model, Temperature: legacy.Temperature,
+	}
+	return nil
 }
 
 type ApplicationEvaluationRAGFixture struct {
@@ -301,12 +362,24 @@ func validApplicationEvaluationEnvironment(value string) bool {
 
 func validApplicationEvaluationExecutionProfile(value string) bool {
 	switch strings.TrimSpace(value) {
-	case applicationInteractionProfileWorkflow, applicationInteractionProfileRAG,
+	case applicationInteractionProfileWorkflow, applicationInteractionProfileWorkflowStructured, applicationInteractionProfileRAG,
 		applicationInteractionProfilePrompt, applicationInteractionProfileAgentCopilot:
 		return true
 	default:
 		return false
 	}
+}
+
+func applicationEvaluationSchemaVersions(profile string) (planSchema, versionSchema, campaignSchema string, ok bool) {
+	if profile == applicationInteractionProfileWorkflowStructured {
+		return applicationEvaluationStructuredPlanSchemaVersion, applicationEvaluationStructuredPlanVersionSchemaVersion,
+			applicationEvaluationStructuredCampaignSchemaVersion, true
+	}
+	if validApplicationEvaluationExecutionProfile(profile) {
+		return applicationEvaluationPlanSchemaVersion, applicationEvaluationPlanVersionSchemaVersion,
+			applicationEvaluationCampaignSchemaVersion, true
+	}
+	return "", "", "", false
 }
 
 func validApplicationEvaluationClassification(value WorkflowRunComparisonClassification) bool {
@@ -334,7 +407,7 @@ func normalizeApplicationEvaluationPlanDefinition(
 	if applicationDraftStringContainsSecret(name) {
 		return "", "", ApplicationEvaluationPlanTarget{}, nil, ApplicationEvaluationFailureSecretForbidden
 	}
-	if profile == applicationInteractionProfileWorkflow {
+	if profile == applicationInteractionProfileWorkflow || profile == applicationInteractionProfileWorkflowStructured {
 		if target.WorkflowDefinition == nil {
 			return "", "", ApplicationEvaluationPlanTarget{}, nil, ApplicationEvaluationFailurePayloadInvalid
 		}
@@ -343,6 +416,21 @@ func normalizeApplicationEvaluationPlanDefinition(
 		definition.ExpectedDefinitionDigest = strings.TrimSpace(definition.ExpectedDefinitionDigest)
 		if !applicationDraftIdentifierPattern.MatchString(definition.DefinitionID) || definition.ExpectedPointerVersion < 1 ||
 			definition.ExpectedDefinitionVersion < 1 || !workflowRAGDigestPattern.MatchString(definition.ExpectedDefinitionDigest) {
+			return "", "", ApplicationEvaluationPlanTarget{}, nil, ApplicationEvaluationFailurePayloadInvalid
+		}
+		if profile == applicationInteractionProfileWorkflowStructured {
+			if definition.InputContract == nil {
+				return "", "", ApplicationEvaluationPlanTarget{}, nil, ApplicationEvaluationFailurePayloadInvalid
+			}
+			normalized, code, _ := normalizeWorkflowStructuredInputContract(savedWorkflowDraftContractFromDefinition(*definition.InputContract))
+			if code != "" || normalized.ContractDigest != definition.InputContract.ContractDigest {
+				return "", "", ApplicationEvaluationPlanTarget{}, nil, ApplicationEvaluationFailurePayloadInvalid
+			}
+			definition.InputContract = &WorkflowDefinitionContract{
+				ContractID: normalized.ContractID, Fields: cloneWorkflowStructuredInputFields(normalized.Fields),
+				Summary: normalized.Summary, ContractDigest: normalized.ContractDigest,
+			}
+		} else if definition.InputContract != nil {
 			return "", "", ApplicationEvaluationPlanTarget{}, nil, ApplicationEvaluationFailurePayloadInvalid
 		}
 		target.WorkflowDefinition = &definition
@@ -405,6 +493,27 @@ func normalizeApplicationEvaluationPlanItem(
 			return ApplicationEvaluationPlanItem{}, ApplicationEvaluationFailurePayloadInvalid
 		}
 		fixture.InputText, fixture.ConditionValues, fixture.Model, fixture.Temperature = normalized.InputText, normalized.ConditionValues, normalized.Model, normalized.Temperature
+		item.WorkflowDefinition = &fixture
+	case applicationInteractionProfileWorkflowStructured:
+		if item.WorkflowDefinition == nil || target.WorkflowDefinition == nil || target.WorkflowDefinition.InputContract == nil || item.WorkflowDefinition.Inputs == nil {
+			return ApplicationEvaluationPlanItem{}, ApplicationEvaluationFailurePayloadInvalid
+		}
+		fixture := *item.WorkflowDefinition
+		if fixture.InputText != "" || fixture.ConditionValues != nil || fixture.Model != "" || fixture.Temperature != nil {
+			return ApplicationEvaluationPlanItem{}, ApplicationEvaluationFailurePayloadInvalid
+		}
+		normalized, code, _ := normalizeWorkflowStructuredInputValues(savedWorkflowDraftContractFromDefinition(*target.WorkflowDefinition.InputContract), fixture.Inputs)
+		if code != "" {
+			if code == WorkflowRunFailureInputSecretMaterialForbidden {
+				return ApplicationEvaluationPlanItem{}, ApplicationEvaluationFailureSecretForbidden
+			}
+			return ApplicationEvaluationPlanItem{}, ApplicationEvaluationFailurePayloadInvalid
+		}
+		var inputs map[string]any
+		if err := json.Unmarshal(normalized.CanonicalPayload, &inputs); err != nil {
+			return ApplicationEvaluationPlanItem{}, ApplicationEvaluationFailurePayloadInvalid
+		}
+		fixture.Inputs = inputs
 		item.WorkflowDefinition = &fixture
 	case applicationInteractionProfileRAG:
 		if item.ApplicationRAG == nil {
@@ -477,7 +586,8 @@ func applicationEvaluationPlanDigest(version ApplicationEvaluationPlanVersion) (
 func validateApplicationEvaluationPlan(ctx ApplicationEvaluationContext, plan ApplicationEvaluationPlan) error {
 	createdAt, createdErr := time.Parse(time.RFC3339Nano, plan.CreatedAt)
 	updatedAt, updatedErr := time.Parse(time.RFC3339Nano, plan.UpdatedAt)
-	if !validApplicationEvaluationContext(ctx) || plan.SchemaVersion != applicationEvaluationPlanSchemaVersion ||
+	expectedSchema, _, _, supported := applicationEvaluationSchemaVersions(plan.ExecutionProfile)
+	if !validApplicationEvaluationContext(ctx) || !supported || plan.SchemaVersion != expectedSchema ||
 		!applicationEvaluationPlanIDPattern.MatchString(plan.PlanID) || plan.RecordVersion < 1 || plan.LatestPlanVersion < 1 ||
 		!workflowRAGDigestPattern.MatchString(plan.LatestPlanDigest) || plan.TenantRef != ctx.TenantRef ||
 		plan.WorkspaceID != ctx.WorkspaceID || plan.Environment != ctx.Environment || plan.ApplicationID != ctx.ApplicationID ||
@@ -493,7 +603,8 @@ func validateApplicationEvaluationPlan(ctx ApplicationEvaluationContext, plan Ap
 }
 
 func validateApplicationEvaluationPlanVersion(ctx ApplicationEvaluationContext, version ApplicationEvaluationPlanVersion) error {
-	if !validApplicationEvaluationContext(ctx) || version.SchemaVersion != applicationEvaluationPlanVersionSchemaVersion ||
+	_, expectedSchema, _, supported := applicationEvaluationSchemaVersions(version.ExecutionProfile)
+	if !validApplicationEvaluationContext(ctx) || !supported || version.SchemaVersion != expectedSchema ||
 		!applicationEvaluationPlanIDPattern.MatchString(version.PlanID) || version.PlanVersion < 1 || version.PreviousPlanVersion != version.PlanVersion-1 ||
 		version.TenantRef != ctx.TenantRef || version.WorkspaceID != ctx.WorkspaceID || version.Environment != ctx.Environment || version.ApplicationID != ctx.ApplicationID ||
 		strings.TrimSpace(version.CreatedByActorRef) == "" || strings.TrimSpace(version.RequestID) == "" || strings.TrimSpace(version.AuditRef) == "" {
@@ -517,7 +628,8 @@ func validateApplicationEvaluationPlanVersion(ctx ApplicationEvaluationContext, 
 func validateApplicationEvaluationCampaign(ctx ApplicationEvaluationContext, campaign ApplicationEvaluationCampaign) error {
 	createdAt, createdErr := time.Parse(time.RFC3339Nano, campaign.CreatedAt)
 	_ = createdAt
-	if !validApplicationEvaluationContext(ctx) || campaign.SchemaVersion != applicationEvaluationCampaignSchemaVersion ||
+	_, _, expectedSchema, supported := applicationEvaluationSchemaVersions(campaign.ExecutionProfile)
+	if !validApplicationEvaluationContext(ctx) || !supported || campaign.SchemaVersion != expectedSchema ||
 		!applicationEvaluationCampaignIDPattern.MatchString(campaign.CampaignID) ||
 		!applicationDraftIdentifierPattern.MatchString(campaign.ClientCampaignKey) || campaign.RecordVersion < 1 ||
 		campaign.TenantRef != ctx.TenantRef || campaign.WorkspaceID != ctx.WorkspaceID || campaign.Environment != ctx.Environment || campaign.ApplicationID != ctx.ApplicationID ||
@@ -554,7 +666,7 @@ func validateApplicationEvaluationCampaignAuthority(authority ApplicationEvaluat
 	}
 	var digest string
 	switch authority.ExecutionProfile {
-	case applicationInteractionProfileWorkflow, applicationInteractionProfileRAG:
+	case applicationInteractionProfileWorkflow, applicationInteractionProfileWorkflowStructured, applicationInteractionProfileRAG:
 		var snapshot ApplicationInteractionAuthoritySnapshot
 		if decodeStrictApplicationEvaluationJSON(authority.Snapshot, &snapshot) != nil || validateApplicationInteractionAuthority(snapshot) != nil {
 			return errApplicationEvaluationStoreContract

@@ -64,7 +64,7 @@
 | [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md) | 功能 / 源码版本与受控执行专题 | 批次 A 至 E、双数据库连续链、重启、负向与隐私验收均已完成；专题关闭 |
 | [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](user-workspace/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md) | 功能 / 策略版本与受控建议专题 | 批次 A 至批次 E 已完成，专题关闭 |
 | [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md) | 功能 / 回归评测与人工发布审查专题 | Comparison v5 / v6、Case、Suite 与 decision 兼容和 SQLite 真实浏览器链已完成，专题关闭 |
-| [应用评测计划、受控执行与证据归档（开发 / 测试态）v1](user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md) | 功能 / 高风险受控执行专题 | 后端 A 至 D、S10 Pencil / React / strict consumer、memory / SQLite exact handoff 与重启恢复已完成，专题关闭 |
+| [应用评测计划、受控执行与证据归档（开发 / 测试态）v1](user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md) | 功能 / 高风险受控执行专题 | 后端 A 至 D、S10 Pencil / React / strict consumer、memory / SQLite exact handoff 与重启恢复已完成；结构化输入专题批次 D 已在原 owner 上补齐第五个 Definition v2 Profile |
 | [Prompt / Agent / Copilot 类型工作区产品化 v1](user-workspace/prompt-agent-copilot-type-workspace-productization-v1.md) | 功能 / 类型工作区产品化专题 | S8 Pencil、七 / 八任务单 owner React 工作区、Web / build 与真实浏览器验收已完成；不扩生产认证、自动 assignment、自动发布或 agent loop |
 | [Admin Control Plane 细专题入口](admin-control-plane/README.md) | 功能专题目录 | 承接 authenticated read、permission binding、repository transition 与后续管理端真实使用路径 |
 | [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md) | 功能 / 高风险管理动作专题 | 批次 A 至 E 已完成并关闭，覆盖领域、三模式 repository、Admin API / Web、Gateway snapshot consumer、请求历史谱系与双数据库产品验证 |

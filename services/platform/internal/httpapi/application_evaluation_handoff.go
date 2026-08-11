@@ -305,6 +305,9 @@ func applicationEvaluationComparisonMatchesProfile(comparison WorkflowRunCompari
 	switch profile {
 	case applicationInteractionProfileWorkflow:
 		return comparison.SchemaVersion == workflowDefinitionRunComparisonSchemaVersion
+	case applicationInteractionProfileWorkflowStructured:
+		return comparison.SchemaVersion == workflowDefinitionStructuredRunComparisonSchemaVersion &&
+			comparison.RunProfile == workflowDefinitionStructuredEvaluationProfile
 	case applicationInteractionProfileRAG:
 		return comparison.SchemaVersion == workflowRAGAppRunComparisonSchemaVersion
 	case applicationInteractionProfilePrompt:

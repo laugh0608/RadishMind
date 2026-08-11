@@ -6062,6 +6062,11 @@ dd {
   color: var(--rm-text-muted);
 }
 
+.structured-runtime-input-contract strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .structured-runtime-input-contract code,
 .structured-runtime-input-label code {
   overflow-wrap: anywhere;
@@ -6918,6 +6923,7 @@ dd {
 }
 
 .application-evaluation-plan-editor label.is-code,
+.application-evaluation-structured-fixture,
 .application-evaluation-campaign-create > button,
 .application-evaluation-campaign-create > .application-evaluation-confirmation {
   grid-column: 1 / -1;
@@ -6946,6 +6952,55 @@ dd {
 
 .application-evaluation-plan-editor label.is-items textarea {
   min-height: 190px;
+}
+
+.application-evaluation-structured-fixture {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-panel);
+  background: var(--rm-bg-subtle);
+}
+
+.application-evaluation-structured-fixture.invalid {
+  border-color: var(--rm-attention-primary);
+  background: var(--rm-attention-soft);
+}
+
+.application-evaluation-structured-fixture > p,
+.application-evaluation-structured-fixture-toolbar p {
+  margin: 0;
+  color: var(--rm-text-secondary);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.application-evaluation-structured-fixture-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.45fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.application-evaluation-structured-fixture-toolbar > div,
+.application-evaluation-structured-fixture-toolbar > label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.application-evaluation-structured-fixture-toolbar select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-control);
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+}
+
+.application-evaluation-structured-fixture-error {
+  color: var(--rm-attention-strong) !important;
 }
 
 .application-evaluation-confirmation,
@@ -7285,6 +7340,7 @@ dd {
   .application-evaluation-authority,
   .application-evaluation-task-switcher,
   .application-evaluation-plan-editor,
+  .application-evaluation-structured-fixture-toolbar,
   .application-evaluation-campaign-create,
   .application-evaluation-pair-selectors,
   .application-evaluation-pair-summary,
@@ -7306,6 +7362,7 @@ dd {
   }
 
   .application-evaluation-plan-editor label.is-code,
+  .application-evaluation-structured-fixture,
   .application-evaluation-campaign-create > button,
   .application-evaluation-campaign-create > .application-evaluation-confirmation,
   .application-evaluation-plan-list > header,
