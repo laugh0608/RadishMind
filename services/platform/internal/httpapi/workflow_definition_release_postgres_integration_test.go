@@ -152,6 +152,50 @@ func TestPostgresWorkflowDefinitionReleaseLifecycleRestartCASAndCorruption(t *te
 		structuredComparison.Comparison.RunProfile != workflowDefinitionStructuredEvaluationProfile {
 		t.Fatalf("compare PostgreSQL Run v8: %#v", structuredComparison)
 	}
+	structuredEvaluationService := newWorkflowEvaluationService(newPostgresWorkflowEvaluationStore(runtimePool), runStore)
+	structuredEvaluationService.newCaseID = func() (string, error) { return "eval_structured_postgres", nil }
+	structuredEvaluation := structuredEvaluationService.Create(runContext, WorkflowEvaluationCreateRequest{
+		Name:          "PostgreSQL structured definition evaluation",
+		BaselineRunID: structuredBaseline.Record.RunID,
+		Expectations: []WorkflowEvaluationExpectation{{
+			CandidateRunID:         structuredCandidateRun.Record.RunID,
+			ExpectedClassification: structuredComparison.Comparison.Classification,
+		}},
+	})
+	if structuredEvaluation.FailureCode != "" || structuredEvaluation.Case == nil {
+		t.Fatalf("create PostgreSQL structured evaluation case: %#v", structuredEvaluation)
+	}
+	structuredEvaluationReview := structuredEvaluationService.Review(runContext, structuredEvaluation.Case.CaseID)
+	if structuredEvaluationReview.FailureCode != "" || structuredEvaluationReview.Review == nil ||
+		structuredEvaluationReview.Review.Outcome != "passed" ||
+		structuredEvaluationReview.Review.RunProfile != workflowDefinitionStructuredEvaluationProfile ||
+		len(structuredEvaluationReview.Review.Items) != 1 ||
+		structuredEvaluationReview.Review.Items[0].ComparisonSchemaVersion != workflowDefinitionStructuredRunComparisonSchemaVersion {
+		t.Fatalf("review PostgreSQL structured evaluation case: %#v", structuredEvaluationReview)
+	}
+	structuredSuiteService := newWorkflowEvaluationSuiteService(newPostgresWorkflowEvaluationSuiteStore(runtimePool), structuredEvaluationService)
+	structuredSuiteService.newSuiteID = func() (string, error) { return "suite_structured_postgres", nil }
+	structuredSuiteService.newDecisionID = func() (string, error) { return "decision_structured_postgres", nil }
+	structuredSuite := structuredSuiteService.Create(runContext, WorkflowEvaluationSuiteCreateRequest{
+		Name:     "PostgreSQL structured definition suite",
+		CaseRefs: []WorkflowEvaluationSuiteCaseRef{{CaseID: structuredEvaluation.Case.CaseID, Version: structuredEvaluation.Case.Version}},
+	})
+	if structuredSuite.FailureCode != "" || structuredSuite.Suite == nil {
+		t.Fatalf("create PostgreSQL structured evaluation suite: %#v", structuredSuite)
+	}
+	structuredSuiteReview := structuredSuiteService.Review(runContext, structuredSuite.Suite.SuiteID)
+	if structuredSuiteReview.FailureCode != "" || structuredSuiteReview.Review == nil ||
+		structuredSuiteReview.Review.Outcome != "passed" || len(structuredSuiteReview.Review.Items) != 1 ||
+		structuredSuiteReview.Review.Items[0].RunProfile != workflowDefinitionStructuredEvaluationProfile {
+		t.Fatalf("review PostgreSQL structured evaluation suite: %#v", structuredSuiteReview)
+	}
+	structuredDecision := structuredSuiteService.Decide(runContext, structuredSuite.Suite.SuiteID, WorkflowEvaluationDecisionRequest{
+		ExpectedDecisionVersion: 0, Decision: "approved", ReviewDigest: structuredSuiteReview.Review.ReviewDigest,
+	})
+	if structuredDecision.FailureCode != "" || structuredDecision.Suite == nil || structuredDecision.Decision == nil ||
+		structuredDecision.Suite.CurrentDecisionVersion != 1 || structuredDecision.Suite.CurrentDecision != "approved" {
+		t.Fatalf("approve PostgreSQL structured evaluation suite: %#v", structuredDecision)
+	}
 	var structuredPayload, projectedContractID, projectedContractDigest string
 	if err = runtimePool.QueryRow(ctx, `SELECT sanitized_run_record::text,input_contract_id,input_contract_digest FROM workflow_run_records WHERE run_id=$1`, structuredBaseline.Record.RunID).
 		Scan(&structuredPayload, &projectedContractID, &projectedContractDigest); err != nil {
@@ -160,6 +204,19 @@ func TestPostgresWorkflowDefinitionReleaseLifecycleRestartCASAndCorruption(t *te
 	if strings.Contains(structuredPayload, privateStructuredValue) || strings.Contains(structuredPayload, structuredBaseline.AdvisoryOutput) ||
 		projectedContractID != structuredBaseline.Record.InputContractID || projectedContractDigest != structuredBaseline.Record.InputContractDigest {
 		t.Fatalf("PostgreSQL Run v8 privacy/projection drifted: id=%s digest=%s payload=%s", projectedContractID, projectedContractDigest, structuredPayload)
+	}
+	var structuredEvaluationPayload, structuredSuitePayload string
+	if err = runtimePool.QueryRow(ctx, `SELECT sanitized_case_record::text FROM workflow_evaluation_cases WHERE case_id=$1`, structuredEvaluation.Case.CaseID).
+		Scan(&structuredEvaluationPayload); err != nil {
+		t.Fatal(err)
+	}
+	if err = runtimePool.QueryRow(ctx, `SELECT sanitized_suite_record::text FROM workflow_evaluation_suites WHERE suite_id=$1`, structuredSuite.Suite.SuiteID).
+		Scan(&structuredSuitePayload); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(structuredEvaluationPayload, privateStructuredValue) || strings.Contains(structuredSuitePayload, privateStructuredValue) ||
+		strings.Contains(structuredEvaluationPayload, structuredBaseline.AdvisoryOutput) || strings.Contains(structuredSuitePayload, structuredBaseline.AdvisoryOutput) {
+		t.Fatal("PostgreSQL structured evaluation evidence persisted private runtime values")
 	}
 	if _, err = runtimePool.Exec(ctx, `UPDATE workflow_run_records SET input_contract_digest=$1 WHERE run_id=$2`, "sha256:"+strings.Repeat("f", 64), structuredBaseline.Record.RunID); err == nil {
 		t.Fatal("PostgreSQL accepted a Run v8 projection that disagrees with the sanitized record")
@@ -170,6 +227,12 @@ func TestPostgresWorkflowDefinitionReleaseLifecycleRestartCASAndCorruption(t *te
 	runtimePool.Close()
 	if _, err = repository.ReadCandidate(releaseCtx, candidate.CandidateID); !errors.Is(err, errWorkflowDefinitionStore) {
 		t.Fatalf("closed PostgreSQL repository fell back: %v", err)
+	}
+	if closedEvaluation := structuredEvaluationService.Read(runContext, structuredEvaluation.Case.CaseID); closedEvaluation.FailureCode != WorkflowEvaluationFailureStoreUnavailable {
+		t.Fatalf("closed PostgreSQL structured evaluation store fell back: %#v", closedEvaluation)
+	}
+	if closedSuite := structuredSuiteService.Read(runContext, structuredSuite.Suite.SuiteID); closedSuite.FailureCode != WorkflowEvaluationSuiteFailureStoreUnavailable {
+		t.Fatalf("closed PostgreSQL structured suite store fell back: %#v", closedSuite)
 	}
 	reopened, err := workflowrunmigrations.OpenPool(ctx, runtimeURL)
 	if err != nil {
@@ -201,6 +264,25 @@ func TestPostgresWorkflowDefinitionReleaseLifecycleRestartCASAndCorruption(t *te
 	if err != nil || !found || restoredStructuredRun.SchemaVersion != workflowRunRecordDefinitionStructuredSchemaVersion ||
 		restoredStructuredRun.InputContractDigest != structuredBaseline.Record.InputContractDigest || restoredStructuredRun.Output != "" {
 		t.Fatalf("restart PostgreSQL Run v8: %#v found=%t err=%v", restoredStructuredRun, found, err)
+	}
+	restartedStructuredEvaluationService := newWorkflowEvaluationService(newPostgresWorkflowEvaluationStore(reopened), newPostgresWorkflowRunStore(reopened))
+	restoredStructuredEvaluationReview := restartedStructuredEvaluationService.ReviewVersion(runContext, structuredEvaluation.Case.CaseID, structuredEvaluation.Case.Version)
+	if restoredStructuredEvaluationReview.FailureCode != "" || restoredStructuredEvaluationReview.Review == nil ||
+		restoredStructuredEvaluationReview.Review.Outcome != "passed" ||
+		restoredStructuredEvaluationReview.Review.RunProfile != workflowDefinitionStructuredEvaluationProfile ||
+		len(restoredStructuredEvaluationReview.Review.Items) != 1 ||
+		restoredStructuredEvaluationReview.Review.Items[0].ComparisonSchemaVersion != workflowDefinitionStructuredRunComparisonSchemaVersion {
+		t.Fatalf("restart PostgreSQL structured evaluation review: %#v", restoredStructuredEvaluationReview)
+	}
+	restartedStructuredSuiteService := newWorkflowEvaluationSuiteService(newPostgresWorkflowEvaluationSuiteStore(reopened), restartedStructuredEvaluationService)
+	restoredStructuredSuite := restartedStructuredSuiteService.Read(runContext, structuredSuite.Suite.SuiteID)
+	restoredStructuredSuiteReview := restartedStructuredSuiteService.Review(runContext, structuredSuite.Suite.SuiteID)
+	if restoredStructuredSuite.FailureCode != "" || restoredStructuredSuite.Suite == nil ||
+		restoredStructuredSuite.Suite.CurrentDecisionVersion != 1 || restoredStructuredSuite.Suite.CurrentDecision != "approved" ||
+		restoredStructuredSuiteReview.FailureCode != "" || restoredStructuredSuiteReview.Review == nil ||
+		restoredStructuredSuiteReview.Review.Outcome != "passed" || len(restoredStructuredSuiteReview.Review.Items) != 1 ||
+		restoredStructuredSuiteReview.Review.Items[0].RunProfile != workflowDefinitionStructuredEvaluationProfile {
+		t.Fatalf("restart PostgreSQL structured evaluation suite: suite=%#v review=%#v", restoredStructuredSuite, restoredStructuredSuiteReview)
 	}
 	if _, err = reopened.Exec(ctx, `UPDATE workflow_definition_release_candidates SET sanitized_candidate_payload=jsonb_set(sanitized_candidate_payload,'{definition_digest}',to_jsonb($1::text)) WHERE candidate_id=$2`, `sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`, candidate.CandidateID); err != nil {
 		t.Fatal(err)

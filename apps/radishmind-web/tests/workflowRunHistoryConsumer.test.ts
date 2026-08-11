@@ -170,6 +170,37 @@ test("workflow run history maps v5 definition authority and exact source filters
   } finally { globalThis.fetch = originalFetch; }
 });
 
+test("workflow run history maps metadata-only structured Definition v8", async () => {
+  const originalFetch = globalThis.fetch;
+  const definitionDigest = `sha256:${"d".repeat(64)}`;
+  const contractDigest = `sha256:${"e".repeat(64)}`;
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    request_id: "request_structured_definition_history", workspace_id: "workspace_demo", application_id: "app_demo",
+    runs: [{ schema_version: "workflow_run_record.v8", record_version: 8, run_id: "run_structured_history",
+      draft_id: "", draft_version: 0, execution_kind: "workflow_definition_execution",
+      execution_source_kind: "workflow_definition", execution_source_id: "definition_structured",
+      execution_source_version: 1, execution_profile: "workflow_definition_executor_v2",
+      input_contract_id: "contract_structured", input_contract_digest: contractDigest,
+      definition_digest: definitionDigest, activation_pointer_version: 3,
+      source_draft_id: "draft_structured_source", source_draft_version: 1, source_draft_digest: definitionDigest,
+      workspace_id: "workspace_demo", application_id: "app_demo", status: "succeeded", failure_code: "",
+      started_at: "2026-08-11T10:00:00Z", completed_at: "2026-08-11T10:00:01Z", duration_ms: 1000,
+      selected_provider: "mock", selected_profile: "", selected_model: "mock",
+      request_id: "request_structured_run", audit_ref: "audit_structured_run", stale_running: false,
+      side_effects: { provider_calls: 1, tool_calls: 0, confirmation_calls: 0, business_writes: 0, replay_writes: 0 } }],
+    next_cursor: "", has_more: false, failure_code: null, failure_summary: "", audit_ref: "audit_structured_definition_history",
+  }), { status: 200 });
+  try {
+    const result = await listWorkflowRunHistory("app_demo", live, EMPTY_WORKFLOW_RUN_HISTORY_FILTER);
+    const run = result.runs[0];
+    assert.equal(run?.schemaVersion, "workflow_run_record.v8");
+    assert.equal(run?.executionProfile, "workflow_definition_executor_v2");
+    assert.equal(run?.inputContractId, "contract_structured");
+    assert.equal(run?.inputContractDigest, contractDigest);
+    assert.equal(run?.definitionDigest, definitionDigest);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 test("workflow run history and detail recognize strict metadata-only v6", async () => {
   const originalFetch = globalThis.fetch;
   const digest = `sha256:${"b".repeat(64)}`;

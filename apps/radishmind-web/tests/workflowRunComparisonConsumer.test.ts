@@ -178,6 +178,52 @@ test("workflow run comparison maps definition-bound v4 without execution", async
   } finally { globalThis.fetch = originalFetch; }
 });
 
+test("workflow run comparison maps structured definition v7 without input values", async () => {
+  const originalFetch = globalThis.fetch;
+  const definitionDigest = `sha256:${"d".repeat(64)}`;
+  const contractDigest = `sha256:${"c".repeat(64)}`;
+  const structuredRun = (runId: string) => ({
+    run_id: runId, schema_version: "workflow_run_record.v8", draft_id: "", draft_version: 0,
+    execution_kind: "workflow_definition_execution", execution_source_kind: "workflow_definition",
+    execution_source_id: "definition_structured", execution_source_version: 1,
+    execution_profile: "workflow_definition_executor_v2", input_contract_id: "contract_structured",
+    input_contract_digest: contractDigest, definition_digest: definitionDigest,
+    status: "succeeded", failure_code: "", failure_boundary: "", gateway_failure_category: "none",
+    selected_provider: "mock", selected_profile: "", selected_model: "mock", duration_ms: 100,
+    stale_running: false, request_id: `request_${runId}`, audit_ref: `audit_${runId}`,
+    side_effects: { provider_calls: 1, tool_calls: 0, confirmation_calls: 0, business_writes: 0, replay_writes: 0 },
+  });
+  const body = {
+    request_id: "request_structured_definition_compare", workspace_id: "workspace_demo", application_id: "app_demo",
+    comparison: { schema_version: "workflow_run_comparison.v7", run_profile: "workflow_definition_executor.v2",
+      classification: "unchanged", comparison_state: "comparable", baseline: structuredRun("run_structured_base"),
+      candidate: structuredRun("run_structured_candidate"), draft_changed: false, execution_source_changed: false,
+      provider_changed: false, model_changed: false, status_changed: false, failure_changed: false,
+      duration_delta_ms: 0, provider_call_delta: 0, nodes: [], findings: [], recommended_review_action: "" },
+    failure_code: null, failure_summary: "", audit_ref: "audit_structured_definition_compare",
+  };
+  globalThis.fetch = async () => new Response(JSON.stringify(body), { status: 200 });
+  try {
+    const comparison = await compareWorkflowRuns("app_demo", "run_structured_base", "run_structured_candidate", live);
+    assert.equal(comparison.schemaVersion, "workflow_run_comparison.v7");
+    assert.equal(comparison.runProfile, "workflow_definition_executor.v2");
+    assert.equal(comparison.baseline.inputContractId, "contract_structured");
+    assert.equal(comparison.baseline.inputContractDigest, contractDigest);
+  } finally { globalThis.fetch = originalFetch; }
+
+  const missingContractDigest = structuredRun("run_structured_candidate") as Record<string, unknown>;
+  delete missingContractDigest.input_contract_digest;
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    ...body, comparison: { ...body.comparison, candidate: missingContractDigest },
+  }), { status: 200 });
+  try {
+    await assert.rejects(
+      () => compareWorkflowRuns("app_demo", "run_structured_base", "run_structured_candidate", live),
+      /route failed/,
+    );
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 test("workflow run comparison maps Prompt Application v5 without content", async () => {
   const originalFetch = globalThis.fetch;
   const promptDigest = `sha256:${"e".repeat(64)}`;

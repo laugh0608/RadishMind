@@ -94,7 +94,7 @@ export function ModelGatewayOverviewPanel({
         </div>
         <div className="model-gateway-overview-trace-grid" aria-label="Model gateway trace evidence">
           {overview.traceEvidence.map((trace) => (
-            <ModelGatewayTraceEvidenceCard key={trace.traceId} trace={trace} />
+            <ModelGatewayTraceEvidenceCard key={`${trace.traceId}:${trace.runId}`} trace={trace} />
           ))}
         </div>
       </div>

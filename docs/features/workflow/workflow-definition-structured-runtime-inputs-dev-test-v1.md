@@ -2,7 +2,7 @@
 
 更新时间：2026-08-11
 
-状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_d_completed_batch_e_next`
+状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_completed`
 
 ## 功能定位
 
@@ -201,6 +201,10 @@ memory 已覆盖双 Campaign → Comparison v7 → Case / Suite 完整交接、s
 - memory 与 SQLite 真实浏览器覆盖 Definition Run、Session 和 Campaign，并做服务重启恢复。
 - 完成隐私扫描、无 fallback、旧 v1 兼容、三视口和全量仓库门禁后再关闭专题。
 
+批次 E 与专题已完成。PostgreSQL 真实 Definition release 集成在同一 runtime pool 中贯通 Draft v2 → Candidate / Definition v2 → 两次 Run v8 → Comparison v7 → Evaluation Case → Suite → append-only `approved v1` decision，并通过关闭后无 fallback 与重新连接恢复。SQLite 产品以 exact Definition `wdef_browser_structured_runtime_20260811` 贯通 Direct Run、Session、两次双项 Campaign、Pair Preview、Case / Suite handoff；重启后同一 Plan、Session、Run、Campaign 和 Suite 均恢复。memory / SQLite / PostgreSQL 连续链、v1 Plan 与 v1 / v5 Run 历史、store identity、三视口、隐私扫描和最终零 warning / error 控制台均已复验。Run、Session、Campaign、Case、Suite 和日志未保存 Direct Run / Session 原始值；只有不可变 Plan v2 按冻结合同合法持有用户显式提交的 Campaign fixture。
+
+真实浏览器还发现两类相邻消费偏差：Web 的 Comparison / History 严格联合尚未接受 Comparison v7 与 Run v8，Model Gateway 两个只读证据面又把可共享的 trace id 当成 React 列表唯一身份。现已分别补齐 exact v7 / v8 metadata-only 校验和 `traceId + runId` 记录身份，旧版本继续按原合同读取。
+
 ## 验收方式
 
 - Go：contract、canonicalization、digest、domain、HTTP、executor、memory / SQLite / PostgreSQL repository 与 migration 测试。
@@ -223,4 +227,4 @@ memory 已覆盖双 Campaign → Comparison v7 → Case / Suite 完整交接、s
 
 ## 当前下一步
 
-进入唯一任务卡批次 E：复验 memory、SQLite、PostgreSQL 的 Draft v2 → Definition v2 → Run v8 → Comparison v7 / Evaluation 连续链；在本地产品中完成 Direct Run、Session、Campaign、重启、隐私扫描、v1 回归、关键视口和 console。继续不创建 S11 页面族，不扩大 production、secret 输入、自动执行、自动发布或业务写回边界。
+专题与唯一任务卡均已关闭。下一步回到 [功能设计文档入口](../README.md)，依据新的真实用户任务或阻塞选择专题；本专题不再派生 S11、平行 checker 或同层关闭批次，production、secret 输入、自动执行、自动发布和业务写回继续保持停止线。

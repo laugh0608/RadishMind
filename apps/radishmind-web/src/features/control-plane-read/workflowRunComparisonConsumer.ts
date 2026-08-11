@@ -10,6 +10,8 @@ export type WorkflowRunComparisonRun = {
   executionSourceId: string;
   executionSourceVersion: number;
   executionProfile: string;
+  inputContractId: string;
+  inputContractDigest: string;
   definitionDigest: string;
   authorityDigest: string;
   profileDigest: string;
@@ -130,8 +132,8 @@ export type WorkflowRunRetrievalComparison = {
 };
 
 export type WorkflowRunComparison = {
-  schemaVersion: "workflow_run_comparison.v1" | "workflow_run_comparison.v2" | "workflow_run_comparison.v3" | "workflow_run_comparison.v4" | "workflow_run_comparison.v5" | "workflow_run_comparison.v6";
-  runProfile: "workflow_standard.v1" | "workflow_rag_retrieval.v1" | "workflow_rag_application_invocation.v1" | "workflow_definition_executor.v1" | "prompt_application_invocation_v1" | "agent_copilot_suggestion_v1";
+  schemaVersion: "workflow_run_comparison.v1" | "workflow_run_comparison.v2" | "workflow_run_comparison.v3" | "workflow_run_comparison.v4" | "workflow_run_comparison.v5" | "workflow_run_comparison.v6" | "workflow_run_comparison.v7";
+  runProfile: "workflow_standard.v1" | "workflow_rag_retrieval.v1" | "workflow_rag_application_invocation.v1" | "workflow_definition_executor.v1" | "workflow_definition_executor.v2" | "prompt_application_invocation_v1" | "agent_copilot_suggestion_v1";
   classification: "regression" | "improvement" | "changed" | "unchanged" | "inconclusive";
   comparisonState: "comparable" | "legacy_partial" | "running_inconclusive";
   baseline: WorkflowRunComparisonRun;
@@ -173,6 +175,8 @@ type ComparisonRunDocument = {
   execution_source_id?: string;
   execution_source_version?: number;
   execution_profile?: string;
+  input_contract_id?: string;
+  input_contract_digest?: string;
   definition_digest?: string;
   authority_digest?: string;
   profile_digest?: string;
@@ -370,6 +374,8 @@ function mapRun(value: ComparisonRunDocument): WorkflowRunComparisonRun {
     executionSourceId: value.execution_source_id ?? "",
     executionSourceVersion: value.execution_source_version ?? 0,
     executionProfile: value.execution_profile ?? "",
+    inputContractId: value.input_contract_id ?? "",
+    inputContractDigest: value.input_contract_digest ?? "",
     definitionDigest: value.definition_digest ?? "",
     authorityDigest: value.authority_digest ?? "",
     profileDigest: value.profile_digest ?? "",
@@ -533,11 +539,11 @@ function hasForbiddenComparisonKey(value: unknown): boolean {
 function isComparisonDocument(value: unknown): value is ComparisonDocument {
   if (!value || typeof value !== "object") return false;
   const item = value as Partial<ComparisonDocument>;
-  const schemaValid = ["workflow_run_comparison.v1", "workflow_run_comparison.v2", "workflow_run_comparison.v3", "workflow_run_comparison.v4", "workflow_run_comparison.v5", "workflow_run_comparison.v6"].includes(item.schema_version ?? "");
+  const schemaValid = ["workflow_run_comparison.v1", "workflow_run_comparison.v2", "workflow_run_comparison.v3", "workflow_run_comparison.v4", "workflow_run_comparison.v5", "workflow_run_comparison.v6", "workflow_run_comparison.v7"].includes(item.schema_version ?? "");
   const baseKeys = ["schema_version", "run_profile", "classification", "comparison_state", "baseline", "candidate", "draft_changed", "execution_source_changed", "provider_changed", "model_changed", "status_changed", "failure_changed", "duration_delta_ms", "provider_call_delta", "nodes", "findings", "recommended_review_action"];
   const expectedKeys = item.schema_version === "workflow_run_comparison.v5" || item.schema_version === "workflow_run_comparison.v6"
     ? [...baseKeys, "authority_changed", "variable_contract_changed", "protocol_changed"]
-    : item.schema_version === "workflow_run_comparison.v4" ? baseKeys :
+    : item.schema_version === "workflow_run_comparison.v4" || item.schema_version === "workflow_run_comparison.v7" ? baseKeys :
     item.schema_version === "workflow_run_comparison.v1" ? baseKeys : [...baseKeys, "retrieval"];
   if (!schemaValid || !hasOnlyKeys(value as Record<string, unknown>, expectedKeys)) return false;
   const expectedRunProfile = new Map<WorkflowRunComparison["schemaVersion"], WorkflowRunComparison["runProfile"]>([
@@ -547,6 +553,7 @@ function isComparisonDocument(value: unknown): value is ComparisonDocument {
     ["workflow_run_comparison.v4", "workflow_definition_executor.v1"],
     ["workflow_run_comparison.v5", "prompt_application_invocation_v1"],
     ["workflow_run_comparison.v6", "agent_copilot_suggestion_v1"],
+    ["workflow_run_comparison.v7", "workflow_definition_executor.v2"],
   ]).get(item.schema_version as WorkflowRunComparison["schemaVersion"]);
   if (item.run_profile !== expectedRunProfile) return false;
   const retrievalValid = item.schema_version === "workflow_run_comparison.v2" || item.schema_version === "workflow_run_comparison.v3"
@@ -573,6 +580,7 @@ function isComparisonRun(value: unknown): value is ComparisonRunDocument {
   const isV5 = item.schema_version === "workflow_run_record.v5";
   const isV6 = item.schema_version === "workflow_run_record.v6";
   const isV7 = item.schema_version === "workflow_run_record.v7";
+  const isV8 = item.schema_version === "workflow_run_record.v8";
   const promptKeys = ["execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version", "execution_profile",
     "authority_digest", "variable_names_digest", "requested_protocol", "selected_protocol", "usage_state"];
   const optionalPromptUsageKeys = ["input_tokens", "output_tokens", "total_tokens"].filter((key) => key in (value as Record<string, unknown>));
@@ -581,8 +589,16 @@ function isComparisonRun(value: unknown): value is ComparisonRunDocument {
     "task", "locale", "response_status", "risk_level", "requested_protocol", "selected_protocol", "usage_state"];
   const optionalAgentKeys = ["response_digest", "action_count", "requires_confirmation", "input_tokens", "output_tokens", "total_tokens"]
     .filter((key) => key in (value as Record<string, unknown>));
-  if (!hasOnlyKeys(value as Record<string, unknown>, isV7 ? [...baseKeys, ...agentKeys, ...optionalAgentKeys] : isV6 ? [...baseKeys, ...promptKeys, ...optionalPromptUsageKeys] : isV5 ? [...baseKeys, "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version", "execution_profile", "definition_digest"] : isV4 ? [...baseKeys, "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version"] : baseKeys)) return false;
-  const sourceValid = isV7
+  const definitionV2Keys = ["execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version", "execution_profile", "input_contract_id", "input_contract_digest", "definition_digest"];
+  if (!hasOnlyKeys(value as Record<string, unknown>, isV8 ? [...baseKeys, ...definitionV2Keys] : isV7 ? [...baseKeys, ...agentKeys, ...optionalAgentKeys] : isV6 ? [...baseKeys, ...promptKeys, ...optionalPromptUsageKeys] : isV5 ? [...baseKeys, "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version", "execution_profile", "definition_digest"] : isV4 ? [...baseKeys, "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version"] : baseKeys)) return false;
+  const sourceValid = isV8
+    ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "workflow_definition_execution" &&
+      item.execution_source_kind === "workflow_definition" && typeof item.execution_source_id === "string" &&
+      item.execution_source_id.length > 0 && positiveInteger(item.execution_source_version) &&
+      item.execution_profile === "workflow_definition_executor_v2" && typeof item.input_contract_id === "string" &&
+      item.input_contract_id.length > 0 && /^sha256:[a-f0-9]{64}$/u.test(item.input_contract_digest ?? "") &&
+      /^sha256:[a-f0-9]{64}$/u.test(item.definition_digest ?? "")
+    : isV7
     ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "agent_copilot_suggestion" &&
       item.execution_source_kind === "agent_copilot_profile" && /^acpf_[a-z2-7]{16}$/u.test(item.execution_source_id ?? "") &&
       positiveInteger(item.execution_source_version) && item.execution_profile === "agent_copilot_suggestion_v1" &&

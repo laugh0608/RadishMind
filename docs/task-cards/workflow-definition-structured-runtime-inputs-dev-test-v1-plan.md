@@ -2,7 +2,7 @@
 
 更新时间：2026-08-11
 
-状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_batch_d_completed_batch_e_next`
+状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_completed`
 
 对应功能文档：[Workflow Definition 结构化运行输入（开发 / 测试态）v1](../features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)
 
@@ -94,13 +94,15 @@ Pencil 前置证据：`docs/designs/radishmind-web-family-ui-v1.pen` 中 Desktop
 
 ## 批次 E：连续产品链与关闭证据
 
-- [ ] memory、SQLite、PostgreSQL 完成 Draft → Definition → Run → Comparison / Evaluation 连续链。
-- [ ] memory 与 SQLite 浏览器完成 Direct Run、Session、Campaign，并在重启后恢复 exact evidence。
-- [ ] 审计 Run、Session、Campaign、日志与失败摘要无原始输入或 secret 泄漏。
-- [ ] 复验 v1 历史路径、三视口、no fallback、store identity 和 console。
-- [ ] 同步正式文档并运行全量 `./scripts/check-repo.sh`。
+- [x] memory、SQLite、PostgreSQL 完成 Draft → Definition → Run → Comparison / Evaluation 连续链。
+- [x] memory 与 SQLite 浏览器完成 Direct Run、Session、Campaign，并在重启后恢复 exact evidence。
+- [x] 审计 Run、Session、Campaign、日志与失败摘要无原始输入或 secret 泄漏。
+- [x] 复验 v1 历史路径、三视口、no fallback、store identity 和 console。
+- [x] 同步正式文档并运行全量 `./scripts/check-repo.sh`。
 
 批次 E 退出条件：纵向用户链、三存储、旧版本兼容、隐私与真实浏览器证据全部闭合，才允许把状态改为 completed。
+
+关闭证据：PostgreSQL 已在既有 Definition release 集成内贯通 Draft v2 → Candidate / Definition v2 → 两次 Run v8 → Comparison v7 → Evaluation Case → Suite → `approved v1` decision。SQLite 产品又以 exact Definition `wdef_browser_structured_runtime_20260811` 贯通 Direct Run v8、Session v4 / Turn v4、两次双项 Campaign、Comparison v7、Pair Preview、Case 与 Suite handoff；服务重启后恢复同一 Plan、Session、Run、Campaign 和 Suite。数据库与日志扫描确认原始 Direct Run / Session 值只存在于请求内存，Campaign fixture 只由不可变 Plan v2 合法持有；v1 Plan 与 v1 / v5 历史 Run 仍可读取。memory / SQLite / PostgreSQL、关闭后无 fallback、store selector identity、`1440×900`、`720×900`、`390×844`、Web strict consumer、production build 和最终零 warning / error 控制台均已复验。浏览器还暴露并关闭 Comparison v7 / Run v8 严格消费缺口，以及共享 trace id 被误作 React 列表唯一身份的问题。
 
 ## 验证矩阵
 
@@ -114,4 +116,4 @@ Pencil 前置证据：`docs/designs/radishmind-web-family-ui-v1.pen` 中 Desktop
 
 ## 当前下一步
 
-进入批次 E：先完成本地 SQLite 产品的 Direct Run → Session → Campaign → Comparison / Evaluation 与重启复核，再补 PostgreSQL 连续链、隐私扫描、v1 历史路径和全量仓库门禁。继续保持 v1/v2 隔离、metadata-only Session / Campaign / Run、无自动重试 / 发布 / 部署，并且不建立 S11 页面族。
+任务卡关闭。下一步回到功能设计入口，按真实用户阻塞选择新的产品专题；不得从本卡派生 S11、平行 checker、同层 gate-only 批次，也不得把开发测试态证据扩写为 production、secret 输入、自动执行、发布、部署或业务写回能力。

@@ -436,6 +436,7 @@ function RunDetail({ detail, copiedRef, retrievalPreviewPending, onCopyReference
         <div><dt>Provider calls</dt><dd>{detail.sideEffects.providerCalls}</dd></div>
         <div><dt>Forbidden writes</dt><dd>{forbiddenWrites}</dd></div>
         {detail.executionSourceId ? <div><dt>Execution source</dt><dd>{detail.executionSourceKind} · {detail.executionSourceId} · v{detail.executionSourceVersion}</dd></div> : null}
+        {detail.schemaVersion === "workflow_run_record.v8" ? <><div><dt>Input contract</dt><dd>{detail.inputContractId} · {detail.inputContractDigest}</dd></div><div><dt>Input fields</dt><dd>{detail.inputFields?.map((field) => `${field.name}:${field.valueType}`).join(" · ") || "none"}</dd></div></> : null}
         <div><dt>Failure boundary</dt><dd>{detail.diagnostic?.failureBoundary || "none"}</dd></div>
       </dl>
       {detail.diagnostic ? (
@@ -519,6 +520,7 @@ function OwnerBoundary({ title, copy }: { title: string; copy: string }) {
 }
 
 function runSource(run: WorkflowRunHistorySummary): string {
+  if (run.schemaVersion === "workflow_run_record.v8") return `Structured Workflow Definition · ${run.executionSourceId}`;
   if (run.schemaVersion === "workflow_run_record.v7") return `Agent Copilot · ${run.executionSourceId}`;
   if (run.schemaVersion === "workflow_run_record.v6") return `Prompt Application · ${run.executionSourceId}`;
   if (run.schemaVersion === "workflow_run_record.v5") return `Workflow Definition · ${run.executionSourceId}`;

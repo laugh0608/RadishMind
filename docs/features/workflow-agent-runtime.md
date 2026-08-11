@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-2026-08-11 当前结论：Saved Draft durable dev/test repository、版本历史、R4 Gateway、executor、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG 与不可变 Definition 受控运行均已有可复验证据。当前 [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成 Draft / Definition v2、executor v2、Run v8、Comparison v7、strict contract decoder、Session v4、Definition Direct Run / Session 共享输入编辑器和三模式 durable chain；Desktop `W3O4tV` / Narrow `t39foq` Visual R4 已通过人工复核，真实浏览器也已覆盖 Desktop、`720px` 断点、`390×844`、console 与无横向溢出。下一步进入 Evaluation Plan / Campaign v2 批次 D。不从本专题扩自动 activation、草案自动保存 / 合并 / 同步、分支图、schedule、replay / resume、agent loop、外部 connector 或 production enablement。以下 production durable-store readiness 只保留为历史兼容锚点。
+2026-08-11 当前结论：Saved Draft durable dev/test repository、版本历史、R4 Gateway、executor、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG 与不可变 Definition 受控运行均已有可复验证据。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成 Draft / Definition v2、executor v2、Run v8、Comparison v7、strict contract decoder、Session v4、Evaluation Plan / Campaign v2、三模式 durable chain 与 SQLite 产品浏览器收口，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_completed`。下一步回到功能设计入口，不从已关闭专题扩自动 activation、草案自动保存 / 合并 / 同步、分支图、schedule、replay / resume、agent loop、外部 connector 或 production enablement。以下 production durable-store readiness 只保留为历史兼容锚点。
 
 2026-06-29 Production Secret Backend audit store runtime blocker matrix 及其后续 storage adapter readiness / review 链只作为历史静态锚点保留，不再定义当前顺位，也不影响已经完成的 Workflow memory / SQLite / PostgreSQL 开发测试态存储。production secret、production audit store、production repository mode 与公开生产 API 仍未启用。
 
