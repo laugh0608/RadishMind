@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-08-11
+更新时间：2026-08-12
 
 ## 文档目的
 
@@ -11,7 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
-- 当前活跃专题：[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](features/workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 已完成纯 TypeScript importer / sectioner、严格 UTF-8、稳定引用、重复 / 预算 findings 和既有 snapshot validator 接缝，状态为 `workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_batch_a_domain_completed_pencil_pending`。现有 create / version API、CAS、strict consumer、memory / SQLite / PostgreSQL repository 与后续评测 / 晋级 / 运行链继续复用；下一步先在 RadishMind 设计源冻结 `B / 局部 Pencil`，人工通过后再实现单一结构化 fragment owner 和显式提交。原始文件与未提交 staging 不上传、不持久化，本专题不新增 API、schema、migration、repository、permission 或任务卡。
+- 最近关闭专题：[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](features/workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 已完成批次 A 至 C，状态为 `workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_completed`。Desktop `U4tmEg` 与 Narrow `nI3RW` 局部 Pencil 已人工通过；单一结构化 editor、来源 / fragment 审查、create v1、full replacement v2、双标签 CAS、SQLite 重启、隐私和 `1440×900` / `720×900` / `390×844` 均已形成真实证据。Web `338/338`、production build 和正式 `--workflow-rag-dev` launcher probe 通过；没有新增 API、schema、migration、repository、permission、持久 staging、自动执行或生产声明。下一产品顺位回到 `docs/features/README.md` 选择新的长期功能设计文档，不从本专题派生 S11 或同层 gate-only 切片。
 - 最近关闭专题：[Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成批次 A 至 E，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_completed`。Draft / Definition v2、executor v2、Run v8、Comparison v7、Session v4、Evaluation Plan / Campaign v2 已在 memory、SQLite、PostgreSQL 形成连续链；SQLite 产品浏览器又完成 Direct Run → Session → 两次 Campaign → Pair Preview → Case / Suite handoff、服务重启、隐私、v1 历史和三视口复核，最终控制台无 warning / error。当前没有活跃高风险任务卡；产品顺位已经切换到上方 RAG 本地知识材料导入专题。
 - [应用评测计划、受控执行与证据归档（开发 / 测试态）v1](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md) 功能状态仍为 `application_evaluation_campaign_controlled_execution_dev_test_v1_completed`。后端 A 至 D、React strict consumer、定向 `7/7`、Web `316/316`、production build、memory 与 SQLite 浏览器均已完成；SQLite exact Plan `aeplan_lkqe7gr7kjobmf73 v1` 产生两次 succeeded Campaign，Pair Preview 后交接 Case `eval_034d69aec0d7a2323c7f222f v1` 与 Suite `suite_9a8017d686be57009c7ad973`，服务重启后恢复同一证据。S10 Pencil R1 因页面骨架偏离被退回，Visual R2 又因硬方形表面与 S1–S8 形态语言不一致被退回；Desktop `Um8Zh`、Narrow `ZxJd7`、Decision R15 `UNMOS` 已修订为 Visual R3，React 尚未声明与该视觉稿对齐。
 - [应用 API Key 请求配额与 Provider Attempt 准入（开发 / 测试态）v1](features/gateway/application-api-key-request-quota-admission-dev-test-v1.md)批次 A 至 E 已全部完成，功能状态仍为 `application_api_key_request_quota_admission_dev_test_v1_completed`。后端三模式 quota owner、Admin GET / PUT、独立权限和六条 provider 前原子准入继续成立；正整数 CAS 确认、missing / permission / environment / conflict / store failure 失败关闭和真实浏览器连续链已经完成。S9 Pencil R1 因没有继承 S8 连续 Workbench 被退回，Visual R2 又因上下文、任务、owner 与边界全部使用硬方形表面被退回；Desktop `C7pkb`、Narrow `x8lESc`、Decision R14 `tCWCW` 已修订为 Visual R3，React 尚未声明与该视觉稿对齐。旧 User Workspace `QuotaSummary` 仍为 `quota_policy_unavailable`，生产 quota、rate limit、token / cost、billing、正式 membership / OIDC 与自动路由未打开。
@@ -33,7 +33,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：Workflow Definition 结构化运行输入已关闭；RAG 本地知识材料导入专题的纯 TypeScript importer / sectioner 已完成。下一步先完成 `B / 局部 Pencil`，人工通过后以单一结构化 editor 接入既有 snapshot create / version，最后用 SQLite 产品链和真实浏览器关闭。不得从该专题派生 S11、持久 staging、第二套 fragment schema、crawler、connector、自动执行、自动发布或业务写回。
+1. 产品线：Workflow Definition 结构化运行输入与 RAG 本地知识材料导入专题均已关闭。下一步从 `docs/features/README.md` 重新判断一份长期功能设计文档，优先选择真实用户路径仍有阻塞、能形成小而完整纵向切片且可复用现有 owner / 门禁的能力；不得从已关闭专题派生 S11、持久 staging、第二套 schema 或同层 gate-only 续批。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。

@@ -29,7 +29,7 @@
 
 Family UI `S1 R8` 至 `S8 R1` 已完成 Pencil、React 和真实浏览器严格验收。S9 / S10 的功能纵向切片已经完成，Pencil 当前为 Visual R3 待人工复核，React 不声明采用该视觉稿。开发测试态 application request quota 已完成独立三模式 owner、Admin GET / PUT、CAS 更新、六条 API Key inference route 的 provider 前原子准入以及 S9 管理面；这不代表 production quota、rate limit、token / cost 或 billing 成立。
 
-`S10 Application Evaluation Campaign` 功能专题已完成并关闭。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已在既有 S10 owner 上完成 Evaluation Plan / Campaign v2 typed fixture、exact contract checkpoint、Case / Suite handoff、三存储连续链与 SQLite 产品浏览器收口，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_completed`。当前已转入 [Workflow RAG 本地知识材料导入、审查与快照构建](features/workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)：纯 TypeScript importer 已完成，下一步冻结局部 Pencil 后接入既有 snapshot owner；不派生同层门禁，也不扩大 production、自动执行或业务写回声明。
+`S10 Application Evaluation Campaign` 功能专题已完成并关闭。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已在既有 S10 owner 上完成 Evaluation Plan / Campaign v2 typed fixture、exact contract checkpoint、Case / Suite handoff、三存储连续链与 SQLite 产品浏览器收口，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_completed`。[Workflow RAG 本地知识材料导入、审查与快照构建](features/workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 也已完成局部 Pencil、单一结构化 editor、本地 Markdown / Text 导入、来源 / fragment 审查、SQLite create / version / CAS / 重启和隐私复验，状态为 `workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_completed`。下一步重新选择长期功能专题；不从已关闭 owner 派生同层门禁，也不扩大 production、自动执行或业务写回声明。
 
 ## 产品形态
 

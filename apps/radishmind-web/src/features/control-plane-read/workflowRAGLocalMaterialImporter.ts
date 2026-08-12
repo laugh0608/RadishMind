@@ -1,16 +1,18 @@
 import {
+  WORKFLOW_RAG_SNAPSHOT_LIMITS,
   containsWorkflowRAGSecretMaterial,
   type WorkflowRAGFragmentInput,
   type WorkflowRAGSourceType,
 } from "./workflowRAGSnapshotConsumer.ts";
 
-const MAX_FILE_COUNT = 16;
-const MAX_FILE_BYTES = 256 * 1024;
-const MAX_RAW_BYTES = 1024 * 1024;
-const MAX_FRAGMENT_COUNT = 256;
-const MAX_FRAGMENT_BYTES = 8 * 1024;
-const MAX_TOTAL_CONTENT_BYTES = 1024 * 1024;
-const TARGET_FRAGMENT_BYTES = 6 * 1024;
+export const WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS = {
+  maxFiles: 16,
+  maxFileBytes: 256 * 1024,
+  maxRawBytes: 1024 * 1024,
+  targetFragmentBytes: 6 * 1024,
+} as const;
+
+const TARGET_FRAGMENT_BYTES = WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.targetFragmentBytes;
 const ALLOWED_EXTENSIONS = new Set(["md", "markdown", "txt"]);
 const encoder = new TextEncoder();
 
@@ -31,6 +33,11 @@ export type WorkflowRAGLocalMaterialFile = {
   selectionIndex: number;
   sourceType?: WorkflowRAGSourceType;
   isOfficial?: boolean;
+};
+
+export type WorkflowRAGLocalMaterialFileMetadata = {
+  fileName: string;
+  fileBytes: number;
 };
 
 export type WorkflowRAGLocalMaterialFinding = {
@@ -85,19 +92,45 @@ type LogicalSection = {
   content: string;
 };
 
+export function preflightWorkflowRAGLocalMaterialSelection(files: readonly WorkflowRAGLocalMaterialFileMetadata[]): WorkflowRAGLocalMaterialImportResult | null {
+  const rawBytes = files.reduce((total, file) => total + file.fileBytes, 0);
+  if (files.length < 1 || files.length > WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxFiles) {
+    return blockedResult(rawBytes, [finding(
+      "workflow_rag_material_file_count_invalid",
+      "",
+      "",
+      `一次必须选择 1 至 ${WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxFiles} 个文件。`,
+    )]);
+  }
+  const findings: WorkflowRAGLocalMaterialFinding[] = [];
+  if (rawBytes > WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxRawBytes) {
+    findings.push(finding("workflow_rag_material_file_too_large", "", "", "所选文件原始内容总量超过 1 MiB。"));
+  }
+  for (const file of files) {
+    const fileName = normalizedBaseName(file.fileName);
+    if (!allowedExtension(fileName)) {
+      findings.push(finding("workflow_rag_material_file_type_unsupported", "", "", `${fileName || "未命名文件"} 不是受支持的 Markdown / Text 文件。`));
+    }
+    if (file.fileBytes > WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxFileBytes) {
+      findings.push(finding("workflow_rag_material_file_too_large", "", "", `${fileName || "未命名文件"} 超过 256 KiB。`));
+    }
+  }
+  return findings.length ? blockedResult(rawBytes, findings) : null;
+}
+
 export async function importWorkflowRAGLocalMaterials(files: readonly WorkflowRAGLocalMaterialFile[]): Promise<WorkflowRAGLocalMaterialImportResult> {
-  if (files.length < 1 || files.length > MAX_FILE_COUNT) {
+  if (files.length < 1 || files.length > WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxFiles) {
     return blockedResult(files.reduce((total, file) => total + file.bytes.byteLength, 0), [finding(
       "workflow_rag_material_file_count_invalid",
       "",
       "",
-      `一次必须选择 1 至 ${MAX_FILE_COUNT} 个文件。`,
+      `一次必须选择 1 至 ${WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxFiles} 个文件。`,
     )]);
   }
 
   const rawBytes = files.reduce((total, file) => total + file.bytes.byteLength, 0);
   const findings: WorkflowRAGLocalMaterialFinding[] = [];
-  if (rawBytes > MAX_RAW_BYTES) {
+  if (rawBytes > WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxRawBytes) {
     findings.push(finding("workflow_rag_material_file_too_large", "", "", "所选文件原始内容总量超过 1 MiB。"));
   }
 
@@ -109,7 +142,7 @@ export async function importWorkflowRAGLocalMaterials(files: readonly WorkflowRA
       findings.push(finding("workflow_rag_material_file_type_unsupported", "", "", `${fileName || "未命名文件"} 不是受支持的 Markdown / Text 文件。`));
       continue;
     }
-    if (file.bytes.byteLength > MAX_FILE_BYTES) {
+    if (file.bytes.byteLength > WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxFileBytes) {
       findings.push(finding("workflow_rag_material_file_too_large", "", "", `${fileName} 超过 256 KiB。`));
       continue;
     }
@@ -184,7 +217,7 @@ export async function importWorkflowRAGLocalMaterials(files: readonly WorkflowRA
         contentBytes,
         contentDigest,
       };
-      if (contentBytes < 1 || contentBytes > MAX_FRAGMENT_BYTES) {
+      if (contentBytes < 1 || contentBytes > WORKFLOW_RAG_SNAPSHOT_LIMITS.maxFragmentBytes) {
         findings.push(finding("workflow_rag_material_budget_exceeded", sourceId, fragmentRef, `${fragmentRef} 超过单片段预算。`));
       }
       const previousFragment = fragmentDigestOwner.get(contentDigest);
@@ -209,7 +242,7 @@ export async function importWorkflowRAGLocalMaterials(files: readonly WorkflowRA
   }
 
   const totalContentBytes = fragments.reduce((total, fragment) => total + fragment.contentBytes, 0);
-  if (fragments.length > MAX_FRAGMENT_COUNT || totalContentBytes > MAX_TOTAL_CONTENT_BYTES) {
+  if (fragments.length > WORKFLOW_RAG_SNAPSHOT_LIMITS.maxFragments || totalContentBytes > WORKFLOW_RAG_SNAPSHOT_LIMITS.maxTotalContentBytes) {
     findings.push(finding("workflow_rag_material_budget_exceeded", "", "", "最终片段数量或正文总量超过知识快照预算。"));
   }
   if (!fragments.length && !findings.length) {

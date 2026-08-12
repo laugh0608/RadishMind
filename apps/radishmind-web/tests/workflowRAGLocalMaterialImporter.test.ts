@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { importWorkflowRAGLocalMaterials, type WorkflowRAGLocalMaterialFile } from "../src/features/control-plane-read/workflowRAGLocalMaterialImporter.ts";
+import { importWorkflowRAGLocalMaterials, preflightWorkflowRAGLocalMaterialSelection, type WorkflowRAGLocalMaterialFile } from "../src/features/control-plane-read/workflowRAGLocalMaterialImporter.ts";
 import { validateWorkflowRAGSnapshotWriteInput } from "../src/features/control-plane-read/workflowRAGSnapshotConsumer.ts";
 
 const textEncoder = new TextEncoder();
@@ -91,6 +91,19 @@ test("enforces file count and raw byte budgets before snapshot submission", asyn
     selectionIndex: index,
   })));
   assert.ok(totalTooLarge.findings.some((finding) => finding.code === "workflow_rag_material_file_too_large"));
+});
+
+test("preflights file metadata before the browser reads unsupported or oversized files", () => {
+  const tooMany = preflightWorkflowRAGLocalMaterialSelection(Array.from({ length: 17 }, (_, index) => ({ fileName: `file-${index}.txt`, fileBytes: 8 })));
+  assert.deepEqual(tooMany?.findings.map((finding) => finding.code), ["workflow_rag_material_file_count_invalid"]);
+
+  const invalid = preflightWorkflowRAGLocalMaterialSelection([
+    { fileName: "oversized.md", fileBytes: 256 * 1024 + 1 },
+    { fileName: "archive.zip", fileBytes: 900 * 1024 },
+  ]);
+  assert.ok(invalid?.findings.some((finding) => finding.code === "workflow_rag_material_file_type_unsupported"));
+  assert.ok(invalid?.findings.filter((finding) => finding.code === "workflow_rag_material_file_too_large").length >= 2);
+  assert.equal(preflightWorkflowRAGLocalMaterialSelection([{ fileName: "guide.md", fileBytes: 128 }]), null);
 });
 
 test("produces fragments accepted by the existing snapshot write contract", async () => {

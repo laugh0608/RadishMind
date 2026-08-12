@@ -31931,7 +31931,8 @@
                   "width": 920,
                   "content": "Inspect one application, its exact UTC window, and the admission decision owned by the selected policy.",
                   "fontFamily": "$font-sans",
-                  "fontSize": 13
+                  "fontSize": 13,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -32035,7 +32036,8 @@
                                   "fill": "$text-muted",
                                   "content": "Choose the exact consumer",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 9
+                                  "fontSize": 9,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             }
@@ -32109,7 +32111,8 @@
                                   "fill": "$text-secondary",
                                   "content": "Exact window and capacity",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 9
+                                  "fontSize": 9,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             }
@@ -32172,7 +32175,8 @@
                                   "fill": "$text-muted",
                                   "content": "CAS-confirmed request",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 9
+                                  "fontSize": 9,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             }
@@ -32235,7 +32239,8 @@
                                   "fill": "$text-muted",
                                   "content": "Stable result only",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 9
+                                  "fontSize": 9,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             }
@@ -32273,7 +32278,8 @@
                           "width": "fill_container",
                           "content": "No billing or production quota claim.",
                           "fontFamily": "$font-sans",
-                          "fontSize": 10
+                          "fontSize": 10,
+                          "fontWeight": "normal"
                         }
                       ]
                     }
@@ -32363,7 +32369,8 @@
                               "fill": "$text-secondary",
                               "content": "authority: admin.quota.write",
                               "fontFamily": "$font-sans",
-                              "fontSize": 9
+                              "fontSize": 9,
+                              "fontWeight": "normal"
                             }
                           ]
                         }
@@ -32715,7 +32722,8 @@
                                   "content": "The selected application has reached its exact active-window limit. The request stays closed until a new UTC window or an explicit policy change is observed.",
                                   "lineHeight": 1.45,
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 11
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             }
@@ -32773,7 +32781,8 @@
                               "fill": "$text-secondary",
                               "content": "attempts remaining in this UTC window",
                               "fontFamily": "$font-sans",
-                              "fontSize": 10
+                              "fontSize": 10,
+                              "fontWeight": "normal"
                             },
                             {
                               "type": "frame",
@@ -32857,7 +32866,8 @@
                                   "content": "Confirmation requires expected_version 42. A stale version fails closed.",
                                   "lineHeight": 1.4,
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 10
+                                  "fontSize": 10,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             },
@@ -32955,7 +32965,8 @@
                               "width": "fill_container",
                               "content": "Only the selected application owns this decision. Missing policy, stale version, or exhausted quota closes the request with a stable reason.",
                               "fontFamily": "$font-sans",
-                              "fontSize": 10
+                              "fontSize": 10,
+                              "fontWeight": "normal"
                             }
                           ]
                         }
@@ -33746,7 +33757,8 @@
                           "fill": "$text-secondary",
                           "content": "expected_version 42 required",
                           "fontFamily": "$font-sans",
-                          "fontSize": 8
+                          "fontSize": 8,
+                          "fontWeight": "normal"
                         }
                       ]
                     },
@@ -33806,7 +33818,8 @@
                       "content": "The active UTC window is exhausted. A stale version, missing policy, or exhausted limit fails closed.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 9
+                      "fontSize": 9,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -33865,7 +33878,8 @@
                   "content": "Only the selected application owns this decision. No production billing or global quota claim.",
                   "lineHeight": 1.35,
                   "fontFamily": "$font-sans",
-                  "fontSize": 9
+                  "fontSize": 9,
+                  "fontWeight": "normal"
                 }
               ]
             }
@@ -33923,7 +33937,8 @@
                   "fill": "$text-secondary",
                   "content": "Functional contract retained; S8 continuous Workbench becomes the visual parent.",
                   "fontFamily": "$font-sans",
-                  "fontSize": 10
+                  "fontSize": 10,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -34081,7 +34096,8 @@
                       "content": "Exact application policy owns the request.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -34112,7 +34128,8 @@
                       "content": "UTC window, capacity and remaining count stay visible.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -34143,7 +34160,8 @@
                       "content": "expected_version remains mandatory for CAS confirmation.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -34174,7 +34192,8 @@
                       "content": "Missing, stale or exhausted states continue to fail closed.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -34247,7 +34266,8 @@
                       "content": "Wide hero header plus metric-card strip.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -34278,7 +34298,8 @@
                       "content": "Equal-weight cards without a clear page owner.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -34309,7 +34330,8 @@
                       "content": "Large empty canvas gaps around policy facts.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -34340,7 +34362,8 @@
                       "content": "A token-only recolor presented as visual alignment.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -34413,7 +34436,8 @@
                       "content": "264 px shared product navigation and thin header.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -34444,7 +34468,8 @@
                       "content": "Resource path + selected application + one quota owner.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -34475,7 +34500,8 @@
                       "content": "Facts use continuous rows; admission lives in one rail.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -34506,7 +34532,8 @@
                       "content": "Narrow view follows context, path, owner and boundary order.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -35111,7 +35138,8 @@
                   "width": 920,
                   "content": "Run one checked plan, inspect candidate evidence, and hand off only an exact baseline–candidate pair.",
                   "fontFamily": "$font-sans",
-                  "fontSize": 13
+                  "fontSize": 13,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -35215,7 +35243,8 @@
                                   "fill": "$text-muted",
                                   "content": "Version and fixture",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 9
+                                  "fontSize": 9,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             }
@@ -35289,7 +35318,8 @@
                                   "fill": "$text-secondary",
                                   "content": "Run and inspect items",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 9
+                                  "fontSize": 9,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             }
@@ -35352,7 +35382,8 @@
                                   "fill": "$text-muted",
                                   "content": "Baseline and candidate",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 9
+                                  "fontSize": 9,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             }
@@ -35415,7 +35446,8 @@
                                   "fill": "$text-muted",
                                   "content": "Exact evidence only",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 9
+                                  "fontSize": 9,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             }
@@ -35453,7 +35485,8 @@
                           "width": "fill_container",
                           "content": "No production evaluation or automatic promotion.",
                           "fontFamily": "$font-sans",
-                          "fontSize": 10
+                          "fontSize": 10,
+                          "fontWeight": "normal"
                         }
                       ]
                     }
@@ -35543,7 +35576,8 @@
                               "fill": "$text-secondary",
                               "content": "authority: evaluation.run",
                               "fontFamily": "$font-sans",
-                              "fontSize": 9
+                              "fontSize": 9,
+                              "fontWeight": "normal"
                             }
                           ]
                         }
@@ -36071,7 +36105,8 @@
                                   "content": "Completed items retain exact baseline and candidate identities. Failed or incomplete items remain visible and cannot be represented as a completed handoff.",
                                   "lineHeight": 1.45,
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 11
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             }
@@ -36129,7 +36164,8 @@
                               "fill": "$text-secondary",
                               "content": "exact pairs available",
                               "fontFamily": "$font-sans",
-                              "fontSize": 10
+                              "fontSize": 10,
+                              "fontWeight": "normal"
                             },
                             {
                               "type": "frame",
@@ -36171,7 +36207,8 @@
                                   "width": "fill_container",
                                   "content": "baseline b17-010  ·  candidate c4-010",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 9
+                                  "fontSize": 9,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             },
@@ -36207,7 +36244,8 @@
                                   "content": "candidate_result_failed blocks complete handoff for this pair.",
                                   "lineHeight": 1.4,
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 10
+                                  "fontSize": 10,
+                                  "fontWeight": "normal"
                                 }
                               ]
                             },
@@ -36305,7 +36343,8 @@
                               "width": "fill_container",
                               "content": "The current view stays bound to the checked plan, exact fixture identities, environment and quota. Partial results remain partial.",
                               "fontFamily": "$font-sans",
-                              "fontSize": 10
+                              "fontSize": 10,
+                              "fontWeight": "normal"
                             }
                           ]
                         }
@@ -37164,7 +37203,8 @@
                           "fill": "$text-secondary",
                           "content": "b17-010  ↔  c4-010",
                           "fontFamily": "$font-sans",
-                          "fontSize": 8
+                          "fontSize": 8,
+                          "fontWeight": "normal"
                         }
                       ]
                     },
@@ -37224,7 +37264,8 @@
                       "content": "Ten exact pairs are reviewable. Failed and incomplete items remain visible and cannot become a completed campaign handoff.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 9
+                      "fontSize": 9,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -37283,7 +37324,8 @@
                   "content": "Checked plan, exact fixture identities, environment and quota remain attached to every handoff.",
                   "lineHeight": 1.35,
                   "fontFamily": "$font-sans",
-                  "fontSize": 9
+                  "fontSize": 9,
+                  "fontWeight": "normal"
                 }
               ]
             }
@@ -37341,7 +37383,8 @@
                   "fill": "$text-secondary",
                   "content": "Campaign evidence stays exact; visual ownership returns to the shared Workbench.",
                   "fontFamily": "$font-sans",
-                  "fontSize": 10
+                  "fontSize": 10,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -37499,7 +37542,8 @@
                       "content": "Checked plan, version and fixture stay attached.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -37530,7 +37574,8 @@
                       "content": "Campaign items retain exact baseline–candidate identity.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -37561,7 +37606,8 @@
                       "content": "Stable failures remain visible beside partial progress.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -37592,7 +37638,8 @@
                       "content": "Handoff never implies automatic promotion authority.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -37665,7 +37712,8 @@
                       "content": "Dashboard-style progress and metric-card composition.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -37696,7 +37744,8 @@
                       "content": "Campaign, items and handoff presented as equal panels.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -37727,7 +37776,8 @@
                       "content": "Sparse page body with weak selected-object continuity.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -37758,7 +37808,8 @@
                       "content": "A page shell that no longer resembled S1–S8.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -37831,7 +37882,8 @@
                       "content": "Shared navigation, thin header and evidence path.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -37862,7 +37914,8 @@
                       "content": "Selected campaign becomes the single visible owner.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -37893,7 +37946,8 @@
                       "content": "Evidence rows stay continuous; handoff occupies one rail.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -37924,7 +37978,8 @@
                       "content": "Narrow view preserves the same owner and boundary order.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 10
+                      "fontSize": 10,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -38041,7 +38096,8 @@
               "width": 800,
               "content": "Collect definition-directed values for one immutable runtime contract; values stay ephemeral and authority changes clear them.",
               "fontFamily": "$font-sans",
-              "fontSize": 12
+              "fontSize": 12,
+              "fontWeight": "normal"
             }
           ]
         },
@@ -38156,7 +38212,8 @@
                               "fill": "$text-secondary",
                               "content": "Immutable identity",
                               "fontFamily": "$font-sans",
-                              "fontSize": 8
+                              "fontSize": 8,
+                              "fontWeight": "normal"
                             }
                           ]
                         }
@@ -38219,7 +38276,8 @@
                               "fill": "$text-muted",
                               "content": "Ephemeral only",
                               "fontFamily": "$font-sans",
-                              "fontSize": 8
+                              "fontSize": 8,
+                              "fontWeight": "normal"
                             }
                           ]
                         }
@@ -38282,7 +38340,8 @@
                               "fill": "$text-muted",
                               "content": "Definition-directed",
                               "fontFamily": "$font-sans",
-                              "fontSize": 8
+                              "fontSize": 8,
+                              "fontWeight": "normal"
                             }
                           ]
                         }
@@ -38345,7 +38404,8 @@
                               "fill": "$text-muted",
                               "content": "Bound authority",
                               "fontFamily": "$font-sans",
-                              "fontSize": 8
+                              "fontSize": 8,
+                              "fontWeight": "normal"
                             }
                           ]
                         }
@@ -38446,7 +38506,8 @@
                       "width": "fill_container",
                       "content": "Values are not saved into the workflow definition.",
                       "fontFamily": "$font-sans",
-                      "fontSize": 9
+                      "fontSize": 9,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -38536,7 +38597,8 @@
                           "fill": "$text-secondary",
                           "content": "authority v12",
                           "fontFamily": "$font-sans",
-                          "fontSize": 8
+                          "fontSize": 8,
+                          "fontWeight": "normal"
                         }
                       ]
                     }
@@ -39104,7 +39166,8 @@
                               "width": "fill_container",
                               "content": "Values are attached only to this run request and are cleared when authority changes.",
                               "fontFamily": "$font-sans",
-                              "fontSize": 9
+                              "fontSize": 9,
+                              "fontWeight": "normal"
                             }
                           ]
                         }
@@ -39275,7 +39338,8 @@
                               "content": "target_temperature_c rejects the current value before a run is created.",
                               "lineHeight": 1.4,
                               "fontFamily": "$font-sans",
-                              "fontSize": 9
+                              "fontSize": 9,
+                              "fontWeight": "normal"
                             }
                           ]
                         },
@@ -39309,7 +39373,8 @@
                               "content": "A changed authority version clears every entered value.",
                               "lineHeight": 1.4,
                               "fontFamily": "$font-sans",
-                              "fontSize": 9
+                              "fontSize": 9,
+                              "fontWeight": "normal"
                             }
                           ]
                         },
@@ -39397,7 +39462,8 @@
                           "width": "fill_container",
                           "content": "The editor follows the immutable contract; it does not write runtime values back into the workflow definition.",
                           "fontFamily": "$font-sans",
-                          "fontSize": 9
+                          "fontSize": 9,
+                          "fontWeight": "normal"
                         }
                       ]
                     }
@@ -40429,7 +40495,8 @@
                           "fill": "$text-secondary",
                           "content": "Resolve target_temperature_c",
                           "fontFamily": "$font-sans",
-                          "fontSize": 8
+                          "fontSize": 8,
+                          "fontWeight": "normal"
                         }
                       ]
                     },
@@ -40489,7 +40556,8 @@
                       "content": "Values belong only to this run request. An authority change clears them and never mutates the workflow definition.",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-sans",
-                      "fontSize": 9
+                      "fontSize": 9,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -40547,7 +40615,2643 @@
                   "width": "fill_container",
                   "content": "Definition, authority and runtime values remain separate.",
                   "fontFamily": "$font-sans",
-                  "fontSize": 9
+                  "fontSize": 9,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "U4tmEg",
+      "x": 28770,
+      "y": 0,
+      "name": "Workflow RAG Local Material Review — Desktop / Partial · R1",
+      "clip": true,
+      "width": 1040,
+      "height": 760,
+      "fill": "$bg-canvas",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "IngTP",
+          "name": "Local Input Header",
+          "width": "fill_container",
+          "height": 118,
+          "fill": "$bg-surface",
+          "stroke": "$border-soft",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "layout": "vertical",
+          "gap": 7,
+          "padding": [
+            18,
+            24
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "Vg4t3",
+              "name": "Local Input Header Context",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "xusCY",
+                  "name": "Local Input Breadcrumb",
+                  "fill": "$text-muted",
+                  "content": "APPLICATION / KNOWLEDGE SNAPSHOT",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 9,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "S72hT",
+                  "name": "Local Input Header States",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "DtZa6",
+                      "name": "Local Input Local State",
+                      "fill": "$warning",
+                      "content": "BROWSER LOCAL",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "K2z8Y",
+                      "name": "Local Input Contract State",
+                      "fill": "$success",
+                      "content": "5 FRAGMENTS",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "bCqFn",
+                      "name": "Local Input Authority State",
+                      "fill": "$action",
+                      "content": "2 BLOCKERS",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "f4e4HG",
+              "name": "Local Input Title",
+              "fill": "$text-primary",
+              "content": "Review local knowledge materials",
+              "fontFamily": "$font-sans",
+              "fontSize": 28,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "RmhBz",
+              "name": "Local Input Description",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": 800,
+              "content": "Inspect deterministic sections before committing one complete immutable snapshot replacement; files and uncommitted staging remain in this tab only.",
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "wKcda",
+          "name": "Local Input Body",
+          "width": "fill_container",
+          "height": 642,
+          "fill": "$bg-surface",
+          "children": [
+            {
+              "type": "frame",
+              "id": "MhgRb",
+              "name": "Local Input Path",
+              "width": 190,
+              "height": "fill_container",
+              "fill": "$bg-muted",
+              "stroke": "$border-soft",
+              "strokeWidth": {
+                "right": 1
+              },
+              "layout": "vertical",
+              "gap": 16,
+              "padding": [
+                18,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "A5SOO",
+                  "name": "Local Input Path Label",
+                  "fill": "$text-muted",
+                  "content": "FRAGMENT REVIEW",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 9,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "ILjvK",
+                  "name": "Local Input Path Items",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "W8Koi",
+                      "name": "Local Input Contract Step",
+                      "height": 54,
+                      "fill": "$action-soft",
+                      "cornerRadius": 10,
+                      "stroke": "$action",
+                      "strokeWidth": {
+                        "left": 2
+                      },
+                      "gap": 9,
+                      "padding": [
+                        0,
+                        0,
+                        0,
+                        8
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "B67aL",
+                          "name": "Local Input Contract Index",
+                          "width": 26,
+                          "height": 26,
+                          "fill": "$action",
+                          "cornerRadius": 7,
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "YlCq8",
+                              "name": "Local Input Contract Index Label",
+                              "fill": "$text-on-accent",
+                              "content": "01",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 9,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "drWJi",
+                          "name": "Local Input Contract Copy",
+                          "layout": "vertical",
+                          "gap": 3,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "bSeoE",
+                              "name": "Local Input Contract Title",
+                              "fill": "$action",
+                              "content": "overview",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "M7PgN",
+                              "name": "Local Input Contract Note",
+                              "fill": "$text-secondary",
+                              "content": "handbook.md · ready",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 8,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "w1asKz",
+                      "name": "Local Input Values Step",
+                      "height": 54,
+                      "cornerRadius": 10,
+                      "gap": 9,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "uYkGX",
+                          "name": "Local Input Values Index",
+                          "width": 26,
+                          "height": 26,
+                          "fill": "$bg-surface",
+                          "cornerRadius": 7,
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "x3Hrep",
+                              "name": "Local Input Values Index Label",
+                              "fill": "$text-muted",
+                              "content": "02",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 9,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "J3S6D",
+                          "name": "Local Input Values Copy",
+                          "layout": "vertical",
+                          "gap": 3,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "JB8At",
+                              "name": "Local Input Values Title",
+                              "fill": "$text-primary",
+                              "content": "setup-guide",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Ma9Tn",
+                              "name": "Local Input Values Note",
+                              "fill": "$text-muted",
+                              "content": "handbook.md · selected",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 8,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "N1GjF9",
+                      "name": "Local Input Validate Step",
+                      "height": 54,
+                      "cornerRadius": 10,
+                      "gap": 9,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "I5HAj",
+                          "name": "Local Input Validate Index",
+                          "width": 26,
+                          "height": 26,
+                          "fill": "$bg-surface",
+                          "cornerRadius": 7,
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "PQKoc",
+                              "name": "Local Input Validate Index Label",
+                              "fill": "$text-muted",
+                              "content": "03",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 9,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "ieXnP",
+                          "name": "Local Input Validate Copy",
+                          "layout": "vertical",
+                          "gap": 3,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "GQhIH",
+                              "name": "Local Input Validate Title",
+                              "fill": "$text-primary",
+                              "content": "support-faq",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "ikcZ1",
+                              "name": "Local Input Validate Note",
+                              "fill": "$text-muted",
+                              "content": "duplicate reference",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 8,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ashwW",
+                      "name": "Local Input Run Step",
+                      "height": 54,
+                      "cornerRadius": 10,
+                      "gap": 9,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "htnXd",
+                          "name": "Local Input Run Index",
+                          "width": 26,
+                          "height": 26,
+                          "fill": "$bg-surface",
+                          "cornerRadius": 7,
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "f0fwZI",
+                              "name": "Local Input Run Index Label",
+                              "fill": "$text-muted",
+                              "content": "04",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 9,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "q25Ko",
+                          "name": "Local Input Run Copy",
+                          "layout": "vertical",
+                          "gap": 3,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "FDxam",
+                              "name": "Local Input Run Title",
+                              "fill": "$text-primary",
+                              "content": "+ 2 more",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "U5WQEU",
+                              "name": "Local Input Run Note",
+                              "fill": "$text-muted",
+                              "content": "Bound authority",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 8,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "JKsF8",
+                  "name": "Local Input Contract Facts",
+                  "width": "fill_container",
+                  "fill": "$bg-surface",
+                  "cornerRadius": 10,
+                  "layout": "vertical",
+                  "gap": 7,
+                  "padding": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "u9JevJ",
+                      "name": "Local Input Contract Facts Label",
+                      "fill": "$text-muted",
+                      "content": "LOCAL STAGING",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 8,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "p19My",
+                      "name": "Local Input Contract Identity",
+                      "fill": "$text-primary",
+                      "content": "2 sources · 5 fragments",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 10,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "x7SFGb",
+                      "name": "Local Input Contract Digest",
+                      "fill": "$text-secondary",
+                      "content": "8.6 KiB reviewed content",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "oYUzx",
+                      "name": "Local Input Contract Fields",
+                      "fill": "$text-secondary",
+                      "content": "2 blocking findings",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "pufwM",
+                      "name": "Local Input Contract Authority",
+                      "fill": "$action",
+                      "content": "generation 7",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "yDEof",
+                  "name": "Local Input Path Boundary",
+                  "width": "fill_container",
+                  "fill": "$warning-soft",
+                  "cornerRadius": 10,
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "NAewG",
+                      "name": "Local Input Path Boundary Label",
+                      "fill": "$warning",
+                      "content": "FILES STAY LOCAL",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 8,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "aL6En",
+                      "name": "Local Input Path Boundary Text",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Raw files, basenames and rejected sections are cleared on scope change.",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TsHnr",
+              "name": "Local Input Work Surface",
+              "width": 850,
+              "height": "fill_container",
+              "fill": "$bg-surface",
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 18,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "kiSvN",
+                  "name": "Local Input Selected Contract",
+                  "width": "fill_container",
+                  "height": 64,
+                  "fill": "$action-soft",
+                  "cornerRadius": 10,
+                  "stroke": "$action",
+                  "strokeWidth": {
+                    "left": 3
+                  },
+                  "padding": [
+                    12,
+                    14
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "jPRAr",
+                      "name": "Local Input Selected Contract Copy",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ZUXSP",
+                          "name": "Local Input Selected Contract Label",
+                          "fill": "$text-muted",
+                          "content": "LOCAL MATERIALS",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "z8CuR",
+                          "name": "Local Input Selected Contract Name",
+                          "fill": "$text-primary",
+                          "content": "handbook.md + support-faq.txt",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 15,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "drfAs",
+                      "name": "Local Input Selected Contract Meta",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "alignItems": "end",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "P9ZcZK",
+                          "name": "Local Input Selected Contract Digest",
+                          "fill": "$action",
+                          "content": "5 deterministic fragments",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 9,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "aCQrT",
+                          "name": "Local Input Selected Contract Authority",
+                          "fill": "$text-secondary",
+                          "content": "Choose .md / .txt files",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "kaQlU",
+                  "name": "Local Input Editor Owner",
+                  "width": "fill_container",
+                  "height": 448,
+                  "fill": "$bg-surface",
+                  "stroke": "$bg-surface",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "MJhxO",
+                      "name": "Local Input Field Owner",
+                      "clip": true,
+                      "width": 560,
+                      "height": "fill_container",
+                      "fill": "$bg-surface",
+                      "cornerRadius": 11,
+                      "stroke": "$border-soft",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "tYf3m",
+                          "name": "Local Input Field Header",
+                          "width": "fill_container",
+                          "height": 56,
+                          "stroke": "$border-soft",
+                          "strokeWidth": {
+                            "bottom": 1
+                          },
+                          "padding": [
+                            10,
+                            14
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "Un2b9",
+                              "name": "Local Input Field Heading",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "D8FTLA",
+                                  "name": "Local Input Field Eyebrow",
+                                  "fill": "$success",
+                                  "content": "SELECTED FRAGMENT",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 8,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "jf3Si",
+                                  "name": "Local Input Field Title",
+                                  "fill": "$text-primary",
+                                  "content": "setup-guide",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 16,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "fJH00",
+                              "name": "Local Input Field Count",
+                              "fill": "$text-muted",
+                              "content": "02 of 05",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 9,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "wdTlJ",
+                          "name": "Local Input Field Canvas",
+                          "width": 560,
+                          "height": 272,
+                          "fill": "$bg-muted",
+                          "cornerRadius": 10,
+                          "layout": "vertical",
+                          "gap": 12,
+                          "padding": 12,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "cXHAV",
+                              "name": "Local Input Primary Fields",
+                              "width": "fill_container",
+                              "height": "fill_container",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "BAsvb",
+                                  "name": "Process Description Field",
+                                  "width": 320,
+                                  "height": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 6,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "yePYZ",
+                                      "name": "Process Description Field Header",
+                                      "width": "fill_container",
+                                      "justifyContent": "space_between",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "DwCJt",
+                                          "name": "Process Description Field Key",
+                                          "fill": "$text-primary",
+                                          "content": "title",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 9,
+                                          "fontWeight": "600"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "z91PWI",
+                                          "name": "Process Description Field Type",
+                                          "fill": "$bg-surface",
+                                          "cornerRadius": 99,
+                                          "padding": [
+                                            3,
+                                            6
+                                          ],
+                                          "justifyContent": "center",
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "n4MPW",
+                                              "name": "Process Description Field Type Label",
+                                              "fill": "$text-muted",
+                                              "content": "Aa · REQ",
+                                              "fontFamily": "$font-sans",
+                                              "fontSize": 7,
+                                              "fontWeight": "600"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "hQXz8",
+                                      "name": "Process Description Field Control",
+                                      "width": "fill_container",
+                                      "height": 38,
+                                      "fill": "$bg-surface",
+                                      "cornerRadius": 8,
+                                      "stroke": "$border-soft",
+                                      "strokeWidth": 1,
+                                      "padding": [
+                                        0,
+                                        10
+                                      ],
+                                      "justifyContent": "space_between",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "ttcs3",
+                                          "name": "Process Description Field Value",
+                                          "fill": "$text-primary",
+                                          "textGrowth": "fixed-width",
+                                          "width": "fill_container",
+                                          "content": "Install and configure the CLI",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 9,
+                                          "fontWeight": "500"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "KMSWy",
+                                      "name": "Process Description Field Helper",
+                                      "fill": "$text-muted",
+                                      "content": "string · 33 bytes",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 7.5,
+                                      "fontWeight": "500"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "iRUHH",
+                                  "name": "Target Temperature Field",
+                                  "width": "fill_container",
+                                  "height": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 6,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "to9tk",
+                                      "name": "Target Temperature Field Header",
+                                      "width": "fill_container",
+                                      "justifyContent": "space_between",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "q5Tn8U",
+                                          "name": "Target Temperature Field Key",
+                                          "fill": "$text-primary",
+                                          "content": "fragmentRef",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 9,
+                                          "fontWeight": "600"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "rzGAF",
+                                          "name": "Target Temperature Field Type",
+                                          "fill": "$attention-soft",
+                                          "cornerRadius": 99,
+                                          "padding": [
+                                            3,
+                                            6
+                                          ],
+                                          "justifyContent": "center",
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "fFdcb",
+                                              "name": "Target Temperature Field Type Label",
+                                              "fill": "$attention",
+                                              "content": "REF · BLOCKED",
+                                              "fontFamily": "$font-sans",
+                                              "fontSize": 7,
+                                              "fontWeight": "600"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "Naple",
+                                      "name": "Target Temperature Field Control",
+                                      "width": "fill_container",
+                                      "height": 38,
+                                      "fill": "$attention-soft",
+                                      "cornerRadius": 8,
+                                      "stroke": "$attention",
+                                      "strokeWidth": 1,
+                                      "padding": [
+                                        0,
+                                        10
+                                      ],
+                                      "justifyContent": "space_between",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "h3JWds",
+                                          "name": "Target Temperature Field Value",
+                                          "fill": "$attention",
+                                          "textGrowth": "fixed-width",
+                                          "width": "fill_container",
+                                          "content": "support-faq",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 9,
+                                          "fontWeight": "500"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "zum2K",
+                                      "name": "Target Temperature Field Helper",
+                                      "fill": "$attention",
+                                      "content": "Duplicate reference with fragment 03",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 7.5,
+                                      "fontWeight": "500"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Qtfl7",
+                              "name": "Local Input Supporting Fields",
+                              "width": "fill_container",
+                              "height": "fill_container",
+                              "gap": 12,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "Abx9f",
+                                  "name": "Include Recycle Field",
+                                  "width": 185,
+                                  "height": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 6,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "QmMEk",
+                                      "name": "Include Recycle Field Header",
+                                      "width": "fill_container",
+                                      "justifyContent": "space_between",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "b8GlIl",
+                                          "name": "Include Recycle Field Key",
+                                          "fill": "$text-primary",
+                                          "content": "isOfficial",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 9,
+                                          "fontWeight": "600"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "LoYYN",
+                                          "name": "Include Recycle Field Type",
+                                          "fill": "$bg-surface",
+                                          "cornerRadius": 99,
+                                          "padding": [
+                                            3,
+                                            6
+                                          ],
+                                          "justifyContent": "center",
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "TQaxO",
+                                              "name": "Include Recycle Field Type Label",
+                                              "fill": "$text-muted",
+                                              "content": "T/F · OPT",
+                                              "fontFamily": "$font-sans",
+                                              "fontSize": 7,
+                                              "fontWeight": "600"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "t6VKaP",
+                                      "name": "Include Recycle Control",
+                                      "width": "fill_container",
+                                      "height": 38,
+                                      "fill": "$bg-surface",
+                                      "cornerRadius": 8,
+                                      "stroke": "$border-soft",
+                                      "strokeWidth": 1,
+                                      "padding": [
+                                        0,
+                                        10
+                                      ],
+                                      "justifyContent": "space_between",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "QziIU",
+                                          "name": "Include Recycle Value",
+                                          "fill": "$text-primary",
+                                          "content": "Enabled",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 9,
+                                          "fontWeight": "500"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "M4Hte",
+                                          "name": "Include Recycle Toggle",
+                                          "width": 30,
+                                          "height": 17,
+                                          "fill": "$success",
+                                          "cornerRadius": 99,
+                                          "padding": 2,
+                                          "justifyContent": "end",
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "type": "frame",
+                                              "id": "CqdMD",
+                                              "name": "Include Recycle Toggle Thumb",
+                                              "width": 13,
+                                              "height": 13,
+                                              "fill": "$bg-surface",
+                                              "cornerRadius": 99
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "M971sG",
+                                      "name": "Include Recycle Field Helper",
+                                      "fill": "$text-muted",
+                                      "content": "explicit source setting",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 7.5,
+                                      "fontWeight": "500"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "mr3F1",
+                                  "name": "Operator Note Field",
+                                  "width": "fill_container",
+                                  "height": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 6,
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "KpqQf",
+                                      "name": "Operator Note Field Header",
+                                      "width": "fill_container",
+                                      "justifyContent": "space_between",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "YWIMg",
+                                          "name": "Operator Note Field Key",
+                                          "fill": "$text-primary",
+                                          "content": "content",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 9,
+                                          "fontWeight": "600"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "NTBX8",
+                                          "name": "Operator Note Field Type",
+                                          "fill": "$bg-surface",
+                                          "cornerRadius": 99,
+                                          "padding": [
+                                            3,
+                                            6
+                                          ],
+                                          "justifyContent": "center",
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "r3rqIv",
+                                              "name": "Operator Note Field Type Label",
+                                              "fill": "$text-muted",
+                                              "content": "Aa · REQ",
+                                              "fontFamily": "$font-sans",
+                                              "fontSize": 7,
+                                              "fontWeight": "600"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "e5WNy3",
+                                      "name": "Operator Note Field Control",
+                                      "width": "fill_container",
+                                      "height": 38,
+                                      "fill": "$bg-surface",
+                                      "cornerRadius": 8,
+                                      "stroke": "$border-soft",
+                                      "strokeWidth": 1,
+                                      "padding": [
+                                        0,
+                                        10
+                                      ],
+                                      "justifyContent": "space_between",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "emnDE",
+                                          "name": "Operator Note Field Value",
+                                          "fill": "$text-primary",
+                                          "textGrowth": "fixed-width",
+                                          "width": "fill_container",
+                                          "content": "Install the CLI, then create a workspace.",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 9,
+                                          "fontWeight": "500"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "FJ1WN",
+                                      "name": "Operator Note Field Helper",
+                                      "fill": "$text-muted",
+                                      "content": "2.1 KiB · under 8 KiB",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 7.5,
+                                      "fontWeight": "500"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "y70VEk",
+                          "name": "Local Input Ephemeral Notice",
+                          "width": "fill_container",
+                          "height": 56,
+                          "fill": "$warning-soft",
+                          "cornerRadius": 8,
+                          "stroke": "$warning",
+                          "strokeWidth": {
+                            "top": 1
+                          },
+                          "gap": 10,
+                          "padding": [
+                            10,
+                            14
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "E9yGH8",
+                              "name": "Local Input Ephemeral Notice Icon",
+                              "fill": "$warning",
+                              "content": "!",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 13,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "B7STE8",
+                              "name": "Local Input Ephemeral Notice Text",
+                              "fill": "$text-secondary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Duplicate content and references must be resolved before this replacement can be sent.",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 9,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "q78hc",
+                      "name": "Local Input Authority Rail",
+                      "clip": true,
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "fill": "$bg-muted",
+                      "cornerRadius": 11,
+                      "stroke": "$border-soft",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 11,
+                      "padding": 14,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "pDUVw",
+                          "name": "Local Input Authority Rail Label",
+                          "fill": "$text-muted",
+                          "content": "SNAPSHOT COMMIT",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "D1BRAH",
+                          "name": "Local Input Authority Rail Title",
+                          "fill": "$text-primary",
+                          "content": "Blocked · 2 findings",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 18,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "WzXsR",
+                          "name": "Local Input Authority Facts",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "layout": "vertical",
+                          "gap": 9,
+                          "padding": 12,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "H3aPhX",
+                              "name": "Local Input Authority App",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "z2BWpH",
+                                  "name": "Local Input Authority App Key",
+                                  "fill": "$text-muted",
+                                  "content": "SOURCES",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 8,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "fUshU",
+                                  "name": "Local Input Authority App Value",
+                                  "fill": "$text-primary",
+                                  "content": "2",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 9,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "YPjLn",
+                              "name": "Local Input Authority Role",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "V5Ikzo",
+                                  "name": "Local Input Authority Role Key",
+                                  "fill": "$text-muted",
+                                  "content": "FRAGMENTS",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 8,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "D1sbBH",
+                                  "name": "Local Input Authority Role Value",
+                                  "fill": "$text-primary",
+                                  "content": "5",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 9,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "CrSRP",
+                              "name": "Local Input Authority Version",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "Vtkzw",
+                                  "name": "Local Input Authority Version Key",
+                                  "fill": "$text-muted",
+                                  "content": "CONTENT",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 8,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "ptf3t",
+                                  "name": "Local Input Authority Version Value",
+                                  "fill": "$action",
+                                  "content": "8.6 KiB",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 9,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "j9LeRG",
+                          "name": "Local Input Failure Ownership",
+                          "width": "fill_container",
+                          "fill": "$attention-soft",
+                          "stroke": "$attention",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "padding": 12,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Nauy4",
+                              "name": "Local Input Failure Ownership Label",
+                              "fill": "$attention",
+                              "content": "DUPLICATE SOURCE",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 8,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "zG8dE",
+                              "name": "Local Input Failure Ownership Text",
+                              "fill": "$text-secondary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "support-faq.txt matches a handbook appendix digest; remove one source before commit.",
+                              "lineHeight": 1.4,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 9,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "d5dCdC",
+                          "name": "Local Input Authority Change",
+                          "width": "fill_container",
+                          "fill": "$warning-soft",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "padding": 12,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "HqiAY",
+                              "name": "Local Input Authority Change Label",
+                              "fill": "$warning",
+                              "content": "VERSION ACTION",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 8,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "bh1kF",
+                              "name": "Local Input Authority Change Text",
+                              "fill": "$text-secondary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Full replacement creates v2 only after the current v1 CAS check succeeds.",
+                              "lineHeight": 1.4,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 9,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "zwIuQ",
+                          "name": "Local Input Disabled Run",
+                          "width": "fill_container",
+                          "height": 36,
+                          "fill": "$border-soft",
+                          "cornerRadius": 8,
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Cx2AR",
+                              "name": "Local Input Disabled Run Label",
+                              "fill": "$text-muted",
+                              "content": "Resolve blockers to create v2",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 10,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "QWhV6",
+                  "name": "Local Input Global Boundary",
+                  "width": "fill_container",
+                  "height": 64,
+                  "fill": "$warning-soft",
+                  "cornerRadius": 10,
+                  "stroke": "$warning",
+                  "strokeWidth": {
+                    "left": 2
+                  },
+                  "gap": 10,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "w5KeJp",
+                      "name": "Local Input Global Boundary Icon",
+                      "fill": "$warning",
+                      "content": "!",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "GYLM1",
+                      "name": "Local Input Global Boundary Copy",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 3,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "oMrOu",
+                          "name": "Local Input Global Boundary Title",
+                          "fill": "$text-primary",
+                          "content": "Files and staging stay in this tab",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 10,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "ulFPy",
+                          "name": "Local Input Global Boundary Text",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Only the reviewed seven-field fragment replacement is sent through the existing snapshot create / version consumer.",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 9,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "nI3RW",
+      "x": 29890,
+      "y": 0,
+      "name": "Workflow RAG Local Material Review — Narrow / Partial · R1",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$bg-canvas",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "DIOMw",
+          "name": "Narrow Local Input Command Bar",
+          "width": 390,
+          "height": 64,
+          "fill": "$bg-surface",
+          "stroke": "$border-soft",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            15
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "uzokQ",
+              "name": "Narrow Local Input Identity",
+              "gap": 9,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "jWAU4",
+                  "name": "Narrow Local Input Mark",
+                  "width": 34,
+                  "height": 34,
+                  "fill": "$brand-soft",
+                  "cornerRadius": 10,
+                  "layout": "vertical",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "sgFl1",
+                      "name": "Narrow Local Input Mark Label",
+                      "fill": "$brand",
+                      "content": "R",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "PzHGJ",
+                  "name": "Narrow Local Input Product",
+                  "fill": "$text-primary",
+                  "content": "RadishMind",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "O3iaHZ",
+              "name": "Narrow Local Input Mode",
+              "height": 29,
+              "fill": "$bg-muted",
+              "cornerRadius": 99,
+              "stroke": "$border-soft",
+              "layout": "vertical",
+              "padding": [
+                0,
+                10
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "pGNCo",
+                  "name": "Narrow Local Input Mode Label",
+                  "fill": "$text-primary",
+                  "content": "Local",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 10,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "kDTsV",
+          "name": "Narrow Local Input Content",
+          "width": 390,
+          "height": 780,
+          "fill": "$bg-canvas",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            12,
+            15
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "nZkng",
+              "name": "Narrow Local Input Context",
+              "width": "fill_container",
+              "height": 94,
+              "fill": "$bg-surface",
+              "cornerRadius": 10,
+              "stroke": "$border-soft",
+              "layout": "vertical",
+              "gap": 5,
+              "padding": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "W1jke",
+                  "name": "Narrow Local Input Context Header",
+                  "width": "fill_container",
+                  "height": 18,
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "zdmCk",
+                      "name": "Narrow Local Input Breadcrumb",
+                      "fill": "$text-muted",
+                      "content": "APPLICATION / KNOWLEDGE",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 8,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "JRfmA",
+                      "name": "Narrow Local Input Context States",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Oneox",
+                          "name": "Narrow Local Input Contract State",
+                          "fill": "$success",
+                          "content": "5 FRAGS",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "raLuk",
+                          "name": "Narrow Local Input Authority State",
+                          "fill": "$action",
+                          "content": "2 BLOCKERS",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "IRGPO",
+                  "name": "Narrow Local Input Title",
+                  "fill": "$text-primary",
+                  "content": "Review local materials",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 22,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "C1F32",
+                  "name": "Narrow Local Input Context Footer",
+                  "width": "fill_container",
+                  "height": 18,
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "E8lKgv",
+                      "name": "Narrow Local Input Contract",
+                      "fill": "$text-secondary",
+                      "content": "handbook.md + 1 file",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "t86Z6",
+                      "name": "Narrow Local Input Field Count",
+                      "fill": "$text-muted",
+                      "content": "5 fragments",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 8,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "GLKdT",
+              "name": "Narrow Local Input Path",
+              "width": "fill_container",
+              "height": 82,
+              "fill": "$bg-surface",
+              "cornerRadius": 10,
+              "stroke": "$border-soft",
+              "layout": "vertical",
+              "gap": 6,
+              "padding": 9,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Z8YvV",
+                  "name": "Narrow Local Input Path Label",
+                  "fill": "$text-muted",
+                  "content": "REVIEW PATH",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 8,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "ZbuKG",
+                  "name": "Narrow Local Input Path Tasks",
+                  "width": "fill_container",
+                  "height": 48,
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "fSjtM",
+                      "name": "Narrow Local Contract Task",
+                      "width": "fill_container",
+                      "height": 48,
+                      "fill": "$bg-surface",
+                      "cornerRadius": 8,
+                      "stroke": "$action",
+                      "layout": "vertical",
+                      "gap": 3,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "GUrWw",
+                          "name": "Narrow Local Contract Task Index",
+                          "fill": "$text-muted",
+                          "content": "01",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Djyxu",
+                          "name": "Narrow Local Contract Task Label",
+                          "fill": "$text-secondary",
+                          "content": "Import",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "gAiXc",
+                      "name": "Narrow Local Values Task",
+                      "width": "fill_container",
+                      "height": 48,
+                      "fill": "$bg-surface",
+                      "cornerRadius": 8,
+                      "stroke": "$border-soft",
+                      "layout": "vertical",
+                      "gap": 3,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "FqcTM",
+                          "name": "Narrow Local Values Task Index",
+                          "fill": "$text-muted",
+                          "content": "02",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "szINq",
+                          "name": "Narrow Local Values Task Label",
+                          "fill": "$text-secondary",
+                          "content": "Sources",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "W0oYf",
+                      "name": "Narrow Local Validate Task",
+                      "width": "fill_container",
+                      "height": 48,
+                      "fill": "$action",
+                      "cornerRadius": 8,
+                      "stroke": "$border-soft",
+                      "layout": "vertical",
+                      "gap": 3,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "M7uwyA",
+                          "name": "Narrow Local Validate Task Index",
+                          "fill": "$text-on-accent",
+                          "content": "03",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "l9Uuu",
+                          "name": "Narrow Local Validate Task Label",
+                          "fill": "$text-on-accent",
+                          "content": "Fragments",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "nwbD5",
+                      "name": "Narrow Local Run Task",
+                      "width": "fill_container",
+                      "height": 48,
+                      "fill": "$bg-surface",
+                      "cornerRadius": 8,
+                      "stroke": "$border-soft",
+                      "layout": "vertical",
+                      "gap": 3,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "WKvQe",
+                          "name": "Narrow Local Run Task Index",
+                          "fill": "$text-muted",
+                          "content": "04",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "tn7mj",
+                          "name": "Narrow Local Run Task Label",
+                          "fill": "$text-secondary",
+                          "content": "Commit",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "NL1Dd",
+              "name": "Narrow Local Input Owner",
+              "clip": true,
+              "width": "fill_container",
+              "height": 494,
+              "fill": "$bg-surface",
+              "cornerRadius": 10,
+              "stroke": "$border-soft",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "XTZwh",
+                  "name": "Narrow Local Input Owner Header",
+                  "width": "fill_container",
+                  "height": 56,
+                  "stroke": "$border-soft",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "O96JV8",
+                      "name": "Narrow Local Input Owner Heading",
+                      "layout": "vertical",
+                      "gap": 3,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "V275B",
+                          "name": "Narrow Local Input Owner Label",
+                          "fill": "$text-muted",
+                          "content": "SELECTED FRAGMENT",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "v6L6U",
+                          "name": "Narrow Local Input Owner Name",
+                          "fill": "$text-primary",
+                          "content": "setup-guide",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "HkMWb",
+                      "name": "Narrow Local Input Owner Digest",
+                      "fill": "$action",
+                      "content": "02 / 05",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 8,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "c1co7F",
+                  "name": "Narrow Local Input Digest",
+                  "width": "fill_container",
+                  "height": 58,
+                  "fill": "$bg-muted",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "padding": [
+                    9,
+                    10
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "m2JHC4",
+                      "name": "Narrow Local Input Digest Header",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "LCpyh",
+                          "name": "Narrow Local Input Digest Label",
+                          "fill": "$action",
+                          "content": "LOCAL MATERIALS",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "dQQ1j",
+                          "name": "Narrow Local Input Digest Version",
+                          "fill": "$text-muted",
+                          "content": "generation 7",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "l14ml",
+                      "name": "Narrow Local Input Digest Authority",
+                      "fill": "$text-primary",
+                      "content": "handbook.md + support-faq.txt",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "LZFCD",
+                  "name": "Narrow Local Input Field Canvas",
+                  "width": 360,
+                  "height": 240,
+                  "fill": "$bg-muted",
+                  "cornerRadius": 9,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "dck3Y",
+                      "name": "Narrow Primary Text Field",
+                      "width": "fill_container",
+                      "height": 62,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "LL2o4",
+                          "name": "Narrow Process Description Field",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "HH6uB",
+                              "name": "Narrow Process Description Field Header",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "e9Bmga",
+                                  "name": "Narrow Process Description Field Key",
+                                  "fill": "$text-primary",
+                                  "content": "title",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 8,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "kExHM",
+                                  "name": "Narrow Process Description Field Type",
+                                  "fill": "$bg-surface",
+                                  "cornerRadius": 99,
+                                  "padding": [
+                                    2,
+                                    5
+                                  ],
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "cAPV5",
+                                      "name": "Narrow Process Description Field Type Label",
+                                      "fill": "$text-muted",
+                                      "content": "Aa · REQ",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 6.5,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "czWSc",
+                              "name": "Narrow Process Description Field Control",
+                              "width": "fill_container",
+                              "height": 29,
+                              "fill": "$bg-surface",
+                              "cornerRadius": 7,
+                              "stroke": "$border-soft",
+                              "strokeWidth": 1,
+                              "padding": [
+                                0,
+                                8
+                              ],
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "VaD2w",
+                                  "name": "Narrow Process Description Field Value",
+                                  "fill": "$text-primary",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Install and configure the CLI",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 8,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "r01Uw",
+                              "name": "Narrow Process Description Field Helper",
+                              "fill": "$text-muted",
+                              "content": "33 bytes",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 6.5,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "yCPYK",
+                      "name": "Narrow Typed Field Pair",
+                      "width": "fill_container",
+                      "height": 76,
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "GLe5V",
+                          "name": "Narrow Target Temperature Field",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "O61qZ",
+                              "name": "Narrow Target Temperature Field Header",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "Y95Us",
+                                  "name": "Narrow Target Temperature Field Key",
+                                  "fill": "$attention",
+                                  "content": "fragmentRef",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 8,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "VEZAm",
+                                  "name": "Narrow Target Temperature Field Type",
+                                  "fill": "$attention-soft",
+                                  "cornerRadius": 99,
+                                  "padding": [
+                                    2,
+                                    5
+                                  ],
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "i6ZnHs",
+                                      "name": "Narrow Target Temperature Field Type Label",
+                                      "fill": "$attention",
+                                      "content": "REF · BLOCKED",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 6.5,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Y6yOK",
+                              "name": "Narrow Target Temperature Field Control",
+                              "width": "fill_container",
+                              "height": 29,
+                              "fill": "$attention-soft",
+                              "cornerRadius": 7,
+                              "stroke": "$attention",
+                              "strokeWidth": 1,
+                              "padding": [
+                                0,
+                                8
+                              ],
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "FhIUe",
+                                  "name": "Narrow Target Temperature Field Value",
+                                  "fill": "$attention",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "support-faq",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 8,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "E1gmm",
+                              "name": "Narrow Target Temperature Field Helper",
+                              "fill": "$attention",
+                              "content": "Duplicate with fragment 03",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 6.5,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "i2Jsd",
+                          "name": "Narrow Include Recycle Field",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "THNfP",
+                              "name": "Narrow Include Recycle Field Header",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "sV7Wt",
+                                  "name": "Narrow Include Recycle Field Key",
+                                  "fill": "$text-primary",
+                                  "content": "isOfficial",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 8,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "BkYoq",
+                                  "name": "Narrow Include Recycle Field Type",
+                                  "fill": "$bg-surface",
+                                  "cornerRadius": 99,
+                                  "padding": [
+                                    2,
+                                    5
+                                  ],
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "dQeuD",
+                                      "name": "Narrow Include Recycle Field Type Label",
+                                      "fill": "$text-muted",
+                                      "content": "BOOL",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 6.5,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "vuQZo",
+                              "name": "Narrow Include Recycle Control",
+                              "width": "fill_container",
+                              "height": 29,
+                              "fill": "$bg-surface",
+                              "cornerRadius": 7,
+                              "stroke": "$border-soft",
+                              "strokeWidth": 1,
+                              "padding": [
+                                0,
+                                8
+                              ],
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "G5hsTz",
+                                  "name": "Narrow Include Recycle Value",
+                                  "fill": "$text-primary",
+                                  "content": "Enabled",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 8,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "XRxW8",
+                                  "name": "Narrow Include Recycle Toggle",
+                                  "width": 26,
+                                  "height": 15,
+                                  "fill": "$success",
+                                  "cornerRadius": 99,
+                                  "padding": 2,
+                                  "justifyContent": "end",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "q7pYW",
+                                      "name": "Narrow Include Recycle Toggle Thumb",
+                                      "width": 11,
+                                      "height": 11,
+                                      "fill": "$bg-surface",
+                                      "cornerRadius": 99
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "F8AxSN",
+                              "name": "Narrow Include Recycle Field Helper",
+                              "fill": "$text-muted",
+                              "content": "explicit source setting",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 6.5,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ccSla",
+                      "name": "Narrow Supporting Text Field",
+                      "width": "fill_container",
+                      "height": 62,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "otWmp",
+                          "name": "Narrow Operator Note Field",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "H791Wx",
+                              "name": "Narrow Operator Note Field Header",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "V2zDE",
+                                  "name": "Narrow Operator Note Field Key",
+                                  "fill": "$text-primary",
+                                  "content": "content",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 8,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "YMRKv",
+                                  "name": "Narrow Operator Note Field Type",
+                                  "fill": "$bg-surface",
+                                  "cornerRadius": 99,
+                                  "padding": [
+                                    2,
+                                    5
+                                  ],
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "cn56Z",
+                                      "name": "Narrow Operator Note Field Type Label",
+                                      "fill": "$text-muted",
+                                      "content": "Aa · REQ",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 6.5,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "do1ih",
+                              "name": "Narrow Operator Note Field Control",
+                              "width": "fill_container",
+                              "height": 29,
+                              "fill": "$bg-surface",
+                              "cornerRadius": 7,
+                              "stroke": "$border-soft",
+                              "strokeWidth": 1,
+                              "padding": [
+                                0,
+                                8
+                              ],
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "JJ8GF",
+                                  "name": "Narrow Operator Note Field Value",
+                                  "fill": "$text-primary",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Install the CLI, then create a workspace.",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 8,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "lJIiF",
+                              "name": "Narrow Operator Note Field Helper",
+                              "fill": "$text-muted",
+                              "content": "2.1 KiB · under budget",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 6.5,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "fl9rH",
+                  "name": "Narrow Local Input Action Area",
+                  "width": "fill_container",
+                  "height": 58,
+                  "fill": "$bg-muted",
+                  "stroke": "$border-soft",
+                  "strokeWidth": {
+                    "top": 1,
+                    "bottom": 1
+                  },
+                  "padding": [
+                    8,
+                    10
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Ftfwk",
+                      "name": "Narrow Local Input Error Copy",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "YGSay",
+                          "name": "Narrow Local Input Error Label",
+                          "fill": "$attention",
+                          "content": "2 BLOCKING FINDINGS",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "gLvBF",
+                          "name": "Narrow Local Input Error Text",
+                          "fill": "$text-secondary",
+                          "content": "Duplicate source and fragment ref",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 8,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "b3vym",
+                      "name": "Narrow Local Input Disabled Action",
+                      "width": 104,
+                      "height": 32,
+                      "fill": "$border-soft",
+                      "cornerRadius": 8,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "dL1kY",
+                          "name": "Narrow Local Input Disabled Action Label",
+                          "fill": "$text-muted",
+                          "content": "Create v2 blocked",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 9,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "PqYBN",
+                  "name": "Narrow Local Input Owner Footer",
+                  "width": "fill_container",
+                  "height": 82,
+                  "layout": "vertical",
+                  "gap": 6,
+                  "padding": 10,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "bhVoD",
+                      "name": "Narrow Local Input Owner Footer Label",
+                      "fill": "$warning",
+                      "content": "BROWSER-LOCAL STAGING",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 8,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "jFKaB",
+                      "name": "Narrow Local Input Owner Footer Text",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Files, basenames and rejected sections remain in this tab; scope changes clear the staging generation.",
+                      "lineHeight": 1.4,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "g2fQQ",
+              "name": "Narrow Local Input Global Boundary",
+              "width": "fill_container",
+              "height": 62,
+              "fill": "$warning-soft",
+              "cornerRadius": 10,
+              "stroke": "$warning",
+              "layout": "vertical",
+              "gap": 5,
+              "padding": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "gZ5rZ",
+                  "name": "Narrow Local Input Boundary Header",
+                  "width": "fill_container",
+                  "height": 16,
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ILFX1",
+                      "name": "Narrow Local Input Boundary Label",
+                      "fill": "$warning",
+                      "content": "SNAPSHOT COMMIT BOUNDARY",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 8,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "vLaQi",
+                      "name": "Narrow Local Input Boundary State",
+                      "fill": "$warning",
+                      "content": "STRICT",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 8,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "vlOIc",
+                  "name": "Narrow Local Input Boundary Text",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Only reviewed fragments are sent through the existing create / version consumer.",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 9,
+                  "fontWeight": "normal"
                 }
               ]
             }

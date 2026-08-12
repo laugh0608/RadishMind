@@ -157,7 +157,7 @@ Saved Workflow Draft v1 采用 fail-closed 语义。建议固定以下失败码�
 
 ## 下一批开发方向
 
-[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 已完成纯 TypeScript 严格 UTF-8 Markdown / Text reader、确定性 sectioner、稳定引用、重复 / 预算 findings 和既有 snapshot validator 接缝，状态为 `workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_batch_a_domain_completed_pencil_pending`。下一步先在 RadishMind 设计源冻结 `B / 局部 Pencil`，人工通过后再实现单一结构化 fragment editor；最终仍只把用户显式确认的 replacement 交给既有 snapshot create / version owner。原始文件与 staging 不持久化，不新增 API、schema、migration、repository、permission、task card、fixture 或 checker；connector、在线搜索、embedding、reranker、schedule、replay、业务写回和生产能力继续后置。
+[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 已完成纯 TypeScript 严格 UTF-8 Markdown / Text reader、确定性 sectioner、局部 Pencil、单一结构化 fragment editor、来源 / fragment 审查以及 SQLite create / version / CAS / 重启和隐私复验，状态为 `workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_completed`。最终仍只把用户显式确认的 replacement 交给既有 snapshot create / version owner；原始文件与 staging 不持久化，没有新增 API、schema、migration、repository、permission、task card、fixture 或 checker。connector、在线搜索、embedding、reranker、schedule、replay、业务写回和生产能力继续后置。
 
 ## 验收方式
 

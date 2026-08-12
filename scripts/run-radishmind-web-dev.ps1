@@ -725,6 +725,9 @@ function Invoke-WorkflowRAGExecutionProbe {
         "X-RadishMind-Dev-Read-Subject" = $Subject
         "X-RadishMind-Dev-Read-Scopes" = "workflow_rag:execute,workflow_runs:execute,workflow_drafts:read,workflow_rag_snapshots:read"
         "X-RadishMind-Dev-Read-Audit" = "audit_dev_live_workflow_rag_execution_probe"
+        "X-RadishMind-Active-Workspace" = $WorkspaceId
+        "X-RadishMind-Dev-Read-Membership-Workspace" = $WorkspaceId
+        "X-RadishMind-Dev-Read-Membership-Permissions" = "workflow_rag:execute,workflow_runs:execute,workflow_drafts:read,workflow_rag_snapshots:read"
         "X-RadishMind-Dev-Workflow-Workspace" = $WorkspaceId
         "X-RadishMind-Dev-Workflow-Application" = $ApplicationId
     }

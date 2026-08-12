@@ -176,7 +176,7 @@ Workflow RAG 快照、精确 Saved Draft、retrieval execution、run v3 与回�
 pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -WorkflowRAGDev
 ```
 
-该入口使用 shared SQLite local-product runtime，显式启用 snapshot / execution Web source、完整执行 scopes 和 mock Gateway；成功执行固定一次 retrieval、一次 provider，tool / confirmation / business write / replay 为 0。资源顺序、权限、HTTP 路由、schema marker、隐私边界与常见失败见 [Workflow RAG 开发测试态使用与资源治理指南](../../docs/features/workflow/workflow-rag-dev-test-usage-governance-guide.md)。
+该入口使用 shared SQLite local-product runtime，显式启用 snapshot / execution Web source、完整执行 scopes 和 mock Gateway；成功执行固定一次 retrieval、一次 provider，tool / confirmation / business write / replay 为 0。知识快照面板支持浏览器本地选择 `.md` / `.markdown` / `.txt`、严格 UTF-8 确定性切分、来源 / fragment 结构化审查和显式 create / full replacement version；原始文件、basename、解析中间态和未提交 staging 不上传或持久化。launcher 的 execution 探针使用 active workspace 与同一 permission membership assertion 验证预期 `workflow_rag_draft_ineligible`，避免把授权前置失败误判为 route 就绪。资源顺序、权限、HTTP 路由、schema marker、隐私边界与常见失败见 [Workflow RAG 开发测试态使用与资源治理指南](../../docs/features/workflow/workflow-rag-dev-test-usage-governance-guide.md)。
 
 Application Configuration Draft 通过独立开关启用；可与 Gateway PostgreSQL dev/test 联调组合使用：
 

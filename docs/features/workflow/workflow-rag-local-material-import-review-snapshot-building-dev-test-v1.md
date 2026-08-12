@@ -1,8 +1,8 @@
 # Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1
 
-更新时间：2026-08-11
+更新时间：2026-08-12
 
-状态：`workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_batch_a_domain_completed_pencil_pending`
+状态：`workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_completed`
 
 ## 设计结论
 
@@ -14,9 +14,11 @@ v1 在现有 `WorkflowRAGSnapshotPanel` owner 内增加浏览器本地材料暂�
 
 ## 当前实施进度
 
-2026-08-11 已完成批次 A 的纯 TypeScript 导入领域：`workflowRAGLocalMaterialImporter.ts` 复用既有敏感材料规则，实现严格 UTF-8 / BOM / 换行规范化、稳定来源排序与引用、Markdown 围栏和标题边界、纯文本段落、Unicode code point 安全切分、内容 digest、重复和全部预算 findings；生成的 fragment 已通过既有 snapshot write validator。定向 `6/6` 与 Web production build 已通过。
+2026-08-11 已完成批次 A 的纯 TypeScript 导入领域：`workflowRAGLocalMaterialImporter.ts` 复用既有敏感材料规则，实现严格 UTF-8 / BOM / 换行规范化、稳定来源排序与引用、Markdown 围栏和标题边界、纯文本段落、Unicode code point 安全切分、内容 digest、重复和全部预算 findings；生成的 fragment 已通过既有 snapshot write validator。
 
-当前 Pen 会话仍被另一项目占用，因此没有读取、覆盖或修改其设计源；本专题的 `B / 局部 Pencil` 仍待在 RadishMind 设计源内冻结，React 结构改造继续遵守“局部稿人工通过前不开始”的停止线。下一步先完成该局部稿，再进入批次 B 的单一结构化 owner。
+2026-08-12 已完成批次 B / C 并关闭专题：Family UI 设计源新增 Desktop `U4tmEg` 与 Narrow `nI3RW` 两张局部代表稿，人工静态复核通过；React 已用单一类型化 editor 替换 JSON textarea，接入本地文件元数据预检、来源 owner、fragment list / inspector、动态 findings / budget、历史 record 重建、create / full replacement version、CAS 冲突保留和 generation guard。create / version 成功后只从服务端 exact record 重建 editor，不保留文件 bytes、原始 basename 或解析中间态。
+
+SQLite 真实浏览器以 `local_material_20260812` 创建 `workflow.rag.local_material_20260812.v1`，再显式审查为 v2；双标签真实 CAS 返回 `workflow_rag_snapshot_version_conflict` 并保留 stale staging。刷新和服务重启后只恢复 v2 的 4 个 fragment、610 B 与 exact digest，不恢复 basename 或未提交修改。`1440×900`、`720×900`、`390×844` 均完成复核，窄屏内部溢出已修正，最终控制台无 warning / error。Web `338/338`、production build、launcher `--workflow-rag-dev --exit-after-probe` 和仓库快速门禁构成本专题关闭证据。
 
 ## 用户价值与当前阻塞
 
@@ -177,31 +179,31 @@ version conflict 保留当前本地 staging 供用户比较，但必须显示服
 - 状态集中在当前 owner，窄屏需调整顺序但不改变产品导航；
 - 来源与 fragment 审查模式同时服务 create 与 version 两条路径。
 
-Pencil 只冻结导入区、findings / budget、fragment list、当前 inspector、提交摘要和窄屏顺序，不新建 S11，不重画 S2 完整基准面，也不把代表性文件数或 fragment 数画成实时生产事实。局部稿人工通过前不开始 React 结构改造。
+Pencil 只冻结导入区、findings / budget、fragment list、当前 inspector、提交摘要和窄屏顺序，不新建 S11，不重画 S2 完整基准面，也不把代表性文件数或 fragment 数画成实时生产事实。Desktop `U4tmEg` 与 Narrow `nI3RW` 已于 2026-08-12 人工通过，React 实现继续以真实功能状态和 API record 为事实源。
 
 ## 实施拆分
 
 ### 批次 A：局部设计与纯导入领域
 
-1. 待完成：冻结 `B / 局部 Pencil` 的 Desktop / Narrow 区域与关键 blocked state。
+1. 已完成：冻结并人工通过 `B / 局部 Pencil` 的 Desktop / Narrow 区域与关键 blocked state。
 2. 已完成：新增纯 TypeScript material reader / sectioner / staging projector。
 3. 已完成：覆盖 UTF-8、BOM、换行、Markdown fence / heading、纯文本 paragraph、Unicode 边界、稳定排序 / ref、重复和全部预算。
 4. 不修改后端、API、schema、migration、repository 或 launcher。
 
 ### 批次 B：结构化 owner 与既有 snapshot 写入
 
-1. 用单一结构化 staging / fragment editor 替换 JSON textarea。
-2. 接入本地文件选择、来源审查、fragment inspector、findings、提交摘要和 generation guard。
-3. create / version 继续复用既有 strict consumer；读取历史 record 进入同一 editor。
-4. 覆盖 application / snapshot 切换、permission、archived、version conflict、server failure 和迟到结果。
+1. 已完成：用单一结构化 staging / fragment editor 替换 JSON textarea。
+2. 已完成：接入本地文件选择、来源审查、fragment inspector、findings、提交摘要和 generation guard。
+3. 已完成：create / version 继续复用既有 strict consumer；读取历史 record 进入同一 editor。
+4. 已完成：覆盖 application / snapshot 切换、permission、archived、version conflict、server failure 和迟到结果。
 
 ### 批次 C：真实产品链与关闭
 
-1. 使用现有 SQLite local-product 启动入口，不增加新开关。
-2. 真实浏览器完成 Markdown + Text 导入、审查、创建 v1、修改后创建 v2、精确 record 重读与后续现有 owner 可见性。
-3. 服务重启后只恢复 committed snapshot v1 / v2，不恢复文件、basename、解析中间态或未提交 staging。
-4. 覆盖 `1440×900`、`720×900` 与 `390×844`，检查响应式顺序、横向溢出、控制台和浏览器持久化介质。
-5. 更新当前焦点、专题状态和周志；Web tests、production build、仓库 fast 通过。只有实际改变协议、schema、阶段边界或高风险执行边界时才补全量门禁。
+1. 已完成：使用现有 SQLite local-product 启动入口，不增加新开关。
+2. 已完成：真实浏览器完成 Markdown + Text 导入、审查、创建 v1、修改后创建 v2、精确 record 重读与真实 CAS 冲突。
+3. 已完成：服务重启后只恢复 committed snapshot v2，不恢复文件、basename、解析中间态或未提交 staging。
+4. 已完成：覆盖 `1440×900`、`720×900` 与 `390×844`，检查响应式顺序、横向溢出和控制台。
+5. 已完成：更新当前焦点、专题状态和周志；Web tests、production build、launcher probe 与仓库 fast 通过。协议、schema、阶段边界和高风险执行边界未改变，因此不追加全量门禁。
 
 本专题不创建独立 task card、fixture 或专项 checker；纯 importer tests、snapshot consumer tests、Web build、真实浏览器和现有仓库门禁足以承载证据。若实现被迫新增 API、schema、持久 staging、外部 parser 或执行边界，必须先新建高风险任务卡并重新评审。
 

@@ -1251,6 +1251,409 @@ h4 {
   line-height: 1.5;
 }
 
+.workflow-rag-structured-editor,
+.workflow-rag-source-list,
+.workflow-rag-fragment-owner,
+.workflow-rag-fragment-list,
+.workflow-rag-fragment-inspector,
+.workflow-rag-fragment-fields,
+.workflow-rag-findings {
+  display: grid;
+  min-width: 0;
+}
+
+.workflow-rag-structured-editor {
+  gap: 12px;
+  color: var(--rm-text-primary);
+}
+
+.workflow-rag-structured-editor h5,
+.workflow-rag-structured-editor h6,
+.workflow-rag-structured-editor p {
+  margin: 0;
+}
+
+.workflow-rag-structured-editor h5 {
+  font-size: 15px;
+}
+
+.workflow-rag-structured-editor h6 {
+  font-size: 14px;
+}
+
+.workflow-rag-snapshot-metadata {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.8fr) minmax(220px, 1.4fr) minmax(170px, 0.8fr);
+  gap: 10px;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-md);
+  padding: 12px;
+  background: var(--rm-bg-surface);
+}
+
+.workflow-rag-snapshot-metadata label,
+.workflow-rag-source-fields label,
+.workflow-rag-fragment-fields label {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.workflow-rag-snapshot-metadata span,
+.workflow-rag-source-fields span,
+.workflow-rag-fragment-fields span,
+.workflow-rag-fragment-fields small,
+.workflow-rag-selected-source span {
+  color: var(--rm-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.workflow-rag-snapshot-metadata input,
+.workflow-rag-snapshot-metadata select,
+.workflow-rag-source-fields input,
+.workflow-rag-source-fields select,
+.workflow-rag-fragment-fields input,
+.workflow-rag-fragment-fields textarea {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-sm);
+  padding: 8px 9px;
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  font: inherit;
+}
+
+.workflow-rag-snapshot-metadata input:focus,
+.workflow-rag-snapshot-metadata select:focus,
+.workflow-rag-source-fields input:focus,
+.workflow-rag-source-fields select:focus,
+.workflow-rag-fragment-fields input:focus,
+.workflow-rag-fragment-fields textarea:focus {
+  outline: 2px solid var(--rm-focus-ring);
+  outline-offset: 1px;
+}
+
+.workflow-rag-local-import,
+.workflow-rag-submit-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid var(--rm-border-soft);
+  border-left: 3px solid var(--rm-action-primary);
+  border-radius: var(--rm-radius-md);
+  padding: 12px 14px;
+  background: var(--rm-action-soft);
+}
+
+.workflow-rag-local-import > div,
+.workflow-rag-submit-boundary > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.workflow-rag-local-import > div > p:last-child,
+.workflow-rag-submit-boundary > div > p:last-child {
+  color: var(--rm-text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.workflow-rag-file-picker {
+  flex: 0 0 auto;
+  border: 1px solid var(--rm-action-primary);
+  border-radius: var(--rm-radius-sm);
+  padding: 9px 12px;
+  background: var(--rm-action-primary);
+  color: var(--rm-text-on-accent);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.workflow-rag-file-picker.disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.workflow-rag-file-picker input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.workflow-rag-review-grid {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.72fr) minmax(0, 1.6fr);
+  align-items: start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.workflow-rag-source-owner,
+.workflow-rag-fragment-owner {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-md);
+  background: var(--rm-bg-surface);
+}
+
+.workflow-rag-owner-heading,
+.workflow-rag-source-heading,
+.workflow-rag-inspector-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.workflow-rag-owner-heading {
+  border-bottom: 1px solid var(--rm-border-soft);
+  padding: 11px 12px;
+}
+
+.workflow-rag-owner-heading > div,
+.workflow-rag-inspector-heading > div,
+.workflow-rag-source-heading > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.workflow-rag-owner-heading > span {
+  color: var(--rm-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.workflow-rag-source-list {
+  gap: 0;
+}
+
+.workflow-rag-source-list article {
+  display: grid;
+  gap: 10px;
+  border-bottom: 1px solid var(--rm-border-soft);
+  padding: 11px 12px;
+}
+
+.workflow-rag-source-list article:last-child {
+  border-bottom: 0;
+}
+
+.workflow-rag-source-list article.blocked {
+  box-shadow: inset 3px 0 0 var(--rm-state-danger);
+  background: var(--rm-state-danger-soft);
+}
+
+.workflow-rag-source-heading strong,
+.workflow-rag-source-heading small {
+  overflow-wrap: anywhere;
+}
+
+.workflow-rag-source-heading small {
+  color: var(--rm-text-muted);
+  font-size: 10px;
+}
+
+.workflow-rag-source-heading button,
+.workflow-rag-inspector-heading button {
+  flex: 0 0 auto;
+  padding: 6px 8px;
+  font-size: 11px;
+}
+
+.workflow-rag-source-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.workflow-rag-source-fields .wide {
+  grid-column: 1 / -1;
+}
+
+.workflow-rag-source-fields .workflow-rag-official-toggle {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 8px;
+}
+
+.workflow-rag-official-toggle input {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  accent-color: var(--rm-state-success);
+}
+
+.workflow-rag-fragment-workspace {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.65fr) minmax(280px, 1fr);
+  min-width: 0;
+}
+
+.workflow-rag-fragment-list {
+  align-content: start;
+  border-right: 1px solid var(--rm-border-soft);
+  background: var(--rm-bg-muted);
+}
+
+.workflow-rag-fragment-list > button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  border: 0;
+  border-bottom: 1px solid var(--rm-border-soft);
+  border-radius: 0;
+  padding: 10px;
+  background: transparent;
+  text-align: left;
+}
+
+.workflow-rag-fragment-list > button.selected {
+  box-shadow: inset 3px 0 0 var(--rm-action-primary);
+  background: var(--rm-action-soft);
+}
+
+.workflow-rag-fragment-list > button.blocked {
+  border-left-color: var(--rm-state-danger);
+}
+
+.workflow-rag-fragment-list > button > span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.workflow-rag-fragment-list strong,
+.workflow-rag-fragment-list small {
+  overflow-wrap: anywhere;
+}
+
+.workflow-rag-fragment-list small {
+  color: var(--rm-text-muted);
+  font-size: 10px;
+}
+
+.workflow-rag-fragment-list em {
+  color: var(--rm-state-danger);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.workflow-rag-fragment-inspector {
+  align-content: start;
+  gap: 12px;
+  padding: 12px;
+  background: var(--rm-bg-surface);
+}
+
+.workflow-rag-fragment-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.workflow-rag-fragment-fields .wide {
+  grid-column: 1 / -1;
+}
+
+.workflow-rag-fragment-fields textarea {
+  min-height: 150px;
+  resize: vertical;
+  font-family: var(--rm-font-mono);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.workflow-rag-selected-source {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid var(--rm-border-soft);
+  padding-top: 10px;
+}
+
+.workflow-rag-selected-source code {
+  overflow-wrap: anywhere;
+  color: var(--rm-text-secondary);
+  font-size: 11px;
+}
+
+.workflow-rag-owner-empty {
+  margin: 0;
+  padding: 18px 12px;
+  color: var(--rm-text-muted);
+  font-size: 12px;
+}
+
+.workflow-rag-findings {
+  gap: 10px;
+  overflow: hidden;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-md);
+  background: var(--rm-bg-surface);
+}
+
+.workflow-rag-findings.ready {
+  border-color: var(--rm-state-success);
+  background: var(--rm-state-success-soft);
+}
+
+.workflow-rag-findings.blocked {
+  border-color: var(--rm-state-danger);
+  background: var(--rm-state-danger-soft);
+}
+
+.workflow-rag-findings > p {
+  padding: 0 12px 12px;
+  color: var(--rm-text-secondary);
+  font-size: 12px;
+}
+
+.workflow-rag-findings ul {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0 12px 12px;
+  list-style: none;
+}
+
+.workflow-rag-findings li {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid color-mix(in srgb, var(--rm-state-danger) 24%, transparent);
+  padding: 8px 0;
+}
+
+.workflow-rag-findings li code {
+  overflow-wrap: anywhere;
+  color: var(--rm-state-danger);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.workflow-rag-findings li span {
+  color: var(--rm-text-secondary);
+  font-size: 12px;
+}
+
+.workflow-rag-submit-boundary {
+  border-left-color: var(--rm-attention-primary);
+  background: var(--rm-attention-soft);
+}
+
 .workflow-rag-record dl {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1260,6 +1663,15 @@ h4 {
 
 .workflow-rag-record dd {
   margin: 3px 0 0;
+}
+
+.workflow-rag-record > div > strong,
+.workflow-rag-record dl > div {
+  min-width: 0;
+}
+
+.workflow-rag-record > div > strong {
+  overflow-wrap: anywhere;
 }
 
 .workflow-rag-boundary-note,
@@ -1293,6 +1705,43 @@ h4 {
   .workflow-rag-review-evidence dl,
   .workflow-rag-record dl {
     grid-template-columns: 1fr;
+  }
+
+  .workflow-rag-snapshot-metadata,
+  .workflow-rag-review-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-rag-fragment-workspace {
+    grid-template-columns: minmax(180px, 0.6fr) minmax(280px, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .workflow-rag-local-import,
+  .workflow-rag-submit-boundary,
+  .workflow-rag-owner-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .workflow-rag-file-picker {
+    width: 100%;
+    text-align: center;
+  }
+
+  .workflow-rag-fragment-workspace,
+  .workflow-rag-fragment-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-rag-fragment-list {
+    border-right: 0;
+    border-bottom: 1px solid var(--rm-border-soft);
+  }
+
+  .workflow-rag-fragment-fields .wide {
+    grid-column: auto;
   }
 }
 
