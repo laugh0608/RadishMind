@@ -51,6 +51,7 @@ test("Gateway request history maps scoped summaries, filters, pagination, and ca
     assert.equal(headers.get("X-RadishMind-Dev-Gateway-Application"), "application_demo");
     return jsonResponse({
       request_id: "request_list",
+      ...historyEnvelopeScope(),
       requests: [{ ...summaryDocument(), store_mode: "sqlite_dev" }],
       next_cursor: "cursor_next",
       has_more: true,
@@ -72,6 +73,7 @@ test("Gateway request history maps scoped summaries, filters, pagination, and ca
     assert.equal(result.requests[0]?.providerRouteConfigurationId, "gateway-default");
     assert.equal(result.requests[0]?.providerRouteGeneration, 3);
     assert.equal(result.requests[0]?.providerRouteSnapshotDigest, `sha256:${"d".repeat(64)}`);
+    assert.equal(result.requests[0]?.costEstimate.availability, "usage_not_reported");
     assert.equal(result.hasMore, true);
   } finally {
     globalThis.fetch = originalFetch;
@@ -82,6 +84,7 @@ test("Gateway request history preserves stable API failures without offline fall
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => jsonResponse({
     request_id: "request_denied",
+    ...historyEnvelopeScope(),
     requests: [],
     next_cursor: "",
     has_more: false,
@@ -109,6 +112,7 @@ test("Gateway request history maps sanitized detail and usage availability", asy
     const { usage_availability: _usageAvailability, ...detailSummary } = summary;
     return jsonResponse({
       request_id: "request_detail",
+      ...historyEnvelopeScope(),
       request: {
         ...detailSummary,
         tenant_ref: "tenant_demo",
@@ -125,6 +129,7 @@ test("Gateway request history maps sanitized detail and usage availability", asy
           output_tokens: 11,
           total_tokens: 45,
         },
+        cost_estimate: estimatedCostDocument(17),
       },
       failure_code: null,
       failure_summary: "",
@@ -139,6 +144,9 @@ test("Gateway request history maps sanitized detail and usage availability", asy
     assert.equal(detail.totalTokens, 45);
     assert.equal(detail.consumerRef, "consumer_web_dev");
     assert.equal(detail.providerRouteGeneration, 3);
+    assert.equal(detail.schemaVersion, "gateway_request_record.v2");
+    assert.equal(detail.costEstimate.estimatedCostMicros, 17);
+    assert.equal(detail.costEstimate.pricingPolicyVersion, 3);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -148,6 +156,7 @@ test("Gateway request history rejects forbidden fields at any response depth", a
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => jsonResponse({
     request_id: "request_list",
+    ...historyEnvelopeScope(),
     requests: [{ ...summaryDocument(), debug: { prompt: "must-not-cross-consumer" } }],
     next_cursor: "",
     has_more: false,
@@ -170,6 +179,7 @@ test("Gateway request history rejects partial Provider route lineage", async () 
   const { provider_route_snapshot_digest: _snapshotDigest, ...partial } = summaryDocument();
   globalThis.fetch = async () => jsonResponse({
     request_id: "request_list",
+    ...historyEnvelopeScope(),
     requests: [partial],
     next_cursor: "",
     has_more: false,
@@ -192,6 +202,7 @@ test("Gateway request history rejects inconsistent reported usage", async () => 
   const summary = summaryDocument();
   globalThis.fetch = async () => jsonResponse({
     request_id: "request_list",
+    ...historyEnvelopeScope(),
     requests: [{
       ...summary,
       usage_availability: "reported",
@@ -219,9 +230,77 @@ test("Gateway request history rejects inconsistent reported usage", async () => 
   }
 });
 
+test("Gateway request history accepts all six cost states and v1 only as legacy evidence", async () => {
+  const originalFetch = globalThis.fetch;
+  const states = [
+    summaryWithCost("request_estimated", estimatedCostDocument(17), "reported"),
+    summaryWithCost("request_usage_missing", unavailableCostDocument("usage_not_reported", "provider_usage_not_reported"), "not_reported"),
+    summaryWithCost("request_price_missing", unavailableCostDocument("price_not_configured", "pricing_policy_not_configured"), "reported"),
+    summaryWithCost("request_price_unavailable", unavailableCostDocument("price_unavailable", "pricing_snapshot_unavailable"), "reported"),
+    summaryWithCost("request_not_applicable", unavailableCostDocument("not_applicable", "provider_not_attempted"), "not_applicable"),
+    {
+      ...summaryWithCost("request_legacy", unavailableCostDocument("legacy_not_captured", "legacy_record_without_cost_snapshot"), "reported"),
+      schema_version: "gateway_request_record.v1",
+    },
+  ];
+  globalThis.fetch = async () => jsonResponse({
+    request_id: "request_cost_states",
+    ...historyEnvelopeScope(),
+    requests: states,
+    next_cursor: "",
+    has_more: false,
+    failure_code: null,
+    failure_summary: "",
+    audit_ref: "audit_cost_states",
+  });
+  try {
+    const result = await listGatewayRequestHistory(live, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER);
+    assert.deepEqual(result.requests.map((request) => request.costEstimate.availability), [
+      "estimated", "usage_not_reported", "price_not_configured", "price_unavailable", "not_applicable", "legacy_not_captured",
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Gateway request history rejects benign extra cost fields and scope drift", async () => {
+  const originalFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => jsonResponse({
+      request_id: "request_extra_cost",
+      ...historyEnvelopeScope(),
+      requests: [{
+        ...summaryDocument(),
+        cost_estimate: { ...unavailableCostDocument("usage_not_reported", "provider_usage_not_reported"), debug_hint: "unexpected" },
+      }],
+      next_cursor: "",
+      has_more: false,
+      failure_code: null,
+      failure_summary: "",
+      audit_ref: "audit_extra_cost",
+    });
+    await assert.rejects(() => listGatewayRequestHistory(live, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER), /route failed/);
+
+    globalThis.fetch = async () => jsonResponse({
+      request_id: "request_scope_drift",
+      ...historyEnvelopeScope(),
+      workspace_id: "workspace_other",
+      requests: [],
+      next_cursor: "",
+      has_more: false,
+      failure_code: null,
+      failure_summary: "",
+      audit_ref: "audit_scope_drift",
+    });
+    await assert.rejects(() => listGatewayRequestHistory(live, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER), /route failed/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 function summaryDocument() {
   return {
-    schema_version: "gateway_request_record.v1",
+    schema_version: "gateway_request_record.v2",
     record_version: 3,
     store_mode: "postgres_dev_test",
     request_id: "request_gateway_1",
@@ -253,7 +332,45 @@ function summaryDocument() {
       output_tokens: 0,
       total_tokens: 0,
     },
+    cost_estimate: unavailableCostDocument("usage_not_reported", "provider_usage_not_reported"),
     stale_started: false,
+  };
+}
+
+function estimatedCostDocument(estimatedCostMicros: number) {
+  return {
+    schema_version: "gateway_request_cost_estimate.v1",
+    availability: "estimated",
+    reason: "",
+    currency: "USD",
+    estimated_cost_micros: estimatedCostMicros,
+    token_unit: 1_000_000,
+    input_price_micros_per_token_unit: 1_000_000,
+    output_price_micros_per_token_unit: 3_000_000,
+    pricing_policy_id: `gmp_${"a".repeat(24)}`,
+    pricing_policy_version: 3,
+    pricing_policy_digest: `sha256:${"c".repeat(64)}`,
+    rounding_mode: "half_up_to_currency_micro",
+  };
+}
+
+function unavailableCostDocument(availability: string, reason: string) {
+  return { schema_version: "gateway_request_cost_estimate.v1", availability, reason };
+}
+
+function summaryWithCost(requestId: string, costEstimate: Record<string, unknown>, usageAvailability: "reported" | "not_reported" | "not_applicable") {
+  const usage = usageAvailability === "reported"
+    ? { availability: "reported", source: "openai_compatible_usage", input_tokens: 10, output_tokens: 4, total_tokens: 14 }
+    : { availability: usageAvailability, source: "", input_tokens: 0, output_tokens: 0, total_tokens: 0 };
+  return { ...summaryDocument(), request_id: requestId, usage_availability: usageAvailability, usage, cost_estimate: costEstimate };
+}
+
+function historyEnvelopeScope() {
+  return {
+    tenant_ref: "tenant_demo",
+    workspace_id: "workspace_demo",
+    consumer_ref: "consumer_web_dev",
+    application_id: "application_demo",
   };
 }
 

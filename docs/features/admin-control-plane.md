@@ -29,7 +29,7 @@
 
 ## 下一批开发方向
 
-1. `S7 R1` 七资源页面族与 `S9 R1` Admin Quota Admission 均已完成；quota 保持独立 application policy / usage owner，不并入 Provider / Profile / Route 原子 owner。下一产品专题必须来自新的真实任务阻塞，不从已关闭的 S7 / S9 原地派生同层页面或生产能力。
+1. `S7 R1` 七资源页面族与 `S9 R1` Admin Quota Admission 均已完成功能纵向切片；quota 保持独立 application policy / usage owner，不并入 Provider / Profile / Route 原子 owner。当前[Provider 价格策略版本与应用成本审查](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md)已落地独立 Pricing owner、两项权限、CAS、显式确认、已审 Visual R1 和 React strict consumer；价格仍不写入 Provider Route、quota 或 production billing。
 2. `Radish OIDC Integration Test Runtime v1` deterministic 批次已完成；真实 Radish 联调主动 deferred。未来 Radish 注册 RadishMind application/client 与 resource audience，并提供 reviewed issuer、JWKS policy、claim / permission mapping 和短期 token 流程后，才恢复 Tenant / Audit 真实联调与 User / Role consumer 讨论。
 3. OIDC 模式继续在 repository 前返回 `workspace_membership_unavailable`，直到 reviewed Radish membership owner / endpoint、撤销 / 过期语义和 claim mapping 成立；read permission 不得直接等同于 mutation authority。
 4. Provider Profile assignment 与 Model Route 的开发测试态受控配置已完成；Admin 只保存既有 runtime inventory 引用，审批不自动启用，Gateway 只消费显式启用的不可变快照。不得从现有 Web 原地扩 production 配置。

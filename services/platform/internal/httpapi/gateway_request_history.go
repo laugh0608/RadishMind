@@ -14,7 +14,9 @@ import (
 )
 
 const (
-	gatewayRequestRecordSchemaVersion      = "gateway_request_record.v1"
+	gatewayRequestRecordSchemaVersionV1    = "gateway_request_record.v1"
+	gatewayRequestRecordSchemaVersionV2    = "gateway_request_record.v2"
+	gatewayRequestRecordSchemaVersion      = gatewayRequestRecordSchemaVersionV1
 	gatewayRequestStoreModeMemoryDev       = "memory_dev"
 	gatewayRequestStoreModeSQLiteDev       = "sqlite_dev"
 	gatewayRequestStoreModePostgresDevTest = "postgres_dev_test"
@@ -79,38 +81,39 @@ type GatewayRequestUsage struct {
 }
 
 type GatewayRequestRecord struct {
-	SchemaVersion                string               `json:"schema_version"`
-	RecordVersion                int                  `json:"record_version"`
-	StoreMode                    string               `json:"store_mode"`
-	RequestID                    string               `json:"request_id"`
-	AuditRef                     string               `json:"audit_ref"`
-	TenantRef                    string               `json:"tenant_ref"`
-	WorkspaceID                  string               `json:"workspace_id"`
-	ConsumerRef                  string               `json:"consumer_ref"`
-	ApplicationID                string               `json:"application_id,omitempty"`
-	SubjectRef                   string               `json:"subject_ref"`
-	Route                        string               `json:"route"`
-	Protocol                     string               `json:"protocol"`
-	Stream                       bool                 `json:"stream"`
-	Status                       GatewayRequestStatus `json:"status"`
-	StartedAt                    string               `json:"started_at"`
-	CompletedAt                  string               `json:"completed_at"`
-	DurationMS                   int64                `json:"duration_ms"`
-	GatewayDurationMS            int64                `json:"gateway_duration_ms"`
-	GatewayDurationAvailable     bool                 `json:"gateway_duration_available"`
-	ProviderDurationMS           int64                `json:"provider_duration_ms"`
-	ProviderDurationAvailable    bool                 `json:"provider_duration_available"`
-	SelectionSource              string               `json:"selection_source"`
-	SelectedProvider             string               `json:"selected_provider"`
-	SelectedProfile              string               `json:"selected_profile"`
-	SelectedModel                string               `json:"selected_model"`
-	ProviderRouteConfigurationID string               `json:"provider_route_configuration_id,omitempty"`
-	ProviderRouteGeneration      int                  `json:"provider_route_generation,omitempty"`
-	ProviderRouteSnapshotDigest  string               `json:"provider_route_snapshot_digest,omitempty"`
-	HTTPStatusCode               int                  `json:"http_status_code"`
-	FailureCode                  string               `json:"failure_code"`
-	FailureBoundary              string               `json:"failure_boundary"`
-	Usage                        GatewayRequestUsage  `json:"usage"`
+	SchemaVersion                string                     `json:"schema_version"`
+	RecordVersion                int                        `json:"record_version"`
+	StoreMode                    string                     `json:"store_mode"`
+	RequestID                    string                     `json:"request_id"`
+	AuditRef                     string                     `json:"audit_ref"`
+	TenantRef                    string                     `json:"tenant_ref"`
+	WorkspaceID                  string                     `json:"workspace_id"`
+	ConsumerRef                  string                     `json:"consumer_ref"`
+	ApplicationID                string                     `json:"application_id,omitempty"`
+	SubjectRef                   string                     `json:"subject_ref"`
+	Route                        string                     `json:"route"`
+	Protocol                     string                     `json:"protocol"`
+	Stream                       bool                       `json:"stream"`
+	Status                       GatewayRequestStatus       `json:"status"`
+	StartedAt                    string                     `json:"started_at"`
+	CompletedAt                  string                     `json:"completed_at"`
+	DurationMS                   int64                      `json:"duration_ms"`
+	GatewayDurationMS            int64                      `json:"gateway_duration_ms"`
+	GatewayDurationAvailable     bool                       `json:"gateway_duration_available"`
+	ProviderDurationMS           int64                      `json:"provider_duration_ms"`
+	ProviderDurationAvailable    bool                       `json:"provider_duration_available"`
+	SelectionSource              string                     `json:"selection_source"`
+	SelectedProvider             string                     `json:"selected_provider"`
+	SelectedProfile              string                     `json:"selected_profile"`
+	SelectedModel                string                     `json:"selected_model"`
+	ProviderRouteConfigurationID string                     `json:"provider_route_configuration_id,omitempty"`
+	ProviderRouteGeneration      int                        `json:"provider_route_generation,omitempty"`
+	ProviderRouteSnapshotDigest  string                     `json:"provider_route_snapshot_digest,omitempty"`
+	HTTPStatusCode               int                        `json:"http_status_code"`
+	FailureCode                  string                     `json:"failure_code"`
+	FailureBoundary              string                     `json:"failure_boundary"`
+	Usage                        GatewayRequestUsage        `json:"usage"`
+	CostEstimate                 GatewayRequestCostEstimate `json:"cost_estimate,omitempty"`
 }
 
 type GatewayRequestListRequest struct {
@@ -164,6 +167,10 @@ func (service gatewayRequestHistoryService) Read(
 	}
 	if !found {
 		return gatewayRequestReadFailure(GatewayRequestHistoryFailureNotFound)
+	}
+	if record.SchemaVersion == gatewayRequestRecordSchemaVersionV1 &&
+		gatewayRequestCostEstimateIsZero(record.CostEstimate) {
+		record.CostEstimate = gatewayRequestLegacyCostEstimate()
 	}
 	return GatewayRequestReadResult{Record: &record}
 }

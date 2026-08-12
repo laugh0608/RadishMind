@@ -21,8 +21,31 @@ export type GatewayRequestHistoryFilter = {
   startedTo: string;
 };
 
+export type GatewayRequestCostAvailability =
+  | "estimated"
+  | "usage_not_reported"
+  | "price_not_configured"
+  | "price_unavailable"
+  | "not_applicable"
+  | "legacy_not_captured";
+
+export type GatewayRequestCostEstimate = {
+  schemaVersion: "gateway_request_cost_estimate.v1";
+  availability: GatewayRequestCostAvailability;
+  reason: string;
+  currency: "USD" | "";
+  estimatedCostMicros: number | null;
+  tokenUnit: number | null;
+  inputPriceMicrosPerTokenUnit: number | null;
+  outputPriceMicrosPerTokenUnit: number | null;
+  pricingPolicyId: string;
+  pricingPolicyVersion: number | null;
+  pricingPolicyDigest: string;
+  roundingMode: "half_up_to_currency_micro" | "";
+};
+
 export type GatewayRequestHistorySummary = {
-  schemaVersion: "gateway_request_record.v1";
+  schemaVersion: "gateway_request_record.v1" | "gateway_request_record.v2";
   recordVersion: number;
   storeMode: "memory_dev" | "sqlite_dev" | "postgres_dev_test";
   requestId: string;
@@ -51,6 +74,7 @@ export type GatewayRequestHistorySummary = {
   inputTokens: number;
   outputTokens: number;
   totalTokens: number;
+  costEstimate: GatewayRequestCostEstimate;
   staleStarted: boolean;
 };
 
@@ -76,7 +100,7 @@ export type GatewayRequestHistoryState = {
 };
 
 type GatewayRequestSummaryDocument = {
-  schema_version: "gateway_request_record.v1";
+  schema_version: "gateway_request_record.v1" | "gateway_request_record.v2";
   record_version: number;
   store_mode: "memory_dev" | "sqlite_dev" | "postgres_dev_test";
   request_id: string;
@@ -102,6 +126,7 @@ type GatewayRequestSummaryDocument = {
   failure_boundary: string;
   usage_availability: GatewayRequestHistorySummary["usageAvailability"];
   usage: GatewayRequestUsageDocument;
+  cost_estimate: GatewayRequestCostEstimateDocument;
   stale_started: boolean;
 };
 
@@ -111,6 +136,21 @@ type GatewayRequestUsageDocument = {
   input_tokens: number;
   output_tokens: number;
   total_tokens: number;
+};
+
+type GatewayRequestCostEstimateDocument = {
+  schema_version: "gateway_request_cost_estimate.v1";
+  availability: GatewayRequestCostAvailability;
+  reason: string;
+  currency?: "USD";
+  estimated_cost_micros?: number;
+  token_unit?: number;
+  input_price_micros_per_token_unit?: number;
+  output_price_micros_per_token_unit?: number;
+  pricing_policy_id?: string;
+  pricing_policy_version?: number;
+  pricing_policy_digest?: string;
+  rounding_mode?: "half_up_to_currency_micro";
 };
 
 type GatewayRequestDetailDocument = Omit<GatewayRequestSummaryDocument, "usage_availability"> & {
@@ -125,6 +165,10 @@ type GatewayRequestDetailDocument = Omit<GatewayRequestSummaryDocument, "usage_a
 
 type GatewayRequestListEnvelope = {
   request_id: string;
+  tenant_ref: string;
+  workspace_id: string;
+  consumer_ref: string;
+  application_id?: string;
   requests: GatewayRequestSummaryDocument[];
   next_cursor: string;
   has_more: boolean;
@@ -135,6 +179,10 @@ type GatewayRequestListEnvelope = {
 
 type GatewayRequestReadEnvelope = {
   request_id: string;
+  tenant_ref: string;
+  workspace_id: string;
+  consumer_ref: string;
+  application_id?: string;
   request: GatewayRequestDetailDocument | null;
   failure_code: string | null;
   failure_summary: string;
@@ -211,7 +259,7 @@ export async function listGatewayRequestHistory(
   });
   const body: unknown = await response.json();
   assertNoForbiddenFields(body);
-  if (!response.ok || !isGatewayRequestListEnvelope(body)) {
+  if (!response.ok || !isGatewayRequestListEnvelope(body, config)) {
     throw new Error(`Gateway request history route failed with HTTP ${response.status}`);
   }
   if (body.failure_code) {
@@ -244,7 +292,7 @@ export async function readGatewayRequestHistoryDetail(
   );
   const body: unknown = await response.json();
   assertNoForbiddenFields(body);
-  if (!response.ok || !isGatewayRequestReadEnvelope(body)) {
+  if (!response.ok || !isGatewayRequestReadEnvelope(body, config)) {
     throw new Error(`Gateway request detail route failed with HTTP ${response.status}`);
   }
   if (body.failure_code || !body.request) {
@@ -316,7 +364,25 @@ function mapGatewayRequestSummary(value: GatewayRequestSummaryDocument): Gateway
     inputTokens: value.usage.input_tokens,
     outputTokens: value.usage.output_tokens,
     totalTokens: value.usage.total_tokens,
+    costEstimate: mapGatewayRequestCostEstimate(value.cost_estimate),
     staleStarted: value.stale_started,
+  };
+}
+
+function mapGatewayRequestCostEstimate(value: GatewayRequestCostEstimateDocument): GatewayRequestCostEstimate {
+  return {
+    schemaVersion: value.schema_version,
+    availability: value.availability,
+    reason: value.reason,
+    currency: value.currency ?? "",
+    estimatedCostMicros: value.estimated_cost_micros ?? null,
+    tokenUnit: value.token_unit ?? null,
+    inputPriceMicrosPerTokenUnit: value.input_price_micros_per_token_unit ?? null,
+    outputPriceMicrosPerTokenUnit: value.output_price_micros_per_token_unit ?? null,
+    pricingPolicyId: value.pricing_policy_id ?? "",
+    pricingPolicyVersion: value.pricing_policy_version ?? null,
+    pricingPolicyDigest: value.pricing_policy_digest ?? "",
+    roundingMode: value.rounding_mode ?? "",
   };
 }
 
@@ -333,23 +399,62 @@ function mapGatewayRequestDetail(value: GatewayRequestDetailDocument): GatewayRe
   };
 }
 
-function isGatewayRequestListEnvelope(value: unknown): value is GatewayRequestListEnvelope {
+function isGatewayRequestListEnvelope(
+  value: unknown,
+  config: ModelGatewayRequestHistoryConfig,
+): value is GatewayRequestListEnvelope {
   if (!isRecord(value)) return false;
-  return typeof value.request_id === "string" && Array.isArray(value.requests) &&
-    value.requests.every(isGatewayRequestSummaryDocument) && typeof value.next_cursor === "string" &&
+  return hasOnlyKeys(value, [
+    "request_id", "tenant_ref", "workspace_id", "consumer_ref", "application_id", "requests",
+    "next_cursor", "has_more", "failure_code", "failure_summary", "audit_ref",
+  ]) && typeof value.request_id === "string" && value.tenant_ref === config.tenantRef &&
+    value.workspace_id === config.workspaceId && value.consumer_ref === config.consumerRef &&
+    matchesOptionalApplication(value.application_id, config.applicationId) && Array.isArray(value.requests) &&
+    value.requests.every((request) => isGatewayRequestSummaryDocument(request)) && typeof value.next_cursor === "string" &&
     typeof value.has_more === "boolean" && isNullableString(value.failure_code) &&
     typeof value.failure_summary === "string" && typeof value.audit_ref === "string";
 }
 
-function isGatewayRequestReadEnvelope(value: unknown): value is GatewayRequestReadEnvelope {
+function isGatewayRequestReadEnvelope(
+  value: unknown,
+  config: ModelGatewayRequestHistoryConfig,
+): value is GatewayRequestReadEnvelope {
   if (!isRecord(value)) return false;
-  return typeof value.request_id === "string" && (value.request === null || isGatewayRequestDetailDocument(value.request)) &&
+  return hasOnlyKeys(value, [
+    "request_id", "tenant_ref", "workspace_id", "consumer_ref", "application_id", "request",
+    "failure_code", "failure_summary", "audit_ref",
+  ]) && typeof value.request_id === "string" && value.tenant_ref === config.tenantRef &&
+    value.workspace_id === config.workspaceId && value.consumer_ref === config.consumerRef &&
+    matchesOptionalApplication(value.application_id, config.applicationId) &&
+    (value.request === null || isGatewayRequestDetailDocument(value.request)) &&
     isNullableString(value.failure_code) && typeof value.failure_summary === "string" && typeof value.audit_ref === "string";
 }
 
-function isGatewayRequestSummaryDocument(value: unknown): value is GatewayRequestSummaryDocument {
-  if (!isRecord(value) || !isGatewayRequestUsageDocument(value.usage)) return false;
-  return value.schema_version === "gateway_request_record.v1" && isNonNegativeInteger(value.record_version) &&
+function isGatewayRequestSummaryDocument(
+  value: unknown,
+  detailProjection = false,
+): value is GatewayRequestSummaryDocument {
+  if (!isRecord(value) || !isGatewayRequestUsageDocument(value.usage) ||
+    !isGatewayRequestCostEstimateDocument(value.cost_estimate)) return false;
+  const allowedKeys = [
+    "schema_version", "record_version", "store_mode", "request_id", "audit_ref", "route", "protocol",
+    "stream", "status", "started_at", "completed_at", "duration_ms", "provider_duration_ms",
+    "provider_duration_available", "selection_source", "selected_provider", "selected_profile",
+    "selected_model", "provider_route_configuration_id", "provider_route_generation",
+    "provider_route_snapshot_digest", "http_status_code", "failure_code", "failure_boundary",
+    "usage_availability", "usage", "cost_estimate", "stale_started",
+    ...(detailProjection ? [
+      "tenant_ref", "workspace_id", "consumer_ref", "application_id", "subject_ref",
+      "gateway_duration_ms", "gateway_duration_available",
+    ] : []),
+  ];
+  return hasOnlyKeys(value, allowedKeys) &&
+    ["gateway_request_record.v1", "gateway_request_record.v2"].includes(String(value.schema_version)) &&
+    (value.schema_version === "gateway_request_record.v1"
+      ? value.cost_estimate.availability === "legacy_not_captured"
+      : value.cost_estimate.availability !== "legacy_not_captured") &&
+    costAvailabilityMatchesUsage(value.cost_estimate.availability, value.usage.availability) &&
+    isNonNegativeInteger(value.record_version) &&
     ["memory_dev", "sqlite_dev", "postgres_dev_test"].includes(String(value.store_mode)) &&
     stringFields(value, ["request_id", "audit_ref", "route", "protocol", "started_at", "completed_at", "selection_source", "selected_provider", "selected_profile", "selected_model", "failure_code", "failure_boundary"]) &&
     typeof value.stream === "boolean" && ["started", "succeeded", "failed", "canceled"].includes(String(value.status)) &&
@@ -360,9 +465,38 @@ function isGatewayRequestSummaryDocument(value: unknown): value is GatewayReques
     typeof value.stale_started === "boolean" && isProviderRouteLineageDocument(value);
 }
 
+function isGatewayRequestCostEstimateDocument(value: unknown): value is GatewayRequestCostEstimateDocument {
+  if (!isRecord(value) || value.schema_version !== "gateway_request_cost_estimate.v1" ||
+    typeof value.availability !== "string" || ![
+      "estimated", "usage_not_reported", "price_not_configured", "price_unavailable",
+      "not_applicable", "legacy_not_captured",
+    ].includes(value.availability) || typeof value.reason !== "string" || value.reason.length > 160) {
+    return false;
+  }
+  const estimateKeys = [
+    "currency", "estimated_cost_micros", "token_unit", "input_price_micros_per_token_unit",
+    "output_price_micros_per_token_unit", "pricing_policy_id", "pricing_policy_version",
+    "pricing_policy_digest", "rounding_mode",
+  ];
+  if (value.availability !== "estimated") {
+    return hasOnlyKeys(value, ["schema_version", "availability", "reason"]) &&
+      value.reason.length > 0 && estimateKeys.every((key) => value[key] === undefined);
+  }
+  return hasOnlyKeys(value, ["schema_version", "availability", "reason", ...estimateKeys]) &&
+    value.reason === "" && value.currency === "USD" && value.token_unit === 1_000_000 &&
+    isNonNegativeInteger(value.estimated_cost_micros) &&
+    isNonNegativeInteger(value.input_price_micros_per_token_unit) &&
+    isNonNegativeInteger(value.output_price_micros_per_token_unit) &&
+    typeof value.pricing_policy_id === "string" && /^gmp_[a-f0-9]{24}$/u.test(value.pricing_policy_id) &&
+    typeof value.pricing_policy_version === "number" && Number.isSafeInteger(value.pricing_policy_version) &&
+    value.pricing_policy_version >= 1 && typeof value.pricing_policy_digest === "string" &&
+    /^sha256:[a-f0-9]{64}$/u.test(value.pricing_policy_digest) &&
+    value.rounding_mode === "half_up_to_currency_micro";
+}
+
 function isGatewayRequestDetailDocument(value: unknown): value is GatewayRequestDetailDocument {
   if (!isRecord(value) || !isRecord(value.usage)) return false;
-  return isGatewayRequestSummaryDocument({ ...value, usage_availability: value.usage.availability }) &&
+  return isGatewayRequestSummaryDocument({ ...value, usage_availability: value.usage.availability }, true) &&
     stringFields(value, ["tenant_ref", "workspace_id", "consumer_ref", "subject_ref"]) &&
     (value.application_id === undefined || typeof value.application_id === "string") &&
     isNonNegativeInteger(value.gateway_duration_ms) && typeof value.gateway_duration_available === "boolean" &&
@@ -370,7 +504,8 @@ function isGatewayRequestDetailDocument(value: unknown): value is GatewayRequest
 }
 
 function isGatewayRequestUsageDocument(value: unknown): value is GatewayRequestUsageDocument {
-  if (!isRecord(value) || typeof value.availability !== "string" || typeof value.source !== "string" ||
+  if (!isRecord(value) || !hasOnlyKeys(value, ["availability", "source", "input_tokens", "output_tokens", "total_tokens"]) ||
+    typeof value.availability !== "string" || typeof value.source !== "string" ||
     !["reported", "not_reported", "not_applicable"].includes(String(value.availability)) ||
     !isNonNegativeInteger(value.input_tokens) || !isNonNegativeInteger(value.output_tokens) ||
     !isNonNegativeInteger(value.total_tokens)) {
@@ -441,4 +576,23 @@ function isNonNegativeInteger(value: unknown): value is number {
 
 function stringFields(value: Record<string, unknown>, keys: string[]): boolean {
   return keys.every((key) => typeof value[key] === "string");
+}
+
+function hasOnlyKeys(value: Record<string, unknown>, allowedKeys: string[]): boolean {
+  const allowed = new Set(allowedKeys);
+  return Object.keys(value).every((key) => allowed.has(key));
+}
+
+function matchesOptionalApplication(value: unknown, expected: string): boolean {
+  return expected ? value === expected : value === undefined || value === "";
+}
+
+function costAvailabilityMatchesUsage(
+  costAvailability: GatewayRequestCostAvailability,
+  usageAvailability: GatewayRequestHistorySummary["usageAvailability"],
+): boolean {
+  if (costAvailability === "legacy_not_captured") return true;
+  if (costAvailability === "not_applicable") return usageAvailability === "not_applicable";
+  if (costAvailability === "usage_not_reported") return usageAvailability === "not_reported";
+  return usageAvailability === "reported";
 }

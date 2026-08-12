@@ -39,12 +39,13 @@ func (store *postgresGatewayRequestStore) CreateRequest(requestContext GatewayRe
 	}
 	var storedVersion int
 	err = store.pool.QueryRow(requestDatabaseContext(requestContext), `INSERT INTO gateway_request_records
- (tenant_ref,workspace_id,consumer_ref,application_id,request_id,record_version,schema_version,store_mode,request_route,protocol,request_status,started_at,completed_at,selected_provider,selected_profile,selected_model,failure_boundary,usage_availability,sanitized_request_record)
- VALUES ($1,$2,$3,$4,$5,1,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+	(tenant_ref,workspace_id,consumer_ref,application_id,request_id,record_version,schema_version,store_mode,request_route,protocol,request_status,started_at,completed_at,selected_provider,selected_profile,selected_model,failure_boundary,usage_availability,cost_availability,sanitized_request_record)
+	VALUES ($1,$2,$3,$4,$5,1,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
  ON CONFLICT DO NOTHING RETURNING record_version`,
 		requestContext.TenantRef, requestContext.WorkspaceID, requestContext.ConsumerRef, requestContext.ApplicationID,
 		next.RequestID, next.SchemaVersion, next.StoreMode, next.Route, next.Protocol, next.Status, startedAt, completedAt,
-		next.SelectedProvider, next.SelectedProfile, next.SelectedModel, next.FailureBoundary, next.Usage.Availability, payload,
+		next.SelectedProvider, next.SelectedProfile, next.SelectedModel, next.FailureBoundary, next.Usage.Availability,
+		gatewayRequestRecordCostEstimate(next).Availability, payload,
 	).Scan(&storedVersion)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return errGatewayRequestStoreConflict
@@ -73,12 +74,13 @@ func (store *postgresGatewayRequestStore) UpdateRequest(requestContext GatewayRe
 	err = store.pool.QueryRow(requestDatabaseContext(requestContext), `UPDATE gateway_request_records SET
  record_version=record_version+1,schema_version=$1,store_mode=$2,request_route=$3,protocol=$4,request_status=$5,
  completed_at=$6,selected_provider=$7,selected_profile=$8,selected_model=$9,failure_boundary=$10,
- usage_availability=$11,sanitized_request_record=$12
- WHERE tenant_ref=$13 AND workspace_id=$14 AND consumer_ref=$15 AND application_id=$16 AND request_id=$17
- AND record_version=$18 AND request_status='started' RETURNING record_version`,
+	usage_availability=$11,cost_availability=$12,sanitized_request_record=$13
+	WHERE tenant_ref=$14 AND workspace_id=$15 AND consumer_ref=$16 AND application_id=$17 AND request_id=$18
+	AND record_version=$19 AND request_status='started' RETURNING record_version`,
 		next.SchemaVersion, next.StoreMode, next.Route, next.Protocol, next.Status, completedAt,
 		next.SelectedProvider, next.SelectedProfile, next.SelectedModel, next.FailureBoundary,
-		next.Usage.Availability, payload, requestContext.TenantRef, requestContext.WorkspaceID,
+		next.Usage.Availability, gatewayRequestRecordCostEstimate(next).Availability, payload,
+		requestContext.TenantRef, requestContext.WorkspaceID,
 		requestContext.ConsumerRef, requestContext.ApplicationID, next.RequestID, record.RecordVersion,
 	).Scan(&storedVersion)
 	if errors.Is(err, pgx.ErrNoRows) {

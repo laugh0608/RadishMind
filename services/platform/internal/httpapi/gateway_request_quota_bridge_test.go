@@ -91,16 +91,38 @@ func TestGatewayRequestQuotaProtectsThreeStandardAPIKeyInferenceRoutes(t *testin
 	if _, err := quotaRepository.PutPolicy(quotaContext, 0, 3, time.Now().UTC()); err != nil {
 		t.Fatalf("put route quota policy: %v", err)
 	}
-	inner := &fakeBridge{envelope: bridge.GatewayEnvelope{Status: "ok", Response: map[string]any{"summary": "quota route response"}}}
+	inner := &fakeBridge{envelope: bridge.GatewayEnvelope{
+		Status: "ok", Response: map[string]any{"summary": "quota route response"},
+		Metadata: map[string]any{"usage": map[string]any{
+			"availability": "reported", "source": "openai_compatible_usage",
+			"input_tokens": 3, "output_tokens": 2, "total_tokens": 5,
+		}},
+	}}
+	pricingRepository := newMemoryGatewayModelPricingRepository()
+	pricingContext := GatewayModelPricingContext{
+		RequestContext: context.Background(), TenantRef: managementContext.TenantRef,
+		WorkspaceID: managementContext.WorkspaceID, Environment: "test", ProviderID: "mock",
+		ProfileID: "profile_demo", ModelID: "mock", ActorRef: managementContext.OwnerSubjectRef,
+		RequestID: "request-quota-pricing-policy", AuditRef: "audit-quota-pricing-policy",
+	}
+	putGatewayModelPricingTestPolicy(
+		t, pricingRepository, pricingContext, 0, 1_000_000, 2_000_000, "quota pricing evidence",
+	)
+	historyStore := newMemoryGatewayRequestStore(20)
 	server := &Server{
 		config: config.Config{
 			GatewayAuthMode: gatewayAPIKeyAuthenticationSource, GatewayRequestHistoryDevEnabled: true,
 			GatewayRequestQuotaEnforcementDevEnabled: true, GatewayRequestQuotaEnvironment: "test",
+			GatewayModelPricingCaptureDevEnabled: true, GatewayModelPricingEnvironment: "test",
 			GatewayRequestDatabaseTimeout: time.Second, BridgeTimeout: time.Second,
+			Provider: "mock", ProviderProfile: "profile_demo", Model: "mock",
 		},
-		bridge:                       newGatewayRequestQuotaBridgeClient(inner, quotaRepository),
+		bridge: newGatewayRequestQuotaBridgeClient(
+			newGatewayProviderAttemptBridgeClient(inner), quotaRepository,
+		),
 		applicationCatalogRepository: applicationRepository, apiKeyRepository: apiKeyRepository,
-		gatewayRequestHistoryStore: newMemoryGatewayRequestStore(20), gatewayRequestHistoryStoreMode: gatewayRequestStoreModeMemoryDev,
+		gatewayRequestHistoryStore: historyStore, gatewayRequestHistoryStoreMode: gatewayRequestStoreModeMemoryDev,
+		gatewayModelPricingRepository: pricingRepository,
 	}
 	routes := []struct {
 		path   string
@@ -120,6 +142,17 @@ func TestGatewayRequestQuotaProtectsThreeStandardAPIKeyInferenceRoutes(t *testin
 		if response.Code != http.StatusOK {
 			t.Fatalf("%s quota admission failed: status=%d body=%s", route.path, response.Code, response.Body.String())
 		}
+		historyContext := GatewayRequestContext{
+			TenantRef: managementContext.TenantRef, WorkspaceID: managementContext.WorkspaceID,
+			ConsumerRef: "api_key:" + issued.Record.APIKeyID, ApplicationID: issued.Record.ApplicationID,
+			SubjectRef: managementContext.OwnerSubjectRef, AuditContext: "api-key-dev-test",
+			Source: gatewayAPIKeyAuthenticationSource,
+		}
+		record, found, historyErr := historyStore.ReadRequest(historyContext, request.Header.Get("X-Request-Id"))
+		if historyErr != nil || !found || record.CostEstimate.Availability != GatewayRequestCostEstimated ||
+			record.CostEstimate.EstimatedCostMicros == nil || *record.CostEstimate.EstimatedCostMicros != 7 {
+			t.Fatalf("%s admitted request cost evidence drifted: found=%v record=%+v err=%v", route.path, found, record, historyErr)
+		}
 	}
 	if inner.handleCalls != 3 {
 		t.Fatalf("three standard routes produced %d provider calls", inner.handleCalls)
@@ -132,6 +165,17 @@ func TestGatewayRequestQuotaProtectsThreeStandardAPIKeyInferenceRoutes(t *testin
 	if overLimitResponse.Code != http.StatusTooManyRequests ||
 		!strings.Contains(overLimitResponse.Body.String(), GatewayRequestQuotaFailureExceeded) || inner.handleCalls != 3 {
 		t.Fatalf("over-limit standard route crossed provider: status=%d calls=%d body=%s", overLimitResponse.Code, inner.handleCalls, overLimitResponse.Body.String())
+	}
+	historyContext := GatewayRequestContext{
+		TenantRef: managementContext.TenantRef, WorkspaceID: managementContext.WorkspaceID,
+		ConsumerRef: "api_key:" + issued.Record.APIKeyID, ApplicationID: issued.Record.ApplicationID,
+		SubjectRef: managementContext.OwnerSubjectRef, AuditContext: "api-key-dev-test",
+		Source: gatewayAPIKeyAuthenticationSource,
+	}
+	overLimitRecord, found, historyErr := historyStore.ReadRequest(historyContext, "request-quota-route-over")
+	if historyErr != nil || !found || overLimitRecord.CostEstimate.Availability != GatewayRequestCostNotApplicable ||
+		overLimitRecord.CostEstimate.Reason != "provider_not_attempted" {
+		t.Fatalf("quota rejection cost evidence drifted: found=%v record=%+v err=%v", found, overLimitRecord, historyErr)
 	}
 }
 

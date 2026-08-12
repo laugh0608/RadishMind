@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-08-11
+更新时间：2026-08-12
 
 ## 文档目的
 
@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-12 当前执行口径：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 功能已完成且 Visual R3 仍等待人工复核。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 与 [Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 均已关闭；后者已完成局部 Pencil 人工通过、单一结构化 editor、SQLite create / version / CAS / 重启 / 隐私和三视口复核。下一步重新选择一份长期功能设计文档，不从已关闭专题派生 S11 或同层门禁。生产 quota、token / cost、billing、正式 membership / OIDC、自动执行和自动发布仍关闭。
+2026-08-12 当前执行口径：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 Visual R3 已人工通过但 React 不冒充逐项采用。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)、[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)和[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md)均已关闭。下一顺位回到 [Family UI 产品化专题](user-workspace/radishmind-family-ui-productization-v1.md)，先核对 S9 / S10 React 与已批准 Visual R3 的实际偏差，再决定纵向迁移批次；不从价格专题派生 S11 或同层门禁。production price、quota、billing、正式 membership / OIDC、自动执行和自动发布仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -40,10 +40,10 @@
 
 | 功能文档 | 当前作用 | 下一步默认入口 |
 | --- | --- | --- |
-| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | Mutation Authorization 批次 A 至 E 已完成，专题关闭 |
-| [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route 与独立开发测试态 application request quota 均已完成受控管理；quota 覆盖 owner、Admin API、双数据库、Gateway admission、完整 Pencil、React 和真实浏览器连续链 | 回到功能设计入口，以新的真实任务阻塞选择产品专题；不从已关闭 Provider / Quota 专题扩 production secret、billing 或真实 OIDC |
-| [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、追踪和审计 | 进入真实 API 分发、配额或计费前先更新 |
-| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；Definition 结构化输入批次 A 至 E 已关闭，RAG 本地 importer 已完成 | 先完成 RAG 本地材料 `B / 局部 Pencil`，人工通过后接入单一结构化 snapshot owner |
+| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | 新价格专题只在 Application Operations 中审查当前 Gateway 窗口，不启动全历史 summary、billing 或收件箱批次 B |
+| [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route 与独立开发测试态 application request quota 均已完成受控管理；新价格专题定义独立 Pricing owner | 先评审价格策略作用域、CAS、权限与确认边界，不把价格并入 Provider Route 或 quota owner |
+| [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、reported usage、追踪和审计；价格与成本审查设计已定义 | 设计获批并创建唯一高风险任务卡后，从领域与 memory owner 开始，不直接抢跑 API、migration 或 UI |
+| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；Definition 结构化输入与 RAG 本地材料导入、审查和快照构建均已关闭 | 新的 Workflow 能力必须由真实用户阻塞产生独立功能设计，不从已关闭专题派生 S11、持久 staging 或同层门禁 |
 | [图片生成 / 产物返回](image-generation-artifact-return.md) | 批次 A 至 E 已完成受控 handoff、本机私有 storage、reference-only profile、test-only fixture client 与一次性交付协调，开发测试态 v1 关闭 | 如需真实 backend、resolver 或公开交付，先建立独立功能 / 集成设计 |
 
 ## 细专题导航
@@ -79,6 +79,7 @@
 | [Gateway Python Bridge Runtime v1](gateway/python-bridge-runtime-v1.md) | 运行时专题 | 受控 `stdio` worker pool 已成为默认模式，完成生命周期、取消、崩溃恢复、请求隔离和性能验收；process 模式保留回滚 |
 | [Model Gateway Request History / Usage & Failure Review v1](gateway/model-gateway-request-history-usage-failure-review-v1.md) | 功能专题 | `memory_dev`、SQLite、PostgreSQL dev/test、终态证据、分页详情、重启恢复和真实 Web 审查已完成 |
 | [Provider 上报用量规范化与应用用量审查（开发 / 测试态）v1](gateway/provider-reported-usage-normalization-application-review-dev-test-v1.md) | 功能 / Provider contract 专题 | OpenAI-compatible、Gemini、Anthropic、HuggingFace 与 Ollama reported usage 已进入 Gateway、三协议、Request History 和 Application Operations；成本、quota 与 billing 未打开 |
+| [Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md) | 功能 / 价格与成本证据专题 | 状态为 `provider_pricing_policy_version_application_cost_review_dev_test_v1_completed`；三模式 owner、Admin API、Request History v2、请求快照、React strict consumer、双数据库与真实浏览器连续链已完成；不实现 billing ledger、invoice 或 production price |
 | [应用 API Key 请求配额与 Provider Attempt 准入（开发 / 测试态）v1](gateway/application-api-key-request-quota-admission-dev-test-v1.md) | 功能 / 高风险准入专题 | 批次 A 至 E 已完成 application / workspace / environment UTC 日请求 policy、三模式 repository、Admin GET / PUT、六条 API Key inference route 原子准入和稳定失败，以及 S9 完整 Pencil、React 严格 consumer、CAS 确认和真实浏览器连续链；生产 quota、token / cost 与 billing 关闭 |
 | [Model Gateway Request History / Usage & Failure Review v1 任务卡](../task-cards/model-gateway-request-history-usage-failure-review-v1-plan.md) | 实现批次 | 状态为 `complete`；保留为实现与验证索引，不继续派生同层 readiness 链 |
 | [Gateway Playground / Request Review Loop v1](gateway/gateway-playground-request-review-loop-v1.md) | 功能专题 | 三协议 unary / stream、取消、稳定失败和精确 history handoff 已完成；不持久化输入输出 |

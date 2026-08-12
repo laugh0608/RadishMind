@@ -17,6 +17,7 @@ import {
   type AdminProviderRouteConfig,
 } from "./adminProviderRouteConsumer.ts";
 import { readAdminGatewayRequestQuotaConfig } from "./adminGatewayRequestQuotaConsumer.ts";
+import { readAdminGatewayModelPricingConfig } from "./adminGatewayModelPricingConsumer.ts";
 import type { AdminTenantOverviewViewModel } from "./adminTenantOverview.ts";
 import {
   loadControlPlaneReadDevLiveCollection,
@@ -43,6 +44,11 @@ const AdminProviderRouteWorkspacePanel = lazy(() =>
 const AdminGatewayRequestQuotaPanel = lazy(() =>
   import("./adminGatewayRequestQuotaPanel.tsx").then((module) => ({
     default: module.AdminGatewayRequestQuotaPanel,
+  })),
+);
+const AdminGatewayModelPricingPanel = lazy(() =>
+  import("./adminGatewayModelPricingPanel.tsx").then((module) => ({
+    default: module.AdminGatewayModelPricingPanel,
   })),
 );
 
@@ -125,6 +131,13 @@ export default function AdminControlPlaneWorkspace({
     }),
     [selectedApplicationId, sourceConfig.tenantRef, sourceConfig.workspaceId],
   );
+  const pricingConfig = useMemo(
+    () => readAdminGatewayModelPricingConfig({
+      tenantRef: sourceConfig.tenantRef,
+      workspaceId: sourceConfig.workspaceId ?? "",
+    }),
+    [sourceConfig.tenantRef, sourceConfig.workspaceId],
+  );
   const statusBySurface = useMemo(
     () => buildResourceStatuses(
       tenantOverview,
@@ -133,9 +146,13 @@ export default function AdminControlPlaneWorkspace({
       sourceState,
       providerRouteConfig,
       quotaConfig.mode,
+      pricingConfig.mode,
     ),
-    [auditLog, quotaConfig.mode, sourceConfig, sourceState, tenantOverview],
+    [auditLog, pricingConfig.mode, quotaConfig.mode, sourceConfig, sourceState, tenantOverview],
   );
+
+  const pricingActive = activeSurface === "pricing";
+  const quotaActive = activeSurface === "quota";
 
   return (
     <section
@@ -147,13 +164,15 @@ export default function AdminControlPlaneWorkspace({
     >
       <header className="admin-control-plane-heading">
         <div>
-          <p className="eyebrow">{activeSurface === "quota" ? "S9 · Admin Quota Admission" : "S7 · Admin Control Plane"}</p>
+          <p className="eyebrow">{quotaActive ? "S9 · Admin Quota Admission" : pricingActive ? "S7 · Admin Pricing" : "S7 · Admin Control Plane"}</p>
           <h3 id="admin-control-plane-title">
-            {activeSurface === "quota" ? "Application request quota" : "Administration and routing"}
+            {quotaActive ? "Application request quota" : pricingActive ? "Provider model pricing" : "Administration and routing"}
           </h3>
           <p>
-            {activeSurface === "quota"
+            {quotaActive
               ? "Maintain the exact development/test application policy and its quota-owner UTC usage."
+              : pricingActive
+              ? "Maintain one exact immutable USD pricing revision for future development/test request snapshots."
               : "Review scoped identity evidence, then use the explicit development/test configuration owner."}
           </p>
         </div>
@@ -161,7 +180,7 @@ export default function AdminControlPlaneWorkspace({
           <div><dt>Tenant</dt><dd>{sourceConfig.tenantRef}</dd></div>
           <div><dt>Workspace</dt><dd>{sourceConfig.workspaceId ?? "unavailable"}</dd></div>
           <div><dt>Auth source</dt><dd>{adminAuthSourceLabel(sourceConfig)}</dd></div>
-          <div><dt>Environment</dt><dd>{activeSurface === "quota" ? quotaConfig.environment : providerRouteConfig.environment}</dd></div>
+          <div><dt>Environment</dt><dd>{quotaActive ? quotaConfig.environment : pricingActive ? pricingConfig.environment : providerRouteConfig.environment}</dd></div>
         </dl>
       </header>
 
@@ -188,7 +207,7 @@ export default function AdminControlPlaneWorkspace({
           <p className="admin-control-plane-boundary">
             <span aria-hidden="true">!</span>
             User and Role remain Radish-owned. Production membership, formal OIDC, secrets, onboarding,
-            automatic routing, production quota, token/cost and billing stay closed.
+            automatic routing, production quota, production price and billing stay closed.
           </p>
         </nav>
 
@@ -212,6 +231,13 @@ export default function AdminControlPlaneWorkspace({
               applications={applications}
               onSelectApplication={onSelectApplication}
               live={quotaConfig.mode === "dev_admin_gateway_request_quota_http"}
+            />
+          ) : null}
+          {activeSurface === "pricing" ? (
+            <AdminPricingOwner
+              tenantRef={sourceConfig.tenantRef}
+              workspaceId={sourceConfig.workspaceId ?? ""}
+              live={pricingConfig.mode === "dev_admin_gateway_model_pricing_http"}
             />
           ) : null}
         </main>
@@ -244,6 +270,7 @@ function buildResourceStatuses(
   sourceState: ControlPlaneReadDevLiveLoadState,
   routeConfig: AdminProviderRouteConfig,
   quotaMode: "offline" | "dev_admin_gateway_request_quota_http",
+  pricingMode: "offline" | "dev_admin_gateway_model_pricing_http",
 ): Record<AdminControlPlaneSurface, ResourceStatus> {
   const liveReady = sourceConfig.mode === "dev_live_http" && sourceState.status === "ready";
   const tenantStatus: ResourceStatus = liveReady && tenantOverview.canRenderTenant
@@ -269,6 +296,9 @@ function buildResourceStatuses(
     route: routeStatus,
     quota: quotaMode === "dev_admin_gateway_request_quota_http"
       ? { label: "UTC daily CAS", tone: "ready" }
+      : { label: "offline", tone: "neutral" },
+    pricing: pricingMode === "dev_admin_gateway_model_pricing_http"
+      ? { label: "USD / 1M CAS", tone: "ready" }
       : { label: "offline", tone: "neutral" },
   };
 }
@@ -579,6 +609,32 @@ function AdminQuotaOwner({
           applications={applications}
           onSelectApplication={onSelectApplication}
         />
+      </Suspense>
+    </section>
+  );
+}
+
+function AdminPricingOwner({
+  tenantRef,
+  workspaceId,
+  live,
+}: {
+  tenantRef: string;
+  workspaceId: string;
+  live: boolean;
+}) {
+  return (
+    <section className="admin-control-owner-surface admin-control-pricing-owner" aria-labelledby="admin-pricing-owner-title">
+      <header>
+        <div>
+          <p className="eyebrow">Pricing · development / test</p>
+          <h4 id="admin-pricing-owner-title">Immutable model pricing revisions</h4>
+          <p>Read one exact Provider / Profile / Model owner, then review and confirm a CAS revision for future requests.</p>
+        </div>
+        <StatusPill tone={live ? "ready" : "neutral"}>{live ? "dev/test control" : "offline"}</StatusPill>
+      </header>
+      <Suspense fallback={<div className="admin-control-plane-loading">Loading model pricing owner…</div>}>
+        <AdminGatewayModelPricingPanel tenantRef={tenantRef} workspaceId={workspaceId} />
       </Suspense>
     </section>
   );

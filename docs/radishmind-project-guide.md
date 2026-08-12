@@ -15,7 +15,7 @@
 
 2026-06-14 起，具体功能或长期开发目标先看 [功能设计文档入口](features/README.md)。任务卡只承载实现批次、前置条件或高风险边界，不再作为功能默认主文档。
 
-2026-08-12 当前读法：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 功能已完成，Visual R3 仍等待人工复核。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 与 [Workflow RAG 本地知识材料导入、审查与快照构建](features/workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 均已完成；后者已关闭局部 Pencil、结构化 editor、SQLite create / version / CAS / 重启、隐私和三视口。下一步回到功能设计入口选择新的真实用户阻塞。production membership / OIDC、production secret、production quota / billing、自动执行和自动发布仍未打开。
+2026-08-12 当前读法：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 功能与 Visual R3 已人工通过。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)、[Workflow RAG 本地知识材料导入、审查与快照构建](features/workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)和 Provider 价格与应用成本专题均已完成。下一顺位先对照已批准 Visual R3 审计 S9 / S10 React；production membership / OIDC、production secret、production quota / billing、自动执行和自动发布仍未打开。
 
 ## 项目定位
 

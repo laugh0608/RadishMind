@@ -100,6 +100,9 @@
 84. `application-runtime-authority-v4.schema.json`
 85. `application-session-v4.schema.json`
 86. `application-session-turn-v4.schema.json`
+87. `gateway-model-pricing-policy.schema.json`
+88. `gateway-request-cost-estimate.schema.json`
+89. `gateway-request-record-v2.schema.json`
 
 当前 TypeScript 消费契约：
 
@@ -115,6 +118,7 @@
 
 - 文档说明以 [docs/radishmind-integration-contracts.md](../docs/radishmind-integration-contracts.md) 为语义说明入口；分主题契约说明位于 [docs/contracts/](../docs/contracts/README.md)
 - `contracts/` 中的 schema 是程序化校验入口
+- `gateway-model-pricing-policy.schema.json`、`gateway-request-cost-estimate.schema.json` 与 `gateway-request-record-v2.schema.json` 冻结开发 / 测试态精确 Provider / Profile / Model 价格版本、请求选择时价格快照与六态成本证据；历史 v1 只投影 `legacy_not_captured`，不得按当前价格回算，成本不可用也不得改变 Provider 调用结果。
 - 当前 schema 只冻结通用骨架与最小项目上下文字段，不把所有任务细节一次写死
 - 当前 `copilot-gateway-envelope.schema.json` 用于冻结服务/API 层 envelope，明确 `status / response / error / metadata` 的最小结构，并保持业务响应仍由 `copilot-response.schema.json` 校验
 - 当前 `copilot-training-sample.schema.json` 用于冻结 `RadishMind-Core` 训练 / 蒸馏样本 wrapper，明确一个样本如何承载 `input_request`、`target_response`、teacher/source、训练字段、质量门禁和来源 metadata；`scripts/check-copilot-training-sample-contract.py` 会用 `scripts/checks/fixtures/copilot-training-sample-basic.json` 同时校验 wrapper、`CopilotRequest` 与 `CopilotResponse`，`scripts/build-copilot-training-samples.py` 则用 `scripts/checks/fixtures/copilot-training-sample-conversion-manifest.json` 把首批 9 条 committed eval golden_response 样本转换成可回归 JSONL 训练样本，并用 `scripts/checks/fixtures/copilot-training-sample-conversion-summary.json` 固定转换 summary；同一入口还会用 `scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-manifest.json` 将首批 9 条 audit pass candidate record 转换成 `teacher_capture` 训练样本，并用 `scripts/checks/fixtures/copilot-training-sample-candidate-record-conversion-summary.json` 固定转换 summary；生成 JSONL 默认输出到 `tmp/`，训练集合入仓优先采用 `training/` 下的 manifest、summary、复核记录和实验说明

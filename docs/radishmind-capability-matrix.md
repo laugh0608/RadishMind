@@ -12,7 +12,7 @@
 
 如果你要推进具体产品能力，先读 [功能设计文档入口](features/README.md)。2026-06-14 起，长期功能设计不再默认塞进 task card；task card、fixture 和 checker 只服务具体实现批次、前置条件或高风险边界。
 
-2026-08-11 覆盖：既有 Workflow、Gateway、用户工作区、Prompt / Agent、回归评测、Image Adapter 与 Admin Provider Profile / Model Route 专题均已完成并保持稳定。Family UI `S1 R8` 至 `S8 R1` 已审关闭，S9 / S10 功能已完成但 Pencil Visual R3 仍待人工复核；Workflow Definition 结构化运行输入批次 A 至 E、三存储连续链与 SQLite 产品浏览器收口已完成。当前活跃专题为 RAG 本地知识材料导入、审查与快照构建；浏览器内确定性 importer 已完成，下一步为 `B / 局部 Pencil`，不改变 production 停止线。
+2026-08-12 覆盖：既有 Workflow、Gateway、用户工作区、Prompt / Agent、回归评测、Image Adapter 与 Admin Provider Profile / Model Route 专题均已完成并保持稳定。Family UI `S1 R8` 至 `S8 R1` 已审关闭，S9 / S10 功能与 Pencil Visual R3 已人工通过；Workflow Definition 结构化运行输入和 Provider 价格策略版本与应用成本审查均已完成批次 A 至 E、三存储与 SQLite 产品浏览器收口。下一顺位是 S9 / S10 React 对照审计，不改变 production 停止线。
 
 `RadishFlow` / `Radish` 暂无稳定挂载点不阻塞 RadishMind 平台本体开发，也不等于可以细化假想接线或声明真实集成就绪。
 

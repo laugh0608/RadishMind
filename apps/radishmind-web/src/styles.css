@@ -6943,6 +6943,61 @@ dd {
   font-size: 1.05rem;
 }
 
+.application-operations-cost-coverage {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-md);
+  background: var(--rm-bg-surface);
+}
+
+.application-operations-cost-coverage > p {
+  margin: 0;
+}
+
+.application-operations-cost-coverage > p:last-child {
+  color: var(--rm-text-muted);
+  font-size: 8px;
+}
+
+.application-operations-cost-coverage > div {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  border: 1px solid var(--rm-border-soft);
+}
+
+.application-operations-cost-coverage span {
+  display: grid;
+  gap: 3px;
+  padding: 8px;
+  border-right: 1px solid var(--rm-border-soft);
+  color: var(--rm-text-muted);
+  font-size: 7px;
+}
+
+.application-operations-cost-coverage span:last-child {
+  border-right: 0;
+}
+
+.application-operations-cost-coverage span strong {
+  color: var(--rm-text-primary);
+  font-family: var(--rm-font-mono);
+  font-size: 13px;
+}
+
+.application-operations-cost-coverage span[data-tone="ready"] strong {
+  color: var(--rm-state-success);
+}
+
+.application-operations-cost-coverage span[data-tone="attention"] strong {
+  color: var(--rm-attention-primary);
+}
+
+.application-operations-cost-coverage span[data-tone="blocked"] strong {
+  color: var(--rm-state-danger);
+}
+
 .application-operations-failure,
 .application-operations-stop-line {
   background: #fff4f2;
@@ -8491,7 +8546,7 @@ dd {
 
 .admin-control-plane-path {
   display: grid;
-  grid-template-rows: auto repeat(8, auto) minmax(102px, 1fr);
+  grid-template-rows: auto repeat(9, auto) minmax(102px, 1fr);
   align-content: start;
   border-right: 1px solid var(--rm-border-soft);
   background: var(--rm-bg-muted);
@@ -9515,6 +9570,261 @@ dd {
   font-weight: 800;
 }
 
+/* S7 Provider pricing owner */
+.admin-control-pricing-owner {
+  padding: 0;
+}
+
+.admin-control-pricing-owner > header {
+  margin: 18px 18px 0;
+}
+
+.admin-gateway-pricing-workspace {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.72fr) minmax(0, 1.28fr);
+  gap: 14px;
+  padding: 0 18px 18px;
+}
+
+.admin-gateway-pricing-scope,
+.admin-gateway-pricing-owner {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--rm-border-soft);
+  background: var(--rm-bg-surface);
+}
+
+.admin-gateway-pricing-scope > header,
+.admin-gateway-pricing-owner > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.admin-gateway-pricing-scope > header > div,
+.admin-gateway-pricing-owner > header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-gateway-pricing-scope h5,
+.admin-gateway-pricing-owner h5,
+.admin-gateway-pricing-scope p,
+.admin-gateway-pricing-owner p {
+  margin: 0;
+}
+
+.admin-gateway-pricing-scope h5,
+.admin-gateway-pricing-owner > header h5 {
+  overflow-wrap: anywhere;
+  color: var(--rm-text-primary);
+  font-size: 16px;
+}
+
+.admin-gateway-pricing-scope-fields,
+.admin-gateway-pricing-rate-fields {
+  display: grid;
+  gap: 9px;
+}
+
+.admin-gateway-pricing-rate-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-gateway-pricing-scope label,
+.admin-gateway-pricing-editor label {
+  display: grid;
+  gap: 5px;
+  color: var(--rm-text-secondary);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.admin-gateway-pricing-scope input,
+.admin-gateway-pricing-editor input,
+.admin-gateway-pricing-editor textarea {
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 9px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  font: inherit;
+}
+
+.admin-gateway-pricing-editor textarea {
+  resize: vertical;
+}
+
+.admin-gateway-pricing-notice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--rm-border-soft);
+  background: var(--rm-bg-muted);
+}
+
+.admin-gateway-pricing-notice > span {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: 50%;
+  color: var(--rm-text-muted);
+  font-size: 16px;
+}
+
+.admin-gateway-pricing-notice > div {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-gateway-pricing-notice strong {
+  color: var(--rm-text-primary);
+  font-size: 12px;
+}
+
+.admin-gateway-pricing-notice p,
+.admin-gateway-pricing-message,
+.admin-gateway-pricing-confirm > p {
+  color: var(--rm-text-secondary);
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.admin-gateway-pricing-evidence {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-gateway-pricing-rates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-gateway-pricing-rates article {
+  display: grid;
+  gap: 5px;
+  padding: 13px;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-md);
+  background: var(--rm-bg-muted);
+}
+
+.admin-gateway-pricing-rates span,
+.admin-gateway-pricing-rates small {
+  color: var(--rm-text-muted);
+  font-size: 8px;
+}
+
+.admin-gateway-pricing-rates strong {
+  color: var(--rm-text-primary);
+  font-family: var(--rm-font-mono);
+  font-size: 20px;
+}
+
+.admin-gateway-pricing-update {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.82fr);
+  gap: 10px;
+}
+
+.admin-gateway-pricing-editor,
+.admin-gateway-pricing-confirm {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid var(--rm-border-soft);
+  background: var(--rm-bg-surface);
+}
+
+.admin-gateway-pricing-confirm {
+  border-color: color-mix(in srgb, var(--rm-state-warning) 48%, var(--rm-border-soft));
+  background: var(--rm-state-warning-soft);
+}
+
+.admin-gateway-pricing-confirm dl {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  border: 1px solid var(--rm-border-soft);
+}
+
+.admin-gateway-pricing-confirm dl > div {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 8px;
+  padding: 7px 9px;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.admin-gateway-pricing-confirm dt,
+.admin-gateway-pricing-confirm dd {
+  margin: 0;
+  font-size: 8px;
+}
+
+.admin-gateway-pricing-confirm dd {
+  overflow-wrap: anywhere;
+  color: var(--rm-text-primary);
+  font-family: var(--rm-font-mono);
+}
+
+.admin-gateway-pricing-confirm > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.admin-gateway-pricing-failure,
+.admin-gateway-pricing-boundary {
+  padding: 10px 12px;
+  border-left: 3px solid var(--rm-state-danger);
+  background: var(--rm-state-danger-soft);
+  color: var(--rm-state-danger);
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.admin-gateway-pricing-failure {
+  display: grid;
+  gap: 7px;
+}
+
+.admin-gateway-pricing-failure p {
+  color: inherit;
+}
+
+.admin-gateway-pricing-boundary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  border-left-color: var(--rm-state-warning);
+  background: var(--rm-state-warning-soft);
+  color: var(--rm-state-warning);
+}
+
+.admin-gateway-pricing-scope button,
+.admin-gateway-pricing-editor button,
+.admin-gateway-pricing-confirm button,
+.admin-gateway-pricing-failure button {
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 9px;
+}
+
 @media (max-width: 1280px) {
   .admin-control-plane-layout {
     grid-template-columns: minmax(0, 1fr);
@@ -9574,7 +9884,9 @@ dd {
   }
 
   .admin-gateway-quota-workspace,
-  .admin-gateway-quota-update-layout {
+  .admin-gateway-quota-update-layout,
+  .admin-gateway-pricing-workspace,
+  .admin-gateway-pricing-update {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -9615,6 +9927,7 @@ dd {
   }
 
   .admin-control-plane-path {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
     padding: 9px;
     background: var(--rm-bg-surface);
@@ -9676,6 +9989,11 @@ dd {
     gap: 10px;
     min-height: 0;
     padding: 12px;
+  }
+
+  .admin-gateway-pricing-rate-fields,
+  .admin-gateway-pricing-rates {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .admin-control-owner-surface > header,
@@ -11418,7 +11736,7 @@ dd {
 }
 
 .application-runtime-review-owner .gateway-request-history-row > span:nth-child(4) {
-  grid-column: 1 / 3;
+  grid-column: auto;
 }
 
 .application-runtime-review-owner .gateway-request-history-row small {
@@ -11497,7 +11815,7 @@ dd {
 }
 
 .application-runtime-review-owner .application-operations-metrics {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 0;
   overflow: hidden;
   border: 1px solid var(--rm-border-soft);
@@ -11648,6 +11966,18 @@ dd {
   .application-runtime-review-owner .gateway-request-history-row > span:last-child {
     grid-column: 1 / -1;
   }
+
+  .application-operations-cost-coverage > div {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .application-operations-cost-coverage span:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .application-operations-cost-coverage span:nth-child(n + 4) {
+    border-top: 1px solid var(--rm-border-soft);
+  }
 }
 
 @media (max-width: 760px) {
@@ -11765,6 +12095,22 @@ dd {
 
   .gateway-request-history-filter-disclosure > summary span {
     display: none;
+  }
+
+  .application-operations-cost-coverage > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .application-operations-cost-coverage span:nth-child(3n) {
+    border-right: 1px solid var(--rm-border-soft);
+  }
+
+  .application-operations-cost-coverage span:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .application-operations-cost-coverage span:nth-child(n + 3) {
+    border-top: 1px solid var(--rm-border-soft);
   }
 }
 

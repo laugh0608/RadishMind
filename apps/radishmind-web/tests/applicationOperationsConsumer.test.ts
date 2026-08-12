@@ -67,6 +67,9 @@ test("application operations keeps channel attribution separate and sorts one lo
   assert.equal(snapshot.metrics.gatewayInputTokens, 24);
   assert.equal(snapshot.metrics.gatewayOutputTokens, 7);
   assert.equal(snapshot.metrics.gatewayTotalTokens, 31);
+  assert.equal(snapshot.metrics.gatewayCostEstimated, 1);
+  assert.equal(snapshot.metrics.gatewayCostUsageNotReported, 1);
+  assert.equal(snapshot.metrics.gatewayEstimatedCostMicros, 17);
   assert.equal(snapshot.metrics.workflowLoaded, 2);
   assert.equal(snapshot.metrics.workflowSucceeded, 1);
   assert.equal(snapshot.metrics.workflowFailed, 1);
@@ -146,7 +149,7 @@ function gatewayReadyState(): GatewayRequestHistoryState {
     status: "ready",
     requests: [
       {
-        schemaVersion: "gateway_request_record.v1",
+        schemaVersion: "gateway_request_record.v2",
         recordVersion: 2,
         storeMode: "sqlite_dev",
         requestId: "shared_request",
@@ -172,10 +175,11 @@ function gatewayReadyState(): GatewayRequestHistoryState {
         inputTokens: 24,
         outputTokens: 7,
         totalTokens: 31,
+        costEstimate: estimatedCost(17),
         staleStarted: false,
       },
       {
-        schemaVersion: "gateway_request_record.v1",
+        schemaVersion: "gateway_request_record.v2",
         recordVersion: 2,
         storeMode: "sqlite_dev",
         requestId: "gateway_failed",
@@ -201,6 +205,7 @@ function gatewayReadyState(): GatewayRequestHistoryState {
         inputTokens: 0,
         outputTokens: 0,
         totalTokens: 0,
+        costEstimate: unavailableCost("usage_not_reported", "provider_usage_not_reported"),
         staleStarted: false,
       },
     ],
@@ -210,6 +215,40 @@ function gatewayReadyState(): GatewayRequestHistoryState {
     auditRef: "audit_gateway_list",
     failureCode: "",
     failureSummary: "",
+  };
+}
+
+function estimatedCost(estimatedCostMicros: number) {
+  return {
+    schemaVersion: "gateway_request_cost_estimate.v1" as const,
+    availability: "estimated" as const,
+    reason: "",
+    currency: "USD" as const,
+    estimatedCostMicros,
+    tokenUnit: 1_000_000,
+    inputPriceMicrosPerTokenUnit: 1_000_000,
+    outputPriceMicrosPerTokenUnit: 3_000_000,
+    pricingPolicyId: `gmp_${"a".repeat(24)}`,
+    pricingPolicyVersion: 3,
+    pricingPolicyDigest: `sha256:${"c".repeat(64)}`,
+    roundingMode: "half_up_to_currency_micro" as const,
+  };
+}
+
+function unavailableCost(availability: "usage_not_reported", reason: string) {
+  return {
+    schemaVersion: "gateway_request_cost_estimate.v1" as const,
+    availability,
+    reason,
+    currency: "" as const,
+    estimatedCostMicros: null,
+    tokenUnit: null,
+    inputPriceMicrosPerTokenUnit: null,
+    outputPriceMicrosPerTokenUnit: null,
+    pricingPolicyId: "",
+    pricingPolicyVersion: null,
+    pricingPolicyDigest: "",
+    roundingMode: "" as const,
   };
 }
 

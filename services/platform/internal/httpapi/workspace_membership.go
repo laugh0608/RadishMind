@@ -72,6 +72,8 @@ var workspacePermissionAllowlist = map[string]struct{}{
 	"application_evaluations:execute":          {},
 	"admin_gateway_quotas:read":                {},
 	"admin_gateway_quotas:write":               {},
+	"admin_gateway_pricing:read":               {},
+	"admin_gateway_pricing:write":              {},
 }
 
 type VerifiedWorkspaceMembershipAssertion struct {

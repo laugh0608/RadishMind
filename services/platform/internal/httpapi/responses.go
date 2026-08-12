@@ -74,6 +74,7 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 
 	ctx, cancel := context.WithTimeout(request.Context(), s.config.BridgeTimeout)
 	defer cancel()
+	ctx = withGatewayProviderAttemptMarker(ctx, &trace)
 
 	selection, selectionFailure := s.resolveGatewayNorthboundSelection(
 		ctx, trace.gatewayRequestContext, northboundProtocolResponses,

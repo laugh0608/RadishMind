@@ -93,7 +93,7 @@ export default function ApplicationOperationsPanel({
       <div className="section-heading">
         <div>
           <p className="eyebrow">User Workspace · Application Operations</p>
-          <h3 id="application-operations-title">运行观测与用量归因</h3>
+          <h3 id="application-operations-title">运行观测、用量与成本证据</h3>
           <p>
             {applicationName || "No selected application"} · <code>{state.applicationId || "application unavailable"}</code> · current consumer <code>{gatewayConfig.consumerRef}</code>
           </p>
@@ -152,6 +152,11 @@ export default function ApplicationOperationsPanel({
           detail={`${metrics.gatewayInputTokens} input · ${metrics.gatewayOutputTokens} output · loaded window`}
         />
         <MetricCard
+          label="Loaded-window estimate"
+          value={formatCostMicros(metrics.gatewayEstimatedCostMicros)}
+          detail={`${metrics.gatewayCostEstimated} estimated · ${state.gateway.hasMore ? "partial window" : "loaded window complete"}`}
+        />
+        <MetricCard
           label="Workflow status"
           value={`${metrics.workflowSucceeded} succeeded`}
           detail={`${metrics.workflowFailed} failed · ${metrics.workflowCanceled} canceled · ${metrics.workflowRunning} running · ${metrics.workflowOutcomeUnknown} unknown`}
@@ -161,6 +166,19 @@ export default function ApplicationOperationsPanel({
           value={`${metrics.workflowProviderCalls} provider · ${metrics.workflowRetrievalCalls} retrieval`}
           detail={`${metrics.workflowToolCalls} tool · ${metrics.workflowConfirmationCalls} confirmation`}
         />
+      </div>
+
+      <div className="application-operations-cost-coverage" aria-label="Gateway cost availability coverage">
+        <p className="eyebrow">Cost availability · current Gateway window</p>
+        <div>
+          <CostCoverage label="Estimated" value={metrics.gatewayCostEstimated} tone="ready" />
+          <CostCoverage label="Usage missing" value={metrics.gatewayCostUsageNotReported} tone="neutral" />
+          <CostCoverage label="Price missing" value={metrics.gatewayCostPriceNotConfigured} tone="attention" />
+          <CostCoverage label="Price unavailable" value={metrics.gatewayCostPriceUnavailable} tone="blocked" />
+          <CostCoverage label="Not applicable" value={metrics.gatewayCostNotApplicable} tone="neutral" />
+          <CostCoverage label="Legacy" value={metrics.gatewayCostLegacyNotCaptured} tone="neutral" />
+        </div>
+        <p>{state.gateway.hasMore ? "has_more: subtotal and coverage exclude earlier pages." : "The loaded Gateway window is complete for this request."}</p>
       </div>
 
       {(metrics.workflowBusinessWrites > 0 || metrics.workflowReplayWrites > 0) && (
@@ -195,7 +213,7 @@ export default function ApplicationOperationsPanel({
       )}
 
       <p className="boundary-note">
-        两个通道只在应用作用域下并列展示，不建立一对一关联。Token 数仅汇总当前已加载窗口中 Provider 明确上报的记录，不是全量 usage、cost、quota 或 billing；输入、回答、凭据和 provider 原始材料不会进入该视图。
+        两个通道只在应用作用域下并列展示，不建立一对一关联。金额只汇总当前已加载 Gateway 窗口中的不可变请求级估算，不与 Workflow 相加，不是全历史、Provider invoice、quota 或 billing；输入、回答、凭据和 provider 原始材料不会进入该视图。
       </p>
     </section>
   );
@@ -259,14 +277,20 @@ function TimelineEntry({
           <div><dt>Failure</dt><dd>{entry.failureCode || "none"} · {entry.failureBoundary || "none"}</dd></div>
           <div><dt>Request / audit</dt><dd>{entry.requestId} · {entry.auditRef}</dd></div>
           {entry.source === "gateway_request" ? (
-            <div>
-              <dt>Usage</dt>
-              <dd>
-                {entry.usageAvailability === "reported"
-                  ? `${entry.totalTokens} total · ${entry.inputTokens} input · ${entry.outputTokens} output · ${entry.usageSource}`
-                  : entry.usageAvailability}
-              </dd>
-            </div>
+            <>
+              <div>
+                <dt>Usage</dt>
+                <dd>
+                  {entry.usageAvailability === "reported"
+                    ? `${entry.totalTokens} total · ${entry.inputTokens} input · ${entry.outputTokens} output · ${entry.usageSource}`
+                    : entry.usageAvailability}
+                </dd>
+              </div>
+              <div>
+                <dt>Cost</dt>
+                <dd>{entry.costAvailability === "estimated" ? `${formatCostMicros(entry.estimatedCostMicros ?? 0)} · policy v${entry.pricingPolicyVersion}` : `${entry.costAvailability} · ${entry.costReason}`}</dd>
+              </div>
+            </>
           ) : (
             <div><dt>Calls</dt><dd>{entry.providerCalls} provider · {entry.retrievalCalls} retrieval · {entry.toolCalls} tool</dd></div>
           )}
@@ -291,6 +315,18 @@ function StatusBadge({ status }: { status: ApplicationOperationsState["status"] 
   return <span className={`status-badge ${tone}`}>{status.replaceAll("_", " ")}</span>;
 }
 
+function CostCoverage({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "ready" | "neutral" | "attention" | "blocked";
+}) {
+  return <span data-tone={tone}><strong>{value}</strong>{label}</span>;
+}
+
 function emptyMessage(state: ApplicationOperationsState): string {
   if (state.status === "offline") return "Offline mode keeps both observation sources at zero requests.";
   if (state.status === "application_unavailable") return "Select an application before loading operations.";
@@ -303,4 +339,8 @@ function formatTimestamp(value: string): string {
   if (!value) return "unavailable";
   const timestamp = new Date(value);
   return Number.isNaN(timestamp.valueOf()) ? value : timestamp.toLocaleString();
+}
+
+function formatCostMicros(value: number): string {
+  return `$${(value / 1_000_000).toFixed(6)}`;
 }

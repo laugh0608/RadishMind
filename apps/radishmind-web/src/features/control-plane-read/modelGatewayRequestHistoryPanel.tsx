@@ -148,6 +148,11 @@ export default function ModelGatewayRequestHistoryPanel({
   const failedCount = history.requests.filter((request) => request.status === "failed").length;
   const canceledCount = history.requests.filter((request) => request.status === "canceled").length;
   const usageReportedCount = history.requests.filter((request) => request.usageAvailability === "reported").length;
+  const estimatedCostCount = history.requests.filter((request) => request.costEstimate.availability === "estimated").length;
+  const loadedCostMicros = history.requests.reduce(
+    (total, request) => total + (request.costEstimate.estimatedCostMicros ?? 0),
+    0,
+  );
   const staleCount = history.requests.filter((request) => request.staleStarted).length;
 
   return (
@@ -155,7 +160,7 @@ export default function ModelGatewayRequestHistoryPanel({
       <div className="model-gateway-overview-subheading gateway-request-history-heading">
         <div>
           <p className="eyebrow">Real Request History</p>
-          <h4>Usage, timing, and stable failure review</h4>
+          <h4>Usage, cost snapshot, and stable failure review</h4>
           <p>{config.applicationId || "application unavailable"} · {config.workspaceId} · {config.consumerRef}</p>
         </div>
         <span className={`status-badge ${config.mode === "dev_gateway_request_history_http" && workspaceScopeMatches ? "good" : "neutral"}`}>
@@ -186,6 +191,8 @@ export default function ModelGatewayRequestHistoryPanel({
                 <div><dt>Records</dt><dd>{history.requests.length}</dd></div>
                 <div><dt>Failed / canceled</dt><dd>{failedCount} / {canceledCount}</dd></div>
                 <div><dt>Usage reported</dt><dd>{usageReportedCount}</dd></div>
+                <div><dt>Cost estimated</dt><dd>{estimatedCostCount} · {formatCostMicros(loadedCostMicros)}</dd></div>
+                <div><dt>Window</dt><dd>{history.hasMore ? "partial · has_more" : "loaded complete"}</dd></div>
                 <div><dt>Stale started</dt><dd>{staleCount}</dd></div>
               </dl>
             </article>
@@ -212,6 +219,11 @@ export default function ModelGatewayRequestHistoryPanel({
                   <small>Usage / duration</small>
                   <strong>{request.usageAvailability === "reported" ? `${request.totalTokens} tokens` : request.usageAvailability}</strong>
                   <small>{request.usageAvailability === "reported" ? `${request.inputTokens} in · ${request.outputTokens} out · ${request.usageSource}` : "Provider usage unavailable"} · {request.durationMs} ms · provider {request.providerDurationAvailable ? `${request.providerDurationMs} ms` : "unavailable"}</small>
+                </span>
+                <span>
+                  <small>Cost snapshot</small>
+                  <strong>{costEstimateLabel(request.costEstimate)}</strong>
+                  <small>{request.costEstimate.availability === "estimated" ? `policy v${request.costEstimate.pricingPolicyVersion} · immutable` : request.costEstimate.reason}</small>
                 </span>
                 <span><small>Started</small><strong>{formatTimestamp(request.startedAt)}</strong></span>
               </button>
@@ -274,12 +286,15 @@ function GatewayRequestDetail({ detail }: { detail: GatewayRequestHistoryDetail 
         <div><dt>Provider route snapshot</dt><dd>{detail.providerRouteGeneration ? `${detail.providerRouteConfigurationId} · generation ${detail.providerRouteGeneration} · ${shortDigest(detail.providerRouteSnapshotDigest)}` : "static configuration / unavailable"}</dd></div>
         <div><dt>Timing</dt><dd>total {detail.durationMs} ms · gateway {detail.gatewayDurationAvailable ? `${detail.gatewayDurationMs} ms` : "unavailable"} · provider {detail.providerDurationAvailable ? `${detail.providerDurationMs} ms` : "unavailable"}</dd></div>
         <div><dt>Usage</dt><dd>{detail.usageAvailability}{detail.usageAvailability === "reported" ? ` · ${detail.inputTokens} in / ${detail.outputTokens} out / ${detail.totalTokens} total` : ""}{detail.usageSource ? ` · ${detail.usageSource}` : ""}</dd></div>
+        <div><dt>Cost availability</dt><dd>{detail.costEstimate.availability}{detail.costEstimate.availability === "estimated" ? ` · ${formatCostMicros(detail.costEstimate.estimatedCostMicros ?? 0)}` : ` · ${detail.costEstimate.reason}`}</dd></div>
+        <div><dt>Pricing snapshot</dt><dd>{detail.costEstimate.availability === "estimated" ? `${detail.costEstimate.pricingPolicyId} · v${detail.costEstimate.pricingPolicyVersion} · ${shortDigest(detail.costEstimate.pricingPolicyDigest)}` : "not captured for estimation"}</dd></div>
+        <div><dt>Snapshot rates</dt><dd>{detail.costEstimate.availability === "estimated" ? `${formatCostMicros(detail.costEstimate.inputPriceMicrosPerTokenUnit ?? 0)} input / ${formatCostMicros(detail.costEstimate.outputPriceMicrosPerTokenUnit ?? 0)} output · USD / 1M · ${detail.costEstimate.roundingMode}` : "not applicable"}</dd></div>
         <div><dt>HTTP / failure</dt><dd>{detail.httpStatusCode || "unavailable"} · {detail.failureBoundary || "no failure"} · {detail.failureCode || "none"}</dd></div>
         <div><dt>Started / completed</dt><dd>{formatTimestamp(detail.startedAt)} / {detail.completedAt ? formatTimestamp(detail.completedAt) : "not completed"}</dd></div>
         <div><dt>Request / audit</dt><dd>{detail.requestId} / {detail.auditRef}</dd></div>
         <div><dt>Record</dt><dd>{detail.schemaVersion} · version {detail.recordVersion} · {detail.storeMode}{detail.staleStarted ? " · stale started" : ""}</dd></div>
       </dl>
-      <p className="boundary-note">Raw input, output, credentials, endpoints, provider envelopes, retry/fallback, billing writes, tools, confirmation, business writes, replay, and resume are not retained or exposed.</p>
+      <p className="boundary-note">The amount is a request-local development/test estimate, not a Provider invoice or billing write. Historical records are never recalculated. Raw input, output, credentials, endpoints, and provider envelopes are not retained or exposed.</p>
     </article>
   );
 }
@@ -292,4 +307,14 @@ function formatTimestamp(value: string): string {
 
 function shortDigest(value: string): string {
   return value.length > 24 ? `${value.slice(0, 16)}…${value.slice(-8)}` : value;
+}
+
+function costEstimateLabel(estimate: GatewayRequestHistorySummary["costEstimate"]): string {
+  return estimate.availability === "estimated"
+    ? formatCostMicros(estimate.estimatedCostMicros ?? 0)
+    : estimate.availability.replaceAll("_", " ");
+}
+
+function formatCostMicros(value: number): string {
+  return `$${(value / 1_000_000).toFixed(6)}`;
 }

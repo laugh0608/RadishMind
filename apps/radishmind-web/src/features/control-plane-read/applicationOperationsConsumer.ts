@@ -4,6 +4,7 @@ import {
   listGatewayRequestHistory,
   type GatewayRequestHistoryState,
   type GatewayRequestHistorySummary,
+  type GatewayRequestCostAvailability,
   type ModelGatewayRequestHistoryConfig,
 } from "./modelGatewayRequestHistoryConsumer.ts";
 import type { WorkflowExecutorConsumerConfig } from "./workflowExecutorConsumer.ts";
@@ -45,6 +46,10 @@ export type ApplicationOperationsTimelineEntry = {
   inputTokens: number;
   outputTokens: number;
   totalTokens: number;
+  costAvailability: GatewayRequestCostAvailability | "";
+  costReason: string;
+  estimatedCostMicros: number | null;
+  pricingPolicyVersion: number | null;
   providerCalls: number;
   retrievalCalls: number;
   toolCalls: number;
@@ -65,6 +70,13 @@ export type ApplicationOperationsMetrics = {
   gatewayInputTokens: number;
   gatewayOutputTokens: number;
   gatewayTotalTokens: number;
+  gatewayCostEstimated: number;
+  gatewayCostUsageNotReported: number;
+  gatewayCostPriceNotConfigured: number;
+  gatewayCostPriceUnavailable: number;
+  gatewayCostNotApplicable: number;
+  gatewayCostLegacyNotCaptured: number;
+  gatewayEstimatedCostMicros: number;
   workflowLoaded: number;
   workflowRunning: number;
   workflowSucceeded: number;
@@ -236,6 +248,13 @@ function buildMetrics(
     gatewayInputTokens: 0,
     gatewayOutputTokens: 0,
     gatewayTotalTokens: 0,
+    gatewayCostEstimated: 0,
+    gatewayCostUsageNotReported: 0,
+    gatewayCostPriceNotConfigured: 0,
+    gatewayCostPriceUnavailable: 0,
+    gatewayCostNotApplicable: 0,
+    gatewayCostLegacyNotCaptured: 0,
+    gatewayEstimatedCostMicros: 0,
     workflowLoaded: runs.length,
     workflowRunning: 0,
     workflowSucceeded: 0,
@@ -262,6 +281,15 @@ function buildMetrics(
     }
     if (request.usageAvailability === "not_reported") metrics.gatewayUsageNotReported += 1;
     if (request.usageAvailability === "not_applicable") metrics.gatewayUsageNotApplicable += 1;
+    if (request.costEstimate.availability === "estimated") {
+      metrics.gatewayCostEstimated += 1;
+      metrics.gatewayEstimatedCostMicros += request.costEstimate.estimatedCostMicros ?? 0;
+    }
+    if (request.costEstimate.availability === "usage_not_reported") metrics.gatewayCostUsageNotReported += 1;
+    if (request.costEstimate.availability === "price_not_configured") metrics.gatewayCostPriceNotConfigured += 1;
+    if (request.costEstimate.availability === "price_unavailable") metrics.gatewayCostPriceUnavailable += 1;
+    if (request.costEstimate.availability === "not_applicable") metrics.gatewayCostNotApplicable += 1;
+    if (request.costEstimate.availability === "legacy_not_captured") metrics.gatewayCostLegacyNotCaptured += 1;
   }
   for (const run of runs) {
     if (run.status === "running") metrics.workflowRunning += 1;
@@ -301,6 +329,10 @@ function gatewayTimelineEntry(request: GatewayRequestHistorySummary): Applicatio
     inputTokens: request.inputTokens,
     outputTokens: request.outputTokens,
     totalTokens: request.totalTokens,
+    costAvailability: request.costEstimate.availability,
+    costReason: request.costEstimate.reason,
+    estimatedCostMicros: request.costEstimate.estimatedCostMicros,
+    pricingPolicyVersion: request.costEstimate.pricingPolicyVersion,
     providerCalls: 0,
     retrievalCalls: 0,
     toolCalls: 0,
@@ -332,6 +364,10 @@ function workflowTimelineEntry(run: WorkflowRunHistorySummary): ApplicationOpera
     inputTokens: 0,
     outputTokens: 0,
     totalTokens: 0,
+    costAvailability: "",
+    costReason: "",
+    estimatedCostMicros: null,
+    pricingPolicyVersion: null,
     providerCalls: run.sideEffects.providerCalls,
     retrievalCalls: run.sideEffects.retrievalCalls,
     toolCalls: run.sideEffects.toolCalls,

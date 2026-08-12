@@ -91,6 +91,8 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_MIGRATION_DATABASE_URL",
 	}) {
@@ -1314,7 +1316,8 @@ func TestSQLiteDevLocalPersistenceProjectsEffectiveStoresAndRequiresDevelopmentG
 		summary.ApplicationPublishStoreMode != "sqlite_dev" || summary.PromptTemplateStoreMode != "sqlite_dev" ||
 		summary.AgentCopilotProfileStoreMode != "sqlite_dev" || summary.AdminProviderRouteStoreMode != "sqlite_dev" ||
 		summary.APIKeyStoreMode != "sqlite_dev" ||
-		summary.GatewayRequestStoreMode != "sqlite_dev" || summary.WorkflowSavedDraftStoreMode != "sqlite_dev" ||
+		summary.GatewayRequestStoreMode != "sqlite_dev" || summary.GatewayModelPricingStoreMode != "sqlite_dev" ||
+		summary.WorkflowSavedDraftStoreMode != "sqlite_dev" ||
 		summary.WorkflowRunStoreMode != "sqlite_dev" {
 		t.Fatalf("unexpected sqlite_dev sanitized summary: %#v", summary)
 	}
@@ -1638,6 +1641,39 @@ func TestGatewayRequestQuotaConfiguration(t *testing.T) {
 	}
 }
 
+func TestGatewayModelPricingConfiguration(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_DEV_WRITE", "1")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_CAPTURE_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_ENVIRONMENT", "test")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_STORE", "postgres_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_DATABASE_URL", "postgresql://pricing.invalid/private")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_DATABASE_TIMEOUT", "17s")
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load gateway model pricing configuration: %v", err)
+	}
+	if !cfg.GatewayModelPricingDevHTTPEnabled || !cfg.GatewayModelPricingDevWriteEnabled ||
+		!cfg.GatewayModelPricingCaptureDevEnabled || cfg.GatewayModelPricingEnvironment != "test" ||
+		cfg.GatewayModelPricingStoreMode != "postgres_dev_test" || cfg.GatewayModelPricingDatabaseTimeout != 17*time.Second {
+		t.Fatalf("unexpected gateway model pricing configuration: %#v", cfg)
+	}
+	summary := cfg.SanitizedSummary()
+	if !summary.GatewayModelPricingDatabaseConfigured || summary.GatewayModelPricingEnvironment != "test" ||
+		summary.Timeouts["gateway_model_pricing_database"] != "17s" {
+		t.Fatalf("unexpected gateway model pricing summary: %#v", summary)
+	}
+
+	cfg.GatewayModelPricingEnvironment = "production"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "Gateway model pricing environment must be development or test when enabled" {
+		t.Fatalf("production pricing environment must fail closed: %v", err)
+	}
+}
+
 func TestGatewayProviderRouteSourceConfiguration(t *testing.T) {
 	clearPlatformEnv(t)
 	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
@@ -1745,6 +1781,14 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_GATEWAY_REQUEST_QUOTA_STORE",
 		"RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_QUOTA_DATABASE_TIMEOUT",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_HTTP",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_WRITE",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_CAPTURE_DEV",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_ENVIRONMENT",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_STORE",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_DATABASE_TIMEOUT",
 		"RADISHMIND_LOCAL_PERSISTENCE_MODE",
 		"RADISHMIND_SQLITE_DEV_DATABASE_PATH",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",

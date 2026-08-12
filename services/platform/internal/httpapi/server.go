@@ -67,6 +67,7 @@ type Server struct {
 	gatewayRequestHistoryStore              gatewayRequestStore
 	gatewayRequestHistoryStoreMode          string
 	gatewayRequestQuotaRepository           GatewayRequestQuotaRepository
+	gatewayModelPricingRepository           GatewayModelPricingRepository
 	closeSavedWorkflowDraftStore            func()
 	closeApplicationDraftStore              func()
 	closeApplicationPublishStore            func()
@@ -78,6 +79,7 @@ type Server struct {
 	closeWorkflowRunStore                   func()
 	closeGatewayRequestStore                func()
 	closeGatewayRequestQuotaStore           func()
+	closeGatewayModelPricingStore           func()
 	localPersistenceRuntime                 *sqlitedev.Runtime
 	closeControlPlaneReadRepository         func()
 	closeOnce                               sync.Once
@@ -264,12 +266,17 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore)
 		return nil, err
 	}
-	rawPlatformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	gatewayModelPricingRepository, closeGatewayModelPricingStore, err := newGatewayModelPricingRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore)
 		return nil, err
 	}
-	var platformBridge bridgeClient = rawPlatformBridge
+	rawPlatformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore, closeGatewayModelPricingStore)
+		return nil, err
+	}
+	var platformBridge bridgeClient = newGatewayProviderAttemptBridgeClient(rawPlatformBridge)
 	if runtimeConfig.GatewayRequestQuotaEnforcementDevEnabled {
 		platformBridge = newGatewayRequestQuotaBridgeClient(platformBridge, gatewayRequestQuotaRepository)
 	}
@@ -310,6 +317,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		gatewayRequestHistoryStore:              gatewayRequestStore,
 		gatewayRequestHistoryStoreMode:          gatewayRequestStoreMode,
 		gatewayRequestQuotaRepository:           gatewayRequestQuotaRepository,
+		gatewayModelPricingRepository:           gatewayModelPricingRepository,
 		closeSavedWorkflowDraftStore:            closeSavedWorkflowDraftStore,
 		closeApplicationDraftStore:              closeApplicationDraftStore,
 		closeApplicationPublishStore:            closeApplicationPublishStore,
@@ -321,6 +329,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeWorkflowRunStore:                   closeWorkflowRunStore,
 		closeGatewayRequestStore:                closeGatewayRequestStore,
 		closeGatewayRequestQuotaStore:           closeGatewayRequestQuotaStore,
+		closeGatewayModelPricingStore:           closeGatewayModelPricingStore,
 		localPersistenceRuntime:                 localPersistenceRuntime,
 		closeControlPlaneReadRepository:         closeControlPlaneReadRepository,
 	}
@@ -403,6 +412,8 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(adminProviderRouteActivationHistoryRoute, server.handleListAdminProviderRouteActivations)
 	mux.HandleFunc(gatewayRequestQuotaAdminReadRoute, server.handleReadGatewayRequestQuota)
 	mux.HandleFunc(gatewayRequestQuotaAdminPutRoute, server.handlePutGatewayRequestQuota)
+	mux.HandleFunc(gatewayModelPricingAdminReadRoute, server.handleReadGatewayModelPricing)
+	mux.HandleFunc(gatewayModelPricingAdminPutRoute, server.handlePutGatewayModelPricing)
 	mux.HandleFunc(applicationPublishCandidateCreateRoute, server.handleCreateApplicationPublishCandidate)
 	mux.HandleFunc(applicationPublishCandidateListRoute, server.handleListApplicationPublishCandidates)
 	mux.HandleFunc(applicationPublishCandidateReadRoute, server.handleReadApplicationPublishCandidate)
@@ -550,6 +561,9 @@ func (s *Server) Close() {
 		if s.closeGatewayRequestQuotaStore != nil {
 			s.closeGatewayRequestQuotaStore()
 		}
+		if s.closeGatewayModelPricingStore != nil {
+			s.closeGatewayModelPricingStore()
+		}
 		if s.closeWorkflowRunStore != nil {
 			s.closeWorkflowRunStore()
 		}
@@ -661,6 +675,7 @@ func localConsoleAllowedHeaders() []string {
 		applicationPublishDevApplicationHeader,
 		adminProviderRouteDevWorkspaceHeader,
 		adminProviderRouteDevEnvironmentHeader,
+		gatewayModelPricingEnvironmentHeader,
 		gatewayRequestQuotaEnvironmentHeader,
 		applicationEvaluationEnvironmentHeader,
 		gatewayRequestDevTenantHeader,

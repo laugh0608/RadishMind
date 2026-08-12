@@ -101,6 +101,7 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 
 	ctx, cancel := context.WithTimeout(request.Context(), s.config.BridgeTimeout)
 	defer cancel()
+	ctx = withGatewayProviderAttemptMarker(ctx, &trace)
 
 	locale := "zh-CN"
 	if chatRequest.RadishMind != nil && strings.TrimSpace(chatRequest.RadishMind.Locale) != "" {

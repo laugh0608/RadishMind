@@ -184,7 +184,7 @@ func validateGatewayRequestStoreRecord(
 	record *GatewayRequestRecord,
 ) error {
 	if record == nil || !validGatewayRequestContext(requestContext) ||
-		record.SchemaVersion != gatewayRequestRecordSchemaVersion || record.RecordVersion < 0 ||
+		!validGatewayRequestRecordSchemaVersion(record.SchemaVersion) || record.RecordVersion < 0 ||
 		!validGatewayRequestStoreMode(record.StoreMode) ||
 		record.TenantRef != requestContext.TenantRef || record.WorkspaceID != requestContext.WorkspaceID ||
 		record.ConsumerRef != requestContext.ConsumerRef || record.ApplicationID != requestContext.ApplicationID ||
@@ -192,7 +192,8 @@ func validateGatewayRequestStoreRecord(
 		!validGatewayRequestReference(record.AuditRef, 256) || !validGatewayRequestReference(record.Route, 128) ||
 		!validGatewayRequestProtocol(record.Protocol) || !validGatewayRequestStatus(record.Status) ||
 		!validGatewayRequestUsage(record.Usage) || record.DurationMS < 0 || record.GatewayDurationMS < 0 ||
-		record.ProviderDurationMS < 0 || record.HTTPStatusCode < 0 || record.HTTPStatusCode > 599 {
+		record.ProviderDurationMS < 0 || record.HTTPStatusCode < 0 || record.HTTPStatusCode > 599 ||
+		!validGatewayRequestRecordCostEstimate(*record) {
 		return errGatewayRequestStoreContract
 	}
 	for _, reference := range []string{
@@ -242,6 +243,67 @@ func validGatewayRequestStoreMode(mode string) bool {
 		mode == gatewayRequestStoreModePostgresDevTest
 }
 
+func validGatewayRequestRecordSchemaVersion(schemaVersion string) bool {
+	return schemaVersion == gatewayRequestRecordSchemaVersionV1 || schemaVersion == gatewayRequestRecordSchemaVersionV2
+}
+
+func validGatewayRequestRecordCostEstimate(record GatewayRequestRecord) bool {
+	if record.SchemaVersion == gatewayRequestRecordSchemaVersionV1 {
+		return gatewayRequestCostEstimateIsZero(record.CostEstimate) ||
+			record.CostEstimate.Availability == GatewayRequestCostLegacyNotCaptured &&
+				validGatewayRequestCostEstimate(record.CostEstimate)
+	}
+	return record.SchemaVersion == gatewayRequestRecordSchemaVersionV2 && validGatewayRequestCostEstimate(record.CostEstimate)
+}
+
+func validGatewayRequestCostEstimate(estimate GatewayRequestCostEstimate) bool {
+	if estimate.SchemaVersion != GatewayRequestCostEstimateSchemaVersion ||
+		!validGatewayRequestCostAvailability(estimate.Availability) {
+		return false
+	}
+	if estimate.Availability != GatewayRequestCostEstimated {
+		return estimate.Reason != "" && len(estimate.Reason) <= 160 &&
+			estimate.Currency == "" && estimate.EstimatedCostMicros == nil && estimate.TokenUnit == nil &&
+			estimate.InputPriceMicrosPerTokenUnit == nil && estimate.OutputPriceMicrosPerTokenUnit == nil &&
+			estimate.PricingPolicyID == "" && estimate.PricingPolicyVersion == nil &&
+			estimate.PricingPolicyDigest == "" && estimate.RoundingMode == ""
+	}
+	return estimate.Reason == "" && estimate.Currency == GatewayModelPricingCurrency &&
+		estimate.EstimatedCostMicros != nil && *estimate.EstimatedCostMicros >= 0 &&
+		estimate.TokenUnit != nil && *estimate.TokenUnit == GatewayModelPricingTokenUnit &&
+		estimate.InputPriceMicrosPerTokenUnit != nil && *estimate.InputPriceMicrosPerTokenUnit >= 0 &&
+		estimate.OutputPriceMicrosPerTokenUnit != nil && *estimate.OutputPriceMicrosPerTokenUnit >= 0 &&
+		strings.HasPrefix(estimate.PricingPolicyID, "gmp_") && estimate.PricingPolicyVersion != nil &&
+		*estimate.PricingPolicyVersion >= 1 && gatewayModelPricingDigestPattern.MatchString(estimate.PricingPolicyDigest) &&
+		estimate.RoundingMode == GatewayRequestCostRoundingHalfUp
+}
+
+func validGatewayRequestCostAvailability(availability string) bool {
+	switch availability {
+	case GatewayRequestCostEstimated, GatewayRequestCostUsageNotReported,
+		GatewayRequestCostPriceNotConfigured, GatewayRequestCostPriceUnavailable,
+		GatewayRequestCostNotApplicable, GatewayRequestCostLegacyNotCaptured:
+		return true
+	default:
+		return false
+	}
+}
+
+func gatewayRequestCostEstimateIsZero(estimate GatewayRequestCostEstimate) bool {
+	return estimate.SchemaVersion == "" && estimate.Availability == "" && estimate.Reason == "" &&
+		estimate.Currency == "" && estimate.EstimatedCostMicros == nil && estimate.TokenUnit == nil &&
+		estimate.InputPriceMicrosPerTokenUnit == nil && estimate.OutputPriceMicrosPerTokenUnit == nil &&
+		estimate.PricingPolicyID == "" && estimate.PricingPolicyVersion == nil &&
+		estimate.PricingPolicyDigest == "" && estimate.RoundingMode == ""
+}
+
+func gatewayRequestRecordCostEstimate(record GatewayRequestRecord) GatewayRequestCostEstimate {
+	if record.SchemaVersion == gatewayRequestRecordSchemaVersionV1 || gatewayRequestCostEstimateIsZero(record.CostEstimate) {
+		return gatewayRequestLegacyCostEstimate()
+	}
+	return cloneGatewayRequestCostEstimate(record.CostEstimate)
+}
+
 func decodeGatewayRequestStoreRecord(
 	requestContext GatewayRequestContext,
 	payload []byte,
@@ -255,6 +317,9 @@ func decodeGatewayRequestStoreRecord(
 	}
 	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
 		return GatewayRequestRecord{}, errGatewayRequestStoreContract
+	}
+	if record.SchemaVersion == gatewayRequestRecordSchemaVersionV1 && gatewayRequestCostEstimateIsZero(record.CostEstimate) {
+		record.CostEstimate = gatewayRequestLegacyCostEstimate()
 	}
 	if err := validateGatewayRequestStoreRecord(requestContext, &record); err != nil ||
 		record.RecordVersion < 1 || record.StoreMode != expectedStoreMode {
@@ -306,5 +371,23 @@ func gatewayRequestStoreKey(requestContext GatewayRequestContext, requestID stri
 }
 
 func cloneGatewayRequestRecord(record GatewayRequestRecord) GatewayRequestRecord {
+	record.CostEstimate = cloneGatewayRequestCostEstimate(record.CostEstimate)
 	return record
+}
+
+func cloneGatewayRequestCostEstimate(estimate GatewayRequestCostEstimate) GatewayRequestCostEstimate {
+	estimate.EstimatedCostMicros = cloneGatewayInt64Pointer(estimate.EstimatedCostMicros)
+	estimate.TokenUnit = cloneGatewayInt64Pointer(estimate.TokenUnit)
+	estimate.InputPriceMicrosPerTokenUnit = cloneGatewayInt64Pointer(estimate.InputPriceMicrosPerTokenUnit)
+	estimate.OutputPriceMicrosPerTokenUnit = cloneGatewayInt64Pointer(estimate.OutputPriceMicrosPerTokenUnit)
+	estimate.PricingPolicyVersion = cloneGatewayInt64Pointer(estimate.PricingPolicyVersion)
+	return estimate
+}
+
+func cloneGatewayInt64Pointer(value *int64) *int64 {
+	if value == nil {
+		return nil
+	}
+	cloned := *value
+	return &cloned
 }

@@ -19,6 +19,7 @@
 - [用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已完成密钥领域、管理 API、五条 northbound 路由的显式 `api_key_dev_test` 认证、可信调用上下文、脱敏请求历史、最近使用更新、聚合 SQLite 本地产品链、真实 PostgreSQL 专项门禁、Web 一次性交接与浏览器连续验收，专题关闭；聚合 runtime 现已随 Admin Provider / Route 与 application request quota 扩展为十一组件。
 - [Admin Provider Profile / Model Route 受控启用（开发 / 测试态）v1](admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md) 批次 A 至 E 已完成并关闭，建立配置领域、三模式 durable repository、人工 review、显式 activation、可恢复 active snapshot、verified Admin API、Admin Web 和只读 Gateway consumer。`static_config` 继续作为默认模式；显式 `admin_snapshot_dev_test` 模式按租户、工作区、环境、配置、protocol 与 model 精确选路，固定请求开始时的 generation / digest，inventory 或 route 漂移在 bridge 前失败且不回退；Request History 页面展示精确快照谱系。
 - 当前已执行开发测试态 application request quota admission；仍不执行生产 API 密钥生命周期、production quota、rate limit、billing、cost ledger、provider retry/fallback execution、production gateway 或 load balancing。
+- [Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md) 已完成设计、后端、Visual R1、React strict consumer、双数据库与真实浏览器连续链：价格保持独立版本化 owner，请求只绑定精确 selection 对应的不可变 USD 快照，成本只由合法 reported usage 以整数算法估算并进入 Request History / Application Operations；不改变请求准入、路由或 Provider 调用结果。
 
 ## 当前开发目标
 
@@ -48,6 +49,7 @@ Workflow 产品链、Gateway Request History、[Gateway Playground / Request Rev
 5. 新实现相对 back-to-back process 基线的顺序 / 并发 bridge 自身 p95 开销下降 `93.5% / 94.4%`，已切换默认模式。
 6. Request History、Playground、Application API Integration、Application Configuration Draft / Review 与 Publish Governance 已完成 application → validated configuration → models / examples → request → response → history → immutable candidate / review 的开发测试路径。
 7. API 密钥 Gateway 认证、本地连续链、PostgreSQL migration / 角色 / 方言 / 并发门禁、Web 一次性交接和浏览器重启复验均已通过；Provider reported usage 已进入 canonical envelope、三协议、历史与应用审查。独立 application request quota 已完成三模式 owner、Admin API、六条 route provider 前准入、S9 完整 Pencil、React 严格 consumer、CAS 确认与真实浏览器连续链；不提前打开 production distribution、token 估算、价格、production quota 或计费。
+8. 价格与成本专题设计、S9 / S10 Visual R3、S7 Pricing / S5 Cost Review Visual R1 和唯一高风险任务卡均已通过；领域、三模式 owner、Admin API、Request History v2 与请求级估算主体已经落地，当前只接入 React strict consumer，再按批次关闭数据库实例和真实浏览器连续链。
 
 ## 验收方式
 

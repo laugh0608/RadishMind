@@ -67,8 +67,14 @@ func (s *Server) startGatewayRequestTrace(
 		)
 		return nil
 	}
+	schemaVersion := gatewayRequestRecordSchemaVersionV1
+	costEstimate := GatewayRequestCostEstimate{}
+	if s.config.GatewayModelPricingCaptureDevEnabled {
+		schemaVersion = gatewayRequestRecordSchemaVersionV2
+		costEstimate = gatewayRequestCostUnavailable(GatewayRequestCostNotApplicable, "provider_not_attempted")
+	}
 	record := GatewayRequestRecord{
-		SchemaVersion: gatewayRequestRecordSchemaVersion,
+		SchemaVersion: schemaVersion,
 		StoreMode:     s.gatewayRequestHistoryStoreMode,
 		RequestID:     trace.requestID,
 		AuditRef:      requestContext.AuditRef,
@@ -82,6 +88,7 @@ func (s *Server) startGatewayRequestTrace(
 		Status:        GatewayRequestStatusStarted,
 		StartedAt:     trace.startedAt.UTC().Format(time.RFC3339Nano),
 		Usage:         GatewayRequestUsage{Availability: GatewayRequestUsageNotReported},
+		CostEstimate:  costEstimate,
 	}
 	if err := s.gatewayRequestStore().CreateRequest(requestContext, &record); err != nil {
 		logGatewayRequestStoreOutcome(trace.requestID, trace.route, record.StoreMode, "create_failed")
@@ -103,6 +110,7 @@ func (s *Server) checkpointGatewayRequestTrace(trace *requestTrace, stream bool)
 	record := trace.gatewayRequest
 	record.Stream = stream
 	applyGatewayRequestSelection(record, *trace)
+	s.bindGatewayModelPricingSnapshot(trace)
 	if err := s.gatewayRequestStore().UpdateRequest(trace.gatewayRequestContext, record); err != nil {
 		logGatewayRequestStoreOutcome(trace.requestID, trace.route, record.StoreMode, "checkpoint_failed")
 		return
@@ -143,6 +151,16 @@ func (s *Server) finishGatewayRequestTrace(
 	record.HTTPStatusCode = httpStatusCode
 	record.FailureCode = strings.TrimSpace(failureCode)
 	record.FailureBoundary = strings.TrimSpace(failureBoundary)
+	if record.SchemaVersion == gatewayRequestRecordSchemaVersionV2 {
+		if !trace.providerAttempted {
+			record.Usage = GatewayRequestUsage{Availability: GatewayRequestUsageNotApplicable}
+		}
+		record.CostEstimate = buildGatewayRequestCostEstimate(
+			trace.providerAttempted,
+			record.Usage,
+			trace.gatewayPricingSnapshot,
+		)
+	}
 	requestContext, cancel := s.gatewayRequestTerminalStoreContext(trace.gatewayRequestContext)
 	defer cancel()
 	if err := s.gatewayRequestStore().UpdateRequest(requestContext, record); err != nil {

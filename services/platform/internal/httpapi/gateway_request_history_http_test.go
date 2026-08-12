@@ -346,7 +346,13 @@ func TestGatewayRequestHistoryCORSAllowsDedicatedHeaders(t *testing.T) {
 		t.Fatalf("gateway request history preflight failed: %d %s", response.Code, response.Body.String())
 	}
 	allowed := response.Header().Get("Access-Control-Allow-Headers")
-	for _, header := range []string{gatewayRequestDevTenantHeader, gatewayRequestDevWorkspaceHeader, gatewayRequestDevConsumerHeader, gatewayRequestDevScopesHeader} {
+	for _, header := range []string{
+		gatewayRequestDevTenantHeader,
+		gatewayRequestDevWorkspaceHeader,
+		gatewayRequestDevConsumerHeader,
+		gatewayRequestDevScopesHeader,
+		gatewayModelPricingEnvironmentHeader,
+	} {
 		if !strings.Contains(allowed, header) {
 			t.Fatalf("missing CORS header %s: %s", header, allowed)
 		}

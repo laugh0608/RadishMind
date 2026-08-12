@@ -25,13 +25,15 @@ const (
 )
 
 type requestTrace struct {
-	requestID             string
-	route                 string
-	startedAt             time.Time
-	selection             northboundSelection
-	hasSelection          bool
-	gatewayRequestContext GatewayRequestContext
-	gatewayRequest        *GatewayRequestRecord
+	requestID              string
+	route                  string
+	startedAt              time.Time
+	selection              northboundSelection
+	hasSelection           bool
+	gatewayRequestContext  GatewayRequestContext
+	gatewayRequest         *GatewayRequestRecord
+	gatewayPricingSnapshot GatewayModelPricingSnapshot
+	providerAttempted      bool
 }
 
 type platformErrorDefinition struct {

@@ -32,6 +32,7 @@ const (
 	defaultRunDBTimeout                 = 5 * time.Second
 	defaultGatewayRequestDBTimeout      = 5 * time.Second
 	defaultGatewayRequestQuotaDBTimeout = 5 * time.Second
+	defaultGatewayModelPricingDBTimeout = 5 * time.Second
 	defaultPythonBinary                 = "python3"
 	defaultBridgeScript                 = "scripts/run-platform-bridge.py"
 	defaultProvider                     = "mock"
@@ -48,6 +49,7 @@ const (
 	defaultRunStoreMode                 = "memory_dev"
 	defaultGatewayRequestStoreMode      = "memory_dev"
 	defaultGatewayRequestQuotaStoreMode = "memory_dev"
+	defaultGatewayModelPricingStoreMode = "memory_dev"
 	defaultLocalPersistenceMode         = "memory_dev"
 	defaultSQLiteDevDatabasePath        = "var/sqlite-dev/radishmind.db"
 	defaultControlPlaneReadAuthMode     = ""
@@ -176,6 +178,13 @@ type Config struct {
 	GatewayRequestQuotaStoreMode             string
 	GatewayRequestQuotaDatabaseURL           string
 	GatewayRequestQuotaDatabaseTimeout       time.Duration
+	GatewayModelPricingDevHTTPEnabled        bool
+	GatewayModelPricingDevWriteEnabled       bool
+	GatewayModelPricingCaptureDevEnabled     bool
+	GatewayModelPricingEnvironment           string
+	GatewayModelPricingStoreMode             string
+	GatewayModelPricingDatabaseURL           string
+	GatewayModelPricingDatabaseTimeout       time.Duration
 	LocalPersistenceMode                     string
 	SQLiteDevDatabasePath                    string
 	WorkflowSavedDraftStoreMode              string
@@ -267,6 +276,12 @@ type ConfigSummary struct {
 	GatewayRequestQuotaEnvironment           string            `json:"gateway_request_quota_environment,omitempty"`
 	GatewayRequestQuotaStoreMode             string            `json:"gateway_request_quota_store_mode"`
 	GatewayRequestQuotaDatabaseConfigured    bool              `json:"gateway_request_quota_database_configured"`
+	GatewayModelPricingDevHTTPEnabled        bool              `json:"gateway_model_pricing_dev_http_enabled"`
+	GatewayModelPricingDevWriteEnabled       bool              `json:"gateway_model_pricing_dev_write_enabled"`
+	GatewayModelPricingCaptureDevEnabled     bool              `json:"gateway_model_pricing_capture_dev_enabled"`
+	GatewayModelPricingEnvironment           string            `json:"gateway_model_pricing_environment,omitempty"`
+	GatewayModelPricingStoreMode             string            `json:"gateway_model_pricing_store_mode"`
+	GatewayModelPricingDatabaseConfigured    bool              `json:"gateway_model_pricing_database_configured"`
 	LocalPersistenceMode                     string            `json:"local_persistence_mode"`
 	LocalPersistenceConfigured               bool              `json:"local_persistence_configured"`
 	SQLiteDevDatabaseConfigured              bool              `json:"sqlite_dev_database_configured"`
@@ -407,6 +422,8 @@ func defaultConfig() Config {
 		GatewayRequestDatabaseTimeout:            defaultGatewayRequestDBTimeout,
 		GatewayRequestQuotaStoreMode:             defaultGatewayRequestQuotaStoreMode,
 		GatewayRequestQuotaDatabaseTimeout:       defaultGatewayRequestQuotaDBTimeout,
+		GatewayModelPricingStoreMode:             defaultGatewayModelPricingStoreMode,
+		GatewayModelPricingDatabaseTimeout:       defaultGatewayModelPricingDBTimeout,
 		SQLiteDevDatabasePath:                    defaultSQLiteDevDatabasePath,
 		FieldSources: map[string]string{
 			"listen_addr":                                  configSourceDefault,
@@ -1184,6 +1201,46 @@ func applyEnvOverrides(cfg *Config) error {
 		}
 		applyDurationValue(&cfg.GatewayRequestQuotaDatabaseTimeout, parsed, cfg.FieldSources, "gateway_request_quota_database_timeout", configSourceEnv)
 	}
+	if value, ok := stringEnv("RADISHMIND_GATEWAY_MODEL_PRICING_DEV_HTTP"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_GATEWAY_MODEL_PRICING_DEV_HTTP", value)
+		if err != nil {
+			return err
+		}
+		cfg.GatewayModelPricingDevHTTPEnabled = parsed
+		cfg.FieldSources["gateway_model_pricing_dev_http"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_GATEWAY_MODEL_PRICING_DEV_WRITE"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_GATEWAY_MODEL_PRICING_DEV_WRITE", value)
+		if err != nil {
+			return err
+		}
+		cfg.GatewayModelPricingDevWriteEnabled = parsed
+		cfg.FieldSources["gateway_model_pricing_dev_write"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_GATEWAY_MODEL_PRICING_CAPTURE_DEV"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_GATEWAY_MODEL_PRICING_CAPTURE_DEV", value)
+		if err != nil {
+			return err
+		}
+		cfg.GatewayModelPricingCaptureDevEnabled = parsed
+		cfg.FieldSources["gateway_model_pricing_capture_dev"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_GATEWAY_MODEL_PRICING_ENVIRONMENT"); ok {
+		applyStringValue(&cfg.GatewayModelPricingEnvironment, value, cfg.FieldSources, "gateway_model_pricing_environment", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_GATEWAY_MODEL_PRICING_STORE"); ok {
+		applyStringValue(&cfg.GatewayModelPricingStoreMode, value, cfg.FieldSources, "gateway_model_pricing_store", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_DATABASE_URL"); ok {
+		applyStringValue(&cfg.GatewayModelPricingDatabaseURL, value, cfg.FieldSources, "gateway_model_pricing_database", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_GATEWAY_MODEL_PRICING_DATABASE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_GATEWAY_MODEL_PRICING_DATABASE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.GatewayModelPricingDatabaseTimeout, parsed, cfg.FieldSources, "gateway_model_pricing_database_timeout", configSourceEnv)
+	}
 	if value, ok := stringEnv("RADISHMIND_LOCAL_PERSISTENCE_MODE"); ok {
 		applyStringValue(&cfg.LocalPersistenceMode, value, cfg.FieldSources, "local_persistence_mode", configSourceEnv)
 	}
@@ -1307,6 +1364,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	gatewayRequestQuotaStoreMode := strings.TrimSpace(cfg.GatewayRequestQuotaStoreMode)
 	if gatewayRequestQuotaStoreMode == "" {
 		gatewayRequestQuotaStoreMode = defaultGatewayRequestQuotaStoreMode
+	}
+	gatewayModelPricingStoreMode := strings.TrimSpace(cfg.GatewayModelPricingStoreMode)
+	if gatewayModelPricingStoreMode == "" {
+		gatewayModelPricingStoreMode = defaultGatewayModelPricingStoreMode
 	}
 	localPersistenceMode := EffectiveLocalPersistenceMode(cfg)
 	controlPlaneReadStoreMode := EffectiveControlPlaneReadStoreMode(cfg)
@@ -1484,6 +1545,15 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		requiredFields = appendRequiredConfigField(requiredFields, "gateway_request_history_dev")
 	}
+	if cfg.GatewayModelPricingDevHTTPEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
+	}
+	if cfg.GatewayModelPricingCaptureDevEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "gateway_request_history_dev")
+	}
+	if gatewayModelPricingStoreMode == "postgres_dev_test" {
+		requiredFields = appendRequiredConfigField(requiredFields, "gateway_model_pricing_database")
+	}
 	if workflowRunStoreMode == "postgres_dev_test" {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 		if !cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.ApplicationEvaluationCampaignDevEnabled &&
@@ -1578,6 +1648,12 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		GatewayRequestQuotaEnvironment:           strings.TrimSpace(cfg.GatewayRequestQuotaEnvironment),
 		GatewayRequestQuotaStoreMode:             gatewayRequestQuotaStoreMode,
 		GatewayRequestQuotaDatabaseConfigured:    strings.TrimSpace(cfg.GatewayRequestQuotaDatabaseURL) != "",
+		GatewayModelPricingDevHTTPEnabled:        cfg.GatewayModelPricingDevHTTPEnabled,
+		GatewayModelPricingDevWriteEnabled:       cfg.GatewayModelPricingDevWriteEnabled,
+		GatewayModelPricingCaptureDevEnabled:     cfg.GatewayModelPricingCaptureDevEnabled,
+		GatewayModelPricingEnvironment:           strings.TrimSpace(cfg.GatewayModelPricingEnvironment),
+		GatewayModelPricingStoreMode:             gatewayModelPricingStoreMode,
+		GatewayModelPricingDatabaseConfigured:    strings.TrimSpace(cfg.GatewayModelPricingDatabaseURL) != "",
 		LocalPersistenceMode:                     localPersistenceMode,
 		LocalPersistenceConfigured:               strings.TrimSpace(cfg.LocalPersistenceMode) != "",
 		SQLiteDevDatabaseConfigured:              strings.TrimSpace(cfg.SQLiteDevDatabasePath) != "",
@@ -1611,6 +1687,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"api_key_database":                     cfg.APIKeyDatabaseTimeout.String(),
 			"workflow_run_database":                cfg.WorkflowRunDatabaseTimeout.String(),
 			"gateway_request_quota_database":       cfg.GatewayRequestQuotaDatabaseTimeout.String(),
+			"gateway_model_pricing_database":       cfg.GatewayModelPricingDatabaseTimeout.String(),
 		},
 		PythonBridge: PythonBridge{
 			PythonBinary:     strings.TrimSpace(cfg.PythonBinary),
@@ -1645,6 +1722,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_MIGRATION_DATABASE_URL",
+			"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_DATABASE_URL",
+			"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_MIGRATION_DATABASE_URL",
 		},
@@ -2068,6 +2147,35 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.GatewayRequestQuotaDatabaseTimeout < 0 {
 		return fmt.Errorf("Gateway request quota database timeout cannot be negative")
+	}
+	if cfg.GatewayModelPricingDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
+		return fmt.Errorf("Gateway model pricing dev HTTP requires control plane read dev auth")
+	}
+	if cfg.GatewayModelPricingDevWriteEnabled && !cfg.GatewayModelPricingDevHTTPEnabled {
+		return fmt.Errorf("Gateway model pricing dev write requires its HTTP gate")
+	}
+	pricingEnvironment := strings.TrimSpace(cfg.GatewayModelPricingEnvironment)
+	if (cfg.GatewayModelPricingDevHTTPEnabled || cfg.GatewayModelPricingCaptureDevEnabled) &&
+		pricingEnvironment != "development" && pricingEnvironment != "test" {
+		return fmt.Errorf("Gateway model pricing environment must be development or test when enabled")
+	}
+	if !cfg.GatewayModelPricingDevHTTPEnabled && !cfg.GatewayModelPricingCaptureDevEnabled && pricingEnvironment != "" {
+		return fmt.Errorf("Gateway model pricing environment requires HTTP or capture enablement")
+	}
+	if cfg.GatewayModelPricingCaptureDevEnabled && !cfg.GatewayRequestHistoryDevEnabled {
+		return fmt.Errorf("Gateway model pricing capture requires Gateway request history")
+	}
+	switch strings.TrimSpace(cfg.GatewayModelPricingStoreMode) {
+	case "", "memory_dev", "sqlite_dev":
+	case "postgres_dev_test":
+		if strings.TrimSpace(cfg.GatewayModelPricingDatabaseURL) == "" {
+			return fmt.Errorf("Gateway model pricing postgres_dev_test store requires a database URL")
+		}
+	default:
+		return fmt.Errorf("Gateway model pricing store must be memory_dev, sqlite_dev, or postgres_dev_test")
+	}
+	if cfg.GatewayModelPricingDatabaseTimeout < 0 {
+		return fmt.Errorf("Gateway model pricing database timeout cannot be negative")
 	}
 	if cfg.ApplicationDraftDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return fmt.Errorf("application draft dev HTTP requires control plane read dev auth")
