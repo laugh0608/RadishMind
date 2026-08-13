@@ -2,7 +2,7 @@
 
 更新时间：2026-08-13
 
-状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_a_completed_batch_b_next`
+状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_b_completed_batch_c_next`
 
 对应功能文档：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](../features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md)
 
@@ -63,7 +63,7 @@ active Provider Route v2 snapshot
 
 ## 批次 A：领域合同、Route v2 与 memory owner
 
-状态：已完成；批次 B 下一顺位。
+状态：已完成；批次 B 已完成。
 
 - [x] 定义 Route v2 execution mode、attempt targets，并保持 v1 snapshot 单 attempt 兼容。
 - [x] 定义不可变 attempt plan、target、确定性 attempt id 与完整前置校验。
@@ -77,17 +77,19 @@ active Provider Route v2 snapshot
 
 ## 批次 B：SQLite / PostgreSQL
 
-状态：下一顺位；尚未开始。
+状态：已完成；批次 C 下一顺位。
 
-- [ ] 增加同构 migration、marker、repository 与 store selector 兼容。
-- [ ] 验证 v1 / v2 历史、Route v1 snapshot、重启恢复、checkpoint 原子性与损坏 payload。
-- [ ] 验证 PostgreSQL runtime role 无 DDL、并发单赢家、连接失败和 no fallback。
+- [x] 增加 Route v2 / Request History v3 同构 migration、marker、repository 与 store selector 兼容；旧 v1 / v2 迁移链保持可升级。
+- [x] 验证 v1 / v2 历史、Route v1 snapshot、Route v2 与 attempt checkpoint 重启恢复、原子状态迁移及损坏 payload 失败关闭。
+- [x] 验证 PostgreSQL runtime role 无 DDL、并发单赢家、连接失败和 no fallback；SQLite 同步覆盖文件数据库并发与重启。
+
+批次证据：SQLite Route 与 Request History 分别推进到 `admin_provider_routes_store_v2`、`gateway_requests_store_v3`；PostgreSQL 分别推进到 `admin_provider_routes_store_v2`、`gateway_request_store_v3`。Request History 双数据库更新都在事务内读取并锁定当前根记录，再复用 memory owner 的 Provider Attempt 状态迁移校验；v3 另保存 `provider_attempt_count`、`fallback_used` 与终态 Provider / Profile 可查询摘要，但完整 lineage 仍以严格 JSON record 为真相源。真实 PostgreSQL 17 完整平台集成门禁通过，容器已关闭。
 
 退出条件：memory、SQLite、PostgreSQL 对 Route v2 与 Request History v3 的 repository contract 等价。
 
 ## 批次 C：Admin API 与激活链
 
-状态：等待批次 B。
+状态：下一顺位；尚未开始。
 
 - [ ] 扩展既有 Route draft / candidate / review / activation API，不创建第二套 endpoint 或 permission。
 - [ ] 覆盖 strict JSON、target 顺序、能力兼容、inventory digest、双标签 CAS、rollback 与 v1 snapshot。

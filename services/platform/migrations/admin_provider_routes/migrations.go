@@ -15,10 +15,13 @@ import (
 
 const (
 	Component                       = "admin_provider_routes"
-	MigrationID                     = "0001_admin_provider_routes"
-	StoreSchemaVersion              = "admin_provider_routes_store_v1"
+	MigrationID                     = "0002_admin_provider_route_v2"
+	StoreSchemaVersion              = "admin_provider_routes_store_v2"
+	initialMigrationID              = "0001_admin_provider_routes"
+	initialStoreSchemaVersion       = "admin_provider_routes_store_v1"
 	MigrationStateApplied           = "applied"
 	MigrationStateNotApplied        = "not_applied"
+	MigrationStateUpgradeRequired   = "upgrade_required"
 	MigrationStateMismatch          = "mismatch"
 	adminProviderRouteMigrationLock = int64(0x524d415052543031)
 )
@@ -33,10 +36,13 @@ CREATE TABLE IF NOT EXISTS admin_provider_route_schema_versions (
 );`
 
 //go:embed 0001_admin_provider_routes.up.sql
-var upSQL string
+var initialUpSQL string
 
 //go:embed 0001_admin_provider_routes.down.sql
-var downSQL string
+var initialDownSQL string
+
+//go:embed 0002_admin_provider_route_v2.up.sql
+var routeV2UpSQL string
 
 type State struct {
 	MigrationState     string
@@ -73,7 +79,11 @@ func OpenPool(ctx context.Context, databaseURL string) (*pgxpool.Pool, error) {
 }
 
 func ExpectedChecksum() string {
-	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQL)))
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(initialUpSQL+"\n"+routeV2UpSQL)))
+}
+
+func initialExpectedChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(initialUpSQL)))
 }
 
 func Inspect(ctx context.Context, pool *pgxpool.Pool) (State, error) {
@@ -119,13 +129,27 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 	if state.MigrationState == MigrationStateMismatch {
 		return State{}, errors.New("admin provider route migration marker mismatch")
 	}
-	if _, err := transaction.Exec(ctx, upSQL); err != nil {
-		return State{}, errors.New("apply admin provider route migration")
-	}
-	if _, err := transaction.Exec(ctx, `INSERT INTO admin_provider_route_schema_versions
-        (component, migration_id, store_schema_version, migration_checksum) VALUES ($1,$2,$3,$4)`,
-		Component, MigrationID, StoreSchemaVersion, ExpectedChecksum()); err != nil {
-		return State{}, errors.New("write admin provider route migration marker")
+	if state.MigrationState == MigrationStateNotApplied {
+		if _, err := transaction.Exec(ctx, initialUpSQL); err != nil {
+			return State{}, errors.New("apply initial admin provider route migration")
+		}
+		if _, err := transaction.Exec(ctx, routeV2UpSQL); err != nil {
+			return State{}, errors.New("apply admin provider route v2 migration")
+		}
+		if _, err := transaction.Exec(ctx, `INSERT INTO admin_provider_route_schema_versions
+            (component, migration_id, store_schema_version, migration_checksum) VALUES ($1,$2,$3,$4)`,
+			Component, MigrationID, StoreSchemaVersion, ExpectedChecksum()); err != nil {
+			return State{}, errors.New("write admin provider route migration marker")
+		}
+	} else {
+		if _, err := transaction.Exec(ctx, routeV2UpSQL); err != nil {
+			return State{}, errors.New("upgrade admin provider route v2 migration")
+		}
+		if _, err := transaction.Exec(ctx, `UPDATE admin_provider_route_schema_versions
+            SET migration_id=$1, store_schema_version=$2, migration_checksum=$3, applied_at=now()
+            WHERE component=$4`, MigrationID, StoreSchemaVersion, ExpectedChecksum(), Component); err != nil {
+			return State{}, errors.New("update admin provider route migration marker")
+		}
 	}
 	if err := transaction.Commit(ctx); err != nil {
 		return State{}, errors.New("commit admin provider route migration")
@@ -163,10 +187,10 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 		}
 		return state, nil
 	}
-	if state.MigrationState != MigrationStateApplied {
+	if state.MigrationState != MigrationStateApplied && state.MigrationState != MigrationStateUpgradeRequired {
 		return State{}, errors.New("admin provider route rollback requires matching migration marker")
 	}
-	if _, err := transaction.Exec(ctx, downSQL); err != nil {
+	if _, err := transaction.Exec(ctx, initialDownSQL); err != nil {
 		return State{}, errors.New("rollback admin provider route migration")
 	}
 	if err := transaction.Commit(ctx); err != nil {
@@ -209,9 +233,26 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 		tablesPresent = tablesPresent && exists
 	}
 	state.MigrationState = MigrationStateApplied
-	if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion ||
+	if state.MigrationID == initialMigrationID && state.StoreSchemaVersion == initialStoreSchemaVersion &&
+		state.MigrationChecksum == initialExpectedChecksum() && tablesPresent {
+		state.MigrationState = MigrationStateUpgradeRequired
+	} else if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion ||
 		state.MigrationChecksum != ExpectedChecksum() || !tablesPresent {
 		state.MigrationState = MigrationStateMismatch
+	} else {
+		var v2ConstraintsPresent bool
+		if err := query.QueryRow(ctx, `SELECT count(*) = 3
+            FROM pg_constraint
+            WHERE conname IN (
+                'admin_provider_route_draft_payload_v2_check',
+                'admin_provider_route_candidate_payload_v2_check',
+                'admin_provider_route_snapshot_payload_v2_check'
+            )`).Scan(&v2ConstraintsPresent); err != nil {
+			return State{}, errors.New("inspect admin provider route v2 constraints")
+		}
+		if !v2ConstraintsPresent {
+			state.MigrationState = MigrationStateMismatch
+		}
 	}
 	return state, nil
 }

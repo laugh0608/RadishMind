@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -231,6 +232,131 @@ func TestGatewayRequestSQLiteCheckpointTerminalRestartAndNoFallback(t *testing.T
 func TestGatewayRequestSQLiteRejectsTimeOutsideNanosecondRange(t *testing.T) {
 	if _, err := gatewayRequestUnixNano("2500-01-01T00:00:00Z"); err == nil {
 		t.Fatal("Gateway request SQLite time outside the nanosecond range must be rejected")
+	}
+}
+
+func TestGatewayProviderAttemptSQLiteFallbackPersistsAcrossRestart(t *testing.T) {
+	databasePath := filepath.Join(t.TempDir(), "gateway-provider-attempt.db")
+	first := openGatewayRequestSQLiteRuntime(t, databasePath)
+	ctx := gatewayRequestTestContext()
+	plan := gatewayProviderAttemptTestPlan(t, "request-sqlite-fallback")
+	root := gatewayRequestTestRecord(ctx, plan.RootRequestID, time.Date(2026, 8, 13, 9, 0, 0, 0, time.UTC))
+	record, err := newGatewayProviderAttemptHistoryRecord(root, plan)
+	store := newSQLiteGatewayRequestStore(first.DB())
+	if err != nil || store.CreateRequest(ctx, &record) != nil {
+		t.Fatalf("create SQLite v3 root: record=%#v err=%v", record, err)
+	}
+	service := newGatewayProviderAttemptHistoryService(store)
+	now := time.Date(2026, 8, 13, 9, 0, 1, 0, time.UTC)
+	if _, err = service.StartAttempt(ctx, plan.RootRequestID, plan.Targets[0], "quota-primary", now); err != nil {
+		t.Fatalf("start SQLite primary attempt: %v", err)
+	}
+	failure := gatewayProviderAttemptTestFailure(
+		t, bridge.ProviderFailureTemporarilyUnavailable, bridge.ProviderFallbackEligible, bridge.ProviderAttemptFailed,
+	)
+	if checkpoint, checkpointErr := service.CompleteAttempt(
+		ctx, plan.RootRequestID, plan.Targets[0].AttemptID,
+		GatewayRequestUsage{Availability: GatewayRequestUsageNotReported},
+		gatewayRequestCostUnavailable(GatewayRequestCostUsageNotReported, "provider_usage_not_reported"),
+		&failure, true, now.Add(time.Second),
+	); checkpointErr != nil || checkpoint.ProviderAttemptPhase != GatewayProviderAttemptPhaseFallbackPending {
+		t.Fatalf("persist SQLite fallback checkpoint: record=%#v err=%v", checkpoint, checkpointErr)
+	}
+	if err = first.Close(); err != nil {
+		t.Fatalf("close first SQLite attempt runtime: %v", err)
+	}
+
+	restarted := openGatewayRequestSQLiteRuntime(t, databasePath)
+	t.Cleanup(func() { _ = restarted.Close() })
+	restartedStore := newSQLiteGatewayRequestStore(restarted.DB())
+	restartedService := newGatewayProviderAttemptHistoryService(restartedStore)
+	restored, found, err := restartedStore.ReadRequest(ctx, plan.RootRequestID)
+	if err != nil || !found || restored.ProviderAttemptPhase != GatewayProviderAttemptPhaseFallbackPending ||
+		len(restored.ProviderAttempts) != 1 || restored.ProviderAttempts[0].Failure == nil {
+		t.Fatalf("restore SQLite fallback checkpoint: found=%v record=%#v err=%v", found, restored, err)
+	}
+	if _, err = restartedService.StartAttempt(
+		ctx, plan.RootRequestID, plan.Targets[1], "quota-fallback", now.Add(2*time.Second),
+	); err != nil {
+		t.Fatalf("start SQLite fallback attempt: %v", err)
+	}
+	usage := GatewayRequestUsage{
+		Availability: GatewayRequestUsageReported,
+		Source:       "openai_compatible_usage",
+		InputTokens:  2,
+		OutputTokens: 3,
+		TotalTokens:  5,
+	}
+	cost := buildGatewayRequestCostEstimate(
+		true, usage, gatewayModelPricingSnapshotFromAttempt(plan.Targets[1].PricingSnapshot),
+	)
+	if _, err = restartedService.CompleteAttempt(
+		ctx, plan.RootRequestID, plan.Targets[1].AttemptID, usage, cost, nil, false, now.Add(3*time.Second),
+	); err != nil {
+		t.Fatalf("complete SQLite fallback attempt: %v", err)
+	}
+	finished, err := restartedService.Finalize(
+		ctx, plan.RootRequestID, GatewayRequestStatusSucceeded, http.StatusOK, "", "", now.Add(4*time.Second),
+	)
+	if err != nil || !finished.FallbackUsed || finished.ProviderAttemptCount != 2 ||
+		finished.TerminalAttemptID != plan.Targets[1].AttemptID {
+		t.Fatalf("finalize SQLite fallback attempt: record=%#v err=%v", finished, err)
+	}
+	var attemptCount int
+	var fallbackUsed bool
+	var terminalProvider string
+	var terminalProfile string
+	if err = restarted.DB().QueryRowContext(context.Background(), `SELECT provider_attempt_count, fallback_used,
+        terminal_provider, terminal_profile FROM gateway_request_records WHERE request_id=?`, plan.RootRequestID).
+		Scan(&attemptCount, &fallbackUsed, &terminalProvider, &terminalProfile); err != nil {
+		t.Fatalf("inspect SQLite attempt summary columns: %v", err)
+	}
+	if attemptCount != 2 || !fallbackUsed || terminalProvider != plan.Targets[1].ProviderID ||
+		terminalProfile != plan.Targets[1].RuntimeProfile {
+		t.Fatalf("SQLite attempt summary drifted: count=%d fallback=%v provider=%s profile=%s",
+			attemptCount, fallbackUsed, terminalProvider, terminalProfile)
+	}
+}
+
+func TestGatewayProviderAttemptSQLiteCheckpointHasOneConcurrentWinner(t *testing.T) {
+	runtime := openGatewayRequestSQLiteRuntime(t, filepath.Join(t.TempDir(), "gateway-provider-attempt-cas.db"))
+	ctx := gatewayRequestTestContext()
+	plan := gatewayProviderAttemptTestPlan(t, "request-sqlite-attempt-cas")
+	root := gatewayRequestTestRecord(ctx, plan.RootRequestID, time.Now().UTC())
+	record, err := newGatewayProviderAttemptHistoryRecord(root, plan)
+	store := newSQLiteGatewayRequestStore(runtime.DB())
+	if err != nil || store.CreateRequest(ctx, &record) != nil {
+		t.Fatalf("create concurrent SQLite v3 root: %v", err)
+	}
+	service := newGatewayProviderAttemptHistoryService(store)
+	start := make(chan struct{})
+	results := make(chan error, 2)
+	var wait sync.WaitGroup
+	for index := 0; index < 2; index++ {
+		wait.Add(1)
+		go func() {
+			defer wait.Done()
+			<-start
+			_, checkpointErr := service.StartAttempt(
+				ctx, plan.RootRequestID, plan.Targets[0], "quota-primary", time.Now().UTC(),
+			)
+			results <- checkpointErr
+		}()
+	}
+	close(start)
+	wait.Wait()
+	close(results)
+	successes := 0
+	conflicts := 0
+	for result := range results {
+		if result == nil {
+			successes++
+		} else if errors.Is(result, errGatewayRequestStoreConflict) {
+			conflicts++
+		}
+	}
+	if successes != 1 || conflicts != 1 {
+		t.Fatalf("SQLite attempt checkpoint CAS drifted: successes=%d conflicts=%d", successes, conflicts)
 	}
 }
 

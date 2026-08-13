@@ -153,7 +153,8 @@ func TestPostgresConfiguredProductChainRestartRacesAndNoFallback(t *testing.T) {
 	apiKeyContext.TenantRef = catalogContext.TenantRef
 	apiKeyContext.WorkspaceID = catalogContext.WorkspaceID
 	keyService := newAPIKeyService(server.apiKeyRepository, server.applicationCatalogRepository)
-	keyService.now = func() time.Time { return time.Date(2026, 7, 14, 9, 5, 0, 0, time.UTC) }
+	gatewayAuthenticationFixtureTime := time.Now().UTC().Truncate(time.Second)
+	keyService.now = func() time.Time { return gatewayAuthenticationFixtureTime }
 	apiKeyIDs := []string{"key_aaaaaaaaaaaaaaaa", "key_bbbbbbbbbbbbbbbb", "key_cccccccccccccccc"}
 	nextAPIKeyID := 0
 	keyService.newID = func() (string, error) {

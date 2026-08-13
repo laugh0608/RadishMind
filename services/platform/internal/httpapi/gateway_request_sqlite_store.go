@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -34,6 +35,7 @@ func (store *sqliteGatewayRequestStore) CreateRequest(
 	}
 	next := cloneGatewayRequestRecord(*record)
 	next.RecordVersion = 1
+	attemptCount, fallbackUsed, terminalProvider, terminalProfile := gatewayRequestAttemptStorageValues(next)
 	payload, startedAt, completedAt, err := sqliteGatewayRequestStorageValues(next)
 	if err != nil {
 		return errGatewayRequestStoreContract
@@ -44,14 +46,16 @@ func (store *sqliteGatewayRequestStore) CreateRequest(
         (tenant_ref, workspace_id, consumer_ref, application_id, request_id, record_version, schema_version,
          store_mode, request_route, protocol, request_status, started_at_unix_nano, completed_at_unix_nano,
          selected_provider, selected_profile, selected_model, failure_boundary, usage_availability,
-         cost_availability, sanitized_request_record)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+         cost_availability, provider_attempt_count, fallback_used, terminal_provider, terminal_profile,
+         sanitized_request_record)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         ON CONFLICT DO NOTHING RETURNING sanitized_request_record`,
 		requestContext.TenantRef, requestContext.WorkspaceID, requestContext.ConsumerRef,
 		requestContext.ApplicationID, next.RequestID, next.RecordVersion, next.SchemaVersion, next.StoreMode,
 		next.Route, next.Protocol, next.Status, startedAt, completedAt, next.SelectedProvider,
 		next.SelectedProfile, next.SelectedModel, next.FailureBoundary, next.Usage.Availability,
-		gatewayRequestRecordCostEstimate(next).Availability, payload,
+		gatewayRequestRecordCostEstimate(next).Availability, attemptCount, fallbackUsed,
+		terminalProvider, terminalProfile, payload,
 	))
 	if errors.Is(err, sql.ErrNoRows) {
 		return errGatewayRequestStoreConflict
@@ -76,24 +80,59 @@ func (store *sqliteGatewayRequestStore) UpdateRequest(
 	if err := validateGatewayRequestStoreRecord(requestContext, record); err != nil {
 		return err
 	}
+	databaseContext := requestDatabaseContext(requestContext)
+	connection, err := store.database.Conn(databaseContext)
+	if err != nil {
+		return errGatewayRequestStoreUnavailable
+	}
+	defer connection.Close()
+	if _, err = connection.ExecContext(databaseContext, "BEGIN IMMEDIATE"); err != nil {
+		return errGatewayRequestStoreUnavailable
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_, _ = connection.ExecContext(context.Background(), "ROLLBACK")
+		}
+	}()
+	current, err := scanSQLiteGatewayRequestRecord(requestContext, connection.QueryRowContext(
+		databaseContext,
+		`SELECT sanitized_request_record FROM gateway_request_records
+        WHERE tenant_ref=? AND workspace_id=? AND consumer_ref=? AND application_id=? AND request_id=?`,
+		requestContext.TenantRef, requestContext.WorkspaceID, requestContext.ConsumerRef,
+		requestContext.ApplicationID, record.RequestID,
+	))
+	if errors.Is(err, sql.ErrNoRows) {
+		return errGatewayRequestStoreConflict
+	}
+	if err != nil {
+		return normalizeSQLiteGatewayRequestStoreError(err)
+	}
+	if current.RecordVersion != record.RecordVersion || current.Status != GatewayRequestStatusStarted ||
+		!validGatewayProviderAttemptRecordTransition(current, *record) {
+		return errGatewayRequestStoreConflict
+	}
 	next := cloneGatewayRequestRecord(*record)
 	next.RecordVersion++
+	attemptCount, fallbackUsed, terminalProvider, terminalProfile := gatewayRequestAttemptStorageValues(next)
 	payload, startedAt, completedAt, err := sqliteGatewayRequestStorageValues(next)
 	if err != nil {
 		return errGatewayRequestStoreContract
 	}
-	stored, err := scanSQLiteGatewayRequestRecord(requestContext, store.database.QueryRowContext(
-		requestDatabaseContext(requestContext),
+	stored, err := scanSQLiteGatewayRequestRecord(requestContext, connection.QueryRowContext(
+		databaseContext,
 		`UPDATE gateway_request_records SET
             record_version=record_version+1, schema_version=?, store_mode=?, request_route=?, protocol=?,
             request_status=?, completed_at_unix_nano=?, selected_provider=?, selected_profile=?, selected_model=?,
-            failure_boundary=?, usage_availability=?, cost_availability=?, sanitized_request_record=?
+            failure_boundary=?, usage_availability=?, cost_availability=?, provider_attempt_count=?,
+            fallback_used=?, terminal_provider=?, terminal_profile=?, sanitized_request_record=?
         WHERE tenant_ref=? AND workspace_id=? AND consumer_ref=? AND application_id=? AND request_id=?
           AND record_version=? AND request_status='started' AND started_at_unix_nano=?
         RETURNING sanitized_request_record`,
 		next.SchemaVersion, next.StoreMode, next.Route, next.Protocol, next.Status, completedAt,
 		next.SelectedProvider, next.SelectedProfile, next.SelectedModel, next.FailureBoundary,
-		next.Usage.Availability, gatewayRequestRecordCostEstimate(next).Availability, payload,
+		next.Usage.Availability, gatewayRequestRecordCostEstimate(next).Availability, attemptCount,
+		fallbackUsed, terminalProvider, terminalProfile, payload,
 		requestContext.TenantRef, requestContext.WorkspaceID,
 		requestContext.ConsumerRef, requestContext.ApplicationID, next.RequestID, record.RecordVersion, startedAt,
 	))
@@ -103,6 +142,10 @@ func (store *sqliteGatewayRequestStore) UpdateRequest(
 	if err != nil {
 		return normalizeSQLiteGatewayRequestStoreError(err)
 	}
+	if _, err = connection.ExecContext(databaseContext, "COMMIT"); err != nil {
+		return errGatewayRequestStoreUnavailable
+	}
+	committed = true
 	*record = stored
 	return nil
 }

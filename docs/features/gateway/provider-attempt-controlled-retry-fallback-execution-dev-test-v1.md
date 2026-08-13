@@ -2,7 +2,7 @@
 
 更新时间：2026-08-13
 
-状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_a_completed_batch_b_next`
+状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_b_completed_batch_c_next`
 
 ## 功能定位
 
@@ -267,6 +267,8 @@ Pencil 通过前不实现 React；稳定同族组件可直接复用，只有上�
 
 - 增加 Route v2 与 Request History v3 migration、marker、repository parity、重启和并发；
 - 验证 v1 / v2 兼容、runtime DDL 拒绝、checkpoint 原子性、损坏 payload 与 no fallback。
+
+已完成：SQLite 与 PostgreSQL 已分别推进 Route store v2 与 Request History store v3。两种数据库的 Request History 更新都在事务锁内重读当前记录并执行与 memory owner 相同的 attempt 状态迁移校验；Route v1、历史 v1 / v2、Route v2、v3 checkpoint、重启、损坏 payload、并发单赢家、runtime role 无 DDL 和 no fallback 已形成同构证据。当前运行时仍不执行 fallback。
 
 ### 批次 C：Admin API 与激活链
 

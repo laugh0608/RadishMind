@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -28,7 +29,7 @@ type fakeBridge struct {
 	streamCalled   bool
 	streamErr      error
 	streamHook     func()
-	inventoryCalls int
+	inventoryCalls atomic.Int32
 }
 
 type checkpointDeniedQueriesFixture struct {
@@ -84,7 +85,7 @@ func (f *fakeBridge) DescribeProviders(context.Context) ([]bridge.ProviderDescri
 }
 
 func (f *fakeBridge) DescribeInventory(context.Context) (bridge.ProviderInventory, error) {
-	f.inventoryCalls++
+	f.inventoryCalls.Add(1)
 	return f.inventory, f.inventoryErr
 }
 

@@ -149,6 +149,75 @@ func TestAdminProviderRouteSQLitePersistsLifecycleAcrossRestart(t *testing.T) {
 	}
 }
 
+func TestAdminProviderRouteSQLiteV2PersistsAcrossRestartAndKeepsV1Readable(t *testing.T) {
+	databasePath := filepath.Join(t.TempDir(), "admin-provider-routes-v2.db")
+	first := openAdminProviderRouteSQLiteRuntime(t, databasePath)
+	service := newAdminProviderRouteService(
+		newSQLiteAdminProviderRouteRepository(first.DB()),
+		newFakeAdminProviderInventoryResolver(),
+	)
+	ctx := adminProviderRouteTestContext()
+	v2Input := adminProviderRouteV2TestDraftInput(0)
+	draft := service.PutDraft(ctx, v2Input)
+	if draft.FailureCode != "" || draft.Draft == nil ||
+		draft.Draft.SchemaVersion != adminProviderRouteDraftSchemaVersionV2 {
+		t.Fatalf("persist SQLite v2 draft: %#v", draft)
+	}
+	candidate := service.CreateCandidate(ctx, AdminProviderRouteCandidateInput{
+		ConfigurationID:       v2Input.ConfigurationID,
+		CandidateID:           "candidate-sqlite-v2",
+		ExpectedDraftRevision: 1,
+	})
+	if candidate.FailureCode != "" || candidate.Candidate == nil ||
+		candidate.Candidate.SchemaVersion != adminProviderRouteCandidateSchemaVersionV2 {
+		t.Fatalf("persist SQLite v2 candidate: %#v", candidate)
+	}
+	if reviewed := service.ReviewCandidate(ctx, v2Input.ConfigurationID, "candidate-sqlite-v2", AdminProviderRouteReviewInput{
+		ExpectedReviewVersion: 0,
+		Decision:              adminProviderRouteDecisionApprove,
+		Reason:                "Approve the durable SQLite fallback route.",
+	}); reviewed.FailureCode != "" {
+		t.Fatalf("approve SQLite v2 candidate: %#v", reviewed)
+	}
+	activated := service.Activate(ctx, AdminProviderRouteActivationInput{
+		ConfigurationID:    v2Input.ConfigurationID,
+		CandidateID:        "candidate-sqlite-v2",
+		ExpectedGeneration: 0,
+		Action:             adminProviderRouteActionActivate,
+		Reason:             "Activate the durable SQLite fallback route.",
+	})
+	if activated.FailureCode != "" || activated.Snapshot == nil ||
+		activated.Snapshot.SchemaVersion != adminProviderRouteSnapshotSchemaVersionV2 {
+		t.Fatalf("activate SQLite v2 candidate: %#v", activated)
+	}
+	v1 := service.PutDraft(ctx, adminProviderRouteTestDraftInput(0, "mock-primary"))
+	if v1.FailureCode != "" || v1.Draft == nil || v1.Draft.SchemaVersion != adminProviderRouteDraftSchemaVersion {
+		t.Fatalf("persist SQLite v1 compatibility record: %#v", v1)
+	}
+	if err := first.Close(); err != nil {
+		t.Fatalf("close first SQLite v2 runtime: %v", err)
+	}
+
+	restarted := openAdminProviderRouteSQLiteRuntime(t, databasePath)
+	t.Cleanup(func() { _ = restarted.Close() })
+	restartedService := newAdminProviderRouteService(
+		newSQLiteAdminProviderRouteRepository(restarted.DB()),
+		newFakeAdminProviderInventoryResolver(),
+	)
+	restored := restartedService.ReadActiveSnapshot(ctx, v2Input.ConfigurationID)
+	if restored.FailureCode != "" || restored.Snapshot == nil ||
+		restored.Snapshot.SchemaVersion != adminProviderRouteSnapshotSchemaVersionV2 ||
+		restored.Snapshot.Configuration.ModelRoutes[0].ExecutionMode != AdminProviderRouteExecutionSequentialFallback ||
+		len(restored.Snapshot.Configuration.ModelRoutes[0].AttemptTargets) != 2 {
+		t.Fatalf("restore SQLite v2 snapshot: %#v", restored)
+	}
+	restoredV1 := restartedService.ReadDraft(ctx, "gateway-default")
+	if restoredV1.FailureCode != "" || restoredV1.Draft == nil ||
+		restoredV1.Draft.SchemaVersion != adminProviderRouteDraftSchemaVersion {
+		t.Fatalf("restore SQLite v1 compatibility record: %#v", restoredV1)
+	}
+}
+
 func TestAdminProviderRouteSQLiteConcurrentDraftCAS(t *testing.T) {
 	runtime := openAdminProviderRouteSQLiteRuntime(t, filepath.Join(t.TempDir(), "admin-provider-routes.db"))
 	t.Cleanup(func() { _ = runtime.Close() })

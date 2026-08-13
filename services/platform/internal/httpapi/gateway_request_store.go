@@ -309,6 +309,22 @@ func gatewayRequestRecordCostEstimate(record GatewayRequestRecord) GatewayReques
 	return cloneGatewayRequestCostEstimate(record.CostEstimate)
 }
 
+func gatewayRequestAttemptStorageValues(record GatewayRequestRecord) (int, bool, string, string) {
+	if record.SchemaVersion != gatewayRequestRecordSchemaVersionV3 {
+		return 0, false, "", ""
+	}
+	terminalProvider := ""
+	terminalProfile := ""
+	for _, attempt := range record.ProviderAttempts {
+		if attempt.AttemptID == record.TerminalAttemptID {
+			terminalProvider = attempt.ProviderID
+			terminalProfile = attempt.RuntimeProfile
+			break
+		}
+	}
+	return record.ProviderAttemptCount, record.FallbackUsed, terminalProvider, terminalProfile
+}
+
 func decodeGatewayRequestStoreRecord(
 	requestContext GatewayRequestContext,
 	payload []byte,

@@ -258,9 +258,9 @@ func TestAdminProviderRouteHTTPRejectsBeforeRepositoryMutation(t *testing.T) {
 			if envelope.FailureCode == nil || *envelope.FailureCode != test.wantFailure {
 				t.Fatalf("unexpected failure envelope: %#v", envelope)
 			}
-			if len(fixture.repository.drafts) != 0 || fixture.bridge.inventoryCalls != 0 {
+			if len(fixture.repository.drafts) != 0 || fixture.bridge.inventoryCalls.Load() != 0 {
 				t.Fatalf("denied request reached repository or bridge: drafts=%d inventory_calls=%d",
-					len(fixture.repository.drafts), fixture.bridge.inventoryCalls)
+					len(fixture.repository.drafts), fixture.bridge.inventoryCalls.Load())
 			}
 		})
 	}

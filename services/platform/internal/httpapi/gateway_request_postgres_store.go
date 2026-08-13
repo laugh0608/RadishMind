@@ -33,19 +33,21 @@ func (store *postgresGatewayRequestStore) CreateRequest(requestContext GatewayRe
 	}
 	next := cloneGatewayRequestRecord(*record)
 	next.RecordVersion = 1
+	attemptCount, fallbackUsed, terminalProvider, terminalProfile := gatewayRequestAttemptStorageValues(next)
 	payload, startedAt, completedAt, err := encodePostgresGatewayRequestRecord(next)
 	if err != nil {
 		return err
 	}
 	var storedVersion int
 	err = store.pool.QueryRow(requestDatabaseContext(requestContext), `INSERT INTO gateway_request_records
-	(tenant_ref,workspace_id,consumer_ref,application_id,request_id,record_version,schema_version,store_mode,request_route,protocol,request_status,started_at,completed_at,selected_provider,selected_profile,selected_model,failure_boundary,usage_availability,cost_availability,sanitized_request_record)
-	VALUES ($1,$2,$3,$4,$5,1,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
+	(tenant_ref,workspace_id,consumer_ref,application_id,request_id,record_version,schema_version,store_mode,request_route,protocol,request_status,started_at,completed_at,selected_provider,selected_profile,selected_model,failure_boundary,usage_availability,cost_availability,provider_attempt_count,fallback_used,terminal_provider,terminal_profile,sanitized_request_record)
+	VALUES ($1,$2,$3,$4,$5,1,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
  ON CONFLICT DO NOTHING RETURNING record_version`,
 		requestContext.TenantRef, requestContext.WorkspaceID, requestContext.ConsumerRef, requestContext.ApplicationID,
 		next.RequestID, next.SchemaVersion, next.StoreMode, next.Route, next.Protocol, next.Status, startedAt, completedAt,
 		next.SelectedProvider, next.SelectedProfile, next.SelectedModel, next.FailureBoundary, next.Usage.Availability,
-		gatewayRequestRecordCostEstimate(next).Availability, payload,
+		gatewayRequestRecordCostEstimate(next).Availability, attemptCount, fallbackUsed,
+		terminalProvider, terminalProfile, payload,
 	).Scan(&storedVersion)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return errGatewayRequestStoreConflict
@@ -64,22 +66,50 @@ func (store *postgresGatewayRequestStore) UpdateRequest(requestContext GatewayRe
 	if err := validateGatewayRequestStoreRecord(requestContext, record); err != nil {
 		return err
 	}
+	databaseContext := requestDatabaseContext(requestContext)
+	transaction, err := store.pool.Begin(databaseContext)
+	if err != nil {
+		return errGatewayRequestStoreUnavailable
+	}
+	defer func() { _ = transaction.Rollback(context.Background()) }()
+	var currentPayload []byte
+	err = transaction.QueryRow(databaseContext, `SELECT sanitized_request_record FROM gateway_request_records
+	WHERE tenant_ref=$1 AND workspace_id=$2 AND consumer_ref=$3 AND application_id=$4 AND request_id=$5
+	FOR UPDATE`, requestContext.TenantRef, requestContext.WorkspaceID, requestContext.ConsumerRef,
+		requestContext.ApplicationID, record.RequestID).Scan(&currentPayload)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return errGatewayRequestStoreConflict
+	}
+	if err != nil {
+		return errGatewayRequestStoreUnavailable
+	}
+	current, err := decodePostgresGatewayRequestRecord(requestContext, currentPayload)
+	if err != nil {
+		return err
+	}
+	if current.RecordVersion != record.RecordVersion || current.Status != GatewayRequestStatusStarted ||
+		!validGatewayProviderAttemptRecordTransition(current, *record) {
+		return errGatewayRequestStoreConflict
+	}
 	next := cloneGatewayRequestRecord(*record)
 	next.RecordVersion++
+	attemptCount, fallbackUsed, terminalProvider, terminalProfile := gatewayRequestAttemptStorageValues(next)
 	payload, _, completedAt, err := encodePostgresGatewayRequestRecord(next)
 	if err != nil {
 		return err
 	}
 	var storedVersion int
-	err = store.pool.QueryRow(requestDatabaseContext(requestContext), `UPDATE gateway_request_records SET
+	err = transaction.QueryRow(databaseContext, `UPDATE gateway_request_records SET
  record_version=record_version+1,schema_version=$1,store_mode=$2,request_route=$3,protocol=$4,request_status=$5,
  completed_at=$6,selected_provider=$7,selected_profile=$8,selected_model=$9,failure_boundary=$10,
-	usage_availability=$11,cost_availability=$12,sanitized_request_record=$13
-	WHERE tenant_ref=$14 AND workspace_id=$15 AND consumer_ref=$16 AND application_id=$17 AND request_id=$18
-	AND record_version=$19 AND request_status='started' RETURNING record_version`,
+	usage_availability=$11,cost_availability=$12,provider_attempt_count=$13,fallback_used=$14,
+	terminal_provider=$15,terminal_profile=$16,sanitized_request_record=$17
+	WHERE tenant_ref=$18 AND workspace_id=$19 AND consumer_ref=$20 AND application_id=$21 AND request_id=$22
+	AND record_version=$23 AND request_status='started' RETURNING record_version`,
 		next.SchemaVersion, next.StoreMode, next.Route, next.Protocol, next.Status, completedAt,
 		next.SelectedProvider, next.SelectedProfile, next.SelectedModel, next.FailureBoundary,
-		next.Usage.Availability, gatewayRequestRecordCostEstimate(next).Availability, payload,
+		next.Usage.Availability, gatewayRequestRecordCostEstimate(next).Availability, attemptCount,
+		fallbackUsed, terminalProvider, terminalProfile, payload,
 		requestContext.TenantRef, requestContext.WorkspaceID,
 		requestContext.ConsumerRef, requestContext.ApplicationID, next.RequestID, record.RecordVersion,
 	).Scan(&storedVersion)
@@ -87,6 +117,9 @@ func (store *postgresGatewayRequestStore) UpdateRequest(requestContext GatewayRe
 		return errGatewayRequestStoreConflict
 	}
 	if err != nil {
+		return errGatewayRequestStoreUnavailable
+	}
+	if err = transaction.Commit(databaseContext); err != nil {
 		return errGatewayRequestStoreUnavailable
 	}
 	record.RecordVersion = storedVersion

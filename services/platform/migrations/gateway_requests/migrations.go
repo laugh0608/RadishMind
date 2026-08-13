@@ -15,16 +15,18 @@ import (
 )
 
 const (
-	Component                           = "gateway_requests"
-	MigrationID                         = "0002_gateway_request_cost_estimate"
-	StoreSchemaVersion                  = "gateway_request_store_v2"
-	initialMigrationID                  = "0001_gateway_requests"
-	initialStoreSchemaVersion           = "gateway_request_store_v1"
-	MigrationStateApplied               = "applied"
-	MigrationStateNotApplied            = "not_applied"
-	MigrationStateUpgradeRequired       = "upgrade_required"
-	MigrationStateMismatch              = "mismatch"
-	migrationAdvisoryLockKey      int64 = 0x524d475752513031
+	Component                            = "gateway_requests"
+	MigrationID                          = "0003_gateway_provider_attempt_history"
+	StoreSchemaVersion                   = "gateway_request_store_v3"
+	initialMigrationID                   = "0001_gateway_requests"
+	initialStoreSchemaVersion            = "gateway_request_store_v1"
+	costEstimateMigrationID              = "0002_gateway_request_cost_estimate"
+	costEstimateStoreSchemaVersion       = "gateway_request_store_v2"
+	MigrationStateApplied                = "applied"
+	MigrationStateNotApplied             = "not_applied"
+	MigrationStateUpgradeRequired        = "upgrade_required"
+	MigrationStateMismatch               = "mismatch"
+	migrationAdvisoryLockKey       int64 = 0x524d475752513031
 )
 
 const markerSQL = `CREATE TABLE IF NOT EXISTS gateway_request_schema_versions (
@@ -42,6 +44,12 @@ var costEstimateUpSQL string
 
 //go:embed 0002_gateway_request_cost_estimate.down.sql
 var costEstimateDownSQL string
+
+//go:embed 0003_gateway_provider_attempt_history.up.sql
+var providerAttemptHistoryUpSQL string
+
+//go:embed 0003_gateway_provider_attempt_history.down.sql
+var providerAttemptHistoryDownSQL string
 
 type State struct {
 	MigrationState     string
@@ -77,11 +85,17 @@ func OpenPool(ctx context.Context, databaseURL string) (*pgxpool.Pool, error) {
 }
 
 func ExpectedChecksum() string {
-	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(initialUpSQL+"\n"+costEstimateUpSQL)))
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(
+		initialUpSQL+"\n"+costEstimateUpSQL+"\n"+providerAttemptHistoryUpSQL,
+	)))
 }
 
 func initialExpectedChecksum() string {
 	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(initialUpSQL)))
+}
+
+func costEstimateExpectedChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(initialUpSQL+"\n"+costEstimateUpSQL)))
 }
 
 func Inspect(ctx context.Context, pool *pgxpool.Pool) (State, error) {
@@ -136,12 +150,20 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 		if _, err = tx.Exec(ctx, costEstimateUpSQL); err != nil {
 			return State{}, safeDatabaseError("apply Gateway request cost estimate migration", err)
 		}
+		if _, err = tx.Exec(ctx, providerAttemptHistoryUpSQL); err != nil {
+			return State{}, safeDatabaseError("apply Gateway provider attempt history migration", err)
+		}
 		if _, err = tx.Exec(ctx, `INSERT INTO gateway_request_schema_versions(component,migration_id,store_schema_version,migration_checksum) VALUES($1,$2,$3,$4)`, Component, MigrationID, StoreSchemaVersion, ExpectedChecksum()); err != nil {
 			return State{}, safeDatabaseError("write Gateway request migration marker", err)
 		}
 	} else if state.MigrationState == MigrationStateUpgradeRequired {
-		if _, err = tx.Exec(ctx, costEstimateUpSQL); err != nil {
-			return State{}, safeDatabaseError("upgrade Gateway request cost estimate migration", err)
+		if state.MigrationID == initialMigrationID {
+			if _, err = tx.Exec(ctx, costEstimateUpSQL); err != nil {
+				return State{}, safeDatabaseError("upgrade Gateway request cost estimate migration", err)
+			}
+		}
+		if _, err = tx.Exec(ctx, providerAttemptHistoryUpSQL); err != nil {
+			return State{}, safeDatabaseError("upgrade Gateway provider attempt history migration", err)
 		}
 		if _, err = tx.Exec(ctx, `UPDATE gateway_request_schema_versions SET migration_id=$1,store_schema_version=$2,migration_checksum=$3,applied_at=now() WHERE component=$4`, MigrationID, StoreSchemaVersion, ExpectedChecksum(), Component); err != nil {
 			return State{}, safeDatabaseError("update Gateway request migration marker", err)
@@ -190,6 +212,9 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 	if state.MigrationState != MigrationStateApplied {
 		return State{}, errors.New("Gateway request rollback requires matching migration")
 	}
+	if _, err = tx.Exec(ctx, providerAttemptHistoryDownSQL); err != nil {
+		return State{}, safeDatabaseError("rollback Gateway provider attempt history migration", err)
+	}
 	if _, err = tx.Exec(ctx, costEstimateDownSQL); err != nil {
 		return State{}, safeDatabaseError("rollback Gateway request cost estimate migration", err)
 	}
@@ -228,18 +253,29 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 	if state.MigrationID == initialMigrationID && state.StoreSchemaVersion == initialStoreSchemaVersion &&
 		state.MigrationChecksum == initialExpectedChecksum() && tableExists {
 		state.MigrationState = MigrationStateUpgradeRequired
+	} else if state.MigrationID == costEstimateMigrationID &&
+		state.StoreSchemaVersion == costEstimateStoreSchemaVersion &&
+		state.MigrationChecksum == costEstimateExpectedChecksum() && tableExists {
+		state.MigrationState = MigrationStateUpgradeRequired
 	} else if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion ||
 		state.MigrationChecksum != ExpectedChecksum() || !tableExists {
 		state.MigrationState = MigrationStateMismatch
 	} else {
-		var costAvailabilityColumn bool
+		var requiredColumns bool
 		if err = query.QueryRow(ctx, `SELECT EXISTS (
-            SELECT 1 FROM information_schema.columns
-            WHERE table_schema='public' AND table_name='gateway_request_records' AND column_name='cost_availability'
-        )`).Scan(&costAvailabilityColumn); err != nil {
-			return State{}, safeDatabaseError("inspect Gateway request cost availability column", err)
+			SELECT 1
+			FROM information_schema.columns
+			WHERE table_schema='public' AND table_name='gateway_request_records'
+			  AND column_name IN (
+			      'cost_availability', 'provider_attempt_count', 'fallback_used',
+			      'terminal_provider', 'terminal_profile'
+			)
+			GROUP BY table_schema, table_name
+			HAVING count(*) = 5
+		)`).Scan(&requiredColumns); err != nil {
+			return State{}, safeDatabaseError("inspect Gateway request v3 columns", err)
 		}
-		if costAvailabilityColumn {
+		if requiredColumns {
 			state.MigrationState = MigrationStateApplied
 		} else {
 			state.MigrationState = MigrationStateMismatch

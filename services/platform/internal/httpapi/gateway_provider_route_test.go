@@ -58,8 +58,8 @@ func TestGatewayProviderRouteSelectsExactActivatedSnapshotRoutes(t *testing.T) {
 			t.Fatalf("%s selected an unexpected route: %#v", test.protocol, selection)
 		}
 	}
-	if provider.reads != 3 || testBridge.inventoryCalls != 3 {
-		t.Fatalf("each request must pin one snapshot and validate one inventory: reads=%d inventory=%d", provider.reads, testBridge.inventoryCalls)
+	if provider.reads != 3 || testBridge.inventoryCalls.Load() != 3 {
+		t.Fatalf("each request must pin one snapshot and validate one inventory: reads=%d inventory=%d", provider.reads, testBridge.inventoryCalls.Load())
 	}
 }
 

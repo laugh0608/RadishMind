@@ -4,12 +4,16 @@ package httpapi
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
@@ -38,15 +42,26 @@ func TestAdminProviderRoutePostgresLifecycleRestartCASAndRuntimeRole(t *testing.
 		t.Fatalf("reset admin provider route migration: %v", err)
 	}
 	preparePostgresIntegrationRuntimeRole(t, ctx, adminPool, runtimeUser)
+	installPostgresAdminProviderRouteV1Schema(t, ctx, adminPool)
 	t.Cleanup(func() {
 		cleanupContext, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cleanupCancel()
 		_, _ = adminproviderroutemigrations.RollbackForDevTest(cleanupContext, adminPool)
 		adminPool.Close()
 	})
+	legacyState, err := adminproviderroutemigrations.Inspect(ctx, adminPool)
+	if err != nil || legacyState.MigrationState != adminproviderroutemigrations.MigrationStateUpgradeRequired {
+		t.Fatalf("inspect admin provider route v1 migration: %#v %v", legacyState, err)
+	}
 	state, err := adminproviderroutemigrations.Apply(ctx, adminPool)
 	if err != nil || state.MigrationState != adminproviderroutemigrations.MigrationStateApplied {
 		t.Fatalf("apply admin provider route migration: %#v %v", state, err)
+	}
+	var legacySchema string
+	if err = adminPool.QueryRow(ctx, `SELECT sanitized_draft_payload->>'schema_version'
+        FROM admin_provider_route_drafts WHERE configuration_id='gateway-legacy'`).Scan(&legacySchema); err != nil ||
+		legacySchema != adminProviderRouteDraftSchemaVersion {
+		t.Fatalf("upgrade admin provider route v1 row: schema=%s err=%v", legacySchema, err)
 	}
 
 	runtimePool, err := adminproviderroutemigrations.OpenPool(ctx, runtimeURL)
@@ -87,6 +102,40 @@ func TestAdminProviderRoutePostgresLifecycleRestartCASAndRuntimeRole(t *testing.
 		Reason:             "Activate the first PostgreSQL provider route candidate.",
 	}); activated.FailureCode != "" || activated.Snapshot == nil || activated.Snapshot.Generation != 1 {
 		t.Fatalf("activate first PostgreSQL candidate: %#v", activated)
+	}
+	v2Input := adminProviderRouteV2TestDraftInput(0)
+	v2Draft := service.PutDraft(requestContext, v2Input)
+	if v2Draft.FailureCode != "" || v2Draft.Draft == nil ||
+		v2Draft.Draft.SchemaVersion != adminProviderRouteDraftSchemaVersionV2 {
+		t.Fatalf("persist PostgreSQL v2 draft: %#v", v2Draft)
+	}
+	v2Candidate := service.CreateCandidate(requestContext, AdminProviderRouteCandidateInput{
+		ConfigurationID:       v2Input.ConfigurationID,
+		CandidateID:           "candidate-postgres-v2",
+		ExpectedDraftRevision: 1,
+	})
+	if v2Candidate.FailureCode != "" || v2Candidate.Candidate == nil ||
+		v2Candidate.Candidate.SchemaVersion != adminProviderRouteCandidateSchemaVersionV2 {
+		t.Fatalf("persist PostgreSQL v2 candidate: %#v", v2Candidate)
+	}
+	if reviewed := service.ReviewCandidate(
+		requestContext, v2Input.ConfigurationID, "candidate-postgres-v2", AdminProviderRouteReviewInput{
+			ExpectedReviewVersion: 0,
+			Decision:              adminProviderRouteDecisionApprove,
+			Reason:                "Approve the PostgreSQL sequential fallback route.",
+		},
+	); reviewed.FailureCode != "" {
+		t.Fatalf("approve PostgreSQL v2 candidate: %#v", reviewed)
+	}
+	if activated := service.Activate(requestContext, AdminProviderRouteActivationInput{
+		ConfigurationID:    v2Input.ConfigurationID,
+		CandidateID:        "candidate-postgres-v2",
+		ExpectedGeneration: 0,
+		Action:             adminProviderRouteActionActivate,
+		Reason:             "Activate the PostgreSQL sequential fallback route.",
+	}); activated.FailureCode != "" || activated.Snapshot == nil ||
+		activated.Snapshot.SchemaVersion != adminProviderRouteSnapshotSchemaVersionV2 {
+		t.Fatalf("activate PostgreSQL v2 candidate: %#v", activated)
 	}
 
 	secondDraftInput := adminProviderRouteTestDraftInput(1, "mock-secondary")
@@ -210,6 +259,13 @@ func TestAdminProviderRoutePostgresLifecycleRestartCASAndRuntimeRole(t *testing.
 		candidate.Candidate.Review == nil {
 		t.Fatalf("restore PostgreSQL candidate and review: %#v", candidate)
 	}
+	v2Snapshot := restartedService.ReadActiveSnapshot(requestContext, v2Input.ConfigurationID)
+	if v2Snapshot.FailureCode != "" || v2Snapshot.Snapshot == nil ||
+		v2Snapshot.Snapshot.SchemaVersion != adminProviderRouteSnapshotSchemaVersionV2 ||
+		v2Snapshot.Snapshot.Configuration.ModelRoutes[0].ExecutionMode != AdminProviderRouteExecutionSequentialFallback ||
+		len(v2Snapshot.Snapshot.Configuration.ModelRoutes[0].AttemptTargets) != 2 {
+		t.Fatalf("restore PostgreSQL v2 snapshot: %#v", v2Snapshot)
+	}
 	gatewayServer := &Server{
 		bridge: routeBridge,
 		config: config.Config{
@@ -304,5 +360,40 @@ func TestAdminProviderRoutePostgresLifecycleRestartCASAndRuntimeRole(t *testing.
 	)
 	if len(httpHistory.ActivationHistory) != 1 {
 		t.Fatalf("restore PostgreSQL Admin HTTP activation history: %#v", httpHistory)
+	}
+}
+
+func installPostgresAdminProviderRouteV1Schema(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
+	t.Helper()
+	initial, err := os.ReadFile("../../migrations/admin_provider_routes/0001_admin_provider_routes.up.sql")
+	if err != nil {
+		t.Fatalf("read admin provider route v1 migration: %v", err)
+	}
+	if _, err = pool.Exec(ctx, string(initial)); err != nil {
+		t.Fatalf("install admin provider route v1 schema: %v", err)
+	}
+	if _, err = pool.Exec(ctx, `CREATE TABLE admin_provider_route_schema_versions (
+        component text PRIMARY KEY, migration_id text NOT NULL, store_schema_version text NOT NULL,
+        migration_checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now()
+    )`); err != nil {
+		t.Fatalf("install admin provider route v1 marker table: %v", err)
+	}
+	checksum := sha256.Sum256(initial)
+	if _, err = pool.Exec(ctx, `INSERT INTO admin_provider_route_schema_versions
+        (component, migration_id, store_schema_version, migration_checksum)
+        VALUES ($1, $2, $3, $4)`, adminproviderroutemigrations.Component,
+		"0001_admin_provider_routes", "admin_provider_routes_store_v1",
+		fmt.Sprintf("sha256:%x", checksum)); err != nil {
+		t.Fatalf("install admin provider route v1 marker: %v", err)
+	}
+	legacyPayload := `{"schema_version":"admin_provider_route_configuration_draft.v1","tenant_ref":"tenant_legacy","workspace_id":"workspace_legacy","environment":"test","configuration_id":"gateway-legacy","draft_revision":1,"draft_digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}`
+	if _, err = pool.Exec(ctx, `INSERT INTO admin_provider_route_drafts (
+        tenant_ref, workspace_id, environment, configuration_id, draft_revision, draft_digest,
+        sanitized_draft_payload, updated_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8)`,
+		"tenant_legacy", "workspace_legacy", "test", "gateway-legacy", 1,
+		"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		legacyPayload, "2026-08-13T10:00:00Z"); err != nil {
+		t.Fatalf("seed admin provider route v1 row: %v", err)
 	}
 }
