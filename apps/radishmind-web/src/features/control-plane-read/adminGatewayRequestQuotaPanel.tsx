@@ -161,6 +161,11 @@ export function AdminGatewayRequestQuotaPanel({
     : loadState === "loading"
     ? "loading"
     : failure?.shortLabel ?? "blocked";
+  const selectedApplication = applicationRows.find(
+    (application) => application.applicationRef === selectedApplicationId,
+  );
+  const selectedApplicationName = selectedApplication?.displayName || selectedApplicationDisplayName ||
+    selectedApplicationId || "Select one application";
 
   return (
     <div className="admin-gateway-quota-workspace" data-load-state={loadState}>
@@ -203,63 +208,79 @@ export function AdminGatewayRequestQuotaPanel({
       </aside>
 
       <section className="admin-gateway-quota-detail" aria-labelledby="admin-gateway-quota-detail-title">
-        <header>
+        <header className="admin-gateway-quota-context">
           <div>
-            <p className="eyebrow">Quota · admin_gateway_quotas:read / write</p>
-            <h5 id="admin-gateway-quota-detail-title">UTC daily provider-attempt policy</h5>
-            <p>Usage comes from the quota owner, never from Request History or the legacy QuotaSummary.</p>
+            <span>Selected application</span>
+            <strong>{selectedApplicationName}</strong>
           </div>
-          <QuotaStatus
-            tone={usage?.remainingRequestCount === 0 ? "attention" : loadState === "ready" ? "ready" : "blocked"}
-          >
-            {selectedStatus}
-          </QuotaStatus>
+          <div>
+            <code>{selectedApplicationId || "selection_required"}</code>
+            <small>authority: admin_gateway_quotas:read / write</small>
+            <QuotaStatus
+              tone={usage?.remainingRequestCount === 0 ? "attention" : loadState === "ready" ? "ready" : "blocked"}
+            >
+              {selectedStatus}
+            </QuotaStatus>
+          </div>
         </header>
 
-        <dl className="admin-gateway-quota-scope">
-          <div><dt>Tenant</dt><dd>{config.tenantRef}</dd></div>
-          <div><dt>Workspace</dt><dd>{config.workspaceId}</dd></div>
-          <div><dt>Environment</dt><dd>{config.environment}</dd></div>
-          <div><dt>Application</dt><dd>{config.applicationId || "selection required"}</dd></div>
-        </dl>
+        <section className="admin-gateway-quota-owner" aria-live="polite">
+          <header>
+            <div>
+              <p className="eyebrow">Quota · admin_gateway_quotas:read / write</p>
+              <h5 id="admin-gateway-quota-detail-title">UTC daily provider-attempt policy</h5>
+              <p>Usage comes from the quota owner, never from Request History or the legacy QuotaSummary.</p>
+            </div>
+            <span className="admin-gateway-quota-version">
+              {policy ? `version ${policy.recordVersion}` : loadState.replaceAll("_", " ")}
+            </span>
+          </header>
 
-        {loadState === "loading" ? <QuotaLoading /> : null}
-        {loadState === "ready" && policy && usage ? (
-          <QuotaReady
-            policy={policy}
-            usage={usage}
-            requestLimitInput={requestLimitInput}
-            confirmationLimit={confirmationLimit}
-            operationPending={operationPending}
-            operationMessage={operationMessage}
-            reloadRequired={reloadRequired}
-            onRequestLimitInput={setRequestLimitInput}
-            onReviewUpdate={reviewUpdate}
-            onCancelConfirmation={() => setConfirmationLimit(null)}
-            onConfirmUpdate={() => void confirmUpdate()}
-            onReload={() => void loadQuotaOwner()}
-          />
-        ) : null}
-        {loadState === "missing" ? (
-          <QuotaMissingPolicy
-            requestLimitInput={requestLimitInput}
-            confirmationLimit={confirmationLimit}
-            operationPending={operationPending}
-            operationMessage={operationMessage}
-            onRequestLimitInput={setRequestLimitInput}
-            onReviewUpdate={reviewUpdate}
-            onCancelConfirmation={() => setConfirmationLimit(null)}
-            onConfirmUpdate={() => void confirmUpdate()}
-          />
-        ) : null}
-        {loadState === "failed" ? (
-          <QuotaFailure
-            config={config}
-            presentation={failure}
-            message={operationMessage}
-            onRetry={() => void loadQuotaOwner()}
-          />
-        ) : null}
+          <dl className="admin-gateway-quota-scope">
+            <div><dt>Tenant</dt><dd>{config.tenantRef}</dd></div>
+            <div><dt>Workspace</dt><dd>{config.workspaceId}</dd></div>
+            <div><dt>Environment</dt><dd>{config.environment}</dd></div>
+            <div><dt>Application</dt><dd>{config.applicationId || "selection required"}</dd></div>
+          </dl>
+
+          {loadState === "loading" ? <QuotaLoading /> : null}
+          {loadState === "ready" && policy && usage ? (
+            <QuotaReady
+              policy={policy}
+              usage={usage}
+              requestLimitInput={requestLimitInput}
+              confirmationLimit={confirmationLimit}
+              operationPending={operationPending}
+              operationMessage={operationMessage}
+              reloadRequired={reloadRequired}
+              onRequestLimitInput={setRequestLimitInput}
+              onReviewUpdate={reviewUpdate}
+              onCancelConfirmation={() => setConfirmationLimit(null)}
+              onConfirmUpdate={() => void confirmUpdate()}
+              onReload={() => void loadQuotaOwner()}
+            />
+          ) : null}
+          {loadState === "missing" ? (
+            <QuotaMissingPolicy
+              requestLimitInput={requestLimitInput}
+              confirmationLimit={confirmationLimit}
+              operationPending={operationPending}
+              operationMessage={operationMessage}
+              onRequestLimitInput={setRequestLimitInput}
+              onReviewUpdate={reviewUpdate}
+              onCancelConfirmation={() => setConfirmationLimit(null)}
+              onConfirmUpdate={() => void confirmUpdate()}
+            />
+          ) : null}
+          {loadState === "failed" ? (
+            <QuotaFailure
+              config={config}
+              presentation={failure}
+              message={operationMessage}
+              onRetry={() => void loadQuotaOwner()}
+            />
+          ) : null}
+        </section>
 
         <p className="admin-gateway-quota-boundary">
           <span aria-hidden="true">!</span>

@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-08-12
+更新时间：2026-08-13
 
 ## 文档目的
 
@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-12 当前执行口径：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 Visual R3 已人工通过但 React 不冒充逐项采用。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)、[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)和[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md)均已关闭。下一顺位回到 [Family UI 产品化专题](user-workspace/radishmind-family-ui-productization-v1.md)，先核对 S9 / S10 React 与已批准 Visual R3 的实际偏差，再决定纵向迁移批次；不从价格专题派生 S11 或同层门禁。production price、quota、billing、正式 membership / OIDC、自动执行和自动发布仍关闭。
+2026-08-13 当前执行口径：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭；S9 / S10 Visual R3 已人工通过，S9 React 迁移和真实浏览器连续链也已关闭。S10 审计确认功能与响应式基线正确，但仍需把当前平均化列表 / 详情结构迁移为 campaign 主对象、连续 evidence rows 和单一 handoff rail，因此它是下一顺位唯一纵向切片。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)、[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)和[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md)均保持关闭；不建立 S11 或同层门禁，production price、quota、billing、正式 membership / OIDC、自动执行和自动发布仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
