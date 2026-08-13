@@ -9,6 +9,7 @@ import jsonschema
 
 from services.runtime.inference import run_inference, validate_request_document, validate_response_document
 from services.runtime.inference_provider import not_reported_provider_usage
+from services.runtime.provider_attempt_failure import ProviderAttemptError
 from services.runtime.inference_support import load_schema, make_failed_response, utc_now_iso
 from services.runtime.provider_registry import is_supported_provider
 
@@ -114,6 +115,7 @@ def build_gateway_envelope(
     response_validated: bool = False,
     provider_duration_ms: int = 0,
     provider_usage: dict[str, Any] | None = None,
+    provider_attempt_failure: dict[str, object] | None = None,
 ) -> dict[str, Any]:
     request = copilot_request or {}
     project, task = route_key(request)
@@ -125,6 +127,7 @@ def build_gateway_envelope(
         "task": task,
         "response": response,
         "error": error,
+        "provider_attempt_failure": provider_attempt_failure,
         "metadata": build_gateway_metadata(
             started_at=started_at,
             copilot_request=copilot_request,
@@ -249,11 +252,14 @@ def handle_copilot_request(
             provider_duration_ms=provider_duration_ms,
             provider_usage=inference_result.get("provider_usage"),
         )
-    except Exception:
+    except Exception as exc:
         provider_finished_at = provider_finished_at or time.perf_counter()
         provider_duration_ms = max(0, round((provider_finished_at - provider_started_at) * 1000))
         message = "gateway inference failed"
         response = failed_copilot_response(copilot_request, code="GATEWAY_INFERENCE_FAILED", message=message)
+        provider_attempt_failure = None
+        if isinstance(exc, ProviderAttemptError):
+            provider_attempt_failure = exc.observation.as_document()
         return validated_gateway_envelope(
             started_at=started_at,
             copilot_request=copilot_request,
@@ -267,4 +273,5 @@ def handle_copilot_request(
             request_validated=True,
             response_validated=True,
             provider_duration_ms=provider_duration_ms,
+            provider_attempt_failure=provider_attempt_failure,
         )

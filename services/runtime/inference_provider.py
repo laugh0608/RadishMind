@@ -39,6 +39,7 @@ from .provider_registry import (
     OPENAI_COMPATIBLE_PROVIDER_ID,
     get_provider_spec,
 )
+from .provider_attempt_failure import normalized_provider_attempt_error
 
 GUIDED_DECODING_MODE_JSON_SCHEMA = "json_schema"
 StreamHandler = Callable[[dict[str, Any]], None]
@@ -182,14 +183,7 @@ def normalize_provider_usage(
 
 
 def provider_request_failure(exc: BaseException) -> RuntimeError:
-    if isinstance(exc, error.HTTPError):
-        return RuntimeError(f"provider request failed with HTTP {exc.code}")
-    reason = exc.reason if isinstance(exc, error.URLError) else None
-    if isinstance(exc, TimeoutError) or isinstance(reason, TimeoutError):
-        return RuntimeError("provider request timed out")
-    if isinstance(exc, (http.client.RemoteDisconnected, http.client.IncompleteRead)):
-        return RuntimeError("provider connection terminated")
-    return RuntimeError("provider request could not reach upstream")
+    return normalized_provider_attempt_error(exc)
 
 
 def normalize_openai_content(content: str, copilot_request: dict[str, Any]) -> dict[str, Any]:

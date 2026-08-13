@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-08-11
+更新时间：2026-08-13
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃高风险实现任务卡。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1-plan.md) 已完成批次 A 至 E，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_completed`；三存储连续链、SQLite 产品浏览器、重启、隐私、v1 回归和仓库门禁均已闭合。当前产品专题已切换到 Workflow RAG 本地材料导入；它复用既有 API、schema、repository 与权限，按功能文档、普通 Web 测试 / build 和产品浏览器推进，因此不新建任务卡，也不从已关闭卡派生平行 gate-only 切片。
+当前唯一活跃高风险实现任务卡为 [Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway-provider-attempt-controlled-retry-fallback-execution-dev-test-v1-plan.md)，状态为 `gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_a_completed_batch_b_next`。批次 A 已完成 Route v2、不可变 attempt plan、Python adapter → bridge 类型化 Provider failure 与 Request History v3 memory owner；下一步只推进 SQLite / PostgreSQL 同构持久化，HTTP、React、真实 Provider 调用和 production capability 均未打开，不派生平行 gate-only 切片。
 
 ## 最近关闭任务
 

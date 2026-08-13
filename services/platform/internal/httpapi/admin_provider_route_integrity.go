@@ -9,7 +9,7 @@ func validAdminProviderRouteDraftIntegrity(
 	ctx AdminProviderRouteContext,
 	draft AdminProviderRouteConfigurationDraft,
 ) bool {
-	if draft.SchemaVersion != adminProviderRouteDraftSchemaVersion ||
+	if draft.SchemaVersion != adminProviderRouteDraftSchemaVersionForRoutes(draft.ModelRoutes) ||
 		draft.TenantRef != ctx.TenantRef || draft.WorkspaceID != ctx.WorkspaceID ||
 		draft.Environment != ctx.Environment || draft.DraftRevision < 1 ||
 		!adminProviderRouteIdentifierPattern.MatchString(draft.ConfigurationID) ||
@@ -28,7 +28,7 @@ func validAdminProviderRouteDraftIntegrity(
 }
 
 func validAdminProviderRouteCandidateIntegrity(candidate AdminProviderRouteCandidate) bool {
-	if candidate.SchemaVersion != adminProviderRouteCandidateSchemaVersion ||
+	if candidate.SchemaVersion != adminProviderRouteCandidateSchemaVersionForRoutes(candidate.Configuration.ModelRoutes) ||
 		candidate.SourceDraftRevision < 1 ||
 		!adminProviderRouteIdentifierPattern.MatchString(candidate.ConfigurationID) ||
 		!adminProviderRouteIdentifierPattern.MatchString(candidate.CandidateID) ||
@@ -61,7 +61,7 @@ func validAdminProviderRouteSnapshotIntegrity(
 	ctx AdminProviderRouteContext,
 	snapshot AdminProviderRouteSnapshot,
 ) bool {
-	if snapshot.SchemaVersion != adminProviderRouteSnapshotSchemaVersion ||
+	if snapshot.SchemaVersion != adminProviderRouteSnapshotSchemaVersionForRoutes(snapshot.Configuration.ModelRoutes) ||
 		snapshot.TenantRef != ctx.TenantRef || snapshot.WorkspaceID != ctx.WorkspaceID ||
 		snapshot.Environment != ctx.Environment || snapshot.Generation < 1 ||
 		!adminProviderRouteIdentifierPattern.MatchString(snapshot.ConfigurationID) ||

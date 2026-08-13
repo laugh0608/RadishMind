@@ -5,6 +5,7 @@ import json
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import jsonschema
 
@@ -16,6 +17,11 @@ from services.gateway import GatewayOptions, handle_copilot_request, validate_ga
 from services.gateway.copilot_gateway import sanitize_provider_usage  # noqa: E402
 from services.runtime.inference_provider import normalize_provider_usage  # noqa: E402
 from services.runtime.inference_support import make_mock_docs_qa_response  # noqa: E402
+from services.runtime.provider_attempt_failure import (  # noqa: E402
+    ProviderAttemptError,
+    provider_http_failure_observation,
+    provider_unknown_outcome_observation,
+)
 
 
 REQUEST_FIXTURE = REPO_ROOT / "datasets/examples/radishflow-copilot-request-ghost-valve-ambiguous-001.json"
@@ -65,6 +71,48 @@ class GatewayTimingMetadataTest(unittest.TestCase):
 
         with self.assertRaises(jsonschema.ValidationError):
             validate_gateway_envelope(envelope)
+
+    def test_provider_attempt_failure_crosses_bridge_as_typed_sanitized_evidence(self) -> None:
+        cases = (
+            (provider_http_failure_observation(429), "eligible", "failed"),
+            (provider_http_failure_observation(401), "ineligible", "failed"),
+            (provider_unknown_outcome_observation(), "ineligible", "unknown"),
+        )
+        for observation, disposition, outcome in cases:
+            with self.subTest(code=observation.code):
+                with patch(
+                    "services.gateway.copilot_gateway.run_inference",
+                    side_effect=ProviderAttemptError("sanitized provider failure", observation),
+                ):
+                    envelope = handle_copilot_request(
+                        copy.deepcopy(self.request_document),
+                        options=GatewayOptions(provider="mock"),
+                    )
+                validate_gateway_envelope(envelope)
+                evidence = envelope["provider_attempt_failure"]
+                self.assertEqual(evidence["fallback_disposition"], disposition)
+                self.assertEqual(evidence["outcome"], outcome)
+                self.assertNotIn("sanitized provider failure", json.dumps(evidence))
+
+                unsafe = copy.deepcopy(envelope)
+                unsafe["provider_attempt_failure"]["failure_class"] = (
+                    "provider_authentication_failed"
+                )
+                unsafe["provider_attempt_failure"]["fallback_disposition"] = "eligible"
+                with self.assertRaises(jsonschema.ValidationError):
+                    validate_gateway_envelope(unsafe)
+
+    def test_untyped_gateway_failure_does_not_fabricate_provider_evidence(self) -> None:
+        with patch(
+            "services.gateway.copilot_gateway.run_inference",
+            side_effect=RuntimeError("private bridge failure"),
+        ):
+            envelope = handle_copilot_request(
+                copy.deepcopy(self.request_document),
+                options=GatewayOptions(provider="mock"),
+            )
+        validate_gateway_envelope(envelope)
+        self.assertIsNone(envelope["provider_attempt_failure"])
 
 
 class ProviderUsageNormalizationTest(unittest.TestCase):

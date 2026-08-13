@@ -10,8 +10,9 @@
 
 ## 当前结论（默认读取到本节结束）
 
+- 当前产品顺位：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 已获人工批准并完成批次 A，状态为 `gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_a_completed_batch_b_next`。Route v2、可序列化冻结 attempt plan、Python adapter → bridge 类型化失败、Request History v3 memory owner 与原子 checkpoint 已成立；下一步按[唯一任务卡](task-cards/gateway-provider-attempt-controlled-retry-fallback-execution-dev-test-v1-plan.md)推进 SQLite / PostgreSQL 同构持久化。HTTP、Web、真实 Provider 调用、同 Profile retry、stream fallback、隐式切换和 production enablement 全部关闭。
 - 最近关闭专题：[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](features/gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md) 状态为 `provider_pricing_policy_version_application_cost_review_dev_test_v1_completed`。批次 A 至 E、memory / SQLite / PostgreSQL、Admin GET / PUT、Request History v2、不可变价格快照、reported usage 整数估算、quota / stream、Visual R1、React strict consumer 和真实浏览器均已关闭。SQLite 完成 v1 → v2、双标签 CAS、重启、API Key / 开发身份、Request History 与 Application Operations；PostgreSQL 完成 migration / runtime role、并发和重连后旧快照不重算。production price、token quota、billing ledger、invoice、全历史成本、自动路由和请求拒绝全部关闭。
-- 最近关闭产品顺位为 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)：S9 / S10 React 已分别完成 Visual R3 纵向迁移与真实浏览器复核；本轮不改 Pencil、不建立 S11，也没有新增同层 gate-only 任务卡。下一顺位回到 `docs/features/README.md`，从新的真实产品阻塞选择长期功能设计文档。
+- 最近关闭产品顺位为 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)：S9 / S10 React 已分别完成 Visual R3 纵向迁移与真实浏览器复核；本轮不改 Pencil、不建立 S11，也没有新增同层 gate-only 任务卡。该专题关闭后的入口回流已完成，当前新专题以上方 Provider Attempt 设计为准。
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
 - 最近关闭专题：[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](features/workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 已完成批次 A 至 C，状态为 `workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_completed`。Desktop `U4tmEg` 与 Narrow `nI3RW` 局部 Pencil 已人工通过；单一结构化 editor、来源 / fragment 审查、create v1、full replacement v2、双标签 CAS、SQLite 重启、隐私和 `1440×900` / `720×900` / `390×844` 均已形成真实证据。Web `338/338`、production build 和正式 `--workflow-rag-dev` launcher probe 通过；没有新增 API、schema、migration、repository、permission、持久 staging、自动执行或生产声明。下一产品顺位回到 `docs/features/README.md` 选择新的长期功能设计文档，不从本专题派生 S11 或同层 gate-only 切片。
 - 最近关闭专题：[Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成批次 A 至 E，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_completed`。Draft / Definition v2、executor v2、Run v8、Comparison v7、Session v4、Evaluation Plan / Campaign v2 已在 memory、SQLite、PostgreSQL 形成连续链；SQLite 产品浏览器又完成 Direct Run → Session → 两次 Campaign → Pair Preview → Case / Suite handoff、服务重启、隐私、v1 历史和三视口复核，最终控制台无 warning / error。当前没有活跃高风险任务卡；产品顺位已经切换到上方 RAG 本地知识材料导入专题。
@@ -35,7 +36,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：S9 / S10 Visual R3 React 纵向迁移与真实浏览器复核均已关闭。下一步回到功能设计入口，从新的真实用户阻塞选择长期功能专题；不得从已关闭页面继续派生 S11、同层 gate-only 任务卡或无产品目标的样式续批。
+1. 产品线：S9 / S10 Visual R3 React 纵向迁移与真实浏览器复核均已关闭。Gateway Provider Attempt 设计已批准，批次 A 的 Route v2、冻结 attempt plan、类型化 Provider failure 与 Request History v3 memory owner 已完成；当前只推进批次 B 的 SQLite / PostgreSQL 同构持久化，不提前进入 HTTP、Pencil、React、真实 Provider 或 production，不从已关闭页面派生 S11、同层 gate-only 任务卡或无产品目标的样式续批。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。

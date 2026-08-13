@@ -14,11 +14,14 @@ import (
 )
 
 const (
-	adminProviderRouteDraftSchemaVersion      = "admin_provider_route_configuration_draft.v1"
-	adminProviderRouteCandidateSchemaVersion  = "admin_provider_route_candidate.v1"
-	adminProviderRouteReviewSchemaVersion     = "admin_provider_route_review.v1"
-	adminProviderRouteSnapshotSchemaVersion   = "admin_provider_route_snapshot.v1"
-	adminProviderRouteActivationSchemaVersion = "admin_provider_route_activation_record.v1"
+	adminProviderRouteDraftSchemaVersion       = "admin_provider_route_configuration_draft.v1"
+	adminProviderRouteDraftSchemaVersionV2     = "admin_provider_route_configuration_draft.v2"
+	adminProviderRouteCandidateSchemaVersion   = "admin_provider_route_candidate.v1"
+	adminProviderRouteCandidateSchemaVersionV2 = "admin_provider_route_candidate.v2"
+	adminProviderRouteReviewSchemaVersion      = "admin_provider_route_review.v1"
+	adminProviderRouteSnapshotSchemaVersion    = "admin_provider_route_snapshot.v1"
+	adminProviderRouteSnapshotSchemaVersionV2  = "admin_provider_route_snapshot.v2"
+	adminProviderRouteActivationSchemaVersion  = "admin_provider_route_activation_record.v1"
 )
 
 const (
@@ -137,10 +140,12 @@ type AdminProviderProfileAssignment struct {
 }
 
 type AdminModelRouteDefinition struct {
-	RouteID           string `json:"route_id"`
-	Protocol          string `json:"protocol"`
-	ModelID           string `json:"model_id"`
-	ProviderProfileID string `json:"provider_profile_id"`
+	RouteID           string                            `json:"route_id"`
+	Protocol          string                            `json:"protocol"`
+	ModelID           string                            `json:"model_id"`
+	ProviderProfileID string                            `json:"provider_profile_id,omitempty"`
+	ExecutionMode     AdminProviderRouteExecutionMode   `json:"execution_mode,omitempty"`
+	AttemptTargets    []AdminProviderRouteAttemptTarget `json:"attempt_targets,omitempty"`
 }
 
 type AdminProviderRouteConfigurationSnapshot struct {
@@ -334,7 +339,7 @@ func (service adminProviderRouteService) PutDraft(ctx AdminProviderRouteContext,
 		return AdminProviderRouteResult{FailureCode: AdminProviderRouteFailurePayloadInvalid}
 	}
 	draft := AdminProviderRouteConfigurationDraft{
-		SchemaVersion: adminProviderRouteDraftSchemaVersion,
+		SchemaVersion: adminProviderRouteDraftSchemaVersionForRoutes(configuration.ModelRoutes),
 		TenantRef:     ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, Environment: ctx.Environment,
 		ConfigurationID: strings.TrimSpace(input.ConfigurationID), DisplayName: configuration.DisplayName,
 		ProviderProfiles: configuration.ProviderProfiles, ModelRoutes: configuration.ModelRoutes,
@@ -402,7 +407,7 @@ func (service adminProviderRouteService) CreateCandidate(ctx AdminProviderRouteC
 		return AdminProviderRouteResult{FailureCode: AdminProviderRouteFailurePayloadInvalid}
 	}
 	candidate := AdminProviderRouteCandidate{
-		SchemaVersion: adminProviderRouteCandidateSchemaVersion,
+		SchemaVersion: adminProviderRouteCandidateSchemaVersionForRoutes(configuration.ModelRoutes),
 		TenantRef:     ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, Environment: ctx.Environment,
 		ConfigurationID: configurationID, CandidateID: candidateID,
 		SourceDraftRevision: draft.DraftRevision, SourceDraftDigest: draft.DraftDigest,
@@ -526,7 +531,7 @@ func (service adminProviderRouteService) Activate(ctx AdminProviderRouteContext,
 		return AdminProviderRouteResult{FailureCode: AdminProviderRouteFailureStoreUnavailable}
 	}
 	snapshot := AdminProviderRouteSnapshot{
-		SchemaVersion: adminProviderRouteSnapshotSchemaVersion,
+		SchemaVersion: adminProviderRouteSnapshotSchemaVersionForRoutes(candidate.Configuration.ModelRoutes),
 		TenantRef:     ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, Environment: ctx.Environment,
 		ConfigurationID: configurationID, CandidateID: candidate.CandidateID,
 		CandidateDigest: candidate.CandidateDigest, Configuration: cloneAdminProviderRouteConfiguration(candidate.Configuration),
@@ -644,9 +649,12 @@ func normalizeAdminProviderRouteConfiguration(
 		if failureCode != "" {
 			return AdminProviderRouteConfigurationSnapshot{}, failureCode
 		}
-		profile, exists := profilesByID[normalized.ProviderProfileID]
-		if !exists || !adminProviderRouteCapabilitiesContain(profile.Capabilities, []string{normalized.Protocol}) {
-			return AdminProviderRouteConfigurationSnapshot{}, AdminProviderRouteFailurePayloadInvalid
+		profileIDs := adminProviderRouteProfileIDs(normalized)
+		for _, profileID := range profileIDs {
+			profile, exists := profilesByID[profileID]
+			if !exists || !adminProviderRouteCapabilitiesContain(profile.Capabilities, []string{normalized.Protocol}) {
+				return AdminProviderRouteConfigurationSnapshot{}, AdminProviderRouteFailurePayloadInvalid
+			}
 		}
 		bindingKey := normalized.Protocol + "\x00" + normalized.ModelID
 		if routeIDs[normalized.RouteID] || routeBindings[bindingKey] {
@@ -655,6 +663,9 @@ func normalizeAdminProviderRouteConfiguration(
 		routeIDs[normalized.RouteID] = true
 		routeBindings[bindingKey] = true
 		normalizedRoutes = append(normalizedRoutes, normalized)
+	}
+	if adminProviderRouteContractVersion(normalizedRoutes) == 0 {
+		return AdminProviderRouteConfigurationSnapshot{}, AdminProviderRouteFailurePayloadInvalid
 	}
 	sort.Slice(normalizedProfiles, func(i, j int) bool { return normalizedProfiles[i].ProfileID < normalizedProfiles[j].ProfileID })
 	sort.Slice(normalizedRoutes, func(i, j int) bool {
@@ -709,17 +720,7 @@ func normalizeAdminProviderProfile(profile AdminProviderProfileAssignment, envir
 }
 
 func normalizeAdminModelRoute(route AdminModelRouteDefinition) (AdminModelRouteDefinition, string) {
-	route.RouteID = strings.TrimSpace(route.RouteID)
-	route.Protocol = strings.TrimSpace(route.Protocol)
-	route.ModelID = strings.TrimSpace(route.ModelID)
-	route.ProviderProfileID = strings.TrimSpace(route.ProviderProfileID)
-	if !adminProviderRouteIdentifierPattern.MatchString(route.RouteID) ||
-		!isApplicationDraftProtocol(route.Protocol) ||
-		!adminProviderRouteModelPattern.MatchString(route.ModelID) ||
-		!adminProviderRouteIdentifierPattern.MatchString(route.ProviderProfileID) {
-		return AdminModelRouteDefinition{}, AdminProviderRouteFailurePayloadInvalid
-	}
-	return route, ""
+	return normalizeAdminModelRouteContract(route)
 }
 
 func normalizeAdminProviderRouteCapabilities(values []string) ([]string, bool) {
@@ -924,7 +925,11 @@ func cloneAdminProviderProfiles(values []AdminProviderProfileAssignment) []Admin
 }
 
 func cloneAdminModelRoutes(values []AdminModelRouteDefinition) []AdminModelRouteDefinition {
-	return append([]AdminModelRouteDefinition(nil), values...)
+	cloned := append([]AdminModelRouteDefinition(nil), values...)
+	for index := range cloned {
+		cloned[index].AttemptTargets = append([]AdminProviderRouteAttemptTarget(nil), cloned[index].AttemptTargets...)
+	}
+	return cloned
 }
 
 func cloneAdminProviderInventoryBindings(values []AdminProviderInventoryBinding) []AdminProviderInventoryBinding {

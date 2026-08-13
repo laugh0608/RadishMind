@@ -56,6 +56,16 @@
         }
       ]
     },
+    "provider_attempt_failure": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/provider_attempt_failure"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "metadata": {
       "$ref": "#/$defs/gateway_metadata"
     }
@@ -124,6 +134,136 @@
           "minLength": 1
         }
       }
+    },
+    "provider_attempt_failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "failure_class",
+        "fallback_disposition",
+        "provider_response_started",
+        "outcome",
+        "code",
+        "http_status_class"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "gateway_provider_attempt_failure.v1"
+        },
+        "failure_class": {
+          "type": "string",
+          "enum": [
+            "provider_rate_limited",
+            "provider_temporarily_unavailable",
+            "provider_upstream_gateway_unavailable",
+            "provider_authentication_failed",
+            "provider_invalid_request",
+            "provider_model_not_found",
+            "provider_unsupported",
+            "provider_safety_rejected"
+          ]
+        },
+        "fallback_disposition": {
+          "type": "string",
+          "enum": [
+            "eligible",
+            "ineligible"
+          ]
+        },
+        "provider_response_started": {
+          "type": "boolean"
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "failed",
+            "unknown"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,95}$"
+        },
+        "http_status_class": {
+          "type": "string",
+          "enum": [
+            "",
+            "4xx",
+            "5xx"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "fallback_disposition": {
+                "const": "eligible"
+              }
+            },
+            "required": [
+              "fallback_disposition"
+            ]
+          },
+          "then": {
+            "properties": {
+              "failure_class": {
+                "enum": [
+                  "provider_rate_limited",
+                  "provider_temporarily_unavailable",
+                  "provider_upstream_gateway_unavailable"
+                ]
+              },
+              "provider_response_started": {
+                "const": false
+              },
+              "outcome": {
+                "const": "failed"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "unknown"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "fallback_disposition": {
+                "const": "ineligible"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "provider_response_started": {
+                "const": true
+              }
+            },
+            "required": [
+              "provider_response_started"
+            ]
+          },
+          "then": {
+            "properties": {
+              "fallback_disposition": {
+                "const": "ineligible"
+              }
+            }
+          }
+        }
+      ]
     },
     "gateway_metadata": {
       "type": "object",

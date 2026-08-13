@@ -1,6 +1,6 @@
 # Model Gateway / API Distribution 设计与开发文档
 
-更新时间：2026-08-09
+更新时间：2026-08-13
 
 ## 功能定位
 
@@ -20,6 +20,7 @@
 - [Admin Provider Profile / Model Route 受控启用（开发 / 测试态）v1](admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md) 批次 A 至 E 已完成并关闭，建立配置领域、三模式 durable repository、人工 review、显式 activation、可恢复 active snapshot、verified Admin API、Admin Web 和只读 Gateway consumer。`static_config` 继续作为默认模式；显式 `admin_snapshot_dev_test` 模式按租户、工作区、环境、配置、protocol 与 model 精确选路，固定请求开始时的 generation / digest，inventory 或 route 漂移在 bridge 前失败且不回退；Request History 页面展示精确快照谱系。
 - 当前已执行开发测试态 application request quota admission；仍不执行生产 API 密钥生命周期、production quota、rate limit、billing、cost ledger、provider retry/fallback execution、production gateway 或 load balancing。
 - [Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md) 已完成设计、后端、Visual R1、React strict consumer、双数据库与真实浏览器连续链：价格保持独立版本化 owner，请求只绑定精确 selection 对应的不可变 USD 快照，成本只由合法 reported usage 以整数算法估算并进入 Request History / Application Operations；不改变请求准入、路由或 Provider 调用结果。
+- [Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 已获批准并完成批次 A：Route v2、可序列化冻结 attempt plan、Python adapter → bridge 类型化失败、Request History v3 memory owner 与原子 checkpoint 已成立。下一步按唯一任务卡推进 SQLite / PostgreSQL；现有 `retry_policy=caller-managed`、`fallback_policy=disabled` 仍是 northbound 运行事实，HTTP、Web、真实 Provider 调用和 production capability 尚未打开。
 
 ## 当前开发目标
 
@@ -30,6 +31,8 @@ R4 第一批 [Gateway Python Bridge Runtime v1](gateway/python-bridge-runtime-v1
 Workflow 产品链、Gateway Request History、[Gateway Playground / Request Review Loop v1](gateway/gateway-playground-request-review-loop-v1.md) 与 application-scoped API Integration 均已关闭。内部开发者现在可以从选中 application 读取模型目录、生成三协议接入示例、调用三个现有 northbound 协议、取消 stream、查看当前响应，并按同一 request id 与 application scope 进入 sanitized history detail。
 
 该功能只增加 Web consumer / lazy panel 与 request-id handoff，复用现有 API、dev/test caller scope 和 history，不新增 schema、repository、provider contract 或生产授权。输入输出只存在于当前组件内存，Request History 继续只保存 sanitized operational metadata。
+
+当前开发目标已切换为 Provider Attempt 批次 B：在不开放 HTTP 或 northbound 执行的前提下，把批次 A 已冻结的 Route v2 与 Request History v3 领域合同同构落入 SQLite / PostgreSQL，证明重启恢复、并发单赢家、损坏 payload 失败关闭、runtime role 无 DDL 与 v1 / v2 兼容。后续 Admin API、执行与 Web 仍按唯一任务卡顺序推进。
 
 ## 设计边界
 
@@ -49,7 +52,8 @@ Workflow 产品链、Gateway Request History、[Gateway Playground / Request Rev
 5. 新实现相对 back-to-back process 基线的顺序 / 并发 bridge 自身 p95 开销下降 `93.5% / 94.4%`，已切换默认模式。
 6. Request History、Playground、Application API Integration、Application Configuration Draft / Review 与 Publish Governance 已完成 application → validated configuration → models / examples → request → response → history → immutable candidate / review 的开发测试路径。
 7. API 密钥 Gateway 认证、本地连续链、PostgreSQL migration / 角色 / 方言 / 并发门禁、Web 一次性交接和浏览器重启复验均已通过；Provider reported usage 已进入 canonical envelope、三协议、历史与应用审查。独立 application request quota 已完成三模式 owner、Admin API、六条 route provider 前准入、S9 完整 Pencil、React 严格 consumer、CAS 确认与真实浏览器连续链；不提前打开 production distribution、token 估算、价格、production quota 或计费。
-8. 价格与成本专题设计、S9 / S10 Visual R3、S7 Pricing / S5 Cost Review Visual R1 和唯一高风险任务卡均已通过；领域、三模式 owner、Admin API、Request History v2 与请求级估算主体已经落地，当前只接入 React strict consumer，再按批次关闭数据库实例和真实浏览器连续链。
+8. 价格与成本专题设计、S9 / S10 Visual R3、S7 Pricing / S5 Cost Review Visual R1、领域、三模式 owner、Admin API、Request History v2、React strict consumer、数据库实例和真实浏览器连续链均已关闭。
+9. Provider Attempt 设计与批次 A 已关闭；当前按唯一高风险任务卡推进批次 B 的 Route v2 / Request History v3 双数据库同构持久化，不从静态 retry / fallback policy 派生同层 checker 链。
 
 ## 验收方式
 
@@ -63,6 +67,6 @@ Workflow 产品链、Gateway Request History、[Gateway Playground / Request Rev
 - process-per-request 继续作为显式回滚模式；不移除该路径，也不把 worker pool 扩为动态集群调度。
 - 不新增第二套 northbound contract、provider registry、selection policy 或 Gateway 业务真相源。
 - 不把 mock provider 性能解释为真实 provider SLA。
-- 不在本批启用 production API key、production quota、billing、自动 fallback、load balancing 或 production deployment。
+- 批次 D 及其独立 gate 完成前不执行 fallback；后续也只允许开发测试态、请求显式允许、三个非流式 API 和最多一次不同 Profile 顺序降级，不启用 production API key、production quota、billing、load balancing 或 production deployment。
 - 不为基线与选型新增 readiness / refresh checker 链；现有单元测试、benchmark、Gateway smoke 和仓库门禁足以承载。
 - Playground 与 Request History 只服务开发 / 测试交互和审查，不等于 production API key、quota enforcement、billing、cost ledger、自动 retry/fallback、load balancing 或 production gateway ready。

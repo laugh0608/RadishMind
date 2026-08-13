@@ -122,10 +122,14 @@ func (s *Server) resolveGatewayNorthboundSelection(
 	if matchedRoute == nil {
 		return selection, gatewayProviderRouteFailureNotFound
 	}
+	primaryProfileID := adminProviderRoutePrimaryProfileID(*matchedRoute)
+	if primaryProfileID == "" {
+		return selection, gatewayProviderRouteFailureSnapshotUnavailable
+	}
 	var assignment *AdminProviderProfileAssignment
 	for index := range snapshot.Configuration.ProviderProfiles {
 		profile := snapshot.Configuration.ProviderProfiles[index]
-		if profile.ProfileID == matchedRoute.ProviderProfileID {
+		if profile.ProfileID == primaryProfileID {
 			copied := profile
 			assignment = &copied
 			break

@@ -104,7 +104,7 @@ func (store *memoryGatewayRequestStore) UpdateRequest(
 	defer store.mu.Unlock()
 	current, found := store.records[key]
 	if !found || current.RecordVersion != record.RecordVersion || isTerminalGatewayRequestStatus(current.Status) ||
-		(current.Status != GatewayRequestStatusStarted) {
+		(current.Status != GatewayRequestStatusStarted) || !validGatewayProviderAttemptRecordTransition(current, *record) {
 		return errGatewayRequestStoreConflict
 	}
 	record.RecordVersion++
@@ -196,6 +196,9 @@ func validateGatewayRequestStoreRecord(
 		!validGatewayRequestRecordCostEstimate(*record) {
 		return errGatewayRequestStoreContract
 	}
+	if !validGatewayProviderAttemptHistoryRecord(*record) {
+		return errGatewayRequestStoreContract
+	}
 	for _, reference := range []string{
 		record.SelectionSource, record.SelectedProvider, record.SelectedProfile, record.SelectedModel,
 		record.ProviderRouteConfigurationID, record.ProviderRouteSnapshotDigest,
@@ -244,7 +247,8 @@ func validGatewayRequestStoreMode(mode string) bool {
 }
 
 func validGatewayRequestRecordSchemaVersion(schemaVersion string) bool {
-	return schemaVersion == gatewayRequestRecordSchemaVersionV1 || schemaVersion == gatewayRequestRecordSchemaVersionV2
+	return schemaVersion == gatewayRequestRecordSchemaVersionV1 || schemaVersion == gatewayRequestRecordSchemaVersionV2 ||
+		schemaVersion == gatewayRequestRecordSchemaVersionV3
 }
 
 func validGatewayRequestRecordCostEstimate(record GatewayRequestRecord) bool {
@@ -253,7 +257,8 @@ func validGatewayRequestRecordCostEstimate(record GatewayRequestRecord) bool {
 			record.CostEstimate.Availability == GatewayRequestCostLegacyNotCaptured &&
 				validGatewayRequestCostEstimate(record.CostEstimate)
 	}
-	return record.SchemaVersion == gatewayRequestRecordSchemaVersionV2 && validGatewayRequestCostEstimate(record.CostEstimate)
+	return (record.SchemaVersion == gatewayRequestRecordSchemaVersionV2 || record.SchemaVersion == gatewayRequestRecordSchemaVersionV3) &&
+		validGatewayRequestCostEstimate(record.CostEstimate)
 }
 
 func validGatewayRequestCostEstimate(estimate GatewayRequestCostEstimate) bool {
@@ -372,6 +377,11 @@ func gatewayRequestStoreKey(requestContext GatewayRequestContext, requestID stri
 
 func cloneGatewayRequestRecord(record GatewayRequestRecord) GatewayRequestRecord {
 	record.CostEstimate = cloneGatewayRequestCostEstimate(record.CostEstimate)
+	if record.ProviderAttemptPlan != nil {
+		plan := cloneGatewayProviderAttemptPlan(*record.ProviderAttemptPlan)
+		record.ProviderAttemptPlan = &plan
+	}
+	record.ProviderAttempts = cloneGatewayProviderAttemptRecords(record.ProviderAttempts)
 	return record
 }
 
