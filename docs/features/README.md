@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-13 当前执行口径：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 也已分别完成 Visual R3 React 迁移和真实浏览器复核；Application Quota 保持单一 quota owner，Evaluation Campaign 保持 selected context、campaign 主 owner、连续 evidence rows 与单一 Handoff rail。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)、[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)和[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md)均保持关闭。[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 已完成批次 A 至 D 的领域合同、三存储、Admin 激活链和三个 API Key unary API；下一步进入既有 S7 / S5 的完整 Pencil、React strict consumer 与双数据库产品连续链，不建立 S11 或同层门禁，真实 Provider 调用、production price / quota / billing、正式 membership / OIDC、自动执行和自动发布仍关闭。
+2026-08-13 当前执行口径：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 也已分别完成 Visual R3 React 迁移和真实浏览器复核；Application Quota 保持单一 quota owner，Evaluation Campaign 保持 selected context、campaign 主 owner、连续 evidence rows 与单一 Handoff rail。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)、[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)和[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md)均保持关闭。[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 已完成批次 A 至 D 的领域合同、三存储、Admin 激活链和三个 API Key unary API，批次 E 的七个 S7 / S5 Visual R1 代表面也已获得人工视觉批准；下一步直接实现既有 Route、Playground 与 Request History strict consumer，再推进双数据库产品连续链，不建立 S11 或同层门禁，真实 Provider 调用、production price / quota / billing、正式 membership / OIDC、自动执行和自动发布仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -40,9 +40,9 @@
 
 | 功能文档 | 当前作用 | 下一步默认入口 |
 | --- | --- | --- |
-| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | Provider Attempt 批次 E 只扩既有 S5 Playground / Request History，不启动全历史 summary、billing 或收件箱批次 B |
-| [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route、application request quota 与 Pricing owner 均已完成开发测试态受控管理 | Provider Attempt 批次 E 只扩既有 S7 Route strict consumer，不创建第二套路由、quota、pricing 或 history owner |
-| [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、reported usage、价格快照、追踪和审计均已有开发测试态主体 | Provider Attempt 批次 A 至 D 已关闭；当前推进 Pencil、React、双数据库与真实浏览器产品连续链，真实 Provider 与 production 继续关闭 |
+| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | Provider Attempt Visual R1 已批准；下一步只扩既有 S5 Playground / Request History strict consumer，不启动全历史 summary、billing 或收件箱批次 B |
+| [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route、application request quota 与 Pricing owner 均已完成开发测试态受控管理 | Provider Attempt Visual R1 已批准；下一步只扩既有 S7 Route strict consumer，不创建第二套路由、quota、pricing 或 history owner |
+| [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、reported usage、价格快照、追踪和审计均已有开发测试态主体 | Provider Attempt 批次 A 至 D 与 Visual R1 已关闭；当前推进 React、双数据库与真实浏览器产品连续链，真实 Provider 与 production 继续关闭 |
 | [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；Definition 结构化输入与 RAG 本地材料导入、审查和快照构建均已关闭 | 新的 Workflow 能力必须由真实用户阻塞产生独立功能设计，不从已关闭专题派生 S11、持久 staging 或同层门禁 |
 | [图片生成 / 产物返回](image-generation-artifact-return.md) | 批次 A 至 E 已完成受控 handoff、本机私有 storage、reference-only profile、test-only fixture client 与一次性交付协调，开发测试态 v1 关闭 | 如需真实 backend、resolver 或公开交付，先建立独立功能 / 集成设计 |
 
@@ -81,7 +81,7 @@
 | [Provider 上报用量规范化与应用用量审查（开发 / 测试态）v1](gateway/provider-reported-usage-normalization-application-review-dev-test-v1.md) | 功能 / Provider contract 专题 | OpenAI-compatible、Gemini、Anthropic、HuggingFace 与 Ollama reported usage 已进入 Gateway、三协议、Request History 和 Application Operations；成本、quota 与 billing 未打开 |
 | [Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md) | 功能 / 价格与成本证据专题 | 状态为 `provider_pricing_policy_version_application_cost_review_dev_test_v1_completed`；三模式 owner、Admin API、Request History v2、请求快照、React strict consumer、双数据库与真实浏览器连续链已完成；不实现 billing ledger、invoice 或 production price |
 | [应用 API Key 请求配额与 Provider Attempt 准入（开发 / 测试态）v1](gateway/application-api-key-request-quota-admission-dev-test-v1.md) | 功能 / 高风险准入专题 | 批次 A 至 E 已完成 application / workspace / environment UTC 日请求 policy、三模式 repository、Admin GET / PUT、六条 API Key inference route 原子准入和稳定失败，以及 S9 完整 Pencil、React 严格 consumer、CAS 确认和真实浏览器连续链；生产 quota、token / cost 与 billing 关闭 |
-| [Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) | 功能 / 高风险执行专题 | 状态为 `gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_d_completed_batch_e_next`；批次 A 至 D 已完成 Route v2、冻结 plan、类型化失败、Request History v3 三存储、Admin 激活链与三个 API Key unary API，下一步为既有 S7 / S5 Pencil、React 与产品连续链 |
+| [Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) | 功能 / 高风险执行专题 | 状态为 `gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_e_pencil_visual_r1_approved_react_next`；批次 A 至 D 与七个 S7 / S5 Visual R1 代表面已完成，下一步为既有 Route、Playground、Request History strict consumer 与双数据库产品连续链 |
 | [Model Gateway Request History / Usage & Failure Review v1 任务卡](../task-cards/model-gateway-request-history-usage-failure-review-v1-plan.md) | 实现批次 | 状态为 `complete`；保留为实现与验证索引，不继续派生同层 readiness 链 |
 | [Gateway Playground / Request Review Loop v1](gateway/gateway-playground-request-review-loop-v1.md) | 功能专题 | 三协议 unary / stream、取消、稳定失败和精确 history handoff 已完成；不持久化输入输出 |
 | [Workflow 细专题入口](workflow/README.md) | 功能专题目录 | 承接 workflow 具体功能、页面 / 界面和实现专题 |

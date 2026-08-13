@@ -39,6 +39,13 @@
 1. 产品线：S9 / S10 Visual R3 React 纵向迁移与真实浏览器复核均已关闭。Gateway Provider Attempt 批次 A 至 D 已完成 Route v2、冻结 attempt plan、类型化 Provider failure、Request History v3 三存储、既有 Admin 人工激活链和三个 API Key unary API；批次 E 的七个 S7 / S5 Visual R1 代表面已完成并获得人工视觉批准。下一工作日继续 strict consumer 与双数据库产品连续链；不打开真实 Provider 或 production，不从已关闭页面派生 S11、同层 gate-only 任务卡或无产品目标的样式续批。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
+## 2026-08-14 明日事项
+
+1. 第一顺位：让既有 Admin Route strict consumer / editor 严格支持 Route v1 / v2，继续复用同一 draft、candidate、review 与 activation owner。
+2. 第二顺位：让既有 Playground 只在 API Key 非流式请求中显式提交 `fallback_mode`，stream 与非 API Key 保持 `disabled`；消费端只读取脱敏 attempt 头。
+3. 第三顺位：让既有 Request History 严格消费 v1 / v2 / v3，展示 durable attempt lineage、逐 attempt quota / cost coverage 与终态选择，旧记录只投影为单 attempt。
+4. 完成相邻 Web 测试后再进入 memory / SQLite 产品连续链；PostgreSQL、三协议、三视口和最终全量门禁按证据顺序推进。明日不打开真实 Provider、stream fallback、非 API Key fallback、同 Profile retry、隐式切换或 production enablement。
+
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
 
 持久草案存储库、稳定 Gateway、执行器 v0 与持久开发测试态运行历史均已成立。真实浏览器已验证“创建 → 保存 → 启动受限运行 → 分页历史 → 详情 → 服务重启恢复”，运行记录中模型服务调用为 1，工具、确认、业务写入和重放均为 0，原始输入与条件值未持久化。无限制工具、业务写回、自动确认提交、重放和恢复继续关闭。

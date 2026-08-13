@@ -15,8 +15,8 @@
 ## 人工批准记录
 
 - 2026-08-13：功能设计获得人工批准，可以创建唯一高风险任务卡并进入批次 A。
-- 本次批准只授权既定开发测试态范围，不代表 runtime fallback、数据库迁移、HTTP、Pencil、React、真实 Provider 或 production capability 已完成。
-- 批次 E 的完整 Pencil 仍需单独人工视觉批准；批准前不得实现 React strict consumer。
+- 2026-08-13：批次 E 的七个 Visual R1 代表面获得人工视觉批准，可以进入 React strict consumer；批准前未抢跑 React。
+- 两次批准都只覆盖既定开发测试态范围，不代表 React、产品连续链、真实 Provider 或 production capability 已完成。
 
 ## 固定架构
 
@@ -127,6 +127,13 @@ active Provider Route v2 snapshot
 Pencil 证据：S7 Route Desktop `h41DNz` / Narrow `Q5dMjv`，S5 Playground Desktop `DY5HB` / Narrow `o9Btk`，S5 Request History Desktop `KsXpp` / Narrow `BRzOE`，Decision R17 `GfqT6`。七个根节点按产品审阅顺序横向排放，逐节点边界扫描为零裁切、零越界、零 placeholder；桌面与窄屏截图已复核，并于 2026-08-13 获得人工视觉批准。当前没有 React 改动。
 
 退出条件：双数据库、三个协议、真实浏览器和人工设计证据全部关闭后，专题才可标记完成。
+
+## 2026-08-14 开工顺序
+
+1. 先扩展 `adminProviderRouteConsumer.ts` 与既有 Route editor，使 v1 / v2 形成严格判别联合；v2 只编辑有序、不同 Profile 且协议能力兼容的主 / 备 target，并继续复用既有 candidate、review 与 activation owner。
+2. 再扩展 `modelGatewayPlaygroundConsumer.ts`：只在 API Key 非流式调用显示请求级 `disabled | allow_configured`，stream 或非 API Key 必须锁定 `disabled`；读取两个脱敏 attempt 响应头，不推测 Provider 内部错误。
+3. 最后扩展 `modelGatewayRequestHistoryConsumer.ts` 与 panel：严格消费 v1 / v2 / v3，v3 按 durable checkpoint 展示 attempt lineage、逐 attempt quota / cost coverage 与终态选择；旧记录继续投影为单 attempt，不补造字段。
+4. 三个 strict consumer 和相邻 Web 测试闭合后，才启动 memory / SQLite 产品连续链；PostgreSQL、三协议一致性、真实浏览器三视口与最终门禁继续按任务卡顺序推进，不在 UI 内复制 Route、quota、pricing 或 history owner。
 
 ## 验证顺序
 
