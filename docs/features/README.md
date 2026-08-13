@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-13 当前执行口径：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭；S9 / S10 Visual R3 已人工通过，S9 React 迁移和真实浏览器连续链也已关闭。S10 审计确认功能与响应式基线正确，但仍需把当前平均化列表 / 详情结构迁移为 campaign 主对象、连续 evidence rows 和单一 handoff rail，因此它是下一顺位唯一纵向切片。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)、[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)和[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md)均保持关闭；不建立 S11 或同层门禁，production price、quota、billing、正式 membership / OIDC、自动执行和自动发布仍关闭。
+2026-08-13 当前执行口径：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 也已分别完成 Visual R3 React 迁移和真实浏览器复核；Application Quota 保持单一 quota owner，Evaluation Campaign 保持 selected context、campaign 主 owner、连续 evidence rows 与单一 Handoff rail。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)、[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)和[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md)均保持关闭。下一顺位应从新的真实产品阻塞选择长期功能设计文档；不建立 S11 或同层门禁，production price、quota、billing、正式 membership / OIDC、自动执行和自动发布仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -64,7 +64,7 @@
 | [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md) | 功能 / 源码版本与受控执行专题 | 批次 A 至 E、双数据库连续链、重启、负向与隐私验收均已完成；专题关闭 |
 | [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](user-workspace/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md) | 功能 / 策略版本与受控建议专题 | 批次 A 至批次 E 已完成，专题关闭 |
 | [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md) | 功能 / 回归评测与人工发布审查专题 | Comparison v5 / v6、Case、Suite 与 decision 兼容和 SQLite 真实浏览器链已完成，专题关闭 |
-| [应用评测计划、受控执行与证据归档（开发 / 测试态）v1](user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md) | 功能 / 高风险受控执行专题 | 后端 A 至 D、S10 Pencil / React / strict consumer、memory / SQLite exact handoff 与重启恢复已完成；结构化输入专题批次 D 已在原 owner 上补齐第五个 Definition v2 Profile |
+| [应用评测计划、受控执行与证据归档（开发 / 测试态）v1](user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md) | 功能 / 高风险受控执行专题 | 后端 A 至 D、S10 Visual R3 React / strict consumer、memory / SQLite exact handoff、重启恢复和三视口浏览器复核已完成；结构化输入专题批次 D 已在原 owner 上补齐第五个 Definition v2 Profile |
 | [Prompt / Agent / Copilot 类型工作区产品化 v1](user-workspace/prompt-agent-copilot-type-workspace-productization-v1.md) | 功能 / 类型工作区产品化专题 | S8 Pencil、七 / 八任务单 owner React 工作区、Web / build 与真实浏览器验收已完成；不扩生产认证、自动 assignment、自动发布或 agent loop |
 | [Admin Control Plane 细专题入口](admin-control-plane/README.md) | 功能专题目录 | 承接 authenticated read、permission binding、repository transition 与后续管理端真实使用路径 |
 | [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md) | 功能 / 高风险管理动作专题 | 批次 A 至 E 已完成并关闭，覆盖领域、三模式 repository、Admin API / Web、Gateway snapshot consumer、请求历史谱系与双数据库产品验证 |

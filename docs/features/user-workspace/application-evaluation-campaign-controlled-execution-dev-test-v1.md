@@ -1,6 +1,6 @@
 # 应用评测计划、受控执行与证据归档（开发 / 测试态）v1
 
-更新时间：2026-08-11
+更新时间：2026-08-13
 
 状态：`application_evaluation_campaign_controlled_execution_dev_test_v1_completed`
 
@@ -180,7 +180,7 @@ campaign 不锁住发布或 assignment owner，也不通过长事务包住 provi
 - permission、archived application、environment mismatch、authority drift、quota、version conflict、missing policy、store failure、interrupted / partial handoff 状态；
 - Desktop、关键断点与 `390×844` 的响应式顺序、选中语义和无横向溢出。
 
-2026-08-10 已在用户确认设计源空闲后完成 `S10` Desktop、Narrow 与共享 Decision R15，并据此实现 React 功能纵向切片；但首版 R1 后续因 dashboard 式进度卡、稀疏工作面和页面骨架没有继承 S1–S8 被人工退回。Visual R2 在相同根节点恢复 `264px` 产品导航、薄页眉、evidence path、selected campaign 单一 owner、连续 item rows 和单一 handoff rail 后，又因业务表面全部硬方形、棱角语言与 S1–S8 不一致被人工退回。Visual R3 已保留连续信息结构，并按 `8–11px` 职责圆角修订任务、上下文、owner、boundary 与 handoff 表面，于 2026-08-12 完成人工视觉复核。功能契约、strict consumer 与真实数据库证据不因视觉修订失效，但 React 暂不声明逐项采用 Visual R3。
+2026-08-10 已在用户确认设计源空闲后完成 `S10` Desktop、Narrow 与共享 Decision R15，并据此实现 React 功能纵向切片；但首版 R1 后续因 dashboard 式进度卡、稀疏工作面和页面骨架没有继承 S1–S8 被人工退回。Visual R2 在相同根节点恢复 `264px` 产品导航、薄页眉、evidence path、selected campaign 单一 owner、连续 item rows 和单一 handoff rail 后，又因业务表面全部硬方形、棱角语言与 S1–S8 不一致被人工退回。Visual R3 已保留连续信息结构，并按 `8–11px` 职责圆角修订任务、上下文、owner、boundary 与 handoff 表面，于 2026-08-12 完成人工视觉复核。2026-08-13 React 已逐项采用该基线：selected campaign context 驱动唯一 campaign 主 owner，item 使用连续 evidence rows，后续 Handoff 只占一个辅助 rail；功能契约、strict consumer 与真实数据库证据没有改变。
 
 普通 plan、campaign 和 item 行保持中性；只有驱动当前详情的对象使用墨蓝选中轨。failed、quota exceeded、interrupted、partial 或 blocked 只使用文字、图标与状态色，不冒充选中。
 
@@ -212,6 +212,7 @@ campaign 不锁住发布或 assignment owner，也不通过长事务包住 provi
 - 已实现 strict consumer、四任务单 owner Workbench、完整失败关闭、Plan / Campaign / Pair / Handoff 交互和全视口响应式样式。
 - Web `316/316`、S10 定向 `7/7` 与 production build 已通过；memory 真实浏览器已完成 Plan → 两次 Campaign → Pair → exact Case / Suite Handoff，`1440×900`、`1024×900`、`390×844` 无横向溢出，控制台零 warning / error，刷新后仍恢复 exact evidence。
 - SQLite 真实页面以 `app_cssvwuvwodxmxecz` 创建 Plan `aeplan_lkqe7gr7kjobmf73 v1`。首个 Campaign `aecamp_slj6slzdz35qvhne` 在第二个 LLM 节点以 `workflow_run_gateway_failed / gateway` 失败并保留真实证据，由此定位同一 Run 复用 quota request identity 的根因；修正为逐 LLM 节点派生 provider-attempt identity 后，baseline `aecamp_2xrptdhto6nbj7vc` 与 candidate `aecamp_qr2wmglzcj5eortb` 均成功。Pair Preview 得到 `comparable`、expected `unchanged`、actual `changed`、mismatch `1`，显式 Handoff 生成 Case `eval_034d69aec0d7a2323c7f222f v1` 与 Suite `suite_9a8017d686be57009c7ad973`。再次重启服务后精确恢复同一 Case / Suite；`1440×900`、`1024×900`、`390×844` 均无横向溢出，控制台零 warning / error，页面未回显原始凭据。
+- 2026-08-13 完成 Visual R3 React 迁移。真实 SQLite 数据下可在两个 succeeded Campaign 间切换，selected context、主 owner、连续 item rows 与 Handoff rail 始终保持单一职责；`Review handoff` 精确进入既有 Handoff 任务，不创建自动执行或第二套状态 owner。`1440×900`、`720×900`、`390×844` 的 document、workspace、context、owner、item 与 rail 均无横向溢出，最终控制台无 warning / error。
 
 ## 当前实现进度
 
@@ -219,7 +220,7 @@ campaign 不锁住发布或 assignment owner，也不通过长事务包住 provi
 - Workflow Definition 结构化运行输入专题批次 D 在原 owner 上增加 Plan / Plan Version / Campaign v2 与第五个 `workflow_definition_executor_v2` Profile；typed fixture 只使用 `{inputs}`，Campaign 逐项重读 exact Definition / contract authority，Run v8 pair 交给 Comparison v7 和既有 Case / Suite。SQLite `0019` 与 PostgreSQL `0022` 扩展共享 Workflow Run Store；v1 资源不迁移、不回退，Campaign 与 Run 不复制 fixture 正文。
 - PostgreSQL repository 使用行锁与 CAS；SQLite 与 PostgreSQL 都拒绝版本覆盖、资源删除和非法状态迁移。Case / Suite partial handoff 以 candidate campaign 为单一锚点逐项 checkpoint。
 - 相邻测试覆盖计划版本、campaign 幂等与顺序执行、quota binding、多 LLM 节点独立 provider-attempt admission、authority drift、quota failure、reconcile 不重放、strict HTTP、权限、active API Key 归属、SQLite restart / corruption、PostgreSQL migration 与 repository contract、Comparison preview、complete / partial handoff。
-- 批次 E 的设计、React、strict consumer、测试、build、三视口、memory 与 SQLite 真实浏览器连续链均已完成；开发服务均已停止。
+- 批次 E 的设计、Visual R3 React、strict consumer、测试、build、三视口、memory 与 SQLite 真实浏览器连续链均已完成；本轮迁移没有新增 API、schema、migration、repository、permission、任务卡、fixture 或专项 checker，开发服务均已停止。
 - SQLite 已完成 exact Plan → 两次 succeeded Campaign → Pair → Handoff，并在服务重启后恢复同一 Case / Suite。首个失败 Campaign 作为多节点 quota identity 根因证据保留；修正后双 LLM 节点回归证明每个 provider attempt 独立准入。专题关闭，不扩张 production membership / OIDC、production secret、billing、自动执行、自动重试 / 续跑、发布 / 部署或业务写回。
 
 ## 验收方式

@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-08-11
+更新时间：2026-08-13
 
 ## 核心定义
 
@@ -27,7 +27,7 @@
 
 ## 当前实施状态
 
-Family UI `S1 R8` 至 `S8 R1` 已完成 Pencil、React 和真实浏览器严格验收。S9 / S10 的功能纵向切片与 Pencil Visual R3 已人工通过，React 是否逐项采用该稿仍由后续迁移批次验证。开发测试态 application request quota 已完成独立三模式 owner、Admin GET / PUT、CAS 更新、六条 API Key inference route 的 provider 前原子准入以及 S9 管理面；这不代表 production quota、rate limit、token / cost 或 billing 成立。
+Family UI `S1 R8` 至 `S8 R1` 已完成 Pencil、React 和真实浏览器严格验收。S9 / S10 的功能纵向切片、Pencil Visual R3、React 迁移与真实浏览器三视口复核也已完成；后续 UI 工作只由新的功能专题和真实使用证据产生，不建立 S11。开发测试态 application request quota 已完成独立三模式 owner、Admin GET / PUT、CAS 更新、六条 API Key inference route 的 provider 前原子准入以及 S9 管理面；这不代表 production quota、rate limit、token / cost 或 billing 成立。
 
 [Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](features/gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md) 已完成。独立版本化 USD 价格 owner、请求级不可变价格快照、合法 reported usage 的确定性整数估算、Request History v2 对 v1 的只读兼容、Admin API、Visual R1、Application Operations、React strict consumer、双数据库和真实浏览器连续链均已闭合；仍不创建 production price、cost ledger、invoice、token quota、预算告警或请求拒绝能力。
 
@@ -177,7 +177,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 ## 当前阶段判断
 
 - 当前成熟度统一称为“内部开发者预览”，不再复用历史 `M2` 编号。2026-07-11 起，当前执行以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 为准；旧 storage adapter readiness 的下一依赖只作为历史证据。
-- R3 浏览器审查闭环、Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、Workflow Executor、durable Run History、Failure Review、Run Comparison、Evaluation、Gateway Request History / Playground、Application API Integration / Configuration / Publish Governance、Application Catalog 与 API Key Lifecycle 均已完成。2026-07-29 又关闭 Saved Draft 草案库生命周期、应用解除归档与安全重新启用、API 密钥引导式轮换与验证后退役三项专题；2026-08-09 新增的 application request quota 已完成开发测试态纵向切片，S9 / S10 Pencil Visual R3 已人工通过。R6、Workflow HTTP Tool、RAG Retrieval / 评测 / 知识晋级、Application RAG runtime、Workflow 不可变版本晋级、Application Interaction Session、结构化运行输入和应用开发工作区均保持关闭；RAG 本地材料导入专题也已完成局部 Pencil、结构化 React owner、SQLite create / version / CAS / 重启与隐私复验。production repository mode、真实 OIDC、production secret、业务写回 / replay、production API key、production quota / billing 和公开生产 API 继续关闭。
+- R3 浏览器审查闭环、Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、Workflow Executor、durable Run History、Failure Review、Run Comparison、Evaluation、Gateway Request History / Playground、Application API Integration / Configuration / Publish Governance、Application Catalog 与 API Key Lifecycle 均已完成。2026-07-29 又关闭 Saved Draft 草案库生命周期、应用解除归档与安全重新启用、API 密钥引导式轮换与验证后退役三项专题；2026-08-09 新增的 application request quota 已完成开发测试态纵向切片，S9 / S10 Pencil Visual R3 与 React 迁移均已通过。R6、Workflow HTTP Tool、RAG Retrieval / 评测 / 知识晋级、Application RAG runtime、Workflow 不可变版本晋级、Application Interaction Session、结构化运行输入和应用开发工作区均保持关闭；RAG 本地材料导入专题也已完成局部 Pencil、结构化 React owner、SQLite create / version / CAS / 重启与隐私复验。production repository mode、真实 OIDC、production secret、业务写回 / replay、production API key、production quota / billing 和公开生产 API 继续关闭。
 - 历史上的 `M3` service/API smoke 与 `M4` broader review、`3B/4B` capacity review 已经收口为冻结证据。
 - 当前正式主线切换为“AI 工具 / 工作流 / 模型网关 / Copilot 集成平台重定义 + 平台基础能力建设”，不再把“继续深挖同一批实验”或“提前设计不存在的真实接线”当作默认推进方式。
 - 当前 `P3 Local Product Shell / Ops Surface` 的本地只读产品壳已收口为 `local usable / read-only close`：已用 `/v1/platform/overview`、`/v1/platform/local-smoke`、overview / local-smoke consumer smoke、最小本地 console 壳、Dev Diagnostics、`Local Readiness` 面板、Provider/Profile Details、Stop-line Details、overview / local-smoke failure surface、console behavior / visual smoke record / dev entry / production boundary gate 和 P3 checklist 固定本地 console 可展示能力与未满足的生产前置条件。`Production Ops Hardening v1` 已进一步固定 Docker local/test/prod 部署形态、compose 边界、镜像命名、静态 smoke、runbook 和运行记录模板，并完成一次 `docker_local` container smoke；`Provider Runtime & Health v1` 已固定 capability / health / selection / docs 四个可检查切片并进入 close candidate。2026-06-14 阶段评估后，默认停止继续扩同层只读 UI / gate-only 切片；Image Path 的 metadata-only response builder 接线和 Control Plane Read 的 repository interface + fake store interface 化均已完成，后续产品范围按功能设计文档选择单一实现方向，不在无运行窗口时继续补 console 小切片、provider 同层小切片、Production Ops 静态治理、真实模型长跑或假想上层接线。

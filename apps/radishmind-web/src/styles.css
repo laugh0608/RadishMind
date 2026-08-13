@@ -7099,11 +7099,13 @@ dd {
   min-width: 0;
   padding: 18px;
   border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-panel);
   background: var(--rm-bg-canvas);
 }
 
 .application-evaluation-heading,
-.application-evaluation-owner > section > header {
+.application-evaluation-owner > section > header,
+.application-evaluation-campaign-main > header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -7111,7 +7113,8 @@ dd {
 }
 
 .application-evaluation-heading > div:first-child,
-.application-evaluation-owner > section > header > div {
+.application-evaluation-owner > section > header > div,
+.application-evaluation-campaign-main > header > div {
   min-width: 0;
 }
 
@@ -7123,7 +7126,8 @@ dd {
 }
 
 .application-evaluation-heading > div:first-child > p:last-child,
-.application-evaluation-owner > section > header p:last-child {
+.application-evaluation-owner > section > header p:last-child,
+.application-evaluation-campaign-main > header p:last-child {
   max-width: 780px;
   margin-top: 5px;
   color: var(--rm-text-secondary);
@@ -7172,7 +7176,6 @@ dd {
 .application-evaluation-plan-editor label > span,
 .application-evaluation-campaign-create label > span,
 .application-evaluation-pair-selectors label > span,
-.application-evaluation-campaign-layout > aside > header span,
 .application-evaluation-confirmation > span,
 .application-evaluation-pair-summary span,
 .application-evaluation-handoff-gate > span {
@@ -7262,6 +7265,7 @@ dd {
 .application-evaluation-owner {
   min-width: 0;
   border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-panel);
   background: var(--rm-bg-surface);
 }
 
@@ -7269,8 +7273,7 @@ dd {
   align-self: start;
 }
 
-.application-evaluation-plan-list > header,
-.application-evaluation-campaign-layout > aside > header {
+.application-evaluation-plan-list > header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -7287,33 +7290,15 @@ dd {
   text-transform: uppercase;
 }
 
-.application-evaluation-plan-list > header strong,
-.application-evaluation-campaign-layout > aside > header strong {
+.application-evaluation-plan-list > header strong {
   font-size: 11px;
 }
 
-.application-evaluation-campaign-layout > aside > header > div {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.application-evaluation-campaign-layout > aside > header button {
-  min-height: 0;
-  padding: 5px 7px;
-  border: 1px solid var(--rm-border-strong);
-  background: var(--rm-bg-surface);
-  color: var(--rm-action-primary);
-  font-size: 8px;
-}
-
-.application-evaluation-plan-list > div,
-.application-evaluation-campaign-layout > aside {
+.application-evaluation-plan-list > div {
   display: grid;
 }
 
-.application-evaluation-plan-list button,
-.application-evaluation-campaign-layout > aside > button {
+.application-evaluation-plan-list button {
   display: grid;
   grid-template-columns: 3px minmax(0, 1fr) auto;
   align-items: center;
@@ -7330,53 +7315,44 @@ dd {
   text-align: left;
 }
 
-.application-evaluation-plan-list button.is-selected,
-.application-evaluation-campaign-layout > aside > button.is-selected {
+.application-evaluation-plan-list button.is-selected {
   background: var(--rm-action-soft);
 }
 
-.application-evaluation-plan-list button > i,
-.application-evaluation-campaign-layout > aside > button > i {
+.application-evaluation-plan-list button > i {
   width: 3px;
   height: 100%;
   background: transparent;
 }
 
-.application-evaluation-plan-list button.is-selected > i,
-.application-evaluation-campaign-layout > aside > button.is-selected > i {
+.application-evaluation-plan-list button.is-selected > i {
   background: var(--rm-action-primary);
 }
 
-.application-evaluation-plan-list button > span,
-.application-evaluation-campaign-layout > aside > button > span {
+.application-evaluation-plan-list button > span {
   display: grid;
   gap: 3px;
   min-width: 0;
 }
 
 .application-evaluation-plan-list button strong,
-.application-evaluation-plan-list button small,
-.application-evaluation-campaign-layout > aside > button strong,
-.application-evaluation-campaign-layout > aside > button small {
+.application-evaluation-plan-list button small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.application-evaluation-plan-list button strong,
-.application-evaluation-campaign-layout > aside > button strong {
+.application-evaluation-plan-list button strong {
   font-size: 10px;
 }
 
-.application-evaluation-plan-list button small,
-.application-evaluation-campaign-layout > aside > button small {
+.application-evaluation-plan-list button small {
   color: var(--rm-text-muted);
   font-family: var(--rm-font-mono);
   font-size: 8px;
 }
 
 .application-evaluation-plan-list button em,
-.application-evaluation-campaign-layout > aside > button em,
 .application-evaluation-item em {
   padding: 4px 6px;
   border-radius: var(--rm-radius-pill);
@@ -7390,8 +7366,7 @@ dd {
 }
 
 .application-evaluation-selection-note,
-.application-evaluation-empty,
-.application-evaluation-campaign-layout > aside > p {
+.application-evaluation-empty {
   margin: 0;
   padding: 11px 12px;
   background: var(--rm-bg-muted);
@@ -7523,24 +7498,163 @@ dd {
   line-height: 1.5;
 }
 
-.application-evaluation-campaign-layout {
+.application-evaluation-workspace[data-active-task="campaign"] .application-evaluation-owner {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.application-evaluation-campaign-owner {
   display: grid;
-  grid-template-columns: 238px minmax(0, 1fr);
   gap: 12px;
   min-width: 0;
 }
 
-.application-evaluation-campaign-layout > aside {
-  align-content: start;
+.application-evaluation-campaign-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
   min-width: 0;
-  border: 1px solid var(--rm-border-soft);
+  padding: 12px 14px;
+  border-left: 3px solid var(--rm-action-primary);
+  border-radius: var(--rm-radius-panel);
+  background: var(--rm-action-soft);
 }
 
-.application-evaluation-campaign-detail {
+.application-evaluation-campaign-context > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.application-evaluation-campaign-context > div:last-child {
+  justify-items: end;
+  text-align: right;
+}
+
+.application-evaluation-campaign-context span,
+.application-evaluation-campaign-context small,
+.application-evaluation-campaign-handoff-rail span,
+.application-evaluation-campaign-handoff-rail dt {
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.application-evaluation-campaign-context label,
+.application-evaluation-campaign-context select {
+  min-width: 0;
+  width: 100%;
+}
+
+.application-evaluation-campaign-context select {
+  min-height: 34px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-control);
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  font-weight: 700;
+}
+
+.application-evaluation-campaign-context button {
+  min-height: 0;
+  padding: 6px 8px;
+}
+
+.application-evaluation-campaign-context-meta > div {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.application-evaluation-campaign-surface {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 0.38fr);
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+}
+
+.application-evaluation-campaign-main,
+.application-evaluation-campaign-handoff-rail {
   display: grid;
   align-content: start;
   gap: 11px;
   min-width: 0;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-panel);
+  background: var(--rm-bg-surface);
+}
+
+.application-evaluation-campaign-main {
+  padding: 14px;
+}
+
+.application-evaluation-campaign-main > header {
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.application-evaluation-campaign-main .application-evaluation-authority {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.application-evaluation-campaign-handoff-rail {
+  padding: 14px;
+  background: var(--rm-bg-subtle);
+}
+
+.application-evaluation-campaign-handoff-rail > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.application-evaluation-campaign-handoff-rail > header strong {
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.application-evaluation-campaign-handoff-rail > strong {
+  color: var(--rm-text-primary);
+  font-size: 28px;
+  line-height: 1;
+}
+
+.application-evaluation-campaign-handoff-rail dl {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid var(--rm-border-soft);
+}
+
+.application-evaluation-campaign-handoff-rail dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.application-evaluation-campaign-handoff-rail dd {
+  margin: 0;
+  color: var(--rm-text-primary);
+  font-size: 8px;
+  font-weight: 750;
+  text-align: right;
+}
+
+.application-evaluation-campaign-handoff-rail p {
+  color: var(--rm-text-secondary);
+  font-size: 8px;
+  line-height: 1.5;
 }
 
 .application-evaluation-progress {
@@ -7548,6 +7662,7 @@ dd {
   gap: 9px;
   padding: 11px;
   border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-panel);
   background: var(--rm-bg-muted);
 }
 
@@ -7805,21 +7920,23 @@ dd {
 }
 
 @media (max-width: 1180px) {
-  .application-evaluation-workbench,
-  .application-evaluation-campaign-layout {
+  .application-evaluation-workbench {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .application-evaluation-plan-list > div,
-  .application-evaluation-campaign-layout > aside {
+  .application-evaluation-plan-list > div {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .application-evaluation-plan-list > header,
-  .application-evaluation-selection-note,
-  .application-evaluation-campaign-layout > aside > header,
-  .application-evaluation-campaign-layout > aside > p {
+  .application-evaluation-selection-note {
     grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 900px) {
+  .application-evaluation-campaign-surface {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -7829,7 +7946,9 @@ dd {
   }
 
   .application-evaluation-heading,
-  .application-evaluation-owner > section > header {
+  .application-evaluation-owner > section > header,
+  .application-evaluation-campaign-main > header,
+  .application-evaluation-campaign-context {
     align-items: stretch;
     flex-direction: column;
   }
@@ -7848,8 +7967,7 @@ dd {
   .application-evaluation-campaign-create,
   .application-evaluation-pair-selectors,
   .application-evaluation-pair-summary,
-  .application-evaluation-plan-list > div,
-  .application-evaluation-campaign-layout > aside {
+  .application-evaluation-plan-list > div {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -7870,10 +7988,21 @@ dd {
   .application-evaluation-campaign-create > button,
   .application-evaluation-campaign-create > .application-evaluation-confirmation,
   .application-evaluation-plan-list > header,
-  .application-evaluation-selection-note,
-  .application-evaluation-campaign-layout > aside > header,
-  .application-evaluation-campaign-layout > aside > p {
+  .application-evaluation-selection-note {
     grid-column: 1;
+  }
+
+  .application-evaluation-campaign-context > div:last-child {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .application-evaluation-campaign-context-meta > div {
+    justify-content: flex-start;
+  }
+
+  .application-evaluation-campaign-main .application-evaluation-authority {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .application-evaluation-item-header {

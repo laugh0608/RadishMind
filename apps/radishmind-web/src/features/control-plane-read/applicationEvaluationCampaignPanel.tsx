@@ -494,6 +494,7 @@ export default function ApplicationEvaluationCampaignPanel({
               onCancel={() => setCampaignConfirmation(false)}
               onConfirm={() => void confirmCampaign()}
               onReconcile={() => void reconcileCampaign()}
+              onOpenHandoff={() => chooseTask("handoff")}
             />
           ) : null}
           {activeTask === "pair" || activeTask === "handoff" ? (
@@ -750,6 +751,7 @@ function CampaignOwner({
   onCancel,
   onConfirm,
   onReconcile,
+  onOpenHandoff,
 }: {
   plan: ApplicationEvaluationPlan | null;
   version: ApplicationEvaluationPlanVersion | null;
@@ -768,30 +770,56 @@ function CampaignOwner({
   onCancel: () => void;
   onConfirm: () => void;
   onReconcile: () => void;
+  onOpenHandoff: () => void;
 }) {
   const total = selectedCampaign?.items.length ?? version?.items.length ?? 0;
   const completed = (selectedCampaign?.succeededItems ?? 0) + (selectedCampaign?.failedItems ?? 0);
+  const terminalCampaigns = campaigns.filter((campaign) => campaign.state === "succeeded");
   return (
     <section className="application-evaluation-campaign-owner">
-      <header>
+      <div className="application-evaluation-campaign-context">
         <div>
-          <p className="eyebrow">Current owner · Campaign</p>
-          <h4>Sequential controlled execution</h4>
-          <p>Each item delegates once to its existing service and checkpoints a deterministic durable Run reference.</p>
+          <span>Selected campaign</span>
+          <label>
+            <select
+              value={selectedCampaign?.campaignId ?? ""}
+              onChange={(event) => onSelectCampaign(event.target.value)}
+              aria-label="Selected evaluation campaign"
+            >
+              <option value="">New campaign draft</option>
+              {campaigns.map((campaign) => (
+                <option key={campaign.campaignId} value={campaign.campaignId}>
+                  {campaign.clientCampaignKey} · v{campaign.recordVersion}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
-        <span className={`status-badge ${selectedCampaign?.state === "succeeded" ? "good" : "neutral"}`}>{selectedCampaign?.state ?? "not started"}</span>
-      </header>
-      <div className="application-evaluation-campaign-layout">
-        <aside>
-          <header><span>Campaigns</span><div><strong>{campaigns.length}</strong><button type="button" onClick={onNewCampaign} disabled={writeBlocked || !plan || !version}>New campaign</button></div></header>
-          {campaigns.map((campaign) => (
-            <button key={campaign.campaignId} type="button" className={selectedCampaign?.campaignId === campaign.campaignId ? "is-selected" : ""} onClick={() => onSelectCampaign(campaign.campaignId)}>
-              <i aria-hidden="true" /><span><strong>{campaign.clientCampaignKey}</strong><small>{campaign.campaignId}</small><small>v{campaign.recordVersion} · {campaign.succeededItems}/{campaign.items.length}</small></span><em>{campaign.state}</em>
+        <div className="application-evaluation-campaign-context-meta">
+          <span>{campaigns.length} campaigns</span>
+          <small>{selectedCampaign ? shortRef(selectedCampaign.campaignId) : "No execution selected"}</small>
+          <div>
+            <span className={`status-badge ${selectedCampaign?.state === "succeeded" ? "good" : "neutral"}`}>
+              {selectedCampaign?.state ?? "not started"}
+            </span>
+            <button type="button" className="secondary-action" aria-label="New campaign" onClick={onNewCampaign} disabled={writeBlocked || !plan || !version}>
+              New
             </button>
-          ))}
-          {!campaigns.length ? <p>No campaigns exist for the selected plan.</p> : null}
-        </aside>
-        <div className="application-evaluation-campaign-detail">
+          </div>
+        </div>
+      </div>
+      <div className="application-evaluation-campaign-surface">
+        <div className="application-evaluation-campaign-main">
+          <header>
+            <div>
+              <p className="eyebrow">Current owner · Campaign</p>
+              <h4>{selectedCampaign?.clientCampaignKey ?? "Sequential controlled execution"}</h4>
+              <p>Each item delegates once to its existing service and checkpoints a deterministic durable Run reference.</p>
+            </div>
+            <span className={`status-badge ${selectedCampaign?.state === "succeeded" ? "good" : "neutral"}`}>
+              {selectedCampaign?.state ?? "draft"}
+            </span>
+          </header>
           <dl className="application-evaluation-authority">
             <div><dt>Profile</dt><dd>{version?.executionProfile ?? "—"}</dd></div>
             <div><dt>Plan</dt><dd>{version ? `v${version.planVersion} · ${shortRef(version.planDigest)}` : "—"}</dd></div>
@@ -825,6 +853,23 @@ function CampaignOwner({
             </div>
           )}
         </div>
+        <aside className="application-evaluation-campaign-handoff-rail" aria-label="Evaluation evidence handoff readiness">
+          <header>
+            <span>Evidence handoff</span>
+            <strong>{terminalCampaigns.length >= 2 ? "Pair ready" : "Waiting"}</strong>
+          </header>
+          <strong>{terminalCampaigns.length} / 2</strong>
+          <span>succeeded campaigns</span>
+          <dl>
+            <div><dt>Selected</dt><dd>{selectedCampaign?.state === "succeeded" ? "checkpointed" : "not terminal"}</dd></div>
+            <div><dt>Pair review</dt><dd>{terminalCampaigns.length >= 2 ? "available" : "blocked"}</dd></div>
+            <div><dt>Case / Suite</dt><dd>explicit only</dd></div>
+          </dl>
+          <p>Exact Run refs remain in their existing owners. Handoff never approves, releases or deploys a candidate.</p>
+          <button type="button" onClick={onOpenHandoff} disabled={terminalCampaigns.length < 2}>
+            Review handoff
+          </button>
+        </aside>
       </div>
     </section>
   );
