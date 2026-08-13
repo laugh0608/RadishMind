@@ -2,7 +2,7 @@
 
 更新时间：2026-08-13
 
-状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_d_completed_batch_e_next`
+状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_e_pencil_visual_r1_approved_react_next`
 
 ## 功能定位
 
@@ -253,6 +253,15 @@ v3 在根记录新增：
 
 Pencil 通过前不实现 React；稳定同族组件可直接复用，只有上述结构性决策进入设计基准。
 
+2026-08-13 已在同一 Family UI 设计源中完成 Visual R1，共新增七个横向相邻的顶层基准面：
+
+- S7 Route：Desktop `h41DNz`、Narrow `Q5dMjv`；冻结有序主 / 备 target、`sequential_fallback`、能力兼容、额外 quota / partial cost 风险、candidate review 与独立 activation；
+- S5 Playground：Desktop `DY5HB`、Narrow `o9Btk`；桌面表达非流式请求显式允许 `allow_configured`，窄屏表达 stream 开启时开关锁定且零隐式 fallback；
+- S5 Request History：Desktop `KsXpp`、Narrow `BRzOE`；桌面表达主失败 → durable checkpoint → 备用成功，窄屏表达第二次 quota 拒绝且零备用 Provider 调用；
+- Decision R17 `GfqT6`：统一冻结 `single attempt`、fallback success、quota rejected、two failures、history checkpoint failure 与旧 v2 单 attempt 投影六类代表状态。
+
+七个根节点已完成逐节点边界扫描和实际截图复核，结果为零裁切、零越界、零 placeholder；颜色不是状态唯一通道，只有当前审查 target / attempt 使用墨蓝选中轨。Visual R1 已于 2026-08-13 获得人工视觉批准，React strict consumer 留到下一工作日开始。
+
 ## 实施批次
 
 设计已于 2026-08-13 获得人工批准；当前由[唯一高风险任务卡](../../task-cards/gateway-provider-attempt-controlled-retry-fallback-execution-dev-test-v1-plan.md)承接以下批次，不派生同层 readiness / refresh 链：
@@ -292,6 +301,8 @@ Pencil 通过前不实现 React；稳定同族组件可直接复用，只有上�
 - PostgreSQL 实例覆盖 migration、并发、checkpoint 与重连；
 - 完成 Web 测试、build、Go race、三视口、隐私扫描和全量仓库门禁。
 
+当前进度：Visual R1 七个代表面已经冻结并于 2026-08-13 获得人工视觉批准。下一小步是扩展既有 Route、Playground 与 Request History view model / strict consumer，不创建第二套 UI owner；本日不再进入 React 实现。
+
 ## 验收
 
 - 未激活 v2 policy、请求未显式允许或 gate 关闭时，bridge 调用最多一次；
@@ -328,4 +339,4 @@ Pencil 通过前不实现 React；稳定同族组件可直接复用，只有上�
 3. 只覆盖 API Key 认证的三个非流式 northbound API；
 4. Request History v3、逐 attempt quota 与逐 attempt pricing 是实现前置，不以单 selection 字段勉强承载多 attempt。
 
-设计已于 2026-08-13 获得人工批准，唯一高风险任务卡已经建立。批次 A 至 D 已完成领域合同、三存储同构持久化、既有 Admin 人工激活链与三个 API Key unary API 的显式受控 fallback。下一步进入批次 E：先冻结并人工批准既有 S7 Route 与 S5 Playground / Request History 的完整 Pencil 代表面，再实现 React strict consumer 和 memory / SQLite / PostgreSQL 产品连续链。stream、非 API Key、真实 Provider 调用、其它应用运行链与 production capability 仍未打开。
+功能设计与批次 E Visual R1 均已于 2026-08-13 获得人工批准，唯一高风险任务卡继续承接实现。批次 A 至 D 已完成领域合同、三存储同构持久化、既有 Admin 人工激活链与三个 API Key unary API 的显式受控 fallback；七个 Visual R1 代表面也已冻结并通过结构 / 实际渲染复核。下一工作日继续 strict consumer 和 memory / SQLite / PostgreSQL 产品连续链。stream、非 API Key、真实 Provider 调用、其它应用运行链与 production capability 仍未打开。

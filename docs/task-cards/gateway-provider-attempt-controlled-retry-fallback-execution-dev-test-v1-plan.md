@@ -2,7 +2,7 @@
 
 更新时间：2026-08-13
 
-状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_d_completed_batch_e_next`
+状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_e_pencil_visual_r1_approved_react_next`
 
 对应功能文档：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](../features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md)
 
@@ -115,13 +115,16 @@ active Provider Route v2 snapshot
 
 ## 批次 E：Pencil、React 与产品连续链
 
-状态：下一顺位；等待 Pencil 代表面与产品连续链。
+状态：进行中；Visual R1 已冻结并获得人工视觉批准，React strict consumer 为下一工作日首项。
 
-- [ ] 在既有 S7 Route 与 S5 Playground / Request History 页面族冻结完整 Pencil 代表面并完成人工批准。
+- [x] 在既有 S7 Route 与 S5 Playground / Request History 页面族冻结完整 Pencil 代表面。
+- [x] 完成本轮 Visual R1 人工视觉批准；批准前未实现 React。
 - [ ] 实现主备 Route、请求级允许和连续 attempt evidence strict consumer。
 - [ ] 完成 memory / SQLite 浏览器主失败 → 备用成功、双失败、quota 阻断、旧记录与重启链。
 - [ ] 完成 PostgreSQL migration、并发、checkpoint、重连与三协议一致性。
 - [ ] 覆盖 Desktop、关键断点与 `390×844`，并完成隐私、Web、build、race 和仓库门禁。
+
+Pencil 证据：S7 Route Desktop `h41DNz` / Narrow `Q5dMjv`，S5 Playground Desktop `DY5HB` / Narrow `o9Btk`，S5 Request History Desktop `KsXpp` / Narrow `BRzOE`，Decision R17 `GfqT6`。七个根节点按产品审阅顺序横向排放，逐节点边界扫描为零裁切、零越界、零 placeholder；桌面与窄屏截图已复核，并于 2026-08-13 获得人工视觉批准。当前没有 React 改动。
 
 退出条件：双数据库、三个协议、真实浏览器和人工设计证据全部关闭后，专题才可标记完成。
 

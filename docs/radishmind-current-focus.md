@@ -10,7 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 当前产品顺位：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 已完成批次 A 至 D，状态为 `gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_d_completed_batch_e_next`。三个 API Key 非流式 northbound API 已在独立开发测试 gate 下接入显式 `allow_configured`：同一请求固定 Route / inventory / pricing，逐 attempt 执行 quota、bridge 与 Request History v3 checkpoint，且只有类型化 eligible Provider failure 能进入一次不同 Profile 的备用目标。下一步按[唯一任务卡](task-cards/gateway-provider-attempt-controlled-retry-fallback-execution-dev-test-v1-plan.md)推进批次 E：先完成既有 S7 Route 与 S5 Playground / Request History 的完整 Pencil 代表面和人工批准，再实现 React strict consumer、双数据库产品连续链与真实浏览器复核；真实 Provider、非 API Key、同 Profile retry、stream fallback、隐式切换和 production enablement 全部关闭。
+- 当前产品顺位：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 正在推进批次 E，状态为 `gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_e_pencil_visual_r1_approved_react_next`。批次 A 至 D 已闭合 Route v2、三存储 Request History v3、Admin 人工激活链与三个 API Key 非流式 northbound API 的显式 `allow_configured`；本轮又在既有 S7 Route、S5 Playground / Request History 页面族冻结七个 Visual R1 代表面，逐节点边界扫描和实际截图均无裁切、越界或 placeholder，并已获得人工视觉批准。下一工作日先实现 Route、Playground 与 Request History strict consumer，再推进双数据库产品连续链与真实浏览器复核。真实 Provider、非 API Key、同 Profile retry、stream fallback、隐式切换和 production enablement 全部关闭。
 - 最近关闭专题：[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](features/gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md) 状态为 `provider_pricing_policy_version_application_cost_review_dev_test_v1_completed`。批次 A 至 E、memory / SQLite / PostgreSQL、Admin GET / PUT、Request History v2、不可变价格快照、reported usage 整数估算、quota / stream、Visual R1、React strict consumer 和真实浏览器均已关闭。SQLite 完成 v1 → v2、双标签 CAS、重启、API Key / 开发身份、Request History 与 Application Operations；PostgreSQL 完成 migration / runtime role、并发和重连后旧快照不重算。production price、token quota、billing ledger、invoice、全历史成本、自动路由和请求拒绝全部关闭。
 - 最近关闭产品顺位为 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)：S9 / S10 React 已分别完成 Visual R3 纵向迁移与真实浏览器复核；本轮不改 Pencil、不建立 S11，也没有新增同层 gate-only 任务卡。该专题关闭后的入口回流已完成，当前新专题以上方 Provider Attempt 设计为准。
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
@@ -36,7 +36,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：S9 / S10 Visual R3 React 纵向迁移与真实浏览器复核均已关闭。Gateway Provider Attempt 批次 A 至 D 已完成 Route v2、冻结 attempt plan、类型化 Provider failure、Request History v3 三存储、既有 Admin 人工激活链和三个 API Key unary API；当前只推进批次 E 的既有 S7 / S5 Pencil 代表面、React strict consumer与双数据库产品连续链，不打开真实 Provider 或 production，不从已关闭页面派生 S11、同层 gate-only 任务卡或无产品目标的样式续批。
+1. 产品线：S9 / S10 Visual R3 React 纵向迁移与真实浏览器复核均已关闭。Gateway Provider Attempt 批次 A 至 D 已完成 Route v2、冻结 attempt plan、类型化 Provider failure、Request History v3 三存储、既有 Admin 人工激活链和三个 API Key unary API；批次 E 的七个 S7 / S5 Visual R1 代表面已完成并获得人工视觉批准。下一工作日继续 strict consumer 与双数据库产品连续链；不打开真实 Provider 或 production，不从已关闭页面派生 S11、同层 gate-only 任务卡或无产品目标的样式续批。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
