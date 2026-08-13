@@ -239,6 +239,8 @@ pending_review -> rejected
 
 所有 body 使用有界 strict JSON，未知字段、重复对象、尾随内容和超限载荷在领域与 repository 前拒绝。管理响应统一返回 request / audit lineage、作用域、对应领域资源、稳定 `failure_code` 和冲突时的当前 revision / review version / generation；activation history 缺省为空数组。所有成功与失败响应都设置 `Cache-Control: no-store`。
 
+2026-08-13 的 Provider Attempt v1 扩展继续复用上述 endpoint、身份、权限和失败映射：草案 `model_routes` 可严格消费既有 v1 单目标或 Route v2 `execution_mode + attempt_targets`，但不接受混合版本。review 仍不改变 active snapshot；显式 activation 会重验全部 target inventory digest 后才推进 generation，既有 v1 candidate 继续可作为合法 rollback 目标。
+
 HTTP 状态固定分层：缺失 / 无效身份为 `401`，权限或环境禁止为 `403`，资源不存在为 `404`，CAS / 状态冲突为 `409`，领域资格不满足为 `422`，inventory / store / membership unavailable 为 `503`，strict payload 错误为 `400`。真实 OIDC workspace membership 未成立时必须在 repository 前返回 `workspace_membership_unavailable`。不得复用 northbound Gateway 路由承载管理动作。
 
 ## 持久化方向

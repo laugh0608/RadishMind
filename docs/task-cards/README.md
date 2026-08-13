@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前唯一活跃高风险实现任务卡为 [Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway-provider-attempt-controlled-retry-fallback-execution-dev-test-v1-plan.md)，状态为 `gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_b_completed_batch_c_next`。批次 A、B 已完成 Route v2、不可变 attempt plan、类型化 Provider failure 与 Request History v3 的 memory / SQLite / PostgreSQL 同构持久化；下一步只推进既有 Admin Route API 与激活链，northbound fallback、React、真实 Provider 调用和 production capability 均未打开，不派生平行 gate-only 切片。
+当前唯一活跃高风险实现任务卡为 [Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway-provider-attempt-controlled-retry-fallback-execution-dev-test-v1-plan.md)，状态为 `gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_c_completed_batch_d_next`。批次 A 至 C 已完成 Route v2、不可变 attempt plan、类型化 Provider failure、Request History v3 三存储同构持久化及既有 Admin 人工激活链；下一步只推进三个 northbound unary API，React、真实 Provider 调用和 production capability 均未打开，不派生平行 gate-only 切片。
 
 ## 最近关闭任务
 

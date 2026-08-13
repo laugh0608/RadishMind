@@ -32,7 +32,7 @@ Workflow 产品链、Gateway Request History、[Gateway Playground / Request Rev
 
 该功能只增加 Web consumer / lazy panel 与 request-id handoff，复用现有 API、dev/test caller scope 和 history，不新增 schema、repository、provider contract 或生产授权。输入输出只存在于当前组件内存，Request History 继续只保存 sanitized operational metadata。
 
-Provider Attempt 批次 B 已把 Route v2 与 Request History v3 同构落入 SQLite / PostgreSQL，并证明旧版本兼容、重启恢复、并发单赢家、损坏 payload 失败关闭、runtime role 无 DDL 与 no fallback。当前开发目标已切换为批次 C：只扩既有 Route draft / candidate / review / activation API 与激活链；northbound fallback、Web 与 production capability 继续关闭。
+Provider Attempt 批次 A 至 C 已把 Route v2、Request History v3 与既有 Admin 人工激活链闭合：SQLite / PostgreSQL 同构持久化、旧版本兼容、重启恢复、并发单赢家、损坏 payload 失败关闭、runtime role 无 DDL，以及 v1 → v2 → rollback v1 的 strict HTTP 连续链均已成立。当前开发目标已切换为批次 D：只接三个 northbound unary API；Web 与 production capability 继续关闭。
 
 ## 设计边界
 
@@ -53,7 +53,7 @@ Provider Attempt 批次 B 已把 Route v2 与 Request History v3 同构落入 SQ
 6. Request History、Playground、Application API Integration、Application Configuration Draft / Review 与 Publish Governance 已完成 application → validated configuration → models / examples → request → response → history → immutable candidate / review 的开发测试路径。
 7. API 密钥 Gateway 认证、本地连续链、PostgreSQL migration / 角色 / 方言 / 并发门禁、Web 一次性交接和浏览器重启复验均已通过；Provider reported usage 已进入 canonical envelope、三协议、历史与应用审查。独立 application request quota 已完成三模式 owner、Admin API、六条 route provider 前准入、S9 完整 Pencil、React 严格 consumer、CAS 确认与真实浏览器连续链；不提前打开 production distribution、token 估算、价格、production quota 或计费。
 8. 价格与成本专题设计、S9 / S10 Visual R3、S7 Pricing / S5 Cost Review Visual R1、领域、三模式 owner、Admin API、Request History v2、React strict consumer、数据库实例和真实浏览器连续链均已关闭。
-9. Provider Attempt 批次 A、B 已关闭；当前按唯一高风险任务卡推进批次 C 的既有 Admin Route API 与激活链，不从静态 retry / fallback policy 派生同层 checker 链。
+9. Provider Attempt 批次 A 至 C 已关闭；当前按唯一高风险任务卡推进批次 D 的三个 northbound unary API，不从静态 retry / fallback policy 派生同层 checker 链。
 
 ## 验收方式
 

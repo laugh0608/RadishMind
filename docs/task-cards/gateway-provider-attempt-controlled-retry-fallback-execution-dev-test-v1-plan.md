@@ -2,7 +2,7 @@
 
 更新时间：2026-08-13
 
-状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_b_completed_batch_c_next`
+状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_c_completed_batch_d_next`
 
 对应功能文档：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](../features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md)
 
@@ -77,7 +77,7 @@ active Provider Route v2 snapshot
 
 ## 批次 B：SQLite / PostgreSQL
 
-状态：已完成；批次 C 下一顺位。
+状态：已完成；批次 C 已完成。
 
 - [x] 增加 Route v2 / Request History v3 同构 migration、marker、repository 与 store selector 兼容；旧 v1 / v2 迁移链保持可升级。
 - [x] 验证 v1 / v2 历史、Route v1 snapshot、Route v2 与 attempt checkpoint 重启恢复、原子状态迁移及损坏 payload 失败关闭。
@@ -89,17 +89,19 @@ active Provider Route v2 snapshot
 
 ## 批次 C：Admin API 与激活链
 
-状态：下一顺位；尚未开始。
+状态：已完成；批次 D 下一顺位。
 
-- [ ] 扩展既有 Route draft / candidate / review / activation API，不创建第二套 endpoint 或 permission。
-- [ ] 覆盖 strict JSON、target 顺序、能力兼容、inventory digest、双标签 CAS、rollback 与 v1 snapshot。
-- [ ] 确保 review 不改变运行时，只有 activation 切换后续请求的 generation。
+- [x] 扩展既有 Route draft / candidate / review / activation API，不创建第二套 endpoint 或 permission。
+- [x] 覆盖 strict JSON、target 顺序、能力兼容、inventory digest、draft / review / generation CAS、rollback 与 v1 snapshot。
+- [x] 确保 review 不改变运行时，只有 activation 切换后续请求的 generation。
+
+批次证据：既有 `PUT /v1/admin/provider-route-configurations/{configuration_id}` 已移除批次 A 的 v1-only 停止线，直接复用同一 strict decoder、领域规范化、四项权限和三存储 owner 消费 Route v2。HTTP 连续链已证明 v1 generation 1 → v2 review 后仍保持 generation 1 → 显式 activation 切换 generation 2 → rollback 回到 v1 generation 3；嵌套未知 / 重复字段、target 数组与 ordinal 不一致、备用 Profile capability 不兼容、陈旧 revision / review version / generation 和任一 target inventory digest 漂移均在运行时切换前失败关闭。真实 PostgreSQL 17 聚合门禁已用 Route v2 完成同一 Admin HTTP draft → candidate → review → activation → history 链，容器随后关闭并保留命名数据卷。
 
 退出条件：Route v2 可由既有人工审查链安全激活，任一 target 漂移都在 Provider 前失败关闭。
 
 ## 批次 D：三个 northbound unary API
 
-状态：等待批次 C。
+状态：下一顺位；尚未开始。
 
 - [ ] 接入 `fallback_mode=disabled | allow_configured`，省略时保持 disabled。
 - [ ] 建立 request-local executor，串联 plan、pricing、逐 attempt quota、bridge 与 history checkpoint。

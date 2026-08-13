@@ -293,9 +293,9 @@ func TestAdminProviderRoutePostgresLifecycleRestartCASAndRuntimeRole(t *testing.
 		t.Fatalf("consume PostgreSQL active snapshot through Gateway: selection=%#v failure=%s", selection, failure)
 	}
 
-	httpFixture := newAdminProviderRouteHTTPFixture()
+	httpFixture := newAdminProviderRouteHTTPV2Fixture()
 	httpFixture.server.adminProviderRouteRepository = newPostgresAdminProviderRouteRepository(reopened)
-	httpDraftInput := adminProviderRouteTestDraftInput(0, "mock-primary")
+	httpDraftInput := adminProviderRouteV2TestDraftInput(0)
 	httpDraft := httpFixture.serve(
 		t,
 		"PUT",
@@ -309,7 +309,9 @@ func TestAdminProviderRoutePostgresLifecycleRestartCASAndRuntimeRole(t *testing.
 		httpFixture.auth,
 		200,
 	)
-	if httpDraft.Draft == nil || httpDraft.Draft.DraftRevision != 1 {
+	if httpDraft.Draft == nil || httpDraft.Draft.DraftRevision != 1 ||
+		httpDraft.Draft.SchemaVersion != adminProviderRouteDraftSchemaVersionV2 ||
+		!adminProviderRouteHTTPAttemptOrder(httpDraft.Draft.ModelRoutes[0], "primary", "secondary") {
 		t.Fatalf("create PostgreSQL draft through Admin HTTP: %#v", httpDraft)
 	}
 	httpFixture.serve(
@@ -347,7 +349,11 @@ func TestAdminProviderRoutePostgresLifecycleRestartCASAndRuntimeRole(t *testing.
 		httpFixture.auth,
 		200,
 	)
-	if httpActivation.Snapshot == nil || httpActivation.Snapshot.Generation != 1 {
+	if httpActivation.Snapshot == nil || httpActivation.Snapshot.Generation != 1 ||
+		httpActivation.Snapshot.SchemaVersion != adminProviderRouteSnapshotSchemaVersionV2 ||
+		!adminProviderRouteHTTPAttemptOrder(
+			httpActivation.Snapshot.Configuration.ModelRoutes[0], "primary", "secondary",
+		) {
 		t.Fatalf("activate PostgreSQL candidate through Admin HTTP: %#v", httpActivation)
 	}
 	httpHistory := httpFixture.serve(

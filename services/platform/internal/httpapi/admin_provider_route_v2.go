@@ -118,7 +118,3 @@ func adminProviderRouteSnapshotSchemaVersionForRoutes(routes []AdminModelRouteDe
 	}
 	return adminProviderRouteSnapshotSchemaVersion
 }
-
-func adminProviderRouteHTTPV1RoutesOnly(routes []AdminModelRouteDefinition) bool {
-	return adminProviderRouteContractVersion(routes) == 1
-}

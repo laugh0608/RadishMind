@@ -2,7 +2,7 @@
 
 更新时间：2026-08-13
 
-状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_b_completed_batch_c_next`
+状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_c_completed_batch_d_next`
 
 ## 功能定位
 
@@ -274,6 +274,8 @@ Pencil 通过前不实现 React；稳定同族组件可直接复用，只有上�
 
 - 扩展既有 Route draft / candidate / review / activation API，不创建第二套 endpoint；
 - 覆盖 strict JSON、权限、inventory 漂移、双标签 CAS、rollback 与 v1 snapshot。
+
+已完成：既有 Admin Route endpoint、verified identity、开发测试态门禁和 `admin_provider_routes:read | draft | review | activate` 权限原样复用，`PUT` 草案现可严格消费 v1 或 v2，不接受混合版本。HTTP 证据覆盖有序双 target、两项 inventory digest、嵌套 strict JSON、能力不兼容、draft / review / generation CAS、v1 → v2 显式 activation 与回滚到 v1；review 不改变 active snapshot，activation 前任一 target 漂移都保持零运行时切换。真实 PostgreSQL 17 也已通过 Route v2 Admin HTTP 完整链与聚合 configured profile；northbound fallback 仍未接入。
 
 ### 批次 D：northbound unary 执行
 

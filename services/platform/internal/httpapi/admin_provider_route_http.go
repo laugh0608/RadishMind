@@ -97,13 +97,6 @@ func (server *Server) handlePutAdminProviderRouteDraft(writer http.ResponseWrite
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, adminProviderRouteJSONRequestBodyOptions()) {
 		return
 	}
-	if !adminProviderRouteHTTPV1RoutesOnly(body.ModelRoutes) {
-		writeAdminProviderRouteResult(
-			writer, trace, ctx, request.PathValue("configuration_id"), "",
-			AdminProviderRouteResult{FailureCode: AdminProviderRouteFailurePayloadInvalid}, http.StatusBadRequest,
-		)
-		return
-	}
 	result := server.adminProviderRouteService().PutDraft(ctx, AdminProviderRouteDraftInput{
 		ConfigurationID: request.PathValue("configuration_id"), ExpectedRevision: body.ExpectedRevision,
 		DisplayName: body.DisplayName, ProviderProfiles: body.ProviderProfiles, ModelRoutes: body.ModelRoutes,
