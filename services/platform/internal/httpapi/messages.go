@@ -76,7 +76,7 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 	}
 	var messageRequest anthropicMessagesRequest
 	if !s.decodeJSONRequestBody(writer, request, trace, &messageRequest, jsonRequestBodyOptions{
-		maxBytes: maxNorthboundJSONRequestBodyBytes,
+		maxBytes: maxNorthboundJSONRequestBodyBytes, rejectDuplicateFields: true,
 	}) {
 		return
 	}
@@ -89,12 +89,11 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 	defer cancel()
 	ctx = withGatewayProviderAttemptMarker(ctx, &trace)
 
-	selection, selectionFailure := s.resolveGatewayNorthboundSelection(
-		ctx, trace.gatewayRequestContext, northboundProtocolMessages,
-		messageRequest.Model, messageRequest.RadishMind,
+	execution, selection, selectionFailure := s.prepareGatewayProviderAttemptExecution(
+		ctx, &trace, northboundProtocolMessages,
+		messageRequest.Model, messageRequest.RadishMind, messageRequest.Stream,
 	)
 	trace.applySelection(selection)
-	s.checkpointGatewayRequestTrace(&trace, messageRequest.Stream)
 	if selectionFailure != "" {
 		s.writePlatformError(writer, trace, selectionFailure, "")
 		return
@@ -119,6 +118,7 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 	}
 
 	if messageRequest.Stream {
+		s.checkpointGatewayRequestTrace(&trace, true)
 		if err := s.streamAnthropicMessagesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(messageRequest.Temperature, s.config.Temperature), &trace); err != nil {
 			s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 			return
@@ -126,6 +126,43 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 		s.finishGatewayRequestTrace(&trace, GatewayRequestStatusSucceeded, http.StatusOK, "", "")
 		return
 	}
+	if validGatewayProviderAttemptPlan(execution.plan) {
+		canonicalRequests := make([][]byte, 0, len(execution.selections))
+		canonicalRequests = append(canonicalRequests, canonicalRequest)
+		for _, targetSelection := range execution.selections[1:] {
+			targetPrompt, targetFields, targetErr := buildMessagesPromptText(messageRequest, targetSelection)
+			if targetErr != nil {
+				s.writePlatformError(writer, trace, "INVALID_MESSAGES_REQUEST", targetErr.Error())
+				return
+			}
+			targetRequest, targetErr := buildNorthboundCanonicalRequest(northboundCanonicalRequestOptions{
+				requestID: trace.requestID, route: "/v1/messages", protocol: northboundProtocolMessages,
+				locale: resolveNorthboundLocale(messageRequest.RadishMind), promptText: targetPrompt,
+				northboundFields: targetFields,
+			})
+			if targetErr != nil {
+				s.writePlatformError(writer, trace, "INVALID_MESSAGES_REQUEST", targetErr.Error())
+				return
+			}
+			canonicalRequests = append(canonicalRequests, targetRequest)
+		}
+		result := s.invokeGatewayProviderAttempts(
+			ctx, &trace, execution, canonicalRequests,
+			effectiveTemperature(messageRequest.Temperature, s.config.Temperature),
+		)
+		if result.FailureCode != "" {
+			s.writePlatformError(writer, trace, result.FailureCode, result.FailureDetail)
+			return
+		}
+		responseDocument, err := buildAnthropicMessagesResponse(result.Envelope, result.Selection.model)
+		if err != nil {
+			s.writePlatformError(writer, trace, "PLATFORM_RESPONSE_INVALID", err.Error())
+			return
+		}
+		writeObservedJSON(writer, http.StatusOK, trace, responseDocument)
+		return
+	}
+	s.checkpointGatewayRequestTrace(&trace, false)
 
 	envelope, err := s.bridge.HandleEnvelope(
 		ctx,

@@ -2,7 +2,7 @@
 
 更新时间：2026-08-13
 
-状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_c_completed_batch_d_next`
+状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_d_completed_batch_e_next`
 
 对应功能文档：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](../features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md)
 
@@ -89,7 +89,7 @@ active Provider Route v2 snapshot
 
 ## 批次 C：Admin API 与激活链
 
-状态：已完成；批次 D 下一顺位。
+状态：已完成；批次 D 已完成。
 
 - [x] 扩展既有 Route draft / candidate / review / activation API，不创建第二套 endpoint 或 permission。
 - [x] 覆盖 strict JSON、target 顺序、能力兼容、inventory digest、draft / review / generation CAS、rollback 与 v1 snapshot。
@@ -101,19 +101,21 @@ active Provider Route v2 snapshot
 
 ## 批次 D：三个 northbound unary API
 
-状态：下一顺位；尚未开始。
+状态：已完成；批次 E 下一顺位。
 
-- [ ] 接入 `fallback_mode=disabled | allow_configured`，省略时保持 disabled。
-- [ ] 建立 request-local executor，串联 plan、pricing、逐 attempt quota、bridge 与 history checkpoint。
-- [ ] 仅接 `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 非流式 API Key 请求。
-- [ ] 返回脱敏 attempt count / fallback used 头与错误 metadata；成功正文保持既有兼容合同。
-- [ ] 覆盖主成功、eligible → fallback success、双失败、second quota denial、取消、history failure、价格更新和零隐式降级。
+- [x] 接入 `fallback_mode=disabled | allow_configured`，省略时保持 disabled。
+- [x] 建立 request-local executor，串联 plan、pricing、逐 attempt quota、bridge 与 history checkpoint。
+- [x] 仅接 `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 非流式 API Key 请求。
+- [x] 返回脱敏 attempt count / fallback used 头与错误 metadata；成功正文保持既有兼容合同。
+- [x] 覆盖主成功、eligible → fallback success、双失败、second quota denial、取消、history failure、价格更新和零隐式降级。
+
+批次证据：新增默认关闭的 `RADISHMIND_GATEWAY_PROVIDER_FALLBACK_DEV`，只有 API Key、Admin snapshot、Request History、quota 与 pricing 五项开发测试态前置同时成立且环境一致时才可启用。三个 unary handler 共享 request-local executor，在首个 Provider side effect 前冻结 Route generation / digest、全部 inventory binding 和逐 target pricing snapshot，并以 `.pa1` / `.pa2` 完成逐 attempt quota 与 Request History v3 checkpoint；只有合法的类型化 eligible Provider failure 能进入备用目标。三协议测试已覆盖主成功、显式降级成功、双失败、第二次 quota 拒绝、取消、history checkpoint / terminal failure、Route / pricing 请求内固定、未知或不可降级失败、stream 拒绝、gate 关闭和 target 漂移，成功正文保持既有协议合同，响应只增加脱敏 attempt 头。Platform 全包、`go vet` 与相关 race 均通过；本批没有 UI、真实 Provider 或 production capability，因此未启动浏览器。
 
 退出条件：备用 Provider 最多调用一次；stream、非 API Key、ineligible、unknown 和 response-started 路径全部保持零 fallback。
 
 ## 批次 E：Pencil、React 与产品连续链
 
-状态：等待批次 D。
+状态：下一顺位；等待 Pencil 代表面与产品连续链。
 
 - [ ] 在既有 S7 Route 与 S5 Playground / Request History 页面族冻结完整 Pencil 代表面并完成人工批准。
 - [ ] 实现主备 Route、请求级允许和连续 attempt evidence strict consumer。

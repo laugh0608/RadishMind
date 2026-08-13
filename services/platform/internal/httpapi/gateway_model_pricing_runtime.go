@@ -72,35 +72,48 @@ func (server *Server) bindGatewayModelPricingSnapshot(trace *requestTrace) {
 	if trace == nil || !server.config.GatewayModelPricingCaptureDevEnabled {
 		return
 	}
-	snapshot := gatewayModelPricingUnavailableSnapshot(GatewayPricingSnapshotUnavailable, "pricing_selection_unavailable")
-	if trace.gatewayRequest != nil && trace.hasSelection &&
-		strings.TrimSpace(trace.selection.provider) != "" && strings.TrimSpace(trace.selection.providerProfile) != "" &&
-		strings.TrimSpace(trace.selection.model) != "" {
-		pricingContext := GatewayModelPricingContext{
-			RequestContext: trace.gatewayRequestContext.RequestContext,
-			TenantRef:      trace.gatewayRequestContext.TenantRef, WorkspaceID: trace.gatewayRequestContext.WorkspaceID,
-			Environment: strings.TrimSpace(server.config.GatewayModelPricingEnvironment),
-			ProviderID:  strings.TrimSpace(trace.selection.provider),
-			ProfileID:   strings.TrimSpace(trace.selection.providerProfile),
-			ModelID:     strings.TrimSpace(trace.selection.model),
-			ActorRef:    trace.gatewayRequestContext.SubjectRef, RequestID: trace.requestID,
-			AuditRef: "audit_" + trace.requestID + "_gateway-pricing-snapshot",
-		}
-		result := newGatewayModelPricingService(server.gatewayModelPricingRepository).ReadCurrent(pricingContext)
-		switch {
-		case result.Policy != nil && result.FailureCode == "":
-			snapshot = gatewayModelPricingSnapshotFromPolicy(*result.Policy)
-		case result.FailureCode == GatewayModelPricingFailurePolicyNotFound:
-			snapshot = gatewayModelPricingUnavailableSnapshot(GatewayPricingSnapshotNotConfigured, "pricing_policy_not_configured")
-		default:
-			snapshot = gatewayModelPricingUnavailableSnapshot(GatewayPricingSnapshotUnavailable, "pricing_policy_unavailable")
-		}
-	}
+	snapshot := server.gatewayModelPricingSnapshotForSelection(
+		trace.gatewayRequestContext, trace.requestID, trace.selection,
+	)
 	trace.gatewayPricingSnapshot = snapshot
 	log.Printf(
 		"radishmind_gateway_pricing_snapshot request_id=%s availability=%s",
 		strings.TrimSpace(trace.requestID), strings.TrimSpace(snapshot.Availability),
 	)
+}
+
+func (server *Server) gatewayModelPricingSnapshotForSelection(
+	requestContext GatewayRequestContext,
+	requestID string,
+	selection northboundSelection,
+) GatewayModelPricingSnapshot {
+	snapshot := gatewayModelPricingUnavailableSnapshot(GatewayPricingSnapshotUnavailable, "pricing_selection_unavailable")
+	if !server.config.GatewayModelPricingCaptureDevEnabled ||
+		strings.TrimSpace(selection.provider) == "" || strings.TrimSpace(selection.providerProfile) == "" ||
+		strings.TrimSpace(selection.model) == "" {
+		return snapshot
+	}
+	pricingContext := GatewayModelPricingContext{
+		RequestContext: requestContext.RequestContext,
+		TenantRef:      requestContext.TenantRef,
+		WorkspaceID:    requestContext.WorkspaceID,
+		Environment:    strings.TrimSpace(server.config.GatewayModelPricingEnvironment),
+		ProviderID:     strings.TrimSpace(selection.provider),
+		ProfileID:      strings.TrimSpace(selection.providerProfile),
+		ModelID:        strings.TrimSpace(selection.model),
+		ActorRef:       requestContext.SubjectRef,
+		RequestID:      strings.TrimSpace(requestID),
+		AuditRef:       "audit_" + strings.TrimSpace(requestID) + "_gateway-pricing-snapshot",
+	}
+	result := newGatewayModelPricingService(server.gatewayModelPricingRepository).ReadCurrent(pricingContext)
+	switch {
+	case result.Policy != nil && result.FailureCode == "":
+		return gatewayModelPricingSnapshotFromPolicy(*result.Policy)
+	case result.FailureCode == GatewayModelPricingFailurePolicyNotFound:
+		return gatewayModelPricingUnavailableSnapshot(GatewayPricingSnapshotNotConfigured, "pricing_policy_not_configured")
+	default:
+		return gatewayModelPricingUnavailableSnapshot(GatewayPricingSnapshotUnavailable, "pricing_policy_unavailable")
+	}
 }
 
 var _ bridgeClient = (*gatewayProviderAttemptBridgeClient)(nil)

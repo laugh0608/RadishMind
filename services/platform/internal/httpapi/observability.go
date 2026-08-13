@@ -34,6 +34,10 @@ type requestTrace struct {
 	gatewayRequest         *GatewayRequestRecord
 	gatewayPricingSnapshot GatewayModelPricingSnapshot
 	providerAttempted      bool
+	providerAttemptHeaders bool
+	providerAttemptCount   int
+	fallbackUsed           bool
+	terminalSelection      *northboundSelection
 }
 
 type platformErrorDefinition struct {
@@ -79,6 +83,10 @@ func writeTraceHeaders(writer http.ResponseWriter, trace requestTrace) {
 	}
 	if trace.route != "" {
 		writer.Header().Set("X-RadishMind-Route", trace.route)
+	}
+	if trace.providerAttemptHeaders {
+		writer.Header().Set("X-RadishMind-Provider-Attempts", fmt.Sprint(trace.providerAttemptCount))
+		writer.Header().Set("X-RadishMind-Fallback-Used", fmt.Sprint(trace.fallbackUsed))
 	}
 }
 
@@ -373,6 +381,36 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryConfiguration,
 			defaultMessage:  "gateway request history dev route is disabled",
 		},
+		"GATEWAY_PROVIDER_FALLBACK_DEV_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "Gateway provider fallback requires explicit development opt-in",
+		},
+		"GATEWAY_PROVIDER_FALLBACK_MODE_INVALID": {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "radishmind.fallback_mode must be disabled or allow_configured",
+		},
+		"GATEWAY_PROVIDER_FALLBACK_STREAM_UNSUPPORTED": {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "configured provider fallback is unavailable for streaming requests",
+		},
+		"GATEWAY_PROVIDER_ATTEMPT_PLAN_UNAVAILABLE": {
+			statusCode:      http.StatusServiceUnavailable,
+			errorType:       "configuration_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "Gateway provider attempt plan is unavailable",
+		},
+		"GATEWAY_PROVIDER_ATTEMPT_HISTORY_UNAVAILABLE": {
+			statusCode:      http.StatusServiceUnavailable,
+			errorType:       "platform_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "Gateway provider attempt history checkpoint is unavailable",
+		},
 		"CONFIG_REQUIRED_FIELDS_MISSING": {
 			statusCode:      http.StatusServiceUnavailable,
 			errorType:       "configuration_error",
@@ -402,6 +440,12 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			errorType:       "platform_error",
 			failureBoundary: errorBoundaryPythonBridge,
 			defaultMessage:  "platform gateway failed",
+		},
+		"GATEWAY_INFERENCE_FAILED": {
+			statusCode:      http.StatusBadGateway,
+			errorType:       "provider_error",
+			failureBoundary: errorBoundarySouthboundProvider,
+			defaultMessage:  "provider inference failed",
 		},
 		bridge.ErrorCodeWorkerQueueFull: {
 			statusCode:      http.StatusServiceUnavailable,
@@ -528,6 +572,16 @@ func buildTraceErrorMetadata(trace requestTrace) map[string]any {
 	if trace.hasSelection {
 		for key, value := range buildNorthboundSelectionMetadata(trace.selection) {
 			metadata[key] = value
+		}
+	}
+	if trace.providerAttemptHeaders {
+		metadata["provider_attempt_count"] = trace.providerAttemptCount
+		metadata["fallback_used"] = trace.fallbackUsed
+		if trace.terminalSelection != nil {
+			metadata["terminal_provider"] = strings.TrimSpace(trace.terminalSelection.provider)
+			metadata["terminal_profile"] = strings.TrimSpace(trace.terminalSelection.providerProfile)
+			metadata["route_generation"] = trace.terminalSelection.routeGeneration
+			metadata["route_snapshot_digest"] = strings.TrimSpace(trace.terminalSelection.routeSnapshotDigest)
 		}
 	}
 	return metadata

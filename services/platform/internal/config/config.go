@@ -153,6 +153,7 @@ type Config struct {
 	GatewayProviderRouteSource               string
 	GatewayProviderRouteEnvironment          string
 	GatewayProviderRouteConfigurationID      string
+	GatewayProviderFallbackDevEnabled        bool
 	WorkflowDefinitionReleaseDevEnabled      bool
 	ApplicationSessionDevEnabled             bool
 	WorkflowExecutorDevEnabled               bool
@@ -253,6 +254,7 @@ type ConfigSummary struct {
 	GatewayProviderRouteSource               string            `json:"gateway_provider_route_source"`
 	GatewayProviderRouteEnvironment          string            `json:"gateway_provider_route_environment,omitempty"`
 	GatewayProviderRouteConfigurationID      string            `json:"gateway_provider_route_configuration_id,omitempty"`
+	GatewayProviderFallbackDevEnabled        bool              `json:"gateway_provider_fallback_dev_enabled"`
 	WorkflowDefinitionReleaseDevEnabled      bool              `json:"workflow_definition_release_dev_enabled"`
 	ApplicationSessionDevEnabled             bool              `json:"application_session_dev_enabled"`
 	WorkflowExecutorDevEnabled               bool              `json:"workflow_executor_dev_enabled"`
@@ -1032,6 +1034,14 @@ func applyEnvOverrides(cfg *Config) error {
 	if value, ok := stringEnv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_CONFIGURATION_ID"); ok {
 		applyStringValue(&cfg.GatewayProviderRouteConfigurationID, value, cfg.FieldSources, "gateway_provider_route_configuration_id", configSourceEnv)
 	}
+	if value, ok := stringEnv("RADISHMIND_GATEWAY_PROVIDER_FALLBACK_DEV"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_GATEWAY_PROVIDER_FALLBACK_DEV", value)
+		if err != nil {
+			return err
+		}
+		cfg.GatewayProviderFallbackDevEnabled = parsed
+		cfg.FieldSources["gateway_provider_fallback_dev"] = configSourceEnv
+	}
 	if value, ok := stringEnv("RADISHMIND_WORKFLOW_DEFINITION_RELEASE_DEV"); ok {
 		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_DEFINITION_RELEASE_DEV", value)
 		if err != nil {
@@ -1625,6 +1635,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		GatewayProviderRouteSource:               gatewayProviderRouteSource,
 		GatewayProviderRouteEnvironment:          strings.TrimSpace(cfg.GatewayProviderRouteEnvironment),
 		GatewayProviderRouteConfigurationID:      strings.TrimSpace(cfg.GatewayProviderRouteConfigurationID),
+		GatewayProviderFallbackDevEnabled:        cfg.GatewayProviderFallbackDevEnabled,
 		WorkflowDefinitionReleaseDevEnabled:      cfg.WorkflowDefinitionReleaseDevEnabled,
 		ApplicationSessionDevEnabled:             cfg.ApplicationSessionDevEnabled,
 		WorkflowExecutorDevEnabled:               cfg.WorkflowExecutorDevEnabled,
@@ -2385,6 +2396,19 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 		}
 	default:
 		return fmt.Errorf("Gateway provider route source must be static_config or admin_snapshot_dev_test")
+	}
+	if cfg.GatewayProviderFallbackDevEnabled {
+		if EffectiveGatewayAuthMode(cfg) != "api_key_dev_test" ||
+			EffectiveGatewayProviderRouteSource(cfg) != "admin_snapshot_dev_test" ||
+			!cfg.GatewayRequestHistoryDevEnabled || !cfg.GatewayRequestQuotaEnforcementDevEnabled ||
+			!cfg.GatewayModelPricingCaptureDevEnabled {
+			return fmt.Errorf("Gateway provider fallback dev requires API key auth, Admin snapshot routing, request history, quota enforcement, and pricing capture")
+		}
+		routeEnvironment := strings.TrimSpace(cfg.GatewayProviderRouteEnvironment)
+		if routeEnvironment != strings.TrimSpace(cfg.GatewayRequestQuotaEnvironment) ||
+			routeEnvironment != strings.TrimSpace(cfg.GatewayModelPricingEnvironment) {
+			return fmt.Errorf("Gateway provider fallback dev requires matching route, quota, and pricing environments")
+		}
 	}
 	if cfg.WorkflowDiagnosticsDevEnabled {
 		if !cfg.WorkflowExecutorDevEnabled {

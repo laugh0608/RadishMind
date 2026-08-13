@@ -144,6 +144,9 @@ func (s *Server) finishGatewayRequestTrace(
 		return
 	}
 	record := trace.gatewayRequest
+	if record.SchemaVersion == gatewayRequestRecordSchemaVersionV3 {
+		return
+	}
 	applyGatewayRequestSelection(record, *trace)
 	record.Status = status
 	record.CompletedAt = time.Now().UTC().Format(time.RFC3339Nano)

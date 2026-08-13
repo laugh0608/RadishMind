@@ -1731,6 +1731,41 @@ func TestGatewayProviderRouteSourceConfiguration(t *testing.T) {
 	}
 }
 
+func TestGatewayProviderFallbackDevConfiguration(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_GATEWAY_AUTH_MODE", "api_key_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_SOURCE", "admin_snapshot_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_ENVIRONMENT", "test")
+	t.Setenv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_CONFIGURATION_ID", "gateway-default")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_ENFORCEMENT_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_ENVIRONMENT", "test")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_CAPTURE_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_ENVIRONMENT", "test")
+	t.Setenv("RADISHMIND_GATEWAY_PROVIDER_FALLBACK_DEV", "1")
+
+	cfg, err := LoadFromEnv()
+	if err != nil || !cfg.GatewayProviderFallbackDevEnabled || !cfg.SanitizedSummary().GatewayProviderFallbackDevEnabled {
+		t.Fatalf("load Gateway provider fallback dev configuration: cfg=%#v err=%v", cfg, err)
+	}
+
+	cfg.GatewayModelPricingCaptureDevEnabled = false
+	cfg.GatewayModelPricingEnvironment = ""
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "Gateway provider fallback dev requires API key auth, Admin snapshot routing, request history, quota enforcement, and pricing capture" {
+		t.Fatalf("fallback accepted incomplete prerequisites: %v", err)
+	}
+	cfg.GatewayModelPricingCaptureDevEnabled = true
+	cfg.GatewayModelPricingEnvironment = "development"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "Gateway provider fallback dev requires matching route, quota, and pricing environments" {
+		t.Fatalf("fallback accepted mismatched environments: %v", err)
+	}
+}
+
 func clearPlatformEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{
@@ -1844,6 +1879,7 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_GATEWAY_PROVIDER_ROUTE_SOURCE",
 		"RADISHMIND_GATEWAY_PROVIDER_ROUTE_ENVIRONMENT",
 		"RADISHMIND_GATEWAY_PROVIDER_ROUTE_CONFIGURATION_ID",
+		"RADISHMIND_GATEWAY_PROVIDER_FALLBACK_DEV",
 		"RADISHMIND_WORKFLOW_RUN_STORE",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",

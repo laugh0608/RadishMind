@@ -113,7 +113,34 @@ func gatewayRequestQuotaBindingFromContext(ctx context.Context) (gatewayRequestQ
 		return gatewayRequestQuotaBinding{}, false
 	}
 	binding, ok := ctx.Value(gatewayRequestQuotaBindingKey{}).(gatewayRequestQuotaBinding)
-	return binding, ok
+	return binding, ok && strings.TrimSpace(binding.APIKeyID) != ""
+}
+
+func withoutGatewayRequestQuotaBinding(ctx context.Context) context.Context {
+	return context.WithValue(ctx, gatewayRequestQuotaBindingKey{}, gatewayRequestQuotaBinding{})
+}
+
+func (server *Server) admitGatewayProviderAttempt(
+	ctx context.Context,
+	attemptID string,
+) (GatewayRequestQuotaAdmissionDecision, string) {
+	binding, found := gatewayRequestQuotaBindingFromContext(ctx)
+	if !found || server.gatewayRequestQuotaRepository == nil {
+		return GatewayRequestQuotaAdmissionDecision{}, GatewayRequestQuotaFailureStoreUnavailable
+	}
+	attemptID = strings.TrimSpace(attemptID)
+	binding.QuotaContext.RequestContext = ctx
+	binding.QuotaContext.RequestID = attemptID
+	decision, err := server.gatewayRequestQuotaRepository.AdmitProviderAttempt(
+		binding.QuotaContext,
+		GatewayRequestQuotaAdmissionInput{
+			APIKeyID: binding.APIKeyID, RequestID: attemptID, Route: binding.Route, AdmittedAt: time.Now().UTC(),
+		},
+	)
+	if err != nil {
+		return GatewayRequestQuotaAdmissionDecision{}, gatewayRequestQuotaFailureFromRepositoryError(err)
+	}
+	return decision, ""
 }
 
 func gatewayRequestQuotaFailureFromRepositoryError(err error) string {

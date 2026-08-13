@@ -2,7 +2,7 @@
 
 更新时间：2026-08-13
 
-状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_c_completed_batch_d_next`
+状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_d_completed_batch_e_next`
 
 ## 功能定位
 
@@ -283,6 +283,8 @@ Pencil 通过前不实现 React；稳定同族组件可直接复用，只有上�
 - 接三个标准 API Key unary route；保持 stream、Application RAG、Prompt、Agent、Workflow 与 Campaign 单 attempt；
 - 覆盖取消、quota second-attempt rejection、history failure、价格更新、Route generation 漂移和零隐式降级。
 
+已完成：`/v1/chat/completions`、`/v1/responses` 与 `/v1/messages` 的非流式 API Key 路径已共享同一个 request-local executor。调用者省略或传入 `disabled` 时保持单 attempt；只有独立开发测试 gate、Route v2 `sequential_fallback` 和显式 `allow_configured` 同时成立，且主目标返回完整、合法、未开始响应的 eligible 类型化失败时，才会执行一次不同 Profile 的备用 target。executor 在首次 Provider side effect 前固定 active Route、全部 inventory binding 和逐 target pricing snapshot，并以 `.pa1` / `.pa2` 串联 quota admission、Request History v3 checkpoint 与 bridge。第二次 quota 拒绝、取消、unknown / ineligible failure、history checkpoint 失败、stream、gate 关闭和 target 漂移均保持零备用 Provider 调用；备用成功后的 terminal history 写失败不改写 Provider 成功响应，也不伪造 durable success。成功正文继续使用既有三协议合同，只增加脱敏 attempt 头；真实 Provider、非 API Key、stream fallback、其它应用运行链和 production capability 仍关闭。
+
 ### 批次 E：Pencil、React 与产品连续链
 
 - 先完成人工设计复核，再实现 Route、Playground 与 Request History strict consumer；
@@ -326,4 +328,4 @@ Pencil 通过前不实现 React；稳定同族组件可直接复用，只有上�
 3. 只覆盖 API Key 认证的三个非流式 northbound API；
 4. Request History v3、逐 attempt quota 与逐 attempt pricing 是实现前置，不以单 selection 字段勉强承载多 attempt。
 
-设计已于 2026-08-13 获得人工批准，唯一高风险任务卡已经建立。批次 A 已完成 Route v2、可序列化冻结 attempt plan、Python adapter → bridge 类型化失败、Request History v3 memory owner、原子 checkpoint 与并发单赢家；下一步进入批次 B 的 SQLite / PostgreSQL 同构持久化。HTTP、Web、真实 Provider 调用与 production capability 仍未打开。
+设计已于 2026-08-13 获得人工批准，唯一高风险任务卡已经建立。批次 A 至 D 已完成领域合同、三存储同构持久化、既有 Admin 人工激活链与三个 API Key unary API 的显式受控 fallback。下一步进入批次 E：先冻结并人工批准既有 S7 Route 与 S5 Playground / Request History 的完整 Pencil 代表面，再实现 React strict consumer 和 memory / SQLite / PostgreSQL 产品连续链。stream、非 API Key、真实 Provider 调用、其它应用运行链与 production capability 仍未打开。

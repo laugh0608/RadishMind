@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -26,14 +27,27 @@ type chatCompletionMessage struct {
 }
 
 type chatCompletionExtension struct {
-	Locale          string `json:"locale,omitempty"`
-	ConversationID  string `json:"conversation_id,omitempty"`
-	TurnID          string `json:"turn_id,omitempty"`
-	ParentTurnID    string `json:"parent_turn_id,omitempty"`
-	HistoryPolicy   string `json:"history_policy,omitempty"`
-	HistoryWindow   int    `json:"history_window,omitempty"`
-	Provider        string `json:"provider,omitempty"`
-	ProviderProfile string `json:"provider_profile,omitempty"`
+	Locale          string                      `json:"locale,omitempty"`
+	ConversationID  string                      `json:"conversation_id,omitempty"`
+	TurnID          string                      `json:"turn_id,omitempty"`
+	ParentTurnID    string                      `json:"parent_turn_id,omitempty"`
+	HistoryPolicy   string                      `json:"history_policy,omitempty"`
+	HistoryWindow   int                         `json:"history_window,omitempty"`
+	Provider        string                      `json:"provider,omitempty"`
+	ProviderProfile string                      `json:"provider_profile,omitempty"`
+	FallbackMode    GatewayProviderFallbackMode `json:"fallback_mode,omitempty"`
+}
+
+func (extension *chatCompletionExtension) UnmarshalJSON(payload []byte) error {
+	type extensionDocument chatCompletionExtension
+	var document extensionDocument
+	decoder := json.NewDecoder(bytes.NewReader(payload))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&document); err != nil {
+		return err
+	}
+	*extension = chatCompletionExtension(document)
+	return nil
 }
 
 type openAIChatCompletionResponse struct {
@@ -89,7 +103,7 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 	}
 	var chatRequest chatCompletionRequest
 	if !s.decodeJSONRequestBody(writer, request, trace, &chatRequest, jsonRequestBodyOptions{
-		maxBytes: maxNorthboundJSONRequestBodyBytes,
+		maxBytes: maxNorthboundJSONRequestBodyBytes, rejectDuplicateFields: true,
 	}) {
 		return
 	}
@@ -108,30 +122,59 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 		locale = strings.TrimSpace(chatRequest.RadishMind.Locale)
 	}
 
-	selection, selectionFailure := s.resolveGatewayNorthboundSelection(
-		ctx, trace.gatewayRequestContext, northboundProtocolChatCompletions,
-		chatRequest.Model, chatRequest.RadishMind,
+	execution, selection, selectionFailure := s.prepareGatewayProviderAttemptExecution(
+		ctx, &trace, northboundProtocolChatCompletions,
+		chatRequest.Model, chatRequest.RadishMind, chatRequest.Stream,
 	)
 	trace.applySelection(selection)
-	s.checkpointGatewayRequestTrace(&trace, chatRequest.Stream)
 	if selectionFailure != "" {
 		s.writePlatformError(writer, trace, selectionFailure, "")
 		return
 	}
 	temperature := effectiveTemperature(chatRequest.Temperature, s.config.Temperature)
 
-	canonicalRequest, err := buildChatCanonicalRequest(chatRequest, locale, selection, trace.requestID)
-	if err != nil {
-		s.writePlatformError(writer, trace, "INVALID_CHAT_MESSAGES", err.Error())
-		return
-	}
-
 	if chatRequest.Stream {
+		s.checkpointGatewayRequestTrace(&trace, true)
+		canonicalRequest, err := buildChatCanonicalRequest(chatRequest, locale, selection, trace.requestID)
+		if err != nil {
+			s.writePlatformError(writer, trace, "INVALID_CHAT_MESSAGES", err.Error())
+			return
+		}
 		if err := s.streamOpenAIChatCompletionResponse(ctx, writer, canonicalRequest, selection, temperature, &trace); err != nil {
 			s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 			return
 		}
 		s.finishGatewayRequestTrace(&trace, GatewayRequestStatusSucceeded, http.StatusOK, "", "")
+		return
+	}
+	if validGatewayProviderAttemptPlan(execution.plan) {
+		canonicalRequests := make([][]byte, 0, len(execution.selections))
+		for _, targetSelection := range execution.selections {
+			canonicalRequest, err := buildChatCanonicalRequest(chatRequest, locale, targetSelection, trace.requestID)
+			if err != nil {
+				s.writePlatformError(writer, trace, "INVALID_CHAT_MESSAGES", err.Error())
+				return
+			}
+			canonicalRequests = append(canonicalRequests, canonicalRequest)
+		}
+		result := s.invokeGatewayProviderAttempts(ctx, &trace, execution, canonicalRequests, temperature)
+		if result.FailureCode != "" {
+			s.writePlatformError(writer, trace, result.FailureCode, result.FailureDetail)
+			return
+		}
+		openAIResponse, err := buildOpenAIChatCompletionResponse(result.Envelope, result.Selection.model)
+		if err != nil {
+			s.writePlatformError(writer, trace, "PLATFORM_RESPONSE_INVALID", err.Error())
+			return
+		}
+		writeObservedJSON(writer, http.StatusOK, trace, openAIResponse)
+		return
+	}
+
+	s.checkpointGatewayRequestTrace(&trace, false)
+	canonicalRequest, err := buildChatCanonicalRequest(chatRequest, locale, selection, trace.requestID)
+	if err != nil {
+		s.writePlatformError(writer, trace, "INVALID_CHAT_MESSAGES", err.Error())
 		return
 	}
 

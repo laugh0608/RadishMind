@@ -85,7 +85,7 @@ func newGatewayProviderAttemptHistoryRecord(
 	base GatewayRequestRecord,
 	plan GatewayProviderAttemptPlan,
 ) (GatewayRequestRecord, error) {
-	if base.Status != GatewayRequestStatusStarted || base.RecordVersion != 0 ||
+	if base.Status != GatewayRequestStatusStarted ||
 		!validGatewayProviderAttemptPlan(plan) || base.RequestID != plan.RootRequestID ||
 		base.Route != plan.Route || base.Protocol != plan.Protocol || len(plan.Targets) < 1 {
 		return GatewayRequestRecord{}, errGatewayRequestStoreContract
@@ -232,28 +232,123 @@ func (service gatewayProviderAttemptHistoryService) RejectFallbackQuota(
 	quotaRejectionCode string,
 	now time.Time,
 ) (GatewayRequestRecord, error) {
+	return service.RejectAttemptQuota(requestContext, requestID, target, quotaRejectionCode, now)
+}
+
+func (service gatewayProviderAttemptHistoryService) RejectAttemptQuota(
+	requestContext GatewayRequestContext,
+	requestID string,
+	target GatewayProviderAttemptPlanTarget,
+	quotaRejectionCode string,
+	now time.Time,
+) (GatewayRequestRecord, error) {
 	record, found, err := service.store.ReadRequest(requestContext, strings.TrimSpace(requestID))
 	if err != nil || !found {
 		return GatewayRequestRecord{}, errGatewayRequestStoreUnavailable
 	}
 	quotaRejectionCode = strings.TrimSpace(quotaRejectionCode)
+	expectedPhase := GatewayProviderAttemptPhaseNotStarted
+	if target.Ordinal == 2 {
+		expectedPhase = GatewayProviderAttemptPhaseFallbackPending
+	}
 	if record.SchemaVersion != gatewayRequestRecordSchemaVersionV3 || record.ProviderAttemptPlan == nil ||
-		record.ProviderAttemptPhase != GatewayProviderAttemptPhaseFallbackPending || target.Ordinal != 2 ||
-		len(record.ProviderAttemptPlan.Targets) != 2 ||
-		!reflect.DeepEqual(target, record.ProviderAttemptPlan.Targets[1]) ||
+		record.ProviderAttemptPhase != expectedPhase || target.Ordinal < 1 || target.Ordinal > 2 ||
+		target.Ordinal > len(record.ProviderAttemptPlan.Targets) ||
+		!reflect.DeepEqual(target, record.ProviderAttemptPlan.Targets[target.Ordinal-1]) ||
 		!validGatewayRequestReference(quotaRejectionCode, 160) {
 		return GatewayRequestRecord{}, errGatewayRequestStoreContract
 	}
 	timestamp := now.UTC().Format(time.RFC3339Nano)
 	record.ProviderAttempts = append(record.ProviderAttempts, GatewayProviderAttemptRecord{
 		SchemaVersion: gatewayProviderAttemptRecordSchemaVersion,
-		AttemptID:     target.AttemptID, Ordinal: 2, Status: GatewayProviderAttemptStatusQuotaRejected,
+		AttemptID:     target.AttemptID, Ordinal: target.Ordinal, Status: GatewayProviderAttemptStatusQuotaRejected,
 		ConfiguredProfileID: target.ProviderProfileID, ProviderID: target.ProviderID,
 		RuntimeProfile: target.RuntimeProfile, SelectedModel: target.SelectedModel, UpstreamModel: target.UpstreamModel,
 		RouteGeneration: record.ProviderRouteGeneration, RouteSnapshotDigest: record.ProviderRouteSnapshotDigest,
 		InventoryDigest: target.InventoryDigest, QuotaRejectionCode: quotaRejectionCode,
 		StartedAt: timestamp, CompletedAt: timestamp,
 		FailureBoundary: errorBoundaryQuotaAdmission,
+		Usage:           GatewayRequestUsage{Availability: GatewayRequestUsageNotApplicable},
+		CostEstimate:    gatewayRequestCostUnavailable(GatewayRequestCostNotApplicable, "provider_not_attempted"),
+	})
+	record.ProviderAttemptCount = len(record.ProviderAttempts)
+	record.ProviderAttemptPhase = GatewayProviderAttemptPhaseTerminalPending
+	record.ProviderAttemptCostSummary = gatewayProviderAttemptCostSummary(record.ProviderAttempts)
+	if err := service.store.UpdateRequest(requestContext, &record); err != nil {
+		return GatewayRequestRecord{}, err
+	}
+	return cloneGatewayRequestRecord(record), nil
+}
+
+func (service gatewayProviderAttemptHistoryService) InterruptAttempt(
+	requestContext GatewayRequestContext,
+	requestID string,
+	attemptID string,
+	usage GatewayRequestUsage,
+	cost GatewayRequestCostEstimate,
+	failureBoundary string,
+	now time.Time,
+) (GatewayRequestRecord, error) {
+	record, found, err := service.store.ReadRequest(requestContext, strings.TrimSpace(requestID))
+	if err != nil || !found {
+		return GatewayRequestRecord{}, errGatewayRequestStoreUnavailable
+	}
+	if record.SchemaVersion != gatewayRequestRecordSchemaVersionV3 || len(record.ProviderAttempts) < 1 ||
+		!validGatewayRequestFailureBoundary(strings.TrimSpace(failureBoundary)) ||
+		failureBoundary == errorBoundaryQuotaAdmission || !validGatewayRequestUsage(usage) ||
+		!validGatewayRequestCostEstimate(cost) {
+		return GatewayRequestRecord{}, errGatewayRequestStoreContract
+	}
+	index := len(record.ProviderAttempts) - 1
+	attempt := record.ProviderAttempts[index]
+	if attempt.AttemptID != strings.TrimSpace(attemptID) || attempt.Status != GatewayProviderAttemptStatusRunning {
+		return GatewayRequestRecord{}, errGatewayRequestStoreContract
+	}
+	completedAt := now.UTC()
+	startedAt, parseErr := time.Parse(time.RFC3339Nano, attempt.StartedAt)
+	if parseErr != nil || completedAt.Before(startedAt) {
+		return GatewayRequestRecord{}, errGatewayRequestStoreContract
+	}
+	attempt.Status = GatewayProviderAttemptStatusOutcomeUnknown
+	attempt.CompletedAt = completedAt.Format(time.RFC3339Nano)
+	attempt.DurationMS = completedAt.Sub(startedAt).Milliseconds()
+	attempt.Usage = usage
+	attempt.CostEstimate = cloneGatewayRequestCostEstimate(cost)
+	attempt.FailureBoundary = strings.TrimSpace(failureBoundary)
+	record.ProviderAttempts[index] = attempt
+	record.ProviderAttemptPhase = GatewayProviderAttemptPhaseTerminalPending
+	record.ProviderAttemptCostSummary = gatewayProviderAttemptCostSummary(record.ProviderAttempts)
+	if err := service.store.UpdateRequest(requestContext, &record); err != nil {
+		return GatewayRequestRecord{}, err
+	}
+	return cloneGatewayRequestRecord(record), nil
+}
+
+func (service gatewayProviderAttemptHistoryService) CancelPendingFallback(
+	requestContext GatewayRequestContext,
+	requestID string,
+	target GatewayProviderAttemptPlanTarget,
+	now time.Time,
+) (GatewayRequestRecord, error) {
+	record, found, err := service.store.ReadRequest(requestContext, strings.TrimSpace(requestID))
+	if err != nil || !found {
+		return GatewayRequestRecord{}, errGatewayRequestStoreUnavailable
+	}
+	if record.SchemaVersion != gatewayRequestRecordSchemaVersionV3 || record.ProviderAttemptPlan == nil ||
+		record.ProviderAttemptPhase != GatewayProviderAttemptPhaseFallbackPending || target.Ordinal != 2 ||
+		len(record.ProviderAttemptPlan.Targets) != 2 ||
+		!reflect.DeepEqual(target, record.ProviderAttemptPlan.Targets[1]) {
+		return GatewayRequestRecord{}, errGatewayRequestStoreContract
+	}
+	timestamp := now.UTC().Format(time.RFC3339Nano)
+	record.ProviderAttempts = append(record.ProviderAttempts, GatewayProviderAttemptRecord{
+		SchemaVersion: gatewayProviderAttemptRecordSchemaVersion,
+		AttemptID:     target.AttemptID, Ordinal: 2, Status: GatewayProviderAttemptStatusFailed,
+		ConfiguredProfileID: target.ProviderProfileID, ProviderID: target.ProviderID,
+		RuntimeProfile: target.RuntimeProfile, SelectedModel: target.SelectedModel, UpstreamModel: target.UpstreamModel,
+		RouteGeneration: record.ProviderRouteGeneration, RouteSnapshotDigest: record.ProviderRouteSnapshotDigest,
+		InventoryDigest: target.InventoryDigest, StartedAt: timestamp, CompletedAt: timestamp,
+		FailureBoundary: errorBoundaryPythonBridge,
 		Usage:           GatewayRequestUsage{Availability: GatewayRequestUsageNotApplicable},
 		CostEstimate:    gatewayRequestCostUnavailable(GatewayRequestCostNotApplicable, "provider_not_attempted"),
 	})
@@ -409,22 +504,39 @@ func validGatewayProviderAttemptRecord(root GatewayRequestRecord, attempt Gatewa
 		return validGatewayRequestReference(attempt.QuotaAdmissionID, 160) && attempt.QuotaRejectionCode == "" &&
 			attempt.Failure == nil && attempt.FailureBoundary == ""
 	case GatewayProviderAttemptStatusFailed, GatewayProviderAttemptStatusOutcomeUnknown:
-		if !validGatewayRequestReference(attempt.QuotaAdmissionID, 160) || attempt.QuotaRejectionCode != "" ||
-			attempt.Failure == nil || !bridge.ValidProviderAttemptFailure(*attempt.Failure) ||
-			attempt.FailureBoundary != errorBoundarySouthboundProvider {
+		if attempt.QuotaRejectionCode != "" {
+			return false
+		}
+		if attempt.Failure == nil {
+			if attempt.Status == GatewayProviderAttemptStatusFailed && attempt.Ordinal == 2 &&
+				attempt.QuotaAdmissionID == "" && attempt.FailureBoundary == errorBoundaryPythonBridge {
+				return attempt.Usage.Availability == GatewayRequestUsageNotApplicable &&
+					attempt.CostEstimate.Availability == GatewayRequestCostNotApplicable
+			}
+			return validGatewayRequestReference(attempt.QuotaAdmissionID, 160) &&
+				attempt.Status == GatewayProviderAttemptStatusOutcomeUnknown &&
+				attempt.FailureBoundary != "" && attempt.FailureBoundary != errorBoundaryQuotaAdmission
+		}
+		if !validGatewayRequestReference(attempt.QuotaAdmissionID, 160) ||
+			!bridge.ValidProviderAttemptFailure(*attempt.Failure) || attempt.FailureBoundary != errorBoundarySouthboundProvider {
 			return false
 		}
 		return (attempt.Status == GatewayProviderAttemptStatusOutcomeUnknown) ==
 			(attempt.Failure.Outcome == bridge.ProviderAttemptUnknown)
 	case GatewayProviderAttemptStatusQuotaRejected:
 		return attempt.QuotaAdmissionID == "" && validGatewayRequestReference(attempt.QuotaRejectionCode, 160) &&
-			attempt.Failure == nil && attempt.FailureBoundary == errorBoundaryQuotaAdmission && attempt.Ordinal == 2
+			attempt.Failure == nil && attempt.FailureBoundary == errorBoundaryQuotaAdmission
 	default:
 		return false
 	}
 }
 
 func validGatewayProviderAttemptRecordTransition(current, next GatewayRequestRecord) bool {
+	if current.SchemaVersion == gatewayRequestRecordSchemaVersionV2 && next.SchemaVersion == gatewayRequestRecordSchemaVersionV3 &&
+		next.ProviderAttemptPlan != nil {
+		expected, err := newGatewayProviderAttemptHistoryRecord(current, *next.ProviderAttemptPlan)
+		return err == nil && reflect.DeepEqual(expected, next)
+	}
 	if current.SchemaVersion != gatewayRequestRecordSchemaVersionV3 || next.SchemaVersion != gatewayRequestRecordSchemaVersionV3 {
 		return current.SchemaVersion == next.SchemaVersion
 	}
@@ -441,7 +553,7 @@ func validGatewayProviderAttemptRecordTransition(current, next GatewayRequestRec
 		}
 	}
 	allowed := map[GatewayProviderAttemptPhase][]GatewayProviderAttemptPhase{
-		GatewayProviderAttemptPhaseNotStarted:      {GatewayProviderAttemptPhasePrimaryRunning},
+		GatewayProviderAttemptPhaseNotStarted:      {GatewayProviderAttemptPhasePrimaryRunning, GatewayProviderAttemptPhaseTerminalPending},
 		GatewayProviderAttemptPhasePrimaryRunning:  {GatewayProviderAttemptPhaseFallbackPending, GatewayProviderAttemptPhaseTerminalPending},
 		GatewayProviderAttemptPhaseFallbackPending: {GatewayProviderAttemptPhaseFallbackRunning, GatewayProviderAttemptPhaseTerminalPending},
 		GatewayProviderAttemptPhaseFallbackRunning: {GatewayProviderAttemptPhaseTerminalPending},
